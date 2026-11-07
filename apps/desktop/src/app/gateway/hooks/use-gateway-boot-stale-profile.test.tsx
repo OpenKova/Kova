@@ -59,7 +59,7 @@ afterEach(() => {
   $connection.set(null)
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 it.each(['default', 'deleted-workspace'])(
@@ -127,7 +127,7 @@ it.each(['default', 'deleted-workspace'])(
 
     const unsubscribe = () => () => undefined
 
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = {
       api,
       getConnection: async () => connection,
       getGatewayWsUrl: async () => connection.wsUrl,

@@ -38,7 +38,7 @@ vi.mock('@/kova', async importOriginal => ({
   }
 }))
 
-type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; hermesDesktop?: Window['hermesDesktop'] }
+type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; kovaDesktop?: Window['kovaDesktop'] }
 
 const win = window as unknown as ServedWindow
 
@@ -126,7 +126,7 @@ describe('a Webapp tab resuming a row its sidebar listed', () => {
     _resetSessionOwnerHintsForTests()
     delete win.__KOVA_DASHBOARD_PROFILE__
     clearWebappSession()
-    Reflect.deleteProperty(win, 'hermesDesktop')
+    Reflect.deleteProperty(win, 'kovaDesktop')
     document.documentElement.removeAttribute('data-hermes-desktop-host')
     sockets.length = 0
     vi.unstubAllGlobals()

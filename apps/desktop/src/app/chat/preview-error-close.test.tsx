@@ -24,7 +24,7 @@ const target = {
   url: 'file:///tmp/gone/report.csv'
 }
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
 beforeAll(() => {
   watchPreviewTiles()
@@ -36,7 +36,7 @@ beforeEach(() => {
     readFileText: vi.fn(async () => {
       throw new Error('Text preview failed: file does not exist.')
     })
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) =>
     window.setTimeout(() => callback(Date.now()), 0)
   )

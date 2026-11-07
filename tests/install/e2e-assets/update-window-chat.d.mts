@@ -3,7 +3,7 @@ import type { ElectronApplication, Page } from '../../../tests-js/scripts/e2e-dr
 
 export interface UpdateWindowIdentity {
   hermesRoot: string
-  hermesHome?: string
+  kovaHome?: string
 }
 
 export interface UpdateWindowChatOptions {

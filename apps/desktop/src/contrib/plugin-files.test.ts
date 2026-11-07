@@ -16,12 +16,12 @@ const door = {
 }
 
 beforeEach(() => {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { pluginFiles: door }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { pluginFiles: door }
 })
 
 afterEach(() => {
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('ctx.files', () => {
@@ -47,7 +47,7 @@ describe('ctx.files', () => {
   })
 
   it('answers unavailable on a shell without the door instead of throwing', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     const files = createPluginContext('plexus').files
 
     expect(await files.requestFolder()).toMatchObject({ ok: false, error: 'unavailable' })

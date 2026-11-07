@@ -78,7 +78,7 @@ test.runIf(process.platform === 'linux')(
     const home = await mkdtemp(path.join(os.tmpdir(), 'hermes-v2-shapes-'))
     const marker = path.join(home, '.kova-update-in-progress')
     const ssh = shellSshDouble()
-    const target = { ssh, platform: 'Linux', hermesPath: '/opt/hermes/hermes', hermesHome: home }
+    const target = { ssh, platform: 'Linux', kovaPath: '/opt/hermes/hermes', kovaHome: home }
     const correlation = randomUUID()
 
     const observe = async () =>

@@ -134,7 +134,7 @@ afterEach(() => {
   $connection.set(null)
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 // T19 (#134889): the first secondary-profile click right after boot lands
@@ -146,7 +146,7 @@ it('a profile picked while boot is still connecting survives the primary adoptio
   desktop.getConnection.mockImplementation(async (profile?: null | string) =>
     (profile ?? '').trim() === 'coder' ? coderConn : primaryLookup.promise
   )
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = desktop
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = desktop
   const scopes: string[] = []
   render(<Harness refreshSessions={async () => void scopes.push($activeGatewayProfile.get())} />)
   await act(async () => {

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { hudResizeBounds, hudResizeDirections, useHudResizeHandle } from './resize-handle'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 const setBounds = vi.fn()
 
@@ -27,7 +27,7 @@ function resizeTarget(): HTMLElement {
 beforeEach(() => {
   setBounds.mockClear()
   setWindowBounds(100, 200, 620, 320)
-  desktopWindow.kovaDesktop = { hud: { setBounds } } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { hud: { setBounds } } as unknown as Window['kovaDesktop']
 })
 
 afterEach(() => {

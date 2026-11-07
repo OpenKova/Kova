@@ -59,7 +59,7 @@ function setup(stalled: 'begin' | 'capture' | 'cleanup' | 'read' | 'viewport') {
     },
     executePreviewGuestScript: async (_token: number, code: string) => execute(code),
     capturePreview: capture
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
   const webview = Object.assign(document.createElement('div'), {
     executeJavaScript: execute,
     getWebContentsId: () => 42

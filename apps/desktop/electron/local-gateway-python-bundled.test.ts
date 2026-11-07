@@ -23,7 +23,7 @@ test.skipIf(process.platform === 'win32')('a bundled payload mints tickets with 
   await fs.mkdir(path.join(root, 'venv', 'site-packages'), { recursive: true })
   await fs.symlink(repo, path.join(root, 'app'))
   // The CLI shim: like hermes.exe, it is not an interpreter and refuses interpreter flags.
-  await fs.writeFile(path.join(root, 'bin', 'hermes'), '#!/bin/sh\necho "hermes: unrecognized arguments: $1" >&2\nexit 2\n', { mode: 0o755 })
+  await fs.writeFile(path.join(root, 'bin', 'hermes'), '#!/bin/sh\necho "kova: unrecognized arguments: $1" >&2\nexit 2\n', { mode: 0o755 })
   const { execFileSync } = await import('node:child_process')
   const realPython = execFileSync(python, ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8' }).trim()
   await fs.symlink(realPython, path.join(root, 'tools', 'python', 'bin', 'python3'))

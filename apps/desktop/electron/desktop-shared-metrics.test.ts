@@ -29,15 +29,15 @@ const strategy = (mechanism: string) => ({ mechanism, apply: async () => ({ ok: 
 test('a packaged apply is reported once through the renderer IPC; a checkout hand-off never is', async () => {
   const metrics = registerDesktopSharedMetrics()
 
-  expect(handlers.has('hermes:startup-latency:claim')).toBe(true)
-  expect(handlers.has('hermes:desktop-metrics:crash:take')).toBe(true)
+  expect(handlers.has('kova:startup-latency:claim')).toBe(true)
+  expect(handlers.has('kova:desktop-metrics:crash:take')).toBe(true)
 
   await metrics.trackUpdateApply(null, strategy('checkout'))
-  expect(handlers.get('hermes:updates:metric:take')!({})).toBeNull()
+  expect(handlers.get('kova:updates:metric:take')!({})).toBeNull()
 
   await metrics.trackUpdateApply(strategy('electron-updater'), strategy('electron-updater'))
-  expect(sent).toContain('hermes:updates:metric:pending')
-  expect(handlers.get('hermes:updates:metric:take')!({})).toMatchObject({
+  expect(sent).toContain('kova:updates:metric:pending')
+  expect(handlers.get('kova:updates:metric:take')!({})).toMatchObject({
     mechanism: 'electron-updater',
     outcome: 'noop',
     from_commit_date: 1_700_000_000

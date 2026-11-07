@@ -131,4 +131,4 @@ export const BROWSER_BRIDGE_STUBS = {
     onProgress: noopUnsubscribe
   },
   watchPreviewFile: async (url: string) => ({ id: `browser:${url}`, path: url })
-} satisfies Partial<Window['hermesDesktop']>
+} satisfies Partial<Window['kovaDesktop']>

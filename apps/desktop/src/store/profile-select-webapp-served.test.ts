@@ -28,7 +28,7 @@ vi.mock('@/kova', async importOriginal => ({
   }
 }))
 
-type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; hermesDesktop?: Window['hermesDesktop'] }
+type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; kovaDesktop?: Window['kovaDesktop'] }
 
 const win = window as unknown as ServedWindow
 
@@ -85,7 +85,7 @@ async function openTab(gateway: Gateway) {
 afterEach(() => {
   delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   vi.useRealTimers()
   vi.unstubAllGlobals()

@@ -42,16 +42,16 @@ export interface UiPreferencesWrite {
   values: Record<string, null | string>
 }
 
-export const uiPreferencesPath = (hermesHome: string) => path.join(hermesHome, UI_PREFERENCES_FILE)
+export const uiPreferencesPath = (kovaHome: string) => path.join(kovaHome, UI_PREFERENCES_FILE)
 
 /** The store's directory for main's root home, through symlinks, as the Python
  *  writer's `store_path()` resolves it: a symlinked root or profile directory
  *  must not split the machine into two stores. */
-export function uiPreferencesRoot(hermesHome: string): string {
+export function uiPreferencesRoot(kovaHome: string): string {
   try {
-    return fs.realpathSync.native(hermesHome)
+    return fs.realpathSync.native(kovaHome)
   } catch {
-    return path.resolve(hermesHome)
+    return path.resolve(kovaHome)
   }
 }
 
@@ -300,19 +300,19 @@ interface IpcMainLike {
 
 export interface UiPreferencesIpcDeps {
   ipcMain: IpcMainLike
-  hermesHome: string
+  kovaHome: string
   /** Every app window's webContents; changes are pushed to all of them. */
   broadcast: (snapshot: UiPreferencesSnapshot) => void
 }
 
 /**
- * `hermes:ui-preferences:*` — the renderer's only door to the store: a
+ * `kova:ui-preferences:*` — the renderer's only door to the store: a
  * synchronous first-paint snapshot, a read, and a validated per-key write. A
  * write made here, or by the Webapp's Python process on this machine (seen by
  * a cheap stat poll), is pushed to every window so open ones follow live.
  */
-export function registerUiPreferencesIpc({ ipcMain, hermesHome, broadcast }: UiPreferencesIpcDeps): () => void {
-  const file = uiPreferencesPath(uiPreferencesRoot(hermesHome))
+export function registerUiPreferencesIpc({ ipcMain, kovaHome, broadcast }: UiPreferencesIpcDeps): () => void {
+  const file = uiPreferencesPath(uiPreferencesRoot(kovaHome))
 
   const stamp = (snapshot: null | UiPreferencesSnapshot) =>
     snapshot ? `${snapshot.generation ?? ''}:${snapshot.revision}:${snapshot.exists}` : null
@@ -328,11 +328,11 @@ export function registerUiPreferencesIpc({ ipcMain, hermesHome, broadcast }: UiP
     }
   }
 
-  ipcMain.on('hermes:ui-preferences:snapshot', event => {
+  ipcMain.on('kova:ui-preferences:snapshot', event => {
     event.returnValue = tryReadUiPreferences(file)
   })
-  ipcMain.handle('hermes:ui-preferences:read', () => readUiPreferences(file))
-  ipcMain.handle('hermes:ui-preferences:write', async (_event, payload) => {
+  ipcMain.handle('kova:ui-preferences:read', () => readUiPreferences(file))
+  ipcMain.handle('kova:ui-preferences:write', async (_event, payload) => {
     const snapshot = await writeUiPreferences(file, parseUiPreferencesWrite(payload))
 
     publish(snapshot)

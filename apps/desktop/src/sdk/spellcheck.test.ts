@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { host } from '@/sdk'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Partial<Window['hermesDesktop']> }
+const desktopWindow = window as unknown as { kovaDesktop?: Partial<Window['kovaDesktop']> }
 
 afterEach(() => {
   delete desktopWindow.kovaDesktop

@@ -19,7 +19,7 @@ export const GATEWAY_STOP_TIMEOUT_MS = 20_000
 /** Best-effort all-profile drain for uninstall. The deletion lock gate follows. */
 export function stopGatewayBeforeUpdate(
   hermesCliPath: string,
-  hermesHome: string,
+  kovaHome: string,
   deps: StopGatewayBeforeUpdateDeps = {}
 ): boolean {
   return runGatewayLifecycleCommand(hermesCliPath, ['gateway', 'stop', '--all'], deps)

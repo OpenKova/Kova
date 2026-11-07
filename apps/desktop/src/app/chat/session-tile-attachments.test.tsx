@@ -119,14 +119,14 @@ describe('session tile attachment occurrence ownership', () => {
       }
     })
     installDelegate()
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { readFileDataUrl: vi.fn(async () => FULL_SOURCE) }
     })
   })
 
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     $connection.set(null)
     $sessions.set([])
     $sessionStates.set({})

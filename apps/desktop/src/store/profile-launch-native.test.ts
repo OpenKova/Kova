@@ -7,12 +7,12 @@ import { $activeGatewayProfile } from '@/store/profile'
 // Electron's preload installs the bridge before any renderer module evaluates, so native Desktop
 // starts on `default` even if a page global names another profile.
 vi.hoisted(() => {
-  Object.assign(window, { __KOVA_DASHBOARD_PROFILE__: 'solo', hermesDesktop: {} })
+  Object.assign(window, { __KOVA_DASHBOARD_PROFILE__: 'solo', kovaDesktop: {} })
 })
 
 afterAll(() => {
   Reflect.deleteProperty(window, '__KOVA_DASHBOARD_PROFILE__')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
 })
 
 it('native Desktop starts on default', () => {

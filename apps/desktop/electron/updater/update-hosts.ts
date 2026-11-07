@@ -85,7 +85,7 @@ export function configuredUpdateHosts(
   updateRoot: string,
   env: NodeJS.ProcessEnv,
   home: string = os.homedir(),
-  hermesHome?: string
+  kovaHome?: string
 ): string[] {
   const values: string[] = iniValues(readText(path.join(updateRoot, '.git', 'config')), 'remote "origin"', ['url'])
 
@@ -99,7 +99,7 @@ export function configuredUpdateHosts(
 
   // The npmrc the update's npm and pnpm children read (pm.index_config.user_npmrc): an explicit
   // userconfig, else the profile's $KOVA_HOME/npmrc, which replaces ~/.npmrc when it exists.
-  const hermesNpmrc = hermesHome ? path.join(hermesHome, 'npmrc') : ''
+  const hermesNpmrc = kovaHome ? path.join(kovaHome, 'npmrc') : ''
 
   const npmrc =
     env.npm_config_userconfig ||

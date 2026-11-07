@@ -7,12 +7,12 @@ const env = { WSL_DISTRO_NAME: 'Ubuntu', WAYLAND_DISPLAY: 'wayland-0', DISPLAY: 
 
 describe('WSLg launch arguments', () => {
   it('preserves the invocation and restarts only once with native Wayland', () => {
-    const args = ['.', '--inspect=9229', 'hermes://session/example']
+    const args = ['.', '--inspect=9229', 'kova://session/example']
     const next = wslgLaunchArgs(args, env, 'linux')!
 
     expect(next).toEqual([...args, '--ozone-platform=wayland'])
     expect(wslgLaunchArgs(next, env, 'linux')).toBeNull()
-    expect(args).toEqual(['.', '--inspect=9229', 'hermes://session/example'])
+    expect(args).toEqual(['.', '--inspect=9229', 'kova://session/example'])
   })
 
   it('respects explicit backends and the existing config-bridged X11 hint', () => {

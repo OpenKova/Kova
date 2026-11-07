@@ -46,7 +46,7 @@ beforeEach(() => {
   api.mockClear()
   readFileDataUrl.mockClear()
   originalDesktop = window.kovaDesktop
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { api, readFileDataUrl }
   })
@@ -56,7 +56,7 @@ afterEach(() => {
   cleanup()
   $connection.set(null)
   $toolDisclosureStates.set({})
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: originalDesktop
   })

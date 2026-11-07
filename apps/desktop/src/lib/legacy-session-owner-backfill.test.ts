@@ -35,7 +35,7 @@ describe('maybeBackfillLegacySessionOwners (one-shot per scope)', () => {
     // The gateway answers 409 for as long as it owns the profile: re-arming here is a request
     // storm the backend will keep refusing. Reported and verified by @ahrazzle (#106742).
     api.mockRejectedValue(new Error(
-      "Error invoking remote method 'hermes:api': Error: 409: " +
+      "Error invoking remote method 'kova:api': Error: 409: " +
       '{"detail":"Exclusive maintenance refused: Gateway runtime already owns profile /x"}'
     ))
     expect(await enumerateTwice()).toBe(1)

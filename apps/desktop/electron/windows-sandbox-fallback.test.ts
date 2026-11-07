@@ -359,9 +359,9 @@ test('renderer crash-loop relaunch requires the sandbox breakpoint signature', (
 })
 
 test('buildNoSandboxRelaunchArgs appends a single --no-sandbox flag', () => {
-  assert.deepEqual(buildNoSandboxRelaunchArgs(['--foo', '--no-sandbox', 'hermes://x']), [
+  assert.deepEqual(buildNoSandboxRelaunchArgs(['--foo', '--no-sandbox', 'kova://x']), [
     '--foo',
-    'hermes://x',
+    'kova://x',
     '--no-sandbox'
   ])
 })

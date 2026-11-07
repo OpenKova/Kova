@@ -98,7 +98,7 @@ describe('message-edit composer attachment drops', () => {
       method === 'image.attach' ? { attached: true, path: '/research/cache/shot.png' } : CATALOG
     )
     const previous = window.kovaDesktop
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { ...previous, getPathForFile: () => '/Users/me/shot.png' }
     })
@@ -133,7 +133,7 @@ describe('message-edit composer attachment drops', () => {
       )
       expect(gateway.request).not.toHaveBeenCalledWith('image.attach', expect.anything())
     } finally {
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: previous })
+      Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: previous })
     }
   })
 })

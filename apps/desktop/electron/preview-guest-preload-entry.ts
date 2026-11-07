@@ -7,7 +7,7 @@
 // anchors (Streamlit traceback's "Ask Google" / "Ask …" buttons —
 // #112941) are intercepted here in the DOM's capture phase and handed to the
 // host renderer via `sendToHost`; the host admits the scheme and routes the
-// URL through the audited `hermes:openExternal` channel. A guest URL never
+// URL through the audited `kova:openExternal` channel. A guest URL never
 // becomes an Electron popup and this side never opens anything by itself.
 //
 // Deliberate scope: only trusted anchor clicks are forwarded. A page's direct

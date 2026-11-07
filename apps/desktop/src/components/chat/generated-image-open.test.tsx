@@ -28,7 +28,7 @@ const saveGatewayFile = vi.fn().mockResolvedValue({ ok: true })
 
 beforeEach(() => {
   // A native Electron renderer: the preload's bridge, no browser-host marker.
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { openExternal, saveGatewayFile }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { openExternal, saveGatewayFile }
 })
 
 afterEach(() => {
@@ -40,7 +40,7 @@ afterEach(() => {
   $activeSessionId.set(null)
   $notifications.set([])
   window.document.documentElement.removeAttribute('data-hermes-desktop-host')
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 function openImageLink(image: string) {
@@ -160,7 +160,7 @@ it.each(['electron', 'browser'])('saves a data: image that will not decode in %s
         )
       : vi.fn().mockResolvedValue(true)
 
-  ;(window as unknown as { hermesDesktop: object }).kovaDesktop = { openExternal, saveGatewayFile, saveImageFromUrl }
+  ;(window as unknown as { kovaDesktop: object }).kovaDesktop = { openExternal, saveGatewayFile, saveImageFromUrl }
   window.document.documentElement.dataset.kovaDesktopHost = host
   $connection.set({ baseUrl: 'https://gateway.example', mode: 'remote', token: 'secret-token' } as unknown as KovaConnection)
 

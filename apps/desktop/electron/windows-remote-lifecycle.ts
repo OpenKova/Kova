@@ -130,10 +130,10 @@ async function probeWindowsFiles(ssh, explicitKovaPath = '') {
     // KOVA_HOME is only trusted when it names a directory on the REMOTE: a stale User-scope
     // value (older install.ps1 persisted one) or a client path leaked over SSH otherwise fails
     // assertSafeRemoteHome as "Unsafe remote Kova home" (#118988).
-    '$hermesHome=$env:KOVA_HOME',
-    'if(-not $hermesHome -or -not (Test-Path -LiteralPath $hermesHome -PathType Container)){$hermesHome=Join-Path $env:LOCALAPPDATA "hermes"}',
-    'Assert-NoReparse $hermesHome $true',
-    '$candidate=[IO.Path]::Combine($hermesHome, "kova-agent\\venv\\Scripts\\hermes.exe")',
+    '$kovaHome=$env:KOVA_HOME',
+    'if(-not $kovaHome -or -not (Test-Path -LiteralPath $kovaHome -PathType Container)){$kovaHome=Join-Path $env:LOCALAPPDATA "hermes"}',
+    'Assert-NoReparse $kovaHome $true',
+    '$candidate=[IO.Path]::Combine($kovaHome, "kova-agent\\venv\\Scripts\\hermes.exe")',
     '$candidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($candidate), "python.exe")',
     'Assert-NoReparse $candidate $true',
     'Assert-NoReparse $candidatePython $true',
@@ -141,7 +141,7 @@ async function probeWindowsFiles(ssh, explicitKovaPath = '') {
     '$profileCandidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($profileCandidate), "python.exe")',
     'Assert-NoReparse $profileCandidate $true',
     'Assert-NoReparse $profileCandidatePython $true',
-    '$fallbackHomeCandidate=Join-Path $hermesHome "kova-agent\\venv\\Scripts\\hermes.exe"',
+    '$fallbackHomeCandidate=Join-Path $kovaHome "kova-agent\\venv\\Scripts\\hermes.exe"',
     '$fallbackProfileCandidate=Join-Path $HOME "kova-agent\\.venv\\Scripts\\hermes.exe"',
     '$candidates=@()',
     'if($explicit){$candidates+=$explicit}',
@@ -149,8 +149,8 @@ async function probeWindowsFiles(ssh, explicitKovaPath = '') {
     '$cmd=@(Get-Command hermes -CommandType Application -ErrorAction SilentlyContinue)|Select-Object -First 1',
     'if($cmd){Assert-NoReparse $cmd.Source $true;$cmdPython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($cmd.Source), "python.exe");Assert-NoReparse $cmdPython $true;$candidates+=$cmd.Source}',
     // The installer's launchers, for an SSH session whose PATH lacks the user PATH entry.
-    '$candidates+=Join-Path $hermesHome "bin\\hermes.exe"',
-    '$candidates+=Join-Path $hermesHome "bin\\hermes.cmd"',
+    '$candidates+=Join-Path $kovaHome "bin\\hermes.exe"',
+    '$candidates+=Join-Path $kovaHome "bin\\hermes.cmd"',
     '$candidates+=$fallbackHomeCandidate',
     '$candidates+=$fallbackProfileCandidate',
     '$hermes=$null',
@@ -160,7 +160,7 @@ async function probeWindowsFiles(ssh, explicitKovaPath = '') {
     'if($explicit -and $hermes -ne $explicit){throw "The configured Kova path is not an executable file."}',
     '$python=[IO.Path]::Combine([IO.Path]::GetDirectoryName($hermes), "python.exe")',
     'if(Test-Path -LiteralPath $python -PathType Leaf){Assert-NoReparse $python $false}else{$python=""}',
-    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;hermesHome=$hermesHome;hermesPath=$hermes;launcherPath=$hermes;python=$python}|ConvertTo-Json -Compress'
+    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;kovaHome=$kovaHome;kovaPath=$hermes;launcherPath=$hermes;python=$python}|ConvertTo-Json -Compress'
   ].join('\r\n')
 
   // Windows OpenSSH may serialize PowerShell's progress stream as
@@ -243,7 +243,7 @@ function windowsCheckoutRootsScript(python = '') {
 // Marker-gate probe script: reads the install-wide update marker fail-closed
 // (missing -> CLEAR, unreadable/malformed -> UNCERTAIN) without following
 // symlinks on any path level, including the marker file itself.
-function windowsUpdateMarkerProbeScript(hermesHome, python = '') {
+function windowsUpdateMarkerProbeScript(kovaHome, python = '') {
   const script = [
     '$ProgressPreference="SilentlyContinue"',
     '$ErrorActionPreference="Stop"',
@@ -274,9 +274,9 @@ public static class KovaMarkerNoFollow {
     '$parent=[IO.Path]::GetDirectoryName($current);if(-not $parent -or $parent -eq $current){break};$current=$parent;$first=$false',
     '}',
     '}',
-    `$hermesHome=${psLiteral(hermesHome)}`,
-    '$installRoot=$hermesHome',
-    '$parent=Split-Path -Parent $hermesHome',
+    `$kovaHome=${psLiteral(kovaHome)}`,
+    '$installRoot=$kovaHome',
+    '$parent=Split-Path -Parent $kovaHome',
     'if((Split-Path -Leaf $parent) -ieq "profiles"){$installRoot=Split-Path -Parent $parent}',
     '$marker=Join-Path $installRoot ".kova-update-in-progress"',
     windowsCheckoutRootsScript(python),
@@ -305,7 +305,7 @@ public static class KovaMarkerNoFollow {
  * This uses only PowerShell/.NET and therefore never imports the remote
  * checkout while an updater may be replacing it.
  */
-async function assertWindowsRemoteInstallUpdateClear(ssh, hermesHome, python = '') {
+async function assertWindowsRemoteInstallUpdateClear(ssh, kovaHome, python = '') {
   let observation = ''
 
   try {
@@ -314,7 +314,7 @@ async function assertWindowsRemoteInstallUpdateClear(ssh, hermesHome, python = '
     // CLEAR gate into a fail-closed 'update-in-progress' verdict.
     observation =
       stripPowerShellNoise(
-        await ssh.exec(compressedPowerShellCommand(windowsUpdateMarkerProbeScript(hermesHome, python)))
+        await ssh.exec(compressedPowerShellCommand(windowsUpdateMarkerProbeScript(kovaHome, python)))
       ).pop() || ''
   } catch (cause) {
     const error: any = new Error('Could not prove that the remote Kova install is clear for SSH startup.')
@@ -441,9 +441,9 @@ function atomicWindowsSpawnCommand(runtime, reservation: any = {}, payload?: str
     '$OutputEncoding=[Text.UTF8Encoding]::new($false)',
     WINDOWS_MARKER_JUDGE_PS,
     WINDOWS_CHECKOUT_LOCK_PS,
-    `$hermesHome=${psLiteral(runtime.kovaHome)}`,
-    '$installRoot=$hermesHome',
-    '$parent=Split-Path -Parent $hermesHome',
+    `$kovaHome=${psLiteral(runtime.kovaHome)}`,
+    '$installRoot=$kovaHome',
+    '$parent=Split-Path -Parent $kovaHome',
     'if((Split-Path -Leaf $parent) -ieq "profiles"){$installRoot=Split-Path -Parent $parent}',
     '$marker=Join-Path $installRoot ".kova-update-in-progress"',
     windowsCheckoutRootsScript(runtime.python),
@@ -470,7 +470,7 @@ function atomicWindowsSpawnCommand(runtime, reservation: any = {}, payload?: str
       ? '  if($spawnExit -ne 0){exit $spawnExit}'
       : '  if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}',
     reservation.ownershipId
-      ? `  $spawned=$spawnLines[-1]|ConvertFrom-Json; $lock=[ordered]@{schemaVersion=2;protocolVersion=1;ownershipId=${psLiteral(reservation.ownershipId)};spawnNonce=${psLiteral(reservation.spawnNonce)};pid=[int]$spawned.pid;creationTimeNs=[string]$spawned.creationTimeNs;port=0;profile=${psLiteral(reservation.profile)};hermesPath=${psLiteral(reservation.kovaPath)};hermesHome=${psLiteral(reservation.kovaHome)};tokenFingerprint=${psLiteral(reservation.tokenFingerprint)};devServer=${psLiteral(reservation.devServer || '')};startedAt=${psLiteral(reservation.startedAt)}}|ConvertTo-Json -Compress; ` +
+      ? `  $spawned=$spawnLines[-1]|ConvertFrom-Json; $lock=[ordered]@{schemaVersion=2;protocolVersion=1;ownershipId=${psLiteral(reservation.ownershipId)};spawnNonce=${psLiteral(reservation.spawnNonce)};pid=[int]$spawned.pid;creationTimeNs=[string]$spawned.creationTimeNs;port=0;profile=${psLiteral(reservation.profile)};kovaPath=${psLiteral(reservation.kovaPath)};kovaHome=${psLiteral(reservation.kovaHome)};tokenFingerprint=${psLiteral(reservation.tokenFingerprint)};devServer=${psLiteral(reservation.devServer || '')};startedAt=${psLiteral(reservation.startedAt)}}|ConvertTo-Json -Compress; ` +
         `  $lock | & ${helper('write-lock').map(psLiteral).join(' ')} ${psLiteral(reservation.ownershipId)} | Out-Null; if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}; $spawnLines|Write-Output`
       : '',
     '  if([IO.File]::Exists($marker)){throw "remote update marker claimed during backend spawn"}',
@@ -534,8 +534,8 @@ function reusableWindowsLock(lock, state, profile, reuseToken, runtime, devServe
     lockServesConnect(lock, {
       profile,
       reuseToken,
-      hermesPath: runtime.kovaPath,
-      hermesHome: runtime.kovaHome,
+      kovaPath: runtime.kovaPath,
+      kovaHome: runtime.kovaHome,
       devServer
     })
   )
@@ -821,12 +821,12 @@ async function connectWindowsRemote(deps) {
             pid: lock.pid,
             reused: true,
             platform: { os: 'Windows', arch: runtime.arch },
-            hermesPath: runtime.kovaPath,
+            kovaPath: runtime.kovaPath,
             hermesVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
             creationTimeNs: lock.creationTimeNs,
-            hermesHome: runtime.kovaHome,
+            kovaHome: runtime.kovaHome,
             pythonPath: runtime.python
           }
         }
@@ -867,13 +867,13 @@ async function connectWindowsRemote(deps) {
       runtime,
       // The backend trusts a dev renderer's http origin only from the KOVA_DESKTOP_DEV_SERVER it
       // inherits; the runtime helper sets it from devServer, as the POSIX spawn command does.
-      JSON.stringify({ ownershipId, spawnNonce, profile, hermesPath: runtime.kovaPath, devServer }),
+      JSON.stringify({ ownershipId, spawnNonce, profile, kovaPath: runtime.kovaPath, devServer }),
       {
         ownershipId,
         spawnNonce,
         profile,
-        hermesPath: runtime.kovaPath,
-        hermesHome: runtime.kovaHome,
+        kovaPath: runtime.kovaPath,
+        kovaHome: runtime.kovaHome,
         tokenFingerprint,
         devServer,
         startedAt
@@ -914,8 +914,8 @@ async function connectWindowsRemote(deps) {
     creationTimeNs: spawned.creationTimeNs,
     port: 0,
     profile,
-    hermesPath: runtime.kovaPath,
-    hermesHome: runtime.kovaHome,
+    kovaPath: runtime.kovaPath,
+    kovaHome: runtime.kovaHome,
     tokenFingerprint,
     devServer,
     startedAt
@@ -947,12 +947,12 @@ async function connectWindowsRemote(deps) {
       pid: spawned.pid,
       reused: false,
       platform: { os: 'Windows', arch: runtime.arch },
-      hermesPath: runtime.kovaPath,
+      kovaPath: runtime.kovaPath,
       hermesVersion,
       ownershipId,
       spawnNonce,
       creationTimeNs: spawned.creationTimeNs,
-      hermesHome: runtime.kovaHome,
+      kovaHome: runtime.kovaHome,
       pythonPath: runtime.python
     }
   } catch (error) {

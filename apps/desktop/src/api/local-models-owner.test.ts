@@ -6,7 +6,7 @@ import { setApiRequestConnection, setApiRequestProfile } from './client'
 import { getLocalModelsJobs, getLocalModelsStatus, pauseLocalDownload, resumeLocalDownload } from './local-models'
 
 beforeEach((): void => {
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { api: vi.fn().mockResolvedValue({ jobs: [] }) }
   })

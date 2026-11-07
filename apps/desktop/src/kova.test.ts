@@ -48,7 +48,7 @@ describe('Kova REST helpers', () => {
   beforeEach(() => {
     resetSidebarBatchCapability()
     api = vi.fn().mockResolvedValue(emptySessionsResponse)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { api }
     })
@@ -58,7 +58,7 @@ describe('Kova REST helpers', () => {
     setApiRequestConnection(null)
     setApiRequestProfile(null)
     vi.restoreAllMocks()
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
   })
 
   it('batches the sidebar slices into a single request with per-slice limits + excludes', async () => {
@@ -265,7 +265,7 @@ describe('Kova REST helpers', () => {
         // The exact skew failure: Electron surfaces the backend catch-all.
         return Promise.reject(
           new Error(
-            'Error invoking remote method \'hermes:api\': Error: 404: {"detail":"No such API endpoint: /api/profiles/sessions/sidebar"}'
+            'Error invoking remote method \'kova:api\': Error: 404: {"detail":"No such API endpoint: /api/profiles/sessions/sidebar"}'
           )
         )
       }
@@ -814,7 +814,7 @@ describe('pluginSocket', () => {
 
   beforeEach(() => {
     getConnection = vi.fn().mockResolvedValue(null)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { api: vi.fn(), getConnection }
     })
@@ -822,7 +822,7 @@ describe('pluginSocket', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     setApiRequestProfile(null)
   })
 

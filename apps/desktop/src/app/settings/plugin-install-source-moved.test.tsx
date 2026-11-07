@@ -142,7 +142,7 @@ describe('Install after the source moved past the reviewed commit', () => {
       .mockResolvedValueOnce({ ok: false, sourceMoved: true, error: 'The commit you reviewed could not be checked out.' })
       .mockResolvedValueOnce({ ok: true, pluginName: 'ui' })
 
-    vi.stubGlobal('hermesDesktop', { installDesktopPlugin, probePluginRepo })
+    vi.stubGlobal('kovaDesktop', { installDesktopPlugin, probePluginRepo })
 
     renderModal()
     act(() => openPluginInstallRequest({ repo: REPO }))

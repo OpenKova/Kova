@@ -1,5 +1,5 @@
 // IPC for the plugin SDK's folder-scoped file door (`ctx.files`). The only way
-// a folder grant is ever minted is `hermes:pluginFiles:request`: main opens
+// a folder grant is ever minted is `kova:pluginFiles:request`: main opens
 // the native folder picker itself, attached to the window that asked, and
 // grants exactly what the user picked. Every file operation goes through
 // plugin-files.ts, which re-checks the grant and the path on each call.
@@ -24,7 +24,7 @@ export interface PluginFilesIpcDeps extends Omit<PluginFilesDeps, 'protectedRoot
   /** Tell every app window a plugin's grants changed (Folder access lists). */
   broadcastChange: (change: { pluginId: string }) => void
   /** The resolved KOVA_HOME plus the platform-default homes it may differ from. */
-  hermesHomes: () => string[]
+  kovaHomes: () => string[]
 }
 
 const label = (value: unknown, fallback: string) =>
@@ -34,7 +34,7 @@ export function registerPluginFilesIpc(deps: PluginFilesIpcDeps): PluginFiles {
   const files = createPluginFiles({ ...deps, protectedRoots: deps.kovaHomes })
 
   deps.ipcMain.handle(
-    'hermes:pluginFiles:request',
+    'kova:pluginFiles:request',
     async (event: IpcMainInvokeEvent, pluginId: unknown, labels: PickerLabels = {}) => {
       const window = deps.windowFor(event)
 
@@ -60,9 +60,9 @@ export function registerPluginFilesIpc(deps: PluginFilesIpcDeps): PluginFiles {
     }
   )
 
-  deps.ipcMain.handle('hermes:pluginFiles:grants', async (_event, pluginId: unknown) => files.grants(pluginId))
+  deps.ipcMain.handle('kova:pluginFiles:grants', async (_event, pluginId: unknown) => files.grants(pluginId))
 
-  deps.ipcMain.handle('hermes:pluginFiles:revoke', async (_event, pluginId: unknown, folderId?: unknown) => {
+  deps.ipcMain.handle('kova:pluginFiles:revoke', async (_event, pluginId: unknown, folderId?: unknown) => {
     const revoked = await files.revoke(pluginId, folderId)
 
     if (revoked.removed) {
@@ -72,7 +72,7 @@ export function registerPluginFilesIpc(deps: PluginFilesIpcDeps): PluginFiles {
     return revoked
   })
 
-  deps.ipcMain.handle('hermes:pluginFiles:op', async (_event, pluginId: unknown, request) =>
+  deps.ipcMain.handle('kova:pluginFiles:op', async (_event, pluginId: unknown, request) =>
     files.run(pluginId, request)
   )
 

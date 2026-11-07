@@ -17,7 +17,7 @@ const read = vi.fn(() => new Promise<string>((resolve, reject) => reads.push({ r
 beforeEach(() => {
   reads = []
   read.mockClear()
-  vi.stubGlobal('hermesDesktop', { readFileDataUrl: read, api: vi.fn(() => read().then(dataUrl => ({ dataUrl }))) })
+  vi.stubGlobal('kovaDesktop', { readFileDataUrl: read, api: vi.fn(() => read().then(dataUrl => ({ dataUrl }))) })
   $connection.set({ connectionId: 'geometry-local', mode: 'local', profile: 'a' } as never)
 })
 afterEach(() => {

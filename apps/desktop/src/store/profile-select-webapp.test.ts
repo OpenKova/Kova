@@ -46,7 +46,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   delete bootstrap.__KOVA_BASE_PATH__
   clearWebappSession()
   document.documentElement.removeAttribute('data-hermes-desktop-host')

@@ -24,7 +24,7 @@ describe('MarkdownTextContent remote images', () => {
   beforeEach(() => {
     api.mockClear()
     originalDesktop = window.kovaDesktop
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { api }
     })
@@ -34,7 +34,7 @@ describe('MarkdownTextContent remote images', () => {
   afterEach(() => {
     cleanup()
     $connection.set(null)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: originalDesktop
     })
@@ -173,12 +173,12 @@ describe('MarkdownImage stream-ticket renewal', () => {
 
     mint.mockReset().mockImplementation(async () => `https://hermes.test/api/files/stream?ticket=t${++minted}`)
     originalDesktop = window.kovaDesktop
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { getGatewayFileStreamUrl: mint } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { getGatewayFileStreamUrl: mint } })
   })
 
   afterEach(() => {
     cleanup()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: originalDesktop })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: originalDesktop })
   })
 
   it('re-mints the source after a loaded element errors and resumes where it stopped', async () => {

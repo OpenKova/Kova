@@ -83,7 +83,7 @@ afterEach(() => {
   $connection.set(null)
   $connectionWires.set({})
   _resetSessionOwnerHintsForTests({ storage: true })
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   vi.clearAllTimers()
   vi.useRealTimers()
   vi.unstubAllGlobals()

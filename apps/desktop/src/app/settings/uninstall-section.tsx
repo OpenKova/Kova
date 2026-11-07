@@ -58,7 +58,7 @@ export function UninstallSection(): ReactElement | null {
 
   useEffect((): (() => void) | undefined => {
     let alive: boolean = true
-    const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.kovaDesktop?.uninstall
+    const bridge: Window['kovaDesktop']['uninstall'] | undefined = window.kovaDesktop?.uninstall
 
     if (!bridge) {
       return
@@ -83,7 +83,7 @@ export function UninstallSection(): ReactElement | null {
     }
   }, [])
 
-  const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.kovaDesktop?.uninstall
+  const bridge: Window['kovaDesktop']['uninstall'] | undefined = window.kovaDesktop?.uninstall
 
   if (!bridge || !summary) {
     return null

@@ -36,12 +36,12 @@ const primary = () => ({ connectionState: 'open', request: vi.fn(async () => ({}
 
 beforeEach(() => {
   configureGatewayRegistry({ onEvent: vi.fn(), primaryProfile: 'default' } as never)
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = shared()
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = shared()
 })
 
 afterEach(() => {
   closeSecondaryGateways()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('primary rider hint', () => {

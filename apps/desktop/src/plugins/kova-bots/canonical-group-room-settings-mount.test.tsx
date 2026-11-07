@@ -24,7 +24,7 @@ vi.mock('@kova/plugin-sdk', async () => {
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
 const originalDesktop = window.kovaDesktop
-beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
+beforeEach(() => { Object.defineProperty(window, 'kovaDesktop', { configurable: true, writable: true, value: undefined }) })
 afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 it('shows the room purpose and its Room settings control in the Group details panel', async () => {

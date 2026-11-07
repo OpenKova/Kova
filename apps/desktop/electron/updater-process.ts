@@ -36,7 +36,7 @@ import { hiddenWindowsChildOptions } from './windows-child-options'
 export function resolveInstallationLauncher(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.KOVA_HOME ?? ''
+  kovaHome: string = process.env.KOVA_HOME ?? ''
 ): string | null {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -44,7 +44,7 @@ export function resolveInstallationLauncher(
     return staged
   }
 
-  for (const candidate of historicalLauncherCandidates(updateRoot, isWindows, hermesHome)) {
+  for (const candidate of historicalLauncherCandidates(updateRoot, isWindows, kovaHome)) {
     if (launcherTargetsInstallation(candidate, updateRoot)) {
       return candidate
     }
@@ -62,7 +62,7 @@ export function resolveInstallationLauncher(
 export async function resolveInstallationLauncherAsync(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.KOVA_HOME ?? ''
+  kovaHome: string = process.env.KOVA_HOME ?? ''
 ): Promise<string | null> {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -72,7 +72,7 @@ export async function resolveInstallationLauncherAsync(
 
   const realRoot: string | null = realpathOrNull(updateRoot)
 
-  for (const candidate of realRoot ? historicalLauncherCandidates(updateRoot, isWindows, hermesHome) : []) {
+  for (const candidate of realRoot ? historicalLauncherCandidates(updateRoot, isWindows, kovaHome) : []) {
     if ((await launcherInstallDirectoryAsync(candidate, updateRoot)) === realRoot) {
       return candidate
     }
@@ -89,12 +89,12 @@ function stagedInstallationLauncher(updateRoot: string, isWindows: boolean): str
 
 // Earlier PM installers published only to user-bin. Trust that historical
 // launcher only after its existing version surface proves exact source identity.
-function historicalLauncherCandidates(updateRoot: string, isWindows: boolean, hermesHome: string): string[] {
+function historicalLauncherCandidates(updateRoot: string, isWindows: boolean, kovaHome: string): string[] {
   if (!stagedFileExists(path.join(updateRoot, 'kova_cli', '_launchers.py'))) {
     return []
   }
 
-  return userBinLaunchers(isWindows, hermesHome, isWindows ? [path.join(path.dirname(updateRoot), 'bin')] : [])
+  return userBinLaunchers(isWindows, kovaHome, isWindows ? [path.join(path.dirname(updateRoot), 'bin')] : [])
 }
 
 // An old shim is a migration rung, never a damaged PM install fallback.
@@ -121,13 +121,13 @@ function realpathOrNull(target: string): string | null {
 const CMD_UNSAFE_PATH: RegExp = /["%&|<>^\r\n]/
 
 /** Published user-bin launchers, at fixed locations: a GUI launch's PATH may omit them. */
-function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: string[] = []): string[] {
+function userBinLaunchers(isWindows: boolean, kovaHome: string, extraDirs: string[] = []): string[] {
   const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
   const defaultHome: string = platformDefaultKovaHome(os.homedir(), process.env, isWindows ? 'win32' : 'linux')
 
   const dirs: string[] = isWindows
-    ? [path.join(hermesHome || defaultHome, 'bin'), path.join(defaultHome, 'bin'), ...extraDirs]
-    : [path.join(os.homedir(), '.local', 'bin'), path.join(hermesHome || defaultHome, 'bin'), ...extraDirs]
+    ? [path.join(kovaHome || defaultHome, 'bin'), path.join(defaultHome, 'bin'), ...extraDirs]
+    : [path.join(os.homedir(), '.local', 'bin'), path.join(kovaHome || defaultHome, 'bin'), ...extraDirs]
 
   return [...new Set(dirs)]
     .flatMap((dir: string): string[] => names.map((name: string): string => path.join(dir, name)))
@@ -142,9 +142,9 @@ function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: str
  */
 export function userLauncherInstallRoot(
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.KOVA_HOME ?? ''
+  kovaHome: string = process.env.KOVA_HOME ?? ''
 ): { launcher: string; root: string } | null {
-  for (const launcher of userBinLaunchers(isWindows, hermesHome)) {
+  for (const launcher of userBinLaunchers(isWindows, kovaHome)) {
     const root: string | null = launcherInstallDirectory(launcher)
 
     if (root && existsSync(path.join(root, 'kova_cli', 'main.py'))) {
@@ -275,8 +275,8 @@ function launcherInstallDirectoryAsync(launcher: string, root?: string): Promise
 }
 
 /** File prerequisites only: dependency recovery remains reachable through update. */
-export function windowsUpdatePrerequisiteError(updateRoot: string, hermesHome?: string): string | null {
-  if (!resolveInstallationLauncher(updateRoot, true, hermesHome)) {
+export function windowsUpdatePrerequisiteError(updateRoot: string, kovaHome?: string): string | null {
+  if (!resolveInstallationLauncher(updateRoot, true, kovaHome)) {
     return `Update aborted: the installation launcher under ${updateRoot} is missing. Repair this installation before retrying.`
   }
 
@@ -561,7 +561,7 @@ function stagedFileMtimeMs(candidate: string): number | null {
  * install that never went through the installer); callers degrade gracefully.
  */
 export function resolveStagedUpdaterBinary(
-  hermesHome: string,
+  kovaHome: string,
   deps: ResolveStagedUpdaterBinaryDeps = {}
 ): string | null {
   const isWindows = deps.isWindows ?? process.platform === 'win32'
@@ -571,7 +571,7 @@ export function resolveStagedUpdaterBinary(
   }
 
   const fileExists = deps.fileExists ?? stagedFileExists
-  const candidate = path.join(hermesHome, 'hermes-setup.exe')
+  const candidate = path.join(kovaHome, 'hermes-setup.exe')
 
   return fileExists(candidate) ? candidate : null
 }

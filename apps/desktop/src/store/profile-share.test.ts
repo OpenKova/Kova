@@ -129,7 +129,7 @@ describe('runExportProfileFlow', () => {
       expect($notifications.get().at(-1)?.message).toContain('hermes profile export glam')
     } finally {
       clearWebappSession()
-      Reflect.deleteProperty(window, 'hermesDesktop')
+      Reflect.deleteProperty(window, 'kovaDesktop')
       document.documentElement.removeAttribute('data-hermes-desktop-host')
       vi.unstubAllGlobals()
     }
@@ -137,8 +137,8 @@ describe('runExportProfileFlow', () => {
 })
 
 describe('importProfileBundle', () => {
-  const folderKey = (profile: string) => `hermes:browser:default-project-dir:${JSON.stringify(['/hermes', profile])}`
-  const startupKey = 'hermes:webapp:default-profile:/hermes'
+  const folderKey = (profile: string) => `kova:browser:default-project-dir:${JSON.stringify(['/hermes', profile])}`
+  const startupKey = 'kova:webapp:default-profile:/hermes'
 
   function seedLeftovers() {
     window.localStorage.setItem(folderKey('imported'), '/srv/deleted-imported')

@@ -207,12 +207,12 @@ export async function updateProxyEnv(
   env: NodeJS.ProcessEnv = process.env,
   note?: (message: string) => void,
   updateRoot?: string,
-  hermesHome?: string
+  kovaHome?: string
 ): Promise<NodeJS.ProcessEnv> {
   const defaultSession = session?.defaultSession
 
   const hosts = [
-    ...new Set([...UPDATE_HOSTS, ...(updateRoot ? configuredUpdateHosts(updateRoot, env, undefined, hermesHome) : [])])
+    ...new Set([...UPDATE_HOSTS, ...(updateRoot ? configuredUpdateHosts(updateRoot, env, undefined, kovaHome) : [])])
   ]
 
   return defaultSession ? systemProxyEnv(env, url => defaultSession.resolveProxy(url), hosts, note) : {}

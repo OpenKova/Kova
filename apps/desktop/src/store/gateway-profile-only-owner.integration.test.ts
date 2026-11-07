@@ -79,7 +79,7 @@ const {
 const { isSessionOwnerResolutionError } = await import('./session-owner-resolution')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async (profile: string) => ({
       authMode: 'token',
       mode: 'local',
@@ -125,7 +125,7 @@ afterEach(() => {
   clearAllPrompts()
   $activeSessionId.set(null)
   $gateway.set(null)
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('profile-only secondary approval ownership', () => {

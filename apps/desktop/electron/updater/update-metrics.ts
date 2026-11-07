@@ -251,6 +251,6 @@ interface IpcHandleTarget {
 }
 
 export function registerUpdateMetricsIpc(ipc: IpcHandleTarget, recorder: UpdateRunRecorder): void {
-  ipc.handle('hermes:updates:metric:take', (): UpdateRunReport | null => recorder.take())
-  ipc.handle('hermes:updates:metric:ack', (_event: unknown, sent: unknown): void => recorder.ack(sent === true))
+  ipc.handle('kova:updates:metric:take', (): UpdateRunReport | null => recorder.take())
+  ipc.handle('kova:updates:metric:ack', (_event: unknown, sent: unknown): void => recorder.ack(sent === true))
 }

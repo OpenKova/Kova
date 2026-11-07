@@ -4,7 +4,7 @@ import type { KovaTerminalExit, KovaTerminalSession, KovaTerminalState } from '@
 
 import { readJson, writeJson } from './storage'
 
-type TerminalApi = Window['hermesDesktop']['terminal']
+type TerminalApi = Window['kovaDesktop']['terminal']
 type DataListener = Parameters<TerminalApi['onData']>[1]
 
 interface SavedTerminal {

@@ -40,7 +40,7 @@ export async function activeConnection(): Promise<KovaConnection> {
   )
 }
 
-/** Options for a plugin REST call — mirrors the app's own `hermesDesktop.api`
+/** Options for a plugin REST call — mirrors the app's own `kovaDesktop.api`
  *  shape, minus the path (which is namespace-derived). */
 export interface PluginRestOptions {
   method?: string

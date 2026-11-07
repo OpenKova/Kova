@@ -13,7 +13,7 @@ import { createPluginFiles, type PluginFiles } from './plugin-files'
 
 let scratch: string
 let userData: string
-let hermesHome: string
+let kovaHome: string
 let vault: string
 let trashed: string[]
 let files: PluginFiles
@@ -21,7 +21,7 @@ let files: PluginFiles
 const make = () =>
   createPluginFiles({
     userDataDir: () => userData,
-    protectedRoots: () => [hermesHome],
+    protectedRoots: () => [kovaHome],
     trashItem: async target => {
       trashed.push(target)
       await fs.promises.rm(target, { recursive: true })
@@ -31,12 +31,12 @@ const make = () =>
 beforeEach(() => {
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-')))
   userData = path.join(scratch, 'userData')
-  hermesHome = path.join(scratch, 'home', '.kova')
+  kovaHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
   fs.mkdirSync(userData, { recursive: true })
-  fs.mkdirSync(hermesHome, { recursive: true })
-  fs.writeFileSync(path.join(hermesHome, '.env'), 'OPENROUTER_API_KEY=sk-secret\n')
-  fs.writeFileSync(path.join(hermesHome, 'config.yaml'), 'model: x\n')
+  fs.mkdirSync(kovaHome, { recursive: true })
+  fs.writeFileSync(path.join(kovaHome, '.env'), 'OPENROUTER_API_KEY=sk-secret\n')
+  fs.writeFileSync(path.join(kovaHome, 'config.yaml'), 'model: x\n')
   fs.mkdirSync(path.join(vault, 'notes'), { recursive: true })
   fs.writeFileSync(path.join(vault, 'notes', 'a.md'), '# A\n')
   trashed = []
@@ -71,8 +71,8 @@ describe('grants', () => {
   })
 
   it.each([
-    ['the Kova home', () => hermesHome],
-    ['a folder inside the Kova home', () => path.join(hermesHome, 'skills')],
+    ['the Kova home', () => kovaHome],
+    ['a folder inside the Kova home', () => path.join(kovaHome, 'skills')],
     ['a folder that contains the Kova home', () => path.join(scratch, 'home')],
     ['the app data folder', () => userData],
     ['another plugin data folder', () => path.join(userData, 'plugin-files', 'data', 'other')]
@@ -92,7 +92,7 @@ describe('grants', () => {
 
   it('refuses to grant a symlink that resolves into the Kova home', async () => {
     const link = path.join(scratch, 'innocent')
-    fs.symlinkSync(hermesHome, link)
+    fs.symlinkSync(kovaHome, link)
 
     expect(await files.addGrant('plexus', link)).toMatchObject({ ok: false, error: 'protected' })
   })
@@ -122,7 +122,7 @@ describe('grants', () => {
   it('refuses a grant whose folder was swapped for a link into the Kova home', async () => {
     const id = await grantVault()
     fs.rmSync(vault, { recursive: true })
-    fs.symlinkSync(hermesHome, vault)
+    fs.symlinkSync(kovaHome, vault)
 
     expect(await files.run('plexus', { op: 'readText', folder: id, path: '.env' })).toMatchObject({ ok: false })
     expect(await files.run('plexus', { op: 'list', folder: id, path: '' })).toMatchObject({ ok: false })
@@ -141,7 +141,7 @@ describe('path containment', () => {
     ['a NUL byte', 'notes/a.md\0.png']
   ])('refuses %s', async (label, rel) => {
     const id = await grantVault()
-    const target = label === 'an absolute path into the Kova home' ? path.join(hermesHome, '.env') : rel
+    const target = label === 'an absolute path into the Kova home' ? path.join(kovaHome, '.env') : rel
 
     expect(await files.run('plexus', { op: 'readText', folder: id, path: target })).toMatchObject({
       ok: false,
@@ -150,12 +150,12 @@ describe('path containment', () => {
     expect(
       await files.run('plexus', { op: 'writeText', folder: id, path: target, text: 'pwned' })
     ).toMatchObject({ ok: false, error: 'invalid-path' })
-    expect(fs.readFileSync(path.join(hermesHome, 'config.yaml'), 'utf8')).toBe('model: x\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'config.yaml'), 'utf8')).toBe('model: x\n')
   })
 
   it('refuses to read through a symlinked file that points outside the folder', async () => {
     const id = await grantVault()
-    fs.symlinkSync(path.join(hermesHome, '.env'), path.join(vault, 'notes', 'leak.md'))
+    fs.symlinkSync(path.join(kovaHome, '.env'), path.join(vault, 'notes', 'leak.md'))
 
     expect(await files.run('plexus', { op: 'readText', folder: id, path: 'notes/leak.md' })).toMatchObject({
       ok: false,
@@ -169,8 +169,8 @@ describe('path containment', () => {
 
   it('refuses to write through a symlinked file or folder that points outside', async () => {
     const id = await grantVault()
-    fs.symlinkSync(path.join(hermesHome, 'config.yaml'), path.join(vault, 'cfg.md'))
-    fs.symlinkSync(hermesHome, path.join(vault, 'home'))
+    fs.symlinkSync(path.join(kovaHome, 'config.yaml'), path.join(vault, 'cfg.md'))
+    fs.symlinkSync(kovaHome, path.join(vault, 'home'))
 
     for (const rel of ['cfg.md', 'home/config.yaml', 'home/new.md']) {
       expect(await files.run('plexus', { op: 'writeText', folder: id, path: rel, text: 'pwned' })).toMatchObject({
@@ -179,8 +179,8 @@ describe('path containment', () => {
       })
     }
 
-    expect(fs.readFileSync(path.join(hermesHome, 'config.yaml'), 'utf8')).toBe('model: x\n')
-    expect(fs.existsSync(path.join(hermesHome, 'new.md'))).toBe(false)
+    expect(fs.readFileSync(path.join(kovaHome, 'config.yaml'), 'utf8')).toBe('model: x\n')
+    expect(fs.existsSync(path.join(kovaHome, 'new.md'))).toBe(false)
   })
 
   it('refuses a dangling symlink instead of creating its target', async () => {
@@ -196,7 +196,7 @@ describe('path containment', () => {
 
   it('refuses listing, renaming and trashing through a symlinked folder into the Kova home', async () => {
     const id = await grantVault()
-    fs.symlinkSync(hermesHome, path.join(vault, 'home'))
+    fs.symlinkSync(kovaHome, path.join(vault, 'home'))
 
     expect(await files.run('plexus', { op: 'list', folder: id, path: 'home' })).toMatchObject({
       ok: false,
@@ -210,12 +210,12 @@ describe('path containment', () => {
       error: 'outside-folder'
     })
     expect(trashed).toEqual([])
-    expect(fs.existsSync(path.join(hermesHome, '.env'))).toBe(true)
+    expect(fs.existsSync(path.join(kovaHome, '.env'))).toBe(true)
   })
 
   it('a listing hides links that leave the folder and keeps links that stay inside', async () => {
     const id = await grantVault()
-    fs.symlinkSync(hermesHome, path.join(vault, 'escape'))
+    fs.symlinkSync(kovaHome, path.join(vault, 'escape'))
     fs.symlinkSync(path.join(vault, 'notes'), path.join(vault, 'alias'))
 
     const listed = await files.run('plexus', { op: 'list', folder: id, path: '' })
@@ -406,7 +406,7 @@ describe('protected roots', () => {
     const nestedHome = path.join(vault, 'hermes')
     fs.mkdirSync(nestedHome)
     fs.writeFileSync(path.join(nestedHome, 'config.yaml'), 'model: y\n')
-    const roots = vi.fn(() => [hermesHome, nestedHome])
+    const roots = vi.fn(() => [kovaHome, nestedHome])
 
     files = createPluginFiles({ userDataDir: () => userData, protectedRoots: roots, trashItem: async () => undefined })
 

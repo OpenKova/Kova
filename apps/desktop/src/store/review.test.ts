@@ -89,7 +89,7 @@ function stubReview(over: ReviewStub = {}) {
     ...over
   }
 
-  ;(window as unknown as { hermesDesktop?: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop?: unknown }).kovaDesktop = {
     git: { review },
     openExternal: vi.fn()
   }
@@ -124,7 +124,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.clearAllTimers()
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('refreshReview', () => {
@@ -141,7 +141,7 @@ describe('refreshReview', () => {
   })
 
   it('flags not-a-repo (and clears loading) when there is no bridge/cwd', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     $reviewOpen.set(true)
     $reviewLoading.set(true)
 
@@ -318,7 +318,7 @@ describe('selectReviewFile', () => {
   })
 
   it('sets diff null when there is no bridge', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 
     await selectReviewFile(file('a.ts'))
 
@@ -554,7 +554,7 @@ describe('ship flow', () => {
 
 describe('refreshShipInfo', () => {
   it('resets ship info when there is no bridge', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     $reviewShipInfo.set({ ghReady: true, pr: { url: 'x' } } as KovaReviewShipInfo)
 
     await refreshShipInfo()
@@ -689,7 +689,7 @@ describe('turn baseline capture', () => {
   })
 
   it('leaves the baseline empty when there is no git bridge', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 
     $sessionStates.set({ rt_nobridge: sessionState(true, '/repo') })
 

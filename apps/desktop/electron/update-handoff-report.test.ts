@@ -13,7 +13,7 @@ function reportFor(home: string, park: (run: ReturnType<typeof parkedRunReport>)
   const run = parkedRunReport()
   park(run)
   run.report({
-    hermesHome: home,
+    kovaHome: home,
     log: line => lines.push(line),
     dialog: { showMessageBox: async () => ({ response: 2, checkboxChecked: false }) },
     shell: { showItemInFolder: () => undefined },
@@ -105,7 +105,7 @@ function failedReport(home: string, runId: string, stopClass: string | null): { 
 
   run.park({ startedAt: finished_at - 60, runId })
   run.report({
-    hermesHome: home,
+    kovaHome: home,
     log: line => lines.push(line),
     dialog: {
       showMessageBox: async (options: any) => {

@@ -450,7 +450,7 @@ describe('shared WebGL atlas refresh fan-out', () => {
       expect(termA.refresh).toHaveBeenCalledTimes(1)
       expect(termB.refresh).toHaveBeenCalledTimes(1)
     } finally {
-      Reflect.deleteProperty(window, 'hermesDesktop')
+      Reflect.deleteProperty(window, 'kovaDesktop')
     }
   })
 })

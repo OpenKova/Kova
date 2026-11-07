@@ -30,7 +30,7 @@ export function createBrowserFilesBridge({
   bootstrap,
   currentProfile
 }: BrowserFilesOptions): Pick<
-  Window['hermesDesktop'],
+  Window['kovaDesktop'],
   | 'getGatewayFileStreamUrl'
   | 'readDir'
   | 'readFileDataUrl'
@@ -79,11 +79,11 @@ export function createBrowserFilesBridge({
       })).href
     },
     readDir: (path: string) =>
-      fsGet<Awaited<ReturnType<Window['hermesDesktop']['readDir']>>>('list', path),
+      fsGet<Awaited<ReturnType<Window['kovaDesktop']['readDir']>>>('list', path),
     readFileDataUrl: readDataUrl,
     readFileDataUrlForAttach: readDataUrl,
     readFileText: (path: string) =>
-      fsGet<Awaited<ReturnType<Window['hermesDesktop']['readFileText']>>>('read-text', path),
+      fsGet<Awaited<ReturnType<Window['kovaDesktop']['readFileText']>>>('read-text', path),
     saveGatewayFile: async payload => {
       requireBrowserConnection(payload.connectionId)
       const query = { path: payload.path, profile: payload.profile ?? currentProfile(), session_id: payload.sessionId }

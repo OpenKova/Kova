@@ -82,7 +82,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     }
 
     rotateFreshDraftKey()
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     vi.unstubAllGlobals()
     $connection.set(null)
   })
@@ -346,7 +346,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 

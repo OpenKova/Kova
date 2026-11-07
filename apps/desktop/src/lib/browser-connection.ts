@@ -87,7 +87,7 @@ interface BrowserConnectionOptions {
 
 /** Connection, gateway socket, roster and sign-in members, all bound to the serving origin. */
 export function createBrowserConnectionBridge({ api, bootstrap }: BrowserConnectionOptions): Pick<
-  Window['hermesDesktop'],
+  Window['kovaDesktop'],
   | 'getAgentRoster'
   | 'getAudioWsUrl'
   | 'getConnection'

@@ -86,7 +86,7 @@ describe('desktop version follows the request scope', () => {
     getVersion = vi.fn().mockResolvedValue(info('1.0.0'))
     // Same minimal window the startUpdatePoller suite installs (siblings delete it).
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: {
+      kovaDesktop: {
         getVersion,
         updates: { check: vi.fn().mockResolvedValue({ supported: false }), onProgress: vi.fn(() => () => {}) }
       },

@@ -13,7 +13,7 @@ async function fakeKova(kind: 'new' | 'old') {
   const calls = path.join(dir, 'calls')
 
   const reject = kind === 'old'
-    ? 'case " $* " in *" --detach "*) echo "hermes: error: unrecognized arguments: --detach" >&2; exit 2;; esac\n'
+    ? 'case " $* " in *" --detach "*) echo "kova: error: unrecognized arguments: --detach" >&2; exit 2;; esac\n'
     : ''
 
   const bin = path.join(dir, 'hermes')

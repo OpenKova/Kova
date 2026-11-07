@@ -26,8 +26,8 @@ function ownedLock(devServer?: string): Record<string, unknown> {
     creationTimeNs: '1784219690452757504',
     port: 40000,
     profile: '',
-    hermesPath: KOVA_PATH,
-    hermesHome: KOVA_HOME,
+    kovaPath: KOVA_PATH,
+    kovaHome: KOVA_HOME,
     tokenFingerprint: fingerprint(REUSE_TOKEN),
     startedAt: '2026-07-14T00:00:00.000Z',
     ...(devServer === undefined ? {} : { devServer })
@@ -56,7 +56,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
       }
 
       if (script.includes('Get-Command hermes')) {
-        return JSON.stringify({ os: 'Windows', arch: 'AMD64', hermesHome: KOVA_HOME, hermesPath: KOVA_PATH, python: 'C:\\h\\python.exe' })
+        return JSON.stringify({ os: 'Windows', arch: 'AMD64', kovaHome: KOVA_HOME, kovaPath: KOVA_PATH, python: 'C:\\h\\python.exe' })
       }
 
       if (script.includes('.kova-update-in-progress')) {

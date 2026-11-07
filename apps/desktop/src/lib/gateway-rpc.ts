@@ -23,7 +23,7 @@ export function isOutOfSyncRpcParams(error: Error | string): boolean {
 /** REST twin of isMissingRpcMethod: the route does not exist on this backend.
  *  Matches the backend catch-all ('404: {"detail":"No such API endpoint: …}'),
  *  FastAPI's bare 404 on headless serve — directly, or wrapped as "Error
- *  invoking remote method 'hermes:api': Error: 404: …" through the IPC bridge
+ *  invoking remote method 'kova:api': Error: 404: …" through the IPC bridge
  *  — and the Electron JSON-guard ("endpoint is likely missing"). Transient
  *  failures (timeouts, 5xx, connection refused) must NOT match: they are
  *  retryable, not a capability verdict. Only sound for calls where a 404 can
@@ -59,7 +59,7 @@ export function isUnroutedRestPath(error: unknown): boolean {
  *  → HTTP 409 "Exclusive maintenance refused"). The refusal is the steady state
  *  for as long as that gateway runs, so callers treat it as terminal, not
  *  transient. Only the anchored `409: {...}` status marker — bare, or wrapped as
- *  "Error invoking remote method 'hermes:api': Error: 409: …" by the IPC bridge —
+ *  "Error invoking remote method 'kova:api': Error: 409: …" by the IPC bridge —
  *  counts; a `409` token inside a message body ("Query returned 409 rows", "4096")
  *  never does. */
 export function isOfflineMaintenance(error: unknown): boolean {

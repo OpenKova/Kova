@@ -3,7 +3,7 @@
  *
  * `PLUGIN_CATALOG_URL` (`/docs/api/plugins.json`, generated from the repo's
  * `plugin-catalog/` directory at site build) is the catalog the Capabilities →
- * Plugins card catalog browses. A `hermes://plugin/install?catalog=<name>`
+ * Plugins card catalog browses. A `kova://plugin/install?catalog=<name>`
  * deep link resolves against the SAME document so a link and an in-app pick
  * always agree on the repo, subdir and reviewed pin for a name.
  *

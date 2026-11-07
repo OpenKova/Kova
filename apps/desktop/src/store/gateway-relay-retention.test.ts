@@ -61,7 +61,7 @@ const agentConn = {
 }
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async () => agentConn),
     getConnectionFor: vi.fn(async () => agentConn)
   }
@@ -77,7 +77,7 @@ beforeEach(() => {
 afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('bot-relay gateway retention (#93594)', () => {

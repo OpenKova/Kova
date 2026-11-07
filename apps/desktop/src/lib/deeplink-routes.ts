@@ -8,7 +8,7 @@ export interface DeepLinkPayload {
 
 export type DeepLinkAction =
   | { type: 'plugin-install'; repo: string; enable: boolean; force: boolean; legacyHint: PluginInstallLegacyHint }
-  /** `hermes://plugin/install?catalog=<name>` — resolved against the curated
+  /** `kova://plugin/install?catalog=<name>` — resolved against the curated
    *  catalog by the caller; the raw name is never treated as a git identifier. */
   | { type: 'plugin-catalog-install'; name: string }
   | { type: 'skill-install'; identifier: string }

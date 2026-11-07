@@ -17,7 +17,7 @@ export interface SourceUpdateProbe {
   python: string | null
   git: string
   updateRoot: string
-  hermesHome: string
+  kovaHome: string
   branch?: string
   channel?: 'main' | 'stable' | 'canary'
   /** Persist this install's channel first (the About selector); the check then reports it. */
@@ -62,14 +62,14 @@ function probeFlags(probe: SourceUpdateProbe): string[] {
  */
 export async function sourceUpdateEnvironment(
   updateRoot: string,
-  hermesHome: string,
+  kovaHome: string,
   note?: (message: string) => void
 ): Promise<NodeJS.ProcessEnv> {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    ...(await updateProxyEnv(process.env, note, updateRoot, hermesHome)),
+    ...(await updateProxyEnv(process.env, note, updateRoot, kovaHome)),
     ...buildDesktopBackendEnv(),
-    KOVA_HOME: hermesHome,
+    KOVA_HOME: kovaHome,
     KOVA_INSTALL_ROOT: updateRoot
   }
 

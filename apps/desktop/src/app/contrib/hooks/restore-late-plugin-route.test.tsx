@@ -23,7 +23,7 @@ import { useDesktopIntegrations } from './use-desktop-integrations'
 
 vi.mock('@/store/windows', async importOriginal => ({ ...(await importOriginal<object>()), isHudWindow: () => false }))
 
-const desktopWindow = window as unknown as { hermesDesktop: unknown }
+const desktopWindow = window as unknown as { kovaDesktop: unknown }
 const originalBridge = desktopWindow.kovaDesktop
 
 beforeEach(() => {

@@ -69,7 +69,7 @@ it('a native click reveals the existing remote Bot tab without changing its owne
 
       return () => undefined
     }
-  } as Window['hermesDesktop']
+  } as Window['kovaDesktop']
   const navigate = vi.fn()
   renderHook(() =>
     useDesktopIntegrations({

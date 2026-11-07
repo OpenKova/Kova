@@ -264,7 +264,7 @@ describe('VersionHero bundle banners', () => {
   const stubRelaunch = () => {
     const relaunchApp = vi.fn().mockResolvedValue(undefined)
     const original = window.kovaDesktop
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { ...original, openExternal: vi.fn(), relaunchApp }
     })

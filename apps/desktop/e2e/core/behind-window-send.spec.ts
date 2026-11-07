@@ -150,7 +150,7 @@ async function routeLaterSockets(app: ElectronApplication, rec: WsRecorder) {
 
 /**
  * Let a window drop the cross-window transcript bus on demand: set
- * `window.__holdTranscriptBus = true` and its `hermes:transcript` listeners
+ * `window.__holdTranscriptBus = true` and its `kova:transcript` listeners
  * stop firing. Installed on the app context so the second window gets it.
  */
 async function installTranscriptBusHold(app: ElectronApplication) {
@@ -163,7 +163,7 @@ async function installTranscriptBusHold(app: ElectronApplication) {
 
     window.BroadcastChannel = class extends Native {
       override addEventListener(type: string, listener: any, options?: any) {
-        if (this.name === 'hermes:transcript' && type === 'message') {
+        if (this.name === 'kova:transcript' && type === 'message') {
           const held = (event: Event) => {
             if (!(window as any).__holdTranscriptBus) {
               listener.call(this, event)

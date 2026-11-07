@@ -6,7 +6,7 @@ import { $previewTabs, closeRightRail } from '@/store/preview'
 
 import { DirectiveContent } from './directive-text'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
 const PR_URL = 'https://github.com/NousResearch/kova-agent/pull/107950'
 
@@ -16,7 +16,7 @@ function installDesktopBridge() {
   desktopWindow.kovaDesktop = {
     fetchLinkTitle: vi.fn().mockResolvedValue(''),
     openExternal
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 
   return openExternal
 }

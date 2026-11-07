@@ -40,7 +40,7 @@ async function reportWithAnswer(home: string, response: number) {
   const boxes: any[] = []
   const consented: ReleaseHolder[][] = []
   reportHandoffResult({
-    hermesHome: home,
+    kovaHome: home,
     expectedStartedAt: null,
     expectedRunId: null,
     log: () => undefined,

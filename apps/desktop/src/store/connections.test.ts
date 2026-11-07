@@ -147,7 +147,7 @@ beforeEach(() => {
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   vi.stubGlobal('window', {
-    hermesDesktop: { api, connections: { list, setLastUsed } },
+    kovaDesktop: { api, connections: { list, setLastUsed } },
     localStorage,
     location: window.location
   })

@@ -84,7 +84,7 @@ vi.mock('./preview-vault', () => ({
 function installDesktopRelay() {
   const listeners = new Set<(payload: unknown) => void>()
 
-  const desktopWindow = window as unknown as { hermesDesktop?: Record<string, unknown> }
+  const desktopWindow = window as unknown as { kovaDesktop?: Record<string, unknown> }
 
   desktopWindow.kovaDesktop = {
     windowRelay: {

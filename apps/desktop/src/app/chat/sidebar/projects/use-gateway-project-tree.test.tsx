@@ -31,14 +31,14 @@ beforeEach(() => {
       { id: 'studio', label: 'Studio', kind: 'remote', tokenSet: true, tokenPreview: null }
     ]
   } as NonNullable<typeof $connectionsRegistry.value>)
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = { getConnectionFor }
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = { getConnectionFor }
 })
 
 afterEach(() => {
   vi.clearAllMocks()
   setPrimaryGateway(null)
   $connectionsRegistry.set(null)
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 0))

@@ -127,7 +127,7 @@ describe('browser-hosted shortcut defaults', () => {
         if (host === 'bridge') {
           window.document.documentElement.dataset.kovaDesktopHost = 'browser'
         } else {
-          vi.stubGlobal('hermesDesktop', undefined)
+          vi.stubGlobal('kovaDesktop', undefined)
           vi.stubGlobal(
             host === 'webapp' ? '__KOVA_UI_SURFACE__' : '__KOVA_AUTH_REQUIRED__',
             host === 'webapp' ? 'webapp' : true

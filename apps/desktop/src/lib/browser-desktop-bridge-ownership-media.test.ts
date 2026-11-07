@@ -22,7 +22,7 @@ const BACKENDS: Record<string, Record<string, string>> = {
 
 afterEach(() => {
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   setApiRequestConnection(null)
   setApiRequestProfile(null)

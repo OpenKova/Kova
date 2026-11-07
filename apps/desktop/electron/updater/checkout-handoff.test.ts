@@ -38,7 +38,7 @@ function handoffFixture(remote: boolean, scriptText: string = ''): { root: strin
 
   const deps: CheckoutStrategyDeps = {
     readSourceUpdate: async (): Promise<SourceUpdate> => status,
-    hermesHome: home,
+    kovaHome: home,
     isWindows: IS_WINDOWS,
     isMac: process.platform === 'darwin',
     defaultUpdateBranch: 'main',

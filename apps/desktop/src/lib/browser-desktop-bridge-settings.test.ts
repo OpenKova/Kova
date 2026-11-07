@@ -11,7 +11,7 @@ const win = window as unknown as BootstrapWindow
 
 /** A fresh page load: the bridge is rebuilt from scratch, only storage survives. */
 function reload(basePath = '') {
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   win.__KOVA_BASE_PATH__ = basePath
   expect(installBrowserDesktopBridge()).toBe(true)
 
@@ -28,7 +28,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   delete win.__KOVA_BASE_PATH__
   clearWebappSession()
   $connection.set(null)

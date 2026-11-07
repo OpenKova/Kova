@@ -52,7 +52,7 @@ beforeEach(() => {
   apiMocks.updateKeepGoingOnCredits.mockReset()
   gatewayMock.reset()
   $stepUpInFlight.set(false)
-  Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { openExternal: vi.fn() } })
+  Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { openExternal: vi.fn() } })
 })
 
 describe('KeepGoingOnCreditsRow', () => {

@@ -11,7 +11,7 @@ const windowControls = {
   toggleMaximize: vi.fn()
 }
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const originalKovaDesktop = desktopWindow.kovaDesktop
 
 function renderControls(isMaximized = false, path = '/', isFullscreen = false) {
@@ -35,7 +35,7 @@ afterEach(() => {
 
 describe('WslgWindowControls', () => {
   it('routes minimize, maximize and close through the desktop bridge', () => {
-    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['kovaDesktop']
 
     renderControls()
 
@@ -52,7 +52,7 @@ describe('WslgWindowControls', () => {
   })
 
   it('exposes restore semantics while maximized', () => {
-    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['kovaDesktop']
 
     renderControls(true)
 
@@ -60,7 +60,7 @@ describe('WslgWindowControls', () => {
   })
 
   it('stays hidden while the BrowserWindow is fullscreen', () => {
-    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['kovaDesktop']
 
     renderControls(false, '/', true)
 
@@ -68,7 +68,7 @@ describe('WslgWindowControls', () => {
   })
 
   it('stops pointerdown propagation without cancelling the click', () => {
-    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { windowControls } as unknown as Window['kovaDesktop']
     renderControls()
     const event = new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
 

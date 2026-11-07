@@ -183,9 +183,9 @@ test('alreadyHasDisableGpu honors argv and KOVA_DESKTOP_DISABLE_GPU', () => {
 })
 
 test('buildDisableGpuRelaunchArgs appends a single GPU-off pair', () => {
-  assert.deepEqual(buildDisableGpuRelaunchArgs(['--foo', '--disable-gpu', 'hermes://x']), [
+  assert.deepEqual(buildDisableGpuRelaunchArgs(['--foo', '--disable-gpu', 'kova://x']), [
     '--foo',
-    'hermes://x',
+    'kova://x',
     '--disable-gpu',
     '--disable-gpu-compositing'
   ])

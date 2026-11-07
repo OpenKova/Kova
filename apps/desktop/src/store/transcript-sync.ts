@@ -12,7 +12,7 @@ export type TranscriptChangedPayload = {
   messageCount?: number
 }
 
-const CHANNEL = 'hermes:transcript'
+const CHANNEL = 'kova:transcript'
 
 const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(CHANNEL)
 

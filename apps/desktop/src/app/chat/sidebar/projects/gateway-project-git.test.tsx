@@ -64,7 +64,7 @@ function installBridge() {
     throw new Error(`unexpected ${request.path}`)
   })
 
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = { api, git: localGit }
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = { api, git: localGit }
 
   return { api, localGit }
 }
@@ -78,7 +78,7 @@ afterEach(() => {
   $worktreeDialog.set(null)
   $dismissedWorktreeIds.set([])
   $startWorkSessionRequest.set(null)
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
   ;(globalThis as ActGlobal).IS_REACT_ACT_ENVIRONMENT = true
 })
 

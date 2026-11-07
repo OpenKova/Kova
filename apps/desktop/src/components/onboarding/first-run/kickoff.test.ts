@@ -31,7 +31,7 @@ const adopt = vi.fn(async (storedId: string) => {
 })
 
 beforeEach(() => {
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { chatOnboarding: { size } }
   })

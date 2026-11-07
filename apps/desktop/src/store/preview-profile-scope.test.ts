@@ -25,7 +25,7 @@ describe('preview per-profile cookie scoping (#150283)', () => {
   // a remote profile wipes the local profile's imported sign-ins.
   it('clears the local cookie jar for a local delete but not a remote one', () => {
     const drop = vi.fn(() => Promise.resolve({ ok: true }))
-    const desktopWindow = window as unknown as { hermesDesktop?: { dropPreviewSigninsForProfile?: typeof drop } }
+    const desktopWindow = window as unknown as { kovaDesktop?: { dropPreviewSigninsForProfile?: typeof drop } }
     const previous = desktopWindow.kovaDesktop
     desktopWindow.kovaDesktop = { dropPreviewSigninsForProfile: drop }
 

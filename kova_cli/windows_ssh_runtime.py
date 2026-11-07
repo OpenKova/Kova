@@ -399,7 +399,7 @@ def _spawn_env(payload: dict[str, Any]) -> dict[str, str]:
 def spawn_backend(payload: dict[str, Any]) -> dict[str, Any]:
     ownership_id = _ownership(str(payload["ownershipId"]))
     spawn_nonce = _nonce(str(payload["spawnNonce"]))
-    configured_path = str(payload["hermesPath"])
+    configured_path = str(payload["kovaPath"])
     if not os.path.isabs(configured_path):
         raise ValueError("Kova path must be absolute")
     hermes_path = os.path.abspath(configured_path)
@@ -446,7 +446,7 @@ def inspect_hermes(hermes_path: str) -> dict[str, Any]:
 
 def _probe(*_: str) -> dict[str, Any]:
     import platform
-    return {"os": "Windows", "arch": platform.machine(), "hermesHome": str(get_default_kova_root()), "python": sys.executable}
+    return {"os": "Windows", "arch": platform.machine(), "kovaHome": str(get_default_kova_root()), "python": sys.executable}
 
 
 def _inventory(*_: str) -> dict[str, Any]:

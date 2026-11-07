@@ -84,7 +84,7 @@ const { requestForSessionProfile, sessionRpcNeedsProfileRoute } = await import('
 const { $connectionsRegistry } = await import('./connection-registry-state')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async (profile: null | string) =>
       profile ? { port: 5151, profile, token: 'secondary-token' } : { port: 4242, token: 'primary-token' }
     ),
@@ -116,7 +116,7 @@ afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
   resetBackgroundPollingGuard()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('$activeGatewayRoute (registry-owned active profile)', () => {
@@ -267,7 +267,7 @@ describe('requestForSessionProfile', () => {
 
     const desktop = (
       window as unknown as {
-        hermesDesktop: { getConnectionFor: ReturnType<typeof vi.fn> }
+        kovaDesktop: { getConnectionFor: ReturnType<typeof vi.fn> }
       }
     ).kovaDesktop
 

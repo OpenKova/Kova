@@ -141,7 +141,7 @@ describe('preview annotate host', () => {
       window.kovaDesktop = {
         beginPreviewGuestActivity: begin,
         endPreviewGuestActivity: end
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
       let callbacks: FrameRequestCallback[] = []
 
       const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {

@@ -37,14 +37,14 @@ interface RpcReceipt {
   error?: unknown
 }
 
-function isolatedEnv(home: string, hermesHome: string): Record<string, string> {
+function isolatedEnv(home: string, kovaHome: string): Record<string, string> {
   // Allowlist rather than inheriting real provider keys, profile selection,
   // browser account state, live desktop overrides, or the host session bus.
   const env: Record<string, string> = {
     PATH: process.env.PATH ?? '',
     HOME: home,
     USERPROFILE: home,
-    KOVA_HOME: hermesHome,
+    KOVA_HOME: kovaHome,
     PYTHONPATH: REPO_ROOT,
     PYTHONNOUSERSITE: '1',
     PYTHONDONTWRITEBYTECODE: '1',
@@ -267,7 +267,7 @@ test('Settings provider setup stays on its gateway/profile across A → B → A'
   const original = createSandbox('provider-owner')
   const localHome = path.join(original.root, 'local')
   const remoteHome = path.join(original.root, 'remote')
-  const sandbox: Sandbox = { ...original, hermesHome: path.join(localHome, '.kova') }
+  const sandbox: Sandbox = { ...original, kovaHome: path.join(localHome, '.kova') }
   const remoteKovaHome = path.join(remoteHome, '.kova')
   const remoteProfileHome = path.join(remoteKovaHome, 'profiles', PROFILE)
   const python = pythonBinary()

@@ -20,7 +20,7 @@ afterEach((): void => {
   $updateOverlayOpen.set(false)
   $updateStatus.set(null)
   resetUpdateApplyState()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   vi.restoreAllMocks()
 })
 
@@ -30,7 +30,7 @@ it('shows manual recovery guidance without claiming the help command installs an
     updates: {
       apply: async (): Promise<unknown> => ({ ok: true, manual: true, command: 'hermes update --help', message })
     }
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
   $updateOverlayTarget.set('client')
   $updateOverlayOpen.set(true)
   $updateStatus.set({ supported: false, reason: 'source-probe-unavailable', message })

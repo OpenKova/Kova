@@ -18,7 +18,7 @@ export function browserPageBasePath(): string {
 export function browserDefaultProjectDirKey(basePath: string, profile: string): string {
   const owner = profile.trim() || browserLaunchProfileOrDefault()
 
-  return `hermes:browser:default-project-dir:${JSON.stringify([basePath || '/', owner])}`
+  return `kova:browser:default-project-dir:${JSON.stringify([basePath || '/', owner])}`
 }
 
 /**
@@ -32,7 +32,7 @@ export function browserDefaultProjectDirKey(basePath: string, profile: string): 
  * keeps a later launch as another profile from taking default's own folder.
  */
 function adoptLegacyLaunchFolder(basePath: string): void {
-  const marker = `hermes:browser:default-project-dir-adopted:${JSON.stringify([basePath || '/'])}`
+  const marker = `kova:browser:default-project-dir-adopted:${JSON.stringify([basePath || '/'])}`
 
   if (readKey(marker)) {
     return
@@ -96,7 +96,7 @@ export function dropBrowserFolderPref(basePath: string, profile: string): void {
 export function createBrowserSettings({
   basePath,
   currentProfile
-}: BrowserSettingsOptions): Window['hermesDesktop']['settings'] {
+}: BrowserSettingsOptions): Window['kovaDesktop']['settings'] {
   const key = () => folderKey(basePath, currentProfile() ?? '')
 
   return {

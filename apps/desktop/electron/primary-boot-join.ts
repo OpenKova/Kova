@@ -4,7 +4,7 @@ import { profileHasRemoteConnection } from './connection-config'
  * Which profile a caller of the primary backend asked for, and whether it
  * named one at all. A profile-less caller follows the primary, and only that
  * caller may be moved when a remote boot re-pins the primary onto a profile its
- * gateway serves. The resolved key alone cannot say this: `hermes:connection`
+ * gateway serves. The resolved key alone cannot say this: `kova:connection`
  * fills an empty request with the primary's name before it reaches
  * ensureBackend/startKova.
  */

@@ -114,9 +114,9 @@ describe('registerSaveDialogIpc', () => {
       { defaultDir: () => dir, showSaveDialog: async () => ({ canceled: false, filePath: target }) }
     )
 
-    expect([...handlers.keys()].sort()).toEqual(['hermes:saveTextFileAs', 'hermes:selectSavePath'])
-    expect(await handlers.get('hermes:selectSavePath')!(null, { title: 'Export' })).toBe(target)
-    expect(await handlers.get('hermes:saveTextFileAs')!(null, { content: '{}' })).toEqual({ saved: true, path: target })
+    expect([...handlers.keys()].sort()).toEqual(['kova:saveTextFileAs', 'kova:selectSavePath'])
+    expect(await handlers.get('kova:selectSavePath')!(null, { title: 'Export' })).toBe(target)
+    expect(await handlers.get('kova:saveTextFileAs')!(null, { content: '{}' })).toEqual({ saved: true, path: target })
     expect(fs.readFileSync(target, 'utf8')).toBe('{}')
   })
 })

@@ -2,8 +2,8 @@
 export interface WindowsRuntime {
   os?: string
   arch?: string
-  hermesHome: string
-  hermesPath: string
+  kovaHome: string
+  kovaPath: string
   python: string
   launcherPath?: string
   runtimeCommand?: string[]

@@ -29,7 +29,7 @@ const worktreeAddSpy = () =>
   }))
 
 function installGit(git: Record<string, unknown>) {
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = { git }
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = { git }
 }
 
 async function submitWorktree(name: string) {
@@ -47,7 +47,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   $worktreeDialog.set(null)
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
   ;(globalThis as ActGlobal).IS_REACT_ACT_ENVIRONMENT = true
 })
 

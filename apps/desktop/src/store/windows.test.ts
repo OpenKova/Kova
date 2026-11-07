@@ -13,7 +13,7 @@ import {
   openSessionInTerminal
 } from './windows'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const notifyError = vi.fn()
@@ -23,15 +23,15 @@ vi.mock('./notifications', () => ({
 }))
 
 function installBridge(
-  openSessionWindow?: Window['hermesDesktop']['openSessionWindow'],
-  openWindow?: Window['hermesDesktop']['openWindow'],
-  openBrowserWindow?: Window['hermesDesktop']['openBrowserWindow']
+  openSessionWindow?: Window['kovaDesktop']['openSessionWindow'],
+  openWindow?: Window['kovaDesktop']['openWindow'],
+  openBrowserWindow?: Window['kovaDesktop']['openBrowserWindow']
 ) {
   desktopWindow.kovaDesktop = {
     ...(openSessionWindow ? { openSessionWindow } : {}),
     ...(openWindow ? { openWindow } : {}),
     ...(openBrowserWindow ? { openBrowserWindow } : {})
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 }
 
 beforeEach(() => {
@@ -186,7 +186,7 @@ describe('openBrowserInNewWindow', () => {
 describe('openSessionInTerminal', () => {
   it('hands a session to the bridge, and is a no-op without one or without a session id', async () => {
     const open = vi.fn().mockResolvedValue({ ok: true })
-    desktopWindow.kovaDesktop = { openSessionInTerminal: open } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { openSessionInTerminal: open } as unknown as Window['kovaDesktop']
 
     expect(canOpenSessionInTerminal()).toBe(true)
     await openSessionInTerminal('', { cwd: '/work' })

@@ -20,14 +20,14 @@ import {
 } from './store'
 import { resolveDomTarget } from './target'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
-function installBridge(partial: Partial<Window['hermesDesktop']> = {}) {
+function installBridge(partial: Partial<Window['kovaDesktop']> = {}) {
   desktopWindow.kovaDesktop = {
     openExternal: vi.fn().mockResolvedValue(undefined),
     writeClipboard: vi.fn().mockResolvedValue(true),
     ...partial
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 }
 
 function mountMenu() {
@@ -388,8 +388,8 @@ describe('AppContextMenu', () => {
     const writeClipboard = vi.fn().mockResolvedValue(true)
 
     installBridge({
-      reachPreviewUrl: reachPreviewUrl as unknown as Window['hermesDesktop']['reachPreviewUrl'],
-      writeClipboard: writeClipboard as unknown as Window['hermesDesktop']['writeClipboard']
+      reachPreviewUrl: reachPreviewUrl as unknown as Window['kovaDesktop']['reachPreviewUrl'],
+      writeClipboard: writeClipboard as unknown as Window['kovaDesktop']['writeClipboard']
     })
     mountMenu()
     const host = attach('<a href="http://localhost:5173/">Dev</a>')
@@ -434,7 +434,7 @@ describe('AppContextMenu', () => {
   it.each(['electron', 'browser'])('%s: edit verbs run after the menu closed, field refocused', async hostKind => {
     const contextMenuEdit = vi.fn().mockResolvedValue(undefined)
 
-    installBridge({ contextMenuEdit: contextMenuEdit as unknown as Window['hermesDesktop']['contextMenuEdit'] })
+    installBridge({ contextMenuEdit: contextMenuEdit as unknown as Window['kovaDesktop']['contextMenuEdit'] })
     window.document.documentElement.dataset.kovaDesktopHost = hostKind
     mountMenu()
     const host = attach('<textarea>some draft text</textarea>')
@@ -460,7 +460,7 @@ describe('AppContextMenu', () => {
     const contextMenuEdit = vi.fn().mockResolvedValue(undefined)
 
     installBridge({
-      contextMenuEdit: contextMenuEdit as unknown as Window['hermesDesktop']['contextMenuEdit'],
+      contextMenuEdit: contextMenuEdit as unknown as Window['kovaDesktop']['contextMenuEdit'],
       readClipboard: vi.fn().mockResolvedValue('clipboard payload')
     })
     render(
@@ -532,7 +532,7 @@ describe('AppContextMenu', () => {
   it('select all stays inside the field and never reaches main', async () => {
     const contextMenuEdit = vi.fn().mockResolvedValue(undefined)
 
-    installBridge({ contextMenuEdit: contextMenuEdit as unknown as Window['hermesDesktop']['contextMenuEdit'] })
+    installBridge({ contextMenuEdit: contextMenuEdit as unknown as Window['kovaDesktop']['contextMenuEdit'] })
     mountMenu()
     const host = attach('<textarea>alpha beta gamma</textarea>')
     const textarea = host.querySelector('textarea')!
@@ -575,7 +575,7 @@ describe('AppContextMenu', () => {
     // gray the item out; pasting on a truly empty clipboard is a no-op.
     const readClipboard = vi.fn().mockResolvedValue('')
 
-    installBridge({ readClipboard: readClipboard as unknown as Window['hermesDesktop']['readClipboard'] })
+    installBridge({ readClipboard: readClipboard as unknown as Window['kovaDesktop']['readClipboard'] })
     mountMenu()
     const host = attach('<textarea>text</textarea>')
 

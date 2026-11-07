@@ -424,7 +424,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       sources: []
     })
 
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = { connections, getAgentRoster }
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = { connections, getAgentRoster }
 
     try {
       await renderSkills()
@@ -433,7 +433,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       // The selector paints roster rows labeled profile — device.
       expect(await screen.findByText('default — This device (current)')).toBeTruthy()
     } finally {
-      delete (window as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as { kovaDesktop?: unknown }).kovaDesktop
     }
   })
 
@@ -578,7 +578,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       throw new Error(`unexpected ${path}`)
     })
 
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = { api }
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = { api }
     getSkills.mockResolvedValue(
       ['agent-git-oracle', 'pdf'].map(name => ({ name, description: name, enabled: true, usage: 0, provenance: 'hub' }))
     )
@@ -607,7 +607,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       expect(screen.queryByRole('button', { name: /^Add (Agent Git Oracle|My Pdf)$/ })).toBeNull()
       expect(installHubSkill).not.toHaveBeenCalled()
     } finally {
-      delete (window as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as { kovaDesktop?: unknown }).kovaDesktop
     }
   })
 })

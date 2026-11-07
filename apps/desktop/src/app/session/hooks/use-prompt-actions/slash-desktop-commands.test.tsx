@@ -399,7 +399,7 @@ describe('/save writes on the Electron side', () => {
   it('asks the owner for the rendered file (session.export) and saves it through the main process', async () => {
     const saveTextFileAs = vi.fn(async () => ({ saved: true, path: '/home/u/Documents/notes.md' }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { saveTextFileAs }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { saveTextFileAs }
 
     const requestGateway = gateway(method =>
       method === 'session.export'
@@ -424,7 +424,7 @@ describe('/save writes on the Electron side', () => {
   it('defaults to json and the owner filename, and reports a cancelled dialog', async () => {
     const saveTextFileAs = vi.fn(async () => ({ saved: false, canceled: true }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { saveTextFileAs }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { saveTextFileAs }
 
     const requestGateway = gateway(method =>
       method === 'session.export' ? { format: 'json', filename: 'hermes_session_s1.json', content: '{}' } : undefined

@@ -98,7 +98,7 @@ export function installBrowserDesktopBridge(): boolean {
   const uploads = createBrowserUploadsBridge({ api, bootstrap, currentProfile, objectUrls, previewUrls })
   const files = createBrowserFilesBridge({ api, bootstrap, currentProfile })
 
-  const bridge: Window['hermesDesktop'] = {
+  const bridge: Window['kovaDesktop'] = {
     ...BROWSER_BRIDGE_STUBS,
     ...createBrowserClipboardBridge({ saveBuffer: uploads.saveImageBuffer }),
     ...createBrowserConnectionBridge({ api, bootstrap }),

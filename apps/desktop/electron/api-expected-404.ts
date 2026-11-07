@@ -1,7 +1,7 @@
-// The `hermes:api` expected-404 seam, shared by the main-process handler and
+// The `kova:api` expected-404 seam, shared by the main-process handler and
 // preload so both sides agree on one literal.
 //
-// Electron logs "Error occurred in handler for 'hermes:api'" with a full stack
+// Electron logs "Error occurred in handler for 'kova:api'" with a full stack
 // trace for every rejected `ipcMain.handle` invoke, and offers no way to opt a
 // handler out. Desktop's session resolution is a deliberate probe ladder
 // (`resolveStoredSession`: cache → active backend → each other profile), so a

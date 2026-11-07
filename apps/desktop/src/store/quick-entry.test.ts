@@ -461,7 +461,7 @@ describe('quickComposerReducer', () => {
 })
 
 describe('Quick Entry settings bridge', () => {
-  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
   const initialKovaDesktop = desktopWindow.kovaDesktop
   const initialState = $quickEntry.get()
 
@@ -485,7 +485,7 @@ describe('Quick Entry settings bridge', () => {
       .mockResolvedValueOnce({ ...status('Alt+K'), error: 'taken', registered: false })
       .mockRejectedValueOnce(new Error('ipc closed'))
 
-    desktopWindow.kovaDesktop = { quickEntry: { getSettings, setSettings } } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { quickEntry: { getSettings, setSettings } } as unknown as Window['kovaDesktop']
 
     expect(canUseQuickEntry()).toBe(true)
     await loadQuickEntrySettings()

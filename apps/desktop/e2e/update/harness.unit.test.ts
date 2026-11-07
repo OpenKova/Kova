@@ -16,7 +16,7 @@ test.skipIf(process.platform !== 'linux')(
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'update census '))
 
     const facts = {
-      hermesHome: path.join(root, 'home', '.kova'),
+      kovaHome: path.join(root, 'home', '.kova'),
       checkout: path.join(root, 'checkout')
     } as InstallFacts
 

@@ -62,7 +62,7 @@ afterEach(() => {
 
 describe('browser profile folder for a new chat', () => {
   it('starts a chat or tile in profile B in B folder, and stays detached when B never chose one', () => {
-    expect(browserDefaultProjectDirKey('/hermes', 'beta')).toBe('hermes:browser:default-project-dir:["/hermes","beta"]')
+    expect(browserDefaultProjectDirKey('/hermes', 'beta')).toBe('kova:browser:default-project-dir:["/hermes","beta"]')
     host()
     putFolder('alpha', '/srv/alpha')
     putFolder('beta', '/srv/beta')
@@ -267,8 +267,8 @@ describe('browser profile prefs follow rename and delete', () => {
 // folder alpha's tab chose sits under 'default'. A tab that named
 // `?profile=default` saved there too, so whose folder it is stays unknown.
 describe('browser folder saved by an older build', () => {
-  const legacyKey = 'hermes:browser:default-project-dir:["/hermes","default"]'
-  const alphaKey = 'hermes:browser:default-project-dir:["/hermes","alpha"]'
+  const legacyKey = 'kova:browser:default-project-dir:["/hermes","default"]'
+  const alphaKey = 'kova:browser:default-project-dir:["/hermes","alpha"]'
 
   function serveAlphaWithLegacy(dir: string) {
     host()

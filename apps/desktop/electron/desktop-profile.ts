@@ -114,12 +114,12 @@ export function registerDesktopProfilePreferenceIpc(
   preferences: ReturnType<typeof createDesktopProfilePreferences>,
   isKnownConnection: (connectionId: string) => boolean
 ) {
-  ipc.handle('hermes:profile:default:get', async () => preferences.getDefault())
-  ipc.handle('hermes:profile:default:set', async (_event, route) => preferences.setDefault(route))
-  ipc.handle('hermes:profile:connections:remember', async (_event, connectionId, profile) =>
+  ipc.handle('kova:profile:default:get', async () => preferences.getDefault())
+  ipc.handle('kova:profile:default:set', async (_event, route) => preferences.setDefault(route))
+  ipc.handle('kova:profile:connections:remember', async (_event, connectionId, profile) =>
     preferences.rememberConnectionProfile(connectionId, profile, isKnownConnection)
   )
-  ipc.handle('hermes:profile:connections:import', async (_event, record) =>
+  ipc.handle('kova:profile:connections:import', async (_event, record) =>
     preferences.importConnectionProfiles(record, isKnownConnection)
   )
 }

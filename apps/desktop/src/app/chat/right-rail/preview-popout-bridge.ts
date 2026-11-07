@@ -31,7 +31,7 @@ import {
   type PreviewVaultScope
 } from './preview-vault'
 
-const CHANNEL = 'hermes:preview-popout'
+const CHANNEL = 'kova:preview-popout'
 
 const ACT_TIMEOUT_MS = 20_000
 const READ_TIMEOUT_MS = 8_000

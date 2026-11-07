@@ -512,7 +512,7 @@ describe('requestActiveUpdate', () => {
     $backendUpdateStatus.set(null)
     $updateOverlayOpen.set(false)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
+      kovaDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
     }
     vi.useRealTimers()
   })
@@ -642,7 +642,7 @@ describe('explicit update targets', () => {
     $mockConnectionsRegistry.set(null)
     setRemote(true)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
+      kovaDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
     }
     vi.useRealTimers()
   })
@@ -655,7 +655,7 @@ describe('explicit update targets', () => {
   })
 
   // The macOS "Check for Updates…" app-menu item — the OS-standard affordance
-  // for updating THIS app — routes here via `hermes:open-updates`.
+  // for updating THIS app — routes here via `kova:open-updates`.
   it('opens the client overlay on an explicit client target, even in remote mode', async () => {
     openUpdatesWindow('client')
 
@@ -739,7 +739,7 @@ describe('applyEverythingUpdate', () => {
     $updateOverlayOpen.set(false)
     $mockConnectionsRegistry.set(null)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: {
+      kovaDesktop: {
         updates: { apply: applyClientMock, check: checkClientMock },
         connections: { updateAll: updateAllMock }
       }
@@ -932,7 +932,7 @@ describe('client nudge after a backend update', () => {
     $mockConnectionsRegistry.set(null)
     setRemote(true)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
+      kovaDesktop: { updates: { apply: applyClientMock, check: checkClientMock } }
     }
     vi.useRealTimers()
   })
@@ -995,7 +995,7 @@ describe('applyUpdates terminal state', () => {
     resetUpdateApplyState()
     $updateOverlayOpen.set(true)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { apply: applyMock } }
+      kovaDesktop: { updates: { apply: applyMock } }
     }
     vi.useRealTimers()
   })
@@ -1614,7 +1614,7 @@ describe('startUpdatePoller', () => {
     })
     $updateStatus.set(null)
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { check: checkMock, onProgress: onProgressMock } },
+      kovaDesktop: { updates: { check: checkMock, onProgress: onProgressMock } },
       addEventListener: vi.fn((event: string, handler: Function) => {
         listeners[event] = handler
       }),
@@ -1850,7 +1850,7 @@ describe('discontinued retirement notice', () => {
     $updateOverlayOpen.set(false)
     checkMock.mockImplementation(async () => discontinuedStatus())
     ;(globalThis as unknown as { window: unknown }).window = {
-      hermesDesktop: { updates: { apply: applyMock, check: checkMock } }
+      kovaDesktop: { updates: { apply: applyMock, check: checkMock } }
     }
     vi.useRealTimers()
   })

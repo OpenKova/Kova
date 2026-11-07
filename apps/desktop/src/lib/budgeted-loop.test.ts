@@ -48,7 +48,7 @@ describe('createBudgetedLoop', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   })
 
   it('enforces the fps budget: frames inside the interval reschedule without drawing', () => {

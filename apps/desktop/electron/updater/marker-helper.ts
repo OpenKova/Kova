@@ -48,7 +48,7 @@ export type HelperSpawn = (
 
 export interface MarkerHelperOptions {
   updateRoot: string
-  hermesHome: string
+  kovaHome: string
   desktopPid?: number | null
   runId?: string | null
   isWindows: boolean

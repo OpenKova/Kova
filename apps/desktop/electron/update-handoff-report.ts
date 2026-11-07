@@ -9,7 +9,7 @@ import { closableReleaseHolders } from './release-holder-consent'
 import { explainUpdateStop, readStoppedRun } from './update-stop-remedy'
 
 export interface HandoffReportHost {
-  hermesHome: string
+  kovaHome: string
   /** Marker line 2 of the run this boot parked on (C2 started_at match), else null. */
   expectedStartedAt: number | null
   /** Stable run id of that marker (survives heartbeat refreshes), else null. */
@@ -112,7 +112,7 @@ function reportFailedHandoff(host: HandoffReportHost, result: HandoffResult): vo
 
   // Async so boot is not blocked behind the dialog; the response handlers
   // reuse the menu's open-updates path (queued until the renderer is ready)
-  // and the same reveal primitive as 'hermes:logs:reveal'.
+  // and the same reveal primitive as 'kova:logs:reveal'.
   void host.dialog
     .showMessageBox({
       type: 'error',

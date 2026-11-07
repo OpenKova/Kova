@@ -9,7 +9,7 @@ const sent = vi.hoisted(() => {
   const calls: unknown[] = []
 
   Object.defineProperty(globalThis.navigator, 'platform', { configurable: true, value: 'Linux x86_64' })
-  Object.defineProperty(globalThis.window, 'hermesDesktop', {
+  Object.defineProperty(globalThis.window, 'kovaDesktop', {
     configurable: true,
     value: {
       glassSupported: false,

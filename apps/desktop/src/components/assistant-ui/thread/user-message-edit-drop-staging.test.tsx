@@ -27,7 +27,7 @@ const UPLOAD_413 = 'File upload failed (413): the file is larger than the server
 afterEach(() => {
   cleanup()
   clearNotifications()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
 })
 
 function Harness({ gateway }: { gateway: KovaGateway }) {
@@ -73,7 +73,7 @@ describe('edit composer drop staging failures', () => {
       throw new Error(UPLOAD_413)
     })
 
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { stageFileForAttach } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { stageFileForAttach } })
     const request = vi.fn(async () => ({}))
     const editor = await openEditor({ request } as unknown as KovaGateway)
 
@@ -104,7 +104,7 @@ describe('edit composer drop staging failures', () => {
       throw new Error(limit)
     })
 
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { stageFileForAttach } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { stageFileForAttach } })
     const editor = await openEditor({ request: vi.fn(async () => ({})) } as unknown as KovaGateway)
 
     await act(async () => {

@@ -43,7 +43,7 @@ beforeEach(() => {
   stopPreviewFileWatch.mockResolvedValue(true)
   onPreviewFileChanged.mockReset()
   getStatus.mockClear()
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     desktopPluginsRoot,
     onPreviewFileChanged,
     readDir,
@@ -55,7 +55,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('scanDiskPlugins (#66899)', () => {
@@ -1232,7 +1232,7 @@ describe('linked dev package: the source checkout drives the desktop half', () =
       return [`${root}/devpkg`]
     })
 
-    Object.assign((window as unknown as { hermesDesktop: object }).kovaDesktop, { reconcileDesktopPlugins })
+    Object.assign((window as unknown as { kovaDesktop: object }).kovaDesktop, { reconcileDesktopPlugins })
 
     const createObjectURL = vi
       .spyOn(URL, 'createObjectURL')

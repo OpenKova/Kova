@@ -393,7 +393,7 @@ export function useDesktopIntegrations({
 
       if (payload.activate) {
         // Defense-in-depth: re-resolve at the IPC boundary rather than trusting
-        // the pre-IPC validation — any future hermesDesktop.notify caller gets
+        // the pre-IPC validation — any future kovaDesktop.notify caller gets
         // funneled through the same resolver.
         const path = resolveKovaOpenPath(payload.activate)
 

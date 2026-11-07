@@ -9,7 +9,7 @@ type GatewayRequest = (
  *  boot per app launch; the backend buckets it and drops it unless the user opted in.
  *  An older Electron shell (no bridge) or backend (no method) just skips the metric. */
 export async function reportStartupLatency(
-  desktop: Pick<Window['hermesDesktop'], 'claimStartupLatency'> | undefined,
+  desktop: Pick<Window['kovaDesktop'], 'claimStartupLatency'> | undefined,
   request: GatewayRequest
 ): Promise<void> {
   const elapsedMs = (await desktop?.claimStartupLatency?.().catch(() => null)) ?? null

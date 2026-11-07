@@ -255,7 +255,7 @@ export const mainComposerScope = createComposerAttachmentScope($composerAttachme
 // Per-thread draft stash for the decoupled composer. Session lifecycle never
 // touches this — only ChatBar's scope swap reads/writes it. Text mirrors to
 // localStorage; attachments are memory-only (blobs, upload state).
-export const SESSION_DRAFTS_STORAGE_KEY = 'hermes:composer-drafts:v3'
+export const SESSION_DRAFTS_STORAGE_KEY = 'kova:composer-drafts:v3'
 
 export const NEW_SESSION_DRAFT_KEY = '__new__'
 const MAX_PERSISTED_DRAFTS = 50
@@ -508,7 +508,7 @@ if (typeof window !== 'undefined') {
  * Dispatched synchronously, unlike the focus bus: the flush must complete
  * before the HUD window is created.
  */
-const DRAFT_SYNC_EVENT = 'hermes:composer-draft-sync'
+const DRAFT_SYNC_EVENT = 'kova:composer-draft-sync'
 
 export type ComposerDraftSyncMode = 'flush' | 'reload'
 

@@ -1,20 +1,20 @@
 /**
  * Shared resolver for in-app navigation targets that must stay compatible with
- * `hermes://` deep links and `host.navigate('/path?…')`.
+ * `kova://` deep links and `host.navigate('/path?…')`.
  *
  * Notification activation, deep-link delivery, and plugin `activate` payloads
  * all funnel through here so a toast click and an OS deep link land on the
  * same hash-router path.
  *
  * Supported deep-link shapes:
- *  - `hermes://index-network/intent/1` → `/index-network/intent/1` (plugin-scoped)
- *  - `hermes://open/my-page?item=x` → `/my-page?item=x` (generic open)
+ *  - `kova://index-network/intent/1` → `/index-network/intent/1` (plugin-scoped)
+ *  - `kova://open/my-page?item=x` → `/my-page?item=x` (generic open)
  *  - `/my-page?item=x` / `#/my-page?item=x` (hash-router paths)
  */
 
 export type KovaOpenTarget = string | { href: string } | { path: string; params?: Record<string, string> }
 
-const KOVA_PROTOCOL = 'hermes:'
+const KOVA_PROTOCOL = 'kova:'
 
 /** Hostnames owned by core deep-link handlers — never treated as plugin routes. */
 const RESERVED_DEEP_LINK_KINDS = new Set([
@@ -73,7 +73,7 @@ export function normalizeKovaOpenString(raw: string): string | null {
     return null
   }
 
-  if (trimmed.startsWith('hermes://') || trimmed.startsWith(`${KOVA_PROTOCOL}//`)) {
+  if (trimmed.startsWith('kova://') || trimmed.startsWith(`${KOVA_PROTOCOL}//`)) {
     try {
       const url = new URL(trimmed)
       const host = url.hostname || ''
@@ -153,7 +153,7 @@ export function resolveKovaOpenPath(target: KovaOpenTarget | null | undefined): 
 
 /**
  * Build a navigate path from a parsed deep-link payload
- * (`hermes://<kind>/<name>?…` → kind/name/params).
+ * (`kova://<kind>/<name>?…` → kind/name/params).
  */
 export function pathFromKovaDeepLink(kind: string, name: string, params: Record<string, string> = {}): string | null {
   if (!kind || !name) {
@@ -171,7 +171,7 @@ export function pathFromKovaDeepLink(kind: string, name: string, params: Record<
   return resolveKovaOpenPath({ path: `/${kind}/${name.replace(/^\//, '')}`, params })
 }
 
-/** Convenience for `hermes://open/<name>?…` payloads. */
+/** Convenience for `kova://open/<name>?…` payloads. */
 export function pathFromOpenDeepLink(name: string, params: Record<string, string> = {}): string | null {
   return pathFromKovaDeepLink('open', name, params)
 }

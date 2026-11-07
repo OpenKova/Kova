@@ -214,7 +214,7 @@ describe('useBackgroundSync live-status poll with no session open', () => {
     } finally {
       delete win.__KOVA_DASHBOARD_PROFILE__
       clearWebappSession()
-      Reflect.deleteProperty(window, 'hermesDesktop')
+      Reflect.deleteProperty(window, 'kovaDesktop')
       window.history.replaceState(null, '', '/#/')
     }
   })
@@ -231,11 +231,11 @@ describe('useBackgroundSync live-status poll with no session open', () => {
 
     beforeEach(() => {
       getConnection.mockClear()
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { getConnection } })
+      Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { getConnection } })
     })
 
     afterEach(() => {
-      Reflect.deleteProperty(window, 'hermesDesktop')
+      Reflect.deleteProperty(window, 'kovaDesktop')
     })
 
     it('keeps naming the picked profile after a reconnect republishes the primary local descriptor', async () => {

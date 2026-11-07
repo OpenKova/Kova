@@ -81,9 +81,9 @@ test('disk-full / ENOSPC phrasings are classified as disk-full, other storage fa
 test('notifyError posts the full error to desktop.log, not the summary', () => {
   const logLine = vi.fn()
 
-  const previous = (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  const previous = (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 
-  ;(window as unknown as { hermesDesktop: { logLine: typeof logLine } }).kovaDesktop = { logLine }
+  ;(window as unknown as { kovaDesktop: { logLine: typeof logLine } }).kovaDesktop = { logLine }
 
   try {
     const error = new Error('sqlite3.OperationalError: database is locked')
@@ -97,9 +97,9 @@ test('notifyError posts the full error to desktop.log, not the summary', () => {
     expect(logLine.mock.calls[0][0]).toContain('session.ts:12')
   } finally {
     if (previous === undefined) {
-      delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     } else {
-      ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = previous
+      ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = previous
     }
   }
 })
@@ -108,7 +108,7 @@ test.each(['missing', 'closed'] as const)(
   'notifyError still shows a toast when the log bridge is %s',
   (state: 'missing' | 'closed'): void => {
     vi.stubGlobal(
-      'hermesDesktop',
+      'kovaDesktop',
       state === 'missing'
         ? undefined
         : {
@@ -131,7 +131,7 @@ test.each(['missing', 'closed'] as const)(
 test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', () => {
   notifyError(
     new Error(
-      'Error invoking remote method \'hermes:api\': Error: 503: {"detail":"Restart required: This process is running code from 08b4875f4a but the checkout on disk is now 48d2528066."}'
+      'Error invoking remote method \'kova:api\': Error: 503: {"detail":"Restart required: This process is running code from 08b4875f4a but the checkout on disk is now 48d2528066."}'
     ),
     'Could not load models'
   )

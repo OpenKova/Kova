@@ -5,7 +5,7 @@ import { $notifications, clearNotifications } from '@/store/notifications'
 
 import { bindTerminalDrop } from './terminal-drop'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Partial<Window['hermesDesktop']> }
+const desktopWindow = window as unknown as { kovaDesktop?: Partial<Window['kovaDesktop']> }
 const MIB = 1024 * 1024
 // eslint-disable-next-line no-control-regex -- the assertion is that none of these reach the shell
 const CONTROL_CHARACTER = /[\u0000-\u001f\u007f-\u009f]/
@@ -36,15 +36,15 @@ function file(name: string, size = 4): File {
   return value
 }
 
-function transfer(files: File[], hermesPaths?: string[]): DataTransfer {
+function transfer(files: File[], kovaPaths?: string[]): DataTransfer {
   const list = Object.assign([...files], { item: (index: number) => files[index] ?? null })
 
   return {
     files: list,
     getData: (type: string) =>
-      type === 'application/x-hermes-paths' && hermesPaths ? JSON.stringify(hermesPaths.map(path => ({ path }))) : '',
+      type === 'application/x-hermes-paths' && kovaPaths ? JSON.stringify(kovaPaths.map(path => ({ path }))) : '',
     items: files.map(entry => ({ getAsFile: () => entry, kind: 'file' })),
-    types: [...(hermesPaths ? ['application/x-hermes-paths'] : []), ...(files.length ? ['Files'] : [])]
+    types: [...(kovaPaths ? ['application/x-hermes-paths'] : []), ...(files.length ? ['Files'] : [])]
   } as unknown as DataTransfer
 }
 
@@ -89,7 +89,7 @@ function typedText(write: ReturnType<typeof vi.fn>): string {
 }
 
 afterEach(() => {
-  Reflect.deleteProperty(desktopWindow, 'hermesDesktop')
+  Reflect.deleteProperty(desktopWindow, 'kovaDesktop')
   clearNotifications()
   vi.restoreAllMocks()
 })

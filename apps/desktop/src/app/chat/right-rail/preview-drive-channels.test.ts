@@ -28,7 +28,7 @@ beforeEach(() => {
     beginPreviewGuestActivity: begin,
     endPreviewGuestActivity: end,
     executePreviewGuestScript: (_token: number, code: string) => execute(code)
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 })
 
 afterEach(() => {

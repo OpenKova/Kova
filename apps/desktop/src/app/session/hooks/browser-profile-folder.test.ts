@@ -110,7 +110,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   cleanup()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   delete host.__KOVA_BASE_PATH__
   delete host.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()

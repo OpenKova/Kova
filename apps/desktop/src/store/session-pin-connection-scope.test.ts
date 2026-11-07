@@ -38,7 +38,7 @@ const flush = () => Promise.resolve()
 
 beforeAll(() => {
   ;(globalThis as { window?: unknown }).window ??= {}
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {}
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {}
   watchSessionPins()
 })
 

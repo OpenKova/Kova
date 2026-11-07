@@ -13,7 +13,7 @@ export interface MachineProfile {
 }
 
 export function registerMachineProfile(): void {
-  ipcMain.handle('hermes:machine:profile', readMachineProfile)
+  ipcMain.handle('kova:machine:profile', readMachineProfile)
 }
 
 function readMachineProfile(): MachineProfile {

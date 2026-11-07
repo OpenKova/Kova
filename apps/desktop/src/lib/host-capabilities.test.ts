@@ -7,7 +7,7 @@ import { isBrowserHostedDesktop } from './platform'
 interface HostGlobals {
   __KOVA_AUTH_REQUIRED__?: boolean
   __KOVA_UI_SURFACE__?: string
-  hermesDesktop?: unknown
+  kovaDesktop?: unknown
 }
 
 const win = window as unknown as HostGlobals

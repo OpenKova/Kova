@@ -99,7 +99,7 @@ describe('untagged resume ambient owner', () => {
     $showAllProfiles.set(false)
     $activeGatewayProfile.set('default')
     vi.clearAllMocks()
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: {
         getConnectionFor: vi.fn(async ({ connectionId }: { connectionId: string }) => descriptor(connectionId)),

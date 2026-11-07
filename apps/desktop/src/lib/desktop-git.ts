@@ -18,7 +18,7 @@ import { desktopFsProfile, isDesktopFsRemoteMode } from './desktop-fs'
 // coding rail, worktree lanes, review pane, and branch ops then act on the
 // BACKEND repo where sessions actually run. Mirrors desktop-fs.ts.
 
-type GitBridge = NonNullable<NonNullable<Window['hermesDesktop']>['git']>
+type GitBridge = NonNullable<NonNullable<Window['kovaDesktop']>['git']>
 
 type GitApi = <T>(path: string, body?: Record<string, unknown>) => Promise<T>
 

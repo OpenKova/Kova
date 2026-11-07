@@ -34,7 +34,7 @@ async function renderQr(payload: string): Promise<string> {
   return QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', margin: 1, width: 192 })
 }
 
-// The IPC bridge hands a router refusal over as "Error invoking remote method 'hermes:api': Error:
+// The IPC bridge hands a router refusal over as "Error invoking remote method 'kova:api': Error:
 // 409: {"detail":{"code":…,"message":…}}"; the card shows the connector's sentence, not the envelope.
 function relayErrorText(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error)

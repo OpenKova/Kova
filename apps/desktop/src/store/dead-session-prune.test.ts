@@ -40,7 +40,7 @@ const notFound = () => new Error('404: {"detail":"Session not found"}')
 
 beforeAll(() => {
   ;(globalThis as { window?: unknown }).window ??= {}
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {}
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {}
 })
 
 beforeEach(() => {

@@ -17,13 +17,13 @@ const posix = process.platform !== 'win32'
 
 let scratch: string
 let userData: string
-let hermesHome: string
+let kovaHome: string
 let vault: string
 
 const make = (platform?: NodeJS.Platform): PluginFiles =>
   createPluginFiles({
     userDataDir: () => userData,
-    protectedRoots: () => [hermesHome],
+    protectedRoots: () => [kovaHome],
     trashItem: target => fs.promises.rm(target, { recursive: true }),
     platform
   })
@@ -31,10 +31,10 @@ const make = (platform?: NodeJS.Platform): PluginFiles =>
 beforeEach(() => {
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-spell-')))
   userData = path.join(scratch, 'userData')
-  hermesHome = path.join(scratch, 'home', '.kova')
+  kovaHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
   fs.mkdirSync(userData, { recursive: true })
-  fs.mkdirSync(hermesHome, { recursive: true })
+  fs.mkdirSync(kovaHome, { recursive: true })
   fs.mkdirSync(vault, { recursive: true })
   fs.writeFileSync(path.join(vault, 'a.md'), '# A\n')
 })
@@ -234,10 +234,10 @@ describe('kernel pseudo-filesystems wherever they are mounted', () => {
 
 describe('Kova data reached by another spelling', () => {
   it('compares folders by filesystem identity', async () => {
-    expect(await overlapsByIdentity(hermesHome, [hermesHome])).toBe(true)
-    expect(await overlapsByIdentity(path.join(scratch, 'home'), [hermesHome])).toBe(true)
-    fs.mkdirSync(path.join(hermesHome, 'skills'))
-    expect(await overlapsByIdentity(path.join(hermesHome, 'skills'), [hermesHome])).toBe(true)
-    expect(await overlapsByIdentity(vault, [hermesHome])).toBe(false)
+    expect(await overlapsByIdentity(kovaHome, [kovaHome])).toBe(true)
+    expect(await overlapsByIdentity(path.join(scratch, 'home'), [kovaHome])).toBe(true)
+    fs.mkdirSync(path.join(kovaHome, 'skills'))
+    expect(await overlapsByIdentity(path.join(kovaHome, 'skills'), [kovaHome])).toBe(true)
+    expect(await overlapsByIdentity(vault, [kovaHome])).toBe(false)
   })
 })

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Partial<Window['hermesDesktop']> }
+const desktopWindow = window as unknown as { kovaDesktop?: Partial<Window['kovaDesktop']> }
 
 // The bridge reports native capability as a fact, so no host OS is faked.
 async function loadTranslucency(host: 'browser' | 'electron') {
@@ -19,7 +19,7 @@ describe('browser translucency capability', () => {
   })
 
   afterEach(() => {
-    Reflect.deleteProperty(desktopWindow, 'hermesDesktop')
+    Reflect.deleteProperty(desktopWindow, 'kovaDesktop')
     vi.restoreAllMocks()
     vi.resetModules()
   })

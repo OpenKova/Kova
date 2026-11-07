@@ -29,15 +29,15 @@ function scratchHome(): string {
   return home
 }
 
-function pythonEnv(home: string, hermesHome: string): NodeJS.ProcessEnv {
-  return { KOVA_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
+function pythonEnv(home: string, kovaHome: string): NodeJS.ProcessEnv {
+  return { KOVA_HOME: kovaHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
 }
 
 const PY_PATH = 'from kova_cli.ui_preferences import store_path; print(store_path())'
 
 /** The file main's IPC registers for this KOVA_HOME (registerUiPreferencesIpc). */
-const electronStorePath = (home: string, hermesHome: string) =>
-  uiPreferencesPath(uiPreferencesRoot(resolveDesktopKovaHome({ env: { KOVA_HOME: hermesHome }, home })))
+const electronStorePath = (home: string, kovaHome: string) =>
+  uiPreferencesPath(uiPreferencesRoot(resolveDesktopKovaHome({ env: { KOVA_HOME: kovaHome }, home })))
 
 test('native Desktop and the Webapp server resolve the same store from a profile home', () => {
   const home = scratchHome()

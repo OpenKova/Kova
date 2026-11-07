@@ -98,7 +98,7 @@ export function redrawAllTerminals(skipTerm?: Terminal): void {
 // An OS resume can evict the GPU's glyph textures without ever firing
 // 'webglcontextlost' (common on macOS after sleep/wake): every terminal then
 // paints from an empty atlas. The main process broadcasts powerMonitor
-// 'resume'/'unlock-screen' as 'hermes:power-resume'; rebuild every registered
+// 'resume'/'unlock-screen' as 'kova:power-resume'; rebuild every registered
 // terminal's atlas + render model when it arrives. Import-for-side-effect,
 // same pattern as store/power.ts.
 if (typeof window !== 'undefined') {

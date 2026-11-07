@@ -77,8 +77,8 @@ function ownedLock(over: any = {}) {
     pid: 333,
     port: 40000,
     profile: '',
-    hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.kova',
+    kovaPath: '~/.local/bin/hermes',
+    kovaHome: '~/.kova',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     tokenFingerprint: fingerprintToken('stored-token'),
     startedAt: '2026-07-14T00:00:00.000Z',
@@ -865,8 +865,8 @@ test.skipIf(process.platform !== 'linux')(
       const lock = ownedLock({
         pid: child.pid,
         profile: 'serve',
-        hermesPath: launcher,
-        hermesHome: '/unrelated/hermes-home',
+        kovaPath: launcher,
+        kovaHome: '/unrelated/hermes-home',
         creationTime
       })
 
@@ -920,7 +920,7 @@ test('cleanupStale kills ONLY a provably-ours pid, always drops the lockfile', a
   await cleanupStale(notOurs, OWNERSHIP_ID, {
     pid: 5,
     spawnNonce: SPAWN_NONCE,
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE)
   })
   assert.ok(
@@ -937,7 +937,7 @@ test('cleanupStale kills ONLY a provably-ours pid, always drops the lockfile', a
   await cleanupStale(ours, OWNERSHIP_ID, {
     pid: 9,
     spawnNonce: SPAWN_NONCE,
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE)
   })
   assert.ok(ours.calls.some(c => /kill 9\b/.test(c)))
@@ -985,13 +985,13 @@ test.skipIf(process.platform === 'win32')(
   async (): Promise<void> => {
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
     const directory: string = await mkdtemp(path.join(os.tmpdir(), 'hermes-update-mutex-'))
-    const hermesPath: string = path.join(directory, 'hermes')
+    const kovaPath: string = path.join(directory, 'hermes')
     const reportPath: string = path.join(directory, 'descriptor-report')
     const logPath: string = path.join(directory, 'spawn.log')
 
     try {
       await writeFile(
-        hermesPath,
+        kovaPath,
         `#!${shell}
 report=${expandRemotePath(reportPath)}
 : > "$report.tmp"
@@ -1006,8 +1006,8 @@ mv "$report.tmp" "$report"
         { encoding: 'utf8', mode: 0o700 }
       )
 
-      const command: string = buildSpawnCommand(hermesPath, '', {
-        hermesHome: path.join(directory, 'home'),
+      const command: string = buildSpawnCommand(kovaPath, '', {
+        kovaHome: path.join(directory, 'home'),
         logPath
       })
 
@@ -1044,7 +1044,7 @@ test('spawnRemoteDashboard returns exact ownership artifacts', async () => {
   ])
 
   const { pid, spawnNonce, logPath } = await spawnRemoteDashboard(ssh, {
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     profile: '',
     token: 'tk',
     ownershipId: OWNERSHIP_ID
@@ -1071,7 +1071,7 @@ test('spawnRemoteDashboard rejects when no pid is returned', async () => {
   ])
 
   await assert.rejects(
-    () => spawnRemoteDashboard(ssh, { hermesPath: '/x/hermes', profile: '', token: 't', ownershipId: OWNERSHIP_ID }),
+    () => spawnRemoteDashboard(ssh, { kovaPath: '/x/hermes', profile: '', token: 't', ownershipId: OWNERSHIP_ID }),
     (err: any) => {
       assert.equal(err.kind, 'spawn-failed')
 
@@ -1260,9 +1260,9 @@ test('connect() respawns when the requested remote profile differs from the lock
   )
 })
 
-test('connect() respawns when the lockfile hermesPath differs from the resolved path', async () => {
+test('connect() respawns when the lockfile kovaPath differs from the resolved path', async () => {
   const reuseToken = 'stored-token'
-  const lock = ownedLock({ hermesPath: '/old/stale/hermes', tokenFingerprint: fingerprintToken(reuseToken) })
+  const lock = ownedLock({ kovaPath: '/old/stale/hermes', tokenFingerprint: fingerprintToken(reuseToken) })
 
   const ssh = fakeSsh([
     [/uname/, 'Linux\nx86_64'],
@@ -1314,7 +1314,7 @@ test('connect() respawns when the lockfile protocolVersion is incompatible', asy
   assert.equal(result.pid, 901)
 })
 
-test('connect() fresh spawn writes hermesHome + protocolVersion into the lockfile', async () => {
+test('connect() fresh spawn writes kovaHome + protocolVersion into the lockfile', async () => {
   const writes: string[] = []
 
   const ssh = fakeSsh([
@@ -1341,7 +1341,7 @@ test('connect() fresh spawn writes hermesHome + protocolVersion into the lockfil
   await connect(connectDeps(ssh, { adoptServedToken: async () => 'fresh' }))
   const lockWrite = writes.find(c => c.includes('schemaVersion')) || ''
   assert.match(lockWrite, new RegExp(`"protocolVersion":${PROTOCOL_VERSION}`))
-  assert.match(lockWrite, /"hermesHome":"\/home\/alice\/\.kova"/)
+  assert.match(lockWrite, /"kovaHome":"\/home\/alice\/\.kova"/)
 })
 
 test('connect() respawns when the lockfile pid is dead (killed dashboard)', async () => {
@@ -1656,7 +1656,7 @@ test('spawnRemoteDashboard removes a token file when upload reporting fails', as
   ])
 
   await assert.rejects(
-    () => spawnRemoteDashboard(ssh, { hermesPath: '/x/hermes', profile: '', token: 'tok', ownershipId: OWNERSHIP_ID }),
+    () => spawnRemoteDashboard(ssh, { kovaPath: '/x/hermes', profile: '', token: 'tok', ownershipId: OWNERSHIP_ID }),
     /channel closed/
   )
   assert.ok(ssh.calls.some(command => /rm -f .*\.token/.test(command)))
@@ -1696,7 +1696,7 @@ test('spawnRemoteDashboard streams the token over stdin, not argv/env', async ()
   }
 
   const { pid } = await spawnRemoteDashboard(ssh as any, {
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     profile: '',
     token: 'secret_token_val',
     ownershipId: OWNERSHIP_ID
@@ -1743,7 +1743,7 @@ test('spawnRemoteDashboard upload uses exclusive-create and O_NOFOLLOW', async (
   }
 
   await spawnRemoteDashboard(ssh as any, {
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     profile: '',
     token: 'tk',
     ownershipId: OWNERSHIP_ID
@@ -1802,7 +1802,7 @@ test('spawnRemoteDashboard fails with update-required when remote lacks --ssh-se
   const ssh = fakeSsh([[/--ssh-session-token-file/, 'NO\n']])
 
   await assert.rejects(
-    () => spawnRemoteDashboard(ssh, { hermesPath: '/x/hermes', profile: '', token: 'tk', ownershipId: OWNERSHIP_ID }),
+    () => spawnRemoteDashboard(ssh, { kovaPath: '/x/hermes', profile: '', token: 'tk', ownershipId: OWNERSHIP_ID }),
     (err: any) => {
       assert.match(err.message, /update|upgrade/i)
       assert.equal(err.kind, 'update-required')
@@ -2024,7 +2024,7 @@ test('cleanupStale escalates to SIGKILL when the backend survives the graceful w
   await cleanupStale(ssh, OWNERSHIP_ID, {
     pid: 9,
     spawnNonce: SPAWN_NONCE,
-    hermesPath: '/x/hermes',
+    kovaPath: '/x/hermes',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE)
   })
   assert.ok(
@@ -2047,7 +2047,7 @@ test('cleanupStale keeps the lockfile when even SIGKILL cannot confirm the pid d
     cleanupStale(ssh, OWNERSHIP_ID, {
       pid: 9,
       spawnNonce: SPAWN_NONCE,
-      hermesPath: '/x/hermes',
+      kovaPath: '/x/hermes',
       logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE)
     }),
     /Could not terminate/
@@ -2062,7 +2062,7 @@ test.skipIf(process.platform === 'win32')(
     // characters to the remote python. Parse the composed command with a real sh,
     // as the remote login shell does, and require every path to come out clean.
     const cmd = buildSpawnCommand('/x/hermes', 'work', {
-      hermesHome: '~/.kova',
+      kovaHome: '~/.kova',
       logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
       ownershipId: OWNERSHIP_ID,
       reservationNonce: SPAWN_NONCE,

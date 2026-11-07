@@ -1,5 +1,5 @@
 /**
- * The Webapp's half of `hermesDesktop.notify`: what Electron's notification IPC
+ * The Webapp's half of `kovaDesktop.notify`: what Electron's notification IPC
  * does in main, done with the browser's Notification API.
  *
  * Permission is asked only from a click in Settings (browsers ignore or
@@ -69,7 +69,7 @@ export function showBrowserNotification(payload: BrowserNotifyPayload): boolean 
   const notification = new Notification(title, {
     body: payload.body,
     // One OS entry per session+kind: a replayed event replaces, never stacks.
-    tag: `hermes:${payload.kind ?? ''}:${focusSessionId ?? payload.tag ?? ''}`
+    tag: `kova:${payload.kind ?? ''}:${focusSessionId ?? payload.tag ?? ''}`
   })
 
   notification.onclick = () => {

@@ -83,7 +83,7 @@ afterEach(() => {
   closeSecondaryGateways()
   sockets.length = 0
   $activeGatewayProfile.set('default')
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('approval-mode chip on a remote-only profile', () => {
@@ -98,7 +98,7 @@ describe('approval-mode chip on a remote-only profile', () => {
 
     const getConnectionFor = vi.fn(async () => homelabMarina)
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { getConnection, getConnectionFor }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { getConnection, getConnectionFor }
 
     configureGatewayRegistry({ onActiveRouteChanged: profile => $activeGatewayProfile.set(profile), onEvent: vi.fn() })
     setPrimaryGateway({ connectionState: 'open', request: vi.fn() } as never, 'default')
@@ -127,7 +127,7 @@ describe('approval-mode chip on a remote-only profile', () => {
 
     const primaryRequest = vi.fn(async () => ({ value: 'manual' }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async () => ({ mode: 'local', port: 4242, token: 'primary-token' })),
       getConnectionFor: vi.fn(async () => boxDefault)
     }

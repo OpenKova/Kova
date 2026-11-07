@@ -13,7 +13,7 @@ afterEach(() => {
   cleanup()
   clearNotifications()
   clearWebappSession()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   $connection.set(null)
   vi.unstubAllGlobals()

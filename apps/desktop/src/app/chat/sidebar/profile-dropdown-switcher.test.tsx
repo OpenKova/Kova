@@ -92,7 +92,7 @@ const launchMenuTriggers = () => window.document.querySelectorAll('[data-hermes-
 // launch menu, and it leaves refreshing the profile list to the rail and
 // Manage Profiles.
 it('adds no right-click launch menu and no focus refresh in native Desktop', async () => {
-  vi.stubGlobal('hermesDesktop', {})
+  vi.stubGlobal('kovaDesktop', {})
   act(() => $profileRailVisible.set(false))
   await openDropdown()
 

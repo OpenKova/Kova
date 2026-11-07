@@ -600,7 +600,7 @@ interface PackageMarker {
   package: string
 }
 
-async function readPackageMarker(desktop: Window['hermesDesktop'], folder: string): Promise<null | PackageMarker> {
+async function readPackageMarker(desktop: Window['kovaDesktop'], folder: string): Promise<null | PackageMarker> {
   try {
     const { entries } = await desktop.readDir(folder)
     const marker = entries.find(entry => entry.name === PACKAGE_MARKER && !entry.isDirectory)
@@ -767,7 +767,7 @@ async function loadDiskPlugin(entry: DiskPlugin): Promise<boolean> {
 }
 
 async function resolveDiskPluginEntry(
-  desktop: Window['hermesDesktop'],
+  desktop: Window['kovaDesktop'],
   folderPath: string,
   segments: readonly string[]
 ): Promise<string | null> {
@@ -800,7 +800,7 @@ async function resolveDiskPluginEntry(
 /** Bind (or, on a manual reload, re-bind) the hot-reload watch for one entry.
  *  An atomic directory replacement leaves the old watch attached to the
  *  unlinked inode, so a forced reload must drop it and watch the current file. */
-async function watchDiskPluginFile(desktop: NonNullable<Window['hermesDesktop']>, record: DiskPlugin): Promise<void> {
+async function watchDiskPluginFile(desktop: NonNullable<Window['kovaDesktop']>, record: DiskPlugin): Promise<void> {
   if (record.watchId) {
     void desktop.stopPreviewFileWatch(record.watchId)
     record.watchId = null
@@ -821,7 +821,7 @@ async function watchDiskPluginFile(desktop: NonNullable<Window['hermesDesktop']>
 /** Watch a linked dev package's SOURCE `plugin.js`. Without it the developer
  *  edits their checkout while the app keeps running the copy in
  *  `desktop-plugins/` — the copy is only refreshed on Rescan or restart. */
-async function watchDiskPluginSource(desktop: NonNullable<Window['hermesDesktop']>, record: DiskPlugin): Promise<void> {
+async function watchDiskPluginSource(desktop: NonNullable<Window['kovaDesktop']>, record: DiskPlugin): Promise<void> {
   if (!record.sourceFile || record.sourceWatchId) {
     return
   }

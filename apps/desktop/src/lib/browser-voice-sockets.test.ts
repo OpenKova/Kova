@@ -15,7 +15,7 @@ import { resolveSpeakStreamUrl } from './voice-playback'
 type MutableWindow = Window & {
   __KOVA_AUTH_REQUIRED__?: boolean
   __KOVA_BASE_PATH__?: string
-  hermesDesktop?: Window['hermesDesktop']
+  kovaDesktop?: Window['kovaDesktop']
 }
 
 const mutableWindow = () => window as unknown as MutableWindow
@@ -45,7 +45,7 @@ afterEach(() => {
   delete win.__KOVA_AUTH_REQUIRED__
   delete win.__KOVA_BASE_PATH__
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   setApiRequestConnection(null)
   setApiRequestProfile(null)

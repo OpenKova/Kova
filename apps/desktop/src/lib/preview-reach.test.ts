@@ -4,10 +4,10 @@ import { $connection } from '@/store/session'
 
 import { reachablePreviewUrl } from './preview-reach'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
 function installBridge(reachPreviewUrl?: unknown) {
-  desktopWindow.kovaDesktop = { reachPreviewUrl } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { reachPreviewUrl } as unknown as Window['kovaDesktop']
 }
 
 afterEach(() => {

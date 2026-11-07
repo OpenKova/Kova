@@ -27,7 +27,7 @@ export interface ChatIdentity {
   hermesRoot: string
   platform: string
   /** The resolved Kova home (newer desktops report it; absent on older ones). */
-  hermesHome?: string
+  kovaHome?: string
 }
 
 interface SmokeWindow extends Window {
@@ -59,7 +59,7 @@ export interface DesktopChatReceipt {
 
 const identitySchema = z.object({
   appVersion: z.string(), commit: z.string().nullable().optional(),
-  hermesRoot: z.string(), platform: z.string(), hermesHome: z.string().optional(),
+  hermesRoot: z.string(), platform: z.string(), kovaHome: z.string().optional(),
 })
 
 export async function readChatIdentity(page: Page): Promise<ChatIdentity> {

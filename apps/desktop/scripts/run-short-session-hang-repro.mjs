@@ -1265,9 +1265,9 @@ function promoteAttemptArtifacts(output, label, index, warmup, attempt) {
 
 async function executeRunInSandboxAttempt(target, index, warmup, mock, output, sandbox, attempt) {
   const runDir = runDirForAttempt(output, target.label, index, warmup, attempt)
-  const hermesHome = join(sandbox, 'hermes-home')
+  const kovaHome = join(sandbox, 'hermes-home')
   const userData = join(sandbox, 'electron-user-data')
-  const desktopLog = join(hermesHome, 'logs', 'desktop.log')
+  const desktopLog = join(kovaHome, 'logs', 'desktop.log')
   const stdoutPath = join(runDir, 'electron.stdout.log')
   const stderrPath = join(runDir, 'electron.stderr.log')
   const eventsPath = join(runDir, 'events.jsonl')
@@ -1275,7 +1275,7 @@ async function executeRunInSandboxAttempt(target, index, warmup, mock, output, s
 
   mkdirSync(runDir, { recursive: true })
   mkdirSync(userData, { recursive: true })
-  writeSandboxConfig(hermesHome, mock.url)
+  writeSandboxConfig(kovaHome, mock.url)
 
   const electron = require('electron')
   const stdoutLog = createWriteStream(stdoutPath)
@@ -1298,7 +1298,7 @@ async function executeRunInSandboxAttempt(target, index, warmup, mock, output, s
         KOVA_DESKTOP_KOVA_ROOT: target.targetRoot,
         KOVA_DESKTOP_IGNORE_EXISTING: '1',
         KOVA_DESKTOP_USER_DATA_DIR: userData,
-        KOVA_HOME: hermesHome,
+        KOVA_HOME: kovaHome,
         SHORT_SESSION_API_KEY: 'local-diagnostic-only'
       }),
       stdio: ['ignore', 'pipe', 'pipe']

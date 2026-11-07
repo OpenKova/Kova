@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
  *  preload's bridge is present and no browser-host marker is set. */
 async function bootNative() {
   vi.resetModules()
-  ;(window as unknown as { hermesDesktop?: unknown }).kovaDesktop = {}
+  ;(window as unknown as { kovaDesktop?: unknown }).kovaDesktop = {}
   const tree = await import('./store')
   const layout = await import('@/store/layout')
   const terminal = await import('@/app/right-sidebar/store')
@@ -42,7 +42,7 @@ async function bootNative() {
 }
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   window.localStorage.clear()
 })
 

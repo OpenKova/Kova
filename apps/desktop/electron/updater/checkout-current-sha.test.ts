@@ -17,7 +17,7 @@ function writeStamp(root: string, commit: string): void {
 function deps(root: string, status: SourceUpdate | null, isWindows: boolean): CheckoutStrategyDeps {
   return {
     readSourceUpdate: vi.fn(async (): Promise<SourceUpdate | null> => status),
-    hermesHome: 'home',
+    kovaHome: 'home',
     isWindows,
     isMac: process.platform === 'darwin',
     defaultUpdateBranch: 'main',

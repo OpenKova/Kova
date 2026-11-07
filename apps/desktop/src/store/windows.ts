@@ -179,7 +179,7 @@ export function canOpenNewWindow(): boolean {
   return typeof window !== 'undefined' && typeof window.kovaDesktop?.openWindow === 'function'
 }
 
-type DesktopBridge = Window['hermesDesktop']
+type DesktopBridge = Window['kovaDesktop']
 
 // The shell's call that pops the in-app Browser into its own OS window, or
 // undefined where there is none (outside Electron, the Webapp's bridge).

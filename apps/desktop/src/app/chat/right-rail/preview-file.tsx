@@ -288,7 +288,7 @@ async function readTextPreview(filePath: string, sessionId?: string) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
 
-    if (!message.includes("No handler registered for 'hermes:readFileText'")) {
+    if (!message.includes("No handler registered for 'kova:readFileText'")) {
       throw error
     }
   }

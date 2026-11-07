@@ -57,7 +57,7 @@ function SideVersionRow({ label, value }: { label: string; value?: string }) {
 
 /**
  * Shared build-provenance display. Reads from `$desktopVersion`
- * (populated from the build stamp / `hermes:version` IPC), so every
+ * (populated from the build stamp / `kova:version` IPC), so every
  * surface — the About settings page, the updates overlay — shows the
  * same version, branch, commit, distribution, runtime, and install id
  * from one source of truth.

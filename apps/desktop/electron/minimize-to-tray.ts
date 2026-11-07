@@ -33,7 +33,7 @@ export function createMinimizeToTray(options: Options) {
   const broadcast = () => {
     for (const win of BrowserWindow.getAllWindows()) {
       if (!win.isDestroyed()) {
-        win.webContents.send('hermes:minimize-to-tray:changed', status())
+        win.webContents.send('kova:minimize-to-tray:changed', status())
       }
     }
   }
@@ -334,8 +334,8 @@ export function createMinimizeToTray(options: Options) {
     return operation
   }
 
-  ipcMain.handle('hermes:minimize-to-tray:get', status)
-  ipcMain.handle('hermes:minimize-to-tray:set', (_event, on) => setEnabled(on === true))
+  ipcMain.handle('kova:minimize-to-tray:get', status)
+  ipcMain.handle('kova:minimize-to-tray:set', (_event, on) => setEnabled(on === true))
   app.on('will-quit', () => {
     quitting = true
     destroyTray()

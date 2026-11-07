@@ -34,7 +34,7 @@ const page = (rowId: number) => ({
 
 beforeEach(() => {
   $transcriptTailBySessionId.set({})
-  Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { api: vi.fn() } })
+  Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { api: vi.fn() } })
 })
 
 function mount(storedId = 'stored') {

@@ -23,7 +23,7 @@ type ThemeApi = ReturnType<typeof useTheme>
 /** A fresh renderer launch: module state reloads, localStorage survives. */
 async function launch(localSkin: typeof stockDefaultSkin | null) {
   cleanup()
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: localSkin ? { localSkin: { profile: 'default', skin: localSkin } } : {}
   })
@@ -64,7 +64,7 @@ describe('Classic Kova is an explicit Desktop pick, never inferred from stock co
   afterEach(() => {
     cleanup()
     window.localStorage.clear()
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     vi.resetModules()
   })
 

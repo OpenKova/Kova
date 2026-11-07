@@ -33,7 +33,7 @@ export type DesktopMachineProfile = MachineProfile
 
 declare global {
   interface Window {
-    hermesDesktop: {
+    kovaDesktop: {
       // Resolve a backend connection. Omit `profile` (or pass the primary) for
       // the window's backend; pass a named profile to dial/reuse that profile's
       // cached gateway descriptor.

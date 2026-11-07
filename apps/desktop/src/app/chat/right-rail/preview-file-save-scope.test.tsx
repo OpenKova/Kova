@@ -75,7 +75,7 @@ it.each(['connection', 'profile', 'local', 'api-route'] as const)(
     try {
       await writeFile(originFile, 'origin baseline')
       await writeFile(otherFile, 'unrelated valuable contents')
-      vi.stubGlobal('hermesDesktop', {
+      vi.stubGlobal('kovaDesktop', {
         api: async (request: KovaApiRequest) => {
           const file =
             request.connectionId === origin.connectionId && request.profile === origin.profile ? originFile : otherFile

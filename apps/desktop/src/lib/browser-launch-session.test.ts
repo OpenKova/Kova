@@ -14,7 +14,7 @@ const win = window as Window & {
 
 afterEach(() => {
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   delete win.__KOVA_UI_SURFACE__
   delete win.__KOVA_BASE_PATH__
   delete win.__KOVA_AUTH_REQUIRED__
@@ -94,7 +94,7 @@ it('uses one private session for REST, RPC and terminal across reload without lo
   expect(requested.filter(url => url.includes(token))).toEqual([])
   expect(urls).toHaveLength(1)
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   window.history.replaceState(null, '', '/one/?profile=coder#/settings')
   expect(installBrowserDesktopBridge()).toBe(true)
   expect((await window.kovaDesktop!.getConnection()).token).toBe(token)
@@ -112,7 +112,7 @@ it('fails closed with actionable launch instructions in a fresh tab and ignores 
   await expect(window.kovaDesktop!.api({ path: '/api/fs/read-text' })).rejects.toThrow('Run hermes webapp')
   expect(fetchMock).not.toHaveBeenCalled()
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   sessionStorage.setItem(webappSessionKey(''), 'b'.repeat(43))
   expect(readWebappSession('')).toHaveLength(43)
   sessionStorage.clear()
@@ -216,7 +216,7 @@ it('asks a tab without a working credential to sign in, so reconnecting stops', 
 
   // hermes webapp --sign-out replaced the credential this tab holds.
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   sessionStorage.setItem(webappSessionKey(''), 'd'.repeat(43))
   expect(installBrowserDesktopBridge()).toBe(true)
   const signedOut = await failure(window.kovaDesktop!.api({ path: '/api/status' }))

@@ -20,7 +20,7 @@ vi.mock('@kova/plugin-sdk', async () => {
 })
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 const originalDesktop = window.kovaDesktop
-beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
+beforeEach(() => { Object.defineProperty(window, 'kovaDesktop', { configurable: true, writable: true, value: undefined }) })
 afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 // C21: while a selected file's upload acknowledgement is outstanding, Send cannot dispatch the text

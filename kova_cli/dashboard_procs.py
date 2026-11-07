@@ -884,7 +884,7 @@ def _valid_lockfile_payload(parsed: object, ownership_id: str) -> bool:
         return False
     # String fields must be present and bounded (the writer enforces <=1024).
     if any(not isinstance(parsed.get(f), str) or len(parsed[f]) > 1024
-           for f in ("profile", "hermesPath", "hermesHome", "logPath", "startedAt")):
+           for f in ("profile", "kovaPath", "kovaHome", "logPath", "startedAt")):
         return False
     # Suffix-only check of logPath so a relocated KOVA_HOME can't reject a legitimate backend.
     return parsed["logPath"].endswith(f"/{ownership_id}/{parsed['spawnNonce']}.log")

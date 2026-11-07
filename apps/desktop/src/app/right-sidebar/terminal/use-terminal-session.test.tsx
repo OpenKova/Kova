@@ -175,7 +175,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   clearWebappSession()
   $terminals.set([])
   Socket.instances = []
@@ -404,7 +404,7 @@ it('native Desktop: a failed start shows main\'s error and Enter does not start 
   const start = vi.fn().mockRejectedValue(new Error('spawn /bin/nope ENOENT'))
 
   delete window.document.documentElement.dataset.kovaDesktopHost
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     terminal: {
       attach: vi.fn(),
       cwd: vi.fn(async () => null),
@@ -439,7 +439,7 @@ it("native Desktop: xterm's reply to the shell's cursor query is not activity; t
   const write = vi.fn(async () => true)
 
   delete window.document.documentElement.dataset.kovaDesktopHost
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     terminal: {
       attach: vi.fn(async () => true),
       cwd: vi.fn(async () => null),
@@ -486,7 +486,7 @@ it('native Desktop: an SSH tab keeps Enter armed while its gateway is offline', 
     .mockResolvedValueOnce({ connectionId: 'nas', id: 'pty-2', shell: 'ssh' })
 
   delete window.document.documentElement.dataset.kovaDesktopHost
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     terminal: {
       attach: vi.fn(async () => true),
       cwd: vi.fn(async () => null),
@@ -521,7 +521,7 @@ function nativeTerminalApi(start: ReturnType<typeof vi.fn>) {
   const attach = vi.fn(async () => true)
 
   delete window.document.documentElement.dataset.kovaDesktopHost
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     terminal: {
       attach,
       cwd: vi.fn(async () => null),

@@ -18,7 +18,7 @@ type VersionBridge = { getVersion: (scope?: { connectionId?: string; profile?: s
 
 async function bridge(): Promise<VersionBridge> {
   await import('./preload')
-  const registration = host.exposeInMainWorld.mock.calls.find(([name]): boolean => name === 'hermesDesktop')
+  const registration = host.exposeInMainWorld.mock.calls.find(([name]): boolean => name === 'kovaDesktop')
 
   return registration![1] as VersionBridge
 }
@@ -31,5 +31,5 @@ it('forwards the connection/profile scope to hermes:version', async (): Promise<
 
   await exposed.getVersion({ connectionId: 'remote-box', profile: 'work' })
 
-  expect(host.invoke).toHaveBeenCalledExactlyOnceWith('hermes:version', { connectionId: 'remote-box', profile: 'work' })
+  expect(host.invoke).toHaveBeenCalledExactlyOnceWith('kova:version', { connectionId: 'remote-box', profile: 'work' })
 })

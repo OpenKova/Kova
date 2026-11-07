@@ -194,7 +194,7 @@ describe('TitlebarControls fixed clusters', () => {
 
 describe('titlebar app-action cluster', () => {
   beforeEach(() => {
-    vi.stubGlobal('hermesDesktop', { ...window.kovaDesktop, hud: { open: vi.fn() } })
+    vi.stubGlobal('kovaDesktop', { ...window.kovaDesktop, hud: { open: vi.fn() } })
   })
 
   afterEach(() => {
@@ -305,7 +305,7 @@ describe('titlebar app-action cluster', () => {
   })
 
   it('keeps HUD hidden in the browser on either app-action side', () => {
-    vi.stubGlobal('hermesDesktop', { ...window.kovaDesktop, hud: undefined })
+    vi.stubGlobal('kovaDesktop', { ...window.kovaDesktop, hud: undefined })
     renderControls('/')
 
     expect(screen.queryByLabelText('HUD mode')).toBeNull()

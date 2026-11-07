@@ -173,7 +173,7 @@ describe('native Desktop on a remote backend: the desktop half cannot follow the
       })
       .mockResolvedValue({ ok: true, pluginName: 'pkg' })
 
-    vi.stubGlobal('hermesDesktop', { installDesktopPlugin, probePluginRepo })
+    vi.stubGlobal('kovaDesktop', { installDesktopPlugin, probePluginRepo })
 
     renderModal()
     act(() => openPluginInstallRequest({ repo: REPO }))
@@ -243,7 +243,7 @@ describe('a catalog pick is held to the pin the dialog showed', () => {
   it("native Desktop: the reviewed pin, never the branch tip Electron's probe read", async () => {
     catalogBackend()
     const probePluginRepo = vi.fn(async () => ({ ok: true, agent: true, desktop: false, sha: V2, warnings: [] }))
-    vi.stubGlobal('hermesDesktop', { probePluginRepo })
+    vi.stubGlobal('kovaDesktop', { probePluginRepo })
 
     renderModal()
     openCatalog()
@@ -259,7 +259,7 @@ describe('a catalog pick is held to the pin the dialog showed', () => {
     catalogBackend(() => pin.current)
     lookupPluginCatalogEntry.mockImplementation(async () => ({ ok: true, entry: { name: 'pkg', sha: pin.current } }))
     const probePluginRepo = vi.fn(async () => ({ ok: true, agent: true, desktop: false, sha: V2, warnings: [] }))
-    vi.stubGlobal('hermesDesktop', { probePluginRepo })
+    vi.stubGlobal('kovaDesktop', { probePluginRepo })
 
     renderModal()
     openCatalog()
@@ -286,7 +286,7 @@ describe('a catalog pick is held to the pin the dialog showed', () => {
         })
     )
     const probePluginRepo = vi.fn(async () => ({ ok: true, agent: true, desktop: false, sha: V2, warnings: [] }))
-    vi.stubGlobal('hermesDesktop', { probePluginRepo })
+    vi.stubGlobal('kovaDesktop', { probePluginRepo })
 
     renderModal()
     openCatalog()

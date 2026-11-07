@@ -23,7 +23,7 @@ vi.mock('node:child_process', async importOriginal => {
   return { ...actual, spawn: vi.fn(actual.spawn) }
 })
 
-const argv = ['/opt/Kova/hermes', '--ozone-platform=x11', 'hermes://session/abc']
+const argv = ['/opt/Kova/hermes', '--ozone-platform=x11', 'kova://session/abc']
 
 function restoreEnv(saved: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -46,7 +46,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     })
 
     expect(relaunch).toEqual({
-      args: ['--ozone-platform=x11', 'hermes://session/abc', '--no-sandbox'],
+      args: ['--ozone-platform=x11', 'kova://session/abc', '--no-sandbox'],
       target: process.execPath
     })
 
@@ -329,7 +329,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
           launchedWithoutSandbox: false
         })
       ).toEqual({
-        args: ['--ozone-platform=x11', 'hermes://session/abc', '--no-sandbox'],
+        args: ['--ozone-platform=x11', 'kova://session/abc', '--no-sandbox'],
         target: '/opt/Kova/hermes'
       })
     }

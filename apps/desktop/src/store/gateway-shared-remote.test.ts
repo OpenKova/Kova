@@ -43,7 +43,7 @@ const { $gateway, closeSecondaryGateways, configureGatewayRegistry, ensureGatewa
 type DesktopStub = { getConnection: ReturnType<typeof vi.fn> }
 
 function installDesktop(stub: DesktopStub): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = stub
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = stub
 }
 
 function makePrimary(): { connectionState: string } {
@@ -61,7 +61,7 @@ beforeEach(() => {
 afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('ensureGatewayForProfile under a shared global remote', () => {

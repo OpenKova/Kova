@@ -40,7 +40,7 @@ beforeEach(() => {
   requests.length = 0
   setApiRequestConnection(owner.connectionId)
   setApiRequestProfile(owner.profile)
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: {
       openExternal: vi.fn(async () => undefined),
@@ -92,7 +92,7 @@ afterEach(() => {
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 function beginContext(): OnboardingContext {

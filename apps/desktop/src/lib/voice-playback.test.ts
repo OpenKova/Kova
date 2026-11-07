@@ -162,7 +162,7 @@ describe('voice-playback teardown (#91991)', () => {
     vi.stubGlobal('WebSocket', FakeSocket)
     vi.stubGlobal('AudioContext', FakeAudioContext)
     vi.stubGlobal('Audio', FakeAudio)
-    vi.stubGlobal('hermesDesktop', { getConnection: vi.fn(async () => ({ profile: 'test' })) })
+    vi.stubGlobal('kovaDesktop', { getConnection: vi.fn(async () => ({ profile: 'test' })) })
     $voicePlayback.set({ audioElement: null, messageId: null, sequence: 0, source: null, status: 'idle' })
   })
 

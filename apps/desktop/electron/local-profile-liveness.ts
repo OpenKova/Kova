@@ -19,15 +19,15 @@ const stat = (target: string, follow: boolean): fs.Stats | undefined => {
 }
 
 /**
- * Whether `<hermesHome>/profiles/<profile>` is a profile the CLI would start.
+ * Whether `<kovaHome>/profiles/<profile>` is a profile the CLI would start.
  * Mirrors kova_constants.named_profile_is_live exactly: an existing
  * directory with an identity marker (a dangling symlinked marker counts) and
  * no tombstone under `profiles/.deleted/`. A directory-only check would keep a
  * deleted or marker-less profile remembered, and `--profile` would still
  * refuse it on every launch.
  */
-export function localProfileIsLive(hermesHome: string, profile: string): boolean {
-  const profilesRoot = path.join(hermesHome, 'profiles')
+export function localProfileIsLive(kovaHome: string, profile: string): boolean {
+  const profilesRoot = path.join(kovaHome, 'profiles')
   const home = path.join(profilesRoot, profile)
 
   if (!stat(home, true)?.isDirectory()) {

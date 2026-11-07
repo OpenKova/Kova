@@ -17,25 +17,25 @@ const unprivileged = posix && process.getuid?.() !== 0
 
 let scratch: string
 let userData: string
-let hermesHome: string
+let kovaHome: string
 let vault: string
 let files: PluginFiles
 
 const make = () =>
   createPluginFiles({
     userDataDir: () => userData,
-    protectedRoots: () => [hermesHome],
+    protectedRoots: () => [kovaHome],
     trashItem: target => fs.promises.rm(target, { recursive: true })
   })
 
 beforeEach(() => {
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-hard-')))
   userData = path.join(scratch, 'userData')
-  hermesHome = path.join(scratch, 'home', '.kova')
+  kovaHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
   fs.mkdirSync(userData, { recursive: true })
-  fs.mkdirSync(hermesHome, { recursive: true })
-  fs.writeFileSync(path.join(hermesHome, 'config.yaml'), 'model: secret-config\n')
+  fs.mkdirSync(kovaHome, { recursive: true })
+  fs.writeFileSync(path.join(kovaHome, 'config.yaml'), 'model: secret-config\n')
   fs.mkdirSync(path.join(vault, 'notes'), { recursive: true })
   fs.writeFileSync(path.join(vault, 'notes', 'a.md'), '# A\n')
   files = make()
@@ -121,7 +121,7 @@ describe('only plain files', () => {
 
   it.runIf(posix)('refuses a hard link, which may be a second name for Kova data', async () => {
     const id = await grantVault()
-    fs.linkSync(path.join(hermesHome, 'config.yaml'), path.join(vault, 'notes', 'c.md'))
+    fs.linkSync(path.join(kovaHome, 'config.yaml'), path.join(vault, 'notes', 'c.md'))
 
     expect(await files.run('plexus', { op: 'readText', folder: id, path: 'notes/c.md' })).toMatchObject({
       ok: false,
@@ -130,7 +130,7 @@ describe('only plain files', () => {
     expect(
       await files.run('plexus', { op: 'writeText', folder: id, path: 'notes/c.md', text: 'pwned' })
     ).toMatchObject({ ok: false, error: 'protected' })
-    expect(fs.readFileSync(path.join(hermesHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
   })
 })
 
@@ -160,7 +160,7 @@ describe('a swap between the check and the open is refused', () => {
 
     swapAfterCheck('lstat', path.join(sub, 'pwn.txt'), () => {
       fs.renameSync(sub, path.join(vault, 'sub-old'))
-      fs.symlinkSync(hermesHome, sub)
+      fs.symlinkSync(kovaHome, sub)
     })
 
     // Refused either as outside the folder or, when the swap lands before the
@@ -169,7 +169,7 @@ describe('a swap between the check and the open is refused', () => {
       ((await files.run('plexus', { op: 'writeText', folder: id, path: 'sub/pwn.txt', text: 'pwned' })) as { error?: string })
         .error
     ).toMatch(/^(outside-folder|protected)$/)
-    expect(fs.existsSync(path.join(hermesHome, 'pwn.txt'))).toBe(false)
+    expect(fs.existsSync(path.join(kovaHome, 'pwn.txt'))).toBe(false)
   })
 
   it.runIf(posix)('a checked file swapped for a link to Kova data is not read or written', async () => {
@@ -178,7 +178,7 @@ describe('a swap between the check and the open is refused', () => {
 
     const swap = () => {
       fs.rmSync(note)
-      fs.symlinkSync(path.join(hermesHome, 'config.yaml'), note)
+      fs.symlinkSync(path.join(kovaHome, 'config.yaml'), note)
     }
 
     swapAfterCheck('stat', note, swap)
@@ -195,7 +195,7 @@ describe('a swap between the check and the open is refused', () => {
     expect(
       await files.run('plexus', { op: 'writeText', folder: id, path: 'notes/a.md', text: 'pwned' })
     ).toMatchObject({ ok: false })
-    expect(fs.readFileSync(path.join(hermesHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
   })
 })
 
@@ -224,7 +224,7 @@ describe('a swap before the final look is refused too', () => {
 
     const swap = () => {
       fs.rmSync(note)
-      fs.symlinkSync(path.join(hermesHome, 'config.yaml'), note)
+      fs.symlinkSync(path.join(kovaHome, 'config.yaml'), note)
     }
 
     afterRealpath(note, swap)
@@ -241,18 +241,18 @@ describe('a swap before the final look is refused too', () => {
     expect(await files.run('plexus', { op: 'writeText', folder: id, path: 'notes/a.md', text: 'pwned' })).toMatchObject({
       ok: false
     })
-    expect(fs.readFileSync(path.join(hermesHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'config.yaml'), 'utf8')).toBe('model: secret-config\n')
   })
 
   it.runIf(posix)('a parent folder swapped for a link into the Kova home: not read, not written', async () => {
     const id = await grantVault()
-    fs.writeFileSync(path.join(hermesHome, 'a.md'), 'hermes-secret\n')
+    fs.writeFileSync(path.join(kovaHome, 'a.md'), 'hermes-secret\n')
     const notes = path.join(vault, 'notes')
     const note = path.join(notes, 'a.md')
 
     const swap = () => {
       fs.renameSync(notes, path.join(vault, 'notes-old'))
-      fs.symlinkSync(hermesHome, notes)
+      fs.symlinkSync(kovaHome, notes)
     }
 
     afterRealpath(note, swap)
@@ -269,7 +269,7 @@ describe('a swap before the final look is refused too', () => {
     expect(await files.run('plexus', { op: 'writeText', folder: id, path: 'notes/a.md', text: 'pwned' })).toMatchObject({
       ok: false
     })
-    expect(fs.readFileSync(path.join(hermesHome, 'a.md'), 'utf8')).toBe('hermes-secret\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'a.md'), 'utf8')).toBe('hermes-secret\n')
   })
 })
 
@@ -287,14 +287,14 @@ describe('rename, trash and list after a parent swap', () => {
       } finally {
         if (String(target) === entry && ++seen === 2) {
           fs.renameSync(notes, `${notes}-old`)
-          fs.symlinkSync(hermesHome, notes)
+          fs.symlinkSync(kovaHome, notes)
         }
       }
     }) as never)
   }
 
   beforeEach(() => {
-    fs.writeFileSync(path.join(hermesHome, 'a.md'), 'hermes-file\n')
+    fs.writeFileSync(path.join(kovaHome, 'a.md'), 'hermes-file\n')
   })
 
   it.runIf(posix)('rename does not move a Kova file', async () => {
@@ -305,8 +305,8 @@ describe('rename, trash and list after a parent swap', () => {
     expect(await files.run('plexus', { op: 'rename', folder: id, path: 'notes/a.md', name: 'b.md' })).toMatchObject({
       ok: false
     })
-    expect(fs.readFileSync(path.join(hermesHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
-    expect(fs.existsSync(path.join(hermesHome, 'b.md'))).toBe(false)
+    expect(fs.readFileSync(path.join(kovaHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
+    expect(fs.existsSync(path.join(kovaHome, 'b.md'))).toBe(false)
   })
 
   it.runIf(posix)('a swap in the last instant before the rename is undone', async () => {
@@ -319,7 +319,7 @@ describe('rename, trash and list after a parent swap', () => {
       if (!swapped && String(from) === path.join(notes, 'a.md')) {
         swapped = true
         fs.renameSync(notes, `${notes}-old`)
-        fs.symlinkSync(hermesHome, notes)
+        fs.symlinkSync(kovaHome, notes)
       }
 
       return original(from, to)
@@ -329,8 +329,8 @@ describe('rename, trash and list after a parent swap', () => {
       ok: false,
       error: 'outside-folder'
     })
-    expect(fs.readFileSync(path.join(hermesHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
-    expect(fs.existsSync(path.join(hermesHome, 'b.md'))).toBe(false)
+    expect(fs.readFileSync(path.join(kovaHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
+    expect(fs.existsSync(path.join(kovaHome, 'b.md'))).toBe(false)
   })
 
   it.runIf(posix)('the undo never overwrites a file recreated meanwhile', async () => {
@@ -342,10 +342,10 @@ describe('rename, trash and list after a parent swap', () => {
     vi.spyOn(fs.promises, 'rename').mockImplementation((async (from: fs.PathLike, to: fs.PathLike) => {
       if (++calls === 1) {
         fs.renameSync(notes, `${notes}-old`)
-        fs.symlinkSync(hermesHome, notes)
+        fs.symlinkSync(kovaHome, notes)
         await original(from, to)
         // Another app writes a new a.md where the moved one was.
-        fs.writeFileSync(path.join(hermesHome, 'a.md'), 'newer\n')
+        fs.writeFileSync(path.join(kovaHome, 'a.md'), 'newer\n')
 
         return
       }
@@ -357,8 +357,8 @@ describe('rename, trash and list after a parent swap', () => {
       ok: false,
       error: 'outside-folder'
     })
-    expect(fs.readFileSync(path.join(hermesHome, 'a.md'), 'utf8')).toBe('newer\n')
-    expect(fs.readFileSync(path.join(hermesHome, 'b.md'), 'utf8')).toBe('hermes-file\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'a.md'), 'utf8')).toBe('newer\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'b.md'), 'utf8')).toBe('hermes-file\n')
   })
 
   it.runIf(posix)('trash does not remove a Kova file', async () => {
@@ -367,15 +367,15 @@ describe('rename, trash and list after a parent swap', () => {
     swapParentAfterResolve(path.join(notes, 'a.md'), notes)
 
     expect(await files.run('plexus', { op: 'trash', folder: id, path: 'notes/a.md' })).toMatchObject({ ok: false })
-    expect(fs.readFileSync(path.join(hermesHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
+    expect(fs.readFileSync(path.join(kovaHome, 'a.md'), 'utf8')).toBe('hermes-file\n')
   })
 
   it.runIf(posix)('list does not return the Kova home', async () => {
     const id = await grantVault()
     const sub = path.join(vault, 'notes', 'sub')
     fs.mkdirSync(sub)
-    fs.mkdirSync(path.join(hermesHome, 'sub'))
-    fs.writeFileSync(path.join(hermesHome, 'sub', 'config.yaml'), 'x\n')
+    fs.mkdirSync(path.join(kovaHome, 'sub'))
+    fs.writeFileSync(path.join(kovaHome, 'sub', 'config.yaml'), 'x\n')
     swapParentAfterResolve(sub, path.join(vault, 'notes'))
 
     const listed = await files.run('plexus', { op: 'list', folder: id, path: 'notes/sub' })
@@ -393,7 +393,7 @@ describe('Kova data mounted inside a granted folder', () => {
     fs.mkdirSync(mounted)
     fs.writeFileSync(path.join(mounted, 'config.yaml'), 'mirror\n')
     const id = await grantVault()
-    const home = fs.statSync(hermesHome)
+    const home = fs.statSync(kovaHome)
     const original = fs.promises.stat.bind(fs.promises) as (target: fs.PathLike, options?: never) => Promise<fs.Stats>
 
     vi.spyOn(fs.promises, 'stat').mockImplementation((async (target: fs.PathLike, options?: never) => {

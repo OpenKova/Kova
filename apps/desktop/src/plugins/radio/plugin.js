@@ -176,7 +176,7 @@ function createPlayer(ctx) {
   let timeout = null
   let disposed = false
   let lastVolume = volume.get() || 25
-  const bus = new BroadcastChannel('hermes:radio:playback')
+  const bus = new BroadcastChannel('kova:radio:playback')
   const windowId = randomUuid()
 
   function stop(nextStatus = 'paused') {
@@ -454,7 +454,7 @@ function trackCredit(source) {
 
 async function artistRequest(path, signal, ctx) {
   // The lock and persisted timestamp pace lookups across desktop windows.
-  return navigator.locks.request('hermes:radio:artist-lookup', { signal }, async () => {
+  return navigator.locks.request('kova:radio:artist-lookup', { signal }, async () => {
     const delay = Math.max(0, 1100 - (Date.now() - ctx.storage.get('local.artistRequestAt', 0)))
     if (delay) await new Promise(resolve => setTimeout(resolve, delay))
     signal.throwIfAborted()

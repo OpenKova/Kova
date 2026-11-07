@@ -7,7 +7,7 @@ import { buildAppEnv, createSandbox, launchDesktop } from './fixtures'
 import { allowErrorBanners, expect, test } from './test'
 
 type DesktopWindow = Window & {
-  hermesDesktop: {
+  kovaDesktop: {
     getBootProgress: () => Promise<{ running: boolean; retryable?: boolean; statusCode?: number; error?: string }>
     getConnection: () => Promise<unknown>
   }

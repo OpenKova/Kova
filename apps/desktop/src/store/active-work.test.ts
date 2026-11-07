@@ -10,7 +10,7 @@ import { clearAllSessionStates, publishSessionState } from './session-states'
 import { $autoSpeakReplies } from './voice-prefs'
 import { retainVoiceStreamPaint } from './voice-stream-paint'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const setActiveWork = vi.fn()
 
 const busy = (storedSessionId: string, isBusy: boolean) =>
@@ -19,7 +19,7 @@ const busy = (storedSessionId: string, isBusy: boolean) =>
 const session = (id: string, title: null | string) => ({ id, title }) as (typeof $sessions.value)[number]
 
 beforeAll(async () => {
-  desktopWindow.kovaDesktop = { setActiveWork } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { setActiveWork } as unknown as Window['kovaDesktop']
   // Subscribes at import time, so the bridge has to exist first.
   await import('./active-work')
 })

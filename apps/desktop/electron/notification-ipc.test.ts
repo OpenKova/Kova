@@ -74,9 +74,9 @@ it('returns native clicks and approval actions to the emitting window, not the p
   expect(primary.webContents.send).not.toHaveBeenCalled()
   host.shown[0].emit('click')
   expect(focusWindow).toHaveBeenCalledWith(source)
-  expect(source.webContents.send).toHaveBeenCalledWith('hermes:focus-session', payload.focusSessionId)
+  expect(source.webContents.send).toHaveBeenCalledWith('kova:focus-session', payload.focusSessionId)
   host.shown[0].emit('action', { actionIndex: 1 }, undefined)
-  expect(source.webContents.send).toHaveBeenCalledWith('hermes:notification-action', {
+  expect(source.webContents.send).toHaveBeenCalledWith('kova:notification-action', {
     sessionId: payload.sessionId,
     actionId: 'reject'
   })
@@ -87,7 +87,7 @@ it('returns native clicks and approval actions to the emitting window, not the p
   host.shown[0].emit('action', { actionIndex: 0 }, undefined)
   expect(primary.webContents.send).not.toHaveBeenCalled()
   host.shown[0].emit('click')
-  expect(primary.webContents.send).toHaveBeenCalledWith('hermes:focus-session', payload.focusSessionId)
+  expect(primary.webContents.send).toHaveBeenCalledWith('kova:focus-session', payload.focusSessionId)
 })
 
 it('delivers plugin callbacks to their source and falls back only for navigation after it closes', async () => {
@@ -114,7 +114,7 @@ it('delivers plugin callbacks to their source and falls back only for navigation
   })
   host.shown[0].emit('action', { actionIndex: 0 }, undefined)
   expect(source.webContents.send).toHaveBeenCalledWith(
-    'hermes:notification-activate',
+    'kova:notification-activate',
     expect.objectContaining({
       actionId: 'open',
       notifyId: 'source-callback',
@@ -125,7 +125,7 @@ it('delivers plugin callbacks to their source and falls back only for navigation
   source.isDestroyed.mockReturnValue(true)
   host.shown[0].emit('click')
   expect(primary.webContents.send).toHaveBeenCalledWith(
-    'hermes:notification-activate',
+    'kova:notification-activate',
     expect.objectContaining({
       activate: '/plugin',
       notifyId: undefined

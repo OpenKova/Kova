@@ -1,5 +1,5 @@
 /**
- * `hermes://` deep-link registration. Every launch rewrites the OS handler (on Windows,
+ * `kova://` deep-link registration. Every launch rewrites the OS handler (on Windows,
  * HKCU\Software\Classes\<protocol>), so a test or dev run of an unpackaged checkout would
  * repoint the user's installed handler at that checkout. `KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION=1`
  * (set by the E2E harnesses) leaves the OS registration untouched; deep links that arrive

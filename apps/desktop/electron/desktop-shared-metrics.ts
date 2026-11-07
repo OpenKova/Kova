@@ -28,7 +28,7 @@ export function registerDesktopSharedMetrics(): DesktopSharedMetrics {
     appVersion: () => app.getVersion(),
     onRecorded: () => {
       for (const window of BrowserWindow.getAllWindows()) {
-        window.webContents.send('hermes:updates:metric:pending')
+        window.webContents.send('kova:updates:metric:pending')
       }
     }
   })

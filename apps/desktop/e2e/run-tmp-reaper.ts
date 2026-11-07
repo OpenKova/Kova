@@ -67,9 +67,9 @@ export function terminateProcesses(pids: Iterable<number>, stillOurs: (pid: numb
   signal('SIGKILL')
 }
 
-function processHomeUnder(pid: number, root: string, hermesHome: string): boolean {
+function processHomeUnder(pid: number, root: string, kovaHome: string): boolean {
   if (!procfsCensus) {
-    return isSandboxProcess(pid, hermesHome)
+    return isSandboxProcess(pid, kovaHome)
   }
 
   const info = readProc(pid)
@@ -81,11 +81,11 @@ function processHomeUnder(pid: number, root: string, hermesHome: string): boolea
  * SIGTERM (then SIGKILL after 15 s) every daemon recorded in a sandbox `gateway.lock` (launch
  * home and each profile home), while its environment still names this sandbox.
  */
-export function stopSandboxGatewayDaemons(root: string, hermesHome: string): void {
-  const profilesDir = path.join(hermesHome, 'profiles')
+export function stopSandboxGatewayDaemons(root: string, kovaHome: string): void {
+  const profilesDir = path.join(kovaHome, 'profiles')
 
   const homes = [
-    hermesHome,
+    kovaHome,
     ...(fs.existsSync(profilesDir) ? fs.readdirSync(profilesDir).map(name => path.join(profilesDir, name)) : [])
   ]
 
@@ -95,7 +95,7 @@ export function stopSandboxGatewayDaemons(root: string, hermesHome: string): voi
     try {
       const pid = Number(JSON.parse(fs.readFileSync(path.join(home, 'gateway.lock'), 'utf8'))?.pid)
 
-      if (Number.isInteger(pid) && pid > 0 && processHomeUnder(pid, root, hermesHome)) {
+      if (Number.isInteger(pid) && pid > 0 && processHomeUnder(pid, root, kovaHome)) {
         pids.add(pid)
       }
     } catch {
@@ -103,7 +103,7 @@ export function stopSandboxGatewayDaemons(root: string, hermesHome: string): voi
     }
   }
 
-  terminateProcesses(pids, pid => processHomeUnder(pid, root, hermesHome))
+  terminateProcesses(pids, pid => processHomeUnder(pid, root, kovaHome))
 }
 
 /** Kernel start time of `pid` (/proc/<pid>/stat field 22): with the pid, a process identity no recycle repeats. */

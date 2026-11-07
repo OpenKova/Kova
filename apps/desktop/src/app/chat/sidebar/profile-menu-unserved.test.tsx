@@ -121,13 +121,13 @@ function standaloneRoster(): DesktopAgentRoster {
 const getAgentRoster = vi.fn(async () => standaloneRoster())
 
 beforeEach(() => {
-  Object.assign(window, { hermesDesktop: { getAgentRoster } })
+  Object.assign(window, { kovaDesktop: { getAgentRoster } })
 })
 
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   window.document.documentElement.dataset.kovaDesktopHost = 'browser'
 })
 

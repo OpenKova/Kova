@@ -11,7 +11,7 @@ import { atomicWindowsSpawn, atomicWindowsSpawnCommand, compressedPowerShellComm
 import { WINDOWS_NO_REPARSE_PS } from './windows-runtime-command'
 
 const python = process.env.KOVA_TEST_PYTHON || process.env.KOVA_PYTHON || 'python'
-const runtime = { os: 'Windows', arch: 'AMD64', hermesHome: 'C:\\hermes', hermesPath: 'C:\\hermes\\bin\\hermes.exe', python: 'C:\\runtime\\python.exe' }
+const runtime = { os: 'Windows', arch: 'AMD64', kovaHome: 'C:\\hermes', kovaPath: 'C:\\hermes\\bin\\hermes.exe', python: 'C:\\runtime\\python.exe' }
 const bootstrap = "import os, sys, runpy; runpy.run_module('kova_cli.main', run_name='__main__', alter_sys=True)"
 
 function streamed(command: string) {
@@ -78,7 +78,7 @@ test('held marker stops launcher imports and unrecognized runtime capabilities f
 })
 
 test('atomic spawn streams its whole script and explicitly pipes Unicode caller JSON after draining stdin', async () => {
-  const payload = JSON.stringify({ ownershipId: 'a'.repeat(32), spawnNonce: 'b'.repeat(16), profile: 'bob', hermesPath: 'C:\\用户\\hermes.exe' })
+  const payload = JSON.stringify({ ownershipId: 'a'.repeat(32), spawnNonce: 'b'.repeat(16), profile: 'bob', kovaPath: 'C:\\用户\\hermes.exe' })
   let observed = ''
 
   const ssh = { exec: async (command: string, options: { stdinData?: string } = {}) => {

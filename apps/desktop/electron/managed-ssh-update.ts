@@ -85,8 +85,8 @@ interface RemoteUpdateTarget {
     exec: (command: string, options?: { timeoutMs?: number; stdinData?: string }) => Promise<string>
   }
   platform: 'Darwin' | 'Linux' | 'Windows'
-  hermesPath: string
-  hermesHome: string
+  kovaPath: string
+  kovaHome: string
   pythonPath?: string
 }
 
@@ -228,7 +228,7 @@ function windowsChildPath(home: string, name: string): string {
 function buildPosixManagedUpdateLaunch(target: RemoteUpdateTarget, correlationId: string): string {
   const correlation = validateCorrelationId(correlationId)
   const home = validateRemoteValue(target.kovaHome, 'Kova home')
-  const hermesPath = validateRemoteValue(target.kovaPath, 'launcher path')
+  const kovaPath = validateRemoteValue(target.kovaPath, 'launcher path')
   const statusPath = posixChildPath(home, `.update_exit_code.${correlation}`)
   const intentPath = posixChildPath(home, `.update_launch_intent.${correlation}`)
   const outputPath = posixChildPath(home, `logs/desktop-update-${correlation}.log`)
@@ -236,7 +236,7 @@ function buildPosixManagedUpdateLaunch(target: RemoteUpdateTarget, correlationId
   const statusWord = expandRemotePath(statusPath)
   const intentWord = expandRemotePath(intentPath)
   const outputWord = expandRemotePath(outputPath)
-  const launcherWord = expandRemotePath(hermesPath)
+  const launcherWord = expandRemotePath(kovaPath)
 
   const updateCommand =
     `env KOVA_HOME=${homeWord} ` +
@@ -275,7 +275,7 @@ function buildPosixManagedUpdateLaunch(target: RemoteUpdateTarget, correlationId
 function buildWindowsManagedUpdateLaunch(target: RemoteUpdateTarget, correlationId: string): string {
   const correlation = validateCorrelationId(correlationId)
   const home = validateRemoteValue(target.kovaHome, 'Kova home')
-  const hermesPath = validateRemoteValue(target.kovaPath, 'launcher path')
+  const kovaPath = validateRemoteValue(target.kovaPath, 'launcher path')
   const statusPath = windowsChildPath(home, `.update_exit_code.${correlation}`)
   const readyPath = windowsChildPath(home, `.update_coordinator_ready.${correlation}`)
   const intentPath = windowsChildPath(home, `.update_launch_intent.${correlation}`)
@@ -298,7 +298,7 @@ function buildWindowsManagedUpdateLaunch(target: RemoteUpdateTarget, correlation
     `$intentPayload=[ordered]@{correlation=${psLiteral(correlation)};pid=$PID;creation=$intentCreation}|ConvertTo-Json -Compress`,
     '[IO.File]::WriteAllText($intentTmp,$intentPayload,[Text.UTF8Encoding]::new($false))',
     `Move-Item -LiteralPath $intentTmp -Destination ${psLiteral(intentPath)} -Force`,
-    `& ${psLiteral(hermesPath)} update --yes *>> ${psLiteral(outputPath)}`,
+    `& ${psLiteral(kovaPath)} update --yes *>> ${psLiteral(outputPath)}`,
     '$rc=$LASTEXITCODE',
     // A non-gateway Windows coordinator parent returns 0 once its copied
     // child owns the marker. That is acceptance, not completion: suppress the

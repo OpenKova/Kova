@@ -6,7 +6,7 @@ import type { KovaApiRequest } from '@/global'
 export function installRestBridge(answer: (request: KovaApiRequest) => object) {
   const api = vi.fn(async (request: KovaApiRequest) => answer(request))
 
-  Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { api } })
+  Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { api } })
 
   return api
 }

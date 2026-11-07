@@ -261,7 +261,7 @@ describe('onboarding run', () => {
     }
 
     const launch = (assumeFreshInstall: boolean): void => {
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { assumeFreshInstall } })
+      Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { assumeFreshInstall } })
     }
 
     try {
@@ -271,7 +271,7 @@ describe('onboarding run', () => {
       await startOnboarding(request, resume, { ensureProfile })
       await startOnboarding(request, resume, { ensureProfile, rerun: true })
     } finally {
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: undefined })
+      Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: undefined })
     }
 
     // Only the fresh-install launch carries the field at all.

@@ -80,13 +80,13 @@ beforeEach(() => {
     setEnabled: vi.fn(async () => undefined),
     takeRendererCrashes: vi.fn(async () => null)
   }
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { desktopMetrics: bridge }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { desktopMetrics: bridge }
 })
 
 afterEach(() => {
   resetDesktopMetricsForTests()
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 function exerciseEverything() {

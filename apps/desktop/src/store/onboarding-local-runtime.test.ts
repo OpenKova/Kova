@@ -44,7 +44,7 @@ describe('refreshOnboarding with the local model server down', () => {
   beforeEach(() => {
     window.localStorage.clear()
     $desktopOnboarding.set(coldState())
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { api: async () => ({ providers: [] }) }
     })

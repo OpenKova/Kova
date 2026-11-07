@@ -64,7 +64,7 @@ export type { Appearance }
 
 /**
  * Glass needs a native window material. Electron is authoritative (preload
- * sets `hermesDesktop.glassSupported` from `os.release()` so Win10 cannot
+ * sets `kovaDesktop.glassSupported` from `os.release()` so Win10 cannot
  * sneak through). Tests and non-Electron shells fall back to a UA sniff —
  * Mac or Windows — which is why this file pins `navigator.platform` before
  * import.

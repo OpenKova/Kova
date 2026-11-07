@@ -36,7 +36,7 @@ export const UPDATE_ROOT = process.env.KOVA_E2E_UPDATE_ROOT || path.join(os.tmpd
 export interface InstallFacts {
   sandboxRoot: string
   home: string
-  hermesHome: string
+  kovaHome: string
   checkout: string
   hermes: string
   origin: string
@@ -261,7 +261,7 @@ export async function launchInstalledApp(facts: InstallFacts, env: Record<string
  * Electron 44 zeroes the app's /proc environ, so only the executable path names those.
  */
 export function installProcesses(facts: InstallFacts): ProcInfo[] {
-  const census = sandboxProcesses({ hermesHome: facts.kovaHome } as CoreSandbox)
+  const census = sandboxProcesses({ kovaHome: facts.kovaHome } as CoreSandbox)
   const known = new Set(census.map(proc => proc.pid))
 
   return [...census, ...processesRunningFrom(releaseDir(facts)).filter(proc => !known.has(proc.pid))]
@@ -534,7 +534,7 @@ export interface UpdateStatus {
 export async function checkForUpdates(page: Page): Promise<null | UpdateStatus> {
   return page.evaluate(() => {
     const bridge = (
-      window as unknown as { hermesDesktop: { updates: { check(o: { force: boolean }): Promise<unknown> } } }
+      window as unknown as { kovaDesktop: { updates: { check(o: { force: boolean }): Promise<unknown> } } }
     ).kovaDesktop
 
     return bridge.updates.check({ force: true }) as Promise<null | UpdateStatus>

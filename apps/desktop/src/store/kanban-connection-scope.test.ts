@@ -65,7 +65,7 @@ describe('connection-switch query invalidation', () => {
 
   beforeEach(() => {
     vi.stubGlobal('window', {
-      hermesDesktop: {
+      kovaDesktop: {
         api: vi.fn(async () => ({})),
         connections: {
           list: vi.fn(async () => registry),

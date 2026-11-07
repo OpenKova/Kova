@@ -12,7 +12,7 @@ const bootstrap = window as Window & { __KOVA_AUTH_REQUIRED__?: boolean }
 
 afterEach(() => {
   vi.useRealTimers()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   delete bootstrap.__KOVA_AUTH_REQUIRED__
   window.document.documentElement.removeAttribute('data-hermes-desktop-host')
   window.history.replaceState(null, '', '/')
@@ -83,7 +83,7 @@ describe('a window that says ready after the deadline', () => {
     const channels = stubBroadcastChannels()
     const open = vi.spyOn(window, 'open').mockReturnValue(null)
     const api = vi.fn().mockResolvedValue({ ticket })
-    Reflect.set(window, 'hermesDesktop', { openWindow: () => opener(privateSession, api)(target()) })
+    Reflect.set(window, 'kovaDesktop', { openWindow: () => opener(privateSession, api)(target()) })
 
     const opening = openNewWindow()
     await vi.advanceTimersByTimeAsync(3_000)

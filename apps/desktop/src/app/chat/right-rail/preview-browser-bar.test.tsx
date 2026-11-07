@@ -23,10 +23,10 @@ function address(rendered: ReturnType<typeof render>) {
   return rendered.getByRole('textbox', { name: 'Address' }) as HTMLInputElement
 }
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
 function installBridge(writeClipboard: ReturnType<typeof vi.fn>) {
-  desktopWindow.kovaDesktop = { writeClipboard } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { writeClipboard } as unknown as Window['kovaDesktop']
 }
 
 afterEach(() => {

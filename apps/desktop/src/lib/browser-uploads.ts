@@ -220,7 +220,7 @@ export function createBrowserUploadsBridge({
   objectUrls,
   previewUrls
 }: BrowserUploadsOptions): Pick<
-  Window['hermesDesktop'],
+  Window['kovaDesktop'],
   'getStagedFileDisplayName' | 'getStagedFileForAttach' | 'saveImageBuffer' | 'savePastedText' | 'selectPaths' | 'stageFileForAttach'
 > {
   const displayNames = new Map<string, string>()

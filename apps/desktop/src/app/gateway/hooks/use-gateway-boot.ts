@@ -178,7 +178,7 @@ export function primaryRuntimeConnectionId(connection: Pick<KovaConnection, 'con
  * (which a live switch keeps current, so a reload lands where the user was), else on a cold boot the
  * origin's saved default, is selected on top of the primary instead of becoming it.
  */
-async function openWebappTabProfile(desktop: Window['hermesDesktop'], primary: string, startup: boolean) {
+async function openWebappTabProfile(desktop: Window['kovaDesktop'], primary: string, startup: boolean) {
   const profile =
     windowProfileOverride() ??
     (startup && !isPeerInstanceWindow() ? (await desktop.profile?.getDefault?.())?.profile?.trim() : null)

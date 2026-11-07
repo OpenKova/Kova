@@ -24,7 +24,7 @@ function dataUrl(text: string) {
 function installBridge() {
   ;(
     window as unknown as {
-      hermesDesktop: {
+      kovaDesktop: {
         gitRoot: typeof gitRoot
         readDir: typeof readDir
         readFileDataUrl: typeof readFileDataUrl
@@ -45,11 +45,11 @@ describe('readProjectDir', () => {
   afterEach(() => {
     clearProjectDirCache()
     $showIgnoredRoots.set([])
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   })
 
   it('returns no-bridge when the desktop bridge is unavailable', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 
     await expect(readProjectDir('/repo')).resolves.toEqual({ entries: [], error: 'no-bridge' })
   })

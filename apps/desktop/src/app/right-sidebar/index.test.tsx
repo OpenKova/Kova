@@ -15,7 +15,7 @@ const repoStatus = vi.fn<(cwd: string) => Promise<null>>()
 
 function installBridge() {
   ;(
-    window as unknown as { hermesDesktop: { git: { repoStatus: typeof repoStatus }; readDir: typeof readDir } }
+    window as unknown as { kovaDesktop: { git: { repoStatus: typeof repoStatus }; readDir: typeof readDir } }
   ).kovaDesktop = {
     git: { repoStatus },
     readDir
@@ -42,7 +42,7 @@ describe('RightSidebarPane', () => {
     $workspaceCwdOwner.set(null)
     setCurrentCwd('')
     resetProjectTreeState()
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   })
 
   it('renders the tree whenever the session has a working dir (repo or not) — no picker', async () => {

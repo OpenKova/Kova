@@ -1,7 +1,7 @@
 import type { KovaApiRequest, KovaReadFileTextResult } from '@/global'
 
 type DesktopPluginsBridge = Pick<
-  Window['hermesDesktop'],
+  Window['kovaDesktop'],
   | 'desktopPluginsRoot'
   | 'readDir'
   | 'readFileText'
@@ -13,7 +13,7 @@ type DesktopPluginsBridge = Pick<
 interface BrowserDesktopPluginsOptions {
   api: <T>(request: KovaApiRequest) => Promise<T>
   /** The page's /api/fs readers, kept for every path outside the plugins folder. */
-  files: Pick<Window['hermesDesktop'], 'readDir' | 'readFileText'>
+  files: Pick<Window['kovaDesktop'], 'readDir' | 'readFileText'>
 }
 
 /** The runtime loader's disk door, answered by the server that serves this page: its app-level

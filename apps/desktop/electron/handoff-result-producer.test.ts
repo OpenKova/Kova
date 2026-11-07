@@ -87,7 +87,7 @@ test.skipIf(process.platform === 'win32').each(['legacy', 'protocol-2'])(
     }
 
     const observed: { startedAt: number | null; runId?: string | null }[] = []
-    const probe = liveMarkerProbe({ hermesHome: home, reclaim: null, onLiveMarker: marker => observed.push(marker) })
+    const probe = liveMarkerProbe({ kovaHome: home, reclaim: null, onLiveMarker: marker => observed.push(marker) })
 
     try {
       const deadline = Date.now() + 15_000
@@ -112,7 +112,7 @@ test.skipIf(process.platform === 'win32').each(['legacy', 'protocol-2'])(
       let reopened: { startedAt: number | null; runId?: string | null } = { startedAt: null }
 
       const reopenedGate = liveMarkerProbe({
-        hermesHome: home,
+        kovaHome: home,
         reclaim: null,
         onLiveMarker: marker => {
           reopened = marker

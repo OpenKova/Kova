@@ -59,10 +59,10 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
   return ordered.join(delimiter)
 }
 
-function resolveKovaHomePath(hermesHome, { pathModule, homedir = os.homedir() }: any) {
+function resolveKovaHomePath(kovaHome, { pathModule, homedir = os.homedir() }: any) {
   // fish (and any shell when the value is quoted) hands a literal `~` through; path.resolve()
   // would pin it under cwd and the Python backend inherits that absolute path via KOVA_HOME.
-  let raw = String(hermesHome)
+  let raw = String(kovaHome)
 
   if (raw === '~' || raw.startsWith('~/') || (pathModule === path.win32 && raw.startsWith('~\\'))) {
     raw = pathModule.join(homedir, raw.slice(1))
@@ -76,14 +76,14 @@ function isProfileHome(resolved, pathModule) {
 }
 
 function normalizeKovaHomeRoot(
-  hermesHome,
+  kovaHome,
   { pathModule = pathModuleForPlatform(process.platform), homedir = os.homedir() }: any = {}
 ) {
-  if (!hermesHome) {
-    return hermesHome
+  if (!kovaHome) {
+    return kovaHome
   }
 
-  const resolved = resolveKovaHomePath(hermesHome, { pathModule, homedir })
+  const resolved = resolveKovaHomePath(kovaHome, { pathModule, homedir })
 
   return isProfileHome(resolved, pathModule) ? pathModule.dirname(pathModule.dirname(resolved)) : resolved
 }
@@ -144,7 +144,7 @@ function readTextOrEmpty(fsModule, file) {
  * `active_profile` like a bare `hermes serve` (`_apply_profile_override`).
  */
 function profileBackendParentEnv({
-  hermesHome,
+  kovaHome,
   profile,
   currentEnv = process.env,
   platform = process.platform,
@@ -153,15 +153,15 @@ function profileBackendParentEnv({
 }: any = {}) {
   const env = { ...(currentEnv || {}) }
 
-  if (!hermesHome) {
+  if (!kovaHome) {
     return env
   }
 
   const fold = platform === 'win32' ? (value: string) => value.toUpperCase() : (value: string) => value
   const inheritedHome = currentEnv?.KOVA_HOME ? resolveKovaHomePath(currentEnv.KOVA_HOME, { pathModule }) : null
-  const launchHome = inheritedHome && isProfileHome(inheritedHome, pathModule) ? inheritedHome : hermesHome
-  const name = profile || readTextOrEmpty(fsModule, pathModule.join(hermesHome, 'active_profile')).trim()
-  const targetHome = !name || name === 'default' ? hermesHome : pathModule.join(hermesHome, 'profiles', name)
+  const launchHome = inheritedHome && isProfileHome(inheritedHome, pathModule) ? inheritedHome : kovaHome
+  const name = profile || readTextOrEmpty(fsModule, pathModule.join(kovaHome, 'active_profile')).trim()
+  const targetHome = !name || name === 'default' ? kovaHome : pathModule.join(kovaHome, 'profiles', name)
 
   if (fold(pathModule.resolve(launchHome)) === fold(pathModule.resolve(targetHome))) {
     return env
@@ -197,8 +197,8 @@ function storeFirstPath(
 ) {
   const pathModule = pathModuleForPlatform(platform)
   const delimiter = delimiterForPlatform(platform)
-  const hermesHome = resolveDesktopKovaHome({ home: homedir, env: currentEnv, platform })
-  const roots = [currentEnv?.KOVA_RUNTIME_DIR, pathModule.join(hermesHome, 'tools')].filter(Boolean)
+  const kovaHome = resolveDesktopKovaHome({ home: homedir, env: currentEnv, platform })
+  const roots = [currentEnv?.KOVA_RUNTIME_DIR, pathModule.join(kovaHome, 'tools')].filter(Boolean)
 
   const owned = (entry: string) =>
     roots.some(root => {

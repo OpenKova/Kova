@@ -31,7 +31,7 @@ describe('uploadComposerAttachment remote read failures', () => {
   it('turns the raw 16MB IPC cap error into a friendly remote-gateway message', async () => {
     // electron/hardening.ts rejects the readFileDataUrl IPC with this exact
     // shape when a file exceeds the configured data-URL read cap.
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: {
         readFileDataUrl: vi.fn(async () => {
@@ -65,7 +65,7 @@ describe('uploadComposerAttachment image cache contract', () => {
     // bytes (#93324) — the upload must never trust it and must always read
     // the on-disk file for the bytes the model receives.
     const readFileDataUrl = vi.fn(async () => 'data:image/png;base64,ZnJvbS1kaXNr')
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { readFileDataUrl }
     })
@@ -106,7 +106,7 @@ describe('uploadComposerAttachment local cross-platform staging', () => {
 
   it('uses image.attach_bytes for a Windows image when the local backend cwd is POSIX', async () => {
     const readFileDataUrl = vi.fn(async () => 'data:image/jpeg;base64,aGVsbG8=')
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { readFileDataUrl }
     })

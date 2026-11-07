@@ -137,7 +137,7 @@ beforeEach(async () => {
   sockets.length = 0
   history.length = 0
   vi.clearAllMocks()
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnectionFor: vi.fn(async () => ({
       ...owner,
       authMode: 'token',
@@ -167,7 +167,7 @@ afterEach(() => {
   primary.close()
   setPrimaryGateway(null)
   setPrimaryGatewayConnectionId(null)
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   vi.clearAllTimers()
   vi.useRealTimers()
   vi.restoreAllMocks()

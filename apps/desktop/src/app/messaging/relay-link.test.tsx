@@ -35,7 +35,7 @@ const telegram = { id: 'telegram', name: 'Telegram' } as MessagingPlatformInfo
 
 // What the Electron IPC bridge throws for a relay router refusal (real Desktop + connector readback).
 const ipcRefusal = (status: number, detail: unknown) =>
-  new Error(`Error invoking remote method 'hermes:api': Error: ${status}: ${JSON.stringify({ detail })}`)
+  new Error(`Error invoking remote method 'kova:api': Error: ${status}: ${JSON.stringify({ detail })}`)
 
 test.each([
   [
@@ -53,7 +53,7 @@ test.each([
     'Start the gateway first: it holds the Team Gateway connection.'
   ],
   [
-    new Error("Error invoking remote method 'hermes:api': Error: Gateway ticket control socket missing"),
+    new Error("Error invoking remote method 'kova:api': Error: Gateway ticket control socket missing"),
     'Gateway ticket control socket missing'
   ]
 ])('a refused link shows the backend sentence, not the IPC envelope', async (error, sentence) => {

@@ -7,7 +7,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { AppContextMenu } from './app-context-menu'
 import { $contextMenu } from './store'
 
-const desktopDescriptor = Object.getOwnPropertyDescriptor(window, 'hermesDesktop')
+const desktopDescriptor = Object.getOwnPropertyDescriptor(window, 'kovaDesktop')
 const editableDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'isContentEditable')
 
 function setup() {
@@ -20,7 +20,7 @@ function setup() {
       return !!host && host.getAttribute('contenteditable') !== 'false'
     }
   })
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { writeClipboard: vi.fn().mockResolvedValue(true) }
   })
@@ -77,9 +77,9 @@ function reset() {
   vi.restoreAllMocks()
 
   if (desktopDescriptor) {
-    Object.defineProperty(window, 'hermesDesktop', desktopDescriptor)
+    Object.defineProperty(window, 'kovaDesktop', desktopDescriptor)
   } else {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
   }
 
   if (editableDescriptor) {

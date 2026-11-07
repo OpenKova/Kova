@@ -59,8 +59,8 @@ describe.skipIf(process.platform === 'win32')('gate over a dead marker (R6)', ()
     } = {}
   ) {
     return liveMarkerProbe({
-      hermesHome: home,
-      reclaim: () => runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false }),
+      kovaHome: home,
+      reclaim: () => runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false }),
       now,
       ...extra
     })
@@ -330,8 +330,8 @@ describe.skipIf(process.platform === 'win32')('gate over a dead marker (R6)', ()
 
     const probe = () =>
       liveMarkerProbe({
-        hermesHome: home,
-        reclaim: () => runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false }),
+        kovaHome: home,
+        reclaim: () => runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false }),
         checkoutLockMayBeHeld: () => checkoutLockMayBeHeld(root, false)
       })()
 
@@ -413,7 +413,7 @@ describe('a live v1 marker and the latest failed receipt', () => {
     receipt(home, 'failed', minutesAgo(1))
     const logs: string[] = []
 
-    assert.equal(await liveMarkerProbe({ hermesHome: home, reclaim: null, log: l => logs.push(l) })(), false)
+    assert.equal(await liveMarkerProbe({ kovaHome: home, reclaim: null, log: l => logs.push(l) })(), false)
     assert.equal(fs.readFileSync(markerPath(home), 'utf8'), body)
     assert.equal(logs.length, 1)
   })
@@ -421,7 +421,7 @@ describe('a live v1 marker and the latest failed receipt', () => {
   test('a retry (marker newer than the failure), a success, or a v2 owner still waits', async () => {
     const home = tmpHome('gate-v1-retry')
     const owner = await liveOwner()
-    const probe = () => liveMarkerProbe({ hermesHome: home, reclaim: null })()
+    const probe = () => liveMarkerProbe({ kovaHome: home, reclaim: null })()
 
     fs.writeFileSync(markerPath(home), `${owner.pid}\n${minutesAgo(1)}\n`)
     receipt(home, 'failed', minutesAgo(10))
@@ -444,7 +444,7 @@ test('without a protocol-2 script the gate judges dead = not running and deletes
   const body = `${await deadPid()}\n${minutesAgo(1)}\n`
   fs.writeFileSync(markerPath(home), body)
 
-  assert.equal(await liveMarkerProbe({ hermesHome: home, reclaim: null })(), false)
+  assert.equal(await liveMarkerProbe({ kovaHome: home, reclaim: null })(), false)
   assert.equal(fs.readFileSync(markerPath(home), 'utf8'), body)
 })
 

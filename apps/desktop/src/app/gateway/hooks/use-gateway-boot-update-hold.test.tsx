@@ -124,7 +124,7 @@ afterEach(() => {
   $connection.set(null)
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 async function flushAsync() {
@@ -136,7 +136,7 @@ async function flushAsync() {
 it('a hold published after boot (a pool/profile backend) still reaches the blocked screen (R8 M6)', async () => {
   const desktop = fakeDesktop()
 
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = desktop
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = desktop
   render(<Harness />)
   await flushAsync()
   expect($gatewayState.get()).toBe('open')

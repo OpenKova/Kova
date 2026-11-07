@@ -106,7 +106,7 @@ function stubBridge(
   }: { api?: (request: { path: string }) => Promise<unknown>; list?: DesktopConnectionsRegistry } = {}
 ) {
   vi.stubGlobal('window', {
-    hermesDesktop: {
+    kovaDesktop: {
       api,
       connections: { list: vi.fn(async () => list), setLastUsed },
       getAgentRoster

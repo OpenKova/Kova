@@ -365,7 +365,7 @@ describe('useAutoSpeakReplies — final reply after tool calls', () => {
     clearOwnedSpeechTurnsForTests()
     $autoSpeakReplies.set(false)
     setVoicePlaybackState({ ...IDLE_STATE })
-    delete (window as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as { kovaDesktop?: unknown }).kovaDesktop
     vi.clearAllMocks()
   })
 
@@ -388,7 +388,7 @@ describe('useAutoSpeakReplies — final reply after tool calls', () => {
       return won
     }
 
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = {
       claimAmbientCue,
       notify: vi.fn(async () => undefined)
     }

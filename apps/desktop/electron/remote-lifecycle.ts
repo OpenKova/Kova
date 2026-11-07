@@ -275,11 +275,11 @@ async function locateKova(ssh, remoteKovaPath) {
 // Probe the resolved binary's version string (first line of `<hermes> --version`,
 // e.g. "Kova Agent v0.18.2 ..."), or '' on failure. Surfaces WHICH hermes a
 // connection uses, so a stale/unexpected install is visible.
-async function probeKovaVersion(ssh, hermesPath) {
+async function probeKovaVersion(ssh, kovaPath) {
   try {
     // Watchdogged: a hung remote CLI must die remotely instead of orphaning
     // when the local ssh child is SIGKILLed (#110478).
-    const out = (await ssh.exec(withRemoteTimeout(`${expandRemotePath(hermesPath)} --version 2>&1`))).trim()
+    const out = (await ssh.exec(withRemoteTimeout(`${expandRemotePath(kovaPath)} --version 2>&1`))).trim()
 
     return (out.split('\n')[0] || '').trim()
   } catch {
@@ -327,7 +327,7 @@ async function probeRemoteKovaHome(ssh) {
  * (remote-update-marker-programs.ts); it never imports the changing checkout.
  * Absence or a confirmed-dead claim (owner and delegate) is clear, and a dead
  * claim is unlinked under `<marker>.lock` unless the checkout lock is still
- * held (HELD: a killed updater's child is still running). `hermesPath`, once
+ * held (HELD: a killed updater's child is still running). `kovaPath`, once
  * located, adds its checkout to the probed ones. Every parse, read, lock, or
  * transport uncertainty fails closed so a Desktop relaunch cannot start
  * `serve` beside an updater that survived the old app process.
@@ -343,9 +343,9 @@ async function probeRemoteKovaHome(ssh) {
  * Python compiles the whole program before running it and the gate never reads
  * stdin, so argv stays a few dozen bytes however the judge grows.
  */
-async function assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath = '') {
-  const marker = expandRemotePath(`${remoteInstallRoot(hermesHome)}/.kova-update-in-progress`)
-  const hermes = hermesPath ? ` '' ${expandRemotePath(hermesPath)}` : ''
+async function assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath = '') {
+  const marker = expandRemotePath(`${remoteInstallRoot(kovaHome)}/.kova-update-in-progress`)
+  const hermes = kovaPath ? ` '' ${expandRemotePath(kovaPath)}` : ''
   let observation = ''
 
   try {
@@ -528,7 +528,7 @@ async function readLockfile(ssh, ownershipId) {
     return lockfileSkew('log-path-mismatch')
   }
 
-  for (const field of ['profile', 'hermesPath', 'hermesHome', 'logPath', 'startedAt']) {
+  for (const field of ['profile', 'kovaPath', 'kovaHome', 'logPath', 'startedAt']) {
     if (typeof parsed[field] !== 'string' || parsed[field].length > 1024) {
       return lockfileSkew(`malformed-field ${field}`)
     }
@@ -665,24 +665,24 @@ async function pidIsOurDashboard(
   ssh,
   pid,
   spawnNonce,
-  hermesPath = '',
-  hermesHome = '',
+  kovaPath = '',
+  kovaHome = '',
   ownershipId = '',
   profile = ''
 ) {
-  if (!pid || !/^[0-9a-f]{16}$/.test(String(spawnNonce || '')) || !hermesPath) {
+  if (!pid || !/^[0-9a-f]{16}$/.test(String(spawnNonce || '')) || !kovaPath) {
     return false
   }
 
   const script =
     'import os,shlex,subprocess,sys\n' +
     `pid=${Number(pid)}\n` +
-    `expected=os.path.expanduser(${shq(hermesPath)})\n` +
+    `expected=os.path.expanduser(${shq(kovaPath)})\n` +
     // The installer-facing launcher is intentionally preserved for invocation
     // (#74411), but it may `exec python <install-dir>/hermes`, leaving neither
     // launcher nor KOVA_HOME-derived entrypoint in argv. The ownership-scoped
     // token path + random nonce + exact profile below are the alternative proof.
-    `kova_home=os.path.expanduser(${shq(hermesHome)}) if ${shq(hermesHome)} else ""\n` +
+    `kova_home=os.path.expanduser(${shq(kovaHome)}) if ${shq(kovaHome)} else ""\n` +
     'expected_entries={expected}\n' +
     'if kova_home:\n' +
     ' expected_entries.add(os.path.join(kova_home,"kova-agent","venv","bin","hermes"))\n' +
@@ -1119,8 +1119,8 @@ async function terminateOwnedDashboardForUpdate(ssh, expected) {
 // Detach so the backend survives the SSH channel closing: setsid (Linux)
 // starts a new session; macOS has no setsid, so fall back to nohup (HUP-immune;
 // fd-detachment is already handled by </dev/null + redirect + &).
-function buildSpawnCommand(hermesPath, profile, opts: any = {}) {
-  const hermes = expandRemotePath(hermesPath)
+function buildSpawnCommand(kovaPath, profile, opts: any = {}) {
+  const hermes = expandRemotePath(kovaPath)
   // The roster/SSH bridge hands us the profile verbatim: a non-slug value must never
   // cross into the remote spawn argv, where the CLI used to str()-coerce it into a
   // phantom profiles/0/ directory (#88842).
@@ -1217,8 +1217,8 @@ function buildSpawnCommand(hermesPath, profile, opts: any = {}) {
   )
 }
 
-async function remoteSupportsSshOwnership(ssh, hermesPath) {
-  const hermes = expandRemotePath(hermesPath)
+async function remoteSupportsSshOwnership(ssh, kovaPath) {
+  const hermes = expandRemotePath(kovaPath)
 
   // The watchdog wraps the inner `serve --help` so the hung CLI is its direct
   // child and dies remotely instead of orphaning (#110478). The `$( (` space
@@ -1301,16 +1301,16 @@ async function scrapeReadyPort(ssh, logPath, { timeoutMs = resolveReadyTimeoutMs
 async function spawnRemoteDashboard(
   ssh,
   {
-    hermesPath,
+    kovaPath,
     profile,
     token,
     ownershipId,
-    hermesHome = '~/.kova',
+    kovaHome = '~/.kova',
     devServer = '',
     assertInstallClear = async () => {}
   }
 ) {
-  if (!(await remoteSupportsSshOwnership(ssh, hermesPath))) {
+  if (!(await remoteSupportsSshOwnership(ssh, kovaPath))) {
     const err: any = new Error(
       'The remote Kova install does not support --ssh-session-token-file and --ssh-owner-nonce. ' +
         'Update Kova on the remote host to continue using Desktop SSH mode.'
@@ -1373,11 +1373,11 @@ async function spawnRemoteDashboard(
     // process creation. The caller's probe imports no changing checkout code.
     await assertInstallClear()
     out = await ssh.exec(
-      buildSpawnCommand(hermesPath, profile, {
+      buildSpawnCommand(kovaPath, profile, {
         spawnNonce,
         tokenFilePath,
         logPath,
-        hermesHome,
+        kovaHome,
         devServer,
         ownershipId,
         reservationNonce: spawnNonce,
@@ -1386,8 +1386,8 @@ async function spawnRemoteDashboard(
           spawnNonce,
           port: 0,
           profile,
-          hermesPath,
-          hermesHome,
+          kovaPath,
+          kovaHome,
           logPath,
           tokenFingerprint: fingerprintToken(token),
           protocolVersion: PROTOCOL_VERSION,
@@ -1520,14 +1520,14 @@ async function waitForRemoteSpawnCompletion(ssh, ownershipId, timeoutMs) {
 // renderer's origin only from the KOVA_DESKTOP_DEV_SERVER it was spawned with; one spawned for
 // another renderer (or none, as older records and packaged builds are) would refuse every renderer
 // socket, so it is replaced rather than reused.
-function lockServesConnect(lock, { profile, reuseToken, hermesPath, hermesHome, devServer }) {
+function lockServesConnect(lock, { profile, reuseToken, kovaPath, kovaHome, devServer }) {
   return (
     lock.port > 0 &&
     lock.profile === profile &&
     Boolean(reuseToken) &&
     lock.tokenFingerprint === fingerprintToken(reuseToken) &&
-    lock.kovaPath === hermesPath &&
-    lock.kovaHome === hermesHome &&
+    lock.kovaPath === kovaPath &&
+    lock.kovaHome === kovaHome &&
     (lock.devServer ?? '') === devServer
   )
 }
@@ -1561,11 +1561,11 @@ async function connect(deps) {
   assertBootstrapNotSuperseded(signal)
   const platform = deps.platform ?? (await probeRemotePlatform(ssh))
   log(`remote platform ${platform.os}/${platform.arch}`)
-  const hermesHome = await probeRemoteKovaHome(ssh)
-  await assertRemoteInstallUpdateClear(ssh, hermesHome)
-  const hermesPath = await locateKova(ssh, remoteKovaPath)
-  log(`located hermes at ${hermesPath}`)
-  const hermesVersion = await probeKovaVersion(ssh, hermesPath)
+  const kovaHome = await probeRemoteKovaHome(ssh)
+  await assertRemoteInstallUpdateClear(ssh, kovaHome)
+  const kovaPath = await locateKova(ssh, remoteKovaPath)
+  log(`located hermes at ${kovaPath}`)
+  const hermesVersion = await probeKovaVersion(ssh, kovaPath)
 
   if (hermesVersion) {
     log(`remote hermes version: ${hermesVersion}`)
@@ -1610,7 +1610,7 @@ async function connect(deps) {
       ))
 
     const reusable =
-      pidAlive && owned && lockServesConnect(lock, { profile, reuseToken, hermesPath, hermesHome, devServer })
+      pidAlive && owned && lockServesConnect(lock, { profile, reuseToken, kovaPath, kovaHome, devServer })
 
     if (reusable) {
       const creationTime = lock.creationTime || (await remoteProcessCreationTime(ssh, lock.pid))
@@ -1621,7 +1621,7 @@ async function connect(deps) {
       }
 
       assertBootstrapNotSuperseded(signal)
-      await assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath)
+      await assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath)
       const localPort = await openForward(deps, lock.port)
 
       try {
@@ -1640,7 +1640,7 @@ async function connect(deps) {
         if (reuseClassification === 'authenticated-stale') {
           assertBootstrapNotSuperseded(signal)
           await cancelForwardSafe(deps, localPort, lock.port)
-          await assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath)
+          await assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath)
           await cleanupStale(ssh, ownershipId, lock)
         } else if (reuseClassification === 'authenticated-ok') {
           const token = await adoptOwnedServedToken(
@@ -1664,12 +1664,12 @@ async function connect(deps) {
             pid: lock.pid,
             reused: true,
             platform,
-            hermesPath,
+            kovaPath,
             hermesVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
             logPath: lock.logPath,
-            hermesHome,
+            kovaHome,
             startedAt: lock.startedAt,
             creationTime: lock.creationTime || ''
           }
@@ -1684,23 +1684,23 @@ async function connect(deps) {
       }
     } else {
       assertBootstrapNotSuperseded(signal)
-      await assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath)
+      await assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath)
       await cleanupStale(ssh, ownershipId, lock, pidAlive)
     }
   }
 
   assertBootstrapNotSuperseded(signal)
-  await assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath)
+  await assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath)
   const spawnToken = mintToken()
 
   const spawned = await spawnRemoteDashboard(ssh, {
-    hermesPath,
+    kovaPath,
     profile,
     token: spawnToken,
     ownershipId,
-    hermesHome,
+    kovaHome,
     devServer,
-    assertInstallClear: () => assertRemoteInstallUpdateClear(ssh, hermesHome, hermesPath)
+    assertInstallClear: () => assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath)
   })
 
   if (spawned.existing) {
@@ -1732,8 +1732,8 @@ async function connect(deps) {
     pid,
     port: 0,
     profile,
-    hermesPath,
-    hermesHome,
+    kovaPath,
+    kovaHome,
     logPath,
     tokenFingerprint: fingerprintToken(spawnToken),
     protocolVersion: PROTOCOL_VERSION,
@@ -1786,12 +1786,12 @@ async function connect(deps) {
       pid,
       reused: false,
       platform,
-      hermesPath,
+      kovaPath,
       hermesVersion,
       ownershipId,
       spawnNonce,
       logPath,
-      hermesHome,
+      kovaHome,
       startedAt: ownedSpawn.startedAt,
       creationTime: ownedSpawn.creationTime || ''
     }

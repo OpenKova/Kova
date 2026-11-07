@@ -5,7 +5,7 @@ import { clearWebappSession, seedWebappSession } from '@/test/webapp-session'
 
 import { installBrowserDesktopBridge } from './browser-desktop-bridge'
 
-type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; hermesDesktop?: Window['hermesDesktop'] }
+type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; kovaDesktop?: Window['kovaDesktop'] }
 
 const win = window as unknown as ServedWindow
 
@@ -32,7 +32,7 @@ function stubGateway() {
 afterEach(() => {
   delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   $connection.set(null)
   vi.unstubAllGlobals()

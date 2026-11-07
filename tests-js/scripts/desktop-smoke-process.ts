@@ -257,7 +257,7 @@ function canonicalGateways(homes: string[], processes: NativeProcess[]): Map<num
 }
 
 /** Identify the actual listener, not a healthy helper or a command recorded before spawn. */
-export function localBackendProcess(port: number, electronPid: number, hermesHome?: string): BackendProcess {
+export function localBackendProcess(port: number, electronPid: number, kovaHome?: string): BackendProcess {
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error('Invalid backend port')
   }
@@ -271,13 +271,13 @@ export function localBackendProcess(port: number, electronPid: number, hermesHom
   let registered: number[] = []
   let gateways = new Map<number, string | undefined>()
 
-  if (hermesHome) {
+  if (kovaHome) {
     // The product writes one machine-root ledger for every profile, and the app
     // reads it at its own resolved root (`main.ts` -> `spawnLedgerPath(KOVA_HOME)`,
     // where a `<root>/profiles/<name>` home resolves to `<root>`).
-    const ledgerRoot = resolveDesktopKovaHome({ home: os.homedir(), env: { KOVA_HOME: hermesHome } })
+    const ledgerRoot = resolveDesktopKovaHome({ home: os.homedir(), env: { KOVA_HOME: kovaHome } })
     // A named profile is served by the root's multiplexer; a standalone one by its own gateway.
-    gateways = canonicalGateways([hermesHome, ledgerRoot], processes)
+    gateways = canonicalGateways([kovaHome, ledgerRoot], processes)
 
     try {
       registered = parseSpawnLedger(fs.readFileSync(path.join(ledgerRoot, SPAWN_LEDGER_FILENAME), 'utf8'))

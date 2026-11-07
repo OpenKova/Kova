@@ -210,7 +210,7 @@ vi.mock('@/kova', async importOriginal => ({
 }))
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     // v1 profile path (requestGatewayForProfile / ensureGatewayProfile): a
     // per-profile local backend that is NOT the registry entry.
     getConnection: vi.fn(async (profile: null | string) => {
@@ -422,7 +422,7 @@ describe('profile rail: a fresh Omar chat keeps its exact registry owner across 
     $defaultProfileRoute.set(null)
     $activeGatewayProfile.set('default')
     vi.clearAllMocks()
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   })
 
   /** Boot the exact field state: remote primary on `default`, `homelab` as

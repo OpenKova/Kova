@@ -567,7 +567,7 @@ export function registerPreviewSigninsIpc(ipc: Pick<Electron.IpcMain, 'handle'>,
     return run
   }
 
-  ipc.handle('hermes:preview-signins:sync', (event, payload: unknown) => {
+  ipc.handle('kova:preview-signins:sync', (event, payload: unknown) => {
     const body = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
     const profile = typeof body.profile === 'string' && body.profile.trim() ? body.profile.trim() : null
     const connectionId = typeof body.connectionId === 'string' && body.connectionId.trim() ? body.connectionId.trim() : null
@@ -581,7 +581,7 @@ export function registerPreviewSigninsIpc(ipc: Pick<Electron.IpcMain, 'handle'>,
   // P2-7: the renderer's local profile rename/delete flow (session-states.ts, beside
   // migrate/dropTilesForProfile) calls these so the per-profile cookie record + jar — which live in
   // Electron main (userData) — follow the profile. Fire-and-forget: the renderer does not block on it.
-  ipc.handle('hermes:preview-signins:profile-renamed', (_event, payload: unknown) => {
+  ipc.handle('kova:preview-signins:profile-renamed', (_event, payload: unknown) => {
     const body = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
     const oldProfile = typeof body.oldProfile === 'string' ? body.oldProfile : ''
     const newProfile = typeof body.newProfile === 'string' ? body.newProfile : ''
@@ -596,7 +596,7 @@ export function registerPreviewSigninsIpc(ipc: Pick<Electron.IpcMain, 'handle'>,
     )
   })
 
-  ipc.handle('hermes:preview-signins:profile-deleted', (_event, payload: unknown) => {
+  ipc.handle('kova:preview-signins:profile-deleted', (_event, payload: unknown) => {
     const body = payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {}
     const profile = typeof body.profile === 'string' ? body.profile : ''
 

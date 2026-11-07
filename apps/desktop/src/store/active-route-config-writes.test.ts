@@ -62,7 +62,7 @@ afterEach(() => {
   closeSecondaryGateways()
   sockets.length = 0
   $activeGatewayProfile.set('default')
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('config writes on a remote-only profile', () => {
@@ -77,7 +77,7 @@ describe('config writes on a remote-only profile', () => {
 
     const primaryRequest = vi.fn(async () => ({}))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getConnection,
       getConnectionFor: vi.fn(async () => boxGamma)
     }
@@ -113,7 +113,7 @@ describe('config writes on a remote-only profile', () => {
       wsUrl: profile === 'gamma' ? boxGamma.wsUrl : `ws://box.invalid/api/ws?profile=${profile}`
     }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async () => ({ mode: 'local', port: 4242, token: 'primary-token' })),
       getConnectionFor
     }

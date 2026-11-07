@@ -333,7 +333,7 @@ test('a completion banner re-arms the deadline past the original timeout', async
   // while the repair is in progress, then resolve on the late announcement.
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 40)
-  child.stdout.emit('data', 'hermes: finishing an interrupted source update...\n')
+  child.stdout.emit('data', 'kova: finishing an interrupted source update...\n')
   // Past the original 40ms deadline: without the banner grace this wait has
   // already rejected. Give the "repair" a moment, then announce.
   await new Promise(resolve => setTimeout(resolve, 80))
@@ -356,7 +356,7 @@ test(
     const wait = waitForDashboardPort(child, timeoutMs, undefined, undefined, completionGraceMs)
     wait.catch(() => {}) // mark handled; the assertion below re-awaits
 
-    child.stdout.emit('data', 'hermes: finishing an interrupted source update...\n')
+    child.stdout.emit('data', 'kova: finishing an interrupted source update...\n')
     await assert.rejects(
       wait,
       /Timed out waiting for Kova backend port announcement .* while an update completion was in progress/
@@ -374,7 +374,7 @@ test('a banner already in the spawn-time tail also re-arms', async () => {
     child,
     40,
     () => '',
-    () => 'hermes: completing source-update dependencies...\n'
+    () => 'kova: completing source-update dependencies...\n'
   )
 
   await new Promise(resolve => setTimeout(resolve, 80))

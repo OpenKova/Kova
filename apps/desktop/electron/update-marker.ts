@@ -63,8 +63,8 @@ export const EMPTY_MARKER_GRACE_MS = 5_000
 /** .NET ticks (100 ns since 0001-01-01) at the unix epoch. */
 const DOTNET_UNIX_EPOCH_TICKS = 621_355_968_000_000_000
 
-export function markerPath(hermesHome: string) {
-  return path.join(hermesHome, '.kova-update-in-progress')
+export function markerPath(kovaHome: string) {
+  return path.join(kovaHome, '.kova-update-in-progress')
 }
 
 // True only if a host process with this pid is currently alive. Signal 0 does
@@ -434,8 +434,8 @@ export type MarkerInspection =
   | { state: 'dead'; raw: Buffer; marker: UpdateMarker | null; judgement: MarkerJudgement | null }
 
 /** Read and judge the marker. Never touches it. */
-export async function inspectUpdateMarker(hermesHome: string, deps: MarkerProbeDeps = {}): Promise<MarkerInspection> {
-  const file = markerPath(hermesHome)
+export async function inspectUpdateMarker(kovaHome: string, deps: MarkerProbeDeps = {}): Promise<MarkerInspection> {
+  const file = markerPath(kovaHome)
   const now = deps.now || Date.now
   let raw: Buffer
 
@@ -481,8 +481,8 @@ export async function inspectUpdateMarker(hermesHome: string, deps: MarkerProbeD
  * null. Read-only (A7 rule 3): a dead marker is left for the script helper /
  * the next claimant to reclaim under the lock.
  */
-export async function readLiveUpdateMarker(hermesHome: string, deps: MarkerProbeDeps = {}) {
-  const inspection = await inspectUpdateMarker(hermesHome, deps)
+export async function readLiveUpdateMarker(kovaHome: string, deps: MarkerProbeDeps = {}) {
+  const inspection = await inspectUpdateMarker(kovaHome, deps)
 
   if (inspection.state !== 'live') {
     return null
@@ -531,7 +531,7 @@ export interface ClaimResult {
  * claims (and reclaims) for itself.
  */
 export async function writeUpdateMarker(
-  hermesHome: string,
+  kovaHome: string,
   pid: number,
   { startedAt, ...deps }: MarkerProbeDeps & { startedAt?: number } = {}
 ): Promise<ClaimResult> {
@@ -542,7 +542,7 @@ export async function writeUpdateMarker(
 
   const ct = await (deps.createTime || processCreateTime)(pid)
 
-  return createMarkerExclusive(hermesHome, markerBody(pid, acquiredAt, ct), deps)
+  return createMarkerExclusive(kovaHome, markerBody(pid, acquiredAt, ct), deps)
 }
 
 /** Log line for a staged-updater pre-write that was skipped (exclusive create lost). */
@@ -565,13 +565,13 @@ let tmpSequence = 0
  * Drop OUR publish tmp siblings (`<marker>.<pid>.<seq>.tmp`) whose writer died
  * between write and link. Never the marker itself.
  */
-function reclaimDeadTmpSiblings(hermesHome: string) {
+function reclaimDeadTmpSiblings(kovaHome: string) {
   try {
-    for (const name of fs.readdirSync(hermesHome)) {
+    for (const name of fs.readdirSync(kovaHome)) {
       const pid = Number(TMP_SIBLING_RE.exec(name)?.[1])
 
       if (pid && !isPidAlive(pid)) {
-        fs.rmSync(path.join(hermesHome, name), { force: true })
+        fs.rmSync(path.join(kovaHome, name), { force: true })
       }
     }
   } catch {
@@ -644,10 +644,10 @@ function publishExclusive(file: string, body: string): 'published' | 'exists' {
  * read-only and reported: a live owner blocks, a dead one / our own stale
  * bridge is handed back for the caller to route through the script helper.
  */
-async function createMarkerExclusive(hermesHome: string, body: string, deps: MarkerProbeDeps): Promise<ClaimResult> {
-  const file = markerPath(hermesHome)
+async function createMarkerExclusive(kovaHome: string, body: string, deps: MarkerProbeDeps): Promise<ClaimResult> {
+  const file = markerPath(kovaHome)
 
-  reclaimDeadTmpSiblings(hermesHome)
+  reclaimDeadTmpSiblings(kovaHome)
 
   try {
     if (publishExclusive(file, body) === 'published') {
@@ -657,7 +657,7 @@ async function createMarkerExclusive(hermesHome: string, body: string, deps: Mar
     return { ok: false, owner: null, error: error?.message || String(error) }
   }
 
-  const inspection = await inspectUpdateMarker(hermesHome, deps)
+  const inspection = await inspectUpdateMarker(kovaHome, deps)
 
   if (inspection.state === 'live') {
     return { ok: false, owner: { pid: inspection.livePid, ageMs: inspection.ageMs } }
@@ -717,7 +717,7 @@ export interface BridgeClaimResult {
  * the checkout's script helper.
  */
 export async function claimBridgeMarker(
-  hermesHome: string,
+  kovaHome: string,
   {
     pid = process.pid,
     createTime,
@@ -735,8 +735,8 @@ export async function claimBridgeMarker(
 
   const body = markerBody(pid, acquiredAt, ct, runId)
 
-  fs.mkdirSync(hermesHome, { recursive: true })
-  const result = await createMarkerExclusive(hermesHome, body, { ...deps, createTime, ownPid: deps.ownPid ?? pid })
+  fs.mkdirSync(kovaHome, { recursive: true })
+  const result = await createMarkerExclusive(kovaHome, body, { ...deps, createTime, ownPid: deps.ownPid ?? pid })
 
   if (result.ok || !result.owner) {
     return { ok: result.ok, body: result.body, existing: result.existing, error: result.error }
@@ -791,7 +791,7 @@ export async function handoffTakenBy(
  * running update.
  */
 export async function waitForHandoffClaim(
-  hermesHome: string,
+  kovaHome: string,
   desktopPid: number,
   {
     timeoutMs = HANDOFF_CLAIM_TIMEOUT_MS,
@@ -810,7 +810,7 @@ export async function waitForHandoffClaim(
     let text: string | null = null
 
     try {
-      text = fs.readFileSync(markerPath(hermesHome), 'utf8')
+      text = fs.readFileSync(markerPath(kovaHome), 'utf8')
     } catch {
       text = null
     }
@@ -833,8 +833,8 @@ export async function waitForHandoffClaim(
  * Whether a NEW updater hand-off must be refused because a different, live
  * updater owns the marker (#75778). Null when it is safe to spawn. Read-only.
  */
-export async function updateHandoffConflict(hermesHome: string, deps: MarkerProbeDeps = {}) {
-  const owner = await readLiveUpdateMarker(hermesHome, deps)
+export async function updateHandoffConflict(kovaHome: string, deps: MarkerProbeDeps = {}) {
+  const owner = await readLiveUpdateMarker(kovaHome, deps)
 
   return owner ? { pid: owner.pid, ageMs: owner.ageMs, message: conflictMessage(owner) } : null
 }

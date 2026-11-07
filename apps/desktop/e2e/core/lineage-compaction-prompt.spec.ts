@@ -126,8 +126,8 @@ interface Row {
   role: string
 }
 
-function sessionRows(hermesHome: string, sid: string): Row[] {
-  const db = new DatabaseSync(path.join(hermesHome, 'state.db'), { readOnly: true })
+function sessionRows(kovaHome: string, sid: string): Row[] {
+  const db = new DatabaseSync(path.join(kovaHome, 'state.db'), { readOnly: true })
 
   try {
     return db

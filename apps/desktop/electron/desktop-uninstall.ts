@@ -82,7 +82,7 @@ export function registerDesktopUninstallIpc({
   const kind: InstallKind = resolveInstallKind(stamp ?? {})
   const codeRemovalAllowed: boolean = installKindAllowsCodeRemoval(kind)
 
-  ipcMain.handle('hermes:uninstall:summary', async (): Promise<DesktopUninstallSummary> => {
+  ipcMain.handle('kova:uninstall:summary', async (): Promise<DesktopUninstallSummary> => {
     const summary: UninstallSummaryDetails = codeRemovalAllowed ? await probeSummary() : fallbackSummary()
 
     // The local artifact owns this decision, not the Python summary. When
@@ -96,7 +96,7 @@ export function registerDesktopUninstallIpc({
         : nativeRemovalInstructions(kind, summary.platform, removableAppPath())
     }
   })
-  ipcMain.handle('hermes:uninstall:openAppsSettings', async (): Promise<void> => {
+  ipcMain.handle('kova:uninstall:openAppsSettings', async (): Promise<void> => {
     // The generic openExternal bridge admits web schemes only; this one
     // deep link is fixed here so the renderer cannot pass a URL.
     if (!codeRemovalAllowed && process.platform === 'win32') {
@@ -104,7 +104,7 @@ export function registerDesktopUninstallIpc({
     }
   })
   ipcMain.handle(
-    'hermes:uninstall:run',
+    'kova:uninstall:run',
     async (_event: unknown, payload?: unknown): Promise<DesktopUninstallResult> => {
       // Every cleanup mode can remove the bundle, including a hidden data request.
       if (!codeRemovalAllowed) {
@@ -344,7 +344,7 @@ function shouldRemoveAppBundle(isPackaged, appPath) {
  * resolves from the agent source. `q()` single-quote-escapes for the shell
  * (closes-escapes-reopens any embedded apostrophe), defending against spaces.
  */
-function buildPosixCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot, uninstallArgs, appPath, hermesHome }) {
+function buildPosixCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot, uninstallArgs, appPath, kovaHome }) {
   const q = s => `'${String(s).replace(/'/g, `'\\''`)}'`
 
   const lines = [
@@ -359,7 +359,7 @@ function buildPosixCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot,
     '    sleep 0.5',
     '  done',
     'fi',
-    `export KOVA_HOME=${q(hermesHome)}`
+    `export KOVA_HOME=${q(kovaHome)}`
   ]
 
   if (pythonPath) {
@@ -404,7 +404,7 @@ function buildWindowsCleanupScript({
   agentRoot,
   uninstallArgs,
   appPath,
-  hermesHome
+  kovaHome
 }) {
   const pid = Number(desktopPid) || 0
   // cmd.exe has no string escaping inside quotes; strip embedded quotes (paths
@@ -415,7 +415,7 @@ function buildWindowsCleanupScript({
   const lines = [
     '@echo off',
     'setlocal enableextensions',
-    `set "KOVA_HOME=${String(hermesHome).replace(/"/g, '')}"`,
+    `set "KOVA_HOME=${String(kovaHome).replace(/"/g, '')}"`,
     `set "PID=${pid}"`
   ]
 

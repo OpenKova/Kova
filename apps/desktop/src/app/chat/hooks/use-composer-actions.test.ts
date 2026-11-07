@@ -178,7 +178,7 @@ describe('extractDroppedFiles', () => {
 
   const stubBridge = (transfer: DataTransfer & { _pathByFile: Map<File, string> }) => {
     vi.stubGlobal('window', {
-      hermesDesktop: {
+      kovaDesktop: {
         getPathForFile: (file: File) => transfer._pathByFile.get(file) ?? ''
       }
     })
@@ -311,7 +311,7 @@ describe('attachmentPreviewDataUrl', () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
     const api = vi.fn()
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/Users/me/Pictures/pic.png')).resolves.toBe(LOCAL_PREVIEW)
@@ -333,7 +333,7 @@ describe('attachmentPreviewDataUrl', () => {
       throw new Error(`unexpected path ${path}`)
     })
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/home/gateway/shot.png')).resolves.toBe(REMOTE_PREVIEW)
@@ -348,7 +348,7 @@ describe('attachmentPreviewDataUrl', () => {
 
     const api = vi.fn(async () => ({ dataUrl: REMOTE_PREVIEW }))
 
-    vi.stubGlobal('window', { hermesDesktop: { api, readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { api, readFileDataUrl } })
     $connection.set({ mode: 'remote' } as never)
 
     await expect(attachmentPreviewDataUrl('/home/gateway/shot.png')).resolves.toBe(REMOTE_PREVIEW)
@@ -357,7 +357,7 @@ describe('attachmentPreviewDataUrl', () => {
 
 describe('useComposerActions native image drops', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     vi.unstubAllGlobals()
     vi.clearAllMocks()
   })
@@ -373,7 +373,7 @@ describe('useComposerActions native image drops', () => {
     )
 
     const add = vi.fn()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { saveImageBuffer } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { saveImageBuffer } })
 
     const { result } = renderHook(() =>
       useComposerActions({
@@ -427,7 +427,7 @@ describe('useComposerActions native image drops', () => {
 
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
 
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: {
         readFileDataUrl,
@@ -473,14 +473,14 @@ describe('useComposerActions native image drops', () => {
 
 describe('useComposerActions generated paste title metadata', () => {
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     vi.clearAllMocks()
   })
 
   it('marks only a Kova-generated large paste with a bounded title preview', async () => {
     const savePastedText = vi.fn(async () => '/tmp/composer-pastes/pasted-content.txt')
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { savePastedText } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { savePastedText } })
 
     const { result } = renderHook(() =>
       useComposerActions({
@@ -520,7 +520,7 @@ describe('attachImagePath thumbnail separation', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     $composerAttachments.set([])
     $connection.set(null)
   })
@@ -530,7 +530,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -595,7 +595,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -664,7 +664,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -731,7 +731,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -794,7 +794,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -838,7 +838,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     ;(
       window as unknown as {
-        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+        kovaDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
     ).kovaDesktop = { readFileDataUrl }
 
@@ -870,7 +870,7 @@ describe('resolveImageAttachmentPreview', () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
     const createObjectURL = vi.fn(() => 'blob:hermes-preview-1')
 
-    vi.stubGlobal('window', { hermesDesktop: { readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { readFileDataUrl } })
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() })
 
     const file = new File([new Uint8Array([1, 2, 3, 4])], 'Lattice.png', { type: 'image/png' })
@@ -885,7 +885,7 @@ describe('resolveImageAttachmentPreview', () => {
   it('falls back to IPC data-URL preview when only a path is available (paperclip)', async () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
 
-    vi.stubGlobal('window', { hermesDesktop: { readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { readFileDataUrl } })
 
     await expect(resolveImageAttachmentPreview('/Users/me/Pictures/pic.png')).resolves.toBe(LOCAL_PREVIEW)
     expect(readFileDataUrl).toHaveBeenCalledWith('/Users/me/Pictures/pic.png')
@@ -894,7 +894,7 @@ describe('resolveImageAttachmentPreview', () => {
   it('ignores an empty Blob and falls back to the path preview', async () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
 
-    vi.stubGlobal('window', { hermesDesktop: { readFileDataUrl } })
+    vi.stubGlobal('window', { kovaDesktop: { readFileDataUrl } })
 
     const empty = new Blob([])
 

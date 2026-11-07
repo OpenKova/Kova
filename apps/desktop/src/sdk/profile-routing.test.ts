@@ -211,7 +211,7 @@ afterEach(() => {
   setMockAtom($messages, [])
   $profiles.set([profile('cached-only')])
   setWorkspaceScope('sessions')
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('connection-aware plugin host APIs', () => {
@@ -263,7 +263,7 @@ describe('connection-aware plugin host APIs', () => {
     ])
 
     vi.mocked(refreshProfiles).mockResolvedValueOnce([profile('desktop-primary'), profile('remote-worker')])
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { getProfileRoutes }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { getProfileRoutes }
 
     const routes = await host.profileRoutes()
 
@@ -287,7 +287,7 @@ describe('connection-aware plugin host APIs', () => {
 
     $profiles.set([profile('cached-worker')])
     vi.mocked(refreshProfiles).mockRejectedValueOnce(new Error('profile backend unavailable'))
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { getProfileRoutes }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { getProfileRoutes }
 
     await expect(host.profileRoutes()).resolves.toEqual([
       { connectionId: 'connection-cached', mode: 'remote', profile: 'cached-worker', targetProfile: 'cached-worker' }
@@ -532,7 +532,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('rejects a profile-only request when the current registry makes it ambiguous', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [
           { connectionId: 'source-a', profile: 'research' },
@@ -550,7 +550,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('keeps profile-only compatibility when sole-local enumeration fails', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [],
         sources: [{ connectionId: 'local', kind: 'local', label: 'This device' }]
@@ -565,7 +565,7 @@ describe('connection-aware plugin host APIs', () => {
   })
 
   it('rejects profile-only routing when another source is undialed', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getAgentRoster: vi.fn(async () => ({
         agents: [{ connectionId: 'local', profile: 'research' }],
         sources: [
@@ -772,7 +772,7 @@ describe('profile-aware plugin session opens', () => {
   })
 
   it('revalidates an exact route before the one allowed hydration retry', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
       getProfileRoutes: vi.fn(async () => [])
     }
 

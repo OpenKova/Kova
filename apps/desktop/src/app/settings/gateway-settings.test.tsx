@@ -68,7 +68,7 @@ beforeEach(() => {
   saveConnectionConfig.mockResolvedValue(localConnection)
   cloudStatus.mockResolvedValue({ portalBaseUrl: 'https://portal.nousresearch.com', signedIn: true })
   cloudDiscover.mockResolvedValue({ agents: [], org: null })
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: {
       cloud: {
@@ -84,7 +84,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   Reflect.deleteProperty(window, '__KOVA_AUTH_REQUIRED__')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   window.document.documentElement.removeAttribute('data-hermes-desktop-host')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -459,7 +459,7 @@ describe('GatewaySettings', () => {
   describe('in the Webapp', () => {
     // A gated host signs its browser in with a cookie; an unauthenticated one through its private launch link.
     const installWebapp = (credential: 'gated' | 'launch-link') => {
-      Reflect.deleteProperty(window, 'hermesDesktop')
+      Reflect.deleteProperty(window, 'kovaDesktop')
 
       if (credential === 'gated') {
         Object.assign(window, { __KOVA_AUTH_REQUIRED__: true })
@@ -482,7 +482,7 @@ describe('GatewaySettings', () => {
     it.each([false, true])('offers the serving host and its sign-out only (embedded: %s)', async embedded => {
       const fetchMock = installWebapp('gated')
       const toLogin = vi.fn((event: Event) => event.preventDefault())
-      window.addEventListener('hermes:browser-reauth-required', toLogin, { once: true })
+      window.addEventListener('kova:browser-reauth-required', toLogin, { once: true })
 
       render(<GatewaySettings embedded={embedded} />)
 

@@ -13,7 +13,7 @@ import {
 import { notify } from '@/store/notifications'
 import type { PluginInstallRequest } from '@/store/plugin-install-request'
 
-export type ProbeResult = Awaited<ReturnType<NonNullable<NonNullable<Window['hermesDesktop']>['probePluginRepo']>>>
+export type ProbeResult = Awaited<ReturnType<NonNullable<NonNullable<Window['kovaDesktop']>['probePluginRepo']>>>
 
 export type InstallModalCopy = ReturnType<typeof useI18n>['t']['settings']['plugins']['installModal']
 

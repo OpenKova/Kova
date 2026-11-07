@@ -10,8 +10,8 @@ import { listRemoteKovaProfiles, readRemoteInstallId } from './remote-lifecycle'
 import { assertWindowsRemoteInstallUpdateClear, connectWindowsRemote, decodePowerShellCommand, probeWindowsFiles, probeWindowsRemote, windowsHelperOwnsRuntime } from './windows-remote-lifecycle'
 
 const runtime = {
-  os: 'Windows', arch: 'AMD64', hermesHome: 'C:\\Users\\A\\AppData\\Local\\hermes',
-  hermesPath: 'C:\\Users\\A\\AppData\\Local\\hermes\\bin\\hermes.exe',
+  os: 'Windows', arch: 'AMD64', kovaHome: 'C:\\Users\\A\\AppData\\Local\\hermes',
+  kovaPath: 'C:\\Users\\A\\AppData\\Local\\hermes\\bin\\hermes.exe',
   python: 'C:\\Python\\python.exe'
 }
 

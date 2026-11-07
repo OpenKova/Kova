@@ -358,7 +358,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     )
 
     const deps: CheckoutStrategyDeps = {
-      hermesHome: home,
+      kovaHome: home,
       isWindows: process.platform === 'win32',
       isMac: process.platform === 'darwin',
       defaultUpdateBranch: 'main',
@@ -370,7 +370,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
           python,
           git: 'git',
           updateRoot: install,
-          hermesHome: home,
+          kovaHome: home,
           force: opts.force
         }),
       resolveUpdaterBinary: (): null => null,
@@ -457,7 +457,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     expect(deps.stopBackendsForUpdate).not.toHaveBeenCalled()
     expect(spawned).toHaveLength(0)
     await setChannel('main')
-    expect(await readSourceUpdate({ python, git: 'git', updateRoot: root, hermesHome: home })).toMatchObject({
+    expect(await readSourceUpdate({ python, git: 'git', updateRoot: root, kovaHome: home })).toMatchObject({
       supported: true,
       branch: 'feature/gui',
       targetSha: commits[3],

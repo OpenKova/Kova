@@ -26,7 +26,7 @@ import { prepareCanonicalGroupSend, readCanonicalGroupSend } from './canonical-g
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
 const originalDesktop = window.kovaDesktop
-beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
+beforeEach(() => { Object.defineProperty(window, 'kovaDesktop', { configurable: true, writable: true, value: undefined }) })
 afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop; vi.unstubAllGlobals() })
 
 const members = [{ member_id: 'ops', profile: 'ops', handle: 'ops', display_name: 'Ops' }]

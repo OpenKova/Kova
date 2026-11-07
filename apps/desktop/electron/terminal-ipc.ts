@@ -204,7 +204,7 @@ export function registerTerminalIpc({
   }
 
   function terminalChannel(id, suffix) {
-    return `hermes:terminal:${id}:${suffix}`
+    return `kova:terminal:${id}:${suffix}`
   }
 
   // Best-effort read of a live PTY child's current working directory so a
@@ -366,7 +366,7 @@ export function registerTerminalIpc({
     return sshTarget ? getSshConnectionState(sshTarget.scope)?.registryConnectionId || null : 'local'
   }
 
-  ipcMain.handle('hermes:terminal:start', async (event, payload = {}) => {
+  ipcMain.handle('kova:terminal:start', async (event, payload = {}) => {
     ensureNodePtySpawnHelper()
 
     const id = crypto.randomUUID()
@@ -442,7 +442,7 @@ export function registerTerminalIpc({
     return { connectionId: spawnedOn(owner, sshTarget), cwd: remote ? null : cwd, id, shell: remote ? 'ssh' : name }
   })
 
-  ipcMain.handle('hermes:terminal:attach', (event, id) => {
+  ipcMain.handle('kova:terminal:attach', (event, id) => {
     const sessionInfo = terminalSessions.get(String(id || ''))
 
     if (!sessionInfo || sessionInfo.webContentsId !== event.sender.id) {
@@ -454,7 +454,7 @@ export function registerTerminalIpc({
     return true
   })
 
-  ipcMain.handle('hermes:terminal:write', (_event, id, data) => {
+  ipcMain.handle('kova:terminal:write', (_event, id, data) => {
     const sessionInfo = terminalSessions.get(String(id || ''))
 
     if (!sessionInfo) {
@@ -466,7 +466,7 @@ export function registerTerminalIpc({
     return true
   })
 
-  ipcMain.handle('hermes:terminal:resize', (_event, id, size = {}) => {
+  ipcMain.handle('kova:terminal:resize', (_event, id, size = {}) => {
     const sessionInfo = terminalSessions.get(String(id || ''))
 
     if (!sessionInfo) {
@@ -480,7 +480,7 @@ export function registerTerminalIpc({
 
     return true
   })
-  ipcMain.handle('hermes:terminal:cwd', async (_event, id) => {
+  ipcMain.handle('kova:terminal:cwd', async (_event, id) => {
     const sessionInfo = terminalSessions.get(String(id || ''))
 
     if (!sessionInfo) {
@@ -490,7 +490,7 @@ export function registerTerminalIpc({
     return sessionInfo.sshScope !== undefined ? null : readProcessCwd(sessionInfo.pty.pid)
   })
 
-  ipcMain.handle('hermes:terminal:dispose', (_event, id) => disposeTerminalSession(String(id || '')))
+  ipcMain.handle('kova:terminal:dispose', (_event, id) => disposeTerminalSession(String(id || '')))
 
   return { disposeTerminalSession, disposeTerminalSessionsForSshScope, disposeAllTerminalSessions }
 }

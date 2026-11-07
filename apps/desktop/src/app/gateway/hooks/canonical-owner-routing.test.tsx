@@ -64,7 +64,7 @@ afterEach(() => {
   $connection.set(null)
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 async function flushAsync() {
@@ -85,7 +85,7 @@ test('keeps canonical alpha events and questions on alpha while beta is foregrou
 
     desktop.getConnection.mockResolvedValue(native)
     desktop.getGatewayWsUrl.mockResolvedValue(native.wsUrl)
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = desktop
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = desktop
     const events = vi.fn()
     const questions = vi.fn((_request: unknown) => true)
     render(<Harness handleGatewayEvent={events} handleServerRequest={questions} />)

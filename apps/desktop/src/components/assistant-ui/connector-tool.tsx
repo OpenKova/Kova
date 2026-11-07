@@ -39,7 +39,7 @@ import {
 import { requestGatewayForAgent } from '@/store/gateway'
 import { notifyError } from '@/store/notifications'
 
-/** The browser leg of a connection came back through `hermes://connections/done`. Show the session
+/** The browser leg of a connection came back through `kova://connections/done`. Show the session
  *  that opened the operation and tell its backend to read the account now instead of at its next
  *  tick. Nothing in the link is trusted to move a row: the op id only names which card to show, and
  *  the backend reads the account itself. An operation this window holds no card for, or one that

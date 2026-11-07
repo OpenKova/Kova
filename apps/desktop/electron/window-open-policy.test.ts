@@ -33,7 +33,7 @@ describe('hub-iframe-policy predicates', () => {
 
     expect(isKovaHubExternalUrl('file:///etc/passwd')).toBe(false)
     expect(isKovaHubExternalUrl('javascript:alert(1)')).toBe(false)
-    expect(isKovaHubExternalUrl('hermes://internal')).toBe(false)
+    expect(isKovaHubExternalUrl('kova://internal')).toBe(false)
     expect(isKovaHubExternalUrl('not a url')).toBe(false)
   })
 

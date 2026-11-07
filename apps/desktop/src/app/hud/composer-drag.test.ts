@@ -7,7 +7,7 @@ import { useHudComposerDrag } from './composer-drag'
 /** Matches LONG_PRESS_MS in composer-drag.ts. */
 const LONG_PRESS_MS = 140
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const beginMove = vi.fn()
@@ -40,7 +40,7 @@ beforeEach(() => {
   setWindowSize(620, 320)
   desktopWindow.kovaDesktop = {
     hud: { beginMove, endMove, moveBy, setWorkspaceTransfer }
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 })
 
 afterEach(() => {

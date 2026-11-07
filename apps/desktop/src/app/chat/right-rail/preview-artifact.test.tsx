@@ -28,7 +28,7 @@ describe('ArtifactPreview', () => {
     cleanup()
     $artifactRegistry.set({})
     $artifactVersionSelection.set({})
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
   })
 
   it('renders html in a scripts-only sandboxed frame the parent app is unreachable from', async () => {

@@ -140,7 +140,7 @@ afterEach(() => {
   $connection.set(null)
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 async function flushAsync() {
@@ -152,7 +152,7 @@ async function flushAsync() {
 it('a Settings re-home publishes (box, default) as one pair while the new ticket is in flight', async () => {
   const desktop = fakeDesktop()
 
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = desktop
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = desktop
   render(<Harness />)
   await flushAsync()
   expect($apiRequestScope.get()).toEqual({ connectionId: 'local', profile: 'alpha' })

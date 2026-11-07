@@ -7,7 +7,7 @@
 // hidden Kova burned ~20% CPU forever.
 //
 // So throttling is a runtime dial instead: the renderers already report
-// "which chats are mid-turn" for the quit guard (`hermes:active-work`), and
+// "which chats are mid-turn" for the quit guard (`kova:active-work`), and
 // this controller rides the merged edge of those reports. Any turn in flight →
 // visible, non-minimized chat windows get `setBackgroundThrottling(false)`.
 // Native visibility transitions reapply that policy; bounded activity holds

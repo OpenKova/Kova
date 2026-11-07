@@ -81,7 +81,7 @@ export interface HeldState {
 }
 
 export interface LiveMarkerProbeOptions {
-  hermesHome: string
+  kovaHome: string
   /** The script helper `reclaim`, or null when the checkout's script predates protocol 2. */
   reclaim: (() => Promise<MarkerHelperVerdict>) | null
   /**
@@ -245,9 +245,9 @@ interface AskedEntry {
   answered?: boolean
 }
 
-function statMarkerFile(hermesHome: string): fs.Stats | null {
+function statMarkerFile(kovaHome: string): fs.Stats | null {
   try {
-    return fs.statSync(markerPath(hermesHome))
+    return fs.statSync(markerPath(kovaHome))
   } catch {
     // Gone since the read: the body alone names it until the next poll.
     return null
@@ -334,7 +334,7 @@ interface HelperSubject {
 
 function helperSubject(
   inspection: MarkerInspection,
-  hermesHome: string,
+  kovaHome: string,
   checkoutLockMayBeHeld: (() => boolean) | undefined
 ): HelperSubject | null {
   if (inspection.state === 'absent') {
@@ -357,7 +357,7 @@ function helperSubject(
   }
 
   return {
-    holdId: markerHoldId(inspection.raw, statMarkerFile(hermesHome)),
+    holdId: markerHoldId(inspection.raw, statMarkerFile(kovaHome)),
     absent: false,
     label: 'dead update marker',
     ownerPid: inspection.marker?.pid ?? null,
@@ -382,13 +382,13 @@ function keepsGateShut(verdict: MarkerHelperVerdict, absent: boolean): boolean {
  * and a retry's marker starts after the old receipt, so a retry still waits
  * (V2: `latest.json` keeps reading `failed` until the retry finalizes).
  */
-async function failedAfterV1Start(hermesHome: string, marker: UpdateMarker | null): Promise<boolean> {
+async function failedAfterV1Start(kovaHome: string, marker: UpdateMarker | null): Promise<boolean> {
   if (!marker || marker.ct !== null || marker.delegate !== null) {
     return false
   }
 
   try {
-    const text = await fs.promises.readFile(path.join(hermesHome, 'logs', 'update_receipts', 'latest.json'), 'utf8')
+    const text = await fs.promises.readFile(path.join(kovaHome, 'logs', 'update_receipts', 'latest.json'), 'utf8')
     const receipt = JSON.parse(text.replace(/^\uFEFF/, ''))
     const finishedS = Date.parse(receipt?.finished_at) / 1000
 
@@ -401,7 +401,7 @@ async function failedAfterV1Start(hermesHome: string, marker: UpdateMarker | nul
 
 /** `hasLiveMarker` for one gate wait (create it per wait, never module-wide). */
 export function liveMarkerProbe({
-  hermesHome,
+  kovaHome,
   reclaim,
   checkoutLockMayBeHeld,
   createTime,
@@ -416,10 +416,10 @@ export function liveMarkerProbe({
   let finishedLogged = false
 
   return async () => {
-    const inspection = await inspectUpdateMarker(hermesHome, { createTime, now })
+    const inspection = await inspectUpdateMarker(kovaHome, { createTime, now })
 
     if (inspection.state === 'live') {
-      if (await failedAfterV1Start(hermesHome, inspection.marker)) {
+      if (await failedAfterV1Start(kovaHome, inspection.marker)) {
         if (!finishedLogged) {
           finishedLogged = true
           log?.(
@@ -435,7 +435,7 @@ export function liveMarkerProbe({
       return true
     }
 
-    const subject = reclaim ? helperSubject(inspection, hermesHome, checkoutLockMayBeHeld) : null
+    const subject = reclaim ? helperSubject(inspection, kovaHome, checkoutLockMayBeHeld) : null
 
     if (!subject || !reclaim) {
       return false

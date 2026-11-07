@@ -64,7 +64,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'remote' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         onPreviewFileChanged,
         watchPreviewFile
       }
@@ -245,7 +245,7 @@ describe('PreviewPane console state', () => {
   it('keeps the original URL available outside an embedded browser preview after loading', () => {
     globalThis.document.documentElement.dataset.kovaDesktopHost = 'browser'
     const openPreviewInBrowser = vi.fn(async () => undefined)
-    vi.stubGlobal('hermesDesktop', { openPreviewInBrowser })
+    vi.stubGlobal('kovaDesktop', { openPreviewInBrowser })
 
     const target = {
       kind: 'url' as const,
@@ -309,7 +309,7 @@ describe('PreviewPane console state', () => {
   it('does not offer the URL-only pop-out action for a local HTML file', async () => {
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         ...window.kovaDesktop,
         openBrowserWindow: vi.fn(async () => ({ ok: true }))
       }
@@ -852,7 +852,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         readFileDataUrl
       }
     })
@@ -915,7 +915,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         readFileDataUrl
       }
     })
@@ -952,7 +952,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         readFileDataUrl
       }
     })
@@ -993,7 +993,7 @@ describe('PreviewPane console state', () => {
     $connection.set({ mode: 'local' } as never)
     vi.stubGlobal('window', {
       ...window,
-      hermesDesktop: {
+      kovaDesktop: {
         api,
         readFileDataUrl
       }
@@ -1058,8 +1058,8 @@ describe('PreviewPane console state', () => {
 
 describe('PreviewPane guest external handoff', () => {
   // #112941: a guest page's `_blank` anchor (Streamlit's "Ask Google" button)
-  // reaches the OS browser only through the audited `hermes:openExternal` IPC.
-  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  // reaches the OS browser only through the audited `kova:openExternal` IPC.
+  const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
   const initialKovaDesktop = desktopWindow.kovaDesktop
 
   afterEach(() => {
@@ -1072,7 +1072,7 @@ describe('PreviewPane guest external handoff', () => {
 
   async function renderWebview() {
     const openExternal = vi.fn(async () => undefined)
-    desktopWindow.kovaDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { openExternal } as unknown as Window['kovaDesktop']
 
     let rendered!: ReturnType<typeof render>
 
@@ -1119,7 +1119,7 @@ describe('PreviewPane guest external handoff', () => {
 })
 
 describe('PreviewPane off-screen guest', () => {
-  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
   const initialKovaDesktop = desktopWindow.kovaDesktop
 
   const target = {
@@ -1144,7 +1144,7 @@ describe('PreviewPane off-screen guest', () => {
   // tells main the guest left the screen — and that it came back.
   it('tells main when its guest leaves the screen and when it returns', async () => {
     const setPreviewGuestHidden = vi.fn()
-    desktopWindow.kovaDesktop = { setPreviewGuestHidden } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { setPreviewGuestHidden } as unknown as Window['kovaDesktop']
 
     const pane = (visible: boolean) => (
       <PaneVisibleContext value={visible}>
@@ -1177,7 +1177,7 @@ describe('PreviewPane off-screen guest', () => {
   // was already parked must still be reported to main and muted.
   it('reports and mutes a guest that attaches while its session is already hidden', async () => {
     const setPreviewGuestHidden = vi.fn()
-    desktopWindow.kovaDesktop = { setPreviewGuestHidden } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { setPreviewGuestHidden } as unknown as Window['kovaDesktop']
     act(() => setTreePaneParked('preview-tile:url:late', true))
 
     let rendered!: ReturnType<typeof render>
@@ -1210,7 +1210,7 @@ describe('PreviewPane off-screen guest', () => {
   // A hidden session's kept page keeps running, but is not heard from the chat
   // the user switched to; it comes back with the sound it had.
   async function renderAudibleGuest(tabId: string, mutedBefore: boolean) {
-    desktopWindow.kovaDesktop = {} as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = {} as unknown as Window['kovaDesktop']
     let rendered!: ReturnType<typeof render>
 
     await act(async () => {
@@ -1257,13 +1257,13 @@ describe('PreviewPane local HTML Render|Source toggle', () => {
     url: 'file:///work/page.html'
   }
 
-  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
   beforeEach(() => {
     $connection.set({ mode: 'local' } as never)
     desktopWindow.kovaDesktop = {
       readFileText: vi.fn(async () => ({ byteSize: 22, path: target.path, text: '<!doctype html><p>x</p>' }))
-    } as unknown as Window['hermesDesktop']
+    } as unknown as Window['kovaDesktop']
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) =>
       window.setTimeout(() => callback(Date.now()), 0)
     )
@@ -1328,7 +1328,7 @@ describe('PreviewPane local HTML Render|Source toggle', () => {
       ...desktopWindow.kovaDesktop,
       git: { fileDiff: vi.fn(async () => '--- a/page.html\n+++ b/page.html\n-<p>x</p>\n+<p>y</p>\n') },
       gitRoot: vi.fn(async () => '/work')
-    } as unknown as Window['hermesDesktop']
+    } as unknown as Window['kovaDesktop']
 
     openPreview(target)
 

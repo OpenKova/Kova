@@ -6,7 +6,7 @@ import type { SessionInfo } from '@/types/kova'
 
 import { $hudActive, $hudSession, openHud } from './hud'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const open = vi.fn().mockResolvedValue({ ok: true })
@@ -14,7 +14,7 @@ const open = vi.fn().mockResolvedValue({ ok: true })
 function installBridge() {
   desktopWindow.kovaDesktop = {
     hud: { open }
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 }
 
 function session(overrides: Partial<SessionInfo>): SessionInfo {

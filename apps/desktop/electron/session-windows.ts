@@ -21,7 +21,7 @@ const SESSION_WINDOW_MIN_HEIGHT = 620
 // throttling opt-out).
 //
 // Background throttling is deliberately NOT set here. It is managed at runtime
-// by main.ts (`setBackgroundThrottling` driven by the merged `hermes:active-work`
+// by main.ts (`setBackgroundThrottling` driven by the merged `kova:active-work`
 // reports): while any turn is in flight visible chat windows are unthrottled,
 // including blurred or occluded windows. Hidden/minimized windows retain default
 // throttling unless bounded native work holds them awake. Once all turns finish,

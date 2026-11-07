@@ -78,7 +78,7 @@ describe('preview routing', () => {
     closeRightRail()
     window.localStorage.clear()
 
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { normalizePreviewTarget: vi.fn(async (target: string) => fileTarget(target)) }
     })

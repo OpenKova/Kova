@@ -143,11 +143,11 @@ describe('update child proxy env from the system proxy (#123387)', () => {
     try {
       fs.mkdirSync(path.join(root, '.git'))
       fs.writeFileSync(path.join(root, '.git', 'config'), '[remote "origin"]\n\turl = https://github.com/x/y.git\n')
-      const hermesHome = path.join(root, 'home')
-      fs.mkdirSync(hermesHome)
-      fs.writeFileSync(path.join(hermesHome, 'npmrc'), 'registry=http://npm.lan.example:4873/\n')
+      const kovaHome = path.join(root, 'home')
+      fs.mkdirSync(kovaHome)
+      fs.writeFileSync(path.join(kovaHome, 'npmrc'), 'registry=http://npm.lan.example:4873/\n')
 
-      const env = await updateProxyEnv({}, undefined, root, hermesHome)
+      const env = await updateProxyEnv({}, undefined, root, kovaHome)
 
       expect(env.NO_PROXY?.split(',')).toContain('npm.lan.example')
     } finally {

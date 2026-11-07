@@ -15,7 +15,7 @@ const KEYBINDS = 'hermes.desktop.keybinds'
 const HAPTICS = 'hermes.desktop.hapticsMuted'
 const MODE = 'hermes-desktop-mode-v1'
 const FAVORITES = 'hermes.desktop.favorite-models'
-const OUTBOX_PREFIX = 'hermes:ui-preferences:outbox:'
+const OUTBOX_PREFIX = 'kova:ui-preferences:outbox:'
 const CUSTOM_KEYBINDS = '{"composer.dictate":["mod+shift+d"]}'
 
 // Every store that writes its value the moment its module evaluates.

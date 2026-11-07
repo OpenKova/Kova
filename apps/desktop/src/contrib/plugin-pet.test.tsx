@@ -259,7 +259,7 @@ describe('pop-out overlay', () => {
     popInPet()
     cleanup()
     resetPetPluginMessages()
-    delete (window as { hermesDesktop?: unknown }).kovaDesktop
+    delete (window as { kovaDesktop?: unknown }).kovaDesktop
     setPetInfo({ enabled: false })
   })
 
@@ -269,7 +269,7 @@ describe('pop-out overlay', () => {
     // overlay's onState handler does.
     const pushState = vi.fn()
 
-    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
+    ;(window as { kovaDesktop?: unknown }).kovaDesktop = {
       petOverlay: { close: vi.fn(async () => ({ ok: true })), open: vi.fn(async () => ({ ok: true })), pushState }
     }
     setPetInfo(PET)

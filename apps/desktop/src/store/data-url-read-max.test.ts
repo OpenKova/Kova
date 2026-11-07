@@ -8,7 +8,7 @@ import {
   setDataUrlReadMaxMb
 } from './data-url-read-max'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const get = vi.fn(async () => ({ defaultMaxMb: 16, maxBytes: 16 * 1024 * 1024, maxMb: 16 }))
@@ -20,7 +20,7 @@ const set = vi.fn(async (maxMb: number) => ({
 }))
 
 beforeEach(() => {
-  desktopWindow.kovaDesktop = { dataUrlReadMax: { get, set } } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { dataUrlReadMax: { get, set } } as unknown as Window['kovaDesktop']
   $dataUrlReadMaxMb.set(DATA_URL_READ_DEFAULT_MAX_MB)
   get.mockClear()
   set.mockClear()

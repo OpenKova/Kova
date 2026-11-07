@@ -57,7 +57,7 @@ function applyStatus(status: QuickEntryStatus | undefined): void {
   })
 }
 
-type QuickEntryBridge = NonNullable<Window['hermesDesktop']['quickEntry']>
+type QuickEntryBridge = NonNullable<Window['kovaDesktop']['quickEntry']>
 
 /** The shell's Quick Entry settings call, or undefined where there is none
  *  (outside Electron, the Webapp's bridge). */

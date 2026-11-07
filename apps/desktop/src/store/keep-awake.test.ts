@@ -4,7 +4,7 @@ import { storedString, writeKey } from '@/lib/storage'
 
 const KEY = 'hermes.desktop.keepAwakeMode.v1'
 const LEGACY_KEY = 'hermes.desktop.keepAwake.v1'
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 const setKeepAwakeBridge = vi.fn()
 
@@ -16,7 +16,7 @@ async function loadStore() {
 }
 
 beforeEach(() => {
-  desktopWindow.kovaDesktop = { setKeepAwake: setKeepAwakeBridge } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { setKeepAwake: setKeepAwakeBridge } as unknown as Window['kovaDesktop']
   writeKey(KEY, null)
   writeKey(LEGACY_KEY, null)
   setKeepAwakeBridge.mockClear()
@@ -80,7 +80,7 @@ describe('keep-awake store', () => {
         return () => {}
       },
       setKeepAwake: setKeepAwakeBridge
-    } as unknown as Window['hermesDesktop']
+    } as unknown as Window['kovaDesktop']
     writeKey(KEY, 'off')
 
     const { $keepAwakeMode } = await loadStore()

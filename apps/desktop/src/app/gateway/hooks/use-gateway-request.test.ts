@@ -124,7 +124,7 @@ function installRemoteDesktop() {
     }
   )
 
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { getConnection, getConnectionFor, getGatewayWsUrl, getGatewayWsUrlFor }
   })
@@ -153,7 +153,7 @@ function installPrimaryDesktop(authMode: 'oauth' | 'token') {
   const getConnectionFor = vi.fn()
   const getGatewayWsUrlFor = vi.fn()
 
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'kovaDesktop', {
     configurable: true,
     value: { getConnection, getConnectionFor, getGatewayWsUrl, getGatewayWsUrlFor }
   })
@@ -233,7 +233,7 @@ afterEach(() => {
   $connection.set(null)
   $gatewayState.set('idle')
   $activeGatewayProfile.set('default')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
 })
 
 describe('useGatewayRequest', () => {
@@ -557,7 +557,7 @@ describe('useGatewayRequest', () => {
         })
       }
 
-      Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: desktop })
+      Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: desktop })
 
       const primary = makePrimaryGateway()
       primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
@@ -597,7 +597,7 @@ describe('useGatewayRequest', () => {
 
     const getConnection = vi.fn(() => new Promise(() => undefined))
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { getConnection }
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { getConnection }
     $gateway.set(dropped)
 
     const { result } = renderHook(() => useGatewayRequest())

@@ -81,7 +81,7 @@ describe('useStepUpFlow', () => {
     const invalidate = vi.spyOn(client, 'invalidateQueries')
 
     apiMocks.stepUp.mockReturnValue(stepUpPromise)
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: {
         openExternal: vi.fn()

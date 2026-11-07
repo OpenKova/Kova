@@ -18,7 +18,7 @@ const ERROR_TEXT = 'MCP call failed: MCPError: create file error: repository fil
 const WINDOWS_PATH_ERROR = 'Failed to write file: C:\\Users\\test-user\\Documents\\CODEX_PROGRESS.md is locked'
 const WWW_PATH_ERROR = 'Failed to read /tmp/www.config and C:\\Users\\test-user\\Documents\\www.config'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 let fetchLinkTitle: ReturnType<typeof vi.fn>
 
@@ -42,7 +42,7 @@ beforeEach(() => {
   desktopWindow.kovaDesktop = {
     fetchLinkTitle,
     openExternal: vi.fn().mockResolvedValue(undefined)
-  } as unknown as Window['hermesDesktop']
+  } as unknown as Window['kovaDesktop']
 })
 
 afterEach(() => {

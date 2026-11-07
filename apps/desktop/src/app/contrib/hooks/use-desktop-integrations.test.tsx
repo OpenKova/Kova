@@ -67,7 +67,7 @@ vi.mock('@/store/windows', async importOriginal => {
 // We import the hook and drive it with explicit rx-stores/props to exercise the
 // profile-ready gate, ownership validation, and legacy-key discard.
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const session = (over: Partial<SessionInfo> = {}): SessionInfo => makeSessionInfo({ id: 'live', ...over })
@@ -102,12 +102,12 @@ describe('useDesktopIntegrations', () => {
       signalDeepLinkReady: vi.fn(),
       onClosePreviewRequested: vi.fn(),
       onOpenFolderRequested: vi.fn(),
-      // getSession() rides hermesDesktop.api; tests that exercise the
+      // getSession() rides kovaDesktop.api; tests that exercise the
       // remembered-session resolution stub this per-test.
       api: vi.fn(async () => {
         throw new Error('no api stub for this test')
       })
-    } as unknown as Window['hermesDesktop']
+    } as unknown as Window['kovaDesktop']
   })
 
   afterEach(() => {
@@ -583,7 +583,7 @@ describe('useDesktopIntegrations', () => {
 
           return () => undefined
         }
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       render({ profileReady: true, sessions: [] })
     }
@@ -825,7 +825,7 @@ describe('useDesktopIntegrations', () => {
 
           return () => undefined
         }
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       render({ profileReady: true, sessions: [] })
       activate?.({ activate: '/index-network/intent/1' })
@@ -842,7 +842,7 @@ describe('useDesktopIntegrations', () => {
           return () => undefined
         },
         signalDeepLinkReady: vi.fn()
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       render({ profileReady: true, sessions: [] })
       deepLink?.({ kind: 'index-network', name: 'intent/1', params: {} })
@@ -859,7 +859,7 @@ describe('useDesktopIntegrations', () => {
           return () => undefined
         },
         signalDeepLinkReady: vi.fn()
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       render({ profileReady: true, sessions: [] })
       deepLink?.({ kind: 'mcp', name: 'install', params: { name: 'context7' } })
@@ -877,7 +877,7 @@ describe('useDesktopIntegrations', () => {
           return () => undefined
         },
         signalDeepLinkReady: vi.fn()
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       render({ profileReady: true, sessions: [] })
       deepLink?.({ kind: 'plugin', name: 'install', params: { catalog: 'weather', repo: 'evil/repo' } })
@@ -929,7 +929,7 @@ describe('useDesktopIntegrations', () => {
         return {}
       })
 
-      desktopWindow.kovaDesktop = { ...desktopWindow.kovaDesktop, api } as unknown as Window['hermesDesktop']
+      desktopWindow.kovaDesktop = { ...desktopWindow.kovaDesktop, api } as unknown as Window['kovaDesktop']
       const deepLink = listen()
       const installs = () => api.mock.calls.filter(([r]) => r.path === '/api/skills/hub/install')
       const identifier = 'skills-sh/owner/repo/skill'
@@ -1002,7 +1002,7 @@ describe('useDesktopIntegrations', () => {
 
           return () => undefined
         }
-      } as unknown as Window['hermesDesktop']
+      } as unknown as Window['kovaDesktop']
 
       return sessionId => handler?.(sessionId)
     }

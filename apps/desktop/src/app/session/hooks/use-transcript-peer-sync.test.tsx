@@ -122,7 +122,7 @@ describe('useTranscriptPeerSync (#65047)', () => {
       render(<Harness />)
     })
 
-    const peer = new FakeBroadcastChannel('hermes:transcript')
+    const peer = new FakeBroadcastChannel('kova:transcript')
 
     await act(async () => {
       peer.postMessage({ messageCount: 4, sessionId: STORED })
@@ -162,7 +162,7 @@ describe('useTranscriptPeerSync (#65047)', () => {
       render(<Harness />)
     })
 
-    const peer = new FakeBroadcastChannel('hermes:transcript')
+    const peer = new FakeBroadcastChannel('kova:transcript')
 
     await act(async () => {
       peer.postMessage({ sessionId: 'some-other-chat', messageCount: 9 })

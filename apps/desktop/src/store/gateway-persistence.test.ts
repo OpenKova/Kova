@@ -43,7 +43,7 @@ let stop: () => void = () => undefined
 function installProbe(bootstrapNeeded: boolean) {
   const probeLocalBackend = vi.fn(async () => ({ bootstrapNeeded }))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
 
   return probeLocalBackend
 }
@@ -62,7 +62,7 @@ beforeEach(() => {
 afterEach(() => {
   stop()
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 it('keeps every registered gateway the primary socket does not serve connected, and lets a removed one go', () => {
@@ -183,7 +183,7 @@ it('a dropped probe that fails late leaves the newer cached probe in place', asy
     .mockImplementationOnce(() => new Promise((_resolve, reject) => (failFirst = reject)))
     .mockImplementation(async () => ({ bootstrapNeeded: true }))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
   stop = startPersistentGateways()
 
   // The registry change drops the in-flight probe and starts a second one.
@@ -205,7 +205,7 @@ it("a dropped probe's late installed answer neither clears its replacement's not
     .mockImplementationOnce(() => new Promise(resolve => (answerFirst = resolve)))
     .mockImplementation(async () => ({ bootstrapNeeded: true }))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
   stop = startPersistentGateways()
 
   // The registry change drops the in-flight probe; its replacement finds no install.
@@ -228,7 +228,7 @@ it('re-probes a missing This device install every ten minutes, so one installed 
     .mockImplementationOnce(async () => ({ bootstrapNeeded: true }))
     .mockImplementation(async () => ({ bootstrapNeeded: false }))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
   stop = startPersistentGateways()
   await vi.advanceTimersByTimeAsync(9 * 60_000)
   expect(probeLocalBackend).toHaveBeenCalledTimes(1)
@@ -247,7 +247,7 @@ it('re-checks an installed This device before each redial, so an install removed
     .mockImplementationOnce(async () => ({ bootstrapNeeded: false }))
     .mockImplementation(async () => ({ bootstrapNeeded: true }))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
   stop = startPersistentGateways()
   await vi.advanceTimersByTimeAsync(0)
   expect(dialedRoutes()).toContainEqual(['local', 'default'])
@@ -266,7 +266,7 @@ it('drops a This device dial still waiting on its probe once the primary route i
 
   const probeLocalBackend = vi.fn(() => new Promise<{ bootstrapNeeded: boolean }>(resolve => (answer = resolve)))
 
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { probeLocalBackend }
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { probeLocalBackend }
   stop = startPersistentGateways()
   $primaryGatewayRoute.set({ connectionId: null, mode: null })
   answer({ bootstrapNeeded: false })

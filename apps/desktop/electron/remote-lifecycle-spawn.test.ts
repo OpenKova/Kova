@@ -60,8 +60,8 @@ interface SpawnLock {
   pid: number
   port: number
   profile: string
-  hermesPath: string
-  hermesHome: string
+  kovaPath: string
+  kovaHome: string
   logPath: string
   tokenFingerprint: string
   protocolVersion: number
@@ -92,9 +92,9 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
 
   const ssh: Pick<SshConnection, 'exec'> = shellSshDouble({ shell, env })
 
-  const hermesPath: string = path.join(root, 'fake hermes')
-  const hermesHome: string = path.join(root, '.kova')
-  const marker: string = path.join(hermesHome, '.kova-update-in-progress')
+  const kovaPath: string = path.join(root, 'fake hermes')
+  const kovaHome: string = path.join(root, '.kova')
+  const marker: string = path.join(kovaHome, '.kova-update-in-progress')
 
   const lock: SpawnLock = {
     schemaVersion: LOCKFILE_SCHEMA_VERSION,
@@ -103,8 +103,8 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
     pid: 0,
     port: 0,
     profile: 'ops__PID__',
-    hermesPath,
-    hermesHome,
+    kovaPath,
+    kovaHome,
     logPath: spawnLogPath(ownershipId, spawnNonce),
     tokenFingerprint: fingerprintToken('fixture-token'),
     protocolVersion: PROTOCOL_VERSION,
@@ -112,7 +112,7 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
   }
 
   await mkdir(bin)
-  await mkdir(hermesHome)
+  await mkdir(kovaHome)
   await mkdir(path.join(root, 'reports'))
 
   // Restrict capability discovery, not the reported host OS. The fallback runs
@@ -137,7 +137,7 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
   }
 
   await writeFile(
-    hermesPath,
+    kovaPath,
     `#!${path.join(bin, 'python3')}
 import json,os,signal,time
 from pathlib import Path
@@ -159,8 +159,8 @@ time.sleep(30)
     { encoding: 'utf8', mode: 0o700 }
   )
 
-  const command: string = buildSpawnCommand(hermesPath, lock.profile, {
-    hermesHome,
+  const command: string = buildSpawnCommand(kovaPath, lock.profile, {
+    kovaHome,
     logPath: lock.logPath,
     spawnNonce,
     tokenFilePath: spawnTokenPath(ownershipId, spawnNonce),
@@ -178,7 +178,7 @@ time.sleep(30)
       const report: ChildReport = JSON.parse(await readFile(path.join(root, 'reports', name), 'utf8'))
 
       try {
-        if (await pidIsOurDashboard(ssh, report.pid, spawnNonce, hermesPath, hermesHome, ownershipId, lock.profile)) {
+        if (await pidIsOurDashboard(ssh, report.pid, spawnNonce, kovaPath, kovaHome, ownershipId, lock.profile)) {
           process.kill(report.pid, 'SIGKILL')
         }
       } catch (error) {

@@ -31,7 +31,7 @@ const rawAttachment = (path = source.path): ComposerAttachment => ({
 const attached = () => ({ attached: true, ref_text: refText, uploaded: true })
 
 async function installBrowser(withProvenance = true) {
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   seedWebappSession('test-token')
 
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -65,7 +65,7 @@ afterEach(() => {
   clearSessionDraft('staged-attachment-contract')
   $sessions.set([])
   $connection.set(null)
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   clearWebappSession()
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   vi.unstubAllGlobals()
@@ -352,7 +352,7 @@ describe('browser staged attachment transport', () => {
     { remote: false, terminalBackend: 'docker', upload: true }
   ])('preserves native attachment transport: %j', async ({ remote, terminalBackend, upload }) => {
     const readFileDataUrl = vi.fn(async () => 'data:text/plain;base64,cGF5bG9hZA==')
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { readFileDataUrl } })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { readFileDataUrl } })
     const requestGateway = vi.fn(async () => attached() as never)
     const path = '/native/notes.txt'
     await uploadComposerAttachment(rawAttachment(path), {

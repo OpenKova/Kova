@@ -118,11 +118,11 @@ describe('VersionDetails', () => {
   })
 
   it('opens the commit URL via the system-browser bridge without opening a preview tab', async () => {
-    const openExternal: Mock<Window['hermesDesktop']['openExternal']> = vi
-      .fn<Window['hermesDesktop']['openExternal']>()
+    const openExternal: Mock<Window['kovaDesktop']['openExternal']> = vi
+      .fn<Window['kovaDesktop']['openExternal']>()
       .mockResolvedValue(undefined)
 
-    vi.stubGlobal('hermesDesktop', { openExternal } satisfies Pick<Window['hermesDesktop'], 'openExternal'>)
+    vi.stubGlobal('kovaDesktop', { openExternal } satisfies Pick<Window['kovaDesktop'], 'openExternal'>)
 
     render(
       <I18nProvider configClient={null} initialLocale="en">

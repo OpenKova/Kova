@@ -26,7 +26,7 @@ interface SourceOptions {
 export async function resolveSourceInstallationBackend(
   root: string,
   args: string[],
-  options: SourceOptions & { hermesHome?: string } = {}
+  options: SourceOptions & { kovaHome?: string } = {}
 ): Promise<SourceBackend | null> {
   if (!existsSync(path.join(root, 'kova_cli', 'main.py'))) {
     return null

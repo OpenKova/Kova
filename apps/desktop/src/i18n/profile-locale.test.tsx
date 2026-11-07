@@ -39,7 +39,7 @@ afterEach(() => {
   resetAppLocaleRegistry()
   $requestedLocale.set(null)
   route('default')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   vi.restoreAllMocks()
 })
 

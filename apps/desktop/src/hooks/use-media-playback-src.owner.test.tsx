@@ -15,7 +15,7 @@ const win = window
 
 afterEach(() => {
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   $connection.set(null)

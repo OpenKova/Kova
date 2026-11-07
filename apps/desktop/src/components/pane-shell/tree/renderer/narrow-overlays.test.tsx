@@ -62,7 +62,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
   delete window.document.documentElement.dataset.kovaDesktopHost
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
   disposers.splice(0).forEach(dispose => dispose())
 })
 
@@ -81,7 +81,7 @@ const asBrowserHost = () => {
 
 // Native Desktop: the Electron preload's bridge exists and no browser marker is set.
 const asNativeDesktop = () => {
-  ;(window as unknown as { hermesDesktop?: unknown }).kovaDesktop = {}
+  ;(window as unknown as { kovaDesktop?: unknown }).kovaDesktop = {}
 }
 
 describe('narrow overlay in native Desktop', () => {
@@ -231,7 +231,7 @@ describe('narrow overlay of a stacked zone', () => {
     // lights on a narrow window" (#110033). The overlay starts at the
     // viewport's top edge, so without a reservation its tab strip sits under
     // the native controls.
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: {} })
+    Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: {} })
     $connection.set({ windowButtonPosition: { x: 24, y: 0 } } as never)
     // jsdom has no layout: the overlay fills the viewport's top-left corner.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({

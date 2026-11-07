@@ -54,7 +54,7 @@ test.skipIf(process.platform === 'win32')(
 
       const backend = await resolveSourceInstallationBackend(root, ['serve'], {
         isWindows: false,
-        hermesHome: path.join(home, '.kova')
+        kovaHome: path.join(home, '.kova')
       })
 
       assert.equal(backend?.command, launcher)
@@ -71,18 +71,18 @@ test('a user-bin launcher is ignored when it reports no Kova source tree', (): v
 
   try {
     const home: string = path.join(base, 'home')
-    const hermesHome: string = path.join(home, '.kova')
+    const kovaHome: string = path.join(home, '.kova')
     const notSource: string = path.join(base, 'elsewhere')
     fs.mkdirSync(notSource)
-    publishLauncher(path.join(hermesHome, 'bin'), notSource)
+    publishLauncher(path.join(kovaHome, 'bin'), notSource)
     vi.stubEnv('HOME', home)
     vi.stubEnv('USERPROFILE', home)
     vi.stubEnv('LOCALAPPDATA', path.join(home, 'AppData', 'Local'))
 
-    assert.equal(userLauncherInstallRoot(process.platform === 'win32', hermesHome), null)
+    assert.equal(userLauncherInstallRoot(process.platform === 'win32', kovaHome), null)
 
     sourceTree(notSource)
-    assert.equal(userLauncherInstallRoot(process.platform === 'win32', hermesHome)?.root, notSource)
+    assert.equal(userLauncherInstallRoot(process.platform === 'win32', kovaHome)?.root, notSource)
   } finally {
     fs.rmSync(base, { recursive: true, force: true })
   }

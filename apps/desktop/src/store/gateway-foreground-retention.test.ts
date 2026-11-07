@@ -53,7 +53,7 @@ const { stampSecondaryProfileOwner } = await import('./session-event-provenance'
 const { $selectedStoredSessionId, $sessions, setActiveSessionId } = await import('@/store/session')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async (profile?: string) => ({
       authMode: 'token',
       profile: profile || 'default',
@@ -101,7 +101,7 @@ afterEach(() => {
   setActiveSessionId(null)
   $selectedStoredSessionId.set(null)
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('foreground tile retention vs. the live-work pruner (#93892)', () => {

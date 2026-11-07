@@ -87,7 +87,7 @@ const {
 } = await import('./gateway')
 
 function installDesktop(stub: Record<string, unknown>): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = stub
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = stub
 }
 
 function descriptorFor(connectionId: string, profile: string) {
@@ -112,7 +112,7 @@ afterEach(() => {
   gatewayMocks.eventHandlers.length = 0
   vi.clearAllMocks()
   vi.useRealTimers()
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('a redial of the active route', () => {
@@ -781,7 +781,7 @@ describe('secondary stalled-dial budget', () => {
     // What main's ensureLocalGateway / parseGatewayEnsureOutput / assertLocalGatewayEndpoint throw,
     // as they cross the IPC boundary. Each re-dial spawns another `hermes gateway ensure`.
     for (const permanent of [
-      "Error invoking remote method 'hermes:connection:get-for': Error: Gateway incompatible (runtime_protocol). Use hermes gateway status for recovery.",
+      "Error invoking remote method 'kova:connection:get-for': Error: Gateway incompatible (runtime_protocol). Use hermes gateway status for recovery.",
       'hermes gateway ensure produced no result (exit 2): invalid choice. Update Kova or check the profile, then retry.',
       'Invalid local gateway endpoint'
     ]) {

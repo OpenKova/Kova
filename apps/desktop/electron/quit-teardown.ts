@@ -38,7 +38,7 @@ export type BackendTeardownIntent = 'quit' | 'reconnect'
  *
  * `soft: true` is what stops `resetKovaConnectionState()` from rewriting the
  * boot-progress overlay — the step that writes `[boot] Restarting desktop
- * connection` into desktop.log and pushes `hermes:boot-progress` to the
+ * connection` into desktop.log and pushes `kova:boot-progress` to the
  * renderer. A reconnect may announce that; a quit must not, because the
  * announcement is false, it can overwrite the renderer's own "Update in
  * progress…" copy, and a reader of desktop.log then attributes a shutdown to a

@@ -45,7 +45,7 @@ export function resolveUpdaterMechanism(facts: MechanismFacts): UpdaterMechanism
   return facts.platform === 'win32' ? 'windows-handoff' : 'posix-handoff'
 }
 
-/** The status shape main.ts already sends over `hermes:updates:check`. */
+/** The status shape main.ts already sends over `kova:updates:check`. */
 export interface UpdaterStatusWire {
   supported: boolean
   mechanism?: UpdaterMechanism
@@ -71,7 +71,7 @@ export interface UpdaterStatusWire {
   fetchedAt?: number
 }
 
-/** The result shape main.ts already sends over `hermes:updates:apply`. */
+/** The result shape main.ts already sends over `kova:updates:apply`. */
 export interface UpdaterApplyResultWire {
   ok: boolean
   mechanism?: UpdaterMechanism

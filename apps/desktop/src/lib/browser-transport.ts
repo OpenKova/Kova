@@ -14,7 +14,7 @@ export interface BrowserBootstrap {
 
 const SESSION_HEADER = 'X-Kova-Session-Token'
 const DEFAULT_TIMEOUT_MS = 30_000
-const REAUTH_EVENT = 'hermes:browser-reauth-required'
+const REAUTH_EVENT = 'kova:browser-reauth-required'
 
 export class BrowserReauthRequiredError extends Error {
   readonly loginUrl: string

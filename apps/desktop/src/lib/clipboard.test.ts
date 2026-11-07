@@ -4,7 +4,7 @@ import { createBrowserClipboardBridge } from './browser-clipboard'
 import { installClipboardShim, writeClipboardText } from './clipboard'
 import { copySvgAsPng } from './svg-image'
 
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 
 function installClipboard(writeText: (text: string) => Promise<void>) {
   Object.defineProperty(navigator, 'clipboard', {
@@ -14,7 +14,7 @@ function installClipboard(writeText: (text: string) => Promise<void>) {
 }
 
 afterEach(() => {
-  Reflect.deleteProperty(desktopWindow, 'hermesDesktop')
+  Reflect.deleteProperty(desktopWindow, 'kovaDesktop')
   Reflect.deleteProperty(navigator, 'clipboard')
   vi.restoreAllMocks()
   delete document.documentElement.dataset.kovaDesktopHost
@@ -25,7 +25,7 @@ describe('installClipboardShim', () => {
     const nativeWrite = vi.fn().mockResolvedValue(undefined)
     const ipcWrite = vi.fn().mockResolvedValue(true)
     installClipboard(nativeWrite)
-    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['kovaDesktop']
 
     installClipboardShim()
     await navigator.clipboard.writeText('payload')
@@ -38,7 +38,7 @@ describe('installClipboardShim', () => {
     const nativeWrite = vi.fn().mockResolvedValue(undefined)
     const ipcWrite = vi.fn().mockRejectedValue(new Error('main process gone'))
     installClipboard(nativeWrite)
-    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['kovaDesktop']
 
     installClipboardShim()
     await navigator.clipboard.writeText('payload')
@@ -53,7 +53,7 @@ describe('writeClipboardText', () => {
     const nativeWrite = vi.fn().mockRejectedValue(new Error('Document is not focused'))
     const ipcWrite = vi.fn().mockResolvedValue(true)
     installClipboard(nativeWrite)
-    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { writeClipboard: ipcWrite } as unknown as Window['kovaDesktop']
 
     await writeClipboardText('payload')
 
@@ -67,7 +67,7 @@ describe('writeClipboardText', () => {
     document.documentElement.dataset.kovaDesktopHost = 'browser'
     desktopWindow.kovaDesktop = createBrowserClipboardBridge({
       saveBuffer: async () => ''
-    }) as Window['hermesDesktop']
+    }) as Window['kovaDesktop']
     installClipboardShim()
 
     await writeClipboardText('payload')
@@ -80,7 +80,7 @@ describe('writeClipboardText', () => {
     const nativeWrite = vi.fn().mockRejectedValue(new Error('lost focus'))
     const bridgeWrite = vi.fn().mockResolvedValue(false)
     installClipboard(nativeWrite)
-    desktopWindow.kovaDesktop = { writeClipboard: bridgeWrite } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { writeClipboard: bridgeWrite } as unknown as Window['kovaDesktop']
     installClipboardShim()
     await expect(writeClipboardText('payload')).rejects.toThrow()
     expect(nativeWrite).toHaveBeenCalledTimes(1)
@@ -93,7 +93,7 @@ describe('writeClipboardText', () => {
     document.documentElement.dataset.kovaDesktopHost = 'browser'
     desktopWindow.kovaDesktop = createBrowserClipboardBridge({
       saveBuffer: async () => ''
-    }) as Window['hermesDesktop']
+    }) as Window['kovaDesktop']
     installClipboardShim()
     await expect(writeClipboardText('payload')).rejects.toThrow('permission denied')
     expect(nativeWrite).toHaveBeenCalledTimes(1)
@@ -101,7 +101,7 @@ describe('writeClipboardText', () => {
 
   it('reports an unavailable bridge as a failed copy', async () => {
     const bridgeWrite = vi.fn().mockResolvedValue(false)
-    desktopWindow.kovaDesktop = { writeClipboard: bridgeWrite } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { writeClipboard: bridgeWrite } as unknown as Window['kovaDesktop']
 
     await expect(writeClipboardText('payload')).rejects.toThrow('Clipboard write is unavailable')
   })
@@ -113,7 +113,7 @@ describe('writeClipboardText', () => {
       document.documentElement.dataset.kovaDesktopHost = 'browser'
       desktopWindow.kovaDesktop = createBrowserClipboardBridge({
         saveBuffer: async () => ''
-      }) as Window['hermesDesktop']
+      }) as Window['kovaDesktop']
       installClipboardShim()
       // A modal dialog that pulls focus back inside itself, as Radix's FocusScope does.
       const dialog = document.body.appendChild(document.createElement('div'))

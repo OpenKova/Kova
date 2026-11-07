@@ -82,7 +82,7 @@ describe('ConfirmingModelPanel model pick', () => {
   it('persists a cross-provider pick against the picked model provider, not the sign-in provider', async () => {
     const calls: { body?: unknown; path: string }[] = []
 
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: {
         api: async ({ body, path }: { body?: unknown; path: string }) => {

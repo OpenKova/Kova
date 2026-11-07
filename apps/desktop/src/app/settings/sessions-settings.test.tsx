@@ -77,7 +77,7 @@ describe('SessionsSettings unarchive', () => {
 describe('SessionsSettings default directory in a browser tab', () => {
   afterEach(() => {
     delete document.documentElement.dataset.kovaDesktopHost
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
   })
 
   it('picks through the server folder browser instead of the native dialog', async () => {
@@ -89,7 +89,7 @@ describe('SessionsSettings default directory in a browser tab', () => {
       setDefaultProjectDir: vi.fn(async (dir: null | string) => ({ dir }))
     }
 
-    Object.assign(window, { hermesDesktop: { settings } })
+    Object.assign(window, { kovaDesktop: { settings } })
     selectDesktopPaths.mockReset().mockResolvedValue(['/srv/work'])
 
     render(<SessionsSettings subpage="default-directory" />)

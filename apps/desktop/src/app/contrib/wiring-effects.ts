@@ -16,9 +16,9 @@ type RestartPreviewServer = NonNullable<ReturnType<typeof $restartPreviewServer.
 export function useOpenKeybindsListener(navigate: NavigateFunction) {
   useEffect(() => {
     const onOpenKeybinds = () => navigate(`${SETTINGS_ROUTE}?tab=keybinds`)
-    window.addEventListener('hermes:open-keybinds', onOpenKeybinds)
+    window.addEventListener('kova:open-keybinds', onOpenKeybinds)
 
-    return () => window.removeEventListener('hermes:open-keybinds', onOpenKeybinds)
+    return () => window.removeEventListener('kova:open-keybinds', onOpenKeybinds)
   }, [navigate])
 }
 

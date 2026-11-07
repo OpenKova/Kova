@@ -19,7 +19,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   delete bootstrap.__KOVA_AUTH_REQUIRED__
   delete bootstrap.__KOVA_BASE_PATH__
   clearWebappSession()
@@ -45,10 +45,10 @@ it('persists the default separately from the active chat and synchronizes only t
   await profile.remember('work')
   await expect(profile.getDefault()).resolves.toEqual(route)
 
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   expect(installBrowserDesktopBridge()).toBe(true)
   await expect(window.kovaDesktop.profile.getDefault()).resolves.toEqual(route)
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   bootstrap.__KOVA_BASE_PATH__ = '/another-server'
   expect(installBrowserDesktopBridge()).toBe(true)
   await expect(window.kovaDesktop.profile.getDefault()).resolves.toBeNull()

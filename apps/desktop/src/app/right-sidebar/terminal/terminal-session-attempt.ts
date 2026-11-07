@@ -8,7 +8,7 @@ import { hostHas } from '@/lib/host-capabilities'
 import { defaultTerminalGateway, runsOverSsh, terminalGatewayOf } from './terminal-gateway'
 import { $terminals, adoptTerminalGateway, markTerminalPersistent, removeExitedTerminal } from './terminals'
 
-type TerminalApi = Window['hermesDesktop']['terminal']
+type TerminalApi = Window['kovaDesktop']['terminal']
 
 export type TerminalStatus = 'closed' | 'open' | 'starting' | 'reconnecting'
 

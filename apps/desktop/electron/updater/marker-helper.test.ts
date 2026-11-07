@@ -81,7 +81,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
 
     const got = await runMarkerHelper('withdraw', {
       updateRoot: root,
-      hermesHome: home,
+      kovaHome: home,
       desktopPid: 4242,
       runId: 'desk-4242-abc-0001',
       isWindows: false
@@ -99,7 +99,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
     const { root, home } = fakeHelperCheckout()
     fs.writeFileSync(path.join(home, 'helper-verdict'), 'absent')
 
-    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false }), {
+    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false }), {
       kind: 'absent'
     })
     assert.equal(
@@ -118,14 +118,14 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
     fs.writeFileSync(path.join(home, 'helper-verdict'), verdict)
     fs.writeFileSync(path.join(home, 'helper-exit'), exit)
 
-    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false }), {
+    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false }), {
       kind: 'error'
     })
   })
 
   test('a verdict only the other op can give is an error, never clearance (R8 m7)', async () => {
     const { root, home } = fakeHelperCheckout()
-    const opts = { updateRoot: root, hermesHome: home, desktopPid: 4242, runId: 'desk-4242-abc-0001', isWindows: false }
+    const opts = { updateRoot: root, kovaHome: home, desktopPid: 4242, runId: 'desk-4242-abc-0001', isWindows: false }
 
     for (const [op, verdict, expected] of [
       ['reclaim', 'live 31337', 'live'],
@@ -150,7 +150,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
       fs.writeFileSync(path.join(home, 'helper-verdict'), 'reclaimed')
       fs.chmodSync(path.join(root, 'scripts', 'desktop-update', 'posix.sh'), 0o000)
 
-      assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false }), {
+      assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false }), {
         kind: 'error'
       })
     }
@@ -163,7 +163,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
     const started = Date.now()
 
     assert.deepEqual(
-      await runMarkerHelper('reclaim', { updateRoot: root, hermesHome: home, isWindows: false, timeoutMs: 300 }),
+      await runMarkerHelper('reclaim', { updateRoot: root, kovaHome: home, isWindows: false, timeoutMs: 300 }),
       { kind: 'error' }
     )
     assert.ok(Date.now() - started < 4000, 'bounded by the timeout')
@@ -172,7 +172,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
   test('a checkout without the script is unsupported', async () => {
     const root = scratchRoot('marker-helper-none')
 
-    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, hermesHome: root, isWindows: false }), {
+    assert.deepEqual(await runMarkerHelper('reclaim', { updateRoot: root, kovaHome: root, isWindows: false }), {
       kind: 'unsupported'
     })
   })
@@ -193,7 +193,7 @@ test('the Windows command line: powershell -File windows.ps1 -MarkerOp ... (hidd
 
   const got = await runMarkerHelper('withdraw', {
     updateRoot: root,
-    hermesHome: path.join(root, 'home'),
+    kovaHome: path.join(root, 'home'),
     desktopPid: 12,
     runId: 'desk-12-a-beef',
     isWindows: true,

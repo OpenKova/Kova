@@ -74,9 +74,9 @@ export function listProcesses(): ProcInfo[] {
 const recordedRoots = new Map<string, Set<number>>()
 
 /** Gateway pids recorded in the sandbox's `gateway.lock` files (launch home + each profile home). */
-function lockedGatewayPids(hermesHome: string): number[] {
-  const profilesDir = path.join(hermesHome, 'profiles')
-  const homes = [hermesHome, ...(fs.existsSync(profilesDir) ? fs.readdirSync(profilesDir).map(name => path.join(profilesDir, name)) : [])]
+function lockedGatewayPids(kovaHome: string): number[] {
+  const profilesDir = path.join(kovaHome, 'profiles')
+  const homes = [kovaHome, ...(fs.existsSync(profilesDir) ? fs.readdirSync(profilesDir).map(name => path.join(profilesDir, name)) : [])]
 
   return homes.flatMap(home => {
     try {
@@ -89,10 +89,10 @@ function lockedGatewayPids(hermesHome: string): number[] {
   })
 }
 
-/** Every live process belonging to the sandbox whose KOVA_HOME is `hermesHome` (orphans included). */
-export function sandboxProcessesOf(hermesHome: string, exclude = process.pid): ProcInfo[] {
+/** Every live process belonging to the sandbox whose KOVA_HOME is `kovaHome` (orphans included). */
+export function sandboxProcessesOf(kovaHome: string, exclude = process.pid): ProcInfo[] {
   if (procfsCensus) {
-    const needle = `KOVA_HOME=${hermesHome}\0`
+    const needle = `KOVA_HOME=${kovaHome}\0`
 
     return fs.readdirSync('/proc').flatMap(entry => {
       const pid = Number(entry)
@@ -103,12 +103,12 @@ export function sandboxProcessesOf(hermesHome: string, exclude = process.pid): P
     })
   }
 
-  const roots = recordedRoots.get(hermesHome) ?? new Set<number>()
-  recordedRoots.set(hermesHome, roots)
+  const roots = recordedRoots.get(kovaHome) ?? new Set<number>()
+  recordedRoots.set(kovaHome, roots)
   const all = listProcesses()
   const live = new Set(all.map(proc => proc.pid))
 
-  for (const pid of lockedGatewayPids(hermesHome)) {
+  for (const pid of lockedGatewayPids(kovaHome)) {
     if (live.has(pid)) {
       roots.add(pid)
     }
@@ -159,8 +159,8 @@ export function processesRunningFrom(dir: string): ProcInfo[] {
 }
 
 /** True while `pid` is still a live member of the sandbox (a recycled pid never matches). */
-export function isSandboxProcess(pid: number, hermesHome: string): boolean {
-  return sandboxProcessesOf(hermesHome).some(proc => proc.pid === pid)
+export function isSandboxProcess(pid: number, kovaHome: string): boolean {
+  return sandboxProcessesOf(kovaHome).some(proc => proc.pid === pid)
 }
 
 /** Every live process whose command line carries `tag`. */

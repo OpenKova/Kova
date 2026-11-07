@@ -43,7 +43,7 @@ export interface CheckoutStrategyDeps {
     root: string,
     opts: { force?: boolean; setChannel?: 'main' | 'stable' }
   ) => Promise<SourceUpdate | null>
-  hermesHome: string
+  kovaHome: string
   isWindows: boolean
   isMac: boolean
   defaultUpdateBranch: string
@@ -64,7 +64,7 @@ export interface CheckoutStrategyDeps {
   startKova: () => Promise<unknown>
   stopBackendsForUpdate: () => Promise<void>
   repairMacUpdaterHelper: (updater: string) => void | Promise<void>
-  preflightStateDb: (hermesHome: string, rememberLog: (chunk: string) => void) => void | Promise<void>
+  preflightStateDb: (kovaHome: string, rememberLog: (chunk: string) => void) => void | Promise<void>
   runningAppBundle: () => string | null
   markQuittingForHandoff: () => void
   quit: () => void
@@ -147,12 +147,12 @@ export interface CheckoutStrategy extends UpdaterStrategy {
  */
 async function windowsHandoffEnvironment(
   updateRoot: string,
-  hermesHome: string,
+  kovaHome: string,
   updateStartedAt: number,
   runId: string | null
 ): Promise<NodeJS.ProcessEnv> {
   const env: NodeJS.ProcessEnv = {
-    ...(await sourceUpdateEnvironment(updateRoot, hermesHome)),
+    ...(await sourceUpdateEnvironment(updateRoot, kovaHome)),
     KOVA_UPDATE_STARTED_AT: String(updateStartedAt)
   }
 
@@ -169,7 +169,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
   function markerHelper(op: MarkerHelperOp, runId: string | null): Promise<MarkerHelperVerdict> {
     return (deps.markerHelper ?? runMarkerHelper)(op, {
       updateRoot: deps.resolveUpdateRoot(),
-      hermesHome: deps.kovaHome,
+      kovaHome: deps.kovaHome,
       desktopPid: process.pid,
       runId,
       isWindows: deps.isWindows

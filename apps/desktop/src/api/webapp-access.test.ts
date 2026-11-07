@@ -11,7 +11,7 @@ describe('startWebAccess', () => {
     // Start builds the bundle first, as `hermes webapp` does; that build can wait up to 30 minutes
     // for another one, far past the default request timeout.
     const api = vi.fn(async () => ({}))
-    vi.stubGlobal('hermesDesktop', { api })
+    vi.stubGlobal('kovaDesktop', { api })
 
     await startWebAccess('lan')
 

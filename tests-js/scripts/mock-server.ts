@@ -1432,7 +1432,7 @@ export const SIDEBAR_CROSS_TEXTS = {
 
 interface DevSandbox {
   root: string
-  hermesHome: string
+  kovaHome: string
   userDataDir: string
   cleanup: () => void
 }
@@ -1440,14 +1440,14 @@ interface DevSandbox {
 /** Create an isolated KOVA_HOME + Electron user-data dir in the OS temp dir. */
 function createDevSandbox(): DevSandbox {
   const root = fs.mkdtempSync(nodePath.join(os.tmpdir(), `hermes-dev-mock-${Date.now()}`))
-  const hermesHome = nodePath.join(root, 'hermes-home')
+  const kovaHome = nodePath.join(root, 'hermes-home')
   const userDataDir = nodePath.join(root, 'electron-user-data')
-  fs.mkdirSync(hermesHome, { recursive: true })
+  fs.mkdirSync(kovaHome, { recursive: true })
   fs.mkdirSync(userDataDir, { recursive: true })
 
   return {
     root,
-    hermesHome,
+    kovaHome,
     userDataDir,
     cleanup: () => {
       try {

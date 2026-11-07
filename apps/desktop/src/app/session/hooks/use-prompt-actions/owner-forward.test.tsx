@@ -20,7 +20,7 @@ describe('usePromptActions gateway-owner queue (#140385)', () => {
   it('re-uploads the image of a draft restored after a SESSION_OWNER_BUSY refusal: serve dropped it (#140968)', async () => {
     $connection.set({ mode: 'local' } as never)
     $currentCwd.set('/root')
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'kovaDesktop', {
       configurable: true,
       value: { readFileDataUrl: vi.fn(async () => 'data:image/jpeg;base64,aGVsbG8=') }
     })

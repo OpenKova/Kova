@@ -37,7 +37,7 @@ const {
 } = await import('./gateway')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
+  ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {
     getConnectionFor: vi.fn(async ({ connectionId, profile }: { connectionId: string; profile: string }) => ({
       authMode: 'token',
       connectionId,
@@ -79,7 +79,7 @@ afterEach(() => {
   closeSecondaryGateways()
   setApiRequestConnection(null)
   setApiRequestProfile(null)
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('ambient request scope across a gateway switch', () => {

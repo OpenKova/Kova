@@ -47,7 +47,7 @@ class Socket {
 }
 
 function install() {
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   Object.assign(window, { __KOVA_AUTH_REQUIRED__: true, __KOVA_BASE_PATH__: '/one' })
   installBrowserDesktopBridge()
 
@@ -67,7 +67,7 @@ beforeEach(() => {
 
 afterEach(() => {
   window.dispatchEvent(new Event('beforeunload'))
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'kovaDesktop')
   Reflect.deleteProperty(window, '__KOVA_AUTH_REQUIRED__')
   Reflect.deleteProperty(window, '__KOVA_BASE_PATH__')
   $connection.set(null)
@@ -305,7 +305,7 @@ describe('persistent browser terminals', () => {
   it('does not share persisted terminals between installations behind different proxy prefixes', async () => {
     await install().start({ cwd: '/original', restoreKey: 'tab-one' })
     window.dispatchEvent(new Event('beforeunload'))
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     Object.assign(window, { __KOVA_BASE_PATH__: '/two' })
     installBrowserDesktopBridge()
     await window.kovaDesktop!.terminal.start({ cwd: '/original', restoreKey: 'tab-one' })
@@ -316,7 +316,7 @@ describe('persistent browser terminals', () => {
 describe('host terminal after sign-out', () => {
   /** A Webapp tab on the loopback bind, signed in by its launch link. */
   function installWebapp() {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'kovaDesktop')
     Object.assign(window, { __KOVA_AUTH_REQUIRED__: false, __KOVA_BASE_PATH__: '/one' })
     seedWebappSession('launch-link-session')
     installBrowserDesktopBridge()

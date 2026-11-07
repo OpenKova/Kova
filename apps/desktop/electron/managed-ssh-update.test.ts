@@ -373,8 +373,8 @@ test.runIf(process.platform !== 'win32').each([0, 23])(
         {
           ssh: { exec: async (): Promise<string> => '' },
           platform: 'Linux',
-          hermesPath: launcher,
-          hermesHome: home
+          kovaPath: launcher,
+          kovaHome: home
         },
         CORRELATION
       )
@@ -422,8 +422,8 @@ test('Windows managed launcher starts a hidden child and leaves exit 75 to the e
     {
       ssh: { exec: async () => '' },
       platform: 'Windows',
-      hermesPath: 'C:\\Kova\\hermes.exe',
-      hermesHome: 'C:\\Users\\alice\\.kova',
+      kovaPath: 'C:\\Kova\\hermes.exe',
+      kovaHome: 'C:\\Users\\alice\\.kova',
       pythonPath: 'C:\\Kova\\python.exe'
     },
     CORRELATION
@@ -488,8 +488,8 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          hermesPath: '/opt/hermes/hermes',
-          hermesHome: home
+          kovaPath: '/opt/hermes/hermes',
+          kovaHome: home
         },
         CORRELATION
       )
@@ -533,7 +533,7 @@ test.runIf(process.platform !== 'win32')(
       )
 
       const command = buildRemoteUpdateObservationCommand(
-        { ssh: { exec: async () => '' }, platform: 'Linux', hermesPath: '/opt/hermes/hermes', hermesHome: home },
+        { ssh: { exec: async () => '' }, platform: 'Linux', kovaPath: '/opt/hermes/hermes', kovaHome: home },
         CORRELATION
       )
 
@@ -635,8 +635,8 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          hermesPath: '/opt/hermes/hermes',
-          hermesHome: profileHome
+          kovaPath: '/opt/hermes/hermes',
+          kovaHome: profileHome
         },
         CORRELATION
       )
@@ -682,8 +682,8 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          hermesPath: '/opt/hermes/hermes',
-          hermesHome: profileHome
+          kovaPath: '/opt/hermes/hermes',
+          kovaHome: profileHome
         },
         CORRELATION
       )
@@ -724,8 +724,8 @@ test('Windows coordinator handoff is pending until its marker clears and correla
 
   const target = {
     platform: 'Windows' as const,
-    hermesPath: 'C:\\Kova\\hermes.exe',
-    hermesHome: 'C:\\Users\\alice\\.kova',
+    kovaPath: 'C:\\Kova\\hermes.exe',
+    kovaHome: 'C:\\Users\\alice\\.kova',
     pythonPath: 'C:\\Kova\\python.exe',
     ssh: {
       exec: async () => {
@@ -752,8 +752,8 @@ test('terminal status without its durable receipt fails instead of claiming succ
 
   const target = {
     platform: 'Linux' as const,
-    hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.kova',
+    kovaPath: '~/.local/bin/hermes',
+    kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent', exitCode: 0 }) }
   }
 
@@ -775,8 +775,8 @@ test('live or malformed remote markers fail actionably at bounded update and rec
 
     const target = {
       platform: 'Linux' as const,
-      hermesPath: '~/.local/bin/hermes',
-      hermesHome: '~/.kova',
+      kovaPath: '~/.local/bin/hermes',
+      kovaHome: '~/.kova',
       ssh: { exec: async () => observation({ marker, ...(marker === 'live' ? { markerPid: 44 } : {}) }) }
     }
 
@@ -800,8 +800,8 @@ test('a journaled launch requires correlated terminal proof or an observed live-
 
   const target = {
     platform: 'Linux' as const,
-    hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.kova',
+    kovaPath: '~/.local/bin/hermes',
+    kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent' }) }
   }
 
@@ -834,8 +834,8 @@ test('remote launch intent fences crash recovery even before the local journal r
 
   const target = {
     platform: 'Linux' as const,
-    hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.kova',
+    kovaPath: '~/.local/bin/hermes',
+    kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent', launchIntent: 'present' }) }
   }
 

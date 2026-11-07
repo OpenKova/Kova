@@ -27,10 +27,10 @@ const REMOTE_LABEL = 'Linux host'
 const LOCAL_NAMED = Array.from({ length: 12 }, (_, i) => `local${i + 1}`)
 const REMOTE_NAMED = ['inbox', 'research']
 
-function seedProfiles(hermesHome: string, names: string[]): void {
+function seedProfiles(kovaHome: string, names: string[]): void {
   for (const name of names) {
-    fs.mkdirSync(path.join(hermesHome, 'profiles', name), { recursive: true })
-    fs.writeFileSync(path.join(hermesHome, 'profiles', name, 'config.yaml'), '')
+    fs.mkdirSync(path.join(kovaHome, 'profiles', name), { recursive: true })
+    fs.writeFileSync(path.join(kovaHome, 'profiles', name, 'config.yaml'), '')
   }
 }
 

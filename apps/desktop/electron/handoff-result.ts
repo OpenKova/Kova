@@ -77,8 +77,8 @@ function toReleaseHolders(raw: unknown): ReleaseHolder[] {
     )
 }
 
-export function handoffResultPath(hermesHome: string): string {
-  return path.join(hermesHome, '.kova-update-result.json')
+export function handoffResultPath(kovaHome: string): string {
+  return path.join(kovaHome, '.kova-update-result.json')
 }
 
 /** Read, parse, then consume the result file; null when absent or unparseable (a JSON `null` body is
@@ -186,7 +186,7 @@ function toHandoffResult(parsed: any, manual: boolean): HandoffResult {
  * time inside the run (started_at..finished_at), never as its exact start.
  */
 export function readAndConsumeHandoffResult(
-  hermesHome: string,
+  kovaHome: string,
   {
     now = Date.now,
     maxAgeMs = HANDOFF_RESULT_MAX_AGE_MS,
@@ -201,7 +201,7 @@ export function readAndConsumeHandoffResult(
     log?: (line: string) => void
   } = {}
 ): HandoffResult | null {
-  const consumed = consumeHandoffResultFile(handoffResultPath(hermesHome), log)
+  const consumed = consumeHandoffResultFile(handoffResultPath(kovaHome), log)
 
   if (consumed === null) {
     return null

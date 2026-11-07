@@ -11,11 +11,11 @@ const challenge = {
 }
 
 function installBridge(run: (request: unknown) => Promise<string>) {
-  ;(window as unknown as { hermesDesktop?: unknown }).kovaDesktop = { freeTierChallenge: { run } }
+  ;(window as unknown as { kovaDesktop?: unknown }).kovaDesktop = { freeTierChallenge: { run } }
 }
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('runFreeTierChallenge', () => {

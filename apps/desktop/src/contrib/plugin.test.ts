@@ -70,7 +70,7 @@ describe('createPluginContext.os', () => {
       selectSavePath: vi.fn().mockResolvedValue('/tmp/out.tar.gz')
     }
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = bridge
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = bridge
 
     try {
       const ctx = createPluginContext('demo')
@@ -87,19 +87,19 @@ describe('createPluginContext.os', () => {
       await expect(ctx.os.pickSavePath()).resolves.toBeNull()
       await expect(ctx.os.pickOpenPath()).resolves.toBeNull()
     } finally {
-      delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     }
   })
 
   it('file pickers degrade to null on an older shell that lacks them', async () => {
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {}
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = {}
 
     try {
       const ctx = createPluginContext('demo')
       await expect(ctx.os.pickSavePath()).resolves.toBeNull()
       await expect(ctx.os.pickOpenPath()).resolves.toBeNull()
     } finally {
-      delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     }
   })
 
@@ -110,7 +110,7 @@ describe('createPluginContext.os', () => {
       writeClipboard: vi.fn().mockRejectedValue(new Error('nope'))
     }
 
-    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = bridge
+    ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = bridge
 
     try {
       const ctx = createPluginContext('demo')
@@ -119,7 +119,7 @@ describe('createPluginContext.os', () => {
       await expect(ctx.os.revealPath('/tmp')).resolves.toBe(true)
       await expect(ctx.os.writeClipboard('hi')).resolves.toBe(false)
     } finally {
-      delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
+      delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
     }
   })
 })

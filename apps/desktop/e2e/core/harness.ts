@@ -34,7 +34,7 @@ export interface CoreSandbox {
   /** Prepended to PATH: external-platform fakes (see createCoreSandbox). */
   bin: string
   home: string
-  hermesHome: string
+  kovaHome: string
   userDataDir: string
   cleanup: () => void
 }
@@ -49,9 +49,9 @@ export function createCoreSandbox(label: string): CoreSandbox {
   fs.mkdirSync(parent, { recursive: true })
   const root = fs.mkdtempSync(path.join(parent, `core-${label}-`))
   const home = path.join(root, 'home')
-  const hermesHome = path.join(home, '.kova')
+  const kovaHome = path.join(home, '.kova')
   const userDataDir = path.join(root, 'user-data')
-  fs.mkdirSync(hermesHome, { recursive: true })
+  fs.mkdirSync(kovaHome, { recursive: true })
   fs.mkdirSync(userDataDir, { recursive: true })
   fs.writeFileSync(
     path.join(userDataDir, 'window-state.json'),
@@ -73,12 +73,12 @@ export function createCoreSandbox(label: string): CoreSandbox {
     root,
     bin,
     home,
-    hermesHome,
+    kovaHome,
     userDataDir,
     cleanup: () => {
       // Attach-mode Desktop never stops the gateway it dialled, so without this
       // every spec left its sandbox `gateway run` behind (~20 per suite run).
-      stopSandboxGatewayDaemons(root, hermesHome)
+      stopSandboxGatewayDaemons(root, kovaHome)
 
       if (!process.env.KOVA_E2E_CORE_KEEP) {
         fs.rmSync(root, { recursive: true, force: true })
@@ -479,7 +479,7 @@ export async function routePrimaryWebSocket(app: ElectronApplication, backendPor
         return value
       }
 
-      for (const channel of ['hermes:connection', 'hermes:gateway:ws-url']) {
+      for (const channel of ['kova:connection', 'kova:gateway:ws-url']) {
         const original = handlers.get(channel)
 
         if (!original) {
@@ -508,14 +508,14 @@ export async function routePrimaryWebSocket(app: ElectronApplication, backendPor
 export async function splitProfileRoute(app: ElectronApplication, profile: string): Promise<void> {
   await app.evaluate(({ ipcMain }, profile) => {
     const handlers = (ipcMain as any)._invokeHandlers as Map<string, (...args: any[]) => Promise<any>>
-    const original = handlers.get('hermes:connection:for')
+    const original = handlers.get('kova:connection:for')
 
     if (!original) {
       throw new Error('no ipc handler hermes:connection:for')
     }
 
-    ipcMain.removeHandler('hermes:connection:for')
-    ipcMain.handle('hermes:connection:for', async (event: unknown, payload: any) => {
+    ipcMain.removeHandler('kova:connection:for')
+    ipcMain.handle('kova:connection:for', async (event: unknown, payload: any) => {
       const result = await original(event, payload)
 
       if (payload?.profile === profile && result && typeof result === 'object') {

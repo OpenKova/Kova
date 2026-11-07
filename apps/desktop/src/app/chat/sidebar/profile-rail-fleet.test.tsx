@@ -229,7 +229,7 @@ beforeEach(() => {
   probeLocalBackend.mockResolvedValue({ bootstrapNeeded: false })
   selectConnection.mockResolvedValue(undefined)
   openWindow.mockResolvedValue({ ok: true })
-  ;(window as { hermesDesktop?: unknown }).kovaDesktop = { getAgentRoster, openWindow, probeLocalBackend }
+  ;(window as { kovaDesktop?: unknown }).kovaDesktop = { getAgentRoster, openWindow, probeLocalBackend }
 })
 
 afterEach(() => {
@@ -244,7 +244,7 @@ afterEach(() => {
   activeGatewayProfile.set('default')
   profileScope.set('default')
   profiles.set([{ is_default: true, name: 'default' }])
-  delete (window as { hermesDesktop?: unknown }).kovaDesktop
+  delete (window as { kovaDesktop?: unknown }).kovaDesktop
 })
 
 describe('ProfileRail overflow', () => {

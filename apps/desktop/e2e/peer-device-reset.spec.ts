@@ -164,9 +164,9 @@ const peerTest = test.extend<{ gateways: { app: ElectronApplication; source: Pag
       const remoteProfileHome = path.join(remote.kovaHome, 'profiles', REMOTE_PROFILE)
       fs.mkdirSync(remoteProfileHome, { recursive: true })
 
-      for (const hermesHome of [local.kovaHome, remote.kovaHome, remoteProfileHome]) {
-        writeMockProviderConfig(hermesHome, mock.url)
-        writeEnvFile(hermesHome)
+      for (const kovaHome of [local.kovaHome, remote.kovaHome, remoteProfileHome]) {
+        writeMockProviderConfig(kovaHome, mock.url)
+        writeEnvFile(kovaHome)
       }
 
       const port = await freePort()

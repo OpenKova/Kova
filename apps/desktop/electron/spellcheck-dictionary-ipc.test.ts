@@ -17,7 +17,7 @@ function rig() {
 
   registerSpellcheckDictionaryIpc({ handle }, { fromId: () => undefined })
 
-  const handler = handle.mock.calls.find(([channel]) => channel === 'hermes:spellcheck:dictionary')![1]
+  const handler = handle.mock.calls.find(([channel]) => channel === 'kova:spellcheck:dictionary')![1]
   const call = (payload: unknown) => handler(event, payload)
 
   return { call, session }
@@ -58,7 +58,7 @@ describe('normalizeDictionaryWord', () => {
   })
 })
 
-describe('hermes:spellcheck:dictionary', () => {
+describe('kova:spellcheck:dictionary', () => {
   it("adds and removes a word on the sender's own session", async () => {
     const { call, session } = rig()
 

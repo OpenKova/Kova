@@ -31,14 +31,14 @@ test.skipIf(process.platform === 'win32')(
     // as a locally spawned backend does. A packaged build (no dev server) must not set it at all.
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
     const directory: string = await mkdtemp(path.join(os.tmpdir(), 'hermes-dev-server-env-'))
-    const hermesPath: string = path.join(directory, 'hermes')
+    const kovaPath: string = path.join(directory, 'hermes')
     const reportPath: string = path.join(directory, 'dev-server-report')
 
     try {
       // The serve is detached: it reports through a FIFO, whose read blocks until it has written.
       await execFile('mkfifo', [reportPath])
       await writeFile(
-        hermesPath,
+        kovaPath,
         `#!${shell}\nprintf '%s' "\${KOVA_DESKTOP_DEV_SERVER-unset}" > ${expandRemotePath(reportPath)}\n`,
         { encoding: 'utf8', mode: 0o700 }
       )
@@ -51,9 +51,9 @@ test.skipIf(process.platform === 'win32')(
         ['', undefined, 'unset'],
         ['', 'http://127.0.0.1:5174', 'unset']
       ]) {
-        const command: string = buildSpawnCommand(hermesPath, '', {
+        const command: string = buildSpawnCommand(kovaPath, '', {
           devServer,
-          hermesHome: path.join(directory, 'home'),
+          kovaHome: path.join(directory, 'home'),
           logPath: path.join(directory, 'spawn.log')
         })
 
@@ -85,8 +85,8 @@ function ownedLock(devServer?: string): Record<string, unknown> {
     pid: 333,
     port: 40000,
     profile: '',
-    hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.kova',
+    kovaPath: '~/.local/bin/hermes',
+    kovaHome: '~/.kova',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     tokenFingerprint: fingerprintToken(REUSE_TOKEN),
     startedAt: '2026-07-14T00:00:00.000Z',

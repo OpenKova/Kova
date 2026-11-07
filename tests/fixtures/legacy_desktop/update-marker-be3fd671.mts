@@ -32,8 +32,8 @@ import path from 'path'
 // recycled the pid onto an unrelated process), so the gate self-heals.
 export const UPDATE_MARKER_MAX_AGE_MS = 20 * 60 * 1000
 
-export function markerPath(hermesHome) {
-  return path.join(hermesHome, '.hermes-update-in-progress')
+export function markerPath(kovaHome) {
+  return path.join(kovaHome, '.hermes-update-in-progress')
 }
 
 // True only if a host process with this pid is currently alive. Signal 0 does
@@ -119,7 +119,7 @@ function isZombieState(state: string | null | undefined): boolean {
  * clock for tests.
  */
 export function readLiveUpdateMarker(
-  hermesHome,
+  kovaHome,
   {
     kill,
     now = Date.now,
@@ -133,7 +133,7 @@ export function readLiveUpdateMarker(
     processState?: (pid: number) => string | null
   } = {}
 ) {
-  const file = markerPath(hermesHome)
+  const file = markerPath(kovaHome)
   let raw
 
   try {

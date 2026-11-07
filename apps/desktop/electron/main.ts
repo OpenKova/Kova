@@ -1215,8 +1215,8 @@ if (IS_WINDOWS || process.platform === 'linux') {
   })
 }
 
-ipcMain.handle('hermes:get-remote-display-reason', () => REMOTE_DISPLAY_REASON)
-ipcMain.handle('hermes:embed-host:origin', () => embedHostOrigin())
+ipcMain.handle('kova:get-remote-display-reason', () => REMOTE_DISPLAY_REASON)
+ipcMain.handle('kova:embed-host:origin', () => embedHostOrigin())
 
 // Keep the renderer's PROCESS priority normal while its windows are hidden —
 // a deprioritized renderer streams a live answer visibly slower once the
@@ -1347,7 +1347,7 @@ const DESKTOP_MANAGED_SSH_RECOVERY_PATH = path.join(app.getPath('userData'), 'ma
 const PROFILE_NAME_RE = DESKTOP_PROFILE_NAME_RE
 // Branch we track for self-update. The GUI work has merged to main, so this
 // tracks main. User can also override at runtime via
-// hermesDesktop.updates.setBranch().
+// kovaDesktop.updates.setBranch().
 const DEFAULT_UPDATE_BRANCH = 'main'
 // desktop.log lives under KOVA_HOME/logs/ so it sits next to agent.log,
 // errors.log, gateway.log produced by kova_logging.setup_logging — one log
@@ -1435,7 +1435,7 @@ let rendererTitleBarTheme = null
 // tracks the window's effective appearance and ignores `backgroundColor` —
 // so a dark-themed app on a light-mode Mac flashes a white material on every
 // new window until the renderer covers it. The renderer reports its mode via
-// 'hermes:native-theme' ('dark' | 'light' | 'system'); we pin
+// 'kova:native-theme' ('dark' | 'light' | 'system'); we pin
 // nativeTheme.themeSource to it and persist the value so cold launches paint
 // correctly before the renderer has even loaded.
 const NATIVE_THEME_CONFIG_PATH = path.join(app.getPath('userData'), 'native-theme.json')
@@ -2271,7 +2271,7 @@ async function openExternalFile(rawUrl: string) {
   }
 }
 
-// The `hermes:openExternal` route for a BARE local filesystem path — a chat
+// The `kova:openExternal` route for a BARE local filesystem path — a chat
 // media link, a markdown href, or an artifacts-panel value carrying
 // `C:\…`, `~/…`, `/…` or a UNC path instead of a `file://` URL. `new URL()`
 // cannot express those (kova-agent 80946): resolve through the same audited
@@ -2337,7 +2337,7 @@ function broadcastOpenFailed(url: string, message: string, code?: 'missing-file'
   rememberLog(`[open-failed] ${url}: ${message}`)
 
   for (const win of BrowserWindow.getAllWindows()) {
-    win.webContents.send('hermes:external-open-failed', { url, message, ...(code ? { code } : {}) })
+    win.webContents.send('kova:external-open-failed', { url, message, ...(code ? { code } : {}) })
   }
 }
 
@@ -2413,7 +2413,7 @@ function broadcastBootProgress() {
     return
   }
 
-  webContents.send('hermes:boot-progress', bootProgressState)
+  webContents.send('kova:boot-progress', bootProgressState)
 }
 
 // Bootstrap-event broadcast channel + state. The bootstrap runner emits a
@@ -2521,7 +2521,7 @@ function broadcastBootstrapEvent(ev) {
     return
   }
 
-  webContents.send('hermes:bootstrap:event', ev)
+  webContents.send('kova:bootstrap:event', ev)
 }
 
 function getBootstrapState() {
@@ -2713,7 +2713,7 @@ async function advanceBootProgress(phase, message, progress) {
 function updateGateDeps(callbacks: MarkerGateCallbacks = {}) {
   return {
     hasLiveMarker: markerGateProbe(
-      { hermesHome: KOVA_HOME, isWindows: IS_WINDOWS, log: rememberLog, updateRoot: resolveUpdateRoot },
+      { kovaHome: KOVA_HOME, isWindows: IS_WINDOWS, log: rememberLog, updateRoot: resolveUpdateRoot },
       callbacks
     ),
     isUpdateInFlight: () => updateInFlight,
@@ -2723,7 +2723,7 @@ function updateGateDeps(callbacks: MarkerGateCallbacks = {}) {
 
 // The blocked boot screen (R8 D3) every update wait publishes its hold on.
 const updateHoldScreen = createUpdateHoldScreen({
-  hermesHome: KOVA_HOME,
+  kovaHome: KOVA_HOME,
   log: rememberLog,
   bootHold: () => bootProgressState.updateHold,
   updateBootProgress
@@ -2813,7 +2813,7 @@ async function waitForUpdateToFinish() {
   // A detached update's result file is the only way the user learns it
   // failed: consumed once, here, where boot passes the update gate.
   parkedRun.report({
-    hermesHome: KOVA_HOME,
+    kovaHome: KOVA_HOME,
     log: rememberLog,
     dialog,
     shell,
@@ -3386,7 +3386,7 @@ function emitUpdateProgress(payload) {
   desktopMetrics.noteUpdateProgress(merged.stage)
 
   for (const window of BrowserWindow.getAllWindows()) {
-    window.webContents.send('hermes:updates:progress', merged)
+    window.webContents.send('kova:updates:progress', merged)
   }
 }
 
@@ -3576,7 +3576,7 @@ function createNativePackagedStrategy(
  */
 function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
   return createCheckoutStrategy({
-    hermesHome: KOVA_HOME,
+    kovaHome: KOVA_HOME,
     isWindows: IS_WINDOWS,
     isMac: IS_MAC,
     defaultUpdateBranch: DEFAULT_UPDATE_BRANCH,
@@ -3589,7 +3589,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
         python: await findPythonForRoot(updateRoot),
         git: resolveGitBinary(),
         updateRoot,
-        hermesHome: KOVA_HOME,
+        kovaHome: KOVA_HOME,
         branchConfigPath: DESKTOP_UPDATE_CONFIG_PATH,
         force: opts.force,
         setChannel: opts.setChannel
@@ -4518,7 +4518,7 @@ function readBootstrapMarker() {
 // ever having written the bootstrap marker -- so we must be able to recognise
 // "already installed" off the filesystem alone, not just the marker.
 async function isSourceRuntimeUsable(root: string): Promise<boolean> {
-  return (await resolveSourceInstallationBackend(root, [], { hermesHome: KOVA_HOME })) !== null
+  return (await resolveSourceInstallationBackend(root, [], { kovaHome: KOVA_HOME })) !== null
 }
 
 function activeRuntimeState(backend: SourceBackend | null): ActiveRuntimeState {
@@ -4935,7 +4935,7 @@ async function resolveKovaBackend(backendArgs: string[]): Promise<ResolvedKovaBa
   //    bootstrap when the runtime itself is unusable.
   //    KOVA_DESKTOP_IGNORE_EXISTING=1 skips this rung (see backend-resolution).
   const activeBackend: SourceBackend | null = await installedRuntimeGate.resolve(ACTIVE_KOVA_ROOT, () =>
-    resolveSourceInstallationBackend(ACTIVE_KOVA_ROOT, backendArgs, { hermesHome: KOVA_HOME })
+    resolveSourceInstallationBackend(ACTIVE_KOVA_ROOT, backendArgs, { kovaHome: KOVA_HOME })
   )
 
   const activeRuntime: ActiveRuntimeState = activeRuntimeState(activeBackend)
@@ -4962,7 +4962,7 @@ async function resolveKovaBackend(backendArgs: string[]): Promise<ResolvedKovaBa
 
     if (userInstall) {
       const userBackend: SourceBackend | null = await installedRuntimeGate.resolve(userInstall.root, () =>
-        resolveSourceInstallationBackend(userInstall.root, backendArgs, { hermesHome: KOVA_HOME })
+        resolveSourceInstallationBackend(userInstall.root, backendArgs, { kovaHome: KOVA_HOME })
       )
 
       if (userBackend) {
@@ -5102,7 +5102,7 @@ async function ensureRuntime(
       installStamp: backend.installStamp,
       activeRoot: backend.activeRoot,
       sourceRepoRoot: SOURCE_REPO_ROOT,
-      hermesHome: KOVA_HOME,
+      kovaHome: KOVA_HOME,
       logRoot: path.join(KOVA_HOME, 'logs'),
       abortSignal: bootstrapAbortController.signal,
       onEvent: ev => {
@@ -6064,7 +6064,7 @@ function sendBackendExit(payload) {
     return
   }
 
-  webContents.send('hermes:backend-exit', payload)
+  webContents.send('kova:backend-exit', payload)
 }
 
 function sendClosePreviewRequested() {
@@ -6078,7 +6078,7 @@ function sendClosePreviewRequested() {
     return
   }
 
-  webContents.send('hermes:close-preview-requested')
+  webContents.send('kova:close-preview-requested')
 }
 
 /**
@@ -6103,7 +6103,7 @@ function sendPreviewNavCommand(command: 'back' | 'forward' | 'reload') {
     return
   }
 
-  webContents.send('hermes:preview-nav', command)
+  webContents.send('kova:preview-nav', command)
 }
 
 /**
@@ -6147,7 +6147,7 @@ function sendOpenFolderRequested() {
     return
   }
 
-  webContents.send('hermes:open-folder-requested')
+  webContents.send('kova:open-folder-requested')
 }
 
 // Tell the renderer the machine just woke. Sleep silently drops the
@@ -6164,7 +6164,7 @@ function sendPowerResume() {
     return
   }
 
-  webContents.send('hermes:power-resume')
+  webContents.send('kova:power-resume')
 }
 
 let powerResumeRegistered = false
@@ -6175,8 +6175,8 @@ let powerResumeRegistered = false
 let onBatteryPower: boolean | null = null
 
 // Renderer-side battery gating seeds from this and stays current via the
-// 'hermes:power-battery' push below.
-ipcMain.handle('hermes:power-battery:get', () => onBatteryPower === true)
+// 'kova:power-battery' push below.
+ipcMain.handle('kova:power-battery:get', () => onBatteryPower === true)
 
 function broadcastBatteryState(next: boolean) {
   if (onBatteryPower === next) {
@@ -6189,7 +6189,7 @@ function broadcastBatteryState(next: boolean) {
     const { webContents } = win
 
     if (webContents && !webContents.isDestroyed()) {
-      webContents.send('hermes:power-battery', next)
+      webContents.send('kova:power-battery', next)
     }
   }
 }
@@ -6240,7 +6240,7 @@ function getAppIconPath() {
 function sendOpenUpdatesRequested() {
   // The renderer mounts its open-updates listener in the same effect pass that
   // signals deep-link readiness. Before that (e.g. a boot-time dialog answered
-  // before the window is up) queue the request; 'hermes:deep-link-ready' flushes it.
+  // before the window is up) queue the request; 'kova:deep-link-ready' flushes it.
   if (!_rendererReadyForDeepLink || !mainWindow || mainWindow.isDestroyed()) {
     _pendingOpenUpdates = true
 
@@ -6253,7 +6253,7 @@ function sendOpenUpdatesRequested() {
     return
   }
 
-  webContents.send('hermes:open-updates')
+  webContents.send('kova:open-updates')
 
   // #83998: never pump the Windows foreground from an ambient surface —
   // showInactive + a guarded focus keep the raise from dismissing another
@@ -6287,7 +6287,7 @@ function sendWindowStateChanged(nextIsFullscreen?: boolean, target = mainWindow)
     state.isFullscreen = nextIsFullscreen
   }
 
-  webContents.send('hermes:window-state-changed', state)
+  webContents.send('kova:window-state-changed', state)
 }
 
 function buildApplicationMenu() {
@@ -6460,7 +6460,7 @@ function installDevToolsShortcut(window) {
       if (decision === 'forward') {
         event.preventDefault()
 
-        window.webContents.send('hermes:f12-shortcut', toF12KeyboardEventPayload(input))
+        window.webContents.send('kova:f12-shortcut', toF12KeyboardEventPayload(input))
 
         return
       }
@@ -6697,7 +6697,7 @@ function installContextMenuBridge(window: BrowserWindow) {
     const suggestions = Array.isArray(params.dictionarySuggestions) ? params.dictionarySuggestions : []
 
     if (params.isEditable && params.misspelledWord) {
-      window.webContents.send('hermes:context-menu-spellcheck', {
+      window.webContents.send('kova:context-menu-spellcheck', {
         misspelledWord: params.misspelledWord,
         suggestions
       })
@@ -8705,7 +8705,7 @@ const desktopProfilePreferences = createDesktopProfilePreferences(DESKTOP_PROFIL
   onDefaultChanged: route => {
     for (const win of BrowserWindow.getAllWindows()) {
       if (!win.webContents.isDestroyed()) {
-        win.webContents.send('hermes:profile:default:changed', route)
+        win.webContents.send('kova:profile:default:changed', route)
       }
     }
   }
@@ -8748,7 +8748,7 @@ function migrateActiveProfileIfMissing() {
   activeProfileMigrationAttempted = true
   migrateActiveProfileIfMissingPure(DESKTOP_PROFILE_CONFIG_PATH, {
     legacyActivePath: path.join(KOVA_HOME, 'active_profile'),
-    hermesHome: KOVA_HOME,
+    kovaHome: KOVA_HOME,
     profilesRoot: path.join(KOVA_HOME, 'profiles'),
     existsSync: p => fs.existsSync(p),
     readFileSync: (p, enc) => fs.readFileSync(p, enc),
@@ -9607,8 +9607,8 @@ async function rollbackSshBootstrapResult(ssh, result, profile, sshConfig, bound
       pid: result.pid,
       spawnNonce: result.spawnNonce,
       profile: resolveRemoteSshDashboardProfile(sshConfig.remoteProfile, profile),
-      hermesPath: result.kovaPath,
-      hermesHome: result.kovaHome,
+      kovaPath: result.kovaPath,
+      kovaHome: result.kovaHome,
       startedAt: result.startedAt,
       creationTimeNs: result.creationTimeNs,
       creationTime: result.creationTime
@@ -9617,7 +9617,7 @@ async function rollbackSshBootstrapResult(ssh, result, profile, sshConfig, bound
     if (result.platform?.os === 'Windows') {
       await terminateOwnedWindowsDashboardForUpdate(
         ssh,
-        { hermesPath: result.kovaPath, hermesHome: result.kovaHome, python: result.pythonPath },
+        { kovaPath: result.kovaPath, kovaHome: result.kovaHome, python: result.pythonPath },
         expected
       )
     } else if (result.platform?.os === 'Linux' || result.platform?.os === 'Darwin') {
@@ -9790,8 +9790,8 @@ async function bootstrapSshConnectionInner(profile, sshConfig, reuseToken, sourc
         creationTimeNs: result.creationTimeNs,
         creationTime: result.creationTime,
         startedAt: result.startedAt,
-        hermesPath: result.kovaPath,
-        hermesHome: result.kovaHome,
+        kovaPath: result.kovaPath,
+        kovaHome: result.kovaHome,
         pythonPath: result.pythonPath,
         remoteProfile: resolveRemoteSshDashboardProfile(sshConfig.remoteProfile, profile),
         registryConnectionId:
@@ -10167,20 +10167,20 @@ async function testDesktopConnectionConfig(input: any = {}) {
         try {
           await ssh.open()
           const platform: any = await detectRemotePlatform(ssh, sshConfig.remoteKovaPath || '')
-          let hermesPath
+          let kovaPath
           let hermesVersion
           let supported
 
           if (platform.os === 'Windows') {
             const runtime = platform
-            hermesPath = runtime.kovaPath
+            kovaPath = runtime.kovaPath
             const inspection = await inspectWindowsSupport(ssh, runtime)
             hermesVersion = inspection.version
             supported = inspection.supported
           } else {
-            hermesPath = await remoteLifecycle.locateKova(ssh, sshConfig.remoteKovaPath || '')
-            hermesVersion = await remoteLifecycle.probeKovaVersion(ssh, hermesPath)
-            supported = await remoteLifecycle.remoteSupportsSshOwnership(ssh, hermesPath)
+            kovaPath = await remoteLifecycle.locateKova(ssh, sshConfig.remoteKovaPath || '')
+            hermesVersion = await remoteLifecycle.probeKovaVersion(ssh, kovaPath)
+            supported = await remoteLifecycle.remoteSupportsSshOwnership(ssh, kovaPath)
           }
 
           if (!supported) {
@@ -10196,7 +10196,7 @@ async function testDesktopConnectionConfig(input: any = {}) {
             sshError: null,
             error: null,
             remotePlatform: `${platform.os}/${platform.arch}`,
-            remoteKovaPath: hermesPath,
+            remoteKovaPath: kovaPath,
             remoteKovaVersion: hermesVersion,
             host: sshConfig.user ? `${sshConfig.user}@${sshConfig.host}` : sshConfig.host
           }
@@ -10365,7 +10365,7 @@ function sendConnectionApplied() {
     return
   }
 
-  webContents.send('hermes:connection:applied')
+  webContents.send('kova:connection:applied')
 }
 
 // Registry lifecycle push: a connection was removed or materially edited, so
@@ -10378,7 +10378,7 @@ function broadcastConnectionsChanged(payload: { connectionId: string; reason: 'r
     const { webContents } = win
 
     if (webContents && !webContents.isDestroyed()) {
-      webContents.send('hermes:connections:changed', payload)
+      webContents.send('kova:connections:changed', payload)
     }
   }
 }
@@ -11027,8 +11027,8 @@ function remoteUpdateTargetFromState(state): RemoteUpdateTarget {
   return {
     ssh: state.ssh,
     platform: state.remotePlatform,
-    hermesPath: state.kovaPath,
-    hermesHome: state.kovaHome,
+    kovaPath: state.kovaPath,
+    kovaHome: state.kovaHome,
     ...(state.pythonPath ? { pythonPath: state.pythonPath } : {})
   }
 }
@@ -11060,19 +11060,19 @@ async function openManagedSshUpdateTransport(
         target: {
           ssh,
           platform: 'Windows',
-          hermesPath: runtime.kovaPath,
-          hermesHome: runtime.kovaHome,
+          kovaPath: runtime.kovaPath,
+          kovaHome: runtime.kovaHome,
           pythonPath: runtime.python
         }
       }
     }
 
-    const hermesPath = await remoteLifecycle.locateKova(ssh, config.remoteKovaPath || '')
-    const hermesHome = await remoteLifecycle.probeRemoteKovaHome(ssh)
+    const kovaPath = await remoteLifecycle.locateKova(ssh, config.remoteKovaPath || '')
+    const kovaHome = await remoteLifecycle.probeRemoteKovaHome(ssh)
 
     return {
       close: () => ssh.close(),
-      target: { ssh, platform: platform.os, hermesPath, hermesHome }
+      target: { ssh, platform: platform.os, kovaPath, kovaHome }
     }
   } catch (error) {
     await ssh.close()
@@ -11101,8 +11101,8 @@ async function drainManagedSshScope(scope) {
       pid: state.pid,
       spawnNonce: state.spawnNonce,
       profile: state.remoteProfile || '',
-      hermesPath: state.kovaPath,
-      hermesHome: state.kovaHome,
+      kovaPath: state.kovaPath,
+      kovaHome: state.kovaHome,
       startedAt: state.startedAt,
       creationTimeNs: state.creationTimeNs,
       creationTime: state.creationTime
@@ -11111,7 +11111,7 @@ async function drainManagedSshScope(scope) {
     if (state.remotePlatform === 'Windows') {
       await terminateOwnedWindowsDashboardForUpdate(
         state.ssh,
-        { hermesPath: state.kovaPath, hermesHome: state.kovaHome, python: state.pythonPath },
+        { kovaPath: state.kovaPath, kovaHome: state.kovaHome, python: state.pythonPath },
         expected
       )
     } else if (state.remotePlatform === 'Linux' || state.remotePlatform === 'Darwin') {
@@ -11403,7 +11403,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
       { ...backend, env: desktopBackendSpawnEnv(backend.env || {}) },
       resolveKovaCwd(),
       KOVA_HOME,
-      profileBackendParentEnv({ hermesHome: KOVA_HOME, profile })
+      profileBackendParentEnv({ kovaHome: KOVA_HOME, profile })
     )
   }, async () => {
     // Same update mutual exclusion as the primary's waitForLocalStart (#73822);
@@ -11446,7 +11446,7 @@ async function restartLocalGatewayOwner(ownerProfile: string): Promise<void> {
       { ...backend, env: desktopBackendSpawnEnv(backend.env || {}) },
       resolveKovaCwd(),
       KOVA_HOME,
-      profileBackendParentEnv({ hermesHome: KOVA_HOME, profile: ownerProfile }),
+      profileBackendParentEnv({ kovaHome: KOVA_HOME, profile: ownerProfile }),
       { timeoutMs: GATEWAY_RESTART_CLIENT_TIMEOUT_MS, label: 'hermes gateway restart' }
     )
   }, ownerProfile)
@@ -11870,7 +11870,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
       { ...setup.backend, env: desktopBackendSpawnEnv(setup.backend.env || {}) },
       resolveKovaCwd(),
       KOVA_HOME,
-      profileBackendParentEnv({ hermesHome: KOVA_HOME, profile: primaryProfile })
+      profileBackendParentEnv({ kovaHome: KOVA_HOME, profile: primaryProfile })
     ), undefined, restartStaleLocalGateway)
 
     backendConnectionState.assertCurrentAttempt(connectionAttempt)
@@ -12034,7 +12034,7 @@ function wireCommonWindowHandlers(win, { zoom = true }: { zoom?: boolean } = {})
 
   installContextMenuBridge(win)
   // Always deny, never open as a side effect: GHSA-9f4c-93c8-jc8g. Trusted
-  // links arrive via `hermes:openExternal`, not here. See window-open-policy.ts.
+  // links arrive via `kova:openExternal`, not here. See window-open-policy.ts.
   // The trusted-hub delegation (window-open-policy.ts, #91612) also never
   // creates a window: it hands http/https/mailto opens from the EXACT hub
   // origin to the audited `openExternalUrl` as a deny side effect.
@@ -12138,7 +12138,7 @@ function installPreviewGuestEscapeHatch() {
  * The preload (preview-guest-preload-entry.ts) never opens anything itself.
  * It forwards a clicked `_blank` anchor to the host renderer via
  * `sendToHost`, and the pane admits the scheme and routes the URL through the
- * audited `hermes:openExternal` channel. Popup requests themselves stay
+ * audited `kova:openExternal` channel. Popup requests themselves stay
  * denied-by-omission: the webview has no `allowpopups`, and the
  * `setWindowOpenHandler` contract (GHSA-9f4c-93c8-jc8g) stays side-effect
  * free.
@@ -12313,7 +12313,7 @@ function notifyBrowserPopoutClosed(tabId) {
 
   for (const other of BrowserWindow.getAllWindows()) {
     if (!other.isDestroyed()) {
-      other.webContents.send('hermes:browser-popout:closed', tabId)
+      other.webContents.send('kova:browser-popout:closed', tabId)
     }
   }
 }
@@ -12657,7 +12657,7 @@ function spawnPetOverlayWindow(bounds) {
     if (
       shouldPopInOnOverlayClosed({ appQuitting, mainWindowAlive: Boolean(mainWindow && !mainWindow.isDestroyed()) })
     ) {
-      mainWindow.webContents.send('hermes:pet-overlay:control', { type: 'pop-in' })
+      mainWindow.webContents.send('kova:pet-overlay:control', { type: 'pop-in' })
     }
   })
 
@@ -12740,7 +12740,7 @@ function rehomePetOverlay() {
   petOverlayWindow.setBounds(resolved)
 
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('hermes:pet-overlay:control', { type: 'bounds', bounds: resolved })
+    mainWindow.webContents.send('kova:pet-overlay:control', { type: 'bounds', bounds: resolved })
   }
 }
 
@@ -12946,7 +12946,7 @@ function startHudCursorFeed(win: BrowserWindow) {
     }
 
     last = key
-    win.webContents.send('hermes:hud:cursor', point)
+    win.webContents.send('kova:hud:cursor', point)
   }, HUD_CURSOR_POLL_MS)
 
   win.on('closed', () => clearInterval(timer))
@@ -12966,7 +12966,7 @@ function startHudGameOverlayFeed(win: BrowserWindow) {
 
   const push = (state: { active: boolean; app: string }) => {
     if (!win.isDestroyed()) {
-      win.webContents.send('hermes:hud:game-overlay', state)
+      win.webContents.send('kova:hud:game-overlay', state)
     }
   }
 
@@ -13063,7 +13063,7 @@ function broadcastHudState(open) {
 
   for (const win of BrowserWindow.getAllWindows()) {
     if (!win.isDestroyed()) {
-      win.webContents.send('hermes:hud:changed', payload)
+      win.webContents.send('kova:hud:changed', payload)
     }
   }
 }
@@ -13082,7 +13082,7 @@ function spawnHudWindow(sessionId, profile) {
     // window grows a few px every drag (worse at >100% DPI scaling). The
     // composer drag calls setPosition, which must move the window, not resize
     // it. Resizing is done by the renderer's edge/corner handles through
-    // `hermes:hud:set-bounds`, which flips resizable on for the call — the
+    // `kova:hud:set-bounds`, which flips resizable on for the call — the
     // same pattern the pet overlay uses for its wheel-scale.
     resizable: false,
     // macOS AppKit's constrainFrameRect clamps setBounds to the current
@@ -13254,7 +13254,7 @@ function openHudWindow(sessionId, profile) {
     // conversation in the HUD", and a plain focus leaves the wrong one there.
     if (sessionId && sessionId !== hudSessionId) {
       hudSessionId = sessionId
-      hudWindow.webContents.send('hermes:hud:goto', sessionId)
+      hudWindow.webContents.send('kova:hud:goto', sessionId)
       // Keep every window's idea of where the HUD is pointed in step, so the
       // toggle keeps reading "switch" vs "dismiss" correctly.
       broadcastHudState(true)
@@ -13417,7 +13417,7 @@ function spawnQuickEntryWindow() {
   // renderer already reported a live gateway.
   win.webContents.on('did-finish-load', () => {
     if (!win.isDestroyed() && quickEntryLastState) {
-      win.webContents.send('hermes:quick-entry:state', quickEntryLastState)
+      win.webContents.send('kova:quick-entry:state', quickEntryLastState)
     }
   })
 
@@ -13459,7 +13459,7 @@ function showQuickEntryWindow() {
   quickEntryWindow.show()
   quickEntryWindow.focus()
   // Re-summoned: tell the renderer to clear any stale draft and refocus.
-  quickEntryWindow.webContents.send('hermes:quick-entry:shown')
+  quickEntryWindow.webContents.send('kova:quick-entry:shown')
 }
 
 function hideQuickEntryWindow() {
@@ -13959,7 +13959,7 @@ function createWindow() {
   })
 }
 
-ipcMain.handle('hermes:connection', async (event, profile) => {
+ipcMain.handle('kova:connection', async (event, profile) => {
   const source = windowConnectionRoutes.get(event.sender.id) ?? null
   const route = resolveDesktopConnectionRequest(profile, source, primaryProfileKey())
 
@@ -14012,7 +14012,7 @@ async function connectDesktopProfileRoute(route: DesktopProfileRoute, sender?: E
 // ensureBackend when the v1 route is local, and attaches to this machine's
 // canonical gateway when the v1 global mode is remote (the registry 'local'
 // entry always means this machine) unless the profile is remote-only.
-ipcMain.handle('hermes:connection:for', async (event, payload) => {
+ipcMain.handle('kova:connection:for', async (event, payload) => {
   const { connectionId, profile } = payload && typeof payload === 'object' ? (payload as any) : ({} as any)
   const registry = readDesktopConnectionsRegistry()
   const id = registryDialConnectionId(connectionId, registry.primary)
@@ -14046,7 +14046,7 @@ function recordWindowConnectionRoute(sender: Electron.WebContents, route: unknow
   }
 }
 
-ipcMain.on('hermes:connection:active-route', (event, route) => recordWindowConnectionRoute(event.sender, route))
+ipcMain.on('kova:connection:active-route', (event, route) => recordWindowConnectionRoute(event.sender, route))
 // Reconnect-after-wake recovery. A REMOTE primary backend has no child process,
 // so the 'exit'/'error' handlers that would clear a dead connection promise never
 // fire — once the remote becomes unreachable across a sleep/wake the renderer
@@ -14055,7 +14055,7 @@ ipcMain.on('hermes:connection:active-route', (event, route) => recordWindowConne
 // to confirm the cached PRIMARY backend is still reachable; if a remote one is
 // not, we drop the cache so the next getConnection() rebuilds it. Local backends
 // self-heal via their child 'exit' handler, so we never touch them here.
-ipcMain.handle('hermes:connection:revalidate', async () => {
+ipcMain.handle('kova:connection:revalidate', async () => {
   const connectionPromise = backendConnectionState.getPromise()
 
   if (!connectionPromise) {
@@ -14152,10 +14152,10 @@ function revalidateSuspectPoolAfterResume() {
   )
 }
 
-ipcMain.handle('hermes:gateway:ws-url', async (_event, profile) => {
+ipcMain.handle('kova:gateway:ws-url', async (_event, profile) => {
   return gatewayWsUrlIpcResult(() => freshGatewayWsUrl(profile, _event.sender.id))
 })
-ipcMain.handle('hermes:window:openSession', async (_event, sessionId, opts) => {
+ipcMain.handle('kova:window:openSession', async (_event, sessionId, opts) => {
   if (typeof sessionId !== 'string' || !sessionId.trim()) {
     return { ok: false, error: 'invalid-session-id' }
   }
@@ -14168,13 +14168,13 @@ ipcMain.handle('hermes:window:openSession', async (_event, sessionId, opts) => {
 
   return { ok: true }
 })
-ipcMain.handle('hermes:window:openInstance', async (event, options) => {
+ipcMain.handle('kova:window:openInstance', async (event, options) => {
   createInstanceWindow(options, BrowserWindow.fromWebContents(event.sender))
 
   return { ok: true }
 })
 registerWindowControlIpc(ipcMain, sender => BrowserWindow.fromWebContents(sender))
-ipcMain.handle('hermes:window:openBrowser', async (_event, tabId) => {
+ipcMain.handle('kova:window:openBrowser', async (_event, tabId) => {
   if (typeof tabId !== 'string' || !tabId.trim()) {
     return { ok: false, error: 'invalid-tab-id' }
   }
@@ -14190,10 +14190,10 @@ ipcMain.handle('hermes:window:openBrowser', async (_event, tabId) => {
 // between them over IPC. Destination validation and reply correlation stay
 // renderer-side, so every feature riding this relay still fails closed instead
 // of falling through to whatever window happens to be active later.
-ipcMain.on('hermes:window:relay', (event, payload) => {
+ipcMain.on('kova:window:relay', (event, payload) => {
   for (const other of BrowserWindow.getAllWindows()) {
     if (!other.isDestroyed() && other.webContents.id !== event.sender.id) {
-      other.webContents.send('hermes:window:relay', payload)
+      other.webContents.send('kova:window:relay', payload)
     }
   }
 })
@@ -14208,7 +14208,7 @@ ipcMain.on('hermes:window:relay', (event, payload) => {
 // hoping a `hermes` exists on the user's interactive PATH. Resolution only —
 // never ensureRuntime(), which would kick off a first-run install from a menu
 // click; an unresolved runtime is reported instead.
-ipcMain.handle('hermes:window:openInTerminal', async (_event, sessionId, opts) => {
+ipcMain.handle('kova:window:openInTerminal', async (_event, sessionId, opts) => {
   if (typeof sessionId !== 'string' || !sessionId.trim()) {
     return { ok: false, error: 'invalid-session-id' }
   }
@@ -14261,8 +14261,8 @@ ipcMain.handle('hermes:window:openInTerminal', async (_event, sessionId, opts) =
     return { ok: false, error: error.message }
   }
 })
-ipcMain.handle('hermes:wake-indicator:get', () => wakeIndicatorController.getState())
-ipcMain.on('hermes:wake-indicator:set', (_event, state) => {
+ipcMain.handle('kova:wake-indicator:get', () => wakeIndicatorController.getState())
+ipcMain.on('kova:wake-indicator:set', (_event, state) => {
   wakeIndicatorController.setState(state)
 })
 
@@ -14271,14 +14271,14 @@ ipcMain.on('hermes:wake-indicator:set', (_event, state) => {
 // shortcuts and the View menu. Reads and writes target the asking window.
 registerPreparedSubmissions()
 
-ipcMain.handle('hermes:zoom:get', event => {
+ipcMain.handle('kova:zoom:get', event => {
   const window = BrowserWindow.fromWebContents(event.sender)
 
   const level = window && !window.isDestroyed() ? window.webContents.getZoomLevel() : DEFAULT_ZOOM_LEVEL
 
   return { level, percent: zoomLevelToPercent(level) }
 })
-ipcMain.on('hermes:zoom:set-percent', (event, percent) => {
+ipcMain.on('kova:zoom:set-percent', (event, percent) => {
   const window = BrowserWindow.fromWebContents(event.sender)
 
   if (!window || window.isDestroyed()) {
@@ -14309,7 +14309,7 @@ const hudIpc = registerHudIpc({
   }
 })
 
-ipcMain.handle('hermes:backend:recycle', async (_event, profile) => {
+ipcMain.handle('kova:backend:recycle', async (_event, profile) => {
   // Models-page recovery after a code-skew 503 (#97046): kill the owned
   // SSH serve (if any) before the local child so reconnect cannot reuse a
   // stale lockfile, and restart the attached local gateway (Desktop does not
@@ -14326,7 +14326,7 @@ ipcMain.handle('hermes:backend:recycle', async (_event, profile) => {
 
   return { ok: true }
 })
-ipcMain.handle('hermes:bootstrap:reset', async () => {
+ipcMain.handle('kova:bootstrap:reset', async () => {
   // Renderer's "Reload and retry" path. Clear the latched failure and
   // reset connection state so the next startKova() call restarts the
   // full backend flow (including a fresh runBootstrap pass).
@@ -14340,7 +14340,7 @@ ipcMain.handle('hermes:bootstrap:reset', async () => {
 
   return { ok: true }
 })
-ipcMain.handle('hermes:bootstrap:repair', async (): Promise<{ ok: boolean; bundled?: boolean; error?: string }> => {
+ipcMain.handle('kova:bootstrap:repair', async (): Promise<{ ok: boolean; bundled?: boolean; error?: string }> => {
   // A bundled install's payload is immutable and sealed at build time —
   // "repair" would re-run the installer against a separate
   // %LOCALAPPDATA%\hermes tree the app doesn't own. The only repair for a
@@ -14414,13 +14414,13 @@ registerUpdateHoldIpc(ipcMain, {
   quit: () => app.quit()
 })
 
-ipcMain.handle('hermes:bootstrap:continue-local', async () => {
+ipcMain.handle('kova:bootstrap:continue-local', async () => {
   rememberLog('[bootstrap] local install selected by renderer; continuing first-launch bootstrap')
   continueFirstRunLocalBootstrap()
 
   return { ok: true }
 })
-ipcMain.handle('hermes:bootstrap:cancel', async () => {
+ipcMain.handle('kova:bootstrap:cancel', async () => {
   // Renderer's Cancel button during first-launch install. Abort the running
   // install script (SIGTERM via the runner's abortSignal). runBootstrap
   // resolves with { cancelled: true }, which surfaces the recovery overlay.
@@ -14436,18 +14436,18 @@ ipcMain.handle('hermes:bootstrap:cancel', async () => {
 
   return { ok: false, cancelled: false }
 })
-ipcMain.handle('hermes:bootstrap:get', async () => getBootstrapState())
-ipcMain.handle('hermes:local-backend:probe', async () => {
+ipcMain.handle('kova:bootstrap:get', async () => getBootstrapState())
+ipcMain.handle('kova:local-backend:probe', async () => {
   // Resolution only. ensureRuntime/runBootstrap must not start from a hover
   // or a click that has not confirmed the install.
   const backend = await resolveKovaBackend([])
 
   return { bootstrapNeeded: backend?.kind === 'bootstrap-needed' }
 })
-ipcMain.handle('hermes:connection-config:get', async (_event, profile) =>
+ipcMain.handle('kova:connection-config:get', async (_event, profile) =>
   sanitizeDesktopConnectionConfig(readDesktopConnectionConfig(), profile)
 )
-ipcMain.handle('hermes:plugin-profile-routes', async (_event, rawProfileNames) => {
+ipcMain.handle('kova:plugin-profile-routes', async (_event, rawProfileNames) => {
   const fallbackProfileNames = Array.isArray(rawProfileNames)
     ? rawProfileNames
         .filter(name => typeof name === 'string')
@@ -14519,8 +14519,8 @@ ipcMain.handle('hermes:plugin-profile-routes', async (_event, rawProfileNames) =
     sources: registry.connections
   })
 })
-ipcMain.handle('hermes:ssh-config:hosts', async () => ({ hosts: collectSshConfigHosts() }))
-ipcMain.handle('hermes:ssh-config:resolve', async (_event, host) => {
+ipcMain.handle('kova:ssh-config:hosts', async () => ({ hosts: collectSshConfigHosts() }))
+ipcMain.handle('kova:ssh-config:resolve', async (_event, host) => {
   const value = String(host || '').trim()
 
   if (!value) {
@@ -14560,25 +14560,25 @@ ipcMain.handle('hermes:ssh-config:resolve', async (_event, host) => {
     })
   })
 })
-ipcMain.handle('hermes:connection-config:test', async (_event, payload) => testDesktopConnectionConfig(payload))
+ipcMain.handle('kova:connection-config:test', async (_event, payload) => testDesktopConnectionConfig(payload))
 
 // ── Opt-in keychain encryption for stored secrets ───────────────────────────
 // get returns the current policy without touching safeStorage; set flips it
 // and re-encodes every stored secret (see applySecretStorageEncryption).
-ipcMain.handle('hermes:secret-storage:get', async () => ({ on: secretStoragePolicy().on }))
-ipcMain.handle('hermes:secret-storage:set', async (_event: any, on: any) => applySecretStorageEncryption(on === true))
+ipcMain.handle('kova:secret-storage:get', async () => ({ on: secretStoragePolicy().on }))
+ipcMain.handle('kova:secret-storage:set', async (_event: any, on: any) => applySecretStorageEncryption(on === true))
 
 // ── v2 connection registry IPC (multi-source) ───────────────────────────────
 // Storage-level CRUD for named agent sources. Routing/pooling consumption of
 // the registry lands separately; these handlers only manage the persisted
 // list, so they are safe to ship ahead of the switchover.
-ipcMain.handle('hermes:connections:list', async () => sanitizeConnectionsRegistry())
-ipcMain.handle('hermes:connections:save', async (_event, payload) => {
+ipcMain.handle('kova:connections:list', async () => sanitizeConnectionsRegistry())
+ipcMain.handle('kova:connections:save', async (_event, payload) => {
   const saved = await saveRegistryConnection(payload)
 
   return { ok: true, connection: saved, registry: sanitizeConnectionsRegistry() }
 })
-ipcMain.handle('hermes:connections:remove', async (_event, id) => {
+ipcMain.handle('kova:connections:remove', async (_event, id) => {
   const key = String(id || '')
   managedConnectionUpdateGate.assertCanMutate(key)
   const registry = removeConnection(readDesktopConnectionsRegistry(), key)
@@ -14597,27 +14597,27 @@ ipcMain.handle('hermes:connections:remove', async (_event, id) => {
 
   return { ok: true, registry: sanitizeConnectionsRegistry(registry) }
 })
-ipcMain.handle('hermes:connections:set-primary', async (_event, id) => {
+ipcMain.handle('kova:connections:set-primary', async (_event, id) => {
   assertCanMutateManagedPrimaryRouting()
   const registry = setPrimaryConnection(readDesktopConnectionsRegistry(), String(id || ''))
   writeDesktopConnectionsRegistry(registry)
 
   return { ok: true, registry: sanitizeConnectionsRegistry(registry) }
 })
-ipcMain.handle('hermes:connections:set-launch-mode', async (_event, mode) => {
+ipcMain.handle('kova:connections:set-launch-mode', async (_event, mode) => {
   assertCanMutateManagedPrimaryRouting()
   const registry = setConnectionLaunchMode(readDesktopConnectionsRegistry(), String(mode || ''))
   writeDesktopConnectionsRegistry(registry)
 
   return { ok: true, registry: sanitizeConnectionsRegistry(registry) }
 })
-ipcMain.handle('hermes:connections:set-last-used', async (_event, id) => {
+ipcMain.handle('kova:connections:set-last-used', async (_event, id) => {
   const registry = setLastUsedConnection(readDesktopConnectionsRegistry(), String(id || ''))
   writeDesktopConnectionsRegistry(registry)
 
   return { ok: true, registry: sanitizeConnectionsRegistry(registry) }
 })
-ipcMain.handle('hermes:connections:test', async (_event, id) => {
+ipcMain.handle('kova:connections:test', async (_event, id) => {
   const registry = readDesktopConnectionsRegistry()
   const entry = registry.connections.find(c => c.id === String(id || ''))
 
@@ -14938,7 +14938,7 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
   )
 }
 
-ipcMain.handle('hermes:agents:roster', async () => {
+ipcMain.handle('kova:agents:roster', async () => {
   const registry = readDesktopConnectionsRegistry()
   const enumerations = await enumerateRegistryAgentSources(registry)
 
@@ -14969,7 +14969,7 @@ const registryGatewayWsUrlHandler = createRegistryGatewayWsUrlHandler({
   rememberHeaders: rememberRemoteWsHeaders
 })
 
-ipcMain.handle('hermes:gateway:ws-url-for', async (_event, payload) => {
+ipcMain.handle('kova:gateway:ws-url-for', async (_event, payload) => {
   return gatewayWsUrlIpcResult(async () => {
     const connection = await ensureRegistryBackend(payload?.connectionId, payload?.profile)
 
@@ -14986,7 +14986,7 @@ ipcMain.handle('hermes:gateway:ws-url-for', async (_event, payload) => {
 const pluginWsUrl = createPluginWsUrlHandler({ ensureBackend, ensureRegistryBackend, forgetLocalGatewayDescriptor,
   forgetRegistryLocalGatewayDescriptor, launchHome: KOVA_HOME, prepare: localGatewayDials.preparePlugin })
 
-ipcMain.handle('hermes:plugin:ws-url', (event, payload) => pluginWsUrl(payload ?? {}, event.sender.id))
+ipcMain.handle('kova:plugin:ws-url', (event, payload) => pluginWsUrl(payload ?? {}, event.sender.id))
 
 // Transactional update for a Desktop-managed SSH install. Unlike the generic
 // fleet fan-out below, this path owns the remote serve lifecycle: it gates new
@@ -15036,14 +15036,14 @@ async function requestManagedSshUpdate(rawId) {
   return operation
 }
 
-ipcMain.handle('hermes:connections:update-managed', async (_event, rawId) => requestManagedSshUpdate(rawId))
+ipcMain.handle('kova:connections:update-managed', async (_event, rawId) => requestManagedSshUpdate(rawId))
 
 // Fan out `hermes update` to every eligible registered connection at once.
 // Cloud entries are excluded (platform-managed); each dispatch reports
 // independently so one dead LAN box can't wedge the batch. Local reuses the
 // app's own update pipeline; Desktop-managed SSH uses the transactional
 // drain/update/restore lifecycle; URL remotes POST their backend updater.
-ipcMain.handle('hermes:connections:update-all', async (_event, payload) => {
+ipcMain.handle('kova:connections:update-all', async (_event, payload) => {
   const registry = readDesktopConnectionsRegistry()
 
   // Optional renderer-side exclusions: the everything-update flow dispatches
@@ -15187,8 +15187,8 @@ async function fetchJsonForBackend(
   })
 }
 
-ipcMain.handle('hermes:connection-config:probe', async (_event, rawUrl) => probeRemoteAuthMode(rawUrl))
-ipcMain.handle('hermes:connection-config:oauth-login', async (_event, rawUrl, rawOpts) => {
+ipcMain.handle('kova:connection-config:probe', async (_event, rawUrl) => probeRemoteAuthMode(rawUrl))
+ipcMain.handle('kova:connection-config:oauth-login', async (_event, rawUrl, rawOpts) => {
   // Capability-gated login (RFC 8252). Probe the gateway's public /api/status
   // for supported auth_flows and /api/auth/providers for provider capabilities:
   //   - all providers support password → always use the embedded login window
@@ -15324,7 +15324,7 @@ ipcMain.handle('hermes:connection-config:oauth-login', async (_event, rawUrl, ra
 
   return { ok: true, baseUrl, connected, connectionId: loginConnectionId || undefined }
 })
-ipcMain.handle('hermes:connection-config:oauth-logout', async (_event, rawUrl) => {
+ipcMain.handle('kova:connection-config:oauth-logout', async (_event, rawUrl) => {
   const baseUrl = normalizeRemoteBaseUrl(rawUrl)
 
   // Also drop any native (RFC 8252) bearer tokens for this gateway so a
@@ -15345,39 +15345,39 @@ ipcMain.handle('hermes:connection-config:oauth-logout', async (_event, rawUrl) =
 // --- Kova Cloud (cloud-auto-discovery Phase 3) ---
 // One portal login in the OAuth partition powers both discovery and the silent
 // per-agent cascade. See the discovery/cascade helpers above.
-ipcMain.handle('hermes:cloud:status', async () => ({
+ipcMain.handle('kova:cloud:status', async () => ({
   portalBaseUrl: resolvePortalBaseUrl(),
   signedIn: await hasLivePortalSession()
 }))
-ipcMain.handle('hermes:cloud:login', async () => {
+ipcMain.handle('kova:cloud:login', async () => {
   await openPortalLoginWindow()
 
   return { ok: true, signedIn: await hasLivePortalSession() }
 })
-ipcMain.handle('hermes:cloud:logout', async () => {
+ipcMain.handle('kova:cloud:logout', async () => {
   await clearOauthSession(resolvePortalBaseUrl())
 
   return { ok: true, signedIn: await hasLivePortalSession() }
 })
-ipcMain.handle('hermes:cloud:discover', async (_event, org) => {
+ipcMain.handle('kova:cloud:discover', async (_event, org) => {
   // Returns { agents } or { needsOrgSelection: true, orgs }. `org` (optional)
   // scopes discovery to a chosen org for multi-org users.
   return discoverCloudAgents(typeof org === 'string' && org ? org : undefined)
 })
-ipcMain.handle('hermes:cloud:agent-sign-in', async (_event, dashboardUrl) => {
+ipcMain.handle('kova:cloud:agent-sign-in', async (_event, dashboardUrl) => {
   // Silent per-agent sign-in via the shared portal session. Returns the agent's
   // gateway baseUrl + whether its session cookie landed; the renderer then
   // saves a cloud-mode connection pointed at this dashboardUrl.
   return cloudAgentSilentSignIn(dashboardUrl)
 })
-ipcMain.handle('hermes:connection-config:save', async (_event, payload) => {
+ipcMain.handle('kova:connection-config:save', async (_event, payload) => {
   assertCanMutateManagedPrimaryRouting()
   const config = coerceDesktopConnectionConfig(payload)
   writeDesktopConnectionConfig(config)
 
   return sanitizeDesktopConnectionConfig(config, payload?.profile)
 })
-ipcMain.handle('hermes:connection-config:apply', async (_event, payload) => {
+ipcMain.handle('kova:connection-config:apply', async (_event, payload) => {
   assertCanMutateManagedPrimaryRouting()
   const previousConfig = readDesktopConnectionConfig()
   const previousRegistry = readDesktopConnectionsRegistry()
@@ -15454,14 +15454,14 @@ ipcMain.handle('hermes:connection-config:apply', async (_event, payload) => {
 registerDesktopProfilePreferenceIpc(ipcMain, desktopProfilePreferences, connectionId =>
   readDesktopConnectionsRegistry().connections.some(connection => connection.id === connectionId)
 )
-ipcMain.handle('hermes:profile:get', async () => ({ profile: readActiveDesktopProfile() }))
+ipcMain.handle('kova:profile:get', async () => ({ profile: readActiveDesktopProfile() }))
 // Persistence-only sibling of hermes:profile:set: records the profile the
 // Desktop last used WITHOUT tearing down the backend or reloading the window.
 // An explicit default route wins at launch and is never replaced here.
-ipcMain.handle('hermes:profile:remember', async (_event, name) => ({
+ipcMain.handle('kova:profile:remember', async (_event, name) => ({
   profile: writeActiveDesktopProfile(name)
 }))
-ipcMain.handle('hermes:profile:set', async (_event, name) => {
+ipcMain.handle('kova:profile:set', async (_event, name) => {
   assertCanMutateManagedPrimaryRouting()
   const next = writeActiveDesktopProfile(name)
 
@@ -15474,7 +15474,7 @@ ipcMain.handle('hermes:profile:set', async (_event, name) => {
   return { profile: next }
 })
 
-ipcMain.on('hermes:previewShortcutActive', (_event, active) => {
+ipcMain.on('kova:previewShortcutActive', (_event, active) => {
   previewShortcutActive = Boolean(active)
 })
 
@@ -15490,10 +15490,10 @@ registerPreviewSignins({
 
     return { profile: route.profile, local: connection.mode !== 'remote' }
   },
-  exportSignins: async profile => runSigninExport(await ensureRuntime(await resolveKovaBackend(['--profile', profile, 'browser', 'export-signins', '--json']), () => undefined), resolveKovaCwd(), KOVA_HOME, profileBackendParentEnv({ hermesHome: KOVA_HOME, profile }))
+  exportSignins: async profile => runSigninExport(await ensureRuntime(await resolveKovaBackend(['--profile', profile, 'browser', 'export-signins', '--json']), () => undefined), resolveKovaCwd(), KOVA_HOME, profileBackendParentEnv({ kovaHome: KOVA_HOME, profile }))
 })
 
-ipcMain.on('hermes:f12ShortcutActive', (event, active) => {
+ipcMain.on('kova:f12ShortcutActive', (event, active) => {
   if (active) {
     f12ShortcutActiveWindows.add(event.sender.id)
   } else {
@@ -15505,7 +15505,7 @@ app.on('web-contents-created', (_event, contents) => {
   contents.once('destroyed', () => f12ShortcutActiveWindows.delete(contents.id))
 })
 
-ipcMain.handle('hermes:requestMicrophoneAccess', async () => {
+ipcMain.handle('kova:requestMicrophoneAccess', async () => {
   if (!IS_MAC || typeof systemPreferences.askForMediaAccess !== 'function') {
     return true
   }
@@ -15517,7 +15517,7 @@ ipcMain.handle('hermes:requestMicrophoneAccess', async () => {
 // Metadata only (app, title, bounds) — never pixels. On macOS, other apps'
 // window titles are gated behind the Screen Recording permission; pass titles
 // through only when it is ALREADY granted, and never prompt for it here.
-ipcMain.handle('hermes:window:readBelow', async event => {
+ipcMain.handle('kova:window:readBelow', async event => {
   const win = BrowserWindow.fromWebContents(event.sender)
 
   if (!win || win.isDestroyed()) {
@@ -16065,7 +16065,7 @@ function formatApiRequestFailure(
   return `[hermes:api ${method} ${path}] ${detail}`.slice(0, 6000)
 }
 
-ipcMain.handle('hermes:api', async (_event, request) => {
+ipcMain.handle('kova:api', async (_event, request) => {
   // Hold the deletion gate for BOTH profile deletes and renames: a concurrent
   // renderer reconnect entering ensureBackend() mid-mutation would otherwise
   // respawn the old-name backend and recreate its KOVA_HOME (#45474).
@@ -16095,7 +16095,7 @@ ipcMain.handle('hermes:api', async (_event, request) => {
 
     return await handleKovaApiRequest(request).finally(releaseProfileDeletion)
   } catch (error) {
-    // Electron logs "Error occurred in handler for 'hermes:api'" with a full
+    // Electron logs "Error occurred in handler for 'kova:api'" with a full
     // stack for EVERY rejected invoke, and there is no opt-out on the handler.
     // Session resolution is a deliberate probe ladder (`resolveStoredSession`:
     // cache → active backend → each other profile) and the renderer already
@@ -16124,7 +16124,7 @@ ipcMain.handle('hermes:api', async (_event, request) => {
 
 // Speech claims outlive instant cues so throttled peer windows cannot replay a reply.
 const ownsAmbientCue: ReturnType<typeof createAmbientClaimArbiter> = createAmbientClaimArbiter()
-ipcMain.handle('hermes:ambient:claim', (_event: IpcMainInvokeEvent, key: unknown): boolean =>
+ipcMain.handle('kova:ambient:claim', (_event: IpcMainInvokeEvent, key: unknown): boolean =>
   ownsAmbientCue(String(key ?? ''))
 )
 
@@ -16163,14 +16163,14 @@ function persistDataUrlReadMaxMb(maxMb) {
   return next
 }
 
-ipcMain.handle('hermes:data-url-read-max:get', () => ({
+ipcMain.handle('kova:data-url-read-max:get', () => ({
   maxMb: dataUrlReadMaxMb,
   // Keep the default bytes constant visible for tests / diagnostics.
   defaultMaxMb: DATA_URL_READ_DEFAULT_MAX_MB,
   maxBytes: dataUrlReadMaxBytesFromMb(dataUrlReadMaxMb)
 }))
 
-ipcMain.handle('hermes:data-url-read-max:set', (_event, maxMb) => {
+ipcMain.handle('kova:data-url-read-max:set', (_event, maxMb) => {
   const next = persistDataUrlReadMaxMb(maxMb)
 
   return {
@@ -16180,7 +16180,7 @@ ipcMain.handle('hermes:data-url-read-max:set', (_event, maxMb) => {
   }
 })
 
-ipcMain.handle('hermes:readFileDataUrl', async (_event, filePath) => {
+ipcMain.handle('kova:readFileDataUrl', async (_event, filePath) => {
   // Backend-reported paths are WSL/POSIX (`/home/...`, `/mnt/c/...`); on a
   // Windows host bridge them to a UNC/drive form, same as directory reads.
   const bridgedPath = resolveIpcFileReadPath(filePath)
@@ -16204,7 +16204,7 @@ ipcMain.handle('hermes:readFileDataUrl', async (_event, filePath) => {
 // Keep a finite cap so Electron + base64 memory stays bounded while archives
 // can exceed the default 16 MiB preview ceiling (and still fit the gateway
 // WebSocket frame limit after base64 expansion).
-ipcMain.handle('hermes:readFileDataUrlForAttach', async (_event, filePath) => {
+ipcMain.handle('kova:readFileDataUrlForAttach', async (_event, filePath) => {
   const bridgedPath = resolveIpcFileReadPath(filePath)
 
   try {
@@ -16222,7 +16222,7 @@ ipcMain.handle('hermes:readFileDataUrlForAttach', async (_event, filePath) => {
   }
 })
 
-ipcMain.handle('hermes:readFileText', async (_event, filePath) => {
+ipcMain.handle('kova:readFileText', async (_event, filePath) => {
   try {
     const { resolvedPath, stat } = await resolveReadableFileForIpc(resolveIpcFileReadPath(filePath), {
       maxBytes: TEXT_PREVIEW_SOURCE_MAX_BYTES,
@@ -16264,13 +16264,13 @@ ipcMain.handle('hermes:readFileText', async (_event, filePath) => {
 })
 
 // Runtime desktop plugins load their FULL source through this door.
-// `hermes:readFileText` is the *preview* read and silently truncates at
+// `kova:readFileText` is the *preview* read and silently truncates at
 // TEXT_PREVIEW_MAX_BYTES (512 KiB) — for a plugin that means evaluating half a
 // file. Dedicated generous cap, full read, and a hard EFBIG (via maxBytes)
 // instead of truncation when the source exceeds it.
 const PLUGIN_SOURCE_MAX_BYTES = 16 * 1024 * 1024
 
-ipcMain.handle('hermes:readPluginSource', async (_event: unknown, filePath: unknown) => {
+ipcMain.handle('kova:readPluginSource', async (_event: unknown, filePath: unknown) => {
   const { resolvedPath, stat } = await resolveReadableFileForIpc(filePath, {
     maxBytes: PLUGIN_SOURCE_MAX_BYTES,
     purpose: 'Plugin source'
@@ -16284,7 +16284,7 @@ ipcMain.handle('hermes:readPluginSource', async (_event: unknown, filePath: unkn
   }
 })
 
-ipcMain.handle('hermes:selectPaths', async (_event, options: any = {}) => {
+ipcMain.handle('kova:selectPaths', async (_event, options: any = {}) => {
   const properties = selectPathsDialogProperties(options || {})
 
   let resolvedDefaultPath
@@ -16326,13 +16326,13 @@ registerSaveDialogIpc(ipcMain, {
   showSaveDialog: options => dialog.showSaveDialog(mainWindow, options)
 })
 
-ipcMain.handle('hermes:saveGatewayFile', (_event, payload) => saveGatewayFile(payload))
+ipcMain.handle('kova:saveGatewayFile', (_event, payload) => saveGatewayFile(payload))
 
-ipcMain.handle('hermes:saveImageFromUrl', (_event, url) => saveImageFromUrl(String(url || '')))
+ipcMain.handle('kova:saveImageFromUrl', (_event, url) => saveImageFromUrl(String(url || '')))
 
 // The custom context menu's edit verbs. They act on the SENDER's focused
 // element, so the renderer restores focus to the editable before invoking.
-ipcMain.handle('hermes:context-menu:edit', (event, command) => {
+ipcMain.handle('kova:context-menu:edit', (event, command) => {
   const contents = event.sender
 
   if (command === 'copy') {
@@ -16348,7 +16348,7 @@ ipcMain.handle('hermes:context-menu:edit', (event, command) => {
 
 // Copy the image under the sender's LAST context-menu gesture. Chromium only
 // exposes image bytes through copyImageAt, and only main saw the coordinates.
-ipcMain.handle('hermes:context-menu:copy-image', event => {
+ipcMain.handle('kova:context-menu:copy-image', event => {
   const point = lastContextMenuPoint.get(event.sender.id)
 
   if (point) {
@@ -16358,13 +16358,13 @@ ipcMain.handle('hermes:context-menu:copy-image', event => {
 
 registerSpellcheckDictionaryIpc(ipcMain, electronWebContents)
 
-ipcMain.handle('hermes:capturePreview', async (_event, payload) => {
+ipcMain.handle('kova:capturePreview', async (_event, payload) => {
   const guest = electronWebContents.fromId(Number(payload?.webContentsId))
 
   return capturePreviewContents(guest, payload?.rect, payload?.viewport)
 })
 
-ipcMain.handle('hermes:saveImageBuffer', async (_event, payload) => {
+ipcMain.handle('kova:saveImageBuffer', async (_event, payload) => {
   const data = payload?.data
 
   if (!data) {
@@ -16376,7 +16376,7 @@ ipcMain.handle('hermes:saveImageBuffer', async (_event, payload) => {
   return writeComposerImage(buffer, payload?.ext || '.png', payload?.name)
 })
 
-ipcMain.handle('hermes:savePastedText', async (_event, payload) => {
+ipcMain.handle('kova:savePastedText', async (_event, payload) => {
   const text = typeof payload?.text === 'string' ? payload.text : ''
 
   if (!text) {
@@ -16386,7 +16386,7 @@ ipcMain.handle('hermes:savePastedText', async (_event, payload) => {
   return writeComposerPaste(KOVA_HOME, text)
 })
 
-ipcMain.handle('hermes:saveClipboardImage', async () => {
+ipcMain.handle('kova:saveClipboardImage', async () => {
   // Electron 44 removed clipboard.readImage(); PNG bytes now arrive through
   // clipboard.read() + ClipboardItem.getType('image/png') as a Blob.
   const png = await readClipboardImagePng(clipboard)
@@ -16409,15 +16409,15 @@ ipcMain.handle('hermes:saveClipboardImage', async () => {
   return ''
 })
 
-ipcMain.handle('hermes:normalizePreviewTarget', (_event, target, baseDir) =>
+ipcMain.handle('kova:normalizePreviewTarget', (_event, target, baseDir) =>
   normalizePreviewTarget(String(target || ''), baseDir ? String(baseDir) : '')
 )
 
-ipcMain.handle('hermes:watchPreviewFile', (event, url) => watchPreviewFile(event.sender, String(url || '')))
+ipcMain.handle('kova:watchPreviewFile', (event, url) => watchPreviewFile(event.sender, String(url || '')))
 
-ipcMain.handle('hermes:watchDirectory', (event, dir) => watchDirectory(event.sender, String(dir || '')))
+ipcMain.handle('kova:watchDirectory', (event, dir) => watchDirectory(event.sender, String(dir || '')))
 
-ipcMain.handle('hermes:stopPreviewFileWatch', (_event, id) => stopPreviewFileWatch(String(id || '')))
+ipcMain.handle('kova:stopPreviewFileWatch', (_event, id) => stopPreviewFileWatch(String(id || '')))
 
 // Each renderer reports the turns it has in flight; the quit guard reads the
 // merged picture. Keyed by webContents id so a closed window stops counting.
@@ -16464,7 +16464,7 @@ function updateStreamThrottleFromActiveWork() {
   applyKeepAwake(working)
 }
 
-ipcMain.on('hermes:active-work', (event, payload) => {
+ipcMain.on('kova:active-work', (event, payload) => {
   const id = event.sender.id
   const owner = BrowserWindow.fromWebContents(event.sender)
 
@@ -16497,7 +16497,7 @@ ipcMain.on('hermes:active-work', (event, payload) => {
   updateStreamThrottleFromActiveWork()
 })
 
-ipcMain.on('hermes:titlebar-theme', (_event, payload) => {
+ipcMain.on('kova:titlebar-theme', (_event, payload) => {
   if (!payload || !isHexColor(payload.background) || !isHexColor(payload.foreground)) {
     return
   }
@@ -16516,7 +16516,7 @@ ipcMain.on('hermes:titlebar-theme', (_event, payload) => {
 })
 
 // Pin the native appearance to the app theme (see NATIVE_THEME_CONFIG_PATH).
-ipcMain.on('hermes:native-theme', (_event, mode) => {
+ipcMain.on('kova:native-theme', (_event, mode) => {
   if (!THEME_SOURCES.has(mode)) {
     return
   }
@@ -16578,7 +16578,7 @@ app.on('quit', () => {
 // Answered synchronously so preload can publish the verdict before the
 // renderer's first script — see the note there on why it cannot decide this
 // itself. Registered at module scope, which runs long before any window.
-ipcMain.on('hermes:translucency:support', event => {
+ipcMain.on('kova:translucency:support', event => {
   event.returnValue = { glass: GLASS_SUPPORTED, translucency: TRANSLUCENCY_SUPPORTED }
 })
 
@@ -16589,7 +16589,7 @@ ipcMain.on('hermes:translucency:support', event => {
 // stable builds, and canary builds get the same surfaces by default. Launch
 // flags survive self-relaunches because collectRelaunchArgs only strips
 // internal flags.
-ipcMain.on('hermes:feature-flags', (event: IpcMainEvent): void => {
+ipcMain.on('kova:feature-flags', (event: IpcMainEvent): void => {
   event.returnValue = {
     ...resolveFeatureFlags({
       argv: process.argv,
@@ -16601,7 +16601,7 @@ ipcMain.on('hermes:feature-flags', (event: IpcMainEvent): void => {
   }
 })
 
-ipcMain.on('hermes:translucency', (_event, payload) => {
+ipcMain.on('kova:translucency', (_event, payload) => {
   const next = normalizeTranslucency(payload, GLASS_SUPPORTED)
   const previous = translucencyState
 
@@ -16659,7 +16659,7 @@ const keepAwake = createKeepAwakeController({
       return false
     }
 
-    mainWindow.webContents.send('hermes:keep-awake-offer')
+    mainWindow.webContents.send('kova:keep-awake-offer')
 
     return true
   }
@@ -16670,14 +16670,14 @@ function applyKeepAwake(working = isAnyTurnInFlight()) {
   keepAwake.apply(working)
 }
 
-ipcMain.on('hermes:keep-awake', (_event, value) => keepAwake.setMode(value))
+ipcMain.on('kova:keep-awake', (_event, value) => keepAwake.setMode(value))
 
 // Quick Entry: the renderer reads the live registration state on settings mount
 // and writes the preference back. Main is authoritative — it owns the OS
 // accelerator — so both handlers return the state that ACTUALLY resulted,
 // including `registered: false` + `error: 'taken'` when another app owns the
 // chord. See electron/quick-entry.ts + store/quick-entry.
-ipcMain.handle('hermes:quick-entry:settings:get', async () => {
+ipcMain.handle('kova:quick-entry:settings:get', async () => {
   const settings = readQuickEntrySettings()
   const state = quickEntryShortcut.current()
 
@@ -16691,7 +16691,7 @@ ipcMain.handle('hermes:quick-entry:settings:get', async () => {
   }
 })
 
-ipcMain.handle('hermes:quick-entry:settings:set', async (_event, patch) => {
+ipcMain.handle('kova:quick-entry:settings:set', async (_event, patch) => {
   const current = readQuickEntrySettings()
 
   const next = sanitizeQuickEntrySettings({
@@ -16714,7 +16714,7 @@ const quickEntrySubmitRelay = createQuickEntrySubmitRelay({
   // resending a prompt that may already be delivered.
   onLateResult: (correlationId, result) => {
     if (quickEntryWindow && !quickEntryWindow.isDestroyed()) {
-      quickEntryWindow.webContents.send('hermes:quick-entry:late-result', { correlationId, result })
+      quickEntryWindow.webContents.send('kova:quick-entry:late-result', { correlationId, result })
     }
   },
   onSuccess: () => {
@@ -16733,7 +16733,7 @@ const quickEntrySubmitRelay = createQuickEntrySubmitRelay({
 
 // Main owns the request lifecycle so the capture window can keep text until
 // the primary renderer confirms delivery (#85590).
-ipcMain.handle('hermes:quick-entry:submit', (event, payload) => {
+ipcMain.handle('kova:quick-entry:submit', (event, payload) => {
   if (!quickEntryWindow || event.sender !== quickEntryWindow.webContents) {
     return { code: 'forbidden', message: 'Quick Entry sender is not authorized.', ok: false, retryable: false }
   }
@@ -16753,13 +16753,13 @@ ipcMain.handle('hermes:quick-entry:submit', (event, payload) => {
     typeof payload === 'object' && typeof payload?.target === 'string' && payload.target ? payload.target : 'current'
 
   return quickEntrySubmitRelay.begin(correlationId => {
-    mainWindow.webContents.send('hermes:quick-entry:submit', { correlationId, target, text })
+    mainWindow.webContents.send('kova:quick-entry:submit', { correlationId, target, text })
   })
 })
 
 // Main cannot invoke the primary renderer, so the primary returns by id. Stale
 // or duplicate acknowledgements are intentionally ignored (#85590).
-ipcMain.on('hermes:quick-entry:ack', (event, payload) => {
+ipcMain.on('kova:quick-entry:ack', (event, payload) => {
   if (!mainWindow || event.sender !== mainWindow.webContents) {
     return
   }
@@ -16770,15 +16770,15 @@ ipcMain.on('hermes:quick-entry:ack', (event, payload) => {
 // Primary renderer → main → quick window: gateway connection state + the
 // recent-session list for the target picker. Cached so a quick window spawned
 // AFTER the last push still boots from truth instead of "disconnected".
-ipcMain.on('hermes:quick-entry:state', (_event, payload) => {
+ipcMain.on('kova:quick-entry:state', (_event, payload) => {
   quickEntryLastState = payload ?? null
 
   if (quickEntryWindow && !quickEntryWindow.isDestroyed()) {
-    quickEntryWindow.webContents.send('hermes:quick-entry:state', payload)
+    quickEntryWindow.webContents.send('kova:quick-entry:state', payload)
   }
 })
 
-ipcMain.on('hermes:quick-entry:dismiss', () => hideQuickEntryWindow())
+ipcMain.on('kova:quick-entry:dismiss', () => hideQuickEntryWindow())
 
 // Disable F12 DevTools: maintained in the main process so a cold launch
 // restores it before any window is shown (applied on ready). The renderer
@@ -16793,7 +16793,7 @@ function readPersistedDisableF12() {
   }
 }
 
-ipcMain.on('hermes:devtools:disable-f12', (_event, on) => {
+ipcMain.on('kova:devtools:disable-f12', (_event, on) => {
   f12Blocked = Boolean(on)
 
   try {
@@ -16813,7 +16813,7 @@ registerChallengeWindowIpc({
   rememberLog
 })
 
-ipcMain.handle('hermes:openExternal', async (_event, url) => {
+ipcMain.handle('kova:openExternal', async (_event, url) => {
   const result = await openExternalUrl(url)
 
   if (result.ok === false && result.reason === 'invalid') {
@@ -16823,7 +16823,7 @@ ipcMain.handle('hermes:openExternal', async (_event, url) => {
 
 // ── Find-in-page (Ctrl/Cmd+F) ─────────────────────────────────────────────
 // The desktop supports multiple BrowserWindows (one primary plus any
-// per-session secondary windows spawned via `hermes:window:openSession`).
+// per-session secondary windows spawned via `kova:window:openSession`).
 // Find must run against the requesting window, not a global — otherwise
 // Cmd+F pressed in a secondary session window would search the primary
 // and the match counter would report matches the user can't see. Resolve
@@ -16850,7 +16850,7 @@ function ensureFoundInPageForwarder(sender: Electron.WebContents): void {
   })
 }
 
-ipcMain.handle('hermes:find-in-page', async (event, query, options) => {
+ipcMain.handle('kova:find-in-page', async (event, query, options) => {
   const win = BrowserWindow.fromWebContents(event.sender)
 
   if (!win || win.isDestroyed()) {
@@ -16865,7 +16865,7 @@ ipcMain.handle('hermes:find-in-page', async (event, query, options) => {
   return { count: 0 }
 })
 
-ipcMain.handle('hermes:stop-find-in-page', event => {
+ipcMain.handle('kova:stop-find-in-page', event => {
   const win = BrowserWindow.fromWebContents(event.sender)
 
   if (!win || win.isDestroyed()) {
@@ -16877,9 +16877,9 @@ ipcMain.handle('hermes:stop-find-in-page', event => {
 
 // The renderer can't know whether a loopback URL is reachable — only main
 // knows which transport backs this gateway. Ask before loading one.
-ipcMain.handle('hermes:preview:reach', async (event, url) => reachablePreviewUrl(event.sender.id, String(url || '')))
+ipcMain.handle('kova:preview:reach', async (event, url) => reachablePreviewUrl(event.sender.id, String(url || '')))
 
-ipcMain.handle('hermes:openPreviewInBrowser', async (_event, url) => {
+ipcMain.handle('kova:openPreviewInBrowser', async (_event, url) => {
   if (!(await openPreviewInBrowser(url))) {
     throw new Error('Invalid preview URL')
   }
@@ -16889,15 +16889,15 @@ ipcMain.handle('hermes:openPreviewInBrowser', async (_event, url) => {
 // settings mount and seeds the value into the picker; writing back persists
 // it via writeDefaultProjectDir so resolveKovaCwd picks it up on the next
 // session spawn (no app restart needed).
-ipcMain.handle('hermes:setting:defaultProjectDir:get', async () => ({
+ipcMain.handle('kova:setting:defaultProjectDir:get', async () => ({
   dir: readDefaultProjectDir(),
   defaultLabel: app.getPath('home'),
   resolvedCwd: resolveKovaCwd()
 }))
 
-ipcMain.handle('hermes:workspace:sanitize', async (_event, cwd) => sanitizeWorkspaceCwd(cwd))
+ipcMain.handle('kova:workspace:sanitize', async (_event, cwd) => sanitizeWorkspaceCwd(cwd))
 
-ipcMain.handle('hermes:setting:defaultProjectDir:set', async (_event, dir) => {
+ipcMain.handle('kova:setting:defaultProjectDir:set', async (_event, dir) => {
   const next = typeof dir === 'string' && dir.trim() ? dir.trim() : null
 
   if (next) {
@@ -16913,7 +16913,7 @@ ipcMain.handle('hermes:setting:defaultProjectDir:set', async (_event, dir) => {
   return { dir: next }
 })
 
-ipcMain.handle('hermes:setting:defaultProjectDir:pick', async () => {
+ipcMain.handle('kova:setting:defaultProjectDir:pick', async () => {
   const result = await dialog.showOpenDialog({
     title: 'Choose default project directory',
     properties: ['openDirectory', 'createDirectory'],
@@ -16927,11 +16927,11 @@ ipcMain.handle('hermes:setting:defaultProjectDir:pick', async () => {
   return { canceled: false, dir: result.filePaths[0] }
 })
 
-ipcMain.handle('hermes:fetchLinkTitle', (_event, url) => fetchLinkTitle(url))
+ipcMain.handle('kova:fetchLinkTitle', (_event, url) => fetchLinkTitle(url))
 
-ipcMain.handle('hermes:resolveFavicon', (_event, url) => resolveFaviconCached(url))
+ipcMain.handle('kova:resolveFavicon', (_event, url) => resolveFaviconCached(url))
 
-ipcMain.handle('hermes:logs:reveal', async () => {
+ipcMain.handle('kova:logs:reveal', async () => {
   try {
     await fs.promises.mkdir(path.dirname(DESKTOP_LOG_PATH), { recursive: true })
 
@@ -16947,14 +16947,14 @@ ipcMain.handle('hermes:logs:reveal', async () => {
   }
 })
 
-ipcMain.handle('hermes:logs:recent', async () => ({ path: DESKTOP_LOG_PATH, lines: hermesLog.slice(-200) }))
+ipcMain.handle('kova:logs:recent', async () => ({ path: DESKTOP_LOG_PATH, lines: hermesLog.slice(-200) }))
 
 // Renderer error-boundary catches (#79428 defect B): the component stack only
 // exists in renderer memory, so the boundary posts it here and we persist it
 // via the desktop.log pipeline. `on`, not `handle` — the sender may be mid-
 // crash and must not await. Flush immediately: a crashing window can be gone
 // before the debounced flush timer fires.
-ipcMain.on('hermes:logs:renderer-error', (_event, report) => {
+ipcMain.on('kova:logs:renderer-error', (_event, report) => {
   const { label, boundary, message, componentStack } = report && typeof report === 'object' ? report : {}
   rememberLog(formatRendererBoundaryReport(label, boundary, message, componentStack))
   flushDesktopLogBufferSync()
@@ -16969,7 +16969,7 @@ registerMachineUiPreferences(KOVA_HOME)
 // so the caller posts the full error here for desktop.log. Fire-and-forget,
 // like renderer-error — the toast must never depend on this round-trip.
 // Clamp: the line is renderer-supplied.
-ipcMain.on('hermes:logs:renderer-line', (_event, line) => {
+ipcMain.on('kova:logs:renderer-line', (_event, line) => {
   const text = typeof line === 'string' ? line.slice(0, 6000) : ''
 
   if (!text) {
@@ -16982,7 +16982,7 @@ ipcMain.on('hermes:logs:renderer-line', (_event, line) => {
 
 // Local filesystem + plugin-root IPC (readDir/reveal/rename/trash/…) — see fs-ipc.ts.
 registerFsIpc({
-  hermesHome: KOVA_HOME,
+  kovaHome: KOVA_HOME,
   readActiveDesktopProfile,
   expandUserPath,
   resolveRequestedPathForIpc,
@@ -17016,7 +17016,7 @@ const terminalIpc = registerTerminalIpc({
 const disposeTerminalSession = terminalIpc.disposeTerminalSession
 
 ipcMain.handle(
-  'hermes:updates:check',
+  'kova:updates:check',
   async (_event: Electron.IpcMainInvokeEvent, opts?: { force?: boolean }): Promise<UpdaterStatusWire> =>
     checkUpdates({ force: Boolean(opts?.force) }).catch((error: Error): UpdaterStatusWire => ({
       supported: true,
@@ -17027,7 +17027,7 @@ ipcMain.handle(
     }))
 )
 
-ipcMain.handle('hermes:updates:apply', async (_event, payload) =>
+ipcMain.handle('kova:updates:apply', async (_event, payload) =>
   applyUpdates().catch(error => ({
     ok: false,
     error: 'apply-failed',
@@ -17036,7 +17036,7 @@ ipcMain.handle('hermes:updates:apply', async (_event, payload) =>
 )
 
 // About ▸ Updates channel selector; source checkouts only (packages bake their channel).
-ipcMain.handle('hermes:updates:channel:set', async (_event, name: unknown): Promise<UpdaterStatusWire> => {
+ipcMain.handle('kova:updates:channel:set', async (_event, name: unknown): Promise<UpdaterStatusWire> => {
   assertSourceUpdateChannel(INSTALL_STAMP)
 
   return resolveCheckoutUpdateStrategy().check({ force: true, setChannel: sourceChannelName(name) })
@@ -17085,7 +17085,7 @@ function showAboutPanelFresh(): void {
   })
 }
 
-ipcMain.handle('hermes:version', async (_event, scope?: { connectionId?: string; profile?: string }) => {
+ipcMain.handle('kova:version', async (_event, scope?: { connectionId?: string; profile?: string }) => {
   const [skew, version, clientVersion] = await Promise.all([
     detectRendererSkew(),
     resolveKovaVersion(scope),
@@ -17101,7 +17101,7 @@ ipcMain.handle('hermes:version', async (_event, scope?: { connectionId?: string;
     nodeVersion: process.versions.node,
     platform: process.platform,
     hermesRoot: resolveUpdateRoot(),
-    hermesHome: KOVA_HOME,
+    kovaHome: KOVA_HOME,
     bundleOutOfSync: skew.outOfSync,
     bundleCommitsBehind: skew.desktopCommitsBehind,
     // The install id: sha16 of the canonical install-root path — the key of
@@ -17131,7 +17131,7 @@ ipcMain.handle('hermes:version', async (_event, scope?: { connectionId?: string;
 // The About page's "Restart Kova" button (shown when bundleSwapPending):
 // load the already-swapped bundle without asking the user to quit manually.
 // The relaunch re-executes by path, so the fresh process loads the bundle now there.
-ipcMain.handle('hermes:app:relaunch', async () => {
+ipcMain.handle('kova:app:relaunch', async () => {
   rememberLog('[updates] renderer requested an app relaunch (swapped bundle pending)')
   relaunchApp(relauncher, { args: buildNoSandboxRelaunchArgs(process.argv.slice(1)) })
   void exitAfterBackendShutdown(0)
@@ -17158,7 +17158,7 @@ function readLatestSyncReceipt(): Record<string, unknown> | null {
   }
 }
 
-ipcMain.handle('hermes:sync-status', () => readLatestSyncReceipt())
+ipcMain.handle('kova:sync-status', () => readLatestSyncReceipt())
 
 // Python's Path.resolve() equivalent for install-id derivation: realpath when
 // the path exists, plain resolve otherwise. Must stay byte-compatible with
@@ -17391,7 +17391,7 @@ async function runDesktopUninstall(mode: string): Promise<DesktopUninstallResult
     agentRoot: ACTIVE_KOVA_ROOT,
     uninstallArgs,
     appPath: removeBundle,
-    hermesHome: KOVA_HOME
+    kovaHome: KOVA_HOME
   }
 
   let scriptPath
@@ -17451,10 +17451,10 @@ registerDesktopUninstallIpc({
 
 // Download a VS Code Marketplace extension and return the raw color-theme JSON
 // it contributes. No theme code is executed — we only read JSON from the .vsix.
-ipcMain.handle('hermes:vscode-theme:fetch', async (_event, id) => fetchMarketplaceThemes(String(id || '')))
+ipcMain.handle('kova:vscode-theme:fetch', async (_event, id) => fetchMarketplaceThemes(String(id || '')))
 
 // Search the Marketplace for color-theme extensions (empty query = top installs).
-ipcMain.handle('hermes:vscode-theme:search', async (_event, query) => searchMarketplaceThemes(String(query || ''), 20))
+ipcMain.handle('kova:vscode-theme:search', async (_event, query) => searchMarketplaceThemes(String(query || ''), 20))
 
 // ---------------------------------------------------------------------------
 // hermes:// deep links (e.g. hermes://blueprint/morning-brief?time=08:00,
@@ -17567,7 +17567,7 @@ function handleDeepLink(url) {
     // #130810 un-hide a tray-hidden window; #83998 no foreground re-pump.
     activateWindow(mainWindow)
 
-    mainWindow.webContents.send('hermes:deep-link', payload)
+    mainWindow.webContents.send('kova:deep-link', payload)
     rememberLog(`[deeplink] delivered ${kind}/${name}`)
   } catch (err) {
     rememberLog(`[deeplink] delivery failed: ${err.message}`)
@@ -17576,7 +17576,7 @@ function handleDeepLink(url) {
 
 // Renderer calls this (via IPC) once it has mounted its deep-link listener, so
 // a link that arrived during boot/install is flushed exactly once.
-ipcMain.handle('hermes:deep-link-ready', () => {
+ipcMain.handle('kova:deep-link-ready', () => {
   _rendererReadyForDeepLink = true
 
   if (_pendingOpenUpdates) {
@@ -17614,7 +17614,7 @@ if (preReadyDockSteps.includes('register-deep-link')) {
 }
 
 // Single-instance lock: deep links on a running app (Win/Linux) arrive as a
-// second-instance argv. Without the lock a second `hermes://` launch spawns a
+// second-instance argv. Without the lock a second `kova://` launch spawns a
 // whole new app instead of routing into the running one.
 if (!isPrimaryInstance) {
   // Hard-exit, not app.quit(): the before-quit teardown coordinator defers a
@@ -17641,10 +17641,10 @@ if (!isPrimaryInstance) {
   app.on('second-instance', (_event, argv) => {
     // --close-preview: the same escape hatch as hermes://close-preview, for
     // environments where spawning a URL is harder than a flag (kiosk launchers,
-    // SSH-started sessions). Checked before deep links so a carried `hermes://`
+    // SSH-started sessions). Checked before deep links so a carried `kova://`
     // URL still routes normally when no flag is present.
     if (hasClosePreviewFlag(argv)) {
-      handleDeepLink('hermes://close-preview')
+      handleDeepLink('kova://close-preview')
     }
 
     const url = _extractDeepLink(argv)

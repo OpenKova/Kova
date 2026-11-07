@@ -1,7 +1,7 @@
 import { randomUuid } from '@kova/shared'
 
 type StreamWorkBridge = Required<
-  Pick<NonNullable<Window['hermesDesktop']>, 'scheduleStreamWorkWake' | 'onStreamWorkWake'>
+  Pick<NonNullable<Window['kovaDesktop']>, 'scheduleStreamWorkWake' | 'onStreamWorkWake'>
 >
 
 interface StreamWork {

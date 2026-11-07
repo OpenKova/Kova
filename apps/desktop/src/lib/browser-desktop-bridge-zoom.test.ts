@@ -15,7 +15,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   clearWebappSession()
   document.documentElement.style.removeProperty('zoom')
   delete document.documentElement.dataset.kovaDesktopHost

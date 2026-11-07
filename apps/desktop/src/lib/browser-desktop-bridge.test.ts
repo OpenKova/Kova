@@ -15,7 +15,7 @@ type MutableWindow = Window & {
   __KOVA_AUTH_REQUIRED__?: boolean
   __KOVA_BASE_PATH__?: string
   __KOVA_DASHBOARD_PROFILE__?: string
-  hermesDesktop?: Window['hermesDesktop']
+  kovaDesktop?: Window['kovaDesktop']
 }
 
 const mutableWindow = () => window as unknown as MutableWindow
@@ -26,7 +26,7 @@ afterEach(() => {
   delete win.__KOVA_BASE_PATH__
   delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
-  Reflect.deleteProperty(win, 'hermesDesktop')
+  Reflect.deleteProperty(win, 'kovaDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   Reflect.deleteProperty(navigator, 'clipboard')
   window.history.replaceState(null, '', '/#/')
@@ -72,7 +72,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('does not replace the Electron preload bridge', () => {
     const win = mutableWindow()
-    const existing = { api: vi.fn() } as unknown as Window['hermesDesktop']
+    const existing = { api: vi.fn() } as unknown as Window['kovaDesktop']
     seedWebappSession('served-token')
     win.kovaDesktop = existing
 
@@ -186,7 +186,7 @@ describe('browser-hosted Desktop bridge', () => {
     win.__KOVA_BASE_PATH__ = '/hermes'
     let loginUrl = ''
     window.addEventListener(
-      'hermes:browser-reauth-required',
+      'kova:browser-reauth-required',
       event => {
         event.preventDefault()
         loginUrl = String((event as CustomEvent<{ loginUrl?: string }>).detail.loginUrl || '')
@@ -222,7 +222,7 @@ describe('browser-hosted Desktop bridge', () => {
     win.__KOVA_BASE_PATH__ = '/hermes'
     let loginUrl = ''
     window.addEventListener(
-      'hermes:browser-reauth-required',
+      'kova:browser-reauth-required',
       event => {
         event.preventDefault()
         loginUrl = String((event as CustomEvent<{ loginUrl?: string }>).detail.loginUrl || '')

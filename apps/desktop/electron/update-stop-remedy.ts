@@ -27,8 +27,8 @@ export interface UpdateStopExplanation {
  * `update_committed_after_exit`). A profile home passed here therefore still
  * reads the root's store.
  */
-export function receiptDirectory(hermesHome: string): string {
-  const home: string = path.resolve(hermesHome)
+export function receiptDirectory(kovaHome: string): string {
+  const home: string = path.resolve(kovaHome)
   const root: string = path.basename(path.dirname(home)) === 'profiles' ? path.dirname(path.dirname(home)) : home
 
   return path.join(root, 'logs', 'update_receipts')
@@ -44,7 +44,7 @@ export function receiptDirectory(hermesHome: string): string {
  * outcome. Anything missing or unexpected returns null and the caller keeps its
  * generic text: the dialog must never invent a stop it cannot prove.
  */
-export function readStoppedRun(hermesHome: string, correlationId: string | null): UpdateStop | null {
+export function readStoppedRun(kovaHome: string, correlationId: string | null): UpdateStop | null {
   if (!correlationId) {
     return null // no run identity: a receipt on disk cannot be attributed to this result
   }
@@ -52,7 +52,7 @@ export function readStoppedRun(hermesHome: string, correlationId: string | null)
   let parsed: any
 
   try {
-    parsed = JSON.parse(fs.readFileSync(path.join(receiptDirectory(hermesHome), 'latest.json'), 'utf8'))
+    parsed = JSON.parse(fs.readFileSync(path.join(receiptDirectory(kovaHome), 'latest.json'), 'utf8'))
   } catch {
     return null
   }
