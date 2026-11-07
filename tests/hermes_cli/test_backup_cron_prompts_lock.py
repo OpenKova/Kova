@@ -18,8 +18,8 @@ def test_concurrent_cron_edits_survive_recovery(tmp_path, monkeypatch):
     import cron.jobs as cron_jobs
     from kova_cli.backup import create_quick_snapshot
     import kova_cli.backup_cron_prompts as bcp
-    hermes_home = tmp_path / ".hermes"
-    jobs_path = hermes_home / "cron" / "jobs.json"
+    kova_home = tmp_path / ".kova"
+    jobs_path = kova_home / "cron" / "jobs.json"
     sched = {"kind": "interval", "minutes": 60, "display": "every 60m"}
 
     def job(job_id, prompt):
@@ -28,7 +28,7 @@ def test_concurrent_cron_edits_survive_recovery(tmp_path, monkeypatch):
 
     _seed_jobs(jobs_path, [job("a", "A real prompt."), job("b", "B real prompt."),
                           job("c", "C real prompt.")])
-    snap_id = create_quick_snapshot(label="pre-update", hermes_home=hermes_home, keep=5)
+    snap_id = create_quick_snapshot(label="pre-update", kova_home=kova_home, keep=5)
     assert snap_id
     _seed_jobs(jobs_path, [job("a", "A"), job("b", "B"), job("c", "C real prompt.")])
 
@@ -39,7 +39,7 @@ def test_concurrent_cron_edits_survive_recovery(tmp_path, monkeypatch):
         doc = real_load(path)
         if Path(path) == jobs_path and not fired:
             fired.append(True)
-            with cron_jobs.use_cron_store(hermes_home):
+            with cron_jobs.use_cron_store(kova_home):
                 new_id = cron_jobs.create_job(prompt="New prompt.", schedule="every 1h",
                                               name="new")["id"]
                 fired.append(new_id)
@@ -49,7 +49,7 @@ def test_concurrent_cron_edits_survive_recovery(tmp_path, monkeypatch):
         return doc
 
     monkeypatch.setattr(bcp, "_load_cron_jobs_doc", load_then_race)
-    result = bcp.restore_cron_prompt_fields_if_degraded(snap_id, hermes_home=hermes_home)
+    result = bcp.restore_cron_prompt_fields_if_degraded(snap_id, kova_home=kova_home)
 
     assert len(fired) == 2
     assert result is not None and result["job_ids"] == ["a"]

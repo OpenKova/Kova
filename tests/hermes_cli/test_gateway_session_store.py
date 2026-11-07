@@ -56,7 +56,7 @@ def cli(session_id="20261012_000000_abcdef", resumed=False):
 
 
 def test_new_session_is_created_on_the_gateway_and_its_id_adopted(store, monkeypatch):
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db, client = store
     sid = db.open_session(cli(), {"model": "m1", "toolsets": ["file", "web"], "provider": None})
     assert sid == "local-new"
@@ -72,18 +72,18 @@ def test_a_finite_run_creates_mains_oneshot_session_so_bare_c_finds_it(store, mo
     """Main labels a `chat -q` / `-Q` session ``oneshot`` (agent.session_source.session_source_for), which
     `hermes -c` / `--resume latest` count as CLI history; created as ``cli`` the owner stores the
     transport's ``local`` and the next bare `-c` finds nothing."""
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE_EXPLICIT", raising=False)
-    monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE_EXPLICIT", raising=False)
+    monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
     db, client = store
     db.open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "oneshot"
     # An explicit `--source tool` still wins, and an interactive session stays `cli`.
-    monkeypatch.setenv("HERMES_SESSION_SOURCE", "tool")
-    monkeypatch.setenv("HERMES_SESSION_SOURCE_EXPLICIT", "1")
+    monkeypatch.setenv("KOVA_SESSION_SOURCE", "tool")
+    monkeypatch.setenv("KOVA_SESSION_SOURCE_EXPLICIT", "1")
     GatewaySessionStore(db.connection).open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "tool"
-    for name in ("HERMES_SINGLE_QUERY_SESSION", "HERMES_SESSION_SOURCE", "HERMES_SESSION_SOURCE_EXPLICIT"):
+    for name in ("KOVA_SINGLE_QUERY_SESSION", "KOVA_SESSION_SOURCE", "KOVA_SESSION_SOURCE_EXPLICIT"):
         monkeypatch.delenv(name)
     GatewaySessionStore(db.connection).open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "cli"
@@ -225,7 +225,7 @@ def test_store_is_falsy_once_the_gateway_connection_closed(store):
 def test_reader_opens_once_the_gateway_created_state_db(store, tmp_path, monkeypatch):
     """The startup maintenance probe runs before the gateway exists; that miss is not latched."""
     db, _ = store
-    monkeypatch.setattr("kova_constants.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr("kova_constants.get_kova_home", lambda: tmp_path)
     assert db.get_session("x") is None and db._reader is None
     from kova_state import SessionDB
     SessionDB(db_path=tmp_path / "state.db").close()
@@ -264,7 +264,7 @@ def test_rename_refusal_prints_mains_title_in_use_text(store, tmp_path, monkeypa
     """The owner's ValueError text never crosses the wire (bounded reason codes); the rename copy
     main prints comes from the read-only reader."""
     db, client = store
-    monkeypatch.setattr("kova_constants.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr("kova_constants.get_kova_home", lambda: tmp_path)
     from kova_state import SessionDB
     writer = SessionDB(db_path=tmp_path / "state.db")
     writer.create_session("local-other", source="local")
@@ -337,7 +337,7 @@ def test_new_session_id_is_a_fresh_gateway_session(store, monkeypatch):
     """/new: the id main mints is the gateway's new session (created with the profile's default model:
     an explicit -m was for the previous session only)."""
     from kova_cli.cli_init_mixin import CLIInitMixin
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db, client = store
     host = types.SimpleNamespace(session_id="local-old", _resumed=True, _session_db=db, model="m-explicit",
                                  _explicit_model_override=True, requested_provider=None, enabled_toolsets=["file"],
@@ -387,7 +387,7 @@ def test_cli_listings_include_gateway_rows_created_by_the_cli(store, tmp_path, m
     main's ``source='cli'`` listings (/resume picker, /sessions, /history, bare -c) read both labels."""
     import sqlite3
     db, _ = store
-    monkeypatch.setattr("kova_constants.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr("kova_constants.get_kova_home", lambda: tmp_path)
     from kova_state import SessionDB
     writer = SessionDB(db_path=tmp_path / "state.db")
     rows = (("local-cli", "local", "cli"), ("local-tui", "local", "tui"), ("legacy", "cli", "cli"),
@@ -424,7 +424,7 @@ def test_bare_continue_finds_the_last_session_the_cli_created(tmp_path, monkeypa
     """Bare ``-c`` (main.py ``_resolve_last_session``) reads main's labels too: a gateway row labelled
     ``local`` that the CLI created is CLI history."""
     import sqlite3
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     from kova_state import SessionDB
     writer = SessionDB(db_path=tmp_path / "state.db")
     writer.create_session("local-cli", source="local")
@@ -498,7 +498,7 @@ def test_row_cwd_is_mains_stamp_while_the_tools_run_in_terminal_cwd(store, monke
     monkeypatch.chdir(repo)
     monkeypatch.setenv("TERMINAL_CWD", str(tree))
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db.open_session(cli(), {"toolsets": ["file"]})
     first = [p for m, p in client.calls if m == "session.create"][-1]
     assert first["cwd"] == str(tree.resolve()) and first["row_cwd"] == str(repo.resolve())
@@ -523,7 +523,7 @@ def test_a_sandbox_backend_sends_the_host_launch_dir_not_its_terminal_cwd(store,
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("TERMINAL_CWD", "/project/not-on-this-host")
     monkeypatch.setenv("TERMINAL_ENV", backend)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tmp_path.resolve())
     monkeypatch.setattr(gss, "session_store", lambda: db)
@@ -542,7 +542,7 @@ def test_a_mounting_docker_backend_sends_the_w_worktree_not_the_launch_dir(store
     monkeypatch.setenv("TERMINAL_CWD", str(tree))
     monkeypatch.setenv("TERMINAL_ENV", "docker")
     monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tree.resolve())
 
@@ -568,7 +568,7 @@ def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypat
     monkeypatch.setenv("TERMINAL_ENV", backend)
     if mount:
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", mount)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tree.resolve())
     monkeypatch.setattr(gss, "session_store", lambda: db)
@@ -592,14 +592,14 @@ def test_a_project_resumed_after_w_is_sent_not_the_w_worktree(store, monkeypatch
     monkeypatch.setenv("TERMINAL_ENV", backend)
     if mount:
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", mount)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     CLISessionMixin._restore_session_cwd(types.SimpleNamespace(), {"cwd": str(project_b)}, quiet=True)
     db.create({"toolsets": ["file"]}, record_cwd=False)
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(project_b.resolve())
 
 
 def test_explicit_reasoning_max_turns_and_checkpoints_reach_session_create(store, monkeypatch):
-    """Main's HermesCLI built AIAgent with the run's `--reasoning`, `--max-turns` and `--checkpoints`;
+    """Main's KovaCLI built AIAgent with the run's `--reasoning`, `--max-turns` and `--checkpoints`;
     the gateway now builds the agent, so `session.create` must carry them or the run silently uses
     the profile default. Unset flags stay unset (the gateway resolves the profile default)."""
     from types import SimpleNamespace
@@ -810,11 +810,11 @@ def test_branch_never_shows_yolo_the_gateway_refused(store):
 
 
 def test_exported_ignore_rules_never_refuses_a_bare_resume(store, monkeypatch):
-    """CLI-2: an exported HERMES_IGNORE_RULES is creation policy only, so a bare `hermes -c` continues a
+    """CLI-2: an exported KOVA_IGNORE_RULES is creation policy only, so a bare `hermes -c` continues a
     session created without it (Desktop, Ink, before the export); a typed --ignore-rules is still refused,
     as the thin client refuses it."""
     from kova_cli.cli_init_mixin import CLIInitMixin, _gateway_launch
-    monkeypatch.setenv("HERMES_IGNORE_RULES", "1")
+    monkeypatch.setenv("KOVA_IGNORE_RULES", "1")
     db, client = store
     _frozen_launch(client, {"model": "m-frozen"})
 
@@ -858,7 +858,7 @@ def test_clear_banner_shows_the_new_gateway_sessions_tools_and_short_label(store
     session's snapshot (its MCP tools, main's 8-character label), as the startup banner does; this
     process's own tool registry has no MCP servers and is never walked."""
     import cli as cli_mod
-    from cli import HermesCLI
+    from cli import KovaCLI
     db, client = store
     canonical = "local-ab12cd34" + "e" * 56
     info = {**INFO, "tools": {"file": ["read_file"], "mcp-zeta": ["mcp__zeta__ro_probe"]}}
@@ -873,7 +873,7 @@ def test_clear_banner_shows_the_new_gateway_sessions_tools_and_short_label(store
     monkeypatch.setattr(cli_mod, "get_tool_definitions", lambda **_kw: pytest.fail("walked the CLI's registry"))
     monkeypatch.setattr(cli_mod, "_cprint", lambda *_a: None)
     monkeypatch.setattr("shutil.get_terminal_size", lambda *_a: types.SimpleNamespace(columns=200, lines=50))
-    shell = HermesCLI.__new__(HermesCLI)
+    shell = KovaCLI.__new__(KovaCLI)
     shell.__dict__.update(
         _session_db=db, session_id="local-old", compact=False, model="fake-model", provider="custom",
         enabled_toolsets=["hermes-cli"], disabled_toolsets=[], agent=None,

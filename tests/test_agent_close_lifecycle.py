@@ -224,9 +224,9 @@ class TestPromptBackgroundClosesAgent:
 
 
 def _make_cli():
-    from cli import HermesCLI
+    from cli import KovaCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._background_task_counter = 0
     cli._background_tasks = {}
     cli._agent_running = False

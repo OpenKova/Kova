@@ -27,7 +27,7 @@ def _reset_kova_time_cache():
 # kova_time.now() — core helper
 # =========================================================================
 
-class TestHermesTimeNow:
+class TestKovaTimeNow:
     """Test the timezone-aware now() helper."""
 
     def setup_method(self):
@@ -35,11 +35,11 @@ class TestHermesTimeNow:
 
     def teardown_method(self):
         _reset_kova_time_cache()
-        os.environ.pop("HERMES_TIMEZONE", None)
+        os.environ.pop("KOVA_TIMEZONE", None)
 
     def test_valid_timezone_applies(self):
         """With a valid IANA timezone, now() returns time in that zone."""
-        os.environ["HERMES_TIMEZONE"] = "Asia/Kolkata"
+        os.environ["KOVA_TIMEZONE"] = "Asia/Kolkata"
         result = kova_time.now()
         assert result.tzinfo is not None
         # IST is UTC+5:30
@@ -82,11 +82,11 @@ class TestGetTimezone:
 
     def teardown_method(self):
         _reset_kova_time_cache()
-        os.environ.pop("HERMES_TIMEZONE", None)
+        os.environ.pop("KOVA_TIMEZONE", None)
 
 
     def test_cache_isolated_by_active_profile_config(self, tmp_path, monkeypatch):
-        """Switching HERMES_HOME must not reuse another profile's timezone."""
+        """Switching KOVA_HOME must not reuse another profile's timezone."""
         first_home = tmp_path / "first"
         second_home = tmp_path / "second"
         first_home.mkdir()
@@ -95,33 +95,33 @@ class TestGetTimezone:
         (second_home / "config.yaml").write_text(
             "timezone: America/New_York\n", encoding="utf-8"
         )
-        monkeypatch.delenv("HERMES_TIMEZONE", raising=False)
+        monkeypatch.delenv("KOVA_TIMEZONE", raising=False)
 
-        monkeypatch.setenv("HERMES_HOME", str(first_home))
+        monkeypatch.setenv("KOVA_HOME", str(first_home))
         assert str(kova_time.get_timezone()) == "Asia/Tokyo"
 
-        # Multiplexed profile runtime scopes switch HERMES_HOME in one process.
-        monkeypatch.setenv("HERMES_HOME", str(second_home))
+        # Multiplexed profile runtime scopes switch KOVA_HOME in one process.
+        monkeypatch.setenv("KOVA_HOME", str(second_home))
         assert str(kova_time.get_timezone()) == "America/New_York"
 
         # Switching BACK must return the first profile's zone (per-identity
         # entries stay hot; no single-slot ping-pong).
-        monkeypatch.setenv("HERMES_HOME", str(first_home))
+        monkeypatch.setenv("KOVA_HOME", str(first_home))
         assert str(kova_time.get_timezone()) == "Asia/Tokyo"
 
     def test_multiplex_prefers_routed_profile_config_over_env(self, tmp_path, monkeypatch):
-        """Under the multiplexed gateway HERMES_TIMEZONE holds only the DEFAULT profile's value
+        """Under the multiplexed gateway KOVA_TIMEZONE holds only the DEFAULT profile's value
         (bridged at startup), so a routed profile must resolve from its own config.yaml."""
         from agent.secret_scope import set_multiplex_active
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         default_home, routed_home = tmp_path / "default", tmp_path / "routed"
         default_home.mkdir()
         routed_home.mkdir()
         (default_home / "config.yaml").write_text("timezone: America/New_York\n", encoding="utf-8")
         (routed_home / "config.yaml").write_text("timezone: Asia/Tokyo\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(default_home))
-        monkeypatch.setenv("HERMES_TIMEZONE", "America/New_York")
+        monkeypatch.setenv("KOVA_HOME", str(default_home))
+        monkeypatch.setenv("KOVA_TIMEZONE", "America/New_York")
 
         # Single-profile process: env stays authoritative.
         assert kova_time.get_timezone_name() == "America/New_York"
@@ -129,12 +129,12 @@ class TestGetTimezone:
         set_multiplex_active(True)
         try:
             assert kova_time.get_timezone_name() == "America/New_York"  # default profile turn
-            token = set_hermes_home_override(str(routed_home))
+            token = set_kova_home_override(str(routed_home))
             try:
                 assert kova_time.get_timezone_name() == "Asia/Tokyo"
                 assert str(kova_time.get_timezone()) == "Asia/Tokyo"
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
         finally:
             set_multiplex_active(False)
 
@@ -152,8 +152,8 @@ class TestGetTimezone:
         import threading
 
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
         zones = {"a": "Asia/Tokyo", "b": "America/New_York"}
@@ -165,7 +165,7 @@ class TestGetTimezone:
                 f"timezone: {zone}\n", encoding="utf-8"
             )
             homes[key] = home
-        monkeypatch.delenv("HERMES_TIMEZONE", raising=False)
+        monkeypatch.delenv("KOVA_TIMEZONE", raising=False)
 
         errors = []
         barrier = threading.Barrier(2)
@@ -173,14 +173,14 @@ class TestGetTimezone:
         def worker(key: str) -> None:
             barrier.wait()
             for _ in range(200):
-                token = set_hermes_home_override(str(homes[key]))
+                token = set_kova_home_override(str(homes[key]))
                 try:
                     tz = kova_time.get_timezone()
                     if str(tz) != zones[key]:
                         errors.append((key, str(tz)))
                         return
                 finally:
-                    reset_hermes_home_override(token)
+                    reset_kova_home_override(token)
 
         threads = [
             threading.Thread(target=worker, args=(key,)) for key in zones
@@ -214,29 +214,29 @@ class TestCodeExecutionTZ:
             pytest.skip("tools.code_execution_tool not importable (missing deps)")
 
     def teardown_method(self):
-        os.environ.pop("HERMES_TIMEZONE", None)
+        os.environ.pop("KOVA_TIMEZONE", None)
 
     def _mock_handle(self, function_name, function_args, task_id=None, user_task=None):
         import json as _json
         return _json.dumps({"error": f"unexpected tool call: {function_name}"})
 
     def test_tz_injected_when_configured(self):
-        """When HERMES_TIMEZONE is set, child process sees TZ env var.
+        """When KOVA_TIMEZONE is set, child process sees TZ env var.
 
         Verified alongside leak-prevention + empty-TZ handling in one
         subprocess call so we don't pay 3x the subprocess startup cost
         (each execute_code spawns a real Python subprocess ~3s).
         """
         import json as _json
-        os.environ["HERMES_TIMEZONE"] = "Asia/Kolkata"
+        os.environ["KOVA_TIMEZONE"] = "Asia/Kolkata"
 
         # One subprocess, three things checked:
         #   1) TZ is injected as "Asia/Kolkata"
-        #   2) HERMES_TIMEZONE itself does NOT leak into the child env
+        #   2) KOVA_TIMEZONE itself does NOT leak into the child env
         probe = (
             'import os; '
             'print("TZ=" + os.environ.get("TZ", "NOT_SET")); '
-            'print("HERMES_TIMEZONE=" + os.environ.get("HERMES_TIMEZONE", "NOT_SET"))'
+            'print("KOVA_TIMEZONE=" + os.environ.get("KOVA_TIMEZONE", "NOT_SET"))'
         )
         with patch("model_tools.handle_function_call", side_effect=self._mock_handle):
             result = _json.loads(self._execute_code(
@@ -246,8 +246,8 @@ class TestCodeExecutionTZ:
             ))
         assert result["status"] == "success"
         assert "TZ=Asia/Kolkata" in result["output"]
-        assert "HERMES_TIMEZONE=NOT_SET" in result["output"], (
-            "HERMES_TIMEZONE should not leak into child env (only TZ)"
+        assert "KOVA_TIMEZONE=NOT_SET" in result["output"], (
+            "KOVA_TIMEZONE should not leak into child env (only TZ)"
         )
 
 
@@ -264,11 +264,11 @@ class TestCronTimezone:
 
     def teardown_method(self):
         _reset_kova_time_cache()
-        os.environ.pop("HERMES_TIMEZONE", None)
+        os.environ.pop("KOVA_TIMEZONE", None)
 
     def test_parse_schedule_one_shot_duration_uses_tz_aware_now(self):
         """parse_schedule('in 30m') should produce a tz-aware run_at."""
-        os.environ["HERMES_TIMEZONE"] = "Asia/Kolkata"
+        os.environ["KOVA_TIMEZONE"] = "Asia/Kolkata"
         from cron.jobs import parse_schedule
         result = parse_schedule("in 30m")
         run_at = datetime.fromisoformat(result["run_at"])
@@ -281,12 +281,12 @@ class TestCronTimezone:
         """_ensure_aware must preserve the absolute instant for naive datetimes.
 
         Regression: the old code used replace(tzinfo=hermes_tz) which shifted
-        absolute time when system-local tz != Hermes tz.  The fix interprets
+        absolute time when system-local tz != Kova tz.  The fix interprets
         naive values as system-local wall time, then converts.
         """
         from cron.jobs import _ensure_aware
 
-        os.environ["HERMES_TIMEZONE"] = "Asia/Kolkata"
+        os.environ["KOVA_TIMEZONE"] = "Asia/Kolkata"
         _reset_kova_time_cache()
 
         # Create a naive datetime — will be interpreted as system-local time
@@ -309,17 +309,17 @@ class TestCronTimezone:
 
 
     def test_get_due_jobs_naive_cross_timezone(self, tmp_path, monkeypatch):
-        """Naive past timestamps must be detected as due even when Hermes tz
+        """Naive past timestamps must be detected as due even when Kova tz
         is behind system local tz — the scenario that triggered #806."""
         import cron.jobs as jobs_module
         monkeypatch.setattr(jobs_module, "CRON_DIR", tmp_path / "cron")
         monkeypatch.setattr(jobs_module, "JOBS_FILE", tmp_path / "cron" / "jobs.json")
         monkeypatch.setattr(jobs_module, "OUTPUT_DIR", tmp_path / "cron" / "output")
 
-        # Use a Hermes timezone far behind UTC so that the numeric wall time
+        # Use a Kova timezone far behind UTC so that the numeric wall time
         # of the naive timestamp exceeds _hermes_now's wall time — this would
         # have caused a false "not due" with the old replace(tzinfo=...) approach.
-        os.environ["HERMES_TIMEZONE"] = "Pacific/Midway"  # UTC-11
+        os.environ["KOVA_TIMEZONE"] = "Pacific/Midway"  # UTC-11
         _reset_kova_time_cache()
 
         from cron.jobs import create_job, load_jobs, save_jobs, get_due_jobs
@@ -333,7 +333,7 @@ class TestCronTimezone:
 
         due = get_due_jobs()
         assert len(due) == 1, (
-            "Naive past timestamp should be due regardless of Hermes timezone"
+            "Naive past timestamp should be due regardless of Kova timezone"
         )
 
     def test_create_job_stores_tz_aware_timestamps(self, tmp_path, monkeypatch):
@@ -343,7 +343,7 @@ class TestCronTimezone:
         monkeypatch.setattr(jobs_module, "JOBS_FILE", tmp_path / "cron" / "jobs.json")
         monkeypatch.setattr(jobs_module, "OUTPUT_DIR", tmp_path / "cron" / "output")
 
-        os.environ["HERMES_TIMEZONE"] = "US/Eastern"
+        os.environ["KOVA_TIMEZONE"] = "US/Eastern"
         _reset_kova_time_cache()
 
         from cron.jobs import create_job

@@ -22,18 +22,18 @@ def _build_rig(monkeypatch, tmp_path, request, surface_a, mode):
     from gateway.platforms.base import BasePlatformAdapter
     from gateway.run import _async_profile_runtime_scope
     from kova_cli.profiles import get_profile_dir
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     import kova_state
     from tools import process_registry as pr_module
     from tools.process_registry import ProcessRegistry
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_BASE_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_BASE_HOME", str(tmp_path))
     # The global fixture pins the default DB; restore call-time profile resolution
     # within these explicitly private homes instead of sharing its root handle.
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)
     import gateway.run as gw
-    monkeypatch.setattr(gw, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gw, "_kova_home", tmp_path)
     registry = ProcessRegistry()
     monkeypatch.setattr(pr_module, "process_registry", registry)
     runner = GatewayRunner(GatewayConfig(multiplex_profiles=True, sessions_dir=tmp_path / "sessions"))
@@ -61,7 +61,7 @@ def _build_rig(monkeypatch, tmp_path, request, surface_a, mode):
             if pinned:
                 entry = await runner._resolve_async_delegation_session(entry, pinned)
             assert entry is not None
-            admitted.append((event, entry.session_id, get_hermes_home()))
+            admitted.append((event, entry.session_id, get_kova_home()))
         event._gateway_accepted = True
 
     adapter = SimpleNamespace(send=AsyncMock(), handle_message=accept)
@@ -83,7 +83,7 @@ async def _for_each_leg(rig, owner, surface_a, path, consume):
     """Run ``consume`` on legs A, B, A; afterwards no route, row or pin may have moved."""
     from gateway.run import _async_profile_runtime_scope, _profile_runtime_scope
     from gateway.session import SessionSource
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.process_registry import ProcessSession
 
     runner, registry, homes = rig.runner, rig.registry, rig.homes
@@ -113,7 +113,7 @@ async def _for_each_leg(rig, owner, surface_a, path, consume):
             "notify_on_complete": path == "agent",
         }
         async with runner._completion_event_scope(watcher):
-            assert get_hermes_home() == homes[name], runner._primary_profile_name
+            assert get_kova_home() == homes[name], runner._primary_profile_name
             assert await runner._session_db.get_session(child) is not None
         leg = SimpleNamespace(
             name=name, index=leg_index, entry=entry, db=db, child=child, proc=proc, watcher=watcher,

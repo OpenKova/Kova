@@ -42,12 +42,12 @@ def _local_files_allowed() -> bool:
 
 def support_floor_message() -> str:
     """Human-facing explanation shown when a config is below the floor."""
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
 
     return (
         f"This config predates version {SUPPORT_FLOOR_VERSION} (~2 years old) "
         "and can no longer be auto-migrated. Back up "
-        f"{display_hermes_home()}/config.yaml and run `hermes setup` to "
+        f"{display_kova_home()}/config.yaml and run `hermes setup` to "
         f"regenerate, or manually set _config_version: {SUPPORT_FLOOR_VERSION} "
         "after reviewing the changelog.")
 
@@ -298,11 +298,11 @@ def _migrate_to_17(results: dict[str, Any], quiet: bool) -> None:
 
 
 def _installed_user_plugins(disabled: set) -> list[str]:
-    """Names of plugins under ``$HERMES_HOME/plugins/`` with a manifest, minus *disabled*."""
+    """Names of plugins under ``$KOVA_HOME/plugins/`` with a manifest, minus *disabled*."""
     _c = _cfg()
     found: list[str] = []
     try:
-        user_plugins_dir = _c.get_hermes_home() / "plugins"
+        user_plugins_dir = _c.get_kova_home() / "plugins"
         if user_plugins_dir.is_dir():
             for child in sorted(user_plugins_dir.iterdir()):
                 if not child.is_dir():
@@ -356,7 +356,7 @@ def _migrate_to_23(results: dict[str, Any], quiet: bool) -> None:
 
     if _local_files_allowed():
         try:
-            curator_dir = _c.get_hermes_home() / "logs" / "curator"
+            curator_dir = _c.get_kova_home() / "logs" / "curator"
             curator_dir.mkdir(parents=True, exist_ok=True)
         except Exception as e:
             results["warnings"].append(f"Could not create {curator_dir}: {e}")
@@ -523,7 +523,7 @@ def _migrate_to_38(results: dict[str, Any], quiet: bool) -> None:
     message = (
         "Removed legacy Relay plugin from plugins.enabled: "
         f"{', '.join(removed)}. Configure a standard user or system Relay plugins.toml, or use "
-        "HERMES_NEMO_RELAY_PLUGINS_TOML for an explicit user-file override.")
+        "KOVA_NEMO_RELAY_PLUGINS_TOML for an explicit user-file override.")
     results["warnings"].append(message)
     if not quiet:
         print(f"  ⚠ {message}")
@@ -559,11 +559,11 @@ def _migrate_to_41(results: dict[str, Any], quiet: bool) -> None:
     # every other session (~600 tok) and shadowed the live roster in Bot Chat itself.
     if not _local_files_allowed():
         return  # SOUL.md files only, across the whole roster
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.bot_mode_probe import _PROTOCOL_HEADING, _hermes_root, _roster, strip_legacy_protocol
 
     cleaned: list[str] = []
-    for name, profile_dir in _roster(_hermes_root(get_hermes_home())):
+    for name, profile_dir in _roster(_hermes_root(get_kova_home())):
         soul = profile_dir / "SOUL.md"
         try:
             text = soul.read_text(encoding="utf-8-sig") if soul.is_file() else ""
@@ -710,7 +710,7 @@ _RETIRED_TIRITH_KEYS = ("tirith_enabled", "tirith_path", "tirith_timeout", "tiri
 
 
 def _migrate_to_50(results: dict[str, Any], quiet: bool) -> None:
-    # 49 → 50: the bundled tirith scanner left Hermes. Nothing reads its keys now, so they are
+    # 49 → 50: the bundled tirith scanner left Kova. Nothing reads its keys now, so they are
     # dropped; nothing replaces them.
     config = read_raw_config()
     security = config.get("security")
@@ -722,7 +722,7 @@ def _migrate_to_50(results: dict[str, Any], quiet: bool) -> None:
     for key in present:
         del security[key]
     _commit(config, results, quiet, "removed security.tirith_* (scanner no longer bundled)",
-            "  ✓ Removed security.tirith_* — the tirith scanner is no longer bundled with Hermes.")
+            "  ✓ Removed security.tirith_* — the tirith scanner is no longer bundled with Kova.")
 
 
 MIGRATIONS: tuple[tuple[int, Callable[[dict[str, Any], bool], None]], ...] = (
@@ -881,7 +881,7 @@ MIGRATIONS: tuple[tuple[int, Callable[[dict[str, Any], bool], None]], ...] = (
 #: ``_config_version`` is current-schema content that was never stamped (installers seed it from
 #: cli-config.yaml.example; targeted writers never stamp), so it gets only these: every other step
 #: decides by a value or an absence that, in such a file, is the user's own choice. v13 is left
-#: out: it clears OPENAI_MODEL from .env, a generic name Hermes never reads but the user's tools may.
+#: out: it clears OPENAI_MODEL from .env, a generic name Kova never reads but the user's tools may.
 #: v41 is left out too: it rewrites profile SOUL.md on a heading match, an artifact whose
 #: provenance the config stamp says nothing about.
 LEGACY_KEY_STEPS = frozenset({12, 14, 16, 17, 29, 33, 38, 39, 42, 43, 46, 50, 51, 52})

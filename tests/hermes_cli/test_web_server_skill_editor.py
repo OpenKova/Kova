@@ -34,12 +34,12 @@ def _write_skill(skills_dir, name, display_name=None):
 
 
 @pytest.fixture
-def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
+def isolated_profiles(tmp_path, monkeypatch, _isolate_kova_home):
     """Isolated default home + one named profile, each with its own skills."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_alpha"
     for home in (default_home, worker_home):
@@ -49,7 +49,7 @@ def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
     _write_skill(default_home / "skills", "dashboard-skill")
     _write_skill(worker_home / "skills", "worker-skill")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}
 
@@ -62,10 +62,10 @@ def client(monkeypatch, isolated_profiles):
         pytest.skip("fastapi/starlette not installed")
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c

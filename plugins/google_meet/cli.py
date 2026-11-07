@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 from kova_cli.browser_runtime import chromium_executable
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 from plugins.google_meet import process_manager as pm
 from plugins.google_meet.meet_bot import _is_safe_meet_url
@@ -30,7 +30,7 @@ from plugins.google_meet.tools import resolve_node
 
 
 def _auth_state_path() -> Path:
-    return Path(get_hermes_home()) / "workspace" / "meetings" / "auth.json"
+    return Path(get_kova_home()) / "workspace" / "meetings" / "auth.json"
 
 
 # ``hermes meet <sub>`` in help order.
@@ -55,7 +55,7 @@ def register_cli(subparser: argparse.ArgumentParser) -> None:
     p["install"].add_argument("--yes", "-y", action="store_true",
                               help="Answer yes to all prompts (use with care; will run sudo apt-get or brew without asking).")
     p["join"].add_argument("url", help="https://meet.google.com/...")
-    p["join"].add_argument("--guest-name", default="Hermes Agent")
+    p["join"].add_argument("--guest-name", default="Kova Agent")
     p["join"].add_argument("--duration", default=None, help="e.g. 30m, 2h, 90s")
     p["join"].add_argument("--headed", action="store_true", help="show browser")
     p["join"].add_argument("--mode", choices=("transcribe", "realtime"), default="transcribe",

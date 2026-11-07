@@ -37,7 +37,7 @@ def test_canonical_readiness_blames_the_pin_not_the_chain_tail(monkeypatch):
 def test_local_launch_bootstraps_before_provider_guard(monkeypatch):
     from kova_cli.gateway_chat_startup import ensure_launch_provider
     events = []
-    monkeypatch.delenv('HERMES_TUI_GATEWAY_URL', raising=False)
+    monkeypatch.delenv('KOVA_TUI_GATEWAY_URL', raising=False)
     monkeypatch.setattr('kova_cli.free_tier_bootstrap.run_bootstrap',
                         lambda **kw: events.append(('boot', kw)))
     monkeypatch.setattr('kova_cli.main._has_any_provider_configured',

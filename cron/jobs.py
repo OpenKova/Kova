@@ -1,6 +1,6 @@
 # health: allow FILE_LINES -- security fix for #82010: distinguish an explicitly-empty toolset allowlist (fail closed, nothing allowed) from an absent one (no restriction); the added lines are minimal fail-closed branches at this existing chokepoint
-"""Cron job storage: ~/.hermes/cron/jobs.json; output in
-~/.hermes/cron/output/{job_id}/{timestamp}.md"""
+"""Cron job storage: ~/.kova/cron/jobs.json; output in
+~/.kova/cron/output/{job_id}/{timestamp}.md"""
 
 import contextlib
 import copy
@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover - non-Windows
 from datetime import datetime, timedelta, UTC
 from pathlib import Path
 from agent.deadline import poll_until
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from cron.constants import CLAIM_TTL_INACTIVITY_HEADROOM, FIRE_CLAIM_SKEW_SECONDS, FIRE_CLAIM_TTL_SECONDS
 from cron.env_settings import cron_env_setting
 from cron.jobs_invariants import _validate_job_mode_invariants, validate_schedule_knobs
@@ -80,18 +80,18 @@ def _ensure_croniter() -> bool:
 
 # --- Configuration ---
 
-# Cron is per-profile by design: anchor at get_hermes_home() (active profile home), NOT
-# get_default_hermes_root() — the shared root would funnel every profile's jobs into one jobs.json
-# and run them under the ticker's HERMES_HOME, leaking config/credentials/skills across profiles.
-# Each profile owns its own cron store under its own HERMES_HOME, and a profile-scoped gateway runs that
-# profile's jobs under that same HERMES_HOME — so a job authored in profile `coder` lives in
-# `~/.hermes/profiles/coder/cron/jobs.json` and executes with `coder`'s `.env`, `config.yaml`, and skills.
+# Cron is per-profile by design: anchor at get_kova_home() (active profile home), NOT
+# get_default_kova_root() — the shared root would funnel every profile's jobs into one jobs.json
+# and run them under the ticker's KOVA_HOME, leaking config/credentials/skills across profiles.
+# Each profile owns its own cron store under its own KOVA_HOME, and a profile-scoped gateway runs that
+# profile's jobs under that same KOVA_HOME — so a job authored in profile `coder` lives in
+# `~/.kova/profiles/coder/cron/jobs.json` and executes with `coder`'s `.env`, `config.yaml`, and skills.
 # Do NOT change this to the default root: that re-breaks per-profile isolation. See also the dynamic
-# `_get_hermes_home()` / `_get_lock_paths()` resolution in cron/scheduler.py. See #4707.
-HERMES_DIR = get_hermes_home().resolve()
+# `_get_kova_home()` / `_get_lock_paths()` resolution in cron/scheduler.py. See #4707.
+KOVA_DIR = get_kova_home().resolve()
 # Default-profile fallback and compatibility surface for callers/tests. Cross-profile callers must
 # scope paths with use_cron_store() instead of mutating these process-wide.
-CRON_DIR = HERMES_DIR / "cron"
+CRON_DIR = KOVA_DIR / "cron"
 JOBS_FILE = CRON_DIR / "jobs.json"
 # Heartbeat: touched every ticker loop so `hermes cron status` can tell the ticker THREAD is alive,
 # not just the gateway PROCESS; success = last tick that completed WITHOUT raising.
@@ -174,7 +174,7 @@ _IMPORT_STORE = _CronStorePaths(CRON_DIR, JOBS_FILE, OUTPUT_DIR)
 def _current_cron_store() -> _CronStorePaths:
     """Paths pinned to this execution context's profile. Precedence: (1) active use_cron_store()
     override; (2) deliberately re-pointed module constants; (3) the ACTIVE profile home via
-    get_hermes_home(), so re-pointing HERMES_HOME after import uses ITS OWN store rather than the
+    get_kova_home(), so re-pointing KOVA_HOME after import uses ITS OWN store rather than the
     user's real jobs.json frozen at import; (4) import-time constants."""
     override = _cron_store_override.get()
     if override is not None:
@@ -182,8 +182,8 @@ def _current_cron_store() -> _CronStorePaths:
     live_constants = _CronStorePaths(CRON_DIR, JOBS_FILE, OUTPUT_DIR)
     if live_constants != _IMPORT_STORE:
         return live_constants
-    home = get_hermes_home().resolve()
-    if home == HERMES_DIR:
+    home = get_kova_home().resolve()
+    if home == KOVA_DIR:
         return live_constants
     return _CronStorePaths.for_dir(home / "cron")
 
@@ -204,7 +204,7 @@ def get_cron_output_dir() -> Path:
     return _current_cron_store().output_dir
 
 
-# Fallback stale-recovery window for a one-shot's running-claim when HERMES_CRON_TIMEOUT=0
+# Fallback stale-recovery window for a one-shot's running-claim when KOVA_CRON_TIMEOUT=0
 # (unlimited, no bound to derive from); also the floor so a tiny timeout can't expire a claim
 # mid-run.
 ONESHOT_RUN_CLAIM_TTL_SECONDS = 1800
@@ -216,9 +216,9 @@ _DEFAULT_CRON_INACTIVITY_TIMEOUT = 600.0
 
 
 def _oneshot_run_claim_ttl_seconds() -> float:
-    """One-shot running-claim TTL from ``HERMES_CRON_TIMEOUT``: unset/invalid → 600s → 1800s;
+    """One-shot running-claim TTL from ``KOVA_CRON_TIMEOUT``: unset/invalid → 600s → 1800s;
     ``0`` (unlimited) → the fixed floor; positive N → ``max(N * headroom, floor)``."""
-    raw = cron_env_setting("HERMES_CRON_TIMEOUT").strip()
+    raw = cron_env_setting("KOVA_CRON_TIMEOUT").strip()
     try:
         timeout = float(raw) if raw else _DEFAULT_CRON_INACTIVITY_TIMEOUT
     except (ValueError, TypeError):
@@ -578,7 +578,7 @@ def _is_recoverable_error_job(job: dict[str, Any]) -> bool:
 
 def _secure_dir(path: Path):
     """Owner-only (0700) via the shared helper, so cron/ and cron/output honor the same managed/
-    container/HERMES_HOME_MODE rules as the rest of HERMES_HOME (#10757)."""
+    container/KOVA_HOME_MODE rules as the rest of KOVA_HOME (#10757)."""
     from kova_cli.config import _secure_dir as _shared_secure_dir
     _shared_secure_dir(path)
 
@@ -613,7 +613,7 @@ def _preserve_file_ownership(path: Path, before: Optional[os.stat_result]) -> No
 
 
 def _is_named_profile_path(path: Path) -> bool:
-    """True if *path* is under ``<hermes_home>/profiles/<name>/`` (default/custom homes are not).
+    """True if *path* is under ``<kova_home>/profiles/<name>/`` (default/custom homes are not).
     Checks the resolved path (symlinked parents) and the raw path (symlinked profile homes)."""
     with contextlib.suppress(OSError, RuntimeError):
         if "profiles" in path.resolve().parts:
@@ -817,7 +817,7 @@ def parse_schedule(schedule: str) -> dict[str, Any]:
     if 'T' in schedule or re.match(r'^\d{4}-\d{2}-\d{2}', schedule):
         try:
             dt = datetime.fromisoformat(schedule)
-            # Naive timestamps become aware in the CONFIGURED Hermes timezone (not server-local):
+            # Naive timestamps become aware in the CONFIGURED Kova timezone (not server-local):
             # the due-check compares against kova_time.now().
             # Make naive timestamps timezone-aware at parse time so the stored value doesn't depend on the
             # system timezone matching at check time. UTC) while now() runs in Asia/Kolkata, the stored
@@ -861,7 +861,7 @@ def parse_schedule(schedule: str) -> dict[str, Any]:
 
 
 def _ensure_aware(dt: datetime, target_tz: Optional[Any] = None) -> datetime:
-    """Aware datetime in *target_tz*, defaulting to the configured Hermes timezone. Legacy naive
+    """Aware datetime in *target_tz*, defaulting to the configured Kova timezone. Legacy naive
     values are read as *system-local* wall time (what created them) then converted, preserving
     ordering across timezone changes and avoiding false not-due results.
 
@@ -1221,7 +1221,7 @@ def compute_next_run(
             logger.warning(
                 "Cannot compute next run for cron schedule %r: 'croniter' is "
                 "not installed. croniter is a core dependency as of v0.9.x; "
-                "reinstall hermes-agent or run 'pip install croniter' in your runtime env "
+                "reinstall kova-agent or run 'pip install croniter' in your runtime env "
                 "(interpreter: %s).",
                 expr, sys.executable)
             return None
@@ -2708,8 +2708,8 @@ def advance_next_run(job_id: str) -> bool:
 
 def _machine_id() -> str:
     """Claim attribution/debugging id (NOT correctness — that comes from the file lock and the
-    fresh-claim check): ``HERMES_MACHINE_ID`` if set, else hostname:pid."""
-    explicit = os.getenv("HERMES_MACHINE_ID", "").strip()
+    fresh-claim check): ``KOVA_MACHINE_ID`` if set, else hostname:pid."""
+    explicit = os.getenv("KOVA_MACHINE_ID", "").strip()
     if explicit:
         return explicit
     try:
@@ -3234,7 +3234,7 @@ def _evaluate_due_job(job: dict[str, Any], scan: _DueScan, run_claim_ttl: float)
         if retire_expired_oneshot(d) or _oneshot_dispatch_limit_reached(job, scan):
             return False
         # Durably claim the one-shot for the DURATION of its run: a second scheduler process on the
-        # same HERMES_HOME must not re-dispatch it while in flight, and advancing next_run_at by a
+        # same KOVA_HOME must not re-dispatch it while in flight, and advancing next_run_at by a
         # fixed window is not enough for a run that outlives a tick. The other process sees the
         # fresh claim and skips; mark_job_run() clears it. The TTL only covers a tick that DIES.
         claim = {"at": now.isoformat(), "by": _machine_id()}

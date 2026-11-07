@@ -2,7 +2,7 @@
 
 Real: ``InProcessCronScheduler.start`` (the gateway's ticker loop: startup recovery, tick, heartbeat
 bookkeeping), ``cron.scheduler.tick`` / due scan / pending slots / fire claims + heartbeat /
-executions ledger / delivery routing / ``mark_job_run``, a second OS process sharing HERMES_HOME
+executions ledger / delivery routing / ``mark_job_run``, a second OS process sharing KOVA_HOME
 (its ticker races the in-process one for every tick; the tick lock admits one). Fire-claim
 contention between two OS processes is ``test_two_replicas_contend_for_every_fire``.
 Fake: the agent (``cron.scheduler.run_job``) and the platform wire (``_send_to_platform``), which
@@ -193,7 +193,7 @@ class Event:
 class Soak:
     def __init__(self, sc: Scenario, home: Path, control: H.Control, env: dict[str, str]):
         self.sc, self.home, self.control = sc, home, control
-        self.zone = ZoneInfo(sc.hermes_tz or sc.process_tz)
+        self.zone = ZoneInfo(sc.kova_tz or sc.process_tz)
         self.clock = H.VirtualClock(control.clock_file)
         self.start_ts = self.local(0, 0, 0, 30)
         self.end_ts = self.local(sc.days, 0, 0, 0)
@@ -563,15 +563,15 @@ class Soak:
 @pytest.fixture
 def soak_env(tmp_path, monkeypatch):
     for key in list(os.environ):
-        if key.endswith("_API_KEY") or key in ("INVOCATION_ID", "HERMES_TIMEZONE"):
+        if key.endswith("_API_KEY") or key in ("INVOCATION_ID", "KOVA_TIMEZONE"):
             monkeypatch.delenv(key, raising=False)
     home_root = tmp_path / "home"
-    hermes_home = home_root / ".hermes"
-    hermes_home.mkdir(parents=True)
+    kova_home = home_root / ".kova"
+    kova_home.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(home_root))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     original_tz = os.environ.get("TZ")
-    yield tmp_path, hermes_home, monkeypatch
+    yield tmp_path, kova_home, monkeypatch
     if original_tz is None:
         os.environ.pop("TZ", None)
     else:
@@ -583,13 +583,13 @@ def soak_env(tmp_path, monkeypatch):
 
 
 def _run_scenario(sc: Scenario, soak_env) -> dict[str, int]:
-    tmp_path, hermes_home, monkeypatch = soak_env
+    tmp_path, kova_home, monkeypatch = soak_env
     monkeypatch.setenv("TZ", sc.process_tz)
     time.tzset()
     lines = ["platforms:", "  telegram:", "    enabled: true", "    token: fake-soak-token"]
-    if sc.hermes_tz:
-        lines.insert(0, f"timezone: {sc.hermes_tz}")
-    (hermes_home / "config.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    if sc.kova_tz:
+        lines.insert(0, f"timezone: {sc.kova_tz}")
+    (kova_home / "config.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
     control = H.Control(tmp_path / "control").ensure()
     from cron import jobs
 
@@ -599,7 +599,7 @@ def _run_scenario(sc: Scenario, soak_env) -> dict[str, int]:
     H.install(H.VirtualClock(control.clock_file), control, monkeypatch.setattr)
     env = {k: v for k, v in os.environ.items() if not k.startswith("PYTEST_")}
     env["PYTHONPATH"] = str(REPO_ROOT)
-    soak = Soak(sc, hermes_home, control, env)
+    soak = Soak(sc, kova_home, control, env)
     try:
         soak.run()
     finally:
@@ -638,10 +638,10 @@ def test_two_replicas_contend_for_every_fire(soak_env):
     always meets a live claim. Per round: exactly one replica claims, exactly one run starts for
     that slot and is delivered once, the loser's attempt is recorded as not acquired, and the
     store re-arms to a later slot, so no occurrence is fired twice or skipped."""
-    tmp_path, hermes_home, monkeypatch = soak_env
+    tmp_path, kova_home, monkeypatch = soak_env
     monkeypatch.setenv("TZ", "UTC")
     time.tzset()
-    (hermes_home / "config.yaml").write_text(
+    (kova_home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    enabled: true\n    token: fake-soak-token\n", encoding="utf-8")
     control = H.Control(tmp_path / "control").ensure()
     from cron import jobs
@@ -703,8 +703,8 @@ def test_two_replicas_contend_for_every_fire(soak_env):
             assert nxt > clock.now_ts(), f"round {rnd} {name}: not re-armed past now ({_iso(nxt)})"
     finally:
         peer.stop()
-    rows = H.ledger_rows(hermes_home)
-    deliveries = H.delivery_status(hermes_home)
+    rows = H.ledger_rows(kova_home)
+    deliveries = H.delivery_status(kova_home)
     sink = H.read_jsonl(control.sink)
     starts = {r["exec"] for r in H.read_jsonl(control.runs) if r["event"] == "start"}
     won = [r for r in rows if r["id"] in starts]

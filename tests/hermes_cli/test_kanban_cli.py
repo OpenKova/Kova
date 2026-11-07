@@ -16,9 +16,9 @@ from kova_cli import kanban_db_connect as kbc
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -162,8 +162,8 @@ def test_worker_link_preserves_foreign_child_rules(kanban_home, monkeypatch):
         running_child = kb.create_task(conn, title="foreign running child")
         assert kb.claim_task(conn, running_child, claimer="other") is not None
 
-    monkeypatch.setenv("HERMES_KANBAN_TASK", worker)
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(worker_run_id))
+    monkeypatch.setenv("KOVA_KANBAN_TASK", worker)
+    monkeypatch.setenv("KOVA_KANBAN_RUN_ID", str(worker_run_id))
 
     assert kc._cmd_link(argparse.Namespace(
         parent_id=parent, child_id=ready_child,
@@ -173,7 +173,7 @@ def test_worker_link_preserves_foreign_child_rules(kanban_home, monkeypatch):
             parent_id=parent, child_id=running_child,
         ))
     # Owner handoff: the worker links its own running card, proving ownership
-    # with HERMES_KANBAN_RUN_ID — the one path _cmd_link forwards a run id for.
+    # with KOVA_KANBAN_RUN_ID — the one path _cmd_link forwards a run id for.
     assert kc._cmd_link(argparse.Namespace(
         parent_id=parent, child_id=worker,
     )) == 0

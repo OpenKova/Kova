@@ -200,7 +200,7 @@ export function remoteHtmlPreviewDocument(dataUrl: string): string | null {
 }
 
 export async function openPreviewTargetInBrowser(target: PreviewTarget): Promise<void> {
-  const bridge = window.hermesDesktop
+  const bridge = window.kovaDesktop
 
   if (!bridge?.openPreviewInBrowser) {
     throw new Error('Desktop preview browser bridge is unavailable')
@@ -315,7 +315,7 @@ export async function normalizeOrLocalPreviewTarget(
   scope?: DesktopFsSessionScope
 ): Promise<PreviewTarget | null> {
   try {
-    const normalized = await window.hermesDesktop?.normalizePreviewTarget?.(rawTarget, cwd || undefined)
+    const normalized = await window.kovaDesktop?.normalizePreviewTarget?.(rawTarget, cwd || undefined)
 
     if (normalized) {
       // Directories and dead links arrive as typed non-previewable results

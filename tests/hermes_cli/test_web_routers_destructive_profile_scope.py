@@ -1,4 +1,4 @@
-"""One backend serves every profile, so a REST handler that reads ``get_hermes_home()``
+"""One backend serves every profile, so a REST handler that reads ``get_kova_home()``
 directly mutates the LAUNCH profile's data no matter which profile the request named.
 
 These pin both halves of the contract:
@@ -45,12 +45,12 @@ def _multiplex_state_is_per_test():
 
 
 @pytest.fixture
-def homes(tmp_path, monkeypatch, _isolate_hermes_home):
+def homes(tmp_path, monkeypatch, _isolate_kova_home):
     """Isolated launch home + one named profile, both seeded with real files."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    launch_home = get_hermes_home()
+    launch_home = get_kova_home()
     profiles_root = launch_home / "profiles"
     beta = profiles_root / "worker_beta"
     for home in (launch_home, beta):
@@ -69,7 +69,7 @@ def homes(tmp_path, monkeypatch, _isolate_hermes_home):
     # ``named_profile_has_servable_identity`` deliberately refuses to count as a tenant.
     (beta / ".env").write_text("BETA=1\n", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: launch_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: launch_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"launch": launch_home, "worker_beta": beta}
 
@@ -123,7 +123,7 @@ def seams(monkeypatch):
     from agent import credential_pool
     from agent import credential_sources
     from kova_cli import web_server_gateway, web_server_sessions
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
 
     record = {"spawn": [], "db": [], "pool_home": []}
 
@@ -140,7 +140,7 @@ def seams(monkeypatch):
 
     class _Pool:
         def remove_index(self, _index):
-            record["pool_home"].append(str(get_hermes_home()))
+            record["pool_home"].append(str(get_kova_home()))
             return type("_Entry", (), {"source": ""})()
 
         def entries(self):
@@ -353,10 +353,10 @@ def readiness_only_in_beta(homes, monkeypatch):
     writes it into the target as a broken setting.
     """
     from kova_cli import web_server_memory
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
 
     def _statuses():
-        ready = get_hermes_home().resolve() == homes["worker_beta"].resolve()
+        ready = get_kova_home().resolve() == homes["worker_beta"].resolve()
         return [{"name": "mem0", "status": "ready" if ready else "not_configured"}]
 
     monkeypatch.setattr(web_server_memory, "_discover_memory_provider_statuses", _statuses)
@@ -381,7 +381,7 @@ def test_memory_provider_readiness_is_judged_in_the_profile_being_written(
 
 def test_local_models_quickstart_activates_into_the_named_profile(client, homes, monkeypatch):
     """Quickstart is ``activate`` plus a download; its config writes must follow ``?profile=``."""
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_cli.web_routers import local_models as lm
 
     entry = type("_Entry", (), {"id": "m1", "display_name": "M One", "min_engine": None})()
@@ -396,7 +396,7 @@ def test_local_models_quickstart_activates_into_the_named_profile(client, homes,
     monkeypatch.setattr(lm.bootstrap, "staged_model_ids", lambda: {"m1-q4"})
     monkeypatch.setattr(lm, "_set_runtime_enabled", lambda _on: (lambda: None))
     monkeypatch.setattr(lm, "_ensure_server", lambda *_a, **_k: None)
-    monkeypatch.setattr(lm, "_assign_default", lambda *_a: seen.append(str(get_hermes_home())))
+    monkeypatch.setattr(lm, "_assign_default", lambda *_a: seen.append(str(get_kova_home())))
     # Run the job body inline; the real spawner's ``on_exit`` is what frees the quickstart lock.
     monkeypatch.setattr(lm, "_spawn_job", lambda job, name, body, **kw: (body(), kw["on_exit"]()))
 
@@ -419,13 +419,13 @@ def test_curator_pause_writes_the_named_profiles_state(client, homes):
 
 def test_forced_update_check_runs_in_the_named_profiles_scope(client, homes, monkeypatch):
     from kova_cli import source_check
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_cli.web_routers import actions
 
     seen = []
 
     def check(*, force):
-        seen.append((get_hermes_home(), force))
+        seen.append((get_kova_home(), force))
         return {"behind": 0, "commits": []}
 
     monkeypatch.setattr(source_check, "check_for_updates", check)
@@ -453,13 +453,13 @@ def test_egress_status_reads_the_named_profiles_config(client, homes, monkeypatc
 
 
 def test_memory_provider_setup_runs_in_the_named_profiles_home(client, homes, monkeypatch):
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_cli.web_routers import memory_providers as mp
 
     monkeypatch.setattr(mp, "_memory_provider_manifest", lambda _name: {"name": "mem0"})
     monkeypatch.setattr(mp, "_load_memory_provider", lambda _name: None)
     monkeypatch.setattr(mp, "_install_memory_provider_setup",
-                        lambda name: {"ok": True, "provider": name, "home": str(get_hermes_home())})
+                        lambda name: {"ok": True, "provider": name, "home": str(get_kova_home())})
 
     resp = client.post("/api/memory/providers/mem0/setup?profile=worker_beta", json={})
 

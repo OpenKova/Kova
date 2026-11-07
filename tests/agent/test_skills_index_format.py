@@ -7,7 +7,7 @@ from agent.prompt_builder import build_skills_system_prompt, clear_skills_system
 from agent.skill_utils import SKILL_PROMPT_DESC_LIMIT, clip_skill_description
 from agent.skills_index_delta import index_entries
 
-LONG = "Use when cutting, publishing, or abandoning a hermes-agent release and its notes."
+LONG = "Use when cutting, publishing, or abandoning a kova-agent release and its notes."
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def _skill(root, rel, desc):
 
 
 def test_index_rows_carry_each_name_once_and_never_a_half_word(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     skills = tmp_path / "skills"
     _skill(skills, "creative/ascii-art", "ASCII art banners.")
     _skill(skills, "creative/pixel-art", "Pixel art sprites.")

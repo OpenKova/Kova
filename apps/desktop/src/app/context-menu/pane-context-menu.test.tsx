@@ -127,7 +127,7 @@ it('the pane fallback serves clicked content without taking explicit or unrelate
 
     if (copy && item) {
       fireEvent.click(item)
-      expect.soft(window.hermesDesktop.writeClipboard, context).toHaveBeenCalledWith('transcript words')
+      expect.soft(window.kovaDesktop.writeClipboard, context).toHaveBeenCalledWith('transcript words')
     }
 
     reset()

@@ -388,12 +388,12 @@ class TestPerToolThresholds:
         except ImportError:
             pytest.skip("file_tools not importable in test env")
 
-# ── Host-side spillover ($HERMES_HOME/cache/spillover) ────────────────
+# ── Host-side spillover ($KOVA_HOME/cache/spillover) ────────────────
 
 class TestSpillover:
     @pytest.fixture(autouse=True)
     def _isolated_home(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
         # Reset the once-per-process prune flag so each test is independent.
         import tools.tool_result_storage as trs
         monkeypatch.setattr(trs, "_spillover_pruned_homes", set())
@@ -667,7 +667,7 @@ class TestMcpEnvelopeSpillover:
 
     @pytest.fixture(autouse=True)
     def _isolated_home(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
         import tools.tool_result_storage as trs
         monkeypatch.setattr(trs, "_spillover_pruned_homes", set())
         yield

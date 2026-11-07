@@ -1,24 +1,24 @@
 #!/bin/sh
-# Hermes process supervisor: one per Hermes process, reaping the process groups it owns once it dies.
+# Kova process supervisor: one per Kova process, reaping the process groups it owns once it dies.
 #
 # Usage: sh process_supervisor.sh <parent-pgid>, spawned with start_new_session=True and stdin a
-# pipe whose only write end Hermes holds (kova_cli/process_identity.py, "owner-death supervisor").
+# pipe whose only write end Kova holds (kova_cli/process_identity.py, "owner-death supervisor").
 # stdin carries one command per line:
-#     register <pgid>     reap this process group when Hermes dies
-#     unregister <pgid>   stop reaping it (Hermes stopped that child itself)
-# EOF means Hermes is gone, by any cause including SIGKILL and the OOM killer: SIGTERM every group
+#     register <pgid>     reap this process group when Kova dies
+#     unregister <pgid>   stop reaping it (Kova stopped that child itself)
+# EOF means Kova is gone, by any cause including SIGKILL and the OOM killer: SIGTERM every group
 # still registered, wait up to 3 s, SIGKILL the survivors, exit. A clean exit is the same EOF, so a
-# child Hermes never unregistered dies with it either way.
+# child Kova never unregistered dies with it either way.
 #
-# POSIX sh, not Python: Hermes keeps this process resident for its whole life, and an idle sh costs
-# about 0.5 MB USS where an idle interpreter costs about 8 MB. It must also never import Hermes:
-# it runs after Hermes may already be dead.
+# POSIX sh, not Python: Kova keeps this process resident for its whole life, and an idle sh costs
+# about 0.5 MB USS where an idle interpreter costs about 8 MB. It must also never import Kova:
+# it runs after Kova may already be dead.
 #
 # Malformed lines are skipped: a corrupt line must not cost the reaping guarantee for every other
-# group. Groups that are never a valid target (pgid <= 1, our own, Hermes's own) are refused at
-# registration, so a caller bug costs one unreaped child, never the Hermes process tree.
+# group. Groups that are never a valid target (pgid <= 1, our own, Kova's own) are refused at
+# registration, so a caller bug costs one unreaped child, never the Kova process tree.
 # Residual risk: groups are reaped by number, so a registered group that exits on its own can have
-# its pgid recycled before Hermes prunes it; Hermes prunes empty groups on every registration change.
+# its pgid recycled before Kova prunes it; Kova prunes empty groups on every registration change.
 
 trap '' INT HUP  # a dying parent's SIGINT/SIGHUP must not preempt the reap: EOF is the only signal
 parent=$1

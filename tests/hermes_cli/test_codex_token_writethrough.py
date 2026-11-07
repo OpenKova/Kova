@@ -31,13 +31,13 @@ def _read(path: Path) -> dict:
 
 @pytest.fixture
 def profile_env(tmp_path, monkeypatch):
-    """Global root at tmp/.hermes, active profile at tmp/.hermes/profiles/work (real on-disk layout)."""
+    """Global root at tmp/.kova, active profile at tmp/.kova/profiles/work (real on-disk layout)."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))  # Windows resolves the native root from here
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
     return profile / "auth.json", root / "auth.json"
 
 

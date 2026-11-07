@@ -83,7 +83,7 @@ class LiveCase:
 # Cheapest tool-capable model per family (verified live Sep 2026). The first
 # preference present in the provider's live /models listing is used, so a
 # retired slug fails the listing test loudly instead of 404ing mid-conversation.
-# Override with HERMES_LIVE_MODEL_<ID> (upper-cased, '-' -> '_').
+# Override with KOVA_LIVE_MODEL_<ID> (upper-cased, '-' -> '_').
 LIVE_CASES: tuple[LiveCase, ...] = (
     LiveCase("openrouter-openai", "openrouter", "OPENROUTER_API_KEY",
              ("openai/gpt-4.1-nano", "openai/gpt-5-nano"), ("openrouter.ai",), 0.10, 0.40),
@@ -128,7 +128,7 @@ def live_key(env_name: str) -> str:
 
 
 def model_override(case: LiveCase) -> str | None:
-    return os.environ.get("HERMES_LIVE_MODEL_" + case.id.upper().replace("-", "_")) or None
+    return os.environ.get("KOVA_LIVE_MODEL_" + case.id.upper().replace("-", "_")) or None
 
 
 # HTTP wire recorder -----------------------------------------------------------
@@ -154,7 +154,7 @@ class WireRecord:
 
 @dataclass
 class WireLog:
-    """Every HTTP exchange made through httpx (all SDKs Hermes uses sit on it)."""
+    """Every HTTP exchange made through httpx (all SDKs Kova uses sit on it)."""
 
     secret: str
     records: list[WireRecord] = field(default_factory=list)
@@ -271,13 +271,13 @@ def register_lookup_tool() -> Callable[[], None]:
     return lambda: registry.deregister(TOOL_NAME)
 
 
-# HERMES_HOME wiring -------------------------------------------------------------
+# KOVA_HOME wiring -------------------------------------------------------------
 
-def write_live_home(hermes_home: Path, provider: str, model: str) -> None:
+def write_live_home(kova_home: Path, provider: str, model: str) -> None:
     """Minimal real config: the provider under test, eager tools (no tool_search
     bridge), bounded retries. No credential is ever written to disk."""
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "config.yaml").write_text(
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "config.yaml").write_text(
         "model:\n"
         f"  provider: {provider}\n"
         f"  default: {model}\n"
@@ -373,7 +373,7 @@ def usage_line(case: LiveCase, model: str, agent: Any, wire: WireLog) -> dict:
 
 def emit_usage(line: dict) -> None:
     print("LIVE-USAGE " + json.dumps(line, sort_keys=True), flush=True)
-    target = os.environ.get("HERMES_LIVE_USAGE_FILE")
+    target = os.environ.get("KOVA_LIVE_USAGE_FILE")
     if target:
         with open(target, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(line, sort_keys=True) + "\n")

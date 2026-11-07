@@ -43,8 +43,8 @@ def test_status_prints_the_full_canonical_id_that_resume_accepts(tmp_path, monke
     assert "T16 canonical id" in text
 
     # The printed id is what `hermes --resume <id>` takes, unshortened and unchanged.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     from kova_cli import main as hermes_main
 
-    monkeypatch.setattr(hermes_main, "get_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(hermes_main, "get_kova_home", lambda: tmp_path, raising=False)
     assert hermes_main._resolve_session_by_name_or_id(line.split(": ", 1)[1]) == sid

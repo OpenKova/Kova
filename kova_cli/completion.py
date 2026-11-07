@@ -67,12 +67,12 @@ def generate_bash(parser: argparse.ArgumentParser) -> str:
                 f"            return\n"
                 f"            ;;")
     cases_str = "\n".join(cases)
-    return f"""# Hermes Agent bash completion
+    return f"""# Kova Agent bash completion
 # Add to ~/.bashrc:
 #   eval "$(hermes completion bash)"
 
 _hermes_profiles() {{
-    local profiles_dir="$HOME/.hermes/profiles"
+    local profiles_dir="$HOME/.kova/profiles"
     local profiles="default"
     if [ -d "$profiles_dir" ]; then
         for f in "$profiles_dir"/*/; do
@@ -153,15 +153,15 @@ def generate_zsh(parser: argparse.ArgumentParser) -> str:
                 f"                    ;;")
     sub_cases_str = "\n".join(sub_cases)
     return f"""#compdef hermes
-# Hermes Agent zsh completion
+# Kova Agent zsh completion
 # Add to ~/.zshrc:
 #   eval "$(hermes completion zsh)"
 
 _hermes_profiles() {{
     local -a profiles
     profiles=(default)
-    if [[ -d "$HOME/.hermes/profiles" ]]; then
-        profiles+=($HOME/.hermes/profiles/*(N/:t))
+    if [[ -d "$HOME/.kova/profiles" ]]; then
+        profiles+=($HOME/.kova/profiles/*(N/:t))
     fi
     _describe 'profile' profiles
 }}
@@ -201,15 +201,15 @@ def generate_fish(parser: argparse.ArgumentParser) -> str:
     subcommands = _sorted_subcommands(parser)
     top_cmds_str = " ".join(cmd for cmd, _ in subcommands)
     lines: list[str] = [
-        "# Hermes Agent fish completion",
+        "# Kova Agent fish completion",
         "# Add to your config:",
         "#   hermes completion fish | source",
         "",
         "# Helper: list available profiles",
         "function __hermes_profiles",
         "    echo default",
-        "    if test -d $HOME/.hermes/profiles",
-        "        for d in $HOME/.hermes/profiles/*/",
+        "    if test -d $HOME/.kova/profiles",
+        "        for d in $HOME/.kova/profiles/*/",
         "            basename $d",
         "        end",
         "    end",

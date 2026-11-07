@@ -19,7 +19,7 @@ RATE_LIMIT_STDERR = (
     "fatal: expected flush after ref listing"
 )
 CURL_429_STDERR = (
-    "fatal: unable to access 'https://github.com/NousResearch/hermes-agent.git/':"
+    "fatal: unable to access 'https://github.com/NousResearch/kova-agent.git/':"
     " The requested URL returned error: 429"
 )
 
@@ -80,22 +80,22 @@ class TestClassifyFetchFailure:
             "fatal: Could not read from remote repository."
         )
         assert "SSH authentication failed" in msg
-        assert "https://github.com/NousResearch/hermes-agent.git" in msg
+        assert "https://github.com/NousResearch/kova-agent.git" in msg
 
     def test_only_a_checkout_git_rejects_gets_the_installer_repair(self, tmp_path, capsys):
         # The updater fetches only when .git exists; git rejecting the checkout itself (here an
         # empty .git) cannot be retried away. A remote with a dangling `.git` file makes git print
-        # the same "fatal: not a git repository" line, and reinstalling Hermes cannot fix that.
+        # the same "fatal: not a git repository" line, and reinstalling Kova cannot fix that.
         def fetch(cwd: Path, *source: str) -> str:
             return subprocess.run(["git", "fetch", *source], cwd=cwd, capture_output=True, check=False,
                                   text=True, encoding="utf-8", errors="replace",
                                   env={**os.environ, "GIT_CEILING_DIRECTORIES": str(tmp_path)}).stderr
 
-        damaged = tmp_path / "custom-dir" / "hermes-agent"
+        damaged = tmp_path / "custom-dir" / "kova-agent"
         (damaged / ".git").mkdir(parents=True)
         update_cmd_git._print_fetch_failure(fetch(damaged, "origin"), git_cmd=["git"], root=damaged)
         out = capsys.readouterr().out
-        assert "damaged" in out and "hermes-agent.nousresearch.com/install." in out
+        assert "damaged" in out and "kova-agent.nousresearch.com/install." in out
         assert str(damaged) in out  # the repair targets THIS checkout, not the default directory
 
         healthy, remote = tmp_path / "healthy", tmp_path / "remote"

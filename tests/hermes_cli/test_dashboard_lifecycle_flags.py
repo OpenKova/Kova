@@ -120,11 +120,11 @@ class TestDashboardStop:
         assert "stop" in kwargs["reason"].lower()
         assert exc.value.code == 0
 
-    def test_stop_scopes_scan_and_kill_to_the_invoking_hermes_home(self, tmp_path, monkeypatch, capsys):
+    def test_stop_scopes_scan_and_kill_to_the_invoking_kova_home(self, tmp_path, monkeypatch, capsys):
         """``--stop`` targets only this profile's backends (#113978): both the pre-check and the
         kill run with ``scope_home`` = the invoking home, and an empty scan says so."""
         own_home = tmp_path / "profiles" / "work"
-        monkeypatch.setenv("HERMES_HOME", str(own_home))
+        monkeypatch.setenv("KOVA_HOME", str(own_home))
         with patch("kova_cli.main._find_stale_dashboard_pids", return_value=[12345]) as scan, \
              patch("kova_cli.dashboard_procs._kill_stale_dashboard_processes",
                    return_value={"matched": [12345], "killed": [12345], "failed": [], "unrecovered": []}) as kill, \

@@ -18,7 +18,7 @@ import pytest
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     try:
         from starlette.testclient import TestClient
     except ImportError:
@@ -26,11 +26,11 @@ def client(monkeypatch, _isolate_hermes_home):
 
     import kova_state
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     # The launch profile's own credential source: what a scoped read must return.
-    (get_hermes_home() / ".env").write_text("GITHUB_TOKEN=ghp_launch_token\n", encoding="utf-8")
+    (get_kova_home() / ".env").write_text("GITHUB_TOKEN=ghp_launch_token\n", encoding="utf-8")
     return TestClient(app, raise_server_exceptions=False,
                       headers={_SESSION_HEADER_NAME: _SESSION_TOKEN})
 

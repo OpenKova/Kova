@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def _defer_identified(runtime: dict, *, extra: dict | None = None, require_alive
 def _write_reminder(row: dict) -> None:
     """Persist one reminder row, one immutable file per incarnation (no read/merge/write races
     between CLI startups). Raises OSError/ValueError/TypeError to the caller."""
-    directory = get_hermes_home() / "serve_restart_pending"
+    directory = get_kova_home() / "serve_restart_pending"
     directory.mkdir(parents=True, exist_ok=True)
     target = directory / f"{row['pid']}-{float(row['create_time']).hex()}.json"
     temporary = None
@@ -139,7 +139,7 @@ def warn_pending_manual_serves(*, startup: bool = False, pending_manual: list[di
         else:
             # No usable creation time means identity, not storage, blocked the durable reminder.
             print("    This host could not read the process creation time, so no durable reminder could be filed; ask its owner to relaunch `hermes serve` / `hermes dashboard`, and the warning clears once the pid is confirmed gone.", file=stream)
-    directory = get_hermes_home() / "serve_restart_pending"
+    directory = get_kova_home() / "serve_restart_pending"
     for path in sorted(directory.glob("*.json")):
         try:
             row = json.loads(path.read_text(encoding="utf-8-sig"))

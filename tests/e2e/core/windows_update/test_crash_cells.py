@@ -15,7 +15,7 @@ Each cell kills at one point of the update and then asserts what the user is owe
   modules every launch imports (``RUNTIME_FILES``), so a torn tree differs in code
   that runs, not only in a marker file;
 * nothing the dead update left blocks the next one: a plain ``hermes update`` then
-  completes to the target and no ``.hermes-update-in-progress`` marker survives it
+  completes to the target and no ``.kova-update-in-progress`` marker survives it
   (a marker naming a dead process that refuses every later update is the permanent
   marker the hand-off contract forbids).
 
@@ -43,7 +43,7 @@ before the next cell starts, noted in the evidence: ``_run_cells``):
 * ``orphaned_update``: ONLY the hand-off script killed, once its ``hermes update`` child
   holds its place under the script's claim (that child keeps running: the shape of an
   ended PowerShell). The update must
-  finish, ``.hermes-update-in-progress`` must read LIVE for as long as it runs (contract
+  finish, ``.kova-update-in-progress`` must read LIVE for as long as it runs (contract
   C1: the owner or its line-4 delegate is alive) and be gone once it exits.
 
 Kill points are observed states, never timings: a git child of the update in the
@@ -94,7 +94,7 @@ from tests.fakes.fake_llm_provider import FakeLLMServer
 pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
-MARKER = ".hermes-update-in-progress"
+MARKER = ".kova-update-in-progress"
 # Imported by every `hermes` launch: each crash target appends one statement to both.
 RUNTIME_FILES = ("kova_constants.py", "kova_cli/main.py")
 
@@ -128,7 +128,7 @@ def _git_fetching(proc, machine, target) -> str | None:
 # The update's git commands that write the checkout and its index.
 LOCAL_GIT_OPS = ("merge", "reset", "checkout")
 HOLD_FILTER = "hermes-e2e-hold"
-# The last changed path in index order (".hermes-e2e-*" < "kova_cli/main.py" <
+# The last changed path in index order (".kova-e2e-*" < "kova_cli/main.py" <
 # "kova_constants.py"): when git reaches it, the other two are already written at the target.
 HELD_PATH = "kova_constants.py"
 # The smudge filter. Git runs it while it checks out HELD_PATH, inside unpack_trees with
@@ -275,7 +275,7 @@ def _tree(machine, label: str) -> dict:
     return {"head": head if rc_head == 0 else f"<rev-parse rc={rc_head}: {head[:200]}>",
             "dirty": status.splitlines()[:20] if rc_status == 0 else [f"<status rc={rc_status}: {status[:300]}>"],
             "diff_rc": rc_diff, "diff_err": diff[:300] if rc_diff not in (0, 1) else "",
-            "target_file": (machine.install_dir / f".hermes-e2e-{label}").exists()}
+            "target_file": (machine.install_dir / f".kova-e2e-{label}").exists()}
 
 
 def _tree_matches(tree: dict, commit: str, target: str) -> bool:
@@ -362,18 +362,18 @@ def _crash(machine, srv, label: str, start, point, hold: _GitHold | None = None,
         held_missing_after_kill = hold is not None and not (machine.install_dir / hold.path).exists()
         turn = one_shot_turn(machine, srv, f"{label}-next-launch")
         tree_after_launch = _tree(machine, label)
-        marker_after_launch = (machine.hermes_home / MARKER).is_file()
-        follow_up = machine.hermes("update", "--yes", label=f"{label}-follow-up-update", timeout=UPDATE_TIMEOUT)
+        marker_after_launch = (machine.kova_home / MARKER).is_file()
+        follow_up = machine.kova("update", "--yes", label=f"{label}-follow-up-update", timeout=UPDATE_TIMEOUT)
     tree_final = _tree(machine, label)
     return {"label": label, "pre": pre, "target": target, "seen": seen, "tree_after_kill": tree_after_kill,
             "index_lock_after_kill": index_lock_after_kill, "held_missing_after_kill": held_missing_after_kill,
             "turn": turn, "tree_after_launch": tree_after_launch, "marker_after_launch": marker_after_launch,
             "follow_up": follow_up, "tree_final": tree_final,
-            "marker_final": (machine.hermes_home / MARKER).is_file()}
+            "marker_final": (machine.kova_home / MARKER).is_file()}
 
 
 def _cli_update(machine, label: str):
-    return lambda: machine.spawn_logged([str(machine.hermes_exe), "update", "--yes"], label)
+    return lambda: machine.spawn_logged([str(machine.kova_exe), "update", "--yes"], label)
 
 
 def _handoff(machine, label: str):
@@ -427,7 +427,7 @@ def _marker_live(text: str) -> str | None:
 
 def _read_marker(machine) -> str | None:
     try:
-        return (machine.hermes_home / MARKER).read_text(encoding="utf-8-sig")
+        return (machine.kova_home / MARKER).read_text(encoding="utf-8-sig")
     except FileNotFoundError:
         return None
     except OSError as exc:  # mid-replace by a writer
@@ -462,7 +462,7 @@ def _direct_update_child(proc) -> psutil.Process | None:
 # Printed by ``_cmd_update_impl``, which kova_cli/main.py enters only after
 # ``UpdateLock.acquire()`` returned: once update.log gains one, the update child has
 # taken its place under the script's claim (and named itself in it, where it does).
-UPDATE_BANNER = "Updating Hermes Agent..."
+UPDATE_BANNER = "Updating Kova Agent..."
 
 
 UPDATE_DONE = "Update complete!"
@@ -477,7 +477,7 @@ ORPHAN_RELEASE_GRACE = 30.0
 
 
 def _receipts(machine) -> set[Path]:
-    return set((machine.hermes_home / "logs" / "update_receipts").glob("update_*.json"))
+    return set((machine.kova_home / "logs" / "update_receipts").glob("update_*.json"))
 
 
 def _new_receipt_outcome(machine, before: set[Path]) -> str | None:
@@ -499,7 +499,7 @@ def _orphan_completed(r: dict) -> bool:
 
 def _update_banners(machine, banner: str = UPDATE_BANNER) -> int:
     try:
-        return (machine.hermes_home / "logs" / "update.log").read_text(
+        return (machine.kova_home / "logs" / "update.log").read_text(
             encoding="utf-8-sig", errors="replace").count(banner)
     except OSError:
         return 0
@@ -621,7 +621,7 @@ def _orphan(machine, srv, label: str) -> dict:
         marker_after_orphan = _read_marker(machine)
         marker_after_orphan_text = _marker_text(machine)
         turn = one_shot_turn(machine, srv, f"{label}-next-launch")
-        follow_up = machine.hermes("update", "--yes", label=f"{label}-follow-up-update", timeout=UPDATE_TIMEOUT)
+        follow_up = machine.kova("update", "--yes", label=f"{label}-follow-up-update", timeout=UPDATE_TIMEOUT)
     return {"label": label, "pre": pre, "target": target, "seen": f"update child {child.pid}",
             "marker_at_kill": marker_at_kill, "orphan_finished": orphan_finished, "orphan_rc": rc,
             "orphan_reported_done": orphan_reported_done, "orphan_receipt": orphan_receipt,
@@ -629,7 +629,7 @@ def _orphan(machine, srv, label: str) -> dict:
             "tree_after_orphan": tree_after_orphan, "marker_after_orphan": marker_after_orphan,
             "marker_after_orphan_text": marker_after_orphan_text,
             "turn": turn, "follow_up": follow_up,
-            "tree_final": _tree(machine, label), "marker_final": (machine.hermes_home / MARKER).is_file()}
+            "tree_final": _tree(machine, label), "marker_final": (machine.kova_home / MARKER).is_file()}
 
 
 # -- one machine, six cells: a broken cell must not take the later ones down ------------------
@@ -649,7 +649,7 @@ def _unsound(machine, cell: str, result) -> str | None:
     tree = _tree(machine, result["label"])
     if not _tree_matches(tree, result["target"], result["target"]):
         reasons.append(f"the checkout is not its target {result['target']}: {_tree_text(tree)}")
-    if (machine.hermes_home / MARKER).is_file():
+    if (machine.kova_home / MARKER).is_file():
         reasons.append(f"{MARKER} left: {_marker_text(machine)}")
     if (machine.install_dir / ".git" / "index.lock").is_file():
         reasons.append(".git/index.lock left")
@@ -669,7 +669,7 @@ def _restore_after(machine, cell: str, result) -> None:
         return
     machine.kill_owned()
     (machine.install_dir / ".git" / "index.lock").unlink(missing_ok=True)
-    (machine.hermes_home / MARKER).unlink(missing_ok=True)
+    (machine.kova_home / MARKER).unlink(missing_ok=True)
     errors = []
     for commit in ((result["target"],) if isinstance(result, dict) else ()) + ("HEAD",):
         try:
@@ -702,7 +702,7 @@ CELLS_RAN_MANIFEST = "crash-cells-ran.txt"
 
 
 def _record_cells_ran(j: Journey) -> None:
-    artifacts = os.environ.get("HERMES_E2E_ARTIFACTS")
+    artifacts = os.environ.get("KOVA_E2E_ARTIFACTS")
     if not artifacts:
         return
     Path(artifacts).mkdir(parents=True, exist_ok=True)
@@ -829,8 +829,8 @@ def test_desktop_handoff_killed_mid_run_leaves_a_runnable_install(journey: Journ
 # removes it afterwards. The line-4 delegate (#132354 script side, #132365 Python side)
 # keeps it LIVE. Merge-order safe: XFAILs only on exactly this gap, and only after every
 # other assertion of the cell passed; an acceptance run of the integrated batch
-# (HERMES_E2E_STRICT_ACCEPTANCE=upd-txn) fails on it instead.
-ORPHAN_MARKER_GAP = (r"orphaned_update: \.hermes-update-in-progress (read DEAD|survived)",
+# (KOVA_E2E_STRICT_ACCEPTANCE=upd-txn) fails on it instead.
+ORPHAN_MARKER_GAP = (r"orphaned_update: \.kova-update-in-progress (read DEAD|survived)",
                      "upd-txn: the line-4 delegate lands in #132354 + #132365")
 # The expiry PR CI can check (it never runs this cell, nor strict): the fix's footprint in the
 # tree. Once every half is here the excuse is off, so the cell is strict on any runner, and

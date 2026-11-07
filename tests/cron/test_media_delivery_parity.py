@@ -91,8 +91,8 @@ def slack_platform_config(monkeypatch, tmp_path):
     (home / "config.yaml").write_text(
         "platforms:\n  slack:\n    enabled: true\n    token: xoxb-test\n"
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    # Config caches are process-global; clear them so the temp HERMES_HOME wins.
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    # Config caches are process-global; clear them so the temp KOVA_HOME wins.
     try:
         from gateway import config as gwconfig
 
@@ -231,8 +231,8 @@ class TestMediaPolicyEnvBridge:
             "  strict: true\n"
             f"  media_delivery_allow_dirs: [{str(allow_dir)!r}]\n"
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        for var in ("HERMES_MEDIA_DELIVERY_STRICT", "HERMES_MEDIA_ALLOW_DIRS"):
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        for var in ("KOVA_MEDIA_DELIVERY_STRICT", "KOVA_MEDIA_ALLOW_DIRS"):
             monkeypatch.delenv(var, raising=False)
 
         from gateway.media_policy import apply_media_policy_env
@@ -250,7 +250,7 @@ class TestMediaPolicyEnvBridge:
     def test_deliver_result_runs_bridge(self, monkeypatch, tmp_path, media_file):
         """_deliver_result itself must apply the bridge before filtering.
 
-        Realistic enterprise shape: HERMES_MEDIA_DELIVERY_STRICT=1 arrives via
+        Realistic enterprise shape: KOVA_MEDIA_DELIVERY_STRICT=1 arrives via
         .env (loaded by BOTH processes), but the allowlist lives in
         config.yaml's gateway block — bridged only at gateway boot. Without
         the bridge, a CLI manual run is strict WITHOUT the allowlist and
@@ -266,12 +266,12 @@ class TestMediaPolicyEnvBridge:
             f"  media_delivery_allow_dirs: [{media_dir!r}]\n"
             "  trust_recent_files: false\n"
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         # Strict comes from the shared .env in both processes...
-        monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "1")
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+        monkeypatch.setenv("KOVA_MEDIA_DELIVERY_STRICT", "1")
+        monkeypatch.setenv("KOVA_MEDIA_TRUST_RECENT_FILES", "0")
         # ...but the allowlist is config-only (gateway-boot bridge).
-        monkeypatch.delenv("HERMES_MEDIA_ALLOW_DIRS", raising=False)
+        monkeypatch.delenv("KOVA_MEDIA_ALLOW_DIRS", raising=False)
         old = 1_600_000_000
         os.utime(media_file, (old, old))
 

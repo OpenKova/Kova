@@ -65,10 +65,10 @@ def _fingerprint(plugin_dir: Path) -> str:
 
 
 def _cached_extraction(plugin_dir: Path, module_name: str) -> dict[str, Any]:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     # Keyed by the full path too: a user and a project plugin may share a directory name.
     path_key = hashlib.sha256(str(plugin_dir.resolve()).encode("utf-8")).hexdigest()[:12]
-    cache = get_hermes_home() / "cache" / "plugin_host" / "model-providers" / f"{plugin_dir.name}-{path_key}.json"
+    cache = get_kova_home() / "cache" / "plugin_host" / "model-providers" / f"{plugin_dir.name}-{path_key}.json"
     fingerprint = _fingerprint(plugin_dir)
     try:
         cached = json.loads(cache.read_text(encoding="utf-8-sig"))
@@ -89,17 +89,17 @@ def _cached_extraction(plugin_dir: Path, module_name: str) -> dict[str, Any]:
 def _extract(plugin_dir: Path, module_name: str) -> dict[str, Any]:
     """Import the plugin in a throwaway host process with no credentials and read its profiles."""
     from kova_cli.plugin_isolation import HOST_PROCESS_ENV, host_launcher
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     repo_root = str(Path(__file__).resolve().parents[1])
-    # Absolute: the child starts in the home, so a relative HERMES_HOME or plugin dir would resolve twice.
-    home = str(get_hermes_home().resolve())
+    # Absolute: the child starts in the home, so a relative KOVA_HOME or plugin dir would resolve twice.
+    home = str(get_kova_home().resolve())
     env = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT") if key in os.environ}
     # Windows resolves Path.home() from USERPROFILE, never HOME: without it the child cannot start.
-    env.update(HOME=str(Path.home()), USERPROFILE=str(Path.home()), HERMES_HOME=home,
+    env.update(HOME=str(Path.home()), USERPROFILE=str(Path.home()), KOVA_HOME=home,
                PYTHONPATH=repo_root,
                **{HOST_PROCESS_ENV: "1"})
     # -P and a trusted cwd: ``-m`` otherwise puts the launch directory ahead of PYTHONPATH, so a
-    # ``kova_cli/`` package in the directory Hermes was started from would run instead of ours.
+    # ``kova_cli/`` package in the directory Kova was started from would run instead of ours.
     argv = [*host_launcher(), sys.executable, "-P", "-m", "kova_cli.plugin_host_child", "--extract-profiles",
             str(plugin_dir.resolve()), module_name]
     try:
@@ -119,7 +119,7 @@ def _host_call(plugin_dir: str, module_name: str, profile: str, attr: str) -> Ca
         from kova_cli.plugin_isolation import user_plugin_host
         host = user_plugin_host()
         if host is None:
-            raise PluginHostUnavailable("plugins.isolation is no longer 'host'; restart Hermes")
+            raise PluginHostUnavailable("plugins.isolation is no longer 'host'; restart Kova")
         return host.profile_call(plugin_dir, module_name, profile, attr, args, kwargs)
     return call
 

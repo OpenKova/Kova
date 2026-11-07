@@ -11,7 +11,7 @@ import pytest
 
 from agent.redact import clear_vault_redaction_values
 from agent.vault_store import get_vault_store
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from tools import browser_vault_tool
 from tools.registry import registry
 
@@ -56,14 +56,14 @@ def _managed_browser_used(*_args, **_kwargs):
 def home(tmp_path, monkeypatch):
     monkeypatch.setattr(browser_vault_tool, "_fenced_page_op", _managed_browser_used)
     monkeypatch.setattr(browser_vault_tool, "_ensure_supervisor", _managed_browser_used)
-    token = set_hermes_home_override(tmp_path)
+    token = set_kova_home_override(tmp_path)
     (tmp_path / "config.yaml").write_text(json.dumps({"vault": {"onepassword": {"enabled": False},
                                                                   "bitwarden": {"enabled": False}}}))
     try:
         yield tmp_path
     finally:
         clear_vault_redaction_values()
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _login(password, origin=ORIGIN):

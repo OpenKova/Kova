@@ -73,7 +73,7 @@ _RESPAWN_GUARD_SUCCESS_WINDOW = 3600  # 1 hour
 # Cooldown after a rate-limited (quota-wall) requeue before re-spawning. Without
 # it the task would re-spawn on the very next tick and bounce off the same quota
 # wall, burning a worker slot every tick for hours. Overridable via
-# ``HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS``.
+# ``KOVA_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS``.
 DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 300  # 5 minutes
 
 # Within this window a GitHub PR URL in a comment blocks re-spawn.
@@ -119,7 +119,7 @@ class DispatchResult:
     acting on the fallback rule rather than explicit assignments."""
     skipped_nonspawnable: list[str] = field(default_factory=list)
     """Ready task ids whose assignee names a control-plane lane (e.g. a Claude
-    Code terminal like ``orion-cc``), not a Hermes profile. Expected steady-state
+    Code terminal like ``orion-cc``), not a Kova profile. Expected steady-state
     on multi-lane setups, NOT operator-actionable; tracked apart so health
     telemetry can tell "stuck" from "correctly idle"."""
     skipped_per_profile_capped: list[tuple[str, str, int]] = field(default_factory=list)
@@ -988,7 +988,7 @@ _PROTOCOL_VIOLATION_ERROR = (
 
 
 # Rich panel/rule chrome around the rendered response, and the CLI's own preamble lines.
-_LOG_CHROME = re.compile(r"[─━═╭╮╰╯│┃┌┐└┘]+|☤\s*Hermes")
+_LOG_CHROME = re.compile(r"[─━═╭╮╰╯│┃┌┐└┘]+|☤\s*Kova")
 
 
 def _exit_summary_marker() -> str:
@@ -1722,7 +1722,7 @@ def _profile_exists_fn() -> Optional[Callable[[str], bool]]:
 def _dispatch_profile_allowlist(normalize_profile_name) -> Optional[frozenset]:
     """Per-home claim allowlist ``kanban.dispatch_profiles`` (#110995).
 
-    On a shared board (one ``kanban.db`` mounted across several Hermes homes),
+    On a shared board (one ``kanban.db`` mounted across several Kova homes),
     every home's ``profile_exists`` returns True for ``default`` — the root
     profile every home has — so a card assigned to ``default`` is claimable by
     every home's dispatcher. A home opts out of foreign claims by declaring
@@ -1804,7 +1804,7 @@ def _has_spawnable(conn: sqlite3.Connection, status: str) -> bool:
 
 
 def has_spawnable_ready(conn: sqlite3.Connection) -> bool:
-    """True iff a ready+assigned+unclaimed task maps to a real Hermes profile.
+    """True iff a ready+assigned+unclaimed task maps to a real Kova profile.
 
     Lets health telemetry tell "stuck" (``0 spawned`` with spawnable work) from
     "correctly idle" (only control-plane lanes waiting on ``claim_task``). Falls
@@ -1819,7 +1819,7 @@ def has_spawnable_review(conn: sqlite3.Connection) -> bool:
 
 
 def review_dispatch_enabled() -> bool:
-    """Whether review tasks dispatch automatically. Default true (Hermes ships
+    """Whether review tasks dispatch automatically. Default true (Kova ships
     ``sdlc-review``); operators disable it for human-only review boards.
     """
     try:
@@ -1926,7 +1926,7 @@ def count_running_tasks_other_boards(board: Optional[str] = None) -> int:
 
     Caps bound the HOST, but each board's tick only sees its own DB; without
     this a derived cap of N gets multiplied by the number of active boards.
-    Boards are matched by resolved DB path, so ``HERMES_KANBAN_DB`` (pins every
+    Boards are matched by resolved DB path, so ``KOVA_KANBAN_DB`` (pins every
     board to one file) yields 0. Fails open per board.
     """
     try:
@@ -2465,13 +2465,13 @@ def _positive_int(value: Any, default: int, *, minimum: int = 1) -> int:
 
 
 def _module_hermes_argv() -> list[str]:
-    """Interpreter-bound Hermes CLI invocation (``kova_cli.main`` is the
+    """Interpreter-bound Kova CLI invocation (``kova_cli.main`` is the
     console-script target — there is no top-level ``hermes`` package)."""
     return [sys.executable, "-m", "kova_cli.main"]
 
 
 def _absolute_hermes_path(path: str) -> str:
-    """Return an absolute filesystem path for a resolved Hermes shim."""
+    """Return an absolute filesystem path for a resolved Kova shim."""
     expanded = os.path.expanduser(path)
     return expanded if os.path.isabs(expanded) else os.path.abspath(expanded)
 
@@ -2520,7 +2520,7 @@ def _safe_which_no_cwd(command: str) -> Optional[str]:
 
 
 def _hermes_path_argv(path: str) -> list[str]:
-    """argv for a resolved Hermes executable path. Windows batch shims
+    """argv for a resolved Kova executable path. Windows batch shims
     (``.cmd``/``.bat``) are unsafe as argv[0] because the argument vector
     includes task-derived values; prefer the module form."""
     if _kb._IS_WINDOWS and _is_windows_batch_shim(path):
@@ -2529,7 +2529,7 @@ def _hermes_path_argv(path: str) -> list[str]:
 
 
 def _resolve_hermes_argv() -> list[str]:
-    """Resolve the ``hermes`` invocation as argv for ``Popen``: ``$HERMES_BIN``
+    """Resolve the ``hermes`` invocation as argv for ``Popen``: ``$KOVA_BIN``
     (path-like -> absolute; bare names keep PATH semantics, never a
     same-directory file), then the running interpreter's ``sys.executable -m
     kova_cli.main`` (exactly this install; also covers shim-less cron,
@@ -2543,7 +2543,7 @@ def _resolve_hermes_argv() -> list[str]:
     import importlib.util
     import shutil
 
-    env_bin = os.environ.get("HERMES_BIN", "").strip()
+    env_bin = os.environ.get("KOVA_BIN", "").strip()
     if env_bin:
         if _looks_like_path(env_bin):
             return _hermes_path_argv(env_bin)
@@ -2594,7 +2594,7 @@ def _worker_terminal_timeout_env(
 
 
 @contextlib.contextmanager
-def _worker_profile_scope(hermes_home: str, *, bind_home: bool = True):
+def _worker_profile_scope(kova_home: str, *, bind_home: bool = True):
     """Bind an assigned profile's runtime scope (secrets + terminal policy, optionally home) for
     one dispatch-side read or spawn-env build.
 
@@ -2615,15 +2615,15 @@ def _worker_profile_scope(hermes_home: str, *, bind_home: bool = True):
     resolves for a standalone dispatcher.
     """
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-    from kova_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_process_kova_home, reset_kova_home_override, set_kova_home_override
     from tools.terminal_scope import install_profile_terminal_scope, reset_terminal_scope
     from tui_gateway.launch_profile_policy import launch_secret_scope, launch_terminal_env
 
-    home = Path(hermes_home)
-    is_launch_home = str(home.resolve()) == str(Path(get_process_hermes_home()).resolve())
+    home = Path(kova_home)
+    is_launch_home = str(home.resolve()) == str(Path(get_process_kova_home()).resolve())
     home_token = secret_token = terminal_token = None
     try:
-        home_token = set_hermes_home_override(str(home)) if bind_home else None
+        home_token = set_kova_home_override(str(home)) if bind_home else None
         secret_token = set_secret_scope(
             launch_secret_scope(home) if is_launch_home else build_profile_secret_scope(home),
             profile_home=None if is_launch_home else str(home))
@@ -2636,32 +2636,32 @@ def _worker_profile_scope(hermes_home: str, *, bind_home: bool = True):
         if secret_token is not None:
             reset_secret_scope(secret_token)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
 
 
-def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[str]]:
+def _resolve_worker_cli_toolsets(kova_home: Optional[str]) -> Optional[list[str]]:
     """Return the assigned profile's effective CLI toolsets for a worker.
 
     Resolved at dispatch time and passed as an explicit ``--toolsets`` pin so
     worker startup cannot fall back to a stale root/active-profile config or a
     profile whose top-level ``toolsets`` is only the kanban orchestrator
     surface. ``model_tools`` still appends the task-scoped kanban lifecycle
-    tools when ``HERMES_KANBAN_TASK`` is set.
+    tools when ``KOVA_KANBAN_TASK`` is set.
     """
-    if not hermes_home:
+    if not kova_home:
         return None
     try:
         from kova_cli.config import load_config
         from kova_cli.tools_config import _get_platform_tools
 
-        with _worker_profile_scope(hermes_home):
+        with _worker_profile_scope(kova_home):
             cfg = load_config()
             toolsets = sorted(_get_platform_tools(cfg, "cli"))
         return toolsets or None
     except Exception as exc:
         _kb._log.debug(
-            "kanban worker: could not resolve CLI toolsets for HERMES_HOME=%r (%s)",
-            hermes_home,
+            "kanban worker: could not resolve CLI toolsets for KOVA_HOME=%r (%s)",
+            kova_home,
             exc,
         )
         return None
@@ -2694,7 +2694,7 @@ def _retag_legacy_worker_sessions(workspaces_root_path: str) -> None:
         _kb._log.debug("kanban worker: legacy session retag skipped (%s)", exc)
 
 
-def _worker_argv(task: Task, profile_arg: str, hermes_home: Optional[str]) -> list[str]:
+def _worker_argv(task: Task, profile_arg: str, kova_home: Optional[str]) -> list[str]:
     """The profile owner executes; this subprocess only waits for its receipt."""
     import sys
     return [sys.executable, "-m", "kova_cli.kanban_worker_client"]
@@ -2757,7 +2757,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     Returns the child's PID so the dispatcher can detect crashes before the
     claim TTL expires; completion is still observed via the worker's own
     ``complete`` / ``block`` transitions. ``board`` pins the child's
-    ``HERMES_KANBAN_DB`` / ``HERMES_KANBAN_BOARD`` / workspaces_root to the
+    ``KOVA_KANBAN_DB`` / ``KOVA_KANBAN_BOARD`` / workspaces_root to the
     board the task was claimed from, so workers cannot see other boards.
     """
     if not task.assignee:
@@ -2774,7 +2774,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
         profile_home = resolve_profile_env(profile_arg)
     except FileNotFoundError:
         # No profile dir (isolated test fixtures) — the CLI resolves it from
-        # HERMES_PROFILE (set below) instead.
+        # KOVA_PROFILE (set below) instead.
         profile_home = None
 
     # Scrub for a ROUTED home, not only under multiplex: the authority test is "does this worker act
@@ -2797,22 +2797,22 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     for key in _VAR_MAP:
         env.pop(key, None)
 
-    # Inject HERMES_HOME so the worker reads the profile-scoped config.yaml:
-    # without it the child's get_hermes_home() falls back to the DEFAULT
+    # Inject KOVA_HOME so the worker reads the profile-scoped config.yaml:
+    # without it the child's get_kova_home() falls back to the DEFAULT
     # profile root because `hermes -p` applies its override before
     # kova_constants is imported.
     if profile_home:
-        env["HERMES_HOME"] = profile_home
+        env["KOVA_HOME"] = profile_home
         # A multiplexer dispatching for another profile must not hand it the launch
         # profile's .env settings / TERMINAL_* policy — a standalone dispatcher never would.
         strip_launch_profile_env(env, profile_home)
     if task.tenant:
-        env["HERMES_TENANT"] = task.tenant
-    env["HERMES_KANBAN_TASK"] = task.id
-    env["HERMES_KANBAN_WORKSPACE"] = workspace
+        env["KOVA_TENANT"] = task.tenant
+    env["KOVA_KANBAN_TASK"] = task.id
+    env["KOVA_KANBAN_WORKSPACE"] = workspace
     # Tag the session `kanban` so session-browsing surfaces filter it out by
     # source instead of rendering one sidebar row per attempt.
-    env["HERMES_SESSION_SOURCE"] = "kanban"
+    env["KOVA_SESSION_SOURCE"] = "kanban"
     # TERMINAL_CWD takes precedence over process cwd in file_tools and
     # build_context_files_prompt; without it relative writes land in the gateway
     # user's home and workers load the gateway's AGENTS.md. file_tools rejects
@@ -2827,41 +2827,41 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     if workspace and os.path.isabs(workspace) and os.path.isdir(workspace):
         env["TERMINAL_CWD"] = workspace
     if task.branch_name:
-        env["HERMES_KANBAN_BRANCH"] = task.branch_name
+        env["KOVA_KANBAN_BRANCH"] = task.branch_name
     if task.current_run_id is not None:
-        env["HERMES_KANBAN_RUN_ID"] = str(task.current_run_id)
+        env["KOVA_KANBAN_RUN_ID"] = str(task.current_run_id)
     if task.claim_lock:
-        env["HERMES_KANBAN_CLAIM_LOCK"] = task.claim_lock
+        env["KOVA_KANBAN_CLAIM_LOCK"] = task.claim_lock
     # Goal-loop mode (Ralph-style /goal judge loop in cli.py quiet-mode path).
     # Only set when enabled so non-goal tasks keep a clean env.
     if task.goal_mode:
-        env["HERMES_KANBAN_GOAL_MODE"] = "1"
+        env["KOVA_KANBAN_GOAL_MODE"] = "1"
         if task.goal_max_turns is not None:
-            env["HERMES_KANBAN_GOAL_MAX_TURNS"] = str(int(task.goal_max_turns))
+            env["KOVA_KANBAN_GOAL_MAX_TURNS"] = str(int(task.goal_max_turns))
     for var in ("TERMINAL_TIMEOUT", "TERMINAL_MAX_FOREGROUND_TIMEOUT"):
         override = _worker_terminal_timeout_env(task.max_runtime_seconds, env.get(var))
         if override is not None:
             env[var] = override
     # Pin the board DB + workspaces root so the worker's kanban paths still
-    # match after `hermes -p` rewrites HERMES_HOME (symlink / Docker layouts).
-    env["HERMES_KANBAN_DB"] = str(_kb.kanban_db_path(board=board))
-    env["HERMES_KANBAN_WORKSPACES_ROOT"] = str(_kb.workspaces_root(board=board))
+    # match after `hermes -p` rewrites KOVA_HOME (symlink / Docker layouts).
+    env["KOVA_KANBAN_DB"] = str(_kb.kanban_db_path(board=board))
+    env["KOVA_KANBAN_WORKSPACES_ROOT"] = str(_kb.workspaces_root(board=board))
     # Board slug — defense-in-depth pin if a path is resolved without the
     # DB / workspaces env vars.
-    env["HERMES_KANBAN_BOARD"] = _kb._normalize_board_slug(board) or _kb.get_current_board()
-    # kanban_comment reads HERMES_PROFILE for its default author; `-p` alone
+    env["KOVA_KANBAN_BOARD"] = _kb._normalize_board_slug(board) or _kb.get_current_board()
+    # kanban_comment reads KOVA_PROFILE for its default author; `-p` alone
     # doesn't set the env var.
-    env["HERMES_PROFILE"] = profile_arg
+    env["KOVA_PROFILE"] = profile_arg
     # This is the grant boundary: the dispatcher assigned this new worker's task.
     from agent.delegation_context import DELEGATED_CHILD_ENV_MARKER
     env.pop(DELEGATED_CHILD_ENV_MARKER, None)
-    # `--cli` is the highest-precedence TUI override; dropping HERMES_TUI covers
+    # `--cli` is the highest-precedence TUI override; dropping KOVA_TUI covers
     # older hermes builds on PATH that predate the flag's precedence.
-    env.pop("HERMES_TUI", None)
+    env.pop("KOVA_TUI", None)
 
-    cmd = _worker_argv(task, profile_arg, env.get("HERMES_HOME"))
-    # The worker is `-m kova_cli.kanban_worker_client`: Hermes itself, with no console-script
-    # bootstrap. The routed-profile scrub above strips Hermes-owned PYTHONPATH entries (user
+    cmd = _worker_argv(task, profile_arg, env.get("KOVA_HOME"))
+    # The worker is `-m kova_cli.kanban_worker_client`: Kova itself, with no console-script
+    # bootstrap. The routed-profile scrub above strips Kova-owned PYTHONPATH entries (user
     # children must not see our tree), so a PYTHONPATH-launched dispatcher spawned a child that
     # died on `No module named 'kova_cli'` before it ever reached the owner. Same pin as cron's
     # external worker (#112729): applied to the sanitized env, after every other decision stands.
@@ -2889,7 +2889,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
         log_f.close()
         raise RuntimeError(
             "`hermes` executable not found on PATH. "
-            "Install Hermes Agent or activate its venv before running the kanban dispatcher."
+            "Install Kova Agent or activate its venv before running the kanban dispatcher."
         )
     # Intentionally NOT closing log_f: the child keeps writing after return;
     # the OS-level FD stays open in the child until it exits.

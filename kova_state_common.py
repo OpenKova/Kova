@@ -36,14 +36,14 @@ def routed_sessions_setting(key: str, env_var: str) -> Any:
     """``sessions.<key>`` for the profile whose state.db this process is touching.
 
     ``gateway/run.py`` bridges the LAUNCH profile's ``sessions.*`` into ``env_var`` (the cross-process
-    carrier CLI/cron children read). Under a multiplexer a routed turn runs with a HERMES_HOME override
+    carrier CLI/cron children read). Under a multiplexer a routed turn runs with a KOVA_HOME override
     and that env slot holds the default profile's value, so a served profile with different
     ``sessions.*`` settings must read its own config.yaml. Unscoped: the env bridge, as before.
     Returns ``None`` when neither source sets the key.
     """
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
 
-    if get_hermes_home_override():
+    if get_kova_home_override():
         try:
             from kova_cli.config import load_config_readonly
             return (load_config_readonly().get("sessions") or {}).get(key)
@@ -424,7 +424,7 @@ def emit_session_deleted(db, deleted_ids, *, reason, primary=None, sessions_dir=
     try:
         from kova_cli.lifecycle import invoke_hook
         from kova_constants import (
-            get_hermes_home, profile_name_for_home, reset_hermes_home_override, set_hermes_home_override,
+            get_kova_home, profile_name_for_home, reset_kova_home_override, set_kova_home_override,
         )
 
         home = os.path.dirname(os.path.abspath(os.fspath(db.db_path)))
@@ -434,13 +434,13 @@ def emit_session_deleted(db, deleted_ids, *, reason, primary=None, sessions_dir=
             payload["deleted_ids"] = ids
         if sessions_dir is not None:
             payload["sessions_dir"] = str(sessions_dir)
-        rebind = profile is not None and os.path.realpath(home) != os.path.realpath(get_hermes_home())
-        token = set_hermes_home_override(home) if rebind else None
+        rebind = profile is not None and os.path.realpath(home) != os.path.realpath(get_kova_home())
+        token = set_kova_home_override(home) if rebind else None
         try:
             invoke_hook("on_session_delete", **payload)
         finally:
             if token is not None:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
     except Exception:
         logger.warning("on_session_delete dispatch failed", exc_info=True)
 
@@ -657,7 +657,7 @@ CREATE TABLE IF NOT EXISTS gateway_hygiene_state (
 
 -- Monotonic conversation generation per routing peer (#96811).
 --
--- A host-declared conversation key (X-Hermes-Session-Key / build_session_key)
+-- A host-declared conversation key (X-Kova-Session-Key / build_session_key)
 -- is per-CHAT and outlives any single conversation on it, so the prompt-cache
 -- affinity scope derived from it must be qualified by which conversation is
 -- currently live. Deriving that from the session rows themselves
@@ -782,7 +782,7 @@ BEFORE DELETE ON sessions
 WHEN EXISTS (SELECT 1 FROM session_admissions WHERE target_session_id = old.id)
   OR EXISTS (SELECT 1 FROM worker_executions WHERE session_id = old.id)
 BEGIN
-    SELECT RAISE(ABORT, 'Refused to delete a session that has gateway runtime history: state.db was upgraded by a newer Hermes, and this older Hermes cannot delete such sessions. Downgrading is unsupported. Run hermes update to go back to the newer release, or restore the pre-update snapshot: https://hermes-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release');
+    SELECT RAISE(ABORT, 'Refused to delete a session that has gateway runtime history: state.db was upgraded by a newer Kova, and this older Kova cannot delete such sessions. Downgrading is unsupported. Run hermes update to go back to the newer release, or restore the pre-update snapshot: https://kova-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release');
 END;
 DROP TRIGGER IF EXISTS messages_transcript_revision_update;
 CREATE TRIGGER IF NOT EXISTS messages_transcript_revision_update
@@ -1222,7 +1222,7 @@ END;
 # only when provably dead, indeterminate liveness defers.  `<db>.fts_rebuild.lock` is distinct from
 # `<db>.repair.lock` (offline schema surgery, minutes in VACUUM).  Lives here: mixins cannot import kova_state.
 
-# ── Cross-process full-FTS-rebuild admission (single authority) ────────────── Several independent Hermes
+# ── Cross-process full-FTS-rebuild admission (single authority) ────────────── Several independent Kova
 # processes routinely share one state.db (gateway service, the Desktop app's `hermes serve` backend,
 # interactive CLI sessions, the TUI slash worker). A full structural FTS rebuild — the FTS5 'rebuild'
 # command or the drop/recreate script in `_recover_stale_fts` — must only ever run in ONE of them at a time:
@@ -1404,7 +1404,7 @@ def _acquire_db_flock(lock_path, handle, timeout_seconds, poll_seconds, descript
 def _describe_lock_holder(record) -> str:
     """Human-readable holder identity for deferral warnings."""
     if not isinstance(record, dict) or "pid" not in record:
-        return "unknown (no holder record; pre-fix writer or non-Hermes)"
+        return "unknown (no holder record; pre-fix writer or non-Kova)"
     age = ""
     with contextlib.suppress(TypeError, ValueError):
         if record.get("acquired_at") is not None:

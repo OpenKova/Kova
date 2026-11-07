@@ -59,7 +59,7 @@ def _parse(block: str) -> ast.AST | None:
 
 
 def scan(markdown: str) -> tuple[set[str], list[int]]:
-    """Dotted Hermes targets the markdown's Python blocks import that the plugin API does not list, and
+    """Dotted Kova targets the markdown's Python blocks import that the plugin API does not list, and
     the opening line of every Python block that mentions ``import`` but does not parse even after
     placeholder repair (so it cannot be checked). A ``plugins.`` module core does not ship is the example
     plugin's own package; any other module core does not ship is a stale core import, reported with
@@ -221,6 +221,6 @@ def test_plugin_docs_import_only_the_published_plugin_api():
         "these plugin-docs Python blocks import something but do not parse, so their imports cannot be "
         f"checked; make the block valid Python (placeholders like `...` are fine): {unparsable}")
     assert not found - seams, (
-        "plugin docs import Hermes names outside kova_cli/data/plugin_api.json; rewrite the example "
+        "plugin docs import Kova names outside kova_cli/data/plugin_api.json; rewrite the example "
         f"onto ctx.* or a listed name: {sorted(found - seams)}")
     assert not seams - found, f"no longer in the docs, delete from {_SEAMS.name}: {sorted(seams - found)}"

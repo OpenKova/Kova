@@ -4,7 +4,7 @@ Sandboxes (Docker/Modal/SSH) hold only opaque proxy tokens; iron-proxy — a TLS
 default-deny egress firewall — swaps them for real credentials on the way out, so a leaked
 token is useless outside the trusted proxy boundary.  The pinned binary is auto-installed
 into the PM tool store; CA, ``proxy.yaml``, ``mappings.json``, pidfile and logs live in
-``<hermes_home>/proxy``.  Failures warn and never block agent startup.
+``<kova_home>/proxy``.  Failures warn and never block agent startup.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ _STARTUP_GRACE_SECONDS = 5
 
 # Management API (v0.39): loopback POST /v1/reload hot-swaps the ruleset.  Bearer key minted at
 # setup (0600 at <proxy>/management.token), injected under this env name; empty => daemon refuses to start.
-_MGMT_API_KEY_ENV = "HERMES_IRON_PROXY_MGMT_KEY"
+_MGMT_API_KEY_ENV = "KOVA_IRON_PROXY_MGMT_KEY"
 _MGMT_PORT_OFFSET = 2  # tunnel_port is CONNECT/MITM, +1 is plain-HTTP forward, +2 is management
 _MGMT_RELOAD_TIMEOUT = 15
 
@@ -67,7 +67,7 @@ _BEARER_PROVIDERS: dict[str, tuple[str, ...]] = {
 # ``secrets.replace.match_headers`` targets arbitrary header names (case-insensitive; confirmed by the
 # iron-proxy author on PR #30179 and verified in the pinned v0.39.0 source — ``swapHeaders`` +
 # ``parseHeaderMatchers``), so these are first-class swapped providers, not "uncovered". ``aliases`` are
-# interchangeable env-var names for the SAME upstream credential (Hermes' auth.py keys Google on both
+# interchangeable env-var names for the SAME upstream credential (Kova' auth.py keys Google on both
 # GEMINI_API_KEY and GOOGLE_API_KEY). The sandbox receives the minted token under the canonical name AND
 # every alias so SDKs reading either work.
 _HEADER_AUTH_PROVIDERS: dict[str, dict[str, tuple[str, ...]]] = {
@@ -110,7 +110,7 @@ _VERSION_CACHE: dict[str, str] = {}
 
 # Nonce planted in the daemon env so ``_pid_alive`` can prove a PID is still *our* binary across
 # PID recycling (a fresh process can't inherit our arbitrary env value).
-_HERMES_IRON_PROXY_NONCE_ENV = "HERMES_IRON_PROXY_NONCE"
+_KOVA_IRON_PROXY_NONCE_ENV = "KOVA_IRON_PROXY_NONCE"
 _proxy_nonce: Optional[str] = None
 
 
@@ -147,8 +147,8 @@ class TokenMapping:
 
 
 def _proxy_state_dir_ro() -> Path:  # without creating it (status probes, pidfile reads)
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "proxy"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "proxy"
 
 
 def _proxy_state_dir() -> Path:
@@ -303,7 +303,7 @@ def ensure_management_token(*, force: bool = False) -> str:
     """Return the management-API bearer key, minting it on first call.
 
     Stored at the path from :func:`_management_token_path` with 0600 perms.
-    The daemon receives it via the ``HERMES_IRON_PROXY_MGMT_KEY`` env var
+    The daemon receives it via the ``KOVA_IRON_PROXY_MGMT_KEY`` env var
     (named in the generated config's ``management.api_key_env``);
     ``hermes egress reload`` reads the same file to authenticate.
     """
@@ -502,7 +502,7 @@ def ensure_audit_log(audit_path: Path) -> None:
 
 
 def write_proxy_config(config: dict) -> Path:
-    """Serialize the config dict to ``<hermes_home>/proxy/proxy.yaml`` (safe_dump, no Python tags).
+    """Serialize the config dict to ``<kova_home>/proxy/proxy.yaml`` (safe_dump, no Python tags).
 
     The file holds proxy tokens: written 0600 from creation, never at process umask."""
     if (yaml := _yaml()) is None:
@@ -634,7 +634,7 @@ def _pid_alive(pid: int) -> bool:
     if nonce_candidates:
         with suppress(OSError):
             env_bytes = Path(f"/proc/{pid}/environ").read_bytes()
-            if any(f"{_HERMES_IRON_PROXY_NONCE_ENV}={n}".encode() in env_bytes for n in nonce_candidates):
+            if any(f"{_KOVA_IRON_PROXY_NONCE_ENV}={n}".encode() in env_bytes for n in nonce_candidates):
                 return True
     if Path("/proc/self/cmdline").exists():  # Linux: /proc answers for every pid
         try:
@@ -673,7 +673,7 @@ def start_proxy(
         env[_MGMT_API_KEY_ENV] = ensure_management_token()
     # Per-start nonce for PID-recycling defense; module-global is fine (one proxy per process).
     _proxy_nonce = hashlib.sha256(os.urandom(16)).hexdigest()
-    env[_HERMES_IRON_PROXY_NONCE_ENV] = _proxy_nonce
+    env[_KOVA_IRON_PROXY_NONCE_ENV] = _proxy_nonce
     log_path = _proxy_state_dir() / "iron-proxy.log"
     proc = _spawn_daemon(bin_path, cfg, env, log_path)
     # Pidfile BEFORE the listening poll so `hermes egress stop` can clean an orphan if the parent dies mid-poll.

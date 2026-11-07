@@ -1,4 +1,4 @@
-import type { HermesApiRequest, HermesReadFileTextResult } from '@/global'
+import type { KovaApiRequest, KovaReadFileTextResult } from '@/global'
 
 type DesktopPluginsBridge = Pick<
   Window['hermesDesktop'],
@@ -11,7 +11,7 @@ type DesktopPluginsBridge = Pick<
 >
 
 interface BrowserDesktopPluginsOptions {
-  api: <T>(request: HermesApiRequest) => Promise<T>
+  api: <T>(request: KovaApiRequest) => Promise<T>
   /** The page's /api/fs readers, kept for every path outside the plugins folder. */
   files: Pick<Window['hermesDesktop'], 'readDir' | 'readFileText'>
 }
@@ -30,7 +30,7 @@ export function createBrowserDesktopPluginsBridge({ api, files }: BrowserDesktop
   const inside = (path: string) =>
     root !== null && (path === root || path.startsWith(`${root}/`) || path.startsWith(`${root}\\`))
 
-  const readFile = (path: string) => get<HermesReadFileTextResult>('read', path)
+  const readFile = (path: string) => get<KovaReadFileTextResult>('read', path)
 
   const reconcile = () =>
     api<{ refused?: { name: string; reason: string }[]; touched: string[] }>({

@@ -1,4 +1,4 @@
-"""Unified self-relaunch for Hermes CLI: preserves inherited flags (--tui, --dev, --profile, --model…)
+"""Unified self-relaunch for Kova CLI: preserves inherited flags (--tui, --dev, --profile, --model…)
 across process replacement so ``hermes sessions browse`` / post-setup relaunch keep the user's mode."""
 
 import os
@@ -60,7 +60,7 @@ def _extract_inherited_flags(argv: Sequence[str]) -> list[str]:
 
 
 def resolve_hermes_bin() -> Optional[str]:
-    """Hermes entry point: ``sys.argv[0]`` if a real executable, else ``which hermes``, else ``None``
+    """Kova entry point: ``sys.argv[0]`` if a real executable, else ``which hermes``, else ``None``
     (caller falls back to ``python -m kova_cli.main``).
 
     Python launchers are never returned: on Windows a ``.py`` can't be exec'd directly, and on
@@ -132,7 +132,7 @@ def relaunch(
             # Raw ``[Errno 8] Exec format error`` is cryptic; usual causes are ``hermes`` not on
             # PATH yet (install hasn't propagated User PATH into this shell) or a stale shim.
             print(
-                f"\nHermes relaunch failed: {exc}\n"
+                f"\nKova relaunch failed: {exc}\n"
                 f"Command: {' '.join(new_argv)}\n"
                 f"Fix: open a new terminal so PATH picks up, then re-run hermes.",
                 file=sys.stderr,

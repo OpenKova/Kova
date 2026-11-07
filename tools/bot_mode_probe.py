@@ -44,9 +44,9 @@ _cached: dict[str, str] = {}
 
 
 def _default_home() -> str:
-    """Ambient process HERMES_HOME (env, else the platform default) as a string."""
-    from kova_constants import get_process_hermes_home
-    return str(get_process_hermes_home())
+    """Ambient process KOVA_HOME (env, else the platform default) as a string."""
+    from kova_constants import get_process_kova_home
+    return str(get_process_kova_home())
 
 
 def _resolve_home(home: str | os.PathLike | None) -> Path:
@@ -62,7 +62,7 @@ def _swallow(fn, default):
 
 
 def _hermes_root(home: Path) -> Path:
-    """Root ~/.hermes for both the default profile and named profiles."""
+    """Root ~/.kova for both the default profile and named profiles."""
     return home.parent.parent if home.parent.name == "profiles" else home
 
 
@@ -188,7 +188,7 @@ def _display_name(name: str, profile_dir: Path, names: Collection[str]) -> str:
     return next((n for n in _friendly_names(profile_dir) if n), None) or _handle(name, names)
 
 
-# Tokens the Desktop mention parser reserves; a bot titled "Hermes" never hijacks @hermes.
+# Tokens the Desktop mention parser reserves; a bot titled "Kova" never hijacks @hermes.
 _RESERVED_ALIASES = frozenset({"all", "everyone", "user", "default", "hermes"})
 
 
@@ -298,7 +298,7 @@ def _build_section(home: Path) -> str:
 
     return (
         f"{_PROTOCOL_HEADING}\n"
-        "This install runs Bot Mode: each Hermes profile is an agent teammate with "
+        "This install runs Bot Mode: each Kova profile is an agent teammate with "
         'one canonical "Bot Chat" conversation, and you have the `message_agent` '
         "tool to DM any of them. It is FIRE-AND-FORGET: it delivers your message "
         "with your attribution prefixed automatically and returns an acknowledgement "
@@ -336,7 +336,7 @@ def _build_section(home: Path) -> str:
 
 def get_bot_mode_protocol_section(home: str | os.PathLike | None = None, *, force_refresh: bool = False) -> str:
     """Cached probe entry point — one filesystem pass per (process, home). ``home`` should be
-    the AGENT'S OWN resolved home (session-db derived), not ambient HERMES_HOME — build threads
+    the AGENT'S OWN resolved home (session-db derived), not ambient KOVA_HOME — build threads
     can lose the ContextVar override and the env var would then name the wrong profile."""
     resolved = str(_resolve_home(home))
     with _lock:
@@ -402,13 +402,13 @@ def capability_fingerprint(home: str | os.PathLike | None = None) -> str:
         # scoped to the bot's home via the override the loaders already honor.
         from agent.skill_utils import parse_config_string_list
         from kova_cli.config import load_config_readonly
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
-        token = set_hermes_home_override(str(resolved))
+        token = set_kova_home_override(str(resolved))
         try:
             cfg = load_config_readonly() or {}
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         skills_cfg = cfg.get("skills") if isinstance(cfg.get("skills"), dict) else {}
         model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
         surface["model_capabilities"] = _model_prompt_capability_surface(model_cfg)

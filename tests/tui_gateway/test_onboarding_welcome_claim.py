@@ -21,8 +21,8 @@ from tui_gateway import server
 def root(tmp_path, monkeypatch) -> Path:
     home = tmp_path / "hermes-root"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: Facts(os="macos", arch="arm64"))
     return home
@@ -135,8 +135,8 @@ def test_only_the_local_desktop_backend_opens_onboarding_by_itself(portal, root,
 def test_eligible_follows_the_default_profile_not_the_launch_profile(portal, root, monkeypatch):
     from kova_cli import profiles
     work = profiles.create_profile("work", no_alias=True)
-    monkeypatch.setenv("HERMES_HOME", str(work))
-    monkeypatch.setattr(server, "_hermes_home", str(work))
+    monkeypatch.setenv("KOVA_HOME", str(work))
+    monkeypatch.setattr(server, "_kova_home", str(work))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     (root / ".env").write_text("OPENROUTER_API_KEY=sk-or-test\n", encoding="utf-8")
     as_local_desktop_backend(monkeypatch)
@@ -203,7 +203,7 @@ def test_the_cached_due_answer_follows_shared_auth_and_the_managed_layer(portal,
 
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     as_local_desktop_backend(monkeypatch)
     free_tier_bootstrap.run_bootstrap(announce=False)
     cached = _call("onboarding.state")["result"]

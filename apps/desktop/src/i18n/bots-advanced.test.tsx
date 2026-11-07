@@ -1,4 +1,4 @@
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
@@ -38,7 +38,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
 
   return {
     ...sdk,

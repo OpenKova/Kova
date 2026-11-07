@@ -707,7 +707,7 @@ def test_thread_transcript_prunes_committed_message_and_settlement_together(
 
 
 def test_service_derives_room_deadline_from_agent_timeout(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("HERMES_AGENT_TIMEOUT", "90")
+    monkeypatch.setenv("KOVA_AGENT_TIMEOUT", "90")
 
     service = HostedRoomService(_server(), db_path=tmp_path / "state.db")
 

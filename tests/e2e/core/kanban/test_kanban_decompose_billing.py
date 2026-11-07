@@ -34,7 +34,7 @@ from tests.e2e.core._pending_fixes import known_gate
 from tests.e2e.core.kanban._helpers import PY, Board, wait_until
 from tests.fakes.fake_llm_provider import Error, FakeLLMServer, Response, Text
 
-# The gateway child is isolated (scratch HOME/HERMES_HOME, own lock dir) and reaped by PID below.
+# The gateway child is isolated (scratch HOME/KOVA_HOME, own lock dir) and reaped by PID below.
 pytestmark = [
     pytest.mark.spawns_gateway_lookalike,
     pytest.mark.skipif(sys.platform == "win32", reason="POSIX process groups for the gateway child"),
@@ -131,10 +131,10 @@ def task_count(b: Board) -> int:
 @contextmanager
 def gateway(b: Board) -> Iterator[subprocess.Popen]:
     env = b.env()
-    # The child's HOME is itself the scratch board root, so ~/.hermes IS the temp home here; the
+    # The child's HOME is itself the scratch board root, so ~/.kova IS the temp home here; the
     # inherited live-system guard would refuse it (same as the delivery/tenancy gateway children).
-    env.update({"HERMES_GATEWAY_LOCK_DIR": str(b.root / "gw-locks"), "PYTHONUNBUFFERED": "1",
-                "HERMES_STATE_DB_GUARD_BYPASS": "1"})
+    env.update({"KOVA_GATEWAY_LOCK_DIR": str(b.root / "gw-locks"), "PYTHONUNBUFFERED": "1",
+                "KOVA_STATE_DB_GUARD_BYPASS": "1"})
     log_path = b.root / "gateway.log"
     with open(log_path, "wb") as log:
         proc = subprocess.Popen([PY, "-m", "kova_cli.main", "gateway", "run"], cwd=str(b.root),

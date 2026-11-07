@@ -102,7 +102,7 @@ def _resolve_stt_language(
     provider_key: str, stt_config: Optional[dict[str, Any]] = None, *, extra_keys: tuple = ()
 ) -> Optional[str]:
     """Language hint for an STT provider, first non-empty wins (never ""): ``stt.<provider>.language``
-    (plus *extra_keys* aliases, e.g. ``language_code``) > ``stt.language`` > ``HERMES_LOCAL_STT_LANGUAGE``
+    (plus *extra_keys* aliases, e.g. ``language_code``) > ``stt.language`` > ``KOVA_LOCAL_STT_LANGUAGE``
     env > None (provider auto-detects)."""
     if stt_config is None:
         stt_config = _load_stt_config()
@@ -131,7 +131,7 @@ def _has_openai_audio_backend() -> bool:
 
 
 def _is_local_stt_provider(provider: str, stt_config: dict[str, Any]) -> bool:
-    """Whether *provider* is exempt from Hermes's remote upload cap."""
+    """Whether *provider* is exempt from Kova's remote upload cap."""
     return (provider or "").lower().strip() in {"local", "local_command"}
 
 
@@ -180,7 +180,7 @@ def _resolve_explicit_local() -> str:
     backend = _detect_local_backend()
     if not backend:
         logger.warning("STT provider 'local' configured but unavailable "
-                       "(install faster-whisper or set HERMES_LOCAL_STT_COMMAND)")
+                       "(install faster-whisper or set KOVA_LOCAL_STT_COMMAND)")
     return backend or "none"
 
 

@@ -255,14 +255,14 @@ async def test_mcp_server(name: str, profile: Optional[str] = None):
 async def auth_mcp_server(name: str, request: Request, profile: Optional[str] = None):
     """Start MCP OAuth and hand the authorization URL to the dashboard browser."""
     from kova_cli.mcp_config import _get_mcp_servers
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.mcp_dashboard_oauth import DashboardOAuthFlow, exception_message
 
     _require_token(request)
     _gc_mcp_oauth_flows()
 
     def _home() -> str:
-        return str(get_hermes_home().expanduser().resolve(strict=False))
+        return str(get_kova_home().expanduser().resolve(strict=False))
 
     process_home = _home()
 
@@ -291,7 +291,7 @@ async def auth_mcp_server(name: str, request: Request, profile: Optional[str] = 
         flow_id=flow_id,
         server_name=name,
         profile=profile,
-        hermes_home=flow_home,
+        kova_home=flow_home,
         redirect_uri=(cfg.get("oauth") or {}).get("redirect_uri") or _mcp_oauth_callback_url(request, name),
         reconnect_live=flow_home == process_home,
     )
@@ -299,7 +299,7 @@ async def auth_mcp_server(name: str, request: Request, profile: Optional[str] = 
         live = [f for f in _mcp_oauth_flows.values() if not f.worker_done]
         if len(live) >= _MAX_PENDING_MCP_OAUTH_FLOWS:
             raise HTTPException(status_code=429, detail="Too many MCP OAuth flows are already in progress")
-        if any(f.server_name == name and f.hermes_home == flow_home for f in live):
+        if any(f.server_name == name and f.kova_home == flow_home for f in live):
             raise HTTPException(status_code=409, detail=f"MCP OAuth for '{name}' is already in progress")
         _mcp_oauth_flows[flow_id] = flow
     threading.Thread(target=_run_dashboard_mcp_oauth, args=(flow, cfg), daemon=True, name=f"mcp-oauth-{name}").start()
@@ -356,7 +356,7 @@ async def mcp_oauth_callback(
         None,
     )
     if flow is None:
-        return HTMLResponse("<h1>OAuth flow expired</h1><p>Return to Hermes and try again.</p>", status_code=404)
+        return HTMLResponse("<h1>OAuth flow expired</h1><p>Return to Kova and try again.</p>", status_code=404)
     try:
         flow.deliver_callback(code=code, state=state, error=error, iss=iss)
     except ValueError as exc:
@@ -365,8 +365,8 @@ async def mcp_oauth_callback(
             status_code=409 if "already received" in str(exc) else 400,
         )
     if error:
-        return HTMLResponse("<h1>Authorization failed</h1><p>Return to Hermes for details.</p>", status_code=400)
-    return HTMLResponse("<h1>Authorization received</h1><p>You can close this tab and return to Hermes.</p>")
+        return HTMLResponse("<h1>Authorization failed</h1><p>Return to Kova for details.</p>", status_code=400)
+    return HTMLResponse("<h1>Authorization received</h1><p>You can close this tab and return to Kova.</p>")
 
 
 @router.put("/api/mcp/servers/{name}/enabled")

@@ -40,9 +40,9 @@ NEW_URL = "https://new-endpoint.invalid/v1"
 
 @pytest.fixture()
 def live_home(monkeypatch):
-    """A REAL isolated HERMES_HOME with a config.yaml + state.db on disk."""
+    """A REAL isolated KOVA_HOME with a config.yaml + state.db on disk."""
     tmp = Path(tempfile.mkdtemp(prefix="hermes-live-staleprov-"))
-    home = tmp / ".hermes"
+    home = tmp / ".kova"
     home.mkdir(parents=True)
     config = {
         "model": {"default": "test-model-live", "provider": "custom:newone"},
@@ -56,13 +56,13 @@ def live_home(monkeypatch):
         ],
     }
     (home / "config.yaml").write_text(yaml.safe_dump(config))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     # kova_constants caches the resolved home at first read — the env var
     # alone doesn't repoint an already-imported process. Use the override API
     # (the same mechanism profile-scoped resumes use).
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    home_token = set_hermes_home_override(str(home))
+    home_token = set_kova_home_override(str(home))
     # Neutralize ambient provider creds so resolution uses ONLY the config
     # above — this must behave the same on a dev box and a bare CI runner.
     for var in list(os.environ):
@@ -91,7 +91,7 @@ def live_home(monkeypatch):
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
     monkeypatch.setattr(server, "_db", None, raising=False)
     monkeypatch.setattr(server, "_db_error", None, raising=False)
-    monkeypatch.setattr(server, "_hermes_home", str(home), raising=False)
+    monkeypatch.setattr(server, "_kova_home", str(home), raising=False)
     yield home, server
     # Detach the shared handle so the tmpdir can be reclaimed.
     try:
@@ -101,7 +101,7 @@ def live_home(monkeypatch):
         pass
     server._db = None
     try:
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
     except Exception:
         pass
 

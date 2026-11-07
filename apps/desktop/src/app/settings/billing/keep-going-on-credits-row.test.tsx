@@ -79,7 +79,7 @@ describe('KeepGoingOnCreditsRow', () => {
     })
 
     // The browser opens on its own (no second "Verify" click).
-    expect(window.hermesDesktop?.openExternal).toHaveBeenCalledWith('https://portal.nousresearch.com/device')
+    expect(window.kovaDesktop?.openExternal).toHaveBeenCalledWith('https://portal.nousresearch.com/device')
     expect(screen.getByText('ABCD-1234')).toBeTruthy()
 
     await act(async () => resolveStepUp({ data: { granted: true, ok: true }, ok: true }))

@@ -11,8 +11,8 @@ from kova_cli.kanban_db_connect import connect_closing
 
 
 def _bound_claim(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.delenv("KOVA_KANBAN_TASK", raising=False)
     kb.init_db()
     path = kb.kanban_db_path()
     with connect_closing(path) as conn:

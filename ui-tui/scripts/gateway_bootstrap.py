@@ -4,7 +4,7 @@ the attach ``hermes gateway attach`` runs. The child is a client, never an agent
 ``--start`` ensures the owner (first launch). A reconnect discovers only, except ``--recover``
 (a bounded slot, ``@kova/shared/gateway-client`` ``OWNER_RECOVERY_LIMIT`` per window) re-ensures whenever the
 owner is not ready: it crashed, ended by its idle exit, was stopped with ``hermes gateway stop``
-while this TUI was open, or an older Hermes's gateway answers (ensure replaces that one). Main's TUI
+while this TUI was open, or an older Kova's gateway answers (ensure replaces that one). Main's TUI
 ran its own sidecar and never depended on an external daemon, so an open TUI comes back on its own.
 """
 import contextlib
@@ -17,20 +17,20 @@ import sys
 # dist/scripts/ (a separate Nix store path), so parents[2] is only right in a source tree.
 # localGatewayBootstrap.ts passes the root it put on PYTHONPATH.
 def python_root() -> Path:
-    return Path(os.environ.get("HERMES_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
+    return Path(os.environ.get("KOVA_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
 
 
 sys.path.insert(0, str(python_root()))
 
 # The terminal verdict's next step: the client stops retrying on it, so the user needs one. A
 # verdict line like the rest, so the TUI echoes it inline (userMessages.ts STDERR_PROBLEM_RE).
-BOOTSTRAP_REMEDY = "gateway unavailable: run `hermes pm repair`, then restart the TUI"
+BOOTSTRAP_REMEDY = "gateway unavailable: run `kova pm repair`, then restart the TUI"
 
 
 def bootstrap(start: bool, recover: bool = False) -> dict:
     from pm.environments import NoCommittedEnvironment, activate_dependencies
 
-    # Ink runs this on HERMES_PYTHON with PYTHONPATH=<root> only. On a source install that is PM's
+    # Ink runs this on KOVA_PYTHON with PYTHONPATH=<root> only. On a source install that is PM's
     # store Python, which owns no packages, and the no-owner discovery fallback already imports one
     # (gateway.status -> utils -> kova_yaml -> ruamel): boot the committed generation first, as
     # kova_bootstrap does for every other entry point.
@@ -41,7 +41,7 @@ def bootstrap(start: bool, recover: bool = False) -> dict:
         # or a damaged record (RuntimeError) reaches the ordinary failure path below, which the
         # client retries: a one-off read error must not end the TUI's gateway for its lifetime.
         raise ImportError(f"dependency environment unavailable: {exc}") from exc
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.gateway_client import gateway_ws_target
     from kova_cli.gateway_runtime import GatewayDiscovery
     from kova_cli.gateway_runtime_attach import (GatewayAttach, TicketUnavailable, attach_gateway,
@@ -50,7 +50,7 @@ def bootstrap(start: bool, recover: bool = False) -> dict:
     scrub_client_launch_env()
     # The same attach `hermes gateway attach` runs; Ink keeps its own 30 s start budget.
     try:
-        attached = attach_gateway(get_hermes_home().resolve(), start=start, recover=recover, timeout=30)
+        attached = attach_gateway(get_kova_home().resolve(), start=start, recover=recover, timeout=30)
     except TicketUnavailable as exc:
         # Attachable, then no ticket: the verdict `hermes gateway attach` reports. Ink echoes only its
         # `gateway inaccessible:` lines inline, the refusal's repair command among them.
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # timeouts), DiscoveryError, bad JSON and rejected grants (ValueError), malformed reply shapes.
     # Anything else still exits 1, with a traceback.
     except ImportError as exc:
-        # This interpreter cannot load Hermes at all: no reconnect fixes that, so name it
+        # This interpreter cannot load Kova at all: no reconnect fixes that, so name it
         # (Ink stops retrying on this verdict: isTerminalBootstrapFailure).
         print(f"gateway unavailable: bootstrap_dependencies\n{exc}\n{BOOTSTRAP_REMEDY}", file=sys.stderr)
         raise SystemExit(1)

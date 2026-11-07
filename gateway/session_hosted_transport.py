@@ -44,8 +44,8 @@ def owner_request(home, verb, params, *, timeout=30):
     discovered = discover_gateway_endpoint(home, timeout=timeout)
     if discovered.state != 'ready' or discovered.endpoint is None:
         raise RuntimeStoreError('runtime_draining')
-    from kova_constants import hermes_home_key
-    if hermes_home_key(discovered.endpoint.profile_id) != hermes_home_key(home):
+    from kova_constants import kova_home_key
+    if kova_home_key(discovered.endpoint.profile_id) != kova_home_key(home):
         raise RuntimeStoreError('profile_mismatch')
     # Socket identity and logical authority identity are distinct under multiplex.
     params = {**params, 'profile_id': discovered.endpoint.profile_id}

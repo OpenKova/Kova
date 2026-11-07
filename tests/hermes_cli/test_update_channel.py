@@ -46,7 +46,7 @@ def test_dynamic_channel_parser_and_per_install_round_trip(tmp_path, monkeypatch
     import kova_yaml as yaml
     from kova_cli.subcommands.update import build_update_parser
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     parser = argparse.ArgumentParser()
     build_update_parser(parser.add_subparsers(), cmd_update=lambda args: None)
     root = tmp_path / "source"
@@ -149,9 +149,9 @@ class TestResolve:
 
 class TestSetChannel:
     def _home(self, tmp_path, monkeypatch):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         return home
 
     @pytest.mark.parametrize("channel", ["stable", "canary", "main"])
@@ -248,12 +248,12 @@ class TestSetChannelCLI:
         )
         monkeypatch.setattr(socket.socket, "connect", _denied("socket.connect"))
         # Real root, real filesystem — but a temp one, never the checkout.
-        monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+        monkeypatch.setenv("KOVA_INSTALL_ROOT", str(tmp_path))
 
     def _home(self, tmp_path, monkeypatch):
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         return home
 
     def test_malformed_update_section_refused_not_normalized(self, tmp_path, monkeypatch):
@@ -282,7 +282,7 @@ class TestSetChannelCLI:
         from kova_cli import config, main
 
         home = self._home(tmp_path, monkeypatch)
-        monkeypatch.setenv("HERMES_MANAGED", "nix")
+        monkeypatch.setenv("KOVA_MANAGED", "nix")
         assert config.is_managed()
         root, other = tmp_path, tmp_path / "sibling"
         _stamp(root, "self")
@@ -322,7 +322,7 @@ class TestSetChannelCLI:
         from kova_cli import main
 
         home = self._home(tmp_path, monkeypatch)
-        monkeypatch.setenv("HERMES_MANAGED", "nix")
+        monkeypatch.setenv("KOVA_MANAGED", "nix")
         cfg = home / "config.yaml"
         before = b"# retain user comment\nmodel:\n  provider: fixture\n"
         cfg.write_bytes(before)
@@ -376,8 +376,8 @@ class TestSetChannelCLI:
                                              ('unclaimed', 'unclaimed'), ('healthy', None)])
 def test_doctor_channel_records_are_read_only(tmp_path, monkeypatch, kind, expected):
     from copy import deepcopy
-    home, root = tmp_path / '.hermes', tmp_path / 'install'
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    home, root = tmp_path / '.kova', tmp_path / 'install'
+    monkeypatch.setenv('KOVA_HOME', str(home))
     if kind != 'missing':
         root.mkdir()
     key = '0' * 16 if kind == 'replaced' else install_id(root)

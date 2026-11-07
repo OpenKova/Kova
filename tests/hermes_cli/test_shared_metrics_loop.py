@@ -11,7 +11,7 @@ import pytest
 from kova_cli.observability import relay_shared_metrics
 from kova_cli.observability import shared_metrics_loop as loop
 from kova_cli.observability.shared_metrics import SharedMetricsStore
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from tests.kova_cli.test_relay_shared_metrics_runtime import direct_runtime
 
 _LOOP_METRICS = {
@@ -149,11 +149,11 @@ def test_async_curator_pass_records_in_the_profile_that_started_it(home, tmp_pat
     owner = tmp_path / "owner-profile"
     owner.mkdir()
     done = threading.Event()
-    token = set_hermes_home_override(owner)  # the review thread does not inherit this binding
+    token = set_kova_home_override(owner)  # the review thread does not inherit this binding
     try:
         curator.run_curator_review(consolidate=False, on_summary=lambda _msg: done.set())
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert done.wait(30)
 
     assert _rows(home, "hermes.curator.run.count") == []
@@ -179,11 +179,11 @@ def test_delegation_fanout_split_into_units_is_one_row_in_the_parent_profile(hom
     other.mkdir()
 
     def unit(results):
-        token = set_hermes_home_override(other)  # async units finish on runner threads
+        token = set_kova_home_override(other)  # async units finish on runner threads
         try:
             loop.finish_delegation_unit(call, results, background=True)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     for results in ([{"status": "completed"}], [{"status": "completed"}, {"status": "failed"}]):
         worker = threading.Thread(target=unit, args=(results,))
@@ -226,7 +226,7 @@ def test_terminal_calls_count_against_the_configured_backend(home):
 
     assert json.loads(terminal_tool("echo hi"))["exit_code"] == 0
     assert json.loads(terminal_tool("exit 3"))["exit_code"] == 3  # the command failed, the backend did not
-    terminal_tool("echo control-plane", _host_local=True)  # Hermes' own children are not user work
+    terminal_tool("echo control-plane", _host_local=True)  # Kova' own children are not user work
 
     assert _rows(home, "hermes.execution_backend.count") == [
         ({"backend": "local", "error_class": "none", "kind": "terminal", "outcome": "success"}, 2),

@@ -1,7 +1,7 @@
 """Host-wide singleton rendezvous: one lock + one record per ROLE per OS user.
 
 Multiplex-only (Teknium ruling): exactly ONE ``hermes serve`` and ONE ``hermes gateway run``
-per host, each multiplexing every profile. The per-``HERMES_HOME`` gateway lock/PID files
+per host, each multiplexing every profile. The per-``KOVA_HOME`` gateway lock/PID files
 (``gateway.status``) cannot express that — N profiles are N homes, so N processes each take
 their own flock and none of them ever sees the others. This module adds the missing layer:
 
@@ -10,9 +10,9 @@ their own flock and none of them ever sees the others. This module adds the miss
   is the same live process, and ATTACH instead of binding a second port.
 
 Both live in :func:`gateway.status._get_lock_dir` — the only cross-profile lock root already
-in the tree (``$HERMES_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks``),
+in the tree (``$KOVA_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks``),
 which scopes to the **OS user**. That is the correct granularity: separate OS users have
-separate ``$HOME``s, separate ``~/.hermes`` profile roots, separate ports-by-convention and
+separate ``$HOME``s, separate ``~/.kova`` profile roots, separate ports-by-convention and
 separate credentials, so "one per host" means "one per host per OS user".
 
 **Staleness is proved, never assumed.** New records pair the PID with the repository's stable
@@ -21,7 +21,7 @@ A dead PID or a mismatched process incarnation is STALE and ignored — an attac
 never dial a recycled PID's port.
 
 **Relationship to ``spawn-ledger.json``** (``kova_cli/process_identity.py``): the ledger stays
-the append-only machine roster of every long-lived Hermes process (Desktop's attach ladder reads
+the append-only machine roster of every long-lived Kova process (Desktop's attach ladder reads
 it) and is still written unchanged. It cannot be the host record: it has no lock, no
 single-writer semantics, no removal on exit, and no place to publish a protocol version or
 an authentication handle. The record here is authoritative for "who owns this host role"; the
@@ -74,7 +74,7 @@ _ROLES = (ROLE_GATEWAY, ROLE_SERVE, ROLE_DESKTOP_SERVE)
 
 # Open lock handles, keyed by (role, resolved lock path): the OS releases the flock when this
 # process dies, which is what makes a crashed owner's host lock re-acquirable without a reaper.
-# The PATH is part of the key because the lock dir is env-derived (HERMES_GATEWAY_LOCK_DIR):
+# The PATH is part of the key because the lock dir is env-derived (KOVA_GATEWAY_LOCK_DIR):
 # keyed by role alone, a second call after the dir changed returned "already held" without ever
 # creating the new lock file, so owns_host_lock() lied and one pytest process leaked the handle
 # across tests.
@@ -94,7 +94,7 @@ class HostRecord:
     token_fingerprint: str
     profiles: tuple[str, ...]
     updated_at: str
-    #: HERMES_HOME the owner was launched from. The attach channel (``gateway.control_socket``) is
+    #: KOVA_HOME the owner was launched from. The attach channel (``gateway.control_socket``) is
     #: keyed by home, so without it a client can only guess the default root — wrong as soon as a
     #: named profile launches the host process. Absent in records written before this field; added
     #: WITHOUT a protocol bump on purpose, because a bump would make every live owner's record read
@@ -102,7 +102,7 @@ class HostRecord:
     home: str = ""
     #: Stable process-start fingerprint. On Linux/WSL this is boot-relative /proc start ticks,
     #: so a wall-clock resync cannot make a live owner look like a recycled PID. Optional for
-    #: records written by older Hermes versions, which still fall back to create_time.
+    #: records written by older Kova versions, which still fall back to create_time.
     #: NOT unique across reboots — pair it with ``boot_epoch``.
     start_time: Optional[int] = None
     #: Instantiation epoch (boot id + PID 1 start). Distinguishes a pre-reboot owner from an
@@ -402,7 +402,7 @@ def probe_owner(record: HostRecord, *, timeout: float = PROBE_TIMEOUT_S) -> Opti
     import urllib.request
 
     token = read_token(record.role)
-    headers = {"X-Hermes-Token": token, "Authorization": f"Bearer {token}"} if token else {}
+    headers = {"X-Kova-Token": token, "Authorization": f"Bearer {token}"} if token else {}
     request = urllib.request.Request(
         f"http://{host}:{record.port}{HOST_IDENTITY_PATH}", headers=headers)
     try:
@@ -606,7 +606,7 @@ def publish_record(
     """Publish this process as the host owner of ``role``. ``None`` when the write failed.
 
     ``token`` (serve) is persisted 0600 next to the record and only its fingerprint is published.
-    ``home`` is the launch HERMES_HOME — the key an attaching client needs to reach this owner's
+    ``home`` is the launch KOVA_HOME — the key an attaching client needs to reach this owner's
     control socket.
     """
     role = _validated_role(role)

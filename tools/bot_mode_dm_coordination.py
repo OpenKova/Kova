@@ -10,7 +10,7 @@ teammate's owner through the same ``prompt.cancel`` a viewer's Stop uses. Only t
 may: the receipt records who sent it.
 
 The runner half (``run_fan_out``) is stdlib only: it runs as a background process whose stdout is
-the sender's completion notification, and each sub-runner boots Hermes itself.
+the sender's completion notification, and each sub-runner boots Kova itself.
 """
 
 from __future__ import annotations

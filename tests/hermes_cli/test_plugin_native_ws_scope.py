@@ -55,9 +55,9 @@ async def events(ws: WebSocket):
         return
     await ws.accept()
     from agent.secret_scope import get_secret
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     while True:
-        await ws.send_json({"home": str(get_hermes_home()), "secret": get_secret("PLG_WS_SENTINEL")})
+        await ws.send_json({"home": str(get_kova_home()), "secret": get_secret("PLG_WS_SENTINEL")})
         if await ws.receive_text() == "bye":
             break
     await ws.close()
@@ -101,7 +101,7 @@ def _grant(home):
 
 
 def _headers(grant):
-    return {"X-Hermes-Gateway-Ticket": grant}
+    return {"X-Kova-Gateway-Ticket": grant}
 
 
 def _refused(client, path, grant):
@@ -206,8 +206,8 @@ def test_concurrent_sockets_keep_their_own_profiles(daemon):
 
 def _ambient():
     from agent.secret_scope import get_secret
-    from kova_constants import get_hermes_home
-    return str(get_hermes_home()), get_secret("PLG_WS_SENTINEL")
+    from kova_constants import get_kova_home
+    return str(get_kova_home()), get_secret("PLG_WS_SENTINEL")
 
 
 @pytest.mark.parametrize("ending", ["raises", "cancelled"])
@@ -231,7 +231,7 @@ def test_grant_scope_is_restored_when_the_connection_ends_abnormally(daemon, end
 
     scope = {"type": "websocket", "path": EVENTS, "raw_path": EVENTS.encode(), "root_path": "",
              "query_string": b"", "app": web_server.app,
-             "headers": [(b"x-hermes-gateway-ticket", _grant(daemon.beta).encode())],
+             "headers": [(b"x-kova-gateway-ticket", _grant(daemon.beta).encode())],
              "client": ("127.0.0.1", 50000), "hermes.gateway_socket_peer": ("127.0.0.1", 50000)}
 
     async def connection():

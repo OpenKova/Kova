@@ -82,7 +82,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     }
 
     rotateFreshDraftKey()
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
     vi.unstubAllGlobals()
     $connection.set(null)
   })
@@ -348,7 +348,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -858,7 +858,7 @@ describe('useComposerDraft — touch never re-enters the editor on its own', () 
 
   beforeEach(() => {
     // Touch handling is the browser-hosted Desktop's.
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }))
   })
 
@@ -868,7 +868,7 @@ describe('useComposerDraft — touch never re-enters the editor on its own', () 
     clearSessionDraft('touch-clear')
     mainComposerScope.clear()
     markActiveComposer('main')
-    delete window.document.documentElement.dataset.hermesDesktopHost
+    delete window.document.documentElement.dataset.kovaDesktopHost
     vi.unstubAllGlobals()
   })
 

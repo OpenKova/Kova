@@ -37,16 +37,16 @@ def local_gateway(tmp_path, monkeypatch):
     for key, value in {"OPENAI_API_KEY": "loopback-only", "OPENAI_BASE_URL": url}.items():
         monkeypatch.setenv(key, value)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: user))
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("KOVA_TUI_GATEWAY_URL", raising=False)
     root = Path(__file__).resolve().parents[2]
     children, logs = [], []
 
     def spawn(home, *, deadline, idle_exit=False):
         env = child_env()
-        env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+        env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home),
                    PYTHONPATH=str(root), OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url,
                    # This child owns a disposable default root; it is reaped below.
-                   HERMES_STATE_DB_GUARD_BYPASS="1")
+                   KOVA_STATE_DB_GUARD_BYPASS="1")
         log = (home / f"fixture-gateway-{len(children)}.log").open("w+", encoding="utf-8")
         logs.append(log)
         process = subprocess.Popen([sys.executable, "-m", "gateway.run"], cwd=root, env=env,
@@ -58,7 +58,7 @@ def local_gateway(tmp_path, monkeypatch):
     monkeypatch.setattr(GatewayConnection, "_shared", None)
 
     def configure(multiplex):
-        home = user / ".hermes"
+        home = user / ".kova"
         config = {"gateway": {"multiplex_profiles": multiplex},
                   "model": {"provider": "custom", "default": "fixture", "base_url": url},
                   "auxiliary": {"title_generation": {"enabled": False}},
@@ -68,7 +68,7 @@ def local_gateway(tmp_path, monkeypatch):
             target.mkdir(parents=True, mode=0o700)
             (target / "config.yaml").write_text(json.dumps(config), encoding="utf-8")
             (target / ".env").write_text("OPENAI_API_KEY=loopback-only\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(homes[-1]))
+        monkeypatch.setenv("KOVA_HOME", str(homes[-1]))
         return homes[-1]
 
     try:
@@ -138,18 +138,18 @@ def _legacy_row(home):
 @pytest.mark.parametrize("multiplex, mode", [(False, "retained"), (True, "missing"), (False, "legacy-leased")],
                          ids=["standalone-resume-restored", "satellite-create-missing", "legacy-reimport-leased"])
 def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiplex, mode, capsys, monkeypatch):
-    from cli import HermesCLI
+    from cli import KovaCLI
     from types import MethodType
     home = local_gateway(multiplex)
     legacy = _legacy_row(home) if mode == "legacy-leased" else None
     # A legacy snapshot predates the gateway's import, so the rejoin must import the row again.
-    snapshot = create_quick_snapshot(hermes_home=home) if legacy else None
+    snapshot = create_quick_snapshot(kova_home=home) if legacy else None
     connection = GatewayConnection.shared()
     store = GatewaySessionStore(connection)
     sid = store.attach(legacy)["stored_session_id"] if legacy else store.create({"toolsets": []})
     if not legacy:
         _turn(store, sid, "BEFORE_SNAPSHOT")
-        snapshot = create_quick_snapshot(hermes_home=home)
+        snapshot = create_quick_snapshot(kova_home=home)
     assert snapshot
     if mode == "missing":
         store.end_session(sid)
@@ -157,7 +157,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
     _turn(store, sid, "AFTER_SNAPSHOT")
     # The direct API must still refuse a live owner, without rolling back its newer rows.
     history_before = store.get_messages_as_conversation(sid)
-    assert not restore_quick_snapshot(snapshot, hermes_home=home)
+    assert not restore_quick_snapshot(snapshot, kova_home=home)
     assert store.get_messages_as_conversation(sid) == history_before
     old_reader = store._reader
     assert old_reader is not None
@@ -171,7 +171,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
                           conversation_history=[{"role": "user", "content": "AFTER_SNAPSHOT"}],
                           agent=object(), model="fixture", _active_session_lease=None)
     for name in ("_claim_active_session", "_release_active_session"):
-        setattr(cli, name, MethodType(getattr(HermesCLI, name), cli))
+        setattr(cli, name, MethodType(getattr(KovaCLI, name), cli))
     # The interactive CLI holds its real active-session lease for the whole chat.
     assert cli._claim_active_session("cli", stderr=True)
     retained = mode != "missing"

@@ -692,7 +692,7 @@ def api(owner, tmp_path, monkeypatch):
     from gateway.config import PlatformConfig
     from gateway.platforms.api_server import APIServerAdapter
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     adapter = APIServerAdapter(PlatformConfig(enabled=True))
     adapter.gateway_runner = owner.runner
     adapter._session_db = owner.db

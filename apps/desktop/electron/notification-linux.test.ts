@@ -4,7 +4,7 @@ import type { Message } from 'dbus-native'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import type { HermesNotification } from './notification-types'
+import type { KovaNotification } from './notification-types'
 
 const host = vi.hoisted(() => ({ handle: vi.fn(), fromWebContents: vi.fn(), createClient: vi.fn() }))
 vi.mock('electron', () => ({
@@ -167,7 +167,7 @@ function setup(alreadyRunning = false) {
     platform: 'linux'
   })
 
-  const notify = (payload: HermesNotification) =>
+  const notify = (payload: KovaNotification) =>
     Promise.resolve(
       host.handle.mock.calls[0][1]({ sender: source.webContents } as unknown as IpcMainInvokeEvent, payload)
     )

@@ -618,7 +618,7 @@ export default function App() {
                 <PluginSlot name="header-left" />
 
                 <Typography className="font-bold text-[1.125rem] leading-[0.95] tracking-[0.0525rem] text-midground uppercase">
-                  Hermes
+                  Kova
                   <br />
                   Agent
                 </Typography>
@@ -945,7 +945,7 @@ function SidebarSystemActions({
   const navigate = useNavigate();
   const { activeAction, isBusy, isRunning, pendingAction, runAction } =
     useSystemActions();
-  const canUpdateHermes = status?.can_update_hermes === true;
+  const canUpdateKova = status?.can_update_hermes === true;
   // Served by the shared multiplexer: a restart blips every bot on this device — say which.
   const sharedGateway = sharedGatewayProfiles(status);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
@@ -962,7 +962,7 @@ function SidebarSystemActions({
     let cancelled = false;
     setUpdateConfirmChecking(true);
     api
-      .checkHermesUpdate(false)
+      .checkKovaUpdate(false)
       .then((info) => {
         if (!cancelled) setUpdateConfirmInfo(info);
       })
@@ -985,10 +985,10 @@ function SidebarSystemActions({
     }
     const cmd = updateConfirmInfo?.update_command ?? "hermes update";
     return (
-      t.status.updateHermesConfirmMessage ??
+      t.status.updateKovaConfirmMessage ??
       `This will run 'hermes update' (${cmd}) and restart the gateway when it finishes.`
     );
-  }, [t.status.updateHermesConfirmMessage, updateConfirmInfo]);
+  }, [t.status.updateKovaConfirmMessage, updateConfirmInfo]);
 
   const items: SystemActionItem[] = [
     {
@@ -999,12 +999,12 @@ function SidebarSystemActions({
       spin: true,
     },
   ];
-  if (canUpdateHermes) {
+  if (canUpdateKova) {
     items.push({
       action: "update",
       icon: Download,
-      label: t.status.updateHermes,
-      runningLabel: t.status.updatingHermes,
+      label: t.status.updateKova,
+      runningLabel: t.status.updatingKova,
       spin: false,
     });
   }
@@ -1086,7 +1086,7 @@ function SidebarSystemActions({
         sharedGateway
           ? sharedGatewayRestartDescription(sharedGateway)
           : (t.status.restartGatewayConfirmMessage ??
-            "This restarts the Hermes gateway process. Connected channels and active sessions will reconnect afterward.")
+            "This restarts the Kova gateway process. Connected channels and active sessions will reconnect afterward.")
       }
       loading={pendingAction === "restart"}
       onCancel={() => setRestartConfirmOpen(false)}
@@ -1101,7 +1101,7 @@ function SidebarSystemActions({
 
     <ConfirmDialog
       cancelLabel={t.common.cancel}
-      confirmLabel={t.status.updateHermesConfirmNow ?? "Update now"}
+      confirmLabel={t.status.updateKovaConfirmNow ?? "Update now"}
       description={
         updateConfirmChecking ? t.common.loading : updateConfirmDescription
       }
@@ -1109,7 +1109,7 @@ function SidebarSystemActions({
       onCancel={() => setUpdateConfirmOpen(false)}
       onConfirm={confirmUpdate}
       open={updateConfirmOpen}
-      title={t.status.updateHermesConfirmTitle ?? `${t.status.updateHermes}?`}
+      title={t.status.updateKovaConfirmTitle ?? `${t.status.updateKova}?`}
     />
     </>
   );

@@ -57,10 +57,10 @@ class FakeInstaller:
             raise RuntimeError(self.refusal[entry.name])
 
     def install_plugin(self, name, *, force, enable, ref, on_step):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         self.installs.append({"name": name, "force": force, "enable": enable, "ref": ref,
-                              "home": Path(get_hermes_home())})
+                              "home": Path(get_kova_home())})
         if self.install_error:
             return {"ok": False, "error": self.install_error}
         tools = [f"mcp__{name}__status", f"mcp__{name}__launch"]
@@ -188,16 +188,16 @@ def test_unknown_and_unsupported_ids_fail_at_once_with_the_reason_and_are_never_
 
 def test_an_approved_row_installs_into_the_chats_profile_and_lists_the_live_tools():
     from kova_cli.profiles import create_profile
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     b_home = Path(create_profile("b", no_alias=True))
     installer = FakeInstaller([_entry("blender")])
     card = _card(_approve(), profile_home=str(b_home))
-    token = set_hermes_home_override(str(b_home))
+    token = set_kova_home_override(str(b_home))
     try:
         out = _install([{"kind": "plugin", "id": "blender"}], installer, card)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     (row,) = out["targets"]
     assert card.seen[0]["targets"][0]["state"] == TargetState.pending.value  # nothing ran before the card
     assert row["state"] == TargetState.connected.value and row["target_profile"] == "b"

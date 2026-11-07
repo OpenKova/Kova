@@ -48,7 +48,7 @@ describe('settings subpage routing', () => {
   // child page to land on and no search hit that would scroll to nothing.
   it('gives the Webapp Gateways page no native-only children or search rows', () => {
     const nativeChildren = settingsSubpages('gateway').length
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
 
     try {
       expect(settingsSubpages('gateway')).toEqual([])

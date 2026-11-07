@@ -5,8 +5,8 @@ const desktopWindow = window as unknown as { hermesDesktop?: Partial<Window['her
 
 // The bridge reports native capability as a fact, so no host OS is faked.
 async function loadTranslucency(host: 'browser' | 'electron') {
-  document.documentElement.dataset.hermesDesktopHost = host
-  desktopWindow.hermesDesktop = { glassSupported: true, translucencySupported: true }
+  document.documentElement.dataset.kovaDesktopHost = host
+  desktopWindow.kovaDesktop = { glassSupported: true, translucencySupported: true }
   vi.resetModules()
 
   return import('@/store/translucency')

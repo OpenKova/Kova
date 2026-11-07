@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from kova_cli._subprocess_compat import noninteractive_git_env
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_write_text
 
 
@@ -31,7 +31,7 @@ _EXACT_COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 
 def _install_metadata_path() -> Path:
-    return get_hermes_home() / "plugins" / ".install-metadata.json"
+    return get_kova_home() / "plugins" / ".install-metadata.json"
 
 
 def _read_install_metadata() -> dict[str, dict[str, object]]:

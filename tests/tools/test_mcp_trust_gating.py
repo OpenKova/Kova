@@ -314,7 +314,7 @@ class TestTrustGateApprovalRouting:
         from tools.terminal_tool import set_approval_callback
 
         if context == "single_query":  # cli_single_query exports the marker into the process env
-            monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+            monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
             tokens = set_session_vars()
         elif context == "cron":  # the cron scheduler binds it per job
             tokens = set_session_vars(cron_session="1")

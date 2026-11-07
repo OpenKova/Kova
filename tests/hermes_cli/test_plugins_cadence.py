@@ -15,7 +15,7 @@ def homed(tmp_path, monkeypatch):
     """Cadence state (markers) inside a temp hermes home."""
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
     return tmp_path
 
 

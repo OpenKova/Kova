@@ -14,17 +14,17 @@ _VALID_BOT_TOKEN = "123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234"
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     from starlette.testclient import TestClient
 
     import kova_state
     import kova_constants
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    home = get_hermes_home()
+    home = get_kova_home()
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     for var in ("TELEGRAM_BOT_TOKEN", "GATEWAY_RELAY_URL", "GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS",
                 "GATEWAY_RELAY_PLATFORMS"):
         monkeypatch.delenv(var, raising=False)
@@ -62,9 +62,9 @@ def test_direct_platforms_opt_out_and_no_stamp_carry_no_relay_reason(client, mon
 
 
 def test_user_disabled_platform_is_not_blamed_on_the_relay(client, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    (get_hermes_home() / "config.yaml").write_text(
+    (get_kova_home() / "config.yaml").write_text(
         "platforms:\n  telegram:\n    enabled: false\n", encoding="utf-8"
     )
     monkeypatch.setenv("GATEWAY_RELAY_URL", "https://relay.example.test")

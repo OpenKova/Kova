@@ -46,15 +46,15 @@ def _profile(home: Path, base_url: str) -> None:
 def two_homes(tmp_path, monkeypatch):
     """Launch home A (= multiplex ``default``) and served named profile B under ``A/profiles/b``."""
     fake_home = tmp_path / "home"
-    a = fake_home / ".hermes"
+    a = fake_home / ".kova"
     b = a / "profiles" / "b"
     _profile(a, "https://a.example/v1")
     _profile(b, "https://b.example/v1")
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("KOVA_HOME", str(a))
     monkeypatch.delenv("NOUS_INFERENCE_BASE_URL", raising=False)
     # The hermetic conftest pins ``kova_state.DEFAULT_DB_PATH`` at one sandbox store whenever
-    # kova_state is already imported, and that pin WINS over ``get_hermes_home()`` inside
+    # kova_state is already imported, and that pin WINS over ``get_kova_home()`` inside
     # ``_default_db_path()`` — exactly the per-profile resolution these tests exist to prove.
     # Restore the import-time sentinel so an argless ``acquire()`` resolves through the scope.
     import kova_state
@@ -70,12 +70,12 @@ def _record_credential_chores(monkeypatch):
     """Replace the credential-reading chores with recorders of (home, Nous override) they see."""
     from agent import curator
     from kova_cli.auth_nous import _nous_inference_env_override
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     seen: dict = {"curator": []}
 
     def _rec(key):
-        return lambda *a, **k: seen[key].append((get_hermes_home().name, _nous_inference_env_override()))
+        return lambda *a, **k: seen[key].append((get_kova_home().name, _nous_inference_env_override()))
 
     monkeypatch.setattr(curator, "maybe_run_curator", _rec("curator"))
     return seen
@@ -90,7 +90,7 @@ def test_multiplexed_credential_chores_run_once_per_profile_in_its_own_scope(two
     A's tick reads A's override, B's reads B's (B never sees A's), and no fail-closed credential
     read fires the ``no profile secret scope`` warning. The ambient home is untouched afterwards."""
     from agent.secret_scope import set_multiplex_active
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     a, b = two_homes
     seen = _record_credential_chores(monkeypatch)
@@ -104,13 +104,13 @@ def test_multiplexed_credential_chores_run_once_per_profile_in_its_own_scope(two
     expected = [(a.name, "https://a.example/v1"), (b.name, "https://b.example/v1")]
     assert seen == {"curator": expected}
     assert not [r for r in caplog.records if "no profile secret scope" in r.getMessage()]
-    assert get_hermes_home() == a
+    assert get_kova_home() == a
 
 
 def test_multiplexed_auto_archive_tick_sweeps_every_served_profile_store(two_homes, monkeypatch):
     """The auto-archive sweep reaches each served profile's OWN state.db.
 
-    ``acquire()`` resolves through ``get_hermes_home()``, so an unscoped tick archived the
+    ``acquire()`` resolves through ``get_kova_home()``, so an unscoped tick archived the
     launch profile's store only — and `hermes serve`/the dashboard defer to the gateway for
     every profile it owns, so a served secondary would have had no archiver at all.
     """
@@ -184,7 +184,7 @@ def test_a_failing_profile_does_not_strand_the_profiles_after_it(two_homes, monk
     """
     import kova_state_registry as registry
     from agent.secret_scope import set_multiplex_active
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
 
     a, b = two_homes
@@ -192,7 +192,7 @@ def test_a_failing_profile_does_not_strand_the_profiles_after_it(two_homes, monk
     real_acquire = registry.acquire
 
     def _acquire(*args, **kwargs):
-        if get_hermes_home() == a:
+        if get_kova_home() == a:
             raise OSError("launch store unavailable")
         return real_acquire(*args, **kwargs)
 
@@ -210,7 +210,7 @@ def test_a_failing_profile_does_not_strand_the_profiles_after_it(two_homes, monk
         set_multiplex_active(False)
 
     assert swept == [b / "state.db"]
-    assert get_hermes_home() == a
+    assert get_kova_home() == a
 
 
 def test_profile_scope_setup_failure_restores_the_callers_home(two_homes, monkeypatch):
@@ -218,10 +218,10 @@ def test_profile_scope_setup_failure_restores_the_callers_home(two_homes, monkey
 
     The home override was set before hydration and only reset in the ``finally`` around the
     ``yield``, so a raising ``.env`` load left the housekeeping thread (or a turn's context)
-    resolving ``get_hermes_home()`` to the failed profile for every later unscoped read.
+    resolving ``get_kova_home()`` to the failed profile for every later unscoped read.
     """
     from agent.secret_scope import current_secret_scope
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     a, b = two_homes
     scope_before = current_secret_scope()
@@ -235,7 +235,7 @@ def test_profile_scope_setup_failure_restores_the_callers_home(two_homes, monkey
         with gateway_run._profile_runtime_scope(b):
             pass
 
-    assert get_hermes_home() == a
+    assert get_kova_home() == a
     assert current_secret_scope() == scope_before
 
 

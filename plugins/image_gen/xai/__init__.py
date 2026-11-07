@@ -93,9 +93,9 @@ def _fetch_live_models(creds: Optional[dict[str, Any]] = None) -> dict[str, dict
 def _live_models() -> dict[str, dict[str, Any]]:
     """Cached live catalog (``{}`` when unreachable)."""
     global _LIVE_CACHE
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
 
-    if get_hermes_home_override() is None:
+    if get_kova_home_override() is None:
         if _LIVE_CACHE is not None and time.monotonic() - _LIVE_CACHE[1] < _LIVE_CACHE_TTL:
             return _LIVE_CACHE[0]
         _LIVE_CACHE = (_fetch_live_models_or_empty(None), time.monotonic())

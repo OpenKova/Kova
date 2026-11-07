@@ -59,14 +59,14 @@ def _best_effort(fn) -> bool:
     return _try(lambda: (fn(), True)[1], False)
 
 
-def _hermes_home_scope(path):
+def _kova_home_scope(path):
     """Bind ``path``'s full runtime scope (home + secrets + terminal) for the block — the same
     composition ``@_profile_scoped`` binds. Home alone is half-bound: under multi-profile hosting
     every credential read raised ``UnscopedSecretError``, which a best-effort ``_try`` turned into
     a plausible wrong answer (the toolset snapshot's ``XAI_API_KEY`` probe → "every toolset off",
     #120726). The launch home maps to None so it keeps its frozen launch env (systemd / ``op run``
     keys). No external-source hydration: these bodies read and write config, never call a provider."""
-    launch = Path(path).resolve() == Path(_hermes_home).resolve()
+    launch = Path(path).resolve() == Path(_kova_home).resolve()
     return _session_profile_runtime_scope({"profile_home": None if launch else str(path)}, hydrate_secrets=False)
 
 
@@ -167,7 +167,7 @@ def _canonical_session_row(db, profile_path):
     The canonical chat's identity is the NAME: the session titled exactly "Bot Chat" on this profile (core
     UNIQUE(title) makes it a registry of at most one row). Complements ``last_session``: that field answers
     "what is the newest conversation", this answers "where is the forever-chat" — so a roster row's preview
-    and its click target describe the same session (hermes-agent#88200) with no client-side pointer
+    and its click target describe the same session (kova-agent#88200) with no client-side pointer
     involved.
     """
     try:
@@ -203,7 +203,7 @@ def _latest_profile_session_rows(db):
     First element mirrors session.list's deny-list (drops ``tool`` sub-agent rows and ``kanban`` dispatcher
     workers). Second element is the newest DENIED row — the freshest kanban/tool worker — so roster UIs can
     show that a profile is actively working even though worker sessions never surface in conversation lists
-    (hermes-agent#90268). Workers heartbeat ``last_activity_at`` every ≤60s while running (#72016), so a
+    (kova-agent#90268). Workers heartbeat ``last_activity_at`` every ≤60s while running (#72016), so a
     live worker's ``last_active`` stays fresh and the client can apply its own liveness window. Best-effort:
     any failure (missing state.db, locked db, older schema) degrades to (None, None) rather than failing the
     whole profiles.list call.
@@ -281,7 +281,7 @@ def _profile_ui_meta_fields(row: dict, profile_dir) -> None:
 
 @_profile_handler("profiles.list", 5061)
 def _(rid, params: dict) -> dict:
-    """List Hermes profiles. ``include_sessions`` (default true) adds ``last_session`` /
+    """List Kova profiles. ``include_sessions`` (default true) adds ``last_session`` /
     ``worker_session`` / ``canonical_session`` so a roster paints previews without N calls."""
     from kova_cli.profiles import list_profiles
     include_sessions = is_truthy_value(params.get("include_sessions", True))
@@ -353,7 +353,7 @@ def _(rid, params: dict) -> dict:
     name, profile_dir, err = _resolve_profile(rid, params)
     if err is not None:
         return err
-    with _hermes_home_scope(profile_dir):
+    with _kova_home_scope(profile_dir):
         from agent.skill_utils import iter_skill_index_files
         from kova_cli.config import load_config
         from kova_cli.skills_config import get_disabled_skills
@@ -492,7 +492,7 @@ def _mirror_voice_sections(path) -> bool:
         sections = {k: src_cfg[k] for k in ("stt", "tts", "voice") if src_cfg.get(k)}
         if not sections:
             return False
-        with _hermes_home_scope(path):
+        with _kova_home_scope(path):
             # RAW file: load_config() merges DEFAULT_CONFIG (every section would look present).
             dst_cfg = read_user_config_raw() or {}
             missing = {k: v for k, v in sections.items() if k not in dst_cfg}
@@ -511,7 +511,7 @@ def _inherit_launch_model(path) -> bool:
     # inheritance for every non-clone bot ("No inference provider configured" on first message, tester
     # report). Clones bring their own model section and stay untouched.
     from kova_cli.config import load_config_readonly, read_user_config_raw
-    with _hermes_home_scope(path):
+    with _kova_home_scope(path):
         dst_model = (read_user_config_raw() or {}).get("model") or {}
     if dst_model.get("provider") and dst_model.get("default"):
         return False
@@ -527,7 +527,7 @@ def _inherit_launch_model(path) -> bool:
     if seed.get("providers") or seed.get("custom_providers"):
         from kova_cli.config import save_config
         merge = _lazy("kova_cli.profile_model_seed", "merge_endpoint_seed")
-        with _hermes_home_scope(path):
+        with _kova_home_scope(path):
             save_config(merge(read_user_config_raw(), seed))
     # Bare ``custom``/``local`` carries its endpoint into validation (the new profile's config names
     # none); other providers ignore it. Validation needs the expanded URL, the profile keeps the
@@ -537,7 +537,7 @@ def _inherit_launch_model(path) -> bool:
     raw_url = ((read_user_config_raw() or {}).get("model") or {}).get("base_url")
     if isinstance(raw_url, str) and "${" in raw_url:
         from kova_cli.config import save_config
-        with _hermes_home_scope(path):
+        with _kova_home_scope(path):
             cfg = read_user_config_raw() or {}
             if isinstance(cfg.get("model"), dict) and cfg["model"].get("base_url") == model_cfg.get("base_url"):
                 cfg["model"]["base_url"] = raw_url
@@ -554,7 +554,7 @@ def _mirror_launch_credentials(path, params: dict) -> dict:
                 "voice": False}
     if not is_truthy_value(params.get("mirror_credentials", True)):
         return mirrored
-    launch_home = get_hermes_home()
+    launch_home = get_kova_home()
     # .env: only over the seeded comment-only stub (never a clone's secrets).
     mirrored["env"] = _try(lambda: _mirror_secret(path, launch_home, ".env", lambda src, dst: (
         _env_has_content(src) and not _try(lambda: _env_has_content(dst), False))), False)
@@ -730,7 +730,7 @@ def _configure_cfg_sections(profile_dir, params, applied) -> None:
         load_launch = _lazy("kova_cli.config", "read_user_config_raw")
         launch_mcp = _try(lambda: (load_launch() or {}).get("mcp_servers"), {})
         launch_mcp = launch_mcp if isinstance(launch_mcp, dict) else {}
-    with _hermes_home_scope(profile_dir):
+    with _kova_home_scope(profile_dir):
         from kova_cli.config import load_config, save_config
         cfg = load_config() or {}
         if isinstance(params.get("disabled_skills"), list):

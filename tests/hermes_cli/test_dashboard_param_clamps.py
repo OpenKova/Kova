@@ -19,8 +19,8 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "clamp-test-token")
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "clamp-test-token")
     from kova_cli import web_server
     import kova_state
 

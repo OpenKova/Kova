@@ -1,7 +1,7 @@
 """Gateway lifecycle guard for cron job creation.
 
 A cron job that restarts/stops the gateway from inside the gateway (``hermes gateway restart``,
-``launchctl kickstart ai.hermes.gateway``, ``systemctl restart hermes-gateway``) kills the process,
+``launchctl kickstart ai.kova.gateway``, ``systemctl restart kova-gateway``) kills the process,
 the supervisor revives it, auto-resume re-runs the turn: a SIGTERM-respawn loop.
 ``cron.jobs.create_job`` rejects such specs on every creation path. Patterns are command-shaped —
 anchored on concrete command identifiers — so they cannot fire on prose. Defence-in-depth layer.
@@ -38,13 +38,13 @@ _GATEWAY_LIFECYCLE_PATTERN = re.compile(
     # Windows spells the CLI with a launcher suffix (`hermes.exe`, npm-style `hermes.cmd`/`.ps1`);
     # same command, so the suffix is optional here.
     r"(?:(?<![/\w.\-])hermes(?:\.(?:exe|cmd|bat|com|ps1))?\s+gateway\s+(?:restart|stop|uninstall)\b)"
-    # Branch B: launchctl ops anchored on a hermes-gateway label so unrelated hermes services stay
+    # Branch B: launchctl ops anchored on a kova-gateway label so unrelated hermes services stay
     # unblocked. `submit`/`bootstrap` register a NEW keepalive job wrapping an arbitrary helper (a
     # laundered restart); neutral-label submissions are caught by
     # `contains_launchctl_submit_command`. `bootout`/`remove`/`disable` are the
     # modern/legacy/durable forms of `unload`.
     # `submit` and `bootstrap` are included alongside the direct verbs (kickstart/etc.): `launchctl submit
-    # -l ai.hermes.gateway-<suffix> -- <helper-script>` (or `launchctl bootstrap gui/<uid> <plist>`) creates
+    # -l ai.kova.gateway-<suffix> -- <helper-script>` (or `launchctl bootstrap gui/<uid> <plist>`) creates
     # a NEW keepalive job wrapping an arbitrary helper, which is how a blocked direct restart/kill gets
     # laundered into a persistent restart loop instead (#62891) — same foot-gun, indirect shape.
     # Neutral-label submissions that dodge this text anchor are caught separately by
@@ -55,7 +55,7 @@ _GATEWAY_LIFECYCLE_PATTERN = re.compile(
     # (tools/approval.py, skipped on force=True) as the only cover, while this hard block — documented as
     # "force=True cannot help here" — let them through (#80260).
     r"|(?:launchctl\s+(?:kickstart|unload|load|stop|restart|submit|bootstrap|bootout|remove|disable)\b[^\n]*\bhermes[.\-]?gateway)"
-    # Branch C: systemctl ops on a hermes-gateway unit.
+    # Branch C: systemctl ops on a kova-gateway unit.
     r"|(?:systemctl\s+(?:-\S+\s+)*(?:restart|stop|start)\b[^\n]*\bhermes[.\-]?gateway)"
     # Branch D: pkill/kill of the gateway process, both token orders. Leading \b keeps "skill" from
     # matching as "kill".
@@ -104,7 +104,7 @@ HOST_INTERPRETER_KILL_REJECTION = (
     "Blocked: this command kills every process whose image/name matches the Python "
     "interpreter, which is the process hosting this gateway (and this command). "
     "Stop only the process you own instead: process(action=\"kill\", session_id=\"proc_…\") "
-    "for a background job Hermes started, or kill/taskkill by its explicit PID."
+    "for a background job Kova started, or kill/taskkill by its explicit PID."
 )
 
 
@@ -223,7 +223,7 @@ def contains_host_interpreter_kill(text: str) -> bool:
 # does) rather than loosening `[^\n]*`.
 # Every branch above uses `[^\n]*` between its verb and the gateway identifier so the match can't span
 # unrelated lines of a longer cron prompt/script, but that also means a real multi-line shell invocation
-# split across continuation lines (e.g. `launchctl submit \` / `  -l ai.hermes.gateway-... \` / `  -- ...`,
+# split across continuation lines (e.g. `launchctl submit \` / `  -l ai.kova.gateway-... \` / `  -- ...`,
 # the exact reported shape in #62891) would otherwise slip past. Collapse continuations to a single space
 # before matching, mirroring what the shell itself does, rather than loosening `[^\n]*` and risking false
 # positives across genuinely separate lines.
@@ -260,14 +260,14 @@ _PROFILE_FLAG_LIFECYCLE_PATTERN = re.compile(
 
 # Branch B needs the label AFTER the verb in one `[^\n]*` span; a loop that builds the label in an
 # EARLIER `;`-segment (`label=${item%%:*}; launchctl bootout "gui/$uid/$label"`) leaves only
-# `$label` next to the verb. These verbs act on an EXISTING job, so the hermes-gateway label anchor
+# `$label` next to the verb. These verbs act on an EXISTING job, so the kova-gateway label anchor
 # stays correct, but the check is "verb anywhere AND label anywhere".
 # No profile identity available: cannot prove self-targeting, so do not block — sibling restarts must stay
 # allowed (#78028).
 _LAUNCHCTL_LIFECYCLE_VERBS_RE = re.compile(
     r"(?i)\blaunchctl\s+(?:kickstart|unload|load|stop|restart|bootout|kill|disable|remove)\b"
 )
-_HERMES_GATEWAY_LABEL_RE = re.compile(r"(?i)\bhermes[.\-]?gateway\b")
+_KOVA_GATEWAY_LABEL_RE = re.compile(r"(?i)\bhermes[.\-]?gateway\b")
 
 _SHELL_EXECUTABLES = frozenset({"sh", "bash", "dash", "ksh", "zsh"})
 _SHELL_OPTIONS_WITH_VALUES = frozenset({"-O", "+O", "-o", "+o"})
@@ -387,7 +387,7 @@ def _named_profile_is_current(named: str) -> bool:
 def _contains_launchctl_gateway_lifecycle(normalized_text: str) -> bool:
     """Order-independent companion to Branch B — see the verbs regex comment."""
     return bool(_LAUNCHCTL_LIFECYCLE_VERBS_RE.search(normalized_text)) and bool(
-        _HERMES_GATEWAY_LABEL_RE.search(normalized_text)
+        _KOVA_GATEWAY_LABEL_RE.search(normalized_text)
     )
 
 
@@ -839,8 +839,8 @@ def _resolved_or_nothing(candidate: str, cwd: Optional[str]) -> Iterator[Path]:
 
 def _resolve_script_path(script_path: str) -> Optional[Path]:
     """Resolve a cron ``script`` value the way ``cron.scheduler`` does (relative paths live under
-    ``<HERMES_HOME>/scripts/``) so the guard scans the file that will actually run."""
-    from kova_constants import get_hermes_home
+    ``<KOVA_HOME>/scripts/``) so the guard scans the file that will actually run."""
+    from kova_constants import get_kova_home
 
     raw = _expand_candidate_path(script_path)
     if raw is None:
@@ -848,9 +848,9 @@ def _resolve_script_path(script_path: str) -> Optional[Path]:
     if raw.is_absolute():
         return raw
     try:
-        return get_hermes_home() / "scripts" / raw
+        return get_kova_home() / "scripts" / raw
     except (RuntimeError, OSError):
-        # get_hermes_home() falls back to Path.home(), which raises when neither HERMES_HOME nor
+        # get_kova_home() falls back to Path.home(), which raises when neither KOVA_HOME nor
         # HOME is resolvable (launchd/systemd) — same ingestion contract: nothing to scan.
         return None
 
@@ -1251,7 +1251,7 @@ def check_gateway_lifecycle(prompt: Optional[str], script: Optional[str] = None)
                 "evicted FileProvider placeholder can hang the guard's "
                 "preflight scan indefinitely, so it is refused without "
                 "being read. Move the script to a local, non-cloud path "
-                "(e.g. ~/.hermes/scripts/) and recreate the job."
+                "(e.g. ~/.kova/scripts/) and recreate the job."
             )
         python_script = resolved_script is not None and resolved_script.suffix == ".py"
         script_text, refusal = _read_script_for_scanning(script)

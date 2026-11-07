@@ -11,7 +11,7 @@
 // one process genuinely serves N homes.
 //
 // Two things are deliberately NOT collapsed:
-//   * `HERMES_DESKTOP_ISOLATED_BACKEND=1` — the escape hatch that gives this
+//   * `KOVA_DESKTOP_ISOLATED_BACKEND=1` — the escape hatch that gives this
 //     app a private backend instead of the host's.
 //   * Remote / SSH / Cloud backends — a DIFFERENT host. Its ownership proof
 //     (`remote-lifecycle.ts` isolated_count === 1) is about that machine's
@@ -21,7 +21,7 @@
 
 /** Everything the collapse decision needs about one profile's routing. */
 export interface HostBackendCollapseOptions {
-  /** `HERMES_DESKTOP_ISOLATED_BACKEND=1`: this app wants its own backend. */
+  /** `KOVA_DESKTOP_ISOLATED_BACKEND=1`: this app wants its own backend. */
   isolated?: boolean
   /** This profile points at its own remote host (connection.json / SSH). */
   profileRemoteOverride?: boolean
@@ -30,7 +30,7 @@ export interface HostBackendCollapseOptions {
   /**
    * This request MUTATES state the server cannot profile-scope
    * (`connection-config.ts::unscopableMutatingRequest`). The pooled backend's
-   * own `HERMES_HOME` is then the only scope there is, so the collapse must
+   * own `KOVA_HOME` is then the only scope there is, so the collapse must
    * not swallow it — and the spawn guard below must not refuse it.
    */
   unscopableRequest?: boolean
@@ -55,8 +55,8 @@ export class SecondLocalBackendError extends Error {
 
   constructor(poolKey: string) {
     super(
-      `Refusing to start a second local Hermes backend for "${poolKey}": one backend serves every profile on this host. ` +
-        'Set HERMES_DESKTOP_ISOLATED_BACKEND=1 for a private backend.'
+      `Refusing to start a second local Kova backend for "${poolKey}": one backend serves every profile on this host. ` +
+        'Set KOVA_DESKTOP_ISOLATED_BACKEND=1 for a private backend.'
     )
     this.name = 'SecondLocalBackendError'
     this.poolKey = poolKey

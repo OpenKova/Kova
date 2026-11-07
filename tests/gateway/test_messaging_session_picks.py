@@ -13,7 +13,7 @@ from gateway.run import GatewayRunner
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
 
 
 async def _compressed_chat(tmp_path):
@@ -154,7 +154,7 @@ async def test_a_messaging_chats_effort_wire_is_clamped_for_its_api_mode(tmp_pat
     """A chat on the Codex app-server route displays ``ultra`` on the wire, as that route sends it;
     clamping without the route's api_mode showed ``max``."""
     import gateway.run as gateway_run
-    monkeypatch.setattr(gateway_run, '_hermes_home', tmp_path)
+    monkeypatch.setattr(gateway_run, '_kova_home', tmp_path)
     (tmp_path / 'config.yaml').write_text(
         'model:\n  default: gpt-5.6\n  provider: openai-codex\n  api_mode: codex_app_server\n')
     runner, _source, _route, viewer, root, fences = await _compressed_chat(tmp_path)

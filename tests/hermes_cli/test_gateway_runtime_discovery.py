@@ -190,8 +190,8 @@ def test_hermes_chat_prints_the_whole_repair_command(monkeypatch, request):
     home = root / ('profile-' + 'x' * 12)
     home.mkdir(mode=0o700)
     control = home / 'gateway.sock'
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.delenv('HERMES_TUI_GATEWAY_URL', raising=False)
+    monkeypatch.setenv('KOVA_HOME', str(home))
+    monkeypatch.delenv('KOVA_TUI_GATEWAY_URL', raising=False)
 
     async def attach():
         async with connect_gateway():

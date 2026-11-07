@@ -358,7 +358,7 @@ function Read-MarkerLocked($Ctx) {
 
 function Get-CheckoutLockPath {
     # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock,
-    # else <root>/.hermes-update.lock.
+    # else <root>/.kova-update.lock.
     $root = Get-Variable -Name InstallRoot -ValueOnly -ErrorAction SilentlyContinue
     if (-not $root) { return $null }
     $dot = Join-Path $root '.git'
@@ -372,7 +372,7 @@ function Get-CheckoutLockPath {
             if (-not [System.IO.Path]::IsPathRooted($gitDir)) { $gitDir = Join-Path $root $gitDir }
         }
     }
-    if (-not $gitDir) { return (Join-Path $root '.hermes-update.lock') }
+    if (-not $gitDir) { return (Join-Path $root '.kova-update.lock') }
     $commonFile = Join-Path $gitDir 'commondir'
     if ([System.IO.File]::Exists($commonFile)) {
         $common = (([System.IO.File]::ReadAllText($commonFile)).TrimStart([char]0xFEFF) -split "`n")[0].Trim()

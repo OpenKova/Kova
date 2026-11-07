@@ -22,7 +22,7 @@ def test_recovered_update_retry_skips_external_secret_sources(tmp_path, monkeypa
         lambda path: external_calls.append(path),
     )
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.environ["UPDATE_RETRY_DOTENV"] == "loaded"
@@ -47,7 +47,7 @@ def test_utf8_bom_does_not_mangle_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("SECOND_KEY", raising=False)
     monkeypatch.delenv("\ufeffFIRST_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FIRST_KEY") == "first-value"
@@ -75,7 +75,7 @@ def test_bom_first_key_is_seen_by_installer_and_scrub_alike(tmp_path, monkeypatc
     for key in ("FIRST_KEY", "EXPORTED_KEY", "COMMENTED_KEY", "EMPTY_KEY", "\ufeffFIRST_KEY"):
         monkeypatch.delenv(key, raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
     installed = {k for k in ("FIRST_KEY", "EXPORTED_KEY", "COMMENTED_KEY", "EMPTY_KEY") if k in os.environ}
     scoped = load_env_file(env_file)
 
@@ -110,7 +110,7 @@ def test_utf8_bom_plus_invalid_utf8_preserves_first_key(tmp_path, monkeypatch):
     monkeypatch.delenv("BAD", raising=False)
     monkeypatch.delenv("\ufeffANTHROPIC_API_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-test-123"
@@ -153,7 +153,7 @@ def test_latin1_fallback_stream_preserves_interpolation(tmp_path, monkeypatch):
     monkeypatch.delenv("BAR", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("FOO") == "bar"
@@ -198,7 +198,7 @@ def test_utf16_le_bom_preserves_non_ascii_values(tmp_path, monkeypatch):
     monkeypatch.delenv("GREETING", raising=False)
     monkeypatch.delenv("CJK_LABEL", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("GREETING") == "café"
@@ -224,7 +224,7 @@ def test_utf32_le_bom_leaves_file_untouched(tmp_path, caplog):
     from kova_cli.env_loader import _sanitize_env_file_if_needed
 
     env_file = tmp_path / ".env"
-    content = "HERMES_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
+    content = "KOVA_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
     raw = codecs.BOM_UTF32_LE + content.encode("utf-32-le")
     env_file.write_bytes(raw)
 
@@ -252,7 +252,7 @@ def test_utf32_warning_fires_once_per_path(tmp_path, caplog, monkeypatch):
     monkeypatch.setattr(env_loader, "_WARNED_UTF32_PATHS", set())
 
     env_file = tmp_path / ".env"
-    content = "HERMES_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
+    content = "KOVA_TEST_KEY=hello_utf32\nSECOND_KEY=world\n"
     raw = codecs.BOM_UTF32_LE + content.encode("utf-32-le")
     env_file.write_bytes(raw)
 
@@ -279,7 +279,7 @@ def test_plain_utf8_env_regression(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("SECOND_KEY", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("OPENAI_API_KEY") == "sk-plain"
@@ -307,7 +307,7 @@ def test_cp1252_env_regression_does_not_crash(tmp_path, monkeypatch):
     monkeypatch.delenv("ASCII_KEY", raising=False)
     monkeypatch.delenv("LATIN1_VALUE", raising=False)
 
-    loaded = load_hermes_dotenv(hermes_home=home)
+    loaded = load_hermes_dotenv(kova_home=home)
 
     assert loaded == [env_file]
     assert os.getenv("ASCII_KEY") == "ok"
@@ -322,7 +322,7 @@ def test_cp1252_env_regression_does_not_crash(tmp_path, monkeypatch):
 
 
 def test_known_keys_absent_from_user_env_are_cleared(tmp_path, monkeypatch):
-    """Known Hermes keys inherited from parent process are removed when absent
+    """Known Kova keys inherited from parent process are removed when absent
     from the profile's .env.
 
     This is the startup equivalent of ``reload_env()``'s known-key cleanup and
@@ -337,17 +337,17 @@ def test_known_keys_absent_from_user_env_are_cleared(tmp_path, monkeypatch):
 
     # Inherited known keys from parent process / other profile
     monkeypatch.setenv("OPENAI_BASE_URL", "https://stale.example/v1")
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("COPILOT_CLI_PATH", "/usr/bin/claude-code")
     # Unrelated shell var must NOT be touched
     monkeypatch.setenv("MY_SHELL_ONLY_VAR", "keep-me")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     # OPENAI_BASE_URL is defined in the profile .env → overridden to the new value
     assert os.getenv("OPENAI_BASE_URL") == "https://profile.example/v1"
-    # HERMES_ACP_AUTH_METHOD and COPILOT_CLI_PATH are NOT in the profile .env → cleared
-    assert "HERMES_ACP_AUTH_METHOD" not in os.environ
+    # KOVA_ACP_AUTH_METHOD and COPILOT_CLI_PATH are NOT in the profile .env → cleared
+    assert "KOVA_ACP_AUTH_METHOD" not in os.environ
     assert "COPILOT_CLI_PATH" not in os.environ
     # Unrelated shell vars must survive
     assert os.getenv("MY_SHELL_ONLY_VAR") == "keep-me"
@@ -357,22 +357,22 @@ def test_empty_assignment_in_user_env_is_preserved(tmp_path, monkeypatch):
     """An explicit ``KEY=`` (empty value) in the profile .env keeps the key
     in ``os.environ`` — distinct from a key absent from .env entirely.
 
-    Empty ``HERMES_ACP_AUTH_METHOD=`` tells the ACP adapter to skip
+    Empty ``KOVA_ACP_AUTH_METHOD=`` tells the ACP adapter to skip
     ``authenticate`` (the key exists, its value is just empty).  This is the
     documented workaround for the leak and must still work after the cleanup.
     """
     home = tmp_path / "hermes"
     home.mkdir()
-    (home / ".env").write_text("HERMES_ACP_AUTH_METHOD=\n", encoding="utf-8")
+    (home / ".env").write_text("KOVA_ACP_AUTH_METHOD=\n", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("COPILOT_CLI_PATH", "/usr/bin/sneaky")  # NOT in .env → cleared
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     # KEY= in .env keeps the key (now empty string)
-    assert "HERMES_ACP_AUTH_METHOD" in os.environ
-    assert os.environ["HERMES_ACP_AUTH_METHOD"] == ""
+    assert "KOVA_ACP_AUTH_METHOD" in os.environ
+    assert os.environ["KOVA_ACP_AUTH_METHOD"] == ""
     # COPILOT_CLI_PATH is absent from .env → cleared
     assert "COPILOT_CLI_PATH" not in os.environ
 
@@ -386,34 +386,34 @@ def test_no_user_env_does_not_clear_anything(tmp_path, monkeypatch):
     home.mkdir()
     # No .env in home — bare profile
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
     monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "cursor_login"
+    assert os.getenv("KOVA_ACP_AUTH_METHOD") == "cursor_login"
     assert os.getenv("PATH") == "/usr/bin:/bin"
 
 
 def test_known_key_explicitly_set_in_user_env_is_kept(tmp_path, monkeypatch):
-    """A known Hermes key that IS explicitly set in the profile .env survives
+    """A known Kova key that IS explicitly set in the profile .env survives
     the cleanup (overrides the inherited value).
     """
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").write_text(
-        "HERMES_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
+        "KOVA_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
     )
 
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "claude_code_cli"
+    assert os.getenv("KOVA_ACP_AUTH_METHOD") == "claude_code_cli"
 
 
 def test_export_prefixed_known_key_in_user_env_is_kept(tmp_path, monkeypatch):
-    """A known Hermes key defined with the bash-compatible ``export KEY=value``
+    """A known Kova key defined with the bash-compatible ``export KEY=value``
     form in the profile .env must be recognized as defined and survive the
     cleanup - mirrors the ``export `` stripping in config.py's load_env()
     (#6659).
@@ -421,11 +421,11 @@ def test_export_prefixed_known_key_in_user_env_is_kept(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").write_text(
-        "export HERMES_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
+        "export KOVA_ACP_AUTH_METHOD=claude_code_cli\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
-    load_hermes_dotenv(hermes_home=home)
-    assert os.getenv("HERMES_ACP_AUTH_METHOD") == "claude_code_cli"
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
+    load_hermes_dotenv(kova_home=home)
+    assert os.getenv("KOVA_ACP_AUTH_METHOD") == "claude_code_cli"
 
 
 def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
@@ -447,14 +447,14 @@ def test_shell_exported_credentials_survive_cleanup(tmp_path, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-from-shell")
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "12345:token-from-shell")
     # A profile-managed routing key inherited alongside them IS cleared.
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "cursor_login")
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "cursor_login")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     assert os.getenv("OPENAI_API_KEY") == "sk-from-shell"
     assert os.getenv("ANTHROPIC_API_KEY") == "sk-ant-from-shell"
     assert os.getenv("TELEGRAM_BOT_TOKEN") == "12345:token-from-shell"
-    assert "HERMES_ACP_AUTH_METHOD" not in os.environ
+    assert "KOVA_ACP_AUTH_METHOD" not in os.environ
 
 
 def test_cleanup_scope_is_the_profile_managed_set():
@@ -490,15 +490,15 @@ def _seed_terminal_home(tmp_path, monkeypatch, *, config_yaml=None, env_text=Non
         (home / "config.yaml").write_text(config_yaml, encoding="utf-8")
     if env_text is not None:
         (home / ".env").write_text(env_text, encoding="utf-8")
-    # The bridge is scoped to the process HERMES_HOME (a different profile's
+    # The bridge is scoped to the process KOVA_HOME (a different profile's
     # load must not bridge this process's config), so point the process at
     # the seeded home like a real gateway/cron process would be.
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
 def test_config_yaml_terminal_backend_overrides_stale_env(tmp_path, monkeypatch):
-    """Regression for #29186: a leftover TERMINAL_ENV=docker in ~/.hermes/.env
+    """Regression for #29186: a leftover TERMINAL_ENV=docker in ~/.kova/.env
     must not silently override the user's choice in config.yaml. config.yaml
     is the documented source of truth, so its value must win after load."""
     home = _seed_terminal_home(
@@ -509,7 +509,7 @@ def test_config_yaml_terminal_backend_overrides_stale_env(tmp_path, monkeypatch)
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -524,7 +524,7 @@ def test_config_yaml_terminal_backend_overrides_stale_shell(tmp_path, monkeypatc
 
     monkeypatch.setenv("TERMINAL_ENV", "docker")
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "local"
 
@@ -541,7 +541,7 @@ def test_no_terminal_section_leaves_env_value_alone(tmp_path, monkeypatch):
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
 
@@ -557,7 +557,7 @@ def test_config_yaml_terminal_omitted_key_does_not_clear_env(tmp_path, monkeypat
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=home)
+    load_hermes_dotenv(kova_home=home)
 
     assert os.getenv("TERMINAL_ENV") == "docker"
     assert os.getenv("TERMINAL_TIMEOUT") == "600"
@@ -573,7 +573,7 @@ def test_other_profile_home_does_not_bridge_process_config(tmp_path, monkeypatch
     (process_home / "config.yaml").write_text(
         "terminal:\n  backend: local\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(process_home))
+    monkeypatch.setenv("KOVA_HOME", str(process_home))
 
     other_home = tmp_path / "other-profile"
     other_home.mkdir()
@@ -581,32 +581,32 @@ def test_other_profile_home_does_not_bridge_process_config(tmp_path, monkeypatch
 
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
 
-    load_hermes_dotenv(hermes_home=other_home)
+    load_hermes_dotenv(kova_home=other_home)
 
     # The other profile's .env value stands; the process config was not applied.
     assert os.getenv("TERMINAL_ENV") == "docker"
 
 
 def test_parent_injected_dashboard_session_token_survives_dotenv(tmp_path, monkeypatch):
-    """A parent that spawns `hermes dashboard` mints HERMES_DASHBOARD_SESSION_TOKEN and keeps it for
-    its own /api probes; a persisted token in ~/.hermes/.env must not replace it, or the parent gets
+    """A parent that spawns `hermes dashboard` mints KOVA_DASHBOARD_SESSION_TOKEN and keeps it for
+    its own /api probes; a persisted token in ~/.kova/.env must not replace it, or the parent gets
     HTTP 401 from its own child (#115955). Ordinary keys keep the documented .env-wins precedence."""
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").write_text(
-        "HERMES_DASHBOARD_SESSION_TOKEN=persisted-token\nHERMES_DASHBOARD_PUBLIC_URL=http://127.0.0.1:1\n",
+        "KOVA_DASHBOARD_SESSION_TOKEN=persisted-token\nKOVA_DASHBOARD_PUBLIC_URL=http://127.0.0.1:1\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "link-token")
-    monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", "http://127.0.0.1:43123")
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "link-token")
+    monkeypatch.setenv("KOVA_DASHBOARD_PUBLIC_URL", "http://127.0.0.1:43123")
 
-    load_hermes_dotenv(hermes_home=home)
-    assert os.environ["HERMES_DASHBOARD_SESSION_TOKEN"] == "link-token"
-    assert os.environ["HERMES_DASHBOARD_PUBLIC_URL"] == "http://127.0.0.1:1"  # control: .env still wins
+    load_hermes_dotenv(kova_home=home)
+    assert os.environ["KOVA_DASHBOARD_SESSION_TOKEN"] == "link-token"
+    assert os.environ["KOVA_DASHBOARD_PUBLIC_URL"] == "http://127.0.0.1:1"  # control: .env still wins
 
     # Reload with the same injection: the injected value still holds.
-    load_hermes_dotenv(hermes_home=home)
-    assert os.environ["HERMES_DASHBOARD_SESSION_TOKEN"] == "link-token"
+    load_hermes_dotenv(kova_home=home)
+    assert os.environ["KOVA_DASHBOARD_SESSION_TOKEN"] == "link-token"
 
 
 def test_dotenv_published_dashboard_session_token_still_reloads(tmp_path, monkeypatch):
@@ -614,11 +614,11 @@ def test_dotenv_published_dashboard_session_token_still_reloads(tmp_path, monkey
     earlier pass published (the guard only protects values dotenv did not put there)."""
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
-    (home / ".env").write_text("HERMES_DASHBOARD_SESSION_TOKEN=first\n", encoding="utf-8")
-    load_hermes_dotenv(hermes_home=home)
-    assert os.environ["HERMES_DASHBOARD_SESSION_TOKEN"] == "first"
+    monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
+    (home / ".env").write_text("KOVA_DASHBOARD_SESSION_TOKEN=first\n", encoding="utf-8")
+    load_hermes_dotenv(kova_home=home)
+    assert os.environ["KOVA_DASHBOARD_SESSION_TOKEN"] == "first"
 
-    (home / ".env").write_text("HERMES_DASHBOARD_SESSION_TOKEN=second\n", encoding="utf-8")
-    load_hermes_dotenv(hermes_home=home)
-    assert os.environ["HERMES_DASHBOARD_SESSION_TOKEN"] == "second"
+    (home / ".env").write_text("KOVA_DASHBOARD_SESSION_TOKEN=second\n", encoding="utf-8")
+    load_hermes_dotenv(kova_home=home)
+    assert os.environ["KOVA_DASHBOARD_SESSION_TOKEN"] == "second"

@@ -1,7 +1,7 @@
 """#70337/#87331/#90495: the ZIP swap must preserve the gitignored build outputs.
 
 The GitHub source ZIP carries only source; the BUILT desktop app
-(release/win-unpacked/Hermes.exe), its renderer bundle (dist/) and the
+(release/win-unpacked/Kova.exe), its renderer bundle (dist/) and the
 dashboard assets (kova_cli/web_dist/) exist only in the live tree. Swapping
 `apps` / `kova_cli` without grafting them deletes them — and the dirty-tree
 guard must admit their ``!!`` status lines, or the fallback refuses every
@@ -26,7 +26,7 @@ def test_zip_swap_keeps_every_nested_build_output_and_the_guard_admits_them(tmp_
 
     root = tmp_path / "install"
     outputs = {
-        "apps/desktop/release/win-unpacked/Hermes.exe": b"MZbuilt",
+        "apps/desktop/release/win-unpacked/Kova.exe": b"MZbuilt",
         "apps/desktop/dist/index.html": b"live renderer",
         "kova_cli/web_dist/index.html": b"<dashboard>",
     }
@@ -92,9 +92,9 @@ def test_guard_admits_a_real_installs_ignored_set_and_blocks_only_what_the_swap_
     subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(root), "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
                    check=True)
-    for ignored in (".bytecode-fingerprint", ".hermes-bootstrap-complete", ".install_method",
+    for ignored in (".bytecode-fingerprint", ".kova-bootstrap-complete", ".install_method",
                     "kova_agent.egg-info/PKG-INFO", "kova_cli/__pycache__/main.pyc", "__pycache__/x.pyc",
-                    "apps/desktop/release/win-unpacked/Hermes.exe", "apps/desktop/dist/index.html",
+                    "apps/desktop/release/win-unpacked/Kova.exe", "apps/desktop/dist/index.html",
                     "apps/desktop/build/icon.ico", "apps/desktop/node_modules/electron/index.js",
                     "kova_cli/web_dist/index.html", "ui-tui/dist/entry.js", "ui-tui/node_modules/x/index.js",
                     "ui-tui/packages/hermes-ink/dist/index.js", "web/node_modules/x/index.js",

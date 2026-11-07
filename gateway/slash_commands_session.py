@@ -617,7 +617,7 @@ class GatewaySessionCommandsMixin:
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
             with contextlib.suppress(Exception):
                 home = self._resolve_profile_home_for_source(source)
-        record_model_friction(signal, session_id=session_id, hermes_home=home, turns=turns)
+        record_model_friction(signal, session_id=session_id, kova_home=home, turns=turns)
 
     async def _handle_undo_command(self, event: MessageEvent) -> str:
         """Handle /undo [N] — back up N user turns (default 1), soft-deleting the truncated rows and

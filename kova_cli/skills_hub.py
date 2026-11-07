@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Skills Hub CLI — Unified interface for the Hermes Skills Hub."""
+"""Skills Hub CLI — Unified interface for the Kova Skills Hub."""
 
 import json
 import logging
@@ -15,7 +15,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 # tools.skills_hub / tools.skills_guard are imported inside functions (cycles + startup cost).
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 _console = Console()
 
@@ -296,7 +296,7 @@ def _is_valid_installed_skill_name(name: str) -> bool:
 
 
 def _existing_categories() -> list[str]:
-    """Sorted category buckets under ``~/.hermes/skills/`` (children without their own SKILL.md)."""
+    """Sorted category buckets under ``~/.kova/skills/`` (children without their own SKILL.md)."""
     from tools.skills_hub import SKILLS_DIR
     from tools.skills_hub_install import _category_skill_dirs
     try:
@@ -341,7 +341,7 @@ def _prompt_for_category(c: Console, existing: list[str]) -> str:
         c.print(f"[dim]Existing: {', '.join(existing)}[/]")
     else:
         c.print("[bold]Category[/] "
-                f"[dim](optional — press Enter to install flat at {display_hermes_home()}/skills/<name>/)[/]")
+                f"[dim](optional — press Enter to install flat at {display_kova_home()}/skills/<name>/)[/]")
     answer = _line_input("Category: ")
     if answer and not _VALID_CATEGORY_RE.match(answer):
         c.print(f"[dim]Invalid category {answer!r} — installing flat.[/]")
@@ -546,7 +546,7 @@ def _scan_block_message(result, identifier: str) -> str:
     n = len(result.findings)
     findings = f"{n} high-risk pattern(s)" if n else "high-risk patterns"
     hard_block = result.verdict == "dangerous" and result.trust_level in ("community", "trusted")
-    policy = ("Hermes never installs unverified skills with high-risk findings, even with --force."
+    policy = ("Kova never installs unverified skills with high-risk findings, even with --force."
               if hard_block else "Re-run with --force to install anyway.")
     return (f"the security scan found {findings} in '{identifier}' (listed above). "
             f"{policy} Review the findings or ask the author to fix them; to read the skill without "
@@ -597,7 +597,7 @@ def _resolve_url_bundle_name(c: Console, bundle, meta, identifier: str,
 
 
 def _announce_blueprint(c: Console, skill_name: str) -> None:
-    """Offer an installed skill's ``metadata.hermes.blueprint`` via /suggestions — never
+    """Offer an installed skill's ``metadata.kova.blueprint`` via /suggestions — never
     auto-scheduled (installing must not silently create a recurring job). Never raises."""
     try:
         from tools.blueprints import BlueprintError, blueprint_spec_for_installed, register_blueprint_suggestion
@@ -666,7 +666,7 @@ def _print_fetch_failure(c: Console, sources, identifier: str, meta=None, source
     c.print(f"[bold red]Error:[/] Could not download '{identifier}'.")
     if rejected:
         c.print(f"[yellow]Hint:[/] GitHub rejected {' and '.join(rejected)} (401 Bad credentials). "
-                f"Replace or remove the token in {display_hermes_home()}/.env, or re-run [bold]gh auth login[/].")
+                f"Replace or remove the token in {display_kova_home()}/.env, or re-run [bold]gh auth login[/].")
     if rate_limited:
         c.print("[yellow]Hint:[/] GitHub API rate limit exhausted "
                 "(unauthenticated: 60 requests/hour).\n"
@@ -700,7 +700,7 @@ def _scan_quarantined(c: Console, q_path: Path, bundle, meta, identifier: str):
 _INSTALL_PANELS = {
     "official": (
         "[bold bright_cyan]This is an official optional skill maintained by Nous Research.[/]\n\n"
-        "It ships with hermes-agent but is not activated by default.\n"
+        "It ships with kova-agent but is not activated by default.\n"
         "Installing will copy it to your skills directory where the agent can use it.\n\n",
         "Official Skill", "bright_cyan"),
     "external": (
@@ -713,7 +713,7 @@ _INSTALL_PANELS = {
 
 def _confirm_install(c: Console, bundle, category: str) -> bool:
     """Source-appropriate disclaimer panel + `Install '<name>'?` prompt."""
-    files_at = f"Files will be at: [cyan]{display_hermes_home()}/skills/{category + '/' if category else ''}{bundle.name}/[/]"
+    files_at = f"Files will be at: [cyan]{display_kova_home()}/skills/{category + '/' if category else ''}{bundle.name}/[/]"
     body, title, style = _INSTALL_PANELS["official" if bundle.source == "official" else "external"]
     c.print()
     c.print(Panel(body + files_at, title=title, border_style=style))
@@ -725,7 +725,7 @@ _SKILL_METRIC_SOURCES = {"official": "catalog", "url": "url", "bundled": "bundle
 
 
 def _install_bundled(c: Console, name: str, invalidate_cache: bool) -> tuple:
-    """``_install_skill`` for a name Hermes ships: point at the active copy, or restore it from the
+    """``_install_skill`` for a name Kova ships: point at the active copy, or restore it from the
     bundled source. The hub copy of a built-in is either a stranger's same-named skill or this
     repo's files rescanned as community content and refused, so neither is fetched."""
     from types import SimpleNamespace
@@ -956,7 +956,7 @@ def _print_tier1_advisory(skill_dir, console) -> None:
 def do_list(source_filter: str = "all", enabled_only: bool = False,
             console: Optional[Console] = None) -> None:
     """List installed skills (hub / builtin / local). Enabled state comes from the active
-    profile's config — ``-p`` swaps HERMES_HOME at process start, so no profile flag here."""
+    profile's config — ``-p`` swaps KOVA_HOME at process start, so no profile flag here."""
     from tools.skills_hub import HubLockFile, ensure_hub_dirs
     from tools.skills_sync import _read_manifest
     from tools.skills_tool import _skill_catalog
@@ -1371,7 +1371,7 @@ def do_publish(skill_path: str, target: str = "github", repo: str = "",
         auth = GitHubAuth()
         if not auth.is_authenticated():
             _print_error(c, "GitHub authentication required.\n"
-                            f"Set GITHUB_TOKEN in {display_hermes_home()}/.env "
+                            f"Set GITHUB_TOKEN in {display_kova_home()}/.env "
                             "or run 'gh auth login'.")
             return
         c.print(f"[bold]Publishing '{name}' to {repo}...[/]")
@@ -1435,8 +1435,8 @@ def _github_publish(skill_path: Path, skill_name: str, target_repo: str, auth) -
     try:
         resp = call("post", f"{target_repo}/pulls", json={
             "title": f"Add skill: {skill_name}",
-            "body": f"Submitting the `{skill_name}` skill via Hermes Skills Hub.\n\n"
-                    f"This skill was scanned by the Hermes Skills Guard before submission.",
+            "body": f"Submitting the `{skill_name}` skill via Kova Skills Hub.\n\n"
+                    f"This skill was scanned by the Kova Skills Guard before submission.",
             "head": f"{fork_repo.split('/')[0]}:{branch_name}", "base": default_branch})
         if resp.status_code == 201:
             return True, f"PR created: {resp.json().get('html_url', '')}"

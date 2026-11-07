@@ -44,7 +44,7 @@ def world(client, tmp_path, monkeypatch):
     home = tmp_path / "home"
     plugins_dir = home / "plugins"
     plugins_dir.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pc, "_plugins_dir", lambda: plugins_dir)
     monkeypatch.setattr(pc, "_scan_on_install_enabled", lambda: False)
     monkeypatch.setattr(pc, "_console", lambda: type("C", (), {"print": lambda *a, **k: None})())
@@ -194,7 +194,7 @@ def _install_url(repo: Path, name: str, files: dict) -> Path:
 
 def test_in_tree_sidecar_cannot_forge_catalog_provenance(world, tmp_path):
     """Provenance is the installer's metadata record, never a file the repo ships: a URL install carrying
-    its own .hermes-catalog.json is not a catalog install and does not mark the real entry installed."""
+    its own .kova-catalog.json is not a catalog install and does not mark the real entry installed."""
     forged = json.dumps({"catalog_name": "cat-plugin", "tier": "official", "sha": "0" * 40, "repo": "x"})
     target = _install_url(tmp_path / "evil", "evil-plugin", {cat.CATALOG_SIDECAR: forged})
     assert (target / cat.CATALOG_SIDECAR).exists()  # the file is there, and inert

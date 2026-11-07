@@ -78,8 +78,8 @@ describe('durable submit acknowledgement', () => {
     const { preparedJournal } = await import(nativeJournalModule)
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'desktop-retire-'))
     const journal = preparedJournal(home, 'http://native-fixture')
-    const previous = window.hermesDesktop
-    window.hermesDesktop = { ...previous, preparedSubmissions: {
+    const previous = window.kovaDesktop
+    window.kovaDesktop = { ...previous, preparedSubmissions: {
       read: async () => JSON.stringify(journal.read()),
       update: async (key, entry) => { journal.update(key, entry === null ? null : JSON.parse(entry)) }
     } }
@@ -102,7 +102,7 @@ describe('durable submit acknowledgement', () => {
       expect(preparedJournal(home, 'http://native-fixture').read()).toEqual({})
       expect(fs.readdirSync(home)).toHaveLength(1)
     } finally {
-      window.hermesDesktop = previous
+      window.kovaDesktop = previous
       fs.rmSync(home, { recursive: true, force: true })
       vi.doUnmock('electron')
     }
@@ -110,9 +110,9 @@ describe('durable submit acknowledgement', () => {
 
   it('a journal retirement that fails after admission still reports the delivered prompt and never reuses its identity', async () => {
     const entries = new Map<string, string>()
-    const previous = window.hermesDesktop
+    const previous = window.kovaDesktop
     // The private-file journal accepts the preparation write, then the disk fills before retirement.
-    window.hermesDesktop = { ...previous, preparedSubmissions: {
+    window.kovaDesktop = { ...previous, preparedSubmissions: {
       read: async () => JSON.stringify(Object.fromEntries([...entries].map(([key, entry]) => [key, JSON.parse(entry)]))),
       update: async (key, entry) => {
         if (entry === null) {throw Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' })}
@@ -141,7 +141,7 @@ describe('durable submit acknowledgement', () => {
       expect(ids).toHaveLength(2)
       expect(ids[1]).not.toBe(ids[0])
     } finally {
-      window.hermesDesktop = previous
+      window.kovaDesktop = previous
     }
   })
 
@@ -202,7 +202,7 @@ describe('durable submit acknowledgement', () => {
       submits.push(params!)
 
       if ('submission_id' in params!) {
-        throw Object.assign(new Error('invalid params for prompt.submit: submission_id: Extra inputs are not permitted — the client and the Hermes backend are out of sync (different versions)'), { code: 4000 })
+        throw Object.assign(new Error('invalid params for prompt.submit: submission_id: Extra inputs are not permitted — the client and the Kova backend are out of sync (different versions)'), { code: 4000 })
       }
 
       return { status: 'streaming' } as never
@@ -572,7 +572,7 @@ function renderedSeedTexts(seeds: Record<string, unknown>[]): string[] {
 
 // The HUD floats over the app the user is really working in, so the gateway
 // turns this flag into a per-turn hint: read the window underneath and work in
-// it, rather than reaching for Hermes's own browser and panes.
+// it, rather than reaching for Kova's own browser and panes.
 describe('usePromptActions HUD surface', () => {
   afterEach(() => {
     cleanup()
@@ -3439,8 +3439,8 @@ describe('usePromptActions file attachment sync', () => {
       if (method === 'file.attach') {
         return {
           attached: true,
-          path: '/remote/work/.hermes/desktop-attachments/report.txt',
-          ref_text: '@file:.hermes/desktop-attachments/report.txt',
+          path: '/remote/work/.kova/desktop-attachments/report.txt',
+          ref_text: '@file:.kova/desktop-attachments/report.txt',
           uploaded: true
         } as never
       }
@@ -3466,7 +3466,7 @@ describe('usePromptActions file attachment sync', () => {
     expect(calls[1]?.params).toEqual({
       session_id: RUNTIME_SESSION_ID,
       submission_id: expect.any(String),
-      text: '@file:.hermes/desktop-attachments/report.txt\n\nconvert this to epub'
+      text: '@file:.kova/desktop-attachments/report.txt\n\nconvert this to epub'
     })
   })
 
@@ -3493,8 +3493,8 @@ describe('usePromptActions file attachment sync', () => {
       if (method === 'file.attach') {
         return {
           attached: true,
-          path: '/root/.hermes/desktop-attachments/report.txt',
-          ref_text: '@file:.hermes/desktop-attachments/report.txt',
+          path: '/root/.kova/desktop-attachments/report.txt',
+          ref_text: '@file:.kova/desktop-attachments/report.txt',
           uploaded: true
         } as never
       }
@@ -3523,7 +3523,7 @@ describe('usePromptActions file attachment sync', () => {
       params: {
         submission_id: expect.any(String),
         session_id: RUNTIME_SESSION_ID,
-        text: '@file:.hermes/desktop-attachments/report.txt\n\nsummarize'
+        text: '@file:.kova/desktop-attachments/report.txt\n\nsummarize'
       }
     })
   })
@@ -3705,7 +3705,7 @@ describe('usePromptActions file attachment sync', () => {
       if (method === 'file.attach') {
         return {
           attached: true,
-          ref_text: '@file:.hermes/desktop-attachments/report.txt',
+          ref_text: '@file:.kova/desktop-attachments/report.txt',
           uploaded: true
         } as never
       }
@@ -3744,8 +3744,8 @@ describe('usePromptActions file attachment sync', () => {
       if (method === 'file.attach') {
         return {
           attached: true,
-          path: '/root/.hermes/attachments/report.txt',
-          ref_text: '@file:/root/.hermes/attachments/report.txt',
+          path: '/root/.kova/attachments/report.txt',
+          ref_text: '@file:/root/.kova/attachments/report.txt',
           uploaded: true
         } as never
       }
@@ -3887,7 +3887,7 @@ describe('usePromptActions eager-upload races', () => {
   it('joins an in-flight eager upload at submit instead of staging the file twice', async () => {
     // Drop-then-immediately-Enter: the drop kicks off an eager file.attach; if
     // submit doesn't join it, both calls stage the file and leave a duplicate
-    // under .hermes/desktop-attachments/. Submit must await the in-flight upload
+    // under .kova/desktop-attachments/. Submit must await the in-flight upload
     // and reuse its gateway-side ref.
     $connection.set({ mode: 'remote' } as never)
     Object.defineProperty(window, 'hermesDesktop', {
@@ -3907,7 +3907,7 @@ describe('usePromptActions eager-upload races', () => {
           releaseAttach = resolve
         })
 
-        return { attached: true, ref_text: '@file:.hermes/desktop-attachments/doc.pdf', uploaded: true } as never
+        return { attached: true, ref_text: '@file:.kova/desktop-attachments/doc.pdf', uploaded: true } as never
       }
 
       return {} as never
@@ -4549,7 +4549,7 @@ describe('usePromptActions new-chat first-send delivery (#63078)', () => {
 
         return {
           attached: true,
-          ref_text: '@file:.hermes/desktop-attachments/test.pdf',
+          ref_text: '@file:.kova/desktop-attachments/test.pdf',
           uploaded: true
         } as never
       }
@@ -5118,7 +5118,7 @@ describe('usePromptActions eager attachment upload (drop-time)', () => {
       if (method === 'file.attach') {
         return {
           attached: true,
-          ref_text: '@file:.hermes/desktop-attachments/DEVIS_signed.pdf',
+          ref_text: '@file:.kova/desktop-attachments/DEVIS_signed.pdf',
           uploaded: true
         } as never
       }
@@ -5138,7 +5138,7 @@ describe('usePromptActions eager attachment upload (drop-time)', () => {
     await waitFor(() => expect($composerAttachments.get()[0]?.attachedSessionId).toBe(RUNTIME_SESSION_ID))
 
     const chip = $composerAttachments.get()[0]!
-    expect(chip.refText).toBe('@file:.hermes/desktop-attachments/DEVIS_signed.pdf')
+    expect(chip.refText).toBe('@file:.kova/desktop-attachments/DEVIS_signed.pdf')
     expect(chip.uploadState).toBeUndefined()
     expect(readFileDataUrl).toHaveBeenCalledWith('/Users/mahmoud/Downloads/DEVIS_signed.pdf')
   })

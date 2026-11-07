@@ -27,7 +27,7 @@ _state: dict[str, tuple[int, int]] = {}
 _state_lock = threading.Lock()
 
 _STOP_NOTE = (
-    "The process is still running and has printed nothing new since your last check. Hermes has turned on "
+    "The process is still running and has printed nothing new since your last check. Kova has turned on "
     "notify_on_complete for it: when it exits, a message with its exit code and final output starts a new turn "
     "automatically, even after you end this turn. Do NOT call process_manage wait or poll on {sid} again, and do "
     "not sleep or loop to wait for it. If you have other work, do it now; otherwise end your turn with a one-line "
@@ -80,16 +80,16 @@ def _can_deliver_completion() -> bool:
     from gateway.session_context import async_delivery_supported, get_session_env
     from gateway.session_finite import finite_turn_required
     finite = finite_turn_required()
-    if finite is True or (finite is None and get_session_env("HERMES_SINGLE_QUERY_SESSION") == "1"):
+    if finite is True or (finite is None and get_session_env("KOVA_SINGLE_QUERY_SESSION") == "1"):
         return False
     if not async_delivery_supported() or is_delegated_child_context():
         return False
     # ``off`` drains the completion but never starts the agent turn (CLI, TUI and gateway alike). The
-    # gateway also honours the HERMES_BACKGROUND_NOTIFICATIONS override; either one saying off is off.
+    # gateway also honours the KOVA_BACKGROUND_NOTIFICATIONS override; either one saying off is off.
     from kova_cli.config import cfg_get
     try:
         from gateway.platforms._shared import platform_gate_env
-        modes = (platform_gate_env("HERMES_BACKGROUND_NOTIFICATIONS"),
+        modes = (platform_gate_env("KOVA_BACKGROUND_NOTIFICATIONS"),
                  cfg_get(_effective_config(), "display", "background_process_notifications"))
     except Exception:
         logger.debug("background_process_notifications unreadable; assuming on", exc_info=True)
@@ -106,7 +106,7 @@ def _caller_receives_completion(session) -> bool:
     from gateway.session_context import get_session_env
     from tools.process_registry import ProcessRegistry
     from tools.process_registry_notifications import should_surface_notification
-    caller_key = get_session_env("HERMES_SESSION_KEY", "")
+    caller_key = get_session_env("KOVA_SESSION_KEY", "")
     evt = {"type": "completion", "session_id": session.id, "session_key": session.session_key,
            "task_id": session.task_id, "owner_task_id": session.owner_task_id}
     if session.session_key and not caller_key:

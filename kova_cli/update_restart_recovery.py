@@ -56,8 +56,8 @@ import time
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
-_RECOVERY_ENV = "HERMES_UPDATE_RESTART_RECOVERY"
-_GATEWAY_MARKERS = ("_HERMES_GATEWAY", "HERMES_GATEWAY", "HERMES_GATEWAY_MODE")
+_RECOVERY_ENV = "KOVA_UPDATE_RESTART_RECOVERY"
+_GATEWAY_MARKERS = ("_KOVA_GATEWAY", "KOVA_GATEWAY", "KOVA_GATEWAY_MODE")
 _PROFILE_RESTART_TIMEOUT = 90
 _VERIFY_TIMEOUT = 15
 from kova_constants import PROFILE_ID_RE as _PROFILE_ID_RE
@@ -91,10 +91,10 @@ def _succeeded(result: Any) -> bool:
 
 
 def _launch_profile() -> str:
-    """Profile this recovery process was launched as: ``<root>/profiles/<name>`` in ``HERMES_HOME`` names it,
+    """Profile this recovery process was launched as: ``<root>/profiles/<name>`` in ``KOVA_HOME`` names it,
     anything else is the default profile. Mirrors ``kova_cli.profiles.profile_root_for_env_home`` without
     importing it — this module stays stdlib-only at import time."""
-    home = os.environ.get("HERMES_HOME", "").strip()
+    home = os.environ.get("KOVA_HOME", "").strip()
     if home:
         path = os.path.normpath(home)
         if os.path.basename(os.path.dirname(path)) == "profiles":
@@ -148,8 +148,8 @@ def _run_profile_restart(profile: str, *, run: Callable[..., Any]) -> bool:
 def _systemd_unit_candidates(profile: str) -> tuple[str, ...]:
     """Unit names the existing systemd gateway lifecycle produces per profile."""
     if profile == "default":
-        return ("hermes-gateway.service", "gateway.service", "gateway-default.service")
-    return (f"hermes-gateway-{profile}.service", f"gateway-{profile}.service")
+        return ("kova-gateway.service", "gateway.service", "gateway-default.service")
+    return (f"kova-gateway-{profile}.service", f"gateway-{profile}.service")
 
 
 def _systemd_verified_active(profile: str, *, run: Callable[..., Any]) -> bool:
@@ -166,10 +166,10 @@ def _systemd_verified_active(profile: str, *, run: Callable[..., Any]) -> bool:
 def _host_state_dir() -> str:
     """The path ``gateway.host_rendezvous.host_state_dir()`` resolves, computed locally.
 
-    This module imports no Hermes code at runtime — importing the freshly pulled tree is exactly
+    This module imports no Kova code at runtime — importing the freshly pulled tree is exactly
     what aborted the phase that calls us — so the rule is duplicated here rather than shared.
     """
-    override = os.environ.get("HERMES_GATEWAY_LOCK_DIR")
+    override = os.environ.get("KOVA_GATEWAY_LOCK_DIR")
     if override:
         return override
     state_home = os.environ.get("XDG_STATE_HOME") or ""
@@ -264,7 +264,7 @@ def restart_profiles(
 def _systemctl_scopes() -> list[tuple[str, list[str]]]:
     """``(label, systemctl argv)`` for the user and system scopes (the pair the in-process phase walks), or nothing.
 
-    ``systemctl`` comes from ``shutil.which`` so this module never imports a Hermes platform helper —
+    ``systemctl`` comes from ``shutil.which`` so this module never imports a Kova platform helper —
     importing the freshly pulled tree is exactly what aborted the phase that called us. Scopes carry
     their label because the same unit name in both managers is two different processes.
     """

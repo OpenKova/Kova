@@ -7,7 +7,7 @@ layout, so the writer and the reader of the layout live here together. The file 
 file back from this host by the same layout when the profile's workspace is an SSH machine.
 
 A named profile that is missing or deleted is refused on both sides by the rule every named-home
-write follows (``kova_constants.assert_named_profile_home_live`` / ``mkdir_under_hermes_home``):
+write follows (``kova_constants.assert_named_profile_home_live`` / ``mkdir_under_kova_home``):
 an upload never recreates a deleted home, and a receipt from one is never redeemed.
 """
 
@@ -82,10 +82,10 @@ def resolve_upload_home(profile: str | None) -> Path:
     on its process-wide skills lock or wait on its secret-source hydration. A named home that is
     missing or deleted is a 404.
     """
-    from kova_constants import assert_named_profile_home_live, get_hermes_home
+    from kova_constants import assert_named_profile_home_live, get_kova_home
 
     if _is_current_profile(profile):
-        home = get_hermes_home()
+        home = get_kova_home()
     else:
         home = _resolve_profile_dir(profile.strip())
     try:
@@ -105,14 +105,14 @@ def ensure_profile_subdir(
 ) -> Path:
     """``<home>/<name>``, created without ever recreating a missing or deleted named home.
 
-    That case is a 404 (``mkdir_under_hermes_home``). Other directory errors are 403 *denied* and
+    That case is a 404 (``mkdir_under_kova_home``). Other directory errors are 403 *denied* and
     500 ``"<failed>: <exc>"``; *mode* is applied inside that mapping.
     """
-    from kova_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_kova_home
 
     directory = home / name
     try:
-        mkdir_under_hermes_home(directory)
+        mkdir_under_kova_home(directory)
         if mode is not None:
             directory.chmod(mode)
     except FileNotFoundError as exc:
@@ -163,7 +163,7 @@ def staged_upload_descriptor(path: Path, profile_home: Path) -> dict | None:
     """The ``staged_upload`` receipt for a published file, or None without an install identity."""
     install_id = get_install_id()
     if not install_id:
-        # Identity is already persisted by Hermes. If it is unavailable, keep
+        # Identity is already persisted by Kova. If it is unavailable, keep
         # the legacy path/byte-upload flow rather than invent an ephemeral id.
         return None
     return {
@@ -183,7 +183,7 @@ def parse_staged_upload(descriptor: object) -> tuple[str, str]:
         raise ValueError("invalid staged upload")
     install_id = get_install_id()
     if not install_id or descriptor.get("install_id") != install_id:
-        raise ValueError("Staged attachment belongs to another Hermes backend; select the file again")
+        raise ValueError("Staged attachment belongs to another Kova backend; select the file again")
     raw_home = descriptor.get("profile_home")
     raw_path = descriptor.get("path")
     if not isinstance(raw_home, str) or not raw_home or not isinstance(raw_path, str) or not raw_path:

@@ -311,7 +311,7 @@ const CORRECTION_SWITCH_SCRIPT: ScriptedTurn[] = [
 export const CORRECTION_SWITCH_TRIGGER = 'E2E_CORRECTION_SWITCH_TRIGGER'
 
 /**
- * Drives a real code edit followed by two finish attempts. Hermes should add
+ * Drives a real code edit followed by two finish attempts. Kova should add
  * its synthetic verify-on-stop continuation after each finish attempt until
  * the bounded verifier gives up. The mock's request capture proves the nudge
  * reached the model; desktop must never render it as chat content.
@@ -1437,7 +1437,7 @@ interface DevSandbox {
   cleanup: () => void
 }
 
-/** Create an isolated HERMES_HOME + Electron user-data dir in the OS temp dir. */
+/** Create an isolated KOVA_HOME + Electron user-data dir in the OS temp dir. */
 function createDevSandbox(): DevSandbox {
   const root = fs.mkdtempSync(nodePath.join(os.tmpdir(), `hermes-dev-mock-${Date.now()}`))
   const hermesHome = nodePath.join(root, 'hermes-home')
@@ -1484,19 +1484,19 @@ async function runDevLaunch(): Promise<void> {
   console.log(`  Mock server: ${mock.url}`)
 
   const sandbox = createDevSandbox()
-  writeMockProviderConfig(sandbox.hermesHome, mock.url)
-  writeEnvFile(sandbox.hermesHome)
-  console.log(`  HERMES_HOME: ${sandbox.hermesHome}`)
+  writeMockProviderConfig(sandbox.kovaHome, mock.url)
+  writeEnvFile(sandbox.kovaHome)
+  console.log(`  KOVA_HOME: ${sandbox.kovaHome}`)
 
   const electronBin = resolveElectronBinary([desktopRoot, repoRoot])
 
   const env: Record<string, string> = {
     ...process.env,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    HERMES_DESKTOP_HERMES_ROOT: repoRoot,
-    HERMES_DESKTOP_APP_NAME: `HermesDevMock-${Date.now()}`,
+    KOVA_HOME: sandbox.kovaHome,
+    KOVA_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    KOVA_DESKTOP_IGNORE_EXISTING: '1',
+    KOVA_DESKTOP_KOVA_ROOT: repoRoot,
+    KOVA_DESKTOP_APP_NAME: `KovaDevMock-${Date.now()}`,
   }
 
   console.log('Launching Electron...')

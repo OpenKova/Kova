@@ -19,13 +19,13 @@ SECRET = "123456:shared-secret-value"
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "worker").mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "OPENAI_API_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     monkeypatch.setattr(gm, "_live_gateway_pid", lambda home: None)
     monkeypatch.setattr(gm, "_installed_services", lambda home: [])
     return root, root / "profiles" / "worker"

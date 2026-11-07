@@ -165,7 +165,7 @@ async def test_rewritten_message_keeps_its_callback_provenance_and_is_admitted(m
     from gateway.run import GatewayRunner
     from gateway.session_authority import SessionAuthority, initialize_session_authority
     from gateway.session_ingress_context import capture_provenance, native_callback, register_transport_home
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state_runtime import list_session_admissions
     from plugins.platforms.discord.adapter import DiscordAdapter
 
@@ -182,12 +182,12 @@ async def test_rewritten_message_keeps_its_callback_provenance_and_is_admitted(m
     runner._wire_adapter_handlers(adapter)
     # The multiplexed admission check that refused the reporter (thanks @unsupportedpastels).
     runner.config.multiplex_profiles = True
-    runner.config._runtime_profile_homes = [("default", get_hermes_home())]
-    register_transport_home(runner, None, get_hermes_home())
+    runner.config._runtime_profile_homes = [("default", get_kova_home())]
+    register_transport_home(runner, None, get_kova_home())
     source = adapter.build_source(chat_id="42", chat_type="dm", user_id="42")
     human = MessageEvent(text="original", source=source, message_id="h")
 
-    with native_callback(runner, human, get_hermes_home()):
+    with native_callback(runner, human, get_kova_home()):
         expected = capture_provenance(runner, human)
         event = await runner._hm_pre_gateway_dispatch_hook(human, source)
         receipt = await authority.admit_native(event)

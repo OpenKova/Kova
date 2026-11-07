@@ -900,7 +900,7 @@ def _release_dead_lock(lock: Path, root: Path | None = None, *, any_git: bool = 
 # The ZIP update's equivalent of the interrupted-pull marker (``_early_recovery_zip``): a journal in the
 # install root naming every entry the swap stages/renames. Its name stays here: the launch fast path
 # stats it without importing the ZIP code.
-ZIP_SWAP_JOURNAL = ".hermes-update-zip-swap"
+ZIP_SWAP_JOURNAL = ".kova-update-zip-swap"
 
 
 def write_durable_text(path: Path, text: str) -> None:
@@ -949,7 +949,7 @@ def restore_interrupted_pull(project_root: Path | None = None, *, after_failure:
     A torn ``kova_bootstrap.py``, ``kova_cli/__init__.py`` or recovery/lock/custody module fails
     before (or inside) the checkout's copy of this code: a minted launcher then runs the copy the
     updater published beside the marker (``RECOVERY_CLOSURE``). Limits, by design: other entry points
-    (``python -m``, the ``hermes-agent`` hook's ``agent/__init__.py``) have no such fallback, and a
+    (``python -m``, the ``kova-agent`` hook's ``agent/__init__.py``) have no such fallback, and a
     launcher minted before that fallback existed has none either. A file git also changes that the user deleted, emptied or cut to a prefix of git's version
     looks exactly like git's own half-written file and is restored too, as is a user edit to a
     conflicted path or, on git < 2.38, to a path both sides of a custom-branch merge changed.
@@ -982,7 +982,7 @@ def restore_interrupted_pull(project_root: Path | None = None, *, after_failure:
                 # The tree is still torn (the marker is there): importing checkout code now would run
                 # the half-written files. Fail closed like unprovable custody does, as one line and
                 # exit 1 (SystemExit's message), never a traceback (F20).
-                raise SystemExit("hermes: another Hermes launch is finishing an interrupted `hermes update`; "
+                raise SystemExit("hermes: another Kova launch is finishing an interrupted `hermes update`; "
                                  "launch again in a moment.")
             if not marker.is_file():
                 return True  # another launch finished while this one started: rerun from its tree
@@ -1019,7 +1019,7 @@ def _checkout_custody(root: Path):
             "Cannot safely repair the interrupted update: checkout custody is unavailable "
             f"({type(exc).__name__}: {exc}). The recovery marker was kept. "
             "Wait for any running update to finish; if this persists, repair the checkout "
-            "before launching Hermes again."
+            "before launching Kova again."
         ) from exc
     holder = update_lock._acquire_checkout(Path(root))
     if holder is not None and not update_lock.checkout_lock_held(Path(root)):
@@ -1102,7 +1102,7 @@ def _custody_git(root: Path, recorded: str):
         raise RuntimeError(
             "Cannot safely repair the interrupted update: child custody is unavailable "
             f"({type(exc).__name__}: {exc}). The recovery marker was kept. "
-            "Repair the checkout before launching Hermes again."
+            "Repair the checkout before launching Kova again."
         ) from exc
 
     def git(*args: str, stdin: str | None = None, text: bool = True) -> subprocess.CompletedProcess:
@@ -1327,9 +1327,9 @@ def _put_back_paths(git, root: Path, restore: list[str], added: list[str],
 
 
 def _keep_aside(file: Path) -> Path:
-    """Rename ``file`` to a free ``<name>.hermes-update-kept[-N]`` beside it (never importable, never clobbered)."""
+    """Rename ``file`` to a free ``<name>.kova-update-kept[-N]`` beside it (never importable, never clobbered)."""
     n = 1
-    while os.path.lexists(aside := file.with_name(f"{file.name}.hermes-update-kept" + (f"-{n}" if n > 1 else ""))):
+    while os.path.lexists(aside := file.with_name(f"{file.name}.kova-update-kept" + (f"-{n}" if n > 1 else ""))):
         n += 1
     os.rename(file, aside)
     return aside
@@ -1421,7 +1421,7 @@ def recover_if_needed(project_root: Path | None = None, argv: list[str] | None =
         if any(_marker_owner_is_live(marker) for marker in markers):
             return False
         if not explicit and any(_read_marker_attempts(marker) >= _EARLY_CORE_INSTALL_MAX_ATTEMPTS for marker in markers):
-            print("hermes: automatic dependency repair retry limit reached; run `hermes pm repair`", file=sys.stderr)
+            print("hermes: automatic dependency repair retry limit reached; run `kova pm repair`", file=sys.stderr)
             return False
         from pm.recovery import repair_dependencies
 
@@ -1439,7 +1439,7 @@ def recover_if_needed(project_root: Path | None = None, argv: list[str] | None =
             raise  # The bootstrap or PM CLI reports the access error once.
         for marker in markers:
             _count_failed_attempt(marker)
-        print(f"hermes: dependency repair failed: {exc}; run `hermes pm repair`", file=sys.stderr)
+        print(f"hermes: dependency repair failed: {exc}; run `kova pm repair`", file=sys.stderr)
         return False
     finally:
         os.close(lock)

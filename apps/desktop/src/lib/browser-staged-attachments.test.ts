@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { stageDroppedFilePath, useComposerActions } from '@/app/chat/hooks/use-composer-actions'
 import { uploadComposerAttachment } from '@/app/session/hooks/use-prompt-actions'
-import type { HermesStagedUpload } from '@/global'
+import type { KovaStagedUpload } from '@/global'
 import {
   $composerAttachments, clearSessionDraft, type ComposerAttachment, stashSessionDraft, takeSessionDraft
 } from '@/store/composer'
@@ -13,7 +13,7 @@ import { clearWebappSession, seedWebappSession } from '@/test/webapp-session'
 
 import { installBrowserDesktopBridge } from './browser-desktop-bridge'
 
-const source: HermesStagedUpload = {
+const source: KovaStagedUpload = {
   install_id: '11111111111111111111111111111111',
   path: '/srv/hermes/profiles/owner/uploads/web-123-notes.txt',
   profile_home: '/srv/hermes/profiles/owner'
@@ -53,7 +53,7 @@ async function installBrowser(withProvenance = true) {
 
   vi.stubGlobal('fetch', fetchMock)
   expect(installBrowserDesktopBridge()).toBe(true)
-  $connection.set(await window.hermesDesktop.getConnection('owner'))
+  $connection.set(await window.kovaDesktop.getConnection('owner'))
 
   return fetchMock
 }
@@ -128,7 +128,7 @@ describe('browser staged attachment transport', () => {
         // A restored draft must not rely on the browser bridge's transient map.
         stashSessionDraft('staged-attachment-contract', 'draft', $composerAttachments.get())
         attachment = takeSessionDraft('staged-attachment-contract').attachments[0]!
-        window.hermesDesktop.getStagedFileForAttach = () => undefined
+        window.kovaDesktop.getStagedFileForAttach = () => undefined
       }
 
       // The supplied requester can be an explicitly routed tile/edit owner.
@@ -246,7 +246,7 @@ describe('browser staged attachment transport', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['another Hermes backend', 'Profile not found'])(
+  it.each(['another Kova backend', 'Profile not found'])(
     'does not replace an authoritative %s rejection with a byte-upload fallback',
     async message => {
       const fetchMock = await installBrowser()
@@ -276,8 +276,8 @@ describe('browser staged attachment transport', () => {
     expect(installBrowserDesktopBridge()).toBe(true)
 
     for (const stage of [
-      () => window.hermesDesktop.stageFileForAttach!(file()),
-      () => window.hermesDesktop.savePastedText(pastedText)
+      () => window.kovaDesktop.stageFileForAttach!(file()),
+      () => window.kovaDesktop.savePastedText(pastedText)
     ]) {
       const failure: unknown = await stage().catch((error: unknown) => error)
       expect(failure).toBeInstanceOf(Error)

@@ -40,12 +40,12 @@ const api = vi.fn(async ({ path }: { path: string }) => {
 
 const readFileDataUrl = vi.fn(async () => DATA_URL)
 
-let originalDesktop: typeof window.hermesDesktop
+let originalDesktop: typeof window.kovaDesktop
 
 beforeEach(() => {
   api.mockClear()
   readFileDataUrl.mockClear()
-  originalDesktop = window.hermesDesktop
+  originalDesktop = window.kovaDesktop
   Object.defineProperty(window, 'hermesDesktop', {
     configurable: true,
     value: { api, readFileDataUrl }

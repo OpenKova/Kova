@@ -1,5 +1,5 @@
 """Solstice sign-in: browser PKCE with a loopback redirect, token exchange and refresh brokered by the
-Nous portal (NAS), which holds the confidential client secret. Hermes keeps its own PKCE verifier and
+Nous portal (NAS), which holds the confidential client secret. Kova keeps its own PKCE verifier and
 the user's tokens; NAS never sees a prompt.
 
 The generic ``kova_cli.auth_oauth_pkce_plugin`` flow runs the browser leg, the credential-pool row
@@ -23,7 +23,7 @@ def _err(message: str, code: str, *, relogin: bool = False):
 
 
 def _nas_base_url() -> str:
-    """The Nous portal the user is signed into (``HERMES_PORTAL_BASE_URL`` override first)."""
+    """The Nous portal the user is signed into (``KOVA_PORTAL_BASE_URL`` override first)."""
     from kova_cli.auth import _nous_portal_base_url, get_provider_auth_state
     return _nous_portal_base_url(get_provider_auth_state("nous") or {})
 

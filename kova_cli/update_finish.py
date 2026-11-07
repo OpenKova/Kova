@@ -170,10 +170,10 @@ def main(context: Path, result: Path) -> int:
         if code and request.get("gateway_mode"):
             # Even an application import failure must wake the gateway watcher. A run that already
             # closed as a success (an interrupt after verification) stays 0 (review regression 3).
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             from kova_cli.runtime_state import _atomic_bytes
 
-            _atomic_bytes(get_hermes_home() / ".update_exit_code",
+            _atomic_bytes(get_kova_home() / ".update_exit_code",
                           b"0" if terminal.get("outcome") == "success" else b"1")
         if restarting and not cli_started:
             # Startup failed before the replacement command could own a

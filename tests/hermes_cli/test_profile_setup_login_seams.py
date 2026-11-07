@@ -22,7 +22,7 @@ from kova_cli.web_server import _SESSION_TOKEN, app
 from tests.waiting import wait_until
 
 client = TestClient(app)
-HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
+HEADERS = {"X-Kova-Session-Token": _SESSION_TOKEN}
 NAME = "acme-device"
 
 _PLUGIN_SOURCE = '''
@@ -40,9 +40,9 @@ def start():
             "expires_in": 60, "interval": 1, "state": {"polls": 0}}
 
 def poll(state):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     polls = state["polls"] + 1
-    _log("poll", polls=polls, home=str(get_hermes_home()))
+    _log("poll", polls=polls, home=str(get_kova_home()))
     if polls < int(os.environ.get("ACME_APPROVE_AT", "2")):
         return {"status": "pending", "state": {"polls": polls}}
     if os.environ.get("ACME_DENY"):
@@ -50,8 +50,8 @@ def poll(state):
     return {"status": "approved", "credential": "acme-secret"}
 
 def save(credential):
-    from kova_constants import get_hermes_home
-    _log("save", home=str(get_hermes_home()), credential=credential)
+    from kova_constants import get_kova_home
+    _log("save", home=str(get_kova_home()), credential=credential)
 
 def flow(config, current_model, args):
     _log("flow", current_model=current_model)
@@ -84,7 +84,7 @@ def acme(tmp_path, monkeypatch):
         f"name: {NAME}\nkind: model-provider\nversion: 0.0.1\ndescription: device login seam fixture\n")
     (plugin_dir / "__init__.py").write_text(_PLUGIN_SOURCE)
     log = tmp_path / "acme.jsonl"
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setenv("ACME_DEVICE_LOG", str(log))
     _rediscover()
 
@@ -173,7 +173,7 @@ def test_provider_without_device_login_cannot_start_one(acme):
 
 def test_hermes_model_dispatch_and_effort_picker_consult_the_profile(acme, monkeypatch):
     coder, events = acme
-    monkeypatch.setenv("HERMES_HOME", str(coder))
+    monkeypatch.setenv("KOVA_HOME", str(coder))
     _rediscover()
     from kova_cli.main_provider_setup import _main_model_reasoning_efforts
     from kova_cli.model_setup_flows import _profile_model_setup_flow

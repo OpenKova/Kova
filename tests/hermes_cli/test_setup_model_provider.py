@@ -13,7 +13,7 @@ from kova_cli.setup import _print_setup_summary, setup_model_provider
 
 def _clear_provider_env(monkeypatch):
     for key in (
-        "HERMES_INFERENCE_PROVIDER",
+        "KOVA_INFERENCE_PROVIDER",
         "OPENAI_BASE_URL",
         "OPENAI_API_KEY",
         "OPENROUTER_API_KEY",
@@ -41,7 +41,7 @@ def _write_aux_config(task="compression", provider="gemini", model_name="gemini-
 
 def test_setup_model_provider_preserves_auxiliary_choices_written_by_picker(tmp_path, monkeypatch):
     """Aux choices made inside hermes setup must survive the wizard's final save."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
 
     config = load_config()
@@ -71,7 +71,7 @@ def test_setup_summary_local_browser_unavailable_without_chromium(
     ``get_nous_subscription_features`` so the surface stays aligned with the
     launcher's Chromium selection (``kova_cli.browser_runtime.chromium_executable``).
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
 
     cfg = load_config()

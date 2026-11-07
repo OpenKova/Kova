@@ -1,7 +1,7 @@
 import { LOCAL_CONNECTION_ID, registryBackendScopeKey } from '@kova/shared'
 import { atom, batch, computed } from 'nanostores'
 
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
 import { hostHas } from '@/lib/host-capabilities'
 import { persistStore } from '@/lib/persist-store'
@@ -52,7 +52,7 @@ export function profileLabel(profile: Pick<ProfileInfo, 'display_name' | 'name'>
 }
 
 // The profile the running local backend is actually scoped to (mirrors
-// /api/profiles/active `current`). "default" is the root ~/.hermes. This is the
+// /api/profiles/active `current`). "default" is the root ~/.kova. This is the
 // display source of truth for the statusbar pill; the desktop's *stored*
 // preference (which may be unset) lives in the Electron main process.
 export const $activeProfile = atom<string>('default')
@@ -71,7 +71,7 @@ export const $profilesByConnection = atom<ReadonlyMap<string, ProfileInfo[]>>(ne
 // Registry descriptors carry their connection id (a slug, so it never contains
 // ':'); legacy primaries are keyed by endpoint. Null is a reconnect blip (see
 // setConnection), not a source.
-function profileListSource(connection: HermesConnection | null): null | string {
+function profileListSource(connection: KovaConnection | null): null | string {
   if (!connection) {
     return null
   }
@@ -271,7 +271,7 @@ export async function refreshActiveProfile(): Promise<void> {
   }
 }
 
-// Persist the choice and relaunch the backend under the new HERMES_HOME. The
+// Persist the choice and relaunch the backend under the new KOVA_HOME. The
 // main process reloads the window, so this normally never returns to the caller
 // (the renderer is torn down). We optimistically reflect the selection first so
 // the pill updates instantly if the reload is delayed.
@@ -281,7 +281,7 @@ export async function switchProfile(name: string): Promise<void> {
   }
 
   setActiveProfile(name)
-  await window.hermesDesktop.profile.set(name)
+  await window.kovaDesktop.profile.set(name)
 }
 
 // ── Swap-minimal gateway routing ──────────────────────────────────────────
@@ -582,8 +582,8 @@ const DESCRIPTOR_LOOKUP_TIMEOUT_MS = 20_000
 // and its decline path turned routine registry churn into dead profile
 // clicks (#89622) — reverted in #89785. Do not reintroduce fail-closed
 // switching at this seam.
-async function resolveConnectionForProfile(profile: string): Promise<HermesConnection | null> {
-  const getConnection = window.hermesDesktop?.getConnection
+async function resolveConnectionForProfile(profile: string): Promise<KovaConnection | null> {
+  const getConnection = window.kovaDesktop?.getConnection
 
   if (!getConnection) {
     return null
@@ -685,7 +685,7 @@ export async function ensureGatewayProfile(
     // created a moment ago: bring it up to date before either lookup below, so
     // the descriptor and the shared-primary route both see the new profile on
     // the tab's socket. No-op elsewhere, and for a profile the set already has.
-    await window.hermesDesktop?.refreshServedProfile?.(target).catch(() => undefined)
+    await window.kovaDesktop?.refreshServedProfile?.(target).catch(() => undefined)
 
     // ensureGatewayForProfile opens (or reuses) the target's socket and points
     // the active gateway at it — without closing the profile you came from.
@@ -750,8 +750,8 @@ export async function ensureGatewayProfile(
 // getConnection (the local pool). Same best-effort, fail-open contract as
 // resolveConnectionForProfile: a failed lookup resolves null and keeps the
 // previous descriptor.
-async function resolveConnectionForAgent(connectionId: string, profile: string): Promise<HermesConnection | null> {
-  const getConnectionFor = window.hermesDesktop?.getConnectionFor
+async function resolveConnectionForAgent(connectionId: string, profile: string): Promise<KovaConnection | null> {
+  const getConnectionFor = window.kovaDesktop?.getConnectionFor
 
   if (!getConnectionFor) {
     return null
@@ -1009,7 +1009,7 @@ export function selectProfile(name: string): void {
   void Promise.all([activateOnCurrentSource(target), shouldRememberStartupProfile])
     .then(([, shouldRemember]) => {
       if (shouldRemember) {
-        return window.hermesDesktop?.profile?.remember(target)
+        return window.kovaDesktop?.profile?.remember(target)
       }
 
       return undefined
@@ -1043,7 +1043,7 @@ function remembersProfilePick(target: string): Promise<boolean> {
 // Conversely, `ssh`, `remote`, and `cloud` here are per-profile overrides and
 // must never replace the local Desktop startup profile.
 async function isLocalDesktopProfile(target: string): Promise<boolean> {
-  const getConnectionConfig = window.hermesDesktop?.getConnectionConfig
+  const getConnectionConfig = window.kovaDesktop?.getConnectionConfig
 
   if (!getConnectionConfig) {
     return true
@@ -1178,7 +1178,7 @@ function orderedProfileKeys(): string[] {
   return hasDefault ? ['default', ...named] : named
 }
 
-// Switch to the default (root ~/.hermes) profile — bound to ⌘1.
+// Switch to the default (root ~/.kova) profile — bound to ⌘1.
 export function switchToDefaultProfile(): void {
   const def = $profiles.get().find(profile => profile.is_default)
 

@@ -1,7 +1,7 @@
 """Regression tests for #100339: cloned / borrowed single-use Anthropic OAuth
 grants must never fork across profiles.
 
-Real imports, real temp HERMES_HOME root + named profile, real auth.json I/O.
+Real imports, real temp KOVA_HOME root + named profile, real auth.json I/O.
 The Anthropic token endpoint is replaced at the ``urllib.request.urlopen``
 boundary with genuine single-use semantics (a refresh token redeems once;
 a second POST returns ``invalid_grant``).
@@ -22,7 +22,7 @@ from kova_cli.auth_oauth_grants import SINGLE_USE_REFRESH_POOL_PROVIDERS
 
 @pytest.fixture
 def fleet(tmp_path, monkeypatch):
-    """Root HERMES_HOME with an expired-but-refreshable Anthropic pool row."""
+    """Root KOVA_HOME with an expired-but-refreshable Anthropic pool row."""
     root = tmp_path / "hermes-root"
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
@@ -31,11 +31,11 @@ def fleet(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "fakehome"))
     for var in ("ANTHROPIC_TOKEN", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     # The pytest seat-belt in the root write-through compares the global path
-    # against $HOME/.hermes/auth.json; our root is elsewhere, so writes go.
+    # against $HOME/.kova/auth.json; our root is elsewhere, so writes go.
     import kova_constants
-    kova_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
+    kova_constants._default_kova_root_memo = None  # type: ignore[attr-defined]
 
     expired = int((time.time() - 3600) * 1000)
     store = {
@@ -94,8 +94,8 @@ def fleet(tmp_path, monkeypatch):
 
     def use(home):
         """Switch the process to *home* (root or a profile dir)."""
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        kova_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        kova_constants._default_kova_root_memo = None  # type: ignore[attr-defined]
         import kova_cli.auth as auth_mod
         auth_mod._global_auth_store_cache = None
         auth_mod._oauth_heal_clean_marks.clear()
@@ -249,7 +249,7 @@ def test_strip_helper_fails_closed_when_root_store_cannot_be_resolved(fleet, mon
     shared = _shared_profile(
         fleet, "shared", link=lambda target, alias: alias.symlink_to(target))
     monkeypatch.setattr(
-        kova_constants, "get_default_hermes_root",
+        kova_constants, "get_default_kova_root",
         lambda: (_ for _ in ()).throw(OSError("root unavailable")))
 
     assert strip_cloned_single_use_oauth_grants(shared) == {
@@ -816,7 +816,7 @@ def _shared_profile(fleet, name, *, link=_link_same_file):
 
 
 def test_heal_skips_profile_auth_json_symlinked_to_the_root_store(fleet):
-    """#101356: `ln -s ~/.hermes/auth.json <profile>/auth.json` shares ONE store.
+    """#101356: `ln -s ~/.kova/auth.json <profile>/auth.json` shares ONE store.
     Both sides of the consolidation read the same file, so every row looks like
     a fork of itself — healing would strip the shared grant through the link."""
     from kova_cli.auth import consume_oauth_heal_notices, heal_forked_single_use_oauth_grants

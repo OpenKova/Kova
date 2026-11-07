@@ -201,7 +201,7 @@ def _core_platforms_except(platform: str, *others: str) -> tuple[str, ...]:
 # platform's default composite carried them. A third-party plugin platform core never knew stays uncovered.
 _YUANBAO_OFF_PLATFORMS = _core_platforms_except("yuanbao", "homeassistant")
 
-_YUANBAO_NOTICE = ("Yuanbao is now a Hermes Labs plugin: built by Nous Research, not supported, and likely not "
+_YUANBAO_NOTICE = ("Yuanbao is now a Kova Labs plugin: built by Nous Research, not supported, and likely not "
                    "maintained going forward. Fixes from the community are welcome.")
 
 
@@ -294,8 +294,8 @@ def singularity_in_use(home: Path, *, process_env: bool = False) -> bool:
         from kova_cli.env_loader import resolve_home_dotenv
         configured = resolve_home_dotenv(home).get("TERMINAL_ENV", "").strip()
     if not configured and process_env:
-        from kova_constants import get_routing_process_hermes_home, hermes_home_key
-        if hermes_home_key(home) == hermes_home_key(get_routing_process_hermes_home()):
+        from kova_constants import get_routing_process_kova_home, kova_home_key
+        if kova_home_key(home) == kova_home_key(get_routing_process_kova_home()):
             configured = os.environ.get("TERMINAL_ENV", "").strip()
     return configured.lower() == "singularity"
 
@@ -314,12 +314,12 @@ def _home_env(home: Path, name: str, *, process_env: bool) -> str:
     else, with *process_env* and for the launch home only, the process environment."""
     from agent.secret_scope import current_secret_scope, current_secret_scope_home
     from kova_cli.env_loader import resolve_home_dotenv
-    from kova_constants import get_routing_process_hermes_home, hermes_home_key
+    from kova_constants import get_routing_process_kova_home, kova_home_key
     value = resolve_home_dotenv(home).get(name, "").strip()
     scope_home = current_secret_scope_home()
-    if not value and scope_home and hermes_home_key(scope_home) == hermes_home_key(home):
+    if not value and scope_home and kova_home_key(scope_home) == kova_home_key(home):
         value = str((current_secret_scope() or {}).get(name) or "").strip()
-    if not value and process_env and hermes_home_key(home) == hermes_home_key(get_routing_process_hermes_home()):
+    if not value and process_env and kova_home_key(home) == kova_home_key(get_routing_process_kova_home()):
         value = os.environ.get(name, "").strip()
     return value
 
@@ -423,10 +423,10 @@ def _delegation_backend_routes(delegation: dict) -> list[dict]:
 
 def providers_selected(home: Path, names: tuple[str, ...], *, process_env: bool = False) -> set[str]:
     """The provider *names* (ids or aliases) *home* routes inference through (:func:`_provider_choices`),
-    or names in its ``HERMES_INFERENCE_PROVIDER`` (dotenv layers; the process env too for the launch home
+    or names in its ``KOVA_INFERENCE_PROVIDER`` (dotenv layers; the process env too for the launch home
     with *process_env*). A credential alone is not a choice: core never routed to a provider for a key, and
     a name that is the user's own custom endpoint (``custom_providers: [{name: github, ...}]``) is not one."""
-    chosen = _provider_choices(home) | {_home_env(home, "HERMES_INFERENCE_PROVIDER", process_env=process_env).lower()}
+    chosen = _provider_choices(home) | {_home_env(home, "KOVA_INFERENCE_PROVIDER", process_env=process_env).lower()}
     chosen &= {name.lower() for name in names}
     return {name for name in chosen if not _names_custom_endpoint(home, name)} if chosen else chosen
 
@@ -457,7 +457,7 @@ def copilot_in_use(home: Path, *, process_env: bool = False) -> bool:
 def copilot_relogin_notice(home: Path, *, process_env: bool = False) -> str:
     """The Copilot API provider is in use in *home* with no token the plugin reads: no
     COPILOT_GITHUB_TOKEN / GH_TOKEN / GITHUB_TOKEN in its dotenv layers (process env too for the launch home
-    with *process_env*) and no Hermes login in its ``auth.json`` (a ``manual`` credential-pool row from
+    with *process_env*) and no Kova login in its ``auth.json`` (a ``manual`` credential-pool row from
     ``hermes auth add copilot``, or ``providers.copilot``). Core also took ``gh auth token`` and the
     GitHub/Copilot CLI's token files, which the plugin does not; read-only, never runs ``gh``."""
     if not providers_selected(home, _COPILOT_API, process_env=process_env):
@@ -508,7 +508,7 @@ class LeftCoreFeature:
     # ``agent.disabled_toolsets`` takes them for platforms on a default composite.
     replaces_toolsets: tuple[str, ...] = ()
     # Core-era toolset names that resolved to the plugin's tools (core's ``hermes-yuanbao`` bundle: the
-    # core tools plus the yb_* tools; ``hermes-gateway``, which included it). ``agent.disabled_toolsets``
+    # core tools plus the yb_* tools; ``kova-gateway``, which included it). ``agent.disabled_toolsets``
     # naming one disabled those tools; neither name reaches them now, so the one-time scope conversion disables
     # the plugin's toolsets there too. Unlike *replaces_toolsets*, nothing else is turned off.
     legacy_toolsets: tuple[str, ...] = ()
@@ -585,16 +585,16 @@ LEFT_CORE: tuple[LeftCoreFeature, ...] = (
     ),
     LeftCoreFeature(
         plugin="langfuse", label="Langfuse", in_use=langfuse_in_use,
-        unchanged="your Langfuse keys and HERMES_LANGFUSE_* settings are unchanged; the plugin is now "
+        unchanged="your Langfuse keys and KOVA_LANGFUSE_* settings are unchanged; the plugin is now "
                   "`langfuse` (was observability/langfuse)",
-        secret_env=("HERMES_LANGFUSE_SECRET_KEY",),
-        private_env=("HERMES_LANGFUSE_PUBLIC_KEY", "HERMES_LANGFUSE_BASE_URL"),
+        secret_env=("KOVA_LANGFUSE_SECRET_KEY",),
+        private_env=("KOVA_LANGFUSE_PUBLIC_KEY", "KOVA_LANGFUSE_BASE_URL"),
         plugin_key="observability/langfuse",
     ),
     LeftCoreFeature(
-        # MCP clients that launch `hermes mcp serve` are configured outside Hermes, so no home shows the
+        # MCP clients that launch `hermes mcp serve` are configured outside Kova, so no home shows the
         # feature in use: nothing installs automatically, and the old spelling prints where it went.
-        plugin="mcp-serve", label="Hermes as an MCP server", in_use=lambda home, **_: False,
+        plugin="mcp-serve", label="Kova as an MCP server", in_use=lambda home, **_: False,
         unchanged="the conversation tools keep their names; MCP clients change their args to [\"mcp-serve\"]",
         command="mcp-serve", old_command="hermes mcp serve",
     ),
@@ -628,9 +628,9 @@ LEFT_CORE: tuple[LeftCoreFeature, ...] = (
                   "names and copilot-acp settings are unchanged",
         private_env=("COPILOT_GITHUB_TOKEN", "COPILOT_API_BASE_URL", "COPILOT_ACP_BASE_URL"),
         providers=_COPILOT_API + _COPILOT_ACP, hosts=("githubcopilot.com", "models.github.ai"),
-        profile_env=("HERMES_COPILOT_ACP_COMMAND", "HERMES_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH",
+        profile_env=("KOVA_COPILOT_ACP_COMMAND", "KOVA_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH",
                      "COPILOT_ACP_BASE_URL"),
-        launch_env=("HERMES_COPILOT_ACP_COMMAND", "HERMES_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"),
+        launch_env=("KOVA_COPILOT_ACP_COMMAND", "KOVA_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"),
         notice=copilot_relogin_notice,
     ),
     LeftCoreFeature(
@@ -644,15 +644,15 @@ LEFT_CORE: tuple[LeftCoreFeature, ...] = (
                      "YUANBAO_ALLOWED_USERS", "YUANBAO_ALLOW_ALL_USERS", "YUANBAO_HOME_CHANNEL",
                      "YUANBAO_HOME_CHANNEL_NAME"),
         toolsets=("yuanbao",), off_platforms=_YUANBAO_OFF_PLATFORMS,
-        legacy_toolsets=("hermes-yuanbao", "hermes-gateway"),
+        legacy_toolsets=("hermes-yuanbao", "kova-gateway"),
         platform="yuanbao", enable_env=("YUANBAO_APP_ID", "YUANBAO_APP_SECRET"), notice=_yuanbao_notice,
     ),
 )
 
 def _install_sentence(feature: LeftCoreFeature) -> str:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     return (f"{feature.label} moved out of core into the '{feature.plugin}' plugin: install it with "
-            f"`{_install_command(feature.plugin, Path(get_hermes_home()))}`")
+            f"`{_install_command(feature.plugin, Path(get_kova_home()))}`")
 
 
 def platform_install_hint(platform: str) -> str:
@@ -683,8 +683,8 @@ def provider_install_hint(name: str) -> str:
     feature = _provider_feature(name)
     if feature is None:
         return ""
-    from kova_constants import get_hermes_home
-    home = Path(get_hermes_home())
+    from kova_constants import get_kova_home
+    home = Path(get_kova_home())
     if not plugin_present(feature.plugin, home):
         return f"{_install_sentence(feature)}."
     command = _install_command(feature.plugin, home)
@@ -736,9 +736,9 @@ def recover_for_provider(name: Optional[str]) -> None:
     (whose start runs the migration) exists, so they would otherwise stop at "unknown provider" on a home no
     ``hermes update`` migrated. Outcomes print in a declared terminal front end (:func:`serve_notices_on_stderr`),
     else wait for the home's next turn someone sees."""
-    from kova_constants import get_hermes_home, hermes_home_key
+    from kova_constants import get_kova_home, kova_home_key
     from providers import get_provider_profile
-    home = Path(get_hermes_home())
+    home = Path(get_kova_home())
     name = str(name or "").strip().lower()
     if name in ("", "auto"):  # the auto rung follows auth.json's active_provider (a core-era choice)
         name = str(_auth_store(home).get("active_provider") or "").strip().lower()
@@ -752,7 +752,7 @@ def recover_for_provider(name: Optional[str]) -> None:
     if say is not None:
         for message in _claim_notices(home):
             say(message)
-    if hermes_home_key(home) in _attempted:  # this process already tried: skip the config/auth/.env reads
+    if kova_home_key(home) in _attempted:  # this process already tried: skip the config/auth/.env reads
         return
     if plugin_present(feature.plugin, home) or get_provider_profile(name) is not None:
         return
@@ -798,8 +798,8 @@ def moved_command_hint(prog: str, value: str, action: str = "") -> str:
     spelling), core's old nested spelling (``hermes mcp serve``), or the plugin's own ``hermes <cli>`` /
     ``hermes <command>`` / ``hermes <old_cli>`` while the plugin is not loaded, the line saying where it
     went and how to get it for the active home, else ``""``."""
-    from kova_constants import get_hermes_home
-    home = Path(get_hermes_home())
+    from kova_constants import get_kova_home
+    home = Path(get_kova_home())
     moved = next((f for f in LEFT_CORE if f.old_command and f.old_command == f"{prog} {value}"), None)
     if moved is not None:
         present = plugin_present(moved.plugin, home)
@@ -853,9 +853,9 @@ def installs_held():
 def defer_startup_notice(message: str) -> None:
     """Hand *message* to the active home's next turn someone sees (:func:`claim_kept_notices`), once.
     For boot-path work that runs before any agent exists."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     logger.warning(message)
-    _queue_notice(Path(get_hermes_home()), message)
+    _queue_notice(Path(get_kova_home()), message)
 
 
 def _notice_file(home: Path) -> Path:
@@ -908,15 +908,15 @@ def _claim_notices(home: Path) -> list[str]:
     for line in dict.fromkeys(lines):
         try:
             messages.append(str(json.loads(line)))
-        except ValueError:  # a line from outside Hermes: skip it only
+        except ValueError:  # a line from outside Kova: skip it only
             continue
     return messages
 
 
 def claim_kept_notices() -> list[str]:
     """Every notice kept for the active home in any process, for a turn someone sees (exactly once)."""
-    from kova_constants import get_hermes_home
-    return _claim_notices(Path(get_hermes_home()))
+    from kova_constants import get_kova_home
+    return _claim_notices(Path(get_kova_home()))
 
 
 def plugin_present(plugin: str, home: Path) -> bool:
@@ -960,7 +960,7 @@ def record_core_use(home: Path, config: dict, version: int) -> bool:
 def _predates_split(home: Path, feature: LeftCoreFeature) -> bool:
     """*home* ran *feature* in core: its config is still below ``left_at`` (this pass ran before the
     config step), that step recorded the feature in use, or config.yaml is missing or unstamped. Every
-    config.yaml Hermes writes carries a stamp, and the first save that stamps one records the rows in use
+    config.yaml Kova writes carries a stamp, and the first save that stamps one records the rows in use
     (``config_version_stamp.note_first_stamp``), so only a home from before the split lacks it; core ran
     the feature there from its .env alone."""
     if not feature.left_at:
@@ -1114,7 +1114,7 @@ def _pending(home: Path, *, say: Callable[[str], None], process_env: bool = Fals
         if catalog_source(feature.plugin) is None:
             _note_failure(home, feature.plugin)
             say(_noticed(f"  ⚠ {feature.label} moved out of core into the '{feature.plugin}' plugin, which this "
-                         f"Hermes cannot find in the plugin catalog yet. Run "
+                         f"Kova cannot find in the plugin catalog yet. Run "
                          f"`{_install_command(feature.plugin, home)}` once it is listed.", home, feature, process_env))
             continue
         out.append(feature)
@@ -1143,14 +1143,14 @@ def _noticed(message: str, home: Path, feature: LeftCoreFeature, process_env: bo
 def _install_into(home: Path, *, consent: Optional[bool] = None) -> Callable[[str], dict]:
     def _install(name: str) -> dict:
         from kova_cli.plugins_cmd import dashboard_install_plugin
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
-        token = set_hermes_home_override(home)
+        from kova_constants import reset_kova_home_override, set_kova_home_override
+        token = set_kova_home_override(home)
         try:
             return dashboard_install_plugin("", force=False, enable=True, catalog_name=name,
                                             assume_deps_consent=_unattended_consent() if consent is None
                                             else consent)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
     return _install
 
 
@@ -1200,14 +1200,14 @@ def migrate_all_homes(*, say: Callable[[str], None] = print) -> list[str]:
     unattended consent like the memory migration: homes of one group share dependency answers, and a
     failure names the rest of its group in one line instead of failing them one by one."""
     from kova_cli.plugins_cmd_install import shared_dependency_answers
-    from kova_constants import get_routing_process_hermes_home, hermes_home_key
+    from kova_constants import get_routing_process_kova_home, kova_home_key
     from pm.plugins_state import dependency_homes
 
     def labelled(home: Path) -> Callable[[str], None]:
         return lambda message: say(f"  [{_home_label(home)}] {message.lstrip()}")
 
     def launched(home: Path) -> bool:  # this process's env (a shell export) is the launch home's, as at start
-        return hermes_home_key(home) == hermes_home_key(get_routing_process_hermes_home())
+        return kova_home_key(home) == kova_home_key(get_routing_process_kova_home())
 
     pending: dict[tuple[str, bool], tuple[LeftCoreFeature, list[Path]]] = {}
     for home in dependency_homes():
@@ -1268,10 +1268,10 @@ def recover_at_startup(*, say: Optional[Callable[[str], None]] = None, gateway_s
         # A frozen safe/ignore-user-config worker never reads the profile's config.yaml and never
         # installs customizations; the owner process runs this migration for the home.
         return []
-    from kova_constants import get_hermes_home, hermes_home_key
+    from kova_constants import get_kova_home, kova_home_key
 
-    home = Path(get_hermes_home())
-    key = hermes_home_key(home)
+    home = Path(get_kova_home())
+    key = kova_home_key(home)
 
     delivered: set[str] = set()
 
@@ -1307,7 +1307,7 @@ def recover_at_startup(*, say: Optional[Callable[[str], None]] = None, gateway_s
         if not lazy_installs_allowed():
             for feature in features:
                 report(_noticed(f"⚠ {feature.label} moved out of core and its '{feature.plugin}' plugin is not "
-                                f"installed, so it is off. security.allow_lazy_installs is off, so Hermes did not "
+                                f"installed, so it is off. security.allow_lazy_installs is off, so Kova did not "
                                 f"fetch it: run `{_install_command(feature.plugin, home)}`.", home, feature, True))
             return []
         installed = []
@@ -1329,10 +1329,10 @@ def recover_for_command(name: Optional[str]) -> None:
     """``hermes <name>`` names a command a left-core plugin registers, and the active home uses that
     feature but lacks the plugin: run :func:`recover_at_startup` now, before plugin commands are
     discovered, so the command it installs runs in this same invocation. A home nothing migrated yet
-    (a Docker image swap runs no ``hermes update``) whose only Hermes process is a scheduled
+    (a Docker image swap runs no ``hermes update``) whose only Kova process is a scheduled
     ``hermes import-agent --sync`` never starts an agent or a gateway to do it."""
-    from kova_constants import get_hermes_home
-    home = Path(get_hermes_home())
+    from kova_constants import get_kova_home
+    home = Path(get_kova_home())
     if any(name and name in (f.cli, f.command, *f.old_cli) and not plugin_present(f.plugin, home)
            and feature_in_use(f, home) for f in LEFT_CORE):
         recover_at_startup(say=lambda message: print(message, file=sys.stderr))

@@ -1,7 +1,7 @@
 """Provider fallback (``fallback_providers``) through REAL ``hermes -z`` processes.
 
 Two loopback fakes stand in for two vendors: the primary and the fallback. Everything
-between the CLI and those sockets is real Hermes: config loading, credential resolution,
+between the CLI and those sockets is real Kova: config loading, credential resolution,
 the retry ladder, fallback activation and the fallback client.
 
 Proven here:
@@ -182,12 +182,12 @@ def test_primary_credential_resolution_failure_falls_back(tmp_path, portal_kind:
     dead = f"http://127.0.0.1:{_closed_port()}"
     with _portal(portal_kind) as (portal_url, portal_hits), FakeLLMServer(default_text="FROM-FALLBACK") as fallback:
         env = {
-            "HERMES_PORTAL_BASE_URL": portal_url,
+            "KOVA_PORTAL_BASE_URL": portal_url,
             # Nothing may reach a real vendor host; the loopback fakes stay direct.
             "HTTPS_PROXY": dead, "HTTP_PROXY": dead, "NO_PROXY": "127.0.0.1,localhost",
-            "HERMES_NOUS_TIMEOUT_SECONDS": "5",
+            "KOVA_NOUS_TIMEOUT_SECONDS": "5",
         }
-        cfg = {"model": {"provider": "nous", "default": "Hermes-4-70B", "context_length": 128000},
+        cfg = {"model": {"provider": "nous", "default": "Kova-4-70B", "context_length": 128000},
                "fallback_providers": _fallback_entry(fallback)}
         h = Home(tmp_path).write(cfg, {"OPENAI_API_KEY": "sk-fake"}, auth=_expired_nous_auth())
         run = bounded_turn(h, PROMPT, TURN_BUDGET, env=env)

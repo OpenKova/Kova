@@ -606,12 +606,12 @@ class TestVaultHardening:
     def test_read_block_vault_dir_and_contents(self, tmp_path, monkeypatch):
         import agent.file_safety as fs
 
-        home = tmp_path / "hermes_home"
+        home = tmp_path / "kova_home"
         vault = home / "vault"
         vault.mkdir(parents=True)
         (vault / "vault.key").write_text("k", encoding="utf-8")
         (vault / "vault.json.enc").write_text("blob", encoding="utf-8")
-        monkeypatch.setattr(fs, "_hermes_home_path", lambda: home)
+        monkeypatch.setattr(fs, "_kova_home_path", lambda: home)
 
         for target in (vault, vault / "vault.key", vault / "vault.json.enc"):
             err = fs.get_read_block_error(str(target))
@@ -620,12 +620,12 @@ class TestVaultHardening:
     def test_read_block_leaves_sibling_dirs_alone(self, tmp_path, monkeypatch):
         import agent.file_safety as fs
 
-        home = tmp_path / "hermes_home"
+        home = tmp_path / "kova_home"
         other = home / "vaults-notes"
         other.mkdir(parents=True)
         f = other / "notes.txt"
         f.write_text("hi", encoding="utf-8")
-        monkeypatch.setattr(fs, "_hermes_home_path", lambda: home)
+        monkeypatch.setattr(fs, "_kova_home_path", lambda: home)
         assert fs.get_read_block_error(str(f)) is None
 
     def test_backup_secret_names_include_vault_files(self):

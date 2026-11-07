@@ -34,7 +34,7 @@ def state_db(monkeypatch, tmp_path):
     db_path = tmp_path / "state.db"
     # cmd_sessions opens the ACTIVE home's store by explicit path (a served-profile process has
     # no single default store), so the home is the seam, not kova_state's default resolver.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     seed = SessionDB(db_path=db_path)
     seed.create_session("seed", "cli")
     seed.append_message("seed", "user", "hello")

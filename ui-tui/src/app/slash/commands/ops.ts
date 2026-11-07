@@ -167,7 +167,7 @@ export const opsCommands: SlashCommand[] = [
   },
 
   {
-    help: 're-read ~/.hermes/.env into the running gateway (CLI parity)',
+    help: 're-read ~/.kova/.env into the running gateway (CLI parity)',
     name: 'reload',
     run: (_arg, ctx) => {
       // The shared gateway serves `/reload` for one session this client controls.

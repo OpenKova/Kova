@@ -308,7 +308,7 @@ class LocalSessionPolicy:
     @property
     def yolo(self):
         """`hermes chat --yolo`: this session's dangerous-command approvals are bypassed, exactly the
-        scope `/yolo` gives a messaging chat; never the process-wide HERMES_YOLO_MODE."""
+        scope `/yolo` gives a messaging chat; never the process-wide KOVA_YOLO_MODE."""
         return json.loads(self.request_json).get('yolo', False)
 
     @property
@@ -421,7 +421,7 @@ def build_policy(params, config, *, private_secrets=None, profile_terminal=True,
                  client_local=False):
     from agent.runtime_cwd import resolve_agent_cwd
     from tools.terminal_scope import build_profile_terminal_scope, default_terminal_scope
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     source = params.get('source', 'cli')
     if source == 'a2a':
@@ -448,7 +448,7 @@ def build_policy(params, config, *, private_secrets=None, profile_terminal=True,
     if 'row_cwd' in params and (not isinstance(row_cwd, str) or (row_cwd and not Path(row_cwd).is_absolute())):
         _refuse('row_cwd', 'must be an absolute path when set')
     if params.get('cwd_explicit') is False and 'cwd' in params:
-        cwd = _profile_workspace_cwd(get_hermes_home()) or cwd
+        cwd = _profile_workspace_cwd(get_kova_home()) or cwd
     from gateway.session_local_editor import validate_editor
     validate_editor(source, params.get('editor'))
     if 'client' in params:  # a self-declared label kept in the request as sent; no decision below reads it
@@ -470,7 +470,7 @@ def build_policy(params, config, *, private_secrets=None, profile_terminal=True,
     named = workspace_posture and source != 'tool' and 'cwd' in params and 'toolsets' not in params
     coding_posture = named and _in_coding_workspace(config, source, cwd)
     enabled = _resolve_toolsets(params, config, source, safe_mode, coding_posture, bypass=ignore_user_config)
-    terminal = build_profile_terminal_scope(get_hermes_home()) if profile_terminal else default_terminal_scope()
+    terminal = build_profile_terminal_scope(get_kova_home()) if profile_terminal else default_terminal_scope()
     # The client's launch folder is a path on THIS host: a remote or container backend keeps its own
     # configured cwd unless the user picked this folder for the session.
     if params.get('cwd_explicit') is True or terminal_uses_host_cwd(terminal):
@@ -773,7 +773,7 @@ def render_launch_skills(params, session_id):
 
 
 def accept_launch_hooks(policy):
-    """`--accept-hooks` / `HERMES_ACCEPT_HOOKS=1` on a launch: consent to the profile's configured
+    """`--accept-hooks` / `KOVA_ACCEPT_HOOKS=1` on a launch: consent to the profile's configured
     shell hooks in the per-user allowlist (no prompt; kept in memory if that write fails), which
     the open's ``refresh_profile_hooks`` then registers. A bypass launch has no profile hooks to
     consent to, so the flag is a no-op there rather than a refusal. Allowlist I/O: off the loop."""

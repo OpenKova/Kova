@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Optional
 
-META_PREFIX = "\0HERMES_TERMINAL_META:"
+META_PREFIX = "\0KOVA_TERMINAL_META:"
 
 
 def request_allowed() -> bool:
@@ -41,8 +41,8 @@ def shell_spec() -> tuple[list[str], str]:
 
     POSIX honours ``$SHELL``, then /bin/zsh, /bin/bash, /bin/sh. Windows ignores ``$SHELL``
     (usually a stray MSYS/Git path) and takes PowerShell 7, Windows PowerShell, ``COMSPEC``,
-    then cmd.exe. Electron's ``HERMES_DESKTOP_SHELL`` override is not read here: settings do
-    not ride on ``HERMES_*`` environment variables.
+    then cmd.exe. Electron's ``KOVA_DESKTOP_SHELL`` override is not read here: settings do
+    not ride on ``KOVA_*`` environment variables.
     """
     if os.name == "nt":
         system_root = os.environ.get("SystemRoot") or os.environ.get("windir") or r"C:\Windows"
@@ -105,7 +105,7 @@ def resolve_argv(
     from kova_cli import __version__
     from kova_cli.config import TERMINAL_CONFIG_ENV_MAP
     from kova_constants import (
-        get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override,
+        get_process_kova_home, reset_kova_home_override, set_kova_home_override,
     )
     from kova_platform.host.facts import os_family
     from tools.environments.local import build_subprocess_env, served_profile_child_env
@@ -114,7 +114,7 @@ def resolve_argv(
         activate_multi_profile_hosting, launch_profile_runtime_scope,
     )
 
-    if home.resolve() != get_process_hermes_home().resolve():
+    if home.resolve() != get_process_kova_home().resolve():
         activate_multi_profile_hosting()
         scope = _profile_runtime_scope(home)
     else:
@@ -122,7 +122,7 @@ def resolve_argv(
     # The startup eager-multiplex guard applies even before a secondary's first
     # request. Home alone cannot authorize passthrough reads; both shell paths
     # need the same complete scope, including the frozen launch environment.
-    override_token = set_hermes_home_override(str(home))
+    override_token = set_kova_home_override(str(home))
     try:
         with scope:
             enforce_no_refusal()
@@ -134,7 +134,7 @@ def resolve_argv(
             base_env.update(terminal_scope)
             env = build_subprocess_env(base=base_env, scrub_secrets=True)
     finally:
-        reset_hermes_home_override(override_token)
+        reset_kova_home_override(override_token)
 
     # A dashboard started through `pnpm run` carries the package manager's
     # settings; the user's own shell (and pnpm) must not inherit them. Package
@@ -146,9 +146,9 @@ def resolve_argv(
         env.pop(key, None)
     env["COLORTERM"] = "truecolor"
     env["TERM"] = "xterm-256color"
-    env["TERM_PROGRAM"] = "Hermes"
+    env["TERM_PROGRAM"] = "Kova"
     env["TERM_PROGRAM_VERSION"] = __version__
-    env["HERMES_DESKTOP_TERMINAL"] = "1"
+    env["KOVA_DESKTOP_TERMINAL"] = "1"
     if lc_ctype := terminal_lc_ctype(env, os_family()):
         env["LC_CTYPE"] = lc_ctype
 

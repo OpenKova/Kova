@@ -22,9 +22,9 @@ def test_quick_snapshot_restore_keeps_live_oauth_and_restores_static_auth(
 ):
     from kova_cli.backup import restore_quick_snapshot
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     live = {
         "version": 1,
@@ -72,7 +72,7 @@ def test_quick_snapshot_restore_keeps_live_oauth_and_restores_static_auth(
     )
 
     assert restore_quick_snapshot(
-        "20260928-before-rotation", hermes_home=home
+        "20260928-before-rotation", kova_home=home
     ) is True
 
     restored = json.loads((home / "auth.json").read_text(encoding="utf-8"))
@@ -95,7 +95,7 @@ def test_auth_refusal_is_not_hidden_by_another_restored_file(tmp_path, monkeypat
     home = tmp_path / "home"
     snap_dir = home / "state-snapshots" / snap_id
     snap_dir.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     live_path = home / "auth.json"
     live_path.write_text(json.dumps({"providers": {}, "sentinel": "live"}), encoding="utf-8")
     before = live_path.read_bytes()
@@ -106,7 +106,7 @@ def test_auth_refusal_is_not_hidden_by_another_restored_file(tmp_path, monkeypat
     files = {name: (snap_dir / name).stat().st_size for name in ("auth.json", "config.yaml")}
     (snap_dir / "manifest.json").write_text(json.dumps({"id": snap_id, "files": files}), encoding="utf-8")
 
-    result = restore_quick_snapshot(snap_id, hermes_home=home)
+    result = restore_quick_snapshot(snap_id, kova_home=home)
 
     assert live_path.read_bytes() == before
     assert (home / "config.yaml").read_text(encoding="utf-8") == "model: snapshot\n"
@@ -127,6 +127,6 @@ def test_auth_refusal_is_not_hidden_by_another_restored_file(tmp_path, monkeypat
     (snap_dir / "auth.json").unlink()
     (home / "config.yaml").write_text("model: live\n", encoding="utf-8")
 
-    assert restore_quick_snapshot(snap_id, hermes_home=home) is False
+    assert restore_quick_snapshot(snap_id, kova_home=home) is False
     assert (home / "config.yaml").read_text(encoding="utf-8") == "model: snapshot\n"
     assert live_path.read_bytes() == before

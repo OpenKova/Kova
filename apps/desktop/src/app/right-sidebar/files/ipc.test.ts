@@ -4,16 +4,16 @@ import { Buffer } from 'node:buffer'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesReadDirEntry, HermesReadDirResult } from '@/global'
+import type { KovaReadDirEntry, KovaReadDirResult } from '@/global'
 
 import { clearProjectDirCache, readProjectDir } from './ipc'
 import { $showIgnoredRoots, setShowIgnoredFiles } from './prefs'
 
-const readDir = vi.fn<(path: string) => Promise<HermesReadDirResult>>()
+const readDir = vi.fn<(path: string) => Promise<KovaReadDirResult>>()
 const readFileDataUrl = vi.fn<(path: string) => Promise<string>>()
 const gitRoot = vi.fn<(path: string) => Promise<string | null>>()
 
-function ok(entries: HermesReadDirEntry[]): HermesReadDirResult {
+function ok(entries: KovaReadDirEntry[]): KovaReadDirResult {
   return { entries }
 }
 
@@ -30,7 +30,7 @@ function installBridge() {
         readFileDataUrl: typeof readFileDataUrl
       }
     }
-  ).hermesDesktop = { gitRoot, readDir, readFileDataUrl }
+  ).kovaDesktop = { gitRoot, readDir, readFileDataUrl }
 }
 
 describe('readProjectDir', () => {
@@ -45,11 +45,11 @@ describe('readProjectDir', () => {
   afterEach(() => {
     clearProjectDirCache()
     $showIgnoredRoots.set([])
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
   })
 
   it('returns no-bridge when the desktop bridge is unavailable', async () => {
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 
     await expect(readProjectDir('/repo')).resolves.toEqual({ entries: [], error: 'no-bridge' })
   })

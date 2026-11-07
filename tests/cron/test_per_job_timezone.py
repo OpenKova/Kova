@@ -34,8 +34,8 @@ DAILY_9AM = "0 9 * * *"
 
 @pytest.fixture
 def la_profile(monkeypatch):
-    """Configure the profile zone the way production does: ``HERMES_TIMEZONE`` + cache reset."""
-    monkeypatch.setenv("HERMES_TIMEZONE", "America/Los_Angeles")
+    """Configure the profile zone the way production does: ``KOVA_TIMEZONE`` + cache reset."""
+    monkeypatch.setenv("KOVA_TIMEZONE", "America/Los_Angeles")
     kova_time.reset_cache()
     yield LA
     kova_time.reset_cache()
@@ -44,7 +44,7 @@ def la_profile(monkeypatch):
 @pytest.fixture
 def cron_store(tmp_path, monkeypatch):
     """Isolated store + a frozen clock the test moves explicitly."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     class Clock:
         instant = datetime(2026, 10, 22, 12, 0, tzinfo=NY)
@@ -235,7 +235,7 @@ class TestGraceMinutesOverride:
     def test_zero_grace_skips_outright_when_catch_up_is_disabled(
         self, la_profile, cron_store, tmp_path,
     ):
-        """``0`` = never catch up. Hermes still runs a beyond-window miss once by default
+        """``0`` = never catch up. Kova still runs a beyond-window miss once by default
         (``cron.catch_up_missed``); with catch-up disabled the zero window is what makes the
         skip, while a job with a wide override still fires."""
         (tmp_path / "config.yaml").write_text(

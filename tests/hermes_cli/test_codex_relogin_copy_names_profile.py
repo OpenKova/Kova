@@ -3,7 +3,7 @@
 Profiles are islands (93889b770da): a bare ``hermes auth`` / ``hermes model`` from a named
 profile's error text re-signs the ROOT store, which is exactly the loop #114012 measured.
 Every relogin hint raised by ``kova_cli/auth_codex.py`` and appended by
-``format_auth_error`` must carry the ``-p <profile>`` selector under a profile HERMES_HOME.
+``format_auth_error`` must carry the ``-p <profile>`` selector under a profile KOVA_HOME.
 """
 
 from __future__ import annotations
@@ -18,10 +18,10 @@ from kova_cli.auth_codex import _codex_refresh_failure_error
 
 @pytest.fixture
 def codex_profile_home(tmp_path, monkeypatch):
-    profile_home = tmp_path / ".hermes" / "profiles" / "codex"
+    profile_home = tmp_path / ".kova" / "profiles" / "codex"
     profile_home.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("KOVA_HOME", str(profile_home))
     return profile_home
 
 

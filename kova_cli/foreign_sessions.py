@@ -231,7 +231,7 @@ def _list_sessions(source: str, root: Optional[Path]) -> list[ForeignSession]:
 
 def import_foreign_session(source: str, path) -> str:
     """Import one foreign session through the gateway's ``session.mutate import`` (the gateway is the
-    only state.db writer, #106742); returns the new Hermes session id. The row lands as an ordinary
+    only state.db writer, #106742); returns the new Kova session id. The row lands as an ordinary
     ``cli`` session bound to this importer, so ``hermes --resume`` continues it writable.
 
     Raises ``ValueError`` on unknown source or a session with no usable conversation turns, and

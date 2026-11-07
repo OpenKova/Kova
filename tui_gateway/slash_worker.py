@@ -1,9 +1,9 @@
-"""Persistent slash-command worker — one HermesCLI per TUI session.
+"""Persistent slash-command worker — one KovaCLI per TUI session.
 
 Protocol: reads JSON lines from stdin {id, command}, writes {id, ok, output|error} to stdout.
 """
 
-# Stop a ``utils/`` (or ``proxy/``, ``ui/``) package in the launch directory from shadowing Hermes's own
+# Stop a ``utils/`` (or ``proxy/``, ``ui/``) package in the launch directory from shadowing Kova's own
 # top-level modules: this worker is spawned as ``-m tui_gateway.slash_worker`` with the user's CWD, so
 # ``import cli`` would otherwise resolve ``utils`` to a colliding local package and crash the child in a
 # retry loop. ``kova_bootstrap`` lives at the repo root (no collision risk), so importing it first is safe.
@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING
 from tui_gateway._stdin_recovery import handle_spurious_eof
 
 if TYPE_CHECKING:
-    from cli import HermesCLI
+    from cli import KovaCLI
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def _start_legacy_parent_watchdog(parent_pid: int, *, poll_s: float = 2.0, grace
 
 
 def _prepare_slash_worker_runtime() -> None:
-    """Start bounded MCP discovery before HermesCLI snapshots tools: each slash_worker child is its
+    """Start bounded MCP discovery before KovaCLI snapshots tools: each slash_worker child is its
     own process — the parent ``hermes serve`` discovery thread does not populate this registry.
 
     See #61891.
@@ -107,7 +107,7 @@ def _refuse_skill_slash(command: str) -> None:
         raise SkillSlashRefused(base)
 
 
-def _run(cli: "HermesCLI", command: str) -> str:
+def _run(cli: "KovaCLI", command: str) -> str:
     """Run one command; return its captured, ANSI-stripped output.
 
     A command like /prompt or /blueprint parks the composed text on the one-shot
@@ -161,20 +161,20 @@ def main():
     # Passed only by a gateway started before the owned-child update (see the legacy watchdog).
     p.add_argument("--parent-pid", type=int, default=0, help=argparse.SUPPRESS)
     args = p.parse_args()
-    os.environ["HERMES_SESSION_KEY"] = args.session_key
-    os.environ["HERMES_INTERACTIVE"] = "1"
+    os.environ["KOVA_SESSION_KEY"] = args.session_key
+    os.environ["KOVA_INTERACTIVE"] = "1"
     # Before the heavy cli import, so a legacy parent dying during startup is still noticed.
     _start_legacy_parent_watchdog(args.parent_pid)
-    # Import cli ahead of MCP discovery: importing it loads ~/.hermes/.env and sets HERMES_QUIET,
+    # Import cli ahead of MCP discovery: importing it loads ~/.kova/.env and sets KOVA_QUIET,
     # which MCP ``${VAR}`` interpolation in the runtime prep depends on.
-    from cli import HermesCLI
+    from cli import KovaCLI
     _prepare_slash_worker_runtime()
 
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         # --provider pins the CLI to the parent agent's resolved provider (a MoA session's virtual
-        # "moa" provider included). Without it HermesCLI re-resolves from config and dispatches the
+        # "moa" provider included). Without it KovaCLI re-resolves from config and dispatches the
         # MoA preset NAME to the configured real provider (#57283).
-        cli = HermesCLI(model=args.model or None, provider=args.provider or None,
+        cli = KovaCLI(model=args.model or None, provider=args.provider or None,
                         compact=True, resume=args.session_key, verbose=False)
     cli._slash_metrics_surface = None  # the TUI/Desktop client already counted the typed command
     cli.is_slash_worker = True

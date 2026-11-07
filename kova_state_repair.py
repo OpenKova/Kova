@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_startup_watchdog import report_startup_progress
 from kova_state_errors import is_disk_full_error
 from kova_state_holders import read_only_db_uri
@@ -553,8 +553,8 @@ def preflight_db_writability(db_path: Path, *, db_label: str = "state.db", direc
 
     A stray read-only ``state.db`` / ``-wal`` / ``-shm`` (sudo run, restored backup, copied dotfiles) otherwise
     surfaces as an opaque "attempt to write a readonly database" inside ``_init_schema``, and the obvious wrong
-    "fix" (deleting the ``-wal``) loses committed transactions. ``chmod u+rw`` repair only inside the Hermes home
-    tree (Hermes owns those files; ``chmod`` fails on files the user doesn't own, bounding the repair exactly);
+    "fix" (deleting the ``-wal``) loses committed transactions. ``chmod u+rw`` repair only inside the Kova home
+    tree (Kova owns those files; ``chmod`` fails on files the user doesn't own, bounding the repair exactly);
     otherwise fail fast naming the file and command. Never deletes/truncates a WAL sidecar — once writable, the
     normal open checkpoints it. ``:memory:``/``file:`` skipped. Shared with ``kanban_db``.
 
@@ -564,7 +564,7 @@ def preflight_db_writability(db_path: Path, *, db_label: str = "state.db", direc
         return
     home: Optional[Path] = None
     with contextlib.suppress(Exception):  # pragma: no cover - defensive
-        home = Path(get_hermes_home()).resolve()
+        home = Path(get_kova_home()).resolve()
     # SQLite needs a writable directory in every journal mode (WAL/SHM sidecars, or the DELETE-mode journal).
     sidecars = (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm"))
     files = () if directory_only else tuple((p, False) for p in (db_path, *sidecars) if p.is_file())
@@ -583,7 +583,7 @@ def preflight_db_writability(db_path: Path, *, db_label: str = "state.db", direc
         wal_note = (" Do NOT delete the -wal file — it contains committed data that "
                     "will be merged into the database once it is writable." if p.name.endswith("-wal") else "")
         raise sqlite3.OperationalError(
-            f"{db_label} is not writable: {'directory' if is_dir else 'file'} {p} is read-only for this user. Hermes "
+            f"{db_label} is not writable: {'directory' if is_dir else 'file'} {p} is read-only for this user. Kova "
             f"needs read-write access to open the database. Fix with: chmod u+rw{x} '{p}' (files owned by another "
             f"user may need sudo/chown).{wal_note}")
 
@@ -712,7 +712,7 @@ def _schema_not_built(exc: BaseException) -> bool:
     return any(m in str(exc).lower() for m in ("no such table", "no such column"))
 
 
-# Hermes-owned FTS5 objects: the virtual tables and their shadow b-trees. Full-matched, so a
+# Kova-owned FTS5 objects: the virtual tables and their shadow b-trees. Full-matched, so a
 # user-created lookalike (``archive_fts_data``) is not swept into the rebuildable set.
 _FTS_OBJECT_RE = re.compile(
     r"messages_fts(_trigram|_cjk)?(_data|_idx|_content|_docsize|_config|_segdir|_segments)?"

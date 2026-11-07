@@ -8,12 +8,12 @@ import threading
 import pytest
 
 from agent import secret_scope as ss
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @pytest.fixture
 def two_homes(tmp_path, monkeypatch):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     alpha = root / "profiles" / "alpha"
     for home in (root, alpha):
         (home / "sessions").mkdir(parents=True)
@@ -23,7 +23,7 @@ def two_homes(tmp_path, monkeypatch):
     (alpha / "config.yaml").write_text(
         "sessions:\n  search_slow_ms: 50\n", encoding="utf-8")
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     ss.set_multiplex_active(False)
     yield root, alpha
     ss.set_multiplex_active(False)
@@ -33,23 +33,23 @@ def test_served_profile_reads_its_own_sessions_settings(two_homes, monkeypatch):
     _root, alpha = two_homes
     from kova_state_search import _search_slow_ms
     # The multiplexer bridged the LAUNCH (default) profile's sessions.* into env at import.
-    monkeypatch.setenv("HERMES_SEARCH_SLOW_MS", "1000")
+    monkeypatch.setenv("KOVA_SEARCH_SLOW_MS", "1000")
     assert _search_slow_ms() == 1000.0  # unscoped = env bridge
-    token = set_hermes_home_override(str(alpha))
+    token = set_kova_home_override(str(alpha))
     try:
         assert _search_slow_ms() == 50.0
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_per_turn_sessions_bridge_skips_secondary_scope(two_homes, monkeypatch):
     _root, alpha = two_homes
     from gateway import run as gw_run
-    monkeypatch.delenv("HERMES_SEARCH_SLOW_MS", raising=False)
+    monkeypatch.delenv("KOVA_SEARCH_SLOW_MS", raising=False)
     ss.set_multiplex_active(True)
     with gw_run._profile_runtime_scope(alpha):
         gw_run._bridge_max_turns_from_config(alpha)
-    assert "HERMES_SEARCH_SLOW_MS" not in __import__("os").environ, "secondary scope must not write the process env"
+    assert "KOVA_SEARCH_SLOW_MS" not in __import__("os").environ, "secondary scope must not write the process env"
 
 
 def test_resolve_proxy_url_reads_routed_profile_scope(two_homes, monkeypatch):
@@ -90,7 +90,7 @@ def test_mcp_discovery_slot_is_per_profile_home(two_homes, monkeypatch):
     """#67605: alpha building an agent after default must still get ITS discovery run."""
     root, alpha = two_homes
     import kova_cli.mcp_startup as ms
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     for home in (root, alpha):
         (home / "config.yaml").write_text("mcp_servers:\n  demo:\n    command: /bin/true\n", encoding="utf-8")
     monkeypatch.setattr(ms, "_mcp_discovery_started", set())
@@ -98,18 +98,18 @@ def test_mcp_discovery_slot_is_per_profile_home(two_homes, monkeypatch):
     seen, done = [], threading.Event()
 
     def fake_discover(**_kw):
-        seen.append(get_hermes_home().name)
+        seen.append(get_kova_home().name)
         done.set()
 
     monkeypatch.setattr("tools.mcp_tool_discovery.discover_mcp_tools", fake_discover)
     monkeypatch.setattr("tools.mcp_tool_discovery.get_mcp_status", lambda *a, **k: [{"connected": True}])
     for home in (root, alpha):
-        token = set_hermes_home_override(str(home))
+        token = set_kova_home_override(str(home))
         try:
             done.clear()
             ms.start_background_mcp_discovery(logger=logging.getLogger("t"), thread_name=f"mcp-{home.name}")
             assert done.wait(5)
             ms.wait_for_mcp_discovery(timeout=5)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
     assert seen == [root.name, "alpha"]

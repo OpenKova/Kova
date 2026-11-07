@@ -32,14 +32,14 @@ class OwnProv(MemoryProvider):
     def get_tool_schemas(self):
         return []
 
-    def read_config_fields(self, hermes_home):
-        _path, cfg = _read(hermes_home)
+    def read_config_fields(self, kova_home):
+        _path, cfg = _read(kova_home)
         block = (cfg.get("hosts") or {}).get("hermes") or {}
         values = {**{k: v for k, v in cfg.items() if k in _ROOT_KEYS}, **block}
         return {"values": values, "placeholders": {"workspace": "hermes", "aiPeer": "hermes"}}
 
-    def write_config_fields(self, values, hermes_home):
-        path, cfg = _read(hermes_home)  # a file that does not parse raises JSONDecodeError: no write
+    def write_config_fields(self, values, kova_home):
+        path, cfg = _read(kova_home)  # a file that does not parse raises JSONDecodeError: no write
         block = cfg.setdefault("hosts", {}).setdefault("hermes", {})
         for key, value in values.items():
             target = cfg if key in _ROOT_KEYS else block
@@ -76,17 +76,17 @@ _URL = "/api/memory/providers/ownprov/config?surface=declared"
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     try:
         from starlette.testclient import TestClient
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
-    plugin_dir = get_hermes_home() / "plugins" / "ownprov"
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
+    plugin_dir = get_kova_home() / "plugins" / "ownprov"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(_INIT, encoding="utf-8")
     (plugin_dir / "config_schema.py").write_text(_SCHEMA, encoding="utf-8")
@@ -96,8 +96,8 @@ def client(monkeypatch, _isolate_hermes_home):
 
 
 def _config_path():
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "ownprov.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "ownprov.json"
 
 
 def test_put_writes_through_the_provider_with_natives_and_saves_the_secret(client):
@@ -158,8 +158,8 @@ def test_a_refused_write_is_a_400_with_no_secret_saved_and_no_switch(client):
 
 
 def _install(name, init, schema):
-    from kova_constants import get_hermes_home
-    plugin_dir = get_hermes_home() / "plugins" / name
+    from kova_constants import get_kova_home
+    plugin_dir = get_kova_home() / "plugins" / name
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(init, encoding="utf-8")
     (plugin_dir / "config_schema.py").write_text(schema, encoding="utf-8")
@@ -187,7 +187,7 @@ def test_a_provider_that_fails_to_load_is_a_503_not_unknown(client):
 
 
 def test_an_unknown_storage_kind_shows_no_panel_and_writes_no_stray_file(client):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     _install("oddstore", _INIT.replace('name = "ownprov"', 'name = "oddstore"'),
              _SCHEMA.replace('name="ownprov"', 'name="oddstore"').replace("storage=STORAGE_PROVIDER", 'storage="retired_kind"'))
@@ -195,7 +195,7 @@ def test_an_unknown_storage_kind_shows_no_panel_and_writes_no_stray_file(client)
 
     assert client.get(url).json()["fields"] == []
     assert client.put(url, json={"values": {"workspace": "x"}}).status_code == 400
-    assert not (get_hermes_home() / "oddstore").exists()
+    assert not (get_kova_home() / "oddstore").exists()
 
 
 def test_a_schema_that_fails_to_load_logs_its_traceback_once(client, caplog):

@@ -19,7 +19,7 @@ import uuid
 from typing import Any, Callable, Optional
 
 from kova_cli.config import DEFAULT_CONFIG
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 from utils import env_int
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ MAX_INACTIVITY_CLEANUP_FAILURES = 3
 
 _active_sessions: dict[str, dict[str, Any]] = {}
 _session_last_activity: dict[str, float] = {}
-# Owner Hermes home per session: the janitor is one process-global thread, so each teardown re-enters the
+# Owner Kova home per session: the janitor is one process-global thread, so each teardown re-enters the
 # OWNING profile's scope (#86402).
 _session_owner_homes: dict[str, str] = {}
 _cleanup_failures: dict[str, int] = {}  # consecutive janitor failures (#100738)
@@ -75,7 +75,7 @@ def build_browser_env() -> dict:
 # ── Bot Desktop fence ────────────────────────────────────────────────────────────────────────────────
 
 def shares_bot_desktop_browser(session_info: dict[str, Any]) -> bool:
-    """Every LOCAL session is a browser Hermes launched with this profile's Bot Desktop DISPLAY, so it is the
+    """Every LOCAL session is a browser Kova launched with this profile's Bot Desktop DISPLAY, so it is the
     screen a human who took over is typing into. Cloud / user-supplied CDP sessions are another browser. A
     human lease with the screen already gone still fences (computer_use does the same)."""
     if not (session_info.get("features") or {}).get("local"):
@@ -345,7 +345,7 @@ def get_session_info(cache_key: Optional[str] = None) -> dict[str, Any]:
         return reused
 
     force_local = is_local_sidecar_key(key)
-    home_key = hermes_home_key()
+    home_key = kova_home_key()
     for attempt in range(_STALE_ENDPOINT_RETRIES + 1):
         generation = live_cdp_generation(home_key)
         session_info = _create_session_for_key(key, force_local)

@@ -60,8 +60,8 @@ def test_cadence_never_applies_an_unparseable_version(tmp_path, monkeypatch):
     from pm import receipt
 
     home = tmp_path / 'home'
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.setenv('HERMES_RUNTIME_DIR', str(tmp_path / 'tools'))
+    monkeypatch.setenv('KOVA_HOME', str(home))
+    monkeypatch.setenv('KOVA_RUNTIME_DIR', str(tmp_path / 'tools'))
     plugins = home / 'plugins'
     plugin, metadata, feed_url = _installed_feed_plugin(plugins)
     (plugin / 'plugin.yaml').write_text(

@@ -41,10 +41,10 @@ BOB = "+15550000002"
 
 
 def _reserve_homes(tmp_path, monkeypatch, names=("guest",)):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     root.mkdir(mode=0o700)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     import kova_state
     monkeypatch.setattr(
         kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)

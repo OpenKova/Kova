@@ -61,7 +61,7 @@ def test_a_pre_runtime_target_is_refused_before_the_move_with_the_snapshot_that_
     from kova_cli import update_cmd
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("kova_cli.backup._sibling_profile_homes", lambda h: [])
     monkeypatch.setattr(update_cmd._commit, "preflight_refusal", lambda *a, **k: None)
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
@@ -108,7 +108,7 @@ def test_check_holds_a_release_that_update_would_refuse(repo, tmp_path, monkeypa
     from kova_cli import source_releases, update_cmd_check
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("kova_cli.backup._sibling_profile_homes", lambda h: [])
     release = _git(repo, "rev-parse", "old-release")
     if divergent:
@@ -119,7 +119,7 @@ def test_check_holds_a_release_that_update_would_refuse(repo, tmp_path, monkeypa
         release = _git(repo, "rev-parse", "HEAD")
         _git(repo, "checkout", "-q", "main")
     target = SimpleNamespace(commit=release, retired=False, ahead=False, label="v1.2.3", branch=None,
-                             repository="NousResearch/hermes-agent")
+                             repository="NousResearch/kova-agent")
     monkeypatch.setattr(source_releases, "resolve_source_target", lambda *a, **k: target)
 
     update_cmd_check.channel_compare_branch("stable", ["git"], repo)

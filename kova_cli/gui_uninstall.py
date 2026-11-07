@@ -1,4 +1,4 @@
-"""Hermes Desktop (Chat GUI) uninstaller: removes only GUI state — built Electron artifacts, the packaged
+"""Kova Desktop (Chat GUI) uninstaller: removes only GUI state — built Electron artifacts, the packaged
 app, and the desktop's own ``userData`` — never agent source, venv, config, sessions or .env."""
 
 import os
@@ -6,7 +6,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 from kova_cli.colors import Colors, color
 
@@ -25,46 +25,46 @@ def _env_dir(var: str, fallback: Path) -> Path:
 
 
 def desktop_userdata_dir() -> Path:
-    """Electron ``app.getPath('userData')`` for an app named "Hermes" on each platform (GUI-only state)."""
+    """Electron ``app.getPath('userData')`` for an app named "Kova" on each platform (GUI-only state)."""
     home = Path.home()
     if sys.platform == "darwin":
-        return home / "Library" / "Application Support" / "Hermes"
+        return home / "Library" / "Application Support" / "Kova"
     if sys.platform == "win32":
-        return _env_dir("APPDATA", home / "AppData" / "Roaming") / "Hermes"
-    return _env_dir("XDG_CONFIG_HOME", home / ".config") / "Hermes"
+        return _env_dir("APPDATA", home / "AppData" / "Roaming") / "Kova"
+    return _env_dir("XDG_CONFIG_HOME", home / ".config") / "Kova"
 
 
-def source_built_gui_artifacts(hermes_home: Path) -> list[Path]:
-    """GUI build artifacts produced by ``hermes desktop`` inside the checkout (same ``hermes-agent/`` layout
+def source_built_gui_artifacts(kova_home: Path) -> list[Path]:
+    """GUI build artifacts produced by ``hermes desktop`` inside the checkout (same ``kova-agent/`` layout
     install.sh uses). The workspace-root node_modules is shared with the TUI, dashboard and other
     workspaces, so only the desktop workspace's own dependencies belong to GUI removal."""
-    agent_root = hermes_home / "hermes-agent"
+    agent_root = kova_home / "kova-agent"
     desktop_dir = agent_root / "apps" / "desktop"
     return [desktop_dir / "dist", desktop_dir / "release", desktop_dir / "node_modules",
-            hermes_home / "desktop-build-stamp.json"]
+            kova_home / "desktop-build-stamp.json"]
 
 
 def desktop_install_record() -> Path:
-    """Where ``hermes update`` records the installed ``Hermes.app`` copies it keeps current. The apps
+    """Where ``hermes update`` records the installed ``Kova.app`` copies it keeps current. The apps
     are machine-wide, so the record sits under the default root whichever profile runs; deleting it
     is what stops an uninstalled app from being put back by the next update."""
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root() / "desktop-installed-apps.json"
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root() / "desktop-installed-apps.json"
 
 
 def packaged_gui_app_paths() -> list[Path]:
     """Standard install locations of the packaged desktop distributable for the current OS. Every candidate
     is returned; the caller filters to those that exist. Never globs system-wide — only the well-known
-    electron-builder output locations for the "Hermes" product."""
+    electron-builder output locations for the "Kova" product."""
     home = Path.home()
     if sys.platform == "darwin":
-        return [Path("/Applications/Hermes.app"), home / "Applications" / "Hermes.app"]
+        return [Path("/Applications/Kova.app"), home / "Applications" / "Kova.app"]
     if sys.platform == "win32":
         local_base = _env_dir("LOCALAPPDATA", home / "AppData" / "Local")
         # NSIS per-user install (perMachine=false), an older/alternate layout, NSIS per-machine (needs admin).
         program_files = os.environ.get("ProgramFiles")
-        return [local_base / "Programs" / "Hermes", local_base / "hermes-desktop"] + (
-            [Path(program_files) / "Hermes"] if program_files else [])
+        return [local_base / "Programs" / "Kova", local_base / "hermes-desktop"] + (
+            [Path(program_files) / "Kova"] if program_files else [])
     # Linux: an AppImage lives wherever the user put it and deb/rpm files belong to the package manager
     # (see the hint in ``uninstall_gui``), so only the desktop entry + hicolor icons are cleaned here.
     from kova_cli.linux_desktop_entry import LEGACY_DESKTOP_ENTRY_NAME, desktop_entry_path
@@ -74,38 +74,38 @@ def packaged_gui_app_paths() -> list[Path]:
     # The legacy entry is a hidden alias of the app-id entry since #124492 — remove it with the real one.
     return [desktop_entry_path(),
             data_base / "applications" / LEGACY_DESKTOP_ENTRY_NAME,
-            data_base / "applications" / "Hermes.desktop"] + [
+            data_base / "applications" / "Kova.desktop"] + [
         icons / size / "apps" / "hermes.png"
         for size in ("scalable", "24x24", "32x32", "48x48", "256x256", "512x512", "1024x1024")]
 
 
-def agent_is_installed(hermes_home: Path) -> bool:
-    """True when a usable Python agent install exists under HERMES_HOME (gates the desktop UI's options).
+def agent_is_installed(kova_home: Path) -> bool:
+    """True when a usable Python agent install exists under KOVA_HOME (gates the desktop UI's options).
     Package source or a venv alone is enough — a source checkout without a venv is still "the agent is here"."""
-    return any((hermes_home / "hermes-agent" / sub).is_dir() for sub in ("kova_cli", "venv", ".venv"))
+    return any((kova_home / "kova-agent" / sub).is_dir() for sub in ("kova_cli", "venv", ".venv"))
 
 
-def gui_is_installed(hermes_home: Path) -> bool:
+def gui_is_installed(kova_home: Path) -> bool:
     """Return True when any desktop GUI artifact or install record exists."""
     return any(p.exists() for p in (
-        *source_built_gui_artifacts(hermes_home), *packaged_gui_app_paths(),
+        *source_built_gui_artifacts(kova_home), *packaged_gui_app_paths(),
         desktop_userdata_dir(), desktop_install_record(),
     ))
 
 
-def gui_install_summary(hermes_home: Path | None = None) -> dict:
+def gui_install_summary(kova_home: Path | None = None) -> dict:
     """JSON-serializable snapshot of what's installed, for the desktop UI to render via IPC."""
-    home: Path = hermes_home if hermes_home is not None else get_hermes_home()
+    home: Path = kova_home if kova_home is not None else get_kova_home()
     userdata = desktop_userdata_dir()
     # Steward facts, so the UI can gate its destructive options on the same
     # ladder the CLI uninstaller uses: only a git checkout may have its code
     # removed; sealed trees (nix / desktop-app / docker) get data-only.
     from kova_cli import steward as steward_mod
 
-    steward, code_removal_allowed = steward_mod.classify_install(home / "hermes-agent")
+    steward, code_removal_allowed = steward_mod.classify_install(home / "kova-agent")
 
     return {
-        "hermes_home": str(home),
+        "kova_home": str(home),
         "agent_installed": agent_is_installed(home),
         "gui_installed": gui_is_installed(home),
         "source_built_artifacts": [str(p) for p in source_built_gui_artifacts(home) if p.exists()],
@@ -133,9 +133,9 @@ def _remove_path(path: Path) -> bool:
         return False
 
 
-def uninstall_gui(hermes_home: Path | None = None, *, remove_userdata: bool = True) -> list[Path]:
+def uninstall_gui(kova_home: Path | None = None, *, remove_userdata: bool = True) -> list[Path]:
     """Remove the desktop GUI's artifacts, leaving the agent + user data intact."""
-    home: Path = hermes_home if hermes_home is not None else get_hermes_home()
+    home: Path = kova_home if kova_home is not None else get_kova_home()
     removed: list[Path] = []
 
     def _remove_existing(paths) -> bool:
@@ -158,7 +158,7 @@ def uninstall_gui(hermes_home: Path | None = None, *, remove_userdata: bool = Tr
     if not removed:
         log_info("No desktop GUI artifacts found to remove")
     if sys.platform.startswith("linux"):
-        # The desktop entry was removed above but the menu caches still list it; reindex so Hermes
+        # The desktop entry was removed above but the menu caches still list it; reindex so Kova
         # disappears from the launcher.
         try:
             from kova_cli.linux_desktop_entry import desktop_entry_path, refresh_desktop_databases

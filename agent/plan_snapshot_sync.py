@@ -17,7 +17,7 @@ from typing import Any, Optional
 logger = logging.getLogger(__name__)
 
 _lock = threading.Lock()
-# Both keyed by Hermes home: one process can serve several profiles, each with its own account.
+# Both keyed by Kova home: one process can serve several profiles, each with its own account.
 _inflight: set[str] = set()
 # What the headers said the last time a refresh ran, and when. The portal can trail the gateway by a few
 # minutes (usage is ingested in batches), so the same mismatch is refreshed once per retry interval, not on
@@ -27,8 +27,8 @@ _RETRY_AFTER_S = 120.0
 
 
 def _profile_key() -> str:
-    from kova_constants import hermes_home_key
-    return hermes_home_key()
+    from kova_constants import kova_home_key
+    return kova_home_key()
 
 
 def _snapshot_full_ids(snapshot: Any) -> Optional[frozenset[str]]:
@@ -102,7 +102,7 @@ def sync_plan_snapshot(state: Any) -> bool:
                 return False
             _inflight.add(key)
             _last_attempt[key] = (seen, now)
-        # Under this profile's contextvars (its Hermes home and auth store), as the credits seed thread does.
+        # Under this profile's contextvars (its Kova home and auth store), as the credits seed thread does.
         from agent.memory_provider import spawn_context_thread
         spawn_context_thread(_refresh, args=(plan_changed, key), name="nous-plan-sync").start()
         return True

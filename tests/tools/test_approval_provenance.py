@@ -23,8 +23,8 @@ def _clear():
 @pytest.fixture(autouse=True)
 def _interactive_manual(monkeypatch):
     monkeypatch.setattr(approval_context, "_get_approval_mode", lambda: "manual")
-    monkeypatch.setenv("HERMES_INTERACTIVE", "1")
-    for var in ("HERMES_GATEWAY_SESSION", "HERMES_EXEC_ASK", "HERMES_YOLO_MODE", "HERMES_CRON_SESSION"):
+    monkeypatch.setenv("KOVA_INTERACTIVE", "1")
+    for var in ("KOVA_GATEWAY_SESSION", "KOVA_EXEC_ASK", "KOVA_YOLO_MODE", "KOVA_CRON_SESSION"):
         monkeypatch.delenv(var, raising=False)
     _clear()
     token = set_current_session_key("prov-sess")

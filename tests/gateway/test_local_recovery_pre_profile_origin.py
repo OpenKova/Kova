@@ -16,11 +16,11 @@ def _build_runtime(tmp_path, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authorities import SessionAuthorities
     from gateway import run
-    root = tmp_path / '.hermes'
+    root = tmp_path / '.kova'
     root.mkdir(mode=0o700, exist_ok=True)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('KOVA_HOME', str(root))
     # The autouse isolation fixture pins kova_state.DEFAULT_DB_PATH to its own fake home once
-    # kova_state is imported; per-home stores must follow the scoped HERMES_HOME here.
+    # kova_state is imported; per-home stores must follow the scoped KOVA_HOME here.
     import kova_state
     monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
     secondary = root / 'profiles' / 'secondary'

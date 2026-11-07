@@ -29,7 +29,7 @@ const OLD_IDLE_WINDOW_MS = 60_000 + 2 * 60_000 + 5_000
 
 function dialReviewer(page: Page) {
   return page.evaluate(async () => {
-    const conn = await (window as any).hermesDesktop.getConnectionFor({ connectionId: 'local', profile: 'reviewer' })
+    const conn = await (window as any).kovaDesktop.getConnectionFor({ connectionId: 'local', profile: 'reviewer' })
 
     return { baseUrl: String(conn?.baseUrl ?? ''), mode: String(conn?.mode ?? ''), profile: String(conn?.profile ?? '') }
   })
@@ -44,8 +44,8 @@ test('an idle local profile stays attached to its gateway', async () => {
   test.setTimeout(360_000)
   const provider = await startScriptedProvider()
   const box = createCoreSandbox('no-idle-reap')
-  writeProviderHome(box.hermesHome, provider.url)
-  writeProviderHome(path.join(box.hermesHome, 'profiles', 'reviewer'), provider.url)
+  writeProviderHome(box.kovaHome, provider.url)
+  writeProviderHome(path.join(box.kovaHome, 'profiles', 'reviewer'), provider.url)
 
   const { app, page } = await launchCoreApp(coreAppEnv(box))
 

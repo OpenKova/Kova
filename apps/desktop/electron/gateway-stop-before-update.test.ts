@@ -4,7 +4,7 @@ import { test } from 'vitest'
 
 import { GATEWAY_STOP_TIMEOUT_MS, stopGatewayBeforeUpdate } from './gateway-stop-before-update'
 
-const CLI = 'C:\\Users\\x\\hermes\\hermes-agent\\venv\\Scripts\\hermes.exe'
+const CLI = 'C:\\Users\\x\\hermes\\kova-agent\\venv\\Scripts\\hermes.exe'
 const HOME = 'C:\\Users\\x\\hermes'
 
 function fakeExec(ok: boolean) {

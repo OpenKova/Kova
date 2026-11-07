@@ -1,7 +1,7 @@
 """Informational views and reload flows for the interactive CLI: banner, help, tools, usage,
 insights, MCP/skills reload, bang shell.
 
-Mixin split out of ``cli.py``; bound onto ``HermesCLI`` via the MRO. cli.py-internal symbols are
+Mixin split out of ``cli.py``; bound onto ``KovaCLI`` via the MRO. cli.py-internal symbols are
 imported LAZILY inside each method — the mixin never imports ``cli`` at module load time (cycle).
 """
 
@@ -212,7 +212,7 @@ class CLIInfoMixin:
         # the background and let its output land above the prompt (patch_stdout-safe).
         if isinstance((gateway_inventory or {}).get("tool_availability_warnings"), list):
             self._print_gateway_tool_warnings(gateway_inventory["tool_availability_warnings"])
-        elif not on_gateway and os.environ.get("HERMES_DEFER_AGENT_STARTUP") != "1":
+        elif not on_gateway and os.environ.get("KOVA_DEFER_AGENT_STARTUP") != "1":
             if getattr(self, "_defer_tool_warnings", False):
                 threading.Thread(
                     target=self._show_tool_availability_warnings,
@@ -247,9 +247,9 @@ class CLIInfoMixin:
         from kova_cli.model_switch import is_nous_hermes_non_agentic
         if is_nous_hermes_non_agentic(getattr(self, "model", "") or ""):
             self._console_print()
-            self._console_print(f"[bold yellow]{t('cli.banner.hermes_models_not_agentic')}[/]")
-            self._console_print(f"[dim]   {t('cli.banner.hermes_models_lack_tools')}[/]")
-            self._console_print(f"[dim]   {t('cli.banner.hermes_models_switch_hint')}[/]")
+            self._console_print(f"[bold yellow]{t('cli.banner.kova_models_not_agentic')}[/]")
+            self._console_print(f"[dim]   {t('cli.banner.kova_models_lack_tools')}[/]")
+            self._console_print(f"[dim]   {t('cli.banner.kova_models_switch_hint')}[/]")
 
         # Project-local skills one-liner: trusted → count; untrusted-with-skills → point at
         # `hermes skills trust`. Never raises.
@@ -1030,7 +1030,7 @@ class CLIInfoMixin:
             print(f"  {t('gateway.reload_mcp.failed', error=str(e))}")
 
     def _reload_skills(self) -> None:
-        """Reload skills: rescan ~/.hermes/skills/ and queue a note for the next user turn.
+        """Reload skills: rescan ~/.kova/skills/ and queue a note for the next user turn.
 
         Skills are invoked at runtime (``/skill-name``, ``skills_list``, ``skill_view``), not from
         the system prompt, so this does NOT clear the prompt cache. If anything was added/removed

@@ -15,7 +15,7 @@ import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from '.
 // Omitting it (every pre-existing caller) means `profileScoped(undefined)`
 // falls back to the app-wide `_apiProfile`, so behavior is byte-identical.
 export function getToolsets(profile?: ProfileScope): Promise<ToolsetInfo[]> {
-  return window.hermesDesktop.api<ToolsetInfo[]>({
+  return window.kovaDesktop.api<ToolsetInfo[]>({
     ...capabilityScoped(profile),
     path: '/api/tools/toolsets'
   })
@@ -26,7 +26,7 @@ export function setToolsetEnabled(
   enabled: boolean,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; enabled: boolean }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
+  return window.kovaDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}`,
     method: 'PUT',
@@ -35,7 +35,7 @@ export function setToolsetEnabled(
 }
 
 export function getToolsetConfig(name: string, profile?: ProfileScope): Promise<ToolsetConfig> {
-  return window.hermesDesktop.api<ToolsetConfig>({
+  return window.kovaDesktop.api<ToolsetConfig>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/config`
   })
@@ -48,7 +48,7 @@ export function getToolsetModels(
 ): Promise<ToolsetModelsResponse> {
   const suffix = provider ? `?provider=${encodeURIComponent(provider)}` : ''
 
-  return window.hermesDesktop.api<ToolsetModelsResponse>({
+  return window.kovaDesktop.api<ToolsetModelsResponse>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/models${suffix}`
   })
@@ -60,7 +60,7 @@ export function selectToolsetModel(
   provider?: string,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; model: string }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; model: string }>({
+  return window.kovaDesktop.api<{ ok: boolean; name: string; model: string }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/model`,
     method: 'PUT',
@@ -88,7 +88,7 @@ export function selectToolsetProvider(
   capability?: 'search' | 'extract',
   profile?: ProfileScope
 ): Promise<SelectToolsetProviderResponse> {
-  return window.hermesDesktop.api<SelectToolsetProviderResponse>({
+  return window.kovaDesktop.api<SelectToolsetProviderResponse>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/provider`,
     method: 'PUT',
@@ -101,7 +101,7 @@ export function runToolsetPostSetup(
   key: string,
   profile?: ProfileScope
 ): Promise<ActionResponse & { key: string }> {
-  return window.hermesDesktop.api<ActionResponse & { key: string }>({
+  return window.kovaDesktop.api<ActionResponse & { key: string }>({
     ...capabilityScoped(profile),
     path: `/api/tools/toolsets/${encodeURIComponent(name)}/post-setup`,
     method: 'POST',
@@ -110,7 +110,7 @@ export function runToolsetPostSetup(
 }
 
 export function getTerminalBackends(profile?: ProfileScope): Promise<TerminalBackendsResponse> {
-  return window.hermesDesktop.api<TerminalBackendsResponse>({
+  return window.kovaDesktop.api<TerminalBackendsResponse>({
     ...capabilityScoped(profile),
     path: '/api/tools/terminal/backends'
   })
@@ -120,7 +120,7 @@ export function selectTerminalBackend(
   backend: string,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; backend: string }> {
-  return window.hermesDesktop.api<{ ok: boolean; backend: string }>({
+  return window.kovaDesktop.api<{ ok: boolean; backend: string }>({
     ...capabilityScoped(profile),
     path: '/api/tools/terminal/backend',
     method: 'PUT',

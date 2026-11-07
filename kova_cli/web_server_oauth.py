@@ -41,7 +41,7 @@ def _token_status(source: str, source_label: str, creds: dict[str, Any]) -> dict
 
 
 def _anthropic_oauth_status() -> dict[str, Any]:
-    """Status for the "Anthropic Account" card: Hermes-managed PKCE file first, then the
+    """Status for the "Anthropic Account" card: Kova-managed PKCE file first, then the
     registry-ordered env vars (process env — where Bitwarden-sourced secrets land — then .env).
 
     Claude Code's ``~/.claude/.credentials.json`` is deliberately NOT read here; it has its own
@@ -53,7 +53,7 @@ def _anthropic_oauth_status() -> dict[str, Any]:
     except Exception:
         hermes_creds = None
     if hermes_creds and hermes_creds.get("accessToken"):
-        return _token_status("hermes_pkce", f"Hermes PKCE ({_get_hermes_oauth_file()})", hermes_creds)
+        return _token_status("hermes_pkce", f"Kova PKCE ({_get_hermes_oauth_file()})", hermes_creds)
 
     env_var_order: tuple = ("ANTHROPIC_API_KEY", "ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")
     try:
@@ -135,7 +135,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[dict[str, Any], ...] = (
     # Device code works in remote shells/containers without a reachable 127.0.0.1 callback.
     {"id": "xai-oauth", "name": "xAI Grok OAuth (SuperGrok / Premium+)", "flow": "device_code",
      "cli_command": "hermes auth add xai-oauth",
-     "docs_url": "https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth", "status_fn": None},
+     "docs_url": "https://kova-agent.nousresearch.com/docs/guides/xai-grok-oauth", "status_fn": None},
     # Anthropic / Claude entries sit at the bottom. Deliberately flow == "external": an
     # in-dashboard Connect button would let a scriptable HTTP endpoint mint Claude Pro/Max
     # subscription tokens outside Anthropic's own client, against its OAuth usage policies.

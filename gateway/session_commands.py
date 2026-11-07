@@ -219,7 +219,7 @@ async def _run_runner_command(runner, live, name, arg, kind, shell):
     if handler is None:
         raise RuntimeStoreError('unsupported_command')
     event = MessageEvent(text='/' + name + (' ' + arg if arg else ''), source=live.source)
-    # The session's own entry, so HERMES_SESSION_ID is bound as on its turns: a background job
+    # The session's own entry, so KOVA_SESSION_ID is bound as on its turns: a background job
     # the handler starts records this session as its parent.
     entry = await asyncio.to_thread(runner.session_store.lookup_by_session_key, live.route)
     try:

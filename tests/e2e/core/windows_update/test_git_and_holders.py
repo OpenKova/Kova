@@ -38,13 +38,13 @@ VENV_HOLDERS_EXIT = 3
 
 
 def _venv_pythons(machine: Machine) -> list:
-    return sorted(machine.hermes_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
+    return sorted(machine.kova_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
 
 
 def _spawn_holders(machine: Machine) -> list[int]:
     """What keeps a venv busy on a real box: long-lived processes on its interpreter."""
     pythons = _venv_pythons(machine)
-    assert pythons, f"harness: no venv\\Scripts\\python.exe under {machine.hermes_home / 'installs'}"
+    assert pythons, f"harness: no venv\\Scripts\\python.exe under {machine.kova_home / 'installs'}"
     pids = []
     for exe in pythons:
         proc = subprocess.Popen([str(exe), "-c", "import time; time.sleep(900)"], cwd=machine.profile,
@@ -88,10 +88,10 @@ def journey(tmp_path_factory):
                 machine.advance()
                 j.step("update", machine.update)
                 pids = j.step("holders", lambda: _spawn_holders(machine))
-                j.step("list_live", lambda: machine.hermes("update", "--list-venv-holders", label="list-holders"))
+                j.step("list_live", lambda: machine.kova("update", "--list-venv-holders", label="list-holders"))
                 if j.ok("holders"):
                     j.step("holders_stopped", lambda: _stop_holders(pids))
-                j.step("list_none", lambda: machine.hermes("update", "--list-venv-holders", label="list-none"))
+                j.step("list_none", lambda: machine.kova("update", "--list-venv-holders", label="list-none"))
             yield j
         finally:
             machine.teardown()

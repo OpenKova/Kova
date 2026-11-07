@@ -1,5 +1,5 @@
 """Simple slash-command wrappers plus goal/heartbeat/loop manager hooks for the interactive CLI.
-Mixin on ``HermesCLI``; cli.py symbols are imported lazily inside methods (import cycle)."""
+Mixin on ``KovaCLI``; cli.py symbols are imported lazily inside methods (import cycle)."""
 
 from __future__ import annotations
 
@@ -282,7 +282,7 @@ class CLILoopsMixin:
             self._reload_skills()
 
     def _cmd_plugins(self, cmd_original: str):
-        from kova_constants import display_hermes_home
+        from kova_constants import display_kova_home
         parts = cmd_original.split()[1:]
         if parts and parts[0] in ("update", "auto-update"):
             from kova_cli.plugins_auto_update import plugins_slash_action
@@ -307,7 +307,7 @@ class CLILoopsMixin:
             if not user_entries:
                 print(t("cli.plugins.none_installed"))
                 print(f"  {t('cli.plugins.install_hint')}")
-                print(f"  {t('cli.plugins.drop_dir_hint', path=f'{display_hermes_home()}/plugins/')}")
+                print(f"  {t('cli.plugins.drop_dir_hint', path=f'{display_kova_home()}/plugins/')}")
                 if bundled_count:
                     print(f"  {t('cli.plugins.bundled_available', count=bundled_count)}")
                 return

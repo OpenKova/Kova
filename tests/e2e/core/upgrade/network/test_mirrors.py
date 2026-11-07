@@ -66,7 +66,7 @@ def test_pip_mirror_update_restages_pm_runtime_through_the_mirror(inst):
     before = inst.state()
     edge = inst.edge(sites=[mirror])
     try:
-        r = inst.hermes("update", "--yes", edge=edge, timeout=900)
+        r = inst.kova("update", "--yes", edge=edge, timeout=900)
     finally:
         edge.close()
         pip_conf.unlink()
@@ -98,14 +98,14 @@ def test_npm_registry_mirror_serves_pm_npm_download(inst):
         with S.tool_missing(inst, "npm") as tool:
             edge = inst.edge(sites=[mirror])
             try:
-                r = inst.hermes("pm", "install", "npm", edge=edge, timeout=600)
+                r = inst.kova("pm", "install", "npm", edge=edge, timeout=600)
             finally:
                 edge.close()
             public = _public_index_hits(edge)
             assert not public and r.rc == 0, (
                 f"npm provisioning with a registry mirror failed or reached the public registry {public}\n"
                 + r.report(inst))
-            assert (inst.sb.hermes_home / "tools" / tool["entry"]).is_dir(), "npm was not re-provisioned\n" + r.report(inst)
+            assert (inst.sb.kova_home / "tools" / tool["entry"]).is_dir(), "npm was not re-provisioned\n" + r.report(inst)
             assert any(h.path.endswith(tarball) and h.status == 200 for h in mirror.hits), (
                 "the tarball was not served by the mirror\n" + r.report(inst))
     finally:
@@ -134,14 +134,14 @@ def test_npm_registry_mirror_serves_both_pm_pnpm_downloads(inst):
         with S.tool_missing(inst, "pnpm") as tool:
             edge = inst.edge(sites=[mirror])
             try:
-                r = inst.hermes("pm", "install", "pnpm", edge=edge, timeout=600)
+                r = inst.kova("pm", "install", "pnpm", edge=edge, timeout=600)
             finally:
                 edge.close()
             public = _public_index_hits(edge)
             assert not public and r.rc == 0, (
                 f"pnpm provisioning with a registry mirror failed or reached the public registry {public}\n"
                 + r.report(inst))
-            assert (inst.sb.hermes_home / "tools" / tool["entry"]).is_dir(), "pnpm was not re-provisioned\n" + r.report(inst)
+            assert (inst.sb.kova_home / "tools" / tool["entry"]).is_dir(), "pnpm was not re-provisioned\n" + r.report(inst)
             served = {h.path.split("?", 1)[0] for h in mirror.hits if h.status == 200}
             assert set(routes) <= served, f"the mirror served {served}, not both archives\n" + r.report(inst)
     finally:

@@ -19,8 +19,8 @@ def _clean_headed_cache(monkeypatch, tmp_path):
     from pathlib import Path
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
     bs_cloud.reset_caches()
     yield
     bs_cloud.reset_caches()

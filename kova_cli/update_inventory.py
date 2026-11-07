@@ -1,6 +1,6 @@
 """Runtime inventory + update plan for the fleet-update pipeline.
 
-One read-only pass answering, BEFORE any mutation: which Hermes runtimes run on this machine, how
+One read-only pass answering, BEFORE any mutation: which Kova runtimes run on this machine, how
 each is deployed, which ones this update touches, and how each restarts. Every collector is a
 side-effect-free probe, so ``hermes update --plan`` is safe on a live fleet.
 """
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class RuntimeRecord:
-    """One running (or expected) Hermes runtime on this machine."""
+    """One running (or expected) Kova runtime on this machine."""
 
     kind: str                     # gateway | dashboard | serve
     profile: str
@@ -262,7 +262,7 @@ def _launchd_owner_for_ledger_entry(entry: dict, pid: int, jobs: list) -> tuple[
 def _systemd_owner_for_ledger_pid(pid: int) -> tuple[str, str | None] | None:
     """``(unit, scope)`` of the systemd unit whose live ``MainPID`` is *pid*, if any.
 
-    A unit-launched backend sets neither ``HERMES_SPAWN`` nor ``HERMES_PARENT_PID``, so the spawner
+    A unit-launched backend sets neither ``KOVA_SPAWN`` nor ``KOVA_PARENT_PID``, so the spawner
     probe reads ``manual-serve`` and the update tells the user to "ask the owner to relaunch
     `hermes dashboard`" for a process systemd owns (#141021). Ownership is the unit's MainPID, not
     cgroup membership (a hand-started dashboard inside some unrelated unit's cgroup is still manual);
@@ -364,7 +364,7 @@ def print_update_plan(plan: UpdatePlan) -> None:
         print(f"    Update via: {plan.update_mechanism}")
     print(f"  Profiles: {', '.join(plan.profiles) if plan.profiles else '(none found)'}")
     if not plan.runtimes:
-        print("  Running Hermes services: none detected — code swap only.")
+        print("  Running Kova services: none detected — code swap only.")
         return
     print(f"  Running services to restart ({len(plan.runtimes)}):")
     for runtime in plan.runtimes:
@@ -375,7 +375,7 @@ def print_update_plan(plan: UpdatePlan) -> None:
 
 def _serve_unit_matches_profile(profile: str, unit: object) -> bool:
     """Does *unit* name a ``hermes-serve*``/``hermes-dashboard*`` unit for *profile*? (OWN vocabulary;
-    the gateway's ``hermes-gateway*`` names never cover serve/dashboard runtimes.)
+    the gateway's ``kova-gateway*`` names never cover serve/dashboard runtimes.)
 
     Exact names only — ``work`` must not claim ``hermes-serve-workbench`` — and a scope prefix
     (``user/hermes-serve``) is tolerated because the restart phase records scope-qualified identities in
@@ -389,16 +389,16 @@ def _serve_unit_matches_profile(profile: str, unit: object) -> bool:
 def _gateway_service_matches_profile(profile: str, service: object) -> bool:
     """Match an exact gateway service/label (systemd/launchd/s6 shapes) to a profile.
 
-    Never substring-match: ``foo`` must not claim ``hermes-gateway-foobar.service``.
-    Launchd labels are ``ai.hermes.gateway`` / ``ai.hermes.gateway-<profile>`` — they do
-    not contain the substring ``hermes-gateway``, so a successful macOS kickstart must
-    still credit the planned default gateway. A scope prefix (``user/hermes-gateway``,
-    ``gui/501/ai.hermes.gateway``) is stripped the same way serve units are.
+    Never substring-match: ``foo`` must not claim ``kova-gateway-foobar.service``.
+    Launchd labels are ``ai.kova.gateway`` / ``ai.kova.gateway-<profile>`` — they do
+    not contain the substring ``kova-gateway``, so a successful macOS kickstart must
+    still credit the planned default gateway. A scope prefix (``user/kova-gateway``,
+    ``gui/501/ai.kova.gateway``) is stripped the same way serve units are.
     """
     name = str(service).removesuffix(".service").rsplit("/", 1)[-1]
     if profile == "default":
-        return name in {"hermes-gateway", "ai.hermes.gateway", "gateway", "gateway-default"}
-    return name in {f"hermes-gateway-{profile}", f"ai.hermes.gateway-{profile}", f"gateway-{profile}"}
+        return name in {"kova-gateway", "ai.kova.gateway", "gateway", "gateway-default"}
+    return name in {f"kova-gateway-{profile}", f"ai.kova.gateway-{profile}", f"gateway-{profile}"}
 
 
 def _gateway_named_in(r: RuntimeRecord, names: set) -> bool:
@@ -438,7 +438,7 @@ def match_runtime_outcomes(
     profile it SERVES, while the restart bookkeeping names the SERVICE it runs under, and those two
     disagree whenever a service serves a profile its name does not encode — a root-home launchd
     label running the sticky active profile, a hash-suffixed systemd unit for a custom
-    ``HERMES_HOME``. No name rule can bridge that, so a planned PID that is gone while a gateway
+    ``KOVA_HOME``. No name rule can bridge that, so a planned PID that is gone while a gateway
     answers for the same profile counts as ``restarted``. A missing successor, or the planned PID
     still answering, stays ``unaccounted`` — the tripwire keeps its teeth.
 
@@ -456,7 +456,7 @@ def match_runtime_outcomes(
     record at all while the fleet row still proves its successor runs the new code.
 
     See #91277.
-    They never borrow the gateway's outcome: ``relaunched_profiles`` and ``hermes-gateway*`` name a
+    They never borrow the gateway's outcome: ``relaunched_profiles`` and ``kova-gateway*`` name a
     different process that shares the profile, nothing more. See #100479.
 
     ``external_gateway_pids``: gateway pids the post-restart fleet probe verified as serving a

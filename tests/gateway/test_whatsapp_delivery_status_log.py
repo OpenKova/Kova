@@ -1,4 +1,4 @@
-"""Delivery/read status of messages Hermes sends on WhatsApp is logged to gateway.log, one line per change.
+"""Delivery/read status of messages Kova sends on WhatsApp is logged to gateway.log, one line per change.
 
 Coatue request: Baileys already reports `messages.update` status (and per-recipient group receipts),
 but the bridge only forwarded poll updates, so operators could not see whether a reply was delivered

@@ -45,12 +45,12 @@ def _room_stores(profile: Optional[str]) -> list[Path]:
     """Where a room can live: the hosting profile's session store (rooms its gateway owns), then the
     install's shared room store (rooms the dashboard backend owns)."""
     from gateway.hosted_rooms import default_db_path
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     if profile:
         from kova_cli.profiles import get_profile_dir
         home = get_profile_dir(profile)
     else:
-        home = get_hermes_home()
+        home = get_kova_home()
     return [home / "state.db", default_db_path()]
 
 

@@ -18,13 +18,13 @@ import { useHudHandoff } from './handoff'
 type HudChanged = (state: { open: boolean; sessionId: null | string }) => void
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialKovaDesktop = desktopWindow.kovaDesktop
 let emitHudChanged: HudChanged | null = null
 
 beforeEach(() => {
   requestComposerFocus.mockClear()
   emitHudChanged = null
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     hud: {
       onChanged: (listener: HudChanged) => {
         emitHudChanged = listener
@@ -36,10 +36,10 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialKovaDesktop) {
+    desktopWindow.kovaDesktop = initialKovaDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
   }
 })
 

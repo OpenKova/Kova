@@ -6,7 +6,7 @@ only for a marked tensor larger than 4 GiB, and never on an integrated GPU, wher
 table in full. Qwen3.8 Flash Next's 26.8 GiB per-layer embedding table is one: priced as loaded,
 the IQ4_XS build needs ~87 GiB; read on demand, it holds ~60 GiB. On a DGX Spark (GB10) the table
 took 27.2 GiB of resident memory under ``auto`` and 0.4 GiB under ``--lazy-mode on``, at the same
-decode speed and within 2% of the prefill speed, so Hermes passes ``on`` wherever it prices the
+decode speed and within 2% of the prefill speed, so Kova passes ``on`` wherever it prices the
 table as left on disk. AMD/Intel integrated GPUs keep the engine's default (reading on demand
 halved their prefill, llama.cpp #28160) and pay for the table.
 """
@@ -123,7 +123,7 @@ def test_an_engine_that_loads_the_table_up_front_pays_for_it(tmp_path):
 def test_the_preset_reads_the_table_on_demand_wherever_it_prices_it_that_way(tmp_path, monkeypatch):
     """The price and the flag travel together, so the engine's own per-device default never decides
     whether the table is resident."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     gguf = tmp_path / "flash.gguf"
     _write_gguf(gguf, _arch("qwen4exp"), [("per_layer_token_embd.weight", OVER_4_GIB),
                                           ("blk.0.attn_q.weight", 16 << 20)])

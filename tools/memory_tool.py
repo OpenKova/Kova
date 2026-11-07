@@ -9,7 +9,7 @@ import json
 import logging
 from contextvars import ContextVar
 from pathlib import Path
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from typing import Dict, Any, List, Optional, Tuple
 
 from utils import is_truthy_value
@@ -36,8 +36,8 @@ _memory_surface_flags: ContextVar[Optional[tuple[bool, bool]]] = ContextVar("mem
 
 
 def get_memory_dir() -> Path:
-    """Profile-scoped memories dir, resolved per call (HERMES_HOME may switch after import)."""
-    return get_hermes_home() / "memories"
+    """Profile-scoped memories dir, resolved per call (KOVA_HOME may switch after import)."""
+    return get_kova_home() / "memories"
 
 
 from tools.memory_tool_store import (

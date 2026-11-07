@@ -33,11 +33,11 @@ def _fake_multiplexer(monkeypatch, tmp_path, *, multiplex: bool, pid_file: bool 
     if pid_file:
         (tmp_path / "gateway.pid").write_text(str(os.getpid()))
     (tmp_path / "gateway_state.json").write_text(json.dumps({
-        "pid": os.getpid(), "kind": "hermes-gateway", "gateway_state": "running",
-        "start_time": status._get_process_start_time(os.getpid()), "hermes_home": str(tmp_path),
+        "pid": os.getpid(), "kind": "kova-gateway", "gateway_state": "running",
+        "start_time": status._get_process_start_time(os.getpid()), "kova_home": str(tmp_path),
     }))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profiles" / "beta"))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "profiles" / "beta"))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     monkeypatch.setattr(
         status, "_read_process_cmdline", lambda pid: "python -m kova_cli.main gateway run --replace"
     )

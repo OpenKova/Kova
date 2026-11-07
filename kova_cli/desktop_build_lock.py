@@ -9,11 +9,11 @@ from typing import IO
 
 
 class DesktopBuildLock:
-    """Advisory lock held while pnpm installs and packages Hermes Desktop.
+    """Advisory lock held while pnpm installs and packages Kova Desktop.
 
     ``node_modules`` and ``apps/desktop/release`` are checkout-scoped even
-    when two commands use different Hermes profiles.  The lock therefore
-    lives under the profile-common Hermes root and is keyed by the resolved
+    when two commands use different Kova profiles.  The lock therefore
+    lives under the profile-common Kova root and is keyed by the resolved
     checkout path.  Keeping it out of the checkout preserves ``--skip-build``
     launches from read-only/prebuilt source trees.  The open handle owns the
     lock, so the OS releases it automatically if a builder crashes.
@@ -28,11 +28,11 @@ class DesktopBuildLock:
     """
 
     def __init__(self, project_root: Path) -> None:
-        from kova_constants import get_default_hermes_root
+        from kova_constants import get_default_kova_root
 
         resolved = os.path.normcase(str(project_root.resolve(strict=False)))
         checkout_key = hashlib.sha256(resolved.encode("utf-8")).hexdigest()[:24]
-        self.path = get_default_hermes_root() / "locks" / f"desktop-build-{checkout_key}.lock"
+        self.path = get_default_kova_root() / "locks" / f"desktop-build-{checkout_key}.lock"
         self.project_root = project_root
         self._handle: IO[str] | None = None
         self._checkout = None
@@ -82,7 +82,7 @@ class DesktopBuildLock:
             if not wait:
                 return False
             if not announced:
-                print("→ Waiting for a running Hermes update to release this checkout...")
+                print("→ Waiting for a running Kova update to release this checkout...")
                 announced = True
             time.sleep(1.0)
         self._checkout = lock
@@ -108,7 +108,7 @@ class DesktopBuildLock:
         # Blocking mode queues behind the holder; say so instead of appearing
         # to hang with no output (the update path would rather wait for the
         # in-flight build it depends on than fail the update).
-        print("→ Waiting for another Hermes desktop dependency install or build to finish...")
+        print("→ Waiting for another Kova desktop dependency install or build to finish...")
         print(f"  Lock: {self.path}")
         from gateway.status import _release_file_lock
 

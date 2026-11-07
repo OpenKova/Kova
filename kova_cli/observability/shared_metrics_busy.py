@@ -134,9 +134,9 @@ def note_busy_admitting(event: Any) -> None:
 
 
 def _bind_home(tag: _Arrival) -> None:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    tag.home = str(get_hermes_home())
+    tag.home = str(get_kova_home())
 
 
 def note_busy_admitted(event: Any, admission_id: str, status: str, outcome: Any = None) -> None:
@@ -273,9 +273,9 @@ def observe_running_chats(session_keys: Any) -> None:
                 del _running[key]
             for key in keys - set(_running):
                 if home is None:
-                    from kova_constants import get_hermes_home
+                    from kova_constants import get_kova_home
 
-                    home = _home_key(get_hermes_home())
+                    home = _home_key(get_kova_home())
                 _running[key] = home
             counts: dict[str, int] = {}
             for owner in _running.values():

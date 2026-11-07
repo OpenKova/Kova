@@ -63,10 +63,10 @@ def test_non_retryable_reasons_stop(reason):
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    h = tmp_path / ".hermes"
+    h = tmp_path / ".kova"
     (h / "profiles" / "ops").mkdir(parents=True)
     (h / "profiles" / "ops" / "config.yaml").touch()  # identity marker: bare dirs are not profiles
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("KOVA_HOME", str(h))
     return h
 
 

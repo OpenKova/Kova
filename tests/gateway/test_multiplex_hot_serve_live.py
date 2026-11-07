@@ -79,7 +79,7 @@ def mux(tmp_path, peer):
     boot.mkdir(parents=True, mode=0o700)
     (boot / 'config.yaml').write_text(json.dumps(config))
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(root), PYTHONPATH=str(ROOT),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(root), PYTHONPATH=str(ROOT),
                PYTHONUNBUFFERED='1', OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
     return {'root': root, 'boot': boot, 'env': env, 'config': config, 'log': tmp_path / 'gateway.log'}
 
@@ -146,7 +146,7 @@ async def open_session_for(root, home, desc):
     grant = control(root, 'session-ticket', {'profile_id': str(home.resolve()),
                                              'instance_id': desc['instance_id'], 'purpose': 'interactive'})
     url = desc['api_origin'].replace('http:', 'ws:') + '/api/ws'
-    async with connect(url, subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + grant['ticket']]) as ws:
+    async with connect(url, subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + grant['ticket']]) as ws:
         await ws.send(json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'session.create',
                                   'params': {'request_id': 'hot-served', 'source': 'cli'}}))
         async with asyncio.timeout(20):
@@ -319,7 +319,7 @@ async def chat_for(root, home, desc, *, during_turn=None):
     grant = control(root, 'session-ticket', {'profile_id': str(home.resolve()),
                     'instance_id': desc['instance_id'], 'purpose': 'interactive'})
     url = desc['api_origin'].replace('http:', 'ws:') + '/api/ws'
-    async with connect(url, subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + grant['ticket']]) as ws:
+    async with connect(url, subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + grant['ticket']]) as ws:
         async def until(predicate):
             async with asyncio.timeout(40):
                 while True:
@@ -397,7 +397,7 @@ def test_standalone_secondary_stops_without_stopping_host(mux):
     child = None
     try:
         assert served_homes(desc) == {root.resolve()}
-        standalone = {**mux, 'root': boot, 'env': {**mux['env'], 'HERMES_HOME': str(boot)},
+        standalone = {**mux, 'root': boot, 'env': {**mux['env'], 'KOVA_HOME': str(boot)},
                       'log': mux['log'].with_name('standalone.log')}
         child, _ = start_daemon(standalone)
         stopped = subprocess.run(
@@ -480,7 +480,7 @@ def mint(root, home, desc):
 async def submit_turn(desc, ticket, *, during_turn=None):
     """One session.create + prompt.submit through *ticket*; returns ``(session_id, terminal event)``."""
     url = desc['api_origin'].replace('http:', 'ws:') + '/api/ws'
-    async with connect(url, subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + ticket]) as ws:
+    async with connect(url, subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + ticket]) as ws:
         async def until(predicate):
             async with asyncio.timeout(60):
                 while True:

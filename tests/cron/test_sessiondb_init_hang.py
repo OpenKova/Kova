@@ -18,14 +18,14 @@ from gateway import session_cron
 
 @pytest.fixture
 def owner_run(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     db = MagicMock(db_path=tmp_path / "state.db")
     db.get_compression_tip.return_value = None
     owner = SimpleNamespace(db=db)
     job = {"id": "owner-db", "name": "test", "prompt": "hello"}
     execution_id = "owner-fire"
     token = session_cron._execution.set((owner, "owner-session", job["id"], execution_id))
-    monkeypatch.setattr(scheduler, "_hermes_home", tmp_path)
+    monkeypatch.setattr(scheduler, "_kova_home", tmp_path)
     monkeypatch.setattr(scheduler, "_reload_dotenv_and_publish_delivery_target", lambda *_: None)
     monkeypatch.setattr(scheduler, "_resolve_cron_agent_setup", lambda *_: scheduler._CronAgentSetup(
         model="test", runtime={"provider": "test"}))
@@ -38,7 +38,7 @@ def owner_run(tmp_path, monkeypatch):
 
 
 def test_sessiondb_init_preserves_multiplex_profile_context(owner_run, tmp_path):
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     owner, job, execution_id, agent_cls = owner_run
     profile_home = tmp_path / "profiles" / "jobsearch"
@@ -46,15 +46,15 @@ def test_sessiondb_init_preserves_multiplex_profile_context(owner_run, tmp_path)
     observed = []
 
     def acquire(path):
-        observed.append((path, get_hermes_home()))
+        observed.append((path, get_kova_home()))
         return owner.db
 
-    token = set_hermes_home_override(profile_home)
+    token = set_kova_home_override(profile_home)
     try:
         with patch("kova_state_registry.acquire", side_effect=acquire):
             success, _, response, error = scheduler.run_job(job, execution_id=execution_id)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert (success, response, error) == (True, "ok", None)
     assert observed == [(profile_home / "state.db", profile_home)]
     assert agent_cls.call_args.kwargs["session_db"] is owner.db
@@ -64,9 +64,9 @@ def test_sessiondb_init_preserves_multiplex_profile_context(owner_run, tmp_path)
 def test_run_job_does_not_hang_when_sessiondb_init_wedges(owner_run, tmp_path, monkeypatch, setting):
     owner, job, execution_id, agent_cls = owner_run
     if setting == "env":
-        monkeypatch.setenv("HERMES_CRON_SESSION_DB_TIMEOUT", "0.02")
+        monkeypatch.setenv("KOVA_CRON_SESSION_DB_TIMEOUT", "0.02")
     else:
-        monkeypatch.delenv("HERMES_CRON_SESSION_DB_TIMEOUT", raising=False)
+        monkeypatch.delenv("KOVA_CRON_SESSION_DB_TIMEOUT", raising=False)
         (tmp_path / "config.yaml").write_text("cron:\n  session_db_timeout_seconds: 0.02\n")
     entered, release, closed = threading.Event(), threading.Event(), threading.Event()
     owner.db.close.side_effect = closed.set
@@ -110,7 +110,7 @@ def test_owner_store_failure_never_runs_unpersisted_agent(owner_run, failure):
 
 def test_guard_is_released_and_job_refires_after_sessiondb_hang(owner_run, monkeypatch):
     owner, _job, _, agent_cls = owner_run
-    monkeypatch.setenv("HERMES_CRON_SESSION_DB_TIMEOUT", "0.02")
+    monkeypatch.setenv("KOVA_CRON_SESSION_DB_TIMEOUT", "0.02")
     from cron import jobs
 
     release = threading.Event()

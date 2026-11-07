@@ -107,7 +107,7 @@ def _drive(fake: FakeVertex, tmp_path: Path):
         try:
             tmux("kill-server")
         finally:
-            kill_home_processes(nh.hermes_home, lambda: subprocess.run(
+            kill_home_processes(nh.kova_home, lambda: subprocess.run(
                 [sys.executable, "-m", "kova_cli.main", "gateway", "stop"], cwd=nh.project, env=env,
                 capture_output=True, text=True, timeout=60, check=False))
     return nh

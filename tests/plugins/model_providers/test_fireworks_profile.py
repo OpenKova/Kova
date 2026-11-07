@@ -26,7 +26,7 @@ def fireworks_profile():
 
 class TestFireworksHeaders:
     def test_attribution_matches_canonical_hermes_values(self, fireworks_profile):
-        """Fireworks requests carry the same attribution identity Hermes sends
+        """Fireworks requests carry the same attribution identity Kova sends
         everywhere else.
 
         Asserted against the shared constant rather than the literals so a
@@ -41,7 +41,7 @@ class TestFireworksHeaders:
     def test_user_agent_identifies_hermes(self, fireworks_profile):
         from kova_cli.version_info import get_version_info
         assert fireworks_profile.default_headers["User-Agent"] == (
-            f"HermesAgent/{get_version_info().base_version}"
+            f"KovaAgent/{get_version_info().base_version}"
         )
 
 

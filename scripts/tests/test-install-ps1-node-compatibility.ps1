@@ -19,7 +19,7 @@ function node { throw 'unexpected node command' }
 function npm { throw 'unexpected npm command' }
 
 try {
-    . $installScript -HermesHome $testHome -InstallDir $checkout
+    . $installScript -KovaHome $testHome -InstallDir $checkout
     Assert-True (-not (Test-Path $testRoot)) 'dot-source loads definitions without filesystem writes'
 
     $fakeUv = Join-Path $testRoot 'uv.cmd'

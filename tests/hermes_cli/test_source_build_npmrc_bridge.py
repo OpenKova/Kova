@@ -3,7 +3,7 @@
 pnpm reads an npmrc only for its registry and auth; npm also exported every other key to
 install scripts as ``npm_config_<key>``, which is how node-pre-gyp finds a binary mirror.
 ``source_build_env`` keeps that bridge. It must read the npmrc npm would read (an explicit
-``NPM_CONFIG_USERCONFIG``, else Hermes's own, else ``~/.npmrc``), and decode quoted values as
+``NPM_CONFIG_USERCONFIG``, else Kova's own, else ``~/.npmrc``), and decode quoted values as
 npm does: a quoted ``registry=`` exported with its quotes is a malformed URL that breaks every
 install.
 """
@@ -24,7 +24,7 @@ from pm.package import Runner
 def bridge(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     for name in list(os.environ):
         if name.upper().startswith("NPM_CONFIG_"):
             monkeypatch.delenv(name)
@@ -166,8 +166,8 @@ def test_values_no_child_environment_can_carry_are_skipped(bridge):
     subprocess.run([sys.executable, "-c", ""], env=env, check=True)
 
 
-def test_hermes_home_npmrc_steers_pm_downloads_as_it_steers_builds(bridge, monkeypatch):
-    """The npm keys documented for ``$HERMES_HOME/npmrc`` reach the source build, so PM's own
+def test_kova_home_npmrc_steers_pm_downloads_as_it_steers_builds(bridge, monkeypatch):
+    """The npm keys documented for ``$KOVA_HOME/npmrc`` reach the source build, so PM's own
     npm downloads (pinned artifacts, dist-tags) must resolve against the same file."""
     from pm.artifact_mirror import pinned_source
     from pm.index_config import npm_registry

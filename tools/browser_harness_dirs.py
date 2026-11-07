@@ -97,7 +97,7 @@ def _harness_home(env: dict) -> str:
 
 def fit_default_socket_dir(env: dict) -> None:
     """Outside a served profile the harness binds ``<home>/runtime/bu-<BU_NAME>.sock``. Under a deep
-    HOME (a container's profile home ``$HERMES_HOME/home``, a long account home) that path overflows
+    HOME (a container's profile home ``$KOVA_HOME/home``, a long account home) that path overflows
     sun_path and every call dies with ``AF_UNIX path too long``; such a call's runtime dir moves to a
     private short dir. Judged on the call's own BU_NAME so a socket that already binds keeps its
     path (and its live daemon). A runtime/tmp dir already set (a served profile's, or exported by
@@ -138,7 +138,7 @@ def _claim_short_dir(key: str, budget: Optional[int]) -> Optional[str]:
     getuid = getattr(os, "getuid", lambda: 0)
     digest = hashlib.sha256(f"{getuid()}\0{key}".encode()).hexdigest()[:12]
     # socket_safe_tmpdir() caps the root at 50 bytes for Chrome's longer socket names; ours needs a
-    # root of at most 17-21, which a Hermes scratch TMPDIR exceeds, so the sticky system root follows.
+    # root of at most 17-21, which a Kova scratch TMPDIR exceeds, so the sticky system root follows.
     # A container or macOS has no XDG_RUNTIME_DIR, which is why the shared roots stay as fallbacks.
     xdg = [xdg_dir] if (xdg_dir := private_user_runtime_dir()) else []
     roots = dict.fromkeys(os.path.realpath(r) for r in (*xdg, socket_safe_tmpdir(), "/tmp"))  # no-tmp: ok — AF_UNIX sun_path budget; dir claimed 0700 and ownership-checked

@@ -46,11 +46,11 @@ def endpoints():
 def home(monkeypatch):
     from agent import models_dev
     from gateway import run
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     # gateway.run binds its home at first import; the loader itself is real.
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setattr(run, '_kova_home', home)
     catalog = {'custom': {'id': 'custom', 'models': {
         name: {'id': name, 'name': name, 'tool_call': True, 'cost': {'input': 0, 'output': 0},
                'limit': {'context': 100000, 'output': 4000}} for name in MODELS}}}

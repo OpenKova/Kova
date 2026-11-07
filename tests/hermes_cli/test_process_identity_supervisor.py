@@ -86,15 +86,15 @@ def _terminated_groups(stream: str, *, parent_pgid: int = 777) -> set:
     """Feed ``stream`` to the supervisor, close it, return the groups it SIGTERMed."""
     recorder = (
         'kill() { case $1 in -0) command kill "$@" ;;'
-        ' -TERM) echo "${2#-}" >> "$HERMES_TEST_LOG"; return 1 ;; *) return 1 ;; esac; };'
-        ' . "$HERMES_TEST_SCRIPT"'
+        ' -TERM) echo "${2#-}" >> "$KOVA_TEST_LOG"; return 1 ;; *) return 1 ;; esac; };'
+        ' . "$KOVA_TEST_SCRIPT"'
     )
     log = os.path.join(os.environ.get("TMPDIR") or "/tmp", f"supervisor-{os.getpid()}-{time.monotonic_ns()}")
     try:
         subprocess.run(
             ["/bin/sh", "-c", recorder, "supervisor", str(parent_pgid)],
             input=stream, text=True, timeout=30, check=True, start_new_session=True,
-            env={**os.environ, "HERMES_TEST_LOG": log, "HERMES_TEST_SCRIPT": SUPERVISOR},
+            env={**os.environ, "KOVA_TEST_LOG": log, "KOVA_TEST_SCRIPT": SUPERVISOR},
         )
         with contextlib.suppress(FileNotFoundError):
             with open(log, encoding="utf-8") as f:
@@ -133,7 +133,7 @@ def test_an_unterminated_line_at_eof_is_never_acted_on():
 
 def test_unsafe_targets_are_rejected_at_registration_time():
     # killpg(0) is our own group and pgid 1 is init; the parent's group is the
-    # Hermes process tree itself. A caller bug must cost one unreaped child, never those.
+    # Kova process tree itself. A caller bug must cost one unreaped child, never those.
     assert _terminated_groups("register 0\nregister 1\nregister 777\nregister 999\n", parent_pgid=777) == {999}
 
 
@@ -228,7 +228,7 @@ def test_the_term_grace_holds_even_with_a_broken_path():
 
 
 def test_leaves_an_unregistered_group_alone_at_eof():
-    # The other failure direction, and the more damaging one: a clean Hermes
+    # The other failure direction, and the more damaging one: a clean Kova
     # shutdown unregisters as it tears each child down, so EOF must not become
     # a kill-everything event for children that were handed back.
     survivor = subprocess.Popen(_VICTIM, start_new_session=True)
@@ -253,7 +253,7 @@ def test_leaves_an_unregistered_group_alone_at_eof():
         supervisor.wait(timeout=10)
 
 
-# A stand-in for Hermes: registers a real child, then blocks forever holding the
+# A stand-in for Kova: registers a real child, then blocks forever holding the
 # only write end of the control pipe. SIGKILLing it is the scenario the whole
 # supervisor exists for -- no cleanup code of ours gets to run.
 _FAKE_PARENT = """
@@ -299,7 +299,7 @@ def test_reaps_the_child_when_the_registering_parent_is_sigkilled(tmp_path):
         parent.wait(timeout=10)
 
         assert _wait_gone(victim_pid), (
-            "owned child survived kill -9 of its Hermes parent"
+            "owned child survived kill -9 of its Kova parent"
         )
     finally:
         for pid in (victim_pid, supervisor_pid):
@@ -853,7 +853,7 @@ def test_the_supervisor_refuses_a_malformed_parent_pgid(parent):
 
 def test_a_released_supervisor_leaves_no_zombie_child():
     """A foreground command registers and releases its group on every run; the exited supervisor
-    must not linger as a zombie child (psutil walkers of Hermes's children raise ZombieProcess)."""
+    must not linger as a zombie child (psutil walkers of Kova's children raise ZombieProcess)."""
     import psutil
 
     child = subprocess.Popen(_VICTIM, start_new_session=True)

@@ -37,8 +37,8 @@ class _RuntimeCLI(CLIAgentSetupMixin):
         return False
 
 
-def _write_profile_config(hermes_home) -> None:
-    (hermes_home / "config.yaml").write_text(
+def _write_profile_config(kova_home) -> None:
+    (kova_home / "config.yaml").write_text(
         """
 model:
   default: ollama-cloud/glm-5.2
@@ -60,9 +60,9 @@ agent:
 
 def _resolve_cli_route():
     from kova_cli._parser import build_top_level_parser
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    _write_profile_config(get_hermes_home())
+    _write_profile_config(get_kova_home())
     parser, _subparsers, _chat = build_top_level_parser()
     args, _unknown = parser.parse_known_args(
         ["-m", MODEL, "--provider", REQUESTED_PROVIDER, "chat"]

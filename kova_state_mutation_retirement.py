@@ -197,7 +197,7 @@ _DERIVED_LOCAL_PREFIXES = ('bot-chat:', 'a2a:')
 # The API sessions whose ids a door derives: a hosted-room member (``bot_room``), and the
 # ``api-<16 hex>`` ids of a header-less chat (``_derive_chat_session_id``) and of a deleted chat's or
 # Responses/Runs chain's next generation (``implicit_api_session``). A caller-named ``api_server`` id
-# (``POST /api/sessions``, ``X-Hermes-Session-Id``) is never derived. Matched on the id, not on a
+# (``POST /api/sessions``, ``X-Kova-Session-Id``) is never derived. Matched on the id, not on a
 # binding-receipt field, so it also holds for rows an older release bound. Any id can root a
 # Responses/Runs chain: its fence becomes permanent once a chain moves past it (``keep_passed_fences``).
 _DERIVED_API_SQL = ("(source='bot_room' OR (source='api_server' AND id GLOB 'api-" + '[0-9a-f]' * 16 + "'))")

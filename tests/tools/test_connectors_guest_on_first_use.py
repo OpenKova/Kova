@@ -6,7 +6,7 @@ CLI, TUI, messaging gateway):
   token is connectors-only; later actions create none, and the free model is never selected
 - tool_search sends nothing to the portal or gateway and points the model at ``manage_connections``
 - ``nous.guest: false`` keeps the old answer: no tool, no account
-Driven through the fake NAS (``anon_portal``) with Hermes' real client code.
+Driven through the fake NAS (``anon_portal``) with Kova' real client code.
 """
 
 import json
@@ -83,10 +83,10 @@ def test_tool_search_without_an_identity_sends_nothing(nas, monkeypatch):
 
 
 def test_guest_opt_out_keeps_connectors_closed(nas):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.connectors.gateway.config import connectors_available, ensure_guest_identity
 
-    (get_hermes_home() / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")
+    (get_kova_home() / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")
 
     assert not connectors_available()
     assert ensure_guest_identity() is None

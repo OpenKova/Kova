@@ -38,9 +38,9 @@ _SAFE_MODE_EXAMPLE = 'hermes chat --safe-mode --provider openrouter --model anth
 # The documented environment equivalents of creation flags (the set Ink's localCreationOptions
 # maps). The auto-started owner no longer inherits them (R14 scrub), so they only take effect
 # by riding THIS session's session.create; a resume keeps the frozen route.
-_ENV_LAUNCH_FLAGS = (("yolo", "HERMES_YOLO_MODE"), ("ignore_rules", "HERMES_IGNORE_RULES"),
-                     ("safe_mode", "HERMES_SAFE_MODE"), ("ignore_user_config", "HERMES_IGNORE_USER_CONFIG"),
-                     ("accept_hooks", "HERMES_ACCEPT_HOOKS"))
+_ENV_LAUNCH_FLAGS = (("yolo", "KOVA_YOLO_MODE"), ("ignore_rules", "KOVA_IGNORE_RULES"),
+                     ("safe_mode", "KOVA_SAFE_MODE"), ("ignore_user_config", "KOVA_IGNORE_USER_CONFIG"),
+                     ("accept_hooks", "KOVA_ACCEPT_HOOKS"))
 
 
 def env_launch_flags() -> dict:
@@ -104,7 +104,7 @@ def validate_options(args):
     # A resume reuses the frozen route and reads no default (the TUI launcher's rule too).
     resuming = getattr(args, "resume", None) or getattr(args, "continue_last", None)
     if bypass_launch(args) and not getattr(args, "model", None) and not resuming:
-        raise GatewayClientError("--safe-mode / --ignore-user-config (or HERMES_SAFE_MODE / HERMES_IGNORE_USER_CONFIG) "
+        raise GatewayClientError("--safe-mode / --ignore-user-config (or KOVA_SAFE_MODE / KOVA_IGNORE_USER_CONFIG) "
                                  "read no profile default: pass --model explicitly."
                                  f"\n  Example: {_SAFE_MODE_EXAMPLE}")
 
@@ -314,9 +314,9 @@ def check_resume_policy(args, snapshot):
         # The owner froze the resolved id of a `-m <alias>`; the same alias again is the same route.
         from gateway.session_local_route import resolve_launch_route
         from kova_cli.config_effective import load_user_config_effective
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         flags = {key: requested[key] for key in ("model", "provider", "base_url", "api_key") if key in requested}
-        requested["model"] = resolve_launch_route(flags, load_user_config_effective(get_hermes_home() / "config.yaml"))["model"]
+        requested["model"] = resolve_launch_route(flags, load_user_config_effective(get_kova_home() / "config.yaml"))["model"]
     # api_key is never durable; a repeated key is not a policy change.
     differs = [key for key, value in requested.items() if key != "api_key" and frozen.get(key) != value]
     if differs:
@@ -324,7 +324,7 @@ def check_resume_policy(args, snapshot):
 
 
 def _register_terminal_process() -> None:
-    """The chat client is still a terminal on this HERMES_HOME: record it in the process ledger
+    """The chat client is still a terminal on this KOVA_HOME: record it in the process ledger
     (purpose ``cli`` is never update-reapable) and warn once when another install shares the home."""
     from kova_cli.process_identity import register_self
     from kova_cli.shared_profile_warning import shared_profile_warning

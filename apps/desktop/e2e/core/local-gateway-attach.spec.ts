@@ -12,7 +12,7 @@
  *
  * Runs on every OS. The Windows Desktop lane (.github/workflows/
  * windows-desktop-attach-e2e.yml) runs it on a real Windows runner against the
- * dev tree and, with HERMES_E2E_PACKAGED_EXE, against the electron-builder
+ * dev tree and, with KOVA_E2E_PACKAGED_EXE, against the electron-builder
  * `--dir` build of the same commit.
  */
 
@@ -46,12 +46,12 @@ const nonce = Math.random().toString(36).slice(2, 8).replace(/[^a-z0-9]/g, 'x').
 const U = (n: number) => `U${n}-attach${nonce}`
 const A = (n: number) => `A${n}-attach${nonce}`
 
-const PYTHON = process.env.HERMES_E2E_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
-const PACKAGED_EXE = process.env.HERMES_E2E_PACKAGED_EXE || ''
+const PYTHON = process.env.KOVA_E2E_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+const PACKAGED_EXE = process.env.KOVA_E2E_PACKAGED_EXE || ''
 
 function gatewayState(sandbox: CoreSandbox): Record<string, any> {
   try {
-    return JSON.parse(fs.readFileSync(path.join(sandbox.hermesHome, 'gateway_state.json'), 'utf8').replace(/^\uFEFF/, ''))
+    return JSON.parse(fs.readFileSync(path.join(sandbox.kovaHome, 'gateway_state.json'), 'utf8').replace(/^\uFEFF/, ''))
   } catch {
     return {}
   }
@@ -119,7 +119,7 @@ async function launchApp(sandbox: CoreSandbox): Promise<{ app: ElectronApplicati
 test(`Desktop${PACKAGED_EXE ? ' (packaged)' : ''} attaches to the gateway already running and serves a turn`, async () => {
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('attach')
-  writeProviderHome(sandbox.hermesHome, provider.url)
+  writeProviderHome(sandbox.kovaHome, provider.url)
   let live: null | { app: ElectronApplication; page: Page } = null
 
   try {
@@ -145,7 +145,7 @@ test(`Desktop${PACKAGED_EXE ? ' (packaged)' : ''} attaches to the gateway alread
         await installDuplicateSampler(page)
 
         // Main's descriptor names the very gateway that was running first.
-        const descriptor = await page.evaluate(() => (window as any).hermesDesktop.getConnection())
+        const descriptor = await page.evaluate(() => (window as any).kovaDesktop.getConnection())
         const state = gatewayState(sandbox)
         expect(descriptor?.mode, `connection descriptor: ${JSON.stringify(descriptor)}`).toBe('local')
         expect(String(descriptor?.gatewayEndpoint?.api_origin ?? descriptor?.baseUrl ?? '')).toMatch(

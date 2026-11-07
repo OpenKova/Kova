@@ -1,4 +1,4 @@
-"""Single source of truth for provider identity in Hermes Agent."""
+"""Single source of truth for provider identity in Kova Agent."""
 
 from __future__ import annotations
 
@@ -11,11 +11,11 @@ from utils import base_url_host_matches, base_url_hostname
 logger = logging.getLogger(__name__)
 
 
-# -- Hermes overlay: metadata models.dev doesn't provide ----------------------
+# -- Kova overlay: metadata models.dev doesn't provide ----------------------
 
 @dataclass(frozen=True)
-class HermesOverlay:
-    """Hermes-specific provider metadata layered on top of models.dev."""
+class KovaOverlay:
+    """Kova-specific provider metadata layered on top of models.dev."""
 
     transport: str = "openai_chat"        # openai_chat | anthropic_messages | codex_responses
     is_aggregator: bool = False
@@ -25,71 +25,71 @@ class HermesOverlay:
     base_url_env_var: str = ""            # env var for user-custom base URL
 
 
-HERMES_OVERLAYS: dict[str, HermesOverlay] = {
-    "moa": HermesOverlay(auth_type="virtual", base_url_override="moa://local"),
-    "openrouter": HermesOverlay(is_aggregator=True, base_url_env_var="OPENROUTER_BASE_URL"),
-    "nous": HermesOverlay(auth_type="oauth_device_code", base_url_override="https://inference-api.nousresearch.com/v1"),
-    "openai-codex": HermesOverlay(transport="codex_responses", auth_type="oauth_external",
+KOVA_OVERLAYS: dict[str, KovaOverlay] = {
+    "moa": KovaOverlay(auth_type="virtual", base_url_override="moa://local"),
+    "openrouter": KovaOverlay(is_aggregator=True, base_url_env_var="OPENROUTER_BASE_URL"),
+    "nous": KovaOverlay(auth_type="oauth_device_code", base_url_override="https://inference-api.nousresearch.com/v1"),
+    "openai-codex": KovaOverlay(transport="codex_responses", auth_type="oauth_external",
                                   base_url_override="https://chatgpt.com/backend-api/codex"),
-    "openai-api": HermesOverlay(transport="codex_responses", base_url_override="https://api.openai.com/v1",
+    "openai-api": KovaOverlay(transport="codex_responses", base_url_override="https://api.openai.com/v1",
                                 base_url_env_var="OPENAI_BASE_URL"),
-    "xai-oauth": HermesOverlay(transport="codex_responses", auth_type="oauth_external",
+    "xai-oauth": KovaOverlay(transport="codex_responses", auth_type="oauth_external",
                                base_url_override="https://api.x.ai/v1", base_url_env_var="XAI_BASE_URL"),
-    "qwen-oauth": HermesOverlay(auth_type="oauth_external", base_url_override="https://portal.qwen.ai/v1",
-                                base_url_env_var="HERMES_QWEN_BASE_URL"),
-    "lmstudio": HermesOverlay(extra_env_vars=("LM_API_KEY",), base_url_override="http://127.0.0.1:1234/v1",
+    "qwen-oauth": KovaOverlay(auth_type="oauth_external", base_url_override="https://portal.qwen.ai/v1",
+                                base_url_env_var="KOVA_QWEN_BASE_URL"),
+    "lmstudio": KovaOverlay(extra_env_vars=("LM_API_KEY",), base_url_override="http://127.0.0.1:1234/v1",
                               base_url_env_var="LM_BASE_URL"),
-    "anthropic": HermesOverlay(transport="anthropic_messages", extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")),
-    "zai": HermesOverlay(extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), base_url_env_var="GLM_BASE_URL"),
-    "kimi-for-coding": HermesOverlay(base_url_env_var="KIMI_BASE_URL"),
-    "stepfun": HermesOverlay(extra_env_vars=("STEPFUN_API_KEY",),
+    "anthropic": KovaOverlay(transport="anthropic_messages", extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")),
+    "zai": KovaOverlay(extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), base_url_env_var="GLM_BASE_URL"),
+    "kimi-for-coding": KovaOverlay(base_url_env_var="KIMI_BASE_URL"),
+    "stepfun": KovaOverlay(extra_env_vars=("STEPFUN_API_KEY",),
                              base_url_override="https://api.stepfun.ai/step_plan/v1",
                              base_url_env_var="STEPFUN_BASE_URL"),
-    "minimax": HermesOverlay(transport="anthropic_messages", base_url_env_var="MINIMAX_BASE_URL"),
-    "minimax-oauth": HermesOverlay(transport="anthropic_messages", auth_type="oauth_external",
+    "minimax": KovaOverlay(transport="anthropic_messages", base_url_env_var="MINIMAX_BASE_URL"),
+    "minimax-oauth": KovaOverlay(transport="anthropic_messages", auth_type="oauth_external",
                                    base_url_override="https://api.minimax.io/anthropic"),
-    "minimax-cn": HermesOverlay(transport="anthropic_messages", base_url_env_var="MINIMAX_CN_BASE_URL"),
-    "deepseek": HermesOverlay(base_url_env_var="DEEPSEEK_BASE_URL"),
-    "alibaba": HermesOverlay(base_url_env_var="DASHSCOPE_BASE_URL"),
-    "alibaba-coding-plan": HermesOverlay(base_url_env_var="ALIBABA_CODING_PLAN_BASE_URL"),
-    "vercel": HermesOverlay(is_aggregator=True),
-    "opencode": HermesOverlay(is_aggregator=True, base_url_env_var="OPENCODE_ZEN_BASE_URL"),
-    "opencode-go": HermesOverlay(is_aggregator=True, base_url_env_var="OPENCODE_GO_BASE_URL"),
-    "kilo": HermesOverlay(is_aggregator=True, base_url_env_var="KILOCODE_BASE_URL"),
-    "huggingface": HermesOverlay(is_aggregator=True, base_url_env_var="HF_BASE_URL"),
-    "novita": HermesOverlay(is_aggregator=True, base_url_env_var="NOVITA_BASE_URL"),
-    "xai": HermesOverlay(transport="codex_responses", base_url_override="https://api.x.ai/v1", base_url_env_var="XAI_BASE_URL"),
-    "nvidia": HermesOverlay(base_url_override="https://integrate.api.nvidia.com/v1", base_url_env_var="NVIDIA_BASE_URL"),
-    "xiaomi": HermesOverlay(base_url_env_var="XIAOMI_BASE_URL"),
-    "tencent-tokenhub": HermesOverlay(base_url_env_var="TOKENHUB_BASE_URL"),
-    "tencent-tokenplan": HermesOverlay(transport="anthropic_messages",
+    "minimax-cn": KovaOverlay(transport="anthropic_messages", base_url_env_var="MINIMAX_CN_BASE_URL"),
+    "deepseek": KovaOverlay(base_url_env_var="DEEPSEEK_BASE_URL"),
+    "alibaba": KovaOverlay(base_url_env_var="DASHSCOPE_BASE_URL"),
+    "alibaba-coding-plan": KovaOverlay(base_url_env_var="ALIBABA_CODING_PLAN_BASE_URL"),
+    "vercel": KovaOverlay(is_aggregator=True),
+    "opencode": KovaOverlay(is_aggregator=True, base_url_env_var="OPENCODE_ZEN_BASE_URL"),
+    "opencode-go": KovaOverlay(is_aggregator=True, base_url_env_var="OPENCODE_GO_BASE_URL"),
+    "kilo": KovaOverlay(is_aggregator=True, base_url_env_var="KILOCODE_BASE_URL"),
+    "huggingface": KovaOverlay(is_aggregator=True, base_url_env_var="HF_BASE_URL"),
+    "novita": KovaOverlay(is_aggregator=True, base_url_env_var="NOVITA_BASE_URL"),
+    "xai": KovaOverlay(transport="codex_responses", base_url_override="https://api.x.ai/v1", base_url_env_var="XAI_BASE_URL"),
+    "nvidia": KovaOverlay(base_url_override="https://integrate.api.nvidia.com/v1", base_url_env_var="NVIDIA_BASE_URL"),
+    "xiaomi": KovaOverlay(base_url_env_var="XIAOMI_BASE_URL"),
+    "tencent-tokenhub": KovaOverlay(base_url_env_var="TOKENHUB_BASE_URL"),
+    "tencent-tokenplan": KovaOverlay(transport="anthropic_messages",
                                        base_url_override="https://api.lkeap.cloud.tencent.com/plan/anthropic",
                                        base_url_env_var="TOKENPLAN_BASE_URL"),
-    "arcee": HermesOverlay(base_url_override="https://api.arcee.ai/api/v1", base_url_env_var="ARCEE_BASE_URL"),
+    "arcee": KovaOverlay(base_url_override="https://api.arcee.ai/api/v1", base_url_env_var="ARCEE_BASE_URL"),
     # models.dev lists CommandCode under CMD_API_KEY; the plugin profile and docs use COMMANDCODE_API_KEY.
-    "commandcode": HermesOverlay(extra_env_vars=("COMMANDCODE_API_KEY",),
+    "commandcode": KovaOverlay(extra_env_vars=("COMMANDCODE_API_KEY",),
                                  base_url_override="https://api.commandcode.ai/provider/v1",
                                  base_url_env_var="COMMANDCODE_BASE_URL"),
-    "gmi": HermesOverlay(extra_env_vars=("GMI_API_KEY",), base_url_override="https://api.gmi-serving.com/v1",
+    "gmi": KovaOverlay(extra_env_vars=("GMI_API_KEY",), base_url_override="https://api.gmi-serving.com/v1",
                          base_url_env_var="GMI_BASE_URL"),
-    "fireworks": HermesOverlay(extra_env_vars=("FIREWORKS_API_KEY",),
+    "fireworks": KovaOverlay(extra_env_vars=("FIREWORKS_API_KEY",),
                                base_url_override="https://api.fireworks.ai/inference/v1"),
-    "actual": HermesOverlay(transport="chat_completions", extra_env_vars=("ACTUAL_API_KEY",),
+    "actual": KovaOverlay(transport="chat_completions", extra_env_vars=("ACTUAL_API_KEY",),
                             base_url_override="https://api.actual.inc/v1", base_url_env_var="ACTUAL_BASE_URL"),
-    "upstage": HermesOverlay(extra_env_vars=("UPSTAGE_API_KEY",), base_url_override="https://api.upstage.ai/v1",
+    "upstage": KovaOverlay(extra_env_vars=("UPSTAGE_API_KEY",), base_url_override="https://api.upstage.ai/v1",
                              base_url_env_var="UPSTAGE_BASE_URL"),
-    "nebius-token-factory": HermesOverlay(extra_env_vars=("NEBIUS_API_KEY", "NEBIUS_TOKEN_FACTORY_API_KEY"),
+    "nebius-token-factory": KovaOverlay(extra_env_vars=("NEBIUS_API_KEY", "NEBIUS_TOKEN_FACTORY_API_KEY"),
                                           base_url_override="https://api.tokenfactory.nebius.com/v1",
                                           base_url_env_var="NEBIUS_BASE_URL"),
-    "ollama-cloud": HermesOverlay(base_url_override="https://ollama.com/v1", base_url_env_var="OLLAMA_BASE_URL"),
+    "ollama-cloud": KovaOverlay(base_url_override="https://ollama.com/v1", base_url_env_var="OLLAMA_BASE_URL"),
     # Azure Foundry serves OpenAI- and Anthropic-style endpoints; transport comes from model.api_mode.
-    "azure-foundry": HermesOverlay(base_url_env_var="AZURE_FOUNDRY_BASE_URL"),
-    "bedrock": HermesOverlay(transport="bedrock_converse", auth_type="aws_sdk"),
+    "azure-foundry": KovaOverlay(base_url_env_var="AZURE_FOUNDRY_BASE_URL"),
+    "bedrock": KovaOverlay(transport="bedrock_converse", auth_type="aws_sdk"),
     # Vertex is OAuth2 (service-account JSON / ADC), resolved by agent/vertex_adapter.py. Without an
     # overlay get_provider("vertex") is None and auxiliary_client._preserve_provider_with_base_url
     # would treat a Vertex MoA slot as an unknown custom endpoint, losing the identity
     # _refresh_provider_credentials() needs to re-mint an expired token on 401.
-    "vertex": HermesOverlay(auth_type="vertex"),
+    "vertex": KovaOverlay(auth_type="vertex"),
 }
 
 
@@ -180,11 +180,11 @@ def _profile_overlay_key(prof) -> str:
     return prof.models_dev_id or prof.name
 
 
-def hermes_overlays() -> dict[str, HermesOverlay]:
-    """``HERMES_OVERLAYS`` plus the overlays registered profiles declare (``provider_overlay``)."""
-    merged = dict(HERMES_OVERLAYS)
+def hermes_overlays() -> dict[str, KovaOverlay]:
+    """``KOVA_OVERLAYS`` plus the overlays registered profiles declare (``provider_overlay``)."""
+    merged = dict(KOVA_OVERLAYS)
     for prof in _overlay_profiles():
-        merged.setdefault(_profile_overlay_key(prof), HermesOverlay(**prof.provider_overlay))
+        merged.setdefault(_profile_overlay_key(prof), KovaOverlay(**prof.provider_overlay))
     return merged
 
 
@@ -203,8 +203,8 @@ def _is_static_canonical(key: str) -> bool:
         try:
             from kova_cli.auth import BUILTIN_PROVIDER_IDS
         except ImportError:
-            return key in HERMES_OVERLAYS or key in _ALIAS_GROUPS
-        _STATIC_CANONICAL_IDS = BUILTIN_PROVIDER_IDS | frozenset(_ALIAS_GROUPS) | frozenset(HERMES_OVERLAYS)
+            return key in KOVA_OVERLAYS or key in _ALIAS_GROUPS
+        _STATIC_CANONICAL_IDS = BUILTIN_PROVIDER_IDS | frozenset(_ALIAS_GROUPS) | frozenset(KOVA_OVERLAYS)
     return key in _STATIC_CANONICAL_IDS
 
 
@@ -220,16 +220,16 @@ def normalize_provider(name: str, overlay_profiles: Optional[list] = None) -> st
     return _profile_overlay_key(prof) if prof is not None else key
 
 
-def _get_overlay(canonical: str) -> tuple[Optional[HermesOverlay], str]:
+def _get_overlay(canonical: str) -> tuple[Optional[KovaOverlay], str]:
     """``(overlay, label)`` for a canonical id: the static table, else a profile's ``provider_overlay``,
     labelled with the profile's ``display_name`` also when keyed by its models.dev id: without a
     models.dev catalog (offline, blocked) that label is the one picker rows and headings show."""
-    if canonical in HERMES_OVERLAYS:
-        return HERMES_OVERLAYS[canonical], _LABEL_OVERRIDES.get(canonical, canonical)
+    if canonical in KOVA_OVERLAYS:
+        return KOVA_OVERLAYS[canonical], _LABEL_OVERRIDES.get(canonical, canonical)
     prof = _overlay_profile(canonical)
     if prof is None or _profile_overlay_key(prof) != canonical:
         return None, canonical
-    return HermesOverlay(**prof.provider_overlay), _LABEL_OVERRIDES.get(canonical, prof.display_name or canonical)
+    return KovaOverlay(**prof.provider_overlay), _LABEL_OVERRIDES.get(canonical, prof.display_name or canonical)
 
 
 def is_actual_route(provider: str = "", base_url: str = "") -> bool:
@@ -250,7 +250,7 @@ def _models_dev_info(canonical: str, allow_network: bool = True):
         return None
 
 
-def _overlay_pdef(canonical, ov: HermesOverlay, name, env_vars, base_url, doc, source) -> ProviderDef:
+def _overlay_pdef(canonical, ov: KovaOverlay, name, env_vars, base_url, doc, source) -> ProviderDef:
     return ProviderDef(id=canonical, name=name, transport=ov.transport, api_key_env_vars=env_vars, base_url=base_url,
                        base_url_env_var=ov.base_url_env_var, is_aggregator=ov.is_aggregator, auth_type=ov.auth_type, doc=doc,
                        source=source)
@@ -280,8 +280,8 @@ def _plugin_alias_owner(canonical: str) -> str:
 
 
 def get_provider(name: str, *, allow_network: bool = True) -> Optional[ProviderDef]:
-    """Look up a built-in provider by id or alias: models.dev catalog merged with the Hermes overlay;
-    Hermes-only overlay (nous, openai-codex, …); plugin provider profiles with a concrete endpoint."""
+    """Look up a built-in provider by id or alias: models.dev catalog merged with the Kova overlay;
+    Kova-only overlay (nous, openai-codex, …); plugin provider profiles with a concrete endpoint."""
     canonical = _plugin_alias_owner(normalize_provider(name))
     from kova_cli.left_core_migration import provider_left_core
     if provider_left_core(canonical):  # its plugin is not loaded: models.dev must not stand in for it
@@ -289,7 +289,7 @@ def get_provider(name: str, *, allow_network: bool = True) -> Optional[ProviderD
     mdev_info = _models_dev_info(canonical, allow_network)
     overlay, overlay_label = _get_overlay(canonical)
     if mdev_info is not None:
-        ov = overlay or HermesOverlay()
+        ov = overlay or KovaOverlay()
         env_vars = list(mdev_info.env)
         for ev in ov.extra_env_vars:
             if ev not in env_vars:
@@ -300,7 +300,7 @@ def get_provider(name: str, *, allow_network: bool = True) -> Optional[ProviderD
         return _overlay_pdef(canonical, overlay, overlay_label, overlay.extra_env_vars,
                              overlay.base_url_override, "", "hermes")
     # Plugin-registered profiles (plugins/model-providers/<name>/) absent from models.dev and
-    # HERMES_OVERLAYS would otherwise be "Unknown provider" in /model, --provider and model-switch
+    # KOVA_OVERLAYS would otherwise be "Unknown provider" in /model, --provider and model-switch
     # even though the picker lists them. Only profiles with a literal or env-configured endpoint
     # resolve at this rung: placeholder profiles like ``custom`` (aliases ollama/local/vllm) ship
     # an empty base_url and are completed by config.yaml custom_providers — resolving them would
@@ -566,10 +566,10 @@ def resolve_custom_provider(name: str, custom_providers: Optional[list[dict[str,
 
 
 def _lossy_alias_registry_pdef(raw: str, canonical: str) -> Optional[ProviderDef]:
-    """Exact Hermes registry ids win over LOSSY alias collapsing (kimi-coding-cn must stay distinct
+    """Exact Kova registry ids win over LOSSY alias collapsing (kimi-coding-cn must stay distinct
     from kimi-coding instead of collapsing through the shared models.dev alias "kimi-for-coding").
     A collapse is lossy only when MULTIPLE registry providers normalize to the same canonical name;
-    single-entry rewrites (a Hermes id -> its models.dev id) are correct routing and keep resolving
+    single-entry rewrites (a Kova id -> its models.dev id) are correct routing and keep resolving
     through the built-in chain so overlay transports apply."""
     try:
         from kova_cli.auth import PROVIDER_REGISTRY as _AUTH_PROVIDER_REGISTRY
@@ -598,7 +598,7 @@ LLAMACPP_ALIASES: tuple[str, ...] = (LLAMACPP_PROVIDER_ID, "llama.cpp", "llama-c
 
 
 def _has_staged_local_models() -> bool:
-    """True when GGUFs are staged under the Hermes home's ``models/`` — the model the picker's Local
+    """True when GGUFs are staged under the Kova home's ``models/`` — the model the picker's Local
     row offers, which the runtime seam serves by booting/attaching a server on selection."""
     try:
         from kova_cli.local_runtime.bootstrap import staged_model_ids

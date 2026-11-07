@@ -349,7 +349,7 @@ jobs:
                   "summary": "This PR changes the system prompt or tool schemas every session sends.",
                   "detail": detail,
                   "how_to_fix": "Read the rendered change below (full text under tests/fixtures/prompt_surface/ "
-                                "in the Files tab). Merging needs a hermes-agent-core approval.",
+                                "in the Files tab). Merging needs a kova-agent-core approval.",
               }]}]
           print("review_status=" + json.dumps(status))
           PY
@@ -411,7 +411,7 @@ jobs:
 
           if [ "$CHANGED" = "true" ]; then
             CONTENT=$(cat "$RUNNER_TEMP/lockfile-diff.md" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
-            STATUS="[{\"source\":\"lockfile-diff\",\"results\":[{\"kind\":\"action_required\",\"title\":\"JS lockfiles\",\"summary\":\"Locked JS dependency versions changed.\",\"detail\":${CONTENT},\"how_to_fix\":\"Verify the version changes are expected. Lockfile changes need a hermes-agent-core review.\"}]}]"
+            STATUS="[{\"source\":\"lockfile-diff\",\"results\":[{\"kind\":\"action_required\",\"title\":\"JS lockfiles\",\"summary\":\"Locked JS dependency versions changed.\",\"detail\":${CONTENT},\"how_to_fix\":\"Verify the version changes are expected. Lockfile changes need a kova-agent-core review.\"}]}]"
           else
             STATUS="[]"
           fi
@@ -670,9 +670,9 @@ jobs:
         with:
           scandir: ./docker
 
-      # ── Always: icon assets freshness (needs a Hermes runtime interpreter) ────────────────
+      # ── Always: icon assets freshness (needs a Kova runtime interpreter) ────────────────
 
-      # The generator runs on a Hermes runtime interpreter; [] exports one as HERMES_PYTHON.
+      # The generator runs on a Kova runtime interpreter; [] exports one as KOVA_PYTHON.
       # Its dependency phase also runs the frozen-lock check, so a stale uv.lock fails this step;
       # the uv.lock step below still runs and says why.
       - uses: ./.github/actions/setup-pm
@@ -799,7 +799,7 @@ jobs:
       # The committed icon outputs must match what scripts/generate_icons.py renders from
       # assets/nous-girl-*.svg + assets/backgrounds/*.svg. Regular builds and user installs consume
       # the committed files and never render, so this is what keeps them honest. Fix a red run
-      # with `node scripts/generate-icons.mjs` on a Hermes runtime interpreter and commit.
+      # with `node scripts/generate-icons.mjs` on a Kova runtime interpreter and commit.
       #
       # Byte-determinism note: resvg renders the same SVG to identical bytes on any host for
       # pure-shape artwork. If the master ever contains <text>, font rendering can differ across
@@ -807,8 +807,8 @@ jobs:
       - name: Regenerate every icon target, verify structure, diff against committed
         if: ${{ !cancelled() && steps.setup-pm.outcome == 'success' }}
         env:
-          HERMES_PAYLOAD_TAG: ''
-          HERMES_BUILD_COMMIT: ''
+          KOVA_PAYLOAD_TAG: ''
+          KOVA_BUILD_COMMIT: ''
         run: |
           node scripts/generate-icons.mjs
           node scripts/generate-icons.mjs --check

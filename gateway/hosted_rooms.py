@@ -435,7 +435,7 @@ def _schema_is_current(conn: sqlite3.Connection) -> bool:
 def default_db_path() -> Path:
     """Return the hosted-room coordination database for the active install.
 
-    Profile gateways (``~/.hermes/profiles/<name>/``) resolve to the shared
+    Profile gateways (``~/.kova/profiles/<name>/``) resolve to the shared
     ROOT ``shared-state.db`` instead of the master ``state.db``: hosted-room
     coordination is the only thing this module owns, and pointing profile
     gateways at the master session store makes every profile process a
@@ -445,8 +445,8 @@ def default_db_path() -> Path:
     tables in a dedicated file means profile gateways never open the master
     session store writable.
     """
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     return (home.parent.parent if home.parent.name == "profiles" else home) / "shared-state.db"
 
 

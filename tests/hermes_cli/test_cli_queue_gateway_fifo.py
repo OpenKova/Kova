@@ -84,8 +84,8 @@ class _Owners:
 
 
 def _busy_cli(store, sid):
-    from cli import HermesCLI
-    cli = HermesCLI.__new__(HermesCLI)
+    from cli import KovaCLI
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id = sid
     cli._pending_input = queue.Queue()
     cli._pending_resume_sessions = None

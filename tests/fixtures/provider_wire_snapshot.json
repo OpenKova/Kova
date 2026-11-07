@@ -7715,7 +7715,7 @@
     },
     "session_id": "wire-snapshot",
     "tags": [
-     "product=hermes-agent",
+     "product=kova-agent",
      "client=hermes-client-v<VERSION>",
      "conversation=wire-snapshot"
     ]
@@ -7813,7 +7813,7 @@
    "extra_body": {
     "session_id": "wire-snapshot",
     "tags": [
-     "product=hermes-agent",
+     "product=kova-agent",
      "client=hermes-client-v<VERSION>",
      "conversation=wire-snapshot"
     ]
@@ -7914,7 +7914,7 @@
     },
     "session_id": "wire-snapshot",
     "tags": [
-     "product=hermes-agent",
+     "product=kova-agent",
      "client=hermes-client-v<VERSION>",
      "conversation=wire-snapshot"
     ]

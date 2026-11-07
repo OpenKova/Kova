@@ -6,13 +6,13 @@ import { captureAnnotateCrop, createPreviewAnnotateGuest } from './preview-annot
 import { runPreviewGuestScript, withPreviewDeadline } from './preview-drive-channels'
 
 const rect = { height: 20, width: 40, x: 10, y: 10 }
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 const guestWindow = window as Window & {
   __hermesAnnotate?: { beginCapture: () => Promise<void>; endCapture: () => void }
 }
 
 afterEach(() => {
-  window.hermesDesktop = originalDesktop
+  window.kovaDesktop = originalDesktop
   delete guestWindow.__hermesAnnotate
   vi.useRealTimers()
 })
@@ -48,7 +48,7 @@ function setup(stalled: 'begin' | 'capture' | 'cleanup' | 'read' | 'viewport') {
 
     return result
   }
-  window.hermesDesktop = {
+  window.kovaDesktop = {
     beginPreviewGuestActivity: async () => {
       leases.add(++nextToken)
 

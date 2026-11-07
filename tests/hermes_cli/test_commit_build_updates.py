@@ -22,7 +22,7 @@ def commit_build(tmp_path, monkeypatch):
     monkeypatch.setattr("kova_cli.image_provenance.IMAGE_PROVENANCE_PATH", tmp_path / "absent")
     monkeypatch.setattr("kova_cli.config.get_project_root", lambda: root)
     monkeypatch.setattr("pm.paths.repo_root", lambda: root)
-    monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+    monkeypatch.delenv("KOVA_INSTALL_ROOT", raising=False)
     from kova_cli.version_info import _reset_version_info_cache
     _reset_version_info_cache()
     yield root
@@ -45,7 +45,7 @@ def test_commit_build_never_checks_upstream_or_reuses_source_cache(commit_build,
     from kova_cli import banner, source_check
 
     # Even a shared home's source-checkout cache and an embedded SHA cannot turn this into an update.
-    monkeypatch.setenv("HERMES_REVISION", "b" * 40)
+    monkeypatch.setenv("KOVA_REVISION", "b" * 40)
     check = Mock(side_effect=AssertionError("must not probe"))
     monkeypatch.setattr(source_check, "_branch_tip", check)
     assert source_check.check_for_updates(passive=passive)["behind"] is None
@@ -71,7 +71,7 @@ def test_commit_backend_update_routes_refuse_before_checks_or_spawns(commit_buil
     import kova_cli.web_server as server
     import kova_cli.web_server_gateway as gateway
     from kova_cli import banner, source_check
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setattr(server, "PROJECT_ROOT", commit_build)
     monkeypatch.setattr(gateway, "_ACTION_LOG_DIR", tmp_path / "logs")
@@ -80,7 +80,7 @@ def test_commit_backend_update_routes_refuse_before_checks_or_spawns(commit_buil
     monkeypatch.setattr(gateway, "_spawn_hermes_action", spawn)
     check = Mock(side_effect=AssertionError("no update check"))
     monkeypatch.setattr(source_check, "check_for_updates", check)
-    cache = get_hermes_home() / ".update_check"
+    cache = get_kova_home() / ".update_check"
     cache.write_text("source checkout cache")
     client = TestClient(server.app)
     client.headers[server._SESSION_HEADER_NAME] = server._SESSION_TOKEN

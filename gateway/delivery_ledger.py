@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 from gateway.dead_targets import classify_dead_error
 from kova_cli.sqlite_util import add_column_if_missing
-from kova_constants import get_process_hermes_home
+from kova_constants import get_process_kova_home
 
 logger = logging.getLogger(__name__)
 _DB_LOCK = threading.Lock()
@@ -169,11 +169,11 @@ def retry_not_before(updated_at: Any, last_error: Any, attempts: Any) -> Optiona
 
 
 def _db_path():
-    # Launch home, not get_hermes_home(): a multiplexed gateway records a served profile's replies
+    # Launch home, not get_kova_home(): a multiplexed gateway records a served profile's replies
     # under that profile's home override, but the boot sweep reads from the launch context, so both
-    # must open the one shared store (adapter_profile tells the bots apart). No get_hermes_home()
-    # fallback for an unset HERMES_HOME: a default gateway run in the foreground has none.
-    return get_process_hermes_home() / "state.db"
+    # must open the one shared store (adapter_profile tells the bots apart). No get_kova_home()
+    # fallback for an unset KOVA_HOME: a default gateway run in the foreground has none.
+    return get_process_kova_home() / "state.db"
 
 
 def _connect() -> sqlite3.Connection:

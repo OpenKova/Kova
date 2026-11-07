@@ -1,6 +1,6 @@
 """Multiplexed-gateway parity for what a TURN sees: a profile served by the default multiplexer
 (``_profile_runtime_scope``) must observe the same tool-side policy its standalone gateway
-(``HERMES_HOME=<profile>``) would — never the launch profile's values frozen into process caches or
+(``KOVA_HOME=<profile>``) would — never the launch profile's values frozen into process caches or
 read from the process env.
 
 Every test warms the site under launch home A, then reads under routed profile B with different
@@ -14,17 +14,17 @@ from pathlib import Path
 import pytest
 import kova_yaml as yaml
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @pytest.fixture
 def two_homes(tmp_path, monkeypatch):
-    """Launch home A (HERMES_HOME) and routed profile B, differing in every setting under test."""
-    a = tmp_path / ".hermes"
+    """Launch home A (KOVA_HOME) and routed profile B, differing in every setting under test."""
+    a = tmp_path / ".kova"
     b = a / "profiles" / "b"
     b.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("KOVA_HOME", str(a))
     for name, home in (("a", a), ("b", b)):
         (home / f"cred_{name}.txt").write_text("x", encoding="utf-8")
         (home / "config.yaml").write_text(yaml.safe_dump({
@@ -39,11 +39,11 @@ def two_homes(tmp_path, monkeypatch):
 
 
 def _under(home: Path, fn):
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         return fn()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_routed_local_profile_cwd_matches_standalone_gateway(tmp_path, two_homes):
@@ -96,17 +96,17 @@ def test_terminal_backend_consumers_read_the_routed_scope(two_homes):
         return (
             image_source._is_local_terminal_backend(),
             image_generation_tool._agent_cache_base_for_env(None),
-            credential_files.to_agent_visible_cache_path("/host/.hermes/x.png", "/root/.hermes"),
+            credential_files.to_agent_visible_cache_path("/host/.kova/x.png", "/root/.kova"),
             sorted(Path(m["host_path"]).name for m in credential_files.get_credential_file_mounts()),
         )
 
     with _profile_runtime_scope(a):
-        assert observe() == (True, None, "/host/.hermes/x.png", ["cred_a.txt"])
+        assert observe() == (True, None, "/host/.kova/x.png", ["cred_a.txt"])
     with _profile_runtime_scope(b):
         local, cache_base, translated, mounts = observe()
     assert local is False
-    assert cache_base == "/root/.hermes"
-    assert translated != "/host/.hermes/x.png" or mounts == ["cred_b.txt"]
+    assert cache_base == "/root/.kova"
+    assert translated != "/host/.kova/x.png" or mounts == ["cred_b.txt"]
     assert mounts == ["cred_b.txt"]
 
 

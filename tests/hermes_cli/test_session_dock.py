@@ -9,21 +9,21 @@ from agent.i18n import t
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
+def kova_home(tmp_path, monkeypatch):
     from pathlib import Path
 
     from kova_cli import goals
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     goals._DB_CACHE.clear()
     yield home
     goals._DB_CACHE.clear()
 
 
-def test_dock_paints_goal_on_top_and_queue_last_and_follows_their_lifecycle(hermes_home):
+def test_dock_paints_goal_on_top_and_queue_last_and_follows_their_lifecycle(kova_home):
     from cli import _VoiceInputMessage
     from kova_cli.cli_subagent_monitor import SubagentMonitor
     from kova_cli.goals import GoalManager
@@ -63,7 +63,7 @@ def test_dock_paints_goal_on_top_and_queue_last_and_follows_their_lifecycle(herm
     assert dock.refresh() and not dock.has_rows and dock.dock_text(columns=80, rows=40) == ""
 
 
-def test_dock_ignores_a_goal_manager_left_over_from_another_session(hermes_home):
+def test_dock_ignores_a_goal_manager_left_over_from_another_session(kova_home):
     """After /new the cached manager still names the old session until it is rebuilt; the dock
     must not paint the previous session's goal (and never opens state.db itself)."""
     from kova_cli.cli_session_dock import goal_line
@@ -76,16 +76,16 @@ def test_dock_ignores_a_goal_manager_left_over_from_another_session(hermes_home)
     assert goal_line(SimpleNamespace(session_id="new-sid")) == ""
 
 
-def test_dock_drops_the_prompt_a_turn_takes_from_the_queue_before_the_turn_runs(hermes_home):
+def test_dock_drops_the_prompt_a_turn_takes_from_the_queue_before_the_turn_runs(kova_home):
     """A seeded ``-q`` prompt (or any queued input) leaves ``_pending_input`` when its turn starts;
     the dock must stop listing it then, not up to a second later on the spinner thread's poll,
     or the dock is still painted when the reply prints and shrinks under it afterwards."""
     from unittest.mock import Mock
 
-    from cli import HermesCLI, _SeededQueryMessage
+    from cli import KovaCLI, _SeededQueryMessage
     from kova_cli.cli_subagent_monitor import SubagentMonitor
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id, cli.agent = "sid-a", None
     cli._pending_input = queue.Queue()
     cli._pending_input.put(_SeededQueryMessage("hello"))
@@ -107,7 +107,7 @@ def test_dock_drops_the_prompt_a_turn_takes_from_the_queue_before_the_turn_runs(
     assert not monitor.has_rows
 
 
-def test_dock_loop_row_counts_down_to_the_next_wakeup(hermes_home):
+def test_dock_loop_row_counts_down_to_the_next_wakeup(kova_home):
     """A standing /loop gets a dock row whose countdown moves with the clock (it used to be a
     one-shot ``next in 45m`` transcript line that never changed)."""
     from kova_cli.cli_subagent_monitor import SubagentMonitor
@@ -135,7 +135,7 @@ def test_dock_loop_row_counts_down_to_the_next_wakeup(hermes_home):
     assert dock.refresh(now=due) and not dock.has_rows
 
 
-def test_dock_repaints_a_goal_a_tool_changed_mid_turn(hermes_home):
+def test_dock_repaints_a_goal_a_tool_changed_mid_turn(kova_home):
     """A plugin tool adds criteria to the goal mid-turn: the gateway's ``session.control.update`` frame
     marks the CLI's mirrored manager stale and the dock's next poll re-reads it (once), not at turn end."""
     from kova_cli.cli_loops_mixin import CLILoopsMixin

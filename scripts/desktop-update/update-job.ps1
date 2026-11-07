@@ -4,9 +4,9 @@
 # SUSPENDED inside a private job (kill-on-close until Resume), so windows.ps1
 # can publish the update marker's delegate before the first instruction runs.
 
-function Initialize-HermesUpdateJob {
+function Initialize-KovaUpdateJob {
     # Compile the helper once per PowerShell session (Add-Type cannot redefine a type).
-    if ("HermesUpdateJob" -as [type]) { return }
+    if ("KovaUpdateJob" -as [type]) { return }
     Add-Type -TypeDefinition @'
 using System;
 using System.Diagnostics;
@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
-public static class HermesUpdateJob {
+public static class KovaUpdateJob {
     public sealed class StartedProcess {
         public Process Process;
         public StreamReader StandardOutput;
@@ -303,4 +303,4 @@ public static class HermesUpdateJob {
 '@
 }
 
-Initialize-HermesUpdateJob
+Initialize-KovaUpdateJob

@@ -77,7 +77,7 @@ def test_a_current_bundle_is_reused_without_writing_the_install_tree(tmp_path: P
 
 
 def test_a_packaged_bundle_is_served_as_shipped(tmp_path: Path, monkeypatch):
-    """The Nix package points HERMES_WEBAPP_DIST at a bundle in the read-only store: it is used
+    """The Nix package points KOVA_WEBAPP_DIST at a bundle in the read-only store: it is used
     without a freshness check or the build lock, never rebuilt and never marked stale."""
     from kova_cli import source_build
 
@@ -98,7 +98,7 @@ def test_a_packaged_bundle_is_served_as_shipped(tmp_path: Path, monkeypatch):
         webapp.prepare_webapp_renderer(tmp_path, force=True)
 
     (packaged / "index.html").unlink()
-    with pytest.raises(webapp.WebappBuildError, match="HERMES_WEBAPP_DIST is set"):
+    with pytest.raises(webapp.WebappBuildError, match="KOVA_WEBAPP_DIST is set"):
         webapp.prepare_webapp_renderer(tmp_path)
 
 

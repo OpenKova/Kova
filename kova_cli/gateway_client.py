@@ -13,7 +13,7 @@ import time
 # The owner's protocol name; session_contract is dependency-free (no config/plugins load).
 from gateway.session_contract import CANONICAL_GATEWAY_PROTOCOL as GATEWAY_WS_PROTOCOL
 
-GATEWAY_WS_TICKET_PREFIX = "hermes-gateway-ticket."
+GATEWAY_WS_TICKET_PREFIX = "kova-gateway-ticket."
 # Per-request answer budget. Owner verbs are admissions/reads that answer promptly; the one that
 # legitimately runs long passes its own budget (``rpc(..., _timeout=...)``).
 DEFAULT_RPC_TIMEOUT = 30
@@ -326,15 +326,15 @@ async def connect_gateway(endpoint=None, subject=None, *, max_size=8 * 1024 * 10
     ``draining`` (``restart_wait``) instead of attached, and the ticket carries that policy so the
     owner also refuses the socket when the wait opens between discovery and the dial."""
     from websockets.asyncio.client import connect
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.gateway_runtime import attachable, ensure_gateway_runtime, gateway_profile_home
     from kova_cli.gateway_runtime_discovery import DiscoveryError
     from urllib.parse import urlsplit
 
-    remote = "" if endpoint is not None else os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+    remote = "" if endpoint is not None else os.environ.get("KOVA_TUI_GATEWAY_URL", "").strip()
     protocols = None
     if endpoint is not None:
-        ticket = await asyncio.to_thread(_session_ticket, gateway_profile_home(get_hermes_home()), endpoint,
+        ticket = await asyncio.to_thread(_session_ticket, gateway_profile_home(get_kova_home()), endpoint,
                                          subject=subject)
         url, protocols = gateway_ws_target(endpoint, ticket)
     elif remote:
@@ -344,7 +344,7 @@ async def connect_gateway(endpoint=None, subject=None, *, max_size=8 * 1024 * 10
         url = remote
     else:
         # A per-task overlay home is served by the profile its symlinked lock names (#138949).
-        home = gateway_profile_home(get_hermes_home())
+        home = gateway_profile_home(get_kova_home())
         # A client's own start: the daemon it may launch ends itself once idle (no client, adapter,
         # cron/kanban work or admission), and the next client starts a fresh one.
         result = await asyncio.to_thread(ensure_gateway_runtime, home, idle_exit=True)

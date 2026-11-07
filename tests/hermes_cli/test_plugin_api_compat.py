@@ -1,4 +1,4 @@
-"""Behavior-contract compatibility tests for native Hermes plugins."""
+"""Behavior-contract compatibility tests for native Kova plugins."""
 
 from pathlib import Path
 import shutil
@@ -15,11 +15,11 @@ def test_legacy_plugin_loads_and_ignores_additive_hook_and_manifest_fields(
     tmp_path, monkeypatch
 ):
     """A frozen plugin keeps working as manifests and hook payloads grow."""
-    hermes_home = tmp_path / "hermes-home"
-    plugins_dir = hermes_home / "plugins"
+    kova_home = tmp_path / "hermes-home"
+    plugins_dir = kova_home / "plugins"
     plugins_dir.mkdir(parents=True)
     shutil.copytree(LEGACY_PLUGIN, plugins_dir / "legacy-contract-fixture")
-    (hermes_home / "config.yaml").write_text(
+    (kova_home / "config.yaml").write_text(
         yaml.safe_dump(
             {"plugins": {"enabled": ["legacy-contract-fixture"]}}
         ),
@@ -28,8 +28,8 @@ def test_legacy_plugin_loads_and_ignores_additive_hook_and_manifest_fields(
     empty_bundled = tmp_path / "bundled-plugins"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_BUNDLED_PLUGINS", str(empty_bundled))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.setenv("KOVA_BUNDLED_PLUGINS", str(empty_bundled))
 
     manager = PluginManager()
     manager.discover_and_load()

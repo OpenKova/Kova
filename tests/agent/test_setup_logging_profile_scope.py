@@ -1,8 +1,8 @@
 """#125974 — ``agent.agent_init._setup_logging`` must honor the active profile scope.
 
 A Desktop serve backend (tui_gateway/compute_host.py) builds agents for several profiles
-inside ``set_hermes_home_override(profile_home)``. ``_setup_logging`` used to pass the
-import-time ``run_agent._hermes_home`` freeze, so the second profile's ``setup_logging``
+inside ``set_kova_home_override(profile_home)``. ``_setup_logging`` used to pass the
+import-time ``run_agent._kova_home`` freeze, so the second profile's ``setup_logging``
 call saw a home it already served, never adopted it, and every profile's records kept
 landing in the launch profile's agent.log.
 """
@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 
 import kova_logging
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from kova_logging import RotatingFileHandler, _ProfileRoutingFileHandler
 
 
@@ -48,18 +48,18 @@ class TestSetupLoggingProfileScope:
         home_a.mkdir()
         home_b.mkdir()
 
-        token = set_hermes_home_override(str(home_a))
+        token = set_kova_home_override(str(home_a))
         try:
             _setup_logging(_agent_stub())
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
-        token = set_hermes_home_override(str(home_b))
+        token = set_kova_home_override(str(home_b))
         try:
             _setup_logging(_agent_stub())
             _witness("agent.test_profile_scope_125974", "scoped-witness-b")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         log_b = home_b / "logs" / "agent.log"
@@ -83,15 +83,15 @@ class TestSetupLoggingProfileScope:
         home_a.mkdir()
         home_b.mkdir()
 
-        kova_logging.setup_logging(hermes_home=home_a)
+        kova_logging.setup_logging(kova_home=home_a)
         assert kova_logging.enable_profile_log_routing([home_a, home_b]) is True
 
-        token = set_hermes_home_override(str(home_b))
+        token = set_kova_home_override(str(home_b))
         try:
             _setup_logging(_agent_stub())
             _witness("agent.test_routing_guard_125974", "routing-guard-witness-b")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         bare = [

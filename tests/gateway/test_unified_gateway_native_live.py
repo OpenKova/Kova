@@ -1,6 +1,6 @@
 """Native live proof of the unified gateway runtime on the CURRENT host OS.
 
-An ordinary ``python -m gateway.run`` in a disposable HERMES_HOME with a loopback
+An ordinary ``python -m gateway.run`` in a disposable KOVA_HOME with a loopback
 model must, on Linux, macOS and native Windows alike: publish discovery + tickets;
 attach WebSockets; admit/execute/receipt prompts; keep two clients FIFO on one
 session; survive an owner hard-kill (``gateway.status.terminate_pid``) with the
@@ -123,7 +123,7 @@ def websocket(home, desc, purpose='interactive'):
     grant = control(home, 'session-ticket', {'profile_id': desc['served_profiles'][0]['profile_id'],
                                              'instance_id': desc['instance_id'], 'purpose': purpose})
     return connect(desc['api_origin'].replace('http:', 'ws:') + '/api/ws',
-                   subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + grant['ticket']],
+                   subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + grant['ticket']],
                    open_timeout=20)
 
 
@@ -286,7 +286,7 @@ def harness(tmp_path, peer):
         "    return _dumps(obj, *a, **kw)\n"
         "_json.dumps = _dumps_witness\n", encoding='utf-8')
     env = {k: os.environ[k] for k in _CHILD_ENV_KEYS if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONUNBUFFERED='1',
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONUNBUFFERED='1',
                PYTHONPATH=os.pathsep.join([str(site), str(ROOT)]),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
     return {'home': home, 'work': work, 'env': env, 'url': url, 'audit': audit, 'peer': peer}
@@ -310,7 +310,7 @@ def test_native_gateway_runtime_live(harness):
                 pass
         assert 'session-authority-v1' in desc['capabilities'] and desc['authority_epoch'] > 0
         async with websocket(home, desc) as ws:
-            assert ws.subprotocol == 'hermes-gateway-v1'
+            assert ws.subprotocol == 'kova-gateway-v1'
             created = await ok(ws, 'session.create', request_id='native-create', source='cli', cwd=str(home), toolsets=[])
             sid = created['session_id']
             initial = await ok(ws, 'session.resume', session_id=sid)

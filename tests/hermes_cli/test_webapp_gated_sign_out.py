@@ -41,7 +41,7 @@ def gated(tmp_path, monkeypatch):
     monkeypatch.setattr(state, "bound_host", "hermes.lan")
     monkeypatch.setattr(state, "bound_port", 9120, raising=False)
     monkeypatch.setattr(state, "auth_required", True)
-    monkeypatch.setattr(state, "webapp_home", tmp_path / ".hermes", raising=False)
+    monkeypatch.setattr(state, "webapp_home", tmp_path / ".kova", raising=False)
     _reset_for_tests()
     webapp_sign_in._reset_for_tests()
     _reset_password_rate_limit()
@@ -78,7 +78,7 @@ def sign_out(gated, tmp_path):
     from gateway.control_socket import GatewayControlServer
     from gateway.webapp_listener import register_control_verbs
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     runner = SimpleNamespace(
         session_control_server=GatewayControlServer(home),
         webapp_status={"state": "serving", "url": WEBAPP, "reason": None},
@@ -194,7 +194,7 @@ def test_two_gateways_on_one_hostname_keep_their_own_sign_ins(gated, monkeypatch
     the same cookies. Signing in to one leaves the other signed in (here both accept the same account
     tokens, as two gateways sharing a sign-in provider do), and signing one out leaves the other."""
     state = gated.server.app.state
-    gateways = {9120: (tmp_path / ".hermes", _TOKEN), 9121: (tmp_path / "other-home", "o" * 43)}
+    gateways = {9120: (tmp_path / ".kova", _TOKEN), 9121: (tmp_path / "other-home", "o" * 43)}
     browser = gated.browser()  # one cookie jar for both
 
     def at(port, path):
@@ -227,7 +227,7 @@ def test_two_gateways_with_their_own_sign_in_on_one_hostname_keep_their_logins_a
     state = gated.server.app.state
     providers = {port: BasicAuthProvider(username=USER, password_hash=hash_password(PASSWORD), secret=secret * 32)
                  for port, secret in ((9120, b"1"), (9121, b"2"))}
-    gateways = {9120: (tmp_path / ".hermes", _TOKEN), 9121: (tmp_path / "other-home", "o" * 43)}
+    gateways = {9120: (tmp_path / ".kova", _TOKEN), 9121: (tmp_path / "other-home", "o" * 43)}
     browser = gated.browser()  # one cookie jar for both
 
     def at(port, path):
@@ -393,7 +393,7 @@ def test_a_credential_replaced_while_the_gateway_was_down_ends_its_logins_tokens
     _sign_in_with_password(browser)
     access, refresh = _tokens(browser)
     # The gateway stops, hermes webapp --sign-out replaces the stored credential, a gateway starts.
-    _restart(gated, monkeypatch, token=browser_session_token(tmp_path / ".hermes", rotate=True))
+    _restart(gated, monkeypatch, token=browser_session_token(tmp_path / ".kova", rotate=True))
     _signed_out(browser.get("/api/auth/me"))
     _refused_alone(gated, access, refresh)
 
@@ -576,6 +576,6 @@ def test_the_record_of_native_sign_ins_is_user_only(gated, tmp_path):
     from kova_cli.webapp_sign_in import RECORD_PATH
 
     _native_app_sign_in(gated)
-    record = tmp_path / ".hermes" / RECORD_PATH
+    record = tmp_path / ".kova" / RECORD_PATH
     assert record.stat().st_mode & 0o777 == 0o600
     assert record.parent.stat().st_mode & 0o777 == 0o700

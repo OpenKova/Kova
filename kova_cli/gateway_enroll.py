@@ -166,7 +166,7 @@ def cmd_gateway_enroll(args) -> None:
     tenant = str(result.get("tenant") or "")
     resolved_gateway_id = str(result.get("gatewayId") or gateway_id)
 
-    # Persist idempotently; save_env_value writes the sensitive values to ~/.hermes/.env and never
+    # Persist idempotently; save_env_value writes the sensitive values to ~/.kova/.env and never
     # logs them. Explicitly supplied URLs are persisted too: the ws(s):// dial target so the runtime
     # needn't re-specify it, and the wake URL so self_provision_relay forwards it to the connector
     # (which pokes it when buffered work arrives while idle; omitted ⇒ drains on next reconnect).
@@ -214,11 +214,11 @@ def _warn_if_secondary_multiplex_profile() -> bool:
     """Warn when relay routing stamps landed in a secondary profile's .env that a multiplexed gateway
     will never read. Returns True when the warning fired (caller suppresses the restart text)."""
     try:
-        from kova_constants import get_default_hermes_root
-        from kova_cli.config import get_hermes_home
+        from kova_constants import get_default_kova_root
+        from kova_cli.config import get_kova_home
 
-        default_root = Path(get_default_hermes_root()).resolve()
-        home = Path(get_hermes_home()).resolve()
+        default_root = Path(get_default_kova_root()).resolve()
+        home = Path(get_kova_home()).resolve()
         try:
             home.relative_to(default_root / "profiles")
         except ValueError:

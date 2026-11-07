@@ -48,9 +48,9 @@ def _utc_day() -> str:
 
 
 def _home() -> str:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return str(get_hermes_home())
+    return str(get_kova_home())
 
 
 def _word(value: Any) -> str:
@@ -110,9 +110,9 @@ def _friction_fields(*, kind: Any, detail: Any) -> dict[str, str] | None:
 
 def _claim_onboarding(step: str, event: str) -> bool:
     """Once per (step, event) per profile, across processes: an O_EXCL latch file (≤ ~51 of them)."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    directory = get_hermes_home() / "telemetry" / "shared_metrics" / ONBOARDING_LATCH_DIRNAME
+    directory = get_kova_home() / "telemetry" / "shared_metrics" / ONBOARDING_LATCH_DIRNAME
     directory.mkdir(parents=True, exist_ok=True)
     try:
         os.close(os.open(directory / f"{step}.{event}", os.O_CREAT | os.O_EXCL | os.O_WRONLY))
@@ -123,9 +123,9 @@ def _claim_onboarding(step: str, event: str) -> bool:
 
 def purge_onboarding_latches() -> None:
     """Collection turned off: drop the per-profile onboarding latches like the renderer drops its copy."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    shutil.rmtree(get_hermes_home() / "telemetry" / "shared_metrics" / ONBOARDING_LATCH_DIRNAME, ignore_errors=True)
+    shutil.rmtree(get_kova_home() / "telemetry" / "shared_metrics" / ONBOARDING_LATCH_DIRNAME, ignore_errors=True)
 
 
 def _onboarding_fields(*, step: Any, event: Any) -> dict[str, str] | None:

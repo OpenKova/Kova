@@ -31,7 +31,7 @@ const make = () =>
 beforeEach(() => {
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-')))
   userData = path.join(scratch, 'userData')
-  hermesHome = path.join(scratch, 'home', '.hermes')
+  hermesHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
   fs.mkdirSync(userData, { recursive: true })
   fs.mkdirSync(hermesHome, { recursive: true })
@@ -71,9 +71,9 @@ describe('grants', () => {
   })
 
   it.each([
-    ['the Hermes home', () => hermesHome],
-    ['a folder inside the Hermes home', () => path.join(hermesHome, 'skills')],
-    ['a folder that contains the Hermes home', () => path.join(scratch, 'home')],
+    ['the Kova home', () => hermesHome],
+    ['a folder inside the Kova home', () => path.join(hermesHome, 'skills')],
+    ['a folder that contains the Kova home', () => path.join(scratch, 'home')],
     ['the app data folder', () => userData],
     ['another plugin data folder', () => path.join(userData, 'plugin-files', 'data', 'other')]
   ])('refuses to grant %s', async (_label, folder) => {
@@ -90,7 +90,7 @@ describe('grants', () => {
     expect(await files.addGrant('plexus', ssh)).toMatchObject({ ok: false, error: 'protected' })
   })
 
-  it('refuses to grant a symlink that resolves into the Hermes home', async () => {
+  it('refuses to grant a symlink that resolves into the Kova home', async () => {
     const link = path.join(scratch, 'innocent')
     fs.symlinkSync(hermesHome, link)
 
@@ -119,7 +119,7 @@ describe('grants', () => {
     })
   })
 
-  it('refuses a grant whose folder was swapped for a link into the Hermes home', async () => {
+  it('refuses a grant whose folder was swapped for a link into the Kova home', async () => {
     const id = await grantVault()
     fs.rmSync(vault, { recursive: true })
     fs.symlinkSync(hermesHome, vault)
@@ -131,17 +131,17 @@ describe('grants', () => {
 
 describe('path containment', () => {
   it.each([
-    ['parent traversal', '../.hermes/.env'],
-    ['nested traversal', 'notes/../../.hermes/.env'],
-    ['backslash traversal', 'notes\\..\\..\\.hermes\\.env'],
+    ['parent traversal', '../.kova/.env'],
+    ['nested traversal', 'notes/../../.kova/.env'],
+    ['backslash traversal', 'notes\\..\\..\\.kova\\.env'],
     ['an absolute POSIX path', '/etc/passwd'],
-    ['an absolute path into the Hermes home', ''],
-    ['a Windows drive path', 'C:\\Users\\me\\.hermes\\.env'],
+    ['an absolute path into the Kova home', ''],
+    ['a Windows drive path', 'C:\\Users\\me\\.kova\\.env'],
     ['a UNC path', '\\\\server\\share\\x'],
     ['a NUL byte', 'notes/a.md\0.png']
   ])('refuses %s', async (label, rel) => {
     const id = await grantVault()
-    const target = label === 'an absolute path into the Hermes home' ? path.join(hermesHome, '.env') : rel
+    const target = label === 'an absolute path into the Kova home' ? path.join(hermesHome, '.env') : rel
 
     expect(await files.run('plexus', { op: 'readText', folder: id, path: target })).toMatchObject({
       ok: false,
@@ -194,7 +194,7 @@ describe('path containment', () => {
     expect(fs.existsSync(outside)).toBe(false)
   })
 
-  it('refuses listing, renaming and trashing through a symlinked folder into the Hermes home', async () => {
+  it('refuses listing, renaming and trashing through a symlinked folder into the Kova home', async () => {
     const id = await grantVault()
     fs.symlinkSync(hermesHome, path.join(vault, 'home'))
 
@@ -401,7 +401,7 @@ describe('caps and shapes', () => {
 
 describe('protected roots', () => {
   it('an op inside a granted folder never reaches a protected root nested under it', async () => {
-    // A grant made before HERMES_HOME moved inside it must not become a door into the new home.
+    // A grant made before KOVA_HOME moved inside it must not become a door into the new home.
     const id = await grantVault()
     const nestedHome = path.join(vault, 'hermes')
     fs.mkdirSync(nestedHome)

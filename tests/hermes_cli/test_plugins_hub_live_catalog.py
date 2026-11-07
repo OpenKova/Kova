@@ -84,7 +84,7 @@ def test_hub_rebuild_and_plugins_list_resolve_the_kill_list_once(monkeypatch, tm
 
     monkeypatch.setattr(web_server, "_get_dashboard_plugins", lambda force_rescan=False: [])
     monkeypatch.setattr(_web_server_memory, "_discover_memory_provider_statuses", list)
-    monkeypatch.setattr(_cfg_mod, "get_hermes_home", lambda: Path("/tmp/hermes-home"))
+    monkeypatch.setattr(_cfg_mod, "get_kova_home", lambda: Path("/tmp/hermes-home"))
     monkeypatch.setattr(_cfg_mod, "load_config", lambda: {"dashboard": {"hidden_plugins": []}})
     monkeypatch.setattr(plugins_cmd, "_discover_all_plugins", lambda: list(_PLUGIN_ROWS))
     monkeypatch.setattr(plugins_cmd, "_get_current_context_engine", lambda: "compressor")
@@ -143,7 +143,7 @@ def test_update_invalidates_the_live_catalog_cache_for_every_profile(tmp_path, m
         cache.write_text(json.dumps({"entries": [], "removed": []}))
         caches.append(cache)
 
-    monkeypatch.setattr(update_cmd, "get_hermes_home", lambda: root)
+    monkeypatch.setattr(update_cmd, "get_kova_home", lambda: root)
     monkeypatch.setattr(_backup, "_sibling_profile_homes", lambda _home: [("alpha", alpha), ("beta", beta)])
 
     update_cmd_maint._invalidate_live_plugin_catalog_caches()

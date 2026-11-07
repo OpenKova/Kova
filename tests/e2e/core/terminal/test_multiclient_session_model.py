@@ -44,7 +44,7 @@ pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX process-g
 CANARY_RE = re.compile(r"cnry-s\d+-\d{3}")
 FILLER = " ".join(["stream"] * 45)
 ABSENCE_S = 3.0  # far below the 30 s WS send deadline and the reaper's activity-stale threshold
-GRACE_S = 2  # HERMES_TUI_WS_ORPHAN_REAP_GRACE_S: short so owner-death paths finish inside the test
+GRACE_S = 2  # KOVA_TUI_WS_ORPHAN_REAP_GRACE_S: short so owner-death paths finish inside the test
 STEP_TIMEOUT = 90.0
 
 
@@ -72,7 +72,7 @@ def _responder(record: dict):
 def backend(tmp_path_factory):
     root = tmp_path_factory.mktemp("c14")
     be = Backend(root, _responder, extra_config="display:\n  busy_input_mode: queue\n",
-                 env={"HERMES_TUI_WS_ORPHAN_REAP_GRACE_S": str(GRACE_S)})
+                 env={"KOVA_TUI_WS_ORPHAN_REAP_GRACE_S": str(GRACE_S)})
     be.start()
     try:
         yield be

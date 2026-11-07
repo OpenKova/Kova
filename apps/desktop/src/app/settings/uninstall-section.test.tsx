@@ -20,8 +20,8 @@ function summary(allowed: boolean): DesktopUninstallSummary {
     code_removal_allowed: allowed,
     native_removal_instructions: allowed
       ? null
-      : 'Quit the app and drag Hermes Agent.app from /Applications to the Trash.',
-    hermes_home: '/test/home',
+      : 'Quit the app and drag Kova Agent.app from /Applications to the Trash.',
+    kova_home: '/test/home',
     agent_installed: true,
     gui_installed: true,
     source_built_artifacts: [],
@@ -65,7 +65,7 @@ it.each(['missing-policy', 'probe-failed', 'loading'] as const)(
       render(<UninstallSection />)
     })
     expect(getSummary).toHaveBeenCalledOnce()
-    expect(screen.queryByText('Uninstall Hermes')).toBeNull()
+    expect(screen.queryByText('Uninstall Kova')).toBeNull()
     expect(screen.queryByRole('button', { name: /Uninstall/ })).toBeNull()
     expect(screen.queryByText('Danger zone')).toBeNull()
     expect(run).not.toHaveBeenCalled()
@@ -99,7 +99,7 @@ it.each(['gui', 'lite', 'full'] as const)(
       </I18nProvider>
     )
     const zh: (typeof TRANSLATIONS)['zh']['settings']['uninstallSection'] = TRANSLATIONS.zh.settings.uninstallSection
-    await screen.findByText(zh.uninstallHermes)
+    await screen.findByText(zh.uninstallKova)
     fireEvent.click(screen.getByRole('button', { name: new RegExp(zh.options[mode].title) }))
     expect(screen.getByText(zh.confirmBody(zh.options[mode].consequence))).toBeTruthy()
     expect(run).not.toHaveBeenCalled()

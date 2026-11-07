@@ -13,7 +13,7 @@ import kova_yaml as yaml
 def _write_config(monkeypatch: pytest.MonkeyPatch, tmp_path, config: object) -> None:
     home = tmp_path / "hermes-home"
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "config.yaml").write_text(
         yaml.safe_dump(config),
         encoding="utf-8",
@@ -98,7 +98,7 @@ def test_new_nonsecret_hermes_env_override_is_not_exposed(monkeypatch, tmp_path)
     from kova_state_wal import resolve_journal_mode
 
     _configure_mode(monkeypatch, tmp_path, "wal")
-    monkeypatch.setenv("HERMES_JOURNAL_MODE", "delete")
+    monkeypatch.setenv("KOVA_JOURNAL_MODE", "delete")
     assert resolve_journal_mode() == "wal"
 
 
@@ -312,7 +312,7 @@ def test_real_db_openers_honor_configured_delete(monkeypatch, tmp_path):
     finally:
         cron_conn.close()
 
-    discord = DiscordRecoveryStore(hermes_home=tmp_path)
+    discord = DiscordRecoveryStore(kova_home=tmp_path)
     observed["discord_recovery"] = discord.call(
         lambda conn: conn.execute("PRAGMA journal_mode").fetchone()[0].lower()
     )

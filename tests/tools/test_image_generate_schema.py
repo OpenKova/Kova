@@ -151,7 +151,7 @@ class TestDynamicParamGating(unittest.TestCase):
         from plugins.image_gen.krea import KreaImageGenProvider
 
         # The tool and the plugin read the same stored selection, no env override needed.
-        home = Path(os.environ["HERMES_HOME"])
+        home = Path(os.environ["KOVA_HOME"])
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("image_gen:\n  provider: nous\n  model: krea-3\n")
         props = _build_dynamic_image_schema()["parameters"]["properties"]

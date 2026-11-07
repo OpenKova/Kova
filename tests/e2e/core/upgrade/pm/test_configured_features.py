@@ -1,7 +1,7 @@
 """Configured features survive every dependency rebuild (PM lifecycle, failure class 1).
 
 A PM install's dependency environment is rebuilt as a NEW generation whenever its inputs change:
-a release that moves ``uv.lock`` (``hermes update``), ``hermes pm repair``, and the first
+a release that moves ``uv.lock`` (``hermes update``), ``kova pm repair``, and the first
 ``hermes update`` of a main-era install (the legacy ``venv/`` is replaced by a PM generation). The
 user-visible contract is that whatever feature the user had working before the rebuild still
 imports in the generation selected after it:
@@ -110,13 +110,13 @@ def test_update_rebuild_keeps_installed_extra_and_mcp(rebuilt):
 
 def test_repair_keeps_installed_extra_and_mcp(rebuilt):
     sb, rp, after = rebuilt["sb"], rebuilt["repair"], rebuilt["after_repair"]
-    assert rp.returncode == 0, "hermes pm repair failed on a healthy install:\n" + P.diagnostics(sb, rp)
+    assert rp.returncode == 0, "kova pm repair failed on a healthy install:\n" + P.diagnostics(sb, rp)
     assert after["generation"] != rebuilt["after_update"]["generation"], (
-        "`hermes pm repair` reported success but did not rebuild the environment\n" + P.diagnostics(sb, rp))
+        "`kova pm repair` reported success but did not rebuild the environment\n" + P.diagnostics(sb, rp))
     assert after["imports"]["telegram"] == "ok", (
-        f"the extra installed with `hermes pm install --extra telegram` is gone after `hermes pm repair`: "
+        f"the extra installed with `hermes pm install --extra telegram` is gone after `kova pm repair`: "
         f"{after['imports']}\n" + P.diagnostics(sb, rp))
-    assert after["mcp"] == "", "HTTP MCP server no longer connects after `hermes pm repair`:\n" + after["mcp"]
+    assert after["mcp"] == "", "HTTP MCP server no longer connects after `kova pm repair`:\n" + after["mcp"]
 
 
 def test_configured_gateway_platform_has_its_sdk_after_update(rebuilt):
@@ -153,12 +153,12 @@ def migrated(tmp_path_factory, provider):
     assert cp.returncode == 0, f"harness: messaging install into the N-1 venv failed:\n{cp.stderr[-4000:]}"
     with (leg.install / "pyproject.toml").open("rb") as fh:
         assert "messaging" in tomllib.load(fh)["project"]["optional-dependencies"], "harness: N-1 has no messaging extra"
-    (leg.hermes_home / "config.yaml").write_text(I.provider_config(provider.base_url, None), encoding="utf-8")
-    (leg.hermes_home / ".env").write_text(f"OPENAI_API_KEY={I.FAKE_KEY}\n", encoding="utf-8")
+    (leg.kova_home / "config.yaml").write_text(I.provider_config(provider.base_url, None), encoding="utf-8")
+    (leg.kova_home / ".env").write_text(f"OPENAI_API_KEY={I.FAKE_KEY}\n", encoding="utf-8")
     probe = "import telegram, discord, mcp.client.streamable_http; print('ok')"
     pre = leg.run("-c", probe, argv0=leg.python)
     I.git("update-ref", "refs/heads/main", _refs().head, cwd=leg.origin)
-    up = leg.run(*_RETRY_PREFIX[1:], leg.hermes, "update", "--yes", "--branch", "main",
+    up = leg.run(*_RETRY_PREFIX[1:], leg.kova, "update", "--yes", "--branch", "main",
                  argv0=_RETRY_PREFIX[0], timeout=P.UPDATE_TIMEOUT)
     return {"leg": leg, "pre": pre, "update": up}
 

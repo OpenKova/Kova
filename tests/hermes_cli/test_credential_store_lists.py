@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-# Where earlier releases kept the same stores; Hermes deletes a copy there unread.
+# Where earlier releases kept the same stores; Kova deletes a copy there unread.
 PREVIOUS_LOCATIONS = (
     "cache/bws_cache.json", "cache/bws_cache.enc.json", "cache/op_cache.json", "runtime/photon-sidecar.json",
 )
@@ -24,7 +24,7 @@ PREVIOUS_LOCATIONS = (
 def home(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
@@ -73,7 +73,7 @@ def test_file_tools_refuse_to_read_or_write_them(home, monkeypatch):
     import agent.file_safety as fs
 
     root = home.parent / "root"
-    monkeypatch.setattr(fs, "_hermes_home_path", lambda: home)
+    monkeypatch.setattr(fs, "_kova_home_path", lambda: home)
     monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
     for base in (home, root):
         for rel in _stores(home):
@@ -85,8 +85,8 @@ def test_file_tools_refuse_to_read_or_write_them(home, monkeypatch):
 def test_gateway_media_delivery_refuses_them(home, monkeypatch):
     from gateway.platforms import base
 
-    monkeypatch.setattr(base, "_HERMES_HOME", home)
-    monkeypatch.setattr(base, "_HERMES_ROOT", home)
+    monkeypatch.setattr(base, "_KOVA_HOME", home)
+    monkeypatch.setattr(base, "_KOVA_ROOT", home)
     denied = base._media_delivery_denied_paths()
     for rel in _stores(home):
         path = _touch(home, rel)

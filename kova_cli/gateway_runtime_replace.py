@@ -1,4 +1,4 @@
-"""Replace a gateway left running by an older Hermes on this install's own home.
+"""Replace a gateway left running by an older Kova on this install's own home.
 
 After an upgrade the old daemon keeps answering the home's control socket, but its ``identify`` has
 no ``runtime_protocol`` (it predates the session-authority runtime). Every client of this version
@@ -27,17 +27,17 @@ _FORCED_STOP_SECONDS = 5.0
 
 # One line each, short enough for the TUI's activity row after its "gateway incompatible: " prefix.
 REFUSAL_DETAIL = {
-    "owner_newer": "a newer Hermes's gateway owns this profile; update Hermes or run: hermes gateway stop",
-    "foreign_install": "another Hermes install's gateway owns this profile; stop it there: hermes gateway stop",
-    "owner_unverified": "an older Hermes gateway owns this profile and was not verified; run: hermes gateway stop",
-    "owner_did_not_exit": "an older Hermes gateway owns this profile and did not stop; run: hermes gateway stop",
-    "owner_unreachable": "an older Hermes gateway owns this profile; run: hermes gateway stop",
+    "owner_newer": "a newer Kova's gateway owns this profile; update Kova or run: hermes gateway stop",
+    "foreign_install": "another Kova install's gateway owns this profile; stop it there: hermes gateway stop",
+    "owner_unverified": "an older Kova gateway owns this profile and was not verified; run: hermes gateway stop",
+    "owner_did_not_exit": "an older Kova gateway owns this profile and did not stop; run: hermes gateway stop",
+    "owner_unreachable": "an older Kova gateway owns this profile; run: hermes gateway stop",
 }
 
 
 def _install_root() -> Path:
-    from kova_constants import get_default_hermes_root
-    return Path(get_default_hermes_root()).resolve()
+    from kova_constants import get_default_kova_root
+    return Path(get_default_kova_root()).resolve()
 
 
 def _identify(home: Path, timeout: float) -> tuple[Path, dict] | None:
@@ -72,7 +72,7 @@ def _verified_owner(control: Path, payload: dict) -> tuple[int, Any] | str:
     protocol = payload.get("runtime_protocol")
     if type(protocol) is int and protocol > 1:
         return "owner_newer"
-    if not _within_install(control, _install_root()) or not _same(payload.get("hermes_home"), control):
+    if not _within_install(control, _install_root()) or not _same(payload.get("kova_home"), control):
         return "foreign_install"
     pid, recorded = payload.get("pid"), payload.get("start_time")
     if (payload.get("kind") != _GATEWAY_KIND or type(pid) is not int or pid <= 1
@@ -108,7 +108,7 @@ def _wait_gone(pid: int, seconds: float) -> bool:
 
 
 def replace_incompatible_owner(home: Path, *, deadline: float) -> str | None:
-    """Stop the older-Hermes gateway answering for *home*; None once it is gone, else a refusal code
+    """Stop the older-Kova gateway answering for *home*; None once it is gone, else a refusal code
     (see :data:`REFUSAL_DETAIL`). Never starts anything: the caller's ensure loop does that."""
     from gateway.status import terminate_pid
     budget = deadline - time.monotonic()

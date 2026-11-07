@@ -192,7 +192,7 @@ test('refused requests and the boot cascade sign in hidden; only user actions ma
   const source = readFileSync(new URL('./main.ts', import.meta.url), 'utf8')
   const fetchStart = source.indexOf('function fetchJsonViaOauthSession(')
   const fetchBody = source.slice(fetchStart, source.indexOf('\n}\n', fetchStart))
-  const bootStart = source.indexOf('async function waitForRemoteHermes(')
+  const bootStart = source.indexOf('async function waitForRemoteKova(')
   const bootBody = source.slice(bootStart, source.indexOf('\n}\n', bootStart))
 
   expect(fetchBody).toContain('openOauthLoginWindow(origin, { silent: true, background: true })')

@@ -197,7 +197,7 @@ def test_real_plugin_source_discovery_applies_dotenv(monkeypatch, tmp_path):
 
     reg._reset_registry_for_tests()
     env_loader.reset_secret_source_cache()
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / "fixture-secret-source"
     plugin_dir.mkdir(parents=True)
     (home / "config.yaml").write_text(
@@ -224,25 +224,25 @@ def test_real_plugin_source_discovery_applies_dotenv(monkeypatch, tmp_path):
         "    shape = 'bulk'\n\n"
         "    def fetch(self, cfg: dict, home_path: Path) -> FetchResult:\n"
         "        return FetchResult(secrets={\n"
-        "            'HERMES_TEST_PLUGIN_BOOTSTRAP': 'from-plugin',\n"
+        "            'KOVA_TEST_PLUGIN_BOOTSTRAP': 'from-plugin',\n"
         "        })\n\n"
         "def register(ctx):\n"
         "    ctx.register_secret_source(FixtureVault())\n",
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_TEST_PLUGIN_BOOTSTRAP", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_TEST_PLUGIN_BOOTSTRAP", raising=False)
 
     try:
         PluginManager().discover_and_load()
 
-        assert os.environ["HERMES_TEST_PLUGIN_BOOTSTRAP"] == "from-plugin"
+        assert os.environ["KOVA_TEST_PLUGIN_BOOTSTRAP"] == "from-plugin"
         assert [source.name for source in reg.list_plugin_sources()] == [
             "fixturevault"
         ]
     finally:
-        os.environ.pop("HERMES_TEST_PLUGIN_BOOTSTRAP", None)
+        os.environ.pop("KOVA_TEST_PLUGIN_BOOTSTRAP", None)
         reg._reset_registry_for_tests()
         env_loader.reset_secret_source_cache()
 
@@ -285,16 +285,16 @@ def test_removing_the_last_plugin_source_revokes_its_process_env_value(
     import agent.secret_sources.registry as reg
     from agent.secret_scope import get_secret
     from kova_cli import env_loader
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     reg._reset_registry_for_tests()
     env_loader.reset_secret_source_cache()
-    home_a = tmp_path / "a" / ".hermes"
-    home_b = tmp_path / "b" / ".hermes"
+    home_a = tmp_path / "a" / ".kova"
+    home_b = tmp_path / "b" / ".kova"
     _write_plugin_home(home_a, plugin_enabled=True)
     home_b.mkdir(parents=True)
     (home_b / ".env").write_text("SIBLING_ONLY=sibling\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("KOVA_HOME", str(home_a))
     monkeypatch.delenv("REVIEW_PLUGIN_SECRET", raising=False)
 
     try:
@@ -304,11 +304,11 @@ def test_removing_the_last_plugin_source_revokes_its_process_env_value(
         assert get_secret("REVIEW_PLUGIN_SECRET") == "from-plugin"
 
         # B: a sibling profile's activity in between does not touch A's record or value.
-        token = set_hermes_home_override(str(home_b))
+        token = set_kova_home_override(str(home_b))
         try:
             env_loader.hydrate_profile_secret_sources(home_b)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         assert os.environ["REVIEW_PLUGIN_SECRET"] == "from-plugin"
 
         if replaced_by_other_owner:

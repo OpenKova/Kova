@@ -27,7 +27,7 @@ async def probe(peer, creator):
     from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
     from tests.gateway.test_normal_runtime_boot import control
 
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['KOVA_HOME'])
     register_provider(StubAuthProvider())
     process_ownership.reserve([home])
     runner = GatewayRunner()
@@ -49,7 +49,7 @@ async def probe(peer, creator):
 
         async def native(purpose='interactive'):
             grant = await asyncio.to_thread(control, home, 'session-ticket', {**binding, 'purpose': purpose})
-            ws = await connect(url, subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + grant['ticket']])
+            ws = await connect(url, subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + grant['ticket']])
             sockets.append(ws)
             return ws
 
@@ -87,7 +87,7 @@ async def probe(peer, creator):
                 response = await client.post('/api/auth/ws-ticket')
                 assert response.status_code == 200, response.text
                 ws = await connect(url, origin='https://gateway.example.test', subprotocols=[
-                    'hermes-gateway-v1', 'hermes-gateway-ticket.' + response.json()['ticket']])
+                    'kova-gateway-v1', 'kova-gateway-ticket.' + response.json()['ticket']])
                 sockets.append(ws)
                 return ws
 
@@ -135,7 +135,7 @@ async def probe(peer, creator):
             assert await rpc(viewer, 'prompt.submit', **followup) == accepted
             rows = list_session_admissions(authority.db, session_id=sid, pending_only=False)
             assert len(rows) == 2, rows
-            # Hermes is single-user: the dashboard login is the machine owner, so both surfaces'
+            # Kova is single-user: the dashboard login is the machine owner, so both surfaces'
             # admissions carry the owner's own OS subject and neither is an operator hand-off.
             assert rows[0]['principal_id'] == original_owner, rows
             assert rows[1]['principal_id'] == original_owner, rows
@@ -195,7 +195,7 @@ def main():
     thread.start()
     url = f'http://127.0.0.1:{peer.server_port}/v1'
     os.environ.update(OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['KOVA_HOME'])
     (home / 'config.yaml').write_text(json.dumps({
         'gateway': {'multiplex_profiles': False},
         'dashboard': {'public_url': 'https://gateway.example.test'},

@@ -12,13 +12,13 @@ from fastapi.testclient import TestClient
 from kova_cli.web_server import _SESSION_TOKEN, app
 
 
-HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
+HEADERS = {"X-Kova-Session-Token": _SESSION_TOKEN}
 
 
 @pytest.fixture
-def catalog_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, _isolate_hermes_home):
+def catalog_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, _isolate_kova_home):
     """Install one synthetic API-key catalog entry in the isolated test home."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.config import invalidate_env_cache
 
     catalog = tmp_path / "optional-mcps"
@@ -49,9 +49,9 @@ def catalog_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, _isolate_hermes
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_OPTIONAL_MCPS", str(catalog))
+    monkeypatch.setenv("KOVA_OPTIONAL_MCPS", str(catalog))
     invalidate_env_cache()
-    return get_hermes_home()
+    return get_kova_home()
 
 
 @pytest.fixture
@@ -103,12 +103,12 @@ def test_catalog_cannot_declare_reserved_control_key(
 ):
     from kova_cli import mcp_catalog
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["KOVA_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["auth"]["env"].append(
         {
-            "name": "HERMES_YOLO_MODE",
+            "name": "KOVA_YOLO_MODE",
             "prompt": "Unsafe control",
             "secret": False,
         }
@@ -125,14 +125,14 @@ def test_catalog_cannot_declare_reserved_control_key(
     response = client.post(
         "/api/mcp/catalog/install",
         headers=HEADERS,
-        json={"name": "demo", "env": {"HERMES_YOLO_MODE": "1"}},
+        json={"name": "demo", "env": {"KOVA_YOLO_MODE": "1"}},
     )
 
     assert response.status_code == 400
     assert "denylist" in response.json()["detail"]
     assert installs == []
     env_path = catalog_env / ".env"
-    assert not env_path.exists() or "HERMES_YOLO_MODE" not in env_path.read_text(
+    assert not env_path.exists() or "KOVA_YOLO_MODE" not in env_path.read_text(
         encoding="utf-8"
     )
 
@@ -177,7 +177,7 @@ def test_catalog_non_secret_env_never_lands_in_env_file(
     install_entry inlines them into the server config instead."""
     from kova_cli import mcp_catalog
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["KOVA_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["auth"]["env"].append(
@@ -235,10 +235,10 @@ def test_catalog_non_secret_env_never_lands_in_env_file(
 @pytest.mark.parametrize(
     "protected_key",
     [
-        "HERMES_YOLO_MODE",
-        "HERMES_OPTIONAL_MCPS",
-        "HERMES_COPILOT_ACP_COMMAND",
-        "HERMES_COPILOT_ACP_ARGS",
+        "KOVA_YOLO_MODE",
+        "KOVA_OPTIONAL_MCPS",
+        "KOVA_COPILOT_ACP_COMMAND",
+        "KOVA_COPILOT_ACP_ARGS",
     ],
 )
 def test_generic_env_endpoint_rejects_protected_key(
@@ -274,8 +274,8 @@ def _acp_launch_resolvers(monkeypatch: pytest.MonkeyPatch):
     from providers.base import ProviderProfile
 
     acme = ProviderProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
-                           process_command="acme", process_command_env_vars=("HERMES_ACME_ACP_COMMAND",),
-                           process_args_env_var="HERMES_ACME_ACP_ARGS")
+                           process_command="acme", process_command_env_vars=("KOVA_ACME_ACP_COMMAND",),
+                           process_args_env_var="KOVA_ACME_ACP_ARGS")
     real_list = providers.list_providers
     monkeypatch.setattr(providers, "list_providers", lambda: [*real_list(), acme])
 
@@ -298,14 +298,14 @@ def test_rejected_acp_launch_controls_do_not_change_live_resolvers(
 ):
     _resolve_command, _resolve_args = _acp_launch_resolvers(monkeypatch)
 
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", "/opt/trusted/acme")
-    monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--acp --stdio")
+    monkeypatch.setenv("KOVA_ACME_ACP_COMMAND", "/opt/trusted/acme")
+    monkeypatch.setenv("KOVA_ACME_ACP_ARGS", "--acp --stdio")
     expected_command = _resolve_command()
     expected_args = _resolve_args()
 
     attempts = {
-        "HERMES_ACME_ACP_COMMAND": "/tmp/attacker-command",
-        "HERMES_ACME_ACP_ARGS": "--malicious-transport",
+        "KOVA_ACME_ACP_COMMAND": "/tmp/attacker-command",
+        "KOVA_ACME_ACP_ARGS": "--malicious-transport",
     }
     for key, value in attempts.items():
         response = client.put(
@@ -331,16 +331,16 @@ def test_preexisting_acp_launch_controls_remain_usable(
     _resolve_command, _resolve_args = _acp_launch_resolvers(monkeypatch)
     from kova_cli.env_loader import load_hermes_dotenv
 
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", "parent-placeholder")
-    monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--parent-placeholder")
+    monkeypatch.setenv("KOVA_ACME_ACP_COMMAND", "parent-placeholder")
+    monkeypatch.setenv("KOVA_ACME_ACP_ARGS", "--parent-placeholder")
     (catalog_env / ".env").write_text(
-        "HERMES_ACME_ACP_COMMAND=/opt/operator/acme\n"
-        "HERMES_ACME_ACP_ARGS=--acp --stdio --operator-mode\n",
+        "KOVA_ACME_ACP_COMMAND=/opt/operator/acme\n"
+        "KOVA_ACME_ACP_ARGS=--acp --stdio --operator-mode\n",
         encoding="utf-8",
     )
 
     load_hermes_dotenv(
-        hermes_home=catalog_env,
+        kova_home=catalog_env,
         load_external_secrets=False,
     )
 
@@ -358,7 +358,7 @@ def test_connection_card_install_keeps_env_file_secrets_only(
     from kova_cli import mcp_config
     from tools.connectors.mcp import _CatalogBackend
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["KOVA_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["transport"]["env"] = {"DEMO_BASE_URL": "${DEMO_BASE_URL}"}

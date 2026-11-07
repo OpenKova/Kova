@@ -12,7 +12,7 @@ from kova_cli.dashboard_auth import ws_tickets
 
 
 def test_install_worker_keeps_the_requested_profile_scope(tmp_path, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.bot_desktop import install, runtime
     from tui_gateway import server
 
@@ -25,7 +25,7 @@ def test_install_worker_keeps_the_requested_profile_scope(tmp_path, monkeypatch)
     done = threading.Event()
 
     def fake_install(*, ask_password, on_line, timeout_seconds=900.0, claimed=False):
-        seen["home"] = str(get_hermes_home())
+        seen["home"] = str(get_kova_home())
         done.set()
         return 0
 
@@ -324,7 +324,7 @@ def test_switch_sandbox_image_decides_only_a_pending_switch(monkeypatch, tmp_pat
     from kova_cli import sandbox_image_switch as sw
     from tools.bot_desktop import runtime
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(sw, "pending", lambda: None)
     resp = _call(server, "display.switchSandboxImage", {"approve": True})
     assert "error" in resp and "pending" in resp["error"]["message"]

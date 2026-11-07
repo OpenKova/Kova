@@ -24,14 +24,14 @@ from kova_cli.web_routers import uploads
 from kova_constants import WEBAPP_ATTACHMENT_MAX_BYTES, mark_named_profile_deleted
 
 
-_SESSION_HEADER = "X-Hermes-Session-Token"
+_SESSION_HEADER = "X-Kova-Session-Token"
 _BARRIER_TIMEOUT_SECONDS = 30
 
 
 def _client(tmp_path: Path, monkeypatch) -> TestClient:
     home = tmp_path / "hermes-home"
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(web_server, "_SESSION_TOKEN", "webapp-test-token")
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "127.0.0.1", raising=False)
@@ -150,7 +150,7 @@ def test_safe_upload_filename_is_bounded_basename_with_document_suffix(filename,
         assert Path(cleaned).suffix == suffix
 
 
-def test_browser_upload_stages_bytes_under_hermes_home(tmp_path: Path, monkeypatch):
+def test_browser_upload_stages_bytes_under_kova_home(tmp_path: Path, monkeypatch):
     upload_root = tmp_path / "hermes-home" / "uploads"
     upload_root.mkdir(parents=True)
     abandoned = upload_root / "web-abandoned-old.txt"
@@ -216,7 +216,7 @@ def test_browser_upload_checks_actual_spooled_size_and_closes_upload(
 ):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr(uploads, "_MAX_UPLOAD_BYTES", 8)
     spool = tempfile.SpooledTemporaryFile(max_size=4, mode="w+b")
@@ -366,9 +366,9 @@ def test_browser_uploads_to_a_profile_do_not_queue_behind_the_skills_lock(
 ):
     """Resolving an upload's profile home is a path lookup. A skills request holding the
     process-wide skills lock (and the skills-module globals it retargets) must not stall it."""
-    hermes_home = tmp_path / "hermes-home"
-    hermes_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes-home"
+    kova_home.mkdir(parents=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     profile_home = profiles.create_profile("worker", no_alias=True, no_skills=True)
     holding, release = threading.Event(), threading.Event()
 
@@ -430,7 +430,7 @@ def test_browser_uploads_reject_tombstone_before_profile_directory_removal(
 ):
     profile_home = tmp_path / "hermes-home" / "profiles" / "worker"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
     mark_named_profile_deleted(profile_home)
 
     monkeypatch.setattr(staged_uploads, "_resolve_profile_dir", lambda _name: profile_home)

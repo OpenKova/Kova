@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import BinaryIO, Sequence, TextIO
 
 EXTERNAL_SUPERVISOR_FLAG = "--external-supervisor"
-_LAUNCHD_LABEL_ENV = "HERMES_LAUNCHD_LABEL"
+_LAUNCHD_LABEL_ENV = "KOVA_LAUNCHD_LABEL"
 # gateway.restart.GATEWAY_FATAL_CONFIG_EXIT_CODE. This wrapper is a launcher boot
 # file: it runs from a source slice and stays stdlib-only.
 _GATEWAY_FATAL_CONFIG_EXIT_CODE = 78
@@ -94,9 +94,9 @@ def _install_signal_forwarders(proc: subprocess.Popen[bytes]) -> dict[int, objec
 
 
 def _is_hermes_gateway_run_argv(command: Sequence[str]) -> bool:
-    """True for Hermes ``gateway run`` argv this wrapper is allowed to upgrade.
+    """True for Kova ``gateway run`` argv this wrapper is allowed to upgrade.
 
-    The wrapper is generic. Only historical/current Hermes gateway shapes get ``--external-
+    The wrapper is generic. Only historical/current Kova gateway shapes get ``--external-
     supervisor``; an arbitrary launchd child must not be marked as gateway-supervised (#87005).
     """
     try:
@@ -113,13 +113,13 @@ def _child_launchd_label_env(environ: Mapping[str, str] | None = None) -> dict[s
     interactive shell has none, the grandchild sees ``XPC_SERVICE_NAME=0``). Re-exporting the
     label lets the gateway resolve its job without it (the stop-drain cap reading the live
     ``ExitTimeOut``, the exit-75 restart route, the control-socket supervisor declaration — all
-    via ``gateway.restart.launchd_job_label``). Only ``ai.hermes.*`` labels are exported;
+    via ``gateway.restart.launchd_job_label``). Only ``ai.kova.*`` labels are exported;
     app-coalition labels are meaningless as a job identity.
     """
     env = os.environ if environ is None else environ
     for variable in ("XPC_SERVICE_NAME", _LAUNCHD_LABEL_ENV):
         label = str(env.get(variable, "") or "").strip()
-        if label.startswith("ai.hermes"):
+        if label.startswith("ai.kova"):
             return {_LAUNCHD_LABEL_ENV: label}
     return {}
 

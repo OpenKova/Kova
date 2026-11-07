@@ -46,7 +46,7 @@ from agent.tool_guardrails import (
 from kova_cli.config import DEFAULT_CONFIG, cfg_get
 from kova_cli.route_identity import normalize_route_base_url
 from kova_cli.timeouts import get_provider_request_timeout
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_state_ids import new_session_id
 from utils import base_url_host_matches, is_truthy_value
 
@@ -64,8 +64,8 @@ def _provider_default_routes(provider: str) -> set[str]:
             routes.add(route)
 
     with suppress(Exception):
-        from kova_cli.providers import HERMES_OVERLAYS, get_provider
-        overlay = HERMES_OVERLAYS.get(provider)
+        from kova_cli.providers import KOVA_OVERLAYS, get_provider
+        overlay = KOVA_OVERLAYS.get(provider)
         provider_def = get_provider(provider, allow_network=False)
         add(getattr(overlay, "base_url_override", ""))
         add(getattr(provider_def, "base_url", ""))
@@ -478,7 +478,7 @@ _TURN_STATE: dict[str, Any] = {
     # a stale rebuild instead of clobbering a newer one.
     "_tool_snapshot_generation": 0,
     "_rate_limit_state": None,  # from x-ratelimit-* headers; read by /usage
-    # Credits tracking (dev-only, HERMES_DEV_CREDITS) from x-nous-credits-* headers; session
+    # Credits tracking (dev-only, KOVA_DEV_CREDITS) from x-nous-credits-* headers; session
     # start is latched on the first header so cumulative spend can be reported.
     "_credits_state": None,
     "_credits_session_start_micros": None,
@@ -593,7 +593,7 @@ def _init_prompt_cache_config(agent):
         # Config values and traceback frames may contain credentials.
         logger.warning(
             "Agent configuration for prompt_caching.cache_ttl could not be loaded (%s); "
-            "using default prompt caching settings. Check the active Hermes Python "
+            "using default prompt caching settings. Check the active Kova Python "
             "environment and dependencies; run 'hermes config check' after "
             "configuration imports work again.",
             type(exc).__name__,
@@ -614,10 +614,10 @@ def _setup_logging(agent):
     # don't duplicate handlers.
     from kova_logging import setup_logging, setup_verbose_logging
     # The ACTIVE home, not run_agent's import-time freeze: a Desktop serve backend builds agents
-    # for several profiles inside set_hermes_home_override(), and the frozen launch home made
+    # for several profiles inside set_kova_home_override(), and the frozen launch home made
     # setup_logging() see a home it already served, so it never adopted the profile and every
     # profile's records landed in the launch profile's agent.log (#125974).
-    setup_logging(hermes_home=get_hermes_home())
+    setup_logging(kova_home=get_kova_home())
 
     if agent.verbose_logging:
         setup_verbose_logging()
@@ -996,7 +996,7 @@ def _load_tools(agent, enabled_toolsets, disabled_toolsets):
     # are in this snapshot; outcomes wait for a turn someone sees (deliver_kept_startup_notices), maybe not ours.
     from kova_cli.left_core_migration import recover_at_startup
     recover_at_startup()
-    # A multiplexed gateway may have switched HERMES_HOME since model_tools was imported;
+    # A multiplexed gateway may have switched KOVA_HOME since model_tools was imported;
     # make sure this profile's plugins are discovered before the tool snapshot.
     try:
         from kova_cli.plugins import discover_plugins
@@ -1073,7 +1073,7 @@ def _publish_session_id(session_id: str) -> None:
         except Exception:
             delegated_child = False
         if not delegated_child:
-            os.environ["HERMES_SESSION_ID"] = session_id
+            os.environ["KOVA_SESSION_ID"] = session_id
 
 
 def _init_session_state(agent, session_id, session_db, parent_session_id, reasoning_config, max_tokens,
@@ -1082,8 +1082,8 @@ def _init_session_state(agent, session_id, session_db, parent_session_id, reason
     agent.session_id = session_id or new_session_id(agent.session_start)
     _publish_session_id(agent.session_id)
 
-    # ~/.hermes/sessions/ — kept unconditionally for request_dump_*.json debug breadcrumbs.
-    agent.logs_dir = get_hermes_home() / "sessions"
+    # ~/.kova/sessions/ — kept unconditionally for request_dump_*.json debug breadcrumbs.
+    agent.logs_dir = get_kova_home() / "sessions"
     agent.logs_dir.mkdir(parents=True, exist_ok=True)
     _set_defaults(agent, _SESSION_STATE)
 
@@ -1939,12 +1939,12 @@ def _enforce_minimum_context(agent):
         raise ValueError(
             f"Model {agent.model} has a context window of {_ctx:,} tokens, "
             f"which is below the minimum {MINIMUM_CONTEXT_LENGTH:,} required "
-            f"by Hermes Agent.  {remedy}"
+            f"by Kova Agent.  {remedy}"
         )
 
 
 def _warn_nonagentic_hermes_model(agent):
-    # Nous Hermes 3/4 are chat models, not tool-call-tuned. cli.py show_banner() already
+    # Nous Kova 3/4 are chat models, not tool-call-tuned. cli.py show_banner() already
     # warns on the CLI, so skip platform=="cli"; non-quiet non-CLI surfaces still get it.
     if agent.quiet_mode or (agent.platform or "cli") == "cli":
         return
@@ -1953,7 +1953,7 @@ def _warn_nonagentic_hermes_model(agent):
         _hermes_warn = _check_hermes_model_warning(agent.model or "")
         if _hermes_warn:
             _user_msg = (
-                "⚠ Nous Research Hermes 3 & 4 models are NOT agentic — they "
+                "⚠ Nous Research Kova 3 & 4 models are NOT agentic — they "
                 "lack reliable tool-calling for agent workflows (delegation, "
                 "cron, proactive tools). Consider an agentic model instead "
                 "(Claude, GPT, Gemini, Qwen-Coder, etc.)."
@@ -2005,7 +2005,7 @@ def _inject_context_engine_tools(agent):
     if agent.context_compressor:
         try:
             agent.context_compressor.on_session_start(
-                agent.session_id, hermes_home=str(get_hermes_home()),
+                agent.session_id, kova_home=str(get_kova_home()),
                 platform=agent.platform or "cli", model=agent.model,
                 context_length=getattr(agent.context_compressor, "context_length", 0),
                 conversation_id=getattr(agent, "_gateway_session_key", None),
@@ -2184,7 +2184,7 @@ def init_agent(
         logger.warning(
             "Agent configuration could not be loaded (%s); using defaults for "
             "memory, skills, compression and related settings. Check the active "
-            "Hermes Python environment and dependencies; run 'hermes config check' "
+            "Kova Python environment and dependencies; run 'hermes config check' "
             "after configuration imports work again.",
             type(exc).__name__,
         )

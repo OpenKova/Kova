@@ -19,9 +19,9 @@ def _built_agent(monkeypatch, oneshot: bool, disabled=None):
     from agent.agent_init import _load_tools
 
     if oneshot:
-        monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+        monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
     else:
-        monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
+        monkeypatch.delenv("KOVA_SINGLE_QUERY_SESSION", raising=False)
     agent = SimpleNamespace(platform="cli", quiet_mode=True)
     _load_tools(agent, ["hermes-cli"], disabled)
     return agent
@@ -70,7 +70,7 @@ def test_gateway_oneshot_inventory_drops_clarify(tmp_path, monkeypatch):
     from gateway.session_local_inventory import _policy_tools
     from gateway.session_policy import build_policy, policy_scope
 
-    monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
+    monkeypatch.delenv("KOVA_SINGLE_QUERY_SESSION", raising=False)
 
     def names(source):
         policy = build_policy({"source": source, "cwd": str(tmp_path), "model": "m"}, {})

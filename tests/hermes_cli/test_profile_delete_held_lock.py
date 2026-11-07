@@ -24,9 +24,9 @@ _HOLDER = (
 @pytest.fixture
 def profile(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     for name in ("_cleanup_gateway_service", "_maybe_unregister_gateway_service", "_stop_profile_backends",
                  "_notify_multiplexer", "_stop_gateway_process", "_maybe_register_gateway_service"):
         monkeypatch.setattr(profiles, name, lambda *_a, **_k: None)

@@ -1,4 +1,4 @@
-"""restart_needed / adopt_selected against real generations: real uv, offline wheels, temp HERMES_HOME."""
+"""restart_needed / adopt_selected against real generations: real uv, offline wheels, temp KOVA_HOME."""
 from __future__ import annotations
 
 from tests.kova_cli.plugin_worker_support import (

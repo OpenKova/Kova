@@ -26,11 +26,11 @@ from kova_constants import mark_named_profile_deleted
 
 @pytest.fixture
 def file_server(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_DASHBOARD_FILES_ROOT", str(home))
     monkeypatch.setattr(web_server, "_SESSION_TOKEN", secrets.token_urlsafe(32))
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "127.0.0.1", raising=False)

@@ -22,7 +22,7 @@ from kova_cli.observability.shared_metrics import SharedMetricsStore
 def marks(tmp_path, monkeypatch):
     captured: list[tuple[str, dict]] = []
     policy = {"on": True}
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: policy["on"])
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", lambda mark, data: captured.append((mark, data)))
 
@@ -595,7 +595,7 @@ def test_migrations_and_env_templates_are_not_user_disables(marks, monkeypatch):
 def test_diff_and_record_run_off_the_callers_lock_in_the_owning_profile(marks, monkeypatch, tmp_path):
     import threading
 
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     monkeypatch.setattr(disabled_metrics, "_process_surface", "cli_config")
     gate, seen = threading.Event(), []
@@ -603,17 +603,17 @@ def test_diff_and_record_run_off_the_callers_lock_in_the_owning_profile(marks, m
 
     def slow(old, new):
         gate.wait(5)
-        seen.append(str(get_hermes_home()))
+        seen.append(str(get_kova_home()))
         return real(old, new)
 
     monkeypatch.setattr(disabled_metrics, "config_transitions", slow)
-    token = set_hermes_home_override(str(tmp_path / "b"))
+    token = set_kova_home_override(str(tmp_path / "b"))
     try:
         with threading.Lock():  # noqa: PLW2101 -- inert on purpose: a stand-in for the caller's _CONFIG_MUTATION_LOCK, which record_config_saved documents running outside of; the caller's write lock (the dashboard's _CONFIG_MUTATION_LOCK)
             disabled_metrics.record_config_saved({}, {"memory": {"memory_enabled": False}})
             assert marks.rows == []  # returned without diffing
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     gate.set()
     _settle_disabled()
     assert seen == [str(tmp_path / "b")] and [m for m, _ in marks.rows] == [contract.FEATURE_DISABLED_MARK]
@@ -622,10 +622,10 @@ def test_diff_and_record_run_off_the_callers_lock_in_the_owning_profile(marks, m
 def test_off_thread_setup_records_in_the_owning_profile(marks, tmp_path, monkeypatch):
     seen: list[str] = []
     monkeypatch.setattr(relay_shared_metrics, "record_process_marks_saved", lambda rows: (
-        seen.append(str(__import__("kova_constants").get_hermes_home())), len(rows))[1])
+        seen.append(str(__import__("kova_constants").get_kova_home())), len(rows))[1])
     home_a, home_b = tmp_path / "a", tmp_path / "b"
     for home in (home_a, home_b, home_a):
-        flow = setup_metrics.begin_provider_setup("dashboard", "xai", hermes_home=home)
+        flow = setup_metrics.begin_provider_setup("dashboard", "xai", kova_home=home)
         assert flow.marker.parent == setup_metrics.markers_dir(home)
         setup_metrics.finish_provider_setup(flow, "completed")
     assert seen == [str(h) for h in (home_a, home_a, home_b, home_b, home_a, home_a)]

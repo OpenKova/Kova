@@ -13,7 +13,7 @@ import pytest
 from fastapi import FastAPI
 
 from kova_cli import web_server_dashboard as dashboard
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 NAME = "isoprobe"
 MODULE = f"hermes_dashboard_plugin_{NAME}"
@@ -32,7 +32,7 @@ API = (
 
 
 def _plugin(tmp_path, isolation, source):
-    (get_hermes_home() / "config.yaml").write_text(
+    (get_kova_home() / "config.yaml").write_text(
         yaml.safe_dump({"plugins": {"isolation": isolation, "enabled": [NAME]}}), encoding="utf-8")
     dash = tmp_path / NAME / "dashboard"
     dash.mkdir(parents=True)

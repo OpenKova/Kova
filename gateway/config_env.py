@@ -85,8 +85,8 @@ def _loading_secondary_under_multiplexer() -> bool:
     """True while a multiplexer loads a NON-default profile's config (``_profile_runtime_scope`` sets the
     home override; the runner sets the multiplex flag). Same signal ``gateway.config`` uses for scoped reads."""
     from agent.secret_scope import is_multiplex_active
-    from kova_constants import get_hermes_home_override, profile_name_for_home
-    override = get_hermes_home_override()
+    from kova_constants import get_kova_home_override, profile_name_for_home
+    override = get_kova_home_override()
     return bool(override) and is_multiplex_active() and profile_name_for_home(override) != "default"
 
 

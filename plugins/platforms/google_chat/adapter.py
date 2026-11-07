@@ -203,7 +203,7 @@ def ensure_google_chat_deps() -> bool:
         return True
     from pm import InstallError, ensure_import
     # Request BOTH extras before surfacing a failure: a successful install raises
-    # InstallError("restart Hermes to activate…") for the first extra, and aborting
+    # InstallError("restart Kova to activate…") for the first extra, and aborting
     # there would leave the second uninstalled — the restart would land back here.
     failures: list[InstallError] = []
     for extra in ("google", "google-chat"):
@@ -401,7 +401,7 @@ class GoogleChatAdapter(BasePlatformAdapter):
         self._project_id = self._subscription_path = self._bot_user_id = None  # bot id is users/{id}
         self._supervisor_task: Optional[asyncio.Task] = None
         self._loop: Optional[asyncio.AbstractEventLoop] = None
-        # The profile scope this adapter was connected under (multiplex: HERMES_HOME override + secret
+        # The profile scope this adapter was connected under (multiplex: KOVA_HOME override + secret
         # scope). Pub/Sub callbacks arrive on the gRPC SubscriberClient's own threads with an EMPTY
         # context, and ``run_coroutine_threadsafe`` copies THAT context onto the loop task — so
         # ``_dispatch_message`` and everything it reaches (attachment cache, per-user OAuth token
@@ -421,8 +421,8 @@ class GoogleChatAdapter(BasePlatformAdapter):
         # Last inbound thread per space: DMs get a NEW thread per top-level message but users
         # see one conversation, so thread_id leaves the source (stable session key) and is cached here.
         self._last_inbound_thread: dict[str, str] = {}
-        from kova_constants import get_hermes_home as _get_hermes_home
-        self._thread_count_store = _ThreadCountStore(_get_hermes_home() / "google_chat_thread_counts.json")
+        from kova_constants import get_kova_home as _get_kova_home
+        self._thread_count_store = _ThreadCountStore(_get_kova_home() / "google_chat_thread_counts.json")
         # In-flight typing-card creates per chat_id: reserved BEFORE the API call so
         # concurrent _keep_typing calls wait instead of duplicating cards.
         self._typing_card_inflight: dict[str, asyncio.Event] = {}
@@ -536,8 +536,8 @@ class GoogleChatAdapter(BasePlatformAdapter):
     # -- bot identity --------------------------------------------------------
     def _bot_id_cache_path(self) -> _Path:
         """Resolved at call time so multiplexed profiles don't share one cache file."""
-        from kova_constants import get_hermes_home as _get_hermes_home
-        return _get_hermes_home() / "google_chat_bot_id.json"
+        from kova_constants import get_kova_home as _get_kova_home
+        return _get_kova_home() / "google_chat_bot_id.json"
 
     def _load_cached_bot_id(self) -> Optional[str]:
         try:
@@ -1292,7 +1292,7 @@ class GoogleChatAdapter(BasePlatformAdapter):
         return SendResult(success=True, message_id=resp.get("name"))
 
     async def send_typing(self, chat_id: str, metadata: Any = None) -> None:
-        """Post a visible 'Hermes is thinking…' marker (Chat has no typing API); ``send()``
+        """Post a visible 'Kova is thinking…' marker (Chat has no typing API); ``send()``
         PATCHes it with the reply, ``on_processing_complete`` reaps it otherwise. Created in
         the user's thread (patch cannot move it). ``_keep_typing`` wraps this in
         ``wait_for(timeout=1.5)``: a cancelled create would still land an unrecorded card and
@@ -1649,7 +1649,7 @@ Full guide: website/docs/user-guide/messaging/google_chat.md
 
 
 def interactive_setup() -> None:
-    """``hermes setup`` wizard: print GCP instructions, prompt for env vars, persist to ``~/.hermes/.env``."""
+    """``hermes setup`` wizard: print GCP instructions, prompt for env vars, persist to ``~/.kova/.env``."""
     from kova_cli.cli_output import print_info, print_success, print_warning, prompt, prompt_yes_no
     from kova_cli.config import get_env_value, save_env_value
     from kova_cli.setup_platforms import declines_reconfigure
@@ -1686,7 +1686,7 @@ def interactive_setup() -> None:
     if home:
         save_env_value("GOOGLE_CHAT_HOME_CHANNEL", home.strip())
     print()
-    print_success("Google Chat configuration saved to ~/.hermes/.env")
+    print_success("Google Chat configuration saved to ~/.kova/.env")
     print_info("Restart the gateway: hermes gateway restart")
 
 
@@ -1775,8 +1775,8 @@ def register(ctx) -> None:
     """Plugin entry point: registers the ``google_chat`` adapter with the platform registry."""
     ctx.register_platform(
         name="google_chat",
-        dashboard_description="Connect Hermes to Google Chat via Cloud Pub/Sub.",
-        docs_url="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/google_chat",
+        dashboard_description="Connect Kova to Google Chat via Cloud Pub/Sub.",
+        docs_url="https://kova-agent.nousresearch.com/docs/user-guide/messaging/google_chat",
         label="Google Chat",
         adapter_factory=lambda cfg: GoogleChatAdapter(cfg),
         check_fn=_check_for_registry,
@@ -1803,7 +1803,7 @@ def register(ctx) -> None:
             "in your response. Native file attachments require the user to run /setup-files once in their own DM — "
             "until they do, file requests fall back to a text notice with the host path. Do NOT generate interactive "
             "Card v2 buttons — Google Chat interactivity is not yet supported by this gateway; ask for typed "
-            "confirmations instead. While you are generating a response, a 'Hermes is thinking…' marker message "
+            "confirmations instead. While you are generating a response, a 'Kova is thinking…' marker message "
             "appears in the space and is deleted once your response is ready. You do NOT have access to Google "
             "Chat-specific APIs — you cannot search space history, list space members, or manage spaces. Do not "
             "promise to perform these actions; explain that you can only read messages sent directly to you and "

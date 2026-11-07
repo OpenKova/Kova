@@ -46,5 +46,5 @@ class TestHolderSubcommand:
 
         from kova_cli._launchers import runtime_command
 
-        cmdline = shlex.join(runtime_command(Path("/opt/hermes-agent"), ["dashboard"], python="/opt/store/python"))
+        cmdline = shlex.join(runtime_command(Path("/opt/kova-agent"), ["dashboard"], python="/opt/store/python"))
         assert _hermes_holder_subcommand(cmdline) == "dashboard"

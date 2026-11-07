@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesReadDirResult } from '@/global'
-import type * as HermesModule from '@/hermes'
+import type { KovaReadDirResult } from '@/global'
+import type * as KovaModule from '@/hermes'
 import { $previewScriptGrants, grantPreviewScript } from '@/store/plugin-preview-grants'
 
 import { emitGatewayEvent } from './events'
@@ -14,17 +14,17 @@ import {
   watchRuntimePlugins
 } from './runtime-loader'
 
-// getStatus would supply the connected backend's hermes_home — a REMOTE path in
+// getStatus would supply the connected backend's kova_home — a REMOTE path in
 // remote mode. The disk scanner must NOT derive the plugin root from it (#66899).
-const getStatus = vi.fn(async () => ({ hermes_home: '/remote/box/.hermes' }))
+const getStatus = vi.fn(async () => ({ kova_home: '/remote/box/.kova' }))
 
 vi.mock('@/hermes', async importActual => ({
-  ...(await importActual<typeof HermesModule>()),
+  ...(await importActual<typeof KovaModule>()),
   getStatus: () => getStatus()
 }))
 
 const desktopPluginsRoot = vi.fn<() => Promise<string>>()
-const readDir = vi.fn<(path: string) => Promise<HermesReadDirResult>>()
+const readDir = vi.fn<(path: string) => Promise<KovaReadDirResult>>()
 const readFileText = vi.fn<(path: string) => Promise<{ text: string; truncated?: boolean }>>()
 const readPluginSource = vi.fn<(path: string) => Promise<{ text: string; truncated?: boolean }>>()
 const watchDirectory = vi.fn<(path: string) => Promise<{ id: string }>>()
@@ -43,7 +43,7 @@ beforeEach(() => {
   stopPreviewFileWatch.mockResolvedValue(true)
   onPreviewFileChanged.mockReset()
   getStatus.mockClear()
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
     desktopPluginsRoot,
     onPreviewFileChanged,
     readDir,
@@ -55,24 +55,24 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('scanDiskPlugins (#66899)', () => {
-  it('scans the Electron-resolved local roots, never the backend hermes_home', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+  it('scans the Electron-resolved local roots, never the backend kova_home', async () => {
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     readDir.mockResolvedValue({ entries: [] })
 
     await discoverRuntimePlugins()
 
     expect(desktopPluginsRoot).toHaveBeenCalled()
-    expect(readDir).toHaveBeenCalledWith('/local/.hermes/desktop-plugins')
+    expect(readDir).toHaveBeenCalledWith('/local/.kova/desktop-plugins')
     // Unified halves are COPIED into the app root by Electron; the renderer
     // never scans the (profile-shaped) agent-plugins root itself.
-    expect(readDir).not.toHaveBeenCalledWith('/local/.hermes/plugins')
-    // The remote backend's hermes_home must never feed the local plugin scan.
+    expect(readDir).not.toHaveBeenCalledWith('/local/.kova/plugins')
+    // The remote backend's kova_home must never feed the local plugin scan.
     expect(getStatus).not.toHaveBeenCalled()
-    expect(readDir).not.toHaveBeenCalledWith('/remote/box/.hermes/desktop-plugins')
+    expect(readDir).not.toHaveBeenCalledWith('/remote/box/.kova/desktop-plugins')
   })
 
   it('no-ops when the resolvers yield no local root', async () => {
@@ -84,18 +84,18 @@ describe('scanDiskPlugins (#66899)', () => {
   })
 
   it('treats a folder without plugin.js as metadata, not a throwing file read', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     readDir.mockImplementation(async dir => {
-      if (dir === '/local/.hermes/desktop-plugins') {
+      if (dir === '/local/.kova/desktop-plugins') {
         return {
-          entries: [{ isDirectory: true, name: 'my-feature', path: '/local/.hermes/desktop-plugins/my-feature' }]
+          entries: [{ isDirectory: true, name: 'my-feature', path: '/local/.kova/desktop-plugins/my-feature' }]
         }
       }
 
-      if (dir === '/local/.hermes/desktop-plugins/my-feature') {
+      if (dir === '/local/.kova/desktop-plugins/my-feature') {
         return {
           entries: [
-            { isDirectory: false, name: 'README.md', path: '/local/.hermes/desktop-plugins/my-feature/README.md' }
+            { isDirectory: false, name: 'README.md', path: '/local/.kova/desktop-plugins/my-feature/README.md' }
           ]
         }
       }
@@ -105,21 +105,21 @@ describe('scanDiskPlugins (#66899)', () => {
 
     await discoverRuntimePlugins()
 
-    expect(readDir).toHaveBeenCalledWith('/local/.hermes/desktop-plugins/my-feature')
+    expect(readDir).toHaveBeenCalledWith('/local/.kova/desktop-plugins/my-feature')
     expect(readFileText).not.toHaveBeenCalled()
   })
 
   it('a DIRECTORY named plugin.js is not a plugin entry (metadata walk rejects it)', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     readDir.mockImplementation(async dir => {
-      if (dir === '/local/.hermes/desktop-plugins') {
-        return { entries: [{ isDirectory: true, name: 'odd', path: '/local/.hermes/desktop-plugins/odd' }] }
+      if (dir === '/local/.kova/desktop-plugins') {
+        return { entries: [{ isDirectory: true, name: 'odd', path: '/local/.kova/desktop-plugins/odd' }] }
       }
 
-      if (dir === '/local/.hermes/desktop-plugins/odd') {
+      if (dir === '/local/.kova/desktop-plugins/odd') {
         // A folder literally named plugin.js — must resolve to "no entry".
         return {
-          entries: [{ isDirectory: true, name: 'plugin.js', path: '/local/.hermes/desktop-plugins/odd/plugin.js' }]
+          entries: [{ isDirectory: true, name: 'plugin.js', path: '/local/.kova/desktop-plugins/odd/plugin.js' }]
         }
       }
 
@@ -133,9 +133,9 @@ describe('scanDiskPlugins (#66899)', () => {
   })
 
   it('loads a unified desktop half (app-root copy + package marker) OPT-IN and tags it with its package', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     let desktopEntryPresent = true
-    const root = '/local/.hermes/desktop-plugins'
+    const root = '/local/.kova/desktop-plugins'
 
     readDir.mockImplementation(async dir => {
       if (dir === root) {
@@ -145,7 +145,7 @@ describe('scanDiskPlugins (#66899)', () => {
       if (dir === `${root}/uni`) {
         return {
           entries: [
-            { isDirectory: false, name: '.hermes-package.json', path: `${root}/uni/.hermes-package.json` },
+            { isDirectory: false, name: '.kova-package.json', path: `${root}/uni/.kova-package.json` },
             { isDirectory: false, name: 'plugin.js', path: `${root}/uni/plugin.js` }
           ]
         }
@@ -158,7 +158,7 @@ describe('scanDiskPlugins (#66899)', () => {
 
     ;(globalThis as unknown as { __uniRegister: unknown }).__uniRegister = register
     readFileText.mockImplementation(async file =>
-      file.endsWith('.hermes-package.json')
+      file.endsWith('.kova-package.json')
         ? { text: JSON.stringify({ package: 'uni-pkg', source: '/x/plugins/uni-pkg/desktop', sourceMtimeMs: 1 }) }
         : { text: 'export default { id: "uni", register: globalThis.__uniRegister }' }
     )
@@ -215,8 +215,8 @@ describe('scanDiskPlugins (#66899)', () => {
 })
 
 describe('watchRuntimePlugins dir watch (#66899)', () => {
-  it('watches the Electron-resolved app root, never the backend hermes_home', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+  it('watches the Electron-resolved app root, never the backend kova_home', async () => {
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     readDir.mockResolvedValue({ entries: [] })
     watchDirectory.mockResolvedValue({ id: 'watch-1' })
 
@@ -224,8 +224,8 @@ describe('watchRuntimePlugins dir watch (#66899)', () => {
     // Drain the async scan + startDirWatches chains.
     await vi.waitFor(() => expect(watchDirectory).toHaveBeenCalledTimes(1))
 
-    expect(watchDirectory).toHaveBeenCalledWith('/local/.hermes/desktop-plugins')
-    expect(watchDirectory).not.toHaveBeenCalledWith('/remote/box/.hermes/desktop-plugins')
+    expect(watchDirectory).toHaveBeenCalledWith('/local/.kova/desktop-plugins')
+    expect(watchDirectory).not.toHaveBeenCalledWith('/remote/box/.kova/desktop-plugins')
     expect(getStatus).not.toHaveBeenCalled()
   })
 })
@@ -261,10 +261,10 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
   /** Two-level standalone-root listing the metadata-walk probe needs:
    *  the root lists the package folder, the folder lists plugin.js. */
   const standaloneRootWith = (name: string) => {
-    const folder = `/local/.hermes/desktop-plugins/${name}`
+    const folder = `/local/.kova/desktop-plugins/${name}`
 
     readDir.mockImplementation(async dir => {
-      if (dir === '/local/.hermes/desktop-plugins') {
+      if (dir === '/local/.kova/desktop-plugins') {
         return { entries: [{ isDirectory: true, name, path: folder }] }
       }
 
@@ -277,8 +277,8 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
   }
 
   it('loads the full source via readPluginSource when the shell offers it', async () => {
-    ;(window.hermesDesktop as unknown as { readPluginSource: unknown }).readPluginSource = readPluginSource
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    ;(window.kovaDesktop as unknown as { readPluginSource: unknown }).readPluginSource = readPluginSource
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     standaloneRootWith('big')
     // The preview read would truncate this source — it must never be used.
     readFileText.mockResolvedValue({ text: '// first 512 KiB only', truncated: true })
@@ -297,7 +297,7 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
       await discoverRuntimePlugins()
 
       // The EVALUATED source came from the full read, not the truncated preview.
-      expect(readPluginSource).toHaveBeenCalledWith('/local/.hermes/desktop-plugins/big/plugin.js')
+      expect(readPluginSource).toHaveBeenCalledWith('/local/.kova/desktop-plugins/big/plugin.js')
       expect(register).toHaveBeenCalledTimes(1)
       expect($pluginRecords.get().big).toMatchObject({ kind: 'disk', status: 'loaded' })
     } finally {
@@ -307,7 +307,7 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
   })
 
   it('older shell without readPluginSource: a truncated preview read fails LOUDLY, never evaluates', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     standaloneRootWith('huge')
     // 512 KiB window of a larger file — parses fine, but is NOT the plugin.
     readFileText.mockResolvedValue({
@@ -325,7 +325,7 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
       expect($pluginRecords.get().huge).toMatchObject({
         kind: 'disk',
         status: 'error',
-        file: '/local/.hermes/desktop-plugins/huge/plugin.js'
+        file: '/local/.kova/desktop-plugins/huge/plugin.js'
       })
       expect($pluginRecords.get().huge.error).toMatch(/512 KiB/)
     } finally {
@@ -334,7 +334,7 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
   })
 
   it('older shell, small plugin (not truncated): still loads through readFileText', async () => {
-    desktopPluginsRoot.mockResolvedValue('/local/.hermes/desktop-plugins')
+    desktopPluginsRoot.mockResolvedValue('/local/.kova/desktop-plugins')
     standaloneRootWith('small')
 
     const register = vi.fn()
@@ -424,7 +424,7 @@ describe('uninstallDiskPlugin (Plugins hub trash button)', () => {
 
   /** One standalone folder `gone-soon` at the root, loaded as plugin id `gone`. */
   const seedStandalone = async () => {
-    const root = '/local/.hermes/desktop-plugins'
+    const root = '/local/.kova/desktop-plugins'
     desktopPluginsRoot.mockResolvedValue(root)
     readDir.mockImplementation(async dir => {
       if (dir === root) {
@@ -440,7 +440,7 @@ describe('uninstallDiskPlugin (Plugins hub trash button)', () => {
     readFileText.mockResolvedValue({ text: 'export default { id: "gone", register() {} }' })
     watchPreviewFile.mockResolvedValue({ id: 'w-gone' })
     removeDesktopPlugin.mockReset()
-    ;(window.hermesDesktop as unknown as { removeDesktopPlugin: unknown }).removeDesktopPlugin = removeDesktopPlugin
+    ;(window.kovaDesktop as unknown as { removeDesktopPlugin: unknown }).removeDesktopPlugin = removeDesktopPlugin
 
     await discoverRuntimePlugins()
     expect($pluginRecords.get().gone).toMatchObject({ kind: 'disk', status: 'loaded' })
@@ -521,7 +521,7 @@ describe('bundled-shadowed disk copies', () => {
       const id = await loadRuntimePlugin(
         'export default { id: "hermes-bots", name: "Bot Mode", register() {} }',
         'hermes-bots',
-        { file: '/local/.hermes/desktop-plugins/hermes-bots/plugin.js' }
+        { file: '/local/.kova/desktop-plugins/hermes-bots/plugin.js' }
       )
 
       // Skipped — the bundled copy stays the only live registration...
@@ -533,7 +533,7 @@ describe('bundled-shadowed disk copies', () => {
       expect($pluginRecords.get()['hermes-bots:disk-shadowed']).toMatchObject({
         kind: 'disk',
         status: 'disabled',
-        file: '/local/.hermes/desktop-plugins/hermes-bots/plugin.js'
+        file: '/local/.kova/desktop-plugins/hermes-bots/plugin.js'
       })
     } finally {
       createObjectURL.mockRestore()
@@ -934,7 +934,7 @@ describe('remote static imports are refused (catalog trust)', () => {
 })
 
 describe('loader hardening: hangs, leaks, duplicate ids, stale incarnations', () => {
-  const root = '/local/.hermes/desktop-plugins'
+  const root = '/local/.kova/desktop-plugins'
   const counters = globalThis as unknown as Record<string, number | undefined>
 
   const withBlobReroute = () => {
@@ -1127,7 +1127,7 @@ describe('loader hardening: hangs, leaks, duplicate ids, stale incarnations', ()
 
 describe('manual "Reload desktop plugins" (#91503)', () => {
   it('re-reads an already-known plugin.js path and swaps in the new module', async () => {
-    const root = '/local/.hermes/desktop-plugins'
+    const root = '/local/.kova/desktop-plugins'
     desktopPluginsRoot.mockResolvedValue(root)
     readDir.mockImplementation(async dir => {
       if (dir === root) {
@@ -1194,8 +1194,8 @@ describe('manual "Reload desktop plugins" (#91503)', () => {
 
 describe('linked dev package: the source checkout drives the desktop half', () => {
   it('watches the SOURCE plugin.js and a save there re-syncs the copy and reloads it', async () => {
-    const root = '/local/.hermes/desktop-plugins'
-    const sourceDir = '/local/.hermes/plugins/devpkg/desktop'
+    const root = '/local/.kova/desktop-plugins'
+    const sourceDir = '/local/.kova/plugins/devpkg/desktop'
     desktopPluginsRoot.mockResolvedValue(root)
     readDir.mockImplementation(async dir => {
       if (dir === root) {
@@ -1205,7 +1205,7 @@ describe('linked dev package: the source checkout drives the desktop half', () =
       if (dir === `${root}/devpkg`) {
         return {
           entries: [
-            { isDirectory: false, name: '.hermes-package.json', path: `${root}/devpkg/.hermes-package.json` },
+            { isDirectory: false, name: '.kova-package.json', path: `${root}/devpkg/.kova-package.json` },
             { isDirectory: false, name: 'plugin.js', path: `${root}/devpkg/plugin.js` }
           ]
         }
@@ -1219,7 +1219,7 @@ describe('linked dev package: the source checkout drives the desktop half', () =
     Object.assign(globalThis, { __devV1: registerV1, __devV2: registerV2 })
     let copy = 'export default { id: "devpkg", register: globalThis.__devV1 }'
     readFileText.mockImplementation(async file =>
-      file.endsWith('.hermes-package.json')
+      file.endsWith('.kova-package.json')
         ? { text: JSON.stringify({ linked: true, package: 'devpkg', source: sourceDir, sourceMtimeMs: 1 }) }
         : { text: copy }
     )
@@ -1232,7 +1232,7 @@ describe('linked dev package: the source checkout drives the desktop half', () =
       return [`${root}/devpkg`]
     })
 
-    Object.assign((window as unknown as { hermesDesktop: object }).hermesDesktop, { reconcileDesktopPlugins })
+    Object.assign((window as unknown as { hermesDesktop: object }).kovaDesktop, { reconcileDesktopPlugins })
 
     const createObjectURL = vi
       .spyOn(URL, 'createObjectURL')

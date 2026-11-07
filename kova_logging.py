@@ -1,4 +1,4 @@
-"""Centralized logging setup for Hermes Agent.
+"""Centralized logging setup for Kova Agent.
 
 Log files: agent.log (INFO+, everything), errors.log (WARNING+), gateway.log (INFO+,
 gateway components; ``mode="gateway"``), gui.log (INFO+, dashboard/TUI-gateway;
@@ -21,7 +21,7 @@ from time import monotonic as _monotonic
 from typing import Optional, Sequence
 
 from kova_constants import (
-    get_config_path, get_hermes_home, mkdir_under_hermes_home, named_profile_is_deleted,
+    get_config_path, get_kova_home, mkdir_under_kova_home, named_profile_is_deleted,
 )
 
 # setup_logging() is idempotent: a second call is a no-op unless ``force=True``.
@@ -75,7 +75,7 @@ def _portalocker_probe() -> bool:
 # Windows-ONLY swap (#44873): stdlib ``RotatingFileHandler.doRollover()`` calls
 # ``os.rename()``, which fails with ``PermissionError [WinError 32]`` whenever
 # another process holds an append handle on ``agent.log`` — essentially always
-# in Hermes (TUI, gateway, hy_memory, MCP servers, CLI commands all log) —
+# in Kova (TUI, gateway, hy_memory, MCP servers, CLI commands all log) —
 # pinning the file at the size threshold and spamming stderr on every emit.
 # ``concurrent-log-handler`` serializes rollover with a cross-process lock.
 # POSIX keeps stdlib: renames of open files work, and managed mode (NixOS)
@@ -279,9 +279,9 @@ def _install_session_record_factory() -> None:
         # ContextVar is gone; keep the resolved home on the record so a
         # multiplex desktop ticker can route to the job owner's files (#97489).
         try:
-            record.hermes_home = str(get_hermes_home().resolve())  # type: ignore[attr-defined]
+            record.kova_home = str(get_kova_home().resolve())  # type: ignore[attr-defined]
         except Exception:
-            record.hermes_home = ""  # type: ignore[attr-defined]
+            record.kova_home = ""  # type: ignore[attr-defined]
         return record
     _session_record_factory._hermes_session_injector = True  # type: ignore[attr-defined]
     logging.setLogRecordFactory(_session_record_factory)
@@ -356,14 +356,14 @@ def _adopt_secondary_home(home: Path) -> bool:
 
 def setup_logging(
     *,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
     log_level: Optional[str] = None,
     max_size_mb: Optional[int] = None,
     backup_count: Optional[int] = None,
     mode: Optional[str] = None,
     force: bool = False,
 ) -> Path:
-    """Configure the Hermes logging subsystem; returns the ``logs/`` directory.
+    """Configure the Kova logging subsystem; returns the ``logs/`` directory.
 
     Safe to call multiple times; the second call is a no-op unless *force*. Level and
     rotation defaults come from config.yaml ``logging.*``. ``mode="gateway"`` adds
@@ -371,8 +371,8 @@ def setup_logging(
     """
     global _logging_initialized
     global _fallback_warned
-    home = hermes_home or get_hermes_home()
-    log_dir = mkdir_under_hermes_home(home / "logs")
+    home = kova_home or get_kova_home()
+    log_dir = mkdir_under_kova_home(home / "logs")
 
     # Stdout is block-buffered when piped (no TTY); line-buffer it so a
     # headless supervisor's log stream tracks the agent loop incrementally
@@ -380,7 +380,7 @@ def setup_logging(
     # reaches this function gets it; a no-op once this stdout is line-buffered.
     _line_buffer_piped_stdout()
 
-    # A second Hermes home in a process that already logs for another one — a dashboard or
+    # A second Kova home in a process that already logs for another one — a dashboard or
     # ``hermes serve`` backend building agents for several profiles, a multiplexed gateway —
     # gets routed by record home. Stacking another file handler here would hand it EVERY
     # profile's records (the handlers carry no home filter), and a duplicate writer on top of
@@ -622,7 +622,7 @@ def _new_file_handler(
     path: Path, *, level: int, max_bytes: int, backup_count: int, formatter
 ) -> _ManagedRotatingFileHandler:
     """Create the ``logs/`` directory and a configured ``_ManagedRotatingFileHandler``."""
-    mkdir_under_hermes_home(path.parent)
+    mkdir_under_kova_home(path.parent)
     if _WINDOWS_CLH_FALLBACK:
         # stdlib fallback: no rollover, or the file pins at the size threshold
         # and every emit re-triggers the WinError 32 rename failure (#44873).
@@ -644,7 +644,7 @@ _PROFILE_LIVENESS_RECHECK_S = 2.0
 
 
 class _ProfileRoutingFileHandler(logging.Handler):
-    """Route queued records to the log file for their Hermes home.
+    """Route queued records to the log file for their Kova home.
 
     Used only behind the QueueListener, so its small routing lock never blocks an agent
     or dashboard event loop. Per-home handlers keep rotation, redaction and managed perms.
@@ -671,7 +671,7 @@ class _ProfileRoutingFileHandler(logging.Handler):
             self.addFilter(log_filter)
 
     def _home_for_record(self, record: logging.LogRecord) -> Path:
-        raw_home = getattr(record, "hermes_home", "")
+        raw_home = getattr(record, "kova_home", "")
         try:
             candidate = Path(raw_home).expanduser().resolve()
         except (TypeError, ValueError, OSError):
@@ -752,12 +752,12 @@ class _ProfileRoutingFileHandler(logging.Handler):
                 return
             # Formatted here, on the listener thread, where the record's profile scope is gone: bind its home so
             # RedactingFormatter applies THAT profile's redact_secrets policy and vault values, not the launch's.
-            from kova_constants import reset_hermes_home_override, set_hermes_home_override
-            token = set_hermes_home_override(str(home))
+            from kova_constants import reset_kova_home_override, set_kova_home_override
+            token = set_kova_home_override(str(home))
             try:
                 handler.handle(record)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
             # The write was skipped because logs/ is gone (an rmtree inside the liveness interval,
             # see _ManagedRotatingFileHandler.emit): re-check now, and keep the record in the
             # default log either way (a live profile whose logs/ was removed by hand included).

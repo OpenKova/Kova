@@ -2,11 +2,11 @@
 
 from unittest.mock import MagicMock, patch
 
-from cli import HermesCLI
+from cli import KovaCLI
 
 def _make_cli(enabled_toolsets=None):
-    """Build a minimal HermesCLI stub without running __init__."""
-    cli_obj = HermesCLI.__new__(HermesCLI)
+    """Build a minimal KovaCLI stub without running __init__."""
+    cli_obj = KovaCLI.__new__(KovaCLI)
     cli_obj.enabled_toolsets = set(enabled_toolsets or ["web", "memory"])
     cli_obj._command_running = False
     cli_obj.console = MagicMock()

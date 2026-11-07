@@ -46,7 +46,7 @@ const REPO = 'https://github.com/example/pkg'
 
 const ADMISSION_REFUSAL =
   'invalid params for plugins.manage: inspected_sha: Extra inputs are not permitted — the client and the ' +
-  'Hermes backend are out of sync (different versions); run `hermes update` and restart both'
+  'Kova backend are out of sync (different versions); run `hermes update` and restart both'
 
 const callsFor = (action: string) =>
   requestGateway.mock.calls.filter(([method, params]) => method === 'plugins.manage' && params?.action === action)
@@ -75,7 +75,7 @@ afterEach(() => {
   cleanup()
   closePluginInstallRequest()
   vi.unstubAllGlobals()
-  delete window.document.documentElement.dataset.hermesDesktopHost
+  delete window.document.documentElement.dataset.kovaDesktopHost
 })
 
 describe('a backend that predates inspected_sha', () => {
@@ -101,7 +101,7 @@ describe('a backend that predates inspected_sha', () => {
     })
 
   it('explains the missing guarantee and installs nothing until the user confirms', async () => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     olderBackend()
 
     renderModal()
@@ -124,7 +124,7 @@ describe('a backend that predates inspected_sha', () => {
   })
 
   it('Cancel leaves nothing installed', async () => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     olderBackend()
 
     renderModal()
@@ -228,7 +228,7 @@ describe('a catalog pick is held to the pin the dialog showed', () => {
   const openCatalog = () => act(() => openPluginInstallRequest({ catalogName: 'pkg', repo: REPO, sha: V1 }))
 
   it('browser-hosted: the commit the backend read at the catalog pin', async () => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     catalogBackend()
 
     renderModal()

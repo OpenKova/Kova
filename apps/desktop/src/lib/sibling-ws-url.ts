@@ -52,10 +52,10 @@ export async function resolveSiblingWsUrl(
   path: string,
   options: { stripGatewayCredential?: boolean } = {}
 ): Promise<string> {
-  const desktop = window.hermesDesktop
+  const desktop = window.kovaDesktop
 
   if (!desktop?.getConnection) {
-    throw new Error('Hermes Desktop connection bridge unavailable')
+    throw new Error('Kova Desktop connection bridge unavailable')
   }
 
   const connectionId = route.connectionId?.trim() || null

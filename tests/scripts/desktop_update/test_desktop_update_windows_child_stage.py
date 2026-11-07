@@ -53,7 +53,7 @@ def test_handoff_shows_the_stage_the_update_publishes(tmp_path: Path) -> None:
         ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT),
          "-InstallRoot", str(install), "-NoUi"],
         cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**os.environ, "HERMES_HOME": str(home), "HERMES_RUNTIME_DIR": str(tmp_path / "empty-store"),
+        env={**os.environ, "KOVA_HOME": str(home), "KOVA_RUNTIME_DIR": str(tmp_path / "empty-store"),
              "HANDOFF_HOLD": str(hold), "HANDOFF_REPO": str(ROOT)},
     )
     try:
@@ -109,7 +109,7 @@ def test_lines_logged_while_another_process_holds_the_log_land_once_it_lets_go(t
         ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT),
          "-InstallRoot", str(install), "-NoUi"],
         cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**os.environ, "HERMES_HOME": str(home), "HERMES_RUNTIME_DIR": str(tmp_path / "empty-store"),
+        env={**os.environ, "KOVA_HOME": str(home), "KOVA_RUNTIME_DIR": str(tmp_path / "empty-store"),
              "HANDOFF_STARTED": str(started), "HANDOFF_RELEASED": str(released), "HANDOFF_HOLD": str(hold),
              "HANDOFF_REPO": str(ROOT)},
     )

@@ -397,7 +397,7 @@ def _prompt_frame(authority, ref, row, worker, frame):
 
 
 def _worker_env(authority):
-    """Child env for the OWNING profile under multiplex: its HERMES_HOME plus its ``.env``
+    """Child env for the OWNING profile under multiplex: its KOVA_HOME plus its ``.env``
     secrets over a scrubbed base, never the launch profile's process environment (the same
     rule MCP stdio children and shell hooks follow) — except for the launch profile's own
     worker, whose scope legitimately includes its frozen launch env. Single-profile gateways
@@ -418,7 +418,7 @@ def _worker_env(authority):
     # The scrub removes credentials, not settings: the launch profile's TERMINAL_* policy and
     # its ``.env`` settings would otherwise reach the secondary's worker (cron/kanban rule).
     # Strip the RAW environ before the constructor injects this turn's own session/bridge context:
-    # a launch ``.env`` name (HERMES_SESSION_ID...) must not erase a value derived for this turn.
+    # a launch ``.env`` name (KOVA_SESSION_ID...) must not erase a value derived for this turn.
     env = build_subprocess_env(base=strip_launch_profile_env(os.environ.copy(), home), scrub_secrets=True)
     secrets = build_profile_secret_scope(home)
     if routed:
@@ -428,7 +428,7 @@ def _worker_env(authority):
     else:
         secrets = {**_launch_env_only_credentials(home, env), **secrets}
     env.update({k: v for k, v in secrets.items() if v is not None})
-    env['HERMES_HOME'] = str(home)
+    env['KOVA_HOME'] = str(home)
     from kova_constants import apply_subprocess_home_env
     apply_subprocess_home_env(env)
     return env
@@ -439,7 +439,7 @@ def _launch_env_only_credentials(home, env):
     (``launch_secret_scope``: systemd ``Environment=`` / ``op run`` keys with no ``.env`` line) that
     the scrub removed from *env* — the same mapping the owner's own ``get_secret`` reads for this
     profile. Credential names only: non-credential names the constructor removed on purpose
-    (unbound session context, venv markers) stay removed, and Hermes-internal secrets
+    (unbound session context, venv markers) stay removed, and Kova-internal secrets
     (``AUXILIARY_*_API_KEY``, relay auth) never reach a child. Only the launch home's worker calls
     this; a routed home's worker sees its own files only."""
     from tools.environments.local import _scrub_credentials

@@ -113,7 +113,7 @@ def test_cli_update_all_skips_a_catalog_install_held_with_ref(tmp_path, monkeypa
     home = tmp_path / "hermes-home"
     (home / "plugins" / "held").mkdir(parents=True)
     (home / "plugins" / "behind").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     _held_install_metadata(home)
     monkeypatch.setattr(plugins_updates, "run_checks", lambda _dir: [_Row("held", "catalog"), _Row("behind", "catalog")])
     moved = []

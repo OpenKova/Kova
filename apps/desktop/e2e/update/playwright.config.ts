@@ -16,7 +16,7 @@ import { defineConfig } from '@playwright/test'
  *    packaging) and the app's relaunch.
  */
 // Local parallel runs against different install roots need separate output dirs.
-const OUT = process.env.HERMES_E2E_UPDATE_OUT ?? 'update'
+const OUT = process.env.KOVA_E2E_UPDATE_OUT ?? 'update'
 
 export default defineConfig({
   testDir: '.',

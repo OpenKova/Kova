@@ -1,6 +1,6 @@
 """Per-admission turn inputs the classic CLI sends with ``prompt.submit`` (CALLMAP W2).
 
-Main's HermesCLI calls ``AIAgent.run_conversation`` with an API-only message (voice prefix,
+Main's KovaCLI calls ``AIAgent.run_conversation`` with an API-only message (voice prefix,
 model-switch / skills-reload notes) while persisting the clean text, names the turn's author for
 memory attribution, and runs ``/model --once`` and ``/moa`` as a one-turn runtime swap. Over the
 session authority those are facts about ONE admitted turn, committed with the admission row as
@@ -136,7 +136,7 @@ def one_turn_runtime(override, model, runtime_kwargs, config):
     return result.new_model, runtime
 
 
-# run_conversation keys main's HermesCLI reads that the gateway's own projection does not carry
+# run_conversation keys main's KovaCLI reads that the gateway's own projection does not carry
 # (CALLMAP §3.3 step 4): the transform-preview original, the billing descriptor and the turn's
 # last reasoning / preview flags.
 _RESULT_PASSTHROUGH = ('pre_transform_response', 'billing_block', 'last_reasoning', 'response_previewed',
@@ -145,7 +145,7 @@ _RESULT_PASSTHROUGH = ('pre_transform_response', 'billing_block', 'last_reasonin
 
 def classic_cli_turn(turn):
     """A local-viewer turn on a classic-CLI surface session (``cli`` / ``oneshot`` / ``tool``): the
-    viewer is main's HermesCLI, which reads the run_conversation-shaped result itself."""
+    viewer is main's KovaCLI, which reads the run_conversation-shaped result itself."""
     from gateway.run_turn_progress import local_viewer_turn
     if not local_viewer_turn(turn):
         return False

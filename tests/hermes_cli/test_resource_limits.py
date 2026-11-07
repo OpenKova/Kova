@@ -35,14 +35,14 @@ class _FakeResource:
 
 def test_real_config_loader_reads_runtime_nofile_setting(monkeypatch, tmp_path):
     """The helper uses the canonical config loader, not a second YAML parser."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text(
         "runtime:\n  nofile_soft_limit: 2048\n",
         encoding="utf-8",
     )
     fake_resource = _FakeResource(soft=256, hard=4096)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(resource_limits, "_resource", fake_resource)
 
     assert resource_limits.apply_nofile_soft_limit() is True
@@ -209,12 +209,12 @@ def test_serve_startup_applies_limit_before_web_server(monkeypatch):
     import kova_cli.plugins
     import kova_cli.web_server
 
-    # cmd_dashboard(headless_backend=True) exports HERMES_SERVE_HEADLESS=1 into
+    # cmd_dashboard(headless_backend=True) exports KOVA_SERVE_HEADLESS=1 into
     # this process's environment (main.py serve path). Touch the key through
     # monkeypatch FIRST so teardown restores the pre-test state — otherwise the
     # leaked flag flips later web-server tests (mount_spa) into the headless
     # 404 path.
-    monkeypatch.setenv("HERMES_SERVE_HEADLESS", "0")
+    monkeypatch.setenv("KOVA_SERVE_HEADLESS", "0")
 
     calls: list[str] = []
     monkeypatch.setattr(
@@ -234,7 +234,7 @@ def test_serve_startup_applies_limit_before_web_server(monkeypatch):
         lambda **kwargs: (calls.append("server"), served.update(kwargs)),
     )
     # Desktop SSH serve: the owner watchdog's lock sits next to the validated token (#132034).
-    token_dir = Path("/home/u/.hermes/desktop-ssh") / ("f" * 32)
+    token_dir = Path("/home/u/.kova/desktop-ssh") / ("f" * 32)
     monkeypatch.setattr(cli_main, "_read_ssh_session_token_file", lambda path: "s" * 64)
 
     args = SimpleNamespace(
@@ -269,7 +269,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
     calls: list[str] = []
     exec_call: dict[str, object] = {}
 
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
+    monkeypatch.delenv("KOVA_DESKTOP", raising=False)
     monkeypatch.setattr(
         resource_limits,
         "apply_nofile_soft_limit",
@@ -288,7 +288,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
     )
     monkeypatch.setattr(
         kova_constants,
-        "get_default_hermes_root",
+        "get_default_kova_root",
         lambda: tmp_path,
     )
 
@@ -321,7 +321,7 @@ def test_named_profile_reroute_defers_limit_to_final_process(monkeypatch, tmp_pa
 
     assert calls == []
     assert exec_call["argv"][1:5] == ["-m", "kova_cli.main", "-p", "default"]
-    assert exec_call["env"]["HERMES_HOME"] == str(tmp_path)
+    assert exec_call["env"]["KOVA_HOME"] == str(tmp_path)
 
 
 @pytest.mark.parametrize("lifecycle_flag", ["status", "stop"])

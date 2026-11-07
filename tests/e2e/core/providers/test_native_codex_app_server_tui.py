@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 from tests.e2e.core.providers._native_helpers import latest_session, make_home, messages
-from tests.e2e.core.terminal._pty import REPO_ROOT, PtyHermes, poll
+from tests.e2e.core.terminal._pty import REPO_ROOT, PtyKova, poll
 from tests.fakes.providers.codex_app_server import FakeCodex
 
 pytestmark = [
@@ -36,8 +36,8 @@ COMMENTARY, FINAL = "CODEX-COMMENTARY-ALPHA", "CODEX-FINAL-OMEGA"
 
 def test_undelta_codex_messages_reach_the_attached_tui(tmp_path: Path) -> None:
     if shutil.which("node") is None or not (REPO_ROOT / "ui-tui" / "dist" / "entry.js").is_file():
-        if os.environ.get("HERMES_E2E_REQUIRE_TUI") == "1":
-            pytest.fail("ui-tui/dist/entry.js or node missing but HERMES_E2E_REQUIRE_TUI=1")
+        if os.environ.get("KOVA_E2E_REQUIRE_TUI") == "1":
+            pytest.fail("ui-tui/dist/entry.js or node missing but KOVA_E2E_REQUIRE_TUI=1")
         pytest.skip("Ink TUI not built (cd ui-tui && pnpm run build) or node missing")
 
     fake = FakeCodex(tmp_path, [{"steps": [
@@ -47,7 +47,7 @@ def test_undelta_codex_messages_reach_the_attached_tui(tmp_path: Path) -> None:
     ]}])
     home = make_home(tmp_path, {"provider": "openai", "default": "gpt-5.5", "openai_runtime": "codex_app_server",
                                 "codex_bin": str(fake.bin)}, env_file={"OPENAI_API_KEY": "sk-fake-codex-e2e"})
-    tui = PtyHermes(tmp_path, ["--tui", "--yolo"], None, rows=50, cols=120)
+    tui = PtyKova(tmp_path, ["--tui", "--yolo"], None, rows=50, cols=120)
     try:
         tui.wait_ready()
         tui.submit("run the canary USER-ONE")

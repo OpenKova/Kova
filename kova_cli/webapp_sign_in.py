@@ -25,7 +25,7 @@ gave it to a native app's sign-in (RFC 8252: ``/auth/native/token``, then ``/aut
 listener keeps a digest of each such token until it expires, in ``RECORD_PATH`` under the gateway home
 (``app.state.webapp_home``), so native apps stay signed in across a restart and a sign-out. A browser
 login's tokens therefore work only as that login's cookies and end with it. The deployment session
-token (``HERMES_DASHBOARD_SESSION_TOKEN``) also works as a bearer or ``?token=`` while the
+token (``KOVA_DASHBOARD_SESSION_TOKEN``) also works as a bearer or ``?token=`` while the
 session-token provider is registered (:func:`access_token_works_alone`): no browser login holds it,
 and it has no refresh.
 """

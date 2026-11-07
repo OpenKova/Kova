@@ -40,7 +40,7 @@ def test_staged_uv_prepares_pm_before_any_tool_download(tmp_path):
     }}))
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(("PYTHON", "UV_"))}
-    env.update(HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store))
+    env.update(KOVA_HOME=str(home), KOVA_RUNTIME_DIR=str(store))
     code = """
 import sys, subprocess
 from pathlib import Path
@@ -57,11 +57,11 @@ print(result.stdout)
     result = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=180, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
     assert Path(json.loads(result.stdout)["tls"]).is_relative_to(home)
-    assert "Preparing the isolated Hermes runtime" in result.stderr
+    assert "Preparing the isolated Kova runtime" in result.stderr
     assert "must-not-fetch.invalid" not in result.stderr
     warm = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30, check=False)
     assert warm.returncode == 0, warm.stdout + warm.stderr
-    assert "Preparing the isolated Hermes runtime" not in warm.stderr
+    assert "Preparing the isolated Kova runtime" not in warm.stderr
     assert warm.stdout == result.stdout
     assert not (store / "facts.json").exists(), "preparing PM must not realize its tool closure"
     assert not list(store.glob("python-*"))
@@ -89,8 +89,8 @@ def test_pm_cli_verifies_tls_with_platform_trust(tmp_path, monkeypatch):
 
     home = tmp_path / "home"
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(home / "tools"))
     uv = shutil.which("uv")
     assert uv
     python = prepare_runtime(Path(uv), Path(sys.executable), tmp_path / "runtime")

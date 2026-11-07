@@ -3,7 +3,7 @@
 Every pm venv sync — startup, plugin install, update rebuild — writes a
 receipt with the SAME schema the updater's receipts use
 (kova_cli.update_receipt), into the same
-``<HERMES_HOME>/logs/update_receipts/`` dir with a ``kind`` field
+``<KOVA_HOME>/logs/update_receipts/`` dir with a ``kind`` field
 separating kinds. One reader (``hermes pm status``, desktop IPC) serves
 every surface: a failed venv rebuild is as reportable as a failed
 update.
@@ -124,9 +124,9 @@ def _utc_now_iso() -> str:
 def _receipt_dir() -> Path:
     """The receipts dir — a pure path computation, NO mkdir side
     effect: readers (latest()) must not create state."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return get_hermes_home() / "logs" / "update_receipts"
+    return get_kova_home() / "logs" / "update_receipts"
 
 
 def begin(kind: str) -> contextvars.Token:

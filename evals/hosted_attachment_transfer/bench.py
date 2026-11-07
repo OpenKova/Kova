@@ -26,11 +26,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 for key in list(os.environ):
-    if key.startswith('HERMES_') or key.endswith(('_API_KEY', '_TOKEN')):
+    if key.startswith('KOVA_') or key.endswith(('_API_KEY', '_TOKEN')):
         os.environ.pop(key, None)
 TMP = Path(tempfile.mkdtemp(prefix='hosted-attachment-bench-'))
 os.environ['HOME'] = str(TMP)
-os.environ['HERMES_HOME'] = str(TMP / '.hermes')
+os.environ['KOVA_HOME'] = str(TMP / '.kova')
 
 from pytest import MonkeyPatch
 

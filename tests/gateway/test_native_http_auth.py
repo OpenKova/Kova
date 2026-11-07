@@ -35,9 +35,9 @@ def daemon(tmp_path):
     }))
     root = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED='1',
-               HERMES_DASHBOARD_SESSION_TOKEN='normal-http-owner')
+               KOVA_DASHBOARD_SESSION_TOKEN='normal-http-owner')
     with (tmp_path / 'gateway.log').open('w+') as log:
         process = subprocess.Popen([sys.executable, '-m', 'gateway.run'], cwd=root, env=env,
                                    stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
@@ -73,13 +73,13 @@ def ticket(home, descriptor, purpose='native-http', **overrides):
 
 
 def headers(token):
-    return {'X-Hermes-Gateway-Ticket': token}
+    return {'X-Kova-Gateway-Ticket': token}
 
 
 async def reject_ws(origin, token):
     with pytest.raises(InvalidStatus):
         async with connect(origin.replace('http:', 'ws:') + '/api/ws', subprotocols=[
-                'hermes-gateway-v1', 'hermes-gateway-ticket.' + token]):
+                'kova-gateway-v1', 'kova-gateway-ticket.' + token]):
             pass
 
 
@@ -103,8 +103,8 @@ def test_native_http_grants_are_single_use_and_bound_to_daemon(tmp_path):
             assert client.get('/api/config', headers={**headers(ticket(home, descriptor)),
                                                      'Origin': origin}).status_code == 401
         assert client.get('/api/config', headers=[
-            ('X-Hermes-Gateway-Ticket', ticket(home, descriptor)),
-            ('X-Hermes-Gateway-Ticket', ticket(home, descriptor)),
+            ('X-Kova-Gateway-Ticket', ticket(home, descriptor)),
+            ('X-Kova-Gateway-Ticket', ticket(home, descriptor)),
         ]).status_code == 401
         for purpose in ('interactive', 'exposure', 'worker-adoption'):
             assert client.get('/api/config', headers=headers(ticket(home, descriptor, purpose))).status_code == 401
@@ -150,7 +150,7 @@ def test_native_http_grants_are_single_use_and_bound_to_daemon(tmp_path):
         assert yaml.safe_load((home / 'config.yaml').read_text())['display']['skin'] == 'ares'
         query_ticket = ticket(home, descriptor)
         assert client.get('/api/config', params={'ticket': query_ticket}).status_code == 401
-        assert client.get('/api/config', headers={'Cookie': 'X-Hermes-Gateway-Ticket=' + query_ticket}).status_code == 401
+        assert client.get('/api/config', headers={'Cookie': 'X-Kova-Gateway-Ticket=' + query_ticket}).status_code == 401
         # Expiry is TicketStore.redeem's ``expires <= monotonic()`` rule, which the native-HTTP gate
         # maps to 401 like every other redeem refusal: covered at the exact 30 s boundary with a
         # patched clock in test_runtime_bootstrap, not by a 31 s wall-clock wait in the default lane.
@@ -177,10 +177,10 @@ async def test_native_http_preserves_gated_auth_and_actual_socket_boundary(tmp_p
     from kova_cli import web_server as web
     from kova_cli.dashboard_auth import register_provider, clear_providers
     from kova_cli.dashboard_auth.cookies import SESSION_AT_COOKIE
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
-    home = get_hermes_home()
+    home = get_kova_home()
     (home / 'config.yaml').write_text('dashboard:\n  public_url: https://gateway.example.test\n')
     provider = StubAuthProvider()
     register_provider(provider)

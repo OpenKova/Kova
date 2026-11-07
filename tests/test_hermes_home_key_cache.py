@@ -1,6 +1,6 @@
-"""Tests for the remembered results in `hermes_home_key`.
+"""Tests for the remembered results in `kova_home_key`.
 
-`Path.resolve()` is a filesystem call. `hermes_home_key` sits under
+`Path.resolve()` is a filesystem call. `kova_home_key` sits under
 `ToolRegistry.current_scope_key()`, which runs on every registry lookup, so
 before the results were remembered the registry paid a syscall per lookup.
 
@@ -20,15 +20,15 @@ import kova_constants as hc
 
 def _uncached(path=None) -> str:
     """The calculation as it was before results were remembered."""
-    candidate = Path(path) if path is not None else hc.get_hermes_home()
+    candidate = Path(path) if path is not None else hc.get_kova_home()
     return os.path.normcase(str(candidate.expanduser().resolve(strict=False)))
 
 
 @pytest.fixture(autouse=True)
 def _clear_cache():
-    hc.reset_hermes_home_key_cache()
+    hc.reset_kova_home_key_cache()
     yield
-    hc.reset_hermes_home_key_cache()
+    hc.reset_kova_home_key_cache()
 
 
 class TestSameAnswerAsBefore:
@@ -43,17 +43,17 @@ class TestSameAnswerAsBefore:
             "trailing_sep": str(tmp_path / "real") + os.sep,
             "dot_dot": str(tmp_path / "real" / ".." / "real"),
         }[case]
-        assert hc.hermes_home_key(target) == _uncached(target)
+        assert hc.kova_home_key(target) == _uncached(target)
 
     def test_matches_for_the_default_home(self):
-        assert hc.hermes_home_key() == _uncached()
+        assert hc.kova_home_key() == _uncached()
 
     def test_matches_for_a_tilde_path(self):
-        assert hc.hermes_home_key("~") == _uncached("~")
+        assert hc.kova_home_key("~") == _uncached("~")
 
     def test_accepts_a_path_object(self, tmp_path):
         (tmp_path / "real").mkdir()
-        assert hc.hermes_home_key(tmp_path / "real") == _uncached(tmp_path / "real")
+        assert hc.kova_home_key(tmp_path / "real") == _uncached(tmp_path / "real")
 
 
 
@@ -62,14 +62,14 @@ class TestWhatGetsRemembered:
     def test_a_missing_path_is_not_remembered(self, tmp_path):
         # The answer can change once the directory is created, for example
         # when part of the path turns out to be a link, so it must not stick.
-        hc.hermes_home_key(str(tmp_path / "not_there"))
+        hc.kova_home_key(str(tmp_path / "not_there"))
         assert hc._HOME_KEY_CACHE == {}
 
     def test_a_path_created_later_picks_up_the_real_answer(self, tmp_path):
         later = tmp_path / "later"
-        before = hc.hermes_home_key(str(later))
+        before = hc.kova_home_key(str(later))
         later.mkdir()
-        after = hc.hermes_home_key(str(later))
+        after = hc.kova_home_key(str(later))
         assert after == _uncached(str(later))
         assert hc._HOME_KEY_CACHE == {str(later): after}
         # On a plain directory both answers agree anyway. The point is that
@@ -80,7 +80,7 @@ class TestWhatGetsRemembered:
 
 
 class TestHomeChanges:
-    def test_pointing_hermes_home_somewhere_else_gives_a_new_key(
+    def test_pointing_kova_home_somewhere_else_gives_a_new_key(
         self, tmp_path, monkeypatch,
     ):
         # A different home is a different input path, so it lands on its own
@@ -90,10 +90,10 @@ class TestHomeChanges:
         first.mkdir()
         second.mkdir()
 
-        monkeypatch.setenv("HERMES_HOME", str(first))
-        key_one = hc.hermes_home_key()
-        monkeypatch.setenv("HERMES_HOME", str(second))
-        key_two = hc.hermes_home_key()
+        monkeypatch.setenv("KOVA_HOME", str(first))
+        key_one = hc.kova_home_key()
+        monkeypatch.setenv("KOVA_HOME", str(second))
+        key_two = hc.kova_home_key()
 
         assert key_one != key_two
         assert key_one == _uncached(str(first))
@@ -109,8 +109,8 @@ class TestSymlinks:
             link.symlink_to(target, target_is_directory=True)
         except (OSError, NotImplementedError):
             pytest.skip("this platform or account cannot create symlinks")
-        assert hc.hermes_home_key(str(link)) == _uncached(str(link))
-        assert hc.hermes_home_key(str(link)) == hc.hermes_home_key(str(target))
+        assert hc.kova_home_key(str(link)) == _uncached(str(link))
+        assert hc.kova_home_key(str(link)) == hc.kova_home_key(str(target))
 
 
 class TestRegistryLookupsDoNotHitTheDisk:

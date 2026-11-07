@@ -41,14 +41,14 @@ def test_lc_ctype_rule(env, platform, expected):
 def test_linux_host_shell_env_selects_a_utf8_locale(monkeypatch, lang):
     """The env resolve_argv hands the PTY must pass glibc's setlocale with a UTF-8 codeset."""
     from kova_cli.web_host_terminal import resolve_argv
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     for key in [k for k in os.environ if k.startswith("LC_") or k in ("LANG", "LANGUAGE")]:
         monkeypatch.delenv(key)
     if lang is not None:
         monkeypatch.setenv("LANG", lang)
 
-    _argv, _cwd, env, _shell = resolve_argv(home=get_hermes_home())
+    _argv, _cwd, env, _shell = resolve_argv(home=get_kova_home())
     probe = subprocess.run(
         ["locale", "charmap"], env=env, capture_output=True, text=True, timeout=30, check=False,
     )

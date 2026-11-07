@@ -24,7 +24,7 @@ def marks(tmp_path, monkeypatch):
     """Capture decision marks at the runtime boundary; collection on unless a test turns it off."""
     captured: list[tuple[str, dict]] = []
     policy = {"on": True}
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": policy["on"]}}},
@@ -144,10 +144,10 @@ def test_turn_watchdog_abort_counts_once_per_turn_in_the_turn_profile(marks, tmp
     agent = SimpleNamespace()
     process_metrics.record_watchdog_turn_abort(agent)  # never armed: no owning profile, no row
     process_metrics.arm_turn(agent)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "other"))  # the watchdog thread's ambient home
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "other"))  # the watchdog thread's ambient home
     seen: list[str] = []
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", lambda mark, data: (
-        marks.rows.append((mark, data)), seen.append(str(__import__("kova_constants").get_hermes_home()))))
+        marks.rows.append((mark, data)), seen.append(str(__import__("kova_constants").get_kova_home()))))
     process_metrics.record_watchdog_turn_abort(agent)
     process_metrics.record_watchdog_turn_abort(agent)  # the second watchdog on the same turn
     assert [data["exit_kind"] for _, data in marks.rows] == ["watchdog"]

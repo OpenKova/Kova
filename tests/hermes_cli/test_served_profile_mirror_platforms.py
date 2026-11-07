@@ -19,23 +19,23 @@ def served_root(tmp_path, monkeypatch):
     root = tmp_path / "hermes"
     (root / "profiles" / "alpha").mkdir(parents=True)
     (root / "config.yaml").write_text("gateway: {multiplex_profiles: true}\n", encoding="utf-8")
-    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}), encoding="utf-8")
+    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}), encoding="utf-8")
     (root / "gateway_state.json").write_text(json.dumps({
-        "pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running",
+        "pid": os.getpid(), "kova_home": str(root), "gateway_state": "running",
         "served_profiles": ["default", "alpha", "beta"],
         "platforms": {
             "api_server": {"state": "connected", "listener_base": "http://127.0.0.1:45719"},
             "webhook": {"state": "fatal", "error_code": "port_in_use"},
             "alpha:telegram": {"state": "connected"},
         }}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     import kova_constants
     from gateway import status
     # Liveness is a verified identity; this pytest process passes as the default gateway only by
     # wearing a gateway command line.
     monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     return root
 
 
@@ -96,23 +96,23 @@ def test_default_profile_keeps_its_flat_adapters_when_rekeyed(served_root):
 
 def test_messaging_card_for_the_default_home_rekeys_by_the_profile_not_the_dirname(tmp_path, monkeypatch):
     """The multiplexer fold keys on the profile NAME; ``_platform_payloads`` used to pass
-    ``own_home.name`` — the directory basename, ``.hermes`` for the shipped default root or any
-    custom ``HERMES_HOME`` name, equal to the profile id only for secondaries under
+    ``own_home.name`` — the directory basename, ``.kova`` for the shipped default root or any
+    custom ``KOVA_HOME`` name, equal to the profile id only for secondaries under
     ``profiles/<name>``. On the default home the fold came back empty and the Channels card read
     "Restart needed" forever while the multiplexer served its flat-keyed adapters (#123088)."""
     from gateway import status
     from kova_cli.web_routers import messaging
-    root = tmp_path / ".hermes"  # the shipped default root's literal name — never equal to "default"
+    root = tmp_path / ".kova"  # the shipped default root's literal name — never equal to "default"
     root.mkdir()
     (root / "config.yaml").write_text("gateway: {multiplex_profiles: true}\n", encoding="utf-8")
     record = {
-        "pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running",
+        "pid": os.getpid(), "kova_home": str(root), "gateway_state": "running",
         "served_profiles": ["default", "route-runner"],
         "platforms": {"telegram": {"state": "connected"}},
     }
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     import kova_constants
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     # A launch-service gateway's record fails the own-rung argv check (inline ``-c``), so the card
     # falls through to the multiplexer rung — mirrored here by an absent own record.
     monkeypatch.setattr(messaging, "read_runtime_status", lambda *a, **k: None)
@@ -175,7 +175,7 @@ def test_messaging_card_keeps_a_live_own_gateway_record_over_the_multiplexer(ser
     # PID wears alpha's argv. Only the live guard sees a foreign PID, so existence is stubbed.
     own_pid = 2 ** 22 - 1
     (alpha / "gateway_state.json").write_text(json.dumps({
-        "pid": own_pid, "hermes_home": str(alpha), "gateway_state": "running",
+        "pid": own_pid, "kova_home": str(alpha), "gateway_state": "running",
         "platforms": {"telegram": {"state": "retrying", "error_code": "network"}}}), encoding="utf-8")
     real_pid_exists = status._pid_exists
     monkeypatch.setattr(status, "_pid_exists", lambda pid: pid == own_pid or real_pid_exists(pid))

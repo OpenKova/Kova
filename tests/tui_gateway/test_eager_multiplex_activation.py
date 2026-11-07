@@ -13,11 +13,11 @@ from tui_gateway import launch_profile_policy
 
 @pytest.fixture
 def two_profile_host(tmp_path, monkeypatch):
-    """Fake HOME so ``profiles/`` never resolves to the live install (see hermes-agent-dev)."""
-    home = tmp_path / "fakehome" / ".hermes"
+    """Fake HOME so ``profiles/`` never resolves to the live install (see kova-agent-dev)."""
+    home = tmp_path / "fakehome" / ".kova"
     (home / "profiles" / "b").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", False)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)

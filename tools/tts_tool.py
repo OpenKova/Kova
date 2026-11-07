@@ -24,7 +24,7 @@ from typing import Callable, Dict, Any, List, Optional
 
 import copy
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 logger = logging.getLogger(__name__)
 
@@ -119,11 +119,11 @@ def _default_output_dir() -> str:
 
     Same bug class as skills_tool (f8723c478) and skills_sync (#65828): long-lived multi-profile runtimes
     (dashboard console, TUI/Desktop backend, cron, kanban workers) import this module once under the launch
-    HERMES_HOME and later scope requests to a different profile via
-    ``kova_constants.set_hermes_home_override()`` — a frozen module constant keeps writing synthesized
+    KOVA_HOME and later scope requests to a different profile via
+    ``kova_constants.set_kova_home_override()`` — a frozen module constant keeps writing synthesized
     audio into the launch profile's cache instead of the active profile's (#98749). Keep the legacy
     ``DEFAULT_OUTPUT_DIR`` module attribute for tests and external patchers; when it has not been patched,
-    re-resolve from the live profile-scoped HERMES_HOME on every call.
+    re-resolve from the live profile-scoped KOVA_HOME on every call.
     """
     if DEFAULT_OUTPUT_DIR != _DEFAULT_OUTPUT_DIR_AT_IMPORT:
         return DEFAULT_OUTPUT_DIR
@@ -353,7 +353,7 @@ def _find_voices(find: Any) -> str:
 def _session_platform() -> tuple:
     """``(platform, wants_opus)`` — platforms delivering voice bubbles only as Ogg/Opus want Opus."""
     from gateway.session_context import get_session_env
-    platform = get_session_env("HERMES_SESSION_PLATFORM", "").lower()
+    platform = get_session_env("KOVA_SESSION_PLATFORM", "").lower()
     return platform, platform in OPUS_VOICE_PLATFORMS
 
 
@@ -686,7 +686,7 @@ def _tts_schema_overrides() -> dict:
     the multiplexed gateway serves every profile from one process, so a path baked in at import
     would name the launch profile's home for everyone else (#95685)."""
     params = copy.deepcopy(TTS_SCHEMA["parameters"])
-    params["properties"]["output_path"]["description"] = _output_path_description(display_hermes_home())
+    params["properties"]["output_path"]["description"] = _output_path_description(display_kova_home())
     if not elevenlabs_voice_selection_active():
         return {"parameters": params}
     from tools.tts_elevenlabs_voices import FIND_VOICES_SCHEMA
@@ -715,7 +715,7 @@ TTS_SCHEMA = {
             },
             "output_path": {
                 "type": "string",
-                "description": _output_path_description("the profile HERMES_HOME")
+                "description": _output_path_description("the profile KOVA_HOME")
             },
             "speed": {
                 "type": "number",

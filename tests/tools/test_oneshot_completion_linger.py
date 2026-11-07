@@ -330,7 +330,7 @@ def _run_e2e_parent(tmp_path, *, linger: bool) -> Path:
         encoding="utf-8",
     )
     env = dict(os.environ)
-    env.setdefault("HERMES_HOME", str(tmp_path / "hermes_home"))
+    env.setdefault("KOVA_HOME", str(tmp_path / "kova_home"))
     proc = subprocess.run(
         [sys.executable, str(script)],
         capture_output=True,

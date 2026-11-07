@@ -22,7 +22,7 @@ class StartupAgent(StatusOutputMixin):
 
 
 def _start(tmp_path, monkeypatch, platform):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(mig, "_attempted", set())
     monkeypatch.setattr("pm.install.lazy_installs_allowed", lambda: False)
     agent = StartupAgent(platform)

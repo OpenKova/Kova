@@ -24,7 +24,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.url_safety import is_safe_url
 from tools.url_safety import create_ssrf_safe_client
 from tools.website_policy import check_website_access
@@ -54,18 +54,18 @@ def _path_resolver(name: str, parent: str, leaf: str):
     return resolve
 
 
-def _hermes_home() -> Path:
-    return get_hermes_home()
+def _kova_home() -> Path:
+    return get_kova_home()
 
 
-_skills_dir = _path_resolver("SKILLS_DIR", "HERMES_HOME", "skills")
+_skills_dir = _path_resolver("SKILLS_DIR", "KOVA_HOME", "skills")
 _hub_dir = _path_resolver("HUB_DIR", "SKILLS_DIR", ".hub")
 _lock_file = _path_resolver("LOCK_FILE", "HUB_DIR", "lock.json")
 _quarantine_dir = _path_resolver("QUARANTINE_DIR", "HUB_DIR", "quarantine")
 _audit_log = _path_resolver("AUDIT_LOG", "HUB_DIR", "audit.log")
 _taps_file = _path_resolver("TAPS_FILE", "HUB_DIR", "taps.json")
 _index_cache_dir = _path_resolver("INDEX_CACHE_DIR", "HUB_DIR", "index-cache")
-_DYNAMIC_PATH_RESOLVERS = {"HERMES_HOME": _hermes_home, **{
+_DYNAMIC_PATH_RESOLVERS = {"KOVA_HOME": _kova_home, **{
     r.__name__[1:].upper(): r
     for r in (_skills_dir, _hub_dir, _lock_file, _quarantine_dir, _audit_log, _taps_file, _index_cache_dir)
 }}

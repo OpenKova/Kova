@@ -3,7 +3,7 @@
  *
  * Desktop dials its backend through `hermes gateway ensure`, which spawns a detached
  * `gateway run` that outlives the app on purpose (production attach mode). Closing the app
- * therefore never stops it, and an orphan rewrites its sandbox HERMES_HOME after the
+ * therefore never stops it, and an orphan rewrites its sandbox KOVA_HOME after the
  * fixture's rmSync, so the leaked run root reappears. Each layer below covers a teardown the
  * one before it cannot reach:
  *
@@ -15,7 +15,7 @@
  *    is dead (SIGKILLed by a CI or agent timeout, so neither teardown nor the exit hook ran).
  *
  * The run-level layers read /proc (Linux only; elsewhere they are no-ops). They only signal a
- * process whose environment carries BOTH `HERMES_E2E_RUN_TMP=<root>` and a HERMES_HOME under
+ * process whose environment carries BOTH `KOVA_E2E_RUN_TMP=<root>` and a KOVA_HOME under
  * that root, so a developer's own gateway (no run root) is never a candidate, and a root whose
  * runner is alive (a concurrent run) or unrecorded (an older harness) is left alone.
  */
@@ -74,7 +74,7 @@ function processHomeUnder(pid: number, root: string, hermesHome: string): boolea
 
   const info = readProc(pid)
 
-  return Boolean(info?.cmdline) && info!.environ.split('\0').some(entry => entry.startsWith(`HERMES_HOME=${root}`))
+  return Boolean(info?.cmdline) && info!.environ.split('\0').some(entry => entry.startsWith(`KOVA_HOME=${root}`))
 }
 
 /**
@@ -135,11 +135,11 @@ function runnerAlive(root: string): boolean {
   return typeof owner.pid === 'number' && owner.start !== null && startTicks(owner.pid) === owner.start
 }
 
-/** The run root a process belongs to: its HERMES_E2E_RUN_TMP, when its HERMES_HOME also lies under it. */
+/** The run root a process belongs to: its KOVA_E2E_RUN_TMP, when its KOVA_HOME also lies under it. */
 function runRootOf(pid: number): null | string {
   const env = readProc(pid)?.environ.split('\0') ?? []
-  const root = env.find(entry => entry.startsWith('HERMES_E2E_RUN_TMP='))?.slice('HERMES_E2E_RUN_TMP='.length)
-  const home = env.find(entry => entry.startsWith('HERMES_HOME='))?.slice('HERMES_HOME='.length)
+  const root = env.find(entry => entry.startsWith('KOVA_E2E_RUN_TMP='))?.slice('KOVA_E2E_RUN_TMP='.length)
+  const home = env.find(entry => entry.startsWith('KOVA_HOME='))?.slice('KOVA_HOME='.length)
 
   return root && home?.startsWith(root + path.sep) ? root : null
 }

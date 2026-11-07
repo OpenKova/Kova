@@ -48,7 +48,7 @@ def test_gateway_start_inside_a_container_exec_is_not_blocked():
     import os
     import stat
 
-    stub_dir = os.path.join(os.environ["HERMES_HOME"], "stub-bin")
+    stub_dir = os.path.join(os.environ["KOVA_HOME"], "stub-bin")
     os.makedirs(stub_dir, exist_ok=True)
     stub = os.path.join(stub_dir, "docker")
     with open(stub, "w") as fh:
@@ -72,8 +72,8 @@ def test_custom_home_tmpdir_is_relocated_before_pytest_uses_it(tmp_path):
     home = tmp_path / "custom-home"
     scratch = home / "cache" / "scratch"
     scratch.mkdir(parents=True)
-    env = dict(os.environ, HERMES_HOME=str(home), TMPDIR=str(scratch))
-    env.pop("HERMES_SCRATCH_DIR", None)
+    env = dict(os.environ, KOVA_HOME=str(home), TMPDIR=str(scratch))
+    env.pop("KOVA_SCRATCH_DIR", None)
     result = subprocess.run(
         [sys.executable, "-c", "import tempfile, tests.conftest; print(tempfile.gettempdir())"],
         env=env, capture_output=True, text=True, check=True,
@@ -82,15 +82,15 @@ def test_custom_home_tmpdir_is_relocated_before_pytest_uses_it(tmp_path):
 
 
 def test_default_home_unmarked_tmpdir_is_relocated_before_pytest_uses_it(tmp_path):
-    # Model the operator's default root with a disposable HOME, not ~/.hermes.
+    # Model the operator's default root with a disposable HOME, not ~/.kova.
     operator_home = tmp_path / "operator"
-    scratch = operator_home / ".hermes" / "cache" / "scratch"
+    scratch = operator_home / ".kova" / "cache" / "scratch"
     scratch.mkdir(parents=True)
     env = dict(os.environ, HOME=str(operator_home), TMPDIR=str(scratch))
-    env.pop("HERMES_HOME", None)
-    env.pop("HERMES_SCRATCH_DIR", None)
+    env.pop("KOVA_HOME", None)
+    env.pop("KOVA_SCRATCH_DIR", None)
     result = subprocess.run(
         [sys.executable, "-c", "import tempfile, tests.conftest; print(tempfile.gettempdir())"],
         env=env, capture_output=True, text=True, check=True,
     )
-    assert not result.stdout.strip().startswith(str(operator_home / ".hermes"))
+    assert not result.stdout.strip().startswith(str(operator_home / ".kova"))

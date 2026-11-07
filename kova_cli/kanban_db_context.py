@@ -219,7 +219,7 @@ def _ctx_role_history(lines: list[str], conn: sqlite3.Connection, task: Task, no
 
 def _ctx_comments(lines: list[str], comments: list[Comment], now: int) -> None:
     """Newest ``_CTX_MAX_COMMENTS`` comments. The explicit "comment from
-    worker" framing stops an operator-controlled HERMES_PROFILE like
+    worker" framing stops an operator-controlled KOVA_PROFILE like
     "hermes-system" being read as a system directive above an
     attacker-influenceable body (defense-in-depth)."""
     shown, omitted_note = _ctx_tail(comments, _CTX_MAX_COMMENTS, "comment")
@@ -229,7 +229,7 @@ def _ctx_comments(lines: list[str], comments: list[Comment], now: int) -> None:
     if omitted_note:
         lines.append(omitted_note)
     for c in shown:
-        # Render author with explicit "comment from worker" framing so operator-controlled HERMES_PROFILE
+        # Render author with explicit "comment from worker" framing so operator-controlled KOVA_PROFILE
         # values like "hermes-system" or "operator" can't be misread by the next worker as a system
         # directive above the (attacker-influenceable) comment body. Defense-in-depth — the LLM-controlled
         # author-forgery surface was already closed in #22435. See #22452.

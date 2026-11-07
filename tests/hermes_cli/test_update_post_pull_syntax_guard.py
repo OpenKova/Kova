@@ -26,7 +26,7 @@ from pathlib import Path
 def _declared_tree(root, startup_files):
     listed = ", ".join(f'"{rel}"' for rel in startup_files)
     (root / "pyproject.toml").write_text(
-        f'[project]\nname = "x"\n\n[tool.hermes]\nupdate-startup-files = [{listed}]\n', encoding="utf-8")
+        f'[project]\nname = "x"\n\n[tool.kova]\nupdate-startup-files = [{listed}]\n', encoding="utf-8")
     for rel in startup_files:
         (root / rel).parent.mkdir(parents=True, exist_ok=True)
         (root / rel).write_text("ok = 1\n", encoding="utf-8")
@@ -60,7 +60,7 @@ def test_a_tree_without_a_declared_file_it_lists_is_refused_before_and_after_the
         update_cmd._rollback_if_pulled_syntax_error(["git"], pre)
     assert git("rev-parse", "HEAD") == pre
     # A declared list that is not a list of paths refuses too; it never falls back to the running list.
-    for pyproject in ('[project]\nname = "x"\n\n[tool.hermes]\nupdate-startup-files = ["kova_constants.py", 42]\n',
+    for pyproject in ('[project]\nname = "x"\n\n[tool.kova]\nupdate-startup-files = ["kova_constants.py", 42]\n',
                       '[project\n'):
         (tmp_path / "pyproject.toml").write_text(pyproject, encoding="utf-8")
         assert commit.tree_syntax_error(tmp_path, running_list) == ("pyproject.toml", commit.INVALID_STARTUP_FILES)

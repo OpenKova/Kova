@@ -53,7 +53,7 @@ test('existing checkout detection requires git metadata', () => {
   const home = mkTmpHome()
 
   try {
-    const activeRoot = path.join(home, 'hermes-agent')
+    const activeRoot = path.join(home, 'kova-agent')
     assert.equal(hasExistingGitCheckout(activeRoot), false)
 
     fs.mkdirSync(path.join(activeRoot, '.git'), { recursive: true })
@@ -70,10 +70,10 @@ test('fresh bootstrap args include the packaged commit pin', () => {
   assert.deepEqual(
     buildPosixPinArgs({
       installStamp,
-      activeRoot: '/tmp/hermes-agent',
+      activeRoot: '/tmp/kova-agent',
       hermesHome: '/tmp/hermes'
     }),
-    ['--dir', '/tmp/hermes-agent', '--hermes-home', '/tmp/hermes', '--branch', 'main', '--commit', installStamp.commit]
+    ['--dir', '/tmp/kova-agent', '--hermes-home', '/tmp/hermes', '--branch', 'main', '--commit', installStamp.commit]
   )
 })
 
@@ -84,11 +84,11 @@ test('existing-checkout bootstrap args keep branch but skip the packaged commit 
   assert.deepEqual(
     buildPosixPinArgs({
       installStamp,
-      activeRoot: '/tmp/hermes-agent',
+      activeRoot: '/tmp/kova-agent',
       hermesHome: '/tmp/hermes',
       pinCommit: false
     }),
-    ['--dir', '/tmp/hermes-agent', '--hermes-home', '/tmp/hermes', '--branch', 'main']
+    ['--dir', '/tmp/kova-agent', '--hermes-home', '/tmp/hermes', '--branch', 'main']
   )
 })
 
@@ -259,7 +259,7 @@ test('resolveInstallScript fails closed instead of executing an installed stale 
 
   try {
     const commit = 'a'.repeat(40)
-    const scriptsDir = path.join(home, 'hermes-agent', 'scripts')
+    const scriptsDir = path.join(home, 'kova-agent', 'scripts')
     fs.mkdirSync(scriptsDir, { recursive: true })
     fs.writeFileSync(path.join(scriptsDir, SCRIPT_NAME), 'stale installed script\n')
 
@@ -287,7 +287,7 @@ test('resolveInstallScript fails closed instead of executing an installed stale 
 test('installer log lines reach the emitter without escape sequences; \\r redraws keep the last frame', () => {
   assert.equal(cleanInstallerLogLine('\u001b[0;32m✓\u001b[0m Detected: macos (macos)'), '✓ Detected: macos (macos)')
   assert.equal(cleanInstallerLogLine('\u001b[2K\u001b[1GCloning repository…\u001b[K'), 'Cloning repository…')
-  assert.equal(cleanInstallerLogLine('\u001b]0;hermes\u0007Installing Hermes'), 'Installing Hermes')
+  assert.equal(cleanInstallerLogLine('\u001b]0;hermes\u0007Installing Kova'), 'Installing Kova')
   assert.equal(cleanInstallerLogLine('\r 12%\r 67%\r100%\u001b[K'), '100%')
   assert.equal(cleanInstallerLogLine('Resolving dependencies…\r'), 'Resolving dependencies…')
   // Only-escape frames drop entirely, so the caller emits nothing for them.

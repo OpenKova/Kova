@@ -1,6 +1,6 @@
 """Nous free tier: the browser challenge in front of a token exchange (``kova_cli.anon_challenge``).
 
-Driven through the fake NAS with Hermes' real client code: the exchange hits a 428, the challenge is
+Driven through the fake NAS with Kova' real client code: the exchange hits a 428, the challenge is
 presented and polled OUTSIDE the auth locks, and the exchange runs once more.
 """
 
@@ -28,8 +28,8 @@ def presented(monkeypatch):
 
 def _desktop_backend(monkeypatch):
     """The backend Desktop spawned: the inherited flag plus the per-spawn credential."""
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "spawn-token")
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "spawn-token")
 
 
 def _resolve(monkeypatch):
@@ -53,8 +53,8 @@ class TestWhatTheClientSends:
         sent = nas.token_requests[-1]
         assert sent["body"]["client"]["capabilities"] == ["browser-v1"]
         assert sent["body"]["client"]["surface"] == "cli"
-        assert sent["body"]["client"]["name"] == "hermes-agent"
-        assert sent["user_agent"].startswith("hermes-agent/") and "(cli;" in sent["user_agent"]
+        assert sent["body"]["client"]["name"] == "kova-agent"
+        assert sent["user_agent"].startswith("kova-agent/") and "(cli;" in sent["user_agent"]
 
 class TestRequiredChallenge:
     def test_a_host_failure_wakes_the_waiter_but_still_requires_an_authoritative_mint(self, nas, monkeypatch):
@@ -253,11 +253,11 @@ class TestWhoWaits:
         assert len(presented) == 1                       # the 429 did not skip presenting
 
     def test_an_inherited_desktop_flag_is_not_the_desktop_surface(self, nas, monkeypatch, capsys):
-        """A ``hermes`` run in the desktop's terminal pane inherits HERMES_DESKTOP but not the spawn
+        """A ``hermes`` run in the desktop's terminal pane inherits KOVA_DESKTOP but not the spawn
         credential: it reports ``cli`` to the service and prints the link where its user is."""
         import webbrowser
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
         monkeypatch.setenv("SSH_TTY", "/dev/pts/0")
         monkeypatch.setattr(webbrowser, "open", lambda _url: False)
         _connectors_token()

@@ -107,9 +107,9 @@ describe('SandboxedFrame in the Webapp', () => {
   const guest = `data:text/html;charset=utf-8,${encodeURIComponent('<script>parent.postMessage("ready", "*")</script>')}`
 
   function browserHost() {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
-    vi.stubGlobal('__HERMES_BASE_PATH__', '/hermes')
-    vi.stubGlobal('__HERMES_UI_SURFACE__', 'webapp')
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
+    vi.stubGlobal('__KOVA_BASE_PATH__', '/hermes')
+    vi.stubGlobal('__KOVA_UI_SURFACE__', 'webapp')
   }
 
   function guestLoaded(frame: HTMLIFrameElement) {

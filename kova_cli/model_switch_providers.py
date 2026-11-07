@@ -72,7 +72,7 @@ def _discovered_catalog_stale(entry: dict, model_ids: list[str]) -> bool:
     """Whether a live probe may overwrite ``entry["models"]``.
 
     A ``models`` mapping or list of dicts is user-curated per-model metadata — never replaced.
-    A mapping Hermes itself discovered (entry flag or legacy in-mapping sentinel) is ours to
+    A mapping Kova itself discovered (entry flag or legacy in-mapping sentinel) is ours to
     refresh, but only when stale; a legacy-shape entry is always rewritten so the save migrates
     it to the clean entry-level flag."""
     existing = entry.get("models")
@@ -590,7 +590,7 @@ def _discover_flag(entry: dict):
 
 
 def _display_prefix(name: str) -> str:
-    """Text before the per-model separator Hermes's own writer uses ("—" / " - ")."""
+    """Text before the per-model separator Kova's own writer uses ("—" / " - ")."""
     return next((name.split(sep)[0].strip() for sep in ("—", " - ") if sep in name), name)
 
 
@@ -702,7 +702,7 @@ def _collect_authed_provider_slugs(
 @dataclass
 class _PickerBuild:
     """State threaded through the ``list_authenticated_providers`` sections: 1 built-ins mapped to
-    models.dev, 2 Hermes-only overlays, 2b canonical providers missed by 1/2, 3 ``providers:``
+    models.dev, 2 Kova-only overlays, 2b canonical providers missed by 1/2, 3 ``providers:``
     entries + 3b the bare active custom endpoint, 4 ``custom_providers:`` entries. Row-builder
     imports of ``kova_cli.auth/models`` stay lazy so tests can patch those modules."""
     current_provider: str
@@ -909,12 +909,12 @@ def _overlay_has_creds(b: _PickerBuild, pid: str, hermes_slug: str, overlay) -> 
 
 
 def _lap_overlay_rows(b: _PickerBuild, data: dict, user_providers: dict) -> None:
-    """Section 2: Hermes-only providers (nous, openai-codex, opencode-go, plugin overlays, ...)."""
+    """Section 2: Kova-only providers (nous, openai-codex, opencode-go, plugin overlays, ...)."""
     from agent.models_dev import models_dev_provider_map
     from kova_cli.model_switch import _declared_model_ids
     from kova_cli.providers import hermes_overlays
 
-    # Overlay keys may be models.dev IDs while config.yaml uses Hermes IDs.
+    # Overlay keys may be models.dev IDs while config.yaml uses Kova IDs.
     mdev_to_hermes = {v: k for k, v in models_dev_provider_map().items()}
     for pid, overlay in hermes_overlays().items():
         hermes_slug = mdev_to_hermes.get(pid, pid)

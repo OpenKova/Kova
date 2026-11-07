@@ -45,7 +45,7 @@ export const PROFILE_SESSION_LIST_LIMIT = 200
 
 /** The one canonical title. (profile, CANONICAL_CHAT_TITLE) IS the bot's
  *  forever-chat identity — see the header above. Exported for the roster
- *  click path's tile-staleness probe (hermes-agent#90102), which must
+ *  click path's tile-staleness probe (kova-agent#90102), which must
  *  recognize canonical-titled tabs without restating the literal. */
 export const CANONICAL_CHAT_TITLE = 'Bot Chat'
 
@@ -129,7 +129,7 @@ async function openStoredBotChat(
   { background = false, intent = 'in-place' }: OpenStoredBotChatOptions = {}
 ): Promise<string> {
   if (!storedId || typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error('This Kova Desktop version cannot open stored sessions')
   }
 
   const { bot, name, route } = botOwner(owner)
@@ -148,7 +148,7 @@ async function openStoredBotChat(
       : 60_000
 
   // A profile backend that just woke up can lose the hydration-timeout race
-  // even though the session is fine (hermes-agent#89617) — clicking Retry
+  // even though the session is fine (kova-agent#89617) — clicking Retry
   // succeeds because the backend is warm by then. retryHydrationTimeoutOnce
   // asks the SDK layer to retry that same wait internally, BEFORE it arms the
   // core stranded-session overlay: a plugin-side retry can't do this because
@@ -158,13 +158,13 @@ async function openStoredBotChat(
   // The SDK's surface-health check passes whenever ANY non-empty transcript is
   // painted, including a stale snapshot the session-states cache kept from the
   // previous time this bot was open — which left the pane showing old messages
-  // until an app restart (hermes-agent#93604). A resume is cheap and
+  // until an app restart (kova-agent#93604). A resume is cheap and
   // idempotent, so on this explicit user navigation we always request one.
   //
   // Compression rotates the tip while tiles stay keyed by segment, and hidden
   // Bot Chats never reach the sidebar listing the lineage guard reads, so the
   // old-segment tile is discarded here or it survives beside the tip
-  // (hermes-agent#120810). Same owner-scoped probe the roster click runs, but
+  // (kova-agent#120810). Same owner-scoped probe the roster click runs, but
   // discard-only (`[]` fronts nothing): a background refresh must never take
   // the tab strip (#121874), and the openSession below fronts explicit opens.
   const canonicalIds = [...new Set([summary?.id, storedId].filter(Boolean).map(String))]
@@ -278,7 +278,7 @@ export function notifyBotOpenFailure(error: unknown, bot: RosterRow, step: BotOp
   const detail = errorDetail(error)
 
   if (botModeGatewayNeedsUpdate(error)) {
-    const connectionLabel = bot.connectionLabel || bot.connectionId || 'Hermes'
+    const connectionLabel = bot.connectionLabel || bot.connectionId || 'Kova'
     host.notify?.({
       kind: 'error',
       title: b.openNeedsUpdateTitle,
@@ -734,7 +734,7 @@ export async function prepareBotSource(bot: RosterRow) {
   if (route && typeof host.requestProfile !== 'function') {
     throw new Error(
       getPluginCtx()?.i18n?.t('bot.remoteConnectionsUnsupported') ??
-        'Update Hermes Desktop to chat with bots on other connections.'
+        'Update Kova Desktop to chat with bots on other connections.'
     )
   }
 

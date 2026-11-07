@@ -16,12 +16,12 @@ from tests.kova_cli.anon_portal import as_local_desktop_backend
 
 @pytest.fixture
 def launched_under_work(tmp_path, monkeypatch) -> tuple[Path, Path]:
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     work = profiles.create_profile("work", no_alias=True)
-    monkeypatch.setenv("HERMES_HOME", str(work))
+    monkeypatch.setenv("KOVA_HOME", str(work))
     return root, work
 
 

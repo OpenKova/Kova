@@ -1,4 +1,4 @@
-"""Persistent session goals — the Ralph loop for Hermes.
+"""Persistent session goals — the Ralph loop for Kova.
 
 A goal is a free-form objective that stays active across turns; after each turn an auxiliary-model
 judge decides whether it is satisfied. The continuation prompt is a normal user message appended via
@@ -537,16 +537,16 @@ def _bootstrap_session_db(home: str, done: threading.Event) -> None:
 
 
 def _get_session_db() -> Optional[Any]:
-    """Cached SessionDB per HERMES_HOME (profile switches pick the right DB); None on any failure.
+    """Cached SessionDB per KOVA_HOME (profile switches pick the right DB); None on any failure.
 
     Never constructs SessionDB on an event-loop thread: a cache miss there kicks a one-shot background
     bootstrap and waits a bounded grace window (the kick call waits ``_DB_BOOTSTRAP_INIT_WAIT_S`` so a
     healthy cold init completes and the first write isn't dropped).
     """
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        home = str(get_hermes_home())
+        home = str(get_kova_home())
     except Exception as exc:  # pragma: no cover
         logger.debug("GoalManager: SessionDB bootstrap failed (%s)", exc)
         return None
@@ -1081,7 +1081,7 @@ def _decision(status, should_continue: bool, prompt: Optional[str], verdict: str
 
 
 _JUDGE_CONFIG_HINT = (
-    "~/.hermes/config.yaml:\n  auxiliary:\n    goal_judge:\n      provider: {provider}\n      model: {model}\n"
+    "~/.kova/config.yaml:\n  auxiliary:\n    goal_judge:\n      provider: {provider}\n      model: {model}\n"
     "Then /goal resume to continue."
 )
 

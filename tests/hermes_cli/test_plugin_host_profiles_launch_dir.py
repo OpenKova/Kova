@@ -1,4 +1,4 @@
-"""Plugin-host profile extraction runs the Hermes tree's code, never a same-named package in the cwd."""
+"""Plugin-host profile extraction runs the Kova tree's code, never a same-named package in the cwd."""
 
 import json
 
@@ -32,7 +32,7 @@ def test_profile_extraction_ignores_a_kova_cli_package_in_the_launch_directory(t
     (launch_dir / "kova_cli").mkdir(parents=True)
     (launch_dir / "kova_cli" / "__init__.py").write_text(SHADOW_INIT, encoding="utf-8")
     (launch_dir / "kova_cli" / "plugin_host_child.py").write_text(SHADOW_CHILD, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.chdir(launch_dir)
 
     profiles, _in_process = load_hosted_profiles(plugin_dir, "_hermes_test_cwdprobe")

@@ -8,7 +8,7 @@
  * Real SDK components and stores; only the gateway transport is mocked.
  */
 
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { act, cleanup, screen, waitFor } from '@testing-library/react'
 import { atom } from 'nanostores'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
@@ -22,7 +22,7 @@ const { connection, gateway, requestProfile } = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
   const state = atom('connecting')
   const connectionId = atom<null | string>('local')
   gateway.state = state
@@ -45,7 +45,7 @@ const room = { room_id: 'room-1', name: 'Launch crew', members: [], updated_at: 
 beforeEach(() => {
   requestProfile.mockImplementation(async () => {
     if (gatewayState().get() !== 'open') {
-      throw new Error('Hermes gateway is not connected')
+      throw new Error('Kova gateway is not connected')
     }
 
     return { rooms: [room], next_offset: null }

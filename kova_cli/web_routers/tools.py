@@ -56,7 +56,7 @@ def _terminal_backend_rows() -> list[dict[str, str]]:
 def _probe_docker_backend(_cfg) -> tuple:
     """Health-check the docker terminal backend the same way the agent resolves it.
 
-    ``find_docker()`` honors ``HERMES_DOCKER_BINARY``, then ``docker`` / ``podman``
+    ``find_docker()`` honors ``KOVA_DOCKER_BINARY``, then ``docker`` / ``podman``
     on PATH. The probe uses ``version`` (not ``info --format {{.ServerVersion}}``)
     because Podman has no ServerVersion field and the agent already probes with
     ``version``.
@@ -623,7 +623,7 @@ async def run_toolset_post_setup(
     name: str, body: ToolsetPostSetup, profile: Optional[str] = None):
     """Spawn ``hermes tools post-setup <key>`` (long-running installs) as a
     background action tailed via ``GET /api/actions/tools-post-setup/status``;
-    ``profile`` is threaded so hooks see the drawer's HERMES_HOME."""
+    ``profile`` is threaded so hooks see the drawer's KOVA_HOME."""
     from kova_cli.tools_config import valid_post_setup_keys
 
     scope_profile = body.profile or profile

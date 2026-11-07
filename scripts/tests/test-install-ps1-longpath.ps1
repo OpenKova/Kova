@@ -116,7 +116,7 @@ function Invoke-Normalization {
         LOCALAPPDATA = (Join-Parts @($root, 'AppData', 'Local'))
         APPDATA      = (Join-Parts @($root, 'AppData', 'Roaming'))
         USERPROFILE  = $root
-        HERMES_HOME  = ''
+        KOVA_HOME  = ''
     }
     foreach ($key in $Environment.Keys) { $env0[$key] = $Environment[$key] }
 
@@ -190,7 +190,7 @@ function Invoke-Normalization {
         Stdout     = $stdout
         Rewrites   = $rewrites
         InstallDir = $(if ($paths) { $paths.install_dir } else { $null })
-        HermesHome = $(if ($paths) { $paths.hermes_home } else { $null })
+        KovaHome = $(if ($paths) { $paths.kova_home } else { $null })
         LongRoot   = $(if ($paths) { $paths.long_profile_root } else { $null })
     }
 }
@@ -288,7 +288,7 @@ foreach ($name in @('TEMP', 'TMP', 'LOCALAPPDATA', 'APPDATA', 'USERPROFILE')) {
 # This is the difference between "the build works" and "the installer stops
 # claiming a successful build failed". Composed with literal backslashes
 # because that is how install.ps1 itself builds the default Windows path.
-$expectedInstallDir = "$($longRoot)${sep}AppData${sep}Local" + '\hermes\hermes-agent'
+$expectedInstallDir = "$($longRoot)${sep}AppData${sep}Local" + '\hermes\kova-agent'
 Assert-Equal -Expected $expectedInstallDir -Actual $result.InstallDir -Label "InstallDir is re-derived from the long LOCALAPPDATA"
 
 Write-Host ""

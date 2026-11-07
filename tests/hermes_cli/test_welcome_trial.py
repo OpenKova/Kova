@@ -38,7 +38,7 @@ def test_the_claim_is_stamped_by_the_mint_write_itself(portal, monkeypatch):
 
 BLOCKED = {
     "the CLI": lambda mp, home: None,
-    "an SSH backend": lambda mp, home: (mp.setenv("HERMES_DESKTOP", "1"), mp.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)),
+    "an SSH backend": lambda mp, home: (mp.setenv("KOVA_DESKTOP", "1"), mp.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)),
     "guests switched off": lambda mp, home: (as_local_desktop_backend(mp),
                                               (home / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")),
     "a provider key": lambda mp, home: (as_local_desktop_backend(mp), mp.setenv("OPENROUTER_API_KEY", "sk-or-test")),
@@ -48,9 +48,9 @@ BLOCKED = {
 
 @pytest.mark.parametrize("case", list(BLOCKED))
 def test_the_trial_is_never_claimed_outside_a_first_desktop_install(portal, monkeypatch, case):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    BLOCKED[case](monkeypatch, get_hermes_home())
+    BLOCKED[case](monkeypatch, get_kova_home())
 
     assert welcome_trial.claim_desktop_free_tier() is None
     assert portal.creates() == 0
@@ -121,11 +121,11 @@ def test_a_lost_trial_is_never_claimed_again_after_a_relaunch(portal, monkeypatc
     from kova_cli import free_tier_bootstrap
     from kova_cli.auth import resolve_provider
     from kova_cli.auth_constants import AuthError
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     lose, creates = LOSSES[loss]
     claimed_trial(monkeypatch)
-    _chat(get_hermes_home() / "state.db", anon_auth.GUEST_MODEL)
+    _chat(get_kova_home() / "state.db", anon_auth.GUEST_MODEL)
     lose()
     install_state.probe.cache_clear()  # the relaunch
     free_tier_bootstrap.reset_for_tests()
@@ -159,12 +159,12 @@ def test_a_leftover_guest_pool_row_is_not_reported_as_a_nous_login(portal, monke
 def test_a_connector_guest_pinned_to_nous_gets_no_inference_token(portal, monkeypatch, desktop):
     from kova_cli.auth_constants import AuthError
     from kova_cli.runtime_provider import resolve_runtime_provider
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     if desktop:
         as_local_desktop_backend(monkeypatch)
     anon_auth.ensure_portal_identity(explicit=True)  # a connector action's guest, never claimed
-    (get_hermes_home() / "config.yaml").write_text("model:\n  provider: nous\n  default: nous/welcome\n",
+    (get_kova_home() / "config.yaml").write_text("model:\n  provider: nous\n  default: nous/welcome\n",
                                                    encoding="utf-8")
     with contextlib.suppress(AuthError):
         resolve_runtime_provider(requested="nous")
@@ -187,9 +187,9 @@ def test_the_token_seam_refuses_an_inference_token_to_a_guest_without_the_trial(
 
 def _root_run():
     from kova_cli.config_effective import load_user_config_effective
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    section = load_user_config_effective(get_default_hermes_root() / "config.yaml").get("onboarding") or {}
+    section = load_user_config_effective(get_default_kova_root() / "config.yaml").get("onboarding") or {}
     return section.get("run")
 
 
@@ -219,11 +219,11 @@ def test_the_first_desktop_boot_records_that_onboarding_is_due(portal, monkeypat
 
 def test_a_missed_first_launch_stays_due_and_keeps_the_trial(portal, monkeypatch):
     from kova_cli.onboarding_run import should_run
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     as_local_desktop_backend(monkeypatch)
     _relaunch()                                         # first boot; the app never opened onboarding
-    _chat(get_hermes_home() / "state.db", "anthropic/claude")   # then the user chatted
+    _chat(get_kova_home() / "state.db", "anthropic/claude")   # then the user chatted
     install_state.probe.cache_clear()
 
     assert install_state.probe().existing
@@ -257,22 +257,22 @@ def test_two_installs_claiming_at_once_mint_one_trial(portal, monkeypatch, tmp_p
     import threading
 
     from kova_cli import auth_nous
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     as_local_desktop_backend(monkeypatch)
     _relaunch()                                          # the trial is reserved for this OS user
-    monkeypatch.setattr(auth_nous, "_nous_shared_auth_dir", lambda: get_hermes_home() / "shared-nous")
+    monkeypatch.setattr(auth_nous, "_nous_shared_auth_dir", lambda: get_kova_home() / "shared-nous")
     canary_root = tmp_path / "hermes-canary"
     canary_root.mkdir()
     canary: dict = {}
     canary_done = threading.Event()
 
     def canary_claims():
-        token = set_hermes_home_override(canary_root)
+        token = set_kova_home_override(canary_root)
         try:
             canary["state"] = welcome_trial.claim_desktop_free_tier()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
             canary_done.set()
 
     stable, canary_thread = threading.current_thread(), threading.Thread(target=canary_claims)
@@ -315,14 +315,14 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
     from kova_cli import kanban_db as kb
     from kova_cli.config import load_config
     from kova_cli.kanban_db_connect import connect
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from gateway.session_contract import SessionActor
     from gateway.session_kanban import build_kanban_policy
     from gateway.session_policy import restore_policy
 
-    home = str(get_hermes_home())
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path / "kanban"))
-    monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
+    home = str(get_kova_home())
+    monkeypatch.setenv("KOVA_KANBAN_HOME", str(tmp_path / "kanban"))
+    monkeypatch.delenv("KOVA_KANBAN_DB", raising=False)
     monkeypatch.setattr("kova_cli.profiles.resolve_profile_env", lambda name: home)
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -342,7 +342,7 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
 def unconfigured_trial(portal, monkeypatch):
     """A fresh install whose Desktop claimed the trial, read by the scheduler or the Kanban
     dispatcher (not Desktop work), with no model configured anywhere."""
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.delenv("KOVA_MODEL", raising=False)
     claimed_trial(monkeypatch)
     off_local_desktop(monkeypatch)
     yield
@@ -359,12 +359,12 @@ def test_a_claimed_trial_runs_a_kanban_worker_when_no_model_is_configured(unconf
 
 
 def test_a_configured_model_beats_the_trial_for_cron_jobs_and_kanban_workers(portal, monkeypatch, tmp_path):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.delenv("KOVA_MODEL", raising=False)
     claimed_trial(monkeypatch)
     off_local_desktop(monkeypatch)
-    (get_hermes_home() / "config.yaml").write_text(
+    (get_kova_home() / "config.yaml").write_text(
         "model:\n  provider: openrouter\n  default: anthropic/claude-sonnet-4\n", encoding="utf-8")
 
     assert _cron_model() == "anthropic/claude-sonnet-4"

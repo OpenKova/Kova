@@ -40,7 +40,7 @@ describe('mergePluginPackages', () => {
     // Electron names the half after the package FOLDER (plugins/<folder>/desktop);
     // the agent row is named from its manifest. `hermes plugins install` lands a
     // package at plugins/<manifest name>, but a self-cloned one (the README's
-    // `git clone … ~/.hermes/plugins/hermes-subscription-meter`) keeps the repo
+    // `git clone … ~/.kova/plugins/hermes-subscription-meter`) keeps the repo
     // name. The join key has to be the folder or it splits into two rows.
     const rows = mergePluginPackages(
       [desktop({ id: 'meter-ui', name: 'Meter', packageName: 'hermes-subscription-meter' })],
@@ -48,7 +48,7 @@ describe('mergePluginPackages', () => {
         agent({
           name: 'subscription-meter',
           has_desktop_half: true,
-          install_dir: '/home/u/.hermes/plugins/hermes-subscription-meter'
+          install_dir: '/home/u/.kova/plugins/hermes-subscription-meter'
         })
       ]
     )
@@ -72,7 +72,7 @@ describe('mergePluginPackages', () => {
   })
 
   // A catalog install used to land the desktop half at
-  // desktop-plugins/<name>/plugin.js with no .hermes-package.json, and the row
+  // desktop-plugins/<name>/plugin.js with no .kova-package.json, and the row
   // sat on "copying…" beside a second, already-enabled desktop row. The join is
   // the marker, not the folder name: Electron stamps it on install and adopts
   // marker-less copies on reconcile (see desktop-plugins-root.ts), so the page
@@ -82,10 +82,10 @@ describe('mergePluginPackages', () => {
       [
         desktop({
           id: 'hermes-talk',
-          name: 'Hermes Talk',
-          description: 'GPT-Live subscription or explicit API voice, with Hermes task delegation.',
+          name: 'Kova Talk',
+          description: 'GPT-Live subscription or explicit API voice, with Kova task delegation.',
           packageName: 'hermes-talk',
-          file: '/Users/me/.hermes/desktop-plugins/hermes-talk/plugin.js'
+          file: '/Users/me/.kova/desktop-plugins/hermes-talk/plugin.js'
         })
       ],
       [agent({ name: 'hermes-talk', has_desktop_half: true, version: '0.21.0' })]
@@ -94,7 +94,7 @@ describe('mergePluginPackages', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({
       key: 'hermes-talk',
-      name: 'Hermes Talk',
+      name: 'Kova Talk',
       kind: 'both',
       desktopMissing: false,
       agentMissingInProfile: false
@@ -108,8 +108,8 @@ describe('mergePluginPackages', () => {
       [
         desktop({
           id: 'hermes-talk',
-          name: 'Hermes Talk',
-          file: '/Users/me/.hermes/desktop-plugins/hermes-talk/plugin.js'
+          name: 'Kova Talk',
+          file: '/Users/me/.kova/desktop-plugins/hermes-talk/plugin.js'
         })
       ],
       [agent({ name: 'hermes-talk', has_desktop_half: true })]
@@ -123,7 +123,7 @@ describe('mergePluginPackages', () => {
 
   it('leaves a same-named standalone desktop plugin alone when the agent package has no desktop half', () => {
     const rows = mergePluginPackages(
-      [desktop({ id: 'clock', name: 'Clock', file: '/Users/me/.hermes/desktop-plugins/clock/plugin.js' })],
+      [desktop({ id: 'clock', name: 'Clock', file: '/Users/me/.kova/desktop-plugins/clock/plugin.js' })],
       [agent({ name: 'clock' })]
     )
 

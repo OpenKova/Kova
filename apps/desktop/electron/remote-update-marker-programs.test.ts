@@ -147,13 +147,13 @@ test.skipIf(process.platform === 'win32')(
   'the remote gate keeps a dead marker while the default checkout lock is held',
   async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-gate-'))
-    const marker = path.join(root, '.hermes-update-in-progress')
+    const marker = path.join(root, '.kova-update-in-progress')
 
     try {
-      mkdirSync(path.join(root, 'hermes-agent', '.git'), { recursive: true })
+      mkdirSync(path.join(root, 'kova-agent', '.git'), { recursive: true })
       deadMarker(marker)
 
-      await withCheckoutLockHeld(path.join(root, 'hermes-agent', '.git', 'hermes-update.lock'), async () => {
+      await withCheckoutLockHeld(path.join(root, 'kova-agent', '.git', 'hermes-update.lock'), async () => {
         assert.deepEqual(await gate([marker]), { code: 0, stdout: 'HELD', stderr: '' })
         assert.ok(existsSync(marker), 'a dead marker beside a held checkout lock must be kept')
         const refused = await gate([marker, 'echo PAYLOAD-RAN'])
@@ -173,8 +173,8 @@ test.skipIf(process.platform === 'win32')(
   async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-gate-'))
     const home = path.join(root, 'home')
-    const marker = path.join(home, '.hermes-update-in-progress')
-    const checkout = path.join(root, 'src', 'hermes-agent')
+    const marker = path.join(home, '.kova-update-in-progress')
+    const checkout = path.join(root, 'src', 'kova-agent')
     const common = path.join(root, 'repo.git')
 
     try {

@@ -1,7 +1,7 @@
 """The generalized change watcher (#73618): cheap on-disk signatures →
 ``pet.changed`` / ``cron.changed`` / ``sessions.changed`` global broadcasts.
 
-Behavior contracts, exercised against a real temp HERMES_HOME (no mocks on the
+Behavior contracts, exercised against a real temp KOVA_HOME (no mocks on the
 filesystem path): first sighting seeds silently, a moved signature broadcasts
 once, the sessions floor coalesces a write burst but keeps its trailing edge,
 and the pet signature only moves for a *renderable* pet.
@@ -21,7 +21,7 @@ def watcher_home(tmp_path, monkeypatch):
     (tmp_path / "config.yaml").write_text("display: {}\n")
     (tmp_path / "cron").mkdir()
 
-    monkeypatch.setattr(server, "_hermes_home", str(tmp_path))
+    monkeypatch.setattr(server, "_kova_home", str(tmp_path))
     monkeypatch.setattr(server, "_cfg_cache", None)
     monkeypatch.setattr(server, "_change_sigs", {})
     monkeypatch.setattr(server, "_change_checked_at", {})
@@ -506,14 +506,14 @@ def test_skill_installed_from_another_terminal_broadcasts_skills_changed(watcher
 
 def test_a_skill_installed_in_another_sessions_repo_broadcasts_skills_changed(watcher_home, monkeypatch, tmp_path):
     """The gateway runs in repo A; a session's catalog resolved under repo B (its workspace, via the
-    session cwd). Installing a skill in B's ``.hermes/skills`` must still notify viewers: the watcher
+    session cwd). Installing a skill in B's ``.kova/skills`` must still notify viewers: the watcher
     signs every scope a session resolved commands in, not only the launch repo."""
     import json
     import agent.skill_commands as sc
     import tools.skills_tool as st
     from agent.runtime_cwd import reset_session_cwd, set_session_cwd
     home, events = watcher_home
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "skills").mkdir()
     monkeypatch.setattr(st, "SKILLS_DIR", home / "skills")
     monkeypatch.setattr(sc, "_skill_commands_by_key", {})
@@ -521,7 +521,7 @@ def test_a_skill_installed_in_another_sessions_repo_broadcasts_skills_changed(wa
     repo_a, repo_b = tmp_path / "repo-a", tmp_path / "repo-b"
     for repo in (repo_a, repo_b):
         (repo / ".git").mkdir(parents=True)
-        (repo / ".hermes" / "skills").mkdir(parents=True)
+        (repo / ".kova" / "skills").mkdir(parents=True)
     (home / "config.yaml").write_text(json.dumps({"skills": {"trusted_project_dirs": [str(repo_a), str(repo_b)]}}))
     monkeypatch.chdir(repo_a)
     st.clear_skills_cache()
@@ -533,7 +533,7 @@ def test_a_skill_installed_in_another_sessions_repo_broadcasts_skills_changed(wa
     server._broadcast_watched_changes(now=0.0)
     assert not [e for e in events if e[0] == "skills.changed"]
 
-    skill = repo_b / ".hermes" / "skills" / "workspace-only"
+    skill = repo_b / ".kova" / "skills" / "workspace-only"
     skill.mkdir()
     (skill / "SKILL.md").write_text("---\nname: workspace-only\ndescription: d\n---\nbody\n")
     server._broadcast_watched_changes(now=10.0)

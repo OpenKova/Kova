@@ -11,7 +11,7 @@
  *
  * Background on the two auth models a remote gateway can use:
  *   - 'token': legacy static dashboard session token. REST uses an
- *     `X-Hermes-Session-Token` header; WS uses `?token=`.
+ *     `X-Kova-Session-Token` header; WS uses `?token=`.
  *   - 'oauth': hosted gateways gate behind an OAuth provider. REST is authed
  *     by an HttpOnly session cookie; WS upgrades require a single-use
  *     `?ticket=` minted at POST /api/auth/ws-ticket. The gateway advertises
@@ -136,7 +136,7 @@ export function gatewayTicketTransportMessage(error: unknown): string {
 
   if (['ETIMEDOUT', 'ETIMEOUT', 'ENETUNREACH', 'EHOSTUNREACH', 'EAI_AGAIN', 'ENOTFOUND'].includes(code)) {
     return (
-      'Could not reach the remote Hermes gateway while refreshing its WebSocket ticket: ' +
+      'Could not reach the remote Kova gateway while refreshing its WebSocket ticket: ' +
       'the connection timed out or the host could not be resolved. ' +
       'Check your network/VPN path and the gateway URL, then reconnect.'
     )
@@ -144,13 +144,13 @@ export function gatewayTicketTransportMessage(error: unknown): string {
 
   if (code === 'ECONNREFUSED') {
     return (
-      'Could not reach the remote Hermes gateway while refreshing its WebSocket ticket: ' +
+      'Could not reach the remote Kova gateway while refreshing its WebSocket ticket: ' +
       'the connection was refused. The gateway process is likely down or listening on another port. ' +
       'Start the gateway (or fix its URL), then reconnect.'
     )
   }
 
-  return 'Could not reach the remote Hermes gateway while refreshing its WebSocket ticket. Try reconnecting.'
+  return 'Could not reach the remote Kova gateway while refreshing its WebSocket ticket. Try reconnecting.'
 }
 
 function gatewayTicketFailure(error, authMessage, transportMessage) {
@@ -171,7 +171,7 @@ function gatewayTicketFailure(error, authMessage, transportMessage) {
     // cookie path only sees a 401/403 after the gateway's transparent AT/RT
     // rotation has already failed, and the native-bearer path only after
     // mintGatewayWsTicket's forced /auth/native/refresh has. Nothing will
-    // change until the user signs in, so tag it the way startHermes latches
+    // change until the user signs in, so tag it the way startKova latches
     // (isReauthRequiredError): the boot is marked non-retryable and the
     // overlay's Sign in button stops flickering away under the renderer's
     // transient-boot retry loop (#95701).
@@ -309,7 +309,7 @@ function connectionScopeKey(profile) {
   return String(profile ?? '').trim() || null
 }
 
-/** Which Hermes profile the remote SSH dashboard should actually run as.
+/** Which Kova profile the remote SSH dashboard should actually run as.
  *  Registry pool keys (`conn:mac-mini::default`) are desktop routing labels —
  *  they must never be sent to the remote as a profile name. `default` and
  *  empty mean the remote root home. */
@@ -430,7 +430,7 @@ function remoteRequestMatchesBaseUrl(requestUrl, baseUrl) {
 }
 
 // True for connection modes that resolve to a REMOTE backend. 'cloud' is a
-// Hermes Cloud connection (cloud-auto-discovery Q3/Q6): it carries a
+// Kova Cloud connection (cloud-auto-discovery Q3/Q6): it carries a
 // remote-shaped block and reuses the entire remote connect/probe/reconnect
 // path, so every resolution site treats it exactly like 'remote'. The only
 // places that distinguish cloud from remote are the settings UI (which card to
@@ -505,15 +505,15 @@ function normalizeSshConfig(entry) {
     out.keyPath = keyPath
   }
 
-  const remoteHermesPath = String(entry.remoteHermesPath || '').trim()
+  const remoteKovaPath = String(entry.remoteKovaPath || '').trim()
 
-  if (remoteHermesPath) {
-    out.remoteHermesPath = remoteHermesPath
+  if (remoteKovaPath) {
+    out.remoteKovaPath = remoteKovaPath
   }
 
   // A Desktop profile can be a local routing label rather than the profile
-  // name used by the remote Hermes installation. Preserve an explicit mapping
-  // when it is a valid Hermes profile identifier; otherwise fall back to the
+  // name used by the remote Kova installation. Preserve an explicit mapping
+  // when it is a valid Kova profile identifier; otherwise fall back to the
   // historical same-name behavior in the caller.
   const remoteProfile = String(entry.remoteProfile || '').trim()
 
@@ -613,7 +613,7 @@ function profileRemoteOverride(config, profile) {
 }
 
 // Validate a remote profile mapping the same way the SSH path does (a valid
-// Hermes profile identifier, never a reserved alias). Invalid/blank → no
+// Kova profile identifier, never a reserved alias). Invalid/blank → no
 // mapping, so callers fall back to the historical same-name behavior.
 function normalizeRemoteProfileName(value) {
   const remoteProfile = String(value || '').trim()
@@ -636,7 +636,7 @@ export interface ProfileRouteOptions {
   primaryRemoteActive?: boolean
   /** A stored per-profile entry exists for this profile (local or remote). */
   ownEntry?: boolean
-  /** `HERMES_DESKTOP_ISOLATED_BACKEND=1`: opt out of the host singleton. */
+  /** `KOVA_DESKTOP_ISOLATED_BACKEND=1`: opt out of the host singleton. */
   isolatedBackend?: boolean
   requestMethod?: null | string
   requestPath?: null | string
@@ -805,7 +805,7 @@ const SAFE_REQUEST_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
  * `?profile=`, no `body.profile`, no target named in the path).
  *
  * Such a route has exactly one scope left — the backend process's own
- * `HERMES_HOME` — so it keeps a pooled, profile-scoped backend even though every
+ * `KOVA_HOME` — so it keeps a pooled, profile-scoped backend even though every
  * other local request now shares the host one. Mechanical on purpose: the day a
  * handler learns to read `profile` it joins `LOCAL_PRIMARY_SCOPED_ROUTES` (or a
  * family above), `localPrimaryRequestScope` stops returning null, and this
@@ -849,9 +849,9 @@ export function unscopableMutatingRequest(opts: ProfileRouteOptions = {}): boole
  *     `requestGatewayForAgent` family): the profile's calls ride the primary
  *     socket with a `profile` param, never a second socket to the same
  *     process (#120005). The two ways out are
- *     `HERMES_DESKTOP_ISOLATED_BACKEND=1`, which gives this app a private
+ *     `KOVA_DESKTOP_ISOLATED_BACKEND=1`, which gives this app a private
  *     backend, and a MUTATING request the server cannot scope at all — that
- *     one keeps a pooled backend whose HERMES_HOME does the scoping, so a
+ *     one keeps a pooled backend whose KOVA_HOME does the scoping, so a
  *     destructive call can never fall through to the primary's home.
  *
  * Routing used to be spread across three overlapping predicates that each
@@ -869,7 +869,7 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
   if (scopedProfile === primaryProfile) {
     // A global remote is a multi-profile dashboard, not a backend process
     // launched for this Desktop label. Even its "primary" label must travel on
-    // the wire: the dashboard's process HERMES_HOME can belong to a different
+    // the wire: the dashboard's process KOVA_HOME can belong to a different
     // launch profile, so a bare request silently reads that profile instead.
     if (opts.globalRemote) {
       return { backend: 'primary', descriptorProfile: scopedProfile, scopePath: true }
@@ -924,7 +924,7 @@ function resolveProfileBackendRoute(profile, opts: ProfileRouteOptions = {}): Pr
   //    too, carrying `?profile=` / the `profile` RPC param instead of getting
   //    a `hermes serve` child of its own — UNLESS this request mutates state
   //    the server cannot scope, in which case the pooled backend's own
-  //    HERMES_HOME is the only scope left and it keeps one.
+  //    KOVA_HOME is the only scope left and it keeps one.
   if (sharesHostBackend({ isolated: opts.isolatedBackend, unscopableRequest: unscopableMutatingRequest(opts) })) {
     return { backend: 'primary', descriptorProfile: scopedProfile, scopePath: true }
   }

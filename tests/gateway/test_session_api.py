@@ -287,7 +287,7 @@ async def test_fork_session_writes_branched_from_marker(adapter, session_db):
 @pytest.mark.asyncio
 async def test_run_agent_binds_api_session_context_for_tool_env(adapter, monkeypatch):
     """API-server request sessions should reach tools and terminal subprocess env."""
-    monkeypatch.setenv("HERMES_SESSION_ID", "stale-session")
+    monkeypatch.setenv("KOVA_SESSION_ID", "stale-session")
     observed = {}
 
     class FakeAgent:
@@ -303,10 +303,10 @@ async def test_run_agent_binds_api_session_context_for_tool_env(adapter, monkeyp
             from tools.environments.local import _make_run_env
 
             observed["task_id"] = task_id
-            observed["context_session_id"] = get_session_env("HERMES_SESSION_ID")
-            observed["context_platform"] = get_session_env("HERMES_SESSION_PLATFORM")
-            observed["context_session_key"] = get_session_env("HERMES_SESSION_KEY")
-            observed["child_session_id"] = _make_run_env({}).get("HERMES_SESSION_ID")
+            observed["context_session_id"] = get_session_env("KOVA_SESSION_ID")
+            observed["context_platform"] = get_session_env("KOVA_SESSION_PLATFORM")
+            observed["context_session_key"] = get_session_env("KOVA_SESSION_KEY")
+            observed["child_session_id"] = _make_run_env({}).get("KOVA_SESSION_ID")
             return {"final_response": "ok"}
 
     def fake_create_agent(**kwargs):
@@ -635,7 +635,7 @@ async def test_session_chat_resolves_stored_model_route_alias(session_db, monkey
 @pytest.mark.asyncio
 async def test_session_chat_treats_pre_existing_poisoned_row_as_no_model(session_db):
     """A session row created before the alias-leak fix may still have the
-    virtual model alias (e.g. "hermes-agent") persisted literally as its
+    virtual model alias (e.g. "kova-agent") persisted literally as its
     model. Reading that back must NOT thread it through as a raw
     session_model override — it must fall through to the global default,
     exactly like a row that never had a model at all (#session-model-
@@ -1400,7 +1400,7 @@ async def test_interim_commentary_reaches_session_sse_and_responses_stream(adapt
         async with TestClient(TestServer(app)) as cli:
             sse = await (await cli.post(f"/api/sessions/{session_id}/chat/stream", json={"message": "go"})).text()
             responses = await (await cli.post(
-                "/v1/responses", json={"model": "hermes-agent", "input": "go", "stream": True})).text()
+                "/v1/responses", json={"model": "kova-agent", "input": "go", "stream": True})).text()
 
     def _events(body):
         out = []

@@ -55,7 +55,7 @@ def test_cli_reports_prepared_bridge_binary_missing(tmp_path, monkeypatch, capsy
         monkeypatch.setattr(setup, "_whatsapp_allowed_users", lambda *args: None)
         monkeypatch.setattr(setup, "_whatsapp_install_bridge", lambda path: True)
         monkeypatch.setattr(whatsapp_common, "resolve_whatsapp_bridge_dir", lambda: bridge_dir)
-        monkeypatch.setattr(main, "get_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(main, "get_kova_home", lambda: tmp_path)
         setup.cmd_whatsapp(SimpleNamespace())
     output = capsys.readouterr().out
     if executable not in output or "binary" not in output:

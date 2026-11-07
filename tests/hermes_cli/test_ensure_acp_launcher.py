@@ -19,7 +19,7 @@ from kova_cli.update_cmd import _ensure_acp_launcher
 @pytest.fixture
 def fake_home(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     bin_dir = tmp_path / ".local" / "bin"
     bin_dir.mkdir(parents=True)
     return bin_dir

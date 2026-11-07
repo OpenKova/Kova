@@ -186,7 +186,7 @@ it.each(['markdown', 'generated'])('%s dimensions follow owner and source, not s
   expect(mounted.container.textContent).toMatch(/Open image/i)
   mounted.rerender(view('owner-a', 'a'))
   expect(parseFloat(frame(mounted.container).style.aspectRatio)).toBeCloseTo(600 / 900)
-  expect(window.hermesDesktop.api).toHaveBeenLastCalledWith({
+  expect(window.kovaDesktop.api).toHaveBeenLastCalledWith({
     connectionId: 'owner-a',
     profile: 'a',
     path: `/api/fs/read-data-url?path=${encodeURIComponent(path)}`

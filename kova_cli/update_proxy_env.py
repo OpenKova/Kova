@@ -5,12 +5,12 @@ git, urllib, npm and uv children as HTTPS_PROXY/HTTP_PROXY with an extended
 NO_PROXY (apps/desktop/electron/updater/system-proxy-env.ts). ``hermes update``
 then restarts gateways and backends that inherit that env; for them it is not
 the user's setting, and every host the PAC sends direct (LAN model servers,
-internal names) would go through the proxy. ``HERMES_UPDATE_SYSTEM_PROXY`` names
-the variables the Desktop added and ``HERMES_UPDATE_USER_<KEY>`` holds a user's
+internal names) would go through the proxy. ``KOVA_UPDATE_SYSTEM_PROXY`` names
+the variables the Desktop added and ``KOVA_UPDATE_USER_<KEY>`` holds a user's
 own NO_PROXY it extended; a long-lived process restores its env from them at
 start. Same algorithm as restoreUserProxyEnv, posix.sh and windows.ps1, plus one
-rule only a Hermes process needs: a value the user's ``.env`` set wins. ``hermes
-update`` and the restarted process load ``~/.hermes/.env`` with override before
+rule only a Kova process needs: a value the user's ``.env`` set wins. ``hermes
+update`` and the restarted process load ``~/.kova/.env`` with override before
 this runs, so a marked key holding the value a dotenv load published is the
 user's own setting (same value as the Desktop's or not) and is kept. The Desktop
 and the hand-off scripts never load ``.env``, so their envs never hit that case.
@@ -20,8 +20,8 @@ from __future__ import annotations
 import os
 from typing import MutableMapping
 
-MARKER = "HERMES_UPDATE_SYSTEM_PROXY"
-SAVED_PREFIX = "HERMES_UPDATE_USER_"
+MARKER = "KOVA_UPDATE_SYSTEM_PROXY"
+SAVED_PREFIX = "KOVA_UPDATE_USER_"
 _ADDED_KEYS = ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "NO_PROXY", "no_proxy")
 _NO_PROXY_KEYS = ("NO_PROXY", "no_proxy")
 

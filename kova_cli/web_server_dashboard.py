@@ -18,7 +18,7 @@ from starlette.requests import HTTPConnection
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from kova_cli.config import cfg_get, get_process_hermes_home
+from kova_cli.config import cfg_get, get_process_kova_home
 from utils import env_var_enabled
 
 # Serve assets with explicit MIME types: the host's map (on Windows the
@@ -47,7 +47,7 @@ def _layer_hex(palette: dict[str, Any], key: str, default: str) -> str:
 
 def _render_active_theme_bootstrap_css() -> str:
     """Critical-CSS ``<style>`` shim for the active *user* theme, so the first paint uses the
-    target palette instead of flashing the bundle's default Hermes Teal until
+    target palette instead of flashing the bundle's default Kova Teal until
     ``ThemeProvider.applyTheme()`` runs. Built-in themes return "" (the bundle owns them).
 
     Variable names MUST match what the bundle consumes (``layerVars()`` /
@@ -108,7 +108,7 @@ def mount_spa(application: FastAPI):
     Dashboard injects its session token into index.html; Webapp instead receives
     the same credential through an operator-only launch fragment. Behind a path-prefix reverse
     proxy (``X-Forwarded-Prefix: /hermes``) the served index.html is rewritten so absolute
-    asset URLs and the runtime ``__HERMES_BASE_PATH__`` honour that prefix without a rebuild.
+    asset URLs and the runtime ``__KOVA_BASE_PATH__`` honour that prefix without a rebuild.
 
     A missing WEB_DIST is deliberately NOT a mount-time terminal state: every route copes
     with a missing dist per-request (404 JSON / ``check_dir=False``), so a long-lived
@@ -124,12 +124,12 @@ def mount_spa(application: FastAPI):
 
     # `hermes serve` is the headless backend: it must NEVER serve the browser SPA, even if a
     # dist is lying around, so only the JSON-RPC/WS/API surface is reachable.
-    if os.environ.get("HERMES_SERVE_HEADLESS") == "1":
+    if os.environ.get("KOVA_SERVE_HEADLESS") == "1":
 
         @application.get("/{full_path:path}")
         async def no_frontend(full_path: str):
             # Desktop token handshake: the Electron shell boots by fetching `/` and reading
-            # ``window.__HERMES_SESSION_TOKEN__`` for /api/ws auth. When headless 404'd every
+            # ``window.__KOVA_SESSION_TOKEN__`` for /api/ws auth. When headless 404'd every
             # path, a renderer whose spawn token no longer matched (e.g. after `hermes update`)
             # white-screened. Serve a token-only page at the exact root, but ONLY when the auth
             # gate is off: on a gated serve the token must never be readable without auth.
@@ -139,8 +139,8 @@ def mount_spa(application: FastAPI):
             if full_path == "" and not withheld:
                 return HTMLResponse(
                     "<!doctype html><html><head><script>"
-                    f"window.__HERMES_SESSION_TOKEN__={json.dumps(_server()._SESSION_TOKEN)};"
-                    "window.__HERMES_AUTH_REQUIRED__=false;"
+                    f"window.__KOVA_SESSION_TOKEN__={json.dumps(_server()._SESSION_TOKEN)};"
+                    "window.__KOVA_AUTH_REQUIRED__=false;"
                     f"</script></head><body>{_HEADLESS_MSG}</body></html>",
                     headers=_NO_STORE,
                 )
@@ -163,7 +163,7 @@ def mount_spa(application: FastAPI):
 
         When the OAuth auth gate is active (``app.state.auth_required``), the legacy
         ``_SESSION_TOKEN`` is NOT injected — the SPA reads identity from ``/api/auth/me`` over
-        cookie auth; ``__HERMES_AUTH_REQUIRED__`` tells it which scheme to use for /api/pty
+        cookie auth; ``__KOVA_AUTH_REQUIRED__`` tells it which scheme to use for /api/pty
         and /api/ws (ticket vs token).
         """
         try:
@@ -186,14 +186,14 @@ def mount_spa(application: FastAPI):
         gated = bool(getattr(application.state, "auth_required", False))
         # Only a host that records its surface (the gateway's Webapp) names it to the page.
         surface = getattr(application.state, "ui_surface", None)
-        surface_js = "" if surface is None else f"window.__HERMES_UI_SURFACE__={json.dumps(surface)};"
+        surface_js = "" if surface is None else f"window.__KOVA_UI_SURFACE__={json.dumps(surface)};"
         # Webapp grants host files and shell.exec as well as PTYs: its existing
         # session token must come from the operator, never anonymous HTML. The
         # gateway-hosted listener (gateway/run_api.py) never publishes it either:
         # local clients use tickets.
         withheld = (gated or bool(getattr(_server().app.state, "withhold_session_token", False))
                     or not policy(application.state).html_token)
-        token_js = "" if withheld else f'window.__HERMES_SESSION_TOKEN__="{_server()._SESSION_TOKEN}";'
+        token_js = "" if withheld else f'window.__KOVA_SESSION_TOKEN__="{_server()._SESSION_TOKEN}";'
         # Launcher-preselected profile (``--open-profile``): the SPA's fallback scope when the URL
         # omits ``?profile=`` (#73085). ``</`` escaped so a hostile name cannot close the script tag.
         initial_profile_js = json.dumps(str(getattr(application.state, "initial_profile", "") or "")).replace("</", "<\\/")
@@ -207,12 +207,12 @@ def mount_spa(application: FastAPI):
         serving_profile_js = json.dumps(_serving_profile_name()).replace("</", "<\\/")
         bootstrap_script = (
             f"<script>{token_js}"
-            f"window.__HERMES_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
-            f'window.__HERMES_BASE_PATH__="{prefix}";'
-            f"window.__HERMES_AUTH_REQUIRED__={'true' if gated else 'false'};"
-            f"window.__HERMES_INITIAL_PROFILE__={initial_profile_js};"
+            f"window.__KOVA_DASHBOARD_EMBEDDED_CHAT__={chat_js};"
+            f'window.__KOVA_BASE_PATH__="{prefix}";'
+            f"window.__KOVA_AUTH_REQUIRED__={'true' if gated else 'false'};"
+            f"window.__KOVA_INITIAL_PROFILE__={initial_profile_js};"
             f"{surface_js}"
-            f"window.__HERMES_DASHBOARD_PROFILE__={serving_profile_js};"
+            f"window.__KOVA_DASHBOARD_PROFILE__={serving_profile_js};"
             f"</script>"
         )
         if prefix:
@@ -304,8 +304,8 @@ def mount_spa(application: FastAPI):
 
 # Built-in themes — label + description only; colors live in web/src/themes/presets.ts.
 _BUILTIN_DASHBOARD_THEMES = [
-    {"name": "default",       "label": "Hermes Teal",         "description": "Classic dark teal — the canonical Hermes look"},
-    {"name": "default-large", "label": "Hermes Teal (Large)", "description": "Hermes Teal with bigger fonts and roomier spacing"},
+    {"name": "default",       "label": "Kova Teal",         "description": "Classic dark teal — the canonical Kova look"},
+    {"name": "default-large", "label": "Kova Teal (Large)", "description": "Kova Teal with bigger fonts and roomier spacing"},
     {"name": "nous-blue",     "label": "Nous Blue",           "description": "Light mode — vivid Nous-blue accents on cream canvas"},
     {"name": "midnight",      "label": "Midnight",            "description": "Deep blue-violet with cool accents"},
     {"name": "ember",     "label": "Ember",          "description": "Warm crimson and bronze — forge vibes"},
@@ -384,7 +384,7 @@ def _normalise_theme_definition(data: dict[str, Any]) -> Optional[dict[str, Any]
     unusable. Accepts the full schema and a loose form (top-level ``colors``, bare hex).
 
     customCSS is clipped but intentionally NOT sanitised — themes are user-authored YAML in
-    ~/.hermes/, the same trust level as config.yaml. Empty asset values are dropped so a
+    ~/.kova/, the same trust level as config.yaml. Empty asset values are dropped so a
     theme can explicitly clear a slot.
     """
     if not isinstance(data, dict):
@@ -479,10 +479,10 @@ def _normalise_theme_definition(data: dict[str, Any]) -> Optional[dict[str, Any]
 def _discover_user_themes() -> list:
     """Fully-normalised user themes from ``<launch home>/dashboard-themes/*.yaml``.
 
-    Uses the process launch home, not ``get_hermes_home()``, so a transient profile override
-    from embedded chat does not hide themes under the server's own ``HERMES_HOME``.
+    Uses the process launch home, not ``get_kova_home()``, so a transient profile override
+    from embedded chat does not hide themes under the server's own ``KOVA_HOME``.
     """
-    themes_dir = get_process_hermes_home() / "dashboard-themes"
+    themes_dir = get_process_kova_home() / "dashboard-themes"
     if not themes_dir.is_dir():
         return []
     result = []
@@ -531,28 +531,28 @@ def _dashboard_plugin_search_dirs() -> list[tuple]:
 
     User dashboard plugins are a dashboard-owned asset (like theme YAML): resolved from the
     process launch home so they don't vanish when a request is scoped to another profile.
-    When the process itself is profile-scoped (``HERMES_HOME=<root>/profiles/<name>``) the
+    When the process itself is profile-scoped (``KOVA_HOME=<root>/profiles/<name>``) the
     launch home has no ``plugins/`` — user plugins live in the hermes root — so the default
     root is scanned too; profile-local plugins stay authoritative over same-named root ones.
     The project source is gated on shared truthy semantics (``1``/``true``/``yes``/``on``):
     a bare non-empty check let ``=0``/``=false`` silently enable it (GHSA-5qr3-c538-wm9j).
     """
     from kova_cli.plugins import get_bundled_plugins_dir
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     bundled_root = get_bundled_plugins_dir()
     # User dashboard plugins are a dashboard-owned asset (same category as theme YAML): resolve them from
     # the process launch home so they don't vanish when a request is scoped to another profile via a
-    # context-local HERMES_HOME override (e.g. embedded /chat under --open-profile). #87197: when the
-    # process itself is profile-scoped (``--profile <name>`` sets ``HERMES_HOME=<root>/profiles/<name>``),
+    # context-local KOVA_HOME override (e.g. embedded /chat under --open-profile). #87197: when the
+    # process itself is profile-scoped (``--profile <name>`` sets ``KOVA_HOME=<root>/profiles/<name>``),
     # the launch home is the profile directory, which has no ``plugins/`` — user plugins are installed in
-    # the hermes root (``~/.hermes/plugins``). Scan the default root as well (``get_default_hermes_root()``
-    # unwraps ``<root>/profiles/<name>`` → ``<root>`` and returns a custom ``HERMES_HOME`` unchanged when it
+    # the hermes root (``~/.kova/plugins``). Scan the default root as well (``get_default_kova_root()``
+    # unwraps ``<root>/profiles/<name>`` → ``<root>`` and returns a custom ``KOVA_HOME`` unchanged when it
     # *is* the root), mirroring how ``kova_cli.plugins`` resolves plugin install locations. The
     # ``seen_names`` dedupe below keeps profile-local plugins (if any) authoritative over same-named root
     # plugins.
-    user_plugin_roots = [get_process_hermes_home() / "plugins"]
-    root_plugins = get_default_hermes_root() / "plugins"
+    user_plugin_roots = [get_process_kova_home() / "plugins"]
+    root_plugins = get_default_kova_root() / "plugins"
     if root_plugins.resolve(strict=False) != user_plugin_roots[0].resolve(strict=False):
         user_plugin_roots.append(root_plugins)
     search_dirs = [(d, "user") for d in user_plugin_roots]
@@ -564,8 +564,8 @@ def _dashboard_plugin_search_dirs() -> list[tuple]:
     # this turned the opt-in into a sticky always-on switch. Use the shared truthy semantics (``1`` /
     # ``true`` / ``yes`` / ``on``) so the gate matches ``kova_cli/plugins.py`` and the documented user
     # contract.
-    if env_var_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
-        search_dirs.append((Path.cwd() / ".hermes" / "plugins", "project"))
+    if env_var_enabled("KOVA_ENABLE_PROJECT_PLUGINS"):
+        search_dirs.append((Path.cwd() / ".kova" / "plugins", "project"))
     return search_dirs
 
 
@@ -737,10 +737,10 @@ def _merged_plugins_hub(force_refresh: bool = False) -> dict[str, Any]:
     """
     from kova_cli.web_server_memory import _discover_memory_provider_statuses, _normalize_memory_provider_name
     from kova_cli.web_server import _get_dashboard_plugins
-    from kova_cli.config import get_hermes_home, load_config
-    from kova_constants import hermes_home_key
+    from kova_cli.config import get_kova_home, load_config
+    from kova_constants import kova_home_key
 
-    cache_key = hermes_home_key(get_hermes_home())
+    cache_key = kova_home_key(get_kova_home())
     now = time.monotonic()
     if not force_refresh:
         with _plugins_hub_cache_lock:
@@ -768,7 +768,7 @@ def _merged_plugins_hub(force_refresh: bool = False) -> dict[str, Any]:
     disabled_set = _get_disabled_set()
     enabled_set = _get_enabled_set()
     hidden_plugins: list = cfg_get(load_config(), "dashboard", "hidden_plugins", default=[]) or []
-    plugins_root_resolved = (get_hermes_home() / "plugins").resolve()
+    plugins_root_resolved = (get_kova_home() / "plugins").resolve()
     rows: list[dict[str, Any]] = []
 
     # One kill-list resolution for the whole rebuild: resolving per row costs a live-catalog
@@ -848,7 +848,7 @@ def _plugin_api_mount_skip_reason(plugin: dict[str, Any], enabled_set: set, disa
 
     User plugins must be in ``plugins.enabled`` and not ``plugins.disabled`` before their
     Python runs (GHSA-mcfc-hp25-cjv7); bundled plugins are trusted but respect an explicit
-    disable; project plugins (``./.hermes/plugins/``) ship with the CWD and are
+    disable; project plugins (``./.kova/plugins/``) ship with the CWD and are
     attacker-controlled when opening a malicious repo — never auto-imported (GHSA-5qr3-c538-wm9j).
     """
     source, plugin_name = plugin.get("source"), plugin.get("name", "")
@@ -864,14 +864,14 @@ def _launch_profile_scope():
     """Resolve config as the launch profile's, whichever profile the request is scoped to: home and
     secrets switch together, so the launch config's ``${VAR}`` refs (and its last-good copy) never
     expand through another profile's secrets."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from kova_cli.web_server_profiles import _config_profile_scope
-    token = set_hermes_home_override(None)
+    token = set_kova_home_override(None)
     try:
         with _config_profile_scope(None):
             yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _plugin_enable_sets_here() -> tuple[set, set]:
@@ -963,7 +963,7 @@ class PluginApiWebSocketGate:
 
 @contextmanager
 def _native_ws_scope(scope):
-    """Yield whether a plugin socket's native grant (``X-Hermes-Gateway-Ticket``) was admitted,
+    """Yield whether a plugin socket's native grant (``X-Kova-Gateway-Ticket``) was admitted,
     with that grant's home and secret scope bound for the rest of the connection; without the
     header, True and the ambient scope. The grant is redeemed here only: the route's credential
     check reads the principal stamped on the connection, and its scope dependency resolves the
@@ -1062,7 +1062,7 @@ def _mount_plugin_api_routes():
     ``/api/plugins/<name>/``. See ``_plugin_api_mount_skip_reason`` for the trust gates.
 
     Backend import is restricted to ``bundled`` and ``user`` sources. Project plugins
-    (``./.hermes/plugins/``) ship with the CWD and are therefore attacker-controlled in any threat model
+    (``./.kova/plugins/``) ship with the CWD and are therefore attacker-controlled in any threat model
     where the user opens a malicious repo; they can extend the dashboard UI via static JS/CSS but their
     Python ``api`` file is never auto-imported by the web server. See GHSA-5qr3-c538-wm9j (#29156).
     Additionally, user plugins must be explicitly enabled via the ``plugins.enabled`` allow-list in
@@ -1103,7 +1103,7 @@ def _try_hot_mount_plugin_api(name: str) -> bool:
     from kova_cli.plugins_cmd import _get_disabled_set, _get_enabled_set
     from kova_cli.web_server import _get_dashboard_plugins, app
     from kova_cli.web_server_plugin_profiles import plugin_api_path, secondary_plugin, secondary_profile_home
-    # A secondary profile reaches this router only for its own bundled copy (Hermes code), and its
+    # A secondary profile reaches this router only for its own bundled copy (Kova code), and its
     # own lists decide that one (PLG-3).
     secondary, own, requester_sets = secondary_profile_home() is not None, secondary_plugin(name), _plugin_enable_sets_here()
     with _launch_profile_scope(), _plugin_api_mount_lock:
@@ -1201,7 +1201,7 @@ def _mount_one_plugin_api(app, plugin: dict[str, Any], enabled_set: set, disable
         _log.warning(
             "Plugin %s: ignoring backend api=%s (project plugins may "
             "not auto-import Python code; move the plugin to "
-            "~/.hermes/plugins/ if you trust it)",
+            "~/.kova/plugins/ if you trust it)",
             plugin["name"], api_file_name,
         )
         return False

@@ -86,8 +86,8 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
     db = None
     try:
         from kova_state import SessionDB
-        from kova_cli.config import get_hermes_home
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        from kova_cli.config import get_kova_home
+        db = SessionDB(db_path=get_kova_home() / "state.db", read_only=True)
         session = db.get_session(target)
         if not session:
             return
@@ -107,7 +107,7 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
         if db is not None:
             db.close()
 
-    # Sessions live under the profile's HERMES_HOME — mirror cli_session_mixin::_print_exit_summary.
+    # Sessions live under the profile's KOVA_HOME — mirror cli_session_mixin::_print_exit_summary.
     from kova_cli.profiles import get_active_profile_name
     active_profile = get_active_profile_name()
     profile_flag = "" if active_profile in ("default", "custom") else f" -p {active_profile}"
@@ -128,7 +128,7 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
 def _tui_need_rebuild(root: Path) -> bool:
     from kova_cli.source_build import source_product_current
 
-    force = (os.environ.get("HERMES_TUI_FORCE_BUILD") or "").strip().lower()
+    force = (os.environ.get("KOVA_TUI_FORCE_BUILD") or "").strip().lower()
     return force in {"1", "true", "yes", "on"} or not source_product_current(root.parent, "tui", root / "dist")
 
 
@@ -175,16 +175,16 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
         return
 
     if _restore_tui_workspace(tui_dir):
-        if not os.environ.get("HERMES_QUIET"):
+        if not os.environ.get("KOVA_QUIET"):
             print(f"Restored missing TUI workspace: {tui_dir}")
         return
 
     print(
-        "Error: the TUI workspace is missing from this Hermes checkout.\n"
+        "Error: the TUI workspace is missing from this Kova checkout.\n"
         f"Expected directory: {tui_dir}\n"
         "This usually means `hermes update` left tracked ui-tui files deleted.\n"
         "Recovery:\n"
-        "  1. From the Hermes checkout, run `git restore -- ui-tui`\n"
+        "  1. From the Kova checkout, run `git restore -- ui-tui`\n"
         "  2. Run `pnpm install --frozen-lockfile`\n"
         "  3. Retry `hermes --tui`\n"
         "If the checkout is still inconsistent, run `hermes update --force`.",
@@ -193,9 +193,9 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
 
 
 def _tui_node_bin(bin: str) -> str:
-    """Resolve the TUI runtime through PM; an explicit bundled HERMES_NODE wins."""
+    """Resolve the TUI runtime through PM; an explicit bundled KOVA_NODE wins."""
     if bin == "node":
-        env_node = os.environ.get("HERMES_NODE")
+        env_node = os.environ.get("KOVA_NODE")
         if env_node and os.path.isfile(env_node) and os.access(env_node, os.X_OK):
             return env_node
     from pm import ensure
@@ -211,15 +211,15 @@ def _tui_node_bin(bin: str) -> str:
 
 
 def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
-    """TUI: --dev → tsx src; else node dist (HERMES_TUI_DIR prebuilt or esbuild)."""
+    """TUI: --dev → tsx src; else node dist (KOVA_TUI_DIR prebuilt or esbuild)."""
 
     # Footgun: --dev against a prebuilt bundle that has no source/node_modules.
-    ext_dir = os.environ.get("HERMES_TUI_DIR")
+    ext_dir = os.environ.get("KOVA_TUI_DIR")
     if tui_dev and ext_dir:
         print(
-            f"Error: --dev is incompatible with HERMES_TUI_DIR={ext_dir}\n"
+            f"Error: --dev is incompatible with KOVA_TUI_DIR={ext_dir}\n"
             f"The prebuilt TUI has no source code to hot-reload.\n"
-            f"Unset HERMES_TUI_DIR (e.g. `unset HERMES_TUI_DIR`) to use --dev from a checkout.",
+            f"Unset KOVA_TUI_DIR (e.g. `unset KOVA_TUI_DIR`) to use --dev from a checkout.",
             file=sys.stderr)
         sys.exit(1)
 
@@ -352,24 +352,24 @@ def _safe_tui_cwd(env: Optional[dict] = None) -> str:
 def _apply_tui_python_env(env: dict) -> None:
     """Seed/repair Python-related env vars shared by CLI and dashboard TUI launches."""
     from kova_cli.main import PROJECT_ROOT
-    src_root = str(env.get("HERMES_PYTHON_SRC_ROOT") or "").strip()
+    src_root = str(env.get("KOVA_PYTHON_SRC_ROOT") or "").strip()
     if not src_root or not Path(src_root).is_dir():
-        env["HERMES_PYTHON_SRC_ROOT"] = str(PROJECT_ROOT)
+        env["KOVA_PYTHON_SRC_ROOT"] = str(PROJECT_ROOT)
 
-    cwd = str(env.get("HERMES_CWD") or "").strip()
+    cwd = str(env.get("KOVA_CWD") or "").strip()
     if not cwd or not Path(cwd).is_dir():
-        env["HERMES_CWD"] = _safe_tui_cwd(env)
+        env["KOVA_CWD"] = _safe_tui_cwd(env)
 
-    python = str(env.get("HERMES_PYTHON") or "").strip()
+    python = str(env.get("KOVA_PYTHON") or "").strip()
     if os.path.dirname(python):
         python_path = Path(python)
         if not python_path.is_absolute():
-            python_path = Path(env["HERMES_CWD"]) / python_path
+            python_path = Path(env["KOVA_CWD"]) / python_path
         python_is_executable = python_path.is_file() and os.access(python_path, os.X_OK)
     else:
         python_is_executable = bool(shutil.which(python, path=env.get("PATH")))
     if not python_is_executable:
-        env["HERMES_PYTHON"] = sys.executable
+        env["KOVA_PYTHON"] = sys.executable
 
 
 def _setup_tui_worktree() -> dict:
@@ -386,10 +386,10 @@ def _setup_tui_worktree() -> dict:
 
             _threading.Thread(
                 target=_maintain_pack_health, args=(repo,), name="pack-maintenance", daemon=True).start()
-        from kova_cli.config import get_hermes_home
+        from kova_cli.config import get_kova_home
         # The session's frozen cwd keeps this checkout; name the store from creation so a
         # launcher killed with its terminal still leaves the tree to its sessions.
-        wt_info = _setup_worktree(retain_db=get_hermes_home() / "state.db")
+        wt_info = _setup_worktree(retain_db=get_kova_home() / "state.db")
     except Exception as exc:
         print(f"✗ Failed to create TUI worktree: {exc}", file=sys.stderr)
     if not wt_info:
@@ -406,7 +406,7 @@ def _remove_idle_clean_tui_worktree(wt_info: dict) -> bool:
     still works in it; and by ``_cleanup_worktree`` when it is dirty, holds unpushed commits or
     something no branch keeps.
     """
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_cli.worktree_exit import _still_in_use
     from kova_cli.worktree_ops import _retained_tree_is_live, _tree_still_served
 
@@ -414,7 +414,7 @@ def _remove_idle_clean_tui_worktree(wt_info: dict) -> bool:
     if not path or not Path(path).is_dir():
         return False
     try:
-        db_path = str(get_hermes_home() / "state.db")
+        db_path = str(get_kova_home() / "state.db")
         if _retained_tree_is_live(db_path, path, pending_only=True):
             return False
         if _still_in_use(path):
@@ -435,9 +435,9 @@ def _require_bypass_model(env: dict, model: Optional[str], resume_session_id: Op
     refuses its session.create without one (bare invalid_params). Say so before the TUI starts,
     as classic chat does; a resume reuses the frozen route and needs none."""
     from utils import is_truthy_value
-    bypass = any(is_truthy_value(env.get(name)) for name in ("HERMES_SAFE_MODE", "HERMES_IGNORE_USER_CONFIG"))
-    if bypass and not resume_session_id and not (model or env.get("HERMES_MODEL", "").strip()):
-        print("Error: --safe-mode / --ignore-user-config (or HERMES_IGNORE_USER_CONFIG=1) read no profile "
+    bypass = any(is_truthy_value(env.get(name)) for name in ("KOVA_SAFE_MODE", "KOVA_IGNORE_USER_CONFIG"))
+    if bypass and not resume_session_id and not (model or env.get("KOVA_MODEL", "").strip()):
+        print("Error: --safe-mode / --ignore-user-config (or KOVA_IGNORE_USER_CONFIG=1) read no profile "
               "default model: pass --model explicitly.\n"
               "  Example: hermes --tui --safe-mode --provider openrouter --model anthropic/claude-sonnet-4",
               file=sys.stderr)
@@ -478,10 +478,10 @@ def _launch_tui(
     env = build_subprocess_env(scrub_secrets=False, inherit_profile_home=True)
     _require_bypass_model(env, model, resume_session_id)
     # The directory this launch was invoked from is the source of truth. An inherited
-    # HERMES_CWD (exported by an outer `hermes --tui`, or by the user's own shell) merely
+    # KOVA_CWD (exported by an outer `hermes --tui`, or by the user's own shell) merely
     # names *a* real directory, so the is_dir() repair in _apply_tui_python_env keeps it
     # and the gateway starts in last session's project. `--worktree` still wins below.
-    env["HERMES_CWD"] = _safe_tui_cwd(env)
+    env["KOVA_CWD"] = _safe_tui_cwd(env)
     from kova_cli.shared_session_attach import configure_tui_attachment
     try:
         configure_tui_attachment(env, resume_session_id)
@@ -496,7 +496,7 @@ def _launch_tui(
     active_session_fd, active_session_file = tempfile.mkstemp(
         prefix="hermes-tui-active-session-", suffix=".json")
     os.close(active_session_fd)
-    env["HERMES_TUI_ACTIVE_SESSION_FILE"] = active_session_file
+    env["KOVA_TUI_ACTIVE_SESSION_FILE"] = active_session_file
     env.setdefault("NODE_ENV", "development" if tui_dev else "production")
     if native_mode is None:
         try:
@@ -506,44 +506,44 @@ def _launch_tui(
             native_mode = is_truthy_value(display.get("tui_native", False)) if isinstance(display, dict) else False
         except Exception:
             native_mode = False
-    env["HERMES_TUI_NATIVE"] = "1" if native_mode else "0"
+    env["KOVA_TUI_NATIVE"] = "1" if native_mode else "0"
 
     wt_info = None
     if worktree:
         wt_info = _setup_tui_worktree()
-        env["HERMES_CWD"] = wt_info["path"]
+        env["KOVA_CWD"] = wt_info["path"]
         env["TERMINAL_CWD"] = wt_info["path"]
 
     # A local interactive session starts where the user launched (or in the --worktree), the
     # classic CLI's rule; terminal.cwd stays the default for gateway, cron and remote backends.
-    # HERMES_TUI_CWD is what the TUI sends on session.create, which beats the configured cwd (#84015).
+    # KOVA_TUI_CWD is what the TUI sends on session.create, which beats the configured cwd (#84015).
     if str(env.get("TERMINAL_ENV") or "local") == "local":
-        env["TERMINAL_CWD"] = env["HERMES_TUI_CWD"] = env["HERMES_CWD"]
+        env["TERMINAL_CWD"] = env["KOVA_TUI_CWD"] = env["KOVA_CWD"]
     else:
-        env.pop("HERMES_TUI_CWD", None)
+        env.pop("KOVA_TUI_CWD", None)
 
     _apply_tui_python_env(env)
     # This shell's allowlisted environment, sent as each session's ``client_env`` (LC-8, T3): taken from
     # the shell before the launcher's own edits (NODE_OPTIONS heap, TUI pins) so the session gets the
-    # PATH / venv / HERMES_* values the user exported.
+    # PATH / venv / KOVA_* values the user exported.
     from kova_cli.gateway_chat import shell_client_env
-    env["HERMES_TUI_CLIENT_ENV"] = json.dumps(shell_client_env())
+    env["KOVA_TUI_CLIENT_ENV"] = json.dumps(shell_client_env())
 
     skills_value = ""
     if skills:
         skills_value = (
             ",".join(_split_comma_items(skills)) if isinstance(skills, (list, tuple)) else str(skills).strip())
     for key, value in (
-        ("HERMES_MODEL", model), ("HERMES_INFERENCE_MODEL", model),
-        ("HERMES_TUI_PROVIDER", provider), ("HERMES_INFERENCE_PROVIDER", provider),
-        ("HERMES_TUI_TOOLSETS", ",".join(_normalize_tui_toolsets(toolsets))),
-        ("HERMES_TUI_SKILLS", skills_value),
-        ("HERMES_TUI_QUERY", query), ("HERMES_TUI_IMAGE", image),
-        ("HERMES_TUI_CHECKPOINTS", "1" if checkpoints else None),
-        ("HERMES_TUI_PASS_SESSION_ID", "1" if pass_session_id else None),
-        ("HERMES_TUI_MAX_TURNS", str(max_turns) if max_turns is not None else None),
-        ("HERMES_TUI_TOOL_PROGRESS", "verbose" if verbose else "off" if quiet else None),
-        ("HERMES_ACCEPT_HOOKS", "1" if accept_hooks else None)):
+        ("KOVA_MODEL", model), ("KOVA_INFERENCE_MODEL", model),
+        ("KOVA_TUI_PROVIDER", provider), ("KOVA_INFERENCE_PROVIDER", provider),
+        ("KOVA_TUI_TOOLSETS", ",".join(_normalize_tui_toolsets(toolsets))),
+        ("KOVA_TUI_SKILLS", skills_value),
+        ("KOVA_TUI_QUERY", query), ("KOVA_TUI_IMAGE", image),
+        ("KOVA_TUI_CHECKPOINTS", "1" if checkpoints else None),
+        ("KOVA_TUI_PASS_SESSION_ID", "1" if pass_session_id else None),
+        ("KOVA_TUI_MAX_TURNS", str(max_turns) if max_turns is not None else None),
+        ("KOVA_TUI_TOOL_PROGRESS", "verbose" if verbose else "off" if quiet else None),
+        ("KOVA_ACCEPT_HOOKS", "1" if accept_hooks else None)):
         if value:
             env[key] = value
     # Generous V8 heap (8GB target; default cap can fatal-OOM on long sessions),
@@ -555,13 +555,13 @@ def _launch_tui(
     if not any(t.startswith("--max-old-space-size=") for t in _tokens):
         _tokens.append(f"--max-old-space-size={_resolve_tui_heap_mb()}")
     env["NODE_OPTIONS"] = " ".join(_tokens)
-    # HERMES_TUI_RESUME is an internal hand-off to the Ink app. We start from a
+    # KOVA_TUI_RESUME is an internal hand-off to the Ink app. We start from a
     # full os.environ snapshot, so a stale exported value would make a plain
     # `hermes --tui` try to resume a non-existent session; only forward the id
     # argparse resolved for this invocation.
-    env.pop("HERMES_TUI_RESUME", None)
+    env.pop("KOVA_TUI_RESUME", None)
     if resume_session_id:
-        env["HERMES_TUI_RESUME"] = resume_session_id
+        env["KOVA_TUI_RESUME"] = resume_session_id
 
     argv, cwd = _make_tui_argv(tui_dir, tui_dev)
     code: Optional[int] = None
@@ -591,10 +591,10 @@ def _launch_tui(
             if attached_session:
                 # The launch lock names this (exiting) pid; hand it to the session so a later
                 # launch's stale prune keeps the tree while the session is resumable.
-                from kova_cli.config import get_hermes_home
+                from kova_cli.config import get_kova_home
                 from kova_cli.worktree_ops import _retain_worktree_for_session
                 _retain_worktree_for_session(wt_info["repo_root"], wt_info["path"], attached_session,
-                                             get_hermes_home() / "state.db")
+                                             get_kova_home() / "state.db")
             print(f"Worktree retained for this session: {wt_info['path']}", file=sys.stderr)
 
     # Exit code 42 = TUI requested an update. Relaunch as `hermes update`;
@@ -608,7 +608,7 @@ def _launch_tui(
 
 
 def _pin_kanban_board_env() -> None:
-    """Pin the active kanban board into ``HERMES_KANBAN_BOARD`` so in-process tools and shelled-out
+    """Pin the active kanban board into ``KOVA_KANBAN_BOARD`` so in-process tools and shelled-out
     ``hermes kanban`` calls agree even if a concurrent ``boards switch`` flips the file mid-turn.
 
     Without this, in-process tools (``kanban_*``) and shelled-out CLI calls (``hermes kanban …``) resolve
@@ -617,15 +617,15 @@ def _pin_kanban_board_env() -> None:
     chat sees its tool calls hit board A while its shell calls hit board B (#20074). Pinning at chat boot
     mirrors what the dispatcher already does for spawned workers.
     """
-    if os.environ.get("HERMES_KANBAN_BOARD"):
+    if os.environ.get("KOVA_KANBAN_BOARD"):
         return
     with contextlib.suppress(Exception):
         from kova_cli.kanban_db import get_current_board
-        os.environ["HERMES_KANBAN_BOARD"] = get_current_board()
+        os.environ["KOVA_KANBAN_BOARD"] = get_current_board()
 
 
 def _sync_bundled_skills_quietly() -> None:
-    """Seed ``~/.hermes/skills/`` with the bundled library (idempotent, milliseconds when synced).
+    """Seed ``~/.kova/skills/`` with the bundled library (idempotent, milliseconds when synced).
     Failures are swallowed: skills are an enhancement, not a hard dependency."""
     with contextlib.suppress(Exception):
         from tools.skills_sync import sync_skills
@@ -634,7 +634,7 @@ def _sync_bundled_skills_quietly() -> None:
 
 def _resolve_use_tui(args) -> bool:
     """Decide whether to launch the TUI: ``--cli`` → classic; ``--tui`` → TUI; no TTY → classic;
-    ``HERMES_TUI=1`` → TUI; ``display.interface`` config; default classic.
+    ``KOVA_TUI=1`` → TUI; ``display.interface`` config; default classic.
 
     The TTY gate is load-bearing: ambient preferences must never hijack a piped
     ``hermes chat -q`` (kanban workers, cron) — the Ink no-TTY bail-out exits 0 and
@@ -649,7 +649,7 @@ def _resolve_use_tui(args) -> bool:
             return False
     except Exception:
         return False
-    if os.environ.get("HERMES_TUI") == "1":
+    if os.environ.get("KOVA_TUI") == "1":
         return True
     try:
         from kova_cli.config import load_config

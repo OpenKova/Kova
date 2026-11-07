@@ -25,9 +25,9 @@ def pairing(tmp_path, monkeypatch):
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     messaging._whatsapp_onboarding_sessions.clear()
     session = home / "platforms" / "whatsapp" / "session"
     session.mkdir(parents=True)
@@ -407,9 +407,9 @@ def test_repair_selected_profile_leaves_default_session_untouched(pairing, monke
     observed = []
 
     def spawn(*args):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        observed.append(get_hermes_home())
+        observed.append(get_kova_home())
         raise OSError("stop after checking the worker profile")
 
     monkeypatch.setattr(messaging, "_spawn_whatsapp_pairing_process", spawn)

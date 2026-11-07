@@ -1,4 +1,4 @@
-"""A consented launch reaches main's HermesCLI (``cli.main``) with its scoped options."""
+"""A consented launch reaches main's KovaCLI (``cli.main``) with its scoped options."""
 import os
 import sys
 import types

@@ -43,7 +43,7 @@ def test_policy_selects_surface_and_isolates_cwd(tmp_path):
 @pytest.mark.asyncio
 async def test_launch_options_reach_the_owner_frozen_and_hooks_consented(tmp_path, monkeypatch):
     """`-s/--skills`, `--checkpoints`, `--pass-session-id`, `--accept-hooks` (and an exported
-    HERMES_ACCEPT_HOOKS=1, which the TUI forwards) were refused by session.create, so no session
+    KOVA_ACCEPT_HOOKS=1, which the TUI forwards) were refused by session.create, so no session
     could be created with them. They are this session's creation policy, applied by the owner."""
     import json
     from types import SimpleNamespace
@@ -61,8 +61,8 @@ async def test_launch_options_reach_the_owner_frozen_and_hooks_consented(tmp_pat
     (home / 'skills' / 'launch-fixture').mkdir(parents=True)
     (home / 'skills' / 'launch-fixture' / 'SKILL.md').write_text(
         '---\nname: launch-fixture\ndescription: fixture\n---\n\nLAUNCH_SKILL_BODY\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.delenv('HERMES_ACCEPT_HOOKS', raising=False)
+    monkeypatch.setenv('KOVA_HOME', str(home))
+    monkeypatch.delenv('KOVA_ACCEPT_HOOKS', raising=False)
     hook = tmp_path / 'hook.sh'
     hook.write_text('#!/bin/sh\nexit 0\n')
     cfg = {'platform_toolsets': {'cli': []}, 'hooks': {'pre_tool_call': [{'command': str(hook)}]}}
@@ -99,7 +99,7 @@ async def test_launch_options_reach_the_owner_frozen_and_hooks_consented(tmp_pat
     for params in ({'skills': ['missing-typo']}, {'skills': 'launch-fixture'}, {'checkpoints': 'yes'},
                    {'model': 'm', 'safe_mode': True, 'skills': ['launch-fixture']}):
         assert await create('refused-' + json.dumps(params), **params) in {'unknown_skill', 'invalid_params'}, params
-    # An exported HERMES_ACCEPT_HOOKS=1 must not brick a --safe-mode TUI: no profile hooks, no refusal.
+    # An exported KOVA_ACCEPT_HOOKS=1 must not brick a --safe-mode TUI: no profile hooks, no refusal.
     assert (await create('safe', model='m', safe_mode=True, accept_hooks=True)).startswith('local-')
 
 
@@ -114,7 +114,7 @@ def test_launch_policy_reaches_real_turn_runner(tmp_path):
     state.mkdir()
     from tests.gateway.fixtures.local_recovery_probe import child_env
     env = child_env()
-    env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(state), PYTHONPATH=str(repo))
+    env.update(HOME=str(home), USERPROFILE=str(home), KOVA_HOME=str(state), PYTHONPATH=str(repo))
     result = subprocess.run([sys.executable, str(Path(__file__).parent / 'fixtures' / 'session_policy_peer.py')],
                             cwd=repo, env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=130, check=False)
     assert result.returncode == 0, result.stdout + '\n' + result.stderr
@@ -151,7 +151,7 @@ def test_provider_override_drops_the_previous_providers_route(tmp_path):
     from gateway.session_policy import build_policy
     cfg = {'model': {'default': 'deepseek-chat', 'provider': 'deepseek',
                      'base_url': 'https://api.deepseek.com/v1', 'api_mode': 'chat_completions',
-                     'key_env': 'HERMES_CUSTOM_QWENAI_API_KEY'}}
+                     'key_env': 'KOVA_CUSTOM_QWENAI_API_KEY'}}
     policy = build_policy(dict(cwd=str(tmp_path), model='mimo-v2.6-flash', provider='xiaomi'), cfg)
     assert policy.config()['model'] == {'default': 'deepseek-chat', 'provider': 'xiaomi'}
     # A provider change plus an explicit URL still drops the replaced provider's wire protocol
@@ -369,7 +369,7 @@ def test_frozen_route_keeps_its_endpoint_after_live_config_edit(tmp_path, monkey
     from kova_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
 
     def write(url, key):
         (home / 'config.yaml').write_text(json.dumps(
@@ -397,7 +397,7 @@ def test_frozen_bare_custom_route_keeps_its_endpoint_pool_and_launch_key_wins(tm
     from kova_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     url = 'http://127.0.0.1:1/v1'
     (home / 'config.yaml').write_text(json.dumps(
         {'model': {'provider': 'custom', 'base_url': url, 'api_key': 'sk-frozen-config', 'default': 'm'}}))
@@ -429,7 +429,7 @@ def _frozen_fixture_routes(tmp_path, monkeypatch, *launches):
     from kova_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
 
     def write(url):
         (home / 'config.yaml').write_text(json.dumps({'model': {'provider': 'fixture', 'default': 'm'},

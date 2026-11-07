@@ -9,7 +9,7 @@ Every transcript word the fake provider streams is a unique token (``<tag>w<NNN>
 *word ledger* over the captured text tells lost, duplicated and reordered words apart.
 
 Isolation: the tmux server has its own socket and a config written into the test's tmp dir;
-the TUI gets a sandbox HOME/HERMES_HOME wired only to the loopback fake provider; cleanup kills
+the TUI gets a sandbox HOME/KOVA_HOME wired only to the loopback fake provider; cleanup kills
 the tmux server and every process of the pane's session by session id, never by pattern.
 """
 
@@ -38,7 +38,7 @@ import pytest
 from tests.e2e.core._pending_fixes import known_failure
 from tests.e2e.core.terminal._pty import cmdline, poll, session_members
 from tests.e2e.core.terminal._vt import Screen
-from tests.fakes.fake_llm_provider import write_hermes_home
+from tests.fakes.fake_llm_provider import write_kova_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 TITLE = "Scripted session title"
@@ -72,13 +72,13 @@ def require_tui() -> None:
     ) if not ok]
     if not missing:
         return
-    if os.environ.get("HERMES_E2E_REQUIRE_TUI") == "1" and missing != ["tmux"]:
-        pytest.fail(f"{missing} missing but HERMES_E2E_REQUIRE_TUI=1")
+    if os.environ.get("KOVA_E2E_REQUIRE_TUI") == "1" and missing != ["tmux"]:
+        pytest.fail(f"{missing} missing but KOVA_E2E_REQUIRE_TUI=1")
     pytest.skip(f"needs {missing}")
 
 
 def private_tui_dir(root: Path) -> Path:
-    """A private copy of the prebuilt bundle for ``HERMES_TUI_DIR``.
+    """A private copy of the prebuilt bundle for ``KOVA_TUI_DIR``.
 
     A checkout launch of ``hermes --tui`` re-runs esbuild on ``ui-tui/dist/entry.js`` every
     time, non-atomically, so a TUI started by another worker (or another e2e suite) while it
@@ -228,7 +228,7 @@ class TmuxTui:
                  tui_dir: Path | None = None) -> None:
         self.root = root
         self.home = root / "home"
-        self.hermes_home = self.home / ".hermes"
+        self.kova_home = self.home / ".kova"
         # A socket path of our own (never the shared default dir tmux-<uid> under the system temp
         # dir, where a crashed run would leave it behind); close() removes it.
         self._sock_dir: str | None = None
@@ -238,7 +238,7 @@ class TmuxTui:
             sock = Path(self._sock_dir) / "s"
         self.sock = str(sock)
         if write_home:
-            write_hermes_home(self.hermes_home, base_url, extra_config=BASE_CONFIG + extra_config)
+            write_kova_home(self.kova_home, base_url, extra_config=BASE_CONFIG + extra_config)
         for sub in ("tmp", "work"):
             (root / sub).mkdir(parents=True, exist_ok=True)
         conf = root / "tmux.conf"
@@ -247,13 +247,13 @@ class TmuxTui:
             "set -g history-limit 100000\nset -g status off\nset -g remain-on-exit on\n"
             "set -g default-terminal tmux-256color\nset -g escape-time 10\n", encoding="utf-8")
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith(("HERMES_", "TMUX", "OPENAI_", "OPENROUTER_", "ANTHROPIC_"))}
-        env.update(HOME=str(self.home), HERMES_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
+               if not k.startswith(("KOVA_", "TMUX", "OPENAI_", "OPENROUTER_", "ANTHROPIC_"))}
+        env.update(HOME=str(self.home), KOVA_HOME=str(self.kova_home), PYTHONPATH=str(REPO_ROOT),
                    TMPDIR=str(root / "tmp"), LANG="C.UTF-8", LC_ALL="C.UTF-8", PYTHONUNBUFFERED="1",
-                   HERMES_STATE_DB_GUARD_BYPASS="1", HERMES_TUI_INLINE="1" if inline else "0",
-                   HERMES_TUI_DIR=str(tui_dir or private_tui_dir(root)))
+                   KOVA_STATE_DB_GUARD_BYPASS="1", KOVA_TUI_INLINE="1" if inline else "0",
+                   KOVA_TUI_DIR=str(tui_dir or private_tui_dir(root)))
         env.update(env_extra or {})
-        self._gateway_home = env["HERMES_HOME"]  # env_extra may point several TUIs at one home
+        self._gateway_home = env["KOVA_HOME"]  # env_extra may point several TUIs at one home
         argv = [sys.executable, "-m", "kova_cli.main", "--tui", *args]
         subprocess.run(["tmux", "-S", self.sock, "-f", str(conf), "new-session", "-d", "-s", "p",
                         "-x", str(cols), "-y", str(rows), "-c", str(root / "work"), *argv],
@@ -530,7 +530,7 @@ class TmuxTui:
         # nothing outlives the test and the next TUI on this home starts cold.
         with contextlib.suppress(OSError, ValueError, KeyError, ProcessLookupError):
             lock = json.loads(Path(self._gateway_home, "gateway.lock").read_text())
-            if lock["hermes_home"] == self._gateway_home:
+            if lock["kova_home"] == self._gateway_home:
                 os.kill(int(lock["pid"]), signal.SIGTERM)  # windows-footgun: ok — Linux-only suite
                 poll(lambda: not _alive(int(lock["pid"])), timeout=15, what="sandbox gateway exit")
         return survivors
@@ -538,7 +538,7 @@ class TmuxTui:
     # -- persisted state -------------------------------------------------------------------------
 
     def db_rows(self, sql: str, args: tuple = ()) -> list[tuple]:
-        db = self.hermes_home / "state.db"
+        db = self.kova_home / "state.db"
         if not db.exists():
             return []
         conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=10)

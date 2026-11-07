@@ -5,7 +5,7 @@ file (future CLI/gateway runs) — it never retargets the running dashboard
 process. Before the ``profile`` parameter existed, toggling a skill after
 "activating" a profile silently wrote into the dashboard's own config.
 These tests pin the new behavior: reads and writes land in the REQUESTED
-profile's HERMES_HOME, and the dashboard's own profile stays untouched.
+profile's KOVA_HOME, and the dashboard's own profile stays untouched.
 """
 import pytest
 import kova_yaml as yaml
@@ -23,12 +23,12 @@ def _write_skill(skills_dir, name, description="test skill"):
 
 
 @pytest.fixture
-def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
+def isolated_profiles(tmp_path, monkeypatch, _isolate_kova_home):
     """Isolated default home + one named profile, each with its own skills."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_alpha"
     for home in (default_home, worker_home):
@@ -38,7 +38,7 @@ def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
     _write_skill(default_home / "skills", "dashboard-skill")
     _write_skill(worker_home / "skills", "worker-skill")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}
 
@@ -51,10 +51,10 @@ def client(monkeypatch, isolated_profiles):
         pytest.skip("fastapi/starlette not installed")
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c
@@ -138,9 +138,9 @@ class TestProfileScopedSkills:
                           json={"name": "shown-name", "locked": True})
         assert resp.status_code == 200, resp.text
         assert resp.json() == {"ok": True, "name": "shown-name", "locked": True}
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["worker_alpha"]))
         assert skill_usage.is_locked("dir-name")
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["default"]))
+        monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["default"]))
         assert not skill_usage.is_locked("dir-name")
 
         rows = client.get("/api/skills", params={"profile": "worker_alpha"}).json()
@@ -149,7 +149,7 @@ class TestProfileScopedSkills:
         resp = client.put("/api/skills/lock", params={"profile": "worker_alpha"},
                           json={"name": "shown-name", "locked": False})
         assert resp.status_code == 200
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["worker_alpha"]))
         assert not skill_usage.is_locked("dir-name")
 
     def test_lock_unknown_skill_404_and_corrupt_sidecar_lists_unlocked(
@@ -218,7 +218,7 @@ class TestProfileScopedHubActions:
             return _FakeProc()
 
         # Ambient home of a dashboard serving under the named profile.
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["worker_alpha"]))
         monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", _fake_spawn)
         resp = client.post(
             "/api/skills/hub/install",
@@ -231,4 +231,4 @@ class TestProfileScopedHubActions:
         # The spawn-path env pin must land the child on the default home, not the
         # ambient one it would inherit from a selector-less argv.
         env = _web_server_gateway._profile_action_environment(calls[0])
-        assert env["HERMES_HOME"] == str(isolated_profiles["default"])
+        assert env["KOVA_HOME"] == str(isolated_profiles["default"])

@@ -85,10 +85,10 @@ def test_a_folder_other_users_could_read_is_closed_before_the_page_is_written(pr
 
 
 @pytest.mark.platforms("posix")
-def test_a_relative_hermes_home_still_reaches_the_browser_in_a_page(private, monkeypatch, capsys):
-    """``HERMES_HOME=./root`` is supported; the page's ``file:`` URI is built from its absolute path."""
+def test_a_relative_kova_home_still_reaches_the_browser_in_a_page(private, monkeypatch, capsys):
+    """``KOVA_HOME=./root`` is supported; the page's ``file:`` URI is built from its absolute path."""
     monkeypatch.chdir(private["tmp"])
-    monkeypatch.setenv("HERMES_HOME", "./root")
+    monkeypatch.setenv("KOVA_HOME", "./root")
     assert launcher.cmd_webapp(_args()) == 0
     [opened] = private["calls"]["opened"]
     page = _page_path(opened)

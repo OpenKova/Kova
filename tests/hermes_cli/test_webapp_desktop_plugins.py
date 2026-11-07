@@ -26,10 +26,10 @@ def _client(monkeypatch, surface):
 
 @pytest.fixture
 def hermes_root(monkeypatch, tmp_path):
-    """A custom Hermes root, served through one of its named profiles."""
+    """A custom Kova root, served through one of its named profiles."""
     root = tmp_path / "hermes"
     (root / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "work"))
     return root
 
 
@@ -45,7 +45,7 @@ def _install(root, name, source, marker=None):
     folder.mkdir(parents=True)
     (folder / "plugin.js").write_text(source, encoding="utf-8")
     if marker is not None:
-        (folder / ".hermes-package.json").write_text(json.dumps(marker), encoding="utf-8")
+        (folder / ".kova-package.json").write_text(json.dumps(marker), encoding="utf-8")
     return folder
 
 
@@ -62,11 +62,11 @@ def test_webapp_loads_the_app_level_plugins_folder_whole(webapp, hermes_root):
     assert listed == [{"name": "big", "path": str(folder.resolve()), "isDirectory": True}]
 
     names = {e["name"] for e in webapp.get("/api/desktop-plugins/list", params={"path": listed[0]["path"]}).json()["entries"]}
-    assert names == {"plugin.js", ".hermes-package.json"}
+    assert names == {"plugin.js", ".kova-package.json"}
 
     read = webapp.get("/api/desktop-plugins/read", params={"path": str(folder.resolve() / "plugin.js")}).json()
     assert (read["text"], read["truncated"]) == (source, False)
-    marker = webapp.get("/api/desktop-plugins/read", params={"path": str(folder.resolve() / ".hermes-package.json")})
+    marker = webapp.get("/api/desktop-plugins/read", params={"path": str(folder.resolve() / ".kova-package.json")})
     assert json.loads(marker.json()["text"]) == {"package": "big-pkg"}
 
 
@@ -115,7 +115,7 @@ def test_a_linked_plugin_folder_loads_like_native_desktop(webapp, hermes_root, t
     assert webapp.get("/api/desktop-plugins/read", params={"path": str(link / "notes.txt")}).status_code == 404
 
 
-@pytest.mark.parametrize("entry", ["plugin.js", ".hermes-package.json"])
+@pytest.mark.parametrize("entry", ["plugin.js", ".kova-package.json"])
 def test_a_linked_entry_file_is_never_followed(webapp, hermes_root, entry):
     # Only folders are followed: a linked entry could name `.env`, which /api/fs refuses to read.
     (hermes_root / ".env").write_text("OPENAI_API_KEY=sk-test", encoding="utf-8")

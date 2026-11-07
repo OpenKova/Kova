@@ -585,7 +585,7 @@ def _model_flow_vertex(config, current_model=""):
         _say("  Vertex credentials: Application Default Credentials (ADC)",
              "    Vertex uses OAuth2, not a static API key. Either:",
              "      • run 'gcloud auth application-default login', or",
-             "      • set VERTEX_CREDENTIALS_PATH in ~/.hermes/.env to a service account JSON")
+             "      • set VERTEX_CREDENTIALS_PATH in ~/.kova/.env to a service account JSON")
     print()
 
     vertex_cfg = load_config().get("vertex")
@@ -652,10 +652,10 @@ def _select_zai_endpoint(current_base: str) -> str:
 
 _GEMINI_FREE_TIER_NOTICE = (
     "", "❌ This Google API key is on the free tier (<= 250 requests/day for gemini-2.5-flash).",
-    "   Hermes typically makes 3-10 API calls per user turn (tool iterations + auxiliary tasks),",
+    "   Kova typically makes 3-10 API calls per user turn (tool iterations + auxiliary tasks),",
     "   so the free tier is exhausted after a handful of messages and cannot sustain",
     "   an agent session.", "",
-    "   To use Gemini with Hermes, enable billing on your Google Cloud project and regenerate",
+    "   To use Gemini with Kova, enable billing on your Google Cloud project and regenerate",
     "   the key in a billing-enabled project: https://aistudio.google.com/apikey", "",
     "   Alternatives with workable free usage: DeepSeek, OpenRouter (free models), Groq, Nous.", "",
     "Not saving Gemini as the default provider.")
@@ -957,7 +957,7 @@ def _external_process_login_gate(profile, status) -> bool:
 def _plugin_flow_external_process(provider_id: str, profile) -> tuple[str, str] | None:
     from kova_cli.auth import get_external_process_provider_status, resolve_external_process_provider_credentials
     status = get_external_process_provider_status(provider_id)
-    _say(f"  {profile.display_name or provider_id} delegates Hermes turns to a local `{status.get('command') or profile.process_command}` process.",
+    _say(f"  {profile.display_name or provider_id} delegates Kova turns to a local `{status.get('command') or profile.process_command}` process.",
          f"  Command: {status.get('resolved_command') or status.get('command') or '(not found)'}",
          f"  Backend marker: {status.get('base_url') or profile.base_url}", "")
     try:

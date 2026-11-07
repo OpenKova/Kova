@@ -1,4 +1,4 @@
-"""``HermesCLI._session_db`` backed by the shared gateway session (CALLMAP §3.5).
+"""``KovaCLI._session_db`` backed by the shared gateway session (CALLMAP §3.5).
 
 Main's classic CLI holds a ``SessionDB`` writer. Rewired, the gateway is the single writer:
 
@@ -85,8 +85,8 @@ class GatewaySessionStore:
         """The read-only reader, opened on first use. No state.db yet (the gateway creates it on its
         first start, after the CLI's startup maintenance probe) is retried on the next read."""
         if self._reader is None:
-            from kova_constants import get_hermes_home
-            path = get_hermes_home() / "state.db"
+            from kova_constants import get_kova_home
+            path = get_kova_home() / "state.db"
             if not path.exists():
                 return None
             try:

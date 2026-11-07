@@ -206,8 +206,8 @@ class PluginContext(PluginCapabilityCtxMixin):
 
     @property
     def profile_name(self) -> str:
-        """Active profile name (``"default"``, the ``~/.hermes/profiles/<name>`` id, or ``"custom"``),
-        derived from ``HERMES_HOME`` — not ``_cli_ref``, which is None outside the interactive CLI —
+        """Active profile name (``"default"``, the ``~/.kova/profiles/<name>`` id, or ``"custom"``),
+        derived from ``KOVA_HOME`` — not ``_cli_ref``, which is None outside the interactive CLI —
         so gateway and kanban workers get it too."""
         try:
             from kova_cli.profiles import get_active_profile_name
@@ -259,7 +259,7 @@ class PluginContext(PluginCapabilityCtxMixin):
             raise ValueError(f"approval transport {clean!r} is already registered by {owner!r}")
         entry = RegisteredApprovalTransport(
             name=clean, present=present_fn, plugin_id=self.plugin_id,
-            profile_home=str(_facade().get_hermes_home().resolve()),
+            profile_home=str(_facade().get_kova_home().resolve()),
         )
         _facade().logger.info("Plugin %s registered approval transport: %s", self.plugin_id, clean)
         # Duplicate names are rejected above, so there is never a displaced previous entry to restore;
@@ -548,7 +548,7 @@ class PluginContext(PluginCapabilityCtxMixin):
         from kova_cli.dashboard_auth.registry import register_global_provider, unregister_global_provider
         if self._wrong_type(provider, DashboardAuthProvider, "dashboard-auth provider"):
             return
-        launch_scope = _facade().hermes_home_key(_facade().get_process_hermes_home())
+        launch_scope = _facade().kova_home_key(_facade().get_process_kova_home())
         if self._manager.scope_key != launch_scope:
             _facade().logger.warning(
                 "Plugin '%s' tried to register dashboard-auth provider %r "
@@ -808,9 +808,9 @@ class PluginContext(PluginCapabilityCtxMixin):
             _facade().logger.warning("Plugin '%s' tried to emit namespaced/reserved event '%s' — a plugin may only emit "
                                      "bare event names under its own '%s:' namespace (the '%s:' prefix is reserved "
                                      "for core, and foreign namespaces are forbidden)",
-                                     plugin_key, event, plugin_key, _facade().HERMES_EVENT_NAMESPACE)
+                                     plugin_key, event, plugin_key, _facade().KOVA_EVENT_NAMESPACE)
             raise ValueError(f"Plugin '{plugin_key}' may not emit '{event}': emit only the bare event name; "
-                             f"the namespace is forced to '{plugin_key}:' and the '{_facade().HERMES_EVENT_NAMESPACE}:' "
+                             f"the namespace is forced to '{plugin_key}:' and the '{_facade().KOVA_EVENT_NAMESPACE}:' "
                              f"prefix is reserved for core")
         if payload is not None and not isinstance(payload, dict):
             raise TypeError(f"Plugin '{plugin_key}' emit() payload must be a dict or None")

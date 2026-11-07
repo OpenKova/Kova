@@ -8,7 +8,7 @@ processes, sandbox lifecycle (per-task cache, idle reaper, atexit teardown)
 and sudo password plumbing.
 Cloud-sandbox persistent filesystems preserve working state across sandbox
 recreation but do NOT guarantee the same live sandbox or long-running
-processes survive cleanup, idle reaping, or Hermes exit.
+processes survive cleanup, idle reaping, or Kova exit.
 
 Companion modules (re-exported here, so ``tools.terminal_tool.<name>`` stays the
 import/patch target): ``terminal_tool_config`` (TERMINAL_* reads, ``_quiet``),
@@ -54,7 +54,7 @@ from tools.terminal_tool_backends import (
     _REQUIREMENT_CHECKERS, _VERCEL_SANDBOX_DEFAULT_CWD, _check_plugin_requirements,
     _record_unavailable_reason, terminal_backend_unavailable_reason,
 )
-# display_hermes_home imported lazily at call site (stale-module safety during hermes update)
+# display_kova_home imported lazily at call site (stale-module safety during hermes update)
 from tools.tool_backend_helpers import coerce_modal_mode, managed_nous_tools_enabled
 
 
@@ -108,28 +108,28 @@ def _current_session_key() -> str:
     the ``get_session_env`` os.environ fallback for CLI/cron/tests)."""
     from gateway.session_context import get_session_env
 
-    return get_session_env("HERMES_SESSION_KEY", "")
+    return get_session_env("KOVA_SESSION_KEY", "")
 
 
 def _current_session_profile() -> str:
-    """Active session's Hermes profile name, or "" (same lookup discipline as
+    """Active session's Kova profile name, or "" (same lookup discipline as
     :func:`_current_session_key`)."""
     from gateway.session_context import get_session_env
 
-    return get_session_env("HERMES_SESSION_PROFILE", "")
+    return get_session_env("KOVA_SESSION_PROFILE", "")
 
 
 def _container_profile() -> str:
     """Profile whose persistent container a session-bound command uses: the bound home's profile when it is not
     the session's own (a profile-routed subagent runs in its target's home while the session, and the delivery
-    identity HERMES_SESSION_PROFILE carries, stay the parent's; that target may be the launch profile, reached
+    identity KOVA_SESSION_PROFILE carries, stay the parent's; that target may be the launch profile, reached
     from a routed profile's chat), else the session's. A session with no profile name (a gateway launched as a
     named profile stamps none on its own chats) is the launch profile's, so it keys that profile by name, like
     the profile's Desktop sessions and its session-less work (:func:`_sessionless_container_key`)."""
-    from kova_constants import get_hermes_home_override, profile_name_for_home
+    from kova_constants import get_kova_home_override, profile_name_for_home
     from tools.environments.local import _is_routed_home
 
-    override = get_hermes_home_override()
+    override = get_kova_home_override()
     session = _current_session_profile()
     bound = profile_name_for_home(override) if override else None
     if bound and (bound != session if session else _is_routed_home(override)):
@@ -199,12 +199,12 @@ _docker_orphan_reaper_lock = threading.Lock()
 def _maybe_reap_docker_orphans(container_config: dict[str, Any]) -> None:
     """Run the docker orphan reaper once per process, if enabled.
 
-    Sweeps Exited containers labeled ``hermes-agent=1`` for the current
-    profile — leftovers of Hermes processes that died without firing
+    Sweeps Exited containers labeled ``kova-agent=1`` for the current
+    profile — leftovers of Kova processes that died without firing
     ``atexit`` (SIGKILL, OOM, closed terminal). Conservative: only containers
     older than ``2 × lifetime_seconds``, profile-scoped. Gates:
     ``terminal.docker_orphan_reaper: false`` (operator opt-out, e.g. several
-    Hermes processes sharing a profile) and the once-per-interpreter flag so
+    Kova processes sharing a profile) and the once-per-interpreter flag so
     parallel subagent / RL-rollout calls don't re-sweep.
     """
     global _docker_orphan_reaper_ran
@@ -300,7 +300,7 @@ def _sanitize_cwd_for_live_env(env: Any, new_cwd: str) -> Optional[str]:
     are already rejected on the creation paths. This write classifies the
     directory mounted at ``/workspace`` as unusable before that prefix
     heuristic, then remaps the match (or a child of it) to its container mount
-    instead of storing the host path. SSH maps the Hermes subprocess home onto
+    instead of storing the host path. SSH maps the Kova subprocess home onto
     the peer's home, as environment creation already does. Other backends apply
     the override verbatim (ACP project-root switching must keep working).
     """
@@ -468,10 +468,10 @@ def _routed_home_task_key(profile_scoped: bool) -> Optional[str]:
     Persistent Docker keys the profile name exactly like B's session-bound work, so B keeps ONE
     container instead of a second one per home path.
     """
-    from kova_constants import get_hermes_home_override, profile_name_for_home
+    from kova_constants import get_kova_home_override, profile_name_for_home
     from tools.environments.local import _is_routed_home
 
-    override = get_hermes_home_override()
+    override = get_kova_home_override()
     if not override or not _is_routed_home(override):
         return None
     profile = profile_name_for_home(override) if profile_scoped else None
@@ -489,9 +489,9 @@ def _sessionless_container_key(profile_scoped: bool) -> str:
     A routed home override keeps its existing key. Persistent Docker whose
     process home is a named profile reuses ``profile:<name>`` — the same key
     session-bound work of that profile uses. Dispatcher workers set
-    ``HERMES_HOME`` and clear session vars, so they are not a routed override;
+    ``KOVA_HOME`` and clear session vars, so they are not a routed override;
     without this they collapsed onto ``default`` and missed the profile sandbox.
-    The default profile, non-persistent backends, and a home outside the Hermes
+    The default profile, non-persistent backends, and a home outside the Kova
     root stay ``default`` (:func:`~tools.terminal_tool_config.home_profile_name` names the profile).
     """
     routed = _routed_home_task_key(profile_scoped)
@@ -715,7 +715,7 @@ def _ensure_terminal_env_bridged() -> None:
     env would re-create the first-writer-wins cross-profile leak the scope fixes.
 
     Ambient ``os.environ`` is the *launch* profile's authority only. Under a
-    context-local ``HERMES_HOME`` override (multiplexed dashboard / gateway
+    context-local ``KOVA_HOME`` override (multiplexed dashboard / gateway
     secondary profile), this bridge is a no-op — otherwise the first unscoped
     call under that override would latch the secondary profile's ``terminal.*``
     into process-global env and poison later unscoped launch-profile turns
@@ -729,9 +729,9 @@ def _ensure_terminal_env_bridged() -> None:
     if get_terminal_scope() is not None:
         return
     # Never write a secondary profile's terminal.* into process-global env.
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
 
-    if get_hermes_home_override() is not None:
+    if get_kova_home_override() is not None:
         return
     global _terminal_config_bridge_attempted
     if _terminal_config_bridge_attempted:
@@ -1346,7 +1346,7 @@ def _run_foreground(
     metered: bool = True,
 ) -> str:
     """Execute in the foreground with retry on transient errors, then finalize. ``metered``
-    is False for Hermes' own control-plane commands (``_host_local``)."""
+    is False for Kova' own control-plane commands (``_host_local``)."""
     from kova_cli.observability.shared_metrics_harness import record_terminal_outcome
     max_retries = 3
     env_type, eff, effective_timeout = plan.env_type, plan.effective_task_id, plan.effective_timeout
@@ -1378,7 +1378,7 @@ def _run_foreground(
             break
         except Exception as e:
             # A backend exception (e.g. an SSH connect timeout) never reached an exit status, so it
-            # is not a terminal outcome; Hermes' own deadline arrives as ``kova_timed_out``.
+            # is not a terminal outcome; Kova' own deadline arrives as ``kova_timed_out``.
             if "timeout" in str(e).lower():
                 return _error_json(f"Command timed out after {effective_timeout} seconds", exit_code=124)
             # Retry on transient errors
@@ -1503,7 +1503,7 @@ def terminal_tool(
     process_manage kill (#41225).
     ``_completion_output_chars`` (internal) sizes the completion notification's output for a
     spawner whose output is the payload (a bot DM's reply); 0 keeps the usual tail.
-    ``_host_local`` forces the local backend for Hermes-owned control-plane
+    ``_host_local`` forces the local backend for Kova-owned control-plane
     children (kept in a separate env cache from the configured backend).
     """
     from kova_cli.observability.shared_metrics_loop import record_terminal_backend as _metered

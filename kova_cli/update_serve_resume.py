@@ -37,7 +37,7 @@ def main(context: Path, result: Path) -> int:
             if entry.get("host"):
                 command += ["--host", str(entry["host"])]
             command += ["--port", str(port)]
-            candidates.append((entry.get("pid", 0), command, entry.get("hermes_home") or None))
+            candidates.append((entry.get("pid", 0), command, entry.get("kova_home") or None))
         commands = _filter_dashboard_respawn_candidates(candidates, own_home=request.get("home"))
         skipped += len(candidates) - len(commands)
         # An acknowledged attempt is terminal even if spawning failed: replaying

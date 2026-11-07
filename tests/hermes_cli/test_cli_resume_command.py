@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cli import HermesCLI
+from cli import KovaCLI
 
 
 def _make_cli():
-    cli_obj = HermesCLI.__new__(HermesCLI)
+    cli_obj = KovaCLI.__new__(KovaCLI)
     cli_obj.session_id = "current_session"
     cli_obj._resumed = False
     cli_obj._pending_title = None

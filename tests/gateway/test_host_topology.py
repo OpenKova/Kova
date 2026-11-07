@@ -17,8 +17,8 @@ def host_gateway(tmp_path, monkeypatch):
     (root / "profiles" / "coder").mkdir(parents=True)
     locks = tmp_path / "locks"
     locks.mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(locks))
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(locks))
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     # A live owner holds the host lock for its lifetime (run.py claims before it publishes).
     assert hr.claim_host_lock(hr.ROLE_GATEWAY)[0] is hr.HostLockOutcome.ACQUIRED
     hr.publish_record(hr.ROLE_GATEWAY, profiles=("default", "coder"))
@@ -78,7 +78,7 @@ def test_record_without_createtime_is_never_the_host_gateway(host_gateway, monke
 
 
 def test_topology_ignores_another_tenants_record_and_reads_the_launch_homes_state(tmp_path, monkeypatch, request):
-    """#121352 reporting half: a record from ANOTHER Hermes root is not this tenant's host gateway
+    """#121352 reporting half: a record from ANOTHER Kova root is not this tenant's host gateway
     (doctor / cron status / the dashboard ladder), and a NAMED-hosted multiplexer's platforms are read
     from the home that launched it, not from a stale standalone record at the default root."""
     import json
@@ -90,9 +90,9 @@ def test_topology_ignores_another_tenants_record_and_reads_the_launch_homes_stat
     root_a, root_b = tmp_path / "hermes-a", tmp_path / "hermes-b"
     argus = root_b / "profiles" / "argus"
     argus.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-    monkeypatch.setenv("HERMES_HOME", str(root_b))
-    monkeypatch.setattr("kova_constants._default_hermes_root_memo", None)
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_HOME", str(root_b))
+    monkeypatch.setattr("kova_constants._default_kova_root_memo", None)
 
     # A live owner holds the host lock for its lifetime (run.py claims before it publishes).
     assert hr.claim_host_lock(hr.ROLE_GATEWAY)[0] is hr.HostLockOutcome.ACQUIRED
@@ -128,9 +128,9 @@ def test_a_live_looking_pid_with_a_free_host_lock_is_not_the_host_gateway(tmp_pa
 
     root = tmp_path / "hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("kova_constants._default_hermes_root_memo", None)
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr("kova_constants._default_kova_root_memo", None)
     monkeypatch.setattr("kova_cli.gateway_multiplex_served.live_default_gateway_pid", lambda: None)
     child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     try:

@@ -89,7 +89,7 @@ def test_required_frontmatter_fields(p):
         pytest.fail(f"{_rel(p)}: missing frontmatter fields: {missing}")
     hermes = (fm.get("metadata") or {}).get("hermes") or {}
     if not (hermes.get("tags") or fm.get("tags")) and not _grandfathered(p, "tags"):
-        pytest.fail(f"{_rel(p)}: no tags (metadata.hermes.tags or top-level tags)")
+        pytest.fail(f"{_rel(p)}: no tags (metadata.kova.tags or top-level tags)")
 
 @pytest.mark.parametrize("p", _params())
 def test_name_matches_directory(p):

@@ -80,9 +80,9 @@ def test_credential_policy_and_whitelist_in_real_child(child_env, monkeypatch, m
         "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GITHUB_TOKEN", "MY_SECRET",
         "DB_PASSWORD", "VAULT_CREDENTIAL", "LDAP_PASSWD", "AUTH_TOKEN",
         "SENTRY_DSN", "SLACK_WEBHOOK", "HOME_APIKEY", "USER_CREDS", "TERM_BEARER",
-        "HERMES_BASE_URL", "HERMES_INTERACTIVE", "BUZZ_PRIVATE_KEY", "RANDOM_UNKNOWN",
+        "KOVA_BASE_URL", "KOVA_INTERACTIVE", "BUZZ_PRIVATE_KEY", "RANDOM_UNKNOWN",
     )
-    allowed = ("HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV", "LC_ENV_TEST", "TENOR_API_KEY")
+    allowed = ("KOVA_PROFILE", "KOVA_CONFIG", "KOVA_ENV", "LC_ENV_TEST", "TENOR_API_KEY")
     for name in blocked + allowed:
         monkeypatch.setenv(name, "fake-" + name)
     # Registration is real: a skill cannot tunnel a provider or Buzz credential.

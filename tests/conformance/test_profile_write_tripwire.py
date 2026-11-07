@@ -2,7 +2,7 @@
 
 Invariant under test
 --------------------
-When a non-default profile is active (``HERMES_HOME`` points at
+When a non-default profile is active (``KOVA_HOME`` points at
 ``<root>/profiles/testprof``), NO subsystem write may land anywhere under the
 default profile's tree — ``<root>/state.db``, ``<root>/config.yaml``,
 ``<root>/memories/``, ``<root>/cron/``, or any other path directly under
@@ -42,8 +42,8 @@ import pytest
 
 import kova_state
 from kova_constants import (
-    reset_hermes_home_override,
-    set_hermes_home_override,
+    reset_kova_home_override,
+    set_kova_home_override,
 )
 
 
@@ -119,13 +119,13 @@ def profile_tripwire(tmp_path, monkeypatch):
        files a real install has (config.yaml, memories/, cron/jobs.json) so
        both "new file created" and "existing file modified" leaks are
        detectable.
-    2. ``HERMES_HOME`` (env var AND the context-local override) pointed at
+    2. ``KOVA_HOME`` (env var AND the context-local override) pointed at
        the testprof home — the exact activation shape ``--profile`` uses.
     3. ``kova_state.DEFAULT_DB_PATH`` restored to its import-time snapshot.
        The suite conftest deliberately re-points that constant at its own
        fake home, which trips the escape hatch in ``_default_db_path()``
        (a re-pointed constant wins over everything).  Closing the hatch
-       makes resolution flow through ``get_hermes_home()`` — the production
+       makes resolution flow through ``get_kova_home()`` — the production
        path, and the one #88532 regressed.
 
     Yields a :class:`ProfileTripwire`; teardown re-asserts the invariant so
@@ -143,8 +143,8 @@ def profile_tripwire(tmp_path, monkeypatch):
     (root / "cron" / "jobs.json").write_text("[]\n")
     (root / ".env").write_text("")
 
-    monkeypatch.setenv("HERMES_HOME", str(profile))
-    token = set_hermes_home_override(str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
+    token = set_kova_home_override(str(profile))
 
     # Close the conftest's DEFAULT_DB_PATH escape hatch (see docstring).
     monkeypatch.setattr(
@@ -157,7 +157,7 @@ def profile_tripwire(tmp_path, monkeypatch):
         # Safety net: re-check even if the test body forgot to.
         tripwire.assert_default_untouched()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 # ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 The pause token used to live only in the updater's memory (plus an ``atexit`` resume), so a
 killed updater (console closed, ``taskkill``, power loss) left every paused gateway and SCM
-service stopped with nothing on disk saying so. The record is written under the ROOT Hermes
+service stopped with nothing on disk saying so. The record is written under the ROOT Kova
 home BEFORE anything is stopped, names its owner (pid + creation time, the update-marker
 identity format), is rewritten as the token changes, and is removed only after a verified
 resume. A later launch whose owner check finds the updater dead (and no update live) resumes it.
@@ -19,7 +19,7 @@ Otherwise the record stays for the next launch, which runs after the interrupted
 the dependency sync.
 
 Custody: every mutation (write, claim, retire, discharge) happens while holding a kernel lock on
-``<record dir>/.hermes-update-paused-gateways.lock`` (flock / msvcrt, released by the kernel when
+``<record dir>/.kova-update-paused-gateways.lock`` (flock / msvcrt, released by the kernel when
 the holder dies; the file is never deleted), and the read → judge → mutate decision is made
 inside that hold. A recovering launch claims a record by publishing ``<record>.<pid>.<nonce>.claim``
 with its own identity already inside (atomic replace), then retires the source; a crash between the
@@ -50,7 +50,7 @@ import uuid
 from contextlib import contextmanager, redirect_stdout, suppress
 from pathlib import Path
 
-RECORD_STEM = ".hermes-update-paused-gateways"
+RECORD_STEM = ".kova-update-paused-gateways"
 MUTEX_NAME = RECORD_STEM + ".lock"
 _MUTEX_WAIT_S = 10.0
 # Re-entry depth per THREAD: another thread of this process (a gateway's consumer, a watcher)
@@ -67,8 +67,8 @@ def _install_key(root: Path | None = None) -> str:
 
 
 def record_path() -> Path:
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root() / f"{RECORD_STEM}.{_install_key()}.json"
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root() / f"{RECORD_STEM}.{_install_key()}.json"
 
 
 def identity(pid: int | None = None) -> dict:
@@ -343,7 +343,7 @@ def _deps_hold_resume(root: Path) -> bool:
     did before the pause was durable, and a currency the probe cannot establish never holds it
     either — the restarted gateway's own launch syncs or reports the remedy.
     """
-    if (os.environ.get("HERMES_DISABLE_LAZY_INSTALLS", "").lower() in ("1", "true", "yes")
+    if (os.environ.get("KOVA_DISABLE_LAZY_INSTALLS", "").lower() in ("1", "true", "yes")
             or not (root / ".git").exists() or not (root / "pyproject.toml").is_file()):
         return False  # prepare_launch skips the sync: waiting would never end
     try:
@@ -493,14 +493,14 @@ def mark_stop_consumed(path: Path, marker: dict) -> None:
     Called under the pause mutex by the consumer. Preserve the holder's identity;
     this is evidence of a stop, not a transfer of the updater's custody.
     """
-    from gateway.status import _same_hermes_home
+    from gateway.status import _same_kova_home
     pid = str(marker["target_pid"])
     for src, body in _files(record_path()):
         token = body["token"]
         recorded_path = (token.get("stop_markers") or {}).get(pid)
         if (str(token.get("stopper_pid")) != str(marker.get("stopper_pid"))
                 or pid not in (token.get("stop_requested") or [])
-                or not recorded_path or not _same_hermes_home(recorded_path, path)):
+                or not recorded_path or not _same_kova_home(recorded_path, path)):
             continue
         token["stop_sent"] = sorted({*map(str, token.get("stop_sent") or []), pid})
         _atomic_write(src, body)  # Failure leaves the request intact for recovery.

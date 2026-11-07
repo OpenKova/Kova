@@ -81,7 +81,7 @@ function mount(snapshot: SessionResumeResult) {
       ...cache,
       queryClient,
       hydrateFromStoredSession: noop,
-      refreshHermesConfig: noop,
+      refreshKovaConfig: noop,
       refreshSessions: noop
     })
 

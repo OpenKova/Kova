@@ -50,10 +50,10 @@ def maybe_post_auto_prune_prompt(runner, loop) -> None:
         return
     from agent.async_utils import safe_schedule_threadsafe
     from kova_cli import prune_advisor
-    from kova_constants import get_routing_process_hermes_home
+    from kova_constants import get_routing_process_kova_home
 
     reachable = {profile for profile, *_rest in runner._served_home_channel_transports()}
-    homes: dict = {None: get_routing_process_hermes_home()}
+    homes: dict = {None: get_routing_process_kova_home()}
     homes.update(getattr(runner, "_served_profile_homes", None) or {})
     for profile, home in homes.items():
         if profile not in reachable or prune_advisor.should_ask(Path(home)) is None:

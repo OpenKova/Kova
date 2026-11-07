@@ -183,12 +183,12 @@ while not Path(sys.argv[2]).exists():
 def test_marker_op_reclaim_reports_held_while_a_survivor_holds_the_checkout_lock(tmp_path: Path) -> None:
     """R6: the update died (dead marker) but a process it started still holds the checkout lock:
     the Desktop's reclaim must not free the marker; it answers `held` until that process exits."""
-    install = tmp_path / 'hermes-agent'
+    install = tmp_path / 'kova-agent'
     install.mkdir()
     dead = f'{_dead_pid()}\n{int(time.time())}\nct:5.000\n'.encode()
     (tmp_path / MARKER).write_bytes(dead)
     release = tmp_path / 'release-holder'
-    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.hermes-update.lock'), str(release)])
+    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.kova-update.lock'), str(release)])
     try:
         deadline = time.monotonic() + 30
         while not Path(str(release) + '.ready').exists():
@@ -207,10 +207,10 @@ def test_marker_op_reclaim_reports_held_while_a_survivor_holds_the_checkout_lock
 def test_marker_op_reclaim_without_a_marker_reports_held_while_the_checkout_lock_is_held(tmp_path: Path) -> None:
     """Review 5411223284: `absent` was answered before the checkout lock was looked at, so a
     Desktop gate opened while an update with no marker (yet, or any more) held the checkout."""
-    install = tmp_path / 'hermes-agent'
+    install = tmp_path / 'kova-agent'
     install.mkdir()
     release = tmp_path / 'release-holder'
-    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.hermes-update.lock'), str(release)])
+    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.kova-update.lock'), str(release)])
     try:
         deadline = time.monotonic() + 30
         while not Path(str(release) + '.ready').exists():
@@ -231,9 +231,9 @@ def test_marker_op_reclaim_reports_held_while_the_checkout_lock_cannot_be_opened
     reclaim deleted a dead marker the Desktop's own probe kept. It counts as held."""
     import ctypes
 
-    install = tmp_path / 'hermes-agent'
+    install = tmp_path / 'kova-agent'
     install.mkdir()
-    lock = install / '.hermes-update.lock'
+    lock = install / '.kova-update.lock'
     lock.touch()
     dead = f'{_dead_pid()}\n{int(time.time())}\nct:5.000\n'.encode()
     (tmp_path / MARKER).write_bytes(dead)
@@ -254,12 +254,12 @@ def test_marker_op_reclaim_reports_held_while_the_checkout_lock_cannot_be_opened
 def test_marker_op_reclaim_reports_held_while_a_leased_child_outlives_its_owner(tmp_path: Path, lease: int) -> None:
     """R5b: the owner died (its byte at 1 MiB is free) but a completion child the job refused
     still holds its lease byte. The checkout is busy until it exits: reclaim answers `held`."""
-    install = tmp_path / 'hermes-agent'
+    install = tmp_path / 'kova-agent'
     install.mkdir()
     dead = f'{_dead_pid()}\n{int(time.time())}\nct:5.000\n'.encode()
     (tmp_path / MARKER).write_bytes(dead)
     release = tmp_path / 'release-holder'
-    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.hermes-update.lock'),
+    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.kova-update.lock'),
                                str(release), str(lease)])
     try:
         deadline = time.monotonic() + 30
@@ -290,11 +290,11 @@ def test_checkout_lock_probe_covers_the_owner_byte_and_every_lease_byte() -> Non
 def test_release_wait_keeps_line_2_young_while_the_checkout_lock_is_held(tmp_path: Path) -> None:
     """R6 wait + old packaged Desktops: while the release waits on a survivor's checkout lock
     (up to hours), the heartbeat keeps line 2 young, or an old Desktop age-deletes the marker."""
-    install = tmp_path / 'hermes-agent'
+    install = tmp_path / 'kova-agent'
     install.mkdir()
     marker = tmp_path / MARKER
     release = tmp_path / 'release-holder'
-    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.hermes-update.lock'), str(release)])
+    holder = subprocess.Popen([sys.executable, '-c', _CHECKOUT_HOLDER, str(install / '.kova-update.lock'), str(release)])
     harness = tmp_path / 'harness.ps1'
     harness.write_text(HARNESS, encoding='utf-8')
     started = int(time.time()) - 900

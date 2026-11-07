@@ -1,13 +1,13 @@
 """Process identity: spawn tags, the machine-wide spawn ledger, the Windows job-object self-attach,
 and the POSIX owner-death supervisor.
 
-Four layers make every long-lived Hermes process positively identifiable, so reapers (``hermes
+Four layers make every long-lived Kova process positively identifiable, so reapers (``hermes
 update``, Desktop startup sweeps) never guess lineage from PPID archaeology or cmdline matching,
-and make every long-lived CHILD die with the Hermes process that owns it:
-1. spawn tags (``HERMES_SPAWN`` env stamped by the spawner); 2. a ``(pid, create_time)`` ledger;
+and make every long-lived CHILD die with the Kova process that owns it:
+1. spawn tags (``KOVA_SPAWN`` env stamped by the spawner); 2. a ``(pid, create_time)`` ledger;
 3. Windows job-object self-attach with ``KILL_ON_JOB_CLOSE`` so the whole child tree dies with the
 root — no launcher→worker chains left holding ``.pyd`` locks; 4. on POSIX, one supervisor per
-Hermes process that reaps the owned children's process groups the moment Hermes dies.
+Kova process that reaps the owned children's process groups the moment Kova dies.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
 
-SPAWN_ENV_VAR = "HERMES_SPAWN"
+SPAWN_ENV_VAR = "KOVA_SPAWN"
 _TAG_VERSION = "v1"
 LEDGER_FILENAME = "spawn-ledger.json"
 
@@ -182,7 +182,7 @@ class SpawnTag:
 
 
 def build_spawn_tag(purpose: str, *, project_root: Optional[Path] = None) -> str:
-    """Value for the child's ``HERMES_SPAWN`` env var, stamped by the spawner."""
+    """Value for the child's ``KOVA_SPAWN`` env var, stamped by the spawner."""
     create = _process_create_time()
     create_part = f"{create:.3f}" if create is not None else "-"
     return ":".join((_TAG_VERSION, install_id(project_root), purpose, str(os.getpid()), create_part))
@@ -194,7 +194,7 @@ def spawn_env(purpose: str, *, project_root: Optional[Path] = None) -> dict[str,
 
 
 def parse_spawn_tag(raw: object) -> Optional[SpawnTag]:
-    """Parse a ``HERMES_SPAWN`` value; ``None`` for anything malformed."""
+    """Parse a ``KOVA_SPAWN`` value; ``None`` for anything malformed."""
     parts = raw.split(":") if isinstance(raw, str) else []
     if len(parts) != 5 or parts[0] != _TAG_VERSION:
         return None
@@ -212,8 +212,8 @@ def parse_spawn_tag(raw: object) -> Optional[SpawnTag]:
 def spawned_by_this_process(pid: int) -> bool:
     """True when ``pid`` carries a spawn tag naming THIS process (pid and create time).
 
-    A shared daemon (one session or pid file every Hermes of this user can reach) is owned only by
-    the Hermes whose command actually started it: the CLI it ran was given ``spawn_env`` and the
+    A shared daemon (one session or pid file every Kova of this user can reach) is owned only by
+    the Kova whose command actually started it: the CLI it ran was given ``spawn_env`` and the
     daemon inherited it. A pid file proves what a process is, not who started it. Fails closed:
     an unreadable environment (another user, a race) is not ours."""
     import psutil
@@ -246,7 +246,7 @@ class LedgerEntry:
     host: str = ""
     port: Optional[int] = None
     profile: str = ""
-    hermes_home: str = ""
+    kova_home: str = ""
     # `serve --isolated`: opted out of the host singleton (Desktop's SSH backend for another
     # machine). Attach-first readers must never adopt it; argv is truncated, so this is canonical.
     isolated: bool = False
@@ -261,13 +261,13 @@ class LedgerEntry:
 def _ledger_path() -> Path:
     """Machine-root ledger path (shared by every profile of this install)."""
     try:
-        from kova_constants import get_default_hermes_root
+        from kova_constants import get_default_kova_root
 
-        return Path(get_default_hermes_root()) / LEDGER_FILENAME
+        return Path(get_default_kova_root()) / LEDGER_FILENAME
     except Exception:
-        from kova_cli.config import get_hermes_home
+        from kova_cli.config import get_kova_home
 
-        return Path(get_hermes_home()) / LEDGER_FILENAME
+        return Path(get_kova_home()) / LEDGER_FILENAME
 
 
 def _read_ledger(path: Path) -> Optional[list[dict]]:
@@ -354,13 +354,13 @@ def register_self(purpose: str, *, project_root: Optional[Path] = None, detail: 
     pipeline can relaunch a manually-started serve with its real bind address, and ``isolated``
     so attach-first discovery skips a backend that opted out of the host singleton.
     """
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
     tag = parse_spawn_tag(os.environ.get(SPAWN_ENV_VAR))
     spawner_pid, spawner_create = (tag.spawner_pid, tag.spawner_create) if tag else _desktop_spawner_identity()
     entry = _new_entry(os.getpid(), _process_create_time(), purpose, project_root, spawner_pid, spawner_create)
     entry.spawner_boot = _verified_boot_start(spawner_pid, spawner_create)
-    entry.hermes_home = hermes_home_key()
+    entry.kova_home = kova_home_key()
     if detail:
         try:
             entry.host = str(detail.get("host") or "")
@@ -383,16 +383,16 @@ def register_self(purpose: str, *, project_root: Optional[Path] = None, detail: 
 def is_desktop_owned_backend(argv: Optional[Sequence[str]] = None) -> bool:
     """Whether this process is the backend Desktop spawned and owns.
 
-    ``HERMES_DESKTOP=1`` is inherited by every shell and agent child the app launches, so the
+    ``KOVA_DESKTOP=1`` is inherited by every shell and agent child the app launches, so the
     flag alone is not ownership proof (same class as #116107). Desktop hands its backend a
     per-spawn credential the terminal pane never receives (and the terminal tool's env policy
-    strips from agent children): the local pool spawn mints ``HERMES_DASHBOARD_SESSION_TOKEN``,
+    strips from agent children): the local pool spawn mints ``KOVA_DASHBOARD_SESSION_TOKEN``,
     the SSH spawn passes a 0600 token FILE on argv and deliberately sets no token env var.
     ``argv`` defaults to this process's own.
     """
-    if os.environ.get("HERMES_DESKTOP") != "1":
+    if os.environ.get("KOVA_DESKTOP") != "1":
         return False
-    if os.environ.get("HERMES_DASHBOARD_SESSION_TOKEN"):
+    if os.environ.get("KOVA_DASHBOARD_SESSION_TOKEN"):
         return True
     from kova_cli._startup_fast import is_desktop_ssh_backend_argv
 
@@ -429,16 +429,16 @@ def local_desktop_client(identity: Optional[dict], declared: object) -> bool:
 
 
 def _desktop_spawner_identity() -> tuple[Optional[int], Optional[float]]:
-    """Spawner ``(pid, create_time)`` from the Electron app's HERMES_PARENT_PID (+ optional
+    """Spawner ``(pid, create_time)`` from the Electron app's KOVA_PARENT_PID (+ optional
     ``winms:<ms>`` start marker) parent-death watchdog vars, so ledger lineage works with every
     Desktop version without a TS change. ``(None, None)`` when absent/malformed."""
     try:
-        spawner_pid = int(os.environ.get("HERMES_PARENT_PID", ""))
+        spawner_pid = int(os.environ.get("KOVA_PARENT_PID", ""))
     except (TypeError, ValueError):
         spawner_pid = 0
     if spawner_pid <= 0:
         return None, None
-    marker = os.environ.get("HERMES_PARENT_START_MARKER", "")
+    marker = os.environ.get("KOVA_PARENT_START_MARKER", "")
     if not marker.startswith("winms:"):
         return spawner_pid, None
     try:
@@ -467,7 +467,7 @@ def _append_entry(entry: LedgerEntry) -> bool:
     """Prune dead entries and append ``entry`` — the ONLY ledger write path.
 
     Serialized under ``_LEDGER_LOCK`` and, across processes, an exclusive lock on a sidecar file
-    (every ``spawn_owned`` writes here, so concurrent Hermes processes otherwise dropped each
+    (every ``spawn_owned`` writes here, so concurrent Kova processes otherwise dropped each
     other's rows), with an atomic tmp+replace; no writer touches the file outside this function.
 
     See #91660.
@@ -480,12 +480,12 @@ def _append_entry(entry: LedgerEntry) -> bool:
             held.enter_context(_FileLock(path.with_name(path.name + ".lock"), timeout=_LEDGER_LOCK_TIMEOUT_S))
         except (RuntimeError, OSError):
             # Best-effort like the write itself: the thread lock is then the only guard, so a row another
-            # Hermes process writes meanwhile can be lost. Say so once where it shows (agent.log).
+            # Kova process writes meanwhile can be lost. Say so once where it shows (agent.log).
             global _ledger_lock_warned
             if not _ledger_lock_warned:
                 _ledger_lock_warned = True
                 logger.warning("spawn ledger lock unavailable (a stalled holder, or no file locks here); writing "
-                               "without it, so concurrent Hermes processes may drop each other's rows")
+                               "without it, so concurrent Kova processes may drop each other's rows")
             logger.debug("spawn ledger lock unavailable", exc_info=True)
         entries = _read_ledger_or_quarantine(path) or []
         # Drop malformed entries, our own stale entry, and provably dead pids.
@@ -497,8 +497,8 @@ def _append_entry(entry: LedgerEntry) -> bool:
         ]
         pruned.append(asdict(entry))
         try:
-            from kova_constants import mkdir_under_hermes_home
-            mkdir_under_hermes_home(path.parent)
+            from kova_constants import mkdir_under_kova_home
+            mkdir_under_kova_home(path.parent)
             # argv may carry surrogate-escaped bytes (non-UTF-8 paths); ensure_ascii keeps the
             # utf-8 text handle from raising UnicodeEncodeError (a ValueError, not an OSError).
             atomic_json_write(path, pruned, mode=0o600, ensure_ascii=True)
@@ -512,7 +512,7 @@ def register_child(pid: int, purpose: str, *, project_root: Optional[Path] = Non
     """Record a CHILD process this process just spawned. Best-effort.
 
     Mirror of :func:`register_self` for children that cannot register themselves (stdio MCP
-    helpers: arbitrary ``npx``/binary servers never import Hermes code). Records the child's
+    helpers: arbitrary ``npx``/binary servers never import Kova code). Records the child's
     ``(pid, create_time)`` with THIS process as spawner, so a helper whose spawner is provably gone
     is a reapable orphan and one whose spawner is alive is never reaped.
     """
@@ -819,7 +819,7 @@ def attach_self_to_kill_on_close_job() -> bool:
 # its long-lived children reparent to init or the nearest subreaper (systemd --user) and run
 # forever; macOS has no PR_SET_PDEATHSIG, and on Linux it fires when the spawning THREAD exits,
 # which kills children spawned from short-lived worker threads while the owner is alive. So ONE
-# supervisor per Hermes process (``process_supervisor.sh``) holds the read end of a pipe whose only
+# supervisor per Kova process (``process_supervisor.sh``) holds the read end of a pipe whose only
 # write end we hold: EOF means we died, by any cause, and it killpg()s every group still registered.
 # A registered group that was never unregistered IS the orphan set, so a clean exit that stopped its
 # children first ends with nothing to kill, and one that didn't takes them along.

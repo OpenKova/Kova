@@ -29,7 +29,7 @@ def _reset_modules(prefixes: tuple[str, ...]):
 
 @pytest.fixture(autouse=True)
 def _restore_tool_modules():
-    original_hermes_home = os.environ.get("HERMES_HOME")
+    original_kova_home = os.environ.get("KOVA_HOME")
     original_modules = {
         name: module
         for name, module in sys.modules.items()
@@ -43,10 +43,10 @@ def _restore_tool_modules():
     try:
         yield
     finally:
-        if original_hermes_home is None:
-            os.environ.pop("HERMES_HOME", None)
+        if original_kova_home is None:
+            os.environ.pop("KOVA_HOME", None)
         else:
-            os.environ["HERMES_HOME"] = original_hermes_home
+            os.environ["KOVA_HOME"] = original_kova_home
         _reset_modules(("tools", "kova_cli", "modal"))
         sys.modules.update(original_modules)
 
@@ -62,8 +62,8 @@ def _install_modal_test_modules(
     kova_cli = types.ModuleType("kova_cli")
     kova_cli.__path__ = [str(REPO_ROOT / "kova_cli")]  # type: ignore[attr-defined]
     sys.modules["kova_cli"] = kova_cli
-    hermes_home = tmp_path / "hermes-home"
-    os.environ["HERMES_HOME"] = str(hermes_home)
+    kova_home = tmp_path / "hermes-home"
+    os.environ["KOVA_HOME"] = str(kova_home)
 
     tools_package = types.ModuleType("tools")
     tools_package.__path__ = [str(TOOLS_DIR)]  # type: ignore[attr-defined]
@@ -155,7 +155,7 @@ def _install_modal_test_modules(
             return {"kind": "registry", "image": image}
 
     async def _lookup_aio(_name: str, create_if_missing: bool = False):
-        return types.SimpleNamespace(name="hermes-agent", create_if_missing=create_if_missing)
+        return types.SimpleNamespace(name="kova-agent", create_if_missing=create_if_missing)
 
     class _FakeSandboxInstance:
         def __init__(self, image):
@@ -196,7 +196,7 @@ def _install_modal_test_modules(
     )
 
     return {
-        "snapshot_store": hermes_home / "modal_snapshots.json",
+        "snapshot_store": kova_home / "modal_snapshots.json",
         "create_calls": create_calls,
         "snapshot_calls": snapshot_calls,
         "from_id_calls": from_id_calls,
@@ -238,7 +238,7 @@ def test_resolve_modal_image_uses_snapshot_ids_and_registry_images(tmp_path):
 
 def test_persistent_cleanup_snapshots_without_expiry(tmp_path, monkeypatch):
     """The SDK default retains a filesystem snapshot for 30 days; an idle persistent
-    sandbox would then silently restart from the base image, so Hermes must opt out."""
+    sandbox would then silently restart from the base image, so Kova must opt out."""
     state = _install_modal_test_modules(tmp_path, snapshot_id="im-fresh")
     modal_module = _load_module("tools.environments.modal", TOOLS_DIR / "environments" / "modal.py")
     monkeypatch.setattr(modal_module, "ensure_lazy_dep", lambda extra: None)
@@ -255,7 +255,7 @@ def test_concurrent_snapshot_stores_keep_both_tasks(tmp_path, monkeypatch):
     second store must not be overwritten by the first one's stale read of the file."""
     import threading
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
     import tools.environments.base as base_module
     import tools.environments.modal as modal_module
     from tests.lock_contention import watch_file_lock_contention
@@ -304,7 +304,7 @@ def test_snapshot_store_update_proceeds_when_the_lock_is_unavailable(tmp_path, m
     import kova_cli.auth as auth_module
     import tools.environments.modal as modal_module
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
 
     @contextlib.contextmanager
     def wedged_lock(*_args, **_kwargs):

@@ -5,7 +5,7 @@ from gateway.restart import GATEWAY_FATAL_CONFIG_EXIT_CODE
 
 
 def _root(tmp_path):
-    root = tmp_path / '.hermes'
+    root = tmp_path / '.kova'
     root.mkdir()
     (root / 'config.yaml').write_text('model: {default: m}\n')
     (root / 'profiles' / 'foo').mkdir(parents=True)
@@ -17,9 +17,9 @@ def test_named_profile_launch_with_multiplex_is_a_config_verdict(tmp_path, monke
     from gateway import run_bootstrap
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root / 'profiles' / 'foo'))
+    monkeypatch.setenv('KOVA_HOME', str(root / 'profiles' / 'foo'))
     import kova_constants
-    kova_constants._default_hermes_root_memo = None
+    kova_constants._default_kova_root_memo = None
     written = []
     monkeypatch.setattr('gateway.run._write_runtime_status_quiet', lambda **kw: written.append(kw))
     with pytest.raises(SystemExit) as exc:
@@ -32,9 +32,9 @@ def test_default_profile_launch_may_multiplex(tmp_path, monkeypatch):
     from gateway import run_bootstrap
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('KOVA_HOME', str(root))
     import kova_constants
-    kova_constants._default_hermes_root_memo = None
+    kova_constants._default_kova_root_memo = None
     assert run_bootstrap._launch_home_may_multiplex() is True
 
 
@@ -46,9 +46,9 @@ async def test_verdict_precedes_replacing_a_running_gateway(tmp_path, monkeypatc
     from gateway.config import GatewayConfig
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root / 'profiles' / 'foo'))
+    monkeypatch.setenv('KOVA_HOME', str(root / 'profiles' / 'foo'))
     import kova_constants
-    kova_constants._default_hermes_root_memo = None
+    kova_constants._default_kova_root_memo = None
     monkeypatch.setattr('kova_cli.resource_limits.apply_nofile_soft_limit', lambda: None)
     monkeypatch.setattr('gateway.code_skew.record_boot_fingerprint', lambda: None)
     monkeypatch.setattr('gateway.status.get_running_pid', lambda: 4242)

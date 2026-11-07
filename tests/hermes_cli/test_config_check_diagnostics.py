@@ -16,7 +16,7 @@ def _write_home(home: Path, body: str, env: str = "") -> Path:
 
 
 def _check(home: Path, monkeypatch, capsys) -> str:
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     _cmd_config_check(None)
     return capsys.readouterr().out
 

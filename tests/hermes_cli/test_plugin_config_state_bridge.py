@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import kova_yaml as yaml
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
 
 
@@ -26,21 +26,21 @@ def _context(
 
 
 def _in_home(home: Path, fn, *args):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return fn(*args)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.fixture
 def isolated_home(tmp_path: Path):
     home = tmp_path / "profile"
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         yield home
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_config_round_trip_uses_canonical_settings_namespace(
@@ -49,16 +49,16 @@ def test_config_round_trip_uses_canonical_settings_namespace(
     ctx = _context(key="category/fixture-plugin")
 
     assert ctx.get_config("api_url", default="unset") == "unset"
-    ctx.set_config("api_url", r"C:\Users\Owner\Hermes 🚀")
+    ctx.set_config("api_url", r"C:\Users\Owner\Kova 🚀")
     ctx.set_config("retry.policy", {"attempts": 3, "enabled": True})
 
     raw = yaml.safe_load((isolated_home / "config.yaml").read_text(encoding="utf-8"))
     settings = raw["plugins"]["entries"]["category/fixture-plugin"]["settings"]
     assert settings == {
-        "api_url": r"C:\Users\Owner\Hermes 🚀",
+        "api_url": r"C:\Users\Owner\Kova 🚀",
         "retry": {"policy": {"attempts": 3, "enabled": True}},
     }
-    assert ctx.get_config("api_url") == r"C:\Users\Owner\Hermes 🚀"
+    assert ctx.get_config("api_url") == r"C:\Users\Owner\Kova 🚀"
     assert ctx.get_config("retry.policy") == {"attempts": 3, "enabled": True}
 
 
@@ -167,7 +167,7 @@ ctx = PluginContext(PluginManifest(name='fixture-plugin'), PluginManager())
 for i in range(int(sys.argv[1]), int(sys.argv[2])):
     ctx.set_config(f'process_{i}', i)
 """
-    env = dict(os.environ, HERMES_HOME=str(isolated_home))
+    env = dict(os.environ, KOVA_HOME=str(isolated_home))
     processes = [
         subprocess.Popen(
             [sys.executable, "-c", script, str(start), str(start + 20)],
@@ -238,7 +238,7 @@ ctx = PluginContext(PluginManifest(name='fixture-plugin'), PluginManager())
 for i in range(int(sys.argv[1]), int(sys.argv[2])):
     ctx.state.set(f'process_{i}', i)
 """
-    env = dict(os.environ, HERMES_HOME=str(isolated_home))
+    env = dict(os.environ, KOVA_HOME=str(isolated_home))
     processes = [
         subprocess.Popen(
             [sys.executable, "-c", script, str(start), str(start + 20)],
@@ -282,22 +282,22 @@ def test_config_and_state_follow_context_local_profile_scope(tmp_path: Path) -> 
 
     for index, home in enumerate(homes):
         home.mkdir(parents=True)
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             ctx.set_config("profile_value", index)
             ctx.state.set("profile_value", index)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     # One globally-loaded plugin context follows each multiplexed turn's
     # context-local profile instead of pinning the startup profile.
     for index, home in enumerate(homes):
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             assert ctx.get_config("profile_value") == index
             assert ctx.state.get("profile_value") == index
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
 
 def test_fixture_plugin_round_trips_bridge_during_real_discovery(

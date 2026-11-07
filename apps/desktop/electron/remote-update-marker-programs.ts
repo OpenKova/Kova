@@ -116,7 +116,7 @@ def marker_verdict(raw):
  * marker, and unlinks a dead claim inside that hold only while the install's
  * CHECKOUT lock is free (update_lock._reclaim_dead): a killed updater's
  * completion/build child still holding it answers HELD and keeps the marker.
- * The checkouts probed are `<marker dir>/hermes-agent` plus the checkout of
+ * The checkouts probed are `<marker dir>/kova-agent` plus the checkout of
  * each `hermes` executable argument (`<root>/venv/bin/hermes`, symlinks
  * resolved). Then it either prints the verdict (no payload: the relaunch probe)
  * or runs the payload as `sh -c payload hermes-update-mutex <fd>` still holding
@@ -145,8 +145,8 @@ def read_marker():
     except FileNotFoundError:return None
 
 def checkout_lock(root):
-    # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock, else <root>/.hermes-update.lock.
-    plain=os.path.join(root,'.hermes-update.lock');dot=os.path.join(root,'.git')
+    # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock, else <root>/.kova-update.lock.
+    plain=os.path.join(root,'.kova-update.lock');dot=os.path.join(root,'.git')
     try:
         if os.path.isdir(dot):gitdir=dot
         elif os.path.isfile(dot):
@@ -163,7 +163,7 @@ def checkout_lock(root):
 def checkout_held():
     # update_lock.checkout_lock_held: take the flock for one try and drop it. A lock file that
     # exists but cannot be opened or probed counts as held: reclaim needs a provably free checkout.
-    roots=[os.path.join(os.path.dirname(marker),'hermes-agent')]
+    roots=[os.path.join(os.path.dirname(marker),'kova-agent')]
     roots+=[os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(os.path.expanduser(exe))))) for exe in sys.argv[3:] if exe]
     for root in roots:
         try:lock=os.open(checkout_lock(root),os.O_RDONLY|os.O_CLOEXEC)
@@ -237,7 +237,7 @@ export const WINDOWS_MARKER_JUDGE_PS = [
  */
 export const WINDOWS_CHECKOUT_LOCK_PS = [
   'function Get-CheckoutLockPath([string]$root){',
-  '$plain=[IO.Path]::Combine($root,".hermes-update.lock");$dot=[IO.Path]::Combine($root,".git");$gitdir=$null',
+  '$plain=[IO.Path]::Combine($root,".kova-update.lock");$dot=[IO.Path]::Combine($root,".git");$gitdir=$null',
   'try{',
   'if([IO.Directory]::Exists($dot)){$gitdir=$dot}elseif([IO.File]::Exists($dot)){$text=[IO.File]::ReadAllText($dot).Trim();if($text.StartsWith("gitdir:")){$gitdir=[IO.Path]::Combine($root,$text.Substring(7).Trim())}}',
   'if($gitdir){$common=[IO.Path]::Combine($gitdir,"commondir");if([IO.File]::Exists($common)){$gitdir=[IO.Path]::Combine($gitdir,[IO.File]::ReadAllText($common).Trim())}}',

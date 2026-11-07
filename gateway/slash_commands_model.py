@@ -399,7 +399,7 @@ class GatewayModelCommandsMixin:
         """Slash dispatch does not install the routed profile's scope, so a multiplexed runner binds
         the owning home for the switch row and its switch_away friction."""
         from kova_cli.observability.shared_metrics_events import record_model_switch
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         home = None
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
@@ -408,14 +408,14 @@ class GatewayModelCommandsMixin:
         session_id = None
         with contextlib.suppress(Exception):
             session_id = getattr(self._cached_agent_for(ctx.session_key), "session_id", None)
-        token = set_hermes_home_override(str(home)) if home else None
+        token = set_kova_home_override(str(home)) if home else None
         try:
             record_model_switch(
                 from_provider=ctx.route_provider, to_provider=result.target_provider, surface="gateway",
                 from_model=ctx.current_model, session_id=session_id)
         finally:
             if token is not None:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
     async def _commit_model_switch_locked(self, result, ctx: _ModelSwitchContext, *, source, picker: bool) -> str:
         one_turn = False if picker else ctx.one_turn
@@ -575,7 +575,7 @@ class GatewayModelCommandsMixin:
             return await self._handle_model_command_locked(event)
 
     async def _handle_model_command_locked(self, event: MessageEvent) -> Optional[str]:
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         from kova_cli.model_switch import parse_model_switch_args, resolve_persist_behavior
 
         profile_home = None
@@ -608,7 +608,7 @@ class GatewayModelCommandsMixin:
             # (the mcp-serve plugin, mirror, channel directory) see the branch row fully formed with zero backfill gap.
             session_key=session_key,
             source=source,
-            config_path=(profile_home or _hermes_home) / "config.yaml",
+            config_path=(profile_home or _kova_home) / "config.yaml",
             persist_global=resolve_persist_behavior(
                 request.is_global, request.is_session, is_once=request.is_once,
                 explicit_provider=request.explicit_provider,
@@ -700,7 +700,7 @@ class GatewayModelCommandsMixin:
         Runs as the adapter's post-delivery callback, so the offer always lands under the reply (the reply
         is sent after this turn returns). The tap switches this session only (never the default) and
         re-sends the refused message, like /retry. No credits button in a chat: anyone in the room could
-        spend the owner's credits, so the Portal is named instead. Hermes never switches on its own."""
+        spend the owner's credits, so the Portal is named instead. Kova never switches on its own."""
         try:
             adapter = self._delivery_adapter_for(event.source) if event.source is not None else None
             register = getattr(adapter, "register_post_delivery_callback", None)
@@ -756,14 +756,14 @@ class GatewayModelCommandsMixin:
                                          offer: Optional[tuple[str, int]] = None) -> str:
         """The tap: switch this session to *model_id* on Nous, then re-send the refused message.
         ``offer`` is the refused turn's ``(session_key, run_generation)``."""
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         source = await asyncio.to_thread(self._normalize_source_for_session_key, event.source)
         session_key = self._session_key_for_source(source)
         profile_home = None
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
             profile_home = self._resolve_profile_home_for_source(event.source)
         ctx = _ModelSwitchContext(session_key=session_key, source=source,
-                                  config_path=(profile_home or _hermes_home) / "config.yaml", persist_global=False)
+                                  config_path=(profile_home or _kova_home) / "config.yaml", persist_global=False)
 
         async def _switch() -> str:
             ctx.read_config()
@@ -973,7 +973,7 @@ class GatewayModelCommandsMixin:
         if raw_args:  # typed path — same applier the picker uses
             return self._apply_reasoning_selection(session_key, platform_key, args, persist_global=persist_global)
         rc = self._reasoning_config
-        # Labels tell the truth about the route: a Hermes-internal step (``ultra``) that the wire
+        # Labels tell the truth about the route: a Kova-internal step (``ultra``) that the wire
         # clamps is shown as "ultra (sends max on this route)" instead of a distinct level (#61634).
         from agent.reasoning_effort import effort_display_label
         from gateway.run import _load_gateway_config

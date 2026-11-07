@@ -32,7 +32,7 @@ def _declared_model_ids(value: Any) -> list[str]:
     if isinstance(value, str):
         candidates: Any = [value]
     elif isinstance(value, dict):
-        # Pre-fix Hermes wrote sentinel keys inside the user-facing ``models`` mapping.
+        # Pre-fix Kova wrote sentinel keys inside the user-facing ``models`` mapping.
         candidates = (k for k in value if k not in ("__explicit_model_allowlist__", "__discovered_model_catalog__"))
     elif isinstance(value, (list, tuple)):
         candidates = (_declared_item_id(item) if isinstance(item, dict) else item for item in value)
@@ -57,7 +57,7 @@ def _declared_item_id(item: dict) -> Any:
 
 
 def _entry_models_discovered(entry: Any) -> bool:
-    """True when the entry's ``models`` mapping was auto-discovered by Hermes.
+    """True when the entry's ``models`` mapping was auto-discovered by Kova.
 
     Current shape: entry-level ``models_discovered: true``. Older versions wrote an in-mapping
     ``__discovered_model_catalog__: true`` sentinel — accepted on read (the next save migrates it)."""
@@ -75,7 +75,7 @@ def _models_config_is_allowlist(value: Any, discovered: bool = False) -> bool:
     ``_save_custom_provider`` / the wizard, not a catalog narrow (treating it as one made GUI
     pickers show only the saved default for keyless Ollama while the CLI live-probed). List and
     string shapes remain allowlists for no-key endpoints; pin a dict catalog with
-    ``discover_models: false``. A catalog Hermes itself persisted (``discovered``) is never a pin."""
+    ``discover_models: false``. A catalog Kova itself persisted (``discovered``) is never a pin."""
     if discovered:
         return False
     if isinstance(value, str):
@@ -97,17 +97,17 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
 
 # --- Non-agentic model warning
 
-_HERMES_MODEL_WARNING = (
-    "Nous Research Hermes 3 & 4 models are NOT agentic and are not designed "
-    "for use with Hermes Agent. They lack the tool-calling capabilities "
+_KOVA_MODEL_WARNING = (
+    "Nous Research Kova 3 & 4 models are NOT agentic and are not designed "
+    "for use with Kova Agent. They lack the tool-calling capabilities "
     "required for agent workflows. Consider using an agentic model instead "
     "(Claude, GPT, Gemini, DeepSeek, etc.).")
 
-# Match only the real Nous Research Hermes 3 / 4 chat families; a bare substring check
+# Match only the real Nous Research Kova 3 / 4 chat families; a bare substring check
 # false-positived on tool-capable local Modelfiles like ``hermes-brain:qwen3-14b-ctx16k``.
-#   match:    NousResearch/Hermes-3-Llama-3.1-70B, hermes-4-405b, openrouter/hermes3:70b
+#   match:    NousResearch/Kova-3-Llama-3.1-70B, hermes-4-405b, openrouter/hermes3:70b
 #   no match: hermes-brain:qwen3-14b-ctx16k, qwen3:14b, claude-opus-4-6
-_NOUS_HERMES_NON_AGENTIC_RE = re.compile(r"(?:^|[/:])hermes[-_ ]?[34](?:[-_.:]|$)", re.IGNORECASE)
+_NOUS_KOVA_NON_AGENTIC_RE = re.compile(r"(?:^|[/:])hermes[-_ ]?[34](?:[-_.:]|$)", re.IGNORECASE)
 
 
 # Opaque proxy model IDs (Palantir Foundry: ``ri.language-model-service..language-model.<slug>``)
@@ -125,13 +125,13 @@ def format_model_for_display(model_name: str) -> str:
 
 
 def is_nous_hermes_non_agentic(model_name: str) -> bool:
-    """True if *model_name* is a real Nous Hermes 3/4 chat model (single owner; cli.py uses it too)."""
-    return bool(model_name and _NOUS_HERMES_NON_AGENTIC_RE.search(model_name))
+    """True if *model_name* is a real Nous Kova 3/4 chat model (single owner; cli.py uses it too)."""
+    return bool(model_name and _NOUS_KOVA_NON_AGENTIC_RE.search(model_name))
 
 
 def _check_hermes_model_warning(model_name: str) -> str:
-    """Warning string if *model_name* is a Nous Hermes 3/4 chat model, else ""."""
-    return _HERMES_MODEL_WARNING if is_nous_hermes_non_agentic(model_name) else ""
+    """Warning string if *model_name* is a Nous Kova 3/4 chat model, else ""."""
+    return _KOVA_MODEL_WARNING if is_nous_hermes_non_agentic(model_name) else ""
 
 
 # --- Model aliases -- short names -> (vendor, family) with NO version numbers,
@@ -362,7 +362,7 @@ def resolve_startup_model_route(
     custom_providers: Optional[list] = None, alias_config: Optional[dict] = None) -> Optional[StartupModelRoute]:
     """Resolve aliases, ``provider:model`` and configured ``provider/model`` input at startup.
 
-    ``HermesCLI`` is constructed before the interactive ``/model`` pipeline runs; resolving here
+    ``KovaCLI`` is constructed before the interactive ``/model`` pipeline runs; resolving here
     keeps startup from attaching the configured default provider to an explicitly requested
     model. ``provider/model`` strings are consumed only for providers present in user config. When
     ``current_provider`` is a routing aggregator and the raw string is an aggregator-native slug
@@ -1329,7 +1329,7 @@ def _convert_vendor_colon_slug(st: _Switch) -> None:
     a variant tag (:free, :extended, :fast) that must be preserved.
 
     On an aggregator every ``left:right`` is a slug. Elsewhere the colon is converted only when
-    ``left`` names a provider Hermes knows, so ``/model alibaba:qwen3.6-plus`` routes like
+    ``left`` names a provider Kova knows, so ``/model alibaba:qwen3.6-plus`` routes like
     ``alibaba/qwen3.6-plus`` (#9748) while Ollama-style tags (``qwen3.5:4b``) stay intact."""
     raw_input = st.raw_input
     colon_pos = raw_input.find(":")
@@ -1892,10 +1892,10 @@ def remote_model_selection_guard(before: Any, after: Any) -> None:
     from kova_cli.config_backend import ConfigLockedError, get_config_backend, supports_file_tooling
     if supports_file_tooling():
         return
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     before = before if isinstance(before, dict) else {}
     after = after if isinstance(after, dict) else {}
-    backend, home = get_config_backend(), get_hermes_home()
+    backend, home = get_config_backend(), get_kova_home()
     for key in sorted(set(before) | set(after)):
         if before.get(key, _MISSING) != after.get(key, _MISSING):
             level = backend.locked(home, f"model.{key}")
@@ -1908,7 +1908,7 @@ _MISSING = object()
 
 def persist_model_selection(result: ModelSwitchResult, config_path: Any = None) -> None:
     """Write a successful :func:`switch_model` result to ``config_path`` (default:
-    ``HERMES_HOME/config.yaml`` — the context override or ``HERMES_HOME`` at call time).
+    ``KOVA_HOME/config.yaml`` — the context override or ``KOVA_HOME`` at call time).
 
     Build the complete selection from one raw snapshot, preserving sibling settings and secret
     references, then publish once. Per-key publication can leave a mixed route after a failed
@@ -1976,7 +1976,7 @@ def _scoped_key_env(name: str) -> str:
     value from the process env or the default ``.env``. Multiplexing on with no scope fails closed
     (``UnscopedSecretError`` -> ""). Otherwise resolve through ``get_env_prefer_dotenv`` — the
     chain ``client_lifecycle`` uses for the actual request — so a ``key_env`` that lives only in
-    ``$HERMES_HOME/.env`` authenticates the ``/model`` verification probe (#109315) and a rotated
+    ``$KOVA_HOME/.env`` authenticates the ``/model`` verification probe (#109315) and a rotated
     ``.env`` beats a stale value inherited from the parent shell."""
     if not name:
         return ""

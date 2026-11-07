@@ -9,13 +9,13 @@
  * frame's contentWindow and the identifier is charset-checked.
  */
 
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { translateBots } from './i18n-test-helper'
 
-const HUB_ORIGIN = 'https://hermes-agent.nousresearch.com'
+const HUB_ORIGIN = 'https://kova-agent.nousresearch.com'
 const FALLBACK_HUB_ORIGIN = 'https://nousresearch.github.io'
 
 const mocks = vi.hoisted(() => ({
@@ -26,7 +26,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const original = await importOriginal<typeof HermesSdk>()
+  const original = await importOriginal<typeof KovaSdk>()
 
   return {
     ...original,
@@ -99,7 +99,7 @@ describe('hub pick messages', () => {
     const frame = openHubBrowser()
 
     await waitFor(() =>
-      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/hermes-agent/docs/skills?embed=picker`)
+      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/kova-agent/docs/skills?embed=picker`)
     )
   })
 
@@ -109,7 +109,7 @@ describe('hub pick messages', () => {
     const frame = openHubBrowser()
 
     await waitFor(() =>
-      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/hermes-agent/docs/skills?embed=picker`)
+      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/kova-agent/docs/skills?embed=picker`)
     )
   })
 
@@ -142,7 +142,7 @@ describe('hub pick messages', () => {
         await vi.advanceTimersByTimeAsync(8_000)
       })
 
-      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/hermes-agent/docs/skills?embed=picker`)
+      expect(frame.getAttribute('src')).toBe(`${FALLBACK_HUB_ORIGIN}/kova-agent/docs/skills?embed=picker`)
     } finally {
       vi.restoreAllMocks()
       vi.useRealTimers()

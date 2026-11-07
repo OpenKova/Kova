@@ -120,8 +120,8 @@ def _environment_root(name: str, root: Path | None) -> Path:
         raise ValueError("environment name must be a simple package name")
     if root is not None:
         return Path(root).absolute()
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "environments" / name
+    from kova_constants import get_kova_home
+    return get_kova_home() / "environments" / name
 
 
 def _python(environment: Path) -> Path:

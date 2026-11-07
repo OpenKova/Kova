@@ -110,26 +110,26 @@ class HostGateway:
 def record_home(record) -> Path:
     """Home the owner was launched from. Records written before the field existed fall back to the
     default root — the home every pre-record multiplexer ran under."""
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    return Path(record.home) if getattr(record, "home", "") else Path(get_default_hermes_root())
+    return Path(record.home) if getattr(record, "home", "") else Path(get_default_kova_root())
 
 
 def launched_by_other_tenant(owner_home: Path | str, our_home: Path | str) -> bool:
-    """Was the owner launched from ANOTHER Hermes root (a second tenant on this host)?
+    """Was the owner launched from ANOTHER Kova root (a second tenant on this host)?
 
-    The host record and lock are per OS user, and two tenants (separate ``HERMES_HOME`` roots)
+    The host record and lock are per OS user, and two tenants (separate ``KOVA_HOME`` roots)
     each expose a profile named ``default``: tenant A's multiplexer "serving default" is a name
     collision for tenant B, never coverage, so it is not this tenant's host gateway (#121352).
     A legacy record with no ``home`` proves nothing and counts as ours.
     """
     if not str(owner_home or ""):
         return False
-    from gateway.status import _same_hermes_home
-    from kova_constants import get_default_hermes_root
+    from gateway.status import _same_kova_home
+    from kova_constants import get_default_kova_root
 
-    return not _same_hermes_home(get_default_hermes_root(home=owner_home),
-                                 get_default_hermes_root(home=our_home))
+    return not _same_kova_home(get_default_kova_root(home=owner_home),
+                                 get_default_kova_root(home=our_home))
 
 
 def _identify(home: Path) -> Optional[dict]:
@@ -170,13 +170,13 @@ def _identity_matches(identity, record, home: Path) -> bool:
     """
     if not isinstance(identity, dict) or identity.get("pid") != record.pid:
         return False
-    reported = identity.get("hermes_home")
+    reported = identity.get("kova_home")
     if not reported:
         return True  # older gateway: PID + a socket keyed by this home is all it can prove
     try:
-        from gateway.status import _same_hermes_home
+        from gateway.status import _same_kova_home
 
-        return bool(_same_hermes_home(Path(str(reported)), home))
+        return bool(_same_kova_home(Path(str(reported)), home))
     except Exception:
         return str(reported) == str(home)
 

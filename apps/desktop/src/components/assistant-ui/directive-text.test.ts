@@ -68,7 +68,7 @@ describe('hermesDirectiveFormatter.parse', () => {
 
 describe('inline skill references', () => {
   const skills = (text: string) =>
-    [...hermesDirectiveFormatter.parse(text)]
+    [...kovaDirectiveFormatter.parse(text)]
       .filter(segment => segment.kind === 'mention' && segment.type === 'skill')
       .map(segment => (segment.kind === 'mention' ? segment.id : ''))
 
@@ -103,7 +103,7 @@ describe('inline skill references', () => {
   })
 
   it('parses a skill chip alongside an @ reference', () => {
-    const mentions = [...hermesDirectiveFormatter.parse('run /clean on @file:`src/a.ts`')].filter(
+    const mentions = [...kovaDirectiveFormatter.parse('run /clean on @file:`src/a.ts`')].filter(
       segment => segment.kind === 'mention'
     )
 

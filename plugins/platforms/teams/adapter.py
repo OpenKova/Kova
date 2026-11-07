@@ -267,7 +267,7 @@ _SDK_IMPORTS = {
 @contextmanager
 def _suppress_third_party_dotenv() -> Iterator[None]:
     """No-op ``dotenv.load_dotenv`` while importing the Teams SDK: ``microsoft_teams.apps.app`` loads a
-    cwd-discovered ``.env`` at import, mutating process-global ``os.environ``. Hermes owns dotenv loading.
+    cwd-discovered ``.env`` at import, mutating process-global ``os.environ``. Kova owns dotenv loading.
 
     See #62935.
     """
@@ -411,7 +411,7 @@ class TeamsAdapter(BasePlatformAdapter):
             self._app = App(
                 client_id=self._client_id, client_secret=self._client_secret, tenant_id=self._tenant_id,
                 http_server_adapter=_AiohttpBridgeAdapter(aiohttp_app),
-                client=ClientOptions(headers={"User-Agent": "Hermes"}))
+                client=ClientOptions(headers={"User-Agent": "Kova"}))
             # Handlers (ours, then plugin on_* decorators) must be wired before initialize(),
             # which registers POST /api/messages on aiohttp_app via the bridge's register_route().
             @self._app.on_message
@@ -479,7 +479,7 @@ class TeamsAdapter(BasePlatformAdapter):
         from gateway.platforms.base import ssrf_redirect_guard, _read_httpx_body_with_limit
         if not is_safe_url(url):
             raise ValueError("Blocked unsafe attachment URL (SSRF protection)")
-        headers = {"User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)"}
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; KovaAgent/1.0)"}
         if _is_botframework_attachment_url(url):
             try:
                 headers["Authorization"] = f"Bearer {await self._get_botframework_token()}"
@@ -806,7 +806,7 @@ _SETUP_CREDENTIALS = (
 _SETUP_INTRO = (  # "" → blank line
     "You'll need the Teams CLI. If you haven't already:", "  npm install -g @microsoft/teams.cli@preview",
     "  teams login", "", "Then expose port 3978 publicly (devtunnel / ngrok / cloudflared),", "and create your bot:",
-    '  teams app create --name "Hermes" --endpoint "https://<tunnel>/api/messages"', "",
+    '  teams app create --name "Kova" --endpoint "https://<tunnel>/api/messages"', "",
     "The CLI will print CLIENT_ID, CLIENT_SECRET, and TENANT_ID. Paste them below.", "")
 
 
@@ -837,7 +837,7 @@ def interactive_setup() -> None:
         save_env_value("TEAMS_ALLOW_ALL_USERS", "true")
         print_warning("⚠️  Open access — anyone who can message the bot can command it.")
     print()
-    print_success("Teams configuration saved to ~/.hermes/.env")
+    print_success("Teams configuration saved to ~/.kova/.env")
     print_info("Install the app in Teams:  teams app install --id <teamsAppId>")
     print_info("Restart the gateway:       hermes gateway restart")
 
@@ -850,8 +850,8 @@ def _install_hint() -> str:
 def register(ctx) -> None:
     ctx.register_platform(
         name="teams", label="Microsoft Teams", adapter_factory=lambda cfg: TeamsAdapter(cfg),
-        dashboard_description="Connect Hermes to Microsoft Teams chats via the Bot Framework.",
-        docs_url="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/teams",
+        dashboard_description="Connect Kova to Microsoft Teams chats via the Bot Framework.",
+        docs_url="https://kova-agent.nousresearch.com/docs/user-guide/messaging/teams",
         check_fn=check_requirements,  # PASSIVE probe — never installs
         ensure_deps_fn=check_teams_requirements,  # ACTIVE lazy-installer, run by create_adapter()
         validate_config=validate_config, is_connected=is_connected,

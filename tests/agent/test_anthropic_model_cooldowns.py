@@ -21,9 +21,9 @@ def pool(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "fakehome"))
     for var in ("ANTHROPIC_TOKEN", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     import kova_constants
-    kova_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
+    kova_constants._default_kova_root_memo = None  # type: ignore[attr-defined]
     (root / "auth.json").write_text(json.dumps({"credential_pool": {"anthropic": [{
         "id": "seat", "label": "seat", "auth_type": "api_key", "priority": 0,
         "source": "manual", "access_token": KEY,

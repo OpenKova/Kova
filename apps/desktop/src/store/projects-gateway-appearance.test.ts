@@ -20,7 +20,7 @@ vi.mock('@/store/gateway', () => ({
 }))
 
 vi.mock('@/hermes', () => ({
-  getHermesConfig: vi.fn(),
+  getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
   hermesApi: vi.fn(),
   setApiRequestProfile: vi.fn(),

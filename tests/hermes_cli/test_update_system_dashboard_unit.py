@@ -68,7 +68,7 @@ def test_dashboard_pass_skips_a_unit_the_fleet_loop_already_declined(monkeypatch
     monkeypatch.setattr(dashboard_procs, "_kill_pids_posix", lambda pids, killed, failed: kills.extend(pids))
 
     result = dashboard_procs._kill_stale_dashboard_processes(
-        restart_managed=True, already_restarted_units={"hermes-gateway", "hermes-dashboard"})
+        restart_managed=True, already_restarted_units={"kova-gateway", "hermes-dashboard"})
 
     assert not [c for c in calls if "restart" in c], "the declined unit was retried"
     assert not result.get("unrecovered")
@@ -82,7 +82,7 @@ def test_dashboard_pass_still_restarts_the_unit_when_the_fleet_loop_never_saw_it
     """Negative control: without the fleet loop's verdict the managed restart still runs."""
     calls: list = []
     _systemd_owned_dashboard(monkeypatch, calls)
-    dashboard_procs._kill_stale_dashboard_processes(restart_managed=True, already_restarted_units={"hermes-gateway"})
+    dashboard_procs._kill_stale_dashboard_processes(restart_managed=True, already_restarted_units={"kova-gateway"})
     assert ["systemctl", "restart", UNIT] in calls
 
 
@@ -150,7 +150,7 @@ def _verify(monkeypatch, restart, *, fleet_state="current", plan=None, dashboard
 
 def _restart(**over):
     fields = dict(incomplete=True, phase_errors=[], pre_restart_gateway_pids=[1234],
-                  restarted_services=["hermes-gateway"], failed_or_stale_units=["hermes-dashboard"],
+                  restarted_services=["kova-gateway"], failed_or_stale_units=["hermes-dashboard"],
                   relaunched_profiles=[], externally_supervised_profiles=[], killed_pids=set())
     fields.update(over)
     return update_cmd_fleet._GatewayRestartOutcome(**fields)
@@ -159,7 +159,7 @@ def _restart(**over):
 def test_field_case_forwards_the_declined_unit_and_blames_only_the_dashboard(monkeypatch, capsys):
     """The reported run end to end through verification: gateway current, dashboard declined."""
     refreshed, receipt = _verify(monkeypatch, _restart())
-    assert refreshed == [{"already_restarted_units": {"hermes-gateway", "hermes-dashboard"}}]
+    assert refreshed == [{"already_restarted_units": {"kova-gateway", "hermes-dashboard"}}]
     (followup,) = receipt["followups"]
     assert followup["step"] == "gateway_restart"  # Desktop hand-offs parse the step id
     assert "hermes-dashboard were not restarted onto the new code" in followup["reason"]
@@ -176,7 +176,7 @@ def test_gateway_debt_still_names_gateway_restart(monkeypatch, case):
     if case == "stale-gateway":
         state = "stale"
     elif case == "failed-gateway-unit":
-        restart.failed_or_stale_units.append("hermes-gateway-work")
+        restart.failed_or_stale_units.append("kova-gateway-work")
     else:
         restart.phase_errors.append("boom")
     _refreshed, receipt = _verify(monkeypatch, restart, fleet_state=state)
@@ -188,7 +188,7 @@ def test_is_serve_unit_matches_the_fleet_loop_gate():
     assert fleet_verify._is_serve_unit("hermes-dashboard")
     assert fleet_verify._is_serve_unit("hermes-serve-work.service")
     assert fleet_verify._is_serve_unit("hermes-dashboard-Work.Two")  # the loop admits any suffix
-    for name in ("hermes-gateway", "hermes-gateway-work", "hermes-dashboardd", "ai.hermes.gateway",
+    for name in ("kova-gateway", "kova-gateway-work", "hermes-dashboardd", "ai.kova.gateway",
                  "systemd-user (listing failed)"):
         assert not fleet_verify._is_serve_unit(name)
 
@@ -262,10 +262,10 @@ def test_unrestarted_unit_dashboard_keeps_a_receipt_backed_reminder(monkeypatch,
 def test_unit_reminder_that_cannot_be_saved_stays_in_the_receipt_with_its_command(monkeypatch, capsys):
     from kova_cli import process_identity
     from kova_cli.update_serve_obligations import retain_receipt_manual_serves, warn_pending_manual_serves
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
-    (get_hermes_home() / "serve_restart_pending").write_text("not a directory")
+    (get_kova_home() / "serve_restart_pending").write_text("not a directory")
     pending = retain_receipt_manual_serves({"plan": {"runtimes": [_unit_row()]}})
     assert [row["pid"] for row in pending] == [DASH_PID]
     warn_pending_manual_serves(startup=True, pending_manual=pending)

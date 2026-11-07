@@ -27,7 +27,7 @@ from gateway.run import GatewayRunner, _profile_runtime_scope
 from kova_cli import kanban_db as kb
 from kova_cli import kanban_db_connect as kbc
 from kova_cli import kanban_db_notify as kbn
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_state import SessionDB
 
 SESSION = "20260918_033413_0665eb"      # the originating (Relay/web-UI) session id
@@ -45,7 +45,7 @@ class RecordingApiServerAdapter:
         self.profiles = []
 
     async def run_internal_session_turn(self, *, session_id, text, profile, notification_category="result"):
-        self.homes.append(str(get_hermes_home()))
+        self.homes.append(str(get_kova_home()))
         self.profiles.append(profile)
         self.turns.append({"session_id": session_id, "text": text, "category": notification_category})
 
@@ -97,7 +97,7 @@ class _FakeHttpSession:
 @pytest.fixture
 def served(tmp_path, monkeypatch):
     """Default multiplex home serving a route-only secondary ``builder`` (no adapters, no key)."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "builder").mkdir(parents=True)
     (root / "profiles" / "atlas").mkdir(parents=True)
     (root / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\n", encoding="utf-8")
@@ -105,10 +105,10 @@ def served(tmp_path, monkeypatch):
     (root / "profiles" / "builder" / "config.yaml").write_text("{}\n", encoding="utf-8")
     # A route-only profile owns no API-server credential of its own.
     (root / "profiles" / "builder" / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "board.db"))
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setenv("KOVA_KANBAN_DB", str(tmp_path / "board.db"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     return SimpleNamespace(root=root, builder=root / "profiles" / "builder", atlas=root / "profiles" / "atlas")
 
 
@@ -221,7 +221,7 @@ def test_served_profile_wake_runs_in_process_only_for_the_session_it_owns(served
     task = _subscription(chat_id="default-origin", profile="default")
     asyncio.run(_run_one_notifier_tick(monkeypatch, runner))
     assert default_adapter.turns == []
-    assert [c["headers"]["X-Hermes-Session-Id"] for c in _FakeHttpSession.calls] == ["default-origin"]
+    assert [c["headers"]["X-Kova-Session-Id"] for c in _FakeHttpSession.calls] == ["default-origin"]
     assert _FakeHttpSession.calls[0]["url"].endswith("/v1/chat/completions")
     assert _unseen(task, chat_id="default-origin") == []
 
@@ -252,7 +252,7 @@ def test_internal_session_turn_targets_the_live_session_under_the_owner_profile(
 
     async def fake_run_agent(**kwargs):
         seen.update(kwargs)
-        seen["home"] = str(get_hermes_home())
+        seen["home"] = str(get_kova_home())
         seen["request_profile"] = _api_request_profile.get()
         return {}, {}
 

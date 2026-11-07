@@ -299,7 +299,7 @@ def _cache_dirs() -> tuple:
 
 
 def _is_allowed_bridge_path(url: str) -> bool:
-    """Absolute bridge path resolves (symlinks included) inside a Hermes cache dir — a rogue bridge could hand back /etc/passwd."""
+    """Absolute bridge path resolves (symlinks included) inside a Kova cache dir — a rogue bridge could hand back /etc/passwd."""
     try:
         resolved = Path(url).resolve()
     except (OSError, ValueError):
@@ -373,7 +373,7 @@ def ensure_aiohttp() -> Optional[tuple[str, bool]]:
         ensure_import("sms")
     except (RuntimeError, OSError, ValueError) as exc:  # InstallError/DownloadError; anything else escapes as transient
         # Only policy or a foreign interpreter is final. A busy dependency lock, a failed download and "installed;
-        # restart Hermes to activate it" stay retryable: as final errors they exit the gateway 78 and keep it down.
+        # restart Kova to activate it" stay retryable: as final errors they exit the gateway 78 and keep it down.
         return str(exc) or type(exc).__name__, installable
     try:
         _import_aiohttp()
@@ -430,8 +430,8 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
             from gateway.platforms.whatsapp_common import resolve_whatsapp_bridge_dir
             WhatsAppAdapter._DEFAULT_BRIDGE_DIR = resolve_whatsapp_bridge_dir()
         extra = config.extra
-        from kova_constants import get_hermes_home
-        self._profile_home = get_hermes_home()
+        from kova_constants import get_kova_home
+        self._profile_home = get_kova_home()
         self._bridge_process: Optional[subprocess.Popen] = None
         self._foreign_bridge_session: Optional[str] = None  # set by _reuse_running_bridge when /health names another profile's session
         self._bridge_probe_timed_out = False  # set by _reuse_running_bridge when the port's holder gave no /health answer
@@ -488,7 +488,7 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
 
     def _ensure_bridge_deps(self, bridge_dir: Path) -> bool:
         """npm install when node_modules is missing OR package.json hash != stamp file. False = fatal error set."""
-        _dep_stamp = bridge_dir / "node_modules" / ".hermes-pkg-hash"  # holds the package.json hash of the last install
+        _dep_stamp = bridge_dir / "node_modules" / ".kova-pkg-hash"  # holds the package.json hash of the last install
         _pkg_hash = _file_content_hash(bridge_dir / "package.json")
         try:
             if (bridge_dir / "node_modules").exists() and _dep_stamp.read_text(encoding="utf-8-sig").strip() == _pkg_hash and bool(_pkg_hash):
@@ -595,9 +595,9 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
                 bridge_env[env_key] = ",".join(sorted(ids))
             else:
                 bridge_env.pop(env_key, None)
-        # Without these the bridge hardcodes ~/.hermes/{image,audio,document}_cache (wrong under HERMES_HOME/profiles/cache layout).
+        # Without these the bridge hardcodes ~/.kova/{image,audio,document}_cache (wrong under KOVA_HOME/profiles/cache layout).
         img_dir, audio_dir, _video_dir, doc_dir = _cache_dirs()
-        bridge_env.update(HERMES_IMAGE_CACHE_DIR=str(img_dir), HERMES_AUDIO_CACHE_DIR=str(audio_dir), HERMES_DOCUMENT_CACHE_DIR=str(doc_dir))
+        bridge_env.update(KOVA_IMAGE_CACHE_DIR=str(img_dir), KOVA_AUDIO_CACHE_DIR=str(audio_dir), KOVA_DOCUMENT_CACHE_DIR=str(doc_dir))
         return bridge_env
 
     def _bridge_died(self, detail: str, code: str = "whatsapp_bridge_exited") -> bool:
@@ -671,7 +671,7 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
         if (missing := ensure_aiohttp()) is not None:  # may install it: connect runs this off the event loop
             why, retryable = missing
             message = (f"aiohttp is unavailable ({why}); the WhatsApp bridge client needs it. "
-                       "Run `hermes pm install --extra sms` (it ships aiohttp; `hermes pm repair` for a damaged install), "
+                       "Run `hermes pm install --extra sms` (it ships aiohttp; `kova pm repair` for a damaged install), "
                        "then restart `hermes gateway`.")
             logger.warning("[%s] %s", self.name, message)
             self._set_fatal_error("whatsapp_aiohttp_missing", message, retryable=retryable)
@@ -751,7 +751,7 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
                         self._set_fatal_error(
                             "whatsapp_bridge_unresponsive",
                             f"Port {self._bridge_port} is held by a process that did not answer /health in time, so "
-                            f"Hermes cannot tell whose WhatsApp bridge it is; nothing on port {self._bridge_port} was "
+                            f"Kova cannot tell whose WhatsApp bridge it is; nothing on port {self._bridge_port} was "
                             "stopped. Stop that process, or give this profile its own port via "
                             "platforms.whatsapp.extra.bridge_port.",
                             retryable=True,
@@ -1055,7 +1055,7 @@ class WhatsAppAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
             await asyncio.sleep(1)  # Poll interval
 
     def _log_delivery_status(self, data: dict[str, Any]) -> None:
-        """One gateway.log line per delivery/read status change of a message Hermes sent (Baileys
+        """One gateway.log line per delivery/read status change of a message Kova sent (Baileys
         ``messages.update`` for DMs, ``message-receipt.update`` per recipient in groups)."""
         logger.info(
             "[%s] WhatsApp delivery status: message=%s chat=%s status=%s%s at=%s%s", self.name,
@@ -1231,10 +1231,10 @@ async def _standalone_send(pconfig, chat_id, message, *, thread_id=None, media_f
     except ImportError:
         return send_error("aiohttp not installed. Run: pip install aiohttp")
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from .bridge_ownership import standalone_bridge_port
         bridge_port = standalone_bridge_port(
-            get_hermes_home(), (getattr(pconfig, "extra", {}) or {}).get("bridge_port")
+            get_kova_home(), (getattr(pconfig, "extra", {}) or {}).get("bridge_port")
         )
         own_session = str(_session_dir(getattr(pconfig, "extra", {}) or {}))
         normalized_chat_id = to_whatsapp_jid(chat_id)
@@ -1271,7 +1271,7 @@ async def _standalone_send(pconfig, chat_id, message, *, thread_id=None, media_f
                 if not (health.get("capabilities") or {}).get("outboundMentions"):
                     return {"error": (
                         "WhatsApp bridge does not support native mentions; "
-                        "restart it from the same Hermes version.")}
+                        "restart it from the same Kova version.")}
 
             async def _post(path, payload, total, error_label=None):
                 """``(messageId, None)`` on 200, else ``(None, error_dict)`` (body read only when labelled)."""
@@ -1386,7 +1386,7 @@ def register(ctx) -> None:
         standalone_send=StandaloneSendPolicy(label="WhatsApp", media=True, captionable=True,
                                              forward_force_document=True, mentions=True, text_direct=True),
         name="whatsapp", label="WhatsApp", adapter_factory=WhatsAppAdapter, check_fn=check_whatsapp_requirements,
-        dashboard_description="Use Hermes through the bundled WhatsApp bridge with QR-based auth.",
+        dashboard_description="Use Kova through the bundled WhatsApp bridge with QR-based auth.",
         docs_url="https://github.com/tulir/whatsmeow",
         dashboard_env_vars=(
             "WHATSAPP_ENABLED", "WHATSAPP_MODE", "WHATSAPP_DM_POLICY", "WHATSAPP_ALLOWED_USERS",

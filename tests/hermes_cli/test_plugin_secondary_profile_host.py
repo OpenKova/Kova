@@ -171,7 +171,7 @@ def test_gateway_credentials_never_reach_a_secondary_profiles_host(daemon):
                       headers={**daemon.owner, "Authorization": "Bearer x", "Cookie": "a=b"})
 
     assert len(daemon.calls) == 2
-    forbidden = {"x-hermes-gateway-ticket", web_server._SESSION_HEADER_NAME.lower(), "authorization", "cookie"}
+    forbidden = {"x-kova-gateway-ticket", web_server._SESSION_HEADER_NAME.lower(), "authorization", "cookie"}
     for call in daemon.calls:
         assert not call.headers & forbidden
     assert "keep=1" in daemon.calls[1].query
@@ -331,7 +331,7 @@ def test_launch_user_copy_shadowing_a_bundled_name_never_serves_a_secondary_prof
     its own host (HTTP) or a named refusal (websocket), never the launch profile's code, whether that
     router is mounted already or would be mounted by this request."""
     from kova_cli import profiles
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: tmp_path / "root")  # no root copy
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: tmp_path / "root")  # no root copy
     bundled = _bundled(tmp_path, monkeypatch, "shadowed")
     launch_imported = _install(daemon.launch, "shadowed")
     _plugins(daemon.launch, enabled=["shadowed"])
@@ -353,7 +353,7 @@ def test_disabled_launch_override_does_not_hide_the_bundled_copy_from_a_secondar
     """The launch profile disabled its own override of a bundled name, so this process has no router a
     secondary profile may use for it: the secondary profile's bundled copy runs in its own host."""
     from kova_cli import profiles
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: tmp_path / "root")
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: tmp_path / "root")
     bundled = _bundled(tmp_path, monkeypatch, "hidden")
     launch_imported = _install(daemon.launch, "hidden")
     _plugins(daemon.launch, enabled=["hidden"], disabled=["hidden"])
@@ -369,7 +369,7 @@ def test_disabled_launch_override_does_not_hide_the_bundled_copy_from_a_secondar
 @pytest.mark.parametrize("selector", [False, True], ids=["ticket", "selector"])
 def test_bundled_plugin_the_launch_profile_disabled_still_serves_a_secondary_profile(
         daemon, tmp_path, monkeypatch, selector):
-    """Bundled plugins are Hermes code and stay in-process; the secondary profile's own lists decide,
+    """Bundled plugins are Kova code and stay in-process; the secondary profile's own lists decide,
     also for the first request that mounts the router, whether its grant or ``?profile=`` names it."""
     _bundled(tmp_path, monkeypatch, "bundled-probe")
     _plugins(daemon.launch, disabled=["bundled-probe"])
@@ -404,8 +404,8 @@ router = APIRouter()
 
 @router.get("/whoami")
 async def whoami():
-    from kova_constants import get_hermes_home
-    return {"pid": os.getpid(), "home": str(get_hermes_home())}
+    from kova_constants import get_kova_home
+    return {"pid": os.getpid(), "home": str(get_kova_home())}
 '''
 
 

@@ -300,7 +300,7 @@ async def test_room_grant_answers_the_clarify_prompt_its_run_raised(api, owner, 
         issued_at=now, ttl_seconds=300, status_expires_at=now + 1000)
     claims = decode_room_grant(api._room_grant_secret(), grant, permission='status')
     hosted_rooms.reserve_peer_room(hosted_rooms.default_db_path(), claims=claims, expires_at=now + 1000)
-    headers = {'Authorization': f'HermesRoom {grant}'}
+    headers = {'Authorization': f'KovaRoom {grant}'}
     admitted = admit_api_turn(api, session_id='room-clarify', request_id='run_room', user_message='hello',
                               conversation_history=[])
     _, ref, _row = admitted

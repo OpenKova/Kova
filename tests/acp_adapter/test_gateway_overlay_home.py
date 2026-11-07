@@ -1,4 +1,4 @@
-"""``hermes acp`` with a per-task overlay ``HERMES_HOME`` (#138949, #134889 ACP-18).
+"""``hermes acp`` with a per-task overlay ``KOVA_HOME`` (#138949, #134889 ACP-18).
 
 A Multica task home is a private real directory mirroring a served profile through symlinks, its
 ``gateway.lock`` among them. The symlinked lock names the owner that serves the mirrored profile:
@@ -20,7 +20,7 @@ def _overlay(daemon, tmp_path):
     overlay.mkdir(mode=0o700)
     for name in ('gateway.lock', 'state.db', 'config.yaml'):
         (overlay / name).symlink_to(home / name)
-    return overlay, descriptor, {**env, 'HERMES_HOME': str(overlay)}, root
+    return overlay, descriptor, {**env, 'KOVA_HOME': str(overlay)}, root
 
 
 @pytest.mark.platforms('linux')

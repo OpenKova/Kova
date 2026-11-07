@@ -6,7 +6,7 @@ import path from 'node:path'
 /** The closed token set `kova_cli.update_receipt.record_stop_reason` records. */
 const STOP_CLASS_TOKEN = /^[a-z][a-z0-9_]{0,39}$/
 
-const UPDATES_GUIDE = 'https://hermes-agent.nousresearch.com/docs/getting-started/updating'
+const UPDATES_GUIDE = 'https://kova-agent.nousresearch.com/docs/getting-started/updating'
 
 export interface UpdateStop {
   stopClass: string
@@ -38,7 +38,7 @@ export function receiptDirectory(hermesHome: string): string {
  * This run's own stop, read from the receipt the update wrote.
  *
  * `correlation_id` is the hand-off `run_id` (the launcher exports it as
- * `HERMES_UPDATE_CORRELATION_ID`), so a receipt left behind by an earlier run
+ * `KOVA_UPDATE_CORRELATION_ID`), so a receipt left behind by an earlier run
  * cannot explain this one. A record still `running` keeps `finished_at` null and
  * never matches — the same rule the hand-off script applies before it trusts an
  * outcome. Anything missing or unexpected returns null and the caller keeps its
@@ -87,7 +87,7 @@ export function readStoppedRun(hermesHome: string, correlationId: string | null)
  */
 const STOP_EXPLANATIONS: Record<string, UpdateStopExplanation> = {
   downgrade_refused: {
-    message: 'Hermes kept your install: the offered release is older than it',
+    message: 'Kova kept your install: the offered release is older than it',
     detail:
       'The updater refused to move this install back to the release it offered, because that release predates the ' +
       'gateway runtime your session stores already use. Downgrading is unsupported, and nothing was changed: you are ' +

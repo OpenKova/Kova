@@ -1,7 +1,7 @@
 import { type MutableRefObject, useCallback, useRef, useState } from 'react'
 
 import { setTerminalFontFamilyFromConfig } from '@/app/right-sidebar/terminal/terminal-font'
-import { getHermesConfig, getHermesConfigDefaults } from '@/hermes'
+import { getKovaConfig, getKovaConfigDefaults } from '@/hermes'
 import { BUILTIN_PERSONALITIES, normalizePersonalityValue, personalityNamesFromConfig } from '@/lib/chat-runtime'
 import { composerServiceTier } from '@/lib/model-status-label'
 import { normalize } from '@/lib/text'
@@ -56,16 +56,16 @@ function normalizeConfigEffort(value: unknown): string {
   return effort === 'false' || effort === 'disabled' ? 'none' : effort
 }
 
-interface HermesConfigOptions {
+interface KovaConfigOptions {
   activeSessionIdRef: MutableRefObject<string | null>
 }
 
-export function useHermesConfig({ activeSessionIdRef }: HermesConfigOptions) {
+export function useKovaConfig({ activeSessionIdRef }: KovaConfigOptions) {
   const [voiceMaxRecordingSeconds, setVoiceMaxRecordingSeconds] = useState(DEFAULT_VOICE_SECONDS)
   const [sttEnabled, setSttEnabled] = useState(true)
   const profileRefreshEpochRef = useRef(0)
 
-  const refreshHermesConfig = useCallback(
+  const refreshKovaConfig = useCallback(
     async (force = false, shouldPublish: () => boolean = () => true) => {
       if (force) {
         profileRefreshEpochRef.current += 1
@@ -77,7 +77,7 @@ export function useHermesConfig({ activeSessionIdRef }: HermesConfigOptions) {
       const profile = $activeGatewayProfile.get()
 
       try {
-        const [config, defaults] = await Promise.all([getHermesConfig(), getHermesConfigDefaults().catch(() => ({}))])
+        const [config, defaults] = await Promise.all([getKovaConfig(), getKovaConfigDefaults().catch(() => ({}))])
 
         const canPublish = () => profileRefreshEpochRef.current === profileRefreshEpoch && shouldPublish()
 
@@ -111,7 +111,7 @@ export function useHermesConfig({ activeSessionIdRef }: HermesConfigOptions) {
         // Publish the profile default regardless of whether the composer is
         // reseeded below: picker rows and preset application resolve "the
         // default" from here, so a manual model pick must not leave them
-        // rendering/applying Hermes' built-in medium over the user's config.
+        // rendering/applying Kova' built-in medium over the user's config.
         if (!canPublish()) {
           return
         }
@@ -181,5 +181,5 @@ export function useHermesConfig({ activeSessionIdRef }: HermesConfigOptions) {
     [activeSessionIdRef]
   )
 
-  return { refreshHermesConfig, sttEnabled, voiceMaxRecordingSeconds }
+  return { refreshKovaConfig, sttEnabled, voiceMaxRecordingSeconds }
 }

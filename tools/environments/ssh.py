@@ -83,7 +83,7 @@ class SSHEnvironment(BaseEnvironment):
         if sync_files:
             self._ensure_remote_dirs()
             self._sync_manager = FileSyncManager(
-                get_files_fn=lambda: iter_sync_files(f"{self._remote_home}/.hermes"),
+                get_files_fn=lambda: iter_sync_files(f"{self._remote_home}/.kova"),
                 upload_fn=self._scp_upload, delete_fn=self._ssh_delete,
                 bulk_upload_fn=self._ssh_bulk_upload, bulk_download_fn=self._ssh_bulk_download)
             self._sync_manager.sync(force=True)
@@ -162,8 +162,8 @@ class SSHEnvironment(BaseEnvironment):
         return "/root" if self.user == "root" else f"/home/{self.user}"
 
     def _ensure_remote_dirs(self) -> None:
-        """Create base ~/.hermes directory tree on remote in one SSH call."""
-        base = f"{self._remote_home}/.hermes"
+        """Create base ~/.kova directory tree on remote in one SSH call."""
+        base = f"{self._remote_home}/.kova"
         self._run_ssh(quoted_mkdir_command([base, f"{base}/skills", f"{base}/credentials", f"{base}/cache"]),
                       timeout=10)
 
@@ -181,7 +181,7 @@ class SSHEnvironment(BaseEnvironment):
         connection to remote ``tar x``, after a single batched ``mkdir -p``."""
         if not files:
             return
-        base = f"{self._remote_home}/.hermes"
+        base = f"{self._remote_home}/.kova"
         parents = unique_parent_dirs(files)
         if parents:
             self._run_ssh_checked(quoted_mkdir_command(parents), 30, "remote mkdir failed",
@@ -245,11 +245,11 @@ class SSHEnvironment(BaseEnvironment):
         logger.debug("SSH: bulk-uploaded %d file(s) via tar pipe", len(files))
 
     def _ssh_bulk_download(self, dest: Path) -> None:
-        """Download remote .hermes/ as a tar archive."""
+        """Download remote .kova/ as a tar archive."""
         # Tar from / with the full path so archive entries keep absolute paths
-        # (home/user/.hermes/skills/f.py), matching _pushed_hashes keys.
-        rel_base = f"{self._remote_home}/.hermes".lstrip("/")
-        # Live sockets inside .hermes (gateway.sock and friends) cannot be archived: tar prints
+        # (home/user/.kova/skills/f.py), matching _pushed_hashes keys.
+        rel_base = f"{self._remote_home}/.kova".lstrip("/")
+        # Live sockets inside .kova (gateway.sock and friends) cannot be archived: tar prints
         # "socket ignored" and some builds exit 2, which failed every sync-back and left a
         # multi-GB temp tar behind on each retry. Exclude them up front.
         ssh_cmd = self._build_ssh_command() + [

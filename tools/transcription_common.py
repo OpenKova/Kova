@@ -27,8 +27,8 @@ DEFAULT_STT_TIMEOUT = 60.0
 # and lets STT_XAI_MODEL / stt.xai.model pin 1.0 for a rollback.
 XAI_STT_MODEL_ENV = "STT_XAI_MODEL"
 LEGACY_XAI_STT_MODEL = "grok-stt"
-LOCAL_STT_COMMAND_ENV = "HERMES_LOCAL_STT_COMMAND"
-LOCAL_STT_LANGUAGE_ENV = "HERMES_LOCAL_STT_LANGUAGE"
+LOCAL_STT_COMMAND_ENV = "KOVA_LOCAL_STT_COMMAND"
+LOCAL_STT_LANGUAGE_ENV = "KOVA_LOCAL_STT_LANGUAGE"
 COMMON_LOCAL_BIN_DIRS = ("/opt/homebrew/bin", "/usr/local/bin")
 
 GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
@@ -86,7 +86,7 @@ class STTResponseError(ValueError):
 
 
 def normalize_xai_stt_model(model: Any) -> str:
-    """Return a valid xAI STT model: blank or Hermes' old ``grok-stt`` alias -> ``STT_XAI_MODEL`` (read
+    """Return a valid xAI STT model: blank or Kova' old ``grok-stt`` alias -> ``STT_XAI_MODEL`` (read
     per call, so a profile's env applies), else the catalog default."""
     value = str(model or "").strip()
     if not value or value == LEGACY_XAI_STT_MODEL:

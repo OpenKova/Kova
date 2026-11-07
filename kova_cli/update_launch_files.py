@@ -1,4 +1,4 @@
-"""Rewrite the launch files Hermes owns before ``hermes update`` starts any gateway.
+"""Rewrite the launch files Kova owns before ``hermes update`` starts any gateway.
 
 A service manager starts a gateway from the definition it holds, so a unit, plist or task script
 left from the previous release starts the new code under the old command line and environment.
@@ -24,7 +24,7 @@ def refresh_launch_files() -> None:
     """Regenerate every profile's launch file that differs from what this checkout generates."""
     from kova_cli.config_backend import ConfigBackendUnavailable
     from kova_cli.update_receipt import _profile_homes, record_followup
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     try:
         refreshers = _refreshers()
@@ -34,13 +34,13 @@ def refresh_launch_files() -> None:
         return
     for profile, home in homes:
         for kind, refresh in refreshers:
-            token = set_hermes_home_override(home)
+            token = set_kova_home_override(home)
             try:
                 refresh()
             except (Exception, ConfigBackendUnavailable) as exc:  # health: allow BLE001 -- one file never blocks the others
                 record_followup(FOLLOWUP_STEP, f"{kind} for profile {profile}: {exc}", retry=_RETRY)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
     if any(kind == "systemd user unit" for kind, _ in refreshers) and os.geteuid() == 0:  # windows-footgun: ok — systemd hosts only
         try:
             _refresh_systemd_system_unit()
@@ -49,18 +49,18 @@ def refresh_launch_files() -> None:
 
 
 def _refresh_systemd_system_unit() -> None:
-    """The invoking home's system unit; the refresh adopts the unit's ``HERMES_HOME`` into the
+    """The invoking home's system unit; the refresh adopts the unit's ``KOVA_HOME`` into the
     environment, which the rest of the update must not inherit."""
     from kova_cli.gateway import refresh_systemd_unit_if_needed
 
-    launch_home = os.environ.get("HERMES_HOME")
+    launch_home = os.environ.get("KOVA_HOME")
     try:
         refresh_systemd_unit_if_needed(system=True)
     finally:
         if launch_home is None:
-            os.environ.pop("HERMES_HOME", None)
+            os.environ.pop("KOVA_HOME", None)
         else:
-            os.environ["HERMES_HOME"] = launch_home
+            os.environ["KOVA_HOME"] = launch_home
 
 
 def _refreshers():

@@ -16,16 +16,16 @@ from gateway import run as gateway_run
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+def kova_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     return tmp_path
 
 
-def test_restart_all_stamps_the_marker_after_the_host_is_stopped(hermes_home, monkeypatch):
+def test_restart_all_stamps_the_marker_after_the_host_is_stopped(kova_home, monkeypatch):
     from kova_cli import gateway as gw
 
-    marker = hermes_home / ".restart_pending.json"
+    marker = kova_home / ".restart_pending.json"
     seen: dict[str, bool] = {}
     monkeypatch.setattr(
         gw, "_stop_installed_service", lambda system: seen.setdefault("marker_at_stop", marker.exists()) or False
@@ -40,7 +40,7 @@ def test_restart_all_stamps_the_marker_after_the_host_is_stopped(hermes_home, mo
     monkeypatch.setattr(gw, "_service_call", lambda kind, verb, system: seen.setdefault("marker_at_start", marker.exists()))
     monkeypatch.setattr(gw, "is_windows", False)
 
-    owner = SimpleNamespace(pid=4242, profiles=["default"], home=hermes_home, describe=lambda: "host")
+    owner = SimpleNamespace(pid=4242, profiles=["default"], home=kova_home, describe=lambda: "host")
     monkeypatch.setattr(gw, "_host_multiplexer_for_all_verb", lambda: owner)
     monkeypatch.setattr(gw, "_host_multiplexer_is_ours", lambda o: True)
 

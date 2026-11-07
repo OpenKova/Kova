@@ -25,7 +25,7 @@ def register(ctx):
 def homes(tmp_path, monkeypatch):
     from kova_cli import plugins as plugins_mod
 
-    root = tmp_path / "hermes_home"
+    root = tmp_path / "kova_home"
     work = root / "profiles" / "work"
     plugin_dir = work / "plugins" / "workchat"
     plugin_dir.mkdir(parents=True)
@@ -38,7 +38,7 @@ def homes(tmp_path, monkeypatch):
         (home / ".env").write_text("", encoding="utf-8")
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     from agent import secret_scope
     from tui_gateway import launch_profile_policy as lpp
@@ -88,7 +88,7 @@ def test_a_managed_gateway_block_for_a_profile_plugin_stays_in_that_profile(clie
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text(yaml.safe_dump({"gateway": {"workchat": {"enabled": True}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     (work / "config.yaml").write_text(yaml.safe_dump({
         "plugins": {"enabled": ["workchat"]}, "platforms": {"webhook": {"enabled": True}},

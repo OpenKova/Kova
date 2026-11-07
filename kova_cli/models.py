@@ -101,9 +101,9 @@ def _write_json_cache(path: Path, data: Any, **dump_kwargs: Any) -> None:
     """Atomically persist a cache file (creating parents). Raises on failure — callers decide
     whether a failed cache write is worth logging."""
     from utils import atomic_json_write
-    from kova_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_kova_home
 
-    mkdir_under_hermes_home(path.parent)
+    mkdir_under_kova_home(path.parent)
     atomic_json_write(path, data, **dump_kwargs)
 
 
@@ -152,9 +152,9 @@ def _openrouter_catalog_disk_ttl() -> float:
 
 
 def _openrouter_catalog_disk_path() -> Path:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return get_hermes_home() / "cache" / "openrouter_curated_catalog.json"
+    return get_kova_home() / "cache" / "openrouter_curated_catalog.json"
 
 
 def _read_openrouter_catalog_disk(*, allow_stale: bool = False) -> list[tuple[str, str]] | None:
@@ -276,7 +276,7 @@ def union_with_nous_on_sale_models(curated_ids: list[str], pricing: dict[str, di
     discount first. A sale lives only in ``/v1/models`` ``pricing.original``, so without this the
     picker badges discounts on curated rows but never shows a discounted model the curated list and
     Portal recommendations omit. Free rows stay with ``freeRecommendedModels``; rows the gateway
-    marks tool-less (``"tools": False``) are skipped because Hermes is tool-calling-first, and
+    marks tool-less (``"tools": False``) are skipped because Kova is tool-calling-first, and
     image/video generation rows are skipped because they are not chat models."""
     from math import isfinite
 
@@ -305,9 +305,9 @@ _free_tier_cache: dict[str, tuple[bool, float]] = {}  # profile key -> (result, 
 
 def _pricing_profile_key() -> str:
     """Stable profile identity for process-local pricing caches."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
-    return hermes_home_key()
+    return kova_home_key()
 
 
 def get_cached_nous_free_tier() -> Optional[bool]:
@@ -354,8 +354,8 @@ _nous_recommended_cache: dict[tuple[str, str], tuple[dict[str, Any], float]] = {
 
 
 def _nous_recommended_disk_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "cache" / "nous_recommended_cache.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "cache" / "nous_recommended_cache.json"
 
 
 def _read_nous_recommended_disk(base: str) -> tuple[dict[str, Any], float] | None:
@@ -599,7 +599,7 @@ def _openrouter_model_is_free(pricing: Any) -> bool:
 
 
 def _openrouter_model_supports_tools(item: Any) -> bool:
-    """True when ``supported_parameters`` advertises ``tools`` (hermes-agent is tool-calling-first).
+    """True when ``supported_parameters`` advertises ``tools`` (kova-agent is tool-calling-first).
     Permissive when the field is absent/malformed: some OpenRouter-compatible gateways (Nous Portal,
     private mirrors) don't populate it, and the picker must not silently empty for them.
 
@@ -702,7 +702,7 @@ def fetch_openrouter_models(
         # Hide models without tool-calling support — selecting one fails at the first tool call.
         if live_item is None or not _openrouter_model_supports_tools(live_item):
             continue
-        # Hide models that don't advertise tool-calling support — hermes-agent requires it and surfacing
+        # Hide models that don't advertise tool-calling support — kova-agent requires it and surfacing
         # them leads to immediate runtime failures when the user selects them. Ported from
         # Kilo-Org/kilocode#9068.
         if preferred_id == silent_default:
@@ -1228,7 +1228,7 @@ def _strip_vendor_prefix(model_id: str) -> str:
 
 
 def model_supports_fast_mode(model_id: Optional[str]) -> bool:
-    """Return whether Hermes should expose the /fast toggle for this model."""
+    """Return whether Kova should expose the /fast toggle for this model."""
     from agent.model_metadata import is_grok_46_family
 
     return (
@@ -1443,7 +1443,7 @@ def _openai_catalog(normalized: str, force_refresh: bool) -> Optional[list[str]]
     # entries, so intersect with the curated agentic catalog so ``/model`` matches ``hermes model``.
     # Model not in live /v1/models — check the curated catalog before rejecting. Providers may omit models
     # from their live listing that are still valid (stale cache, partial rollout, gated previews). Use the
-    # pure-catalog helper (no extra live fetch) so we only accept models Hermes actually ships. (#46850)
+    # pure-catalog helper (no extra live fetch) so we only accept models Kova actually ships. (#46850)
     # Their /v1/models listing is access-scoped and authoritative — a model absent from it is one this key
     # CANNOT serve, so the curated soft-accept would manufacture a selection that 400s at first use. Custom
     # OpenAI-compatible proxies keep the fallback (incomplete listings are common there).
@@ -1769,7 +1769,7 @@ def provider_model_ids(provider: Optional[str], *, force_refresh: bool = False) 
 
 # ---------------------------------------------------------------------------
 # Disk cache for provider_model_ids() — keeps /model picker fast (otherwise every open re-fetches
-# every authed provider's /v1/models). One JSON file at $HERMES_HOME/provider_models_cache.json;
+# every authed provider's /v1/models). One JSON file at $KOVA_HOME/provider_models_cache.json;
 # entries keyed by credential fingerprint (rotate OPENAI_API_KEY → entry invalidates); 1h TTL;
 # only NON-EMPTY results are cached so a transient failure is never pinned; any read/write error
 # degrades silently to a live fetch.
@@ -1822,8 +1822,8 @@ def _spawn_swr_refresh(cache_key: str, refresh_fn=None) -> None:
     # Under a routed profile the inflight key includes the home: the same provider slug names a
     # different disk cache and credential set per profile, so one profile's refresh must not
     # suppress another's. Unscoped keeps the bare key (tests inspect the set by slug).
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    inflight_key = cache_key if get_hermes_home_override() is None else (hermes_home_key(), cache_key)
+    from kova_constants import get_kova_home_override, kova_home_key
+    inflight_key = cache_key if get_kova_home_override() is None else (kova_home_key(), cache_key)
     with _swr_refresh_lock:
         if inflight_key in _swr_refresh_inflight:
             return
@@ -1855,8 +1855,8 @@ def _spawn_swr_refresh(cache_key: str, refresh_fn=None) -> None:
 
 
 def _provider_models_cache_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "provider_models_cache.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "provider_models_cache.json"
 
 
 def _credential_fingerprint(provider: str) -> str:
@@ -1943,9 +1943,9 @@ def _credential_fingerprint(provider: str) -> str:
         parts.append(f"codex_identity={codex_catalog_credential_identity()}")
     else:
         try:
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             for rel in ("auth.json", "credentials.json"):
-                _mtime_part(rel, get_hermes_home() / rel)
+                _mtime_part(rel, get_kova_home() / rel)
         except Exception:
             pass
         from providers import list_providers
@@ -2343,7 +2343,7 @@ def probe_api_models(
                 alternate_base if alternate_base != normalized else None)
     headers: dict[str, str] = {"User-Agent": hermes_user_agent()}
     if urllib.parse.urlparse(normalized).hostname == "generativelanguage.googleapis.com":
-        headers["X-Goog-Api-Client"] = hermes_user_agent("hermes-agent")
+        headers["X-Goog-Api-Client"] = hermes_user_agent("kova-agent")
     if api_key and api_mode == "anthropic_messages":
         headers["x-api-key"] = api_key
         headers["anthropic-version"] = "2023-06-01"

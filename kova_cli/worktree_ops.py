@@ -26,7 +26,7 @@ from kova_cli.git_commit_graph import (
     refresh_commit_graph,
     run_bounded_git,
 )
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_json_write
 
 logger = logging.getLogger("cli")
@@ -607,7 +607,7 @@ _WORKTREE_MERGE_CACHE_MAX = 1000
 
 def _worktree_merge_cache_path() -> Path:
     """Path of the patch-equivalence verdict cache (profile-aware)."""
-    return get_hermes_home() / "cache" / "worktree_merge_verdicts.json"
+    return get_kova_home() / "cache" / "worktree_merge_verdicts.json"
 
 
 def _load_worktree_merge_cache() -> dict[str, bool]:
@@ -763,7 +763,7 @@ def _worktree_branch_pushed_exact(
 # and ``hermes session=<id> db=<state.db>`` (re-lock when the TUI exits). Read raw from the admin
 # dir: plain ``list --porcelain`` C-quotes a reason holding a backslash, a quote, a control or a
 # non-ASCII byte (every Windows path), and the ``db=`` path would never parse.
-_HERMES_LOCK_RE = re.compile(r"hermes (?:pid=(\d+)|session=\S+)(?: db=(.+))?", re.DOTALL)
+_KOVA_LOCK_RE = re.compile(r"hermes (?:pid=(\d+)|session=\S+)(?: db=(.+))?", re.DOTALL)
 
 
 def _retain_worktree_for_session(repo_root: str, worktree_path: str, session_id: str, db_path) -> bool:
@@ -917,7 +917,7 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
     """Lock state: ``"live"`` (owning pid runs / a resumable session works in the tree),
     ``"dead"`` (pid and sessions gone / non-hermes reason), None (unlocked).
 
-    A Hermes tree locks with reason ``hermes pid=<pid>``; ``worktree remove --force`` refuses
+    A Kova tree locks with reason ``hermes pid=<pid>``; ``worktree remove --force`` refuses
     locked trees, so a crashed session's lock would keep its tree forever. A ``-w`` tree
     also names its profile's ``state.db`` from creation, so a ``--tui -w`` launcher killed with
     its terminal (SIGHUP skips the exit re-lock) still keeps the tree while a resumable session's
@@ -934,7 +934,7 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
     if not reason.startswith("hermes "):
         # A foreign lock here is a leftover; the age/dirty/unpushed gates already passed.
         return "dead"
-    lock = _HERMES_LOCK_RE.fullmatch(reason)
+    lock = _KOVA_LOCK_RE.fullmatch(reason)
     if lock is None:
         return "live"
     pid, db_path = lock.groups()
@@ -952,12 +952,12 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
     return "dead" if pid is not None else "live"  # a session lock without its store: unverifiable
 
 
-# Trees Hermes names itself (``hermes -w`` sessions, subagent isolation) age on the base tier.
+# Trees Kova names itself (``hermes -w`` sessions, subagent isolation) age on the base tier.
 _AUTO_TREE_PREFIXES = ("hermes-", "subagent-")
 
 
 def prune_tier_hours(name: str, max_age_hours: float) -> float:
-    """Idle hours before a tree may be reclaimed: *max_age_hours* for Hermes-made trees
+    """Idle hours before a tree may be reclaimed: *max_age_hours* for Kova-made trees
     (``hermes-*``, ``subagent-*``), 3x for deliberately named ones."""
     return max_age_hours if name.startswith(_AUTO_TREE_PREFIXES) else max_age_hours * 3
 
@@ -965,7 +965,7 @@ def prune_tier_hours(name: str, max_age_hours: float) -> float:
 def _prune_candidates(worktrees_dir: Path, max_age_hours: int, now: float) -> list:
     """Phase 1, stat-only age filter -> ``[(entry, mtime, force)]`` for trees past their soft cutoff.
 
-    Kanban trees (``t_<hex>``) belong to the kanban gc. Hermes-made trees age on *max_age_hours*,
+    Kanban trees (``t_<hex>``) belong to the kanban gc. Kova-made trees age on *max_age_hours*,
     deliberately named trees at 3x (``prune_tier_hours``); *force* marks the hard (3x) tier.
     """
     kanban_re = re.compile(r"^t_[0-9a-f]+$")

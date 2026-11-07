@@ -1,7 +1,7 @@
 """Unit tests for kova_cli.toolset_validation (see #38798).
 
 Pure logic — the validity predicate is injected, so these tests need neither the
-tool registry nor a running Hermes.
+tool registry nor a running Kova.
 """
 
 import pytest

@@ -60,7 +60,7 @@ function isConsoleMessageDetails(value: unknown): value is ConsoleMessageDetails
 }
 
 /** Format errors and Bot Chat wake warnings into one line, or null otherwise.
- *  Hermes's pinned Electron line puts severity and source metadata on the
+ *  Kova's pinned Electron line puts severity and source metadata on the
  *  event object itself; accepting one
  *  listener argument also avoids Electron's deprecated positional
  *  `(event, level, message, line, sourceId)` path. */

@@ -13,7 +13,7 @@ from gateway.config import GatewayConfig, Platform, PlatformConfig
 
 @pytest.mark.asyncio
 async def test_a_platform_installed_by_this_start_is_in_the_runners_config(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     plugin_installed = []
     seen = {}
 
@@ -41,7 +41,7 @@ async def test_a_platform_installed_by_this_start_is_in_the_runners_config(tmp_p
     monkeypatch.setattr("gateway.status.write_pid_file", lambda: None)
     monkeypatch.setattr("gateway.status.remove_pid_file", lambda: None)
     monkeypatch.setattr("gateway.status.release_gateway_runtime_lock", lambda: None)
-    monkeypatch.setattr("kova_logging.setup_logging", lambda hermes_home, mode: None)
+    monkeypatch.setattr("kova_logging.setup_logging", lambda kova_home, mode: None)
     monkeypatch.setattr("gateway.run.GatewayRunner", Runner)
 
     with pytest.raises(SystemExit):
@@ -57,15 +57,15 @@ async def test_a_named_launch_stays_standalone_across_the_reload(tmp_path, monke
     default to standalone and reserves only foo. The reload after the migration installed a platform
     must keep that verdict: a fresh decision re-enables multiplex and serves default's adapters,
     which this process never reserved. With or without an install, the runner gets foo's own platforms."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "foo").mkdir(parents=True)
     (root / "config.yaml").write_text("model: {default: m}\nplatforms:\n  slack: {enabled: true, token: xoxb-default}\n")
     (root / "profiles" / "foo" / "config.yaml").write_text("model: {default: m}\n")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "foo"))
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "foo"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     import kova_constants
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     seen = {}
     decisions = []
 
@@ -97,7 +97,7 @@ async def test_a_named_launch_stays_standalone_across_the_reload(tmp_path, monke
     monkeypatch.setattr("gateway.status.remove_pid_file", lambda: None)
     monkeypatch.setattr("gateway.status.release_gateway_runtime_lock", lambda: None)
     monkeypatch.setattr("gateway.run._write_runtime_status_quiet", lambda **kw: None)
-    monkeypatch.setattr("kova_logging.setup_logging", lambda hermes_home, mode: None)
+    monkeypatch.setattr("kova_logging.setup_logging", lambda kova_home, mode: None)
     monkeypatch.setattr("gateway.run.GatewayRunner", Runner)
 
     try:
@@ -115,15 +115,15 @@ async def test_a_named_launch_stays_standalone_across_the_reload(tmp_path, monke
 async def test_a_default_launch_keeps_its_reserved_homes_across_the_reload(tmp_path, monkeypatch):
     """The multiplexing half of the reload: the boot reserved default + foo, and the reloaded config
     keeps that reservation instead of rescanning profiles the process never reserved."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "foo").mkdir(parents=True)
     (root / "config.yaml").write_text("model: {default: m}\n")
     (root / "profiles" / "foo" / "config.yaml").write_text("model: {default: m}\n")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     import kova_constants
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     seen = {}
 
     class Runner(gateway_run.GatewayRunner):
@@ -144,7 +144,7 @@ async def test_a_default_launch_keeps_its_reserved_homes_across_the_reload(tmp_p
     monkeypatch.setattr("gateway.status.remove_pid_file", lambda: None)
     monkeypatch.setattr("gateway.status.release_gateway_runtime_lock", lambda: None)
     monkeypatch.setattr("gateway.run._write_runtime_status_quiet", lambda **kw: None)
-    monkeypatch.setattr("kova_logging.setup_logging", lambda hermes_home, mode: None)
+    monkeypatch.setattr("kova_logging.setup_logging", lambda kova_home, mode: None)
     monkeypatch.setattr("gateway.run.GatewayRunner", Runner)
 
     try:
@@ -164,19 +164,19 @@ def test_the_launch_homes_migration_reads_its_own_secrets_on_a_multiplexing_star
     """A default-profile gateway that multiplexes armed fail-closed secret reads while loading its
     config, before the migration runs. The launch home's install (its required-env check) must read
     the launch profile's own ``.env`` through its scope, not raise ``UnscopedSecretError``."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     root.mkdir()
     (root / ".env").write_text("YUANBAO_APP_ID=launch-app\n")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("YUANBAO_APP_ID", raising=False)
     import kova_constants
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     from agent.secret_scope import get_secret, is_multiplex_active, set_multiplex_active
     read = []
 
     def recover_at_startup(*, say=None, gateway_start=False):
-        read.append((str(kova_constants.get_hermes_home()), get_secret("YUANBAO_APP_ID")))
+        read.append((str(kova_constants.get_kova_home()), get_secret("YUANBAO_APP_ID")))
         return []
 
     monkeypatch.setattr("kova_cli.left_core_migration.recover_at_startup", recover_at_startup)

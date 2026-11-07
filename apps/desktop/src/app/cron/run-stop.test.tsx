@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesApi from '@/hermes'
+import type * as KovaApi from '@/hermes'
 import type { CronJob } from '@/hermes'
 import type { Translations } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
@@ -19,7 +19,7 @@ const getCronJobRuns = vi.fn()
 const getCronJobs = vi.fn()
 
 vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesApi>()),
+  ...(await importOriginal<typeof KovaApi>()),
   cancelCronJobRun: (jobId: string) => cancelCronJobRun(jobId),
   getCronJobRuns: (jobId: string) => getCronJobRuns(jobId),
   getCronJobs: (profile?: string) => getCronJobs(profile)

@@ -1,7 +1,7 @@
 {
   "openrpc": "1.3.2",
   "info": {
-    "title": "Hermes TUI/Desktop gateway",
+    "title": "Kova TUI/Desktop gateway",
     "version": "1",
     "description": "Generated from tui_gateway/contracts by scripts/gen_gateway_contracts.py."
   },
@@ -3050,7 +3050,7 @@
     },
     {
       "name": "reload.env",
-      "summary": "Re-read ~/.hermes/.env (CLI /reload parity); built agents keep their pool until /new.",
+      "summary": "Re-read ~/.kova/.env (CLI /reload parity); built agents keep their pool until /new.",
       "params": [
         {
           "name": "params",
@@ -3608,7 +3608,7 @@
     },
     {
       "name": "session.save",
-      "summary": "Export the transcript to ~/.hermes/sessions/saved (classic /save).",
+      "summary": "Export the transcript to ~/.kova/sessions/saved (classic /save).",
       "params": [
         {
           "name": "params",
@@ -11271,7 +11271,7 @@
             "default": null
           },
           "desktop_protocol": {
-            "const": "hermes-gateway-v1",
+            "const": "kova-gateway-v1",
             "title": "Desktop Protocol",
             "type": "string"
           },
@@ -14076,7 +14076,7 @@
               }
             ],
             "default": null,
-            "title": "Requires Hermes"
+            "title": "Requires Kova"
           },
           "has_desktop_half": {
             "anyOf": [
@@ -25745,7 +25745,7 @@
       },
       "OnboardingRunStateResult": {
         "additionalProperties": false,
-        "description": "``run``: onboarding opens on this launch (root config ``onboarding.run``, else a machine that\nnever used Hermes). ``eligible``: this is the desktop's local backend and the welcome trial or a\nconfigured provider can carry the first chat.\n``session_id``: the stored id of the onboarding chat still in progress, so a relaunch reopens it;\n``run_id``: that run's id, which ``onboarding.ended`` names.",
+        "description": "``run``: onboarding opens on this launch (root config ``onboarding.run``, else a machine that\nnever used Kova). ``eligible``: this is the desktop's local backend and the welcome trial or a\nconfigured provider can carry the first chat.\n``session_id``: the stored id of the onboarding chat still in progress, so a relaunch reopens it;\n``run_id``: that run's id, which ``onboarding.ended`` names.",
         "properties": {
           "run": {
             "title": "Run",
@@ -25918,7 +25918,7 @@
       },
       "OnboardingStateParams": {
         "additionalProperties": false,
-        "description": "``assume_fresh``: the unpackaged desktop's ``--fresh-install`` launch; the backend treats this\nmachine as one that never used Hermes. Packaged builds never send it.",
+        "description": "``assume_fresh``: the unpackaged desktop's ``--fresh-install`` launch; the backend treats this\nmachine as one that never used Kova. Packaged builds never send it.",
         "properties": {
           "assume_fresh": {
             "default": false,
@@ -42175,7 +42175,7 @@
       },
       "SharedMetricsStartupLatencyParams": {
         "additionalProperties": false,
-        "description": "``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready\n(TUI gateway ready / Desktop backend attached), measured once per launch by the client. The\nclient names its surface because a Desktop may attach to a URL/cloud backend where\n``HERMES_DESKTOP`` is unset; without it the backend falls back to its own client detection.\n``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a\nreconnect re-sending the same launch counts once while a new launch counts again.",
+        "description": "``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready\n(TUI gateway ready / Desktop backend attached), measured once per launch by the client. The\nclient names its surface because a Desktop may attach to a URL/cloud backend where\n``KOVA_DESKTOP`` is unset; without it the backend falls back to its own client detection.\n``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a\nreconnect re-sending the same launch counts once while a new launch counts again.",
         "properties": {
           "profile": {
             "anyOf": [
@@ -42918,7 +42918,7 @@
       },
       "SkinPayload": {
         "additionalProperties": true,
-        "description": "``tui_gateway/change_watcher.py::resolve_skin`` \u2014 the resolved active skin (``HermesSkin``).\n``{}`` when the skin engine failed to load. Colour maps are token \u2192 colour string.",
+        "description": "``tui_gateway/change_watcher.py::resolve_skin`` \u2014 the resolved active skin (``KovaSkin``).\n``{}`` when the skin engine failed to load. Colour maps are token \u2192 colour string.",
         "properties": {
           "name": {
             "default": "",

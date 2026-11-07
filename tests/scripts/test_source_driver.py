@@ -19,7 +19,7 @@ ASSETS = Path(__file__).resolve().parents[1] / "install/e2e-assets"
 def test_shell_selects_the_installed_command_not_the_phase_or_path(tmp_path):
     root = tmp_path / "installed source"
     legacy = root / "venv/bin/hermes"
-    published = root / ".hermes/bin/hermes"
+    published = root / ".kova/bin/hermes"
     for command, label in ((legacy, "legacy"), (published, "published")):
         command.parent.mkdir(parents=True)
         command.write_text(f'#!/bin/sh\nprintf "{label}:%s\\n" "$*"\n', encoding="utf-8")
@@ -76,7 +76,7 @@ def test_installer_marker_is_the_only_dirty_state_a_driver_accepts(tmp_path):
 def test_powershell_selects_exact_exe_or_cmd_and_legacy_fallback(tmp_path):
     # These are file-selection rules, not Windows execution emulation. Run
     # them in real PowerShell on any host that supplies it (native CI included).
-    path = os.pathsep.join(p for p in os.get_exec_path() if ".hermes" not in Path(p).parts)
+    path = os.pathsep.join(p for p in os.get_exec_path() if ".kova" not in Path(p).parts)
     pwsh = shutil.which("pwsh", path=path) or shutil.which("powershell", path=path)
     if not pwsh:
         if os.name == "nt":
@@ -89,26 +89,26 @@ def test_powershell_selects_exact_exe_or_cmd_and_legacy_fallback(tmp_path):
 . (Join-Path $env:ASSETS 'source-driver.ps1')
 $root = $env:INSTALL_DIR
 $legacy = Join-Path $root 'venv/Scripts/hermes.exe'
-$exe = Join-Path $root '.hermes/bin/hermes.exe'
-$cmd = Join-Path $root '.hermes/bin/hermes.cmd'
+$exe = Join-Path $root '.kova/bin/hermes.exe'
+$cmd = Join-Path $root '.kova/bin/hermes.cmd'
 New-Item -ItemType Directory -Path (Split-Path $legacy), (Split-Path $exe) -Force | Out-Null
 Set-Content $legacy 'legacy'
-if ((Get-SourceHermes $root) -ne $legacy) { throw 'legacy fallback' }
+if ((Get-SourceKova $root) -ne $legacy) { throw 'legacy fallback' }
 Set-Content $cmd 'cmd'
-if ((Get-SourceHermes $root) -ne $cmd) { throw 'published cmd' }
+if ((Get-SourceKova $root) -ne $cmd) { throw 'published cmd' }
 Set-Content $exe 'exe'
-if ((Get-SourceHermes $root) -ne $exe) { throw 'exe precedence' }
+if ((Get-SourceKova $root) -ne $exe) { throw 'exe precedence' }
 Remove-Item $legacy
-if ((Get-SourceHermes $root) -ne $exe) { throw 'requires legacy venv' }
+if ((Get-SourceKova $root) -ne $exe) { throw 'requires legacy venv' }
 Remove-Item $exe, $cmd
 $refused = $false
-try { Get-SourceHermes $root } catch { $refused = $true }
+try { Get-SourceKova $root } catch { $refused = $true }
 if (-not $refused) { throw 'missing command accepted' }
 Set-Content $legacy 'stale legacy'
 New-Item -ItemType Directory -Path (Join-Path $root 'pm') | Out-Null
 Set-Content (Join-Path $root 'pm/lock.json') '{}'
 $refused = $false
-try { Get-SourceHermes $root } catch { $refused = $true }
+try { Get-SourceKova $root } catch { $refused = $true }
 if (-not $refused) { throw 'missing PM launcher accepted' }
 Write-Output 'selection verified'
 ''', encoding="utf-8")
@@ -147,11 +147,11 @@ def test_observer_judges_only_the_live_app_not_rollback_copies_beside_it(tmp_pat
         dist = release / name / "resources/app.asar.unpacked/dist"
         dist.mkdir(parents=True)
         (dist / "index.html").write_text("<html></html>", encoding="utf-8")
-        (release / name / "Hermes.exe").write_bytes(b"MZ fixture")
+        (release / name / "Kova.exe").write_bytes(b"MZ fixture")
     assert driver["desktop_outputs"](tmp_path / "source") == [
         release / "win-unpacked/resources/app.asar.unpacked/dist"]
     driver["verify_products"](tmp_path / "source", "present")
-    (release / "win-unpacked/Hermes.exe").unlink()
+    (release / "win-unpacked/Kova.exe").unlink()
     with pytest.raises(RuntimeError, match="desktop executable is missing or empty"):
         driver["verify_products"](tmp_path / "source", "present")
     shutil.rmtree(release / "win-unpacked")
@@ -181,10 +181,10 @@ def test_pm_observer_accepts_ready_fixture_and_leaves_failed_fixture_untouched(t
     (root / "uv.lock").write_text("fixture locked graph", encoding="utf-8")
     home = tmp_path / "home"
     store = tmp_path / "store"
-    env = dict(os.environ, HOME=str(home), HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store),
-               PYTHONDONTWRITEBYTECODE="1", HERMES_DISABLE_LAZY_INSTALLS="1")
-    env.pop("HERMES_INSTALL_ROOT", None)
-    path = os.pathsep.join(p for p in os.get_exec_path() if ".hermes" not in Path(p).parts)
+    env = dict(os.environ, HOME=str(home), KOVA_HOME=str(home), KOVA_RUNTIME_DIR=str(store),
+               PYTHONDONTWRITEBYTECODE="1", KOVA_DISABLE_LAZY_INSTALLS="1")
+    env.pop("KOVA_INSTALL_ROOT", None)
+    path = os.pathsep.join(p for p in os.get_exec_path() if ".kova" not in Path(p).parts)
     node = shutil.which("node", path=path)
     assert node
     setup = '''import sys
@@ -210,7 +210,7 @@ site = site_packages(selected)
 site.parent.mkdir(parents=True)
 site.symlink_to(deps, target_is_directory=True)
 Facts(runtime_facts_path(root)).record_state('venv', Venv(root).expected_stamp([]), [], environment=selected)
-ensure_install_launchers(root, root / '.hermes/bin')
+ensure_install_launchers(root, root / '.kova/bin')
 '''
     subprocess.run([sys.executable, "-I", "-B", "-c", setup, str(root), str(store), node,
                     sysconfig.get_path("purelib")], env=env, cwd=tmp_path, check=True, timeout=60)
@@ -229,7 +229,7 @@ for (const [product, out] of [['tui', 'ui-tui/dist'], ['web', 'kova_cli/web_dist
     subprocess.run([node, "--input-type=module", "-e", record], cwd=root, env=env, check=True, timeout=30)
     (root / "apps/desktop/release/linux-unpacked/hermes").write_bytes(b"fixture executable")
     command = [sys.executable, "-B", str(ASSETS / "source_driver.py"), "--root", str(root),
-               "--launcher", str(root / ".hermes/bin/hermes"), "--desktop", "present"]
+               "--launcher", str(root / ".kova/bin/hermes"), "--desktop", "present"]
     if fault == "no-desktop":
         shutil.rmtree(root / "apps/desktop")
         command[-1] = "absent"
@@ -248,10 +248,10 @@ for (const [product, out] of [['tui', 'ui-tui/dist'], ['web', 'kova_cli/web_dist
         foreign = tmp_path / "foreign"
         shutil.copytree(root, foreign)
         from kova_cli._launchers import mint_launcher
-        launcher = mint_launcher("hermes", foreign, root / ".hermes/bin", Path(sys.executable), None)
+        launcher = mint_launcher("hermes", foreign, root / ".kova/bin", Path(sys.executable), None)
         assert launcher is not None
     elif fault == "missing-launcher":
-        (root / ".hermes/bin/hermes").unlink()
+        (root / ".kova/bin/hermes").unlink()
     elif fault == "incomplete":
         (root / ".update-incomplete").write_text("incomplete", encoding="utf-8")
     else:

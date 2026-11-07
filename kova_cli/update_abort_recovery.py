@@ -101,8 +101,8 @@ def _run_fresh_recovery_process(
     could not run (no systemd-run in gateway mode, OSError, timeout) — the caller fails closed."""
     command = [sys.executable, "-m", "kova_cli.update_restart_recovery", "--stdin"]
     env = os.environ.copy()
-    env["HERMES_UPDATE_RESTART_RECOVERY"] = "1"
-    for marker in ("_HERMES_GATEWAY", "HERMES_GATEWAY", "HERMES_GATEWAY_MODE"):
+    env["KOVA_UPDATE_RESTART_RECOVERY"] = "1"
+    for marker in ("_KOVA_GATEWAY", "KOVA_GATEWAY", "KOVA_GATEWAY_MODE"):
         env.pop(marker, None)
 
     # A gateway-triggered update may run inside the gateway's systemd cgroup: put the recovery in a

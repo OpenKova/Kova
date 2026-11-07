@@ -23,14 +23,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.mark.parametrize("prefix", [[], ["-p", "default"], ["--profile=default"]])
 def test_bootstrap_and_pm_cli_work_without_site_packages(tmp_path, prefix):
-    env = {**os.environ, "HERMES_HOME": str(tmp_path / "home"), "PYTHONPATH": str(REPO_ROOT)}
+    env = {**os.environ, "KOVA_HOME": str(tmp_path / "home"), "PYTHONPATH": str(REPO_ROOT)}
     result = subprocess.run(
         [sys.executable, "-S", "-m", "kova_cli.main", *prefix, "pm", "repair", "--help"],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=60,
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "hermes pm repair" in result.stdout
+    assert "kova pm repair" in result.stdout
 
 
 @pytest.mark.parametrize("marker_name", [".update-incomplete", ".lazy-refresh-incomplete"])
@@ -67,7 +67,7 @@ def test_failed_repair_keeps_marker_and_stops_at_retry_limit(tmp_path, monkeypat
     assert len(calls) == before
     output = capsys.readouterr()
     assert output.out == ""
-    assert "hermes pm repair" in output.err
+    assert "kova pm repair" in output.err
 
 
 def test_recovery_obeys_live_owner_and_single_flight(tmp_path, monkeypatch):
@@ -214,7 +214,7 @@ def test_zip_journal_writer_never_writes_through_a_preexisting_temp(tmp_path, li
 
 
 def test_zip_journal_publication_never_deletes_a_file_at_its_old_fixed_temp_name(tmp_path):
-    """The writer unlinked ``.hermes-update-zip-swap.tmp`` before its exclusive create: a user's file by
+    """The writer unlinked ``.kova-update-zip-swap.tmp`` before its exclusive create: a user's file by
     that name was erased (review Z5). Its temp is now unpredictable: the file survives, byte for byte."""
     root = tmp_path / "install"
     root.mkdir()
@@ -242,7 +242,7 @@ def test_an_interrupted_swap_restores_its_backup_by_entry_not_by_target(tmp_path
     root = tmp_path / "install"
     root.mkdir()
     (root / "target.txt").write_text("T", encoding="utf-8")
-    old = root / "alpha.hermes-update-old"
+    old = root / "alpha.kova-update-old"
     if kind == "regular":
         old.write_text("OLD", encoding="utf-8")
     else:
@@ -269,8 +269,8 @@ def test_an_unparsed_zip_journal_keeps_itself_and_every_backup(tmp_path, monkeyp
     be read or understood is never settled by guesswork: the journal and every sibling stay."""
     root = tmp_path / "install"
     root.mkdir()
-    for name, text in {"a.py": "NEW_A", "a.py.hermes-update-old": "OLD_A", "b.py": "OLD_B",
-                       "b.py.hermes-update-staging": "NEW_B"}.items():
+    for name, text in {"a.py": "NEW_A", "a.py.kova-update-old": "OLD_A", "b.py": "OLD_B",
+                       "b.py.kova-update-staging": "NEW_B"}.items():
         (root / name).write_text(text, encoding="utf-8")
     journal = root / er.ZIP_SWAP_JOURNAL
     journal.write_text('{"phase": "swapping", "gen": "0123456789ab", "entries": [["a.py", true, "", ""], '
@@ -287,7 +287,7 @@ def test_an_unparsed_zip_journal_keeps_itself_and_every_backup(tmp_path, monkeyp
     assert erz.restore_interrupted_zip_swap(root) is False
     assert journal.is_file()
     assert {p.name: p.read_text(encoding="utf-8-sig") for p in root.iterdir() if p != journal and p.suffix != ".lock"} == {
-        "a.py": "NEW_A", "a.py.hermes-update-old": "OLD_A", "b.py": "OLD_B", "b.py.hermes-update-staging": "NEW_B"}
+        "a.py": "NEW_A", "a.py.kova-update-old": "OLD_A", "b.py": "OLD_B", "b.py.kova-update-staging": "NEW_B"}
 
 
 @pytest.mark.skipif(sys.platform == "win32" or getattr(os, "geteuid", lambda: 0)() == 0,
@@ -295,15 +295,15 @@ def test_an_unparsed_zip_journal_keeps_itself_and_every_backup(tmp_path, monkeyp
 def test_dropping_a_staged_tree_never_changes_a_hardlinked_live_files_mode(tmp_path):
     live = tmp_path / "release"
     live.mkdir()
-    (live / "Hermes.exe").write_bytes(b"app")
-    staging = tmp_path / "apps.hermes-update-staging" / "release"
+    (live / "Kova.exe").write_bytes(b"app")
+    staging = tmp_path / "apps.kova-update-staging" / "release"
     staging.mkdir(parents=True)
-    os.link(live / "Hermes.exe", staging / "Hermes.exe")
-    (live / "Hermes.exe").chmod(0o555)
+    os.link(live / "Kova.exe", staging / "Kova.exe")
+    (live / "Kova.exe").chmod(0o555)
     staging.chmod(0o555)  # a read-only dir refuses rmtree: the retry path runs
     erz._drop_path(staging.parent)
     assert not staging.parent.exists()
-    assert (live / "Hermes.exe").stat().st_mode & 0o777 == 0o555
+    assert (live / "Kova.exe").stat().st_mode & 0o777 == 0o555
 
 
 @pytest.mark.parametrize("body", ['{"attempts": Infinity}', '{"attempts": -Infinity}', '{"attempts": NaN}',

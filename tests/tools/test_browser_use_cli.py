@@ -1,4 +1,4 @@
-"""Tests for ``browser_exec`` (tools/browser_use_cli.py), Hermes' only core browser tool.
+"""Tests for ``browser_exec`` (tools/browser_use_cli.py), Kova' only core browser tool.
 
 Covers the seams the integration relies on:
 
@@ -566,7 +566,7 @@ class TestOwnTabPreamble:
             bs, "get_session_info",
             lambda key: {"cdp_url": "wss://browser.example/cdp/" + key},
         )
-        cli = _fake_cli(tmp_path, 'cat > /dev/null\necho "sentinel:${_HERMES_BU_PRIVATE_BROWSER:-unset}"\n')
+        cli = _fake_cli(tmp_path, 'cat > /dev/null\necho "sentinel:${_KOVA_BU_PRIVATE_BROWSER:-unset}"\n')
         monkeypatch.setattr(bu_cli, "_find_cli", lambda: [cli])
         result = json.loads(bu_cli.browser_exec("print(1)", session="r7k2"))
         assert "sentinel:unset" in result["output"]

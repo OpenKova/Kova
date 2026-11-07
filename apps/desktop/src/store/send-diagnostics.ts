@@ -76,7 +76,7 @@ interface ShareNousResponse {
  *  IPC (browser dashboard, older shells) just omits the file. */
 async function collectLocalExtras(): Promise<Record<string, string>> {
   try {
-    const logs = await window.hermesDesktop?.getRecentLogs?.()
+    const logs = await window.kovaDesktop?.getRecentLogs?.()
     const lines = Array.isArray(logs?.lines) ? logs.lines : []
 
     return lines.length ? { 'desktop.log': lines.join('\n') } : {}
@@ -108,7 +108,7 @@ export async function confirmSendDiagnostics(): Promise<void> {
     const gateway = $gateway.get()
 
     if (!gateway) {
-      throw new Error('Hermes gateway unavailable')
+      throw new Error('Kova gateway unavailable')
     }
 
     const extraFiles = { ...(await collectLocalExtras()), ...current.extraFiles }

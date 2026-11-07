@@ -172,8 +172,8 @@ _IMAGE_API_INTS = (
 _ATTRIBUTION_HEADERS = {
     "Content-Type": "application/json",
     # OpenRouter attribution headers (harmless against Nous Portal).
-    "HTTP-Referer": "https://github.com/NousResearch/hermes-agent",
-    "X-Title": "Hermes Agent",
+    "HTTP-Referer": "https://github.com/NousResearch/kova-agent",
+    "X-Title": "Kova Agent",
 }
 
 

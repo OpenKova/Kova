@@ -5,7 +5,7 @@ names to private ranges); cloud metadata hostnames/IPs are **always** blocked. A
 that answers DNS with a fake-ip block (Mihomo/Clash fake-ip, Surge enhanced) declares that block
 in ``security.fake_ip_ranges`` so its sentinel answers are dialable instead of looking private;
 the list is empty by default, so the sentinel stays blocked for everyone else. DNS rebinding
-(TOCTOU) is closed for Hermes-owned httpx paths by ``create_ssrf_safe_[async_]client()``, which
+(TOCTOU) is closed for Kova-owned httpx paths by ``create_ssrf_safe_[async_]client()``, which
 re-apply the policy at TCP connect and dial the validated IP while preserving Host/SNI. Redirect
 bypass is mitigated by response hooks re-validating each target (``redirect_target_from_response``).
 """
@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from typing import Any, Optional
 from urllib.parse import quote, unquote, urljoin, urlparse, urlsplit, urlunsplit
 
-from kova_constants import get_hermes_home_override
+from kova_constants import get_kova_home_override
 from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def _proxy_is_configured() -> bool:
 
 
 def normalize_url_for_request(url: str) -> str:
-    """ASCII-safe HTTP URL for Hermes-owned URL tools (IRI -> URI, e.g. ``https://wttr.in/Köln``).
+    """ASCII-safe HTTP URL for Kova-owned URL tools (IRI -> URI, e.g. ``https://wttr.in/Köln``).
     Preserves URL syntax and existing percent escapes while IDNA-encoding the host and
     percent-encoding non-ASCII path/query/fragment text. URL tool inputs only — never shell commands."""
     if not isinstance(url, str):
@@ -116,12 +116,12 @@ _fake_ip_resolved, _cached_fake_ip_ranges = False, ()
 
 
 def _global_allow_private_urls() -> bool:
-    """True when the user has opted out of private-IP blocking. Priority: ``HERMES_ALLOW_PRIVATE_URLS``
+    """True when the user has opted out of private-IP blocking. Priority: ``KOVA_ALLOW_PRIVATE_URLS``
     env, ``security.allow_private_urls``, legacy ``browser.allow_private_urls``. Profile-scoped turns
-    (``get_hermes_home_override()`` set) bypass the process-global cache — a multiplex gateway serves
+    (``get_kova_home_override()`` set) bypass the process-global cache — a multiplex gateway serves
     several profiles in one process; the first profile's opt-out must not disable blocking for later ones."""
     global _allow_private_resolved, _cached_allow_private
-    if get_hermes_home_override() is not None:
+    if get_kova_home_override() is not None:
         return _resolve_allow_private_urls()
     if not _allow_private_resolved:
         _allow_private_resolved, _cached_allow_private = True, _resolve_allow_private_urls()
@@ -130,7 +130,7 @@ def _global_allow_private_urls() -> bool:
 
 def _resolve_allow_private_urls() -> bool:
     """Resolve the effective private-URL toggle from the active config scope."""
-    env_val = os.getenv("HERMES_ALLOW_PRIVATE_URLS", "").strip().lower()
+    env_val = os.getenv("KOVA_ALLOW_PRIVATE_URLS", "").strip().lower()
     if env_val in {"true", "1", "yes"}:
         return True
     if env_val in {"false", "0", "no"}:
@@ -189,7 +189,7 @@ def _global_fake_ip_ranges() -> tuple:
     """Process-lifetime cache with the same profile-scope bypass as ``_global_allow_private_urls``:
     a multiplex gateway must not apply the first profile's declaration to later ones."""
     global _fake_ip_resolved, _cached_fake_ip_ranges
-    if get_hermes_home_override() is not None:
+    if get_kova_home_override() is not None:
         return _resolve_fake_ip_ranges()
     if not _fake_ip_resolved:
         _fake_ip_resolved, _cached_fake_ip_ranges = True, _resolve_fake_ip_ranges()

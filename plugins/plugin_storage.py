@@ -25,10 +25,10 @@ def _validate_name(name: str) -> str:
 
 
 def plugin_data_dir(name: str) -> Path:
-    """Return (and create) ``<hermes home>/plugin-data/<name>/``; resolves ``get_hermes_home()`` on
+    """Return (and create) ``<hermes home>/plugin-data/<name>/``; resolves ``get_kova_home()`` on
     every call so it follows the active profile — don't cache across profile switches."""
-    from kova_constants import get_hermes_home
-    root = get_hermes_home() / "plugin-data" / _validate_name(name)
+    from kova_constants import get_kova_home
+    root = get_kova_home() / "plugin-data" / _validate_name(name)
     root.mkdir(parents=True, exist_ok=True)
     return root
 

@@ -105,11 +105,11 @@ def test_a_prompt_behind_a_lost_turn_shows_the_discard_banner_and_discard_lets_i
     assert refused["failed"] and "/discard adm-lost" in refused["error"]
     assert "prompt.submit" not in client.methods()  # never queued behind the lost turn
 
-    from cli import HermesCLI
+    from cli import KovaCLI
     monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
-    method, _ = HermesCLI._slash_handler("discard") or (None, None)
+    method, _ = KovaCLI._slash_handler("discard") or (None, None)
     assert method is not None
-    getattr(HermesCLI, method)(SimpleNamespace(session_id=SID), "/discard adm-lost")
+    getattr(KovaCLI, method)(SimpleNamespace(session_id=SID), "/discard adm-lost")
     assert ("prompt.resolve_unknown", {"session_id": SID, "admission_id": "adm-lost",
                                        "execution_generation": 4}) in client.calls
     assert run_bounded(agent, "second ask")["final_response"] == "ok"
@@ -117,13 +117,13 @@ def test_a_prompt_behind_a_lost_turn_shows_the_discard_banner_and_discard_lets_i
 
 def test_a_bare_discard_prints_usage_and_calls_nothing(gateway, monkeypatch):
     conn, client = gateway
-    from cli import HermesCLI
+    from cli import KovaCLI
     printed = []
     monkeypatch.setattr("cli._cprint", printed.append)
     monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
     calls = len(client.calls)
-    entry = HermesCLI._slash_handler("discard")
+    entry = KovaCLI._slash_handler("discard")
     assert entry is not None
-    getattr(HermesCLI, entry[0])(SimpleNamespace(session_id=SID), "/discard")
+    getattr(KovaCLI, entry[0])(SimpleNamespace(session_id=SID), "/discard")
     assert printed == ["  Usage: /discard <admission_id>"]
     assert len(client.calls) == calls

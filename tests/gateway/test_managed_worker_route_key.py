@@ -82,17 +82,17 @@ def test_keyless_worker_reads_its_own_profile_home_not_the_default(tmp_path, mon
     the worker's resolution then sees its own key, never the launch (default) profile's."""
     import os
     from gateway.session_managed_worker import _worker_env
-    default = tmp_path / '.hermes'
+    default = tmp_path / '.kova'
     profile = default / 'profiles' / 'kb5'
     profile.mkdir(parents=True)
     own, other = 'fake-own-' + secrets.token_hex(8), 'fake-default-' + secrets.token_hex(8)
     (default / '.env').write_text(f'{KEY_ENV}={other}\n')
     (profile / '.env').write_text(f'{KEY_ENV}={own}\n')
     monkeypatch.setenv('HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_HOME', str(default))
+    monkeypatch.setenv('KOVA_HOME', str(default))
     monkeypatch.setenv(KEY_ENV, other)
     env = _worker_env(SimpleNamespace(profile_id=str(profile)))
-    assert env is not None and env['HERMES_HOME'] == str(profile)
+    assert env is not None and env['KOVA_HOME'] == str(profile)
     for name in list(os.environ):
         monkeypatch.delenv(name)
     for name, value in env.items():
@@ -230,7 +230,7 @@ def test_keyless_worker_credential_failure_keeps_the_kanban_start_exit(tmp_path,
     def resolve(**kwargs):
         raise error
     monkeypatch.setattr('kova_cli.runtime_provider_custom._resolve_named_custom_runtime', resolve)
-    # Only the HERMES_KANBAN_* environment binding is skipped (it writes os.environ directly).
+    # Only the KOVA_KANBAN_* environment binding is skipped (it writes os.environ directly).
     monkeypatch.setattr(session_kanban, 'bind_worker_context', lambda frame: None)
     built = {}
     with pytest.raises(type(error)):

@@ -1,8 +1,8 @@
 """Gateway control socket — the gateway-owned local coordination surface: a local-only socket answering
 versioned JSON verbs (``identify``, ``status``, ``resolve-profile``, ``session-ticket``, ...). A connectable socket with a well-formed ``identify``
 answer IS liveness — no PID-reuse heuristics. Never a TCP port: filesystem/pipe ACLs are the auth
-boundary. POSIX: ``$HERMES_HOME/gateway.sock`` (or a temp-dir socket + ``gateway.sock.path`` pointer
-file when the home path exceeds ``sun_path`` or its filesystem refuses sockets); Windows: named pipe ``\\\\.\\pipe\\hermes-gateway-<hash>``.
+boundary. POSIX: ``$KOVA_HOME/gateway.sock`` (or a temp-dir socket + ``gateway.sock.path`` pointer
+file when the home path exceeds ``sun_path`` or its filesystem refuses sockets); Windows: named pipe ``\\\\.\\pipe\\kova-gateway-<hash>``.
 Wire contract: ONE request per connection — one JSON line in, one out, then the server closes.
 Consumers PREFER the socket and fall back to the state-file/scan layer when it doesn't answer.
 """
@@ -49,8 +49,8 @@ def _home_hash(home: Path) -> str:
 
 
 def windows_pipe_name(home: Path) -> str:
-    """Per-HERMES_HOME named pipe path (Windows transport)."""
-    return rf"\\.\pipe\hermes-gateway-{_home_hash(home)}"
+    """Per-KOVA_HOME named pipe path (Windows transport)."""
+    return rf"\\.\pipe\kova-gateway-{_home_hash(home)}"
 
 
 def _fits_sun_path(path: Path) -> bool:
@@ -148,7 +148,7 @@ def _detect_supervisor() -> str:
     from gateway.restart import launchd_job_label
     if sys.platform == "darwin" and (launchd_job_label(env) or env.get("LAUNCHD_SOCKET")):
         return "launchd"
-    if env.get("HERMES_DESKTOP_MANAGED"):
+    if env.get("KOVA_DESKTOP_MANAGED"):
         return "desktop"
     return "external" if "--external-supervisor" in sys.argv else "manual"
 
@@ -183,8 +183,8 @@ def build_identify_payload() -> dict[str, Any]:
     supervisor = _detect_supervisor()
     payload: dict[str, Any] = {
         "protocol": CONTROL_PROTOCOL_VERSION,
-        **{k: record.get(k) for k in ("kind", "pid", "start_time", "hermes_home")},
-        "profile": _profile_label_for_home(record.get("hermes_home") or ""),
+        **{k: record.get(k) for k in ("kind", "pid", "start_time", "kova_home")},
+        "profile": _profile_label_for_home(record.get("kova_home") or ""),
         "supervisor": supervisor, "launch_supervisor": supervisor, **_get_code_identity_fields()}
     with contextlib.suppress(Exception):
         # served_profiles (multiplex mode) is stamped into runtime status by the runner.
@@ -209,10 +209,10 @@ class GatewayControlServer:
     def __init__(self, home: Optional[Path] = None, *,
                  verb_handlers: Optional[dict[str, Callable[..., dict[str, Any]]]] = None) -> None:
         if home is None:
-            from gateway.status import _get_process_hermes_home
-            home = _get_process_hermes_home()
+            from gateway.status import _get_process_kova_home
+            home = _get_process_kova_home()
         # The real directory, as clients canonicalize it: the peer check below refuses any
-        # symlinked component, so an unresolved symlinked ~/.hermes would never mint tickets.
+        # symlinked component, so an unresolved symlinked ~/.kova would never mint tickets.
         self._home = Path(home).resolve()
         self.ticket_store = None
         # ``resolve-profile`` (gateway.control_resolve); None keeps the unknown-verb answer.

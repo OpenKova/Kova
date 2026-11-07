@@ -97,7 +97,7 @@ class TestDefaultVerifyAfterAnInstallRotation:
 
         from kova_cli.auth import _resolve_verify
 
-        for var in ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
+        for var in ("KOVA_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
             monkeypatch.delenv(var, raising=False)
         from tests.agent.test_ssl_verify import _rotated_certifi
 
@@ -117,7 +117,7 @@ class TestDefaultVerifyAfterAnInstallRotation:
 
 
 def _setup_nous_auth(
-    hermes_home: Path,
+    kova_home: Path,
     *,
     access_token: str = "",
     refresh_token: str = "refresh-old",
@@ -128,7 +128,7 @@ def _setup_nous_auth(
     agent_key_expires_at: str | None = None,
 ) -> None:
     access_token = access_token or _invoke_jwt(seconds=3600, scope=scope)
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    kova_home.mkdir(parents=True, exist_ok=True)
     auth_store = {
         "version": 1,
         "active_provider": "nous",
@@ -153,7 +153,7 @@ def _setup_nous_auth(
             }
         },
     }
-    (hermes_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
+    (kova_home / "auth.json").write_text(json.dumps(auth_store, indent=2))
 
 def _jwt_with_claims(claims: dict) -> str:
     def _part(payload: dict) -> str:
@@ -178,16 +178,16 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
 ):
     import kova_cli.auth as auth_mod
 
-    hermes_home = tmp_path / "hermes"
+    kova_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
     _setup_nous_auth(
-        hermes_home,
+        kova_home,
         access_token=token,
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     creds = auth_mod.resolve_nous_runtime_credentials()
 
@@ -195,7 +195,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
     assert creds["source"] == auth_mod.NOUS_AUTH_PATH_INVOKE_JWT
     assert creds["auth_path"] == auth_mod.NOUS_AUTH_PATH_INVOKE_JWT
 
-    payload = json.loads((hermes_home / "auth.json").read_text())
+    payload = json.loads((kova_home / "auth.json").read_text())
     singleton = payload["providers"]["nous"]
     assert singleton["agent_key"] == token
     assert datetime.fromisoformat(singleton["agent_key_expires_at"]).timestamp() > time.time() + 300
@@ -212,8 +212,8 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
     exp = int(time.time() + 3600)
     expires_at = datetime.fromtimestamp(exp, tz=UTC).isoformat()
     token = _jwt_with_claims({
@@ -247,11 +247,11 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
             },
         },
     }
-    auth_path = hermes_home / "auth.json"
+    auth_path = kova_home / "auth.json"
     auth_path.write_text(json.dumps(auth_store, indent=2))
     before_content = auth_path.read_text()
     before_mtime = auth_path.stat().st_mtime_ns
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     def _unexpected_shared_write(*args, **kwargs):
         raise AssertionError("unchanged invoke JWT resolution should not sync shared store")
@@ -290,21 +290,21 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
 ):
     import kova_cli.auth as auth_mod
 
-    hermes_home = tmp_path / "hermes"
+    kova_home = tmp_path / "hermes"
     token = _jwt_with_claims({
         "sub": "test-user",
         "scope": "inference:mint_agent_key",
         "exp": int(time.time() + 3600),
     })
     _setup_nous_auth(
-        hermes_home,
+        kova_home,
         access_token=token,
         refresh_token="",
         scope="inference:mint_agent_key",
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     with pytest.raises(AuthError) as exc:
         auth_mod.resolve_nous_runtime_credentials()
@@ -313,7 +313,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
     assert exc.value.code == "nous_auth_missing_refresh_token"
     assert "missing_inference_invoke_scope" in str(exc.value)
     assert exc.value.relogin_required is True
-    payload = json.loads((hermes_home / "auth.json").read_text())
+    payload = json.loads((kova_home / "auth.json").read_text())
     assert payload["providers"]["nous"]["agent_key"] is None
     assert "credential_pool" not in payload or not payload["credential_pool"].get("nous")
 
@@ -325,19 +325,19 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    hermes_home = tmp_path / "hermes"
+    kova_home = tmp_path / "hermes"
     token = _invoke_jwt(seconds=3600)
     refreshed_token = _invoke_jwt(seconds=7200)
     refresh_token = "refresh-secret-token"
     _setup_nous_auth(
-        hermes_home,
+        kova_home,
         access_token=token,
         refresh_token=refresh_token,
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     def _fake_refresh_access_token(*, client, portal_base_url, client_id, refresh_token):
         del client, portal_base_url, client_id, refresh_token
@@ -376,13 +376,13 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     """
     from kova_cli.auth import get_nous_auth_status
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
     # Empty auth store — no Nous provider entry
-    (hermes_home / "auth.json").write_text(json.dumps({
+    (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     # Seed the credential pool with a Nous entry
     from agent.credential_pool import PooledCredential, load_pool
@@ -414,12 +414,12 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     """
     from kova_cli.auth import get_nous_auth_status
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     status = get_nous_auth_status()
     assert status["logged_in"] is False
@@ -442,11 +442,11 @@ class TestLoginNousSkipKeepsCurrent:
 
     def _setup_home_with_openrouter(self, tmp_path, monkeypatch):
         import kova_yaml as yaml
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
-        config_path = hermes_home / "config.yaml"
+        config_path = kova_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({
             "model": {
                 "provider": "openrouter",
@@ -454,13 +454,13 @@ class TestLoginNousSkipKeepsCurrent:
             },
         }, sort_keys=False))
 
-        auth_path = hermes_home / "auth.json"
+        auth_path = kova_home / "auth.json"
         auth_path.write_text(json.dumps({
             "version": 1,
             "active_provider": "openrouter",
             "providers": {"openrouter": {"api_key": "sk-or-fake"}},
         }))
-        return hermes_home, config_path, auth_path
+        return kova_home, config_path, auth_path
 
     def _patch_login_internals(self, monkeypatch, *, prompt_returns):
         """Patch OAuth + model-list + prompt so _login_nous doesn't hit network."""
@@ -513,7 +513,7 @@ class TestLoginNousSkipKeepsCurrent:
         import kova_yaml as yaml
         from kova_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        _hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
+        _kova_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
         )
         self._patch_login_internals(monkeypatch, prompt_returns=None)
@@ -544,7 +544,7 @@ class TestLoginNousSkipKeepsCurrent:
         import kova_yaml as yaml
         from kova_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        _hermes_home, config_path, auth_path = self._setup_home_with_openrouter(
+        _kova_home, config_path, auth_path = self._setup_home_with_openrouter(
             tmp_path, monkeypatch,
         )
         self._patch_login_internals(
@@ -571,11 +571,11 @@ class TestLoginNousSkipKeepsCurrent:
         import kova_yaml as yaml
         from kova_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
-        config_path = hermes_home / "config.yaml"
+        config_path = kova_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({"model": {}}, sort_keys=False))
 
         # No auth.json yet — simulates first-run before any OAuth
@@ -587,7 +587,7 @@ class TestLoginNousSkipKeepsCurrent:
         )
         _login_nous(args, PROVIDER_REGISTRY["nous"])
 
-        auth_path = hermes_home / "auth.json"
+        auth_path = kova_home / "auth.json"
         auth_after = json.loads(auth_path.read_text())
         # active_provider should NOT be set to "nous" after Skip
         assert auth_after.get("active_provider") in {None, ""}
@@ -637,12 +637,12 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     """
     from kova_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps({
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     first = _full_state_fixture()
     persist_nous_credentials(first)
@@ -654,7 +654,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     second["agent_key_expires_at"] = _future_iso(7200)
     persist_nous_credentials(second)
 
-    payload = json.loads((hermes_home / "auth.json").read_text())
+    payload = json.loads((kova_home / "auth.json").read_text())
 
     # providers.nous reflects the latest write (singleton semantics)
     assert payload["providers"]["nous"]["access_token"] == second_token
@@ -674,10 +674,10 @@ def test_refresh_token_reuse_detection_surfaces_actionable_message():
     """Regression for #15099.
 
     When the Nous Portal server returns ``invalid_grant`` with
-    ``error_description`` containing "reuse detected", Hermes must surface an
+    ``error_description`` containing "reuse detected", Kova must surface an
     actionable message explaining that an external process consumed the
     refresh token.  The default opaque "Refresh token reuse detected; please
-    re-authenticate" string led users to report this as a Hermes persistence
+    re-authenticate" string led users to report this as a Kova persistence
     bug when the true cause is external RT consumption (monitoring scripts,
     custom self-heal hooks).
     """
@@ -791,17 +791,17 @@ def test_runtime_refresh_503_preserves_nous_oauth_credentials(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    hermes_home = tmp_path / "hermes"
+    kova_home = tmp_path / "hermes"
     access_token = _invoke_jwt(seconds=3600)
     refresh_token = "refresh-still-valid"
     _setup_nous_auth(
-        hermes_home,
+        kova_home,
         access_token=access_token,
         refresh_token=refresh_token,
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     class _FakeResponse:
         def __init__(self):
@@ -884,7 +884,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
 
 @pytest.fixture
 def shared_store_env(tmp_path, monkeypatch):
-    """Redirect HERMES_SHARED_AUTH_DIR to a tmp_path.
+    """Redirect KOVA_SHARED_AUTH_DIR to a tmp_path.
 
     Required for every test that exercises the shared Nous store — the
     in-auth.py seat belt refuses to touch the real user's shared store
@@ -892,19 +892,19 @@ def shared_store_env(tmp_path, monkeypatch):
     of corrupting real state.
     """
     shared_dir = tmp_path / "shared"
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(shared_dir))
+    monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(shared_dir))
     return shared_dir
 
 def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
-    """Without HERMES_SHARED_AUTH_DIR override, the seat belt must trip.
+    """Without KOVA_SHARED_AUTH_DIR override, the seat belt must trip.
 
     Mirrors the existing ``_auth_file_path`` seat belt: forgetting to
     redirect this store in a test must fail loudly instead of silently
-    writing to the user's real ``~/.hermes/shared/`` across CI runs.
+    writing to the user's real ``~/.kova/shared/`` across CI runs.
     """
     from kova_cli.auth import _nous_shared_store_path
 
-    monkeypatch.delenv("HERMES_SHARED_AUTH_DIR", raising=False)
+    monkeypatch.delenv("KOVA_SHARED_AUTH_DIR", raising=False)
 
     with pytest.raises(RuntimeError, match="shared Nous auth store"):
         _nous_shared_store_path()
@@ -952,17 +952,17 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
         persist_nous_credentials,
     )
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "auth.json").write_text(
         json.dumps({"version": 1, "providers": {}})
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     persist_nous_credentials(_full_state_fixture())
 
     # Per-profile auth.json populated
-    payload = json.loads((hermes_home / "auth.json").read_text())
+    payload = json.loads((kova_home / "auth.json").read_text())
     assert "nous" in payload.get("providers", {})
 
     # Shared store populated with the same refresh_token
@@ -1014,7 +1014,7 @@ class TestStalePortalBaseUrlMigration:
     def test_migrates_stale_portal_url_on_load(self, tmp_path, monkeypatch):
         from kova_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         auth_file = tmp_path / "auth.json"
         auth_file.write_text(json.dumps({
             "version": 1,
@@ -1039,16 +1039,16 @@ class TestStalePortalBaseUrlMigration:
         from kova_cli import auth as auth_mod
         from kova_cli import auth_nous
 
-        hermes_home = tmp_path / "hermes"
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        kova_home = tmp_path / "hermes"
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         _setup_nous_auth(
-            hermes_home,
+            kova_home,
             access_token=_invoke_jwt(seconds=-60),
             refresh_token="valid-refresh",
             expires_at=_future_iso(-60),
             expires_in=0,
         )
-        auth_file = hermes_home / "auth.json"
+        auth_file = kova_home / "auth.json"
         store = json.loads(auth_file.read_text())
         store["providers"]["nous"]["portal_base_url"] = (
             "http://portal.nousresearch.com"

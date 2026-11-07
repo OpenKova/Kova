@@ -88,7 +88,7 @@ def test_dump_reports_stamp_commit_when_present(built_image: str) -> None:
     # docker.yml writes this build input before building and testing the image.
     # Read the independent input: the canonical runner scrubs CI/GITHUB_SHA.
     source_stamp = Path(__file__).resolve().parents[2] / "install-stamp.json"
-    if os.environ.get("HERMES_TEST_IMAGE"):
+    if os.environ.get("KOVA_TEST_IMAGE"):
         assert source_stamp.is_file(), "prebuilt image requires its checkout build stamp"
     if source_stamp.is_file():
         expected = json.loads(source_stamp.read_text(encoding="utf-8-sig"))["commit"]

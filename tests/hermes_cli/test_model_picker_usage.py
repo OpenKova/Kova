@@ -58,7 +58,7 @@ def test_usage_level_is_the_gateway_word_never_computed_here():
     }
     assert usage_levels(list(pricing), pricing) == {
         "small": "low", "medium": "medium", "large": "top_tier", "gift:free": "free"}
-    # Same prices with no gateway word: Hermes does not invent low / medium.
+    # Same prices with no gateway word: Kova does not invent low / medium.
     bare = {m: {k: v for k, v in p.items() if k != "usage_level"} for m, p in pricing.items()}
     assert usage_levels(list(bare), bare) == {"large": "top_tier", "gift:free": "free"}
     # Unknown price is not a promise of free; an unknown word is ignored.
@@ -175,7 +175,7 @@ def test_month_row_only_when_the_server_lists_it():
 
 def test_picker_draws_whatever_allowances_the_server_lists():
     """A new allowance (a 5-hour window) shows with the server's label and stops every model when full,
-    with no Hermes release; the order is the server's."""
+    with no Kova release; the order is the server's."""
     usage = picker_usage_from_account(SimpleNamespace(
         logged_in=True, subscription=SimpleNamespace(plan="Window Plan"),
         usage_window=SimpleNamespace(gauges=[
@@ -524,12 +524,12 @@ def test_catalog_reads_never_answer_from_another_profiles_cache(monkeypatch):
 def test_picker_words_follow_the_display_language(monkeypatch):
     """Pickers main translates read the catalog: English stays byte-identical, other languages translate."""
     from kova_cli import model_picker_usage as mpu
-    monkeypatch.delenv("HERMES_LANGUAGE", raising=False)
+    monkeypatch.delenv("KOVA_LANGUAGE", raising=False)
     assert mpu.usage_level_label("top_tier") == "Large"
     assert mpu.usage_level_label("bogus") == ""
     spent = _replace_credits(_window_usage(day_used_bp=10_000), True)
     assert spent.limit_line().startswith("Daily limit reached · resets ")
-    monkeypatch.setenv("HERMES_LANGUAGE", "de")
+    monkeypatch.setenv("KOVA_LANGUAGE", "de")
     assert mpu.usage_level_label("top_tier") == "Groß"
     assert spent.limit_line().startswith("Tageslimit erreicht · Zurücksetzung in ")
     assert not spent.blocks("example/model-a")

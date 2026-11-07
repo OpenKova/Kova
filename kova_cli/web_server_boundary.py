@@ -135,13 +135,13 @@ def _desktop_loopback_auth_exempt(
     per-spawn session token the gate's WS path refuses — Desktop could not boot.
     The public dashboard is a separate non-loopback process that stays gated, so
     this never opens the public surface. Requires ALL of: loopback bind,
-    ``HERMES_DESKTOP=1``, and an operator-minted credential (env token, SSH
+    ``KOVA_DESKTOP=1``, and an operator-minted credential (env token, SSH
     session token, or owner nonce).
     """
     return (
         host in _LOOPBACK_HOST_VALUES
-        and os.environ.get("HERMES_DESKTOP") == "1"
-        and bool(os.environ.get("HERMES_DASHBOARD_SESSION_TOKEN") or ssh_session_token or ssh_owner_nonce)
+        and os.environ.get("KOVA_DESKTOP") == "1"
+        and bool(os.environ.get("KOVA_DASHBOARD_SESSION_TOKEN") or ssh_session_token or ssh_owner_nonce)
     )
 
 
@@ -153,8 +153,8 @@ def listener_auth_required(host: str, trusted_public_hosts: frozenset[str]) -> b
     return should_require_auth(host) or public_hosts_engage_gate(trusted_public_hosts)
 
 
-_GATEWAY_WS_PROTOCOL = "hermes-gateway-v1"
-_GATEWAY_WS_TICKET_PROTOCOL_PREFIX = "hermes-gateway-ticket."
+_GATEWAY_WS_PROTOCOL = "kova-gateway-v1"
+_GATEWAY_WS_TICKET_PROTOCOL_PREFIX = "kova-gateway-ticket."
 
 
 def _gateway_ws_ticket_from_subprotocol(ws) -> tuple[str, str]:
@@ -236,7 +236,7 @@ def is_trusted_local_origin(origin: str, state) -> bool:
     """True for a loopback origin on *state*'s bound port, the exact origin of the configured public
     URL (``state.trusted_public_origins``: a proxy at ``https://localhost:8443`` that rewrites Host to
     the backend's), or the desktop dev renderer this backend serves. Electron hands its
-    ``HERMES_DESKTOP_DEV_SERVER`` down to the backend it spawns, and worktree-ui-dev.md's ``hgui``
+    ``KOVA_DESKTOP_DEV_SERVER`` down to the backend it spawns, and worktree-ui-dev.md's ``hgui``
     slots run that renderer on 5174+N."""
     loopback = _loopback_origin(origin)
     if loopback is None:
@@ -245,7 +245,7 @@ def is_trusted_local_origin(origin: str, state) -> bool:
         return True
     if loopback in (getattr(state, "trusted_public_origins", None) or frozenset()):
         return True
-    return _loopback_origin(os.environ.get("HERMES_DESKTOP_DEV_SERVER", "")) == loopback
+    return _loopback_origin(os.environ.get("KOVA_DESKTOP_DEV_SERVER", "")) == loopback
 
 
 def ws_host_origin_reason(ws, state) -> Optional[str]:

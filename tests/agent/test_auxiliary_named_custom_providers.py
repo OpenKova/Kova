@@ -8,18 +8,18 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
-    """Redirect HERMES_HOME and clear module caches."""
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    """Redirect KOVA_HOME and clear module caches."""
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     # Write a minimal config so load_config doesn't fail
-    (hermes_home / "config.yaml").write_text("model:\n  default: test-model\n")
+    (kova_home / "config.yaml").write_text("model:\n  default: test-model\n")
 
 
 def _write_config(tmp_path, config_dict):
-    """Write a config.yaml to the test HERMES_HOME."""
+    """Write a config.yaml to the test KOVA_HOME."""
     import kova_yaml as yaml
-    config_path = tmp_path / ".hermes" / "config.yaml"
+    config_path = tmp_path / ".kova" / "config.yaml"
     config_path.write_text(yaml.safe_dump(config_dict))
 
 
@@ -131,7 +131,7 @@ class TestResolveProviderClientNamedCustom:
                 },
             },
         })
-        auth_path = tmp_path / ".hermes" / "auth.json"
+        auth_path = tmp_path / ".kova" / "auth.json"
         auth_path.write_text(json.dumps({
             "version": 1,
             "providers": {},

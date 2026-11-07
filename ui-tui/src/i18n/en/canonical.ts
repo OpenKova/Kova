@@ -68,7 +68,7 @@ export const canonicalEn = {
     // @kova/shared/gateway-canonical (given Ink's `t`) and launchOptions.ts — launch-contract refusals.
     launch: {
       ...gatewayTextEn.canonical.launch,
-      invalidToolProgress: (value: string) => `invalid HERMES_TUI_TOOL_PROGRESS: ${value}`
+      invalidToolProgress: (value: string) => `invalid KOVA_TUI_TOOL_PROGRESS: ${value}`
     }
   }
 }

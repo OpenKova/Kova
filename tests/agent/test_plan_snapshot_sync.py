@@ -108,18 +108,18 @@ def test_back_in_step_rearms(wired):
 
 
 def test_each_profile_refreshes_its_own_account_under_its_own_home(wired, tmp_path, monkeypatch):
-    """One process, two profiles: the refresh runs with the asking profile's Hermes home, and one
+    """One process, two profiles: the refresh runs with the asking profile's Kova home, and one
     profile's pending mismatch never blocks another's."""
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
     import kova_cli.nous_account as na
     homes = []
-    monkeypatch.setattr(na, "get_nous_portal_account_info", lambda force_fresh=False: homes.append(str(get_hermes_home())))
+    monkeypatch.setattr(na, "get_nous_portal_account_info", lambda force_fresh=False: homes.append(str(get_kova_home())))
     for name in ("a", "b"):
-        token = set_hermes_home_override(tmp_path / name)
+        token = set_kova_home_override(tmp_path / name)
         try:
             assert sync.sync_plan_snapshot(_state(True)) is True
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
     assert homes == [str(tmp_path / "a"), str(tmp_path / "b")]
 
 

@@ -222,7 +222,7 @@ def test_elevated_update_step_makes_a_stranded_home_usable(reporters_parent, mon
     old.mkdir()
     (old / "telegram-bot-token-x.lock").write_text("{}")
     _require_faithful_probe(reporters_parent, nested)
-    monkeypatch.setenv("HERMES_HOME", str(reporters_parent))
+    monkeypatch.setenv("KOVA_HOME", str(reporters_parent))
     update_windows_acl.repair_windows_home_acl()
     after = _child("""
         print(json.dumps({"nested": usable(sys.argv[1]), "locks": usable(sys.argv[2]),
@@ -250,7 +250,7 @@ def _w2(lock_dir):
     result = _child(r"""
         import logging
         from unittest.mock import MagicMock
-        os.environ["HERMES_GATEWAY_LOCK_DIR"] = sys.argv[1]
+        os.environ["KOVA_GATEWAY_LOCK_DIR"] = sys.argv[1]
         records = []
         handler = logging.Handler()
         handler.emit = lambda record: records.append((record.levelname, record.getMessage()))
@@ -285,12 +285,12 @@ def _w2(lock_dir):
     assert len(result["warnings"]) == 1, result
 
 
-# ── P2-5: an elevated grant never follows a junction out of the Hermes home ──────────────────────
+# ── P2-5: an elevated grant never follows a junction out of the Kova home ──────────────────────
 
 
 @pytest.fixture()
 def home_with_junction_out(tmp_path, monkeypatch):
-    """A Hermes home holding a directory junction (what same-user medium-integrity code can plant)
+    """A Kova home holding a directory junction (what same-user medium-integrity code can plant)
     to a directory outside it, standing in for ``C:\\Program Files\\<app>``."""
     if not _elevated():
         pytest.skip("needs an elevated token: only an elevated run grants")
@@ -304,7 +304,7 @@ def home_with_junction_out(tmp_path, monkeypatch):
     subprocess.run(["icacls", str(outside), *_REPORTERS_DACL], check=True, capture_output=True)
     junction = home / "cache" / "images"
     _winapi.CreateJunction(str(outside), str(junction))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     yield home, outside, junction
     junction.rmdir()  # removes the junction itself, not the target
     subprocess.run(["icacls", str(outside), "/reset", "/t", "/c", "/q"], check=False, capture_output=True)

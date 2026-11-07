@@ -81,8 +81,8 @@ class Advice:
 def _home(home: Optional[Path]) -> Path:
     if home is not None:
         return Path(home)
-    from kova_constants import get_hermes_home
-    return get_hermes_home()
+    from kova_constants import get_kova_home
+    return get_kova_home()
 
 
 def disk_snapshot(home: Optional[Path] = None) -> Optional[DiskSnapshot]:
@@ -302,7 +302,7 @@ def advice_lines(advice: Advice, *, command_prefix: str = "/") -> list[str]:
         # Automatic compaction runs only past a free-page threshold most prunes never reach, so the
         # disk gets the space back reliably only from an explicit VACUUM.
         lines.append("Deleted history frees space inside state.db; to give it back to the disk, run "
-                     "`hermes sessions optimize` with other Hermes windows closed.")
+                     "`hermes sessions optimize` with other Kova windows closed.")
     p = command_prefix
     lines.append(f"{p}autoprune on to enable, {p}autoprune off to keep everything (never asked again), "
                  f"{p}autoprune later to be reminded in a week.")
@@ -347,12 +347,12 @@ def decide(enable: bool, home: Optional[Path] = None) -> bool:
     False when the save failed or did not take effect (an administrator-managed value wins)."""
     import kova_yaml as yaml
     from kova_cli.config_backend import ConfigWriteError, write_config_key
-    from kova_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_kova_home
     if managed():
         return False
     path = _home(home) / "config.yaml"
     try:
-        mkdir_under_hermes_home(path.parent)
+        mkdir_under_kova_home(path.parent)
         write_config_key(path, "sessions.auto_prune", bool(enable))
     except (OSError, ValueError, yaml.YAMLError, ConfigWriteError) as exc:
         logger.warning("Could not save sessions.auto_prune: %s", exc)

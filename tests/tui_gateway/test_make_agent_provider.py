@@ -54,10 +54,10 @@ def test_apply_model_switch_does_not_leak_process_env():
             self.provider = kw["new_provider"]
 
     env_keys = (
-        "HERMES_MODEL",
-        "HERMES_INFERENCE_MODEL",
-        "HERMES_TUI_PROVIDER",
-        "HERMES_INFERENCE_PROVIDER",
+        "KOVA_MODEL",
+        "KOVA_INFERENCE_MODEL",
+        "KOVA_TUI_PROVIDER",
+        "KOVA_INFERENCE_PROVIDER",
     )
 
     sess_b = {

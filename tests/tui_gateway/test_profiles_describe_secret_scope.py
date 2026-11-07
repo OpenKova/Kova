@@ -1,6 +1,6 @@
 """profiles.describe / profiles.configure resolve credentials from the described profile's scope.
 
-``_hermes_home_scope`` used to bind only the HERMES_HOME override. Under multi-profile hosting the
+``_kova_home_scope`` used to bind only the KOVA_HOME override. Under multi-profile hosting the
 toolset snapshot's ``XAI_API_KEY`` read then raised ``UnscopedSecretError``, which the best-effort
 ``_try`` turned into an empty enabled set: every unpinned profile described as "all toolsets off"
 (#120726), and a Desktop editor save from that snapshot pinned whatever subset the user re-checked.
@@ -15,7 +15,7 @@ import pytest
 
 from tui_gateway import server
 from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @pytest.fixture
@@ -25,14 +25,14 @@ def hosted(tmp_path, monkeypatch):
     import tui_gateway.launch_profile_policy as policy
     from agent.secret_scope import set_multiplex_active
 
-    launch = tmp_path / ".hermes"
+    launch = tmp_path / ".kova"
     bot = launch / "profiles" / "bot"
     bot.mkdir(parents=True)
     (bot / ".env").write_text("XAI_API_KEY=xai-bot-only\n", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.delenv("XAI_API_KEY", raising=False)
-    monkeypatch.setattr(server, "_hermes_home", launch)
+    monkeypatch.setattr(server, "_kova_home", launch)
     monkeypatch.setattr(policy, "_snapshot", None)
     policy.activate_multi_profile_hosting()
     try:
@@ -46,13 +46,13 @@ def _enabled_under_own_scope(home: Path) -> set:
     from kova_cli.config import load_config
     from kova_cli.tools_config import _get_platform_tools
 
-    home_token = set_hermes_home_override(str(home))
+    home_token = set_kova_home_override(str(home))
     secret_token = set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
     try:
         return set(_get_platform_tools(load_config() or {}, "cli", include_default_mcp_servers=False))
     finally:
         reset_secret_scope(secret_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
 
 def _described(name: str) -> dict:

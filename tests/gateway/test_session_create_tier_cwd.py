@@ -19,8 +19,8 @@ def _owner(home, monkeypatch, config):
     import kova_state_runtime as rt
     home.mkdir(parents=True, exist_ok=True)
     (home / 'config.yaml').write_text(json.dumps(config))
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setenv('KOVA_HOME', str(home))
+    monkeypatch.setattr(run, '_kova_home', home)
     store = SessionStore(home / 'sessions', GatewayConfig())
     db = store._db
     runner = SimpleNamespace(session_store=store, _session_db=db, adapters={}, _draining=False,

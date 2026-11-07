@@ -3,7 +3,7 @@ agents (``reload.mcp``); the CLI never touches its GatewayAgent stand-in's tools
 import asyncio
 from contextlib import asynccontextmanager
 
-from cli import HermesCLI
+from cli import KovaCLI
 from kova_cli.gateway_connection import GatewayConnection
 
 
@@ -27,7 +27,7 @@ def test_reload_mcp_runs_on_the_gateway(capsys):
         yield client
     conn = GatewayConnection(connect=connect)
     conn.start(5)
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id = "local-mcp"
     cli._command_running = False
     try:

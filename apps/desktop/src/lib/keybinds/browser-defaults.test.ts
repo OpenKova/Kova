@@ -72,7 +72,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  delete window.document.documentElement.dataset.hermesDesktopHost
+  delete window.document.documentElement.dataset.kovaDesktopHost
   setPlatform('')
   vi.unstubAllGlobals()
   localStorage.clear()
@@ -87,7 +87,7 @@ describe('browser-hosted shortcut defaults', () => {
 
     it('ships no default the browser takes first, and leaves native defaults alone', async () => {
       setPlatform(platform)
-      window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+      window.document.documentElement.dataset.kovaDesktopHost = 'browser'
       const browser = await import('./actions')
       const { canonicalizeCombo } = await import('./combo')
       const reserved = new Set(BROWSER_RESERVED[mac ? 'mac' : 'other'])
@@ -99,7 +99,7 @@ describe('browser-hosted shortcut defaults', () => {
 
       expect(offenders).toEqual([])
 
-      delete window.document.documentElement.dataset.hermesDesktopHost
+      delete window.document.documentElement.dataset.kovaDesktopHost
       vi.resetModules()
       const native = await import('./actions')
 
@@ -125,11 +125,11 @@ describe('browser-hosted shortcut defaults', () => {
         setPlatform(platform)
 
         if (host === 'bridge') {
-          window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+          window.document.documentElement.dataset.kovaDesktopHost = 'browser'
         } else {
           vi.stubGlobal('hermesDesktop', undefined)
           vi.stubGlobal(
-            host === 'webapp' ? '__HERMES_UI_SURFACE__' : '__HERMES_AUTH_REQUIRED__',
+            host === 'webapp' ? '__KOVA_UI_SURFACE__' : '__KOVA_AUTH_REQUIRED__',
             host === 'webapp' ? 'webapp' : true
           )
         }
@@ -168,7 +168,7 @@ describe('browser-hosted shortcut defaults', () => {
 
   it('preserves saved remaps and explicit unbinding across a browser reload', async () => {
     setPlatform('Win32')
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     localStorage.setItem(
       'hermes.desktop.keybinds',
       JSON.stringify({

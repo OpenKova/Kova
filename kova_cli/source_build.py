@@ -39,19 +39,19 @@ def source_build_env(base_env: dict | None = None, *, explicit: bool = False, ve
     # the selected venv executable rather than the store interpreter.
     root = repo_root()
     python = str(project_python(root)) if running_from_selected_environment(root) else sys.executable
-    env = {**os.environ, **(base_env or {}), "CI": "1", "HERMES_PYTHON": python,
+    env = {**os.environ, **(base_env or {}), "CI": "1", "KOVA_PYTHON": python,
            "PYTHON": python}
     # Electron's installer unpacks its binary with a native module that imports
     # VCRUNTIME140.dll, which a fresh Windows lacks. Our Python ships one, and
     # scripts/build/electron-runtime.mjs copies it beside that module.
     vc_runtime = Path(sys.base_prefix) / "vcruntime140.dll"
     if vc_runtime.is_file():
-        env["HERMES_VC_RUNTIME"] = str(vc_runtime)
+        env["KOVA_VC_RUNTIME"] = str(vc_runtime)
     env.pop("ESBUILD_BINARY_PATH", None)
     npmrc = user_npmrc(env)
     if npmrc == hermes_npmrc():
         env.setdefault("NPM_CONFIG_USERCONFIG", str(npmrc))
-    # pnpm reads the npmrc that user_npmrc selects (an explicit userconfig, else Hermes's, else
+    # pnpm reads the npmrc that user_npmrc selects (an explicit userconfig, else Kova's, else
     # ~/.npmrc) only for its registry and auth. npm also handed every other key to the processes it
     # spawned as npm_config_<key>; keep doing that, since it is how node-pre-gyp (run by
     # stage-native-deps.mjs) finds a binary mirror (node_get_windows_binary_host_mirror).

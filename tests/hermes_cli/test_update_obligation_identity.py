@@ -5,12 +5,12 @@ import json
 import pytest
 
 from kova_cli import update_cmd, update_cmd_fleet, update_receipt
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.mark.parametrize("profiles", [["alpha"], ["alpha", "beta"]])
 def test_current_successors_settle_historical_obligations(monkeypatch, profiles):
-    home = get_hermes_home()
+    home = get_kova_home()
     directory = home / "logs" / "update_receipts"
     directory.mkdir(parents=True)
     receipt = {
@@ -53,7 +53,7 @@ def test_current_successors_settle_historical_obligations(monkeypatch, profiles)
     ],
 )
 def test_every_owed_identity_requires_current_evidence(monkeypatch, bad):
-    home = get_hermes_home()
+    home = get_kova_home()
     directory = home / "logs" / "update_receipts"
     directory.mkdir(parents=True)
     if bad == "marker":
@@ -94,13 +94,13 @@ def test_supervised_serve_row_never_vetoes_gateway_discharge(monkeypatch, superv
     receipt; it must not make gateway coverage unverifiable (#115090). The gateways restarted at
     the pulled SHA and the fleet has since moved on to a newer checkout: nothing is owed.
     """
-    home = get_hermes_home()
+    home = get_kova_home()
     directory = home / "logs" / "update_receipts"
     directory.mkdir(parents=True)
     (directory / "latest.json").write_text(json.dumps({
         "outcome": "failed",
         "post_update": {"sha": "pulled"},
-        "gateway_restart": {"restarted_services": ["hermes-gateway"], "incomplete": False},
+        "gateway_restart": {"restarted_services": ["kova-gateway"], "incomplete": False},
         "plan": {"runtimes": [
             {"kind": "gateway", "profile": "default", "code_sha": "old", "supervisor": "manual"},
             {"kind": "dashboard", "profile": "default", "code_sha": None, "supervisor": supervisor, "restart_via": "respawn-argv"},

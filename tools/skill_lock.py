@@ -144,8 +144,8 @@ _VAR = re.compile(r"\$\{(\w+)\}|\$(\w+)")
 
 
 def _shell_env(assigned: dict[str, str] | None = None) -> dict[str, str]:
-    from kova_constants import get_hermes_home
-    return {**os.environ, "HOME": os.path.expanduser("~"), "HERMES_HOME": str(get_hermes_home()),
+    from kova_constants import get_kova_home
+    return {**os.environ, "HOME": os.path.expanduser("~"), "KOVA_HOME": str(get_kova_home()),
             **(assigned or {})}
 
 
@@ -383,13 +383,13 @@ def _argv_refusal(argv: list[str], cwd: str, locked, record, depth: int,
 def _code_refusal(code: str, locked, record, cwd: str = "") -> str | None:
     """Inline interpreter code that looks like it writes AND names a locked skill (or the record),
     or runs with its working directory inside one (relative paths)."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     if not _WRITEISH_CODE.search(code):
         return None
     if cwd and (reason := _hit(cwd, locked, record)):
         return reason
-    home, hermes_home = os.path.expanduser("~"), str(get_hermes_home())
-    text = code.replace("$HERMES_HOME", hermes_home).replace("~", home)
+    home, kova_home = os.path.expanduser("~"), str(get_kova_home())
+    text = code.replace("$KOVA_HOME", kova_home).replace("~", home)
     skills_root = os.path.realpath(_skill_usage()._skills_dir())
     if ".usage.json" in text:
         return RECORD_REFUSAL

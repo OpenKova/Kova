@@ -66,13 +66,13 @@ class TestConnectionGateScope:
         try:
             seen = []
             for home in (home_a, home_b, home_a):
-                home_tok = kova_constants.set_hermes_home_override(str(home))
+                home_tok = kova_constants.set_kova_home_override(str(home))
                 tok = ss.set_secret_scope(ss.build_profile_secret_scope(home), profile_home=str(home))
                 try:
                     seen.append((a2a.is_connected(SimpleNamespace(extra={})), tools._a2a_tools_available()))
                 finally:
                     ss.reset_secret_scope(tok)
-                    kova_constants.reset_hermes_home_override(home_tok)
+                    kova_constants.reset_kova_home_override(home_tok)
         finally:
             ss.set_multiplex_active(prev)
         assert seen == [(True, True), (False, False), (True, True)]
@@ -305,7 +305,7 @@ class TestOutboundRedaction:
 
 class TestAudit:
     def test_audit_writes_jsonl(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         security.audit("inbound", "peer-y", "task-1", "hello world")
         audit_file = tmp_path / "a2a_audit.jsonl"
         assert audit_file.exists()
@@ -470,7 +470,7 @@ class TestV1Task:
 
 class TestPersistence:
     def test_persist_and_load(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         protocol.persist_message("ctx-abc", "user", "hello", "task-1")
         protocol.persist_message("ctx-abc", "agent", "hi back", "task-1")
         convo = protocol.load_conversation("ctx-abc")
@@ -479,18 +479,18 @@ class TestPersistence:
         assert convo[1]["text"] == "hi back"
 
     def test_list_conversations(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         protocol.persist_message("ctx-1", "user", "a", "t")
         protocol.persist_message("ctx-2", "user", "b", "t")
         assert set(protocol.list_conversations()) == {"ctx-1", "ctx-2"}
 
     def test_load_missing_is_empty(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         assert protocol.load_conversation("nope") == []
 
     def test_a2a_history_tool_recalls_conversation(self, monkeypatch, tmp_path):
         """load_conversation is wired to production via the a2a_history tool."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         protocol.persist_message("ctx-recall", "user", "what is 2+2", "t1")
         protocol.persist_message("ctx-recall", "agent", "4", "t1")
         out = tools.a2a_history({"context_id": "ctx-recall"})
@@ -585,7 +585,7 @@ class TestRegistryDispatchConvention:
     uses (`entry.handler(args, **kwargs)`), not keyword params."""
 
     def test_register_then_dispatch_via_registry(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(tools, "_load_config", dict)
         from tools.registry import registry
 
@@ -1961,7 +1961,7 @@ class TestMultiplexConstructionScope:
 def test_load_conversation_skips_non_dict_lines(monkeypatch, tmp_path):
     """A scalar line in a conversation file must not break replay or pollute
     the list[dict] contract."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     protocol.persist_message("ctx-mixed", "user", "hello", "t1")
     path = protocol._conv_path("ctx-mixed")
     with open(path, "a", encoding="utf-8") as f:

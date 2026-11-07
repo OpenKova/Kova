@@ -46,14 +46,14 @@ def test_cli_starts_from_a_deleted_cwd(tmp_path):
     """A child spawned into a directory that was removed since (a cron delivery from a reaped
     kanban workspace) must still reach argv parsing: a relative ``sys.path`` entry made
     ``ensure_project_root_on_path`` die in ``realpath`` → ``getcwd`` (#102941)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     gone = tmp_path / "scratch"
     gone.mkdir()
     # The child needs the checkout on sys.path by absolute name; the cwd is exactly what is gone.
-    env = {**os.environ, "HERMES_HOME": str(home), "TERMUX_VERSION": "",
+    env = {**os.environ, "KOVA_HOME": str(home), "TERMUX_VERSION": "",
            "PYTHONPATH": os.pathsep.join(p for p in (str(REPO_ROOT), os.environ.get("PYTHONPATH")) if p)}
-    env.pop("HERMES_DEV", None)
+    env.pop("KOVA_DEV", None)
     fd = os.open(gone, os.O_RDONLY)
     try:
         gone.rmdir()
@@ -66,7 +66,7 @@ def test_cli_starts_from_a_deleted_cwd(tmp_path):
     finally:
         os.close(fd)
     assert result.returncode == 0, result.stderr
-    assert "Hermes Agent v" in result.stdout
+    assert "Kova Agent v" in result.stdout
     assert "FileNotFoundError" not in result.stderr
 
 
@@ -104,7 +104,7 @@ def _run_version(env_overrides: dict) -> subprocess.CompletedProcess:
     # --version's update check is not under test; offline it answers at once instead of
     # waiting out GitHub's 30 s API and 60 s ls-remote timeouts (the test's own budget).
     env = {**os.environ, **_OFFLINE, **env_overrides}
-    env.pop("HERMES_DEV", None)
+    env.pop("KOVA_DEV", None)
     return subprocess.run(
         [sys.executable, "-m", "kova_cli.main", "--version"],
         capture_output=True,
@@ -120,27 +120,27 @@ def _run_version(env_overrides: dict) -> subprocess.CompletedProcess:
 
 def test_fast_version_parity_on_termux(tmp_path):
     """The historical Termux path — the one eb4040242 broke."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     result = _run_version(
-        {"HERMES_HOME": str(home), "TERMUX_VERSION": "0.118"}
+        {"KOVA_HOME": str(home), "TERMUX_VERSION": "0.118"}
     )
     assert result.returncode == 0, result.stderr
-    assert "Hermes Agent v" in result.stdout
+    assert "Kova Agent v" in result.stdout
     assert "Traceback" not in result.stderr
 
 
 def test_fast_version_reports_install_method_stamp(tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / ".install_method").write_text("git\n", encoding="utf-8")
-    result = _run_version({"HERMES_HOME": str(home)})
+    result = _run_version({"KOVA_HOME": str(home)})
     assert result.returncode == 0, result.stderr
     assert "Install method: git" in result.stdout
 
 
-def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
-    """A literal ``~`` in HERMES_HOME (fish, or any quoted value) is expanded at process entry.
+def test_literal_tilde_kova_home_expands_before_any_reader(tmp_path):
+    """A literal ``~`` in KOVA_HOME (fish, or any quoted value) is expanded at process entry.
 
     Before the fix ``Path("~/.x")`` was relative, so the real CLI resolved it against cwd and
     scaffolded a full home under ``<cwd>/~/.x``. The negative assertion on cwd is the
@@ -150,8 +150,8 @@ def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
     cwd = tmp_path / "project"
     fake_home.mkdir()
     cwd.mkdir()
-    env = {**os.environ, "HOME": str(fake_home), "USERPROFILE": str(fake_home), "HERMES_HOME": "~/.x"}
-    env.pop("HERMES_DEV", None)
+    env = {**os.environ, "HOME": str(fake_home), "USERPROFILE": str(fake_home), "KOVA_HOME": "~/.x"}
+    env.pop("KOVA_DEV", None)
     env["PYTHONPATH"] = str(REPO_ROOT)
     result = subprocess.run(
         [sys.executable, "-m", "kova_cli.main", "config", "path"],
@@ -162,11 +162,11 @@ def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
     assert result.stdout.strip() == str(fake_home / ".x" / "config.yaml")
     assert not (cwd / "~").exists(), sorted(p.name for p in cwd.iterdir())
 
-    # Raw-reader observable: the ~30 ``os.environ["HERMES_HOME"]`` readers in kova_cli/ never
+    # Raw-reader observable: the ~30 ``os.environ["KOVA_HOME"]`` readers in kova_cli/ never
     # call the resolver, so the entry-point hunk in main.py (not kova_constants) must have
     # rewritten the env var by the time the module import finishes.
     probe = subprocess.run(
-        [sys.executable, "-c", "import kova_cli.main, os; print(os.environ['HERMES_HOME'])"],
+        [sys.executable, "-c", "import kova_cli.main, os; print(os.environ['KOVA_HOME'])"],
         capture_output=True, text=True, timeout=120, cwd=cwd, env=env,
         check=False,
     )
@@ -174,22 +174,22 @@ def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
     assert probe.stdout.strip() == str(fake_home / ".x")
 
 
-def test_normalize_hermes_home_env_rewrites_tilde_and_leaves_absolute_alone(tmp_path, monkeypatch):
+def test_normalize_kova_home_env_rewrites_tilde_and_leaves_absolute_alone(tmp_path, monkeypatch):
     from kova_cli import _startup_fast
 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", "~/.x")
-    _startup_fast.normalize_hermes_home_env()
-    assert os.environ["HERMES_HOME"] == str(tmp_path / ".x")
+    monkeypatch.setenv("KOVA_HOME", "~/.x")
+    _startup_fast.normalize_kova_home_env()
+    assert os.environ["KOVA_HOME"] == str(tmp_path / ".x")
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "abs"))
-    _startup_fast.normalize_hermes_home_env()
-    assert os.environ["HERMES_HOME"] == str(tmp_path / "abs")
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "abs"))
+    _startup_fast.normalize_kova_home_env()
+    assert os.environ["KOVA_HOME"] == str(tmp_path / "abs")
 
-    monkeypatch.delenv("HERMES_HOME")
-    _startup_fast.normalize_hermes_home_env()
-    assert "HERMES_HOME" not in os.environ
+    monkeypatch.delenv("KOVA_HOME")
+    _startup_fast.normalize_kova_home_env()
+    assert "KOVA_HOME" not in os.environ
 
 
 @pytest.mark.platforms("linux")
@@ -205,9 +205,9 @@ def test_bootstrap_preserves_live_cwd_and_recovers_deleted_cwd(tmp_path, remove_
         "import kova_bootstrap\n"
         "print(os.getcwd())\n"
     )
-    env = {**os.environ, "HERMES_HOME": str(tmp_path / ".hermes"),
+    env = {**os.environ, "KOVA_HOME": str(tmp_path / ".kova"),
            "PYTHONPATH": str(REPO_ROOT)}
-    env.pop("HERMES_DEV", None)
+    env.pop("KOVA_DEV", None)
     result = subprocess.run(
         [sys.executable, "-c", probe, str(cwd), "deleted" if remove_cwd else "live"],
         stdin=subprocess.DEVNULL, capture_output=True, text=True,
@@ -220,12 +220,12 @@ def test_bootstrap_preserves_live_cwd_and_recovers_deleted_cwd(tmp_path, remove_
 
 
 def test_fast_version_parity(tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    result = _run_version({"HERMES_HOME": str(home)})
+    result = _run_version({"KOVA_HOME": str(home)})
     assert result.returncode == 0, result.stderr
     out = result.stdout
-    for field in ("Hermes Agent v", "Install directory:", "Python:", "OpenAI SDK:"):
+    for field in ("Kova Agent v", "Install directory:", "Python:", "OpenAI SDK:"):
         assert field in out, f"fast --version output missing {field!r}:\n{out}"
     assert "Traceback" not in result.stderr
 
@@ -235,6 +235,6 @@ def test_termux_chat_shortcut_leaves_subcommands_to_dispatch(monkeypatch, argv):
     from kova_cli import main
 
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
-    monkeypatch.delenv("HERMES_TERMUX_DISABLE_FAST_CLI", raising=False)
+    monkeypatch.delenv("KOVA_TERMUX_DISABLE_FAST_CLI", raising=False)
     monkeypatch.setattr(sys, "argv", ["hermes", *argv])
     assert main._try_termux_fast_cli_launch() is False

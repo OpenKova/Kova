@@ -10,7 +10,7 @@ import {
   attachmentPreviewDataUrl,
   type DroppedFile,
   extractDroppedFiles,
-  HERMES_PATHS_MIME,
+  KOVA_PATHS_MIME,
   partitionDroppedFiles,
   resolveImageAttachmentPreview,
   stageDroppedFilePath,
@@ -161,7 +161,7 @@ function stubTransfer(
   })
 
   return {
-    getData: (mime: string) => (mime === HERMES_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
+    getData: (mime: string) => (mime === KOVA_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
     files: {
       length: files.length,
       item: (i: number) => files[i] ?? null
@@ -408,7 +408,7 @@ describe('useComposerActions native image drops', () => {
     const transientPath =
       '/var/folders/x7/example/T/TemporaryItems/NSIRD_screencaptureui_4roSuW/Screen Shot 2026-08-11.png'
 
-    const durablePath = '/Users/test/Library/Application Support/Hermes/composer-images/composer_saved.png'
+    const durablePath = '/Users/test/Library/Application Support/Kova/composer-images/composer_saved.png'
     const previewUrl = 'data:image/png;base64,c2NyZWVuc2hvdA=='
 
     const screenshot = new File([new Uint8Array([1, 2, 3])], 'Screen Shot 2026-08-11.png', {
@@ -477,7 +477,7 @@ describe('useComposerActions generated paste title metadata', () => {
     vi.clearAllMocks()
   })
 
-  it('marks only a Hermes-generated large paste with a bounded title preview', async () => {
+  it('marks only a Kova-generated large paste with a bounded title preview', async () => {
     const savePastedText = vi.fn(async () => '/tmp/composer-pastes/pasted-content.txt')
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
     Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { savePastedText } })
@@ -520,7 +520,7 @@ describe('attachImagePath thumbnail separation', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
     $composerAttachments.set([])
     $connection.set(null)
   })
@@ -532,7 +532,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -597,7 +597,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -666,7 +666,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     let resolveBitmap!: (bitmap: { close: () => void; height: number; width: number }) => void
 
@@ -709,7 +709,7 @@ describe('attachImagePath thumbnail separation', () => {
       ...original,
       attachedSessionId: 'session-1',
       label: 'photo.png',
-      path: '/root/.hermes/attachments/photo.png',
+      path: '/root/.kova/attachments/photo.png',
       uploadState: undefined
     })
 
@@ -721,7 +721,7 @@ describe('attachImagePath thumbnail separation', () => {
 
     expect($composerAttachments.get()[0]).toMatchObject({
       attachedSessionId: 'session-1',
-      path: '/root/.hermes/attachments/photo.png',
+      path: '/root/.kova/attachments/photo.png',
       thumbnailUrl: expect.stringMatching(/^data:image\/png;base64,/)
     })
   })
@@ -733,7 +733,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     // Exercise the real downscale path: 4000×3000 bitmap → 512×384 canvas.
     const drawImage = vi.fn()
@@ -796,7 +796,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     vi.stubGlobal(
       'fetch',
@@ -840,7 +840,7 @@ describe('attachImagePath thumbnail separation', () => {
       window as unknown as {
         hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
       }
-    ).hermesDesktop = { readFileDataUrl }
+    ).kovaDesktop = { readFileDataUrl }
 
     const { result } = renderHook(() =>
       useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() })

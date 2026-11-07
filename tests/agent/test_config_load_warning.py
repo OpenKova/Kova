@@ -11,14 +11,14 @@ import kova_logging
 
 @pytest.fixture
 def make_agent(monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     import run_agent
 
-    home = get_hermes_home()
+    home = get_kova_home()
     (home / "config.yaml").write_text("", encoding="utf-8")
     (home / "memories" / "MEMORY.md").write_text("The notebook is blue.", encoding="utf-8")
     # run_agent may have been imported before this test's home was selected.
-    monkeypatch.setattr(run_agent, "_hermes_home", home)
+    monkeypatch.setattr(run_agent, "_kova_home", home)
     agents = []
 
     def create():
@@ -62,10 +62,10 @@ def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
     make_agent, monkeypatch, caplog, failure_at, reader,
 ):
     from kova_cli import config
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     import sys
 
-    home = get_hermes_home()
+    home = get_kova_home()
     configured = (
         "prompt_caching:\n  cache_ttl: 1h\n"
         "model:\n  reasoning_echo: true\n"
@@ -185,7 +185,7 @@ def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
 
 
 def test_empty_config_initializes_memory_without_a_load_warning(make_agent, caplog):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     with caplog.at_level(logging.WARNING, logger="run_agent"):
         agent = make_agent()
@@ -193,7 +193,7 @@ def test_empty_config_initializes_memory_without_a_load_warning(make_agent, capl
     assert agent._memory_manager is None
     assert agent._memory_store is not None
     assert agent._memory_store.memory_entries == ["The notebook is blue."]
-    assert (get_hermes_home() / "config.yaml").read_bytes() == b""
+    assert (get_kova_home() / "config.yaml").read_bytes() == b""
     assert not any(
         record.name == "run_agent" and record.levelno >= logging.WARNING
         and "config" in record.getMessage().lower()

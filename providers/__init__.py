@@ -2,8 +2,8 @@
 
 Provider profiles can live in three places:
 
-1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with hermes-agent)
-2. User plugins: ``$HERMES_HOME/plugins/model-providers/<name>/``
+1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with kova-agent)
+2. User plugins: ``$KOVA_HOME/plugins/model-providers/<name>/``
 3. Pip-installed plugins: distributions exposing a ``kova_agent.plugins``
    entry point (``module:func`` callable or a self-registering ``module``)
 
@@ -13,7 +13,7 @@ Each plugin directory contains:
 
 Discovery is lazy: the first call to ``get_provider_profile()`` or
 ``list_providers()`` imports the bundled and pip-installed plugins once per
-process; the ``$HERMES_HOME`` plugins of the profile home bound at lookup time
+process; the ``$KOVA_HOME`` plugins of the profile home bound at lookup time
 load into that home's own layer, so one process serving several profiles
 (multiplex gateway, Desktop ``serve``) resolves each profile's installs. User
 plugins override bundled plugins on name collision, so third parties can
@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 _REGISTRY: dict[str, ProviderProfile] = {}
 _ALIASES: dict[str, str] = {}
 # Where the CURRENT registration of each name came from: "bundled" / "user" (a
-# ``$HERMES_HOME`` plugin dir) / "runtime" (entry point, legacy module, direct call).
+# ``$KOVA_HOME`` plugin dir) / "runtime" (entry point, legacy module, direct call).
 _SOURCES: dict[str, str] = {}
 _current_source: str | None = None
 _PROVIDER_LIST_CACHE: list[ProviderProfile] | None = None
@@ -71,7 +71,7 @@ _PLUGIN_DIR_MTIME_TICK_NS = 2_000_000_000
 
 @dataclass
 class _HomeLayer:
-    """The ``$HERMES_HOME/plugins`` providers of ONE profile home.
+    """The ``$KOVA_HOME/plugins`` providers of ONE profile home.
 
     One process serves many profiles (multiplex gateway, Desktop ``serve``) and each profile installs
     its own plugins, so user plugins are keyed by the home bound at lookup time instead of the home
@@ -95,7 +95,7 @@ class _HomeLayer:
 
 _HOME_LAYERS: dict[str, _HomeLayer] = {}
 _HOME_LAYERS_LOCK = threading.Lock()
-# The layer a ``$HERMES_HOME`` plugin import registers into. A ContextVar, not a module global:
+# The layer a ``$KOVA_HOME`` plugin import registers into. A ContextVar, not a module global:
 # two turn threads scanning two profile homes at once must not cross-register. Never a lock held
 # across the import itself — a thread mid-``import kova_cli.auth`` (whose import calls
 # ``list_providers()``) would block on it while the scanning thread waits on that module's import lock.
@@ -141,9 +141,9 @@ def register_provider(profile: ProviderProfile) -> None:
     """Register a provider profile by name and aliases.
 
     Later registrations with the same name replace earlier ones — so user
-    plugins under ``$HERMES_HOME/plugins/model-providers/`` can override
+    plugins under ``$KOVA_HOME/plugins/model-providers/`` can override
     bundled profiles without editing repo code. A registration made while a
-    ``$HERMES_HOME`` plugin is being imported lands in that home's layer.
+    ``$KOVA_HOME`` plugin is being imported lands in that home's layer.
     """
     global _PROVIDER_LIST_CACHE, _REGISTRY_GENERATION
     collect = _COLLECT.get()
@@ -172,7 +172,7 @@ def register_provider(profile: ProviderProfile) -> None:
 def provider_source(name: str) -> str | None:
     """Discovery source of the profile currently registered under *name* (see ``_SOURCES``), or None.
 
-    ``"user"`` is what lets a ``$HERMES_HOME`` plugin re-registering a bundled name win in
+    ``"user"`` is what lets a ``$KOVA_HOME`` plugin re-registering a bundled name win in
     ``kova_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
     """
     layer = _home_layer()
@@ -330,7 +330,7 @@ def profile_for_host(url: str, *, metadata: bool = False) -> ProviderProfile | N
     """The registered profile whose declared ``hostnames`` match *url*'s host (exact or subdomain).
 
     *metadata* also matches ``metadata_hostnames``. Resolved against the bound home's providers, so a
-    ``$HERMES_HOME`` plugin installed after import (or in another profile) is seen; memoized per
+    ``$KOVA_HOME`` plugin installed after import (or in another profile) is seen; memoized per
     (home, host) until the registry changes, because wire paths ask on every request.
     """
     from agent.safe_worker_policy import safe_worker_enabled
@@ -360,7 +360,7 @@ def profile_for_host(url: str, *, metadata: bool = False) -> ProviderProfile | N
 
 def list_providers() -> list[ProviderProfile]:
     """Return all registered provider profiles (one per canonical name); the bound home's
-    ``$HERMES_HOME`` plugins shadow process-wide profiles of the same name."""
+    ``$KOVA_HOME`` plugins shadow process-wide profiles of the same name."""
     from agent.safe_worker_policy import safe_worker_enabled
 
     if safe_worker_enabled():
@@ -433,10 +433,10 @@ def refresh_bound_home() -> None:
 
 def _bound_home_layer() -> tuple[_HomeLayer, Path | None, str]:
     try:
-        from kova_constants import get_hermes_home, hermes_home_key
+        from kova_constants import get_kova_home, kova_home_key
 
-        home = Path(get_hermes_home())
-        key = hermes_home_key(home)
+        home = Path(get_kova_home())
+        key = kova_home_key(home)
     except Exception:
         home, key = None, ""
     with _HOME_LAYERS_LOCK:
@@ -501,27 +501,27 @@ def _plugin_dir_stamps_settled(stamps: tuple) -> bool:
 
 
 def _user_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/model-providers/`` if it exists."""
+    """Return ``$KOVA_HOME/plugins/model-providers/`` if it exists."""
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        d = get_hermes_home() / "plugins" / "model-providers"
+        d = get_kova_home() / "plugins" / "model-providers"
         return d if d.is_dir() else None
     except Exception:
         return None
 
 
 def _installed_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/`` if it exists.
+    """Return ``$KOVA_HOME/plugins/`` if it exists.
 
     This is where ``hermes plugins install`` clones a plugin — flat, one
     directory per plugin, NOT under ``model-providers/``. See
     :func:`_discover_installed_provider_plugins`.
     """
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        d = get_hermes_home() / "plugins"
+        d = get_kova_home() / "plugins"
         return d if d.is_dir() else None
     except Exception:
         return None
@@ -565,8 +565,8 @@ def _declares_model_provider_kind(plugin_dir: Path) -> bool:
 def _scan_home_layer(layer: _HomeLayer, key: str) -> None:
     """Import the bound home's not-yet-imported provider plugins into *layer*.
 
-    ``$HERMES_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
-    ``hermes plugins install`` into ``$HERMES_HOME/plugins/<name>/`` that declare
+    ``$KOVA_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
+    ``hermes plugins install`` into ``$KOVA_HOME/plugins/<name>/`` that declare
     ``kind: model-provider`` (PluginManager owns every other kind there). Per-home module names
     let two profiles carry the same plugin without aliasing each other's registrations.
     """
@@ -612,7 +612,7 @@ def _import_plugin_dir(plugin_dir: Path, source: str, *, home_key: str = "") -> 
     # Give bundled plugins a stable import path (``plugins.model_providers.<name>``)
     # so relative imports within the plugin work. User plugins load via
     # ``importlib.util.spec_from_file_location`` under a per-home module name so
-    # multiple HERMES_HOME profiles don't alias each other.
+    # multiple KOVA_HOME profiles don't alias each other.
     if source == "bundled":
         module_name = f"plugins.model_providers.{plugin_dir.name.replace('-', '_')}"
     else:
@@ -682,7 +682,7 @@ def _exec_plugin_module(plugin_dir: Path, source: str, module_name: str) -> None
 
 
 def _note_load_result(plugin_dir: Path, exc: BaseException | None) -> None:
-    """Record (or clear) a ``$HERMES_HOME`` plugin's import error on the home layer importing it: the
+    """Record (or clear) a ``$KOVA_HOME`` plugin's import error on the home layer importing it: the
     general plugin manager lists a model-provider dir with no error, so this is the only record of why it
     registered nothing."""
     layer = _REGISTRATION_TARGET.get()
@@ -727,7 +727,7 @@ def _discover_entry_point_providers() -> None:
 
     Failures are swallowed per-entry (a broken third-party package must not
     break provider discovery) and logged at warning level. This scan runs
-    first, so filesystem plugins (bundled + ``$HERMES_HOME``) keep their
+    first, so filesystem plugins (bundled + ``$KOVA_HOME``) keep their
     documented override precedence via last-writer-wins in
     ``register_provider()`` — a pip package cannot hijack a first-party
     provider name.
@@ -865,7 +865,7 @@ def _discover_providers() -> None:
       2. Legacy per-file modules at ``providers/<name>.py`` (back-compat)
 
     Each step imports its plugins, which call ``register_provider()`` at
-    module-level. Later steps win on name collision. ``$HERMES_HOME`` plugins are
+    module-level. Later steps win on name collision. ``$KOVA_HOME`` plugins are
     per profile home and load through :func:`_home_layer` at lookup time.
     """
     from agent.safe_worker_policy import safe_worker_enabled
@@ -897,14 +897,14 @@ def _run_discovery_steps() -> None:
     #
     #    Discovered FIRST, i.e. lowest precedence: because
     #    ``register_provider()`` is last-writer-wins, running this before the
-    #    filesystem steps means a bundled or ``$HERMES_HOME`` profile of the
+    #    filesystem steps means a bundled or ``$KOVA_HOME`` profile of the
     #    same name always overrides a pip-installed one. That prevents a
     #    third-party package from silently hijacking a first-party provider
     #    name (e.g. ``openrouter``) while still letting pip packages add
     #    genuinely new providers.
     _discover_entry_point_providers()
 
-    # 1. Bundled plugins — shipped with hermes-agent.
+    # 1. Bundled plugins — shipped with kova-agent.
     if _BUNDLED_PLUGINS_DIR.is_dir():
         for child in sorted(_BUNDLED_PLUGINS_DIR.iterdir()):
             if not child.is_dir() or child.name.startswith(("_", ".")):

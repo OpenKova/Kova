@@ -78,13 +78,13 @@ test('nativeRemovalInstructions names the steward per kind and OS', () => {
 
   assert.match(nativeRemovalInstructions('bundled', 'win32'), /Installed apps/)
   assert.equal(
-    nativeRemovalInstructions('bundled', 'darwin', '/Applications/Hermes Agent Canary.app'),
-    'Quit the app and drag Hermes Agent Canary.app from /Applications to the Trash.'
+    nativeRemovalInstructions('bundled', 'darwin', '/Applications/Kova Agent Canary.app'),
+    'Quit the app and drag Kova Agent Canary.app from /Applications to the Trash.'
   )
-  assert.match(nativeRemovalInstructions('bundled', 'darwin'), /drag the Hermes app from Applications to the Trash/)
+  assert.match(nativeRemovalInstructions('bundled', 'darwin'), /drag the Kova app from Applications to the Trash/)
   assert.match(
-    nativeRemovalInstructions('bundled', 'linux', '/home/x/Apps/Hermes.AppImage'),
-    /\/home\/x\/Apps\/Hermes\.AppImage/
+    nativeRemovalInstructions('bundled', 'linux', '/home/x/Apps/Kova.AppImage'),
+    /\/home\/x\/Apps\/Kova\.AppImage/
   )
   assert.match(
     nativeRemovalInstructions('bundled', 'linux', '/opt/hermes/linux-unpacked'),
@@ -111,12 +111,12 @@ test('mode predicates classify what each mode removes', () => {
 
 test('resolveRemovableAppPath finds the .app bundle on macOS', () => {
   assert.equal(
-    resolveRemovableAppPath('/Applications/Hermes.app/Contents/MacOS/Hermes', 'darwin'),
-    '/Applications/Hermes.app'
+    resolveRemovableAppPath('/Applications/Kova.app/Contents/MacOS/Kova', 'darwin'),
+    '/Applications/Kova.app'
   )
   assert.equal(
-    resolveRemovableAppPath('/Users/x/Applications/Hermes.app/Contents/MacOS/Hermes', 'darwin'),
-    '/Users/x/Applications/Hermes.app'
+    resolveRemovableAppPath('/Users/x/Applications/Kova.app/Contents/MacOS/Kova', 'darwin'),
+    '/Users/x/Applications/Kova.app'
   )
 })
 
@@ -135,28 +135,28 @@ test('resolveRemovableAppPath: dev-run .app resolves (safety is shouldRemoveAppB
 
 test('resolveRemovableAppPath finds the install dir on Windows', () => {
   assert.equal(
-    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\Programs\\Hermes\\Hermes.exe', 'win32'),
-    'C:\\Users\\x\\AppData\\Local\\Programs\\Hermes'
+    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\Programs\\Kova\\Kova.exe', 'win32'),
+    'C:\\Users\\x\\AppData\\Local\\Programs\\Kova'
   )
   assert.equal(
-    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\hermes-desktop\\Hermes.exe', 'win32'),
+    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\hermes-desktop\\Kova.exe', 'win32'),
     'C:\\Users\\x\\AppData\\Local\\hermes-desktop'
   )
 })
 
 test('resolveRemovableAppPath returns null for an unrecognized Windows dir', () => {
-  assert.equal(resolveRemovableAppPath('C:\\Temp\\foo\\Hermes.exe', 'win32'), null)
+  assert.equal(resolveRemovableAppPath('C:\\Temp\\foo\\Kova.exe', 'win32'), null)
 })
 
 test('resolveRemovableAppPath uses APPIMAGE on Linux when set', () => {
   assert.equal(
-    resolveRemovableAppPath('/tmp/.mount_HermesXXXX/hermes', 'linux', { APPIMAGE: '/home/x/Apps/Hermes.AppImage' }),
-    '/home/x/Apps/Hermes.AppImage'
+    resolveRemovableAppPath('/tmp/.mount_KovaXXXX/hermes', 'linux', { APPIMAGE: '/home/x/Apps/Kova.AppImage' }),
+    '/home/x/Apps/Kova.AppImage'
   )
 })
 
 // AppImage apps (terminals, IDEs) export APPIMAGE to everything they start;
-// uninstalling an unpacked Hermes launched from one must never rm -rf that app.
+// uninstalling an unpacked Kova launched from one must never rm -rf that app.
 test('resolveRemovableAppPath ignores an APPIMAGE inherited from another AppImage', () => {
   assert.equal(
     resolveRemovableAppPath('/opt/hermes/linux-unpacked/hermes', 'linux', { APPIMAGE: '/home/x/Apps/Other.AppImage' }),
@@ -178,8 +178,8 @@ test('resolveRemovableAppPath returns null for an empty exe path', () => {
 // --- shouldRemoveAppBundle ---
 
 test('shouldRemoveAppBundle requires packaged AND a resolved path', () => {
-  assert.equal(shouldRemoveAppBundle(true, '/Applications/Hermes.app'), true)
-  assert.equal(shouldRemoveAppBundle(false, '/Applications/Hermes.app'), false)
+  assert.equal(shouldRemoveAppBundle(true, '/Applications/Kova.app'), true)
+  assert.equal(shouldRemoveAppBundle(false, '/Applications/Kova.app'), false)
   assert.equal(shouldRemoveAppBundle(true, null), false)
   assert.equal(shouldRemoveAppBundle(false, null), false)
 })
@@ -200,7 +200,7 @@ test.skipIf(process.platform === 'win32').each(['gui', 'lite', 'full'] as const)
       fs.mkdirSync(sibling)
       fs.writeFileSync(
         recorder,
-        `require('node:fs').writeFileSync(${JSON.stringify(resultFile)}, JSON.stringify({argv:process.argv.slice(2), home:process.env.HERMES_HOME, pythonPath:process.env.PYTHONPATH, cwd:process.cwd()}))`
+        `require('node:fs').writeFileSync(${JSON.stringify(resultFile)}, JSON.stringify({argv:process.argv.slice(2), home:process.env.KOVA_HOME, pythonPath:process.env.PYTHONPATH, cwd:process.cwd()}))`
       )
       fs.writeFileSync(
         script,
@@ -215,7 +215,7 @@ test.skipIf(process.platform === 'win32').each(['gui', 'lite', 'full'] as const)
         })
       )
       child = spawn('bash', [script], {
-        env: { ...process.env, PYTHONPATH: 'inherited', HERMES_HOME: root },
+        env: { ...process.env, PYTHONPATH: 'inherited', KOVA_HOME: root },
         stdio: 'ignore'
       })
       await once(child, 'close')
@@ -243,12 +243,12 @@ test.skipIf(process.platform === 'win32').each(['gui', 'lite', 'full'] as const)
 test('buildPosixCleanupScript waits for the PID, runs the uninstall module, removes bundle', (): void => {
   const script = buildPosixCleanupScript({
     desktopPid: 4321,
-    pythonExe: '/home/x/.hermes/hermes-agent/venv/bin/python',
+    pythonExe: '/home/x/.kova/kova-agent/venv/bin/python',
     pythonPath: null,
-    agentRoot: '/home/x/.hermes/hermes-agent',
+    agentRoot: '/home/x/.kova/kova-agent',
     uninstallArgs: ['-m', 'kova_cli.uninstall', '--mode', 'gui'],
     appPath: '/opt/hermes/linux-unpacked',
-    hermesHome: '/home/x/.hermes'
+    hermesHome: '/home/x/.kova'
   })
 
   assert.match(script, /^#!\/usr\/bin\/env bash\n/)
@@ -256,7 +256,7 @@ test('buildPosixCleanupScript waits for the PID, runs the uninstall module, remo
   assert.match(script, /kill -0 "\$pid"/)
   assert.match(script, /'-m' 'kova_cli\.uninstall' '--mode' 'gui'/)
   assert.match(script, /rm -rf '\/opt\/hermes\/linux-unpacked'/)
-  assert.match(script, /export HERMES_HOME='\/home\/x\/\.hermes'/)
+  assert.match(script, /export KOVA_HOME='\/home\/x\/\.kova'/)
 })
 
 // --- buildWindowsCleanupScript ---
@@ -268,7 +268,7 @@ test('buildWindowsCleanupScript waits (bounded) for PID, runs uninstall, rmdir b
     pythonPath: 'C:\\hermes',
     agentRoot: 'C:\\hermes',
     uninstallArgs: ['-m', 'kova_cli.uninstall', '--mode', 'full'],
-    appPath: 'C:\\Users\\x\\AppData\\Local\\Programs\\Hermes',
+    appPath: 'C:\\Users\\x\\AppData\\Local\\Programs\\Kova',
     hermesHome: 'C:\\Users\\x\\AppData\\Local\\hermes'
   })
 
@@ -282,7 +282,7 @@ test('buildWindowsCleanupScript waits (bounded) for PID, runs uninstall, rmdir b
   assert.match(script, /findstr \/r \/c:" %PID% "/)
   // Removal is a retry loop (Windows releases dir handles lazily).
   assert.match(script, /:rmloop/)
-  assert.match(script, /rmdir \/s \/q "C:\\Users\\x\\AppData\\Local\\Programs\\Hermes" >nul 2>&1/)
+  assert.match(script, /rmdir \/s \/q "C:\\Users\\x\\AppData\\Local\\Programs\\Kova" >nul 2>&1/)
   assert.match(script, /if %tries% geq 10 goto rmdone/)
   assert.match(script, /del "%~f0"/)
 })

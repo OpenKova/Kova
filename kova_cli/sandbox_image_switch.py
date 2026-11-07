@@ -48,7 +48,7 @@ def pending() -> Optional[PendingSwitch]:
     if not docker or not target:
         return None
     listing = _docker_query(
-        [docker, "ps", "-a", "--filter", "label=hermes-agent=1",
+        [docker, "ps", "-a", "--filter", "label=kova-agent=1",
          "--filter", f"label=hermes-profile={_container_identity(str(terminal.get('docker_shared_container_key') or ''))}",
          "--format", "{{.Names}}\t{{.Image}}"],
         timeout=10, fail="sandbox image switch probe failed: %s", nonzero="docker ps exited %s: %s")

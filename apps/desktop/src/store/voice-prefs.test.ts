@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/hermes', () => ({
-  getHermesConfigRecord: vi.fn(async () => ({})),
-  saveHermesConfig: vi.fn(async () => undefined)
+  getKovaConfigRecord: vi.fn(async () => ({})),
+  saveKovaConfig: vi.fn(async () => undefined)
 }))
 
-import { saveHermesConfig } from '@/hermes'
+import { saveKovaConfig } from '@/hermes'
 import { isVoiceStopCommand } from '@/lib/voice-stop-word'
 
 import {
@@ -34,13 +34,13 @@ it('keeps the desktop toggle local across config refreshes', async () => {
         })
       }
 
-      vi.mocked(saveHermesConfig).mockClear()
+      vi.mocked(saveKovaConfig).mockClear()
 
       try {
         await prefs.setAutoSpeakReplies(enabled)
         prefs.applyAutoSpeakFromConfig({ voice: { auto_tts: !enabled } })
         expect(prefs.$autoSpeakReplies.get()).toBe(enabled)
-        expect(saveHermesConfig).not.toHaveBeenCalled()
+        expect(saveKovaConfig).not.toHaveBeenCalled()
         expect(localStorage.getItem('hermes.desktop.autoSpeakReplies')).toBe(fails ? null : String(enabled))
       } finally {
         write.mockRestore()
@@ -117,7 +117,7 @@ describe('applyVoiceStopPhraseFromConfig', () => {
 })
 
 // The live matcher reads the atoms these seed, so drive it through them the way
-// `useHermesConfig` does: `/api/config` (defaults merged in) + `/api/config/defaults`.
+// `useKovaConfig` does: `/api/config` (defaults merged in) + `/api/config/defaults`.
 describe('spoken stop follows the loaded voice.stop_phrases (#117801)', () => {
   const defaults = { voice: { stop_phrases: ['stop'] } }
 

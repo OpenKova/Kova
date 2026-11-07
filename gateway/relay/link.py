@@ -1,6 +1,6 @@
 """Account linking to the shared Team Gateway bot, done from the instance itself.
 
-A relay-fronted deployment (Hermes Cloud with Team Gateway) reaches Telegram, Discord and Slack
+A relay-fronted deployment (Kova Cloud with Team Gateway) reaches Telegram, Discord and Slack
 only through the connector's SHARED bot: the gateway turns every direct adapter off
 (``config_env._relay``), and the connector routes a chat account's messages to this instance once
 that account is linked (``/link <code>`` DMed to the shared bot). The Portal can mint those codes;

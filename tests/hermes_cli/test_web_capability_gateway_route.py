@@ -12,13 +12,13 @@ import pytest
 
 
 @pytest.fixture()
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     starlette = pytest.importorskip("starlette.testclient")
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     test_client = starlette.TestClient(app)
     test_client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return test_client

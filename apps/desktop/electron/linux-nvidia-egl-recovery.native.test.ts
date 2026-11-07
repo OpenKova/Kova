@@ -42,7 +42,7 @@ function buildArtifact(name: string, commit: string): string {
     platform: 'node',
     format: 'esm',
     external: ['electron'],
-    define: { __HERMES_INSTALL_STAMP__: JSON.stringify(stamp(commit)) }
+    define: { __KOVA_INSTALL_STAMP__: JSON.stringify(stamp(commit)) }
   })
 
   return artifact

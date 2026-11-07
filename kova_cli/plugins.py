@@ -1,8 +1,8 @@
-"""Hermes Plugin System — discovers, loads, and manages plugins.
+"""Kova Plugin System — discovers, loads, and manages plugins.
 
 Sources, later overriding earlier on key collision: bundled ``<repo>/plugins/<name>/`` (``memory/``
-and ``context_engine/`` have their own discovery), user ``~/.hermes/plugins/<name>/``, project
-``./.hermes/plugins/<name>/`` (opt-in via ``HERMES_ENABLE_PROJECT_PLUGINS``), and pip packages in
+and ``context_engine/`` have their own discovery), user ``~/.kova/plugins/<name>/``, project
+``./.kova/plugins/<name>/`` (opt-in via ``KOVA_ENABLE_PROJECT_PLUGINS``), and pip packages in
 the ``kova_agent.plugins`` entry-point group. A directory plugin needs a ``plugin.yaml`` manifest
 and an ``__init__.py`` exposing ``register(ctx)``. Plugins register callbacks for ``VALID_HOOKS``
 (core fires ``invoke_hook(name, **kwargs)``) and tools via ``PluginContext.register_tool()``.
@@ -26,7 +26,7 @@ from functools import cached_property, wraps
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Tuple, Union
 
-from kova_constants import get_hermes_home, get_process_hermes_home, hermes_home_key
+from kova_constants import get_kova_home, get_process_kova_home, kova_home_key
 from registration_lifecycle import replacement_coordinator
 from utils import env_var_enabled
 from kova_cli.config import load_config_readonly
@@ -49,7 +49,7 @@ from kova_cli.plugins_loader import (
     _plugin_home_scope, _serialized_replacement, in_plugin_load_worker,
 )
 from kova_cli.plugins_dispatch import (
-    DEFAULT_SYSTEM_PROMPT_SECTION_MAX_CHARS, HERMES_EVENT_NAMESPACE, MAX_SYSTEM_PROMPT_SECTION_CHARS,
+    DEFAULT_SYSTEM_PROMPT_SECTION_MAX_CHARS, KOVA_EVENT_NAMESPACE, MAX_SYSTEM_PROMPT_SECTION_CHARS,
     MAX_SYSTEM_PROMPT_SECTIONS_TOTAL_CHARS, PLUGIN_SECTIONS_END, PLUGIN_SECTIONS_START,
     SYSTEM_PROMPT_SECTION_POSITIONS, _EVENT_EMIT_DEPTH_CAP, _EVENT_PENDING_CAP,
     _HOOK_CALLBACK_TIMEOUT_SECS, _HOOK_TIMEOUT_SUPPRESSION_SECONDS, _MAX_HOOK_CALLBACK_TIMEOUT_SECS,
@@ -69,9 +69,9 @@ from kova_cli.plugins_context import PluginContext, _UNSET, _ignore_after_abando
 
 
 def get_bundled_plugins_dir() -> Path:
-    """Bundled ``plugins/`` dir: ``HERMES_BUNDLED_PLUGINS`` (Nix wrapper / packaged installs, read-only
+    """Bundled ``plugins/`` dir: ``KOVA_BUNDLED_PLUGINS`` (Nix wrapper / packaged installs, read-only
     store paths) first, else the in-repo path."""
-    env_override = os.getenv("HERMES_BUNDLED_PLUGINS")
+    env_override = os.getenv("KOVA_BUNDLED_PLUGINS")
     if env_override:
         return Path(env_override)
     return Path(__file__).resolve().parent.parent / "plugins"
@@ -83,17 +83,17 @@ class PluginToolOverrideError(PermissionError):
 
 logger = logging.getLogger(__name__)
 
-# ``HERMES_PLUGINS_DEBUG=1`` tees verbose discovery logs to stderr in addition to agent.log. Read
+# ``KOVA_PLUGINS_DEBUG=1`` tees verbose discovery logs to stderr in addition to agent.log. Read
 # once at import; tests flip it mid-process via ``_install_plugin_debug_handler(force=True)``.
-_PLUGINS_DEBUG = env_var_enabled("HERMES_PLUGINS_DEBUG")
+_PLUGINS_DEBUG = env_var_enabled("KOVA_PLUGINS_DEBUG")
 _DEBUG_HANDLER_INSTALLED = False
 
 
 def _install_plugin_debug_handler(force: bool = False) -> None:
-    """When HERMES_PLUGINS_DEBUG is on, tee plugin logs to stderr at DEBUG (once per process)."""
+    """When KOVA_PLUGINS_DEBUG is on, tee plugin logs to stderr at DEBUG (once per process)."""
     global _DEBUG_HANDLER_INSTALLED, _PLUGINS_DEBUG
     if force:
-        _PLUGINS_DEBUG = env_var_enabled("HERMES_PLUGINS_DEBUG")
+        _PLUGINS_DEBUG = env_var_enabled("KOVA_PLUGINS_DEBUG")
     if not _PLUGINS_DEBUG or _DEBUG_HANDLER_INSTALLED:
         return
     handler = logging.StreamHandler(sys.stderr)
@@ -103,7 +103,7 @@ def _install_plugin_debug_handler(force: bool = False) -> None:
     logger.setLevel(logging.DEBUG)
     logger.propagate = True
     _DEBUG_HANDLER_INSTALLED = True
-    logger.debug("HERMES_PLUGINS_DEBUG=1 — verbose plugin discovery logging enabled")
+    logger.debug("KOVA_PLUGINS_DEBUG=1 — verbose plugin discovery logging enabled")
 
 
 _install_plugin_debug_handler()
@@ -262,9 +262,9 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
     def __init__(self, scope_key: Optional[str] = None) -> None:
         # Capture the home immutably. Unload can run from a different ambient
         # profile context, but every inverse must target the registration's
-        # original scope.  Normalize through hermes_home_key so the scope
+        # original scope.  Normalize through kova_home_key so the scope
         # matches the key the registries store under (normcase on Windows).
-        self.scope_key = hermes_home_key(scope_key)
+        self.scope_key = kova_home_key(scope_key)
         self.home_path = Path(self.scope_key)
         self._discovery_lock = threading.RLock()
         self._discovered: bool = False
@@ -324,7 +324,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
         self._hook_failures_reported: set = set()
         # Ledger per plugin (ownership) plus global order (reverse teardown across plugins). Process-
         # global registries are shared across profiles while several managers coexist, so the ledger
-        # is keyed per (hermes_home, plugin_id) and every inverse is identity-conditional — one
+        # is keyed per (kova_home, plugin_id) and every inverse is identity-conditional — one
         # profile's unload can never clear another's. Persistent registrations that survived an
         # unload-all park in ``_persistent_carryover`` until force re-discovery evicts the stale ones.
         # Registration handles are kept both per plugin (ownership lookup) and globally (reverse-order
@@ -405,8 +405,8 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
             loaded_before = frozenset(k for k, p in self._plugins.items() if not p.error and not p.deferred)
             if force:
                 self.unload()  # the ledger owns teardown of process-global registries
-            if env_var_enabled("HERMES_SAFE_MODE"):
-                logger.info("HERMES_SAFE_MODE=1 — plugin discovery skipped")
+            if env_var_enabled("KOVA_SAFE_MODE"):
+                logger.info("KOVA_SAFE_MODE=1 — plugin discovery skipped")
                 self._discovered = True
                 return
             # Flag set up front as a re-entrancy guard (register() can trigger discovery again) but
@@ -486,10 +486,10 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
             # Reset and reload the SAME home the process (or routed turn) resolves to: under multiplex this
             # runs at gateway boot after sibling profiles may already have hydrated, and a global clear
             # wiped their snapshots; a routed discovery must rebuild the profile it just dropped.
-            from kova_constants import get_hermes_home
-            home = get_hermes_home()
+            from kova_constants import get_kova_home
+            home = get_kova_home()
             reset_secret_source_cache(home)
-            load_hermes_dotenv(hermes_home=home)
+            load_hermes_dotenv(kova_home=home)
             # A scope installed for this home was frozen BEFORE these sources existed — a routed cron
             # fire builds its scope in run_one_job and only then, on its first agent build, discovers
             # plugins; under multiplex semantics the load above is hydrate-only, so fold the values
@@ -519,7 +519,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
         enabled = _get_enabled_plugins()  # None = opt-in default (nothing enabled)
         stale_relay_keys = legacy_relay_plugin_keys(enabled)
         if stale_relay_keys:
-            logger.warning("Removed Hermes plugin %s is still listed in plugins.enabled; "
+            logger.warning("Removed Kova plugin %s is still listed in plugins.enabled; "
                            "remove it and configure a standard user or system Relay plugins.toml, or use %s "
                            "for an explicit user-file override",
                            ", ".join(stale_relay_keys), RELAY_PLUGINS_CONFIG_ENV)
@@ -572,14 +572,14 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
             owner = self._approval_transports[clean].plugin_id
             raise ValueError(f"approval transport {clean!r} is already registered by {owner!r}")
         self._approval_transports[clean] = RegisteredApprovalTransport(
-            name=clean, present=present_fn, plugin_id=plugin_id, profile_home=str(get_hermes_home().resolve()),
+            name=clean, present=present_fn, plugin_id=plugin_id, profile_home=str(get_kova_home().resolve()),
         )
         logger.info("Plugin %s registered approval transport: %s", plugin_id, clean)
 
     def get_approval_transport(self, name: str):
         """Return a transport only inside the profile that registered it."""
         registered = self._approval_transports.get(str(name).strip().lower())
-        if registered is None or registered.profile_home != str(get_hermes_home().resolve()):
+        if registered is None or registered.profile_home != str(get_kova_home().resolve()):
             return None
         return registered
 
@@ -590,7 +590,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
     def has_enabled_portable_mcp(self, raw_config: Mapping[str, Any]) -> bool:
         """Probe enabled portable MCP packages without loading plugins (shares the full-discovery
         manifest collection so precedence/gating cannot diverge)."""
-        if _env_enabled("HERMES_SAFE_MODE"):
+        if _env_enabled("KOVA_SAFE_MODE"):
             return False
         plugins_config = raw_config.get("plugins")
         if not isinstance(plugins_config, dict):
@@ -609,7 +609,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
                 continue
             try:  # lazy: this is a startup probe, keep agent_plugins unimported unless needed
                 from kova_cli.agent_plugins import _discover_mcp
-                if _discover_mcp(Path(manifest.path), get_hermes_home() / "plugin-data"
+                if _discover_mcp(Path(manifest.path), get_kova_home() / "plugin-data"
                                  / (manifest.data_namespace or lookup_key), [], create_data=False):
                     return True
             except (OSError, RuntimeError, ValueError):
@@ -700,8 +700,8 @@ sys.modules[PluginContext.__module__].PluginManager = PluginManager
 # working — ``get_plugin_manager()`` still reads/writes this name.
 _plugin_manager: Optional[PluginManager] = None
 
-# Resolved Hermes home -> PluginManager. A process can switch profiles via
-# ``set_hermes_home_override()``; a single slot would leak one profile's plugin/context-engine state
+# Resolved Kova home -> PluginManager. A process can switch profiles via
+# ``set_kova_home_override()``; a single slot would leak one profile's plugin/context-engine state
 # into another, and keying by resolved home lets a re-entered profile reuse its imported modules.
 _plugin_managers_by_home: dict[Path, PluginManager] = {}
 _plugin_managers_lock = threading.RLock()
@@ -719,12 +719,12 @@ _published_tui_host_lock = threading.Lock()
 
 
 def _plugin_home_key() -> Path:
-    """Resolved active Hermes home — the key for per-profile plugin managers (plugins capture the
+    """Resolved active Kova home — the key for per-profile plugin managers (plugins capture the
     home at registration, so a process serving several profiles cannot share one manager)."""
     try:
-        return get_hermes_home().expanduser().resolve()
+        return get_kova_home().expanduser().resolve()
     except Exception:
-        return get_hermes_home().expanduser()
+        return get_kova_home().expanduser()
 
 
 def _clear_plugin_submodules(manager: Optional[PluginManager]) -> None:
@@ -813,7 +813,7 @@ def _attach_published_tui_host(manager: PluginManager) -> None:
 
 
 def get_plugin_manager() -> PluginManager:
-    """Return the plugin manager for the active Hermes profile/home (cached per resolved home; a
+    """Return the plugin manager for the active Kova profile/home (cached per resolved home; a
     profile switch gets its own manager and plugin submodules)."""
     global _plugin_manager
     current_home = _plugin_home_key()
@@ -826,7 +826,7 @@ def get_plugin_manager() -> PluginManager:
         else:
             manager = _plugin_managers_by_home.get(current_home)
             if manager is None:
-                manager = PluginManager(scope_key=hermes_home_key(current_home))
+                manager = PluginManager(scope_key=kova_home_key(current_home))
                 _plugin_managers_by_home[current_home] = manager
             _plugin_manager = manager
     _attach_published_gateway_host(manager)
@@ -920,7 +920,7 @@ def _join_background_discovery(timeout: float = 30.0) -> None:
 
 
 def _plugin_toolset_keys_cache_path() -> Path:
-    return get_hermes_home() / "cache" / "plugin_toolset_keys.json"
+    return get_kova_home() / "cache" / "plugin_toolset_keys.json"
 
 
 def _persist_plugin_toolset_keys() -> None:

@@ -207,11 +207,11 @@ def _read_json_file(path: Path) -> dict[str, Any]:
 
 def _read_memory_provider_existing_values(name: str) -> dict[str, Any]:
     """Best-effort read of existing provider config across legacy/native stores."""
-    from kova_cli.config import get_hermes_home, load_config
+    from kova_cli.config import get_kova_home, load_config
 
-    hermes_home = get_hermes_home()
+    kova_home = get_kova_home()
     values: dict[str, Any] = {}
-    for path in (hermes_home / f"{name}.json", hermes_home / name / "config.json"):
+    for path in (kova_home / f"{name}.json", kova_home / name / "config.json"):
         values.update(_read_json_file(path))
 
     try:
@@ -230,7 +230,7 @@ def _read_memory_provider_existing_values(name: str) -> dict[str, Any]:
         if isinstance(legacy_cfg, dict):
             values = {**legacy_cfg, **values}
 
-    # Holographic stores under plugins.hermes-memory-store.
+    # Holographic stores under plugins.kova-memory-store.
     plugins_cfg = cfg.get("plugins")
     if name == "holographic" and isinstance(plugins_cfg, dict):
         holographic_cfg = plugins_cfg.get("hermes-memory-store")

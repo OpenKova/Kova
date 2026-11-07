@@ -78,17 +78,17 @@ class TestStampDrivenDetection:
 
     def test_executing_nix_tree_reads_the_stamp_the_wrapper_points_at(self, tmp_path, monkeypatch):
         """A Nix package bakes the stamp outside the store's package dir; its wrapper
-        carries HERMES_INSTALL_ROOT. The executing tree must classify as nix (not
+        carries KOVA_INSTALL_ROOT. The executing tree must classify as nix (not
         "unknown"), the way version_info already reports it."""
         from kova_cli.version_info import _resolve_stamp_file
 
-        package = tmp_path / "store" / "lib" / "hermes-agent"
+        package = tmp_path / "store" / "lib" / "kova-agent"
         package.mkdir(parents=True)
-        share = tmp_path / "store" / "share" / "hermes-agent"
+        share = tmp_path / "store" / "share" / "kova-agent"
         share.mkdir(parents=True)
         _stamp(share, mechanism="external", distribution="nix")
         monkeypatch.setattr("pm.paths.repo_root", lambda: package)
-        monkeypatch.setenv("HERMES_INSTALL_ROOT", str(share))
+        monkeypatch.setenv("KOVA_INSTALL_ROOT", str(share))
 
         assert sealed_steward(package) == "nix"
         assert _resolve_stamp_file() == share / "install-stamp.json"

@@ -181,7 +181,7 @@ def _scenario(root) -> object:
             sid = _first_tui(root, llm, cells, summaries)
             if not sid:
                 return
-            home_env = {"HOME": str(root / "a" / "home"), "HERMES_HOME": str(root / "a" / "home" / ".hermes")}
+            home_env = {"HOME": str(root / "a" / "home"), "KOVA_HOME": str(root / "a" / "home" / ".kova")}
             for how in ("resume_flag", "slash_resume"):
                 cells.phase = how
                 sub = root / how

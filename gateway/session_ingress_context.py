@@ -158,9 +158,9 @@ def _binding(runner, source, profile):
                 raise RuntimeStoreError('profile_mismatch')
             homes[name] = canonical
         # The primary is the reserved entry whose home IS the launch home (identity, not the
-        # display name: a custom HERMES_HOME reports 'custom' while its reservation says 'default').
-        from kova_constants import get_process_hermes_home
-        launch = get_process_hermes_home().resolve()
+        # display name: a custom KOVA_HOME reports 'custom' while its reservation says 'default').
+        from kova_constants import get_process_kova_home
+        launch = get_process_kova_home().resolve()
         primary = next((name for name, path in homes.items() if path == launch), None)
         if primary is None:
             raise RuntimeStoreError('profile_mismatch')

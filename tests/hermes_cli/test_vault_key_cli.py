@@ -32,7 +32,7 @@ class _MemoryKeyring(KeyringBackend):
 
 @pytest.fixture
 def hermes(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     backend = _MemoryKeyring()
     keyring.set_keyring(backend)
     from kova_cli.subcommands.vault import build_vault_parser

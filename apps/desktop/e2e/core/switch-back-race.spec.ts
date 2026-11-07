@@ -59,7 +59,7 @@ for (const { order, shape } of cases) {
   test(`switch back while away session completes: ${order}${shape === 'reply' ? '' : ` (${shape})`}`, async () => {
     const provider = await startScriptedProvider()
     const sandbox = createCoreSandbox('race')
-    writeProviderHome(sandbox.hermesHome, provider.url)
+    writeProviderHome(sandbox.kovaHome, provider.url)
     const { app, page } = await launchCoreApp(coreAppEnv(sandbox))
     const ws = recordWebSockets(page)
 

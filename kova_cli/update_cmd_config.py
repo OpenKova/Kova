@@ -30,7 +30,7 @@ def _run_migrate_config_fresh(*, interactive: bool = False, quiet: bool = False)
 
 def _migrate_sibling_profile_configs(notes: dict[str, list[str]] | None = None) -> list[tuple[str, int, int]]:
     """Migrate every SIBLING profile's config.yaml (the shared checkout serves all profiles). Per
-    sibling (active skipped): scope via the context-local HERMES_HOME override (never ``os.environ``)
+    sibling (active skipped): scope via the context-local KOVA_HOME override (never ``os.environ``)
     and run the NON-INTERACTIVE quiet migration — prompt-requiring settings wait for that profile's
     own session. Returns ``[(name, from_version, to_version), ...]``; never raises. *notes* receives
     each migrated sibling's display lines for what quiet mode muted (a reset/removed setting, a
@@ -41,20 +41,20 @@ def _migrate_sibling_profile_configs(notes: dict[str, list[str]] | None = None) 
     versions until their gateway hit a config the new code couldn't read.
 
     Enumeration matches pre-update snapshots (#66140): default lives at
-    ``_get_default_hermes_home()``, not under ``profiles/``, so a named-profile
+    ``_get_default_kova_home()``, not under ``profiles/``, so a named-profile
     ``hermes update`` still migrates it.
     """
     from kova_cli.config import check_config_version, get_missing_config_fields, migrate_config
     migrated: list[tuple[str, int, int]] = []
     with _best_effort('Sibling profile enumeration failed: %s'):
         from kova_constants import (
-            get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override)
+            get_process_kova_home, reset_kova_home_override, set_kova_home_override)
         from kova_cli.backup import _sibling_profile_homes
-        active_home = Path(get_process_hermes_home())
+        active_home = Path(get_process_kova_home())
         for name, profile_home in _sibling_profile_homes(active_home):
             if not (profile_home / "config.yaml").is_file():  # config-reader: ok — profile directory discovery marker
                 continue  # profile never configured — nothing to migrate
-            token = set_hermes_home_override(profile_home)
+            token = set_kova_home_override(profile_home)
             try:
                 current_ver, latest_ver = check_config_version(raise_on_parse_error=True)
                 if current_ver >= latest_ver:
@@ -71,7 +71,7 @@ def _migrate_sibling_profile_configs(notes: dict[str, list[str]] | None = None) 
             except Exception as exc:
                 logger.debug("Config migration for profile %s failed: %s", name, exc)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
     return migrated
 
 
@@ -248,7 +248,7 @@ def _check_and_apply_config_migration(
         print("  ✓ Configuration is up to date")
 
     # The migration above touched only the active profile; run the same NON-INTERACTIVE
-    # migration per sibling home via the context-local HERMES_HOME override (never os.environ).
+    # migration per sibling home via the context-local KOVA_HOME override (never os.environ).
     with _best_effort('Sibling config migration failed: %s'):
         sibling_notes: dict[str, list[str]] = {}
         for _name, _from_ver, _to_ver in _migrate_sibling_profile_configs(sibling_notes):

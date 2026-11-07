@@ -135,12 +135,12 @@ def test_safe_restore_refuses_unreadable_canonical_epoch(tmp_path, caplog):
     _make_db(dst, "snapshot-good")
     config = tmp_path / "config.yaml"
     config.write_text("model: snapshot-model\n")
-    snapshot = backup_mod.create_quick_snapshot(hermes_home=tmp_path)
+    snapshot = backup_mod.create_quick_snapshot(kova_home=tmp_path)
     assert snapshot is not None
     config.write_text("model: current-model\n")
     dst.write_bytes(b"unreadable canonical epoch")
     before = config.read_bytes(), dst.read_bytes()
-    assert backup_mod.restore_quick_snapshot(snapshot, hermes_home=tmp_path) is False
+    assert backup_mod.restore_quick_snapshot(snapshot, kova_home=tmp_path) is False
     assert (config.read_bytes(), dst.read_bytes()) == before
 
 

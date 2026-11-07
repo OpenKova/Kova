@@ -39,7 +39,7 @@ def _newer_locals(count: int, *, start: float, prefix: str) -> list[tuple[str, s
 
 
 def _resolve_cli(monkeypatch, home) -> str | None:
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("kova_cli.main._resolve_workspace_key", lambda: None)
     from kova_cli.main import _resolve_last_session
 

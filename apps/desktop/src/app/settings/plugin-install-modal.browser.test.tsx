@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// The browser-hosted app: no Electron preload, so no `window.hermesDesktop.probePluginRepo` and no
+// The browser-hosted app: no Electron preload, so no `window.kovaDesktop.probePluginRepo` and no
 // `installDesktopPlugin`. Inspection and install both ride the gateway.
 const { requestGateway } = vi.hoisted(() => ({
   requestGateway: vi.fn(async (_method: string, _params?: Record<string, unknown>): Promise<unknown> => ({
@@ -83,14 +83,14 @@ beforeEach(() => {
   // The browser bridge's connection is always `remote` (browser-connection.ts).
   $connection.set({ mode: 'remote' } as NonNullable<ReturnType<typeof $connection.get>>)
   $activeGatewayProfile.set('default')
-  expect(window.hermesDesktop).toBeUndefined()
+  expect(window.kovaDesktop).toBeUndefined()
 })
 afterEach(() => {
   cleanup()
   closePluginInstallRequest()
 })
 
-describe('Plugin install in the browser-hosted app (no window.hermesDesktop)', () => {
+describe('Plugin install in the browser-hosted app (no window.kovaDesktop)', () => {
   it('inspects the catalog pick through the gateway and installs the agent plugin', async () => {
     backend(AGENT_ONLY)
     renderModal()
@@ -185,10 +185,10 @@ describe('Plugin install in the browser-hosted app (no window.hermesDesktop)', (
 // the Webapp already loads, so a desktop package is installable from the dialog instead of refused.
 describe('Plugin install in the browser-hosted app with a backend that installs desktop halves', () => {
   beforeEach(() => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
   })
   afterEach(() => {
-    delete window.document.documentElement.dataset.hermesDesktopHost
+    delete window.document.documentElement.dataset.kovaDesktopHost
   })
 
   const desktopBackend = (inspection: unknown, desktop: unknown, install: unknown = { ok: true, plugin_name: 'pkg' }) =>
@@ -257,7 +257,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
     // The browser bridge's door to the host's desktop-plugins folder (browser-desktop-plugins.ts): the
     // host's pass copies the package's half into desktop-plugins/pkg.
     const reconcileDesktopPlugins = vi.fn(async () => ['/srv/hermes/desktop-plugins/pkg'])
-    window.hermesDesktop = { reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
+    window.kovaDesktop = { reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
 
     try {
       desktopBackend(
@@ -280,7 +280,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       expect(reconcileDesktopPlugins).toHaveBeenCalled()
       expect($notifications.get().some(n => n.message === DESKTOP_UNAVAILABLE)).toBe(false)
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { hermesDesktop?: unknown }).kovaDesktop
     }
   })
 
@@ -294,7 +294,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       entries: path === '/srv/hermes/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
     }))
 
-    window.hermesDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
+    window.kovaDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
 
     try {
       desktopBackend(
@@ -315,7 +315,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       expect($notifications.get().some(n => n.message === 'Desktop plugin pkg installed')).toBe(false)
       expect($notifications.get().some(n => n.message.startsWith('Agent plugin pkg installed'))).toBe(true)
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { hermesDesktop?: unknown }).kovaDesktop
     }
   })
 
@@ -329,7 +329,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       entries: path === '/srv/hermes/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
     }))
 
-    window.hermesDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
+    window.kovaDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['hermesDesktop']
 
     try {
       desktopBackend(
@@ -348,7 +348,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       expect(readDir).toHaveBeenCalledWith('/srv/hermes/desktop-plugins')
       expect($notifications.get().some(n => n.message === 'Desktop plugin pkg installed')).toBe(false)
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { hermesDesktop?: unknown }).kovaDesktop
     }
   })
 

@@ -241,7 +241,7 @@ def test_update_logs_are_read_from_the_root_home_under_a_profile(tmp_path, monke
     (profile / "logs").mkdir(parents=True)
     (root / "logs" / "update.log").write_text("=== hermes update started 2026-10-03T10:00:00 ===\n✓ Update complete!\n")
     (profile / "logs" / "agent.log").write_text("2026-10-03 10:00:00,000 INFO run_agent: hi\n")
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
 
     assert log_file_path("update") == root / "logs" / "update.log"
     assert log_file_path("handoff") == root / "logs" / "desktop-update-handoff.log"

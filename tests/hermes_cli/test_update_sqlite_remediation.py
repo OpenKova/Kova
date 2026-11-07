@@ -20,7 +20,7 @@ def test_selected_sqlite_controls_completion_and_action_receipt(tmp_path, monkey
     monkeypatch.setattr('kova_constants.project_venv_dir', lambda _: tmp_path / 'obsolete-venv')
     monkeypatch.setattr('kova_cli.sqlite_runtime.probe_sqlite_runtime', lambda python: probes.append(python) or info)
     monkeypatch.setattr(update_cmd, '_branch_head_suffix', lambda: '')
-    monkeypatch.setenv('HERMES_ACTION_ID', action_id)
+    monkeypatch.setenv('KOVA_ACTION_ID', action_id)
     assert update_cmd_maint._print_verified_update_completion(message) is (verdict != 'unsafe')
     assert probes == [Path(selected)]
     output = capsys.readouterr().out
@@ -39,7 +39,7 @@ def test_dashboard_refresh_preserves_restart_bookkeeping(already_restarted_units
     monkeypatch.setattr(update_cmd, '_m', lambda: SimpleNamespace(
         _kill_stale_dashboard_processes=lambda **kwargs: calls.append(kwargs) or {'unrecovered': [1234]}))
     update_cmd_maint._refresh_dashboard_after_update(already_restarted_units=already_restarted_units)
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     assert calls == [{'restart_managed': True, 'already_restarted_units': already_restarted_units,
-                      'scope_home': str(get_hermes_home())}]
+                      'scope_home': str(get_kova_home())}]
     assert 'could not be auto-restarted' in capsys.readouterr().out

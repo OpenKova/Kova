@@ -290,7 +290,7 @@ class GatewaySlashCommandsMixin(
         return None
 
     def _typed_command_prefix_for(self, platform) -> str:
-        """The prefix users can always type to reach Hermes commands (adapter ``typed_command_prefix``,
+        """The prefix users can always type to reach Kova commands (adapter ``typed_command_prefix``,
         default "/"). Slack and Matrix use "!" because typed "/" is blocked/reserved there; their
         adapters rewrite "!command" to "/command"."""
         adapter = self.adapters.get(platform) if getattr(self, "adapters", None) else None
@@ -311,7 +311,7 @@ class GatewaySlashCommandsMixin(
         gateway the process-level profile is the multiplexer's own ("default" in every chat), so
         with ``multiplex_profiles`` on report ``source.profile`` and resolve home under that
         profile's runtime scope; when off the stamp is ignored, mirroring ``_run_agent``."""
-        from kova_constants import display_hermes_home
+        from kova_constants import display_kova_home
         source = getattr(event, "source", None)
         profile_name = display = ""
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
@@ -319,9 +319,9 @@ class GatewaySlashCommandsMixin(
             try:
                 from gateway.run import _profile_runtime_scope
                 with _profile_runtime_scope(self._resolve_profile_home_for_source(source)):
-                    display = display_hermes_home()
+                    display = display_kova_home()
             except Exception:
-                display = display_hermes_home()
+                display = display_kova_home()
 
         # Shared executor resolves process-level fallbacks; the multiplexed per-source overrides
         # (when any) ride in via options.
@@ -542,7 +542,7 @@ class GatewaySlashCommandsMixin(
 
     async def _handle_restart_command(self, event: MessageEvent) -> str | EphemeralReply:
         """Handle /restart command - drain active work, then restart the gateway."""
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         # Idempotency check: if the previous gateway process recorded this same /restart (platform +
         # update_id) and we see it *again*, it's a redelivery from PTB's graceful-shutdown get_updates
         # ACK failing on the way out. Ignoring it prevents a loop where every fresh gateway re-restarts.
@@ -559,7 +559,7 @@ class GatewaySlashCommandsMixin(
 
         async def _write_marker(name: str, build, label: str) -> None:
             try:
-                await asyncio.to_thread(atomic_json_write, _hermes_home / name, build(), indent=None)
+                await asyncio.to_thread(atomic_json_write, _kova_home / name, build(), indent=None)
             except Exception as e:
                 logger.debug("Failed to write restart %s: %s", label, e)
 
@@ -610,7 +610,7 @@ class GatewaySlashCommandsMixin(
         return reply
 
     async def _handle_version_command(self, event: MessageEvent) -> str:
-        """Handle /version — show the running Hermes Agent version."""
+        """Handle /version — show the running Kova Agent version."""
         return _execute("version").text
 
     def _catalog_options(self, event: MessageEvent) -> dict:
@@ -1006,7 +1006,7 @@ class GatewaySlashCommandsMixin(
             return f"{description}\n" + t("gateway.verbose.save_failed", error=e)
 
     async def _handle_busy_command(self, event: MessageEvent) -> str | EphemeralReply:
-        """Handle /busy — control what happens when messaging while Hermes is working."""
+        """Handle /busy — control what happens when messaging while Kova is working."""
         from gateway.session_setting_commands import local_live, session_busy_mode
         arg = event.get_command_args().strip().lower()
         live = local_live(self, event.source)
@@ -1121,7 +1121,7 @@ class GatewaySlashCommandsMixin(
             from agent.skill_commands import reload_skills
 
             # _run_in_executor_with_context, not a bare hop: the rescan walks
-            # get_hermes_home()/skills, a contextvar override under multiplex.
+            # get_kova_home()/skills, a contextvar override under multiplex.
             result = await self._run_in_executor_with_context(reload_skills)
             added, removed = result.get("added", []), result.get("removed", [])  # [{"name", "description"}]
             total = result.get("total", 0)
@@ -1311,7 +1311,7 @@ class GatewaySlashCommandsMixin(
                               t("gateway.debug.share_hint")])
 
         # _run_in_executor_with_context, not a bare hop: this collects the profile's logs/config off
-        # ``get_hermes_home()`` and uploads them to a public paste. Losing the contextvar override
+        # ``get_kova_home()`` and uploads them to a public paste. Losing the contextvar override
         # would publish the DEFAULT profile's diagnostics from another profile's chat.
         return await self._run_in_executor_with_context(_collect_and_upload)
 
@@ -1319,7 +1319,7 @@ class GatewaySlashCommandsMixin(
         """Handle /update — spawn ``hermes update`` detached (``setsid``) so it survives the gateway
         restart it may trigger; marker files let this or the next gateway process notify the user."""
         import json
-        from gateway.run import _hermes_home, _resolve_hermes_bin
+        from gateway.run import _kova_home, _resolve_hermes_bin
         from kova_cli.config import is_managed, format_managed_message
         # Block non-messaging platforms (API server, webhooks, ACP); plugin platforms with
         # allow_update_command=True are also allowed.
@@ -1359,10 +1359,10 @@ class GatewaySlashCommandsMixin(
             return t("gateway.update.not_git_repo")
         hermes_cmd = _resolve_hermes_bin()
         if not hermes_cmd:
-            return t("gateway.update.hermes_cmd_not_found")
-        pending_path = _hermes_home / ".update_pending.json"
-        output_path = _hermes_home / ".update_output.txt"
-        exit_code_path = _hermes_home / ".update_exit_code"
+            return t("gateway.update.kova_cmd_not_found")
+        pending_path = _kova_home / ".update_pending.json"
+        output_path = _kova_home / ".update_output.txt"
+        exit_code_path = _kova_home / ".update_exit_code"
         pending = {
             "platform": src.platform.value, "chat_id": src.chat_id, "chat_type": src.chat_type,
             "user_id": src.user_id, "session_key": self._session_key_for_source(src),

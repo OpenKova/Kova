@@ -14,7 +14,7 @@ import { ProfileRail } from './profile-switcher'
 
 vi.hoisted(() => {
   // The bridge marks the page before the rail module decides it is always condensed.
-  window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+  window.document.documentElement.dataset.kovaDesktopHost = 'browser'
 })
 
 const selectProfile = vi.fn()
@@ -128,7 +128,7 @@ afterEach(() => {
   cleanup()
   vi.clearAllMocks()
   Reflect.deleteProperty(window, 'hermesDesktop')
-  window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+  window.document.documentElement.dataset.kovaDesktopHost = 'browser'
 })
 
 async function openMenu(trigger: HTMLElement) {
@@ -177,7 +177,7 @@ it("the rail's profile menu shows them the same way, and its home pill offers no
 })
 
 it('native Desktop with one gateway reads no roster for the menu and marks nothing', async () => {
-  delete window.document.documentElement.dataset.hermesDesktopHost
+  delete window.document.documentElement.dataset.kovaDesktopHost
   render(<ProfileSwitcher compact />)
   await openMenu(screen.getByRole('button', { name: 'Profiles: solo' }))
 

@@ -647,9 +647,9 @@ class TestSlackModelPickerGatewayIntegration:
         runner._session_model_overrides = {}
         runner._running_agents = {}
 
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        cfg_path = hermes_home / "config.yaml"
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        cfg_path = kova_home / "config.yaml"
         cfg_path.write_text(
             yaml.safe_dump({
                 "model": {"default": "old-model", "provider": "openrouter"},
@@ -659,7 +659,7 @@ class TestSlackModelPickerGatewayIntegration:
         )
 
         import gateway.run as gateway_run
-        monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
+        monkeypatch.setattr(gateway_run, "_kova_home", kova_home)
         monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
         monkeypatch.setattr(
             "kova_cli.model_switch_providers.list_picker_providers",
@@ -698,9 +698,9 @@ class TestSlackModelPickerGatewayIntegration:
         runner._session_model_overrides = {}
         runner._running_agents = {}
 
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        cfg_path = hermes_home / "config.yaml"
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        cfg_path = kova_home / "config.yaml"
         cfg_path.write_text(
             yaml.safe_dump({
                 "model": {"default": "old-model", "provider": "openrouter"},
@@ -710,7 +710,7 @@ class TestSlackModelPickerGatewayIntegration:
         )
 
         import gateway.run as gateway_run
-        monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
+        monkeypatch.setattr(gateway_run, "_kova_home", kova_home)
         monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
         monkeypatch.setattr(
             "kova_cli.model_switch_providers.list_authenticated_providers",

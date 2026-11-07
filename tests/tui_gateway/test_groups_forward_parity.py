@@ -23,10 +23,10 @@ ENDPOINT = object()
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    path = tmp_path / ".hermes"
+    path = tmp_path / ".kova"
     (path / "profiles" / "ops").mkdir(parents=True)
     (path / "profiles" / "ops" / "config.yaml").write_text("{}\n")
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("KOVA_HOME", str(path))
     methods_groups.stop_hosted_room_service(timeout=1.0)
     methods_groups.start_hosted_room_service()
     yield path

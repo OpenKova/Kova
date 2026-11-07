@@ -246,7 +246,7 @@ def _open_continuable_cron_thread(job: dict, adapter, chat_id: str, loop) -> Opt
     create_thread = getattr(adapter, "create_handoff_thread", None)
     if not callable(create_thread) or loop is None:
         return None
-    thread_name = f"Hermes — {_cron_display_name(job)}"
+    thread_name = f"Kova — {_cron_display_name(job)}"
     try:
         from agent.async_utils import safe_schedule_threadsafe
         coro = create_thread(str(chat_id), thread_name)
@@ -725,7 +725,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *,
     import hashlib
     import json
     import uuid
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.profiles import get_profile_dir
     from tools.bot_live_delivery import (
         deliver_to_live_owner, find_canonical_live_owner, read_delivery_result,
@@ -735,7 +735,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *,
     profile_label = profile or "(own)"
     message = bot_chat_message(job, content)
     try:
-        source_home = get_hermes_home().resolve()
+        source_home = get_kova_home().resolve()
         home = (get_profile_dir(profile) if profile else source_home).resolve()
         from gateway.warning_notifications import warning_notifications_enabled
         from kova_cli.config_effective import load_user_config_effective
@@ -1796,7 +1796,7 @@ def _deliver_result(
     # id is the idempotency key (the queue never retries an uncertain claimed send). Match on THIS
     # job's own attempt: a worker's script may dispatch another job in-process (`hermes cron run`),
     # and that nested delivery must not be keyed under the outer execution id.
-    external_execution = os.environ.get("_HERMES_CRON_EXTERNAL_WORKER", "")
+    external_execution = os.environ.get("_KOVA_CRON_EXTERNAL_WORKER", "")
     if (external_execution and adapters is None
             and external_execution == str(job.get("execution_id") or "")
             and any(target["platform"] not in (BOT_CHAT_PLATFORM, ROOM_PLATFORM) for target in targets)):
@@ -1910,8 +1910,8 @@ def _deliver_result(
             continue
         if target["platform"] == "local":
             from gateway.session_cron import deliver_to_local_chat
-            from kova_constants import get_hermes_home
-            local_error = deliver_to_local_chat(get_hermes_home(), target["chat_id"],
+            from kova_constants import get_kova_home
+            local_error = deliver_to_local_chat(get_kova_home(), target["chat_id"],
                                                 cleaned_delivery_content, diagnostic=for_failure)
             if local_error:
                 delivery_errors.append(local_error)

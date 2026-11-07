@@ -35,7 +35,7 @@ def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatc
         )
         _db_has_legacy_inline_fts = staticmethod(kova_state.SessionDB._db_has_legacy_inline_fts)
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(kova_state, "SessionDB", FakeSessionDB)
     # Report a large state.db without patching Path.stat globally: a
     # 1-arg lambda on the class breaks pathlib.exists(follow_symlinks=...)

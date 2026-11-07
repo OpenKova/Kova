@@ -192,10 +192,10 @@ def test_configure_without_localappdata_leaves_pycache_alone(tmp_path):
 def _render(tmp_path: Path) -> Path:
     text = _WRAPPER.read_text(encoding="utf-8")
     for placeholder, value in {
-        "__HERMES_ENTRY_MODULE__": "kova_cli.main",
-        "__HERMES_ENTRY_FUNC__": "main",
-        "__HERMES_REPO_REL__": "../repo",
-        "__HERMES_SITE_REL__": "../venv/Lib/site-packages",
+        "__KOVA_ENTRY_MODULE__": "kova_cli.main",
+        "__KOVA_ENTRY_FUNC__": "main",
+        "__KOVA_REPO_REL__": "../repo",
+        "__KOVA_SITE_REL__": "../venv/Lib/site-packages",
     }.items():
         text = text.replace(placeholder, value)
     bin_dir = tmp_path / "bin"

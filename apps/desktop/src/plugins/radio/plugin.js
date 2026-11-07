@@ -43,52 +43,52 @@ const LOCALES = {
 // Disk plugins are not scanned by Tailwind. Only plugin layout lives here;
 // Button, SearchField and Popover own their own chrome.
 const CSS = `
-.hermes-radio-bar{display:flex;align-items:center;gap:2px;height:100%;color:var(--ui-text-tertiary)}
-.hermes-radio-waveform{position:relative;height:24px;width:100%;font-family:var(--font-mono,monospace);font-size:12px;line-height:12px;color:var(--ui-text-tertiary);opacity:.45;overflow:hidden;flex-shrink:0}
-.hermes-radio-waveform-layer{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--radio-columns),minmax(0,1fr));grid-auto-rows:12px}
-.hermes-radio-waveform-layer>span{text-align:center;min-width:0}
-.hermes-radio-waveform-layer:nth-child(1){opacity:.12}
-.hermes-radio-waveform-layer:nth-child(2){opacity:.28}
-.hermes-radio-waveform[data-compact=true]{width:40px;height:12px;margin-inline:2px}
-.hermes-radio-next{display:flex;align-items:center;width:12px;height:12px}
-.hermes-radio-waveform[data-active=true]{color:var(--ui-accent);opacity:1}
-.hermes-radio-signal{height:48px;padding:5px 6px 0;min-width:0}
-.hermes-radio-track{display:flex;align-items:center;gap:5px;height:19px;min-width:0;font-size:11px;line-height:16px;color:var(--ui-text-secondary)}
-.hermes-radio-track-text{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
-.hermes-radio-track[data-track=true]{color:var(--ui-text-primary)}
-.hermes-radio-artist{min-width:0;max-width:55%;flex-shrink:1;font-size:inherit;font-weight:inherit}
-.hermes-radio-artist>span{overflow:hidden;text-overflow:ellipsis}
-.hermes-radio-track-separator{flex-shrink:0;color:var(--ui-text-quaternary)}
-.hermes-radio-bar .radio-name{max-width:112px;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;text-align:left}
-.hermes-radio-bar .hermes-radio-action{width:16px;height:16px;padding:0;flex-shrink:0}
-.hermes-radio-action-icon{display:flex;align-items:center;justify-content:center;width:12px;height:12px;flex-shrink:0;overflow:hidden}
-.hermes-radio-website{display:flex;width:24px;height:24px;flex-shrink:0}
-.hermes-radio-panel{width:292px;max-width:calc(100vw - 24px)}
-.hermes-radio-search{display:flex;align-items:center;height:32px;padding:0 4px 4px}
-.hermes-radio-search-field{flex:1;min-width:0}
-.hermes-radio-search-field input{flex:1;width:0;min-width:0}
-.hermes-radio-search .hermes-radio-search-field{border:0}
-.hermes-radio-search-loader{display:flex;align-items:center;justify-content:center;width:16px;flex-shrink:0;font-size:12px;color:var(--ui-text-tertiary)}
-.hermes-radio-list{height:168px;max-height:calc(100dvh - 180px);min-height:80px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
-.hermes-radio-row{display:flex;align-items:center;gap:4px;border-radius:4px}
-.hermes-radio-row[data-current=true]{background:var(--chrome-action-hover)}
-.hermes-radio-row[data-current=true] .hermes-radio-row-name{color:var(--ui-accent)}
-.hermes-radio-row:hover{background:var(--chrome-action-hover)}
-.hermes-radio-row [aria-pressed=true]{color:var(--ui-accent)}
-.hermes-radio-pin{opacity:0;pointer-events:none}
-.hermes-radio-row:hover .hermes-radio-pin,.hermes-radio-row:focus-within .hermes-radio-pin{opacity:1;pointer-events:auto}
-@media(hover:none){.hermes-radio-pin{opacity:1;pointer-events:auto}}
-.hermes-radio-row-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-align:left;height:24px;padding:2px 6px;cursor:pointer;border-radius:4px}
-.hermes-radio-row-main:focus-visible{outline:1px solid var(--ui-accent);outline-offset:-1px}
-.hermes-radio-row-icon{display:flex;align-items:center;justify-content:center;width:14px;flex-shrink:0;color:var(--ui-text-tertiary);opacity:0}
-.hermes-radio-row:hover .hermes-radio-row-icon,.hermes-radio-row:focus-within .hermes-radio-row-icon,.hermes-radio-row[data-current=true] .hermes-radio-row-icon{opacity:1}
-.hermes-radio-row[data-current=true] .hermes-radio-row-icon{color:var(--ui-accent)}
-.hermes-radio-row-copy{min-width:0;flex:1}
-.hermes-radio-row-name{display:block;font-size:12px;line-height:17px;color:var(--ui-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hermes-radio-volume{display:flex;align-items:center;gap:4px;height:28px;padding:2px 2px 0}
-.hermes-radio-volume-space{flex:1;min-width:6px}
-.hermes-radio-volume input{width:76px;min-width:0;height:3px;accent-color:var(--ui-accent);cursor:pointer}
-.hermes-radio-error{font-size:11px;line-height:17px;color:var(--ui-text-secondary);padding:4px 4px 12px}
+.kova-radio-bar{display:flex;align-items:center;gap:2px;height:100%;color:var(--ui-text-tertiary)}
+.kova-radio-waveform{position:relative;height:24px;width:100%;font-family:var(--font-mono,monospace);font-size:12px;line-height:12px;color:var(--ui-text-tertiary);opacity:.45;overflow:hidden;flex-shrink:0}
+.kova-radio-waveform-layer{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--radio-columns),minmax(0,1fr));grid-auto-rows:12px}
+.kova-radio-waveform-layer>span{text-align:center;min-width:0}
+.kova-radio-waveform-layer:nth-child(1){opacity:.12}
+.kova-radio-waveform-layer:nth-child(2){opacity:.28}
+.kova-radio-waveform[data-compact=true]{width:40px;height:12px;margin-inline:2px}
+.kova-radio-next{display:flex;align-items:center;width:12px;height:12px}
+.kova-radio-waveform[data-active=true]{color:var(--ui-accent);opacity:1}
+.kova-radio-signal{height:48px;padding:5px 6px 0;min-width:0}
+.kova-radio-track{display:flex;align-items:center;gap:5px;height:19px;min-width:0;font-size:11px;line-height:16px;color:var(--ui-text-secondary)}
+.kova-radio-track-text{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.kova-radio-track[data-track=true]{color:var(--ui-text-primary)}
+.kova-radio-artist{min-width:0;max-width:55%;flex-shrink:1;font-size:inherit;font-weight:inherit}
+.kova-radio-artist>span{overflow:hidden;text-overflow:ellipsis}
+.kova-radio-track-separator{flex-shrink:0;color:var(--ui-text-quaternary)}
+.kova-radio-bar .radio-name{max-width:112px;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.kova-radio-bar .kova-radio-action{width:16px;height:16px;padding:0;flex-shrink:0}
+.kova-radio-action-icon{display:flex;align-items:center;justify-content:center;width:12px;height:12px;flex-shrink:0;overflow:hidden}
+.kova-radio-website{display:flex;width:24px;height:24px;flex-shrink:0}
+.kova-radio-panel{width:292px;max-width:calc(100vw - 24px)}
+.kova-radio-search{display:flex;align-items:center;height:32px;padding:0 4px 4px}
+.kova-radio-search-field{flex:1;min-width:0}
+.kova-radio-search-field input{flex:1;width:0;min-width:0}
+.kova-radio-search .kova-radio-search-field{border:0}
+.kova-radio-search-loader{display:flex;align-items:center;justify-content:center;width:16px;flex-shrink:0;font-size:12px;color:var(--ui-text-tertiary)}
+.kova-radio-list{height:168px;max-height:calc(100dvh - 180px);min-height:80px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.kova-radio-row{display:flex;align-items:center;gap:4px;border-radius:4px}
+.kova-radio-row[data-current=true]{background:var(--chrome-action-hover)}
+.kova-radio-row[data-current=true] .kova-radio-row-name{color:var(--ui-accent)}
+.kova-radio-row:hover{background:var(--chrome-action-hover)}
+.kova-radio-row [aria-pressed=true]{color:var(--ui-accent)}
+.kova-radio-pin{opacity:0;pointer-events:none}
+.kova-radio-row:hover .kova-radio-pin,.kova-radio-row:focus-within .kova-radio-pin{opacity:1;pointer-events:auto}
+@media(hover:none){.kova-radio-pin{opacity:1;pointer-events:auto}}
+.kova-radio-row-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-align:left;height:24px;padding:2px 6px;cursor:pointer;border-radius:4px}
+.kova-radio-row-main:focus-visible{outline:1px solid var(--ui-accent);outline-offset:-1px}
+.kova-radio-row-icon{display:flex;align-items:center;justify-content:center;width:14px;flex-shrink:0;color:var(--ui-text-tertiary);opacity:0}
+.kova-radio-row:hover .kova-radio-row-icon,.kova-radio-row:focus-within .kova-radio-row-icon,.kova-radio-row[data-current=true] .kova-radio-row-icon{opacity:1}
+.kova-radio-row[data-current=true] .kova-radio-row-icon{color:var(--ui-accent)}
+.kova-radio-row-copy{min-width:0;flex:1}
+.kova-radio-row-name{display:block;font-size:12px;line-height:17px;color:var(--ui-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kova-radio-volume{display:flex;align-items:center;gap:4px;height:28px;padding:2px 2px 0}
+.kova-radio-volume-space{flex:1;min-width:6px}
+.kova-radio-volume input{width:76px;min-width:0;height:3px;accent-color:var(--ui-accent);cursor:pointer}
+.kova-radio-error{font-size:11px;line-height:17px;color:var(--ui-text-secondary);padding:4px 4px 12px}
 `
 
 function httpsUrl(value) {
@@ -209,7 +209,7 @@ function createPlayer(ctx) {
     bus.postMessage({ type: 'play', sender: windowId })
     const element = new Audio()
     audio = element
-    element.dataset.hermesRadioAudio = 'true'
+    element.dataset.kovaRadioAudio = 'true'
     element.hidden = true
     element.preload = 'none'
     // Try real analysis for every station, not a host allowlist. If CORS or
@@ -461,7 +461,7 @@ async function artistRequest(path, signal, ctx) {
     ctx.storage.set('local.artistRequestAt', Date.now())
     const response = await fetch(`https://musicbrainz.org/ws/2/${path}`, {
       signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]), credentials: 'omit',
-      headers: { 'User-Agent': 'HermesRadio/1.0 (https://github.com/NousResearch/hermes-agent)' }
+      headers: { 'User-Agent': 'KovaRadio/1.0 (https://github.com/NousResearch/kova-agent)' }
     })
     if (!response.ok) throw new Error(`Artist lookup: HTTP ${response.status}`)
     return response.json()

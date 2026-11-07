@@ -1,4 +1,4 @@
-"""Boot and lifecycle of the real Hermes processes on native Windows.
+"""Boot and lifecycle of the real Kova processes on native Windows.
 
 * The source launcher ``hermes.exe`` reports checkout version and runs a
   one-shot chat turn: the reply is
@@ -47,7 +47,7 @@ from tests.e2e.core.windows._helpers import (
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text
 
 # Real process-tree kills (taskkill /T /F, psutil) of children this test spawned with a
-# scratch USERPROFILE/HERMES_HOME; the live-system guard would refuse the taskkill argv.
+# scratch USERPROFILE/KOVA_HOME; the live-system guard would refuse the taskkill argv.
 pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration, pytest.mark.live_system_guard_bypass]
 
 READY_TIMEOUT = 120.0
@@ -59,7 +59,7 @@ def test_version_reports_checkout_identity(tmp_path: Path) -> None:
     assert res.returncode == 0, res.tail()
     version = get_version_info().derived_version
     assert version != "unknown", "the checkout must have a readable release or commit identity"
-    assert f"Hermes Agent v{version} (" in res.stdout, (
+    assert f"Kova Agent v{version} (" in res.stdout, (
         f"--version does not report this checkout's {version}:\n{res.tail()}")
 
 
@@ -91,7 +91,7 @@ def _port_open(port: int) -> bool:
 
 def _spawn_serve(home: WinHome) -> subprocess.Popen:
     # Desktop spawn shape (electron/main.ts): token + desktop flag in env, stdin closed.
-    env = {"HERMES_DESKTOP": "1", "HERMES_DASHBOARD_SESSION_TOKEN": nonce("tok"),
+    env = {"KOVA_DESKTOP": "1", "KOVA_DASHBOARD_SESSION_TOKEN": nonce("tok"),
            "TERMINAL_CWD": str(home.project)}
     return subprocess.Popen(
         hermes_argv("serve", "--host", "127.0.0.1", "--port", "0"), cwd=home.profile, env=home.env(env),
@@ -112,7 +112,7 @@ def _serve_ready(home: WinHome) -> tuple[subprocess.Popen, int]:
         for raw in proc.stdout:
             line = raw.decode("utf-8", errors="replace")
             seen.append(line)
-            m = None if announced else re.search(r"HERMES_BACKEND_READY port=(\d+)", line)
+            m = None if announced else re.search(r"KOVA_BACKEND_READY port=(\d+)", line)
             if m:
                 announced = True
                 found.put(int(m.group(1)))
@@ -143,7 +143,7 @@ def test_serve_tree_kill_leaves_no_orphans_and_reboots(tmp_path: Path) -> None:
             assert killed.returncode == 0, killed.stderr
             # Ownership, not ancestry: anything the backend spawned detached (a broken
             # parent link taskkill /T cannot follow) still carries this profile's
-            # HERMES_HOME / cwd, and is an orphan the Desktop quit leaves behind.
+            # KOVA_HOME / cwd, and is an orphan the Desktop quit leaves behind.
             left = owned_survivors(home, since=started, timeout=30)
             assert not left, f"processes of the killed backend outlived taskkill /T /F: {left}"
             wait_until(lambda: not _port_open(port), 30, f"port {port} to be released")
@@ -155,7 +155,7 @@ def test_serve_tree_kill_leaves_no_orphans_and_reboots(tmp_path: Path) -> None:
 
 
 def _gateway_state(home: WinHome) -> dict:
-    path = home.hermes_home / "gateway_state.json"
+    path = home.kova_home / "gateway_state.json"
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -182,7 +182,7 @@ def test_gateway_stop_drains_gracefully(tmp_path: Path) -> None:
             assert state.get("gateway_state") == "stopped", (
                 f"gateway did not drain through its graceful path (rc={code}); last state {state}\n"
                 f"{log.read_text(errors='replace')[-3000:]}")
-            assert not (home.hermes_home / "gateway.pid").exists(), "gateway.pid left behind after stop"
+            assert not (home.kova_home / "gateway.pid").exists(), "gateway.pid left behind after stop"
             left = owned_survivors(home, since=started, timeout=30)
             assert not left, f"processes of the gateway survived stop: {left}"
         finally:

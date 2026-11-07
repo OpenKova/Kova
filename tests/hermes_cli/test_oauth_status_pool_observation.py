@@ -28,7 +28,7 @@ def _jwt_with_exp(offset_seconds: int) -> str:
 
 
 def _pool_only_codex_home(tmp_path, monkeypatch, *, access_tokens: list):
-    """HERMES_HOME whose only Codex credentials live in ``credential_pool.openai-codex``; the token
+    """KOVA_HOME whose only Codex credentials live in ``credential_pool.openai-codex``; the token
     endpoint is a transient failure (the credential itself is still good)."""
     from kova_cli import auth
     from kova_cli import codex_models
@@ -43,7 +43,7 @@ def _pool_only_codex_home(tmp_path, monkeypatch, *, access_tokens: list):
     ]
     (home / "auth.json").write_text(
         json.dumps({"version": 1, "credential_pool": {"openai-codex": entries}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no-codex-cli"))
     monkeypatch.setattr(codex_models, "_fetch_models_from_api", lambda access_token: [])
     refresh_calls: list = []
@@ -134,7 +134,7 @@ def test_read_only_resolver_never_probes_or_mutates_an_exhausted_pool(tmp_path, 
 
 
 def _singleton_only_codex_home(tmp_path, monkeypatch, *, tokens: dict, codex_cli_tokens: dict):
-    """HERMES_HOME whose Codex credentials are the ``providers.openai-codex`` singleton only, with a
+    """KOVA_HOME whose Codex credentials are the ``providers.openai-codex`` singleton only, with a
     valid Codex CLI login sitting beside it in ``CODEX_HOME``."""
     home, codex_home = tmp_path / "hermes", tmp_path / "codex"
     home.mkdir()
@@ -143,7 +143,7 @@ def _singleton_only_codex_home(tmp_path, monkeypatch, *, tokens: dict, codex_cli
         "version": 1, "active_provider": "openai-codex",
         "providers": {"openai-codex": {"tokens": tokens, "auth_mode": "chatgpt"}}}), encoding="utf-8")
     (codex_home / "auth.json").write_text(json.dumps({"tokens": codex_cli_tokens}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
     return home
 
@@ -153,7 +153,7 @@ def _singleton_tokens(home) -> dict:
 
 
 def test_status_snapshot_never_adopts_codex_cli_tokens(tmp_path, monkeypatch):
-    """#68004: a Hermes store missing its refresh_token is recovery-eligible on the runtime path, but
+    """#68004: a Kova store missing its refresh_token is recovery-eligible on the runtime path, but
     ``hermes status`` / ``hermes doctor`` must not import the Codex CLI's single-use token family."""
     from kova_cli.auth import resolve_codex_runtime_credentials
 

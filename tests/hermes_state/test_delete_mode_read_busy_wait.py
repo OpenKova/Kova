@@ -31,7 +31,7 @@ def delete_mode_db(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
     (home / "config.yaml").write_text(yaml.safe_dump({"database": {"journal_mode": "delete"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     db = SessionDB(db_path=home / "state.db")
     assert db._wal_active is False
     assert db._conn.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"

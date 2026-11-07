@@ -42,13 +42,13 @@ def test_a_task_reminder_opens_with_its_skills_and_drops_a_bundled_skill_this_in
     assert goal.startswith('They picked "Explain a topic I care about". Your job: ')
     assert skills == ("Load these skills with skill_view first: grounded-citations, claude-design, "
                       "blocked-page-recovery, humanizer.")
-    # A plugin skill is named as it registered; a typed task starts from hermes-agent.
+    # A plugin skill is named as it registered; a typed task starts from kova-agent.
     registered = {"nvidia-app:nvidia-app": "agent-plugin-nvidia-app-f9a26bc6:nvidia-app"}
     assert reminder("build_games", new_record(PC), PC, resolve_skill=registered.get).split("\n")[1] == (
         "Load these skills with skill_view first: agent-plugin-nvidia-app-f9a26bc6:nvidia-app.")
     assert reminder("build_own", new_record(MAC), MAC).split("\n")[:2] == [
         "Your job: build the task they named in their own words.",
-        "Load these skills with skill_view first: hermes-agent, humanizer."]
+        "Load these skills with skill_view first: kova-agent, humanizer."]
 
 
 def test_a_task_prompt_names_the_label_they_clicked_and_reads_in_sections():
@@ -71,9 +71,9 @@ def test_every_catalog_row_is_a_full_prompt():
 def test_how_hermes_works_reads_the_docs_and_builds_three_screens():
     text = reminder("build_hermes", new_record(MAC), MAC)
 
-    assert text.split("\n")[1] == ("Load these skills with skill_view first: hermes-agent, claude-design, p5js, "
+    assert text.split("\n")[1] == ("Load these skills with skill_view first: kova-agent, claude-design, p5js, "
                                    "humanizer.")
-    assert "https://hermes-agent.nousresearch.com/docs" in text and "web_extract" in text
+    assert "https://kova-agent.nousresearch.com/docs" in text and "web_extract" in text
     assert all(f"Screen {n}" in text for n in (1, 2, 3)) and "~/hermes-first-task/" in text
 
 

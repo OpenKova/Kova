@@ -1,4 +1,4 @@
-import type { HermesApiRequest, HermesSelectPathsOptions, HermesStagedUpload } from '@/global'
+import type { KovaApiRequest, KovaSelectPathsOptions, KovaStagedUpload } from '@/global'
 import { blobToDataUrl } from '@/lib/base64'
 import { type BrowserBootstrap, browserFetch, endpointUrl } from '@/lib/browser-transport'
 
@@ -96,7 +96,7 @@ function sandboxedHtmlBlob(bytes: Uint8Array, bootstrap: BrowserBootstrap): Blob
 interface StageResponse {
   detail?: unknown
   path?: string
-  staged_upload?: HermesStagedUpload
+  staged_upload?: KovaStagedUpload
 }
 
 /** A proxy's own error page (nginx's 413, a 502/504) is HTML, not the server's JSON. */
@@ -118,7 +118,7 @@ function uploadFailure(status: number, detail: unknown): string {
     : `File upload failed (${status})`
 }
 
-type OnStaged = (path: string, name: string, staged?: HermesStagedUpload) => void
+type OnStaged = (path: string, name: string, staged?: KovaStagedUpload) => void
 
 async function stageBrowserFile(
   bootstrap: BrowserBootstrap,
@@ -158,7 +158,7 @@ async function stageBrowserFile(
 
 function selectBrowserFiles(
   bootstrap: BrowserBootstrap,
-  options: HermesSelectPathsOptions | undefined,
+  options: KovaSelectPathsOptions | undefined,
   fallbackProfile: null | string,
   onStaged: OnStaged
 ): Promise<string[]> {
@@ -203,7 +203,7 @@ function selectBrowserFiles(
 }
 
 interface BrowserUploadsOptions {
-  api: <T>(request: HermesApiRequest) => Promise<T>
+  api: <T>(request: KovaApiRequest) => Promise<T>
   bootstrap: BrowserBootstrap
   currentProfile: () => string | null
   /** Blob URLs handed to the page; the installer revokes them on unload. */
@@ -224,7 +224,7 @@ export function createBrowserUploadsBridge({
   'getStagedFileDisplayName' | 'getStagedFileForAttach' | 'saveImageBuffer' | 'savePastedText' | 'selectPaths' | 'stageFileForAttach'
 > {
   const displayNames = new Map<string, string>()
-  const stagedUploads = new Map<string, HermesStagedUpload>()
+  const stagedUploads = new Map<string, KovaStagedUpload>()
 
   const rememberStaged: OnStaged = (path, name, staged) => {
     // Keep the existing string-path bridge for pickers and drops. Composer chips

@@ -38,9 +38,9 @@ class _RecordingAdapter(BasePlatformAdapter):
 
     async def send(self, chat_id, content, reply_to=None, metadata=None):
         from agent.secret_scope import get_secret
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         self.sent.append((str(chat_id), content))
-        self.send_scopes.append((get_hermes_home(), get_secret("PROBE_MARKER")))
+        self.send_scopes.append((get_kova_home(), get_secret("PROBE_MARKER")))
         return SendResult(success=True, message_id=str(len(self.sent)))
 
     async def send_typing(self, chat_id, metadata=None):
@@ -76,8 +76,8 @@ def gateway(tmp_path, monkeypatch):
     homes = {"default": home, "alpha": home / "profiles" / "alpha", "beta": home / "profiles" / "beta"}
     for name, profile_home in homes.items():
         _write_home(profile_home, marker=name)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(gateway_run, "_hermes_home", home)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(gateway_run, "_kova_home", home)
 
     config = GatewayConfig(multiplex_profiles=True, sessions_dir=home / "sessions")
     config.profile_routes = parse_profile_routes([
@@ -99,9 +99,9 @@ def gateway(tmp_path, monkeypatch):
 
     async def _fake_turn(message, context_prompt, history, source, session_id, **_kwargs):
         from agent.secret_scope import get_secret
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         turns.append(SimpleNamespace(message=message, history=list(history), session_id=session_id,
-                                     home=get_hermes_home(), marker=get_secret("PROBE_MARKER")))
+                                     home=get_kova_home(), marker=get_secret("PROBE_MARKER")))
         return {"final_response": f"reply-{len(turns)}", "messages": [], "tools": [],
                 "history_offset": len(history), "last_prompt_tokens": 0}
 

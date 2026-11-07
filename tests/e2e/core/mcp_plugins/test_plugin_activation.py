@@ -1,7 +1,7 @@
 """Plugin activation with REAL MCP servers (Agent Plugins v1 portable packages).
 
-Every test drives a real Hermes process against the recording fake LLM and the real ``mcp``
-fixture server, launched from a portable package under ``<HERMES_HOME>/plugins/<dir>/``:
+Every test drives a real Kova process against the recording fake LLM and the real ``mcp``
+fixture server, launched from a portable package under ``<KOVA_HOME>/plugins/<dir>/``:
 
 * live activation: a plugin enabled over the Plugins Hub RPC (``plugins.manage toggle``) while a
   chat is open in the ``tui_gateway`` host (the Ink TUI / Desktop backend) is usable in that SAME
@@ -84,8 +84,8 @@ KNOWN: dict[str, tuple[str, str]] = {
 
 def build_home(root: Path, base_url: str, *, extra: dict[str, Any] | None = None) -> E2EHome:
     eh = _build_home(root, base_url, extra=extra)
-    select_test_dependencies(eh.hermes_home, REPO_ROOT)
-    eh.extra_env["HERMES_DISABLE_LAZY_INSTALLS"] = "1"
+    select_test_dependencies(eh.kova_home, REPO_ROOT)
+    eh.extra_env["KOVA_DISABLE_LAZY_INSTALLS"] = "1"
     return eh
 
 
@@ -136,7 +136,7 @@ def test_plugin_sandbox_selects_real_pm_tools_offline(tmp_path: Path) -> None:
     eh = build_home(tmp_path, "http://127.0.0.1:1")
     child = subprocess.run([sys.executable, "-c",
                             "from pm._uv import _toolchain; assert _toolchain(realize=False) is not None"],
-                           env=eh.env({"HERMES_DISABLE_LAZY_INSTALLS": "1"}), cwd=eh.project,
+                           env=eh.env({"KOVA_DISABLE_LAZY_INSTALLS": "1"}), cwd=eh.project,
                            capture_output=True, text=True, timeout=30, check=False)
     assert child.returncode == 0, child.stderr
 
@@ -220,7 +220,7 @@ def env_echo_results(tmp_path_factory: pytest.TempPathFactory) -> dict[str, str]
         eh.update_config(lambda cfg: cfg["mcp_servers"].update(nat=stdio_server(
             "nat", root / "nat.jsonl", eh.tag, MCPE2E_ECHO_ENV="E2E_NATIVE_KEY",
             E2E_NATIVE_KEY="${E2E_NATIVE_KEY}")))
-        with open(eh.hermes_home / ".env", "a", encoding="utf-8") as fh:
+        with open(eh.kova_home / ".env", "a", encoding="utf-8") as fh:
             fh.write("\nE2E_PORTABLE_KEY=portable-dotenv-value\nE2E_NATIVE_KEY=native-dotenv-value\n")
         write_portable_plugin(eh, PLUGIN, {SERVER: portable_stdio(
             root / "plug.jsonl", eh.tag, MCPE2E_ECHO_ENV="E2E_PORTABLE_KEY",
@@ -293,7 +293,7 @@ def name_collision(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
         assert turn.returncode == 0 and FINAL in turn.stdout, (turn.stdout[-800:], turn.stderr[-2000:])
         results = tool_results(srv)
     logs = "\n".join(p.read_text(encoding="utf-8", errors="replace")
-                     for p in sorted((eh.hermes_home / "logs").glob("*.log")))
+                     for p in sorted((eh.kova_home / "logs").glob("*.log")))
     return {"live": live, "backup": backup, "listing": listing.stdout + listing.stderr,
             "results": results, "logs": logs}
 
@@ -331,10 +331,10 @@ def test_same_name_plugin_collision_is_reported(name_collision: dict[str, Any], 
 
 @pytest.mark.parametrize("trust", ["untrusted", None])
 def test_portable_package_trust_request_gates_write_tools_before_the_rpc(tmp_path: Path, trust: str | None) -> None:
-    """A package that marks its server ``trust: untrusted`` (plugin.json Hermes extension) gets the same gate as a
+    """A package that marks its server ``trust: untrusted`` (plugin.json Kova extension) gets the same gate as a
     config.yaml server: a destructive tool is refused BEFORE the RPC in an unattended ``chat -q`` turn, while a
     read-only one still runs. Without the request the destructive call reaches the server (default trust)."""
-    servers_ext = {"com.nousresearch.hermes": {"servers": {"pkg": {"trust": trust}}}} if trust else None
+    servers_ext = {"com.nousresearch.kova": {"servers": {"pkg": {"trust": trust}}}} if trust else None
     log = tmp_path / "pkg.jsonl"
     with provider(script((tool_name("pkg", "ro_probe"), {"nonce": "r"}),
                          (tool_name("pkg", "rw_probe"), {"nonce": "w"}))) as srv:

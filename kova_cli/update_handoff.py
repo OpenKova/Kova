@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 # Set on the post-swap child: the receipt header says "continued", the lock is the parent's.
-POST_SWAP_ENV = "HERMES_UPDATE_POST_SWAP"
+POST_SWAP_ENV = "KOVA_UPDATE_POST_SWAP"
 
 
 def is_post_swap_child() -> bool:
@@ -31,9 +31,9 @@ def is_post_swap_child() -> bool:
 
 def write_handoff(payload: dict[str, Any]) -> Path:
     """Persist the post-swap payload beside the receipts (the ROOT home); returns its path."""
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    directory = get_default_hermes_root() / "logs" / "update_receipts"
+    directory = get_default_kova_root() / "logs" / "update_receipts"
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"post_swap_{os.getpid()}.json"
     path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
@@ -78,12 +78,12 @@ def post_swap_command(handoff_path: Path, argv_tail: list[str]) -> list[str]:
 
 
 def post_swap_child_env() -> dict[str, str]:
-    """Environment for the child. ``HERMES_UPDATE_REEXEC`` marks it as already off the Windows
+    """Environment for the child. ``KOVA_UPDATE_REEXEC`` marks it as already off the Windows
     shim (no second re-exec at the sync boundary). The lock hand-off pid is only claimed when
     nobody upstream (Tauri/Electron updater) already named theirs."""
     from kova_cli.update_lock import HANDOFF_PID_ENV
 
-    env = {**os.environ, POST_SWAP_ENV: "1", "HERMES_UPDATE_REEXEC": "1"}
+    env = {**os.environ, POST_SWAP_ENV: "1", "KOVA_UPDATE_REEXEC": "1"}
     env.setdefault(HANDOFF_PID_ENV, str(os.getpid()))
     return env
 

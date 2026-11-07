@@ -298,7 +298,7 @@ def _split_without(names) -> tuple[list[str], list[str], list[str]]:
 def _install_defaults(names: list[str], *, verify: bool) -> None:
     """Install the optional defaults; a failure warns and never fails the install.
 
-    They are the browser and computer-use tools, not what Hermes needs to run:
+    They are the browser and computer-use tools, not what Kova needs to run:
     a Chromium download that fails behind a proxy must not abort an install
     whose required closure and venv are fine.
     """
@@ -887,7 +887,7 @@ def cmd_repair(args) -> int:
 
     if not recover_if_needed(repo_root(), explicit=True):
         return 1
-    print("Restart Hermes to use the repaired dependency environment.")
+    print("Restart Kova to use the repaired dependency environment.")
     return 0
 
 
@@ -895,7 +895,7 @@ def _extra_requirements(project: Path, extras: list[str]) -> list[str]:
     """The pinned requirements of declared extras, self-references expanded.
 
     Pins, not the whole lock, define the environment: an identity over uv.lock
-    would build a new generation on every Hermes update, and superseded side
+    would build a new generation on every Kova update, and superseded side
     generations are never reclaimed while a caller may still run from them.
     """
     import re
@@ -926,7 +926,7 @@ def cmd_environment(args) -> int:
     """Make a named side environment current and print its interpreter.
 
     Shell callers (skills) cannot import PM: the terminal's `python` is rarely
-    Hermes's own. Concurrent callers serialize on PM's per-environment lock and
+    Kova's own. Concurrent callers serialize on PM's per-environment lock and
     a rebuild lands in a new generation, so a running caller keeps its files.
     """
     import contextlib
@@ -1023,8 +1023,8 @@ def main(argv=None) -> int:
 
     p = sub.add_parser(
         "environment", help="make a named side environment current and print its python",
-        description="Build or reuse HERMES_HOME/environments/NAME, an isolated venv that never "
-                    "touches Hermes's own: --extra installs the pins of a declared extra, "
+        description="Build or reuse KOVA_HOME/environments/NAME, an isolated venv that never "
+                    "touches Kova's own: --extra installs the pins of a declared extra, "
                     "--requirement an ad hoc bounded requirement (both repeatable). "
                     "Prints only the interpreter path on stdout.")
     p.add_argument("name")

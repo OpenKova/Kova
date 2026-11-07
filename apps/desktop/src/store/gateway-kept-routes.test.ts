@@ -6,7 +6,7 @@ const gatewayMocks = vi.hoisted(() => ({
 
 vi.mock('@/hermes', () => ({
   setApiRequestConnection: vi.fn(),
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     connect = async (wsUrl: string): Promise<void> => {
       await gatewayMocks.connect(wsUrl)
@@ -55,7 +55,7 @@ beforeEach(() => {
   endpoint = 'wss://homelab.invalid/api/ws?token=old'
   configureGatewayRegistry({ onEvent: vi.fn() })
   setPrimaryGateway({ connectionState: 'open' } as never, 'default')
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async () => ({ mode: 'remote', wsUrl: endpoint })),
     getConnectionFor: vi.fn(async () => ({ mode: 'remote', wsUrl: endpoint }))
   }
@@ -65,7 +65,7 @@ afterEach(() => {
   closeSecondaryGateways()
   vi.restoreAllMocks()
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 it('a kept gateway survives idle pruning, yet an edit to it redials onto the new endpoint at once', async () => {

@@ -86,7 +86,7 @@ class TestCallSiteWiring:
         # Fail-closed survives as an OWED restart: the fleet obligation is kept armed ...
         assert restart.incomplete is had_gateway
         assert cleared == ([] if had_gateway else [True])
-        receipt = json.loads((update_cmd.get_hermes_home() / "logs/update_receipts/latest.json").read_text())
+        receipt = json.loads((update_cmd.get_kova_home() / "logs/update_receipts/latest.json").read_text())
         # ... and the receipt is a success that names the owed step (was outcome "partial").
         assert receipt["outcome"] == "success"
         assert [f["step"] for f in receipt.get("followups", [])] == (["gateway_restart"] if had_gateway else [])
@@ -134,7 +134,7 @@ def test_unmapped_stop_keeps_the_restart_owed(monkeypatch, tmp_path):
     update_receipt.begin_update_receipt()
     fleet_verify._verify_fleet_after_update(out, _pre_update_plan=_plan([]), _windows_gateway_resume=None,
                                      update_complete=True)
-    receipt = json.loads((update_cmd.get_hermes_home() / "logs/update_receipts/latest.json").read_text())
+    receipt = json.loads((update_cmd.get_kova_home() / "logs/update_receipts/latest.json").read_text())
     assert receipt["outcome"] == "success"
     assert [f["step"] for f in receipt["followups"]] == ["gateway_restart"]
     assert "101" in receipt["followups"][0]["reason"]

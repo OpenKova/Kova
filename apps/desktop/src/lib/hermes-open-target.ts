@@ -12,9 +12,9 @@
  *  - `/my-page?item=x` / `#/my-page?item=x` (hash-router paths)
  */
 
-export type HermesOpenTarget = string | { href: string } | { path: string; params?: Record<string, string> }
+export type KovaOpenTarget = string | { href: string } | { path: string; params?: Record<string, string> }
 
-const HERMES_PROTOCOL = 'hermes:'
+const KOVA_PROTOCOL = 'hermes:'
 
 /** Hostnames owned by core deep-link handlers — never treated as plugin routes. */
 const RESERVED_DEEP_LINK_KINDS = new Set([
@@ -66,14 +66,14 @@ function isPluginDeepLinkHost(host: string): boolean {
 }
 
 /** Normalize a string target to a hash-router path, or null. */
-export function normalizeHermesOpenString(raw: string): string | null {
+export function normalizeKovaOpenString(raw: string): string | null {
   const trimmed = raw.trim()
 
   if (!trimmed) {
     return null
   }
 
-  if (trimmed.startsWith('hermes://') || trimmed.startsWith(`${HERMES_PROTOCOL}//`)) {
+  if (trimmed.startsWith('hermes://') || trimmed.startsWith(`${KOVA_PROTOCOL}//`)) {
     try {
       const url = new URL(trimmed)
       const host = url.hostname || ''
@@ -121,13 +121,13 @@ export function normalizeHermesOpenString(raw: string): string | null {
 }
 
 /** Resolve any supported activate/open target to a hash-router path, or null. */
-export function resolveHermesOpenPath(target: HermesOpenTarget | null | undefined): string | null {
+export function resolveKovaOpenPath(target: KovaOpenTarget | null | undefined): string | null {
   if (target == null) {
     return null
   }
 
   if (typeof target === 'string') {
-    return normalizeHermesOpenString(target)
+    return normalizeKovaOpenString(target)
   }
 
   if (typeof target !== 'object') {
@@ -135,11 +135,11 @@ export function resolveHermesOpenPath(target: HermesOpenTarget | null | undefine
   }
 
   if ('href' in target && typeof target.href === 'string') {
-    return normalizeHermesOpenString(target.href)
+    return normalizeKovaOpenString(target.href)
   }
 
   if ('path' in target && typeof target.path === 'string') {
-    const base = normalizeHermesOpenString(target.path)
+    const base = normalizeKovaOpenString(target.path)
 
     if (!base) {
       return null
@@ -155,23 +155,23 @@ export function resolveHermesOpenPath(target: HermesOpenTarget | null | undefine
  * Build a navigate path from a parsed deep-link payload
  * (`hermes://<kind>/<name>?…` → kind/name/params).
  */
-export function pathFromHermesDeepLink(kind: string, name: string, params: Record<string, string> = {}): string | null {
+export function pathFromKovaDeepLink(kind: string, name: string, params: Record<string, string> = {}): string | null {
   if (!kind || !name) {
     return null
   }
 
   if (kind === 'open') {
-    return resolveHermesOpenPath({ path: `/${name.replace(/^\//, '')}`, params })
+    return resolveKovaOpenPath({ path: `/${name.replace(/^\//, '')}`, params })
   }
 
   if (!isPluginDeepLinkHost(kind)) {
     return null
   }
 
-  return resolveHermesOpenPath({ path: `/${kind}/${name.replace(/^\//, '')}`, params })
+  return resolveKovaOpenPath({ path: `/${kind}/${name.replace(/^\//, '')}`, params })
 }
 
 /** Convenience for `hermes://open/<name>?…` payloads. */
 export function pathFromOpenDeepLink(name: string, params: Record<string, string> = {}): string | null {
-  return pathFromHermesDeepLink('open', name, params)
+  return pathFromKovaDeepLink('open', name, params)
 }

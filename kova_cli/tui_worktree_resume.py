@@ -27,8 +27,8 @@ _holder = threading.local()
 
 
 def _record_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / _RECORD_NAME
+    from kova_constants import get_kova_home
+    return get_kova_home() / _RECORD_NAME
 
 
 def _key(path) -> str:
@@ -74,7 +74,7 @@ def _recorded_tree_for(cwd: str) -> Optional[dict]:
         repo = Path(str(entry.get("repo_root") or ""))
         tree = Path(str(entry.get("path") or ""))
         branch = str(entry.get("branch") or "")
-        # Only a direct child of the repo's Hermes worktree dir, as _setup_worktree makes them.
+        # Only a direct child of the repo's Kova worktree dir, as _setup_worktree makes them.
         if (branch and (repo / ".git").exists()
                 and _key(tree.parent) == _key(repo / ".worktrees") and _key(tree) == _key(candidate)):
             return {"path": str(tree), "branch": branch, "repo_root": str(repo)}
@@ -106,7 +106,7 @@ def recreate_tui_worktree(cwd: str, session_id: str) -> Optional[str]:
         _git_quiet,
         _retain_worktree_for_session,
     )
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     repo_root, tree, branch = entry["repo_root"], Path(entry["path"]), entry["branch"]
     if tree.exists():  # a file, or a dir that appeared since: never overwrite it
@@ -125,7 +125,7 @@ def recreate_tui_worktree(cwd: str, session_id: str) -> Optional[str]:
             logger.warning("could not recreate worktree %s: %s", tree, result.stderr.strip())
             return None
         _copy_worktree_includes(repo_root, tree)
-        _retain_worktree_for_session(repo_root, str(tree), session_id, get_hermes_home() / "state.db")
+        _retain_worktree_for_session(repo_root, str(tree), session_id, get_kova_home() / "state.db")
     except (OSError, subprocess.SubprocessError) as exc:
         logger.warning("could not recreate worktree %s: %s", tree, exc)
         return None

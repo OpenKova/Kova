@@ -17,8 +17,8 @@ def _bind_homes(monkeypatch, tmp_path: Path) -> tuple[Path, Path]:
     for home in (launch, worker):
         home.mkdir(parents=True)
         (home / "config.yaml").write_text(yaml.safe_dump({"model": {"provider": "nous"}}), encoding="utf-8")
-    monkeypatch.setattr(server, "_hermes_home", launch)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setattr(server, "_kova_home", launch)
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(server, "_profile_home", lambda name: worker if (name or "").strip() == "code" else None)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     return launch, worker

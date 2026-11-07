@@ -76,7 +76,7 @@ _PRUNE_ROW_KEYS = ("id", "source", "title", "model", "started_at", "last_active"
 
 def _prune_sessions(body: SessionPrune):
     """Delete ended sessions matching filters (mirrors `hermes sessions prune`)."""
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     has_window = body.started_before is not None or body.started_after is not None
     if body.older_than_days is not None and body.older_than_days < 1 and not has_window:
         raise HTTPException(status_code=400, detail="older_than_days must be >= 1")
@@ -88,7 +88,7 @@ def _prune_sessions(body: SessionPrune):
     effective_older_than = body.older_than_days
     if has_window or (attr_filters_set and "older_than_days" not in body.model_fields_set):
         effective_older_than = None
-    profile_home = _cron_profile_home(body.profile)[1] if body.profile else get_hermes_home()
+    profile_home = _cron_profile_home(body.profile)[1] if body.profile else get_kova_home()
     db = _open_session_db_for_profile(body.profile, read_only=body.dry_run)
     try:
         filters = {
@@ -639,11 +639,11 @@ def _with_tool_call_labels(message: dict) -> dict:
 def _history_profile_home(profile):
     if profile:
         return _cron_profile_home(profile)[1]
-    # An omitted profile reads this process's DB (including custom HERMES_HOME),
+    # An omitted profile reads this process's DB (including custom KOVA_HOME),
     # not necessarily the registered default profile used by cron routes.
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
 
-    return get_hermes_home()
+    return get_kova_home()
 
 
 def _session_files_dir(profile) -> Path:

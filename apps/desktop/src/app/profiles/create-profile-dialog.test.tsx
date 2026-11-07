@@ -39,11 +39,11 @@ it.each([true, false])(
 )
 
 it('does not let a new browser profile inherit the prefs a deleted one left under its name', async () => {
-  const win = window as Window & { __HERMES_BASE_PATH__?: string }
+  const win = window as Window & { __KOVA_BASE_PATH__?: string }
   const folderKey = browserDefaultProjectDirKey('/hermes', 'work')
   const startupKey = browserStartupProfileKey('/hermes')
-  window.document.documentElement.dataset.hermesDesktopHost = 'browser'
-  win.__HERMES_BASE_PATH__ = '/hermes'
+  window.document.documentElement.dataset.kovaDesktopHost = 'browser'
+  win.__KOVA_BASE_PATH__ = '/hermes'
   localStorage.setItem(folderKey, '/srv/deleted-work')
   localStorage.setItem(startupKey, JSON.stringify({ connectionId: null, profile: 'work' }))
   localStorage.setItem(browserDefaultProjectDirKey('/hermes', 'alpha'), '/srv/alpha')
@@ -60,7 +60,7 @@ it('does not let a new browser profile inherit the prefs a deleted one left unde
     expect(localStorage.getItem(browserDefaultProjectDirKey('/hermes', 'alpha'))).toBe('/srv/alpha')
   } finally {
     localStorage.clear()
-    delete window.document.documentElement.dataset.hermesDesktopHost
-    delete win.__HERMES_BASE_PATH__
+    delete window.document.documentElement.dataset.kovaDesktopHost
+    delete win.__KOVA_BASE_PATH__
   }
 })

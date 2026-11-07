@@ -17,12 +17,12 @@ def test_corrupt_legacy_record_is_isolated_and_due_job_still_fires(tmp_path, mon
     (home / "scripts").mkdir(parents=True)
     pending = home / "cron" / "bot_chat_pending"
     pending.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    for name, value in (("HERMES_DIR", home), ("CRON_DIR", home / "cron"),
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    for name, value in (("KOVA_DIR", home), ("CRON_DIR", home / "cron"),
                         ("JOBS_FILE", home / "cron" / "jobs.json"),
                         ("OUTPUT_DIR", home / "cron" / "output")):
         monkeypatch.setattr(J, name, value)
-    monkeypatch.setattr(S, "_hermes_home", home)
+    monkeypatch.setattr(S, "_kova_home", home)
     monkeypatch.setattr(S, "_sweep_mcp_orphans", lambda: None)
     monkeypatch.setattr(scheduler_authority, "reconcile_pending", lambda *, allow_connect=True: None)
     S._running_job_ids.clear()

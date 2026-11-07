@@ -77,10 +77,10 @@ def test_model_not_found_chat_text_points_at_model_picker_not_http():
 def test_oauth_rejection_chat_text_names_the_provider_slug_and_the_failing_profile(tmp_path, monkeypatch):
     """A revoked Codex grant must send the user to THAT profile's own sign-in (profiles are
     islands, 93889b770da) and put the provider slug in the text the goal judge reads (#114012)."""
-    profile_home = tmp_path / ".hermes" / "profiles" / "codex"
+    profile_home = tmp_path / ".kova" / "profiles" / "codex"
     profile_home.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("KOVA_HOME", str(profile_home))
     hints = []
 
     class _Recorder(_Agent):
@@ -217,7 +217,7 @@ def test_site_failure_codes_never_collapse_to_unknown(code):
 
 def test_model_caused_codes_stay_on_the_provider_layer_and_runtime_codes_on_gateway():
     """Cut-off / empty / broken replies come from the model (provider layer, so the client's
-    per-code copy applies); a busy session or loop bug is Hermes-side (gateway layer, so the
+    per-code copy applies); a busy session or loop bug is Kova-side (gateway layer, so the
     client never offers Switch provider for it)."""
     layers = {c: build_error_surface_from_result({"failed": True, "error": "x", "failure_reason": c})["layer"]
               for c in ("truncated", "empty_response", "invalid_response", "session_busy", "loop_error")}

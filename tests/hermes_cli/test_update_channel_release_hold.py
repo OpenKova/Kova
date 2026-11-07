@@ -35,9 +35,9 @@ def source(tmp_path, monkeypatch):
     home, origin, checkout = (tmp_path / name for name in ("home", "origin", "checkout"))
     home.mkdir()
     origin.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(checkout))
-    monkeypatch.delenv("HERMES_MANAGED", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_INSTALL_ROOT", str(checkout))
+    monkeypatch.delenv("KOVA_MANAGED", raising=False)
     git(origin, "init", "-b", "main")
     git(origin, "config", "user.name", "Channel Fixture")
     git(origin, "config", "user.email", "fixture@example.invalid")
@@ -86,12 +86,12 @@ def _ledgered(home):
 
 
 def _channel_publishes(monkeypatch, source, name):
-    record = {"schema": 1, "name": name, "repository": "NousResearch/hermes-agent", "policy": "preview",
+    record = {"schema": 1, "name": name, "repository": "NousResearch/kova-agent", "policy": "preview",
               "state": "active", "identity": {}, "nextSequence": 2,
               "head": {"buildId": "build-fixture", "sequence": 1}}
     result = SimpleNamespace(requested=deepcopy(record), terminal=record, manifest={
         "schema": 1, "request": {"buildId": "build-fixture", "channel": name, "sequence": 1,
-        "repository": "NousResearch/hermes-agent", "commit": source.release, "sourceVersion": "1.2.3",
+        "repository": "NousResearch/kova-agent", "commit": source.release, "sourceVersion": "1.2.3",
         "version": "0.0.1", "identity": {}, "bundleEnv": {},
         "publicBase": "https://hermes-assets.nousresearch.com"}, "packages": []})
     monkeypatch.setattr(source_releases, "_resolve_channel", lambda n, repository: deepcopy(result),

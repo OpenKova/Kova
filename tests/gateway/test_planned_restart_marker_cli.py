@@ -16,13 +16,13 @@ MARKER = ".restart_pending.json"
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+def kova_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     return tmp_path
 
 
-def test_writer_stamps_the_marker_the_boot_pass_reads(hermes_home):
+def test_writer_stamps_the_marker_the_boot_pass_reads(kova_home):
     """Writer and reader must agree on path and payload; a rename on either side fails here."""
     from gateway.restart_notice import write_planned_restart_marker
 
@@ -30,5 +30,5 @@ def test_writer_stamps_the_marker_the_boot_pass_reads(hermes_home):
 
     write_planned_restart_marker(via_service=True, detached=False)
 
-    assert (hermes_home / MARKER).exists()
+    assert (kova_home / MARKER).exists()
     assert gateway_run._planned_restart_notification_pending() is True

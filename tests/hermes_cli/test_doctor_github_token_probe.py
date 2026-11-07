@@ -61,7 +61,7 @@ def _github_probe_row(monkeypatch, tmp_path, dotenv: str | None, *, name: str = 
     home.mkdir()
     if dotenv is not None:
         (home / ".env").write_text(dotenv, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GH_TOKEN", raising=False)
     monkeypatch.setattr(dc, "_APIKEY_PROVIDERS_CACHE", [])

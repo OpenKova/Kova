@@ -1,6 +1,6 @@
 """The vault key against the host's REAL OS keychain (macOS Keychain, Windows Credential Manager).
 
-Everything else in the vault suite uses an in-memory keyring, which proves Hermes' plumbing but not
+Everything else in the vault suite uses an in-memory keyring, which proves Kova' plumbing but not
 that the platform store accepts, returns and deletes an entry the way ``agent.vault_keychain``
 expects. These run only on the macOS and Windows CI lanes (never on Linux, so a developer's Secret
 Service is never touched), use uniquely named dummy entries, and delete them in teardown.
@@ -48,7 +48,7 @@ def test_keychain_mode_vault_round_trips_through_the_real_keychain(os_keychain, 
     home = tmp_path / "hermes-home"
     home.mkdir()
     (home / "config.yaml").write_text("vault:\n  key_storage: keychain\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     vault = home / "vault"
 
     item = VaultStore().add_item("login", "Example", dict(_LOGIN), origin="https://example.com").id

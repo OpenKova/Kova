@@ -12,7 +12,7 @@
  * the second while a primary is up. Reading the preference instead made a
  * request for the booted profile (e.g. "default") stop matching
  * `primaryProfile`, fall through to the pool, and spawn a second backend for
- * the same HERMES_HOME. That duplicate held a pool slot and starved every other
+ * the same KOVA_HOME. That duplicate held a pool slot and starved every other
  * profile into "timed out while waiting for a free slot".
  *
  * Pure: main.ts owns the file read and the start/teardown call sites.
@@ -20,7 +20,7 @@
 export class PrimaryProfilePin {
   #booted: null | string = null
 
-  /** Called by startHermes() with the profile the primary is launching as. */
+  /** Called by startKova() with the profile the primary is launching as. */
   pin(profile: null | string | undefined): string {
     const value = String(profile ?? '').trim() || 'default'
     this.#booted = value

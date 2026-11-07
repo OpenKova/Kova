@@ -2,8 +2,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, expect, it, vi } from 'vitest'
 
 import { setApiRequestConnection } from '@/api/client'
-import type { HermesApiRequest } from '@/global'
-import type { HermesConfigRecord } from '@/hermes'
+import type { KovaApiRequest } from '@/global'
+import type { KovaConfigRecord } from '@/hermes'
 import { $gateway } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
 import { $connection, $gatewayState } from '@/store/session'
@@ -46,16 +46,16 @@ afterEach(() => {
 // Regression for #113980: exercise the real provider, API origin binding and
 // profile routing, including an explicit pick before leaving and a fresh mount.
 it('reads and persists the owning profile through A → B → A and restart', async () => {
-  const configs: Record<string, HermesConfigRecord> = {
+  const configs: Record<string, KovaConfigRecord> = {
     default: { display: { language: 'en' } },
     coder: { display: { language: 'zh', skin: 'mono' } }
   }
 
-  const api = vi.fn(async (request: HermesApiRequest) => {
+  const api = vi.fn(async (request: KovaApiRequest) => {
     const key = request.profile || 'default'
 
     if (request.method === 'PUT') {
-      configs[key] = structuredClone((request.body as { config: HermesConfigRecord }).config)
+      configs[key] = structuredClone((request.body as { config: KovaConfigRecord }).config)
 
       return { ok: true }
     }
@@ -63,7 +63,7 @@ it('reads and persists the owning profile through A → B → A and restart', as
     return structuredClone(configs[key])
   })
 
-  window.hermesDesktop = { api } as never
+  window.kovaDesktop = { api } as never
 
   const view = render(
     <I18nProvider>
@@ -91,12 +91,12 @@ it('reads and persists the owning profile through A → B → A and restart', as
 })
 
 it('isolates stale reads and failed saves when the same profile moves between connections', async () => {
-  let finishBoot!: (config: HermesConfigRecord) => void
-  let finishSaveRead!: (config: HermesConfigRecord) => void
+  let finishBoot!: (config: KovaConfigRecord) => void
+  let finishSaveRead!: (config: KovaConfigRecord) => void
   let rejectSave!: (reason: Error) => void
   let reads = 0
 
-  const api = vi.fn((request: HermesApiRequest) => {
+  const api = vi.fn((request: KovaApiRequest) => {
     if (request.method === 'PUT') {
       return new Promise((_, reject) => {
         rejectSave = reject
@@ -120,7 +120,7 @@ it('isolates stale reads and failed saves when the same profile moves between co
     return Promise.resolve({ display: { language: request.connectionId === 'remote' ? 'zh' : 'en' } })
   })
 
-  window.hermesDesktop = { api } as never
+  window.kovaDesktop = { api } as never
   render(
     <I18nProvider>
       <Probe />
@@ -180,7 +180,7 @@ function savedKoWithDeferredProbe() {
     resolveProfile = resolve
   })
 
-  window.hermesDesktop = {
+  window.kovaDesktop = {
     api: vi.fn(async () => ({ display: { language: 'ko' } })),
     getMachineProfile: vi.fn(() => machineProfile)
   } as never
@@ -207,11 +207,11 @@ function mountWithOpenSocket() {
 // The backend-pack sync must still run once the client arrives, or a language
 // only a pack renders (ko via hermes-lang-ko) never leaves English.
 it('pulls the backend language pack once the gateway client is published after the socket opened', async () => {
-  window.hermesDesktop = { api: vi.fn(async () => ({ display: { language: 'ko' } })) } as never
+  window.kovaDesktop = { api: vi.fn(async () => ({ display: { language: 'ko' } })) } as never
   const request = koPackRequest()
 
   mountWithOpenSocket()
-  await waitFor(() => expect(window.hermesDesktop.api).toHaveBeenCalled())
+  await waitFor(() => expect(window.kovaDesktop.api).toHaveBeenCalled())
   expect(request).not.toHaveBeenCalled()
 
   act(() => $gateway.set({ request } as never))
@@ -225,7 +225,7 @@ it('keeps a pack-rendered saved language when the OS-language probe resolves aft
   const resolveProbe = savedKoWithDeferredProbe()
 
   mountWithOpenSocket()
-  await waitFor(() => expect(window.hermesDesktop.getMachineProfile).toHaveBeenCalled())
+  await waitFor(() => expect(window.kovaDesktop.getMachineProfile).toHaveBeenCalled())
 
   act(() => $gateway.set({ request: koPackRequest() } as never))
   await waitFor(() => expect(screen.getByTestId('locale').textContent).toBe('ko'))
@@ -240,7 +240,7 @@ it('promotes a saved pack language that arrives after the OS-language probe', as
   const resolveProbe = savedKoWithDeferredProbe()
 
   mountWithOpenSocket()
-  await waitFor(() => expect(window.hermesDesktop.getMachineProfile).toHaveBeenCalled())
+  await waitFor(() => expect(window.kovaDesktop.getMachineProfile).toHaveBeenCalled())
 
   await resolveProbe('en-US')
   expect(screen.getByTestId('locale').textContent).toBe('en')

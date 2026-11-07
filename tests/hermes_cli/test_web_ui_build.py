@@ -12,9 +12,9 @@ from tests.kova_cli.test_source_build import source_checkout, source_products, _
 
 
 @pytest.fixture(autouse=True)
-def _isolated_hermes_home(tmp_path, monkeypatch):
+def _isolated_kova_home(tmp_path, monkeypatch):
     """Keep web-build-stamp writes inside the test's tmp dir, never the real home."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "_hermes_home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "_kova_home"))
 
 
 def _touch(path: Path, offset: float = 0.0) -> None:

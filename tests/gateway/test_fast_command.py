@@ -140,7 +140,7 @@ def test_turn_route_injects_priority_processing_without_changing_runtime():
 async def test_handle_fast_command_global_flag_persists_config(monkeypatch, tmp_path):
     runner = _make_runner()
 
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr(gateway_run, "_load_gateway_config", dict)
     monkeypatch.setattr(gateway_run, "_resolve_gateway_model", lambda config=None: "gpt-5.4")
     # /fast now resolves eligibility through the session runtime resolver; with
@@ -163,7 +163,7 @@ async def test_session_fast_override_beats_config_default(monkeypatch, tmp_path)
     """A session /fast normal wins over agent.service_tier: fast in config."""
     runner = _make_runner()
 
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr(
         gateway_run,
         "_load_gateway_config",
@@ -206,7 +206,7 @@ async def test_fast_gate_follows_the_session_route(monkeypatch, tmp_path, defaul
     event = _make_event(command)
     session_key = runner._session_key_for_source(event.source)
     runner._session_model_overrides[session_key] = dict(override)
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr(gateway_run, "_load_gateway_config", dict)
     monkeypatch.setattr(gateway_run, "_resolve_gateway_model", lambda config=None: default_model)
 
@@ -236,7 +236,7 @@ async def test_fast_override_lands_under_the_recovered_telegram_topic_key(monkey
     turn_key = runner._session_key_for_source(dataclasses.replace(source, thread_id="77"))
     assert turn_key != raw_key
     runner._session_model_overrides[turn_key] = dict(_ASTRA_ON_CODEX)
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr(gateway_run, "_load_gateway_config", dict)
     monkeypatch.setattr(gateway_run, "_resolve_gateway_model", lambda config=None: "claude-sonnet-4-6")
 

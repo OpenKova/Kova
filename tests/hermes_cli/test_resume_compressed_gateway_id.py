@@ -85,8 +85,8 @@ def _gateway_store(loop, authority, tmp_path):
 
 
 def _cli(store, session_id):
-    from cli import HermesCLI
-    cli = HermesCLI.__new__(HermesCLI)
+    from cli import KovaCLI
+    cli = KovaCLI.__new__(KovaCLI)
     cli._resumed, cli._session_db, cli.session_id = True, store, session_id
     cli.session_start = None
     cli.conversation_history = []
@@ -100,7 +100,7 @@ def _cli(store, session_id):
 def rig(tmp_path, monkeypatch):
     from gateway import run
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     loop = asyncio.new_event_loop()
     try:
         authority, owner = loop.run_until_complete(_compressed(tmp_path))

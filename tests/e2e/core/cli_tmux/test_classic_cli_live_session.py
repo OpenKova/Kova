@@ -183,7 +183,7 @@ def test_classic_cli_live_session_runs_every_turn_in_the_gateway(tmp_path: Path)
     s = Session(pane)
     with llm:
         ch.write(llm.base_url, EXTRA_CONFIG)
-        ch.extra_env = {"PYTHONPATH": f"{ch.env()['PYTHONPATH']}:{WITNESS_DIR}", "HERMES_E2E_WITNESS": str(witness)}
+        ch.extra_env = {"PYTHONPATH": f"{ch.env()['PYTHONPATH']}:{WITNESS_DIR}", "KOVA_E2E_WITNESS": str(witness)}
         (ch.work / "notes.txt").write_text("fixture line one\nfixture line two\n", encoding="utf-8")
         (ch.work / "other.md").write_text("# other fixture\n", encoding="utf-8")
         try:

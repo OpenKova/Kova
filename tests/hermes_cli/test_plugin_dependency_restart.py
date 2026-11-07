@@ -4,7 +4,7 @@
 reload its plugins. Activation is a boot decision, so that gateway (and a running dashboard) keeps
 the generation it booted with and cannot import the new dependencies. Enable used to report
 "Gateway reloaded plugins; nothing of this plugin needs a session or restart", and discovery
-logged "run hermes pm repair" — on a hosted container the terminal backend then failed with
+logged "run kova pm repair" — on a hosted container the terminal backend then failed with
 ``No module named '<dep>'`` until something restarted the gateway. The honest answer is: restart.
 """
 
@@ -52,15 +52,15 @@ def _select_generation(home: Path, *, with_dist: bool, version: str = "1.0") -> 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    plugin = hermes_home / "plugins" / "depprobe"
+    kova_home = tmp_path / "hermes-home"
+    plugin = kova_home / "plugins" / "depprobe"
     plugin.mkdir(parents=True)
     (plugin / "plugin.yaml").write_text(
         f"name: depprobe\nversion: '1.0'\npython_dependencies:\n  - '{REQ}'\n", encoding="utf-8")
     (plugin / "__init__.py").write_text("def register(ctx):\n    pass\n", encoding="utf-8")
-    (hermes_home / "config.yaml").write_text("plugins:\n  enabled: [depprobe]\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    return hermes_home
+    (kova_home / "config.yaml").write_text("plugins:\n  enabled: [depprobe]\n  disabled: []\n", encoding="utf-8")
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    return kova_home
 
 
 def _discover(caplog):
@@ -216,7 +216,7 @@ def test_a_plugin_importing_its_new_dependency_at_load_still_asks_for_a_restart(
 def test_restart_follows_what_pm_installs_for_the_plugin(home, shape, restart):
     """The probe reads the declaration the way PM admission does: an authored pyproject.toml, the
     legacy ``pip_dependencies`` alias, and nothing for a ``python_runtime: external`` sidecar (its
-    dependencies never enter Hermes's environment, so no restart or repair can load them)."""
+    dependencies never enter Kova's environment, so no restart or repair can load them)."""
     from kova_cli import plugins
 
     _select_generation(home, with_dist=True)

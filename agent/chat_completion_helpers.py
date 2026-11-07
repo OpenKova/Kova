@@ -442,13 +442,13 @@ def openai_codex_stale_timeout_floor(est_tokens: int) -> float:
 def _bound_openai_codex_stale_timeout(stale_timeout: float, est_tokens: int) -> float:
     """Apply the openai-codex stale bounds: raise to ``openai_codex_stale_timeout_floor``
     so healthy gateway-scale requests aren't aborted mid-prefill, then clamp to the flat
-    HERMES_CODEX_HARD_TIMEOUT_SECONDS ceiling (#64507, default 1500s — above the max
+    KOVA_CODEX_HARD_TIMEOUT_SECONDS ceiling (#64507, default 1500s — above the max
     floor, a backstop for a request that emits SOME events then wedges; 0 disables).
     Shared by the worker watchdogs and the inline cron path (#69734)."""
     floor = openai_codex_stale_timeout_floor(est_tokens)
     if floor:
         stale_timeout = max(stale_timeout, floor)
-    hard_timeout = env_float("HERMES_CODEX_HARD_TIMEOUT_SECONDS", 1500.0)
+    hard_timeout = env_float("KOVA_CODEX_HARD_TIMEOUT_SECONDS", 1500.0)
     return min(stale_timeout, hard_timeout) if hard_timeout > 0 else stale_timeout
 
 
@@ -619,21 +619,21 @@ def _check_stale_giveup(agent) -> None:
 
 
 def _stream_env_stale_base() -> tuple[float, bool]:
-    """(HERMES_STREAM_STALE_TIMEOUT or the implicit 180s, explicit) — like
+    """(KOVA_STREAM_STALE_TIMEOUT or the implicit 180s, explicit) — like
     ``AIAgent._resolved_api_call_stale_timeout_base``; an explicit env value is the
     user's deadline, so it is never capped to the run budget."""
-    return env_float("HERMES_STREAM_STALE_TIMEOUT", 180.0), "HERMES_STREAM_STALE_TIMEOUT" in os.environ
+    return env_float("KOVA_STREAM_STALE_TIMEOUT", 180.0), "KOVA_STREAM_STALE_TIMEOUT" in os.environ
 
 
 def _configured_stale_base(agent) -> float:
-    """Per-provider ``stale_timeout_seconds`` config, else HERMES_STREAM_STALE_TIMEOUT (180s)."""
+    """Per-provider ``stale_timeout_seconds`` config, else KOVA_STREAM_STALE_TIMEOUT (180s)."""
     cfg = get_provider_stale_timeout(agent.provider, agent.model)
     return cfg if cfg is not None else _stream_env_stale_base()[0]
 
 
 def _local_stream_stale_timeout_default() -> float:
     """Local-provider stale ceiling: ``agent.local_stream_stale_timeout`` (900s) or
-    HERMES_LOCAL_STREAM_STALE_TIMEOUT. Shared by the stream stale detector and the
+    KOVA_LOCAL_STREAM_STALE_TIMEOUT. Shared by the stream stale detector and the
     Responses first-event watchdog so both give a local server the same prefill grace."""
     local_default = 900.0
     with contextlib.suppress(Exception):
@@ -643,7 +643,7 @@ def _local_stream_stale_timeout_default() -> float:
         value = agent_cfg.get("local_stream_stale_timeout") if isinstance(agent_cfg, dict) else None
         if isinstance(value, (int, float)):
             local_default = float(value)
-    return env_float("HERMES_LOCAL_STREAM_STALE_TIMEOUT", local_default)
+    return env_float("KOVA_LOCAL_STREAM_STALE_TIMEOUT", local_default)
 
 
 def _scale_stale_timeout_for_context(base: float, est_tokens: int) -> float:
@@ -729,7 +729,7 @@ def _bedrock_reasoning_stale_floor(model_id: object) -> float | None:
 
 
 def _bedrock_converse_call(api_kwargs: dict, *, stream: bool, on_stream_denied=None):
-    """Pop the Hermes routing keys and call ``converse`` / ``converse_stream`` (boto3 directly) with the
+    """Pop the Kova routing keys and call ``converse`` / ``converse_stream`` (boto3 directly) with the
     adapter's shared recovery: a cachePoint rejection (Nova: toolConfig.tools, #97281) or a replayed sealed
     reasoning rejection resends once without the offending blocks inside the same attempt; a streaming IAM
     denial hands off to ``on_stream_denied(client, kwargs, exc)``; a stale connection evicts the cached
@@ -1170,10 +1170,10 @@ def _resolve_nonstream_watchdogs(agent, api_kwargs: dict) -> _NonStreamWatchdogs
     event remains transport activity). Only the implicit official OpenAI Codex policy
     for large contexts defers arming until progress; small requests, compatible backends,
     and explicit overrides retain the legacy first-event semantics. Tunables:
-    HERMES_CODEX_TTFB_TIMEOUT_SECONDS,
-    HERMES_CODEX_EVENT_STALE_TIMEOUT_SECONDS (0 disables each),
-    HERMES_CODEX_TTFB_DISABLE_ABOVE_TOKENS / HERMES_CODEX_TTFB_STRICT,
-    HERMES_CODEX_TTFB_MAX_SECONDS (opt-in ceiling, default 0 = none), HERMES_CODEX_HARD_TIMEOUT_SECONDS.
+    KOVA_CODEX_TTFB_TIMEOUT_SECONDS,
+    KOVA_CODEX_EVENT_STALE_TIMEOUT_SECONDS (0 disables each),
+    KOVA_CODEX_TTFB_DISABLE_ABOVE_TOKENS / KOVA_CODEX_TTFB_STRICT,
+    KOVA_CODEX_TTFB_MAX_SECONDS (opt-in ceiling, default 0 = none), KOVA_CODEX_HARD_TIMEOUT_SECONDS.
     """
     # The effort floor on the STALE timeout lives inside _compute_non_stream_stale_timeout so the
     # run-budget cap still bounds it; here the floor only raises the TTFB/idle implicit defaults.
@@ -1198,26 +1198,26 @@ def _resolve_nonstream_watchdogs(agent, api_kwargs: dict) -> _NonStreamWatchdogs
     # No-event TTFB cutoff. Default 120s: the SDK's own read timeout is 600s,
     # and a tight 12s killed subscription-backed requests mid-prefill.
     ttfb_enabled = codex
-    ttfb_explicit = env_float("HERMES_CODEX_TTFB_TIMEOUT_SECONDS", -1.0) != -1.0
-    ttfb_timeout = env_float("HERMES_CODEX_TTFB_TIMEOUT_SECONDS", 120.0)
+    ttfb_explicit = env_float("KOVA_CODEX_TTFB_TIMEOUT_SECONDS", -1.0) != -1.0
+    ttfb_timeout = env_float("KOVA_CODEX_TTFB_TIMEOUT_SECONDS", 120.0)
     if ttfb_timeout <= 0:
         ttfb_enabled = False
     elif codex and not local:
         # Large requests legitimately spend tens of seconds in admission/prefill before the
         # first SSE event: scale the cutoff up to the idle default unless TTFB_STRICT is set.
-        disable_above = env_float("HERMES_CODEX_TTFB_DISABLE_ABOVE_TOKENS", 10_000.0)
-        strict = os.environ.get("HERMES_CODEX_TTFB_STRICT", "").strip().lower() in {"1", "true", "yes", "on"}
+        disable_above = env_float("KOVA_CODEX_TTFB_DISABLE_ABOVE_TOKENS", 10_000.0)
+        strict = os.environ.get("KOVA_CODEX_TTFB_STRICT", "").strip().lower() in {"1", "true", "yes", "on"}
         if not strict and disable_above > 0 and est_tokens >= disable_above and ttfb_timeout < idle_default:
             logger.info("Scaling codex-responses no-event TTFB watchdog from %.0fs to %.0fs "
                 "for large request (context=~%s tokens >= %.0f). "
-                "Set HERMES_CODEX_TTFB_STRICT=1 to keep the smaller cutoff.", ttfb_timeout, idle_default,
+                "Set KOVA_CODEX_TTFB_STRICT=1 to keep the smaller cutoff.", ttfb_timeout, idle_default,
                 f"{est_tokens:,}", disable_above)
             ttfb_timeout = idle_default
         # Opt-in ceiling (0 = off): a 120s default here silently undid the scale-up above (#91621).
-        ttfb_cap = env_float("HERMES_CODEX_TTFB_MAX_SECONDS", 0.0)
+        ttfb_cap = env_float("KOVA_CODEX_TTFB_MAX_SECONDS", 0.0)
         if ttfb_cap > 0 and ttfb_timeout > ttfb_cap:
             logger.info("Capping codex-responses no-event TTFB timeout from %.0fs to %.0fs "
-                "(context=~%s tokens) per HERMES_CODEX_TTFB_MAX_SECONDS.", ttfb_timeout, ttfb_cap,
+                "(context=~%s tokens) per KOVA_CODEX_TTFB_MAX_SECONDS.", ttfb_timeout, ttfb_cap,
                 f"{est_tokens:,}")
             ttfb_timeout = ttfb_cap
     elif not ttfb_explicit and local:
@@ -1227,7 +1227,7 @@ def _resolve_nonstream_watchdogs(agent, api_kwargs: dict) -> _NonStreamWatchdogs
         local_ceiling = _local_stream_stale_timeout_default()
         if local_ceiling > ttfb_timeout:
             logger.info("Local provider detected (%s) — no-event TTFB watchdog raised from %.0fs to %.0fs "
-                "(agent.local_stream_stale_timeout); set HERMES_CODEX_TTFB_TIMEOUT_SECONDS for an explicit cutoff.",
+                "(agent.local_stream_stale_timeout); set KOVA_CODEX_TTFB_TIMEOUT_SECONDS for an explicit cutoff.",
                 base_url, ttfb_timeout, local_ceiling)
             ttfb_timeout = local_ceiling
     if ttfb_enabled and not ttfb_explicit:
@@ -1237,8 +1237,8 @@ def _resolve_nonstream_watchdogs(agent, api_kwargs: dict) -> _NonStreamWatchdogs
     # An operator-set idle timeout keeps first-event semantics; only the implicit
     # default defers arming until model progress. Sentinel: env_float returns the
     # default for unset AND unparseable values, so both count as implicit.
-    idle_explicit = env_float("HERMES_CODEX_EVENT_STALE_TIMEOUT_SECONDS", -1.0) != -1.0
-    idle_timeout = env_float("HERMES_CODEX_EVENT_STALE_TIMEOUT_SECONDS", idle_default)
+    idle_explicit = env_float("KOVA_CODEX_EVENT_STALE_TIMEOUT_SECONDS", -1.0) != -1.0
+    idle_timeout = env_float("KOVA_CODEX_EVENT_STALE_TIMEOUT_SECONDS", idle_default)
     progress_gated = codex and openai_codex_backend and codex_floor > 0 and not idle_explicit
     return _NonStreamWatchdogs(stale_timeout=stale_timeout, codex=codex, est_tokens=est_tokens,
         ttfb_enabled=ttfb_enabled, ttfb_timeout=ttfb_timeout, idle_enabled=codex and idle_timeout > 0,
@@ -1576,7 +1576,7 @@ def _assistant_content_for_storage(agent, assistant_message):
     # Sanitize surrogates (Kimi/GLM via Ollama emit code points that crash json.dumps),
     # strip inline <think> tags at the storage boundary (they leaked to platforms and
     # polluted titles), then redact inlined credentials before the message enters
-    # history / state.db / gateway delivery (no-op with HERMES_REDACT_SECRETS off).
+    # history / state.db / gateway delivery (no-op with KOVA_REDACT_SECRETS off).
     content = _sanitize_surrogates(flatten_message_text(getattr(assistant_message, "content", None)))
     if isinstance(content, str) and content:
         content = agent._strip_think_blocks(content).strip()
@@ -1901,8 +1901,8 @@ def _log_fallback_activated(agent, reason, old_model, old_provider, fb_model, fb
     if reason != FailoverReason.billing:
         logger.info("Fallback activated: %s → %s (%s)", old_model, fb_model, fb_provider)
         return
-    from kova_constants import get_hermes_home, profile_name_for_home
-    profile = profile_name_for_home(get_hermes_home()) or "default"
+    from kova_constants import get_kova_home, profile_name_for_home
+    profile = profile_name_for_home(get_kova_home()) or "default"
     remedy = "hermes model" if profile == "default" else f"hermes -p {profile} model"
     logger.warning(
         "Profile %s: %s via %s refused for billing/credits — using fallback %s via %s. "
@@ -2151,7 +2151,7 @@ def _iteration_summary_api_messages(agent, messages: list) -> list:
         # chat.completions.create() directly, bypassing the transport — so mirror that sanitization here:
         # tool_name (SQLite FTS bookkeeping), the codex_* reasoning carriers, timestamp (preserved on
         # gateway user replay entries for the stale-confirmation expiry check — #47868 rejection class), and
-        # every Hermes-internal underscore-prefixed scaffolding key.
+        # every Kova-internal underscore-prefixed scaffolding key.
         substitute_api_content(api_msg)
         if needs_sanitize:
             agent._sanitize_tool_calls_for_strict_api(api_msg, model=sanitize_model)
@@ -2662,7 +2662,7 @@ class _BedrockStream:
         except Exception as _inval_exc:
             logger.debug("bedrock: stale client eviction failed: %s", _inval_exc)
         self.last_event = time.time()
-        # Raises RuntimeError past HERMES_STREAM_STALE_GIVEUP; otherwise end
+        # Raises RuntimeError past KOVA_STREAM_STALE_GIVEUP; otherwise end
         # THIS call with a TimeoutError and let the streak carry forward.
         _check_stale_giveup(agent)
         self.result["error"] = TimeoutError(
@@ -2895,14 +2895,14 @@ class _StreamingCall(StreamingWaitMonitor):
 
     def _stream_timeouts(self) -> tuple[float, float, float]:
         """``(write, read, connect/pool)`` socket timeouts. Per-provider
-        ``request_timeout_seconds`` wins over HERMES_API_TIMEOUT (1800s) and
-        HERMES_STREAM_READ_TIMEOUT (120s); connect/pool cover the handshake, not
+        ``request_timeout_seconds`` wins over KOVA_API_TIMEOUT (1800s) and
+        KOVA_STREAM_READ_TIMEOUT (120s); connect/pool cover the handshake, not
         inference: 30s, or capped at 60s when configured."""
         cfg = get_provider_request_timeout(self.agent.provider, self.agent.model)
-        base = cfg if cfg is not None else env_float("HERMES_API_TIMEOUT", 1800.0)
+        base = cfg if cfg is not None else env_float("KOVA_API_TIMEOUT", 1800.0)
         if cfg is not None:
             return base, cfg, min(base, 60.0)
-        read = env_float("HERMES_STREAM_READ_TIMEOUT", 120.0)
+        read = env_float("KOVA_STREAM_READ_TIMEOUT", 120.0)
         stale = self._stream_stale_timeout
         if read == 120.0 and self.agent.base_url and is_local_endpoint(self.agent.base_url):
             read = base  # local providers prefill for minutes
@@ -3075,7 +3075,7 @@ class _StreamingCall(StreamingWaitMonitor):
             completed_response_predicate=lambda value: hasattr(value, "choices"),
             metadata=_relay_stream_metadata(self.agent, "chat_completions"), defer_logical_completion=True))
         if self.agent.provider == "moa":
-            # Hermes interrupts the managed stream; Relay alone closes the provider stream.
+            # Kova interrupts the managed stream; Relay alone closes the provider stream.
             self.clients.set_stream_handle(stream)
 
         def _close_half_read_stream(reason: str) -> None:
@@ -3718,9 +3718,9 @@ class _StreamingCall(StreamingWaitMonitor):
         return self._call_anthropic(request_client)
 
     def _call(self):
-        _max_stream_retries = env_int("HERMES_STREAM_RETRIES", 2)
+        _max_stream_retries = env_int("KOVA_STREAM_RETRIES", 2)
         # The one stream_options compatibility retry (#9705) is not a network retry and must not
-        # consume the transient budget: on the last attempt (or HERMES_STREAM_RETRIES=0) the
+        # consume the transient budget: on the last attempt (or KOVA_STREAM_RETRIES=0) the
         # handler returned True and the loop ended with neither a response nor an error set.
         self._compat_retries = 0
         _stream_attempt = -1
@@ -3860,7 +3860,7 @@ class _StreamingCall(StreamingWaitMonitor):
     def _resolve_stale_timeout(self) -> None:
         """Set ``_stream_stale_timeout``. Local endpoints (unless the env is set) get
         long but FINITE patience — 900s / ``agent.local_stream_stale_timeout`` /
-        HERMES_LOCAL_STREAM_STALE_TIMEOUT — an infinite one stalled sessions on a
+        KOVA_LOCAL_STREAM_STALE_TIMEOUT — an infinite one stalled sessions on a
         crashed endpoint forever. Cloud values scale with context size and are
         floored for known reasoning models (else BrokenPipeError from the gateway)."""
         base = _configured_stale_base(self.agent)

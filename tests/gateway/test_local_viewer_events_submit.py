@@ -1,6 +1,6 @@
 """The classic CLI's per-turn ``prompt.submit`` fields survive canonical admission (CALLMAP W2).
 
-Main's HermesCLI sends the model an API-only message (voice prefix, model-switch and skills-reload
+Main's KovaCLI sends the model an API-only message (voice prefix, model-switch and skills-reload
 notes) while persisting the clean text, names the turn's author, and runs ``/model --once`` / ``/moa``
 as a one-turn override. Each is committed with the admission row as ``cli_turn_v1`` and bound to that
 admission's execution only.

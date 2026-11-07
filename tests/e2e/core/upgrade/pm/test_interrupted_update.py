@@ -62,7 +62,7 @@ def home(tmp_path_factory, provider):
 
 def _retry(sb: I.Sandbox, *args: str, timeout: float = P.UPDATE_TIMEOUT) -> subprocess.CompletedProcess:
     """A later retry by the user: a fresh process whose pid is never the dead updater's."""
-    return P.run_env(sb, [*_RETRY_PREFIX, sb.hermes, *args], P.lazy_env(sb), timeout=timeout)
+    return P.run_env(sb, [*_RETRY_PREFIX, sb.kova, *args], P.lazy_env(sb), timeout=timeout)
 
 
 def _turn(sb: I.Sandbox, provider: FakeLLMServer, marker: str) -> subprocess.CompletedProcess:
@@ -93,7 +93,7 @@ def _kill_update_at(sb: I.Sandbox, phase: str) -> dict:
 
     with log.open("w") as out:
         proc = subprocess.Popen(
-            H.sandbox_argv([*_KILLED_RUN_PREFIX, sb.hermes, "update", "--yes", "--branch", "main"], writable=[sb.root]),
+            H.sandbox_argv([*_KILLED_RUN_PREFIX, sb.kova, "update", "--yes", "--branch", "main"], writable=[sb.root]),
             env=P.lazy_env(sb), cwd=str(sb.root), stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT,
             text=True, start_new_session=True)
         try:

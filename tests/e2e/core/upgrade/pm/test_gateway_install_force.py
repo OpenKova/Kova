@@ -1,12 +1,12 @@
 """The PM runtime lock is where PM commands look for it (PM lifecycle, class 6; #124075).
 
 The field report: after ``hermes gateway install --force`` the gateway crash-looped with "no
-dependency environment is committed" and ``hermes pm repair`` / ``pm doctor`` / ``pm status`` all
+dependency environment is committed" and ``kova pm repair`` / ``pm doctor`` / ``pm status`` all
 died on ``FileNotFoundError: <install>/environments/<env>/workspace/pm/uv.lock``.
 
 ``--force`` was incidental: every generation's ``workspace/`` copy was materialised without
 ``pm/uv.lock`` (the copy dropped every file named ``uv.lock``), so ANY ``hermes pm`` command run
-by the selected generation's own ``hermes`` (the one on PATH for every child a Hermes process
+by the selected generation's own ``hermes`` (the one on PATH for every child a Kova process
 spawns, and the one a unit pointing at the managed environment runs) died before it started.
 After a dependency-changing ``hermes update``:
 
@@ -66,9 +66,9 @@ def updated(tmp_path_factory, provider):
 
 def test_gateway_install_force_leaves_the_install_bootable(updated):
     sb = updated
-    cp = P.run_env(sb, [sb.hermes, "gateway", "install", "--force"], P.lazy_env(sb), timeout=600)
+    cp = P.run_env(sb, [sb.kova, "gateway", "install", "--force"], P.lazy_env(sb), timeout=600)
     assert I.TRACEBACK not in cp.stdout + cp.stderr, I.describe(cp)
-    bad = _pm_failures(sb, sb.hermes)
+    bad = _pm_failures(sb, sb.kova)
     assert not bad, "hermes pm commands fail after `gateway install --force`:\n" + "\n".join(bad)
     gw = P.Gateway(sb, P.lazy_env(sb), sb.root / "after-install-force.log")
     try:

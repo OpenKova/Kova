@@ -41,7 +41,7 @@ async def test_origin_injection_is_refused_up_front_until_the_chat_holds_a_human
     from gateway.run import GatewayRunner
     from gateway.session_authority import initialize_session_authority
     from gateway.session_results import execution_result
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from plugins.platforms.discord.adapter import DiscordAdapter
 
     monkeypatch.setenv("DISCORD_ALLOWED_USERS", "42")
@@ -65,7 +65,7 @@ async def test_origin_injection_is_refused_up_front_until_the_chat_holds_a_human
         return "reply"
     monkeypatch.setattr(runner, "_handle_message_with_agent", turn)
 
-    ctx, manager = _context(get_hermes_home())
+    ctx, manager = _context(get_kova_home())
     _publish(runner, manager)
     origin = {"platform": "discord", "chat_id": "42", "chat_type": "dm", "user_id": "42"}
     source = adapter.build_source(chat_id="42", chat_type="dm", user_id="42")

@@ -182,7 +182,7 @@ class MCPServerTransportMixin:
             # Servers key logs/behaviour on clientInfo; the SDK default is "mcp"/"0.1.0".
             from mcp.types import Implementation
             from kova_cli.version_info import get_version_info
-            kwargs["client_info"] = Implementation(name="hermes-agent", version=get_version_info().base_version)
+            kwargs["client_info"] = Implementation(name="kova-agent", version=get_version_info().base_version)
         return kwargs
 
     async def _negotiate_session(self, session, connect_timeout: float):
@@ -243,7 +243,7 @@ class MCPServerTransportMixin:
         offered = _core.LATEST_HANDSHAKE_VERSION
         build_caps = getattr(session, "_build_capabilities", None)
         capabilities = build_caps(offered) if callable(build_caps) else types.ClientCapabilities()
-        client_info = getattr(session, "_client_info", None) or types.Implementation(name="hermes-agent", version="0")
+        client_info = getattr(session, "_client_info", None) or types.Implementation(name="kova-agent", version="0")
         result = await session.send_request(
             types.InitializeRequest(params=types.InitializeRequestParams(
                 protocolVersion=offered, capabilities=capabilities, clientInfo=client_info)),
@@ -407,7 +407,7 @@ class MCPServerTransportMixin:
         # thread: the reaper blocks up to 2s (SIGTERM → wait → SIGKILL) when orphans exist, which would
         # otherwise stall the shared MCP event loop.
         new_pids: set = set()
-        # Subprocess stderr goes to ~/.hermes/logs/mcp-stderr.log so banners can't corrupt the TUI.
+        # Subprocess stderr goes to ~/.kova/logs/mcp-stderr.log so banners can't corrupt the TUI.
         _config._write_stderr_log_header(self.name)
         stderr = _config._StderrTee(_config._get_mcp_stderr_log())
         try:

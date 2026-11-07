@@ -65,7 +65,7 @@ def test_restart_spec_normalizes_legacy_pythonw_argv(tmp_path):
     argv = [str(pythonw), "-m", "kova_cli.main", "gateway", "run"]
     with mock.patch.object(
         gateway_windows, "_stable_gateway_working_dir", return_value=str(tmp_path)
-    ), mock.patch("kova_cli.config.get_hermes_home", return_value=str(tmp_path)):
+    ), mock.patch("kova_cli.config.get_kova_home", return_value=str(tmp_path)):
         new_argv, cwd, env = gateway_windows.windowless_gateway_restart_spec(list(argv))
 
     assert new_argv[0] == str(python)

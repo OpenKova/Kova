@@ -26,8 +26,8 @@ _DEPLETED_LINE = "Status: access depleted — top up to restore"
 # Usage-window plans: allowances are shown as percent used.
 _WINDOW_TOP_TIER_USED_UP = "Monthly large-model usage is used up."
 _WINDOW_PAUSED_LINE = ("Status: included usage paused. Your subscription payment failed. Update your card to restore it. "
-                       "Until then, Hermes uses your credits.")
-_WINDOW_PAUSED_OTHER_LINE = "Status: included usage paused. See Billing in the Portal. Until then, Hermes uses your credits."
+                       "Until then, Kova uses your credits.")
+_WINDOW_PAUSED_OTHER_LINE = "Status: included usage paused. See Billing in the Portal. Until then, Kova uses your credits."
 
 
 def _utc_now() -> datetime:
@@ -61,7 +61,7 @@ class AccountUsageSnapshot:
     # fetcher cannot tell accounts apart, so the snapshot belongs to the provider's legacy slot.
     identity: Optional[str] = None
     # Exact decoded provider response body (no headers/credentials) for integrations that need
-    # fields Hermes does not normalize yet. Only populated by providers that fetch a JSON body.
+    # fields Kova does not normalize yet. Only populated by providers that fetch a JSON body.
     raw: Optional[dict] = None
     # Usage-window plans only: the stacked bar layout. Every other snapshot
     # renders exactly as before.
@@ -224,7 +224,7 @@ def _window_top_tier_line(reset_at: Optional[datetime], keep_going_on_credits: A
     return f"{_WINDOW_TOP_TIER_USED_UP}{resets}{tail}"
 
 
-_WINDOW_KEEP_GOING_OFF_LINE = "Keep going on credits: off. Hermes waits for the reset (turn on in /topup)."
+_WINDOW_KEEP_GOING_OFF_LINE = "Keep going on credits: off. Kova waits for the reset (turn on in /topup)."
 _WINDOW_KEEP_GOING_ON_LINE = "Keep going on credits: on. Uses your credits when included usage runs out."
 
 
@@ -403,7 +403,7 @@ def apply_header_gauge(snapshot: Optional[AccountUsageSnapshot], credits_state: 
 def nous_credits_lines(*, markdown: bool = False, timeout: float = 10.0, credits_state: Any = None) -> list[str]:
     """Rendered Nous-credits /usage lines, or [] when there's nothing to show. Independent of any live agent
     (logged-in gate, then a bounded portal fetch); shared by CLI ``_show_usage`` and the TUI ``session.usage`` RPC.
-    Fail-open: any hiccup or timeout → []. HERMES_DEV_CREDITS_FIXTURE renders from the fixture instead of the portal.
+    Fail-open: any hiccup or timeout → []. KOVA_DEV_CREDITS_FIXTURE renders from the fixture instead of the portal.
     ``credits_state`` is the last response's header gauge; when it is ahead of the portal, the bars use it."""
     return nous_credits_view(markdown=markdown, timeout=timeout, credits_state=credits_state)[0]
 
@@ -462,7 +462,7 @@ def _snapshot_from_credits_state(state) -> Optional[AccountUsageSnapshot]:
                 details.append(f"Top-up credits: ${state.purchased_usd}")
             if getattr(state, "paid_access", True) is False and not window_lines:
                 details.append(_DEPLETED_LINE)
-            return _nous_snapshot(windows, details, ["(dev fixture — HERMES_DEV_CREDITS_FIXTURE)"], source="dev-fixture",
+            return _nous_snapshot(windows, details, ["(dev fixture — KOVA_DEV_CREDITS_FIXTURE)"], source="dev-fixture",
                                   usage_window=True)
         uf = getattr(state, "used_fraction", None)
         sub_usd = getattr(state, "subscription_usd", None)
@@ -478,7 +478,7 @@ def _snapshot_from_credits_state(state) -> Optional[AccountUsageSnapshot]:
                 details.append(f"{label}: ${value}")
         if getattr(state, "paid_access", True) is False:
             details.append(_DEPLETED_LINE)
-        return _nous_snapshot(windows, details, ["(dev fixture — HERMES_DEV_CREDITS_FIXTURE)"], source="dev-fixture")
+        return _nous_snapshot(windows, details, ["(dev fixture — KOVA_DEV_CREDITS_FIXTURE)"], source="dev-fixture")
     except (AttributeError, TypeError):
         return None
 

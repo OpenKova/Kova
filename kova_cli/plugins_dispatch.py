@@ -127,7 +127,7 @@ def format_system_prompt_sections(sections: list) -> str:
 
 
 # Reserved event namespace prefix — only core may publish ``hermes:<event>``.
-HERMES_EVENT_NAMESPACE = "hermes"
+KOVA_EVENT_NAMESPACE = "hermes"
 # Event recursion depth cap (subscribers may emit); over-deep emits are dropped with a warning.
 _EVENT_EMIT_DEPTH_CAP = 8
 # Max queued + running events per manager generation; emit never waits — a full budget drops.
@@ -234,7 +234,7 @@ def resolve_plugin_command_result(result: Any) -> Any:
             done.set()
 
     # copy_context: the helper thread must see the caller's profile/secret scope, else an
-    # async hook under a running loop reads the default HERMES_HOME and get_secret raises.
+    # async hook under a running loop reads the default KOVA_HOME and get_secret raises.
     threading.Thread(target=contextvars.copy_context().run, args=(_runner,),
                      name="hermes-plugin-command-await", daemon=True).start()
     if not done.wait(timeout=_PLUGIN_COMMAND_AWAIT_TIMEOUT_SECS):

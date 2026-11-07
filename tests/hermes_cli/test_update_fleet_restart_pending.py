@@ -27,7 +27,7 @@ from kova_cli import main_install_repair
 from kova_cli import update_cmd
 from kova_cli import update_cmd_fleet
 from kova_cli.update_receipt import COMMAND_BOUNDARY_STOP_REASON
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 import kova_cli.update_host_obligation as host_obligation
 from gateway import host_rendezvous
 
@@ -113,7 +113,7 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
     monkeypatch.setattr(
         hermes_main,
         "_get_origin_url",
-        lambda *a, **k: "https://github.com/NousResearch/hermes-agent.git",
+        lambda *a, **k: "https://github.com/NousResearch/kova-agent.git",
     )
     monkeypatch.setattr(update_cmd, "_is_fork", lambda *a, **k: False)
     monkeypatch.setattr(
@@ -217,7 +217,7 @@ def test_obligation_round_trip_is_host_scoped():
     record = json.loads(path.read_text(encoding="utf-8"))
     assert record["expected_sha"] == "abc123"
     assert record["pid"] and record["started"]
-    assert not (get_hermes_home() / "fleet_restart_pending").exists()
+    assert not (get_kova_home() / "fleet_restart_pending").exists()
 
     update_cmd._clear_fleet_restart_pending_marker()
     assert not update_cmd_fleet._fleet_restart_obligation_armed()
@@ -236,7 +236,7 @@ def test_pending_needed_when_unfinished_receipt_runtime_sha_skews(monkeypatch):
     monkeypatch.setattr(update_cmd, "_current_checkout_sha", lambda: disk_sha)
     monkeypatch.setattr(update_cmd_fleet, "_current_checkout_sha", lambda: disk_sha)
 
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -274,7 +274,7 @@ def test_successful_receipt_with_pre_update_plan_shas_does_not_retrigger(
     monkeypatch.setattr(update_cmd, "_current_checkout_sha", lambda: disk_sha)
     monkeypatch.setattr(update_cmd_fleet, "_current_checkout_sha", lambda: disk_sha)
 
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -318,7 +318,7 @@ def test_successful_command_boundary_receipt_without_fleet_does_not_retrigger(
     monkeypatch.setattr(update_cmd, "_current_checkout_sha", lambda: disk_sha)
     monkeypatch.setattr(update_cmd_fleet, "_current_checkout_sha", lambda: disk_sha)
 
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -368,7 +368,7 @@ def test_stale_fleet_matrix_on_latest_receipt_is_pending(monkeypatch):
     monkeypatch.setattr(update_cmd, "_current_checkout_sha", lambda: disk_sha)
     monkeypatch.setattr(update_cmd_fleet, "_current_checkout_sha", lambda: disk_sha)
 
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -423,7 +423,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
     monkeypatch, tmp_path, capsys
 ):
     """#100479 end to end: the plan inventoried a gateway (restarted through
-    ``hermes-gateway.service``) and an unmanaged ``serve`` on the same
+    ``kova-gateway.service``) and an unmanaged ``serve`` on the same
     default profile. The serve survives the update as the SAME process, so
     the update must (1) warn, (2) reconcile it as ``unaccounted`` instead of
     borrowing the gateway's restart, and (3) under contract C3 (the code is
@@ -454,7 +454,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
 
     def _match(p, **kw):
         kw["restarted_services"] = list(kw.get("restarted_services") or []) + [
-            "hermes-gateway.service"
+            "kova-gateway.service"
         ]
         return real_match(p, **kw)
 
@@ -485,7 +485,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
     assert "serve [default] pid 5555" in out
     assert "follow-up 'gateway_restart'" in out
 
-    latest = get_hermes_home() / "logs" / "update_receipts" / "latest.json"
+    latest = get_kova_home() / "logs" / "update_receipts" / "latest.json"
     receipt = json.loads(latest.read_text(encoding="utf-8"))
     # (3) was "partial": a success that names the owed restart.
     assert receipt["outcome"] == "success"
@@ -530,7 +530,7 @@ def test_clean_update_defers_desktop_owned_serve_and_clears_marker(
 
     def _match(p, **kw):
         kw["restarted_services"] = list(kw.get("restarted_services") or []) + [
-            "hermes-gateway.service"
+            "kova-gateway.service"
         ]
         return real_match(p, **kw)
 
@@ -555,7 +555,7 @@ def test_clean_update_defers_desktop_owned_serve_and_clears_marker(
     assert "Planned runtimes the restart phase never touched" not in out
     assert not update_cmd_fleet._fleet_restart_obligation_armed()
 
-    latest = get_hermes_home() / "logs" / "update_receipts" / "latest.json"
+    latest = get_kova_home() / "logs" / "update_receipts" / "latest.json"
     receipt = json.loads(latest.read_text(encoding="utf-8"))
     assert receipt["outcome"] == "success"
     by_pid = {o["pid"]: o["outcome"] for o in receipt["runtime_outcomes"]}
@@ -600,7 +600,7 @@ def test_startup_warn_silent_when_nothing_pending(capsys):
 
 # ── Self-heal: marker left behind by a supervisor-level restart (#105417 / #111272) ──
 #
-# `systemctl --user restart hermes-gateway` never runs this module's clear path, and an update
+# `systemctl --user restart kova-gateway` never runs this module's clear path, and an update
 # whose fleet probe answered empty exits before clearing — so the marker survives a restart
 # that DID bring the fleet to the pulled code, and every later CLI call warns forever. The
 # marker is discharged when (and only when) the fleet provably serves expected_sha.
@@ -638,7 +638,7 @@ def test_startup_warn_discharged_when_multiplexer_covers_owed_profiles(monkeypat
         runtimes=[{"kind": "gateway", "profile": p} for p in ("default", "coder")],
     )
     _patch_marker_sha(monkeypatch, disk_sha)
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -825,7 +825,7 @@ def test_startup_warn_kept_when_receipt_owed_gateway_is_down(monkeypatch, capsys
     disk_sha = "e" * 40
     update_cmd._write_fleet_restart_pending_marker(expected_sha=disk_sha, runtimes=[{"kind": "gateway", "profile": p} for p in ("alpha", "beta")])
     _patch_marker_sha(monkeypatch, disk_sha)
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -861,7 +861,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
     restart it performed; ``hermes update``'s catch-up still owes the fleet the checkout."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -870,7 +870,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
                 "stop_reason": "AttributeError: module 'kova_cli.main_dashboard' has no attribute 'x'",
                 "pre_update": {"sha": pre}, "post_update": {"sha": pulled},
                 "gateway_restart": {
-                    "restarted_services": ["hermes-gateway"], "relaunched_profiles": [],
+                    "restarted_services": ["kova-gateway"], "relaunched_profiles": [],
                     "externally_supervised_profiles": [], "killed_pids": [], "failed_units": [],
                     "incomplete": False, "phase_error": "",
                 },
@@ -899,7 +899,7 @@ def test_startup_warn_silent_when_completed_update_fleet_restarted_onto_moved_ch
     update's ``post_update.sha`` — which is nothing that update still owes (#113350 steps 3–4)."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
-    receipt_dir = get_hermes_home() / "logs" / "update_receipts"
+    receipt_dir = get_kova_home() / "logs" / "update_receipts"
     receipt_dir.mkdir(parents=True)
     (receipt_dir / "latest.json").write_text(
         json.dumps(
@@ -907,7 +907,7 @@ def test_startup_warn_silent_when_completed_update_fleet_restarted_onto_moved_ch
                 "outcome": "success", "exit_code": 0,
                 "pre_update": {"sha": pre}, "post_update": {"sha": pulled},
                 "gateway_restart": {
-                    "restarted_services": ["hermes-gateway"], "relaunched_profiles": [],
+                    "restarted_services": ["kova-gateway"], "relaunched_profiles": [],
                     "externally_supervised_profiles": [], "killed_pids": [], "failed_units": [],
                     "incomplete": False, "phase_error": "",
                 },
@@ -1135,7 +1135,7 @@ def test_startup_warn_kept_when_sha_less_marker_fleet_is_all_external(monkeypatc
         "kova_cli.update_receipt.collect_fleet_versions",
         lambda **kwargs: [
             {"profile": "other", "pid": 43, "code_sha": "f" * 40, "code_version": "0.21.5", "state": "external",
-             "code_root": "/elsewhere/hermes-agent"}
+             "code_root": "/elsewhere/kova-agent"}
         ],
     )
 

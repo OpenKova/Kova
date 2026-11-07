@@ -107,7 +107,7 @@ def test_rescue_retention_uses_real_refs(tmp_path, monkeypatch, mode):
 
 
 @pytest.mark.parametrize('fault,body,modules,message', [
-    ('syntax', '<<<<<<< Updated upstream\nVALUE = 2\n', (), 'made the Hermes agent unexecutable'),
+    ('syntax', '<<<<<<< Updated upstream\nVALUE = 2\n', (), 'made the Kova agent unexecutable'),
     ('import', "raise RuntimeError('restored local failure')\n", ('consumer',), 'restored local failure'),
     ('preexisting', 'VALUE = 2\n', ('first',), None),
     ('later', "raise RuntimeError('restored later failure')\n", ('first', 'consumer'), 'restored later failure'),
@@ -271,14 +271,14 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     git("add", "-A")
     git("commit", "-qm", "init")
 
-    marker = tmp_path / ".hermes-bootstrap-complete"
+    marker = tmp_path / ".kova-bootstrap-complete"
     marker.write_text("")
 
     # Exact flags used by hermes update (kova_cli/main.py).
     git("stash", "push", "--include-untracked", "-m", "hermes-update-autostash")
 
     assert marker.exists(), (
-        ".hermes-bootstrap-complete was swept into the update autostash — it must "
+        ".kova-bootstrap-complete was swept into the update autostash — it must "
         "be listed in .gitignore so `git stash -u` skips it (#38529)."
     )
     # It must not even register as a dirty/untracked change.
@@ -286,7 +286,7 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
         ["git", "status", "--porcelain"], cwd=tmp_path, capture_output=True, text=True,
         check=False,
     ).stdout
-    assert ".hermes-bootstrap-complete" not in status
+    assert ".kova-bootstrap-complete" not in status
 
 
 
@@ -321,7 +321,7 @@ def test_update_autostash_survives_undeletable_untracked_dir(tmp_path):
     (tmp_path / "tracked.txt").write_text("v2 local change\n")
     pkg = tmp_path / "packaging" / "homebrew"
     pkg.mkdir(parents=True)
-    (pkg / "hermes-agent.rb").write_text("formula\n")
+    (pkg / "kova-agent.rb").write_text("formula\n")
     os.chmod(pkg, 0o555)  # undeletable contents, like a root-owned dir
     try:
         stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
@@ -335,7 +335,7 @@ def test_update_autostash_survives_undeletable_untracked_dir(tmp_path):
         )
         assert restored is True
         assert (tmp_path / "tracked.txt").read_text() == "v2 local change\n"
-        assert (pkg / "hermes-agent.rb").read_text() == "formula\n"
+        assert (pkg / "kova-agent.rb").read_text() == "formula\n"
     finally:
         os.chmod(pkg, 0o755)
 
@@ -661,7 +661,7 @@ def test_untracked_file_replaced_by_the_update_keeps_the_stash(tmp_path, local_s
     """#124641: the update adds a file where the user had an untracked file of the same name.
     ``stash apply`` refuses it ("already exists, no checkout"); the stash is the only copy of the
     user's version, so it is never dropped. The restored tree still gets the health check: a restore
-    that breaks Hermes resets the tree and exits 1."""
+    that breaks Kova resets the tree and exits 1."""
     git, stash_ref = _repo_with_stash(tmp_path, local_source)
     # The pull adds its own notes.md.
     (tmp_path / "notes.md").write_text("upstream notes\n", encoding="utf-8")

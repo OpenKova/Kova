@@ -66,7 +66,7 @@ class ActionResult:
     ``structuredContent`` leaves them ``None``, behavior unchanged.
 
     Beyond the transport-level ``ok`` flag, this carries cua-driver's structured action verdict so the model
-    can follow the documented verify → escalate ladder (NousResearch/hermes-agent#67052).
+    can follow the documented verify → escalate ladder (NousResearch/kova-agent#67052).
     """
 
     ok: bool
@@ -155,7 +155,7 @@ class ComputerUseProvider(ProviderBase):
 
     @abstractmethod
     def create_backend(self, *, permission_mode: str) -> ComputerUseBackend:
-        """A fresh, unstarted backend for one Hermes session (the tool calls ``start()``/``stop()``).
+        """A fresh, unstarted backend for one Kova session (the tool calls ``start()``/``stop()``).
         ``permission_mode`` is ``standard`` | ``bounded`` | ``unrestricted`` (approval bypass active)."""
 
     def is_available(self) -> bool:

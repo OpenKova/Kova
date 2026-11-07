@@ -1,7 +1,7 @@
 """E2E tests for the per-profile MCP lifecycle RPCs (mcp.servers.*).
 
 These drive the real registered gateway handlers against a real temp
-``HERMES_HOME`` with named profile dirs — no mocks of the config/mcp layer — and
+``KOVA_HOME`` with named profile dirs — no mocks of the config/mcp layer — and
 assert that every write lands in the RIGHT profile's ``config.yaml`` / ``.env``
 and NEVER leaks into the launch (default) profile.
 
@@ -22,20 +22,20 @@ from tui_gateway import server
 
 @pytest.fixture
 def hermes_root(tmp_path, monkeypatch):
-    """A temp HERMES_HOME root with two named profiles: 'work' and 'other'.
+    """A temp KOVA_HOME root with two named profiles: 'work' and 'other'.
 
-    Pointing HERMES_HOME at a dir outside ~/.hermes makes it the profile ROOT
-    (get_default_hermes_root's Docker/custom branch), so named profiles live at
+    Pointing KOVA_HOME at a dir outside ~/.kova makes it the profile ROOT
+    (get_default_kova_root's Docker/custom branch), so named profiles live at
     ``<root>/profiles/<name>/`` and the launch/default profile is ``<root>``.
     """
-    root = tmp_path / "hermes_home"
+    root = tmp_path / "kova_home"
     (root / "profiles" / "work").mkdir(parents=True)
     (root / "profiles" / "other").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     # Make sure no stale process-wide home override leaks in from another test.
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
 
-    assert get_hermes_home_override() is None
+    assert get_kova_home_override() is None
     return root
 
 
@@ -212,9 +212,9 @@ def test_status_does_not_mix_launch_runtime_into_another_profile(hermes_root):
 def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
     from kova_constants import (
-        hermes_home_key,
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        kova_home_key,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
     from tools import mcp_tool
 
@@ -224,11 +224,11 @@ def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
             {"profile": "work", "name": "shared", "config": {"command": "work-bin"}},
         )
     )
-    work_token = set_hermes_home_override(hermes_root / "profiles" / "work")
+    work_token = set_kova_home_override(hermes_root / "profiles" / "work")
     try:
-        work_scope = hermes_home_key()
+        work_scope = kova_home_key()
     finally:
-        reset_hermes_home_override(work_token)
+        reset_kova_home_override(work_token)
 
     work_server = SimpleNamespace(
         session=object(),
@@ -420,19 +420,19 @@ def test_oauth_catalog_add_follows_routed_profile_not_payload(hermes_root):
     """OAuth add sends {name, preset} only. requestGatewayForAgent carries the
     profile as routing metadata, so the write follows the bound scope."""
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     entry = _catalog_http_entry(auth="oauth")
     routed = hermes_root / "profiles" / "work"
     previous = is_multiplex_active()
     set_multiplex_active(False)
-    token = set_hermes_home_override(routed)
+    token = set_kova_home_override(routed)
     try:
         result = _result(
             _call("mcp.servers.add", {"name": entry.name, "preset": entry.name})
         )
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
         set_multiplex_active(previous)
 
     assert result["server"]["transport"] == "http"
@@ -519,7 +519,7 @@ def test_default_profile_add_when_profile_omitted(hermes_root):
             {"name": "rootsvc", "config": {"command": "rootsvc-bin"}},
         )
     )
-    # Omitted profile → launch/default profile == HERMES_HOME root config.yaml.
+    # Omitted profile → launch/default profile == KOVA_HOME root config.yaml.
     default_cfg = _read_yaml(root / "config.yaml")
     assert "rootsvc" in default_cfg.get("mcp_servers", {})
     # ...and NOT in a named profile.

@@ -11,21 +11,21 @@ import pytest
 REPO = Path(__file__).resolve().parents[2]
 
 
-def _run(args: list[str], hermes_home: Path, **extra_env: str) -> subprocess.CompletedProcess:
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("HERMES_", "TERMUX_"))}
-    env.update({"HERMES_HOME": str(hermes_home), "PYTHONPATH": str(REPO), **extra_env})
+def _run(args: list[str], kova_home: Path, **extra_env: str) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("KOVA_", "TERMUX_"))}
+    env.update({"KOVA_HOME": str(kova_home), "PYTHONPATH": str(REPO), **extra_env})
     return subprocess.run(
         [sys.executable, *args], cwd=REPO, env=env, capture_output=True, text=True, timeout=120, check=False)
 
 
 def test_relative_cpu_profile_path_lands_in_the_profile_logs(tmp_path: Path):
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
 
-    result = _run(["-m", "kova_cli.main", "--cpu-profile", "run.prof", "completion", "bash"], hermes_home)
+    result = _run(["-m", "kova_cli.main", "--cpu-profile", "run.prof", "completion", "bash"], kova_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
-    target = hermes_home / "logs" / "profiles" / "run.prof"
+    target = kova_home / "logs" / "profiles" / "run.prof"
     assert f"CPU profiling enabled: {target.resolve()}" in result.stderr
     assert pstats.Stats(str(target)).total_calls > 0
     assert "cumulative" in (target.parent / "run.prof.txt").read_text(encoding="utf-8")
@@ -33,8 +33,8 @@ def test_relative_cpu_profile_path_lands_in_the_profile_logs(tmp_path: Path):
 
 def test_oneshot_hard_exit_still_writes_the_profile(tmp_path: Path):
     """``-z`` leaves through ``os._exit`` (atexit skipped); the profile must still be written."""
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
     target = tmp_path / "oneshot.prof"
     code = (
         "from kova_cli.cpu_profile import enable_cpu_profile\n"
@@ -43,7 +43,7 @@ def test_oneshot_hard_exit_still_writes_the_profile(tmp_path: Path):
         "_exit_after_oneshot(0)\n"
     )
 
-    result = _run(["-c", code], hermes_home)
+    result = _run(["-c", code], kova_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -51,8 +51,8 @@ def test_oneshot_hard_exit_still_writes_the_profile(tmp_path: Path):
 
 def test_gateway_graceful_hard_exit_still_writes_the_profile(tmp_path: Path):
     """Every gateway exit funnels through ``os._exit`` (atexit skipped); the profile must still be written."""
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
     target = tmp_path / "gateway.prof"
     code = (
         "from kova_cli.cpu_profile import enable_cpu_profile\n"
@@ -61,7 +61,7 @@ def test_gateway_graceful_hard_exit_still_writes_the_profile(tmp_path: Path):
         "_exit_after_graceful_shutdown(0)\n"
     )
 
-    result = _run(["-c", code], hermes_home)
+    result = _run(["-c", code], kova_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -69,11 +69,11 @@ def test_gateway_graceful_hard_exit_still_writes_the_profile(tmp_path: Path):
 
 def test_version_writes_the_profile(tmp_path: Path):
     """``--version`` returns before agent startup; the parsed flag must still profile."""
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
     target = tmp_path / "version.prof"
 
-    result = _run(["-m", "kova_cli.main", "--cpu-profile", str(target), "--version"], hermes_home)
+    result = _run(["-m", "kova_cli.main", "--cpu-profile", str(target), "--version"], kova_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -81,8 +81,8 @@ def test_version_writes_the_profile(tmp_path: Path):
 
 def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path):
     """Termux's interactive fast path defers agent startup; ``--cpu-profile`` must still profile."""
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
     target = tmp_path / "termux.prof"
     code = (
         "import os, sys\n"
@@ -90,10 +90,10 @@ def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path)
         "main.cmd_chat = lambda args: None  # the interactive REPL needs a TTY\n"
         f"sys.argv = ['hermes', '--cpu-profile', {str(target)!r}]\n"
         "assert main._try_termux_fast_cli_launch()\n"
-        "assert os.environ.get('HERMES_DEFER_AGENT_STARTUP') == '1'  # lazy start kept\n"
+        "assert os.environ.get('KOVA_DEFER_AGENT_STARTUP') == '1'  # lazy start kept\n"
     )
 
-    result = _run(["-c", code], hermes_home, TERMUX_VERSION="0.118")
+    result = _run(["-c", code], kova_home, TERMUX_VERSION="0.118")
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -101,8 +101,8 @@ def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path)
 
 def test_in_place_relaunch_still_writes_the_profile(tmp_path: Path):
     """``relaunch`` replaces the process with ``exec`` on POSIX (atexit skipped); the profile must still be written."""
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
     target = tmp_path / "relaunch.prof"
     code = (
         "import sys\n"
@@ -113,7 +113,7 @@ def test_in_place_relaunch_still_writes_the_profile(tmp_path: Path):
         "relaunch.relaunch(['--resume', 'x'])\n"
     )
 
-    result = _run(["-c", code], hermes_home)
+    result = _run(["-c", code], kova_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -122,7 +122,7 @@ def test_in_place_relaunch_still_writes_the_profile(tmp_path: Path):
 @pytest.mark.platforms("posix")  # Windows reroutes through Popen + wait, which atexit already covers
 def test_named_profile_dashboard_reroute_still_writes_the_profile(tmp_path: Path):
     """A named profile's dashboard re-execs into the machine dashboard (atexit skipped); the profile must be written."""
-    profile_home = tmp_path / ".hermes" / "profiles" / "work"
+    profile_home = tmp_path / ".kova" / "profiles" / "work"
     profile_home.mkdir(parents=True)
     (profile_home / "config.yaml").write_text("model: {}\n", encoding="utf-8")
     target = tmp_path / "dashboard.prof"

@@ -77,8 +77,8 @@ def _digest(path):
 
 
 def _set_worktrees_config(text):
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(text, encoding="utf-8")
 
@@ -405,13 +405,13 @@ def test_cron_sweep_visits_only_the_active_profiles_registered_repos(repo, tmp_p
     """I7: a worktree made under profile A registers its repo for A's sweep only, and a
     registered repo that was deleted drops out."""
     import cron.scheduler as sched
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     home_a, home_b = tmp_path / "home-a", tmp_path / "home-b"
     home_a.mkdir()
     home_b.mkdir()
     monkeypatch.setattr("cron.jobs.load_jobs", list)
-    token = set_hermes_home_override(str(home_a))
+    token = set_kova_home_override(str(home_a))
     try:
         assert worktree_ops._setup_worktree(repo_root=str(repo), sync_base=False, name="reg") is not None
         gone = tmp_path / "gone"
@@ -423,12 +423,12 @@ def test_cron_sweep_visits_only_the_active_profiles_registered_repos(repo, tmp_p
         shutil.rmtree(gone)
         repos_a = sched._worktree_maintenance_repos()
     finally:
-        reset_hermes_home_override(token)
-    token = set_hermes_home_override(str(home_b))
+        reset_kova_home_override(token)
+    token = set_kova_home_override(str(home_b))
     try:
         repos_b = sched._worktree_maintenance_repos()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert os.path.realpath(repo) in repos_a
     assert str(gone) not in repos_a and os.path.realpath(gone) not in repos_a
     assert os.path.realpath(repo) not in repos_b

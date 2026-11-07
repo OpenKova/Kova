@@ -95,7 +95,7 @@ from gateway.platforms.event import MessageEvent, MessageType, ProcessingOutcome
 from plugins.platforms.feishu.adapter_choice_cards import FeishuChoiceCardsMixin
 from gateway.status import acquire_scoped_lock
 from gateway.status_scoped_locks import release_scoped_lock
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_json_write, env_float, env_int
 
 from gateway.platforms._shared import (
@@ -1004,7 +1004,7 @@ def _strip_edge_self_mentions(text: str, mentions: Sequence[FeishuMentionRef]) -
 # --- Multiplex isolation for the lark_oapi WebSocket client ---
 #
 # ``lark_oapi.ws.client`` keeps the asyncio loop in a *module-level global* (``loop``), and
-# Hermes monkey-patches ``websockets.connect`` on the shared module to inject ping settings.
+# Kova monkey-patches ``websockets.connect`` on the shared module to inject ping settings.
 # In multiplex mode N profiles each run a WS client on their own thread, so they overwrite
 # each other's globals (last-write-wins): tasks land on a sibling's loop ("Future attached
 # to a different loop") or a client binds the wrong loop and goes deaf. Fix: install
@@ -1019,7 +1019,7 @@ def _strip_edge_self_mentions(text: str, mentions: Sequence[FeishuMentionRef]) -
 # lark_oapi WebSocket client (#73779)
 # --------------------------------------------------------------------------- ``lark_oapi.ws.client`` keeps
 # the asyncio loop used by ``Client.start()`` and every coroutine it spawns in a *module-level global*
-# (``loop``), and Hermes also monkey-patches ``websockets.connect`` on the shared ``websockets`` module to
+# (``loop``), and Kova also monkey-patches ``websockets.connect`` on the shared ``websockets`` module to
 # inject per-adapter ping settings. In multiplex mode every profile runs its own WS client on a dedicated
 # thread, so the N threads overwrite each other's module globals (last-write-wins): a client ends up
 # scheduling tasks on a sibling profile's loop ("Future attached to a different loop" crashes) or binds to
@@ -1315,7 +1315,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
         self._webhook_runner = self._webhook_site = self._event_handler = None
         self._seen_message_ids: dict[str, float] = {}  # message_id → seen_at (time.time())
         self._seen_message_order: list[str] = []
-        self._dedup_state_path = get_hermes_home() / "feishu_seen_message_ids.json"
+        self._dedup_state_path = get_kova_home() / "feishu_seen_message_ids.json"
         self._dedup_lock = threading.Lock()
         # Serializes the offloaded dedup-state flushes so two concurrent
         # inbound messages cannot land their writes out of order.
@@ -1403,12 +1403,12 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
             bot_open_id=_secret("FEISHU_BOT_OPEN_ID"),
             bot_user_id=_secret("FEISHU_BOT_USER_ID"),
             bot_name=_secret("FEISHU_BOT_NAME"),
-            dedup_cache_size=max(32, env_int("HERMES_FEISHU_DEDUP_CACHE_SIZE", _DEFAULT_DEDUP_CACHE_SIZE)),
-            text_batch_delay_seconds=env_float("HERMES_FEISHU_TEXT_BATCH_DELAY_SECONDS", _DEFAULT_TEXT_BATCH_DELAY_SECONDS),
-            text_batch_split_delay_seconds=env_float("HERMES_FEISHU_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0),
-            text_batch_max_messages=max(1, env_int("HERMES_FEISHU_TEXT_BATCH_MAX_MESSAGES", _DEFAULT_TEXT_BATCH_MAX_MESSAGES)),
-            text_batch_max_chars=max(1, env_int("HERMES_FEISHU_TEXT_BATCH_MAX_CHARS", _DEFAULT_TEXT_BATCH_MAX_CHARS)),
-            media_batch_delay_seconds=env_float("HERMES_FEISHU_MEDIA_BATCH_DELAY_SECONDS", _DEFAULT_MEDIA_BATCH_DELAY_SECONDS),
+            dedup_cache_size=max(32, env_int("KOVA_FEISHU_DEDUP_CACHE_SIZE", _DEFAULT_DEDUP_CACHE_SIZE)),
+            text_batch_delay_seconds=env_float("KOVA_FEISHU_TEXT_BATCH_DELAY_SECONDS", _DEFAULT_TEXT_BATCH_DELAY_SECONDS),
+            text_batch_split_delay_seconds=env_float("KOVA_FEISHU_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0),
+            text_batch_max_messages=max(1, env_int("KOVA_FEISHU_TEXT_BATCH_MAX_MESSAGES", _DEFAULT_TEXT_BATCH_MAX_MESSAGES)),
+            text_batch_max_chars=max(1, env_int("KOVA_FEISHU_TEXT_BATCH_MAX_CHARS", _DEFAULT_TEXT_BATCH_MAX_CHARS)),
+            media_batch_delay_seconds=env_float("KOVA_FEISHU_MEDIA_BATCH_DELAY_SECONDS", _DEFAULT_MEDIA_BATCH_DELAY_SECONDS),
             webhook_host=_extra_or_env("webhook_host", "FEISHU_WEBHOOK_HOST", _DEFAULT_WEBHOOK_HOST),
             webhook_port=int(extra.get("webhook_port") or _get_scoped_secret("FEISHU_WEBHOOK_PORT", str(_DEFAULT_WEBHOOK_PORT))),
             webhook_path=_extra_or_env("webhook_path", "FEISHU_WEBHOOK_PATH", _DEFAULT_WEBHOOK_PATH) or _DEFAULT_WEBHOOK_PATH,
@@ -1472,7 +1472,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
         """Run a blocking Feishu SDK call on the adapter-owned thread pool.
 
         ``copy_context().run`` mirrors ``asyncio.to_thread``: the worker sees the caller's
-        profile HERMES_HOME override / secret scope (multiplexed dedup flush, thread lookup).
+        profile KOVA_HOME override / secret scope (multiplexed dedup flush, thread lookup).
         """
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
@@ -1521,7 +1521,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
             if not acquired:
                 owner_pid = existing.get("pid") if isinstance(existing, dict) else None
                 message = (
-                    "Another local Hermes gateway is already using this Feishu app_id"
+                    "Another local Kova gateway is already using this Feishu app_id"
                     + (f" (PID {owner_pid})." if owner_pid else ".")
                     + " Stop the other gateway before starting a second Feishu websocket client."
                 )
@@ -1862,7 +1862,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
 
     @staticmethod
     def _write_update_prompt_response(answer: str) -> None:
-        response_path = get_hermes_home() / ".update_response"
+        response_path = get_kova_home() / ".update_response"
         tmp_path = response_path.with_suffix(".tmp")
         tmp_path.write_text(answer, encoding="utf-8")
         tmp_path.replace(response_path)
@@ -2137,7 +2137,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
         )
 
     def _on_message_read_event(self, data: P2ImMessageMessageReadV1) -> None:
-        """Ignore read-receipt events that Hermes does not act on."""
+        """Ignore read-receipt events that Kova does not act on."""
         message = getattr(getattr(data, "event", None), "message", None)
         logger.debug("[Feishu] Ignoring message_read event: %s", getattr(message, "message_id", None) or "")
 
@@ -2790,7 +2790,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
             timeout=30.0, follow_redirects=True, event_hooks={"response": [ssrf_redirect_guard]},
         ) as client:
             response = await client.get(
-                file_url, headers={"User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)", "Accept": "*/*"},
+                file_url, headers={"User-Agent": "Mozilla/5.0 (compatible; KovaAgent/1.0)", "Accept": "*/*"},
             )
             response.raise_for_status()
             # Snapshot headers + body inside the context so pooled connections fully release.
@@ -2891,7 +2891,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
             return self._webhook_reject(remote_ip, "401-sig", 401, "Invalid signature")
 
         if payload.get("encrypt"):
-            logger.error("[Feishu] Encrypted webhook payloads are not supported by Hermes webhook mode")
+            logger.error("[Feishu] Encrypted webhook payloads are not supported by Kova webhook mode")
             return self._webhook_reject(
                 remote_ip, "400-encrypted", 400, json_msg="encrypted webhook payloads are not supported",
             )
@@ -3614,8 +3614,8 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
 
     def _persist_seen_message_ids(self) -> None:
         try:
-            from kova_constants import mkdir_under_hermes_home
-            mkdir_under_hermes_home(self._dedup_state_path.parent)
+            from kova_constants import mkdir_under_kova_home
+            mkdir_under_kova_home(self._dedup_state_path.parent)
             with self._dedup_lock:
                 recent = self._seen_message_order[-self._dedup_cache_size:]
                 # Save as {msg_id: timestamp} so TTL filtering works across restarts.
@@ -4314,7 +4314,7 @@ def _qr_register_inner(*, initial_domain: str, timeout_seconds: int) -> Optional
         print(f"\n  Scan the QR code above, or open this URL directly:\n  {qr_url}")
     else:
         print(f"  Open this URL in Feishu / Lark on your phone:\n\n  {qr_url}\n")
-        print("  Tip: from the Hermes environment, run: "
+        print("  Tip: from the Kova environment, run: "
               f"{install_hint('messaging')} "
               "to display a scannable QR code here next time")
     print()
@@ -4513,7 +4513,7 @@ def _is_connected(config) -> bool:
 
 
 def register(ctx) -> None:
-    """Plugin entry point — called by the Hermes plugin system."""
+    """Plugin entry point — called by the Kova plugin system."""
     from .adapter_hint import PLATFORM_HINT
     from .send_targets import SEND_ENTRY_KWARGS
     from .dashboard_card import DASHBOARD_CARD

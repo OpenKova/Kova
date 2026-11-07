@@ -152,7 +152,7 @@ async def update_config(
         # REST saves bypass the config.set RPC (which re-emits itself), so
         # refresh live sessions' cached approval/YOLO indicators after a mode
         # change. Own-profile saves only: a profile-scoped save targets a
-        # different HERMES_HOME than this process's gateway sessions.
+        # different KOVA_HOME than this process's gateway sessions.
         if approvals_mode_changed and not _is_other_profile(body.profile or profile):
             _broadcast_gateway_session_info()
         return {"ok": True}
@@ -740,7 +740,7 @@ def list_custom_endpoints(profile: Optional[str] = None):
 
     Scoped to the requested profile's config.yaml: the desktop settings UI
     targets the active profile, so read/write must resolve that profile's home
-    rather than the process-level HERMES_HOME (mirrors ``/api/config``).
+    rather than the process-level KOVA_HOME (mirrors ``/api/config``).
     """
     with http_failure("GET /api/providers/custom-endpoints failed", 500, detail="Failed to list custom endpoints"):
         with _config_profile_scope(profile):
@@ -765,8 +765,8 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = 
             with refusing_locked_omissions(*_ROUTE_SECTIONS) if body.make_default else contextlib.nullcontext():
                 save_config(cfg)
             response = _custom_endpoint_response(cfg)
-            from kova_constants import get_hermes_home
-            home = get_hermes_home()
+            from kova_constants import get_kova_home
+            home = get_kova_home()
         if created:  # editing an endpoint that exists sets nothing new up
             _record_custom_endpoint_setup(home)
         response["ok"] = True
@@ -778,7 +778,7 @@ def _record_custom_endpoint_setup(home: Any) -> None:
     """Counted after the config lock is released (a cold metrics runtime must not stall writers)."""
     from kova_cli.observability.shared_metrics_setup import record_provider_setup_done, web_setup_surface
 
-    record_provider_setup_done(web_setup_surface(), "custom", hermes_home=home, background=True)
+    record_provider_setup_done(web_setup_surface(), "custom", kova_home=home, background=True)
 
 
 @router.post("/api/providers/custom-endpoints/{endpoint_id}/activate")

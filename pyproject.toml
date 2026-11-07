@@ -194,7 +194,7 @@ dependencies = [
   # Windows log rotation. Stdlib ``RotatingFileHandler.doRollover()`` uses
   # ``os.rename()`` which fails with ``PermissionError [WinError 32]`` on
   # Windows whenever any other process holds an append-mode handle on
-  # ``agent.log`` (always the case in Hermes — TUI, gateway, ``hy_memory``
+  # ``agent.log`` (always the case in Kova — TUI, gateway, ``hy_memory``
   # server, MCP servers, and on-demand CLI commands all log from separate
   # processes), pinning ``agent.log`` at the 5 MiB threshold and spamming
   # stderr on every emit (see #44873). ``concurrent-log-handler`` wraps the
@@ -416,7 +416,7 @@ pty = []
 # from `httpx` to `httpx2`. httpx2 arrives transitively, but tools/mcp_tool.py
 # and tools/mcp_oauth_manager.py import it by name to build the client objects
 # they hand to the SDK, so it is pinned here explicitly rather than left to
-# resolution. Hermes' own `httpx[socks]==0.28.1` in [dependencies] is
+# resolution. Kova' own `httpx[socks]==0.28.1` in [dependencies] is
 # unaffected — the two distributions install side by side under different
 # module names.
 mcp = [
@@ -465,20 +465,20 @@ azure-identity = ["azure-identity==1.26.0"]
 termux = [
   # Baseline Android / Termux path for reliable fresh installs.
   "python-telegram-bot[webhooks]==22.8",
-  "hermes-agent[cron]",
-  "hermes-agent[mcp]",
-  "hermes-agent[acp]",
+  "kova-agent[cron]",
+  "kova-agent[mcp]",
+  "kova-agent[acp]",
 ]
 termux-all = [
   # Best-effort "install all" profile for Termux. Same policy as [all]:
   # only includes extras that are not prepared on demand by PM.
   # Backends like telegram/slack/dingtalk/feishu lazy-install at
   # first use, so they're no longer eager-installed here.
-  "hermes-agent[termux]",
-  "hermes-agent[google]",
-  "hermes-agent[sms]",
-  "hermes-agent[web]",
-  "hermes-agent[pty]",
+  "kova-agent[termux]",
+  "kova-agent[google]",
+  "kova-agent[sms]",
+  "kova-agent[web]",
+  "kova-agent[pty]",
 ]
 dingtalk = [
   "dingtalk-stream==0.24.3",
@@ -542,15 +542,15 @@ all = [
   # [all], `uv sync --locked` on Windows tried to build it from sdist
   # and failed on `make`. Lazy-install routes that build to first use,
   # where the user is expected to have a toolchain available.
-  "hermes-agent[cron]",
-  "hermes-agent[pty]",
-  "hermes-agent[mcp]",
-  "hermes-agent[uvloop]",
-  "hermes-agent[sms]",
-  "hermes-agent[acp]",
-  "hermes-agent[google]",
-  "hermes-agent[web]",
-  "hermes-agent[youtube]",
+  "kova-agent[cron]",
+  "kova-agent[pty]",
+  "kova-agent[mcp]",
+  "kova-agent[uvloop]",
+  "kova-agent[sms]",
+  "kova-agent[acp]",
+  "kova-agent[google]",
+  "kova-agent[web]",
+  "kova-agent[youtube]",
 ]
 
 [dependency-groups]
@@ -587,7 +587,7 @@ kova = "kova_cli.main:main"
 kova-agent = "agent.legacy_cli:main"
 kova-acp = "acp_adapter.entry:main"
 
-[tool.hermes]
+[tool.kova]
 # Extras that only an explicit selection installs (setup, sync_venv). Bundles
 # build with --all-extras and pass --no-extra for each of these, so their
 # closures never ship. KittenTTS pulls torch, transformers and spaCy through
@@ -615,7 +615,7 @@ update-startup-files = [
 # resolver needs them for --all-extras); this table is the readable
 # single-authority for WHICH extra is supported WHERE.
 
-[tool.hermes.extras-platforms]
+[tool.kova.extras-platforms]
 # mautrix[encryption] → python-olm: linux-only wheels, no win/darwin build.
 matrix = "sys_platform == 'linux'"
 # grpcio (via google-cloud-pubsub) has no win_arm64 wheel.
@@ -679,7 +679,7 @@ override-dependencies = [
   # Remove this line when misaki drops it or a 3.14-capable release fits.
   "spacy-curated-transformers; sys_platform == 'never'",
 ]
-# Release-age check: Hermes's dependencies must be at least 3 days old when Hermes
+# Release-age check: Kova's dependencies must be at least 3 days old when Kova
 # locks them. It runs where uv.lock is resolved (`hermes pm lock`, and CI's lock
 # check), never on users' machines: PM installs from this vetted lock and drops the
 # cutoff from what it generates (pm/workspace.py::_trust_core_lock), because many
@@ -761,7 +761,7 @@ markers = [
   "real_concurrent_gate: opt out of the autouse stub that disables _detect_concurrent_hermes_instances",
   "real_agent_prewarm: opt out of the autouse stub that disables the tui_gateway deferred agent pre-warm timer",
   "real_retry_backoff: opt out of the tests/agent autouse stub that zeroes jittered_backoff",
-  "requires_wal: needs the runtime to actually enable SQLite WAL mode (skipped where Hermes falls back to journal_mode=DELETE)",
+  "requires_wal: needs the runtime to actually enable SQLite WAL mode (skipped where Kova falls back to journal_mode=DELETE)",
   "no_isolate: opt out of per-file subprocess isolation (tests share mutable module-level state)",
   "ssh: marks tests requiring a reachable SSH server (skipped in normal CI)",
   "platforms(*specs, arch=None, arch_negate=False): run only on hosts matching at least one spec — linux/macos/windows/posix/any, 'not X' negation, optional arch filter",

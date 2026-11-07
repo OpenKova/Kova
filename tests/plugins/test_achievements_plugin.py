@@ -12,7 +12,7 @@ These target the two behaviors that matter for official integration:
 The upstream repo ships its own unittest suite under
 ``plugins/hermes-achievements/tests/`` covering the achievement engine
 internals (tier math, secret-state handling, catalog invariants). These
-tests live at the hermes-agent level and focus on the integration
+tests live at the kova-agent level and focus on the integration
 contract: the plugin scans ALL of your sessions, not the first 200.
 """
 from __future__ import annotations
@@ -37,7 +37,7 @@ PLUGIN_MODULE_PATH = (
 
 @pytest.fixture
 def plugin_api(tmp_path, monkeypatch):
-    """Load plugin_api with isolated ~/.hermes so state/snapshot files don't collide.
+    """Load plugin_api with isolated ~/.kova so state/snapshot files don't collide.
 
     We load the module fresh per test because the plugin keeps module-level
     caches (``_SNAPSHOT_CACHE``, ``_SCAN_STATUS``, background thread handle).
@@ -311,7 +311,7 @@ def test_scan_sessions_never_opens_a_writable_session_db(plugin_api, tmp_path, m
     import kova_state
     from kova_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
     seed = SessionDB(db_path=tmp_path / "state.db")
     seed.create_session("s1", source="cli")

@@ -31,7 +31,7 @@ STARTED_BEFORE_ON = f"The gateway started before the Webapp was turned on. Resta
 # A gateway answers a verb it does not know this way; the Webapp's are registered before its control
 # socket answers, so the gateway running predates them (an upgrade it has not restarted onto).
 OLDER_GATEWAY = ("The running gateway is older than the Webapp and does not know its commands. Restart it "
-                 f"onto this version of Hermes: {RESTART_COMMAND}")
+                 f"onto this version of Kova: {RESTART_COMMAND}")
 # Browsers keep secure-context APIs (crypto.subtle, mediaDevices, navigator.clipboard, Notification) from a
 # plain-HTTP origin that is not loopback.
 PLAIN_HTTP_NOTE = ("This address is plain HTTP, so the browser turns off what needs a secure connection: the bot "
@@ -55,7 +55,7 @@ def _gateway_home(home: Path) -> Path:
 
 def _deleted_profile_refusal(home: Path) -> str | None:
     """What ``-p <name>`` says when *home* is a named profile that was deleted or never created, else
-    None. ``HERMES_HOME`` set to such a home skips that check, and its gateway would be the default
+    None. ``KOVA_HOME`` set to such a home skips that check, and its gateway would be the default
     one, so the command refuses it the same way rather than act on the default profile."""
     from kova_cli.profiles import _missing_profile_error
     from kova_constants import named_profile_home, named_profile_is_live
@@ -106,8 +106,8 @@ def _open(url: str) -> bool:
 # else, so the referrer and any script stay out of it.
 _LAUNCH_PAGE = ('<!doctype html><meta charset="utf-8"><meta name="referrer" content="no-referrer">'
                 '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'">'
-                '<meta http-equiv="refresh" content="0;url={url}"><title>Opening Hermes</title>'
-                '<p><a href="{url}">Open Hermes Webapp</a></p>\n')
+                '<meta http-equiv="refresh" content="0;url={url}"><title>Opening Kova</title>'
+                '<p><a href="{url}">Open Kova Webapp</a></p>\n')
 
 
 def _open_privately(target: Path, url: str) -> bool:
@@ -123,7 +123,7 @@ def _open_privately(target: Path, url: str) -> bool:
     from kova_constants import is_wsl
     if os.name == "nt" or is_wsl():
         return False
-    folder = Path(target).absolute() / TOKEN_PATH.parent  # HERMES_HOME may be relative; a file: URI is not
+    folder = Path(target).absolute() / TOKEN_PATH.parent  # KOVA_HOME may be relative; a file: URI is not
     try:
         folder.mkdir(mode=0o700, parents=True, exist_ok=True)
         _close_to_other_users(folder)
@@ -281,7 +281,7 @@ def _signed_out_summary(result: dict) -> str:
         return ("The gateway is not serving the Webapp, so no browser is connected to it. Replaced its stored "
                 "browser credential: every browser must sign in again once it serves the Webapp.")
     if "connections_closed" not in result:
-        # A gateway started before this Hermes: it replaced the credential and closed the sockets that
+        # A gateway started before this Kova: it replaced the credential and closed the sockets that
         # credential opened, but logins behind the sign-in gate outlive it.
         return (f"Replaced the Webapp's browser credential. Restart the gateway ({RESTART_COMMAND}) to sign "
                 "out browsers that signed in with a password or an account too.")
@@ -353,9 +353,9 @@ def _explain_refused_launch(target: Path, response: dict) -> int:
 def cmd_webapp(args) -> int:
     from gateway.webapp_listener import webapp_settings
     from kova_cli.webapp import WebappBuildError, packaged_webapp_dist
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = get_hermes_home()
+    home = get_kova_home()
     if (refusal := _deleted_profile_refusal(home)) is not None:
         print(f"Error: {refusal}", file=sys.stderr)
         return 1
@@ -371,7 +371,7 @@ def cmd_webapp(args) -> int:
         _build(args)
     except WebappBuildError as exc:
         print(f"✗ {exc}")
-        # A packaged bundle (HERMES_WEBAPP_DIST) is never built here, so no build can fix it.
+        # A packaged bundle (KOVA_WEBAPP_DIST) is never built here, so no build can fix it.
         if packaged_webapp_dist() is None:
             print("  Build it explicitly:")
             print("    hermes webapp --build-only")

@@ -18,7 +18,7 @@ export interface WindowStateBridge {
   off: ReturnType<typeof vi.fn>
 }
 
-/** Install a fake `window.hermesDesktop` window-state channel. */
+/** Install a fake `window.kovaDesktop` window-state channel. */
 export function installWindowStateBridge(): WindowStateBridge {
   let callback: ((payload: WindowStatePayload) => void) | null = null
 

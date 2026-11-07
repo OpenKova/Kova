@@ -12,7 +12,7 @@ const secondaryGateways: Array<{
 let connectGate: Promise<void> | null = null
 
 vi.mock('@/hermes', () => ({
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     connect = vi.fn(async () => {
       if (this.connectionState === 'connecting') {
@@ -65,7 +65,7 @@ const {
 } = await import('./gateway')
 
 function installDesktop(getConnection: ReturnType<typeof vi.fn>): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
     getConnection
   }
 }
@@ -87,7 +87,7 @@ beforeEach(async () => {
 afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('requestGatewayForProfile', () => {
@@ -119,7 +119,7 @@ describe('requestGatewayForProfile', () => {
       // The target profile's backend never comes up.
       const getConnection = vi.fn(async (profile: null | string) => {
         if (profile === 'jody') {
-          throw new Error('Failed to connect to Hermes gateway')
+          throw new Error('Failed to connect to Kova gateway')
         }
 
         return { port: 4242, token: 'primary-token' }
@@ -163,7 +163,7 @@ describe('requestGatewayForProfile', () => {
       const getConnection = vi.fn(async (profile: null | string) => {
         if (profile === 'jody') {
           if (!jodyUp) {
-            throw new Error('Failed to connect to Hermes gateway')
+            throw new Error('Failed to connect to Kova gateway')
           }
 
           return { port: 5151, profile, token: 'secondary-token' }
@@ -315,7 +315,7 @@ describe('requestGatewayForAgent', () => {
     setPrimaryGateway(primary as never, 'default')
     setPrimaryGatewayConnection({ connectionId: 'remote-primary' })
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(),
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async () => ({ ok: true as const, wsUrl: 'wss://remote.invalid/api/ws' }))
@@ -352,7 +352,7 @@ describe('requestGatewayForAgent', () => {
     setPrimaryGateway(primary as never, 'default')
     setPrimaryGatewayConnection({ connectionId: 'remote-primary' })
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(),
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async () => ({ ok: true as const, wsUrl: 'wss://remote.invalid/api/ws' }))
@@ -384,7 +384,7 @@ describe('requestGatewayForAgent', () => {
     }))
 
     setPrimaryGateway(primary as never, 'default')
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection,
       getConnectionFor,
       getGatewayWsUrlFor
@@ -426,7 +426,7 @@ describe('requestGatewayForAgent', () => {
     }))
 
     setPrimaryGateway(primary as never, 'default')
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection,
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -453,7 +453,7 @@ describe('requestGatewayForAgent', () => {
 
     setPrimaryGateway(primary as never, 'default')
     configureGatewayRegistry({ onActiveConnectionInvalidated, onEvent: vi.fn() })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(),
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -481,7 +481,7 @@ describe('requestGatewayForAgent', () => {
 
     setPrimaryGateway(primary as never, 'pinned')
     configureGatewayRegistry({ onActiveConnectionChanged, onActiveConnectionInvalidated, onEvent: vi.fn() })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(),
       getConnectionFor: vi.fn(async ({ connectionId, profile }) => ({ connectionId, port: 5151, profile })),
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -517,7 +517,7 @@ describe('requestGatewayForAgent', () => {
 
     setPrimaryGateway(primary as never, 'default')
     configureGatewayRegistry({ onActiveConnectionChanged, onEvent: vi.fn() })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async profile => ({ port: 4242, profile })),
       getConnectionFor: vi.fn(async ({ connectionId, profile }) => ({ connectionId, port: 5151, profile })),
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -550,7 +550,7 @@ describe('requestGatewayForAgent', () => {
 
     setPrimaryGateway(primary as never, 'default')
     configureGatewayRegistry({ onActiveConnectionChanged, onEvent: vi.fn() })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async profile => ({ port: 4242, profile })),
       getConnectionFor: vi.fn(async ({ connectionId, profile }) => ({ connectionId, port: 5151, profile })),
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -578,7 +578,7 @@ describe('requestGatewayForAgent', () => {
 
 describe('retainGatewayForAgent (#93602)', () => {
   function installRegistryDesktop() {
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ port: 4242, profile, token: 't' })),
       getConnectionFor: vi.fn(async ({ connectionId, profile }) => ({ connectionId, port: 5151, profile })),
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }) => ({
@@ -662,7 +662,7 @@ describe('attached shared-remote group turns (#96493)', () => {
       sharedRemote: true
     }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ port: 4242, profile, token: 't' })),
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }: { connectionId: string; profile: string }) => ({
@@ -705,7 +705,7 @@ describe('attached shared-remote group turns (#96493)', () => {
     const primary = makePrimary()
     setPrimaryGateway(primary as never, 'default')
     setPrimaryGatewayConnection({ connectionId: 'homelab' })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ port: 4242, profile, token: 't' })),
       getConnectionFor: vi.fn(async ({ connectionId, profile }: { connectionId: string; profile: string }) => ({
         connectionId,
@@ -730,7 +730,7 @@ describe('attached shared-remote group turns (#96493)', () => {
     const primary = makePrimary()
     setPrimaryGateway(primary as never, 'default')
     setPrimaryGatewayConnection({ connectionId: 'homelab' })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ port: 4242, profile, token: 't' })),
       getConnectionFor: vi.fn(async () => {
         throw new Error('Timed out connecting to profile "voter"')
@@ -755,7 +755,7 @@ describe('attached shared-remote group turns (#96493)', () => {
     const primary = makePrimary()
     setPrimaryGateway(primary as never, 'default')
     setPrimaryGatewayConnection({ connectionId: 'local', mode: 'local' })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ mode: 'local', port: 4242, profile, token: 't' })),
       getConnectionFor: vi.fn(async () => {
         throw new Error('Timed out connecting to profile "sean"')
@@ -833,7 +833,7 @@ describe('session-owner calls for a profile on the shared local host backend (#1
       ...descriptorFor(profile)
     }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async (profile: null | string) => ({ mode: 'local', port: 4242, profile, token: 't' })),
       getConnectionFor,
       getGatewayWsUrlFor: vi.fn(async ({ connectionId, profile }: { connectionId: string; profile: string }) => ({

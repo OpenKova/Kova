@@ -23,7 +23,7 @@ def test_child_handoff_is_private_single_use_and_authorizes_real_api(local_webap
     monkeypatch.setattr("kova_cli.dashboard_auth.prefix.resolve_public_url", lambda: public_url)
     server, client = local_webapp
     token = server._SESSION_TOKEN
-    headers = {"X-Hermes-Session-Token": token}
+    headers = {"X-Kova-Session-Token": token}
     assert client.post("/api/webapp/window-ticket").status_code == 401
     page = client.get("/webapp/window")
     assert page.status_code == 200
@@ -37,24 +37,24 @@ def test_child_handoff_is_private_single_use_and_authorizes_real_api(local_webap
     path = tmp_path / "handoff.txt"
     path.write_text("child-window-proof", encoding="utf-8")
     assert client.get("/api/fs/read-text", params={"path": str(path)},
-                      headers={"X-Hermes-Session-Token": ticket}).status_code == 401
+                      headers={"X-Kova-Session-Token": ticket}).status_code == 401
     # An opaque/sibling origin cannot consume even a known ticket.
     for origin in ("", "null", "http://127.0.0.1:9999", "https://127.0.0.1", "http://evil.example"):
         denied = client.post("/webapp/window-session",
-                             headers={"Origin": origin, "X-Hermes-Window-Ticket": ticket})
+                             headers={"Origin": origin, "X-Kova-Window-Ticket": ticket})
         assert denied.status_code == 403
         assert token not in denied.text
     rebinding = client.post("/webapp/window-session", headers={
-        "Host": "evil.example", "Origin": "http://evil.example", "X-Hermes-Window-Ticket": ticket,
+        "Host": "evil.example", "Origin": "http://evil.example", "X-Kova-Window-Ticket": ticket,
     })
     assert rebinding.status_code == 400
     assert client.post("/webapp/window-session", headers=[
         ("Origin", "http://127.0.0.1"), ("Origin", "http://127.0.0.1"),
-        ("X-Hermes-Window-Ticket", ticket),
+        ("X-Kova-Window-Ticket", ticket),
     ]).status_code == 403
     def exchange():
         return client.post("/webapp/window-session",
-                           headers={"Origin": "http://127.0.0.1", "X-Hermes-Window-Ticket": ticket})
+                           headers={"Origin": "http://127.0.0.1", "X-Kova-Window-Ticket": ticket})
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(pool.map(lambda _: exchange(), range(2)))
     assert sorted(r.status_code for r in responses) == [200, 403]
@@ -62,7 +62,7 @@ def test_child_handoff_is_private_single_use_and_authorizes_real_api(local_webap
     assert granted.headers["cache-control"] == "no-store"
     assert granted.json()["token"] == token
     read = client.get("/api/fs/read-text", params={"path": str(path)},
-                      headers={"X-Hermes-Session-Token": granted.json()["token"]})
+                      headers={"X-Kova-Session-Token": granted.json()["token"]})
     assert read.status_code == 200 and "child-window-proof" in read.text
     # Replay cannot recover the token, nor can it be obtained through a GET.
     assert exchange().status_code == 403
@@ -74,7 +74,7 @@ def test_child_handoff_is_bound_to_local_webapp_start(local_webapp, monkeypatch,
     from kova_cli.web_routers import webapp
 
     server, client = local_webapp
-    issued = client.post("/api/webapp/window-ticket", headers={"X-Hermes-Session-Token": server._SESSION_TOKEN})
+    issued = client.post("/api/webapp/window-ticket", headers={"X-Kova-Session-Token": server._SESSION_TOKEN})
     assert issued.status_code == 200
     ticket = issued.json()["ticket"]
     if invalidate == "expiry":
@@ -87,7 +87,7 @@ def test_child_handoff_is_bound_to_local_webapp_start(local_webapp, monkeypatch,
     else:
         server.app.state.ui_surface = "dashboard"
     denied = client.post("/webapp/window-session",
-                         headers={"Origin": "http://127.0.0.1", "X-Hermes-Window-Ticket": ticket}, follow_redirects=False)
+                         headers={"Origin": "http://127.0.0.1", "X-Kova-Window-Ticket": ticket}, follow_redirects=False)
     assert denied.status_code in (302, 401, 403, 404)
     assert server._SESSION_TOKEN not in denied.text
 
@@ -99,10 +99,10 @@ def test_pending_handoffs_keep_the_credentials_generation_not_the_credential(loc
 
     server, client = local_webapp
     token = server._SESSION_TOKEN
-    window = client.post("/api/webapp/window-ticket", headers={"X-Hermes-Session-Token": token}).json()["ticket"]
+    window = client.post("/api/webapp/window-ticket", headers={"X-Kova-Session-Token": token}).json()["ticket"]
     webapp.mint_launch_ticket(server.app.state)
     webapp.mint_printed_launch_ticket(server.app.state)
     stored = server.app.state.webapp_window_tickets
     assert len(stored) == 3 and token not in repr(stored)
-    spent = client.post("/webapp/window-session", headers={"Origin": "http://127.0.0.1", "X-Hermes-Window-Ticket": window})
+    spent = client.post("/webapp/window-session", headers={"Origin": "http://127.0.0.1", "X-Kova-Window-Ticket": window})
     assert spent.json()["token"] == token

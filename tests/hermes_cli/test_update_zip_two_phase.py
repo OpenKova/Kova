@@ -114,7 +114,7 @@ def test_staging_sets_aside_leftovers_it_cannot_prove_are_its_own(tmp_path):
     live, new = tmp_path / "live", tmp_path / "new"
     _live_tree(live, {"agent": "old"})
     _live_tree(new, {"agent": "new"})
-    stale = Path(f"{live / 'agent'}.hermes-update-staging")
+    stale = Path(f"{live / 'agent'}.kova-update-staging")
     stale.mkdir()
     (stale / "junk.txt").write_text("from a previous crash")
 
@@ -122,7 +122,7 @@ def test_staging_sets_aside_leftovers_it_cannot_prove_are_its_own(tmp_path):
 
     assert (live / "agent" / "version.txt").read_text() == "new"
     assert not (live / "agent" / "junk.txt").exists()
-    assert [p.read_text() for p in live.glob("agent.hermes-update-staging.hermes-update-kept/*")] == [
+    assert [p.read_text() for p in live.glob("agent.kova-update-staging.kova-update-kept/*")] == [
         "from a previous crash"]
 
 # ---------------------------------------------------------------------------
@@ -268,7 +268,7 @@ def test_staging_restores_backup_when_dst_is_missing(tmp_path, monkeypatch):
     live.mkdir()
     _live_tree(new, {"agent": "new"})
     # Simulate the crashed state: dst gone, backup holds the old tree.
-    backup = live / "agent.hermes-update-old"
+    backup = live / "agent.kova-update-old"
     backup.mkdir()
     (backup / "version.txt").write_text("old")
 
@@ -298,7 +298,7 @@ def test_staging_restores_a_dangling_symlink_backup_instead_of_deleting_it(tmp_p
     live.mkdir()
     new.mkdir()
     (new / "alpha").write_text("NEW")
-    backup = live / "alpha.hermes-update-old"
+    backup = live / "alpha.kova-update-old"
     try:
         backup.symlink_to("gone.txt")
     except OSError:
@@ -325,7 +325,7 @@ def test_a_symlink_planted_at_the_staging_path_after_the_sweep_is_never_written_
         (new / "alpha").mkdir()
         (new / "alpha" / "x.py").write_text("NEW")
     (live / "alpha").write_text("OLD") if kind == "file" else (live / "alpha").mkdir()
-    staging = live / "alpha.hermes-update-staging"
+    staging = live / "alpha.kova-update-staging"
     real_isdir = os.path.isdir
 
     def plant_then_isdir(path):  # the barrier: after the sweep and its lexists check, before the copy
@@ -437,7 +437,7 @@ import json, os, sys, time
 from pathlib import Path
 from kova_cli import _early_recovery_zip as erz
 role, work = sys.argv[1], Path(sys.argv[2])
-live, lock_path = work / "live", work / "live" / ".hermes-update-zip-swap.lock"
+live, lock_path = work / "live", work / "live" / ".kova-update-zip-swap.lock"
 def wait_for(name):
     end = time.time() + 30
     while not (work / name).exists():
@@ -547,10 +547,10 @@ def test_unreadable_source_file_leaves_no_partial_stage(tmp_path):
     finally:
         for path in locked:
             path.chmod(0o755)
-    assert not list(live.glob("*.hermes-update-staging")), "a partial stage leaked past the failed copy"
+    assert not list(live.glob("*.kova-update-staging")), "a partial stage leaked past the failed copy"
     assert not (live / ZIP_SWAP_JOURNAL).exists()
     assert restore_interrupted_zip_swap(live) is False
-    assert sorted(p.name for p in live.iterdir()) == [".hermes-update-zip-swap.lock", "keep.txt"]
+    assert sorted(p.name for p in live.iterdir()) == [".kova-update-zip-swap.lock", "keep.txt"]
 
 
 @_POSIX_MODES
@@ -566,10 +566,10 @@ def test_a_stage_cleanup_that_cannot_finish_keeps_the_journal_for_recovery(tmp_p
     finally:
         for path in locked:
             path.chmod(0o755)
-    assert (live / "second.hermes-update-staging").exists(), "harness: the cleanup was expected to fail"
+    assert (live / "second.kova-update-staging").exists(), "harness: the cleanup was expected to fail"
     assert (live / ZIP_SWAP_JOURNAL).exists(), "the journal went while its staging path was still on disk"
     assert restore_interrupted_zip_swap(live) is False  # nothing live moved: no relaunch
-    assert not list(live.glob("*.hermes-update-staging")) and not (live / ZIP_SWAP_JOURNAL).exists()
+    assert not list(live.glob("*.kova-update-staging")) and not (live / ZIP_SWAP_JOURNAL).exists()
     assert (live / "keep.txt").read_text() == "live data"
 
 
@@ -585,7 +585,7 @@ def _swap_or_recover(extracted: Path, entries: list[str], live: Path) -> None:
 
 @_POSIX_MODES
 def test_a_stale_backup_never_stands_in_for_the_live_entry(tmp_path, monkeypatch):
-    """A leftover ``<entry>.hermes-update-old`` this swap did not make (a pre-journal crash holding a
+    """A leftover ``<entry>.kova-update-old`` this swap did not make (a pre-journal crash holding a
     read-only directory) must be removed or refuse the swap; it must never become the live entry."""
     from kova_cli import update_cmd_commit
 
@@ -595,7 +595,7 @@ def test_a_stale_backup_never_stands_in_for_the_live_entry(tmp_path, monkeypatch
     (live / "pkg" / "m.py").write_text("LIVE_OLD", encoding="utf-8")
     (extracted / "pkg").mkdir(parents=True)
     (extracted / "pkg" / "m.py").write_text("NEW", encoding="utf-8")
-    stale = live / "pkg.hermes-update-old" / "ro"
+    stale = live / "pkg.kova-update-old" / "ro"
     stale.mkdir(parents=True)
     (stale / "f").write_text("stale remnant", encoding="utf-8")
     stale.chmod(0o555)
@@ -626,7 +626,7 @@ def test_a_failed_swap_keeps_a_file_the_user_made_at_a_never_installed_entry(tmp
     real_rename = os.rename
 
     def refuse_moving_a(src, dst):  # Windows AV holding ``a`` open
-        if os.fspath(src) == str(live / "a") and os.fspath(dst).endswith(".hermes-update-old"):
+        if os.fspath(src) == str(live / "a") and os.fspath(dst).endswith(".kova-update-old"):
             raise PermissionError(13, "in use")
         return real_rename(src, dst)
 
@@ -685,7 +685,7 @@ update_cmd_zip._journaled_stage_and_swap(str(extracted), ["a.py"], live, None)
 
 
 def test_a_backup_copy_killed_before_its_rename_is_cleared_by_the_recovery(tmp_path):
-    """On a file system without hardlinks ``_file_backup`` copies to ``<entry>.hermes-update-old.<gen>.tmp``
+    """On a file system without hardlinks ``_file_backup`` copies to ``<entry>.kova-update-old.<gen>.tmp``
     first. The real swap is killed inside that copy: the temp it journaled on creation is its own and
     goes, or every later ZIP update refuses on "uncommitted changes" (review C4)."""
     import subprocess
@@ -701,7 +701,7 @@ def test_a_backup_copy_killed_before_its_rename_is_cleared_by_the_recovery(tmp_p
     repo = os.path.realpath(Path(update_cmd.__file__).parent.parent)
     killed = subprocess.run([sys.executable, "-c", _KILLED_BACKUP_COPY, str(live), str(extracted)], cwd=repo,
                             env={**os.environ, "PYTHONPATH": repo}, capture_output=True, text=True, timeout=120, check=False)
-    temps = list(live.glob("a.py.hermes-update-old.*.tmp"))
+    temps = list(live.glob("a.py.kova-update-old.*.tmp"))
     assert killed.returncode == 9 and [p.read_bytes() for p in temps] == [b"ol"], (
         f"harness: not killed inside the backup copy: {killed.returncode} {killed.stderr[-2000:]}")
 
@@ -715,7 +715,7 @@ def test_a_backup_copy_killed_before_its_rename_is_cleared_by_the_recovery(tmp_p
 @pytest.mark.parametrize("content", ["USER FILE", "old", "old\n", ""])
 def test_a_file_at_the_backup_temp_name_that_is_not_the_killed_copy_is_kept(tmp_path, content):
     """The run's tag names the temp but proves nothing, and neither do its bytes: a swap killed before
-    its backup copy existed leaves the name free, and a file there afterwards is not Hermes', even an
+    its backup copy existed leaves the name free, and a file there afterwards is not Kova', even an
     empty one, a prefix or a full copy of the live file. Only the identity the swap journaled when it
     created the temp may delete it; anything else is kept aside, the journal still retiring (F78-R)."""
     from kova_cli._early_recovery_zip import (
@@ -724,14 +724,14 @@ def test_a_file_at_the_backup_temp_name_that_is_not_the_killed_copy_is_kept(tmp_
     live = tmp_path / "live"
     live.mkdir()
     (live / "a.py").write_text("old\n", encoding="utf-8")
-    (live / "a.py.hermes-update-staging").write_text("new\n", encoding="utf-8")
-    write_zip_swap_journal(live, "swapping", [["a.py", True, zip_entry_identity(live / "a.py.hermes-update-staging"),
+    (live / "a.py.kova-update-staging").write_text("new\n", encoding="utf-8")
+    write_zip_swap_journal(live, "swapping", [["a.py", True, zip_entry_identity(live / "a.py.kova-update-staging"),
                                               zip_entry_identity(live / "a.py")]], "0123456789ab")
-    (live / "a.py.hermes-update-old.0123456789ab.tmp").write_text(content, encoding="utf-8")
+    (live / "a.py.kova-update-old.0123456789ab.tmp").write_text(content, encoding="utf-8")
 
     restore_interrupted_zip_swap(live)
 
-    kept = [p for p in live.iterdir() if ".hermes-update-kept" in p.name]
+    kept = [p for p in live.iterdir() if ".kova-update-kept" in p.name]
     assert [p.read_text(encoding="utf-8") for p in kept] == [content], sorted(p.name for p in live.iterdir())
     assert not (live / ZIP_SWAP_JOURNAL).exists()
     assert (live / "a.py").read_text(encoding="utf-8") == "old\n"
@@ -754,7 +754,7 @@ def _swap_killed(tmp_path, monkeypatch, *, live: dict, new: dict, install_first:
         if install_first:  # the real swap's first step: backup (hardlink) when live, then the rename
             staging, dst = staged[0]
             if os.path.lexists(dst):
-                update_cmd_zip._file_backup(dst, dst + ".hermes-update-old")
+                update_cmd_zip._file_backup(dst, dst + ".kova-update-old")
             os.replace(staging, dst)
         raise RuntimeError("killed mid-swap")
 
@@ -767,21 +767,21 @@ def _swap_killed(tmp_path, monkeypatch, *, live: dict, new: dict, install_first:
 
 
 def test_recovery_never_installs_or_deletes_a_backup_suffix_created_after_the_kill(tmp_path, monkeypatch):
-    """A swap killed before any rename; then a user file appears at ``cli.py.hermes-update-old``. The
+    """A swap killed before any rename; then a user file appears at ``cli.py.kova-update-old``. The
     path-only journal took it for the swap's backup: it overwrote the live cli.py with it, and the old
     bytes were gone (review Z1). Recovery now proves a backup is the entry it recorded before using or
     deleting it: the live file stays, the user's file is kept aside, byte for byte."""
     from kova_cli._early_recovery_zip import ZIP_SWAP_JOURNAL, restore_interrupted_zip_swap
 
     root = _swap_killed(tmp_path, monkeypatch, live={"cli.py": "LIVE"}, new={"cli.py": "NEW"}, install_first=False)
-    (root / "cli.py.hermes-update-old").write_text("USER LATER", encoding="utf-8")
+    (root / "cli.py.kova-update-old").write_text("USER LATER", encoding="utf-8")
 
     restore_interrupted_zip_swap(root)
 
     assert (root / "cli.py").read_text(encoding="utf-8") == "LIVE"
     kept = [p for p in root.iterdir() if p.read_bytes() == b"USER LATER"]
     assert len(kept) == 1 and kept[0].name != "cli.py"
-    assert not (root / "cli.py.hermes-update-staging").exists() and not (root / ZIP_SWAP_JOURNAL).exists()
+    assert not (root / "cli.py.kova-update-staging").exists() and not (root / ZIP_SWAP_JOURNAL).exists()
 
 
 def test_recovery_never_deletes_a_user_file_that_replaced_an_installed_entry(tmp_path, monkeypatch):
@@ -871,7 +871,7 @@ def test_a_committed_swap_keeps_its_journal_until_the_backup_is_gone(tmp_path, m
     (live / "payload" / "ro").chmod(0o555)  # git does not track it; the backup's rmtree cannot empty it
     try:
         assert update_cmd_zip._journaled_stage_and_swap(str(extracted), ["payload"], live, "b" * 40)
-        assert (live / "payload.hermes-update-old").exists(), "harness: the backup cleanup was expected to fail"
+        assert (live / "payload.kova-update-old").exists(), "harness: the backup cleanup was expected to fail"
         journal = live / ZIP_SWAP_JOURNAL
         assert journal.is_file(), "the journal went while the swap's backup was still on disk"
         assert json.loads(journal.read_text(encoding="utf-8"))["phase"] == "committed"
@@ -880,10 +880,10 @@ def test_a_committed_swap_keeps_its_journal_until_the_backup_is_gone(tmp_path, m
         for path in live.rglob("*"):
             if path.is_dir() and not path.is_symlink():
                 path.chmod(0o755)
-    assert not (live / "payload.hermes-update-old").exists() and not (live / ZIP_SWAP_JOURNAL).exists()
+    assert not (live / "payload.kova-update-old").exists() and not (live / ZIP_SWAP_JOURNAL).exists()
     assert update_cmd_zip._zip_overlay_block_reason(live) is None
 
-@pytest.mark.parametrize("planted", ["cli.py.hermes-update-staging", "cli.py.hermes-update-old"])
+@pytest.mark.parametrize("planted", ["cli.py.kova-update-staging", "cli.py.kova-update-old"])
 def test_a_suffix_path_that_appears_after_the_preflight_is_never_deleted(tmp_path, monkeypatch, planted):
     """F78: a file at the staging suffix (created during the download, after the clean-tree preflight)
     or at the backup suffix (created after the pre-swap recheck) is nothing this transaction made. The
@@ -933,7 +933,7 @@ def test_a_stage_journals_each_directory_before_its_fill_and_not_every_file(tmp_
         real(root, phase, *args, **kwargs)
         staging_writes.append(phase == "staging")
         for name, _existed, staged_id, _live in json.loads((root / ZIP_SWAP_JOURNAL).read_text("utf-8"))["entries"]:
-            staging = root / f"{name}.hermes-update-staging"
+            staging = root / f"{name}.kova-update-staging"
             if staged_id and staging.is_dir() and not any(staging.iterdir()):
                 durable_before_fill.add(name)
 

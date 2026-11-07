@@ -37,7 +37,7 @@ MAX_TIMEOUT_SECONDS = 60.0
 class _Lease:
     capture: SideQuestionCapture
     expires_at: float
-    home_key: str  # hermes_home_key() of the profile the turn ran under
+    home_key: str  # kova_home_key() of the profile the turn ran under
 
 
 _leases: dict[str, _Lease] = {}
@@ -74,7 +74,7 @@ def issue_side_question_token(agent: Any, messages: list[dict[str, Any]], turn_i
     """Capture the finished turn and lease it under a fresh token; None (nothing captured) for an
     unattended turn (fork, cron run, subagent) or when no consented plugin is loaded. Turn thread
     only: the captured context and profile are the turn's."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
     if is_unattended_turn(agent) or not _consented_plugin_loaded():
         return None
@@ -95,7 +95,7 @@ def issue_side_question_token(agent: Any, messages: list[dict[str, Any]], turn_i
         # Drop this agent's older leases (a new turn) and every expired or orphaned one (each holds
         # a transcript), so the table holds at most one lease per live session agent.
         _purge_locked(now, agent)
-        _leases[token] = _Lease(capture, now + LEASE_TTL_SECONDS, hermes_home_key())
+        _leases[token] = _Lease(capture, now + LEASE_TTL_SECONDS, kova_home_key())
     return token
 
 
@@ -123,9 +123,9 @@ def redeem_side_question(
     ``home`` is the redeeming plugin's profile home (the active one when omitted). A lease from
     another profile is refused and left for its owner; otherwise this call consumes it whatever
     the outcome."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
-    home_key = hermes_home_key(home)
+    home_key = kova_home_key(home)
     with _lock:
         lease = _leases.get(token) if isinstance(token, str) else None
         if lease is not None and lease.home_key != home_key:

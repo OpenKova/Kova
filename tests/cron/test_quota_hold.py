@@ -25,9 +25,9 @@ QUOTA_MSG = "Codex provider quota exhausted (429); retry after 123518s. Credenti
 
 @pytest.fixture
 def tmp_cron_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
@@ -116,7 +116,7 @@ def _raise_quota(**_kw):
 
 def _tick(job, home, deliveries, resolve):
     """One real scheduler tick (preflight ON) with the provider resolver replaced by *resolve*."""
-    with patch("cron.scheduler._hermes_home", home), \
+    with patch("cron.scheduler._kova_home", home), \
          patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
          patch("kova_cli.env_loader.load_hermes_dotenv"), \
          patch("kova_cli.env_loader.reset_secret_source_cache"), \

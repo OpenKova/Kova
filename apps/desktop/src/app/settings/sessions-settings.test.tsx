@@ -13,7 +13,7 @@ vi.mock('@/i18n', () => ({ useI18n: () => ({ t: en }) }))
 
 vi.mock('@/hermes', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  getHermesConfigRecord: vi.fn().mockResolvedValue({ config: {} }),
+  getKovaConfigRecord: vi.fn().mockResolvedValue({ config: {} }),
   setSessionArchived: vi.fn().mockResolvedValue(undefined)
 }))
 
@@ -76,12 +76,12 @@ describe('SessionsSettings unarchive', () => {
 
 describe('SessionsSettings default directory in a browser tab', () => {
   afterEach(() => {
-    delete document.documentElement.dataset.hermesDesktopHost
+    delete document.documentElement.dataset.kovaDesktopHost
     Reflect.deleteProperty(window, 'hermesDesktop')
   })
 
   it('picks through the server folder browser instead of the native dialog', async () => {
-    document.documentElement.dataset.hermesDesktopHost = 'browser'
+    document.documentElement.dataset.kovaDesktopHost = 'browser'
 
     const settings = {
       getDefaultProjectDir: vi.fn().mockResolvedValue({ defaultLabel: 'Server workspace', dir: null, resolvedCwd: '' }),

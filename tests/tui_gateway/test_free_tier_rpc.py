@@ -31,8 +31,8 @@ def guest(nas, monkeypatch):
 
 
 def _set_guest_off():
-    from kova_constants import get_hermes_home
-    (get_hermes_home() / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")
+    from kova_constants import get_kova_home
+    (get_kova_home() / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")
 
 
 def test_status_is_pull_from_local_state_and_ack_persists_on_the_identity(guest, monkeypatch):
@@ -69,17 +69,17 @@ def test_status_carries_the_pending_browser_challenge_and_drops_it_once_cleared(
 
 def test_window_outcomes_are_scoped_and_do_not_grant_auth(guest, tmp_path):
     from kova_cli import anon_challenge
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
     a = anon_challenge.BrowserChallenge("https://portal.example.test/challenge?code=a", True, 600, 2, "check")
     b = anon_challenge.BrowserChallenge("https://portal.example.test/challenge?code=b", False, 600, 2, "check")
     anon_challenge._record(a, new_attempt=False)
-    scope = set_hermes_home_override(tmp_path / "secondary")
+    scope = set_kova_home_override(tmp_path / "secondary")
     try:
         anon_challenge._record(b, new_attempt=False)
         assert not anon_challenge.record_host_outcome(a.url, 0, "done")
         assert anon_challenge.pending_challenge()["url"] == b.url
     finally:
-        reset_hermes_home_override(scope)
+        reset_kova_home_override(scope)
     assert _call("free_tier.status")["challenge"]["url"] == a.url
     assert _call("free_tier.challenge_result", {"url": a.url, "outcome": "error"}) == {"accepted": True}
     assert _call("free_tier.status")["challenge"]["url"] == a.url

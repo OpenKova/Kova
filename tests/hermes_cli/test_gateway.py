@@ -12,7 +12,7 @@ import pytest
 from kova_cli import gateway
 
 
-_BREAKAWAY_MARKER = "_HERMES_GATEWAY_BREAKAWAY"
+_BREAKAWAY_MARKER = "_KOVA_GATEWAY_BREAKAWAY"
 
 
 @pytest.fixture(autouse=True)
@@ -45,7 +45,7 @@ def _run_native_windows_gateway_start_diag(
         import kova_cli.gateway as gateway_cli
 
         async def start_gateway(**kwargs):
-            assert "_HERMES_GATEWAY_BREAKAWAY" not in os.environ
+            assert "_KOVA_GATEWAY_BREAKAWAY" not in os.environ
             return True
 
         fake_run = types.ModuleType("gateway.run")
@@ -61,7 +61,7 @@ def _run_native_windows_gateway_start_diag(
         gateway_cli.supports_systemd_services = lambda: False
         gateway_cli.run_gateway(quiet=True)
 
-        diag_path = pathlib.Path(os.environ["HERMES_HOME"]) / "logs" / "gateway-exit-diag.log"
+        diag_path = pathlib.Path(os.environ["KOVA_HOME"]) / "logs" / "gateway-exit-diag.log"
         rows = [json.loads(line) for line in diag_path.read_text(encoding="utf-8").splitlines()]
         start = next(row for row in rows if row["tag"] == "gateway.start")
         payload = {
@@ -74,10 +74,10 @@ def _run_native_windows_gateway_start_diag(
     env: dict[str, str] = dict(os.environ)
     env.update(
         {
-            "HERMES_HOME": str(tmp_path),
-            "HERMES_GATEWAY_DETACHED": "1",
-            "HERMES_GATEWAY_EXIT_DIAG": "1",
-            "HERMES_GATEWAY_MAX_STARTS": "0",
+            "KOVA_HOME": str(tmp_path),
+            "KOVA_GATEWAY_DETACHED": "1",
+            "KOVA_GATEWAY_EXIT_DIAG": "1",
+            "KOVA_GATEWAY_MAX_STARTS": "0",
             "PYTHONIOENCODING": "utf-8",
         }
     )
@@ -156,7 +156,7 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
 
         import kova_cli.gateway as gateway_cli
 
-        outcome = os.environ["HERMES_TEST_GATEWAY_OUTCOME"]
+        outcome = os.environ["KOVA_TEST_GATEWAY_OUTCOME"]
 
         async def start_gateway(**kwargs):
             if outcome == "failure":
@@ -179,9 +179,9 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
     )
     env = {
         **os.environ,
-        "HERMES_HOME": str(tmp_path),
-        "HERMES_GATEWAY_EXIT_DIAG": "0",
-        "HERMES_TEST_GATEWAY_OUTCOME": outcome,
+        "KOVA_HOME": str(tmp_path),
+        "KOVA_GATEWAY_EXIT_DIAG": "0",
+        "KOVA_TEST_GATEWAY_OUTCOME": outcome,
         "INVOCATION_ID": "systemd-test",
     }
 
@@ -329,7 +329,7 @@ def test_spawn_detached_gateway_timestamps_stderr(monkeypatch, tmp_path):
         calls.append((cmd, kwargs))
         return SimpleNamespace()
 
-    monkeypatch.setattr(gateway, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(gateway, "get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(gateway, "get_python_path", lambda: "/usr/bin/python3")
     monkeypatch.setattr(gateway, "_gateway_run_command", lambda: child_cmd)
     monkeypatch.setattr(gateway.subprocess, "Popen", fake_popen)
@@ -349,17 +349,17 @@ def test_spawn_detached_gateway_timestamps_stderr(monkeypatch, tmp_path):
 
 @pytest.mark.platforms("posix")  # systemd user-linger is Linux-only (drives os.getuid())
 def test_systemd_install_checks_linger_status(monkeypatch, tmp_path):
-    unit_path = tmp_path / "systemd" / "user" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "user" / "kova-gateway.service"
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     # Synthetic unit with a non-temp home: the real generator bakes the
-    # hermetic test HERMES_HOME (a tmp dir), which the temp-home write
+    # hermetic test KOVA_HOME (a tmp dir), which the temp-home write
     # guard correctly refuses.
     monkeypatch.setattr(
         gateway,
         "generate_systemd_unit",
         lambda system=False, run_as_user=None: (
-            '[Service]\nEnvironment="HERMES_HOME=/home/alice/.hermes"\n'
+            '[Service]\nEnvironment="KOVA_HOME=/home/alice/.kova"\n'
         ),
     )
 
@@ -408,7 +408,7 @@ def test_gateway_install_noninteractive_skips_legacy_unit_prompt(monkeypatch, tm
     monkeypatch.setattr(gateway, "remove_legacy_hermes_units", lambda interactive=False: calls.append(("remove_legacy",)))
     monkeypatch.setattr(gateway, "print_legacy_unit_warning", lambda: None)
 
-    fake_path = tmp_path / "hermes-gateway.service"
+    fake_path = tmp_path / "kova-gateway.service"
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: fake_path)
     monkeypatch.setattr(gateway, "generate_systemd_unit", lambda system=False, run_as_user=None: "[Service]")
     monkeypatch.setattr(gateway, "_run_systemctl", lambda *a, **kw: None)
@@ -561,7 +561,7 @@ class TestStopProfileGateway:
         from gateway import host_attach
         from kova_cli import dashboard_procs
         monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: None)
-        monkeypatch.setattr(dashboard_procs, '_hermes_home_for_pid', lambda pid, **kw: str(gateway.get_hermes_home()))
+        monkeypatch.setattr(dashboard_procs, '_kova_home_for_pid', lambda pid, **kw: str(gateway.get_kova_home()))
     @pytest.mark.platforms("windows")
     def test_windows_stop_drains_marker_before_force_termination(self, monkeypatch):
         """Windows must let the marker watcher run before escalating (#112750)."""
@@ -719,7 +719,7 @@ class TestReapUnsupervisedGatewayOrphansMacOS:
 
     Regression guard: without the ``is_macos()`` exclusion of
     ``_get_service_pids()``, the reaper would SIGTERM the launchd-supervised
-    gateway every time Hermes Desktop opens (``hermes serve`` calls
+    gateway every time Kova Desktop opens (``hermes serve`` calls
     ``_reap_unsupervised_gateway_orphans`` during startup).
     """
 
@@ -768,7 +768,7 @@ class TestReapUnsupervisedGatewayOrphansWindows:
 
     Regression guard: without the Windows exemption of the recorded healthy
     gateway PID (and its parent chain), the reaper would SIGTERM/SIGKILL a
-    Scheduled-Task-supervised gateway every time Hermes Desktop opens
+    Scheduled-Task-supervised gateway every time Kova Desktop opens
     (``hermes serve`` calls ``_reap_unsupervised_gateway_orphans`` during
     startup). The Scheduled-Task bootstrap's argv matches the gateway scan,
     so it is reaped as an "orphan" — and when the bootstrap dies, the
@@ -975,15 +975,15 @@ class TestWindowsScheduledTaskSupervisorGuard:
             raise AssertionError("subprocess must not run off Windows")
 
         monkeypatch.setattr(gateway.subprocess, "run", _boom_run)
-        assert gateway._windows_scheduled_task_supervises("HermesGateway") is False
-        assert gateway._windows_scheduled_task_state("HermesGateway") is None
+        assert gateway._windows_scheduled_task_supervises("KovaGateway") is False
+        assert gateway._windows_scheduled_task_state("KovaGateway") is None
 
     def test_supervises_ready_and_queued_but_not_disabled(self, monkeypatch):
         states = {"Running": True, "Ready": True, "Queued": True, "Disabled": False, "MISSING": False}
 
         for state, expected in states.items():
             monkeypatch.setattr(gateway, "_windows_scheduled_task_state", lambda name, s=state: s)
-            assert gateway._windows_scheduled_task_supervises("Hermes_Gateway") is expected, state
+            assert gateway._windows_scheduled_task_supervises("Kova_Gateway") is expected, state
 
 
 
@@ -994,11 +994,11 @@ class TestWindowsScheduledTaskSupervisorGuard:
 def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypatch):
     """gateway <- cmd.exe <- svchost.exe(Schedule) <- services.exe: the Task Scheduler host is not the
     gateway's supervisor, so a task-launched gateway is a plain process (#97208); the same tree under a
-    Hermes-owned service (by binary path) stays SCM-supervised."""
+    Kova-owned service (by binary path) stays SCM-supervised."""
     import psutil
     from kova_cli import gateway_windows
 
-    monkeypatch.setattr(gateway_windows, "hermes_service_roots", lambda: (r"C:\hermes\hermes-agent",))
+    monkeypatch.setattr(gateway_windows, "hermes_service_roots", lambda: (r"C:\hermes\kova-agent",))
     profile = SimpleNamespace(profile="default", pid=18480, create_time=18480.0)
 
     class FakeService:
@@ -1030,11 +1030,11 @@ def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypat
         )
 
     assert run(FakeService("Schedule", r"C:\Windows\system32\svchost.exe -k netsvcs -p -s Schedule")) == []
-    owned = run(FakeService("gw", r'"C:\hermes\hermes-agent\venv\Scripts\hermes.exe" gateway run'))
+    owned = run(FakeService("gw", r'"C:\hermes\kova-agent\venv\Scripts\hermes.exe" gateway run'))
     assert [(s.name, s.service_pid, s.gateway_pid) for s in owned] == [("gw", 2360, 18480)]
 
     # QueryServiceConfig unreadable to this user (hardened or malformed third-party service): not
-    # Hermes's, and never a reason to abort; a Hermes-NAMED service is settled without asking binpath.
+    # Kova's, and never a reason to abort; a Kova-NAMED service is settled without asking binpath.
     class UnreadableConfigService(FakeService):
         def __init__(self, name, error):
             super().__init__(name, "")
@@ -1045,8 +1045,8 @@ def test_find_windows_gateway_services_ignores_task_scheduler_ancestor(monkeypat
 
     assert run(UnreadableConfigService("Hardened", psutil.AccessDenied(2360, "Hardened"))) == []
     assert run(UnreadableConfigService("BrokenMui", OSError(15100, "MUI file missing"))) == []
-    named = run(UnreadableConfigService("HermesGateway", OSError(15100, "MUI file missing")))
-    assert [(s.name, s.service_pid, s.gateway_pid) for s in named] == [("HermesGateway", 2360, 18480)]
+    named = run(UnreadableConfigService("KovaGateway", OSError(15100, "MUI file missing")))
+    assert [(s.name, s.service_pid, s.gateway_pid) for s in named] == [("KovaGateway", 2360, 18480)]
 
 
 

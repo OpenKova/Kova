@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# Hermes Agent Setup Script — THE dev-environment entry point.
+# Kova Agent Setup Script — THE dev-environment entry point.
 # ============================================================================
 # Sets up the pm-managed development environment from a fresh clone:
 #   1. Stage the pinned uv from pm/lock.json (sha256-verified, into the pm
@@ -41,7 +41,7 @@ cd "$SCRIPT_DIR"
 export UV_NO_CONFIG=1
 
 echo ""
-echo -e "${CYAN}☤ Hermes Agent Setup${NC}"
+echo -e "${CYAN}☤ Kova Agent Setup${NC}"
 echo ""
 
 # ============================================================================
@@ -106,7 +106,7 @@ uv_version="$(pin version)"
 py_version="$(pin version python | cut -d+ -f1 | cut -d. -f1,2)"
 [ -n "$uv_version" ] || { echo -e "${RED}✗${NC} no uv pin in pm/lock.json" >&2; exit 1; }
 
-store="${HERMES_RUNTIME_DIR:-$HOME/.hermes/tools}"
+store="${KOVA_RUNTIME_DIR:-$HOME/.kova/tools}"
 entry="$store/uv-$uv_version-$target"
 uv="$entry/uv"; [ "$os" = win32 ] && uv="$entry/uv.exe"
 
@@ -215,13 +215,13 @@ echo -e "${CYAN}→${NC} Setting up hermes command..."
 # Reuse the bootstrap interpreter only to run the shared launcher writer.
 bin_dir="$HOME/.local/bin"
 if [ "$os" = win32 ]; then
-    bin_dir="$(cygpath -am "${HERMES_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/hermes}/bin")"
+    bin_dir="$(cygpath -am "${KOVA_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/hermes}/bin")"
 fi
 if ! "$boot_py" -I -X utf8 kova_cli/_launchers.py "$bin_dir"; then
     echo -e "${RED}✗${NC} launcher publication failed" >&2
     exit 1
 fi
-echo -e "${GREEN}✓${NC} Published Hermes commands in $bin_dir"
+echo -e "${GREEN}✓${NC} Published Kova commands in $bin_dir"
 
 if [ "$os" != win32 ]; then
     # Determine the appropriate shell config file
@@ -249,7 +249,7 @@ if [ "$os" != win32 ]; then
             if ! echo "$PATH" | tr ':' '\n' | grep -q "^$HOME/.local/bin$"; then
                 if ! grep -q '\.local/bin' "$SHELL_CONFIG" 2>/dev/null; then
                     echo "" >> "$SHELL_CONFIG"
-                    echo "# Hermes Agent — ensure ~/.local/bin is on PATH" >> "$SHELL_CONFIG"
+                    echo "# Kova Agent — ensure ~/.local/bin is on PATH" >> "$SHELL_CONFIG"
                     echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_CONFIG"
                     echo -e "${GREEN}✓${NC} Added ~/.local/bin to PATH in $SHELL_CONFIG"
                 else
@@ -262,20 +262,20 @@ if [ "$os" != win32 ]; then
 fi
 
 # ============================================================================
-# Seed bundled skills into ~/.hermes/skills/
+# Seed bundled skills into ~/.kova/skills/
 # ============================================================================
 
-HERMES_SKILLS_DIR="${HERMES_HOME:-$HOME/.hermes}/skills"
-mkdir -p "$HERMES_SKILLS_DIR"
+KOVA_SKILLS_DIR="${KOVA_HOME:-$HOME/.kova}/skills"
+mkdir -p "$KOVA_SKILLS_DIR"
 
 echo ""
-echo "Syncing bundled skills to ~/.hermes/skills/ ..."
+echo "Syncing bundled skills to ~/.kova/skills/ ..."
 if "$boot_py" -m tools.skills_sync 2>/dev/null; then
     echo -e "${GREEN}✓${NC} Skills synced"
 else
     # Fallback: copy if sync script fails (missing deps, etc.)
     if [ -d "$SCRIPT_DIR/skills" ]; then
-        cp -rn "$SCRIPT_DIR/skills/"* "$HERMES_SKILLS_DIR/" 2>/dev/null || true
+        cp -rn "$SCRIPT_DIR/skills/"* "$KOVA_SKILLS_DIR/" 2>/dev/null || true
         echo -e "${GREEN}✓${NC} Skills copied"
     fi
 fi

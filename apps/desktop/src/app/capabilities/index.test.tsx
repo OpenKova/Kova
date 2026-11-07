@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesApi from '@/hermes'
+import type * as KovaApi from '@/hermes'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
@@ -28,7 +28,7 @@ const getOfficialSkills = vi.fn()
 // calls we assert on. Args are forwarded so the per-profile scope arg is
 // observable.
 vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesApi>()),
+  ...(await importOriginal<typeof KovaApi>()),
   getSkills: (profile?: null | string) => getSkills(profile),
   getToolsets: (profile?: null | string) => getToolsets(profile),
   setSkillEnabled: (name: string, enabled: boolean, profile?: null | string) => setSkillEnabled(name, enabled, profile),
@@ -424,7 +424,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       sources: []
     })
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = { connections, getAgentRoster }
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = { connections, getAgentRoster }
 
     try {
       await renderSkills()
@@ -433,7 +433,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       // The selector paints roster rows labeled profile — device.
       expect(await screen.findByText('default — This device (current)')).toBeTruthy()
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { hermesDesktop?: unknown }).kovaDesktop
     }
   })
 
@@ -578,7 +578,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       throw new Error(`unexpected ${path}`)
     })
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = { api }
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = { api }
     getSkills.mockResolvedValue(
       ['agent-git-oracle', 'pdf'].map(name => ({ name, description: name, enabled: true, usage: 0, provenance: 'hub' }))
     )
@@ -607,7 +607,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       expect(screen.queryByRole('button', { name: /^Add (Agent Git Oracle|My Pdf)$/ })).toBeNull()
       expect(installHubSkill).not.toHaveBeenCalled()
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { hermesDesktop?: unknown }).kovaDesktop
     }
   })
 })

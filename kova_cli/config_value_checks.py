@@ -31,7 +31,7 @@ def _validate_timezone(config: dict[str, Any], issues: list[ConfigIssue]) -> Non
     tz = config.get("timezone")
     hint = ("Use an IANA zone name such as America/New_York or Asia/Tokyo (see "
             "`timedatectl list-timezones`). With an invalid value the agent clock and cron "
-            "schedules silently fall back to server-local time. HERMES_TIMEZONE overrides "
+            "schedules silently fall back to server-local time. KOVA_TIMEZONE overrides "
             "this key when set.")
     if tz is not None and not isinstance(tz, str):
         _issue(issues, "error", f"timezone must be an IANA zone name string, got {tz!r}", hint)
@@ -116,7 +116,7 @@ def _validate_quoted_containers(config: dict[str, Any], issues: list[ConfigIssue
             continue
         if isinstance(parsed, (list, dict)):
             _issue(issues, "warning",
-                   f"{key} is the quoted string {value!r} — Hermes expects a YAML {kind} here "
+                   f"{key} is the quoted string {value!r} — Kova expects a YAML {kind} here "
                    "and every reader ignores the string",
                    f"Run: hermes config set {key} {shlex.quote(value)}  (stores a real {kind}), "
                    "or remove the quotes in config.yaml")

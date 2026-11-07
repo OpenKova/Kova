@@ -99,7 +99,7 @@ def _policy_backend(policy: dict) -> str:
 
 def _bound_terminal_backend(profile_home) -> str:
     """Terminal backend of the profile a session/RPC is bound to. A named profile reads ITS policy: at
-    ``session.create`` the multiplex gateway has not rebound HERMES_HOME yet, so ``_effective_terminal_backend()``
+    ``session.create`` the multiplex gateway has not rebound KOVA_HOME yet, so ``_effective_terminal_backend()``
     would report the LAUNCH profile's backend, which must never leak into a named one."""
     return _policy_backend(_profile_terminal_policy(profile_home)) if profile_home else _effective_terminal_backend()
 
@@ -306,37 +306,37 @@ def _host_cwd_is_terminal_cwd(profile_home) -> bool:
 
 
 def _is_hermes_owned_cwd(cwd: str, profile_home) -> bool:
-    """Whether ``cwd`` is inside Hermes's own host tree: the Hermes root (``/opt/data`` and its ``/opt/data/home``
+    """Whether ``cwd`` is inside Kova's own host tree: the Kova root (``/opt/data`` and its ``/opt/data/home``
     subprocess home in the Docker image, which also holds every named profile) or the install tree
     (``/opt/hermes``). A ``~`` path is the remote's home, never this host's."""
     from agent.runtime_cwd import _is_install_tree
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     if not os.path.isabs(cwd):
         return False
     try:
         path = Path(cwd).resolve()
-        home = Path(profile_home or get_hermes_home()).expanduser()
-        roots = {home.resolve(), get_default_hermes_root(home=home).resolve()}
+        home = Path(profile_home or get_kova_home()).expanduser()
+        roots = {home.resolve(), get_default_kova_root(home=home).resolve()}
     except (OSError, RuntimeError):
         return False
     return any(path == root or root in path.parents for root in roots) or _is_install_tree(path)
 
 
 def _is_launch_dir(cwd: str, profile_home) -> bool:
-    """Whether ``cwd`` IS a directory a Hermes process is launched from rather than a folder someone picked: the
-    Hermes root (``/opt/data`` in the Docker image), a subprocess home (``/opt/data/home``), the bound profile's
+    """Whether ``cwd`` IS a directory a Kova process is launched from rather than a folder someone picked: the
+    Kova root (``/opt/data`` in the Docker image), a subprocess home (``/opt/data/home``), the bound profile's
     home, the install tree, the OS user's home or ``/`` (the desktop's launch dirs). Folders below them are not: a
     user may keep a workspace there."""
     from agent.runtime_cwd import _is_install_tree
-    from kova_constants import get_default_hermes_root, get_real_home
+    from kova_constants import get_default_kova_root, get_real_home
 
     if not os.path.isabs(cwd):
         return False
     try:
         path = Path(cwd).resolve()
-        home = Path(profile_home or get_hermes_home()).expanduser().resolve()
-        root = get_default_hermes_root(home=home).resolve()
+        home = Path(profile_home or get_kova_home()).expanduser().resolve()
+        root = get_default_kova_root(home=home).resolve()
         launch = {home, home / "home", root, root / "home", Path(path.anchor),
                   Path(get_real_home()).resolve(), Path.home().resolve()}
     except (OSError, RuntimeError):
@@ -345,18 +345,18 @@ def _is_launch_dir(cwd: str, profile_home) -> bool:
 
 
 def _is_other_profiles_cwd(cwd: str, profile_home) -> bool:
-    """Whether a NAMED local profile's stored cwd is a directory that belongs to another profile or to Hermes itself:
+    """Whether a NAMED local profile's stored cwd is a directory that belongs to another profile or to Kova itself:
     the root (``/opt/data``), its subprocess home (``/opt/data/home``), a sibling profile's tree, or the install tree.
     Those are launch-profile workspaces that leaked into this profile's row before #87584, never a folder chosen for
     it. Other folders under the root stay: a user may keep a workspace there."""
     if profile_home is None or _cwd_is_remote(profile_home) or not os.path.isabs(cwd):
         return False
     from agent.runtime_cwd import _is_install_tree
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     try:
         path, own = Path(cwd).resolve(), Path(profile_home).expanduser().resolve()
-        root = get_default_hermes_root(home=own).resolve()
+        root = get_default_kova_root(home=own).resolve()
     except (OSError, RuntimeError):
         return False
     if path == own or own in path.parents:
@@ -365,12 +365,12 @@ def _is_other_profiles_cwd(cwd: str, profile_home) -> bool:
 
 
 def _resumable_stored_cwd(cwd, profile_home) -> str:
-    """A session row's stored cwd as a resume may adopt it: empty when an ssh session's row holds a path in Hermes's
+    """A session row's stored cwd as a resume may adopt it: empty when an ssh session's row holds a path in Kova's
     own host tree (a host launch directory, never a remote workspace), when a sandbox session's row holds a launch
     directory itself (:func:`_is_launch_dir`: rows written before launch dirs stopped being persisted), or when a
     named profile's row holds another profile's (the resume then lands in :func:`_profile_default_cwd` and
     re-persists it). Hydration and ``session.resume`` both adopt through here, then treat the result as the
-    session's workspace. A folder a sandbox user picked (even under the Hermes root or ``$HOME``) stays."""
+    session's workspace. A folder a sandbox user picked (even under the Kova root or ``$HOME``) stays."""
     cwd = str(cwd or "")
     if cwd and _cwd_is_remote(profile_home) and _is_hermes_owned_cwd(cwd, profile_home):
         return ""
@@ -522,8 +522,8 @@ def _register_session_cwd(session: dict | None) -> None:
 
         with contextlib.ExitStack() as stack:
             profile_home = session.get("profile_home")
-            if profile_home and hc.hermes_home_key(hc.get_hermes_home()) != hc.hermes_home_key(profile_home):
-                stack.callback(hc.reset_hermes_home_override, hc.set_hermes_home_override(str(profile_home)))
+            if profile_home and hc.kova_home_key(hc.get_kova_home()) != hc.kova_home_key(profile_home):
+                stack.callback(hc.reset_kova_home_override, hc.set_kova_home_override(str(profile_home)))
                 stack.enter_context(install_and_reset_profile_terminal_scope(profile_home))
             overrides = {"cwd": cwd, "cwd_source": cwd_source}
             _ensure_terminal_env_bridged()

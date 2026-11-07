@@ -1,4 +1,4 @@
-"""Authenticated browser-to-host attachment staging for Hermes Webapp."""
+"""Authenticated browser-to-host attachment staging for Kova Webapp."""
 
 from __future__ import annotations
 
@@ -24,10 +24,10 @@ async def upload_chat_file(
     file: UploadFile = File(...),
     profile: str | None = None,
 ):
-    """Stage one user-selected browser file under the active Hermes profile.
+    """Stage one user-selected browser file under the active Kova profile.
 
     The client never chooses a server path. A unique 0600 file under
-    ``$HERMES_HOME/uploads`` is returned for the existing ``file.attach`` flow.
+    ``$KOVA_HOME/uploads`` is returned for the existing ``file.attach`` flow.
     """
     profile_home = await asyncio.to_thread(resolve_upload_home, profile)
     try:

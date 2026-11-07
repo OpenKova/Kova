@@ -202,7 +202,7 @@ def test_without_after_a_failed_first_migration_keeps_the_other_legacy_extras(mo
     monkeypatch.setattr(install, "sync_venv", lambda extras=None, **kwargs: calls.append(list(extras or [])))
     monkeypatch.setattr(pm.cli, "_install_defaults", lambda names, *, verify: None)
     monkeypatch.setattr(pm.cli, "repo_root", lambda: root)
-    root = Path(os.environ["HERMES_HOME"]) / "checkout"
+    root = Path(os.environ["KOVA_HOME"]) / "checkout"
     (root / "pyproject.toml").parent.mkdir(parents=True)
     (root / "pyproject.toml").write_bytes((repo_root() / "pyproject.toml").read_bytes())
     site = root / "venv" / "lib" / "python3.11" / "site-packages"
@@ -219,7 +219,7 @@ def test_without_after_a_failed_first_migration_keeps_the_other_legacy_extras(mo
 def test_automatic_repair_never_undoes_a_without_that_landed_after_its_read(monkeypatch):
     """Configured-platform repair reads the declines, then asks PM for the configured extra. A
     `--without matrix` completing between that read and PM's lock wins: repair's request was
-    Hermes's choice, not the user's, so it neither re-adds matrix nor clears the new decline."""
+    Kova's choice, not the user's, so it neither re-adds matrix nor clears the new decline."""
     import pm.client
     from kova_cli import main_install_repair
 

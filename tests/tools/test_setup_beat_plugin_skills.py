@@ -3,7 +3,7 @@
 A first task writes a plugin skill as ``<catalog-name>:<skill>`` and a portable plugin's skills register
 under the plugin's own name, so ``blender:blender`` is the name ``skill_view`` resolves. Skills saved
 under the older ``agent-plugin-<slug>-<sha8>:<skill>`` form still resolve. Real plugin discovery
-against a temp ``HERMES_HOME``.
+against a temp ``KOVA_HOME``.
 """
 
 from __future__ import annotations
@@ -21,12 +21,12 @@ PC = flow.Facts(os="windows", arch="amd64", machine_kind="PC", nvidia_platform="
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     (home / "plugins").mkdir(parents=True)
     (home / "config.yaml").write_text(json.dumps({"plugins": {"enabled": ["blender"]}}))
     bundled = tmp_path / "bundled"
     bundled.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: bundled)
     plugins_mod._reset_plugin_managers_for_tests()
     yield home

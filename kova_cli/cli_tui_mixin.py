@@ -1,6 +1,6 @@
 # health: allow FILE_LINES -- usage-window plans: /model picker hooks only (a multi-row hint, Large/Free row labels); the logic lives in kova_cli/model_picker_usage.py
 """prompt_toolkit TUI construction, key-binding handlers, and overlay display fragments for the
-interactive CLI. Mixin bound onto ``HermesCLI`` via the MRO; cli.py-internal symbols are imported
+interactive CLI. Mixin bound onto ``KovaCLI`` via the MRO; cli.py-internal symbols are imported
 LAZILY inside each method (``from cli import ...``) — never at module load (import cycle)."""
 
 from __future__ import annotations
@@ -68,9 +68,9 @@ def _approval_choice_label(choice: str) -> str:
 def _agent_name() -> str:
     try:
         from kova_cli.skin_engine import get_active_skin
-        return get_active_skin().get_branding("agent_name", "Hermes")
+        return get_active_skin().get_branding("agent_name", "Kova")
     except Exception:
-        return "Hermes"
+        return "Kova"
 
 
 def _tn(key: str, count: int, **kwargs) -> str:
@@ -524,7 +524,7 @@ class CLITuiMixin:
         the terminal rows or the bottom border and trailing items get clipped on long lists
         (e.g. Ollama Cloud's 36+ models). ``state["_scroll_offset"]`` is updated in place.
         """
-        from cli import HermesCLI, _panel_box_width, _wrap_panel_text
+        from cli import KovaCLI, _panel_box_width, _wrap_panel_text
         # ``hint`` may be several rows (a window plan's limit line above the usual hint).
         hints = list(hint) if isinstance(hint, (list, tuple)) else [hint]
         box_width = _panel_box_width(title, hints + labels, min_width=min_width, max_width=max_width)
@@ -540,7 +540,7 @@ class CLITuiMixin:
             term_rows = get_app().output.get_size().rows
         except Exception:
             term_rows = _term_rows()
-        scroll_offset, visible = HermesCLI._compute_model_picker_viewport(
+        scroll_offset, visible = KovaCLI._compute_model_picker_viewport(
             selected, state.get("_scroll_offset", 0), len(labels), term_rows,
             panel_chrome=5 + len(hints))
         state["_scroll_offset"] = scroll_offset
@@ -1104,7 +1104,7 @@ class CLITuiMixin:
         import signal as _sig
         from prompt_toolkit.application import run_in_terminal
         from kova_cli.skin_engine import get_active_skin
-        agent_name = get_active_skin().get_branding("agent_name", "Hermes Agent")
+        agent_name = get_active_skin().get_branding("agent_name", "Kova Agent")
         msg = "\n" + t("cli.tui.suspended", agent_name=agent_name)
 
         def _suspend():
@@ -1478,7 +1478,7 @@ class CLITuiMixin:
         steer → agent.steer(text) mid-run (images can't ride along; a missing/rejecting steer() falls back
         to queue). interrupt → agent.redirect() when supported, else the legacy interrupt queue. queue →
         next turn: text-only on the gateway's session is a ``/queue`` FIFO admission (#134889 N5)."""
-        from cli import CLI_CONFIG, _ACCENT, _DIM, _RST, _cprint, _hermes_home
+        from cli import CLI_CONFIG, _ACCENT, _DIM, _RST, _cprint, _kova_home
         _effective_mode = mode or self.busy_input_mode
         redirected = False
         if _effective_mode == "steer":
@@ -1524,7 +1524,7 @@ class CLITuiMixin:
             else:
                 self._interrupt_queue.put(payload)
                 try:
-                    with open(_hermes_home / "interrupt_debug.log", "a", encoding="utf-8") as _f:
+                    with open(_kova_home / "interrupt_debug.log", "a", encoding="utf-8") as _f:
                         _f.write(
                             f"{time.strftime('%H:%M:%S')} ENTER: queued interrupt msg={str(payload)[:60]!r}, "
                             f"agent_running={self._agent_running}\n")
@@ -1538,7 +1538,7 @@ class CLITuiMixin:
             if not is_seen(CLI_CONFIG, BUSY_INPUT_FLAG):
                 _hint_mode = "redirect" if redirected else _effective_mode
                 _cprint(f"  {_DIM}{busy_input_hint_cli(_hint_mode)}{_RST}")
-                mark_seen(_hermes_home / "config.yaml", BUSY_INPUT_FLAG)
+                mark_seen(_kova_home / "config.yaml", BUSY_INPUT_FLAG)
                 CLI_CONFIG.setdefault("onboarding", {}).setdefault("seen", {})[BUSY_INPUT_FLAG] = True
         except Exception:
             pass
@@ -1650,10 +1650,10 @@ class CLITuiMixin:
         event.app.invalidate()
 
     def _tui_collapse_paste(self, text: str, line_count: int, *, fallback: bool) -> str:
-        """Save a large paste under ~/.hermes/pastes and return the placeholder for the buffer."""
-        from cli import _hermes_home, datetime, logger
+        """Save a large paste under ~/.kova/pastes and return the placeholder for the buffer."""
+        from cli import _kova_home, datetime, logger
         self._tui_paste_counter += 1
-        paste_dir = _hermes_home / "pastes"
+        paste_dir = _kova_home / "pastes"
         paste_dir.mkdir(parents=True, exist_ok=True)
         paste_file = paste_dir / f"paste_{self._tui_paste_counter}_{datetime.now().strftime('%H%M%S')}.txt"
         paste_file.write_text(text, encoding="utf-8")
@@ -1879,7 +1879,7 @@ class CLITuiMixin:
         self._voice_last_tts_text = ""  # most recently spoken TTS text (echo guard, #75780)
         self._voice_barge_phase = None  # "generation" or "playback" phase of the last barge trip
 
-        if os.environ.get("HERMES_DEFER_AGENT_STARTUP") != "1":
+        if os.environ.get("KOVA_DEFER_AGENT_STARTUP") != "1":
             self._install_tool_callbacks()
 
     def _tui_build_key_bindings(self):

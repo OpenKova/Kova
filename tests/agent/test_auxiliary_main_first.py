@@ -92,7 +92,7 @@ class TestResolveAutoMainFirst:
         """
         import kova_yaml as yaml
 
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir()
         (home / "config.yaml").write_text(
             yaml.safe_dump(
@@ -110,7 +110,7 @@ class TestResolveAutoMainFirst:
                 }
             )
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
 
         with patch(
             "agent.auxiliary_client.resolve_provider_client"

@@ -52,9 +52,9 @@ def _self_checkout(tmp_path, monkeypatch):
     (root / ".git").mkdir()
     (root / "pyproject.toml").write_text("[project]\nname='example'\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     return root
 
 
@@ -78,9 +78,9 @@ def _committed_checkout(tmp_path, monkeypatch):
         subprocess.run(["git", *args], cwd=root, check=True,
                          capture_output=True, timeout=30)
     assert write_source_stamp(root)["dirty"] is False
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
     return root
 
@@ -105,7 +105,7 @@ def test_completed_tree_discharges_only_a_marker_older_than_its_stamp(
 
 @pytest.mark.parametrize("edited", [False, True])
 def test_pristine_home_provisions_dependencies_without_rebuild(tmp_path, monkeypatch, completion_tail, edited):
-    """Pristine HERMES_HOME on a freshly installed tree (#123314): with no facts the venv
+    """Pristine KOVA_HOME on a freshly installed tree (#123314): with no facts the venv
     needs provisioning, but the stamp names a clean HEAD so no product rebuild is owed.
     Local edits since the stamp void that proof: the tail runs as before."""
     import pm
@@ -129,7 +129,7 @@ def test_adoption_stamp_never_discharges_an_owed_tail(tmp_path, monkeypatch, com
     import pm
 
     root = _committed_checkout(tmp_path, monkeypatch)
-    blessed = tmp_path / "home/hermes-agent"
+    blessed = tmp_path / "home/kova-agent"
     blessed.parent.mkdir(parents=True)
     root.rename(blessed)
     (blessed / "install-stamp.json").unlink()
@@ -258,9 +258,9 @@ def test_first_launch_syncs_without_marker_then_uses_completion_fact(tmp_path, m
     (root / "pyproject.toml").write_text("[project]\nname='example'\n")
     (root / "uv.lock").write_text("lock\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     fact = runtime_facts_path(root)
     calls = []
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: fact.is_file())
@@ -314,9 +314,9 @@ def test_non_self_or_pm_launch_cannot_trigger_update(tmp_path, monkeypatch, owne
     (root / "pyproject.toml").write_text("[project]\n")
     if owner:
         (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": owner}))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: pytest.fail("unowned launch reached PM"))
     assert venv_sync.prepare_launch(root, argv) is None
 
@@ -328,9 +328,9 @@ def test_failed_launch_keeps_previous_completion_and_retries(tmp_path, monkeypat
     (root / ".git").mkdir()
     (root / "pyproject.toml").write_text("[project]\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     fact = runtime_facts_path(root)
     fact.parent.mkdir(parents=True)
     previous = '{"packages":{"venv":{"stamp":"previous","extras":["all","anthropic"]}}}'
@@ -385,9 +385,9 @@ def test_blessed_legacy_install_is_adopted_before_sync(tmp_path, monkeypatch, co
     from kova_cli import _launchers
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
-    root = home / "hermes-agent"
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
+    root = home / "kova-agent"
     root.mkdir(parents=True)
     (root / ".git").mkdir()
     (root / "pyproject.toml").write_text("[project]\n")
@@ -421,7 +421,7 @@ def test_live_old_update_blocks_launch_sync(tmp_path, monkeypatch):
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
     marker = root / ".update-incomplete"
     marker.write_text(f"pid={os.getpid()}\n")
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)
     monkeypatch.setattr(pm, "sync_venv", lambda *a, **kw: pytest.fail("raced old updater"))
     with pytest.raises(RuntimeError, match="still running"):
@@ -470,10 +470,10 @@ def test_gateway_status_skips_pending_source_update_completion(tmp_path, monkeyp
 
 
 @pytest.mark.parametrize("marker,value,owed_by_cli", [
-    ("HERMES_SUPERVISED_CHILD", "1", True),
-    ("HERMES_S6_SUPERVISED_CHILD", "true", True),
-    ("HERMES_SUPERVISED_CHILD", "0", False),
-    ("HERMES_SUPERVISED_CHILD", "false", False),
+    ("KOVA_SUPERVISED_CHILD", "1", True),
+    ("KOVA_S6_SUPERVISED_CHILD", "true", True),
+    ("KOVA_SUPERVISED_CHILD", "0", False),
+    ("KOVA_SUPERVISED_CHILD", "false", False),
 ])
 def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
     tmp_path, monkeypatch, capsys, completion_tail, marker, value, owed_by_cli
@@ -494,8 +494,8 @@ def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
     pending.write_text("owed\n")
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: True)
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
-    monkeypatch.delenv("HERMES_SUPERVISED_CHILD", raising=False)
-    monkeypatch.delenv("HERMES_S6_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("KOVA_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("KOVA_S6_SUPERVISED_CHILD", raising=False)
     monkeypatch.setenv(marker, value)
 
     assert venv_sync.prepare_launch(root, ["gateway", "run"]) is None
@@ -528,7 +528,7 @@ def test_supervised_launch_with_stale_dependencies_still_syncs(
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)
     monkeypatch.setattr(pm, "sync_venv", lambda *a, **kw: syncs.append(a))
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
-    monkeypatch.setenv("HERMES_SUPERVISED_CHILD", "1")
+    monkeypatch.setenv("KOVA_SUPERVISED_CHILD", "1")
 
     venv_sync.prepare_launch(root, ["gateway", "run"])
     assert syncs, "a supervised child booted on a stale dependency graph without syncing"

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _child_env(**values: str) -> dict[str, str]:
     """A fresh env for a child of THIS interpreter: same dependency path, no hermes state."""
-    env = {key: value for key, value in os.environ.items() if not key.startswith(("HERMES_", "PYTEST_"))}
+    env = {key: value for key, value in os.environ.items() if not key.startswith(("KOVA_", "PYTEST_"))}
     # The test runner may provide dependencies through sys.path rather than site-packages.
     env["PYTHONPATH"] = os.pathsep.join(path for path in sys.path if path)
     env.update(values)
@@ -45,12 +45,12 @@ _CHILD = textwrap.dedent('''
         # The selected interpreter is the shim: its SQLite probe is the runtime-safety fact.
         sys.executable = os.environ["PROBE_SHIM"]
     import kova_yaml as yaml
-    from kova_cli.config import DEFAULT_CONFIG, ensure_hermes_home
-    home = Path(os.environ["HERMES_HOME"])
+    from kova_cli.config import DEFAULT_CONFIG, ensure_kova_home
+    home = Path(os.environ["KOVA_HOME"])
     home.mkdir(parents=True, exist_ok=True)
     # The process's first config read secures the home (0700) once. Do it now, as a real process
     # has by the time it runs the update tail: config-ro's later chmod must stay in force.
-    ensure_hermes_home()
+    ensure_kova_home()
     (home / "config.yaml").write_text(yaml.safe_dump({
         "_config_version": DEFAULT_CONFIG["_config_version"] - 1,
         "telemetry": {"shared_metrics": {"enabled": False}},
@@ -88,7 +88,7 @@ _CHILD = textwrap.dedent('''
         if mode == "ipc-failed-unit":
             gateway_module.find_gateway_pids = lambda **kwargs: []
             fleet._restart_systemd_gateway_units = lambda restarted, failed, *rest: failed.append(
-                "hermes-gateway-probe.service")
+                "kova-gateway-probe.service")
         else:
             def unavailable(*args, **kwargs):
                 raise RuntimeError("systemctl unavailable")
@@ -100,11 +100,11 @@ _CHILD = textwrap.dedent('''
         from kova_cli import main as hermes_main
         def scm(token):
             if token and token.get("resume_needed"):
-                raise RuntimeError("Could not restart Windows gateway service(s): HermesGatewayProbe")
+                raise RuntimeError("Could not restart Windows gateway service(s): KovaGatewayProbe")
         hermes_main._resume_windows_gateways_after_update = scm
         update_cmd._resume_windows_gateways_after_update = scm
-        windows_resume = {"resume_needed": True, "services": ["HermesGatewayProbe"],
-                          "service_profiles": {"HermesGatewayProbe": "probe"}}
+        windows_resume = {"resume_needed": True, "services": ["KovaGatewayProbe"],
+                          "service_profiles": {"KovaGatewayProbe": "probe"}}
     if mode == "profile-sync":
         def profile_sync():
             raise SystemExit("profile skill sync exited 3")
@@ -154,16 +154,16 @@ _CHILD = textwrap.dedent('''
 
 def _run_completion(tmp_path: Path, mode: str, *, sqlite: str | None = None) -> dict:
     cell = tmp_path / "cell"
-    root_home = cell / "home" / ".hermes"
+    root_home = cell / "home" / ".kova"
     # A named profile: receipts stay in the (writable) root home while the profile home refuses.
     profile = root_home / "profiles" / "probe"
     for name in ("logs/update_receipts", "skills", "cache", "profiles/probe"):
         (root_home / name).mkdir(parents=True, exist_ok=True)
-    env = _child_env(HOME=str(cell / "home"), HERMES_HOME=str(profile), HERMES_DISABLE_LAZY_INSTALLS="1",
-                     HERMES_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
+    env = _child_env(HOME=str(cell / "home"), KOVA_HOME=str(profile), KOVA_DISABLE_LAZY_INSTALLS="1",
+                     KOVA_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
                      XDG_CONFIG_HOME=str(cell / "home/.config"), XDG_CACHE_HOME=str(cell / "home/.cache"),
                      XDG_STATE_HOME=str(cell / "home/.local/state"),
-                     HERMES_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/hermes/gateway-locks"))
+                     KOVA_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/hermes/gateway-locks"))
     if sqlite is not None:
         payload = json.dumps({"base_prefix": sys.base_prefix, "executable": sys.executable,
                               "python_version": list(sys.version_info[:3]),
@@ -303,14 +303,14 @@ _ZIP_PARENT = textwrap.dedent('''
     hermes_main._install_hangup_protection = lambda **kwargs: None
     hermes_main._finalize_update_output = lambda state: None
     hermes_main._run_pre_update_backup = lambda args: None
-    token = {"resume_needed": True, "profiles": {}, "unmapped": [], "services": ["HermesGatewayProbe"],
-             "service_profiles": {"HermesGatewayProbe": "probe"}}
+    token = {"resume_needed": True, "profiles": {}, "unmapped": [], "services": ["KovaGatewayProbe"],
+             "service_profiles": {"KovaGatewayProbe": "probe"}}
     hermes_main._pause_windows_gateways_for_update = lambda: token
     def scm(resume_token):
         with calls.open("a") as handle:
             handle.write(json.dumps(bool(resume_token and resume_token.get("resume_needed"))) + "\\n")
         if resume_token and resume_token.get("resume_needed"):
-            raise RuntimeError("Could not restart Windows gateway service(s): HermesGatewayProbe")
+            raise RuntimeError("Could not restart Windows gateway service(s): KovaGatewayProbe")
     hermes_main._resume_windows_gateways_after_update = scm
     update_cmd._prepare_git_command = lambda **_: (True, None, False)
     def via_zip(args, *, had_desktop_app_before_update, target_sha=None, completion_request=None, **kwargs):
@@ -330,13 +330,13 @@ def test_zip_update_never_replays_a_refused_resume_after_the_commit_point(tmp_pa
     """The child already tried the resume and recorded the follow-up: the parent's finally and its
     atexit net must not run it again, and a restart error must not become exit 1 / "/update failed"."""
     cell = tmp_path / "cell"
-    home = cell / "home" / ".hermes"
+    home = cell / "home" / ".kova"
     (home / "logs/update_receipts").mkdir(parents=True)
     completion = cell / "source" / "kova_cli" / "update_completion.py"
     completion.parent.mkdir(parents=True)
     completion.write_text(_REFUSED_RESUME_COMPLETION, encoding="utf-8")
-    env = _child_env(HOME=str(cell / "home"), HERMES_HOME=str(home), HERMES_DISABLE_LAZY_INSTALLS="1",
-                     HERMES_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
+    env = _child_env(HOME=str(cell / "home"), KOVA_HOME=str(home), KOVA_DISABLE_LAZY_INSTALLS="1",
+                     KOVA_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
                      XDG_CONFIG_HOME=str(cell / "home/.config"), XDG_CACHE_HOME=str(cell / "home/.cache"),
                      XDG_STATE_HOME=str(cell / "home/.local/state"))
     driver = tmp_path / "zip_parent.py"
@@ -374,11 +374,11 @@ _RECEIPT_CHILD = textwrap.dedent('''
 def test_old_schema_handoff_receipt_keeps_the_previous_runs_manual_serve_debt(tmp_path):
     from kova_cli.process_identity import _process_create_time
 
-    home = tmp_path / "home" / ".hermes"
+    home = tmp_path / "home" / ".kova"
     home.mkdir(parents=True)
     # The durable reminder store is obstructed, so the receipt is the only record of the debt.
     (home / "serve_restart_pending").write_text("not a directory\n", encoding="utf-8")
-    env = _child_env(HOME=str(tmp_path / "home"), HERMES_HOME=str(home), PYTHONDONTWRITEBYTECODE="1")
+    env = _child_env(HOME=str(tmp_path / "home"), KOVA_HOME=str(home), PYTHONDONTWRITEBYTECODE="1")
     child = tmp_path / "receipt_child.py"
     child.write_text(_RECEIPT_CHILD, encoding="utf-8")
     serve = subprocess.Popen([sys.executable, "-I", "-c", "import time; print('ready', flush=True); time.sleep(120)"],

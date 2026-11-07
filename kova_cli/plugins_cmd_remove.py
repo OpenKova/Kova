@@ -23,9 +23,9 @@ _PENDING_DELETE_DIR = "plugin-pending-delete"
 
 
 def _pending_delete_root() -> Path:
-    """``<HERMES_HOME>/cache/plugin-pending-delete``: trees a running process still held at removal."""
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "cache" / _PENDING_DELETE_DIR
+    """``<KOVA_HOME>/cache/plugin-pending-delete``: trees a running process still held at removal."""
+    from kova_constants import get_kova_home
+    return get_kova_home() / "cache" / _PENDING_DELETE_DIR
 
 
 def sweep_pending_plugin_deletes() -> None:
@@ -59,7 +59,7 @@ def _discard_tree(tree: Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     parked = Path(tempfile.mkdtemp(prefix=f"{tree.name}-", dir=root)) / "plugin"
     try:
-        os.replace(tree, parked)  # same volume (both under HERMES_HOME): a rename, allowed on mapped DLLs
+        os.replace(tree, parked)  # same volume (both under KOVA_HOME): a rename, allowed on mapped DLLs
     except OSError:
         # A held directory itself (a process's cwd, an open handle on it) cannot even be renamed. Strip
         # its manifests so the remnant no longer loads, and leave the files to the next start.
@@ -142,7 +142,7 @@ def _remove_user_plugin(plugins_dir: Path, name: str, target: Path) -> dict[str,
 
 
 def dashboard_remove_user_plugin(name: str) -> dict[str, Any]:
-    """Delete a plugin tree under ``~/.hermes/plugins/`` only."""
+    """Delete a plugin tree under ``~/.kova/plugins/`` only."""
     plugins_dir = _pc()._plugins_dir()
     if any(n == name and src == "bundled" for n, _ver, _d, src, _path, _key in _pc()._discover_all_plugins()):
         return {"ok": False, "error": "Bundled plugins cannot be removed from the dashboard."}

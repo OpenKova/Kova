@@ -18,7 +18,7 @@ from kova_cli.source_stamp import write_source_stamp
 
 def _write_pyproject(root: Path, version: str) -> None:
     (root / "pyproject.toml").write_text(
-        f'[project]\nname = "hermes-agent"\nversion = "{version}"\n',
+        f'[project]\nname = "kova-agent"\nversion = "{version}"\n',
         encoding="utf-8",
     )
 

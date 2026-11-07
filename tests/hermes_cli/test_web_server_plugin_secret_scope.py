@@ -27,24 +27,24 @@ class TestPluginAPISecretScopeProductionMount:
     _PROBE_KEY = "EXAMPLE_PLUGIN_PROBE_KEY"
 
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch, _isolate_hermes_home, _install_example_plugin):
+    def _setup(self, monkeypatch, _isolate_kova_home, _install_example_plugin):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli import profiles
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        default_home = get_hermes_home()
+        default_home = get_kova_home()
         monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", default_home / "state.db")
 
         # Anchor the named-profiles root to the isolated home so ``?profile=workerb``
         # resolves inside the test sandbox (mirrors test_web_server_skills_profiles).
         profiles_root = default_home / "profiles"
-        monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+        monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
         monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
 
         # Named profile B: a live profile with its OWN probe key value in ``.env`` (also its identity

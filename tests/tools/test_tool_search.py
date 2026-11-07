@@ -84,9 +84,9 @@ class TestClassification:
     def test_core_tools_never_defer(self):
         """The critical invariant from the OpenClaw report."""
         from tools.tool_search import is_deferrable_tool_name
-        from toolsets import _HERMES_CORE_TOOLS
-        assert _HERMES_CORE_TOOLS
-        for core_name in _HERMES_CORE_TOOLS:
+        from toolsets import _KOVA_CORE_TOOLS
+        assert _KOVA_CORE_TOOLS
+        for core_name in _KOVA_CORE_TOOLS:
             assert not is_deferrable_tool_name(core_name), (
                 f"Core tool '{core_name}' must NEVER be deferrable"
             )
@@ -100,7 +100,7 @@ class TestClassification:
         """Session-gated GUI tools stay direct and stay off the global core list."""
         from tools.registry import discover_builtin_tools, registry
         from tools.tool_search import _DIRECT_SURFACE_TOOLSETS, is_deferrable_tool_name
-        from toolsets import _HERMES_CORE_TOOLS
+        from toolsets import _KOVA_CORE_TOOLS
 
         discover_builtin_tools()
         surface = [n for n, ts in registry.get_tool_to_toolset_map().items()
@@ -108,7 +108,7 @@ class TestClassification:
         assert surface
         for name in surface:
             assert not is_deferrable_tool_name(name), name
-            assert name not in _HERMES_CORE_TOOLS
+            assert name not in _KOVA_CORE_TOOLS
 
 
     def test_defer_override_restores_legacy_direct_gui(self):

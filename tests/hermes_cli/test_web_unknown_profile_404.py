@@ -6,7 +6,7 @@ from starlette.testclient import TestClient
 
 
 @pytest.fixture
-def client(_isolate_hermes_home):
+def client(_isolate_kova_home):
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     c = TestClient(app, raise_server_exceptions=False)

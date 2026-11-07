@@ -38,10 +38,10 @@ def pool(tmp_path, monkeypatch):
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     import kova_constants
-    kova_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
+    kova_constants._default_kova_root_memo = None  # type: ignore[attr-defined]
     (root / "auth.json").write_text(json.dumps({"credential_pool": {"openai-codex": [
         {"id": f"cred-{i}", "label": f"acct-{i}", "auth_type": "oauth", "priority": i, "source": "manual",
          "access_token": tok, "refresh_token": f"rt-{i}", "expires_at_ms": 4_000_000_000_000}

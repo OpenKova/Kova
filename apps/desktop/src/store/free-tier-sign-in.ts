@@ -289,9 +289,9 @@ export function signInFailureKind(reason: null | string | undefined): FreeTierSi
 // when the bridge isn't there (dev preview, tests) so the flow never strands in
 // a waiting state. Same contract as the onboarding store's opener.
 async function openSignInUrl(url: string) {
-  if (window.hermesDesktop?.openExternal) {
+  if (window.kovaDesktop?.openExternal) {
     try {
-      await window.hermesDesktop.openExternal(url)
+      await window.kovaDesktop.openExternal(url)
 
       return
     } catch {
@@ -303,7 +303,7 @@ async function openSignInUrl(url: string) {
 }
 
 /**
- * Drive one sign-in attempt end to end: resolve what identity this Hermes is
+ * Drive one sign-in attempt end to end: resolve what identity this Kova is
  * on, start the device-code sign-in, open its page, then long-poll until it
  * resolves. Safe to call again from a "Try again" button — it clears any
  * previous timers first.

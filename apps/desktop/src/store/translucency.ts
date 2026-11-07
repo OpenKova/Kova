@@ -72,8 +72,8 @@ export type { Appearance }
 /** Browser-hosted Desktop has no native window material or opacity surface. */
 export const GLASS_SUPPORTED =
   hostHas('windowMaterial') &&
-  (typeof window !== 'undefined' && typeof window.hermesDesktop?.glassSupported === 'boolean'
-    ? window.hermesDesktop.glassSupported
+  (typeof window !== 'undefined' && typeof window.kovaDesktop?.glassSupported === 'boolean'
+    ? window.kovaDesktop.glassSupported
     : isMacPlatform() || isWindowsPlatform())
 
 /**
@@ -83,8 +83,8 @@ export const GLASS_SUPPORTED =
  */
 export const TRANSLUCENCY_SUPPORTED =
   hostHas('windowMaterial') &&
-  (typeof window !== 'undefined' && typeof window.hermesDesktop?.translucencySupported === 'boolean'
-    ? window.hermesDesktop.translucencySupported
+  (typeof window !== 'undefined' && typeof window.kovaDesktop?.translucencySupported === 'boolean'
+    ? window.kovaDesktop.translucencySupported
     : isMacPlatform() || isWindowsPlatform())
 
 /** Windows collapses the frost ladder — see `glassMaterialsFor`. */
@@ -400,7 +400,7 @@ if (typeof window !== 'undefined') {
   // exactly right: the window's tint and native opacity change with it.
   $translucency.subscribe(state => {
     applyGlassSurfaces(state)
-    window.hermesDesktop?.setTranslucency?.(state)
+    window.kovaDesktop?.setTranslucency?.(state)
   })
 
   // Persistence follows the BOOK, so an appearance switch (which changes the

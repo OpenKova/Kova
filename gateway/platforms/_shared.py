@@ -56,8 +56,8 @@ def _unscoped_profile_secrets() -> dict:
     if _UNSCOPED_PROFILE_SECRETS is None:
         try:
             from agent.secret_scope import build_profile_secret_scope
-            from kova_constants import get_hermes_home
-            _UNSCOPED_PROFILE_SECRETS = dict(build_profile_secret_scope(get_hermes_home()))
+            from kova_constants import get_kova_home
+            _UNSCOPED_PROFILE_SECRETS = dict(build_profile_secret_scope(get_kova_home()))
         except Exception:
             logger.warning(
                 "Could not build the profile secret scope; externally managed credentials will not be "

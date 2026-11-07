@@ -28,9 +28,9 @@ from kova_cli.web_routers._common import log as _log
 from kova_time import get_timezone as _get_timezone
 from kova_state_keys import legacy_cron_run_job
 from kova_constants import (
-    get_hermes_home as _get_hermes_home,
-    reset_hermes_home_override as _reset_hermes_home_override,
-    set_hermes_home_override as _set_hermes_home_override,
+    get_kova_home as _get_kova_home,
+    reset_kova_home_override as _reset_kova_home_override,
+    set_kova_home_override as _set_kova_home_override,
 )
 
 router = APIRouter()
@@ -169,9 +169,9 @@ def _cron_output_runs_dir(profile: Optional[str], job_id: str) -> Path:
         try:
             _, profile_home = _cron_profile_home(profile)
         except Exception:
-            profile_home = _get_hermes_home()
+            profile_home = _get_kova_home()
     else:
-        profile_home = _get_hermes_home()
+        profile_home = _get_kova_home()
     return Path(profile_home) / "cron" / "output" / job_id
 
 
@@ -180,7 +180,7 @@ def _owner_home_scope(profile: Optional[str]):
     """Keep reads in the owner's profile context for the whole run-history build.
 
     Filename stems, the execution ledger and ``kova_time``'s configured zone all
-    resolve through the *current* ``get_hermes_home()``; without this scope a
+    resolve through the *current* ``get_kova_home()``; without this scope a
     cross-profile listing decodes another profile's docs with the dashboard's
     zone (an hours-off timestamp) and reads the dashboard's executions.db. The
     dashboard's own profile needs no override (its home is already current).
@@ -193,21 +193,21 @@ def _owner_home_scope(profile: Optional[str]):
     except Exception:
         yield None
         return
-    if Path(profile_home).resolve() == _get_hermes_home().resolve():
+    if Path(profile_home).resolve() == _get_kova_home().resolve():
         yield None
         return
-    token = _set_hermes_home_override(str(profile_home))
+    token = _set_kova_home_override(str(profile_home))
     try:
         yield profile_home
     finally:
-        _reset_hermes_home_override(token)
+        _reset_kova_home_override(token)
 
 
 def _cron_output_run_timestamp(path: Path) -> Optional[float]:
     """Epoch seconds for an output filename's wall time.
 
     save_job_output writes the stem with kova_time.now() — the configured
-    IANA timezone (HERMES_TIMEZONE / config), falling back to server-local.
+    IANA timezone (KOVA_TIMEZONE / config), falling back to server-local.
     Read it back with that same ZONE, not a fixed offset snapshot of today's
     local offset: a snapshot is wrong when the configured zone differs from
     the server's, and off by an hour for a historical file across a DST

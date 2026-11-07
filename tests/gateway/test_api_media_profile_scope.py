@@ -37,12 +37,12 @@ async def test_restart_recovery_keeps_every_profiles_held_images_and_collects_ea
     from kova_state import SessionDB
     from kova_state_runtime import admit_session_input, begin_runtime_epoch, claim_session_input, settle_session_input
 
-    launch = tmp_path / '.hermes'
+    launch = tmp_path / '.kova'
     beta = launch / 'profiles' / 'beta'
     beta.mkdir(parents=True)
     for home in (launch, beta):
         (home / 'config.yaml').write_text('{}')
-    monkeypatch.setenv('HERMES_HOME', str(launch))
+    monkeypatch.setenv('KOVA_HOME', str(launch))
     store = SessionStore(config=GatewayConfig(), sessions_dir=launch / 'sessions')
     registry = SessionAuthorities(launch, multiplexed=True)
     runner = SimpleNamespace(_draining=False, session_store=store, session_authorities=registry,

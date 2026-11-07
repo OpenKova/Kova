@@ -83,13 +83,13 @@ def test_update_copies_bundled_skill_bytes_to_default_active_and_sibling(tmp_pat
     from pathlib import Path
     from kova_cli import update_cmd_maint
 
-    home = tmp_path / '.hermes'
+    home = tmp_path / '.kova'
     homes = [home, home / 'profiles/active', home / 'profiles/sibling'] if named else [home]
     for profile in homes:
         profile.mkdir(parents=True, exist_ok=True)
         (profile / 'config.yaml').write_text('{}\n', encoding='utf-8')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(homes[1] if named else home))
+    monkeypatch.setenv('KOVA_HOME', str(homes[1] if named else home))
     update_cmd_maint._sync_profiles_after_update()
     bundled = Path(__file__).resolve().parents[2] / 'skills'
     witness = next(bundled.rglob('SKILL.md'))
@@ -105,7 +105,7 @@ def test_active_config_write_failure_still_migrates_siblings_and_restores_snapsh
 
     from kova_cli import backup, update_cmd_config
 
-    root = tmp_path / '.hermes'
+    root = tmp_path / '.kova'
     sibling = root / 'profiles' / 'sibling'
     jobs = {'jobs': [{'id': 'nightly', 'name': 'nightly', 'schedule': '0 3 * * *', 'prompt': 'report'}]}
     for home in (root, sibling):
@@ -113,8 +113,8 @@ def test_active_config_write_failure_still_migrates_siblings_and_restores_snapsh
         (home / 'config.yaml').write_text('_config_version: 48\n', encoding='utf-8')
         (home / 'cron' / 'jobs.json').write_text(json.dumps(jobs), encoding='utf-8')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
-    active_snapshot = backup.create_quick_snapshot(label='pre-update', hermes_home=root)
+    monkeypatch.setenv('KOVA_HOME', str(root))
+    active_snapshot = backup.create_quick_snapshot(label='pre-update', kova_home=root)
     monkeypatch.setattr(update_cmd_config, '_LAST_SIBLING_SNAPSHOTS',
                         backup.create_pre_update_snapshots_all_profiles(root))
     for home in (root, sibling):  # the documented mutation-window loss the safety nets repair
@@ -132,6 +132,6 @@ def test_active_config_write_failure_still_migrates_siblings_and_restores_snapsh
     for home in (root, sibling):
         assert json.loads((home / 'cron' / 'jobs.json').read_text(encoding='utf-8')) == jobs
     assert config.check_config_version()[0] == 48  # the active write stays owed
-    monkeypatch.setenv('HERMES_HOME', str(sibling))
+    monkeypatch.setenv('KOVA_HOME', str(sibling))
     sibling_version, latest = config.check_config_version()
     assert sibling_version == latest > 48

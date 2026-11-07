@@ -19,7 +19,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Optional
 
-SERVICE = "Hermes Agent vault key"
+SERVICE = "Kova Agent vault key"
 
 # keyring backends that are not an OS credential store: ``fail``/``null`` are what keyring picks on
 # a headless Linux box with no Secret Service, and keyrings.alt's plaintext/encrypted-file keyrings
@@ -100,7 +100,7 @@ def write_ref(path: Path, ref: dict) -> None:
 def save_new_ref(path: Path, ref: dict) -> None:
     """Save the pointer to an entry just created. If saving fails, delete the entry unless the pointer
     did land (a replace can succeed before a later step errors): every account is random, so an entry
-    no pointer names is a key Hermes would never find or remove again."""
+    no pointer names is a key Kova would never find or remove again."""
     try:
         write_ref(path, ref)
     except OSError:

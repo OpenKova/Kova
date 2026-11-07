@@ -29,8 +29,8 @@ afterEach(async () => {
   localStorage.clear()
   root.style.cssText = originalStyle
   root.className = originalClass
-  delete root.dataset.hermesMode
-  delete root.dataset.hermesTheme
+  delete root.dataset.kovaMode
+  delete root.dataset.kovaTheme
   window.document.getElementById('hermes-desktop-custom-css')?.remove()
   await flush()
 })
@@ -103,14 +103,14 @@ describe('theme repaint subscriptions', () => {
       () => root.style.removeProperty('--dt-base-size'),
       () => root.classList.toggle('dark'),
       () => {
-        root.dataset.hermesMode = 'dark'
+        root.dataset.kovaMode = 'dark'
       },
       () => {
-        root.dataset.hermesTheme = 'authored'
+        root.dataset.kovaTheme = 'authored'
       },
       // applyTheme uses these writes to announce customCSS-only edits too.
       () => {
-        root.dataset.hermesTheme = 'authored'
+        root.dataset.kovaTheme = 'authored'
       }
     ]
 
@@ -163,8 +163,8 @@ describe('theme repaint subscriptions', () => {
       }, [])
       useEffect(() => {
         paints({
-          skin: root.dataset.hermesTheme,
-          mode: root.dataset.hermesMode,
+          skin: root.dataset.kovaTheme,
+          mode: root.dataset.kovaMode,
           primary: root.style.getPropertyValue('--theme-primary'),
           font: root.style.getPropertyValue('--dt-font-sans'),
           css: window.document.getElementById('hermes-desktop-custom-css')?.textContent
@@ -182,7 +182,7 @@ describe('theme repaint subscriptions', () => {
     )
     await flush()
     expect(paints).toHaveBeenLastCalledWith(
-      expect.objectContaining({ skin: root.dataset.hermesTheme, mode: root.dataset.hermesMode })
+      expect.objectContaining({ skin: root.dataset.kovaTheme, mode: root.dataset.kovaMode })
     )
 
     await act(async () => setTheme('everforest'))

@@ -13,7 +13,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from kova_constants import get_default_hermes_root
+from kova_constants import get_default_kova_root
 
 _HEX32 = re.compile(r"[0-9a-f]{32}\Z")
 _HEX16 = re.compile(r"[0-9a-f]{16}\Z")
@@ -52,8 +52,8 @@ def _nonce(value: str) -> str:
 def _root() -> Path:
     # The helper uploads the token before the child applies `--profile`; read_token() runs after
     # profile activation. Anchor both to the machine root so a named profile (or custom
-    # HERMES_HOME) cannot move the reader away from the helper's token.
-    return get_default_hermes_root() / "desktop-ssh"
+    # KOVA_HOME) cannot move the reader away from the helper's token.
+    return get_default_kova_root() / "desktop-ssh"
 
 
 def _directory(ownership_id: str) -> Path:
@@ -368,21 +368,21 @@ def _resolve_direct_command(hermes_path: str) -> list[str]:
     out = subprocess.run([hermes_path, "--print-runtime-command"], capture_output=True,
                          text=True, encoding="utf-8", errors="replace", timeout=30, check=False)
     if out.returncode != 0:
-        raise ValueError("could not resolve Hermes runtime; refresh this installation's launcher")
+        raise ValueError("could not resolve Kova runtime; refresh this installation's launcher")
     try:
         command = json.loads(out.stdout)
     except ValueError as exc:
-        raise ValueError("Hermes launcher did not report a runtime command") from exc
+        raise ValueError("Kova launcher did not report a runtime command") from exc
     if (not isinstance(command, list) or not command
             or not all(isinstance(part, str) and "\x00" not in part for part in command)
             or not os.path.isabs(command[0]) or not os.path.isfile(command[0])):
-        raise ValueError("Hermes launcher reported an invalid runtime command")
+        raise ValueError("Kova launcher reported an invalid runtime command")
     return command
 
 
 def _spawn_env(payload: dict[str, Any]) -> dict[str, str]:
     """The serve's environment. A Desktop dev build's renderer is an http origin the backend trusts
-    only from the HERMES_DESKTOP_DEV_SERVER it inherits, so the payload's ``devServer`` is handed
+    only from the KOVA_DESKTOP_DEV_SERVER it inherits, so the payload's ``devServer`` is handed
     down exactly as the POSIX spawn command does; without one the variable is not set at all."""
     dev_server = str(payload.get("devServer") or "")
     if len(dev_server) > 2048 or any(ch in dev_server for ch in "\x00\r\n"):
@@ -390,9 +390,9 @@ def _spawn_env(payload: dict[str, Any]) -> dict[str, str]:
     env = dict(os.environ)
     env.pop("VIRTUAL_ENV", None)
     env.pop("PYTHONPATH", None)
-    env.pop("HERMES_DESKTOP_DEV_SERVER", None)
+    env.pop("KOVA_DESKTOP_DEV_SERVER", None)
     if dev_server:
-        env["HERMES_DESKTOP_DEV_SERVER"] = dev_server
+        env["KOVA_DESKTOP_DEV_SERVER"] = dev_server
     return env
 
 
@@ -401,7 +401,7 @@ def spawn_backend(payload: dict[str, Any]) -> dict[str, Any]:
     spawn_nonce = _nonce(str(payload["spawnNonce"]))
     configured_path = str(payload["hermesPath"])
     if not os.path.isabs(configured_path):
-        raise ValueError("Hermes path must be absolute")
+        raise ValueError("Kova path must be absolute")
     hermes_path = os.path.abspath(configured_path)
     token_path = str(_token_path(ownership_id, spawn_nonce))
     profile = str(payload.get("profile") or "")
@@ -433,7 +433,7 @@ def spawn_backend(payload: dict[str, Any]) -> dict[str, Any]:
 def inspect_hermes(hermes_path: str) -> dict[str, Any]:
     path = os.path.abspath(hermes_path)
     if not os.path.isabs(hermes_path) or not os.path.isfile(path):
-        raise ValueError("Hermes path is not an executable file")
+        raise ValueError("Kova path is not an executable file")
     version = subprocess.run([path, "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, check=False)
     help_result = subprocess.run([path, "serve", "--help"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20, check=False)
     help_text = help_result.stdout + help_result.stderr
@@ -446,14 +446,14 @@ def inspect_hermes(hermes_path: str) -> dict[str, Any]:
 
 def _probe(*_: str) -> dict[str, Any]:
     import platform
-    return {"os": "Windows", "arch": platform.machine(), "hermesHome": str(get_default_hermes_root()), "python": sys.executable}
+    return {"os": "Windows", "arch": platform.machine(), "hermesHome": str(get_default_kova_root()), "python": sys.executable}
 
 
 def _inventory(*_: str) -> dict[str, Any]:
     """Desktop's read-only roster: the canonical root and profile predicate; never mints an identity."""
     from kova_cli.install_identity import _INSTALL_ID_FILENAME, _read_existing
     from kova_cli.profiles import _iter_named_profile_dirs
-    install_id, _ = _read_existing(get_default_hermes_root() / _INSTALL_ID_FILENAME)
+    install_id, _ = _read_existing(get_default_kova_root() / _INSTALL_ID_FILENAME)
     return {"profiles": ["default", *[p.name for p in _iter_named_profile_dirs()]], "installId": install_id}
 
 

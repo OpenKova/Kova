@@ -768,7 +768,7 @@ def test_a_killed_shallow_fetchs_shallow_lock_goes_and_the_next_fetch_lands(repo
 
 @pytest.mark.platforms("linux")
 def test_a_live_hermes_shallow_lock_holder_keeps_its_lock(repo: Path) -> None:
-    """Hermes's own ``_ShallowLock`` holder runs no git between its git calls: the reclaim must
+    """Kova's own ``_ShallowLock`` holder runs no git between its git calls: the reclaim must
     still see it (it keeps the lock open), even after a killed update."""
     from kova_cli.gitlock import _ShallowLock, release_dead_fetch_locks
 

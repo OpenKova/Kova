@@ -109,7 +109,7 @@ def _alive(pid: int) -> bool:
 def _drive(root: Path, row: Row) -> Outcome:
     fake = acp.AcpFake(root / "acp", row.turns)
     nh = make_home(root, {"provider": acp.PROVIDER, "default": acp.PLACEHOLDER_MODEL}, env_file=fake.env())
-    acp.install_provider_plugin(nh.hermes_home)
+    acp.install_provider_plugin(nh.kova_home)
     return Outcome(nh, fake, run_chat(nh, "Answer the question, please."))
 
 

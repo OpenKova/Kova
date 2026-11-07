@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def llamacpp_home(monkeypatch):
     from kova_cli.local_runtime import detect
 
     def write(local_runtime: dict) -> None:
-        home = get_hermes_home()
+        home = get_kova_home()
         home.mkdir(parents=True, exist_ok=True)
         config = {"model": {"provider": "llamacpp", "default": "local-qwen"}, "local_runtime": local_runtime}
         (home / "config.yaml").write_text(json.dumps(config), encoding="utf-8")

@@ -48,10 +48,10 @@ def test_setup_admits_real_provider_union_and_keeps_selection_on_failure(tmp_pat
     declare(["provider_dep==1.0", "provider_dep==2.0"])
     config = home / "config.yaml"
     config.write_text('plugins:\n  enabled: [incumbent]\n')
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.setattr("pm.paths.repo_root", lambda: core)
     monkeypatch.setattr("pm._uv._toolchain", lambda **kwargs: (Path(uv), Path(sys.executable)))
     monkeypatch.setattr("pm.client.is_runtime", lambda: True)
@@ -146,7 +146,7 @@ def test_setup_lists_the_requirements_pm_would_install(tmp_path, monkeypatch, ma
         "name": "provider", **({"pip_dependencies": ["stale-manifest-dep"]} if manifest_lists else {}),
     }))
     (tmp_path / "pyproject.toml").write_text(
-        '[project]\nname = "provider"\nversion = "1"\ndependencies = ["provider_dep>=1,<2", "hermes-agent"]\n')
+        '[project]\nname = "provider"\nversion = "1"\ndependencies = ["provider_dep>=1,<2", "kova-agent"]\n')
     monkeypatch.setattr("plugins.memory.find_provider_dir", lambda name: tmp_path)
     monkeypatch.setattr("pm.venv_is_current", lambda **inputs: True)
     from kova_cli.web_server_memory import _memory_provider_setup_info

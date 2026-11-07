@@ -114,7 +114,7 @@ def test_agents_before_the_first_turn_reads_the_opened_sessions_processes(gatewa
     """A resumed session's background work runs on the gateway before this CLI's first turn builds
     its chat agent: opening the session binds the view, so /agents never reads the empty local
     registry (Greptile 4277259979)."""
-    from cli import HermesCLI
+    from cli import KovaCLI
     from kova_cli.gateway_session_store import GatewaySessionStore
 
     class _ResumedStore(GatewaySessionStore):
@@ -123,7 +123,7 @@ def test_agents_before_the_first_turn_reads_the_opened_sessions_processes(gatewa
 
     agent, client = gateway
     gateway_tools._view = None  # no chat agent built yet
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id, cli._resumed, cli.enabled_toolsets = SID, True, ["terminal"]
     cli._session_db = _ResumedStore(agent.connection)
     cli._ensure_gateway_session()
@@ -143,7 +143,7 @@ def test_stop_typed_mid_turn_interrupts_the_turn_then_stops_processes(gateway, m
     import threading
     from types import SimpleNamespace
     import cli as cli_module
-    from cli import HermesCLI
+    from cli import KovaCLI
     painted = []
     monkeypatch.setattr(cli_module, "_cprint", painted.append)
     _agent, client = gateway
@@ -164,7 +164,7 @@ def test_stop_typed_mid_turn_interrupts_the_turn_then_stops_processes(gateway, m
         def hard_interrupt(self, message=None):
             stops.append(message)
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._agent_running, cli.agent = True, _Agent()
     buffer = SimpleNamespace(reset=lambda **_k: None)
     event = SimpleNamespace(app=SimpleNamespace(current_buffer=buffer, invalidate=lambda: None))

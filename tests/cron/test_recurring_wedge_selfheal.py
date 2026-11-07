@@ -41,18 +41,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 @pytest.fixture
 def cron_env(tmp_path, monkeypatch):
     """Isolated cron env + a recurring no_agent interval job, due NOW."""
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "cron").mkdir()
-    (hermes_home / "cron" / "output").mkdir()
-    (hermes_home / "scripts").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / "cron").mkdir()
+    (kova_home / "cron" / "output").mkdir()
+    (kova_home / "scripts").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     import cron.jobs as jobs_mod
-    monkeypatch.setattr(jobs_mod, "HERMES_DIR", hermes_home)
-    monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
-    monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
-    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")
+    monkeypatch.setattr(jobs_mod, "KOVA_DIR", kova_home)
+    monkeypatch.setattr(jobs_mod, "CRON_DIR", kova_home / "cron")
+    monkeypatch.setattr(jobs_mod, "JOBS_FILE", kova_home / "cron" / "jobs.json")
+    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", kova_home / "cron" / "output")
 
     job = jobs_mod.create_job(
         prompt="probe",
@@ -63,10 +63,10 @@ def cron_env(tmp_path, monkeypatch):
     now = datetime.now(UTC)
     jobs_mod.update_job(job["id"], {"next_run_at": (now - timedelta(minutes=1)).isoformat()})
 
-    script = hermes_home / "scripts" / "probe.py"
+    script = kova_home / "scripts" / "probe.py"
     script.write_text("print('ok')\n")
 
-    return {"home": hermes_home, "job_id": job["id"]}
+    return {"home": kova_home, "job_id": job["id"]}
 
 
 class TestStaleInflightSelfHeal:
@@ -76,7 +76,7 @@ class TestStaleInflightSelfHeal:
 
         env = cron_env
         monkeypatch.setattr(E, "EXECUTIONS_FILE", env["home"] / "cron" / "executions.db")
-        monkeypatch.setattr(S, "_hermes_home", env["home"])
+        monkeypatch.setattr(S, "_kova_home", env["home"])
         return S, E, env
 
     def test_stale_claim_self_heals_and_redispatches(self, cron_env, monkeypatch):
@@ -139,7 +139,7 @@ class TestEAGAINCreateExecutionLeak:
 
         env = cron_env
         monkeypatch.setattr(E, "EXECUTIONS_FILE", env["home"] / "cron" / "executions.db")
-        monkeypatch.setattr(S, "_hermes_home", env["home"])
+        monkeypatch.setattr(S, "_kova_home", env["home"])
         job_id = env["job_id"]
         job = J.get_job(job_id)
 

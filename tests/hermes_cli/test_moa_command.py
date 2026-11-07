@@ -1,10 +1,10 @@
 import queue
 from unittest.mock import patch
 
-from cli import HermesCLI
+from cli import KovaCLI
 
 def _make_cli():
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.config = {
         "moa": {
             "default_preset": "default",

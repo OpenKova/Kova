@@ -24,7 +24,7 @@ _NO_SOCKETS_SUFFIX = " — no sockets found; in-flight request may keep running 
 def _routermint_headers() -> dict:
     """User-Agent RouterMint needs to avoid Cloudflare 1010 blocks."""
     from kova_cli.version_info import get_version_info
-    return {"User-Agent": f"HermesAgent/{get_version_info().base_version}"}
+    return {"User-Agent": f"KovaAgent/{get_version_info().base_version}"}
 
 
 def _qwen_portal_headers() -> dict:
@@ -614,7 +614,7 @@ class ClientLifecycleMixin:
             return False
         try:
             from kova_cli.auth import resolve_nous_runtime_credentials
-            timeout = env_float("HERMES_NOUS_TIMEOUT_SECONDS", 15)
+            timeout = env_float("KOVA_NOUS_TIMEOUT_SECONDS", 15)
             # Pass the bearer that just 401'd so a refresh already done by a sibling process is
             # adopted instead of rotating the grant again.
             creds = resolve_nous_runtime_credentials(
@@ -753,7 +753,7 @@ class ClientLifecycleMixin:
         return (base_url, api_key) != prev and current_base in {default_base, prev[0]} and not unchanged
 
     def _try_refresh_env_client_credentials(self) -> bool:
-        """Adopt ``~/.hermes/.env`` credential/base-url edits at the turn boundary (a Settings save updates ``.env``
+        """Adopt ``~/.kova/.env`` credential/base-url edits at the turn boundary (a Settings save updates ``.env``
         but a live worker keeps init-time values). Adoption rule: ``_should_adopt_env_credentials``.
 
         Covers api-key registry providers and named custom providers with a ``key_env`` (#67935) — the

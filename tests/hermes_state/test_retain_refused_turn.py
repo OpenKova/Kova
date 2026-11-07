@@ -1,6 +1,6 @@
 """The owner-side durable retention of a safety-refused turn (``retain_refused_turn_for_display``).
 
-Regression for the "Hermes Bot stuck sessions" report: a refusal is deterministic for the whole
+Regression for the "Kova Bot stuck sessions" report: a refusal is deterministic for the whole
 conversation, so a refused turn left in the MODEL's context re-trips the filter on every later
 message — including after a reload. CLI and ACP own a direct ``SessionDB``, so they retain the
 refused turn owner-side after the turn: the whole turn (user row + any tool rounds + the refusal)

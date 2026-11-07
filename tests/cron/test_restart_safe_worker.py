@@ -147,18 +147,18 @@ def test_external_worker_adopts_execution_and_runs_payload_once(
         }),
         encoding="utf-8",
     )
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     observed_homes = []
     adopted = Mock(
         side_effect=lambda execution_id: (
-            observed_homes.append(get_hermes_home().resolve())
+            observed_homes.append(get_kova_home().resolve())
             or {"id": execution_id, "status": "running"}
         )
     )
     run = Mock(
         side_effect=lambda *_args, **_kwargs: (
-            observed_homes.append(get_hermes_home().resolve()) or True
+            observed_homes.append(get_kova_home().resolve()) or True
         )
     )
     monkeypatch.setattr("cron.executions.adopt_claimed_execution", adopted)
@@ -295,7 +295,7 @@ def test_scoped_wrapper_exit_without_user_bus_names_the_cause_and_invalidates_pr
     from tools.process_registry import GatewayChildDispatch
 
     job = {"id": "job-bus", "execution_id": "exec-1", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
         lambda command, **_: GatewayChildDispatch("scoped", ["systemd-run", "--", *command]),
@@ -329,7 +329,7 @@ def test_launch_external_worker_treats_a_routed_fire_as_multiplexed(tmp_path, mo
     from cron import scheduler
     import kova_constants
     from agent import secret_scope
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.process_registry import GatewayChildDispatch
 
     launch = tmp_path / "launch"
@@ -339,8 +339,8 @@ def test_launch_external_worker_treats_a_routed_fire_as_multiplexed(tmp_path, mo
     (launch / ".env").write_text("LAUNCH_ONLY_SECRET=launch-secret\n", encoding="utf-8")
     (routed / ".env").write_text("", encoding="utf-8")
     monkeypatch.setenv("LAUNCH_ONLY_SECRET", "launch-secret")
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: routed)
-    monkeypatch.setattr(kova_constants, "get_process_hermes_home", lambda: launch)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: routed)
+    monkeypatch.setattr(kova_constants, "get_process_kova_home", lambda: launch)
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
         lambda command, *, unit_suffix, require_restart_safe_scope=False: GatewayChildDispatch(
@@ -349,12 +349,12 @@ def test_launch_external_worker_treats_a_routed_fire_as_multiplexed(tmp_path, mo
     spawned, payloads, _handoff, _get = _stub_external_worker_launch(scheduler, monkeypatch)
 
     assert not secret_scope.is_multiplex_active()  # the desktop tick itself is NOT a multiplexer
-    home_token = set_hermes_home_override(str(routed))
+    home_token = set_kova_home_override(str(routed))
     try:
         assert scheduler._launch_external_cron_worker(
             {"id": "job-r", "execution_id": "exec-1", "prompt": "work"}) is True
     finally:
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
     assert payloads[0]["multiplex_active"] is True
     assert "LAUNCH_ONLY_SECRET" not in spawned[0][1]["env"]
@@ -369,7 +369,7 @@ def test_launch_external_worker_uses_restart_safe_scope_and_acknowledges(
     from tools.env_passthrough import clear_env_passthrough, register_env_passthrough
 
     job = {"id": "job-1", "execution_id": "exec-1", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     (tmp_path / ".env").write_text(
         "SERVICE_TOKEN=target-profile-token\n", encoding="utf-8"
     )
@@ -417,7 +417,7 @@ def test_launch_external_worker_honors_ack_within_adoption_grace(
     from tools.process_registry import GatewayChildDispatch
 
     job = {"id": "job-cold", "execution_id": "exec-cold", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
         lambda command, **_kw: GatewayChildDispatch("scoped", ["scope", "--", *command]),
@@ -482,7 +482,7 @@ def test_worker_dying_before_ack_names_its_stderr_cause(tmp_path, monkeypatch):
     from cron import scheduler
     from tools.process_registry import GatewayChildDispatch
 
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(scheduler, "mark_execution_handoff_pending", lambda execution_id: {"id": execution_id})
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
@@ -609,7 +609,7 @@ def test_launch_external_worker_degrades_by_default_with_real_helper(
     from tools import process_registry
 
     job = {"id": "job-1", "execution_id": "exec-1", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(scheduler, "load_config_readonly", dict)
     monkeypatch.setattr(process_registry, "_is_supervised_gateway_process", lambda: True)
     monkeypatch.setenv("INVOCATION_ID", "managed-service")
@@ -636,7 +636,7 @@ def test_launch_external_worker_pins_the_gateways_tree_on_pythonpath(
     from tools.process_registry import GatewayChildDispatch
 
     job = {"id": "job-1", "execution_id": "exec-1", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
         lambda command, **_: GatewayChildDispatch("degraded", command),
@@ -665,7 +665,7 @@ def test_launch_external_worker_pin_extends_the_sanitized_env_not_os_environ(
     from tools.process_registry import GatewayChildDispatch
 
     job = {"id": "job-1", "execution_id": "exec-1", "prompt": "work"}
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(
         "tools.process_registry.restart_safe_gateway_child_argv",
         lambda command, **_: GatewayChildDispatch("degraded", command),
@@ -724,7 +724,7 @@ def test_pin_restores_the_committed_generation_site_packages(tmp_path):
     import cron.scheduler_worker_env as worker_env_mod
     import pm.environments
 
-    repo_root = tmp_path / "hermes-agent"
+    repo_root = tmp_path / "kova-agent"
     repo_root.mkdir()
     venv = _commit_generation(repo_root, "gen1", with_site_packages=True)
     selected = pm.environments.site_packages(venv)
@@ -1007,7 +1007,7 @@ def test_dispatch_failure_notice_resolves_the_owning_profiles_home_channel(
     home = tmp_path / "profiles" / "worker"
     home.mkdir(parents=True)
     (home / ".env").write_text('TELEGRAM_HOME_CHANNEL="111111111"\n', encoding="utf-8")
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: home)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: home)
     monkeypatch.delenv("TELEGRAM_HOME_CHANNEL", raising=False)
 
     def _handoff_boom(_job):
@@ -1089,7 +1089,7 @@ def test_worker_delivery_queue_is_keyed_by_the_delivering_jobs_own_execution(
     # First call the standalone (non-queue) path makes after the guard; the
     # failure is reported as the delivery error string.
     monkeypatch.setattr("gateway.config.load_gateway_config", _standalone)
-    monkeypatch.setenv("_HERMES_CRON_EXTERNAL_WORKER", "exec-outer")
+    monkeypatch.setenv("_KOVA_CRON_EXTERNAL_WORKER", "exec-outer")
 
     # Own attempt: routed through the durable queue.
     assert scheduler._deliver_result(
@@ -1186,7 +1186,7 @@ def test_managed_gateway_restart_preserves_active_worker_and_single_side_effect(
         "print('completed')\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with use_cron_store(home):
         job = create_job(
             prompt=None,
@@ -1232,7 +1232,7 @@ def test_managed_gateway_restart_preserves_active_worker_and_single_side_effect(
 
     harness = (
         "import json, os, pathlib, time\n"
-        f"os.environ['HERMES_HOME'] = {str(home)!r}\n"
+        f"os.environ['KOVA_HOME'] = {str(home)!r}\n"
         "os.environ['INVOCATION_ID'] = 'restart-fixture'\n"
         "from cron import scheduler\n"
         "from tools import process_registry\n"
@@ -1338,7 +1338,7 @@ def test_restart_wait_counts_exclude_only_scoped_workers(tmp_path, monkeypatch):
     """
     from cron import scheduler
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("cron.jobs.load_jobs", list)
     jobs = ("job-scoped", "job-degraded", "job-scoped-wedged")
     for job_id in jobs:

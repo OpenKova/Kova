@@ -27,7 +27,7 @@ def _make_task(kb, *, assignee: str):
 
 def test_default_spawn_pins_assignee_profile_cli_toolsets(monkeypatch, tmp_path):
     """The transport client reaches the assigned profile with its exact run claim."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     profile = root / "profiles" / "elias"
     profile.mkdir(parents=True)
     profile.joinpath("config.yaml").write_text(
@@ -51,7 +51,7 @@ agent:
         encoding="utf-8",
     )
     root.joinpath("config.yaml").write_text("toolsets:\n  - kanban\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
 
     from kova_cli import kanban_db as kb
     from kova_cli import kanban_db_dispatch as kbd
@@ -76,19 +76,19 @@ agent:
     pid = kbd._default_spawn(_make_task(kb, assignee="elias"), str(workspace))
 
     assert pid == 4242
-    assert captured["env"]["HERMES_HOME"] == str(profile)
-    assert captured["env"]["HERMES_KANBAN_TASK"] == "t_spawn_tools"
+    assert captured["env"]["KOVA_HOME"] == str(profile)
+    assert captured["env"]["KOVA_KANBAN_TASK"] == "t_spawn_tools"
     assert captured["cmd"][-2:] == ["-m", "kova_cli.kanban_worker_client"]
-    assert captured["env"]["HERMES_KANBAN_RUN_ID"] == "7"
-    assert captured["env"]["HERMES_KANBAN_CLAIM_LOCK"] == "lock"
+    assert captured["env"]["KOVA_KANBAN_RUN_ID"] == "7"
+    assert captured["env"]["KOVA_KANBAN_CLAIM_LOCK"] == "lock"
 
 
 def test_default_spawn_does_not_pass_mutable_launch_overrides(monkeypatch, tmp_path):
     """Owner policy reads overrides from the claimed card, not executable argv."""
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "elias").mkdir(parents=True)
     root.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
 
     from kova_cli import kanban_db as kb
     from kova_cli import kanban_db_dispatch as kbd
@@ -120,14 +120,14 @@ def test_default_spawn_resolves_env_passthrough_under_multiplex(monkeypatch, tmp
     forward the ASSIGNEE profile's own value, never crash on an unscoped read or leak the
     dispatcher's ambient os.environ (#109494).
     """
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     profile = root / "profiles" / "elias"
     profile.mkdir(parents=True)
     root.joinpath("config.yaml").write_text(
         "terminal:\n  env_passthrough:\n    - MY_PASSTHROUGH_VAR\n", encoding="utf-8")
     profile.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
     profile.joinpath(".env").write_text("MY_PASSTHROUGH_VAR=elias-value\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setenv("MY_PASSTHROUGH_VAR", "dispatcher-value")
 
     from agent.secret_scope import set_multiplex_active
@@ -176,10 +176,10 @@ def test_worker_toolsets_come_from_the_assignee_profile_not_the_parent_config(tm
 
     profile = tmp_path / "profiles" / "elias"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_KANBAN_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
+    monkeypatch.delenv("KOVA_KANBAN_DB", raising=False)
     monkeypatch.setattr("kova_cli.profiles.resolve_profile_env", lambda name: str(profile))
     workspace = tmp_path / "workspace"
     workspace.mkdir()

@@ -8,7 +8,7 @@ function readyBootProgress(): DesktopBootProgress {
   return {
     error: null,
     fakeMode: false,
-    message: 'Hermes browser-hosted desktop is ready',
+    message: 'Kova browser-hosted desktop is ready',
     phase: 'runtime.ready',
     progress: 100,
     running: false,
@@ -109,7 +109,7 @@ export const BROWSER_BRIDGE_STUBS = {
       // Package removal belongs to the server host, never this browser tab.
       code_removal_allowed: false,
       gui_installed: true,
-      hermes_home: '',
+      kova_home: '',
       // No OS package owns a browser tab either: About shows no uninstall section.
       native_removal_instructions: null,
       packaged_app_paths: [],

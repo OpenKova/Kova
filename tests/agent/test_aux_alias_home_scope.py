@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 _PLUGIN = textwrap.dedent(
     """
@@ -41,7 +41,7 @@ def homes(tmp_path, monkeypatch):
     plugin_home, bare_home = tmp_path / "with_plugin", tmp_path / "bare"
     plugin_home.mkdir()
     bare_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(bare_home))
+    monkeypatch.setenv("KOVA_HOME", str(bare_home))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -59,11 +59,11 @@ def homes(tmp_path, monkeypatch):
 def _normalize_in(home: Path, name: str) -> str:
     from agent.auxiliary_client import _normalize_aux_provider
 
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return _normalize_aux_provider(name)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_alias_table_is_per_home_in_either_order(homes):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hermes Agent CLI — interactive terminal interface (``python cli.py --help`` for usage)."""
+"""Kova Agent CLI — interactive terminal interface (``python cli.py --help`` for usage)."""
 
 # Must be the very first import (UTF-8 stdio on Windows). Missing only mid-``hermes update``.
 try:
@@ -28,7 +28,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-os.environ["HERMES_QUIET"] = "1"  # suppress our modules' startup chatter
+os.environ["KOVA_QUIET"] = "1"  # suppress our modules' startup chatter
 
 
 from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
@@ -331,14 +331,14 @@ realign_markdown_tables = _lazy_shim("agent.markdown_tables", "realign_markdown_
 _COMMAND_SPINNER_FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
 
-# ~/.hermes/.env first, project .env as dev fallback; user env files override stale shell exports.
-from kova_constants import get_hermes_home
+# ~/.kova/.env first, project .env as dev fallback; user env files override stale shell exports.
+from kova_constants import get_kova_home
 from kova_cli.env_loader import load_hermes_dotenv
 from agent.i18n import t as _t
 
-_hermes_home = get_hermes_home()
+_kova_home = get_kova_home()
 _project_env = Path(__file__).parent / '.env'
-load_hermes_dotenv(hermes_home=_hermes_home, project_env=_project_env)
+load_hermes_dotenv(kova_home=_kova_home, project_env=_project_env)
 
 
 CLI_CONFIG = load_cli_config()
@@ -594,7 +594,7 @@ def _cleanup_worktree(info: dict[str, str] | None = None) -> None:
 
 
 # Light/dark terminal detection (mirrors ui-tui/src/theme.ts detectLightMode()). Priority:
-# HERMES_LIGHT/HERMES_TUI_LIGHT env, HERMES_TUI_THEME, HERMES_TUI_BACKGROUND, COLORFGBG
+# KOVA_LIGHT/KOVA_TUI_LIGHT env, KOVA_TUI_THEME, KOVA_TUI_BACKGROUND, COLORFGBG
 # (bg slot 7/15 = light), OSC 11 query, default dark. Cached so the terminal is queried once.
 _LIGHT_MODE_CACHE: bool | None = None
 
@@ -770,15 +770,15 @@ def _parse_skills_argument(skills: str | list[str] | tuple[str, ...] | None) -> 
 
 
 def save_config_value(key_path: str, value: any) -> bool:
-    """Persist dot-separated ``key_path`` = value into HERMES_HOME/config.yaml; True on success.
+    """Persist dot-separated ``key_path`` = value into KOVA_HOME/config.yaml; True on success.
 
     Never the repo's cli-config.yaml: no config reader loads it, so the value would vanish.
     """
-    config_path = get_hermes_home() / 'config.yaml'
+    config_path = get_kova_home() / 'config.yaml'
 
     try:
-        from kova_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(config_path.parent)
+        from kova_constants import mkdir_under_kova_home
+        mkdir_under_kova_home(config_path.parent)
         from kova_cli.config_backend import write_config_key
         write_config_key(config_path, key_path, value)
         try:  # owner-only: config files contain API keys
@@ -878,8 +878,8 @@ from kova_cli.cli_chat_turn_mixin import CLIChatTurnMixin
 _PASTE_REF_RE = re.compile(r'\[Pasted text #\d+: \d+ lines \u2192 (.+?)\]')
 
 
-class HermesCLI(CLIBacktrackMixin, CLIInitMixin, CLITuiRuntimeMixin, CLIProcessNotificationsMixin, CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMixin, CLIStatusBarMixin, CLIVoiceMixin, CLIModelSwitchMixin, CLISessionMixin, CLIStreamMixin, CLIModalMixin, CLITerminalMixin, CLIInfoMixin, CLILoopsMixin, CLIChatTurnMixin):
-    """Interactive REPL for the Hermes Agent."""
+class KovaCLI(CLIBacktrackMixin, CLIInitMixin, CLITuiRuntimeMixin, CLIProcessNotificationsMixin, CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMixin, CLIStatusBarMixin, CLIVoiceMixin, CLIModelSwitchMixin, CLISessionMixin, CLIStreamMixin, CLIModalMixin, CLITerminalMixin, CLIInfoMixin, CLILoopsMixin, CLIChatTurnMixin):
+    """Interactive REPL for the Kova Agent."""
 
     # Seeded -q first message (see _should_seed_interactive); run() re-creates
     # _pending_input, so it is enqueued only after the fresh queue exists.
@@ -1046,11 +1046,11 @@ class HermesCLI(CLIBacktrackMixin, CLIInitMixin, CLITuiRuntimeMixin, CLIProcessN
         terminal_cwd = os.getenv("TERMINAL_CWD", os.getcwd())
         terminal_timeout = os.getenv("TERMINAL_TIMEOUT", "60")
 
-        config_path = _hermes_home / 'config.yaml'
+        config_path = _kova_home / 'config.yaml'
         config_status = _t("cli.config.loaded") if config_exists(config_path) else _t("cli.config.not_found")
         from kova_cli.config_backend import get_config_backend
         if not get_config_backend().supports_file_tooling():  # no local file: name where config comes from
-            config_path, config_status = get_config_backend().describe(_hermes_home), ""
+            config_path, config_status = get_config_backend().describe(_kova_home), ""
 
         # ``api_key`` may be a callable bearer provider (Entra ID, Vertex OAuth, key_cmd, ...):
         # label it by its tagged source and never invoke it (that would mint a token just to mask
@@ -1515,7 +1515,7 @@ class HermesCLI(CLIBacktrackMixin, CLIInitMixin, CLITuiRuntimeMixin, CLIProcessN
 
 
 def _build_cli_from_args(model, toolsets, provider, reasoning, api_key, base_url, max_turns, run_budget, verbose, compact, resume, checkpoints, pass_session_id, ignore_rules, skills):
-    """Resolve the toolset list (explicit / coding posture / platform default), construct HermesCLI, and start the background skills preload."""
+    """Resolve the toolset list (explicit / coding posture / platform default), construct KovaCLI, and start the background skills preload."""
     toolsets_list = None
     if isinstance(toolsets, str) and toolsets:
         toolsets_list = [t.strip() for t in toolsets.split(",")]
@@ -1537,7 +1537,7 @@ def _build_cli_from_args(model, toolsets, provider, reasoning, api_key, base_url
     parsed_skills = _parse_skills_argument(skills)
 
     try:
-        cli = HermesCLI(
+        cli = KovaCLI(
             model=model,
             toolsets=toolsets_list,
             provider=provider,
@@ -1567,7 +1567,7 @@ def _build_cli_from_args(model, toolsets, provider, reasoning, api_key, base_url
 
     # skills.auto_load rides the same background preload as -s; --ignore-rules skips it with
     # the rest of the auto-injected context. Resolved here (not lazily in the agent) so the
-    # session id is real for ${HERMES_SESSION_ID} and -s can dedupe against it.
+    # session id is real for ${KOVA_SESSION_ID} and -s can dedupe against it.
     from agent.skill_commands import build_auto_load_prompt, resolve_auto_load_skills
     auto_load_names = [] if getattr(cli, "ignore_rules", ignore_rules) else resolve_auto_load_skills(CLI_CONFIG)
     if not auto_load_names:
@@ -1635,7 +1635,7 @@ def _start_worktree_setup(list_tools, list_toolsets, worktree, w):
     def _create_worktree() -> None:
         try:
             # The session freezes this cwd: recorded so a resume recreates the tree quit removed (N8).
-            _wt_result["info"] = _setup_worktree(sync_base=_sync_base, retain_db=get_hermes_home() / "state.db")
+            _wt_result["info"] = _setup_worktree(sync_base=_sync_base, retain_db=get_kova_home() / "state.db")
         except Exception:
             logger.debug("worktree setup failed", exc_info=True)
             _wt_result["info"] = None
@@ -1697,7 +1697,7 @@ def main(
     ignore_rules: bool = False,
 ):
     """
-    Hermes Agent CLI - Interactive AI Assistant
+    Kova Agent CLI - Interactive AI Assistant
     
     Args:
         query: Query to run. On a real TTY this seeds an interactive session
@@ -1726,7 +1726,7 @@ def main(
     Examples:
         python cli.py                            # Start interactive mode
         python cli.py --toolsets web,terminal    # Use specific toolsets
-        python cli.py --skills hermes-agent-dev,github-auth
+        python cli.py --skills kova-agent-dev,github-auth
         python cli.py -q "What is Python?"       # Single query mode
         python cli.py -q "Describe this" --image ~/storage/shared/Pictures/cat.png
         python cli.py --list-tools               # List tools and exit
@@ -1739,7 +1739,7 @@ def main(
         from kova_cli.stdio import configure_windows_stdio
         configure_windows_stdio()
 
-    os.environ["HERMES_INTERACTIVE"] = "1"  # terminal_tool: interactive sudo prompts with timeout
+    os.environ["KOVA_INTERACTIVE"] = "1"  # terminal_tool: interactive sudo prompts with timeout
 
     if gateway:
         _run_legacy_gateway()

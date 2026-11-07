@@ -3,7 +3,7 @@
 /venv.old/
 /venv.stale.runtime-*/
 /bin/
-/.hermes-runtime/
+/.kova-runtime/
 /_pycache/
 *.pyc*
 __pycache__/
@@ -22,13 +22,13 @@ act/
 .env.production.local
 .env.development
 .env.test
-.hermes-docker/
+.kova-docker/
 .notebooklm-home/
 .notebooklm-cli-venv/
 .notebooklm-playwright/
 .pip-cache/
 .uv-cache/
-compose.hermes.local.yml
+compose.kova.local.yml
 export*
 __pycache__/model_tools.cpython-310.pyc
 __pycache__/web_tools.cpython-310.pyc
@@ -82,7 +82,7 @@ test-results/
 # CLI config (may contain sensitive SSH paths)
 cli-config.yaml
 
-# Skills Hub state (lives in ~/.hermes/skills/.hub/ at runtime, but just in case)
+# Skills Hub state (lives in ~/.kova/skills/.hub/ at runtime, but just in case)
 skills/.hub/
 ignored/
 .worktrees/
@@ -170,19 +170,19 @@ config/mcporter.json
 kova_cli/tui_dist/*
 kova_cli/scripts/
 docs/superpowers/*
-# Working directory for the Hermes Agent's session state (~/.hermes/ at runtime;
+# Working directory for the Kova Agent's session state (~/.kova/ at runtime;
 # also created in-repo when an agent operates in this checkout). Plans, audit
 # logs, and per-session caches are never artifacts of the codebase.
-.hermes/
+.kova/
 
 # Desktop/bootstrap install marker written into the managed checkout root by the
-# bootstrap installer. It is Hermes-managed runtime state, never a code change —
+# bootstrap installer. It is Kova-managed runtime state, never a code change —
 # ignore it so `hermes update`'s `git stash push --include-untracked` does not
 # treat it as a local edit and autostash it on every run (#38529).
-.hermes-bootstrap-complete
+.kova-bootstrap-complete
 
-# Flat-install runtime state (checkout root == $HERMES_HOME, e.g. installs made
-# with HERMES_INSTALL_DIR=$HERMES_HOME or by older installers): every root-level
+# Flat-install runtime state (checkout root == $KOVA_HOME, e.g. installs made
+# with KOVA_INSTALL_DIR=$KOVA_HOME or by older installers): every root-level
 # SQLite store (state.db, kanban.db, response_store.db, ...) with its
 # WAL/SHM/journal sidecars and every dot-suffixed `<db>.db.*` runtime artifact
 # (retired-WAL capture dirs, quarantine/repair/rebuild/maintenance/init/dispatch
@@ -194,12 +194,12 @@ docs/superpowers/*
 # ones), gateway lock/pid/state files and per-launch markers, cache/spill
 # directories, and the profile's own config/credential/
 # memory/profile/pairing roots, the pre-update backups (the very copies a
-# swept state.db is restored from) and the secret vault are Hermes-managed
+# swept state.db is restored from) and the secret vault are Kova-managed
 # runtime state, never code changes. (`*-snapshots/` above already covers state-snapshots/.)
 # Ignore them so `hermes update`'s `git stash push --include-untracked` cannot
 # sweep the live state.db/-wal into the stash and unlink it under the running
-# gateway (#110648). Nested installs keep all of this under $HERMES_HOME outside
-# the checkout, where the `.hermes/` rule above already applies.
+# gateway (#110648). Nested installs keep all of this under $KOVA_HOME outside
+# the checkout, where the `.kova/` rule above already applies.
 /*.db
 /*.db-wal
 /*.db-shm
@@ -226,7 +226,7 @@ docs/superpowers/*
 /.update_check
 /.clean_shutdown
 /active_profile
-/.hermes_history
+/.kova_history
 /slack_tokens.json
 /hook_outputs/
 /hooks/
@@ -262,10 +262,10 @@ docs/superpowers/*
 /vault.json.enc
 
 # Persistent dev sandbox dir (scripts/dev-sandbox.sh --persistent)
-.hermes-sandbox/
+.kova-sandbox/
 # Sandbox dirs used by the install/update E2E (tests/install/). The suffix is
 # the route name, so each route gets its own tree and two can run at once.
-.hermes-sandbox-e2e*/
+.kova-sandbox-e2e*/
 
 # Interrupted-update breadcrumb + recovery lock written next to the shared venv
 # by `hermes update` / launch-time self-heal. Runtime state, never a code change
@@ -273,8 +273,8 @@ docs/superpowers/*
 .update-incomplete
 .update-incomplete.lock
 # Kernel lock `hermes update` holds on the checkout (kova_cli/update_lock.py).
-.hermes-update.lock
-.hermes-update-zip-swap.lock
+.kova-update.lock
+.kova-update-zip-swap.lock
 
 # Checkout fingerprint the __pycache__ tree was last validated against
 # (launch-time stale-bytecode sweep). Runtime state, never a code change.
@@ -303,7 +303,7 @@ apps/desktop/demo/
 
 # PR infographics are rendered locally and embedded in PR descriptions via the
 # image-provider (fal.media) URL — they are NEVER committed to the repo. The
-# PR body is the archive. See the hermes-agent-dev skill's
+# PR body is the archive. See the kova-agent-dev skill's
 # pr-infographic-workflow reference (storage rule + lapse #8 / #COMMIT-1).
 #
 # Spelling variants are listed because a single `infographic/` pattern was

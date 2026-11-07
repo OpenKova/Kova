@@ -85,9 +85,9 @@ def publish_launchers(project_root: Path, *, create: bool = True) -> None:
         # source-driver.sh refuses to let --version paper over the gap), so
         # this skip is a half-finished update, never a quiet no-op.
         log.warning("launchers: no managed interpreter under %s; %s not published",
-                    root, root / ".hermes" / "bin")
+                    root, root / ".kova" / "bin")
         return
-    written = ensure_install_launchers(root, root / ".hermes" / "bin")
+    written = ensure_install_launchers(root, root / ".kova" / "bin")
     if len(written) != len(ENTRY_POINTS):
         from pm.package import InstallError
 
@@ -297,7 +297,7 @@ def refuse_foreign_owned_venv(project_root: Path) -> None:
     # A root-run update on a user's checkout is not safe even if a fresh
     # generation would be allocated: it publishes root-owned state for them.
     from pm.environments import selected_venv
-    candidates = [root, root / "venv", root / ".venv", root / ".hermes", selected_venv(root)]
+    candidates = [root, root / "venv", root / ".venv", root / ".kova", selected_venv(root)]
     for venv in (root / "venv", root / ".venv", candidates[-1]):
         for directory in (venv / ("Scripts" if os.name == "nt" else "bin"),
                           *venv.glob("lib/python*/site-packages")):
@@ -340,7 +340,7 @@ def _supervised_child() -> bool:
     """
     return any(
         os.environ.get(name, "").strip().lower() in ("1", "true", "yes", "on")
-        for name in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD")
+        for name in ("KOVA_SUPERVISED_CHILD", "KOVA_S6_SUPERVISED_CHILD")
     )
 
 
@@ -351,7 +351,7 @@ def _tree_matches_completed_stamp(root: Path) -> bool:
     when that commit is a clean HEAD, the products in the tree were built for it, so a
     stale venv only needs re-provisioning and a marker armed BEFORE that stamp is a
     leftover from a previous home/install, never a rebuild of the same SHA (fresh
-    Windows installs and pristine HERMES_HOMEs hit exactly this: #123314). A marker
+    Windows installs and pristine KOVA_HOMEs hit exactly this: #123314). A marker
     armed after the stamp is newer debt (a same-commit ``hermes update`` that failed
     or was killed) and is still owed. Boot-time adoption also stamps HEAD but builds
     nothing, so its stamp (``adoptedAt``) is not evidence; neither is a dirty tree.
@@ -453,7 +453,7 @@ def prepare_launch(project_root: Path, argv: list[str]) -> Path | None:
             # fenced the gateway. Completing that same tail first can take minutes and
             # leaves the user without the fence diagnosis or a usable restart remedy.
             or _is_read_only_gateway_status(command)
-            or os.environ.get("HERMES_DISABLE_LAZY_INSTALLS", "").lower() in ("1", "true", "yes")
+            or os.environ.get("KOVA_DISABLE_LAZY_INSTALLS", "").lower() in ("1", "true", "yes")
             or not (root / ".git").exists()
             or not (root / "pyproject.toml").is_file()):
         return None
@@ -490,7 +490,7 @@ def prepare_launch(project_root: Path, argv: list[str]) -> Path | None:
         # keeps a dead update's marker (R6: refused as held, never reclaimed).
         lock = UpdateLock(install_root=root, checkout_first=False)
         if not lock.acquire():
-            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Hermes")
+            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Kova")
         try:
             # Under the launching update's own claim (its pid is our ancestor) a process it
             # spawned owes no tail: that obligation is the updater's.
@@ -509,7 +509,7 @@ def prepare_launch(project_root: Path, argv: list[str]) -> Path | None:
                 # marker over a held checkout lock is a killed update whose tree (its completion
                 # child) still runs.
                 if not lock.acquire_checkout(root):
-                    raise RuntimeError("an update is still running; wait for it to exit, then relaunch Hermes")
+                    raise RuntimeError("an update is still running; wait for it to exit, then relaunch Kova")
                 _finish_source_update(root, current=current, pending=pending)
         finally:
             lock.release()
@@ -517,7 +517,7 @@ def prepare_launch(project_root: Path, argv: list[str]) -> Path | None:
     if python is None:
         raise RuntimeError("source update has no managed Python; run `hermes pm install`")
     # Lexical identity, never resolve(): PM spells the store path through
-    # HERMES_HOME (which may carry '..') while sys.executable arrives
+    # KOVA_HOME (which may carry '..') while sys.executable arrives
     # normalized, so a raw compare re-execs every child forever (#122513). A
     # venv interpreter symlinked to the same binary is still a different
     # interpreter (its own sys.prefix) and must re-exec once.
@@ -537,7 +537,7 @@ def _prepare_borrowed_launch(root: Path, owner: Path, *, current: bool) -> Path 
     """Launch a checkout that another data root owns (#123238).
 
     Dependency state is per data root, so a borrowing root -- a test's temporary
-    ``HERMES_HOME``, a per-task home -- still gets an environment of its own, synced exactly
+    ``KOVA_HOME``, a per-task home -- still gets an environment of its own, synced exactly
     as a process spawned under a live update syncs. The rest is the checkout's, and so the
     owner's: launchers, product builds, post-update maintenance, the install stamp and the
     owner's own update markers. None of it is armed, run or published from here, so a
@@ -553,7 +553,7 @@ def _prepare_borrowed_launch(root: Path, owner: Path, *, current: bool) -> Path 
     if not current:
         lock = UpdateLock(install_root=root, checkout_first=False)  # R6, as in prepare_launch
         if not lock.acquire():
-            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Hermes")
+            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Kova")
         try:
             _sync_source_dependencies(root, arm=False, borrowed_from=owner)
         finally:
@@ -579,7 +579,7 @@ def _finish_source_update(root: Path, *, current: bool, pending: Path) -> None:
         # Current post-sync verification children can boot under a live updater.
         legacy_markers = (root / ".update-incomplete", root / ".lazy-refresh-incomplete")
         if any(_marker_owner_is_live(marker) for marker in legacy_markers):
-            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Hermes")
+            raise RuntimeError("an update is still running; wait for it to exit, then relaunch Kova")
         print("hermes: completing source-update dependencies...", file=sys.stderr, flush=True)
         completed = _tree_matches_completed_stamp(root)
         # ponytail: commit-only match; a product dir deleted by hand is rebuilt on demand

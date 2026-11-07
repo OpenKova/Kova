@@ -147,7 +147,7 @@ def test_provider_flag_uses_named_custom_default_model(monkeypatch):
     monkeypatch.setattr("kova_cli.config.load_config", lambda: config)
     monkeypatch.setattr("kova_cli.runtime_provider.load_config", lambda: config)
 
-    shell = cli.HermesCLI(provider="gmk-lan", compact=True, max_turns=1)
+    shell = cli.KovaCLI(provider="gmk-lan", compact=True, max_turns=1)
 
     assert shell.model == "/models/gemma.gguf"
     assert shell.requested_provider == "gmk-lan"
@@ -175,7 +175,7 @@ def test_explicit_model_wins_over_provider_default_model(monkeypatch):
     monkeypatch.setattr("kova_cli.config.load_config", lambda: config)
     monkeypatch.setattr("kova_cli.runtime_provider.load_config", lambda: config)
 
-    shell = cli.HermesCLI(
+    shell = cli.KovaCLI(
         provider="gmk-lan",
         model="explicit-id",
         compact=True,
@@ -222,7 +222,7 @@ def test_startup_alias_base_url_reaches_runtime_resolution(
         },
     )
 
-    shell = cli.HermesCLI(
+    shell = cli.KovaCLI(
         model="myalias",
         base_url=explicit_base_url,
         compact=True,
@@ -253,7 +253,7 @@ def test_provider_flag_logs_when_custom_default_model_cannot_resolve(monkeypatch
     )
 
     with caplog.at_level("WARNING"):
-        shell = cli.HermesCLI(provider="gmk-lan", compact=True, max_turns=1)
+        shell = cli.KovaCLI(provider="gmk-lan", compact=True, max_turns=1)
 
     assert shell.model == "tencent/hy3:free"
     assert any(
@@ -289,7 +289,7 @@ def test_runtime_resolution_failure_is_not_sticky(monkeypatch):
     monkeypatch.setattr("kova_cli.gateway_agent.GatewayAgent", _DummyAgent)
     monkeypatch.setattr("kova_cli.gateway_session_store.session_store", lambda: None)  # no live gateway
 
-    shell = cli.HermesCLI(model="gpt-5", compact=True, max_turns=1)
+    shell = cli.KovaCLI(model="gpt-5", compact=True, max_turns=1)
 
     assert shell._init_agent() is False
     assert shell._init_agent() is True
@@ -315,7 +315,7 @@ def test_ensure_runtime_credentials_passes_cli_model_as_target_model(monkeypatch
         }
 
     monkeypatch.setattr("kova_cli.runtime_provider.resolve_runtime_provider", _runtime_resolve)
-    shell = cli.HermesCLI(model="mimo-v2.5", provider="opencode-go", compact=True, max_turns=1)
+    shell = cli.KovaCLI(model="mimo-v2.5", provider="opencode-go", compact=True, max_turns=1)
 
     assert shell._ensure_runtime_credentials() is True
     assert seen["requested"] == "opencode-go"
@@ -335,7 +335,7 @@ def test_fallback_runtime_resolves_the_fallback_entry_model(monkeypatch, tmp_pat
     home.mkdir()
     (home / "config.yaml").write_text(
         "model:\n  default: mimo-v2.5-free\n  provider: opencode\n  base_url: https://opencode.ai/zen/v1\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("OPENCODE_GO_API_KEY", "sk-test-go")
     monkeypatch.setattr("cli._cprint", lambda *a, **k: None, raising=False)
 
@@ -370,7 +370,7 @@ def test_fallback_runtime_labels_quota_outage_and_bad_credentials_distinctly(mon
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     printed = []
     monkeypatch.setattr("cli._cprint", printed.append, raising=False)
     monkeypatch.setattr(
@@ -396,7 +396,7 @@ def test_ensure_runtime_credentials_records_quota_vs_bad_key(monkeypatch, tmp_pa
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("cli._cprint", lambda *a, **k: None, raising=False)
 
     def _raise_quota(**kw):
@@ -446,7 +446,7 @@ def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeyp
 
     config_home = tmp_path / "hermes"
     config_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(config_home))
+    monkeypatch.setenv("KOVA_HOME", str(config_home))
 
     config_path = config_home / "config.yaml"
     config_path.write_text(
@@ -516,7 +516,7 @@ def _seed_stale_custom_model(tmp_path, monkeypatch):
 
     config_home = tmp_path / "hermes"
     config_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(config_home))
+    monkeypatch.setenv("KOVA_HOME", str(config_home))
     config_path = config_home / "config.yaml"
     config_path.write_text(
         yaml.safe_dump(
@@ -576,7 +576,7 @@ def test_codex_provider_uses_config_model(monkeypatch):
         lambda access_token=None: ["gpt-5.2-codex"],
     )
 
-    shell = cli.HermesCLI(compact=True, max_turns=1)
+    shell = cli.KovaCLI(compact=True, max_turns=1)
 
     assert shell._ensure_runtime_credentials() is True
     assert shell.provider == "openai-codex"
@@ -610,7 +610,7 @@ def test_startup_fallback_re_resolves_reasoning_for_the_fallback_model(monkeypat
                 "base_url": "https://api.z.ai/api/coding/paas/v4", "api_key": "sk-zai", "source": "env"}
 
     monkeypatch.setattr("kova_cli.runtime_provider.resolve_runtime_provider", _runtime_resolve)
-    shell = cli.HermesCLI(compact=True, max_turns=1, reasoning=reasoning_flag)
+    shell = cli.KovaCLI(compact=True, max_turns=1, reasoning=reasoning_flag)
     assert shell.reasoning_config["effort"] == ("medium" if reasoning_flag is None else reasoning_flag)
 
     assert shell._ensure_runtime_credentials() is True
@@ -630,7 +630,7 @@ def test_custom_entry_model_swap_re_resolves_reasoning(monkeypatch):
         "kova_cli.runtime_provider.resolve_runtime_provider",
         lambda **kw: {"provider": "custom", "name": "my-lan", "model": "real-model", "api_mode": "chat_completions",
                       "base_url": "http://10.0.0.7:11434/v1", "api_key": "sk-lan", "source": "custom"})
-    shell = cli.HermesCLI(model="my-lan", compact=True, max_turns=1)
+    shell = cli.KovaCLI(model="my-lan", compact=True, max_turns=1)
     assert shell.reasoning_config["effort"] == "medium"
 
     assert shell._ensure_runtime_credentials() is True
@@ -851,11 +851,11 @@ def test_save_custom_provider_references_the_key_instead_of_inlining_it(monkeypa
         "http://localhost:11434/v1",
         api_key="sk-secret",
         name="Ollama",
-        key_env="HERMES_CUSTOM_LOCALHOST_11434_API_KEY",
+        key_env="KOVA_CUSTOM_LOCALHOST_11434_API_KEY",
     )
 
     entry = saved["custom_providers"][0]
-    assert entry["key_env"] == "HERMES_CUSTOM_LOCALHOST_11434_API_KEY"
+    assert entry["key_env"] == "KOVA_CUSTOM_LOCALHOST_11434_API_KEY"
     assert "api_key" not in entry
     assert "sk-secret" not in yaml.safe_dump(saved)
 

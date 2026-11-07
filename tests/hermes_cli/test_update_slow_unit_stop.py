@@ -13,7 +13,7 @@ from kova_cli import update_cmd_fleet as fleet
 from kova_cli import update_cmd_fleet_unit_budget as budget
 from kova_cli import update_cmd_posix_pause as pause
 
-UNIT = "hermes-gateway"
+UNIT = "kova-gateway"
 SCOPE = ["systemctl", "--user"]
 MANAGE = [*SCOPE, "--no-ask-password"]
 

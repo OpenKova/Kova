@@ -108,11 +108,11 @@ def _write_through_xai_oauth_to_global_root(state: dict[str, Any]) -> None:
     global_path = _global_auth_file_path()
     if global_path is None:  # classic mode (profile == root); the profile save already hit root
         return
-    # Seat belt: under pytest never write the real ~/.hermes/auth.json (mirrors the read-side guard
+    # Seat belt: under pytest never write the real ~/.kova/auth.json (mirrors the read-side guard
     # in _load_global_auth_store). Uses raw HOME, not Path.home(), which fixtures may monkeypatch.
     real_home_env = os.environ.get("HOME", "") if os.environ.get("PYTEST_CURRENT_TEST") else ""
     if real_home_env:
-        real_root = Path(real_home_env) / ".hermes" / "auth.json"
+        real_root = Path(real_home_env) / ".kova" / "auth.json"
         try:
             if global_path.resolve(strict=False) == real_root.resolve(strict=False):
                 return
@@ -409,7 +409,7 @@ def _quarantine_xai_oauth_tokens(exc: AuthError) -> None:
 
 def _xai_oauth_inference_base_url() -> str:
     return _xai_validate_inference_base_url(
-        os.getenv("HERMES_XAI_BASE_URL", "").strip().rstrip("/") or os.getenv("XAI_BASE_URL", "").strip().rstrip("/"),
+        os.getenv("KOVA_XAI_BASE_URL", "").strip().rstrip("/") or os.getenv("XAI_BASE_URL", "").strip().rstrip("/"),
         fallback=DEFAULT_XAI_OAUTH_BASE_URL,
     )
 
@@ -432,7 +432,7 @@ def resolve_xai_oauth_runtime_credentials(
 
     data = _read_xai_oauth_tokens()
     tokens = dict(data["tokens"])
-    refresh_timeout_seconds = env_float("HERMES_XAI_REFRESH_TIMEOUT_SECONDS", 20)
+    refresh_timeout_seconds = env_float("KOVA_XAI_REFRESH_TIMEOUT_SECONDS", 20)
     if _should_refresh(data):
         with _auth_store_lock(timeout_seconds=max(float(AUTH_LOCK_TIMEOUT_SECONDS), refresh_timeout_seconds + 5.0)):
             # Re-read under the lock: a concurrent caller may already have rotated the grant.
@@ -479,7 +479,7 @@ def _login_xai_oauth(args, pconfig: ProviderConfig, *, force_new_login: bool = F
 
     print()
     print("Signing in to xAI Grok OAuth (SuperGrok / Premium+)...")
-    print("(Hermes creates its own local OAuth session)")
+    print("(Kova creates its own local OAuth session)")
     print()
 
     timeout_seconds = float(getattr(args, "timeout", None) or 20.0)

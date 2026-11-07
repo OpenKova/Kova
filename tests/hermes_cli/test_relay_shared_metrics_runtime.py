@@ -1,4 +1,4 @@
-"""Tests for the direct Hermes-to-Relay shared-metrics runtime."""
+"""Tests for the direct Kova-to-Relay shared-metrics runtime."""
 
 from __future__ import annotations
 
@@ -229,7 +229,7 @@ def _join_export_workers() -> None:
 @pytest.fixture
 def direct_runtime(tmp_path, monkeypatch):
     fake = _Relay()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
@@ -252,7 +252,7 @@ def real_binding_runtime(tmp_path, monkeypatch):
     relay = pytest.importorskip("nemo_relay")
     if getattr(relay, "_native", None) is None:
         pytest.skip("NeMo Relay native binding is unavailable on this platform")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
@@ -1059,7 +1059,7 @@ def test_core_runtime_is_fail_open_without_a_published_binding(monkeypatch, capl
         tool_name="terminal",
         args={"command": "true"},
     ) == {"command": "true"}
-    assert "Hermes Relay runtime initialization failed" in caplog.text
+    assert "Kova Relay runtime initialization failed" in caplog.text
     relay_runtime._reset_for_tests()
 
 
@@ -1222,8 +1222,8 @@ def test_managed_config_cannot_override_shared_metrics_consent(
 ):
     from kova_cli import config, managed_scope
     from kova_constants import (
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
 
     profile = tmp_path / "profile"
@@ -1244,12 +1244,12 @@ def test_managed_config_cannot_override_shared_metrics_consent(
         f"    enabled: {str(managed_enabled).lower()}\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     config._LOAD_CONFIG_CACHE.clear()
     config._RAW_CONFIG_CACHE.clear()
     managed_scope.invalidate_managed_cache()
 
-    token = set_hermes_home_override(profile)
+    token = set_kova_home_override(profile)
     try:
         assert (
             config.load_config_readonly()["telemetry"]["shared_metrics"]["enabled"]
@@ -1257,7 +1257,7 @@ def test_managed_config_cannot_override_shared_metrics_consent(
         )
         assert relay_shared_metrics.enabled() is (profile_enabled is True)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
         relay_shared_metrics._reset_for_tests()
         relay_runtime._reset_for_tests()
         managed_scope.invalidate_managed_cache()
@@ -1273,7 +1273,7 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     fake = _Relay()
     profile = tmp_path / "profile"
     policy = {"enabled": True}
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
@@ -2514,7 +2514,7 @@ def test_failed_flush_keeps_daily_export_open_for_later_task(
     assert metrics["hermes.task_run.started"]["value"] == 2
     assert metrics["hermes.task_run.finished"]["value"] == 2
     assert flush_attempts == 2
-    assert "Hermes shared-metrics task flush failed" in caplog.text
+    assert "Kova shared-metrics task flush failed" in caplog.text
 
 
 def _finish_desktop_task(session_id: str, task_id: str) -> None:
@@ -2567,21 +2567,21 @@ def test_task_ends_do_not_wait_on_the_process_wide_flush_barrier(parked_flush, t
 def test_background_flush_runs_under_the_finishing_turns_profile(
     direct_runtime, tmp_path, monkeypatch
 ):
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     seen: list[Any] = []
     monkeypatch.setattr(
         relay_shared_metrics._Runtime,
         "_export",
-        lambda self: seen.append(get_hermes_home()),
+        lambda self: seen.append(get_kova_home()),
     )
     profile_home = tmp_path / "other-profile"
-    token = set_hermes_home_override(profile_home)
+    token = set_kova_home_override(profile_home)
     try:
         _finish_desktop_task("s1", "t1")
         _join_export_workers()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
     assert seen == [profile_home]
 
@@ -2800,7 +2800,7 @@ def _stored_counters(tmp_path) -> dict[str, list[dict[str, Any]]]:
 
 def test_v3_failure_dimensions_never_export_third_party_identifiers(direct_runtime, tmp_path):
     """Plugin tool names, exception class names, plugin platforms and raw exit reasons collapse
-    to closed classes, while Hermes's own vocabularies pass through."""
+    to closed classes, while Kova's own vocabularies pass through."""
     base = {
         "session_id": "s1", "task_id": "t1", "api_request_id": "r1", "platform": "telegram",
         "provider": "anthropic", "model": "claude-sonnet",
@@ -2933,7 +2933,7 @@ def test_milestone_install_age_is_the_subscriber_profile_not_the_relay_thread(tm
 
     from kova_cli.observability.shared_metrics import SharedMetricsStore
     from kova_cli.observability.shared_metrics_subscriber import SharedMetricsSubscriber
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch, other = tmp_path / "A", tmp_path / "B"
     for home in (launch, other):
@@ -2941,12 +2941,12 @@ def test_milestone_install_age_is_the_subscriber_profile_not_the_relay_thread(tm
     with _sqlite3.connect(other / "state.db") as con:
         con.execute("CREATE TABLE sessions (id TEXT, started_at REAL)")
         con.execute("INSERT INTO sessions VALUES ('s1', ?)", (time.time() - 120 * 86400,))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    token = set_hermes_home_override(str(other))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
+    token = set_kova_home_override(str(other))
     try:
         subscriber = SharedMetricsSubscriber(SharedMetricsStore(), "1.0")
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     subscriber._record_milestones("hermes.setup.completed", {"provider": "nous", "surface": "cli"})
     ages = [c["dimensions"]["install_age_bucket"] for c in subscriber.store.counter_snapshot()
             if c["metric_name"] == "hermes.install.milestone"]
@@ -3007,17 +3007,17 @@ def _cli_turn(session_id: str, parent_session_id: str = "") -> None:
 
 
 def test_finite_cli_runs_report_their_own_entrypoint(direct_runtime, tmp_path, monkeypatch):
-    """`hermes -z` / `chat -q` / `-Q` runs (HERMES_SINGLE_QUERY_SESSION) report `one_shot`, a
+    """`hermes -z` / `chat -q` / `-Q` runs (KOVA_SINGLE_QUERY_SESSION) report `one_shot`, a
     dispatcher-spawned one (kanban worker, A2A forward) `background`; the REPL stays `interactive`,
     and a delegated child or a non-CLI surface keeps its own entrypoint inside a finite run."""
-    monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SINGLE_QUERY_SESSION", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     _cli_turn("repl")
-    monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+    monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
     _cli_turn("oneshot")
     _cli_turn("child", parent_session_id="oneshot")
     _finish_desktop_task("desktop", "desktop-t")
-    monkeypatch.setenv("HERMES_SESSION_SOURCE", "kanban")
+    monkeypatch.setenv("KOVA_SESSION_SOURCE", "kanban")
     _cli_turn("kanban")
     for session_id in ("repl", "oneshot", "child", "desktop", "kanban"):
         lifecycle.finalize_session(session_id=session_id)

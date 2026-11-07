@@ -2,7 +2,7 @@
 reconciliation that recreates per-profile gateway s6 service slots
 from the persistent profiles directory.
 
-These tests run against a fake $HERMES_HOME under tmp_path; no real
+These tests run against a fake $KOVA_HOME under tmp_path; no real
 s6 supervision tree is required. The in-container integration test
 covering end-to-end "docker restart" survival lives in
 tests/docker/test_container_restart.py.
@@ -53,7 +53,7 @@ def _hermetic_container_argv(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _make_profile(
-    hermes_home: Path,
+    kova_home: Path,
     name: str,
     *,
     state: str | None,
@@ -61,8 +61,8 @@ def _make_profile(
     with_pid: bool = False,
     config: bool = True,
 ) -> Path:
-    """Create a fake profile directory under hermes_home/profiles/<name>/."""
-    p = hermes_home / "profiles" / name
+    """Create a fake profile directory under kova_home/profiles/<name>/."""
+    p = kova_home / "profiles" / name
     p.mkdir(parents=True)
     if config:
         # SOUL.md is what the reconciler keys on — it's always seeded by
@@ -84,22 +84,22 @@ def _make_profile(
 
 
 def _seed_default_root(
-    hermes_home: Path,
+    kova_home: Path,
     *,
     state: str | None = None,
     with_pid: bool = False,
 ) -> None:
     """Populate gateway_state.json / stale runtime files at the
-    HERMES_HOME root (the implicit default profile)."""
+    KOVA_HOME root (the implicit default profile)."""
     if state is not None:
-        (hermes_home / "gateway_state.json").write_text(json.dumps({
+        (kova_home / "gateway_state.json").write_text(json.dumps({
             "gateway_state": state, "timestamp": 1234567890,
         }))
     if with_pid:
-        (hermes_home / "gateway.pid").write_text(json.dumps(
+        (kova_home / "gateway.pid").write_text(json.dumps(
             {"pid": 99999, "host": "old-container"},
         ))
-        (hermes_home / "processes.json").write_text("[]")
+        (kova_home / "processes.json").write_text("[]")
 
 
 def _named_actions(actions: list[ReconcileAction]) -> list[ReconcileAction]:
@@ -123,7 +123,7 @@ def test_a_named_profile_slot_is_registered_but_never_autostarted(tmp_path: Path
     (tmp_path / "gateway_state.json").write_text('{"gateway_state": "running"}', encoding="utf-8")
 
     actions = reconcile_profile_gateways(
-        hermes_home=tmp_path, scandir=scandir, dry_run=False,
+        kova_home=tmp_path, scandir=scandir, dry_run=False,
     )
 
     assert _named_actions(actions) == [ReconcileAction(
@@ -153,13 +153,13 @@ def test_the_retired_opt_out_cannot_boot_a_second_gateway_in_the_container(
     scandir.mkdir()
     _make_profile(tmp_path, "coder", state="running")
     (tmp_path / "config.yaml").write_text(f"multiplex_profiles: {config_value}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     if env_value is None:
         monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     else:
         monkeypatch.setenv("GATEWAY_MULTIPLEX_PROFILES", env_value)
 
-    actions = reconcile_profile_gateways(hermes_home=tmp_path, scandir=scandir, dry_run=False)
+    actions = reconcile_profile_gateways(kova_home=tmp_path, scandir=scandir, dry_run=False)
 
     assert _named_actions(actions) == [ReconcileAction(
         profile="coder", prior_state="running", action="registered", folded_into_root=True)]
@@ -173,7 +173,7 @@ def test_registered_profile_has_finish_script(tmp_path: Path) -> None:
     _make_profile(tmp_path, "coder", state="running")
 
     reconcile_profile_gateways(
-        hermes_home=tmp_path, scandir=scandir, dry_run=False,
+        kova_home=tmp_path, scandir=scandir, dry_run=False,
     )
 
     finish = scandir / "gateway-coder" / "finish"
@@ -192,7 +192,7 @@ def test_register_service_overwrites_existing_slot(tmp_path: Path) -> None:
 
     # First pass.
     reconcile_profile_gateways(
-        hermes_home=tmp_path, scandir=scandir, dry_run=False,
+        kova_home=tmp_path, scandir=scandir, dry_run=False,
     )
     first_run = (scandir / "gateway-coder" / "run").read_text()
 
@@ -203,7 +203,7 @@ def test_register_service_overwrites_existing_slot(tmp_path: Path) -> None:
         '{"gateway_state": "stopped"}',
     )
     reconcile_profile_gateways(
-        hermes_home=tmp_path, scandir=scandir, dry_run=False,
+        kova_home=tmp_path, scandir=scandir, dry_run=False,
     )
 
     # Slot still exists, no .tmp remnants (staging dir is dot-prefixed,
@@ -233,7 +233,7 @@ def test_profiles_default_subdir_is_skipped_with_warning(
     _make_profile(tmp_path, "default", state="running")
 
     actions = reconcile_profile_gateways(
-        hermes_home=tmp_path, scandir=scandir, dry_run=False,
+        kova_home=tmp_path, scandir=scandir, dry_run=False,
     )
 
     # Only the root-profile default slot appears — not the colliding
@@ -270,7 +270,7 @@ def test_main_skips_reconcile_in_dashboard_container_s6v3(
 
     scandir = tmp_path / "run-service"; scandir.mkdir()
     _make_profile(tmp_path, "worker", state="running")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setenv("S6_PROFILE_GATEWAY_SCANDIR", str(scandir))
     monkeypatch.setattr(
         container_boot,
@@ -308,12 +308,12 @@ def test_a_named_slots_autostart_intent_boots_the_root_slot(tmp_path: Path) -> N
     Named slots are now registered DOWN unconditionally (one gateway per container), so without
     the root slot inheriting their intent the container boots with ZERO gateways while every
     action reports "registered" — healthy-looking and completely dark."""
-    hermes_home = tmp_path / "data"
-    hermes_home.mkdir()
-    _make_profile(hermes_home, "coder", state=None, desired_state="running")
+    kova_home = tmp_path / "data"
+    kova_home.mkdir()
+    _make_profile(kova_home, "coder", state=None, desired_state="running")
 
     actions = reconcile_profile_gateways(
-        hermes_home=hermes_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
+        kova_home=kova_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
 
     by_profile = {a.profile: a for a in actions}
     assert by_profile["default"].action == "started", "something must serve this container"
@@ -325,15 +325,15 @@ def test_a_standalone_profile_boots_its_own_slot_instead_of_folding_into_root(tm
     """The root multiplexer never serves a `gateway.standalone` profile, so folding its intent into
     the root leaves it dark after every container restart. It boots its own slot; a non-standalone
     profile's intent still folds into the root."""
-    hermes_home = tmp_path / "data"
-    hermes_home.mkdir()
-    _seed_default_root(hermes_home, state="stopped")
-    solo = _make_profile(hermes_home, "solo", state=None, desired_state="running")
+    kova_home = tmp_path / "data"
+    kova_home.mkdir()
+    _seed_default_root(kova_home, state="stopped")
+    solo = _make_profile(kova_home, "solo", state=None, desired_state="running")
     (solo / "config.yaml").write_text("gateway:\n  standalone: true\n")
-    _make_profile(hermes_home, "coder", state=None, desired_state="running")
+    _make_profile(kova_home, "coder", state=None, desired_state="running")
 
     actions = reconcile_profile_gateways(
-        hermes_home=hermes_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
+        kova_home=kova_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
 
     by_profile = {a.profile: a for a in actions}
     assert by_profile["solo"].action == "started" and by_profile["solo"].folded_into_root is False
@@ -344,14 +344,14 @@ def test_a_standalone_profile_boots_its_own_slot_instead_of_folding_into_root(tm
 def test_a_stopped_fleet_still_boots_nothing(tmp_path: Path) -> None:
     """Control: no autostart intent anywhere means no gateway is started — the crash-loop guard
     and the operator's `gateway stop` both keep working."""
-    hermes_home = tmp_path / "data"
-    hermes_home.mkdir()
-    _seed_default_root(hermes_home, state="stopped")
-    _make_profile(hermes_home, "coder", state=None, desired_state="stopped")
-    _make_profile(hermes_home, "ops", state=None, desired_state="startup_failed")
+    kova_home = tmp_path / "data"
+    kova_home.mkdir()
+    _seed_default_root(kova_home, state="stopped")
+    _make_profile(kova_home, "coder", state=None, desired_state="stopped")
+    _make_profile(kova_home, "ops", state=None, desired_state="startup_failed")
 
     actions = reconcile_profile_gateways(
-        hermes_home=hermes_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
+        kova_home=kova_home, scandir=tmp_path / "svc", dry_run=True, container_argv=())
 
     assert [a.action for a in actions] == ["registered"] * 3
     assert not any(a.folded_into_root for a in actions)

@@ -22,7 +22,7 @@
 import type { McpServersStatusResult } from '@kova/shared'
 
 import { $apiRequestScope } from '@/api/client'
-import { getHermesConfigRecord, setMcpServerEnabled } from '@/hermes'
+import { getKovaConfigRecord, setMcpServerEnabled } from '@/hermes'
 import { translateNow } from '@/i18n'
 import { isLoopbackPreviewUrl } from '@/lib/local-preview'
 import { getServers, type McpServerEntry, serverEnabled } from '@/lib/mcp-servers'
@@ -193,7 +193,7 @@ async function sweep(): Promise<void> {
 
   try {
     ;[config, status] = await Promise.all([
-      getHermesConfigRecord(connectionId ? { connectionId, profile: profileKey } : undefined),
+      getKovaConfigRecord(connectionId ? { connectionId, profile: profileKey } : undefined),
       requestGatewayForAgent<McpServersStatusResult>(
         connectionId,
         profileKey,

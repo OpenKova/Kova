@@ -39,7 +39,7 @@ from tests.fakes.fake_llm_provider import FakeLLMServer
 pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
-_STEM = ".hermes-update-paused-gateways"
+_STEM = ".kova-update-paused-gateways"
 _RESTARTING = "Restarting gateway(s) paused by an interrupted"
 _MISSING_SERVICE = "hermes-e2e-no-such-gateway-service"
 
@@ -78,7 +78,7 @@ _CLAIM_BOUNDARY = '("src.unlink()", \'body["claimer"] = identity()\')'
 
 
 def _python(machine) -> Path:
-    found = sorted(machine.hermes_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
+    found = sorted(machine.kova_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
     assert found, fail_with(machine, "harness: the install has no venv python")
     return found[0]
 
@@ -121,7 +121,7 @@ def _run_driver(machine, name: str, body: str, *args: str, timeout: float = 300)
 
 
 def _records(machine) -> list[Path]:
-    return sorted(p for p in machine.hermes_home.glob(_STEM + "*") if p.suffix in (".json", ".claim"))
+    return sorted(p for p in machine.kova_home.glob(_STEM + "*") if p.suffix in (".json", ".claim"))
 
 
 def _owed(machine) -> list[dict]:
@@ -143,7 +143,7 @@ def _clear(machine) -> None:
         path.unlink(missing_ok=True)
     # A hard-killed gateway leaves its last ``running`` state behind: the next cell's gateway must
     # be the one it reads, never a dying pid from this one.
-    (machine.hermes_home / "gateway_state.json").unlink(missing_ok=True)
+    (machine.kova_home / "gateway_state.json").unlink(missing_ok=True)
 
 
 def _running(machine, not_pid: int, timeout: float) -> int | None:
@@ -155,7 +155,7 @@ def _running(machine, not_pid: int, timeout: float) -> int | None:
 
 def _fresh_gateway(machine) -> int:
     """A real gateway started now (``hermes gateway run``); its pid once it reports running."""
-    (machine.hermes_home / "gateway_state.json").unlink(missing_ok=True)
+    (machine.kova_home / "gateway_state.json").unlink(missing_ok=True)
     proc = machine.spawn_gateway()
     pid = int(machine.wait_gateway_running().get("pid") or 0)
     assert pid and psutil.pid_exists(pid) and proc.poll() is None, fail_with(machine, f"harness: gateway {pid} not up")
@@ -166,7 +166,7 @@ def _paused_gateway(machine) -> int:
     """A real gateway, stopped the way a pause stops it (a clean ``hermes gateway stop``, not a
     hard kill whose stale lock state slows the next ``--replace``). Its (now dead) pid."""
     pid = _fresh_gateway(machine)
-    machine.hermes("gateway", "stop", label="pause-stop", timeout=180)
+    machine.kova("gateway", "stop", label="pause-stop", timeout=180)
     deadline = time.monotonic() + 60
     while psutil.pid_exists(pid) and time.monotonic() < deadline:
         time.sleep(0.2)
@@ -175,7 +175,7 @@ def _paused_gateway(machine) -> int:
 
 
 def _launch(machine, label: str):
-    return machine.hermes("gateway", "status", label=label, timeout=600)
+    return machine.kova("gateway", "status", label=label, timeout=600)
 
 
 def _claim_race(machine, out: dict) -> None:
@@ -295,7 +295,7 @@ def _never_asked(machine, out: dict) -> None:
     out["never_live_after_launch"] = psutil.pid_exists(live)
     out["never_owed_while"] = _owed(machine)
     # The user's deliberate stop, after the update's obligation was retired.
-    out["never_user_stop"] = machine.hermes("gateway", "stop", label="never-asked-user-stop", timeout=180)
+    out["never_user_stop"] = machine.kova("gateway", "stop", label="never-asked-user-stop", timeout=180)
     out["never_gone"] = _gone(live, 60)
     out["never_launch_after"] = _launch(machine, "never-asked-after-user-stop")
     out["never_running_after"] = _running(machine, live, 30)
@@ -328,7 +328,7 @@ def journey(tmp_path_factory):
             # The cells start and stop the gateway ~10 times in a few minutes on purpose; the respawn-storm
             # breaker (5 starts / 120 s, then a 40 s sleep before boot) would otherwise outlast a resume's
             # 30 s readiness window and make "not verified" a property of the harness, not the code.
-            off = machine.hermes("config", "set", "gateway.respawn_storm.max_starts", "0", label="storm-breaker-off")
+            off = machine.kova("config", "set", "gateway.respawn_storm.max_starts", "0", label="storm-breaker-off")
             assert off.returncode == 0, fail_with(machine, "harness: could not disable the respawn-storm breaker", off)
             with machine.gateway_phase():
                 for cell in (_claim_race, _publish_crash, _draining, _readiness, _never_asked, _asked):

@@ -16,7 +16,7 @@ from agent.secret_scope import (
     set_multiplex_active,
     set_secret_scope,
 )
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 _SECONDARY_YAML = """\
 require_mention: false
@@ -69,17 +69,17 @@ def secondary_scope(tmp_path, monkeypatch):
     secondary.mkdir(parents=True)
     (default_home / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\n")
     (secondary / "config.yaml").write_text(_SECONDARY_YAML)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     for name in _BRIDGED_ENV:
         monkeypatch.delenv(name, raising=False)
     set_multiplex_active(True)
-    home_token = set_hermes_home_override(str(secondary))
+    home_token = set_kova_home_override(str(secondary))
     secret_token = set_secret_scope({"TELEGRAM_BOT_TOKEN": "222:b2"})
     try:
         yield
     finally:
         reset_secret_scope(secret_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
         set_multiplex_active(False)
 
 

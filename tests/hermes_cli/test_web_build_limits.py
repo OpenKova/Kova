@@ -20,8 +20,8 @@ class TestWebBuildLimits:
     def test_heap_and_thread_caps_applied(self, monkeypatch):
         monkeypatch.delenv("NODE_OPTIONS", raising=False)
         monkeypatch.delenv("RAYON_NUM_THREADS", raising=False)
-        monkeypatch.delenv("HERMES_WEB_BUILD_MAX_OLD_SPACE_SIZE", raising=False)
-        monkeypatch.delenv("HERMES_WEB_BUILD_THREADS", raising=False)
+        monkeypatch.delenv("KOVA_WEB_BUILD_MAX_OLD_SPACE_SIZE", raising=False)
+        monkeypatch.delenv("KOVA_WEB_BUILD_THREADS", raising=False)
         env = web_build_limits({})
         assert "--max-old-space-size=" in env["NODE_OPTIONS"]
         assert int(env["RAYON_NUM_THREADS"]) >= 1
@@ -43,8 +43,8 @@ class TestWebBuildLimits:
         monkeypatch.delenv("NODE_OPTIONS", raising=False)
         monkeypatch.delenv("RAYON_NUM_THREADS", raising=False)
         env = web_build_limits({
-            "HERMES_WEB_BUILD_MAX_OLD_SPACE_SIZE": "3072",
-            "HERMES_WEB_BUILD_THREADS": "1",
+            "KOVA_WEB_BUILD_MAX_OLD_SPACE_SIZE": "3072",
+            "KOVA_WEB_BUILD_THREADS": "1",
         })
         assert "--max-old-space-size=3072" in env["NODE_OPTIONS"]
         assert env["RAYON_NUM_THREADS"] == "1"
@@ -84,10 +84,10 @@ class TestWebBuildLimits:
     def test_light_mode_tightens_caps(self, monkeypatch):
         monkeypatch.delenv("NODE_OPTIONS", raising=False)
         monkeypatch.delenv("RAYON_NUM_THREADS", raising=False)
-        monkeypatch.delenv("HERMES_WEB_BUILD_MAX_OLD_SPACE_SIZE", raising=False)
-        monkeypatch.delenv("HERMES_WEB_BUILD_THREADS", raising=False)
+        monkeypatch.delenv("KOVA_WEB_BUILD_MAX_OLD_SPACE_SIZE", raising=False)
+        monkeypatch.delenv("KOVA_WEB_BUILD_THREADS", raising=False)
         monkeypatch.setattr("kova_cli.web_build_limits._available_cores", lambda: 8)
-        env = web_build_limits({"HERMES_WEB_BUILD_LIGHT": "1"})
+        env = web_build_limits({"KOVA_WEB_BUILD_LIGHT": "1"})
         assert "--max-old-space-size=1024" in env["NODE_OPTIONS"]
         assert env["RAYON_NUM_THREADS"] == "1"
 

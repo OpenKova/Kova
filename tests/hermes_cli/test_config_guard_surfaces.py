@@ -12,10 +12,10 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolated_config_env(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_IGNORE_USER_CONFIG", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.delenv("KOVA_IGNORE_USER_CONFIG", raising=False)
     yield
-    os.environ.pop("HERMES_IGNORE_USER_CONFIG", None)
+    os.environ.pop("KOVA_IGNORE_USER_CONFIG", None)
 
 def _write_corrupt_config(tmp_path):
     path = tmp_path / "config.yaml"
@@ -32,7 +32,7 @@ class TestGatewayGuard:
             _guard_corrupt_user_config()
 
         assert exc_info.value.code == 2
-        assert "Hermes stopped because your settings file" in capsys.readouterr().err
+        assert "Kova stopped because your settings file" in capsys.readouterr().err
 
     def test_gateway_allows_valid_config(self, tmp_path):
         from gateway.run import _guard_corrupt_user_config
@@ -49,7 +49,7 @@ class TestGatewayGuard:
         from gateway.run import _guard_corrupt_user_config
 
         _write_corrupt_config(tmp_path)
-        monkeypatch.setenv("HERMES_IGNORE_USER_CONFIG", "1")
+        monkeypatch.setenv("KOVA_IGNORE_USER_CONFIG", "1")
         _guard_corrupt_user_config()  # must not raise
 
 class TestCronRunJobGuard:
@@ -81,7 +81,7 @@ class TestCronRunJobGuard:
             "cron_job": self._job(), "extra_prompt": None, "request_id": "guard-fire"}))
         previous = current_execution()
         try:
-            with pytest.raises(RuntimeError, match="Hermes stopped because your settings file"):
+            with pytest.raises(RuntimeError, match="Kova stopped because your settings file"):
                 await execute(owner, ref, admission, policy)
             success, _output_doc, final_response, error = owner.pending_results["guard-fire"]["result"]["cron_result"]
             assert current_execution() is previous
@@ -91,7 +91,7 @@ class TestCronRunJobGuard:
 
         assert success is False
         assert error is not None
-        assert "Hermes stopped because your settings file" in error
+        assert "Kova stopped because your settings file" in error
         assert "config.yaml" in error
         assert final_response == ""
 
@@ -103,7 +103,7 @@ class TestCronRunJobGuard:
         _success, _output_doc, _final_response, error = run_job(
             self._job(no_agent=True, script="true", deliver="none")
         )
-        assert "Hermes stopped because your settings file" not in (error or "")
+        assert "Kova stopped because your settings file" not in (error or "")
 
 class TestServeGuard:
     def test_serve_headless_refuses_corrupt_config(self, tmp_path, capsys):
@@ -126,4 +126,4 @@ class TestServeGuard:
             main_mod.cmd_dashboard(args)
 
         assert exc_info.value.code == 2
-        assert "Hermes stopped because your settings file" in capsys.readouterr().err
+        assert "Kova stopped because your settings file" in capsys.readouterr().err

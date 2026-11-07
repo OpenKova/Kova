@@ -64,7 +64,7 @@ def _servable_profile_homes() -> set:
 
     homes = {Path(home).resolve() for name, home in profiles_to_serve(multiplex=True, include_standalone=True, include_parked=True)
              if name == "default" or named_profile_has_servable_identity(home)}
-    homes.add(Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes").resolve())
+    homes.add(Path(os.environ.get("KOVA_HOME") or Path.home() / ".kova").resolve())
     return homes
 
 
@@ -174,8 +174,8 @@ def launch_body() -> Iterator[None]:
     profile switches the gateway to fail-closed mid-body, an unscoped read resolves from
     ``launch_secret_scope`` (frozen env + ``.env``) instead of raising ``UnscopedSecretError``."""
     from agent.secret_scope import reset_launch_body_scope, set_launch_body_scope
-    from kova_constants import get_process_hermes_home
-    home = get_process_hermes_home()
+    from kova_constants import get_process_kova_home
+    home = get_process_kova_home()
     token = set_launch_body_scope(lambda: launch_secret_scope(home))
     try:
         yield
@@ -185,7 +185,7 @@ def launch_body() -> Iterator[None]:
 
 @contextlib.contextmanager
 def launch_profile_runtime_scope(launch_home: str | Path) -> Iterator[None]:
-    """Bind the launch profile's own runtime scope for one body: HERMES_HOME override naming the
+    """Bind the launch profile's own runtime scope for one body: KOVA_HOME override naming the
     launch home, ``launch_secret_scope``, and its terminal policy over the frozen launch
     ``TERMINAL_*`` overlay. For hosts whose launch-profile bodies are not RPC sessions (the
     standalone messaging gateway after a hosted room activated multiplexing, #112878).
@@ -197,13 +197,13 @@ def launch_profile_runtime_scope(launch_home: str | Path) -> Iterator[None]:
     every plugin hook it fired saw an unscoped process (#118538). Routed turns already bind theirs
     (``gateway/run.py::_profile_runtime_scope``); the launch profile is a tenant like any other."""
     from agent.secret_scope import reset_secret_scope, set_secret_scope
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.terminal_scope import install_profile_terminal_scope, reset_terminal_scope
 
     home = Path(launch_home)
     home_token = secret_token = terminal_token = None
     try:
-        home_token = set_hermes_home_override(str(home))
+        home_token = set_kova_home_override(str(home))
         secret_token = set_secret_scope(launch_secret_scope(home))  # own home: no foreign stamp
         terminal_token = install_profile_terminal_scope(home, env_overlay=launch_terminal_env())
         yield
@@ -213,7 +213,7 @@ def launch_profile_runtime_scope(launch_home: str | Path) -> Iterator[None]:
         if secret_token is not None:
             reset_secret_scope(secret_token)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
 
 
 def launch_profile_scope_if_multiplexed():
@@ -231,8 +231,8 @@ def launch_profile_scope_if_multiplexed():
     from agent.secret_scope import is_multiplex_active
     if not is_multiplex_active():
         return contextlib.nullcontext()
-    from kova_constants import get_process_hermes_home
-    return launch_profile_runtime_scope(get_process_hermes_home())
+    from kova_constants import get_process_kova_home
+    return launch_profile_runtime_scope(get_process_kova_home())
 
 
 @contextlib.asynccontextmanager

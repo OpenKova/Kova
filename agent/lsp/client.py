@@ -282,7 +282,7 @@ class LSPClient:
             raise LSPProtocolError(f"LSP server binary not found: {cmd[0]} ({e})") from e
         # The server itself exits on stdin EOF when we die, but a descendant that does not hold or
         # watch that pipe (a wrapper's background child, a SIGTERM-ignoring worker) outlived a
-        # SIGKILLed / OOM-killed Hermes forever. The owner-death supervisor kills the whole group
+        # SIGKILLed / OOM-killed Kova forever. The owner-death supervisor kills the whole group
         # the moment this process dies, by any cause. No-op on Windows (job object instead).
         own_process_groups([self._proc.pid])
         # Off the event loop: the ledger write takes a cross-process lock (up to 2 s).

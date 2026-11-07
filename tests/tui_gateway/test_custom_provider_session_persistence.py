@@ -617,8 +617,8 @@ class TestFollowProfileConfigRuntimeOverrides:
             def switch_model(self, **kw):
                 self.model, self.provider = kw["new_model"], kw["new_provider"]
 
-        monkeypatch.setenv("HERMES_HOME", str(launch))
-        monkeypatch.setattr(server, "_hermes_home", str(launch))
+        monkeypatch.setenv("KOVA_HOME", str(launch))
+        monkeypatch.setattr(server, "_kova_home", str(launch))
         monkeypatch.setattr(server, "_profile_home", lambda p: secondary if p == "b" else None)
         monkeypatch.setattr(server, "_get_db", lambda: SessionDB(db_path=launch / "state.db"))
         monkeypatch.setattr(server, "_enable_gateway_prompts", lambda: None)
@@ -678,8 +678,8 @@ class TestFollowProfileConfigRuntimeOverrides:
             home.mkdir()
             (home / "config.yaml").write_text(f"model:\n  default: {model}\n  provider: nous\n")
             (home / ".env").write_text("")
-        monkeypatch.setenv("HERMES_HOME", str(launch))
-        monkeypatch.setattr(server, "_hermes_home", str(launch))
+        monkeypatch.setenv("KOVA_HOME", str(launch))
+        monkeypatch.setattr(server, "_kova_home", str(launch))
         monkeypatch.setattr(server, "_profile_home", lambda p: secondary if p == "b" else None)
         monkeypatch.setattr(server, "_enable_gateway_prompts", lambda: None)
         monkeypatch.setattr(server, "_schedule_agent_build", lambda *a, **k: None)

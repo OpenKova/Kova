@@ -8,11 +8,11 @@ import { PreviewPane } from './preview-pane'
 
 vi.mock('./real-profile-consent-dialog', () => ({ RealProfileConsentDialog: () => null }))
 
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 
 afterEach(() => {
   cleanup()
-  window.hermesDesktop = originalDesktop
+  window.kovaDesktop = originalDesktop
   $selectedStoredSessionId.set(null)
 })
 
@@ -41,7 +41,7 @@ async function setup() {
       return undefined
     }
   })
-  window.hermesDesktop = {
+  window.kovaDesktop = {
     ...originalDesktop,
     beginPreviewGuestActivity: async () => {
       leases.add(++token)

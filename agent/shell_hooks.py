@@ -29,7 +29,7 @@ try:
 except ImportError:  # pragma: no cover
     fcntl = None  # type: ignore[assignment]
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ _skip_logged: set[tuple[str, str, str]] = set()
 
 
 def _home_key() -> str:
-    return str(get_hermes_home().expanduser().resolve())
+    return str(get_kova_home().expanduser().resolve())
 
 
 def _forget_home_registrations(registry: set[tuple], lock: threading.Lock) -> None:
@@ -176,7 +176,7 @@ def register_from_config(cfg: Optional[dict[str, Any]], *, accept_hooks: bool = 
             consented.append(spec)
         else:
             logger.warning("shell hook for %s (%s) not allowlisted in %s — skipped. Use --accept-hooks / "
-                           "HERMES_ACCEPT_HOOKS=1 / hooks_auto_accept: true, or approve it at a CLI prompt "
+                           "KOVA_ACCEPT_HOOKS=1 / hooks_auto_accept: true, or approve it at a CLI prompt "
                            "for this profile.", spec.event, spec.command, allowlist_path())
     with _registered_lock:
         return _wire(manager, home_key, consented)
@@ -187,7 +187,7 @@ def sync_from_config(load_cfg: Callable[[], dict[str, Any]]) -> None:
     consent, for a long-lived process (the gateway) that must behave as a new process would: hooks
     configured and consented since start register, hooks removed from config or revoked are
     unregistered. Consent is the allowlist, an opt-in in force (``hooks_auto_accept`` /
-    ``HERMES_ACCEPT_HOOKS`` / this process's own ``--accept-hooks``), or a launch's ``--accept-hooks``
+    ``KOVA_ACCEPT_HOOKS`` / this process's own ``--accept-hooks``), or a launch's ``--accept-hooks``
     whose allowlist write failed (``accept_for_launch``). Never prompts or writes. An empty config
     (a loader that failed open), a malformed ``hooks:`` entry or an unreadable allowlist must never
     disarm a ``fail_closed`` guard, so each adds but never removes. Config and allowlist are read
@@ -212,7 +212,7 @@ def sync_from_config(load_cfg: Callable[[], dict[str, Any]]) -> None:
             elif (home_key, spec.event, spec.command) not in _skip_logged:  # once per process, not per open
                 _skip_logged.add((home_key, spec.event, spec.command))
                 logger.warning("shell hook for %s (%s) not allowlisted in %s — skipped. Approve it at a CLI "
-                               "prompt for this profile, or use --accept-hooks / HERMES_ACCEPT_HOOKS=1 / "
+                               "prompt for this profile, or use --accept-hooks / KOVA_ACCEPT_HOOKS=1 / "
                                "hooks_auto_accept: true.", spec.event, spec.command, allowlist_path())
         manager = get_plugin_manager()
         with _registered_lock:
@@ -266,7 +266,7 @@ def accept_for_launch(cfg: Optional[dict[str, Any]]) -> None:
 
 def accept_for_process() -> None:
     """This process's own ``--accept-hooks`` (``hermes gateway run --accept-hooks``): an opt-in in
-    force for its lifetime, as ``HERMES_ACCEPT_HOOKS`` would be, without exporting that variable to
+    force for its lifetime, as ``KOVA_ACCEPT_HOOKS`` would be, without exporting that variable to
     every tool subprocess."""
     global _process_accept
     _process_accept = True
@@ -280,8 +280,8 @@ def _hook_specs(cfg: Optional[dict[str, Any]]) -> tuple[Optional[list[ShellHookS
     from utils import env_var_enabled
     if safe_worker_enabled() or not isinstance(cfg, dict):
         return None, True
-    if env_var_enabled("HERMES_SAFE_MODE"):  # hooks are user customizations too — fire zero user-configured code
-        logger.info("HERMES_SAFE_MODE=1 — shell-hook registration skipped")
+    if env_var_enabled("KOVA_SAFE_MODE"):  # hooks are user customizations too — fire zero user-configured code
+        logger.info("KOVA_SAFE_MODE=1 — shell-hook registration skipped")
         return None, True
     return _parse_hooks(cfg.get("hooks"))
 
@@ -344,7 +344,7 @@ def re_register_config_hooks() -> None:
     startup (they are config-owned, not plugin-owned, so the ledger cannot restore them). Clear the
     idempotence set and re-run ``register_from_config()`` so hooks are wired again (#60036 / PR #60267;
     tracking #64178 — salvaged from PR #64188).
-    Only the idempotence keys for the *current* Hermes home are cleared — ``discover_and_load(force=True)``
+    Only the idempotence keys for the *current* Kova home are cleared — ``discover_and_load(force=True)``
     only unloads the manager scoped to that one home, so clearing every home's keys would make a
     force-reload in profile A drop profile B's still-live registration from the ledger and duplicate it on
     B's next registration call (#92682 review).
@@ -457,7 +457,7 @@ _POPEN_ERRORS = ((FileNotFoundError, "command not found"), (PermissionError, "co
 
 # A hook configured as a bare script path runs on POSIX because the kernel reads its shebang.
 # CreateProcess has no such mechanism and answers WinError 193 ("%1 is not a valid Win32
-# application") for a text file, so every ``command: "~/.hermes/agent-hooks/x.sh"`` example in
+# application") for a text file, so every ``command: "~/.kova/agent-hooks/x.sh"`` example in
 # the hooks docs — the canonical shape — fails on Windows while the same config works everywhere
 # else. Map the suffixes that shape uses to their interpreter; unmapped suffixes keep the OS
 # failure so a typo still reads as "command not found" rather than a mystery interpreter error.
@@ -500,7 +500,7 @@ def _spawn(spec: ShellHookSpec, stdin_json: str) -> dict[str, Any]:
     # / taskkill /T). Hooks that finish in time keep detached helpers alive.
     # detached-spawn: ok — awaited hook; its timeout kills the whole group (kill_process_tree)
     popen_kwargs: dict[str, Any] = {"creationflags": windows_hide_flags()} if IS_WINDOWS else {"process_group": 0}
-    # HERMES_HOME follows the routed profile (the import-time environ holds the launch profile's), and
+    # KOVA_HOME follows the routed profile (the import-time environ holds the launch profile's), and
     # under multiplexing os.environ carries the DEFAULT profile's secrets, which a secondary's hook
     # script must not inherit; single-profile runs keep the process env byte-for-byte as before.
     from agent.secret_scope import is_multiplex_active
@@ -634,8 +634,8 @@ def _block_message(primary: Any, secondary: Any) -> str:
     return raw if isinstance(raw, str) and raw else _DEFAULT_BLOCK_MESSAGE
 
 
-# pre_tool_call dialects in check order — Hermes ``action`` then Claude-Code ``decision`` — as (verb key,
-# block-message primary, secondary, modify payload key); both translate to the canonical Hermes shape.
+# pre_tool_call dialects in check order — Kova ``action`` then Claude-Code ``decision`` — as (verb key,
+# block-message primary, secondary, modify payload key); both translate to the canonical Kova shape.
 _PRE_TOOL_DIALECTS = (("action", "message", "reason", "args"), ("decision", "reason", "message", "tool_input"))
 
 
@@ -646,7 +646,7 @@ def _parse_pre_tool_call(data: dict[str, Any]) -> Optional[dict[str, Any]]:
     for verb, _, _, payload in _PRE_TOOL_DIALECTS:
         if data.get(verb) == "modify" and isinstance(data.get(payload), dict):
             return {"action": "modify", "args": data[payload]}
-    # Hermes-only escalation to the human-approval gate (#92553). Claude-Code's ``decision:
+    # Kova-only escalation to the human-approval gate (#92553). Claude-Code's ``decision:
     # approve`` means auto-ALLOW, so it is deliberately not mapped onto this.
     if data.get("action") == "approve":
         directive: dict[str, Any] = {"action": "approve"}
@@ -659,7 +659,7 @@ def _parse_pre_tool_call(data: dict[str, Any]) -> Optional[dict[str, Any]]:
 
 
 def _parse_pre_verify(data: dict[str, Any]) -> Optional[dict[str, Any]]:
-    # "continue" (Hermes) / "block" (Claude-Code Stop) both mean keep going; no message is a no-op.
+    # "continue" (Kova) / "block" (Claude-Code Stop) both mean keep going; no message is a no-op.
     action = str(data.get("action") or data.get("decision") or "").strip().lower()
     message = data.get("message") or data.get("reason")
     if action in {"continue", "block"} and isinstance(message, str) and message.strip():
@@ -686,7 +686,7 @@ _RESPONSE_PARSERS: dict[str, Callable[[dict[str, Any]], Optional[dict[str, Any]]
 
 
 def _parse_response(event: str, stdout: str) -> Optional[dict[str, Any]]:
-    """Translate stdout JSON into a Hermes wire-shape dict, or ``None``."""
+    """Translate stdout JSON into a Kova wire-shape dict, or ``None``."""
     stdout = (stdout or "").strip()
     if not stdout:
         return None
@@ -702,7 +702,7 @@ def _parse_response(event: str, stdout: str) -> Optional[dict[str, Any]]:
 
 def allowlist_path() -> Path:
     """Path to the per-user shell-hook allowlist file."""
-    return get_hermes_home() / ALLOWLIST_FILENAME
+    return get_kova_home() / ALLOWLIST_FILENAME
 
 
 def _read_allowlist() -> tuple[dict[str, Any], bool]:
@@ -770,7 +770,7 @@ def _prompt_and_record(event: str, command: str, *, accept_hooks: bool) -> bool:
     if not sys.stdin.isatty():
         return False
     print(
-        f"\n⚠ Hermes is about to register a shell hook that will run a\n  command on your behalf.\n\n"
+        f"\n⚠ Kova is about to register a shell hook that will run a\n  command on your behalf.\n\n"
         f"    Event:   {event}\n    Command: {command}\n\n"
         f"  Commands run with your full user credentials.  Only approve\n  commands you trust."
     )
@@ -814,10 +814,10 @@ def _command_script_path(command: str) -> str:
 
 
 def _resolve_effective_accept(cfg: dict[str, Any], accept_hooks_arg: bool) -> bool:
-    """Any truthy opt-in channel wins: explicit arg, this process's --accept-hooks, HERMES_ACCEPT_HOOKS,
+    """Any truthy opt-in channel wins: explicit arg, this process's --accept-hooks, KOVA_ACCEPT_HOOKS,
     hooks_auto_accept."""
     from utils import env_var_enabled
-    if accept_hooks_arg or _process_accept or env_var_enabled("HERMES_ACCEPT_HOOKS"):
+    if accept_hooks_arg or _process_accept or env_var_enabled("KOVA_ACCEPT_HOOKS"):
         return True
     cfg_val = cfg.get("hooks_auto_accept", False)
     return cfg_val if isinstance(cfg_val, bool) else isinstance(cfg_val, str) and cfg_val.strip().lower() in _TRUTHY

@@ -29,14 +29,14 @@ export function resolveVenvDir(updateRoot: string): string {
   return path.join(updateRoot, 'venv')
 }
 
-import { platformDefaultHermesHome } from './data-paths'
+import { platformDefaultKovaHome } from './data-paths'
 import { hiddenWindowsChildOptions } from './windows-child-options'
 
 /** Exact installation identity; PATH may refer to another checkout. */
 export function resolveInstallationLauncher(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.KOVA_HOME ?? ''
 ): string | null {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -62,7 +62,7 @@ export function resolveInstallationLauncher(
 export async function resolveInstallationLauncherAsync(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.KOVA_HOME ?? ''
 ): Promise<string | null> {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -84,7 +84,7 @@ export async function resolveInstallationLauncherAsync(
 function stagedInstallationLauncher(updateRoot: string, isWindows: boolean): string | null {
   const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
 
-  return names.map(name => path.join(updateRoot, '.hermes', 'bin', name)).find(stagedFileExists) ?? null
+  return names.map(name => path.join(updateRoot, '.kova', 'bin', name)).find(stagedFileExists) ?? null
 }
 
 // Earlier PM installers published only to user-bin. Trust that historical
@@ -123,7 +123,7 @@ const CMD_UNSAFE_PATH: RegExp = /["%&|<>^\r\n]/
 /** Published user-bin launchers, at fixed locations: a GUI launch's PATH may omit them. */
 function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: string[] = []): string[] {
   const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
-  const defaultHome: string = platformDefaultHermesHome(os.homedir(), process.env, isWindows ? 'win32' : 'linux')
+  const defaultHome: string = platformDefaultKovaHome(os.homedir(), process.env, isWindows ? 'win32' : 'linux')
 
   const dirs: string[] = isWindows
     ? [path.join(hermesHome || defaultHome, 'bin'), path.join(defaultHome, 'bin'), ...extraDirs]
@@ -138,11 +138,11 @@ function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: str
  * A source install outside the canonical root (install.sh --dir, a
  * setup-hermes.sh clone) is reachable only through the user-bin launcher it
  * published. Return the install directory that launcher reports, when it is a
- * Hermes source tree; the caller still resolves and probes it by root.
+ * Kova source tree; the caller still resolves and probes it by root.
  */
 export function userLauncherInstallRoot(
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.KOVA_HOME ?? ''
 ): { launcher: string; root: string } | null {
   for (const launcher of userBinLaunchers(isWindows, hermesHome)) {
     const root: string | null = launcherInstallDirectory(launcher)
@@ -167,7 +167,7 @@ export function launcherTargetsInstallation(launcher: string, root: string): boo
 
 // A launcher's install directory cannot move while this process lives, and the
 // backend resolver runs once per surface (startup, TUI resume, pool backends, and
-// every tick of reensureDuringRestart), so the HERMES_DESKTOP_HERMES rung memoizes
+// every tick of reensureDuringRestart), so the KOVA_DESKTOP_HERMES rung memoizes
 // each launcher's root. The probe is async: `--version` may take seconds (it also
 // runs the passive update check) and must never stall Electron's main thread.
 // Concurrent resolves share one in-flight probe. A miss (no `Install directory:`
@@ -228,7 +228,7 @@ function launcherVersionProbe(launcher: string, root?: string): LauncherVersionP
       timeout: 15000,
       windowsHide: true,
       windowsVerbatimArguments: viaCmd,
-      env: root ? { ...process.env, HERMES_INSTALL_ROOT: root } : process.env
+      env: root ? { ...process.env, KOVA_INSTALL_ROOT: root } : process.env
     }
   }
 }
@@ -364,8 +364,8 @@ export function resolveUpdateScriptHandoff(
  *
  * Replaces the in-app posix updater: the Desktop spawns the script detached
  * and QUITS, the script waits it out, runs `hermes update`, swaps/relaunches
- * the app, and writes .hermes-update-result.json. With the app gone before
- * the update starts, the HERMES_DESKTOP_CHILD_PID reaper-exclusion dance is
+ * the app, and writes .kova-update-result.json. With the app gone before
+ * the update starts, the KOVA_DESKTOP_CHILD_PID reaper-exclusion dance is
  * unnecessary — there are no live desktop backends to spare.
  *
  * Null when the checkout predates the script (caller surfaces the manual
@@ -540,10 +540,10 @@ function stagedFileMtimeMs(candidate: string): number | null {
 /**
  * Decide which staged installer binary — if any — may be handed an update.
  *
- * The Tauri installer self-copies into HERMES_HOME on *every* platform
+ * The Tauri installer self-copies into KOVA_HOME on *every* platform
  * (`hermes-setup.exe` on Windows, `hermes-setup` elsewhere — see
  * apps/bootstrap-installer `paths::installer_dest` and
- * `bootstrap::copy_self_to_hermes_home`), so finding that binary on macOS or
+ * `bootstrap::copy_self_to_kova_home`), so finding that binary on macOS or
  * Linux is expected, not leftover junk.
  *
  * Handing an update to it is nonetheless a Windows-only policy. Windows needs
@@ -579,19 +579,19 @@ export function resolveStagedUpdaterBinary(
 /**
  * True when the staged installer is new enough to survive a pre-written marker.
  *
- * `copy_self_to_hermes_home` deliberately no-ops during `--update`
+ * `copy_self_to_kova_home` deliberately no-ops during `--update`
  * (apps/bootstrap-installer/src-tauri/src/paths.rs), so the binary staged by a
  * user's ORIGINAL install orchestrates every later update — forever. Installers
  * predating #74782 have no self-PID exclusion in `UpdateMarkerGuard::acquire`,
  * so when the desktop pre-writes the marker naming that very updater, the
  * updater reads its own claim as a foreign live owner and aborts with
- * "Another Hermes update is already running (PID <itself>, started 1s ago)" —
+ * "Another Kova update is already running (PID <itself>, started 1s ago)" —
  * the observed infinite "Install didn't finish" loop. Skipping the pre-write
  * for those binaries lets them acquire cleanly and run `hermes update`, which
  * pulls the permanent fixes. See shouldPrewriteUpdateMarker.
  *
  * We cannot ask the binary its version without executing it, so use its mtime:
- * the installer is written to HERMES_HOME at install/repair time, making mtime
+ * the installer is written to KOVA_HOME at install/repair time, making mtime
  * a faithful stamp of which installer generation produced it.
  *
  * Unreadable mtime counts as UNSUPPORTED — the pre-write is a best-effort
@@ -750,13 +750,13 @@ export interface ObserveUpdaterHandoffDeps {
 
 /**
  * User-facing copy for a hand-off that did not take (spawn error or early exit).
- * The lead sentence is plain: nothing changed and Hermes keeps running. The raw
+ * The lead sentence is plain: nothing changed and Kova keeps running. The raw
  * outcome message (exit code / signal / spawn error) stays on a trailing
  * "Details:" line for logs and support.
  */
 export function describeUpdaterHandoffFailure(outcome: Pick<UpdaterHandoffOutcome, 'message'>): string {
   const lead =
-    "The updater couldn't start, so nothing was changed and Hermes keeps running as before. " +
+    "The updater couldn't start, so nothing was changed and Kova keeps running as before. " +
     'Try again; if it keeps failing, open the logs and send them to support.'
 
   return outcome.message ? `${lead}\n\nDetails: ${outcome.message}` : lead

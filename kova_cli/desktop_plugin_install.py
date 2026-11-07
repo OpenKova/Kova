@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from kova_cli import desktop_plugin_halves as halves
-from kova_constants import get_default_hermes_root
+from kova_constants import get_default_kova_root
 from utils import rmtree_readonly
 
 DESKTOP_PLUGINS_DIR = "desktop-plugins"
@@ -33,7 +33,7 @@ def desktop_plugins_root() -> Path:
     """The app-level root ``desktop-plugins/``, created on demand and resolved, exactly as Electron's
     ``desktopPluginsRoot`` and the Webapp's read routes resolve it: one folder whichever profile the
     caller names."""
-    root = get_default_hermes_root() / DESKTOP_PLUGINS_DIR
+    root = get_default_kova_root() / DESKTOP_PLUGINS_DIR
     root.mkdir(parents=True, exist_ok=True)
     return root.resolve()
 
@@ -76,7 +76,7 @@ def _resolve_source(identifier: str, catalog_name: Optional[str]) -> tuple[str, 
         from kova_cli import plugins_cmd_catalog as catalog
         entry = catalog.get_live_catalog_entry(catalog_name)
         if entry is None:
-            raise pc.PluginOperationError(f"'{catalog_name}' is not in the Hermes plugin catalog.")
+            raise pc.PluginOperationError(f"'{catalog_name}' is not in the Kova plugin catalog.")
         identifier, revision = entry.install_identifier, entry.sha or None
     try:
         git_url, subdir = pc._resolve_git_url(identifier)

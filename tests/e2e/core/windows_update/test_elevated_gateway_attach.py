@@ -60,7 +60,7 @@ def test_a_standard_user_client_gets_the_named_refusal_from_an_elevated_gateway(
     temp.mkdir()
     hand_to_user(tmp_path)  # the user's own home, as on a real machine
     env = {**os.environ, "PYTHONPATH": str(_REPO), "TEMP": str(temp), "TMP": str(temp),
-           "HERMES_HOME": str(home), "HERMES_STATE_DB_GUARD_BYPASS": "1"}
+           "KOVA_HOME": str(home), "KOVA_STATE_DB_GUARD_BYPASS": "1"}
     # Harness control: the child really is a standard user (Medium, Administrators deny-only).
     assert probe_token_elevation(tmp_path, env, tmp_path / "token.log") == "elevated=False admin=False"
 

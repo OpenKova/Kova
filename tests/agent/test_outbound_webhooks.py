@@ -322,16 +322,16 @@ class TestPayload:
     def test_profile_field_reflects_bound_profile_home(self, tmp_path, monkeypatch):
         """Receivers behind a multiplexed gateway need to know which profile
         fired (#92674): ``profile`` follows the bound home at fire time."""
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         profile_home = tmp_path / "profiles" / "b"
         profile_home.mkdir(parents=True)
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             body = outbound_webhooks._serialize_payload("on_session_end", {}, "did_1")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         assert json.loads(body)["profile"] == "b"
         body = outbound_webhooks._serialize_payload("on_session_end", {}, "did_2")
         assert json.loads(body)["profile"] == "default"
@@ -339,8 +339,8 @@ class TestPayload:
     def test_kanban_task_id_is_the_owned_task_only(self, monkeypatch):
         from agent.delegation_context import delegated_child_context
 
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "t_owner")
-        monkeypatch.delenv("HERMES_DELEGATED_CHILD_CONTEXT", raising=False)
+        monkeypatch.setenv("KOVA_KANBAN_TASK", "t_owner")
+        monkeypatch.delenv("KOVA_DELEGATED_CHILD_CONTEXT", raising=False)
         body = outbound_webhooks._serialize_payload("post_tool_call", {}, "did_1")
         assert json.loads(body)["extra"]["kanban_task_id"] == "t_owner"
         with delegated_child_context():
@@ -369,7 +369,7 @@ class TestRegistration:
         assert second == []
 
     def test_safe_mode_skips_registration(self, monkeypatch):
-        monkeypatch.setenv("HERMES_SAFE_MODE", "1")
+        monkeypatch.setenv("KOVA_SAFE_MODE", "1")
         cfg = _cfg(
             {"url": "https://example.com/hook", "events": ["on_session_end"]}
         )
@@ -407,7 +407,7 @@ class TestForceReloadHomeScoping:
         cfg = _cfg({"url": _url(http_server), "events": ["on_session_end"]})
         monkeypatch.setattr("kova_cli.config.load_config", lambda: cfg)
 
-        monkeypatch.setenv("HERMES_HOME", "/tmp/profile-b-webhook")
+        monkeypatch.setenv("KOVA_HOME", "/tmp/profile-b-webhook")
         mgr_b = plugins.PluginManager()
         plugins._plugin_manager = mgr_b
         outbound_webhooks.register_from_config(cfg)
@@ -469,12 +469,12 @@ class TestDelivery:
         assert payload["extra"]["completed"] is True
         assert payload["extra"]["model"] == "test-model"
 
-        assert req["headers"]["X-Hermes-Event"] == "on_session_end"
-        assert req["headers"]["X-Hermes-Delivery"]
+        assert req["headers"]["X-Kova-Event"] == "on_session_end"
+        assert req["headers"]["X-Kova-Delivery"]
         expected = hmac.new(
             secret.encode(), req["body"], hashlib.sha256
         ).hexdigest()
-        assert req["headers"]["X-Hermes-Signature-256"] == f"sha256={expected}"
+        assert req["headers"]["X-Kova-Signature-256"] == f"sha256={expected}"
 
     def test_unsigned_delivery_has_no_signature_header(self, http_server):
         cfg = _cfg({"url": _url(http_server), "events": ["on_session_end"]})
@@ -486,7 +486,7 @@ class TestDelivery:
         assert outbound_webhooks.flush()
 
         assert len(http_server.captured) == 1
-        assert "X-Hermes-Signature-256" not in http_server.captured[0]["headers"]
+        assert "X-Kova-Signature-256" not in http_server.captured[0]["headers"]
 
     def test_matcher_filters_tool_events(self, http_server):
         cfg = _cfg(
@@ -553,7 +553,7 @@ class TestDelivery:
         assert http_server.captured[0]["path"] == "/hook"
 
     def test_delivery_id_matches_header_and_body(self, http_server):
-        """The X-Hermes-Delivery header and the signed body's delivery_id
+        """The X-Kova-Delivery header and the signed body's delivery_id
         must be the same value, or receiver-side dedupe breaks."""
         cfg = _cfg(
             {"url": _url(http_server), "events": ["on_session_end"],
@@ -568,7 +568,7 @@ class TestDelivery:
 
         req = http_server.captured[0]
         payload = json.loads(req["body"])
-        assert payload["delivery_id"] == req["headers"]["X-Hermes-Delivery"]
+        assert payload["delivery_id"] == req["headers"]["X-Kova-Delivery"]
 
     def test_connection_error_does_not_raise(self):
         target = outbound_webhooks.WebhookTarget(

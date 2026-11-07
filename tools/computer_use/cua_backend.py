@@ -173,7 +173,7 @@ def sandbox_mcp_invocation() -> Optional[tuple[tuple[str, list[str]], dict[str, 
 
 
 def sanitized_cua_driver_env() -> dict[str, str]:
-    """``cua_driver_child_env()`` with Hermes provider secrets stripped — cua-driver is a third-party binary and must
+    """``cua_driver_child_env()`` with Kova provider secrets stripped — cua-driver is a third-party binary and must
     never inherit API keys. Falls back to the unsanitized telemetry env if the sanitizer can't import."""
     env = cua_driver_child_env()
     with contextlib.suppress(Exception):
@@ -268,7 +268,7 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
         # windows all say Qt6Application), `_snapshot_tokens` (element_index -> element_token, attached to actions so
         # cua-driver reports "stale" instead of silently re-resolving).
         self._clear_active_target()
-        # Public session label (one per Hermes run) sent as `session` on every call: owns the cursor color and
+        # Public session label (one per Kova run) sent as `session` on every call: owns the cursor color and
         # gives config/recording state a stable owner across transport restarts. Part of the 0.20 runtime contract.
         self._session_id: str = f"hermes-{uuid.uuid4().hex[:12]}"
         self._session.set_transport_reset_callback(self._handle_transport_reset)
@@ -291,11 +291,11 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
             contract = cua_driver_runtime_contract_status()
         if not contract.get("ready"):
             raise RuntimeError(f"cua-driver is not ready: {contract.get('reason') or 'runtime contract is incomplete'}. "
-                               + ("Update the binary selected by HERMES_CUA_DRIVER_CMD or remove that override."
+                               + ("Update the binary selected by KOVA_CUA_DRIVER_CMD or remove that override."
                                   if os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() else "Run `hermes computer-use install` to repair it."))
 
         # The MCP client SDK (`mcp`) is an optional dependency (the
-        # `computer-use` / `mcp` extras), not part of Hermes' minimal core.
+        # `computer-use` / `mcp` extras), not part of Kova' minimal core.
         # Lazy-install it on first use — the same pattern every other optional
         # backend uses — so users never hit an opaque `No module named 'mcp'`
         # at invoke time. Auto-install is gated by `security.allow_lazy_installs`
@@ -352,7 +352,7 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
     def _clear_active_target(self) -> None:
         """Forget a capture/focus target so a failed lookup cannot misroute input."""
         self._active_pid = self._active_window_id = self._last_app = self._last_target = None
-        # Surface 6 of NousResearch/hermes-agent#47072: per-snapshot `element_index -> element_token` map
+        # Surface 6 of NousResearch/kova-agent#47072: per-snapshot `element_index -> element_token` map
         # populated on capture(). Action tools (click/scroll/set_value/...) attach the matching token
         # alongside `element_index` so cua-driver detects "stale" explicitly instead of silently
         # re-resolving to a different element. Cleared whenever a fresh capture overwrites the snapshot

@@ -61,7 +61,7 @@ async def test_draining_ws_redeems_only_worker_ticket(tmp_path, monkeypatch, pur
     async def fallback(*args):
         pytest.fail('draining native calls must not enter legacy fallback')
     async def handle(ws, **kwargs):
-        await ws.accept(subprotocol='hermes-gateway-v1')
+        await ws.accept(subprotocol='kova-gateway-v1')
         seen.append((await ws.receive_json(), kwargs['auth_identity']['capabilities']))
     monkeypatch.setattr('tui_gateway.ws.handle_ws', handle)
     monkeypatch.setattr(web, '_DASHBOARD_EMBEDDED_CHAT_ENABLED', True)
@@ -71,8 +71,8 @@ async def test_draining_ws_redeems_only_worker_ticket(tmp_path, monkeypatch, pur
     async def send(value): sent.append(value)
     scope = {'type': 'websocket', 'path': '/api/ws', 'scheme': 'ws', 'query_string': b'',
         'client': ('127.0.0.1', 1234), 'server': ('127.0.0.1', 9999),
-        'headers': [(b'sec-websocket-protocol', ('hermes-gateway-v1, hermes-gateway-ticket.' + ticket).encode())],
-        'subprotocols': ['hermes-gateway-v1', 'hermes-gateway-ticket.' + ticket]}
+        'headers': [(b'sec-websocket-protocol', ('kova-gateway-v1, kova-gateway-ticket.' + ticket).encode())],
+        'subprotocols': ['kova-gateway-v1', 'kova-gateway-ticket.' + ticket]}
     await GatewayRuntimeAPI(fallback, runner, web.app)(scope, receive, send)
     if purpose == 'worker-adoption':
         assert seen == [({'method': 'worker.persist'}, frozenset({'worker:adopt'}))]

@@ -88,14 +88,14 @@ class TestRowCapableSignalsStillCount:
     (None, [], {'profiles': {'default': 4321}}, [], set(), False),
     (None, [], {'unmapped': [{'pid': 99}]}, [], set(), False),
     ([], [], {'profiles': {'work': 777}}, [], set(), False),
-    (None, [], {'services': ['HermesGateway']}, [], set(), False),
+    (None, [], {'services': ['KovaGateway']}, [], set(), False),
     (None, [], {}, [], set(), False), (None, [], None, [], set(), False),
     ([], [], None, [], set(), False), (None, None, None, [], set(), True),
     (None, [4321], {'profiles': {'default': 4321}}, [], set(), True),
     (['gateway'], [], {'unmapped': [{'pid': 99}]}, [], set(), True),
     (['serve', 'dashboard'], [], None, [], set(), False),
     (['serve', 'gateway'], [], None, [], set(), True),
-    (None, [], None, ['hermes-gateway'], set(), True),
+    (None, [], None, ['kova-gateway'], set(), True),
     (None, [], None, [], {4321}, True),
 ])
 def test_expected_rows(plan, pids, token, services, killed, expected):

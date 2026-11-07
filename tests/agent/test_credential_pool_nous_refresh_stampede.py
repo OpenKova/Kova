@@ -27,11 +27,11 @@ from tests.kova_cli.test_auth_nous_provider import _invoke_jwt, _setup_nous_auth
 
 
 def test_forced_refresh_adopts_peer_rotation_instead_of_reposting(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes"
+    kova_home = tmp_path / "hermes"
     peer_token = _invoke_jwt(seconds=3600)
     failed_token = _invoke_jwt(seconds=3000)  # what THIS process still holds
     _setup_nous_auth(
-        hermes_home,
+        kova_home,
         access_token=peer_token,
         refresh_token="rt-after-peer-rotation",
         scope=auth_mod.DEFAULT_NOUS_SCOPE,
@@ -40,7 +40,7 @@ def test_forced_refresh_adopts_peer_rotation_instead_of_reposting(tmp_path, monk
         ).isoformat(),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     posts = []
 

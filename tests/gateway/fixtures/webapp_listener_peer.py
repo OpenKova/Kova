@@ -1,6 +1,6 @@
 """Start the gateway listener with the Webapp on or off; report what a browser and a native client get.
 
-Run as ``python webapp_listener_peer.py on|off <port> <dist> [macos]`` with an isolated ``HERMES_HOME``;
+Run as ``python webapp_listener_peer.py on|off <port> <dist> [macos]`` with an isolated ``KOVA_HOME``;
 ``macos`` takes the launch path of macOS and the BSDs (the printed link) on any host. Writes
 ``receipt.json`` there (the gateway redirects stdout). No external inference: the model points at a closed
 port and no turn is submitted.
@@ -66,13 +66,13 @@ async def sockets_across_sign_out(runner, client, origin, ask):
     # A harmless program stands in for the user's login shell.
     web_host_terminal.shell_spec = lambda: ([sys.executable, "-c", "import time; time.sleep(120)"], "python")
     sockets = origin.replace("http:", "ws:")
-    session = {"X-Hermes-Session-Token": web_server._SESSION_TOKEN}
+    session = {"X-Kova-Session-Token": web_server._SESSION_TOKEN}
 
     async def ticket(socket):
         return (await client.post(f"/api/webapp/socket-ticket?socket={socket}", headers=session)).json()["ticket"]
 
     def chat_protocols(value):
-        return ["hermes-gateway-v1", f"hermes-gateway-ticket.{value}"]
+        return ["kova-gateway-v1", f"kova-gateway-ticket.{value}"]
 
     report = {
         "terminal_refuses_session_token": await _upgrade_refusal(
@@ -113,7 +113,7 @@ async def probe(mode, port, dist, platform):
     import kova_cli.webapp
     from tests.gateway.fixtures.local_recovery_probe import rpc
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     webapp_block = f"webapp:\n  enabled: true\n  port: {port}\n" if mode == "on" else ""
     (home / "config.yaml").write_text(
         "gateway:\n  multiplex_profiles: false\nmodel:\n  provider: custom\n  default: no-inference\n"
@@ -152,13 +152,13 @@ async def probe(mode, port, dist, platform):
             report["session_token_is_seeded"] = web_server._SESSION_TOKEN == SEEDED_TOKEN
             report["token_file"] = (home / TOKEN_PATH).exists()
             minted = await client.post("/api/webapp/socket-ticket?socket=gateway",
-                                       headers={"X-Hermes-Session-Token": web_server._SESSION_TOKEN})
+                                       headers={"X-Kova-Session-Token": web_server._SESSION_TOKEN})
             report["ticket_status"] = minted.status_code
             if minted.status_code == 200:
                 ticket = minted.json()["ticket"]
                 url = origin.replace("http:", "ws:") + "/api/ws?native_dial=browser"
                 async with connect(url, origin=origin,
-                                   subprotocols=["hermes-gateway-v1", f"hermes-gateway-ticket.{ticket}"]) as ws:
+                                   subprotocols=["kova-gateway-v1", f"kova-gateway-ticket.{ticket}"]) as ws:
                     created = await rpc(ws, "session.create", request_id="browser-create", source="gui",
                                         toolsets=[])
                     report["browser_session"] = "result" in created
@@ -170,7 +170,7 @@ async def probe(mode, port, dist, platform):
                 report["launch_private"] = launched["result"]["private"]
                 report["launch_printed_for_the_user"] = not links_checked
                 ticket = url.split("#ticket=", 1)[1]
-                handoff = {"X-Hermes-Window-Ticket": ticket, "Origin": origin}
+                handoff = {"X-Kova-Window-Ticket": ticket, "Origin": origin}
                 redeemed = await client.post("/webapp/window-session", headers=handoff)
                 report["handoff_status"] = redeemed.status_code
                 report["handoff_gives_credential"] = redeemed.status_code == 200 and (
@@ -179,7 +179,7 @@ async def probe(mode, port, dist, platform):
                     await client.post("/webapp/window-session", headers=handoff)).status_code
                 report.update(await sockets_across_sign_out(runner, client, origin, ask))
                 stale = await client.post("/api/webapp/socket-ticket?socket=gateway",
-                                          headers={"X-Hermes-Session-Token": SEEDED_TOKEN})
+                                          headers={"X-Kova-Session-Token": SEEDED_TOKEN})
                 report["old_credential_status"] = stale.status_code
                 report["token_file_rotated"] = (home / TOKEN_PATH).read_text().strip() not in {"", SEEDED_TOKEN}
     finally:
@@ -189,7 +189,7 @@ async def probe(mode, port, dist, platform):
 
 
 def main():
-    receipt = Path(os.environ["HERMES_HOME"]) / "receipt.json"
+    receipt = Path(os.environ["KOVA_HOME"]) / "receipt.json"
     try:
         receipt.write_text(json.dumps(asyncio.run(probe(
             sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else "this platform"))))

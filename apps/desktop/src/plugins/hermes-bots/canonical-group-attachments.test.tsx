@@ -23,8 +23,8 @@ vi.mock('./canonical-group-labels', () => ({
 import { CanonicalGroupAttachments } from './canonical-group-attachments'
 
 const binding = { connectionId: 'remote-owner', profile: 'reviewer', roomId: 'room' }
-const originalDesktop = window.hermesDesktop
-afterEach(() => { cleanup(); request.mockReset(); vi.restoreAllMocks(); vi.unstubAllGlobals(); window.hermesDesktop = originalDesktop })
+const originalDesktop = window.kovaDesktop
+afterEach(() => { cleanup(); request.mockReset(); vi.restoreAllMocks(); vi.unstubAllGlobals(); window.kovaDesktop = originalDesktop })
 
 it.each([32, 1_048_576])('uploads all %i bytes using the canonical owner method', async size => {
   const bytes = Uint8Array.from({ length: size }, (_, index) => index % 256)
@@ -57,7 +57,7 @@ it('downloads only the selected committed attachment from its captured owner', a
   const attachment = { attachment_id: 'file-one', event_id: 'event-one', kind: 'file', name: 'report.bin', mime: 'application/octet-stream' }
   const save = vi.fn().mockResolvedValue(undefined)
   const observed = observeDownloads()
-  window.hermesDesktop = { saveImageBuffer: save } as unknown as typeof window.hermesDesktop
+  window.kovaDesktop = { saveImageBuffer: save } as unknown as typeof window.kovaDesktop
   request.mockImplementation(async (route, method, params) => {
     expect(route).toMatchObject({ connectionId: binding.connectionId, targetProfile: binding.profile })
 

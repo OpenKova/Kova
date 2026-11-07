@@ -76,11 +76,11 @@ def _arm_fleet_obligation(root: Path) -> None:
     # release older than ruamel does not have). Same arm and per-home fallback as the commit point's;
     # its False (a debt other profiles cannot see) is already said out loud, and the tree has moved.
     from kova_cli.update_host_obligation import PROFILE_MARKER_NAME, arm_host_obligation
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     # A git-less archive root has no SHA: an SHA-less record still owes the restart; its readers hold
     # the fleet to the checkout instead of a named pull.
-    arm_host_obligation(get_hermes_home() / PROFILE_MARKER_NAME, expected_sha=_head_sha(root))
+    arm_host_obligation(get_kova_home() / PROFILE_MARKER_NAME, expected_sha=_head_sha(root))
 
 
 def _head_sha(root: Path) -> str:
@@ -116,9 +116,9 @@ def _head_sha(root: Path) -> str:
 def _publish_gateway_exit_code(code: int) -> None:
     """Temp + rename with the stdlib only (the takeover runs before app imports are safe): the
     gateway watcher polls ``.update_exit_code`` and reads an empty file as exit 1."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    marker = get_hermes_home() / ".update_exit_code"
+    marker = get_kova_home() / ".update_exit_code"
     temporary = marker.with_name(marker.name + ".tmp")
     temporary.write_text(f"{code}\n", encoding="utf-8")
     os.replace(temporary, marker)
@@ -147,7 +147,7 @@ def main() -> int:
         root = Path(request["root"])
         python = resolve_store_python(root)
         if python is None:
-            print("Cannot resume stopped backends: no selected Hermes interpreter", file=sys.stderr)
+            print("Cannot resume stopped backends: no selected Kova interpreter", file=sys.stderr)
             return 1
         return subprocess.run(
             [str(python), "-I", "-B", "-X", "utf8", str(root / "kova_cli/update_serve_resume.py"),

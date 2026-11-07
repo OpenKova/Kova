@@ -58,12 +58,12 @@ _ALPHA = ("register_auxiliary_task('alpha_task', display_name='Alpha side model'
 def two_profile_homes(tmp_path, monkeypatch):
     """Process home ``a`` (plugins side + alpha) and named profile ``b`` (plugin side only), each
     with its own ``auxiliary.compression`` model."""
-    home_a = tmp_path / ".hermes"
+    home_a = tmp_path / ".kova"
     home_b = home_a / "profiles" / "b"
     _write_home(home_a, {"side": _SIDE, "alpha_plugin": _ALPHA}, "vendor/model-a")
     _write_home(home_b, {"side": _SIDE}, "vendor/model-b")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("KOVA_HOME", str(home_a))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: tmp_path / "empty-bundled")
     monkeypatch.setattr(PluginManager, "_scan_entry_points", lambda self: [])
     plugins_mod._reset_plugin_managers_for_tests()

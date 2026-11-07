@@ -45,7 +45,7 @@ def test_recover_reensures_an_owner_that_is_gone(monkeypatch, tmp_path, record):
     home.mkdir()
     if record is not None:
         (home / "gateway_state.json").write_text(json.dumps(record))
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint",
                         lambda h, timeout=5: SimpleNamespace(state="absent", endpoint=None, reason_code=None, detail=None))
     calls = []
@@ -76,7 +76,7 @@ def test_recover_reensures_any_unready_owner(monkeypatch, tmp_path, observed):
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint", lambda h, timeout=5: observed)
     calls = []
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", lambda h, timeout=30, idle_exit=False: (
@@ -91,30 +91,30 @@ def test_failure_names_the_reason_and_its_remedy(monkeypatch, tmp_path):
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", lambda h, timeout=30, idle_exit=False:
                         SimpleNamespace(state="incompatible", endpoint=None, reason_code="runtime_protocol",
-                                        detail="the gateway belongs to another Hermes install; stop it there"))
+                                        detail="the gateway belongs to another Kova install; stop it there"))
     with pytest.raises(RuntimeError) as err:
         module.bootstrap(True)
     assert str(err.value).splitlines() == [
         "gateway incompatible: runtime_protocol",
-        "gateway incompatible: the gateway belongs to another Hermes install; stop it there"]
+        "gateway incompatible: the gateway belongs to another Kova install; stop it there"]
 
 
 def test_started_daemon_does_not_inherit_the_launch_time_kanban_board(monkeypatch, tmp_path):
-    """`hermes --tui` pins HERMES_KANBAN_BOARD for its own launch; the shared daemon this bootstrap
+    """`hermes --tui` pins KOVA_KANBAN_BOARD for its own launch; the shared daemon this bootstrap
     starts (spawn_unmanaged_gateway copies os.environ) must keep the profile's current board."""
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
-    monkeypatch.setenv("HERMES_KANBAN_BOARD", "launch-board")
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: home)
+    monkeypatch.setenv("KOVA_KANBAN_BOARD", "launch-board")
     seen = []
 
     def ensure(h, timeout=30, idle_exit=False):
         import os
-        seen.append(os.environ.get("HERMES_KANBAN_BOARD"))
+        seen.append(os.environ.get("KOVA_KANBAN_BOARD"))
         return SimpleNamespace(state="starting", endpoint=None, reason_code="deadline", detail=None)
 
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", ensure)
@@ -135,7 +135,7 @@ def test_restart_wait_owner_is_attachable_on_start_and_recover(monkeypatch, tmp_
     endpoint = SimpleNamespace(profile_id=str(home), instance_id="draining-owner", api_origin="http://127.0.0.1:1",
                                runtime_protocol=1, control_home=str(home))
     receipt = SimpleNamespace(state="draining", endpoint=endpoint, reason_code="restart_wait", detail=None)
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint", lambda h, timeout=5: receipt)
     ensured = []
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime",

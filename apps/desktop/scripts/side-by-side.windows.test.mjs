@@ -83,8 +83,8 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       fs.symlinkSync(path.join(repo, dir, 'node_modules'), path.join(work, dir, 'node_modules'), 'junction')
     }
   }
-  const env = { ...process.env, HERMES_HOME: path.join(root, 'home'), HERMES_RUNTIME_DIR: path.join(root, 'runtime') }
-  for (const key of ['_HERMES_CHANNEL_REQUEST_JSON', 'HERMES_BUILD_COMMIT', 'HERMES_PAYLOAD_TAG', 'HERMES_PAYLOAD_VERSION', 'HERMES_DESKTOP_VARIANT', 'BUILD_NUMBER']) delete env[key]
+  const env = { ...process.env, KOVA_HOME: path.join(root, 'home'), KOVA_RUNTIME_DIR: path.join(root, 'runtime') }
+  for (const key of ['_KOVA_CHANNEL_REQUEST_JSON', 'KOVA_BUILD_COMMIT', 'KOVA_PAYLOAD_TAG', 'KOVA_PAYLOAD_VERSION', 'KOVA_DESKTOP_VARIANT', 'BUILD_NUMBER']) delete env[key]
   const gitEnv = { ...env, GIT_AUTHOR_NAME: 'Native fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Native fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid', GIT_AUTHOR_DATE: '2026-09-01T00:00:00Z', GIT_COMMITTER_DATE: '2026-09-01T00:00:00Z' }
   const git = (...args) => checked('git', args, { cwd: work, env: gitEnv })
   git('init', '-q')
@@ -98,25 +98,25 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
     schema: 1, buildId: 'a'.repeat(32), channel: 'sdk-preview', sequence,
     repository: 'fixture/project', commit: commitB, sourceVersion: '1.2.4', version: `0.0.${sequence}`,
     windowsVersion: `0.${Math.floor(sequence / 65536)}.${sequence % 65536}.0`,
-    identity: { token: 'ab12cd34ef56ab78', displayName: 'Hermes sdk-preview',
-      appId: 'ai.hermes.channel.hab12cd34ef56ab78', appNamePascal: 'HermesChannelab12cd34ef56ab78',
-      artifactNamePascal: 'HermesChannelab12cd34ef56ab78', cliName: 'hermes-sdk-preview',
-      windowsExecutableName: 'HermesChannelab12cd34ef56ab78', msixAppIdWithOrg: 'NousResearch.HermesChannelab12cd34ef56ab78' },
+    identity: { token: 'ab12cd34ef56ab78', displayName: 'Kova sdk-preview',
+      appId: 'ai.kova.channel.hab12cd34ef56ab78', appNamePascal: 'KovaChannelab12cd34ef56ab78',
+      artifactNamePascal: 'KovaChannelab12cd34ef56ab78', cliName: 'hermes-sdk-preview',
+      windowsExecutableName: 'KovaChannelab12cd34ef56ab78', msixAppIdWithOrg: 'NousResearch.KovaChannelab12cd34ef56ab78' },
     bundleEnv: {}, publicBase: 'https://example.invalid'
   })
   const cases = [
-    ['stable', { HERMES_PAYLOAD_TAG: 'v1.2.3' }],
-    ['canary', { HERMES_PAYLOAD_TAG: 'v1.2.3+canary.20260902T000000Z' }],
-    ['canary-update', { HERMES_PAYLOAD_TAG: 'v1.2.3+canary.20260903T000000Z' }],
-    ['commit-a', { HERMES_BUILD_COMMIT: commitA, HERMES_PAYLOAD_VERSION: '1.2.4' }],
-    ['commit-b', { HERMES_BUILD_COMMIT: commitB, HERMES_PAYLOAD_VERSION: '1.2.4' }],
-    ...[65535, 65536, 0xffffffff].map(sequence => [`channel-${sequence}`, { _HERMES_CHANNEL_REQUEST_JSON: JSON.stringify(channelRequest(sequence)) }]),
+    ['stable', { KOVA_PAYLOAD_TAG: 'v1.2.3' }],
+    ['canary', { KOVA_PAYLOAD_TAG: 'v1.2.3+canary.20260902T000000Z' }],
+    ['canary-update', { KOVA_PAYLOAD_TAG: 'v1.2.3+canary.20260903T000000Z' }],
+    ['commit-a', { KOVA_BUILD_COMMIT: commitA, KOVA_PAYLOAD_VERSION: '1.2.4' }],
+    ['commit-b', { KOVA_BUILD_COMMIT: commitB, KOVA_PAYLOAD_VERSION: '1.2.4' }],
+    ...[65535, 65536, 0xffffffff].map(sequence => [`channel-${sequence}`, { _KOVA_CHANNEL_REQUEST_JSON: JSON.stringify(channelRequest(sequence)) }]),
   ]
   const rows = []
   const failures = []
   const check = (value, message) => { if (!value) failures.push(message) }
   for (const [label, flavorEnv] of cases) {
-    const childEnv = { ...env, HERMES_DESKTOP_VARIANT: 'bundled', ...flavorEnv }
+    const childEnv = { ...env, KOVA_DESKTOP_VARIANT: 'bundled', ...flavorEnv }
     const node = args => checked(process.execPath, args, { cwd: work, env: childEnv })
     const packageDir = path.join(root, label)
     fs.mkdirSync(packageDir)
@@ -153,7 +153,7 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
     fs.mkdirSync(path.join(packageDir, 'Public'))
     fs.cpSync(manifestDir, path.join(packageDir, 'app/resources/agent-payload'), { recursive: true })
     fs.copyFileSync(path.join(process.env.SystemRoot, 'System32/where.exe'), path.join(packageDir, 'app', facts.executable))
-    const expectedExecutable = path.win32.join('app/resources/agent-payload', facts.payload.runtime.commands.hermes)
+    const expectedExecutable = path.win32.join('app/resources/agent-payload', facts.payload.runtime.commands.kova)
     check(attribute(xml, 'Application', 'Executable') === path.win32.join('app', facts.executable), `${label}: application does not launch its GUI executable`)
     const aliasExtension = /<uap5:Extension\b[^>]*Category="windows.appExecutionAlias"[^>]*>/.exec(xml)?.[0]
     check(aliasExtension && attribute(aliasExtension, 'uap5:Extension', 'Executable') === expectedExecutable, `${label}: CLI alias does not launch its payload executable`)
@@ -182,11 +182,11 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       }
     }
     const descriptor = path.join(root, `${label}.appinstaller`)
-    if (facts.identity.channel && !flavorEnv._HERMES_CHANNEL_REQUEST_JSON) {
+    if (facts.identity.channel && !flavorEnv._KOVA_CHANNEL_REQUEST_JSON) {
       const publisher = attribute(roundtrip, 'Identity', 'Publisher')
       const selfUri = `https://example.invalid/fixture/${facts.identity.channel}.appinstaller`
       const artifactUri = `https://example.invalid/fixture/${facts.app.name}-${version}-win.msixbundle`
-      checked(process.env.HERMES_PYTHON || 'python', [
+      checked(process.env.KOVA_PYTHON || 'python', [
         '-m', 'scripts.bundles.release_artifacts', 'appinstaller', '--root', root, '--out', descriptor,
         '--identity', name, '--publisher', publisher, '--version', version,
         '--self-uri', selfUri, '--artifact-uri', artifactUri,
@@ -201,7 +201,7 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       check(!fs.existsSync(descriptor), `${label}: commit build emitted App Installer feed`)
       check(facts.config.publish === null, `${label}: commit build config still publishes`)
     }
-    const row = { label, name, version, aliases, packageDir, cliName: facts.identity.cliName, commit: flavorEnv.HERMES_BUILD_COMMIT || null }
+    const row = { label, name, version, aliases, packageDir, cliName: facts.identity.cliName, commit: flavorEnv.KOVA_BUILD_COMMIT || null }
     rows.push(row)
     console.log(`SDK pack/unpack PASS ${label}: ${name} ${version}; aliases=${aliases.join(',')}`)
   }

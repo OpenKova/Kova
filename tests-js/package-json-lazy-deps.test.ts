@@ -17,17 +17,17 @@
  *   — not root, where it was subject to the exact same pruning risk.
  *
  * - ``@askjo/camofox-browser`` is NOT eager. Camofox is an opt-in browser
- *   backend that ships as the ``camofox`` catalog plugin (Hermes core carries
+ *   backend that ships as the ``camofox`` catalog plugin (Kova core carries
  *   no Camofox code). Its postinstall fetches a ~300MB Firefox-fork binary,
  *   which silently blocked ``hermes update`` for multi-minute stretches on
  *   slow / network-restricted connections (notably users in China running
  *   through a VPN), so it installs only when the user sets the plugin up.
  *
- * (agent-browser, once listed here, is no longer used by Hermes in any form:
+ * (agent-browser, once listed here, is no longer used by Kova in any form:
  * browser_exec launches the pm-pinned Chromium itself.)
  *
  * If a future PR re-adds any of these to root ``dependencies``, this test
- * fails — read the lazy-install guidance in the ``hermes-agent-dev`` skill
+ * fails — read the lazy-install guidance in the ``kova-agent-dev`` skill
  * before changing the expectations.
  */
 

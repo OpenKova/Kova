@@ -25,7 +25,7 @@ def _write_pool(home, provider: str, row: dict) -> None:
 def test_solstice_is_off_every_discovery_surface_until_signed_in_but_always_resolves(monkeypatch, tmp_path):
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     from kova_cli.models import list_available_providers
     from kova_cli.models_catalog_static import listed_canonical_providers
     from kova_cli.provider_catalog import provider_catalog
@@ -56,7 +56,7 @@ def test_brokered_opaque_bearer_rotates_on_stored_expiry_and_keeps_the_refresh_t
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     grants: list[dict] = []
 
     def broker(grant: dict) -> dict:

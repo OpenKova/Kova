@@ -1,6 +1,6 @@
 """A TUI/dashboard session on a sandbox backend never sends the gateway's launch directory to the sandbox.
 
-The hosted image runs the gateway with cwd ``/opt/data`` (the Hermes home). A session created with no workspace kept
+The hosted image runs the gateway with cwd ``/opt/data`` (the Kova home). A session created with no workspace kept
 that host directory as its cwd, and ``_terminal_task_cwd_with_source`` registered it as the terminal cwd of a modal /
 daytona / sprites / plugin sandbox, where it does not exist: every command failed ``cd: /opt/data: No such file or
 directory`` (exit 126). The backend's own default applies instead, as on the messaging gateway.
@@ -22,8 +22,8 @@ def launch_dir(tmp_path, monkeypatch):
     """The gateway's launch directory: an existing host dir nobody picked, with no configured terminal.cwd."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", home)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", home)
     for name in ("TERMINAL_ENV", "TERMINAL_CWD", "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE"):
         monkeypatch.delenv(name, raising=False)
     launch = tmp_path / "opt-data"
@@ -39,7 +39,7 @@ def _backend(monkeypatch, name: str, **env: str) -> None:
 
 
 def _fresh_session(key: str) -> dict:
-    """What ``session.create`` stores for a TUI session that sent no cwd (no ``HERMES_TUI_CWD``)."""
+    """What ``session.create`` stores for a TUI session that sent no cwd (no ``KOVA_TUI_CWD``)."""
     explicit, cwd, _remote = server._resolve_create_cwd({}, "tui", None)
     return {"session_key": key, "cwd": cwd, "explicit_cwd": explicit, "profile_home": None, "source": "tui"}
 
@@ -172,19 +172,19 @@ def test_docker_keeps_the_host_dir(launch_dir, monkeypatch, mount):
     assert server._persisted_session_cwd(session) == str(launch_dir)
 
 
-def test_sandbox_resume_drops_a_stored_hermes_home_cwd(launch_dir, monkeypatch):
-    """A row persisted before the fix with a launch dir (the Hermes home, its subprocess home) as cwd is not
+def test_sandbox_resume_drops_a_stored_kova_home_cwd(launch_dir, monkeypatch):
+    """A row persisted before the fix with a launch dir (the Kova home, its subprocess home) as cwd is not
     re-adopted as the sandbox workspace. ssh keeps its own rule: a remote ``/`` someone picked survives."""
-    hermes_home = server.get_hermes_home()
-    (hermes_home / "home").mkdir(exist_ok=True)
+    kova_home = server.get_kova_home()
+    (kova_home / "home").mkdir(exist_ok=True)
     monkeypatch.setenv("TERMINAL_ENV", "ssh")
     assert server._resumable_stored_cwd("/", None) == "/"
     _backend(monkeypatch, "modal")
-    for launch in (str(hermes_home), str(hermes_home / "home")):
+    for launch in (str(kova_home), str(kova_home / "home")):
         assert server._resumable_stored_cwd(launch, None) == ""
 
     monkeypatch.setenv("TERMINAL_ENV", "local")
-    assert server._resumable_stored_cwd(str(hermes_home), None) == str(hermes_home)
+    assert server._resumable_stored_cwd(str(kova_home), None) == str(kova_home)
 
 
 @pytest.mark.parametrize("launch", ["os-home", "root"])
@@ -215,8 +215,8 @@ def test_sandbox_resume_drops_a_stored_desktop_launch_dir(launch_dir, monkeypatc
 
 
 def test_sandbox_resume_keeps_a_workspace_picked_under_the_hermes_root(launch_dir, monkeypatch):
-    """A folder the user picked under the Hermes root is a workspace, not a launch dir: it persists and resumes."""
-    picked = server.get_hermes_home() / "projects" / "chosen"
+    """A folder the user picked under the Kova root is a workspace, not a launch dir: it persists and resumes."""
+    picked = server.get_kova_home() / "projects" / "chosen"
     picked.mkdir(parents=True)
     _backend(monkeypatch, "modal")
     session = {"session_key": "picked", "source": "desktop", "cwd": str(picked), "explicit_cwd": True,

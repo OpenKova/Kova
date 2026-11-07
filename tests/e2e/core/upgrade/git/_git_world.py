@@ -32,7 +32,7 @@ from tests.e2e.core.upgrade import _helpers as H
 from tests.e2e.core.upgrade import _install_helpers as I
 from tests.e2e.core.upgrade.git._smart_http import GitHTTPServer, serve_bare
 
-REPO = "hermes-agent.git"
+REPO = "kova-agent.git"
 SUCCESS = "Update complete"
 TRACEBACK = I.TRACEBACK
 
@@ -166,7 +166,7 @@ class World:
         return self.sb.cli("--version", timeout=180)
 
     def receipt(self) -> dict:
-        path = self.sb.hermes_home / "logs" / "update_receipts" / "latest.json"
+        path = self.sb.kova_home / "logs" / "update_receipts" / "latest.json"
         if not path.is_file():
             return {}
         try:
@@ -188,7 +188,7 @@ class World:
         if rec:
             out.append("receipt: " + json.dumps({k: rec.get(k) for k in ("outcome", "status", "exit_code", "steps")
                                                  if k in rec}, default=str)[:3000])
-        logs = self.sb.hermes_home / "logs"
+        logs = self.sb.kova_home / "logs"
         for name in ("update.log", "errors.log"):
             p = logs / name
             if p.is_file():
@@ -198,7 +198,7 @@ class World:
 
 
 def _preclone(sb: I.Sandbox, args: list[str], env: dict[str, str]) -> None:
-    sb.hermes_home.mkdir(parents=True, exist_ok=True)
+    sb.kova_home.mkdir(parents=True, exist_ok=True)
     cp = subprocess.run(["git", "clone", "-q", *args, "--branch", "main", I.OFFICIAL_HTTPS, str(sb.checkout)],
                         capture_output=True, text=True, env=env, timeout=900, check=False)
     assert cp.returncode == 0, f"pre-clone {args} failed: {cp.stderr[-2000:]}"
@@ -227,7 +227,7 @@ def world(root: Path, *, base: str, installer_ref: str | None = None,
         # The served repo publishes commits on main and no release tags: install main (N-1's
         # installer ignores the variable and installs main anyway).
         cp = sb.run(["bash", str(script), "--non-interactive"], timeout=1800, input="",
-                    env={**sb.env, "HERMES_INSTALL_CHANNEL": "main"})
+                    env={**sb.env, "KOVA_INSTALL_CHANNEL": "main"})
         assert cp.returncode == 0, f"install ({installer_ref or 'HEAD'} installer, base {base[:12]}) failed:\n{w.diag(cp)}"
         head = w.head()
         assert head == base, f"installer left HEAD at {head}, expected {base}\n{w.diag(cp)}"

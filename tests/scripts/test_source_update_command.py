@@ -53,7 +53,7 @@ fi
 def test_installed_cli_help_drives_explicit_staged_branch(tmp_path):
     # Use the real update parser's help, not a synthetic one-line help fixture.
     # The fake executable only replaces the destructive update action.
-    env = dict(os.environ, HERMES_DISABLE_LAZY_INSTALLS="1", PYTHONDONTWRITEBYTECODE="1")
+    env = dict(os.environ, KOVA_DISABLE_LAZY_INSTALLS="1", PYTHONDONTWRITEBYTECODE="1")
     help_result = subprocess.run(
         [sys.executable, "-m", "kova_cli.main", "update", "--help"],
         cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=60,

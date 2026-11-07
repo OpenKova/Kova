@@ -13,7 +13,7 @@ from datetime import datetime
 from unittest.mock import patch
 import kova_yaml as yaml
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from gateway.config import GatewayConfig, Platform
 from gateway.session import SessionSource, SessionStore, build_session_key
 

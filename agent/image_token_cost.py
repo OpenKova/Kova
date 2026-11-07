@@ -6,7 +6,7 @@ request that carries it, so the cost is observable: with a fresh usage anchor (r
 the previous response), the residual between the next real ``prompt_tokens`` and
 ``anchor + text-only delta`` is the price of the N images that delta introduced (#70328).
 
-The learned value is kept per ``model@host`` in ``~/.hermes/cache/image_token_costs.json`` so a new
+The learned value is kept per ``model@host`` in ``~/.kova/cache/image_token_costs.json`` so a new
 session starts calibrated, and bound per turn through a ContextVar so every estimator
 (preflight trigger, tail-budget walk, gateway hygiene) prices images the same way.
 """
@@ -55,14 +55,14 @@ def _read_cache() -> dict[str, int]:
 def _table() -> dict[str, int]:
     """The active profile's learned table, loaded lazily from its cache file."""
     global _LOADED
-    from kova_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_kova_home_override, kova_home_key
 
-    if get_hermes_home_override() is None:
+    if get_kova_home_override() is None:
         if not _LOADED:
             _LOADED = True
             _LEARNED.update(_read_cache())
         return _LEARNED
-    home_key = hermes_home_key()
+    home_key = kova_home_key()
     table = _LEARNED_BY_HOME.get(home_key)
     if table is None:
         table = _LEARNED_BY_HOME[home_key] = _read_cache()

@@ -28,7 +28,7 @@ def _valid_marker(tmp_path: Path) -> Path:
         "schema": 1,
         "deployment_kind": "image",
         "manager": "docker",
-        "image": "nousresearch/hermes-agent",
+        "image": "nousresearch/kova-agent",
         "version": "1.0.0",
         "revision": "a" * 40,
     }))
@@ -153,7 +153,7 @@ def test_admission_nix_refuses(tmp_path, monkeypatch):
 
 
 def test_refusal_receipt_written_as_refused(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     import kova_cli.update_receipt as ur
 
     monkeypatch.setattr(ur, "_receipt_dir", lambda: tmp_path / "receipts")
@@ -162,7 +162,7 @@ def test_refusal_receipt_written_as_refused(tmp_path, monkeypatch):
         UpdateRefusal(
             code="image-marker",
             message="msg",
-            update_command="docker pull nousresearch/hermes-agent:latest",
+            update_command="docker pull nousresearch/kova-agent:latest",
         )
     )
     receipts = list((tmp_path / "receipts").glob("*.json"))
@@ -203,8 +203,8 @@ def test_admission_source_checkout_on_termux_host_refuses_with_apt_hint(tmp_path
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
     refusal = evaluate_update_admission(tmp_path)
     assert refusal is not None and refusal.code == "apt-termux"
-    assert "pkg install hermes-agent" in refusal.message
-    assert refusal.update_command == "pkg install hermes-agent"
+    assert "pkg install kova-agent" in refusal.message
+    assert refusal.update_command == "pkg install kova-agent"
     assert "hermes update" not in refusal.update_command
     monkeypatch.setenv("PREFIX", "/usr")
     assert evaluate_update_admission(tmp_path) is None, "the same checkout off Termux stays updatable"
@@ -224,8 +224,8 @@ def test_admission_apt_termux_refuses_with_pkg_upgrade(tmp_path, monkeypatch):
     refusal = evaluate_update_admission(root)
     assert refusal is not None
     assert refusal.code == "apt-termux"
-    assert "pkg upgrade hermes-agent" in refusal.message
-    assert "pkg upgrade hermes-agent" in refusal.update_command
+    assert "pkg upgrade kova-agent" in refusal.message
+    assert "pkg upgrade kova-agent" in refusal.update_command
 
 
 def test_admission_apt_termux_command_comes_from_steward_table(tmp_path, monkeypatch):
@@ -244,10 +244,10 @@ def test_admission_apt_termux_command_comes_from_steward_table(tmp_path, monkeyp
     monkeypatch.setitem(
         config_mod._UPDATE_COMMAND_BY_METHOD,
         "apt",
-        "pkg upgrade hermes-agent --from-table",
+        "pkg upgrade kova-agent --from-table",
     )
     root = _sealed_tree(tmp_path, "apt-termux")
     refusal = evaluate_update_admission(root)
     assert refusal is not None
     assert refusal.code == "apt-termux"
-    assert refusal.update_command == "pkg upgrade hermes-agent --from-table"
+    assert refusal.update_command == "pkg upgrade kova-agent --from-table"

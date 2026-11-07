@@ -33,9 +33,9 @@ def read_only_db_uri(db_path) -> str:
 logger = logging.getLogger(__name__)
 
 _IS_WINDOWS = sys.platform == "win32"
-_HERMES_EXECUTABLES = frozenset({"hermes", "hermes-agent", "hermes-acp"})
-_HERMES_PYTHON_MODULES = frozenset({"acp_adapter", "kova_cli.main"})
-_HERMES_PYTHON_SCRIPTS = frozenset({"kova_cli/main.py", "run_agent.py"})
+_KOVA_EXECUTABLES = frozenset({"hermes", "kova-agent", "hermes-acp"})
+_KOVA_PYTHON_MODULES = frozenset({"acp_adapter", "kova_cli.main"})
+_KOVA_PYTHON_SCRIPTS = frozenset({"kova_cli/main.py", "run_agent.py"})
 _PYTHON_SHORT_OPTIONS_WITH_OPERANDS = frozenset({"Q", "W", "X"})
 _PYTHON_LONG_OPTIONS_WITH_OPERANDS = frozenset(
     {"--check-hash-based-pycs", "--jit"}
@@ -120,11 +120,11 @@ def _python_execution_target(argv: Sequence[str]) -> Optional[tuple[str, str]]:
 
 
 def _looks_like_hermes(argv: Sequence[str]) -> bool:
-    """Return whether argv identifies a supported Hermes execution target."""
+    """Return whether argv identifies a supported Kova execution target."""
     if not argv:
         return False
     program = os.path.basename(argv[0]).lower().removesuffix(".exe")
-    if program in _HERMES_EXECUTABLES:
+    if program in _KOVA_EXECUTABLES:
         return True
     if not _looks_like_python_executable(program):
         return False
@@ -134,10 +134,10 @@ def _looks_like_hermes(argv: Sequence[str]) -> bool:
     kind, value = target
     normalized = value.lower().replace("\\", "/")
     if kind == "module":
-        return normalized in _HERMES_PYTHON_MODULES
+        return normalized in _KOVA_PYTHON_MODULES
     return any(
         normalized == script or normalized.endswith(f"/{script}")
-        for script in _HERMES_PYTHON_SCRIPTS
+        for script in _KOVA_PYTHON_SCRIPTS
     )
 
 
@@ -175,10 +175,10 @@ def _argv_flag_value(argv: Sequence[str], flags: Sequence[str]) -> Optional[str]
 
 
 def _argv_env_home(argv: Sequence[str]) -> Optional[str]:
-    """``HERMES_HOME=<path>`` env-style assignment on the argv (``env HERMES_HOME=… hermes …``)."""
+    """``KOVA_HOME=<path>`` env-style assignment on the argv (``env KOVA_HOME=… hermes …``)."""
     for token in reversed(list(argv)):
-        if isinstance(token, str) and token.startswith("HERMES_HOME="):
-            return token[len("HERMES_HOME="):]
+        if isinstance(token, str) and token.startswith("KOVA_HOME="):
+            return token[len("KOVA_HOME="):]
     return None
 
 
@@ -186,9 +186,9 @@ def _store_install_layout(this_home: str) -> tuple[Optional[str], Optional[str]]
     """``(<install root>, <our profile name>)`` for the home holding the store, else ``(None, None)``.
 
     Derived with the canonical ``named_profile_home`` predicate, never a ``basename == "profiles"``
-    string test: an arbitrary ``<X>/profiles/<n>/`` tree is not a Hermes install, and promoting
+    string test: an arbitrary ``<X>/profiles/<n>/`` tree is not a Kova install, and promoting
     ``<X>`` to "ours" swallows an unrelated instance living under it — the literal two-instance
-    shape of #92401. The root store (``~/.hermes/state.db``) is its own root with no profile name,
+    shape of #92401. The root store (``~/.kova/state.db``) is its own root with no profile name,
     so ANY named-profile selection contradicts it.
     """
     try:
@@ -197,7 +197,7 @@ def _store_install_layout(this_home: str) -> tuple[Optional[str], Optional[str]]
         profile_home = named_profile_home(this_home)
         if profile_home is not None:
             return os.path.abspath(str(profile_home.parent.parent)), profile_home.name
-        if os.path.basename(this_home) == ".hermes":
+        if os.path.basename(this_home) == ".kova":
             return os.path.abspath(this_home), None
     except Exception:  # constants import/resolution must never break a holder scan
         logger.debug("Could not classify the install layout of %s", this_home, exc_info=True)
@@ -221,7 +221,7 @@ def _argv_home_selection(
     """``"ours"``/``"other"``/``None`` from the process's OWN profile/home selection.
 
     Under one process per host the shared binary path proves nothing about which home a process
-    serves; its ``--hermes-home``/``HERMES_HOME=``/``--profile``/``-p`` selection does. Same
+    serves; its ``--hermes-home``/``KOVA_HOME=``/``--profile``/``-p`` selection does. Same
     token-exact parsers ``gateway/run.py::_argv_contradicts_home`` uses.
     """
     home_value = _argv_flag_value(argv, _HOME_FLAGS) or _argv_env_home(argv)
@@ -259,13 +259,13 @@ def _argv_path_tokens(argv: Sequence[str]) -> list[tuple[int, str]]:
 def _argv_scoped_to_other_home(argv: Sequence[str], db_path: Path) -> bool:
     """Return whether argv proves the process belongs to a DIFFERENT instance.
 
-    ``state.db`` lives at the HERMES_HOME root, so an absolute-path token
-    containing a ``/.hermes`` segment (or naming a ``state.db``/WAL/SHM under
-    some other parent) identifies that token's own Hermes home.  When at least
+    ``state.db`` lives at the KOVA_HOME root, so an absolute-path token
+    containing a ``/.kova`` segment (or naming a ``state.db``/WAL/SHM under
+    some other parent) identifies that token's own Kova home.  When at least
     one such token exists AND no token references this instance's state.db,
     its sidecars, or its home directory, the process provably works on a
     different generation and must not be counted as an uninspectable holder
-    of ours (issue #92401: a second gateway under /home/demo/.hermes deferred
+    of ours (issue #92401: a second gateway under /home/demo/.kova deferred
     this instance's stale-FTS rebuild forever despite lsof proving zero open
     handles).  Ambiguous argv without absolute-path tokens returns False and
     keeps the fail-closed suspicion.
@@ -273,15 +273,15 @@ def _argv_scoped_to_other_home(argv: Sequence[str], db_path: Path) -> bool:
     Evidence is ranked, because one host now runs ONE process for every profile:
 
     1. A token naming our state.db or a sidecar exactly — definitive, ours.
-    2. The process's own ``--hermes-home``/``HERMES_HOME=``/``--profile``/``-p``
+    2. The process's own ``--hermes-home``/``KOVA_HOME=``/``--profile``/``-p``
        selection — that is what decides which home a multiplexer serves.
     3. Path tokens. A token under ``<install root>/profiles/<other>`` is another
        profile's store even though it sits under our root; a token that names only
        the SHARED install root is NEUTRAL (it is the same binary for every profile,
        so it can neither prove nor disprove a hold); ``argv[0]`` locates the INSTALL,
        not the home, so it is not other-home evidence for a store whose home is not
-       part of an install layout (a custom ``HERMES_HOME`` is served BY the binary
-       under ``~/.hermes`` — dismissing on it admits maintenance under a live writer).
+       part of an install layout (a custom ``KOVA_HOME`` is served BY the binary
+       under ``~/.kova`` — dismissing on it admits maintenance under a live writer).
     """
     db_path_str = os.path.abspath(os.fspath(db_path))
     this_home = os.path.dirname(db_path_str)
@@ -312,7 +312,7 @@ def _argv_scoped_to_other_home(argv: Sequence[str], db_path: Path) -> bool:
             continue  # shared install root: neutral, every served profile lives under it
         if index == 0 and not argv0_locates_home:
             continue
-        if "/.hermes" in normalized or normalized.endswith("/.hermes") or os.path.basename(normalized) in _STATE_DB_NAMES:
+        if "/.kova" in normalized or normalized.endswith("/.kova") or os.path.basename(normalized) in _STATE_DB_NAMES:
             other_home_seen = True
     return other_home_seen
 
@@ -440,7 +440,7 @@ def foreign_state_db_holders(db_path: Path) -> list[tuple[int, str]]:
             return [(-1, f"Windows Restart Manager scan failed: {exc}")]
 
     # realpath, not abspath: psutil/libproc report the kernel-resolved pathname, so a symlinked
-    # HERMES_HOME would otherwise make every holder invisible and let maintenance proceed.
+    # KOVA_HOME would otherwise make every holder invisible and let maintenance proceed.
     db_path_str = os.path.realpath(os.fspath(db_path))
     watched = {canonical_sqlite_path(candidate) for candidate in _sqlite_family(db_path_str)}
     holders: list[tuple[int, str]] = []

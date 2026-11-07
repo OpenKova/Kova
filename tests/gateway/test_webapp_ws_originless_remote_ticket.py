@@ -1,6 +1,6 @@
 """A remote client that sends a ticket subprotocol without ``Origin`` reaches the Webapp's ticket gate (#147361).
 
-The Android app (ktor) dials ``/api/ws`` from a remote peer with ``hermes-gateway-ticket.<ticket>`` and no
+The Android app (ktor) dials ``/api/ws`` from a remote peer with ``kova-gateway-ticket.<ticket>`` and no
 ``Origin``. The runtime wrapper took that for a native local Desktop dial and closed it 4403 before the
 Webapp ever saw the ticket its own ``/api/auth/ws-ticket`` had minted.
 """
@@ -10,7 +10,7 @@ import pytest
 
 from gateway.run_api import GatewayRuntimeAPI
 
-_TICKET_PROTOCOLS = "hermes-gateway-v1, hermes-gateway-ticket.webapp-minted"
+_TICKET_PROTOCOLS = "kova-gateway-v1, kova-gateway-ticket.webapp-minted"
 
 
 class _NativeTickets:
@@ -71,5 +71,5 @@ async def test_loopback_ticket_still_takes_the_native_grant_first():
 
 @pytest.mark.asyncio
 async def test_remote_malformed_ticket_set_is_still_refused():
-    reached, closes, redeemed = await _dial("192.168.178.206", protocols="hermes-gateway-ticket.no-base")
+    reached, closes, redeemed = await _dial("192.168.178.206", protocols="kova-gateway-ticket.no-base")
     assert reached == [] and closes == [4403] and redeemed == []

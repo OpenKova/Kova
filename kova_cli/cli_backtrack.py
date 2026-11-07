@@ -11,7 +11,7 @@ the same durable rewind ``/undo`` uses (``_rewind_to_user_ordinal``). Cancelling
 an empty submit, or submitting something else) leaves the session as it was. Fork reuses
 ``/branch`` and rewinds only the child, so the original session's rows stay active.
 
-Mixin bound FIRST in ``HermesCLI``'s bases so its overrides wrap the TUI handlers via ``super()``.
+Mixin bound FIRST in ``KovaCLI``'s bases so its overrides wrap the TUI handlers via ``super()``.
 cli.py-internal symbols are imported lazily (import cycle).
 """
 

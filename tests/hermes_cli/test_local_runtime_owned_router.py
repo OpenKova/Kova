@@ -1,6 +1,6 @@
 """POSIX owned-router containment: the llama-server tree dies with its owner, however the owner dies.
 
-All processes and homes are disposable; the owner is a real Hermes process importing the real
+All processes and homes are disposable; the owner is a real Kova process importing the real
 ``spawn_server(owned=True)`` path, and it is SIGKILLed so no Python cleanup of ours can run.
 """
 
@@ -67,7 +67,7 @@ def _kill(identity):
 def test_owner_sigkill_reaps_router_tree_not_an_external_control(tmp_path):
     script = tmp_path / "disposable server.py"
     script.write_text(_SCRIPT, encoding="utf-8")
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"),
+    env = dict(os.environ, KOVA_HOME=str(tmp_path / "home"),
                PYTHONPATH=str(Path(__file__).resolve().parents[2]))
     with (tmp_path / "children.log").open("w", encoding="utf-8") as log:
         launchers = [subprocess.Popen([sys.executable, str(script), str(tmp_path), role],

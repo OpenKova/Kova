@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { expect, test } from 'vitest'
 
-import { HermesGateway } from './client'
+import { KovaGateway } from './client'
 
 // The canonical dispatcher refuses any key outside CanonicalBotDeliverParams (4001
 // invalid_params, handler never called). Read that closed set from the Python contract so the
@@ -48,7 +48,7 @@ test('a Bot Relay delivery on a canonical dial carries only keys the owner admit
       )
     })
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
 
   try {
     const address = server.address() as { port: number }

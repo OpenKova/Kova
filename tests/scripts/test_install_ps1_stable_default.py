@@ -12,7 +12,7 @@ import subprocess
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-OFFICIAL = "https://github.com/NousResearch/hermes-agent.git"
+OFFICIAL = "https://github.com/NousResearch/kova-agent.git"
 
 pytestmark = pytest.mark.platforms("windows")
 
@@ -43,7 +43,7 @@ def test_install_ps1_lands_on_the_latest_stable_release(tmp_path, side, start, c
     if not powershell:
         pytest.skip("Windows PowerShell is required")
     origin, home = tmp_path / "origin", tmp_path / "home"
-    install = home / "hermes-agent"
+    install = home / "kova-agent"
     origin.mkdir()
     home.mkdir()
     _git(origin, "init", "-q", "-b", "main")
@@ -60,13 +60,13 @@ def test_install_ps1_lands_on_the_latest_stable_release(tmp_path, side, start, c
     gitconfig = tmp_path / "gitconfig"
     gitconfig.write_text(f'[url "{origin.as_uri()}"]\n  insteadOf = {OFFICIAL}\n', encoding="utf-8")
     env = {**os.environ, "GIT_CONFIG_GLOBAL": str(gitconfig), "NO_COLOR": "1"}
-    env.pop("HERMES_INSTALL_CHANNEL", None)
+    env.pop("KOVA_INSTALL_CHANNEL", None)
     if start:
         _git(tmp_path, "clone", "-q", OFFICIAL, str(install), env=env)
         _git(install, "checkout", "-q", "--detach", commits[start], env=env)
     wrapper = tmp_path / "stage.ps1"
     wrapper.write_text(
-        f". '{ROOT / 'scripts' / 'install.ps1'}' -InstallDir '{install}' -HermesHome '{home}' -Channel '{channel}'\n"
+        f". '{ROOT / 'scripts' / 'install.ps1'}' -InstallDir '{install}' -KovaHome '{home}' -Channel '{channel}'\n"
         "function Ensure-Git { return $true }\n"
         "function Get-LatestStableRelease { return 'v1.2.3' }\n"
         "Stage-Repository\n", encoding="utf-8")

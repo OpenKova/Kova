@@ -33,7 +33,7 @@ export async function resolveSourceInstallationBackend(
   }
 
   const isWindows: boolean = options.isWindows ?? process.platform === 'win32'
-  const launcher: string | null = resolveInstallationLauncher(root, isWindows, options.hermesHome)
+  const launcher: string | null = resolveInstallationLauncher(root, isWindows, options.kovaHome)
 
   if (!launcher) {
     return null
@@ -58,7 +58,7 @@ export async function resolveSourceInstallationBackend(
 
   return {
     kind: 'command',
-    label: `Hermes at ${root}`,
+    label: `Kova at ${root}`,
     command,
     args: [...args],
     env,
@@ -93,7 +93,7 @@ export function createSourcePythonBackend(
 
   return {
     kind: 'python',
-    label: `Hermes source at ${root}`,
+    label: `Kova source at ${root}`,
     command,
     args: ['-m', 'kova_cli.main', ...args],
     // The backend runs in the user's workspace cwd, and the selected

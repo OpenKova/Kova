@@ -6,12 +6,12 @@ from argparse import Namespace
 import pytest
 
 from kova_cli import webhook
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(webhook, "_is_webhook_enabled", lambda: True)
     monkeypatch.setattr(webhook, "_get_webhook_base_url", lambda: "http://localhost:8644")
     coder = tmp_path / "profiles" / "coder"
@@ -41,7 +41,7 @@ def test_subscribe_resolves_cron_in_route_profile(homes, reference):
     stored = webhook._load_subscriptions()
     assert stored.get("route", {}).get("cron_job") == "coder-job"
     assert stored["route"]["profile"] == "coder"
-    assert get_hermes_home() == root
+    assert get_kova_home() == root
     assert not (coder / "webhook_subscriptions.json").exists()
 
 
@@ -79,7 +79,7 @@ def test_failed_target_lookup_preserves_route_and_restores_store(homes, failure)
         subscribe()
     assert (root / "webhook_subscriptions.json").read_bytes() == before
     assert resolve_job_ref("daily")["id"] == "default-job"
-    assert get_hermes_home() == root
+    assert get_kova_home() == root
     assert not (coder / "webhook_subscriptions.json").exists()
 
 
@@ -90,7 +90,7 @@ def test_bare_route_preserves_custom_caller_home(homes, monkeypatch):
     (custom / "cron" / "jobs.json").write_text(json.dumps({"jobs": [
         {"id": "custom-job", "name": "daily"}
     ]}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(custom))
+    monkeypatch.setenv("KOVA_HOME", str(custom))
     subscribe()
     assert webhook._load_subscriptions()["route"]["cron_job"] == "custom-job"
     assert not (root / "webhook_subscriptions.json").exists()

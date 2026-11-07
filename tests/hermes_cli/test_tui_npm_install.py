@@ -37,11 +37,11 @@ def test_unreceipted_bundle_is_stale_even_when_newer(tmp_path: Path) -> None:
 
 @pytest.fixture
 def tui_source(source_products, monkeypatch):
-    monkeypatch.delenv("HERMES_TUI_DIR", raising=False)
-    monkeypatch.delenv("HERMES_TUI_FORCE_BUILD", raising=False)
+    monkeypatch.delenv("KOVA_TUI_DIR", raising=False)
+    monkeypatch.delenv("KOVA_TUI_FORCE_BUILD", raising=False)
     monkeypatch.delenv("TERMUX_VERSION", raising=False)
     monkeypatch.setenv("PREFIX", "/usr")
-    monkeypatch.setenv("HERMES_NODE", shutil.which("node"))
+    monkeypatch.setenv("KOVA_NODE", shutil.which("node"))
     monkeypatch.setattr(main_tui_launch, "_find_bundled_tui", lambda: None)
     return source_products
 
@@ -90,8 +90,8 @@ def test_prebuilt_bundle_launch_does_not_touch_missing_source(tmp_path, monkeypa
     bundled = tmp_path / "bundle/entry.js"
     bundled.parent.mkdir()
     bundled.write_text("console.log('prebuilt')")
-    monkeypatch.delenv("HERMES_TUI_DIR", raising=False)
-    monkeypatch.setenv("HERMES_NODE", shutil.which("node"))
+    monkeypatch.delenv("KOVA_TUI_DIR", raising=False)
+    monkeypatch.setenv("KOVA_NODE", shutil.which("node"))
     monkeypatch.setattr(main_tui_launch, "_find_bundled_tui", lambda: bundled)
     argv, cwd = main_tui_launch._make_tui_argv(tmp_path / "missing-source", tui_dev=False)
     result = subprocess.run(argv, cwd=cwd, check=True, capture_output=True, text=True)
@@ -137,7 +137,7 @@ def test_runtime_node_comes_from_pm_without_legacy_repair(tmp_path, monkeypatch)
     managed = tmp_path / "bin/node"
     managed.parent.mkdir()
     managed.symlink_to(node)
-    monkeypatch.delenv("HERMES_NODE", raising=False)
+    monkeypatch.delenv("KOVA_NODE", raising=False)
     acquired = []
 
     def acquire(name):

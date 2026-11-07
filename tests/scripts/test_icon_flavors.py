@@ -44,11 +44,11 @@ def generate(tmp_path_factory):
             out = root / str(next(sequence))
             # The runtime interpreter renders with its own packages: foreign
             # interpreter paths must not leak in, and nothing may be installed.
-            env = {**os.environ, "HERMES_HOME": str(root / "home"),
-                   "HERMES_RUNTIME_DIR": str(root / "tools"),
-                   "HERMES_PAYLOAD_TAG": tag, "HERMES_BUILD_COMMIT": commit,
-                   "HERMES_PYTHON": str(python), "PYTHONPATH": str(root / "foreign-site"),
-                   "PYTHONHOME": str(root / "foreign-python"), "HERMES_DISABLE_LAZY_INSTALLS": "1"}
+            env = {**os.environ, "KOVA_HOME": str(root / "home"),
+                   "KOVA_RUNTIME_DIR": str(root / "tools"),
+                   "KOVA_PAYLOAD_TAG": tag, "KOVA_BUILD_COMMIT": commit,
+                   "KOVA_PYTHON": str(python), "PYTHONPATH": str(root / "foreign-site"),
+                   "PYTHONHOME": str(root / "foreign-python"), "KOVA_DISABLE_LAZY_INSTALLS": "1"}
             command = [node, str(ROOT / "scripts/generate-icons.mjs"),
                        "--source", str(source), "--out", str(out)]
             result = subprocess.run(command, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180, check=False)

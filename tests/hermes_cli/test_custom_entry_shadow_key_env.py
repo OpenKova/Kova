@@ -26,18 +26,18 @@ SHADOWED_BUILTINS = [
 
 
 def _home(tmp_path, monkeypatch, name, builtin_env, *, entry_extra=None, pool=None):
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     entry = {"name": name, "api": ENDPOINT, "transport": "chat_completions", "default_model": "m"}
     entry.update({"key_env": "ENTRY_KEY_VAR"} if entry_extra is None else entry_extra)
     config = {"model": {"default": "m", "provider": f"custom:{name}"}, "providers": {name: entry}}
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-    (hermes_home / "auth.json").write_text(
+    (kova_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    (kova_home / "auth.json").write_text(
         json.dumps({"version": 1, "providers": {}, "credential_pool": pool or {}}), encoding="utf-8")
     monkeypatch.setenv(builtin_env, BUILTIN_KEY)
     monkeypatch.setenv("ENTRY_KEY_VAR", ENTRY_KEY)
-    return hermes_home
+    return kova_home
 
 
 @pytest.mark.parametrize("name,builtin_env", SHADOWED_BUILTINS)

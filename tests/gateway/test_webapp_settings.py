@@ -108,7 +108,7 @@ def _gateway(monkeypatch, tmp_path, config):
     from gateway.control_socket import GatewayControlServer
 
     home = _home(tmp_path, config)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     async def start(runner, *, host="127.0.0.1", port=0, webapp=None):
         return SimpleNamespace(api_origin=f"http://127.0.0.1:{port or 50001}")

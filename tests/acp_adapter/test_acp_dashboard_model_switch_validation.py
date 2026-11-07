@@ -19,7 +19,7 @@ from kova_cli.model_switch import ModelSwitchResult
 
 
 def _acp_agent():
-    from acp_adapter.server import HermesACPAgent
+    from acp_adapter.server import KovaACPAgent
     made: dict = {}
 
     class _SM:
@@ -30,7 +30,7 @@ def _acp_agent():
         def save_session(self, sid):
             pass
 
-    return HermesACPAgent(session_manager=_SM()), made
+    return KovaACPAgent(session_manager=_SM()), made
 
 
 def _state(**agent_attrs):

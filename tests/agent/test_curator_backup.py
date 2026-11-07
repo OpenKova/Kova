@@ -15,14 +15,14 @@ import pytest
 
 @pytest.fixture
 def backup_env(monkeypatch, tmp_path):
-    """Isolate HERMES_HOME + reload modules so every test starts clean."""
-    home = tmp_path / ".hermes"
+    """Isolate KOVA_HOME + reload modules so every test starts clean."""
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "skills").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-    # Reload so get_hermes_home picks up the env var fresh.
+    # Reload so get_kova_home picks up the env var fresh.
     import kova_constants
     importlib.reload(kova_constants)
     from agent import curator_backup
@@ -231,7 +231,7 @@ def test_real_run_takes_pre_snapshot(backup_env, monkeypatch):
 
 
 def _write_cron_jobs(home: Path, jobs: list) -> Path:
-    """Write a synthetic cron/jobs.json under HERMES_HOME. Returns the path.
+    """Write a synthetic cron/jobs.json under KOVA_HOME. Returns the path.
     Mirrors cron.jobs.save_jobs() wrapper shape: `{"jobs": [...], "updated_at": ...}`.
     """
     cron_dir = home / "cron"
@@ -245,7 +245,7 @@ def _write_cron_jobs(home: Path, jobs: list) -> Path:
 
 
 def _reload_cron_jobs(home: Path):
-    """Reload cron.jobs so its module-level HERMES_DIR picks up the tmp HOME."""
+    """Reload cron.jobs so its module-level KOVA_DIR picks up the tmp HOME."""
     import kova_constants
     importlib.reload(kova_constants)
     if "cron.jobs" in sys.modules:

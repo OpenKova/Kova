@@ -73,7 +73,7 @@ def test_classic_cli_model_switch_reaches_the_gateway_session(monkeypatch):
     conn = RecordingConnection({"model": "old/model", "provider": "openrouter"})
     stub = _StubCLI()
     stub.agent = _agent(conn, model="old/model", provider="openrouter")
-    stub._snapshot_model_runtime = cli_mod.HermesCLI._snapshot_model_runtime.__get__(stub)
+    stub._snapshot_model_runtime = cli_mod.KovaCLI._snapshot_model_runtime.__get__(stub)
     stub._session_db = None
     stub.session_id = "s"
     printed = []
@@ -86,7 +86,7 @@ def test_classic_cli_model_switch_reaches_the_gateway_session(monkeypatch):
         base_url="https://api.anthropic.com", api_mode="anthropic_messages", provider_label="Anthropic"))
     monkeypatch.setattr("kova_cli.model_switch.resolve_display_context_length", lambda *a, **k: None)
 
-    cli_mod.HermesCLI._handle_model_switch(stub, "/model claude-sonnet-4.6 --provider anthropic")
+    cli_mod.KovaCLI._handle_model_switch(stub, "/model claude-sonnet-4.6 --provider anthropic")
 
     failed = [line for line in printed if "fail" in line.lower()]
     assert not failed, ("/model printed a failure", failed)

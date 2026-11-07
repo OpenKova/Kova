@@ -32,8 +32,8 @@ foreach ($candidate in @("$repo\.venv\Scripts\python.exe", "$repo\venv\Scripts\p
     if (Test-Path -LiteralPath $candidate) { $py = $candidate; break }
 }
 if (-not $py) {
-    $roots = @($env:HERMES_RUNTIME_DIR, "$repo\..\tools")
-    $homeRoot = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }
+    $roots = @($env:KOVA_RUNTIME_DIR, "$repo\..\tools")
+    $homeRoot = if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\hermes" }
     $roots += (Join-Path $homeRoot 'tools')
     foreach ($root in $roots) {
         if (-not $root) { continue }
@@ -57,7 +57,7 @@ try {
     if ($null -eq $priorPath) { Remove-Item env:PYTHONPATH -ErrorAction SilentlyContinue } else { $env:PYTHONPATH = $priorPath }
     if ($null -eq $priorHome) { Remove-Item env:PYTHONHOME -ErrorAction SilentlyContinue } else { $env:PYTHONHOME = $priorHome }
 }
-# __HERMES_ACTIVATED (the sentinel repo scripts and the shebang prologue read)
+# __KOVA_ACTIVATED (the sentinel repo scripts and the shebang prologue read)
 # is part of the composed env, so it is saved and restored with the rest.
 $global:_hermesKeys = @($composed.PSObject.Properties.Name)
 $global:_hermesSaved = @{}

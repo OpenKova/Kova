@@ -171,12 +171,12 @@ export function windowConnectionOverride(): null | string {
 // True when running inside the Electron desktop shell (the preload bridge is
 // present). The "open in new window" affordance is desktop-only.
 export function canOpenSessionWindow(): boolean {
-  return typeof window !== 'undefined' && typeof window.hermesDesktop?.openSessionWindow === 'function'
+  return typeof window !== 'undefined' && typeof window.kovaDesktop?.openSessionWindow === 'function'
 }
 
 // True when the shell can open a full peer app window (⌘⇧N / "New Window").
 export function canOpenNewWindow(): boolean {
-  return typeof window !== 'undefined' && typeof window.hermesDesktop?.openWindow === 'function'
+  return typeof window !== 'undefined' && typeof window.kovaDesktop?.openWindow === 'function'
 }
 
 type DesktopBridge = Window['hermesDesktop']
@@ -184,7 +184,7 @@ type DesktopBridge = Window['hermesDesktop']
 // The shell's call that pops the in-app Browser into its own OS window, or
 // undefined where there is none (outside Electron, the Webapp's bridge).
 function browserWindowOpener(): DesktopBridge['openBrowserWindow'] {
-  const open = typeof window === 'undefined' ? undefined : window.hermesDesktop?.openBrowserWindow
+  const open = typeof window === 'undefined' ? undefined : window.kovaDesktop?.openBrowserWindow
 
   return typeof open === 'function' ? open : undefined
 }
@@ -192,7 +192,7 @@ function browserWindowOpener(): DesktopBridge['openBrowserWindow'] {
 // The shell's call that hands a session to the user's own terminal emulator,
 // or undefined where there is none (outside Electron, the Webapp's bridge).
 function sessionTerminalOpener(): DesktopBridge['openSessionInTerminal'] {
-  const open = typeof window === 'undefined' ? undefined : window.hermesDesktop?.openSessionInTerminal
+  const open = typeof window === 'undefined' ? undefined : window.kovaDesktop?.openSessionInTerminal
 
   return typeof open === 'function' ? open : undefined
 }
@@ -271,7 +271,7 @@ export async function openSessionInNewWindow(
 
     const connectionId = isSessionOwnerRoute(owner) ? owner.connectionId : null
 
-    return window.hermesDesktop.openSessionWindow(sessionId, { watch: opts?.watch, profile, connectionId })
+    return window.kovaDesktop.openSessionWindow(sessionId, { watch: opts?.watch, profile, connectionId })
   }, 'Could not open chat in a new window')
 }
 
@@ -282,7 +282,7 @@ export async function openNewWindow(route?: { connectionId: null | string; profi
     return
   }
 
-  await runWindowOpen(() => window.hermesDesktop.openWindow(route), 'Could not open a new window')
+  await runWindowOpen(() => window.kovaDesktop.openWindow(route), 'Could not open a new window')
 }
 
 /** Pop the in-app Browser into its own OS window. Returns whether the

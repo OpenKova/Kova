@@ -101,14 +101,14 @@ class TestGmiDoctor:
     def test_run_doctor_checks_gmi_models_endpoint(self, monkeypatch, tmp_path):
         from kova_cli import doctor as doctor_mod
 
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
         (home / ".env").write_text("GMI_API_KEY=***\n", encoding="utf-8")
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         monkeypatch.setenv("GMI_API_KEY", "gmi-test-key")
@@ -209,11 +209,11 @@ class TestGmiAuxiliary:
         assert model
         assert mock_openai.call_args.kwargs["api_key"] == "gmi-test-key"
         assert mock_openai.call_args.kwargs["base_url"] == "https://api.gmi-serving.com/v1"
-        # GMI profile declares default_headers with a HermesAgent User-Agent
+        # GMI profile declares default_headers with a KovaAgent User-Agent
         # for traffic attribution. The generic profile-fallback branch in
         # resolve_provider_client should carry it through to the OpenAI client.
         headers = mock_openai.call_args.kwargs.get("default_headers", {})
-        assert headers.get("User-Agent", "").startswith("HermesAgent/")
+        assert headers.get("User-Agent", "").startswith("KovaAgent/")
 
 
 
@@ -274,9 +274,9 @@ class TestGmiMainFlow:
             _model_flow_api_key_provider(load_config(), "gmi", "old-model")
 
         import kova_yaml as yaml
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        config = yaml.safe_load((get_hermes_home() / "config.yaml").read_text()) or {}
+        config = yaml.safe_load((get_kova_home() / "config.yaml").read_text()) or {}
         model_cfg = config.get("model")
         assert isinstance(model_cfg, dict)
         assert model_cfg["provider"] == "gmi"

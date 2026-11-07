@@ -54,7 +54,7 @@ def test_a_wildcard_webapp_takes_cookie_writes_only_from_its_own_page(tmp_path, 
     from kova_cli import web_server
     from kova_cli.config import read_raw_config
     from kova_cli.dashboard_auth import clear_providers, register_provider
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
     for key in ("bound_host", "bound_port", "auth_required", "trusted_public_hosts"):
@@ -63,7 +63,7 @@ def test_a_wildcard_webapp_takes_cookie_writes_only_from_its_own_page(tmp_path, 
     dist.mkdir()
     (dist / "index.html").write_text("<!doctype html><html><body>WEBAPP</body></html>", encoding="utf-8")
     state = types.SimpleNamespace(bound_host="0.0.0.0", bound_port=9120,
-                                  webapp=WebappMount(dist, get_hermes_home()))
+                                  webapp=WebappMount(dist, get_kova_home()))
     mount = GatewayDashboardMount(types.SimpleNamespace(session_authority=None), state)
     clear_providers()
     register_provider(StubAuthProvider())

@@ -25,14 +25,14 @@ STEP_PLAN_LIVE_IDS = ["step-3.5-flash", "step-3.5-flash-2603"]
 
 @pytest.fixture()
 def hermetic_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so the picker cannot read a real disk cache row."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    """Isolated KOVA_HOME so the picker cannot read a real disk cache row."""
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     home = tmp_path / "stepfun-home"
     home.mkdir()
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     yield home
-    reset_hermes_home_override(token)
+    reset_kova_home_override(token)
 
 
 @contextmanager

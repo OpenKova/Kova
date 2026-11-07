@@ -4,7 +4,7 @@ A multiplexed gateway connects each served profile's adapter inside that profile
 (``_profile_runtime_scope``), and the receive loop the adapter starts while connecting inherits it,
 so every final reply that bot sends is recorded from that context. The boot sweep that redelivers a
 reply cut off by a crash runs in the launch context. The ledger used to resolve its path through
-``get_hermes_home()``, which follows the override: the row landed in ``profiles/<name>/state.db``,
+``get_kova_home()``, which follows the override: the row landed in ``profiles/<name>/state.db``,
 the sweep opened the launch ``state.db``, and the reply was never redelivered.
 
 Every other ledger test replaces ``_db_path``; these leave it alone, since the path is what is
@@ -56,11 +56,11 @@ def launch_home(request, tmp_path, monkeypatch):
     root = tmp_path / "root"
     (root / "profiles" / "research").mkdir(parents=True)
     if request.param == "hermes-home-env":
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("KOVA_HOME", str(root))
     else:
-        # A default gateway run in the foreground has no HERMES_HOME at all.
-        monkeypatch.delenv("HERMES_HOME", raising=False)
-        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: root)
+        # A default gateway run in the foreground has no KOVA_HOME at all.
+        monkeypatch.delenv("KOVA_HOME", raising=False)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_kova_home", lambda: root)
     return root
 
 

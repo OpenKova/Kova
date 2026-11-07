@@ -29,7 +29,7 @@ const {
   listSidebarSessions
 } = await import('./sessions')
 
-const hermesApi = vi.mocked(client.hermesApi)
+const hermesApi = vi.mocked(client.kovaApi)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -141,7 +141,7 @@ describe('setSessionArchived profile scoping', () => {
 
   it('falls back to the ACTIVE profile in the body when no owner is given', async () => {
     // Multiplex-only: the PATCH handler resolves its state.db from
-    // `body.profile` and there is no per-profile backend whose HERMES_HOME
+    // `body.profile` and there is no per-profile backend whose KOVA_HOME
     // could stand in. An unnamed owner therefore has to mean "the profile I am
     // looking at" — otherwise the archive lands on the shared backend's own
     // state.db and silently no-ops.

@@ -27,7 +27,7 @@ from agent.memory_manager_tools import (inject_memory_provider_tools, memory_pro
                                         memory_provider_tools_exposed, normalize_tool_schema)
 from agent.memory_provider import MemoryProvider, PRE_COMPRESS_CHECKPOINT_API_VERSION, ctx_bound, spawn_context_thread
 from agent.skill_commands import extract_user_instruction_from_skill_message
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 from tools.hook_output_spill import get_spill_config, spill_if_oversized
 from tools.registry import tool_error
 
@@ -143,7 +143,7 @@ def _redact_messages_for_egress(messages: Optional[list[Any]]) -> Optional[list[
 
 
 class _StuckCallGate:
-    """Process-wide admission for one kind of external provider call, keyed by (Hermes home, provider).
+    """Process-wide admission for one kind of external provider call, keyed by (Kova home, provider).
 
     A new MemoryManager is built per agent, so a per-instance view would let every fresh manager start
     one more call against a hung backend and pin one more thread. Shared, the gate closes once
@@ -220,7 +220,7 @@ class MemoryManager:
             raise ValueError("external_prefetch_timeout must be positive")
         self._external_prefetch_timeout = timeout
         # Captured at build time, inside the profile scope the agent is built for.
-        self._home_key = hermes_home_key()
+        self._home_key = kova_home_key()
         # Single-worker background executor for end-of-turn sync/prefetch, created lazily so
         # the builtin-only path spawns no threads; one worker serializes a provider's writes.
         self._sync_executor: Optional[ThreadPoolExecutor] = None
@@ -317,14 +317,14 @@ class MemoryManager:
         # ``clarify``, ``delegate_task``). Reject it here, at the door, so it never enters the routing table
         # at all — matching the built-ins-always-win invariant used by the TTS/browser/search provider
         # registries. See #40466.
-        from toolsets import _HERMES_CORE_TOOLS
+        from toolsets import _KOVA_CORE_TOOLS
 
         for raw_schema in schemas:
             schema = normalize_tool_schema(raw_schema)
             if schema is None:
                 continue
             tool_name = schema["name"]
-            if tool_name in _HERMES_CORE_TOOLS:
+            if tool_name in _KOVA_CORE_TOOLS:
                 logger.warning(
                     "Memory provider '%s' tool '%s' shadows a reserved core "
                     "tool name; registration ignored. Core tools always win — "
@@ -580,7 +580,7 @@ class MemoryManager:
     def get_all_tool_schemas(self) -> list[dict[str, Any]]:
         """Collect deduplicated tool schemas from all providers; reserved core tool names are
         skipped because :meth:`add_provider` refuses to route them."""
-        from toolsets import _HERMES_CORE_TOOLS
+        from toolsets import _KOVA_CORE_TOOLS
 
         schemas: list[dict[str, Any]] = []
         seen = set()
@@ -593,7 +593,7 @@ class MemoryManager:
                         "Memory provider '%s' returned a tool schema with "
                         "no resolvable name; skipping (%r)", provider.name, raw_schema,
                     )
-                elif schema["name"] not in _HERMES_CORE_TOOLS and schema["name"] not in seen:
+                elif schema["name"] not in _KOVA_CORE_TOOLS and schema["name"] not in seen:
                     schemas.append(schema)
                     seen.add(schema["name"])
 
@@ -947,16 +947,16 @@ class MemoryManager:
         return self._has_external
 
     def initialize_all(self, session_id: str, **kwargs) -> None:
-        """Initialize all providers, injecting ``hermes_home`` so they resolve profile-scoped paths."""
-        if "hermes_home" not in kwargs:
-            from kova_constants import get_hermes_home
-            kwargs["hermes_home"] = str(get_hermes_home())
-        self._bound_scope = bound_scope(kwargs["hermes_home"], kwargs.get("agent_identity"))
+        """Initialize all providers, injecting ``kova_home`` so they resolve profile-scoped paths."""
+        if "kova_home" not in kwargs:
+            from kova_constants import get_kova_home
+            kwargs["kova_home"] = str(get_kova_home())
+        self._bound_scope = bound_scope(kwargs["kova_home"], kwargs.get("agent_identity"))
         _context = kwargs.get("agent_context")
         self._agent_context = _context if isinstance(_context, str) and _context.strip() else "primary"
         # One instance, one profile: never rebind an instance another profile's manager bound (#140058).
         for provider in [p for p in self._providers if p.name != "builtin"]:
-            if not claim_instance(provider, kwargs["hermes_home"]):
+            if not claim_instance(provider, kwargs["kova_home"]):
                 self._drop_provider(provider)
         self._each_provider("initialize failed", lambda p: p.initialize(session_id=session_id, **kwargs),
                             level=logging.WARNING)

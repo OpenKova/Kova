@@ -227,11 +227,11 @@ def generate(out_dir: Path) -> dict[str, Any]:
         doc = {
             "$comment": (
                 "GENERATED — do not hand-edit. Regenerate with "
-                "hermes-agent scripts/generate_conformance_vectors.py; the "
+                "kova-agent scripts/generate_conformance_vectors.py; the "
                 "native renderers are the oracle (executable spec)."
             ),
             "oracle": {
-                "repo": "NousResearch/hermes-agent",
+                "repo": "NousResearch/kova-agent",
                 "commit": commit,
                 "generator": "scripts/generate_conformance_vectors.py",
                 "generator_version": GENERATOR_VERSION,

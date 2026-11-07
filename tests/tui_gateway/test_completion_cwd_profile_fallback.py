@@ -27,7 +27,7 @@ def test_named_profile_placeholder_cwd_falls_back_to_own_home(monkeypatch, tmp_p
     stale_env.mkdir()
 
     monkeypatch.setenv("TERMINAL_CWD", str(stale_env))
-    monkeypatch.setattr(server, "_hermes_home", launch_home)
+    monkeypatch.setattr(server, "_kova_home", launch_home)
     monkeypatch.setattr(server, "_profile_home", lambda name: home if name else None)
 
     assert server._completion_cwd({"profile": "beta"}) == str(home)

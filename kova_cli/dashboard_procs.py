@@ -70,13 +70,13 @@ def _scan_dashboard_processes(*, exclude_pids: set[int] | None = None) -> list[t
     """``(pid, cmdline)`` of running ``dashboard``/``serve`` processes; empty on any scan error.
 
     A forgotten dashboard keeps the old Python backend against the new JS bundle after
-    ``hermes update`` (every API call 401s). *exclude_pids* (Desktop's HERMES_DESKTOP_CHILD_PID
+    ``hermes update`` (every API call 401s). *exclude_pids* (Desktop's KOVA_DESKTOP_CHILD_PID
     backends) are never returned.
 
-    *exclude_pids* is an optional set of PIDs that must never be returned. This is used by the Hermes
+    *exclude_pids* is an optional set of PIDs that must never be returned. This is used by the Kova
     Desktop Electron app to protect its own backend child process: when the desktop spawns ``hermes serve``
     as a backend and triggers an auto-update, the update must not kill the backend that the desktop itself
-    manages. The desktop sets the environment variable ``HERMES_DESKTOP_CHILD_PID`` on the spawned backend
+    manages. The desktop sets the environment variable ``KOVA_DESKTOP_CHILD_PID`` on the spawned backend
     process; ``_kill_stale_dashboard_processes`` reads it and passes it here. (#37532)
     """
     skip = {os.getpid(), *(exclude_pids or ())}
@@ -163,7 +163,7 @@ def _pid_passwd_home(pid: int) -> str | None:
     return None
 
 
-def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> str | None:
+def _kova_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> str | None:
     """Resolve a process home for discovery, or require pinned launch identity for termination.
 
     By default, ``None`` means an unreadable environment (another user, hardened ``/proc``).
@@ -171,9 +171,9 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
     any profile selection that would depend on today's sticky ``active_profile``.
 
     A readable environment always resolves, replaying ``_apply_profile_override`` on the target's
-    exec-time env + argv (``hermes -p X serve`` rewrites ``HERMES_HOME`` in ``os.environ`` AFTER
-    startup, which ``/proc/<pid>/environ`` never reflects): a profile-shaped ``HERMES_HOME``
-    without a flag is the home; otherwise the root is ``HERMES_HOME`` (its grandparent when
+    exec-time env + argv (``hermes -p X serve`` rewrites ``KOVA_HOME`` in ``os.environ`` AFTER
+    startup, which ``/proc/<pid>/environ`` never reflects): a profile-shaped ``KOVA_HOME``
+    without a flag is the home; otherwise the root is ``KOVA_HOME`` (its grandparent when
     profile-shaped) or the platform default of the process's own ``HOME`` / ``LOCALAPPDATA``
     (its owner's password-database home when a scrubbed unit environment exports neither), and
     the profile is the ``--profile``/``-p`` flag, else the root's sticky ``active_profile`` unless
@@ -193,7 +193,7 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
     if require_launch_identity and not argv:
         return None
     argv = argv or []
-    env_home = env.get("HERMES_HOME", "").strip()
+    env_home = env.get("KOVA_HOME", "").strip()
     profile = _profile_flag_value(argv)
     if require_launch_identity:
         anchor = (env.get('LOCALAPPDATA') or env.get('USERPROFILE')) if sys.platform == 'win32' else env.get('HOME')
@@ -202,7 +202,7 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
         if not env_home and (not anchor or not Path(anchor).is_absolute()):
             return None
     if profile is None and env_home and (
-        Path(env_home).parent.name == "profiles" or env.get("HERMES_UPDATE_POST_SWAP") == "1"
+        Path(env_home).parent.name == "profiles" or env.get("KOVA_UPDATE_POST_SWAP") == "1"
     ):
         return env_home
     if sys.platform == "win32":
@@ -210,11 +210,11 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
         base = Path(local_appdata) if local_appdata else Path(env.get("USERPROFILE") or Path.home()) / "AppData" / "Local"
         default_home = base / "hermes"
     else:
-        default_home = Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()) / ".hermes"
+        default_home = Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()) / ".kova"
     root = profile_root_for_env_home(env_home, default_home)
-    fixed_identity = any(env.get(k) for k in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD",
-                                               "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
-                                               "HERMES_GATEWAY_PROFILE_PIN")) or is_desktop_ssh_backend_argv(argv)
+    fixed_identity = any(env.get(k) for k in ("KOVA_SUPERVISED_CHILD", "KOVA_S6_SUPERVISED_CHILD",
+                                               "KOVA_GATEWAY_EXTERNAL_SUPERVISOR",
+                                               "KOVA_GATEWAY_PROFILE_PIN")) or is_desktop_ssh_backend_argv(argv)
     if profile is None and not fixed_identity:
         if require_launch_identity:
             return None  # The sticky profile at launch is unknowable; never read today's value.
@@ -284,11 +284,11 @@ def _normalized_home_for_compare(home: str) -> str:
     return os.path.normcase(str(_resolved_home(home)))
 
 
-def _pids_owned_by_hermes_home(pids: list[int], home: str) -> list[int]:
-    """Return only *pids* whose resolved Hermes home (``_hermes_home_for_pid``) is ``home``.
+def _pids_owned_by_kova_home(pids: list[int], home: str) -> list[int]:
+    """Return only *pids* whose resolved Kova home (``_kova_home_for_pid``) is ``home``.
 
     Dashboard argv is discovery-only: it is not an ownership proof because
-    several Hermes installs and profiles can run the same command on one
+    several Kova installs and profiles can run the same command on one
     machine.  An unreadable process environment is deliberately not treated
     as a match, so a stop request fails closed rather than taking down an
     unrelated backend.
@@ -296,40 +296,40 @@ def _pids_owned_by_hermes_home(pids: list[int], home: str) -> list[int]:
     target = _normalized_home_for_compare(home)
     return [
         pid for pid in pids
-        if (pid_home := _hermes_home_for_pid(pid))
+        if (pid_home := _kova_home_for_pid(pid))
         and _normalized_home_for_compare(pid_home) == target
     ]
 
 
-def _profile_key_for_respawn(argv: list[str], hermes_home: str | None = None) -> str:
-    """Stable owner key: ``HERMES_HOME`` when known, else ``--profile`` / ``-p``.
+def _profile_key_for_respawn(argv: list[str], kova_home: str | None = None) -> str:
+    """Stable owner key: ``KOVA_HOME`` when known, else ``--profile`` / ``-p``.
 
     A home ending in ``profiles/<name>`` → ``profile:<name>`` (shares a cap with an explicit
     ``--profile``); other homes keep a ``home:`` key so unrelated installs never collapse.
 
     See #78821.
     """
-    if hermes_home:
-        parts = _resolved_home(hermes_home).parts
+    if kova_home:
+        parts = _resolved_home(kova_home).parts
         if len(parts) >= 2 and parts[-2] == "profiles" and parts[-1]:
             return f"profile:{parts[-1]}"
-        return f"home:{_normalized_home_for_compare(hermes_home)}"
+        return f"home:{_normalized_home_for_compare(kova_home)}"
     return f"profile:{_profile_flag_value(argv) or 'default'}"
 
 
 def _filter_dashboard_respawn_candidates(
     candidates: list[tuple[int, list[str], str | None]], *, own_home: str | None = None
 ) -> list[list[str]]:
-    """Select which killed manual backends ``(pid, argv, hermes_home)`` to respawn after update.
+    """Select which killed manual backends ``(pid, argv, kova_home)`` to respawn after update.
 
     Rules: never resurrect Desktop ``--port 0`` backends; never replay a backend from a
-    **foreign** ``HERMES_HOME`` (the argv-only respawn would come back on this install's home
+    **foreign** ``KOVA_HOME`` (the argv-only respawn would come back on this install's home
     and steal the foreign install's fixed port → EADDRINUSE crash-loop; unreadable ``None``
     stays eligible); dedupe by normalized cmdline; one backend per profile / home. PPID-1 is
     NOT skipped: a prior respawn detaches, so fixed-port manual backends sit under init.
 
     1. Never resurrect Desktop ephemeral ``serve|dashboard --port 0`` backends — Desktop
-    (``HERMES_DESKTOP_CHILD_PID``) owns their lifecycle. These are also the PPID-1 orphans that previously
+    (``KOVA_DESKTOP_CHILD_PID``) owns their lifecycle. These are also the PPID-1 orphans that previously
     multiplied across updates because ``--port 0`` always binds a fresh free port. 2. A foreign install's
     backend is owned by that install's supervisor/user. 3. 4. See #78821, #94030.
     Intentionally does **not** blanket-skip every PPID-1 process: a prior ``hermes update`` respawn detaches
@@ -338,21 +338,21 @@ def _filter_dashboard_respawn_candidates(
     """
     if own_home is None:
         try:
-            from kova_constants import get_hermes_home
-            own_home = str(get_hermes_home())
+            from kova_constants import get_kova_home
+            own_home = str(get_kova_home())
         except Exception:
             own_home = ""
     own_key = _normalized_home_for_compare(own_home) if own_home else ""
     selected: list[list[str]] = []
     seen_cmdlines: set[tuple[str, ...]] = set()
     seen_profiles: set[str] = set()
-    for _pid, argv, hermes_home in candidates:
+    for _pid, argv, kova_home in candidates:
         if not argv or _is_ephemeral_port_zero_backend(argv):
             continue
-        if own_key and hermes_home and _normalized_home_for_compare(hermes_home) != own_key:
+        if own_key and kova_home and _normalized_home_for_compare(kova_home) != own_key:
             continue
         norm = _normalize_dashboard_cmdline(argv)
-        profile_key = _profile_key_for_respawn(argv, hermes_home)
+        profile_key = _profile_key_for_respawn(argv, kova_home)
         if norm in seen_cmdlines or profile_key in seen_profiles:
             continue
         seen_cmdlines.add(norm)
@@ -362,9 +362,9 @@ def _filter_dashboard_respawn_candidates(
 
 
 def _exclude_pids_from_env() -> set[int]:
-    """PIDs Desktop marks as live backends (``HERMES_DESKTOP_CHILD_PID``, comma-separated)."""
+    """PIDs Desktop marks as live backends (``KOVA_DESKTOP_CHILD_PID``, comma-separated)."""
     out: set[int] = set()
-    for part in os.environ.get("HERMES_DESKTOP_CHILD_PID", "").split(","):
+    for part in os.environ.get("KOVA_DESKTOP_CHILD_PID", "").split(","):
         with contextlib.suppress(ValueError):
             out.add(int(part))
     return out
@@ -619,7 +619,7 @@ def _kill_stale_dashboard_processes(
     ``.service`` suffix) are left untouched, not killed twice.
 
     When *scope_home* is supplied, only processes with that exact live
-    ``HERMES_HOME`` are candidates; unknown ownership fails closed. This is
+    ``KOVA_HOME`` are candidates; unknown ownership fails closed. This is
     used by ``dashboard --stop`` and the per-profile update cleanup.
 
     Manually-started dashboards are not auto-restarted because we don't know the original launch args
@@ -675,12 +675,12 @@ def _kill_stale_dashboard_processes(
             if launchd_jobs and (job := _launchd_owner(pid, cmdline)):
                 pid_launchd[pid] = job
             elif cmdline:
-                # Manual process: exact argv + HERMES_HOME for the respawn and its profile cap.
+                # Manual process: exact argv + KOVA_HOME for the respawn and its profile cap.
                 # Manually-started process: preserve its exact argv so we can respawn it after the update
-                # (#40449, #68934). Snapshot HERMES_HOME before the kill so per-profile caps still work
+                # (#40449, #68934). Snapshot KOVA_HOME before the kill so per-profile caps still work
                 # after the process is gone (#78821).
                 pid_cmdline[pid] = cmdline
-                pid_home[pid] = _hermes_home_for_pid(pid)
+                pid_home[pid] = _kova_home_for_pid(pid)
         if already_restarted_units:
             pids = [pid for pid in pids if (pid_service.get(pid) or "").removesuffix(".service")
                     not in already_restarted_units]
@@ -857,11 +857,11 @@ BACKEND_LOCK_NAME = "backend.lock.json"
 _HEX32 = set("0123456789abcdef")
 
 
-def _hermes_home_dir() -> Path:
-    """The process's Hermes home: remote-backend locks are a process-level asset, so a request scoped
+def _kova_home_dir() -> Path:
+    """The process's Kova home: remote-backend locks are a process-level asset, so a request scoped
     to another profile must still see the same lock dir."""
-    from kova_constants import get_process_hermes_home
-    return get_process_hermes_home()
+    from kova_constants import get_process_kova_home
+    return get_process_kova_home()
 
 
 def _is_hex(value: object, length: int) -> bool:
@@ -886,22 +886,22 @@ def _valid_lockfile_payload(parsed: object, ownership_id: str) -> bool:
     if any(not isinstance(parsed.get(f), str) or len(parsed[f]) > 1024
            for f in ("profile", "hermesPath", "hermesHome", "logPath", "startedAt")):
         return False
-    # Suffix-only check of logPath so a relocated HERMES_HOME can't reject a legitimate backend.
+    # Suffix-only check of logPath so a relocated KOVA_HOME can't reject a legitimate backend.
     return parsed["logPath"].endswith(f"/{ownership_id}/{parsed['spawnNonce']}.log")
 
 
 def _remote_lock_roots(base_dir: Path | None) -> list[Path]:
     """Every dir the Desktop may have written ``desktop-ssh/<ownershipId>/backend.lock.json`` under.
 
-    The Desktop writes SSH locks beneath the ROOT home (``~/.hermes/desktop-ssh``), but a profile
-    backend (``hermes --profile X serve``) runs with ``HERMES_HOME=<root>/profiles/X`` — scanning only
+    The Desktop writes SSH locks beneath the ROOT home (``~/.kova/desktop-ssh``), but a profile
+    backend (``hermes --profile X serve``) runs with ``KOVA_HOME=<root>/profiles/X`` — scanning only
     the process home found no lock there and its reaper killed the sibling profile's live SSH
     backend on every profile switch (#89811)."""
     if base_dir is not None:
         return [base_dir]
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     roots: list[Path] = []
-    for home in (_hermes_home_dir(), get_default_hermes_root()):
+    for home in (_kova_home_dir(), get_default_kova_root()):
         root = home / _REMOTE_LOCK_SUBDIR
         if root not in roots:
             roots.append(root)
@@ -909,7 +909,7 @@ def _remote_lock_roots(base_dir: Path | None) -> list[Path]:
 
 
 def _lock_owned_serve_pids(base_dir: Path | None = None) -> set[int]:
-    """PIDs claimed by valid ``{hermes_home}/desktop-ssh/<ownershipId>/backend.lock.json`` records
+    """PIDs claimed by valid ``{kova_home}/desktop-ssh/<ownershipId>/backend.lock.json`` records
     (best-effort: a bad record contributes no PID; never raises)."""
     owned: set[int] = set()
     entries: list[Path] = []
@@ -963,10 +963,10 @@ def _reap_orphaned_desktop_local_serves(
     When Electron dies uncleanly its ``serve --host 127.0.0.1 --port 0`` children are
     reparented to pid 1 with their MCP trees alive; each Desktop boot then stacks a fresh
     backend on the corpses until EMFILE. Reaped only if ALL hold: Desktop-local shape; ppid
-    0/1; not self / parent / HERMES_DESKTOP_CHILD_PID; not claimed by a valid
+    0/1; not self / parent / KOVA_DESKTOP_CHILD_PID; not claimed by a valid
     ``backend.lock.json`` (SSH backends other clients started legitimately sit at ppid 1);
     older than ``_REAP_MIN_AGE_SECONDS`` with a determinable age (Desktop writes the lock only
-    after HERMES_BACKEND_READY, so a live sibling mid-startup is briefly unowned).
+    after KOVA_BACKEND_READY, so a live sibling mid-startup is briefly unowned).
     """
     import signal as _signal
     import time as _time

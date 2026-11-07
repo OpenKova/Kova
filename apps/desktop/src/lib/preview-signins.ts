@@ -19,7 +19,7 @@ export async function syncPreviewSignins(
   enabled: boolean,
   scope: PreviewSigninsScope | undefined
 ): Promise<null | PreviewSigninsResult> {
-  const bridge = window.hermesDesktop?.syncPreviewSignins
+  const bridge = window.kovaDesktop?.syncPreviewSignins
 
   if (!bridge) {
     return null

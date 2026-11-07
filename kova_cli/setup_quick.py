@@ -15,14 +15,14 @@ _MESSAGING_PLATFORMS = (("TELEGRAM", "Telegram", "📱"), ("DISCORD", "Discord",
 
 
 
-def _blank_slate_done(config: dict, hermes_home, tools_line: str, *extra: str, intro: str | None = None) -> None:
+def _blank_slate_done(config: dict, kova_home, tools_line: str, *extra: str, intro: str | None = None) -> None:
     """Shared Blank Slate epilogue: success banner, the "enable later" hints, then the summary."""
     from kova_cli.setup import _info, _print_setup_summary, print_success
     print()
     print_success("Blank Slate setup complete — minimal agent ready.")
     _info(*([intro] if intro else []), tools_line, "  Seed skills:         hermes skills opt-in --sync",
           "  Add MCP servers:     hermes mcp add", *extra, "  Tune agent settings: hermes setup agent", None)
-    _print_setup_summary(config, hermes_home)
+    _print_setup_summary(config, kova_home)
 
 
 def _reload_config_into(config: dict, *, dict_only: bool = False) -> None:
@@ -57,7 +57,7 @@ def _run_nous_flow(config: dict, *, context: str, cancel_exc: tuple, cancel_line
 def _run_portal_one_shot(config: dict) -> None:
     """One-shot Nous Portal setup (``hermes setup --portal`` / ``hermes portal``)."""
     from kova_cli.setup import _info, _print_banner, _record_setup_completed, print_error, print_info, print_success
-    _print_banner("│     ☤ Hermes Setup — Nous Portal (one-shot)             │")
+    _print_banner("│     ☤ Kova Setup — Nous Portal (one-shot)             │")
     _info(None, "  One subscription, 300+ models, plus the Tool Gateway:",
           "    web search, image generation, TTS, browser automation",
           "    — all routed through your Nous Portal sub.", None,
@@ -87,7 +87,7 @@ def _run_portal_one_shot(config: dict) -> None:
 
 def _imported_model_label(config: dict) -> str:
     """``"<provider> · <model>"`` when *config* (just written by an agent import) names a model
-    Hermes has credentials for, else ``""``."""
+    Kova has credentials for, else ``""``."""
     from kova_cli.auth import AuthError, resolve_provider
     from kova_cli.models import provider_label
     from kova_cli.setup_migration import _model_section_has_credentials
@@ -138,7 +138,7 @@ def _quick_setup_nous_portal(config: dict) -> None:
     _reload_config_into(config)
 
 
-def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, imported_from: str = ""):
+def _run_first_time_quick_setup(config: dict, kova_home, is_existing: bool, imported_from: str = ""):
     """Streamlined first-time setup via Nous Portal: OAuth, model, terminal & messaging;
     everything else gets defaults. A model brought by an agent import (*imported_from* names the
     agents) is offered first and kept by default, which skips the Nous Portal step."""
@@ -174,7 +174,7 @@ def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, im
         print_info("  Connect Telegram/Discord:  hermes setup gateway")
     _print_macos_fda_tip()
     print()
-    _print_setup_summary(config, hermes_home)
+    _print_setup_summary(config, kova_home)
 
 
 def _print_macos_fda_tip() -> None:
@@ -196,14 +196,14 @@ def _print_macos_fda_tip() -> None:
         return  # indeterminate — don't nag
     _info(None, "  macOS tip: silence ALL folder permission prompts with one switch —",
           "  System Settings → Privacy & Security → Full Disk Access → enable",
-          "  your terminal (and Hermes.app if you use Desktop), or run:",
+          "  your terminal (and Kova.app if you use Desktop), or run:",
           "    open \"x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles\"",
-          "  The grant is permanent — it survives every Hermes update.")
+          "  The grant is permanent — it survives every Kova update.")
 
 
 def _blank_slate_minimal_toolsets(config: dict):
     """Write the minimal toolset state for a Blank Slate install: only ``file``, ``terminal``,
-    ``vision`` (``read_file`` can't read images) and ``skills`` (the seeded ``hermes-agent`` skill
+    ``vision`` (``read_file`` can't read images) and ``skills`` (the seeded ``kova-agent`` skill
     needs ``skill_view``) stay on. Two layers enforce it: ``platform_toolsets["cli"]`` (explicit,
     so defaults aren't re-expanded) and ``agent.disabled_toolsets`` (hard-suppression applied last
     in ``_get_platform_tools``, overriding the recovery that would re-add e.g. ``kanban``)."""
@@ -267,7 +267,7 @@ def _set_bundled_skills_opt_out(opt_out: bool, log_label: str, on_success=None, 
             on_error(exc)
 
 
-def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
+def _run_blank_slate_setup(config: dict, kova_home, is_existing: bool):
     """Blank Slate setup — essentials only, everything else OFF; then finish now or walk through
     opting capabilities back in. Nothing is enabled that the user did not explicitly choose."""
     from kova_cli.setup import (
@@ -281,8 +281,8 @@ def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
           "Forced on: Provider & Model, File Operations, Terminal, Vision, Skills.",
           "Everything else (web, browser, code exec, memory,",
           "delegation, cron, plugins, MCP, …) starts disabled. The",
-          "essential `hermes-agent` skill is always kept so the agent",
-          "can help you drive and configure Hermes itself.", None)
+          "essential `kova-agent` skill is always kept so the agent",
+          "can help you drive and configure Kova itself.", None)
 
     # Step 1: Provider & Model (REQUIRED — the agent cannot run without it)
     print_header("Step 1 — Provider & Model (required)")
@@ -309,17 +309,17 @@ def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
         "Walk through all configurations — opt in to tools, skills, plugins, MCP",
     ], 0)
     if path != 0:
-        _blank_slate_walkthrough(config, hermes_home)
+        _blank_slate_walkthrough(config, kova_home)
         return
     save_config(config)
     # Blank Slate means no bundled skills; record the opt-out so future `hermes update` runs
     # don't re-inject them.
     _set_bundled_skills_opt_out(True, "skill opt-out")
-    _blank_slate_done(config, hermes_home, "  Enable tools:        hermes tools", "  Enable plugins:      hermes plugins",
+    _blank_slate_done(config, kova_home, "  Enable tools:        hermes tools", "  Enable plugins:      hermes plugins",
                       intro="Enable anything later, on demand:")
 
 
-def _blank_slate_walkthrough(config: dict, hermes_home):
+def _blank_slate_walkthrough(config: dict, kova_home):
     """Opt-in walkthrough for Blank Slate: skills, tools, plugins, MCP, gateway."""
     from kova_cli.setup import (
         _info, print_header, print_info, print_success, print_warning, prompt_yes_no, save_config, setup_gateway,
@@ -334,7 +334,7 @@ def _blank_slate_walkthrough(config: dict, hermes_home):
         print_success(f"Seeded {copied} bundled skills.")
 
     def _opted_out(_result) -> None:
-        _info("No skills seeded (except the essential `hermes-agent`",
+        _info("No skills seeded (except the essential `kova-agent`",
               "skill). A .no-bundled-skills marker keeps future",
               "`hermes update` runs from re-injecting them. Opt back in any",
               "time with `hermes skills opt-in --sync`.")
@@ -377,10 +377,10 @@ def _blank_slate_walkthrough(config: dict, hermes_home):
     if prompt_yes_no("Connect a messaging platform (Telegram, Discord, …)?", default=False):
         setup_gateway(config)
     save_config(config)
-    _blank_slate_done(config, hermes_home, "  Enable more tools:   hermes tools")
+    _blank_slate_done(config, kova_home, "  Enable more tools:   hermes tools")
 
 
-def _run_quick_setup(config: dict, hermes_home):
+def _run_quick_setup(config: dict, kova_home):
     """Quick setup — only configure items that are missing."""
     from kova_cli.setup import (
         color, Colors, _info, print_header, print_info, _print_setup_summary, print_success,
@@ -422,7 +422,7 @@ def _run_quick_setup(config: dict, hermes_home):
             _prompt_api_key(missing_tools[idx])
     if missing_messaging:  # checklist, then prompt for each selected platform's vars
         print_header("Messaging Platforms", gap=True)
-        _info("Connect Hermes to messaging apps to chat from anywhere.",
+        _info("Connect Kova to messaging apps to chat from anywhere.",
               "You can configure these later with 'hermes setup gateway'.")
         # Group by platform in first-seen order; vars matching no platform are dropped.
         grouped: dict[str, list] = {}
@@ -451,4 +451,4 @@ def _run_quick_setup(config: dict, hermes_home):
             print_success(f"  Added {field['key']} = {field['default']}")
         config["_config_version"] = latest_ver
         save_config(config)
-    _print_setup_summary(config, hermes_home)
+    _print_setup_summary(config, kova_home)

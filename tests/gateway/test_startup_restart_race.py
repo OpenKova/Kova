@@ -122,7 +122,7 @@ def make_startup_runner(tmp_path):
 
 
 def patch_startup_side_effects(monkeypatch, tmp_path):
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr("kova_cli.plugins.discover_plugins", lambda: None)
     monkeypatch.setattr("agent.shell_hooks.register_from_config", lambda *args, **kwargs: None)
     monkeypatch.setattr("tools.process_registry.process_registry.recover_from_checkpoint", lambda: 0)
@@ -174,13 +174,13 @@ def _patch_aborted_startup(monkeypatch, runner_cls):
     monkeypatch.setattr("gateway.status.remove_pid_file", lambda: None)
     monkeypatch.setattr("gateway.status.release_gateway_runtime_lock", lambda: None)
     monkeypatch.setattr("tools.skills_sync.sync_skills", lambda quiet=True: None)
-    monkeypatch.setattr("kova_logging.setup_logging", lambda hermes_home, mode: None)
+    monkeypatch.setattr("kova_logging.setup_logging", lambda kova_home, mode: None)
     monkeypatch.setattr("gateway.run.GatewayRunner", runner_cls)
 
 
 @pytest.mark.asyncio
 async def test_start_gateway_does_not_start_cron_after_aborted_startup(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     cron_started = False
     export_shutdown_calls = 0
 
@@ -193,9 +193,9 @@ async def test_start_gateway_does_not_start_cron_after_aborted_startup(tmp_path,
         def __init__(self, config):
             from gateway.session import SessionStore
             from kova_state import SessionDB
-            from kova_constants import get_hermes_home
-            self.session_store = SessionStore(get_hermes_home() / 'sessions', config)
-            self._session_db = SessionDB(get_hermes_home() / 'state.db')
+            from kova_constants import get_kova_home
+            self.session_store = SessionStore(get_kova_home() / 'sessions', config)
+            self._session_db = SessionDB(get_kova_home() / 'state.db')
             self.session_store._db = self._session_db
             self._draining = False
             self.config = config
@@ -238,16 +238,16 @@ async def test_start_gateway_preserves_service_restart_fallback_after_aborted_st
     tmp_path, monkeypatch
 ):
     """A legacy service restart without an explicit exit code still exits with EX_TEMPFAIL."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     cron_started = False
 
     class AbortedStartupRunner:
         def __init__(self, config):
             from gateway.session import SessionStore
             from kova_state import SessionDB
-            from kova_constants import get_hermes_home
-            self.session_store = SessionStore(get_hermes_home() / 'sessions', config)
-            self._session_db = SessionDB(get_hermes_home() / 'state.db')
+            from kova_constants import get_kova_home
+            self.session_store = SessionStore(get_kova_home() / 'sessions', config)
+            self._session_db = SessionDB(get_kova_home() / 'state.db')
             self.session_store._db = self._session_db
             self._draining = False
             self.config = config
@@ -297,7 +297,7 @@ async def test_start_gateway_classifies_startup_signal_exit(
     tmp_path, monkeypatch, unexpected_signal, expected_success
 ):
     """A startup SIGTERM is restartable unless a planned-stop marker classified it as intentional."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     signal_state = None
     cron_started = False
 
@@ -305,9 +305,9 @@ async def test_start_gateway_classifies_startup_signal_exit(
         def __init__(self, config):
             from gateway.session import SessionStore
             from kova_state import SessionDB
-            from kova_constants import get_hermes_home
-            self.session_store = SessionStore(get_hermes_home() / 'sessions', config)
-            self._session_db = SessionDB(get_hermes_home() / 'state.db')
+            from kova_constants import get_kova_home
+            self.session_store = SessionStore(get_kova_home() / 'sessions', config)
+            self._session_db = SessionDB(get_kova_home() / 'state.db')
             self.session_store._db = self._session_db
             self._draining = False
             self.config = config

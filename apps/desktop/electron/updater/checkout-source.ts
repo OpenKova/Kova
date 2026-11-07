@@ -69,11 +69,11 @@ export async function sourceUpdateEnvironment(
     ...process.env,
     ...(await updateProxyEnv(process.env, note, updateRoot, hermesHome)),
     ...buildDesktopBackendEnv(),
-    HERMES_HOME: hermesHome,
-    HERMES_INSTALL_ROOT: updateRoot
+    KOVA_HOME: hermesHome,
+    KOVA_INSTALL_ROOT: updateRoot
   }
 
-  delete env.HERMES_RUNTIME_DIR
+  delete env.KOVA_RUNTIME_DIR
 
   return env
 }
@@ -85,7 +85,7 @@ export async function readSourceUpdate(probe: SourceUpdateProbe): Promise<Source
   const managed = existsSync(path.join(probe.updateRoot, 'pm'))
 
   const launcher = managed
-    ? resolveInstallationLauncher(probe.updateRoot, process.platform === 'win32', probe.hermesHome)
+    ? resolveInstallationLauncher(probe.updateRoot, process.platform === 'win32', probe.kovaHome)
     : null
 
   if (managed && !launcher) {
@@ -108,7 +108,7 @@ export async function readSourceUpdate(probe: SourceUpdateProbe): Promise<Source
     '--install-root',
     probe.updateRoot,
     '--home',
-    probe.hermesHome,
+    probe.kovaHome,
     '--git',
     probe.git,
     ...probeFlags(probe)
@@ -130,7 +130,7 @@ export async function readSourceUpdate(probe: SourceUpdateProbe): Promise<Source
       : args,
     hiddenWindowsChildOptions({
       cwd: probe.updateRoot,
-      env: await sourceUpdateEnvironment(probe.updateRoot, probe.hermesHome),
+      env: await sourceUpdateEnvironment(probe.updateRoot, probe.kovaHome),
       encoding: 'utf8',
       timeout: 360000,
       maxBuffer: 1024 * 1024,

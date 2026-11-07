@@ -2,7 +2,7 @@
 
 Runs commands in Vercel cloud sandboxes through the shared ``BaseEnvironment``
 shell contract. With persistence enabled, task-scoped snapshot ids are stored
-under ``HERMES_HOME`` and new sandboxes are restored from them on task reuse.
+under ``KOVA_HOME`` and new sandboxes are restored from them on task reuse.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 
 from kova_cli.config_defaults import DEFAULT_VERCEL_IMAGE
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.environments.base import BaseEnvironment, _load_json_store, _update_json_store
 from tools.environments.base_output import _ThreadedProcessHandle
 from tools.environments.file_sync import FileSyncManager, iter_sync_files, quoted_rm_command
@@ -41,7 +41,7 @@ _RUNNING_WAIT_TIMEOUT = timedelta(seconds=30)
 
 def _ensure_vercel_sdk() -> None:
     """Lazy-install vercel SDK on demand. Idempotent."""
-    # The SDK (>=0.7) ships default-on telemetry; Hermes policy is opt-in only, so disable it
+    # The SDK (>=0.7) ships default-on telemetry; Kova policy is opt-in only, so disable it
     # before the SDK is imported. setdefault: an explicit user value is never overridden.
     os.environ.setdefault("VERCEL_TELEMETRY_DISABLED", "1")
     try:
@@ -136,7 +136,7 @@ def _result_parts(result: Any) -> tuple[str, int]:
 
 
 def _snapshot_store() -> Path:
-    return get_hermes_home() / "vercel_sandbox_snapshots.json"
+    return get_kova_home() / "vercel_sandbox_snapshots.json"
 
 
 def _load_snapshots() -> dict:
@@ -218,7 +218,7 @@ class VercelSandboxEnvironment(BaseEnvironment):
         return self._sandbox
 
     def _remote_hermes_dir(self) -> str:
-        return f"{self._remote_home.rstrip('/')}/.hermes"
+        return f"{self._remote_home.rstrip('/')}/.kova"
 
     def _create_sandbox(self) -> Sandbox:
         _ensure_vercel_sdk()
@@ -347,7 +347,7 @@ class VercelSandboxEnvironment(BaseEnvironment):
 
     def _vercel_bulk_download(self, dest_tar_path: Path) -> None:
         archive_member = self._remote_hermes_dir().lstrip("/")
-        remote_tar = f"/tmp/.hermes_sync.{os.getpid()}.tar"  # no-tmp: ok — remote sandbox path
+        remote_tar = f"/tmp/.kova_sync.{os.getpid()}.tar"  # no-tmp: ok — remote sandbox path
         sandbox = self._require_sandbox()
         try:
             # --exclude: live sockets cannot be archived ("socket ignored") and must not fail the download.

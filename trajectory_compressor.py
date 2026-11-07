@@ -29,13 +29,13 @@ from utils import base_url_host_matches, base_url_hostname
 import fire
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeElapsedColumn, TimeRemainingColumn
 from rich.console import Console
-from kova_constants import OPENROUTER_BASE_URL, get_hermes_home
+from kova_constants import OPENROUTER_BASE_URL, get_kova_home
 from agent.compression_marker import elide_middle
 from agent.retry_utils import jittered_backoff
 from kova_cli.env_loader import load_hermes_dotenv
 
-# Load .env from HERMES_HOME first, then project root as a dev fallback.
-load_hermes_dotenv(hermes_home=get_hermes_home(), project_env=Path(__file__).parent / ".env")
+# Load .env from KOVA_HOME first, then project root as a dev fallback.
+load_hermes_dotenv(kova_home=get_kova_home(), project_env=Path(__file__).parent / ".env")
 
 
 def _response_finish_reason(response: Any) -> str:

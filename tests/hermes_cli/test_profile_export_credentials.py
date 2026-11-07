@@ -95,7 +95,7 @@ class TestCredentialExclusion:
         assert not any(".env" in n for n in names), ".env must NOT be in export"
 
     def test_named_export_ships_no_credential_store_or_copy_of_one(self, tmp_path, monkeypatch):
-        """No credential store (any case spelling) and no copy Hermes' own writers leave of one
+        """No credential store (any case spelling) and no copy Kova' own writers leave of one
         (pre-update zip, update snapshot, config backup, migration .bak, corrupt auth.json) reaches a
         named-profile export. .op.env, npmrc, home/ CLI stores and the .bak copies have no suffix the
         scrub edits, so exclusion is their only guard; a hand-named config copy is the user's and
@@ -119,10 +119,10 @@ class TestCredentialExclusion:
         for rel in [*nested, "skills/s/.config/other/settings.json"]:
             (profile_dir / rel).parent.mkdir(parents=True, exist_ok=True)
             (profile_dir / rel).write_text("fake-credential")
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("KOVA_HOME", str(profile_dir))
         copies = [
-            create_pre_update_backup(hermes_home=profile_dir),
-            profile_dir / "state-snapshots" / create_quick_snapshot(hermes_home=profile_dir),
+            create_pre_update_backup(kova_home=profile_dir),
+            profile_dir / "state-snapshots" / create_quick_snapshot(kova_home=profile_dir),
             backup_config(profile_dir / "config.yaml", "setup"),
             *_backup_existing((profile_dir / ".env", profile_dir / "config.yaml")).values(),
         ]
@@ -163,8 +163,8 @@ class TestCredentialExclusion:
         )
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        (tmp_path / ".hermes").mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        (tmp_path / ".kova").mkdir()
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
         stores = _seed_stores(tmp_path / "v1") | {"auth.json.corrupt", ".env.bak-20260928T084018Z",
                                                   "config.yaml.bak-20260928T084018Z"}
         for copy in ("auth.json.corrupt", ".env.bak-20260928T084018Z", "config.yaml.bak-20260928T084018Z"):
@@ -292,11 +292,11 @@ class TestExportSecretScrub:
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
-    """Point the home folder and HERMES_HOME into tmp_path, as test_profiles.py does."""
+    """Point the home folder and KOVA_HOME into tmp_path, as test_profiles.py does."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return tmp_path
 
 
@@ -306,7 +306,7 @@ def test_clone_all_does_not_share_the_source_webapp_browser_credential(profile_e
     from gateway.webapp_listener import TOKEN_PATH, browser_session_token
     from kova_cli.profiles import create_profile
 
-    default_home = profile_env / ".hermes"
+    default_home = profile_env / ".kova"
     (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
     source_token = browser_session_token(default_home)
 
@@ -326,7 +326,7 @@ def test_clone_all_leaves_the_source_gateways_webapp_sign_in_state_behind(profil
     from kova_cli.profiles import create_profile
     from kova_cli.webapp_sign_in import RECORD_PATH
 
-    default_home = profile_env / ".hermes"
+    default_home = profile_env / ".kova"
     (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
     (default_home / RECORD_PATH).parent.mkdir(parents=True)
     (default_home / RECORD_PATH).write_text('{"' + "d" * 64 + '": 4102444800}\n', encoding="utf-8")

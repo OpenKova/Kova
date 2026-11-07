@@ -32,12 +32,12 @@ const ownershipId = '0123456789abcdef0123456789abcdef'
 
 test('Windows spawn holds the update mutex across marker check and helper spawn', () => {
   const command = atomicWindowsSpawnCommand({
-    hermesHome: 'C:\\Users\\andre\\.hermes',
-    python: 'C:\\Users\\andre\\.hermes\\python.exe'
+    hermesHome: 'C:\\Users\\andre\\.kova',
+    python: 'C:\\Users\\andre\\.kova\\python.exe'
   })
 
   const script = decodePowerShellCommand(command)
-  assert.match(script, /\.hermes-update-in-progress/)
+  assert.match(script, /\.kova-update-in-progress/)
   assert.match(
     script,
     /\$marker\+"\.lock",\[IO\.FileMode\]::OpenOrCreate,\[IO\.FileAccess\]::ReadWrite,\[IO\.FileShare\]::None/
@@ -48,15 +48,15 @@ test('Windows spawn holds the update mutex across marker check and helper spawn'
 test('Windows spawn publishes the initial ownership record before releasing the mutex', () => {
   const command = atomicWindowsSpawnCommand(
     {
-      hermesHome: 'C:\\Users\\andre\\.hermes',
-      python: 'C:\\Users\\andre\\.hermes\\python.exe'
+      hermesHome: 'C:\\Users\\andre\\.kova',
+      python: 'C:\\Users\\andre\\.kova\\python.exe'
     },
     {
       ownershipId,
       spawnNonce: '0123456789abcdef',
       profile: 'default',
-      hermesPath: 'C:\\Hermes\\hermes.exe',
-      hermesHome: 'C:\\Users\\andre\\.hermes',
+      hermesPath: 'C:\\Kova\\hermes.exe',
+      hermesHome: 'C:\\Users\\andre\\.kova',
       tokenFingerprint: 'a'.repeat(32),
       startedAt: '2026-07-14T00:00:00.000Z'
     }
@@ -75,7 +75,7 @@ test.runIf(process.platform === 'win32')(
   'Windows spawn waits on <marker>.lock and judges v2 claims: live refuses, dead is deleted under the lock',
   async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-win-marker-'))
-    const marker = path.join(root, '.hermes-update-in-progress')
+    const marker = path.join(root, '.kova-update-in-progress')
     const run = (command: string) => promisify(execCallback)(command, { timeout: 30_000 })
     const command = atomicWindowsSpawnCommand({ hermesHome: root, python: path.join(root, 'missing-python.exe') })
 
@@ -171,10 +171,10 @@ test('every emitted PowerShell script keeps try blocks attached to their catch/f
 
       return 'CLEAR'
     }),
-    'C:\\Users\\alice\\.hermes'
+    'C:\\Users\\alice\\.kova'
   )
   scripts.push(
-    decode(atomicWindowsSpawnCommand({ hermesHome: 'C:\\Users\\alice\\.hermes', python: 'C:\\py\\python.exe' })),
+    decode(atomicWindowsSpawnCommand({ hermesHome: 'C:\\Users\\alice\\.kova', python: 'C:\\py\\python.exe' })),
     decode(buildWindowsInteractiveCommand('C:\\work'))
   )
 
@@ -205,13 +205,13 @@ test('Windows relaunch gate refuses live and uncertain markers before executing 
         return JSON.stringify({
           os: 'Windows',
           arch: 'AMD64',
-          hermesHome: 'C:\\Users\\alice\\.hermes',
-          hermesPath: 'C:\\Hermes\\hermes.exe',
-          python: 'C:\\Hermes\\python.exe'
+          hermesHome: 'C:\\Users\\alice\\.kova',
+          hermesPath: 'C:\\Kova\\hermes.exe',
+          python: 'C:\\Kova\\python.exe'
         })
       }
 
-      if (script.includes('.hermes-update-in-progress')) {
+      if (script.includes('.kova-update-in-progress')) {
         return observation
       }
 
@@ -226,7 +226,7 @@ test('Windows relaunch gate refuses live and uncertain markers before executing 
           pickLocalPort: async () => 50000,
           forward: async () => {},
           cancelForward: async () => {},
-          waitForHermes: async () => {},
+          waitForKova: async () => {},
           probeReuseProof: async () => 'authenticated-ok'
         }),
       (error: any) => error.kind === 'update-in-progress'
@@ -243,7 +243,7 @@ test('Windows gates keep a dead marker while the checkout lock or a lease byte i
   // after the update_lock byte range -- owner byte + 16 R5b lease bytes at
   // 1048576 -- of the installer checkout and the runtime python's checkout is free.
   const decode = (command: string, options: SshExecOptions = {}) => scriptFromInvocation(command, options)
-  const runtime = { hermesHome: 'C:\\Users\\alice\\.hermes', python: 'C:\\src\\hermes\\venv\\Scripts\\python.exe' }
+  const runtime = { hermesHome: 'C:\\Users\\alice\\.kova', python: 'C:\\src\\hermes\\venv\\Scripts\\python.exe' }
   const spawnScript = decode(atomicWindowsSpawnCommand(runtime))
   let probeScript = ''
 
@@ -253,7 +253,7 @@ test('Windows gates keep a dead marker while the checkout lock or a lease byte i
 
       return 'HELD'
     }),
-    runtime.hermesHome,
+    runtime.kovaHome,
     runtime.python
   ).catch(error => error)
 
@@ -263,7 +263,7 @@ test('Windows gates keep a dead marker while the checkout lock or a lease byte i
   for (const script of [spawnScript, probeScript]) {
     assert.match(script, /\$lockFile\.Lock\(1048576,17\)/)
     assert.match(script, /Combine\(\$gitdir,"hermes-update\.lock"\)/)
-    assert.match(script, /\$checkoutRoots=@\(\[IO\.Path\]::Combine\(\$installRoot,"hermes-agent"\),/)
+    assert.match(script, /\$checkoutRoots=@\(\[IO\.Path\]::Combine\(\$installRoot,"kova-agent"\),/)
     assert.ok(script.includes("GetDirectoryName('C:\\src\\hermes\\venv\\Scripts\\python.exe')"))
   }
 
@@ -289,8 +289,8 @@ test('Windows relaunch gate uses strict install-wide marker parsing and fail-clo
     return 'CLEAR'
   })
 
-  await assertWindowsRemoteInstallUpdateClear(ssh, 'C:\\Users\\alice\\.hermes\\profiles\\research')
-  assert.match(script, /\.hermes-update-in-progress/)
+  await assertWindowsRemoteInstallUpdateClear(ssh, 'C:\\Users\\alice\\.kova\\profiles\\research')
+  assert.match(script, /\.kova-update-in-progress/)
   assert.match(script, /Split-Path -Leaf \$parent.*profiles/)
   assert.match(script, /UTF8Encoding.*true/)
   assert.match(script, /\$result=Get-MarkerVerdict \$text/)
@@ -298,7 +298,7 @@ test('Windows relaunch gate uses strict install-wide marker parsing and fail-clo
   assert.doesNotMatch(script, /ErrorAction SilentlyContinue/)
 })
 
-test('Windows probe validates Hermes and Python topology before selection', async () => {
+test('Windows probe validates Kova and Python topology before selection', async () => {
   let script = ''
   await probeWindowsRemote(
     sshWith(async (command, options) => {
@@ -317,8 +317,8 @@ test('Windows probe validates Hermes and Python topology before selection', asyn
 
   const explicitCheck = script.indexOf('if($explicit){Assert-NoReparse $explicit $false;')
   const explicitPythonCheck = script.indexOf('Assert-NoReparse $explicitPython $true')
-  const envHome = script.indexOf('$hermesHome=$env:HERMES_HOME')
-  // #118988: HERMES_HOME is trusted only when it is a directory on the remote; anything else
+  const envHome = script.indexOf('$hermesHome=$env:KOVA_HOME')
+  // #118988: KOVA_HOME is trusted only when it is a directory on the remote; anything else
   // (stale User-scope value, client path leaked over SSH) falls back to the remote default.
   const envHomeGuard = script.indexOf('Test-Path -LiteralPath $hermesHome -PathType Container')
   const fallbackJoin = script.indexOf('Join-Path $hermesHome')
@@ -377,7 +377,7 @@ test('Windows probe tolerates CLIXML progress-stream pollution around the probe 
 
     assert.equal(parsed.os, 'Windows')
     assert.equal(parsed.arch, 'AMD64')
-    assert.equal(parsed.hermesPath, 'C:\\h\\hermes.exe')
+    assert.equal(parsed.kovaPath, 'C:\\h\\hermes.exe')
     assert.equal(parsed.python, 'C:\\h\\python.exe')
   }
 })
@@ -503,7 +503,7 @@ test('Windows platform probe and marker gate send their scripts without stdin', 
   assert.match(markerCommand, /-EncodedCommand [A-Za-z0-9+/=]+$/)
   assert.doesNotMatch(probeCommand, /-Command /)
   assert.match(decodePowerShellCommand(probeCommand), /Assert-NoReparse/)
-  assert.match(decodePowerShellCommand(markerCommand), /HermesMarkerNoFollow/)
+  assert.match(decodePowerShellCommand(markerCommand), /KovaMarkerNoFollow/)
 })
 
 test('Windows platform probe preserves Unicode paths in its compressed command', async () => {
@@ -542,7 +542,7 @@ test('every Windows remote command fits the cmd.exe 8191-char limit (#106716)', 
 
     const script = scriptFromInvocation(command, options)
 
-    if (script.includes('.hermes-update-in-progress')) {
+    if (script.includes('.kova-update-in-progress')) {
       return 'CLEAR'
     }
 
@@ -557,7 +557,7 @@ test('every Windows remote command fits the cmd.exe 8191-char limit (#106716)', 
 
   // Worst-case path lengths: an explicit path and home near the deeper end of
   // what the connection settings allow.
-  const longHome = `C:\\Users\\${'u'.repeat(100)}\\.hermes\\profiles\\${'p'.repeat(100)}`
+  const longHome = `C:\\Users\\${'u'.repeat(100)}\\.kova\\profiles\\${'p'.repeat(100)}`
   const longExplicit = `C:\\${'h'.repeat(200)}\\hermes.exe`
 
   await probeWindowsRemote(ssh, longExplicit)
@@ -636,7 +636,7 @@ test.skipIf(process.platform !== 'win32')('Windows platform probe executes in re
     )
 
     assert.equal(result.os, 'Windows')
-    assert.equal(result.hermesPath, hermesPath)
+    assert.equal(result.kovaPath, hermesPath)
     assert.equal(result.python, path.join(tempDir, 'python.exe'))
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true })
@@ -736,10 +736,10 @@ test('platform detection surfaces transport failures as themselves, not unsuppor
           throw new Error('not recognized')
         }
 
-        throw new Error('Hermes is not installed on the remote Windows host.')
+        throw new Error('Kova is not installed on the remote Windows host.')
       })
     ),
-    (err: any) => err.kind === 'unsupported-platform' && /Hermes is not installed/.test(err.message)
+    (err: any) => err.kind === 'unsupported-platform' && /Kova is not installed/.test(err.message)
   )
 
   await assert.rejects(
@@ -750,13 +750,13 @@ test('platform detection surfaces transport failures as themselves, not unsuppor
         }
 
         throw new Error(
-          '#< CLIXML <Objs><S S="progress">module load</S><S S="Error">The remote Hermes Python runtime was not found._x000D__x000A_</S></Objs>'
+          '#< CLIXML <Objs><S S="progress">module load</S><S S="Error">The remote Kova Python runtime was not found._x000D__x000A_</S></Objs>'
         )
       })
     ),
     (err: any) =>
       err.kind === 'unsupported-platform' &&
-      /probe: The remote Hermes Python runtime was not found\./.test(err.message) &&
+      /probe: The remote Kova Python runtime was not found\./.test(err.message) &&
       !/CLIXML|module load/.test(err.message)
   )
 })
@@ -796,14 +796,14 @@ test('platform detection preserves typed Windows probe failures', async () => {
 
 test('helper command enters through the launcher module dispatch and quotes path data', () => {
   // The shape update drain and bootstrap rollback rebuild from stored state: no runtime command.
-  const command = helperCommand({ hermesPath: "C:\\Program Files\\Hermes's\\bin\\hermes.exe", hermesHome: 'C:\\h', python: '' }, 'inspect', [
+  const command = helperCommand({ hermesPath: "C:\\Program Files\\Kova's\\bin\\hermes.exe", hermesHome: 'C:\\h', python: '' }, 'inspect', [
     'C:\\x y\\hermes.exe'
   ])
 
   const encoded = command.split(' ').pop()!
   const script = Buffer.from(encoded, 'base64').toString('utf16le')
   assert.match(script, /bin\\hermes\.exe' '--run-module' 'kova_cli\.windows_ssh_runtime' 'inspect'/)
-  assert.match(script, /Hermes''s/)
+  assert.match(script, /Kova''s/)
   assert.match(script, /C:\\x y\\hermes\.exe/)
 })
 
@@ -848,7 +848,7 @@ test('Windows SSH reuse requires the requested remote profile to match the lock'
   }
 
   const state = { alive: true, owned: true }
-  const runtime = { hermesPath: lock.hermesPath, hermesHome: lock.hermesHome }
+  const runtime = { hermesPath: lock.kovaPath, hermesHome: lock.kovaHome }
 
   assert.equal(reusableWindowsLock(lock, state, 'default', token, runtime), true)
   assert.equal(reusableWindowsLock(lock, state, 'desktop-work', token, runtime), false)

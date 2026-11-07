@@ -100,7 +100,7 @@ describe('settings scope store', () => {
     expect($settingsRequestProfile.get()).toBe('nash')
   })
 
-  it('leaves a custom HERMES_HOME on the ambient request path', () => {
+  it('leaves a custom KOVA_HOME on the ambient request path', () => {
     // `custom` names a home outside profiles/: there is no profile directory to
     // resolve, so the ambient path is the only correct answer.
     $activeGatewayProfile.set('custom')

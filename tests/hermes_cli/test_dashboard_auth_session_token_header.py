@@ -1,6 +1,6 @@
-"""The gated dashboard accepts the deployment session token in ``X-Hermes-Session-Token``.
+"""The gated dashboard accepts the deployment session token in ``X-Kova-Session-Token``.
 
-Regression for #147387: Hermes Desktop's "Session token" connection sends its token in that
+Regression for #147387: Kova Desktop's "Session token" connection sends its token in that
 header on REST, but the gate read only a bearer token from the Authorization header, so every
 REST call got 401 ``no_cookie`` even with the right token. Only the session-token provider may
 verify the header; anything else there leaves the request to the cookie path as before.
@@ -17,7 +17,7 @@ from kova_cli.dashboard_auth import clear_providers, register_provider
 from kova_cli.dashboard_auth.ws_tickets import _reset_for_tests
 import plugins.dashboard_auth.session_token as session_token_plugin
 
-_HEADER = "X-Hermes-Session-Token"
+_HEADER = "X-Kova-Session-Token"
 
 
 class _OtherLoginProvider(session_token_plugin.SessionTokenProvider):

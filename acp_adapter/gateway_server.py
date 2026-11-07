@@ -15,7 +15,7 @@ from acp.schema import (
 )
 
 from kova_cli.gateway_client import GatewayClientError, connect_gateway
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from acp_adapter.gateway_reply import GatewayReplyMixin, _text
 from acp_adapter.session import _translate_acp_cwd, _normalize_cwd_for_compare
 
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def _slash_command(text):
-    """Canonical Hermes command name ``text`` invokes, or None for ordinary text.
+    """Canonical Kova command name ``text`` invokes, or None for ordinary text.
 
     Only a registered command (or alias) is a command: ``/etc/hosts is wrong`` or ``/tmp/x``
     (a path, the same rule ``MessageEvent.get_command`` applies) and unknown ``/words`` are
@@ -47,11 +47,11 @@ def _bypass_route():
     """--safe-mode / --ignore-user-config read no profile default route, so the session freezes the
     launch's explicit one (``hermes -m <model> --provider <name> --safe-mode acp``). Both, refused at
     session/new: a model alone is accepted by the owner, then its first turn cannot build the agent."""
-    model = (os.environ.get("HERMES_MODEL") or os.environ.get("HERMES_INFERENCE_MODEL") or "").strip()
+    model = (os.environ.get("KOVA_MODEL") or os.environ.get("KOVA_INFERENCE_MODEL") or "").strip()
     if not model:
         raise GatewayClientError("--safe-mode / --ignore-user-config read no profile default model: launch "
                                  "with one, e.g. hermes -m <model> --provider <provider> --safe-mode acp")
-    provider = os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip()
+    provider = os.environ.get("KOVA_INFERENCE_PROVIDER", "").strip()
     if not provider:
         raise GatewayClientError("--safe-mode / --ignore-user-config read no profile provider: launch with "
                                  "--provider too, e.g. hermes -m <model> --provider <provider> --safe-mode acp")
@@ -70,9 +70,9 @@ class GatewayACPAgent(GatewayReplyMixin, acp.Agent):
         self._gateway = None
         self._connection = None
         self._connect_lock = asyncio.Lock()
-        # A per-task overlay HERMES_HOME attaches to the profile its symlinked lock names (#138949).
+        # A per-task overlay KOVA_HOME attaches to the profile its symlinked lock names (#138949).
         from kova_cli.gateway_runtime import gateway_profile_home
-        self._home = gateway_profile_home(get_hermes_home())
+        self._home = gateway_profile_home(get_kova_home())
         self._snapshots = {}
         self._event_task = None
         self._terminals = {}
@@ -141,7 +141,7 @@ class GatewayACPAgent(GatewayReplyMixin, acp.Agent):
         from kova_cli import __version__
         from acp_adapter.auth import build_auth_methods
         return InitializeResponse(protocol_version=acp.PROTOCOL_VERSION,
-            agent_info=Implementation(name="hermes-agent", version=__version__),
+            agent_info=Implementation(name="kova-agent", version=__version__),
             agent_capabilities=AgentCapabilities(load_session=True,
                 prompt_capabilities=PromptCapabilities(image=True),
                 session_capabilities=SessionCapabilities(fork=SessionForkCapabilities(), list=SessionListCapabilities(),
@@ -149,8 +149,8 @@ class GatewayACPAgent(GatewayReplyMixin, acp.Agent):
             auth_methods=build_auth_methods())
 
     async def authenticate(self, method_id, **kwargs):
-        from acp_adapter.server import HermesACPAgent
-        return await HermesACPAgent.authenticate(self, method_id, **kwargs)
+        from acp_adapter.server import KovaACPAgent
+        return await KovaACPAgent.authenticate(self, method_id, **kwargs)
 
     async def _client(self):
         async with self._connect_lock:

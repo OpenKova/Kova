@@ -32,7 +32,7 @@ def test_main_skips_configured_mcp_discovery_when_requested(monkeypatch):
 
     monkeypatch.setattr(entry, "_setup_logging", lambda: None)
     monkeypatch.setattr(entry, "_load_env", lambda: None)
-    monkeypatch.setenv("HERMES_ACP_SKIP_CONFIGURED_MCP", "1")
+    monkeypatch.setenv("KOVA_ACP_SKIP_CONFIGURED_MCP", "1")
     monkeypatch.setattr(
         "tools.mcp_tool_discovery.discover_mcp_tools",
         lambda: discovery_calls.append(True),
@@ -114,7 +114,7 @@ def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
     import subprocess
 
     local_appdata = tmp_path / "AppData" / "Local"
-    root = local_appdata / "hermes" if sys.platform == "win32" else tmp_path / ".hermes"
+    root = local_appdata / "hermes" if sys.platform == "win32" else tmp_path / ".kova"
     for name in ("work", "other"):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n", encoding="utf-8")
@@ -122,16 +122,16 @@ def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
     driver = (
         "import sys, acp\n"
         "async def fake_run_agent(agent, **kw):\n"
-        "    from kova_constants import get_hermes_home\n"
-        "    print('SERVED', get_hermes_home())\n"
+        "    from kova_constants import get_kova_home\n"
+        "    print('SERVED', get_kova_home())\n"
         "acp.run_agent = fake_run_agent\n"
         f"sys.argv = ['hermes-acp', *{flags!r}]\n"
         "from acp_adapter.entry import main\n"
         "main()\n"
     )
-    env = {k: v for k, v in os.environ.items() if k not in ("HERMES_HOME", "HERMES_DATA_DIR_SUFFIX")}
+    env = {k: v for k, v in os.environ.items() if k not in ("KOVA_HOME", "KOVA_DATA_DIR_SUFFIX")}
     env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), LOCALAPPDATA=str(local_appdata),
-               PYTHONPATH=str(Path(__file__).resolve().parents[2]), HERMES_ACP_SKIP_CONFIGURED_MCP="1")
+               PYTHONPATH=str(Path(__file__).resolve().parents[2]), KOVA_ACP_SKIP_CONFIGURED_MCP="1")
     out = subprocess.run([sys.executable, "-c", driver], env=env, cwd=tmp_path, capture_output=True,
                          text=True, timeout=120, check=False)
 

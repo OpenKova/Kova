@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 EXA_MCP_URL = "https://mcp.exa.ai/mcp"
 PARALLEL_MCP_URL = "https://search.parallel.ai/mcp"
 KEENABLE_API_URL = "https://api.keenable.ai"
-_KEENABLE_TITLE = "hermes-agent"
+_KEENABLE_TITLE = "kova-agent"
 
 # Parallel free-tier rate-limit correlation id — random per process, never persisted.
 _SESSION_ID = uuid.uuid4().hex
@@ -198,7 +198,7 @@ def mcp_call(url: str, tool: str, arguments: dict[str, Any], timeout: int = _TIM
     :class:`KeylessMCPError` on transport failures, non-2xx, JSON-RPC and tool errors."""
     import requests
     payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": tool, "arguments": arguments}}
-    headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream", "User-Agent": "hermes-agent"}
+    headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream", "User-Agent": "kova-agent"}
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=timeout)
     except requests.RequestException as exc:

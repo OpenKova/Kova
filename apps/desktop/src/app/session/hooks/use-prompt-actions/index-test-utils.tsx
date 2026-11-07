@@ -175,7 +175,7 @@ export function Harness({
     queryClient: queryClient.current,
     updateSessionState,
     hydrateFromStoredSession: async () => undefined,
-    refreshHermesConfig: async () => undefined,
+    refreshKovaConfig: async () => undefined,
     refreshSessions
   })
 

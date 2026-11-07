@@ -33,7 +33,7 @@ class TestConfigureWindowsStdio:
     - set PYTHONIOENCODING / PYTHONUTF8 without overriding explicit user settings
     - reconfigure sys.stdout/stderr/stdin to UTF-8 on Windows
     - flip the console code page to CP_UTF8 (65001) via ctypes
-    - respect HERMES_DISABLE_WINDOWS_UTF8 opt-out
+    - respect KOVA_DISABLE_WINDOWS_UTF8 opt-out
     """
 
     @pytest.fixture(autouse=True)
@@ -467,7 +467,7 @@ class TestWindowlessGatewayRestartSpec:
         ``platforms("windows")``: faking this on Linux needed two more fakes to hold
         it up — a pre-import so the lazy ``kova_cli.gateway`` import didn't
         re-run ``gateway/status``'s ``import msvcrt`` branch, and a mock of
-        ``get_hermes_home`` because the real one's ``Path.resolve()`` consults
+        ``get_kova_home`` because the real one's ``Path.resolve()`` consults
         sysconfig and blew up under the platform patch. Both workarounds were
         symptoms of testing Windows on a host that isn't Windows; on the
         Windows runner neither is needed.
@@ -490,7 +490,7 @@ class TestWindowlessGatewayRestartSpec:
         with mock.patch.object(
             gw, "_stable_gateway_working_dir", return_value="C:/hermes"
         ), mock.patch(
-            "kova_cli.config.get_hermes_home", return_value="C:/hermes"
+            "kova_cli.config.get_kova_home", return_value="C:/hermes"
         ):
             new_argv, cwd, env = gw.windowless_gateway_restart_spec(list(argv))
 
@@ -581,7 +581,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
 
         # Scrubbed env preserved and identical on both calls.
         assert kw1["env"] is kw2["env"]
-        assert "_HERMES_GATEWAY" not in kw1["env"]
+        assert "_KOVA_GATEWAY" not in kw1["env"]
 
         # Stable, non-flag spawn configuration preserved across both attempts.
         assert kw1["stdout"] is subprocess.DEVNULL
@@ -647,7 +647,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
         # Deterministic sentinel in the environment the watcher inherits
         # (watcher_env = os.environ.copy()); the warning must never echo it.
         secret = "maxwell-do-not-log-this-secret-42993"
-        monkeypatch.setenv("HERMES_TEST_SECRET", secret)
+        monkeypatch.setenv("KOVA_TEST_SECRET", secret)
 
         # Dual failure must NOT propagate — the user's CLI still exits cleanly.
         self._drive(gr)
@@ -669,7 +669,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
             assert not isinstance(arg, (OSError, list, dict))
 
         # The watcher's env carried the sentinel; the rendered warning must not.
-        assert secret in (kwargs_used.get("env") or {}).get("HERMES_TEST_SECRET", "")
+        assert secret in (kwargs_used.get("env") or {}).get("KOVA_TEST_SECRET", "")
         rendered = fmt % tuple(log_args)
         assert secret not in rendered
         assert argv_used[2] not in rendered  # watcher script body

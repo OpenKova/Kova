@@ -100,7 +100,7 @@ def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkey
     from agent.secret_scope import get_secret
     from gateway.run import _profile_runtime_scope
     from kova_cli.env_loader import load_hermes_dotenv
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     profile_a = tmp_path / "profiles" / "a"
     profile_b = tmp_path / "profiles" / "b"
@@ -123,14 +123,14 @@ def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkey
     with _profile_runtime_scope(profile_a):
         assert get_secret("PROFILE_SCOPED_API_KEY") == "secret-a"
         assert get_secret("DISCORD_ALLOWED_CHANNELS") == "profile-a-only"
-        assert load_hermes_dotenv(hermes_home=get_hermes_home()) == []
+        assert load_hermes_dotenv(kova_home=get_kova_home()) == []
         assert "PROFILE_SCOPED_API_KEY" not in os.environ
         assert os.environ["DISCORD_ALLOWED_CHANNELS"] == "all-channels"
 
     with _profile_runtime_scope(profile_b):
         assert get_secret("PROFILE_SCOPED_API_KEY") == "secret-b"
         assert get_secret("DISCORD_ALLOWED_CHANNELS") == "profile-b-only"
-        assert load_hermes_dotenv(hermes_home=get_hermes_home()) == []
+        assert load_hermes_dotenv(kova_home=get_kova_home()) == []
         assert "PROFILE_SCOPED_API_KEY" not in os.environ
         assert os.environ["DISCORD_ALLOWED_CHANNELS"] == "all-channels"
 
@@ -146,7 +146,7 @@ def test_launch_home_dotenv_still_loads_under_multiplex(tmp_path, monkeypatch):
     import os
 
     from kova_cli.env_loader import load_hermes_dotenv
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch = tmp_path / "launch"
     routed = tmp_path / "profiles" / "routed"
@@ -154,16 +154,16 @@ def test_launch_home_dotenv_still_loads_under_multiplex(tmp_path, monkeypatch):
     routed.mkdir(parents=True)
     (launch / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=launch-key\n", encoding="utf-8")
     (routed / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=routed-secret\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.delenv("LAUNCH_ONLY_FALLBACK_KEY", raising=False)
     ss.set_multiplex_active(True)
 
     def _load(home):
-        token = set_hermes_home_override(str(home))
+        token = set_kova_home_override(str(home))
         try:
-            return load_hermes_dotenv(hermes_home=home)
+            return load_hermes_dotenv(kova_home=home)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     assert _load(launch) == [launch / ".env"]
     assert os.environ["LAUNCH_ONLY_FALLBACK_KEY"] == "launch-key"
@@ -180,7 +180,7 @@ def test_launch_home_load_inside_foreign_turn_keeps_routed_cwd_out_of_process_en
     import os
 
     from kova_cli.env_loader import load_hermes_dotenv
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch = tmp_path / "launch"
     routed = tmp_path / "profiles" / "routed"
@@ -191,15 +191,15 @@ def test_launch_home_load_inside_foreign_turn_keeps_routed_cwd_out_of_process_en
     (launch / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=launch-key\n", encoding="utf-8")
     (launch / "config.yaml").write_text(f"terminal:\n  backend: local\n  cwd: {launch_work}\n", encoding="utf-8")
     (routed / "config.yaml").write_text(f"terminal:\n  backend: local\n  cwd: {routed_work}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv("TERMINAL_CWD", str(launch_work))
     ss.set_multiplex_active(True)
 
-    token = set_hermes_home_override(str(routed))
+    token = set_kova_home_override(str(routed))
     try:
-        assert load_hermes_dotenv(hermes_home=launch) == []
+        assert load_hermes_dotenv(kova_home=launch) == []
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert os.environ["TERMINAL_CWD"] == str(launch_work)
 
 

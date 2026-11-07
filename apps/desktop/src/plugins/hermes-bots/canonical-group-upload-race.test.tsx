@@ -19,9 +19,9 @@ vi.mock('@hermes/plugin-sdk', async () => {
     host: { ...gateway.host, requestProfile: captureGroupRequests(request).request } }
 })
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
-afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.hermesDesktop = originalDesktop })
+afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 // C21: while a selected file's upload acknowledgement is outstanding, Send cannot dispatch the text
 // without it, and the late manifest never lands on the cleared next draft.

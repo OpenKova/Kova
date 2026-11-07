@@ -16,8 +16,8 @@ test('PM update prerequisites use the exact published launcher, not checkout ven
 
   try {
     fs.mkdirSync(path.join(root, 'pm'))
-    fs.mkdirSync(path.join(root, '.hermes', 'bin'), { recursive: true })
-    const launcher: string = path.join(root, '.hermes', 'bin', 'hermes.cmd')
+    fs.mkdirSync(path.join(root, '.kova', 'bin'), { recursive: true })
+    const launcher: string = path.join(root, '.kova', 'bin', 'hermes.cmd')
     fs.writeFileSync(launcher, '@echo off')
     assert.equal(resolveInstallationLauncher(root, true), launcher)
     assert.equal(windowsUpdatePrerequisiteError(root), null)

@@ -155,16 +155,16 @@ def _standard_user_token_is_really_restricted(scratch: Path) -> str:
     return "ok"
 
 
-def _managed_tools(hermes_home: Path) -> list[Path]:
-    tools = hermes_home / "tools"
+def _managed_tools(kova_home: Path) -> list[Path]:
+    tools = kova_home / "tools"
     found = []
     for pattern in ("*/*.exe", "*/*/*.exe", "*/*/*/*.exe"):
         found += [p for p in tools.glob(pattern) if p.name.lower() in _TOOL_NAMES]
     return sorted(set(found))
 
 
-def _tool_access(hermes_home: Path) -> dict[Path, str]:
-    return standard_user_access(_managed_tools(hermes_home))
+def _tool_access(kova_home: Path) -> dict[Path, str]:
+    return standard_user_access(_managed_tools(kova_home))
 
 
 @pytest.fixture(scope="module")
@@ -176,12 +176,12 @@ def journey(tmp_path_factory):
         try:
             install = j.step("install", machine.install)
             if j.ok("install") and install.returncode == 0:
-                j.step("version", lambda: machine.hermes("--version"))
+                j.step("version", lambda: machine.kova("--version"))
                 j.step("turn", lambda: one_shot_turn(machine, srv, "turn-unicode-profile"))
                 machine.advance()
                 j.step("update", machine.update)
                 j.step("control", lambda: _standard_user_token_is_really_restricted(machine.root))
-                j.step("tool_access", lambda: _tool_access(machine.hermes_home))
+                j.step("tool_access", lambda: _tool_access(machine.kova_home))
             yield j
         finally:
             machine.teardown()
@@ -197,7 +197,7 @@ def test_install_from_non_ascii_profile_with_spaces(journey: Journey) -> None:
 def test_hermes_works_and_updates_from_that_profile(journey: Journey) -> None:
     m = journey.machine
     version, turn, update = journey["version"], journey["turn"], journey["update"]
-    assert version.returncode == 0 and "Hermes Agent v" in version.stdout, fail_with(
+    assert version.returncode == 0 and "Kova Agent v" in version.stdout, fail_with(
         m, "hermes --version fails from a non-ASCII profile", version)
     assert turn.ok, fail_with(
         m, f"a turn fails from a non-ASCII profile (reply printed={turn.reply_id in turn.run.stdout}, "
@@ -212,7 +212,7 @@ def test_managed_tools_stay_executable_for_standard_user(journey: Journey) -> No
     journey["control"]
     journey["update"]
     assert any(exe.name.lower() == "python.exe" for exe in verdicts), fail_with(
-        m, f"no managed python.exe under {m.hermes_home / 'tools'}: {[str(e) for e in verdicts]}")
-    broken = [f"{exe.relative_to(m.hermes_home)}: {why}" for exe, why in verdicts.items() if why]
+        m, f"no managed python.exe under {m.kova_home / 'tools'}: {[str(e) for e in verdicts]}")
+    broken = [f"{exe.relative_to(m.kova_home)}: {why}" for exe, why in verdicts.items() if why]
     assert not broken, fail_with(
         m, f"managed tools are not executable by a non-elevated process after update: {'; '.join(broken)}")

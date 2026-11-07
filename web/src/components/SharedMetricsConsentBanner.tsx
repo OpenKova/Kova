@@ -5,7 +5,7 @@ import { useProfileScope } from "@/contexts/useProfileScope";
 import { useI18n } from "@/i18n";
 
 const DOCS_URL =
-  "https://hermes-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics";
+  "https://kova-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics";
 const STORAGE_KEY = "sharedMetricsOfferDismissed";
 
 /**
@@ -76,12 +76,12 @@ export function SharedMetricsConsentBanner() {
   return (
     <div
       role="region"
-      aria-label={t.app.sharedMetricsTitle ?? "Help improve Hermes?"}
+      aria-label={t.app.sharedMetricsTitle ?? "Help improve Kova?"}
       data-testid="shared-metrics-consent-banner"
       className="flex flex-wrap items-center gap-2 border-b border-current/20 bg-current/5 px-4 py-1.5 text-xs text-midground"
     >
       <BarChart3 className="h-3.5 w-3.5 shrink-0" />
-      <span className="font-semibold">{t.app.sharedMetricsTitle ?? "Help improve Hermes?"}</span>
+      <span className="font-semibold">{t.app.sharedMetricsTitle ?? "Help improve Kova?"}</span>
       <span className="min-w-0 flex-1 opacity-80">
         {failed
           ? (t.app.sharedMetricsSaveFailed ?? "Couldn't save your choice")

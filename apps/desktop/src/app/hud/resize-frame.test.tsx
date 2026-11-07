@@ -23,7 +23,7 @@ describe('HudShell resize-frame engagement gates', () => {
   afterEach(() => {
     cleanup()
     vi.restoreAllMocks()
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { hermesDesktop?: unknown }).kovaDesktop
   })
 
   const shellOf = (container: HTMLElement) => {

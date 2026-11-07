@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 import { I18nProvider } from '@/i18n'
 import { createBrowserFilesBridge } from '@/lib/browser-files'
 import type { BrowserBootstrap } from '@/lib/browser-transport'
@@ -28,7 +28,7 @@ const saveGatewayFile = vi.fn().mockResolvedValue({ ok: true })
 
 beforeEach(() => {
   // A native Electron renderer: the preload's bridge, no browser-host marker.
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { openExternal, saveGatewayFile }
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { openExternal, saveGatewayFile }
 })
 
 afterEach(() => {
@@ -40,7 +40,7 @@ afterEach(() => {
   $activeSessionId.set(null)
   $notifications.set([])
   window.document.documentElement.removeAttribute('data-hermes-desktop-host')
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 function openImageLink(image: string) {
@@ -76,14 +76,14 @@ it.each([
 
     return { path: path.startsWith('/') ? path : `${cwd}/${path}`, saved: true }
   })
-  window.document.documentElement.dataset.hermesDesktopHost = host
+  window.document.documentElement.dataset.kovaDesktopHost = host
   $connection.set({
     baseUrl: 'https://gateway.example',
     connectionId: 'remote-1',
     mode: 'remote',
     profile: 'default',
     token: 'secret-token'
-  } as unknown as HermesConnection)
+  } as unknown as KovaConnection)
   $sessions.set([{ id: 'origin-session', profile: 'work' } as SessionInfo])
   $selectedStoredSessionId.set('origin-session')
 
@@ -105,13 +105,13 @@ it.each([
 // A chat with no stored id yet names its live runtime session, as the chat's other file opens do.
 it('saves a relative gateway image from a chat not stored yet through its runtime session', async () => {
   saveGatewayFile.mockResolvedValue({ path: '/srv/project/renders/out.png', saved: true })
-  window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+  window.document.documentElement.dataset.kovaDesktopHost = 'browser'
   $connection.set({
     baseUrl: 'https://gateway.example',
     connectionId: 'remote-1',
     mode: 'remote',
     token: 'secret-token'
-  } as unknown as HermesConnection)
+  } as unknown as KovaConnection)
   $activeSessionId.set('runtime-1')
 
   const link = openImageLink('renders/out.png')
@@ -131,7 +131,7 @@ it('saves a relative gateway image from a chat not stored yet through its runtim
 
 // Anything else opens as on main: a web image's own URL.
 it('opens a web image\'s URL with the system handler in native Desktop', async () => {
-  $connection.set({ baseUrl: 'https://gateway.example', mode: 'remote', token: 'secret-token' } as unknown as HermesConnection)
+  $connection.set({ baseUrl: 'https://gateway.example', mode: 'remote', token: 'secret-token' } as unknown as KovaConnection)
 
   const link = openImageLink('https://images.example/cat.png')
   await act(async () => {
@@ -160,9 +160,9 @@ it.each(['electron', 'browser'])('saves a data: image that will not decode in %s
         )
       : vi.fn().mockResolvedValue(true)
 
-  ;(window as unknown as { hermesDesktop: object }).hermesDesktop = { openExternal, saveGatewayFile, saveImageFromUrl }
-  window.document.documentElement.dataset.hermesDesktopHost = host
-  $connection.set({ baseUrl: 'https://gateway.example', mode: 'remote', token: 'secret-token' } as unknown as HermesConnection)
+  ;(window as unknown as { hermesDesktop: object }).kovaDesktop = { openExternal, saveGatewayFile, saveImageFromUrl }
+  window.document.documentElement.dataset.kovaDesktopHost = host
+  $connection.set({ baseUrl: 'https://gateway.example', mode: 'remote', token: 'secret-token' } as unknown as KovaConnection)
 
   const link = openImageLink(image)
   await act(async () => {

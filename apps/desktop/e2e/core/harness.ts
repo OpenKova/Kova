@@ -40,16 +40,16 @@ export interface CoreSandbox {
 }
 
 /**
- * HOME is faked too, not just HERMES_HOME: profile roots are anchored to
- * `Path.home()/.hermes`, so a sandbox HERMES_HOME under the real ~/.hermes
+ * HOME is faked too, not just KOVA_HOME: profile roots are anchored to
+ * `Path.home()/.kova`, so a sandbox KOVA_HOME under the real ~/.kova
  * would read and write the real install's profiles/.
  */
 export function createCoreSandbox(label: string): CoreSandbox {
-  const parent = process.env.HERMES_E2E_CORE_ROOT || os.tmpdir()
+  const parent = process.env.KOVA_E2E_CORE_ROOT || os.tmpdir()
   fs.mkdirSync(parent, { recursive: true })
   const root = fs.mkdtempSync(path.join(parent, `core-${label}-`))
   const home = path.join(root, 'home')
-  const hermesHome = path.join(home, '.hermes')
+  const hermesHome = path.join(home, '.kova')
   const userDataDir = path.join(root, 'user-data')
   fs.mkdirSync(hermesHome, { recursive: true })
   fs.mkdirSync(userDataDir, { recursive: true })
@@ -62,7 +62,7 @@ export function createCoreSandbox(label: string): CoreSandbox {
   // token` for GitHub credentials; with a sandbox HOME a real gh can block on
   // the desktop keyring for ~60 s, and a probe in flight at quit outlives the
   // backend (reported as a finding) — which would make the orphan census
-  // depend on the runner's keyring rather than on Hermes.
+  // depend on the runner's keyring rather than on Kova.
   const bin = path.join(root, 'bin')
   fs.mkdirSync(bin, { recursive: true })
   fs.writeFileSync(path.join(bin, 'gh'), '#!/bin/sh\necho "no oauth token found for github.com" >&2\nexit 1\n', {
@@ -80,7 +80,7 @@ export function createCoreSandbox(label: string): CoreSandbox {
       // every spec left its sandbox `gateway run` behind (~20 per suite run).
       stopSandboxGatewayDaemons(root, hermesHome)
 
-      if (!process.env.HERMES_E2E_CORE_KEEP) {
+      if (!process.env.KOVA_E2E_CORE_KEEP) {
         fs.rmSync(root, { recursive: true, force: true })
       }
     }
@@ -89,7 +89,7 @@ export function createCoreSandbox(label: string): CoreSandbox {
 
 /**
  * Sandbox config: only the scripted provider. The approval prompts under test
- * come from Hermes's own detector.
+ * come from Kova's own detector.
  */
 export function providerConfigYaml(providerUrl: string, extra = '', approvals: 'manual' | 'off' = 'off'): string {
   return `model:
@@ -126,15 +126,15 @@ export function writeProviderHome(
 const CREDENTIAL_RE = /(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIALS|_ACCESS_KEY|_PRIVATE_KEY|_BASE_URL)$/
 
 /**
- * The runner's own env minus credentials and every HERMES_* knob: an agent
- * shell exports HERMES_YOLO_MODE / _HERMES_GATEWAY, which the spawned backend
+ * The runner's own env minus credentials and every KOVA_* knob: an agent
+ * shell exports KOVA_YOLO_MODE / _KOVA_GATEWAY, which the spawned backend
  * would inherit (auto-approving every command, changing the run under test).
  */
 export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> = {}): Record<string, string> {
   const env: Record<string, string> = {}
 
   for (const [key, value] of Object.entries(process.env)) {
-    if (!value || CREDENTIAL_RE.test(key) || /^_?HERMES_/.test(key) || key === 'VIRTUAL_ENV') {
+    if (!value || CREDENTIAL_RE.test(key) || /^_?KOVA_/.test(key) || key === 'VIRTUAL_ENV') {
       continue
     }
 
@@ -145,18 +145,18 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
     ...env,
     PATH: `${sandbox.bin}${path.delimiter}${env.PATH ?? ''}`,
     HOME: sandbox.home,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
+    KOVA_HOME: sandbox.kovaHome,
+    KOVA_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    KOVA_DESKTOP_IGNORE_EXISTING: '1',
+    KOVA_DESKTOP_KOVA_ROOT: REPO_ROOT,
     // setup-pm exports an install-scoped interpreter, not a checkout .venv.
-    // The Desktop override must be explicit because the sandbox strips HERMES_*.
-    ...(process.env.HERMES_E2E_PYTHON ? { HERMES_DESKTOP_PYTHON: process.env.HERMES_E2E_PYTHON } : {}),
-    HERMES_DESKTOP_APP_NAME: `HermesCoreE2E-${path.basename(sandbox.root)}`,
-    HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    // The Desktop override must be explicit because the sandbox strips KOVA_*.
+    ...(process.env.KOVA_E2E_PYTHON ? { KOVA_DESKTOP_PYTHON: process.env.KOVA_E2E_PYTHON } : {}),
+    KOVA_DESKTOP_APP_NAME: `KovaCoreE2E-${path.basename(sandbox.root)}`,
+    KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1',
     // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
-    HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
-    HERMES_DESKTOP_CDP_PORT: 'off',
+    KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
+    KOVA_DESKTOP_CDP_PORT: 'off',
     // A partial-clone (blob:none) dev checkout turns some backend git read into
     // a lazy `git fetch origin` over the network, which outlived quit by >60 s
     // (reported as a finding). CI checkouts are not partial; keep dev runs
@@ -180,7 +180,7 @@ export function freePort(): Promise<number> {
 
 /** `hermes <args>` in the sandbox, as an operator runs it. */
 export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
-  const result = spawnSync(process.env.HERMES_E2E_PYTHON || 'python3', ['-m', 'kova_cli.main', ...args], {
+  const result = spawnSync(process.env.KOVA_E2E_PYTHON || 'python3', ['-m', 'kova_cli.main', ...args], {
     cwd: REPO_ROOT,
     env: coreAppEnv(sandbox),
     encoding: 'utf8',
@@ -241,9 +241,9 @@ export function appLogTail(app: ElectronApplication, n = 60): string {
 
 // ─── Process census ─────────────────────────────────────────────────────
 
-/** Every live process carrying this sandbox's HERMES_HOME (orphans included); see process-census.ts. */
+/** Every live process carrying this sandbox's KOVA_HOME (orphans included); see process-census.ts. */
 export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
-  return sandboxProcessesOf(sandbox.hermesHome)
+  return sandboxProcessesOf(sandbox.kovaHome)
 }
 
 /**
@@ -662,8 +662,8 @@ export interface PersistedMessage {
 export function storedSessionForMarker(sandbox: CoreSandbox, profile: string, marker: string): null | string {
   const dbPath =
     profile === 'default'
-      ? path.join(sandbox.hermesHome, 'state.db')
-      : path.join(sandbox.hermesHome, 'profiles', profile, 'state.db')
+      ? path.join(sandbox.kovaHome, 'state.db')
+      : path.join(sandbox.kovaHome, 'profiles', profile, 'state.db')
 
   if (!fs.existsSync(dbPath)) {
     return null
@@ -695,7 +695,7 @@ export async function persistedTranscript(
 
   const result = await page.evaluate(
     async ({ sessionId, query }) =>
-      (window as any).hermesDesktop.api({ path: `/api/sessions/${sessionId}/messages?order=oldest&limit=500${query}` }),
+      (window as any).kovaDesktop.api({ path: `/api/sessions/${sessionId}/messages?order=oldest&limit=500${query}` }),
     { sessionId, query }
   )
 

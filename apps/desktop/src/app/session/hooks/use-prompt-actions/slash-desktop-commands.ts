@@ -288,7 +288,7 @@ export function formatHistory(rows: SessionMessage[]): string {
 
     const clipped = text.length > HISTORY_PREVIEW ? `${text.slice(0, HISTORY_PREVIEW)}…` : text
 
-    return [`${message.role === 'user' ? t.historyYou : t.historyHermes}: ${clipped}`]
+    return [`${message.role === 'user' ? t.historyYou : t.historyKova}: ${clipped}`]
   })
 
   return turns.length ? [t.historyHeader(String(turns.length)), ...turns].join('\n') : t.historyEmpty
@@ -438,7 +438,7 @@ export function desktopReadCommandHandlers<C extends { arg: string }>(env: Deskt
         }
       }
 
-      const save = window.hermesDesktop?.saveTextFileAs
+      const save = window.kovaDesktop?.saveTextFileAs
 
       if (typeof file?.content !== 'string' || !save) {
         return out.render(copy().saveUnsupported)

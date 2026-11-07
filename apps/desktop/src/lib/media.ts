@@ -1,7 +1,7 @@
 import { fileUrlToNativePath, LOCAL_CONNECTION_ID } from '@kova/shared'
 
 import { capabilityScoped, hermesApi, type OwnerScope, sessionFileOwnerScope } from '@/api/client'
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 import { translateNow } from '@/i18n'
 import { desktopFsCacheKey, isReadFileErrorResult, readDesktopFileDataUrl } from '@/lib/desktop-fs'
 import { hostHas } from '@/lib/host-capabilities'
@@ -123,9 +123,9 @@ export async function resolveMediaDisplaySrc(path: string, owner?: OwnerScope): 
   if (
     owner?.connectionId === LOCAL_CONNECTION_ID &&
     hostHas('nativeHostFiles') &&
-    window.hermesDesktop?.readFileDataUrl
+    window.kovaDesktop?.readFileDataUrl
   ) {
-    const dataUrl = await window.hermesDesktop.readFileDataUrl(filePathFromMediaPath(path))
+    const dataUrl = await window.kovaDesktop.readFileDataUrl(filePathFromMediaPath(path))
 
     if (isReadFileErrorResult(dataUrl)) {
       throw new Error(dataUrl.message || `Media file read failed: ${dataUrl.error}`)
@@ -136,7 +136,7 @@ export async function resolveMediaDisplaySrc(path: string, owner?: OwnerScope): 
 
   // A tile can belong to a different gateway than the foreground. Pin both
   // halves at read admission rather than resolving them when the read settles.
-  if (window.hermesDesktop && (owner?.connectionId || owner?.profile)) {
+  if (window.kovaDesktop && (owner?.connectionId || owner?.profile)) {
     const result = await hermesApi<string | { dataUrl?: string }>({
       path: `/api/fs/read-data-url?path=${encodeURIComponent(filePathFromMediaPath(path))}`,
       ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
@@ -146,15 +146,15 @@ export async function resolveMediaDisplaySrc(path: string, owner?: OwnerScope): 
     return typeof result === 'string' ? result : result.dataUrl || ''
   }
 
-  if (window.hermesDesktop && isRemoteGateway()) {
+  if (window.kovaDesktop && isRemoteGateway()) {
     return gatewayMediaDataUrl(path)
   }
 
-  if (!window.hermesDesktop?.readFileDataUrl) {
+  if (!window.kovaDesktop?.readFileDataUrl) {
     return mediaExternalUrl(path)
   }
 
-  const dataUrl = await window.hermesDesktop.readFileDataUrl(filePathFromMediaPath(path))
+  const dataUrl = await window.kovaDesktop.readFileDataUrl(filePathFromMediaPath(path))
 
   if (isReadFileErrorResult(dataUrl)) {
     throw new Error(dataUrl.message || `Media file read failed: ${dataUrl.error}`)
@@ -174,7 +174,7 @@ export interface MediaImageDimensions {
 // of reserving a frame that collapses again.
 const imageDimensions = new LruCache<string, 'broken' | MediaImageDimensions>(512)
 
-export function mediaImageKey(path: string, connection: HermesConnection | null, owner?: OwnerScope): string {
+export function mediaImageKey(path: string, connection: KovaConnection | null, owner?: OwnerScope): string {
   // File reads ignore URL query/fragment, but callers can use them to identify
   // a new revision. Keep them in the geometry key while joining proven aliases.
   const revision = /^file:/i.test(path) ? (path.match(/[?#].*$/)?.[0] ?? '') : ''
@@ -244,8 +244,8 @@ export async function resolveMediaPlaybackSrc(path: string, owner?: OwnerScope, 
     return path
   }
 
-  if (window.hermesDesktop && ['audio', 'video'].includes(mediaKind(path))) {
-    if (window.hermesDesktop.getGatewayFileStreamUrl) {
+  if (window.kovaDesktop && ['audio', 'video'].includes(mediaKind(path))) {
+    if (window.kovaDesktop.getGatewayFileStreamUrl) {
       const conn = $connection.get()
       // A Docker agent's /workspace is its session's own sandbox. The session id goes only with
       // the profile that owns it; with no known owner the clip names no session.
@@ -253,7 +253,7 @@ export async function resolveMediaPlaybackSrc(path: string, owner?: OwnerScope, 
       const via = session ?? owner
 
       // A tile keeps its owner's profile for every ticket, renewals included, as its image reads do.
-      return window.hermesDesktop.getGatewayFileStreamUrl({
+      return window.kovaDesktop.getGatewayFileStreamUrl({
         connectionId: via?.connectionId || conn?.connectionId,
         // The gateway OS owns file-URI conversion, including drive letters and UNC hosts.
         path,
@@ -355,7 +355,7 @@ export function isRemoteGateway(): boolean {
 
 // Fetch gateway-local media as a data URL via the authenticated desktop FS
 // bridge. Remote Desktop artifacts can live anywhere the gateway can read
-// (workspace, skills, ~/.hermes/cache, etc.); /api/media is intentionally
+// (workspace, skills, ~/.kova/cache, etc.); /api/media is intentionally
 // narrower and rejects non-images plus images outside its media roots.
 export async function gatewayMediaDataUrl(path: string): Promise<string> {
   return readDesktopFileDataUrl(filePathFromMediaPath(path))
@@ -417,14 +417,14 @@ export async function downloadGatewayMediaFile(
     throw new Error('Missing gateway file path')
   }
 
-  if (!window.hermesDesktop?.saveGatewayFile) {
+  if (!window.kovaDesktop?.saveGatewayFile) {
     throw new Error('Desktop file download bridge is unavailable')
   }
 
   const conn = $connection.get()
   const owner = origin.owner ?? { connectionId: conn?.connectionId, profile: origin.profile ?? conn?.profile }
 
-  return window.hermesDesktop.saveGatewayFile({
+  return window.kovaDesktop.saveGatewayFile({
     ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
     path,
     ...(owner.profile ? { profile: owner.profile } : {}),

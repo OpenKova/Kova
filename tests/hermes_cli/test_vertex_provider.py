@@ -67,7 +67,7 @@ def _vertex_cli_shell(monkeypatch, tmp_path, *, loadable: bool):
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     mints: list = []
     sa = tmp_path / "sa.json"
     sa.write_text('{"project_id": "sa-proj"}')

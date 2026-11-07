@@ -34,7 +34,7 @@ def _short_url(url: str) -> str:
 
 
 def _clear_stale_openai_base_url():
-    """Remove OPENAI_BASE_URL from ~/.hermes/.env unless the active provider is 'custom' — a
+    """Remove OPENAI_BASE_URL from ~/.kova/.env unless the active provider is 'custom' — a
     leftover value routes provider:auto auxiliary clients to the old custom endpoint."""
     from kova_cli.config import get_env_value, save_env_value, load_config
     model_cfg = load_config().get("model", {})
@@ -236,7 +236,7 @@ def _aux_config_menu() -> None:
         _say("", "  Auxiliary models — side-task routing", "",
              "  Side tasks (vision, compression, title generation, etc.) default",
              '  to your main chat model.  "auto" means "use my main model" —',
-             "  Hermes only falls back to a lightweight backend (OpenRouter,",
+             "  Kova only falls back to a lightweight backend (OpenRouter,",
              "  Nous Portal) if the main model is unavailable.  Override a",
              "  task below if you want it pinned to a specific provider/model.", "")
 
@@ -423,7 +423,7 @@ _DEFAULT_QWEN_PORTAL_MODELS = [
 
 # (mode value, label, description, accepted answers); "" = auto-detect
 _CUSTOM_API_MODES = (
-    ("", "Auto-detect", "Use Hermes URL heuristics; best for standard OpenAI-compatible endpoints.",
+    ("", "Auto-detect", "Use Kova URL heuristics; best for standard OpenAI-compatible endpoints.",
      ("1", "auto", "detect", "auto-detect")),
     ("chat_completions", "Chat Completions", "Use /chat/completions for standard OpenAI-compatible servers.",
      ("2", "chat", "chat_completions", "completions")),
@@ -784,8 +784,8 @@ def _run_anthropic_oauth_flow(save_env_value):
         if creds and (is_claude_code_token_valid(creds) or bool(creds.get("refreshToken"))):
             use_anthropic_claude_code_credentials(save_fn=save_env_value)
             print("  ✓ Claude Code credentials linked.")
-            from kova_constants import display_hermes_home as _dhh_fn
-            print(f"    Hermes will use Claude's credential store directly instead of copying a setup-token into {_dhh_fn()}/.env.")
+            from kova_constants import display_kova_home as _dhh_fn
+            print(f"    Kova will use Claude's credential store directly instead of copying a setup-token into {_dhh_fn()}/.env.")
             return True
         return False
 

@@ -44,7 +44,7 @@ class _Gateway:
 
 
 def _threads():
-    return [t for t in threading.enumerate() if t.name == 'hermes-gateway-command']
+    return [t for t in threading.enumerate() if t.name == 'kova-gateway-command']
 
 
 def _waiting(conn, wake):

@@ -47,7 +47,7 @@ def _fake_bin(tmp_path: Path, log: Path, names: dict[str, str], sub: str = "fake
 
 
 def _run(script: Path, bindir: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    env = {k: v for k, v in os.environ.items() if k != "HERMES_DASHBOARD"}
+    env = {k: v for k, v in os.environ.items() if k != "KOVA_DASHBOARD"}
     env["PATH"] = f"{bindir}{os.pathsep}{os.environ.get('PATH', '')}"
     return subprocess.run([_sh(), str(script), *args], capture_output=True, text=True, env=env, check=False)
 

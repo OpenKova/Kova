@@ -1,4 +1,4 @@
-"""Slash-command handlers for the interactive CLI (``HermesCLI`` inherits ``CLICommandsMixin``).
+"""Slash-command handlers for the interactive CLI (``KovaCLI`` inherits ``CLICommandsMixin``).
 
 cli.py-internal symbols (``_cprint``/``_ACCENT``/``save_config_value``…) are imported LAZILY inside
 the helpers/handlers via ``from cli import ...`` — cli.py imports this module (cycle otherwise).
@@ -26,7 +26,7 @@ from rich import box as rich_box
 from rich.markup import escape as _escape
 from rich.panel import Panel
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 from kova_state_ids import new_session_id as mint_session_id
 from agent.i18n import t
 from agent.message_metadata import message_identity
@@ -85,7 +85,7 @@ def _ellipsize(text: str, limit: int) -> str:
 _ON_WORDS = {"on", "enable", "true", "1"}
 _OFF_WORDS = {"off", "disable", "false", "0"}
 
-# /busy modes; what Enter does while Hermes is working lives in the catalog as
+# /busy modes; what Enter does while Kova is working lives in the catalog as
 # ``cli.commands.busy.short_<mode>`` (status line) / ``long_<mode>`` (post-set explanation).
 _BUSY_MODES = ("queue", "steer", "interrupt")
 
@@ -104,7 +104,7 @@ _REASONING_TOGGLES = {
     **dict.fromkeys(("clamp", "collapse", "short"), ("reasoning_full", False, "headline_clamped", None)),
 }
 
-# /bg AIAgent provider-routing kwargs -> HermesCLI attribute carrying the value.
+# /bg AIAgent provider-routing kwargs -> KovaCLI attribute carrying the value.
 _BG_PROVIDER_KWARGS = {
     "providers_allowed": "_providers_only", "providers_ignored": "_providers_ignore",
     "providers_order": "_providers_order", "provider_sort": "_provider_sort",
@@ -208,11 +208,11 @@ def _print_side_result_panel(cli, *, header_lines, body, title_suffix, empty_not
     try:
         from kova_cli.skin_engine import get_active_skin
         _skin = get_active_skin()
-        label = _skin.get_branding("response_label", "☤ Hermes")
+        label = _skin.get_branding("response_label", "☤ Kova")
         _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
         _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
     except Exception:
-        label, _resp_color, _resp_text = "☤ Hermes", "#CD7F32", "#FFF8DC"
+        label, _resp_color, _resp_text = "☤ Kova", "#CD7F32", "#FFF8DC"
     rich_console.print(Panel(
         _render_final_assistant_content(body, mode=cli.final_response_markdown),
         title=f"[{_resp_color} bold]{label} {title_suffix}[/]", title_align="left",
@@ -319,7 +319,7 @@ def _browser_connect(cli, cdp_url: str) -> None:
             "Your browser tools (browser_exec, browser_cdp) now "
             "control that CDP browser. The command itself is a signal that using browser tools for "
             "their current browser-related request is expected; do not wait for separate permission "
-            "just because CDP is connected. This is typically a Hermes-managed isolated debug "
+            "just because CDP is connected. This is typically a Kova-managed isolated debug "
             "profile, not the user's main everyday browser. It is still user-visible and may contain "
             "pages, logged-in sessions, or cookies in that debug profile, so avoid destructive actions, "
             "closing tabs, or navigating away unless the user's task calls for it.]")
@@ -490,7 +490,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
     # ---- /diff ----------------------------------------------------------------------------
     def _handle_diff_command(self, command: str):
         """Handle /diff [working|staged|all|session] [--stat] [<path>...] — git changes in the
-        cwd; ``session`` is everything Hermes changed since the checkpoint baseline."""
+        cwd; ``session`` is everything Kova changed since the checkpoint baseline."""
         stat_only = False
         mode = "working"
         paths: list[str] = []
@@ -575,7 +575,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
         snaps = list_quick_snapshots()
         if not snaps:
             return _pr(f"  {_t('snapshot.none_yet')}", f"  {_t('snapshot.create_hint')}")
-        print(f"  {_t('snapshot.list_header', dir=display_hermes_home())}\n")
+        print(f"  {_t('snapshot.list_header', dir=display_kova_home())}\n")
         # Column labels are translated values re-padded here (never padded in the catalog).
         _pr(f"  {_t('snapshot.col_num'):>3}  {_t('snapshot.col_id'):<35} {_t('snapshot.col_files'):>5} "
             f"{_t('snapshot.col_size'):>10} {_t('snapshot.col_label')}",
@@ -946,7 +946,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
                 with suppress(Exception):
                     parent_prompt = (self._session_db.get_session(parent_session_id) or {}).get("system_prompt")
             self._session_db.create_session(
-                session_id=new_session_id, source=os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                session_id=new_session_id, source=os.environ.get("KOVA_SESSION_SOURCE", "cli"),
                 model=self.model, parent_session_id=parent_session_id, system_prompt=parent_prompt or None,
                 model_config=with_session_yolo({"max_iterations": self.max_turns, "reasoning_config":
                                                 self.reasoning_config, "_branched_from": parent_session_id}, parent_session_id))
@@ -1316,7 +1316,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
 
     def _handle_plan_command(self, cmd: str):
         """Handle /plan — write a markdown implementation plan, no execution. The live agent
-        inspects the workspace read-only and saves the plan under ``.hermes/plans/``."""
+        inspects the workspace read-only and saves the plan under ``.kova/plans/``."""
         from agent.plan_prompt import build_plan_prompt
         task = _command_arg(cmd)  # optional — empty infers the task from conversation context
         self._queue_prompt_turn(build_plan_prompt(task), "/plan", _t("plan.planning", task=_ellipsize(task, 80)) if task else _t("plan.from_conversation"))
@@ -1795,7 +1795,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
                 source = f" ({s['source']})" if s["source"] == "user" else ""
                 print(f"   {marker} {s['name']}{source} — {s['description']}")
             return _pr(f"\n  {_t('skin.usage')}",
-                       f"  {_t('skin.custom_hint', dir=display_hermes_home())}\n")
+                       f"  {_t('skin.custom_hint', dir=display_kova_home())}\n")
         available = {s["name"] for s in list_skins()}
         if new_skin not in available:
             return _pr(f"  {_t('skin.unknown', name=new_skin)}",
@@ -2037,7 +2037,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
                             scope=_scope_outcome(explicit_global, saved))))
 
     def _handle_busy_command(self, cmd: str):
-        """Handle /busy [status|queue|steer|interrupt] — what Enter does while Hermes is working."""
+        """Handle /busy [status|queue|steer|interrupt] — what Enter does while Kova is working."""
         arg = _command_arg(cmd, lower=True)
         usage = _dim_line(_t("busy.usage"))
         if not arg or arg == "status":
@@ -2139,7 +2139,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
             _cp(_t("voice.unknown_subcommand", subcommand=subcommand), _t("voice.usage"))
 
     def _handle_wake_command(self, command: str):
-        """Handle /wake [on|off|status] — the 'Hey Hermes' hotword listener. The toggle IS the
+        """Handle /wake [on|off|status] — the 'Hey Kova' hotword listener. The toggle IS the
         config: on/off also writes ``wake_word.enabled`` so the choice persists; startup
         auto-arm only reads it."""
         subcommand = _command_arg(command, lower=True) or (

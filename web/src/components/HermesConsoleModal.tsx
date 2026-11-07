@@ -55,7 +55,7 @@ type ConsoleFrame =
 
 type ConnectionState = "connecting" | "ready" | "running" | "closed" | "error";
 
-interface HermesConsoleModalProps {
+interface KovaConsoleModalProps {
   open: boolean;
   onClose: () => void;
 }
@@ -103,7 +103,7 @@ function isPrintable(data: string): boolean {
   return data >= " " || data === "\t";
 }
 
-export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
+export function KovaConsoleModal({ open, onClose }: KovaConsoleModalProps) {
   const modalRef = useModalBehavior({ open, onClose });
   const hostRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<XtermTerminal | null>(null);
@@ -403,7 +403,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
     setConnectionState("connecting");
     setConsoleProfile(profile || "current");
     hasReadyFrameRef.current = false;
-    writeLine(term, "\x1b[2mConnecting to Hermes Console...\x1b[0m");
+    writeLine(term, "\x1b[2mConnecting to Kova Console...\x1b[0m");
 
     void (async () => {
       try {
@@ -523,7 +523,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
               id="hermes-console-title"
               className="font-mondwest text-display text-base tracking-wider"
             >
-              Hermes Console
+              Kova Console
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Badge tone={statusTone}>{connectionState}</Badge>

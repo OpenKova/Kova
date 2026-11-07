@@ -14,10 +14,10 @@ import kova_yaml as yaml
 class TestCLIPersonalityNone:
 
     def _make_cli(self, personalities=None):
-        from cli import HermesCLI
+        from cli import KovaCLI
         from kova_cli.personality import available_personalities
 
-        cli = HermesCLI.__new__(HermesCLI)
+        cli = KovaCLI.__new__(KovaCLI)
         user = personalities or {
             "helpful": "You are helpful.",
             "concise": "You are concise.",
@@ -94,11 +94,11 @@ class TestGatewayPersonalityNone:
 
     def _gateway_env(self, tmp_path):
         # The gateway reads via _load_gateway_config (rooted at
-        # gateway.run._hermes_home) and persists via persist_personality
-        # (rooted at HERMES_HOME) — point both at the same tmp dir.
+        # gateway.run._kova_home) and persists via persist_personality
+        # (rooted at KOVA_HOME) — point both at the same tmp dir.
         return (
-            patch("gateway.run._hermes_home", tmp_path),
-            patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}),
+            patch("gateway.run._kova_home", tmp_path),
+            patch.dict(os.environ, {"KOVA_HOME": str(tmp_path)}),
         )
 
     @pytest.mark.asyncio
@@ -154,10 +154,10 @@ class TestPersonalityDictFormat:
     """Test dict-format custom personalities with description, tone, style."""
 
     def _make_cli(self, personalities):
-        from cli import HermesCLI
+        from cli import KovaCLI
         from kova_cli.personality import available_personalities
 
-        cli = HermesCLI.__new__(HermesCLI)
+        cli = KovaCLI.__new__(KovaCLI)
         cli.config = {"agent": {"personalities": personalities}}
         cli.personalities = available_personalities(cli.config)
         cli.system_prompt = ""

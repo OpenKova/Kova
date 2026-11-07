@@ -607,7 +607,7 @@ def read_file_tool(path: str, offset: int = 1, limit: int = DEFAULT_READ_LIMIT, 
 
     Guard order: NT/device-namespace prefix (raw string, no resolution) →
     device-path blocklist (no I/O) → stat-based special-file guard (host only)
-    → Hermes internal denylist → document extraction → binary-extension guard
+    → Kova internal denylist → document extraction → binary-extension guard
     → negative-result cache → dedup stub → real read.
     """
     try:
@@ -641,7 +641,7 @@ def read_file_tool(path: str, offset: int = 1, limit: int = DEFAULT_READ_LIMIT, 
                         "attempted. Use terminal utilities if you need to "
                         "interact with it.")})
 
-        # Hermes internal denylist (prompt injection via catalog metadata,
+        # Kova internal denylist (prompt injection via catalog metadata,
         # credential stores). Runs BEFORE document extraction so a
         # protected SQLite store (state.db) cannot be read through the extractor. Pass the RESOLVED path: the denylist's own
         # resolve() uses the process cwd and would miss a relative "auth.json".

@@ -109,7 +109,7 @@ def _allowed_image_extensions() -> frozenset[str]:
 
 def _session_home_dir(session: dict, name: str) -> Path:
     """``<session home>/<name>``, anchored on the session's stored ``profile_home``: attach
-    RPCs run BEFORE ``prompt.submit`` installs the profile HERMES_HOME override, while
+    RPCs run BEFORE ``prompt.submit`` installs the profile KOVA_HOME override, while
     the sandbox mounts and the vision host-read allowlist resolve the *session profile's*
     dirs at run time — writing anywhere else means the agent can never see the file.
 
@@ -119,8 +119,8 @@ def _session_home_dir(session: dict, name: str) -> Path:
     profile_home = session.get("profile_home")
     if name == "attachments" and _profile_attachments_storage(profile_home) == "workspace":
         if workspace := _session_attachments_workspace(session):
-            return workspace / ".hermes" / "attachments"
-    return (Path(profile_home) if profile_home else _hermes_home) / name
+            return workspace / ".kova" / "attachments"
+    return (Path(profile_home) if profile_home else _kova_home) / name
 
 
 def _profile_attachments_storage(profile_home) -> str:
@@ -135,7 +135,7 @@ def _profile_attachments_storage(profile_home) -> str:
     attachment still reaches the agent (by an absolute instead of a workspace-relative ref)."""
     import contextlib as _contextlib
     from kova_cli.config_backend import ConfigBackendUnavailable
-    home = Path(profile_home) if profile_home else _hermes_home
+    home = Path(profile_home) if profile_home else _kova_home
     try:
         with _contextlib.suppress(Exception):
             from kova_cli.config_backend import config_exists
@@ -272,7 +272,7 @@ def _referenced_in_place(session: dict, path: Path, workspace: Path, *, staged: 
         # An install without the web stack (fastapi) has no upload route that could stage one.
         return True
     profile_home = session.get("profile_home")
-    return not is_staged_upload(Path(profile_home) if profile_home else _hermes_home, path)
+    return not is_staged_upload(Path(profile_home) if profile_home else _kova_home, path)
 
 
 def _stage_session_file_attachment(

@@ -382,10 +382,10 @@ def test_manifest_origin_checks_with_real_https(https_origin):
 
 # Stable runs from the default branch. GITHUB_SHA is main's tip, never the claim commit.
 CONTROLLER_ENV = {
-    "GITHUB_REPOSITORY": "example/hermes-agent",
+    "GITHUB_REPOSITORY": "example/kova-agent",
     "GITHUB_EVENT_NAME": "workflow_dispatch",
     "GITHUB_REF": "refs/heads/main",
-    "GITHUB_WORKFLOW_REF": "example/hermes-agent/.github/workflows/stable-release.yml@refs/heads/main",
+    "GITHUB_WORKFLOW_REF": "example/kova-agent/.github/workflows/stable-release.yml@refs/heads/main",
     "GITHUB_SHA": "e" * 40,
 }
 
@@ -414,8 +414,8 @@ def test_claim_must_run_from_the_default_branch_controller():
         {"GITHUB_REF": "refs/tags/rc.1-v1.2.3"},
         {"GITHUB_REF": "refs/heads/feature"},
         {"GITHUB_EVENT_NAME": "workflow_run"},
-        {"GITHUB_WORKFLOW_REF": "example/hermes-agent/.github/workflows/other.yml@refs/heads/main"},
-        {"GITHUB_WORKFLOW_REF": "example/hermes-agent/.github/workflows/stable-release.yml@refs/tags/rc.1-v1.2.3"},
+        {"GITHUB_WORKFLOW_REF": "example/kova-agent/.github/workflows/other.yml@refs/heads/main"},
+        {"GITHUB_WORKFLOW_REF": "example/kova-agent/.github/workflows/stable-release.yml@refs/tags/rc.1-v1.2.3"},
     ):
         with pytest.raises(ValueError, match="default-branch controller"):
             check_claim({**base, **wrong}, lambda argv: pytest.fail("no git before the controller check"))
@@ -829,8 +829,8 @@ def test_publish_attempt_writes_the_receipt_retargets_and_copies_no_bytes(tmp_pa
         if argv[:3] == ["docker", "buildx", "imagetools"]:
             inspected_images.append(argv[4])
             assert argv[4] in {
-                "nousresearch/hermes-agent:rc.2-v1.2.3",
-                "nousresearch/hermes-agent:rc.2-v1.2.3-desktop",
+                "nousresearch/kova-agent:rc.2-v1.2.3",
+                "nousresearch/kova-agent:rc.2-v1.2.3-desktop",
             }
             return json.dumps(docker_desktop_digest if argv[4].endswith("-desktop") else docker_digest)
         if argv[:3] == ["gh", "api", "--method"]:
@@ -869,8 +869,8 @@ def test_publish_attempt_writes_the_receipt_retargets_and_copies_no_bytes(tmp_pa
     assert receipt["candidateManifestSha256"] == manifest_digest
     assert receipt["dockerManifestDigest"] == docker_digest
     assert inspected_images == [
-        "nousresearch/hermes-agent:rc.2-v1.2.3",
-        "nousresearch/hermes-agent:rc.2-v1.2.3-desktop",
+        "nousresearch/kova-agent:rc.2-v1.2.3",
+        "nousresearch/kova-agent:rc.2-v1.2.3-desktop",
     ]
     assert receipt["releaseId"] == 42
     remote = subprocess.check_output(
@@ -1053,7 +1053,7 @@ def _fake_stable_context(*, lanes=lane_set.NAMES):
 def _stage_darwin_handoff(built, arch):
     from scripts.releases import handoff
 
-    package = f"HermesBundled-1.2.3-mac-{arch}.zip"
+    package = f"KovaBundled-1.2.3-mac-{arch}.zip"
     (built / package).write_bytes(f"signed mac zip: {arch}".encode())
     metadata = built / f"metadata-macos-{arch}.json"
     metadata.write_text(json.dumps({
@@ -1067,7 +1067,7 @@ def _stage_darwin_handoff(built, arch):
 def _stage_windows_handoff(built, arch, *, with_metadata=True):
     from scripts.releases import handoff
 
-    package = f"HermesBundled-1.2.3-win-{arch}.msix"
+    package = f"KovaBundled-1.2.3-win-{arch}.msix"
     (built / package).write_bytes(f"signed msix: {arch}".encode())
     includes = [package]
     if with_metadata:

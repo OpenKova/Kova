@@ -1,4 +1,4 @@
-"""Gateway runtime status helpers: PID/lock/marker files under ``{HERMES_HOME}`` (one set per
+"""Gateway runtime status helpers: PID/lock/marker files under ``{KOVA_HOME}`` (one set per
 home/profile) that tell whether the gateway daemon is running."""
 
 import asyncio
@@ -27,7 +27,7 @@ from gateway.status_inline_source import (
     inline_bootstrap_argv,
     inline_source_flag_index,
 )
-from kova_constants import _get_platform_default_hermes_home, get_hermes_home, get_process_hermes_home
+from kova_constants import _get_platform_default_kova_home, get_kova_home, get_process_kova_home
 from kova_cli._subprocess_compat import pid_exists_stdlib
 from gateway.status_lock_dir import unusable_lock_dir, unusable_lock_dir_recovered
 from utils import atomic_json_write
@@ -37,7 +37,7 @@ if sys.platform == "win32":
 else:
     import fcntl
 
-_GATEWAY_KIND = "hermes-gateway"
+_GATEWAY_KIND = "kova-gateway"
 _RUNTIME_STATUS_FILE = "gateway_state.json"
 _LOCKS_DIRNAME = "gateway-locks"
 _IS_WINDOWS = sys.platform == "win32"
@@ -208,7 +208,7 @@ def record_start_and_check_storm(
     """Record this start; :class:`StormInfo` when > ``max_starts`` landed in ``window_s``.
     Best-effort: a broken ``gateway-starts.log`` ledger is logged and swallowed, never fatal."""
     try:
-        path = get_hermes_home() / "gateway-starts.log"
+        path = get_kova_home() / "gateway-starts.log"
         make_user_dir(path.parent, parents=True, exist_ok=True)
         now = datetime.now(UTC).timestamp()
         existing: list[float] = []
@@ -237,37 +237,37 @@ def record_start_and_check_storm(
         return None
 
 
-def _get_process_hermes_home() -> Path:
-    """Launch-home HERMES_HOME for identity files (PID, lock, status, markers):
-    ``get_hermes_home()`` honors the per-session ``_HERMES_HOME_OVERRIDE`` and would misroute
+def _get_process_kova_home() -> Path:
+    """Launch-home KOVA_HOME for identity files (PID, lock, status, markers):
+    ``get_kova_home()`` honors the per-session ``_KOVA_HOME_OVERRIDE`` and would misroute
     them."""
-    return get_process_hermes_home()
+    return get_process_kova_home()
 
 
-def _canonical_hermes_home(path: Path | str) -> Path:
-    """Stable absolute HERMES_HOME path for persisted identity data."""
+def _canonical_kova_home(path: Path | str) -> Path:
+    """Stable absolute KOVA_HOME path for persisted identity data."""
     return Path(path).expanduser().resolve(strict=False)
 
 
-def _same_hermes_home(left: Path | str, right: Path | str) -> bool:
-    """Compare HERMES_HOME paths with the host platform's case semantics."""
-    left_c = os.path.normcase(str(_canonical_hermes_home(left)))
-    return left_c == os.path.normcase(str(_canonical_hermes_home(right)))
+def _same_kova_home(left: Path | str, right: Path | str) -> bool:
+    """Compare KOVA_HOME paths with the host platform's case semantics."""
+    left_c = os.path.normcase(str(_canonical_kova_home(left)))
+    return left_c == os.path.normcase(str(_canonical_kova_home(right)))
 
 
 def recorded_gateway_home_conflicts(
     record: Optional[dict[str, Any]], *, expected_home: Optional[Path | str] = None
 ) -> bool:
-    """True when a persisted gateway record names a DIFFERENT HERMES_HOME (cross-profile kill guard:
+    """True when a persisted gateway record names a DIFFERENT KOVA_HOME (cross-profile kill guard:
     profile B's stop must never SIGTERM profile A). ``expected_home`` overrides the comparison base.
-    Legacy records without ``hermes_home`` prove nothing -> False; a comparison failure fails
+    Legacy records without ``kova_home`` prove nothing -> False; a comparison failure fails
     closed -> True."""
-    recorded_home = record.get("hermes_home") if isinstance(record, dict) else None
+    recorded_home = record.get("kova_home") if isinstance(record, dict) else None
     if not isinstance(recorded_home, str) or not recorded_home.strip():
         return False
     try:
-        base = expected_home if expected_home is not None else _get_process_hermes_home()
-        return not _same_hermes_home(recorded_home, base)
+        base = expected_home if expected_home is not None else _get_process_kova_home()
+        return not _same_kova_home(recorded_home, base)
     except Exception:
         return True
 
@@ -280,34 +280,34 @@ _PROFILE_LABEL_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 def _profile_label_for_home(home: Path | str) -> Optional[str]:
     """Best-effort label: ``<root>/profiles/<name>`` -> name, root home -> "default", else None."""
     try:
-        canonical = _canonical_hermes_home(home)
+        canonical = _canonical_kova_home(home)
     except Exception:
         return None
     if canonical.parent.name == "profiles" and _PROFILE_LABEL_RE.match(canonical.name):
         return canonical.name
     import kova_constants
-    default_homes = (kova_constants.get_default_hermes_root, _get_platform_default_hermes_home)
+    default_homes = (kova_constants.get_default_kova_root, _get_platform_default_kova_home)
     for default_home in default_homes:
         with contextlib.suppress(Exception):
-            if _same_hermes_home(canonical, default_home()):
+            if _same_kova_home(canonical, default_home()):
                 return "default"
     return None
 
 
 def scoped_lock_owner_label(record: Optional[dict[str, Any]]) -> Optional[str]:
     """Profile label of a scoped-lock owner (None: PID-only wording): the validated ``profile``
-    field stamped by :func:`acquire_scoped_lock`, else inferred from ``hermes_home`` (old locks)."""
+    field stamped by :func:`acquire_scoped_lock`, else inferred from ``kova_home`` (old locks)."""
     if not isinstance(record, dict):
         return None
     profile = record.get("profile")
     if isinstance(profile, str) and _PROFILE_LABEL_RE.match(profile.strip()):
         return profile.strip()
-    home = record.get("hermes_home")
+    home = record.get("kova_home")
     return _profile_label_for_home(home) if isinstance(home, str) and home.strip() else None
 
 
 def _get_pid_path() -> Path:
-    return _get_process_hermes_home() / "gateway.pid"
+    return _get_process_kova_home() / "gateway.pid"
 
 
 def _get_gateway_lock_path(pid_path: Optional[Path] = None) -> Path:
@@ -315,19 +315,19 @@ def _get_gateway_lock_path(pid_path: Optional[Path] = None) -> Path:
 
 
 def _get_runtime_status_path() -> Path:
-    return _get_process_hermes_home() / _RUNTIME_STATUS_FILE
+    return _get_process_kova_home() / _RUNTIME_STATUS_FILE
 
 
 def _get_lock_dir() -> Path:
-    """Cross-profile rendezvous dir for machine-local locks; ``HERMES_GATEWAY_LOCK_DIR`` overrides.
+    """Cross-profile rendezvous dir for machine-local locks; ``KOVA_GATEWAY_LOCK_DIR`` overrides.
 
     Scope is the **OS user**, not the kernel host: separate users have separate ``$HOME``s,
-    separate ``~/.hermes`` profile roots and separate credentials, so "one gateway per host"
+    separate ``~/.kova`` profile roots and separate credentials, so "one gateway per host"
     means "one per host per OS user". Holds the token-scoped locks (:func:`acquire_scoped_lock`)
     and the host-role lock + rendezvous record (``gateway/host_rendezvous.py``); the per-home
-    ``gateway.pid``/``gateway.lock`` above deliberately stay under each profile's HERMES_HOME.
+    ``gateway.pid``/``gateway.lock`` above deliberately stay under each profile's KOVA_HOME.
     """
-    override = os.getenv("HERMES_GATEWAY_LOCK_DIR")
+    override = os.getenv("KOVA_GATEWAY_LOCK_DIR")
     if override:
         return Path(override)
     # XDG spec: a relative $XDG_STATE_HOME is INVALID and must be ignored. Honouring one made the
@@ -539,9 +539,9 @@ def _read_process_cmdline(pid: int) -> Optional[str]:
 
 
 def _gateway_command_subcommand(command: str | None) -> str | None:
-    """Hermes gateway lifecycle subcommand from a command line, or None. No loose substring matches
+    """Kova gateway lifecycle subcommand from a command line, or None. No loose substring matches
     (``"gateway" in cmdline`` also matched ``gateway status`` / ``python -m tui_gateway``): needs a
-    Hermes entrypoint plus the ``gateway`` subcommand, or a gateway-dedicated entrypoint. Tokenizes
+    Kova entrypoint plus the ``gateway`` subcommand, or a gateway-dedicated entrypoint. Tokenizes
     quote-aware (Windows paths with spaces); ``--profile``/``-p`` selectors are stripped anywhere in
     argv since ``_apply_profile_override`` removes them before argparse."""
     if not command:
@@ -560,7 +560,7 @@ def _gateway_command_subcommand(command: str | None) -> str | None:
     # the inline source will spawn later, not to this process (#107002). Case-preserving tokens:
     # the operand-taking ``-X``/``-W``/``-Q`` must not be conflated with ``-q``/``-b``.
     if command_line_runs_inline_source(cased_tokens):
-        # …unless the source is a Hermes bootstrap running the entry point in THIS process (store
+        # …unless the source is a Kova bootstrap running the entry point in THIS process (store
         # launcher, launcher script, venv_sync re-entry): then its argv is this process's (#124318).
         cased_tokens = inline_bootstrap_argv(cased_tokens)
         if cased_tokens is None:
@@ -579,13 +579,13 @@ def _gateway_command_subcommand(command: str | None) -> str | None:
         return "run"
     if any(tokens[i] == "-m" and tokens[i + 1] == "gateway.run" for i in range(len(tokens) - 1)):
         return "run"
-    # Atomic Hermes' bundled desktop runner shares HERMES_HOME with the CLI; without this,
+    # Atomic Kova' bundled desktop runner shares KOVA_HOME with the CLI; without this,
     # `gateway run --replace` does not recognise it as a running gateway, skips the
     # terminate-and-scoped-lock-handoff path, and collides with its still-held scoped locks
     # (e.g. the Discord bot-token lock). See #22418.
     if any(b == "desktop-gateway.py" for b in basenames):
         return "run"
-    if any(b in ("hermes-gateway", "hermes-gateway.exe") for b in basenames):
+    if any(b in ("kova-gateway", "kova-gateway.exe") for b in basenames):
         return "run"
     joined = " ".join(tokens)
     if "kova_cli.main" not in joined and "kova_cli/main.py" not in joined and not any(
@@ -651,12 +651,12 @@ def looks_like_gateway_command_line(command: str | None) -> bool:
 def looks_like_gateway_runtime_command_line(command: str | None) -> bool:
     """True for command lines that can host the runtime (``run`` or ``restart``: without a service
     manager the manual restart fallback runs ``run_gateway()`` in-process). For validating
-    Hermes-owned records / cleanup scans only; ``looks_like_gateway_command_line`` stays strict."""
+    Kova-owned records / cleanup scans only; ``looks_like_gateway_command_line`` stays strict."""
     return _gateway_command_subcommand(command) in {"run", "restart"}
 
 
 def _looks_like_gateway_process(pid: int) -> bool:
-    """True when the live PID still looks like the Hermes gateway."""
+    """True when the live PID still looks like the Kova gateway."""
     cmdline = _read_process_cmdline(pid)
     return bool(cmdline) and looks_like_gateway_command_line(cmdline)
 
@@ -686,54 +686,54 @@ def profile_flag_value(command: str) -> Optional[str]:
     return None
 
 
-_HERMES_HOME_ASSIGNMENT_RE = re.compile(r"(?:^|\s)hermes_home=(?:\"([^\"]*)\"|'([^']*)'|(\S+))")
+_KOVA_HOME_ASSIGNMENT_RE = re.compile(r"(?:^|\s)kova_home=(?:\"([^\"]*)\"|'([^']*)'|(\S+))")
 
 
-def hermes_home_assignments(command: str) -> list[str]:
-    """Values of every ``HERMES_HOME=<value>`` assignment in ``command`` (the caller lowercases
+def kova_home_assignments(command: str) -> list[str]:
+    """Values of every ``KOVA_HOME=<value>`` assignment in ``command`` (the caller lowercases
     and normalizes separators). Values are token-bounded, quotes stripped: the substring test
-    this replaces let ``HERMES_HOME=/root/profiles/ops`` claim a ``/root/profiles/ops2`` gateway.
-    The name is token-bounded too (``FOO=hermes_home=/x`` is not an assignment), and a trailing
-    separator on the value is stripped -- ``HERMES_HOME=/root/.hermes/`` (systemd ``Environment=``
-    or a shell wrapper spelling) is the same home as ``/root/.hermes``; callers strip the profile
+    this replaces let ``KOVA_HOME=/root/profiles/ops`` claim a ``/root/profiles/ops2`` gateway.
+    The name is token-bounded too (``FOO=kova_home=/x`` is not an assignment), and a trailing
+    separator on the value is stripped -- ``KOVA_HOME=/root/.kova/`` (systemd ``Environment=``
+    or a shell wrapper spelling) is the same home as ``/root/.kova``; callers strip the profile
     home the same way."""
     return [
         next(g for g in m.groups() if g is not None).rstrip("/")
-        for m in _HERMES_HOME_ASSIGNMENT_RE.finditer(command)
+        for m in _KOVA_HOME_ASSIGNMENT_RE.finditer(command)
     ]
 
 
-def command_line_names_hermes_home(command_lc: str, home_lc: str) -> bool:
-    """True when ``command_lc`` carries ``HERMES_HOME=<home_lc>`` (both lowercased, ``/``-separated,
+def command_line_names_kova_home(command_lc: str, home_lc: str) -> bool:
+    """True when ``command_lc`` carries ``KOVA_HOME=<home_lc>`` (both lowercased, ``/``-separated,
     no trailing separator). Argv reaches us space-joined, so an unquoted value with a space in it
-    (``HERMES_HOME=C:/Users/John Doe/.hermes``) is cut at the space by the token parser; a
+    (``KOVA_HOME=C:/Users/John Doe/.kova``) is cut at the space by the token parser; a
     token-bounded literal match of the whole home recovers that spelling."""
-    if home_lc in hermes_home_assignments(command_lc):
+    if home_lc in kova_home_assignments(command_lc):
         return True
-    return re.search(rf"(?:^|\s)hermes_home={re.escape(home_lc)}/?(?=\s|$)", command_lc) is not None
+    return re.search(rf"(?:^|\s)kova_home={re.escape(home_lc)}/?(?=\s|$)", command_lc) is not None
 
 
 def _command_line_belongs_to_profile(command: str, profile_home: Path) -> bool:
     """True when a gateway command line belongs to ``profile_home`` (mirrors
     ``kova_cli.gateway._matches_current_profile``): a stale state file can record a PID recycled
     onto ANOTHER profile's live gateway. Named profiles carry ``-p``/``--profile <name>`` or
-    ``HERMES_HOME=`` on argv; the default gateway runs bare. Separators normalized."""
+    ``KOVA_HOME=`` on argv; the default gateway runs bare. Separators normalized."""
     command_lc = command.lower().replace("\\", "/")
     profile_name = _profile_name_for_home(profile_home)
     home_lc = str(profile_home).lower().replace("\\", "/").rstrip("/")
     if profile_name is not None and profile_name != "default":
         if profile_flag_value(command) == profile_name.lower():
             return True
-        return command_line_names_hermes_home(command_lc, home_lc)
+        return command_line_names_kova_home(command_lc, home_lc)
     # Default profile: accept unless argv names ANOTHER profile (any spelling the CLI pre-parser
     # accepts, ``--profile=ops`` included -- a substring test let that gateway pass as the default's)
-    # or a conflicting explicit HERMES_HOME= (its absence is not disqualifying -- HERMES_HOME usually
+    # or a conflicting explicit KOVA_HOME= (its absence is not disqualifying -- KOVA_HOME usually
     # arrives via the env). ``--profile default`` names this profile: a hand-written launchd plist
     # mirrors the named-profile service shape, and rejecting it reported a live default gateway
     # as stopped (#100817).
     if profile_flag_value(command) not in (None, "default"):
         return False
-    return not hermes_home_assignments(command_lc) or command_line_names_hermes_home(command_lc, home_lc)
+    return not kova_home_assignments(command_lc) or command_line_names_kova_home(command_lc, home_lc)
 
 
 def _host_gateway_serves_home(pid: int, profile_home: Path) -> bool:
@@ -792,7 +792,7 @@ def _build_pid_record() -> dict:
         "start_time": _get_process_start_time(os.getpid()),
         # Scoped locks are machine-global; the owner's home lets a cross-profile
         # --replace place its takeover marker where the target will read it.
-        "hermes_home": str(_canonical_hermes_home(_get_process_hermes_home())),
+        "kova_home": str(_canonical_kova_home(_get_process_kova_home())),
     }
 
 
@@ -815,12 +815,12 @@ def _get_code_identity_fields() -> dict[str, Any]:
 
 
 def _pid_record_belongs_to_current_profile(record: Optional[dict[str, Any]]) -> bool:
-    """True when the record's ``hermes_home`` matches the current process (legacy records: True);
-    another HERMES_HOME's record must be ignored or the default gateway assumes its identity."""
+    """True when the record's ``kova_home`` matches the current process (legacy records: True);
+    another KOVA_HOME's record must be ignored or the default gateway assumes its identity."""
     if not isinstance(record, dict):
         return False
-    record_home = record.get("hermes_home")
-    return not record_home or _same_hermes_home(record_home, _get_process_hermes_home())
+    record_home = record.get("kova_home")
+    return not record_home or _same_kova_home(record_home, _get_process_kova_home())
 
 
 def _build_runtime_status_record() -> dict[str, Any]:
@@ -985,7 +985,7 @@ def acquire_gateway_runtime_lock() -> bool:
     """Reserve the launch profile without unlinking inaccessible lock inodes."""
     from gateway.runtime_ownership import process_ownership, OwnershipConflict
     try:
-        process_ownership.reserve([_get_process_hermes_home()])
+        process_ownership.reserve([_get_process_kova_home()])
     except (OwnershipConflict, OSError):
         return False
     _clear_running_pid_cache()
@@ -999,7 +999,7 @@ def release_gateway_runtime_lock() -> None:
 
 def owns_gateway_runtime_lock() -> bool:
     from gateway.runtime_ownership import process_ownership
-    return process_ownership.owns(_get_process_hermes_home())
+    return process_ownership.owns(_get_process_kova_home())
 
 def _probe_lock_file(handle) -> bool:
     """True when another process holds the lock (a won probe is released); closes ``handle``."""
@@ -1274,7 +1274,7 @@ class GatewayLiveness:
 
 
 def profile_name_for_home(profile_home: Path) -> Optional[str]:
-    """Profile id of any Hermes home: ``<root>/profiles/<name>`` → ``<name>``, the default root →
+    """Profile id of any Kova home: ``<root>/profiles/<name>`` → ``<name>``, the default root →
     ``"default"``, anything else → None. Multiplex-only makes ``default`` an ordinary served
     profile, so reporting surfaces need a name for it too."""
     home = Path(profile_home)
@@ -1282,8 +1282,8 @@ def profile_name_for_home(profile_home: Path) -> Optional[str]:
     if named:
         return named
     try:
-        from kova_constants import get_default_hermes_root
-        if home.resolve() == Path(get_default_hermes_root()).resolve():
+        from kova_constants import get_default_kova_root
+        if home.resolve() == Path(get_default_kova_root()).resolve():
             return "default"
     except Exception:
         return None
@@ -1306,16 +1306,16 @@ def multiplexer_liveness_for_profile(profile_dir: Path) -> Optional[tuple[int, d
     from gateway.host_topology import host_gateway_topology
     from kova_cli.gateway import named_profile_served_by_running_multiplexer
     from kova_cli.gateway_multiplex_served import live_default_gateway_pid
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     # The roster is matched by NAME, and the multiplexer only serves ``<default root>/profiles/<name>``:
     # a profile directory copied to another root (sandbox, restore-from-backup) keeps the name but is
     # not the home being served, so it must not borrow the multiplexer's PID.
-    if name != "default" and not _same_hermes_home(profile_dir, get_default_hermes_root() / "profiles" / name):
+    if name != "default" and not _same_kova_home(profile_dir, get_default_kova_root() / "profiles" / name):
         return None
     topology = host_gateway_topology()
     # The multiplexer's record lives in the home that LAUNCHED it; a named-hosted multiplexer leaves
     # a possibly stale standalone record at the default root, which must not be projected.
-    launch_home = get_default_hermes_root()
+    launch_home = get_default_kova_root()
     if topology is not None and topology.serves(name):
         pid: Optional[int] = topology.pid
         launch_home = topology.home or launch_home
@@ -1424,7 +1424,7 @@ def resolve_gateway_liveness(
     # question is about the process's OWN home — which is a named profile inside a pooled
     # `hermes --profile X serve` (the Desktop's per-profile backend answers its REST without
     # `?profile=`), so it takes the same rung instead of reporting the served profile stopped.
-    own_home = profile_dir if scoped else _get_process_hermes_home()
+    own_home = profile_dir if scoped else _get_process_kova_home()
     served = guarded(multiplexer_liveness_for_profile, own_home)
     if served is not None:
         mux_pid, mux_runtime = served
@@ -1451,7 +1451,7 @@ def get_runtime_status_running_pid(
     pid = _live_pid_from_record(payload)
     if pid is None:
         return None
-    # The record's hermes_home must match the home asked about (this process unscoped) so a stale
+    # The record's kova_home must match the home asked about (this process unscoped) so a stale
     # or copied record cannot lend another home's gateway identity; legacy records without the
     # stamp prove nothing either way and fall through to the live command-line check.
     if expected_home is None and not _pid_record_belongs_to_current_profile(payload):
@@ -1534,8 +1534,8 @@ def _acquire_scoped_lock_at(
         "metadata": metadata or {}, "updated_at": _utc_now_iso(),
     }
     # Profile label for cross-profile conflict diagnostics ("token already in use (PID 559)" alone
-    # does not say WHICH profile). Omitted when not inferable; readers fall back to hermes_home.
-    profile = _profile_label_for_home(_get_process_hermes_home())
+    # does not say WHICH profile). Omitted when not inferable; readers fall back to kova_home.
+    profile = _profile_label_for_home(_get_process_kova_home())
     if profile:
         record["profile"] = profile
     existing = _read_json_file(lock_path)
@@ -1586,14 +1586,14 @@ _PLANNED_STOP_MARKER_FILENAME = ".gateway-planned-stop.json"
 _PLANNED_STOP_MARKER_TTL_S = 60
 
 
-def _get_takeover_marker_path(hermes_home: Optional[Path] = None) -> Path:
-    """Takeover marker path; ``hermes_home`` is given only for a verified cross-home handoff."""
-    home = _canonical_hermes_home(hermes_home or _get_process_hermes_home())
+def _get_takeover_marker_path(kova_home: Optional[Path] = None) -> Path:
+    """Takeover marker path; ``kova_home`` is given only for a verified cross-home handoff."""
+    home = _canonical_kova_home(kova_home or _get_process_kova_home())
     return home / _TAKEOVER_MARKER_FILENAME
 
 
 def _get_planned_stop_marker_path() -> Path:
-    return _get_process_hermes_home() / _PLANNED_STOP_MARKER_FILENAME
+    return _get_process_kova_home() / _PLANNED_STOP_MARKER_FILENAME
 
 
 def _marker_is_stale(written_at: str, ttl_s: int) -> bool:
@@ -1639,17 +1639,17 @@ def _consume_pid_marker_for_self(path: Path, *, ttl_s: int, on_consume=None, kee
         return False
     record, target_pid, target_start_time = parsed
     # Cross-profile guard: new markers name the verified TARGET home, which permits a deliberate
-    # cross-HERMES_HOME --replace while ignoring a marker accidentally written into another
+    # cross-KOVA_HOME --replace while ignoring a marker accidentally written into another
     # profile's directory. Legacy markers have no target field: keep the same-replacer-home rule.
     # See #29092.
-    our_home = _get_process_hermes_home()
-    target_home = record.get("target_hermes_home")
+    our_home = _get_process_kova_home()
+    target_home = record.get("target_kova_home")
     if target_home is not None:
-        if not isinstance(target_home, str) or not _same_hermes_home(target_home, our_home):
+        if not isinstance(target_home, str) or not _same_kova_home(target_home, our_home):
             return False
     else:
-        replacer_home = record.get("replacer_hermes_home")
-        if replacer_home is not None and not _same_hermes_home(replacer_home, our_home):
+        replacer_home = record.get("replacer_kova_home")
+        if replacer_home is not None and not _same_kova_home(replacer_home, our_home):
             return False
     matches = _pid_marker_names_self(target_pid, target_start_time)
     if matches and on_consume is not None:
@@ -1667,13 +1667,13 @@ def write_takeover_marker(
     passes ``target_home`` + validated ``target_start_time`` so the marker lands in the target's
     home; such callers must fail closed on False (the target's supervisor could revive it)."""
     try:
-        marker_home = _canonical_hermes_home(target_home or _get_process_hermes_home())
+        marker_home = _canonical_kova_home(target_home or _get_process_kova_home())
         if target_start_time is _UNSET:
             target_start_time = _get_process_start_time(target_pid)
         return _write_marker(_get_takeover_marker_path(marker_home), {
             "target_pid": target_pid, "target_start_time": target_start_time,
-            "target_hermes_home": str(marker_home), "replacer_pid": os.getpid(),
-            "replacer_hermes_home": str(_canonical_hermes_home(_get_process_hermes_home())),
+            "target_kova_home": str(marker_home), "replacer_pid": os.getpid(),
+            "replacer_kova_home": str(_canonical_kova_home(_get_process_kova_home())),
             "written_at": _utc_now_iso(),
         })
     except OSError:
@@ -1707,7 +1707,7 @@ def _validated_scoped_lock_gateway_owner(record: dict[str, Any]) -> Optional[tup
         return None
     owner_pid = _pid_from_record(record)
     owner_start_time = record.get("start_time")
-    raw_home = record.get("hermes_home")
+    raw_home = record.get("kova_home")
     if (
         owner_pid is None or owner_pid <= 0 or owner_pid == os.getpid()
         or not isinstance(owner_start_time, int) or isinstance(owner_start_time, bool)
@@ -1715,7 +1715,7 @@ def _validated_scoped_lock_gateway_owner(record: dict[str, Any]) -> Optional[tup
         or not Path(raw_home).expanduser().is_absolute()
     ):
         return None
-    target_home = _canonical_hermes_home(raw_home)
+    target_home = _canonical_kova_home(raw_home)
     if _scoped_lock_owner_state(owner_pid, owner_start_time) != "same":
         return None
     live_cmdline = _read_process_cmdline(owner_pid)
@@ -1723,13 +1723,13 @@ def _validated_scoped_lock_gateway_owner(record: dict[str, Any]) -> Optional[tup
         return None
     # The target home's own PID record must corroborate the claim.
     pid_record = _read_json_file(target_home / "gateway.pid") or {}
-    pid_record_home = pid_record.get("hermes_home")
+    pid_record_home = pid_record.get("kova_home")
     if (
         not _record_looks_like_gateway(pid_record)
         or _pid_from_record(pid_record) != owner_pid
         or pid_record.get("start_time") != owner_start_time
         or not isinstance(pid_record_home, str)
-        or not _same_hermes_home(pid_record_home, target_home)
+        or not _same_kova_home(pid_record_home, target_home)
     ):
         return None
     return owner_pid, owner_start_time, target_home

@@ -18,7 +18,7 @@ def _is_windows() -> bool:
 
 
 #: Launcher command names install.ps1's Set-PathVariable exposes from the
-#: managed binary dir (the default Hermes root's ``bin``, next to uv.exe)
+#: managed binary dir (the default Kova root's ``bin``, next to uv.exe)
 #: on the user PATH. Keep in lockstep with WINDOWS_BIN_LAUNCHERS in
 #: kova_cli/_launchers.py and scripts/install.ps1.
 _WINDOWS_BIN_LAUNCHERS = ("hermes", "hermes-acp")
@@ -68,12 +68,12 @@ def ensure_windows_bin_launchers(
     python with ``PYTHONPATH=<repo>;<venv>/site-packages``, never the venv
     interpreter (no-boot-through-venv; ``pyvenv.cfg`` is inert dead
     config). The canonical launcher home is
-    the managed binary dir — the default Hermes root's ``bin``
+    the managed binary dir — the default Kova root's ``bin``
     (``%LOCALAPPDATA%\\hermes\\bin``, next to the managed uv) — which lives
     OUTSIDE the git checkout so no git operation can ever touch it. It is
-    a per-machine dir shared by every profile: ``get_hermes_home()`` would
+    a per-machine dir shared by every profile: ``get_kova_home()`` would
     point inside ``profiles\\<name>`` under ``hermes -p``, so the anchor
-    here is :func:`kova_constants.get_default_hermes_root`.
+    here is :func:`kova_constants.get_default_kova_root`.
 
     Earlier installer versions staged them at ``<checkout>\\bin`` instead —
     inside the git working tree — where ``hermes update``'s pre-update
@@ -91,7 +91,7 @@ def ensure_windows_bin_launchers(
     Two targets, two gates, both failing toward inaction:
 
     - canonical managed binary dir: only when *root* is the managed clone
-      (``root.parent == get_default_hermes_root()``), so source checkouts
+      (``root.parent == get_default_kova_root()``), so source checkouts
       elsewhere never gain launchers;
     - legacy ``<root>\\bin``: only when that dir is on the user PATH
       (registry value, process PATH as fallback), i.e. the install opted
@@ -110,14 +110,14 @@ def ensure_windows_bin_launchers(
 
     root = Path(root)
 
-    # Per-machine anchor: the DEFAULT Hermes root, not get_hermes_home() —
+    # Per-machine anchor: the DEFAULT Kova root, not get_kova_home() —
     # under ``hermes -p <name>`` that returns ``profiles\\<name>``, which
     # would fail the managed-clone gate below and silently skip the heal
     # for profile users. The launcher dir serves the whole machine.
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     try:
-        home = Path(get_default_hermes_root())
+        home = Path(get_default_kova_root())
     except Exception:
         return []
 
@@ -142,7 +142,7 @@ def ensure_windows_bin_launchers(
         exe = target / f"{name}.exe"
         if not exe.exists():
             return not ((target / f"{name}.cmd").is_file()
-                        and _launcher_present(root / ".hermes" / "bin", name))
+                        and _launcher_present(root / ".kova" / "bin", name))
         return exe_is_venv_bound(exe, venv_dir)
 
     targets: list[Path] = []
@@ -153,7 +153,7 @@ def ensure_windows_bin_launchers(
     # override), so the healthy path must stay at a couple of stat calls.
     if _normalize_windows_path(root.parent) == _normalize_windows_path(home):
         canonical = home / "bin"
-        local = root / ".hermes" / "bin"
+        local = root / ".kova" / "bin"
         if any(not _launcher_present(local, name) for name in _WINDOWS_BIN_LAUNCHERS):
             # Upgrade existing PM installs too: their healthy external launcher
             # predates the exact-install command and may lack the runtime query.
@@ -246,7 +246,7 @@ def migrate_windows_bin_path(
     read_user_path=None,
     write_user_path=None,
 ) -> bool:
-    """One-time PATH migration to the ``HERMES_HOME\\bin`` launcher layout.
+    """One-time PATH migration to the ``KOVA_HOME\\bin`` launcher layout.
 
     Runs from the ``hermes update`` tail (and mirrors what install.ps1's
     Set-PathVariable does on fresh installs/repairs, which never reach
@@ -282,11 +282,11 @@ def migrate_windows_bin_path(
     root = Path(root)
 
     # Same per-machine anchor as ensure_windows_bin_launchers (see there).
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     from pm.environments import venv_bin_dir
 
     try:
-        home = Path(get_default_hermes_root())
+        home = Path(get_default_kova_root())
     except Exception:
         return False
     if _normalize_windows_path(root.parent) != _normalize_windows_path(home):

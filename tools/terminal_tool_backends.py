@@ -137,7 +137,7 @@ def _build_local_env(*, cwd, timeout, local_config=None, **_):
 def _build_docker_env(*, image, cwd, timeout, cc, task_id, host_cwd, **_):
     from tools.terminal_tool import (_docker_session_isolation_enabled, _has_isolation_overrides,
                                      _maybe_reap_docker_orphans)
-    # One-shot reaper for labeled containers orphaned by prior Hermes processes that died before
+    # One-shot reaper for labeled containers orphaned by prior Kova processes that died before
     # atexit (SIGKILL / OOM / closed terminal); ``terminal.docker_orphan_reaper: false`` disables it.
     _maybe_reap_docker_orphans(cc)
     # A session-keyed container must not outlive its session, so cross-process reuse/persist is
@@ -243,7 +243,7 @@ def _build_plugin_env(*, env_type, image, cwd, timeout, cc, task_id, **_):
             # sandbox nothing here could use or clean up.
             raise ValueError(
                 f"terminal.backend is {env_type}, a plugin that runs in the plugin host (plugins.isolation: host), "
-                f"and the host cannot hand its environment to Hermes, so commands cannot run in it. Set "
+                f"and the host cannot hand its environment to Kova, so commands cannot run in it. Set "
                 f"plugins.isolation: in_process to use this backend.")
         env_obj = provider.create_environment(cwd=cwd, timeout=timeout, task_id=task_id, image=image,
                                               container_config=cc)

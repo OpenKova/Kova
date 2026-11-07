@@ -100,7 +100,7 @@ def owner(monkeypatch, tmp_path):
         state.tickets += 1
         return f'ticket-{state.tickets}'
 
-    with serve(handler, '127.0.0.1', 0, subprotocols=['hermes-gateway-v1']) as server:
+    with serve(handler, '127.0.0.1', 0, subprotocols=['kova-gateway-v1']) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         state.relay = _Relay(server.socket.getsockname()[1])
         endpoint = SimpleNamespace(api_origin=f'http://127.0.0.1:{state.relay.port}', control_home=None)

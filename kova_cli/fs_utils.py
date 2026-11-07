@@ -1,4 +1,4 @@
-"""Filesystem helpers shared across Hermes CLI subsystems."""
+"""Filesystem helpers shared across Kova CLI subsystems."""
 
 import os
 import shutil

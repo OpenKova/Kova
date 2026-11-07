@@ -34,7 +34,7 @@ SCHEMA = ROOT / "kova_cli" / "observability" / "schemas" / "hermes.shared_metric
 def marks(tmp_path, monkeypatch):
     captured: list[tuple[str, dict]] = []
     policy = {"on": True}
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": policy["on"]}}},
@@ -149,7 +149,7 @@ def test_real_install_sh_ladder_leaves_only_closed_tokens(tmp_path):
     result = subprocess.run(
         [str(tools / "bash"), str(INSTALL_SH), "--non-interactive", "--hermes-home", str(home),
          "--dir", str(tmp_path / "checkout")],
-        env={"HOME": str(tmp_path), "PATH": str(tools), "HERMES_REPO_URL": "https://example.invalid/x.git"},
+        env={"HOME": str(tmp_path), "PATH": str(tools), "KOVA_REPO_URL": "https://example.invalid/x.git"},
         capture_output=True, text=True, encoding="utf-8", timeout=60,
         check=False,
     )

@@ -32,25 +32,25 @@ def _quit_clean_session_with_history(tmp_path, monkeypatch):
     """``hermes --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
     from kova_cli import main_tui_launch
     from kova_cli.worktree_ops import _setup_worktree
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
-    wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')
+    monkeypatch.setenv('KOVA_PYTHON', sys.executable)
+    wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_kova_home() / 'state.db')
     monkeypatch.setattr(main_tui_launch, '_setup_tui_worktree', lambda: wt_info)
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda *_: (['node'], Path('.')))
     monkeypatch.setattr(main_tui_launch, '_print_tui_exit_summary', lambda *_: None)
 
     def ink(_argv, cwd=None, env=None):
-        db = SessionDB(db_path=get_hermes_home() / 'state.db')
-        db.create_session('tui-wt', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db = SessionDB(db_path=get_kova_home() / 'state.db')
+        db.create_session('tui-wt', 'tui', cwd=env['KOVA_TUI_CWD'])
         db.append_message('tui-wt', 'user', 'hello')
         db.append_message('tui-wt', 'assistant', 'hi')
         db.end_session('tui-wt', 'tui_shutdown')
         db.close()
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
+        Path(env['KOVA_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)
@@ -105,19 +105,19 @@ def test_resume_recreates_the_removed_tui_worktree_so_turns_run(tmp_path, monkey
 def test_resume_reuses_the_surviving_branch(tmp_path, monkeypatch):
     """A tree removed while its branch survived comes back on that branch, at its commit."""
     from kova_cli.worktree_ops import _setup_worktree
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')
+    wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_kova_home() / 'state.db')
     tree = Path(wt_info['path'])
     (tree / 'f.txt').write_text('work')
     subprocess.run([*GIT, '-C', str(tree), 'add', 'f.txt'], check=True)
     subprocess.run([*GIT, '-C', str(tree), 'commit', '-qm', 'work'], check=True)
     tip = subprocess.run(['git', '-C', str(tree), 'rev-parse', 'HEAD'], capture_output=True, text=True,
                          check=True).stdout.strip()
-    db = SessionDB(db_path=get_hermes_home() / 'state.db')
+    db = SessionDB(db_path=get_kova_home() / 'state.db')
     db.create_session('tui-wt', 'tui', cwd=str(tree))
     db.append_message('tui-wt', 'user', 'hello')
     db.close()
@@ -131,12 +131,12 @@ def test_resume_reuses_the_surviving_branch(tmp_path, monkeypatch):
 
 
 def test_resume_never_creates_a_missing_dir_the_launcher_did_not_make(tmp_path, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     foreign = repo / '.worktrees' / 'hermes-deadbeef'  # looks like ours; no launcher record
-    db = SessionDB(db_path=get_hermes_home() / 'state.db')
+    db = SessionDB(db_path=get_kova_home() / 'state.db')
     db.create_session('other', 'tui', cwd=str(foreign))
     db.append_message('other', 'user', 'hello')
     db.create_session('plain', 'tui', cwd=str(tmp_path / 'gone'))
@@ -156,13 +156,13 @@ def test_a_store_error_reading_the_policy_falls_back_to_the_row_cwd(tmp_path, mo
 
     import kova_state_local
     from kova_cli.worktree_ops import _setup_worktree
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    tree = Path(_setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')['path'])
-    db = SessionDB(db_path=get_hermes_home() / 'state.db')
+    tree = Path(_setup_worktree(str(repo), sync_base=False, retain_db=get_kova_home() / 'state.db')['path'])
+    db = SessionDB(db_path=get_kova_home() / 'state.db')
     db.create_session('tui-wt', 'tui', cwd=str(tree))
     db.append_message('tui-wt', 'user', 'hello')
     db.close()

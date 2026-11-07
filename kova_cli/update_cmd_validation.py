@@ -22,7 +22,7 @@ def _critical_module_import_failures(
     from kova_cli.update_cmd import _UPDATE_CRITICAL_MODULES
     from kova_constants import FIRST_PARTY_MODULE_ROOTS
     import secrets
-    marker = f"__HERMES_IMPORT_HEALTH_{secrets.token_hex(16)}__"
+    marker = f"__KOVA_IMPORT_HEALTH_{secrets.token_hex(16)}__"
     probe = (
         "import importlib, json, sys\n"
         # Importing kova_cli.main runs the startup dotenv load, which pulls external secret

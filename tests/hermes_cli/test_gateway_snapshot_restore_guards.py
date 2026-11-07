@@ -55,13 +55,13 @@ def test_restore_reply_follows_the_restore_not_the_rejoin(tmp_path, monkeypatch,
                                                           case, restore, supervisor, expected):
     home = (tmp_path / "state").resolve()
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     if case == "remote":
-        monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", "wss://remote.invalid/api/ws")
+        monkeypatch.setenv("KOVA_TUI_GATEWAY_URL", "wss://remote.invalid/api/ws")
     else:
-        monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+        monkeypatch.delenv("KOVA_TUI_GATEWAY_URL", raising=False)
     (home / "config.yaml").write_text("{}\n", encoding="utf-8")
-    snapshot = create_quick_snapshot(hermes_home=home)
+    snapshot = create_quick_snapshot(kova_home=home)
     old = _Connection()
     old.launch_api_key = "launch-only-key"  # --api-key: the rejoin's resumes must re-supply it
     store = GatewaySessionStore(old)
@@ -78,7 +78,7 @@ def test_restore_reply_follows_the_restore_not_the_rejoin(tmp_path, monkeypatch,
                         lambda home: GatewayDiscovery("ready", endpoint))
     monkeypatch.setattr(GatewayConnection, "shared", classmethod(lambda cls: _Connection()))
     monkeypatch.setattr("gateway.control_socket.identify_gateway", lambda h, **kw: {
-        "pid": 4321, "hermes_home": str(home), "launch_supervisor": supervisor})
+        "pid": 4321, "kova_home": str(home), "launch_supervisor": supervisor})
     paused = []
     monkeypatch.setattr("gateway.control_socket.pause_gateway_for_update",
                         lambda *a, **kw: paused.append(a) or {"pausing": True,

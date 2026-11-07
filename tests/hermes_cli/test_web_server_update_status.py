@@ -9,18 +9,18 @@ import kova_cli.web_server_gateway as _web_server_gateway
 
 class TestUpdateStatusRootLog:
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
-            """Create a TestClient and isolate the state DB under the test HERMES_HOME."""
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
+            """Create a TestClient and isolate the state DB under the test KOVA_HOME."""
             try:
                 from starlette.testclient import TestClient
             except ImportError:
                 pytest.skip("fastapi/starlette not installed")
 
             import kova_state
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-            monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+            monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
 
             self.client = TestClient(app)
             self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -30,7 +30,7 @@ class TestUpdateStatusRootLog:
         # update.log (main_dashboard), so the durable completion marker is read there.
         root = tmp_path / "root"
         (root / "logs").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "coder"))
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "coder"))
         action_id = "c" * 32
         (tmp_path / "hermes-update.log").write_text(
             f"=== hermes-update started 2026-08-17 11:19:34 {action_id} ===\n"
@@ -64,14 +64,14 @@ class TestUpdateStatusRootLog:
         # there must not certify the action profile B's dashboard started (and lost on restart).
         root = tmp_path / "root"
         (root / "logs").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "b"))
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
         b_logs = tmp_path / "b-logs"
         monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", b_logs)
         for registry in ("_ACTION_PROCS", "_ACTION_RESULTS", "_ACTION_COMMANDS", "_ACTION_IDS"):
             monkeypatch.setattr(_web_server_gateway, registry, {})
         monkeypatch.setattr(_web_server_gateway.subprocess, "Popen", lambda *a, **kw: types.SimpleNamespace(pid=7))
         b_id = "b" * 32
-        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"HERMES_ACTION_ID": b_id})
+        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"KOVA_ACTION_ID": b_id})
         _web_server_gateway._ACTION_PROCS.clear()  # B's dashboard restarted: in-memory result lost
 
         def status_after_root_completion(action_id):
@@ -103,16 +103,16 @@ class TestUpdateStatusRootLog:
         for registry in ("_ACTION_PROCS", "_ACTION_RESULTS", "_ACTION_COMMANDS", "_ACTION_IDS"):
             monkeypatch.setattr(_web_server_gateway, registry, {})
         monkeypatch.setattr(_web_server_gateway.subprocess, "Popen", lambda *a, **kw: types.SimpleNamespace(pid=7))
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "b"))
-        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"HERMES_ACTION_ID": b_id})
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
+        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"KOVA_ACTION_ID": b_id})
         for profile, action_id, outcome in (("b", b_id, b_outcome), ("a", a_id, "success")):
             if outcome:
-                monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / profile))
-                monkeypatch.setenv("HERMES_ACTION_ID", action_id)
+                monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / profile))
+                monkeypatch.setenv("KOVA_ACTION_ID", action_id)
                 update_receipt.begin_update_receipt()
                 update_receipt.finalize_update_receipt(outcome)
-        monkeypatch.delenv("HERMES_ACTION_ID")
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "b"))
+        monkeypatch.delenv("KOVA_ACTION_ID")
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
         log = b_logs / "hermes-update.log"
         if log_shape == "long":
             with log.open("a", encoding="utf-8") as handle:
@@ -142,12 +142,12 @@ class TestUpdateStatusRootLog:
         b_id, a_id = "b" * 32, "a" * 32
         for profile, action_id, outcome in (("b", b_id, b_outcome), ("a", a_id, "success")):
             if outcome:
-                monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / profile))
-                monkeypatch.setenv("HERMES_ACTION_ID", action_id)
+                monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / profile))
+                monkeypatch.setenv("KOVA_ACTION_ID", action_id)
                 update_receipt.begin_update_receipt()
                 update_receipt.finalize_update_receipt(outcome)
-        monkeypatch.delenv("HERMES_ACTION_ID")
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "b"))
+        monkeypatch.delenv("KOVA_ACTION_ID")
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
         assert update_receipt.read_latest_receipt()["action_id"] == a_id
         (tmp_path / "hermes-update.log").write_text(
             f"=== hermes-update started 2026-08-17 11:19:34 {b_id} ===\n", encoding="utf-8")
@@ -171,8 +171,8 @@ class TestUpdateStatusRootLog:
         from kova_cli import update_receipt
 
         root, action_id = tmp_path / "root", "c" * 32
-        monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "coder"))
-        monkeypatch.setenv("HERMES_ACTION_ID", action_id)
+        monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "coder"))
+        monkeypatch.setenv("KOVA_ACTION_ID", action_id)
         update_receipt.begin_update_receipt()
         if debt == "followups":
             update_receipt.record_followup("dependencies", "synthetic selected-interpreter sync failed")

@@ -27,8 +27,8 @@ _INTERPRETER_PREFIXES = tuple({
     Path(p).resolve() for p in (sys.prefix, sys.base_prefix, sys.exec_prefix, sys.base_exec_prefix)
 } | {
     # A PM-activated developer shell runs sys.prefix's python against a dependency generation
-    # whose site-packages sits under the (real) Hermes home; third-party imports from it are the
-    # interpreter's installation, not Hermes state.
+    # whose site-packages sits under the (real) Kova home; third-party imports from it are the
+    # interpreter's installation, not Kova state.
     Path(p).resolve() for p in sys.path if p and Path(p).name in ("site-packages", "dist-packages")
 } | {
     # scripts/run_tests.sh runs a PM generation venv (<installs>/<key>/{environments,test-environment}
@@ -38,8 +38,8 @@ _INTERPRETER_PREFIXES = tuple({
     *_pm_generation_dirs((sys.prefix, sys.exec_prefix)),
 } | {
     # The default install checks the repo out INSIDE the home (install.sh:
-    # INSTALL_DIR=$HERMES_HOME/hermes-agent). Reading test data, sources for tracebacks, or the
-    # checkout's own .venv is not Hermes state; without this every run from a default install
+    # INSTALL_DIR=$KOVA_HOME/kova-agent). Reading test data, sources for tracebacks, or the
+    # checkout's own .venv is not Kova state; without this every run from a default install
     # trips on its first traceback.
     Path(__file__).resolve().parent.parent,
 })
@@ -100,22 +100,22 @@ class HomeIOGuard:
                 return
             resolved = self._refuse_installed_app_change(value, absolute) if destructive else None
             roots = tuple(_normcase(os.fspath(r)) for r in self.roots())
-            # Resolving the root itself (get_default_hermes_root's relative_to
+            # Resolving the root itself (get_default_kova_root's relative_to
             # probe) reads no state; only its contents are guarded.
             if metadata and absolute in roots:
                 return
             # ``shutil.which`` stats/accesses ``<PATH entry>/<name>``, and command resolution
-            # realpath()s the entry itself (is it a Hermes-managed bin dir?), which lstats each of
-            # its ancestors. A developer shell puts PM's tool store (~/.hermes/tools/...) on PATH;
-            # probing there is command lookup, not reading Hermes state. CI has no such entries.
+            # realpath()s the entry itself (is it a Kova-managed bin dir?), which lstats each of
+            # its ancestors. A developer shell puts PM's tool store (~/.kova/tools/...) on PATH;
+            # probing there is command lookup, not reading Kova state. CI has no such entries.
             if metadata:
                 path = os.environ.get("PATH", "")
                 cwd = os.getcwd() if self._relative_path_entries(path) else None
                 entries = self._path_entries(path, cwd)
                 if os.path.dirname(absolute) in entries or any(_contains(absolute, entry) for entry in entries):
                     return
-            # The interpreter's own installation (a PM-managed python under ~/.hermes/tools):
-            # stdlib source reads (linecache, traceback) are not Hermes state either, nor is
+            # The interpreter's own installation (a PM-managed python under ~/.kova/tools):
+            # stdlib source reads (linecache, traceback) are not Kova state either, nor is
             # realpath() walking up through its ancestors.
             for prefix in _INTERPRETER_PREFIX_STRS:
                 if _within(absolute, prefix) or (metadata and _contains(absolute, prefix)):
@@ -151,7 +151,7 @@ class HomeIOGuard:
                 import pytest
                 # pytest.fail, not AssertionError: removal helpers catch Exception and would log
                 # the refusal as a warning while the test passed.
-                pytest.fail(f"TEST BUG: changing the REAL installed Hermes desktop app: {value}\n"
+                pytest.fail(f"TEST BUG: changing the REAL installed Kova desktop app: {value}\n"
                             "Stub kova_cli.gui_uninstall.packaged_gui_app_paths to a temporary path.")
         return resolved
 
@@ -159,7 +159,7 @@ class HomeIOGuard:
     def refuse(value):
         raise AssertionError(
             f"TEST BUG: file I/O against the REAL hermes home: {value}\n"
-            "Use the isolated HERMES_HOME or a temporary fixture instead."
+            "Use the isolated KOVA_HOME or a temporary fixture instead."
         )
 
     @staticmethod

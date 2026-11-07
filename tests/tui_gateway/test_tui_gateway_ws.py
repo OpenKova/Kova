@@ -472,7 +472,7 @@ def _drive_authority_fallback(monkeypatch, *, capabilities, profile_id, method):
 
 
 def test_ready_frame_advertises_a_session_authority_only_when_one_is_bound(monkeypatch):
-    """An explicit TUI attach (HERMES_TUI_GATEWAY_URL) negotiates the canonical wire from this flag."""
+    """An explicit TUI attach (KOVA_TUI_GATEWAY_URL) negotiates the canonical wire from this flag."""
     from gateway import session_controls
 
     class FakeConnection:
@@ -526,12 +526,12 @@ def test_legacy_fallback_requires_the_interactive_grant(monkeypatch):
 def test_legacy_fallback_keeps_the_ticket_profile_for_sessionless_scoped_handlers(monkeypatch, tmp_path):
     """A secondary-profile ticket's sessionless ``@_profile_scoped`` legacy call runs in THAT profile's
     home, not the launch profile's."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     secondary = tmp_path / "profiles" / "l106742sec"
     secondary.mkdir(parents=True)
     monkeypatch.setitem(server._methods, "probe.scoped", server._profile_scoped(
-        lambda rid, params: {"jsonrpc": "2.0", "id": rid, "result": {"home": str(get_hermes_home())}}))
+        lambda rid, params: {"jsonrpc": "2.0", "id": rid, "result": {"home": str(get_kova_home())}}))
     reply = _drive_authority_fallback(monkeypatch, capabilities=_INTERACTIVE, profile_id=str(secondary),
                                       method="probe.scoped")
     assert reply["result"]["home"] == str(secondary)

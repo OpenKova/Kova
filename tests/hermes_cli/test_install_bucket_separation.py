@@ -34,15 +34,15 @@ class TestProfileCopyExclusions:
         from kova_cli import profiles, profile_distribution
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         monkeypatch.setattr(profiles, "_maybe_register_gateway_service", lambda name: None)
         kept = {"config.yaml": "model: {}\n", "SOUL.md": "profile identity\n",
                 "skills/demo/SKILL.md": "demo instructions\n"}
         if operation != "distribution":
             kept["memories/MEMORY.md"] = "profile memory\n"
-        excluded = (".hermes-runtime", "node", "hermes-agent", "profiles")
+        excluded = (".kova-runtime", "node", "kova-agent", "profiles")
         for rel, content in kept.items():
             path = home / rel
             path.parent.mkdir(parents=True, exist_ok=True)

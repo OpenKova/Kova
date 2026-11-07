@@ -17,7 +17,7 @@ class SystemctlUnavailableError(RuntimeError):
         super().__init__("systemctl is not available on this system")
 
 
-_JOURNAL_HINT = 'journalctl --user -u hermes-gateway --since "5 min ago"'
+_JOURNAL_HINT = 'journalctl --user -u kova-gateway --since "5 min ago"'
 
 _SYSTEMCTL_FAILED_LINES = (
     "Could not {verb} the gateway service; systemd reported an error.",
@@ -26,7 +26,7 @@ _SYSTEMCTL_FAILED_LINES = (
 )
 
 _NO_SYSTEMCTL_LINES = (
-    "This system has no systemd, so Hermes cannot install a background service here.",
+    "This system has no systemd, so Kova cannot install a background service here.",
     "Run the gateway directly with `hermes gateway run` (keep it alive with tmux or screen).",
 )
 

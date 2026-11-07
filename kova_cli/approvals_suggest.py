@@ -1,6 +1,6 @@
 """``hermes approvals suggest`` — mine approval history into allowlist proposals.
 
-Hermes has no dedicated approval-decision ledger: ``always`` answers land in ``command_allowlist``
+Kova has no dedicated approval-decision ledger: ``always`` answers land in ``command_allowlist``
 (config.yaml) via :func:`tools.approval.save_permanent_allowlist`, while ``once``/``session``
 approvals are in-memory only. So this module mines *implied approvals*: a command that matches a
 dangerous-command class (the same :func:`tools.approval.detect_dangerous_command` classifier that
@@ -87,8 +87,8 @@ class Proposal:
 # ---------------------------------------------------------------------------
 
 def default_db_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "state.db"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "state.db"
 
 
 def _connect_readonly(db_path: Path) -> sqlite3.Connection:
@@ -180,8 +180,8 @@ def scan_approval_history(db_path: Optional[Path] = None, days: int = 90) -> lis
 
 def normalize_command(command: str) -> str:
     """Fold user/hermes home prefixes and collapse whitespace."""
-    from tools.approval_detection import _rewrite_resolved_hermes_home, _rewrite_resolved_user_home
-    return " ".join(_rewrite_resolved_user_home(_rewrite_resolved_hermes_home(command)).split())
+    from tools.approval_detection import _rewrite_resolved_kova_home, _rewrite_resolved_user_home
+    return " ".join(_rewrite_resolved_user_home(_rewrite_resolved_kova_home(command)).split())
 
 
 def is_unsafe_class(description: str) -> bool:
@@ -309,7 +309,7 @@ def _render_text(proposals: list[Proposal], days: int) -> None:
     print(
         "\nNothing has been changed. Apply selected entries with:\n"
         "  hermes approvals suggest --apply 1,3\n"
-        "Entries are merged into command_allowlist in ~/.hermes/config.yaml."
+        "Entries are merged into command_allowlist in ~/.kova/config.yaml."
     )
 
 
@@ -344,7 +344,7 @@ def suggest_command(args) -> int:
             print("Added to command_allowlist:")
             for pattern in applied:
                 print(f"  + {pattern}")
-            print(f"\ncommand_allowlist now has {len(merged)} entries (~/.hermes/config.yaml).")
+            print(f"\ncommand_allowlist now has {len(merged)} entries (~/.kova/config.yaml).")
         return 0
 
     if as_json:

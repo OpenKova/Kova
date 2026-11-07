@@ -2,7 +2,7 @@
 
 ``host_multiplexer_serving`` reads the HOST-wide rendezvous record, so two readers were fooled:
 
-* #121352 — two Hermes tenants (separate ``HERMES_HOME`` roots) on one host each expose a profile
+* #121352 — two Kova tenants (separate ``KOVA_HOME`` roots) on one host each expose a profile
   named ``default``; tenant B's guard saw tenant A's multiplexer "serving default" and refused
   with exit 78, parking B's launchd unit. A host gateway under ANOTHER tenant root never serves us.
 * #120871 — a standalone fleet member (``-p argus gateway run``, no default gateway) publishes the
@@ -26,13 +26,13 @@ from gateway import host_attach
 from gateway.host_attach import HostGateway
 
 
-def _use_home(monkeypatch, fake_home: Path, hermes_home: Path) -> None:
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "config.yaml").write_text("{}\n", encoding="utf-8")
+def _use_home(monkeypatch, fake_home: Path, kova_home: Path) -> None:
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(fake_home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
-    monkeypatch.setattr("gateway.status._get_process_hermes_home", lambda: hermes_home)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
+    monkeypatch.setattr("gateway.status._get_process_kova_home", lambda: kova_home)
 
 
 def _publish_host(monkeypatch, home: Path, served: tuple[str, ...]) -> HostGateway:
@@ -75,7 +75,7 @@ def test_foreign_tenants_host_gateway_never_serves_this_home(tmp_path, monkeypat
 def test_own_standalone_gateway_is_not_a_multiplexer_refusing_its_restart(tmp_path, monkeypatch, gw):
     """#120871 (T1/T6 standalone fleet): argus's own host record is ours to restart."""
     fake_home = tmp_path / "fakehome"
-    own_home = fake_home / ".hermes" / "profiles" / "argus"
+    own_home = fake_home / ".kova" / "profiles" / "argus"
     _use_home(monkeypatch, fake_home, own_home)
     _publish_host(monkeypatch, own_home, ("argus",))
 
@@ -89,7 +89,7 @@ def test_own_standalone_gateway_is_not_a_multiplexer_refusing_its_restart(tmp_pa
 def test_satellite_served_by_same_tenants_multiplexer_is_still_refused(tmp_path, monkeypatch, gw):
     """Control: the default multiplexer of OUR tenant lists coder -> refused, hint names the owner."""
     fake_home = tmp_path / "fakehome"
-    root = fake_home / ".hermes"
+    root = fake_home / ".kova"
     _use_home(monkeypatch, fake_home, root / "profiles" / "coder")
     _publish_host(monkeypatch, root, ("default", "coder"))
 
@@ -109,7 +109,7 @@ def test_cron_status_restart_hint_names_the_profile_hosting_the_scheduler(tmp_pa
     from kova_cli import cron as cron_mod
 
     fake_home = tmp_path / "fakehome"
-    own_home = fake_home / ".hermes" / "profiles" / "argus"
+    own_home = fake_home / ".kova" / "profiles" / "argus"
     _use_home(monkeypatch, fake_home, own_home)
     _publish_host(monkeypatch, own_home, ("argus",))
     monkeypatch.setattr(cron_mod, "_active_cron_provider_name", lambda: "builtin")

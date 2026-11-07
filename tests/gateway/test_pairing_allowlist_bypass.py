@@ -83,8 +83,8 @@ def test_unpaired_user_in_allowlist_still_authorized(monkeypatch):
 @pytest.fixture
 def store(tmp_path, monkeypatch):
     """A real PairingStore backed by a temp pairing dir."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    (tmp_path / ".hermes").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    (tmp_path / ".kova").mkdir(parents=True, exist_ok=True)
     import importlib
 
     import gateway.pairing as pairing_mod
@@ -101,7 +101,7 @@ def _approve_new_user(store, platform, user_id, user_name=""):
 def test_approval_adds_to_configured_allowlist(store, monkeypatch):
     """When an allowlist exists, approval appends the user to it (option i)."""
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "owner1")
-    # save_env_value writes to .env under HERMES_HOME; patch it to capture.
+    # save_env_value writes to .env under KOVA_HOME; patch it to capture.
     captured = {}
     import kova_cli.config as cfg
 

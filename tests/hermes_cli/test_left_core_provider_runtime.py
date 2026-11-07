@@ -2,7 +2,7 @@
 plugin of a provider that left core for a home that uses it, once per process, honouring the failure
 backoff and ``security.allow_lazy_installs``.
 
-Real config files under a temp ``HERMES_HOME``; the catalog lookup and the network install are stand-ins.
+Real config files under a temp ``KOVA_HOME``; the catalog lookup and the network install are stand-ins.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import kova_cli.left_core_migration as lcm
 def _fresh(monkeypatch):
     monkeypatch.setattr(lcm, "_attempted", set())
     monkeypatch.setattr(lcm, "_terminal_front_end", False)
-    for name in ("HERMES_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
+    for name in ("KOVA_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
         monkeypatch.delenv(name, raising=False)
     import kova_cli.memory_provider_migration as mpm
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name)  # never the network
@@ -33,7 +33,7 @@ def installs(monkeypatch):
         return {"ok": False, "error": "fatal: unable to access the catalog repo"}
     import kova_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", fake_install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)  # the harness's bridge; config decides
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)  # the harness's bridge; config decides
     return calls
 
 
@@ -41,7 +41,7 @@ def _copilot_home(tmp_path: Path, monkeypatch, config: str = "model:\n  provider
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text(config, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
@@ -125,7 +125,7 @@ def test_doctor_installs_nothing_and_names_the_install(tmp_path, monkeypatch, in
     from kova_cli.doctor_config import _check_config_file
     home = _copilot_home(tmp_path, monkeypatch, "model:\n  provider: nous\nauxiliary:\n  vision:\n"
                                                 "    provider: copilot\n    model: gpt-4.1\n")
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "KOVA_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, _check_config_file),))
     doctor.run_doctor(SimpleNamespace(fix=False, ack=None, live=False))
     assert installs == []
@@ -184,7 +184,7 @@ def test_doctor_in_a_terminal_front_end_leaves_kept_notices_for_the_next_agent(t
                                                 "    provider: copilot\n    model: gpt-4.1\n")
     lcm._queue_notice(home, "kept by the gateway's start")
     lcm.serve_notices_on_stderr()
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "KOVA_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, _check_config_file),))
     doctor.run_doctor(SimpleNamespace(fix=False, ack=None, live=False))
     assert "kept by the gateway's start" not in capsys.readouterr().err
@@ -196,18 +196,18 @@ def installs_ok(monkeypatch):
     calls = []
 
     def fake_install(identifier, *, force, enable, catalog_name=None, assume_deps_consent=None, **kw):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         calls.append(catalog_name)
-        (Path(get_hermes_home()) / "plugins" / catalog_name).mkdir(parents=True)
+        (Path(get_kova_home()) / "plugins" / catalog_name).mkdir(parents=True)
         return {"ok": True}
     import kova_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", fake_install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     return calls
 
 
 def _agent_start_in_another_process() -> str:
-    """What a fresh process's agent start (its startup-warning sink) delivers for ``HERMES_HOME``."""
+    """What a fresh process's agent start (its startup-warning sink) delivers for ``KOVA_HOME``."""
     import os
     import subprocess
     import sys
@@ -291,7 +291,7 @@ def test_a_provider_installed_during_resolution_resolves_in_that_same_call(tmp_p
         return {"ok": True}
     import kova_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     from kova_cli.runtime_provider import resolve_runtime_provider
     try:
         runtime = resolve_runtime_provider()

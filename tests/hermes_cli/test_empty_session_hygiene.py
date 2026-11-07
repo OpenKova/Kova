@@ -81,12 +81,12 @@ class TestDeleteSessionIfEmpty:
 
 
 class TestCLIDiscardSessionIfEmpty:
-    """Wiring tests for HermesCLI._discard_session_if_empty."""
+    """Wiring tests for KovaCLI._discard_session_if_empty."""
 
     def _make_cli(self, db):
-        from cli import HermesCLI
+        from cli import KovaCLI
 
-        cli = HermesCLI.__new__(HermesCLI)
+        cli = KovaCLI.__new__(KovaCLI)
         cli._session_db = db
         cli.conversation_history = []
         return cli

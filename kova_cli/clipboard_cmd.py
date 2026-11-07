@@ -46,7 +46,7 @@ def extract_clipboard_image(dest: Path) -> tuple[int, dict]:
             raise PermissionError("file is not writable")
         # Extract into a private directory beside dest, then rename over it: the extractor
         # deletes its target on failure, so dest itself is only ever replaced by a full image.
-        with tempfile.TemporaryDirectory(prefix=".hermes-clipboard-", dir=dest.parent) as tmp:
+        with tempfile.TemporaryDirectory(prefix=".kova-clipboard-", dir=dest.parent) as tmp:
             staged = Path(tmp) / dest.name
             if clipboard.save_clipboard_image(staged):
                 with staged.open("rb") as f:

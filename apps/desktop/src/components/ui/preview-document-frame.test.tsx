@@ -10,9 +10,9 @@ afterEach(() => {
 })
 
 it.each(['allow-scripts', ''])('sends browser HTML only to its own isolated frame (%s)', sandbox => {
-  document.documentElement.dataset.hermesDesktopHost = 'browser'
-  vi.stubGlobal('__HERMES_BASE_PATH__', '/hermes')
-  vi.stubGlobal('__HERMES_UI_SURFACE__', 'webapp')
+  document.documentElement.dataset.kovaDesktopHost = 'browser'
+  vi.stubGlobal('__KOVA_BASE_PATH__', '/hermes')
+  vi.stubGlobal('__KOVA_UI_SURFACE__', 'webapp')
   const { container, rerender } = render(<PreviewDocumentFrame sandbox={sandbox} srcDoc="<h1>private</h1>" />)
   const frame = container.querySelector('iframe')!
   expect(frame.getAttribute('srcdoc')).toBeNull()

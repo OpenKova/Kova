@@ -90,11 +90,11 @@ class TestMissingProfileWarning:
             with patch("kova_cli.profiles.get_profile_dir") as mock_get_dir:
                 mock_get_dir.return_value = Path("/hermes/profiles/nonexistent")
                 with patch("kova_cli.profiles.profile_exists", return_value=False):
-                    with patch("kova_constants.get_hermes_home", return_value=Path("/hermes")):
+                    with patch("kova_constants.get_kova_home", return_value=Path("/hermes")):
                         with caplog.at_level(logging.WARNING):
                             result = mock_runner._resolve_profile_home_for_source(discord_source)
 
-                            # Should fall back to global HERMES_HOME
+                            # Should fall back to global KOVA_HOME
                             assert result == Path("/hermes")
 
                             # Should have logged a warning
@@ -117,11 +117,11 @@ class TestExceptionHandling:
         
         with patch("kova_cli.profiles.get_active_profile_name", return_value="active"):
             with patch("kova_cli.profiles.get_profile_dir", side_effect=ValueError("Invalid profile name")):
-                with patch("kova_constants.get_hermes_home", return_value=Path("/hermes")):
+                with patch("kova_constants.get_kova_home", return_value=Path("/hermes")):
                     with caplog.at_level(logging.WARNING):
                         result = mock_runner._resolve_profile_home_for_source(discord_source)
                         
-                        # Should fall back to global HERMES_HOME
+                        # Should fall back to global KOVA_HOME
                         assert result == Path("/hermes")
                         
                         # Should have logged a warning with exception info

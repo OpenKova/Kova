@@ -15,9 +15,9 @@ def remote_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text("plugins:\n  enabled: [alpha]\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv(config_backend.BACKEND_ENV, "remote")
-    monkeypatch.delenv("HERMES_CONFIG_INSTANCE_ID", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_INSTANCE_ID", raising=False)
     monkeypatch.setattr(config_backend, "_BOOTSTRAPPED", True)
     remote._reset_for_tests()
     yield home

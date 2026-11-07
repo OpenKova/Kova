@@ -28,9 +28,9 @@ const PROXY_SET_KEYS = ['HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy'
 const NO_PROXY_KEYS = ['NO_PROXY', 'no_proxy']
 
 /** Comma list of the variables the Desktop added to an update child's env. */
-export const UPDATE_PROXY_MARKER = 'HERMES_UPDATE_SYSTEM_PROXY'
+export const UPDATE_PROXY_MARKER = 'KOVA_UPDATE_SYSTEM_PROXY'
 /** `${SAVED_PREFIX}NO_PROXY` holds the user's own NO_PROXY that the Desktop extended. */
-export const SAVED_PREFIX = 'HERMES_UPDATE_USER_'
+export const SAVED_PREFIX = 'KOVA_UPDATE_USER_'
 
 // git + the GitHub API and assets, the release pointer, npm, PyPI + uv, Electron downloads.
 export const UPDATE_HOSTS = [

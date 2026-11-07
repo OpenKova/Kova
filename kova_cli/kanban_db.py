@@ -1,10 +1,10 @@
 """SQLite-backed Kanban board shared across profiles (the cross-profile coordination primitive).
 
-Lives under the shared Hermes root: ``default`` board DB at ``<root>/kanban.db`` (pre-boards
+Lives under the shared Kova root: ``default`` board DB at ``<root>/kanban.db`` (pre-boards
 back-compat), other boards at ``<root>/kanban/boards/<slug>/``; a worker on one board never sees
-another. Board resolution: ``board=`` arg > ``HERMES_KANBAN_BOARD`` > ``HERMES_KANBAN_DB`` (pins the
+another. Board resolution: ``board=`` arg > ``KOVA_KANBAN_BOARD`` > ``KOVA_KANBAN_DB`` (pins the
 file path) > ``<root>/kanban/current`` > ``default`` — but only for unfenced callers; the dispatcher
-injects these into workers, and dispatched workers (``HERMES_KANBAN_TASK``), delegated children and
+injects these into workers, and dispatched workers (``KOVA_KANBAN_TASK``), delegated children and
 board-enumerating machine flows (gateway notifier/watcher/dispatcher, ``pin_first_board_resolution``)
 always resolve through the pin, so workers physically cannot see other boards.
 Concurrency: WAL + ``BEGIN IMMEDIATE`` + compare-and-swap on ``tasks.status``/``claim_lock`` —
@@ -276,7 +276,7 @@ def _fire_dispatch_tick_hook(
 
 
 # Claim window before the next tick reclaims a running task; long workers
-# ``heartbeat_claim`` or raise it via HERMES_KANBAN_CLAIM_TTL_SECONDS.
+# ``heartbeat_claim`` or raise it via KOVA_KANBAN_CLAIM_TTL_SECONDS.
 DEFAULT_CLAIM_TTL_SECONDS = 15 * 60
 
 # A live PID with a heartbeat older than this is wedged and reclaimed anyway
@@ -294,11 +294,11 @@ RECLAIM_DEFER_GRACE_SECONDS = 120
 
 
 def _resolve_claim_ttl_seconds(ttl_seconds: Optional[int] = None) -> int:
-    """Explicit ``ttl_seconds`` > ``HERMES_KANBAN_CLAIM_TTL_SECONDS`` > default."""
+    """Explicit ``ttl_seconds`` > ``KOVA_KANBAN_CLAIM_TTL_SECONDS`` > default."""
     if ttl_seconds is not None:
         return max(1, int(ttl_seconds))
 
-    return _env_int("HERMES_KANBAN_CLAIM_TTL_SECONDS", DEFAULT_CLAIM_TTL_SECONDS, minimum=1)
+    return _env_int("KOVA_KANBAN_CLAIM_TTL_SECONDS", DEFAULT_CLAIM_TTL_SECONDS, minimum=1)
 
 
 # ``detect_crashed_workers`` skips ``_pid_alive`` this long after start: the
@@ -316,13 +316,13 @@ KANBAN_TERMINAL_PROVIDER_EXIT_CODE = 78
 
 
 def _resolve_crash_grace_seconds() -> int:
-    """``HERMES_KANBAN_CRASH_GRACE_SECONDS`` (0 = immediate, for tests) else default."""
-    return _env_int("HERMES_KANBAN_CRASH_GRACE_SECONDS", DEFAULT_CRASH_GRACE_SECONDS)
+    """``KOVA_KANBAN_CRASH_GRACE_SECONDS`` (0 = immediate, for tests) else default."""
+    return _env_int("KOVA_KANBAN_CRASH_GRACE_SECONDS", DEFAULT_CRASH_GRACE_SECONDS)
 
 
 def _resolve_rate_limit_cooldown_seconds() -> int:
-    """``HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS`` (0 = next tick, for tests) else default."""
-    return _env_int("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS)
+    """``KOVA_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS`` (0 = next tick, for tests) else default."""
+    return _env_int("KOVA_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS)
 
 
 # --- Paths ---
@@ -345,7 +345,7 @@ def pin_first_board_resolution():
     The gateway notifier, per-subscription cursor writes and the embedded
     dispatcher poll every board slug from ``list_boards()`` — the slug is not
     caller intent, it is an iteration variable. On a box whose environment pins
-    ``HERMES_KANBAN_DB`` (the dispatcher default) every slug must map to that
+    ``KOVA_KANBAN_DB`` (the dispatcher default) every slug must map to that
     one pinned file: the notifier dedupes resolved DB paths, and per-slug
     paths read empty boards nobody writes, silently killing wake
     notifications. Explicit cross-board intent (CLI ``--board``, a model
@@ -399,14 +399,14 @@ def _require_slug(slug: str) -> str:
 
 
 def kanban_home() -> Path:
-    """``HERMES_KANBAN_HOME`` else ``get_default_hermes_root()``. Shared across
-    profiles BY DESIGN: resolving through the active profile's HERMES_HOME would
+    """``KOVA_KANBAN_HOME`` else ``get_default_kova_root()``. Shared across
+    profiles BY DESIGN: resolving through the active profile's KOVA_HOME would
     fork the board per profile and break the dispatcher/worker handoff."""
-    override = os.environ.get("HERMES_KANBAN_HOME", "").strip()
+    override = os.environ.get("KOVA_KANBAN_HOME", "").strip()
     if override:
         return Path(override).expanduser()
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root()
 
 
 def boards_root() -> Path:
@@ -421,7 +421,7 @@ def current_board_path() -> Path:
 
 
 def get_current_board() -> str:
-    """Active slug: context override -> ``HERMES_KANBAN_BOARD`` -> ``<root>/kanban/current``
+    """Active slug: context override -> ``KOVA_KANBAN_BOARD`` -> ``<root>/kanban/current``
     (only while that board exists) -> ``DEFAULT_BOARD``. A malformed/stale slug
     falls through — the dispatcher must never crash on a hand-edited file."""
     def _existing(candidate: str) -> Optional[str]:
@@ -434,7 +434,7 @@ def get_current_board() -> str:
         if not (normed and board_exists(normed)):
             return None
         # An archived board leaves a tombstone board.json; a stale `current`
-        # file or HERMES_KANBAN_BOARD pointing at one falls through to
+        # file or KOVA_KANBAN_BOARD pointing at one falls through to
         # default rather than resurrecting it (#43243).
         if read_board_metadata(normed).get("archived"):
             return None
@@ -442,7 +442,7 @@ def get_current_board() -> str:
 
     for candidate in (
         (_CURRENT_BOARD_OVERRIDE.get() or "").strip(),
-        os.environ.get("HERMES_KANBAN_BOARD", "").strip(),
+        os.environ.get("KOVA_KANBAN_BOARD", "").strip(),
     ):
         found = _existing(candidate)
         if found:
@@ -508,7 +508,7 @@ def _explicit_board_slug(board: Optional[str]) -> Optional[str]:
         return _normalize_board_slug(board)
     # A caller-scoped board (CLI `hermes kanban --board B ...`, dashboard
     # plugin_api) is explicit intent just like a direct board= argument —
-    # without this a worker-pinned HERMES_KANBAN_DB silently outranks --board
+    # without this a worker-pinned KOVA_KANBAN_DB silently outranks --board
     # (os-reviewer P1 on PR#107195 / t_11c4afd8).
     ctx = (_CURRENT_BOARD_OVERRIDE.get() or "").strip()
     if ctx:
@@ -521,12 +521,12 @@ def _explicit_board_slug(board: Optional[str]) -> Optional[str]:
 
 def _explicit_board_intent_pinned() -> bool:
     """Whether an explicit ``board=`` (or scoped ``--board``) must still resolve
-    through the ``HERMES_KANBAN_DB``-style env pins instead of its own board dir.
+    through the ``KOVA_KANBAN_DB``-style env pins instead of its own board dir.
 
     True for machine flows wrapped in :func:`pin_first_board_resolution` and
     for every execution the dispatcher fences: its own workers (they carry
-    ``HERMES_KANBAN_TASK``) and delegated children / descendants (the
-    ``HERMES_DELEGATED_CHILD_CONTEXT`` marker). The pins ARE the "workers
+    ``KOVA_KANBAN_TASK``) and delegated children / descendants (the
+    ``KOVA_DELEGATED_CHILD_CONTEXT`` marker). The pins ARE the "workers
     physically cannot see other boards" isolation (5ec6baa), and
     ``agent.delegation_context.kanban_path_is_fenced`` checks the pinned path /
     fenced root — an explicit board that resolved elsewhere would also escape
@@ -561,21 +561,21 @@ def _board_path(
 
 
 def kanban_db_path(board: Optional[str] = None) -> Path:
-    """``kanban.db`` path: ``HERMES_KANBAN_DB`` pins it (injected into workers);
+    """``kanban.db`` path: ``KOVA_KANBAN_DB`` pins it (injected into workers);
     ``default`` -> ``<root>/kanban.db`` (back-compat), else the board dir."""
-    return _board_path("HERMES_KANBAN_DB", board, ("kanban.db",), "kanban.db")
+    return _board_path("KOVA_KANBAN_DB", board, ("kanban.db",), "kanban.db")
 
 
 def workspaces_root(board: Optional[str] = None) -> Path:
-    """Per-board scratch workspace root (``HERMES_KANBAN_WORKSPACES_ROOT`` wins);
+    """Per-board scratch workspace root (``KOVA_KANBAN_WORKSPACES_ROOT`` wins);
     ``default`` keeps the legacy ``<root>/kanban/workspaces/``."""
-    return _board_path("HERMES_KANBAN_WORKSPACES_ROOT", board, ("kanban", "workspaces"), "workspaces")
+    return _board_path("KOVA_KANBAN_WORKSPACES_ROOT", board, ("kanban", "workspaces"), "workspaces")
 
 
 def attachments_root(board: Optional[str] = None) -> Path:
-    """Per-board attachments root (``HERMES_KANBAN_ATTACHMENTS_ROOT`` wins). Workers
+    """Per-board attachments root (``KOVA_KANBAN_ATTACHMENTS_ROOT`` wins). Workers
     read attachments by absolute path, so remote terminal backends must mount it."""
-    return _board_path("HERMES_KANBAN_ATTACHMENTS_ROOT", board, ("kanban", "attachments"), "attachments")
+    return _board_path("KOVA_KANBAN_ATTACHMENTS_ROOT", board, ("kanban", "attachments"), "attachments")
 
 
 def task_attachments_dir(task_id: str, board: Optional[str] = None) -> Path:
@@ -633,7 +633,7 @@ class Task:
     # done / budget exhausted (-> kanban_block); ``goal_max_turns`` None -> goals default.
     goal_mode: bool = False
     goal_max_turns: Optional[int] = None
-    session_id: Optional[str] = None         # originating HERMES_SESSION_ID; NULL from CLI/dashboard
+    session_id: Optional[str] = None         # originating KOVA_SESSION_ID; NULL from CLI/dashboard
     # VALID_BLOCK_KINDS or None (legacy); kept across unblock so a same-kind re-block reads as a loop.
     block_kind: Optional[str] = None
     block_recurrences: int = 0               # unblock-loop counter, see BLOCK_RECURRENCE_LIMIT
@@ -856,7 +856,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     -- goals-engine default.
     goal_max_turns       INTEGER,
     -- Originating chat/agent session id when the task was created from
-    -- inside an agent loop that propagated ``HERMES_SESSION_ID``. NULL
+    -- inside an agent loop that propagated ``KOVA_SESSION_ID``. NULL
     -- for tasks created from the CLI, dashboard, or any path that doesn't
     -- set the env var, and for an id with no ``sessions`` row in this
     -- profile's state.db (kanban_create verifies before stamping). Indexed
@@ -4076,8 +4076,8 @@ def list_profiles_on_disk() -> list[str]:
     """Profiles with a ``config.yaml`` plus the implicit ``default``; reads paths
     directly to avoid importing ``kova_cli.profiles`` at startup."""
     try:
-        from kova_constants import get_default_hermes_root
-        default_root = get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        default_root = get_default_kova_root()
         profiles_dir = default_root / "profiles"
     except Exception:
         return []

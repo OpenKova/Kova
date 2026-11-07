@@ -1,10 +1,10 @@
-"""``hermes update`` refreshes the installed macOS ``Hermes.app`` from the rebuilt bundle (#52339).
+"""``hermes update`` refreshes the installed macOS ``Kova.app`` from the rebuilt bundle (#52339).
 
 ``hermes desktop --build-only`` only packages into ``apps/desktop/release/``; Finder launches the
 copy in ``/Applications``. These pin the contract of ``_install_rebuilt_macos_bundles``: a stale
 or missing installed copy is (re)installed, a current one and a running one are never touched, and
 a failed swap leaves the previous bundle launchable. Which paths count as installed is decided by
-``_installed_desktop_apps``: a recorded copy that went missing comes back until Hermes' own GUI
+``_installed_desktop_apps``: a recorded copy that went missing comes back until Kova' own GUI
 uninstall drops the record.
 """
 
@@ -17,9 +17,9 @@ from kova_cli import main_desktop
 
 
 def _bundle(root: Path, asar: bytes) -> Path:
-    app = root / "Hermes.app"
+    app = root / "Kova.app"
     (app / "Contents" / "MacOS").mkdir(parents=True)
-    (app / "Contents" / "MacOS" / "Hermes").write_bytes(b"\xcf\xfa\xed\xfe")
+    (app / "Contents" / "MacOS" / "Kova").write_bytes(b"\xcf\xfa\xed\xfe")
     (app / "Contents" / "Resources").mkdir()
     (app / "Contents" / "Resources" / "app.asar").write_bytes(asar)
     return app
@@ -44,14 +44,14 @@ def test_stale_and_missing_bundles_are_installed_current_and_running_are_left_al
     current_marker = current / "Contents" / "marker"
     current_marker.write_text("untouched", encoding="utf-8")
 
-    missing = tmp_path / "missing" / "Hermes.app"
+    missing = tmp_path / "missing" / "Kova.app"
     installed, problems = main_desktop._install_rebuilt_macos_bundles(
         rebuilt, [stale, current, running, missing], running={running.resolve()})
 
     assert installed == [stale, missing]
     assert _asar(stale) == b"rebuilt" and _asar(missing) == b"rebuilt"
-    assert not (stale.parent / "Hermes.app.hermes-update-old").exists()
-    assert not (stale.parent / "Hermes.app.hermes-update-new").exists()
+    assert not (stale.parent / "Kova.app.kova-update-old").exists()
+    assert not (stale.parent / "Kova.app.kova-update-new").exists()
     assert current_marker.read_text(encoding="utf-8") == "untouched"
     # A live app is reported, never swapped under.
     assert _asar(running) == b"older"
@@ -66,7 +66,7 @@ def _patch_sigs(monkeypatch, summaries):
     monkeypatch.setattr(main_desktop, "_macos_signature_summary", lambda codesign, app: summaries(app))
 
 
-def _publisher_sig(app, team="TEAM0123", ident="com.nousresearch.hermes", verified=True):
+def _publisher_sig(app, team="TEAM0123", ident="com.nousresearch.kova", verified=True):
     return {"team": team, "identifier": ident, "verified": verified}
 
 
@@ -87,8 +87,8 @@ def test_publisher_signed_install_is_never_replaced_by_local_build(rebuilt, tmp_
     assert "publisher-signed app (Team ID TEAM0123)" in problems[0]
     assert "kept the existing app" in problems[0]
     assert _asar(stale) == b"stale"
-    assert not (stale.parent / "Hermes.app.hermes-update-new").exists()
-    assert not (stale.parent / "Hermes.app.hermes-update-old").exists()
+    assert not (stale.parent / "Kova.app.kova-update-new").exists()
+    assert not (stale.parent / "Kova.app.kova-update-old").exists()
 
 
 def test_team_id_mismatch_refuses_swap(rebuilt, tmp_path, monkeypatch):
@@ -106,7 +106,7 @@ def test_team_id_mismatch_refuses_swap(rebuilt, tmp_path, monkeypatch):
 def test_bundle_identifier_mismatch_refuses_swap(rebuilt, tmp_path, monkeypatch):
     stale = _bundle(tmp_path / "Applications", b"stale")
     sigs = {
-        rebuilt: _publisher_sig(rebuilt, ident="com.other.hermes"),
+        rebuilt: _publisher_sig(rebuilt, ident="com.other.kova"),
         stale: _publisher_sig(stale),
     }
     _patch_sigs(monkeypatch, lambda app: sigs.get(app))
@@ -148,7 +148,7 @@ def test_matching_publisher_signing_swaps(rebuilt, tmp_path, monkeypatch):
 def test_adhoc_installed_still_swaps(rebuilt, tmp_path, monkeypatch):
     """Ad-hoc installs (the local development flow) keep swapping regardless of rebuild sig."""
     stale = _bundle(tmp_path / "Applications", b"stale")
-    sigs = {stale: {"team": None, "identifier": "com.nousresearch.hermes", "verified": True}}
+    sigs = {stale: {"team": None, "identifier": "com.nousresearch.kova", "verified": True}}
     _patch_sigs(monkeypatch, lambda app: sigs.get(app))
 
     installed, problems = main_desktop._install_rebuilt_macos_bundles(rebuilt, [stale], running=set())
@@ -162,7 +162,7 @@ def test_failed_swap_keeps_the_previous_bundle_launchable(rebuilt, tmp_path, mon
     real_rename = Path.rename
 
     def fail_final_rename(self, target):
-        if self.name.endswith(".hermes-update-new"):
+        if self.name.endswith(".kova-update-new"):
             raise OSError("simulated rename failure")
         return real_rename(self, target)
     monkeypatch.setattr(Path, "rename", fail_final_rename)
@@ -172,7 +172,7 @@ def test_failed_swap_keeps_the_previous_bundle_launchable(rebuilt, tmp_path, mon
     assert installed == []
     assert len(problems) == 1
     assert stale.is_dir() and _asar(stale) == b"stale"
-    assert not (stale.parent / "Hermes.app.hermes-update-new").exists()
+    assert not (stale.parent / "Kova.app.kova-update-new").exists()
 
 
 @pytest.mark.platforms("macos")
@@ -181,18 +181,18 @@ def test_recorded_app_that_went_missing_comes_back_until_gui_uninstall(rebuilt, 
     from kova_cli import main as hermes_main
 
     home = tmp_path / "hermes-home"
-    (home / "hermes-agent").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", home / "hermes-agent")
+    (home / "kova-agent").mkdir(parents=True)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", home / "kova-agent")
     (rebuilt / "Contents" / "Resources" / "install-stamp.json").write_text('{"updateMechanism": "self"}', encoding="utf-8")
-    app = tmp_path / "Applications" / "Hermes.app"
+    app = tmp_path / "Applications" / "Kova.app"
     shutil.copytree(rebuilt, app)
-    user_app = tmp_path / "user" / "Applications" / "Hermes.app"
+    user_app = tmp_path / "user" / "Applications" / "Kova.app"
     user_app.parent.mkdir(parents=True)
     monkeypatch.setattr(gui_uninstall, "packaged_gui_app_paths", lambda: [app, user_app])
     monkeypatch.setattr(gui_uninstall, "desktop_userdata_dir", lambda: tmp_path / "userdata")
     monkeypatch.setattr(main_desktop, "_desktop_packaged_executable",
-                        lambda _d: rebuilt / "Contents" / "MacOS" / "Hermes")
+                        lambda _d: rebuilt / "Contents" / "MacOS" / "Kova")
     monkeypatch.setattr(main_desktop, "_running_macos_app_bundles", set)
 
     main_desktop._refresh_installed_desktop_apps(tmp_path)  # current copy: recorded, untouched

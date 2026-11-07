@@ -1,4 +1,4 @@
-"""Prompt assembly with native Windows paths, through real Hermes processes.
+"""Prompt assembly with native Windows paths, through real Kova processes.
 
 * Subdirectory hints: after a terminal command touches ``backend\\src``, the tool result the
   model receives carries ``backend/AGENTS.md`` — for the forward-slash spelling AND the

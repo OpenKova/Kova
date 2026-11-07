@@ -35,8 +35,8 @@ def test_launch_refuses_while_another_process_holds_the_checkout(tmp_path, monke
     (root / ".git").mkdir(parents=True)
     (root / "pyproject.toml").write_text("[project]\nname='example'\n", encoding="utf-8")
     (root / "install-stamp.json").write_text('{"updateMechanism": "self"}', encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)  # an interrupted update's tree
     finished = []
     monkeypatch.setattr(venv_sync, "_finish_source_update", lambda *a, **k: finished.append(a))
@@ -50,7 +50,7 @@ def test_launch_refuses_while_another_process_holds_the_checkout(tmp_path, monke
         with pytest.raises(RuntimeError, match="an update is still running"):
             venv_sync.prepare_launch(root, [])
         assert finished == [], "a second completion tail ran beside the live update tree"
-        assert not (tmp_path / "home" / ".hermes-update-in-progress").exists(), "a refused launch left a claim"
+        assert not (tmp_path / "home" / ".kova-update-in-progress").exists(), "a refused launch left a claim"
     finally:
         holder.kill()
         holder.wait()
@@ -65,7 +65,7 @@ def _tail_root(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
     started = tmp_path / "tail-ran"
     child = f"from pathlib import Path\nPath({str(started)!r}).touch()\n"
     (root / "kova_cli" / "source_completion.py").write_text(child, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(venv_sync, "_tree_matches_completed_stamp", lambda root: False)
     monkeypatch.setattr(pm.environments, "activation_environment", lambda root: None)
     return root, started

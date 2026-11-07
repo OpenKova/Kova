@@ -14,40 +14,40 @@ import pytest
 import kova_cli.gui_uninstall as gu
 
 
-def _make_agent(hermes_home: Path) -> Path:
+def _make_agent(kova_home: Path) -> Path:
     """Create a fake agent install: source package + venv."""
-    agent_root = hermes_home / "hermes-agent"
+    agent_root = kova_home / "kova-agent"
     (agent_root / "kova_cli").mkdir(parents=True)
     (agent_root / "kova_cli" / "__init__.py").write_text("")
     (agent_root / "venv" / "bin").mkdir(parents=True)
     return agent_root
 
 
-def _make_gui_build(hermes_home: Path) -> None:
+def _make_gui_build(kova_home: Path) -> None:
     """Create the source-built GUI artifacts a `hermes desktop` run produces."""
-    desktop = hermes_home / "hermes-agent" / "apps" / "desktop"
+    desktop = kova_home / "kova-agent" / "apps" / "desktop"
     (desktop / "dist").mkdir(parents=True)
     (desktop / "dist" / "index.html").write_text("<html>")
     (desktop / "release" / "linux-unpacked").mkdir(parents=True)
     (desktop / "node_modules").mkdir(parents=True)
-    (hermes_home / "hermes-agent" / "node_modules").mkdir(parents=True)
-    (hermes_home / "desktop-build-stamp.json").write_text("{}")
+    (kova_home / "kova-agent" / "node_modules").mkdir(parents=True)
+    (kova_home / "desktop-build-stamp.json").write_text("{}")
 
 
 def test_gui_install_summary_shape(tmp_path, monkeypatch):
-    hermes_home = tmp_path / ".hermes"
-    _make_agent(hermes_home)
-    _make_gui_build(hermes_home)
+    kova_home = tmp_path / ".kova"
+    _make_agent(kova_home)
+    _make_gui_build(kova_home)
     monkeypatch.setattr(gu, "packaged_gui_app_paths", list)
     monkeypatch.setattr(gu, "desktop_userdata_dir", lambda: tmp_path / "none")
 
-    summary = gu.gui_install_summary(hermes_home)
+    summary = gu.gui_install_summary(kova_home)
     # JSON-serializable primitives the desktop UI gates on.
     assert summary["agent_installed"] is True
     assert summary["gui_installed"] is True
     assert isinstance(summary["source_built_artifacts"], list)
     assert all(isinstance(p, str) for p in summary["source_built_artifacts"])
-    assert summary["hermes_home"] == str(hermes_home)
+    assert summary["kova_home"] == str(kova_home)
     assert summary["platform"] == sys.platform
 
 
@@ -70,22 +70,22 @@ def test_uninstall_removes_launcher_entry_and_refreshes_cache(tmp_path, monkeypa
         lde, "refresh_desktop_databases", lambda d: refreshed.append(d) or ["kbuildsycoca6"]
     )
 
-    hermes_home = tmp_path / ".hermes"
-    _make_agent(hermes_home)
-    icon = lde.icon_path(hermes_home / "hermes-agent")
+    kova_home = tmp_path / ".kova"
+    _make_agent(kova_home)
+    icon = lde.icon_path(kova_home / "kova-agent")
     icon.parent.mkdir(parents=True, exist_ok=True)
     icon.write_bytes(b"\x89PNG")
     monkeypatch.setattr(gu, "desktop_userdata_dir", lambda: tmp_path / "none")
 
-    removed = gu.uninstall_gui(hermes_home)
+    removed = gu.uninstall_gui(kova_home)
 
     assert entry in removed and not entry.exists()
     assert legacy_alias in removed and not legacy_alias.exists()
     assert refreshed == [entry.parent]
     # The icon lives in the checkout. A GUI uninstall must not delete it.
-    assert lde.icon_path(hermes_home / "hermes-agent").exists()
+    assert lde.icon_path(kova_home / "kova-agent").exists()
     # The agent itself survives a GUI uninstall.
-    assert (hermes_home / "hermes-agent" / "kova_cli").is_dir()
+    assert (kova_home / "kova-agent" / "kova_cli").is_dir()
 
 
 @pytest.mark.platforms("posix")  # POSIX symlink semantics

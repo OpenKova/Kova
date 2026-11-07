@@ -13,16 +13,16 @@ OTHER_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 
 @pytest.fixture
-def client(monkeypatch, tmp_path, _isolate_hermes_home):
+def client(monkeypatch, tmp_path, _isolate_kova_home):
     try:
         from starlette.testclient import TestClient
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     catalog_dir = tmp_path / "catalog"
     catalog_dir.mkdir()
     (catalog_dir / "alpha-plugin.yaml").write_text(yaml.safe_dump({
@@ -41,10 +41,10 @@ def client(monkeypatch, tmp_path, _isolate_hermes_home):
 
 def _install(name: str, sidecar: dict | None):
     """A user-dir plugin; *sidecar* records catalog provenance the way the installer does — on the
-    installer-owned ``.install-metadata.json`` record (an in-tree ``.hermes-catalog.json`` is inert)."""
-    from kova_constants import get_hermes_home
+    installer-owned ``.install-metadata.json`` record (an in-tree ``.kova-catalog.json`` is inert)."""
+    from kova_constants import get_kova_home
     from kova_cli.plugins_cmd import _read_install_metadata, _write_install_metadata
-    d = get_hermes_home() / "plugins" / name
+    d = get_kova_home() / "plugins" / name
     d.mkdir(parents=True)
     (d / "plugin.yaml").write_text(yaml.safe_dump({"name": name, "version": "1.0", "description": "x"}))
     if sidecar:
@@ -77,5 +77,5 @@ def test_install_endpoint_refuses_removed_plugins_with_no_bypass(client, monkeyp
                  {"identifier": "", "catalog_name": "bad-plugin"}, {"identifier": "evil/bad-plugin"}):
         resp = client.post("/api/dashboard/agent-plugins/install", json=body)
         assert resp.status_code == 400, body
-        assert "removed" in resp.json()["detail"] or "not in the Hermes plugin catalog" in resp.json()["detail"]
+        assert "removed" in resp.json()["detail"] or "not in the Kova plugin catalog" in resp.json()["detail"]
     assert client.post("/api/dashboard/agent-plugins/install", json={"identifier": ""}).status_code == 400

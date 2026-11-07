@@ -70,7 +70,7 @@ def test_pnpm_entry_holds_the_executable_and_the_launchers_dist(tmp_path, target
 
 def test_pnpm_dirs_replace_every_case_twin_of_their_names():
     """Windows hands Python upper-cased env names, and a child given both spellings picks one
-    arbitrarily: the Hermes-owned store must be the only spelling left."""
+    arbitrarily: the Kova-owned store must be the only spelling left."""
     from pm.packages import pnpm_env
 
     env = pnpm_env({"PNPM_CONFIG_STORE_DIR": "/elsewhere/store", "Pnpm_Config_Cache_Dir": "/elsewhere/cache"})

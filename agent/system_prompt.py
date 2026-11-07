@@ -21,14 +21,14 @@ from agent.delegation_context import owned_kanban_task
 from agent.prompt_cache_scope import conversation_id
 from agent.prompt_builder import (
     DEFAULT_AGENT_IDENTITY, EXECUTION_GUIDANCE_MODELS, GOOGLE_MODEL_OPERATIONAL_GUIDANCE,
-    HERMES_AGENT_HELP_GUIDANCE, HERMES_AGENT_HELP_GUIDANCE_NO_SKILLS, KANBAN_GUIDANCE,
+    KOVA_AGENT_HELP_GUIDANCE, KOVA_AGENT_HELP_GUIDANCE_NO_SKILLS, KANBAN_GUIDANCE,
     PARALLEL_TOOL_CALL_GUIDANCE, PLATFORM_HINTS, SESSION_SEARCH_GUIDANCE,
     SKILLS_GUIDANCE, STEER_CHANNEL_NOTE, TASK_COMPLETION_GUIDANCE, TELEGRAM_RICH_MESSAGES_HINT,
     TOOL_USE_ENFORCEMENT_GUIDANCE, TOOL_USE_ENFORCEMENT_MODELS, drain_truncation_warnings,
 )
 from agent import prompt_builder as _pb
 from agent.runtime_cwd import resolve_agent_cwd, resolve_context_cwd
-from kova_constants import get_default_hermes_root, get_hermes_home
+from kova_constants import get_default_kova_root, get_kova_home
 from utils import is_truthy_value
 
 logger = logging.getLogger(__name__)
@@ -77,9 +77,9 @@ _TUI_EMBEDDED_PANE_CLARIFIER = (
 
 
 def _tui_embedded_pane_clarifier(hint: str) -> str:
-    """Append the desktop embedded-terminal clarifier when ``HERMES_DESKTOP_TERMINAL``
+    """Append the desktop embedded-terminal clarifier when ``KOVA_DESKTOP_TERMINAL``
     is set (only the desktop's TUI PTY, never the chat backend). Idempotent."""
-    if not hint or _TUI_EMBEDDED_PANE_CLARIFIER in hint or not is_truthy_value(os.getenv("HERMES_DESKTOP_TERMINAL")):
+    if not hint or _TUI_EMBEDDED_PANE_CLARIFIER in hint or not is_truthy_value(os.getenv("KOVA_DESKTOP_TERMINAL")):
         return hint
     return hint + _TUI_EMBEDDED_PANE_CLARIFIER
 
@@ -107,7 +107,7 @@ def _ambient_plugin_profile_name() -> str:
 
 def _active_profile_name(agent: Any, ambient) -> str:
     """Profile name from the agent's OWN home, else *ambient()*; "default" on any
-    failure. Ambient resolution misreports on threads that lost the HERMES_HOME
+    failure. Ambient resolution misreports on threads that lost the KOVA_HOME
     ContextVar, which is why the agent's home is preferred."""
     try:
         home = _agent_home(agent)
@@ -230,7 +230,7 @@ def _session_start_like(agent: Any, now: Any) -> Any:
 
 def _agent_home(agent: Any) -> Optional[Path]:
     """The agent's OWN profile home, or None to use ambient resolution.
-    A bound HERMES_HOME ContextVar override wins (the gateway multiplexes
+    A bound KOVA_HOME ContextVar override wins (the gateway multiplexes
     profiles over one shared session DB and binds the home per turn); else the
     parent of ``_session_db.db_path`` — ground truth on threads that lost the
     ContextVar, where ambient resolution would leak the launch profile.
@@ -245,8 +245,8 @@ def _agent_home(agent: Any) -> Optional[Path]:
     the default profile's skills/identity into a bot prompt.
     """
     try:
-        from kova_constants import get_hermes_home_override
-        override = get_hermes_home_override()
+        from kova_constants import get_kova_home_override
+        override = get_kova_home_override()
         if override:
             return Path(override)
     except Exception:
@@ -266,12 +266,12 @@ def _agent_skills_dir(agent: Any) -> Optional[Path]:
 
 def _profile_name_for_home(home: Path) -> str:
     """``<root>/profiles/X`` -> ``"X"``; anything else -> ``"default"``.
-    Uses ``get_default_hermes_root()`` (NOT ``get_hermes_home()``): on a bound
+    Uses ``get_default_kova_root()`` (NOT ``get_kova_home()``): on a bound
     profile session the ambient home IS the profile dir, so every profile
     would misreport as "default"."""
     try:
-        from kova_constants import get_default_hermes_root
-        rel = home.resolve().relative_to((get_default_hermes_root() / "profiles").resolve())
+        from kova_constants import get_default_kova_root
+        rel = home.resolve().relative_to((get_default_kova_root() / "profiles").resolve())
         return rel.parts[0] if rel.parts else "default"
     except (ValueError, OSError):
         return "default"
@@ -322,7 +322,7 @@ def _skills_prompt(agent: Any) -> str:
 
 def _auto_load_parts(agent: Any) -> list[str]:
     """``skills.auto_load`` blocks, resolved once per agent lifecycle (config, skill files and
-    HERMES_IGNORE_RULES are read on the first build only) so the prompt stays byte-stable
+    KOVA_IGNORE_RULES are read on the first build only) so the prompt stays byte-stable
     across model switches, compression and static-prefix restoration.
 
     Same gate as ``_skills_prompt``: nothing without the skills toolset, and nothing for agents that skip
@@ -334,7 +334,7 @@ def _auto_load_parts(agent: Any) -> list[str]:
     if not getattr(agent, "_auto_load_skills_resolved", False):
         result: tuple[str, list[str], list[str]] = ("", [], [])
         try:
-            if not is_truthy_value(os.environ.get("HERMES_IGNORE_RULES")):
+            if not is_truthy_value(os.environ.get("KOVA_IGNORE_RULES")):
                 from agent.skill_commands import build_auto_load_prompt
                 result = build_auto_load_prompt(task_id=getattr(agent, "session_id", None), home_override=_agent_home(agent))
             if result[2]:
@@ -377,19 +377,19 @@ def _ambient_file_safety_profile_name() -> str:
 
 
 def _active_profile_line(agent: Any) -> str:
-    """Name the running profile so the agent doesn't conflate ``~/.hermes/skills``
-    (default) with ``~/.hermes/profiles/<active>/skills``.  Resolved from the
+    """Name the running profile so the agent doesn't conflate ``~/.kova/skills``
+    (default) with ``~/.kova/profiles/<active>/skills``.  Resolved from the
     agent's OWN home first (a build thread that lost the ContextVar would
     otherwise print "default" for a bot profile)."""
     _agent_home_path = _agent_home(agent)
     active_profile = _active_profile_name(agent, _ambient_file_safety_profile_name)
     if active_profile == "default":
         # With an explicit agent home, the default profile's data lives at the
-        # ROOT (get_hermes_home() on a bound profile session is the PROFILE dir).
+        # ROOT (get_kova_home() on a bound profile session is the PROFILE dir).
         # Without one, keep the ambient (patchable) resolution byte-identical.
-        _root_str = str(get_default_hermes_root() if _agent_home_path is not None else get_hermes_home())
+        _root_str = str(get_default_kova_root() if _agent_home_path is not None else get_kova_home())
         return (
-            "Active Hermes profile: default. Other profiles (if any) live "
+            "Active Kova profile: default. Other profiles (if any) live "
             "under " + _root_str + "/profiles/<name>/. Each profile has its own "
             "skills/, plugins/, cron/, and memories/ that affect a different "
             "session than this one. Do not modify another profile's "
@@ -398,15 +398,15 @@ def _active_profile_line(agent: Any) -> str:
         )
     # A non-default name is only returned when the resolved home is ALREADY
     # <root>/profiles/<name>, so the profile home is the session home itself.
-    profile_home = str(_agent_home_path) if _agent_home_path is not None else str(get_hermes_home())
+    profile_home = str(_agent_home_path) if _agent_home_path is not None else str(get_kova_home())
     # A non-default name is only ever returned when the resolved home is ALREADY <root>/profiles/<name> —
     # that is exactly how both _profile_name_for_home() and _resolve_active_profile_name() derive it. So the
     # profile home is the session home itself; appending /profiles/<name> again doubled it (#72894). The
-    # default profile's data sits at the ROOT (get_default_hermes_root()), which in ambient profile mode is
-    # NOT get_hermes_home().
-    default_root = get_default_hermes_root()
+    # default profile's data sits at the ROOT (get_default_kova_root()), which in ambient profile mode is
+    # NOT get_kova_home().
+    default_root = get_default_kova_root()
     return (
-        f"Active Hermes profile: {active_profile}. This session reads "
+        f"Active Kova profile: {active_profile}. This session reads "
         f"and writes {profile_home}/. The default "
         f"profile's data lives at {default_root}/skills/, {default_root}/plugins/, "
         f"{default_root}/cron/, {default_root}/memories/ — those belong to a "
@@ -447,7 +447,7 @@ def _cron_delivery_hint(agent: Any) -> str:
     into the session ContextVar before the agent runs (same seam ``send_message`` routes by).
     """
     from gateway.session_context import get_session_env
-    deliver_key = get_session_env("HERMES_CRON_AUTO_DELIVER_PLATFORM", "").lower().strip()
+    deliver_key = get_session_env("KOVA_CRON_AUTO_DELIVER_PLATFORM", "").lower().strip()
     if not deliver_key or deliver_key == "cron":
         return ""
     hint = _resolve_platform_hint(agent, deliver_key, _default_platform_hint(deliver_key))
@@ -726,7 +726,7 @@ def _context_files_part(agent: Any, ctx_len: Optional[int], soul_loaded: bool) -
     install-tree fallback is only legitimate for cli/tui where the launch dir
     IS the user's shell cwd. Desktop launch artifacts skip the session cwd but
     still honor the profile-scoped TERMINAL_CWD; without one, the fallback guard
-    can reject Hermes's bundled AGENTS.md."""
+    can reject Kova's bundled AGENTS.md."""
     if agent.skip_context_files:
         return []
     launch_artifact = getattr(agent, "_context_cwd_is_launch_artifact", False)
@@ -755,16 +755,16 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # ── Stable tier ────────────────────────────────────────────────
     stable_parts, _soul_loaded = _identity_parts(agent, _ctx_len)
     # The skill_view() pointer dangles without skill tools OR without the
-    # hermes-agent skill installed, so the variant is chosen after the skills
+    # kova-agent skill installed, so the variant is chosen after the skills
     # index is built; this slot holds its position.
     _help_guidance_slot = len(stable_parts)
-    stable_parts.append(HERMES_AGENT_HELP_GUIDANCE_NO_SKILLS)
+    stable_parts.append(KOVA_AGENT_HELP_GUIDANCE_NO_SKILLS)
     stable_parts.extend(_guidance_parts(agent))
     skills_prompt = _skills_prompt(agent)
-    # Skill-pointer variant requires BOTH skill_view AND the hermes-agent skill
+    # Skill-pointer variant requires BOTH skill_view AND the kova-agent skill
     # in the rendered index (pure string check — inherits the index's stability).
-    if "skill_view" in (agent.valid_tool_names or set()) and "- hermes-agent:" in skills_prompt:
-        stable_parts[_help_guidance_slot] = HERMES_AGENT_HELP_GUIDANCE
+    if "skill_view" in (agent.valid_tool_names or set()) and "- kova-agent:" in skills_prompt:
+        stable_parts[_help_guidance_slot] = KOVA_AGENT_HELP_GUIDANCE
     stable_parts.extend(_alibaba_identity_part(agent))
     # Pinned skills are per-agent constants (resolved once), so they live in the stable prefix.
     stable_parts.extend(_auto_load_parts(agent))

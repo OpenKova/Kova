@@ -1,8 +1,8 @@
 """The catalog entry's ``requires_hermes`` is enforced, not just displayed: an install by catalog name
-refuses on a Hermes the spec rejects (CLI, dashboard/Desktop, TUI RPC and the left-core auto-install all
+refuses on a Kova the spec rejects (CLI, dashboard/Desktop, TUI RPC and the left-core auto-install all
 go through one seam), and ``update`` keeps the installed pin rather than moving to one that needs a newer
-Hermes. The running version comes from the same source the plugin.yaml gate reads. Real git, file://
-repos, a seeded catalog, temp HERMES_HOME."""
+Kova. The running version comes from the same source the plugin.yaml gate reads. Real git, file://
+repos, a seeded catalog, temp KOVA_HOME."""
 
 from __future__ import annotations
 
@@ -21,12 +21,12 @@ from tests.pm._fixtures import client, isolated_python  # fixtures world needs
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not available")
 
-REFUSAL = "cat-plugin needs Hermes >=0.31; this is 0.30.0."
+REFUSAL = "cat-plugin needs Kova >=0.31; this is 0.30.0."
 
 
 @pytest.fixture
 def gated(request, monkeypatch):
-    """*world* whose catalog entry carries ``state["requires"]`` as its requires_hermes, on Hermes 0.30.0.
+    """*world* whose catalog entry carries ``state["requires"]`` as its requires_hermes, on Kova 0.30.0.
     Console output is captured in ``printed``."""
     base = request.getfixturevalue("world")
     state = base["state"]
@@ -95,14 +95,14 @@ def test_update_keeps_the_installed_pin_when_the_new_pin_needs_a_newer_hermes(ga
 
     with pytest.raises(SystemExit):  # `hermes plugins update cat-plugin`
         pc.cmd_update("cat-plugin", interactive=False)
-    assert any(REFUSAL in line and "after you update Hermes" in line for line in gated["printed"])
+    assert any(REFUSAL in line and "after you update Kova" in line for line in gated["printed"])
     dashboard = pc.dashboard_update_user_plugin("cat-plugin")
     assert dashboard["ok"] is False and REFUSAL in dashboard["error"]
     assert REFUSAL in _rpc({"action": "update", "name": "cat-plugin"})["error"]["message"]
     # `hermes plugins update` (all) lists it as held, not as an update it will apply.
     plan = plan_update_all(run_checks(gated["plugins_dir"], include_pip=False))
     assert not plan.movable
-    assert [(row.name, "after updating Hermes" in why) for row, why in plan.skipped] == [("cat-plugin", True)]
+    assert [(row.name, "after updating Kova" in why) for row, why in plan.skipped] == [("cat-plugin", True)]
     assert _head(target) == gated["sha1"]
 
     gated["state"]["running"] = "0.31.0"

@@ -5,7 +5,7 @@ interpreter), ``node_modules/typescript`` (typescript-language-server loads it),
 ``svelte.config.js``, Rust build scripts and Gradle builds (rust-analyzer, jdtls and
 kotlin-language-server evaluate them), and a ``node_modules/.bin/tsc`` or ``rust-toolchain.toml``
 the post-write shell linters would pick up.  Nothing here executes those files: the tests record
-which servers Hermes would start, the configuration it hands them, and the shell commands it runs.
+which servers Kova would start, the configuration it hands them, and the shell commands it runs.
 """
 from __future__ import annotations
 
@@ -29,8 +29,8 @@ def _write(path, text: str = ""):
 
 
 def _hermes_side_tree(tmp_path, monkeypatch) -> str:
-    """``<HERMES_HOME>/lsp/node_modules`` with a JS TypeScript SDK and Vue 2.x; returns a launcher inside it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    """``<KOVA_HOME>/lsp/node_modules`` with a JS TypeScript SDK and Vue 2.x; returns a launcher inside it."""
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     staging = tmp_path / "home" / "lsp" / "node_modules"
     _write(staging / "typescript" / "lib" / "typescript.js")
@@ -67,7 +67,7 @@ def _strings(value):
 
 def _record_spawns(tmp_path, monkeypatch, launcher, roots, *, trusted_workspaces=()):
     """Config → service → spawn for every ``_SERVERS`` file in every root, cwd inside ``tmp/launch``.
-    Returns ``{(server_id, root): initialization_options}`` for the servers Hermes would start, and the status."""
+    Returns ``{(server_id, root): initialization_options}`` for the servers Kova would start, and the status."""
     _write(tmp_path / "home" / "config.yaml", json.dumps({"lsp": {
         "trusted_workspaces": [str(p) for p in trusted_workspaces],
         "servers": {sid: {"command": [launcher]} for sid in _SERVERS},
@@ -168,9 +168,9 @@ def test_only_operator_workspaces_and_listed_directories_are_trusted(tmp_path, m
         assert shell_linted(sibling) == 0
     finally:
         clear_session_vars(tokens)
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_1")
+    monkeypatch.setenv("KOVA_KANBAN_TASK", "t_1")
     assert shell_linted(sibling) == 0
-    monkeypatch.delenv("HERMES_KANBAN_TASK")
+    monkeypatch.delenv("KOVA_KANBAN_TASK")
     # ...and never $HOME: a dotfiles repo there would trust every directory below it.
     monkeypatch.setenv("HOME", str(sibling))
     monkeypatch.setenv("USERPROFILE", str(sibling))

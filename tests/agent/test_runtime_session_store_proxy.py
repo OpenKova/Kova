@@ -37,7 +37,7 @@ def test_worker_rpc_reaches_loopback_owner_with_proxy_env(monkeypatch, tmp_path)
         ws.send(json.dumps({'jsonrpc': '2.0', 'id': request['id'], 'result': {'method': request['method']}}))
 
     proxy, seen = _refusing_proxy()
-    with serve(owner, '127.0.0.1', 0, subprotocols=['hermes-gateway-v1']) as server:
+    with serve(owner, '127.0.0.1', 0, subprotocols=['kova-gateway-v1']) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         origin = f'http://127.0.0.1:{server.socket.getsockname()[1]}'
         endpoint = SimpleNamespace(api_origin=origin, control_home=None)

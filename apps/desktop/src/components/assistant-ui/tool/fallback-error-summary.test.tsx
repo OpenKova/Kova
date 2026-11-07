@@ -19,7 +19,7 @@ const WINDOWS_PATH_ERROR = 'Failed to write file: C:\\Users\\test-user\\Document
 const WWW_PATH_ERROR = 'Failed to read /tmp/www.config and C:\\Users\\test-user\\Documents\\www.config'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialKovaDesktop = desktopWindow.kovaDesktop
 let fetchLinkTitle: ReturnType<typeof vi.fn>
 
 function renderErrorToolRow(result: unknown) {
@@ -39,7 +39,7 @@ function renderErrorToolRow(result: unknown) {
 
 beforeEach(() => {
   fetchLinkTitle = vi.fn().mockResolvedValue('AI Tools Directory - dealsbe.com')
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     fetchLinkTitle,
     openExternal: vi.fn().mockResolvedValue(undefined)
   } as unknown as Window['hermesDesktop']
@@ -48,7 +48,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   $toolDisclosureStates.set({})
-  desktopWindow.hermesDesktop = initialHermesDesktop
+  desktopWindow.kovaDesktop = initialKovaDesktop
 })
 
 describe('tool error summary linkification', () => {

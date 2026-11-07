@@ -1,4 +1,4 @@
-// Hermes shares %LOCALAPPDATA% and HKCU state with the unpackaged CLI/gateway,
+// Kova shares %LOCALAPPDATA% and HKCU state with the unpackaged CLI/gateway,
 // so every MSIX the repo produces must opt out of write virtualisation and the
 // builder must request the restricted capability that permits it.
 import { execFileSync } from 'node:child_process'
@@ -28,7 +28,7 @@ function taggedApp(tag) {
   const app = path.join(root, 'apps', 'desktop')
   fs.mkdirSync(path.join(app, 'assets'), { recursive: true })
   fs.copyFileSync(path.join(desktop, 'assets/msix-manifest.xml'), path.join(app, 'assets/msix-manifest.xml'))
-  fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'HermesBundled'}\n")
+  fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'KovaBundled'}\n")
   fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'hermes', version: '0.27.1' }))
   const env = { ...process.env, GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid',
     GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid',
@@ -60,7 +60,7 @@ test('store, release, canary and channel MSIX manifests keep write virtualisatio
   fs.copyFileSync(path.join(canary, 'assets/msix-manifest.xml'), path.join(canary, 'build/msix-manifest.xml'))
   const channel = channelApp()
   stageChannelManifest(channel, {
-    windowsVersion: '0.0.7.0', identity: { appNamePascal: 'HermesChannelab12', displayName: 'Hermes preview' }
+    windowsVersion: '0.0.7.0', identity: { appNamePascal: 'KovaChannelab12', displayName: 'Kova preview' }
   })
   const manifests = {
     store: stageStoreManifest(store, 'v0.27.1'),

@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 
-def _fake_import(_hermes_home):
+def _fake_import(_kova_home):
     """What an agent import leaves behind: a model in config.yaml and its key in .env."""
     from kova_cli.config import load_config, save_config, save_env_value
     config = load_config()
@@ -20,13 +20,13 @@ def _fake_import(_hermes_home):
 def _fake_nous_flow(config):
     """The real flow logs in and saves provider ``nous`` with a Portal model."""
     from kova_cli.config import save_config
-    config["model"] = {"provider": "nous", "default": "Hermes-4-405B"}
+    config["model"] = {"provider": "nous", "default": "Kova-4-405B"}
     save_config(config)
 
 
 @pytest.mark.parametrize("switch, nous_runs, expected_model", [
     (False, 0, {"provider": "openrouter", "default": "anthropic/claude-sonnet-4.5"}),
-    (True, 1, {"provider": "nous", "default": "Hermes-4-405B"}),
+    (True, 1, {"provider": "nous", "default": "Kova-4-405B"}),
 ])
 def test_quick_setup_keeps_imported_model_unless_user_switches(switch, nous_runs, expected_model):
     from kova_cli.config import get_env_value, load_config

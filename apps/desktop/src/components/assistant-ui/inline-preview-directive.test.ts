@@ -90,7 +90,7 @@ describe('themePrelude', () => {
 describe('collectThemeBridge', () => {
   afterEach(() => {
     document.documentElement.className = ''
-    delete document.documentElement.dataset.hermesMode
+    delete document.documentElement.dataset.kovaMode
   })
 
   // #123048: the frame's color-scheme must come from the same resolved
@@ -98,14 +98,14 @@ describe('collectThemeBridge', () => {
   // React's useIsDark() reads — that class can still hold last render's
   // value for a paint after applyTheme() has already updated data-hermes-mode.
   it('reads color-scheme from data-hermes-mode, not the .dark class', () => {
-    document.documentElement.dataset.hermesMode = 'dark'
+    document.documentElement.dataset.kovaMode = 'dark'
     document.documentElement.classList.remove('dark')
 
     expect(collectThemeBridge().colorScheme).toBe('dark')
   })
 
   it('falls back to light when the mode attribute disagrees the other way', () => {
-    document.documentElement.dataset.hermesMode = 'light'
+    document.documentElement.dataset.kovaMode = 'light'
     document.documentElement.classList.add('dark')
 
     expect(collectThemeBridge().colorScheme).toBe('light')
@@ -229,7 +229,7 @@ describe('intentScript', () => {
 
     const reply = (data: unknown, source: unknown = parent) => listeners.message?.forEach(fn => fn({ data, source }))
 
-    return { posted, reply, send: win.hermes!.send, win }
+    return { posted, reply, send: win.kova!.send, win }
   }
 
   it('posts the full prompt, never a truncated one', () => {
@@ -275,6 +275,6 @@ describe('intentScript', () => {
 
     await expect(send('   ')).resolves.toEqual({ error: 'invalid', ok: false })
     expect(posted).toHaveLength(0)
-    expect(win.hermes?.maxLength).toBe(MAX_INTENT_LENGTH)
+    expect(win.kova?.maxLength).toBe(MAX_INTENT_LENGTH)
   })
 })

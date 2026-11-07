@@ -406,9 +406,9 @@ def _seed_tree(src: Path, dst: Path) -> None:
 
 def uv_cache_path() -> Path:
     """Where the hermes-owned uv cache lives; unlike uv_cache_dir(), never seeds or writes."""
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    return get_default_hermes_root() / "cache" / "uv"
+    return get_default_kova_root() / "cache" / "uv"
 
 
 def uv_cache_dir() -> Path:
@@ -683,11 +683,11 @@ def npm_env(cache_dir: Path, base_env: Optional[dict] = None) -> dict[str, str]:
 
 def pnpm_env(base_env: Optional[dict] = None) -> dict[str, str]:
     """pnpm's store, metadata cache and state default to the user's XDG dirs. Keep them
-    Hermes-owned beside the uv cache: shared by every profile, gone with the Hermes root."""
-    from kova_constants import get_default_hermes_root
+    Kova-owned beside the uv cache: shared by every profile, gone with the Kova root."""
+    from kova_constants import get_default_kova_root
 
     env = dict(os.environ if base_env is None else base_env)
-    root = get_default_hermes_root() / "cache" / "pnpm"
+    root = get_default_kova_root() / "cache" / "pnpm"
     for name in ("store", "cache", "state"):
         key = f"pnpm_config_{name}_dir"
         # Windows env names are case-insensitive and Python upper-cases inherited ones:
@@ -1192,7 +1192,7 @@ class Chromium(Package):
             raise InstallError(self.name, f"Chromium executable missing under {native(entry)}")
         # Playwright launches without an executable_path (e.g. the
         # har-derived-api-client skill's `chromium.launch(channel="chromium")`)
-        # find this build through the root; Hermes's own launcher asks
+        # find this build through the root; Kova's own launcher asks
         # kova_cli.browser_runtime.chromium_executable() instead.
         return {"PLAYWRIGHT_BROWSERS_PATH": str(entry.parent)}
 

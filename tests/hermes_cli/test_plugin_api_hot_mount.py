@@ -9,7 +9,7 @@ from kova_cli import web_server
 
 
 @pytest.fixture
-def client(_isolate_hermes_home):
+def client(_isolate_kova_home):
     from starlette.testclient import TestClient
 
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
@@ -40,10 +40,10 @@ def _install_late_plugin(home, *, enabled: bool) -> None:
 
 
 def test_plugin_enabled_after_startup_serves_without_restart(client):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     assert client.get("/api/plugins/late-probe/ping").status_code == 404
-    _install_late_plugin(get_hermes_home(), enabled=True)
+    _install_late_plugin(get_kova_home(), enabled=True)
 
     first = client.get("/api/plugins/late-probe/ping", follow_redirects=False)
     assert (first.status_code, first.json()) == (200, {"pong": True})
@@ -57,9 +57,9 @@ def test_plugin_enabled_after_startup_serves_without_restart(client):
 
 
 def test_installed_but_not_enabled_plugin_is_never_imported(client):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    _install_late_plugin(get_hermes_home(), enabled=False)
-    (get_hermes_home() / "plugins" / "late-probe" / "dashboard" / "plugin_api.py").write_text(
+    _install_late_plugin(get_kova_home(), enabled=False)
+    (get_kova_home() / "plugins" / "late-probe" / "dashboard" / "plugin_api.py").write_text(
         "raise SystemExit('imported a not-enabled plugin')\n")
     assert client.get("/api/plugins/late-probe/ping").status_code == 404

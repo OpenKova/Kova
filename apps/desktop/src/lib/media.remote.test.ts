@@ -16,7 +16,7 @@ import {
 
 describe('filePathFromMediaPath', () => {
   it('passes through a plain path', () => {
-    expect(filePathFromMediaPath('/home/u/.hermes/images/a.png')).toBe('/home/u/.hermes/images/a.png')
+    expect(filePathFromMediaPath('/home/u/.kova/images/a.png')).toBe('/home/u/.kova/images/a.png')
   })
 
   it('decodes a file:// URL with encoded characters', () => {
@@ -84,7 +84,7 @@ describe('mediaExternalUrl', () => {
   // #93508 item 5: the browser-hosted Desktop's session token grants host shells. Its gateway files
   // save through the ticketed bridge, so no URL built here may carry that token.
   it('never puts the browser-hosted Desktop session token into a URL', () => {
-    document.documentElement.dataset.hermesDesktopHost = 'browser'
+    document.documentElement.dataset.kovaDesktopHost = 'browser'
     $connection.set({ mode: 'remote', baseUrl: 'http://127.0.0.1:9119', token: 'SECRET' } as never)
 
     try {
@@ -307,11 +307,11 @@ describe('gatewayMediaDataUrl', () => {
   })
 
   it('reads gateway media through the desktop fs bridge instead of /api/media roots', async () => {
-    const url = await gatewayMediaDataUrl('/home/u/.hermes/skills/demo/images/a b.png')
+    const url = await gatewayMediaDataUrl('/home/u/.kova/skills/demo/images/a b.png')
 
     expect(url).toBe('data:image/png;base64,ZHVtbXk=')
     expect(api).toHaveBeenCalledWith({
-      path: '/api/fs/read-data-url?path=%2Fhome%2Fu%2F.hermes%2Fskills%2Fdemo%2Fimages%2Fa%20b.png'
+      path: '/api/fs/read-data-url?path=%2Fhome%2Fu%2F.kova%2Fskills%2Fdemo%2Fimages%2Fa%20b.png'
     })
   })
 })

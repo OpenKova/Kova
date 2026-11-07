@@ -24,10 +24,10 @@ SIBLINGS = {'providers': {
 @pytest.fixture
 def home(monkeypatch):
     from gateway import run
-    from kova_constants import get_hermes_home
-    profile = get_hermes_home()
+    from kova_constants import get_kova_home
+    profile = get_kova_home()
     profile.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(run, '_hermes_home', profile)
+    monkeypatch.setattr(run, '_kova_home', profile)
     return profile
 
 
@@ -93,8 +93,8 @@ async def test_a_following_session_switches_model_with_an_inline_secret_outside_
 def test_source_desktop_is_sent_as_the_gui_surface_the_create_contract_lists(monkeypatch):
     from kova_cli.gateway_session_store import GatewaySessionStore
     from tui_gateway.contracts.registry import CANONICAL_METHODS, canonical_param_problems
-    monkeypatch.setenv('HERMES_SESSION_SOURCE', 'desktop')
-    monkeypatch.setenv('HERMES_SESSION_SOURCE_EXPLICIT', '1')
+    monkeypatch.setenv('KOVA_SESSION_SOURCE', 'desktop')
+    monkeypatch.setenv('KOVA_SESSION_SOURCE_EXPLICIT', '1')
     sent = {}
 
     def call(method, **params):

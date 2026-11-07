@@ -1,13 +1,13 @@
 """Nous free tier: the browser challenge the account service may put in front of a token exchange.
 
 NAS can answer ``POST /api/anonymous/token`` with **428** ``challenge_required`` and a list of
-challenges. Hermes implements exactly one primitive, ``browser-v1``: *open this portal URL, poll
+challenges. Kova implements exactly one primitive, ``browser-v1``: *open this portal URL, poll
 until it clears, exchange again*. Everything the page does (bot detection, an in-browser proof of
-work, an interactive fallback, its copy) belongs to the portal and changes without a Hermes release.
+work, an interactive fallback, its copy) belongs to the portal and changes without a Kova release.
 
 Who opens the URL depends on the surface:
 
-* **desktop** (``HERMES_DESKTOP=1``): this process never opens anything. It publishes the challenge
+* **desktop** (``KOVA_DESKTOP=1``): this process never opens anything. It publishes the challenge
   (``free_tier.challenge`` global event, and ``free_tier.status``'s ``challenge`` field for a client
   that connects later); the renderer hands it to the Electron main process, which loads it in a
   HIDDEN window and reveals that window only if the page asks for the human.
@@ -119,7 +119,7 @@ def server_message(value: Any) -> str:
 def client_surface() -> str:
     """``gateway`` in the process that holds the messaging gateway's runtime lock (nobody is at its
     console) unless it is serving the local Desktop app, ``desktop`` for that and for the backend the
-    desktop app spawned, else ``cli``. ``HERMES_DESKTOP``
+    desktop app spawned, else ``cli``. ``KOVA_DESKTOP``
     alone is inherited by every terminal-pane shell, so desktop ownership needs the spawn credential."""
     from kova_cli.process_identity import is_desktop_owned_backend, serves_local_desktop_now
     if serves_local_desktop_now():
@@ -134,13 +134,13 @@ def client_info() -> dict[str, Any]:
     """The self-reported ``client`` block on a token exchange. It sorts honest clients (which
     surface, which challenge primitives) for the service's rules; it proves nothing, by design."""
     from kova_cli.version_info import get_version_info
-    return {"name": "hermes-agent", "version": get_version_info().base_version, "surface": client_surface(),
+    return {"name": "kova-agent", "version": get_version_info().base_version, "surface": client_surface(),
             "platform": sys.platform, "capabilities": [BROWSER_CAPABILITY]}
 
 
 def user_agent() -> str:
     from kova_cli.version_info import get_version_info
-    return (f"hermes-agent/{get_version_info().base_version} "
+    return (f"kova-agent/{get_version_info().base_version} "
             f"({client_surface()}; {sys.platform}; {platform.machine() or 'unknown'})")
 
 
@@ -322,7 +322,7 @@ def reset_for_tests() -> None:
 
 def _announce(challenge: BrowserChallenge) -> bool:
     """Broadcast to connected desktop clients. False when this process is not a gateway at all
-    (``HERMES_DESKTOP`` is an env var, and a CLI the desktop spawned inherits it): importing the
+    (``KOVA_DESKTOP`` is an env var, and a CLI the desktop spawned inherits it): importing the
     gateway here just to find nobody listening would also write an event frame to stdout."""
     server = sys.modules.get("tui_gateway.server")
     if server is None:

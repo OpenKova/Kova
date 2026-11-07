@@ -16,7 +16,7 @@ def test_packaged_desktop_build_restores_pm_git_for_stamp_and_pack(
 
     desktop = tmp_path / "apps" / "desktop"
     desktop.mkdir(parents=True)
-    original = {"PATH": "C:\\without-git", "HERMES_HOME": str(tmp_path)}
+    original = {"PATH": "C:\\without-git", "KOVA_HOME": str(tmp_path)}
     calls: list[tuple[list[str], dict[str, str]]] = []
 
     def installed_git(*names: str, base_env: dict[str, str]) -> dict[str, str]:
@@ -29,7 +29,7 @@ def test_packaged_desktop_build_restores_pm_git_for_stamp_and_pack(
 
     monkeypatch.setattr(pm, "ensure", lambda *names, base_env, **_: SimpleNamespace(env=installed_git(*names, base_env=base_env)))
     monkeypatch.setattr(main_desktop.subprocess, "run", run)
-    monkeypatch.setattr(main_desktop, "_promote_staged_desktop_app", lambda *_args: desktop / "Hermes.exe")
+    monkeypatch.setattr(main_desktop, "_promote_staged_desktop_app", lambda *_args: desktop / "Kova.exe")
     main_desktop.build_prepared_desktop(desktop, source_mode=False, pnpm="C:\\pm\\pnpm.exe", env=original)
 
     assert [command[2] for command, _ in calls] == ["build", "builder"]

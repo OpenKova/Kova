@@ -9,7 +9,7 @@ Two real surfaces, each timestamped against the fake's own clock (same host):
 
 * the Desktop/TUI event stream (``python -m tui_gateway.entry`` over stdio): ``reasoning.delta`` /
   ``message.delta`` events carrying the agent's text (#120550);
-* ACP composition — Hermes itself served as an ACP agent (``hermes acp``) on top of an ``external_process``
+* ACP composition — Kova itself served as an ACP agent (``hermes acp``) on top of an ``external_process``
   ACP provider: the outer client must get ``session/update`` chunks before the inner turn ends (#101507).
 
 Both are red on main (the ACP client buffers the whole response, then replays it as a stream), so
@@ -147,7 +147,7 @@ def _run_child(argv: list[str], nh: NativeHome, fake: acp.AcpFake, drive: Callab
 def _home(root: Path) -> tuple[NativeHome, acp.AcpFake]:
     fake = acp.AcpFake(root / "acp", [_deep_turn()])
     nh = make_home(root, {"provider": acp.PROVIDER, "default": acp.PLACEHOLDER_MODEL}, env_file=fake.env())
-    acp.install_provider_plugin(nh.hermes_home)
+    acp.install_provider_plugin(nh.kova_home)
     return nh, fake
 
 

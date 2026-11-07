@@ -12,7 +12,7 @@ const sockets: Array<{ connect: ReturnType<typeof vi.fn> }> = []
 
 vi.mock('@/hermes', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     connect = vi.fn(async () => {
       this.connectionState = 'open'
@@ -28,7 +28,7 @@ vi.mock('@/hermes', async importOriginal => ({
   }
 }))
 
-type ServedWindow = Window & { __HERMES_DASHBOARD_PROFILE__?: string; hermesDesktop?: Window['hermesDesktop'] }
+type ServedWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string; hermesDesktop?: Window['hermesDesktop'] }
 
 const win = window as unknown as ServedWindow
 
@@ -71,10 +71,10 @@ const callsTo = (fetchMock: ReturnType<typeof stubGateway>, path: string) =>
 // and the tab's own socket open as the primary.
 async function openTab(gateway: Gateway) {
   const fetchMock = stubGateway(gateway)
-  win.__HERMES_DASHBOARD_PROFILE__ = 'default'
+  win.__KOVA_DASHBOARD_PROFILE__ = 'default'
   seedWebappSession('served-token')
   expect(installBrowserDesktopBridge()).toBe(true)
-  await win.hermesDesktop!.getProfileRoutes?.(gateway.profiles)
+  await win.kovaDesktop!.getProfileRoutes?.(gateway.profiles)
 
   const primary = { connectionState: 'open', request: vi.fn(async () => ({})) }
   setPrimaryGateway(primary as never, 'default')
@@ -83,7 +83,7 @@ async function openTab(gateway: Gateway) {
 }
 
 afterEach(() => {
-  delete win.__HERMES_DASHBOARD_PROFILE__
+  delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
   Reflect.deleteProperty(win, 'hermesDesktop')
   document.documentElement.removeAttribute('data-hermes-desktop-host')

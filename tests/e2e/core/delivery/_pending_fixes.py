@@ -3,7 +3,7 @@
 A plain ``xfail(strict=True)`` turns main red the moment its fix merges (XPASS), and a
 non-strict one guards nothing. Instead, each gap here has a PROBE: a few lines that reproduce
 the defect's mechanism on the tree under test, in a throwaway interpreter with its own
-``HOME``/``HERMES_HOME`` (no state leaks into the suite process). A cell asks ``gap_open`` and
+``HOME``/``KOVA_HOME`` (no state leaks into the suite process). A cell asks ``gap_open`` and
 tolerates the gap only while the probe still reproduces the defect; once the fix is in the tree
 the cell runs as a plain test, so it must pass. Whichever lands first, suite or fix, main stays
 green, and a probe that disagrees with the end-to-end cell still fails loudly instead of hiding.
@@ -59,10 +59,10 @@ def gap_open(pr: int) -> bool:
     extra_env, script = PROBES[pr]
     with tempfile.TemporaryDirectory(prefix=f"gap-{pr}-") as tmp:
         home = Path(tmp) / "home"
-        (home / ".hermes").mkdir(parents=True)
+        (home / ".kova").mkdir(parents=True)
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith(("PYTEST_", "HERMES_")) and not k.endswith("_API_KEY")}
-        env.update({"HOME": str(home), "HERMES_HOME": str(home / ".hermes"),
+               if not k.startswith(("PYTEST_", "KOVA_")) and not k.endswith("_API_KEY")}
+        env.update({"HOME": str(home), "KOVA_HOME": str(home / ".kova"),
                     "PYTHONPATH": str(REPO_ROOT), **extra_env})
         proc = subprocess.run([sys.executable, "-c", _PRELUDE + script], cwd=str(REPO_ROOT), env=env,
                               stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120, check=False)

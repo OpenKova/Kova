@@ -1,6 +1,6 @@
 """Gateway ``plugins.manage`` — manifest ``config_schema`` rendered as settings fields (#46600, #87934).
 
-Drives the real discovery + config writer against a temp HERMES_HOME: ``list`` carries each user
+Drives the real discovery + config writer against a temp KOVA_HOME: ``list`` carries each user
 plugin's schema with the current values, and ``settings`` writes through the same
 ``plugins.entries.<id>.settings`` namespace ``ctx.get_config`` reads — never a secret into config.yaml.
 """
@@ -28,7 +28,7 @@ def plugins_home(tmp_path, monkeypatch):
     (home / "plugins" / "demo-plugin" / "plugin.yaml").write_text(MANIFEST, encoding="utf-8")
     (home / "config.yaml").write_text(
         "plugins:\n  entries:\n    demo-plugin:\n      settings:\n        retries: 7\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
@@ -71,7 +71,7 @@ PORTABLE_MANIFEST = """\
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "portable-demo",
   "version": "1.0.0",
-  "extensions": {"com.nousresearch.hermes": {"config_schema": {
+  "extensions": {"com.nousresearch.kova": {"config_schema": {
     "show_chip": {"type": "bool", "default": true},
     "api_key": {"type": "secret", "env": "PORTABLE_DEMO_KEY"}
   }}}
@@ -81,7 +81,7 @@ PORTABLE_MANIFEST = """\
 
 def test_portable_plugin_json_schema_lists_and_saves_like_a_native_one(plugins_home, monkeypatch):
     """Agent Plugins v1 forbids unknown top-level fields, so a portable package declares its form under
-    ``extensions.com.nousresearch.hermes.config_schema``; it must get the same list + save path, and a
+    ``extensions.com.nousresearch.kova.config_schema``; it must get the same list + save path, and a
     save tells the plugin's Desktop half (``plugin.<id>.settings.changed``) so it applies without polling."""
     sent = []
     monkeypatch.setattr(server, "_broadcast_global_event", lambda name, payload: sent.append((name, payload)))

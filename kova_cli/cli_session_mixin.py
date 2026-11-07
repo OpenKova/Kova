@@ -1,7 +1,7 @@
 """Session lifecycle for the interactive CLI: new/resume/save, undo/retry rewinds, yolo
 persistence, manual compression, and exit summary.
 
-Mixin bound onto ``HermesCLI`` via the MRO. cli.py-internal symbols are imported LAZILY
+Mixin bound onto ``KovaCLI`` via the MRO. cli.py-internal symbols are imported LAZILY
 inside each method (``from cli import ...``) — never at module load time (import cycle).
 """
 
@@ -13,7 +13,7 @@ import shutil
 import sys
 
 from agent.i18n import t
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_state_ids import new_session_id
 from pathlib import Path
 from rich.console import Console
@@ -184,7 +184,7 @@ def _write_save(session_id, fmt, filename, render):
     """Write a ``/save`` export on this machine: ``filename`` as typed (relative to the cwd), else
     ``sessions/saved/hermes_conversation_<ts>.<fmt>`` under this CLI's home."""
     from cli import datetime
-    saved_dir = get_hermes_home() / "sessions" / "saved"
+    saved_dir = get_kova_home() / "sessions" / "saved"
     try:
         saved_dir.mkdir(parents=True, exist_ok=True)
     except OSError as e:
@@ -279,7 +279,7 @@ class CLISessionMixin:
         store = gateway_store(self)  # a gateway session's tools are the gateway's: never enumerated here
         inventory = store.banner_inventory() if store is not None else None
         # Avoid pulling the full tool registry into the bare Termux prompt path.
-        if os.environ.get("HERMES_DEFER_AGENT_STARTUP") == "1" or (store is not None and inventory is None):
+        if os.environ.get("KOVA_DEFER_AGENT_STARTUP") == "1" or (store is not None and inventory is None):
             tool_status = t("cli.session.status_tools_deferred")
         elif inventory is not None:
             tool_status = t("cli.session.status_tools_count", count=len(inventory["tools"] or []))
@@ -479,7 +479,7 @@ class CLISessionMixin:
                 continue
 
             _cli_visible_print(
-                f"\n  {t('cli.session.history_assistant_header', agent_name='Hermes', index=visible_index)}{_ts_suffix(msg)}")
+                f"\n  {t('cli.session.history_assistant_header', agent_name='Kova', index=visible_index)}{_ts_suffix(msg)}")
             n_calls = len(msg.get("tool_calls") or [])
             if not content_text:
                 suffix = ""
@@ -522,7 +522,7 @@ class CLISessionMixin:
         if getattr(self, "conversation_history", None):
             return False
         try:
-            from kova_constants import get_hermes_home as _ghh
+            from kova_constants import get_kova_home as _ghh
             return self._session_db.delete_session_if_empty(
                 session_id, sessions_dir=_ghh() / "sessions")
         except Exception:
@@ -632,7 +632,7 @@ class CLISessionMixin:
                     self.agent._session_db_created = False
                     self._session_db.create_session(
                         session_id=self.session_id,
-                        source=os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                        source=os.environ.get("KOVA_SESSION_SOURCE", "cli"),
                         model=self.model,
                         model_config={
                             "max_iterations": self.max_turns, "reasoning_config": self.reasoning_config,
@@ -928,7 +928,7 @@ class CLISessionMixin:
         """Toggle per-session YOLO mode (skip dangerous-command approvals).
 
         Mirrors the gateway/TUI ``/yolo`` handlers. Deliberately does NOT touch
-        ``HERMES_YOLO_MODE``: that env var is frozen into ``tools.approval._YOLO_MODE_FROZEN``
+        ``KOVA_YOLO_MODE``: that env var is frozen into ``tools.approval._YOLO_MODE_FROZEN``
         at import (so prompt-injected skills can't flip the bypass), making a later set a
         silent no-op. ``run_conversation`` binds ``self.session_id`` as the active approval
         key, so the bypass applies to the very next dangerous command.
@@ -1208,7 +1208,7 @@ class CLISessionMixin:
 
         print(t("cli.session.exit_resume_hint"))
         # Session IDs are profile-constrained: non-default profiles need `-p <profile>` in
-        # the hint ("default"/"custom" use the standard HERMES_HOME).
+        # the hint ("default"/"custom" use the standard KOVA_HOME).
         try:
             from kova_cli.profiles import get_active_profile_name
             _active_profile = get_active_profile_name()

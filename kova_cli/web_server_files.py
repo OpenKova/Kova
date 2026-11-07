@@ -15,7 +15,7 @@ from typing import Any, Dict, Iterator, Optional
 
 logger = logging.getLogger(__name__)
 
-_MANAGED_FILES_ROOT_ENV = "HERMES_DASHBOARD_FILES_ROOT"
+_MANAGED_FILES_ROOT_ENV = "KOVA_DASHBOARD_FILES_ROOT"
 _HOSTED_MANAGED_FILES_ROOT = Path("/opt/data")
 
 
@@ -199,27 +199,27 @@ def _agent_path_scope(profile_home: Path | None = None) -> Iterator[None]:
     Translation and the unmapped-path classification both run inside this scope, so they
     agree about the backend.
     """
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_constants import (
-        get_hermes_home_override, get_process_hermes_home, reset_hermes_home_override,
-        set_hermes_home_override,
+        get_kova_home_override, get_process_kova_home, reset_kova_home_override,
+        set_kova_home_override,
     )
     from tools.terminal_scope import get_terminal_scope, install_profile_terminal_scope, reset_terminal_scope
 
     home_token = scope_token = None
-    if profile_home is not None and Path(profile_home).resolve() != get_hermes_home().resolve():
-        home_token = set_hermes_home_override(str(profile_home))
+    if profile_home is not None and Path(profile_home).resolve() != get_kova_home().resolve():
+        home_token = set_kova_home_override(str(profile_home))
     try:
-        foreign_override = (get_hermes_home_override() is not None
-                            and get_hermes_home().resolve() != get_process_hermes_home().resolve())
+        foreign_override = (get_kova_home_override() is not None
+                            and get_kova_home().resolve() != get_process_kova_home().resolve())
         if home_token is not None or (foreign_override and get_terminal_scope() is None):
-            scope_token = install_profile_terminal_scope(get_hermes_home())
+            scope_token = install_profile_terminal_scope(get_kova_home())
         yield
     finally:
         if scope_token is not None:
             reset_terminal_scope(scope_token)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
 
 
 def _agent_container_path(
@@ -244,7 +244,7 @@ def _agent_container_path(
     if not raw.startswith("/") or raw.startswith("//") or ".." in raw.split("/"):
         return None
     try:
-        from kova_cli.config import get_hermes_home
+        from kova_cli.config import get_kova_home
         from tools.terminal_scope import (
             build_profile_terminal_scope, get_terminal_scope, reset_terminal_scope, set_terminal_scope,
         )
@@ -254,7 +254,7 @@ def _agent_container_path(
             translated = _translate_agent_path(candidate, workspace_key, own_sandbox_only, workspace_cwd)
             if translated is not None or get_terminal_scope() is not None:
                 return translated
-            token = set_terminal_scope(build_profile_terminal_scope(get_hermes_home()))
+            token = set_terminal_scope(build_profile_terminal_scope(get_kova_home()))
             try:
                 return _translate_agent_path(candidate, workspace_key, own_sandbox_only, workspace_cwd)
             finally:
@@ -372,13 +372,13 @@ def _path_text(raw_path: str | None) -> str:
 
 
 def _default_hermes_root_is_opt_data() -> bool:
-    raw = os.environ.get("HERMES_HOME", "").strip()
+    raw = os.environ.get("KOVA_HOME", "").strip()
     if not raw:
         return False
     try:
-        from kova_constants import get_default_hermes_root
+        from kova_constants import get_default_kova_root
 
-        root = get_default_hermes_root().expanduser().resolve(strict=False)
+        root = get_default_kova_root().expanduser().resolve(strict=False)
     except (OSError, RuntimeError):
         root = Path(raw).expanduser().resolve(strict=False)
     return root == _HOSTED_MANAGED_FILES_ROOT
@@ -418,8 +418,8 @@ def _managed_files_policy(request: Optional[Request], *, create_root: bool = Tru
         return ManagedFilesPolicy(default_path=root, locked_root=root, can_change_path=False)
 
     # Remote/OAuth access does not imply a hosted container (a gated macOS launchd
-    # install still browses its home). Lock to /opt/data only when the Hermes
-    # root actually IS /opt/data or HERMES_DASHBOARD_FILES_ROOT is set.
+    # install still browses its home). Lock to /opt/data only when the Kova
+    # root actually IS /opt/data or KOVA_DASHBOARD_FILES_ROOT is set.
     if _default_hermes_root_is_opt_data():
         root = _ensure_managed_root(_HOSTED_MANAGED_FILES_ROOT) if create_root else _HOSTED_MANAGED_FILES_ROOT
         return ManagedFilesPolicy(default_path=root, locked_root=root, can_change_path=False)

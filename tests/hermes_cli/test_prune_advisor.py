@@ -17,7 +17,7 @@ def home(tmp_path, monkeypatch):
     from kova_state import SessionDB
     h = tmp_path / "home"
     h.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("KOVA_HOME", str(h))
     db = SessionDB(db_path=h / "state.db")
     db.create_session("recent", source="cli")
     db.append_message("recent", role="user", content="hi")
@@ -75,7 +75,7 @@ def test_admin_managed_setting_is_never_asked_nor_overwritten(home, monkeypatch,
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text("sessions:\n  auto_prune: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     _disk(monkeypatch, free_gb=1)
     try:

@@ -130,10 +130,10 @@ def activate_plugin_now(name: str, *, in_process: bool = True) -> dict[str, Any]
     (``activation.missing_dependencies``; ``activation.missing_in`` names which: ``gateway`` and/or
     ``backend``, the Desktop / dashboard process): a running process never switches to the dependency
     generation an enable just installed, so only restarting that process loads them."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     activation: Optional[dict[str, Any]] = load_and_go_live(name) if in_process else None
     if not in_process:
-        activation = (notify_serve_backend(name, Path(get_hermes_home())) or {}).get("activation")
+        activation = (notify_serve_backend(name, Path(get_kova_home())) or {}).get("activation")
     answer = reload_running_gateway()
     reloaded = bool(answer and answer.get("reloaded"))
     gateway_activation = find_activation((answer or {}).get("activations"), name) if reloaded else None
@@ -155,11 +155,11 @@ def reload_running_gateway() -> Optional[dict[str, Any]]:
     gateway now. The ``reload-plugins`` answer, or None when no gateway answered."""
     try:
         from gateway.control_socket import reload_gateway_plugins
-        from kova_constants import get_default_hermes_root, get_hermes_home
-        home = Path(get_hermes_home())
+        from kova_constants import get_default_kova_root, get_kova_home
+        home = Path(get_kova_home())
         answer = reload_gateway_plugins(home)
         if answer is None:
-            root = Path(get_default_hermes_root())
+            root = Path(get_default_kova_root())
             if root.resolve() != home.resolve():  # a served secondary: the multiplexer's socket
                 answer = reload_gateway_plugins(root, profile_home=home)
         return answer
@@ -224,9 +224,9 @@ def _go_live(name: str) -> Optional[dict[str, Any]]:
     server = sys.modules.get("tui_gateway.server")  # loaded == this process hosts chats
     note = live_notice(activation)
     if server is not None and (servers or note):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         try:
-            server.refresh_plugin_sessions(Path(get_hermes_home()), activation["key"], note)
+            server.refresh_plugin_sessions(Path(get_kova_home()), activation["key"], note)
         except Exception:
             logger.warning("open chats were not refreshed after activating %r", name, exc_info=True)
     return activation
@@ -258,7 +258,7 @@ def notify_serve_backend(name: str, home: Path) -> Optional[dict[str, Any]]:
             f"http://{format_url_host(hr.dial_host(record))}:{record.port}"
             "/api/dashboard/agent-plugins/activate",
             data=json.dumps({"name": name, "home": str(home)}).encode("utf-8"), method="POST",
-            headers={"Content-Type": "application/json", "X-Hermes-Session-Token": token})
+            headers={"Content-Type": "application/json", "X-Kova-Session-Token": token})
         with urllib.request.urlopen(request, timeout=60) as response:
             return json.loads(response.read().decode("utf-8"))
     except Exception:
@@ -271,14 +271,14 @@ def _gateway_present() -> bool:
     gateway service is installed for it."""
     from gateway.status import get_running_pid
     from kova_cli.gateway import _installed_service_kind
-    from kova_constants import get_default_hermes_root, get_hermes_home
-    homes = {Path(get_hermes_home()).resolve(), Path(get_default_hermes_root()).resolve()}
+    from kova_constants import get_default_kova_root, get_kova_home
+    homes = {Path(get_kova_home()).resolve(), Path(get_default_kova_root()).resolve()}
     return (any(get_running_pid(home / "gateway.pid", cleanup_stale=False) for home in homes)
             or _installed_service_kind() is not None)
 
 
 _RESTART_LINES = {"gateway": "  hermes gateway restart",
-                  "backend": "  quit and reopen the Hermes desktop app (or restart hermes dashboard)"}
+                  "backend": "  quit and reopen the Kova desktop app (or restart hermes dashboard)"}
 
 
 def dependency_restart_hint(missing: list[str], processes: list[str]) -> str:
@@ -291,7 +291,7 @@ def dependency_restart_hint(missing: list[str], processes: list[str]) -> str:
         return (f"Its Python dependencies ({deps}) were installed after the running gateway or dashboard "
                 "started, and a running process never switches dependency environments. Restart them to "
                 f"load the plugin:\n{restart}")
-    return f"Its Python dependencies ({deps}) are not installed. Run hermes pm repair, then restart:\n{restart}"
+    return f"Its Python dependencies ({deps}) are not installed. Run kova pm repair, then restart:\n{restart}"
 
 
 def report_activation(console, name: str) -> None:

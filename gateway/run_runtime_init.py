@@ -179,7 +179,7 @@ class GatewayRuntimeInitMixin:
         try:
             self._open_session_db_for_active_scope(raise_on_error=True)
         except Exception as e:
-            # WARNING (not DEBUG) so it lands in errors.log; else an NFS HERMES_HOME silently loses /resume etc.
+            # WARNING (not DEBUG) so it lands in errors.log; else an NFS KOVA_HOME silently loses /resume etc.
             logger.warning("SQLite session store not available: %s", e, exc_info=True)
             self._session_db_init_error = str(e)  # surfaced on the home channel(s) once connected
 

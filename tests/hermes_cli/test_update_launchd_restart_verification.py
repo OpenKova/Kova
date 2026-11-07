@@ -1,7 +1,7 @@
 """Regression for #88848 - a launchd restart the update never verified.
 
 ``hermes update`` on macOS printed ``Update complete!`` and exited 0 while the
-``ai.hermes.gateway`` LaunchAgent sat deregistered for 36 minutes.  The restart
+``ai.kova.gateway`` LaunchAgent sat deregistered for 36 minutes.  The restart
 phase treated "``launchd_restart()`` returned without raising" as success and
 appended the label to ``restarted_services``.  Both of launchd_restart's normal
 outcomes are asynchronous - the ``_request_gateway_self_restart`` branch returns
@@ -27,7 +27,7 @@ import pytest
 import kova_cli.gateway as gateway_cli
 from kova_cli import update_cmd
 
-LABEL = "ai.hermes.gateway"
+LABEL = "ai.kova.gateway"
 
 # Captured at import so a test can re-install the real verifier over a fixture's stub.
 _REAL_WAIT_FOR_SUPERVISION = gateway_cli.wait_for_launchd_gateway_supervision
@@ -253,7 +253,7 @@ class TestInvokingProfileIsVerifiedLikeItsSiblings:
         ``launchctl list <label>`` exits 0 with a positive pid both before and
         after a reload that never happened, so "launchd supervises some pid"
         was already true of the very process the update meant to replace: the
-        update printed ``✓ Restarted ai.hermes.gateway`` over pre-update code.
+        update printed ``✓ Restarted ai.kova.gateway`` over pre-update code.
         The sibling loop has required a fresh pid since f29ee96
         (``_wait_for_launchd_service_pid(old_pid=...)``); this pins the same
         contract for the profile running the update.

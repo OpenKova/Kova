@@ -2,7 +2,7 @@ import { atom } from 'nanostores'
 
 import { translateNow } from '@/i18n'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
-import { servedByHermesCloud } from '@/lib/hermes-cloud-host'
+import { servedByKovaCloud } from '@/lib/hermes-cloud-host'
 import { isTimeoutError } from '@/lib/with-timeout'
 import { type ErrorToastCategory, recordFriction } from '@/store/desktop-metrics'
 import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'
@@ -107,15 +107,15 @@ const MAINTENANCE_ROUTE = '/command-center?section=maintenance'
 /** One-click recoveries reused by several rules. */
 export const RECOVERY_ACTIONS = {
   openUpdates: (): NotificationAction => ({
-    label: translateNow('notifications.updateHermes'),
+    label: translateNow('notifications.updateKova'),
     onClick: () => void import('@/store/updates').then(({ openUpdatesWindow }) => openUpdatesWindow())
   }),
   reload: (): NotificationAction => ({
     label: translateNow('commandCenter.reloadWindow'),
     onClick: () => window.location.reload()
   }),
-  restartHermes: (): NotificationAction => ({
-    label: translateNow('notifications.actions.restartHermes'),
+  restartKova: (): NotificationAction => ({
+    label: translateNow('notifications.actions.restartKova'),
     onClick: requestBackendRestart
   }),
   openKeys: (envKey: string): NotificationAction => ({
@@ -198,7 +198,7 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'method_not_allowed',
     test: msg => /method not allowed/i.test(msg),
     summarize: () => translateNow('notifications.errors.methodNotAllowed'),
-    action: () => RECOVERY_ACTIONS.restartHermes()
+    action: () => RECOVERY_ACTIONS.restartKova()
   },
   {
     category: 'microphone_permission',
@@ -209,14 +209,14 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'rpc_out_of_sync',
     test: msg => isOutOfSyncRpcParams(msg),
     summarize: () => translateNow('notifications.errors.rpcOutOfSync'),
-    // A Webapp served by Hermes Cloud has no updater: reloading picks up the agent's new app.
-    action: () => (servedByHermesCloud() ? RECOVERY_ACTIONS.reload() : RECOVERY_ACTIONS.openUpdates())
+    // A Webapp served by Kova Cloud has no updater: reloading picks up the agent's new app.
+    action: () => (servedByKovaCloud() ? RECOVERY_ACTIONS.reload() : RECOVERY_ACTIONS.openUpdates())
   },
   {
     category: 'restart_required',
     test: msg => /Restart required:/i.test(msg),
     summarize: () => translateNow('notifications.errors.codeSkewRestartRequired'),
-    action: () => RECOVERY_ACTIONS.restartHermes()
+    action: () => RECOVERY_ACTIONS.restartKova()
   }
 ]
 
@@ -364,7 +364,7 @@ function logErrorToDesktopLog(error: unknown, fallback: string): void {
     const raw: string =
       error instanceof Error ? (error.stack ?? error.message) : typeof error === 'string' ? error : fallback
 
-    window.hermesDesktop?.logLine?.(`[renderer error:${label}] ${fallback}: ${raw}`)
+    window.kovaDesktop?.logLine?.(`[renderer error:${label}] ${fallback}: ${raw}`)
   } catch {
     // A missing or closed IPC bridge must not prevent the error toast.
   }

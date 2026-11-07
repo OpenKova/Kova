@@ -169,14 +169,14 @@ def _verify_access_token(
         phase="verify" if audit else "bearer verify", log=_log, on_unreachable=_audit_unreachable)
 
 
-#: The header Hermes Desktop's "Session token" connection presents its token in, and the provider
-#: that alone may verify it there: the deployment session token (``HERMES_DASHBOARD_SESSION_TOKEN``).
+#: The header Kova Desktop's "Session token" connection presents its token in, and the provider
+#: that alone may verify it there: the deployment session token (``KOVA_DASHBOARD_SESSION_TOKEN``).
 _SESSION_TOKEN_HEADER = "x-hermes-session-token"
 _SESSION_TOKEN_PROVIDER = "session-token"
 
 
 def _session_token_header_session(request: Request):
-    """The Session for the deployment session token in ``X-Hermes-Session-Token``, or ``None``.
+    """The Session for the deployment session token in ``X-Kova-Session-Token``, or ``None``.
 
     The gate consults it only when no bearer was sent (a bearer wins). Only the registered
     session-token provider verifies the value (constant time), so no other provider's token opens
@@ -309,7 +309,7 @@ async def gated_auth_middleware(
     if cookie_logout:
         return await call_next(request)
     if not at and not _rt:
-        # Hermes Desktop's "Session token" connection sends the deployment session token in its
+        # Kova Desktop's "Session token" connection sends the deployment session token in its
         # own header, not as a bearer. It is tried only with no session cookie at all, so a cookie
         # session is served exactly as before; anything else gets main's no-cookie handling.
         header_session = _session_token_header_session(request)

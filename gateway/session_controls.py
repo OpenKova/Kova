@@ -346,7 +346,7 @@ class AuthorityConnection:
         try:
             from gateway.session_group_controls import GROUP_METHODS, dispatch_group_control
             # Every handler reads config/jobs/policy for the OWNING profile: enter its home so
-            # ``_load_gateway_config`` / ``build_policy(get_hermes_home())`` never snapshot the
+            # ``_load_gateway_config`` / ``build_policy(get_kova_home())`` never snapshot the
             # launch profile's config into a served secondary's session. Under a single profile
             # the scope is that profile's own home, so behaviour is unchanged.
             from gateway.session_authorities import async_owner_scope

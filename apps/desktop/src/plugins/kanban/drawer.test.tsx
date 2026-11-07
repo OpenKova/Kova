@@ -125,7 +125,7 @@ describe('task attachment compatibility', () => {
     setApiRequestConnection('local')
     detail = {
       ...legacyDetail,
-      attachments: [{ id: 7, filename: 'notes.txt', stored_path: '/home/me/.hermes/kanban/notes.txt' }]
+      attachments: [{ id: 7, filename: 'notes.txt', stored_path: '/home/me/.kova/kanban/notes.txt' }]
     }
     openDrawer()
     const download = await screen.findByRole('button', { name: 'Download notes.txt' })
@@ -134,7 +134,7 @@ describe('task attachment compatibility', () => {
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith({
         connectionId: 'local',
-        path: '/home/me/.hermes/kanban/notes.txt',
+        path: '/home/me/.kova/kanban/notes.txt',
         suggestedName: 'notes.txt'
       })
     )
@@ -273,7 +273,7 @@ describe('task modal dialog', () => {
   })
 
   it('shows the workspace path as its own value, not prefixed with the raw kind', async () => {
-    const path = '/Users/example/.hermes/kanban/workspaces/a_very_long_directory_name_that_must_wrap'
+    const path = '/Users/example/.kova/kanban/workspaces/a_very_long_directory_name_that_must_wrap'
     detail = {
       ...legacyDetail,
       attachments: [],

@@ -55,11 +55,11 @@ def test_historical_payload_maps_to_takeover_request_schema(tmp_path, desktop, r
     shutil.copy2(source / "kova_cli/update_handoff.py", package / "update_handoff.py")
     # write_handoff resolves the home through kova_constants; the child tree is the whole
     # sys.path (CI has no editable finder), so give it the names the hand-off reads (the
-    # payload lands beside the receipts in the ROOT home, which is HERMES_HOME here).
+    # payload lands beside the receipts in the ROOT home, which is KOVA_HOME here).
     (root / "kova_constants.py").write_text(
         "import os\nfrom pathlib import Path\n"
-        "def get_hermes_home():\n    return Path(os.environ['HERMES_HOME'])\n"
-        "get_default_hermes_root = get_hermes_home\n", encoding="utf-8",
+        "def get_kova_home():\n    return Path(os.environ['KOVA_HOME'])\n"
+        "get_default_kova_root = get_kova_home\n", encoding="utf-8",
     )
     program = root / "historical.py"
     program.write_text(
@@ -70,8 +70,8 @@ def test_historical_payload_maps_to_takeover_request_schema(tmp_path, desktop, r
         "raise SystemExit(code)\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(('HERMES_', 'PYTHON', 'UV_'))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(('KOVA_', 'PYTHON', 'UV_'))}
+    env.update(HOME=str(home), KOVA_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -122,8 +122,8 @@ def test_shipped_post_swap_argv_enters_takeover_before_current_cli(tmp_path):
     }
     handoff.write_text(json.dumps(payload), encoding="utf-8")
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home))
     result = subprocess.run(
         [sys.executable, "-B", "-m", "kova_cli.main", "update", "--yes",
          "--no-gateway-restart", "--branch", "main", "--post-swap", str(handoff)],
@@ -159,7 +159,7 @@ def test_takeover_waits_propagates_status_and_never_reenters_old_code(tmp_path, 
         "assert request['pre_update_snapshot_id'] == 'preserve-snapshot'\n"
         "assert request['gateway_mode'] == True\n"
         "assert request['pre_update_version'] == 'old-version'\n"
-        "assert request['home'] == os.environ['HERMES_HOME']\n"
+        "assert request['home'] == os.environ['KOVA_HOME']\n"
         "with Path(request['home'], 'runs').open('a') as stream: stream.write('child\\n')\n"
         f"Path(sys.argv[2]).write_text(json.dumps({{'resume_handled': True}}), encoding={encoding!r})\n"
         f"raise SystemExit({status})\n", encoding="utf-8",
@@ -179,15 +179,15 @@ def test_takeover_waits_propagates_status_and_never_reenters_old_code(tmp_path, 
         "def cleanup():\n"
         "    assert not _windows_gateway_resume['resume_needed']\n"
         "    assert 'old_only' in sys.modules\n"
-        "    Path(os.environ['HERMES_HOME'], 'cleanup').write_text('ran')\n"
+        "    Path(os.environ['KOVA_HOME'], 'cleanup').write_text('ran')\n"
         "atexit.register(cleanup)\n"
         "try:\n    stop_for_relaunch()\n"
         "finally:\n    stop_for_relaunch()\n"
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(('HERMES_', 'PYTHON', 'UV_'))}
-    env.update(HOME=str(home), HERMES_HOME=str(home), PYTHONPATH="/not/the/new/source")
+           if not key.startswith(('KOVA_', 'PYTHON', 'UV_'))}
+    env.update(HOME=str(home), KOVA_HOME=str(home), PYTHONPATH="/not/the/new/source")
     if stdio:
         env["PYTHONIOENCODING"] = stdio
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
@@ -236,8 +236,8 @@ def test_only_known_early_updater_restarts_with_original_arguments(tmp_path, pos
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", *argv], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -283,14 +283,14 @@ def test_atexit_recovers_only_stopped_serves_after_cached_update(tmp_path, ackno
         "        _relaunch_stopped_serves(token)\n"
         "        if not token['pending']:\n            _relaunch_stopped_serves(token)\n"
         "    finally:\n"
-        "        Path(os.environ['HERMES_HOME'], 'token.json').write_text(json.dumps(token))\n"
+        "        Path(os.environ['KOVA_HOME'], 'token.json').write_text(json.dumps(token))\n"
         "atexit.register(cleanup)\n"
         "stop_for_relaunch()\n"
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 7, result.stdout + result.stderr
@@ -316,7 +316,7 @@ def test_serve_resume_child_reuses_respawn_without_updater_or_supervisors(tmp_pa
         entries += [
             dict(entries[0]),
             {"purpose": "serve", "profile": "desktop", "port": 0},
-            {"purpose": "serve", "profile": "foreign", "port": 8121, "hermes_home": str(tmp_path / "foreign")},
+            {"purpose": "serve", "profile": "foreign", "port": 8121, "kova_home": str(tmp_path / "foreign")},
             {"purpose": "gateway", "profile": "not-serve", "port": 8122},
             {"purpose": "serve", "profile": "boolean-port", "port": True},
             {"purpose": "serve", "profile": "invalid-port", "port": 65536},
@@ -341,12 +341,12 @@ def test_serve_resume_child_reuses_respawn_without_updater_or_supervisors(tmp_pa
         "try:\n    runpy.run_path(sys.argv[0], run_name='__main__')\n"
         "finally:\n"
         "    assert not any(name in sys.modules for name in ('kova_cli.update_cmd', 'kova_cli.update_receipt', 'kova_cli.main'))\n"
-        "    Path(os.environ['HERMES_HOME'], 'commands.json').write_text(json.dumps(calls))\n",
+        "    Path(os.environ['KOVA_HOME'], 'commands.json').write_text(json.dumps(calls))\n",
         encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home))
     result = subprocess.run([sys.executable, "-I", "-B", "-X", "utf8", str(program)],
                             env=env, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == int(spawn_fails or discarded), result.stdout + result.stderr
@@ -366,8 +366,8 @@ def test_serve_resume_child_leaves_token_unhandled_when_imports_fail(tmp_path):
     context.write_text(json.dumps({"root": str(tmp_path), "home": str(tmp_path),
                                   "stopped_serves": {"pending": True, "entries": []}}))
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(tmp_path), HERMES_HOME=str(tmp_path))
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(tmp_path), KOVA_HOME=str(tmp_path))
     # -S and an empty checkout make application imports genuinely unavailable;
     # this is not a mocked exception or a path into the real update machinery.
     result = subprocess.run(
@@ -535,7 +535,7 @@ def test_takeover_arms_the_host_record_without_application_dependencies(tmp_path
          "assert importlib.util.find_spec('ruamel') is None, 'precondition: no app dependencies'\n"
          "from kova_cli._update_takeover import _arm_fleet_obligation\n"
          f"_arm_fleet_obligation(Path({str(root)!r}))\n"],
-        env={**os.environ, "HERMES_GATEWAY_LOCK_DIR": str(lock_dir), "HERMES_HOME": str(home)},
+        env={**os.environ, "KOVA_GATEWAY_LOCK_DIR": str(lock_dir), "KOVA_HOME": str(home)},
         stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", timeout=60,
         check=False,
     )
@@ -549,7 +549,7 @@ def test_a_finish_child_that_cannot_start_after_the_commit_is_owed_not_failed(tm
     OSError starting update_finish used to land in the preparation catch-all: receipt failed,
     .update_exit_code=1, exit 1 for a committed update (review C7, invariant 3)."""
     from kova_cli import _update_takeover, update_custody, update_lock, update_receipt
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     class _Lock:
         holder = None
@@ -582,7 +582,7 @@ def test_a_finish_child_that_cannot_start_after_the_commit_is_owed_not_failed(tm
     assert _update_takeover.main() == 0
 
     assert saved == [0]
-    assert (get_hermes_home() / ".update_exit_code").read_text(encoding="utf-8").strip() == "0"
+    assert (get_kova_home() / ".update_exit_code").read_text(encoding="utf-8").strip() == "0"
     assert json.loads(result.read_text(encoding="utf-8"))["resume_handled"] is False
     assert "finishing steps did not run" in capsys.readouterr().err
 
@@ -591,7 +591,7 @@ def test_the_takeover_breadcrumb_is_written_temp_fsync_rename(tmp_path, monkeypa
     """With the host record unwritable the takeover falls back to the per-home breadcrumb; it was
     written in place (review C12, invariant 5): a crash mid-write left a truncated debt record."""
     from kova_cli import _update_takeover, update_host_obligation
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setattr(update_host_obligation, "write_host_obligation", lambda **_kw: False)
     monkeypatch.setattr(_update_takeover, "_head_sha", lambda _root: "a" * 40)
@@ -603,7 +603,7 @@ def test_the_takeover_breadcrumb_is_written_temp_fsync_rename(tmp_path, monkeypa
 
     _update_takeover._arm_fleet_obligation(tmp_path)
 
-    crumb = get_hermes_home() / "fleet_restart_pending"
+    crumb = get_kova_home() / "fleet_restart_pending"
     assert replaced and replaced[-1][0] == crumb and replaced[-1][1] > 0
     assert f"expected_sha={'a' * 40}" in crumb.read_text(encoding="utf-8")
 
@@ -622,8 +622,8 @@ def test_a_takeover_debt_another_profile_cannot_see_is_never_silent(tmp_path, mo
         (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     lock_dir = tmp_path / "gateway-locks"
     lock_dir.mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
-    monkeypatch.setenv("HERMES_HOME", str(homes["coder"]))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(lock_dir))
+    monkeypatch.setenv("KOVA_HOME", str(homes["coder"]))
     monkeypatch.setattr(_update_takeover, "_head_sha", lambda _root: "a" * 40)
     lock_dir.chmod(0o500)
     try:
@@ -642,7 +642,7 @@ def test_a_historical_updater_arms_the_host_record_under_the_current_mutex(tmp_p
     from kova_cli import update_lock
     from kova_cli.update_host_obligation import read_host_obligation, write_host_obligation
 
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     monkeypatch.delattr(update_lock, "marker_mutex")  # N-1's in-memory update_lock had no such name
     assert write_host_obligation(expected_sha="a" * 40)
     assert read_host_obligation()["expected_sha"] == "a" * 40

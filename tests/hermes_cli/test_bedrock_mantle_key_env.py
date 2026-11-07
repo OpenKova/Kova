@@ -34,10 +34,10 @@ def _run_wizard(monkeypatch, selected="openai.gpt-5.6-terra"):
 
     _model_flow_bedrock_api_key({}, REGION)
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return get_hermes_home(), yaml.safe_load(
-        (get_hermes_home() / "config.yaml").read_text(encoding="utf-8")
+    return get_kova_home(), yaml.safe_load(
+        (get_kova_home() / "config.yaml").read_text(encoding="utf-8")
     )
 
 

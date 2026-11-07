@@ -110,9 +110,9 @@ def _historical_context() -> tuple[dict, list[dict], Any]:
 def _run_child(request: dict) -> tuple[int, dict]:
     """One JSON exchange; the old process never imports the updated graph."""
     root = Path(__file__).resolve().parents[1]
-    home = os.environ.get("HERMES_HOME")
+    home = os.environ.get("KOVA_HOME")
     constants = sys.modules.get("kova_constants")
-    override = vars(constants).get("_HERMES_HOME_OVERRIDE") if constants else None
+    override = vars(constants).get("_KOVA_HOME_OVERRIDE") if constants else None
     if override is not None:
         value = override.get()
         if isinstance(value, (str, Path)) and value:
@@ -121,8 +121,8 @@ def _run_child(request: dict) -> tuple[int, dict]:
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(("PYTHON", "UV_")) and key != "VIRTUAL_ENV"}
     if home:
-        env["HERMES_HOME"] = home
-    env.setdefault("HERMES_UPDATE_HANDOFF_PID", str(os.getpid()))
+        env["KOVA_HOME"] = home
+    env.setdefault("KOVA_UPDATE_HANDOFF_PID", str(os.getpid()))
     # Everything the user saw so far came from the OLD updater; say so before the
     # new one (package manager) takes over, so logs show where the switch happened.
     # ASCII only, like every line printed before the child starts: a Windows pipe encodes this
@@ -199,7 +199,7 @@ def stop_for_relaunch(*, incomplete: bool = False) -> NoReturn:
         if record is not None:
             record("old_version_handoff")
         print(
-            "You're updating from an older version of Hermes Agent. "
+            "You're updating from an older version of Kova Agent. "
             "To complete this update, run `hermes update` again.",
             file=sys.stderr,
         )

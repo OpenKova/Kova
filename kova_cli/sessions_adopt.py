@@ -112,7 +112,7 @@ def _unreadable_store(exc: sqlite3.Error, store: str) -> str:
     if is_sqlite_lock_error(exc):
         return f'Error: {store} is locked by another program. Close that program, then run this command again.'
     if _schema_not_built(exc):
-        return (f'Error: {store} is from an older Hermes and has not been upgraded ({exc}). Run '
+        return (f'Error: {store} is from an older Kova and has not been upgraded ({exc}). Run '
                 '`hermes sessions repair` to upgrade it (it makes a backup first), then run this command again.')
     return f'Error: could not read {store} ({exc}). Run `hermes sessions repair` to check it.'
 
@@ -121,16 +121,16 @@ def cmd_adopt(args) -> int:
     import asyncio
     from websockets.exceptions import WebSocketException
     from kova_cli.gateway_client import GatewayClientError
-    from kova_constants import display_hermes_home, get_hermes_home
+    from kova_constants import display_kova_home, get_kova_home
 
-    path = get_hermes_home() / 'state.db'
+    path = get_kova_home() / 'state.db'
     if not path.exists():
-        print(f'No session database at {display_hermes_home()}/state.db (nothing to adopt).')
+        print(f'No session database at {display_kova_home()}/state.db (nothing to adopt).')
         return 0
     try:
         rows = adoptable_sessions(path)
     except sqlite3.Error as exc:
-        print(_unreadable_store(exc, f'{display_hermes_home()}/state.db'), file=sys.stderr)
+        print(_unreadable_store(exc, f'{display_kova_home()}/state.db'), file=sys.stderr)
         return 1
     if not rows:
         print('Nothing to adopt: every local chat in this profile already belongs to its gateway.')

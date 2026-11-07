@@ -1,6 +1,6 @@
 """Plugin activation writes and reads the SAME key on every surface (#27548, #73131, #82898).
 
-Runs the real ``kova_cli.plugins_cmd`` commands against a temp HERMES_HOME and checks the verdict
+Runs the real ``kova_cli.plugins_cmd`` commands against a temp KOVA_HOME and checks the verdict
 through the loader's own gate (``plugins_discovery.gate_manifest``) — never by re-reading the list
 the command just wrote.
 """
@@ -35,11 +35,11 @@ def _write_tool_plugin(root, name):
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    (hermes_home / "plugins").mkdir(parents=True)
-    (hermes_home / "config.yaml").write_text("plugins:\n  enabled: []\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    return hermes_home
+    kova_home = tmp_path / "hermes-home"
+    (kova_home / "plugins").mkdir(parents=True)
+    (kova_home / "config.yaml").write_text("plugins:\n  enabled: []\n  disabled: []\n", encoding="utf-8")
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    return kova_home
 
 
 @pytest.fixture(autouse=True)

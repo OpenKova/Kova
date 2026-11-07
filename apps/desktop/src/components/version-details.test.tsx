@@ -40,8 +40,8 @@ describe('VersionDetails', () => {
       visible: ['Runtime', 'Embedded runtime']
     },
     {
-      version: { hermesRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.hermes/hermes-agent' } } },
-      visible: ['Runtime', 'git (/home/u/.hermes/hermes-agent)'],
+      version: { hermesRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.kova/kova-agent' } } },
+      visible: ['Runtime', 'git (/home/u/.kova/kova-agent)'],
       absent: ['External (uses the machine runtime)']
     },
     { version: { hermesRuntime: { type: 'external' } }, visible: ['Runtime', 'External (uses the machine runtime)'] },
@@ -134,7 +134,7 @@ describe('VersionDetails', () => {
 
     await waitFor(() => {
       expect(openExternal).toHaveBeenCalledWith(
-        'https://github.com/NousResearch/hermes-agent/commit/d233b6d7a9c5b79288e48dfb3b29e2ead106ac73'
+        'https://github.com/NousResearch/kova-agent/commit/d233b6d7a9c5b79288e48dfb3b29e2ead106ac73'
       )
     })
     expect($previewTabs.get()).toHaveLength(0)

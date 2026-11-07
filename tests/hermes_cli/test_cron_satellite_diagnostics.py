@@ -13,13 +13,13 @@ def served_root(tmp_path, monkeypatch):
     root = tmp_path / "home"
     home = root / "profiles" / "probe"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "probe")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_PROFILE", "probe")
     # Never read the real host rendezvous record of the developer's live gateway.
     (tmp_path / "locks").mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     monkeypatch.setattr(jobs, "CRON_DIR", home / "cron")
     monkeypatch.setattr(jobs, "JOBS_FILE", home / "cron/jobs.json")
     monkeypatch.setattr(jobs, "OUTPUT_DIR", home / "cron/output")
@@ -143,8 +143,8 @@ def test_standalone_guidance_matches_profile_membership(served_root, monkeypatch
     homes = {"default": served_root, "custom": served_root.parent / "custom", "named": served_root / "profiles/probe"}
     home = homes[home_kind]
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_PROFILE")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_PROFILE")
     monkeypatch.setattr("gateway.status.is_gateway_runtime_lock_active", lambda lock_path=None: False)
     cron_status()
     output = capsys.readouterr().out
@@ -163,11 +163,11 @@ def test_desktop_serve_ticker_is_not_reported_as_no_gateway(tmp_path, monkeypatc
     home = tmp_path / "home"
     home.mkdir()
     (tmp_path / "locks").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-    monkeypatch.delenv("HERMES_PROFILE", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.delenv("KOVA_PROFILE", raising=False)
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: home)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: home)
     monkeypatch.setattr(jobs, "CRON_DIR", home / "cron")
     monkeypatch.setattr(jobs, "JOBS_FILE", home / "cron/jobs.json")
     monkeypatch.setattr(jobs, "OUTPUT_DIR", home / "cron/output")
@@ -206,7 +206,7 @@ def test_in_process_ticker_heartbeat_counts_only_while_its_writer_lives(tmp_path
 
     home = tmp_path / "home"
     (home / "cron").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(jobs, "CRON_DIR", home / "cron")
     monkeypatch.setattr("kova_cli.gateway.find_gateway_pids", list)
     monkeypatch.setattr("gateway.status.is_gateway_runtime_lock_active", lambda lock_path=None: False)

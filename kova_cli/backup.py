@@ -18,8 +18,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from kova_constants import (
-    LOCAL_RUNTIME_ROOT_DIRS, _get_platform_default_hermes_home, get_default_hermes_root, get_hermes_home,
-    display_hermes_home,
+    LOCAL_RUNTIME_ROOT_DIRS, _get_platform_default_kova_home, get_default_kova_root, get_kova_home,
+    display_kova_home,
 )
 from kova_state_dbfile import RETIRED_GENERATION_DIR_SUFFIX
 from kova_state_holders import read_only_db_uri
@@ -68,14 +68,14 @@ def _snapshot_recovery_hint() -> str:
     return ("To restore a newer snapshot, start `hermes` in a terminal and run `/snapshot list`, then "
             "`/snapshot restore <id>` (CLI only).")
 
-# Directory names to skip (matched against each path component). ``hermes-agent`` only matches at
-# the root (``_should_exclude``) so skill dirs like ``skills/.../hermes-agent/`` survive. The
-# dependency/cache entries matter: one plugin venv or pip/uv cache under HERMES_HOME walked
+# Directory names to skip (matched against each path component). ``kova-agent`` only matches at
+# the root (``_should_exclude``) so skill dirs like ``skills/.../kova-agent/`` survive. The
+# dependency/cache entries matter: one plugin venv or pip/uv cache under KOVA_HOME walked
 # file-by-file balloons a backup to hundreds of thousands of entries ("backup stuck for days").
 # Mostly mirrors ``agent.skill_utils.EXCLUDED_SKILL_DIRS``; ``.cache`` is backup-only. ``.archive``
 # is deliberately NOT excluded: the curator's ``skills/.archive/`` holds restorable user skills.
 _EXCLUDED_DIRS = {
-    "hermes-agent",     # the codebase repo — re-clone instead
+    "kova-agent",     # the codebase repo — re-clone instead
     "__pycache__",      # bytecode caches — regenerated on import
     ".git",             # nested git dirs (profiles shouldn't have these, but safety)
     "node_modules",     # js deps — reinstalled on demand
@@ -94,7 +94,7 @@ _EXCLUDED_DIRS = {
     ".cache", ".tox", ".nox", ".pytest_cache", ".mypy_cache", ".ruff_cache",
 }
 
-# Hermes-managed runtime downloads are regenerable. Match only profile roots:
+# Kova-managed runtime downloads are regenerable. Match only profile roots:
 # a deeper directory of the same name (such as a skill's models/) is user data.
 _EXCLUDED_ROOT_DIRS = LOCAL_RUNTIME_ROOT_DIRS | (PM_RUNTIME_ROOT_DIRS - {"cache"})
 
@@ -168,14 +168,14 @@ _ZIP_MEMBER_READ_ERRORS: tuple[type[BaseException], ...] = (
 # excluded browser-profile/ snapshot) but must come back owner-only.
 _SECRET_FILE_NAMES = {".env", "auth.json", "state.db", "vault.key", "vault.json.enc"}
 
-# Reserved archive subtree for memory-provider state OUTSIDE HERMES_HOME (e.g. ~/.honcho, via
+# Reserved archive subtree for memory-provider state OUTSIDE KOVA_HOME (e.g. ~/.honcho, via
 # MemoryProvider.backup_paths()), stored and restored relative to the user's home; paths not
 # under home are skipped.
 _EXTERNAL_PREFIX = "_external/"
 
 
 class BackupInProgressError(RuntimeError):
-    """Raised when another process already owns the Hermes backup slot."""
+    """Raised when another process already owns the Kova backup slot."""
 
 
 class _SQLiteSnapshotError(RuntimeError):
@@ -183,9 +183,9 @@ class _SQLiteSnapshotError(RuntimeError):
 
 
 @contextmanager
-def _backup_operation_lock(hermes_home: Path, timeout_seconds: float = 0.25):
+def _backup_operation_lock(kova_home: Path, timeout_seconds: float = 0.25):
     """Acquire one cross-process backup slot for full and quick snapshots."""
-    lock_path = hermes_home / ".backup.lock"
+    lock_path = kova_home / ".backup.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     handle = lock_path.open("a+b")
     acquired = False
@@ -211,7 +211,7 @@ def _backup_operation_lock(hermes_home: Path, timeout_seconds: float = 0.25):
                 acquired = True
             except OSError:
                 if time.monotonic() >= deadline:
-                    raise BackupInProgressError("another Hermes backup is already running")
+                    raise BackupInProgressError("another Kova backup is already running")
                 time.sleep(0.05)
         yield
     finally:
@@ -320,8 +320,8 @@ def _should_exclude(rel_path: Path) -> bool:
     parts = rel_path.parts
     if _in_excluded_root_dir(rel_path):
         return True
-    # ``hermes-agent`` only matches at the root level; nested same-named dirs are preserved.
-    if any(p in _EXCLUDED_DIRS and (p != "hermes-agent" or p == parts[0]) for p in parts):
+    # ``kova-agent`` only matches at the root level; nested same-named dirs are preserved.
+    if any(p in _EXCLUDED_DIRS and (p != "kova-agent" or p == parts[0]) for p in parts):
         return True
     name = rel_path.name
     return name in _EXCLUDED_NAMES or name.startswith(_EXCLUDED_PREFIXES) or name.endswith(_EXCLUDED_SUFFIXES)
@@ -331,7 +331,7 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
     """Yield ``(abs_path, rel_path)`` for every file a full backup should hold.
 
     The one owner of the walk policy (directory pruning so os.walk never descends a multi-GB
-    excluded tree, the root-only ``hermes-agent`` carve-out, root runtime trees, per-file rules),
+    excluded tree, the root-only ``kova-agent`` carve-out, root runtime trees, per-file rules),
     shared by ``hermes backup`` and the pre-update path so they can never drift.
     """
     for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
@@ -339,7 +339,7 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
         is_root = rel_dir == Path(".")
         kept = [
             d for d in dirnames
-            if (d not in _EXCLUDED_DIRS or (d == "hermes-agent" and not is_root))
+            if (d not in _EXCLUDED_DIRS or (d == "kova-agent" and not is_root))
             and not _in_excluded_root_dir(rel_dir / d)]
         if skipped_dirs is not None:
             skipped_dirs.update(str(rel_dir / d) for d in set(dirnames) - set(kept))
@@ -349,7 +349,7 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
             rel = rel_dir / fname
             fpath = hermes_root / rel
             # zipfile.write() follows file symlinks, so skip links before any archive write can
-            # copy data from outside HERMES_HOME; never archive the output zip into itself.
+            # copy data from outside KOVA_HOME; never archive the output zip into itself.
             if _should_exclude(rel):
                 continue
             if _is_non_regular_path(fpath):
@@ -592,7 +592,7 @@ def _collect_external_entries() -> tuple[list[tuple[Path, str]], list[str]]:
 
 
 def run_backup(args) -> bool:
-    """Create a zip backup of the Hermes home directory.
+    """Create a zip backup of the Kova home directory.
 
     True when every selected file landed in the archive (or there was nothing to back up); False
     when the zip was written but is incomplete — it is kept so the rest can still be restored, and
@@ -600,10 +600,10 @@ def run_backup(args) -> bool:
     archive that is missing state.db. Hard failures keep raising ``SystemExit``.
     """
     require_file_tooling("`hermes backup`")
-    hermes_root = get_default_hermes_root()
+    hermes_root = get_default_kova_root()
 
     if not hermes_root.is_dir():
-        print(f"Error: Hermes home directory not found at {hermes_root}")
+        print(f"Error: Kova home directory not found at {hermes_root}")
         sys.exit(1)
 
     try:
@@ -619,7 +619,7 @@ def _run_backup_locked(args, hermes_root: Path) -> bool:
     out_path = _resolve_backup_output_path(args.output)
     scan_started = time.monotonic()
     logger.info("backup phase=scan status=started")
-    print(f"Scanning {display_hermes_home()} ...")
+    print(f"Scanning {display_kova_home()} ...")
     skipped_dirs: set = set()
     files_to_add: list[tuple[Path, Path]] = list(_iter_backup_files(hermes_root, out_path, skipped_dirs))
     external_to_add, skipped_external = _collect_external_entries()
@@ -664,7 +664,7 @@ def _run_backup_locked(args, hermes_root: Path) -> bool:
           f"  Compressed:  {_format_size(zip_size)}\n"
           f"  Time:        {elapsed:.1f}s")
     if external_to_add:
-        print(f"\n  Included {len(external_to_add)} memory-provider file(s) stored outside {display_hermes_home()}.")
+        print(f"\n  Included {len(external_to_add)} memory-provider file(s) stored outside {display_kova_home()}.")
     if skipped_external:
         print(f"\n  Skipped {len(skipped_external)} memory-provider path(s) outside your home directory "
               "(not portable):\n" + "\n".join(f"    {p}" for p in sorted(skipped_external)[:10]))
@@ -709,7 +709,7 @@ def _find_corrupt_members(zf: zipfile.ZipFile, members: list[str]) -> list[str]:
 
 
 def _import_skipped(rel: str) -> bool:
-    """True for a HERMES_HOME-relative member the import deliberately does not restore: runtime
+    """True for a KOVA_HOME-relative member the import deliberately does not restore: runtime
     state (``_IMPORT_SKIP_NAMES``), PM-local interpreter/dependency roots, or an archived SQLite
     WAL/SHM/journal. A ``.db`` member is page-restored into the live file, and a sidecar from a
     different image would replay a foreign WAL on next open (older archives may ship these)."""
@@ -726,7 +726,7 @@ def _import_member_rel(member: str, prefix: str) -> tuple[str, bool]:
     """Classify an archive member exactly as the restore does: return ``(rel, skipped)``.
 
     ``_external/`` members are home-relative and never skipped; every other member is
-    HERMES_HOME-relative after stripping the archive ``prefix``. Shared by the integrity
+    KOVA_HOME-relative after stripping the archive ``prefix``. Shared by the integrity
     pre-flight and ``_import_members`` so the two cannot disagree on what gets restored."""
     if member.startswith(_EXTERNAL_PREFIX):
         return member[len(_EXTERNAL_PREFIX):], False
@@ -735,7 +735,7 @@ def _import_member_rel(member: str, prefix: str) -> tuple[str, bool]:
 
 
 def run_import(args) -> Optional[int]:
-    """Restore a Hermes backup; return 1 on damaged archives or incomplete restores."""
+    """Restore a Kova backup; return 1 on damaged archives or incomplete restores."""
     require_file_tooling("`hermes import`")
     zip_path = Path(args.zipfile).expanduser().resolve()
 
@@ -747,9 +747,9 @@ def run_import(args) -> Optional[int]:
         print(f"Error: Not a valid zip file: {zip_path}")
         sys.exit(1)
 
-    # The home this command operates under (the "Target:" display_hermes_home() prints):
-    # get_default_hermes_root() would map a profile home back to <root> and restore the live root.
-    hermes_root = get_hermes_home()
+    # The home this command operates under (the "Target:" display_kova_home() prints):
+    # get_default_kova_root() would map a profile home back to <root> and restore the live root.
+    hermes_root = get_kova_home()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
         # Validate
@@ -763,7 +763,7 @@ def run_import(args) -> Optional[int]:
         file_count = len(members)
 
         print(f"Backup contains {file_count} files")
-        print(f"Target: {display_hermes_home()}")
+        print(f"Target: {display_kova_home()}")
         if prefix:
             print(f"Detected archive prefix: {prefix!r} (will be stripped)")
 
@@ -773,7 +773,7 @@ def run_import(args) -> Optional[int]:
 
         if (has_config or has_env) and not args.force:
             print()
-            print("Warning: Target directory already has Hermes configuration.")
+            print("Warning: Target directory already has Kova configuration.")
             print("Importing will overwrite existing files with backup contents.")
             print()
             try:
@@ -811,12 +811,12 @@ def run_import(args) -> Optional[int]:
         # Summary
         print()
         print(f"Import {'incomplete' if errors else 'complete'}: {restored} files restored in {elapsed:.1f}s")
-        print(f"  Target: {display_hermes_home()}")
+        print(f"  Target: {display_kova_home()}")
 
         if restored_external:
             print(
                 f"\n  Restored {restored_external} memory-provider file(s) to "
-                f"their original location(s) outside {display_hermes_home()}."
+                f"their original location(s) outside {display_kova_home()}."
             )
 
         if errors:
@@ -894,8 +894,8 @@ def run_import(args) -> Optional[int]:
 
         # Guidance
         print()
-        if not (hermes_root / "hermes-agent").is_dir():
-            print("Note: The hermes-agent codebase was not included in the backup.")
+        if not (hermes_root / "kova-agent").is_dir():
+            print("Note: The kova-agent codebase was not included in the backup.")
             print("  If this is a fresh install, run: hermes update")
 
         if restored_profiles:
@@ -910,7 +910,7 @@ def run_import(args) -> Optional[int]:
             print(f"Import incomplete: {len(errors)} file(s) were not restored (see Warnings above). "
                   "Fix the cause and re-run the import.")
             return 1
-        print("Done. Your Hermes configuration has been restored.")
+        print("Done. Your Kova configuration has been restored.")
 
 
 def _import_members(
@@ -984,7 +984,7 @@ def _import_members_exclusive(
     for member in members:
         # External memory-provider state captured under the reserved
         # ``_external/`` arc prefix restores to its original home-relative
-        # location (e.g. ~/.honcho/config.json), NOT under HERMES_HOME.
+        # location (e.g. ~/.honcho/config.json), NOT under KOVA_HOME.
         if member.startswith(_EXTERNAL_PREFIX):
             if not member[len(_EXTERNAL_PREFIX):]:
                 continue
@@ -1077,7 +1077,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
     revived when the restore landed in the default home or no other install exists: a sandbox or
     profile restore must not install a second gateway on the default service name.
     """
-    native_default = _get_platform_default_hermes_home()
+    native_default = _get_platform_default_kova_home()
     if hermes_root != native_default and any(
             (native_default / marker).exists() for marker in ("config.yaml", ".env", "state.db")):
         print("\nRestored into a non-default home; leaving the gateway service alone to avoid clashing "
@@ -1099,7 +1099,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
 
 # --- Quick state snapshots (used by /snapshot slash command and hermes backup --quick) ---
 
-# Critical state files (relative to HERMES_HOME) for quick snapshots; everything else is
+# Critical state files (relative to KOVA_HOME) for quick snapshots; everything else is
 # regeneratable or managed separately (skills, repo, sessions/). Entries may be files OR
 # directories (recursive); missing entries are skipped. Pairing data lives in platform JSON blobs
 # outside state.db, so it is listed explicitly — ``hermes update`` snapshots this set (#15733).
@@ -1108,7 +1108,7 @@ _QUICK_STATE_FILES = (
     "gateway_state.json", "channel_directory.json", "channel_aliases.json", "processes.json",
     "gateway/discord_message_recovery.db",  # Discord reconnect replay ledger
     # Per-profile user stores, destroyed if the update flow replaces the file and the post-update
-    # schema-init re-creates an empty one (#52889). Skipped when outside HERMES_HOME.
+    # schema-init re-creates an empty one (#52889). Skipped when outside KOVA_HOME.
     "projects.db",                      # per-profile project store
     "response_store.db",                # gateway conversation history / tool payloads
     "memory_store.db",                  # holographic memory facts/entities
@@ -1124,8 +1124,8 @@ _QUICK_STATE_FILES = (
 _QUICK_DEFAULT_KEEP = 20
 
 
-def _quick_snapshot_root(hermes_home: Optional[Path] = None) -> Path:
-    home = hermes_home or get_hermes_home()
+def _quick_snapshot_root(kova_home: Optional[Path] = None) -> Path:
+    home = kova_home or get_kova_home()
     return home / _QUICK_SNAPSHOTS_DIR
 
 
@@ -1185,12 +1185,12 @@ def _prune_incomplete_zips(backup_dir: Path, prefix: str, what: str) -> int:
 
 
 def _create_prefixed_full_backup(
-    hermes_home: Optional[Path], prefix: str, keep: int, what: str, prune_what: str) -> Optional[Path]:
-    """Write ``<HERMES_HOME>/backups/<prefix><timestamp>.zip`` and prune older same-prefix zips.
+    kova_home: Optional[Path], prefix: str, keep: int, what: str, prune_what: str) -> Optional[Path]:
+    """Write ``<KOVA_HOME>/backups/<prefix><timestamp>.zip`` and prune older same-prefix zips.
     Returns the path, or ``None`` if nothing to back up, the write failed, or the archive is
     incomplete (kept as ``<prefix><timestamp>.incomplete.zip``, excluded from retention).
     Never raises."""
-    hermes_root = hermes_home or get_default_hermes_root()
+    hermes_root = kova_home or get_default_kova_root()
     if not hermes_root.is_dir():
         return None
     backup_dir = hermes_root / _PRE_UPDATE_BACKUPS_DIR
@@ -1210,21 +1210,21 @@ def _create_prefixed_full_backup(
 
 
 def create_pre_update_backup(
-    hermes_home: Optional[Path] = None, keep: int = _PRE_UPDATE_DEFAULT_KEEP) -> Optional[Path]:
+    kova_home: Optional[Path] = None, keep: int = _PRE_UPDATE_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-update-<timestamp>.zip``, auto-pruned; ``None`` if nothing
     was found, the backup failed, or it was incomplete (salvage kept as ``*.incomplete.zip``).
     Never raises — ``hermes update`` continues anyway."""
-    return _create_prefixed_full_backup(hermes_home, _PRE_UPDATE_PREFIX, max(keep, 1), "pre-update", "backup")
+    return _create_prefixed_full_backup(kova_home, _PRE_UPDATE_PREFIX, max(keep, 1), "pre-update", "backup")
 
 
 def create_pre_migration_backup(
-    hermes_home: Optional[Path] = None, keep: int = _PRE_MIGRATION_DEFAULT_KEEP) -> Optional[Path]:
+    kova_home: Optional[Path] = None, keep: int = _PRE_MIGRATION_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-migration-<timestamp>.zip`` before a plugin's agent import
     (``hermes import-agent openclaw``), so its name and signature are API; same dir as update backups
     so ``hermes import`` finds it. ``None`` if nothing was found, the write failed, or it was
     incomplete (salvage kept as ``*.incomplete.zip``). Never raises."""
     return _create_prefixed_full_backup(
-        hermes_home, _PRE_MIGRATION_PREFIX, max(keep, 0), "pre-migration", "pre-migration backup")
+        kova_home, _PRE_MIGRATION_PREFIX, max(keep, 0), "pre-migration", "pre-migration backup")
 
 
 # ---------------------------------------------------------------------------
@@ -1233,16 +1233,16 @@ def create_pre_migration_backup(
 
 def create_quick_snapshot(
     label: Optional[str] = None,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
     keep: Optional[int] = None,
     max_file_size: Optional[int] = None,
 ) -> Optional[str]:
     """Create one atomic quick snapshot while holding the shared backup slot."""
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     with _backup_operation_lock(home):
         return _create_quick_snapshot_locked(
             label=label,
-            hermes_home=home,
+            kova_home=home,
             keep=keep,
             max_file_size=max_file_size,
         )
@@ -1250,7 +1250,7 @@ def create_quick_snapshot(
 
 def _create_quick_snapshot_locked(
     label: Optional[str] = None,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
     keep: Optional[int] = None,
     max_file_size: Optional[int] = None,
 ) -> Optional[str]:
@@ -1272,7 +1272,7 @@ def _create_quick_snapshot_locked(
     Returns:
         Snapshot ID (timestamp-based), or None if no files found.
     """
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     root = _quick_snapshot_root(home)
 
     def _too_large(path: Path, rel_name: str) -> bool:
@@ -1493,10 +1493,10 @@ def _create_quick_snapshot_locked(
 
 def list_quick_snapshots(
     limit: int = 20,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> list[dict[str, Any]]:
     """List existing quick state snapshots, most recent first."""
-    root = _quick_snapshot_root(hermes_home)
+    root = _quick_snapshot_root(kova_home)
     if not root.exists():
         return []
 
@@ -1522,7 +1522,7 @@ def _is_trusted_root_auth_alias(path: Path, home: Path) -> bool:
     if not path.is_symlink():
         return False
     try:
-        root = get_default_hermes_root(home=home).resolve(strict=False)
+        root = get_default_kova_root(home=home).resolve(strict=False)
         if home.resolve(strict=False) == root:
             return False
         trusted = (root / "auth.json").resolve(strict=False)
@@ -1534,7 +1534,7 @@ def _is_trusted_root_auth_alias(path: Path, home: Path) -> bool:
 
 def restore_quick_snapshot(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> bool:
     """Restore the whole snapshot offline, or refuse before changing any file.
 
@@ -1544,7 +1544,7 @@ def restore_quick_snapshot(
     """
     from gateway.runtime_ownership import OwnershipConflict, exclusive_maintenance
     require_file_tooling("Snapshot restore")
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     try:
         with exclusive_maintenance([home]):
             return _restore_quick_snapshot_exclusive(snapshot_id, home)
@@ -1595,9 +1595,9 @@ def _restore_snapshot_entry(rel: str, src: Path, dst: Path) -> bool:
         return False
 
 
-def quick_snapshot_dir(snapshot_id: str, hermes_home: Optional[Path] = None) -> Optional[Path]:
+def quick_snapshot_dir(snapshot_id: str, kova_home: Optional[Path] = None) -> Optional[Path]:
     """The directory of a restorable quick snapshot, or None for an invalid or missing id."""
-    root = _quick_snapshot_root(hermes_home)
+    root = _quick_snapshot_root(kova_home)
     # Security: reject snapshot_id values that contain path separators or
     # traversal sequences so that `root / snapshot_id` stays inside root.
     if not snapshot_id or "/" in snapshot_id or "\\" in snapshot_id or snapshot_id in (".", ".."):
@@ -1678,7 +1678,7 @@ def _restore_quick_snapshot_exclusive(snapshot_id: str, home: Path) -> bool:
 
 def restore_cron_jobs_if_emptied(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
     """Safety net for silent cron-job loss across ``hermes update``.
 
@@ -1701,7 +1701,7 @@ def restore_cron_jobs_if_emptied(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        hermes_home: Override for the Hermes home directory (tests).
+        kova_home: Override for the Kova home directory (tests).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a
@@ -1711,7 +1711,7 @@ def restore_cron_jobs_if_emptied(
     if not snapshot_id:
         return None
 
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     live_path = home / _CRON_JOBS_REL
 
     live_count = _count_cron_jobs(live_path)
@@ -1762,13 +1762,13 @@ def _sibling_profile_homes(invoking_home: Path) -> list[tuple[str, Path]]:
     homes: list[tuple[str, Path]] = []
     try:
         from kova_cli.profiles import (
-            _get_default_hermes_home,
+            _get_default_kova_home,
             _get_profiles_root,
             _PROFILE_ID_RE,
         )
 
         invoking = invoking_home.resolve()
-        default_home = _get_default_hermes_home()
+        default_home = _get_default_kova_home()
         if default_home.is_dir() and default_home.resolve() != invoking:
             homes.append(("default", default_home))
         root = _get_profiles_root()
@@ -1801,12 +1801,12 @@ def create_pre_update_snapshots_all_profiles(
     siblings that snapshotted successfully. Never raises.
     """
     results: dict[str, str] = {}
-    home = invoking_home or get_hermes_home()
+    home = invoking_home or get_kova_home()
     for name, profile_home in _sibling_profile_homes(home):
         try:
             snap_id = create_quick_snapshot(
                 label="pre-update",
-                hermes_home=profile_home,
+                kova_home=profile_home,
                 keep=keep,
                 max_file_size=max_file_size,
             )
@@ -1847,7 +1847,7 @@ def _read_raw_yaml_dict(path: Path) -> Optional[dict[str, Any]]:
 
 def restore_config_model_settings_if_rewritten(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
     """Safety net for silent config.yaml model/MoA loss across ``hermes update``.
 
@@ -1868,7 +1868,7 @@ def restore_config_model_settings_if_rewritten(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        hermes_home: Override for the Hermes home directory (tests/siblings).
+        kova_home: Override for the Kova home directory (tests/siblings).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a
@@ -1880,7 +1880,7 @@ def restore_config_model_settings_if_rewritten(
     if not supports_file_tooling():  # Remote Config: never write a LOCAL snapshot's values to the plane
         return None
 
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     live_path = home / "config.yaml"
     snap_path = _quick_snapshot_root(home) / snapshot_id / "config.yaml"
 
@@ -1942,7 +1942,7 @@ def restore_config_model_settings_all_profiles(
     restored: list[dict[str, Any]] = []
     if not profile_snapshots:
         return restored
-    home = invoking_home or get_hermes_home()
+    home = invoking_home or get_kova_home()
     by_name = dict(_sibling_profile_homes(home))
     for name, snap_id in profile_snapshots.items():
         profile_home = by_name.get(name)
@@ -1950,7 +1950,7 @@ def restore_config_model_settings_all_profiles(
             continue
         try:
             result = restore_config_model_settings_if_rewritten(
-                snap_id, hermes_home=profile_home
+                snap_id, kova_home=profile_home
             )
         except Exception as exc:
             logger.debug(
@@ -1981,14 +1981,14 @@ def restore_cron_jobs_all_profiles(
     restored: list[dict[str, Any]] = []
     if not profile_snapshots:
         return restored
-    home = invoking_home or get_hermes_home()
+    home = invoking_home or get_kova_home()
     by_name = dict(_sibling_profile_homes(home))
     for name, snap_id in profile_snapshots.items():
         profile_home = by_name.get(name)
         if profile_home is None:
             continue
         try:
-            result = restore_cron_jobs_if_emptied(snap_id, hermes_home=profile_home)
+            result = restore_cron_jobs_if_emptied(snap_id, kova_home=profile_home)
         except Exception as exc:
             logger.debug("Cron restore check for profile %s failed: %s", name, exc)
             continue
@@ -2026,10 +2026,10 @@ def _prune_quick_snapshots(root: Path, keep: int = _QUICK_DEFAULT_KEEP) -> int:
 
 def prune_quick_snapshots(
     keep: int = _QUICK_DEFAULT_KEEP,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> int:
     """Manually prune quick snapshots. Returns count deleted."""
-    return _prune_quick_snapshots(_quick_snapshot_root(hermes_home), keep=keep)
+    return _prune_quick_snapshots(_quick_snapshot_root(kova_home), keep=keep)
 
 
 def run_quick_backup(args) -> None:
@@ -2039,7 +2039,7 @@ def run_quick_backup(args) -> None:
     if snap_id:
         print(f"State snapshot created: {snap_id}")
         snaps = list_quick_snapshots()
-        print(f"  {len(snaps)} snapshot(s) stored in {display_hermes_home()}/state-snapshots/")
+        print(f"  {len(snaps)} snapshot(s) stored in {display_kova_home()}/state-snapshots/")
         print(f"  Restore with: /snapshot restore {snap_id}")
     else:
         print("No state files found to snapshot.")

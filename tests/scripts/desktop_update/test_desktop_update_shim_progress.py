@@ -90,7 +90,7 @@ def test_every_state_carries_a_clock(progress):
         ("running", ""),
         ("running", "Installing the new app"),
         ("done", ""),
-        ("manual", "Reopen Hermes to finish."),
+        ("manual", "Reopen Kova to finish."),
         ("error", "Update failed."),
     ]:
         progress.publish(state, message)
@@ -120,19 +120,19 @@ FAKE_HERMES = """#!/usr/bin/env bash
 # real update call; answer it without consuming a counted call so the
 # exits.N mapping below still refers to actual update attempts.
 case "$*" in *--help*) echo "--keep-stash"; exit 0 ;; esac
-n="$(cat "$HERMES_TEST_CALLS" 2>/dev/null || echo 0)"; n=$((n + 1))
-printf '%s' "$n" > "$HERMES_TEST_CALLS"
+n="$(cat "$KOVA_TEST_CALLS" 2>/dev/null || echo 0)"; n=$((n + 1))
+printf '%s' "$n" > "$KOVA_TEST_CALLS"
 for f in "$TMPDIR"/hermes-update-status.[0-9]*; do
   case "$f" in *.tmp) continue ;; esac
-  cp "$f" "$HERMES_TEST_CAPTURE.$n" 2>/dev/null
+  cp "$f" "$KOVA_TEST_CAPTURE.$n" 2>/dev/null
 done
-exit "$(cat "$HERMES_TEST_EXITS.$n" 2>/dev/null || echo 0)"
+exit "$(cat "$KOVA_TEST_EXITS.$n" 2>/dev/null || echo 0)"
 """
 
 
 def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
     """Run the real hand-off end to end; return the stage seen at each call."""
-    install_root = tmp_path / "hermes-agent"
+    install_root = tmp_path / "kova-agent"
     (install_root / "venv" / "bin").mkdir(parents=True)
     hermes = install_root / "venv" / "bin" / "hermes"
     hermes.write_text(FAKE_HERMES)
@@ -146,11 +146,11 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
     env = {
         **os.environ,
         "TMPDIR": str(tmp_path),
-        "HERMES_TEST_CAPTURE": str(capture),
-        "HERMES_TEST_CALLS": str(calls),
-        "HERMES_TEST_EXITS": str(tmp_path / "exits"),
+        "KOVA_TEST_CAPTURE": str(capture),
+        "KOVA_TEST_CALLS": str(calls),
+        "KOVA_TEST_EXITS": str(tmp_path / "exits"),
     }
-    env.pop("HERMES_HOME", None)  # Exercise the legacy install-parent fallback.
+    env.pop("KOVA_HOME", None)  # Exercise the legacy install-parent fallback.
     # The hand-off daemonizes and the launcher exits immediately; the result
     # file is the orchestrator's own completion signal.
     subprocess.run(
@@ -166,7 +166,7 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
         check=True,
     )
 
-    result = tmp_path / ".hermes-update-result.json"
+    result = tmp_path / ".kova-update-result.json"
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline and not result.exists():
         time.sleep(0.1)

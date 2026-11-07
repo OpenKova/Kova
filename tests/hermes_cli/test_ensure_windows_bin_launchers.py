@@ -1,8 +1,8 @@
 """``hermes`` must survive git operations on the checkout (launcher layout).
 
 The Windows ``hermes`` command is a staged launcher whose canonical home is
-the managed binary dir ``HERMES_HOME\\bin`` — OUTSIDE the git checkout —
-because the earlier in-checkout home (``hermes-agent\\bin``) was swept by
+the managed binary dir ``KOVA_HOME\\bin`` — OUTSIDE the git checkout —
+because the earlier in-checkout home (``kova-agent\\bin``) was swept by
 ``hermes update``'s autostash (``git stash push --include-untracked``) and,
 with the desktop updater's ``--keep-stash``, never restored: ``hermes``
 stopped resolving in every new terminal (``venv\\Scripts`` itself must stay
@@ -41,15 +41,15 @@ from kova_cli._install_repair import (
 
 
 def _make_managed(tmp_path, monkeypatch):
-    """Fake managed layout: HERMES_HOME/hermes-agent/venv (+ a fake venv
+    """Fake managed layout: KOVA_HOME/kova-agent/venv (+ a fake venv
     python whose path legacy trampolines would embed). New consoles resolve
     this home, so the PATH migration may edit the (injected) User PATH."""
     home = tmp_path / "hermes"
-    root = home / "hermes-agent"
+    root = home / "kova-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
     (root / "venv" / "Scripts" / "python.exe").write_bytes(b"MZ fake venv python")
     (root / "venv" / "pyvenv.cfg").write_text("home = X\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(_launchers, "new_console_hermes_root", lambda: home)
     return home, root
 
@@ -58,7 +58,7 @@ def _make_store(tmp_path, monkeypatch, *, version="3.11.15+x20260807"):
     """A fake pm store with a materialized python package. The interpreter
     file's bytes don't matter — the heal stages launchers, it never runs
     them — but the LAYOUT must match what pm/paths.py + facts.json
-    describe (HERMES_RUNTIME_DIR override keeps tests off the real store)."""
+    describe (KOVA_RUNTIME_DIR override keeps tests off the real store)."""
     store = tmp_path / "store"
     entry = store / f"python-{version}-win32-arm64"
     (entry / "bin").mkdir(parents=True)
@@ -76,7 +76,7 @@ def _make_store(tmp_path, monkeypatch, *, version="3.11.15+x20260807"):
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(store))
     return store, entry
 
 
@@ -112,7 +112,7 @@ def managed_install(tmp_path, monkeypatch):
 def test_no_store_python_refuses_publication(managed_install, tmp_path, monkeypatch):
     """Repair cannot publish a usable launcher before PM commits Python."""
     home, root = managed_install
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
 
     restored = ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
 
@@ -164,7 +164,7 @@ def test_healthy_store_launcher_is_a_noop(tmp_path, monkeypatch):
     _store, _entry = _make_store(tmp_path, monkeypatch)
     bin_dir = home / "bin"
     bin_dir.mkdir()
-    local = root / ".hermes" / "bin"
+    local = root / ".kova" / "bin"
     local.mkdir(parents=True)
     for name in _WINDOWS_BIN_LAUNCHERS:
         # A launcher that does NOT embed the venv interpreter counts as
@@ -185,7 +185,7 @@ def test_healthy_canonical_layout_with_placeholder_cmds_gets_upgraded(
     home, root = _make_managed(tmp_path, monkeypatch)
     bin_dir = home / "bin"
     bin_dir.mkdir()
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
     ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
     store, _entry = _make_store(tmp_path, monkeypatch)
 
@@ -221,12 +221,12 @@ def test_legacy_bin_not_restaged_without_path_consent(managed_install):
 
 
 def test_source_checkout_untouched(tmp_path, monkeypatch):
-    """A checkout NOT under HERMES_HOME gains nothing anywhere."""
+    """A checkout NOT under KOVA_HOME gains nothing anywhere."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
-    root = tmp_path / "src" / "hermes-agent"
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    root = tmp_path / "src" / "kova-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
 
     assert ensure_windows_bin_launchers(root, windows=True, user_path_entries=[]) == []
@@ -242,13 +242,13 @@ def test_noop_on_posix(managed_install):
 
 
 def test_profile_session_still_heals_the_shared_bin(tmp_path, monkeypatch):
-    """Under ``hermes -p <name>`` HERMES_HOME points inside profiles/<name>;
+    """Under ``hermes -p <name>`` KOVA_HOME points inside profiles/<name>;
     the launcher dir is per-machine, so the heal must anchor on the default
     root and fire anyway — a habitual profile user gets the same repair."""
     home = tmp_path / "hermes"
-    root = home / "hermes-agent"
+    root = home / "kova-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home / "profiles" / "work"))
+    monkeypatch.setenv("KOVA_HOME", str(home / "profiles" / "work"))
     _make_store(tmp_path, monkeypatch)
 
     restored = ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
@@ -353,11 +353,11 @@ def test_migration_is_idempotent(managed_install):
 def test_migration_refuses_empty_store_without_changing_path(tmp_path, monkeypatch):
     """Never point PATH at commands that cannot start."""
     home = tmp_path / "hermes"
-    root = home / "hermes-agent"
+    root = home / "kova-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     (tmp_path / "empty-store").mkdir()
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
     state, read, write = _fake_registry([str(root / "bin"), r"C:\Windows\system32"])
 
     ok = migrate_windows_bin_path(
@@ -401,9 +401,9 @@ def test_migration_fails_closed_when_the_console_check_raises(managed_install, m
 def test_migration_skips_source_checkouts(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
-    root = tmp_path / "src" / "hermes-agent"
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    root = tmp_path / "src" / "kova-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
     state, read, write = _fake_registry([r"C:\Windows\system32"])
 

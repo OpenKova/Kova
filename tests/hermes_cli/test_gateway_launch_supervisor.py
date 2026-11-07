@@ -86,7 +86,7 @@ def test_profile_data_cleanup_drains_only_a_manual_gateway(monkeypatch, tmp_path
     from kova_cli.data_cleanup_holders import _drain_manual_gateway
 
     home = Path(tmp_path).resolve()
-    answer = {**identity, "hermes_home": str(home), "start_time": 111}
+    answer = {**identity, "kova_home": str(home), "start_time": 111}
     monkeypatch.setattr(control_socket, "identify_gateway", lambda h, **k: answer)
 
     def pause(h):

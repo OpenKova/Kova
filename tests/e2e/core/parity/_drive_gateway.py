@@ -49,7 +49,7 @@ PARITY_USER_ID = "424242"
 
 
 def _append_env(ph: ParityHome, values: dict[str, str]) -> None:
-    path = ph.hermes_home / ".env"
+    path = ph.kova_home / ".env"
     existing = path.read_text(encoding="utf-8") if path.exists() else ""
     if existing and not existing.endswith("\n"):
         existing += "\n"
@@ -231,10 +231,10 @@ def _await_own_api_server(proc: subprocess.Popen, base: str, key: str) -> bool:
 def drive_api_server(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveResult:
     ph.pin_terminal_cwd()
     key = secrets.token_hex(32)
-    env_before = (ph.hermes_home / ".env").read_text(encoding="utf-8") if (ph.hermes_home / ".env").exists() else ""
+    env_before = (ph.kova_home / ".env").read_text(encoding="utf-8") if (ph.kova_home / ".env").exists() else ""
     for _attempt in range(PORT_ATTEMPTS):
         port = _free_loopback_port()
-        (ph.hermes_home / ".env").write_text(env_before, encoding="utf-8")
+        (ph.kova_home / ".env").write_text(env_before, encoding="utf-8")
         _append_env(ph, {"API_SERVER_ENABLED": "true", "API_SERVER_KEY": key,
                          "API_SERVER_HOST": "127.0.0.1", "API_SERVER_PORT": str(port)})
         proc = _spawn(ph, [sys.executable, "-m", "gateway.run"], "api_server.stderr.log")
@@ -255,7 +255,7 @@ def drive_api_server(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveRe
     try:
         status, raw = _http(
             "POST", f"{base}/v1/chat/completions", key=key, timeout=TURN_TIMEOUT,
-            body={"model": "hermes-agent", "messages": [{"role": "user", "content": prompt}],
+            body={"model": "kova-agent", "messages": [{"role": "user", "content": prompt}],
                   "stream": False},
         )
         payload = json.loads(raw) if raw.strip().startswith("{") else {"raw": raw}

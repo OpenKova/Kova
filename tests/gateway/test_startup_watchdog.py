@@ -36,8 +36,8 @@ from kova_startup_watchdog import (
 
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
-    """Every test gets a fresh singleton and its own HERMES_HOME."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """Every test gets a fresh singleton and its own KOVA_HOME."""
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.delenv(sw.ENV_STARTUP_WATCHDOG, raising=False)
     monkeypatch.delenv(sw.ENV_STARTUP_WATCHDOG_TIMEOUT_S, raising=False)
     sw._reset_for_tests()

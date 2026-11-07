@@ -40,7 +40,7 @@ function makeRepo() {
   tempDirs.push(dir)
   execFileSync('git', ['init', '-q'], { cwd: dir })
   execFileSync('git', ['config', 'user.email', 'hermes-test@example.com'], { cwd: dir })
-  execFileSync('git', ['config', 'user.name', 'Hermes Test'], { cwd: dir })
+  execFileSync('git', ['config', 'user.name', 'Kova Test'], { cwd: dir })
   fs.writeFileSync(path.join(dir, 'tracked.txt'), 'tracked\n')
   execFileSync('git', ['add', 'tracked.txt'], { cwd: dir })
   execFileSync('git', ['commit', '-qm', 'initial'], { cwd: dir })
@@ -81,7 +81,7 @@ test('gitFor accepts a Windows no-console host tuple with restricted characters'
       windowsGitHost: () => ({
         isWindows: true,
         pythonBin: String.raw`C:\Tools\python-3.14+build\python.exe`,
-        scriptPath: String.raw`C:\Hermes\hermes-no-console-git.py`
+        scriptPath: String.raw`C:\Kova\hermes-no-console-git.py`
       })
     }
   })
@@ -126,7 +126,7 @@ test('simpleGitHostEnv forwards the allow-listed git variables and drops the oth
     GIT_ASKPASS: '/usr/bin/askpass',
     SSH_ASKPASS: '/usr/bin/ssh-askpass',
     GIT_TERMINAL_PROMPT: '1',
-    HERMES_GIT_ARGV0: '"git"'
+    KOVA_GIT_ARGV0: '"git"'
   })
 })
 
@@ -179,7 +179,7 @@ test.skipIf(process.platform === 'win32')(
 )
 
 const HOST_PYTHON =
-  process.env.HERMES_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  process.env.KOVA_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
 
 test.skipIf(process.platform === 'win32')(
   "gitFor's Windows host-tuple path forwards GIT_SSH_COMMAND and does not throw on inherited guarded variables",

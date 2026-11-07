@@ -84,6 +84,6 @@ def test_first_idempotency_conflict_replays_only_the_same_frozen_request(tmp_pat
     assert result["run_id"] == "retained-run" and result["replayed"]
     assert len(requests) == 2 and requests[0] == requests[1]
     assert requests[0][2] == "room:task-1:1"
-    assert requests[0][3] == "HermesRoom signed.room.grant"
+    assert requests[0][3] == "KovaRoom signed.room.grant"
     saved = client._receipt("task-1", 1)
     assert saved["run_id"] == "retained-run" and saved["execution_generation"] == 1

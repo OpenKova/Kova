@@ -174,7 +174,7 @@ def test_messages_route_for_lagging_profile(monkeypatch, tmp_path):
 
 
 @pytest.fixture
-def own_store_client(monkeypatch, _isolate_hermes_home):
+def own_store_client(monkeypatch, _isolate_kova_home):
     try:
         from starlette.testclient import TestClient
     except ImportError:
@@ -182,12 +182,12 @@ def own_store_client(monkeypatch, _isolate_hermes_home):
     import kova_state
     from kova_cli.web_routers import profiles as profiles_routes
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setattr(profiles_routes, "_SIDEBAR_CACHE_TTL_SECONDS", 0.0)
-    path = get_hermes_home() / "state.db"
+    path = get_kova_home() / "state.db"
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", path)
-    (get_hermes_home() / "config.yaml").write_text("{}\n", encoding="utf-8")
+    (get_kova_home() / "config.yaml").write_text("{}\n", encoding="utf-8")
     with SessionDB(db_path=path) as db:
         db.create_session("stale-schema", source="cli")
         db.append_message("stale-schema", role="user", content="hi")
@@ -231,7 +231,7 @@ def test_session_list_reconciles_once_only_when_unowned(own_store_client, missin
     assert response.status_code == 503
     assert "gateway owns it" in response.json()["detail"]
     # A failed read is a retryable failed load naming the drift, never an empty list.
-    assert "behind this Hermes version" in sidebar["errors"][0]["error"]
+    assert "behind this Kova version" in sidebar["errors"][0]["error"]
     assert "sessions" not in sidebar["recents"] and sidebar["recents"]["failed"] is True
     assert path.read_bytes() == before
     assert missing_column not in _session_columns(path)
@@ -909,7 +909,7 @@ def test_legacy_gateway_holding_the_store_without_a_lock_is_not_written(tmp_path
     """alt-glitch W1: a v0.22.0 multiplex gateway keeps a named profile's state.db open without writing
     that profile's gateway.lock/gateway.pid. Browse must still treat it as the owner: no DDL, a named
     503. Plain readers (sibling browses, Desktop) are not owners, so only a holder identified as a
-    Hermes gateway process refuses."""
+    Kova gateway process refuses."""
     import os
     import subprocess
     import sys
@@ -939,7 +939,7 @@ import fcntl, json, os, sys, time
 fh = open(sys.argv[1], "a+")
 fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 fh.seek(0); fh.truncate()
-json.dump({"pid": os.getpid(), "kind": "hermes-gateway", "hermes_home": sys.argv[2]}, fh); fh.flush()
+json.dump({"pid": os.getpid(), "kind": "kova-gateway", "kova_home": sys.argv[2]}, fh); fh.flush()
 print("held", flush=True)
 time.sleep(60)
 '''
@@ -950,7 +950,7 @@ time.sleep(60)
 def test_owned_refusal_names_the_owning_multiplexers_restart(tmp_path):
     """alt-glitch W2: when the default multiplexer owns a named profile's lock, `hermes -p NAME gateway
     restart` is refused ("Manage the host gateway instead"). Name the owner's own restart command,
-    from the lock record's hermes_home."""
+    from the lock record's kova_home."""
     import os
     import subprocess
     import sys

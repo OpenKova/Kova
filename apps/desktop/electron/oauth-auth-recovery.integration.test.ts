@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { expect, test } from 'vitest'
 
 import { httpStatusError, readStatusCode } from './api-transport'
-import { isReauthRequiredError, waitForHermesReady } from './backend-health'
+import { isReauthRequiredError, waitForKovaReady } from './backend-health'
 import { isGatewayAuthRejection, normalizeRemoteBaseUrl, withTransientRetries } from './connection-config'
 import { createMediaProtocolHandler } from './media-protocol'
 import { createNativeAccessTokenCoordinator } from './native-access-token'
@@ -227,7 +227,7 @@ test('HTTP outage, dead-refresh and cookie coexistence reach the correct ticket/
     let clock = 0
 
     try {
-      await waitForHermesReady(f.baseUrl, {
+      await waitForKovaReady(f.baseUrl, {
         fetchPublicJson: async () => {
           throw new Error('must not anonymously downgrade')
         },

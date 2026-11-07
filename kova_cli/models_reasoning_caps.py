@@ -71,8 +71,8 @@ _REASONING_CAPS_DISK_TTL_SECONDS = 24 * 3600
 
 
 def _reasoning_caps_disk_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "cache" / "reasoning_caps.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "cache" / "reasoning_caps.json"
 
 
 def _read_reasoning_caps_disk() -> dict[str, Any]:

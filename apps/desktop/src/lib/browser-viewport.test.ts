@@ -25,7 +25,7 @@ beforeEach(() => {
   root = document.createElement('div')
   root.id = 'root'
   document.body.append(root)
-  document.documentElement.dataset.hermesDesktopHost = 'browser'
+  document.documentElement.dataset.kovaDesktopHost = 'browser'
   viewport = Object.assign(new EventTarget(), { height: 800, offsetTop: 0, scale: 1 })
   frames = new Map()
   nextFrame = 0
@@ -120,7 +120,7 @@ describe('browser visible viewport', () => {
     expect(root.hasAttribute('data-browser-viewport')).toBe(false)
     expect(frames.size).toBe(0)
 
-    document.documentElement.dataset.hermesDesktopHost = 'browser'
+    document.documentElement.dataset.kovaDesktopHost = 'browser'
     vi.stubGlobal('visualViewport', null)
     installBrowserViewport()()
     expect(root.hasAttribute('data-browser-viewport')).toBe(false)

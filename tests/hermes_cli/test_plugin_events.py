@@ -56,8 +56,8 @@ def test_broadcast_from_a_turn_isolation_child_reaches_the_parent_gateways_clien
     from tui_gateway import server
     from tui_gateway import compute_host
 
-    monkeypatch.setenv("HERMES_COMPUTE_HOST_HEARTBEAT_SECS", "0")
-    monkeypatch.setenv("HERMES_COMPUTE_HOST_CHILD", "0")
+    monkeypatch.setenv("KOVA_COMPUTE_HOST_HEARTBEAT_SECS", "0")
+    monkeypatch.setenv("KOVA_COMPUTE_HOST_CHILD", "0")
     child_stdout = io.StringIO()
     stdin_r, stdin_w = os.pipe()
     child = threading.Thread(

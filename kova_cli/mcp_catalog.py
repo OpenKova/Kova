@@ -1,6 +1,6 @@
 """MCP catalog — curated, Nous-approved MCP servers shipped with the repo.
 
-Entries are added only by merging a PR into hermes-agent; presence in ``optional-mcps/`` = Nous
+Entries are added only by merging a PR into kova-agent; presence in ``optional-mcps/`` = Nous
 approval (no community tier, no other trust signals). Manifests pin transport details.
 """
 
@@ -16,7 +16,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 import kova_yaml as yaml
 
-from kova_constants import get_hermes_home, get_optional_mcps_dir
+from kova_constants import get_kova_home, get_optional_mcps_dir
 from kova_cli._subprocess_compat import noninteractive_git_env
 from kova_cli.colors import Colors, color
 from kova_cli.config import load_config, save_config, get_env_value, save_env_value
@@ -63,7 +63,7 @@ class TransportSpec:
     url: Optional[str] = None
     version: Optional[str] = None  # informational, pinned
     # Static env for the stdio subprocess (telemetry opt-outs, mode flags). NOT for secrets — those
-    # go through auth.env so they are prompted for and land in ~/.hermes/.env.
+    # go through auth.env so they are prompted for and land in ~/.kova/.env.
     env: dict[str, str] = field(default_factory=dict)
 
 
@@ -322,7 +322,7 @@ def _parse_manifest(path: Path) -> CatalogEntry:
     if mv != _MANIFEST_VERSION:
         raise CatalogError(
             f"{path}: manifest_version {mv!r} unsupported "
-            f"(this Hermes understands version {_MANIFEST_VERSION})"
+            f"(this Kova understands version {_MANIFEST_VERSION})"
         )
     name = data.get("name") or ""
     if not name or not re.match(r"^[A-Za-z0-9_-]+$", name):
@@ -354,7 +354,7 @@ def list_catalog() -> list[CatalogEntry]:
     """Return all valid catalog entries, sorted by name.
 
     Invalid manifests are skipped silently (CI catches them); future ``manifest_version`` ones are
-    skipped too but surfaced via :func:`catalog_diagnostics` so UIs can say "update Hermes".
+    skipped too but surfaced via :func:`catalog_diagnostics` so UIs can say "update Kova".
     """
     root = _catalog_root()
     if not root.exists():
@@ -376,7 +376,7 @@ def list_catalog() -> list[CatalogEntry]:
 
 def catalog_diagnostics() -> list[tuple]:
     """``(entry_name, kind, message)`` tuples from the most recent :func:`list_catalog` call;
-    ``kind`` is ``future_manifest`` (newer than this Hermes) or ``invalid`` (malformed)."""
+    ``kind`` is ``future_manifest`` (newer than this Kova) or ``invalid`` (malformed)."""
     return list(_CATALOG_DIAGNOSTICS)
 
 
@@ -422,7 +422,7 @@ def _say(msg: str, colour: str = Colors.GREEN) -> None:
 
 def _install_root() -> Path:
     """Where git-bootstrapped MCPs are cloned. Per-user, profile-aware."""
-    root = get_hermes_home() / "mcp-installs"
+    root = get_kova_home() / "mcp-installs"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -437,7 +437,7 @@ def _run_bootstrap(cwd: Path, commands: list[str]) -> None:
 
 
 def _do_git_install(entry: CatalogEntry) -> Path:
-    """Clone the entry's repo into ``~/.hermes/mcp-installs/<name>`` and run bootstrap. Returns the dir."""
+    """Clone the entry's repo into ``~/.kova/mcp-installs/<name>`` and run bootstrap. Returns the dir."""
     assert entry.install is not None and entry.install.type == "git"
     install = entry.install
     dest = _install_root() / entry.name
@@ -492,7 +492,7 @@ def _expand_install_dir(value: str, install_dir: Optional[Path]) -> str:
 def _prompt_env_vars(specs: list[EnvVarSpec], preloaded: Optional[dict[str, str]] = None) -> dict[str, str]:
     """Prompt for each env spec.
 
-    Secrets persist to ~/.hermes/.env. Non-secrets are only collected and
+    Secrets persist to ~/.kova/.env. Non-secrets are only collected and
     returned — the caller inlines them into the server config (config.yaml),
     since .env is secrets-only. Values already supplied by the caller
     (``preloaded``, e.g. from a dashboard form) skip the prompt.
@@ -838,7 +838,7 @@ def _install_entry(entry: CatalogEntry, *, enable: bool, preloaded_env: Optional
     _say(
         f"  ✓ Installed '{entry.name}' "
         f"({'enabled' if enable else 'disabled'}). "
-        f"Start a new Hermes session to load its tools."
+        f"Start a new Kova session to load its tools."
     )
     if entry.post_install:
         print()

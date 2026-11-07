@@ -1,5 +1,5 @@
 /**
- * The update marker `HERMES_HOME/.hermes-update-in-progress` (#50238), format v2.
+ * The update marker `KOVA_HOME/.kova-update-in-progress` (#50238), format v2.
  *
  * One file, shared by every updater (Python `kova_cli/update_lock.py`, the Rust
  * `UpdateMarkerGuard`, `scripts/desktop-update/{windows.ps1,posix.sh}`) and this
@@ -64,7 +64,7 @@ export const EMPTY_MARKER_GRACE_MS = 5_000
 const DOTNET_UNIX_EPOCH_TICKS = 621_355_968_000_000_000
 
 export function markerPath(hermesHome: string) {
-  return path.join(hermesHome, '.hermes-update-in-progress')
+  return path.join(hermesHome, '.kova-update-in-progress')
 }
 
 // True only if a host process with this pid is currently alive. Signal 0 does
@@ -558,7 +558,7 @@ export function describeSkippedPrewrite(result: ClaimResult): string {
   return result.error || 'unknown error'
 }
 
-const TMP_SIBLING_RE = /^\.hermes-update-in-progress\.(\d+)(?:\.\d+)?\.tmp$/
+const TMP_SIBLING_RE = /^\.kova-update-in-progress\.(\d+)(?:\.\d+)?\.tmp$/
 let tmpSequence = 0
 
 /**
@@ -748,7 +748,7 @@ export async function claimBridgeMarker(
 export interface HandoffClaimOptions extends MarkerProbeDeps {
   /** Protocol 2: the run id passed to the script; the claim must carry it. */
   runId?: string
-  /** Legacy scripts: the HERMES_UPDATE_STARTED_AT they echo on line 2. */
+  /** Legacy scripts: the KOVA_UPDATE_STARTED_AT they echo on line 2. */
   startedAt?: number
   timeoutMs?: number
   pollMs?: number

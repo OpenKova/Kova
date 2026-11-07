@@ -266,7 +266,7 @@ class GatewayInboundHooksMixin:
         the handler raises (``gateway/session_commands.py`` resolves the exact registered name).
         *args* is the argument as typed (a local session's command); otherwise the message's
         command arguments, with the messaging dash repair of ``get_command_args``."""
-        # The agent-turn path binds HERMES_SESSION_* via _set_session_env; this dispatch
+        # The agent-turn path binds KOVA_SESSION_* via _set_session_env; this dispatch
         # sits before it, so a handler reading get_session_env() would see an empty or a
         # foreign (cron agent's os.environ) session (#108698). A local session's command
         # passes its live *session_entry* (key and id, as its turns bind them); a messaging
@@ -275,7 +275,7 @@ class GatewayInboundHooksMixin:
         # the liveness watchdog and the process exits 75 mid-handler (#105279).
         if session_entry is None and getattr(self, "session_store", None) is not None:
             # The chat's current session, if it has one (lookup only: a command never creates one), so
-            # HERMES_SESSION_ID / session_id name what a later /new reports as old_session_id (#123245).
+            # KOVA_SESSION_ID / session_id name what a later /new reports as old_session_id (#123245).
             session_entry = await self.async_session_store.lookup_by_session_key(
                 self._session_key_for_source(source))
         _plugin_context = build_session_context(source, self.config, session_entry)

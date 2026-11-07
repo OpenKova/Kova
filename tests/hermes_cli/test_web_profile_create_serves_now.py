@@ -11,18 +11,18 @@ import pytest
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     from starlette.testclient import TestClient
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    home = get_hermes_home()
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("{}\n", encoding="utf-8")
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: home / "profiles")
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
     c = TestClient(app)

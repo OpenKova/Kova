@@ -193,9 +193,9 @@ def _print_section_header(title):
     print(_setup.color(title, _setup.Colors.CYAN, _setup.Colors.BOLD), end="\n\n")
 
 
-def _print_setup_summary(config: dict, hermes_home):
+def _print_setup_summary(config: dict, kova_home):
     """Print the setup completion summary."""
-    from kova_constants import display_hermes_home as _dhh
+    from kova_constants import display_kova_home as _dhh
     # Provider readiness — the one thing setup must produce. A user who cancelled the API-key
     # prompt mid-wizard used to exit "successfully" with NO working model; say so loudly.
     try:
@@ -203,7 +203,7 @@ def _print_setup_summary(config: dict, hermes_home):
         resolve_provider()
     except Exception:
         print()
-        _setup.print_warning("No inference provider is configured — Hermes cannot chat yet.")
+        _setup.print_warning("No inference provider is configured — Kova cannot chat yet.")
         _setup._info("  Finish this one step with either of:",
               "    hermes model            (pick any provider/model)",
               "    hermes setup --portal   (Nous Portal OAuth, no API key)")
@@ -236,7 +236,7 @@ def _print_setup_summary(config: dict, hermes_home):
     print()
     print(_setup.color(f"📁 All your files are in {_dhh()}/:", _setup.Colors.CYAN, _setup.Colors.BOLD), end="\n\n")
     for label, value in (("Settings:", f"  {_setup.get_config_path()}"), ("API Keys:", f"  {_setup.get_env_path()}"),
-                         ("Data:", f"      {hermes_home}/cron/, sessions/, logs/")):
+                         ("Data:", f"      {kova_home}/cron/, sessions/, logs/")):
         print(f"   {_setup.color(label, _setup.Colors.YELLOW)}{value}")
     print()
 

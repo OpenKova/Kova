@@ -43,7 +43,7 @@ function context(type: GatewayEventName): GatewayEventContext {
       lastCwdInfoSessionRef: { current: null },
       nativeSubagentSessionsRef: { current: new Set() },
       queryClient: {} as GatewayEventContext['deps']['queryClient'],
-      refreshHermesConfig: vi.fn(async () => undefined),
+      refreshKovaConfig: vi.fn(async () => undefined),
       scheduleSessionsRefresh: vi.fn(),
       sessionInterrupted: vi.fn(() => false),
       sessionStateByRuntimeIdRef: { current: new Map() },

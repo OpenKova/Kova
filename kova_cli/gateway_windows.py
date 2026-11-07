@@ -54,13 +54,13 @@ _ACCESS_DENIED_PATTERN = re.compile(rf"({_ACCESS_DENIED_WORDS})", re.IGNORECASE)
 # shell exits. Dict (not bare bool) so the flag is mutable without ``global``.
 _LAST_SPAWN_BREAKAWAY_FALLBACK: dict = {"fallback": False}
 
-_TASK_NAME_DEFAULT = "Hermes_Gateway"
-_TASK_DESCRIPTION = "Hermes Agent Gateway - Messaging Platform Integration"
+_TASK_NAME_DEFAULT = "Kova_Gateway"
+_TASK_DESCRIPTION = "Kova Agent Gateway - Messaging Platform Integration"
 _TASK_LOGON_DELAY = "PT30S"
 _TASK_RESTART_INTERVAL = "PT1M"
 _TASK_RESTART_COUNT = 999
 
-_GATEWAY_ENV = (("PYTHONIOENCODING", "utf-8"), ("HERMES_GATEWAY_DETACHED", "1"), ("HERMES_SUPERVISED_CHILD", "1"))
+_GATEWAY_ENV = (("PYTHONIOENCODING", "utf-8"), ("KOVA_GATEWAY_DETACHED", "1"), ("KOVA_SUPERVISED_CHILD", "1"))
 
 
 def _schtasks_encoding() -> str:
@@ -116,17 +116,17 @@ def _assert_windows() -> None:
         raise RuntimeError("gateway_windows is Windows-only")
 
 
-def _hermes_home() -> Path:
-    from kova_cli.config import get_hermes_home
+def _kova_home() -> Path:
+    from kova_cli.config import get_kova_home
 
-    return Path(get_hermes_home())
+    return Path(get_kova_home())
 
 
 def hermes_service_roots() -> tuple[str, ...]:
-    """Directories a Hermes-owned SCM service binary lives under: the checkout (its ``venv`` included),
+    """Directories a Kova-owned SCM service binary lives under: the checkout (its ``venv`` included),
     the running interpreter's ``Scripts`` dir (``hermes.exe`` shim) and the ``gateway-service`` launcher dir."""
     project_root = Path(__file__).resolve().parent.parent
-    return (str(project_root), str(Path(sys.executable).parent), str(_hermes_home() / "gateway-service"))
+    return (str(project_root), str(Path(sys.executable).parent), str(_kova_home() / "gateway-service"))
 
 
 def _normalize_windows_path(value: str) -> str:
@@ -134,8 +134,8 @@ def _normalize_windows_path(value: str) -> str:
 
 
 def hermes_owns_windows_service(name: str, binpath: str, hermes_roots: tuple[str, ...]) -> bool:
-    """Positive ownership of an SCM service: Hermes-named (``hermes*``) or its binary path starts under a
-    Hermes root. Pure so it is testable off-Windows. A Scheduled-Task-launched gateway descends from
+    """Positive ownership of an SCM service: Kova-named (``hermes*``) or its binary path starts under a
+    Kova root. Pure so it is testable off-Windows. A Scheduled-Task-launched gateway descends from
     ``svchost.exe`` hosting ``Schedule``; without this gate the updater took Task Scheduler for the
     gateway's supervisor and ``sc.exe stop Schedule`` aborted every update (#97208)."""
     normalized_name = "".join(char for char in name.casefold() if char.isalnum())
@@ -145,15 +145,15 @@ def hermes_owns_windows_service(name: str, binpath: str, hermes_roots: tuple[str
     return any(candidate.startswith(_normalize_windows_path(root) + "/") for root in hermes_roots if root)
 
 
-def _preserve_hermes_home_path(path: str | Path) -> str:
-    r"""Render Hermes-owned paths under the configured HERMES_HOME spelling.
+def _preserve_kova_home_path(path: str | Path) -> str:
+    r"""Render Kova-owned paths under the configured KOVA_HOME spelling.
 
     ``%LOCALAPPDATA%\hermes`` may be a symlink/junction to another drive; launcher files must not
-    bake in the resolved target for paths under HERMES_HOME.
+    bake in the resolved target for paths under KOVA_HOME.
     """
     candidate = Path(path)
     try:
-        home = _hermes_home()
+        home = _kova_home()
         resolved_home = home.resolve()
         resolved_candidate = candidate.resolve()
         home_key = os.path.normcase(str(resolved_home))
@@ -232,7 +232,7 @@ def _is_running_as_admin() -> bool:
 
 
 def _current_profile_cli_args() -> list[str]:
-    """Return CLI args that preserve the current Hermes profile."""
+    """Return CLI args that preserve the current Kova profile."""
     from kova_cli.gateway import _profile_arg
 
     profile_arg = _profile_arg()
@@ -264,13 +264,13 @@ def _launch_elevated_gateway_command(command: str, extra_args: list[str] | None 
 
 def _launch_elevated_install(force: bool = False, *, start_now: bool | None = None, start_on_login: bool | None = None) -> bool:
     """Launch an elevated gateway install via UAC and return True on handoff."""
-    overrides = {"HERMES_GATEWAY_ELEVATED_HANDOFF": "1"}
+    overrides = {"KOVA_GATEWAY_ELEVATED_HANDOFF": "1"}
     extra_args = ["--elevated-handoff"]
     if force:
         extra_args.append("--force")
     for choice, env_key, flag in (
-        (start_now, "HERMES_GATEWAY_INSTALL_START_NOW", "start-now"),
-        (start_on_login, "HERMES_GATEWAY_INSTALL_START_ON_LOGIN", "start-on-login"),
+        (start_now, "KOVA_GATEWAY_INSTALL_START_NOW", "start-now"),
+        (start_on_login, "KOVA_GATEWAY_INSTALL_START_ON_LOGIN", "start-on-login"),
     ):
         if choice is not None:
             overrides[env_key] = "1" if choice else "0"
@@ -304,10 +304,10 @@ def _sanitize_filename(value: str) -> str:
 
 
 def get_task_script_path() -> Path:
-    """The generated ``gateway.cmd`` wrapper under ``<HERMES_HOME>/gateway-service/`` (per-profile
+    """The generated ``gateway.cmd`` wrapper under ``<KOVA_HOME>/gateway-service/`` (per-profile
     installs stay self-contained); the VBS launcher lives beside it."""
     _assert_windows()
-    script_dir = _hermes_home() / "gateway-service"
+    script_dir = _kova_home() / "gateway-service"
     script_dir.mkdir(parents=True, exist_ok=True)
     return script_dir / f"{_sanitize_filename(get_task_name())}.cmd"
 
@@ -338,12 +338,12 @@ def _startup_staging_path() -> Path:
 
 
 def _stable_gateway_working_dir(project_root: Path) -> str:
-    """Stable cwd for detached/startup runs: anchor at HERMES_HOME when it exists (mirrors the POSIX
+    """Stable cwd for detached/startup runs: anchor at KOVA_HOME when it exists (mirrors the POSIX
     service invariant) so a moved checkout/worktree can't fail the ``cd`` step; else the checkout."""
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
 
     try:
-        home = get_hermes_home()
+        home = get_kova_home()
         if home and Path(home).is_dir():
             return str(Path(home))
     except Exception:
@@ -363,27 +363,27 @@ def _gateway_run_argv(python_exe: str, profile_arg: str) -> list[str]:
 
 
 def _launcher_settings(home: Path | None = None) -> tuple[str, str, str, str]:
-    """Return (python_path, working_dir, hermes_home, profile_arg) for generated launchers.
-    ``home`` targets another profile's HERMES_HOME (per-profile cold-start, #110959)."""
+    """Return (python_path, working_dir, kova_home, profile_arg) for generated launchers.
+    ``home`` targets another profile's KOVA_HOME (per-profile cold-start, #110959)."""
     from kova_cli.gateway import PROJECT_ROOT, _profile_arg, get_python_path  # avoid circular init
 
-    hermes_home = str(home if home is not None else _hermes_home())
+    kova_home = str(home if home is not None else _kova_home())
     return (
-        _preserve_hermes_home_path(get_python_path()),
+        _preserve_kova_home_path(get_python_path()),
         _stable_gateway_working_dir(PROJECT_ROOT),
-        hermes_home,
-        _profile_arg(hermes_home),
+        kova_home,
+        _profile_arg(kova_home),
     )
 
 
 def _launcher_pythonpath_entries(extra_pythonpath: list[str]) -> list[str]:
     return [
-        _preserve_hermes_home_path(Path(__file__).resolve().parent.parent),
-        *[_preserve_hermes_home_path(entry) for entry in extra_pythonpath],
+        _preserve_kova_home_path(Path(__file__).resolve().parent.parent),
+        *[_preserve_kova_home_path(entry) for entry in extra_pythonpath],
     ]
 
 
-def _build_gateway_cmd_script(python_path: str, working_dir: str, hermes_home: str, profile_arg: str) -> str:
+def _build_gateway_cmd_script(python_path: str, working_dir: str, kova_home: str, profile_arg: str) -> str:
     """Build the ``gateway.cmd`` wrapper (CRLF-terminated). No PATH overrides (rewriting PATH breaks
     Homebrew/nvm-style installs), no ``start`` (extra wrapper process muddles lifecycle/status), no
     ``--replace`` (repeated /Run calls must be idempotent, not takeover loops)."""
@@ -393,10 +393,10 @@ def _build_gateway_cmd_script(python_path: str, working_dir: str, hermes_home: s
         "@echo off",
         f"rem {_TASK_DESCRIPTION}",
         f"cd /d {_quote_cmd_script_arg(working_dir)}",
-        f'set "HERMES_HOME={hermes_home}"',
+        f'set "KOVA_HOME={kova_home}"',
         *[f'set "{k}={v}"' for k, v in _GATEWAY_ENV],
         # VIRTUAL_ENV lets the gateway's own python detection find the venv.
-        f'set "VIRTUAL_ENV={_preserve_hermes_home_path(venv_dir)}"',
+        f'set "VIRTUAL_ENV={_preserve_kova_home_path(venv_dir)}"',
         f'set "PYTHONPATH={pythonpath}"',
         " ".join(_quote_cmd_script_arg(a) for a in _gateway_run_argv(python_exe_path, profile_arg)),
         "exit /b 0",
@@ -404,7 +404,7 @@ def _build_gateway_cmd_script(python_path: str, working_dir: str, hermes_home: s
     return "\r\n".join(lines) + "\r\n"
 
 
-def _build_gateway_vbs_script(python_path: str, working_dir: str, hermes_home: str, profile_arg: str) -> str:
+def _build_gateway_vbs_script(python_path: str, working_dir: str, kova_home: str, profile_arg: str) -> str:
     """Build the hidden-console ``gateway.vbs`` launcher (CRLF-terminated).
 
     Run via ``wscript.exe``, not ``cmd.exe``: at logon Windows broadcasts CTRL_CLOSE_EVENT to console
@@ -432,9 +432,9 @@ def _build_gateway_vbs_script(python_path: str, working_dir: str, hermes_home: s
         "Dim sh, env, existing_pp",
         'Set sh = CreateObject("WScript.Shell")',
         'Set env = sh.Environment("PROCESS")',
-        f"env.Item({q('HERMES_HOME')}) = {q(hermes_home)}",
+        f"env.Item({q('KOVA_HOME')}) = {q(kova_home)}",
         *[f"env.Item({q(k)}) = {q(v)}" for k, v in _GATEWAY_ENV],
-        f"env.Item({q('VIRTUAL_ENV')}) = {q(_preserve_hermes_home_path(venv_dir))}",
+        f"env.Item({q('VIRTUAL_ENV')}) = {q(_preserve_kova_home_path(venv_dir))}",
         # Mirror the cmd wrapper's ``PYTHONPATH=<static>;%PYTHONPATH%`` at runtime.
         f"existing_pp = env.Item({q('PYTHONPATH')})",
         "If Len(existing_pp) > 0 Then",
@@ -508,7 +508,7 @@ def _atomic_write(path: Path, content: str, tmp: Path, *, encoding: str = "utf-8
 
     The staging file is removed even when the rename fails: the Startup-folder caller stages
     inside the Startup folder itself, and Windows opens every file there at login — a leftover
-    ``Hermes_Gateway.tmp`` pops up in Notepad after every sign-in (#114093).
+    ``Kova_Gateway.tmp`` pops up in Notepad after every sign-in (#114093).
 
     ``.vbs`` launchers pass ``utf-16`` (BOM included): Windows Script Host decodes a BOM-less script
     with the ANSI code page, so a non-ASCII install path reached python as mojibake, ``PYTHONPATH``
@@ -749,10 +749,10 @@ def _build_gateway_argv(home: Path | None = None) -> tuple[list[str], str, dict[
     _assert_windows()
     from kova_cli.gateway import PROJECT_ROOT
 
-    python_path, working_dir, hermes_home, profile_arg = _launcher_settings(home)
+    python_path, working_dir, kova_home, profile_arg = _launcher_settings(home)
     python_exe, venv_dir, extra_pythonpath = _resolve_detached_python(python_path)
-    env_overlay = {"HERMES_HOME": hermes_home, **dict(_GATEWAY_ENV), "VIRTUAL_ENV": _preserve_hermes_home_path(venv_dir)}
-    _prepend_pythonpath(env_overlay, [_preserve_hermes_home_path(p) for p in (PROJECT_ROOT, *extra_pythonpath)])
+    env_overlay = {"KOVA_HOME": kova_home, **dict(_GATEWAY_ENV), "VIRTUAL_ENV": _preserve_kova_home_path(venv_dir)}
+    _prepend_pythonpath(env_overlay, [_preserve_kova_home_path(p) for p in (PROJECT_ROOT, *extra_pythonpath)])
     return _gateway_run_argv(python_exe, profile_arg), working_dir, env_overlay
 
 
@@ -765,9 +765,9 @@ def windowless_gateway_restart_spec(run_argv: list[str], home: str | None = None
     flags, so the respawned gateway owns a single hidden console that all of its descendants inherit —
     nothing flashes (#54220/#56747; the old pythonw.exe rewrite here produced a console-less gateway whose
     every console-subsystem child allocated a visible conhost). This helper now only normalizes the
-    interpreter via ``_resolve_detached_python`` and supplies the stable cwd + env overlay (HERMES_HOME,
+    interpreter via ``_resolve_detached_python`` and supplies the stable cwd + env overlay (KOVA_HOME,
     VIRTUAL_ENV, PYTHONPATH) so the respawn doesn't depend on the watcher's transient working directory.
-    ``HERMES_HOME`` is ``home`` when given: a replayed selectorless argv runs on whatever home its
+    ``KOVA_HOME`` is ``home`` when given: a replayed selectorless argv runs on whatever home its
     environment names, so the paused runtime's home, not the updater's, must come back.
     """
     if not run_argv or sys.platform != "win32":
@@ -780,12 +780,12 @@ def windowless_gateway_restart_spec(run_argv: list[str], home: str | None = None
         return run_argv, "", {}
 
     try:
-        hermes_home = str(Path(home or _hermes_home()).resolve())
+        kova_home = str(Path(home or _kova_home()).resolve())
     except Exception:
-        hermes_home = ""
-    env_overlay: dict[str, str] = {"PYTHONIOENCODING": "utf-8", "HERMES_GATEWAY_DETACHED": "1", "VIRTUAL_ENV": str(venv_dir)}
-    if hermes_home:
-        env_overlay["HERMES_HOME"] = hermes_home
+        kova_home = ""
+    env_overlay: dict[str, str] = {"PYTHONIOENCODING": "utf-8", "KOVA_GATEWAY_DETACHED": "1", "VIRTUAL_ENV": str(venv_dir)}
+    if kova_home:
+        env_overlay["KOVA_HOME"] = kova_home
     _prepend_pythonpath(env_overlay, [str(PROJECT_ROOT), *extra_pythonpath])
     return [hidden_console_python, *run_argv[1:]], _stable_gateway_working_dir(PROJECT_ROOT), env_overlay
 
@@ -809,12 +809,12 @@ def _spawn_detached(script_path: Path | None = None, home: Path | None = None) -
     from tools.environments.local import served_profile_child_env
     # home=None is this process's own gateway, not a forced jump to the default root.
     # served_profile_child_env overlays that home's secrets instead of os.environ.copy().
-    target = home if home is not None else _hermes_home()
+    target = home if home is not None else _kova_home()
     env = {**served_profile_child_env(target_home=target, inherit_credentials=True), **env_overlay}
 
     # Stray print()/native stderr goes to a sidecar log; real gateway logs still land in gateway.log
     # via the logging FileHandler.
-    log_dir = _hermes_home() / "logs"
+    log_dir = _kova_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     stray_log = log_dir / "gateway-stdio.log"
 
@@ -879,9 +879,9 @@ def _install_choice_from_env(name: str) -> bool | None:
 def _prompt_install_choices(start_now: bool | None = None, start_on_login: bool | None = None) -> tuple[bool, bool]:
     """Return (start_now, start_on_login), asking before any UAC escalation."""
     if start_now is None:
-        start_now = _install_choice_from_env("HERMES_GATEWAY_INSTALL_START_NOW")
+        start_now = _install_choice_from_env("KOVA_GATEWAY_INSTALL_START_NOW")
     if start_on_login is None:
-        start_on_login = _install_choice_from_env("HERMES_GATEWAY_INSTALL_START_ON_LOGIN")
+        start_on_login = _install_choice_from_env("KOVA_GATEWAY_INSTALL_START_ON_LOGIN")
     if start_now is not None and start_on_login is not None:
         return start_now, start_on_login
 
@@ -945,7 +945,7 @@ def _offer_elevated_install(headline: str, force: bool, start_now: bool, start_o
     print("  UAC is Windows' admin approval prompt; it is needed to create/update the Scheduled Task.")
     if prompt_yes_no("  Open the UAC prompt now?", False):
         if _launch_elevated_install(force=force, start_now=start_now, start_on_login=start_on_login):
-            print("✓ Launched elevated Hermes gateway install prompt.")
+            print("✓ Launched elevated Kova gateway install prompt.")
             if start_now:
                 print("  Approve the Windows UAC prompt; the elevated install will start the gateway afterwards.")
             else:
@@ -977,14 +977,14 @@ def install(
 
     task_name = get_task_name()
     script_path = _write_task_script()
-    # A pre-fix install that failed its Startup-folder swap left `Hermes_Gateway.tmp` there, and the
+    # A pre-fix install that failed its Startup-folder swap left `Kova_Gateway.tmp` there, and the
     # Scheduled Task path below never touches that folder — sweep it so a re-run clears the debris.
     try:
         _startup_staging_path().unlink(missing_ok=True)
     except OSError:
         pass
     if force:
-        # Pre-suffix strays (task ``Hermes_Gateway``, Startup ``Hermes_Gateway.vbs``) are unreachable by
+        # Pre-suffix strays (task ``Kova_Gateway``, Startup ``Kova_Gateway.vbs``) are unreachable by
         # the current names, so a plain reconcile never heals them (#116157).
         from kova_cli.gateway_windows_legacy import remove_legacy_launchers
         remove_legacy_launchers()
@@ -1109,7 +1109,7 @@ _START_ATTESTATION_RELATIVE = ("state", "gateway.start-attestation.json")
 
 def _start_attestation_path(home: Path | None = None) -> Path:
     """Marker path; ``home`` addresses another profile's marker (per-profile cold-start, #110959)."""
-    return (home if home is not None else _hermes_home()).joinpath(*_START_ATTESTATION_RELATIVE)
+    return (home if home is not None else _kova_home()).joinpath(*_START_ATTESTATION_RELATIVE)
 
 
 def _write_start_attestation(pids: list[int], via: str, home: Path | None = None) -> None:
@@ -1219,7 +1219,7 @@ def _attested_pid_exited_cleanly(pid: int, create_time: float | None = None, hom
     try:
         from gateway.lifecycle_ledger import get_lifecycle_sentinel_path
 
-        sentinel = get_lifecycle_sentinel_path(home if home is not None else _hermes_home())
+        sentinel = get_lifecycle_sentinel_path(home if home is not None else _kova_home())
         data = json.loads(sentinel.read_text(encoding="utf-8-sig"))
     except OSError:
         return False
@@ -1344,13 +1344,13 @@ def _report_gateway_start(via: str) -> None:
     else:
         print(f"✗ Gateway start via {via} FAILED — no stable gateway process detected within the verification window.")
         print("  (The process may have been created and then killed — e.g. by a parent Job Object, #91675.)")
-        print(f"  Check the log for startup errors:\n    type {_hermes_home()}\\logs\\gateway.log\n    type {_hermes_home()}\\logs\\gateway-stdio.log")
+        print(f"  Check the log for startup errors:\n    type {_kova_home()}\\logs\\gateway.log\n    type {_kova_home()}\\logs\\gateway-stdio.log")
         _print_task_run_hint("  Recovery: schtasks /Run /TN {}   (starts the gateway outside any Job Object)")
 
 
 def _print_next_steps() -> None:
     print("\nNext steps:\n  hermes gateway status                      # Check status")
-    print(f"  type {_hermes_home()}\\logs\\gateway.log       # View logs")
+    print(f"  type {_kova_home()}\\logs\\gateway.log       # View logs")
 
 
 def uninstall() -> None:
@@ -1373,7 +1373,7 @@ def uninstall() -> None:
             print("  UAC is Windows' admin approval prompt; it is needed to remove the Scheduled Task.")
             if prompt_yes_no("  Open the UAC prompt now?", False):
                 if _launch_elevated_gateway_command("uninstall"):
-                    print("✓ Launched elevated Hermes gateway uninstall prompt.")
+                    print("✓ Launched elevated Kova gateway uninstall prompt.")
                     print("  Approve the Windows UAC prompt, then run: hermes gateway status")
                     return
                 print("⚠ Elevated uninstall prompt was unavailable or cancelled.")
@@ -1426,7 +1426,7 @@ _TASK_PROBE_TIMEOUT_S = 5
 
 
 def registered_task_launchers() -> list[str]:
-    """The scripts this OS user's ``Hermes_Gateway*`` Scheduled Tasks start (``install_state``). A task
+    """The scripts this OS user's ``Kova_Gateway*`` Scheduled Tasks start (``install_state``). A task
     install removes the Startup-folder entries, so for a custom home the task is all that still names
     it. Empty off Windows, and when Task Scheduler does not answer, as for an unreadable Startup entry."""
     if sys.platform != "win32":
@@ -1668,7 +1668,7 @@ def _probe_exit_diag(diag_path: Path) -> None:
 def _print_deep_probes() -> None:
     """Print PASS/FAIL per individual liveness signal, so when the collapsed ✓/✗ summary disagrees
     with reality the user can see exactly which signal is wrong."""
-    home = _hermes_home()
+    home = _kova_home()
     print("\nDeep probes:")
     pid_value = _probe_pid_file(home / "gateway.pid")
     _probe_lock_file(home / "gateway.lock")
@@ -1726,9 +1726,9 @@ def start() -> None:
 
     if not is_task_registered() and not is_startup_entry_installed():
         # Login persistence is a lasting system change: a bare ``start`` installs it only on an explicit
-        # answer — the HERMES_GATEWAY_INSTALL_START_ON_LOGIN override or a real TTY prompt — never on a
+        # answer — the KOVA_GATEWAY_INSTALL_START_ON_LOGIN override or a real TTY prompt — never on a
         # non-TTY default (#113977). Declining still starts the gateway; the command is ``start``.
-        start_on_login = _install_choice_from_env("HERMES_GATEWAY_INSTALL_START_ON_LOGIN")
+        start_on_login = _install_choice_from_env("KOVA_GATEWAY_INSTALL_START_ON_LOGIN")
         if start_on_login is None:
             from kova_cli.setup import is_interactive_stdin, is_noninteractive, prompt_yes_no
 

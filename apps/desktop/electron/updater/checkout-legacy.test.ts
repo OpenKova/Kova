@@ -17,7 +17,7 @@ it('moves a checkout without a source probe to main, but surfaces a broken probe
 
   const probe: () => Promise<SourceUpdate | null> = (): Promise<SourceUpdate | null> =>
     readSourceUpdate({
-      python: process.env.HERMES_PYTHON || 'python3',
+      python: process.env.KOVA_PYTHON || 'python3',
       git: 'git',
       updateRoot: root,
       hermesHome: home
@@ -37,7 +37,7 @@ it('moves a checkout without a source probe to main, but surfaces a broken probe
     remoteGatewayActive: (): boolean => false,
     emitUpdateProgress: vi.fn(),
     rememberLog: vi.fn(),
-    startHermes: vi.fn(async (): Promise<void> => {}),
+    startKova: vi.fn(async (): Promise<void> => {}),
     stopBackendsForUpdate: vi.fn(async (): Promise<void> => {}),
     repairMacUpdaterHelper: vi.fn(),
     preflightStateDb: vi.fn(),
@@ -75,7 +75,7 @@ it.skipIf(process.platform === 'win32')(
   async (): Promise<void> => {
     const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'pm-source-check-'))
     const home: string = path.join(root, 'profile')
-    const launcher: string = path.join(root, '.hermes', 'bin', 'hermes')
+    const launcher: string = path.join(root, '.kova', 'bin', 'hermes')
     fs.mkdirSync(path.dirname(launcher), { recursive: true })
     fs.mkdirSync(path.join(root, 'pm'))
     fs.mkdirSync(home)
@@ -108,7 +108,7 @@ it.skipIf(process.platform !== 'win32')(
   async (): Promise<void> => {
     const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'pm source check '))
     const home: string = path.join(root, 'profile with spaces')
-    const launcher: string = path.join(root, '.hermes', 'bin', 'hermes.cmd')
+    const launcher: string = path.join(root, '.kova', 'bin', 'hermes.cmd')
     fs.mkdirSync(path.dirname(launcher), { recursive: true })
     fs.mkdirSync(path.join(root, 'pm'))
     fs.mkdirSync(home)

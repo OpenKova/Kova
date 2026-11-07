@@ -101,7 +101,7 @@ fallback_providers:
 """.lstrip(),
         encoding="utf-8",
     )
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
 
     def fake_resolve_runtime_provider(*, requested=None, explicit_base_url=None, explicit_api_key=None,
                                       target_model=None):

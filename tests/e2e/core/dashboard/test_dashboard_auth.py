@@ -10,7 +10,7 @@ exemptions are held to their own contract instead of being trusted: a public rou
 GET-only or refuses an uncredentialed call by its own mechanism (``/api/cron/fire`` verifies a
 NAS-minted JWT), and no public response carries the sandbox's secrets.
 
-Every credential channel is probed per route: the ``X-Hermes-Session-Token`` header, the legacy
+Every credential channel is probed per route: the ``X-Kova-Session-Token`` header, the legacy
 ``Authorization: Bearer``, and the ``?token=`` query string. The query channel exists only for
 download links (no header can ride on a URL the OS shell opens), so the REAL token in ``?token=``
 must be refused everywhere else.

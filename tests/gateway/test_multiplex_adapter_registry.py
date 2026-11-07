@@ -396,9 +396,9 @@ class TestSecondaryProfileFatalRecovery:
         redelivery_homes = []
 
         async def redeliver(platform, *, profile=None):
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            redelivery_homes.append(Path(get_hermes_home()))
+            redelivery_homes.append(Path(get_kova_home()))
             return 0
 
         runner._redeliver_failed_obligations_for_platform.side_effect = redeliver
@@ -949,7 +949,7 @@ class TestSecondaryProfileConfigHandling:
         import json
         from gateway.status import read_runtime_status
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(json.dumps(
             {"pid": 1, "gateway_state": "stopped", "served_profiles": ["default", "coder"]}))
         runner = GatewayRunner.__new__(GatewayRunner)
@@ -1184,7 +1184,7 @@ class TestSecondaryProfileHookRegistration:
         profile_cfg = {
             "hooks": {
                 "pre_tool_call": [
-                    {"matcher": "write_file", "command": "~/.hermes/deny.sh"}
+                    {"matcher": "write_file", "command": "~/.kova/deny.sh"}
                 ],
                 "outbound": [
                     {"url": "http://127.0.0.1:9000/hook", "events": ["on_session_end"]}

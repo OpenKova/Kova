@@ -1,4 +1,4 @@
-# Sourced, never executed: how a POSIX shell gets the Hermes dev environment.
+# Sourced, never executed: how a POSIX shell gets the Kova dev environment.
 # `activate` (interactive, reversible) and `scripts/run-in-hermes-env` (a child
 # process, one-way) both build on it; neither owns any of it.
 #
@@ -8,7 +8,7 @@
 #   hermes_activation_current REPO  is the inherited environment still REPO's?
 #   hermes_ensure_env REPO          sync, compose and apply unless it is current
 #
-# pm records, beside the installed-state file named by __HERMES_ACTIVATED, one
+# pm records, beside the installed-state file named by __KOVA_ACTIVATED, one
 # stamp per dependency input carrying the exact mtime that input had when the
 # install was last verified against it (pm.environments.record_activation_inputs).
 # Any input whose mtime DIFFERS from its stamp (newer or older, since a branch
@@ -38,7 +38,7 @@ kova_bootstrap_python() {
                      "$repo/venv/bin/python" "$repo/venv/Scripts/python.exe"; do
         [ -x "$candidate" ] && { printf '%s\n' "$candidate"; return 0; }
     done
-    for store in "${HERMES_RUNTIME_DIR:-}" "$repo/../tools" "${HERMES_HOME:-$HOME/.hermes}/tools"; do
+    for store in "${KOVA_RUNTIME_DIR:-}" "$repo/../tools" "${KOVA_HOME:-$HOME/.kova}/tools"; do
         [ -n "$store" ] || continue
         for candidate in "$store"/python-*/bin/python3 "$store"/python-*/python.exe \
                          "$store"/python-*/bin/python "$store"/python-*/bin/python.exe; do
@@ -87,9 +87,9 @@ hermes_apply_env() {
 # matches REPO's current inputs.
 hermes_activation_current() {
     local repo="$1" sentinel stamps stamp input stamped=0
-    [ -n "${__HERMES_ACTIVATED:-}" ] && [ -e "${__HERMES_ACTIVATED}" ] || return 1
+    [ -n "${__KOVA_ACTIVATED:-}" ] && [ -e "${__KOVA_ACTIVATED}" ] || return 1
     # activate.ps1 records a Windows path; Git Bash accepts it with slashes.
-    sentinel="${__HERMES_ACTIVATED//\\//}"
+    sentinel="${__KOVA_ACTIVATED//\\//}"
     stamps="${sentinel%/*}/inputs"
     [ -f "$stamps/.project-root" ] && [ -f "$stamps/.test-environment" ] || return 1
     local owner="$repo" recorded

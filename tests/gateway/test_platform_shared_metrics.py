@@ -14,7 +14,7 @@ from gateway.stream_consumer import GatewayStreamConsumer, StreamConsumerConfig
 from kova_cli.observability import relay_shared_metrics as rsm
 from kova_cli.observability import shared_metrics_contract as contract
 from kova_cli.observability import shared_metrics_gateway as smg
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def rows(monkeypatch):
     got = []
     monkeypatch.setattr(rsm, "enabled", lambda: True)
     monkeypatch.setattr(rsm, "record_process_mark",
-                        lambda mark, data: got.append((mark, dict(data), str(get_hermes_home()))))
+                        lambda mark, data: got.append((mark, dict(data), str(get_kova_home()))))
     monkeypatch.setattr("gateway.platforms.base.random.uniform", lambda *_: 0.0)
     smg._reply_clocks.clear()
     smg._chat_homes.clear()
@@ -156,19 +156,19 @@ def test_a_relay_delivered_turn_stops_the_clock_its_inbound_started(rows):
 
 def test_a_delivery_sent_after_the_routed_scope_resets_lands_in_the_owning_profile(rows, tmp_path):
     # Multiplexed gateway: the turn starts in profile B's scope, the final send runs after it is reset.
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     home_b = tmp_path / "profiles" / "b"
-    token = set_hermes_home_override(str(home_b))
+    token = set_kova_home_override(str(home_b))
     try:
         smg.start_reply_clock(SimpleNamespace(platform=Platform.SLACK, chat_id="C9"))
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     asyncio.run(_Adapter(platform=Platform.SLACK)._send_with_retry("C9", "final answer", base_delay=0))
     asyncio.run(_Adapter()._send_with_retry("unseen", "hi", base_delay=0))  # no turn: the caller's scope
     assert rows("hermes.platform.delivery", with_home=True) == [
         (str(home_b), {"failure_class": "none", "outcome": "sent", "platform": "slack"}),
-        (str(get_hermes_home()), {"failure_class": "none", "outcome": "sent", "platform": "telegram"}),
+        (str(get_kova_home()), {"failure_class": "none", "outcome": "sent", "platform": "telegram"}),
     ]
 
 
@@ -211,7 +211,7 @@ def test_fatal_handlers_count_lost_connections_in_the_owning_profile_only(rows, 
         primary = _fatal(_Adapter(platform=Platform.RELAY), code)
         runner.adapters[Platform.RELAY] = primary
         asyncio.run(runner._handle_adapter_fatal_error_impl(primary))
-    launch_home = str(get_hermes_home())
+    launch_home = str(get_kova_home())
     assert rows("hermes.platform.health", with_home=True) == [
         (str(home_b), {"error_class": "network", "event": "disconnect", "platform": "telegram"}),
         (launch_home, {"error_class": "auth", "event": "disconnect", "platform": "relay"}),

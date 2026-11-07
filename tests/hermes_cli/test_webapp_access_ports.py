@@ -3,7 +3,7 @@
 The default profile's gateway serves the documented address, 9120 unless ``webapp.port`` says otherwise.
 A standalone profile has a gateway of its own; turning Web Access on there without a ``webapp.port`` used
 to bind 9120 too, which the default gateway's Webapp holds, so nothing was served. Start now gives such a
-profile the first port above 9120 that no other Hermes home claims and nothing listens on, and writes it to
+profile the first port above 9120 that no other Kova home claims and nothing listens on, and writes it to
 that profile's ``webapp.port``, so the gateway binds it, the launcher prints and opens it, the sign-in
 callback names it, and it stays the same across restarts. A ``webapp.port`` the user set always stays.
 No test binds a real port: what listens is faked, and the probe itself is checked on OS-chosen ports.
@@ -26,9 +26,9 @@ def _write(path: Path, text: str) -> Path:
 
 @pytest.fixture
 def machine(monkeypatch, tmp_path):
-    """A Hermes root with a standalone profile ``solo`` and a sibling ``other`` that claims 9122; 9121 is
+    """A Kova root with a standalone profile ``solo`` and a sibling ``other`` that claims 9122; 9121 is
     in use by something else. The process runs as ``solo`` (Web Access scopes to its gateway's home)."""
-    root = _write(tmp_path / ".hermes", "")
+    root = _write(tmp_path / ".kova", "")
     solo = _write(root / "profiles" / "solo", "gateway:\n  standalone: true\n")
     _write(root / "profiles" / "other", "gateway:\n  standalone: true\nwebapp:\n  port: 9122\n")
     listening = {9121}
@@ -41,7 +41,7 @@ def machine(monkeypatch, tmp_path):
     monkeypatch.setattr(webapp_access, "_port_free", port_free, raising=False)
     monkeypatch.setattr(webapp_access, "nous_signed_in", lambda: True)
     monkeypatch.setattr(webapp_access, "lan_address", lambda: "192.168.1.50")
-    monkeypatch.setenv("HERMES_HOME", str(solo))
+    monkeypatch.setenv("KOVA_HOME", str(solo))
     return {"root": root, "solo": solo, "listening": listening, "probed": probed, "monkeypatch": monkeypatch}
 
 
@@ -93,7 +93,7 @@ def test_the_own_url_mode_also_gets_a_free_port(machine):
 
 
 def test_the_default_profile_keeps_the_documented_port_and_writes_none(machine):
-    machine["monkeypatch"].setenv("HERMES_HOME", str(machine["root"]))
+    machine["monkeypatch"].setenv("KOVA_HOME", str(machine["root"]))
     host, port, public_url, callback = webapp_access.plan("lan")
     assert port is None and callback == "http://192.168.1.50:9120/auth/callback"
     webapp_access.serve(host, public_url, port)
@@ -118,7 +118,7 @@ def test_a_port_the_managed_scope_sets_is_the_one_the_callback_names(machine, tm
     from kova_cli import managed_scope
 
     managed = _write(tmp_path / "managed", "webapp:\n  port: 9555\n")
-    machine["monkeypatch"].setenv("HERMES_MANAGED_DIR", str(managed))
+    machine["monkeypatch"].setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     host, port, public_url, callback = webapp_access.plan("lan")
     assert (port, callback) == (None, "http://192.168.1.50:9555/auth/callback")
@@ -173,10 +173,10 @@ def _start_in_a_process_of_its_own(home: str, first: bool, first_holds, second_s
     import traceback
 
     from kova_cli import auth
-    from kova_constants import set_hermes_home_override
+    from kova_constants import set_kova_home_override
 
-    os.environ["HERMES_HOME"] = home
-    set_hermes_home_override(Path(home))
+    os.environ["KOVA_HOME"] = home
+    set_kova_home_override(Path(home))
     webapp_access.nous_signed_in = lambda: True
     webapp_access.lan_address = lambda: "192.168.1.50"
     listening = {9121}

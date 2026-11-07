@@ -38,8 +38,8 @@ _EXTRA_ENV_VARS = (
     # Base URLs / paths that influence detection but aren't api_key_env_vars.
     "LM_BASE_URL", "KIMI_BASE_URL", "STEPFUN_BASE_URL", "KILOCODE_BASE_URL",
     "GMI_BASE_URL", "OPENAI_BASE_URL",
-    "HERMES_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
-    "HERMES_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
+    "KOVA_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
+    "KOVA_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
 )
 
 PROVIDER_ENV_VARS = tuple(
@@ -226,7 +226,7 @@ class TestRuntimeProviderResolution:
 
         profile = ProviderProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
                                   process_command="acme", process_args=("--acp", "--stdio"),
-                                  process_args_env_var="HERMES_ACME_ACP_ARGS")
+                                  process_args_env_var="KOVA_ACME_ACP_ARGS")
         monkeypatch.setitem(providers._REGISTRY, profile.name, profile)
         monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
         monkeypatch.setattr(auth, "PROVIDER_REGISTRY", dict(auth.PROVIDER_REGISTRY))
@@ -236,7 +236,7 @@ class TestRuntimeProviderResolution:
         cli.write_text("", encoding="utf-8")
         cli.chmod(0o755)
         monkeypatch.setenv("PATH", str(tmp_path))
-        monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--acp --stdio --debug")
+        monkeypatch.setenv("KOVA_ACME_ACP_ARGS", "--acp --stdio --debug")
 
         from kova_cli.runtime_provider import resolve_runtime_provider
 
@@ -258,12 +258,12 @@ class TestHasAnyProviderConfigured:
 
 
     def test_claude_code_creds_ignored_on_fresh_install(self, monkeypatch, tmp_path):
-        """Claude Code credentials should NOT skip the wizard when Hermes is unconfigured."""
+        """Claude Code credentials should NOT skip the wizard when Kova is unconfigured."""
         from kova_cli import config as config_module
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        monkeypatch.setattr(config_module, "get_env_path", lambda: kova_home / ".env")
+        monkeypatch.setattr(config_module, "get_kova_home", lambda: kova_home)
         # Clear all provider env vars so earlier checks don't short-circuit
         _all_vars = {"OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                       "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"}
@@ -290,15 +290,15 @@ class TestHasAnyProviderConfigured:
         """config.yaml with model.provider set should count as configured."""
         import kova_yaml as yaml
         from kova_cli import config as config_module
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        config_file = hermes_home / "config.yaml"
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        config_file = kova_home / "config.yaml"
         config_file.write_text(yaml.safe_dump({
             "model": {"default": "anthropic/claude-opus-4.6", "provider": "openrouter"},
         }))
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setattr(config_module, "get_env_path", lambda: kova_home / ".env")
+        monkeypatch.setattr(config_module, "get_kova_home", lambda: kova_home)
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         # Clear all provider env vars
         for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                      "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"):
@@ -319,13 +319,13 @@ class TestHasAnyProviderConfigured:
 
     def _setup_home(self, monkeypatch, tmp_path):
         from kova_cli import config as config_module
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
-        monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        monkeypatch.setattr(config_module, "get_env_path", lambda: kova_home / ".env")
+        monkeypatch.setattr(config_module, "get_kova_home", lambda: kova_home)
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         self._clear_provider_env(monkeypatch)
-        return hermes_home
+        return kova_home
 
     def test_config_provider_skips_registry_sweep(self, monkeypatch, tmp_path):
         """model.provider in config.yaml must short-circuit BEFORE the slow
@@ -337,8 +337,8 @@ class TestHasAnyProviderConfigured:
         recorded call proves the sweep ran even if the raise was swallowed.
         """
         import kova_yaml as yaml
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "config.yaml").write_text(yaml.safe_dump({
+        kova_home = self._setup_home(monkeypatch, tmp_path)
+        (kova_home / "config.yaml").write_text(yaml.safe_dump({
             "model": {"default": "anthropic/claude-opus-4.6", "provider": "openrouter"},
         }))
         sweep_calls = []
@@ -358,8 +358,8 @@ class TestHasAnyProviderConfigured:
         """Custom endpoint (base_url/api_key in config, no provider) must also
         short-circuit before the registry sweep."""
         import kova_yaml as yaml
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "config.yaml").write_text(yaml.safe_dump({
+        kova_home = self._setup_home(monkeypatch, tmp_path)
+        (kova_home / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "default": "local/custom-model",
                 "base_url": "http://localhost:8000/v1",
@@ -385,8 +385,8 @@ class TestHasAnyProviderConfigured:
         provider from auth.json — any other provider id means the sweep ran.
         """
         import json
-        hermes_home = self._setup_home(monkeypatch, tmp_path)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = self._setup_home(monkeypatch, tmp_path)
+        (kova_home / "auth.json").write_text(json.dumps({
             "active_provider": "nous",
         }))
         calls = []

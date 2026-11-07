@@ -54,7 +54,7 @@ def register(ctx):
 def test_plugin_rpc_and_session_events_in_either_isolation_mode(tmp_path, monkeypatch, isolation):
     from gateway import run_api
     from kova_cli.plugins_dispatch import resolve_plugin_command_result
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch, secondary = tmp_path / "launch", tmp_path / "secondary"
     plugin_dir = secondary / "plugins" / "hostrpc"
@@ -67,7 +67,7 @@ def test_plugin_rpc_and_session_events_in_either_isolation_mode(tmp_path, monkey
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     runner, frames = two_profile_runner(launch, secondary)
     monkeypatch.setattr(run_api, "_ACTIVE_RUNNER", runner)
@@ -77,12 +77,12 @@ def test_plugin_rpc_and_session_events_in_either_isolation_mode(tmp_path, monkey
 
     def call(name, **params):
         # As the gateway calls it: in the owning profile's scope (``async_owner_scope``).
-        token = set_hermes_home_override(secondary)
+        token = set_kova_home_override(secondary)
         try:
             handler = manager._plugin_rpc_methods[f"plugin.hostrpc.{name}"]
             return resolve_plugin_command_result(handler(params, session_id="in-secondary"))
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     try:
         assert manager._plugins["hostrpc"].error is None
@@ -159,7 +159,7 @@ def test_hosted_session_event_is_sent_only_as_the_live_plugin_running_it(tmp_pat
     from gateway.config import Platform
     from gateway.session_authorities import SessionAuthorities
     from kova_cli.plugins_dispatch import resolve_plugin_command_result
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tests.gateway.test_session_plugin_rpc import _live
     from tests.waiting import wait_until
 
@@ -175,7 +175,7 @@ def test_hosted_session_event_is_sent_only_as_the_live_plugin_running_it(tmp_pat
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     registry, frames = SessionAuthorities(launch), {}
     for profile in dict.fromkeys((launch, home)):
@@ -189,12 +189,12 @@ def test_hosted_session_event_is_sent_only_as_the_live_plugin_running_it(tmp_pat
     manager.discover_and_load()
 
     def call(name, params=None):
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             handler = manager._plugin_rpc_methods[f"plugin.hostrpc.{name}"]
             return resolve_plugin_command_result(handler(params or {}, session_id="sess"))
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     def sent():
         return [f["params"]["type"] for f in frames[home]]

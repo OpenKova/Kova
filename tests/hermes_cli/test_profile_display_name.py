@@ -1,6 +1,6 @@
 """Profile display_name (#45624): presentation-only label in profile.yaml.
 
-The canonical profile id ("default" for ~/.hermes) is never touched —
+The canonical profile id ("default" for ~/.kova) is never touched —
 resolution, comparison, and spawn paths must be provably unaffected.
 """
 
@@ -27,11 +27,11 @@ from kova_cli.profiles import (
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
-    """Isolated environment: Path.home() and HERMES_HOME under tmp_path."""
+    """Isolated environment: Path.home() and KOVA_HOME under tmp_path."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return default_home
 
 

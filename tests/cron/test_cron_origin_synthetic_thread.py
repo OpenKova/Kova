@@ -41,10 +41,10 @@ class TestSlackSyntheticThreadCapture:
     def test_synthetic_slack_thread_not_captured(self):
         """thread_id == message_id on Slack = per-message session key: drop it."""
         env = {
-            "HERMES_SESSION_PLATFORM": "slack",
-            "HERMES_SESSION_CHAT_ID": "D0BJTDCSR7C",
-            "HERMES_SESSION_THREAD_ID": "1755043010.123456",
-            "HERMES_SESSION_MESSAGE_ID": "1755043010.123456",
+            "KOVA_SESSION_PLATFORM": "slack",
+            "KOVA_SESSION_CHAT_ID": "D0BJTDCSR7C",
+            "KOVA_SESSION_THREAD_ID": "1755043010.123456",
+            "KOVA_SESSION_MESSAGE_ID": "1755043010.123456",
         }
         with _session_env(env):
             origin = _origin_from_env()
@@ -56,10 +56,10 @@ class TestSlackSyntheticThreadCapture:
     def test_genuine_slack_thread_preserved(self):
         """A real in-thread creation (thread != own message id) keeps its thread."""
         env = {
-            "HERMES_SESSION_PLATFORM": "slack",
-            "HERMES_SESSION_CHAT_ID": "C0AGENERAL",
-            "HERMES_SESSION_THREAD_ID": "1755040000.000100",
-            "HERMES_SESSION_MESSAGE_ID": "1755043010.123456",
+            "KOVA_SESSION_PLATFORM": "slack",
+            "KOVA_SESSION_CHAT_ID": "C0AGENERAL",
+            "KOVA_SESSION_THREAD_ID": "1755040000.000100",
+            "KOVA_SESSION_MESSAGE_ID": "1755043010.123456",
         }
         with _session_env(env):
             origin = _origin_from_env()
@@ -69,10 +69,10 @@ class TestSlackSyntheticThreadCapture:
     def test_non_slack_platform_thread_untouched(self):
         """Telegram forum topics legitimately reuse ids; the rule is Slack-scoped."""
         env = {
-            "HERMES_SESSION_PLATFORM": "telegram",
-            "HERMES_SESSION_CHAT_ID": "-1003941067111",
-            "HERMES_SESSION_THREAD_ID": "2203",
-            "HERMES_SESSION_MESSAGE_ID": "2203",
+            "KOVA_SESSION_PLATFORM": "telegram",
+            "KOVA_SESSION_CHAT_ID": "-1003941067111",
+            "KOVA_SESSION_THREAD_ID": "2203",
+            "KOVA_SESSION_MESSAGE_ID": "2203",
         }
         with _session_env(env):
             origin = _origin_from_env()
@@ -82,9 +82,9 @@ class TestSlackSyntheticThreadCapture:
     def test_slack_no_message_id_keeps_thread(self):
         """Without a message id to compare, never guess: keep the thread."""
         env = {
-            "HERMES_SESSION_PLATFORM": "slack",
-            "HERMES_SESSION_CHAT_ID": "D0BJTDCSR7C",
-            "HERMES_SESSION_THREAD_ID": "1755040000.000100",
+            "KOVA_SESSION_PLATFORM": "slack",
+            "KOVA_SESSION_CHAT_ID": "D0BJTDCSR7C",
+            "KOVA_SESSION_THREAD_ID": "1755040000.000100",
         }
         with _session_env(env):
             origin = _origin_from_env()
@@ -93,12 +93,12 @@ class TestSlackSyntheticThreadCapture:
 
 
 _TOP_LEVEL_SLACK = {
-    "HERMES_SESSION_PLATFORM": "slack",
-    "HERMES_SESSION_CHAT_ID": "C0AGENERAL",
+    "KOVA_SESSION_PLATFORM": "slack",
+    "KOVA_SESSION_CHAT_ID": "C0AGENERAL",
     # reply_in_thread default: the assistant's whole exchange lives in the thread keyed on the
     # asking message's own id (ts == thread_ts on the wire).
-    "HERMES_SESSION_THREAD_ID": "1755043010.123456",
-    "HERMES_SESSION_MESSAGE_ID": "1755043010.123456",
+    "KOVA_SESSION_THREAD_ID": "1755043010.123456",
+    "KOVA_SESSION_MESSAGE_ID": "1755043010.123456",
 }
 
 

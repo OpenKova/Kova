@@ -122,7 +122,7 @@ describe('runExportProfileFlow', () => {
 
     try {
       expect(installBrowserDesktopBridge()).toBe(true)
-      expect(window.hermesDesktop.selectSavePath).toBeUndefined()
+      expect(window.kovaDesktop.selectSavePath).toBeUndefined()
       await expect(runExportProfileFlow('glam')).resolves.toBeNull()
       expect(exportProfileArchive).not.toHaveBeenCalled()
       expect($notifications.get().at(-1)).toMatchObject({ kind: 'error', title: 'Failed to export profile' })
@@ -148,15 +148,15 @@ describe('importProfileBundle', () => {
 
   afterEach(() => {
     document.documentElement.removeAttribute('data-hermes-desktop-host')
-    Reflect.deleteProperty(window, '__HERMES_BASE_PATH__')
+    Reflect.deleteProperty(window, '__KOVA_BASE_PATH__')
   })
 
   // An import never lands on a live profile's name, so prefs stored under it were left by a deleted one.
   it('drops what a deleted profile of the same name left, only once the import succeeded', async () => {
     const { importProfileBundle } = await import('./profile-share')
     const { importProfileArchive } = await import('@/hermes')
-    document.documentElement.dataset.hermesDesktopHost = 'browser'
-    Object.assign(window, { __HERMES_BASE_PATH__: '/hermes' })
+    document.documentElement.dataset.kovaDesktopHost = 'browser'
+    Object.assign(window, { __KOVA_BASE_PATH__: '/hermes' })
     seedLeftovers()
     vi.mocked(importProfileArchive).mockRejectedValueOnce(new Error('bad archive'))
 
@@ -172,7 +172,7 @@ describe('importProfileBundle', () => {
 
   it('keeps browser prefs in native Desktop', async () => {
     const { importProfileBundle } = await import('./profile-share')
-    Object.assign(window, { __HERMES_BASE_PATH__: '/hermes' })
+    Object.assign(window, { __KOVA_BASE_PATH__: '/hermes' })
     seedLeftovers()
 
     await expect(importProfileBundle('/tmp/in.tar.gz')).resolves.toBe('imported')

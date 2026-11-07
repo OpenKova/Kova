@@ -2,7 +2,7 @@
 """Fail when production code starts a detached child outside the owned-child helper.
 
 A child started in its own session/process group (``start_new_session=True``, ``os.setsid``,
-``os.setpgid``/``os.setpgrp`` in a ``preexec_fn``) no longer dies with the Hermes process that
+``os.setpgid``/``os.setpgrp`` in a ``preexec_fn``) no longer dies with the Kova process that
 started it. When that process is SIGKILLed, OOM-killed or crashes, the child reparents to init
 (or a ``systemd --user`` subreaper) and runs forever. Every long-lived child that should die with
 its owner goes through ``kova_cli.process_identity.spawn_owned`` (or hands its group to
@@ -205,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     print("\n".join(problems))
     print(f"\n{len(problems)} detached spawn(s) flagged. A child in its own session/group outlives a "
-          "SIGKILLed Hermes. Start long-lived children with kova_cli.process_identity.spawn_owned "
+          "SIGKILLed Kova. Start long-lived children with kova_cli.process_identity.spawn_owned "
           "(or hand the group to own_process_groups), or mark a child that must outlive its owner / "
           f"is awaited with a group-killing timeout with `{MARKER} — <why>` (same line or the line above).")
     return 1

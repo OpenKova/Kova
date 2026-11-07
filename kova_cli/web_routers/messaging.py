@@ -27,7 +27,7 @@ from gateway.status import resolve_gateway_liveness, retained_gateway_state
 from kova_cli._subprocess_compat import windows_hide_flags
 from kova_cli.config import OPTIONAL_ENV_VARS, get_env_path
 from kova_cli.process_identity import release_process_group_once_empty, spawn_owned
-from kova_constants import get_process_hermes_home
+from kova_constants import get_process_kova_home
 from kova_cli.web_deps import LateState, late
 from kova_cli.web_server_gateway import _restart_gateway_after
 from kova_cli.web_whatsapp_session import _backup_whatsapp_session
@@ -234,7 +234,7 @@ def _messaging_platform_payload(
     # Same shared liveness ladder /api/status uses, so the sidebar strip and the
     # Channels page can never disagree on one page load. profile_home is passed when
     # scoped to a named profile: gateway/status readers resolve process-level paths
-    # and do NOT follow the HERMES_HOME contextvar override, so without it messaging
+    # and do NOT follow the KOVA_HOME contextvar override, so without it messaging
     # silently reports another profile's gateway.
     gateway_running = resolve_gateway_liveness(
         profile_dir=profile_home, runtime=runtime,
@@ -317,7 +317,7 @@ def _messaging_platform_payload(
 
 def _platform_payloads(scoped_dir: Optional[Path], entries) -> list[dict[str, Any]]:
     """Payloads for ``entries``; call inside ``_profile_scope`` (load_env honors the
-    HERMES_HOME contextvar; the gateway status readers do not, hence the explicit path)."""
+    KOVA_HOME contextvar; the gateway status readers do not, hence the explicit path)."""
     env_on_disk = load_env()
     runtime = read_runtime_status(path=scoped_dir / "gateway_state.json") if scoped_dir is not None else read_runtime_status()
     # A profile served by the multiplexer writes no live record of its own; its adapters live in the
@@ -326,7 +326,7 @@ def _platform_payloads(scoped_dir: Optional[Path], entries) -> list[dict[str, An
     # the same rung order ``resolve_gateway_liveness`` uses (own runtime PID before the multiplexer),
     # so the two surfaces cannot disagree. Unscoped, the profile is the process's own home (a pooled
     # ``hermes --profile X serve``).
-    own_home = scoped_dir if scoped_dir is not None else get_process_hermes_home()
+    own_home = scoped_dir if scoped_dir is not None else get_process_kova_home()
     runtime = served_profile_runtime(own_home, runtime) or runtime
     # Credentials a secret manager supplies have no .env line; only values the profile's enabled
     # sources resolved (into its secret scope, by ``_profile_scope``) count, and an empty one is unset.
@@ -343,7 +343,7 @@ def _platform_payloads(scoped_dir: Optional[Path], entries) -> list[dict[str, An
 
 def _relay_channel_view(home: Path) -> tuple[frozenset[str], bool]:
     """The relay serves only the gateway's own (launch) profile; other profiles keep direct setup."""
-    if Path(home).resolve() != Path(get_process_hermes_home()).resolve():
+    if Path(home).resolve() != Path(get_process_kova_home()).resolve():
         return frozenset(), False
     from gateway.relay.link import relay_channel_view
 
@@ -865,7 +865,7 @@ async def _telegram_onboarding_request(method: str, path: str, *, body=None, bea
 
 @router.post("/api/messaging/telegram/onboarding/start")
 async def start_telegram_onboarding(body: TelegramOnboardingStart):
-    bot_name = (body.bot_name or "Hermes Agent").strip() or "Hermes Agent"
+    bot_name = (body.bot_name or "Kova Agent").strip() or "Kova Agent"
     payload = await _telegram_onboarding_request("POST", "/v1/telegram/pairings", body={"bot_name": bot_name})
 
     def field(key: str) -> str:
@@ -956,7 +956,7 @@ async def apply_telegram_onboarding(pairing_id: str, body: TelegramOnboardingApp
         _telegram_onboarding_pairings.pop(pairing_id, None)
 
     # Best-effort restart: the QR flow pulls users into Telegram on another device, so a
-    # saved token waiting on a manual restart click reads as "Hermes is broken" from the
+    # saved token waiting on a manual restart click reads as "Kova is broken" from the
     # chat side. The save stays authoritative; a failed restart is reported for the UI banner.
     restart_result = _restart_gateway_after(effective_profile, what="Telegram onboarding", label="Telegram onboarding")
     return {
@@ -980,7 +980,7 @@ async def get_messaging_platforms(profile: Optional[str] = None):
     # Profile-scoped so the global profile switcher shows the TARGET profile's channel state.
     def _run():
         # Profile-scoped so the dashboard's global profile switcher shows the TARGET profile's channel
-        # credentials/state, not the root install's. load_env() honors the HERMES_HOME contextvar override;
+        # credentials/state, not the root install's. load_env() honors the KOVA_HOME contextvar override;
         # the gateway status readers do NOT (they resolve process-level paths), so the profile directory is
         # passed explicitly for those (#71211).
         with _profile_scope(profile) as scoped_dir:
@@ -1011,7 +1011,7 @@ def _multiplex_port_binding_conflict(platform_id: str, requested_profile: Option
     if not requested or requested.lower() == "current":
         from kova_cli.profiles import get_active_profile_name
 
-        # The dashboard's own profile. "custom" (unrecognized HERMES_HOME) is outside
+        # The dashboard's own profile. "custom" (unrecognized KOVA_HOME) is outside
         # the profiles tree, so a multiplexed gateway never serves it.
         target = get_active_profile_name()
     else:

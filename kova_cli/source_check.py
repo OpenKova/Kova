@@ -17,7 +17,7 @@ from urllib.parse import quote
 import urllib.error
 import urllib.request
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_cli.source_releases import OFFICIAL_REPOSITORY, _GITHUB_ORIGIN, resolve_source_target
 
 logger = logging.getLogger(__name__)
@@ -127,13 +127,13 @@ def _request(url: str, accept: str = "application/vnd.github+json") -> str:
     except urllib.error.HTTPError as exc:
         spent = exc.headers is not None and exc.headers.get("x-ratelimit-remaining") == "0"
         if token is None or exc.code not in (401, 403) or spent:
-            exc.hermes_authenticated = token is not None  # which quota a 403/429 spent
+            exc.kova_authenticated = token is not None  # which quota a 403/429 spent
             raise
         logger.debug("GitHub rejected the configured token; retrying anonymously")
     try:
         return _request_with(url, accept, None)
     except urllib.error.HTTPError as exc:
-        exc.hermes_authenticated = False
+        exc.kova_authenticated = False
         raise
 
 
@@ -360,7 +360,7 @@ def _read_runtime_verdict(repository: str, sha: str) -> Optional[bool]:
                  if isinstance(e, dict) and e.get("type") == "blob" and isinstance(e.get("path"), str)]
         paths = [path for path in paths if any(fnmatchcase(path, p) for p in STATE_MODULES)]
         if not paths:
-            return None  # not a recognised Hermes tree: no claim either way
+            return None  # not a recognised Kova tree: no claim either way
         urls = iter(f"https://raw.githubusercontent.com/{repository}/{sha}/{quote(path)}" for path in paths)
         pending = 0
         for url in islice(urls, 4):
@@ -550,7 +550,7 @@ def check_for_updates(*, install_root: Path | None = None, home: Path | None = N
                       passive: bool = False, git: str = "git") -> dict:
     """Return a presentation-ready status. Omitted branch follows the current checkout.
 
-    Only the default (running installation) may use HERMES_REVISION. An explicit
+    Only the default (running installation) may use KOVA_REVISION. An explicit
     target must never inherit the host process's embedded revision or stamp.
     """
     from kova_cli.config import get_project_root, require_readable_config_before_write
@@ -558,9 +558,9 @@ def check_for_updates(*, install_root: Path | None = None, home: Path | None = N
     from kova_cli.update_channel import channel_record, install_id, resolve_update_channel, rides_default_channel
     from kova_cli.release_channels import validate_name
 
-    embedded = (os.environ.get("HERMES_REVISION") or None) if install_root is None else None
+    embedded = (os.environ.get("KOVA_REVISION") or None) if install_root is None else None
     root = Path(install_root if install_root is not None else get_project_root()).resolve()
-    home = Path(home if home is not None else get_hermes_home()).resolve()
+    home = Path(home if home is not None else get_kova_home()).resolve()
     result = {"supported": False, "hermesRoot": str(root), "behind": None, "commits": []}
     unsupported = _unsupported_reason(read_install_stamp(root), root,
                                       explicit_root=install_root is not None, embedded=embedded)
@@ -630,11 +630,11 @@ def main() -> None:
     args = parser.parse_args()
     with contextlib.redirect_stdout(sys.stderr):
         if args.set_channel:
-            from kova_constants import set_hermes_home_override
+            from kova_constants import set_kova_home_override
             from kova_cli.update_channel import set_install_channel
 
             # The record belongs in the --home profile's config.yaml, as the check reads it.
-            set_hermes_home_override(args.home)
+            set_kova_home_override(args.home)
             set_install_channel(args.set_channel, args.install_root)
             args.force = True
         result = check_for_updates(**{k: v for k, v in vars(args).items() if k != "set_channel"})

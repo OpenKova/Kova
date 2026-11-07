@@ -356,7 +356,7 @@ def _restore_db_pages(src: Path, dst: Path) -> bool:
         except LiveConnectionError as exc2:
             logger.error(
                 "Refusing unlink+move restore of %s: %s Close the in-process "
-                "database handles (or restart Hermes) and retry.",
+                "database handles (or restart Kova) and retry.",
                 dst, exc2,
             )
             return False
@@ -366,7 +366,7 @@ def _restore_db_pages(src: Path, dst: Path) -> bool:
 
 
 def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
-    """Check that a zip looks like a Hermes backup.
+    """Check that a zip looks like a Kova backup.
 
     Returns (ok, reason).
     """
@@ -385,7 +385,7 @@ def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
 
     if not found:
         return False, (
-            "zip does not appear to be a Hermes backup "
+            "zip does not appear to be a Kova backup "
             "(no config.yaml, .env, or state databases found)"
         )
 
@@ -395,7 +395,7 @@ def _validate_backup_zip(zf: zipfile.ZipFile) -> tuple[bool, str]:
 def _detect_prefix(zf: zipfile.ZipFile) -> str:
     """Detect if the zip has a common directory prefix wrapping all entries.
 
-    Some tools zip as `.hermes/config.yaml` instead of `config.yaml`.
+    Some tools zip as `.kova/config.yaml` instead of `config.yaml`.
     Returns the prefix to strip (empty string if none).
     """
     names = [n for n in zf.namelist() if not n.endswith("/")]
@@ -410,7 +410,7 @@ def _detect_prefix(zf: zipfile.ZipFile) -> str:
     if len(first_parts) == 1:
         prefix = first_parts.pop()
         # Only strip if it looks like a hermes dir name
-        if prefix in {".hermes", "hermes"}:
+        if prefix in {".kova", "hermes"}:
             return prefix + "/"
 
     return ""
@@ -497,7 +497,7 @@ def _extract_member_atomically(
         # Carrying the elevated bits across would let archive-controlled bytes
         # take over an existing setuid/setgid file, so ``hermes import`` would
         # hand whoever produced the zip the identity that file runs as.  Nothing
-        # constrains that to Hermes' own state either: the ``_external/`` branch
+        # constrains that to Kova' own state either: the ``_external/`` branch
         # of ``run_import`` publishes members anywhere under ``$HOME``.  The
         # sticky bit is kept — it is inert on a regular file.
         mode &= ~(stat.S_ISUID | stat.S_ISGID)
@@ -542,7 +542,7 @@ def _count_session_rows(path: Path) -> Optional[tuple[int, int]]:
     """Return ``(sessions, messages)`` stored in the session database *path*.
 
     Read-only and best effort.  ``None`` means "unknown" — a missing file, a
-    database that is not a Hermes session store, or one that cannot be read.
+    database that is not a Kova session store, or one that cannot be read.
     Callers must never read ``None`` as "zero rows": acting on an unreadable
     database would mask the very loss this count exists to surface.  Same
     contract as :func:`_count_cron_jobs`.

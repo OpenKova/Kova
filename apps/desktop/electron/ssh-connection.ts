@@ -36,7 +36,7 @@ import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 
-import { platformDefaultHermesHome } from './data-paths'
+import { platformDefaultKovaHome } from './data-paths'
 import { type ControlMasterHolders, sharedControlMasterHolders } from './ssh-control-master-holders'
 
 const DEFAULT_CONNECT_TIMEOUT_MS = 15_000
@@ -149,8 +149,8 @@ function validateKeyPath(keyPath) {
 // Token / secret redaction
 
 const _REDACTIONS: Array<[RegExp, string]> = [
-  [/(HERMES_DASHBOARD_SESSION_TOKEN=)(\S+)/g, '$1<redacted>'],
-  [/(X-Hermes-Session-Token["']?\s*[:=]\s*["']?)([^\s"'&]+)/gi, '$1<redacted>'],
+  [/(KOVA_DASHBOARD_SESSION_TOKEN=)(\S+)/g, '$1<redacted>'],
+  [/(X-Kova-Session-Token["']?\s*[:=]\s*["']?)([^\s"'&]+)/gi, '$1<redacted>'],
   [/(Authorization["']?\s*:\s*Bearer\s+)(\S+)/gi, '$1<redacted>'],
   [/([?&](?:token|ticket)=)([^\s&"']+)/gi, '$1<redacted>'],
   // SSH target with a non-numeric segment where a port belongs
@@ -207,7 +207,7 @@ function defaultControlDir(): string {
     return path.join(os.tmpdir(), 'hermes-desktop-ssh')
   }
 
-  const homeDir = path.join(platformDefaultHermesHome(os.homedir()), 'desktop-ssh')
+  const homeDir = path.join(platformDefaultKovaHome(os.homedir()), 'desktop-ssh')
 
   // Include the filename and OpenSSH's temporary-listener suffix in the byte budget.
   return Buffer.byteLength(path.join(homeDir, '0123456789abcdef.sock.0123456789abcdef')) <= 104
@@ -479,7 +479,7 @@ function sshErrorMessage(kind, conn, stderr?) {
 
       return (
         `Tailscale SSH requires an interactive browser check for ${host}. ` +
-        `Hermes Desktop runs SSH non-interactively. In Terminal, run ` +
+        `Kova Desktop runs SSH non-interactively. In Terminal, run ` +
         `\`ssh${portArg} ${host} true\`, complete the browser check, then retry. ` +
         `If checks recur, use a key-authenticated OpenSSH route or adjust the tailnet SSH check policy.`
       )

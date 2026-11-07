@@ -2,7 +2,7 @@
 
 A bundled ``plugins/memory/<name>`` that becomes a standalone catalog plugin keeps the same provider
 name, the settings it already read, its data directory and tool names, so the migration is only
-"the code now lives under ``HERMES_HOME/plugins/<name>``". Two hooks call :func:`migrate_home`:
+"the code now lives under ``KOVA_HOME/plugins/<name>``". Two hooks call :func:`migrate_home`:
 
 * ``hermes update`` — for every profile home that shares the venv (primary; runs where the venv was
   just rebuilt anyway).
@@ -48,7 +48,7 @@ def _failure_stamp(home: Path, plugin: str) -> Path:
 
 
 def _failure_count(stamp: Path) -> int:
-    """Consecutive failures recorded in *stamp*; the empty stamp an older Hermes touched counts once."""
+    """Consecutive failures recorded in *stamp*; the empty stamp an older Kova touched counts once."""
     try:
         text = stamp.read_text(encoding="utf-8-sig").strip()
     except OSError:
@@ -88,16 +88,16 @@ def configured_provider(home: Path) -> str:
 
 
 def provider_present(name: str, home: Path) -> bool:
-    """True when the provider resolves anywhere Hermes looks for *home* (bundled, that home's user
+    """True when the provider resolves anywhere Kova looks for *home* (bundled, that home's user
     plugins, entry point). The lookup reads the active home, so it is bound explicitly: the update
     hook walks several profile homes from one process."""
     from plugins.memory import find_provider_dir
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(home)
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(home)
     try:
         return find_provider_dir(name) is not None
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def catalog_source(name: str) -> Optional[str]:
@@ -122,8 +122,8 @@ def catalog_install_hint(name: str, *, category: Optional[str] = None) -> Option
         return None
     if entry is None or (category is not None and entry.category != category):
         return None
-    from kova_constants import get_hermes_home
-    return _install_command(name, get_hermes_home())
+    from kova_constants import get_kova_home
+    return _install_command(name, get_kova_home())
 
 
 def _pending_provider(home: Path, *, say: Callable[[str], None]) -> Optional[str]:
@@ -198,25 +198,25 @@ def _unattended_consent() -> bool:
 
 
 def _home_consent(home: Path) -> bool:
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(home)
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(home)
     try:
         return _unattended_consent()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _install_into(home: Path, *, consent: Optional[bool] = None) -> Callable[[str], dict]:
     def _install(name: str) -> dict:
         from kova_cli.plugins_cmd import dashboard_install_plugin
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
-        token = set_hermes_home_override(home)
+        from kova_constants import reset_kova_home_override, set_kova_home_override
+        token = set_kova_home_override(home)
         try:
             return dashboard_install_plugin("", force=False, enable=True, catalog_name=name,
                                             assume_deps_consent=(name in _LEFT_CORE and _unattended_consent())
                                             if consent is None else consent)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
     return _install
 
 
@@ -281,10 +281,10 @@ def migrate_all_homes(*, say: Callable[[str], None] = print) -> list[str]:
 def recover_at_startup(name: str, *, say: Optional[Callable[[str], None]] = None) -> bool:
     """Agent-init hook for a configured provider that resolved nowhere. One attempt per process per
     home and name; honours ``security.allow_lazy_installs`` because it installs code. True when installed."""
-    from kova_constants import get_hermes_home, hermes_home_key
+    from kova_constants import get_kova_home, kova_home_key
 
-    home = get_hermes_home()
-    key = (hermes_home_key(home), name)
+    home = get_kova_home()
+    key = (kova_home_key(home), name)
     if key in _attempted:
         return False
     _attempted.add(key)
@@ -300,7 +300,7 @@ def recover_at_startup(name: str, *, say: Optional[Callable[[str], None]] = None
     from pm.install import lazy_installs_allowed
     if not lazy_installs_allowed():
         report(f"⚠ Memory provider '{name}' is not installed, so external memory is off for this session. "
-               f"security.allow_lazy_installs is off, so Hermes did not fetch it: "
+               f"security.allow_lazy_installs is off, so Kova did not fetch it: "
                f"run `{_install_command(name, home)}`.")
         return False
     # Agent init cannot answer a dependency prompt: under the CLI the prompt_toolkit input owns the
@@ -310,7 +310,7 @@ def recover_at_startup(name: str, *, say: Optional[Callable[[str], None]] = None
     if name not in _LEFT_CORE:
         if _pending_provider(home, say=report) == name:
             report(f"⚠ Memory provider '{name}' is not installed, so external memory is off for this session. "
-                   f"It never shipped with Hermes, so Hermes installs it only when you ask: "
+                   f"It never shipped with Kova, so Kova installs it only when you ask: "
                    f"run `{_install_command(name, home)}`.")
         return False
     if _failed_recently(home, name):

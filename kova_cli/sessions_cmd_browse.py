@@ -255,8 +255,8 @@ def _session_browse_picker(sessions: list, session_db=None) -> Optional[str]:
 
     def _delete_session(session_id: str) -> bool:
         try:
-            from kova_cli.sessions_cmd import get_hermes_home
-            sessions_dir = get_hermes_home() / "sessions"
+            from kova_cli.sessions_cmd import get_kova_home
+            sessions_dir = get_kova_home() / "sessions"
         except Exception:
             sessions_dir = None
         try:

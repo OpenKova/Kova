@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 from typing import Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def _main_model_pin() -> tuple[Optional[str], Optional[str]]:
@@ -19,7 +19,7 @@ def _main_model_pin() -> tuple[Optional[str], Optional[str]]:
     from cron.jobs import _normalize_job_optional_text  # late: the facade imports this module
     from kova_cli.config_backend import ConfigBackendUnavailable, config_exists
     from kova_cli.config_effective import load_user_config_effective
-    cfg_path = get_hermes_home() / "config.yaml"
+    cfg_path = get_kova_home() / "config.yaml"
     try:
         cfg = load_user_config_effective(cfg_path) if config_exists(cfg_path) else {}
     except ConfigBackendUnavailable as exc:

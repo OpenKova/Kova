@@ -17,7 +17,7 @@ async def test_legacy_history_adoption_is_native_owned_atomic_and_retryable(tmp_
     from kova_state_local import local_receipt
     from kova_state_runtime import RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     # A code folder under focus: the row's saved cwd must not adopt it into the coding posture.
     (tmp_path / 'pyproject.toml').write_text('[project]\nname = "old"\n')
     config = {'platform_toolsets': {'cli': []}, 'agent': {'coding_context': 'focus'}}
@@ -103,7 +103,7 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
     from kova_cli.active_sessions import try_acquire_active_session, release_active_session
     from kova_state_runtime import RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db
@@ -150,7 +150,7 @@ async def test_upgraded_oneshot_and_tool_history_resumes_by_id_and_title_but_sta
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db
@@ -190,7 +190,7 @@ async def test_upgraded_desktop_history_resumes_by_id(tmp_path, monkeypatch):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'gui': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db
@@ -213,7 +213,7 @@ async def test_upgraded_desktop_history_resumes_by_id(tmp_path, monkeypatch):
     stamped = await native.dispatch({'id': 2, 'method': 'session.resume', 'params': {'session_id': 'old-desktop-account'}})
     assert stamped.get('result', {}).get('session_id') == 'old-desktop-account', stamped
     assert [m['content'] for m in stamped['result']['messages']] == ['OLD-DESKTOP-ACCOUNT']
-    # A served remote backend stamped its basic-auth login on the row at creation (#139818). Hermes
+    # A served remote backend stamped its basic-auth login on the row at creation (#139818). Kova
     # is single-user and sign-in is owner-only, so that login is the machine owner: the owner's own
     # native ticket (native Desktop, the TUI) adopts it once its serve is gone (gateway.owner_identity).
     caps = ['session:create', 'session:read', 'session:submit', 'session:control', 'session:approve',

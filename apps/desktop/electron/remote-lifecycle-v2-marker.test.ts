@@ -21,7 +21,7 @@ test.runIf(process.platform === 'linux')(
   'POSIX relaunch gate clears a dead v2 claim but keeps one a live delegate or held mutex still guards',
   async () => {
     const home = await mkdtemp(path.join(os.tmpdir(), 'hermes-v2-marker-'))
-    const marker = path.join(home, '.hermes-update-in-progress')
+    const marker = path.join(home, '.kova-update-in-progress')
     const shell = (await exec('command -v bash')).stdout.trim()
     const ssh = shellSshDouble({ shell })
     const exited = spawn(process.execPath, ['-e', ''])
@@ -76,7 +76,7 @@ test.runIf(process.platform === 'linux')(
   'POSIX relaunch gate and managed observer read every corpus marker shape like update_lock',
   async () => {
     const home = await mkdtemp(path.join(os.tmpdir(), 'hermes-v2-shapes-'))
-    const marker = path.join(home, '.hermes-update-in-progress')
+    const marker = path.join(home, '.kova-update-in-progress')
     const ssh = shellSshDouble()
     const target = { ssh, platform: 'Linux', hermesPath: '/opt/hermes/hermes', hermesHome: home }
     const correlation = randomUUID()

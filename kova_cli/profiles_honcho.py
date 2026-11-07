@@ -1,7 +1,7 @@
 """Honcho host-block migration for ``hermes profile rename``.
 
 Split out of ``kova_cli.profiles``; the profiles root is late-imported from there so its
-``_get_default_hermes_home`` seam holds.
+``_get_default_kova_home`` seam holds.
 """
 
 import json
@@ -20,13 +20,13 @@ def _atomic_write_json(path: Path, data: dict) -> bool:
 
 def migrate_honcho_profile_host(old_name: str, new_name: str, new_dir: Path) -> None:
     """Rename Honcho host blocks for a renamed profile without changing peers."""
-    from kova_cli.profiles import _get_default_hermes_home
+    from kova_cli.profiles import _get_default_kova_home
 
     old_host = f"hermes_{old_name}"
     legacy_old_host = f"hermes.{old_name}"
     new_host = f"hermes_{new_name}"
     candidates = [
-        new_dir / "honcho.json", _get_default_hermes_home() / "honcho.json", Path.home() / ".honcho" / "config.json"
+        new_dir / "honcho.json", _get_default_kova_home() / "honcho.json", Path.home() / ".honcho" / "config.json"
     ]
     seen: set[Path] = set()
     for path in candidates:

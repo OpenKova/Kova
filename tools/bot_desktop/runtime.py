@@ -1,11 +1,11 @@
-"""Bot Desktop runtime: one headless Xfce desktop per Hermes profile, served over RFB on a private
-Unix socket, viewed and driven from Hermes Desktop.
+"""Bot Desktop runtime: one headless Xfce desktop per Kova profile, served over RFB on a private
+Unix socket, viewed and driven from Kova Desktop.
 
-Layout under ``<HERMES_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
+Layout under ``<KOVA_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
 (Xvnc RFB Unix socket, 0600), ``Xauthority``, ``env`` (DISPLAY/XAUTHORITY/DBUS_SESSION_BUS_ADDRESS
 published by the launcher once Xfce's bus exists), ``launcher.pid``, ``launcher.log``, ``xdg/``
 (per-profile XDG_CONFIG_HOME so two profiles never share xfconf). Everything is profile-scoped via
-``get_hermes_home()`` so N profiles in one gateway get N desktops: one screen per bot on the shared
+``get_kova_home()`` so N profiles in one gateway get N desktops: one screen per bot on the shared
 machine.
 
 The launcher is ``launcher.sh`` next to this module; :func:`desktop_env` is what cua-driver and headed
@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Callable, Dict, Optional
 
 from agent.deadline import poll_until
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.bot_desktop import placement
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ PACKAGES = {
 
 
 def state_dir() -> Path:
-    return get_hermes_home() / "bot-desktop"
+    return get_kova_home() / "bot-desktop"
 
 
 def is_supported_host() -> bool:
@@ -96,7 +96,7 @@ def package_manager() -> Optional[str]:
 
 def install_command() -> Optional[str]:
     """The distro command that installs the Bot Desktop packages, as the human would type it on THIS host:
-    prefixed with ``sudo`` unless Hermes already runs as root, so it is both what the pane shows and what
+    prefixed with ``sudo`` unless Kova already runs as root, so it is both what the pane shows and what
     :mod:`tools.bot_desktop.install` runs. ``None`` when no package manager is present.
 
     Not a promise that it can run here: see :func:`installable`. The published Docker image supervises
@@ -530,7 +530,7 @@ def published_env() -> dict[str, str]:
     """Variables the launcher wrote once Xfce's private bus existed; empty when the desktop is down.
 
     Pure file reads on the common path: this is called from every browser / cua-driver env builder, so it
-    must not load config (that initializes HERMES_HOME). A sandbox-hosted screen leaves a host-side marker at
+    must not load config (that initializes KOVA_HOME). A sandbox-hosted screen leaves a host-side marker at
     start; only its presence routes to the sandbox probe."""
     from tools.bot_desktop import sandbox_host
     if sandbox_host._read_marker():
@@ -787,35 +787,35 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
         # scrubbed child env like any other agent child, keeping the user's HOME.
         from tools.environments.local import served_profile_child_env
         child_env = served_profile_child_env(inherit_credentials=False)
-        child_env["HOME"] = child_env["HERMES_REAL_HOME"]
+        child_env["HOME"] = child_env["KOVA_REAL_HOME"]
         for key in ("DISPLAY", "XAUTHORITY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "SESSION_MANAGER"):
             child_env.pop(key, None)
         from kova_cli._launchers import installation_command
         from tools.bot_desktop.idle_watch import next_check_in
         child_env.update({
-            "HERMES_BD_PROFILE": _profile_name(),
-            "HERMES_BD_DISPLAY_NUM": str(num),
-            "HERMES_BD_SOCKET": str(sd / "rfb.sock"),
-            "HERMES_BD_XAUTH": str(sd / "Xauthority"),
-            "HERMES_BD_ENV_FILE": str(env_file),
-            "HERMES_BD_CONFIG_HOME": str(sd / "xdg"),
-            "HERMES_BD_GEOMETRY": geometry(),
+            "KOVA_BD_PROFILE": _profile_name(),
+            "KOVA_BD_DISPLAY_NUM": str(num),
+            "KOVA_BD_SOCKET": str(sd / "rfb.sock"),
+            "KOVA_BD_XAUTH": str(sd / "Xauthority"),
+            "KOVA_BD_ENV_FILE": str(env_file),
+            "KOVA_BD_CONFIG_HOME": str(sd / "xdg"),
+            "KOVA_BD_GEOMETRY": geometry(),
             # The launcher's idle self-stop runs tools.bot_desktop.idle_watch through the install's stable
             # command (the ``hermes --run-module`` launcher on a store install, which follows Python pin changes
             # and picks the current dependency generation at every run; this interpreter elsewhere), in this
             # home, first once the screen could be due (nothing is idle at start). The screen outlives updates,
             # so the inherited PYTHONPATH generation is never pinned, and on a store install neither is this
             # interpreter.
-            "HERMES_BD_IDLE_CMD": shlex.join(installation_command(
+            "KOVA_BD_IDLE_CMD": shlex.join(installation_command(
                 Path(__file__).resolve().parents[2], module="tools.bot_desktop.idle_watch")),
-            "HERMES_BD_HOME": str(get_hermes_home()),
-            "HERMES_BD_IDLE_FIRST_DELAY": str(next_check_in(idle_stop_seconds(), 0.0)),
+            "KOVA_BD_HOME": str(get_kova_home()),
+            "KOVA_BD_IDLE_FIRST_DELAY": str(next_check_in(idle_stop_seconds(), 0.0)),
         })
         from tools.bot_desktop.browser import dock_exec_line, dock_launch
         if (browser := dock_launch()) is not None:
             # The bare executable (the launcher checks it exists) and the ready-made, spec-quoted Exec= line.
-            child_env["HERMES_BD_BROWSER_EXEC"] = browser[0]
-            child_env["HERMES_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
+            child_env["KOVA_BD_BROWSER_EXEC"] = browser[0]
+            child_env["KOVA_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
         # A new file per start: the log is a diagnostic for THIS launch, and nothing rotates it otherwise. Not
         # truncated in place: the old screen's idle check (in a session of its own) may still hold the old file
         # open, and its late write would land in this one behind a run of NUL bytes.

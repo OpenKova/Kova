@@ -1,5 +1,5 @@
 /**
- * Two remote hosts can share the same `~/.hermes` path, so a `display.*` event
+ * Two remote hosts can share the same `~/.kova` path, so a `display.*` event
  * matched on `profile_key` alone would let host B's take-over repaint host A's
  * screen pane. The event must also have arrived on the bot's own connection.
  */
@@ -50,7 +50,7 @@ import { displayRequest, isEventForBotScreen, resolveScreenWsUrl } from './scree
 
 const bot = { name: 'ops' } as RosterRow
 const orphan = { name: 'ops', remoteSource: true } as RosterRow
-const key = '/home/hermes/.hermes'
+const key = '/home/hermes/.kova'
 
 describe('isEventForBotScreen', () => {
   it('ignores a same-profile-path event that arrived from another host', () => {

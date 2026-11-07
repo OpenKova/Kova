@@ -112,7 +112,7 @@ def test_boot_retry_warning_through_the_real_redacting_formatter(plane, monkeypa
     import logging
 
     from agent.redact import RedactingFormatter
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     backend = remote_pkg.get_remote_backend()
     formatted: list = []
@@ -134,11 +134,11 @@ def test_boot_retry_warning_through_the_real_redacting_formatter(plane, monkeypa
     backend_mod.logger.addHandler(handler)
     plane.upper = {"display": {"skin": "ares"}}
     plane.fail_status = 503
-    token = set_hermes_home_override(plane.home)
+    token = set_kova_home_override(plane.home)
     try:
         assert backend.read_user_doc(plane.home)["display"]["skin"] == "ares"  # booted after one retry
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
         backend_mod.logger.removeHandler(handler)
     assert any("retrying" in m for m in formatted), formatted
     assert len(_gets(plane)) == 2
@@ -152,7 +152,7 @@ def test_the_formatter_never_reads_config(tmp_path, monkeypatch):
     import kova_cli.config_backend as cb
     from agent import redact
     from agent.redact import RedactingFormatter
-    from kova_constants import hermes_home_key, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import kova_home_key, reset_kova_home_override, set_kova_home_override
 
     reads: list = []
 
@@ -166,13 +166,13 @@ def test_the_formatter_never_reads_config(tmp_path, monkeypatch):
     monkeypatch.setattr(redact, "_REDACT_ENABLED", False)  # the launch profile opted out
     secret = "sk-proj-" + "c" * 32
     record = logging.LogRecord("t", logging.WARNING, __file__, 1, "key %s", (secret,), None)
-    token = set_hermes_home_override(tmp_path)
+    token = set_kova_home_override(tmp_path)
     try:
         out = RedactingFormatter("%(message)s").format(record)
-        redact.note_env_policy(hermes_home_key(), None)
-        redact.note_config_policy(hermes_home_key(), "false")  # recorded later: the profile opted out
+        redact.note_env_policy(kova_home_key(), None)
+        redact.note_config_policy(kova_home_key(), "false")  # recorded later: the profile opted out
         out_after = RedactingFormatter("%(message)s").format(record)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert secret not in out and secret in out_after
     assert reads == []

@@ -1,6 +1,6 @@
 # health: allow FILE_LINES -- security fix for #82010: distinguish an explicitly-empty toolset allowlist (fail closed, nothing allowed) from an absent one (no restriction); the added lines are minimal fail-closed branches at this existing chokepoint. Also #141468: match the `mcp-<server>` toolset spelling so a narrow job's MCP allowlist is not widened into every enabled server — a minimal branch at the same chokepoint.
 """Cron job scheduler: tick() runs due jobs (gateway calls it every 60s from a background thread).
-A file lock (~/.hermes/cron/.tick.lock) keeps overlapping processes to one tick at a time.
+A file lock (~/.kova/cron/.tick.lock) keeps overlapping processes to one tick at a time.
 """
 
 import atexit
@@ -37,7 +37,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from cron.worker_bootstrap import WORKER_MARKER, finish_worker_boot
-from kova_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_kova_home, kova_home_key
 from kova_cli.observability.shared_metrics_gateway import note_cron_execution, note_cron_skipped
 from cron.env_settings import cron_env_setting
 from kova_cli._subprocess_compat import windows_hide_flags
@@ -243,7 +243,7 @@ def _should_yield_tick_to_fresh_gateway() -> tuple[str, str] | None:
     try:
         from cron.scheduler_ownership import live_gateway_ticking, owns_cron_tick_for
 
-        home = _get_hermes_home()
+        home = _get_kova_home()
         if owns_cron_tick_for(home):
             return None
         holder_status = live_gateway_ticking(home)
@@ -586,10 +586,10 @@ def _inflight_key(job_id: str, home: Optional[Path | str] = None) -> tuple:
     profile's run read as a duplicate of the first and get skipped. ``home`` defaults to the
     active cron scope's home, which the ticker binds per profile for the whole tick.
     """
-    return (hermes_home_key(home) if home is not None else hermes_home_key(_get_hermes_home()), job_id)
+    return (kova_home_key(home) if home is not None else kova_home_key(_get_kova_home()), job_id)
 
 
-# Home key -> the real home Path that produced it. ``hermes_home_key`` normcases (it lower-cases on
+# Home key -> the real home Path that produced it. ``kova_home_key`` normcases (it lower-cases on
 # Windows), so ``Path(key[0])`` is a case-folded path that matches nothing else on disk; bookkeeping
 # that needs the profile home reads it here instead of reconstructing it from the key.
 _inflight_home_paths: dict[str, Path] = {}
@@ -597,7 +597,7 @@ _inflight_home_paths: dict[str, Path] = {}
 
 def _remember_inflight_home(home: Path) -> Path:
     """Record ``home`` under its key so a claim can be mapped back to a usable path."""
-    _inflight_home_paths[hermes_home_key(home)] = home
+    _inflight_home_paths[kova_home_key(home)] = home
     return home
 
 
@@ -716,7 +716,7 @@ def _wedged_inflight_keys() -> frozenset[tuple]:
         with contextlib.suppress(Exception):
             from cron.jobs import load_jobs
             by_id = {j.get("id"): j for j in load_jobs()}
-        local_home = hermes_home_key(_get_hermes_home())
+        local_home = kova_home_key(_get_kova_home())
         with _running_lock:
             for key in unresolved:
                 allowance = floor_seconds
@@ -810,7 +810,7 @@ def try_register_running_job(job_id: str, *, owner=None, future=_FUTURE_PENDING)
     """
     from kova_cli.backend_retirement import retirement
 
-    key = _inflight_key(job_id, _remember_inflight_home(_get_hermes_home()))
+    key = _inflight_key(job_id, _remember_inflight_home(_get_kova_home()))
     with retirement.work() as admitted, _running_lock:
         if not admitted or key in _running_job_ids:
             return False
@@ -857,7 +857,7 @@ def _inflight_min_allowance_minutes() -> float:
             val = float(_cfg_val)
             if val > 0:
                 return val
-    raw = cron_env_setting("HERMES_CRON_INFLIGHT_MAX_MINUTES").strip()
+    raw = cron_env_setting("KOVA_CRON_INFLIGHT_MAX_MINUTES").strip()
     if raw:
         try:
             val = float(raw)
@@ -865,7 +865,7 @@ def _inflight_min_allowance_minutes() -> float:
                 return val
         except (ValueError, TypeError):
             logger.warning(
-                "Invalid HERMES_CRON_INFLIGHT_MAX_MINUTES=%r; using default %s",
+                "Invalid KOVA_CRON_INFLIGHT_MAX_MINUTES=%r; using default %s",
                 raw,
                 _INFLIGHT_MIN_ALLOWANCE_MINUTES)
     return _INFLIGHT_MIN_ALLOWANCE_MINUTES
@@ -948,7 +948,7 @@ def _record_forced_release(job_id: str, name: str, age_seconds: float, allowance
         _forced_releases.append(entry)
         del _forced_releases[:-_FORCED_RELEASE_HISTORY]
     try:
-        path = _get_hermes_home() / "cron" / "inflight_forced_releases.jsonl"
+        path = _get_kova_home() / "cron" / "inflight_forced_releases.jsonl"
         _ensure_cron_dir(path.parent)
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(entry) + "\n")
@@ -963,7 +963,7 @@ def _latest_executions_for_releasable_claims() -> dict:
 
     Scoped to the ACTIVE profile's claims: the executions ledger it queries is that home's.
     """
-    local_home = hermes_home_key(_get_hermes_home())
+    local_home = kova_home_key(_get_kova_home())
     with _running_lock:
         claim_futures = {
             key[1]: _running_futures.get(key)
@@ -1049,7 +1049,7 @@ def sweep_stale_inflight(due_jobs: Optional[list] = None) -> list:
     from cron.executions import _TERMINAL_STATES as _terminal_states
 
     _latest = _latest_executions_for_releasable_claims()
-    _local_home = hermes_home_key(_get_hermes_home())
+    _local_home = kova_home_key(_get_kova_home())
     # Compute intervals OUTSIDE _running_lock so croniter doesn't block try_register/release.
     _intervals = {jid: _job_interval_minutes(j) for jid, j in by_id.items()}
 
@@ -1184,16 +1184,16 @@ def _consume_interrupted_flag(job_id: str, token: Optional[object] = None) -> bo
 
 
 def _cron_inactivity_seconds() -> float:
-    """Parse HERMES_CRON_TIMEOUT (seconds). 0 = unlimited; bad input = 600. Shared by the
+    """Parse KOVA_CRON_TIMEOUT (seconds). 0 = unlimited; bad input = 600. Shared by the
     inactivity monitor and the cwd-lock bound so they can't drift: the lock bound must stay >= the
     inactivity limit or waiters fail while a healthy holder runs."""
-    raw = cron_env_setting("HERMES_CRON_TIMEOUT").strip()
+    raw = cron_env_setting("KOVA_CRON_TIMEOUT").strip()
     if not raw:
         return 600.0
     try:
         return float(raw)
     except (ValueError, TypeError):
-        logger.warning("Invalid HERMES_CRON_TIMEOUT=%r; using default 600s", raw)
+        logger.warning("Invalid KOVA_CRON_TIMEOUT=%r; using default 600s", raw)
         return 600.0
 
 
@@ -1204,7 +1204,7 @@ def _get_parallel_pool(max_workers: Optional[int]) -> concurrent.futures.ThreadP
     a single process-global pool is created by whichever profile the multiplexing gateway ticks
     first and then silently imposes that profile's limit on every other profile.
     """
-    home = hermes_home_key(_remember_inflight_home(_get_hermes_home()))
+    home = kova_home_key(_remember_inflight_home(_get_kova_home()))
     pool = _parallel_pools.get(home)
     if pool is None or _parallel_pool_max_workers.get(home) != max_workers:
         if pool is not None:
@@ -1240,9 +1240,9 @@ def _shutdown_parallel_pool() -> None:
 
 
 atexit.register(_shutdown_parallel_pool)
-# Per-fire usage audit log; resolves via _get_hermes_home() so profile-scoped paths work.
+# Per-fire usage audit log; resolves via _get_kova_home() so profile-scoped paths work.
 def _usage_audit_path() -> Path:
-    return _get_hermes_home() / "cron" / "usage_audit.jsonl"
+    return _get_kova_home() / "cron" / "usage_audit.jsonl"
 
 
 def _utcnow_iso_ms() -> str:
@@ -1282,24 +1282,24 @@ def _interpreter_shutting_down(exc: Optional[BaseException] = None) -> bool:
 
 
 # Module override hook for tests / emergency monkeypatches.
-_hermes_home: Path | None = None
+_kova_home: Path | None = None
 
 
-def _get_hermes_home() -> Path:
-    """Hermes home at call time (honouring the test override). Cron is per-profile: never freeze
+def _get_kova_home() -> Path:
+    """Kova home at call time (honouring the test override). Cron is per-profile: never freeze
     this at import or anchor it at the shared default root — either breaks profile isolation.
 
     Cron is per-profile by design (#4707): the in-process ticker runs inside a profile-scoped gateway, so
-    resolving the active HERMES_HOME at call time means a profile's jobs are stored AND executed under that
+    resolving the active KOVA_HOME at call time means a profile's jobs are stored AND executed under that
     profile's home (its .env, config.yaml, scripts, skills).
     """
-    return _hermes_home or get_hermes_home()
+    return _kova_home or get_kova_home()
 
 
 def _get_lock_paths() -> tuple[Path, Path]:
     """Resolve cron lock paths at call time so profile/env changes are honored."""
-    hermes_home = _get_hermes_home()
-    lock_dir = hermes_home / "cron"
+    kova_home = _get_kova_home()
+    lock_dir = kova_home / "cron"
     return lock_dir, lock_dir / ".tick.lock"
 
 
@@ -1509,7 +1509,7 @@ def _run_no_agent_job(
     try:
         from kova_cli.env_loader import load_hermes_dotenv
 
-        load_hermes_dotenv(hermes_home=_get_hermes_home())
+        load_hermes_dotenv(kova_home=_get_kova_home())
     except Exception:
         logger.debug("Job '%s': no_agent .env reload failed", job_id, exc_info=True)
 
@@ -1603,17 +1603,17 @@ class _CronJobConfig:
 
 def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConfig:
     """Load config.yaml and resolve the run's model: per-job pin > cron.model (fleet default) >
-    the main agent model (config ``model:``, then HERMES_MODEL) > the claimed welcome trial's. Re-read
+    the main agent model (config ``model:``, then KOVA_MODEL) > the claimed welcome trial's. Re-read
     every tick (no cache) so ``hermes cron edit --model`` and ``hermes model`` both apply next tick."""
     from kova_cli.anon_auth import trial_model
-    model = job.get("model") or cron_env_setting("HERMES_MODEL") or ""
+    model = job.get("model") or cron_env_setting("KOVA_MODEL") or ""
     _cron_default_provider = ""
     _cfg: dict = {}
     _model_cfg: Any = {}
     try:
         from kova_cli.config_backend import config_exists
         from kova_cli.config_effective import load_user_config_effective
-        _cfg_path = str(_get_hermes_home() / "config.yaml")
+        _cfg_path = str(_get_kova_home() / "config.yaml")
         if config_exists(_cfg_path):
             _cfg = load_user_config_effective(Path(_cfg_path))
             # Coerce null to {} so a falsy default never clobbers a resolved env value.
@@ -1640,7 +1640,7 @@ def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConf
         raise RuntimeError(
             f"Cron job '{job_name}' has no model configured "
             f"(job.model={job.get('model')!r}, "
-            f"HERMES_MODEL={cron_env_setting('HERMES_MODEL')!r}, "
+            f"KOVA_MODEL={cron_env_setting('KOVA_MODEL')!r}, "
             "config.yaml model.default missing or empty). "
             f"Set a per-job model via "
             f"`hermes cron edit {job_id} --model <name>` or set a "
@@ -1659,7 +1659,7 @@ def _load_prefill_messages(cfg: dict, job_id: str) -> Optional[list]:
     """Prefill messages from env or config.yaml (top-level key canonical; agent.* is legacy)."""
     agent_cfg = cfg.get("agent", {}) if isinstance(cfg.get("agent", {}), dict) else {}
     prefill_file = (
-        cron_env_setting("HERMES_PREFILL_MESSAGES_FILE")
+        cron_env_setting("KOVA_PREFILL_MESSAGES_FILE")
         or cfg.get("prefill_messages_file", "")
         or agent_cfg.get("prefill_messages_file", "")
     )
@@ -1667,7 +1667,7 @@ def _load_prefill_messages(cfg: dict, job_id: str) -> Optional[list]:
         return None
     pfpath = Path(prefill_file).expanduser()
     if not pfpath.is_absolute():
-        pfpath = _get_hermes_home() / pfpath
+        pfpath = _get_kova_home() / pfpath
     if not pfpath.exists():
         return None
     try:
@@ -1730,7 +1730,7 @@ def _blocked_config_result(job_id: str, job_name: str, _pf_reason: str) -> tuple
         "The pre-run configuration check found a problem, so the agent did not run "
         "(nothing was charged).\n\n"
         f"**Reason:** {_pf_reason}\n\n"
-        "Hermes tries again at the next scheduled time and clears this state on the first healthy "
+        "Kova tries again at the next scheduled time and clears this state on the first healthy "
         "run; this alert is not repeated. Check with `hermes cron doctor`. Set `cron.preflight: "
         "false` in config.yaml to disable this check."
     )
@@ -1750,7 +1750,7 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
     model = jc.model
     requested = job.get("provider") or jc.cron_default_provider or None
     try:
-        # Do NOT pass HERMES_INFERENCE_PROVIDER as `requested`: it would override persisted config
+        # Do NOT pass KOVA_INFERENCE_PROVIDER as `requested`: it would override persisted config
         # and resurrect stale providers for unpinned jobs.
         runtime_kwargs = {
             "requested": requested,
@@ -1852,7 +1852,7 @@ def _open_cron_session_db(job: dict):
     # Initialize the SQLite session store so cron job messages are persisted and discoverable via
     # session_search (same pattern as gateway/run.py) — only now, after every early-return path (wake-gate,
     # prompt validation, drift skip) has passed, so a gated run never opens state.db just to abandon the
-    # handle (#96290). Bounded with its own timeout (separate from HERMES_CRON_TIMEOUT, which only watches
+    # handle (#96290). Bounded with its own timeout (separate from KOVA_CRON_TIMEOUT, which only watches
     # the agent's run_conversation below): SessionDB.__init__ opens/migrates state.db synchronously and has
     # no timeout of its own against a wedged sqlite3.connect (e.g. a stale flock left by a crashed sibling
     # process). An unbounded hang here would wedge the job's worker thread, so the init is bounded and a
@@ -1939,7 +1939,7 @@ def _run_agent_with_watchdog(
     worker_state: Optional[dict] = None,
 ) -> dict:
     """Run ``agent.run_conversation`` on a worker thread under the inactivity (not wall-clock)
-    watchdog: default 600s, override HERMES_CRON_TIMEOUT, 0 = unlimited."""
+    watchdog: default 600s, override KOVA_CRON_TIMEOUT, 0 = unlimited."""
     _cron_timeout = _cron_inactivity_seconds()
     _cron_inactivity_limit = _cron_timeout if _cron_timeout > 0 else None
     _POLL_INTERVAL = 5.0
@@ -2130,7 +2130,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
         with contextlib.suppress((Exception, KeyboardInterrupt)):
             _agent_session_id = getattr(agent, "session_id", None)
             # CLI (single-process) path: the approval contextvar is only bound during gateway/TUI turns and
-            # HERMES_SESSION_KEY is not in the CLI environment, so the key resolves empty here. Since #64240
+            # KOVA_SESSION_KEY is not in the CLI environment, so the key resolves empty here. Since #64240
             # the CLI drains completions through a positive-ownership filter keyed on the durable
             # AIAgent.session_id — an empty session_key would fail closed and the CLI could never claim its
             # own completions, while a restored foreign event with an empty key could leak into any
@@ -2237,7 +2237,7 @@ def _prepare_job_prompt(
     result short-circuits ``run_job`` (no_agent job, empty payload, monitor gate, wake gate,
     injection block, empty prompt); otherwise ``prompt`` is set."""
     # Fail closed on a corrupt config.yaml: defaults would let auto-detection bill a provider the
-    # user never chose. no_agent jobs are exempt. Escape hatch: HERMES_IGNORE_USER_CONFIG=1.
+    # user never chose. no_agent jobs are exempt. Escape hatch: KOVA_IGNORE_USER_CONFIG=1.
     if not job.get("no_agent"):
         from kova_cli.config import InvalidUserConfigError, require_parseable_user_config
 
@@ -2321,9 +2321,9 @@ def _prepare_job_prompt(
 
 
 _CRON_DELIVERY_VARS = (
-    "HERMES_CRON_AUTO_DELIVER_PLATFORM",
-    "HERMES_CRON_AUTO_DELIVER_CHAT_ID",
-    "HERMES_CRON_AUTO_DELIVER_THREAD_ID")
+    "KOVA_CRON_AUTO_DELIVER_PLATFORM",
+    "KOVA_CRON_AUTO_DELIVER_CHAT_ID",
+    "KOVA_CRON_AUTO_DELIVER_THREAD_ID")
 
 
 class _CronRunScope:
@@ -2331,9 +2331,9 @@ class _CronRunScope:
     parallel jobs don't clobber each other). Construct before the try, ``enter()`` as its first
     statement, ``exit()`` in the finally — every setter here has a matching reset there.
 
-    HERMES_SESSION_* are deliberately NOT seeded from job["origin"]: it is delivery metadata, not
+    KOVA_SESSION_* are deliberately NOT seeded from job["origin"]: it is delivery metadata, not
     a sender, and terminal/tts/skills/send_message tools would act as if the origin user were
-    driving the agent. Delivery reads job["origin"] / HERMES_CRON_AUTO_DELIVER_* directly.
+    driving the agent. Delivery reads job["origin"] / KOVA_CRON_AUTO_DELIVER_* directly.
     """
 
     def __init__(self, job: dict, job_id: str, execution_id: Optional[str]):
@@ -2349,12 +2349,12 @@ class _CronRunScope:
             chat_name="",
             # Cron can't receive completions after its turn; async delegation output could
             # otherwise route to an unrelated chat via the ambient session key => inline delegation.
-            # We clear the HERMES_SESSION_* routing keys just below, so an async delegation's completion
+            # We clear the KOVA_SESSION_* routing keys just below, so an async delegation's completion
             # event carries session_key="" — _enrich_async_delegation_routing cannot resolve it and
             # _inject_watch_notification drops it ("no routing metadata"). And by the time a child finishes,
             # run_job has already shipped the job's final response via _deliver_result; there is no turn
             # left to re-enter. (Worse, get_current_session_key() can fall back to the ambient os.environ
-            # HERMES_SESSION_KEY, which risks routing a cron subagent's output into an unrelated user chat.)
+            # KOVA_SESSION_KEY, which risks routing a cron subagent's output into an unrelated user chat.)
             # Declaring the channel stateless routes delegate_task to its existing inline/synchronous path,
             # so results return within the job's own turn. See declare_stateless_channel(). Upstream:
             # #53027, #63142.
@@ -2368,7 +2368,7 @@ class _CronRunScope:
         self.task_id = f"cron:{job_id}:{execution_id or job.get('execution_id') or uuid.uuid4().hex}"
         if self.workdir:
             record_session_cwd(self.task_id, self.workdir)
-        self._cron_session_var = _VAR_MAP["HERMES_CRON_SESSION"]
+        self._cron_session_var = _VAR_MAP["KOVA_CRON_SESSION"]
         self._cron_session_token = None
         self._non_dispatcher_token = None
         self._spend_token = None
@@ -2378,7 +2378,7 @@ class _CronRunScope:
         # os.environ fallback used by standalone entrypoints/tests).
         self._cron_session_token = self._cron_session_var.set("1")
         # Mark NOT the kanban worker: a worker's cronjob(action="run") lands here with
-        # HERMES_KANBAN_TASK in env, and an unrelated job could close the worker's task. Must be a
+        # KOVA_KANBAN_TASK in env, and an unrelated job could close the worker's task. Must be a
         # ContextVar, NOT an os.environ clear (env is shared with the worker heartbeat and
         # concurrent jobs); copy_context() carries it into the agent thread.
         self._non_dispatcher_token = enter_non_dispatcher_owned_context()
@@ -2410,14 +2410,14 @@ def _reload_dotenv_and_publish_delivery_target(job: dict) -> None:
     from kova_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
     from gateway.session_context import _VAR_MAP
 
-    reset_secret_source_cache(_get_hermes_home())
-    load_hermes_dotenv(hermes_home=_get_hermes_home())
+    reset_secret_source_cache(_get_kova_home())
+    load_hermes_dotenv(kova_home=_get_kova_home())
 
     delivery_target = _resolve_delivery_target(job)
     if delivery_target:
-        _VAR_MAP["HERMES_CRON_AUTO_DELIVER_PLATFORM"].set(delivery_target["platform"])
-        _VAR_MAP["HERMES_CRON_AUTO_DELIVER_CHAT_ID"].set(str(delivery_target["chat_id"]))
-        _VAR_MAP["HERMES_CRON_AUTO_DELIVER_THREAD_ID"].set(
+        _VAR_MAP["KOVA_CRON_AUTO_DELIVER_PLATFORM"].set(delivery_target["platform"])
+        _VAR_MAP["KOVA_CRON_AUTO_DELIVER_CHAT_ID"].set(str(delivery_target["chat_id"]))
+        _VAR_MAP["KOVA_CRON_AUTO_DELIVER_THREAD_ID"].set(
             "" if delivery_target.get("thread_id") is None else str(delivery_target["thread_id"])
         )
 
@@ -2813,7 +2813,7 @@ def run_one_job(
 
     execution_id = str(job["execution_id"])
     note_cron_execution(job)
-    external_owner = os.environ.get("_HERMES_CRON_EXTERNAL_WORKER") == execution_id
+    external_owner = os.environ.get("_KOVA_CRON_EXTERNAL_WORKER") == execution_id
     if not external_owner:
         try:
             handed_off = _launch_external_cron_worker(job)
@@ -2872,7 +2872,7 @@ def run_one_job(
     claim = job.get("fire_claim")
     fire_owner = str(claim.get("by") or "") if isinstance(claim, dict) else ""
     execution_token = object()
-    profile_home = _get_hermes_home().resolve()
+    profile_home = _get_kova_home().resolve()
     _fire_key = _inflight_key(job["id"])
     with _running_lock:
         _running_fire_owners.setdefault(_fire_key, {})[execution_token] = (
@@ -3219,7 +3219,7 @@ def _install_fire_secret_scope() -> tuple[contextvars.Token, Optional[contextvar
     from kova_cli.env_loader import hydrate_profile_secret_sources
     from tui_gateway.launch_profile_policy import owner_secret_scope
 
-    home = Path(_get_hermes_home())
+    home = Path(_get_kova_home())
     hydrate_profile_secret_sources(home)
     scope_token = set_secret_scope(owner_secret_scope(home), profile_home=str(home))
     context_token = set_multiplex_context(True) if routed_profile_fire() else None
@@ -3250,7 +3250,7 @@ def _fire_secret_scope():
 def _start_owned_run(job: dict, execution_id: str) -> Optional[contextvars.Token]:
     """Win the run's ``claimed`` → ``running`` CAS and bind its cron identity; ``None`` when the run
     lost ownership first. A restart-safe worker already won it by adopting the row."""
-    if os.environ.get("_HERMES_CRON_EXTERNAL_WORKER") == execution_id:
+    if os.environ.get("_KOVA_CRON_EXTERNAL_WORKER") == execution_id:
         record = get_execution(execution_id)
     elif (record := mark_execution_running(execution_id)) is None:
         return None
@@ -3329,7 +3329,7 @@ def _run_one_job_body(
         from tools.terminal_scope import (
             install_profile_terminal_scope)
 
-        _terminal_scope_token = install_profile_terminal_scope(_get_hermes_home())
+        _terminal_scope_token = install_profile_terminal_scope(_get_kova_home())
         # Defer agent teardown until AFTER delivery: closing first races the live send against a
         # torn-down async client (#58720). run_job hands the agent back via this list instead.
         _deferred_agents: list = []
@@ -3616,7 +3616,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
     """
     execution_id = str(job["execution_id"])
     job_id = str(job["id"])
-    handoff_dir = _get_hermes_home() / "cron" / "external-workers"
+    handoff_dir = _get_kova_home() / "cron" / "external-workers"
     payload_path = handoff_dir / f"{execution_id}.json"
     ack_path = handoff_dir / f"{execution_id}.ready"
     # Captured so a worker that dies before its acknowledgement can name the cause (#112729).
@@ -3675,7 +3675,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
             json.dump(
                 {
                     "job": job,
-                    "profile_home": str(_get_hermes_home().resolve()),
+                    "profile_home": str(_get_kova_home().resolve()),
                     "multiplex_active": multiplex_active,
                 },
                 payload_file,
@@ -3686,7 +3686,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
         payload_path.unlink(missing_ok=True)
         raise
 
-    profile_home = _get_hermes_home().resolve()
+    profile_home = _get_kova_home().resolve()
     # Same hydrate -> scope -> (routed) multiplex-context install the in-process fire uses, for exactly
     # the env build; the helper's reset order keeps the context from outliving its scope.
     with _fire_secret_scope():
@@ -3695,17 +3695,17 @@ def _launch_external_cron_worker(job: dict) -> bool:
         worker_env = strip_launch_profile_env(build_subprocess_env(
             scrub_secrets=multiplex_active,
             inherit_profile_home=True,
-            extra={"HERMES_HOME": str(profile_home)},
+            extra={"KOVA_HOME": str(profile_home)},
         ))
     worker_env = systemd_user_bus_env(worker_env)
-    # Unattended worker: the gateway sets HERMES_EXEC_ASK at startup (interactive launches set
+    # Unattended worker: the gateway sets KOVA_EXEC_ASK at startup (interactive launches set
     # the other two), and an inherited presence var makes every env-fallback consumer in the
     # child (`_is_interactive_cli`, sudo prompting, `check_cronjob_requirements`) believe a
     # human is present to answer (#110932).
     for _presence_var in (
-        "HERMES_INTERACTIVE",
-        "HERMES_GATEWAY_SESSION",
-        "HERMES_EXEC_ASK",
+        "KOVA_INTERACTIVE",
+        "KOVA_GATEWAY_SESSION",
+        "KOVA_EXEC_ASK",
     ):
         worker_env.pop(_presence_var, None)
     # `-m cron.scheduler` has no kova_cli.main bootstrap; pin this checkout explicitly
@@ -3872,14 +3872,14 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
     from cron.executions import adopt_claimed_execution
     from kova_cli.env_loader import hydrate_profile_secret_sources
     from kova_constants import (
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
 
     previous_multiplex = is_multiplex_active()
     home_token = secret_token = None
     try:
-        home_token = set_hermes_home_override(profile_home)
+        home_token = set_kova_home_override(profile_home)
         multiplex_active = bool(payload.get("multiplex_active", False))
         set_multiplex_active(multiplex_active)
         # Plugin secret sources (``ctx.register_secret_source()``) only exist after plugin
@@ -3932,8 +3932,8 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
                     execution_id,
                 )
                 return False
-            old_external_execution = os.environ.get("_HERMES_CRON_EXTERNAL_WORKER")
-            os.environ["_HERMES_CRON_EXTERNAL_WORKER"] = execution_id
+            old_external_execution = os.environ.get("_KOVA_CRON_EXTERNAL_WORKER")
+            os.environ["_KOVA_CRON_EXTERNAL_WORKER"] = execution_id
             try:
                 completed = run_one_job(job, adapters=None, loop=None, verbose=False)
                 # Successful return: the worker recorded its outcome. If it raises,
@@ -3943,15 +3943,15 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
                 return completed
             finally:
                 if old_external_execution is None:
-                    os.environ.pop("_HERMES_CRON_EXTERNAL_WORKER", None)
+                    os.environ.pop("_KOVA_CRON_EXTERNAL_WORKER", None)
                 else:
-                    os.environ["_HERMES_CRON_EXTERNAL_WORKER"] = old_external_execution
+                    os.environ["_KOVA_CRON_EXTERNAL_WORKER"] = old_external_execution
     finally:
         if secret_token is not None:
             reset_secret_scope(secret_token)
         set_multiplex_active(previous_multiplex)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
 
 
 def _notify_provider_jobs_changed() -> None:
@@ -4037,7 +4037,7 @@ def _worktree_maintenance_repos() -> list[str]:
         from kova_cli.worktree_registry import registered_repos
         repos.update(registered_repos())
 
-    # Hermes source checkout (git installs only; wheel installs have no .git).
+    # Kova source checkout (git installs only; wheel installs have no .git).
     with contextlib.suppress(Exception):
         install_root = Path(__file__).resolve().parent.parent
         if (install_root / ".git").exists():
@@ -4072,9 +4072,9 @@ def _maybe_run_worktree_maintenance() -> None:
     global _last_worktree_maintenance_at
     import contextvars
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = str(get_hermes_home())
+    home = str(get_kova_home())
     now = time.monotonic()
     with _worktree_maintenance_lock:
         stamps = _last_worktree_maintenance_at or {}
@@ -4149,7 +4149,7 @@ def _maybe_reap_dead_owners() -> None:
     # the long-lived gateway ticker kept running — blocking every future run of that job. Reap provably-dead
     # owners periodically so stale claims auto-clear without a gateway restart. Throttled so idle 60s ticks
     # don't pay a ledger connection every cycle (#33612).
-    _reap_key = hermes_home_key(_get_hermes_home())
+    _reap_key = kova_home_key(_get_kova_home())
     _reap_now = time.monotonic()
     _last_reap = _last_dead_owner_reap_at.get(_reap_key)
     if (
@@ -4174,7 +4174,7 @@ def _maybe_reap_dead_owners() -> None:
 def _sweep_stale_inflight_for_tick(due_jobs: list) -> None:
     """Bound the in-flight set BEFORE the dedup guard so a leaked claim is force-released now
     rather than eating every later fire until restart. Skipped when nothing is in flight."""
-    _local_home = hermes_home_key(_get_hermes_home())
+    _local_home = kova_home_key(_get_kova_home())
     if not any(key[0] == _local_home for key in _running_job_ids):
         return
     _sweep_jobs = due_jobs
@@ -4192,13 +4192,13 @@ def _sweep_stale_inflight_for_tick(due_jobs: list) -> None:
 
 
 def _resolve_max_parallel_workers() -> Optional[int]:
-    """Max workers: env > config.yaml > unbounded (HERMES_CRON_MAX_PARALLEL=1 restores serial)."""
+    """Max workers: env > config.yaml > unbounded (KOVA_CRON_MAX_PARALLEL=1 restores serial)."""
     try:
-        _env_par = cron_env_setting("HERMES_CRON_MAX_PARALLEL").strip()
+        _env_par = cron_env_setting("KOVA_CRON_MAX_PARALLEL").strip()
         if _env_par:
             return int(_env_par) or None
     except (ValueError, TypeError):
-        logger.warning("Invalid HERMES_CRON_MAX_PARALLEL value; defaulting to unbounded")
+        logger.warning("Invalid KOVA_CRON_MAX_PARALLEL value; defaulting to unbounded")
     with contextlib.suppress(Exception):
         _ucfg = load_config() or {}
         _cfg_par = (_ucfg.get("cron", {}) if isinstance(_ucfg, dict) else {}).get("max_parallel_jobs")
@@ -4294,7 +4294,7 @@ def _submit_with_guard(job: dict, pool: concurrent.futures.ThreadPoolExecutor, p
     # The home the claim was registered under. The pool worker's ``finally`` runs OUTSIDE
     # ``ctx.run``, where the per-profile cron scope is not bound, so releasing without it would
     # discard the LAUNCH home's key and leak every secondary profile's claim.
-    _claim_home = _get_hermes_home()
+    _claim_home = _get_kova_home()
     # Record the attempt before dispatch; recovery marks abandoned rows unknown (no retry).
     execution = None
     try:
@@ -4407,7 +4407,7 @@ if __name__ == "__main__":
         try:
             from kova_logging import setup_logging
 
-            setup_logging(hermes_home=_get_hermes_home(), mode="cron")
+            setup_logging(kova_home=_get_kova_home(), mode="cron")
         except Exception:
             pass
         raise SystemExit(

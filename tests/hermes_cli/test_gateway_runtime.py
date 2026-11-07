@@ -35,7 +35,7 @@ def test_live_discovery_does_not_treat_an_unusable_owner_as_absent(tmp_path):
             "runtime_protocol": 1,
             "instance_id": "fixture-instance",
             "authority_epoch": 1,
-            "hermes_home": identity,
+            "kova_home": identity,
             "state": "ready",
             "api_origin": "http://127.0.0.1:41817",
             "supervisor": "none",

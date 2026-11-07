@@ -51,8 +51,8 @@ _EXAMPLE_PLUGIN_FIXTURE = (
 
 
 @pytest.fixture
-def _install_example_plugin(_isolate_hermes_home):
-    """Drop the example-dashboard fixture into the per-test HERMES_HOME
+def _install_example_plugin(_isolate_kova_home):
+    """Drop the example-dashboard fixture into the per-test KOVA_HOME
     user-plugins directory and force the web_server's dashboard plugin
     cache + API mount to rediscover it.
 
@@ -61,20 +61,20 @@ def _install_example_plugin(_isolate_hermes_home):
     user's sidebar. It is now a tests-only fixture: any test that needs
     ``/api/plugins/example/hello`` or ``/dashboard-plugins/example/...``
     requests this fixture so the plugin appears only for that test's
-    isolated ``HERMES_HOME``.
+    isolated ``KOVA_HOME``.
 
     The user-plugin source is preferred over a transient
-    ``HERMES_BUNDLED_PLUGINS`` override because the bundled dir is
+    ``KOVA_BUNDLED_PLUGINS`` override because the bundled dir is
     resolved per-call (other tests in the suite implicitly rely on the
     real bundled plugins — kanban, hermes-achievements, model providers
     — being available, and globally swapping that root would yank them
     all). User plugins are first in the discovery search order, so
     laying down the fixture here is enough.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import web_server
 
-    user_plugins_dir = get_hermes_home() / "plugins"
+    user_plugins_dir = get_kova_home() / "plugins"
     user_plugins_dir.mkdir(parents=True, exist_ok=True)
     dst = user_plugins_dir / "example-dashboard"
     if dst.exists():
@@ -103,7 +103,7 @@ def _install_example_plugin(_isolate_hermes_home):
     #   1. Identify the routes the mount call appends.
     #   2. Restore the original list on teardown — otherwise leftover
     #      ``/api/plugins/example/*`` routes leak into subsequent tests
-    #      and start serving requests against a torn-down HERMES_HOME.
+    #      and start serving requests against a torn-down KOVA_HOME.
     app = web_server.app
     original_routes = list(app.router.routes)
 
@@ -165,7 +165,7 @@ class TestReloadEnv:
 
 
     def test_removes_deleted_known_vars(self, tmp_path):
-        """reload_env() removes known Hermes vars not present in .env."""
+        """reload_env() removes known Kova vars not present in .env."""
         env_file = tmp_path / ".env"
         env_file.write_text("")  # empty .env
         # Pick a known key from OPTIONAL_ENV_VARS
@@ -203,9 +203,9 @@ class TestRedactKey:
         original_app = ws.app
         original_header_name = ws._SESSION_HEADER_NAME
         original_token = ws._SESSION_TOKEN
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-seeded-token")
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-seeded-token")
         assert st.resolve_session_token() == "desktop-seeded-token"
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
         with patch.object(st.secrets, "token_urlsafe", return_value="generated-token"):
             assert st.resolve_session_token() == "generated-token"
 
@@ -223,14 +223,14 @@ class TestRedactKey:
 
 
 @pytest.fixture
-def mutation_owner(monkeypatch, _isolate_hermes_home):
+def mutation_owner(monkeypatch, _isolate_kova_home):
     from gateway.session_authority import SessionAuthority
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app
     from kova_state import SessionDB
     from kova_state_runtime import begin_runtime_epoch
 
-    home = get_hermes_home()
+    home = get_kova_home()
     db = SessionDB(db_path=home / 'state.db')
     authority = SessionAuthority(SimpleNamespace(_draining=False), profile_id=str(home),
         instance_id='test-owner', db=db, epoch=begin_runtime_epoch(db, instance_id='test-owner'))
@@ -245,18 +245,18 @@ class TestWebServerEndpoints:
     """Test the FastAPI REST endpoints using Starlette TestClient."""
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
-        """Create a TestClient and isolate the state DB under the test HERMES_HOME."""
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
+        """Create a TestClient and isolate the state DB under the test KOVA_HOME."""
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
 
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -266,11 +266,11 @@ class TestWebServerEndpoints:
         """Repeated GET-only polls must not checkpoint another writer's WAL."""
         import sqlite3
 
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
 
         _web_server_sessions._last_auto_archive_check.clear()
-        db_path = get_hermes_home() / "state.db"
+        db_path = get_kova_home() / "state.db"
         wal_path = Path(f"{db_path}-wal")
         writer = SessionDB(db_path=db_path)
         monitor = None
@@ -345,10 +345,10 @@ class TestWebServerEndpoints:
     def test_get_sessions_leaves_auto_archive_to_owner(self):
         from kova_cli import web_server
         from kova_cli.config import load_config, save_config
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
 
-        db_path = get_hermes_home() / "state.db"
+        db_path = get_kova_home() / "state.db"
         seed = SessionDB(db_path=db_path)
         try:
             seed.create_session("stale", source="cli")
@@ -393,14 +393,14 @@ class TestWebServerEndpoints:
             verify.close()
 
     def test_get_sessions_missing_store_is_unavailable_without_creation(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        before = set(get_hermes_home().glob("state.db*"))
+        before = set(get_kova_home().glob("state.db*"))
         response = self.client.get("/api/sessions?limit=50&offset=0")
 
         assert response.status_code == 503
         assert "not initialized" in response.json()["detail"]
-        assert set(get_hermes_home().glob("state.db*")) == before
+        assert set(get_kova_home().glob("state.db*")) == before
 
     def test_startup_eager_reconcile_is_read_only_on_a_healthy_store(self, monkeypatch):
         """A current-schema store gets NO writable open from the dashboard (#107688).
@@ -410,10 +410,10 @@ class TestWebServerEndpoints:
         two-writer corruption vector. Only the stale-schema heal may write.
         """
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
 
-        SessionDB(db_path=get_hermes_home() / "state.db").close()
+        SessionDB(db_path=get_kova_home() / "state.db").close()
 
         writable_opens = []
         real_init = SessionDB.__init__
@@ -444,10 +444,10 @@ class TestWebServerEndpoints:
 
     def test_failed_schema_probes_never_escalate_reads(self, monkeypatch):
         from fastapi import HTTPException
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
 
-        db_path = get_hermes_home() / "state.db"
+        db_path = get_kova_home() / "state.db"
         seed = SessionDB(db_path=db_path)
         seed.create_session("unfixable", source="cli")
         seed.close()
@@ -503,9 +503,9 @@ class TestWebServerEndpoints:
         assert opens == [True]
 
     def test_get_sessions_zero_byte_store_is_not_quarantined(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        db_path = get_hermes_home() / "state.db"
+        db_path = get_kova_home() / "state.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
         db_path.touch()
 
@@ -534,7 +534,7 @@ class TestWebServerEndpoints:
         """?profile=<name> must resolve liveness from the profile's own home.
 
         The gateway status readers resolve process-level paths and ignore the
-        HERMES_HOME contextvar override (#56986), so /api/messaging/platforms
+        KOVA_HOME contextvar override (#56986), so /api/messaging/platforms
         has to pass the profile directory explicitly — otherwise it reports a
         DIFFERENT profile's gateway as this profile's, which hides a real
         outage behind a false "connected" (issue #71211).
@@ -616,8 +616,8 @@ class FlatProvMemoryProvider(MemoryProvider):
             {"key": "recall_budget", "label": "Budget", "choices": ["low", "mid", "high"], "default": "mid"},
         ]
 
-    def save_config(self, values, hermes_home):
-        path = Path(hermes_home) / "flatprov" / "config.json"
+    def save_config(self, values, kova_home):
+        path = Path(kova_home) / "flatprov" / "config.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         existing = json.loads(path.read_text()) if path.exists() else {}
         existing.update(values)
@@ -641,16 +641,16 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 """
 
     def _install_flatprov(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        plugin_dir = get_hermes_home() / "plugins" / "flatprov"
+        plugin_dir = get_kova_home() / "plugins" / "flatprov"
         plugin_dir.mkdir(parents=True, exist_ok=True)
         (plugin_dir / "__init__.py").write_text(self._FLATPROV_INIT, encoding="utf-8")
         (plugin_dir / "config_schema.py").write_text(self._FLATPROV_SCHEMA, encoding="utf-8")
         return plugin_dir
 
     def test_declared_surface_put_writes_config_and_secret(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.config import load_env
 
         self._install_flatprov()
@@ -669,7 +669,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert resp.json() == {"ok": True}
         assert load_env()["FLATPROV_API_KEY"] == "fp-declared-key"
 
-        config_path = get_hermes_home() / "flatprov" / "config.json"
+        config_path = get_kova_home() / "flatprov" / "config.json"
         provider_config = json.loads(config_path.read_text(encoding="utf-8"))
         assert provider_config["mode"] == "local_external"
         assert provider_config["api_url"] == "http://localhost:8888"
@@ -714,7 +714,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
     def test_put_memory_provider_config_writes_config_and_secret(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.config import load_config, load_env
 
         self._install_flatprov()
@@ -736,7 +736,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert load_config()["memory"]["provider"] == "flatprov"
         assert load_env()["FLATPROV_API_KEY"] == "fp-test-key"
 
-        config_path = get_hermes_home() / "flatprov" / "config.json"
+        config_path = get_kova_home() / "flatprov" / "config.json"
         provider_config = json.loads(config_path.read_text(encoding="utf-8"))
         assert provider_config["mode"] == "local_external"
         assert provider_config["api_url"] == "http://localhost:8888"
@@ -795,7 +795,7 @@ def register(ctx):
     ctx.register_memory_provider(HostProv())
 """
     _HOSTPROV_CLIENT = """
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def resolve_active_host():
@@ -803,7 +803,7 @@ def resolve_active_host():
 
 
 def resolve_config_path():
-    return get_hermes_home() / "hostprov.json"
+    return get_kova_home() / "hostprov.json"
 
 
 def _host_block(cfg, host):
@@ -850,14 +850,14 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 """
 
     def _install_hostprov(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        plugin_dir = get_hermes_home() / "plugins" / "hostprov"
+        plugin_dir = get_kova_home() / "plugins" / "hostprov"
         plugin_dir.mkdir(parents=True, exist_ok=True)
         for module, source in (("__init__", self._HOSTPROV_INIT), ("client", self._HOSTPROV_CLIENT),
                                ("oauth", self._HOSTPROV_OAUTH), ("config_schema", self._HOSTPROV_SCHEMA)):
             (plugin_dir / f"{module}.py").write_text(source, encoding="utf-8")
-        config_path = get_hermes_home() / "hostprov.json"
+        config_path = get_kova_home() / "hostprov.json"
         config_path.write_text("{}", encoding="utf-8")
         return config_path
 
@@ -1253,7 +1253,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             "action_id": "a" * 32,
         }
         assert calls == [
-            (["update"], "hermes-update", {"HERMES_ACTION_ID": "a" * 32})
+            (["update"], "hermes-update", {"KOVA_ACTION_ID": "a" * 32})
         ]
 
     def test_update_hermes_reuses_running_action(self, monkeypatch):
@@ -1292,7 +1292,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
     def test_model_set_maps_unknown_vendor_to_aggregator(self, monkeypatch):
         """A bare vendor name from analytics rows (no billing_provider) is not
-        a Hermes provider — keep the user's aggregator instead of writing a
+        a Kova provider — keep the user's aggregator instead of writing a
         provider that can never resolve credentials."""
         monkeypatch.setattr(
             "kova_cli.model_cost_guard.expensive_model_warning",
@@ -1450,8 +1450,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
                     "pairing_id": "pair-restart-fails",
                     "poll_token": "poll-secret",
                     "suggested_username": "hermes_pair_restart_fails_bot",
-                    "deep_link": "https://t.me/newbot/HermesSetupBot/hermes_pair_restart_fails_bot",
-                    "qr_payload": "https://t.me/newbot/HermesSetupBot/hermes_pair_restart_fails_bot",
+                    "deep_link": "https://t.me/newbot/KovaSetupBot/hermes_pair_restart_fails_bot",
+                    "qr_payload": "https://t.me/newbot/KovaSetupBot/hermes_pair_restart_fails_bot",
                     "expires_at": "2027-05-18T00:00:00.000Z",
                 }
             assert method == "GET"
@@ -1758,9 +1758,9 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """
         from kova_cli import profiles as profiles_mod
         from kova_cli.config import custom_endpoint_key_env
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        default_home = get_hermes_home()
+        default_home = get_kova_home()
         worker_home = profiles_mod.get_profile_dir("worker")
         worker_home.mkdir(parents=True)
         (worker_home / "config.yaml").touch()  # identity marker: bare dirs are not profiles
@@ -2180,12 +2180,12 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """
         from kova_cli.config import load_config, save_config, save_env_value
 
-        save_env_value("HERMES_CUSTOM_127_0_0_1_8001_API_KEY", "secret-value")
+        save_env_value("KOVA_CUSTOM_127_0_0_1_8001_API_KEY", "secret-value")
         cfg = load_config()
         cfg["custom_providers"] = [{
             "name": "Qwen Local",
             "base_url": "http://127.0.0.1:8001/v1",
-            "key_env": "HERMES_CUSTOM_127_0_0_1_8001_API_KEY",
+            "key_env": "KOVA_CUSTOM_127_0_0_1_8001_API_KEY",
             "model": "qwen",
             "api_mode": "chat_completions",
         }]
@@ -2205,11 +2205,11 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
         cfg = load_config()
         assert cfg.get("custom_providers") == []
-        assert cfg["providers"]["qwen-local"]["key_env"] == "HERMES_CUSTOM_127_0_0_1_8001_API_KEY"
+        assert cfg["providers"]["qwen-local"]["key_env"] == "KOVA_CUSTOM_127_0_0_1_8001_API_KEY"
         rows = {e["id"]: e for e in self.client.get("/api/providers/custom-endpoints").json()["endpoints"]}
         assert rows["qwen-local"]["source"] == "providers"
         assert rows["qwen-local"]["has_api_key"] is True
-        assert rows["qwen-local"]["api_key_preview"] == "${HERMES_CUSTOM_127_0_0_1_8001_API_KEY}"
+        assert rows["qwen-local"]["api_key_preview"] == "${KOVA_CUSTOM_127_0_0_1_8001_API_KEY}"
 
     def test_legacy_custom_providers_entries_get_a_row_and_can_be_deleted(self):
         """A post-migration ``custom_providers:`` list entry is still routed by the
@@ -2827,17 +2827,17 @@ class TestNewEndpoints:
     """Tests for session detail, logs, cron, skills, tools, raw config, analytics."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch, _isolate_hermes_home):
+    def _setup(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
 
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -2852,7 +2852,7 @@ class TestNewEndpoints:
     def test_profiles_create_builder_mcp_auth_is_profile_scoped(
         self, monkeypatch
     ):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         import kova_cli.profiles as profiles_mod
 
         monkeypatch.setattr(profiles_mod, "create_wrapper_script", lambda name: None)
@@ -2897,7 +2897,7 @@ class TestNewEndpoints:
         assert resp.status_code == 200
         assert resp.json()["mcp_written"] == 3
 
-        root = get_hermes_home()
+        root = get_kova_home()
         profile_dir = root / "profiles" / "builder-auth"
         config_text = (profile_dir / "config.yaml").read_text(encoding="utf-8")
         config = yaml.safe_load(config_text)
@@ -3266,16 +3266,16 @@ class TestDesktopLoopbackAuthExemption:
     def test_exempt_with_desktop_env_and_session_token_on_loopback(self, monkeypatch):
         from kova_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-minted")
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-minted")
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is True
         assert web_server._desktop_loopback_auth_exempt("::1") is True
 
     def test_exempt_via_ssh_spawn_credentials_without_env_token(self, monkeypatch):
         from kova_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
         assert web_server._desktop_loopback_auth_exempt(
             "127.0.0.1", ssh_session_token="tok"
         )
@@ -3286,24 +3286,24 @@ class TestDesktopLoopbackAuthExemption:
     def test_not_exempt_without_desktop_env(self, monkeypatch):
         from kova_cli import web_server
 
-        monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
+        monkeypatch.delenv("KOVA_DESKTOP", raising=False)
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "tok")
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_without_any_credential(self, monkeypatch):
         from kova_cli import web_server
 
-        # HERMES_DESKTOP=1 alone is not enough: a plain serve with the env var
+        # KOVA_DESKTOP=1 alone is not enough: a plain serve with the env var
         # exported must stay gated.
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_on_non_loopback_bind(self, monkeypatch):
         from kova_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "tok")
         assert web_server._desktop_loopback_auth_exempt("0.0.0.0") is False
         assert web_server._desktop_loopback_auth_exempt("192.168.1.10") is False
 
@@ -3312,7 +3312,7 @@ class TestDesktopLoopbackAuthExemption:
 
         # Sanity: the base behaviour is untouched — a non-Desktop loopback
         # serve with a public_url configured stays ticket-gated.
-        monkeypatch.delenv("HERMES_DESKTOP", raising=False)
+        monkeypatch.delenv("KOVA_DESKTOP", raising=False)
         assert web_server.should_require_dashboard_auth(
             "127.0.0.1", frozenset({"dash.example.com"})
         ) is True
@@ -3332,9 +3332,9 @@ class TestDesktopHostRendezvousIsolation:
         from kova_cli.main_dashboard import _host_backend_attachment
         from kova_cli.plugins_activation import notify_serve_backend
 
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
         monkeypatch.setattr(web_server, "_SESSION_TOKEN", "desktop-spawn-token")
         monkeypatch.setattr(hr, "cleanup_on_exit", lambda role: None)
         dialed = []
@@ -3367,12 +3367,12 @@ class TestDesktopHostRendezvousIsolation:
 
     def test_standalone_backend_still_claims_the_host_serve_record(self, monkeypatch):
         """The Desktop exclusion must not alter standalone dashboard discovery — including a
-        supervised service whose shell merely inherited HERMES_DESKTOP=1 without the token."""
+        supervised service whose shell merely inherited KOVA_DESKTOP=1 without the token."""
         from gateway import host_rendezvous as hr
         from kova_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.delenv("KOVA_DASHBOARD_SESSION_TOKEN", raising=False)
         claimed = []
         published = []
         monkeypatch.setattr(
@@ -3428,7 +3428,7 @@ class TestOrphanedOwnerReclaim:
         from kova_cli import web_server
         from kova_cli import process_identity as pi
 
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         monkeypatch.setattr(web_server, "is_desktop_owned_backend", lambda: False)
         claims = iter([hr.HostLockOutcome.HELD_BY_OTHER, hr.HostLockOutcome.ACQUIRED])
         claimed, published = [], []
@@ -3640,11 +3640,11 @@ class TestDenormalizeProviderSwitch:
         ``PUT /api/config`` — not fall back to the flat string, which the deep-merge would
         write OVER the on-disk ``model:`` dict (provider/base_url/api_mode/slots destroyed)."""
         from starlette.testclient import TestClient
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.model_switch import ModelSwitchResult
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        cfg_path = get_hermes_home() / "config.yaml"
+        cfg_path = get_kova_home() / "config.yaml"
         cfg_path.write_text(
             "model:\n"
             "  default: llama3.2\n"
@@ -3782,7 +3782,7 @@ class TestStatusInstallId:
     """Stable per-install identity on /api/status.
 
     Behaviour contracts: the id is minted once, persisted under the ROOT
-    Hermes home (not the profile home), survives a fresh process-cache read,
+    Kova home (not the profile home), survives a fresh process-cache read,
     and is byte-identical for every profile served by the same install — the
     desktop uses it to collapse duplicate roster rows when one backend is
     registered under two addresses.
@@ -3805,7 +3805,7 @@ class TestStatusInstallId:
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
     def test_status_reports_persistent_install_id(self, monkeypatch):
-        from kova_constants import get_default_hermes_root
+        from kova_constants import get_default_kova_root
 
         monkeypatch.setattr(_gw_status, "get_running_pid_cached", lambda: None)
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda: None)
@@ -3818,7 +3818,7 @@ class TestStatusInstallId:
         assert re.fullmatch(r"[0-9a-f]{32}", install_id)
 
         # Persisted under the ROOT home, and stable across calls.
-        id_file = get_default_hermes_root() / "install_id"
+        id_file = get_default_kova_root() / "install_id"
         assert id_file.is_file()
         assert id_file.read_text(encoding="utf-8").strip() == install_id
 
@@ -3835,7 +3835,7 @@ class TestStatusInstallId:
         assert ws.get_install_id() == first
 
     def test_all_profiles_of_one_install_share_the_id(self, monkeypatch, tmp_path):
-        """HERMES_HOME=<root> and HERMES_HOME=<root>/profiles/<name> resolve to
+        """KOVA_HOME=<root> and KOVA_HOME=<root>/profiles/<name> resolve to
         the same id file — profiles share one physical install identity."""
         import kova_cli.web_server as ws
 
@@ -3843,12 +3843,12 @@ class TestStatusInstallId:
         profile_home = root / "profiles" / "research"
         profile_home.mkdir(parents=True)
 
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("KOVA_HOME", str(root))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
         root_id = ws.get_install_id()
         assert root_id
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("KOVA_HOME", str(profile_home))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
         assert ws.get_install_id() == root_id
         # Exactly one id file exists — under the root, not the profile home.
@@ -3861,7 +3861,7 @@ class TestStatusInstallId:
         root = tmp_path / "hermes-root"
         root.mkdir()
         (root / "install_id").write_text("not-a-valid-id\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("KOVA_HOME", str(root))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
 
         value = ws.get_install_id()
@@ -4076,14 +4076,14 @@ class TestNormaliseThemeDefinition:
 
 
 class TestDiscoverUserThemes:
-    """Tests for _discover_user_themes() — scans ~/.hermes/dashboard-themes/."""
+    """Tests for _discover_user_themes() — scans ~/.kova/dashboard-themes/."""
 
     def test_returns_empty_when_dir_missing(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         assert _web_server_dashboard._discover_user_themes() == []
 
     def test_loads_and_normalises_yaml(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "ocean.yaml").write_text(
@@ -4107,7 +4107,7 @@ class TestDiscoverUserThemes:
 
 
     def test_ignores_transient_profile_override(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "mine.yaml").write_text("name: mine\n", encoding="utf-8")
@@ -4116,15 +4116,15 @@ class TestDiscoverUserThemes:
         other.mkdir()
 
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
-        token = set_hermes_home_override(str(other))
+        token = set_kova_home_override(str(other))
         try:
             results = _web_server_dashboard._discover_user_themes()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
         assert [r["name"] for r in results] == ["mine"]
 
@@ -4135,8 +4135,8 @@ class TestThemeBootstrapCSS:
     the default-teal first-paint flash for user YAML themes."""
 
     @staticmethod
-    def _write_theme(hermes_home, name="ocean"):
-        themes_dir = hermes_home / "dashboard-themes"
+    def _write_theme(kova_home, name="ocean"):
+        themes_dir = kova_home / "dashboard-themes"
         themes_dir.mkdir(exist_ok=True)
         (themes_dir / f"{name}.yaml").write_text(
             f"name: {name}\n"
@@ -4171,7 +4171,7 @@ class TestThemeBootstrapCSS:
         return TestClient(spa_app)
 
     def test_serve_index_injects_bootstrap_for_user_theme(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         self._write_theme(tmp_path)
         monkeypatch.setattr(
             _cfg_mod, "load_config", lambda: {"dashboard": {"theme": "ocean"}}
@@ -4242,18 +4242,18 @@ class TestDeleteSessionEndpoint:
     """
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
 
         self.auth_client = TestClient(app)
@@ -4304,10 +4304,10 @@ class TestDeleteSessionEndpoint:
     def test_delete_existing_session_scrubs_row_and_disk(self, mutation_owner):
         # The canonical delete retires rows; the endpoint must also remove the secret-bearing
         # session_<id>.json snapshots and request dumps the CLI delete path removes (#60207).
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         self._seed(["disk-scrub"])
-        sessions_dir = get_hermes_home() / "sessions"
+        sessions_dir = get_kova_home() / "sessions"
         sessions_dir.mkdir(parents=True, exist_ok=True)
         for name, body in (
             ("session_disk-scrub.json", '{"messages": [{"content": "secret-token"}]}'),
@@ -4398,18 +4398,18 @@ class TestBulkDeleteSessionsEndpoint:
     """
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
 
         self.client = TestClient(app)
@@ -4465,20 +4465,20 @@ class TestDeleteEmptySessionsEndpoint:
     """
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        # Pin the SessionDB to the isolated HERMES_HOME so each test
+        # Pin the SessionDB to the isolated KOVA_HOME so each test
         # starts with a clean state.db.
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
 
         self.client = TestClient(app)
@@ -4553,10 +4553,10 @@ class TestDeleteEmptySessionsEndpoint:
     def test_delete_removes_on_disk_files_of_deleted_sessions_only(self):
         """Deleting an empty session also removes its files in ``sessions/``.
         A kept session's files stay."""
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         self._seed()
-        sessions_dir = get_hermes_home() / "sessions"
+        sessions_dir = get_kova_home() / "sessions"
         sessions_dir.mkdir(parents=True, exist_ok=True)
         deleted_files = [sessions_dir / "session_empty1.json", sessions_dir / "request_dump_empty2_1.json"]
         kept_file = sessions_dir / "session_hasmsg.json"
@@ -4574,13 +4574,13 @@ class TestPluginAPIAuth:
     """Tests that plugin API routes require the session token (issue #19533)."""
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home, _install_example_plugin):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home, _install_example_plugin):
         """Create a TestClient without the session token header.
 
         Pulls in ``_install_example_plugin`` so ``test_plugin_route_allows_auth``
         has the ``/api/plugins/example/hello`` endpoint available — the
         example plugin is no longer a bundled plugin, so the fixture
-        installs it into the per-test ``HERMES_HOME``.
+        installs it into the per-test ``KOVA_HOME``.
         """
         try:
             from starlette.testclient import TestClient
@@ -4588,10 +4588,10 @@ class TestPluginAPIAuth:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
 
         self.client = TestClient(app)
         self.auth_client = TestClient(app)
@@ -4602,7 +4602,7 @@ class TestPluginAPIAuth:
         """Plugin API routes should work with a valid session token.
 
         Uses ``/api/plugins/example/hello`` from the example-dashboard
-        test fixture (installed into HERMES_HOME by the class-level
+        test fixture (installed into KOVA_HOME by the class-level
         ``_install_example_plugin`` fixture) — a stable, side-effect-free
         GET that's only loaded for tests. With a valid token the handler
         should run (200); without one the middleware should 401 before
@@ -4661,7 +4661,7 @@ class TestDashboardPluginManifestExtensions:
         return plug_dir
 
     def test_override_and_hidden_carried_through(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "skin-home", {
             "name": "skin-home",
             "label": "Skin Home",
@@ -4681,10 +4681,10 @@ class TestDashboardPluginManifestExtensions:
     def test_user_plugins_ignore_profile_home_override(self, tmp_path, monkeypatch):
         """Regression: user dashboard extensions are a dashboard-owned asset
         (like theme YAML), so they must stay visible after a context-local
-        HERMES_HOME override scopes a request to another profile."""
+        KOVA_HOME override scopes a request to another profile."""
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
         launch_home = tmp_path / "launch"
         launch_home.mkdir()
@@ -4697,17 +4697,17 @@ class TestDashboardPluginManifestExtensions:
         other = tmp_path / "other-profile"
         other.mkdir()
 
-        monkeypatch.setenv("HERMES_HOME", str(launch_home))
-        token = set_hermes_home_override(str(other))
+        monkeypatch.setenv("KOVA_HOME", str(launch_home))
+        token = set_kova_home_override(str(other))
         try:
             plugins = _web_server_dashboard._discover_dashboard_plugins()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         assert any(p["name"] == "skin-home" for p in plugins)
 
     def test_user_plugins_found_under_profile_scoped_process(self, tmp_path, monkeypatch):
         """Regression #87197: a profile-scoped process (``--profile <name>``
-        sets HERMES_HOME=<root>/profiles/<name>) must still discover user
+        sets KOVA_HOME=<root>/profiles/<name>) must still discover user
         plugins installed in the hermes root's plugins/ directory."""
         root = tmp_path / "hermes-root"
         profile_home = root / "profiles" / "presale"
@@ -4719,7 +4719,7 @@ class TestDashboardPluginManifestExtensions:
             "entry": "dist/index.js",
         })
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("KOVA_HOME", str(profile_home))
         plugins = _web_server_dashboard._discover_dashboard_plugins()
         assert any(p["name"] == "meeting-intelligence" for p in plugins)
 
@@ -4742,7 +4742,7 @@ class TestDashboardPluginManifestExtensions:
             "entry": "dist/index.js",
         })
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("KOVA_HOME", str(profile_home))
         plugins = _web_server_dashboard._discover_dashboard_plugins()
         entries = [p for p in plugins if p["name"] == "dupe"]
         assert len(entries) == 1
@@ -4752,7 +4752,7 @@ class TestDashboardPluginManifestExtensions:
         """A denied plugin directory or manifest must not prevent valid plugins loading."""
         from pathlib import Path
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "valid", {
             "name": "valid",
             "label": "Valid Plugin",
@@ -4812,7 +4812,7 @@ skip_on_windows = pytest.mark.skipif(
 @skip_on_windows
 class TestPtyWebSocket:
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch, _isolate_hermes_home):
+    def _setup(self, monkeypatch, _isolate_kova_home):
         from starlette.testclient import TestClient
 
         import kova_cli.web_server as ws
@@ -4846,14 +4846,14 @@ class TestPtyWebSocket:
         # the venv (tmpfs /tmp vs disk home) where hard links raise EXDEV.
         shutil.copy2(sys.executable, executable)
         env = {
-            "HERMES_CWD": str(tmp_path),
-            "HERMES_PYTHON": command,
+            "KOVA_CWD": str(tmp_path),
+            "KOVA_PYTHON": command,
             "PATH": str(bin_dir),
         }
 
         main_tui_launch._apply_tui_python_env(env)
 
-        assert env["HERMES_PYTHON"] == command
+        assert env["KOVA_PYTHON"] == command
 
 
     def test_unavailable_platform_closes_with_message(self, monkeypatch):
@@ -4950,7 +4950,7 @@ def test_resolve_chat_argv_injects_gateway_ws_url(monkeypatch):
     _argv, _cwd, env = _web_server_chat._resolve_chat_argv()
 
     assert env is not None
-    gateway_url = env.get("HERMES_TUI_GATEWAY_URL", "")
+    gateway_url = env.get("KOVA_TUI_GATEWAY_URL", "")
     assert gateway_url.startswith("ws://127.0.0.1:9119/api/ws?")
     assert "token=" in gateway_url
 
@@ -4969,7 +4969,7 @@ class TestDashboardPluginStaticAssetAllowlist:
     """
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home, _install_example_plugin):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home, _install_example_plugin):
         """Create a TestClient and install the example-dashboard fixture.
 
         The static-asset allowlist tests need a plugin to point at —
@@ -4977,7 +4977,7 @@ class TestDashboardPluginStaticAssetAllowlist:
         is served while ``plugin_api.py`` and ``__pycache__/*.pyc``
         from the same directory are not. Since the example plugin is
         no longer bundled, ``_install_example_plugin`` lays it down in
-        the per-test ``HERMES_HOME`` user-plugins dir.
+        the per-test ``KOVA_HOME`` user-plugins dir.
         """
         try:
             from starlette.testclient import TestClient
@@ -5052,7 +5052,7 @@ class TestValidateProviderCredential:
     """Live-probe credential validation (/api/providers/validate)."""
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
@@ -5237,13 +5237,13 @@ class TestDesktopCronTicker:
 
         return TestClient(app)
 
-    def test_ticker_runs_when_desktop(self, monkeypatch, _isolate_hermes_home):
+    def test_ticker_runs_when_desktop(self, monkeypatch, _isolate_kova_home):
         import cron.scheduler as sched
 
         called = threading.Event()
         monkeypatch.setattr(sched, "tick", lambda *a, **k: called.set())
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+        monkeypatch.setenv("KOVA_DESKTOP", "1")
+        monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
 
         with self._client():
             assert called.wait(3.0), "expected cron tick under a Desktop-owned backend"
@@ -5268,7 +5268,7 @@ class TestServeIndexMissingIndex:
                 "<html><head></head><body>SPA</body></html>", encoding="utf-8"
             )
         monkeypatch.setattr(ws, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("KOVA_SERVE_HEADLESS", raising=False)
         spa_app = FastAPI()
         _web_server_dashboard.mount_spa(spa_app)
         return TestClient(spa_app), dist
@@ -5313,7 +5313,7 @@ class TestServeIndexMissingIndex:
         resp = client.get("/chat")
 
         assert resp.status_code == 200
-        assert 'window.__HERMES_SESSION_TOKEN__="after-mount"' in resp.text
+        assert 'window.__KOVA_SESSION_TOKEN__="after-mount"' in resp.text
 
 
 class TestHeadlessServeTokenPage:
@@ -5321,7 +5321,7 @@ class TestHeadlessServeTokenPage:
     at `/` when the dashboard auth gate is off (#94227).
 
     The Electron renderer boots by fetching `/` and extracting
-    ``window.__HERMES_SESSION_TOKEN__`` for WebSocket auth. Headless serve
+    ``window.__KOVA_SESSION_TOKEN__`` for WebSocket auth. Headless serve
     used to 404 every path, so after an update replaced the backend (and
     the spawn-token env pin no longer matched the token the new backend
     generated) the renderer was stuck with a stale token, /api/ws rejected
@@ -5334,7 +5334,7 @@ class TestHeadlessServeTokenPage:
         from starlette.testclient import TestClient
         import kova_cli.web_server as ws
 
-        monkeypatch.setenv("HERMES_SERVE_HEADLESS", "1")
+        monkeypatch.setenv("KOVA_SERVE_HEADLESS", "1")
         spa_app = FastAPI()
         spa_app.state.auth_required = gated
         _web_server_dashboard.mount_spa(spa_app)
@@ -5351,14 +5351,14 @@ class TestHeadlessServeTokenPage:
         # Must match the desktop's extraction regex exactly
         # (apps/desktop/electron/dashboard-token.ts).
         match = re.search(
-            r'window\.__HERMES_SESSION_TOKEN__\s*=\s*("(?:\\.|[^"\\])*")',
+            r'window\.__KOVA_SESSION_TOKEN__\s*=\s*("(?:\\.|[^"\\])*")',
             resp.text,
         )
         assert match, resp.text
         import json as _json
 
         assert _json.loads(match.group(1)) == ws._SESSION_TOKEN
-        assert "window.__HERMES_AUTH_REQUIRED__=false" in resp.text
+        assert "window.__KOVA_AUTH_REQUIRED__=false" in resp.text
 
     def test_root_uses_ssh_token_applied_after_spa_mount(self, monkeypatch):
         import json
@@ -5372,7 +5372,7 @@ class TestHeadlessServeTokenPage:
         ws._apply_ssh_session_token("after-mount")
         resp = client.get("/")
         match = re.search(
-            r'window\.__HERMES_SESSION_TOKEN__\s*=\s*("(?:\\.|[^"\\])*")',
+            r'window\.__KOVA_SESSION_TOKEN__\s*=\s*("(?:\\.|[^"\\])*")',
             resp.text,
         )
 
@@ -5420,7 +5420,7 @@ class TestHashedAssetCacheHeaders:
             encoding="utf-8",
         )
         monkeypatch.setattr(ws, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("KOVA_SERVE_HEADLESS", raising=False)
         spa_app = FastAPI()
         _web_server_dashboard.mount_spa(spa_app)
         return TestClient(spa_app)
@@ -5472,17 +5472,17 @@ class TestDashboardComponentHealth:
     """Component-health rollup: error middleware, /api/status components, self-test."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch, _isolate_hermes_home):
+    def _setup(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         import kova_cli.web_server as ws
 
-        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
         # Fresh state holder per test so counters don't leak across tests.
         monkeypatch.setattr(ws, "DASHBOARD_HEALTH", ws.DashboardHealth())
         self.ws = ws
@@ -5539,18 +5539,18 @@ class TestSessionPatchUnread:
     read/unread, and GET /api/sessions surfaces the derived flag."""
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home, mutation_owner):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home, mutation_owner):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
 
         self.owner = mutation_owner

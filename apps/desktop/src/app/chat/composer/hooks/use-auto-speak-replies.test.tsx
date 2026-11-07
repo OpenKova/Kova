@@ -365,7 +365,7 @@ describe('useAutoSpeakReplies — final reply after tool calls', () => {
     clearOwnedSpeechTurnsForTests()
     $autoSpeakReplies.set(false)
     setVoicePlaybackState({ ...IDLE_STATE })
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { hermesDesktop?: unknown }).kovaDesktop
     vi.clearAllMocks()
   })
 
@@ -388,7 +388,7 @@ describe('useAutoSpeakReplies — final reply after tool calls', () => {
       return won
     }
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = {
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
       claimAmbientCue,
       notify: vi.fn(async () => undefined)
     }
@@ -457,7 +457,7 @@ describe('useAutoSpeakReplies — final reply after tool calls', () => {
           activeSessionIdRef: cache.activeSessionIdRef,
           hydrateFromStoredSession: vi.fn(async () => undefined),
           queryClient: queryClient.current,
-          refreshHermesConfig: vi.fn(async () => undefined),
+          refreshKovaConfig: vi.fn(async () => undefined),
           refreshSessions: vi.fn(async () => undefined),
           sessionStateByRuntimeIdRef: cache.sessionStateByRuntimeIdRef,
           updateSessionState: cache.updateSessionState

@@ -19,7 +19,7 @@ def test_uv_cache_dir_seeds_from_payload(monkeypatch, tmp_path):
 
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: home)
     import pm.paths as paths_mod
 
     monkeypatch.setattr(paths_mod, "store_root", lambda: payload / "tools")
@@ -40,7 +40,7 @@ def test_uv_cache_dir_cold_machine_no_payload(monkeypatch, tmp_path):
     home.mkdir()
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: home)
     import pm.paths as paths_mod
 
     monkeypatch.setattr(paths_mod, "store_root", lambda: tmp_path / "nowhere" / "tools")
@@ -55,13 +55,13 @@ def test_bundle_uses_shipped_environment_until_an_extension_is_committed(monkeyp
     from pm import paths
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     payload = tmp_path / "payload"
-    core = payload / "hermes-agent"
+    core = payload / "kova-agent"
     core.mkdir(parents=True)
     shipped = payload / "venv"
     shipped.mkdir()
-    (payload / "manifest.json").write_text(json.dumps({"repo": "hermes-agent", "venv": "venv"}))
+    (payload / "manifest.json").write_text(json.dumps({"repo": "kova-agent", "venv": "venv"}))
     monkeypatch.setattr(paths, "repo_root", lambda: core)
 
     assert pkgs.Venv().venv_dir() == shipped

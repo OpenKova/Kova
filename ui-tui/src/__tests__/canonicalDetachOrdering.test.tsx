@@ -15,7 +15,7 @@ type AttachmentAction = 'resumeById' | 'activateLiveSession'
 
 function fixture() {
   const home = mkdtempSync(join(tmpdir(), 'ink-detach-order-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('KOVA_HOME', home)
   resetUiState()
   const subscriptions = new Map<string, string>()
   const pending: Array<{ resolve: () => void; reject: () => void; invalid: () => void }> = []

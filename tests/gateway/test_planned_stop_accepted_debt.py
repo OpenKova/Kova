@@ -29,7 +29,7 @@ pytestmark = [
 def _home(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
     root, home = tmp_path / "root", tmp_path / "root" / "profiles" / "p"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return root, home
 
 

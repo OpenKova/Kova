@@ -60,13 +60,13 @@ def reset_bundled_skill(name: str, restore: bool = False) -> dict:
     return {"ok": True, "action": action, "message": message, "synced": synced}
 
 
-_OWN_REPO_PREFIXES = ("nousresearch/hermes-agent/skills/", "skills-sh/nousresearch/hermes-agent/")
+_OWN_REPO_PREFIXES = ("nousresearch/kova-agent/skills/", "skills-sh/nousresearch/kova-agent/")
 
 
 def bundled_skill_for_install(identifier: str) -> Optional[str]:
     """Bundled skill name an install identifier means, else None: a bare bundled name, or this
-    repo's own copy of one (``NousResearch/hermes-agent/skills/<cat>/<name>``, which the Skills Hub
-    site hands out for built-ins, or its ``skills-sh/nousresearch/hermes-agent/<name>`` mirror).
+    repo's own copy of one (``NousResearch/kova-agent/skills/<cat>/<name>``, which the Skills Hub
+    site hands out for built-ins, or its ``skills-sh/nousresearch/kova-agent/<name>`` mirror).
     Fetched from GitHub, that copy is scanned as a community skill and refused — every time."""
     ident = identifier.strip().strip("/")
     lowered = ident.lower()
@@ -206,11 +206,11 @@ def set_bundled_skills_opt_out(enabled: bool) -> dict:
     """Toggle the .no-bundled-skills marker (on-disk half of ``hermes skills opt-out`` / ``opt-in``;
     removing present skills is ``remove_pristine_bundled_skills``)."""
     ss = _ss()
-    marker = ss._hermes_home() / ss.NO_BUNDLED_SKILLS_MARKER
+    marker = ss._kova_home() / ss.NO_BUNDLED_SKILLS_MARKER
     existed = marker.exists()
     try:
         if enabled:
-            ss._hermes_home().mkdir(parents=True, exist_ok=True)
+            ss._kova_home().mkdir(parents=True, exist_ok=True)
             marker.write_text(
                 "This profile opted out of bundled-skill seeding (`hermes skills opt-out`).\n"
                 "Delete this file to re-enable sync on the next `hermes update`.\n",

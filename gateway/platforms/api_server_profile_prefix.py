@@ -27,7 +27,7 @@ def _handle_is_free() -> bool:
 def _prefix_profile(request: Any) -> str:
     """The prefix as a canonical profile id. Profile ids are lowercase on disk and every other
     reader (``get_profile_dir``, ``profile_exists``, the peer client) normalizes case, so
-    ``/p/Hermes/`` must name the same profile ``/p/hermes/`` does, never fall to the alias."""
+    ``/p/Kova/`` must name the same profile ``/p/hermes/`` does, never fall to the alias."""
     raw = (request.match_info.get("profile") or "").strip()
     if not raw:
         return ""

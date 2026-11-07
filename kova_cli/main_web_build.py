@@ -15,7 +15,7 @@ from pathlib import Path
 logger = logging.getLogger("kova_cli.main")
 
 # Checkout fingerprint the bytecode cache was last validated against. Lives next
-# to the checkout (NOT in HERMES_HOME): __pycache__ is per-checkout state shared
+# to the checkout (NOT in KOVA_HOME): __pycache__ is per-checkout state shared
 # by every profile.
 _BYTECODE_FINGERPRINT_FILE = ".bytecode-fingerprint"
 

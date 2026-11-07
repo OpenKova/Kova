@@ -61,7 +61,7 @@ def _procs() -> list[dict]:
         env = {}
         for item in _read(f"/proc/{pid}/environ").split(b"\0"):
             key, sep, value = item.partition(b"=")
-            if sep and key in (b"HERMES_HOME", b"INVOCATION_ID", b"HERMES_E2E_UNIT"):
+            if sep and key in (b"KOVA_HOME", b"INVOCATION_ID", b"KOVA_E2E_UNIT"):
                 env[key.decode()] = value.decode(errors="replace")
         rows.append({
             "pid": pid, "state": fields[0], "ppid": int(fields[1]), "start": int(fields[19]),

@@ -9,7 +9,7 @@ import { $apiRequestScope, setApiRequestConnection, setApiRequestProfile } from 
 
 vi.mock(import('@/hermes'), async importOriginal => ({
   ...(await importOriginal()),
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     connect = async (): Promise<void> => {
       this.connectionState = 'open'
@@ -37,7 +37,7 @@ const {
 } = await import('./gateway')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
     getConnectionFor: vi.fn(async ({ connectionId, profile }: { connectionId: string; profile: string }) => ({
       authMode: 'token',
       connectionId,
@@ -79,7 +79,7 @@ afterEach(() => {
   closeSecondaryGateways()
   setApiRequestConnection(null)
   setApiRequestProfile(null)
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('ambient request scope across a gateway switch', () => {

@@ -25,29 +25,29 @@ def _gateway_state(home: Path) -> None:
 
     start_time = _gw_status._get_process_start_time(os.getpid())
     (home / "gateway.pid").write_text(
-        json.dumps({"pid": os.getpid(), "hermes_home": str(home)}), encoding="utf-8"
+        json.dumps({"pid": os.getpid(), "kova_home": str(home)}), encoding="utf-8"
     )
     (home / "gateway_state.json").write_text(json.dumps({
-        "pid": os.getpid(), "hermes_home": str(home), "gateway_state": "running",
-        "kind": "hermes-gateway", "start_time": start_time,
+        "pid": os.getpid(), "kova_home": str(home), "gateway_state": "running",
+        "kind": "kova-gateway", "start_time": start_time,
         "updated_at": "2026-01-01T00:00:00+00:00",
         "platforms": {"telegram": {"state": "connected", "writer_pid": os.getpid()}},
     }), encoding="utf-8")
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     from starlette.testclient import TestClient
 
     import kova_state
     import kova_constants
     import gateway.status as _gw_status
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    home = get_hermes_home()
+    home = get_kova_home()
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     # Liveness is a verified identity: this pytest process passes as the gateway
     # only while its probed command line matches the home being asked about
     # (``_command_line_belongs_to_profile``). The worker test below re-points the
@@ -87,7 +87,7 @@ def test_connected_deny_all_reports_posture(client):
 
 
 def test_connected_with_allowlist_reports_allowlist(client, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "42, 43")
     payload = _test(client)
@@ -155,16 +155,16 @@ def test_profile_scoped_posture_ignores_root_env_and_reports_profile_grants(
     Regression for the false deny-all/false green in the #66055 review."""
     import gateway.status as _gw_status
     from kova_cli import profiles as profiles_mod
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker"
     worker_home.mkdir(parents=True)
     (worker_home / "config.yaml").write_text("platforms:\n  telegram:\n    enabled: true\n", encoding="utf-8")
     (worker_home / ".env").write_text(f"TELEGRAM_BOT_TOKEN={_VALID_BOT_TOKEN}\n", encoding="utf-8")
     _gateway_state(worker_home)
-    monkeypatch.setattr(profiles_mod, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles_mod, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles_mod, "_get_profiles_root", lambda: profiles_root)
     # ROOT-env allowlist must not authorize the worker profile's bot.
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "111,222")

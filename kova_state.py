@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SQLite state store for Hermes Agent: session metadata, message history, model
+"""SQLite state store for Kova Agent: session metadata, message history, model
 config, FTS5 search. WAL mode (concurrent readers + one writer); compression
 splits sessions via parent_session_id chains; sessions are source-tagged
 ('cli', 'telegram', ...). Batch-runner / RL trajectories live elsewhere.
@@ -25,7 +25,7 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from kova_dir_acl import make_user_dir
 
-from kova_constants import get_hermes_home, mkdir_under_hermes_home
+from kova_constants import get_kova_home, mkdir_under_kova_home
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar, cast
 
 from kova_state_common import (
@@ -178,7 +178,7 @@ T = TypeVar("T")
 
 # Import-time snapshot lets _default_db_path() detect a re-pointed DEFAULT_DB_PATH
 # (tests monkeypatch the constant directly).
-DEFAULT_DB_PATH = _IMPORT_DEFAULT_DB_PATH = get_hermes_home() / "state.db"
+DEFAULT_DB_PATH = _IMPORT_DEFAULT_DB_PATH = get_kova_home() / "state.db"
 
 # Back off from read-only opens after one fails: not per query, but short enough that
 # transient fd pressure doesn't strand the read pool.
@@ -200,13 +200,13 @@ _READ_BUSY_TIMEOUT_S = 5.0
 
 def _default_db_path() -> Path:
     """Default state DB path at CALL time: a re-pointed ``DEFAULT_DB_PATH`` wins, else
-    ``get_hermes_home()`` is resolved fresh (a runtime HERMES_HOME redirect works regardless of import)."""
-    return DEFAULT_DB_PATH if DEFAULT_DB_PATH != _IMPORT_DEFAULT_DB_PATH else get_hermes_home() / "state.db"
+    ``get_kova_home()`` is resolved fresh (a runtime KOVA_HOME redirect works regardless of import)."""
+    return DEFAULT_DB_PATH if DEFAULT_DB_PATH != _IMPORT_DEFAULT_DB_PATH else get_kova_home() / "state.db"
 
 
 # Live-DB guard knobs live HERE (not in kova_state_guard): the hermetic conftest monkeypatches
 # ``kova_state._STATE_DB_GUARD_BYPASS`` (``@pytest.mark.live_system_guard_bypass`` escape hatch)
-# and ``_EXTRA_DENY_ROOTS`` (the pre-sandbox root, so custom-HERMES_HOME deployments are covered).
+# and ``_EXTRA_DENY_ROOTS`` (the pre-sandbox root, so custom-KOVA_HOME deployments are covered).
 _STATE_DB_GUARD_BYPASS = False
 _STATE_DB_GUARD_EXTRA_DENY_ROOTS: tuple[Path, ...] = ()
 
@@ -216,7 +216,7 @@ def _ensure_test_isolation(db_path: Path) -> None:
     (env OR ancestry) resolves a production DB.
 
     Env alone is not enough: a child spawned with a rebuilt environment loses ``PYTEST_*`` and
-    ``HERMES_HOME`` together, which is precisely the state in which it writes to production (#82770).
+    ``KOVA_HOME`` together, which is precisely the state in which it writes to production (#82770).
     """
     if _STATE_DB_GUARD_BYPASS or os.environ.get(_STATE_DB_GUARD_BYPASS_ENV) or not _in_test_context():
         return
@@ -234,10 +234,10 @@ def _ensure_test_isolation(db_path: Path) -> None:
         if _is_production_state_db(resolved, root):
             raise RuntimeError(
                 "live-system guard: test attempted to open production "
-                f"state.db at {resolved} (under real Hermes root {root}). "
-                "Tests must run against a temporary HERMES_HOME — pass an "
+                f"state.db at {resolved} (under real Kova root {root}). "
+                "Tests must run against a temporary KOVA_HOME — pass an "
                 "explicit tmp db_path or let the hermetic conftest redirect "
-                "HERMES_HOME. If this test genuinely needs the live database, mark it with "
+                "KOVA_HOME. If this test genuinely needs the live database, mark it with "
                 "@pytest.mark.live_system_guard_bypass — or, for a spawned "
                 f"child process, export {_STATE_DB_GUARD_BYPASS_ENV}=1 in "
                 "its environment."
@@ -374,12 +374,12 @@ _SESSION_DB_CONSEQUENCE = "Sessions will not be saved until this is fixed."
 _NETWORK_DRIVE_HINT = " If the database lives on a network drive, move it to a local disk."
 _NETWORK_DRIVE_GLOSS = "the session database could not be opened; it may be on a network or unsupported drive"
 _NETWORK_DRIVE_ACTION = (
-    "Move it to a local disk (`hermes {profile_arg}doctor` shows where it is), then start Hermes again."
+    "Move it to a local disk (`hermes {profile_arg}doctor` shows where it is), then start Kova again."
 )
 
 
 def format_session_db_unavailable(
-    prefix: str = "Hermes can't open its session history right now",
+    prefix: str = "Kova can't open its session history right now",
     *,
     details: bool = False,
 ) -> str:
@@ -432,12 +432,12 @@ def _close_time_checkpoint_configurable() -> bool:
 
 
 def divert_session_transcript_jsonl(session_id: str, messages) -> Optional[Path]:
-    """Append pending messages to HERMES_HOME/sessions/<id>.jsonl (state.db was replaced under a
+    """Append pending messages to KOVA_HOME/sessions/<id>.jsonl (state.db was replaced under a
     live process). Returns the path, or None if nothing to write."""
     sid = str(session_id or "").strip()
     if not sid or not messages:
         return None
-    sessions_dir = get_hermes_home() / "sessions"
+    sessions_dir = get_kova_home() / "sessions"
     make_user_dir(sessions_dir, parents=True, exist_ok=True)
     path = sessions_dir / f"{sid}.jsonl"
     with path.open("a", encoding="utf-8") as handle:
@@ -681,7 +681,7 @@ class SessionDB(
         malformed sqlite_master), generation stamp."""
         # Never materialize a deleted/archived named profile's home: a multiplexer or Desktop backend
         # still holding the profile's route would otherwise re-scaffold it on the next turn (#94590).
-        mkdir_under_hermes_home(self.db_path.parent)
+        mkdir_under_kova_home(self.db_path.parent)
         try:
             # Serialize zero-byte check, quarantine, connect and schema commit so concurrent
             # openers don't race the absent-path -> schema-commit window.
@@ -784,7 +784,7 @@ class SessionDB(
         qpath = quarantine_invalid_state_db(self.db_path, already_locked=already_locked)
         where = f"moved aside to {qpath}" if qpath else "left in place (it could not be moved aside)"
         msg = (
-            f"state.db was empty or damaged ({zsize} bytes) and has been {where}; Hermes started with a "
+            f"state.db was empty or damaged ({zsize} bytes) and has been {where}; Kova started with a "
             "fresh, empty session database. To bring old sessions back, run "
             f"`hermes sessions recover --source {qpath or self.db_path} --inspect-only`, or restore a "
             "snapshot with `/snapshot list` then `/snapshot restore <id>` (terminal `hermes` chat only)."
@@ -1097,7 +1097,7 @@ class SessionDB(
                         # a holder's argv (a worktree named fix-corrupt-db) would flip the bucket.
                         log_write_lock_holders(self.db_path, patience_s)
                         raise sqlite3.OperationalError(
-                            f"database is locked (another Hermes process held the "
+                            f"database is locked (another Kova process held the "
                             f"state.db write lock for over {patience_s:.0f}s — "
                             "likely a long maintenance operation such as VACUUM, "
                             "a large WAL checkpoint, or an older pre-update "
@@ -1695,7 +1695,7 @@ class SessionDB(
         ``'kanban'``): the transcript of a worker run, not a human conversation (#68779).
 
         Both columns are checked: ``source`` is live routing state the dispatcher tags
-        (``HERMES_SESSION_SOURCE=kanban``) and the legacy retag rewrites, while immutable
+        (``KOVA_SESSION_SOURCE=kanban``) and the legacy retag rewrites, while immutable
         ``created_source`` survives later surface flips. The lineage is the VERIFIED
         compression chain (``_resume_lineage_ids``) — exactly the rows a resume loads — so a
         worker transcript stays kanban-owned across rotations, while a delegate/branch child

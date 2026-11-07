@@ -117,7 +117,7 @@ function mount() {
       ...cache,
       queryClient,
       hydrateFromStoredSession: noop,
-      refreshHermesConfig: noop,
+      refreshKovaConfig: noop,
       refreshSessions: noop
     })
 

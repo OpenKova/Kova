@@ -6,8 +6,8 @@ import pytest
 
 from acp_adapter.gateway_server import GatewayACPAgent
 
-_ENV = ('HERMES_YOLO_MODE', 'HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG', 'HERMES_IGNORE_RULES',
-        'HERMES_ACCEPT_HOOKS', 'HERMES_MODEL', 'HERMES_INFERENCE_MODEL', 'HERMES_INFERENCE_PROVIDER')
+_ENV = ('KOVA_YOLO_MODE', 'KOVA_SAFE_MODE', 'KOVA_IGNORE_USER_CONFIG', 'KOVA_IGNORE_RULES',
+        'KOVA_ACCEPT_HOOKS', 'KOVA_MODEL', 'KOVA_INFERENCE_MODEL', 'KOVA_INFERENCE_PROVIDER')
 _FLAGS = ('yolo', 'safe_mode', 'ignore_user_config', 'ignore_rules', 'accept_hooks')
 
 
@@ -32,8 +32,8 @@ def _agent(created):
 async def test_launch_env_rides_session_create(monkeypatch, tmp_path):
     for name in _ENV[:5]:
         monkeypatch.setenv(name, '1')
-    monkeypatch.setenv('HERMES_MODEL', 'explicit-model')  # a bypass session needs a route (below)
-    monkeypatch.setenv('HERMES_INFERENCE_PROVIDER', 'openrouter')
+    monkeypatch.setenv('KOVA_MODEL', 'explicit-model')  # a bypass session needs a route (below)
+    monkeypatch.setenv('KOVA_INFERENCE_PROVIDER', 'openrouter')
     created = []
     await _agent(created).new_session(cwd=str(tmp_path))
     assert {k: created[0].get(k) for k in _FLAGS} == dict.fromkeys(_FLAGS, True)
@@ -45,8 +45,8 @@ async def test_safe_mode_acp_session_freezes_the_launch_model(monkeypatch, tmp_p
     launch's model rides session.create and the owner's bypass policy accepts it."""
     for name in _ENV:
         monkeypatch.setenv(name, '')  # recorded, so cmd_acp's exports are undone after the test
-    monkeypatch.setenv('HERMES_SAFE_MODE', '1')  # what main() exports for --safe-mode
-    monkeypatch.setenv('HERMES_IGNORE_USER_CONFIG', '1')
+    monkeypatch.setenv('KOVA_SAFE_MODE', '1')  # what main() exports for --safe-mode
+    monkeypatch.setenv('KOVA_IGNORE_USER_CONFIG', '1')
     import acp_adapter.entry
     from gateway.session_local import _bypass_policy
     from kova_cli.main_agent_cmds import cmd_acp
@@ -61,7 +61,7 @@ async def test_safe_mode_acp_session_freezes_the_launch_model(monkeypatch, tmp_p
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('flag', ['HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG'])
+@pytest.mark.parametrize('flag', ['KOVA_SAFE_MODE', 'KOVA_IGNORE_USER_CONFIG'])
 async def test_bypass_without_a_model_names_the_missing_flag(monkeypatch, tmp_path, flag):
     from kova_cli.gateway_client import GatewayClientError
     for name in _ENV:
@@ -74,7 +74,7 @@ async def test_bypass_without_a_model_names_the_missing_flag(monkeypatch, tmp_pa
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('flag', ['HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG'])
+@pytest.mark.parametrize('flag', ['KOVA_SAFE_MODE', 'KOVA_IGNORE_USER_CONFIG'])
 async def test_bypass_with_a_model_but_no_provider_is_refused_at_session_new(monkeypatch, tmp_path, flag):
     """`hermes -m <model> --safe-mode acp`: the owner would accept the session, then its first turn
     could not build the agent. Refused before session.create, naming the missing flag."""
@@ -82,7 +82,7 @@ async def test_bypass_with_a_model_but_no_provider_is_refused_at_session_new(mon
     for name in _ENV:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv(flag, '1')
-    monkeypatch.setenv('HERMES_MODEL', 'gpt-4o-mini')
+    monkeypatch.setenv('KOVA_MODEL', 'gpt-4o-mini')
     created = []
     with pytest.raises(GatewayClientError, match='launch with --provider too'):
         await _agent(created).new_session(cwd=str(tmp_path))

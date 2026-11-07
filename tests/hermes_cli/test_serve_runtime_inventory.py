@@ -112,7 +112,7 @@ def test_inventory_classifies_desktop_owned_serve(monkeypatch):
 
 
 _SSH_ARGV = ("hermes serve --isolated --host 127.0.0.1 --port 0 "
-             "--ssh-session-token-file /h/.hermes/desktop-ssh/a/b.token --ssh-owner-nonce 0123456789abcdef")
+             "--ssh-session-token-file /h/.kova/desktop-ssh/a/b.token --ssh-owner-nonce 0123456789abcdef")
 
 
 def test_inventory_classifies_remote_desktop_ssh_serve_as_its_clients(monkeypatch):
@@ -232,7 +232,7 @@ def test_inventory_classifies_launchd_job_owned_serve(monkeypatch):
         ledger_entries=lambda **k: [entry],
         spawner_is_dead=lambda e: True,  # bootstrap shell provably gone
     )
-    jobs = [("gui/501", "ai.hermes.dashboard",
+    jobs = [("gui/501", "ai.kova.dashboard",
              ["hermes", "serve", "--host", "100.94.65.93", "--port", "9119"], None)]
     monkeypatch.setitem(sys.modules, "kova_cli.process_identity", fake_pi)
     with patch.object(main_dashboard, "_loaded_launchd_backend_jobs", return_value=jobs), \
@@ -244,4 +244,4 @@ def test_inventory_classifies_launchd_job_owned_serve(monkeypatch):
     assert row.supervisor == "launchd"
     assert row.restart_via == "launchd"
     assert row.detail["launchd_domain"] == "gui/501"
-    assert row.detail["launchd_label"] == "ai.hermes.dashboard"
+    assert row.detail["launchd_label"] == "ai.kova.dashboard"

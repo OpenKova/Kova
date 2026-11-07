@@ -42,7 +42,7 @@ def _(rid, params: dict) -> dict:
     line_count = text.count("\n") + 1
     # The shared owner's legacy fallback serves secondary profiles too: write under the ticket's home.
     from tui_gateway.ws_legacy_fallback import connection_profile_home
-    paste_dir = Path(connection_profile_home() or _hermes_home) / "pastes"
+    paste_dir = Path(connection_profile_home() or _kova_home) / "pastes"
     paste_dir.mkdir(parents=True, exist_ok=True)
     from datetime import datetime
     paste_file = paste_dir / f"paste_{_paste_counter}_{datetime.now().strftime('%H%M%S')}.txt"
@@ -169,7 +169,7 @@ def _backend_dir_entries(search_dir: str, session_key: str | None) -> list[tuple
         # configured), and Desktop's ws reconnect loop turns that into model traffic from an
         # idle machine (#115478). The script is a constant and the search dir is quoted, so
         # nothing here needs an approval verdict.
-        with unmetered_backend_calls():  # Hermes' own listing, not the user's backend work
+        with unmetered_backend_calls():  # Kova' own listing, not the user's backend work
             result = json.loads(terminal_tool(
                 f"sh -c {shlex.quote(script)} sh {shlex.quote(search_dir)}", task_id=session_key, timeout=3,
                 force=True))
@@ -352,7 +352,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 4003, f"{pconfig.name} uses {pconfig.auth_type} auth — run `hermes model` to configure")
     if not pconfig.api_key_env_vars:
         return _err(rid, 4004, f"no env var defined for {pconfig.name}")
-    # Save the key to ~/.hermes/.env via the unified credential lifecycle so any stale config.yaml mirror of
+    # Save the key to ~/.kova/.env via the unified credential lifecycle so any stale config.yaml mirror of
     # the previous key (model.api_key, custom_providers[*].api_key) is rotated in the same action (#62269).
     env_var = pconfig.api_key_env_vars[0]
     from kova_cli.config import load_env

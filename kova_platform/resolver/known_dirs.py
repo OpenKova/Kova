@@ -1,6 +1,6 @@
 """Directories where tools install outside PATH, grouped by the ecosystem that owns them.
 
-Every table in Hermes lives here. A directory literal outside this module fails the ratchet in
+Every table in Kova lives here. A directory literal outside this module fails the ratchet in
 `tests/test_managed_runtime_resolution.py`. Each table is empty on an OS where the ecosystem
 does not install there, so callers compose tables without OS branches.
 """
@@ -30,11 +30,11 @@ def node_tool_dirs() -> tuple[str, ...]:
 
 
 def hermes_vendored_dirs() -> tuple[str, ...]:
-    return ("~/.hermes/bin",) if _POSIX else ("%USERPROFILE%/.hermes/bin",)
+    return ("~/.kova/bin",) if _POSIX else ("%USERPROFILE%/.kova/bin",)
 
 
 def machine_marker_files() -> tuple[str, ...]:
-    """Where Hermes records that this OS user has used it. No Hermes data-dir setting moves these.
+    """Where Kova records that this OS user has used it. No Kova data-dir setting moves these.
     The first entry is the one written; the rest are read too (Windows: MSIX builds that ran with
     filesystem virtualisation wrote under the package's LocalCache)."""
     if _WIN:
@@ -45,27 +45,27 @@ def machine_marker_files() -> tuple[str, ...]:
     return ("$XDG_STATE_HOME/nous-research/.machine", "~/.local/state/nous-research/.machine")
 
 
-def hermes_home_globs() -> tuple[str, ...]:
-    """Every place a Hermes data root can sit by default: suffixed channel roots, the legacy Windows
+def kova_home_globs() -> tuple[str, ...]:
+    """Every place a Kova data root can sit by default: suffixed channel roots, the legacy Windows
     root, and the per-package roots of MSIX builds that ran with filesystem virtualisation."""
     if _WIN:
-        return ("%LOCALAPPDATA%/hermes*", "%USERPROFILE%/.hermes",
+        return ("%LOCALAPPDATA%/hermes*", "%USERPROFILE%/.kova",
                 "%LOCALAPPDATA%/Packages/NousResearch*_*/LocalCache/Local/hermes*")
-    return ("~/.hermes*",)
+    return ("~/.kova*",)
 
 
 def gateway_service_definition_globs() -> tuple[str, ...]:
-    """This OS user's gateway service definitions, each naming the HERMES_HOME it serves."""
+    """This OS user's gateway service definitions, each naming the KOVA_HOME it serves."""
     if _WIN:
-        return ("%APPDATA%/Microsoft/Windows/Start Menu/Programs/Startup/Hermes_Gateway*",)
+        return ("%APPDATA%/Microsoft/Windows/Start Menu/Programs/Startup/Kova_Gateway*",)
     if sys.platform == "darwin":
-        return ("~/Library/LaunchAgents/ai.hermes.gateway*.plist",)
-    return ("$XDG_CONFIG_HOME/systemd/user/hermes-gateway*.service", "~/.config/systemd/user/hermes-gateway*.service")
+        return ("~/Library/LaunchAgents/ai.kova.gateway*.plist",)
+    return ("$XDG_CONFIG_HOME/systemd/user/kova-gateway*.service", "~/.config/systemd/user/kova-gateway*.service")
 
 
 def system_gateway_service_definition_globs() -> tuple[str, ...]:
     """Machine-wide gateway services. Each runs as the account its ``User=`` names (root when none)."""
-    return ("/etc/systemd/system/hermes-gateway*.service",) if _POSIX and sys.platform != "darwin" else ()
+    return ("/etc/systemd/system/kova-gateway*.service",) if _POSIX and sys.platform != "darwin" else ()
 
 
 def mac_privacy_protected_dirs() -> tuple[str, ...]:

@@ -16,12 +16,12 @@ from tests.waiting import async_wait_until, wait_until
 
 @pytest.fixture
 def host_app(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
@@ -71,11 +71,11 @@ def test_shell_scopes_passthrough_after_eager_activation(
     host_app, tmp_path, monkeypatch, named_launch,
 ):
     from agent import secret_scope
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
     from tools.terminal_scope import get_terminal_scope
     from tui_gateway import launch_profile_policy
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     launch = root / "profiles" / "launch" if named_launch else root
     other = root / "profiles" / "other"
     passthrough = "WEBAPP_TEST_TOKEN"
@@ -90,7 +90,7 @@ def test_shell_scopes_passthrough_after_eager_activation(
     (other / ".env").write_text(
         f"{passthrough}=other-value\n{other_only}=other-only\n", encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv(passthrough, "launch-value")
     monkeypatch.setenv(launch_only, "launch-only")
     monkeypatch.delenv(other_only, raising=False)
@@ -119,7 +119,7 @@ def test_shell_scopes_passthrough_after_eager_activation(
                 assert b"SCOPE=" + expected in output
                 assert b"ambient-poison" not in output
             assert secret_scope.current_secret_scope() is None
-            assert get_hermes_home_override() is None
+            assert get_kova_home_override() is None
             assert get_terminal_scope() is None
     # The fix must bind the caller, not disable the process-wide fail-closed guard.
     with pytest.raises(secret_scope.UnscopedSecretError):
@@ -329,7 +329,7 @@ def ticket_url(user="owner", extra=""):
 
 def test_identity_profile_deletion_and_auth_gate(host_app, fake_bridges, tmp_path, monkeypatch):
     from kova_constants import mark_named_profile_deleted
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     for name in ("alpha", "beta"):
         profile = home / "profiles" / name
         profile.mkdir(parents=True)
@@ -359,7 +359,7 @@ def test_identity_profile_deletion_and_auth_gate(host_app, fake_bridges, tmp_pat
 def test_real_profile_a_b_a_and_process_exit_never_respawns(host_app, tmp_path):
     homes = {}
     for name in ("alpha", "beta"):
-        homes[name] = tmp_path / ".hermes" / "profiles" / name
+        homes[name] = tmp_path / ".kova" / "profiles" / name
         homes[name].mkdir(parents=True)
         (homes[name] / "config.yaml").write_text("{}", encoding="utf-8")
     with TestClient(host_app) as client:
@@ -370,7 +370,7 @@ def test_real_profile_a_b_a_and_process_exit_never_respawns(host_app, tmp_path):
                 extra += "&attach=" + tokens[name]
             with client.websocket_connect(url(extra)) as ws:
                 tokens[name] = metadata(ws)["terminalId"]
-                ws.send_bytes(b"printf 'HO%s=%s\\n' ME \"$HERMES_HOME\"\n")
+                ws.send_bytes(b"printf 'HO%s=%s\\n' ME \"$KOVA_HOME\"\n")
                 assert b"HOME=" + str(homes[name]).encode() in output_until(ws, b"HOME=" + str(homes[name]).encode())
         token = tokens["alpha"]
         with client.websocket_connect(url("&profile=alpha&attach=" + token)) as ws:
@@ -422,7 +422,7 @@ def test_real_shell_rejects_input_after_profile_deletion(host_app, tmp_path):
     import subprocess
     import sys
 
-    profile = tmp_path / ".hermes" / "profiles" / "alpha"
+    profile = tmp_path / ".kova" / "profiles" / "alpha"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     before, after = tmp_path / "before", tmp_path / "after"
@@ -501,7 +501,7 @@ def test_ownership_checks_never_block_the_event_loop(host_app, fake_bridges, tmp
     from kova_cli.web_host_terminal_sessions import HostOwner
     from kova_constants import mark_named_profile_deleted
 
-    profile = tmp_path / ".hermes" / "profiles" / "alpha"
+    profile = tmp_path / ".kova" / "profiles" / "alpha"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     checks = []
@@ -594,7 +594,7 @@ def test_cross_process_deletion_closes_attached_shell(host_app, fake_bridges, tm
     import os
     import subprocess
     import sys
-    profile = tmp_path / ".hermes" / "profiles" / "alpha"
+    profile = tmp_path / ".kova" / "profiles" / "alpha"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     with TestClient(host_app) as client:

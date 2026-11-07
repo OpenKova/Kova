@@ -156,7 +156,7 @@ def test_catalog_and_preset_agree_on_identical_model_facts(tmp_path, monkeypatch
     from kova_cli.local_runtime.estimator import ctx_bytes
     from kova_cli.web_routers.local_models import _catalog_row
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("kova_cli.web_routers.local_models._engine_too_old", lambda tag: False)
     for entry in catalog.CATALOG:
         variant = entry.variants[0]

@@ -2,11 +2,11 @@
 
 
 def _write_env(monkeypatch, tmp_path, content):
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_text(content, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    return hermes_home
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / ".env").write_text(content, encoding="utf-8")
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    return kova_home
 
 
 class TestDeprecatedCwdWarning:
@@ -49,10 +49,10 @@ class TestDeprecatedCwdWarning:
     def test_dotenv_terminal_cwd_warns_with_explicit_config(
         self, monkeypatch, tmp_path, capsys
     ):
-        hermes_home = _write_env(
+        kova_home = _write_env(
             monkeypatch, tmp_path, "TERMINAL_CWD=/legacy/path\n"
         )
-        (hermes_home / "config.yaml").write_text(
+        (kova_home / "config.yaml").write_text(
             "terminal:\n  cwd: /current/path\n", encoding="utf-8"
         )
 

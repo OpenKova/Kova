@@ -225,7 +225,7 @@ def _proxied_gate(monkeypatch, surface: str | None) -> TestClient:
     """Gated all-interfaces bind reached through a proxy that is not in ``trusted_proxies``, with
     no ``public_url``: the server sees ``http://127.0.0.1:9119`` whatever URL the browser addressed.
     *surface* is the app's ``ui_surface`` (``None``: the standalone dashboard, as on main)."""
-    monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("KOVA_DASHBOARD_PUBLIC_URL", raising=False)
     clear_providers()
     register_provider(StubAuthProvider())
     for key, value in (("bound_host", "0.0.0.0"), ("bound_port", 9119), ("auth_required", True),

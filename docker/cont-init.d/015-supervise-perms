@@ -6,7 +6,7 @@
 #
 # s6-supervise creates each service's ``supervise/`` 0700 and its
 # control FIFO 0600, owned by its effective UID — root, because it is
-# spawned by the root s6-svscan (PID 1). Hermes runtime paths
+# spawned by the root s6-svscan (PID 1). Kova runtime paths
 # (``hermes doctor`` etc.) run as hermes and need ``s6-svstat`` and
 # ``s6-svc`` against these slots, i.e. group search on ``supervise/``,
 # group read on ``supervise/status`` + ``supervise/lock`` and group
@@ -16,7 +16,7 @@
 # (via ``status.new``), ``death_tally`` and the event FIFOs, so a
 # hermes-owned or hermes-writable directory there would let the hermes
 # user redirect those root writes. The service-root ``event/`` fifodir
-# is left as s6 made it — nothing in Hermes subscribes to static
+# is left as s6 made it — nothing in Kova subscribes to static
 # services' events.
 #
 # Per-profile gateway slots are not affected: they live in their own

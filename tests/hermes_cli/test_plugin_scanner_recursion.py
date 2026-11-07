@@ -51,9 +51,9 @@ def _write_plugin(
     return plugin_dir
 
 
-def _enable(hermes_home: Path, name: str) -> None:
-    """Append ``name`` to ``plugins.enabled`` in ``<hermes_home>/config.yaml``."""
-    cfg_path = hermes_home / "config.yaml"
+def _enable(kova_home: Path, name: str) -> None:
+    """Append ``name`` to ``plugins.enabled`` in ``<kova_home>/config.yaml``."""
+    cfg_path = kova_home / "config.yaml"
     cfg: dict = {}
     if cfg_path.exists():
         try:
@@ -75,11 +75,11 @@ class TestCategoryNamespaceRecursion:
         """``<root>/image_gen/openai/plugin.yaml`` is discovered with key
         ``image_gen/openai`` when the ``image_gen`` parent has no manifest."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
-        user_plugins = hermes_home / "plugins"
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
+        user_plugins = kova_home / "plugins"
 
         _write_plugin(user_plugins, ["image_gen", "openai"])
-        _enable(hermes_home, "image_gen/openai")
+        _enable(kova_home, "image_gen/openai")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -98,8 +98,8 @@ class TestCategoryNamespaceRecursion:
         two segments.
         """
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
-        user_plugins = hermes_home / "plugins"
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
+        user_plugins = kova_home / "plugins"
 
         _write_plugin(user_plugins, ["a", "b", "c"])
 
@@ -124,13 +124,13 @@ class TestForeignHarnessManifestDirs:
         ``plugin.json`` per OTHER agent harness inside ``.claude-plugin/``,
         ``.codex-plugin/`` etc. Those manifests can never satisfy the Agent
         Plugins v1 schema, so scanning them warned on every discovery pass.
-        They must be skipped silently; the plugin's real Hermes manifest
-        (``.hermes-plugin/plugin.yaml``) is still discovered."""
+        They must be skipped silently; the plugin's real Kova manifest
+        (``.kova-plugin/plugin.yaml``) is still discovered."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
-        sp = hermes_home / "plugins" / "superpowers"
-        (sp / ".hermes-plugin").mkdir(parents=True)
-        (sp / ".hermes-plugin" / "plugin.yaml").write_text(
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
+        sp = kova_home / "plugins" / "superpowers"
+        (sp / ".kova-plugin").mkdir(parents=True)
+        (sp / ".kova-plugin" / "plugin.yaml").write_text(
             yaml.safe_dump(
                 {
                     "name": "superpowers",
@@ -156,7 +156,7 @@ class TestForeignHarnessManifestDirs:
             mgr = PluginManager()
             mgr.discover_and_load()
 
-        assert "superpowers/.hermes-plugin" in mgr._plugins
+        assert "superpowers/.kova-plugin" in mgr._plugins
         parse_warnings = [
             r for r in caplog.records if "Failed to parse" in r.getMessage()
         ]
@@ -166,8 +166,8 @@ class TestForeignHarnessManifestDirs:
         """A genuinely broken portable plugin.json (not a foreign-harness
         convention directory) must still surface its parse warning."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
-        broken = hermes_home / "plugins" / "broken-portable"
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
+        broken = kova_home / "plugins" / "broken-portable"
         broken.mkdir(parents=True)
         (broken / "plugin.json").write_text(json.dumps({"name": "broken"}))
 
@@ -187,13 +187,13 @@ class TestForeignHarnessManifestDirs:
 class TestKindField:
     def test_unknown_kind_falls_back_to_standalone(self, tmp_path, monkeypatch, caplog):
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            hermes_home / "plugins",
+            kova_home / "plugins",
             ["p1"],
             manifest_extra={"kind": "bogus"},
         )
-        _enable(hermes_home, "p1")
+        _enable(kova_home, "p1")
 
         with caplog.at_level("WARNING"):
             mgr = PluginManager()
@@ -213,8 +213,8 @@ class TestBackendGate:
         """User-installed ``kind: backend`` plugins still require opt-in —
         they're not trusted by default."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
-        user_plugins = hermes_home / "plugins"
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
+        user_plugins = kova_home / "plugins"
 
         _write_plugin(
             user_plugins,
@@ -235,13 +235,13 @@ class TestBackendGate:
         """``kind: exclusive`` plugins are recorded but not loaded — the
         category's own discovery system handles them (memory today)."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            hermes_home / "plugins",
+            kova_home / "plugins",
             ["some-backend"],
             manifest_extra={"kind": "exclusive"},
         )
-        _enable(hermes_home, "some-backend")
+        _enable(kova_home, "some-backend")
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -287,9 +287,9 @@ class TestRegisterImageGenProvider:
                 return {"success": True, "image": "test://fake"}
 
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        kova_home = Path(os.environ["KOVA_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
-            hermes_home / "plugins",
+            kova_home / "plugins",
             ["my-img-plugin"],
             register_body=(
                 "from agent.image_gen_provider import ImageGenProvider\n"
@@ -301,7 +301,7 @@ class TestRegisterImageGenProvider:
                 "    ctx.register_image_gen_provider(P())"
             ),
         )
-        _enable(hermes_home, "my-img-plugin")
+        _enable(kova_home, "my-img-plugin")
 
         mgr = PluginManager()
         mgr.discover_and_load()

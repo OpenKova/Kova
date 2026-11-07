@@ -31,9 +31,9 @@ def browser_store(tmp_path, monkeypatch):
     home.mkdir()
     store = home / "tools"
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")
     monkeypatch.setenv("PATH", "")
     monkeypatch.delenv("AGENT_BROWSER_EXECUTABLE_PATH", raising=False)
     monkeypatch.delenv("PLAYWRIGHT_BROWSERS_PATH", raising=False)
@@ -86,7 +86,7 @@ def test_execution_acquires_missing_browser_through_pm(browser_store, monkeypatc
 
     _, _, publish = browser_store
     monkeypatch.setenv("PATH", "")
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "0")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "0")
     monkeypatch.setattr(launcher, "running_in_docker", lambda: False)
     assert pm.lazy_installs_allowed()
     requests = []
@@ -131,7 +131,7 @@ def test_termux_ownership_policy_never_provisions(browser_store, monkeypatch):
 
     monkeypatch.setenv("TERMUX_VERSION", "test")
     monkeypatch.setenv("PATH", "")
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "0")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "0")
     monkeypatch.setattr(launcher, "running_in_docker", lambda: False)
 
     def forbidden(*args, **kwargs):
@@ -158,8 +158,8 @@ def test_cdp_override_does_not_require_pm_browser(browser_store, monkeypatch):
 def _pin_executable(path) -> None:
     """``browser.executable_path`` in this profile's config.yaml (the operator's browser pin)."""
     import json
-    from kova_constants import get_hermes_home
-    (get_hermes_home() / "config.yaml").write_text(json.dumps({"browser": {"executable_path": str(path)}}))
+    from kova_constants import get_kova_home
+    (get_kova_home() / "config.yaml").write_text(json.dumps({"browser": {"executable_path": str(path)}}))
 
 
 def test_a_missing_pinned_browser_is_named_in_the_hint(browser_store, tmp_path):
@@ -240,7 +240,7 @@ def test_chromium_autoinstall_is_one_shot(browser_store, monkeypatch, fails):
     import pm.client
 
     _, _, publish = browser_store
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "0")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "0")
     monkeypatch.setattr(launcher, "running_in_docker", lambda: False)
     calls = []
 
@@ -261,7 +261,7 @@ def test_chromium_acquisition_policy(browser_store, monkeypatch, policy, tmp_pat
     import pm.client
 
     monkeypatch.setattr(launcher, "running_in_docker", lambda: policy == "docker")
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1" if policy == "disabled" else "0")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1" if policy == "disabled" else "0")
     if policy == "termux":
         monkeypatch.setenv("TERMUX_VERSION", "test")
     if policy == "override":

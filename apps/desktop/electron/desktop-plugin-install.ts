@@ -140,7 +140,7 @@ export function repoNameFromUrl(url: string): string {
 
 /** *name* when it can be one folder directly under the desktop-plugins root, else throw. It comes from
  *  the repository (a manifest's `name`, a subdirectory's last segment), so it must never reach a path
- *  unchecked: `..` would make a forced install replace the Hermes home. No separators, no leading dot
+ *  unchecked: `..` would make a forced install replace the Kova home. No separators, no leading dot
  *  (the root's staging folders use it), and none of the names Windows reads as something else (a colon
  *  makes `C:..` drive-relative, a device name opens the device, a trailing dot is dropped). The agent
  *  side's `_checked_name` refuses the same names (#146394). */

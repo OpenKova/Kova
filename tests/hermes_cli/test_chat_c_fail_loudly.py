@@ -20,11 +20,11 @@ import pytest
 
 @pytest.fixture
 def isolated_home(tmp_path, monkeypatch):
-    """Point HERMES_HOME at a temp dir so session creation stays isolated. The gateway is the single
+    """Point KOVA_HOME at a temp dir so session creation stays isolated. The gateway is the single
     writer: ``session.create {title}`` is played by a stand-in that writes the row the owner would."""
-    home = tmp_path / "hermes_home"
+    home = tmp_path / "kova_home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     from kova_cli import gateway_session_store
 
     def create_titled(title):

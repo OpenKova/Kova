@@ -14,7 +14,7 @@ import path from 'node:path';
  * @returns {{launcher: string, command: string, args: string[], windowsVerbatimArguments: boolean}}
  */
 export function sourceRuntimeSettleCommand(root, env, platform = process.platform) {
-  const local = path.join(root, '.hermes', 'bin');
+  const local = path.join(root, '.kova', 'bin');
   const candidates = platform === 'win32'
     ? [path.join(local, 'hermes.cmd'), path.join(local, 'hermes.exe'),
       path.join(root, 'venv', 'Scripts', 'hermes.exe')]

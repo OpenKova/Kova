@@ -11,7 +11,7 @@ import {
 import { createPrimaryRemoteConnection } from './primary-remote-startup'
 
 const bootstrapBackend = {
-  activeRoot: '/tmp/hermes-home/hermes-agent',
+  activeRoot: '/tmp/hermes-home/kova-agent',
   kind: 'bootstrap-needed',
   platform: 'linux'
 }
@@ -79,7 +79,7 @@ test('primary remote descriptor preserves the effective SSH dialing identity', (
   const ssh = {
     effectiveConfigFingerprint: 'effective-config',
     host: 'build-host',
-    remoteHermesPath: '/srv/hermes',
+    remoteKovaPath: '/srv/hermes',
     remoteProfile: 'default',
     user: 'alice'
   }

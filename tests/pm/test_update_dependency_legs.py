@@ -45,8 +45,8 @@ def project(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, 'repo_root', lambda: repo)
     monkeypatch.setattr(paths, 'lockfile_path', lambda: lock.path)
     monkeypatch.setattr(Path, 'home', lambda: tmp_path / 'home')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path / 'home'))
-    monkeypatch.setenv('HERMES_RUNTIME_DIR', str(tmp_path / 'store'))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path / 'home'))
+    monkeypatch.setenv('KOVA_RUNTIME_DIR', str(tmp_path / 'store'))
     monkeypatch.chdir(caller)
 
     run_live = cli._run_live
@@ -166,7 +166,7 @@ def pnpm_project(monkeypatch):
         pnpm_entry = runtime / 'pnpm-fixture'
         pnpm_binary = pnpm.binary(pnpm_entry, target)
         pnpm_binary.parent.mkdir(parents=True)
-        # A developer run finds PM's own pnpm under the real Hermes home, which a test may not read
+        # A developer run finds PM's own pnpm under the real Kova home, which a test may not read
         # (copy) or resolve (symlink): on POSIX the fixture execs it, so only the child touches it.
         if os.name == 'nt':
             shutil.copy2(pnpm_tool.resolve(), pnpm_binary)
@@ -204,7 +204,7 @@ def test_pnpm_refresh_uses_its_installed_entry_and_owned_project(monkeypatch, ca
         assert not (caller / 'pnpm-lock.yaml').exists()
         assert dict(os.environ) == before
         assert lock.path.read_bytes() == before_lock
-        # pnpm's store is Hermes-owned under the Hermes root: neither the ambient setting nor the user's dirs.
+        # pnpm's store is Kova-owned under the Kova root: neither the ambient setting nor the user's dirs.
         assert (root / 'home' / 'cache' / 'pnpm' / 'store').is_dir()
         assert not (root / 'ambient-store').exists()
         # pnpm's per-user lock dirs follow the LocalAppData known folder on Windows, which

@@ -5,7 +5,7 @@ import { atom } from 'nanostores'
 import { useCallback, useEffect, useRef } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
-import type { HermesGateway } from '@/hermes'
+import type { KovaGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { currentPickerSelection } from '@/lib/model-status-label'
@@ -43,7 +43,7 @@ export interface ModelSelection {
 }
 
 export interface ModelMenuHostProps {
-  gateway?: HermesGateway
+  gateway?: KovaGateway
   ownerConnectionId?: string
   onSelectModel: (selection: ModelSelection) => Promise<boolean> | void
   profile?: string

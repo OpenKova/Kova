@@ -1,4 +1,4 @@
-"""Durable aggregation and local export for Hermes shared metrics."""
+"""Durable aggregation and local export for Kova shared metrics."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from kova_cli.sqlite_util import add_column_if_missing, write_txn
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_json_write
 
 from .shared_metrics_contract import (
@@ -209,7 +209,7 @@ class SharedMetricsStore:
     def __init__(
         self, database_path: Path | None = None, outbox_directory: Path | None = None
     ) -> None:
-        root = get_hermes_home() / "telemetry" / "shared_metrics"
+        root = get_kova_home() / "telemetry" / "shared_metrics"
         self.database_path = database_path or root / "metrics.sqlite3"
         self.outbox_directory = outbox_directory or root / "outbox"
         _ensure_private(self.database_path.parent, 0o700)
@@ -250,7 +250,7 @@ class SharedMetricsStore:
         self, state_key: str, metric_name: str, dimensions: dict[str, str],
         resource: dict[str, str],
     ) -> bool:
-        """Transactional compare-and-set latch shared by concurrent Hermes processes."""
+        """Transactional compare-and-set latch shared by concurrent Kova processes."""
         self._validate_counter(metric_name, dimensions, resource)
         now = _utc_now()
         with self._write() as connection:
@@ -527,7 +527,7 @@ class SharedMetricsStore:
                 yield connection
 
     def _ensure_schema(self) -> None:
-        # Serialize first-run creation and upgrades across Hermes processes.
+        # Serialize first-run creation and upgrades across Kova processes.
         with self._write(busy_timeout_ms=_SCHEMA_BUSY_TIMEOUT_MS) as connection:
             connection.execute(_CREATE_TELEMETRY_STATE_SQL)
             schema_row = connection.execute(
@@ -546,7 +546,7 @@ class SharedMetricsStore:
             connection.execute(_CREATE_PACKAGE_OUTBOX_SQL)
             # Send bookkeeping columns are ADDITIVE and nullable; the schema version is
             # deliberately NOT bumped because the check above raises on unknown versions,
-            # so a bump would hard-fail an older Hermes (second profile, rollback) sharing
+            # so a bump would hard-fail an older Kova (second profile, rollback) sharing
             # the database. Old readers select named columns, never ``SELECT *``.
             existing = {
                 str(row["name"])

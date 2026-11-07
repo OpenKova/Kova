@@ -23,7 +23,7 @@ vi.mock('node:child_process', async importOriginal => {
   return { ...actual, spawn: vi.fn(actual.spawn) }
 })
 
-const argv = ['/opt/Hermes/hermes', '--ozone-platform=x11', 'hermes://session/abc']
+const argv = ['/opt/Kova/hermes', '--ozone-platform=x11', 'hermes://session/abc']
 
 function restoreEnv(saved: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -55,7 +55,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
       linuxNoSandboxRelaunch({
         platform: 'linux',
         runtimeNoSandbox: true,
-        argv: ['/opt/Hermes/hermes', ...relaunch!.args],
+        argv: ['/opt/Kova/hermes', ...relaunch!.args],
         env: {},
         launchedWithoutSandbox: true
       })
@@ -144,7 +144,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
 
       const launch = () => {
         const decision = decideLinuxGpuLaunch({
-          argv: ['/opt/Hermes/hermes'],
+          argv: ['/opt/Kova/hermes'],
           env: {},
           marker: readLinuxGpuMarker(userData),
           appVersion: '2.0.0',
@@ -199,27 +199,27 @@ describe('Linux runtime --no-sandbox relaunch', () => {
       const saved = { ...process.env }
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-appimage-relaunch-'))
       const report = path.join(dir, 'report')
-      const image = path.join(dir, 'Hermes.AppImage')
+      const image = path.join(dir, 'Kova.AppImage')
       const shortDir = '/run/user/1000/hermes-desktop'
       const events: string[] = []
 
       fs.writeFileSync(
         image,
-        `#!/bin/sh\nprintf '%s\\n' "$*" "$(cut -d' ' -f6 /proc/$$/stat) $$" "$TMPDIR" "\${HERMES_DESKTOP_READY_FD:-unset}" > "${report}.part"\nmv "${report}.part" "${report}"\n`,
+        `#!/bin/sh\nprintf '%s\\n' "$*" "$(cut -d' ' -f6 /proc/$$/stat) $$" "$TMPDIR" "\${KOVA_DESKTOP_READY_FD:-unset}" > "${report}.part"\nmv "${report}.part" "${report}"\n`,
         { mode: 0o755 }
       )
 
       try {
         process.env.TMPDIR = shortDir
-        process.env.HERMES_DESKTOP_TMPDIR = dir
-        process.env.HERMES_DESKTOP_READY_FD = '3'
+        process.env.KOVA_DESKTOP_TMPDIR = dir
+        process.env.KOVA_DESKTOP_READY_FD = '3'
         delete process.env.ELECTRON_DISABLE_SANDBOX
         vi.resetModules()
         const { relaunchIfNoSandboxCameTooLate } = await import('./linux-sandbox-relaunch')
         const { createAppRelauncher } = await import('./app-relaunch')
 
         process.env.TMPDIR = dir
-        delete process.env.HERMES_DESKTOP_TMPDIR
+        delete process.env.KOVA_DESKTOP_TMPDIR
         process.env.APPIMAGE = image
         process.env.APPDIR = path.dirname(process.execPath)
 
@@ -271,7 +271,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
         runtimeNoSandbox: true,
         argv: [`${appDir}/hermes`],
         execPath: `${appDir}/hermes`,
-        env: { APPIMAGE: '/home/u/Apps/Hermes.AppImage', APPDIR: appDir },
+        env: { APPIMAGE: '/home/u/Apps/Kova.AppImage', APPDIR: appDir },
         launchedWithoutSandbox: false
       })
     ).toEqual({ args: ['--no-sandbox'], target: `${appDir}/hermes` })
@@ -281,15 +281,15 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     const relaunch = linuxNoSandboxRelaunch({
       platform: 'linux',
       runtimeNoSandbox: true,
-      argv: ['/tmp/.mount_HermesX/hermes'],
-      execPath: '/tmp/.mount_HermesX/hermes',
-      env: { APPIMAGE: '/home/u/Apps/Hermes.AppImage', APPDIR: '/tmp/.mount_HermesX' },
+      argv: ['/tmp/.mount_KovaX/hermes'],
+      execPath: '/tmp/.mount_KovaX/hermes',
+      env: { APPIMAGE: '/home/u/Apps/Kova.AppImage', APPDIR: '/tmp/.mount_KovaX' },
       launchedWithoutSandbox: false
     })
 
     expect(relaunch).toEqual({
       args: ['--no-sandbox'],
-      target: '/home/u/Apps/Hermes.AppImage'
+      target: '/home/u/Apps/Kova.AppImage'
     })
   })
 
@@ -299,20 +299,20 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     const relaunch = linuxNoSandboxRelaunch({
       platform: 'linux',
       runtimeNoSandbox: true,
-      argv: ['/run/user/1000/.mount_HermesQ7x2Lp/hermes'],
-      execPath: '/run/user/1000/.mount_HermesQ7x2Lp/hermes',
-      env: { APPIMAGE: '/home/u/Apps/Hermes.AppImage' },
+      argv: ['/run/user/1000/.mount_KovaQ7x2Lp/hermes'],
+      execPath: '/run/user/1000/.mount_KovaQ7x2Lp/hermes',
+      env: { APPIMAGE: '/home/u/Apps/Kova.AppImage' },
       launchedWithoutSandbox: false
     })
 
     expect(relaunch).toEqual({
       args: ['--no-sandbox'],
-      target: '/home/u/Apps/Hermes.AppImage'
+      target: '/home/u/Apps/Kova.AppImage'
     })
   })
 
   // AppImage apps (terminals, IDEs) export APPIMAGE/APPDIR to everything they
-  // start; Hermes launched from one must relaunch itself, not that app.
+  // start; Kova launched from one must relaunch itself, not that app.
   it('relaunches this executable when APPIMAGE was inherited from another AppImage', () => {
     for (const env of [
       { APPIMAGE: '/home/u/Apps/Terminal.AppImage' },
@@ -324,13 +324,13 @@ describe('Linux runtime --no-sandbox relaunch', () => {
           platform: 'linux',
           runtimeNoSandbox: true,
           argv,
-          execPath: '/opt/Hermes/hermes',
+          execPath: '/opt/Kova/hermes',
           env,
           launchedWithoutSandbox: false
         })
       ).toEqual({
         args: ['--ozone-platform=x11', 'hermes://session/abc', '--no-sandbox'],
-        target: '/opt/Hermes/hermes'
+        target: '/opt/Kova/hermes'
       })
     }
   })

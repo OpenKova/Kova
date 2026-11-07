@@ -69,7 +69,7 @@ describe.each(FILES)('a Webapp file under $dir', ({ dir, native }) => {
   it('previews a page by its native path', async () => {
     const target = localPreviewTarget(`${dir}/report%20%231.html`)
 
-    await expect(window.hermesDesktop.readFileText(target?.path ?? '')).resolves.toMatchObject({
+    await expect(window.kovaDesktop.readFileText(target?.path ?? '')).resolves.toMatchObject({
       text: '<p>report</p>'
     })
 
@@ -95,7 +95,7 @@ it('refuses to stream a file URL that encodes a separator', async () => {
   // The gateway would decode the separator into another path segment, so the clip could be
   // a different file than the one its label names.
   for (const clip of ['file:///C:/Users/me/a%2F..%2Fclip.mp4', 'file:///C:/Users/me/a%5Cclip.mp4']) {
-    await expect(window.hermesDesktop.getGatewayFileStreamUrl!({ ...OWNER, path: clip })).rejects.toThrow(
+    await expect(window.kovaDesktop.getGatewayFileStreamUrl!({ ...OWNER, path: clip })).rejects.toThrow(
       'does not name one file'
     )
   }

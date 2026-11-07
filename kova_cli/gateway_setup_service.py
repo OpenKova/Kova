@@ -6,7 +6,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 SERVICE_INSTALL_QUESTION = (
-    "Install the gateway service so Hermes starts automatically at login "
+    "Install the gateway service so Kova starts automatically at login "
     "and keeps scheduled jobs and messaging available?"
 )
 
@@ -121,7 +121,7 @@ def _wizard_install_service(backend: str) -> None:
     if not wants_service_install(interactive=True):
         gw.print_info("Without a service, messaging and scheduled jobs stop at logout/reboot; jobs cannot run while the host is off.")
         if start_now:
-            result = ensure_gateway_runtime(gw.get_hermes_home(), timeout=5.0)
+            result = ensure_gateway_runtime(gw.get_kova_home(), timeout=5.0)
             if result.state == "ready":
                 gw.print_success("Gateway runtime ready; no service was installed.")
             else:

@@ -14,7 +14,7 @@ import {
 } from './windows'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const notifyError = vi.fn()
 
@@ -27,7 +27,7 @@ function installBridge(
   openWindow?: Window['hermesDesktop']['openWindow'],
   openBrowserWindow?: Window['hermesDesktop']['openBrowserWindow']
 ) {
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     ...(openSessionWindow ? { openSessionWindow } : {}),
     ...(openWindow ? { openWindow } : {}),
     ...(openBrowserWindow ? { openBrowserWindow } : {})
@@ -39,10 +39,10 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialKovaDesktop) {
+    desktopWindow.kovaDesktop = initialKovaDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
   }
 })
 
@@ -76,7 +76,7 @@ describe('openSessionInNewWindow', () => {
   })
 
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
 
     await openSessionInNewWindow('s1')
 
@@ -124,7 +124,7 @@ describe('openSessionInNewWindow', () => {
 
 describe('openNewWindow', () => {
   it('no-ops gracefully when the bridge is absent (web fallback)', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
 
     await openNewWindow()
 
@@ -151,7 +151,7 @@ describe('openBrowserInNewWindow', () => {
   })
 
   it('returns false when the bridge is absent', async () => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
 
     expect(canOpenBrowserWindow()).toBe(false)
     expect(await openBrowserInNewWindow('tab-1')).toBe(false)
@@ -186,7 +186,7 @@ describe('openBrowserInNewWindow', () => {
 describe('openSessionInTerminal', () => {
   it('hands a session to the bridge, and is a no-op without one or without a session id', async () => {
     const open = vi.fn().mockResolvedValue({ ok: true })
-    desktopWindow.hermesDesktop = { openSessionInTerminal: open } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { openSessionInTerminal: open } as unknown as Window['hermesDesktop']
 
     expect(canOpenSessionInTerminal()).toBe(true)
     await openSessionInTerminal('', { cwd: '/work' })
@@ -194,7 +194,7 @@ describe('openSessionInTerminal', () => {
     await openSessionInTerminal('s1', { cwd: '/work', profile: 'work' })
     expect(open).toHaveBeenCalledWith('s1', { cwd: '/work', profile: 'work' })
 
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
 
     expect(canOpenSessionInTerminal()).toBe(false)
     await openSessionInTerminal('s1')

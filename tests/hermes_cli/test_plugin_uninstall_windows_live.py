@@ -1,6 +1,6 @@
 """LIVE Windows E2E: ``hermes plugins uninstall`` while a real gateway has the plugin loaded.
 
-A real ``hermes gateway run`` child (temp HOME / HERMES_HOME) loads three enabled user plugins:
+A real ``hermes gateway run`` child (temp HOME / KOVA_HOME) loads three enabled user plugins:
 pure Python, one that keeps a file in its own directory open, and one that imports a native
 ``.pyd`` shipped inside its directory. Windows refuses to delete a file another process holds
 (WinError 32) or a mapped DLL (WinError 5), so removing those trees under the live gateway is the
@@ -55,10 +55,10 @@ def _native_extension() -> Path:
 
 def _child_env(home: Path) -> dict:
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(("HERMES_", "PYTEST_")) and not k.endswith(("_API_KEY", "_TOKEN"))}
-    env.update(HOME=str(home.parent), USERPROFILE=str(home.parent), HERMES_HOME=str(home),
-               HERMES_GATEWAY_LOCK_DIR=str(home.parent / "locks"), PYTHONPATH=str(PROJECT_ROOT),
-               PYTHONUTF8="1", NO_COLOR="1", HERMES_ACCEPT_HOOKS="1")
+           if not k.startswith(("KOVA_", "PYTEST_")) and not k.endswith(("_API_KEY", "_TOKEN"))}
+    env.update(HOME=str(home.parent), USERPROFILE=str(home.parent), KOVA_HOME=str(home),
+               KOVA_GATEWAY_LOCK_DIR=str(home.parent / "locks"), PYTHONPATH=str(PROJECT_ROOT),
+               PYTHONUTF8="1", NO_COLOR="1", KOVA_ACCEPT_HOOKS="1")
     return env
 
 
@@ -80,7 +80,7 @@ def _wait(pred, timeout: float) -> bool:
 @pytest.fixture(scope="module")
 def live_gateway(tmp_path_factory):
     root = tmp_path_factory.mktemp("uninstall-live")
-    home = root / "fakehome" / ".hermes"
+    home = root / "fakehome" / ".kova"
     plugins = home / "plugins"
     plugins.mkdir(parents=True)
     (root / "fakehome" / "locks").mkdir()

@@ -6,7 +6,7 @@ dispatcher ``start_oauth_login`` hardcoded ``_start_anthropic_pkce()``
 for any pkce-flagged provider. So clicking "Login" next to MiniMax in
 the dashboard's Keys tab silently launched the Anthropic/Claude OAuth
 flow. The Anthropic dashboard flow was later removed entirely because
-Hermes must not mint subscription OAuth tokens from an unattended HTTP
+Kova must not mint subscription OAuth tokens from an unattended HTTP
 endpoint; only the approved external CLI path remains.
 
 The fix:
@@ -35,11 +35,11 @@ import kova_cli.web_routers.oauth as _rt_oauth
 import kova_cli.web_server_oauth as _web_server_oauth
 
 client = TestClient(app)
-HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
+HEADERS = {"X-Kova-Session-Token": _SESSION_TOKEN}
 
 
 def _make_profile_home(tmp_path, monkeypatch, profile="coder"):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     profile_home = tmp_path / "profiles" / profile
     profile_home.mkdir(parents=True)
     (profile_home / "config.yaml").write_text("{}\n")  # identity marker: a bare dir is not a profile
@@ -126,7 +126,7 @@ def test_minimax_start_route_honors_poller_mock_on_owning_module(tmp_path, monke
     """
     import threading
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     fake_user_code_resp = {
         "user_code": "ABCD-1234",
         "verification_uri": "https://api.minimax.io/oauth/verify",
@@ -165,13 +165,13 @@ def test_minimax_start_route_honors_poller_mock_on_owning_module(tmp_path, monke
 
 
 def test_oauth_provider_status_uses_profile_query(tmp_path, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     profile_home = _make_profile_home(tmp_path, monkeypatch)
     observed_homes = []
 
     def fake_status():
-        observed_homes.append(get_hermes_home())
+        observed_homes.append(get_kova_home())
         return {"logged_in": False, "source": None}
 
     fake_catalog = ({
@@ -228,7 +228,7 @@ def test_oauth_session_cannot_be_polled_or_cancelled_from_another_profile(
 ):
     """A named-profile OAuth session must reject default-profile retargeting."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "profiles" / "worker").mkdir(parents=True)
     (tmp_path / "profiles" / "worker" / "config.yaml").write_text("{}\n")  # identity marker
     session_id, _session = _rt_oauth._new_oauth_session(
@@ -558,8 +558,8 @@ def test_xai_dashboard_poller_seeds_single_entry_and_clears_suppression(tmp_path
     from kova_cli import auth as auth_mod
     from agent.credential_pool import load_pool
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_XAI_BASE_URL", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.delenv("KOVA_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
     # Existing chat provider must not be overwritten by dashboard OAuth.
@@ -701,7 +701,7 @@ def test_dashboard_poller_saves_only_into_the_profile_the_login_started_in(tmp_p
     had removed the registry entry by then, so the tokens landed in the dashboard's launch profile
     (the Codex path was fixed the same way as IA-01). A cancelled login saves nothing."""
     from kova_cli import auth as auth_mod
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     coder_home = _make_profile_home(tmp_path, monkeypatch, profile="coder")
     saved_into = []
@@ -716,7 +716,7 @@ def test_dashboard_poller_saves_only_into_the_profile_the_login_started_in(tmp_p
         return {"access_token": "at", "refresh_token": "rt", "id_token": "", "expires_in": 3600,
                 "expired_in": 3600, "token_type": "Bearer"}
 
-    record = lambda *_a, **_k: saved_into.append(str(get_hermes_home()))
+    record = lambda *_a, **_k: saved_into.append(str(get_kova_home()))
     if provider == "xai-oauth":
         sess.update(device_code="dc", expires_at=time.time() + 600, interval=1)
         monkeypatch.setattr(auth_mod, "_xai_oauth_discovery", lambda *a, **k: {"token_endpoint": "https://x.test/t"})

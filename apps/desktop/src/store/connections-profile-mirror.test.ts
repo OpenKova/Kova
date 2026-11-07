@@ -49,7 +49,7 @@ it('reports single profile changes to main and never pushes its whole map', asyn
     rememberConnections: vi.fn(async () => undefined)
   }
 
-  ;(window as { hermesDesktop?: unknown }).hermesDesktop = { profile }
+  ;(window as { hermesDesktop?: unknown }).kovaDesktop = { profile }
 
   const { _resetConnectionsForTests, initializeConnectionsRegistry } = await import('./connections')
 
@@ -71,5 +71,5 @@ it('reports single profile changes to main and never pushes its whole map', asyn
   expect(profile.rememberConnection).toHaveBeenCalledTimes(1)
   expect(profile.rememberConnections).not.toHaveBeenCalled()
 
-  delete (window as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as { hermesDesktop?: unknown }).kovaDesktop
 })

@@ -21,7 +21,7 @@ def _copy(home: Path, plugin: Path) -> Path:
     copy = home / "desktop-plugins" / "uni"
     copy.mkdir(parents=True)
     (copy / "plugin.js").write_bytes((plugin / "desktop" / "plugin.js").read_bytes())
-    (copy / ".hermes-package.json").write_text(
+    (copy / ".kova-package.json").write_text(
         json.dumps({"package": "uni", "source": str(plugin / "desktop"), "sourceMtimeMs": 1}), encoding="utf-8")
     return copy
 
@@ -32,9 +32,9 @@ def _stale_warnings(report) -> list[str]:
 
 @pytest.fixture
 def home(tmp_path, monkeypatch) -> Path:
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 

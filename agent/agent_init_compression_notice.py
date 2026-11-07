@@ -5,7 +5,7 @@ from __future__ import annotations
 from contextlib import suppress
 from typing import Any, Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def _build_codex_gpt5_autoraise_notice(
@@ -34,8 +34,8 @@ def _build_codex_gpt5_autoraise_notice(
 
 
 def _codex_gpt55_autoraise_notice_marker():
-    """Per-profile marker path (``$HERMES_HOME`` is profile-scoped; not a config key)."""
-    return get_hermes_home() / ".codex_gpt55_autoraise_notice"
+    """Per-profile marker path (``$KOVA_HOME`` is profile-scoped; not a config key)."""
+    return get_kova_home() / ".codex_gpt55_autoraise_notice"
 
 
 def _codex_gpt55_autoraise_notice_state(autoraise: dict[str, Any]) -> str:

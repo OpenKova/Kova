@@ -1,5 +1,5 @@
 """Plugin module-level caches must not hand profile A's state to profile B under a multiplexed
-HERMES_HOME override (``kova_constants.set_hermes_home_override``).
+KOVA_HOME override (``kova_constants.set_kova_home_override``).
 
 One invariant per mechanism: home-keyed slot with the unscoped module slot intact (router), credential-fingerprinted catalog keys (openrouter), per-home registries (memory
 provider skills), lru_cache keyed by the home (disk-cleanup).
@@ -19,15 +19,15 @@ from pathlib import Path
 import pytest
 
 from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 REPO = Path(__file__).resolve().parents[2]
 
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    """Profile A (launch home, ``HERMES_HOME``) and profile B with different config/.env values."""
-    root = tmp_path / ".hermes"
+    """Profile A (launch home, ``KOVA_HOME``) and profile B with different config/.env values."""
+    root = tmp_path / ".kova"
     a, b = root, root / "profiles" / "B"
     for home, tag in ((a, "A"), (b, "B")):
         home.mkdir(parents=True)
@@ -35,7 +35,7 @@ def homes(tmp_path, monkeypatch):
         (home / ".env").write_text(
             f"RAMP_ROUTER_API_KEY=router-key-{tag}\nRAMP_ROUTER_BASE_URL=https://{tag.lower()}.router.test/v1\n",
             encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("KOVA_HOME", str(a))
     for var in ("RAMP_ROUTER_API_KEY", "RAMP_ROUTER_BASE_URL", "PYTEST_CURRENT_TEST"):
         monkeypatch.delenv(var, raising=False)
     return a, b
@@ -43,13 +43,13 @@ def homes(tmp_path, monkeypatch):
 
 @contextlib.contextmanager
 def scoped(home: Path):
-    t_home = set_hermes_home_override(str(home))
+    t_home = set_kova_home_override(str(home))
     t_secret = set_secret_scope(build_profile_secret_scope(home))
     try:
         yield
     finally:
         reset_secret_scope(t_secret)
-        reset_hermes_home_override(t_home)
+        reset_kova_home_override(t_home)
 
 
 class _Resp:

@@ -3,8 +3,8 @@
 Failure class: interpreter. Real Windows machines carry two traps the managed runtime
 must ignore:
 
-* a different, standalone Python on PATH ahead of anything Hermes installed (#123185);
-* the pre-PM in-tree ``hermes-agent\\venv`` an older install left behind (#123965, #123972).
+* a different, standalone Python on PATH ahead of anything Kova installed (#123185);
+* the pre-PM in-tree ``kova-agent\\venv`` an older install left behind (#123965, #123972).
 
 After ``hermes update`` neither the gateway the user starts through ``hermes.exe`` nor a
 CLI turn may add the stale venv to ``sys.path`` or publish it to its children, with the
@@ -123,7 +123,7 @@ def test_gateway_does_not_load_stale_in_tree_venv(journey: Journey) -> None:
     assert journey.results["probe_present"], fail_with(
         m, f"harness: the stale-venv probe {_PROBE} was gone before the gateway started")
     loaded = sorted(journey.results["loaded_by_gateway"])
-    log = m.hermes_home / "logs" / "gateway.log"
+    log = m.kova_home / "logs" / "gateway.log"
     deaths = _WORKER_DEATH.findall(log.read_text(encoding="utf-8", errors="replace")) if log.is_file() else []
     assert not loaded and not published, fail_with(
         m, f"the gateway loaded the stale pre-PM in-tree venv {stale} (site dir added by pids "

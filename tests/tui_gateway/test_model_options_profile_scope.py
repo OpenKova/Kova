@@ -16,9 +16,9 @@ def test_model_options_binds_requested_profile_home(monkeypatch, tmp_path):
     monkeypatch.setattr(server, "_model_picker_context", lambda agent: object())
 
     def build_payload(ctx, **kwargs):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        seen["home"] = Path(get_hermes_home())
+        seen["home"] = Path(get_kova_home())
         return {"providers": []}
 
     monkeypatch.setattr("kova_cli.inventory.build_model_options_payload", build_payload)

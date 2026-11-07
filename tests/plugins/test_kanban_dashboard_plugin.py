@@ -45,10 +45,10 @@ def _load_plugin_router():
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with an empty kanban DB."""
-    home = tmp_path / ".hermes"
+    """Isolated KOVA_HOME with an empty kanban DB."""
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -75,7 +75,7 @@ def test_board_empty(client):
     assert all(len(c["tasks"]) == 0 for c in data["columns"])
     assert data["tenants"] == []
     # Assignee lanes union task-holders with profiles on disk, so the
-    # implicit `default` profile that the fixture's HERMES_HOME creates is
+    # implicit `default` profile that the fixture's KOVA_HOME creates is
     # present even on an empty board (no task-holders yet).
     assert data["assignees"] == ["default"]
     assert data["latest_event_id"] == 0
@@ -505,9 +505,9 @@ def test_ws_events_rejects_when_token_required(tmp_path, monkeypatch):
     delegates to web_server_chat._ws_auth_ok, so we stub that with the real
     loopback-token semantics (auth_required False → constant-time token
     compare)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
 
@@ -782,7 +782,7 @@ def test_bulk_empty_ids_400(client):
 # ---------------------------------------------------------------------------
 
 def test_config_reads_dashboard_kanban_section(tmp_path, monkeypatch, client):
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     (home / "config.yaml").write_text(
         "dashboard:\n"
         "  kanban:\n"
@@ -1062,7 +1062,7 @@ def test_specify_resolves_each_profiles_key_under_multiplex(kanban_home, tmp_pat
     profiles_root = tmp_path / "profiles"
     (profiles_root / "workerb").mkdir(parents=True)
     (profiles_root / "workerb" / ".env").write_text("KANBAN_AUX_SCOPE_TEST_KEY=key-of-worker-b\n")
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: kanban_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: kanban_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
 
     seen: list = []
@@ -1183,9 +1183,9 @@ def test_ws_events_for_archived_board_does_not_recreate_it(tmp_path, monkeypatch
     archived or deleted that board. The stream must close instead of handing
     the slug to connect(), which used to resurrect an empty DB-only board
     (#43243)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
 

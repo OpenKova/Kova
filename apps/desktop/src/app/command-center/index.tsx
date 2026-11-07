@@ -11,7 +11,7 @@ import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { ResponsiveTabs } from '@/components/ui/tab-dropdown'
 import { Tip } from '@/components/ui/tooltip'
-import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateHermes } from '@/hermes'
+import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateKova } from '@/hermes'
 import type { ActionStatusResponse, AnalyticsResponse, SessionInfo, StatusResponse } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
@@ -131,8 +131,8 @@ function RowIconButton({
   )
 }
 
-/** The System card's Update button. Hermes Cloud updates its agents itself, so it has none there. */
-function UpdateHermesButton({ label, onClick }: { label: string; onClick: () => void }) {
+/** The System card's Update button. Kova Cloud updates its agents itself, so it has none there. */
+function UpdateKovaButton({ label, onClick }: { label: string; onClick: () => void }) {
   if (useStore($cloudOwnsUpdates).backend) {
     return null
   }
@@ -329,7 +329,7 @@ export function CommandCenterView({
       }
 
       try {
-        const started = kind === 'restart' ? await restartGateway() : await updateHermes()
+        const started = kind === 'restart' ? await restartGateway() : await updateKova()
         let nextStatus: ActionStatusResponse | null = null
 
         for (let attempt = 0; attempt < 18; attempt += 1) {
@@ -515,14 +515,14 @@ export function CommandCenterView({
                             </span>
                           </div>
                           <div className="mt-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                            {cc.hermesActiveSessions(status.version, status.active_sessions)}
+                            {cc.kovaActiveSessions(status.version, status.active_sessions)}
                           </div>
                         </div>
                         <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap max-[47.5rem]:whitespace-normal">
                           <Button onClick={() => void runSystemAction('restart')} size="xs" variant="text">
                             {cc.restartGateway}
                           </Button>
-                          <UpdateHermesButton label={cc.updateHermes} onClick={() => void runSystemAction('update')} />
+                          <UpdateKovaButton label={cc.updateKova} onClick={() => void runSystemAction('update')} />
                         </div>
                       </div>
                       {systemAction && (

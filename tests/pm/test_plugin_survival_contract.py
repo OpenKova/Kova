@@ -1,6 +1,6 @@
 """Plugin survival + upgrade contracts (mnemosyne-oss/mnemosyne#859).
 
-Hermes-side contracts an external memory-provider wrapper can hold us to,
+Kova-side contracts an external memory-provider wrapper can hold us to,
 exercised through PUBLIC paths (no source inspection, no network — uv
 resolves offline local path-source fixtures):
 
@@ -19,7 +19,7 @@ resolves offline local path-source fixtures):
    The retry path — re-admitting only the resolvable candidate —
    commits through the same public function.
 3. Active-home propagation. The active CONTEXT home
-   (kova_constants.set_hermes_home_override) is what wrapper/sidecar
+   (kova_constants.set_kova_home_override) is what wrapper/sidecar
    subprocess launches must inherit through build_subprocess_env.
 """
 
@@ -82,7 +82,7 @@ def test_sidecar_no_root_pyproject_excludes_nested_and_external(tmp_path, monkey
     )
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     assert ws._is_member_candidate(wrapper) is False, (
         "a wrapper root without pyproject/dep keys must never be a member candidate"
@@ -134,7 +134,7 @@ def _local_conflict_members(home: Path) -> tuple[Path, Path, Path, Path]:
 
 @pytest.fixture
 def admission_env(tmp_path, monkeypatch):
-    """Fake core repo + temp HERMES_HOME so the REAL pm.install.sync_venv
+    """Fake core repo + temp KOVA_HOME so the REAL pm.install.sync_venv
     transaction (lock, receipts, config publication) runs entirely under
     tmp — the production path, temp homes."""
     core = tmp_path / "core"
@@ -160,11 +160,11 @@ def admission_env(tmp_path, monkeypatch):
     import pm.paths
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pm.paths, "repo_root", lambda: core)
     monkeypatch.setattr(ws.paths, "repo_root", lambda: core)
     monkeypatch.setattr(ensure, "lazy_installs_allowed", lambda: True)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
     # Exercise the real dependency transaction in-process so the local uv
     # fixture owns provisioning; worker transport is covered separately. The
     # facade's project_root selects a foreign checkout for the worker; this
@@ -306,12 +306,12 @@ def test_malformed_secondary_cannot_evict_recorded_member(admission_env, monkeyp
 
     home_b = tmp_path / "home-b"
     _write_enabled(home_b, [])
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("KOVA_HOME", str(home_b))
     sync_venv(explicit=True)
     assert selected_venv(core).is_dir()
     assert Facts(runtime_facts_path(core), strict=True).get("venv")["stamp"] != recorded["stamp"]
 
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("KOVA_HOME", str(home_a))
     with pytest.raises(ValueError, match="config.yaml"):
         sync_venv(explicit=True)
     assert selected_venv(core) == selected
@@ -601,14 +601,14 @@ def test_plugin_our_version_rejects_sits_out_without_being_disabled(admission_en
 
 @pytest.mark.skipif(not _uv_available(), reason="uv not on PATH")
 @pytest.mark.parametrize("dependencies, chosen, extras", [
-    pytest.param('"member-dep==1.0", "hermes-agent>=2"', '"member-dep==1.0"', None, id="runtime-dependency"),
-    pytest.param('"member-dep==1.0"', '"hermes-agent>=2"', ["chosen"], id="selected-extra"),
+    pytest.param('"member-dep==1.0", "kova-agent>=2"', '"member-dep==1.0"', None, id="runtime-dependency"),
+    pytest.param('"member-dep==1.0"', '"kova-agent>=2"', ["chosen"], id="selected-extra"),
 ])
 def test_plugin_requiring_a_newer_hermes_sits_out_until_hermes_fits(admission_env, monkeypatch,
                                                                     dependencies, chosen, extras):
-    """PM supplies hermes-agent itself, so a plugin's requirement on it is judged the way
+    """PM supplies kova-agent itself, so a plugin's requirement on it is judged the way
     requires_hermes is: the misfit sits out of the build with config untouched (a plain sync
-    and an update both succeed), and it rejoins once the running Hermes fits, although no
+    and an update both succeed), and it rejoins once the running Kova fits, although no
     dependency input changed."""
     from pm.environments import runtime_facts_path
     from pm.install import sync_venv, venv_is_current
@@ -619,7 +619,7 @@ def test_plugin_requiring_a_newer_hermes_sits_out_until_hermes_fits(admission_en
     tmp_path, home = admission_env
     core = tmp_path / "core"
     manifest = core / "pyproject.toml"  # a selected extra naming core binds to the workspace root
-    manifest.write_text(manifest.read_text().replace('name = "fake-core"', 'name = "hermes-agent"')
+    manifest.write_text(manifest.read_text().replace('name = "fake-core"', 'name = "kova-agent"')
                         + "[project.optional-dependencies]\nchosen = []\n")  # core's extras are what a sync selects
     subprocess.run([shutil.which("uv"), "lock"], cwd=core, check=True, capture_output=True, timeout=120)
     running = {"version": "1.0.0"}
@@ -655,7 +655,7 @@ def test_plugin_requiring_a_newer_hermes_sits_out_until_hermes_fits(admission_en
 @pytest.mark.parametrize("enabled_before", [[], ["needs-newer"]], ids=["enabling-it", "enabled-before"])
 def test_only_enabling_a_plugin_that_requires_a_newer_hermes_is_refused(admission_env, monkeypatch,
                                                                          enabled_before):
-    """Admission refuses enabling a plugin whose sole declared dependency is a Hermes it is not,
+    """Admission refuses enabling a plugin whose sole declared dependency is a Kova it is not,
     as it refuses a failing requires_hermes, although it installs nothing and is no workspace
     member. One enabled before sits out as the build leaves it out, so enabling another plugin
     beside it is admitted."""
@@ -664,7 +664,7 @@ def test_only_enabling_a_plugin_that_requires_a_newer_hermes_is_refused(admissio
 
     _tmp_path, home = admission_env
     monkeypatch.setattr(plugins_manifest, "running_hermes_version", lambda: "1.0.0")
-    for name, declaration in (("needs-newer", "pip_dependencies: ['hermes-agent>=99']\n"), ("other", "")):
+    for name, declaration in (("needs-newer", "pip_dependencies: ['kova-agent>=99']\n"), ("other", "")):
         (home / "plugins" / name).mkdir(parents=True)
         (home / "plugins" / name / "plugin.yaml").write_text(f"name: {name}\n{declaration}", encoding="utf-8")
     _write_enabled(home, enabled_before)
@@ -672,7 +672,7 @@ def test_only_enabling_a_plugin_that_requires_a_newer_hermes_is_refused(admissio
 
     if not enabled_before:
         with pytest.raises(admission.AdmissionRefused,
-                           match=r"needs-newer.*requires hermes-agent>=99, running 1\.0\.0"):
+                           match=r"needs-newer.*requires kova-agent>=99, running 1\.0\.0"):
             admission.admit_plugin_set_change({"needs-newer"}, set(), active_plugins_dir=home / "plugins")
         assert (home / "config.yaml").read_bytes() == before
     else:
@@ -731,19 +731,19 @@ def test_update_sync_retries_a_fetch_failure_once_before_disabling(admission_env
 
 
 def test_active_context_home_exported_to_wrapper_subprocess(monkeypatch, tmp_path):
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.environments.local import build_subprocess_env
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "ambient"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "ambient"))
     active = tmp_path / "custom-root/profiles/worker"
     active.mkdir(parents=True)
-    token = set_hermes_home_override(active)
+    token = set_kova_home_override(active)
     try:
         child_env = build_subprocess_env()
         child = subprocess.run(
-            [sys.executable, "-c", "import os; print(os.environ['HERMES_HOME'], end='')"],
+            [sys.executable, "-c", "import os; print(os.environ['KOVA_HOME'], end='')"],
             env=child_env, capture_output=True, text=True, check=True, timeout=60,
         )
         assert child.stdout == str(active)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)

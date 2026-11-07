@@ -102,7 +102,7 @@ export function redrawAllTerminals(skipTerm?: Terminal): void {
 // terminal's atlas + render model when it arrives. Import-for-side-effect,
 // same pattern as store/power.ts.
 if (typeof window !== 'undefined') {
-  window.hermesDesktop?.onPowerResume?.(() => {
+  window.kovaDesktop?.onPowerResume?.(() => {
     redrawAllTerminals()
   })
 }
@@ -481,7 +481,7 @@ const closingTerminals = new Set<string>()
  *  the last one closes the whole pane. */
 export function closeTerminal(id: string): void {
   const entry = $terminals.get().find(term => term.id === id)
-  const closeSaved = window.hermesDesktop?.terminal?.closeSaved
+  const closeSaved = window.kovaDesktop?.terminal?.closeSaved
 
   if (entry?.kind !== 'user' || !closeSaved) {
     removeExitedTerminal(id)

@@ -26,9 +26,9 @@ def resolve_profile_path(path: str | os.PathLike[str]) -> Path:
     """Absolute (or ``~``) paths as given; relative ones under ``<hermes home>/logs/profiles``."""
     target = Path(path).expanduser()
     if not target.is_absolute():
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        target = get_hermes_home() / "logs" / "profiles" / target
+        target = get_kova_home() / "logs" / "profiles" / target
     return target.resolve()
 
 

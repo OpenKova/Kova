@@ -264,7 +264,7 @@ class TestFeishuAllowlistMatchesEveryOperatorId:
 
     @pytest.mark.asyncio
     async def test_update_prompt_recheck_matches_tenant_user_id(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         adapter = _make_adapter(allowed={"u_tenant"})
 
         await adapter._resolve_update_prompt(2, "y", "Alice", open_id="ou_x", chat_id="oc_group", user_id="u_tenant")

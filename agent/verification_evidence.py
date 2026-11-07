@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 from typing import Any, Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 _DB_LOCK = threading.Lock()
@@ -121,7 +121,7 @@ def _utc_now() -> str:
 
 
 def _db_path() -> Path:
-    return get_hermes_home() / "verification_evidence.db"
+    return get_kova_home() / "verification_evidence.db"
 
 
 def _ledger_enabled() -> bool:

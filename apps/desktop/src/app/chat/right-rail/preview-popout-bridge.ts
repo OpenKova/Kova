@@ -9,7 +9,7 @@
  * pop-out to run the live act/read and return the result.
  *
  * Transport: the same main-process IPC relay the Comment Mode handoff uses
- * (`window.hermesDesktop.windowRelay`). Packaged builds load renderers over
+ * (`window.kovaDesktop.windowRelay`). Packaged builds load renderers over
  * `file://`, where BroadcastChannel origin semantics must not be trusted;
  * BroadcastChannel stays only as a dev/browser fallback (dev serves the
  * renderer over http, so same-origin channels work there).
@@ -92,7 +92,7 @@ function getBus(): RelayBus | null {
     return cachedBus
   }
 
-  const desktopRelay = typeof window !== 'undefined' ? window.hermesDesktop?.windowRelay : undefined
+  const desktopRelay = typeof window !== 'undefined' ? window.kovaDesktop?.windowRelay : undefined
 
   if (desktopRelay?.onMessage && desktopRelay.send) {
     cachedBus = {

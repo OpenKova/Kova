@@ -8,7 +8,7 @@ import {
 } from '@kova/shared'
 import { map, type MapStore } from 'nanostores'
 
-import type { HermesApiRequest } from '@/global'
+import type { KovaApiRequest } from '@/global'
 
 import { CanonicalDesktopProtocol, canonicalProfile, canonicalPromptParams, canonicalSessionKey, openGatewaySocket, recordCanonicalOwner, splitRewindSubmit } from './canonical-protocol'
 import { DialReadiness, GATEWAY_NOT_CONNECTED_MESSAGE, remainingRequestBudget } from './dial-readiness'
@@ -19,7 +19,7 @@ import { DialReadiness, GATEWAY_NOT_CONNECTED_MESSAGE, remainingRequestBudget } 
 // /api/profiles runs list_profiles(), which does a recursive skill-tree walk
 // per profile — so the 15s default (DEFAULT_FETCH_TIMEOUT_MS in hardening.ts)
 // times out a backend that is alive-but-busy, surfacing as a spurious
-// "Timed out connecting to Hermes backend" that hangs the UI (#48504).
+// "Timed out connecting to Kova backend" that hangs the UI (#48504).
 //
 // Give the boot burst a generous per-call timeout instead of raising the
 // global default: interactive/runtime calls and the liveness poll (/api/status)
@@ -92,7 +92,7 @@ function requestDeadline(timeoutMs: number | undefined): number {
 
 export type GatewaySessionWire = 'canonical' | 'legacy'
 
-export class HermesGateway extends JsonRpcGatewayClient {
+export class KovaGateway extends JsonRpcGatewayClient {
   private canonical = false
   private nativeDial = false
   private readonly readiness = new DialReadiness(() => super.connectionState === 'open')
@@ -375,7 +375,7 @@ export class HermesGateway extends JsonRpcGatewayClient {
     } catch (error) {
       this.readiness.failDial(ready, error instanceof Error ? error : new Error(GATEWAY_NOT_CONNECTED_MESSAGE))
 
-      if (generation === this.connectionGeneration) { this.invalidate('Hermes gateway protocol negotiation failed') }
+      if (generation === this.connectionGeneration) { this.invalidate('Kova gateway protocol negotiation failed') }
       throw error
     }
   }
@@ -524,7 +524,7 @@ export class HermesGateway extends JsonRpcGatewayClient {
   }
 
   private requireConnectionGeneration(generation: number): void {
-    if (generation !== this.connectionGeneration) { throw new Error('Hermes gateway connection changed; reopen the session') }
+    if (generation !== this.connectionGeneration) { throw new Error('Kova gateway connection changed; reopen the session') }
   }
 
   // Resume the session (and, for branch-like methods, its parent) on THIS socket before a
@@ -572,8 +572,8 @@ export class HermesGateway extends JsonRpcGatewayClient {
 
   constructor() {
     super({
-      closedErrorMessage: 'Hermes gateway connection closed',
-      connectErrorMessage: 'Could not connect to Hermes gateway',
+      closedErrorMessage: 'Kova gateway connection closed',
+      connectErrorMessage: 'Could not connect to Kova gateway',
       createRequestId: nextId => nextId,
       notConnectedErrorMessage: GATEWAY_NOT_CONNECTED_MESSAGE,
       // The channel already answered -32603; surface the crash in devtools like the dial-failure sink.
@@ -583,7 +583,7 @@ export class HermesGateway extends JsonRpcGatewayClient {
         console.error(`[gateway] error frame with no request id (code ${error.code ?? 'none'}): ${error.message}`),
       // The channel already answered -32601; note the missing registry in devtools.
       onUnhandledRequest: request =>
-        console.warn(`[gateway] Hermes Desktop has no server-request registry for ${request.method} (${request.id})`),
+        console.warn(`[gateway] Kova Desktop has no server-request registry for ${request.method} (${request.id})`),
       requestTimeoutMs: DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS,
       socketFactory: openGatewaySocket
     })
@@ -683,8 +683,8 @@ export function resolveOwnerNow(owner?: OwnerScope): ResolvedOwner {
  *  ambient connection spread underneath. An untagged half stays untagged. A
  *  named profile is always explicit here, so it carries the foreground
  *  priority `profileScoped` gives explicit profiles (voice is user-driven). */
-export function hermesApiAs<T>(owner: ResolvedOwner, request: HermesApiRequest): Promise<T> {
-  return window.hermesDesktop.api<T>({
+export function hermesApiAs<T>(owner: ResolvedOwner, request: KovaApiRequest): Promise<T> {
+  return window.kovaDesktop.api<T>({
     ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
     ...(owner.profile ? { priority: 'foreground' as const, profile: owner.profile } : {}),
     ...request
@@ -750,8 +750,8 @@ export function ambientOwnerConnectionId(): string | undefined {
  *  pin — `'local'` included — so a pin always overrides the ambient tag spread
  *  underneath it. (It used to omit the key for 'local', which made the pin
  *  unable to beat the ambient tag; helpers then had to bypass this wrapper.) */
-export function hermesApi<T>(request: HermesApiRequest): Promise<T> {
-  return window.hermesDesktop.api<T>({ ...connectionScoped(), ...request })
+export function hermesApi<T>(request: KovaApiRequest): Promise<T> {
+  return window.kovaDesktop.api<T>({ ...connectionScoped(), ...request })
 }
 
 // ── Capability scope: (connection, profile) routing for the Capabilities

@@ -1,4 +1,4 @@
-"""``hermes gateway restart`` for a gateway whose supervisor Hermes did not install.
+"""``hermes gateway restart`` for a gateway whose supervisor Kova did not install.
 
 A custom launchd agent / systemd unit / any KeepAlive-style manager running ``gateway run
 --external-supervisor`` owns the respawn. The manual fallback in ``_cmd_restart`` (SIGTERM, then a
@@ -34,10 +34,10 @@ def gateway_declares_external_supervisor(pid: int, home: Path | None = None) -> 
     if not pid or pid <= 1:
         return False
     from gateway.control_socket import identify_gateway, launch_supervisor
-    from gateway.status import _get_process_hermes_home, read_runtime_status
+    from gateway.status import _get_process_kova_home, read_runtime_status
     from kova_cli.gateway import _capture_gateway_argv
 
-    home = home or _get_process_hermes_home()
+    home = home or _get_process_kova_home()
     identity = identify_gateway(home) or {}
     # Not ``identity["supervisor"]``: the runtime protocol reports a manual gateway as "none".
     if identity.get("pid") == pid and launch_supervisor(identity) not in (None, "manual"):
@@ -145,5 +145,5 @@ def start_restart_replacement(args, *, force: bool) -> None:
     from kova_cli import gateway as gw
     if getattr(args, "detach", False):
         from kova_cli.gateway_runtime_start import start_detached_replacement
-        sys.exit(start_detached_replacement(gw.get_hermes_home(), force=force))
+        sys.exit(start_detached_replacement(gw.get_kova_home(), force=force))
     gw.run_gateway(verbose=0, force=force)

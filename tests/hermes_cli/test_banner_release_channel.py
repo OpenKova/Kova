@@ -13,21 +13,21 @@ from kova_cli.version_info import get_version_info
 
 @pytest.mark.parametrize("channel", ["stable", "canary", "preview-from-r2"])
 def test_release_channel_never_compares_main_or_reuses_main_cache(tmp_path, monkeypatch, channel):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     root = tmp_path / "source"
     root.mkdir()
     (root / ".git").mkdir()
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
-    monkeypatch.delenv("HERMES_REVISION", raising=False)
+    monkeypatch.setenv("KOVA_INSTALL_ROOT", str(root))
+    monkeypatch.delenv("KOVA_REVISION", raising=False)
     monkeypatch.setattr("kova_cli.config.get_project_root", lambda: root)
     head = "a" * 40
     target = "b" * 40
     monkeypatch.setattr(source_check, "_git_stdout", lambda args, **kw: head if args == ["rev-parse", "HEAD"] else "https://github.com/example/fork.git")
-    (get_hermes_home() / "config.yaml").write_text(json.dumps({
+    (get_kova_home() / "config.yaml").write_text(json.dumps({
         "update": {"installs": {install_id(root): {"path": str(root), "channel": channel}}}
     }))
-    (get_hermes_home() / ".update_check").write_text(json.dumps({
+    (get_kova_home() / ".update_check").write_text(json.dumps({
         "rev": None, "ver": get_version_info().derived_version,
         "head": head, "behind": 99, "ts": 10**12,
     }))

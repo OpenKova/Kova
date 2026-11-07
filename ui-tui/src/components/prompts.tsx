@@ -52,7 +52,7 @@ export function approvalOptions(req: ApprovalReq): readonly ApprovalChoice[] {
   return req.allowPermanent === false ? APPROVAL_OPTS_NO_ALWAYS : APPROVAL_OPTS
 }
 
-/** The rows the prompt shows: the gateway's choices, plus "No, and tell Hermes…" wherever Deny is one. */
+/** The rows the prompt shows: the gateway's choices, plus "No, and tell Kova…" wherever Deny is one. */
 export function approvalRows(req: ApprovalReq): readonly ApprovalChoice[] {
   const opts = approvalOptions(req)
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from contextlib import contextmanager
 
-from kova_constants import get_hermes_home, get_default_hermes_root
+from kova_constants import get_kova_home, get_default_kova_root
 from kova_cli.profiles import parked_marker_path, profile_is_parked, profile_is_standalone, profiles_to_serve
 
 
@@ -42,7 +42,7 @@ def host_scope_for_all_verb(owner):
     named-profile guard then refused (exit 78): the host stayed down after a Desktop update.
     """
     from kova_cli.gateway_migrate import _home_env
-    return _home_env(owner.home if owner is not None else get_default_hermes_root())
+    return _home_env(owner.home if owner is not None else get_default_kova_root())
 
 
 @contextmanager
@@ -68,7 +68,7 @@ def profile_lifecycle(command: str, args) -> bool:
     name = gw._current_profile_name()
     if not name or name == "default" or getattr(args, "all", False) or getattr(args, "force", False):
         return False
-    home = get_hermes_home()
+    home = get_kova_home()
     if profile_is_standalone(home):
         # gateway.standalone wins: the host never serves (or parks) an opted-out profile, so its
         # verbs keep addressing its own gateway process even while a stale host record lists it.
@@ -88,7 +88,7 @@ def profile_lifecycle(command: str, args) -> bool:
             from kova_cli.gateway_multiplex_served import live_default_gateway_pid
             if live_default_gateway_pid() is None:
                 return False  # Unpark even when today's normal start path must start the host first.
-        host_home = owner.home if owner is not None else get_default_hermes_root()
+        host_home = owner.home if owner is not None else get_default_kova_root()
         answer = request_serve_profile_hot(host_home, name)
         if ack_confirmed(answer, "served", name):
             print(f"Profile '{name}' served by the host gateway.")
@@ -103,7 +103,7 @@ def profile_lifecycle(command: str, args) -> bool:
     owner = gw._served_by_another_host_gateway()
     if owner is None and not gw.named_profile_served_by_running_multiplexer():
         return False
-    host_home = owner.home if owner is not None else get_default_hermes_root()
+    host_home = owner.home if owner is not None else get_default_kova_root()
     # Unserving stops this profile's executing turns: the live-work policy applies before the teardown.
     from kova_cli.gateway_lifecycle_guards import refuse_while_sessions_live
     refuse_while_sessions_live(command, args, host_home=host_home, profile=name)
@@ -136,7 +136,7 @@ def print_parked_status() -> bool:
     """A parked satellite is still installed, but is not a running gateway."""
     from kova_cli import gateway as gw
     name = gw._current_profile_name()
-    if name and name != "default" and profile_is_parked(get_hermes_home()):
+    if name and name != "default" and profile_is_parked(get_kova_home()):
         print(f"Profile '{name}': parked (hermes -p {name} gateway start)")
         return True
     if not name or name == "default":
@@ -158,11 +158,11 @@ def owned_gateway_pid() -> int | None:
     pid alone never authorizes a stop. Every ``find_gateway_pids()`` caller (stop, uninstall's kill,
     ``service_manager.is_running``, cron readiness, Windows start polls) reads it through here.
     """
-    from gateway.status import get_running_pid, _get_process_hermes_home
+    from gateway.status import get_running_pid, _get_process_kova_home
 
     try:
         pid = get_running_pid()
-        if pid is None or not _pid_owned_by_home(pid, _get_process_hermes_home()):
+        if pid is None or not _pid_owned_by_home(pid, _get_process_kova_home()):
             return None
         # The runtime may have switched owners while the OS/control probes ran.
         return pid if get_running_pid() == pid else None
@@ -179,12 +179,12 @@ def _pid_owned_by_home(pid: int, home) -> bool:
     host record (a file read plus an incarnation check) settles those without a dial.
     """
     from gateway import host_attach, host_rendezvous as hr
-    from gateway.status import _same_hermes_home
-    from kova_cli.dashboard_procs import _hermes_home_for_pid
+    from gateway.status import _same_kova_home
+    from kova_cli.dashboard_procs import _kova_home_for_pid
 
     record = hr.read_record(hr.ROLE_GATEWAY)
     is_host = record is not None and record.pid == pid and hr.record_names_live_owner(record)
-    if is_host and not _same_hermes_home(host_attach.record_home(record), home):
+    if is_host and not _same_kova_home(host_attach.record_home(record), home):
         return False  # the live host, launched from another home
     if _launch_record_owns(pid, home):
         return True
@@ -193,9 +193,9 @@ def _pid_owned_by_home(pid: int, home) -> bool:
         owner = host_attach.host_gateway()
         # A verified identity answer from the host's own home needs no argv profile (bare launch).
         if owner is not None and owner.pid == pid and owner.served_known:
-            return _same_hermes_home(owner.home, home)
-    process_home = _hermes_home_for_pid(pid, require_launch_identity=True)
-    return process_home is not None and _same_hermes_home(process_home, home)
+            return _same_kova_home(owner.home, home)
+    process_home = _kova_home_for_pid(pid, require_launch_identity=True)
+    return process_home is not None and _same_kova_home(process_home, home)
 
 
 def _launch_record_owns(pid: int, home) -> bool:
@@ -207,13 +207,13 @@ def _launch_record_owns(pid: int, home) -> bool:
     environment alone cannot prove.
     """
     from gateway.status import (
-        _GATEWAY_KIND, _get_process_start_time, _pid_from_record, _read_pid_record, _same_hermes_home)
+        _GATEWAY_KIND, _get_process_start_time, _pid_from_record, _read_pid_record, _same_kova_home)
 
     record = _read_pid_record() or {}
-    started, recorded_home = record.get("start_time"), record.get("hermes_home")
+    started, recorded_home = record.get("start_time"), record.get("kova_home")
     return (record.get("kind") == _GATEWAY_KIND and _pid_from_record(record) == pid
             and started is not None and started == _get_process_start_time(pid)
-            and isinstance(recorded_home, str) and _same_hermes_home(recorded_home, home))
+            and isinstance(recorded_home, str) and _same_kova_home(recorded_home, home))
 
 
 def report_profile_stop_failure() -> None:

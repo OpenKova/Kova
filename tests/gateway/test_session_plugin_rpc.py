@@ -217,7 +217,7 @@ def test_emit_from_a_plugin_thread_reaches_its_own_profile_on_a_multiplexed_gate
     session up in the plugin's own profile, never the launch profile's."""
     from gateway import run_api
     from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
-    from kova_constants import get_hermes_home_override
+    from kova_constants import get_kova_home_override
 
     launch, secondary = tmp_path / 'launch', tmp_path / 'secondary'
     runner, frames = two_profile_runner(launch, secondary)
@@ -237,7 +237,7 @@ def test_emit_from_a_plugin_thread_reaches_its_own_profile_on_a_multiplexed_gate
     launch_ctx = PluginContext(PluginManifest(name='pane-demo'), PluginManager(str(launch)))
     assert from_thread(launch_ctx, 'in-launch') == [True]
     assert len(frames[launch]) == 1 and len(frames[secondary]) == 1
-    assert get_hermes_home_override() is None
+    assert get_kova_home_override() is None
 
 
 @pytest.mark.asyncio
@@ -280,7 +280,7 @@ async def test_plugin_frontend_gets_schema_checked_json_from_its_own_task_with_i
     monkeypatch.setattr(plugins, '_plugin_manager', manager)
     # What `security.redact_secrets: false` sets at boot (the env var also reaches the plugin host).
     monkeypatch.setattr('agent.redact._REDACT_ENABLED', False)
-    monkeypatch.setenv('HERMES_REDACT_SECRETS', 'false')
+    monkeypatch.setenv('KOVA_REDACT_SECRETS', 'false')
     owner = AuthorityConnection(authority, object(), {'user_id': 'owner'})
     secret = 'sk-proj-' + 'A1b2C3d4' * 5
 

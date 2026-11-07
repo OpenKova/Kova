@@ -153,7 +153,7 @@ export function restartGateway(profile?: null | string): Promise<ActionResponse>
   })
 }
 
-export function updateHermes(): Promise<ActionResponse> {
+export function updateKova(): Promise<ActionResponse> {
   return hermesApi<ActionResponse>({
     ...profileScoped(),
     path: '/api/hermes/update',
@@ -164,7 +164,7 @@ export function updateHermes(): Promise<ActionResponse> {
 /** Query the connected backend's own update state. In remote mode this is the
  *  authoritative source for the backend's behind-count + "what's changed",
  *  distinct from the Electron client clone's git state. */
-export function checkHermesUpdate(force = false): Promise<BackendUpdateCheckResponse> {
+export function checkKovaUpdate(force = false): Promise<BackendUpdateCheckResponse> {
   return hermesApi<BackendUpdateCheckResponse>({
     ...profileScoped(),
     path: `/api/hermes/update/check${force ? '?force=true' : ''}`
@@ -172,7 +172,7 @@ export function checkHermesUpdate(force = false): Promise<BackendUpdateCheckResp
 }
 
 export function getActionStatus(name: string, lines = 200, profile?: ProfileScope): Promise<ActionStatusResponse> {
-  return window.hermesDesktop.api<ActionStatusResponse>({
+  return window.kovaDesktop.api<ActionStatusResponse>({
     ...capabilityScoped(profile),
     path: `/api/actions/${encodeURIComponent(name)}/status?lines=${Math.max(1, lines)}`
   })

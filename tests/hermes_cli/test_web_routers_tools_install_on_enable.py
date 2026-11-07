@@ -15,18 +15,18 @@ import kova_cli.web_server_gateway as _web_server_gateway
 
 class TestToggleToolsetInstallOnEnable:
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch, _isolate_hermes_home):
+    def _setup(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN

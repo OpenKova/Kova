@@ -18,7 +18,7 @@ from .stub_plane import StubPlane, remote_env
 def plane(tmp_path, monkeypatch):
     home = Path(tmp_path) / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as p:
         for k, v in remote_env(p).items():
             monkeypatch.setenv(k, v)

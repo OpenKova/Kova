@@ -17,7 +17,7 @@ from typing import Any
 
 # Only these classes have an update path `hermes plugins update <name>` can drive: a catalog install
 # re-pins to the reviewed sha, a tracked git install pulls. A pip row is a PyPI distribution that
-# Hermes never upgrades (#132494), so offering it would promise an update nothing applies.
+# Kova never upgrades (#132494), so offering it would promise an update nothing applies.
 _UPDATE_KIND = {"catalog": "catalog re-pin", "git": "git pull"}
 logger = logging.getLogger(__name__)
 
@@ -49,13 +49,13 @@ def plan_update_all(results: list[Any], installs: dict | None = None) -> UpdateP
         if row.needs_fixing:
             plan.skipped.append((row, f"needs fixing: {row.needs_fixing}"))
         elif row.update_available is True and (held := held_for_newer_hermes(row)):
-            plan.skipped.append((row, f"update available after updating Hermes ({held})"))
+            plan.skipped.append((row, f"update available after updating Kova ({held})"))
         elif row.update_available is True and held_with_ref(installs.get(row.name)):
             plan.skipped.append((row, HELD_WITH_REF.format(name=row.name)))
         elif row.update_available is True and row.klass in _UPDATE_KIND:
             plan.movable.append(row)
         elif row.update_available is True:
-            plan.skipped.append((row, f"{row.klass} distribution; Hermes does not upgrade it"))
+            plan.skipped.append((row, f"{row.klass} distribution; Kova does not upgrade it"))
         elif row.update_available is None:
             plan.skipped.append((row, row.reason or "update status unknown"))
         elif row.reason:  # up to date by construction but worth naming (pinned)

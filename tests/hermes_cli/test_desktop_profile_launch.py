@@ -1,7 +1,7 @@
 """hermes desktop forwards an explicit profile into the packaged Electron launch.
 
 Electron boots from active-profile.json. ``hermes -p <name> desktop`` used to
-set only the CLI HERMES_HOME, so the packaged app still started the stored
+set only the CLI KOVA_HOME, so the packaged app still started the stored
 profile. A launch with no ``-p`` / ``--profile`` must not invent a flag.
 """
 
@@ -51,9 +51,9 @@ def _named_profiles(argv: list[str]) -> set[str]:
 def _packaged_exe(root: Path) -> Path:
     desktop_dir = root / "apps" / "desktop"
     if sys.platform == "darwin":
-        exe = desktop_dir / "release" / "mac-arm64" / "Hermes.app" / "Contents" / "MacOS" / "Hermes"
+        exe = desktop_dir / "release" / "mac-arm64" / "Kova.app" / "Contents" / "MacOS" / "Kova"
     elif sys.platform == "win32":
-        exe = desktop_dir / "release" / "win-unpacked" / "Hermes.exe"
+        exe = desktop_dir / "release" / "win-unpacked" / "Kova.exe"
     else:
         exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
         exe.parent.mkdir(parents=True, exist_ok=True)
@@ -70,7 +70,7 @@ def _live_profile(root: Path, name: str) -> None:
 
 
 def _launch_command(tmp_path, monkeypatch, argv: list[str], *, active_profile: str | None = None) -> list[str]:
-    hermes_root = tmp_path / ".hermes"
+    hermes_root = tmp_path / ".kova"
     hermes_root.mkdir()
     if active_profile and active_profile != "default":
         _live_profile(hermes_root, active_profile)
@@ -78,20 +78,20 @@ def _launch_command(tmp_path, monkeypatch, argv: list[str], *, active_profile: s
     for name in _named_profiles(argv):
         _live_profile(hermes_root, name)
 
-    project = tmp_path / "hermes-agent"
+    project = tmp_path / "kova-agent"
     (project / "apps" / "desktop").mkdir(parents=True)
     (project / "apps" / "desktop" / "package.json").write_text("{}", encoding="utf-8")
     exe = _packaged_exe(project)
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("KOVA_HOME", raising=False)
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
     monkeypatch.setenv("GNOME_KEYRING_CONTROL", "/run/user/1000/keyring")
     for var in (
-        "HERMES_SUPERVISED_CHILD",
-        "HERMES_S6_SUPERVISED_CHILD",
+        "KOVA_SUPERVISED_CHILD",
+        "KOVA_S6_SUPERVISED_CHILD",
         "INVOCATION_ID",
-        "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
+        "KOVA_GATEWAY_EXTERNAL_SUPERVISOR",
         "KDE_SESSION_VERSION",
         "KDE_FULL_SESSION",
     ):
@@ -137,4 +137,4 @@ def test_missing_flag_does_not_forward_sticky_profile(tmp_path, monkeypatch):
     )
 
     assert "--profile" not in launched
-    assert os.environ.get("HERMES_HOME", "").endswith(f"{os.sep}profiles{os.sep}coder")
+    assert os.environ.get("KOVA_HOME", "").endswith(f"{os.sep}profiles{os.sep}coder")

@@ -25,20 +25,20 @@ def test_profiles_sharing_a_repo_prune_it_once_per_interval(tmp_path, monkeypatc
     import cron.scheduler as sched
     from kova_cli import worktree_ops
     from kova_cli.worktree_registry import record_worktree_repo
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     shared = _git_repo(tmp_path / "shared")
     private = _git_repo(tmp_path / "private")
     homes = {name: tmp_path / name for name in ("default", "ops", "lab")}
     for name, home in homes.items():
         home.mkdir()
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             record_worktree_repo(shared)
             if name == "lab":
                 record_worktree_repo(private)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     pruned = []
     monkeypatch.setattr(worktree_ops, "_prune_stale_worktrees", lambda repo: pruned.append(repo))
@@ -56,11 +56,11 @@ def test_profiles_sharing_a_repo_prune_it_once_per_interval(tmp_path, monkeypatc
     monkeypatch.setattr(sched.threading, "Thread", _InlineThread)
 
     for home in homes.values():  # one multiplexed tick: each served profile in its own scope
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             sched._maybe_run_worktree_maintenance()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     ours = [os.path.realpath(r) for r in pruned if os.path.realpath(r) in
             {os.path.realpath(shared), os.path.realpath(private)}]

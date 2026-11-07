@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture
 def all_assignees_spawnable(monkeypatch):
-    """Pretend every assignee maps to a real Hermes profile.
+    """Pretend every assignee maps to a real Kova profile.
 
     Most dispatcher tests use synthetic assignees ("alice", "bob") that
     don't correspond to actual profile directories on disk. Without this
@@ -116,8 +116,8 @@ def _discharge_host_update_obligation():
     """Start and end every ``kova_cli`` test with NO host update-restart obligation.
 
     The record is host-scoped on purpose (one multiplexer per host), so it lives in the
-    per-OS-USER host state dir — not in the per-test ``HERMES_HOME``. The root conftest pins
-    that dir per test only when the caller supplied no ``HERMES_GATEWAY_LOCK_DIR`` (#118097
+    per-OS-USER host state dir — not in the per-test ``KOVA_HOME``. The root conftest pins
+    that dir per test only when the caller supplied no ``KOVA_GATEWAY_LOCK_DIR`` (#118097
     keeps the documented override working), so with one set every test in a file shares it and
     a test that arms the obligation makes the next one read a restart it never owed. Clearing
     the record — rather than re-pinning the dir — leaves that override rule untouched.

@@ -220,8 +220,8 @@ def test_a_real_control_character_never_reads_as_its_literal_escape(real, litera
 @pytest.mark.parametrize("url,command,args,line", [
     (None, "npx", ["-y", "@modelcontextprotocol/server-filesystem", "/home/me/projects", "./data"],
      "npx -y @modelcontextprotocol/server-filesystem /home/me/projects ./data"),
-    (None, "uvx", ["mcp-server-git", "--repository", "/srv/repos/hermes-agent-2024", "-v"],
-     "uvx mcp-server-git --repository /srv/repos/hermes-agent-2024 -v"),
+    (None, "uvx", ["mcp-server-git", "--repository", "/srv/repos/kova-agent-2024", "-v"],
+     "uvx mcp-server-git --repository /srv/repos/kova-agent-2024 -v"),
     (None, "node", ["packages/server2/dist/build/index20240101.js", "--port", "8080"],
      "node packages/server2/dist/build/index20240101.js --port 8080"),
     (None, "mysql", ["-p", "--verbose"], "mysql -p --verbose"),

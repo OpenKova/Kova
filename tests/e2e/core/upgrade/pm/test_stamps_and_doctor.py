@@ -4,14 +4,14 @@ One real install, taken through a dependency-changing ``hermes update`` so the s
 is not the installer's. Then:
 
 * every ``hermes`` the install ships agrees on what the install is. The selected generation's own
-  console script (``<gen>/venv/bin/hermes``) is on PATH for every child a Hermes process spawns
+  console script (``<gen>/venv/bin/hermes``) is on PATH for every child a Kova process spawns
   (``activate_dependencies`` prepends that ``bin``), so the agent's terminal, workers and scripts
   resolve ``hermes`` to it. It must report the checkout as the install and be able to check for
   updates; it reports the workspace copy instead (gated on #122425 and #122627);
 * ``hermes doctor`` on that healthy install reports nothing wrong with the command installation
   (#124050 is the false positive class) and ``hermes pm status`` reports the update as a success;
 * real drift is caught and healed: a user uninstalls fastapi (the ``web`` extra the dashboard
-  imports) from the selected environment. ``hermes doctor`` must say so, and ``hermes pm repair``
+  imports) from the selected environment. ``hermes doctor`` must say so, and ``kova pm repair``
   must bring the dashboard's import back;
 * a dependency update that cannot resolve after the tree moved is an owed follow-up (contract C3,
   A6): ``hermes update`` exits 0 but says loudly that the dependencies are not installed yet, the
@@ -114,7 +114,7 @@ def test_doctor_on_a_healthy_pm_install_reports_no_command_installation_problem(
     assert section, "doctor printed no Command Installation section:\n" + I.describe(cp)
     bad = [line for line in section if line.lstrip().startswith(("⚠", "✗"))]
     assert not bad, f"hermes doctor reports a launcher problem on a healthy PM install: {bad}\n" + I.describe(cp)
-    assert f"Hermes entry point exists ({sb.checkout / 'hermes'})" in cp.stdout, "\n".join(section)
+    assert f"Kova entry point exists ({sb.checkout / 'hermes'})" in cp.stdout, "\n".join(section)
 
 
 def test_pm_status_receipt_reports_the_successful_update(updated):
@@ -130,7 +130,7 @@ def drifted(updated):
     """The user removes fastapi (the ``web`` extra) from the selected environment by hand."""
     sb = updated["sb"]
     assert P.managed_imports(sb, "fastapi")["fastapi"] == "ok", "harness: fastapi not installed to begin with"
-    uv = next((sb.hermes_home / "tools").glob("uv-*/uv"), None) or I.real_uv()
+    uv = next((sb.kova_home / "tools").glob("uv-*/uv"), None) or I.real_uv()
     P.ok(sb.run([str(uv), "pip", "uninstall", "--python", sb.python, "fastapi"]), "harness: uninstall failed")
     assert P.managed_imports(sb, "fastapi")["fastapi"] != "ok", "harness: fastapi still importable"
     doctor = sb.cli("doctor", timeout=300)
@@ -150,10 +150,10 @@ def test_doctor_reports_web_extra_drift(drifted):
 
 def test_pm_repair_heals_the_drift(drifted):
     sb, rp = drifted["sb"], drifted["repair"]
-    assert rp.returncode == 0, "hermes pm repair failed on a drifted environment:\n" + P.diagnostics(sb, rp)
+    assert rp.returncode == 0, "kova pm repair failed on a drifted environment:\n" + P.diagnostics(sb, rp)
     imports = P.managed_imports(sb, "fastapi", "kova_cli.web_server")
     assert set(imports.values()) == {"ok"}, (
-        f"`hermes pm repair` exited 0 but the dashboard still cannot import: {imports}\n" + P.diagnostics(sb, rp))
+        f"`kova pm repair` exited 0 but the dashboard still cannot import: {imports}\n" + P.diagnostics(sb, rp))
 
 
 def test_failed_dependency_update_is_an_owed_followup(updated):

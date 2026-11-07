@@ -16,7 +16,7 @@ import { readSourceUpdate, type SourceUpdate } from './checkout-source'
 
 const execute: typeof execFile.__promisify__ = promisify(execFile)
 const repository: string = path.resolve(import.meta.dirname, '../../../..')
-const python: string = process.env.HERMES_PYTHON || 'python3'
+const python: string = process.env.KOVA_PYTHON || 'python3'
 
 function buildId(channel: 'stable' | 'canary'): string {
   return (channel === 'stable' ? 'a' : 'b').repeat(32)
@@ -110,18 +110,18 @@ function channelRecord(channel: 'stable' | 'canary', sequence: number): FixtureR
   return {
     schema: 1,
     name: channel,
-    repository: 'NousResearch/hermes-agent',
+    repository: 'NousResearch/kova-agent',
     policy: channel === 'stable' ? 'stable-release' : 'canary-release',
     state: 'active',
     revision: 1,
     nextSequence: sequence + 1,
     identity: {
       token: 'b'.repeat(16),
-      displayName: channel === 'stable' ? 'Hermes Stable' : 'Hermes Canary',
-      appNamePascal: 'Hermes',
-      artifactNamePascal: 'Hermes',
-      appId: 'chat.nous.hermes',
-      msixAppIdWithOrg: 'NousResearch.Hermes',
+      displayName: channel === 'stable' ? 'Kova Stable' : 'Kova Canary',
+      appNamePascal: 'Kova',
+      artifactNamePascal: 'Kova',
+      appId: 'chat.nous.kova',
+      msixAppIdWithOrg: 'NousResearch.Kova',
       cliName: 'hermes',
       windowsExecutableName: 'hermes'
     },
@@ -143,11 +143,11 @@ function buildManifest(
 ): FixtureManifest {
   const identity: FixtureIdentity = {
     token: 'b'.repeat(16),
-    displayName: channel === 'stable' ? 'Hermes Stable' : 'Hermes Canary',
-    appNamePascal: 'Hermes',
-    artifactNamePascal: 'Hermes',
-    appId: 'chat.nous.hermes',
-    msixAppIdWithOrg: 'NousResearch.Hermes',
+    displayName: channel === 'stable' ? 'Kova Stable' : 'Kova Canary',
+    appNamePascal: 'Kova',
+    artifactNamePascal: 'Kova',
+    appId: 'chat.nous.kova',
+    msixAppIdWithOrg: 'NousResearch.Kova',
     cliName: 'hermes',
     windowsExecutableName: 'hermes'
   }
@@ -160,7 +160,7 @@ function buildManifest(
       schema: 1,
       buildId: id,
       channel,
-      repository: 'NousResearch/hermes-agent',
+      repository: 'NousResearch/kova-agent',
       commit: sha,
       sourceVersion: tag.replace(/^v/, '').split('+')[0],
       releaseTag: tag,
@@ -176,7 +176,7 @@ function buildManifest(
         platform: 'darwin',
         arch: 'arm64',
         variant: 'bundled',
-        identity: 'chat.nous.hermes',
+        identity: 'chat.nous.kova',
         version: tag.replace(/^v/, ''),
         teamId: 'TESTTEAM12',
         artifact: {
@@ -258,16 +258,16 @@ it('carries each install channel from Python publication checks into the source 
         })
       )
       responses.set(`/${manifestKey(channel)}`, body)
-      responses.set(`/repos/NousResearch/hermes-agent/releases/tags/${tags[channel]}`, {
+      responses.set(`/repos/NousResearch/kova-agent/releases/tags/${tags[channel]}`, {
         tag_name: tags[channel],
         draft: false,
         prerelease: channel === 'canary'
       })
-      responses.set(`/repos/NousResearch/hermes-agent/commits/${tags[channel]}`, { sha })
+      responses.set(`/repos/NousResearch/kova-agent/commits/${tags[channel]}`, { sha })
     }
 
     // Stable IS the latest published GitHub release; no R2 record is consulted for it.
-    responses.set('/repos/NousResearch/hermes-agent/releases/latest', {
+    responses.set('/repos/NousResearch/kova-agent/releases/latest', {
       tag_name: tags.stable,
       draft: false,
       prerelease: false
@@ -287,7 +287,7 @@ it('carries each install channel from Python publication checks into the source 
       path.join(root, 'transport.py'),
       `import sys, os
 sys.path.append(${JSON.stringify(repository)})
-assert not os.environ.get('HERMES_RUNTIME_DIR')
+assert not os.environ.get('KOVA_RUNTIME_DIR')
 import urllib.request
 from urllib.parse import urlsplit
 # source_check.py runs this on import, and is imported twice (the CLI entry, then the module
@@ -318,19 +318,19 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     install()
 `
     )
-    vi.stubEnv('HERMES_MANAGED', '')
-    vi.stubEnv('HERMES_RUNTIME_DIR', path.join(temporary, 'wrong-runtime'))
+    vi.stubEnv('KOVA_MANAGED', '')
+    vi.stubEnv('KOVA_RUNTIME_DIR', path.join(temporary, 'wrong-runtime'))
     vi.stubEnv('PYTHONPATH', path.join(temporary, 'wrong-checkout'))
     vi.stubEnv('PYTHONHOME', path.join(temporary, 'wrong-python'))
-    vi.stubEnv('HERMES_INSTALL_ROOT', origin)
+    vi.stubEnv('KOVA_INSTALL_ROOT', origin)
 
     const environment: NodeJS.ProcessEnv = {
       ...process.env,
-      HERMES_HOME: home,
-      HERMES_INSTALL_ROOT: root,
+      KOVA_HOME: home,
+      KOVA_INSTALL_ROOT: root,
       PYTHONPATH: repository,
       PYTHONHOME: '',
-      HERMES_RUNTIME_DIR: ''
+      KOVA_RUNTIME_DIR: ''
     }
 
     async function setChannel(channel: 'stable' | 'canary' | 'main', install: string = root): Promise<void> {
@@ -378,7 +378,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
 
       emitUpdateProgress: vi.fn(),
       rememberLog: vi.fn(),
-      startHermes: async (): Promise<void> => {},
+      startKova: async (): Promise<void> => {},
 
       stopBackendsForUpdate: vi.fn(async (): Promise<void> => {}),
       repairMacUpdaterHelper: (): void => {},
@@ -395,9 +395,9 @@ if not getattr(urllib.request, '_hermes_loopback', False):
         spawned.push({ command, args, options })
         // C2: a hand-off has started only once the script takes the Desktop's
         // bridge marker in its own (live, foreign) name — do that here. Line 2
-        // echoes HERMES_UPDATE_STARTED_AT as posix.sh does; a fresh clock read
+        // echoes KOVA_UPDATE_STARTED_AT as posix.sh does; a fresh clock read
         // misses the Desktop's stamp whenever the spawn lands in the next second.
-        fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.HERMES_UPDATE_STARTED_AT}\n`)
+        fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.KOVA_UPDATE_STARTED_AT}\n`)
 
         return { unref: (): void => {} }
       }
@@ -407,8 +407,8 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     const script: string = path.join(scriptDirectory, process.platform === 'win32' ? 'windows.ps1' : 'posix.sh')
     fs.mkdirSync(scriptDirectory, { recursive: true })
     fs.writeFileSync(path.join(scriptDirectory, 'runtime.ps1'), '')
-    fs.mkdirSync(path.join(root, '.hermes', 'bin'), { recursive: true })
-    fs.writeFileSync(path.join(root, '.hermes', 'bin', 'hermes.exe'), '')
+    fs.mkdirSync(path.join(root, '.kova', 'bin'), { recursive: true })
+    fs.writeFileSync(path.join(root, '.kova', 'bin', 'hermes.exe'), '')
 
     for (const channel of ['stable', 'canary'] as const) {
       await setChannel(channel)
@@ -437,11 +437,11 @@ if not getattr(urllib.request, '_hermes_loopback', False):
       expect(handoff?.args).not.toContain('--branch')
       expect(handoff?.args).not.toContain('-Branch')
       expect(handoff?.command).not.toBe(deps.resolveUpdaterBinary())
-      expect(handoff?.options.env?.HERMES_HOME).toBe(home)
-      expect(handoff?.options.env?.HERMES_INSTALL_ROOT).toBe(root)
+      expect(handoff?.options.env?.KOVA_HOME).toBe(home)
+      expect(handoff?.options.env?.KOVA_INSTALL_ROOT).toBe(root)
       expect(handoff?.options.env?.PYTHONPATH).toBe('')
       expect(handoff?.options.env?.PYTHONHOME).toBe('')
-      expect(handoff?.options.env?.HERMES_RUNTIME_DIR).toBeUndefined()
+      expect(handoff?.options.env?.KOVA_RUNTIME_DIR).toBeUndefined()
       deps.resolveUpdaterBinary = (): null => null
       expect(git(['rev-parse', 'HEAD'], root)).toBe(commits[3])
       git(['checkout', '--detach', sha], root)

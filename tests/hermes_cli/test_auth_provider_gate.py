@@ -5,16 +5,16 @@ import pytest
 
 
 def _write_config(tmp_path, config: dict) -> None:
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
     import kova_yaml as yaml
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump(config))
+    (kova_home / "config.yaml").write_text(yaml.safe_dump(config))
 
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 @pytest.fixture(autouse=True)
@@ -30,7 +30,7 @@ def _clean_anthropic_env(monkeypatch):
 
 def test_ambient_pool_source_does_not_count_as_explicit(tmp_path, monkeypatch):
     """gh_cli-seeded Copilot pool entries are ambient, not explicit config (#56974)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("COPILOT_GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GH_TOKEN", raising=False)
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
@@ -54,33 +54,33 @@ def test_ambient_pool_source_does_not_count_as_explicit(tmp_path, monkeypatch):
 
 def test_vertex_adc_counts_as_explicit_when_config_present(tmp_path, monkeypatch):
     """A keyless Vertex provider is explicitly configured when the user pointed
-    Hermes at it (VERTEX_PROJECT_ID / vertex.project_id / VERTEX_CREDENTIALS_PATH),
+    Kova at it (VERTEX_PROJECT_ID / vertex.project_id / VERTEX_CREDENTIALS_PATH),
     even when it is NOT the current provider — otherwise it silently vanishes
     from explicit-only pickers (desktop chat model menu) unless already selected."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     for var in ("VERTEX_PROJECT_ID", "VERTEX_CREDENTIALS_PATH", "GOOGLE_APPLICATION_CREDENTIALS"):
         monkeypatch.delenv(var, raising=False)
     _write_auth_store(tmp_path, {"version": 1, "providers": {}, "active_provider": None})
 
     from kova_cli.auth import is_provider_explicitly_configured
 
-    # vertex.project_id in config.yaml is a deliberate, Hermes-scoped signal.
+    # vertex.project_id in config.yaml is a deliberate, Kova-scoped signal.
     _write_config(tmp_path, {
         "model": {"provider": "anthropic", "default": "claude-opus-4-8"},
         "vertex": {"project_id": "my-gcp-project"},
     })
     assert is_provider_explicitly_configured("vertex") is True
 
-    # No Hermes-scoped Vertex config at all → stays hidden.
+    # No Kova-scoped Vertex config at all → stays hidden.
     _write_config(tmp_path, {"model": {"provider": "anthropic", "default": "claude-opus-4-8"}})
     assert is_provider_explicitly_configured("vertex") is False
 
 
 def test_vertex_ambient_google_creds_env_does_not_count_as_explicit(tmp_path, monkeypatch):
     """An ambient GOOGLE_APPLICATION_CREDENTIALS path (commonly set globally for
-    unrelated GCP work) must NOT mark Vertex explicit — only Hermes-scoped
+    unrelated GCP work) must NOT mark Vertex explicit — only Kova-scoped
     signals do. Regression guard for the picker gate (PR review feedback)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("VERTEX_PROJECT_ID", raising=False)
     monkeypatch.delenv("VERTEX_CREDENTIALS_PATH", raising=False)
     _write_config(tmp_path, {"model": {"provider": "anthropic", "default": "claude-opus-4-8"}})
@@ -98,7 +98,7 @@ def test_vertex_ambient_google_creds_env_does_not_count_as_explicit(tmp_path, mo
 def test_vertex_credentials_path_must_be_readable_file(tmp_path, monkeypatch):
     """VERTEX_CREDENTIALS_PATH must point to an actual readable file, not a directory
     or non-existent path."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("VERTEX_PROJECT_ID", raising=False)
     monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
     _write_config(tmp_path, {"model": {"provider": "anthropic", "default": "claude-opus-4-8"}})
@@ -126,7 +126,7 @@ def test_vertex_credentials_path_must_be_readable_file(tmp_path, monkeypatch):
 def test_bedrock_region_counts_as_explicit(tmp_path, monkeypatch):
     """Bedrock (AWS SDK auth, no API key) is explicitly configured once the
     user pins a region in config.yaml, mirroring the Vertex keyless case."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}, "active_provider": None})
 
     from kova_cli.auth import is_provider_explicitly_configured
@@ -146,7 +146,7 @@ def test_bedrock_region_counts_as_explicit(tmp_path, monkeypatch):
 
 def test_returns_true_when_moa_reference_slot_uses_provider(tmp_path, monkeypatch):
     """MoA advisor slots are explicit provider selections for auth gating."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_config(tmp_path, {
         "model": {"provider": "openai-codex", "default": "gpt-5.5"},
         "moa": {
@@ -171,7 +171,7 @@ def test_stale_env_pool_entry_does_not_count_when_var_unset(tmp_path, monkeypatc
     """An env-seeded pool entry left in auth.json after the env var was removed
     must not mark the provider configured (#55790): the picker showed removed
     providers forever because the record existed even though no secret resolves."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     _write_auth_store(tmp_path, {
         "version": 1,
@@ -204,7 +204,7 @@ def test_profile_dotenv_key_counts_as_explicit_when_process_env_lacks_it(tmp_pat
     (root / "config.yaml").write_text("model: {}\n")
     (studio / "config.yaml").write_text("model: {}\n")
     (studio / ".env").write_text("DEEPSEEK_API_KEY=sk-studio-deepseek-key\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
     from agent import secret_scope
@@ -228,7 +228,7 @@ def test_dotenv_key_counts_when_shell_exports_the_var_empty(tmp_path, monkeypatc
     an empty ``DEEPSEEK_API_KEY=`` inherited from the parent shell must not hide
     a real key in .env (#77007) — the resolver would use that key, so the picker
     must list the provider."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.setenv("DEEPSEEK_API_KEY", "")
     _write_config(tmp_path, {"model": {}})
     (tmp_path / "hermes" / ".env").write_text("DEEPSEEK_API_KEY=sk-dotenv-only-secret\n")
@@ -268,7 +268,7 @@ def _clean_aws_env(monkeypatch):
 
 
 def test_bedrock_not_explicit_without_aws_env(tmp_path, monkeypatch, _clean_aws_env):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
 
     from kova_cli.auth import is_provider_explicitly_configured
@@ -278,7 +278,7 @@ def test_bedrock_not_explicit_without_aws_env(tmp_path, monkeypatch, _clean_aws_
 def test_bedrock_bearer_token_counts_as_explicit(tmp_path, monkeypatch, _clean_aws_env):
     """AWS_BEARER_TOKEN_BEDROCK is Bedrock-specific — the user set it for
     exactly this provider, so it gates like a provider API key."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "ABSKexample-bearer-token-value")
 
@@ -287,7 +287,7 @@ def test_bedrock_bearer_token_counts_as_explicit(tmp_path, monkeypatch, _clean_a
 
 
 def test_bedrock_access_key_pair_counts_as_explicit(tmp_path, monkeypatch, _clean_aws_env):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIAEXAMPLE1234567890")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "examplesecretexamplesecretexample0000000")
@@ -298,7 +298,7 @@ def test_bedrock_access_key_pair_counts_as_explicit(tmp_path, monkeypatch, _clea
 
 def test_bedrock_access_key_without_secret_is_not_explicit(tmp_path, monkeypatch, _clean_aws_env):
     """A lone AWS_ACCESS_KEY_ID can't authenticate anything — require the pair."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "AKIAEXAMPLE1234567890")
 
@@ -308,9 +308,9 @@ def test_bedrock_access_key_without_secret_is_not_explicit(tmp_path, monkeypatch
 
 def test_bedrock_ambient_aws_profile_is_not_explicit(tmp_path, monkeypatch, _clean_aws_env):
     """AWS_PROFILE is ambient machine state (SSO / shared credentials file),
-    not an explicit Hermes provider choice — same principle as gh_cli-seeded
+    not an explicit Kova provider choice — same principle as gh_cli-seeded
     Copilot pool entries (#56974)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("AWS_PROFILE", "default")
 
@@ -321,7 +321,7 @@ def test_bedrock_ambient_aws_profile_is_not_explicit(tmp_path, monkeypatch, _cle
 def test_aws_env_does_not_leak_into_other_providers(tmp_path, monkeypatch, _clean_aws_env):
     """The aws_sdk env check must key on the provider's auth_type, not fire
     for every provider whenever AWS credentials happen to be present."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "ABSKexample-bearer-token-value")
 

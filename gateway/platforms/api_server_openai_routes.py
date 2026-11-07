@@ -677,7 +677,7 @@ class _ResponsesStream:
             # Only the publisher recorded the deltas; a replay observer winning the
             # INSERT OR IGNORE would leave every later replay without them. Built here, on the
             # loop, so the worker never reads headers or events the loop may still append to.
-            headers = {k: v for k, v in self.response.headers.items() if k.startswith('X-Hermes-')}
+            headers = {k: v for k, v in self.response.headers.items() if k.startswith('X-Kova-')}
             terminal_event = {'type': 'response.' + status, 'response': env, 'sequence_number': self.sequence_number}
             record = {'fingerprint': self.durable_key[1], 'response': env, 'headers': headers,
                       'events': [*self.recorded_events, ('response.' + status, terminal_event)]}
@@ -891,18 +891,18 @@ class OpenAICompatRoutesMixin:
         if not _content_has_visible_payload(user_message):
             return _invalid_request("No user message found in messages")
 
-        # X-Hermes-Session-Key scopes long-term memory per channel; independent of
-        # X-Hermes-Session-Id (the key persists across transcripts, the id rotates on /new).
+        # X-Kova-Session-Key scopes long-term memory per channel; independent of
+        # X-Kova-Session-Id (the key persists across transcripts, the id rotates on /new).
         gateway_session_key, key_err = self._parse_session_key_header(request)
         if key_err is not None:
             return key_err
-        # X-Hermes-Session-Id continues an existing session (history from state.db, not the body);
+        # X-Kova-Session-Id continues an existing session (history from state.db, not the body);
         # requires a configured API key or any client could read history by guessing ids.
-        provided_session_id = request.headers.get("X-Hermes-Session-Id", "").strip()
+        provided_session_id = request.headers.get("X-Kova-Session-Id", "").strip()
         if provided_session_id:
             if not self._api_key:
                 logger.warning(
-                    "Session continuation via X-Hermes-Session-Id rejected: "
+                    "Session continuation via X-Kova-Session-Id rejected: "
                     "no API key configured.  Set API_SERVER_KEY to enable "
                     "session continuity.")
                 return _error_response("Session continuation requires API key authentication. "
@@ -930,7 +930,7 @@ class OpenAICompatRoutesMixin:
                 history = []
         else:
             # Stable id from the conversation fingerprint so Open WebUI-style clients map onto
-            # one Hermes session; namespaced by the routed profile (#123989).
+            # one Kova session; namespaced by the routed profile (#123989).
             first_user = next(
                 (cm.get("content", "") for cm in conversation_messages if cm.get("role") == "user"), "")
             session_id = _derive_chat_session_id(system_prompt, first_user, _api_request_profile.get())
@@ -950,7 +950,7 @@ class OpenAICompatRoutesMixin:
             ephemeral_system_prompt=system_prompt, session_id=session_id,
             gateway_session_key=gateway_session_key, **agent_overrides, route=route,
             relay_metadata=relay_metadata,
-            # #98619: only an explicitly provided X-Hermes-Session-Id is wake-capable (the
+            # #98619: only an explicitly provided X-Kova-Session-Id is wake-capable (the
             # header is 403-gated on API_SERVER_KEY, so the wake self-post can authenticate
             # and the client can resume the session by sending it again). A fingerprint-derived
             # id from a header-less client is NOT: delegate_task keeps its forced-sync fallback
@@ -1026,9 +1026,9 @@ class OpenAICompatRoutesMixin:
         # Same #13437 identity contract as the SSE path: an explicit-header client is echoed
         # the stable id it sent; a fingerprint-derived (header-less) turn keeps reporting the
         # id the agent actually resolved, so headerless clients still learn where the turn went.
-        response_headers = {"X-Hermes-Session-Id": (provided_session_id or result.get("session_id", session_id))}
+        response_headers = {"X-Kova-Session-Id": (provided_session_id or result.get("session_id", session_id))}
         if gateway_session_key:
-            response_headers["X-Hermes-Session-Key"] = gateway_session_key
+            response_headers["X-Kova-Session-Key"] = gateway_session_key
         # Hard fail (no usable text AND a real failure) -> 502 OpenAI error envelope so SDK
         # clients raise instead of rendering the failure string as message.content.
         if not final_response and (is_failed or is_partial):
@@ -1037,10 +1037,10 @@ class OpenAICompatRoutesMixin:
                 code="agent_incomplete")
             err_body["error"]["hermes"] = {
                 "completed": completed, "partial": is_partial, "failed": is_failed}
-            response_headers["X-Hermes-Completed"] = "false"
-            response_headers["X-Hermes-Partial"] = "true" if is_partial else "false"
+            response_headers["X-Kova-Completed"] = "false"
+            response_headers["X-Kova-Partial"] = "true" if is_partial else "false"
             return web.json_response(err_body, status=502, headers=response_headers)
-        # Soft partial (some text, run incomplete): 200 + finish_reason="length"/Hermes extras.
+        # Soft partial (some text, run incomplete): 200 + finish_reason="length"/Kova extras.
         response_data = {
             "id": completion_id, "object": "chat.completion", "created": created,
             "model": model_name,
@@ -1055,10 +1055,10 @@ class OpenAICompatRoutesMixin:
             response_data["hermes"] = _hermes_extras(
                 completed, is_partial, is_failed, "" if presentation_muted else err_msg, finish_reason,
                 budget_exhausted=budget_exhausted)
-            response_headers["X-Hermes-Completed"] = "false"
-            response_headers["X-Hermes-Partial"] = "true" if is_partial else "false"
+            response_headers["X-Kova-Completed"] = "false"
+            response_headers["X-Kova-Partial"] = "true" if is_partial else "false"
             if err_msg and not presentation_muted:
-                response_headers["X-Hermes-Error"] = _redact_api_error_text(err_msg, limit=200)
+                response_headers["X-Kova-Error"] = _redact_api_error_text(err_msg, limit=200)
         return web.json_response(response_data, headers=response_headers)
 
     def _chat_request_id(self, request: web.Request) -> Optional[str]:
@@ -1145,9 +1145,9 @@ class OpenAICompatRoutesMixin:
         can't inject headers after ``prepare()`` flushes them, so they are resolved here)."""
         sse_headers = self._sse_headers(request)
         if session_id:
-            sse_headers["X-Hermes-Session-Id"] = session_id
+            sse_headers["X-Kova-Session-Id"] = session_id
         if gateway_session_key:
-            sse_headers["X-Hermes-Session-Key"] = gateway_session_key
+            sse_headers["X-Kova-Session-Key"] = gateway_session_key
         response = web.StreamResponse(status=200, headers=sse_headers)
         await response.prepare(request)
         return response
@@ -1313,7 +1313,7 @@ class OpenAICompatRoutesMixin:
         from gateway.platforms.api_server import _sse_frame
         headers = replay.get('headers') or {}
         response = await self._prepare_sse_response(
-            request, headers.get('X-Hermes-Session-Id'), headers.get('X-Hermes-Session-Key'))
+            request, headers.get('X-Kova-Session-Id'), headers.get('X-Kova-Session-Key'))
         events = replay.get('events')
         if not events:
             env = replay['response']
@@ -1492,9 +1492,9 @@ class OpenAICompatRoutesMixin:
                 result.get('error') or 'The admitted turn failed.')}
         snapshot = (response_id, {"response": response_data, "conversation_history": full_history,
                     "instructions": instructions, "session_id": _effective_session_id}) if store else None
-        response_headers = {"X-Hermes-Session-Id": _effective_session_id}
+        response_headers = {"X-Kova-Session-Id": _effective_session_id}
         if gateway_session_key:
-            response_headers["X-Hermes-Session-Key"] = gateway_session_key
+            response_headers["X-Kova-Session-Key"] = gateway_session_key
         replay_record = (durable_key[0], {'fingerprint': durable_key[1], 'response': response_data,
                          'headers': response_headers}) if durable_key is not None else None
         if snapshot is not None or replay_record is not None:

@@ -1,12 +1,12 @@
-"""Has this OS user already used Hermes on this computer?
+"""Has this OS user already used Kova on this computer?
 
 The desktop's welcome trial goes only to a first install, once per OS user, so ``onboarding.start``
 asks this before it claims one. The answer is about the OS user, not the active profile: it looks at
-every Hermes root the machine names (default roots, channel and package roots, the roots gateway
-services and the ``hermes`` launcher point at) and at a marker file no Hermes setting can move.
+every Kova root the machine names (default roots, channel and package roots, the roots gateway
+services and the ``hermes`` launcher point at) and at a marker file no Kova setting can move.
 
 This is product gating, not security: the inference API's limits stop abuse. So it reads only small
-known files, never scans the disk, never writes into a Hermes root, and treats doubt as "used".
+known files, never scans the disk, never writes into a Kova root, and treats doubt as "used".
 """
 
 from __future__ import annotations
@@ -120,7 +120,7 @@ _claim_lock_holder = threading.local()
 
 @contextlib.contextmanager
 def claim_lock() -> Iterator[None]:
-    """One welcome-trial claim at a time for this OS user, whichever Hermes data root it runs from
+    """One welcome-trial claim at a time for this OS user, whichever Kova data root it runs from
     (stable and canary started together hold different auth locks). Beside the marker it guards, and
     taken before any auth lock."""
     places = machine_places()
@@ -218,38 +218,38 @@ def _expand_all(patterns: Iterable[str]) -> Iterator[Path]:
 
 
 def _active_root() -> Iterable[Path]:
-    from kova_constants import _get_platform_default_hermes_home, get_default_hermes_root
+    from kova_constants import _get_platform_default_kova_home, get_default_kova_root
 
-    return (get_default_hermes_root(), _get_platform_default_hermes_home())
+    return (get_default_kova_root(), _get_platform_default_kova_home())
 
 
 def _home_globs() -> Iterable[Path]:
     from kova_platform.resolver import known_dirs
 
-    return _expand_all(known_dirs.hermes_home_globs())
+    return _expand_all(known_dirs.kova_home_globs())
 
 
 def _shared_auth_dir() -> Iterable[Path]:
-    raw = os.environ.get("HERMES_SHARED_AUTH_DIR", "").strip()
+    raw = os.environ.get("KOVA_SHARED_AUTH_DIR", "").strip()
     return (Path(raw),) if raw else ()
 
 
 def _registry_home() -> Iterable[Path]:
-    """The ``HERMES_HOME`` older Windows installers saved for the user (the desktop honours it)."""
+    """The ``KOVA_HOME`` older Windows installers saved for the user (the desktop honours it)."""
     if sys.platform != "win32":
         return ()
     import winreg
 
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
-            value, _kind = winreg.QueryValueEx(key, "HERMES_HOME")
+            value, _kind = winreg.QueryValueEx(key, "KOVA_HOME")
     except OSError:
         return ()
     return (Path(os.path.expandvars(str(value))),) if str(value).strip() else ()
 
 
 def _service_homes() -> Iterable[Path]:
-    """The ``HERMES_HOME`` of every gateway service this OS user runs: its own definitions, the
+    """The ``KOVA_HOME`` of every gateway service this OS user runs: its own definitions, the
     machine-wide units that run as it, and the launchers its Scheduled Tasks start. Another account's
     gateway is that account's install."""
     from kova_cli import gateway_windows
@@ -314,8 +314,8 @@ def _launcher_root() -> Iterable[Path]:
         return (launcher.parent,)  # reading it would raise a macOS permission prompt; reported as unreadable
     python = _launcher_python(launcher)
     owners = [p.parent for p in (python.parents if python else ()) if p.name == "tools"]
-    if not owners and launcher.parent.name == "bin" and launcher.parent.parent.name == ".hermes":
-        owners = [launcher.parent.parent.parent.parent]  # <root>/<checkout>/.hermes/bin/hermes
+    if not owners and launcher.parent.name == "bin" and launcher.parent.parent.name == ".kova":
+        owners = [launcher.parent.parent.parent.parent]  # <root>/<checkout>/.kova/bin/hermes
     return owners[:1]
 
 
@@ -393,7 +393,7 @@ def _provider_config(home: _Root) -> bool:
 
 
 # A deployment secret, not something a user entered.
-_IGNORED_ENV_KEYS = frozenset({"HERMES_ANON_API_SECRET"})
+_IGNORED_ENV_KEYS = frozenset({"KOVA_ANON_API_SECRET"})
 _USER_ENV_CATEGORIES = frozenset({"provider", "tool", "messaging", "skill"})
 
 
@@ -413,7 +413,7 @@ def _provider_key(home: _Root) -> bool:
 
 def _provider_login(home: _Root) -> bool:
     """A login, an active provider or a guest (only a connector action or a trial claim makes one),
-    or a credential the user added by hand. Pool rows Hermes seeds on its own (shell env keys, other
+    or a credential the user added by hand. Pool rows Kova seeds on its own (shell env keys, other
     tools' CLI logins) prove nothing."""
     for store in home.auth_stores:
         providers = store.get("providers")

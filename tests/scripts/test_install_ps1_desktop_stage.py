@@ -55,7 +55,7 @@ public static class FakePy {
                 Environment.GetEnvironmentVariable("FAKE_INSTALL_DIR"),
                 "apps", "desktop", "release", "win-unpacked");
             Directory.CreateDirectory(dir);
-            File.WriteAllText(Path.Combine(dir, "Hermes.exe"), "fake");
+            File.WriteAllText(Path.Combine(dir, "Kova.exe"), "fake");
         }
         return 0;
     }
@@ -70,7 +70,7 @@ public static class FakePy {
 _WRAPPER = r'''
 param(
     [Parameter(Mandatory = $true)][string]$InstallerPath,
-    [Parameter(Mandatory = $true)][string]$HermesHome,
+    [Parameter(Mandatory = $true)][string]$KovaHome,
     [Parameter(Mandatory = $true)][string]$InstallDir
 )
 $ErrorActionPreference = "Stop"
@@ -128,7 +128,7 @@ function ie4uinit.exe {
 }
 
 # Load the definitions, then execute the real stage dispatcher.
-. $InstallerPath -InstallDir $InstallDir -HermesHome $HermesHome
+. $InstallerPath -InstallDir $InstallDir -KovaHome $KovaHome
 function Get-BootstrapPython { return $env:FAKE_BOOT_PY }
 Invoke-StageByName 'desktop'
 exit $LASTEXITCODE
@@ -157,7 +157,7 @@ def _run(powershell: str, tmp_path: Path, args: list[str], env: dict[str, str] |
     return subprocess.run(
         [powershell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
          "-File", str(INSTALL_PS1), *args,
-         "-HermesHome", str(tmp_path / "hermes-home"),
+         "-KovaHome", str(tmp_path / "hermes-home"),
          "-InstallDir", str(tmp_path / "install")],
         cwd=tmp_path,
         env=env,
@@ -214,7 +214,7 @@ def test_complete_stage_writes_pinned_install_marker(tmp_path: Path) -> None:
     run = _run(powershell, tmp_path, ["-Stage", "complete", "-Commit", commit, "-Json"])
     assert run.returncode == 0, run.stdout + run.stderr
     assert json.loads(run.stdout.splitlines()[-1])["ok"] is True
-    marker = json.loads((install / ".hermes-bootstrap-complete").read_text(encoding="utf-8-sig"))
+    marker = json.loads((install / ".kova-bootstrap-complete").read_text(encoding="utf-8-sig"))
     assert marker["pinnedCommit"] == commit
     assert marker["pinnedBranch"] == "main"
 
@@ -251,7 +251,7 @@ def test_desktop_stage_uses_pm_sync_and_product_cli(tmp_path: Path) -> None:
         "PATHEXT": ";".join(dict.fromkeys([*os.environ.get("PATHEXT", "").split(";"), ".EXE"])),
         "FAKE_PY_LOG": str(py_log),
         "FAKE_BOOT_PY": str(fake_python),
-        "HERMES_RUNTIME_DIR": str(tmp_path / "empty-store"),
+        "KOVA_RUNTIME_DIR": str(tmp_path / "empty-store"),
         "FAKE_INSTALL_DIR": str(install_dir),
         "WSH_LOG": str(wsh_log),
         "ICACLS_LOG": str(icacls_log),
@@ -260,7 +260,7 @@ def test_desktop_stage_uses_pm_sync_and_product_cli(tmp_path: Path) -> None:
         [powershell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
          "-File", str(wrapper),
          "-InstallerPath", str(INSTALL_PS1),
-         "-HermesHome", str(tmp_path / "hermes-home"),
+         "-KovaHome", str(tmp_path / "hermes-home"),
          "-InstallDir", str(install_dir)],
         cwd=tmp_path, env=env, stdin=subprocess.DEVNULL,
         capture_output=True, text=True, check=False, timeout=180,
@@ -277,7 +277,7 @@ def test_desktop_stage_uses_pm_sync_and_product_cli(tmp_path: Path) -> None:
     assert len(completion) == 1 and "--desktop" in completion[0], calls
     assert not any(c[-2:] == ["desktop", "--build-only"] or "sync_venv" in " ".join(c) for c in calls), calls
     # 3. the stage probed the artifact the fake build produced.
-    exe = install_dir / "apps" / "desktop" / "release" / "win-unpacked" / "Hermes.exe"
+    exe = install_dir / "apps" / "desktop" / "release" / "win-unpacked" / "Kova.exe"
     assert exe.is_file(), calls
     # 4. ACL grant hit the intercepted icacls with the produced exe's dir.
     icacls_lines = icacls_log.read_text().splitlines()

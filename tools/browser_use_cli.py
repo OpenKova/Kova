@@ -1,5 +1,5 @@
 """``browser_exec``: drive a real browser through the Browser Use CLI engine (browser-harness,
-https://browser-use.com), Hermes' only core browser tool.
+https://browser-use.com), Kova' only core browser tool.
 
 The harness speaks CDP to whatever ``tools.browser_session`` resolved for the call: an operator
 ``BU_CDP_*`` endpoint, a ``/browser connect`` override, a cloud provider's session, or a local browser
@@ -25,7 +25,7 @@ from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from kova_cli.process_identity import (
     own_process_groups, register_child, release_process_group_once_empty, spawn_env, spawned_by_this_process)
-from kova_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_kova_home, kova_home_key
 from tools.browser_harness_dirs import (daemon_env, daemon_identity, fit_default_socket_dir, harness_pid_file,
                                         namespace_harness_dirs)
 from utils import is_truthy_value
@@ -41,16 +41,16 @@ _SESSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
 # Set on the env dict by the CDP resolvers when the resolved browser is EXCLUSIVE to this named session
 # (per-name provider / named BU cloud / Lightpanda). Popped before the subprocess launches — never exported.
-_PRIVATE_BROWSER_SENTINEL = "_HERMES_BU_PRIVATE_BROWSER"
+_PRIVATE_BROWSER_SENTINEL = "_KOVA_BU_PRIVATE_BROWSER"
 # Internal route provenance: this exec resolved to a browser on the Bot Desktop display and must use
 # the same human-control lease fence as the built-in browser tools. Popped before launching the CLI.
-_BOT_DESKTOP_BROWSER_SENTINEL = "_HERMES_BU_BOT_DESKTOP_BROWSER"
+_BOT_DESKTOP_BROWSER_SENTINEL = "_KOVA_BU_BOT_DESKTOP_BROWSER"
 # The note when the consented real profile could not load (the route fell back). Popped before launch.
-_REAL_PROFILE_FALLBACK_SENTINEL = "_HERMES_BU_REAL_PROFILE_FALLBACK"
+_REAL_PROFILE_FALLBACK_SENTINEL = "_KOVA_BU_REAL_PROFILE_FALLBACK"
 # local=True whose real profile could not load: run on the local sidecar browser. Popped before launch.
-_LOCAL_FALLBACK_SENTINEL = "_HERMES_BU_LOCAL_FALLBACK"
+_LOCAL_FALLBACK_SENTINEL = "_KOVA_BU_LOCAL_FALLBACK"
 # Where new/hidden tabs may be brought to the front: a browser_use_shot.ACTIVATE_* mode. Popped before launch.
-_CLOUD_BROWSER_SENTINEL = "_HERMES_BU_CLOUD_BROWSER"
+_CLOUD_BROWSER_SENTINEL = "_KOVA_BU_CLOUD_BROWSER"
 
 # Prepended to the model's code for named sessions on SHARED browsers (a /browser connect CDP override): the
 # harness daemon attaches to the first existing page at startup, so two fresh named daemons can land on the
@@ -184,7 +184,7 @@ def _base_subprocess_env() -> dict:
     from tools.browser_session import build_browser_env
     env = build_browser_env()
     env.update(_harness_credentials())
-    # The harness runs on Hermes's own interpreter, but a bundled Desktop install boots that
+    # The harness runs on Kova's own interpreter, but a bundled Desktop install boots that
     # interpreter with its site dir on PYTHONPATH (no venv to activate), and the harness's daemon
     # re-runs sys.executable. Point PYTHONPATH at the harness's site dir, replacing whatever the
     # agent process inherited, so both the CLI and its daemon import the same packages.
@@ -250,14 +250,14 @@ def is_legacy_browser_use_cloud_config(browser_cfg: dict) -> bool:
 
 
 def _browser_use_api_key_set() -> bool:
-    """BROWSER_USE_API_KEY for the served profile: the only credential Hermes autospawns BU cloud with.
+    """BROWSER_USE_API_KEY for the served profile: the only credential Kova autospawns BU cloud with.
     Profile-scoped so a multiplexed secondary never inherits the default's cloud mode."""
     from agent.secret_scope import get_secret
     return bool(get_secret("BROWSER_USE_API_KEY", ""))
 
 
 def _harness_site_dir() -> Optional[str]:
-    """The site dir Hermes's interpreter imports ``browser_harness`` from, or None."""
+    """The site dir Kova's interpreter imports ``browser_harness`` from, or None."""
     spec = importlib.util.find_spec("browser_harness")
     if spec is None or not spec.origin:
         return None
@@ -265,7 +265,7 @@ def _harness_site_dir() -> Optional[str]:
 
 
 def _find_cli() -> Optional[list[str]]:
-    """The Browser Use CLI's engine (browser-harness) is a core dependency of Hermes's own venv,
+    """The Browser Use CLI's engine (browser-harness) is a core dependency of Kova's own venv,
     so every install, the Desktop bundle included, runs it on the current interpreter."""
     if _harness_site_dir() is None:
         return None
@@ -283,7 +283,7 @@ def _workspace_dir(task_id: Optional[str]) -> Optional[str]:
         return os.environ["BH_AGENT_WORKSPACE"]
     try:
         safe = _TASK_ID_SAFE_RE.sub("_", str(task_id or "default"))[:80] or "default"
-        path = Path(get_hermes_home()) / "cache" / "browser-use" / "workspace" / safe
+        path = Path(get_kova_home()) / "cache" / "browser-use" / "workspace" / safe
         path.mkdir(parents=True, exist_ok=True)
         return str(path)
     except Exception as e:
@@ -329,8 +329,8 @@ def _served_profile_tag() -> str:
     """``""`` outside a served-profile scope (every legacy key stays byte-identical); under a
     multiplexed turn, the routed profile's home key — one profile's browser must never be handed
     to another that happens to use the same session name or task id (#110032)."""
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    return "" if get_hermes_home_override() is None else hermes_home_key()
+    from kova_constants import get_kova_home_override, kova_home_key
+    return "" if get_kova_home_override() is None else kova_home_key()
 
 
 def _backend_cache_key(task_id: Optional[str], session_name: str = "", sidecar: bool = False) -> str:
@@ -403,7 +403,7 @@ def _resolve_backend_cdp(env: dict, task_id: Optional[str], session_name: str = 
     Precedence: (1) ``BU_CDP_WS``/``BU_CDP_URL`` already in env (operator override); (2) ``BROWSER_CDP_URL``
     env / ``browser.cdp_url`` (``/browser connect``); (3) a cloud provider via ``browser_session.get_session_info``
     (per-key cache, expiry, reaper, atexit; a provider failure falls back to a local browser);
-    (4) the local engine — ``browser.engine: lightpanda`` or Hermes' packaged Chromium via the launcher
+    (4) the local engine — ``browser.engine: lightpanda`` or Kova' packaged Chromium via the launcher
     (never the harness's own discovery of the user's installed Chrome); (5) BU direct-API configs WITH
     ``BROWSER_USE_API_KEY`` → None (checked before (3)): the CLI reaches BU cloud natively (BU_AUTOSPAWN); a
     keyless ``browser-use`` provider (managed-gateway autodetect, or a selection missing its key) takes (3).
@@ -650,7 +650,7 @@ def _published_daemon_pid(env: dict) -> Optional[int]:
 def _own_harness_daemon_until_owned(env: dict) -> Optional[bool]:
     """Periodic check while browser_exec runs: own the daemon as soon as it publishes its pid, then
     stop (False). It also stops once the daemon can never be ours (Windows, a managed worker, a daemon
-    another Hermes started), instead of re-checking every tick for the whole call."""
+    another Kova started), instead of re-checking every tick for the whole call."""
     return None if _own_harness_daemon(env) is None else False
 
 
@@ -671,7 +671,7 @@ def _reload_daemons(daemons) -> None:  # each ``daemon_identity`` daemon, with i
 # Daemon identity (``daemon_identity``: its dirs + BU_NAME) -> process group of the harness daemon this
 # process owns. The harness starts its daemon with start_new_session so it outlives each CLI call (that
 # is how a session persists across browser_exec calls), which also means it outlives a SIGKILLed or
-# OOM-killed Hermes forever (#121095). Its group goes to this process's owner-death supervisor, so it
+# OOM-killed Kova forever (#121095). Its group goes to this process's owner-death supervisor, so it
 # dies with us however we die.
 _owned_daemon_groups: dict[tuple[str, ...], int] = {}
 _owned_daemon_groups_lock = threading.Lock()
@@ -683,12 +683,12 @@ def _own_harness_daemon(env: dict) -> Optional[bool]:
     The harness publishes its daemon pid in its runtime dir (``harness_pid_file``: JSON
     ``{"pid", "started"}`` or a bare pid). The daemon is accepted only while it is this user's live
     ``browser_harness.daemon`` leading its own session and its spawn tag names this process, so a
-    stale or planted pid file, or a daemon another Hermes started, never reaches the supervisor.
+    stale or planted pid file, or a daemon another Kova started, never reaches the supervisor.
     Runs after every browser_exec (and while a long one runs, until the daemon is owned): a pid
     already owned for this daemon costs one file read.
 
     Returns True once the daemon is owned, False when it can never be (Windows, a managed worker, a
-    daemon another Hermes started), None when there is nothing to own yet."""
+    daemon another Kova started), None when there is nothing to own yet."""
     if os.name != "posix":
         return False  # Windows: the harness daemon is outside this process's job; nothing to register.
     from agent.runtime_session_store import is_worker_process
@@ -713,7 +713,7 @@ def _own_harness_daemon(env: dict) -> Optional[bool]:
                 or argv[argv.index("-m") + 1] != "browser_harness.daemon"):
             return None
         if not spawned_by_this_process(pid):
-            return False  # another Hermes on the same BU_NAME started it: that Hermes owns it
+            return False  # another Kova on the same BU_NAME started it: that Kova owns it
     except (OSError, ValueError, IndexError, psutil.Error) as exc:
         logger.debug("browser_exec: no harness daemon to supervise for %s: %s", daemon[-1], exc)
         return None
@@ -791,7 +791,7 @@ def browser_exec(code: str, session: str = "", timeout_s: int = _DEFAULT_TIMEOUT
 
     cmd = _find_cli()
     if not cmd:
-        return tool_error("browser-harness is missing from Hermes's Python environment. "
+        return tool_error("browser-harness is missing from Kova's Python environment. "
                           "Run `hermes update` to re-sync it.")
 
     env = _base_subprocess_env()
@@ -838,9 +838,9 @@ def browser_exec(code: str, session: str = "", timeout_s: int = _DEFAULT_TIMEOUT
         _attach_vault_supervisor(env, task_id)
         with _driven_daemons_lock:
             daemon = daemon_identity(env)
-            _driven_daemons[daemon] = hermes_home_key()
+            _driven_daemons[daemon] = kova_home_key()
         # The first call starts the daemon and may run long (navigation, user code): own it as soon as
-        # it publishes its pid, so a Hermes killed mid-call takes it along (the call's end owns it too).
+        # it publishes its pid, so a Kova killed mid-call takes it along (the call's end owns it too).
         from agent.periodic_scheduler import schedule
         owning = schedule(lambda: _own_harness_daemon_until_owned(env), _OWN_DURING_CALL_S)
         try:
@@ -977,7 +977,7 @@ def _dynamic_schema_overrides() -> dict:
         props = dict(BROWSER_EXEC_SCHEMA["parameters"]["properties"])
         props["local"] = {
             "type": "boolean", "default": False,
-            "description": ("Drive the user's own local browser (a Hermes-managed copy of their real "
+            "description": ("Drive the user's own local browser (a Kova-managed copy of their real "
                             "default-Chromium profile, logins/cookies included) instead of the configured "
                             "cloud browser backend. Use when the user asks to act as themselves — their "
                             "accounts, their sessions. No-op when the backend is already local. Default false."),

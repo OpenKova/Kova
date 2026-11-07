@@ -4,19 +4,19 @@ import pytest
 
 
 @pytest.fixture()
-def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
+def isolated_profiles(tmp_path, monkeypatch, _isolate_kova_home):
     """Route dashboard cron storage to an isolated default profile."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     (default_home / "cron").mkdir(parents=True, exist_ok=True)
     (default_home / "config.yaml").write_text(
         "model: test-model\n",
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: default_home / "profiles")
     return default_home
 
@@ -29,13 +29,13 @@ def client(monkeypatch, isolated_profiles):
         pytest.skip("fastapi/starlette not installed")
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     monkeypatch.setattr(
         kova_state,
         "DEFAULT_DB_PATH",
-        get_hermes_home() / "state.db",
+        get_kova_home() / "state.db",
     )
     test_client = TestClient(app)
     test_client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN

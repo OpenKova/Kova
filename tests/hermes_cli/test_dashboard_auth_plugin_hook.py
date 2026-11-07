@@ -15,7 +15,7 @@ from kova_cli.dashboard_auth.base import (
 )
 from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
 from kova_cli.dashboard_auth import registry as _auth_registry
-from kova_constants import get_process_hermes_home, hermes_home_key
+from kova_constants import get_process_kova_home, kova_home_key
 
 
 class _Stub(DashboardAuthProvider):
@@ -115,7 +115,7 @@ class _Basic(DashboardAuthProvider):
 
 
 def _real_ctx() -> tuple[PluginManager, PluginContext]:
-    manager = PluginManager(scope_key=hermes_home_key())
+    manager = PluginManager(scope_key=kova_home_key())
     manifest = PluginManifest(name="basic", version="0.0.1", kind="backend")
     return manager, PluginContext(manifest=manifest, manager=manager)
 
@@ -176,7 +176,7 @@ def test_profile_manager_cannot_replace_launch_home_auth_provider():
     launch_provider = _Basic("launch-home")
     ctx.register_dashboard_auth_provider(launch_provider)
 
-    profile_scope = hermes_home_key(Path(manager.scope_key) / "profiles" / "bot")
+    profile_scope = kova_home_key(Path(manager.scope_key) / "profiles" / "bot")
     profile_manager = PluginManager(scope_key=profile_scope)
     profile_ctx = PluginContext(
         PluginManifest(name="basic", version="0.0.1", kind="backend"),
@@ -193,13 +193,13 @@ def test_profile_manager_cannot_replace_launch_home_auth_provider():
 def test_profile_directory_can_be_the_process_launch_home(monkeypatch, tmp_path):
     """A process launched directly into a profile owns dashboard auth."""
     launch_home = tmp_path / "profiles" / "bot"
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("KOVA_HOME", str(launch_home))
     manager, ctx = _real_ctx()
     provider = _Basic("profile-launch-home")
 
     registration = ctx.register_dashboard_auth_provider(provider)
 
-    assert manager.scope_key == hermes_home_key(get_process_hermes_home())
+    assert manager.scope_key == kova_home_key(get_process_kova_home())
     assert registration is not None
     assert get_provider("basic") is provider
 

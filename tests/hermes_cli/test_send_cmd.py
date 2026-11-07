@@ -265,18 +265,18 @@ def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     """
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_text("SOME_TOKEN=abc123\n", encoding="utf-8")
-    (hermes_home / "config.yaml").write_text(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / ".env").write_text("SOME_TOKEN=abc123\n", encoding="utf-8")
+    (kova_home / "config.yaml").write_text(
         "TELEGRAM_HOME_CHANNEL: '5550001111'\nnested:\n  ignored: true\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("TELEGRAM_HOME_CHANNEL", raising=False)
     monkeypatch.delenv("SOME_TOKEN", raising=False)
 
-    # Force get_hermes_home() to re-resolve under the patched env.
+    # Force get_kova_home() to re-resolve under the patched env.
     from importlib import reload
 
     import kova_cli.config as _hc_config
@@ -297,13 +297,13 @@ def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     """
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_bytes(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / ".env").write_bytes(
         b"\xef\xbb\xbfSEND_BOM_BOT_TOKEN=tok-first\nSEND_BOM_SECOND=two\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("SEND_BOM_BOT_TOKEN", raising=False)
     monkeypatch.delenv("SEND_BOM_SECOND", raising=False)
 
@@ -321,11 +321,11 @@ def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     """BOM-less UTF-8 .env files must keep loading after the utf-8-sig switch."""
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_bytes(b"SEND_PLAIN_TOKEN=plain-val\n")
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / ".env").write_bytes(b"SEND_PLAIN_TOKEN=plain-val\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("SEND_PLAIN_TOKEN", raising=False)
 
     from importlib import reload
@@ -342,15 +342,15 @@ def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     first key keeps its canonical name."""
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     # BOM + valid first key + latin-1 é (0xE9, invalid UTF-8 alone) in a
     # later value — forces the UnicodeDecodeError → latin-1 stream path.
-    (hermes_home / ".env").write_bytes(
+    (kova_home / ".env").write_bytes(
         b"\xef\xbb\xbfSEND_L1_TOKEN=tok-l1\nSEND_L1_NOTE=caf\xe9\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("SEND_L1_TOKEN", raising=False)
     monkeypatch.delenv("SEND_L1_NOTE", raising=False)
 
@@ -370,12 +370,12 @@ def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     key name: ``*_TOKEN`` values are ASCII-sanitized by the shared loader, by design.)"""
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     # 0xE9 forces the UnicodeDecodeError \u2192 latin-1 stream fallback.
-    (hermes_home / ".env").write_bytes(b"SEND_OVR_LABEL=caf\xe9-file\n")
+    (kova_home / ".env").write_bytes(b"SEND_OVR_LABEL=caf\xe9-file\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("SEND_OVR_LABEL", "stale-shell-value")
 
     from importlib import reload
@@ -391,12 +391,12 @@ def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch)
     path is best-effort by design and must never crash on a broken .env."""
     from pathlib import Path
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     # Invalid UTF-8 so the fallback (and its read_bytes call) is reached.
-    (hermes_home / ".env").write_bytes(b"SEND_ERR_TOKEN=caf\xe9\n")
+    (kova_home / ".env").write_bytes(b"SEND_ERR_TOKEN=caf\xe9\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     def _boom(self):
         raise OSError("disk went away")
@@ -414,11 +414,11 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     """A .env containing only a BOM must load zero vars without error."""
     import os
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / ".env").write_bytes(b"\xef\xbb\xbf")
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / ".env").write_bytes(b"\xef\xbb\xbf")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     from importlib import reload
     import kova_cli.config as _hc_config
@@ -432,20 +432,20 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
 
 def test_help_and_empty_list_hint_name_the_resolved_home(tmp_path, monkeypatch, capsys):
     """``--help`` and the ``--list`` empty-state hint derive their paths from the resolved home instead of a
-    hardcoded ``~/.hermes`` (absent on a Windows install or under a profile home)."""
+    hardcoded ``~/.kova`` (absent on a Windows install or under a profile home)."""
     import argparse
     import sys
     import types
 
     home = tmp_path / "AppData" / "Local" / "hermes"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     parser = argparse.ArgumentParser(prog="hermes")
     send_parser = send_cmd.register_send_subparser(parser.add_subparsers(dest="command"))
     help_text = send_parser.format_help()
     assert str(home / ".env") in help_text and str(home / "config.yaml") in help_text
-    assert "~/.hermes" not in help_text
+    assert "~/.kova" not in help_text
 
     fake_gw_config = types.ModuleType("gateway.config")
     fake_gw_config.load_gateway_config = lambda: types.SimpleNamespace(get_connected_platforms=list)
@@ -458,4 +458,4 @@ def test_help_and_empty_list_hint_name_the_resolved_home(tmp_path, monkeypatch, 
     assert send_cmd._list_targets(None, json_mode=False) == 0
     out = capsys.readouterr().out
     assert str(home / "channel_directory.json") in out
-    assert "~/.hermes" not in out
+    assert "~/.kova" not in out

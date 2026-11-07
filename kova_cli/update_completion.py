@@ -73,7 +73,7 @@ def run_completion(request: dict) -> dict:
                         "import sys; sys.path.insert(0, sys.argv[1]); "
                         "from pm.libatomic import install_before_lock; install_before_lock()", str(root)],
                        cwd=root, stdout=None, stderr=subprocess.DEVNULL, check=False)
-    env = dict(os.environ, HERMES_HOME=request["home"], PYTHONUNBUFFERED="1")
+    env = dict(os.environ, KOVA_HOME=request["home"], PYTHONUNBUFFERED="1")
     for key in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"):
         env.pop(key, None)
     with tempfile.TemporaryDirectory(prefix="hermes-completion-") as directory:

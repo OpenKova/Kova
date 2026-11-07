@@ -1,7 +1,7 @@
 """Boundaries the AUTOMATIC multiplex migration (``hermes update``) must not cross, and the opt-out.
 
 The multiplexer replaces a kernel-enforced boundary (separate UNIX users, separate service domains,
-separate HERMES_HOME trees) with in-process isolation. An operator may choose that with
+separate KOVA_HOME trees) with in-process isolation. An operator may choose that with
 ``hermes gateway migrate --multiplex``; an unattended update hook must not choose it for them.
 ``build_migration_plan`` records the same findings as NOTICES so a dry run shows them; only
 :func:`maybe_auto_migrate_after_update` treats them as blockers (#109954).
@@ -70,9 +70,9 @@ def gateway_identity(home: Path, pid: Optional[int], services: list[tuple[str, b
     borrowing the profile directory's owner (a stopped unit pinned to an absent NSS user is not the
     account that owns the files). Without a system unit (user-scope systemd / launchd / detached), the
     profile directory owner is the account the gateway runs as. None means unknown. runtime_home: the
-    HERMES_HOME an installed unit pins, which is where the gateway really runs; ``home`` otherwise.
+    KOVA_HOME an installed unit pins, which is where the gateway really runs; ``home`` otherwise.
     """
-    from kova_cli.gateway import _hermes_home_pinned_by_unit, get_systemd_unit_path
+    from kova_cli.gateway import _kova_home_pinned_by_unit, get_systemd_unit_path
     from kova_cli.gateway_migrate import _home_env
 
     uid: Optional[int] = _pid_uid(pid) if pid is not None else None
@@ -83,7 +83,7 @@ def gateway_identity(home: Path, pid: Optional[int], services: list[tuple[str, b
             continue
         with _home_env(home):
             unit_path = get_systemd_unit_path(system=system)
-        pinned = _hermes_home_pinned_by_unit(unit_path)
+        pinned = _kova_home_pinned_by_unit(unit_path)
         if pinned and runtime_home == home:
             runtime_home = Path(pinned).expanduser()
         if system:
@@ -147,7 +147,7 @@ def _guard_home_tree(plan: MigrationPlan, profile: ProfileGateway) -> Optional[s
     runtime_home = (profile.runtime_home or profile.home).resolve()
     if runtime_home.is_relative_to(profiles_root):
         return None
-    return (f"Profile '{profile.name}' runs with HERMES_HOME={runtime_home}, outside {profiles_root}: "
+    return (f"Profile '{profile.name}' runs with KOVA_HOME={runtime_home}, outside {profiles_root}: "
             f"the multiplexer would serve {profile.home} instead of the live home.")
 
 

@@ -17,9 +17,9 @@ from kova_cli.profile_distribution import DistributionManifest, install_distribu
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return tmp_path
 
 

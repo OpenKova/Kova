@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
 from cron import executions as _executions
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_time import now as _hermes_now
 
 # Optional test override (mirrors ``cron.executions.EXECUTIONS_FILE``).
@@ -57,7 +57,7 @@ def _db_path() -> Path:
     for override in (_executions.EXECUTIONS_FILE, EXECUTIONS_FILE):
         if override is not None:
             return Path(override)
-    return get_hermes_home().resolve() / "cron" / "executions.db"
+    return get_kova_home().resolve() / "cron" / "executions.db"
 
 
 def _connect() -> sqlite3.Connection:

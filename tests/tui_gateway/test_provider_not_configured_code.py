@@ -74,7 +74,7 @@ class TestAgentInitRaisesTheNamedError:
 
         from agent.agent_init import _routed_client_kwargs
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         # Nothing resolves and no fallback chain: the end of the ladder.
         monkeypatch.setattr("agent.auxiliary_client.resolve_provider_client", lambda *a, **kw: (None, None))
         agent = SimpleNamespace(provider="auto", model="m", base_url=None, api_key=None,
@@ -88,7 +88,7 @@ class TestAgentInitRaisesTheNamedError:
 
         from agent.agent_init import _routed_client_kwargs
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         agent = SimpleNamespace(provider="minimax-oauth", model="m", base_url=None, api_key=None,
                                 _fallback_activated=False, _explicit_provider="minimax-oauth")
 

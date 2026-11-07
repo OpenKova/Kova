@@ -204,7 +204,7 @@ describe('preview routing', () => {
       })
 
       expect($previewTabs.get()).toHaveLength(0)
-      expect(window.hermesDesktop.normalizePreviewTarget).not.toHaveBeenCalled()
+      expect(window.kovaDesktop.normalizePreviewTarget).not.toHaveBeenCalled()
     })
 
     it('does not open a preview off the back of a tool result', async () => {

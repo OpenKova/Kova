@@ -1,6 +1,6 @@
-"""CLI entry point for the hermes-agent ACP adapter.
+"""CLI entry point for the kova-agent ACP adapter.
 
-Loads ``~/.hermes/.env``, routes logging to stderr (stdout is reserved for ACP
+Loads ``~/.kova/.env``, routes logging to stderr (stdout is reserved for ACP
 JSON-RPC), and starts the ACP agent server.
 
 Usage::
@@ -17,7 +17,7 @@ except ModuleNotFoundError as exc:
     if exc.name != "kova_bootstrap" and not "kova_bootstrap".startswith(f"{exc.name}."):
         raise  # the bootstrap exists but cannot load: skipping it would skip PM activation
 else:
-    # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch cwd from shadowing Hermes modules.
+    # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch cwd from shadowing Kova modules.
     kova_bootstrap.harden_import_path()
 
 # `hermes-acp` runs without kova_cli.main: repair a `hermes update` killed mid-pull here, before
@@ -33,7 +33,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 # Liveness-probe methods outside the ACP schema. The router correctly answers JSON-RPC -32601
@@ -79,24 +79,24 @@ def _setup_logging() -> None:
 
 
 def _load_env() -> None:
-    """Load .env from HERMES_HOME (default ``~/.hermes``)."""
+    """Load .env from KOVA_HOME (default ``~/.kova``)."""
     from kova_cli.env_loader import load_hermes_dotenv
 
-    hermes_home = get_hermes_home()
-    loaded = load_hermes_dotenv(hermes_home=hermes_home)
+    kova_home = get_kova_home()
+    loaded = load_hermes_dotenv(kova_home=kova_home)
     log = logging.getLogger(__name__)
     for env_file in loaded or ():
         log.info("Loaded env from %s", env_file)
     if not loaded:
-        log.info("No .env found at %s, using system env", hermes_home / ".env")
+        log.info("No .env found at %s, using system env", kova_home / ".env")
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="hermes-acp", description="Run Hermes Agent as an ACP stdio server.")
-    parser.add_argument("--version", action="store_true", help="Print Hermes version and exit")
+    parser = argparse.ArgumentParser(prog="hermes-acp", description="Run Kova Agent as an ACP stdio server.")
+    parser.add_argument("--version", action="store_true", help="Print Kova version and exit")
     parser.add_argument("--check", action="store_true", help="Verify ACP dependencies and adapter imports, then exit")
     parser.add_argument("--setup", action="store_true",
-                        help="Run interactive Hermes provider/model setup for ACP terminal auth")
+                        help="Run interactive Kova provider/model setup for ACP terminal auth")
     parser.add_argument("--setup-browser", action="store_true",
                         help="Prepare PM's pinned Chromium for browser_exec.")
     parser.add_argument("--yes", "-y", action="store_true", dest="assume_yes",
@@ -112,9 +112,9 @@ def _print_version() -> None:
 
 def _run_check() -> None:
     import acp
-    from acp_adapter.server import HermesACPAgent
+    from acp_adapter.server import KovaACPAgent
 
-    print("Hermes ACP check OK")
+    print("Kova ACP check OK")
 
 
 def _run_setup() -> None:
@@ -180,7 +180,7 @@ def main(argv: list[str] | None = None) -> None:
     _load_env()
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting hermes-agent ACP adapter")
+    logger.info("Starting kova-agent ACP adapter")
 
     # Ensure the project root is on sys.path so ``from run_agent import AIAgent`` works
     project_root = str(Path(__file__).resolve().parent.parent)
@@ -195,7 +195,7 @@ def main(argv: list[str] | None = None) -> None:
     install_truststore()
 
     import acp
-    from .server import HermesACPAgent
+    from .server import KovaACPAgent
 
     # Windows: import the configured memory provider (and numpy) on the main thread before
     # the ACP stdin-reader thread starts. A first-time native-extension import racing another
@@ -204,7 +204,7 @@ def main(argv: list[str] | None = None) -> None:
         _warm_memory_provider_import(logger)
 
     # MCP discovery and execution belong to the gateway daemon; this process is a viewer.
-    agent = HermesACPAgent()
+    agent = KovaACPAgent()
 
     async def serve():
         # MCP and execution belong to the daemon. Close only this viewer, while

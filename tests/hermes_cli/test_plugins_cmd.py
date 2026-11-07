@@ -32,7 +32,7 @@ def _write_portable_app_plugin(root: Path, app: Path, os_key: str | None = None)
     (root / "plugin.json").write_text(json.dumps({
         "$schema": PLUGIN_SCHEMA_V1,
         "name": "example-plugin",
-        "extensions": {"com.nousresearch.hermes": {"servers": {"worker": {
+        "extensions": {"com.nousresearch.kova": {"servers": {"worker": {
             "app": {os_key or os_family(): {"presence": "executable", "location": str(app)}},
             "requires": {"app": True},
         }}}},
@@ -464,7 +464,7 @@ class TestCmdRemove:
     def test_remove_deletes_only_the_requested_plugin(self, tmp_path, monkeypatch):
         from kova_cli.plugins_cmd import cmd_remove
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         target = tmp_path / "plugins/test-plugin"
         target.mkdir(parents=True)
         (target / "plugin.yaml").write_text("name: test-plugin\n", encoding="utf-8")
@@ -602,7 +602,7 @@ class TestProviderDiscovery:
 
     def test_save_context_engine(self, tmp_path, monkeypatch):
         """Saving a context engine persists to config.yaml."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         config_file = tmp_path / "config.yaml"
         config_file.write_text("context:\n  engine: compressor\n", encoding="utf-8")
         from kova_cli.plugins_cmd import _save_context_engine
@@ -679,7 +679,7 @@ class TestSubdirInstallE2E:
         self._make_repo_with_subdir_plugin(repo_root)
 
         plugins_dir = tmp_path / "home/plugins"
-        monkeypatch.setenv("HERMES_HOME", str(plugins_dir.parent))
+        monkeypatch.setenv("KOVA_HOME", str(plugins_dir.parent))
 
         identifier = f"file://{repo_root}#my-plugin"
         target, manifest, name = pc._install_plugin_core(identifier, force=False)
@@ -726,7 +726,7 @@ class TestSubdirInstallE2E:
         repo_root = tmp_path / "monorepo"
         self._make_repo_with_subdir_plugin(repo_root)
         plugins_dir = tmp_path / "home/plugins"
-        monkeypatch.setenv("HERMES_HOME", str(plugins_dir.parent))
+        monkeypatch.setenv("KOVA_HOME", str(plugins_dir.parent))
         target, _manifest, _name = pc._install_plugin_core(f"file://{repo_root}#my-plugin", force=False)
         assert not (target / ".git").exists()
 
@@ -770,7 +770,7 @@ class TestSubdirInstallE2E:
         sp.run(["git", "add", "-A"], cwd=repo_root, check=True, env=env)
         sp.run(["git", "commit", "-q", "-m", "init"], cwd=repo_root, check=True, env=env)
         plugins_dir = tmp_path / "home/plugins"
-        monkeypatch.setenv("HERMES_HOME", str(plugins_dir.parent))
+        monkeypatch.setenv("KOVA_HOME", str(plugins_dir.parent))
 
         target, manifest, name = pc._install_plugin_core(
             f"file://{repo_root}", force=False
@@ -948,7 +948,7 @@ def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp
 
     from kova_cli import plugins_cmd
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"platform_toolsets": {"cli": '["web", "terminal"]', "telegram": ["hermes-telegram"]}}),
         encoding="utf-8")
@@ -966,7 +966,7 @@ def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp
 
 @pytest.fixture
 def prepared_publication(client, tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
 
 def test_default_compressor_does_not_activate_an_offered_plugin(monkeypatch):

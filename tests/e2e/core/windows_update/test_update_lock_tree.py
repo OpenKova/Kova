@@ -1,13 +1,13 @@
 """One ``hermes update`` owns an installed checkout on native Windows, and its whole tree.
 
 Failure class: concurrent updates of one install (contract C1.7). The update lock lives on the
-install's git dir (an msvcrt byte lock on ``<install>/.git/hermes-update.lock``), not in HERMES_HOME, so a
+install's git dir (an msvcrt byte lock on ``<install>/.git/hermes-update.lock``), not in KOVA_HOME, so a
 second ``hermes update`` from ANOTHER home cannot mutate the checkout while the first runs. On
 Windows a child cannot inherit that lock, so the owner binds every update-tree child into a
 kill-on-close job: ``taskkill /F`` of the owner kills the child too, and only then is the lock free.
 
 One install (install.ps1), then, with NEXT published:
-(a) an update owner holds the lock from another HERMES_HOME with a bound child running; the real
+(a) an update owner holds the lock from another KOVA_HOME with a bound child running; the real
     ``hermes update`` of the installed checkout must exit 2 and leave the checkout at HEAD;
 (b) ``taskkill /F`` of the owner (not ``/T``) must take the bound child down with it;
 (c) with the tree gone the lock is free: the real ``hermes update`` lands NEXT.
@@ -36,7 +36,7 @@ from tests.fakes.fake_llm_provider import FakeLLMServer
 pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
-REFUSAL = "Another Hermes update is already running"
+REFUSAL = "Another Kova update is already running"
 SURVIVAL_SECONDS = 30
 
 # Runs on the INSTALLED venv against the installed checkout's own update_lock. Degrades to the
@@ -72,14 +72,14 @@ def journey(tmp_path_factory):
         try:
             install = machine.install()
             assert install.returncode == 0, fail_with(machine, f"install.ps1 exited {install.returncode}", install)
-            pythons = sorted(machine.hermes_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
+            pythons = sorted(machine.kova_home.glob("installs/*/environments/*/venv/Scripts/python.exe"))
             assert pythons, fail_with(machine, "harness: the install has no venv python")
             other_home = machine.root / "other-home"
             other_home.mkdir()
             machine.advance()
             owner = subprocess.Popen(
                 [str(pythons[0]), "-c", _OWNER, str(machine.install_dir)], cwd=machine.profile,
-                env=machine.env({"HERMES_HOME": str(other_home)}), stdin=subprocess.DEVNULL,
+                env=machine.env({"KOVA_HOME": str(other_home)}), stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW)
             machine._spawned.append(owner)
             assert owner.stdout is not None
@@ -154,7 +154,7 @@ def gateway_journey(tmp_path_factory):
                 out["relaunched"] = int(machine.wait_gateway_running(not_pid=old_pid).get("pid") or 0)
                 time.sleep(max(0.0, SURVIVAL_SECONDS - (time.monotonic() - exited)))
                 out["alive_after"] = _alive(out["relaunched"])
-                out["status"] = machine.hermes("gateway", "status", label="status-after-30s")
+                out["status"] = machine.kova("gateway", "status", label="status-after-30s")
                 machine.kill_owned()
             yield out
         finally:

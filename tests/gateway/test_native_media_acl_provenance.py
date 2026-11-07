@@ -1,4 +1,4 @@
-"""Review-9 (a): native media capture keeps the Hermes-home provenance of its store for elevated grants.
+"""Review-9 (a): native media capture keeps the Kova-home provenance of its store for elevated grants.
 
 ``native_inputs_root()`` resolves the store, which erases a link planted below the home
 (``cache/documents`` -> elsewhere). An elevated grant on that resolved path landed outside the home
@@ -15,7 +15,7 @@ from gateway import session_ingress_media as media
 
 
 def _elevated(monkeypatch, home):
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(kova_dir_acl, "process_is_elevated", lambda: True)
     monkeypatch.setattr(kova_dir_acl, "_granted", set())
     grants = []

@@ -24,7 +24,7 @@ _RUNTIME_SCHEMA_MARKER = "CREATE TABLE IF NOT EXISTS session_admissions"
 STATE_MODULES = ("kova_state*.py", "src/kova_agent/kova_state*.py", "src/kova_agent/kova_state/*.py")
 _LEDGER_PROBE = ("SELECT EXISTS(SELECT 1 FROM session_admissions) "
                  "OR EXISTS(SELECT 1 FROM worker_executions)")
-_DOCS = "https://hermes-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release"
+_DOCS = "https://kova-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release"
 
 
 def _updater_git(git_cmd, root: Path) -> Callable[..., int]:
@@ -99,7 +99,7 @@ def _pre_runtime_snapshot(home: Path) -> str | None:
 
 def _named_profile(home: Path) -> str:
     """The ``-p`` name that opens ``home`` (``hermes -p acme update`` passes ``profiles/acme``);
-    ``""`` for the default root or a custom HERMES_HOME, which bare ``hermes`` opens."""
+    ``""`` for the default root or a custom KOVA_HOME, which bare ``hermes`` opens."""
     from kova_cli.profiles import _PROFILE_ID_RE, _get_profiles_root
     parent = _get_profiles_root().resolve()
     resolved = home.resolve()
@@ -109,9 +109,9 @@ def _named_profile(home: Path) -> str:
 
 def _ledgered_profiles(home: Path | None) -> list[tuple[str, Path]]:
     from kova_cli.backup import _sibling_profile_homes
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = Path(home or get_hermes_home())
+    home = Path(home or get_kova_home())
     profiles = [(_named_profile(home), home), *_sibling_profile_homes(home)]
     return [(name, h) for name, h in profiles if _has_ledger_rows(h / "state.db")]
 

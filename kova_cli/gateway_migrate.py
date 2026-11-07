@@ -55,7 +55,7 @@ class ProfileGateway:
     services: list[tuple[str, bool]] = field(default_factory=list)
     run_as_user: Optional[str] = None  # User= recorded by a system-scope systemd unit
     uid: Optional[int] = None  # owner of the gateway process/unit; None = unknown (never "different")
-    runtime_home: Optional[Path] = None  # HERMES_HOME the installed unit pins, when it differs from ``home``
+    runtime_home: Optional[Path] = None  # KOVA_HOME the installed unit pins, when it differs from ``home``
 
     @property
     def is_default(self) -> bool:
@@ -204,43 +204,43 @@ class MigrationPlan:
 
 @contextlib.contextmanager
 def _home_env(home: Path) -> Iterator[None]:
-    """Run service-manager helpers as if ``home`` were the active HERMES_HOME. Both the contextvar
-    override (``get_hermes_home``) and ``os.environ`` (``gateway.status`` identity files, unit
+    """Run service-manager helpers as if ``home`` were the active KOVA_HOME. Both the contextvar
+    override (``get_kova_home``) and ``os.environ`` (``gateway.status`` identity files, unit
     generation) are switched, then restored.
 
-    The process keeps its LAUNCH identity while swapped (``pin_process_hermes_home``): ``os.environ``
+    The process keeps its LAUNCH identity while swapped (``pin_process_kova_home``): ``os.environ``
     still holds the launch profile's ``.env``, so a child spawned in here for ``home`` must see it as
     a routed home and take only ``home``'s own secrets — with the env var swapped, the routed-home
     checks read ``home`` as the launch profile and handed the launch profile's credentials to the
     default gateway."""
     from kova_constants import (
-        get_routing_process_hermes_home, pin_process_hermes_home, process_hermes_home_is_pinned,
-        reset_hermes_home_override, set_hermes_home_override,
+        get_routing_process_kova_home, pin_process_kova_home, process_kova_home_is_pinned,
+        reset_kova_home_override, set_kova_home_override,
     )
     import kova_constants
-    previous = os.environ.get("HERMES_HOME")
-    pinned_here = not process_hermes_home_is_pinned()
+    previous = os.environ.get("KOVA_HOME")
+    pinned_here = not process_kova_home_is_pinned()
     if pinned_here:
-        pin_process_hermes_home(get_routing_process_hermes_home())
-    token = set_hermes_home_override(str(home))
-    os.environ["HERMES_HOME"] = str(home)
-    kova_constants._default_hermes_root_memo = None
+        pin_process_kova_home(get_routing_process_kova_home())
+    token = set_kova_home_override(str(home))
+    os.environ["KOVA_HOME"] = str(home)
+    kova_constants._default_kova_root_memo = None
     try:
         yield
     finally:
         if pinned_here:
-            pin_process_hermes_home(None)
-        reset_hermes_home_override(token)
+            pin_process_kova_home(None)
+        reset_kova_home_override(token)
         if previous is None:
-            os.environ.pop("HERMES_HOME", None)
+            os.environ.pop("KOVA_HOME", None)
         else:
-            os.environ["HERMES_HOME"] = previous
-        kova_constants._default_hermes_root_memo = None
+            os.environ["KOVA_HOME"] = previous
+        kova_constants._default_kova_root_memo = None
 
 
 def _default_home() -> Path:
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root()
 
 
 def _profile_homes() -> list[tuple[str, Path]]:
@@ -285,8 +285,8 @@ def _own_gateway_pid(home: Path, owner) -> Optional[int]:
     if pid is None or owner is None or pid != owner.pid:
         return pid
     with contextlib.suppress(Exception):
-        from gateway.status import _same_hermes_home
-        return pid if _same_hermes_home(Path(owner.home), Path(home)) else None
+        from gateway.status import _same_kova_home
+        return pid if _same_kova_home(Path(owner.home), Path(home)) else None
     return None
 
 
@@ -323,7 +323,7 @@ def _installed_services(home: Path) -> list[tuple[str, bool]]:
 
 
 def _windows_task_installed() -> bool:
-    """Is a per-profile Windows gateway installed for the ACTIVE ``HERMES_HOME``?
+    """Is a per-profile Windows gateway installed for the ACTIVE ``KOVA_HOME``?
 
     ``get_task_name()`` is home-suffixed, so this answers per profile exactly the way the systemd
     unit path does. Either half counts: ``hermes gateway install`` falls back to a Startup-folder
@@ -1260,7 +1260,7 @@ def maybe_auto_migrate_after_update() -> None:
     """``hermes update`` hook: with >= 2 profiles, per-profile gateways present and multiplex off,
     migrate automatically when unblocked (deterministic, never prompts) or print the blocker block.
     ``gateway.auto_multiplex_migration: false`` on the default profile opts out; a secondary behind a
-    service-domain / UNIX-user / HERMES_HOME boundary blocks this path only (the explicit command decides)."""
+    service-domain / UNIX-user / KOVA_HOME boundary blocks this path only (the explicit command decides)."""
     from kova_cli.gateway_migrate_guards import auto_migration_blockers, auto_migration_opted_out
     if _host_supports_migration() is not None or auto_migration_opted_out(_default_home()):
         return

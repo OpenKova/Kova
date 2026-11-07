@@ -4,7 +4,7 @@ Anthropic OAuth refresh tokens are single-use: the POST that returns a new
 pair also invalidates the one that was sent.  The replacement therefore exists
 only in memory until it reaches its authoritative on-disk store —
 ``~/.claude/.credentials.json`` for ``claude_code`` entries,
-``~/.hermes/.anthropic_oauth.json`` for ``hermes_pkce`` ones.  Those singletons
+``~/.kova/.anthropic_oauth.json`` for ``hermes_pkce`` ones.  Those singletons
 are authoritative in the strict sense: ``_seed_from_singletons()`` re-reads
 them on every ``load_pool()`` and writes what it finds over the pool row.
 
@@ -68,11 +68,11 @@ def _clean_spent_registry():
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    """Real on-disk HERMES_HOME so ``load_pool()`` re-reads what we persisted."""
+def kova_home(tmp_path, monkeypatch):
+    """Real on-disk KOVA_HOME so ``load_pool()`` re-reads what we persisted."""
     home = tmp_path / "hermes"
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
     (home / "auth.json").write_text(
@@ -177,8 +177,8 @@ def test_claude_code_writer_raises_instead_of_swallowing(
     )
 
 
-def test_hermes_oauth_writer_raises_instead_of_swallowing(hermes_home, monkeypatch):
-    oauth_file = hermes_home / ".anthropic_oauth.json"
+def test_hermes_oauth_writer_raises_instead_of_swallowing(kova_home, monkeypatch):
+    oauth_file = kova_home / ".anthropic_oauth.json"
     oauth_file.write_text(
         json.dumps(
             {
@@ -248,7 +248,7 @@ def test_direct_resolver_fails_closed_when_rotation_cannot_commit(
 
 
 def test_pool_claude_code_fails_closed_and_reload_cannot_resurrect(
-    hermes_home, claude_credentials, monkeypatch
+    kova_home, claude_credentials, monkeypatch
 ):
     monkeypatch.setattr(AA, "refresh_anthropic_oauth_pure", _rotating_refresh)
     _break_durable_write(monkeypatch)
@@ -282,7 +282,7 @@ def test_pool_claude_code_fails_closed_and_reload_cannot_resurrect(
 
 
 def test_reauthentication_clears_the_persist_failure_quarantine(
-    hermes_home, claude_credentials, monkeypatch
+    kova_home, claude_credentials, monkeypatch
 ):
     """The quarantine is terminal for the spent pair, not for the account.
 
@@ -301,7 +301,7 @@ def test_reauthentication_clears_the_persist_failure_quarantine(
     # Restore a working filesystem, then simulate the re-login rewriting the
     # authoritative file with a genuinely new pair.
     monkeypatch.undo()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
     monkeypatch.setattr(
@@ -337,9 +337,9 @@ def test_reauthentication_clears_the_persist_failure_quarantine(
 
 
 def test_pool_hermes_pkce_fails_closed_and_reload_cannot_resurrect(
-    hermes_home, monkeypatch
+    kova_home, monkeypatch
 ):
-    oauth_file = hermes_home / ".anthropic_oauth.json"
+    oauth_file = kova_home / ".anthropic_oauth.json"
     oauth_file.write_text(
         json.dumps(
             {
@@ -381,7 +381,7 @@ def test_pool_hermes_pkce_fails_closed_and_reload_cannot_resurrect(
 
 
 def test_retry_path_fails_closed_when_rotation_cannot_commit(
-    hermes_home, claude_credentials, monkeypatch
+    kova_home, claude_credentials, monkeypatch
 ):
     """The retry branch used to persist an "ok" row *before* committing.
 

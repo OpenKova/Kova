@@ -26,7 +26,7 @@ def test_group_management_on_ordinary_authenticated_socket(tmp_path):
                   'base_url': 'http://127.0.0.1:1/v1'},
         'auxiliary': {'title_generation': {'enabled': False}},
     }))
-    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home),
                              PYTHONPATH=str(root), PYTHONUNBUFFERED='1')
 
     async def probe(desc):
@@ -68,7 +68,7 @@ def test_group_management_on_ordinary_authenticated_socket(tmp_path):
 def test_profile_discovery_and_group_controls_enforce_actor_scope(tmp_path, monkeypatch):
     home = tmp_path / 'state'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setenv('HOME', str(tmp_path / 'user'))
     (home / 'config.yaml').write_text('model:\n  default: fixture-model\n  provider: custom\n')
     (home / 'profile.yaml').write_text('display_name: Fixture\nui_meta:\n  hermes-bots:\n    color: blue\n')
@@ -153,7 +153,7 @@ def test_profiles_list_names_every_profile_on_disk_and_its_install(tmp_path, mon
         (home / 'profiles' / name / 'config.yaml').write_text('model:\n  default: m\n')
     (home / 'profiles' / 'writer' / 'profile.yaml').write_text('display_name: Writer Bot\n')
     (home / 'profiles' / 'ghost').mkdir()  # no identity marker: never listed
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setenv('HOME', str(tmp_path / 'user'))
     (home / 'config.yaml').write_text('model:\n  default: fixture-model\n')
     with SessionDB(home / 'state.db') as db:
@@ -195,7 +195,7 @@ def test_profiles_list_discovered_rows_keep_the_profiles_own_metadata(tmp_path, 
         '_ui_meta_revisions:\n  hermes-bots: 3\n')
     (writer / 'assets').mkdir()
     (writer / 'assets' / 'avatar.png').write_bytes(b'\x89PNG\r\n\x1a\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setenv('HOME', str(tmp_path / 'user'))
     (home / 'config.yaml').write_text('model:\n  default: fixture-model\n')
     rows = {row['name']: row for row in _list_profiles(home)['result']['profiles']}
@@ -217,7 +217,7 @@ def _roster_home(tmp_path, monkeypatch):
         (home / 'profiles' / name).mkdir(parents=True)
         (home / 'profiles' / name / 'config.yaml').write_text('model:\n  default: m\n')
     (home / 'profiles' / 'writer' / 'profile.yaml').write_text('display_name: Writer Bot\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setenv('HOME', str(tmp_path / 'user'))
     (home / 'config.yaml').write_text('model:\n  default: fixture-model\n')
     return home

@@ -26,10 +26,10 @@ from tests.gateway.test_session_follow_profile_config import _owner, _route
 def home(monkeypatch):
     """The profile home the follow-profile tests write ``config.yaml`` into."""
     from gateway import run
-    from kova_constants import get_hermes_home
-    profile = get_hermes_home()
+    from kova_constants import get_kova_home
+    profile = get_kova_home()
     profile.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(run, '_hermes_home', profile)
+    monkeypatch.setattr(run, '_kova_home', profile)
     return profile
 
 

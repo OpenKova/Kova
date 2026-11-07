@@ -8,7 +8,7 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 _DISK_DEGRADED_PERCENT = 90.0
@@ -103,7 +103,7 @@ def collect_runtime_readiness(
 ) -> dict[str, Any]:
     """Bounded readiness diagnostics, no runtime mutation.  Even authenticated, probes
     expose status and counts only: never config values, credentials, paths, payloads."""
-    home = get_hermes_home()
+    home = get_kova_home()
     runtime = runtime_status if isinstance(runtime_status, dict) else {}
     state_db_probe = _probe_state_db(home)
     checks = {

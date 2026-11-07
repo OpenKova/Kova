@@ -1,4 +1,4 @@
-"""Migrate Hermes MCP server config and Codex's installed curated plugins into ~/.codex/config.toml.
+"""Migrate Kova MCP server config and Codex's installed curated plugins into ~/.codex/config.toml.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from agent.transports.hermes_tools_mcp_server import HERMES_TOOLS_MCP_SERVER_NAME
+from agent.transports.kova_tools_mcp_server import KOVA_TOOLS_MCP_SERVER_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 # Marker comments wrapping the managed section so re-runs can detect what's ours and what's
 # user-edited. Both must appear or strip is a no-op.
 MIGRATION_MARKER = (
-    "# managed by hermes-agent — `hermes codex-runtime migrate` regenerates this section")
-MIGRATION_END_MARKER = "# end hermes-agent managed section"
+    "# managed by kova-agent — `hermes codex-runtime migrate` regenerates this section")
+MIGRATION_END_MARKER = "# end kova-agent managed section"
 
 
 @dataclass
@@ -50,7 +50,7 @@ class MigrationReport:
                 note = f" (skipped: {', '.join(skipped)})" if skipped else ""
                 lines.append(f"  - {name}{note}")
         else:
-            lines.append("No MCP servers found in Hermes config.")
+            lines.append("No MCP servers found in Kova config.")
         if self.migrated_plugins:
             lines.append(f"Migrated {len(self.migrated_plugins)} native Codex plugin(s):")
             lines.extend(f"  - {name}" for name in self.migrated_plugins)
@@ -61,14 +61,14 @@ class MigrationReport:
         if self.preserved_user_servers:
             lines.append(
                 f"Kept {len(self.preserved_user_servers)} user-owned MCP server(s) already in "
-                f"config.toml (Hermes projection skipped): {', '.join(self.preserved_user_servers)}")
+                f"config.toml (Kova projection skipped): {', '.join(self.preserved_user_servers)}")
         lines.extend(f"⚠ {err}" for err in self.errors)
         return "\n".join(lines)
 
 
-# Hermes MCP keys codex understands (transport stdio/http, timeouts, general). Any other key is
-# dropped with a warning: ``sampling`` has no codex equivalent; the rest are unknown Hermes keys.
-_KNOWN_HERMES_KEYS = {
+# Kova MCP keys codex understands (transport stdio/http, timeouts, general). Any other key is
+# dropped with a warning: ``sampling`` has no codex equivalent; the rest are unknown Kova keys.
+_KNOWN_KOVA_KEYS = {
     "command", "args", "env", "cwd",
     "url", "headers", "transport",
     "timeout", "connect_timeout",
@@ -87,10 +87,10 @@ def _str_map(d: dict) -> dict[str, str]:
 
 
 def _translate_one_server(name: str, hermes_cfg: dict) -> tuple[Optional[dict], list[str]]:
-    """Translate one Hermes MCP server config to codex's inline-table dict.
+    """Translate one Kova MCP server config to codex's inline-table dict.
 
     Returns ``(codex_entry, skipped_keys)``; ``codex_entry`` is None when the config is unusable.
-    stdio (``command``) wins over ``url`` when both are set. Hermes' ``transport: sse`` hint is
+    stdio (``command``) wins over ``url`` when both are set. Kova' ``transport: sse`` hint is
     informational only — codex auto-negotiates. ``enabled`` is emitted only when explicitly false
     (codex defaults to true).
     """
@@ -127,14 +127,14 @@ def _translate_one_server(name: str, hermes_cfg: dict) -> tuple[Optional[dict], 
     for key in hermes_cfg:
         if key in _KEYS_DROPPED_WITH_WARNING:
             skipped.append(f"{key} (no codex equivalent)")
-        elif key not in _KNOWN_HERMES_KEYS:
-            skipped.append(f"{key} (unknown Hermes key)")
+        elif key not in _KNOWN_KOVA_KEYS:
+            skipped.append(f"{key} (unknown Kova key)")
     return out, skipped
 
 
 # TOML basic-string escapes. Order matters: backslash first so the others aren't re-escaped.
 # Control chars must be \-escaped — a literal one is invalid TOML that codex refuses to load;
-# env-var passthrough (HERMES_HOME, PYTHONPATH) could carry one in pathological cases.
+# env-var passthrough (KOVA_HOME, PYTHONPATH) could carry one in pathological cases.
 _TOML_ESCAPES = (
     ("\\", "\\\\"), ('"', '\\"'), ("\b", "\\b"), ("\t", "\\t"),
     ("\n", "\\n"), ("\f", "\\f"), ("\r", "\\r"))
@@ -182,7 +182,7 @@ def render_codex_toml_section(
     """
     out = [MIGRATION_MARKER]
     if not servers and not plugins and not default_permission_profile:
-        out += ["# (no MCP servers, plugins, or permissions configured by Hermes)", MIGRATION_END_MARKER]
+        out += ["# (no MCP servers, plugins, or permissions configured by Kova)", MIGRATION_END_MARKER]
         return "\n".join(out) + "\n"
     if default_permission_profile:
         profile = default_permission_profile
@@ -247,7 +247,7 @@ def _unmanaged_mcp_server_names(toml_text: str) -> set[str]:
 
     Unlike ``[plugins.*]`` — where ``plugin/list`` is the source of truth and we own the
     namespace — ``mcp_servers`` is shared: the docs promise that anything outside the managed
-    block is the user's. A Hermes server whose name is already declared by the user is therefore
+    block is the user's. A Kova server whose name is already declared by the user is therefore
     NOT re-emitted (the user's table wins and is preserved verbatim); emitting both would be a
     duplicate table header, which is invalid TOML that codex refuses to load (issue #79023).
     """
@@ -370,7 +370,7 @@ _TEST_TEMPDIR_NEEDLES = ("pytest-of-", "/pytest-", "/tmp/pytest", "/private/var/
 def _looks_like_test_tempdir(path: str) -> bool:
     """Heuristic: does ``path`` look like a pytest/transient tempdir?
 
-    Such dirs are reaped between sessions; a HERMES_HOME pointing there burned into
+    Such dirs are reaped between sessions; a KOVA_HOME pointing there burned into
     ``~/.codex/config.toml`` makes every codex-routed call fail silently once GC'd. Err on
     refusing: a false positive is far less harmful than silently bricking codex's tool surface.
     """
@@ -378,37 +378,37 @@ def _looks_like_test_tempdir(path: str) -> bool:
 
 
 def _build_hermes_tools_mcp_entry() -> dict:
-    """Codex stdio entry launching Hermes' own tool surface as an MCP server (web/vision/
+    """Codex stdio entry launching Kova' own tool surface as an MCP server (web/vision/
     image/skills/kanban call-backs).
 
-    HERMES_HOME passes through only IF SET, read from os.environ (not get_hermes_home()): when
-    unset the codex subprocess must inherit its launcher's runtime HERMES_HOME (systemd, gateway,
+    KOVA_HOME passes through only IF SET, read from os.environ (not get_kova_home()): when
+    unset the codex subprocess must inherit its launcher's runtime KOVA_HOME (systemd, gateway,
     kanban), not a migrate-time default burned into config.toml that pins the wrong profile. The
-    pytest-tempdir guard keeps a sibling test's monkeypatched HERMES_HOME out of the user's real
+    pytest-tempdir guard keeps a sibling test's monkeypatched KOVA_HOME out of the user's real
     config. PYTHONPATH passes through so a worktree-launched hermes finds the branch's modules.
     """
     import sys
     env: dict[str, str] = {}
-    # HERMES_HOME passes through IF SET so the MCP subprocess sees the same config / auth / sessions DB as
-    # the parent CLI. Read from os.environ (not get_hermes_home()) on purpose: when the env var is unset we
-    # want codex's subprocess to inherit whatever HERMES_HOME its launcher sets at runtime (systemd unit,
+    # KOVA_HOME passes through IF SET so the MCP subprocess sees the same config / auth / sessions DB as
+    # the parent CLI. Read from os.environ (not get_kova_home()) on purpose: when the env var is unset we
+    # want codex's subprocess to inherit whatever KOVA_HOME its launcher sets at runtime (systemd unit,
     # gateway, kanban dispatcher, custom shell), rather than burning the migrate-time resolved default into
-    # config.toml — that would override the launcher's HERMES_HOME and pin the subprocess to the wrong
+    # config.toml — that would override the launcher's KOVA_HOME and pin the subprocess to the wrong
     # profile. The pytest-tempdir guard below catches the issue #26250 Bug C scenario: a sibling test's
-    # monkeypatch.setenv("HERMES_HOME", tmp_path) would otherwise leak a transient pytest tempdir into the
+    # monkeypatch.setenv("KOVA_HOME", tmp_path) would otherwise leak a transient pytest tempdir into the
     # user's real ~/.codex/config.toml and silently brick codex once the tempdir is GC'd.
-    hermes_home = os.environ.get("HERMES_HOME") or ""
-    if hermes_home and not _looks_like_test_tempdir(hermes_home):
-        env["HERMES_HOME"] = hermes_home
+    kova_home = os.environ.get("KOVA_HOME") or ""
+    if kova_home and not _looks_like_test_tempdir(kova_home):
+        env["KOVA_HOME"] = kova_home
     if os.environ.get("PYTHONPATH"):
         env["PYTHONPATH"] = os.environ["PYTHONPATH"]
     # Quiet mode + redaction defaults so the MCP wire stays clean.
-    env["HERMES_QUIET"] = "1"
-    env["HERMES_REDACT_SECRETS"] = env.get("HERMES_REDACT_SECRETS", "true")
+    env["KOVA_QUIET"] = "1"
+    env["KOVA_REDACT_SECRETS"] = env.get("KOVA_REDACT_SECRETS", "true")
     return {
         "command": sys.executable,
-        # -P: codex starts this in the user's workspace, which must not shadow Hermes' own packages.
-        "args": ["-P", "-m", "agent.transports.hermes_tools_mcp_server"],
+        # -P: codex starts this in the user's workspace, which must not shadow Kova' own packages.
+        "args": ["-P", "-m", "agent.transports.kova_tools_mcp_server"],
         "env": env,
         # Generous timeouts — image_generate or delegate_task can take a while.
         "startup_timeout_sec": 30.0,
@@ -425,12 +425,12 @@ def migrate(
     hermes_config: dict, *, codex_home: Optional[Path] = None, dry_run: bool = False,
     discover_plugins: bool = True, default_permission_profile: Optional[str] = ":workspace",
     expose_hermes_tools: bool = True) -> MigrationReport:
-    """Translate Hermes mcp_servers config + Codex curated plugins into ~/.codex/config.toml.
+    """Translate Kova mcp_servers config + Codex curated plugins into ~/.codex/config.toml.
 
     ``discover_plugins`` spawns the live codex CLI (set False in tests); discovery is best-effort
     and never blocks the migration. ``default_permission_profile`` (default ":workspace"; built-ins
     carry a leading ":", user profiles do not; None leaves codex's read-only default) avoids an
-    approval prompt on every write. ``expose_hermes_tools`` registers Hermes' own tool surface
+    approval prompt on every write. ``expose_hermes_tools`` registers Kova' own tool surface
     (agent/transports/hermes_tools_mcp_server.py, launched on demand by codex over stdio) as an MCP
     server so the codex subprocess can call back for tools it lacks.
     """
@@ -441,7 +441,7 @@ def migrate(
     report.target_path = target
     hermes_servers = (hermes_config or {}).get("mcp_servers") or {}
     if not isinstance(hermes_servers, dict):
-        report.errors.append("mcp_servers in Hermes config is not a dict; cannot migrate.")
+        report.errors.append("mcp_servers in Kova config is not a dict; cannot migrate.")
         return report
     translated: dict[str, dict] = {}
     for raw_name, cfg in hermes_servers.items():
@@ -470,9 +470,9 @@ def migrate(
     if default_permission_profile:
         report.wrote_permissions_default = default_permission_profile
     if expose_hermes_tools:
-        translated[HERMES_TOOLS_MCP_SERVER_NAME] = _build_hermes_tools_mcp_entry()
-        if HERMES_TOOLS_MCP_SERVER_NAME not in report.migrated:
-            report.migrated.append(HERMES_TOOLS_MCP_SERVER_NAME)
+        translated[KOVA_TOOLS_MCP_SERVER_NAME] = _build_hermes_tools_mcp_entry()
+        if KOVA_TOOLS_MCP_SERVER_NAME not in report.migrated:
+            report.migrated.append(KOVA_TOOLS_MCP_SERVER_NAME)
     without_managed = ""
     if target.exists():
         try:

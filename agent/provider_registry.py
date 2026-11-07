@@ -15,7 +15,7 @@ import logging
 import threading
 from typing import Any, Callable, Dict, FrozenSet, Generic, List, Optional, TypeVar
 
-from kova_constants import hermes_home_key, normalize_scope
+from kova_constants import kova_home_key, normalize_scope
 
 P = TypeVar("P")
 
@@ -108,7 +108,7 @@ class ProviderRegistry(Generic[P]):
         """Global map overlaid with the active profile's scoped map (a copy)."""
         with self._lock:
             merged = dict(self._providers)
-            merged.update(self._scoped_providers.get(hermes_home_key(scope), {}))
+            merged.update(self._scoped_providers.get(kova_home_key(scope), {}))
         return merged
 
     def list_providers(self, *, scope: Optional[str] = None) -> list[P]:
@@ -122,13 +122,13 @@ class ProviderRegistry(Generic[P]):
         key = self.normalize(name)
         with self._lock:
             return (
-                self._scoped_providers.get(hermes_home_key(scope), {}).get(key)
+                self._scoped_providers.get(kova_home_key(scope), {}).get(key)
                 or self._providers.get(key)
             )
 
     def registry_generation(self, *, scope: Optional[str] = None) -> tuple:
         """Cache fingerprint ``(global_generation, scoped_generation)``."""
-        active_scope = hermes_home_key(scope)
+        active_scope = kova_home_key(scope)
         with self._lock:
             return self._generation, self._scoped_generations.get(active_scope, 0)
 

@@ -8,7 +8,7 @@ Contract:
     onto the job as an ordinary per-job pin; ``pinned=False`` releases both.
 
 These tests exercise the full run_job path (real imports, mocked AIAgent +
-resolve_runtime_provider against a temp HERMES_HOME) and the job-store pin helpers.
+resolve_runtime_provider against a temp KOVA_HOME) and the job-store pin helpers.
 """
 
 import asyncio
@@ -112,8 +112,8 @@ def _run(job, tmp_path, *, current_provider="openrouter", current_model=None, cr
             "api_mode": "chat_completions",
         }
 
-    with patch("cron.scheduler._hermes_home", tmp_path), \
-         patch("cron.scheduler._get_hermes_home", return_value=tmp_path), \
+    with patch("cron.scheduler._kova_home", tmp_path), \
+         patch("cron.scheduler._get_kova_home", return_value=tmp_path), \
          patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
          patch("kova_cli.env_loader.load_hermes_dotenv"), \
          patch("kova_cli.env_loader.reset_secret_source_cache"), \
@@ -156,7 +156,7 @@ class TestUnpinnedJobsFollowTheMainModel:
 
     def test_missing_model_guides_to_user_owned_cli(self, tmp_path, monkeypatch):
         """A missing-model failure cannot advertise agent-owned pinning."""
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
+        monkeypatch.delenv("KOVA_MODEL", raising=False)
         success, error, agent_kwargs, _ = _run(
             _base_job(), tmp_path, current_provider="openrouter", current_model=None)
 
@@ -172,9 +172,9 @@ class TestPinnedLocksTheMainModel:
     def _store(monkeypatch, tmp_path, main_model="main-model", main_provider="openrouter"):
         from cron import jobs
         (tmp_path / "config.yaml").write_text(f"model:\n  default: {main_model}\n")
-        monkeypatch.setattr(jobs, "get_hermes_home", lambda: tmp_path, raising=True)
+        monkeypatch.setattr(jobs, "get_kova_home", lambda: tmp_path, raising=True)
         from cron import jobs_model_pin  # the pin reads the main model's config where it lives
-        monkeypatch.setattr(jobs_model_pin, "get_hermes_home", lambda: tmp_path, raising=True)
+        monkeypatch.setattr(jobs_model_pin, "get_kova_home", lambda: tmp_path, raising=True)
         state = {"jobs": []}
         monkeypatch.setattr(jobs, "load_jobs", lambda: list(state["jobs"]), raising=True)
         monkeypatch.setattr(jobs, "save_jobs", lambda j: state.__setitem__("jobs", list(j)), raising=True)

@@ -33,7 +33,7 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
     monkeypatch.setattr(memory_setup, "_get_available_providers", lambda: [("fake", "local", provider)])
     monkeypatch.setattr(memory_setup, "_curses_select", lambda *args, **kwargs: next(selections))
     monkeypatch.setattr(memory_setup, "_install_dependencies", install_dependencies)
-    monkeypatch.setattr(memory_setup, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(memory_setup, "get_kova_home", lambda: tmp_path)
     monkeypatch.setattr("kova_cli.config.load_config", lambda: {"memory": {}})
     monkeypatch.setattr("kova_cli.config.save_config", save_config)
 
@@ -48,7 +48,7 @@ def test_cmd_setup_generic_choice_cancel_writes_nothing(tmp_path, monkeypatch):
 # _write_env_vars's CR/LF-stripping, denylist, and plain-value-roundtrip
 # behavior is covered by tests/kova_cli/test_memory_setup_env_denylist.py,
 # which exercises the current save_env_value-routed signature
-# (env_writes, hermes_home=None) \u2014 these three tests pinned the prior direct
+# (env_writes, kova_home=None) \u2014 these three tests pinned the prior direct
 # Path.write_text(env_path, env_writes) signature/implementation and were
 # removed along with it (#60587).
 

@@ -9,7 +9,7 @@ has its own fake provider that only accepts that profile's key and echoes the pr
 every recorded request proves which profile's TUI sent it, and state.db proves where it landed.
 
 Contract under test (``kova_cli/web_routers/chat_ws.py::pty_ws`` + ``kova_cli/pty_session.py``):
-  * ``?profile=<name>`` scopes the whole chat to that profile (HERMES_HOME=<profile dir>);
+  * ``?profile=<name>`` scopes the whole chat to that profile (KOVA_HOME=<profile dir>);
   * with ``?attach=T`` the PTY outlives the socket; reconnecting with the same T + profile replays
     the buffer and forces a redraw of the SAME TUI/session;
   * the registry key includes the profile, so the same T under another profile gets a fresh TUI.
@@ -51,8 +51,8 @@ TURN_TIMEOUT = 90.0
 def _require_tui() -> None:
     if shutil.which("node") and (H.REPO_ROOT / "ui-tui" / "dist" / "entry.js").is_file():
         return
-    if os.environ.get("HERMES_E2E_REQUIRE_TUI") == "1":
-        pytest.fail("ui-tui/dist/entry.js or node missing but HERMES_E2E_REQUIRE_TUI=1")
+    if os.environ.get("KOVA_E2E_REQUIRE_TUI") == "1":
+        pytest.fail("ui-tui/dist/entry.js or node missing but KOVA_E2E_REQUIRE_TUI=1")
     pytest.skip("Ink TUI not built (cd ui-tui && pnpm run build) or node missing")
 
 
@@ -151,7 +151,7 @@ class Chat:
 
 def _private_tui(tmp_path: Path) -> Path:
     """A private, syntax-checked copy of the prebuilt bundle, handed to the dashboard as
-    ``HERMES_TUI_DIR`` (the prebuilt-install path of ``_make_tui_argv``). On a source checkout every
+    ``KOVA_TUI_DIR`` (the prebuilt-install path of ``_make_tui_argv``). On a source checkout every
     PTY spawn otherwise re-runs ``pnpm run build``, rewriting ``ui-tui/dist/entry.js`` in place, and a
     TUI starting during a concurrent build (another worker, another dashboard) crashes on the
     truncated file (#121286). The bundle is self-contained (node builtins only)."""
@@ -175,7 +175,7 @@ def dash_env(tmp_path: Path):
     _require_tui()
     tui_dir = _private_tui(tmp_path)
     sb = H.make_sandbox(tmp_path, ("default", "alpha", "beta"), responder=_echo_responder)
-    dash = H.Dashboard(sb, tmp_path / "dashboard.log", extra_env={"HERMES_TUI_DIR": str(tui_dir)})
+    dash = H.Dashboard(sb, tmp_path / "dashboard.log", extra_env={"KOVA_TUI_DIR": str(tui_dir)})
     ledger = ProcessLedger(dash.proc.pid)
     try:
         yield sb, dash, ledger

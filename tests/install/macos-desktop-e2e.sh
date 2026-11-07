@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prove a macOS user who installed OLD via the published desktop installer
-# (Hermes-Setup.dmg from the website) can reach HEAD.
+# (Kova-Setup.dmg from the website) can reach HEAD.
 #
 # The macOS sibling of tests/install/windows-e2e.ps1's desktop-installer
 # arm, sharing the staging trick: every git process is pointed at a local
@@ -49,7 +49,7 @@ PHASE="all"
 UPDATE_METHOD=""
 INSTALL_REF=""
 UPDATE_REF=""
-DMG_URL="https://hermes-assets.nousresearch.com/Hermes-Setup.dmg"
+DMG_URL="https://hermes-assets.nousresearch.com/Kova-Setup.dmg"
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --phase)
@@ -79,10 +79,10 @@ esac
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ASSETS="$REPO_ROOT/tests/install/e2e-assets"
-export HERMES_E2E_NODE="${HERMES_E2E_NODE:-$(command -v node)}"
+export KOVA_E2E_NODE="${KOVA_E2E_NODE:-$(command -v node)}"
 
-WORK_ROOT="${HERMES_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/hermes-macos-desktop-e2e}"
-LOG_DIR="${HERMES_E2E_LOG_DIR:-$WORK_ROOT/logs}"
+WORK_ROOT="${KOVA_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/hermes-macos-desktop-e2e}"
+LOG_DIR="${KOVA_E2E_LOG_DIR:-$WORK_ROOT/logs}"
 SERVE_REPO="$WORK_ROOT/serve.git"
 STATE="$WORK_ROOT/shas.env"
 export HOME_SANDBOX="$WORK_ROOT/home"
@@ -119,14 +119,14 @@ arm_redirect() {
   arm_source_redirect "$REPO_ROOT" "$WORK_ROOT" "$SERVE_REPO"
   export HOME="$HOME_SANDBOX"
   export PATH="$HOME/.local/bin:$PATH"
-  export HERMES_HOME="$HOME/.hermes"
-  export INSTALL_DIR="$HERMES_HOME/hermes-agent"
-  export HERMES_DESKTOP_USER_DATA_DIR="$WORK_ROOT/electron-user-data"
+  export KOVA_HOME="$HOME/.kova"
+  export INSTALL_DIR="$KOVA_HOME/kova-agent"
+  export KOVA_DESKTOP_USER_DATA_DIR="$WORK_ROOT/electron-user-data"
 }
 
 desktop_checkpoint() { # phase, expected commit, selected method
-  source_build_env "$HERMES_E2E_NODE" "$ASSETS/source-desktop-smoke.mjs" \
-    --root "$INSTALL_DIR" --home "$HERMES_HOME" --user-data "$HERMES_DESKTOP_USER_DATA_DIR" \
+  source_build_env "$KOVA_E2E_NODE" "$ASSETS/source-desktop-smoke.mjs" \
+    --root "$INSTALL_DIR" --home "$KOVA_HOME" --user-data "$KOVA_DESKTOP_USER_DATA_DIR" \
     --out "$LOG_DIR" --phase "$1" --expect-commit "$2" --desktop present --method "$3"
 }
 
@@ -164,8 +164,8 @@ phase_stage() {
   git -C "$SERVE_REPO" config uploadpack.allowAnySHA1InWant true
 
   arm_redirect
-  mkdir -p "$HERMES_HOME"
-  touch "$HERMES_HOME/.skip_upstream_prompt"
+  mkdir -p "$KOVA_HOME"
+  touch "$KOVA_HOME/.skip_upstream_prompt"
 
   printf 'OLD_SHA=%s\nOLD_REF=%s\nHEAD_SHA=%s\nTARGET_SHA=%s\nTARGET_LABEL=%s\n' \
     "$old_sha" "$old_ref" "$head_sha" "$target_sha" "$target_label" > "$STATE"
@@ -176,8 +176,8 @@ find_installed_app() {
   # Require this installation's app, never an unrelated /Applications copy.
   local cand
   for cand in \
-    "$INSTALL_DIR/apps/desktop/release/mac-arm64/Hermes.app" \
-    "$INSTALL_DIR/apps/desktop/release/mac/Hermes.app"; do
+    "$INSTALL_DIR/apps/desktop/release/mac-arm64/Kova.app" \
+    "$INSTALL_DIR/apps/desktop/release/mac/Kova.app"; do
     [ -d "$cand" ] && { printf '%s' "$cand"; return 0; }
   done
   return 1
@@ -187,7 +187,7 @@ phase_install() {
   # shellcheck disable=SC1090
   . "$STATE"
   arm_redirect
-  step "installing OLD ($OLD_REF) via the published Hermes-Setup.dmg"
+  step "installing OLD ($OLD_REF) via the published Kova-Setup.dmg"
 
   # Pair both historical inputs. Today's downloaded install.sh can call helpers
   # absent from OLD (e.g. ensure-rolldown-binding.mjs). Use the published
@@ -201,7 +201,7 @@ phase_install() {
     > "$LOG_DIR/bootstrap-install-script.txt"
   ok "bootstrap script is unmodified scripts/install.sh from $OLD_REF ($OLD_SHA)"
 
-  local dmg="$WORK_ROOT/Hermes-Setup.dmg"
+  local dmg="$WORK_ROOT/Kova-Setup.dmg"
   [ -f "$dmg" ] || curl -fsSL -o "$dmg" "$DMG_URL"
   [ "$(stat -f%z "$dmg")" -gt 1000000 ] || fail "dmg download too small: $(stat -f%z "$dmg") bytes"
   # curl'd files carry no quarantine attr, but belt and braces on a runner.
@@ -223,17 +223,17 @@ phase_install() {
   # attach never works, and run bare it waits forever on its setup-choice
   # screen. Launch it in the background with our env (direct exec, not
   # `open`: launchd inherits NONE of the redirect env) and drive the
-  # "Install Hermes" button with native input.
+  # "Install Kova" button with native input.
   local rc=0
-  HERMES_SETUP_DEV_REPO_ROOT="$bootstrap_root" source_build_env bash "$ASSETS/drive-dmg-install.sh" \
+  KOVA_SETUP_DEV_REPO_ROOT="$bootstrap_root" source_build_env bash "$ASSETS/drive-dmg-install.sh" \
     --app-bin "$app_bin" \
     --install-dir "$INSTALL_DIR" \
     --proof-dir "$LOG_DIR" 2>&1 \
     | ts_prefix > "$LOG_DIR/bootstrap-install.log" || rc=$?
-  log_group "Hermes-Setup (dmg bootstrap) transcript" "$LOG_DIR/bootstrap-install.log"
+  log_group "Kova-Setup (dmg bootstrap) transcript" "$LOG_DIR/bootstrap-install.log"
   local bootstrap_log="$LOG_DIR/bootstrap-logs/bootstrap-installer.log"
   if [ -f "$bootstrap_log" ]; then
-    log_group "Hermes-Setup inner installer log" "$bootstrap_log"
+    log_group "Kova-Setup inner installer log" "$bootstrap_log"
   fi
   hdiutil detach "$mount" >/dev/null 2>&1 || true
   [ "$rc" -eq 0 ] || fail "dmg bootstrap exited $rc; transcript above"
@@ -249,14 +249,14 @@ phase_install() {
   hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed command after install"
   python3 -B "$ASSETS/source_driver.py" --root "$INSTALL_DIR" --launcher "$hermes" --desktop present \
     || fail "read-only verification failed after install"
-  HERMES_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$hermes" --version 2>&1 | ts_prefix > "$LOG_DIR/version-old.log" || fail "hermes --version failed after install"
+  KOVA_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$hermes" --version 2>&1 | ts_prefix > "$LOG_DIR/version-old.log" || fail "hermes --version failed after install"
   ok "hermes --version works: $(head -c 120 "$LOG_DIR/version-old.log" | tr -d '\n')"
-  find_installed_app >/dev/null || fail "no installed Hermes.app after the dmg bootstrap"
+  find_installed_app >/dev/null || fail "no installed Kova.app after the dmg bootstrap"
   ok "installed app: $(find_installed_app)"
   # The bootstrap can leave its launched app running. Preserve that handoff,
   # then request normal Quit of only this installed binary before smoke owns it.
   local installed_bin
-  installed_bin="$(find_installed_app)/Contents/MacOS/Hermes"
+  installed_bin="$(find_installed_app)/Contents/MacOS/Kova"
   osascript -l JavaScript -e 'ObjC.import("AppKit"); function run(args) {
     const apps = $.NSWorkspace.sharedWorkspace.runningApplications;
     for (let i = 0; i < apps.count; i++) {
@@ -279,7 +279,7 @@ phase_install() {
   # private mock whose port nothing can reclaim.
   # shellcheck source=../install/e2e-assets/mock-provider.sh
   source "$ASSETS/mock-provider.sh"
-  PATH="$(dirname "$HERMES_E2E_NODE"):$PATH" mock_start "$WORK_ROOT"
+  PATH="$(dirname "$KOVA_E2E_NODE"):$PATH" mock_start "$WORK_ROOT"
   trap mock_stop EXIT
   desktop_checkpoint old "$OLD_SHA" desktop-installer@latest
 }
@@ -290,10 +290,10 @@ run_playwright_update() {
   local rc=0
   accept_installer_marker "$INSTALL_DIR" \
     || fail "installed source has changes other than the generated install marker"
-  (cd "$WORK_ROOT" && "$HERMES_E2E_NODE" "$ASSETS/launch-from-spec.mjs" \
+  (cd "$WORK_ROOT" && "$KOVA_E2E_NODE" "$ASSETS/launch-from-spec.mjs" \
     --spec "$spec" \
-    --old-sha "$OLD_SHA" --chat-out "$LOG_DIR/update-window" --mock-url "$HERMES_E2E_MOCK_URL" \
-    --result "$HERMES_HOME/.hermes-update-result.json" \
+    --old-sha "$OLD_SHA" --chat-out "$LOG_DIR/update-window" --mock-url "$KOVA_E2E_MOCK_URL" \
+    --result "$KOVA_HOME/.kova-update-result.json" \
     --expect-sha "$TARGET_SHA" \
     --repo-dir "$INSTALL_DIR" 2>&1 \
     | ts_prefix > "$LOG_DIR/app-update.log") || rc=$?
@@ -321,7 +321,7 @@ phase_update() {
   # the dev:mock flow does, so the app is genuinely configured.
   # shellcheck source=../install/e2e-assets/mock-provider.sh
   source "$ASSETS/mock-provider.sh"
-  PATH="$(dirname "$HERMES_E2E_NODE"):$PATH" mock_start "$WORK_ROOT"
+  PATH="$(dirname "$KOVA_E2E_NODE"):$PATH" mock_start "$WORK_ROOT"
   trap mock_stop EXIT
   case "$UPDATE_METHOD" in
     hermes-update)
@@ -349,11 +349,11 @@ phase_update() {
       # The desktop stage is this leg's claim: the rebuilt app must exist.
       head_app=""
       for cand in \
-        "$INSTALL_DIR/apps/desktop/release/mac-arm64/Hermes.app" \
-        "$INSTALL_DIR/apps/desktop/release/mac/Hermes.app"; do
+        "$INSTALL_DIR/apps/desktop/release/mac-arm64/Kova.app" \
+        "$INSTALL_DIR/apps/desktop/release/mac/Kova.app"; do
         [ -d "$cand" ] && { head_app="$cand"; break; }
       done
-      [ -n "$head_app" ] || fail "no built Hermes.app under the checkout after the +desktop update"
+      [ -n "$head_app" ] || fail "no built Kova.app under the checkout after the +desktop update"
       ok "rebuilt app present: $head_app"
       ;;
     open-app-update)
@@ -382,7 +382,7 @@ PYEOF
       hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed desktop command"
       local spec="$WORK_ROOT/launch-spec.json"
       local rc=0
-      if [ "$hermes" = "$INSTALL_DIR/.hermes/bin/hermes" ]; then
+      if [ "$hermes" = "$INSTALL_DIR/.kova/bin/hermes" ]; then
         # PM launchers use -I, which ignores PYTHONPATH/sitecustomize. Inject
         # the capture hook into the installed launcher's isolated command.
         (cd "$INSTALL_DIR" && source_build_env python3 -I "$ASSETS/launch-capture/pm-launch.py" \
@@ -390,7 +390,7 @@ PYEOF
       else
         (cd "$INSTALL_DIR" && \
           PYTHONPATH="$ASSETS/launch-capture${PYTHONPATH:+:$PYTHONPATH}" \
-          HERMES_E2E_CAPTURE_LAUNCH="$spec" \
+          KOVA_E2E_CAPTURE_LAUNCH="$spec" \
           source_build_env "$hermes" desktop < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/desktop-launch-capture.log") || rc=$?
       fi
       log_group "hermes desktop (launch capture) transcript" "$LOG_DIR/desktop-launch-capture.log"
@@ -414,11 +414,11 @@ PYEOF
   # evidence must already be on disk when it does.
   local ildest="$LOG_DIR/install-logs"
   mkdir -p "$ildest"
-  cp -R "$HOME_SANDBOX/.hermes/logs" "$ildest/hermes-logs" 2>/dev/null || true
-  local ud="$HOME_SANDBOX/Library/Application Support/Hermes"
+  cp -R "$HOME_SANDBOX/.kova/logs" "$ildest/hermes-logs" 2>/dev/null || true
+  local ud="$HOME_SANDBOX/Library/Application Support/Kova"
   [ -d "$ud" ] && cp -R "$ud" "$ildest/desktop-userdata" 2>/dev/null || true
-  cp "$HERMES_HOME/.hermes-update-result.json" "$ildest" 2>/dev/null || true
-  ls -la "$HERMES_HOME" > "$ildest/hermes-home-ls.txt" 2>/dev/null || true
+  cp "$KOVA_HOME/.kova-update-result.json" "$ildest" 2>/dev/null || true
+  ls -la "$KOVA_HOME" > "$ildest/hermes-home-ls.txt" 2>/dev/null || true
   ls -la "$INSTALL_DIR/venv/bin" > "$ildest/venv-bin-ls.txt" 2>/dev/null || true
   ls -la "$INSTALL_DIR/venv" > "$ildest/venv-ls.txt" 2>/dev/null || true
   ok "collected install-side logs to $ildest"
@@ -441,7 +441,7 @@ PYEOF
   command="$(source_hermes "$INSTALL_DIR")" || fail "no installed command after update"
   python3 -B "$ASSETS/source_driver.py" --root "$INSTALL_DIR" --launcher "$command" --desktop present \
     || fail "read-only verification failed after update; no repair was attempted"
-  HERMES_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$command" --version 2>&1 | ts_prefix > "$LOG_DIR/version-head.log" \
+  KOVA_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$command" --version 2>&1 | ts_prefix > "$LOG_DIR/version-head.log" \
     || fail "hermes --version failed after update"
   ok "hermes --version works post-update"
   preserve_after_upgrade
@@ -453,7 +453,7 @@ PYEOF
 # known-failures.cjs matches the exact start commit, method pair, assertion
 # and fresh bootstrap-installer.log signatures (tests/install/KNOWN_FAILURES.md).
 phase_checked_update() {
-  local hermes_logs="$HOME_SANDBOX/.hermes/logs" rc=0 error receipt
+  local hermes_logs="$HOME_SANDBOX/.kova/logs" rc=0 error receipt
   rm -f "$WORK_ROOT/known-failure.json" "$LOG_DIR/known-failure.json" "$WORK_ROOT/update-failure.txt"
   # Only evidence produced by this update attempt can match an exception.
   if [ -f "$hermes_logs/bootstrap-installer.log" ]; then
@@ -464,11 +464,11 @@ phase_checked_update() {
   rc=$?
   set -e
   [ "$rc" -ne 0 ] || return 0
-  # phase_update snapshots HERMES_HOME/logs only once the checkout lands.
+  # phase_update snapshots KOVA_HOME/logs only once the checkout lands.
   mkdir -p "$LOG_DIR/install-logs"
   cp -R "$hermes_logs" "$LOG_DIR/install-logs/hermes-logs" 2>/dev/null || true
   error="$(cat "$WORK_ROOT/update-failure.txt" 2>/dev/null || true)"
-  receipt="$("$HERMES_E2E_NODE" "$ASSETS/known-failures.cjs" "$WORK_ROOT" desktop-installer@latest "$UPDATE_METHOD" "$error" macos)" \
+  receipt="$("$KOVA_E2E_NODE" "$ASSETS/known-failures.cjs" "$WORK_ROOT" desktop-installer@latest "$UPDATE_METHOD" "$error" macos)" \
     || exit "$rc"
   cp "$WORK_ROOT/known-failure.json" "$LOG_DIR/known-failure.json"
   local id title

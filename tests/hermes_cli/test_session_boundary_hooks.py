@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
 from kova_cli.plugins import PluginManager
-from cli import HermesCLI
+from cli import KovaCLI
 
 
 
@@ -13,7 +13,7 @@ from cli import HermesCLI
 @patch("kova_cli.lifecycle.finalize_session")
 def test_session_finalize_on_reset(mock_finalize_session, mock_invoke_hook):
     """Verify on_session_finalize fires when /new or /reset is used."""
-    cli = HermesCLI()
+    cli = KovaCLI()
     cli.agent = MagicMock()
     cli.agent.session_id = "test-session-id"
 

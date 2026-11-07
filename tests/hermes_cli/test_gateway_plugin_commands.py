@@ -7,7 +7,7 @@ from the gateway's ``commands.catalog``: no plugin code is imported or executed 
 import pytest
 
 import cli as cli_mod
-from cli import HermesCLI
+from cli import KovaCLI
 from kova_cli.commands_completion import SlashCommandCompleter
 from kova_cli.gateway_client import GatewayClientError
 
@@ -71,7 +71,7 @@ def _cli(monkeypatch, conn):
     monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
     monkeypatch.setattr(cli_mod, "_ensure_skill_commands", dict)
     monkeypatch.setattr(cli_mod, "get_skill_bundles", dict)
-    c = HermesCLI.__new__(HermesCLI)
+    c = KovaCLI.__new__(KovaCLI)
     c.config = {}
     c.session_id = "local-s"
     return c
@@ -98,7 +98,7 @@ def test_non_plugin_command_falls_through_without_loading_plugins(monkeypatch, l
     conn = _Conn({"mcp-status": "Ask the MCP server"})
     c = _cli(monkeypatch, conn)
     expanded = []
-    monkeypatch.setattr(HermesCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
+    monkeypatch.setattr(KovaCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
     assert c._process_unregistered_slash("/zzz", "/zzz") is True
     assert expanded and not any(method == "slash.exec" for method, _ in conn.calls)
     assert local_plugin_reads == []
@@ -125,7 +125,7 @@ def test_a_plugin_the_gateway_gained_dispatches_after_one_miss_refresh(monkeypat
     conn = _Conn({})
     c = _cli(monkeypatch, conn)
     expanded = []
-    monkeypatch.setattr(HermesCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
+    monkeypatch.setattr(KovaCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
     c._process_unregistered_slash("/zzz", "/zzz")
     reads = _catalog_reads(conn)
     conn._plugins["late-plugin"] = "Enabled after the CLI opened"
@@ -139,7 +139,7 @@ def test_an_unknown_command_refreshes_the_catalog_once_then_falls_through(monkey
     conn = _Conn({"mcp-status": "Ask the MCP server"})
     c = _cli(monkeypatch, conn)
     expanded = []
-    monkeypatch.setattr(HermesCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
+    monkeypatch.setattr(KovaCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
     c._process_unregistered_slash("/mcp-status", "/mcp-status")
     for submitted in range(1, 4):  # each repeat of the unknown name: exactly one read, no retry loop
         c._process_unregistered_slash("/zzz", "/zzz")
@@ -175,7 +175,7 @@ def test_a_failed_catalog_read_runs_nothing_else(monkeypatch, capsys, local_plug
     monkeypatch.setattr(cli_mod, "_ensure_skill_commands", lambda: {"/mcp-status": {"name": "mcp-status"}})
     monkeypatch.setattr(cli_mod, "get_skill_bundles", lambda: {"/mcp-status": {"skills": []}})
     for name in ("_run_skill_bundle_command", "_run_skill_slash_command", "_expand_slash_prefix"):
-        monkeypatch.setattr(HermesCLI, name, lambda self, *a, _n=name: ran.append(_n) or True)
+        monkeypatch.setattr(KovaCLI, name, lambda self, *a, _n=name: ran.append(_n) or True)
     assert c._process_unregistered_slash("/mcp-status", "/mcp-status") is True
     assert "gateway restarting" in capsys.readouterr().out
     assert ran == [] and _execs(conn) == [] and local_plugin_reads == []
@@ -186,7 +186,7 @@ def _colliding_skill_and_bundle(monkeypatch, name):
     monkeypatch.setattr(cli_mod, "_ensure_skill_commands", lambda: {f"/{name}": {"name": name}})
     monkeypatch.setattr(cli_mod, "get_skill_bundles", lambda: {f"/{name}": {"skills": []}})
     for meth in ("_run_skill_bundle_command", "_run_skill_slash_command", "_expand_slash_prefix"):
-        monkeypatch.setattr(HermesCLI, meth, lambda self, *a, _n=meth: ran.append(_n) or True)
+        monkeypatch.setattr(KovaCLI, meth, lambda self, *a, _n=meth: ran.append(_n) or True)
     return ran
 
 
@@ -318,7 +318,7 @@ def test_slash_new_rereads_the_catalog(monkeypatch):
     from kova_cli import gateway_plugin_commands
     conn = _Conn({"old-plugin": "Before"})
     monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
-    c = HermesCLI()
+    c = KovaCLI()
     c.agent = None
     assert set(gateway_plugin_commands.names(c) or ()) == {"old-plugin"}
     conn._plugins = {"new-plugin": "After"}
@@ -336,7 +336,7 @@ def test_a_failed_refresh_on_a_miss_runs_nothing_else(monkeypatch, capsys):
     conn.catalog_error = GatewayClientError("gateway restarting")
     ran = []
     monkeypatch.setattr(cli_mod, "_ensure_skill_commands", lambda: {"/probe-skill": {"name": "probe-skill"}})
-    monkeypatch.setattr(HermesCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a))
+    monkeypatch.setattr(KovaCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a))
     assert c._process_unregistered_slash("/probe-skill", "/probe-skill") is True
     assert "gateway restarting" in capsys.readouterr().out and ran == []
 
@@ -377,7 +377,7 @@ def test_a_command_a_reload_unloaded_is_named_not_the_raw_refusal(monkeypatch, c
     assert "no longer has this plugin command" in out and "unsupported_command" not in out, out
     assert _execs(conn) == ["gone-plugin"] * 2 and _catalog_reads(conn) == 2  # one re-read, no retry
     expanded = []
-    monkeypatch.setattr(HermesCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
+    monkeypatch.setattr(KovaCLI, "_expand_slash_prefix", lambda self, *a: expanded.append(a) or True)
     c._process_unregistered_slash("/gone-plugin", "/gone-plugin")  # the cache is fresh: never sent
     assert _execs(conn) == ["gone-plugin"] * 2 and len(expanded) == 1 and local_plugin_reads == []
 
@@ -385,7 +385,7 @@ def test_a_command_a_reload_unloaded_is_named_not_the_raw_refusal(monkeypatch, c
 def test_a_same_named_skill_runs_once_a_reload_unloaded_the_plugin_command(monkeypatch, capsys):
     conn, c = _unloaded_since_the_cached_read(monkeypatch, "pptwin", skills=["pptwin"])
     ran = []
-    monkeypatch.setattr(HermesCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
+    monkeypatch.setattr(KovaCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
     capsys.readouterr()
     for _ in range(2):
         assert c._process_unregistered_slash("/pptwin", "/pptwin") is True
@@ -399,7 +399,7 @@ def test_a_skill_the_same_reload_brought_runs_on_the_first_try(monkeypatch, caps
     conn, c = _unloaded_since_the_cached_read(monkeypatch, "pptwin")
     conn.extra = {"skills": {"/pptwin": {}}}
     ran = []
-    monkeypatch.setattr(HermesCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
+    monkeypatch.setattr(KovaCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
     capsys.readouterr()
     assert c._process_unregistered_slash("/pptwin", "/pptwin") is True
     out = capsys.readouterr().out
@@ -413,7 +413,7 @@ def test_a_skill_reply_for_an_unloaded_plugin_command_runs_the_skill_here(monkey
     conn, c = _unloaded_since_the_cached_read(monkeypatch, "pptwin", skills=["pptwin"])
     conn._reply = {"type": "skill", "name": "pptwin", "message": "skill body"}
     ran = []
-    monkeypatch.setattr(HermesCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
+    monkeypatch.setattr(KovaCLI, "_run_skill_slash_command", lambda self, *a: ran.append(a[0]))
     assert c._process_unregistered_slash("/pptwin", "/pptwin") is True
     assert ran == ["/pptwin"] and "nothing was run" not in capsys.readouterr().out
 

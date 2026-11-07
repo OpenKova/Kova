@@ -8,7 +8,7 @@ in config.yaml forever. ``presets`` is authoritative on write; undeclared
 sibling keys (``save_traces``, ``trace_dir``) must still survive (#58819), and
 other config sections must not be clobbered (#89184).
 
-Real config pipeline against a temp HERMES_HOME — a mocked save cannot show the
+Real config pipeline against a temp KOVA_HOME — a mocked save cannot show the
 merge that caused the bug.
 """
 
@@ -45,7 +45,7 @@ def _on_disk(home) -> dict:
 def _seed(home, monkeypatch, moa: dict, **sections) -> None:
     from ruamel.yaml import YAML
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with (home / "config.yaml").open("w", encoding="utf-8") as fh:
         YAML(typ="rt").dump({"moa": moa, **sections}, fh)
 
@@ -75,7 +75,7 @@ def _three_presets() -> dict:
 
 def test_omitted_preset_is_deleted_from_disk(tmp_path, monkeypatch):
     """The whole point: a preset the payload omits must not survive the save."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _seed(home, monkeypatch, _three_presets())
 
@@ -166,7 +166,7 @@ def test_deletion_survives_autosave_restart_and_backup_with_sparse_yaml(tmp_path
         result = subprocess.run(
             [sys.executable, "-B", "-c", probe],
             cwd=Path(__file__).resolve().parents[2],
-            env={**os.environ, "HERMES_HOME": str(tmp_path)},
+            env={**os.environ, "KOVA_HOME": str(tmp_path)},
             capture_output=True, text=True, check=True, timeout=30,
         )
         assert json.loads(result.stdout.splitlines()[-1]) == sorted(survivors)
@@ -176,7 +176,7 @@ def test_deletion_survives_autosave_restart_and_backup_with_sparse_yaml(tmp_path
 
 def test_deletion_preserves_undeclared_moa_keys_and_other_sections(tmp_path, monkeypatch):
     """Authoritative presets must not cost us #58819 (save_traces) or #89184 (siblings)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     moa = _three_presets()
     moa.update(save_traces=True, trace_dir="/custom/traces")
@@ -304,7 +304,7 @@ def test_moa_save_refuses_transient_read_failure_without_losing_config(tmp_path,
 
 def test_adding_a_preset_still_works(tmp_path, monkeypatch):
     """Authoritative writes must not break the add/edit path."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _seed(home, monkeypatch, _three_presets())
 
@@ -328,7 +328,7 @@ def test_adding_a_preset_still_works(tmp_path, monkeypatch):
 
 def test_named_map_does_not_receive_schema_default_on_load(tmp_path, monkeypatch):
     """An explicit named map owns its names; loader defaults must not add ``default``."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _seed(home, monkeypatch, _three_presets())
 
@@ -340,7 +340,7 @@ def test_named_map_does_not_receive_schema_default_on_load(tmp_path, monkeypatch
 
 def test_named_map_stays_authoritative_in_a_fresh_process_and_backup_fallback(tmp_path, monkeypatch):
     """A restart and last-known-good fallback must not reinsert the schema ``default``."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _seed(home, monkeypatch, _three_presets())
 
@@ -357,7 +357,7 @@ def test_named_map_stays_authoritative_in_a_fresh_process_and_backup_fallback(tm
     result = subprocess.run(
         [sys.executable, "-B", "-c", probe],
         cwd=__import__("pathlib").Path(__file__).resolve().parents[2],
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "KOVA_HOME": str(home)},
         capture_output=True,
         text=True,
         check=True,
@@ -368,9 +368,9 @@ def test_named_map_stays_authoritative_in_a_fresh_process_and_backup_fallback(tm
 
 def test_missing_moa_map_still_receives_schema_defaults(tmp_path, monkeypatch):
     """Without a user MoA map, the built-in default remains available."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "config.yaml").write_text("model: {}\n", encoding="utf-8")
 
     from kova_cli.config import DEFAULT_CONFIG, load_config
@@ -383,7 +383,7 @@ def test_missing_moa_map_still_receives_schema_defaults(tmp_path, monkeypatch):
 
 def test_deletion_preserves_privacy_filter_and_retained_preset_metadata(tmp_path, monkeypatch):
     """A MoA edit must not reset an undeclared privacy policy or metadata."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     moa = _three_presets()
     moa.update(
@@ -415,7 +415,7 @@ def test_legacy_flat_update_preserves_named_presets_and_valid_default(
     tmp_path, monkeypatch, include_presets
 ):
     """Older flat clients preserve named presets and a valid persisted active selection."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     seeded = _three_presets()
     seeded["active_preset"] = "keep_b"
@@ -455,7 +455,7 @@ def test_legacy_flat_update_preserves_named_presets_and_valid_default(
 
 def test_legacy_flat_update_with_named_default_and_empty_map_does_not_fail(tmp_path, monkeypatch):
     """A legacy flat payload's default_preset field cannot rename its synthesized map."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _seed(home, monkeypatch, _three_presets())
 

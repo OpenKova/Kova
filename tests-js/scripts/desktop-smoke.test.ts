@@ -6,7 +6,7 @@ import path from 'node:path'
 import yaml from 'js-yaml'
 import { expect, test } from 'vitest'
 
-import { candidateSmokeHermesHomes, predictSmokeHermesHome, resolveSmokeLaunch, runInstalledDesktopSmoke, smokeEnvironment } from '../../tests/install/e2e-assets/desktop-smoke.ts'
+import { candidateSmokeKovaHomes, predictSmokeKovaHome, resolveSmokeLaunch, runInstalledDesktopSmoke, smokeEnvironment } from '../../tests/install/e2e-assets/desktop-smoke.ts'
 import { sourceRuntimeSettleCommand } from '../../tests/install/e2e-assets/source-runtime-settle.mjs'
 import { assertUpdateWindowBackendOrigin, assertUpdateWindowProcess } from '../../tests/install/e2e-assets/update-window-chat.mjs'
 
@@ -134,9 +134,9 @@ test.runIf(process.platform !== 'win32')('shell wrapper exports the live witness
       log_group() { :; }
       source "$ASSETS/mock-provider.sh"
       trap mock_stop EXIT
-      mock_start "$HERMES_HOME"
-      node --input-type=module -e 'const r=await fetch(process.env.HERMES_E2E_MOCK_URL+"/__e2e__/prompts"); if(!r.ok || (await r.json()).receivedPrompts.length!==0)process.exit(1)'
-    `], { env: { ...process.env, ASSETS: assets, HERMES_HOME: home, LOG_DIR: home }, encoding: 'utf8', timeout: 20_000 })
+      mock_start "$KOVA_HOME"
+      node --input-type=module -e 'const r=await fetch(process.env.KOVA_E2E_MOCK_URL+"/__e2e__/prompts"); if(!r.ok || (await r.json()).receivedPrompts.length!==0)process.exit(1)'
+    `], { env: { ...process.env, ASSETS: assets, KOVA_HOME: home, LOG_DIR: home }, encoding: 'utf8', timeout: 20_000 })
 
     expect(result.status, result.stdout + result.stderr).toBe(0)
     expect(yaml.load(fs.readFileSync(path.join(home, 'config.yaml'), 'utf8'))).toMatchObject({ updates: { desktop_feed_base_url: 'http://127.0.0.1:1234/feed' } })
@@ -249,7 +249,7 @@ test.runIf(process.platform === 'linux' || process.platform === 'darwin')('the c
       ? Number(fs.readFileSync(`/proc/${child.pid}/stat`, 'utf8').split(')').pop()!.trim().split(/\s+/)[19])
       : Math.round(spawnedAt * 100)
 
-    const state = { pid: child.pid, kind: 'hermes-gateway', gateway_state: 'running', start_time: startTime }
+    const state = { pid: child.pid, kind: 'kova-gateway', gateway_state: 'running', start_time: startTime }
     const statePath = path.join(root, 'gateway_state.json')
     // `gateway ensure` leaves the daemon outside the app's tree and out of the spawn ledger.
     expect(() => localBackendProcess(port, child.pid!, home)).toThrow('found 0')
@@ -314,7 +314,7 @@ test('a backend bound to the tree by environment needs no root in argv', (): voi
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-env-origin-'))
 
   try {
-    const root = path.join(home, 'hermes-agent')
+    const root = path.join(home, 'kova-agent')
     fs.mkdirSync(path.join(root, 'venv'), { recursive: true })
     // The macOS shape: a venv's interpreter is a SYMLINK to the framework
     // binary, and the app resolves it before spawning, so argv names that binary
@@ -348,7 +348,7 @@ test('a platform that cannot read the backend environment proves ownership by th
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-owner-origin-'))
 
   try {
-    const root = path.join(home, 'hermes-agent')
+    const root = path.join(home, 'kova-agent')
     const other = path.join(home, 'other-tree')
     fs.mkdirSync(root, { recursive: true })
     fs.mkdirSync(other, { recursive: true })
@@ -401,7 +401,7 @@ test('OLD update-window source provenance carries its verified app identity to t
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-old-owner-origin-'))
 
   try {
-    const root = path.join(home, 'hermes-agent')
+    const root = path.join(home, 'kova-agent')
     const other = path.join(home, 'other-tree')
     fs.mkdirSync(root, { recursive: true })
     fs.mkdirSync(other, { recursive: true })
@@ -432,19 +432,19 @@ test('source launch restores only an explicitly captured exact editable root', (
   const writeSpec = (sourceRoot: string): void => {
     // oxlint-disable-next-line anti-slop/no-shape-in-symbol-names -- This is the existing launch-capture wire field.
     fs.writeFileSync(specPath, JSON.stringify({ argv: [process.execPath], cwd: home, matchedShape: 'packaged',
-      env: { HERMES_DESKTOP_PYTHON: process.execPath, HERMES_PYTHON_SRC_ROOT: sourceRoot } }))
+      env: { KOVA_DESKTOP_PYTHON: process.execPath, KOVA_PYTHON_SRC_ROOT: sourceRoot } }))
   }
 
   try {
     writeSpec(home)
-    expect(resolveSmokeLaunch(options).env.HERMES_PYTHON_SRC_ROOT).toBe(home)
+    expect(resolveSmokeLaunch(options).env.KOVA_PYTHON_SRC_ROOT).toBe(home)
 
     for (const wrong of [childRoot, path.dirname(home), 'relative-root']) {
       writeSpec(wrong)
       expect((): void => { resolveSmokeLaunch(options) }).toThrow('expected source installation')
     }
 
-    expect(smokeEnvironment({ HERMES_PYTHON_SRC_ROOT: home }, home, options['user-data']).HERMES_PYTHON_SRC_ROOT).toBeUndefined()
+    expect(smokeEnvironment({ KOVA_PYTHON_SRC_ROOT: home }, home, options['user-data']).KOVA_PYTHON_SRC_ROOT).toBeUndefined()
   } finally { fs.rmSync(home, { recursive: true, force: true }) }
 })
 
@@ -455,7 +455,7 @@ test.runIf(process.platform === 'linux')('module-launched source listener proves
   fs.writeFileSync(path.join(home, 'kova_cli', 'main.py'), 'import socket, time\ns = socket.socket()\ns.bind(("127.0.0.1", 0))\ns.listen()\nprint(s.getsockname()[1], flush=True)\ntime.sleep(60)\n')
 
   const child = spawn('python3', ['-m', 'kova_cli.main'], {
-    cwd: home, env: { ...process.env, HERMES_PYTHON_SRC_ROOT: home }, stdio: ['ignore', 'pipe', 'pipe'],
+    cwd: home, env: { ...process.env, KOVA_PYTHON_SRC_ROOT: home }, stdio: ['ignore', 'pipe', 'pipe'],
   })
 
   try {
@@ -520,13 +520,13 @@ test('driver strips caller secrets and records missing executables as failure wi
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-admission-'))
 
   try {
-    const env = smokeEnvironment({ PATH: '/usr/bin', DISPLAY: ':1', OPENAI_API_KEY: 'secret', HERMES_DESKTOP_BOOT_FAKE: '1',
-      HERMES_DESKTOP_HERMES_ROOT: '/wrong', PYTHONPATH: '/wrong', NODE_OPTIONS: '--inspect', HERMES_HOME: '/wrong' }, home, path.join(home, 'user-data'))
+    const env = smokeEnvironment({ PATH: '/usr/bin', DISPLAY: ':1', OPENAI_API_KEY: 'secret', KOVA_DESKTOP_BOOT_FAKE: '1',
+      KOVA_DESKTOP_KOVA_ROOT: '/wrong', PYTHONPATH: '/wrong', NODE_OPTIONS: '--inspect', KOVA_HOME: '/wrong' }, home, path.join(home, 'user-data'))
 
-    expect(env).toMatchObject({ PATH: '/usr/bin', DISPLAY: ':1', HERMES_HOME: home,
-      HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1' })
+    expect(env).toMatchObject({ PATH: '/usr/bin', DISPLAY: ':1', KOVA_HOME: home,
+      KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1' })
 
-    for (const key of ['OPENAI_API_KEY', 'HERMES_DESKTOP_BOOT_FAKE', 'HERMES_DESKTOP_HERMES_ROOT', 'PYTHONPATH', 'NODE_OPTIONS']) {
+    for (const key of ['OPENAI_API_KEY', 'KOVA_DESKTOP_BOOT_FAKE', 'KOVA_DESKTOP_KOVA_ROOT', 'PYTHONPATH', 'NODE_OPTIONS']) {
       expect(env[key]).toBeUndefined()
     }
 
@@ -544,7 +544,7 @@ test.runIf(process.platform !== 'win32')('OLD and NEW source smokes settle the c
   const out = path.join(workspace, 'out')
   const userData = path.join(workspace, 'user-data')
   const exe = path.join(root, 'fake-desktop')
-  const launcher = path.join(root, '.hermes', 'bin', 'hermes')
+  const launcher = path.join(root, '.kova', 'bin', 'hermes')
   const witness = path.join(workspace, 'settled')
 
   try {
@@ -554,7 +554,7 @@ test.runIf(process.platform !== 'win32')('OLD and NEW source smokes settle the c
     fs.writeFileSync(launcher, `#!/bin/sh
 set -eu
 [ "$1" = status ]
-[ "$HERMES_HOME" = ${JSON.stringify(home)} ]
+[ "$KOVA_HOME" = ${JSON.stringify(home)} ]
 [ "$HOME" = ${JSON.stringify(path.join(home, '.desktop-smoke-home'))} ]
 [ -z "\${PM_E2E_LEAK-}" ]
 printf 'clean source runtime settled\\n'
@@ -586,7 +586,7 @@ test('Windows source settle bypasses the current cmd launcher beside a stale his
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-windows-settle-'))
 
   try {
-    const bin = path.join(root, '.hermes', 'bin')
+    const bin = path.join(root, '.kova', 'bin')
     fs.mkdirSync(bin, { recursive: true })
     const current = path.join(bin, 'hermes.cmd')
     const python = path.join(root, 'managed python', 'python.exe')
@@ -612,7 +612,7 @@ test('Windows source settle bypasses the generated cmd command line', (): void =
   const root = path.join(workspace, 'source with spaces')
 
   try {
-    const bin = path.join(root, '.hermes', 'bin')
+    const bin = path.join(root, '.kova', 'bin')
     const witness = path.join(workspace, 'settled.txt')
     fs.mkdirSync(bin, { recursive: true })
     const pythonProbe = spawnSync('python', ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8' })
@@ -642,14 +642,14 @@ test('update-window process checks use the isolated launch environment, not the 
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-update-window-process-'))
 
   try {
-    const executable = path.join(root, 'Hermes')
+    const executable = path.join(root, 'Kova')
     const isolated = path.join(root, 'isolated-user-data')
     const driver = path.join(root, 'driver-user-data')
     fs.writeFileSync(executable, '')
     fs.mkdirSync(isolated)
     fs.mkdirSync(driver)
-    const prior = process.env.HERMES_DESKTOP_USER_DATA_DIR
-    process.env.HERMES_DESKTOP_USER_DATA_DIR = driver
+    const prior = process.env.KOVA_DESKTOP_USER_DATA_DIR
+    process.env.KOVA_DESKTOP_USER_DATA_DIR = driver
 
     try {
       expect(() => assertUpdateWindowProcess(
@@ -662,24 +662,24 @@ test('update-window process checks use the isolated launch environment, not the 
       )).toThrow('OLD update window did not honor isolated userData')
     } finally {
       if (prior === undefined) {
-        delete process.env.HERMES_DESKTOP_USER_DATA_DIR
+        delete process.env.KOVA_DESKTOP_USER_DATA_DIR
       } else {
-        process.env.HERMES_DESKTOP_USER_DATA_DIR = prior
+        process.env.KOVA_DESKTOP_USER_DATA_DIR = prior
       }
     }
   } finally { fs.rmSync(root, { recursive: true, force: true }) }
 })
 
-test('predictSmokeHermesHome replays the bundle banner through the shared resolver', (): void => {
-  const launchEnv = { HERMES_HOME: '/pinned/home', HERMES_DESKTOP_USER_DATA_DIR: '/pinned/userdata', LOCALAPPDATA: 'C:/Users/runner/AppData/Local' }
-  // No baked env: the driver's own HERMES_HOME pin wins.
-  expect(predictSmokeHermesHome(launchEnv, {}, 'linux', '/real/home')).toBe('/pinned/home')
-  // HERMES_HOME cleared -> the <userData>/hermes-home fallback.
-  expect(predictSmokeHermesHome(launchEnv, { HERMES_HOME: null }, 'linux', '/real/home')).toBe('/pinned/userdata/hermes-home')
+test('predictSmokeKovaHome replays the bundle banner through the shared resolver', (): void => {
+  const launchEnv = { KOVA_HOME: '/pinned/home', KOVA_DESKTOP_USER_DATA_DIR: '/pinned/userdata', LOCALAPPDATA: 'C:/Users/runner/AppData/Local' }
+  // No baked env: the driver's own KOVA_HOME pin wins.
+  expect(predictSmokeKovaHome(launchEnv, {}, 'linux', '/real/home')).toBe('/pinned/home')
+  // KOVA_HOME cleared -> the <userData>/hermes-home fallback.
+  expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null }, 'linux', '/real/home')).toBe('/pinned/userdata/hermes-home')
   // Both cleared + baked suffix -> the platform default with that suffix.
-  expect(predictSmokeHermesHome(launchEnv, { HERMES_HOME: null, HERMES_DESKTOP_USER_DATA_DIR: null, HERMES_DATA_DIR_SUFFIX: '-magic' }, 'linux', '/real/home')).toBe('/real/home/.hermes-magic')
+  expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null, KOVA_DESKTOP_USER_DATA_DIR: null, KOVA_DATA_DIR_SUFFIX: '-magic' }, 'linux', '/real/home')).toBe('/real/home/.kova-magic')
   // On Windows the default derives from the sandboxed LOCALAPPDATA, not the OS home.
-  expect(predictSmokeHermesHome(launchEnv, { HERMES_HOME: null, HERMES_DESKTOP_USER_DATA_DIR: null, HERMES_DATA_DIR_SUFFIX: '-magic' }, 'win32', 'C:/Users/real')).toBe('C:\\Users\\runner\\AppData\\Local\\hermes-magic')
+  expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null, KOVA_DESKTOP_USER_DATA_DIR: null, KOVA_DATA_DIR_SUFFIX: '-magic' }, 'win32', 'C:/Users/real')).toBe('C:\\Users\\runner\\AppData\\Local\\hermes-magic')
 })
 
 test('readBundledBundleEnv reads the stamped defaults/clears and is absent when unstamped', (): void => {
@@ -687,13 +687,13 @@ test('readBundledBundleEnv reads the stamped defaults/clears and is absent when 
 
   try {
     expect(readBundledBundleEnv(path.join(root, 'agent-payload'))).toBeUndefined()
-    fs.writeFileSync(path.join(root, 'install-stamp.json'), JSON.stringify({ payload: 'bundled', commit: 'a'.repeat(40), bundleEnv: { HERMES_HOME: null, SUFFIX: 'x' } }))
-    expect(readBundledBundleEnv(path.join(root, 'agent-payload'))).toEqual({ HERMES_HOME: null, SUFFIX: 'x' })
+    fs.writeFileSync(path.join(root, 'install-stamp.json'), JSON.stringify({ payload: 'bundled', commit: 'a'.repeat(40), bundleEnv: { KOVA_HOME: null, SUFFIX: 'x' } }))
+    expect(readBundledBundleEnv(path.join(root, 'agent-payload'))).toEqual({ KOVA_HOME: null, SUFFIX: 'x' })
   } finally { fs.rmSync(root, { recursive: true, force: true }) }
 })
 
 test.each<[Record<string, string | null> | undefined]>([
-  [undefined], [{ HERMES_PREVIEW_FULL_CONNECTORS: '1' }], [{ HERMES_HOME: null }],
+  [undefined], [{ KOVA_PREVIEW_FULL_CONNECTORS: '1' }], [{ KOVA_HOME: null }],
 ])(
   'bundled smoke admits a fresh home and seeds the resolved provider with defaults %j', async (bundleEnv: Record<string, string | null> | undefined): Promise<void> => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-bundle-clear-'))
@@ -717,13 +717,13 @@ test.each<[Record<string, string | null> | undefined]>([
     const mock = await startMockServer()
 
     try {
-      // The bundled app's banner turns HERMES_HOME=null into HERMES_HOME='', so
-      // resolveDesktopHermesHome falls to <userData>/hermes-home. The driver must
+      // The bundled app's banner turns KOVA_HOME=null into KOVA_HOME='', so
+      // resolveDesktopKovaHome falls to <userData>/hermes-home. The driver must
       // have seeded THAT home, not only the --home the caller named.
       await expect(runInstalledDesktopSmoke({ exe, root: path.join(root, 'root'), origin: 'bundled', home,
         'user-data': userData, out: root, phase: 'installed', 'expect-commit': 'a'.repeat(40) }, refuseLaunch)).rejects.toThrow('launch refused by test')
 
-      for (const candidate of candidateSmokeHermesHomes(home, userData)) {
+      for (const candidate of candidateSmokeKovaHomes(home, userData)) {
         expect(yaml.load(fs.readFileSync(path.join(candidate, 'config.yaml'), 'utf8'))).toMatchObject({ model: { provider: 'custom' } })
         const env = fs.readFileSync(path.join(candidate, '.env'), 'utf8')
         expect(env).toMatch(/MOCK_API_KEY=/)
@@ -738,7 +738,7 @@ test.each<[Record<string, string | null> | undefined]>([
       }
 
       if (bundleEnv) {
-        const predicted = predictSmokeHermesHome(smokeEnvironment({}, home, userData), bundleEnv)
+        const predicted = predictSmokeKovaHome(smokeEnvironment({}, home, userData), bundleEnv)
         const config = path.join(predicted, 'config.yaml')
         const before = fs.readFileSync(config)
         await expect(runInstalledDesktopSmoke({ exe, root: path.join(root, 'root'), origin: 'bundled', home,

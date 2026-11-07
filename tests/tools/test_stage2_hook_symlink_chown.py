@@ -26,15 +26,15 @@ def _run_helper(
     target: Path,
     log_path: Path,
     *,
-    hermes_home: Path | None = None,
+    kova_home: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     shell = shutil.which("sh")
     if shell is None:
         pytest.skip("sh not available")
-    hermes_home = target if hermes_home is None else hermes_home
+    kova_home = target if kova_home is None else kova_home
     script = (
         "set -eu\n"
-        f'HERMES_HOME="{hermes_home}"\n'
+        f'KOVA_HOME="{kova_home}"\n'
         f"{_chown_hermes_tree_function(text)}\n"
         f'chown() {{ printf "%s\\n" "$*" >> "{log_path}"; }}\n'
         f'chown_hermes_tree "{target}"\n'
@@ -86,9 +86,9 @@ def test_chown_helper_refuses_target_under_symlinked_home(
         stage2_text,
         linked_home / "cron",
         log_path,
-        hermes_home=linked_home,
+        kova_home=linked_home,
     )
 
     assert proc.returncode == 0, proc.stderr
-    assert not log_path.exists(), "must not chown through a symlinked HERMES_HOME"
+    assert not log_path.exists(), "must not chown through a symlinked KOVA_HOME"
     assert "refusing recursive chown through symlinked path" in proc.stdout

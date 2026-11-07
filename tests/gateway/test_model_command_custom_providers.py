@@ -33,16 +33,16 @@ async def test_direct_model_switch_runs_off_the_event_loop(tmp_path, monkeypatch
     blocking models.dev HTTP fetch can't freeze the gateway event loop (#20525)."""
     from kova_cli.model_switch import ModelSwitchResult
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / "config.yaml").write_text(
         yaml.safe_dump({"model": {"default": "gpt-5.4", "provider": "openrouter"}}),
         encoding="utf-8",
     )
 
     import gateway.run as gateway_run
 
-    monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
+    monkeypatch.setattr(gateway_run, "_kova_home", kova_home)
 
     switch_threads: list[int] = []
 

@@ -152,9 +152,9 @@ def _reports(client, step: str, profile: str | None = None) -> Any:
 
 
 def test_a_start_waiting_for_another_gateways_start_is_reported_from_when_it_was_asked(nous, gateway, builds, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    solo = get_hermes_home() / "profiles" / "solo"
+    solo = get_kova_home() / "profiles" / "solo"
     solo.mkdir(parents=True)
     (solo / "config.yaml").write_text("gateway:\n  standalone: true\n", encoding="utf-8")
     client = native_desktop_client(monkeypatch, {"solo": solo})

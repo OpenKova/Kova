@@ -31,7 +31,7 @@ RESOURCE = {"architecture": "x86_64", "hermes_version": "test", "install_method"
 
 def test_snapshot_reports_prepare_ahead_and_older_snapshots_still_package(tmp_path, monkeypatch):
     jsonschema = pytest.importorskip("jsonschema")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     states = {
         value: collect_install_snapshot({"compression": {"prepare_ahead": value}})["compression_prepare_ahead"]
         for value in (True, "yes", "on", False, "false", None)
@@ -55,14 +55,14 @@ def test_snapshot_reports_prepare_ahead_and_older_snapshots_still_package(tmp_pa
 def marks(monkeypatch):
     """Rows as the real producer emits them, with the profile and thread each was recorded under."""
     from kova_cli.observability import relay_shared_metrics
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     rows = []
     lock = threading.Lock()
 
     def record(mark, data):
         with lock:
-            rows.append((mark, dict(data), str(get_hermes_home()), threading.current_thread().name))
+            rows.append((mark, dict(data), str(get_kova_home()), threading.current_thread().name))
 
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: True)
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", record)
@@ -85,10 +85,10 @@ def _run_pass(cc, msgs, origin):
 
 
 def test_pass_and_splice_outcomes_are_counted_in_the_owning_profile(tmp_path, marks):
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     owner = tmp_path / "owner"
-    token = set_hermes_home_override(owner)
+    token = set_kova_home_override(owner)
     try:
         msgs = _messages(30)
         spliced = _compressor()
@@ -108,7 +108,7 @@ def test_pass_and_splice_outcomes_are_counted_in_the_owning_profile(tmp_path, ma
         _run_pass(reset, msgs, "tool-batch")
         reset.on_session_reset()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
     pass_rows = [("pass_completed", "tool_batch", "none", "none", "none"),
                  ("pass_started", "tool_batch", "none", "none", "none")]

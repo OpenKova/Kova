@@ -28,7 +28,7 @@ def test_bash_cold_sync_changed_input_and_warm_noop(tmp_path, canary):
     root, env = sync_checkout(tmp_path)
     assert not (root / ".venv").exists()
     if canary is not None:
-        env["HERMES_PM_ACTIVATE_CANARY"] = canary
+        env["KOVA_PM_ACTIVATE_CANARY"] = canary
     from tests.pm.test_activate_scripts import fake_store
     fake_store(tmp_path)
     script = f'''
@@ -37,7 +37,7 @@ def test_bash_cold_sync_changed_input_and_warm_noop(tmp_path, canary):
         original_path="$PATH"
         source "{posix(root / 'activate')}"
         printf '%s\\n' "$PYTHONPATH"
-        test "$HERMES_PM_ACTIVATE_CANARY" = env-ok
+        test "$KOVA_PM_ACTIVATE_CANARY" = env-ok
         printf second > "{posix(root / 'input')}"
         source "{posix(root / 'activate')}"
         printf '%s\\n' "$PYTHONPATH"
@@ -48,8 +48,8 @@ def test_bash_cold_sync_changed_input_and_warm_noop(tmp_path, canary):
         test "$PATH" = "$original_path"
         test "$PYTHONPATH" = caller-original
         test "$VIRTUAL_ENV" = caller-venv
-        {('test "$HERMES_PM_ACTIVATE_CANARY" = caller-canary' if canary else 'test -z "${HERMES_PM_ACTIVATE_CANARY+set}"')}
-        test -z "${{__HERMES_ACTIVATED+set}}"
+        {('test "$KOVA_PM_ACTIVATE_CANARY" = caller-canary' if canary else 'test -z "${KOVA_PM_ACTIVATE_CANARY+set}"')}
+        test -z "${{__KOVA_ACTIVATED+set}}"
         ! declare -F deactivate >/dev/null
     '''
     run = subprocess.run([bash(), "-c", script], cwd=tmp_path, env=env,
@@ -74,13 +74,13 @@ def test_bash_setup_failure_preserves_caller(tmp_path, already_active):
         export PYTHONHOME=caller-home PYTHONPATH=caller-path VIRTUAL_ENV=caller-venv
         before_env=$(export -p)
         before_function=$(declare -f deactivate || :)
-        before_active=${{__HERMES_ACTIVATED-unset}}
+        before_active=${{__KOVA_ACTIVATED-unset}}
         before_cwd="$PWD"
         touch {shlex.quote(str(root / 'fail'))}
         if source {activate}; then exit 9; fi
         test "$(export -p)" = "$before_env"
         test "$(declare -f deactivate || :)" = "$before_function"
-        test "${{__HERMES_ACTIVATED-unset}}" = "$before_active"
+        test "${{__KOVA_ACTIVATED-unset}}" = "$before_active"
         test "$PWD" = "$before_cwd"
         {"deactivate" if already_active else ':'}
         printf preserved

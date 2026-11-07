@@ -10,10 +10,10 @@ import urllib.request
 from kova_cli.debug_redaction import redact_debug_support_text
 
 # Overridable via env so the feature can be pointed at staging / a local dev NAS instance.
-NAS_BASE = os.environ.get("HERMES_DIAGNOSTICS_BASE_URL", "https://portal.nousresearch.com")
+NAS_BASE = os.environ.get("KOVA_DIAGNOSTICS_BASE_URL", "https://portal.nousresearch.com")
 _REQUEST_TIMEOUT = 30
 _UPLOAD_TIMEOUT = 120  # the PUT carries the gzipped log bundle, so a more generous window
-_USER_AGENT = "hermes-agent/debug-share"
+_USER_AGENT = "kova-agent/debug-share"
 
 
 def _urlopen_checked(url: str, data: bytes, method: str, headers: dict, *, timeout: int, what: str):

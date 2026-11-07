@@ -17,11 +17,11 @@ import pytest
 
 @pytest.fixture
 def curator_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME + freshly reloaded curator + skill_usage modules."""
-    home = tmp_path / ".hermes"
+    """Isolated KOVA_HOME + freshly reloaded curator + skill_usage modules."""
+    home = tmp_path / ".kova"
     (home / "skills").mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     import tools.skill_usage as usage
     importlib.reload(usage)
@@ -43,12 +43,12 @@ def curator_env(tmp_path, monkeypatch):
 
     # Teardown: a curator review launched with synchronous=False spawns a
     # daemon "curator-review" thread that calls save_state() when it finishes.
-    # save_state() resolves the state path from HERMES_HOME at write time, so a
+    # save_state() resolves the state path from KOVA_HOME at write time, so a
     # straggler thread that outlives this test would write into whatever home
-    # the *next* test has configured (or the default ~/.hermes once monkeypatch
+    # the *next* test has configured (or the default ~/.kova once monkeypatch
     # restores the env) — corrupting an unrelated test's state file. This race
     # is invisible on a fast machine but flakes under CI load. Join any such
-    # thread here, while HERMES_HOME is still pinned to this test's tmp home
+    # thread here, while KOVA_HOME is still pinned to this test's tmp home
     # (curator_env depends on monkeypatch, so this teardown runs before the
     # monkeypatch env is restored). See the salvage of #14261 CI flake.
     for t in threading.enumerate():
@@ -1128,7 +1128,7 @@ def test_threaded_llm_pass_keeps_callers_profile_scope(curator_env, tmp_path, mo
     """#125032: the daemon ``curator-review`` thread must inherit the caller's contextvars (home
     override + secret scope), else on a multiplexed gateway it runs unscoped against the ROOT home."""
     from agent import secret_scope as ss
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     c, root = curator_env["curator"], curator_env["home"]
     profile = tmp_path / "profiles" / "served"
@@ -1136,13 +1136,13 @@ def test_threaded_llm_pass_keeps_callers_profile_scope(curator_env, tmp_path, mo
     seen = {}
 
     def _pass(prefix, auto_summary, dry_run, before_names):
-        seen["home"] = get_hermes_home()
+        seen["home"] = get_kova_home()
         seen["secret"] = ss.get_secret("CURATOR_PROBE_KEY")
         return f"{prefix}{auto_summary}; llm: stub", c._llm_meta("stub")
 
     monkeypatch.setattr(c, "_consolidation_pass", _pass)
     ss.set_multiplex_active(True)
-    home_tok = set_hermes_home_override(profile)
+    home_tok = set_kova_home_override(profile)
     scope_tok = ss.set_secret_scope({"CURATOR_PROBE_KEY": "served"}, profile_home=str(profile))
     try:
         c.run_curator_review(synchronous=False, consolidate=True)
@@ -1151,7 +1151,7 @@ def test_threaded_llm_pass_keeps_callers_profile_scope(curator_env, tmp_path, mo
                 t.join(timeout=10.0)
     finally:
         ss.reset_secret_scope(scope_tok)
-        reset_hermes_home_override(home_tok)
+        reset_kova_home_override(home_tok)
         ss.set_multiplex_active(False)
 
     assert seen == {"home": profile, "secret": "served"}

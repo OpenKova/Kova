@@ -118,8 +118,8 @@ def _dirty_split(path: str) -> tuple[bool, list[str]]:
 def _archive_untracked(tree: Path, untracked: list[str]) -> Optional[Path]:
     """Copy untracked files out of a doomed tree; None on any failure (caller must then keep)."""
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    from kova_constants import get_hermes_home
-    dest = get_hermes_home() / "archive" / "worktree-prune" / f"{tree.name}-{stamp}"
+    from kova_constants import get_kova_home
+    dest = get_kova_home() / "archive" / "worktree-prune" / f"{tree.name}-{stamp}"
     try:
         for rel in untracked:
             src = tree / rel

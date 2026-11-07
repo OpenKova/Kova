@@ -7,31 +7,31 @@ import { shortSocketTmpDir } from './local-gateway.test-helpers'
 
 test('the ensure client inherits the caller-scrubbed parent env, not the raw Desktop env', async () => {
   // #68367: a sibling profile's `gateway ensure` must not see the launch profile's dotenv
-  // credentials. The parent env passed in IS the environment; only HERMES_HOME and the
+  // credentials. The parent env passed in IS the environment; only KOVA_HOME and the
   // backend's own entries are layered on top.
-  const printEnv = ['-e', 'process.stdout.write(JSON.stringify({ leak: process.env.LEAK ?? null, home: process.env.HERMES_HOME, own: process.env.OWN }))']
+  const printEnv = ['-e', 'process.stdout.write(JSON.stringify({ leak: process.env.LEAK ?? null, home: process.env.KOVA_HOME, own: process.env.OWN }))']
 
   const result = await runGatewayEnsure(
     { command: process.execPath, args: printEnv, env: { OWN: '1' }, shell: false },
     process.cwd(),
-    '/home/x/.hermes',
+    '/home/x/.kova',
     { PATH: process.env.PATH ?? '', OWN: '0' }
   )
 
-  expect(JSON.parse(result.stdout)).toEqual({ leak: null, home: '/home/x/.hermes', own: '1' })
+  expect(JSON.parse(result.stdout)).toEqual({ leak: null, home: '/home/x/.kova', own: '1' })
 })
 
 test('the ensure client never hands a dev renderer origin to the long-lived local gateway', async () => {
-  // A dev Desktop's own env names its renderer (HERMES_DESKTOP_DEV_SERVER). The gateway `ensure`
+  // A dev Desktop's own env names its renderer (KOVA_DESKTOP_DEV_SERVER). The gateway `ensure`
   // starts outlives that session, and Desktop reaches it through main-process HTTP and Origin-less
   // socket dials, so it needs no renderer origin; inherited, it would keep trusting that port.
-  const printEnv = ['-e', 'process.stdout.write(JSON.stringify(process.env.HERMES_DESKTOP_DEV_SERVER ?? null))']
+  const printEnv = ['-e', 'process.stdout.write(JSON.stringify(process.env.KOVA_DESKTOP_DEV_SERVER ?? null))']
 
   const result = await runGatewayEnsure(
-    { command: process.execPath, args: printEnv, env: { HERMES_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }, shell: false },
+    { command: process.execPath, args: printEnv, env: { KOVA_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }, shell: false },
     process.cwd(),
-    '/home/x/.hermes',
-    { PATH: process.env.PATH ?? '', HERMES_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }
+    '/home/x/.kova',
+    { PATH: process.env.PATH ?? '', KOVA_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }
   )
 
   expect(JSON.parse(result.stdout)).toBeNull()
@@ -98,8 +98,8 @@ test.skipIf(process.platform === 'win32').each([0o700, 0o750, 0o701])('native HT
     const descriptor = { gatewayEndpoint: endpoint, baseUrl: endpoint.api_origin }
     const a = await nativeGatewayHttpHeaders(descriptor, endpoint.api_origin + '/api/config')
     const b = await nativeGatewayHttpHeaders(descriptor, endpoint.api_origin + '/api/config')
-    expect(a).toEqual({ 'X-Hermes-Gateway-Ticket': 'grant-1' })
-    expect(b).toEqual({ 'X-Hermes-Gateway-Ticket': 'grant-2' })
+    expect(a).toEqual({ 'X-Kova-Gateway-Ticket': 'grant-1' })
+    expect(b).toEqual({ 'X-Kova-Gateway-Ticket': 'grant-2' })
     expect(requests.map(r => r.params)).toEqual([1, 2].map(() => ({ profile_id: home, instance_id: 'owner', purpose: 'native-http' })))
     await expect(nativeGatewayHttpHeaders(descriptor, 'http://127.0.0.1:4567/api/config')).rejects.toThrow('origin')
     expect(requests).toHaveLength(2)
@@ -222,7 +222,7 @@ test('an ensure child that never reached the protocol boundary is diagnosed from
   await expect(ensureLocalGateway(async () => ({ code: 1, stdout: '', stderr: "Error: Profile 'gone' does not exist.\n" }))).rejects.toThrow(/exit 1\): Error: Profile 'gone' does not exist\./)
   // A protocol outcome is never re-diagnosed: `incompatible` stays the gateway's own verdict.
   await expect(ensureLocalGateway(async () => ({ code: 3, stdout: '{"endpoint":null,"reason_code":"runtime_protocol","state":"incompatible"}', stderr: 'noise' }))).rejects.toThrow('Gateway incompatible (runtime_protocol)')
-  await expect(ensureLocalGateway(async () => ({ code: 0, stdout: '', stderr: '' }))).rejects.toThrow(/produced no result \(exit 0\)\. Update Hermes/)
+  await expect(ensureLocalGateway(async () => ({ code: 0, stdout: '', stderr: '' }))).rejects.toThrow(/produced no result \(exit 0\)\. Update Kova/)
 })
 
 test('private dial credential is one-use and bound to the requesting native window', () => {
@@ -232,13 +232,13 @@ test('private dial credential is one-use and bound to the requesting native wind
   dial.searchParams.delete('ticket')
   const url = dial.toString()
   expect(url).not.toContain('private-ticket')
-  const details = { url, webContentsId: 8, resourceType: 'webSocket', requestHeaders: { Origin: 'http://renderer', 'Sec-WebSocket-Protocol': 'hermes-gateway-v1, hermes-gateway-ticket.private-ticket' } }
+  const details = { url, webContentsId: 8, resourceType: 'webSocket', requestHeaders: { Origin: 'http://renderer', 'Sec-WebSocket-Protocol': 'kova-gateway-v1, kova-gateway-ticket.private-ticket' } }
   expect(dials.headers(details)).toBeNull()
   // The dial may cross a loopback proxy that rewrites host:port but keeps the nonce.
   const proxied = url.replace('127.0.0.1:1234', '127.0.0.1:4321')
   const headers = dials.headers({ ...details, url: proxied, webContentsId: 7 })!
   expect(headers).not.toHaveProperty('Origin')
-  expect(headers['Sec-WebSocket-Protocol']).toBe('hermes-gateway-v1, hermes-gateway-ticket.private-ticket')
+  expect(headers['Sec-WebSocket-Protocol']).toBe('kova-gateway-v1, kova-gateway-ticket.private-ticket')
   expect(dials.headers({ ...details, webContentsId: 7 })).toBeNull()
 })
 
@@ -290,7 +290,7 @@ test('a redial whose re-ensure comes back without a gateway endpoint names that,
   expect(mint).toHaveBeenCalledTimes(1)
 })
 
-test('a ready owner running other code than this Hermes is restarted once, then re-ensured', async () => {
+test('a ready owner running other code than this Kova is restarted once, then re-ensured', async () => {
   // After `hermes update` the live gateway still serves the old code and answers model calls
   // 503 "Restart required"; attaching to it on every dial pinned the user to it forever.
   const { createStaleGatewayRestarter } = await import('./local-gateway')
@@ -462,7 +462,7 @@ test.skipIf(process.platform === 'win32')('a group-accessible control socket is 
   }
 })
 
-// R7: the profile home keeps the operator's mode (Python `home_mode_unsafe`: HERMES_HOME_MODE
+// R7: the profile home keeps the operator's mode (Python `home_mode_unsafe`: KOVA_HOME_MODE
 // 0750/0701, a 0755 home); only write by another user can swap the socket. The socket stays 0600.
 test.skipIf(process.platform === 'win32')('a supported home mode mints its ticket; a home others can write is refused', async () => {
   const fs = await import('node:fs/promises')
@@ -631,7 +631,7 @@ test('a session write that names its owner only in the body gets a grant for tha
 
 test('an ensure refusal names its remedy instead of only a status pointer', async () => {
   // A gateway another install owns is refused, not replaced; ensure says what to do in `detail`.
-  const detail = "another Hermes install's gateway owns this profile; stop it there: hermes gateway stop"
+  const detail = "another Kova install's gateway owns this profile; stop it there: hermes gateway stop"
 
   await expect(ensureLocalGateway(async () => ({
     code: 3, stdout: JSON.stringify({ state: 'incompatible', reason_code: 'runtime_protocol', detail, endpoint: null })
@@ -640,7 +640,7 @@ test('an ensure refusal names its remedy instead of only a status pointer', asyn
 
 test('an elevated or other-session gateway is named with its remedy, not as authorization (#139845, #140252)', async () => {
   const cases = [
-    ['gateway_elevated', 'The running gateway (PID 23460) was started as administrator, so this non-elevated app cannot reach it. Stop it from an administrator prompt (hermes gateway stop), then start Hermes without elevation'],
+    ['gateway_elevated', 'The running gateway (PID 23460) was started as administrator, so this non-elevated app cannot reach it. Stop it from an administrator prompt (hermes gateway stop), then start Kova without elevation'],
     ['gateway_other_session', 'The running gateway (PID 23460) runs in another Windows logon session (session 0, e.g. a boot-time scheduled task), so this app cannot reach it. Stop it (hermes gateway stop from an administrator prompt) and let only one auto-start task launch the gateway']
   ]
 

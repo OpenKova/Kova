@@ -340,7 +340,7 @@ export function dropPreviewTabsForProfile(profile: string, local = true) {
   // F4: a REMOTE profile's jar lives on another machine — deleting it must never clear the
   // same-named LOCAL profile's jar. Only a local deletion touches local userData.
   if (local) {
-    void window.hermesDesktop?.dropPreviewSigninsForProfile?.({ profile: key })?.catch(() => undefined)
+    void window.kovaDesktop?.dropPreviewSigninsForProfile?.({ profile: key })?.catch(() => undefined)
   }
 }
 
@@ -379,7 +379,7 @@ export function migratePreviewTabsForProfile(oldProfile: string, newProfile: str
 
   // P2-7 (#150283): move the imported sign-ins record + per-profile cookie jar (Electron main,
   // userData) old→new so the rename does not strand or orphan the cookies.
-  void window.hermesDesktop?.migratePreviewSigninsForProfile?.({ oldProfile: from, newProfile: to })?.catch(() => undefined)
+  void window.kovaDesktop?.migratePreviewSigninsForProfile?.({ oldProfile: from, newProfile: to })?.catch(() => undefined)
 }
 
 if (typeof window !== 'undefined') {

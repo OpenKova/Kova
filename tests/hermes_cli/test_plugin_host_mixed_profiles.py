@@ -31,14 +31,14 @@ register_provider(Local(name="mixlocal", base_url="acp://mixlocal"))
 def test_create_client_profile_loads_in_process_and_its_sibling_stays_hosted(tmp_path, monkeypatch, caplog):
     import providers
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / "model-providers" / "mixpair"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text("name: mixpair\nkind: model-provider\n", encoding="utf-8")
     (plugin_dir / "__init__.py").write_text(TWO_PROFILE_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     with caplog.at_level(logging.WARNING, logger="providers"):
         hosted = providers.get_provider_profile("mixhosted")
@@ -66,14 +66,14 @@ def test_a_rescan_keeps_the_hosted_plugin_it_already_loaded(tmp_path, monkeypatc
     is not imported again (no second warning, the same hosted profile object)."""
     import providers
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / "model-providers" / "mixpair"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text("name: mixpair\nkind: model-provider\n", encoding="utf-8")
     (plugin_dir / "__init__.py").write_text(TWO_PROFILE_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     try:
         with caplog.at_level(logging.WARNING, logger="providers"):

@@ -84,7 +84,7 @@ def validate_update_refusal(project_root: Path, result: subprocess.CompletedProc
 
     # Commit artifacts have no update channel, even when installed through dpkg.
     commit_build = is_commit_build(project_root)
-    expected = COMMIT_BUILD_UPDATE_MESSAGE if commit_build else "pkg upgrade hermes-agent"
+    expected = COMMIT_BUILD_UPDATE_MESSAGE if commit_build else "pkg upgrade kova-agent"
     if result.returncode != 2 or expected not in result.stdout + result.stderr:
         raise RuntimeError(f"wrong updater refusal ({result.returncode}): {result.stdout}\n{result.stderr}")
     print("COMMIT_BUILD_UPDATE_REFUSAL_OK" if commit_build else "APT_UPDATE_REFUSAL_OK", flush=True)
@@ -92,11 +92,11 @@ def validate_update_refusal(project_root: Path, result: subprocess.CompletedProc
 
 def main() -> None:
     prefix = Path(os.environ["PREFIX"])
-    root = prefix / "lib/hermes-agent"
+    root = prefix / "lib/kova-agent"
     with tempfile.TemporaryDirectory(prefix="hermes-install-proof-", dir=prefix / "tmp") as tmp:
         home = Path(tmp)
         env = {
-            "PREFIX": str(prefix), "HOME": str(home), "HERMES_HOME": str(home / "state"),
+            "PREFIX": str(prefix), "HOME": str(home), "KOVA_HOME": str(home / "state"),
             "PATH": str(prefix / "bin"), "TERM": "xterm-256color", "LANG": "C.UTF-8",
             "LD_LIBRARY_PATH": ":".join((
                 str(root / "tools/python" / prefix.relative_to("/") / "lib"),
@@ -104,7 +104,7 @@ def main() -> None:
                 str(root / "tools/ffmpeg" / prefix.relative_to("/") / "lib"),
                 str(root / "runtime-libs/lib"), str(prefix / "lib"),
             )),
-            "HERMES_RUNTIME_DIR": str(root / "tools"),
+            "KOVA_RUNTIME_DIR": str(root / "tools"),
             "PYTHONPATH": str(root / "app"),
             "PYTHONPYCACHEPREFIX": str(home / "pycache"),
         }

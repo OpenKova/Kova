@@ -26,8 +26,8 @@ approvals:
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     from tui_gateway import server
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr(server, "_hermes_home", tmp_path)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setattr(server, "_kova_home", tmp_path)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     (tmp_path / "config.yaml").write_text(_CONFIG, encoding="utf-8")
     yield tmp_path
@@ -198,7 +198,7 @@ def test_authored_nulls_survive_config_writes(tmp_path, monkeypatch, operation):
     from kova_cli.resource_limits import configured_nofile_soft_limit
     from agent.agent_runtime_helpers import prompt_caching_disabled_from_config
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     config_path = tmp_path / "config.yaml"
     seed = {
         "_config_version": DEFAULT_CONFIG["_config_version"] - (operation == "migrate"),

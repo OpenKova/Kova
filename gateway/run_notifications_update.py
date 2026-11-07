@@ -45,7 +45,7 @@ class GatewayUpdateNotificationsMixin:
 
     @dataclasses.dataclass
     class _UpdatePaths:
-        """Marker files ``hermes update --gateway`` and its watcher exchange under HERMES_HOME."""
+        """Marker files ``hermes update --gateway`` and its watcher exchange under KOVA_HOME."""
 
         pending: Path
         claimed: Path
@@ -90,12 +90,12 @@ class GatewayUpdateNotificationsMixin:
 
     @classmethod
     def _update_paths(cls) -> GatewayUpdateNotificationsMixin._UpdatePaths:
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         return cls._UpdatePaths(
-            pending=_hermes_home / ".update_pending.json",
-            claimed=_hermes_home / ".update_pending.claimed.json", output=_hermes_home / ".update_output.txt",
-            exit_code=_hermes_home / ".update_exit_code",
-            prompt=_hermes_home / ".update_prompt.json", response=_hermes_home / ".update_response",
+            pending=_kova_home / ".update_pending.json",
+            claimed=_kova_home / ".update_pending.claimed.json", output=_kova_home / ".update_output.txt",
+            exit_code=_kova_home / ".update_exit_code",
+            prompt=_kova_home / ".update_prompt.json", response=_kova_home / ".update_response",
         )
 
     @staticmethod

@@ -72,7 +72,7 @@ async def test_a_turn_that_failed_before_running_settles_failed_on_every_surface
     from gateway.session_contract import SessionActor, SessionRef, Submission
     from kova_state_runtime import get_session_admission
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s', source='telegram')
     gateway = object.__new__(GatewayRunner)
@@ -126,7 +126,7 @@ async def test_a_finite_prompt_answered_without_running_settles_failed(tmp_path,
     from kova_cli.turn_exit import turn_exit_code
     from kova_state_runtime import get_session_admission
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s', source='cli')
 

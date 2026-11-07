@@ -171,7 +171,7 @@ def test_catalog_entry_is_inspected_at_its_reviewed_pin(tmp_path, sentinel, monk
     assert (pinned["ok"], pinned["agent"], pinned["desktop"]) == (True, True, False)
     assert pinned["sha"] == pin
     assert unknown == {"ok": False, "agent": False, "desktop": False, "warnings": [], "insecure": False,
-                       "error": "'missing' is not in the Hermes plugin catalog."}
+                       "error": "'missing' is not in the Kova plugin catalog."}
 
 
 def test_the_reported_sha_is_the_commit_read_even_after_the_source_moves(tmp_path, sentinel, monkeypatch):
@@ -201,7 +201,7 @@ def test_detection_matches_the_shared_cases(tmp_path, case):
 def test_inspection_writes_nothing_into_the_profile(tmp_path, sentinel, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     repo = _repo(tmp_path, _agent_files(sentinel))
 
     assert inspect_plugin_source(repo.as_uri())["ok"] is True
@@ -257,7 +257,7 @@ def test_another_profile_never_reads_this_profiles_answer(tmp_path, sentinel, cl
     repo = _repo(tmp_path, _agent_files(sentinel))
     for home in ("a", "b"):
         (tmp_path / home).mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / home))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / home))
         assert inspect_plugin_source(repo.as_uri())["ok"] is True
 
     assert clones.count == 2

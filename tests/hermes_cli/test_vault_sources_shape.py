@@ -23,9 +23,9 @@ def _corrupt_vault(home):
 
 
 def test_sources_disable_tolerates_scalar_vault_section(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "config.yaml").write_text("vault: true\n")
 
     _cmd_sources(SimpleNamespace(enable=None, disable="bitwarden"))
@@ -37,9 +37,9 @@ def test_sources_disable_tolerates_scalar_vault_section(tmp_path, monkeypatch):
 def test_vault_command_surfaces_corrupt_store_as_clean_error(tmp_path, monkeypatch, capsys):
     """A decryptable-but-malformed vault file surfaces through the VaultError
     contract as a clean error line on every subcommand, not a traceback."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     _corrupt_vault(home)
 
     vault_command(SimpleNamespace())  # bare `hermes vault` -> _cmd_list

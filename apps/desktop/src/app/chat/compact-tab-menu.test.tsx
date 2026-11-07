@@ -68,7 +68,7 @@ beforeEach(() => {
     'matchMedia',
     vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
   )
-  globalThis.document.documentElement.dataset.hermesDesktopHost = 'browser'
+  globalThis.document.documentElement.dataset.kovaDesktopHost = 'browser'
   disposeWorkspace = registry.register({
     area: 'panes',
     id: 'workspace',
@@ -90,7 +90,7 @@ afterEach(() => {
   $layoutTree.set(null)
   $narrowViewport.set(false)
   $selectedStoredSessionId.set(null)
-  delete globalThis.document.documentElement.dataset.hermesDesktopHost
+  delete globalThis.document.documentElement.dataset.kovaDesktopHost
   vi.clearAllMocks()
   vi.unstubAllGlobals()
 })

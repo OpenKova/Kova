@@ -23,9 +23,9 @@ vi.mock('@hermes/plugin-sdk', async () => {
 
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
-afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.hermesDesktop = originalDesktop })
+afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 it('shows the room purpose and its Room settings control in the Group details panel', async () => {
   const binding = { connectionId: 'local', profile: 'team', roomId: 'with-purpose' }

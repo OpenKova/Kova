@@ -30,11 +30,11 @@ def test_skill_config_helpers_share_raw_config_parse_cache(tmp_path, monkeypatch
     """Repeated skill config helpers should parse config.yaml only once."""
     from agent import skill_utils
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     external = tmp_path / "external-skills"
     external.mkdir()
-    config_path = hermes_home / "config.yaml"
+    config_path = kova_home / "config.yaml"
     config_path.write_text(
         f"""
 skills:
@@ -57,7 +57,7 @@ skills:
         parse_count += 1
         return real_load(stream)
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     skill_utils._external_dirs_cache_clear()
     getattr(skill_utils, "_raw_config_cache_clear", lambda: None)()
     # The file config backend parses through utils.fast_safe_load.
@@ -96,15 +96,15 @@ class TestMultiprofileRawConfigCache:
     def _load_under(home) -> list:
         from agent import skill_utils
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
-        token = set_hermes_home_override(str(home))
+        token = set_kova_home_override(str(home))
         try:
             return skill_utils._load_raw_config()["skills"]["disabled"]
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     def test_watcher_rotation_reparses_no_unchanged_config(self, tmp_path, monkeypatch):
         from agent import skill_utils
@@ -266,13 +266,13 @@ class TestDisabledSkillsJsonArrayString:
     def test_get_disabled_skill_names_parses_json_array_string(
         self, tmp_path, monkeypatch
     ):
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        (kova_home / "config.yaml").write_text(
             "skills:\n  disabled: '[\"skill-a\",\"skill-b\"]'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         from agent import skill_utils
 
         getattr(skill_utils, "_raw_config_cache_clear", lambda: None)()
@@ -287,12 +287,12 @@ def test_skill_config_home_vars_use_subprocess_home(tmp_path, monkeypatch):
     from agent import skill_utils
 
     # A backslash in the home path must not be read as a regex-replacement escape.
-    hermes_home = tmp_path / "da\\ta"
-    subprocess_home = hermes_home / "home"
+    kova_home = tmp_path / "da\\ta"
+    subprocess_home = kova_home / "home"
     subprocess_home.mkdir(parents=True)
-    (hermes_home / "config.yaml").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HOME", str(hermes_home))
+    (kova_home / "config.yaml").write_text("", encoding="utf-8")
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.setenv("HOME", str(kova_home))
     monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
     monkeypatch.setenv("PROJECT_ROOT", "/proj")
     monkeypatch.setenv("LEAF", "leaf")

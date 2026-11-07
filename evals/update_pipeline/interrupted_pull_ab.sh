@@ -5,20 +5,20 @@
 #
 # Builds a disposable origin + install at <installed-sha>; origin/main gets one commit that changes
 # utils.py, makes kova_cli/config.py and run_agent.py import a new utils name, and adds a package. Runs the REAL autostash + _pull_updates from the install's own tree and the REAL entry point
-# (`python -m kova_cli.main config path`) under a disposable HOME/HERMES_HOME:
+# (`python -m kova_cli.main config path`) under a disposable HOME/KOVA_HOME:
 #   A  updater SIGKILLed before git wrote anything; user edits upstream-changed files, fetches, runs hermes
 #   B  custom branch whose commit conflicts upstream: update exits 1; user merges by hand, runs hermes
 #   C  git wrote config.py + the new package, SIGKILL; user edits an upstream-changed file git never wrote
 #   D  C in a linked-worktree install (`.git` is a file)
 #   E  custom branch whose commit merges cleanly: the kill lands inside the `git merge`, after it wrote
-#      the merged run_agent.py; the user edits a file git never wrote, then runs `hermes-agent`'s import
+#      the merged run_agent.py; the user edits a file git never wrote, then runs `kova-agent`'s import
 # Fixed: A/B untouched, C/D/E restored with the user edit kept and the re-update lands; one VERDICT line.
-# [python] defaults to <repo>/venv/bin/python (needs the Hermes deps).
+# [python] defaults to <repo>/venv/bin/python (needs the Kova deps).
 set -u
 REPO=$1; REF=$2; LABEL=$3
 PY=${4:-$REPO/venv/bin/python}
 U=$(mktemp -d -t "hermes-interrupted-pull-ab-$LABEL.XXXXXX")
-export HOME=$U/fakehome HERMES_HOME=$U/fakehome/.hermes
+export HOME=$U/fakehome KOVA_HOME=$U/fakehome/.kova
 unset PYTEST_CURRENT_TEST
 cat > "$U/pull.py" <<'PYEOF'
 # `hermes update` after its fetch: the REAL autostash + _pull_updates, imported from the install's tree.
@@ -43,7 +43,7 @@ except SystemExit as e:
 PYEOF
 
 setup() {  # $1 = install kind: clone | worktree
-  cd "$U"; rm -rf "$U/origin" "$U/install" "$U/wtbase"; mkdir -p "$HERMES_HOME"
+  cd "$U"; rm -rf "$U/origin" "$U/install" "$U/wtbase"; mkdir -p "$KOVA_HOME"
   git clone -q --shared --no-checkout "$REPO" "$U/origin"
   ( cd "$U/origin" && git checkout -q -B main "$REF" && git config user.email t@x.invalid && git config user.name t
     printf '\n\ndef _torn_probe():\n    return 1\n' >> utils.py
@@ -142,8 +142,8 @@ EOF
   echo "  after re-update: HEAD==origin/main? $([ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] && echo yes || echo no) user edit kept=$(grep -c USER_EDIT run_agent.py)"
   [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] && [ "$(grep -c USER_EDIT run_agent.py)" = 1 ] && CD_OK=$((CD_OK + 1))
 done
-# ---- E: the custom-branch `git merge` wrote its merged run_agent.py, SIGKILL; `hermes-agent` launches ----
-echo; echo "--- E: kill inside the custom-branch merge, then the hermes-agent entry point (run_agent)"
+# ---- E: the custom-branch `git merge` wrote its merged run_agent.py, SIGKILL; `kova-agent` launches ----
+echo; echo "--- E: kill inside the custom-branch merge, then the kova-agent entry point (run_agent)"
 setup clone >/dev/null
 git checkout -q -b mywork && sed -i "1a LOCAL_WORK = 1" run_agent.py && git commit -qam "local work that merges cleanly"
 cat > "$U/fakebin/git" <<'EOF'
@@ -164,7 +164,7 @@ PID=$(pull_bg); for i in $(seq 60); do grep -q _torn_probe run_agent.py && break
 kill -KILL -- -$PID; wait $PID 2>/dev/null
 echo "  torn: HEAD=$(git rev-parse --short HEAD) [$(git status --porcelain | tr '\n' ' ')] marker=[$(marker | cut -c1-60)...]"
 sed -i '2a MY_UNCOMMITTED_WORK = 42' utils.py  # upstream changes this file too; git never wrote it
-PYTHONPATH=$U/install timeout 120 "$PY" -c "import run_agent; print('run_agent imported')" 2>&1 | grep -v '^$' | tail -4 | sed 's/^/    hermes-agent> /'
+PYTHONPATH=$U/install timeout 120 "$PY" -c "import run_agent; print('run_agent imported')" 2>&1 | grep -v '^$' | tail -4 | sed 's/^/    kova-agent> /'
 echo "  RESULT E: [$(git status --porcelain | tr '\n' ' ')] user edit kept=$(grep -c MY_UNCOMMITTED_WORK utils.py) marker=[$(marker)]"
 PATH=/usr/bin:$PATH $PY $U/pull.py $U/install 2>&1 | grep PULL | sed 's/^/    re-update> /'
 E_MERGED=$(git merge-base --is-ancestor origin/main HEAD && grep -q LOCAL_WORK run_agent.py && echo yes || echo no)

@@ -1,8 +1,8 @@
 """Gateway ``plugins.manage remove`` — the Desktop Plugins hub's Uninstall door.
 
-Drives the real ``kova_cli.plugins_cmd`` removal core against a temp HERMES_HOME so the RPC is
+Drives the real ``kova_cli.plugins_cmd`` removal core against a temp KOVA_HOME so the RPC is
 proven to delete the plugin tree AND its install metadata, and to refuse anything that is not a user
-install under ``<HERMES_HOME>/plugins/``.
+install under ``<KOVA_HOME>/plugins/``.
 """
 
 import json
@@ -19,7 +19,7 @@ def plugins_home(tmp_path, monkeypatch):
     (home / "plugins" / "demo-plugin" / "plugin.yaml").write_text("name: demo-plugin\nversion: 1.0.0\n", encoding="utf-8")
     (home / "plugins" / ".install-metadata.json").write_text(
         json.dumps({"demo-plugin": {"pinned_sha": "a" * 40}, "other": {"pinned_sha": "b" * 40}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 

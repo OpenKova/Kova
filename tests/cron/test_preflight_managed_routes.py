@@ -15,7 +15,7 @@ from cron.scheduler_preflight import (
     _primary_profile_routes_for_current_home,
 )
 from kova_cli import managed_scope
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 def _routes(*entries):
@@ -34,14 +34,14 @@ def satellite_home(tmp_path, monkeypatch):
     sat_home.mkdir(parents=True)
     managed_dir = tmp_path / "managed"
     managed_dir.mkdir()
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed_dir))
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed_dir))
     managed_scope.invalidate_managed_cache()
-    token = set_hermes_home_override(str(sat_home))
+    token = set_kova_home_override(str(sat_home))
     try:
         yield root, managed_dir
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
         managed_scope.invalidate_managed_cache()
 
 

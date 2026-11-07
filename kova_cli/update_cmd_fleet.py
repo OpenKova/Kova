@@ -23,7 +23,7 @@ from kova_cli.update_inventory import _gateway_service_matches_profile
 # Log-record parity with the origin module.
 logger = logging.getLogger("kova_cli.update_cmd")
 
-# Under HERMES_HOME (not next to the venv): records the fleet-restart obligation
+# Under KOVA_HOME (not next to the venv): records the fleet-restart obligation
 # after a pull advanced HEAD; cleared only when the restart completes or nothing ran.
 # The existing ``.update-incomplete`` / ``.lazy-refresh-incomplete`` markers gate dependency/venv repair;
 # this one is the fleet-restart obligation after a git pull that advanced HEAD (#95294).
@@ -33,34 +33,34 @@ _FRESH_RESTART_SUPERVISORS = frozenset({"systemd", "launchd", "service", "s6"})
 
 _SYSTEMD_SCOPES = (("user", ["systemctl", "--user"]), ("system", ["systemctl"]))
 _LIST_GATEWAY_UNITS = [
-    "list-units", "hermes-gateway*", "hermes-serve*", "hermes-dashboard*",
+    "list-units", "kova-gateway*", "hermes-serve*", "hermes-dashboard*",
     "--plain", "--no-legend", "--no-pager",
 ]
 
 
 def _write_gateway_update_exit_code(ok: bool) -> None:
-    from kova_cli.update_cmd import get_hermes_home
+    from kova_cli.update_cmd import get_kova_home
     from kova_cli.update_receipt import committed_success
     from pm.filesystem import durable_write_bytes
 
     # A run whose receipt already closed as a success is never reported failed (C3, review
     # regression 3): the command boundary's catch-alls call this with False.
     ok = ok or committed_success()
-    path = get_hermes_home() / ".update_exit_code"
+    path = get_kova_home() / ".update_exit_code"
     with suppress(OSError):
         # Atomic: the gateway watcher polls this file and reads an empty one as exit 1.
         durable_write_bytes(path, b"0" if ok else b"1")
 
 
 def _fleet_restart_pending_marker_path() -> Path:
-    """LEGACY per-``HERMES_HOME`` breadcrumb. Read-compat only — nothing writes it any more.
+    """LEGACY per-``KOVA_HOME`` breadcrumb. Read-compat only — nothing writes it any more.
 
     One host runs one multiplexing gateway, so the pull→restart obligation is host-scoped
     (``kova_cli/update_host_obligation.py``). An obligation armed by the old per-profile code
     is still read and cleared here so an in-flight update is discharged after the upgrade.
     """
-    from kova_cli.update_cmd import get_hermes_home
-    return get_hermes_home() / _FLEET_RESTART_PENDING_NAME
+    from kova_cli.update_cmd import get_kova_home
+    return get_kova_home() / _FLEET_RESTART_PENDING_NAME
 
 
 def _write_fleet_restart_pending_marker(*, expected_sha: str = "", runtimes: list[dict] | None = None, owner: str = "") -> bool:
@@ -563,10 +563,10 @@ def _unit_main_pid(scope_cmd: list, svc_name: str) -> int:
 
 
 def _restart_systemd_gateway_units_best_effort(failed: list, listings) -> None:
-    """Restart every hermes-gateway/serve unit ONCE PER LIVE HOST PROCESS.
+    """Restart every kova-gateway/serve unit ONCE PER LIVE HOST PROCESS.
 
     One host runs one multiplexing gateway, so leftover per-profile units
-    (``hermes-gateway-<profile>.service``) all point at the SAME live ``MainPID``; restarting
+    (``kova-gateway-<profile>.service``) all point at the SAME live ``MainPID``; restarting
     each in turn restarts the host gateway N times — a self-inflicted N-fold outage triggered
     by one update. Units that share a live main PID are collapsed to one representative and the
     others are named as LEGACY units to migrate, never silently dropped.
@@ -710,13 +710,13 @@ def _systemctl_reset_and_restart(manage_cmd: list, svc_name: str, *, scope_cmd: 
 def _systemd_unit_owned_by_update(scope_cmd: list, svc_name: str) -> bool:
     """Gate a unit restart on the unit's home being one this update owns (#93349).
 
-    ``hermes-gateway*`` is an account-wide namespace: a second install's ``hermes update`` used
-    to drain and restart the account's real ``hermes-gateway.service`` because the unit was
+    ``kova-gateway*`` is an account-wide namespace: a second install's ``hermes update`` used
+    to drain and restart the account's real ``kova-gateway.service`` because the unit was
     listed, not because it ran the updated code. Foreign or unreadable ownership prints a notice
     and leaves the unit alone; it is not a failed restart.
     """
-    from kova_cli.update_fleet_scope import announce_skipped_runtime, systemd_unit_hermes_home, home_in_update_scope
-    home = systemd_unit_hermes_home(scope_cmd, svc_name)
+    from kova_cli.update_fleet_scope import announce_skipped_runtime, systemd_unit_kova_home, home_in_update_scope
+    home = systemd_unit_kova_home(scope_cmd, svc_name)
     if home is not None and home_in_update_scope(home):
         return True
     announce_skipped_runtime("systemd unit", svc_name, home)
@@ -754,14 +754,14 @@ def _is_hermes_gateway_unit(unit: str) -> bool:
     return (
         # list-units is already pattern-filtered, but keep the name gate so a stray non-gateway/serve line
         # cannot enter the restart path. See #83595.
-        unit == "hermes-gateway.service"
-        or unit.startswith("hermes-gateway-")
+        unit == "kova-gateway.service"
+        or unit.startswith("kova-gateway-")
         or _is_serve_or_dashboard_unit(unit)
     )
 
 
 def _for_each_systemd_gateway_unit(list_units_stdout: str, *, process_unit, on_unit_timeout) -> None:
-    """Process each hermes-gateway*/hermes-serve* unit from ``systemctl list-units``.
+    """Process each kova-gateway*/hermes-serve* unit from ``systemctl list-units``.
 
     ``TimeoutExpired`` from ``process_unit`` is isolated per unit via ``on_unit_timeout``
     so one wedged systemctl call cannot abort the rest of the fleet.
@@ -785,14 +785,14 @@ def _for_each_systemd_gateway_unit(list_units_stdout: str, *, process_unit, on_u
 def _service_unit_supports_graceful_sigusr1_restart(svc_name: str) -> bool:
     """Whether *svc_name* wires SIGUSR1 to a graceful drain-then-restart.
 
-    Only ``hermes-gateway*`` runs ``gateway/run.py`` (the handler); SIGUSR1 would just
+    Only ``kova-gateway*`` runs ``gateway/run.py`` (the handler); SIGUSR1 would just
     kill ``hermes-serve*`` and burn the drain budget, so those go straight to the blunt
     restart. Same exact/hyphenated shape as ``_for_each_systemd_gateway_unit`` so a
-    near-prefix unit like ``hermes-gatewayd`` is never signalled.
+    near-prefix unit like ``kova-gatewayd`` is never signalled.
 
     See #83438.
     """
-    return svc_name == "hermes-gateway" or svc_name.startswith("hermes-gateway-")
+    return svc_name == "kova-gateway" or svc_name.startswith("kova-gateway-")
 
 
 def _warn_incomplete_gateway_fleet_restart(failed_units: list) -> None:
@@ -818,10 +818,10 @@ def _warn_incomplete_gateway_fleet_restart(failed_units: list) -> None:
     print("  Skipped units may still be running pre-update code (mixed")
     print("  sys.modules). Restart them manually, then verify:")
     print("    hermes gateway status")
-    if any(not name.startswith("ai.hermes.") for name in ordered):
+    if any(not name.startswith("ai.kova.") for name in ordered):
         print("    systemctl --user restart <unit>   # user-scope")
         print("    sudo systemctl restart <unit>     # system-scope")
-    if any(name.startswith("ai.hermes.") for name in ordered):
+    if any(name.startswith("ai.kova.") for name in ordered):
         print("    launchctl kickstart -k gui/$UID/<label>   # macOS (or user/$UID)")
 
 
@@ -909,7 +909,7 @@ def _restart_macos_launchd_gateways(
 ) -> None:
     """Restart every launchd-managed gateway after an update (macOS).
 
-    The pull is shared across profiles, so every ``ai.hermes.gateway*`` LaunchAgent
+    The pull is shared across profiles, so every ``ai.kova.gateway*`` LaunchAgent
     must reload it or siblings stay on pre-update ``sys.modules`` (systemd parity).
     Invoking profile uses ``launchd_restart()``; siblings get the same drain-first
     sequence with their domain (``gui/<uid>`` vs ``user/<uid>``) resolved per label so
@@ -939,7 +939,7 @@ def _restart_macos_launchd_gateways(
     failed_or_stale_units.extend(_failed)
 
     derived_labels = launchd_gateway_labels_for_install()
-    # Units labelled before the profile-name suffix scheme (ai.hermes.gateway-<hash>) are invisible
+    # Units labelled before the profile-name suffix scheme (ai.kova.gateway-<hash>) are invisible
     # to the derivation; legacy_launchd_labels_for_install() credits one only when its plist is
     # provably this install's, so the #41403 boundary (never touch another install's fleet) holds.
     # See #115254.
@@ -951,7 +951,7 @@ def _restart_macos_launchd_gateways(
         if label == current_label or label in resumed:
             continue
         # Labels are account-global: root B's default profile derives the same bare label root A
-        # installed. A plist pinning a foreign HERMES_HOME is another install's job (#93349).
+        # installed. A plist pinning a foreign KOVA_HOME is another install's job (#93349).
         if (foreign_home := launchd_label_foreign_home(label)) is not None:
             print(describe_skipped_runtime("launchd job", label, foreign_home))
             continue
@@ -1150,7 +1150,7 @@ def _drain_or_signal_gateway_for_update(
 
 
 def _gateway_home_for_pid(pid: int):
-    """HERMES_HOME of the gateway ``pid`` per the fleet inventory, else None (own profile's file)."""
+    """KOVA_HOME of the gateway ``pid`` per the fleet inventory, else None (own profile's file)."""
     with suppress(Exception):
         from kova_cli.update_receipt import _profile_homes
         from gateway.status import read_runtime_status
@@ -1184,7 +1184,7 @@ def _resolve_manage_cmd(cache: dict, scope_: str, scope_cmd_: list, svc_name_: s
     Manage-units verbs on a *system* service trigger a polkit prompt for non-root
     users, which flashes and dies inside our captured 10-15s subprocess. Root → plain
     systemctl; else ``sudo -n`` blanket probe, then a targeted ``reset-failed`` probe
-    so a least-privilege sudoers entry scoped to hermes-gateway* qualifies (idempotent
+    so a least-privilege sudoers entry scoped to kova-gateway* qualifies (idempotent
     no-op we run before every privileged restart anyway). On None the caller must SKIP
     the restart (without draining first!). ``--no-ask-password`` prevents polkit hangs.
     """
@@ -1218,16 +1218,16 @@ def _repair_unit_without_fatal_exit_park(svc_name: str, scope: str) -> None:
     from kova_cli.update_cmd_commit import past_commit_point
     # Past the move the generator would load the new tree's plugins into this process; the hint stays.
     if system and not _needs_sudo(scope) and svc_name == get_service_name() and not past_commit_point():
-        # The refresh adopts the unit's HERMES_HOME into os.environ (sudo strips it); the rest of the
+        # The refresh adopts the unit's KOVA_HOME into os.environ (sudo strips it); the rest of the
         # update keeps running for the invoking profile.
-        launch_home = os.environ.get("HERMES_HOME")
+        launch_home = os.environ.get("KOVA_HOME")
         try:
             refresh_systemd_unit_if_needed(system=True)
         finally:
             if launch_home is None:
-                os.environ.pop("HERMES_HOME", None)
+                os.environ.pop("KOVA_HOME", None)
             else:
-                os.environ["HERMES_HOME"] = launch_home
+                os.environ["KOVA_HOME"] = launch_home
         return
     print(
         f"  ⚠ {svc_name} lacks RestartPreventExitStatus={GATEWAY_FATAL_CONFIG_EXIT_CODE}: a permanent refusal "
@@ -1345,7 +1345,7 @@ def _restart_one_systemd_gateway_unit(
 def _restart_systemd_gateway_units(
     restarted_services, failed_or_stale_units, restarted_scoped_units, drain_budget, self_restart_pending=None,
 ):
-    """Restart every active hermes-gateway*/hermes-serve* systemd unit (user + system).
+    """Restart every active kova-gateway*/hermes-serve* systemd unit (user + system).
 
     Settled units → ``restarted_services`` (bare) and ``restarted_scoped_units``
     (``scope/name``); failures → ``failed_or_stale_units``. Per-unit timeouts isolated.
@@ -1376,7 +1376,7 @@ def _restart_systemd_gateway_units(
             f"continuing with remaining gateways"
         )
 
-    # Enumerate every scope first: leftover per-profile units (``hermes-gateway-<profile>``)
+    # Enumerate every scope first: leftover per-profile units (``kova-gateway-<profile>``)
     # all point at the SAME live MainPID on a multiplexed host, and restarting each in turn
     # is an N-fold outage from one update. Units sharing a live PID collapse to one restart;
     # the others are named as legacy units to migrate, never silently dropped.
@@ -1696,7 +1696,7 @@ def _restart_gateway_fleet_after_update(_pre_update_plan, gateway_mode: bool):
     from kova_cli.update_cmd import _m
     from kova_cli.update_stage import publish_stage
 
-    publish_stage("Restarting Hermes services")  # also after a failed build: the code is committed
+    publish_stage("Restarting Kova services")  # also after a failed build: the code is committed
     # All bookkeeping is declared before the try so abort recovery and fleet reconciliation
     # can read it even if the phase raises early. ``pre_restart_gateway_pids`` stays empty
     # until we are about to stop/drain, so an early exception has nothing to fail closed on,
@@ -1745,7 +1745,7 @@ def _restart_gateway_fleet_after_update(_pre_update_plan, gateway_mode: bool):
             out.self_restart_pending_pids,
         )
 
-        # macOS: EVERY ai.hermes.gateway* LaunchAgent (systemd parity).
+        # macOS: EVERY ai.kova.gateway* LaunchAgent (systemd parity).
         if is_macos():
             with suppress(FileNotFoundError, ImportError):
                 _restart_macos_launchd_gateways(

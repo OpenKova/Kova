@@ -28,7 +28,7 @@ def _fresh_probe_cache():
 
 
 def _managed_home(tmp_path, *, teammates=("researcher",), peers=()) -> Path:
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(exist_ok=True)
     for name in teammates:
         d = home / "profiles" / name
@@ -126,7 +126,7 @@ def test_never_injects_outside_bot_chat(tmp_path, title):
 
 def test_never_injects_on_unmanaged_install(tmp_path):
     """A 'Bot Chat'-titled session on a plain install stays tool-free."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     agent = _FakeAgent(home, title="Bot Chat")
     assert bot_mode_dm.ensure_message_agent_tool(agent) is False
@@ -166,7 +166,7 @@ def test_tool_refuses_outside_bot_chat(tmp_path):
 
 
 def test_tool_refuses_on_unmanaged_install(tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     agent = _FakeAgent(home, title="Bot Chat")
     result = json.loads(
@@ -394,7 +394,7 @@ def test_relay_ack_is_queued_with_the_envelope_id(tmp_path, monkeypatch):
     _capture_spawn(monkeypatch)
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1", "connection_label": "Hermes Cloud"},
+        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1", "connection_label": "Kova Cloud"},
     ])
     result = json.loads(bot_mode_dm.message_agent_tool(target="hermes", message="ping", agent=_FakeAgent(home)))
 
@@ -455,8 +455,8 @@ def test_friendly_names_and_desktop_slugs_resolve_to_folder_ids(tmp_path, monkey
 
 
 @pytest.mark.parametrize(("target", "local_name", "relayed"), [
-    ("hermes@mini", "Hermes Mini", True),
-    ("@hermes@mini", "HermesMini", True),
+    ("hermes@mini", "Kova Mini", True),
+    ("@hermes@mini", "KovaMini", True),
     ("Ops@Home", "Ops@Home", False),  # an '@' friendly name no connection answers to stays local (#100671)
 ])
 def test_connection_qualified_target_reaches_the_relay_not_a_look_alike_local_bot(
@@ -493,7 +493,7 @@ def test_ambiguous_friendly_name_fails_closed(tmp_path, monkeypatch):
     _canonical_target(monkeypatch, home, *(home / "profiles" / name for name in ("aaa", "bbb", "ops")))
     _rename(home, "aaa", display_name="Scribe")
     _rename(home, "bbb", display_name="Scribe")
-    _rename(home, "ops", display_name="Hermes")
+    _rename(home, "ops", display_name="Kova")
 
     ambiguous = json.loads(bot_mode_dm.message_agent_tool(target="Scribe", message="ping", agent=_FakeAgent(home)))
     hijack = json.loads(bot_mode_dm.message_agent_tool(target="hermes", message="ping",
@@ -723,7 +723,7 @@ def test_live_dm_admitted_before_waiter_failure(tmp_path, monkeypatch):
     target = home / "profiles" / "researcher"
     authority = _canonical_target(monkeypatch, target)
     monkeypatch.setattr(bot_mode_dm, "_dm_dir", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "wrong-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "wrong-home"))
     import tools.terminal_tool as terminal
     monkeypatch.setattr(terminal, "terminal_tool", lambda *a, **k: json.dumps({"error": "spawn failed"}))
 
@@ -741,7 +741,7 @@ def test_live_dm_admitted_before_waiter_failure(tmp_path, monkeypatch):
 def test_live_dm_runner_retry_never_reexecutes_failed_admission(tmp_path, monkeypatch, capsys):
     home = _managed_home(tmp_path)
     target = home / "profiles" / "researcher"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     authority = _canonical_target(monkeypatch, target)
     # The authority still holds the admission, so the runner waits to its absolute deadline.
     monkeypatch.setattr(bot_mode_dm, "_LIVE_WAIT_SECONDS", 0.01)
@@ -890,7 +890,7 @@ def test_local_delivery_runner_surfaces_refusal_and_retains_payload(tmp_path, mo
     ("stdin", None),
 ], ids=["author", "no author"])
 def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypatch, mode, author):
-    """The ``--author`` payload becomes HERMES_TURN_AUTHOR on the child. Without it the runner drops the
+    """The ``--author`` payload becomes KOVA_TURN_AUTHOR on the child. Without it the runner drops the
     variable it inherited from the sending bot's own turn instead of passing it on as the recipient's author."""
     from agent.turn_author import TURN_AUTHOR_ENV
 
@@ -903,7 +903,7 @@ def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypa
         return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
-    monkeypatch.setenv("HERMES_DM_TEST_MARKER", "kept")
+    monkeypatch.setenv("KOVA_DM_TEST_MARKER", "kept")
     monkeypatch.setenv(TURN_AUTHOR_ENV, json.dumps({"id": "bot:previous", "name": "previous", "is_bot": True}))
     author_args = ["--author", json.dumps(author)] if author else []
 
@@ -913,7 +913,7 @@ def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypa
     assert returncode == 0
     [(argv, kwargs)] = calls
     assert argv[:3] == ["hermes", "-p", "researcher"]
-    assert kwargs["env"]["HERMES_DM_TEST_MARKER"] == "kept"
+    assert kwargs["env"]["KOVA_DM_TEST_MARKER"] == "kept"
     assert (json.loads(kwargs["env"][TURN_AUTHOR_ENV]) if TURN_AUTHOR_ENV in kwargs["env"] else None) == author
     assert not dm_file.exists()
 
@@ -945,14 +945,14 @@ def test_local_runner_sends_only_argv_author_to_authority(tmp_path, monkeypatch,
 
 
 def test_real_delivery_command_round_trip_carries_author(tmp_path):
-    """Through a real subprocess, the runner argv built by ``_delivery_command`` sets HERMES_TURN_AUTHOR on the child."""
+    """Through a real subprocess, the runner argv built by ``_delivery_command`` sets KOVA_TURN_AUTHOR on the child."""
     dm_file = tmp_path / "message.txt"
     dm_file.write_text("secret", encoding="utf-8")
     observed = tmp_path / "observed.txt"
     child = tmp_path / "child.py"
     child.write_text(
         "import os, pathlib, sys\n"
-        "pathlib.Path(sys.argv[1]).write_text(os.environ.get('HERMES_TURN_AUTHOR', 'unset'), encoding='utf-8')\n",
+        "pathlib.Path(sys.argv[1]).write_text(os.environ.get('KOVA_TURN_AUTHOR', 'unset'), encoding='utf-8')\n",
         encoding="utf-8",
     )
     author = {"id": "bot:default", "name": "hermes", "is_bot": True}
@@ -1236,7 +1236,7 @@ def test_relay_waiter_that_cannot_start_reports_queued_not_failed(tmp_path, monk
     sender resend and deliver twice)."""
     from tools import bot_relay
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "default").mkdir(parents=True)
     bot_relay.write_remote_roster(root, [{"profile": "researcher", "handle": "researcher",
                                           "connection_id": "laptop-1", "connection_label": "laptop"}])

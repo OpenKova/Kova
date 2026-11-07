@@ -36,12 +36,12 @@ import { createControlMasterHolders } from './ssh-control-master-holders'
 const execFileAsync = promisify(execFile)
 
 test('redactSecrets scrubs the spawn-time session token env var', () => {
-  const line = 'setsid env HERMES_DASHBOARD_SESSION_TOKEN=abc123deadbeef HERMES_DESKTOP=1 hermes dashboard'
+  const line = 'setsid env KOVA_DASHBOARD_SESSION_TOKEN=abc123deadbeef KOVA_DESKTOP=1 hermes dashboard'
   const out = redactSecrets(line)
   assert.ok(!out.includes('abc123deadbeef'))
-  assert.match(out, /HERMES_DASHBOARD_SESSION_TOKEN=<redacted>/)
+  assert.match(out, /KOVA_DASHBOARD_SESSION_TOKEN=<redacted>/)
   // non-secret env vars are preserved
-  assert.match(out, /HERMES_DESKTOP=1/)
+  assert.match(out, /KOVA_DESKTOP=1/)
 })
 
 test('redactSecrets scrubs ?token= and ?ticket= URL params', () => {
@@ -51,11 +51,11 @@ test('redactSecrets scrubs ?token= and ?ticket= URL params', () => {
   assert.ok(!redactSecrets('?token=supersecret').includes('supersecret'))
 })
 
-test('redactSecrets scrubs Authorization and X-Hermes-Session-Token headers', () => {
+test('redactSecrets scrubs Authorization and X-Kova-Session-Token headers', () => {
   assert.match(redactSecrets('Authorization: Bearer tok_9999'), /Authorization: Bearer <redacted>/)
   assert.ok(!redactSecrets('Authorization: Bearer tok_9999').includes('tok_9999'))
-  assert.match(redactSecrets('X-Hermes-Session-Token: hdr_888'), /X-Hermes-Session-Token: ?<redacted>/)
-  assert.ok(!redactSecrets('X-Hermes-Session-Token: hdr_888').includes('hdr_888'))
+  assert.match(redactSecrets('X-Kova-Session-Token: hdr_888'), /X-Kova-Session-Token: ?<redacted>/)
+  assert.ok(!redactSecrets('X-Kova-Session-Token: hdr_888').includes('hdr_888'))
 })
 
 test('redactSecrets handles null/undefined and non-secret text untouched', () => {

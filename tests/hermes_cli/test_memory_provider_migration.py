@@ -10,7 +10,7 @@ from kova_cli import memory_provider_migration as mig
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("memory:\n  provider: honcho\n  honcho:\n    workspace: keep-me\n")
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     return tmp_path
@@ -44,7 +44,7 @@ def test_presence_is_checked_in_the_home_being_migrated(tmp_path, monkeypatch):
         h.mkdir(); (h / "config.yaml").write_text("memory:\n  provider: twin\n")
     (b / "plugins" / "twin").mkdir(parents=True)
     (b / "plugins" / "twin" / "__init__.py").write_text("class Twin(MemoryProvider): ...\n")
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("KOVA_HOME", str(a))
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
     installs: list[Path] = []
     assert mig.migrate_home(b, install=lambda n: installs.append(b) or {"ok": True}, say=lambda s: None) is None
@@ -61,7 +61,7 @@ def test_provider_unknown_to_catalog_is_reported_not_installed(home, monkeypatch
 
 def test_startup_recovery_attempts_each_profile_home(tmp_path, monkeypatch):
     """One multiplexed process can start agents for two homes missing the same provider."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from pm import install as pm_install
 
     homes = [tmp_path / "a", tmp_path / "b"]
@@ -87,11 +87,11 @@ def test_startup_recovery_attempts_each_profile_home(tmp_path, monkeypatch):
     monkeypatch.setattr(mig, "_install_into", fake_installer)
     outcomes = []
     for profile_home in (homes[0], homes[1], homes[0]):
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             outcomes.append(mig.recover_at_startup("twin"))
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     assert outcomes == [True, True, False]
     assert installed == homes
@@ -140,7 +140,7 @@ def test_startup_recovery_never_asks_a_dependency_question(tmp_path, monkeypatch
             return True
 
     (tmp_path / "config.yaml").write_text(f"memory:\n  provider: {name}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("sys.stdin", _Tty())
     monkeypatch.setattr("sys.stdout", _Tty())
     monkeypatch.setattr(mig, "_attempted", set())
@@ -160,13 +160,13 @@ def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
     (#125794); every line names its profile, and a decline names the rest once with their commands."""
     from kova_cli import plugins_cmd_install
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     homes = [root, root / "profiles" / "work-a", root / "profiles" / "work-b"]
     for profile_home in homes:
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     monkeypatch.setattr("pm.plugins_state.dependency_homes", lambda: homes)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
@@ -203,13 +203,13 @@ def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
 
 
 def _profile_homes(tmp_path, monkeypatch, *names):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     homes = [root, *(root / "profiles" / n for n in names)]
     for profile_home in homes:
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
     monkeypatch.setattr(mig, "_LEFT_CORE", frozenset({"twin"}))  # stands in for a formerly bundled provider
@@ -222,18 +222,18 @@ def test_unattended_update_refusal_in_one_profile_does_not_skip_the_others(tmp_p
     import io
 
     from kova_cli import plugins_cmd
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from pm import install as pm_install
 
     default, work = _profile_homes(tmp_path, monkeypatch, "work")
     monkeypatch.setattr("pm.plugins_state.dependency_homes", lambda: [default, work])
     monkeypatch.setattr("sys.stdin", io.StringIO())  # Desktop / scripted `hermes update`: no terminal
-    monkeypatch.setattr(pm_install, "lazy_installs_allowed", lambda: get_hermes_home() == work)
+    monkeypatch.setattr(pm_install, "lazy_installs_allowed", lambda: get_kova_home() == work)
 
     def install(*_a, catalog_name, assume_deps_consent, **_kw):
         if not assume_deps_consent:
             return {"ok": False, "error": "dependency install skipped (non-interactive)"}
-        (get_hermes_home() / "plugins" / catalog_name).mkdir(parents=True)
+        (get_kova_home() / "plugins" / catalog_name).mkdir(parents=True)
         return {"ok": True}
 
     monkeypatch.setattr(plugins_cmd, "dashboard_install_plugin", install)
@@ -253,7 +253,7 @@ def test_startup_hint_installs_into_the_profile_that_printed_it(tmp_path, monkey
     for profile_home, command in ((work, "hermes -p work plugins install twin"),
                                   (default, "hermes plugins install twin")):
         monkeypatch.setattr(mig, "_attempted", set())
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("KOVA_HOME", str(profile_home))
         said: list[str] = []
         assert mig.recover_at_startup("twin", say=said.append) is False
         assert f"`{command}`" in said[0]
@@ -270,7 +270,7 @@ def test_missing_catalog_provider_recovery_names_the_profile_install_command(tmp
     home = tmp_path / "profiles" / "work"
     home.mkdir(parents=True)
     (home / "config.yaml").write_text("memory:\n  provider: honcho\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     want = "hermes -p work plugins install honcho"
 
     doctor_state._memory_provider_generic("honcho")
@@ -286,7 +286,7 @@ def test_missing_catalog_provider_recovery_names_the_profile_install_command(tmp
 def test_recovery_copy_without_a_catalog_memory_entry_keeps_the_generic_hint(tmp_path, monkeypatch, capsys):
     from kova_cli import doctor_state
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))  # not a profile home: no -p to add
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))  # not a profile home: no -p to add
     assert mig.catalog_install_hint("honcho", category="memory") == "hermes plugins install honcho"
     assert mig.catalog_install_hint("honcho", category="tools") is None
     assert mig.catalog_install_hint("no-such-provider") is None
@@ -300,7 +300,7 @@ def test_startup_recovery_backs_off_after_a_failed_install(tmp_path, monkeypatch
     from pm import install as pm_install
 
     (tmp_path / "config.yaml").write_text("memory:\n  provider: hindsight\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(mig, "catalog_source", lambda n: n)
     monkeypatch.setattr(pm_install, "lazy_installs_allowed", lambda: True)
     attempts: list[str] = []

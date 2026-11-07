@@ -2,9 +2,9 @@
 
 Two rules, one per failure that took a production gateway down:
 
-* **Foreign service definition.** A systemd unit / launchd plist pins the ``HERMES_HOME`` its gateway
+* **Foreign service definition.** A systemd unit / launchd plist pins the ``KOVA_HOME`` its gateway
   runs on. A lifecycle verb (start/stop/restart/uninstall) on a definition pinning ANOTHER home acts on
-  another install's gateway: a ``HOME=<scratch>`` probe resolved the bare ``hermes-gateway`` name and ran
+  another install's gateway: a ``HOME=<scratch>`` probe resolved the bare ``kova-gateway`` name and ran
   ``systemctl --user stop`` on the account's real unit. Install/refresh already refused to WRITE such a
   definition (``gateway_service_owner``); the same module now refuses to OPERATE one:
   ``refuse_foreign_systemd_unit`` (salvaged from #141908, checked before any home sync) and
@@ -51,12 +51,12 @@ def live_work(home: Path, profile: Optional[str] = None) -> Optional[dict[str, A
 
 def _candidate_homes(system: bool = False) -> list[Path]:
     """Homes whose gateway a stop/restart from here takes down, in order: the system unit's pinned home
-    (``sudo`` strips HERMES_HOME, so this process sees root's), this home's own gateway (a ``--force``
+    (``sudo`` strips KOVA_HOME, so this process sees root's), this home's own gateway (a ``--force``
     standalone one included), then the live host owner that serves it. Only READS the unit: a foreign
     unit is skipped here and refused by the systemd verb before it adopts any home."""
     from kova_cli import gateway as gw, gateway_service_owner
 
-    homes = [gw.get_hermes_home()]
+    homes = [gw.get_kova_home()]
     if (gw.supports_systemd_services() and gw._select_systemd_scope(system)
             and gateway_service_owner.foreign_systemd_unit_home(True) is None
             and (unit_home := gateway_service_owner.service_home_for_unit(gw.get_systemd_unit_path(system=True), True))

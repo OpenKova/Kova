@@ -2,7 +2,7 @@
 
 Desktop's Electron main runs this as a LOCAL child of the owning profile and sets the cookies on the in-app
 browser's partition itself. No cookie decryption happens here: the user's REAL browser binary, running on the
-Hermes-owned snapshot (``real_profile_cdp``), decrypts its own store with the OS keychain, and the cookies are
+Kova-owned snapshot (``real_profile_cdp``), decrypts its own store with the OS keychain, and the cookies are
 read from it over CDP (``Storage.getCookies``). The list goes to stdout only (Electron's private pipe), never
 to a file or a log. Consent (``browser.use_real_profile``) is re-checked here, for this profile.
 """
@@ -65,7 +65,7 @@ def export_signins() -> dict[str, Any]:
 def run_export_signins(args) -> int:
     """CLI entry. Refuses an interactive stdout: the output is cookie values, meant for Desktop's pipe."""
     if not getattr(args, "json", False) or sys.stdout.isatty():
-        print("✗ export-signins is used by Hermes Desktop; it prints cookie values and needs --json "
+        print("✗ export-signins is used by Kova Desktop; it prints cookie values and needs --json "
               "with stdout redirected to a pipe.", file=sys.stderr)
         return 2
     result = export_signins()

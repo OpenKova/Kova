@@ -26,7 +26,7 @@ NOT_CLIENT_LABELS = frozenset({'cron', 'subagent', 'kanban', 'bot_room', 'a2a', 
 
 @functools.lru_cache(maxsize=1)
 def _messaging_labels():
-    """Every platform Hermes ships: the enum and the bundled platform plugins. A runtime-registered
+    """Every platform Kova ships: the enum and the bundled platform plugins. A runtime-registered
     catalog plugin (hermes-mobile's ``mobile``) is not in it: its rows are routed, which excludes them."""
     from gateway.config import Platform
     bundled, aliases = Platform._scan_bundled_plugin_platforms()
@@ -76,7 +76,7 @@ def login_owned_by(row, subject):
 
     Older ``hermes serve`` builds stamped the WS-upgrade login as ``<provider>:<user id>``
     (tui_gateway/session_transports.py), and the gateway stored a Webapp login as its
-    ``auth:v1:[...]`` subject. Hermes is single-user and sign-in is owner-only, so both name the
+    ``auth:v1:[...]`` subject. Kova is single-user and sign-in is owner-only, so both name the
     machine owner: the host owner's subject adopts them (gateway.owner_identity.same_owner).
     """
     user_id = row.get('user_id')

@@ -69,7 +69,7 @@ export function useHostedActions(
       const url = outcome.operation.targets.find(target => target.connectUrl)?.connectUrl
 
       if (url) {
-        void window.hermesDesktop?.openExternal?.(url)
+        void window.kovaDesktop?.openExternal?.(url)
       }
     }
 

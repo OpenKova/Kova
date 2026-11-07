@@ -1,4 +1,4 @@
-"""Unified tool configuration for Hermes Agent."""
+"""Unified tool configuration for Kova Agent."""
 
 import json as _json
 import logging
@@ -105,7 +105,7 @@ def gui_toolset_label(label: str) -> str:
     return text
 
 
-# OFF by default for new installs (still in _HERMES_CORE_TOOLS; the checklist won't pre-select them). x_search
+# OFF by default for new installs (still in _KOVA_CORE_TOOLS; the checklist won't pre-select them). x_search
 # auto-enables when xAI creds exist; its check_fn still gates the schema. ``spotify`` and ``a2a`` are plugin
 # toolsets (catalog / bundled plugin) that stay opt-in once installed.
 _DEFAULT_OFF_TOOLSETS = {"spotify", "discord", "discord_admin", "video", "video_gen", "x_search", "a2a", "kanban"}
@@ -320,7 +320,7 @@ TOOL_CATEGORIES = {
     "x_search": {
         "name": "X (Twitter) Search", "setup_title": "Select xAI Credential Source",
         "setup_note": (
-            "Hermes routes X searches through xAI's built-in x_search Responses tool for read-only public X "
+            "Kova routes X searches through xAI's built-in x_search Responses tool for read-only public X "
             "discovery. Use the xurl skill for authenticated X API reads and account actions. Both credential "
             "sources hit the same https://api.x.ai/v1/responses endpoint — pick whichever you already have. "
             "SuperGrok OAuth is preferred when both are set (uses your subscription quota instead of API spend)."
@@ -343,7 +343,7 @@ TOOL_CATEGORIES = {
         "providers": [
             _row("Local Browser", "★ recommended · free", "Headless Chromium, no API key needed", browser_provider="local",
                  browser_engine="auto", post_setup="chromium"),
-            _row("Lightpanda", "free · local · no Chromium", "Zig headless browser spawned by Hermes, text-only (no screenshots)",
+            _row("Lightpanda", "free · local · no Chromium", "Zig headless browser spawned by Kova, text-only (no screenshots)",
                  browser_provider="local", browser_engine="lightpanda", post_setup="lightpanda"),
             # Browser Use hosts its own Chromium, so the local-Chromium install and readiness gate must not
             # apply (with "chromium" this row read "needs setup" forever on machines without a local build).
@@ -356,7 +356,7 @@ TOOL_CATEGORIES = {
         "name": "Computer Use (macOS/Windows/Linux)", "icon": "🖱️",
         # Runtime backends ship for macOS, Windows, Linux (X11; Wayland via XWayland). Gaps surface via `computer-use doctor`.
         "platform_gate": ["darwin", "win32", "linux"],
-        # cua-driver reads HOME/TMPDIR from the process env; HERMES_CUA_DRIVER_CMD selects a specific
+        # cua-driver reads HOME/TMPDIR from the process env; KOVA_CUA_DRIVER_CMD selects a specific
         # binary (e.g. a local build). There is no version-pin env var.
         "providers": [
             _row("cua-driver (background)", "★ recommended · free · local",
@@ -583,7 +583,7 @@ def _get_platform_tools(config: dict, platform: str, *, include_default_mcp_serv
     # YAML may parse bare numeric names (``12306:``) as int; normalise so sorted() never mixes types.
     toolset_names = [str(ts) for ts in toolset_names]
 
-    # Expand legacy toolset aliases.  Older Hermes versions and clients used
+    # Expand legacy toolset aliases.  Older Kova versions and clients used
     # bare ``"hermes"`` as a composite toolset covering both the CLI and the
     # API-server surface.  Modern code expects ``"hermes-cli"`` (and
     # ``"hermes-api-server"`` for the HTTP endpoint), so configs persisted
@@ -879,9 +879,9 @@ def _estimate_tool_tokens() -> dict[str, int]:
     """tiktoken (cl100k_base) tokens per tool name from the serialised OpenAI schema; cached per process and
     registry generation, {} if tiktoken/registry unavailable."""
     global _tool_token_cache
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
-    scope = hermes_home_key()
+    scope = kova_home_key()
     _tool_token_cache = _tool_token_cache or {}
     try:
         import model_tools
@@ -1145,10 +1145,10 @@ def tools_command(args=None, first_install: bool = False, config: dict | None = 
     if getattr(args, "summary", False):
         _print_tools_summary(config, enabled_platforms)
         return
-    print(color("☤ Hermes Tool Configuration", Colors.CYAN, Colors.BOLD))
+    print(color("☤ Kova Tool Configuration", Colors.CYAN, Colors.BOLD))
     print(color("  Enable or disable tools per platform.", Colors.DIM))
     print(color("  Tools that need API keys will be configured when enabled.", Colors.DIM))
-    print(color("  Guide: https://hermes-agent.nousresearch.com/docs/user-guide/features/tools", Colors.DIM))
+    print(color("  Guide: https://kova-agent.nousresearch.com/docs/user-guide/features/tools", Colors.DIM))
     print()
     if first_install:
         _first_install_flow(config, enabled_platforms)
@@ -1191,7 +1191,7 @@ def tools_command(args=None, first_install: bool = False, config: dict | None = 
         print()
 
     print()
-    from kova_constants import display_hermes_home
-    print(color(f"  Tool configuration saved to {display_hermes_home()}/config.yaml", Colors.DIM))
+    from kova_constants import display_kova_home
+    print(color(f"  Tool configuration saved to {display_kova_home()}/config.yaml", Colors.DIM))
     print(color("  Changes take effect on next 'hermes' or gateway restart.", Colors.DIM))
     print()

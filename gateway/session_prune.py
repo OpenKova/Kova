@@ -42,10 +42,10 @@ async def prune(connection, ref, params):
 
 
 async def _apply(authority, filters, never_active):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from gateway.session_mutations import retire_live_sessions
     # Same transcript dir the CLI's local prune unlinks under (dispatch runs in the owner's scope).
-    sessions_dir = Path(get_hermes_home()) / 'sessions'
+    sessions_dir = Path(get_kova_home()) / 'sessions'
     deleted_ids = []
     if filters is None:
         deleted, routing, skipped = await asyncio.to_thread(

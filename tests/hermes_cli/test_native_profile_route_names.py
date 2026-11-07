@@ -28,7 +28,7 @@ def root(tmp_path, monkeypatch):
     root = tmp_path / 'root'
     for name in ('active', 'import', 'sessions', 'beta'):
         (root / 'profiles' / name).mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('KOVA_HOME', str(root))
     from kova_cli import web_server_profiles
     # The profile registry's own name -> dir mapping (validation + existence), rooted here.
     monkeypatch.setattr(web_server_profiles, '_resolve_profile_dir',
@@ -72,7 +72,7 @@ def test_registry_scope_fails_closed_when_the_launch_home_is_unknown(root):
 
 
 def test_launch_home_guard_compares_home_keys_not_raw_paths(root, tmp_path):
-    # A launch home reached through a symlink is still the launch home (hermes_home_key, as
+    # A launch home reached through a symlink is still the launch home (kova_home_key, as
     # SessionAuthorities keys it), so deleting it stays refused.
     link = tmp_path / 'link'
     link.symlink_to(root / 'profiles' / 'beta')

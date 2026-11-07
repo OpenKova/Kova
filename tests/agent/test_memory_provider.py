@@ -175,7 +175,7 @@ class TestMemoryManager:
     def _set_spill_config(monkeypatch, tmp_path, *, max_chars):
         from kova_cli.config import atomic_config_write
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {
             "memory": {"prefetch_spill_enabled": True},
             "hooks": {"output_spill": {
@@ -221,7 +221,7 @@ class TestMemoryManager:
         from kova_cli.config import atomic_config_write
         from tools.hook_output_spill import DEFAULT_MAX_CHARS
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {
             "memory": memory,
             "hooks": {"output_spill": {} if hooks_enabled else {"enabled": False}},
@@ -260,7 +260,7 @@ class TestMemoryManager:
         """Opt-out keeps normal recall whole but still caps a runaway provider at the ceiling."""
         from kova_cli.config import atomic_config_write
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {"memory": {}})
         provider = FakeMemoryProvider("external")
         provider._prefetch_result = "x" * 100_001
@@ -277,13 +277,13 @@ class TestMemoryManager:
         from agent.secret_scope import (
             is_multiplex_active, reset_secret_scope, set_multiplex_active, set_secret_scope,
         )
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         from kova_cli.config import atomic_config_write
 
         a, b = tmp_path / "a", tmp_path / "b"
         a.mkdir()
         b.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(a))  # Ambient launch home never follows B.
+        monkeypatch.setenv("KOVA_HOME", str(a))  # Ambient launch home never follows B.
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         shared = {"max_chars": 40, "preview_head": 12, "preview_tail": 7,
                   "directory": str(a / "recall")}
@@ -297,7 +297,7 @@ class TestMemoryManager:
         set_multiplex_active(True)
         try:
             for home in (a, b, a):
-                home_token = set_hermes_home_override(home)
+                home_token = set_kova_home_override(home)
                 secret_token = set_secret_scope({}, profile_home=str(home))
                 try:
                     if home not in managers:
@@ -325,8 +325,8 @@ class TestMemoryManager:
                     })
                 finally:
                     reset_secret_scope(secret_token)
-                    reset_hermes_home_override(home_token)
-            home_token = set_hermes_home_override(a)
+                    reset_kova_home_override(home_token)
+            home_token = set_kova_home_override(a)
             secret_token = set_secret_scope({}, profile_home=str(a))
             try:
                 fresh = MemoryManager()
@@ -337,7 +337,7 @@ class TestMemoryManager:
                 assert not (a / "recall" / "fresh").exists()
             finally:
                 reset_secret_scope(secret_token)
-                reset_hermes_home_override(home_token)
+                reset_kova_home_override(home_token)
         finally:
             set_multiplex_active(was_multiplex)
 
@@ -499,10 +499,10 @@ class TestMemoryManager:
         """#134392: a new MemoryManager is built per agent init, so the in-flight
         registry must be process-wide — fresh managers against a wedged provider keep at
         most ``_MAX_STUCK_CALLS`` live ``memory-prefetch-*`` threads, not one per manager. It
-        is keyed per Hermes home: another profile's same-named provider still recalls.
+        is keyed per Kova home: another profile's same-named provider still recalls.
         """
         import agent.memory_manager as mm
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         monkeypatch.setattr(mm, "_PROBE_INTERVAL_S", 1e9)
         stuck = mm._MAX_STUCK_CALLS
@@ -522,11 +522,11 @@ class TestMemoryManager:
 
             other_profile = FakeMemoryProvider("cross-manager-stuck")
             other_profile._prefetch_result = "profile b memory"
-            token = set_hermes_home_override(tmp_path / "profile-b")
+            token = set_kova_home_override(tmp_path / "profile-b")
             try:
                 mgr_b = MemoryManager(external_prefetch_timeout=1.0)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
             mgr_b.add_provider(other_profile)
             assert mgr_b._prefetch_provider(other_profile, "q", session_id="b") == "profile b memory"
 
@@ -602,7 +602,7 @@ class TestMemoryManager:
         mgr_b = MemoryManager(external_prefetch_timeout=5.0)
         for mgr, provider, home in ((mgr_a, stuck, "a"), (mgr_b, other, "b")):
             mgr.add_provider(provider)
-            mgr.initialize_all(session_id=home, hermes_home=str(tmp_path / home))
+            mgr.initialize_all(session_id=home, kova_home=str(tmp_path / home))
         try:
             mgr_a._prefetch_provider(stuck, "q", session_id="a")
             assert stuck.started.wait(timeout=2.0)
@@ -656,7 +656,7 @@ class TestPluginMemoryDiscovery:
 
 
 class TestUserInstalledProviderDiscovery:
-    """Memory providers installed to $HERMES_HOME/plugins/ should be found.
+    """Memory providers installed to $KOVA_HOME/plugins/ should be found.
 
     Regression test for issues #4956 and #9099: load_memory_provider() and
     discover_memory_providers() only scanned the bundled plugins/memory/
@@ -685,7 +685,7 @@ class TestUserInstalledProviderDiscovery:
 
 
     def test_load_user_plugin(self, tmp_path, monkeypatch):
-        """load_memory_provider() can load from $HERMES_HOME/plugins/."""
+        """load_memory_provider() can load from $KOVA_HOME/plugins/."""
         from plugins.memory import load_memory_provider
         self._make_user_memory_plugin(tmp_path, "myexternal")
         monkeypatch.setattr(

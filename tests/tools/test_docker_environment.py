@@ -114,7 +114,7 @@ def _make_execute_only_env(forward_env=None):
     env._session_id = "test123"
     env._snapshot_path = "/tmp/hermes-snap-test123.sh"
     env._cwd_file = "/tmp/hermes-cwd-test123.txt"
-    env._cwd_marker = "__HERMES_CWD_test123__"
+    env._cwd_marker = "__KOVA_CWD_test123__"
     env._snapshot_ready = True
     env._last_sync_time = None
     env._init_env_args = []
@@ -123,7 +123,7 @@ def _make_execute_only_env(forward_env=None):
 
 def test_init_env_args_uses_hermes_dotenv_for_allowlisted_env(monkeypatch):
     """_build_init_env_args picks up forwarded env vars from .env file at init time."""
-    # Use a var that is NOT in _HERMES_PROVIDER_ENV_BLOCKLIST (GITHUB_TOKEN
+    # Use a var that is NOT in _KOVA_PROVIDER_ENV_BLOCKLIST (GITHUB_TOKEN
     # is in the copilot provider's api_key_env_vars and gets stripped).
     env = _make_execute_only_env(["DATABASE_URL"])
 
@@ -158,7 +158,7 @@ def test_init_env_args_uses_hermes_dotenv_for_empty_shell_env(monkeypatch):
 
     Regression: the disk fallback used to fire only on `value is None`, so a
     present-but-empty `MY_SECRET=""` skipped it and was forwarded as `-e
-    MY_SECRET=`, clobbering the correct value sitting in ~/.hermes/.env.
+    MY_SECRET=`, clobbering the correct value sitting in ~/.kova/.env.
     """
     env = _make_execute_only_env(["MY_SECRET"])
 
@@ -359,7 +359,7 @@ def test_egress_node_options_overrides_conflicting_ca_flag(monkeypatch):
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     monkeypatch.setattr(
         docker_env, "_egress_proxy_args_for_docker",
-        lambda: ([], {"_HERMES_EGRESS_NODE_OPTIONS_APPEND": "--use-openssl-ca"}, []),
+        lambda: ([], {"_KOVA_EGRESS_NODE_OPTIONS_APPEND": "--use-openssl-ca"}, []),
     )
     calls = _mock_subprocess_run(monkeypatch)
 
@@ -402,7 +402,7 @@ def test_normalize_env_dict_filters_invalid_keys():
 def test_security_args_include_setuid_setgid_for_privdrop(monkeypatch):
     """The default (run_as_host_user=False) invocation must include SETUID and
     SETGID caps so the image's init can drop from root to a non-root user
-    (e.g. via ``s6-setuidgid`` in the bundled Hermes image, or ``gosu``/``su``
+    (e.g. via ``s6-setuidgid`` in the bundled Kova image, or ``gosu``/``su``
     in user-provided images).
 
     Without these caps the privilege-drop helper fails with
@@ -530,9 +530,9 @@ def _labels_in_run_args(run_args):
 
 
 def test_run_command_tags_kova_agent_label(monkeypatch):
-    """Every container hermes-agent starts must carry the hermes-agent=1 label
+    """Every container kova-agent starts must carry the kova-agent=1 label
     so the orphan reaper (and external operators) can identify them with a
-    single ``docker ps --filter label=hermes-agent=1`` call. Regression test
+    single ``docker ps --filter label=kova-agent=1`` call. Regression test
     for issue #20561 — without the label there is no global sweep target."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     calls = _mock_subprocess_run(monkeypatch)
@@ -540,8 +540,8 @@ def test_run_command_tags_kova_agent_label(monkeypatch):
     _make_dummy_env(task_id="my-task")
 
     labels = _labels_in_run_args(_run_args_from_calls(calls))
-    assert "hermes-agent=1" in labels, (
-        f"hermes-agent=1 label missing; got labels: {sorted(labels)}"
+    assert "kova-agent=1" in labels, (
+        f"kova-agent=1 label missing; got labels: {sorted(labels)}"
     )
 
 
@@ -562,33 +562,33 @@ def test_label_sanitizer_rejects_invalid_characters():
 
 
 def test_reuse_environment_fingerprint_tracks_immutable_configuration():
-    """Containers with different images, mounts, or Hermes homes must not
+    """Containers with different images, mounts, or Kova homes must not
     share the label used for cross-process reuse."""
     base = docker_env._reuse_environment_fingerprint(
         image="python:3.11",
         mount_args=["-v", "volume-a:/workspace"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
 
     assert base == docker_env._reuse_environment_fingerprint(
         image="python:3.11",
         mount_args=["-v", "volume-a:/workspace"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
     assert base != docker_env._reuse_environment_fingerprint(
         image="python:3.12",
         mount_args=["-v", "volume-a:/workspace"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
     assert base != docker_env._reuse_environment_fingerprint(
         image="python:3.11",
         mount_args=["-v", "volume-b:/workspace"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
     assert base != docker_env._reuse_environment_fingerprint(
         image="python:3.11",
         mount_args=["-v", "volume-a:/workspace"],
-        hermes_home="/profiles/beta",
+        kova_home="/profiles/beta",
     )
 
 
@@ -603,23 +603,23 @@ def test_reuse_environment_fingerprint_ignores_volatile_temp_mounts(tmp_path, mo
     stable_source = str(tmp_path / "data")
     process_a = docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.hermes/skills:ro",
+        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.kova/skills:ro",
                     "-v", f"{stable_source}:/data:ro"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
     process_b = docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-d4e5f6:/root/.hermes/skills:ro",
+        mount_args=["-v", f"{temp_root}/hermes-skills-safe-d4e5f6:/root/.kova/skills:ro",
                     "-v", f"{stable_source}:/data:ro"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
     assert process_a == process_b
     # A real mount change still forces a fresh container.
     assert process_a != docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.hermes/skills:ro",
+        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.kova/skills:ro",
                     "-v", f"{tmp_path}/other-data:/data:ro"],
-        hermes_home="/profiles/alpha",
+        kova_home="/profiles/alpha",
     )
 
 
@@ -752,12 +752,12 @@ def test_symlinked_skills_tree_reuses_container_across_processes(monkeypatch, tm
     installed packages / filesystem state of their long-lived sandbox."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
-    hermes_home = tmp_path / "alpha"
-    skills_dir = hermes_home / "skills"
+    kova_home = tmp_path / "alpha"
+    skills_dir = kova_home / "skills"
     (skills_dir / "some-skill").mkdir(parents=True)
     (skills_dir / "some-skill" / "SKILL.md").write_text("# skill")
     (skills_dir / "link").symlink_to(tmp_path / "outside")  # forces the safe-copy path
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     _mock_subprocess_run(monkeypatch)
 
     config = {"image": "python:3.11", "volumes": ["volume-a:/workspace"]}
@@ -768,7 +768,7 @@ def test_symlinked_skills_tree_reuses_container_across_processes(monkeypatch, tm
     # comes from canonicalization, not from the mount happening to be stable.
     mounts = []
     for entry in docker_env._readonly_skill_mount_args():
-        if entry not in ("-v",) and ":/root/.hermes/skills" in entry:
+        if entry not in ("-v",) and ":/root/.kova/skills" in entry:
             mounts.append(entry)
     assert mounts, "expected a skills mount from the symlink-safe copy"
 
@@ -791,7 +791,7 @@ def test_labels_attribute_populated_after_init(monkeypatch):
     labels = dict(env._labels)
     environment_label = labels.pop("hermes-environment")
     assert labels == {
-        "hermes-agent": "1",
+        "kova-agent": "1",
         "hermes-task-id": "abc",
         "hermes-profile": "default",
         "hermes-egress": "off",
@@ -799,12 +799,12 @@ def test_labels_attribute_populated_after_init(monkeypatch):
     assert re.fullmatch(r"[0-9a-f]{24}", environment_label)
 
 
-@pytest.mark.parametrize("changed_setting", ["image", "volumes", "hermes_home"])
+@pytest.mark.parametrize("changed_setting", ["image", "volumes", "kova_home"])
 def test_reuse_probe_filters_on_environment_fingerprint(monkeypatch, tmp_path, changed_setting):
     """Reuse and recovery must select the requested configuration, not stale mounts."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "alpha"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "alpha"))
     # Keep the auto-mounted skills directory present from the first startup.
     for name in ("alpha", "beta"):
         (tmp_path / name / "skills").mkdir(parents=True)
@@ -824,8 +824,8 @@ def test_reuse_probe_filters_on_environment_fingerprint(monkeypatch, tmp_path, c
     _make_dummy_env(**config)
     assert reuse_filters() == original_filters
 
-    if changed_setting == "hermes_home":
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "beta"))
+    if changed_setting == "kova_home":
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "beta"))
     else:
         config[changed_setting] = {"image": "python:3.12", "volumes": ["volume-b:/workspace"]}[changed_setting]
     calls.clear()
@@ -846,10 +846,10 @@ def test_shared_container_key_replaces_profile_identity(monkeypatch, tmp_path):
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "research")
     _mock_subprocess_run(monkeypatch)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "research"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "research"))
     a = _make_dummy_env(task_id="abc", shared_container_key="team/workspace")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "coding")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "coding"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "coding"))
     b = _make_dummy_env(
         task_id="abc", shared_container_key="team/workspace",
         image="python:3.12", volumes=["team-volume:/workspace"],
@@ -950,7 +950,7 @@ def _mock_subprocess_run_with_reuse(monkeypatch, ps_state: str | None,
 def test_reuse_attaches_to_running_container_without_docker_run(monkeypatch):
     """When a labeled container is already ``running``, the reuse probe
     must pick it up and skip ``docker run`` entirely. Regression for the
-    issue #20561 root cause: every Hermes process spawning a new container
+    issue #20561 root cause: every Kova process spawning a new container
     despite docs claiming "ONE long-lived container shared across sessions"."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
@@ -1071,7 +1071,7 @@ def test_reuse_probe_format_is_podman_compatible(monkeypatch):
 
 
 def test_extra_args_proxy_override_refuses_under_egress(monkeypatch):
-    """docker_extra_args are appended after Hermes args, so egress enforcement
+    """docker_extra_args are appended after Kova args, so egress enforcement
     must reject critical overrides before Docker sees them."""
 
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
@@ -1165,7 +1165,7 @@ def test_extra_args_joined_shorthand_refuses_under_egress(monkeypatch):
 
 def test_reuse_starts_stopped_container_before_attaching(monkeypatch):
     """A labeled container in ``exited`` state must be restarted via
-    ``docker start`` before the new Hermes process uses it. Without this
+    ``docker start`` before the new Kova process uses it. Without this
     step, ``docker exec`` against a stopped container errors out and the
     first agent command fails opaquely."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
@@ -1299,7 +1299,7 @@ def test_cleanup_with_persist_is_noop_for_container(monkeypatch):
     processes inside the container (npm watchers, pytest watchers, etc.).
 
     Resource reclamation in this mode happens via the orphan reaper on next
-    Hermes startup, not on graceful exit. Issue #20561 — the first iteration
+    Kova startup, not on graceful exit. Issue #20561 — the first iteration
     of this PR did docker stop here, which Ben caught as contradicting the
     "ONE long-lived container" semantics."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
@@ -1598,7 +1598,7 @@ def test_credential_mount_skipped_when_source_is_directory(monkeypatch, tmp_path
 
     # Mock get_credential_file_mounts to return the corrupted entry
     fake_mounts = [
-        {"host_path": str(corrupted_dir), "container_path": "/root/.hermes/google_token.json"},
+        {"host_path": str(corrupted_dir), "container_path": "/root/.kova/google_token.json"},
     ]
     monkeypatch.setattr(
         "tools.credential_files.get_credential_file_mounts",
@@ -1632,7 +1632,7 @@ def test_credential_mount_skipped_when_source_missing(monkeypatch, tmp_path, cap
     calls = _mock_subprocess_run(monkeypatch)
 
     fake_mounts = [
-        {"host_path": str(missing_path), "container_path": "/root/.hermes/deleted_token.json"},
+        {"host_path": str(missing_path), "container_path": "/root/.kova/deleted_token.json"},
     ]
     monkeypatch.setattr(
         "tools.credential_files.get_credential_file_mounts",
@@ -1686,7 +1686,7 @@ def test_s6_image_skips_docker_init_and_mounts_run_exec(monkeypatch):
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     calls = _mock_subprocess_run_with_entrypoint(monkeypatch, '["/init"]')
 
-    _make_dummy_env(image="hermes-agent:latest")
+    _make_dummy_env(image="kova-agent:latest")
 
     run_calls = [c for c in calls if isinstance(c[0], list) and len(c[0]) >= 2 and c[0][1] == "run"]
     assert run_calls, "docker run should have been called"

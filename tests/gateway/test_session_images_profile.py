@@ -19,8 +19,8 @@ async def test_upload_profile_selector_names_own_home_or_is_refused(tmp_path, mo
     root = tmp_path / 'root'
     home = root / 'profiles' / 'ops'
     home.mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(root))
-    monkeypatch.setattr('kova_constants.get_default_hermes_root', lambda: root)
+    monkeypatch.setenv('KOVA_HOME', str(root))
+    monkeypatch.setattr('kova_constants.get_default_kova_root', lambda: root)
     with SessionDB(db_path=home / 'state.db') as db:
         db.create_session('s', source='test')
         authority = SessionAuthority(SimpleNamespace(_draining=False), profile_id=str(home),

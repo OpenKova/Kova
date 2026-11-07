@@ -19,11 +19,11 @@ CONFIG = ('model: {default: m1, provider: custom, base_url: "http://127.0.0.1:9/
 
 def _home(monkeypatch):
     from gateway import run
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / 'config.yaml').write_text(CONFIG)
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setattr(run, '_kova_home', home)
     return home
 
 

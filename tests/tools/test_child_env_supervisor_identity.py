@@ -1,7 +1,7 @@
 """A supervisor's identity describes only the process it started, never that process's children.
 
-The launchd wrapper forwards ``HERMES_LAUNCHD_LABEL`` to the gateway it starts (#120087), and
-``gateway run --external-supervisor`` stamps ``HERMES_GATEWAY_EXTERNAL_SUPERVISOR`` into its own
+The launchd wrapper forwards ``KOVA_LAUNCHD_LABEL`` to the gateway it starts (#120087), and
+``gateway run --external-supervisor`` stamps ``KOVA_GATEWAY_EXTERNAL_SUPERVISOR`` into its own
 environ. A gateway an agent starts from its terminal tool is owned by no supervisor, so it must not
 answer ``launchd``/supervised and take the exit-75 restart route nobody would answer. systemd's
 notify socket and watchdog likewise belong to the unit's main process only.
@@ -18,14 +18,14 @@ from tests.tools._child_env_fixtures import child_env, observe_terminal
 from tools.environments import local
 
 SUPERVISED_GATEWAY_ENV = {
-    "HERMES_LAUNCHD_LABEL": "ai.hermes.gateway",
+    "KOVA_LAUNCHD_LABEL": "ai.kova.gateway",
     "XPC_SERVICE_NAME": "0",
-    "HERMES_GATEWAY_EXTERNAL_SUPERVISOR": "1",
+    "KOVA_GATEWAY_EXTERNAL_SUPERVISOR": "1",
     "NOTIFY_SOCKET": "/run/user/1000/systemd/notify",
     "WATCHDOG_USEC": "30000000",
     "WATCHDOG_PID": "4242",
 }
-OWNER_ONLY = ("HERMES_LAUNCHD_LABEL", "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
+OWNER_ONLY = ("KOVA_LAUNCHD_LABEL", "KOVA_GATEWAY_EXTERNAL_SUPERVISOR",
               "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID")
 
 
@@ -36,13 +36,13 @@ def _reads_as_unsupervised(env):
 @pytest.mark.parametrize("build", [
     lambda base: local.build_subprocess_env(base),
     lambda base: local.build_subprocess_env(base, scrub_secrets=False),
-    lambda base: local.hermes_subprocess_env(base_env=base),
+    lambda base: local.kova_subprocess_env(base_env=base),
 ], ids=["scrubbed", "unscrubbed", "hermes_subprocess_env"])
 @pytest.mark.usefixtures("child_env")
 def test_child_env_factories_drop_the_supervised_gateways_identity(build):
     parent = {**os.environ, **SUPERVISED_GATEWAY_ENV}
     # Control: the gateway itself still resolves its launchd job and the restart route.
-    assert launchd_job_label(parent) == "ai.hermes.gateway" and is_gateway_supervisor_process(parent)
+    assert launchd_job_label(parent) == "ai.kova.gateway" and is_gateway_supervisor_process(parent)
 
     child = build(parent)
 
@@ -72,20 +72,20 @@ def test_external_supervisor_gateways_tool_child_cli_stays_on_the_gateways_profi
     """Losing the supervisor claim must not unpin the agent's own `hermes ...` commands (#74872)."""
     from kova_cli import main as cli_main
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "work").mkdir(parents=True)
     (root / "profiles" / "work" / "config.yaml").write_text("{}\n")
     (root / "active_profile").write_text("work\n")
     monkeypatch.setattr(sys, "argv", ["hermes", "cron", "list"])
 
     def child_cli_home(parent_extra):
-        child = local.build_subprocess_env({**os.environ, "HERMES_HOME": str(root), **parent_extra})
+        child = local.build_subprocess_env({**os.environ, "KOVA_HOME": str(root), **parent_extra})
         with patch.dict(os.environ, child, clear=True):
             cli_main._apply_profile_override()
-            return child, os.environ["HERMES_HOME"]
+            return child, os.environ["KOVA_HOME"]
 
     # Control: an unpinned root-home CLI follows the sticky profile.
     assert child_cli_home({})[1] == str(root / "profiles" / "work")
-    child, home = child_cli_home({"HERMES_GATEWAY_EXTERNAL_SUPERVISOR": "1"})
+    child, home = child_cli_home({"KOVA_GATEWAY_EXTERNAL_SUPERVISOR": "1"})
     assert home == str(root)
     assert _reads_as_unsupervised(child)

@@ -1,9 +1,9 @@
 """Pre-suffix Windows gateway launchers: the objects the current per-profile names cannot reach.
 
 Before task/launcher names carried ``_profile_suffix()``, an install wrote the Scheduled Task
-``Hermes_Gateway``, the Startup entry ``Hermes_Gateway.vbs``/``.cmd`` and the launcher pair
-``gateway-service\\Hermes_Gateway.{vbs,cmd}``. Every operation in ``gateway_windows`` is keyed on
-``get_task_name()`` → ``Hermes_Gateway_<suffix>``, so those strays are never queried, rewritten,
+``Kova_Gateway``, the Startup entry ``Kova_Gateway.vbs``/``.cmd`` and the launcher pair
+``gateway-service\\Kova_Gateway.{vbs,cmd}``. Every operation in ``gateway_windows`` is keyed on
+``get_task_name()`` → ``Kova_Gateway_<suffix>``, so those strays are never queried, rewritten,
 reported or removed: they keep launching a second gateway at logon, never pick up launcher
 fixes, and ``hermes gateway status`` prints ✓ while they do (#116157). This module enumerates
 them once; ``status`` warns, ``uninstall`` and ``install --force`` remove.
@@ -22,11 +22,11 @@ def _w():
 
 def _targets_this_home(text: str) -> bool:
     """A bare-named launcher is OURS only when its action points into THIS home's ``gateway-service``
-    dir. The bare name is also the live identity of the default ``~/.hermes`` profile, so a secondary
-    profile that classified every ``Hermes_Gateway`` object as its own stray would delete the default
+    dir. The bare name is also the live identity of the default ``~/.kova`` profile, so a secondary
+    profile that classified every ``Kova_Gateway`` object as its own stray would delete the default
     profile's gateway autostart on ``uninstall`` / ``install --force``."""
     w = _w()
-    marker = w._normalize_windows_path(str(w._hermes_home() / "gateway-service"))
+    marker = w._normalize_windows_path(str(w._kova_home() / "gateway-service"))
     return marker in w._normalize_windows_path(text)
 
 
@@ -40,7 +40,7 @@ def legacy_launcher_artifacts() -> list[tuple[str, str, Path | str]]:
         return []
     found: list[tuple[str, str, Path | str]] = []
     startup = w._startup_dir()
-    service_dir = w._hermes_home() / "gateway-service"
+    service_dir = w._kova_home() / "gateway-service"
     for path, label in (
         (startup / f"{bare}.vbs", "legacy pre-suffix Windows login item"),
         (startup / f"{bare}.cmd", "legacy pre-suffix Windows login item"),

@@ -1,8 +1,8 @@
-"""``hermes logs`` — view and filter Hermes log files.
+"""``hermes logs`` — view and filter Kova log files.
 
 Supports tailing, following, session filtering, level filtering,
 component filtering, and relative time ranges.  All log files live
-under ``~/.hermes/logs/``.
+under ``~/.kova/logs/``.
 
 Usage examples::
 
@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Sequence
 
-from kova_constants import display_hermes_home, get_default_hermes_root, get_hermes_home
+from kova_constants import display_kova_home, get_default_kova_root, get_kova_home
 from kova_logging import canonical_logger_name
 
 # Known log files (name → filename)
@@ -64,7 +64,7 @@ def log_file_path(log_name: str) -> Optional[Path]:
     filename = LOG_FILES.get(log_name)
     if filename is None:
         return None
-    home = get_default_hermes_root() if log_name in ROOT_HOME_LOGS else get_hermes_home()
+    home = get_default_kova_root() if log_name in ROOT_HOME_LOGS else get_kova_home()
     return home / "logs" / filename
 
 
@@ -192,7 +192,7 @@ def tail_log(
     log_path = log_file_path(log_name)
     if not log_path.exists():
         print(f"Log file not found: {log_path}")
-        print("(Logs are created when Hermes runs — try 'hermes chat' first)")
+        print("(Logs are created when Kova runs — try 'hermes chat' first)")
         sys.exit(1)
 
     since_dt = None
@@ -234,7 +234,7 @@ def tail_log(
     ]
     filter_desc = f" [{', '.join(filter_parts)}]" if filter_parts else ""
     mode = "Ctrl+C to stop" if follow else f"last {num_lines}"
-    print(f"--- {display_hermes_home()}/logs/{filename}{filter_desc} ({mode}) ---")
+    print(f"--- {display_kova_home()}/logs/{filename}{filter_desc} ({mode}) ---")
 
     for line in lines:
         print(line, end="")
@@ -329,14 +329,14 @@ def _age_label(mtime: datetime) -> str:
 
 def list_logs() -> None:
     """Print available log files with sizes (plus the root home's update logs under a profile)."""
-    log_dir = get_hermes_home() / "logs"
+    log_dir = get_kova_home() / "logs"
     root_logs = [path for name in sorted(ROOT_HOME_LOGS)
                  if (path := log_file_path(name)).parent != log_dir and path.is_file()]
     if not log_dir.exists() and not root_logs:
-        print(f"No logs directory at {display_hermes_home()}/logs/")
+        print(f"No logs directory at {display_kova_home()}/logs/")
         return
 
-    print(f"Log files in {display_hermes_home()}/logs/:\n")
+    print(f"Log files in {display_kova_home()}/logs/:\n")
     found = False
     entries = sorted(log_dir.iterdir()) if log_dir.exists() else []
     for entry in [*entries, *root_logs]:

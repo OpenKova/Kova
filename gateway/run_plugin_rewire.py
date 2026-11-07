@@ -88,18 +88,18 @@ def reload_plugins_verb(runner: Any, loop: asyncio.AbstractEventLoop) -> Callabl
     truthful "active now" reaches the caller."""
 
     def _handler(params: Optional[dict] = None) -> dict:
-        from kova_constants import get_hermes_home, hermes_home_key
+        from kova_constants import get_kova_home, kova_home_key
         from kova_cli.plugins import discover_plugins, get_plugin_manager
         from kova_cli.plugins_activation import activation_summaries, dependency_blocked_summaries
         from gateway.run import _profile_runtime_scope
         params = params or {}
-        gateway_home = Path(get_hermes_home())
+        gateway_home = Path(get_kova_home())
         requested = Path(str(params.get("home") or gateway_home)).expanduser()
-        req_key = hermes_home_key(requested)
+        req_key = kova_home_key(requested)
         profile_name: Optional[str] = None
-        if req_key != hermes_home_key(gateway_home):
+        if req_key != kova_home_key(gateway_home):
             served = (getattr(runner, "_served_profile_homes", None) or {}).items()
-            profile_name = next((str(n) for n, h in served if hermes_home_key(h) == req_key), None)
+            profile_name = next((str(n) for n, h in served if kova_home_key(h) == req_key), None)
             if profile_name is None:
                 return {"reloaded": False, "error": "home is not served by this gateway", "home": str(requested)}
             if profile_name == (getattr(runner, "_primary_profile_name", None) or "default"):

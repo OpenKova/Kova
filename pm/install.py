@@ -140,7 +140,7 @@ def installed_package(name: str, *, allow_outdated: bool = False) -> InstalledPa
 
 def uv_launcher(name: str) -> Path | None:
     """PM's installed ``uv``/``uvx`` for a user-declared MCP stdio ``command:``, so a bare
-    ``uvx`` server runs the packaged uv, never the user's. Read-only; Hermes's own Python
+    ``uvx`` server runs the packaged uv, never the user's. Read-only; Kova's own Python
     work still goes through PM operations, not this executable."""
     if name not in ("uv", "uvx"):
         raise ValueError(f"{name!r} is not a uv launcher")
@@ -168,7 +168,7 @@ def _identity(lockfile: Lockfile, name: str, target: str):
 def lazy_installs_allowed() -> bool:
     """Policy: may pm install things on demand right now?
 
-    HERMES_DISABLE_LAZY_INSTALLS is an internal bridge var set by the
+    KOVA_DISABLE_LAZY_INSTALLS is an internal bridge var set by the
     official Docker image and the hermetic test harness. The user-facing
     setting is security.allow_lazy_installs in config.yaml; a config
     system that fails to load counts as ALLOWED only when kova_cli is
@@ -176,7 +176,7 @@ def lazy_installs_allowed() -> bool:
     """
     import os
 
-    if os.environ.get("HERMES_DISABLE_LAZY_INSTALLS", "").strip().lower() in (
+    if os.environ.get("KOVA_DISABLE_LAZY_INSTALLS", "").strip().lower() in (
         "1",
         "true",
         "yes",
@@ -255,7 +255,7 @@ _SET_ASIDE_PREFIX = ".reclaim-"
 def _discard_entry(store: Store, entry_name: str) -> None:
     """Drop a tree a finished publish or restore left behind as garbage.
 
-    A running Hermes process can keep the replaced interpreter's DLLs mapped
+    A running Kova process can keep the replaced interpreter's DLLs mapped
     far past the retry window, and failing here reports a completed install
     as broken (#124807). Windows still allows renaming a tree with mapped
     images, so it moves to a `.reclaim-*` name: its slot is free for the next
@@ -776,7 +776,7 @@ def _venv_install_lock(*, patient: bool):
         if not held:
             error = InstallError(
                 "venv",
-                f"another Hermes process is installing dependencies (waited {INSTALL_LOCK_TIMEOUT_SECONDS:.0f}s)",
+                f"another Kova process is installing dependencies (waited {INSTALL_LOCK_TIMEOUT_SECONDS:.0f}s)",
                 "retry in a moment, or run `hermes pm install` to install explicitly",
             )
             receipt.record_refusal("install-busy", str(error))
@@ -938,7 +938,7 @@ def sync_venv(extras: Optional[list[str]] = None, *, explicit: bool = False,
     source of plugin members (see pm.plugin_inputs); None discovers them from config.
     ``evict_incompatible_plugins`` is the update's contract: a discovered plugin that
     keeps the environment from building is disabled instead of failing the sync
-    (see pm.plugin_eviction). ``automatic`` names the entries of ``extras`` Hermes chose
+    (see pm.plugin_eviction). ``automatic`` names the entries of ``extras`` Kova chose
     on the user's behalf: one the user declined is left out, and none of them opts a
     declined extra back in; every other requested extra does (``--extra NAME``).
     ``carried`` names the automatic entries this sync carries over from a pre-PM venv:
@@ -1151,7 +1151,7 @@ def activate(*, allow_incomplete: bool = False) -> list[str]:
 
 def store_first_path(path: str) -> str:
     """``path`` with the installed store's tool dirs moved to the front, for
-    Hermes's own children whose PATH gets other dirs prepended after activate."""
+    Kova's own children whose PATH gets other dirs prepended after activate."""
     import os
 
     dirs = _store_path_dirs()

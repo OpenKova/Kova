@@ -1,12 +1,12 @@
 """Shared config→env bridge for media-delivery policy.
 
-``validate_media_delivery_path`` reads ``HERMES_MEDIA_DELIVERY_STRICT`` (gateway.strict),
-``HERMES_MEDIA_ALLOW_DIRS`` (gateway.media_delivery_allow_dirs) and
-``HERMES_MEDIA_TRUST_RECENT_FILES`` (gateway.trust_recent_files).  Every delivery
+``validate_media_delivery_path`` reads ``KOVA_MEDIA_DELIVERY_STRICT`` (gateway.strict),
+``KOVA_MEDIA_ALLOW_DIRS`` (gateway.media_delivery_allow_dirs) and
+``KOVA_MEDIA_TRUST_RECENT_FILES`` (gateway.trust_recent_files).  Every delivery
 entrypoint (gateway startup, ``hermes cron run``, ``hermes send``) calls
 :func:`apply_media_policy_env` first so standalone paths filter under the gateway's
 policy instead of silently dropping attachments in strict/allowlisted deployments.
-An explicitly-set env var WINS over config.yaml, so shell overrides survive. Under a HERMES_HOME
+An explicitly-set env var WINS over config.yaml, so shell overrides survive. Under a KOVA_HOME
 override (a served profile's turn or cron fire) nothing is bridged: readers load that profile's config.
 """
 
@@ -18,18 +18,18 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-_FLAG_ENVS = (("strict", "HERMES_MEDIA_DELIVERY_STRICT"), ("trust_recent_files", "HERMES_MEDIA_TRUST_RECENT_FILES"))
-_ALLOW_DIRS_ENV = "HERMES_MEDIA_ALLOW_DIRS"
-_TRUST_RECENT_SECONDS_ENV = "HERMES_MEDIA_TRUST_RECENT_SECONDS"
+_FLAG_ENVS = (("strict", "KOVA_MEDIA_DELIVERY_STRICT"), ("trust_recent_files", "KOVA_MEDIA_TRUST_RECENT_FILES"))
+_ALLOW_DIRS_ENV = "KOVA_MEDIA_ALLOW_DIRS"
+_TRUST_RECENT_SECONDS_ENV = "KOVA_MEDIA_TRUST_RECENT_SECONDS"
 _TRUTHY = frozenset({"1", "true", "yes", "on"})
 
 
 def _routed_gateway_cfg() -> Optional[dict[str, Any]]:
-    """``gateway`` section of the ROUTED profile's config when a HERMES_HOME override is active
+    """``gateway`` section of the ROUTED profile's config when a KOVA_HOME override is active
     (multiplexed turn), else None. The env bridge is one process-wide copy of the launch profile's
     policy, so a secondary's deliveries must read their own config instead of ``os.environ``."""
-    from kova_constants import get_hermes_home_override
-    if not get_hermes_home_override():
+    from kova_constants import get_kova_home_override
+    if not get_kova_home_override():
         return None
     try:
         from kova_cli.config import load_config_readonly
@@ -99,12 +99,12 @@ def apply_media_policy_env(config: Optional[dict[str, Any]] = None) -> None:
     """Bridge gateway media-policy settings from config.yaml into the env.  Idempotent,
     env-wins, never raises — a bridge failure must not break delivery (validator defaults apply).
 
-    No-op under a HERMES_HOME override, the same gate the readers use: there they take the
+    No-op under a KOVA_HOME override, the same gate the readers use: there they take the
     profile's own config (``_routed_gateway_cfg``), and ``os.environ`` is shared — a routed cron
     fire would hand its allowlist and strictness to the launch profile and its children."""
     try:
-        from kova_constants import get_hermes_home_override
-        if get_hermes_home_override():
+        from kova_constants import get_kova_home_override
+        if get_kova_home_override():
             return
         gateway_cfg = _load_gateway_cfg(config)
         if not gateway_cfg:

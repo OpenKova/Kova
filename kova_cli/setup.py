@@ -1,4 +1,4 @@
-"""Interactive setup wizard for Hermes Agent (config lives in ~/.hermes/).
+"""Interactive setup wizard for Kova Agent (config lives in ~/.kova/).
 
 Independently-runnable sections: Model & Provider, Terminal Backend, Agent Settings, Messaging
 Platforms, Tools. Section bodies live in sibling setup_* modules and are re-exported here; they
@@ -18,11 +18,11 @@ from pathlib import Path
 from typing import Callable
 
 from kova_cli.curses_ui import MenuNavigationEvent, MenuNavigationStart
-# Config helpers are re-exported (tests patch them on this module). display_hermes_home is
+# Config helpers are re-exported (tests patch them on this module). display_kova_home is
 # imported lazily at call sites (stale-module safety during hermes update).
 from kova_cli.config import (
-    cfg_get, DEFAULT_CONFIG, get_hermes_home, get_config_path, get_env_path, load_config, save_config,
-    save_env_value, remove_env_value, get_env_value, ensure_hermes_home,
+    cfg_get, DEFAULT_CONFIG, get_kova_home, get_config_path, get_env_path, load_config, save_config,
+    save_env_value, remove_env_value, get_env_value, ensure_kova_home,
 )
 from kova_cli.colors import Colors, color
 from kova_cli.cli_output import print_error, print_info, print_success, print_warning
@@ -34,7 +34,7 @@ from kova_cli._startup_fast import project_root_str
 
 PROJECT_ROOT = Path(project_root_str())
 
-_DOCS_BASE = "https://hermes-agent.nousresearch.com/docs"
+_DOCS_BASE = "https://kova-agent.nousresearch.com/docs"
 _BRACKETED_PASTE_PATTERN = re.compile(r"\x1b\[\s*200~|\x1b\[\s*201~")
 
 
@@ -87,12 +87,12 @@ def is_interactive_stdin() -> bool:
 def print_noninteractive_setup_guidance(reason: str | None = None) -> None:
     """Print guidance for headless/non-interactive setup flows."""
     print()
-    print(color("☤ Hermes Setup — Non-interactive mode", Colors.CYAN, Colors.BOLD))
+    print(color("☤ Kova Setup — Non-interactive mode", Colors.CYAN, Colors.BOLD))
     print()
     if reason:
         print_info(reason)
     _info("The interactive wizard cannot be used here.", None,
-          "Configure Hermes using environment variables or config commands:",
+          "Configure Kova using environment variables or config commands:",
           "  hermes config set model.provider custom",
           "  hermes config set model.base_url http://localhost:8080/v1",
           "  hermes config set model.default your-model-name", None,
@@ -281,13 +281,13 @@ def prompt_choice(question: str, choices: list, default: int = 0, description: s
 
 def is_noninteractive() -> bool:
     """True when no human is available to answer a prompt: the dashboard/desktop spawn CLI actions
-    with ``stdin=DEVNULL`` and ``HERMES_NONINTERACTIVE=1`` (``kova_cli/web_server.py``), where a
+    with ``stdin=DEVNULL`` and ``KOVA_NONINTERACTIVE=1`` (``kova_cli/web_server.py``), where a
     prompt that aborts on EOF would kill the spawned action — callers fall back to their default."""
-    return os.environ.get("HERMES_NONINTERACTIVE", "").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get("KOVA_NONINTERACTIVE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def prompt_yes_no(question: str, default: bool = True, description: str | None = None) -> bool:
-    """Prompt for yes/no. Ctrl+C exits; empty input, ``HERMES_NONINTERACTIVE=1`` or a
+    """Prompt for yes/no. Ctrl+C exits; empty input, ``KOVA_NONINTERACTIVE=1`` or a
     closed/redirected stdin return ``default`` instead of aborting the whole process.
     ``description`` is the context the question refers to, shown above it in setup's full-screen
     menu, which hides everything printed before it; the line prompt keeps that text on screen."""
@@ -415,9 +415,9 @@ def setup_model_provider(config: dict, *, quick: bool = False):
 def _apply_default_agent_settings(config: dict):
     """Apply recommended defaults for all agent settings without prompting."""
     config.setdefault("agent", {})["max_turns"] = 150
-    # config.yaml is authoritative for max_turns (the gateway bridges it into HERMES_MAX_ITERATIONS);
+    # config.yaml is authoritative for max_turns (the gateway bridges it into KOVA_MAX_ITERATIONS);
     # a stale .env entry silently shadowing it caused the 60-vs-500 bug, so drop it.
-    remove_env_value("HERMES_MAX_ITERATIONS")
+    remove_env_value("KOVA_MAX_ITERATIONS")
     config.setdefault("compression", {})["enabled"] = True
     config["compression"]["threshold"] = 0.50
     save_config(config)
@@ -447,7 +447,7 @@ _TOOL_PROGRESS_HELP = (
     "  new     — Show tool name only when it changes (less noise)",
     "  all     — Show every tool call with a short preview",
     "  verbose — Full args, results, and debug logs",
-    "  log     — Silent in chat; write every tool call to ~/.hermes/logs/tool_calls.log (gateway only)",
+    "  log     — Silent in chat; write every tool call to ~/.kova/logs/tool_calls.log (gateway only)",
 )
 def setup_agent_settings(config: dict):
     """Configure agent behavior: iterations, progress display and compression."""
@@ -465,10 +465,10 @@ def setup_agent_settings(config: dict):
     if max_iter is None:
         print_warning("Invalid number, keeping current value")
     elif max_iter > 0:
-        # config.yaml only; gateway/run.py derives HERMES_MAX_ITERATIONS from agent.max_turns.
+        # config.yaml only; gateway/run.py derives KOVA_MAX_ITERATIONS from agent.max_turns.
         config.setdefault("agent", {})["max_turns"] = max_iter
         config.pop("max_turns", None)
-        remove_env_value("HERMES_MAX_ITERATIONS")
+        remove_env_value("KOVA_MAX_ITERATIONS")
         print_success(f"Max iterations set to {max_iter}")
 
     # ── Tool Progress Display ──
@@ -538,7 +538,7 @@ def setup_telemetry(config: dict):
           "counts, update and install results and timing (with a fixed-list reason",
           "and the stage when one fails; a fresh install is noted on this machine and",
           "counted only once you opt in), crashes,",
-          "startup and reply speed, messaging-platform health, how Hermes gets used",
+          "startup and reply speed, messaging-platform health, how Kova gets used",
           "(agent accuracy and efficiency, active time per surface, which features and",
           "settings are used or switched off, provider setup outcomes), and coarse",
           "machine facts (RAM range, GPU type, version age and channel, updates behind,",
@@ -617,19 +617,19 @@ def _run_setup_section(config: dict, section: str) -> None:
         print_info(f"Available sections: {', '.join(k for k, _, _ in SETUP_SECTIONS)}")
         return
     label, func = entry
-    _print_banner(f"│     ☤ Hermes Setup — {label:<34s} │")
+    _print_banner(f"│     ☤ Kova Setup — {label:<34s} │")
     _run_setup_steps([(label, lambda: func(config))])
     save_config(config)
     print()
     print_success(f"{label} configuration complete!")
 
 
-def _run_full_setup(config: dict, hermes_home, *, is_existing: bool, imported_from: str = "") -> None:
+def _run_full_setup(config: dict, kova_home, *, is_existing: bool, imported_from: str = "") -> None:
     """Full Setup — run all sections; after an import (*imported_from* names the agents) each
     already-configured section offers to skip."""
     print_header("Configuration Location")
     _info(f"Config file:  {get_config_path()}", f"Secrets file: {get_env_path()}",
-          f"Data folder:  {hermes_home}", f"Install dir:  {PROJECT_ROOT}", None,
+          f"Data folder:  {kova_home}", f"Install dir:  {PROJECT_ROOT}", None,
           "You can edit these files directly or use 'hermes config edit'")
     if imported_from:
         _info(None, f"Settings were imported from {imported_from}.",
@@ -677,7 +677,7 @@ def _run_setup_wizard_impl(args):
     if is_managed():
         managed_error("run setup wizard")
         return
-    ensure_hermes_home()
+    ensure_kova_home()
     # Back up BEFORE --reset: save_config below overwrites the very file we copy (#3522, #77299).
     config_path = get_config_path()
     from kova_cli.config_backups import backup_config
@@ -690,7 +690,7 @@ def _run_setup_wizard_impl(args):
     reconfigure_requested = bool(getattr(args, "reconfigure", False))
     quick_requested = bool(getattr(args, "quick", False))
     config = load_config()
-    hermes_home = get_hermes_home()
+    kova_home = get_kova_home()
 
     # Non-interactive environments (headless SSH, Docker, CI/CD)
     if getattr(args, 'non_interactive', False) or not is_interactive_stdin():
@@ -708,9 +708,9 @@ def _run_setup_wizard_impl(args):
     from kova_cli.auth import get_active_provider
     is_existing = bool(get_env_value("OPENROUTER_API_KEY") or get_env_value("OPENAI_BASE_URL")
                        or get_active_provider() is not None)
-    _print_banner("│             ☤ Hermes Agent Setup Wizard                │",
+    _print_banner("│             ☤ Kova Agent Setup Wizard                │",
                   "├─────────────────────────────────────────────────────────┤",
-                  "│  Let's configure your Hermes Agent installation.       │",
+                  "│  Let's configure your Kova Agent installation.       │",
                   "│  Press Ctrl+C at any time to exit.                     │")
     imported_from = ""
     if is_existing:
@@ -718,11 +718,11 @@ def _run_setup_wizard_impl(args):
         # narrows it to missing items (partial import, cleared key). --reconfigure is a
         # backwards-compatible no-op here.
         if quick_requested:
-            _run_setup_steps([("Quick Setup", lambda: _run_quick_setup(config, hermes_home))])
+            _run_setup_steps([("Quick Setup", lambda: _run_quick_setup(config, kova_home))])
             _record_setup_completed(config)
             return
         print_header("Reconfigure", gap=True)
-        print_success("You already have Hermes configured.")
+        print_success("You already have Kova configured.")
         _info("Running the full wizard — each prompt shows your current value.",
               "Press Enter to keep it, or type a new value to change it.", "",
               "Tip: jump straight to a section with 'hermes setup model|terminal|",
@@ -734,19 +734,19 @@ def _run_setup_wizard_impl(args):
             _info("No existing configuration found — running first-time setup.", None)
         # Before configuration begins. The plugin install and the import write config.yaml from
         # outside this dict (the import from another process), so reload it.
-        imported_from = offer_agent_import(hermes_home)
+        imported_from = offer_agent_import(kova_home)
         config = load_config()
-        setup_mode = prompt_choice("How would you like to set up Hermes?", [label for label, _ in _FIRST_TIME_MODES], 0)
+        setup_mode = prompt_choice("How would you like to set up Kova?", [label for label, _ in _FIRST_TIME_MODES], 0)
         label, runner = _FIRST_TIME_MODES[setup_mode]
         if runner is not None:
             from kova_cli import setup_quick
             # Quick Setup offers to keep a model the import brought (Full setup acknowledges it below).
-            run_args = (config, hermes_home, is_existing) + (
+            run_args = (config, kova_home, is_existing) + (
                 (imported_from,) if runner == "_run_first_time_quick_setup" else ())
             _run_setup_steps([(label, lambda: getattr(setup_quick, runner)(*run_args))])
             _record_setup_completed(config)
             return
-    _run_full_setup(config, hermes_home, is_existing=is_existing, imported_from=imported_from)
+    _run_full_setup(config, kova_home, is_existing=is_existing, imported_from=imported_from)
 
     # Save and show summary
     save_config(config)
@@ -754,7 +754,7 @@ def _run_setup_wizard_impl(args):
         _info(f"Previous config backed up to: {_backup_path}",
               "If setup changed a value you customized, restore it with:",
               f"  cp {_backup_path} {config_path}")
-    _print_setup_summary(config, hermes_home)
+    _print_setup_summary(config, kova_home)
     _record_setup_completed(config)
 
 

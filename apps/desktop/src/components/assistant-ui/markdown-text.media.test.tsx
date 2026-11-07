@@ -19,11 +19,11 @@ describe('MarkdownTextContent remote images', () => {
     throw new Error(`unexpected path ${path}`)
   })
 
-  let originalDesktop: typeof window.hermesDesktop
+  let originalDesktop: typeof window.kovaDesktop
 
   beforeEach(() => {
     api.mockClear()
-    originalDesktop = window.hermesDesktop
+    originalDesktop = window.kovaDesktop
     Object.defineProperty(window, 'hermesDesktop', {
       configurable: true,
       value: { api }
@@ -164,7 +164,7 @@ describe('MarkdownImage media routing', () => {
 // or play after a long pause) instead of degrading to "Open file" for good.
 describe('MarkdownImage stream-ticket renewal', () => {
   const mint = vi.fn()
-  let originalDesktop: typeof window.hermesDesktop
+  let originalDesktop: typeof window.kovaDesktop
 
   const audioSrc = (container: HTMLElement) => container.querySelector('audio')?.getAttribute('src')
 
@@ -172,7 +172,7 @@ describe('MarkdownImage stream-ticket renewal', () => {
     let minted = 0
 
     mint.mockReset().mockImplementation(async () => `https://hermes.test/api/files/stream?ticket=t${++minted}`)
-    originalDesktop = window.hermesDesktop
+    originalDesktop = window.kovaDesktop
     Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { getGatewayFileStreamUrl: mint } })
   })
 

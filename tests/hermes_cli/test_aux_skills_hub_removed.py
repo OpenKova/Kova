@@ -22,11 +22,11 @@ def test_no_backend_surface_offers_skills_hub_slot():
 
 
 def test_leftover_skills_hub_block_is_kept_but_never_acted_on(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     leftover = {"provider": "openrouter", "model": "some/model"}
     (home / "config.yaml").write_text(yaml.safe_dump({"auxiliary": {"skills_hub": leftover}}))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     from kova_cli.config import load_config
     from kova_cli.web_server_config import _apply_aux_assignment_sync, _stale_aux_pins
 

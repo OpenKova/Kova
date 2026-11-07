@@ -1,7 +1,7 @@
 /**
  * bootstrap-runner.ts
  *
- * Drives apps/desktop's first-launch install of Hermes Agent by spawning
+ * Drives apps/desktop's first-launch install of Kova Agent by spawning
  * scripts/install.ps1 stage-by-stage and streaming progress events back to
  * the renderer.
  *
@@ -9,10 +9,10 @@
  *   import { runBootstrap }from './bootstrap-runner'
  *   const result = await runBootstrap({
  *     installStamp,        // INSTALL_STAMP from main.ts (may be null in dev)
- *     activeRoot,          // ACTIVE_HERMES_ROOT
+ *     activeRoot,          // ACTIVE_KOVA_ROOT
  *     sourceRepoRoot,      // SOURCE_REPO_ROOT (for dev install.ps1 lookup)
- *     hermesHome,          // HERMES_HOME
- *     logRoot,             // HERMES_HOME/logs
+ *     hermesHome,          // KOVA_HOME
+ *     logRoot,             // KOVA_HOME/logs
  *     emit: ev => {...}    // event sink (sender.send or similar)
  *   })
  *
@@ -99,7 +99,7 @@ function readExistingPinnedCommit(activeRoot: string | null | undefined): string
   }
 
   try {
-    const raw = fs.readFileSync(path.join(activeRoot, '.hermes-bootstrap-complete'), 'utf8')
+    const raw = fs.readFileSync(path.join(activeRoot, '.kova-bootstrap-complete'), 'utf8')
     const parsed = JSON.parse(raw)
 
     return parsed && isPinnedCommit(parsed.pinnedCommit) ? parsed.pinnedCommit : null
@@ -229,7 +229,7 @@ function downloadInstallScript(ref, destPath) {
   // install, the branch for an existing checkout or a non-git fallback stamp
   // (never the all-zero placeholder, which is not a real GitHub commit).
   const scriptName = installScriptName()
-  const url = `https://raw.githubusercontent.com/NousResearch/hermes-agent/${ref}/scripts/${scriptName}`
+  const url = `https://raw.githubusercontent.com/NousResearch/kova-agent/${ref}/scripts/${scriptName}`
 
   return new Promise((resolve, reject) => {
     fs.mkdirSync(path.dirname(destPath), { recursive: true })
@@ -426,11 +426,11 @@ function cleanInstallerLogLine(raw: string): string {
   return frames.length ? frames[frames.length - 1] : ''
 }
 
-// The installer drives Hermes's own toolchain (install.sh takes a uv from PATH
+// The installer drives Kova's own toolchain (install.sh takes a uv from PATH
 // when it is new enough), so store dirs already on PATH stay ahead of the
 // login-shell entries shell-path.ts merged in front of them.
 function installerEnv(hermesHome) {
-  const env = { ...process.env, HERMES_HOME: hermesHome || process.env.HERMES_HOME || '' }
+  const env = { ...process.env, KOVA_HOME: hermesHome || process.env.KOVA_HOME || '' }
   const key = pathEnvKey(env)
 
   env[key] = storeFirstPath(env[key] || '', { currentEnv: env })
@@ -448,7 +448,7 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, herme
       fullArgs,
       hiddenWindowsChildOptions({
         stdio: ['ignore', 'pipe', 'pipe'],
-        // Pass HERMES_HOME through so install.ps1 respects the caller's
+        // Pass KOVA_HOME through so install.ps1 respects the caller's
         // choice rather than re-computing the default.
         env: installerEnv(hermesHome)
       })

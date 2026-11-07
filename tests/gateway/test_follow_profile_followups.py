@@ -26,10 +26,10 @@ def _profile(home, model, port, key, **extra):
 @pytest.fixture
 def home(monkeypatch):
     from gateway import run
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setattr(run, '_kova_home', home)
     return home
 
 

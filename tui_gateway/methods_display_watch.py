@@ -36,7 +36,7 @@ def _lease_event_payload(profile_key: str, lease) -> dict:
 
 
 def _watched_lease_homes() -> list[Path]:
-    return [Path(_hermes_home), *_served_profile_homes]
+    return [Path(_kova_home), *_served_profile_homes]
 
 
 def _mtime(path: Path):
@@ -56,7 +56,7 @@ def _notify_agents_of_screen_change(profile_key: str, payload: dict) -> None:
     agent per turn, so the note is staged on every live session of the profile, not just one.
     ``payload`` is the just-broadcast display.status snapshot (``running``/``display`` and the
     lease's public view), already read under the profile's home override."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     try:
         from agent.prompt_builder import bot_screen_note
         lease_view = payload.get("lease") if isinstance(payload.get("lease"), dict) else {}
@@ -68,7 +68,7 @@ def _notify_agents_of_screen_change(profile_key: str, payload: dict) -> None:
         return
     with _sessions_lock:
         sids = [sid for sid, sess in _sessions.items() if isinstance(sess, dict) and sess.get("agent") is not None
-                and hermes_home_key(sess.get("profile_home") or get_process_hermes_home()) == profile_key]
+                and kova_home_key(sess.get("profile_home") or get_process_kova_home()) == profile_key]
     for sid in sids:
         agent = _sessions[sid]["agent"]
         try:
@@ -82,12 +82,12 @@ def _poll_runtime_files() -> None:
     """Broadcast ``display.status`` when a home's screen started/stopped outside this process — a
     file move (start/stop by the CLI or gateway) or the launcher dying without touching its files
     (Xvnc crash: env and launcher.pid stay put, only the pid stops being live)."""
-    from kova_constants import hermes_home_key, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import kova_home_key, reset_kova_home_override, set_kova_home_override
     from tools.bot_desktop import runtime as _bd_runtime
     for home in _watched_lease_homes():
-        key = hermes_home_key(home)
+        key = kova_home_key(home)
         sd = home / "bot-desktop"
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             mark = (_mtime(sd / "env"), _mtime(sd / "launcher.pid"), _bd_runtime._launcher_pid() is not None)
             first = key not in _runtime_marks
@@ -98,7 +98,7 @@ def _poll_runtime_files() -> None:
                 continue
             payload = _display_snapshot()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         _broadcast_global_event("display.status", payload)
         _notify_agents_of_screen_change(key, payload)
 
@@ -114,22 +114,22 @@ def _poll_idle_screens() -> None:
     if time.monotonic() - _last_idle_check < _IDLE_CHECK_S:
         return
     _last_idle_check = time.monotonic()
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.bot_desktop import runtime as _bd_runtime
     for home in _watched_lease_homes():
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             _bd_runtime.stop_if_idle()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
 
 def _poll_lease_files() -> None:
     """One pass: read a home's lease only when its file mtime moved; broadcast when the epoch did."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.bot_desktop import lease as _bd_lease
     for home in _watched_lease_homes():
-        key = hermes_home_key(home)
+        key = kova_home_key(home)
         try:
             mtime = (home / "bot-desktop" / "lease.json").stat().st_mtime_ns
         except OSError:

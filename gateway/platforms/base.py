@@ -40,7 +40,7 @@ def _consume_detached_handler_exception(task: asyncio.Task) -> None:
 
 
 # Audio exts for native audio delivery; Telegram's narrower sets stay separate (.m2a is audio to
-# Hermes but not to sendAudio).
+# Kova but not to sendAudio).
 _AUDIO_MIME_TYPES = {
     ".ogg": "audio/ogg", ".opus": "audio/opus", ".mp3": "audio/mpeg", ".m2a": "audio/mpeg",
     ".wav": "audio/wav", ".m4a": "audio/m4a", ".flac": "audio/flac"}
@@ -208,7 +208,7 @@ def build_auto_tts_output_path(platform) -> str:
     """Unique temp output path for gateway auto-TTS: ``.ogg`` for ``OPUS_VOICE_PLATFORMS``
     (the tool's ``_repair_ogg_container`` then guarantees real Opus bytes), else ``.mp3``.
     Platform-awareness lives HERE because ``_clear_session_env`` wipes the TTS tool's
-    ``HERMES_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
+    ``KOVA_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
 
     Platforms whose native voice bubbles require Ogg/Opus (``tools.tts_tool.OPUS_VOICE_PLATFORMS`` — the
     single source of truth) get an explicit ``.ogg`` path; the tool's central container repair
@@ -346,7 +346,7 @@ def resolve_proxy_url(
     process env another profile's ``TELEGRAM_PROXY``/``DISCORD_PROXY``/etc. may hold; the YAML
     value is the same profile's, so a secondary keeps its configured route without any env
     bridge (#108440). The generic ``HTTPS_PROXY``/``HTTP_PROXY``/``ALL_PROXY`` fallback stays a raw
-    process-env read — those are OS/system-level network settings, not a per-profile Hermes concept."""
+    process-env read — those are OS/system-level network settings, not a per-profile Kova concept."""
     from gateway.platforms._shared import get_scoped_secret as _get_scoped_proxy_var
     value = (_get_scoped_proxy_var(platform_env_var, "") or "").strip() if platform_env_var else ""
     if not value:
@@ -444,7 +444,7 @@ from kova_cli.observability.shared_metrics_gateway import records_delivery, stop
 from kova_cli.home_data_layout import SECRET_CACHE_STORES
 from gateway.session import SessionSource, build_session_key
 from gateway.session_transcript import TranscriptReadError
-from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_hermes_root, get_hermes_dir, get_hermes_home
+from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_kova_root, get_hermes_dir, get_kova_home
 from agent.provider_media import GENERATED_SUBDIR, MEDIA_CACHE_MAX_AGE_HOURS
 
 if TYPE_CHECKING:
@@ -453,7 +453,7 @@ if TYPE_CHECKING:
 
 GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
     "Secure secret entry is not supported over messaging. "
-    "Load this skill in the local CLI to be prompted, or add the key to ~/.hermes/.env manually.")
+    "Load this skill in the local CLI to be prompted, or add the key to ~/.kova/.env manually.")
 
 # One sentence for every "you may not press/run this" refusal on every platform (slash commands,
 # approval buttons, pickers, prompts). ``{platform}`` is the ``Platform.value`` for the
@@ -574,8 +574,8 @@ def _secure_media_cache_dir(cache_dir: Path) -> None:
     Inbound media (photos, voice notes, documents a user sent through a
     messaging platform) is user content, not regenerable cache: the
     umask-derived 0755 these dirs inherited made them readable by every other
-    local account whenever ``HERMES_HOME`` is traversable — the documented
-    ``HERMES_HOME_MODE=0701`` web-server hatch. The mode is passed to ``mkdir``
+    local account whenever ``KOVA_HOME`` is traversable — the documented
+    ``KOVA_HOME_MODE=0701`` web-server hatch. The mode is passed to ``mkdir``
     so it is set at creation, then reconciled by the house policy helper
     ``kova_cli.config._secure_dir`` (managed/NixOS installs keep their
     group-share design: these lazily-created dirs are not covered by the
@@ -648,7 +648,7 @@ async def _cache_media_from_url(url: str, ext: str, retries: int, *, media_type:
     import httpx
     if not is_safe_url(url):
         raise ValueError(f"Blocked unsafe URL (SSRF protection): {safe_url_for_log(url)}")
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; HermesAgent/1.0)", "Accept": accept}
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; KovaAgent/1.0)", "Accept": accept}
     async with create_ssrf_safe_async_client(
         timeout=30.0, follow_redirects=True, event_hooks={"response": [ssrf_redirect_guard]},
     ) as client:
@@ -740,23 +740,23 @@ _CACHE_DIR_IMPORT_DEFAULTS = {
 
 # Launch-time homes: fine for the static ALLOW roots below (per-profile cache roots are
 # enumerated at check time), never for the credential DENY side — see _credential_home_roots.
-_HERMES_HOME = get_hermes_home()
-_HERMES_ROOT = get_default_hermes_root()
-MEDIA_DELIVERY_ALLOW_DIRS_ENV = "HERMES_MEDIA_ALLOW_DIRS"
-MEDIA_DELIVERY_TRUST_RECENT_ENV = "HERMES_MEDIA_TRUST_RECENT_FILES"
-MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "HERMES_MEDIA_TRUST_RECENT_SECONDS"
+_KOVA_HOME = get_kova_home()
+_KOVA_ROOT = get_default_kova_root()
+MEDIA_DELIVERY_ALLOW_DIRS_ENV = "KOVA_MEDIA_ALLOW_DIRS"
+MEDIA_DELIVERY_TRUST_RECENT_ENV = "KOVA_MEDIA_TRUST_RECENT_FILES"
+MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "KOVA_MEDIA_TRUST_RECENT_SECONDS"
 # Strict mode = allowlist+recency validation; off by default (the denylist still blocks
 # credential / system paths). Set true on public-facing gateways.
-MEDIA_DELIVERY_STRICT_ENV = "HERMES_MEDIA_DELIVERY_STRICT"
+MEDIA_DELIVERY_STRICT_ENV = "KOVA_MEDIA_DELIVERY_STRICT"
 # Canonical cache subdirs of deliverable artifacts; also enumerates per-profile cache roots.
 _MEDIA_DELIVERY_CACHE_SUBDIRS = (
     "images", "audio", "videos", "documents", "screenshots", GENERATED_SUBDIR)
 MEDIA_DELIVERY_SAFE_ROOTS = (
     IMAGE_CACHE_DIR, AUDIO_CACHE_DIR, VIDEO_CACHE_DIR, DOCUMENT_CACHE_DIR, SCREENSHOT_CACHE_DIR,
-    *(_HERMES_HOME / d for d in (
+    *(_KOVA_HOME / d for d in (
         "image_cache", "audio_cache", "video_cache", "document_cache", "browser_screenshots")),
     # Canonical cache layout, alongside the legacy *_cache dirs (installs may have both).
-    *(_HERMES_HOME / "cache" / d for d in _MEDIA_DELIVERY_CACHE_SUBDIRS))
+    *(_KOVA_HOME / "cache" / d for d in _MEDIA_DELIVERY_CACHE_SUBDIRS))
 
 # Recency window (s) for trusting fresh files: artifacts land seconds before delivery,
 # pre-existing host files (/etc/passwd, ~/.ssh/id_rsa) are days/months old.
@@ -777,7 +777,7 @@ def _sqlite_files(name: str) -> tuple[str, ...]:
     return (name, f"{name}-wal", f"{name}-shm", f"{name}-journal")
 
 
-# Credential stores at the HERMES_HOME root, denied per-file so skills/, logs/ and agent-written
+# Credential stores at the KOVA_HOME root, denied per-file so skills/, logs/ and agent-written
 # files stay deliverable (cache subdirs are allowlisted BEFORE this). A superset of the
 # agent/file_safety.py read+write denies so exfil never trails the read guard. google_token.json's mtime bumps every turn (defeats the
 # recency window); pairing/, mcp-tokens/ (live OAuth tokens) and webapp/ (the Webapp's credential) are whole trees.
@@ -793,34 +793,34 @@ _ROOT_CREDENTIAL_PATHS = (
 
 def _profile_cache_roots() -> list[Path]:
     """Per-profile cache roots ``<root>/profiles/<name>/cache/{images,...}`` and every home's connector
-    downloads dir (the static safe roots cover only the launch HERMES_HOME). Enumerated at check
+    downloads dir (the static safe roots cover only the launch KOVA_HOME). Enumerated at check
     time so profiles created after startup count, and allowlisted BEFORE the ``/root`` denylist,
-    which otherwise wins when HERMES_HOME is symlinked under a denied prefix (#31733).
+    which otherwise wins when KOVA_HOME is symlinked under a denied prefix (#31733).
     """
     return [*(p / "cache" / subdir for p in _profile_dirs() for subdir in _MEDIA_DELIVERY_CACHE_SUBDIRS),
-            *(p / CONNECTOR_DOWNLOADS_SUBDIR for p in (get_hermes_home(), *_profile_dirs()))]
+            *(p / CONNECTOR_DOWNLOADS_SUBDIR for p in (get_kova_home(), *_profile_dirs()))]
 
 
 def _profile_dirs() -> list[Path]:
     """Every ``<root>/profiles/<name>`` directory, read at check time."""
     try:
-        return [p for p in (_HERMES_ROOT / "profiles").iterdir() if p.is_dir()]
+        return [p for p in (_KOVA_ROOT / "profiles").iterdir() if p.is_dir()]
     except OSError:
         return []
 
 
 def _credential_home_roots() -> list[Path]:
-    """Every Hermes home whose credential stores the denylist must cover: the ACTIVE home
-    (the per-turn HERMES_HOME override under ``gateway.multiplex_profiles``), the shared root
+    """Every Kova home whose credential stores the denylist must cover: the ACTIVE home
+    (the per-turn KOVA_HOME override under ``gateway.multiplex_profiles``), the shared root
     and every ``<root>/profiles/*``. Enumerated at check time like ``_profile_cache_roots`` on
     the allow side — a denylist frozen at import covers only the launch profile, so a
     ``MEDIA:<root>/profiles/<other>/.env`` emitted in any profile's turn would upload it."""
-    return list(dict.fromkeys((get_hermes_home(), _HERMES_ROOT, *_profile_dirs())))
+    return list(dict.fromkeys((get_kova_home(), _KOVA_ROOT, *_profile_dirs())))
 
 
 def _kanban_root() -> Path:
     """Kanban is root-shared across profiles by design (``kanban_db.kanban_home``)."""
-    return Path(os.environ.get("HERMES_KANBAN_HOME", "").strip() or _HERMES_ROOT).expanduser()
+    return Path(os.environ.get("KOVA_KANBAN_HOME", "").strip() or _KOVA_ROOT).expanduser()
 
 
 def _kanban_board_dirs() -> list[Path]:
@@ -833,7 +833,7 @@ def _kanban_board_dirs() -> list[Path]:
 
 def _kanban_attachment_roots() -> list[Path]:
     """Return durable Kanban attachment roots without importing kanban_db."""
-    override = os.environ.get("HERMES_KANBAN_ATTACHMENTS_ROOT", "").strip()
+    override = os.environ.get("KOVA_KANBAN_ATTACHMENTS_ROOT", "").strip()
     if override:
         return [Path(override).expanduser()]
     roots = [_kanban_root() / "kanban" / "attachments"]
@@ -892,7 +892,7 @@ def _path_under_denied_prefix(resolved: Path) -> bool:
     """True if ``resolved`` lives under a deny-listed system path — except a denied prefix that
     IS the running user's own home: ``/root`` is listed so a non-root gateway can't deliver
     another user's home, but a root-run gateway's own deliverables live under ``$HOME=/root``.
-    Credential sub-dirs (``~/.ssh``, ``~/.hermes/.env``) stay blocked (more-specific entries)."""
+    Credential sub-dirs (``~/.ssh``, ``~/.kova/.env``) stay blocked (more-specific entries)."""
     home = _resolve_path(Path(os.path.expanduser("~")))
     for denied in _media_delivery_denied_paths():
         resolved_denied = _resolve_path(denied, expand=True)
@@ -972,7 +972,7 @@ def _docker_persistent_active() -> bool:
 
 
 def _cache_dir_container_mounts() -> list[tuple[Path, Path]]:
-    """(host, container) pairs for the auto-mounted Hermes cache dirs (``/root/.hermes/...`` in
+    """(host, container) pairs for the auto-mounted Kova cache dirs (``/root/.kova/...`` in
     MEDIA tags); longer prefixes than the ``/root`` home mount, so longest-prefix match wins."""
     if not _docker_env_active():
         return []
@@ -1002,7 +1002,7 @@ def _translate_docker_container_media_path(
     candidate: Path, session_key: str = "", workspace_key: str = "", *, quiet: bool = False, workspace_cwd: str = "",
 ) -> Optional[Path]:
     """Container-absolute path -> host path via longest-prefix match over ``docker_volumes``, the
-    auto-mounted cache dirs (``/root/.hermes/...``), persistent ``/workspace`` and ``/root``.
+    auto-mounted cache dirs (``/root/.kova/...``), persistent ``/workspace`` and ``/root``.
 
     ``workspace_key`` is the 16-hex digest of one session's host cwd ``workspace_cwd`` (its cwd
     mount). It selects that session's ``<base>:ws:<digest>`` sandbox and is empty for MEDIA delivery.
@@ -1026,9 +1026,9 @@ def _translate_docker_container_media_path(
             (root, Path("/workspace"))
             for root in _default_docker_workspace_host_roots(session_key, workspace_key, workspace_cwd))
     # Synthetic /root mounts catch stray home writes (/root/out.png; cache mounts are longer
-    # prefixes). /root/.hermes/* that missed a cache mount is the container's credential surface —
+    # prefixes). /root/.kova/* that missed a cache mount is the container's credential surface —
     # translating it via the home mount would dodge the host denylist.
-    if "/root" not in mounted and not candidate.as_posix().startswith("/root/.hermes"):
+    if "/root" not in mounted and not candidate.as_posix().startswith("/root/.kova"):
         mounts.extend(
             (root, Path("/root"))
             for root in _docker_persistent_sandbox_roots(session_key, "home", workspace_key))
@@ -1055,8 +1055,8 @@ def _translate_docker_container_media_path(
 def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[str]:
     """Safe absolute file path for native media delivery, else None. Default: any existing
     regular file outside the credential / system denylist (symmetric with inbound). Strict
-    (``HERMES_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
-    host secrets): MUST be under a Hermes cache, an operator root (``HERMES_MEDIA_ALLOW_DIRS``),
+    (``KOVA_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
+    host secrets): MUST be under a Kova cache, an operator root (``KOVA_MEDIA_ALLOW_DIRS``),
     or freshly produced within the recency window. Symlinks are resolved before any check."""
     candidate = _normalize_media_tag_path(path)
     if not candidate:
@@ -1079,7 +1079,7 @@ def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[s
         resolved_root = _resolve_path(root, expand=True)
         if resolved_root is not None and _path_is_within(resolved, resolved_root):
             return str(resolved)
-    # Non-strict (default): anything not denylisted (/etc, /proc, ~/.ssh, Hermes-root secrets).
+    # Non-strict (default): anything not denylisted (/etc, /proc, ~/.ssh, Kova-root secrets).
     from gateway.media_policy import media_delivery_strict
     if not media_delivery_strict():
         return None if _path_under_denied_prefix(resolved) else str(resolved)
@@ -1826,12 +1826,12 @@ class BasePlatformAdapter(ABC):
             store.pop(str(chat_id), None)
 
     # Can wake a fresh turn AFTER a turn ends (detached-subagent completions); False for stateless
-    # adapters (API server). Propagated to ``HERMES_SESSION_ASYNC_DELIVERY`` so tools never promise
+    # adapters (API server). Propagated to ``KOVA_SESSION_ASYNC_DELIVERY`` so tools never promise
     # a delivery they can't keep.
     supports_async_delivery: bool = True
     # ``send()`` chunks natively via ``truncate_message()`` -> the router skips its truncation.
     splits_long_messages: bool = False
-    # Prefix users can always TYPE for Hermes commands ("!" where the client eats a leading "/").
+    # Prefix users can always TYPE for Kova commands ("!" where the client eats a leading "/").
     typed_command_prefix: str = "/"
     # ``in_channel`` continuable-cron surface: job delivered FLAT, plain replies continue it via
     # the whole-channel bucket ``(platform, chat_id, None)``; needs a flat-reply outbound gate too
@@ -2141,7 +2141,7 @@ class BasePlatformAdapter(ABC):
                 raise
 
     def _acquire_platform_lock(self, scope: str, identity: str, resource_desc: str) -> bool:
-        """Acquire a scoped lock for this adapter; True on success. A live cross-HERMES_HOME
+        """Acquire a scoped lock for this adapter; True on success. A live cross-KOVA_HOME
         holder is replaced only when the runner armed this adapter for its initial
         ``--replace`` connect (the status module validates ownership and terminates)."""
         from gateway.status import acquire_scoped_lock, scoped_lock_owner_label, take_over_scoped_lock_holder
@@ -2160,7 +2160,7 @@ class BasePlatformAdapter(ABC):
             self._set_fatal_error(
                 "lock_dir_unusable",
                 f"{resource_desc} lock cannot be taken: the gateway lock directory {exc.filename} is not "
-                f"usable by this user (likely created by an elevated Hermes). To repair, "
+                f"usable by this user (likely created by an elevated Kova). To repair, "
                 f"{unusable_dir_remedy(exc.filename)}; the gateway retries on its own.",
                 retryable=True)
             return False
@@ -4101,7 +4101,7 @@ class BasePlatformAdapter(ABC):
 
     async def _synthesize_auto_tts(self, text_content: str) -> tuple[list[str], Optional[str]]:
         """Synthesize auto-TTS audio -> ``(existing_paths, requested_path)``; empty/None on failure
-        (logged, never raised). Path built platform-aware HERE: HERMES_SESSION_PLATFORM is cleared
+        (logged, never raised). Path built platform-aware HERE: KOVA_SESSION_PLATFORM is cleared
         post-handler."""
         paths: list[str] = []
         requested_path = None

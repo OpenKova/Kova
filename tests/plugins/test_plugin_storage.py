@@ -10,36 +10,36 @@ from __future__ import annotations
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from plugins.plugin_storage import plugin_data_dir, plugin_db
 
 
 @pytest.fixture
-def hermes_home(tmp_path):
-    token = set_hermes_home_override(str(tmp_path))
+def kova_home(tmp_path):
+    token = set_kova_home_override(str(tmp_path))
     try:
         yield tmp_path
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
-def test_data_dir_lives_outside_the_install_tree(hermes_home):
+def test_data_dir_lives_outside_the_install_tree(kova_home):
     root = plugin_data_dir("my-plugin")
 
-    assert root == hermes_home / "plugin-data" / "my-plugin"
+    assert root == kova_home / "plugin-data" / "my-plugin"
     assert root.is_dir()
     # The invariant that motivated the module: data must not live under the
     # install tree that `hermes plugins remove` deletes.
-    assert (hermes_home / "plugins") not in root.parents
+    assert (kova_home / "plugins") not in root.parents
 
 
 @pytest.mark.parametrize("bad", ["", ".", "..", "../escape", "a/b", "a\\b", "x" * 65])
-def test_hostile_names_are_rejected(hermes_home, bad):
+def test_hostile_names_are_rejected(kova_home, bad):
     with pytest.raises(ValueError):
         plugin_data_dir(bad)
 
 
-def test_plugin_db_journal_mode_is_the_shared_fallback_verdict(hermes_home):
+def test_plugin_db_journal_mode_is_the_shared_fallback_verdict(kova_home):
     """Plugin DBs take the journal mode the core WAL helper decides for this SQLite build and
     filesystem (WAL normally; DELETE on WAL-reset-bug builds or network FS) — never a raw PRAGMA."""
     from kova_state_wal import is_sqlite_wal_reset_vulnerable
@@ -55,10 +55,10 @@ def test_plugin_db_journal_mode_is_the_shared_fallback_verdict(hermes_home):
     finally:
         conn.close()
 
-    assert (hermes_home / "plugin-data" / "board" / "data.db").exists()
+    assert (kova_home / "plugin-data" / "board" / "data.db").exists()
 
 
-def test_plugin_db_rejects_path_shaped_filenames(hermes_home):
+def test_plugin_db_rejects_path_shaped_filenames(kova_home):
     with pytest.raises(ValueError):
         plugin_db("board", filename="../outside.db")
     with pytest.raises(ValueError):

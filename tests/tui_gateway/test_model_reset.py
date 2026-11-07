@@ -18,7 +18,7 @@ class _Agent:
 
 def test_reset_drops_the_pin_and_adopts_config_without_repinning(monkeypatch, tmp_path):
     (tmp_path / "config.yaml").write_text(json.dumps({"model": {"default": "cfg-model", "provider": "cfg-prov"}}))
-    monkeypatch.setattr(server, "_hermes_home", tmp_path)
+    monkeypatch.setattr(server, "_kova_home", tmp_path)
     resolved = []
 
     def _switch_model(**kw):  # provider resolution is the boundary; record what reset asks for

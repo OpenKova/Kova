@@ -1,6 +1,6 @@
 """The update fence never reads another reader's probe of the checkout lock as a held lock.
 
-A killed update always leaves a dead ``.hermes-update-in-progress`` marker, and while it is there
+A killed update always leaves a dead ``.kova-update-in-progress`` marker, and while it is there
 ``gateway_runtime._update_fenced`` probes the checkout kernel lock on every ``ensure`` poll. The
 gateway that ``ensure`` just started probes the same lock while it boots (its launch reclaims the
 dead marker). A probe that took the lock exclusively turned that collision into "an update owns

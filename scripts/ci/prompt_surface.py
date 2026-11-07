@@ -10,12 +10,12 @@ both through the production code into ``tests/fixtures/prompt_surface/``, which 
 * ``tests/ci/test_prompt_surface.py`` fails when the committed render is stale, so every change
   to the surface lands as a reviewable diff of real prompt text and tool schemas;
 * ``.github/workflows/repo-guards.yml`` posts the per-surface summary on the PR;
-* a repository ruleset requires a hermes-agent-core approval for that directory.
+* a repository ruleset requires a kova-agent-core approval for that directory.
 
     python scripts/ci/prompt_surface.py render            # regenerate the committed snapshot
     python scripts/ci/prompt_surface.py diff BASE HEAD --output FILE   # Markdown summary
 
-``render`` runs in a throwaway ``HERMES_HOME`` (stock config, bundled skills synced) with the clock,
+``render`` runs in a throwaway ``KOVA_HOME`` (stock config, bundled skills synced) with the clock,
 host OS, network, tool availability and machine paths pinned, so a laptop and the CI runner produce
 the same bytes. ``diff`` is stdlib-only: the PR job runs it on two snapshot directories.
 """
@@ -55,7 +55,7 @@ SURFACES = (
     ("cli.claude", "cli", "claude", False),
     ("cli.gpt", "cli", "gpt", False),
     ("cli.gemini", "cli", "gemini", False),
-    ("cli.hermes", "cli", "hermes", False),
+    ("cli.kova", "cli", "hermes", False),
     ("cli-code.claude", "cli", "claude", True),
     ("desktop.claude", "desktop", "claude", False),
     ("telegram.claude", "telegram", "claude", False),
@@ -108,7 +108,7 @@ class _ImportFailures(logging.Handler):
 def _scrub(text: str, home: Path) -> str:
     import platform as _platform
     for raw, token in sorted({
-        str(home / ".hermes"): "<HERMES_HOME>",
+        str(home / ".kova"): "<KOVA_HOME>",
         str(home): "<HOME>",
         f"{_platform.system()} ({_platform.release()})": "<HOST_OS>",
     }.items(), key=lambda kv: -len(kv[0])):
@@ -202,11 +202,11 @@ def render(out: Path) -> int:
         home.mkdir()
         staging = Path(tmp) / "out"
         env = {
-            "PATH": os.environ.get("PATH", ""), "HOME": str(home), "HERMES_HOME": str(home / ".hermes"),
+            "PATH": os.environ.get("PATH", ""), "HOME": str(home), "KOVA_HOME": str(home / ".kova"),
             "TZ": "UTC", "LANG": "C.UTF-8", "PYTHONHASHSEED": "0", "PYTHONPATH": str(ROOT),
             "TMPDIR": tmp, "PYTHONDONTWRITEBYTECODE": "1",
         }
-        for key in ("HERMES_RUNTIME_DIR", "SYSTEMROOT"):
+        for key in ("KOVA_RUNTIME_DIR", "SYSTEMROOT"):
             if os.environ.get(key):
                 env[key] = os.environ[key]
         proc = subprocess.run(

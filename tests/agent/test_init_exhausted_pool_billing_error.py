@@ -183,7 +183,7 @@ def test_openrouter_quota_cooldown_still_reports_the_cooldown(monkeypatch, tmp_p
     """
     from agent import agent_init
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     reset_at = time.time() + 3 * 3600
     (tmp_path / "auth.json").write_text(

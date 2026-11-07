@@ -79,10 +79,10 @@ def register_synthetic_package(name: str, search_locations: list[str]) -> None:
 
 
 def user_plugins_dir() -> Optional[Path]:
-    """Return ``$HERMES_HOME/plugins/`` or None if unavailable."""
+    """Return ``$KOVA_HOME/plugins/`` or None if unavailable."""
     try:
-        from kova_constants import get_hermes_home
-        d = get_hermes_home() / "plugins"
+        from kova_constants import get_kova_home
+        d = get_kova_home() / "plugins"
         return d if d.is_dir() else None
     except Exception:
         return None

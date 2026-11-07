@@ -69,8 +69,8 @@ class RunIdempotencyStore:
     def __init__(self, db_path: str | None = None):
         if db_path is None:
             try:
-                from kova_cli.config import get_hermes_home
-                db_path = str(get_hermes_home() / "runs_idempotency.db")
+                from kova_cli.config import get_kova_home
+                db_path = str(get_kova_home() / "runs_idempotency.db")
             except Exception:
                 db_path = ":memory:"
         self._db_path = None if db_path == ":memory:" else db_path

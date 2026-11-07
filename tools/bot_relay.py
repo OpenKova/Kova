@@ -90,8 +90,8 @@ def relay_root(root: Path | str) -> Path:
 def _ensure_dirs(root: Path | str) -> Path:
     base = relay_root(root)
     for sub in (OUTBOX_DIR, CLAIMED_DIR, REPLIES_DIR):
-        from kova_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(base / sub)
+        from kova_constants import mkdir_under_kova_home
+        mkdir_under_kova_home(base / sub)
     return base
 
 
@@ -189,7 +189,7 @@ def resolve_remote_target(raw_target: str, roster: list[dict]) -> Any:
 
 def _title_slug(row: dict) -> str:
     """The Bot Mode title's slug form (``"CoS Bot"`` → ``cos-bot``, what the picker inserts); "" when the
-    title is empty, reserved (a bot titled "Hermes") or not a valid handle."""
+    title is empty, reserved (a bot titled "Kova") or not a valid handle."""
     title = str(row.get("title") or "")
     slug = re.sub(r"[^a-z0-9_-]+", "-", title.strip().lower()).strip("-")
     return slug if slug in alias_forms(title) else ""
@@ -491,7 +491,7 @@ def _kova_cli() -> str:
     # Do not select batch shims: cmd.exe reinterprets otherwise literal argv
     # (for example an ampersand in a query-file path), even with shell=False.
     name = "hermes.exe" if sys.platform == "win32" else "hermes"
-    published = Path(__file__).resolve().parents[1] / ".hermes" / "bin" / name
+    published = Path(__file__).resolve().parents[1] / ".kova" / "bin" / name
     if published.is_file():
         return str(published)
     sibling = Path(sys.executable or "").parent / name
@@ -533,8 +533,8 @@ def _delivery_child_session_env_names() -> tuple[str, ...]:
     """Session-bound env names to strip from a delivery child, from ``gateway.session_context``.
 
     Synced with the session binding surface as vars are added; deliberately NOT a
-    ``HERMES_SESSION_*`` prefix match, which would also strip non-identity knobs
-    (e.g. ``HERMES_SESSION_STALL_TIMEOUT``)."""
+    ``KOVA_SESSION_*`` prefix match, which would also strip non-identity knobs
+    (e.g. ``KOVA_SESSION_STALL_TIMEOUT``)."""
     from gateway.session_context import _VAR_MAP
 
     return tuple(_VAR_MAP)
@@ -555,18 +555,18 @@ def relaying_principal_author(principal: str) -> dict:
 
 def delivery_env(author: Optional[dict], profile_home: str | Path | None = None) -> dict[str, str]:
     """Environment for one delivery turn's ``hermes -p <profile>`` child. The dispatcher's own
-    HERMES_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
+    KOVA_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
     that sent it. Dispatcher session identity (the canonical ``gateway.session_context`` session env names) is
     dropped too: a nested recipient that ``message_agent``s onward must not stamp that grandchild
     notify with the grandparent's key, or the live recipient never resumes. The child runs the target
     profile's Bot Chat turn, so it starts from THAT profile's env (``served_profile_child_env``: launch
     profile ``.env`` / TERMINAL_* residue dropped, target secrets overlaid), never the multiplexer's raw
-    ``os.environ``; ``-p`` alone only pinned HERMES_HOME. ``profile_home`` is the target's home when the
+    ``os.environ``; ``-p`` alone only pinned KOVA_HOME. ``profile_home`` is the target's home when the
     caller knows it (relay RPC, roster); otherwise the active override, and under multiplex the launch
     home."""
     from agent.secret_scope import current_secret_scope, is_multiplex_active
     from agent.turn_author import TURN_AUTHOR_ENV, turn_author_env
-    from kova_constants import get_hermes_home_override, get_routing_process_hermes_home
+    from kova_constants import get_kova_home_override, get_routing_process_kova_home
     from tools.environments.local import served_profile_child_env
 
     # ``_profile_home`` answers None for the launch profile by design and a relay RPC binds no scope,
@@ -575,9 +575,9 @@ def delivery_env(author: Optional[dict], profile_home: str | Path | None = None)
     # inside ``served_profile_child_env``, so fill it only when both are absent; a single-profile host
     # keeps its pass-through env.
     target_home = profile_home
-    if (not target_home and is_multiplex_active() and not get_hermes_home_override()
+    if (not target_home and is_multiplex_active() and not get_kova_home_override()
             and current_secret_scope() is None):
-        target_home = get_routing_process_hermes_home()
+        target_home = get_routing_process_kova_home()
     env = served_profile_child_env(base=os.environ, target_home=target_home, inherit_credentials=True)
     env.pop(TURN_AUTHOR_ENV, None)
     for name in _delivery_child_session_env_names():

@@ -16,7 +16,7 @@ def _volume_headroom(monkeypatch):
     """The backup/snapshot guards reserve 2% of the volume: hermetic on a nearly full dev disk."""
     import kova_state_repair as repair
     monkeypatch.setattr(repair, '_REPAIR_BACKUP_FREE_FRACTION', 0.0)
-    # The holder scan sees every process on the host: a developer's running Hermes would hold a
+    # The holder scan sees every process on the host: a developer's running Kova would hold a
     # real state.db and refuse these tmp_path repairs. Same stub as test_state_db_repair_non_destructive.
     monkeypatch.setattr(repair, '_live_writer_holds_db', lambda _path: False)
 
@@ -35,7 +35,7 @@ def _legacy_store(tmp_path, monkeypatch):
         conn.commit()
         assert conn.execute('SELECT version FROM schema_version').fetchone()[0] == SCHEMA_VERSION
     monkeypatch.setattr('kova_state.DEFAULT_DB_PATH', path)
-    monkeypatch.setattr(sessions_cmd, 'get_hermes_home', lambda: tmp_path)
+    monkeypatch.setattr(sessions_cmd, 'get_kova_home', lambda: tmp_path)
     return path
 
 

@@ -67,7 +67,7 @@ export function offerKeepAwake(): void {
 if (typeof window !== 'undefined') {
   $keepAwakeMode.subscribe(mode => {
     persistString(KEY, mode)
-    window.hermesDesktop?.setKeepAwake?.(mode)
+    window.kovaDesktop?.setKeepAwake?.(mode)
   })
-  window.hermesDesktop?.onKeepAwakeOffer?.(offerKeepAwake)
+  window.kovaDesktop?.onKeepAwakeOffer?.(offerKeepAwake)
 }

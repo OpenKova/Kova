@@ -85,9 +85,9 @@ async def test_creation_preserves_advertised_cwd_model_and_toolsets(monkeypatch,
     monkeypatch.setattr(gateway_chat, "connect_gateway", connected)
     monkeypatch.setattr(GatewayChatView, "run", rendered)
     monkeypatch.chdir(tmp_path)
-    # `-s a,b -s a` + the session-scoped launch flags + an exported HERMES_ACCEPT_HOOKS=1 ride the
+    # `-s a,b -s a` + the session-scoped launch flags + an exported KOVA_ACCEPT_HOOKS=1 ride the
     # create (the classic client is a gateway client; nothing is refused or dropped).
-    monkeypatch.setenv("HERMES_ACCEPT_HOOKS", "1")
+    monkeypatch.setenv("KOVA_ACCEPT_HOOKS", "1")
     args = argparse.Namespace(query="literal", model="explicit-model", toolsets="terminal, file", quiet=True,
                               skills=["a,b", "a"], checkpoints=True, pass_session_id=True)
     assert await gateway_chat.run_gateway_chat(args) == 0
@@ -203,8 +203,8 @@ def test_one_letter_alias_refusal_names_a_flag_the_user_can_type(monkeypatch, ca
 
 @pytest.mark.asyncio
 async def test_documented_env_opt_ins_ride_the_classic_create_and_bypass_needs_a_model(monkeypatch, tmp_path, capsys):
-    """N24: the auto-started owner no longer inherits the environment, so HERMES_YOLO_MODE /
-    HERMES_IGNORE_RULES / HERMES_SAFE_MODE / HERMES_IGNORE_USER_CONFIG / HERMES_ACCEPT_HOOKS
+    """N24: the auto-started owner no longer inherits the environment, so KOVA_YOLO_MODE /
+    KOVA_IGNORE_RULES / KOVA_SAFE_MODE / KOVA_IGNORE_USER_CONFIG / KOVA_ACCEPT_HOOKS
     must ride session.create (Ink's localCreationOptions set), and an env bypass without -m is
     refused before connecting, exactly as the flag is."""
     from contextlib import asynccontextmanager
@@ -231,13 +231,13 @@ async def test_documented_env_opt_ins_ride_the_classic_create_and_bypass_needs_a
     monkeypatch.setattr(gateway_chat, "connect_gateway", connected)
     monkeypatch.setattr(GatewayChatView, "run", rendered)
     monkeypatch.chdir(tmp_path)
-    for name in ("HERMES_YOLO_MODE", "HERMES_IGNORE_RULES", "HERMES_SAFE_MODE", "HERMES_ACCEPT_HOOKS"):
+    for name in ("KOVA_YOLO_MODE", "KOVA_IGNORE_RULES", "KOVA_SAFE_MODE", "KOVA_ACCEPT_HOOKS"):
         monkeypatch.setenv(name, "1")
-    monkeypatch.setenv("HERMES_IGNORE_USER_CONFIG", "true")
+    monkeypatch.setenv("KOVA_IGNORE_USER_CONFIG", "true")
     assert await gateway_chat.run_gateway_chat(argparse.Namespace(query="q", quiet=True, model="m")) == 0
     assert all(created[0].get(flag) is True for flag in flags), created[0]
     monkeypatch.setattr(gateway_chat, "connect_gateway", lambda: pytest.fail("connected"))
-    for name in ("HERMES_YOLO_MODE", "HERMES_IGNORE_RULES", "HERMES_SAFE_MODE", "HERMES_ACCEPT_HOOKS"):
+    for name in ("KOVA_YOLO_MODE", "KOVA_IGNORE_RULES", "KOVA_SAFE_MODE", "KOVA_ACCEPT_HOOKS"):
         monkeypatch.delenv(name)
     assert gateway_chat.launch_from_args(argparse.Namespace(query="q")) == 1
     assert "--model" in capsys.readouterr().err
@@ -292,7 +292,7 @@ async def test_new_and_branch_move_the_terminal_continue_pointer(monkeypatch, tm
     now on (the in-process CLI re-wrote its breadcrumb on every switch), not the old one."""
     from kova_cli import gateway_chat_commands, terminal_breadcrumbs
     from kova_cli.gateway_chat_view import GatewayChatView
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setenv("TMUX_PANE", "%9")
     monkeypatch.setattr(terminal_breadcrumbs.os, "ttyname", lambda fd: (_ for _ in ()).throw(OSError()),
                         raising=False)  # os.ttyname does not exist on Windows

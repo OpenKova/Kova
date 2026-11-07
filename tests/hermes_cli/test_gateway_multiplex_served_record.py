@@ -26,19 +26,19 @@ def served_root(tmp_path, monkeypatch):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n")  # identity marker
     (root / "config.yaml").write_text("model: {default: x}\n")  # NO multiplex flag: env-only opt-in
-    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}))
+    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}))
     (root / "gateway_state.json").write_text(json.dumps(
-        {"pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running",
+        {"pid": os.getpid(), "kova_home": str(root), "gateway_state": "running",
          "served_profiles": ["default", "coder"]}))
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "coder"))
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "coder"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     # Never read the developer's / CI's REAL host rendezvous record (superseded by the
     # tests/conftest.py hook in #118097 once that lands).
     (tmp_path / "locks").mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     import kova_constants
     from gateway import status
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     # Liveness is a VERIFIED identity: this pytest process stands in for the default gateway only
     # because its command line reads as one; any other PID keeps its real command line.
     real_cmdline = status._read_process_cmdline
@@ -59,7 +59,7 @@ def test_probe_trusts_live_record_over_cli_side_config(served_root):
 def test_probe_falls_back_to_config_only_without_recorded_key(served_root):
     from kova_cli.gateway import named_profile_served_by_running_multiplexer
     (served_root / "gateway_state.json").write_text(json.dumps(
-        {"pid": os.getpid(), "hermes_home": str(served_root), "gateway_state": "running"}))
+        {"pid": os.getpid(), "kova_home": str(served_root), "gateway_state": "running"}))
     assert named_profile_served_by_running_multiplexer("coder") is False
     (served_root / "config.yaml").write_text("gateway: {multiplex_profiles: true}\n")
     assert named_profile_served_by_running_multiplexer("coder") is True
@@ -124,7 +124,7 @@ def test_setup_gateway_service_step_skips_install_for_served_profile(served_root
     assert calls == []
     assert "already served by the default multiplexer" in capsys.readouterr().out
 
-    monkeypatch.setenv("HERMES_HOME", str(served_root / "profiles" / "other"))  # not in the live record
+    monkeypatch.setenv("KOVA_HOME", str(served_root / "profiles" / "other"))  # not in the live record
     assert ensure_gateway_service(context="setup", install=True) is True
     assert calls == []
     assert "Profile 'other' does not get a gateway of its own" in capsys.readouterr().out
@@ -143,7 +143,7 @@ def test_recycled_pid_does_not_lend_a_stale_record_its_served_profiles(served_ro
         stale_start = (status._get_process_start_time(child.pid) or 10**9) - 4242
         for name in ("gateway.pid", "gateway_state.json"):
             (served_root / name).write_text(json.dumps({
-                "pid": child.pid, "hermes_home": str(served_root), "gateway_state": "running",
+                "pid": child.pid, "kova_home": str(served_root), "gateway_state": "running",
                 "start_time": stale_start, "served_profiles": ["default", "coder"]}))
         assert live_default_gateway_pid() is None
         assert recorded_served_profiles(served_root) is None
@@ -222,7 +222,7 @@ def test_dashboard_liveness_ladder_reports_served_profile_running(served_root):
     "stopped" while `hermes -p X status` said running. Alpha's `<X>:<platform>` entries project as its own."""
     from gateway.status import profile_platforms_from_multiplexer, resolve_gateway_liveness
     (served_root / "gateway_state.json").write_text(json.dumps({
-        "pid": os.getpid(), "hermes_home": str(served_root), "gateway_state": "running",
+        "pid": os.getpid(), "kova_home": str(served_root), "gateway_state": "running",
         "served_profiles": ["default", "coder"],
         "platforms": {"api_server": {"state": "connected"}, "coder:telegram": {"state": "connected"}}}))
     coder = served_root / "profiles" / "coder"
@@ -245,11 +245,11 @@ def test_dashboard_lifecycle_verbs_target_the_multiplexer(served_root, monkeypat
     from kova_cli.web_server_gateway import _gateway_subcommand, _profile_action_environment, multiplexed_profile_refusal
     # No stub: a served profile's liveness answers "running" on the MULTIPLEXER's pid, and that must
     # not read as a gateway of its own (stubbing it False hid exactly that).
-    # This process's own HERMES_HOME is coder's; the restart child must still run under the DEFAULT
+    # This process's own KOVA_HOME is coder's; the restart child must still run under the DEFAULT
     # home (the multiplexer's) — a bare `gateway restart` here would inherit coder's home and exit 78.
     restart = _gateway_subcommand("coder", "restart")
     assert restart[-2:] == ["gateway", "restart"] and "coder" not in restart
-    assert _profile_action_environment(restart)["HERMES_HOME"] == str(served_root)
+    assert _profile_action_environment(restart)["KOVA_HOME"] == str(served_root)
     assert multiplexed_profile_refusal("coder", "stop") is None  # parks via `hermes -p coder gateway stop`
     assert multiplexed_profile_refusal("coder", "start")
     assert _gateway_subcommand("coder", "stop") == ["-p", "coder", "gateway", "stop"]
@@ -284,26 +284,26 @@ def test_the_multiplexer_restart_names_the_root_even_under_a_sticky_active_profi
 
     from kova_cli.main import _apply_profile_override
     from kova_cli.web_server_gateway import _gateway_subcommand, _profile_action_environment
-    monkeypatch.setenv("HERMES_HOME", str(served_root))  # the dashboard runs as the default profile
+    monkeypatch.setenv("KOVA_HOME", str(served_root))  # the dashboard runs as the default profile
     (served_root / "active_profile").write_text("coder")
     monkeypatch.setattr(Path, "home", lambda: served_root.parent)
     restart = _gateway_subcommand("coder", "restart")
     for var, value in _profile_action_environment(restart).items():
-        if var == "HERMES_HOME":
+        if var == "KOVA_HOME":
             monkeypatch.setenv(var, value)
-    for var in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD", "INVOCATION_ID",
-                "HERMES_GATEWAY_EXTERNAL_SUPERVISOR"):
+    for var in ("KOVA_SUPERVISED_CHILD", "KOVA_S6_SUPERVISED_CHILD", "INVOCATION_ID",
+                "KOVA_GATEWAY_EXTERNAL_SUPERVISOR"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr("sys.argv", ["hermes", *restart])
     _apply_profile_override()  # what the spawned child does first
-    assert os.environ["HERMES_HOME"] == str(served_root)
+    assert os.environ["KOVA_HOME"] == str(served_root)
 
 
 def test_the_topology_lists_a_served_profile_under_the_multiplexer_not_as_its_own_gateway(served_root, monkeypatch):
     """`/api/status` topology: a served profile's liveness is the multiplexer's, so it is one gateway
     serving both, not a second gateway entry for `coder` beside it."""
     from kova_cli.web_server_gateway import _collect_profile_gateway_topology
-    monkeypatch.setenv("HERMES_HOME", str(served_root))
+    monkeypatch.setenv("KOVA_HOME", str(served_root))
     topology = _collect_profile_gateway_topology()
     assert [g["profile"] for g in topology["gateways"]] == ["default"]
     assert "coder" in topology["gateways"][0]["served_profiles"]

@@ -10,21 +10,21 @@ import pytest
 
 
 class _SessionsCompressionEndpoints:
-    """Shared harness: TestClient pair against the isolated HERMES_HOME store."""
+    """Shared harness: TestClient pair against the isolated KOVA_HOME store."""
 
     @pytest.fixture(autouse=True)
-    def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_test_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
         self.client = TestClient(app)
         self.auth_client = TestClient(app)
@@ -84,7 +84,7 @@ class TestDeleteSessionCompressionChain(_SessionsCompressionEndpoints):
 
         from gateway.session_authority import LiveSession, SessionAuthority
         from kova_cli.web_server import app
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
         from kova_state_runtime import begin_runtime_epoch
 
@@ -97,7 +97,7 @@ class TestDeleteSessionCompressionChain(_SessionsCompressionEndpoints):
             )
             # The dashboard never opens a second writer: DELETE admits through the owner.
             authority = SessionAuthority(
-                SimpleNamespace(_draining=False), profile_id=str(get_hermes_home()),
+                SimpleNamespace(_draining=False), profile_id=str(get_kova_home()),
                 instance_id="owner", db=db, epoch=begin_runtime_epoch(db, instance_id="owner"))
             authority.sessions["conv_tip"] = LiveSession(None, "route")
             monkeypatch.setattr(app.state, "session_authority", authority, raising=False)

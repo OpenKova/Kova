@@ -118,10 +118,10 @@ def test_cancelling_a_script_job_kills_it_and_names_the_reason(tmp_path, monkeyp
     from cron.cancellation import CancelRequest, request_cancel
 
     # Script paths resolve under the firing profile's home; point it at the scratch dir.
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(scheduler_script, "_get_script_timeout", lambda: 60)
     # Spawn through a scratch dependency environment: the store interpreter resolves under the
-    # real Hermes home, which the home-I/O guard refuses. Pinned the same way
+    # real Kova home, which the home-I/O guard refuses. Pinned the same way
     # tests/cron/test_cron_script.py pins this seam — what is under test is the marker and the
     # kill, not interpreter selection.
     venv = tmp_path / "venv"

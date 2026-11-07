@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
 """Report-only import lint for the core/module boundary, in both directions.
 
-* **module -> core internals**: a bundled module imports a Hermes module or name that is not on the
+* **module -> core internals**: a bundled module imports a Kova module or name that is not on the
   published plugin API (``kova_cli/data/plugin_api.json``), e.g. ``gateway.run``. The rule is the one
   ``hermes plugins validate`` warns with (``plugin_validate_private_imports.private_import_findings``),
   so the lint and the plugin-author warning cannot drift.

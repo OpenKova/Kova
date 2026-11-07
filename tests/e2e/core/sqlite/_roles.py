@@ -10,7 +10,7 @@ connection) and reports through append-only files, so a ``kill -9`` loses nothin
 Tokens are single FTS words (``TK`` + alnum) so the test can look every acknowledged append up by content,
 through ``messages`` and through the FTS indexes.
 
-Journal-mode seam: with ``HERMES_E2E_SQLITE_VERSION_PIN`` set, the production version probe
+Journal-mode seam: with ``KOVA_E2E_SQLITE_VERSION_PIN`` set, the production version probe
 ``kova_state_wal.is_sqlite_wal_reset_vulnerable()`` reports that SQLite version instead of the linked one;
 the real range predicate and ``apply_wal_with_fallback`` then decide the journal mode as they would there.
 """
@@ -57,7 +57,7 @@ class Out:
 
 
 def _apply_sqlite_version_pin() -> None:
-    pin = os.environ.get("HERMES_E2E_SQLITE_VERSION_PIN")
+    pin = os.environ.get("KOVA_E2E_SQLITE_VERSION_PIN")
     if not pin:
         return
     import kova_state_wal
@@ -95,7 +95,7 @@ def _fd_count() -> int:
 
 
 def _stray_close(db_path: Path) -> None:
-    """What a plugin, a tool read of ~/.hermes or a header probe does: open + close the live files in THIS
+    """What a plugin, a tool read of ~/.kova or a header probe does: open + close the live files in THIS
     process. POSIX drops every lock this process holds on the inode (sqlite.org/howtocorrupt.html §2.2)."""
     for suffix in ("", "-shm", "-wal"):
         try:

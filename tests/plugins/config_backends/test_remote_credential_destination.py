@@ -74,7 +74,7 @@ def nous_bearer(monkeypatch, tmp_path):
     """Cloud credential path with a known bearer; no IdP configured."""
     for k in ("GATEWAY_RELAY_IDP_TOKEN_URL", "GATEWAY_RELAY_IDP_CLIENT_ID", "GATEWAY_RELAY_IDP_CLIENT_SECRET"):
         monkeypatch.delenv(k, raising=False)
-    monkeypatch.setenv("HERMES_CONFIG_INSTANCE_ID", INSTANCE)
+    monkeypatch.setenv("KOVA_CONFIG_INSTANCE_ID", INSTANCE)
     resolved: list[Path] = []
 
     def token(home):
@@ -169,7 +169,7 @@ def test_boot_fails_closed_on_forbidden_plane_url_without_retry(monkeypatch, tmp
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as plane:
         for k, v in remote_env(plane).items():
             monkeypatch.setenv(k, v)
@@ -257,7 +257,7 @@ def test_refused_url_never_echoes_user_info(monkeypatch, tmp_path):
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv(client.URL_ENV, USERINFO_URL)
     monkeypatch.setenv(client.INSTANCE_ENV, INSTANCE)
     monkeypatch.setattr(backend_mod.time, "sleep", lambda s: None)
@@ -284,7 +284,7 @@ def test_provenance_never_echoes_user_info(monkeypatch, tmp_path):
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as plane:
         for k, v in remote_env(plane).items():
             monkeypatch.setenv(k, v)

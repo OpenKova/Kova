@@ -90,7 +90,7 @@ async def test_messaging_debug_local_is_refused_without_uploading():
 @pytest.mark.asyncio
 async def test_local_debug_local_real_collector_opens_no_socket(tmp_path, monkeypatch):
     """The real collector, unpatched: no socket connect and no upload helper is reached."""
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     guard = _NoNetwork()
     with patch('kova_cli.debug.upload_to_pastebin', guard), \
             patch('kova_cli.diagnostics_upload.share_to_nous', guard), \

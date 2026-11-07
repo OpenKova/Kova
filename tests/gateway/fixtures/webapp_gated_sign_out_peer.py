@@ -1,6 +1,6 @@
 """A real gateway serving the Webapp behind the sign-in gate; a browser signs in, then the owner signs out.
 
-Run as ``python webapp_gated_sign_out_peer.py <port>`` with an isolated ``HERMES_HOME``. The listener binds
+Run as ``python webapp_gated_sign_out_peer.py <port>`` with an isolated ``KOVA_HOME``. The listener binds
 loopback only; a public URL engages the sign-in gate (``engage_sign_in_gate``), and the bundled password
 provider (``plugins/dashboard_auth/basic``) is configured with a throwaway password. Writes ``receipt.json``
 there (the gateway redirects stdout). No external inference: the model points at a closed port.
@@ -88,7 +88,7 @@ async def across_sign_out(runner, origin, ask):
     report = {}
 
     def chat_protocols(value):
-        return ["hermes-gateway-v1", f"hermes-gateway-ticket.{value}"]
+        return ["kova-gateway-v1", f"kova-gateway-ticket.{value}"]
 
     async def sign_in(browser):
         signed_in = await browser.post("/auth/password-login", headers=page,
@@ -156,7 +156,7 @@ async def probe(port):
     from kova_cli.plugins import discover_plugins
     import kova_cli.webapp
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     write_config(home, port)
     dist = home / "dist-webapp"
     dist.mkdir()
@@ -189,7 +189,7 @@ async def probe(port):
 
 
 def main():
-    receipt = Path(os.environ["HERMES_HOME"]) / "receipt.json"
+    receipt = Path(os.environ["KOVA_HOME"]) / "receipt.json"
     try:
         receipt.write_text(json.dumps(asyncio.run(probe(int(sys.argv[1])))))
     except BaseException:

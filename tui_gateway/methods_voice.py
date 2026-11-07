@@ -13,7 +13,7 @@ _registry = HandlerRegistry()
 method = _registry.method
 
 
-# ── Voice state: HERMES_VOICE / HERMES_VOICE_TTS are runtime-only env flags (never config.yaml)
+# ── Voice state: KOVA_VOICE / KOVA_VOICE_TTS are runtime-only env flags (never config.yaml)
 # so a prior session can't auto-start REC.
 
 _voice_sid_lock = threading.Lock()
@@ -53,7 +53,7 @@ def _resume_voice_wake() -> None:
 
 
 def _voice_mode_enabled() -> bool:
-    return os.environ.get("HERMES_VOICE", "").strip() == "1"
+    return os.environ.get("KOVA_VOICE", "").strip() == "1"
 
 
 def _session_voice_enabled(session_id) -> bool:
@@ -112,12 +112,12 @@ def _voice_capture_callback(fn):
 
 
 def _voice_tts_enabled() -> bool:
-    return os.environ.get("HERMES_VOICE_TTS", "").strip() == "1"
+    return os.environ.get("KOVA_VOICE_TTS", "").strip() == "1"
 
 
 def _end_voice_chat(*, stop_loop: bool, stop_tts: bool) -> None:
     """Flip voice + TTS off; optionally halt the continuous loop / cut live TTS (best-effort)."""
-    os.environ["HERMES_VOICE"] = os.environ["HERMES_VOICE_TTS"] = "0"
+    os.environ["KOVA_VOICE"] = os.environ["KOVA_VOICE_TTS"] = "0"
     if stop_loop:
         with contextlib.suppress(Exception):
             from kova_cli.voice import stop_continuous
@@ -385,7 +385,7 @@ def _voice_status_payload(**extra) -> dict:
     return {"enabled": _voice_mode_enabled(), "record_key": record_key, "tts": _voice_tts_enabled(), **extra}
 
 
-# ── Wake word ("Hey Hermes"): process-global detector (one mic). The first eligible transport
+# ── Wake word ("Hey Kova"): process-global detector (one mic). The first eligible transport
 # to call wake.start owns it until stop, disconnect, or stream failure; on detection we emit
 # wake.detected and the client opens a session + its own capture. The detector yields the mic
 # to voice.record (pause/resume) and to the desktop's browser mic (wake.pause/resume RPCs).
@@ -728,7 +728,7 @@ def _voice_toggle_status(rid, params: dict) -> dict:
 
 def _voice_toggle_mode(rid, params: dict) -> dict:
     enabled = params.get("action") == "on"
-    os.environ["HERMES_VOICE"] = "1" if enabled else "0"
+    os.environ["KOVA_VOICE"] = "1" if enabled else "0"
     stop_hint = ""
     if enabled:
         # Spoken-stop hint for the client; sourced from voice.stop_phrases, empty when disabled.
@@ -753,7 +753,7 @@ def _voice_toggle_mode(rid, params: dict) -> dict:
 
 def _set_voice_tts(on: bool) -> None:
     """Flip TTS; off silences live speech. The lease pre-loads the engine (on) / releases it (off)."""
-    os.environ["HERMES_VOICE_TTS"] = "1" if on else "0"
+    os.environ["KOVA_VOICE_TTS"] = "1" if on else "0"
     if not on:
         _tts_stream_stop(user_barge=False)
     _tts_lease_async("tui:voice-tts", on)

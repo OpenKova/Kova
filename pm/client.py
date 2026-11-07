@@ -73,7 +73,7 @@ def _worker_command(spec, arguments, worker: Path, environment: dict) -> list[st
             command = runtime_command(worker, bootstrap=False, cache=cache)
         except InstallError as cold:
             raise _refuse_cold_runtime(cold, arguments) from None
-        environment["HERMES_DISABLE_LAZY_INSTALLS"] = "1"
+        environment["KOVA_DISABLE_LAZY_INSTALLS"] = "1"
         return command
     if spec.bootstrap == "never":
         return runtime_command(worker, bootstrap=False, cache=cache)

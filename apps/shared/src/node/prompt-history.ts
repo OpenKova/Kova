@@ -1,12 +1,12 @@
-// The Hermes prompt history file (`<HERMES_HOME>/.hermes_history`, the classic CLI's format), with
-// HERMES_HOME read once at import.
+// The Kova prompt history file (`<KOVA_HOME>/.kova_history`, the classic CLI's format), with
+// KOVA_HOME read once at import.
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
 const MAX = 1000
-const dir = process.env.HERMES_HOME ?? join(homedir(), '.hermes')
-const file = join(dir, '.hermes_history')
+const dir = process.env.KOVA_HOME ?? join(homedir(), '.kova')
+const file = join(dir, '.kova_history')
 
 let cache: string[] | null = null
 

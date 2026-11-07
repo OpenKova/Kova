@@ -27,7 +27,7 @@ from gateway.status_served import local_liveness_pid
 from kova_cli import __release_date__
 from kova_cli.config import get_config_path, get_env_path
 from kova_cli.version_info import get_version_info
-from kova_constants import get_process_hermes_home, profile_name_for_home
+from kova_constants import get_process_kova_home, profile_name_for_home
 from kova_cli.web_models import CuratorPause, LearningNodeRef, LearningNodeEdit, DebugShareRequest
 from kova_cli.web_routers._common import config_scoped_to_thread, destructive_profile, scoped_to_thread
 from pathlib import Path
@@ -51,7 +51,7 @@ _spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway
 _ssh_runtime_intact = late("_ssh_runtime_intact")
 app = LateState("app")  # the FastAPI instance (app.state.*)
 check_config_version = late("check_config_version", "kova_cli.config")
-get_hermes_home = late("get_hermes_home", "kova_cli.config")
+get_kova_home = late("get_kova_home", "kova_cli.config")
 _profile_cli_args = late("_profile_cli_args", "kova_cli.web_server_profiles")
 get_install_id = late("get_install_id")
 get_running_pid_cached = late("get_running_pid_cached", "gateway.status")
@@ -77,7 +77,7 @@ def _safe_call(mod, fn_name: str, default):
 
 def _count_status_active_sessions() -> int:
     """Best-effort status garnish. Opens read-only (via the shared stale-schema heal) so
-    /api/status never routinely writes to state.db while another Hermes process uses it."""
+    /api/status never routinely writes to state.db while another Kova process uses it."""
     from kova_state import _default_db_path
     # The heal helper bootstraps a missing store; this garnish must not — on a fresh install
     # /api/status polls would otherwise create state.db before the user's first session.
@@ -257,7 +257,7 @@ def _merge_profile_gateway_platforms(gateway_platforms: dict, profile_platforms:
 # endpoint and /api/messaging/platforms can never disagree about whether the gateway is up (they used to:
 # sidebar "running" while the Channels page rendered "The gateway is not running"). When ?profile=<name> was
 # given, scope PID and state reads to that profile's directory — gateway identity files (PID, lock, runtime
-# status) are written to the per-profile home, not the process-level HERMES_HOME (see issue #69143). Plain
+# status) are written to the per-profile home, not the process-level KOVA_HOME (see issue #69143). Plain
 # /api/status keeps the exact zero-arg call so its behavior (and cache signature) is unchanged. The
 # module-level probe references are handed to the resolver so the long-standing
 # `monkeypatch.setattr(gateway.status, "get_running_pid_cached", ...)` seam used across the test-suite still
@@ -328,12 +328,12 @@ async def _resolve_gateway_status(profile_dir: Optional[Path], health_url) -> di
     if runtime is None and remote_health_body and remote_health_body.get("gateway_state"):
         runtime = remote_health_body
     # Unscoped, the profile is the process's own home (a pooled ``hermes --profile X serve``).
-    own_home = profile_dir or get_process_hermes_home()
+    own_home = profile_dir or get_process_kova_home()
     if liveness.runtime is not None:
         # Served by the multiplexer: its record is this profile's runtime, with the profile's own
         # adapters under ``<profile>:<platform>`` re-keyed to the standalone shape.
         # Fold on the profile NAME, never ``profile_dir.name``: ``?profile=default`` resolves the
-        # root itself, whose basename (``.hermes``) matched nothing and read as a named id (#123088).
+        # root itself, whose basename (``.kova``) matched nothing and read as a named id (#123088).
         served_name = profile_name_for_home(own_home)
         runtime = {**liveness.runtime,
                    "platforms": profile_platforms_from_multiplexer(liveness.runtime, served_name or "")}
@@ -447,7 +447,7 @@ async def _component_health(gateway: dict[str, Any]) -> dict[str, Any]:
         "dashboard": DASHBOARD_HEALTH.snapshot()}
     try:
         from gateway.readiness import _probe_state_db
-        storage_check = await run_in_threadpool(_probe_state_db, get_hermes_home())
+        storage_check = await run_in_threadpool(_probe_state_db, get_kova_home())
         components["storage"] = {"status": storage_check.get("status", "degraded")}
         # The one reason enum consumers key off; same latch as readiness and the session lists.
         if storage_check.get("detail") == "corrupt":
@@ -502,7 +502,7 @@ def _status_local_reads() -> dict[str, Any]:
 def _fts_rebuild_status() -> Optional[dict[str, Any]]:
     """Deferred FTS rebuild progress of this home's state.db (read-only open), or None."""
     from kova_state import SessionDB as _SDB
-    from kova_constants import get_hermes_home as _ghh
+    from kova_constants import get_kova_home as _ghh
     _db_path = _ghh() / "state.db"
     if not _db_path.exists():
         return None
@@ -516,7 +516,7 @@ def _fts_rebuild_status() -> Optional[dict[str, Any]]:
 #: What the gateway's Webapp answers a caller who has not signed in: liveness, version and the
 #: sign-in shape (the native-app login probe and uptime checks read nothing else). Profile names,
 #: the install id and host figures wait for sign-in, since a Webapp on a wildcard bind is reachable
-#: by everyone on the network. The standalone dashboard keeps its public body: Hermes Cloud reads
+#: by everyone on the network. The standalone dashboard keeps its public body: Kova Cloud reads
 #: the profile list there without a session (#60585).
 _WEBAPP_SIGNED_OUT_STATUS_KEYS = frozenset({
     "version", "release_date", "gateway_running", "gateway_state", "overall", "components",
@@ -622,9 +622,9 @@ async def get_status(profile: Optional[str] = None,
         status["components"] = components
         status["overall"] = ("ok" if all(item.get("status") == "ok" for item in components.values())
                              else "degraded")
-        await _advisory_pressure(status, profile_dir if profile_dir else get_hermes_home())
+        await _advisory_pressure(status, profile_dir if profile_dir else get_kova_home())
 
-        # Profile NAMES and ``gateway_mode`` are low-sensitivity product surface (Hermes Cloud
+        # Profile NAMES and ``gateway_mode`` are low-sensitivity product surface (Kova Cloud
         # renders the profile list over a gated bind) so they survive the auth gate; the
         # per-gateway ``gateways[]`` carries host ports and stays gated below.
         status["profiles"] = topology["profiles"]
@@ -637,7 +637,7 @@ async def get_status(profile: Optional[str] = None,
         # reaches this endpoint — surface them only on a loopback / ``--insecure`` bind.
         if not auth["auth_required"]:
             status.update({
-                "hermes_home": str(get_hermes_home()), "config_path": str(get_config_path()),
+                "kova_home": str(get_kova_home()), "config_path": str(get_config_path()),
                 "env_path": str(get_env_path()), "gateway_pid": gateway["gateway_pid"],
                 "gateway_health_url": _GATEWAY_HEALTH_URL, "gateways": topology["gateways"]})
 
@@ -665,7 +665,7 @@ def get_system_stats():  # sync: FastAPI runs it on a worker (psutil.cpu_percent
         "hermes_version": get_version_info().base_version, "cpu_count": os.cpu_count()}
 
     def _disk():
-        du = psutil.disk_usage(str(get_hermes_home()))
+        du = psutil.disk_usage(str(get_kova_home()))
         info["disk"] = {"total": du.total, "used": du.used, "free": du.free, "percent": du.percent}
 
     def _cpu():
@@ -732,7 +732,7 @@ async def get_curator_status(profile: Optional[str] = None):
 @router.put("/api/curator/paused")
 async def set_curator_paused(body: CuratorPause, profile: Optional[str] = None):
     from agent import curator
-    # ``_state_file()`` is ``get_hermes_home()/skills/.curator_state`` resolved at call
+    # ``_state_file()`` is ``get_kova_home()/skills/.curator_state`` resolved at call
     # time, so the request's home override is what decides which profile pauses.
     await config_scoped_to_thread(profile, lambda: curator.set_paused(bool(body.paused)))
     return {"ok": True, "paused": bool(body.paused)}
@@ -915,7 +915,7 @@ async def get_logs(
     if not log_name:
         raise HTTPException(status_code=400, detail=f"Unknown log file: {file}")
     with _config_profile_scope(profile):
-        log_path = get_hermes_home() / "logs" / log_name
+        log_path = get_kova_home() / "logs" / log_name
     if not log_path.exists():
         return {"file": file, "lines": []}
 

@@ -5,7 +5,7 @@ race to listen on the port, or the browser credential in the home cannot be read
 gateway comes up on main's private loopback listener instead: native Desktop, CLI and TUI clients still
 connect, the mount carries none of the Webapp's state, and ``hermes webapp --status`` says why the
 Webapp is not served. Each case runs a real gateway listener in a child process
-(``fixtures/webapp_fallback_peer.py``) with its own ``HERMES_HOME``.
+(``fixtures/webapp_fallback_peer.py``) with its own ``KOVA_HOME``.
 """
 import ipaddress
 from urllib.parse import urlsplit

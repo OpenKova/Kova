@@ -33,7 +33,7 @@ def _gateway_unavailable(home) -> str | None:
     is held, never booked as a run."""
     from kova_cli.gateway_runtime import discover_gateway_endpoint
 
-    if os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip():
+    if os.environ.get("KOVA_TUI_GATEWAY_URL", "").strip():
         return None  # explicit remote gateway: connect_gateway never spawns for it
     observed = discover_gateway_endpoint(home, timeout=_HEADLESS_PROBE_TIMEOUT_S)
     if observed.state == "ready":
@@ -66,12 +66,12 @@ def _note_fire_refused(job_ids, detail: str) -> None:
 def refuse_agent_jobs_without_gateway(due_jobs: list) -> list:
     """Return the due jobs a headless tick may dispatch; agent jobs are held back (skipped, not
     failed) when no ready gateway serves this home. Logs once per tick, not once per job."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     agent_jobs = [job for job in due_jobs if not job.get("no_agent")]
     if not agent_jobs:
         return due_jobs
-    home = get_hermes_home().resolve()
+    home = get_kova_home().resolve()
     hint = _gateway_unavailable(home)
     if hint is None:
         return due_jobs

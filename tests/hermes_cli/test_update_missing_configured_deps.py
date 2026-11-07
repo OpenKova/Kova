@@ -68,7 +68,7 @@ def configured_update(source_launch, tmp_path, monkeypatch):
         "mcp_servers:\n  fixture:\n    command: must-not-run\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")
     # A stale positive verdict in the updater must not conceal missing child SDKs.
     from types import ModuleType
     for name in ("lark_oapi", "mcp"):

@@ -1,4 +1,4 @@
-"""Skills Hub official sources: repo-shipped optional skills and the centralized Hermes index."""
+"""Skills Hub official sources: repo-shipped optional skills and the centralized Kova index."""
 
 import logging
 from pathlib import Path, PurePosixPath
@@ -33,12 +33,12 @@ def _entry_provider(entry: dict) -> str:
 
 class OptionalSkillSource(SkillSource):
     """Skills from the repo's ``optional-skills/`` directory: official (Nous-maintained) but not
-    activated by default — absent from the system prompt and not copied to ~/.hermes/skills/ at
+    activated by default — absent from the system prompt and not copied to ~/.kova/skills/ at
     setup. Discoverable via the Skills Hub as source "official" with "builtin" trust."""
 
     SOURCE_ID = "official"
     TRUST_LEVEL = "builtin"
-    OFFICIAL_REPO = "NousResearch/hermes-agent"
+    OFFICIAL_REPO = "NousResearch/kova-agent"
     OPTIONAL_SKILLS_PREFIX = "optional-skills"
 
     _parse_frontmatter = staticmethod(_parse_frontmatter)
@@ -115,7 +115,7 @@ class OptionalSkillSource(SkillSource):
         rel_id = skill_dir.resolve().relative_to(optional_root).as_posix()
 
         # Catalog stubs point at the real skill in an upstream-maintained repo
-        # (metadata.hermes.upstream); install pulls the live content from there.
+        # (metadata.kova.upstream); install pulls the live content from there.
         try:
             skill_md = (skill_dir / "SKILL.md").read_text(encoding="utf-8-sig")
         except (OSError, UnicodeDecodeError):
@@ -217,7 +217,7 @@ class OptionalSkillSource(SkillSource):
         return self._remote_dirs
 
     def _upstream_pointer_from_content(self, content: str | bytes) -> Optional[dict[str, str]]:
-        """Parse ``metadata.hermes.upstream: {repo: owner/name, path: ...}`` out of SKILL.md content
+        """Parse ``metadata.kova.upstream: {repo: owner/name, path: ...}`` out of SKILL.md content
         (a catalog stub); None for vendored skills."""
         if isinstance(content, bytes):
             try:
@@ -279,8 +279,8 @@ class OptionalSkillSource(SkillSource):
         return results
 
 
-class HermesIndexSource(SkillSource):
-    """Skill source backed by the centralized Hermes Skills Index: a JSON catalog on the docs site,
+class KovaIndexSource(SkillSource):
+    """Skill source backed by the centralized Kova Skills Index: a JSON catalog on the docs site,
     rebuilt daily by CI, with metadata + resolved GitHub paths for every skill — search and path
     discovery cost zero GitHub API calls. When unavailable every method returns empty/None so
     downstream sources take over transparently."""

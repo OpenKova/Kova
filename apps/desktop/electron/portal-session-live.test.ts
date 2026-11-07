@@ -63,7 +63,7 @@ test.skipIf(displayPrefix === null)(
       try {
         stdout = (
           await promisify(execFile)(command, args, {
-            env: { ...env, HERMES_HOME: join(root, '.hermes'), XDG_CONFIG_HOME: join(root, 'config') },
+            env: { ...env, KOVA_HOME: join(root, '.kova'), XDG_CONFIG_HOME: join(root, 'config') },
             timeout: 45_000
           })
         ).stdout

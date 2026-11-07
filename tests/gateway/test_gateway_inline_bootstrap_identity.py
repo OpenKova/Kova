@@ -1,4 +1,4 @@
-"""A gateway started through one of Hermes' own inline bootstraps is a gateway on every OS (#124318).
+"""A gateway started through one of Kova' own inline bootstraps is a gateway on every OS (#124318).
 
 The store launcher (``_launchers.runtime_command``, also the Windows updater's relaunch), the
 published launcher script (POSIX shell launcher and the Windows ``.cmd`` base64 wrapper) and the
@@ -25,7 +25,7 @@ from gateway.status_inline_source import inline_bootstrap_argv
 from kova_cli import _launchers, venv_sync
 from kova_cli.update_cmd_windows import _hermes_holder_subcommand
 
-ROOT = Path("/opt/Hermes Agent/hermes-agent")
+ROOT = Path("/opt/Kova Agent/kova-agent")
 PY = "/opt/venv/bin/python3"
 _SCRIPT = _launchers._launcher_script("hermes", ROOT, None)
 _JOINS = {"space-joined": " ".join, "windows": subprocess.list2cmdline}
@@ -36,7 +36,7 @@ def _payload_launcher(argv: list[str]) -> list[str]:
     from scripts.build.launchers import posix_launcher
 
     script = posix_launcher("hermes", "kova_cli.main:main", python="tools/python/bin/python3",
-                            repo="hermes-agent", site="venv/lib/python3.14/site-packages", target="linux-x64")
+                            repo="kova-agent", site="venv/lib/python3.14/site-packages", target="linux-x64")
     exec_line = next(line for line in script.splitlines() if line.startswith("exec "))
     _, _python, *launch, _args = shlex.split(exec_line)
     return [PY, *launch, *argv]
@@ -80,7 +80,7 @@ def test_bootstrap_argv_is_identity_only_for_the_process_running_it(join: str) -
 def test_bundled_posix_launcher_bootstrap_is_a_gateway() -> None:
     source = (
         "import os, site, sys; sys.argv[0]='hermes'; "
-        "site.addsitedir(os.environ['HERMES_SITE']); "
+        "site.addsitedir(os.environ['KOVA_SITE']); "
         "from kova_cli.main import main; sys.exit(main())"
     )
     command_line = " ".join([PY, "-P", "-c", source, "gateway", "run", "--replace"])
@@ -153,15 +153,15 @@ def test_live_payload_launched_gateway_is_found_for_its_home(argv, profile, foun
     started through the payload ``bin/hermes`` proves its home's runtime record (#127865)."""
     import kova_constants
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     home = root / "profiles" / profile if profile else root
     home.mkdir(parents=True)
     monkeypatch.setattr(kova_constants.Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None, raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None, raising=False)
     record = {
-        "pid": 4242, "kind": "hermes-gateway", "gateway_state": "running", "start_time": 1000,
-        "argv": ["/opt/hermes/hermes-agent/kova_cli/main.py", *argv], "hermes_home": str(home),
+        "pid": 4242, "kind": "kova-gateway", "gateway_state": "running", "start_time": 1000,
+        "argv": ["/opt/hermes/kova-agent/kova_cli/main.py", *argv], "kova_home": str(home),
     }
     (home / "gateway_state.json").write_text(json.dumps(record), encoding="utf-8")
     monkeypatch.setattr(status, "_pid_exists", lambda pid: pid == 4242)

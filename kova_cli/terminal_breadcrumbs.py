@@ -25,8 +25,8 @@ _SANITIZE_RE = re.compile(r"[^A-Za-z0-9._-]")
 
 
 def _breadcrumbs_dir() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "terminal-sessions"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "terminal-sessions"
 
 
 def _sanitize(raw: str) -> str:
@@ -71,8 +71,8 @@ def write_breadcrumb(session_id: str, cwd: Optional[str] = None) -> None:
         if not terminal_id:
             return
         directory = _breadcrumbs_dir()
-        from kova_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(directory)
+        from kova_constants import mkdir_under_kova_home
+        mkdir_under_kova_home(directory)
         now = time.time()
         payload = {"session_id": session_id, "cwd": cwd or os.getcwd(), "ts": now}
         atomic_json_write(directory / terminal_id, payload, indent=None)
@@ -113,9 +113,9 @@ def resolve_breadcrumb_session() -> Optional[str]:
         return None
     try:
         from kova_state import SessionDB
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        db = SessionDB(db_path=get_kova_home() / "state.db", read_only=True)
     except Exception:
         return None
     try:

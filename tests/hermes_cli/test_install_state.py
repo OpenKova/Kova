@@ -12,12 +12,12 @@ from kova_cli.install_state import Evidence, Places
 
 @pytest.fixture
 def machine(tmp_path, monkeypatch):
-    """An empty active root (``HERMES_HOME``) plus one other root the probe is told about."""
+    """An empty active root (``KOVA_HOME``) plus one other root the probe is told about."""
     active = tmp_path / "active"
     other = tmp_path / "other-root"
     active.mkdir()
     other.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(active))
+    monkeypatch.setenv("KOVA_HOME", str(active))
     places = Places(markers=(tmp_path / "state" / ".machine",),
                     sources=(install_state._active_root, lambda: (other,)))
     monkeypatch.setattr(install_state, "machine_places", lambda: places)
@@ -49,7 +49,7 @@ USE = {
 def test_a_machine_with_only_install_time_files_is_fresh(machine):
     other, places = machine
     # What installers and a first boot write: template config, example .env keys, an empty state.db,
-    # pool rows Hermes seeded from the shell, the PM boot record.
+    # pool rows Kova seeded from the shell, the PM boot record.
     (other / "config.yaml").write_text("_config_version: 50\nmodel:\n  default: x\n  provider: auto\n", encoding="utf-8")
     (other / ".env").write_text('TERMINAL_ENV=local\n# OPENROUTER_API_KEY=\nOPENROUTER_API_KEY="" # optional\n',
                                 encoding="utf-8")
@@ -63,7 +63,7 @@ def test_a_machine_with_only_install_time_files_is_fresh(machine):
 
 
 @pytest.mark.parametrize("evidence", list(USE))
-def test_use_in_another_root_beats_an_empty_hermes_home_and_marks_the_machine(machine, evidence):
+def test_use_in_another_root_beats_an_empty_kova_home_and_marks_the_machine(machine, evidence):
     other, places = machine
     USE[evidence](other)
 
@@ -150,10 +150,10 @@ def test_claiming_marks_the_machine_and_the_next_probe_sees_it(machine):
 
 def test_gateway_service_definitions_name_their_homes(tmp_path, monkeypatch):
     home = tmp_path / "gw-home"
-    unit = tmp_path / "hermes-gateway.service"
-    unit.write_text(f'[Service]\nEnvironment="HERMES_HOME={home}"\n', encoding="utf-8")
-    vbs = tmp_path / "Hermes_Gateway.vbs"
-    vbs.write_text(f'env.Item("HERMES_HOME") = "{home}-win"\r\n', encoding="utf-8")
+    unit = tmp_path / "kova-gateway.service"
+    unit.write_text(f'[Service]\nEnvironment="KOVA_HOME={home}"\n', encoding="utf-8")
+    vbs = tmp_path / "Kova_Gateway.vbs"
+    vbs.write_text(f'env.Item("KOVA_HOME") = "{home}-win"\r\n', encoding="utf-8")
     from kova_platform.resolver import known_dirs
     monkeypatch.setattr(known_dirs, "gateway_service_definition_globs", lambda: (str(tmp_path / "*Gateway*"),
                                                                                 str(tmp_path / "*gateway*")))
@@ -171,7 +171,7 @@ def test_a_gateway_started_by_a_scheduled_task_or_the_startup_fallback_names_its
     from kova_platform.resolver import known_dirs
 
     def launcher(home: Path) -> Path:  # the .cmd wrapper _write_task_script leaves in the home, gateway.vbs beside it
-        script = home / "gateway-service" / "Hermes_Gateway.cmd"
+        script = home / "gateway-service" / "Kova_Gateway.cmd"
         script.parent.mkdir(parents=True)
         monkeypatch.setattr(gateway_windows, "get_task_script_path", lambda: script)
         monkeypatch.setattr(gateway_windows, "_launcher_settings", lambda: (sys.executable, str(home), str(home), ""))
@@ -179,12 +179,12 @@ def test_a_gateway_started_by_a_scheduled_task_or_the_startup_fallback_names_its
 
     monkeypatch.setattr(gateway_windows, "_assert_windows", lambda: None)
     by_task, by_startup = tmp_path / "task home 方舟", tmp_path / "startup home Usuário"
-    startup = tmp_path / "Startup" / "Hermes_Gateway.vbs"
+    startup = tmp_path / "Startup" / "Kova_Gateway.vbs"
     monkeypatch.setattr(gateway_windows, "get_startup_entry_path", lambda: startup)
     monkeypatch.setattr(gateway_windows, "_legacy_startup_entry_path", lambda: startup.with_suffix(".cmd"))
     gateway_windows._install_startup_entry(launcher(by_startup))
     task_launcher = launcher(by_task).with_suffix(".vbs")
-    monkeypatch.setattr(known_dirs, "gateway_service_definition_globs", lambda: (str(startup.parent / "Hermes_Gateway*"),))
+    monkeypatch.setattr(known_dirs, "gateway_service_definition_globs", lambda: (str(startup.parent / "Kova_Gateway*"),))
     monkeypatch.setattr(gateway_windows, "registered_task_launchers", lambda: [str(task_launcher)], raising=False)
 
     assert {by_task, by_startup} <= set(install_state._service_homes())
@@ -201,12 +201,12 @@ def test_a_gateway_service_counts_only_for_the_account_it_runs_as(tmp_path, monk
     me = getpass.getuser()
     units = {"mine": f"User={me}\n", "theirs": "User=nobody\n" if me != "nobody" else "User=root\n", "root": ""}
     for name, identity in units.items():
-        (tmp_path / f"hermes-gateway-{name}.service").write_text(
-            f'[Service]\n{identity}Environment="HERMES_HOME={tmp_path / name}"\n', encoding="utf-8")
+        (tmp_path / f"kova-gateway-{name}.service").write_text(
+            f'[Service]\n{identity}Environment="KOVA_HOME={tmp_path / name}"\n', encoding="utf-8")
     monkeypatch.setattr(known_dirs, "gateway_service_definition_globs",
-                        lambda: (str(tmp_path / "hermes-gateway-[mt]*.service"),))
+                        lambda: (str(tmp_path / "kova-gateway-[mt]*.service"),))
     monkeypatch.setattr(known_dirs, "system_gateway_service_definition_globs",
-                        lambda: (str(tmp_path / "hermes-gateway-root.service"),), raising=False)
+                        lambda: (str(tmp_path / "kova-gateway-root.service"),), raising=False)
 
     homes = set(install_state._service_homes())
 

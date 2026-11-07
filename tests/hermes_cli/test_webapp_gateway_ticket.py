@@ -1,7 +1,7 @@
 """The Webapp's live socket ticket is minted by the server that serves the page.
 
 ``POST /api/webapp/socket-ticket?socket=gateway&profile=<name>`` hands the browser a one-use ticket for
-``/api/ws`` on the same origin (offered as the ``hermes-gateway-ticket.`` subprotocol). It names the
+``/api/ws`` on the same origin (offered as the ``kova-gateway-ticket.`` subprotocol). It names the
 caller's login (and the profile it names, ``test_webapp_ticket_profile.py``), and the upgrade gate
 redeems it exactly once.
 """
@@ -21,7 +21,7 @@ _TOKEN = "a" * 43
 def webapp(monkeypatch, tmp_path):
     from kova_cli import web_server as server
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(server.app.state, "auth_required", False, raising=False)
     monkeypatch.setattr(server.app.state, "bound_host", "127.0.0.1", raising=False)
@@ -47,7 +47,7 @@ def test_loopback_ticket_names_the_session_token_owner_and_is_spent_once(webapp)
 
     _server, client = webapp
     assert client.post(_MINT).status_code == 401
-    minted = client.post(_MINT, headers={"X-Hermes-Session-Token": _TOKEN})
+    minted = client.post(_MINT, headers={"X-Kova-Session-Token": _TOKEN})
     assert minted.status_code == 200, minted.text
     assert minted.headers["cache-control"] == "no-store"
     body = minted.json()
@@ -63,7 +63,7 @@ def test_loopback_ticket_names_the_session_token_owner_and_is_spent_once(webapp)
 
 def test_a_missing_profile_is_refused_before_a_ticket_exists(webapp):
     _server, client = webapp
-    refused = client.post(_MINT + "&profile=missing", headers={"X-Hermes-Session-Token": _TOKEN})
+    refused = client.post(_MINT + "&profile=missing", headers={"X-Kova-Session-Token": _TOKEN})
     assert refused.status_code == 404
 
 
@@ -71,5 +71,5 @@ def test_a_missing_profile_is_refused_before_a_ticket_exists(webapp):
 def test_other_surfaces_do_not_mint_webapp_socket_tickets(webapp, monkeypatch, surface):
     server, client = webapp
     monkeypatch.setattr(server.app.state, "ui_surface", surface)
-    refused = client.post(_MINT, headers={"X-Hermes-Session-Token": _TOKEN})
+    refused = client.post(_MINT, headers={"X-Kova-Session-Token": _TOKEN})
     assert refused.status_code == 404

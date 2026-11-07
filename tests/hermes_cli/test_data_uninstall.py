@@ -30,10 +30,10 @@ def layout(tmp_path, monkeypatch):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("{}" if path.suffix in {".yaml", ".json"} else "user data", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: user)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(store))
     monkeypatch.setattr(uninstall, "get_project_root", lambda: source)
-    monkeypatch.setattr(uninstall, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(uninstall, "get_kova_home", lambda: home)
     monkeypatch.setattr("kova_cli.gui_uninstall.desktop_userdata_dir", lambda: userdata)
     return home, witnesses, data
 
@@ -72,7 +72,7 @@ def test_data_only_reports_a_failed_removal(layout, monkeypatch, capsys):
         uninstall.run_data_uninstall(SimpleNamespace(yes=True, dry_run=False))
     assert failure.value.code != 0
     output = capsys.readouterr().out
-    assert "Hermes data removed" not in output
+    assert "Kova data removed" not in output
     assert str(home / "sessions") in output
     assert all(path.exists() for path in witnesses)
 
@@ -86,8 +86,8 @@ def test_named_home_does_not_erase_siblings_or_desktop_data(layout, monkeypatch)
     userdata = home.parent / "desktop-data"
     userdata.mkdir()
     (userdata / "preferences.json").write_text("keep", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(active))
-    monkeypatch.setattr(uninstall, "get_hermes_home", lambda: active)
+    monkeypatch.setenv("KOVA_HOME", str(active))
+    monkeypatch.setattr(uninstall, "get_kova_home", lambda: active)
     uninstall.run_data_uninstall(SimpleNamespace(yes=True))
     assert not config.exists()
     assert all(path.exists() for path in witnesses)
@@ -102,7 +102,7 @@ def test_directory_replaced_with_a_link_does_not_expand_removal(layout, tmp_path
     foreign = tmp_path / "foreign"
     foreign.mkdir()
     witness = foreign / "notes.txt"
-    witness.write_text("not Hermes data", encoding="utf-8")
+    witness.write_text("not Kova data", encoding="utf-8")
     probe = tmp_path / "symlink-probe"
     try:
         probe.symlink_to(foreign, target_is_directory=True)
@@ -114,7 +114,7 @@ def test_directory_replaced_with_a_link_does_not_expand_removal(layout, tmp_path
     original.symlink_to(foreign, target_is_directory=True)
     _, failures = remove_data(plan)
     assert failures
-    assert witness.read_text(encoding="utf-8") == "not Hermes data"
+    assert witness.read_text(encoding="utf-8") == "not Kova data"
 
 
 def test_data_only_preserves_the_containing_bundled_application(layout, monkeypatch):
@@ -127,7 +127,7 @@ def test_data_only_preserves_the_containing_bundled_application(layout, monkeypa
     project = payload / "repo"
     project.mkdir(parents=True)
     (project / "install-stamp.json").write_text(json.dumps({"payload": "bundled"}), encoding="utf-8")
-    shell = app / "Hermes.exe"
+    shell = app / "Kova.exe"
     shell.write_bytes(b"retained app bytes")
     (payload / "venv").mkdir()
     manifest = payload / "manifest.json"
@@ -145,7 +145,7 @@ def test_data_only_works_from_a_self_contained_runtime_without_an_app(layout, mo
     import json
 
     home, _, data = layout
-    package = home.parent / "usr" / "lib" / "hermes-agent"
+    package = home.parent / "usr" / "lib" / "kova-agent"
     project = package / "app"
     (project / "kova_cli").mkdir(parents=True)
     (project / "kova_cli" / "__init__.py").write_text("", encoding="utf-8")

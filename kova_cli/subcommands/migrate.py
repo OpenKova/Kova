@@ -29,9 +29,9 @@ def build_migrate_parser(subparsers) -> None:
     migrate_xai.set_defaults(func=cmd_migrate_xai)
 
     migrate_relay = migrate_subparsers.add_parser(
-        "relay", help="Convert legacy HERMES_NEMO_RELAY_ATIF_*/ATOF_* exporter vars into relay-plugins.toml",
+        "relay", help="Convert legacy KOVA_NEMO_RELAY_ATIF_*/ATOF_* exporter vars into relay-plugins.toml",
         description="The NeMo Relay cutover stopped reading the legacy exporter variables. Generate "
-            "<hermes home>/relay-plugins.toml from them, point HERMES_NEMO_RELAY_PLUGINS_TOML at it, "
+            "<hermes home>/relay-plugins.toml from them, point KOVA_NEMO_RELAY_PLUGINS_TOML at it, "
             "and comment the legacy lines out. `hermes update` runs this for every profile automatically.")
     migrate_relay.add_argument(
         "--all-profiles", action="store_true",
@@ -52,7 +52,7 @@ def _add_agent_import_parsers(migrate_subparsers) -> None:
 
     for source in IMPORT_SOURCES:
         sub = migrate_subparsers.add_parser(
-            source.name, help=f"Import your {source.label} setup into Hermes",
+            source.name, help=f"Import your {source.label} setup into Kova",
             description=f"Import your {source.label} setup into the active profile through the "
                 "agent-importers plugin (installed from the plugin catalog when missing). Always "
                 "previews first and asks before changing anything.")

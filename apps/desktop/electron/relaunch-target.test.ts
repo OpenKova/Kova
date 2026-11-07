@@ -21,20 +21,20 @@ describe('ownAppImage', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-appdir-link-'))
 
     try {
-      const mount = path.join(root, 'var-home', '.mount_HermesQ7x2Lp')
+      const mount = path.join(root, 'var-home', '.mount_KovaQ7x2Lp')
       fs.mkdirSync(mount, { recursive: true })
       fs.writeFileSync(path.join(mount, 'hermes'), '')
-      fs.mkdirSync(path.join(root, 'other', '.mount_HermesQ7x2Lp'), { recursive: true })
+      fs.mkdirSync(path.join(root, 'other', '.mount_KovaQ7x2Lp'), { recursive: true })
       fs.symlinkSync(path.join(root, 'var-home'), path.join(root, 'home'))
       fs.symlinkSync(path.join(root, 'other'), path.join(root, 'elsewhere'))
       const exe = fs.realpathSync(path.join(mount, 'hermes'))
-      const appImage = '/home/u/Apps/Hermes.AppImage'
+      const appImage = '/home/u/Apps/Kova.AppImage'
 
-      expect(ownAppImage(exe, { APPIMAGE: appImage, APPDIR: path.join(root, 'home', '.mount_HermesQ7x2Lp') })).toBe(
+      expect(ownAppImage(exe, { APPIMAGE: appImage, APPDIR: path.join(root, 'home', '.mount_KovaQ7x2Lp') })).toBe(
         appImage
       )
       expect(
-        ownAppImage(exe, { APPIMAGE: appImage, APPDIR: path.join(root, 'elsewhere', '.mount_HermesQ7x2Lp') })
+        ownAppImage(exe, { APPIMAGE: appImage, APPDIR: path.join(root, 'elsewhere', '.mount_KovaQ7x2Lp') })
       ).toBeUndefined()
     } finally {
       fs.rmSync(root, { recursive: true, force: true })
@@ -58,7 +58,7 @@ describe('spawnRelaunch', () => {
     async () => {
       const saved = { ...process.env }
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-relaunch-fds-'))
-      const image = path.join(dir, 'Hermes.AppImage')
+      const image = path.join(dir, 'Kova.AppImage')
       const report = path.join(dir, 'fds')
       const held = path.join(dir, 'held')
       const events: string[] = []
@@ -99,7 +99,7 @@ describe('spawnRelaunch', () => {
         )
         fs.writeFileSync(held, '')
         // This mount's AppRun prepended it to PATH; the mount is gone soon after the child starts.
-        const mount = path.join(dir, '.mount_HermesQ7x2Lp')
+        const mount = path.join(dir, '.mount_KovaQ7x2Lp')
 
         const helper = spawnRelaunch(image, [], {
           ...process.env,
@@ -135,8 +135,8 @@ describe('spawnRelaunch', () => {
 
       return { on: () => undefined, unref: () => undefined } as unknown as ChildProcess
     }) as typeof spawn)
-    const mount = '/run/user/1000/.mount_HermesQ7x2Lp'
-    const image = '/home/u/Apps/Hermes.AppImage'
+    const mount = '/run/user/1000/.mount_KovaQ7x2Lp'
+    const image = '/home/u/Apps/Kova.AppImage'
 
     spawnRelaunch(
       image,
@@ -157,7 +157,7 @@ describe('spawnRelaunch', () => {
   // and uninstall unable to find the image file.
   it.skipIf(process.platform !== 'linux')('keeps APPDIR for an executable inside it', async () => {
     const appDir = path.join(os.tmpdir(), 'appimage_extracted_0123abcd')
-    const env: NodeJS.ProcessEnv = { APPDIR: appDir, APPIMAGE: '/apps/Hermes.AppImage', PATH: `${appDir}/usr/bin:/bin` }
+    const env: NodeJS.ProcessEnv = { APPDIR: appDir, APPIMAGE: '/apps/Kova.AppImage', PATH: `${appDir}/usr/bin:/bin` }
     const realSpawn = (await vi.importActual<typeof childProcess>('node:child_process')).spawn
     let childEnv: NodeJS.ProcessEnv | undefined
     vi.mocked(spawn).mockImplementationOnce((_file, _args, options) => {
@@ -188,7 +188,7 @@ describe('spawnRelaunch', () => {
 
         const env: NodeJS.ProcessEnv = {
           APPDIR: appDir,
-          APPIMAGE: '/apps/Hermes.AppImage',
+          APPIMAGE: '/apps/Kova.AppImage',
           PATH: `${appDir}/usr/bin:/bin`
         }
 
@@ -200,18 +200,18 @@ describe('spawnRelaunch', () => {
           return realSpawn('true', [], { stdio: 'pipe' })
         })
 
-        expect(ownAppImage(exe, env)).toBe('/apps/Hermes.AppImage')
+        expect(ownAppImage(exe, env)).toBe('/apps/Kova.AppImage')
         spawnRelaunch(exe, [], env).stdin!.end()
 
         expect(childEnv).toMatchObject(env)
-        expect(ownAppImage(exe, childEnv!)).toBe('/apps/Hermes.AppImage')
+        expect(ownAppImage(exe, childEnv!)).toBe('/apps/Kova.AppImage')
       } finally {
         fs.rmSync(root, { recursive: true, force: true })
       }
     }
   )
 
-  // Started from another app's AppImage (an AppImage terminal), Hermes inherits
+  // Started from another app's AppImage (an AppImage terminal), Kova inherits
   // that app's APPDIR/APPIMAGE and its mount on PATH and EDITOR; app.relaunch
   // kept them, so a restart must not strip half of that env.
   it.skipIf(process.platform !== 'linux')("keeps another app's AppImage env intact", async () => {
@@ -232,7 +232,7 @@ describe('spawnRelaunch', () => {
       return realSpawn('true', [], { stdio: 'pipe' })
     })
 
-    spawnRelaunch('/opt/Hermes/hermes', [], env).stdin!.end()
+    spawnRelaunch('/opt/Kova/hermes', [], env).stdin!.end()
 
     expect(childEnv).toEqual(env)
   })

@@ -37,7 +37,7 @@ def held(tmp_path):
     from kova_cli import plugins
     from kova_state import SessionDB
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     opened = []
 
     def run(script, plugin_body=None, server_cls=FakeLLMServer, **kwargs):

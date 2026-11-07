@@ -2,20 +2,20 @@
 
 Multiplex-only (Teknium ruling): exactly ONE ``hermes gateway run`` per host serves every
 profile, so "this pull still owes the fleet a restart" is a property of the HOST, not of one
-profile's ``HERMES_HOME``. The legacy ``$HERMES_HOME/fleet_restart_pending`` marker was
+profile's ``KOVA_HOME``. The legacy ``$KOVA_HOME/fleet_restart_pending`` marker was
 per-home: ``hermes -p coder update`` armed and cleared coder's copy while restarting the
 SHARED process, and every other profile's CLI could neither see nor discharge that obligation
 — it simply armed its own and re-killed the same host process.
 
 The record therefore lives beside the host rendezvous record, in
-:func:`gateway.host_rendezvous.host_state_dir` (``$HERMES_GATEWAY_LOCK_DIR`` else
+:func:`gateway.host_rendezvous.host_state_dir` (``$KOVA_GATEWAY_LOCK_DIR`` else
 ``$XDG_STATE_HOME/hermes/gateway-locks``) — the one cross-profile, per-OS-user state root the
 tree already has. It is written once per host and installation (keyed by the checkout), read by
 every profile's CLI, and cleared once.
 
 The same "one host process, not one per profile" identity is what
 :func:`collapse_units_to_host_processes` applies to enumerated systemd units: leftover
-per-profile ``hermes-gateway-<p>.service`` units on a multiplexed host all point at the same
+per-profile ``kova-gateway-<p>.service`` units on a multiplexed host all point at the same
 live ``MainPID``, so restarting each one restarts the host process N times.
 """
 
@@ -42,7 +42,7 @@ logger = logging.getLogger("kova_cli.update_cmd")
 #: the upgrade; it names no install, so it keeps its old meaning: owed by whichever install reads it.
 HOST_OBLIGATION_NAME = "host-update-restart.json"
 
-#: The per-``HERMES_HOME`` breadcrumb an unwritable host record falls back to; every reader honours it.
+#: The per-``KOVA_HOME`` breadcrumb an unwritable host record falls back to; every reader honours it.
 PROFILE_MARKER_NAME = "fleet_restart_pending"
 
 _RECORD_VERSION = 1
@@ -137,7 +137,7 @@ def arm_host_obligation(
     """Arm the host record, else ``marker`` (the arming profile's per-home breadcrumb). Never raises.
 
     The one fallback for every arm (``hermes update``'s commit point, a historical updater's
-    takeover). An unwritable host state dir (``HERMES_GATEWAY_LOCK_DIR`` on a read-only mount, a
+    takeover). An unwritable host state dir (``KOVA_GATEWAY_LOCK_DIR`` on a read-only mount, a
     container UID that does not own ``$HOME``) must never disarm the obligation (#117275), but the
     marker is visible to the arming profile only: it settles the debt only on an install PROVEN to
     have no other profile, and an unreadable profile roster proves nothing (review S2 residual).
@@ -180,10 +180,10 @@ def _named_profiles_exist() -> bool:
     "default only"; here any error listing the roster or reading an entry's identity raises instead.
     Same identity rule as ``kova_constants.named_profile_is_live`` (stdlib only: see above).
     """
-    from kova_constants import _PROFILE_IDENTITY_MARKERS, PROFILE_ID_RE, get_default_hermes_root, profile_tombstone_path
+    from kova_constants import _PROFILE_IDENTITY_MARKERS, PROFILE_ID_RE, get_default_kova_root, profile_tombstone_path
 
     try:
-        entries = list((get_default_hermes_root() / "profiles").iterdir())
+        entries = list((get_default_kova_root() / "profiles").iterdir())
     except (FileNotFoundError, NotADirectoryError):
         return False
     for home in entries:

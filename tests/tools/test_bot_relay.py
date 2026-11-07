@@ -37,7 +37,7 @@ def _rows():
             "profile": "default",
             "handle": "hermes",
             "connection_id": "cloud-1",
-            "connection_label": "Hermes Cloud",
+            "connection_label": "Kova Cloud",
             "title": "Moxie",
             "description": "Main cloud agent",
         },
@@ -288,7 +288,7 @@ import textwrap
 
 
 def _managed_home(tmp_path, *, legacy_soul=False):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(exist_ok=True)
     d = home / "profiles" / "researcher"
     d.mkdir(parents=True, exist_ok=True)
@@ -355,7 +355,7 @@ def test_relay_route_queues_envelope_and_spawns_waiter(tmp_path, monkeypatch):
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
         {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
-         "connection_label": "Hermes Cloud", "title": "Moxie"},
+         "connection_label": "Kova Cloud", "title": "Moxie"},
     ])
 
     spawned = {}
@@ -369,7 +369,7 @@ def test_relay_route_queues_envelope_and_spawns_waiter(tmp_path, monkeypatch):
     agent = _FakeAgent(home)
     out = json.loads(message_agent_tool(target="hermes", message="ping", agent=agent))
     assert out.get("status") == "queued"
-    assert "Hermes Cloud" in spawned["label"]
+    assert "Kova Cloud" in spawned["label"]
     # envelope landed in the outbox with attribution prefixed
     pending = bot_relay.claim_pending_envelopes(home)
     assert len(pending) == 1
@@ -439,11 +439,11 @@ def test_protocol_section_lists_remote_teammates(tmp_path):
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
         {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
-         "connection_label": "Hermes Cloud", "title": "Moxie"},
+         "connection_label": "Kova Cloud", "title": "Moxie"},
     ])
     section = bot_mode_probe.get_bot_mode_protocol_section(home, force_refresh=True)
     # Offered under its title slug: bare `@hermes` is THIS gateway's own default (#103731).
-    assert "`@moxie`" in section and "Hermes Cloud" in section
+    assert "`@moxie`" in section and "Kova Cloud" in section
 
 
 def test_capability_fingerprint_changes_with_relay_roster(tmp_path):
@@ -465,7 +465,7 @@ def test_cleanup_bot_relay_artifacts_sweeps_stale_plaintext(tmp_path, monkeypatc
     import os as _os
     import time as _time
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     target = {"profile": "scout", "handle": "scout", "connection_id": "cloud-1",
               "connection_label": "", "title": "", "description": ""}
     stale_env = bot_relay.enqueue_envelope(
@@ -491,7 +491,7 @@ def test_cleanup_bot_relay_artifacts_sweeps_stale_plaintext(tmp_path, monkeypatc
 
 
 def test_cleanup_bot_relay_artifacts_missing_dir_is_zero(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "nope"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "nope"))
     assert bot_relay.cleanup_bot_relay_artifacts() == 0
 
 
@@ -700,7 +700,7 @@ def test_message_agent_surfaces_runtime_offline_refusal(tmp_path, monkeypatch):
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
         {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
-         "connection_label": "Hermes Cloud", "online": False},
+         "connection_label": "Kova Cloud", "online": False},
     ])
     monkeypatch.setattr(
         "tools.bot_mode_dm._spawn_delivery",
@@ -714,7 +714,7 @@ def test_message_agent_surfaces_runtime_offline_refusal(tmp_path, monkeypatch):
     assert bot_relay.claim_pending_envelopes(home) == []
 
 
-# ── delivery turn author (HERMES_TURN_AUTHOR on the recipient turn) ──────────
+# ── delivery turn author (KOVA_TURN_AUTHOR on the recipient turn) ──────────
 
 
 def test_delivery_turn_author_from_envelope_sender_fields():
@@ -737,46 +737,46 @@ def test_delivery_turn_author_qualifies_a_remote_sender_by_its_connection():
 
 
 def test_delivery_env_carries_only_the_given_author(monkeypatch):
-    """The dispatcher's own HERMES_TURN_AUTHOR never reaches the child: dropped without an author, replaced with one."""
+    """The dispatcher's own KOVA_TURN_AUTHOR never reaches the child: dropped without an author, replaced with one."""
     from agent.turn_author import TURN_AUTHOR_ENV
 
-    monkeypatch.setenv("HERMES_RELAY_TEST_MARKER", "kept")
+    monkeypatch.setenv("KOVA_RELAY_TEST_MARKER", "kept")
     monkeypatch.setenv(TURN_AUTHOR_ENV, json.dumps({"id": "bot:previous", "name": "previous", "is_bot": True}))
-    monkeypatch.setenv("HERMES_SESSION_KEY", "session-A")
-    monkeypatch.setenv("HERMES_UI_SESSION_ID", "ui-A")
-    monkeypatch.setenv("HERMES_SESSION_ID", "session-A")
-    monkeypatch.setenv("HERMES_SESSION_PROFILE", "profile-A")
+    monkeypatch.setenv("KOVA_SESSION_KEY", "session-A")
+    monkeypatch.setenv("KOVA_UI_SESSION_ID", "ui-A")
+    monkeypatch.setenv("KOVA_SESSION_ID", "session-A")
+    monkeypatch.setenv("KOVA_SESSION_PROFILE", "profile-A")
     # A session-* knob, not identity: stripping it would break the child's watcher tuning.
-    monkeypatch.setenv("HERMES_SESSION_STALL_TIMEOUT", "97")
+    monkeypatch.setenv("KOVA_SESSION_STALL_TIMEOUT", "97")
 
     assert TURN_AUTHOR_ENV not in bot_relay.delivery_env(None)
     env = bot_relay.delivery_env(bot_relay.delivery_turn_author("ops", "ops"))
     assert json.loads(env[TURN_AUTHOR_ENV]) == {"id": "bot:ops", "name": "ops", "is_bot": True}
-    assert env["HERMES_RELAY_TEST_MARKER"] == "kept"
-    assert "HERMES_SESSION_KEY" not in env
-    assert "HERMES_UI_SESSION_ID" not in env
-    assert "HERMES_SESSION_ID" not in env
-    assert "HERMES_SESSION_PROFILE" not in env
-    assert env["HERMES_SESSION_STALL_TIMEOUT"] == "97"
+    assert env["KOVA_RELAY_TEST_MARKER"] == "kept"
+    assert "KOVA_SESSION_KEY" not in env
+    assert "KOVA_UI_SESSION_ID" not in env
+    assert "KOVA_SESSION_ID" not in env
+    assert "KOVA_SESSION_PROFILE" not in env
+    assert env["KOVA_SESSION_STALL_TIMEOUT"] == "97"
 
 
 def test_delivery_env_under_multiplex_names_the_pinned_launch_home(tmp_path, monkeypatch):
     """A relayed DM into the launch profile spawns with the launch home and its secrets, even after a
-    host mirrors another home into HERMES_HOME; a bound scope or home override still wins."""
+    host mirrors another home into KOVA_HOME; a bound scope or home override still wins."""
     from agent.secret_scope import reset_secret_scope, set_multiplex_active, set_secret_scope
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch, mirrored = tmp_path / "launch", tmp_path / "mirrored"
     launch.mkdir()
     mirrored.mkdir()
     (launch / ".env").write_text("OPENROUTER_API_KEY=sk-launch\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     set_multiplex_active(True)  # pins the launch home
-    monkeypatch.setenv("HERMES_HOME", str(mirrored))
+    monkeypatch.setenv("KOVA_HOME", str(mirrored))
 
     env = bot_relay.delivery_env(None, None)
-    assert env["HERMES_HOME"] == str(launch)
+    assert env["KOVA_HOME"] == str(launch)
     assert env["OPENROUTER_API_KEY"] == "sk-launch"
 
     token = set_secret_scope({"OPENROUTER_API_KEY": "sk-bound"})
@@ -786,18 +786,18 @@ def test_delivery_env_under_multiplex_names_the_pinned_launch_home(tmp_path, mon
         reset_secret_scope(token)
 
     (mirrored / ".env").write_text("OPENROUTER_API_KEY=sk-override\n", encoding="utf-8")
-    home_token = set_hermes_home_override(str(mirrored))
+    home_token = set_kova_home_override(str(mirrored))
     try:
         env = bot_relay.delivery_env(None, None)
-        assert (env["HERMES_HOME"], env["OPENROUTER_API_KEY"]) == (str(mirrored), "sk-override")
+        assert (env["KOVA_HOME"], env["OPENROUTER_API_KEY"]) == (str(mirrored), "sk-override")
     finally:
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
 
 def test_delivery_env_single_profile_host_passes_the_process_env_through(tmp_path, monkeypatch):
     """Without multiplex nothing is pinned or overlaid: the child sees the process env as before."""
     (tmp_path / ".env").write_text("OPENROUTER_API_KEY=from-dotenv\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setenv("OPENROUTER_API_KEY", "from-shell")
 
     assert bot_relay.delivery_env(None, None)["OPENROUTER_API_KEY"] == "from-shell"

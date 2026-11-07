@@ -69,7 +69,7 @@ def render_command_template(command_template: str, placeholders: dict[str, str])
 
     def replace_match(match: re.Match[str]) -> str:
         name = match.group("double") or match.group("single")
-        token = f"__HERMES_CMD_PLACEHOLDER_{len(replacements)}__"
+        token = f"__KOVA_CMD_PLACEHOLDER_{len(replacements)}__"
         quoted = quote_command_placeholder(placeholders[name], shell_quote_context(command_template, match.start()))
         replacements.append((token, quoted))
         return token
@@ -150,7 +150,7 @@ def provider_popen_group_kwargs(os_name: str) -> dict[str, Any]:
     idle timeout, so job teardown propagation must keep working. POSIX: the child
     leads its own group (``spawn_owned``) so the tree can be signalled on idle
     timeout, and the group dies with this process: the idle timer lives here, so
-    a stalled command used to outlive a SIGKILLed Hermes forever.
+    a stalled command used to outlive a SIGKILLed Kova forever.
     """
     from kova_cli._subprocess_compat import windows_detach_flags_without_breakaway
     if os_name == "nt":
@@ -163,7 +163,7 @@ def run_command_provider(
 ) -> subprocess.CompletedProcess:
     """Run a command-provider shell command with process-tree idle cleanup.
     ``timeout`` is an IDLE timeout, reset whenever the command emits output — a slow-but-alive
-    provider survives, a silently stalled one is killed. Child env is scrubbed of Hermes secrets
+    provider survives, a silently stalled one is killed. Child env is scrubbed of Kova secrets
     while propagating delegated-child lineage markers."""
     from agent.delegation_context import delegated_child_subprocess_env
     from tools.env_passthrough import resolve_passthrough_value

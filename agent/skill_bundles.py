@@ -1,6 +1,6 @@
 """Skill bundles — aliases that load multiple skills under one slash command.
 
-YAML files in ``<HERMES_HOME>/skill-bundles/`` (``name``, ``description``,
+YAML files in ``<KOVA_HOME>/skill-bundles/`` (``name``, ``description``,
 ``skills: [...]``, optional ``instruction``; file stem = fallback name).
 ``/<bundle>`` loads every member skill into one user message. If a bundle and a
 skill share a slug, the bundle wins — slash dispatch checks bundles first, on purpose.
@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import kova_yaml as yaml
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_write_text
 from agent.skill_commands import command_snapshot, diff_command_snapshots, resolve_slash_key, slugify_skill_name as _slugify
 
@@ -27,9 +27,9 @@ _bundles_cache_mtime: Optional[tuple] = None  # _bundles_sig() (content digests)
 
 
 def _bundles_dir() -> Path:
-    """Bundles directory: ``HERMES_BUNDLES_DIR`` override (tests) or ``<HERMES_HOME>/skill-bundles``."""
-    override = os.environ.get("HERMES_BUNDLES_DIR")
-    return Path(override).expanduser() if override else get_hermes_home() / "skill-bundles"
+    """Bundles directory: ``KOVA_BUNDLES_DIR`` override (tests) or ``<KOVA_HOME>/skill-bundles``."""
+    override = os.environ.get("KOVA_BUNDLES_DIR")
+    return Path(override).expanduser() if override else get_kova_home() / "skill-bundles"
 
 
 def _iter_bundle_files() -> list[Path]:

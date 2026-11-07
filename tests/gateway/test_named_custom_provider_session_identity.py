@@ -97,14 +97,14 @@ def test_bare_custom_sync_uses_canonical_endpoint_fallback(tmp_path, monkeypatch
 
 def test_tui_runtime_config_and_session_info_keep_requested_custom_slug(monkeypatch):
     from kova_cli.config import atomic_config_write, get_config_path
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     atomic_config_write(get_config_path(), CONFIG)
     agent = _agent()
     monkeypatch.setattr("tui_gateway.server._load_approval_mode", lambda: "manual")
     config = _runtime_model_config(agent)
     assert config["provider"] == "custom:beta"
-    info = _session_info(agent, {"agent": agent, "session_key": "s1", "profile_home": str(get_hermes_home())})
+    info = _session_info(agent, {"agent": agent, "session_key": "s1", "profile_home": str(get_kova_home())})
     assert info["provider"] == "custom:beta"
     assert "sk-beta" not in str(config)
 
@@ -232,10 +232,10 @@ def test_moved_entry_with_no_old_owner_is_not_saved_beside_the_old_endpoint(tmp_
 def test_live_unpersisted_session_reports_the_requested_entry(monkeypatch):
     """A built session reattached before its first turn reports the entry it runs, not the adapter class."""
     from kova_cli.config import atomic_config_write, get_config_path
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tui_gateway.server import _live_session_identity
 
     atomic_config_write(get_config_path(), CONFIG)
-    session = {"agent": _agent(), "session_key": "not-persisted", "profile_home": str(get_hermes_home())}
+    session = {"agent": _agent(), "session_key": "not-persisted", "profile_home": str(get_kova_home())}
     assert _live_session_identity(session) == ("beta-model", "custom:beta")
 

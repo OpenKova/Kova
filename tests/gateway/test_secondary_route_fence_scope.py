@@ -144,7 +144,7 @@ async def test_a_secondary_retirement_leaves_the_id_free_in_the_launch_profile(t
         assert _conflict(served.launch.db, sid) is None
         status, text = await _create(served, sid)
         assert status == 201, text
-        bind_api_session(served.launch, sid)  # the X-Hermes-Session-Id chat's bind
+        bind_api_session(served.launch, sid)  # the X-Kova-Session-Id chat's bind
         fence = 'gateway.retired_route.v1.alpha:' + sid  # alpha's (profile, id) fence in the shared index
         assert served.launch.db.get_meta(fence) is not None
         # The secondary itself still refuses its own retired id within the horizon.

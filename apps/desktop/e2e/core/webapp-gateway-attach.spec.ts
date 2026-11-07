@@ -17,7 +17,7 @@
  * the sign-in gate: `hermes webapp --sign-out` signs out a browser that signed in with a password.
  *
  * Linux (the /proc ancestry walk); needs the Webapp renderer (`pnpm run build:webapp`) and a
- * Chromium Playwright can launch (`pnpm exec playwright install chromium`, or HERMES_E2E_CHROMIUM).
+ * Chromium Playwright can launch (`pnpm exec playwright install chromium`, or KOVA_E2E_CHROMIUM).
  */
 
 import { spawnSync } from 'node:child_process'
@@ -57,7 +57,7 @@ const U = (n: number) => `U${n}-webapp${nonce}`
 const A = (n: number) => `A${n}-webapp${nonce}`
 const AI = (n: number) => `A${n}i-webapp${nonce}`
 
-const PYTHON = process.env.HERMES_E2E_PYTHON || 'python3'
+const PYTHON = process.env.KOVA_E2E_PYTHON || 'python3'
 /** A signed-in Webapp tab acts as the machine owner, the OS subject native Desktop's ticket carries
  * (`gateway/owner_identity.py`): sign-in decides who may open the Webapp, it names no second user. */
 const OWNER_SUBJECT = `uid:${process.getuid?.()}`
@@ -78,7 +78,7 @@ function hermesWebapp(sandbox: CoreSandbox, ...args: string[]): { code: number |
 }
 
 function admissionPrincipals(sandbox: CoreSandbox, sessionId: string): string[] {
-  const db = new DatabaseSync(path.join(sandbox.hermesHome, 'state.db'), { readOnly: true })
+  const db = new DatabaseSync(path.join(sandbox.kovaHome, 'state.db'), { readOnly: true })
 
   try {
     return (
@@ -105,16 +105,16 @@ test('the gateway serves the Webapp and runs every turn its browser sends', asyn
 
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('webapp')
-  writeProviderHome(sandbox.hermesHome, provider.url)
+  writeProviderHome(sandbox.kovaHome, provider.url)
   const port = await freePort()
-  fs.appendFileSync(path.join(sandbox.hermesHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
+  fs.appendFileSync(path.join(sandbox.kovaHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
   const ancestry = path.join(sandbox.root, 'tool-ancestry.txt')
   let browser: Browser | null = null
 
   try {
     const link = webappLaunchLink(sandbox)
     expect(new URL(link).port).toBe(String(port))
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.KOVA_E2E_CHROMIUM || undefined })
     const page: Page = await (await browser.newContext({ viewport: { width: 1280, height: 860 } })).newPage()
     const ws = recordWebSockets(page)
     await page.goto(link)
@@ -223,16 +223,16 @@ test('a Webapp tab opened on a named profile runs and reads that profile', async
 
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('webapp-profile')
-  writeProviderHome(sandbox.hermesHome, provider.url)
-  writeProviderHome(path.join(sandbox.hermesHome, 'profiles', 'p2'), provider.url)
+  writeProviderHome(sandbox.kovaHome, provider.url)
+  writeProviderHome(path.join(sandbox.kovaHome, 'profiles', 'p2'), provider.url)
   const port = await freePort()
-  fs.appendFileSync(path.join(sandbox.hermesHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
+  fs.appendFileSync(path.join(sandbox.kovaHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
   let browser: Browser | null = null
 
   try {
     webappLaunchLink(sandbox)
     const link = webappLaunchLink(sandbox, 'p2')
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.KOVA_E2E_CHROMIUM || undefined })
     const page: Page = await (await browser.newContext({ viewport: { width: 1280, height: 860 } })).newPage()
     const ws = recordWebSockets(page)
     await page.goto(link)
@@ -250,7 +250,7 @@ test('a Webapp tab opened on a named profile runs and reads that profile', async
     await expect.poll(() => storedSessionForMarker(sandbox, 'p2', U(1)), { timeout: 60_000 }).toBe(sessionId)
     expect(storedSessionForMarker(sandbox, 'default', U(1))).toBeNull()
 
-    const ended = page.getByText('Hermes ended this turn without a reply')
+    const ended = page.getByText('Kova ended this turn without a reply')
     await page.waitForTimeout(50_000)
     await expect(ended).toHaveCount(0)
     await expect(page.getByText(A(1)).first()).toBeVisible({ timeout: 120_000 })
@@ -303,15 +303,15 @@ test("the Webapp and Electron Desktop answer and stop each other's turns on one 
 
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('webapp-cross')
-  writeProviderHome(sandbox.hermesHome, provider.url, '', 'manual')
+  writeProviderHome(sandbox.kovaHome, provider.url, '', 'manual')
   const port = await freePort()
-  fs.appendFileSync(path.join(sandbox.hermesHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
+  fs.appendFileSync(path.join(sandbox.kovaHome, 'config.yaml'), `\nwebapp:\n  enabled: true\n  port: ${port}\n`)
   const hold = gate()
   let browser: Browser | null = null
   let desktop: Awaited<ReturnType<typeof launchCoreApp>> | null = null
 
   try {
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.KOVA_E2E_CHROMIUM || undefined })
     const page: Page = await (await browser.newContext({ viewport: { width: 1280, height: 860 } })).newPage()
     const ws = recordWebSockets(page)
     await page.goto(webappLaunchLink(sandbox))
@@ -453,7 +453,7 @@ test('signing out of a Webapp behind sign-in signs the browser out', async () =>
 
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('webapp-gated')
-  writeProviderHome(sandbox.hermesHome, provider.url)
+  writeProviderHome(sandbox.kovaHome, provider.url)
   const port = await freePort()
   const origin = `http://127.0.0.1:${port}`
   const password = python(sandbox, 'import secrets; print("throwaway-" + secrets.token_urlsafe(12))')
@@ -466,7 +466,7 @@ test('signing out of a Webapp behind sign-in signs the browser out', async () =>
 
   const secret = python(sandbox, 'import secrets; print(secrets.token_hex(32))')
   fs.appendFileSync(
-    path.join(sandbox.hermesHome, 'config.yaml'),
+    path.join(sandbox.kovaHome, 'config.yaml'),
     signInGateYaml(port, `http://hermes-webapp.test:${port}`, 'owner', hash, secret)
   )
   let browser: Browser | null = null
@@ -475,7 +475,7 @@ test('signing out of a Webapp behind sign-in signs the browser out', async () =>
     const started = hermesWebapp(sandbox, '--no-open', '--skip-build')
     expect(started.code, started.output).toBe(0)
     expect(started.output).toContain('sign in with your dashboard account')
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.KOVA_E2E_CHROMIUM || undefined })
     const page: Page = await (await browser.newContext({ viewport: { width: 1280, height: 860 } })).newPage()
     const ws = recordWebSockets(page)
 

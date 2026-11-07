@@ -13,12 +13,12 @@ import pytest
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("ALIAS_HOST_KEY", "sk-alias-env-secret")
-    (hermes_home / "config.yaml").write_text(
+    (kova_home / "config.yaml").write_text(
         "model:\n  provider: custom\n  base_url: http://127.0.0.1:1/v1\n  default: model-main\n"
         "providers:\n  named-host:\n    base_url: http://127.0.0.1:2/v1\n    model: model-named\n"
         "model_aliases:\n"
@@ -27,7 +27,7 @@ def home(tmp_path, monkeypatch):
         encoding="utf-8")
     from kova_cli import model_switch
     model_switch.DIRECT_ALIASES.clear()
-    return hermes_home
+    return kova_home
 
 
 def _config():

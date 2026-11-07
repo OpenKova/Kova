@@ -47,8 +47,8 @@ def _gateway_child(tmp_path: Path):
 
 def _record(home: Path, pid: int, **extra) -> dict:
     from gateway.status import _get_process_start_time
-    return {"pid": pid, "kind": "hermes-gateway", "argv": ["hermes", "gateway", "run"],
-            "start_time": _get_process_start_time(pid), "hermes_home": str(home), **extra}
+    return {"pid": pid, "kind": "kova-gateway", "argv": ["hermes", "gateway", "run"],
+            "start_time": _get_process_start_time(pid), "kova_home": str(home), **extra}
 
 
 @pytest.fixture()
@@ -154,7 +154,7 @@ def test_an_unverifiable_owner_is_never_named(monkeypatch, tmp_path, shape):
         if shape == "no start time":
             del record["start_time"]
         elif shape == "another home":
-            record["hermes_home"] = str(tmp_path / "other-profile")
+            record["kova_home"] = str(tmp_path / "other-profile")
         (home / "gateway.pid").write_text(json.dumps(record), encoding="utf-8")
         seen = _probe_recorder(monkeypatch)
         assert runtime._refused(home, windows=True).reason_code == "authorization" and seen == []

@@ -19,9 +19,9 @@ ENDPOINT = "https://api.b.ai/v1"
 
 
 def _write_keyed_provider_home(tmp_path, monkeypatch, *, pool_id="b-ai", extra_config=None):
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     config = {
         "model": {"default": "b-ai-model", "provider": "b-ai"},
         "providers": {
@@ -33,8 +33,8 @@ def _write_keyed_provider_home(tmp_path, monkeypatch, *, pool_id="b-ai", extra_c
     }
     if extra_config:
         config["providers"]["b-ai"].update(extra_config)
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-    (hermes_home / "auth.json").write_text(
+    (kova_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    (kova_home / "auth.json").write_text(
         json.dumps(
             {
                 "version": 1,
@@ -55,7 +55,7 @@ def _write_keyed_provider_home(tmp_path, monkeypatch, *, pool_id="b-ai", extra_c
         ),
         encoding="utf-8",
     )
-    return hermes_home
+    return kova_home
 
 
 def test_get_named_custom_provider_exposes_provider_key_and_key_env(
@@ -137,11 +137,11 @@ def test_prune_keeps_active_legacy_pool_for_keyed_provider(tmp_path, monkeypatch
         # an unrelated stale pool that SHOULD be pruned
         "custom:old-endpoint": [_model_config_entry("mc2", "sk-stale-key")],
     }
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-    (hermes_home / "auth.json").write_text(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir(exist_ok=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    (kova_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    (kova_home / "auth.json").write_text(
         json.dumps(
             {
                 "version": 1,
@@ -161,7 +161,7 @@ def test_prune_keeps_active_legacy_pool_for_keyed_provider(tmp_path, monkeypatch
     )
 
     after = json.loads(
-        (tmp_path / ".hermes" / "auth.json").read_text(encoding="utf-8")
+        (tmp_path / ".kova" / "auth.json").read_text(encoding="utf-8")
     )
     kept = (after.get("credential_pool") or {}).get("custom:b.ai")
     pruned = (after.get("credential_pool") or {}).get("custom:old-endpoint")
@@ -192,11 +192,11 @@ def test_seed_custom_pool_matches_legacy_named_pool(tmp_path, monkeypatch):
             }
         },
     }
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-    (hermes_home / "auth.json").write_text(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir(exist_ok=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    (kova_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+    (kova_home / "auth.json").write_text(
         json.dumps(
             {
                 "version": 1,

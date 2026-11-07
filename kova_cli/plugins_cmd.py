@@ -15,7 +15,7 @@ import threading
 from pathlib import Path
 from typing import Any, NoReturn, Optional
 
-from kova_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_kova_home, kova_home_key
 from kova_cli.config import cfg_get
 from kova_cli.plugin_capabilities import _child_dict
 # Tests patch these two on the facade; the install/remove siblings read them through it.
@@ -261,7 +261,7 @@ def _scan_merged_tree(plugin_dir: Path, identifier: str, merged: Optional[list[s
 
 def _plugins_dir() -> Path:
     """Return the user plugins directory, creating it if needed."""
-    plugins = get_hermes_home() / "plugins"
+    plugins = get_kova_home() / "plugins"
     plugins.mkdir(parents=True, exist_ok=True)
     return plugins
 
@@ -429,7 +429,7 @@ def _copy_example_files(plugin_dir: Path, console) -> None:
 
 def _missing_env_specs(manifest: dict) -> list[dict]:
     """``requires_env`` entries (plain names or ``{name, description, url, secret}`` dicts,
-    normalised to dicts; nameless entries dropped) whose variable is unset in ``~/.hermes/.env``."""
+    normalised to dicts; nameless entries dropped) whose variable is unset in ``~/.kova/.env``."""
     env_specs = [
         {"name": entry} if isinstance(entry, str) else entry
         for entry in manifest.get("requires_env") or []
@@ -492,7 +492,7 @@ def _save_enabled_set(enabled: set) -> None:
 
 def _plugin_selection_version() -> str:
     from kova_cli.runtime_state import _digest
-    return _digest(get_hermes_home() / "config.yaml") or "missing"
+    return _digest(get_kova_home() / "config.yaml") or "missing"
 
 
 def _admit_and_save_plugin_sets(
@@ -589,7 +589,7 @@ def _disabled_by_update(key: str, aliases) -> bool:
     from pm.plugins_state import RECORD
     from pm.plugins_state import read_home_selection
 
-    record = ((read_home_selection(get_hermes_home()) or {}).get("plugins") or {}).get(RECORD)
+    record = ((read_home_selection(get_kova_home()) or {}).get("plugins") or {}).get(RECORD)
     return isinstance(record, dict) and bool({key, *aliases} & set(record))
 
 
@@ -625,7 +625,7 @@ def _forget_plugin_config(aliases: set) -> dict[str, Any]:
     return result
 
 
-# One lock per Hermes home. The Desktop install card enables several plugins at once, each on its own
+# One lock per Kova home. The Desktop install card enables several plugins at once, each on its own
 # thread; without it every thread read the same config version and all but the first commit were
 # refused as stale. The version check in PM stays: it still catches an edit from another process.
 _SELECTION_LOCKS: dict[str, threading.Lock] = {}
@@ -634,7 +634,7 @@ _SELECTION_LOCKS_GUARD = threading.Lock()
 
 def _selection_lock() -> threading.Lock:
     with _SELECTION_LOCKS_GUARD:
-        return _SELECTION_LOCKS.setdefault(hermes_home_key(), threading.Lock())
+        return _SELECTION_LOCKS.setdefault(kova_home_key(), threading.Lock())
 
 
 def _set_plugin_enabled(name: str, *, enable: bool, aliases=(), console=None) -> None:
@@ -646,7 +646,7 @@ def _set_plugin_enabled(name: str, *, enable: bool, aliases=(), console=None) ->
         _refuse_recalled_entry(_find_plugin_entry(name))
     with _selection_lock():
         expected_config = _plugin_selection_version()
-        config = read_home_selection(get_hermes_home()) or {}
+        config = read_home_selection(get_kova_home()) or {}
         plugins = config.get("plugins") or {}
         enabled = set(plugins.get("enabled") or ())
         disabled = set(plugins.get("disabled") or ())
@@ -737,7 +737,7 @@ def cmd_enable(name: str, allow_tool_override: Optional[bool] = None) -> None:
         if plugin in LEGACY_RELAY_PLUGIN_KEYS:
             _fail(console, (
                 f"[red]Plugin '{plugin}' was removed.[/red] Relay lifecycle is owned "
-                "by Hermes core; configure a standard user or system Relay plugins.toml, or use "
+                "by Kova core; configure a standard user or system Relay plugins.toml, or use "
                 f"{RELAY_PLUGINS_CONFIG_ENV} for an explicit user-file override."))
 
     _refuse_legacy_relay(name)
@@ -1058,7 +1058,7 @@ def dashboard_set_agent_plugin_enabled(name: str, *, enabled: bool) -> dict[str,
 
 
 def _user_installed_plugin_dir(name: str) -> Optional[Path]:
-    """Resolved path under ``~/.hermes/plugins/<name>`` if it exists, else the user install
+    """Resolved path under ``~/.kova/plugins/<name>`` if it exists, else the user install
     :func:`_find_plugin_entry` resolves *name* to (its manifest or catalog name)."""
     try:
         target = _sanitize_plugin_name(name, _plugins_dir(), allow_subdir=True)

@@ -15,7 +15,7 @@ import pytest
 def test_login_probe_window_follows_oauth_timeout(monkeypatch, tmp_path):
     """Production entry point ``_reauth_oauth_server``: with ``oauth.timeout: 3600`` the probe's
     connect bound is the callback window plus exchange headroom, not the old 315 s floor."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     import kova_cli.mcp_config as mc
 
     seen = {}

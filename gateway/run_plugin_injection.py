@@ -249,8 +249,8 @@ class GatewayPluginInjectionMixin:
         ``None`` when this gateway does not serve it."""
         if home is None:
             return None
-        from kova_constants import get_routing_process_hermes_home, hermes_home_key
-        key = hermes_home_key(home)
+        from kova_constants import get_routing_process_kova_home, kova_home_key
+        key = kova_home_key(home)
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
             from gateway.run import _multiplex_profile_homes
             try:
@@ -258,8 +258,8 @@ class GatewayPluginInjectionMixin:
             except Exception:
                 logger.warning("Plugin message injection: served-profile set unavailable", exc_info=True)
                 return None
-            return next((name for name, served_home in served if hermes_home_key(served_home) == key), None)
-        if hermes_home_key(get_routing_process_hermes_home()) != key:
+            return next((name for name, served_home in served if kova_home_key(served_home) == key), None)
+        if kova_home_key(get_routing_process_kova_home()) != key:
             return None
         return getattr(self, "_primary_profile_name", None) or self._active_profile_name()
 

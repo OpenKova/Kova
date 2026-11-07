@@ -71,8 +71,8 @@ _HELPER_CHILD = _WORKERS + textwrap.dedent("""
 
 def _run(code: str, arg: str, home: Path, **env_overrides: str) -> dict:
     env = {k: v for k, v in os.environ.items()
-           if k not in {"MALLOC_ARENA_MAX", "GLIBC_TUNABLES"} and not k.startswith("HERMES_")}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), PYTHONPATH=str(_REPO), **env_overrides)
+           if k not in {"MALLOC_ARENA_MAX", "GLIBC_TUNABLES"} and not k.startswith("KOVA_")}
+    env.update(HOME=str(home), KOVA_HOME=str(home / ".kova"), PYTHONPATH=str(_REPO), **env_overrides)
     out = subprocess.run([sys.executable, "-c", code, arg], check=False, env=env, cwd=str(home),
                          capture_output=True, text=True, encoding="utf-8", timeout=120,
                          stdin=subprocess.DEVNULL)
@@ -81,11 +81,11 @@ def _run(code: str, arg: str, home: Path, **env_overrides: str) -> dict:
 
 
 def _home(tmp_path: Path, config: str = "", dotenv: str = "") -> Path:
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
     if config:
-        (hermes_home / "config.yaml").write_text(config, encoding="utf-8")
-    (hermes_home / ".env").write_text(dotenv, encoding="utf-8")
+        (kova_home / "config.yaml").write_text(config, encoding="utf-8")
+    (kova_home / ".env").write_text(dotenv, encoding="utf-8")
     return tmp_path
 
 

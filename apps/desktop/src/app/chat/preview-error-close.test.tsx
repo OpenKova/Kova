@@ -32,7 +32,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   $connection.set({ mode: 'local' } as never)
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     readFileText: vi.fn(async () => {
       throw new Error('Text preview failed: file does not exist.')
     })
@@ -47,7 +47,7 @@ afterEach(() => {
   cleanup()
   closeRightRail()
   $connection.set(null)
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.kovaDesktop
   vi.unstubAllGlobals()
 })
 

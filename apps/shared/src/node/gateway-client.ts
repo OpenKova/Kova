@@ -1,4 +1,4 @@
-/** The renderer-free `hermes-gateway-v1` client (Node): ticketed WebSocket dial, `runtime.describe`, the
+/** The renderer-free `kova-gateway-v1` client (Node): ticketed WebSocket dial, `runtime.describe`, the
  *  `session.create` contract, reconnect with bounded owner recovery, typed requests and events. Where the
  *  URL and ticket come from is the caller's `connect` (Ink: `gateway_bootstrap.py`; any other local
  *  client: `hermes gateway attach --json`). */
@@ -54,9 +54,9 @@ export interface GatewayClientOptions {
   connect: ConnectGateway
   /** For a `connect` failure no retry can fix, the line to report; the client then stops retrying. */
   terminalConnectFailure?: (error: Error) => string | undefined
-  /** An explicit listener to dial instead of `connect` (Ink: `HERMES_TUI_GATEWAY_URL`); read per request. */
+  /** An explicit listener to dial instead of `connect` (Ink: `KOVA_TUI_GATEWAY_URL`); read per request. */
   attachUrl?: () => null | string
-  /** A socket every event frame is mirrored to (Ink: `HERMES_TUI_SIDECAR_URL`). */
+  /** A socket every event frame is mirrored to (Ink: `KOVA_TUI_SIDECAR_URL`). */
   sidecarUrl?: () => null | string
   /** How long a dial may take to reach `gateway.ready` before `gateway.start_timeout` (default 15 s). */
   startupTimeoutMs?: number
@@ -117,7 +117,7 @@ const redactUrl = (raw: string): string => {
 
 // Reconnects after the first launch are discovery-only, except that a bounded number per window
 // re-ensure an owner that is not ready (gateway_bootstrap.py --recover): crashed, idle-exited,
-// stopped with `hermes gateway stop` while this TUI is open, or an older Hermes's gateway. Main's
+// stopped with `hermes gateway stop` while this TUI is open, or an older Kova's gateway. Main's
 // TUI owned its sidecar, so an open TUI comes back on its own; the budget keeps a crash-looping
 // owner from being respawned without pause.
 export const OWNER_RECOVERY_LIMIT = 3
@@ -212,7 +212,7 @@ export class GatewayClient extends EventEmitter {
   private publishWire(ev: AnyGatewayEvent) {
     if (!this.isCanonical && ev.type === 'gateway.ready' && this.attachUrl !== null &&
         (ev as { payload?: { session_authority?: boolean } }).payload?.session_authority === true) {
-      // An explicit HERMES_TUI_GATEWAY_URL endpoint whose session verbs belong to an authority:
+      // An explicit KOVA_TUI_GATEWAY_URL endpoint whose session verbs belong to an authority:
       // negotiate the canonical wire exactly like a local grant, keeping the listener's skin.
       return this.adoptCanonicalAttach(ev as GatewayEvent<'gateway.ready'>)
     }
@@ -604,7 +604,7 @@ export class GatewayClient extends EventEmitter {
       } })
       this.channel.detach(this.bootstrapError)
 
-      // No reconnect fixes this (Ink: the helper's interpreter cannot load Hermes, gateway_bootstrap.py
+      // No reconnect fixes this (Ink: the helper's interpreter cannot load Kova, gateway_bootstrap.py
       // `gateway unavailable:`), so report it once instead of retrying every 30 s forever (#138878).
       const terminal = this.options.terminalConnectFailure?.(this.bootstrapError)
 

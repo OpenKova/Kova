@@ -536,7 +536,7 @@ class TestAliasCacheIsProfileScoped:
         return home
 
     def _load(self, monkeypatch, home):
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         import kova_cli.model_switch as ms
 
         ms._ensure_direct_aliases()

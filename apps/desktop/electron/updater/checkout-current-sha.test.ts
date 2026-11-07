@@ -27,7 +27,7 @@ function deps(root: string, status: SourceUpdate | null, isWindows: boolean): Ch
     remoteGatewayActive: (): boolean => false,
     emitUpdateProgress: vi.fn(),
     rememberLog: vi.fn(),
-    startHermes: vi.fn(async (): Promise<void> => {}),
+    startKova: vi.fn(async (): Promise<void> => {}),
     stopBackendsForUpdate: vi.fn(async (): Promise<void> => {}),
     repairMacUpdaterHelper: vi.fn(),
     preflightStateDb: vi.fn(),

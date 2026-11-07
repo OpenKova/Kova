@@ -23,11 +23,11 @@ _DEFAULT_INTERVAL_HOURS = 24
 
 def _marker_path() -> Path:
     """The last-run marker, resolved per call (tests monkeypatch
-    get_hermes_home). Derivation only — NO mkdir: a due-check or any
+    get_kova_home). Derivation only — NO mkdir: a due-check or any
     read path must not create user state."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return get_hermes_home() / _MARKERS_DIR / "last-run"
+    return get_kova_home() / _MARKERS_DIR / "last-run"
 
 
 def _results_path() -> Path:

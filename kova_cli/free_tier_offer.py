@@ -37,8 +37,8 @@ _clock = time.time  # tests swap this for a fake clock
 
 
 def _path(kind: str):
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root() / "free_tier" / _RECORDS[kind]
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root() / "free_tier" / _RECORDS[kind]
 
 
 def _read(kind: str) -> dict[str, Any]:
@@ -112,7 +112,7 @@ def note_app_connected() -> None:
 def note_connected_apps_seen(rows: list[Any]) -> None:
     """A connector list read (agent status, the Connectors page). The first one that shows a guest an
     app connected counts as the connect: a connect by link (messaging, one-shot runs) never passes the
-    operation watcher, and an older Hermes connected apps without setting the flag."""
+    operation watcher, and an older Kova connected apps without setting the flag."""
     from kova_cli import anon_auth
     if not any(isinstance(row, dict) and row.get("connected") for row in rows):
         return

@@ -24,9 +24,9 @@ def rehome_inbound_media(event: MessageEvent) -> None:
     """
     if not event.media_urls:
         return
-    from kova_constants import get_hermes_home, get_routing_process_hermes_home, hermes_home_key
-    active, launch = Path(get_hermes_home()), Path(get_routing_process_hermes_home())
-    if hermes_home_key(active) == hermes_home_key(launch):
+    from kova_constants import get_kova_home, get_routing_process_kova_home, kova_home_key
+    active, launch = Path(get_kova_home()), Path(get_routing_process_kova_home())
+    if kova_home_key(active) == kova_home_key(launch):
         return
     from tools.credential_files import to_agent_visible_cache_path
     rewritten = list(event.media_urls)

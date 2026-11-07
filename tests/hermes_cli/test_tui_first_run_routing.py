@@ -63,7 +63,7 @@ def _run_chat(monkeypatch, argv, *, provider_configured):
 
 @pytest.fixture(autouse=True)
 def _no_tui_env(monkeypatch):
-    monkeypatch.delenv("HERMES_TUI", raising=False)
+    monkeypatch.delenv("KOVA_TUI", raising=False)
 
 
 def test_blank_install_tui_skips_classic_guard_and_offer(monkeypatch):

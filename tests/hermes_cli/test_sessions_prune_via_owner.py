@@ -47,7 +47,7 @@ def _connection(authority, *, operator, native=True):
 
 @pytest.fixture
 def owned_store(monkeypatch, tmp_path):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     epoch = rt.begin_runtime_epoch(db, instance_id='owner')
     retired = []

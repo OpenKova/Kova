@@ -21,14 +21,14 @@ from pm.package import InstallError
 
 def runtime_environment() -> dict[str, str]:
     """Do not let an activated application or a uv caller select PM's imports."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from pm.paths import store_root
 
     from pm.environment import _base_environment
 
     env = _base_environment()
-    env["HERMES_HOME"] = str(get_hermes_home())
-    env["HERMES_RUNTIME_DIR"] = native(store_root())
+    env["KOVA_HOME"] = str(get_kova_home())
+    env["KOVA_RUNTIME_DIR"] = native(store_root())
     return env
 
 
@@ -44,7 +44,7 @@ def _inputs(project: Path, python: Path, *, as_spelled: bool = False) -> str:
         digest.update((project / name).read_bytes())
         digest.update(b"\0")
     # A different interpreter must not reuse a venv pointing at the old one, but
-    # the same one reached through a symlinked store (a per-task HERMES_HOME whose
+    # the same one reached through a symlinked store (a per-task KOVA_HOME whose
     # tools/ links back) must. Only the directories resolve: the pinned
     # bin/python3 is itself a symlink, so resolving it would re-key every install.
     # A store spells its root extended-length on Windows; the identity must not.
@@ -162,7 +162,7 @@ def prepare_runtime(uv: Path, python: Path, root: Path, *, offline: bool = False
         generation = Path("generations") / uuid.uuid4().hex
         environment = root / generation
         try:
-            print("Preparing the isolated Hermes runtime…", file=sys.stderr, flush=True)
+            print("Preparing the isolated Kova runtime…", file=sys.stderr, flush=True)
             executable = stage_runtime(uv, python, environment, project=project, offline=offline, cache=cache)
             (environment / ".lease-managed").touch()
             _write(environment / "pm-runtime.json", {"inputs": identity})

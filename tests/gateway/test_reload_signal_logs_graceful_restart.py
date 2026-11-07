@@ -20,9 +20,9 @@ class _AbortedStartupRunner:
         # and stops it on every exit path (same shape as test_startup_restart_race.py).
         from gateway.session import SessionStore
         from kova_state import SessionDB
-        from kova_constants import get_hermes_home
-        self.session_store = SessionStore(get_hermes_home() / 'sessions', config)
-        self._session_db = SessionDB(get_hermes_home() / 'state.db')
+        from kova_constants import get_kova_home
+        self.session_store = SessionStore(get_kova_home() / 'sessions', config)
+        self._session_db = SessionDB(get_kova_home() / 'state.db')
         self.session_store._db = self._session_db
         self._draining = False
         self.config = config
@@ -53,7 +53,7 @@ class _AbortedStartupRunner:
 
 @pytest.mark.asyncio
 async def test_sigusr1_handler_installed_by_start_gateway_logs_graceful_restart(tmp_path, monkeypatch, caplog):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     for target, value in (
         ("gateway.status.get_running_pid", lambda: None),
         ("gateway.status.acquire_gateway_runtime_lock", lambda: True),
@@ -61,7 +61,7 @@ async def test_sigusr1_handler_installed_by_start_gateway_logs_graceful_restart(
         ("gateway.status.remove_pid_file", lambda: None),
         ("gateway.status.release_gateway_runtime_lock", lambda: None),
         ("tools.skills_sync.sync_skills", lambda quiet=True: None),
-        ("kova_logging.setup_logging", lambda hermes_home, mode: None),
+        ("kova_logging.setup_logging", lambda kova_home, mode: None),
         ("tools.mcp_tool_lifecycle.shutdown_mcp_servers", lambda: None),
     ):
         monkeypatch.setattr(target, value)

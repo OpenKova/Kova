@@ -1,4 +1,4 @@
-"""Tests for tools.wake_word — the "Hey Hermes" hotword detector.
+"""Tests for tools.wake_word — the "Hey Kova" hotword detector.
 
 No live audio or network: the sounddevice import is faked, engines are stubbed,
 and lazy-dep availability is monkeypatched. Covers config resolution, engine
@@ -79,7 +79,7 @@ def test_loaded_wake_defaults_resolve_supported_provider(tmp_path, monkeypatch, 
 
     from pm.extras import extra_supported
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     path = tmp_path / "config.yaml"
     if saved is not None:
         path.write_text(saved, encoding="utf-8")
@@ -230,7 +230,7 @@ def test_loaded_provider_requirements_preserve_choices_and_require_keys(tmp_path
 
     from pm.extras import extra_supported
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.delenv("PORCUPINE_ACCESS_KEY", raising=False)
     saved = f"wake_word:\n  provider: {provider}\n  capture: client\n"
     path = tmp_path / "config.yaml"

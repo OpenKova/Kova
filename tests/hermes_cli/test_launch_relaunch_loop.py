@@ -72,7 +72,7 @@ def _launch(tmp_path: Path, root: Path, sync_mode: str, launch: int, argv: list[
         (tmp_path / "state").write_text("stale", encoding="utf-8")
     script = tmp_path / "launch.py"
     script.write_text(_LAUNCH, encoding="utf-8")
-    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "HERMES_HOME": str(tmp_path / "home"),
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "KOVA_HOME": str(tmp_path / "home"),
            "LAUNCH_COMMAND": json.dumps(argv), "GENERATION_CAP": str(GENERATION_CAP)}
     result = subprocess.run(
         [sys.executable, str(script), str(REPO), str(root), str(tmp_path), sync_mode, str(launch)],
@@ -112,7 +112,7 @@ def test_backed_off_failed_sync_boots_on_the_previous_dependencies(tmp_path, mon
 
     if not argv:
         # Past the cap, at any age: still one generation, and one pointer at `hermes update`.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
         record = venv_sync._completion_attempts_path(root)
         assert record.is_file(), "the failed syncs were not recorded where completion_retry_state reads"
         record.write_text(f"{venv_sync.COMPLETION_RETRY_MAX_ATTEMPTS}\n", encoding="utf-8")

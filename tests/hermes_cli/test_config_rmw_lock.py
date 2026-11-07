@@ -21,7 +21,7 @@ import kova_yaml as yaml
 
 
 @pytest.fixture
-def client(monkeypatch, _isolate_hermes_home):
+def client(monkeypatch, _isolate_kova_home):
     from starlette.testclient import TestClient
 
     from kova_cli.config import load_config, save_config
@@ -81,8 +81,8 @@ def _race_second_writer_into_first_writers_save(monkeypatch, first, second, time
 
 
 def _on_disk() -> dict:
-    from kova_constants import get_hermes_home
-    return yaml.safe_load((get_hermes_home() / "config.yaml").read_text(encoding="utf-8"))
+    from kova_constants import get_kova_home
+    return yaml.safe_load((get_kova_home() / "config.yaml").read_text(encoding="utf-8"))
 
 
 def test_custom_endpoint_upsert_racing_config_autosave_keeps_both_writes(client, monkeypatch):

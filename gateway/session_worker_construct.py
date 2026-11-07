@@ -123,9 +123,9 @@ def _read_prefill(authority, policy):
     from kova_cli.cli_config_load import _load_prefill_messages, _resolve_prefill_messages_file
     home = Path(str(authority.profile_id))
     if not home.is_absolute():
-        from kova_constants import get_hermes_home
-        home = get_hermes_home()
-    with policy.client_env_scope():  # HERMES_PREFILL_MESSAGES_FILE: a local session's client's
+        from kova_constants import get_kova_home
+        home = get_kova_home()
+    with policy.client_env_scope():  # KOVA_PREFILL_MESSAGES_FILE: a local session's client's
         path = _resolve_prefill_messages_file(policy.config(authority, secrets=False))
     return _load_prefill_messages(path, home) or None
 
@@ -192,7 +192,7 @@ def route_runtime(policy, frozen, model, key, *, fallback=True):
 def worker_route(policy, construct):
     """Child side: the ``api_key`` / ``base_url`` / ``api_mode`` overrides for the worker's agent, resolved
     as the in-process turn resolves its route (``route_runtime`` with the launch key, if one was bound),
-    from this process's profile home (its HERMES_HOME and ``.env``). The frozen ``model.base_url`` alone
+    from this process's profile home (its KOVA_HOME and ``.env``). The frozen ``model.base_url`` alone
     is not the route: a per-model api_mode (opencode-go Responses models) and a resolved endpoint
     (Bedrock's regional URL) come only from resolution. A fallback entry's route belongs to another
     provider and model, so the primary never carries it; the agent's own fallback chain switches them

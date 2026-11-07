@@ -20,7 +20,7 @@ GUE = gateway_client.GatewayUnavailableError
 
 @pytest.fixture(autouse=True)
 def _env(monkeypatch):
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("KOVA_TUI_GATEWAY_URL", raising=False)
 
 
 def _restart_wait_verdict(*_, **__):

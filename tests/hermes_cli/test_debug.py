@@ -10,11 +10,11 @@ import pytest
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    """Set up an isolated HERMES_HOME with minimal logs."""
-    home = tmp_path / ".hermes"
+def kova_home(tmp_path, monkeypatch):
+    """Set up an isolated KOVA_HOME with minimal logs."""
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     # Create log files
     logs_dir = home / "logs"
@@ -85,9 +85,9 @@ class TestCaptureLogSnapshot:
 
 
 
-    def test_race_truncate_after_resolve_reports_empty(self, hermes_home, monkeypatch):
+    def test_race_truncate_after_resolve_reports_empty(self, kova_home, monkeypatch):
         """If the log is truncated between resolve and stat, say 'empty', not 'missing'."""
-        log_path = hermes_home / "logs" / "agent.log"
+        log_path = kova_home / "logs" / "agent.log"
         from kova_cli import debug
 
         monkeypatch.setattr(debug, "_resolve_log_path", lambda _name: log_path)
@@ -99,7 +99,7 @@ class TestCaptureLogSnapshot:
         assert snap.tail_text == "(file empty)"
 
 
-    def test_keeps_first_line_when_truncation_on_boundary(self, hermes_home):
+    def test_keeps_first_line_when_truncation_on_boundary(self, kova_home):
         """When truncation lands on a line boundary, keep the first full line."""
         from kova_cli.debug import _capture_log_snapshot
 
@@ -107,7 +107,7 @@ class TestCaptureLogSnapshot:
         # backward-reading loop so the truncation path actually fires.
         line = "A" * 99 + "\n"  # 100 bytes per line
         num_lines = 200  # 20000 bytes
-        (hermes_home / "logs" / "agent.log").write_bytes((line * num_lines).encode("utf-8"))
+        (kova_home / "logs" / "agent.log").write_bytes((line * num_lines).encode("utf-8"))
 
         # max_bytes = 1000 = 100 * 10 → cut at byte 20000 - 1000 = 19000,
         # and byte 19000 - 1 is '\n'.  Boundary hit → keep all 10 lines.
@@ -127,27 +127,27 @@ class TestMissingLogNote:
     bare absence sends triage after a client-side bug it cannot see.
     """
 
-    def test_backend_written_log_reports_plain_absence(self, hermes_home):
+    def test_backend_written_log_reports_plain_absence(self, kova_home):
         from kova_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "agent.log").unlink()
+        (kova_home / "logs" / "agent.log").unlink()
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
         assert snap.full_text is None
         assert snap.tail_text == "(file not found)"
 
-    def test_client_written_log_names_its_writer_and_path(self, hermes_home):
+    def test_client_written_log_names_its_writer_and_path(self, kova_home):
         from kova_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "desktop.log").unlink()
+        (kova_home / "logs" / "desktop.log").unlink()
 
         snap = _capture_log_snapshot("desktop", tail_lines=10)
         assert snap.full_text is None
         assert "not on this host" in snap.tail_text
         # The reader needs the path to collect by hand on the client machine.
-        assert str(hermes_home / "logs" / "desktop.log") in snap.tail_text
+        assert str(kova_home / "logs" / "desktop.log") in snap.tail_text
 
-    def test_present_client_log_is_captured_normally(self, hermes_home):
+    def test_present_client_log_is_captured_normally(self, kova_home):
         """A local backend still reads desktop.log — the note is only for a miss."""
         from kova_cli.debug import _capture_log_snapshot
 
@@ -155,20 +155,20 @@ class TestMissingLogNote:
         assert "backend spawned" in snap.tail_text
         assert "not on this host" not in snap.tail_text
 
-    def test_empty_client_log_is_empty_not_absent(self, hermes_home):
+    def test_empty_client_log_is_empty_not_absent(self, kova_home):
         """An empty file means the app ran and logged nothing — a different fact."""
         from kova_cli.debug import _capture_log_snapshot
 
-        (hermes_home / "logs" / "desktop.log").write_text("")
+        (kova_home / "logs" / "desktop.log").write_text("")
 
         snap = _capture_log_snapshot("desktop", tail_lines=10)
         assert snap.tail_text == "(file empty)"
 
-    def test_report_carries_the_note_for_a_remote_backend(self, hermes_home):
+    def test_report_carries_the_note_for_a_remote_backend(self, kova_home):
         """The uploaded report — what people paste into support — must explain it."""
         from kova_cli.debug import collect_debug_report
 
-        (hermes_home / "logs" / "desktop.log").unlink()
+        (kova_home / "logs" / "desktop.log").unlink()
 
         report = collect_debug_report(log_lines=10, dump_text="dump\n")
         assert "--- desktop.log" in report
@@ -178,7 +178,7 @@ class TestMissingLogNote:
 
 
 # ---------------------------------------------------------------------------
-# Capture log redaction (force=True applies regardless of HERMES_REDACT_SECRETS)
+# Capture log redaction (force=True applies regardless of KOVA_REDACT_SECRETS)
 # ---------------------------------------------------------------------------
 
 # A vendor-prefixed token used across redaction tests. Long enough to clear
@@ -190,17 +190,17 @@ class TestCaptureLogSnapshotRedaction:
     """Pin upload-time redaction at the _capture_log_snapshot boundary."""
 
     @pytest.fixture
-    def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
-        home = tmp_path / ".hermes"
+    def kova_home_with_secret(self, tmp_path, monkeypatch):
+        """Isolated KOVA_HOME whose agent.log contains a vendor-prefixed token."""
+        home = tmp_path / ".kova"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         # Baseline fixture: no explicit env-var opinion. With the post-#17691
         # default of ON, the default-path tests below exercise the
         # secure-default behaviour. The `force=True` regression test
         # setenvs to "false" inline to prove force=True works even when
         # the runtime flag is disabled.
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.delenv("KOVA_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -211,7 +211,7 @@ class TestCaptureLogSnapshotRedaction:
         (logs_dir / "gateway.log").write_text("")
         return home
 
-    def test_default_redacts_tail_and_full_text(self, hermes_home_with_secret):
+    def test_default_redacts_tail_and_full_text(self, kova_home_with_secret):
         from kova_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
@@ -221,7 +221,7 @@ class TestCaptureLogSnapshotRedaction:
         assert snap.full_text is not None
         assert _REDACT_FIXTURE_TOKEN not in snap.full_text
 
-    def test_redact_false_passes_through(self, hermes_home_with_secret):
+    def test_redact_false_passes_through(self, kova_home_with_secret):
         from kova_cli.debug import _capture_log_snapshot
 
         snap = _capture_log_snapshot("agent", tail_lines=10, redact=False)
@@ -231,24 +231,24 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN in (snap.full_text or "")
 
     def test_force_true_works_when_redaction_disabled(
-        self, hermes_home_with_secret, monkeypatch
+        self, kova_home_with_secret, monkeypatch
     ):
         """Regression test: redact_sensitive_text short-circuits without force=True.
 
         If a future refactor drops `force=True` from `redact_debug_support_text`, this
         test fails immediately. Without `force=True`, the redactor returns the
-        input unchanged when HERMES_REDACT_SECRETS=false, and the share-time
+        input unchanged when KOVA_REDACT_SECRETS=false, and the share-time
         redaction feature ships silently broken for users who opted out of
         runtime redaction (e.g. developers working on the redactor itself).
         """
 
         # Force the runtime flag off so we're exercising the force=True path,
         # not the default-on path.
-        monkeypatch.setenv("HERMES_REDACT_SECRETS", "false")
+        monkeypatch.setenv("KOVA_REDACT_SECRETS", "false")
 
         from kova_cli.debug import _capture_log_snapshot
 
-        assert os.environ.get("HERMES_REDACT_SECRETS", "") == "false"
+        assert os.environ.get("KOVA_REDACT_SECRETS", "") == "false"
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
 
@@ -257,11 +257,11 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN not in snap.full_text
 
     def test_default_redacts_email_addresses_for_public_share(
-        self, hermes_home_with_secret
+        self, kova_home_with_secret
     ):
         from kova_cli.debug import _capture_log_snapshot
 
-        log_path = hermes_home_with_secret / "logs" / "agent.log"
+        log_path = kova_home_with_secret / "logs" / "agent.log"
         log_path.write_text(
             "2026-04-12 17:00:00 INFO gateway.run: "
             "inbound message: platform=bluebubbles "
@@ -277,7 +277,7 @@ class TestCaptureLogSnapshotRedaction:
 
 
     def test_capture_default_log_snapshots_threads_redact(
-        self, hermes_home_with_secret
+        self, kova_home_with_secret
     ):
         from kova_cli.debug import _capture_default_log_snapshots
 
@@ -288,7 +288,7 @@ class TestCaptureLogSnapshotRedaction:
         assert _REDACT_FIXTURE_TOKEN not in (snaps["agent"].full_text or "")
 
     def test_redacts_complete_log_lines_before_applying_byte_limits(
-        self, hermes_home_with_secret
+        self, kova_home_with_secret
     ):
         from kova_cli.debug import _capture_log_snapshot
 
@@ -311,7 +311,7 @@ class TestCaptureLogSnapshotRedaction:
             start = boundary - len("accessToken=")
             payload[start:start + len(marker)] = marker
 
-        (hermes_home_with_secret / "logs" / "agent.log").write_bytes(payload)
+        (kova_home_with_secret / "logs" / "agent.log").write_bytes(payload)
 
         snap = _capture_log_snapshot("agent", tail_lines=1, max_bytes=max_bytes)
 
@@ -337,7 +337,7 @@ class TestRunDebugShare:
 
 
 
-    def test_share_uploads_five_pastes(self, hermes_home, capsys):
+    def test_share_uploads_five_pastes(self, kova_home, capsys):
         """Successful share uploads report + agent.log + gateway.log + gui.log + desktop.log."""
         from kova_cli.debug import run_debug_share
 
@@ -399,12 +399,12 @@ class TestRunDebugShareRedaction:
     """End-to-end: --no-redact flag, banner injection, default behavior."""
 
     @pytest.fixture
-    def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
-        home = tmp_path / ".hermes"
+    def kova_home_with_secret(self, tmp_path, monkeypatch):
+        """Isolated KOVA_HOME whose agent.log contains a vendor-prefixed token."""
+        home = tmp_path / ".kova"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        monkeypatch.delenv("KOVA_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -418,7 +418,7 @@ class TestRunDebugShareRedaction:
         return home
 
     def test_default_share_redacts_uploaded_content(
-        self, hermes_home_with_secret, capsys
+        self, kova_home_with_secret, capsys
     ):
         """The uploaded report and full-log pastes do not contain the raw token."""
         from kova_cli.debug import run_debug_share
@@ -448,13 +448,13 @@ class TestRunDebugShareRedaction:
                 "raw token leaked into upload-bound content"
             )
 
-    def test_fallback_provider_key_never_reaches_upload_bound_content(self, hermes_home_with_secret):
+    def test_fallback_provider_key_never_reaches_upload_bound_content(self, kova_home_with_secret):
         """``hermes dump`` quotes ``fallback_providers`` from config.yaml; neither the CLI share
         bundle nor the gateway /debug report may carry a fallback entry's api_key."""
         from kova_cli.debug import _capture_dump, collect_debug_report, collect_share_bundle
 
         fallback_key = "fbk-opaque-0123456789abcdefghij"
-        (hermes_home_with_secret / "config.yaml").write_text(
+        (kova_home_with_secret / "config.yaml").write_text(
             "fallback_providers:\n"
             "  - provider: custom\n"
             "    model: backup-model\n"
@@ -472,12 +472,12 @@ class TestRunDebugShareRedaction:
         ("'opaque***Fallback0123456789'", "opaque***Fallback0123456789"),  # looks pre-masked
         ("{value: nestedOpaque0123456789abcdef}", "nestedOpaque0123456789abcdef"),
     ])
-    def test_fallback_api_key_masked_whatever_its_yaml_shape(self, hermes_home_with_secret, yaml_value, secret):
+    def test_fallback_api_key_masked_whatever_its_yaml_shape(self, kova_home_with_secret, yaml_value, secret):
         """The runtime ``str()``s any ``api_key`` value (fallback_config.resolve_entry_api_key), so the
         dump masks the field itself rather than relying on text redaction to recognise the value."""
         from kova_cli.debug import _capture_dump, collect_debug_report, collect_share_bundle
 
-        (hermes_home_with_secret / "config.yaml").write_text(
+        (kova_home_with_secret / "config.yaml").write_text(
             "fallback_providers:\n"
             "  - provider: custom\n"
             "    model: backup-model\n"
@@ -497,12 +497,12 @@ class TestRunDebugShareRedaction:
         ("password", "98127364509812736450", "98127364509812736450"),
         ("clientApiKey", "'opaque***CamelKey0123456789'", "opaque***CamelKey0123456789"),
     ])
-    def test_fallback_secret_fields_masked_by_repo_policy(self, hermes_home_with_secret, field, yaml_value, secret):
+    def test_fallback_secret_fields_masked_by_repo_policy(self, kova_home_with_secret, field, yaml_value, secret):
         """Every field ``agent.redact`` treats as a credential is masked by field, not only ``api_key``;
         env-var names and token budgets stay readable."""
         from kova_cli.debug import _capture_dump, collect_debug_report, run_debug_share
 
-        (hermes_home_with_secret / "config.yaml").write_text(
+        (kova_home_with_secret / "config.yaml").write_text(
             "fallback_providers:\n"
             "  - provider: custom\n"
             "    model: backup-model\n"
@@ -536,14 +536,14 @@ class TestRunDebugShareRedaction:
         "https://backup.example/v1?sv=2024-11-04&sig={s}",
         "https://backup.example/v1#access_token={s}&view=public",
     ])
-    def test_fallback_base_url_credential_never_reaches_upload_bound_content(self, hermes_home_with_secret, base_url):
+    def test_fallback_base_url_credential_never_reaches_upload_bound_content(self, kova_home_with_secret, base_url):
         """A fallback ``base_url`` can carry its credential in the URL (userinfo, query, fragment). The
         dump is config made to be pasted, so ``hermes dump`` itself and every upload of it get strict
         URL-credential redaction, not the log policy."""
         from kova_cli.debug import _capture_dump, collect_debug_report, collect_share_bundle
 
         secret = "urlCredOpaque0123456789abcdef"
-        (hermes_home_with_secret / "config.yaml").write_text(
+        (kova_home_with_secret / "config.yaml").write_text(
             "fallback_providers:\n"
             "  - provider: custom\n"
             "    model: backup-model\n"
@@ -580,7 +580,7 @@ class TestRunDebugShareRedaction:
             assert secret in raw
 
     def test_default_share_includes_redaction_banner(
-        self, hermes_home_with_secret, capsys
+        self, kova_home_with_secret, capsys
     ):
         """Each upload-bound paste carries the visible redaction banner."""
         from kova_cli.debug import run_debug_share
@@ -609,7 +609,7 @@ class TestRunDebugShareRedaction:
             )
 
     def test_no_redact_flag_disables_redaction_and_banner(
-        self, hermes_home_with_secret, capsys
+        self, kova_home_with_secret, capsys
     ):
         """--no-redact preserves original log content and omits the banner."""
         from kova_cli.debug import run_debug_share
@@ -693,13 +693,13 @@ class TestScheduleAutoDelete:
     were observed in production.
 
     The new implementation is stateless: it records pending deletions to
-    ``~/.hermes/pastes/pending.json`` and lets ``_sweep_expired_pastes``
+    ``~/.kova/pastes/pending.json`` and lets ``_sweep_expired_pastes``
     handle the DELETE requests synchronously on the next ``hermes debug``
     invocation.
     """
 
 
-    def test_records_pending_to_json(self, hermes_home):
+    def test_records_pending_to_json(self, kova_home):
         """Scheduled URLs are persisted to pending.json with expiration."""
         from kova_cli.debug import _schedule_auto_delete, _pending_file
         import json
@@ -725,7 +725,7 @@ class TestScheduleAutoDelete:
 
 
 
-    def test_dedupes_same_url(self, hermes_home):
+    def test_dedupes_same_url(self, kova_home):
         """Same URL recorded twice → one entry with the later expire_at."""
         from kova_cli.debug import _schedule_auto_delete, _load_pending
 
@@ -741,7 +741,7 @@ class TestSweepExpiredPastes:
     """Test the opportunistic sweep that replaces the sleeping subprocess."""
 
 
-    def test_sweep_deletes_expired_entries(self, hermes_home):
+    def test_sweep_deletes_expired_entries(self, kova_home):
         from kova_cli.debug import (
             _sweep_expired_pastes,
             _save_pending,
@@ -772,7 +772,7 @@ class TestSweepExpiredPastes:
         urls = {e["url"] for e in entries}
         assert urls == {"https://paste.rs/future"}
 
-    def test_sweep_leaves_future_entries_alone(self, hermes_home):
+    def test_sweep_leaves_future_entries_alone(self, kova_home):
         from kova_cli.debug import _sweep_expired_pastes, _save_pending
         import time
 
@@ -788,7 +788,7 @@ class TestSweepExpiredPastes:
         assert deleted == 0
         assert remaining == 2
 
-    def test_sweep_survives_network_failure(self, hermes_home):
+    def test_sweep_survives_network_failure(self, kova_home):
         """Failed DELETEs stay in pending.json until the 24h grace window."""
         from kova_cli.debug import (
             _sweep_expired_pastes,
@@ -812,7 +812,7 @@ class TestSweepExpiredPastes:
         assert remaining == 1
         assert len(_load_pending()) == 1
 
-    def test_share_scheduled_during_sweep_deletes_is_kept(self, hermes_home):
+    def test_share_scheduled_during_sweep_deletes_is_kept(self, kova_home):
         """A paste scheduled while the sweep waits on network DELETEs must survive its save."""
         import threading
         import time
@@ -862,11 +862,11 @@ class TestBuildDebugShare:
 
 
 
-    def test_redaction_keeps_secrets_out_of_payload(self, hermes_home):
+    def test_redaction_keeps_secrets_out_of_payload(self, kova_home):
         from kova_cli.debug import build_debug_share
 
         secret = "sk-proj-SUPERSECRETtoken1234567890"
-        (hermes_home / "logs" / "agent.log").write_text(
+        (kova_home / "logs" / "agent.log").write_text(
             f"line one\nauthorization token={secret}\nline three\n"
         )
 
@@ -885,7 +885,7 @@ class TestBuildDebugShare:
         joined = "\n".join(uploaded)
         assert secret not in joined, "secret leaked into upload payload"
 
-    def test_optional_log_failure_is_collected_not_raised(self, hermes_home):
+    def test_optional_log_failure_is_collected_not_raised(self, kova_home):
         from kova_cli.debug import build_debug_share
 
         count = [0]
@@ -914,11 +914,11 @@ class TestBuildDebugShare:
 class TestCollectShareBundle:
 
 
-    def test_redaction_keeps_secrets_out(self, hermes_home):
+    def test_redaction_keeps_secrets_out(self, kova_home):
         from kova_cli.debug import collect_share_bundle
 
         secret = "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
-        (hermes_home / "logs" / "agent.log").write_text(
+        (kova_home / "logs" / "agent.log").write_text(
             f"line one\nOPENAI_API_KEY={secret}\nline three\n"
         )
         with patch("kova_cli.dump.run_dump"):
@@ -930,14 +930,14 @@ class TestCollectShareBundle:
         # With redaction it must be scrubbed everywhere.
         assert secret not in "\n".join(redacted.values())
 
-    def test_redaction_masks_url_credentials(self, hermes_home):
+    def test_redaction_masks_url_credentials(self, kova_home):
         """Log-time redaction leaves ``?token=`` and ``user:pass@`` in URLs for tool flows;
         the upload must not carry them."""
         from kova_cli.debug import collect_share_bundle
 
         query_token = "Q7fK2mZp9RtX4vLb8NcW1yHs"
         password = "Pw7Kq2Lm9Xs4Vb"
-        (hermes_home / "logs" / "agent.log").write_text(
+        (kova_home / "logs" / "agent.log").write_text(
             "2026-09-29 01:00:00 INFO plugins.web.firecrawl.provider: Firecrawl scraping: "
             f"https://files.example.com/export.csv?token={query_token}&page=2\n"
             f"2026-09-29 01:00:01 INFO agent: using proxy http://alice:{password}@10.0.0.5:3128\n"
@@ -956,7 +956,7 @@ class TestCollectShareBundle:
 
 
 class TestBuildNousBundle:
-    def test_envelope_shape_and_gzip(self, hermes_home):
+    def test_envelope_shape_and_gzip(self, kova_home):
         import gzip
         import json as _json
 
@@ -999,7 +999,7 @@ class TestRunDebugShareNous:
             setattr(a, k, v)
         return a
 
-    def test_nous_success_prints_view_url(self, hermes_home, capsys):
+    def test_nous_success_prints_view_url(self, kova_home, capsys):
         from kova_cli.debug import run_debug_share
 
         res = {
@@ -1019,7 +1019,7 @@ class TestRunDebugShareNous:
         blob = share.call_args[0][0]
         assert isinstance(blob, (bytes, bytearray)) and blob[:2] == b"\x1f\x8b"
 
-    def test_nous_failure_suggests_local(self, hermes_home, capsys):
+    def test_nous_failure_suggests_local(self, kova_home, capsys):
         from kova_cli.debug import run_debug_share
 
         with patch("kova_cli.dump.run_dump"), patch(
@@ -1032,7 +1032,7 @@ class TestRunDebugShareNous:
         err = capsys.readouterr().err
         assert "--local" in err
 
-    def test_nous_does_not_touch_pastebin(self, hermes_home):
+    def test_nous_does_not_touch_pastebin(self, kova_home):
         from kova_cli.debug import run_debug_share
 
         res = {"id": "id-1", "viewUrl": "https://v"}
@@ -1047,7 +1047,7 @@ class TestDebugSlashCommand:
     """`/debug [nous|local]` parsing in the CLI/TUI handler.
 
     The classic CLI and the TUI slash worker both dispatch through
-    ``HermesCLI.process_command`` → ``_handle_debug_command(cmd_original)``,
+    ``KovaCLI.process_command`` → ``_handle_debug_command(cmd_original)``,
     which parses an optional destination word and builds the args namespace
     handed to ``run_debug_share``.
     """
@@ -1104,7 +1104,7 @@ class TestShareConsentGate:
 
 
 
-    def test_non_interactive_requires_yes(self, hermes_home, capsys, monkeypatch):
+    def test_non_interactive_requires_yes(self, kova_home, capsys, monkeypatch):
         """No TTY + no --yes → exit(1), never upload silently."""
         from kova_cli.debug import run_debug_share
 
@@ -1120,7 +1120,7 @@ class TestShareConsentGate:
         assert "--yes" in capsys.readouterr().err
 
 
-    def test_local_never_prompts(self, hermes_home, capsys, monkeypatch):
+    def test_local_never_prompts(self, kova_home, capsys, monkeypatch):
         """--local renders to stdout and must not prompt or upload."""
         from kova_cli.debug import run_debug_share
 

@@ -10,7 +10,7 @@ Regressions for #134889:
   only it enabled imported that copy here or handed it to its plugin host.
 
 Driven through the real app (native-ticket auth, the gates, the hot mount, the plugin's own router)
-against a temp HERMES_HOME. The daemon is a stand-in runner carrying a real ``TicketStore``; the
+against a temp KOVA_HOME. The daemon is a stand-in runner carrying a real ``TicketStore``; the
 plugin host, another process, is a recorder of what this process would ask it to run.
 """
 from __future__ import annotations
@@ -71,7 +71,7 @@ def listed(daemon):
 
 
 @pytest.fixture
-def daemon(_isolate_hermes_home, monkeypatch):
+def daemon(_isolate_kova_home, monkeypatch):
     """The dashboard app as a multiplexing gateway serves it: the launch home plus profile ``beta``."""
     from starlette.testclient import TestClient
 
@@ -81,9 +81,9 @@ def daemon(_isolate_hermes_home, monkeypatch):
     from kova_cli.plugin_host import PluginHost
     from gateway.runtime_bootstrap import TicketStore
     from gateway.session_authorities import SessionAuthorities
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    launch = get_hermes_home().resolve()
+    launch = get_kova_home().resolve()
     beta = launch / "profiles" / "beta"
     beta.mkdir(parents=True)
     authorities = SessionAuthorities(launch, multiplexed=True)
@@ -96,7 +96,7 @@ def daemon(_isolate_hermes_home, monkeypatch):
                                     "served_profiles": authorities.served_profiles()})
     monkeypatch.setattr(web_server.app.state, "gateway_runner", runner, raising=False)
     monkeypatch.setattr(launch_policy, "_snapshot", None)
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: launch)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: launch)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: launch / "profiles")
     hosted, calls = [], []
 
@@ -120,7 +120,7 @@ def daemon(_isolate_hermes_home, monkeypatch):
         yield SimpleNamespace(
             client=client, launch=launch, beta=beta, hosted=hosted, calls=calls,
             owner={web_server._SESSION_HEADER_NAME: web_server._SESSION_TOKEN},
-            beta_ticket=lambda: {"X-Hermes-Gateway-Ticket": store.mint(
+            beta_ticket=lambda: {"X-Kova-Gateway-Ticket": store.mint(
                 profile_id=str(beta), subject="desktop", purpose="native-http")})
     finally:
         web_server.app.router.routes[:] = routes

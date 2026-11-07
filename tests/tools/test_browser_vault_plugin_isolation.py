@@ -1,8 +1,8 @@
 """Isolation contract for plugin-registered browser-vault login backends.
 
 A password-manager plugin (``ctx.register_login_backend``) shares the ``browser_vault`` tool with the
-built-in Hermes vault, 1Password and Bitwarden. These tests load real plugins from a temp
-``HERMES_HOME`` through the plugin manager and drive the real tool through the tool registry; only the
+built-in Kova vault, 1Password and Bitwarden. These tests load real plugins from a temp
+``KOVA_HOME`` through the plugin manager and drive the real tool through the tool registry; only the
 browser's CDP boundary (page origin, input inspection, the secret eval) is faked. Every rule is one test:
 
 1. a plugin backend only ever sees handles in its own ``<name>:`` namespace;
@@ -142,15 +142,15 @@ def _write_config(home, plugins, vault):
 
 @pytest.fixture
 def vault_home(tmp_path, monkeypatch):
-    """Temp HERMES_HOME with one real local-vault login; yields a loader for plugins written into it."""
+    """Temp KOVA_HOME with one real local-vault login; yields a loader for plugins written into it."""
     from agent.vault_store import get_vault_store
     from kova_cli.plugins import PluginManager
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    token = set_hermes_home_override(home)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    token = set_kova_home_override(home)
     managers = []
     local = get_vault_store().add_item("login", "Local", {"identifier_type": "email", "identifier": "me@example.com",
                                                         "password": "local-dummy-pw-27"}, origin=ORIGIN)
@@ -167,7 +167,7 @@ def vault_home(tmp_path, monkeypatch):
     finally:
         for manager in managers:
             manager.unload()
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.fixture
@@ -244,7 +244,7 @@ def test_plugin_backend_gets_only_its_handle_never_unlock_material(vault_home, p
     assert alpha.calls[1] == ("fill_context", (), {})
     assert all(c[1:] == ("alpha:1", (), {}) for c in alpha.calls if c[0] != "fill_context")
 
-    # A plugin may not drive Hermes' master-password prompt: the user would be typing a password
+    # A plugin may not drive Kova' master-password prompt: the user would be typing a password
     # into a dialog the plugin labelled (here "1Password").
     assert _backend("gamma") is None
     prompts = []

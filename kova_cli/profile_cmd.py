@@ -46,8 +46,8 @@ def _render_distribution_plan(plan) -> None:
         print(f"  {mf.description}")
     if mf.author:
         print(f"  Author:   {mf.author}")
-    if mf.hermes_requires:
-        print(f"  Requires: Hermes {mf.hermes_requires}")
+    if mf.kova_requires:
+        print(f"  Requires: Kova {mf.kova_requires}")
     print(f"  Source:   {plan.provenance}")
     print(f"  Target:   {plan.target_dir}")
     if plan.existing:
@@ -86,10 +86,10 @@ def _render_distribution_plan(plan) -> None:
 
 def _profile_status(args):
     """Bare ``hermes profile`` — show current profile status."""
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     from kova_cli.profiles import format_profile_label, get_active_profile_name, list_profiles
     profile_name = get_active_profile_name()
-    dhh = display_hermes_home()
+    dhh = display_kova_home()
     current = next((p for p in list_profiles() if _is_active(p, profile_name)), None)
     label = format_profile_label(profile_name, current.display_name if current else "")
     print(f"\nActive profile: {label}")
@@ -153,7 +153,7 @@ def _profile_use(args):
     name = args.profile_name
     try:
         set_active_profile(name)
-        print("Switched to: default (~/.hermes)" if name == "default" else f"Switched to: {name}")
+        print("Switched to: default (~/.kova)" if name == "default" else f"Switched to: {name}")
     except (ValueError, FileNotFoundError) as e:
         _die(f"Error: {e}")
 
@@ -300,11 +300,11 @@ def _profile_delete(args):
 
 
 def _describe_target_dir(name: str) -> Path:
-    """Profile dir for ``describe``: ``default`` maps to the CURRENT home (get_hermes_home),
+    """Profile dir for ``describe``: ``default`` maps to the CURRENT home (get_kova_home),
     everything else to its named directory."""
     from kova_cli import profiles as _profiles_mod
     if _profiles_mod.normalize_profile_name(name) == "default":
-        from kova_constants import get_hermes_home as _hh
+        from kova_constants import get_kova_home as _hh
         return Path(_hh())
     return _profiles_mod.get_profile_dir(name)
 
@@ -574,7 +574,7 @@ _INFO_FIELDS = (
     ("description", "Description:  "),
     ("author", "Author:       "),
     ("license", "License:      "),
-    ("hermes_requires", "Requires:     Hermes "),
+    ("hermes_requires", "Requires:     Kova "),
     ("source", "Source:       "),
     ("installed_at", "Installed:    "),
 )

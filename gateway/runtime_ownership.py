@@ -174,7 +174,7 @@ class ProfileOwnership:
                     try:
                         if not _try_acquire_file_lock(handle) or not _still_names(path, handle.fileno()):
                             raise OwnershipConflict(f'Gateway runtime already owns profile {home}')
-                        record = {**_build_pid_record(), 'hermes_home': str(home)}
+                        record = {**_build_pid_record(), 'kova_home': str(home)}
                         if purpose:
                             record['purpose'] = purpose
                         handle.seek(0)

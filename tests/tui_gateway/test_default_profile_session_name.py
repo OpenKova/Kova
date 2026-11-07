@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def _profile_layout(tmp_path: Path) -> tuple[Path, Path]:
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     default_home = root
     launch_home = root / "profiles" / "worker"
     launch_home.mkdir(parents=True)
@@ -20,8 +20,8 @@ def test_default_home_aliases_are_reported_as_default(tmp_path, monkeypatch):
 
     default_home, launch_home = _profile_layout(tmp_path)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
-    monkeypatch.setattr(server, "_hermes_home", launch_home)
+    monkeypatch.setenv("KOVA_HOME", str(launch_home))
+    monkeypatch.setattr(server, "_kova_home", launch_home)
 
     for alias in (default_home.name, "hermes"):
         assert server._response_profile_name(alias) == "default"
@@ -40,8 +40,8 @@ def test_profile_home_resolution_stamps_default_rows(tmp_path, monkeypatch):
     named_home = default_home / "profiles" / "writer"
     named_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
-    monkeypatch.setattr(server, "_hermes_home", launch_home)
+    monkeypatch.setenv("KOVA_HOME", str(launch_home))
+    monkeypatch.setattr(server, "_kova_home", launch_home)
 
     assert profile_name_for_home(default_home) == "default"
     assert profile_name_for_home(named_home) == "writer"
@@ -102,8 +102,8 @@ def test_custom_default_root_real_session_db_owner_stamping(tmp_path, monkeypatc
     launch_home.mkdir(parents=True)
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
-    monkeypatch.setattr(server, "_hermes_home", launch_home)
+    monkeypatch.setenv("KOVA_HOME", str(launch_home))
+    monkeypatch.setattr(server, "_kova_home", launch_home)
 
     # 1. Custom default root path resolution
     assert profile_name_for_home(default_home) == "default"

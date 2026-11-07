@@ -43,9 +43,9 @@ def _entry(session_key, chat_id, profile):
 
 
 def _state_db():
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
-    return SessionDB(Path(get_hermes_home()) / "state.db")
+    return SessionDB(Path(get_kova_home()) / "state.db")
 
 
 def _runner_stub(store):

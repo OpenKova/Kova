@@ -24,19 +24,19 @@ _FLEET_PROBE_SETTLE_TIMEOUT_SECONDS = 120.0
 
 
 def _print_legacy_units_warning() -> None:
-    """Legacy hermes.service fights hermes-gateway.service over the bot token; warn on
+    """Legacy hermes.service fights kova-gateway.service over the bot token; warn on
     every update until migrated."""
     from kova_cli.gateway import (has_legacy_hermes_units, _find_legacy_hermes_units, supports_systemd_services)
     if not (supports_systemd_services() and has_legacy_hermes_units()):
         return
     print()
-    print("⚠ Legacy Hermes gateway unit(s) detected:")
+    print("⚠ Legacy Kova gateway unit(s) detected:")
     for name, path, is_sys in _find_legacy_hermes_units():
         scope = "system" if is_sys else "user"
         print(f"    {path}  ({scope} scope)")
     print()
     print("  These pre-rename units (hermes.service) fight the current")
-    print("  hermes-gateway.service for the bot token and cause SIGTERM")
+    print("  kova-gateway.service for the bot token and cause SIGTERM")
     print("  flap loops. Remove them with:")
     print()
     print("    hermes gateway migrate-legacy")
@@ -130,13 +130,13 @@ def _live_gateway_pids_from_fleet(fleet_rows: list) -> dict:
 
 
 def _gateway_unit_runs_one_of(unit: str, pids: set) -> bool:
-    """Every scope that has ``hermes-gateway*`` *unit* loaded runs it as one of *pids*.
+    """Every scope that has ``kova-gateway*`` *unit* loaded runs it as one of *pids*.
 
     The restart bookkeeping keeps bare unit names, so it cannot say which scope failed: a loaded twin
     in the other scope that is not proven keeps the failure. Anything unreadable proves nothing.
     """
     from kova_cli import update_cmd_fleet as fleet
-    if not pids or not (unit == "hermes-gateway" or unit.startswith("hermes-gateway-")):
+    if not pids or not (unit == "kova-gateway" or unit.startswith("kova-gateway-")):
         return False
     loaded = False
     for _scope, scope_cmd in fleet._SYSTEMD_SCOPES:
@@ -409,7 +409,7 @@ def _verify_fleet_after_update(restart, *, _pre_update_plan, _windows_gateway_re
             from kova_cli.update_receipt import row_is_external
             # Gateway incarnation evidence, from the post-restart fleet snapshot collected above: a
             # service can serve a profile its own name does not encode (root-home launchd label +
-            # sticky active profile, hashed custom HERMES_HOME), so the bookkeeping's service names
+            # sticky active profile, hashed custom KOVA_HOME), so the bookkeeping's service names
             # alone cannot credit the planned runtime. A profile the probe produced no row for simply
             # has no evidence — that runtime stays on the name-matching path (and logs it).
             _live_gateway_pids = _live_gateway_pids_from_fleet(_fleet_snapshot)

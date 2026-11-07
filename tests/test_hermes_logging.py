@@ -56,13 +56,13 @@ def _reset_logging_state():
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    """Provide an isolated HERMES_HOME for logging tests.
+def kova_home(tmp_path, monkeypatch):
+    """Provide an isolated KOVA_HOME for logging tests.
 
-    Uses the same tmp_path as the autouse _isolate_hermes_home from conftest,
+    Uses the same tmp_path as the autouse _isolate_kova_home from conftest,
     reading it back from the env var to avoid double-mkdir conflicts.
     """
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     return home
 
 
@@ -81,11 +81,11 @@ def liveness_clock(monkeypatch):
 
 @pytest.mark.parametrize("mode,component", [("cli", None), ("gateway", "gateway.log"), ("gui", "gui.log")])
 @pytest.mark.parametrize("configured,explicit,minimum", [(None, None, logging.INFO), ("DEBUG", "WARNING", logging.WARNING), ("DEBUG", None, logging.DEBUG)])
-def test_repeated_setup_routes_records_once(hermes_home, mode, component, configured, explicit, minimum):
+def test_repeated_setup_routes_records_once(kova_home, mode, component, configured, explicit, minimum):
     if configured:
-        (hermes_home / "config.yaml").write_text(f"logging:\n  level: {configured}\n", encoding="utf-8")
+        (kova_home / "config.yaml").write_text(f"logging:\n  level: {configured}\n", encoding="utf-8")
     for _ in range(2):
-        assert kova_logging.setup_logging(hermes_home=hermes_home, mode=mode, log_level=explicit) == hermes_home / "logs"
+        assert kova_logging.setup_logging(kova_home=kova_home, mode=mode, log_level=explicit) == kova_home / "logs"
     kova_logging.set_session_context("routing-session")
     sources = ["tools.terminal_tool", "agent.context_compressor", "gateway.run",
                "plugins.platforms.telegram.adapter", "kova_cli.web_server", "tui_gateway.ws"]
@@ -93,7 +93,7 @@ def test_repeated_setup_routes_records_once(hermes_home, mode, component, config
         for level in (logging.DEBUG, logging.INFO, logging.WARNING):
             logging.getLogger(source).log(level, "routing-witness-%s-%s", index, level)
     kova_logging.flush_log_queue()
-    outputs = {path.name: path.read_text(encoding="utf-8-sig") for path in (hermes_home / "logs").glob("*.log")}
+    outputs = {path.name: path.read_text(encoding="utf-8-sig") for path in (kova_home / "logs").glob("*.log")}
     assert set(outputs) == {"agent.log", "errors.log"} | ({component} if component else set())
     for filename, content in outputs.items():
         for index, source in enumerate(sources):
@@ -110,29 +110,29 @@ def test_repeated_setup_routes_records_once(hermes_home, mode, component, config
 
 
 class TestSetupLogging:
-    def test_profile_routing_follows_context_home(self, hermes_home, tmp_path):
+    def test_profile_routing_follows_context_home(self, kova_home, tmp_path):
         """Desktop multiplex cron records are written to their owning profile."""
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         profile_home = tmp_path / "profile-b"
         profile_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
+        kova_logging.setup_logging(kova_home=kova_home)
         assert kova_logging.enable_profile_log_routing(
-            [hermes_home, profile_home]
+            [kova_home, profile_home]
         ) is True
 
         logger = logging.getLogger("cron.scheduler.profile-routing-test")
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logger.info("profile-routed cron record")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         assert "profile-routed cron record" in (
             profile_home / "logs" / "agent.log"
         ).read_text(encoding="utf-8-sig")
-        default_log = hermes_home / "logs" / "agent.log"
+        default_log = kova_home / "logs" / "agent.log"
         assert not default_log.exists() or "profile-routed cron record" not in default_log.read_text(encoding="utf-8-sig")
 
     @pytest.mark.parametrize("launch_redacts, routed_opt_out, routed_redacted", [
@@ -141,11 +141,11 @@ class TestSetupLogging:
         (True, "config", False),  # the routed profile opted out in its config
     ], ids=["launch-opt-out", "routed-env-opt-out", "routed-config-opt-out"])
     def test_routed_records_follow_their_own_profiles_redaction_policy(
-            self, hermes_home, tmp_path, monkeypatch, launch_redacts, routed_opt_out, routed_redacted):
+            self, kova_home, tmp_path, monkeypatch, launch_redacts, routed_opt_out, routed_redacted):
         """The listener thread formats every record after its profile scope is gone, so a routed profile's own
         agent.log was redacted by the LAUNCH profile's policy: raw credentials if only the launch opted out."""
         from agent import redact
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         monkeypatch.setattr(redact, "_REDACT_ENABLED", launch_redacts)
         monkeypatch.setattr(redact, "_ENV_POLICY_BY_HOME", {})
@@ -155,48 +155,48 @@ class TestSetupLogging:
         if routed_opt_out == "config":
             (routed / "config.yaml").write_text("security:\n  redact_secrets: false\n", encoding="utf-8")
         elif routed_opt_out == "env":
-            (routed / ".env").write_text("HERMES_REDACT_SECRETS=false\n", encoding="utf-8")
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        assert kova_logging.enable_profile_log_routing([hermes_home, routed]) is True
+            (routed / ".env").write_text("KOVA_REDACT_SECRETS=false\n", encoding="utf-8")
+        kova_logging.setup_logging(kova_home=kova_home)
+        assert kova_logging.enable_profile_log_routing([kova_home, routed]) is True
         routed_secret = "sk-proj-ROUTEDPROFILE" + "b" * 24
         launch_secret = "sk-proj-LAUNCHPROFILE" + "a" * 24
 
         logger = logging.getLogger("gateway.redaction-routing-test")
-        token = set_hermes_home_override(routed)
+        token = set_kova_home_override(routed)
         try:
             logger.warning("provider rejected key %s", routed_secret)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         logger.warning("launch key %s", launch_secret)
         kova_logging.flush_log_queue()
 
         assert (routed_secret not in (routed / "logs" / "agent.log").read_text()) is routed_redacted
-        assert (launch_secret not in (hermes_home / "logs" / "agent.log").read_text()) is launch_redacts
+        assert (launch_secret not in (kova_home / "logs" / "agent.log").read_text()) is launch_redacts
 
-    def test_release_profile_log_handlers_closes_only_deleted_profile(self, hermes_home, tmp_path):
+    def test_release_profile_log_handlers_closes_only_deleted_profile(self, kova_home, tmp_path):
         """Profile deletion releases its routed log files without disturbing another profile."""
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         deleted_home = tmp_path / "profile-deleted"
         other_home = tmp_path / "profile-other"
         deleted_home.mkdir()
         other_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
+        kova_logging.setup_logging(kova_home=kova_home)
         assert kova_logging.enable_profile_log_routing(
-            [hermes_home, deleted_home, other_home]
+            [kova_home, deleted_home, other_home]
         ) is True
 
         logger = logging.getLogger("agent.profile-delete-log-release")
-        token = set_hermes_home_override(deleted_home)
+        token = set_kova_home_override(deleted_home)
         try:
             logger.warning("deleted profile log handles")
         finally:
-            reset_hermes_home_override(token)
-        token = set_hermes_home_override(other_home)
+            reset_kova_home_override(token)
+        token = set_kova_home_override(other_home)
         try:
             logger.warning("other profile log handles")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         routers = [
@@ -215,86 +215,86 @@ class TestSetupLogging:
         assert "other profile log handles" in (other_home / "logs" / "agent.log").read_text()
         assert "other profile log handles" in (other_home / "logs" / "errors.log").read_text()
 
-    def test_a_second_home_routes_instead_of_stacking_an_unfiltered_handler(self, hermes_home, tmp_path):
+    def test_a_second_home_routes_instead_of_stacking_an_unfiltered_handler(self, kova_home, tmp_path):
         """A dashboard or serve backend builds agents for several profiles in ONE process, and each
         one calls setup_logging for its own home. The second home must get a router — a bare file
         handler beside the first home's would receive every profile's records."""
         from logging.handlers import RotatingFileHandler
 
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         profile_home = tmp_path / "profile-b"
         profile_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        kova_logging.setup_logging(hermes_home=profile_home)
+        kova_logging.setup_logging(kova_home=kova_home)
+        kova_logging.setup_logging(kova_home=profile_home)
 
         assert not [h for h in kova_logging._queued_file_handlers if isinstance(h, RotatingFileHandler)], (
             "the second home must not add an unfiltered file handler")
 
         logger = logging.getLogger("agent.conversation_loop.second-home-test")
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logger.info("turn of profile b")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         logger.info("turn of the launch profile")
         kova_logging.flush_log_queue()
 
-        a_log = (hermes_home / "logs" / "agent.log").read_text()
+        a_log = (kova_home / "logs" / "agent.log").read_text()
         b_log = (profile_home / "logs" / "agent.log").read_text()
         assert "turn of profile b" in b_log and "turn of profile b" not in a_log
         assert "turn of the launch profile" in a_log and "turn of the launch profile" not in b_log
 
-    def test_setup_for_an_already_routed_home_adds_no_duplicate_writer(self, hermes_home, tmp_path):
+    def test_setup_for_an_already_routed_home_adds_no_duplicate_writer(self, kova_home, tmp_path):
         """Routing already on (multiplexed gateway, Desktop cron ticker): a profile's agent starting
         up must not add a second writer for its home on top of the router."""
         from logging.handlers import RotatingFileHandler
 
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         profile_home = tmp_path / "profile-b"
         profile_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        assert kova_logging.enable_profile_log_routing([hermes_home, profile_home]) is True
-        kova_logging.setup_logging(hermes_home=profile_home)
+        kova_logging.setup_logging(kova_home=kova_home)
+        assert kova_logging.enable_profile_log_routing([kova_home, profile_home]) is True
+        kova_logging.setup_logging(kova_home=profile_home)
 
         assert not [h for h in kova_logging._queued_file_handlers if isinstance(h, RotatingFileHandler)]
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logging.getLogger("agent.conversation_loop.routed-home-test").info("once please")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         assert (profile_home / "logs" / "agent.log").read_text().count("once please") == 1
-        assert "once please" not in (hermes_home / "logs" / "agent.log").read_text()
+        assert "once please" not in (kova_home / "logs" / "agent.log").read_text()
 
-    def test_a_component_log_added_after_routing_is_routed_too(self, hermes_home, tmp_path):
+    def test_a_component_log_added_after_routing_is_routed_too(self, kova_home, tmp_path):
         """setup_logging(mode="gateway") for an already-known home AFTER a second home turned
         routing on: gateway.log must be a routed writer, not a bare handler taking every home."""
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         profile_home = tmp_path / "profile-b"
         profile_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        kova_logging.setup_logging(hermes_home=profile_home)
-        kova_logging.setup_logging(hermes_home=hermes_home, mode="gateway")
+        kova_logging.setup_logging(kova_home=kova_home)
+        kova_logging.setup_logging(kova_home=profile_home)
+        kova_logging.setup_logging(kova_home=kova_home, mode="gateway")
 
         logger = logging.getLogger("gateway.run.routed-component-test")
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logger.info("gw-b")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         logger.info("gw-a")
         kova_logging.flush_log_queue()
 
-        a_log = (hermes_home / "logs" / "gateway.log").read_text()
+        a_log = (kova_home / "logs" / "gateway.log").read_text()
         assert "gw-a" in a_log and "gw-b" not in a_log
         assert "gw-b" in (profile_home / "logs" / "gateway.log").read_text()
 
     def test_profile_routing_falls_back_when_profile_home_deleted(
-        self, hermes_home, tmp_path, capsys
+        self, kova_home, tmp_path, capsys
     ):
         """A profile deleted underneath a long-lived dashboard must not loop.
 
@@ -304,13 +304,13 @@ class TestSetupLogging:
         retrying (and stderr-spamming) the vanished logs/ path on every record
         (#103777).
         """
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         profile_home = tmp_path / "profile-deleted"
         profile_home.mkdir()
-        kova_logging.setup_logging(hermes_home=hermes_home)
+        kova_logging.setup_logging(kova_home=kova_home)
         assert kova_logging.enable_profile_log_routing(
-            [hermes_home, profile_home]
+            [kova_home, profile_home]
         ) is True
 
         logger = logging.getLogger("cron.scheduler.profile-routing-deleted-test")
@@ -318,14 +318,14 @@ class TestSetupLogging:
         # can mean anything (lazy-opening handlers may not have created it yet).
         logger.info("routing fallback default-home probe record")
         kova_logging.flush_log_queue()
-        default_log = hermes_home / "logs" / "agent.log"
+        default_log = kova_home / "logs" / "agent.log"
         assert "default-home probe record" in default_log.read_text()
 
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logger.info("profile-routed record before deletion")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
         assert "record before deletion" in (
             profile_home / "logs" / "agent.log"
@@ -337,11 +337,11 @@ class TestSetupLogging:
 
         shutil.rmtree(profile_home)
 
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             logger.info("profile-routed record after deletion")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
         assert "record after deletion" in default_log.read_text()
@@ -352,7 +352,7 @@ class TestSetupLogging:
 
     @pytest.mark.parametrize("removal", ["tombstone", "rmtree", "logs-only"])
     def test_out_of_band_profile_delete_releases_routed_handler(
-        self, hermes_home, capsys, liveness_clock, removal
+        self, kova_home, capsys, liveness_clock, removal
     ):
         """A CLI delete tombstones then removes the home behind a running serve: the router must
         stop writing there on either signal alone and close the stale file, like an in-process
@@ -361,21 +361,21 @@ class TestSetupLogging:
         import shutil
 
         from kova_constants import (
-            mark_named_profile_deleted, reset_hermes_home_override, set_hermes_home_override,
+            mark_named_profile_deleted, reset_kova_home_override, set_kova_home_override,
         )
 
-        profile_home = (hermes_home / "profiles" / "worker").resolve()
+        profile_home = (kova_home / "profiles" / "worker").resolve()
         profile_home.mkdir(parents=True)
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        assert kova_logging.enable_profile_log_routing([hermes_home, profile_home]) is True
+        kova_logging.setup_logging(kova_home=kova_home)
+        assert kova_logging.enable_profile_log_routing([kova_home, profile_home]) is True
         logger = logging.getLogger("cron.scheduler.out-of-band-delete-test")
 
         def emit(message):
-            token = set_hermes_home_override(profile_home)
+            token = set_kova_home_override(profile_home)
             try:
                 logger.warning(message)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
             kova_logging.flush_log_queue()
 
         emit("before delete")
@@ -395,21 +395,21 @@ class TestSetupLogging:
 
         assert "Logging error" not in capsys.readouterr().err
         assert all(h.stream is None or h.stream.closed for h in routed), "stale profile log fd kept open"
-        default_log = (hermes_home / "logs" / "agent.log").read_text(encoding="utf-8-sig")
+        default_log = (kova_home / "logs" / "agent.log").read_text(encoding="utf-8-sig")
         assert all(f"after delete {i}" in default_log for i in range(3))
         profile_log = profile_home / "logs" / "agent.log"
         assert not profile_log.exists() or "after delete" not in profile_log.read_text(encoding="utf-8-sig")
 
     @pytest.mark.parametrize("stream_closed_after_write", [False, True], ids=["kept-open", "closed-per-write"])
     def test_live_profile_liveness_checked_at_most_once_per_interval(
-        self, hermes_home, liveness_clock, monkeypatch, stream_closed_after_write
+        self, kova_home, liveness_clock, monkeypatch, stream_closed_after_write
     ):
         """A live routed profile must not pay the delete check (two stats) on every record.
 
         ``closed-per-write`` is how concurrent-log-handler behaves on Windows: the stream is
         closed after every write, which must not read as a skipped write.
         """
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         if stream_closed_after_write:
             real_emit = kova_logging._ManagedRotatingFileHandler.emit
@@ -422,10 +422,10 @@ class TestSetupLogging:
 
             monkeypatch.setattr(kova_logging._ManagedRotatingFileHandler, "emit", emit_then_close)
 
-        profile_home = (hermes_home / "profiles" / "worker").resolve()
+        profile_home = (kova_home / "profiles" / "worker").resolve()
         profile_home.mkdir(parents=True)
-        kova_logging.setup_logging(hermes_home=hermes_home)
-        assert kova_logging.enable_profile_log_routing([hermes_home, profile_home]) is True
+        kova_logging.setup_logging(kova_home=kova_home)
+        assert kova_logging.enable_profile_log_routing([kova_home, profile_home]) is True
         logger = logging.getLogger("cron.scheduler.liveness-rate-limit-test")
         calls = []
         real = kova_logging.named_profile_is_deleted
@@ -435,12 +435,12 @@ class TestSetupLogging:
             return real(home)
 
         def emit_many(n):
-            token = set_hermes_home_override(profile_home)
+            token = set_kova_home_override(profile_home)
             try:
                 for i in range(n):
                     logger.warning("live %d", i)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
             kova_logging.flush_log_queue()
 
         with patch.object(kova_logging, "named_profile_is_deleted", counting):
@@ -454,13 +454,13 @@ class TestSetupLogging:
         assert len(calls) == 2 * routers
         assert "live 4" in (profile_home / "logs" / "agent.log").read_text(encoding="utf-8-sig")
 
-    def test_explicit_params_override_config(self, hermes_home):
+    def test_explicit_params_override_config(self, kova_home):
         """Explicit function params take precedence over config.yaml."""
         import kova_yaml as yaml
         config = {"logging": {"level": "DEBUG"}}
-        (hermes_home / "config.yaml").write_text(yaml.safe_dump(config))
+        (kova_home / "config.yaml").write_text(yaml.safe_dump(config))
 
-        kova_logging.setup_logging(hermes_home=hermes_home, log_level="WARNING")
+        kova_logging.setup_logging(kova_home=kova_home, log_level="WARNING")
 
         agent_handlers = [
             h for h in kova_logging._queued_file_handlers
@@ -476,8 +476,8 @@ class TestSetupLogging:
 class TestSetupVerboseLogging:
     """setup_verbose_logging() adds a DEBUG-level console handler."""
 
-    def test_adds_stream_handler(self, hermes_home):
-        kova_logging.setup_logging(hermes_home=hermes_home)
+    def test_adds_stream_handler(self, kova_home):
+        kova_logging.setup_logging(kova_home=kova_home)
         kova_logging.setup_verbose_logging()
 
         root = logging.getLogger()
@@ -721,16 +721,16 @@ class TestWindowsConcurrentLogLockTimeout:
 class TestReadLoggingConfig:
     """_read_logging_config() reads from config.yaml."""
 
-    def test_returns_none_when_no_config(self, hermes_home):
+    def test_returns_none_when_no_config(self, kova_home):
         level, max_size, backup = kova_logging._read_logging_config()
         assert level is None
         assert max_size is None
         assert backup is None
 
-    def test_reads_logging_section(self, hermes_home):
+    def test_reads_logging_section(self, kova_home):
         import kova_yaml as yaml
         config = {"logging": {"level": "DEBUG", "max_size_mb": 10, "backup_count": 5}}
-        (hermes_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+        (kova_home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
 
         level, max_size, backup = kova_logging._read_logging_config()
         assert level == "DEBUG"
@@ -824,7 +824,7 @@ class TestExternalRotationRecovery:
 
 
     def test_gateway_log_attached_after_external_rotation_then_re_setup(
-        self, hermes_home,
+        self, kova_home,
     ):
         """End-to-end Allen-reproduction: gateway.log gets externally rotated,
         ``setup_logging(mode='gateway')`` is re-called, the handler keeps
@@ -834,9 +834,9 @@ class TestExternalRotationRecovery:
         records leaking to agent.log) when something external rotates the
         file between setup_logging() calls.
         """
-        kova_logging.setup_logging(hermes_home=hermes_home, mode="gateway")
-        gw_path = hermes_home / "logs" / "gateway.log"
-        rotated = hermes_home / "logs" / "gateway.log.1"
+        kova_logging.setup_logging(kova_home=kova_home, mode="gateway")
+        gw_path = kova_home / "logs" / "gateway.log"
+        rotated = kova_home / "logs" / "gateway.log.1"
 
         logging.getLogger("gateway.run").info("line BEFORE rotation")
         kova_logging.flush_log_queue()
@@ -849,7 +849,7 @@ class TestExternalRotationRecovery:
         # Caller (or some restart path) re-enters setup_logging.  This used
         # to silently no-op due to the per-path dedup check, leaving the
         # stale fd in place.
-        kova_logging.setup_logging(hermes_home=hermes_home, mode="gateway")
+        kova_logging.setup_logging(kova_home=kova_home, mode="gateway")
 
         logging.getLogger("gateway.run").info("line AFTER rotation")
         kova_logging.flush_log_queue()
@@ -989,9 +989,9 @@ class TestLineBufferPipedStdout:
     def test_setup_logging_applies_it_to_piped_stdout(self, tmp_path, monkeypatch):
         stream = self._fake_stdout(isatty=False)
         monkeypatch.setattr(sys, "stdout", stream)
-        kova_logging.setup_logging(hermes_home=tmp_path, force=True)
+        kova_logging.setup_logging(kova_home=tmp_path, force=True)
         # setup_logging runs per AIAgent build: a second call must not re-flush/reconfigure.
-        kova_logging.setup_logging(hermes_home=tmp_path, force=True)
+        kova_logging.setup_logging(kova_home=tmp_path, force=True)
         stream.reconfigure.assert_called_once_with(line_buffering=True)
 
 
@@ -1037,17 +1037,17 @@ class TestRolloverPreservesLogOwnership:
         assert log_path.exists()
 
 
-def test_profile_router_never_holds_its_lock_while_taking_the_logging_module_lock(hermes_home, monkeypatch):
+def test_profile_router_never_holds_its_lock_while_taking_the_logging_module_lock(kova_home, monkeypatch):
     """T23: uvicorn's ``dictConfig`` holds ``logging._lock`` and, in ``logging.shutdown``, waits on
     every handler's lock. The QueueListener thread routing a record to a not-yet-opened profile
     home built that home's file handler (``Handler.__init__`` takes ``logging._lock``) while
     ``Handler.handle`` held the router's lock: a lock-order deadlock that hung
     ``test_runtime_listener_supervision`` on CI. The router must take the module lock with no
     lock of its own held."""
-    profile = hermes_home / "profiles" / "t23"
+    profile = kova_home / "profiles" / "t23"
     (profile / "logs").mkdir(parents=True)
-    hermes_home.joinpath("logs").mkdir(exist_ok=True)
-    existing = RotatingFileHandler(str(hermes_home / "logs" / "agent.log"), encoding="utf-8")
+    kova_home.joinpath("logs").mkdir(exist_ok=True)
+    existing = RotatingFileHandler(str(kova_home / "logs" / "agent.log"), encoding="utf-8")
     router = kova_logging._ProfileRoutingFileHandler(existing, [profile])
     existing.close()
     building, real_new = threading.Event(), kova_logging._new_file_handler
@@ -1058,7 +1058,7 @@ def test_profile_router_never_holds_its_lock_while_taking_the_logging_module_loc
 
     monkeypatch.setattr(kova_logging, "_new_file_handler", new_file_handler)
     record = logging.LogRecord("t23", logging.ERROR, __file__, 1, "routed", None, None)
-    record.hermes_home = str(profile)
+    record.kova_home = str(profile)
     listener = threading.Thread(target=router.handle, args=(record,), daemon=True)
     with logging._lock:  # dictConfig's configure() holds this across _clearExistingHandlers()
         listener.start()
@@ -1077,7 +1077,7 @@ def test_profile_router_never_holds_its_lock_while_taking_the_logging_module_loc
 
 
 @pytest.mark.parametrize("closed_at", ["after_pick", "before_publish"])
-def test_profile_router_close_is_never_undone_by_a_record_in_flight(hermes_home, monkeypatch, closed_at):
+def test_profile_router_close_is_never_undone_by_a_record_in_flight(kova_home, monkeypatch, closed_at):
     """T23 follow-up: with no router lock across ``emit``, ``logging.shutdown`` (uvicorn's
     ``dictConfig``) can close the router and its per-home handler while a routed record is in
     flight. ``after_pick``: the record picked the per-home handler, then it was closed; a
@@ -1085,10 +1085,10 @@ def test_profile_router_close_is_never_undone_by_a_record_in_flight(hermes_home,
     Windows its lock then stays held and the profile's logs/ cannot be removed). ``before_publish``:
     the record built a new home's handler, and its ``setdefault`` landed in the closed router (a
     leaked fd). Real handlers; only the interleaving is forced."""
-    profile = hermes_home / "profiles" / "t23b"
+    profile = kova_home / "profiles" / "t23b"
     (profile / "logs").mkdir(parents=True)
-    hermes_home.joinpath("logs").mkdir(exist_ok=True)
-    existing = RotatingFileHandler(str(hermes_home / "logs" / "agent.log"), encoding="utf-8")
+    kova_home.joinpath("logs").mkdir(exist_ok=True)
+    existing = RotatingFileHandler(str(kova_home / "logs" / "agent.log"), encoding="utf-8")
     router = kova_logging._ProfileRoutingFileHandler(existing, [profile])
     existing.close()
     profile_log = profile / "logs" / "agent.log"
@@ -1117,21 +1117,21 @@ def test_profile_router_close_is_never_undone_by_a_record_in_flight(hermes_home,
 
         monkeypatch.setattr(kova_logging, "_new_file_handler", build_then_shutdown)
     record = logging.LogRecord("t23", logging.ERROR, __file__, 1, "in flight", None, None)
-    record.hermes_home = str(profile)
+    record.kova_home = str(profile)
     router.handle(record)
     assert not profile_log.exists(), "a closed per-home log file was reopened"
     assert router._profile_handlers == {}
     assert all(handler.stream is None for handler in built), "a handler built after close leaked its fd"
 
 
-def test_router_never_builds_a_child_handler_under_a_lock_logging_shutdown_takes(hermes_home, monkeypatch):
+def test_router_never_builds_a_child_handler_under_a_lock_logging_shutdown_takes(kova_home, monkeypatch):
     """CI run 39131422357 hung: the listener thread held the router's handler lock while building a
     child handler (which takes ``logging._lock``), while dictConfig held ``logging._lock`` inside
     ``logging.shutdown`` and waited on the router's lock. Both sides must finish."""
-    profile_home = (hermes_home / "profiles" / "lockorder").resolve()
+    profile_home = (kova_home / "profiles" / "lockorder").resolve()
     (profile_home / "logs").mkdir(parents=True)
-    (hermes_home / "logs").mkdir(exist_ok=True)
-    existing = RotatingFileHandler(str(hermes_home / "logs" / "agent.log"), encoding="utf-8")
+    (kova_home / "logs").mkdir(exist_ok=True)
+    existing = RotatingFileHandler(str(kova_home / "logs" / "agent.log"), encoding="utf-8")
     router = kova_logging._ProfileRoutingFileHandler(existing, [profile_home])
     existing.close()
 
@@ -1145,7 +1145,7 @@ def test_router_never_builds_a_child_handler_under_a_lock_logging_shutdown_takes
 
     monkeypatch.setattr(kova_logging, "_new_file_handler", paused_new_file_handler)
     record = logging.LogRecord("lockorder", logging.WARNING, __file__, 1, "routed", None, None)
-    record.hermes_home = str(profile_home)
+    record.kova_home = str(profile_home)
     holding_module_lock, emitter_released = threading.Event(), threading.Event()
     shutdown_got_router_lock = []
 

@@ -31,7 +31,7 @@ def test_fresh_takeover_prepares_generation_and_runs_selected_python(tmp_path):
     (root / "pyproject.toml").write_text(
         '[project]\nname="takeover-fixture"\nversion="1"\nrequires-python=">=3.14"\n'
         'dependencies=["takeover-dep==1.0"]\n[project.optional-dependencies]\nall=[]\nmatrix=[]\n'
-        '[tool.hermes.extras-platforms]\nmatrix="sys_platform == \'no-such-platform\'"\n'
+        '[tool.kova.extras-platforms]\nmatrix="sys_platform == \'no-such-platform\'"\n'
         '[tool.uv]\npackage=false\nno-index=true\n'
         f'find-links=[{json.dumps(wheels.as_posix())}]\n', encoding="utf-8")
     (root / ".git").mkdir()
@@ -39,8 +39,8 @@ def test_fresh_takeover_prepares_generation_and_runs_selected_python(tmp_path):
     uv = shutil.which("uv")
     assert uv
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store), UV_PYTHON_DOWNLOADS="never")
+           if not key.startswith(("KOVA_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home), KOVA_RUNTIME_DIR=str(store), UV_PYTHON_DOWNLOADS="never")
     subprocess.run([uv, "lock", "--offline", "--python", sys.executable], cwd=root, env=env, check=True, capture_output=True)
     # A main-era venv that carried a gated extra: the takeover interpreter
     # (-S, so no `packaging`) must still judge the gate and drop it.
@@ -85,7 +85,7 @@ def test_fresh_takeover_prepares_generation_and_runs_selected_python(tmp_path):
     output = json.loads(result.read_text())
     assert Path(output['python']).is_relative_to(store)
     assert Path(output['dep']).is_relative_to(home / "installs")
-    assert (root / ".hermes/bin/hermes").is_file()
+    assert (root / ".kova/bin/hermes").is_file()
     assert not (root / "venv").exists()
     assert Facts(store / "facts.json").get("dmgbuild") is None
     venv_fact = json.loads(next((home / "installs").glob("*/facts.json")).read_text())["packages"]["venv"]

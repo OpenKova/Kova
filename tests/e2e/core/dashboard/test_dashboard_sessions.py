@@ -54,7 +54,7 @@ print("DONE", n, flush=True)
 class Writer:
     def __init__(self, sb: H.Sandbox, p: H.Profile) -> None:
         self.proc = subprocess.Popen(
-            [sys.executable, "-c", _WRITER, str(WRITE_SECONDS)], env=sb.env({"HERMES_HOME": str(p.home)}),
+            [sys.executable, "-c", _WRITER, str(WRITE_SECONDS)], env=sb.env({"KOVA_HOME": str(p.home)}),
             cwd=str(sb.home), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, start_new_session=True)
         self.committed = 0

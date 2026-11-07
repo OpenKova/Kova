@@ -15,15 +15,15 @@ from pathlib import Path
 import pytest
 
 from kova_cli import gateway, profiles
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @pytest.fixture
 def profile_env(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     real = pwd.getpwuid(os.getuid())
     fake = pwd.struct_passwd((real.pw_name, real.pw_passwd, real.pw_uid, real.pw_gid,
@@ -40,13 +40,13 @@ def profile_env(tmp_path, monkeypatch):
 
 
 def _host_unit_path(profile_dir: Path) -> Path:
-    token = set_hermes_home_override(str(profile_dir))
+    token = set_kova_home_override(str(profile_dir))
     try:
         if platform.system() == "Darwin":
             return gateway.get_launchd_plist_path()
         return gateway.user_systemd_unit_dir() / f"{gateway.get_service_name()}.service"
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.mark.platforms("posix")

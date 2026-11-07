@@ -17,7 +17,7 @@ import uuid
 from typing import Dict, List, Optional, Sequence
 
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_state_legacy_refusal import LEGACY_REFUSAL_REPAIR_DONE, advance_legacy_refusal_repair
 from kova_startup_watchdog import report_startup_progress
 from utils import safe_json_loads
@@ -40,7 +40,7 @@ logger = logging.getLogger("kova_state")
 _FTS_HOLDER_ESCALATE_ATTEMPTS = 3
 _FTS_HOLDER_ESCALATE_SECONDS = 60.0
 # The same holder PID set blocking this many deferrals over this long is a structurally resident
-# peer (a supervised service on the same HERMES_HOME), not a transient one worth waiting out (#106393).
+# peer (a supervised service on the same KOVA_HOME), not a transient one worth waiting out (#106393).
 _FTS_HOLDER_FUTILE_ATTEMPTS = 10
 _FTS_HOLDER_FUTILE_SECONDS = 1800.0
 # retry_deferred_fts_recovery cadence: startup paid the full admission wait once; later
@@ -664,7 +664,7 @@ class SessionSchemaMixin:
 
     def _trigram_tokenizer_available(self, cursor: sqlite3.Cursor) -> bool:
         """Probe trigram support without publishing a persistent FTS object."""
-        probe = "temp.hermes_fts5_trigram_probe"
+        probe = "temp.kova_fts5_trigram_probe"
         cursor.execute(f"DROP TABLE IF EXISTS {probe}")
         try:
             cursor.execute(f"CREATE VIRTUAL TABLE {probe} USING fts5(content, tokenize='trigram')")
@@ -688,8 +688,8 @@ class SessionSchemaMixin:
         cache_path = None
         schema_hash = hashlib.sha256(schema_sql.encode("utf-8")).hexdigest()
         with contextlib.suppress(Exception):  # missing/corrupt cache → recompute below
-            # Late import: resolves a test-patched kova_constants.get_hermes_home.
-            from kova_constants import get_hermes_home as _home
+            # Late import: resolves a test-patched kova_constants.get_kova_home.
+            from kova_constants import get_kova_home as _home
             cache_path = _home() / "cache" / "schema_columns.json"
             blob = json.loads(cache_path.read_text(encoding="utf-8"))
             tables = blob.get("tables") if isinstance(blob, dict) and blob.get("schema_hash") == schema_hash else None
@@ -919,7 +919,7 @@ class SessionSchemaMixin:
             logger.warning(
                 "Removed the retired messages_fts_cjk index; CJK search now uses the trigram index. "
                 "`hermes sessions optimize-storage` reclaims its disk space. "
-                "%s is no longer loaded and can be deleted.", get_hermes_home() / "lib" / "libfts5_cjk.so",
+                "%s is no longer loaded and can be deleted.", get_kova_home() / "lib" / "libfts5_cjk.so",
             )
 
         # Column reconciliation, then the two table-shape repairs ADD COLUMN cannot express.
@@ -1301,7 +1301,7 @@ class SessionSchemaMixin:
     def _backfill_gateway_metadata_from_sessions_json(self, cursor: sqlite3.Cursor) -> None:
         """One-time v18 backfill of gateway metadata from sessions.json. Only fills NULL
         columns — never overwrites data written by newer code."""
-        sessions_file = get_hermes_home() / "sessions" / "sessions.json"
+        sessions_file = get_kova_home() / "sessions" / "sessions.json"
         if not sessions_file.exists():
             return
         with open(sessions_file, "r", encoding="utf-8") as f:

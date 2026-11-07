@@ -12,9 +12,9 @@ from agent.memory_provider import MemoryProvider
 @pytest.fixture
 def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return default_home
 
 
@@ -36,18 +36,18 @@ def _select(home: Path, name: str) -> None:
 def test_create_and_rename_call_the_selected_providers_hooks_with_its_home_bound(profile_env, monkeypatch):
     import plugins.memory as memory_pkg
     from kova_cli.profiles import create_profile, rename_profile
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     calls = []
 
     class Recorder(_Stub):
         name = "recorder"
 
-        def on_profile_created(self, profile_name, hermes_home):
-            calls.append(("created", profile_name, hermes_home, str(get_hermes_home())))
+        def on_profile_created(self, profile_name, kova_home):
+            calls.append(("created", profile_name, kova_home, str(get_kova_home())))
 
-        def on_profile_renamed(self, old_name, new_name, hermes_home):
-            calls.append(("renamed", old_name, new_name, hermes_home, str(get_hermes_home())))
+        def on_profile_renamed(self, old_name, new_name, kova_home):
+            calls.append(("renamed", old_name, new_name, kova_home, str(get_kova_home())))
 
     monkeypatch.setattr(memory_pkg, "load_memory_provider",
                         lambda name, **kw: Recorder() if name == "recorder" else None)
@@ -73,7 +73,7 @@ def test_the_hook_reads_the_new_profiles_secrets_not_the_callers(profile_env, mo
     class Reader(_Stub):
         name = "reader"
 
-        def on_profile_created(self, profile_name, hermes_home):
+        def on_profile_created(self, profile_name, kova_home):
             seen.append(get_secret("PROBE_PROFILE_KEY", "unset"))
 
     monkeypatch.setattr(memory_pkg, "load_memory_provider", lambda name, **kw: Reader())
@@ -122,7 +122,7 @@ def test_a_missing_profile_secret_never_falls_back_to_the_callers_env(profile_en
     class Reader(_Stub):
         name = "reader"
 
-        def on_profile_created(self, profile_name, hermes_home):
+        def on_profile_created(self, profile_name, kova_home):
             seen.append(get_secret("PROBE_PROFILE_KEY", "unset"))
 
     monkeypatch.setattr(memory_pkg, "load_memory_provider", lambda name, **kw: Reader())
@@ -135,20 +135,20 @@ def test_a_missing_profile_secret_never_falls_back_to_the_callers_env(profile_en
 def test_a_provider_hook_that_exits_never_fails_create_or_rename(profile_env, monkeypatch):
     import plugins.memory as memory_pkg
     from kova_cli.profiles import create_profile, rename_profile
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     class Exits(_Stub):
         name = "exits"
 
-        def on_profile_created(self, profile_name, hermes_home):
+        def on_profile_created(self, profile_name, kova_home):
             calls.append("created")
             raise SystemExit(3)
 
-        def on_profile_renamed(self, old_name, new_name, hermes_home):
+        def on_profile_renamed(self, old_name, new_name, kova_home):
             calls.append("renamed")
             raise SystemExit(3)
 
-    home = get_hermes_home()
+    home = get_kova_home()
     calls = []
     monkeypatch.setattr(memory_pkg, "load_memory_provider", lambda name, **kw: Exits())
     _select(profile_env, "exits")
@@ -156,7 +156,7 @@ def test_a_provider_hook_that_exits_never_fails_create_or_rename(profile_env, mo
     with patch("kova_cli.profiles.check_alias_collision", return_value="skip"):
         assert rename_profile("work", "play").is_dir()
     assert calls == ["created", "renamed"]
-    assert get_hermes_home() == home  # the profile home override was reset
+    assert get_kova_home() == home  # the profile home override was reset
 
 
 def test_a_failing_provider_hook_never_fails_create_or_rename(profile_env, monkeypatch):
@@ -168,11 +168,11 @@ def test_a_failing_provider_hook_never_fails_create_or_rename(profile_env, monke
     class Broken(_Stub):
         name = "broken"
 
-        def on_profile_created(self, profile_name, hermes_home):
+        def on_profile_created(self, profile_name, kova_home):
             calls.append("created")
             raise RuntimeError("boom")
 
-        def on_profile_renamed(self, old_name, new_name, hermes_home):
+        def on_profile_renamed(self, old_name, new_name, kova_home):
             calls.append("renamed")
             raise RuntimeError("boom")
 

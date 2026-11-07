@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 # Log-record parity with the origin module.
 logger = logging.getLogger("kova_cli.backup")
@@ -111,7 +111,7 @@ def _restore_under_cron_lock(home: Path, snap_prompts: dict[str, str]) -> list[s
 
 def restore_cron_prompt_fields_if_degraded(
     snapshot_id: str,
-    hermes_home: Optional[Path] = None,
+    kova_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
     """Safety net for field-level cron-job degradation across ``hermes update``.
 
@@ -139,7 +139,7 @@ def restore_cron_prompt_fields_if_degraded(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        hermes_home: Override for the Hermes home directory (tests/siblings).
+        kova_home: Override for the Kova home directory (tests/siblings).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a
@@ -151,7 +151,7 @@ def restore_cron_prompt_fields_if_degraded(
 
     from kova_cli.backup import _CRON_JOBS_REL, _quick_snapshot_root
 
-    home = hermes_home or get_hermes_home()
+    home = kova_home or get_kova_home()
     live_path = home / _CRON_JOBS_REL
     snap_path = _quick_snapshot_root(home) / snapshot_id / _CRON_JOBS_REL
 
@@ -210,7 +210,7 @@ def restore_cron_prompt_fields_all_profiles(
         return restored
     from kova_cli.backup import _sibling_profile_homes
 
-    home = invoking_home or get_hermes_home()
+    home = invoking_home or get_kova_home()
     by_name = dict(_sibling_profile_homes(home))
     for name, snap_id in profile_snapshots.items():
         profile_home = by_name.get(name)
@@ -218,7 +218,7 @@ def restore_cron_prompt_fields_all_profiles(
             continue
         try:
             result = restore_cron_prompt_fields_if_degraded(
-                snap_id, hermes_home=profile_home
+                snap_id, kova_home=profile_home
             )
         except Exception as exc:
             logger.debug(

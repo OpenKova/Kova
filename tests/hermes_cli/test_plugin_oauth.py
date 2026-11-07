@@ -1,6 +1,6 @@
-"""Plugin-declared OAuth clients: Hermes signs in, stores and refreshes the grant; plugin code never holds a token.
+"""Plugin-declared OAuth clients: Kova signs in, stores and refreshes the grant; plugin code never holds a token.
 
-A real plugin directory under the test HERMES_HOME declares ``oauth:``. ``FakeIdP`` plays the authorization
+A real plugin directory under the test KOVA_HOME declares ``oauth:``. ``FakeIdP`` plays the authorization
 server (PKCE, rotating refresh tokens) and a loopback stub plays the API the bearer is meant for.
 """
 
@@ -66,7 +66,7 @@ class _Api:
 
 
 def _home() -> Path:
-    return Path(os.environ["HERMES_HOME"])
+    return Path(os.environ["KOVA_HOME"])
 
 
 def _entry(idp: FakeIdP, **overrides) -> dict:
@@ -128,7 +128,7 @@ def idp(monkeypatch, tmp_path):
     server.opened = []
 
     def browser(url: str) -> bool:
-        # A real browser runs beside Hermes; the fake IdP 302s straight to the loopback callback.
+        # A real browser runs beside Kova; the fake IdP 302s straight to the loopback callback.
         server.opened.append(url)
         threading.Thread(target=lambda: urlopen(url, timeout=10, context=trust).close(), daemon=True).start()
         return True
@@ -406,7 +406,7 @@ def test_partial_consent_saves_nothing_and_names_what_is_missing(idp):
 def test_grant_belongs_to_one_profile(idp, api, monkeypatch, tmp_path):
     allowed, _ = api
     _signed_in(idp)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "other-profile"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "other-profile"))
     with pytest.raises(ppr.ProviderNotSignedIn):
         _plugin(oauth=[_entry(idp)]).call("google", allowed.url)
     assert allowed.seen == []
@@ -565,7 +565,7 @@ def test_revoked_grant_keeps_no_tokens_and_uninstall_drops_the_grant(idp, api):
 
 def test_sign_in_is_refused_where_nobody_can_answer_the_browser(idp, monkeypatch):
     _plugin(oauth=[_entry(idp)])
-    monkeypatch.setenv("HERMES_CRON_SESSION", "1")
+    monkeypatch.setenv("KOVA_CRON_SESSION", "1")
     with pytest.raises(SystemExit, match="your own terminal"):
         _auth("add")
     assert idp.token_requests == [] and idp.opened == []

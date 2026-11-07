@@ -102,8 +102,8 @@ def reconcile_record() -> Optional[SetupRecord]:
     record = _record
     if record is None or record.provider_configured:
         return record
-    from kova_constants import get_process_hermes_home, hermes_home_key
-    if hermes_home_key() != hermes_home_key(get_process_hermes_home()) or _inventory_stamp == _config_stamp():
+    from kova_constants import get_process_kova_home, kova_home_key
+    if kova_home_key() != kova_home_key(get_process_kova_home()) or _inventory_stamp == _config_stamp():
         return record
     if not _inventory_other_providers():
         return _record
@@ -129,9 +129,9 @@ def reset_for_tests() -> None:
 
 
 def _config_stamp() -> tuple:
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from utils import file_cache_version
-    home = get_hermes_home()
+    home = get_kova_home()
     stamp = []
     for name in _INVENTORY_FILES:
         try:

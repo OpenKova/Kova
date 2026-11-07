@@ -59,7 +59,7 @@ def _platform_name() -> str:
         return turn.lease.platform
     if platform := session_platform():
         return platform
-    return "cron" if is_truthy_value(get_session_env("HERMES_CRON_SESSION", "")) else "cli"
+    return "cron" if is_truthy_value(get_session_env("KOVA_CRON_SESSION", "")) else "cli"
 
 
 def request_surface() -> str:
@@ -74,7 +74,7 @@ def user_agent() -> str:
     from kova_platform.host.facts import os_family
 
     os_name = _OS_FAMILY.get(os_family(), "unknown")
-    return f"hermes-agent/{get_version_info().base_version} ({request_surface()}; {os_name})"
+    return f"kova-agent/{get_version_info().base_version} ({request_surface()}; {os_name})"
 
 
 def _send_consented() -> bool:
@@ -88,7 +88,7 @@ def _conversation_id() -> Optional[str]:
     from agent.portal_tags import get_conversation_context
     from gateway.session_context import get_session_env
 
-    return get_conversation_context() or get_session_env("HERMES_SESSION_ID", "") or None
+    return get_conversation_context() or get_session_env("KOVA_SESSION_ID", "") or None
 
 
 def correlation_headers(call: Optional[CallRef] = None) -> dict[str, str]:

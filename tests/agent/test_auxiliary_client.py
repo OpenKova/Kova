@@ -245,7 +245,7 @@ class TestResolveTaskProviderModel:
 class TestMoaAggregatorSharedResolution:
     """The shared MoA→aggregator helper and the layers that consume it.
 
-    Real-config tests: write an actual config.yaml under a temp HERMES_HOME
+    Real-config tests: write an actual config.yaml under a temp KOVA_HOME
     and exercise the genuine load_config() → resolve_moa_preset() boundary —
     no mocking of the configuration-resolution chain.
     """
@@ -254,7 +254,7 @@ class TestMoaAggregatorSharedResolution:
     def _write_moa_config(tmp_path, monkeypatch, default_preset="opus-gpt"):
         import kova_yaml as yaml
 
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(exist_ok=True)
         (home / "config.yaml").write_text(
             yaml.safe_dump(
@@ -287,7 +287,7 @@ class TestMoaAggregatorSharedResolution:
                 }
             )
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         return home
 
     def test_real_config_explicit_task_provider_moa(self, tmp_path, monkeypatch):
@@ -458,7 +458,7 @@ class TestNousTagsScoping:
         import agent.auxiliary_client as aux
 
         with aux.scoped_runtime_main({
-            "provider": "nous", "model": "Hermes-4",
+            "provider": "nous", "model": "Kova-4",
             "base_url": "https://inference-api.nousresearch.com/v1", "api_key": "nous-key",
         }):
             kwargs = aux._build_call_kwargs(
@@ -493,9 +493,9 @@ class TestResolveCodexCredentialToken:
     """Token half of ``_resolve_codex_credential_and_base`` with no pool (auth.json only)."""
 
     def test_valid_auth_store(self, tmp_path, monkeypatch):
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {
                 "openai-codex": {
@@ -503,7 +503,7 @@ class TestResolveCodexCredentialToken:
                 },
             },
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             result = _resolve_codex_credential_and_base()[0]
         assert result == "tok-123"
@@ -519,9 +519,9 @@ class TestResolveCodexCredentialToken:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         expired_jwt = f"{header}.{payload}.fakesig"
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {
                 "openai-codex": {
@@ -529,7 +529,7 @@ class TestResolveCodexCredentialToken:
                 },
             },
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             result = _resolve_codex_credential_and_base()[0]
         assert result is None, "Expired JWT should return None"
@@ -544,9 +544,9 @@ class TestResolveCodexCredentialToken:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         valid_jwt = f"{header}.{payload}.fakesig"
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {
                 "openai-codex": {
@@ -554,7 +554,7 @@ class TestResolveCodexCredentialToken:
                 },
             },
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         with patch("agent.auxiliary_client._select_pool_entry", return_value=(False, None)):
             result = _resolve_codex_credential_and_base()[0]
         assert result == valid_jwt
@@ -571,14 +571,14 @@ class TestResolveXaiOAuthForAux:
         from agent.credential_pool import AUTH_TYPE_OAUTH, PooledCredential, load_pool
         from kova_cli.auth import DEFAULT_XAI_OAUTH_BASE_URL
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {},
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-        monkeypatch.delenv("HERMES_XAI_BASE_URL", raising=False)
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
+        monkeypatch.delenv("KOVA_XAI_BASE_URL", raising=False)
         monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
         pool = load_pool("xai-oauth")
@@ -603,14 +603,14 @@ class TestResolveXaiOAuthForAux:
         from agent.credential_pool import AUTH_TYPE_OAUTH, PooledCredential, load_pool
         from kova_cli.auth import DEFAULT_XAI_OAUTH_BASE_URL
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {},
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-        monkeypatch.setenv("HERMES_XAI_BASE_URL", "https://example.x.ai/v1/")
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
+        monkeypatch.setenv("KOVA_XAI_BASE_URL", "https://example.x.ai/v1/")
 
         pool = load_pool("xai-oauth")
         pool.add_entry(PooledCredential(
@@ -714,7 +714,7 @@ class TestBuildCodexClient:
             patch("agent.auxiliary_client._select_pool_entry", return_value=(True, entry)),
             patch("agent.auxiliary_client.OpenAI") as mock_openai,
         ):
-            monkeypatch.setenv("HERMES_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
+            monkeypatch.setenv("KOVA_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
             mock_openai.return_value = MagicMock()
             from agent.auxiliary_client import _build_codex_client
 
@@ -731,7 +731,7 @@ class TestBuildCodexClient:
             patch("agent.auxiliary_client._read_codex_singleton_token", return_value="codex-auth-token"),
             patch("agent.auxiliary_client.OpenAI") as mock_openai,
         ):
-            monkeypatch.setenv("HERMES_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
+            monkeypatch.setenv("KOVA_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
             mock_openai.return_value = MagicMock()
             from agent.auxiliary_client import resolve_provider_client
 
@@ -903,9 +903,9 @@ class TestExpiredCodexFallback:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         expired_jwt = f"{header}.{payload}.fakesig"
 
-        hermes_home = tmp_path / "hermes"
-        hermes_home.mkdir(parents=True, exist_ok=True)
-        (hermes_home / "auth.json").write_text(json.dumps({
+        kova_home = tmp_path / "hermes"
+        kova_home.mkdir(parents=True, exist_ok=True)
+        (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
             "providers": {
                 "openai-codex": {
@@ -913,7 +913,7 @@ class TestExpiredCodexFallback:
                 },
             },
         }))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         monkeypatch.setenv("OPENROUTER_API_KEY", "or-test-key")
 
         with patch("agent.auxiliary_client.OpenAI") as mock_openai:
@@ -2036,7 +2036,7 @@ class TestAuxiliaryFallbackLayering:
 
 
     def test_fallback_entry_openai_codex_uses_oauth_pool_without_inline_key(self):
-        """Configured Codex fallback resolves through Hermes auth / credential pool."""
+        """Configured Codex fallback resolves through Kova auth / credential pool."""
         from agent.auxiliary_client import _resolve_fallback_entry
 
         pool_entry = MagicMock()
@@ -2436,7 +2436,7 @@ class TestTransientTransportRetry:
 
 class TestAuxClientNoSdkRetries:
     """Auxiliary OpenAI clients are constructed with SDK-internal retries
-    disabled so Hermes owns the retry/timeout budget (issue #54465). The SDK
+    disabled so Kova owns the retry/timeout budget (issue #54465). The SDK
     default (max_retries=2 → 3 attempts) silently triples the effective wall
     time of every aux call against a slow/hung endpoint.
     """
@@ -2631,7 +2631,7 @@ class TestAuxiliaryTaskExtraBody:
 
     @pytest.mark.parametrize("task", ["session_search", "moa_reference", "moa_aggregator"])
     def test_generic_reasoning_fallback_clamps_ultra_for_auxiliary_and_moa_calls(self, task, monkeypatch):
-        """The OpenAI-compatible fallback must never put Hermes-only ``ultra`` on the wire."""
+        """The OpenAI-compatible fallback must never put Kova-only ``ultra`` on the wire."""
         from agent.auxiliary_client import _ProfileProjection, _build_call_kwargs
 
         monkeypatch.setattr(
@@ -3095,9 +3095,9 @@ class TestAuxiliaryPoolRotationRetry:
 
 
 class TestAnthropicAuxiliaryReasoningTranslation:
-    """Native Anthropic aux adapters must receive normalized Hermes reasoning.
+    """Native Anthropic aux adapters must receive normalized Kova reasoning.
 
-    MoA slot reasoning is carried through call_llm as a Hermes
+    MoA slot reasoning is carried through call_llm as a Kova
     ``reasoning_config``. The native Anthropic Messages path cannot consume the
     generic OpenAI-style ``extra_body.reasoning`` fallback, so assert the final
     ``messages.create`` kwargs contain Anthropic's provider-aware wire shape.
@@ -4050,7 +4050,7 @@ class TestCodexAuxiliaryAdapterCompletedResponse:
 class TestCodexAuxiliaryAdapterReservedToolAliases:
     """The aux adapter emits the same tool schemas as the main Responses transport: shared
     converter (``strict: False``) plus provider-reserved-name aliasing (OpenCode, Perplexity),
-    reversed on the parsed tool_calls before Hermes dispatch (#114260)."""
+    reversed on the parsed tool_calls before Kova dispatch (#114260)."""
 
     _TOOLS = [
         {"type": "function", "function": {"name": name, "description": name,
@@ -4132,7 +4132,7 @@ class TestAuxiliaryClientPoisonedCacheEviction:
     Otherwise the next auxiliary call (compression retry, memory flush,
     background review) reuses the closed httpx transport and fails with
     ``Connection error`` even though the main provider route is healthy.
-    See https://github.com/NousResearch/hermes-agent/issues/23432.
+    See https://github.com/NousResearch/kova-agent/issues/23432.
     """
 
 
@@ -4233,7 +4233,7 @@ class TestBuildCallKwargsToolDedup:
     Providers like Google Vertex, Azure, and Bedrock reject requests with
     duplicate tool names (HTTP 400).  This guard converts a hard failure into
     a warning log so agent turns succeed even if an upstream injection path
-    regresses.  See: https://github.com/NousResearch/hermes-agent/issues/18478
+    regresses.  See: https://github.com/NousResearch/kova-agent/issues/18478
     """
 
     def _make_tool(self, name: str) -> dict:
@@ -4287,7 +4287,7 @@ class TestNvidiaBillingHeaders:
         assert model == "nvidia/test-model"
         call_kwargs = mock_openai.call_args[1]
         headers = call_kwargs["default_headers"]
-        assert headers["X-BILLING-INVOKE-ORIGIN"] == "HermesAgent"
+        assert headers["X-BILLING-INVOKE-ORIGIN"] == "KovaAgent"
 
     def test_resolve_provider_client_local_nim_skips_billing_origin_header(self, monkeypatch):
         monkeypatch.setenv("NVIDIA_API_KEY", "nvidia-key")
@@ -4898,20 +4898,20 @@ class TestCustomEndpointApiKeyInheritance:
         the main key; the identical origin (default port spelled out) still does. A live main
         runtime (a /model switch to a keyless local server, a key_cmd) is the anchor, and
         config.yaml's key belongs to config.yaml's base_url, never to the live endpoint.
-        Real config.yaml under a temp HERMES_HOME, resolved through the task route."""
+        Real config.yaml under a temp KOVA_HOME, resolved through the task route."""
         import kova_yaml as yaml
         from agent.auxiliary_client import reset_runtime_main, set_runtime_main
 
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir()
         (home / "config.yaml").write_text(yaml.safe_dump({
             "model": {"provider": "custom", "base_url": "https://gw.example.com/v1",
                       "api_key": "sk-main-config-key", "default": "main-model"},
             "auxiliary": {"compression": {"provider": "custom", "base_url": aux_base_url, "model": "aux-model"}},
         }))
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         token = (None if live_key is None else
                  set_runtime_main("custom", "local-model", base_url="http://127.0.0.1:8080/v1", api_key=live_key))
         try:
@@ -4991,9 +4991,9 @@ class TestNoProgressTimeoutTaskConfigGating:
         import kova_yaml as yaml
         from agent import auxiliary_client as aux
 
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
 
         def _run(task):
             captured = {}
@@ -5428,7 +5428,7 @@ class TestFastModelTier:
         consulted ``_get_named_custom_provider`` — so a configured
         named provider was still downgraded to ``"custom"`` whenever the
         built-in catalog failed to load. The user's repro path
-        (Hermes desktop on Windows with a partial / early-startup
+        (Kova desktop on Windows with a partial / early-startup
         catalog state) hits this branch.
         """
         import agent.auxiliary_client as ac
@@ -5468,7 +5468,7 @@ class TestFastModelTier:
     def test_resolve_vision_provider_client_preserves_named_provider_via_config(self, tmp_path):
         """#76602 (review feedback) — integration test through the real
         ``resolve_vision_provider_client`` entry point with a real
-        ``HERMES_HOME`` config.yaml, mirroring the pattern from
+        ``KOVA_HOME`` config.yaml, mirroring the pattern from
         ``tests/agent/test_auxiliary_named_custom_providers.py``.
 
         Before the fix the repro in the issue body returned
@@ -5478,9 +5478,9 @@ class TestFastModelTier:
         """
         import kova_yaml as yaml
 
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        (hermes_home / "config.yaml").write_text(yaml.safe_dump({
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        (kova_home / "config.yaml").write_text(yaml.safe_dump({
             "model": {"default": "test-model"},
             "providers": {
                 "agnes-ai.cn": {
@@ -5492,8 +5492,8 @@ class TestFastModelTier:
             },
         }))
         import os
-        old_home = os.environ.get("HERMES_HOME")
-        os.environ["HERMES_HOME"] = str(hermes_home)
+        old_home = os.environ.get("KOVA_HOME")
+        os.environ["KOVA_HOME"] = str(kova_home)
         try:
             from agent.auxiliary_client import resolve_vision_provider_client
 
@@ -5505,9 +5505,9 @@ class TestFastModelTier:
             )
         finally:
             if old_home is None:
-                os.environ.pop("HERMES_HOME", None)
+                os.environ.pop("KOVA_HOME", None)
             else:
-                os.environ["HERMES_HOME"] = old_home
+                os.environ["KOVA_HOME"] = old_home
 
         assert resolved_provider == "agnes-ai.cn", (
             "resolve_vision_provider_client must preserve a named "

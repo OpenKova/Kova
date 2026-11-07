@@ -1,4 +1,4 @@
-"""Real-profile local browsing: snapshot the user's default Chromium profile into a Hermes-owned copy and
+"""Real-profile local browsing: snapshot the user's default Chromium profile into a Kova-owned copy and
 launch the user's REAL browser binary on it through the launcher.
 
 The real binary (not the packaged Chromium, and never ``--password-store=basic``/``--use-mock-keychain``)
@@ -60,16 +60,16 @@ def _snapshot_error(err: str) -> str:
 
 
 def _home_lock() -> threading.Lock:
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     with _locks_guard:
-        return _locks.setdefault(hermes_home_key(), threading.Lock())
+        return _locks.setdefault(kova_home_key(), threading.Lock())
 
 
 def real_profile_key() -> str:
     """Launcher key of the CURRENT profile's real-profile browser. Per home: one process serves many profiles,
     so a consent-off profile must never stop another's browser, nor a consenting one reuse its cookie jar."""
-    from kova_constants import hermes_home_key
-    return f"hermes-real-profile@{hermes_home_key()}"
+    from kova_constants import kova_home_key
+    return f"hermes-real-profile@{kova_home_key()}"
 
 
 def terminate_real_profile_browser() -> None:
@@ -102,7 +102,7 @@ def _launch(browser_name: str) -> tuple[Optional[str], Optional[str]]:
     def overlay() -> Optional[str]:
         # The snapshot overlay rewrites Cookies / Login Data, so it runs inside the launcher's cross-process
         # step on the copy dir: never beside another process's copy, never under a live copy-browser (maybe
-        # from an earlier Hermes process; the launcher ATTACHES to that one instead).
+        # from an earlier Kova process; the launcher ATTACHES to that one instead).
         copied, err = snapshot_real_profile(browser_name)
         if err or not copied:
             snapshot_failure.append(_snapshot_error(err))
@@ -138,7 +138,7 @@ def real_profile_cdp() -> tuple[Optional[str], Optional[str]]:
     lock = _home_lock()
     if not lock.acquire(timeout=_LOCK_TIMEOUT_S):
         return None, (_RP + "the real-profile browser is already being prepared by another call that has not "
-                      "finished. Retry after that call completes, or restart Hermes if it was abandoned.")
+                      "finished. Retry after that call completes, or restart Kova if it was abandoned.")
     try:
         from tools.browser_launcher import get_browser
         running = get_browser(real_profile_key())

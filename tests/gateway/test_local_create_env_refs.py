@@ -11,8 +11,8 @@ async def _owner(home, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
-    monkeypatch.setattr(run, '_hermes_home', home)
-    monkeypatch.setenv('HERMES_HOME', str(home))  # a single-profile owner: this IS the launch home
+    monkeypatch.setattr(run, '_kova_home', home)
+    monkeypatch.setenv('KOVA_HOME', str(home))  # a single-profile owner: this IS the launch home
     store = SessionStore(home / 'sessions', GatewayConfig())
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,
                              _cached_agent_for=lambda route: None, _adapter_for_source=lambda source: None,

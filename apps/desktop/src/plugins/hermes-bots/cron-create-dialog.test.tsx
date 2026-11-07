@@ -10,7 +10,7 @@
  * goes through the object-aware `botRosterMeta`.
  */
 
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -29,7 +29,7 @@ const { notify, request } = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
 
   return {
     ...sdk,

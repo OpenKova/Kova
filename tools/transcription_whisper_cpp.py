@@ -6,7 +6,7 @@ import logging
 import shlex
 from pathlib import Path
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 logger = logging.getLogger("tools.transcription_tools")
 
@@ -27,7 +27,7 @@ _MODEL_FILES = (
 
 
 def _model_dir() -> Path:
-    return get_hermes_home() / "cache" / "whisper.cpp"
+    return get_kova_home() / "cache" / "whisper.cpp"
 
 
 def _file_signature(path: Path, digest: str) -> tuple | None:

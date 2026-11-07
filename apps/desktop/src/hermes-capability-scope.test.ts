@@ -5,7 +5,7 @@ import { getAuxiliaryModels, getGlobalModelInfo } from './api/models'
 import { getOfficialSkills, getSkillHubSources } from './api/skills'
 import { getTerminalBackends, getToolsetConfig, selectTerminalBackend } from './api/toolsets'
 import {
-  getHermesConfigRecord,
+  getKovaConfigRecord,
   getMcpCatalog,
   getSkillContent,
   getSkills,
@@ -32,14 +32,14 @@ describe('capability helpers are connection-scoped', () => {
   const api = vi.fn(async (_req: { connectionId?: string; path: string; profile?: string }) => ({}) as never)
 
   beforeEach(() => {
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = { api }
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = { api }
     api.mockClear()
   })
 
   afterEach(() => {
     setApiRequestProfile(null)
     setApiRequestConnection(null)
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { hermesDesktop?: unknown }).kovaDesktop
   })
 
   const last = () => api.mock.calls.at(-1)?.[0] as { connectionId?: string; profile?: string; priority?: string }
@@ -58,7 +58,7 @@ describe('capability helpers are connection-scoped', () => {
 
     void getSkills()
     void getToolsets()
-    void getHermesConfigRecord()
+    void getKovaConfigRecord()
     void getMcpCatalog()
     void getUsageAnalytics(30)
 
@@ -105,7 +105,7 @@ describe('capability helpers are connection-scoped', () => {
   it('marks an explicitly scoped Settings / Capabilities read as foreground (#111651)', () => {
     // A scope-selector pick is a visible user action: its cold dial must take
     // the pool's reserved foreground slot instead of queueing behind hydration.
-    getHermesConfigRecord('coder')
+    getKovaConfigRecord('coder')
     expect(last()).toMatchObject({ profile: 'coder', priority: 'foreground' })
 
     void getSkills('coder')
@@ -153,7 +153,7 @@ describe('capability helpers are connection-scoped', () => {
   })
 
   it('keeps ambient config reads unprioritized for background hydration', () => {
-    getHermesConfigRecord()
+    getKovaConfigRecord()
     expect(last()).not.toHaveProperty('priority')
 
     void getGlobalModelInfo()

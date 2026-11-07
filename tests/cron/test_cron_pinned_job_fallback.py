@@ -93,8 +93,8 @@ def _run(tmp_path, job, *, primary_error=None):
             raise primary_error
         return _runtime(kwargs.get("requested") or "openai-codex")
 
-    with patch("cron.scheduler._hermes_home", tmp_path), \
-         patch("cron.scheduler._get_hermes_home", return_value=tmp_path), \
+    with patch("cron.scheduler._kova_home", tmp_path), \
+         patch("cron.scheduler._get_kova_home", return_value=tmp_path), \
          patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
          patch("kova_cli.env_loader.load_hermes_dotenv"), \
          patch("kova_cli.env_loader.reset_secret_source_cache"), \

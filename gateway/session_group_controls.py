@@ -535,8 +535,8 @@ def _profiles(authority, actor, home, params, siblings=()):
     # (RT-38): a host running one gateway per profile serves no siblings, and Desktop drops every
     # union agent the active source leaves out, so a default-only answer hid the other bots.
     # Metadata only, like any discovery above.
-    from kova_cli.profiles import _get_default_hermes_home
-    root = _get_default_hermes_home()
+    from kova_cli.profiles import _get_default_kova_home
+    root = _get_default_kova_home()
     if root.is_dir():
         discovered('default', root)
     for target in _named_profile_dirs():

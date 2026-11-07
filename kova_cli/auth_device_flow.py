@@ -202,7 +202,7 @@ def _print_loopback_ssh_hint(redirect_uri: str, *, docs_url: str | None = None) 
     divider = "-" * 60
     print(
         f"\n{divider}\nRemote session detected — SSH tunnel required\n{divider}\n"
-        f"Hermes is waiting for the OAuth callback on {redirect_uri}\n"
+        f"Kova is waiting for the OAuth callback on {redirect_uri}\n"
         "but your browser is on a different machine. Run this command\n"
         "in a NEW terminal on your local machine BEFORE opening the URL:\n\n"
         f"  ssh -N -L {port}:127.0.0.1:{port} {_ssh_user_at_host()}\n\n"
@@ -242,7 +242,7 @@ def _resolve_verify(
         is_truthy_value(insecure, default=False) if insecure is not None
         else is_truthy_value(tls_state.get("insecure", False), default=False))
     effective_ca = (
-        ca_bundle or tls_state.get("ca_bundle") or os.getenv("HERMES_CA_BUNDLE")
+        ca_bundle or tls_state.get("ca_bundle") or os.getenv("KOVA_CA_BUNDLE")
         or os.getenv("SSL_CERT_FILE") or os.getenv("REQUESTS_CA_BUNDLE"))
     if effective_insecure:
         return False
@@ -442,7 +442,7 @@ def _print_login_success(
     print()
     print("Login successful!")
     if show_auth_state:
-        from kova_constants import display_hermes_home as _dhh
+        from kova_constants import display_kova_home as _dhh
         print(f"  Auth state: {_dhh()}/auth.json")
     print(f"  Config updated: {config_path} (model.provider={provider_id})")
 
@@ -461,7 +461,7 @@ def _offer_existing_oauth_credentials(
         existing = resolve()
         api_key = existing.get("api_key", "")
         if isinstance(api_key, str) and api_key and not is_expiring(api_key, 60):
-            print(f"Existing {display_name} credentials found in Hermes auth store.")
+            print(f"Existing {display_name} credentials found in Kova auth store.")
             if _prompt_yes_no("Use existing credentials? [Y/n]: ", default="y"):
                 config_path = _update_config_for_provider(
                     provider_id, existing.get("base_url", default_base_url))

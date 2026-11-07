@@ -7,15 +7,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-from kova_cli.config import get_hermes_home, get_env_path, get_project_root, load_config
+from kova_cli.config import get_kova_home, get_env_path, get_project_root, load_config
 from kova_cli.env_loader import load_hermes_dotenv
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 from agent.skill_utils import is_excluded_skill_path
 from datetime import UTC
 
 
 def _dotenv_key_names() -> set[str]:
-    """Env-var names assigned a non-empty value in ~/.hermes/.env — what the managed backends (launchd /
+    """Env-var names assigned a non-empty value in ~/.kova/.env — what the managed backends (launchd /
     systemd / desktop ``serve``) load, as opposed to the shell exports ``os.getenv`` reflects here.
 
     ``hermes debug share`` runs in a terminal, so ``os.getenv`` reflects the shell's environment, which can
@@ -57,7 +57,7 @@ def _get_git_commit(project_root: Path) -> str:
     The requested *project_root* is authoritative: when it has no git,
     the install-stamp fallback is only valid for the RUNNING install
     (``kova_cli.version_info`` has no per-root API — it reads
-    HERMES_INSTALL_ROOT / the running code root, never an arbitrary
+    KOVA_INSTALL_ROOT / the running code root, never an arbitrary
     directory). For any other root the provenance is unknown.
     """
     value = _git_output(project_root, "rev-parse", "--short=8", "HEAD")
@@ -114,15 +114,15 @@ def _gateway_status() -> str:
         return "unknown" if sys.platform.startswith(("linux", "darwin")) else "N/A"
 
 
-def _count_skills(hermes_home: Path) -> int:
+def _count_skills(kova_home: Path) -> int:
     """Count installed skills."""
-    skills_dir = hermes_home / "skills"
+    skills_dir = kova_home / "skills"
     return sum(1 for item in skills_dir.rglob("SKILL.md") if not is_excluded_skill_path(item)) if skills_dir.is_dir() else 0
 
 
-def _cron_summary(hermes_home: Path) -> str:
+def _cron_summary(kova_home: Path) -> str:
     """Return cron jobs summary."""
-    jobs_file = hermes_home / "cron" / "jobs.json"
+    jobs_file = kova_home / "cron" / "jobs.json"
     if not jobs_file.exists():
         return "0"
     try:
@@ -272,7 +272,7 @@ def _api_key_lines(show_keys: bool) -> list[str]:
     for env_var, label in _API_KEYS:
         val = os.getenv(env_var, "")
         display = _redact(val) if show_keys and val else ("set" if val else "not set")
-        # Set in this shell but absent from ~/.hermes/.env: a managed backend loads .env, not the login
+        # Set in this shell but absent from ~/.kova/.env: a managed backend loads .env, not the login
         # shell, so it likely can't see this key — flag it so support doesn't chase a phantom "configured".
         if val and env_var not in dotenv_keys:
             display += " (shell only — not in .env; managed/desktop backend may not see it)"
@@ -303,8 +303,8 @@ def run_dump(args):
     """Output a compact, copy-pasteable setup summary."""
     show_keys = getattr(args, "show_keys", False)
     # Load env from .env file so key checks work
-    load_hermes_dotenv(hermes_home=get_env_path().parent, project_env=get_project_root() / ".env")
-    project_root, hermes_home = get_project_root(), get_hermes_home()
+    load_hermes_dotenv(kova_home=get_env_path().parent, project_env=get_project_root() / ".env")
+    project_root, kova_home = get_project_root(), get_kova_home()
     try:
         config = load_config()
     except Exception:
@@ -324,7 +324,7 @@ def run_dump(args):
         f"python:           {sys.version.split()[0]}",
         f"openai_sdk:       {_openai_version()}",
         f"profile:          {profile}",
-        f"hermes_home:      {display_hermes_home()}",
+        f"kova_home:      {display_kova_home()}",
         f"model:            {model}",
         f"provider:         {provider}",
         f"terminal:         {_effective_terminal_backend(config)}",
@@ -335,8 +335,8 @@ def run_dump(args):
         f"  memory_provider:    {config.get('memory', {}).get('provider', '') or 'built-in'}",
         f"  gateway:            {_gateway_status()}",
         f"  platforms:          {', '.join(platforms) if platforms else 'none'}",
-        f"  cron_jobs:          {_cron_summary(hermes_home)}",
-        f"  skills:             {_count_skills(hermes_home)}",
+        f"  cron_jobs:          {_cron_summary(kova_home)}",
+        f"  skills:             {_count_skills(kova_home)}",
     ]
     overrides = _config_overrides(config)
     if overrides:

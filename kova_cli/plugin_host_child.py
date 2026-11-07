@@ -1,10 +1,10 @@
-"""The plugin host process: imports third-party plugins and serves their callbacks to Hermes.
+"""The plugin host process: imports third-party plugins and serves their callbacks to Kova.
 
 Started by :class:`kova_cli.plugin_host.PluginHost` as ``python -m kova_cli.plugin_host_child``
 (optionally under ``plugins.host.launcher``, e.g. a sandbox runner) with the profile's environment.
 Plugins get a :class:`RemotePluginContext` that looks like ``PluginContext``: registrations and
-queries are forwarded to Hermes, callables and provider objects stay here and are invoked by
-reference. Nothing in this module is imported by the Hermes process itself.
+queries are forwarded to Kova, callables and provider objects stay here and are invoked by
+reference. Nothing in this module is imported by the Kova process itself.
 
 stdin/stdout carry the protocol, so the real file descriptors are duplicated for the channel and
 fd 0/1 are pointed at /dev/null and stderr before any plugin code runs: a stray ``print()`` in a
@@ -45,7 +45,7 @@ _EXECUTING_PLUGIN: contextvars.ContextVar[tuple[str, Optional[int]]] = contextva
 
 
 class RemoteRegistration:
-    """Child-side twin of ``PluginRegistration``: ``dispose()`` releases the Hermes-side entry."""
+    """Child-side twin of ``PluginRegistration``: ``dispose()`` releases the Kova-side entry."""
 
     def __init__(self, runtime: HostRuntime, handle_id: int, kind: str, key: str):
         self._runtime, self._id, self.kind, self.key = runtime, handle_id, kind, key
@@ -63,11 +63,11 @@ class RemoteRegistration:
 
 
 class RemoteFacade:
-    """``ctx.state`` / ``ctx.llm`` / ...: every method call runs on the Hermes-side facade."""
+    """``ctx.state`` / ``ctx.llm`` / ...: every method call runs on the Kova-side facade."""
 
     def __init__(self, runtime: HostRuntime, plugin_key: str, name: str):
         self._runtime, self._plugin_key, self._name = runtime, plugin_key, name
-        self._methods: dict[str, bool] = {}  # method name -> is a coroutine function in Hermes
+        self._methods: dict[str, bool] = {}  # method name -> is a coroutine function in Kova
 
     def __getattr__(self, attr: str) -> Any:
         if attr.startswith("_"):
@@ -90,7 +90,7 @@ class RemoteFacade:
 
 class RemotePluginContext:
     """What ``register(ctx)`` receives inside the host. Mirrors ``PluginContext``'s public surface as
-    announced by Hermes at load, so ``hasattr(ctx, "register_x")`` answers the same as in-process."""
+    announced by Kova at load, so ``hasattr(ctx, "register_x")`` answers the same as in-process."""
 
     def __init__(self, runtime: HostRuntime, plugin_key: str, info: dict[str, Any]):
         self._runtime, self._plugin_key = runtime, plugin_key
@@ -141,7 +141,7 @@ class HostRuntime:
         self._lock = threading.Lock()
         self.unload_callbacks: dict[str, list[Callable[[], Any]]] = {}
         self.modules: dict[str, str] = {}
-        self.loads: dict[str, Optional[int]] = {}  # plugin_key -> its current load, as Hermes numbered it
+        self.loads: dict[str, Optional[int]] = {}  # plugin_key -> its current load, as Kova numbered it
         self.asgi_apps: dict[str, Any] = {}
         self.profiles: dict[str, dict[str, Any]] = {}
         self.instance_modules: dict[str, Any] = {}
@@ -188,7 +188,7 @@ class HostRuntime:
                 methods[name] = {"async": is_async_callable(value), "sig": describe_signature(value)}
             else:
                 # Class-level defaults too: an engine that sets ``context_length`` only later in
-                # ``update_model()`` must not read as the base-class default forever in Hermes.
+                # ``update_model()`` must not read as the base-class default forever in Kova.
                 live.append(name)
         return {"__object__": self._remember(plugin_key, obj), "methods": methods, "live": live,
                 "type": type(obj).__name__}
@@ -280,9 +280,9 @@ class HostRuntime:
     def op_load_instance(self, params: dict[str, Any]) -> Any:
         """Category plugins (memory provider, context engine, cron scheduler): import the directory,
         run ``register(ctx)`` capturing the one ``capture`` registration, else instantiate the first
-        subclass of ``base``. Other registrations reach Hermes only when it bound a ctx for them."""
+        subclass of ``base``. Other registrations reach Kova only when it bound a ctx for them."""
         plugin_key = str(params["plugin_key"])
-        # Hermes asks for a fresh instance many times (agent cache, doctor, dashboard); like the
+        # Kova asks for a fresh instance many times (agent cache, doctor, dashboard); like the
         # in-process loader, the module body runs once per host and only the instance is new.
         module = self.instance_modules.get(str(params["path"]))
         if module is None:
@@ -377,7 +377,7 @@ class HostRuntime:
             raise AttributeError(method)
         args, kwargs = self._decode_args(params)
         base = _provider_base(obj)
-        if base is not None:  # the ABC's annotations say what Hermes passed (``home_path: Path``)
+        if base is not None:  # the ABC's annotations say what Kova passed (``home_path: Path``)
             args, kwargs = restore_arguments(declared_member(base, method), args, kwargs)
         return self._encode_result(self.owners.get(ref, ""), self._run(getattr(obj, method)(*args, **kwargs)))
 
@@ -391,7 +391,7 @@ class HostRuntime:
         return self._encode_result(self.owners.get(int(params["ref"]), ""), getattr(obj, name))
 
     def op_release(self, params: dict[str, Any]) -> None:
-        """Drop objects whose Hermes-side proxies were garbage-collected."""
+        """Drop objects whose Kova-side proxies were garbage-collected."""
         with self._lock:
             for ref in params.get("refs") or ():
                 self.refs.pop(int(ref), None)
@@ -452,7 +452,7 @@ _HANDLERS: dict[str, Callable[[HostRuntime, dict[str, Any]], Any]] = {
 
 class _CapturingContext(RemotePluginContext):
     """``register(ctx)`` for a category plugin: the category's own registration is kept here; the rest
-    forward to Hermes when it bound a context (memory providers), else are no-ops."""
+    forward to Kova when it bound a context (memory providers), else are no-ops."""
 
     def __init__(self, runtime: HostRuntime, plugin_key: str, info: dict[str, Any], capture: str,
                  base: type, captured: list[Any], *, forward: bool):
@@ -499,7 +499,7 @@ async def _on_behalf_of(awaitable: Any, origin: Optional[int]) -> Any:
 
 
 def _import_plugin(params: dict[str, Any]) -> Any:
-    """Import a directory plugin under the module name Hermes assigned, or resolve an entry point."""
+    """Import a directory plugin under the module name Kova assigned, or resolve an entry point."""
     if params.get("entrypoint"):
         for ep in importlib.metadata.entry_points().select(group=_ENTRY_POINTS_GROUP):
             if ep.name == params.get("name"):
@@ -621,7 +621,7 @@ def extract_profiles_main(path: str, module_name: str) -> int:
 def main() -> int:
     reader, writer = _take_protocol_streams()
     import kova_bootstrap
-    logging.basicConfig(stream=sys.stderr, level=os.environ.get("HERMES_PLUGIN_HOST_LOG_LEVEL", "WARNING"),
+    logging.basicConfig(stream=sys.stderr, level=os.environ.get("KOVA_PLUGIN_HOST_LOG_LEVEL", "WARNING"),
                         format="%(levelname)s %(name)s: %(message)s")
     runtime = HostRuntime(reader, writer)
     from kova_cli import plugin_events
@@ -636,5 +636,5 @@ if __name__ == "__main__":
     code = (extract_profiles_main(sys.argv[2], sys.argv[3]) if sys.argv[1:2] == ["--extract-profiles"]
             else main())
     sys.stderr.flush()
-    # A plugin thread stuck in a handler must not keep the host alive once Hermes has gone.
+    # A plugin thread stuck in a handler must not keep the host alive once Kova has gone.
     os._exit(code)

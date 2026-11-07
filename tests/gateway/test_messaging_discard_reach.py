@@ -35,13 +35,13 @@ async def test_discard_after_resume_into_a_cold_conversation_resolves_its_lost_t
     from gateway.run_runtime import recover_profile_native_sessions
     from gateway.session_authority import initialize_session_authority
     from gateway.session_ingress_context import native_callback, register_transport_home
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state_runtime import claim_session_input, get_session_admission
     from tests.gateway.test_command_bypass_active_session import _StubAdapter
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setenv('TELEGRAM_ALLOWED_USERS', '42')
-    monkeypatch.setattr('gateway.run._hermes_home', tmp_path)
+    monkeypatch.setattr('gateway.run._kova_home', tmp_path)
     monkeypatch.setattr('kova_state.DEFAULT_DB_PATH', tmp_path / 'state.db')  # conftest repoints it per test
     runner = GatewayRunner(GatewayConfig(multiplex_profiles=False, sessions_dir=tmp_path / 'sessions'))
     adapter = _StubAdapter(PlatformConfig(enabled=True, token='fixture', typing_indicator=False), Platform.TELEGRAM)
@@ -62,7 +62,7 @@ async def test_discard_after_resume_into_a_cold_conversation_resolves_its_lost_t
     first.db.append_message(previous, 'user', 'older conversation')
     runner.session_store.get_or_create_session(source, force_new=True)
     head = MessageEvent(text='lost human input', source=source, message_id='head')
-    with native_callback(runner, head, get_hermes_home()):
+    with native_callback(runner, head, get_kova_home()):
         receipt = await first.admit_native(head)
     sid = receipt.ref.session_id
     claimed = claim_session_input(first.db, epoch=first.epoch, session_id=sid)

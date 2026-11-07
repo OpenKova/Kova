@@ -38,7 +38,7 @@ it('no store module evaluates before the machine store hydrated, so its next wri
     write: payload => writeUiPreferences(file, parseUiPreferencesWrite(payload))
   }
 
-  window.hermesDesktop = { uiPreferences: bridge } as unknown as typeof window.hermesDesktop
+  window.kovaDesktop = { uiPreferences: bridge } as unknown as typeof window.kovaDesktop
 
   const favorites = await bootRenderer(() => import('@/store/favorite-models'))
   const stop = startUiPreferencesSync(bridge)

@@ -38,7 +38,7 @@ def test_held_turns_show_only_the_rewritten_final(hold, turn):
     from kova_cli import plugins
     from run_agent import AIAgent
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     with FakeLLMServer(TURNS[turn]()) as srv:
         redactor_home(home, srv.base_url, hold=hold)
         plugins._reset_plugin_managers_for_tests()
@@ -61,13 +61,13 @@ def test_held_turns_show_only_the_rewritten_final(hold, turn):
 
 
 def test_a_held_guardrail_halt_reply_is_not_streamed_ahead_of_the_rewrite():
-    """A turn the tool-loop guardrail halts ends with Hermes' halt explanation, pushed straight to
+    """A turn the tool-loop guardrail halts ends with Kova' halt explanation, pushed straight to
     the display callback so SSE/TUI clients see why the agent stopped. Held, it arrives only as the
     final (after ``transform_llm_output``), never as a stream delta first."""
     from kova_cli import plugins
     from run_agent import AIAgent
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     failing = ToolCall("read_file", {"path": str(home / "missing" / "SECRET-9.txt")})
     with FakeLLMServer([failing] * 6 + [Text(RAW)]) as srv:
         redactor_home(home, srv.base_url, hold=True)

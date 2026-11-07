@@ -26,7 +26,7 @@ def build_skills_parser(subparsers, *, cmd_skills: Callable) -> None:
     skills_subparsers = skills_parser.add_subparsers(dest="skills_action")
 
     skills_trust = skills_subparsers.add_parser("trust",
-        help="Trust a project so its repo-local skills (./.hermes/skills, ./.agents/skills) load")
+        help="Trust a project so its repo-local skills (./.kova/skills, ./.agents/skills) load")
     skills_trust.add_argument("path", nargs="?", default=None,
         help="Project root to trust (default: enclosing git checkout of cwd)")
 
@@ -93,7 +93,7 @@ def build_skills_parser(subparsers, *, cmd_skills: Callable) -> None:
 
     skills_reset = skills_subparsers.add_parser("reset",
         help="Reset a bundled skill — clears 'user-modified' tracking so updates work again",
-        description="Clear a bundled skill's entry from the sync manifest (~/.hermes/skills/.bundled_manifest) "
+        description="Clear a bundled skill's entry from the sync manifest (~/.kova/skills/.bundled_manifest) "
             "so future 'hermes update' runs stop marking it as user-modified. Pass --restore to also "
             "replace the current copy with the bundled version.")
     skills_reset.add_argument("name", help="Skill name to reset (e.g. google-workspace)")

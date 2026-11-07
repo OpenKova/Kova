@@ -1,7 +1,7 @@
 """Tests for kova_bootstrap — Windows UTF-8 stdio shim.
 
-The bootstrap module is imported at the top of every Hermes entry point
-(hermes, hermes-agent, hermes-acp, gateway, batch_runner, cli.py).  It
+The bootstrap module is imported at the top of every Kova entry point
+(hermes, kova-agent, hermes-acp, gateway, batch_runner, cli.py).  It
 fixes Python's Windows UTF-8 defaults so print("café") doesn't crash and
 subprocess children inherit UTF-8 mode.
 
@@ -12,7 +12,7 @@ Key invariants covered by these tests:
   3. Idempotent: safe to call multiple times
   4. Respects user opt-out: if the user explicitly sets PYTHONUTF8=0 or
      PYTHONIOENCODING=something-else, we leave those alone
-  5. Load order: every Hermes entry point imports kova_bootstrap as its
+  5. Load order: every Kova entry point imports kova_bootstrap as its
      first non-docstring import (before anything that might do file I/O
      or print to stdout)
 """
@@ -61,7 +61,7 @@ class TestWindowsBehavior:
 
     @pytest.mark.platforms("windows")
     def test_stdout_reconfigured_to_utf8_on_windows(self):
-        # The live process's stdout should now be UTF-8 (the Hermes CLI
+        # The live process's stdout should now be UTF-8 (the Kova CLI
         # runs on Windows with a pytest console that's cp1252 by default).
         # If reconfigure succeeded, sys.stdout.encoding is 'utf-8'.
         _fresh_import()
@@ -224,7 +224,7 @@ else:
     raise AssertionError('entrypoint never reached the application import boundary')
 """
     result = subprocess.run([sys.executable, "-I", "-S", "-c", program, str(root), str(entry)],
-                            cwd=tmp_path, env={**os.environ, "HERMES_HOME": str(tmp_path / "home")},
+                            cwd=tmp_path, env={**os.environ, "KOVA_HOME": str(tmp_path / "home")},
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "bootstrap-before-app"
@@ -236,7 +236,7 @@ else:
 def test_library_imports_of_dual_use_entry_modules_stay_side_effect_free(tmp_path):
     # The codex hermes-tools MCP server and the compute host are ``python -m`` entry points
     # that agent/gateway code and tests also import; there the bootstrap exported TMPDIR and
-    # HERMES_SCRATCH_DIR into every importer (gateway.relay's read-only routing included).
+    # KOVA_SCRATCH_DIR into every importer (gateway.relay's read-only routing included).
     code = textwrap.dedent("""
         import json, os, sys
         before = dict(os.environ)
@@ -247,7 +247,7 @@ def test_library_imports_of_dual_use_entry_modules_stay_side_effect_free(tmp_pat
     repo = Path(__file__).resolve().parents[1]
     env = {k: os.environ[k] for k in ("PATH", "SYSTEMROOT", "WINDIR") if k in os.environ}
     env.update({"HOME": str(tmp_path), "USERPROFILE": str(tmp_path), "PYTHONPATH": str(repo),
-                "HERMES_HOME": str(tmp_path / "home"), "PYTHONDONTWRITEBYTECODE": "1"})
+                "KOVA_HOME": str(tmp_path / "home"), "PYTHONDONTWRITEBYTECODE": "1"})
     child = subprocess.run([sys.executable, "-c", code], cwd=str(tmp_path), env=env,
                            capture_output=True, text=True, timeout=120, check=False)
     assert child.returncode == 0, child.stderr
@@ -284,7 +284,7 @@ assert kova_bootstrap._pm_repair is True
 print('reached-pm')
 """
     result = subprocess.run([sys.executable, "-I", "-S", "-c", program, str(root)],
-                            cwd=tmp_path, env={**os.environ, "HERMES_HOME": str(tmp_path / "home")},
+                            cwd=tmp_path, env={**os.environ, "KOVA_HOME": str(tmp_path / "home")},
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "reached-pm"
@@ -338,27 +338,27 @@ except ModuleNotFoundError as exc:
 
 class TestHardenImportPath:
     """harden_import_path() must keep a same-named package in the launch
-    directory from shadowing Hermes's own top-level modules — covering both
+    directory from shadowing Kova's own top-level modules — covering both
     the relative ('' / '.') and absolute-path forms the cwd can take on
     sys.path (issue #51286)."""
 
     def _run(self, hb, path_seed, env=None):
         original = sys.path[:]
-        original_env = os.environ.get("HERMES_PYTHON_SRC_ROOT")
+        original_env = os.environ.get("KOVA_PYTHON_SRC_ROOT")
         try:
             sys.path[:] = path_seed
             if env is not None:
-                os.environ["HERMES_PYTHON_SRC_ROOT"] = env
-            elif "HERMES_PYTHON_SRC_ROOT" in os.environ:
-                del os.environ["HERMES_PYTHON_SRC_ROOT"]
+                os.environ["KOVA_PYTHON_SRC_ROOT"] = env
+            elif "KOVA_PYTHON_SRC_ROOT" in os.environ:
+                del os.environ["KOVA_PYTHON_SRC_ROOT"]
             hb.harden_import_path(src_root="/opt/hermes")
             return sys.path[:]
         finally:
             sys.path[:] = original
             if original_env is None:
-                os.environ.pop("HERMES_PYTHON_SRC_ROOT", None)
+                os.environ.pop("KOVA_PYTHON_SRC_ROOT", None)
             else:
-                os.environ["HERMES_PYTHON_SRC_ROOT"] = original_env
+                os.environ["KOVA_PYTHON_SRC_ROOT"] = original_env
 
     def test_relative_cwd_forms_removed(self):
         hb = _fresh_import()
@@ -374,35 +374,35 @@ class TestHardenImportPath:
     def test_absolute_cwd_path_loses_to_src_root(self):
         # The real #51286 bug: the launch dir is present as its own absolute
         # path (venv activation / a project on PYTHONPATH), ahead of the
-        # Hermes root.  The guard must relocate Hermes to the front.
+        # Kova root.  The guard must relocate Kova to the front.
         hb = _fresh_import()
         result = self._run(hb, ["/home/user/tg-ws-proxy", "/opt/hermes"])
         assert result[0] == "/opt/hermes"
         # The cwd absolute path may still appear (it can hold legit deps),
-        # but only AFTER the Hermes root.
+        # but only AFTER the Kova root.
         assert result.index("/opt/hermes") < result.index("/home/user/tg-ws-proxy")
 
 
     def test_env_var_used_when_no_arg(self):
         hb = _fresh_import()
         original = sys.path[:]
-        original_env = os.environ.get("HERMES_PYTHON_SRC_ROOT")
+        original_env = os.environ.get("KOVA_PYTHON_SRC_ROOT")
         try:
             sys.path[:] = ["", "/cwd/proj", "/usr/lib"]
-            os.environ["HERMES_PYTHON_SRC_ROOT"] = "/env/hermes"
+            os.environ["KOVA_PYTHON_SRC_ROOT"] = "/env/hermes"
             hb.harden_import_path()
             assert sys.path[0] == "/env/hermes"
         finally:
             sys.path[:] = original
             if original_env is None:
-                os.environ.pop("HERMES_PYTHON_SRC_ROOT", None)
+                os.environ.pop("KOVA_PYTHON_SRC_ROOT", None)
             else:
-                os.environ["HERMES_PYTHON_SRC_ROOT"] = original_env
+                os.environ["KOVA_PYTHON_SRC_ROOT"] = original_env
 
 
 
 class TestEnableWindowsVt:
-    """Hermes prints raw SGR codes; a conhost console renders them only with VT on."""
+    """Kova prints raw SGR codes; a conhost console renders them only with VT on."""
 
     @pytest.mark.platforms("windows")
     def test_turns_vt_on_for_a_console_that_has_it_off(self):
@@ -436,7 +436,7 @@ class TestEnableWindowsVt:
 
     @pytest.mark.platforms("windows")
     def test_leaves_non_console_handles_and_colour_alone(self, tmp_path, monkeypatch):
-        # Redirected output must neither fail nor flip Hermes to NO_COLOR.
+        # Redirected output must neither fail nor flip Kova to NO_COLOR.
         monkeypatch.delenv("NO_COLOR", raising=False)
         import kova_bootstrap
 
@@ -611,14 +611,14 @@ class TestNeverFreeEnviron:
             seen, junk = {}, []
             for i in range(80):
                 seen.setdefault(environ.value, snapshot(environ.value))
-                os.environ[f"HERMES_ENVIRON_PROBE_{i}"] = "1"
+                os.environ[f"KOVA_ENVIRON_PROBE_{i}"] = "1"
                 junk.append(os.urandom(40))  # interleave heap chunks so a realloc must move
             assert len(seen) > 1, "environ never moved; the probe proves nothing"
             # Compare raw words only: dereferencing a freed slot would crash the probe itself.
             for addr, entries in seen.items():
                 words = ctypes.cast(addr, ctypes.POINTER(ctypes.c_void_p))
                 assert [words[i] for i in range(len(entries))] == entries, "a superseded environ array was freed"
-            assert os.environ["HERMES_ENVIRON_PROBE_79"] == "1"
+            assert os.environ["KOVA_ENVIRON_PROBE_79"] == "1"
         """)], check=True, cwd=str(Path(__file__).resolve().parents[1]), timeout=60)
 
     def test_concurrent_writers_lose_no_name_in_the_c_environ(self):
@@ -628,7 +628,7 @@ class TestNeverFreeEnviron:
             getenv = ctypes.CDLL(None).getenv
             getenv.restype, getenv.argtypes = ctypes.c_char_p, [ctypes.c_char_p]
             sys.setswitchinterval(1e-6)
-            batches = [[f"HERMES_ENVIRON_RACE_{t}_{i}" for i in range(200)] for t in range(8)]
+            batches = [[f"KOVA_ENVIRON_RACE_{t}_{i}" for i in range(200)] for t in range(8)]
             barrier = threading.Barrier(len(batches))
             def write(batch):
                 barrier.wait()
@@ -647,9 +647,9 @@ class TestNeverFreeEnviron:
             def churn(cycles):
                 for _ in range(cycles):
                     for k in range(4):
-                        os.environ[f"HERMES_ENVIRON_CHURN_{k}"] = "1"
+                        os.environ[f"KOVA_ENVIRON_CHURN_{k}"] = "1"
                     for k in range(4):
-                        del os.environ[f"HERMES_ENVIRON_CHURN_{k}"]
+                        del os.environ[f"KOVA_ENVIRON_CHURN_{k}"]
             churn(50)
             tracemalloc.start()
             before = tracemalloc.get_traced_memory()[0]

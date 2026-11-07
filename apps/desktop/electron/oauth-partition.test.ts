@@ -301,7 +301,7 @@ describe('resolveOauthPartition with connectionId (pre-save sign-in identity)', 
   it('keeps a pending cloud draft on the legacy shared jar (portal cascade)', () => {
     const reg = registry('local', [{ id: 'local', kind: 'local' }])
 
-    const got = resolveOauthPartition('https://team.hermes.cloud', {
+    const got = resolveOauthPartition('https://team.kova.cloud', {
       registry: reg,
       connectionId: 'team-cloud',
       pendingAuthMode: 'oauth',

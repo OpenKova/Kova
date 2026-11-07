@@ -5,7 +5,7 @@
 
 import { randomUuid } from '@kova/shared'
 
-export const CANONICAL_GATEWAY_PROTOCOL = 'hermes-gateway-v1'
+export const CANONICAL_GATEWAY_PROTOCOL = 'kova-gateway-v1'
 
 /** Dial `/api/ws` or a sibling stream beside it. A local gateway's one-use ticket leaves the URL
  *  for the gateway subprotocol; a remote route keeps its own query credential. */
@@ -18,7 +18,7 @@ export function openGatewaySocket(url: string): WebSocket {
   if (!ticket) {throw new Error('Native gateway requires a fresh private ticket')}
   parsed.searchParams.delete('ticket')
 
-  return new WebSocket(parsed.toString(), [CANONICAL_GATEWAY_PROTOCOL, `hermes-gateway-ticket.${ticket}`])
+  return new WebSocket(parsed.toString(), [CANONICAL_GATEWAY_PROTOCOL, `kova-gateway-ticket.${ticket}`])
 }
 
 export const canonicalProfile = (profile: unknown): string =>

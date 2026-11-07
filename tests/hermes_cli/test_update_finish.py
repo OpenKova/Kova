@@ -36,8 +36,8 @@ def completion(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "store"))
+    monkeypatch.setenv("KOVA_HOME", str(home / ".kova"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "store"))
     source = tmp_path / "selected source"
     source.mkdir()
     # Copies give bootstrap/main a genuine selected checkout identity. No file
@@ -77,12 +77,12 @@ def completion(tmp_path, monkeypatch):
     _put(site, "selected_dependency.py", "VALUE = 'selected generation'\n")
     _put(runtime_facts_path(source).parent, "facts.json", json.dumps({
         "packages": {"venv": {"environment": str(generation)}}}))
-    _put(home / ".hermes", "config.yaml",
+    _put(home / ".kova", "config.yaml",
          f"_config_version: {DEFAULT_CONFIG['_config_version'] - 1}\nmodel:\n  default: retained-model\n")
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "PYTEST_", "VIRTUAL_ENV", "npm_", "NPM_", "pnpm_", "PNPM_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"),
-               HERMES_RUNTIME_DIR=str(tmp_path / "store"),
+           if not key.startswith(("KOVA_", "PYTHON", "PYTEST_", "VIRTUAL_ENV", "npm_", "NPM_", "pnpm_", "PNPM_"))}
+    env.update(HOME=str(home), KOVA_HOME=str(home / ".kova"),
+               KOVA_RUNTIME_DIR=str(tmp_path / "store"),
                PYTHONPATH="/obsolete/pre-pm/site-packages", PYTHONHOME="/obsolete/python",
                pnpm_config_offline="true")
     probe = subprocess.run([str(python), "-I", "-c",
@@ -170,10 +170,10 @@ def completion(tmp_path, monkeypatch):
                         assert name == 'pnpm' and explicit and not verify
                         assert shutil.which('node', path=base_env['PATH'])
                         assert shutil.which('pnpm', path=base_env['PATH'])
-                        assert base_env['HERMES_PYTHON'] == str(project_python(root))
-                        assert base_env['PYTHON'] == base_env['HERMES_PYTHON']
+                        assert base_env['KOVA_PYTHON'] == str(project_python(root))
+                        assert base_env['PYTHON'] == base_env['KOVA_PYTHON']
                         (root / 'build-environment.json').write_text(json.dumps({
-                            'python': base_env['HERMES_PYTHON'], 'selected': selected_dependency.__file__,
+                            'python': base_env['KOVA_PYTHON'], 'selected': selected_dependency.__file__,
                             'argv': sys.argv, 'old_module': 'pre_pm_only' in sys.modules,
                             'pid': os.getpid(), 'parent': os.getppid(),
                         }))
@@ -235,7 +235,7 @@ def completion(tmp_path, monkeypatch):
                         from kova_cli import update_cmd_windows
                         def scm(token):
                             if token and token.get('resume_needed'):
-                                raise RuntimeError('Could not restart Windows gateway service(s): HermesGatewayProbe')
+                                raise RuntimeError('Could not restart Windows gateway service(s): KovaGatewayProbe')
                         module._resume_windows_gateways_after_update = scm
                         update_cmd_windows._resume_windows_gateways_after_update = scm
                 spec.loader.exec_module = execute
@@ -247,7 +247,7 @@ def completion(tmp_path, monkeypatch):
     def run(fault=""):
         return subprocess.run([str(python), "-I", "-B", str(runner), str(context), str(result), fault],
                               cwd=tmp_path, env=env, capture_output=True, text=True, timeout=90, check=False)
-    return source, home / ".hermes", request, context, result, run
+    return source, home / ".kova", request, context, result, run
 
 
 @pytest.mark.platforms("posix")
@@ -299,8 +299,8 @@ def test_refused_gateway_resume_after_commit_is_a_followup_not_exit_1(completion
     # file (the fixture's placeholder falls back to the clock and can split them across a second).
     request["receipt"]["started_at"] = "2026-10-04T12:00:00+00:00"
     request["windows_resume"] = {"resume_needed": True, "profiles": {}, "unmapped": [],
-                                 "services": ["HermesGatewayProbe"],
-                                 "service_profiles": {"HermesGatewayProbe": "default"}}
+                                 "services": ["KovaGatewayProbe"],
+                                 "service_profiles": {"KovaGatewayProbe": "default"}}
     context.write_text(json.dumps(request), encoding="utf-8")
     child = run("scm")
     assert child.returncode == 0, child.stdout + child.stderr
@@ -362,7 +362,7 @@ def test_missing_desktop_observation_uses_installed_products(completion, capture
     if installed == "renderer":
         _put(source, "apps/desktop/dist/index.html", "old renderer")
     elif installed == "packaged":
-        executable = ("mac-arm64/Hermes.app/Contents/MacOS/Hermes" if sys.platform == "darwin"
+        executable = ("mac-arm64/Kova.app/Contents/MacOS/Kova" if sys.platform == "darwin"
                       else "linux-unpacked/hermes")
         _put(source, f"apps/desktop/release/{executable}", "old packaged app")
     before = context.read_bytes()
@@ -414,7 +414,7 @@ def _pnpm_graph(source):
           symlinkSync(target, workspace + '/node_modules/' + name, 'dir');
         }}
         // A real pnpm lifecycle child, not an assertion about a constructed env.
-        writeFileSync('lifecycle-python.json', execFileSync(process.env.HERMES_PYTHON,
+        writeFileSync('lifecycle-python.json', execFileSync(process.env.KOVA_PYTHON,
           ['-I', '-c', 'import json, os, sys, selected_dependency; print(json.dumps(dict(python=sys.executable, configured=os.environ["PYTHON"])))']));
     '''))
     _put(source, "packages/value/index.js", "export const value = 'compiled local graph';\n")
@@ -453,7 +453,7 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     assert built.stdout.strip() == "compiled local graph"
     assert (source / "kova_cli/web_dist/index.html").is_file()
     assert any("compiled local graph" in p.read_text() for p in (source / "kova_cli/web_dist/assets").glob("*.js"))
-    assert (source / "node_modules/.hermes-node-deps").is_file()
+    assert (source / "node_modules/.kova-node-deps").is_file()
     environment = json.loads((source / "build-environment.json").read_text())
     assert "repairing the recorded dependency environment" not in child.stderr
     lifecycle_python = json.loads((source / "lifecycle-python.json").read_text())

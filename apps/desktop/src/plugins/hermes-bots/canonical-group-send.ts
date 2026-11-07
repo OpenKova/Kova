@@ -30,7 +30,7 @@ function journalKey(binding: CanonicalGroupBinding): string {
 }
 
 async function readJournal(): Promise<Record<string, PreparedCanonicalGroupSend>> {
-  const native = window.hermesDesktop?.preparedSubmissions
+  const native = window.kovaDesktop?.preparedSubmissions
 
   const parsed: unknown = JSON.parse(native
     ? await native.read()
@@ -51,13 +51,13 @@ async function compareAndSet(
   expected: string | null,
   entry: string | null
 ): Promise<{ applied: boolean; current: string | null }> {
-  const native = window.hermesDesktop?.preparedSubmissions
+  const native = window.kovaDesktop?.preparedSubmissions
 
   // Await private atomic-file publication before the caller may send. Never
   // downgrade a native write failure to Chromium's deferred localStorage.
   if (native) {
     // An older preload has no atomic op: refuse rather than fall back to a racy read-then-write.
-    if (!native.compareAndSet) {throw new Error('Group Send needs an updated Desktop; restart Hermes Desktop')}
+    if (!native.compareAndSet) {throw new Error('Group Send needs an updated Desktop; restart Kova Desktop')}
 
     return native.compareAndSet(key, expected, entry)
   }

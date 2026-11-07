@@ -50,14 +50,14 @@ def _show_model_section(config: dict[str, Any]) -> None:
     print(f"  Model:        {_cfg.redact_config_value(config.get('model', 'not set'))}")
     cfg_max_turns = config.get('agent', {}).get('max_turns', _cfg.DEFAULT_CONFIG['agent']['max_turns'])
     print(f"  Max turns:    {cfg_max_turns}")
-    # Read the .env FILE directly so a stale HERMES_MAX_ITERATIONS ghost is caught even when the
+    # Read the .env FILE directly so a stale KOVA_MAX_ITERATIONS ghost is caught even when the
     # gateway bridge already overrode os.environ.
     try:
-        env_ghost = _cfg.load_env().get("HERMES_MAX_ITERATIONS")
+        env_ghost = _cfg.load_env().get("KOVA_MAX_ITERATIONS")
     except Exception:
         env_ghost = None
     if env_ghost is not None and str(env_ghost).strip() != str(cfg_max_turns).strip():
-        print(color(f"                ⚠ .env has stale HERMES_MAX_ITERATIONS={env_ghost} "
+        print(color(f"                ⚠ .env has stale KOVA_MAX_ITERATIONS={env_ghost} "
                     f"(run 'hermes doctor --fix' to remove)", Colors.YELLOW))
 
 
@@ -169,7 +169,7 @@ def show_config():
 
     print()
     print(color("┌─────────────────────────────────────────────────────────┐", Colors.CYAN))
-    print(color("│              ☤ Hermes Configuration                    │", Colors.CYAN))
+    print(color("│              ☤ Kova Configuration                    │", Colors.CYAN))
     print(color("└─────────────────────────────────────────────────────────┘", Colors.CYAN))
     _show_managed_banner()
 

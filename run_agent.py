@@ -15,7 +15,7 @@ except ModuleNotFoundError as exc:  # partial `hermes update` left the bootstrap
 
 import sys
 
-# `hermes-agent` runs this module without kova_cli.main, which repairs a `hermes update` killed
+# `kova-agent` runs this module without kova_cli.main, which repairs a `hermes update` killed
 # while git wrote the new tree; do it here, before importing anything else from the checkout.
 if "kova_cli.main" not in sys.modules:
     from kova_cli import _early_recovery
@@ -37,7 +37,7 @@ from datetime import datetime
 from pathlib import Path
 
 from agent.session_source import CLI_FAMILY_SOURCES, session_source_for
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def _launch_cwd_for_session(source: str) -> Optional[str]:
@@ -92,8 +92,8 @@ from agent.iteration_budget import IterationBudget
 from kova_cli.env_loader import load_hermes_dotenv
 from kova_cli.timeouts import get_provider_request_timeout, get_provider_stale_timeout
 
-_hermes_home = get_hermes_home()  # read by agent_init via _ra()._hermes_home
-_loaded_env_paths = load_hermes_dotenv(hermes_home=_hermes_home, project_env=Path(__file__).parent / '.env')
+_kova_home = get_kova_home()  # read by agent_init via _ra()._kova_home
+_loaded_env_paths = load_hermes_dotenv(kova_home=_kova_home, project_env=Path(__file__).parent / '.env')
 for _env_path in _loaded_env_paths:
     logger.info("Loaded environment variables from %s", _env_path)
 if not _loaded_env_paths:
@@ -219,7 +219,7 @@ class AIAgent(
     """AI Agent with tool calling capabilities."""
 
     _TOOL_CALL_ARGUMENTS_CORRUPTION_MARKER = (
-        "[hermes-agent: tool call arguments were corrupted in this session and "
+        "[kova-agent: tool call arguments were corrupted in this session and "
         "have been dropped to keep the conversation alive. See issue #15236.]"
     )
 
@@ -532,13 +532,13 @@ class AIAgent(
 
     def _resolved_api_call_timeout(self) -> float:
         """Per-call request timeout: per-model ``timeout_seconds`` > provider ``request_timeout_seconds`` >
-        ``HERMES_API_TIMEOUT`` > 1800s."""
+        ``KOVA_API_TIMEOUT`` > 1800s."""
         cfg = get_provider_request_timeout(self.provider, self.model)
-        return cfg if cfg is not None else env_float("HERMES_API_TIMEOUT", 1800.0)
+        return cfg if cfg is not None else env_float("KOVA_API_TIMEOUT", 1800.0)
 
     def _resolved_api_call_stale_timeout_base(self) -> tuple[float, bool]:
         """Base non-stream stale timeout: per-model ``stale_timeout_seconds`` > provider-wide >
-        ``HERMES_API_CALL_STALE_TIMEOUT`` > reasoning floor > 90s.
+        ``KOVA_API_CALL_STALE_TIMEOUT`` > reasoning floor > 90s.
 
         Returns ``(seconds, uses_implicit_default)``; the implicit flag lets callers auto-disable the detector
         for local endpoints only when the user configured nothing.
@@ -546,7 +546,7 @@ class AIAgent(
         cfg = get_provider_stale_timeout(self.provider, self.model)
         if cfg is not None:
             return cfg, False
-        env_timeout = os.getenv("HERMES_API_CALL_STALE_TIMEOUT")
+        env_timeout = os.getenv("KOVA_API_CALL_STALE_TIMEOUT")
         if env_timeout is not None:
             return float(env_timeout), False
         # Reasoning-model floor (cloud gateways idle-kill mid-think); not "implicit" so the local-endpoint
@@ -586,7 +586,7 @@ class AIAgent(
         """True when the user explicitly configured the stale timeout (config or env var); implicit values
         (reasoning floors, the 90s default) yield to the run-budget cap, explicit ones never do."""
         return (get_provider_stale_timeout(self.provider, self.model) is not None
-                or os.getenv("HERMES_API_CALL_STALE_TIMEOUT") is not None)
+                or os.getenv("KOVA_API_CALL_STALE_TIMEOUT") is not None)
 
     def _codex_silent_hang_hint(self, model: Optional[str] = None) -> Optional[str]:
         """Actionable hint when the request matches a known Codex silent-reject shape (currently the ``gpt-5.5``
@@ -609,7 +609,7 @@ class AIAgent(
             "Workaround: try `gpt-5.4` on the same OAuth profile, "
             "or switch to a different model/provider in your fallback chain. "
             "Some ChatGPT Codex accounts do not support `gpt-5.4-codex`. "
-            "See hermes-agent#21444 for symptom history."
+            "See kova-agent#21444 for symptom history."
         )
 
     def _is_openrouter_url(self) -> bool:

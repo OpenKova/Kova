@@ -1,6 +1,6 @@
 """Real-process E2E: OAuth / device-code providers against a loopback vendor.
 
-Every cell drives the real ``python -m kova_cli.main`` in a hermetic HOME (fake HOME, HERMES_HOME
+Every cell drives the real ``python -m kova_cli.main`` in a hermetic HOME (fake HOME, KOVA_HOME
 under it, no real credentials) against ``tests.fakes.providers.catalog_oauth.OAuthFake`` — the
 vendor's OAuth authorization server and a bearer-checking inference server on 127.0.0.1. All other
 egress goes through the ``CatalogFake`` sentinel proxy, which refuses and records any non-loopback
@@ -61,10 +61,10 @@ _SECRET_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET", "_ACCESS_KEY")
 class Home:
     def __init__(self, root: Path, sentinel: CatalogFake, provider: str, model: str, base_url: str = "") -> None:
         self.home = root / "home"
-        self.hermes_home = self.home / ".hermes"
-        self.hermes_home.mkdir(parents=True)
+        self.kova_home = self.home / ".kova"
+        self.kova_home.mkdir(parents=True)
         self.sentinel = sentinel
-        (self.hermes_home / "config.yaml").write_text(
+        (self.kova_home / "config.yaml").write_text(
             f"model:\n  provider: {provider}\n  default: {model}\n"
             # The startup cost guard probes ``model.base_url``/models for pricing (credential-free),
             # else the provider's production host; point it at the fake so any production-host
@@ -75,7 +75,7 @@ class Home:
 
     @property
     def auth_path(self) -> Path:
-        return self.hermes_home / "auth.json"
+        return self.kova_home / "auth.json"
 
     def seed_auth(self, store: dict[str, Any]) -> None:
         self.auth_path.write_text(json.dumps(store, indent=2), encoding="utf-8")
@@ -87,15 +87,15 @@ class Home:
         env = {k: v for k, v in os.environ.items()
                if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_SUFFIXES)}
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "KOVA_HOME": str(self.kova_home), "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
-            "TMPDIR": str(self.home), "HERMES_SHARED_AUTH_DIR": str(self.home / "shared"),
+            "TMPDIR": str(self.home), "KOVA_SHARED_AUTH_DIR": str(self.home / "shared"),
             "CODEX_HOME": str(self.home / ".codex"),
             # Child HOME is the fixture home, so its state.db is tmp_path's (guard's documented escape).
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "KOVA_STATE_DB_GUARD_BYPASS": "1",
             # A turn boots the gateway; like every gateway harness, the hermetic run opts out of
             # lazy installs (PM downloads).
-            "HERMES_DISABLE_LAZY_INSTALLS": "1",
+            "KOVA_DISABLE_LAZY_INSTALLS": "1",
             **self.sentinel.proxy_env()})
         env.update(extra or {})
         return env

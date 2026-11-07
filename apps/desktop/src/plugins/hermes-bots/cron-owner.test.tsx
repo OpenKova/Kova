@@ -8,7 +8,7 @@
  * job cannot invalidate every other bot's list.
  */
 
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { queryClient } from '@hermes/plugin-sdk'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -16,7 +16,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const { request } = vi.hoisted(() => ({ request: vi.fn(async () => ({})) }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
 
   return { ...sdk, host: { ...sdk.host, request } }
 })

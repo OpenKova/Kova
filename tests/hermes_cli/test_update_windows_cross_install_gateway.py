@@ -26,14 +26,14 @@ def host_gateways(tmp_path):
     """``{name: pid}`` of one long-lived process per install on the host."""
     other = tmp_path / "other-user"
     installs = {
-        "own": {"HERMES_HOME": os.environ["HERMES_HOME"]},
-        "foreign": {"HERMES_HOME": str(other / ".hermes")},
-        # Another install at its platform default home: no HERMES_HOME in its environment.
+        "own": {"KOVA_HOME": os.environ["KOVA_HOME"]},
+        "foreign": {"KOVA_HOME": str(other / ".kova")},
+        # Another install at its platform default home: no KOVA_HOME in its environment.
         "foreign_default": {"HOME": str(other), "USERPROFILE": str(other),
                             "LOCALAPPDATA": str(other / "AppData" / "Local")},
     }
     base = {k: v for k, v in os.environ.items()
-            if k not in ("HERMES_HOME", "HOME", "USERPROFILE", "LOCALAPPDATA")}
+            if k not in ("KOVA_HOME", "HOME", "USERPROFILE", "LOCALAPPDATA")}
     procs = {
         name: subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"],
                                env={**base, **extra}, stdin=subprocess.DEVNULL)

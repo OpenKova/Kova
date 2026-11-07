@@ -23,10 +23,10 @@ def protected_home(tmp_path, monkeypatch):
     root.mkdir()
     (root / "file.txt").write_text("unchanged", encoding="utf-8")
     (root / "empty").mkdir()
-    monkeypatch.setattr(conftest, "_REAL_HERMES_ROOT_CANDIDATES", [root])
+    monkeypatch.setattr(conftest, "_REAL_KOVA_ROOT_CANDIDATES", [root])
     yield root
     # Restore access before tmp_path/pytest cleanup even when an assertion fails.
-    monkeypatch.setattr(conftest, "_REAL_HERMES_ROOT_CANDIDATES", [])
+    monkeypatch.setattr(conftest, "_REAL_KOVA_ROOT_CANDIDATES", [])
 
 
 def _open_close(path):
@@ -87,23 +87,23 @@ def test_rename_cannot_overwrite_a_protected_destination(protected_home, tmp_pat
 def test_installed_desktop_app_can_be_read_but_never_changed(tmp_path, monkeypatch):
     from tests import conftest
 
-    app = tmp_path / "Applications" / "Hermes.app"
+    app = tmp_path / "Applications" / "Kova.app"
     (app / "Contents").mkdir(parents=True)
     plist = app / "Contents" / "Info.plist"
     plist.write_text("unchanged", encoding="utf-8")
-    replacement = tmp_path / "Hermes.app.new"
+    replacement = tmp_path / "Kova.app.new"
     replacement.mkdir()
     changes = [lambda: shutil.rmtree(app), plist.unlink, lambda: replacement.replace(app),
                lambda: plist.write_text("clobbered", encoding="utf-8")]
     try:  # Windows without Developer Mode cannot create symlinks
         (tmp_path / "linked").symlink_to(app.parent, target_is_directory=True)
-        changes.append(lambda: shutil.rmtree(tmp_path / "linked" / "Hermes.app"))
+        changes.append(lambda: shutil.rmtree(tmp_path / "linked" / "Kova.app"))
     except OSError:
         pass
     monkeypatch.setattr(conftest, "_REAL_INSTALLED_GUI_APPS", [os.path.normcase(os.path.realpath(app))])
     assert plist.read_text(encoding="utf-8") == "unchanged"
     for change in changes:
-        with pytest.raises(pytest.fail.Exception, match="REAL installed Hermes desktop app"):
+        with pytest.raises(pytest.fail.Exception, match="REAL installed Kova desktop app"):
             change()
     assert plist.read_text(encoding="utf-8") == "unchanged"
 
@@ -187,8 +187,8 @@ def test_relative_path_metadata_exemption_tracks_working_directory(protected_hom
 
 
 def test_resolving_a_path_entry_under_the_home_is_command_lookup(protected_home, monkeypatch):
-    """Command resolution realpath()s a PATH entry under the home (``~/.hermes/tools/<tool>``)
-    to tell Hermes-managed bin dirs apart; that lstats the entry and each of its ancestors."""
+    """Command resolution realpath()s a PATH entry under the home (``~/.kova/tools/<tool>``)
+    to tell Kova-managed bin dirs apart; that lstats the entry and each of its ancestors."""
     from tests.home_io_guard import HomeIOGuard
 
     entry = protected_home / "tools" / "npm" / "bin"
@@ -204,7 +204,7 @@ def test_resolving_a_path_entry_under_the_home_is_command_lookup(protected_home,
 
 def test_checkout_inside_a_guarded_root_is_not_kova_state():
     """The default install checks the repo out INSIDE the home (install.sh:
-    INSTALL_DIR=$HERMES_HOME/hermes-agent): the checkout, its .venv and test
+    INSTALL_DIR=$KOVA_HOME/kova-agent): the checkout, its .venv and test
     data are exempt even when the guarded root contains them; siblings under
     that root are still refused."""
     from tests.home_io_guard import HomeIOGuard
@@ -223,7 +223,7 @@ def test_pm_generation_dir_around_the_running_venv_is_the_interpreter(tmp_path, 
     ``<venv>/../kova_cli/main.py`` (update_owning_install) and must not trip the guard."""
     from tests.home_io_guard import _pm_generation_dirs
 
-    generation = tmp_path / ".hermes" / "installs" / "0123456789abcdef" / kind / "gen-1"
+    generation = tmp_path / ".kova" / "installs" / "0123456789abcdef" / kind / "gen-1"
     venv = generation / "venv"
     venv.mkdir(parents=True)
     assert _pm_generation_dirs([venv]) == {generation.resolve()}
@@ -232,10 +232,10 @@ def test_pm_generation_dir_around_the_running_venv_is_the_interpreter(tmp_path, 
 
 
 def test_hermes_exported_scratch_tmp_is_not_the_test_temp_root(tmp_path):
-    """A Hermes-launched shell hands pytest TMPDIR=<home>/cache/scratch (tagged by
-    HERMES_SCRATCH_DIR). With that home guarded, honoring it would put the session
+    """A Kova-launched shell hands pytest TMPDIR=<home>/cache/scratch (tagged by
+    KOVA_SCRATCH_DIR). With that home guarded, honoring it would put the session
     sandbox, basetemp and every tempfile default inside the guarded root; the
-    conftest must drop Hermes' own export before anything allocates temp space."""
+    conftest must drop Kova' own export before anything allocates temp space."""
     home = tmp_path / "home"
     scratch = home / "cache" / "scratch"
     scratch.mkdir(parents=True)
@@ -251,8 +251,8 @@ def test_hermes_exported_scratch_tmp_is_not_the_test_temp_root(tmp_path):
                 assert not Path(made).resolve().is_relative_to(home)
         """), encoding="utf-8")
     env = {k: v for k, v in os.environ.items()
-           if k not in ("TMPDIR", "TMP", "TEMP", "HERMES_SCRATCH_DIR", "HERMES_TEST_SANDBOX_HOME")}
-    env.update(HERMES_HOME=str(home), TMPDIR=str(scratch), HERMES_SCRATCH_DIR=str(scratch))
+           if k not in ("TMPDIR", "TMP", "TEMP", "KOVA_SCRATCH_DIR", "KOVA_TEST_SANDBOX_HOME")}
+    env.update(KOVA_HOME=str(home), TMPDIR=str(scratch), KOVA_SCRATCH_DIR=str(scratch))
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "-p", "tests.conftest", "-p", "no:cacheprovider", "-q", str(probe)],
         cwd=PROJECT_ROOT, env=env, capture_output=True, text=True, timeout=120,

@@ -14,7 +14,7 @@ import types
 
 import pytest
 
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 
 
 def _make_preset_config() -> dict:
@@ -183,7 +183,7 @@ def test_slot_runtime_cache_expires_after_ttl(monkeypatch):
     assert calls["n"] == 1
 
     # Age the entry past the TTL and confirm re-resolution.
-    key = (hermes_home_key(), "openai", "gpt-5")
+    key = (kova_home_key(), "openai", "gpt-5")
     stamped_at, cached = moa._runtime_cache[key]
     moa._runtime_cache[key] = (
         stamped_at - moa._RUNTIME_CACHE_TTL_SECONDS - 1, cached
@@ -230,7 +230,7 @@ def _fake_response():
 
 def test_slot_runtime_cache_is_scoped_per_profile_home(monkeypatch, tmp_path):
     """Under a multiplex gateway two profiles can share (provider, model) with different
-    accounts; a cached api_key/base_url must never cross the per-turn HERMES_HOME override."""
+    accounts; a cached api_key/base_url must never cross the per-turn KOVA_HOME override."""
     import agent.moa_loop as moa
     import kova_constants
 
@@ -242,17 +242,17 @@ def test_slot_runtime_cache_is_scoped_per_profile_home(monkeypatch, tmp_path):
     monkeypatch.setattr(
         rt_mod, "resolve_runtime_provider",
         lambda **kw: {"provider": "openai", "model": "gpt-5",
-                      "api_key": f"key-{kova_constants.get_hermes_home().name}",
+                      "api_key": f"key-{kova_constants.get_kova_home().name}",
                       "base_url": "https://x", "api_mode": None})
 
     slot = {"provider": "openai", "model": "gpt-5"}
-    tok = kova_constants.set_hermes_home_override(str(a))
+    tok = kova_constants.set_kova_home_override(str(a))
     try:
         assert moa._slot_runtime(slot)["api_key"] == "key-a"
     finally:
-        kova_constants.reset_hermes_home_override(tok)
-    tok = kova_constants.set_hermes_home_override(str(b))
+        kova_constants.reset_kova_home_override(tok)
+    tok = kova_constants.set_kova_home_override(str(b))
     try:
         assert moa._slot_runtime(slot)["api_key"] == "key-b"
     finally:
-        kova_constants.reset_hermes_home_override(tok)
+        kova_constants.reset_kova_home_override(tok)

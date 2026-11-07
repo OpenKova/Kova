@@ -103,11 +103,11 @@ def activation_predicate(
 
     *yaml_cfg* is the loaded config.yaml layer (read from *home* when omitted), *platform_names*
     any already-merged platform keys (``GatewayConfig.platforms``). *home* defaults to the active
-    Hermes home.
+    Kova home.
     """
     if home is None:
-        from kova_constants import get_hermes_home
-        home = get_hermes_home()
+        from kova_constants import get_kova_home
+        home = get_kova_home()
     if yaml_cfg is None and home is not None:
         try:
             from gateway.config_loader import read_yaml_layers

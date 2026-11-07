@@ -26,8 +26,8 @@ from tools.environments.local import LocalEnvironment
 
 
 @pytest.fixture(autouse=True)
-def _isolate_hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+def _isolate_kova_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "logs").mkdir(exist_ok=True)
 
 

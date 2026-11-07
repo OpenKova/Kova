@@ -111,7 +111,7 @@ function writeSpent(key: string, id: string | undefined): void {
 // A journal, not an automatic outbox. Only an explicit retry may reuse an
 // uncertain admission. Read storage each time so a remount cannot lose it.
 async function readJournal(): Promise<Record<string, PreparedSubmission>> {
-  const native = window.hermesDesktop?.preparedSubmissions
+  const native = window.kovaDesktop?.preparedSubmissions
 
   const parsed: unknown = JSON.parse(native
     ? await native.read()
@@ -160,7 +160,7 @@ function clearSpent(key: string): void {
 }
 
 async function retireJournalEntry(key: string, id: string): Promise<void> {
-  const native = window.hermesDesktop?.preparedSubmissions
+  const native = window.kovaDesktop?.preparedSubmissions
 
   if (native) {
     await native.update(key, null)
@@ -302,7 +302,7 @@ export async function preparedSubmissionSlot(intent: string): Promise<string> {
 }
 
 export async function writePreparedSubmission(key: string, entry: PreparedSubmission): Promise<void> {
-  const native = window.hermesDesktop?.preparedSubmissions
+  const native = window.kovaDesktop?.preparedSubmissions
 
   if (native) {
     await native.update(key, JSON.stringify(entry))

@@ -26,7 +26,7 @@ def fleet(monkeypatch, tmp_path):
     _write_state(work_home, 200)  # pre-stamp gateway: no code identity
 
     import re
-    monkeypatch.setattr("kova_cli.profiles._get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr("kova_cli.profiles._get_default_kova_home", lambda: default_home)
     monkeypatch.setattr("kova_cli.profiles._get_profiles_root", lambda: default_home / "profiles")
     monkeypatch.setattr("kova_cli.profiles._PROFILE_ID_RE", re.compile(r"^[a-z0-9][a-z0-9_-]*$"), raising=False)
     monkeypatch.setattr("gateway.status._pid_exists", lambda pid: pid in (100, 200))
@@ -70,7 +70,7 @@ class TestCollectInventory:
         monkeypatch.setattr("kova_cli.config.detect_install_method", lambda *a, **k: "docker")
         monkeypatch.setattr(
             "kova_cli.config.recommended_update_command_for_method",
-            lambda m: "docker pull nousresearch/hermes-agent:latest",
+            lambda m: "docker pull nousresearch/kova-agent:latest",
         )
         plan = ui.collect_runtime_inventory()
         assert plan.install_method == "docker"
@@ -117,7 +117,7 @@ class TestCollectInventory:
         for target in (
             "kova_cli.config.detect_install_method",
             "kova_cli.version_info.get_code_identity",
-            "kova_cli.profiles._get_default_hermes_home",
+            "kova_cli.profiles._get_default_kova_home",
             "kova_cli.gateway._get_service_pids",
             "kova_cli.gateway.find_profile_gateway_processes",
         ):
@@ -142,7 +142,7 @@ class TestReceiptIntegration:
 
         home = tmp_path / "receipt_home"
         home.mkdir()
-        monkeypatch.setattr("kova_cli.config.get_hermes_home", lambda: home, raising=False)
+        monkeypatch.setattr("kova_cli.config.get_kova_home", lambda: home, raising=False)
         ur.begin_update_receipt()
         plan = ui.collect_runtime_inventory()
         ui.record_plan_in_receipt(plan)

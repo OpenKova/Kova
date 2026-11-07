@@ -100,7 +100,7 @@ class TestSeverityExtraction:
 
 
 class TestVenvDiscovery:
-    """Regression: source/PM installs carry hermes-agent 0.0.0, which matches every advisory."""
+    """Regression: source/PM installs carry kova-agent 0.0.0, which matches every advisory."""
 
     def _versions(self, monkeypatch, base_version):
         from kova_cli import version_info
@@ -144,7 +144,7 @@ class TestRunAudit:
         with patch.object(sa, "_osv_query_batch", side_effect=fake_batch), \
              patch.object(sa, "_osv_fetch_details", side_effect=fake_details):
             findings = sa.run_audit(
-                skip_venv=True, skip_plugins=False, skip_mcp=True, hermes_home=tmp_path
+                skip_venv=True, skip_plugins=False, skip_mcp=True, kova_home=tmp_path
             )
         assert len(findings) == 2
         # CRITICAL must come first
@@ -174,14 +174,14 @@ class TestExitCodes:
 
 
     def test_unknown_fail_on_value_exits_two(self, tmp_path: Path, monkeypatch, capsys):
-        monkeypatch.setattr(sa, "get_hermes_home", lambda: str(tmp_path))
+        monkeypatch.setattr(sa, "get_kova_home", lambda: str(tmp_path))
         code = sa.cmd_security_audit(self._build_args(fail_on="garbage"))
         assert code == 2
         err = capsys.readouterr().err
         assert "fail-on" in err.lower()
 
     def test_json_output_shape(self, tmp_path: Path, monkeypatch, capsys):
-        monkeypatch.setattr(sa, "get_hermes_home", lambda: str(tmp_path))
+        monkeypatch.setattr(sa, "get_kova_home", lambda: str(tmp_path))
         fake_comp = sa.Component(
             name="pkg", version="1.0", ecosystem="PyPI", source="venv"
         )

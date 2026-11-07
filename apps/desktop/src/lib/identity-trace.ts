@@ -27,5 +27,5 @@ export function traceIdentityChange(channel: string, key: string, value: string)
   }
 
   lastTraced.set(id, value)
-  window.hermesDesktop?.logLine?.(`[${channel} win=${windowTraceTag()}] ${key} ${value}`)
+  window.kovaDesktop?.logLine?.(`[${channel} win=${windowTraceTag()}] ${key} ${value}`)
 }

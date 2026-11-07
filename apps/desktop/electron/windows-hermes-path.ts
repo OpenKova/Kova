@@ -3,7 +3,7 @@
  *
  * Pure, dependency-injected pieces of Windows `hermes` resolution pulled out
  * of main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
- * unwrapWindowsVenvHermesCommand(). Each of the three functions here pins one
+ * unwrapWindowsVenvKovaCommand(). Each of the three functions here pins one
  * of the Windows resolution bugs that caused desktop reinstall loops:
  *
  *   1. buildPathExtCandidates() — findOnPath() tried the empty extension
@@ -14,9 +14,9 @@
  *   2. chooseUpdaterArgs() — handOffWindowsBootstrapRecovery() must separate
  *      install provenance from updater viability. A bootstrap-complete marker
  *      can outlive a deleted venv, while the updater needs BOTH the venv Python
- *      and Hermes launcher. Marker-only or partial runtimes must use --repair;
+ *      and Kova launcher. Marker-only or partial runtimes must use --repair;
  *      only a runnable pair can use --update.
- *   3. resolveVenvHermesCommand() — unwrapWindowsVenvHermesCommand() returned
+ *   3. resolveVenvKovaCommand() — unwrapWindowsVenvKovaCommand() returned
  *      the venv python with NO runtime probe (bypassing the caller's
  *      --version check too), so a venv broken mid-update (e.g. missing
  *      python-dotenv) was re-selected forever: Retry / "Repair install"
@@ -58,7 +58,7 @@ export function buildPathExtCandidates(pathext: string | undefined, isWindows: b
 /**
  * Choose the Windows bootstrap-recovery invocation. The gentle in-place
  * updater can only start when both pieces of its runtime contract exist: the
- * venv Python interpreter and the Hermes launcher that drives `hermes update`.
+ * venv Python interpreter and the Kova launcher that drives `hermes update`.
  * A bootstrap-complete marker proves install provenance, not current runtime
  * usability, and may remain after the venv is removed or quarantined.
  *
@@ -74,12 +74,12 @@ export function chooseUpdaterArgs(signals: BootstrapRecoverySignals, branch: str
   return signals.runtimeUsable ? ['--update', '--branch', branch] : ['--repair', '--branch', branch]
 }
 
-export interface ResolveVenvHermesCommandDeps {
+export interface ResolveVenvKovaCommandDeps {
   isWindows: boolean
   isCommandScript: (command: string) => boolean
   fileExists: (filePath: string) => boolean
   directoryExists: (filePath: string) => boolean
-  canImportHermesCli: (python: string, opts?: { env?: Record<string, string>; cwd?: string }) => Promise<boolean>
+  canImportKovaCli: (python: string, opts?: { env?: Record<string, string>; cwd?: string }) => Promise<boolean>
   getVenvPython: (venvRoot: string) => string
   buildDesktopBackendEnv: () => Record<string, string>
   resolvePath: (...segments: string[]) => string
@@ -92,7 +92,7 @@ export interface ResolveVenvHermesCommandDeps {
  * If `command` is a Windows venv `hermes`/`hermes.exe` console-script shim
  * (i.e. `<venvRoot>/Scripts/hermes(.exe)`), resolve it to the underlying
  * venv python invoked as `python -m kova_cli.main <backendArgs>` — but
- * ONLY after smoke-testing that interpreter with canImportHermesCli(). A
+ * ONLY after smoke-testing that interpreter with canImportKovaCli(). A
  * venv whose update died mid-`pip install` still has python.exe + hermes.exe
  * on disk, but the backend dies on its first import (e.g.
  * ModuleNotFoundError: dotenv) before the gateway ever binds. Returning it
@@ -107,10 +107,10 @@ export interface ResolveVenvHermesCommandDeps {
  * python doesn't exist, or the import probe fails. Otherwise returns the
  * resolved backend descriptor.
  */
-export async function resolveVenvHermesCommand(
+export async function resolveVenvKovaCommand(
   command: string,
   backendArgs: string[],
-  deps: ResolveVenvHermesCommandDeps
+  deps: ResolveVenvKovaCommandDeps
 ): Promise<{
   label: string
   command: string
@@ -126,7 +126,7 @@ export async function resolveVenvHermesCommand(
     isCommandScript,
     fileExists,
     directoryExists,
-    canImportHermesCli,
+    canImportKovaCli,
     getVenvPython,
     buildDesktopBackendEnv,
     resolvePath,
@@ -162,16 +162,16 @@ export async function resolveVenvHermesCommand(
 
   // Probe with the same semantics the real spawn uses: venv interpreter,
   // cwd at the checkout root, no PYTHONPATH.
-  if (!(await canImportHermesCli(python, { cwd: directoryExists(root) ? root : undefined }))) {
+  if (!(await canImportKovaCli(python, { cwd: directoryExists(root) ? root : undefined }))) {
     rememberLog?.(
-      `Ignoring venv Hermes at ${python}: runtime import probe failed (broken/partial venv); falling through to bootstrap.`
+      `Ignoring venv Kova at ${python}: runtime import probe failed (broken/partial venv); falling through to bootstrap.`
     )
 
     return null
   }
 
   return {
-    label: `existing Hermes Python at ${python}`,
+    label: `existing Kova Python at ${python}`,
     command: python,
     args: ['-m', 'kova_cli.main', ...backendArgs],
     bootstrap: false,

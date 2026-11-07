@@ -22,17 +22,17 @@ from unittest.mock import patch
 
 repo, tag = sys.argv[1:3]
 sys.path.insert(0, repo)
-# Remove all inherited Hermes/config and credential env before real imports.
+# Remove all inherited Kova/config and credential env before real imports.
 for key in list(os.environ):
-    if key.startswith('HERMES_') or key.endswith(('_API_KEY', '_TOKEN')):
+    if key.startswith('KOVA_') or key.endswith(('_API_KEY', '_TOKEN')):
         os.environ.pop(key, None)
 home = tempfile.TemporaryDirectory(prefix='review-goaldup-')
-os.environ['HERMES_HOME'] = home.name
+os.environ['KOVA_HOME'] = home.name
 os.environ['NO_PROXY'] = '*'
 os.environ['TZ'] = 'UTC'
 # Fail closed: these probes must never invoke a provider or external network.
 socket.socket.connect = lambda *a, **k: (_ for _ in ()).throw(RuntimeError('network prohibited in review probe'))
-from cli import HermesCLI
+from cli import KovaCLI
 from kova_cli import cli_commands_mixin, goals
 from gateway.slash_commands_goals import GatewayGoalCommandsMixin
 from gateway.config import Platform
@@ -42,7 +42,7 @@ from tui_gateway import server
 
 assert str(Path(cli_commands_mixin.__file__).resolve()).startswith(repo)
 assert str(Path(goals.__file__).resolve()).startswith(repo)
-server._hermes_home = Path(home.name)
+server._kova_home = Path(home.name)
 goals._DB_CACHE.clear()
 goals._get_session_db()
 source_db = os.environ.get('RF_STATE_COPY') or str(Path(tempfile.gettempdir()) / 'rf' / 'state_copy.db')
@@ -55,7 +55,7 @@ history = [{'role': 'user', 'content': original}, {'role': 'assistant', 'content
 output = {'tag': tag, 'modules': [cli_commands_mixin.__file__, goals.__file__, server.__file__], 'source_equal': original == repeated, 'original_chars': len(original)}
 
 def make_cli(hist, sid):
-    c = HermesCLI.__new__(HermesCLI)
+    c = KovaCLI.__new__(KovaCLI)
     c.session_id = sid
     c.agent = None
     c.conversation_history = copy.deepcopy(hist)

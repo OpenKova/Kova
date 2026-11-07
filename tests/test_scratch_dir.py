@@ -1,4 +1,4 @@
-"""Scratch dir contract: TMPDIR/TMP/TEMP follow HERMES_HOME/cache/scratch unless the user set them."""
+"""Scratch dir contract: TMPDIR/TMP/TEMP follow KOVA_HOME/cache/scratch unless the user set them."""
 
 import contextlib
 import os
@@ -28,9 +28,9 @@ def test_boot_hook_and_prompt_hand_the_prune_to_one_child(scratch_prune_spawns, 
 
     monkeypatch.setattr(constants, "_scratch_pruned_once", False)
     home = tmp_path / "launch"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     scratch = home / "cache" / "scratch"
-    env = {"HERMES_HOME": str(home)}
+    env = {"KOVA_HOME": str(home)}
     assert apply_scratch_tmp_env(env) is True
     hints = _local_host_hints()
     assert env["TMPDIR"] == str(scratch) and scratch.is_dir()
@@ -39,11 +39,11 @@ def test_boot_hook_and_prompt_hand_the_prune_to_one_child(scratch_prune_spawns, 
 
     monkeypatch.setattr(constants, "_scratch_pruned_once", False)  # the routed caller's own process
     routed = tmp_path / "routed"
-    token = constants.set_hermes_home_override(routed)
+    token = constants.set_kova_home_override(routed)
     try:
         assert get_scratch_dir() == routed / "cache" / "scratch"
     finally:
-        constants.reset_hermes_home_override(token)
+        constants.reset_kova_home_override(token)
     assert scratch_prune_spawns == [scratch, routed / "cache" / "scratch"]
 
 
@@ -69,12 +69,12 @@ def test_a_short_lived_process_still_completes_its_due_prune(tmp_path):
     shell_entry = _idle_entry(get_scratch_dir(routed, prune=False), "shell-lane")
     repo = Path(__file__).resolve().parents[1]
     launcher = ("import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path; import kova_constants as h; "
-                "h.set_hermes_home_override(Path(sys.argv[2])); h.get_scratch_dir()")
+                "h.set_kova_home_override(Path(sys.argv[2])); h.get_scratch_dir()")
     # shell (cwd in an idle entry, stays) -> wrapper (exits once the launcher does) -> launcher
     run = "import subprocess, sys; subprocess.run(sys.argv[1:], cwd={!r}, stdin=subprocess.DEVNULL, check=True)"
     wrapper = [sys.executable, "-c", run.format(str(tmp_path)), sys.executable, "-c", launcher, str(repo), str(routed)]
     shell = [sys.executable, "-c", run.format(str(tmp_path)) + "; import time; time.sleep(120)", *wrapper]
-    env = {**os.environ, "HERMES_HOME": str(launch)}
+    env = {**os.environ, "KOVA_HOME": str(launch)}
     user_shell = subprocess.Popen(shell, env=env, cwd=shell_entry / "sub", stdin=subprocess.DEVNULL)
     log_file = routed / "logs" / "scratch-prune.log"
 
@@ -86,7 +86,7 @@ def test_a_short_lived_process_still_completes_its_due_prune(tmp_path):
         assert not doomed.exists() and kept.exists() and shell_entry.exists()
         assert user_shell.poll() is None, "the user's shell was signalled"
         log = log_file.read_text(encoding="utf-8-sig")
-        assert f"kept {str(shell_entry)!r} — live Hermes process pid={user_shell.pid}" in log, log
+        assert f"kept {str(shell_entry)!r} — live Kova process pid={user_shell.pid}" in log, log
     finally:
         user_shell.kill()
         user_shell.wait(timeout=30)
@@ -117,29 +117,29 @@ def test_launcher_ancestry_stamp_is_boot_relative_even_for_a_non_utf8_name(tmp_p
 
 
 def test_scratch_env_follows_home_and_respects_user_tmpdir(tmp_path):
-    """Unset temp vars → scratch of env HERMES_HOME; a Hermes-exported value re-derives for a routed
+    """Unset temp vars → scratch of env KOVA_HOME; a Kova-exported value re-derives for a routed
     home; a user/OS-set value (macOS ``/var/folders``, ``%TEMP%``) is never touched."""
     home_a, home_b = tmp_path / "a", tmp_path / "b"
-    env = {"HERMES_HOME": str(home_a)}
+    env = {"KOVA_HOME": str(home_a)}
     assert apply_scratch_tmp_env(env) is True
     scratch_a = str(home_a / "cache" / "scratch")
-    assert env["TMPDIR"] == env["TMP"] == env["TEMP"] == env["HERMES_SCRATCH_DIR"] == scratch_a
+    assert env["TMPDIR"] == env["TMP"] == env["TEMP"] == env["KOVA_SCRATCH_DIR"] == scratch_a
     assert os.path.isdir(scratch_a)
 
-    env["HERMES_HOME"] = str(home_b)  # child served under another profile's home
+    env["KOVA_HOME"] = str(home_b)  # child served under another profile's home
     assert apply_scratch_tmp_env(env) is True
     assert env["TMPDIR"] == str(home_b / "cache" / "scratch")
 
-    user_env = {"HERMES_HOME": str(home_a), "TMPDIR": "/var/folders/zz"}
+    user_env = {"KOVA_HOME": str(home_a), "TMPDIR": "/var/folders/zz"}
     assert apply_scratch_tmp_env(user_env) is False
-    assert user_env["TMPDIR"] == "/var/folders/zz" and "HERMES_SCRATCH_DIR" not in user_env
+    assert user_env["TMPDIR"] == "/var/folders/zz" and "KOVA_SCRATCH_DIR" not in user_env
     assert "TMP" not in user_env  # a partially user-set triple is left exactly as found
 
 
 def test_bootstrap_import_exports_scratch_to_process_and_children(tmp_path):
     """``import kova_bootstrap`` alone makes ``tempfile`` (this process AND a child) land in scratch."""
-    env = {k: v for k, v in os.environ.items() if k not in ("TMPDIR", "TMP", "TEMP", "HERMES_SCRATCH_DIR")}
-    env["HERMES_HOME"] = str(tmp_path)
+    env = {k: v for k, v in os.environ.items() if k not in ("TMPDIR", "TMP", "TEMP", "KOVA_SCRATCH_DIR")}
+    env["KOVA_HOME"] = str(tmp_path)
     code = ("import tempfile, os, subprocess, sys; import kova_bootstrap; "
             "print(tempfile.gettempdir()); "
             "print(subprocess.run([sys.executable, '-c', 'import tempfile;print(tempfile.gettempdir())'],"
@@ -191,7 +191,7 @@ def test_prune_ignores_freshened_hardlinks_shared_with_a_live_repo(tmp_path):
 @pytest.mark.platforms("posix")  # POSIX directory modes
 class TestScratchDirPermissionPolicy:
     """get_scratch_dir must honor the home permission policy instead of a blanket 0700:
-    an explicit HERMES_HOME_MODE and a managed/shared home win (#117347)."""
+    an explicit KOVA_HOME_MODE and a managed/shared home win (#117347)."""
 
     @staticmethod
     def _native_mode_after_chmod(path, requested=0o2770):
@@ -208,9 +208,9 @@ class TestScratchDirPermissionPolicy:
         # A known, marker-free effective home: each case below plants `.managed` in the home whose
         # scratch dir it exercises (`get_scratch_dir(home)` reads the marker there), and the real
         # home's own marker must not leak into callers that still resolve the effective home.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-        for var in ("HERMES_HOME_MODE", "HERMES_MANAGED", "HERMES_CONTAINER",
-                    "HERMES_SKIP_CHMOD", "HERMES_UID", "HERMES_GID"):
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
+        for var in ("KOVA_HOME_MODE", "KOVA_MANAGED", "KOVA_CONTAINER",
+                    "KOVA_SKIP_CHMOD", "KOVA_UID", "KOVA_GID"):
             monkeypatch.delenv(var, raising=False)
 
     def test_default_is_owner_only(self, tmp_path, monkeypatch):
@@ -223,13 +223,13 @@ class TestScratchDirPermissionPolicy:
         probe = tmp_path / "mode-probe"
         probe.mkdir()
         expected = self._native_mode_after_chmod(probe)
-        monkeypatch.setenv("HERMES_HOME_MODE", "2770")
+        monkeypatch.setenv("KOVA_HOME_MODE", "2770")
         scratch = get_scratch_dir(tmp_path, prune=False)
         assert stat.S_IMODE(os.stat(scratch).st_mode) == expected
 
     def test_managed_env_leaves_preexisting_mode_untouched(self, tmp_path, monkeypatch):
         self._isolate_env(monkeypatch, tmp_path)
-        monkeypatch.setenv("HERMES_MANAGED", "nixos")
+        monkeypatch.setenv("KOVA_MANAGED", "nixos")
         pre = tmp_path / "cache" / "scratch"
         pre.mkdir(parents=True)
         expected = self._native_mode_after_chmod(pre)
@@ -275,7 +275,7 @@ class TestScratchDirPermissionPolicy:
     def test_effective_home_marker_does_not_govern_another_homes_scratch(self, tmp_path, monkeypatch):
         # The caller's home decides the policy. A boot caller (``export_scratch_tmp_env``) and
         # ``hermes doctor`` have already resolved theirs, so the marker lookup must not fall back
-        # to ``get_hermes_home()``: for a sticky profile with HERMES_HOME unset that lookup warns
+        # to ``get_kova_home()``: for a sticky profile with KOVA_HOME unset that lookup warns
         # about the default profile on every command, and it is the wrong home to judge by anyway.
         selected = tmp_path / "home"
         selected.mkdir()
@@ -288,7 +288,7 @@ class TestScratchDirPermissionPolicy:
         assert stat.S_IMODE(os.stat(get_scratch_dir(other, prune=False)).st_mode) == 0o700
 
     def test_canonical_container_signal_without_env_override_keeps_operator_mode(self, tmp_path, monkeypatch):
-        # Podman/containerd/K8s runtimes often don't export HERMES_CONTAINER; the canonical
+        # Podman/containerd/K8s runtimes often don't export KOVA_CONTAINER; the canonical
         # _detect_container breadth (not the narrower legacy signal set) must skip the chmod.
         self._isolate_env(monkeypatch, tmp_path)
         monkeypatch.setattr("kova_constants._detect_container", lambda: True)
@@ -303,7 +303,7 @@ class TestScratchDirPermissionPolicy:
         probe = tmp_path / "mode-probe"
         probe.mkdir()
         expected = self._native_mode_after_chmod(probe)
-        monkeypatch.setenv("HERMES_HOME_MODE", "2770")
+        monkeypatch.setenv("KOVA_HOME_MODE", "2770")
         first = get_scratch_dir(tmp_path, prune=False)
         second = get_scratch_dir(tmp_path, prune=False)
         assert first == second
@@ -311,7 +311,7 @@ class TestScratchDirPermissionPolicy:
 
     def test_container_keeps_operator_mode_but_honors_explicit(self, tmp_path, monkeypatch):
         self._isolate_env(monkeypatch, tmp_path)
-        monkeypatch.setenv("HERMES_CONTAINER", "1")
+        monkeypatch.setenv("KOVA_CONTAINER", "1")
         pre = tmp_path / "cache" / "scratch"
         pre.mkdir(parents=True)
         os.chmod(pre, 0o750)
@@ -319,13 +319,13 @@ class TestScratchDirPermissionPolicy:
         probe = tmp_path / "mode-probe"
         probe.mkdir()
         expected = self._native_mode_after_chmod(probe)
-        monkeypatch.setenv("HERMES_HOME_MODE", "2770")
+        monkeypatch.setenv("KOVA_HOME_MODE", "2770")
         assert stat.S_IMODE(os.stat(get_scratch_dir(tmp_path, prune=False)).st_mode) == expected
 
     def test_hermes_uid_gid_applied_to_scratch(self, tmp_path, monkeypatch):
         self._isolate_env(monkeypatch, tmp_path)
-        monkeypatch.setenv("HERMES_UID", "1000")
-        monkeypatch.setenv("HERMES_GID", "911")
+        monkeypatch.setenv("KOVA_UID", "1000")
+        monkeypatch.setenv("KOVA_GID", "911")
         with patch.object(os, "chown") as mock_chown:
             get_scratch_dir(tmp_path, prune=False)
         mock_chown.assert_called_once_with(tmp_path / "cache" / "scratch", 1000, 911)
@@ -337,8 +337,8 @@ def test_secure_file_skips_chmod_on_canonical_container_signal(tmp_path, monkeyp
     get_scratch_dir already honor (one policy implementation in kova_constants)."""
     from kova_cli import config
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    for var in ("HERMES_MANAGED", "HERMES_CONTAINER", "HERMES_SKIP_CHMOD"):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
+    for var in ("KOVA_MANAGED", "KOVA_CONTAINER", "KOVA_SKIP_CHMOD"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr("kova_constants._detect_container", lambda: True)
     f = tmp_path / "config.yaml"
@@ -682,13 +682,13 @@ def test_postremoval_unreadable_entry_is_not_counted_as_removed(tmp_path: Path) 
 @pytest.mark.platforms("posix")
 @pytest.mark.live_system_guard_bypass  # a red run must kill the orphan this test made (reparented to init)
 def test_prune_keeps_entry_a_registered_hermes_process_works_in_but_reaps_orphans(tmp_path, monkeypatch):
-    """#132401 live-worker guard: a background process Hermes itself started (tracked in the
+    """#132401 live-worker guard: a background process Kova itself started (tracked in the
     process registry's ``processes.json``) is never reaped, and the idle entry it works in is
     kept with an audit line. The orphaned grandchild of a registered shell that already exited
-    is no longer Hermes' — it is still reaped and its entry removed. Red on the cwd-only reap."""
+    is no longer Kova' — it is still reaped and its entry removed. Red on the cwd-only reap."""
     from tools.process_registry import ProcessRegistry
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     scratch = get_scratch_dir(tmp_path, prune=False)
     owned_dir, orphan_dir = scratch / "live-worker", scratch / "dead-lane"
     owned_dir.mkdir()
@@ -709,7 +709,7 @@ def test_prune_keeps_entry_a_registered_hermes_process_works_in_but_reaps_orphan
     try:
         assert prune_scratch_dir(scratch) == 1
         assert owned_dir.exists() and not orphan_dir.exists()
-        assert worker.process.poll() is None, "registered Hermes worker was reaped"
+        assert worker.process.poll() is None, "registered Kova worker was reaped"
         def _orphan_gone():
             try:
                 return psutil.Process(orphan).status() == psutil.STATUS_ZOMBIE
@@ -717,7 +717,7 @@ def test_prune_keeps_entry_a_registered_hermes_process_works_in_but_reaps_orphan
                 return True
         wait_until(_orphan_gone, timeout=10, what="orphan reaped")
         log = (tmp_path / "logs" / "scratch-prune.log").read_text(encoding="utf-8-sig")
-        assert f"kept {str(owned_dir)!r} — live Hermes process pid=" in log, log
+        assert f"kept {str(owned_dir)!r} — live Kova process pid=" in log, log
     finally:
         registry.kill_process(worker.id)
         with contextlib.suppress(psutil.Error):
@@ -726,7 +726,7 @@ def test_prune_keeps_entry_a_registered_hermes_process_works_in_but_reaps_orphan
 
 @pytest.mark.platforms("posix")
 def test_prune_keeps_entry_the_pruning_sessions_own_lineage_works_in(tmp_path, monkeypatch):
-    """#132401 review: a live session inside an idle entry that launches another Hermes
+    """#132401 review: a live session inside an idle entry that launches another Kova
     command is the pruner's ancestor — never signalled, and its entry must not be deleted
     from under it either."""
     scratch = get_scratch_dir(tmp_path, prune=False)
@@ -750,7 +750,7 @@ def test_prune_owner_lookup_survives_symlinked_scratch_and_drops_orphaned_mcp_he
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     elsewhere = tmp_path / "other-disk" / "scratch"
     elsewhere.mkdir(parents=True)
     (home / "cache").mkdir()
@@ -769,7 +769,7 @@ def test_prune_owner_lookup_survives_symlinked_scratch_and_drops_orphaned_mcp_he
         [sys.executable, "-c",
          f"import sys; sys.path.insert(0, {repo!r}); from kova_cli.process_identity import register_child; "
          f"assert register_child({helper.pid}, 'mcp-helper'); import time; time.sleep(60)"],
-        stdin=subprocess.DEVNULL, env={**os.environ, "HERMES_HOME": str(home)})
+        stdin=subprocess.DEVNULL, env={**os.environ, "KOVA_HOME": str(home)})
     wait_until(lambda: helper.pid in {e.get("pid") for e in process_identity.ledger_entries(all_installs=True)},
                timeout=20, what="spawner registered the mcp-helper")
     spawner.kill()

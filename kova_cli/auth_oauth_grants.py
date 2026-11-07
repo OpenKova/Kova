@@ -236,8 +236,8 @@ def strip_cloned_single_use_oauth_grants(profile_dir: Path) -> dict[str, Any]:
     # a samefile() OSError as "two stores", which here would fail OPEN — so resolve identity
     # positively: same path, or samefile() says so; any error refuses.
     try:
-        from kova_constants import get_default_hermes_root
-        root_auth_path = get_default_hermes_root() / "auth.json"
+        from kova_constants import get_default_kova_root
+        root_auth_path = get_default_kova_root() / "auth.json"
         if _same_path(auth_path, root_auth_path) or (
             root_auth_path.exists() and auth_path.samefile(root_auth_path)
         ):
@@ -367,8 +367,8 @@ def _persist_oauth_heal_clean_mark(provider_id: str, fingerprint: tuple) -> None
         if marks.get(provider_id) == new_mark:
             return  # already recorded; skip the rewrite
         marks[provider_id] = new_mark
-        from kova_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(path.parent)
+        from kova_constants import mkdir_under_kova_home
+        mkdir_under_kova_home(path.parent)
         # 0o600 like the MCP schema cache: this names credential-store paths.
         atomic_json_write(path, marks, mode=0o600)
     except Exception:
@@ -739,9 +739,9 @@ def _heal_forked_single_use_oauth_grants(provider_id: str) -> Optional[dict[str,
         return None  # classic mode: nothing to consolidate into
     if os.environ.get("PYTEST_CURRENT_TEST"):
         # Same seat belt as the write-through paths: never touch the real user's
-        # ~/.hermes/auth.json from a test that forgot to isolate HOME.
+        # ~/.kova/auth.json from a test that forgot to isolate HOME.
         real_home_env = os.environ.get("HOME", "")
-        if real_home_env and _same_path(root_path, Path(real_home_env) / ".hermes" / "auth.json"):
+        if real_home_env and _same_path(root_path, Path(real_home_env) / ".kova" / "auth.json"):
             return None
     profile_path = _auth_file_path()
     profile_home = profile_path.parent

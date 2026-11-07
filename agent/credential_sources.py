@@ -1,4 +1,4 @@
-"""Unified removal contract for every credential source Hermes reads from.
+"""Unified removal contract for every credential source Kova reads from.
 
 Readers live in ``agent.credential_pool``; what is unified here is **removal**:
 ``hermes auth remove <provider> <N>`` must make the entry stay gone across
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 EXTERNAL_LOGINS_NOT_ADOPTED_NOTICE = (
     "External CLI logins (Codex CLI, Claude Code) are not adopted: auth.adopt_external_logins is false. "
-    "Hermes uses only its own logins; run `hermes auth add <provider>` to add one."
+    "Kova uses only its own logins; run `hermes auth add <provider>` to add one."
 )
 _notice_logged = False
 
@@ -32,9 +32,9 @@ _notice_logged = False
 def adopt_external_logins_enabled() -> bool:
     """``auth.adopt_external_logins`` (default True).
 
-    Codex and Claude OAuth refresh tokens are single-use and rotate, so once Hermes borrows a CLI's
+    Codex and Claude OAuth refresh tokens are single-use and rotate, so once Kova borrows a CLI's
     token pair the two programs hold one token family and whichever refreshes first logs the other
-    out. When the user opts out, Hermes never reads or refreshes those files and says so once per
+    out. When the user opts out, Kova never reads or refreshes those files and says so once per
     process (INFO) the first time it would have."""
     global _notice_logged
     try:
@@ -114,7 +114,7 @@ def _profile_removal_step(provider: str, source: str) -> Optional[RemovalStep]:
 
 
 def _remove_env_source(provider: str, removed) -> RemovalResult:
-    """env:<VAR> — clear from ~/.hermes/.env; hint when the shell exports it."""
+    """env:<VAR> — clear from ~/.kova/.env; hint when the shell exports it."""
     from kova_cli.config import get_env_path, remove_env_value
 
     result = RemovalResult()
@@ -143,10 +143,10 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
     if env_in_process and not env_in_dotenv:
         result.hints.extend([
             f"Note: {env_var} is still set in your shell environment "
-            f"(not in ~/.hermes/.env).",
+            f"(not in ~/.kova/.env).",
             "  Unset it there (shell profile, systemd EnvironmentFile, "
-            "launchd plist, etc.) or it will keep being visible to Hermes.",
-            f"  The pool entry is now suppressed — Hermes will ignore "
+            "launchd plist, etc.) or it will keep being visible to Kova.",
+            f"  The pool entry is now suppressed — Kova will ignore "
             f"{env_var} until you run `hermes auth add {provider}`.",
         ])
     else:
@@ -158,15 +158,15 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
 
 
 def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
-    """~/.hermes/.anthropic_oauth.json is ours — delete it outright."""
-    from kova_constants import get_hermes_home
+    """~/.kova/.anthropic_oauth.json is ours — delete it outright."""
+    from kova_constants import get_kova_home
 
     result = RemovalResult()
-    oauth_file = get_hermes_home() / ".anthropic_oauth.json"
+    oauth_file = get_kova_home() / ".anthropic_oauth.json"
     if oauth_file.exists():
         try:
             oauth_file.unlink()
-            result.cleaned.append("Cleared Hermes Anthropic OAuth credentials")
+            result.cleaned.append("Cleared Kova Anthropic OAuth credentials")
         except OSError as exc:
             result.hints.append(f"Could not delete {oauth_file}: {exc}")
     return result
@@ -247,7 +247,7 @@ _REGISTRY: list[RemovalStep] = [
     RemovalStep(
         provider="anthropic", source_id="hermes_pkce",
         remove_fn=_remove_hermes_pkce,
-        description="~/.hermes/.anthropic_oauth.json",
+        description="~/.kova/.anthropic_oauth.json",
     ),
     RemovalStep(
         provider="nous", source_id="device_code",

@@ -49,13 +49,13 @@ class _Args:
 
 @pytest.fixture
 def pin_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with freshly reloaded modules (same pattern as
+    """Isolated KOVA_HOME with freshly reloaded modules (same pattern as
     tests/agent/test_curator.py::curator_env but scoped for the CLI layer)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     skills = home / "skills"
     skills.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     import kova_constants
     importlib.reload(kova_constants)

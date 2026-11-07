@@ -20,7 +20,7 @@ from plugins.web._common import (
 
 logger = logging.getLogger(__name__)
 
-_CLIENT_NAME = "hermes-agent"
+_CLIENT_NAME = "kova-agent"
 
 _SEARCH_PAYLOAD = {"include_raw_content": False, "include_images": False}
 

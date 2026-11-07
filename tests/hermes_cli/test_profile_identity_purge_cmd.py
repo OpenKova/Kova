@@ -16,9 +16,9 @@ from kova_cli import profile_cmd
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return tmp_path
 
 
@@ -61,8 +61,8 @@ def test_purge_identity_refuses_a_same_name_profile_created_after_the_delete(pro
     from kova_state import SessionDB
 
     create_profile("gone", no_alias=True)
-    scope = str(profile_env / ".hermes" / "sessions")
-    db = SessionDB(profile_env / ".hermes" / "state.db")
+    scope = str(profile_env / ".kova" / "sessions")
+    db = SessionDB(profile_env / ".kova" / "state.db")
     db.save_gateway_routing_entry(
         "agent:gone:feishu:dm:chatA",
         json.dumps({"session_key": "agent:gone:feishu:dm:chatA"}), scope=scope)
@@ -72,7 +72,7 @@ def test_purge_identity_refuses_a_same_name_profile_created_after_the_delete(pro
         profile_cmd.cmd_profile(Namespace(profile_action="purge-identity", profile_name="gone"))
 
     assert exc.value.code not in (0, None)
-    check = SessionDB(profile_env / ".hermes" / "state.db")
+    check = SessionDB(profile_env / ".kova" / "state.db")
     try:
         # The recreated profile still owns its routing key.
         assert set(check.load_gateway_routing_entries(scope=scope)) == {

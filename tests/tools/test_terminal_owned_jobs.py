@@ -1,4 +1,4 @@
-"""POSIX: terminal commands and background jobs die with the Hermes process that started them.
+"""POSIX: terminal commands and background jobs die with the Kova process that started them.
 
 The owners are real host processes using the real ``ProcessRegistry.spawn_local`` and
 ``LocalEnvironment.execute``. One owner is SIGKILLed, so no Python cleanup of ours runs; the other is the
@@ -70,9 +70,9 @@ def _read(path):
 def _run_owners(tmp_path, roles):
     script = tmp_path / "disposable owner.py"
     script.write_text(_OWNER, encoding="utf-8")
-    env = dict(os.environ, HOME=str(tmp_path), HERMES_HOME=str(tmp_path / "home"),
+    env = dict(os.environ, HOME=str(tmp_path), KOVA_HOME=str(tmp_path / "home"),
                PYTHONPATH=str(Path(__file__).resolve().parents[2]))
-    env.pop("_HERMES_GATEWAY", None)
+    env.pop("_KOVA_GATEWAY", None)
     log = (tmp_path / "owners.log").open("w", encoding="utf-8")
     owners = {role: subprocess.Popen([sys.executable, str(script), str(tmp_path), role], env=env,
                                      stdin=subprocess.DEVNULL, stdout=log, stderr=log)

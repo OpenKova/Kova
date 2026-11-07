@@ -46,7 +46,7 @@ def sign_out(webapp, tmp_path):
     from gateway.webapp_listener import TOKEN_PATH, register_control_verbs
 
     server = webapp.server
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     runner = SimpleNamespace(
         session_control_server=GatewayControlServer(home),
         webapp_status={"state": "serving", "url": "http://localhost:9120", "reason": None},
@@ -84,7 +84,7 @@ def test_signing_out_closes_the_terminal_and_streams_the_session_token_opened(we
 def test_signing_out_with_no_open_tabs_still_replaces_the_credential(webapp, sign_out):
     client = webapp.client
     assert sign_out() == {"signed_out": True, "serving": True, "sign_in_gate": False, "connections_closed": 0}
-    assert client.post("/api/webapp/socket-ticket?socket=gateway", headers={"X-Hermes-Session-Token": _TOKEN}).status_code == 401
+    assert client.post("/api/webapp/socket-ticket?socket=gateway", headers={"X-Kova-Session-Token": _TOKEN}).status_code == 401
 
 
 @pytest.mark.parametrize("route", ["stream", "download"])
@@ -97,9 +97,9 @@ def test_signing_out_ends_the_file_links_the_session_token_minted(webapp, sign_o
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("KOVA_DASHBOARD_FILES_ROOT", str(root))
     minted = client.post("/api/files/ticket", json={"route": route, "path": str(root / "clip.mp4")},
-                         headers={"X-Hermes-Session-Token": _TOKEN})
+                         headers={"X-Kova-Session-Token": _TOKEN})
     assert minted.status_code == 200, minted.text
     link = {"path": str(root / "clip.mp4"), "ticket": minted.json()["ticket"]}
     endpoint = web_server_file_tickets.ROUTES[route]
@@ -117,7 +117,7 @@ def test_a_media_link_minted_while_signing_out_streams_nothing(webapp, sign_out,
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("KOVA_DASHBOARD_FILES_ROOT", str(root))
     mint = web_server_file_tickets.mint
 
     def mint_after_sign_out(*args, **kwargs):
@@ -126,7 +126,7 @@ def test_a_media_link_minted_while_signing_out_streams_nothing(webapp, sign_out,
 
     monkeypatch.setattr(web_server_file_tickets, "mint", mint_after_sign_out)
     minted = client.post("/api/files/ticket", json={"route": "stream", "path": str(root / "clip.mp4")},
-                         headers={"X-Hermes-Session-Token": _TOKEN})
+                         headers={"X-Kova-Session-Token": _TOKEN})
     assert minted.status_code == 200, minted.text
     stream = {"path": str(root / "clip.mp4"), "ticket": minted.json()["ticket"]}
     assert client.get("/api/files/stream", params=stream).status_code == 401
@@ -143,7 +143,7 @@ def test_a_file_link_another_credential_minted_keeps_working_after_sign_out(weba
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("KOVA_DASHBOARD_FILES_ROOT", str(root))
     path = str(root / "clip.mp4")
     ticket = web_server_file_tickets.mint(
         route, {"path": path}, authority=web_server_file_tickets.FileAuthority(root / "clip.mp4", ()))

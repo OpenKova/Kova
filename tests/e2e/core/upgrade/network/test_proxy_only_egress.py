@@ -34,7 +34,7 @@ pytestmark = [
     pytest.mark.skipif(I.real_uv() is None, reason="uv required"),
 ]
 
-GIT_PATH = "/NousResearch/hermes-agent.git/"
+GIT_PATH = "/NousResearch/kova-agent.git/"
 
 
 @pytest.fixture(scope="module")
@@ -62,7 +62,7 @@ def test_update_through_tls_inspecting_proxy_lands_on_the_new_commit(inst):
     new = inst.publish("tls-inspecting")
     edge = inst.edge()
     try:
-        r = inst.hermes("update", "--yes", edge=edge)
+        r = inst.kova("update", "--yes", edge=edge)
     finally:
         edge.close()
     _assert_updated_through_proxy(inst, r, new)
@@ -74,7 +74,7 @@ def test_update_through_authenticating_proxy_and_credentials_stay_private(inst):
     new = inst.publish("auth-proxy")
     edge = inst.edge(auth=("corp-user", "pr0xy-s3cret-e2e"))
     try:
-        r = inst.hermes("update", "--yes", edge=edge)
+        r = inst.kova("update", "--yes", edge=edge)
     finally:
         edge.close()
     _assert_updated_through_proxy(inst, r, new)
@@ -90,7 +90,7 @@ def test_update_with_corporate_root_only_in_ssl_cert_file(inst):
     bundle.write_bytes(N.SYSTEM_CA_BUNDLE.read_bytes() + b"\n" + inst.ca.pem)
     edge = inst.edge()
     try:
-        r = inst.hermes("update", "--yes", edge=edge, corporate_root=False, env={"SSL_CERT_FILE": str(bundle)})
+        r = inst.kova("update", "--yes", edge=edge, corporate_root=False, env={"SSL_CERT_FILE": str(bundle)})
     finally:
         edge.close()
     _assert_updated_through_proxy(inst, r, new)
@@ -104,7 +104,7 @@ def test_tunnel_cut_to_the_git_host_fails_fast_and_changes_nothing(inst):
     before = inst.state()
     edge = inst.edge(eof_hosts=["github.com"])
     try:
-        r = inst.hermes("update", "--yes", edge=edge, timeout=300)
+        r = inst.kova("update", "--yes", edge=edge, timeout=300)
     finally:
         edge.close()
     assert r.secs < 60, f"a cut tunnel took {r.secs:.0f}s to fail\n" + r.report(inst)

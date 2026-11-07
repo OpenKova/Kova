@@ -19,9 +19,9 @@ def cmd_migrate(args: Any) -> int:
     if getattr(args, "migrate_type", None) == "xai":
         return cmd_migrate_xai(args)
     if getattr(args, "migrate_type", None) is None:
-        from kova_cli.config import get_hermes_home
+        from kova_cli.config import get_kova_home
         from kova_cli.setup_agent_import import migrate_from_agents
-        return migrate_from_agents(get_hermes_home())
+        return migrate_from_agents(get_kova_home())
 
     print("usage: hermes migrate [<agent> | xai [--apply] [--no-backup]]", file=sys.stderr)
     return 2
@@ -35,14 +35,14 @@ _AGENT_IMPORT_FLAGS = (("dry_run", "--dry-run"), ("overwrite", "--overwrite"), (
 def cmd_migrate_agent(args: Any) -> int:
     """``hermes migrate <agent>``: install the agent-importers plugin when missing, then run its
     import for that agent with the flags given here."""
-    from kova_cli.config import get_hermes_home
+    from kova_cli.config import get_kova_home
     from kova_cli.setup_agent_import import migrate_from_agents
     extra = [flag for dest, flag in _AGENT_IMPORT_FLAGS if getattr(args, dest, False)]
     if getattr(args, "source", None):
         extra += ["--source", str(Path(args.source).expanduser())]
     for name in getattr(args, "bot", None) or ():
         extra += ["--bot", name]
-    return migrate_from_agents(get_hermes_home(), args.migrate_agent, tuple(extra))
+    return migrate_from_agents(get_kova_home(), args.migrate_agent, tuple(extra))
 
 
 def _fail(message: str) -> int:
@@ -110,5 +110,5 @@ def cmd_migrate_xai(args: Any) -> int:
 
 def _resolve_config_path() -> Path:
     """Best-effort: locate the active config.yaml on disk."""
-    from kova_cli.config import get_hermes_home
-    return get_hermes_home() / "config.yaml"
+    from kova_cli.config import get_kova_home
+    return get_kova_home() / "config.yaml"

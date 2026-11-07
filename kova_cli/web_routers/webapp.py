@@ -227,7 +227,7 @@ SOCKET_TICKETS: dict[str, tuple[str, bool]] = {
 @router.post("/api/webapp/socket-ticket")
 async def issue_socket_ticket(request: Request, socket: str = "", profile: str | None = None):
     """The browser's one-use ticket for one dial of *socket* on this same origin: ``gateway`` for
-    ``/api/ws`` (also offered as the ``hermes-gateway-ticket.`` subprotocol), ``host-terminal`` for
+    ``/api/ws`` (also offered as the ``kova-gateway-ticket.`` subprotocol), ``host-terminal`` for
     ``/api/host-terminal``, ``speak-stream`` and ``transcribe-stream`` for ``/api/audio/<name>``. The
     upgrade gate (``web_server_chat._consume_ws_ticket``) redeems it as this caller's login; it opens
     that socket and nothing else, so the browser mints one per dial. Minted locally: the server that
@@ -268,7 +268,7 @@ async def redeem_window_ticket(request: Request):
         raise HTTPException(403, "Webapp window handoff requires a same-origin request")
     # Keep the unauthenticated exchange body-free; never parse an arbitrary
     # JSON/multipart payload just to extract a fixed-size capability.
-    ticket = request.headers.get("X-Hermes-Window-Ticket", "")
+    ticket = request.headers.get("X-Kova-Window-Ticket", "")
     with _ticket_lock:
         tickets = getattr(request.app.state, "webapp_window_tickets", {})
         entry = tickets.get(ticket)
@@ -297,7 +297,7 @@ if (!/^[A-Za-z0-9_-]{43}$/.test(ticket)) {
   fail();
 } else {
   fetch(`${basePath}/webapp/window-session`, {
-    method: 'POST', credentials: 'same-origin', headers: {'X-Hermes-Window-Ticket': ticket}
+    method: 'POST', credentials: 'same-origin', headers: {'X-Kova-Window-Ticket': ticket}
   }).then(response => response.ok ? response.json() : Promise.reject()).then(({token}) => {
     if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new Error();
     try {
@@ -340,7 +340,7 @@ async def launch_page(request: Request):
     fragment (never sent to the server), keeps the credential it receives in this tab's
     sessionStorage and enters the Webapp at an address that carries neither."""
     _require_private_webapp(request)
-    return _handoff_page(request, "Opening Hermes", "Opening Hermes Webapp…", _LAUNCH_SCRIPT)
+    return _handoff_page(request, "Opening Kova", "Opening Kova Webapp…", _LAUNCH_SCRIPT)
 
 
 # No credential appears in this public page or in its URL. The fragment
@@ -352,7 +352,7 @@ history.replaceState(null, '', location.pathname);
 const id = params.get('channel') || '';
 const status = document.getElementById('status');
 if (!/^[a-f0-9-]{36}$/.test(id)) {
-  status.textContent = 'Open this window from an authorized Hermes Webapp tab.';
+  status.textContent = 'Open this window from an authorized Kova Webapp tab.';
 } else {
   const channel = new BroadcastChannel(`hermes.webapp.window:${id}`);
   let receiving = false;
@@ -377,7 +377,7 @@ if (!/^[a-f0-9-]{36}$/.test(id)) {
     try {
       const response = await fetch(`${basePath}/webapp/window-session`, {
         method: 'POST', credentials: 'same-origin',
-        headers: {'X-Hermes-Window-Ticket': ticket}, signal: controller.signal
+        headers: {'X-Kova-Window-Ticket': ticket}, signal: controller.signal
       });
       if (!response.ok) throw new Error('Window authorization expired. Open a new window from the original tab.');
       const {token} = await response.json();
@@ -402,4 +402,4 @@ if (!/^[a-f0-9-]{36}$/.test(id)) {
 @router.get("/webapp/window")
 async def child_window_page(request: Request):
     _require_private_webapp(request)
-    return _handoff_page(request, "Opening Hermes", "Authorizing this Hermes window…", _WINDOW_SCRIPT)
+    return _handoff_page(request, "Opening Kova", "Authorizing this Kova window…", _WINDOW_SCRIPT)

@@ -1,6 +1,6 @@
 """delegation.backend: pluggable delegation providers decide each delegate_task task's route.
 
-Real discovery through PluginManager against a temp HERMES_HOME, real delegate_task, real credential
+Real discovery through PluginManager against a temp KOVA_HOME, real delegate_task, real credential
 resolution; only child construction/run are stubbed where a test reads what they were handed.
 """
 
@@ -56,7 +56,7 @@ OPTIONS = [
 
 
 def _home(tmp_path, monkeypatch, delegation: dict, plugins=("probe-options",), disabled=()):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / "probe-options"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "probe-options", "version": "1.0"}), encoding="utf-8")
@@ -69,7 +69,7 @@ def _home(tmp_path, monkeypatch, delegation: dict, plugins=("probe-options",), d
     bundled.mkdir()
     (bundled / "delegation").symlink_to(REPO_PLUGINS / "delegation", target_is_directory=True)
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: bundled)
     manager = PluginManager()
     manager.discover_and_load()
@@ -274,7 +274,7 @@ def test_a_global_backend_switch_is_refused_on_a_managed_install(tmp_path, monke
         from agent.delegation_backends import set_global_backend
 
         before = (home / "config.yaml").read_bytes()
-        monkeypatch.setenv("HERMES_MANAGED", "nixos")
+        monkeypatch.setenv("KOVA_MANAGED", "nixos")
         with pytest.raises(PermissionError, match="managed by nixos"):
             set_global_backend("default")
         assert (home / "config.yaml").read_bytes() == before
@@ -403,10 +403,10 @@ def test_runtime_with_zero_plugins_loaded_still_delegates_on_the_bundled_default
 
     monkeypatch.setattr(delegation_registry, "_first_use", {})
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True)
     (home / "config.yaml").write_text(yaml.safe_dump({"delegation": {"model": "pinned-model"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     pinned = PluginManager()
     pinned._discovered = True  # zero plugins, discovery never runs
     monkeypatch.setattr(plugins_mod, "_plugin_manager", pinned)
@@ -432,11 +432,11 @@ def test_first_use_default_never_outlives_a_later_disable(tmp_path, monkeypatch,
     from tools.delegate_tool import delegate_task
 
     monkeypatch.setattr(delegation_registry, "_first_use", {})
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True)
     config = home / "config.yaml"
     config.write_text(yaml.safe_dump({"delegation": {"model": "pinned-model"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     pinned = PluginManager()
     pinned._discovered = True  # zero plugins, discovery never runs
     monkeypatch.setattr(plugins_mod, "_plugin_manager", pinned)

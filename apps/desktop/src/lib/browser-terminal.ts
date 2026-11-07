@@ -1,6 +1,6 @@
 import { isGatewayReauthRequired, isStableOpen, reconnectBackoffDelayMs } from '@kova/shared'
 
-import type { HermesTerminalExit, HermesTerminalSession, HermesTerminalState } from '@/global'
+import type { KovaTerminalExit, KovaTerminalSession, KovaTerminalState } from '@/global'
 
 import { readJson, writeJson } from './storage'
 
@@ -33,20 +33,20 @@ interface TerminalState {
   socket: WebSocket | null
   generation: number
   stopped: boolean
-  status: HermesTerminalState
+  status: KovaTerminalState
   retry: number
   retryTimer: number
   openedAt: number | null
   cancelDial?: () => void
-  started?: Promise<HermesTerminalSession>
+  started?: Promise<KovaTerminalSession>
   pendingData: Array<{ data: string; replay: boolean }>
   dataListeners: Set<DataListener>
-  exit: HermesTerminalExit | null
-  exitListeners: Set<(exit: HermesTerminalExit) => void>
-  stateListeners: Set<(state: HermesTerminalState) => void>
+  exit: KovaTerminalExit | null
+  exitListeners: Set<(exit: KovaTerminalExit) => void>
+  stateListeners: Set<(state: KovaTerminalState) => void>
 }
 
-const META = '\u0000HERMES_TERMINAL_META:'
+const META = '\u0000KOVA_TERMINAL_META:'
 // 4410 also ends a shell the server closed (expiry, a deleted profile, shutdown); only a shell
 // that exited by itself (`exit`, Ctrl-D) carries this reason (pty_session.WS_CLOSE_PROCESS_EXITED_REASON).
 const PROCESS_EXITED_REASON = 'Process exited'
@@ -127,13 +127,13 @@ interface DialContext {
   isPaused: () => boolean
   stopSocket: (state: TerminalState) => void
   emitData: (state: TerminalState, data: string, replay?: boolean) => void
-  setStatus: (state: TerminalState, status: HermesTerminalState) => void
+  setStatus: (state: TerminalState, status: KovaTerminalState) => void
   forget: (state: TerminalState) => void
   finish: (state: TerminalState, signal: string | null) => void
   reconnect: (state: TerminalState) => void
 }
 
-async function dialTerminal(state: TerminalState, context: DialContext): Promise<HermesTerminalSession> {
+async function dialTerminal(state: TerminalState, context: DialContext): Promise<KovaTerminalSession> {
   const { stopSocket, emitData, setStatus, forget, finish, reconnect } = context
   stopSocket(state)
   const generation = ++state.generation
@@ -306,7 +306,7 @@ export function createBrowserTerminal(options: BrowserTerminalOptions): Terminal
     }
   }
 
-  const setStatus = (state: TerminalState, status: HermesTerminalState) => {
+  const setStatus = (state: TerminalState, status: KovaTerminalState) => {
     if (state.status === status) {return}
     state.status = status
     state.stateListeners.forEach(listener => listener(status))
@@ -435,7 +435,7 @@ export function createBrowserTerminal(options: BrowserTerminalOptions): Terminal
   }
 
   const resume = (event: PageTransitionEvent) => {
-    if (!event.persisted || !paused || window.hermesDesktop?.terminal !== api) {return}
+    if (!event.persisted || !paused || window.kovaDesktop?.terminal !== api) {return}
     paused = false
     terminals.forEach(state => {
       if (state.stopped) {return}

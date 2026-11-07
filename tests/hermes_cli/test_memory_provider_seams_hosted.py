@@ -30,14 +30,14 @@ class HostedProv(MemoryProvider):
     def get_tool_schemas(self):
         return []
 
-    def on_profile_created(self, profile_name, hermes_home):
-        (Path(hermes_home) / "hook.json").write_text(json.dumps({"name": profile_name, "pid": os.getpid()}))
+    def on_profile_created(self, profile_name, kova_home):
+        (Path(kova_home) / "hook.json").write_text(json.dumps({"name": profile_name, "pid": os.getpid()}))
 
-    def read_config_fields(self, hermes_home):
-        return {"values": json.loads((Path(hermes_home) / "hostedprov.json").read_text())}
+    def read_config_fields(self, kova_home):
+        return {"values": json.loads((Path(kova_home) / "hostedprov.json").read_text())}
 
-    def write_config_fields(self, values, hermes_home):
-        path = Path(hermes_home) / "hostedprov.json"
+    def write_config_fields(self, values, kova_home):
+        path = Path(kova_home) / "hostedprov.json"
         cfg = json.loads(path.read_text()) if path.exists() else {}  # JSONDecodeError on a corrupt file
         cfg.update(values)
         path.write_text(json.dumps(cfg))
@@ -67,7 +67,7 @@ def register(ctx):
     ctx.register_middleware("tool_request", _passthrough)
     ctx.register_session_env("HOSTEDPROV_SESSION", _session_env)
     ctx.register_rpc("probe", _passthrough)
-    (Path(os.environ["HERMES_HOME"]) / "registered.json").write_text("{}")  # register() ran to the end
+    (Path(os.environ["KOVA_HOME"]) / "registered.json").write_text("{}")  # register() ran to the end
 """
 
 _SCHEMA = """
@@ -85,7 +85,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 def hosted_home(request, tmp_path, monkeypatch):
     """``hostedprov_pkg``: a pip provider whose package dir is named differently from the provider,
     found through its entry point (the loader registers under the dir's name)."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / request.param
     plugin_dir.mkdir(parents=True)
     if request.param != "hostedprov":
@@ -98,7 +98,7 @@ def hosted_home(request, tmp_path, monkeypatch):
     (home / "config.yaml").write_text(yaml.safe_dump(
         {"plugins": {"isolation": "host"}, "memory": {"provider": "hostedprov"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     plugins_mod._reset_plugin_managers_for_tests()
     yield home
     for manager in plugins_mod._known_plugin_managers():
@@ -138,10 +138,10 @@ def test_a_profile_hook_runs_in_the_host_and_its_host_is_stopped(hosted_home):
     # Everything the hook-only load registered proxied into the stopped host: hook, tool,
     # middleware, session env and RPC method are all gone from the new profile's manager.
     from kova_cli.plugins_session_env import _REGISTRATIONS
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.registry import registry
     assert (work / "registered.json").exists()
-    token = set_hermes_home_override(str(work))
+    token = set_kova_home_override(str(work))
     try:
         manager = plugins_mod.get_plugin_manager()
         assert not any(manager._ownership_ledger.values())
@@ -151,7 +151,7 @@ def test_a_profile_hook_runs_in_the_host_and_its_host_is_stopped(hosted_home):
         assert not manager._plugin_rpc_methods
         assert not [r for r in _REGISTRATIONS.values() if r[0] == manager.scope_key]
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.mark.platforms("any")
@@ -160,7 +160,7 @@ def test_a_host_already_running_for_that_profile_is_left_alone(hosted_home):
     from unittest.mock import patch
 
     from kova_cli.profiles import create_profile, rename_profile
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     create_profile("work", clone_config=True, no_alias=True)
 
@@ -169,13 +169,13 @@ def test_a_host_already_running_for_that_profile_is_left_alone(hosted_home):
     original = pmc.notify_memory_provider
 
     def notify_with_host_up(profile_dir, call):
-        token = set_hermes_home_override(str(profile_dir))
+        token = set_kova_home_override(str(profile_dir))
         try:
             manager = plugins_mod.get_plugin_manager()
             manager._plugin_host().ensure_started()
             calls.append((manager, manager._running_plugin_host().pid))
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         original(profile_dir, call)
 
     with patch.object(pmc, "notify_memory_provider", notify_with_host_up), \

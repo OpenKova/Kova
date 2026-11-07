@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 class _Peer:
@@ -48,7 +48,7 @@ def homes(tmp_path, monkeypatch):
     work.mkdir(parents=True)
     _write_skin(default, "default")
     _write_skin(work, "ares")
-    monkeypatch.setattr(server, "_hermes_home", default)
+    monkeypatch.setattr(server, "_kova_home", default)
     monkeypatch.setattr(server, "_last_skin_sig", None, raising=False)
     monkeypatch.setattr(server, "_skin_sig_by_home", {}, raising=False)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
@@ -57,11 +57,11 @@ def homes(tmp_path, monkeypatch):
 
 
 def _under(home, fn):
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         return fn()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_watcher_never_pushes_the_launch_home_skin_onto_a_profile_tui(homes):

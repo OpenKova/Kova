@@ -25,26 +25,26 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
     from kova_cli.gateway_runtime_service import service_suffix
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / (".hermes" if case == "default" else "custom root")
+    home = tmp_path / (".kova" if case == "default" else "custom root")
     if case == "named":
         home = home / "profiles" / "worker"
     home.mkdir(mode=0o700, parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     suffix = service_suffix(home)
-    unit = tmp_path / ".config/systemd/user" / f"hermes-gateway{'-' + suffix if suffix else ''}.service"
+    unit = tmp_path / ".config/systemd/user" / f"kova-gateway{'-' + suffix if suffix else ''}.service"
     unit.parent.mkdir(parents=True)
-    unit.write_text(f'[Service]\nExecStart={sys.executable} -m kova_cli.main gateway run\nEnvironment="HERMES_HOME={home}"\n', encoding="utf-8")
+    unit.write_text(f'[Service]\nExecStart={sys.executable} -m kova_cli.main gateway run\nEnvironment="KOVA_HOME={home}"\n', encoding="utf-8")
     original = unit.read_bytes()
     configured = home
     if case in {"wrong_home", "dropin_home"}:
         configured = tmp_path / "unrequested"
     if case == "wrong_home":
-        unit.write_text(f'[Service]\nEnvironment="HERMES_HOME={configured}"\n', encoding="utf-8")
+        unit.write_text(f'[Service]\nEnvironment="KOVA_HOME={configured}"\n', encoding="utf-8")
         original = unit.read_bytes()
     if case == "dropin_home":
         override = unit.parent / (unit.name + '.d') / 'override.conf'
         override.parent.mkdir()
-        override.write_text(f'[Service]\nEnvironment="HERMES_HOME={configured}"\n', encoding="utf-8")
+        override.write_text(f'[Service]\nEnvironment="KOVA_HOME={configured}"\n', encoding="utf-8")
     if case == "alias":
         configured = tmp_path / "alias"
         configured.symlink_to(home, target_is_directory=True)
@@ -56,7 +56,7 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
     if case == "wrong_command":
         command = '/bin/echo kova_cli.main gateway run'
     props = dict(LoadState="loaded", ActiveState="inactive", SubState="dead", UnitFileState="enabled",
-                 User=str(os.getuid()), DynamicUser="no", Environment=f'"HERMES_HOME={configured}" "HERMES_SUPERVISED_CHILD=1"',
+                 User=str(os.getuid()), DynamicUser="no", Environment=f'"KOVA_HOME={configured}" "KOVA_SUPERVISED_CHILD=1"',
                  EnvironmentFiles="", PassEnvironment="", UnsetEnvironment="", PAMName="",
                  RootDirectory="", RootImage="", ExecStartPre="", ExecCondition="",
                  ExecStart=f'{{ path={command.split()[0]} ; argv[]={command} ; ignore_errors=no ; }}',
@@ -73,16 +73,16 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
             del props[key]
     if case == "env_file":
         env_file = tmp_path / "override.env"
-        env_file.write_text(f'HERMES_HOME={tmp_path / "other"}\n', encoding="utf-8")
+        env_file.write_text(f'KOVA_HOME={tmp_path / "other"}\n', encoding="utf-8")
         props['EnvironmentFiles'] = f'{env_file} (ignore_errors=no)'
     if case == "dynamic_user":
         props['DynamicUser'] = 'yes'
     if case == "manager_home":
-        props['Environment'] = 'HERMES_SUPERVISED_CHILD=1'
-        manager_env = f'HERMES_HOME={tmp_path / "other"}\n'
+        props['Environment'] = 'KOVA_SUPERVISED_CHILD=1'
+        manager_env = f'KOVA_HOME={tmp_path / "other"}\n'
     if case == "default":
         # An older default install may rely on the user manager's HOME.
-        props['Environment'] = 'HERMES_SUPERVISED_CHILD=1'
+        props['Environment'] = 'KOVA_SUPERVISED_CHILD=1'
         manager_env = f'HOME={tmp_path}\n'
     definition = tmp_path / "effective.json"
     definition.write_text(json.dumps({'props': props, 'system': False, 'env': manager_env}), encoding="utf-8")
@@ -123,10 +123,10 @@ def test_loaded_launchd_identity_is_independent_of_disk(configured, command, rea
     argv = [sys.executable, "-m", "kova_cli.main", "gateway", "run"]
     if command == "echo":
         argv = ["/bin/echo", "kova_cli.main", "gateway", "run"]
-    environment = f"HERMES_HOME => {tmp_path / configured}" if configured else ""
-    output = "gui/123/ai.hermes.gateway = {\n\tstate = not running\n\tprogram = " + argv[0] + "\n\targuments = {\n" + "\n".join("\t\t" + a for a in argv) + "\n\t}\n\tenvironment = {\n\t\t" + environment + "\n\t}\n}"
+    environment = f"KOVA_HOME => {tmp_path / configured}" if configured else ""
+    output = "gui/123/ai.kova.gateway = {\n\tstate = not running\n\tprogram = " + argv[0] + "\n\targuments = {\n" + "\n".join("\t\t" + a for a in argv) + "\n\t}\n\tenvironment = {\n\t\t" + environment + "\n\t}\n}"
     if command != "unsupervised":
-        output = output.replace("\n\tenvironment = {\n", "\n\tenvironment = {\n\t\tHERMES_SUPERVISED_CHILD => 1\n")
+        output = output.replace("\n\tenvironment = {\n", "\n\tenvironment = {\n\t\tKOVA_SUPERVISED_CHILD => 1\n")
     if command == "wrong_account":
         output = output.replace("\n\tstate", "\n\tusername = other\n\tstate")
     if reason:
@@ -140,7 +140,7 @@ def _launchd_gateway_command(tmp_path, monkeypatch, *, store, profile=""):
     """The gateway command generate_launchd_plist persists, from a store Python or an external one."""
     from kova_cli import _launchers, gateway as gw
     from kova_cli.gateway_launchd import _timestamped_stderr_gateway_command
-    monkeypatch.setattr(gw, "PROJECT_ROOT", tmp_path / "hermes-agent")
+    monkeypatch.setattr(gw, "PROJECT_ROOT", tmp_path / "kova-agent")
     monkeypatch.setattr(gw, "get_python_path", lambda: sys.executable)
     monkeypatch.setattr(gw, "_profile_arg", lambda *a, **k: profile)
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda *a, **k: Path(sys.executable) if store else None)
@@ -166,7 +166,7 @@ def test_launchd_verifies_the_osascript_wrapped_command_the_installer_writes(cas
     import plistlib
     from kova_cli.gateway_launchd import launchd_program_arguments
     from kova_cli.gateway_runtime_service_identity import verify_launchd_loaded, verify_launchd_plist
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     from kova_cli import gateway as gw
     command = _launchd_gateway_command(tmp_path, monkeypatch,
                                        store=case not in {"inline", "tampered_bootstrap", "foreign_root_inline"},
@@ -212,13 +212,13 @@ def test_launchd_verifies_the_osascript_wrapped_command_the_installer_writes(cas
         argv[4] += ' $.system("id");'
     if case == "foreign_osascript":
         argv[0] = str(tmp_path / "osascript")
-    env = dict(HERMES_HOME=str(home if case != "other_home" else tmp_path / "elsewhere" / ".hermes"),
-               HERMES_SUPERVISED_CHILD="1")
-    definition = plistlib.loads(plistlib.dumps(dict(Label="ai.hermes.gateway", ProgramArguments=argv, EnvironmentVariables=env)))
-    output = ("gui/123/ai.hermes.gateway = {\n\tstate = not running\n\tprogram = " + argv[0] + "\n\targuments = {\n"
+    env = dict(KOVA_HOME=str(home if case != "other_home" else tmp_path / "elsewhere" / ".kova"),
+               KOVA_SUPERVISED_CHILD="1")
+    definition = plistlib.loads(plistlib.dumps(dict(Label="ai.kova.gateway", ProgramArguments=argv, EnvironmentVariables=env)))
+    output = ("gui/123/ai.kova.gateway = {\n\tstate = not running\n\tprogram = " + argv[0] + "\n\targuments = {\n"
               + "\n".join("\t\t" + arg for arg in argv) + "\n\t}\n\tenvironment = {\n"
               + "".join(f"\t\t{key} => {value}\n" for key, value in env.items()) + "\t}\n}")
-    for verify in (lambda: verify_launchd_plist(definition, "ai.hermes.gateway", home),
+    for verify in (lambda: verify_launchd_plist(definition, "ai.kova.gateway", home),
                    lambda: verify_launchd_loaded(output, home, uid=123, username="owner")):
         if reason:
             with pytest.raises(ValueError, match=reason):
@@ -231,14 +231,14 @@ def _installed_vbs(home, configured):
     """The current installed launcher grammar; no script is executed."""
     script = home / 'gateway.vbs'
     script.write_text("\n".join([
-        "' Hermes Agent Gateway", "Option Explicit", "Dim sh, env, existing_pp",
+        "' Kova Agent Gateway", "Option Explicit", "Dim sh, env, existing_pp",
         'Set sh = CreateObject("WScript.Shell")', 'Set env = sh.Environment("PROCESS")',
-        f'env.Item("HERMES_HOME") = "{configured}"',
-        'env.Item("HERMES_SUPERVISED_CHILD") = "1"',
-        'env.Item("VIRTUAL_ENV") = "C:\\Hermes"',
+        f'env.Item("KOVA_HOME") = "{configured}"',
+        'env.Item("KOVA_SUPERVISED_CHILD") = "1"',
+        'env.Item("VIRTUAL_ENV") = "C:\\Kova"',
         'existing_pp = env.Item("PYTHONPATH")', 'If Len(existing_pp) > 0 Then',
-        '  env.Item("PYTHONPATH") = "C:\\Hermes;" & existing_pp', 'Else',
-        '  env.Item("PYTHONPATH") = "C:\\Hermes"', 'End If',
+        '  env.Item("PYTHONPATH") = "C:\\Kova;" & existing_pp', 'Else',
+        '  env.Item("PYTHONPATH") = "C:\\Kova"', 'End If',
         f'sh.CurrentDirectory = "{home}"',
         f'sh.Run "{sys.executable} -m kova_cli.main gateway run", 0, False',
     ]) + "\n", encoding='utf-8')
@@ -265,7 +265,7 @@ def test_task_xml_binds_actual_action_and_principal(case, reason, tmp_path):
     home.mkdir()
     script = _installed_vbs(home, str(home if case != 'wrong_home' else tmp_path / 'other'))
     user = 'DOMAIN\\owner'
-    xml = _build_scheduled_task_xml('Hermes_Gateway', script, user)
+    xml = _build_scheduled_task_xml('Kova_Gateway', script, user)
     if case == 'schtasks_export':
         xml = _as_schtasks_exports(xml)
     if case == 'elevated':  # an explicit non-default value is still refused
@@ -296,7 +296,7 @@ def test_task_xml_binds_actual_action_and_principal(case, reason, tmp_path):
 
 
 def test_task_launcher_for_a_non_ascii_home_is_utf16_and_still_verifies(tmp_path, monkeypatch):
-    """wscript.exe reads a BOM-less .vbs in the ANSI code page, so a non-ASCII HERMES_HOME (any CJK or
+    """wscript.exe reads a BOM-less .vbs in the ANSI code page, so a non-ASCII KOVA_HOME (any CJK or
     accented Windows username) reached python garbled and the gateway died before logging. The installed
     launcher is UTF-16 with a BOM; ensure must verify it, and a UTF-8 one an older version wrote."""
     import codecs
@@ -304,7 +304,7 @@ def test_task_launcher_for_a_non_ascii_home_is_utf16_and_still_verifies(tmp_path
     from kova_cli.gateway_runtime_service_identity import verify_windows_task
 
     home = tmp_path / 'Usuário 方舟'
-    script = home / 'gateway-service' / 'Hermes_Gateway.cmd'
+    script = home / 'gateway-service' / 'Kova_Gateway.cmd'
     script.parent.mkdir(parents=True)
     monkeypatch.setattr(gateway_windows, '_assert_windows', lambda: None)
     monkeypatch.setattr(gateway_windows, 'get_task_script_path', lambda: script)
@@ -313,7 +313,7 @@ def test_task_launcher_for_a_non_ascii_home_is_utf16_and_still_verifies(tmp_path
     raw = launcher.read_bytes()
     assert raw.startswith(codecs.BOM_UTF16_LE) and str(home) in raw.decode('utf-16')
     user = 'DOMAIN\\owner'
-    xml = gateway_windows._build_scheduled_task_xml('Hermes_Gateway', launcher, user)
+    xml = gateway_windows._build_scheduled_task_xml('Kova_Gateway', launcher, user)
     verify_windows_task(xml, home, user, 'S-1-5-21-123')
     launcher.write_bytes(raw.decode('utf-16').encode('utf-8'))
     verify_windows_task(xml, home, user, 'S-1-5-21-123')
@@ -331,7 +331,7 @@ def test_task_discovery_skips_listing_lines_that_are_not_task_rows(tmp_path, mon
     home = tmp_path / "profile"
     home.mkdir()
     script = _installed_vbs(home, str(home))
-    name = "Hermes_Gateway_" + service.service_suffix(home)
+    name = "Kova_Gateway_" + service.service_suffix(home)
     account, sid = "DESKTOP-1\\owner", "S-1-5-21-123"
     listing = ('"\\Microsoft\\Windows\\Defrag\\ScheduledDefrag","N/A","Ready"\r\n'
                '错误: 任务映像已损坏或已篡改。\r\n'
@@ -364,18 +364,18 @@ def test_native_launchd_checks_loaded_job_before_disk(case, reason, tmp_path, mo
     from kova_cli import gateway_runtime_service as service
     home = tmp_path / 'profile'
     home.mkdir(mode=0o700)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setattr(pwd, 'getpwuid', lambda uid: SimpleNamespace(pw_dir=str(tmp_path), pw_name="owner"))
-    label = 'ai.hermes.gateway' + ('-' + service.service_suffix(home) if service.service_suffix(home) else '')
+    label = 'ai.kova.gateway' + ('-' + service.service_suffix(home) if service.service_suffix(home) else '')
     plist = tmp_path / 'Library/LaunchAgents' / (label + '.plist')
     plist.parent.mkdir(parents=True)
     argv = [sys.executable, '-m', 'kova_cli.main', 'gateway', 'run']
     disk_home = tmp_path / 'wrong' if case == 'loaded_good_disk_wrong' else home
     plist.write_bytes(plistlib.dumps(dict(Label=label, ProgramArguments=argv,
-        EnvironmentVariables=dict(HERMES_HOME=str(disk_home), HERMES_SUPERVISED_CHILD='1'))))
+        EnvironmentVariables=dict(KOVA_HOME=str(disk_home), KOVA_SUPERVISED_CHILD='1'))))
     original = plist.read_bytes()
     loaded_home = tmp_path / 'wrong' if case == 'loaded_wrong_disk_good' else home
-    output = 'gui/' + str(os.getuid()) + '/' + label + ' = {\n\tstate = not running\n\tprogram = ' + argv[0] + '\n\targuments = {\n' + '\n'.join('\t\t' + arg for arg in argv) + '\n\t}\n\tenvironment = {\n\t\tHERMES_HOME => ' + str(loaded_home) + '\n\t\tHERMES_SUPERVISED_CHILD => 1\n\t}\n}'
+    output = 'gui/' + str(os.getuid()) + '/' + label + ' = {\n\tstate = not running\n\tprogram = ' + argv[0] + '\n\targuments = {\n' + '\n'.join('\t\t' + arg for arg in argv) + '\n\t}\n\tenvironment = {\n\t\tKOVA_HOME => ' + str(loaded_home) + '\n\t\tKOVA_SUPERVISED_CHILD => 1\n\t}\n}'
     peer = tmp_path / 'supervisor.py'
     peer.write_text('import sys\n' + f'output={output!r}\nbootstrap={case == "bootstrap"!r}\n' +
         'if "print" in sys.argv:\n sys.exit(113) if bootstrap or any(a.startswith("user/") for a in sys.argv) else print(output)\n', encoding='utf-8')
@@ -405,7 +405,7 @@ def test_native_task_query_uses_installed_xml_and_vendor_launcher(wrong, tmp_pat
     from kova_cli.gateway_windows import _build_gateway_vbs_script, _build_scheduled_task_xml
     home = tmp_path / 'profile'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     script = home / 'gateway.vbs'
     # newline='' mirrors the installer's _atomic_write: the template is already CRLF and
     # Windows text mode would otherwise double it to \r\r\n, which is not the vendor template.
@@ -417,7 +417,7 @@ def test_native_task_query_uses_installed_xml_and_vendor_launcher(wrong, tmp_pat
     import csv
     _account, sid = next(csv.reader(identity.stdout.decode(_schtasks_encoding()).splitlines()))
     suffix = service.service_suffix(home)
-    name = 'Hermes_Gateway' + ('_' + suffix if suffix else '')
+    name = 'Kova_Gateway' + ('_' + suffix if suffix else '')
     xml = _build_scheduled_task_xml(name, script, 'S-1-5-18' if wrong else sid)
     peer = tmp_path / 'supervisor.py'
     row = f'"\\{name}","N/A","Ready"'
@@ -511,7 +511,7 @@ def test_s6_runtime_ensure_starts_the_registered_gateway_slot(tmp_path, monkeypa
     monkeypatch.setattr(service_manager, "S6ServiceManager", FakeS6ServiceManager)
     read_text = Path.read_text
     monkeypatch.setattr(Path, "read_text", lambda path, *args, **kwargs: (
-        str(home) if str(path).replace("\\", "/") == "/run/s6/container_environment/HERMES_HOME"
+        str(home) if str(path).replace("\\", "/") == "/run/s6/container_environment/KOVA_HOME"
         else read_text(path, *args, **kwargs)))
     monkeypatch.setattr(service, "_systemd", lambda *_args: pytest.fail("s6 must not probe systemd"))
 
@@ -541,7 +541,7 @@ def test_s6_command_timeout_ends_at_the_runtime_deadline(tmp_path, monkeypatch):
                         lambda self: setattr(self, "scandir", scandir))
     read_text = Path.read_text
     monkeypatch.setattr(Path, "read_text", lambda path, *args, **kwargs: (
-        str(home) if str(path).replace("\\", "/") == "/run/s6/container_environment/HERMES_HOME"
+        str(home) if str(path).replace("\\", "/") == "/run/s6/container_environment/KOVA_HOME"
         else read_text(path, *args, **kwargs)))
 
     with pytest.raises(TimeoutError):
@@ -563,7 +563,7 @@ def test_windows_startup_folder_entry_still_restarts_a_stopped_owner(tmp_path, m
     home.mkdir(mode=0o700)
     startup = tmp_path / "Startup"
     startup.mkdir()
-    (startup / f"Hermes_Gateway_{service.service_suffix(home)}.vbs").write_text("' fallback\r\n")
+    (startup / f"Kova_Gateway_{service.service_suffix(home)}.vbs").write_text("' fallback\r\n")
     monkeypatch.setattr(gateway_windows, "_startup_dir", lambda: startup)
     queries, spawned = [], []
     monkeypatch.setattr(service, "_run", lambda argv, *a, **k: queries.append(argv) or SimpleNamespace(returncode=0, stdout=b""))
@@ -588,7 +588,7 @@ def test_task_discovery_reads_localized_schtasks_output(tmp_path, monkeypatch):
     home = tmp_path / "profile"
     home.mkdir()
     script = _installed_vbs(home, str(home))
-    name = "Hermes_Gateway_" + service.service_suffix(home)
+    name = "Kova_Gateway_" + service.service_suffix(home)
     account, sid = "DESKTOP-1\\\u65b9\u821f", "S-1-5-21-123"
     # whoami first: it is queried with /FO CSV too.
     out = {"whoami.exe": f'"{account}","{sid}"\r\n', "/XML": _as_schtasks_exports(

@@ -19,7 +19,7 @@ when this process dies.
   in-flight ones finish within ``agent.restart_after_turn_timeout``, then exit), waited for within
   that restart's budget. The request is recorded before it is sent, and carries no planned-stop
   marker (the gateway's marker watcher would take the immediate stop path instead).
-* systemd ``hermes-gateway*`` units and launchd ``ai.hermes.gateway*`` jobs are then stopped and
+* systemd ``kova-gateway*`` units and launchd ``ai.kova.gateway*`` jobs are then stopped and
   later started through their supervisor, so it cannot respawn them on old code mid-update; one
   that does not take the drain gets its supervisor's stop at once.
 * bare ``gateway run`` processes that do not answer get marker + SIGTERM, and are replayed from
@@ -123,7 +123,7 @@ def _inside(cgroup: str | None, unit_cgroup: str | None) -> bool:
 
 
 def _discover_systemd() -> list[dict]:
-    """Active ``hermes-gateway*`` units of this install, one per live MainPID."""
+    """Active ``kova-gateway*`` units of this install, one per live MainPID."""
     from kova_cli.gateway import _ensure_user_systemd_env, supports_systemd_services
     from kova_cli.update_cmd_fleet import (
         _for_each_systemd_gateway_unit, _systemd_gateway_unit_listings, _systemd_unit_owned_by_update,
@@ -140,7 +140,7 @@ def _discover_systemd() -> list[dict]:
         _for_each_systemd_gateway_unit(listing.stdout, process_unit=names.append,
                                        on_unit_timeout=lambda name, exc: None)
         for name in names:
-            if not name.startswith("hermes-gateway"):
+            if not name.startswith("kova-gateway"):
                 continue  # serve/dashboard units are not gateways: the post-commit restart owns them
             pid = _unit_main_pid(scope_cmd, name)
             if pid <= 0 or pid in seen_pids or not _systemd_unit_owned_by_update(scope_cmd, name):
@@ -152,7 +152,7 @@ def _discover_systemd() -> list[dict]:
 
 
 def _discover_launchd() -> list[dict]:
-    """Loaded ``ai.hermes.gateway*`` jobs of this install with a live process (macOS)."""
+    """Loaded ``ai.kova.gateway*`` jobs of this install with a live process (macOS)."""
     if sys.platform != "darwin":
         return []
     from kova_cli.gateway import (
@@ -175,7 +175,7 @@ def _discover_launchd() -> list[dict]:
 
 
 def _home_of(pid: int) -> str | None:
-    """The Hermes home *pid* serves (its control socket lives there), or ``None``."""
+    """The Kova home *pid* serves (its control socket lives there), or ``None``."""
     from kova_cli.update_fleet_scope import gateway_pid_home
     with suppress(Exception):
         if home := gateway_pid_home(pid):
@@ -194,7 +194,7 @@ def _supervisor_markers(pid: int) -> str | None:
         env = psutil.Process(pid).environ()
     except Exception:  # health: allow BLE001 -- unreadable environment: no marker proven
         return None
-    if env.get("HERMES_S6_SUPERVISED_CHILD"):
+    if env.get("KOVA_S6_SUPERVISED_CHILD"):
         return "s6"
     if unit := _respawning_service(pid):
         return f"systemd unit {unit}"
@@ -241,7 +241,7 @@ def _discover_bare(service_pids: set[int]) -> tuple[list[dict], list[str]]:
         argv, home = _capture_gateway_argv(pid), gateway_pid_home(pid)
         if marker or not argv or not home:
             why = f"supervised by {marker}" if marker else "its command line could not be read" if not argv \
-                else "its Hermes home could not be proved"
+                else "its Kova home could not be proved"
             notices.append(f"  ↷ gateway PID {pid} keeps running until after the update ({why})")
             continue
         bare.append({"pid": pid, "argv": list(argv), "home": str(home), "ct": get_process_start_time(pid)})
@@ -323,7 +323,7 @@ def _manage_cmd(scope: str) -> list | None:
     cmd = cmd + ["--no-ask-password"]
     if scope == "system" and _needs_sudo(scope):
         sudo = ["sudo", "-n", *cmd]
-        return sudo if _sudo_noninteractive_ok(cmd + ["show", "-p", "Id", "hermes-gateway"]) else None
+        return sudo if _sudo_noninteractive_ok(cmd + ["show", "-p", "Id", "kova-gateway"]) else None
     return cmd
 
 
@@ -529,11 +529,11 @@ def _replay_env(home: str) -> dict:
     own secrets and none of the launcher's (``served_profile_child_env``)."""
     if (prepared := _REPLAY_ENVS.get(home)) is not None:
         return dict(prepared)
-    from kova_constants import get_default_hermes_root, get_routing_process_hermes_home
+    from kova_constants import get_default_kova_root, get_routing_process_kova_home
     from tools.environments.local import build_subprocess_env, served_profile_child_env
     target = Path(home).resolve()
-    if target != get_default_hermes_root().resolve() and target == get_routing_process_hermes_home().resolve():
-        return build_subprocess_env(scrub_secrets=False, inherit_profile_home=False, extra={"HERMES_HOME": home})
+    if target != get_default_kova_root().resolve() and target == get_routing_process_kova_home().resolve():
+        return build_subprocess_env(scrub_secrets=False, inherit_profile_home=False, extra={"KOVA_HOME": home})
     return served_profile_child_env(target_home=home, inherit_credentials=True)
 
 
@@ -545,7 +545,7 @@ def _relaunch_bare(entry: dict) -> int:
     logs = Path(entry["home"]) / "logs"
     logs.mkdir(parents=True, exist_ok=True)
     env = _replay_env(entry["home"])
-    for leaked in ("INVOCATION_ID", "JOURNAL_STREAM", "HERMES_UPDATE_PAUSED", "_HERMES_GATEWAY"):
+    for leaked in ("INVOCATION_ID", "JOURNAL_STREAM", "KOVA_UPDATE_PAUSED", "_KOVA_GATEWAY"):
         env.pop(leaked, None)
     with open(logs / "gateway-update-resume.log", "ab") as log:
         proc = subprocess.Popen(list(entry["argv"]), env=env, stdin=subprocess.DEVNULL, stdout=log,

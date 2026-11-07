@@ -14,7 +14,7 @@ PROJECT_ROOT = Path(project_root_str())
 
 from kova_cli.auth import AuthError, resolve_provider
 from kova_cli.colors import Colors, color
-from kova_cli.config import get_env_path, get_env_value, get_hermes_home, load_config
+from kova_cli.config import get_env_path, get_env_value, get_kova_home, load_config
 from kova_cli.config_defaults import DEFAULT_SANDBOX_IMAGE, DEFAULT_VERCEL_IMAGE
 from kova_cli.models import provider_label
 from kova_cli.runtime_provider import resolve_requested_provider
@@ -128,7 +128,7 @@ def _banner(lines, *styles) -> None:
 
 def _render_header(ctx):
     _banner(("┌─────────────────────────────────────────────────────────┐",
-             "│                 ☤ Hermes Agent Status                  │",
+             "│                 ☤ Kova Agent Status                  │",
              "└─────────────────────────────────────────────────────────┘"), Colors.CYAN)
     paused = _estop_status_line()
     if paused:
@@ -170,7 +170,7 @@ def _render_terminal(ctx):
         _kv("Image:", os.getenv('TERMINAL_VERCEL_RUNTIME') or terminal_cfg.get('vercel_runtime')
             or os.getenv('TERMINAL_VERCEL_IMAGE') or terminal_cfg.get('vercel_image') or DEFAULT_VERCEL_IMAGE)
         _kv_flag("SDK:", importlib.util.find_spec("vercel") is not None, "installed",
-                 "missing (run hermes setup terminal and select Vercel Sandbox, then restart Hermes)")
+                 "missing (run hermes setup terminal and select Vercel Sandbox, then restart Kova)")
         _kv("Auth:", f"{check_mark(auth_status.ok)} {auth_status.label}")
         for line in auth_status.detail_lines:
             _kv("Auth detail:", line)
@@ -252,7 +252,7 @@ def _load_json(path: Path, encoding: str = "utf-8"):
 
 def _cron_summary() -> str:
     """``N active, M total`` jobs line, shared by the full and short status renderers."""
-    jobs_file = get_hermes_home() / "cron" / "jobs.json"
+    jobs_file = get_kova_home() / "cron" / "jobs.json"
     if not jobs_file.exists():
         return "0"
     try:
@@ -275,7 +275,7 @@ def _render_sessions(ctx):
     # pre-migration installs.
     try:
         from kova_state import SessionDB
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        db = SessionDB(db_path=get_kova_home() / "state.db", read_only=True)
         try:
             gateway_rows = db.list_gateway_sessions(active_only=True) or []
         finally:
@@ -289,7 +289,7 @@ def _render_sessions(ctx):
         if freshest > 0:
             from kova_cli.timefmt import relative_time
             print(f"  Last activity:{relative_time(freshest):>13}")
-    elif not (sessions_file := get_hermes_home() / "sessions" / "sessions.json").exists():
+    elif not (sessions_file := get_kova_home() / "sessions" / "sessions.json").exists():
         _kv("Active:", 0)
     else:
         try:

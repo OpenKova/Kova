@@ -51,7 +51,7 @@ def _run_job_with_real_db(job, db, tmp_path):
 
 
 def _run_job_in_owner(job, db, tmp_path):
-    with patch("cron.scheduler._hermes_home", tmp_path), \
+    with patch("cron.scheduler._kova_home", tmp_path), \
          patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
          patch("kova_cli.env_loader.load_hermes_dotenv"), \
          patch("kova_cli.env_loader.reset_secret_source_cache"), \

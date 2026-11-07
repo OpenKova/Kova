@@ -578,7 +578,7 @@ export function completeFlow(flow: DesktopFlowId): void {
 
 /** The primary gateway socket dropped after a healthy boot. Classified a few
  *  seconds later: a backend process exit around it makes it `backend_exit`, a
- *  gateway switch starting in the window (Restart Hermes recycles the backend
+ *  gateway switch starting in the window (Restart Kova recycles the backend
  *  before the switch flag rises) cancels it. */
 export function noteBackendDrop(reason: 'timeout' | null, now = Date.now()): void {
   if (pendingDrop || $desktopMetricsGate.get() !== 'on') {
@@ -739,7 +739,7 @@ export function noteMessageSent(mode: DesktopMode = $workspaceMode.get()): void 
   }
 }
 
-/** Configured bots (Bot Mode roster = Hermes profiles) — a count, never names. */
+/** Configured bots (Bot Mode roster = Kova profiles) — a count, never names. */
 export function setDesktopBotCount(count: number): void {
   botCount = Math.max(0, Math.floor(finite(count)))
   withState(current => {
@@ -864,7 +864,7 @@ async function flushPendingDays(): Promise<void> {
 
 /** Renderer crashes main persisted while this renderer (or its predecessor) was gone. */
 async function drainRendererCrashes(): Promise<void> {
-  const bridge = window.hermesDesktop?.desktopMetrics
+  const bridge = window.kovaDesktop?.desktopMetrics
 
   try {
     const pending = await bridge?.takeRendererCrashes?.()
@@ -911,7 +911,7 @@ export function flushDesktopMetrics(): void {
 /** Main records this window's renderer crashes only while its profile is on; off drops that profile's. */
 function tellMain(on: boolean): void {
   try {
-    Promise.resolve(window.hermesDesktop?.desktopMetrics?.setEnabled?.(on, scope)).catch(() => undefined)
+    Promise.resolve(window.kovaDesktop?.desktopMetrics?.setEnabled?.(on, scope)).catch(() => undefined)
   } catch {
     // An older shell without the bridge.
   }

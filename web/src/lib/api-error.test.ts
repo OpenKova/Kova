@@ -10,12 +10,12 @@ vi.mock("./dashboard-auth-reload", () => ({
 }));
 
 beforeEach(() => {
-  Object.defineProperty(window, "__HERMES_SESSION_TOKEN__", {
+  Object.defineProperty(window, "__KOVA_SESSION_TOKEN__", {
     configurable: true,
     value: "tok",
     writable: true,
   });
-  Object.defineProperty(window, "__HERMES_AUTH_REQUIRED__", {
+  Object.defineProperty(window, "__KOVA_AUTH_REQUIRED__", {
     configurable: true,
     value: false,
     writable: true,
@@ -57,7 +57,7 @@ describe("fetchJSON error contract", () => {
       detail: {
         error: "state_db_corrupt",
         message: "state.db corrupt — run `hermes doctor` (then `hermes doctor --fix` or `hermes sessions repair`).",
-        path: "/home/u/.hermes/state.db",
+        path: "/home/u/.kova/state.db",
       },
     };
     vi.stubGlobal(

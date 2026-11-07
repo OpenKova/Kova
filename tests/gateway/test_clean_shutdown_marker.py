@@ -35,7 +35,7 @@ class TestCleanShutdownMarker:
 
     def test_marker_written_on_graceful_stop(self, tmp_path, monkeypatch):
         """stop() should write .clean_shutdown marker."""
-        monkeypatch.setattr("gateway.run._hermes_home", tmp_path)
+        monkeypatch.setattr("gateway.run._kova_home", tmp_path)
         marker = tmp_path / ".clean_shutdown"
         assert not marker.exists()
 

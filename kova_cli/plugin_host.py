@@ -4,16 +4,16 @@ With ``plugins.isolation: host`` the loader hands a general Python plugin to :cl
 instead of importing it. The host process imports it and runs ``register(ctx)``; every ``ctx`` call
 arrives here and is replayed on the plugin's real :class:`~kova_cli.plugins.PluginContext`, with
 the plugin's callables and provider objects swapped for proxies that call back into the host. From
-then on the rest of Hermes sees ordinary registrations — the registry, hook dispatch, the ledger,
+then on the rest of Kova sees ordinary registrations — the registry, hook dispatch, the ledger,
 unload and ``hermes plugins list`` do not know the plugin lives elsewhere, and neither does the
 plugin: its code is unchanged and never learns which process or tenant it serves.
 
-Requests the host makes while Hermes is waiting on it (a tool handler calling ``ctx.dispatch_tool``)
+Requests the host makes while Kova is waiting on it (a tool handler calling ``ctx.dispatch_tool``)
 run in the caller's context — same profile home, secret scope and session — via the wire's
 ``origin`` field; spontaneous ones (a ``spawn_task`` loop) run bound to this profile's home.
 
 When the host dies every proxy raises :class:`PluginHostUnavailable`: tool calls return an error,
-hooks fail like any raising callback, and Hermes itself keeps running. A fresh host is then started
+hooks fail like any raising callback, and Kova itself keeps running. A fresh host is then started
 and its plugins reloaded (bounded restarts; a plugin that killed the host while loading stays out).
 """
 
@@ -115,8 +115,8 @@ class PluginHost:
         context = contextvars.Context()
 
         def bind() -> None:
-            from kova_constants import set_hermes_home_override
-            set_hermes_home_override(self._home)
+            from kova_constants import set_kova_home_override
+            set_kova_home_override(self._home)
             from agent.secret_scope import build_profile_secret_scope, is_multiplex_active, set_secret_scope
             if is_multiplex_active():
                 set_secret_scope(build_profile_secret_scope(self._home), profile_home=str(self._home))
@@ -134,7 +134,7 @@ class PluginHost:
         env.update(self._base_context.run(_hosted_ambient_credentials, self._home))
         repo_root = str(Path(__file__).resolve().parents[1])
         env["PYTHONPATH"] = os.pathsep.join(p for p in (repo_root, env.get("PYTHONPATH", "")) if p)
-        env.setdefault("HERMES_PLUGIN_HOST_LOG_LEVEL", "WARNING")
+        env.setdefault("KOVA_PLUGIN_HOST_LOG_LEVEL", "WARNING")
         from kova_cli.plugin_isolation import HOST_PROCESS_ENV
         env[HOST_PROCESS_ENV] = "1"
         return env
@@ -173,7 +173,7 @@ class PluginHost:
                 code = proc.wait(timeout=0.5)  # the pipe closes a moment before the exit status lands
             except subprocess.TimeoutExpired:
                 pass
-        return (f"the plugin host for this profile exited (code {code}); Hermes restarts it and reloads "
+        return (f"the plugin host for this profile exited (code {code}); Kova restarts it and reloads "
                 f"its plugins automatically" if code is not None else "the plugin host is not running")
 
     def _on_channel_close(self, generation: int, reason: str) -> None:
@@ -442,7 +442,7 @@ class PluginHost:
         Sent as the plugin whose code made the call (``plugin``, in its load ``load``); False, as before
         this was forwarded, unless that load is the plugin's current one and ``plugin_id`` is its own."""
         from kova_cli.plugin_events import emit_plugin_session_event
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         plugin = str(params.get("plugin") or "")
         ctx = self._contexts.get(plugin)
         if ctx is None or getattr(ctx, "plugin_id", None) != params.get("plugin_id") \
@@ -450,12 +450,12 @@ class PluginHost:
             logger.warning("Plugin host session event %r refused: sender %r (load %r) is not that loaded plugin",
                            params.get("plugin_id"), params.get("plugin"), params.get("load"))
             return False
-        token = set_hermes_home_override(self._home)
+        token = set_kova_home_override(self._home)
         try:
             return emit_plugin_session_event(str(params.get("plugin_id")), params.get("session_id"),
                                              str(params.get("event")), params.get("payload"))
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     def _serve_facade(self, params: dict[str, Any]) -> Any:
         from kova_cli.plugin_isolation import HOST_REMOTE_FACADES
@@ -529,7 +529,7 @@ class PluginHost:
     def _object_proxy(self, ref: dict[str, Any], base: type,
                       reload: Optional[Callable[[], dict[str, Any]]] = None) -> Any:
         """An instance of ``base`` whose methods and public attributes live in the host. Attributes
-        Hermes assigns go to the plugin's object when they can cross; live handles stay local."""
+        Kova assigns go to the plugin's object when they can cross; live handles stay local."""
         host = self
         slot = _ObjectSlot(self, ref, reload)
         live = set(ref.get("live") or ())
@@ -661,7 +661,7 @@ def _import_ref(ref: str) -> type:
 
 
 def _pump_stderr(proc: subprocess.Popen, label: str) -> None:
-    """Plugin output and host logs go to the Hermes log, tagged with the host's profile."""
+    """Plugin output and host logs go to the Kova log, tagged with the host's profile."""
     stream = proc.stderr
     if stream is None:
         return

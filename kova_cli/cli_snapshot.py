@@ -35,7 +35,7 @@ def restore_snapshot_command(cli, parts):
     chat = store is not None and getattr(cli, "_gateway_session_open", False)
     # A remote gateway's state is not on this host: its chat restores this host's own snapshot offline,
     # as before, and keeps the remote connection open.
-    gateway = chat and not os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+    gateway = chat and not os.environ.get("KOVA_TUI_GATEWAY_URL", "").strip()
     try:
         # An invalid/missing target must not take a working gateway offline.
         if gateway and quick_snapshot_dir(snap_id) is not None:
@@ -101,9 +101,9 @@ def _restore_gateway_snapshot(cli, store, snap_id):
     from kova_cli.gateway_runtime import control_home_for, discover_gateway_endpoint
     from kova_cli.profiles import parked_marker_path
     from kova_cli.profiles_remove import wait_profile_unowned
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state_registry import close_all_under
-    home = get_hermes_home().resolve()
+    home = get_kova_home().resolve()
     observed = discover_gateway_endpoint(home)
     if observed.state != "ready" or observed.endpoint is None:
         raise GatewayClientError("Local gateway is not ready for snapshot maintenance. Reconnect and retry.")

@@ -126,8 +126,8 @@ def test_chat_offer_asks_an_undecided_profile_once(monkeypatch):
     monkeypatch.setattr("kova_cli.curses_ui.curses_radiolist", lambda *a, **k: asked.append(a) or 0)
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     monkeypatch.setattr("sys.stdout.isatty", lambda: True)
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-    monkeypatch.delenv("HERMES_NONINTERACTIVE", raising=False)
+    monkeypatch.delenv("KOVA_DESKTOP", raising=False)
+    monkeypatch.delenv("KOVA_NONINTERACTIVE", raising=False)
 
     consent.offer_consent_before_chat(argparse.Namespace(query="hi"))  # no person to ask
     assert asked == []
@@ -140,7 +140,7 @@ def test_chat_offer_asks_an_undecided_profile_once(monkeypatch):
 
 
 def test_offer_drops_keys_typed_before_it_appeared(monkeypatch):
-    """An Enter typed while Hermes booted answered "No thanks" before the offer was on screen."""
+    """An Enter typed while Kova booted answered "No thanks" before the offer was on screen."""
     from kova_cli.observability import shared_metrics_consent as consent
 
     events = []
@@ -163,8 +163,8 @@ def test_unseen_no_thanks_is_asked_once_more_and_then_settled(monkeypatch):
     monkeypatch.setattr("kova_cli.curses_ui.curses_radiolist", lambda *a, **k: shown.append(k["description"]) or -1)
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     monkeypatch.setattr("sys.stdout.isatty", lambda: True)
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-    monkeypatch.delenv("HERMES_NONINTERACTIVE", raising=False)
+    monkeypatch.delenv("KOVA_DESKTOP", raising=False)
+    monkeypatch.delenv("KOVA_NONINTERACTIVE", raising=False)
 
     for send in (True, False):
         save_config({"telemetry": {"shared_metrics": {"enabled": True, "send": send}}}, strip_defaults=False)

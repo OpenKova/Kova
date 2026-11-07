@@ -328,7 +328,7 @@ def test_donor_must_share_the_orphans_profile(tmp_path, monkeypatch):
 
     root = tmp_path / "hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)
     store = SessionDB(db_path=root / "state.db")  # owner: default
     try:

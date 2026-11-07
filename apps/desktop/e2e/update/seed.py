@@ -10,7 +10,7 @@ bakes absolute paths into launchers and PM facts, so a copy elsewhere would not 
     python seed.py restore <root>     -> the snapshot back in place (install + origin)
     python seed.py publish <root> <message> <relpath> <content-file>  -> sha of the new origin/main
 
-HERMES_E2E_UPDATE_INSTALL_REF=<sha> installs that commit instead of HEAD (local A/B against an open
+KOVA_E2E_UPDATE_INSTALL_REF=<sha> installs that commit instead of HEAD (local A/B against an open
 fix, or a sabotage commit, without touching the checkout the suite runs from).
 """
 
@@ -55,7 +55,7 @@ def install(root: Path) -> None:
     p["facts"].unlink(missing_ok=True)
     for key in ("sb", "origin", "golden"):
         shutil.rmtree(p[key], ignore_errors=True)
-    head = os.environ.get("HERMES_E2E_UPDATE_INSTALL_REF") or I.head_sha()
+    head = os.environ.get("KOVA_E2E_UPDATE_INSTALL_REF") or I.head_sha()
     origin = I.make_origin(root, head)
     # Serve full clones. When a CI runner's git honours the installer's --filter=tree:0 against a
     # local file:// origin, the clone's lazy tree fetches fan out into more than 1300 concurrent
@@ -80,9 +80,9 @@ def install(root: Path) -> None:
     facts = {
         "sandboxRoot": str(sb.root),
         "home": str(sb.home),
-        "hermesHome": str(sb.hermes_home),
+        "hermesHome": str(sb.kova_home),
         "checkout": str(sb.checkout),
-        "hermes": sb.hermes,
+        "hermes": sb.kova,
         "origin": str(origin),
         "env": sb.env,
         "headSha": head,

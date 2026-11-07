@@ -11,7 +11,7 @@ const apiMocks = vi.hoisted(() => ({
   getActionStatus: vi.fn(),
   getStatus: vi.fn(),
   restartGateway: vi.fn(),
-  updateHermes: vi.fn(),
+  updateKova: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({ api: apiMocks }));
@@ -24,7 +24,7 @@ import { useSystemActions } from "./useSystemActions";
   true;
 
 const INSTRUCTION =
-  "Your local changes are parked in stash@{0}; run `git stash pop` in ~/.hermes/hermes-agent.";
+  "Your local changes are parked in stash@{0}; run `git stash pop` in ~/.kova/kova-agent.";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -35,7 +35,7 @@ function Probe() {
 }
 
 async function runUpdate(receiptActionId: string): Promise<string> {
-  apiMocks.updateHermes.mockResolvedValue({
+  apiMocks.updateKova.mockResolvedValue({
     action_id: "c".repeat(32),
     name: "hermes-update",
     ok: true,

@@ -3,7 +3,7 @@
 Management calls hit ``https://app.photon.codes/api/...`` (OAuth 2.0 device flow, Bearer)
 like the official CLI. The dashboard project ``id`` *is* the Spectrum Cloud project id and
 Spectrum is always provisioned at create-time; the sidecar authenticates with
-``(id, projectSecret)``. Storage: runtime SDK creds -> ``~/.hermes/.env``; management
+``(id, projectSecret)``. Storage: runtime SDK creds -> ``~/.kova/.env``; management
 metadata -> ``auth.json`` under ``credential_pool.photon`` (device token), ``photon_project``
 (ids + secret for offline status) and ``photon_user`` (numbers).
 """
@@ -27,7 +27,7 @@ except ImportError:  # pragma: no cover - httpx is a hermes dependency
     httpx = None  # type: ignore[assignment]
 
 from gateway.platforms._shared import get_scoped_secret as _get_scoped_secret
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 import contextlib
 
 logger = logging.getLogger(__name__)
@@ -38,22 +38,22 @@ class PhotonDashboardAuthError(RuntimeError):
 
 
 # Hosted Photon allowlists device clients (unregistered → 400 invalid_client); use Photon's
-# published CLI client until Hermes gets its own client_id.
+# published CLI client until Kova gets its own client_id.
 DEFAULT_CLIENT_ID = "photon-cli"
 DEFAULT_SCOPE = "openid profile email"
 DEFAULT_DASHBOARD_HOST = "https://app.photon.codes"
 DEFAULT_SPECTRUM_HOST = "https://spectrum.photon.codes"
-DEFAULT_PROJECT_NAME = "Hermes Agent"
+DEFAULT_PROJECT_NAME = "Kova Agent"
 DEFAULT_POLL_INTERVAL = 5  # RFC 8628 polling defaults; Photon's `interval` / `expires_in` win
 DEFAULT_POLL_TIMEOUT = 1800
 E164_RE = re.compile(r"^\+[1-9]\d{6,14}$")
 
 
-# -- auth.json helpers (shares the file with the rest of hermes-agent) ------------
+# -- auth.json helpers (shares the file with the rest of kova-agent) ------------
 
 def _auth_json_path() -> Path:
-    """The active profile's ``auth.json`` (shared with the rest of hermes-agent)."""
-    return get_hermes_home() / "auth.json"
+    """The active profile's ``auth.json`` (shared with the rest of kova-agent)."""
+    return get_kova_home() / "auth.json"
 
 
 def _load_auth() -> dict[str, Any]:
@@ -201,7 +201,7 @@ def store_user_numbers(
 
 
 def _persist_runtime_env(spectrum_project_id: str, project_secret: str) -> None:
-    """Write the SDK creds to ``~/.hermes/.env`` (secret never bound to a printable local
+    """Write the SDK creds to ``~/.kova/.env`` (secret never bound to a printable local
     in a caller — CodeQL clean flow)."""
     try:
         from kova_cli.config import save_env_value

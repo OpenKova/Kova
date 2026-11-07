@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { app } from 'electron'
 
-import { resolveDesktopHermesHome } from './data-paths'
+import { resolveDesktopKovaHome } from './data-paths'
 import { releasePackagedWorkingDirectory } from './packaged-working-directory'
 import { readDesktopLaunchConfig } from './renderer-heap-flags'
 import { restoreUserProxyEnv } from './updater/system-proxy-env'
@@ -23,15 +23,15 @@ if (process.argv.includes('--hermes-sandbox-probe')) {
 }
 
 // Run before main creates windows/IME integrations or spawns resident helpers.
-// Closing Hermes cannot release a CWD inherited by an out-of-tree process.
-releasePackagedWorkingDirectory(app.isPackaged || Boolean(process.env.HERMES_DESKTOP_IS_PACKAGED))
+// Closing Kova cannot release a CWD inherited by an out-of-tree process.
+releasePackagedWorkingDirectory(app.isPackaged || Boolean(process.env.KOVA_DESKTOP_IS_PACKAGED))
 
 function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
   // Resolve the home exactly like main.ts does, through the shared resolver:
-  // HERMES_DATA_DIR_SUFFIX channel installs and profiles/-rooted HERMES_HOME
+  // KOVA_DATA_DIR_SUFFIX channel installs and profiles/-rooted KOVA_HOME
   // values must pick the same config.yaml before the relaunch and inside the
   // app, or desktop.electron_flags silently never reaches the relaunch.
-  const home = resolveDesktopHermesHome({
+  const home = resolveDesktopKovaHome({
     home: os.homedir(),
     env,
     // Linux-only pre-launch path; the win32 legacy-migration probe is never

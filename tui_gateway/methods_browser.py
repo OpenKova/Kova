@@ -87,9 +87,9 @@ def _connect_local_default(port: int, system: str, announce) -> str | None:
 def _reap_profile_browsers() -> None:
     """Close the current profile's browsers only: the live connection is per profile, so other
     profiles' sessions on a multiplexed gateway keep theirs."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.browser_session_lifecycle import cleanup_profile_browsers
-    cleanup_profile_browsers(hermes_home_key())
+    cleanup_profile_browsers(kova_home_key())
 
 
 def _browser_connect(rid, params: dict) -> dict:

@@ -179,12 +179,12 @@ def restore_identity(
     if existing is not None:
         return existing
     from kova_cli.profiles import get_profile_dir
-    from kova_constants import get_process_hermes_home
+    from kova_constants import get_process_kova_home
 
     primary_profile = _name(getattr(runner, "_primary_profile_name", None)) or "default"
     runtime_name = _name(getattr(source, "profile", None)) or primary_profile
     authorization_home = (
-        Path(get_process_hermes_home()) if transport_name == primary_profile
+        Path(get_process_kova_home()) if transport_name == primary_profile
         else get_profile_dir(transport_name))
     runtime_home = (
         authorization_home if runtime_name == transport_name
@@ -217,7 +217,7 @@ def resolve_identity(
     Raises :class:`IdentityUnresolved` under multiplexing when the route is rejected.
     """
     from gateway.profile_routing import ProfileRouteRejected
-    from kova_constants import get_hermes_home, get_process_hermes_home
+    from kova_constants import get_kova_home, get_process_kova_home
 
     multiplexed = bool(getattr(getattr(runner, "config", None), "multiplex_profiles", False))
     primary_profile = _name(getattr(runner, "_primary_profile_name", None))
@@ -240,7 +240,7 @@ def resolve_identity(
     transport_ref = weakref.ref(adapter) if adapter is not None else None
 
     if not multiplexed:
-        home = Path(get_hermes_home())
+        home = Path(get_kova_home())
         identity = RoutingIdentity(
             transport_profile=primary_profile, runtime_profile=primary_profile,
             authorization_home=home, runtime_home=home, multiplexed=False, transport=transport_ref)
@@ -248,7 +248,7 @@ def resolve_identity(
         return identity
 
     if transport_name == primary_profile:
-        authorization_home = Path(primary_home) if primary_home is not None else Path(get_process_hermes_home())
+        authorization_home = Path(primary_home) if primary_home is not None else Path(get_process_kova_home())
     else:
         from kova_cli.profiles import get_profile_dir
         authorization_home = get_profile_dir(transport_name)

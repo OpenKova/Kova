@@ -11,8 +11,8 @@ from agent.redact import mask_secret, redact_cdp_url, redact_sensitive_text, Red
 
 @pytest.fixture(autouse=True)
 def _ensure_redaction_enabled(monkeypatch):
-    """Ensure HERMES_REDACT_SECRETS is not disabled by prior test imports."""
-    monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+    """Ensure KOVA_REDACT_SECRETS is not disabled by prior test imports."""
+    monkeypatch.delenv("KOVA_REDACT_SECRETS", raising=False)
     # Also patch the module-level snapshot so it reflects the cleared env var
     monkeypatch.setattr("agent.redact._REDACT_ENABLED", True)
 
@@ -1155,7 +1155,7 @@ class TestTerminalOutputRedaction:
         assert _command_reads_secret_file("cat -n .env")
         assert _command_reads_secret_file("cat -A .env")
         # With paths
-        assert _command_reads_secret_file("cat ~/.hermes/.env")
+        assert _command_reads_secret_file("cat ~/.kova/.env")
         assert _command_reads_secret_file("cat /home/user/project/.env")
         assert _command_reads_secret_file("cat ./config/.env.local")
         # In a pipeline / sequence
@@ -1249,9 +1249,9 @@ class TestTerminalOutputRedaction:
     @pytest.mark.parametrize(
         ("command", "output", "secret"),
         [
-            ("cat ~/.hermes/config.yaml", "api_key: hermesConfigSecret123", "hermesConfigSecret123"),
+            ("cat ~/.kova/config.yaml", "api_key: hermesConfigSecret123", "hermesConfigSecret123"),
             (
-                "head ~/.hermes/profiles/work/config.yaml",
+                "head ~/.kova/profiles/work/config.yaml",
                 "provider.token=profileConfigSecret456",
                 "profileConfigSecret456",
             ),
@@ -1264,17 +1264,17 @@ class TestTerminalOutputRedaction:
             ),
             ("sed -n '1,20p' ~/.zprofile", "api_key: zprofileSecret789", "zprofileSecret789"),
             (
-                'cat "$HERMES_HOME/config.yaml"',
+                'cat "$KOVA_HOME/config.yaml"',
                 "SERVICE_TOKEN=variablePathSecret123456789",
                 "variablePathSecret123456789",
             ),
             (
-                'cat "${HERMES_HOME}/config.yaml"',
+                'cat "${KOVA_HOME}/config.yaml"',
                 "SERVICE_TOKEN=variablePathSecret123456789",
                 "variablePathSecret123456789",
             ),
             (
-                "cat $HOME/.hermes/config.yaml",
+                "cat $HOME/.kova/config.yaml",
                 "SERVICE_TOKEN=homeVariablePathSecret123456",
                 "homeVariablePathSecret123456",
             ),
@@ -1284,7 +1284,7 @@ class TestTerminalOutputRedaction:
                 "awkQuotedSecret123",
             ),
             (
-                "grep 'foo|bar' ~/.hermes/config.yaml",
+                "grep 'foo|bar' ~/.kova/config.yaml",
                 "SERVICE_TOKEN=grepQuotedSecret456",
                 "grepQuotedSecret456",
             ),
@@ -1300,8 +1300,8 @@ class TestTerminalOutputRedaction:
         [
             "cat config.yaml",
             "cat /project/config.yaml",
-            "cat ~/.hermes/config.example.yaml",
-            "cat ~/.hermes/config.template.yaml",
+            "cat ~/.kova/config.example.yaml",
+            "cat ~/.kova/config.template.yaml",
             "cat ~/.bashrc.example",
             'cat "$OTHER/config.yaml"',
             "grep TOKEN app.py",
@@ -1467,17 +1467,17 @@ class TestSecretFileAssignmentRedaction:
         assert time.perf_counter() - started < 1.0
 
 
-class TestHermesHomePathClassification:
-    """``_is_secret_file_arg`` must see the RESOLVED Hermes home: a managed Windows home
-    (``%LOCALAPPDATA%\\hermes``) has no ``.hermes`` segment and a resolved path never spells
-    ``$HERMES_HOME``, so the literal test alone classified its ``config.yaml`` as ordinary YAML."""
+class TestKovaHomePathClassification:
+    """``_is_secret_file_arg`` must see the RESOLVED Kova home: a managed Windows home
+    (``%LOCALAPPDATA%\\hermes``) has no ``.kova`` segment and a resolved path never spells
+    ``$KOVA_HOME``, so the literal test alone classified its ``config.yaml`` as ordinary YAML."""
 
     def test_resolved_home_config_is_secret_bearing_but_project_config_is_not(self, tmp_path, monkeypatch):
         from agent import file_safety
         from agent.redact import _is_secret_file_arg
 
-        home = tmp_path / "hermes"  # no ".hermes" segment
-        monkeypatch.setattr(file_safety, "_hermes_home_path", lambda: home)
+        home = tmp_path / "hermes"  # no ".kova" segment
+        monkeypatch.setattr(file_safety, "_kova_home_path", lambda: home)
         monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: home)
         assert _is_secret_file_arg(str(home / "config.yaml"))
         assert _is_secret_file_arg(str(home / "profiles" / "coder" / "config.yaml"))
@@ -1687,8 +1687,8 @@ class TestRedactForEgress:
 class TestWebappLaunchLinks:
     """``hermes webapp`` prints a link that signs a browser in as the user: one with the gateway's
     browser credential after ``#hermes-session=`` (what older gateways printed on macOS), or a one-use
-    launch ticket after ``/webapp/launch#ticket=``. Either opens the user's Hermes until it is spent or
-    replaced, so when Hermes runs the command through its terminal tool neither reaches the transcript.
+    launch ticket after ``/webapp/launch#ticket=``. Either opens the user's Kova until it is spent or
+    replaced, so when Kova runs the command through its terminal tool neither reaches the transcript.
     The rest of the link stays readable."""
 
     CREDENTIAL = "Zq7_" + "k3Lm" * 9 + "x9-"  # the shape secrets.token_urlsafe(32) prints: 43 characters

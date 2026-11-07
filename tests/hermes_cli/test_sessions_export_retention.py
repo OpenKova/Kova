@@ -12,9 +12,9 @@ from kova_state import SessionDB
 
 @pytest.fixture
 def store(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # `hermes sessions` opens the ACTIVE home's store by explicit path (a served-profile process has
     # no single default store); the hermetic conftest re-pins kova_state's argless default to its

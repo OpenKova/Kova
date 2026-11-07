@@ -233,7 +233,7 @@ async def run_codex_hygiene_compaction(
 
     See #73503.
     * Evicting the cached live agent afterwards destroys the only real context: the next turn spawns an
-    EMPTY thread and the model starts blank while Hermes still mirrors a full history (abrupt amnesia — the
+    EMPTY thread and the model starts blank while Kova still mirrors a full history (abrupt amnesia — the
     user-facing damage documented on #73503).
     """
     mode = str(auto_mode or "native").lower()
@@ -252,7 +252,7 @@ async def run_codex_hygiene_compaction(
 
     compressor = getattr(agent, "context_compressor", None)
     count_before = getattr(compressor, "compression_count", 0)
-    # copy_context carries profile secret scope / HERMES_HOME override (executors don't propagate ContextVars).
+    # copy_context carries profile secret scope / KOVA_HOME override (executors don't propagate ContextVars).
     worker_future = asyncio.get_running_loop().run_in_executor(
         None, copy_context().run,
         lambda: agent._compress_context(history, "", approx_tokens=approx_tokens, task_id=session_id or "default", trigger="gateway_hygiene"))
@@ -421,7 +421,7 @@ _GATEWAY_ENDPOINT_UNREACHABLE_RE = re.compile(
     "(" + "|".join(_ENDPOINT_UNREACHABLE_MARKERS) + ")", re.IGNORECASE)
 
 def _ensure_windows_gateway_venv_imports() -> None:
-    """Make detached Windows gateway runs see the Hermes venv packages.
+    """Make detached Windows gateway runs see the Kova venv packages.
 
     Patched before MCP discovery so tool injection does not depend on launchers preserving PYTHONPATH."""
     if sys.platform != "win32":
@@ -913,7 +913,7 @@ def _coerce_gateway_timestamp(value: Any) -> Optional[float]:
     if isinstance(value, bool):  # bool is a subclass of int — skip it
         return None
     if isinstance(value, (int, float)):
-        # Some platform events use milliseconds; Hermes state rows use seconds.
+        # Some platform events use milliseconds; Kova state rows use seconds.
         return float(value) / 1000.0 if float(value) > 10_000_000_000 else float(value)
     if isinstance(value, str):
         text = value.strip()
@@ -944,14 +944,14 @@ def _startup_restore_drain_timeout_secs() -> float:
 
     Duplicate-agent safety does NOT depend on it: ``_schedule_resume_pending_sessions`` claims SYNCHRONOUSLY.
     """
-    return _float_env("HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
+    return _float_env("KOVA_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
 
 
 def _startup_warmup_timeout_secs() -> float:
     """Max seconds the boot warm-up (``_warm_turn_prerequisites``) may hold the inbound gate shut.
 
     On timeout the gate opens and the warm-up finishes in the background. Non-positive disables it."""
-    return _float_env("HERMES_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
+    return _float_env("KOVA_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
 
 
 def _warm_turn_machinery_sync() -> int:
@@ -1547,12 +1547,12 @@ def _home_thread_env_var(platform_name: str) -> str:
 
 def _restart_notification_pending() -> bool:
     """Return True when a /restart completion marker is waiting to be delivered."""
-    return (_hermes_home / ".restart_notify.json").exists()
+    return (_kova_home / ".restart_notify.json").exists()
 
 
 def _planned_restart_notification_path() -> Path:
     from gateway.restart_notice import planned_restart_marker_path
-    return planned_restart_marker_path(_hermes_home)
+    return planned_restart_marker_path(_kova_home)
 
 
 def _planned_restart_notification_pending() -> bool:
@@ -1560,33 +1560,33 @@ def _planned_restart_notification_pending() -> bool:
 
 
 # Gateway marker so a lazily imported cli.py load_cli_config() doesn't clobber TERMINAL_CWD.
-os.environ["_HERMES_GATEWAY"] = "1"
+os.environ["_KOVA_GATEWAY"] = "1"
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from kova_constants import get_hermes_home, get_hermes_home_override, get_process_hermes_home
+from kova_constants import get_kova_home, get_kova_home_override, get_process_kova_home
 # The PROCESS's own home, never an import-time ContextVar: a multiplexed backend (``hermes serve``)
 # first imports this module lazily from a session's agent build, under that session's routed profile
 # override, and the import-time config bridge below would then latch the secondary's terminal.* and
 # settings into the launch process env for every later launch-profile turn.
-_hermes_home = get_process_hermes_home()
+_kova_home = get_process_kova_home()
 
-# Load ~/.hermes/.env first: user-managed env files must override stale shell exports on restart.
+# Load ~/.kova/.env first: user-managed env files must override stale shell exports on restart.
 from kova_cli.env_loader import load_hermes_dotenv
-_env_path = _hermes_home / '.env'
-load_hermes_dotenv(hermes_home=_hermes_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+_env_path = _kova_home / '.env'
+load_hermes_dotenv(kova_home=_kova_home, project_env=Path(__file__).resolve().parents[1] / '.env')
 
 
 def _reload_runtime_env_preserving_config_authority() -> None:
     """Reload .env per turn for rotated keys while config.yaml stays authoritative for budgets (else a
-    stale HERMES_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
+    stale KOVA_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
     per-turn ``set_secret_scope`` and mutating ``os.environ`` would leak the default profile's keys to
     every profile; it still honors the max_turns bridge."""
     from agent.secret_scope import is_multiplex_active
     if not is_multiplex_active():
         load_hermes_dotenv(
-            hermes_home=_hermes_home, project_env=Path(__file__).resolve().parents[1] / '.env')
-    _bridge_max_turns_from_config(_hermes_home)
+            kova_home=_kova_home, project_env=Path(__file__).resolve().parents[1] / '.env')
+    _bridge_max_turns_from_config(_kova_home)
 
 
 def _bridge_max_turns_from_config(home: Path) -> None:
@@ -1610,12 +1610,12 @@ def _bridge_max_turns_from_config(home: Path) -> None:
 def _current_max_iterations() -> int:
     """Return the per-turn iteration budget after runtime env refresh; ``resolve_turn_limit`` maps
     ``agent.max_turns: none``/``unlimited`` (bridged as a string) to the unlimited sentinel, not an
-    ``int()`` crash. A routed profile (HERMES_HOME override, multiplexed turns) reads ITS
-    ``agent.max_turns`` straight from config: the ``HERMES_MAX_ITERATIONS`` bridge is one process-wide
+    ``int()`` crash. A routed profile (KOVA_HOME override, multiplexed turns) reads ITS
+    ``agent.max_turns`` straight from config: the ``KOVA_MAX_ITERATIONS`` bridge is one process-wide
     slot holding the launch profile's value, so every secondary would inherit the default's budget."""
     _reload_runtime_env_preserving_config_authority()
     from kova_cli.config import resolve_turn_limit as _resolve_turn_limit
-    override = get_hermes_home_override()
+    override = get_kova_home_override()
     if override:
         config_path = Path(override) / 'config.yaml'
         try:
@@ -1624,7 +1624,7 @@ def _current_max_iterations() -> int:
             cfg = {}
         agent_cfg = cfg.get("agent")
         return _resolve_turn_limit(agent_cfg.get("max_turns") if isinstance(agent_cfg, dict) else None)
-    return _resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
+    return _resolve_turn_limit(os.getenv("KOVA_MAX_ITERATIONS"))
 
 
 from contextlib import asynccontextmanager as _asynccontextmanager, contextmanager as _contextmanager, suppress
@@ -1654,7 +1654,7 @@ def _multiplex_profile_homes(config: object) -> list[tuple[str, Path]]:
 def _cron_tick_profile_homes(config: object) -> list[tuple[str, Path]]:
     """Profile homes the in-process ticker visits: the served set PLUS the process-active
     profile: ``profiles_to_serve`` lists default + every live named profile, but a ``--profile
-    <name>`` gateway's own profile may sit outside ``profiles/`` (custom HERMES_HOME). One host
+    <name>`` gateway's own profile may sit outside ``profiles/`` (custom KOVA_HOME). One host
     process ticks all of them regardless of ``gateway.multiplex_profiles``. Adapter startup
     already skips ``active``."""
     from kova_cli.profiles import get_active_profile_name, get_profile_dir
@@ -1778,17 +1778,17 @@ def _terminal_scope_cwd(default: str = "") -> str:
 
 def _load_profile_secret_scope(profile_home: Path) -> dict:
     """Hydrate and load one profile's secrets under its home override."""
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
     # Caller already hydrated external sources off-loop (#99519).
     from kova_cli.env_loader import hydrate_profile_secret_sources
     from tui_gateway.launch_profile_policy import owner_secret_scope
 
-    home_token = set_hermes_home_override(str(profile_home))
+    home_token = set_kova_home_override(str(profile_home))
     try:
         hydrate_profile_secret_sources(Path(profile_home))
         return owner_secret_scope(Path(profile_home))
     finally:
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
 
 @_contextmanager
@@ -1796,15 +1796,15 @@ def _profile_runtime_scope(
     profile_home: Path, prepared_secret_scope: Optional[dict] = None, *,
     hydrate_secrets: bool = True, prepared_terminal_scope: Optional[dict] = None):
     """Scope config/skills/memory AND credentials to a profile for one turn (multiplexed path only).
-    ``set_hermes_home_override`` is a contextvar (reaches the agent worker via ``copy_context()``);
+    ``set_kova_home_override`` is a contextvar (reaches the agent worker via ``copy_context()``);
     ``set_secret_scope`` makes the profile ``.env`` the credential source without mutating
     ``os.environ``, so subprocesses never inherit cross-profile secrets."""
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
     from agent.secret_scope import set_secret_scope, reset_secret_scope
 
     home_token = secret_token = None
     try:
-        home_token = set_hermes_home_override(str(profile_home))
+        home_token = set_kova_home_override(str(profile_home))
         if prepared_secret_scope is not None:
             secrets = prepared_secret_scope
         elif hydrate_secrets:
@@ -1824,7 +1824,7 @@ def _profile_runtime_scope(
         if secret_token is not None:
             reset_secret_scope(secret_token)
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
 
 
 @_asynccontextmanager
@@ -1839,7 +1839,7 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
     """Load gateway config for the process-level GatewayRunner. An UNSET ``multiplex_profiles`` is
     settled first by ``resolve_multiplex_mode`` (the default is on; the boot guard keeps a fleet that
     still runs per-profile gateways standalone). Multiplexed: set multiplex-active, then reload
-    under the default root's ``_profile_runtime_scope`` — not ``get_hermes_home()``, which is the
+    under the default root's ``_profile_runtime_scope`` — not ``get_kova_home()``, which is the
     named launcher when a profile-scoped process started the host. A scope miss must not fall
     through to that process's ``os.environ``. Off -> identical to ``load_gateway_config()``.
 
@@ -1848,7 +1848,7 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
     The probe load above only decides whether this process is a multiplexer. The primary
     config is the scoped reload: multiplex must already be active (a scope miss must not
     fall through to the launching profile's ``os.environ``) and the home must be the
-    default root, not ``get_hermes_home()`` — a named launcher's home is not the owner
+    default root, not ``get_kova_home()`` — a named launcher's home is not the owner
     of the primary adapter map.
     """
     from kova_cli.gateway_multiplex_mode import log_multiplex_decision, resolve_multiplex_mode
@@ -1862,8 +1862,8 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
     except Exception:
         logger.debug("could not set multiplex-active before primary config load", exc_info=True)
     try:
-        from kova_constants import get_default_hermes_root
-        home = get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        home = get_default_kova_root()
     except Exception:
         return cfg
     try:
@@ -1878,7 +1878,7 @@ def load_gateway_config_for_runner() -> "GatewayConfig":
 
 async def _discover_gateway_mcp_tools(config: object) -> None:
     """Run startup MCP discovery for every profile this gateway serves: ``discover_mcp_tools`` reads
-    ``mcp_servers`` from ``get_hermes_home()``'s config, so an unscoped call only connects the launch
+    ``mcp_servers`` from ``get_kova_home()``'s config, so an unscoped call only connects the launch
     profile's servers (single-profile gateways keep the unscoped call).
 
     Under multiplex, run it once per served profile inside that profile's ``_profile_runtime_scope`` and
@@ -1927,7 +1927,7 @@ def _platform_has_bot_credential(platform: "Platform", platform_config: "Platfor
     # transient failure — after which it stays down until the gateway is restarted by hand. Mirror the
     # adapter's own gate: homeserver + user_id + password. Read ONLY from extra, never os.getenv:
     # build_config() already copies all three env vars onto extra, and importing this module loads
-    # ~/.hermes/.env, so an env fallback would report "has credential" for every Matrix config on the box —
+    # ~/.kova/.env, so an env fallback would report "has credential" for every Matrix config on the box —
     # including the empty-primary multiplex case (#64674) this check exists to evict.
     if platform is not Platform.MATRIX:
         return False
@@ -1941,27 +1941,27 @@ _DOCKER_MEDIA_OUTPUT_CONTAINER_PATHS = {"/output", "/outputs"}
 # Internal bridge, not a config source: seed from the canonical default after dotenv so an ambient
 # process/.env value can never control lease safety.
 from kova_cli.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
-os.environ["HERMES_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
+os.environ["KOVA_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
 
 # Bridge config.yaml values into env so os.getenv() picks them up. config.yaml unconditionally wins
 # over .env for these keys; a `not in os.environ` guard would let stale .env entries shadow config.
 _AGENT_ENV_BRIDGE = {
-    "gateway_timeout": "HERMES_AGENT_TIMEOUT",
-    "gateway_turn_lease_timeout": "HERMES_TURN_LEASE_TIMEOUT",
-    "gateway_timeout_warning": "HERMES_AGENT_TIMEOUT_WARNING",
-    "gateway_notify_interval": "HERMES_AGENT_NOTIFY_INTERVAL",
-    "session_stall_timeout": "HERMES_SESSION_STALL_TIMEOUT",
-    "restart_drain_timeout": "HERMES_RESTART_DRAIN_TIMEOUT",
-    "cron_drain_timeout": "HERMES_CRON_DRAIN_TIMEOUT",
-    "gateway_auto_continue_freshness": "HERMES_AUTO_CONTINUE_FRESHNESS",
-    "gateway_startup_restore_drain_timeout": "HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT",
-    "gateway_startup_warmup_timeout": "HERMES_STARTUP_WARMUP_TIMEOUT"}
+    "gateway_timeout": "KOVA_AGENT_TIMEOUT",
+    "gateway_turn_lease_timeout": "KOVA_TURN_LEASE_TIMEOUT",
+    "gateway_timeout_warning": "KOVA_AGENT_TIMEOUT_WARNING",
+    "gateway_notify_interval": "KOVA_AGENT_NOTIFY_INTERVAL",
+    "session_stall_timeout": "KOVA_SESSION_STALL_TIMEOUT",
+    "restart_drain_timeout": "KOVA_RESTART_DRAIN_TIMEOUT",
+    "cron_drain_timeout": "KOVA_CRON_DRAIN_TIMEOUT",
+    "gateway_auto_continue_freshness": "KOVA_AUTO_CONTINUE_FRESHNESS",
+    "gateway_startup_restore_drain_timeout": "KOVA_STARTUP_RESTORE_DRAIN_TIMEOUT",
+    "gateway_startup_warmup_timeout": "KOVA_STARTUP_WARMUP_TIMEOUT"}
 # config-authoritative knobs for the session-search index (env stays the cross-process carrier).
-_SESSIONS_ENV_BRIDGE = {"search_slow_ms": "HERMES_SEARCH_SLOW_MS"}
+_SESSIONS_ENV_BRIDGE = {"search_slow_ms": "KOVA_SEARCH_SLOW_MS"}
 _DISPLAY_ENV_BRIDGE = {
-    "busy_input_mode": "HERMES_GATEWAY_BUSY_INPUT_MODE",
-    "busy_text_mode": "HERMES_GATEWAY_BUSY_TEXT_MODE",
-    "busy_ack_enabled": "HERMES_GATEWAY_BUSY_ACK_ENABLED"}
+    "busy_input_mode": "KOVA_GATEWAY_BUSY_INPUT_MODE",
+    "busy_text_mode": "KOVA_GATEWAY_BUSY_TEXT_MODE",
+    "busy_ack_enabled": "KOVA_GATEWAY_BUSY_ACK_ENABLED"}
 
 
 def _bridge_section_to_env(section: Any, mapping: dict[str, str]) -> None:
@@ -1980,9 +1980,9 @@ def _bridge_max_turns_to_env(agent_cfg: Any) -> None:
         return
     raw = agent_cfg["max_turns"]
     if raw is not None:
-        os.environ["HERMES_MAX_ITERATIONS"] = str(raw)
-    elif "HERMES_MAX_ITERATIONS" in os.environ:
-        del os.environ["HERMES_MAX_ITERATIONS"]
+        os.environ["KOVA_MAX_ITERATIONS"] = str(raw)
+    elif "KOVA_MAX_ITERATIONS" in os.environ:
+        del os.environ["KOVA_MAX_ITERATIONS"]
 
 
 def _bridge_terminal_config_to_env(_terminal_cfg: dict) -> None:
@@ -2074,7 +2074,7 @@ def _bridge_config_to_env(_cfg: dict) -> None:
         _bridge_auxiliary_config_to_env(_auxiliary_cfg)
     # config.yaml is the documented, authoritative source for these settings — it unconditionally wins over
     # .env values. Previously the guards below read `if X not in os.environ` and let stale .env entries
-    # (e.g. HERMES_MAX_ITERATIONS=60 written by an old `hermes setup` run) silently shadow the user's
+    # (e.g. KOVA_MAX_ITERATIONS=60 written by an old `hermes setup` run) silently shadow the user's
     # current config. See PR #18413 / the 60-vs-500 max_turns incident.
     _agent_cfg = _cfg.get("agent", {})
     _bridge_max_turns_to_env(_agent_cfg)
@@ -2084,14 +2084,14 @@ def _bridge_config_to_env(_cfg: dict) -> None:
     _bridge_section_to_env(_display_cfg, _DISPLAY_ENV_BRIDGE)
     # Documented service-manager override: env wins when set (other display bridges stay config-first).
     if (isinstance(_display_cfg, dict) and "busy_steer_ack_enabled" in _display_cfg
-            and "HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
-        os.environ["HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
+            and "KOVA_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
+        os.environ["KOVA_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
     _tz_cfg = _cfg.get("timezone", "")
     if _tz_cfg and isinstance(_tz_cfg, str):
-        os.environ["HERMES_TIMEZONE"] = _tz_cfg.strip()
+        os.environ["KOVA_TIMEZONE"] = _tz_cfg.strip()
     _security_cfg = _cfg.get("security", {})
     if isinstance(_security_cfg, dict) and _security_cfg.get("redact_secrets") is not None:
-        os.environ["HERMES_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
+        os.environ["KOVA_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
     # Media policy uses the shared bridge so standalone entrypoints (`hermes cron run`) match.
     _gateway_cfg = _cfg.get("gateway", {})
     if isinstance(_gateway_cfg, dict):
@@ -2099,11 +2099,11 @@ def _bridge_config_to_env(_cfg: dict) -> None:
         apply_media_policy_env(_cfg)
         _trust_recent_seconds = _gateway_cfg.get("trust_recent_files_seconds")
         if _trust_recent_seconds is not None:
-            os.environ["HERMES_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
+            os.environ["KOVA_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
         # platform_connect_timeout is an escape hatch, unlike the bridges above: env WINS if already set.
         if ("platform_connect_timeout" in _gateway_cfg
-                and not os.environ.get("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
-            os.environ["HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
+                and not os.environ.get("KOVA_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
+            os.environ["KOVA_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
 
 
 def _load_bridge_config(config_path: Path) -> dict:
@@ -2118,7 +2118,7 @@ def _load_bridge_config(config_path: Path) -> dict:
     return load_user_config_effective(config_path)
 
 
-_config_path = _hermes_home / 'config.yaml'
+_config_path = _kova_home / 'config.yaml'
 _cfg: dict = {}
 if config_exists(_config_path):
     try:
@@ -2155,9 +2155,9 @@ try:
 except Exception as _bootstrap_exc:
     print(f"  Warning: deprecation check failed: {_bootstrap_exc}", file=sys.stderr)
 
-os.environ["HERMES_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
+os.environ["KOVA_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
 
-# HERMES_EXEC_ASK is set in start_gateway(), NOT at import: CLI tools importing this module must not
+# KOVA_EXEC_ASK is set in start_gateway(), NOT at import: CLI tools importing this module must not
 # flip interactive sessions into ask-mode (approval prompts would become silent pending_approval).
 
 # Terminal cwd: config.yaml terminal.cwd is canonical (bridged above); MESSAGING_CWD is legacy fallback.
@@ -2856,15 +2856,15 @@ def _teams_pipeline_plugin_enabled() -> bool:
 
 
 def _gateway_config_home() -> Path:
-    """Return the Hermes home that gateway config reads should use."""
-    override = get_hermes_home_override()
-    return Path(override) if override else _hermes_home
+    """Return the Kova home that gateway config reads should use."""
+    override = get_kova_home_override()
+    return Path(override) if override else _kova_home
 
 
 def _load_gateway_config(config_path: Path | None = None) -> dict:
     """The effective user config.yaml (managed overlay, ``${VAR}`` expansion, model-key canon; no
     DEFAULT_CONFIG merge) — ``{}`` on any error (fail-open). Defaults to the active gateway home
-    (``_hermes_home`` monkeypatches apply); multiplexers pass a path.
+    (``_kova_home`` monkeypatches apply); multiplexers pass a path.
     """
     if config_path is None:
         config_path = _gateway_config_home() / 'config.yaml'
@@ -2916,7 +2916,7 @@ def _get_channel_override(
 
 
 def _resolve_hermes_bin() -> Optional[list[str]]:
-    """Hermes update/restart argv: the running interpreter's ``python -m kova_cli.main``
+    """Kova update/restart argv: the running interpreter's ``python -m kova_cli.main``
     (exactly this install), else ``hermes`` on PATH, else None. The module argv must win: a
     PATH-first lookup lets an attacker-planted ``hermes`` shadow the running install when
     /update or /restart re-execs it (#111569)."""
@@ -3450,11 +3450,11 @@ class GatewayRunner(
 
     def _open_session_db_for_active_scope(self, raise_on_error: bool = False) -> Any:
         """AsyncSessionDB for the active profile scope, resolved per access (not in ``__init__``) since
-        ``SessionDB()`` reads the context-local HERMES_HOME; one handle cached per path. Construction
+        ``SessionDB()`` reads the context-local KOVA_HOME; one handle cached per path. Construction
         failure enters bounded backoff; ``raise_on_error=True`` (priming) propagates it.
 
         Same per-path cache as ``SessionStore._open_session_db_for_active_scope`` (#88532): ``SessionDB()``
-        resolves ``_default_db_path()`` at call time through the context-local HERMES_HOME override
+        resolves ``_default_db_path()`` at call time through the context-local KOVA_HOME override
         installed by ``_profile_runtime_scope``, so resolving per access — instead of once in ``__init__`` —
         is what lets /resume, /title, /history and session search on a multiplexed gateway read the *serving
         profile's* store rather than the root one.
@@ -3592,11 +3592,11 @@ class GatewayRunner(
                 return
         logger.warning(
             "Docker backend is enabled for the messaging gateway but no explicit host-visible "
-            "output mount (for example '/home/user/.hermes/cache/documents:/output') is configured. "
+            "output mount (for example '/home/user/.kova/cache/documents:/output') is configured. "
             "This is fine if the model already emits host-visible paths, but MEDIA file delivery can fail "
             "for container-local paths like '/workspace/...' or '/output/...'.")
 
-    _VOICE_MODE_PATH = _hermes_home / "gateway_voice_mode.json"
+    _VOICE_MODE_PATH = _kova_home / "gateway_voice_mode.json"
 
     should_exit_cleanly = property(lambda self: self._exit_cleanly)
     should_exit_with_failure = property(lambda self: self._exit_with_failure)
@@ -3960,7 +3960,7 @@ class GatewayRunner(
             scope_id=str(getattr(source, "scope_id", "") or ""),
             parent_chat_id=str(getattr(source, "parent_chat_id", "") or ""),
             session_key=context.session_key,
-            # A cached agent binds HERMES_SESSION_ID only on the turn that built it; every later turn
+            # A cached agent binds KOVA_SESSION_ID only on the turn that built it; every later turn
             # (and a command it yields to the background) must still see its own session.
             session_id=context.session_id or "",
             message_id=str(source.message_id) if source.message_id else "",
@@ -4030,14 +4030,14 @@ class GatewayRunner(
         unset by default.
         """
         return GatewayRunner._get_or_create_pool(
-            self, "_executor", lambda: _UnboundedThreadExecutor(thread_name_prefix="hermes-gateway"))
+            self, "_executor", lambda: _UnboundedThreadExecutor(thread_name_prefix="kova-gateway"))
 
     def _get_housekeeping_executor(self) -> concurrent.futures.Executor:
         """Return the gateway-owned executor for best-effort session housekeeping."""
         return GatewayRunner._get_or_create_pool(
             self, "_housekeeping_executor",
             lambda: concurrent.futures.ThreadPoolExecutor(
-                max_workers=_HOUSEKEEPING_MAX_WORKERS, thread_name_prefix="hermes-gateway-hk"))
+                max_workers=_HOUSEKEEPING_MAX_WORKERS, thread_name_prefix="kova-gateway-hk"))
 
     @staticmethod
     def _stop_pool(executor) -> list:
@@ -4175,13 +4175,13 @@ class GatewayRunner(
         return None
 
     def _resolve_profile_home_for_source(self, source: SessionSource) -> Path:
-        """Resolve which profile's HERMES_HOME serves this source: the pinned identity's runtime
+        """Resolve which profile's KOVA_HOME serves this source: the pinned identity's runtime
         home, else ``source.profile``, then ``_profile_name_for_source`` (sources bypassing
         ``build_source``), then the active profile."""
         from gateway.profile_routing import ProfileRouteRejected
         from gateway.session_identity import identity_of
         from kova_cli.profiles import get_active_profile_name, get_profile_dir, profile_exists
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         identity = identity_of(source)
         if identity is not None:
             return identity.runtime_home
@@ -4195,20 +4195,20 @@ class GatewayRunner(
             if explicit_profile and not profile_exists(name):
                 logger.warning(
                     "Profile %r does not exist for source %s/%s (guild_id=%s), "
-                    "falling back to global HERMES_HOME",
+                    "falling back to global KOVA_HOME",
                     explicit_profile, source.platform.value, source.chat_id,
                     getattr(source, "guild_id", None))
-                return get_hermes_home()
+                return get_kova_home()
             return profile_dir
         except ProfileRouteRejected:
             raise
         except Exception:
             logger.warning(
                 "Failed to resolve profile directory for source %s/%s (guild_id=%s), "
-                "falling back to global HERMES_HOME: %s",
+                "falling back to global KOVA_HOME: %s",
                 source.platform.value, source.chat_id, getattr(source, "guild_id", None),
                 explicit_profile or "(no profile)", exc_info=True)
-            return get_hermes_home()
+            return get_kova_home()
 
     @dataclasses.dataclass
     class _RunAgentDisplay:
@@ -4347,13 +4347,13 @@ def _housekeeping_plugin_update_check() -> None:
 def _launch_sessions_dir(config) -> Optional[tuple[Path, Path]]:
     """``(launch home, its configured transcript dir)``, or ``None`` when the gateway carries none.
 
-    MUST be called outside any profile scope — ``get_hermes_home()`` is what identifies the launch
+    MUST be called outside any profile scope — ``get_kova_home()`` is what identifies the launch
     home. Consumed by :func:`_profile_sessions_dir`.
     """
     sessions_dir = getattr(config, "sessions_dir", None)
     if sessions_dir is None:
         return None
-    return get_hermes_home(), Path(sessions_dir)
+    return get_kova_home(), Path(sessions_dir)
 
 
 def _profile_sessions_dir(launch: Optional[tuple[Path, Path]]) -> Path:
@@ -4364,7 +4364,7 @@ def _profile_sessions_dir(launch: Optional[tuple[Path, Path]]) -> Path:
     transcripts to the configured dir while the prune unlinked under the default one, orphaning
     every pruned session's ``.json``/``.jsonl``/``request_dump_*`` forever.
     """
-    home = get_hermes_home()
+    home = get_kova_home()
     if launch is not None and Path(launch[0]) == home:
         return Path(launch[1])
     return home / "sessions"
@@ -4375,7 +4375,7 @@ def _housekeeping_state_db_maintenance(launch: Optional[tuple[Path, Path]] = Non
     by sessions.min_interval_hours (VACUUM additionally by its own throttles). Opens its own
     SessionDB — SQLite connections are thread-bound.
 
-    Profile-scoped by its caller: ``acquire()``, ``get_hermes_home()`` and ``load_config()`` all
+    Profile-scoped by its caller: ``acquire()``, ``get_kova_home()`` and ``load_config()`` all
     resolve through the active scope, so an unscoped run swept only the LAUNCH profile's store with
     the LAUNCH profile's retention settings and a multiplexed secondary was never archived, pruned
     or vacuumed by anyone — the dashboard/serve trigger defers to the gateway for every profile a
@@ -4448,7 +4448,7 @@ def _drain_restart_safe_cron_deliveries(adapters, loop, runner=None) -> None:
                             else getattr(runner, "_profile_adapters", {}).get(profile_name))
         if profile_adapters is None:
             continue
-        with _profile_runtime_scope(profile_home or get_hermes_home()):
+        with _profile_runtime_scope(profile_home or get_kova_home()):
             owned = (getattr(runner, "_profile_bot_platforms", None) or {}).get(profile_name)
             if (profile_name is not None and adapters
                     and not sched_preflight.has_credential_platform(profile_adapters, owned)):
@@ -4501,7 +4501,7 @@ def _start_gateway_housekeeping(
                 _housekeeping_state_db_maintenance(_launch))),
         # Due-gated inside: the first tick after startup runs an overdue check, not tick 60.
         # Per served profile: plugins dir, last-run marker and plugins.auto_apply are all the
-        # profile's own (get_hermes_home()/load_config_readonly() bind to the scope).
+        # profile's own (get_kova_home()/load_config_readonly() bind to the scope).
         (1, "Plugin update check", profile_scoped_chore(runner, _housekeeping_plugin_update_check)),
         (1, "Deferred FTS retry tick", _housekeeping_deferred_fts_retry),
         (1, "gateway housekeeping memory trim", _housekeeping_memory_trim),
@@ -4649,11 +4649,11 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     """Return True when ``--replace`` must refuse to signal ``existing_pid``.
     A poisoned/stale PID record can point at another profile's LIVE gateway (cross-profile SIGTERM
     restart loop). Ownership is decided by the persisted identity record ALONE, bound to the live target
-    by exact PID + start-time; live argv can never PROVE ownership (no HERMES_HOME), it is only a
+    by exact PID + start-time; live argv can never PROVE ownership (no KOVA_HOME), it is only a
     consistency check. Missing, legacy, conflicting or unprovable identity → refuse (fail closed)."""
     # Multiplex-only: the ONE host gateway serving this profile IS this profile's gateway, whatever
     # home launched it — `hermes -p X gateway run --replace` means "replace the process serving X".
-    # Argv and HERMES_HOME can never prove that (the host singleton runs one home's argv while
+    # Argv and KOVA_HOME can never prove that (the host singleton runs one home's argv while
     # serving every profile), so the live served set answers first; everything below stays the
     # fail-closed rule for a host with no usable record.
     try:
@@ -4661,7 +4661,7 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
 
         owner = host_gateway()
         if owner is not None and owner.pid == existing_pid and owner.serves(
-                profile_name_for_home(get_hermes_home())):
+                profile_name_for_home(get_kova_home())):
             logger.warning(
                 "--replace target PID %s is the host gateway serving %d profile(s) (%s); "
                 "replacing it restarts the host process for all of them.",
@@ -4688,9 +4688,9 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     # pidfile exists.
     try:
         from gateway.status import (
-            _get_pid_path, _get_process_hermes_home, _get_process_start_time, _pid_from_record,
-            _read_pid_record, _record_looks_like_gateway, _read_process_cmdline, _same_hermes_home)
-        our_home = _get_process_hermes_home()
+            _get_pid_path, _get_process_kova_home, _get_process_start_time, _pid_from_record,
+            _read_pid_record, _record_looks_like_gateway, _read_process_cmdline, _same_kova_home)
+        our_home = _get_process_kova_home()
 
         def refuse(msg: str, *args, level=logging.WARNING) -> bool:
             logger.log(level, "Refusing --replace: " + msg, *args)
@@ -4709,19 +4709,19 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
         if _get_process_start_time(existing_pid) != recorded_start:
             return refuse("pid record start-time does not match the live process %s (stale/PID-reuse record).",
                           existing_pid)
-        recorded_home = record.get("hermes_home")
+        recorded_home = record.get("kova_home")
         if not isinstance(recorded_home, str) or not recorded_home.strip():
-            return refuse("pid record predates hermes_home stampings; ownership of PID %s unprovable.",
+            return refuse("pid record predates kova_home stampings; ownership of PID %s unprovable.",
                           existing_pid)
-        if not _same_hermes_home(recorded_home, our_home):
-            return refuse("pid record belongs to a different HERMES_HOME (%s, ours %s). Remove the stale PID "
+        if not _same_kova_home(recorded_home, our_home):
+            return refuse("pid record belongs to a different KOVA_HOME (%s, ours %s). Remove the stale PID "
                           "record or stop the owning profile explicitly.", recorded_home, our_home,
                           level=logging.ERROR)
-        # Argv never proves ownership; an explicit contradicting --profile / HERMES_HOME= still refuses.
+        # Argv never proves ownership; an explicit contradicting --profile / KOVA_HOME= still refuses.
         live_cmdline = _best_effort(lambda: _read_process_cmdline(existing_pid))
         if live_cmdline and _looks_like_profile_conflict_from_cmdline(live_cmdline, our_home):
             return refuse("target PID %s command line explicitly advertises a different profile than "
-                          "HERMES_HOME %s.", existing_pid, our_home, level=logging.ERROR)
+                          "KOVA_HOME %s.", existing_pid, our_home, level=logging.ERROR)
         return False
     except Exception:
         # Destructive action + unknown ownership => fail closed.
@@ -4757,8 +4757,8 @@ def _looks_like_profile_conflict_from_cmdline(command: str, our_home) -> bool:
         return values[-1] if values else None
 
     def _env_home_value() -> Optional[str]:
-        """HERMES_HOME=<path> env-style assignment on the argv, token-exact."""
-        prefix = "HERMES_HOME="
+        """KOVA_HOME=<path> env-style assignment on the argv, token-exact."""
+        prefix = "KOVA_HOME="
         for tok in reversed(tokens):
             if tok.startswith(prefix):
                 return tok[len(prefix):]
@@ -4835,7 +4835,7 @@ def _claim_host_gateway_role(force: bool = False) -> None:
     # multiplexer remains live. Its per-home channel still governs our opt-out.
     if not force:
         from gateway.host_attach import REFUSE, standalone_attach_decision
-        decision = standalone_attach_decision(get_hermes_home(), None)
+        decision = standalone_attach_decision(get_kova_home(), None)
         if decision is not None and decision.outcome == REFUSE:
             from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE
             print(decision.message)
@@ -4848,7 +4848,7 @@ def _claim_host_gateway_role(force: bool = False) -> None:
             # Publishing a guessed set here parked a second profile's supervised unit against
             # profiles this process may never serve; _refresh_host_gateway_record() fills it in
             # once the control socket answers.
-            hr.publish_record(hr.ROLE_GATEWAY, profiles=(), home=str(get_hermes_home()))
+            hr.publish_record(hr.ROLE_GATEWAY, profiles=(), home=str(get_kova_home()))
             # SIGTERM (systemd stop, docker stop, the update relaunch) does not run atexit.
             hr.cleanup_on_exit(hr.ROLE_GATEWAY)
             return
@@ -4877,21 +4877,21 @@ def _claim_host_gateway_role(force: bool = False) -> None:
         ATTACH_CHANNEL_WAIT_S, START, host_gateway, launched_by_other_tenant, standalone_attach_decision,
     )
     from kova_cli.profiles import profile_is_standalone
-    if owner is not None and launched_by_other_tenant(owner.home, get_hermes_home()):
+    if owner is not None and launched_by_other_tenant(owner.home, get_kova_home()):
         # The lock is per OS user, so a second tenant root can never win it against the first:
         # refusing 75 here would retry forever and its gateway would never start (#121352).
         logger.warning(
-            "Another Hermes home's gateway owns this host (%s); starting this home's gateway beside it.",
+            "Another Kova home's gateway owns this host (%s); starting this home's gateway beside it.",
             hr.describe(owner))
         return
-    if profile_is_standalone(get_hermes_home()):
+    if profile_is_standalone(get_kova_home()):
         # Recheck after losing the atomic lock: the pre-lock served set may be stale.
         live_owner = host_gateway(wait_for_channel=ATTACH_CHANNEL_WAIT_S)
         # The rendezvous record proves lock ownership, but the owner's control channel may
         # still be unavailable. Standalone discovery also checks each profile's liveness
         # channel, so it can prove that this profile is unserved even when the host probe
         # cannot construct a HostGateway yet.
-        decision = standalone_attach_decision(get_hermes_home(), live_owner)
+        decision = standalone_attach_decision(get_kova_home(), live_owner)
         if decision is not None:
             if decision.outcome == START:
                 return
@@ -4931,7 +4931,7 @@ def _owner_is_standalone() -> bool:
         owner = host_gateway()
         if owner is None or owner.pid == os.getpid():
             return False
-        answered = request_serve_profile(profile_name_for_home(get_hermes_home()), owner=owner)
+        answered = request_serve_profile(profile_name_for_home(get_kova_home()), owner=owner)
         return bool(answered is not None and answered.standalone)
     except Exception:
         logger.debug("standalone-owner probe failed; keeping the second-gateway refusal",
@@ -4995,7 +4995,7 @@ def _refresh_host_gateway_record(runner) -> None:
     try:
         if not hr.owns_host_lock(hr.ROLE_GATEWAY):
             return
-        home = get_hermes_home()
+        home = get_kova_home()
         if getattr(runner.config, "multiplex_profiles", False):
             served = tuple(runner.served_profile_names())
         else:
@@ -5031,7 +5031,7 @@ async def _host_attach_or_none(replace: bool, force: bool = False) -> Optional[b
 
     from gateway.host_attach import ATTACH, REFUSE, REPLACE_HOST, decide
 
-    decision = decide(get_hermes_home(), replace=replace)
+    decision = decide(get_kova_home(), replace=replace)
     if decision.outcome == ATTACH:
         logger.info("Attaching to the host gateway instead of starting a second one: %s",
                     decision.owner.describe() if decision.owner else "unknown")
@@ -5059,7 +5059,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
 def _guard_corrupt_user_config() -> None:
     """Fail closed when the active profile's config.yaml cannot be parsed: nobody can repair it on this
     surface, and defaults would let provider auto-detection adopt ``.env`` credentials the config never
-    named. Same policy and escape hatch (``HERMES_IGNORE_USER_CONFIG=1``) as ``kova_cli/main.py``."""
+    named. Same policy and escape hatch (``KOVA_IGNORE_USER_CONFIG=1``) as ``kova_cli/main.py``."""
     from kova_cli.config import InvalidUserConfigError, require_parseable_user_config
 
     try:
@@ -5076,9 +5076,9 @@ def main():
     from kova_cli.resource_limits import apply_malloc_arena_max  # runs before any thread (glibc latches)
 
     # Advertise the harness to children (mirrors _advertise_agent_env in kova_cli/main.py, inlined to
-    # avoid its startup side effects). Value must equal registry id ``hermes-agent`` exactly.
-    os.environ.setdefault("AI_AGENT", "hermes-agent")
-    os.environ.setdefault("HERMES_AGENT", "true")
+    # avoid its startup side effects). Value must equal registry id ``kova-agent`` exactly.
+    os.environ.setdefault("AI_AGENT", "kova-agent")
+    os.environ.setdefault("KOVA_AGENT", "true")
 
     def _register_identity() -> None:
         # Ledger registration + Windows job-object attach so update-time reapers can identify this gateway.
@@ -5121,7 +5121,7 @@ def main():
         logger.debug("boot bootstrap failed", exc_info=True)
 
     import argparse
-    parser = argparse.ArgumentParser(description="Hermes Gateway - Multi-platform messaging")
+    parser = argparse.ArgumentParser(description="Kova Gateway - Multi-platform messaging")
     parser.add_argument("--config", "-c", help="Path to gateway config file")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     args = parser.parse_args()

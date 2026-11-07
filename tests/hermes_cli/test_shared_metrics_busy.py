@@ -150,7 +150,7 @@ def test_day_row_reports_each_profiles_peak_of_chats_running_at_once(tmp_path, m
     carries its own peak (claimed in the owning profile's scope, not the launch profile's), and a
     row recorded before the field existed still packages."""
     from gateway.run_agent_cache import GatewayAgentCacheMixin
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     monkeypatch.setattr("gateway.run._write_runtime_status_quiet", lambda **_: None)
     monkeypatch.setattr(busy, "_running", {})
@@ -165,11 +165,11 @@ def test_day_row_reports_each_profiles_peak_of_chats_running_at_once(tmp_path, m
 
     def turn_boundary(home, keys):
         running[:] = keys
-        token = set_hermes_home_override(str(home))
+        token = set_kova_home_override(str(home))
         try:
             GatewayAgentCacheMixin._persist_active_agents(runner)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     turn_boundary(a, ["a:1"])
     turn_boundary(a, ["a:1", "a:2"])
@@ -247,7 +247,7 @@ def test_an_auto_resumed_chat_counts_toward_its_owning_profiles_peak(tmp_path, m
     monkeypatch.setattr(busy, "_peaks", {})
     monkeypatch.setattr(busy, "_now", lambda: DAY1)
     launch, beta = tmp_path / "launch", tmp_path / "beta"
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     runner, _adapter = make_restart_runner()
     runner.session_authorities = []
     runner._resolve_profile_home_for_source = lambda source: beta
@@ -273,16 +273,16 @@ def test_a_held_burst_dropped_by_stop_counts_under_its_own_profile_not_the_chats
     chat's latest turn. A burst held for this profile's bot and dropped by /stop is recorded under
     the profile its routing identity names, so that profile's collection setting decides."""
     from gateway.session_identity import RoutingIdentity
-    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 
     homes = []
-    monkeypatch.setattr(rsm, "record_process_mark", lambda mark, data: homes.append(str(get_hermes_home())))
+    monkeypatch.setattr(rsm, "record_process_mark", lambda mark, data: homes.append(str(get_kova_home())))
     alpha, beta = tmp_path / "alpha", tmp_path / "beta"
-    token = set_hermes_home_override(str(beta))
+    token = set_kova_home_override(str(beta))
     try:
         smg.start_reply_clock(SessionSource(platform=Platform.DISCORD, chat_id="chan", user_id="9"))
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     source = SessionSource(platform=Platform.DISCORD, chat_id="chan", user_id="7")
     source._identity = RoutingIdentity(transport_profile="alpha", runtime_profile="alpha",
                                        authorization_home=alpha, runtime_home=alpha)
@@ -303,7 +303,7 @@ def test_a_held_burst_dropped_by_stop_counts_under_its_own_profile_not_the_chats
 def test_a_closing_day_keeps_a_peak_reached_just_before_midnight(tmp_path, monkeypatch):
     """A third chat starts at 23:59:30; its first engagement event lands after midnight, and a turn
     boundary after midnight already started the new day. The closed day still reports 3."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     monkeypatch.setattr(busy, "_running", {})
     monkeypatch.setattr(busy, "_peaks", {})
@@ -314,11 +314,11 @@ def test_a_closing_day_keeps_a_peak_reached_just_before_midnight(tmp_path, monke
     home = tmp_path / "a"
 
     def boundary(keys):
-        token = set_hermes_home_override(str(home))
+        token = set_kova_home_override(str(home))
         try:
             busy.observe_running_chats(keys)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     boundary(["c1", "c2"])
     engagement.record(_store(home), RESOURCE, surface="gateway", route=None)
@@ -377,12 +377,12 @@ async def test_a_message_the_adapter_saw_idle_counts_when_it_waits_behind_a_runn
     from gateway.session_contract import SessionRef
     from gateway.session_authority import SessionAuthority
     from gateway.session_ingress_context import native_callback
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     runner, authority, source, key = await _real_runner(monkeypatch)
     monkeypatch.setattr(runner, "_effective_busy_input_mode", lambda source: "queue")
     late = MessageEvent(text="C", source=source, message_id="C")
-    with native_callback(runner, late, get_hermes_home()):
+    with native_callback(runner, late, get_kova_home()):
         waiting = asyncio.create_task(runner._handle_message(late))
         for _ in range(200):
             if authority.waiters:
@@ -407,7 +407,7 @@ async def test_a_busy_message_cancelled_before_admission_reads_its_row_counts_as
     finds it terminal ``cancelled``. It never reached the agent: ``dropped`` / ``never``."""
     from gateway.session_ingress import admit_message
     from gateway.session_ingress_context import native_callback
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     runner, authority, source, _key = await _real_runner(monkeypatch)
     follow_up = MessageEvent(text="B", source=source, message_id="B")
@@ -418,12 +418,12 @@ async def test_a_busy_message_cancelled_before_admission_reads_its_row_counts_as
     async def commit_then_stop(event):
         receipt = await commit(event)
         stop = MessageEvent(text="/stop", source=source)
-        with native_callback(runner, stop, get_hermes_home()):
+        with native_callback(runner, stop, get_kova_home()):
             await runner._handle_message(stop)
         return receipt
 
     monkeypatch.setattr(authority, "admit_native", commit_then_stop)
-    with native_callback(runner, follow_up, get_hermes_home()):
+    with native_callback(runner, follow_up, get_kova_home()):
         assert await admit_message(authority, follow_up) is None
     busy.settle_busy_arrival(follow_up)
     assert _busy_rows(rows) == [("dropped", "never")]

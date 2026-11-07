@@ -30,7 +30,7 @@ def _gw():
 def get_launchd_label() -> str:
     """Return the launchd service label, scoped per profile."""
     suffix = _gw()._profile_suffix()
-    return f"ai.hermes.gateway-{suffix}" if suffix else "ai.hermes.gateway"
+    return f"ai.kova.gateway-{suffix}" if suffix else "ai.kova.gateway"
 
 
 def _probe_launchd_domain_for_label(label: str) -> str:
@@ -121,7 +121,7 @@ def _launchctl_bootstrap(domain: str, plist_path, label: str, *, timeout: int = 
 
 def _launchd_reload_log_path() -> Path:
     """Path the launchd reload watchdog tails for persistent-orphan detection."""
-    return _gw().get_hermes_home() / "logs" / "launchd-reload.log"
+    return _gw().get_kova_home() / "logs" / "launchd-reload.log"
 
 
 def _append_launchd_reload_log(message: str) -> None:
@@ -188,7 +188,7 @@ def _retry_launchctl_bootstrap_until_registered(
 # launchd-unsupported marker: written when the domain can't be managed (exit 5/125, macOS 26+) so
 # `launchd_status()` can explain missing supervision; cleared on successful bootstrap/kickstart.
 def _launchd_unsupported_marker_path() -> Path:
-    return _gw().get_hermes_home() / ".gateway-launchd-unsupported"
+    return _gw().get_kova_home() / ".gateway-launchd-unsupported"
 
 
 def _write_launchd_unsupported_marker() -> None:
@@ -214,11 +214,11 @@ def _launchd_unsupported_marker_exists() -> bool:
 
 def _gateway_run_command() -> list[str]:
     from kova_cli._launchers import runtime_command
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     # Every caller spawns an UNSUPERVISED child, which follows the sticky active_profile unless a
     # selector pins it (main._apply_profile_override): the root's replacement booted that profile.
     selector = shlex.split(_gw()._profile_arg())
-    if not selector and _gw().get_hermes_home().resolve() == get_default_hermes_root().resolve():
+    if not selector and _gw().get_kova_home().resolve() == get_default_kova_root().resolve():
         selector = ["--profile", "default"]
     return runtime_command(_gw().PROJECT_ROOT, [*selector, "gateway", "run", "--replace"],
                            python=_gw().get_python_path())
@@ -295,14 +295,14 @@ def _spawn_detached_gateway() -> bool:
     file that `run_gateway` writes, so stop/status/restart keep working.
     """
     from kova_cli._subprocess_compat import windows_detach_popen_kwargs
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.environments.local import served_profile_child_env
-    log_dir = _gw().get_hermes_home() / "logs"
+    log_dir = _gw().get_kova_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     child_env = served_profile_child_env(
-        target_home=get_hermes_home(), inherit_credentials=True,
+        target_home=get_kova_home(), inherit_credentials=True,
     )
-    child_env.pop("_HERMES_GATEWAY", None)
+    child_env.pop("_KOVA_GATEWAY", None)
     try:
         with open(log_dir / "gateway.log", "ab") as out:
             subprocess.Popen(
@@ -320,7 +320,7 @@ def _spawn_detached_gateway() -> bool:
 def _launchd_fallback_to_detached(reason: str, *, exit_on_failure: bool = True) -> bool:
     """Start the gateway detached when launchd can't manage it; on failure print the manual workaround
     and (by default) exit 1."""
-    from kova_constants import display_hermes_home as _dhh
+    from kova_constants import display_kova_home as _dhh
     _gw()._write_launchd_unsupported_marker()
     print(f"⚠ launchd cannot manage the gateway on this macOS version ({reason}).")
     if _gw()._spawn_detached_gateway():
@@ -363,8 +363,8 @@ def generate_launchd_plist() -> str:
     from html import escape
     # Stable cwd anchor — never the volatile source checkout (same rot risk as systemd's WorkingDirectory).
     working_dir = _gw()._stable_service_working_dir()
-    hermes_home = str(_gw().get_hermes_home().resolve())
-    log_dir = _gw().get_hermes_home() / "logs"
+    kova_home = str(_gw().get_kova_home().resolve())
+    log_dir = _gw().get_kova_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     label = _gw().get_launchd_label()
 
@@ -419,9 +419,9 @@ def generate_launchd_plist() -> str:
         <key>PATH</key>
         <string>{sane_path}</string>
 
-        <key>HERMES_HOME</key>
-        <string>{hermes_home}</string>
-        <key>HERMES_SUPERVISED_CHILD</key>
+        <key>KOVA_HOME</key>
+        <string>{kova_home}</string>
+        <key>KOVA_SUPERVISED_CHILD</key>
         <string>1</string>
     </dict>
 
@@ -572,7 +572,7 @@ def _rewrite_stale_launchd_plist() -> bool:
         return False
     # Runs on every gateway start/restart: a plist pinning another home is another install's gateway.
     from kova_cli.gateway_service_owner import definition_belongs_to_home
-    if not definition_belongs_to_home(plist_path, _gw().get_hermes_home(), "rewrite"):
+    if not definition_belongs_to_home(plist_path, _gw().get_kova_home(), "rewrite"):
         return False
 
     new_plist = _gw().generate_launchd_plist()
@@ -593,7 +593,7 @@ def refresh_unloaded_launchd_plist() -> bool:
         return False
     if not _rewrite_stale_launchd_plist():
         return False
-    print(f"  ↻ Updated {_gw().get_launchd_plist_path().name} to match the current Hermes install")
+    print(f"  ↻ Updated {_gw().get_launchd_plist_path().name} to match the current Kova install")
     return True
 
 
@@ -641,7 +641,7 @@ def refresh_launchd_plist_if_needed() -> bool:
             target, int(_reload_budget), _launchd_reload_log_path(),
         )
         return False
-    print("↻ Updated gateway launchd service definition to match the current Hermes install")
+    print("↻ Updated gateway launchd service definition to match the current Kova install")
     return True
 
 
@@ -650,7 +650,7 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
     label = _gw().get_launchd_label()
     # A plist pinning another home is another install's gateway, --force included; --force-unit-path repoints.
     from kova_cli.gateway_service_owner import definition_belongs_to_home
-    if not force_unit_path and not definition_belongs_to_home(plist_path, _gw().get_hermes_home(), "overwrite"):
+    if not force_unit_path and not definition_belongs_to_home(plist_path, _gw().get_kova_home(), "overwrite"):
         sys.exit(1)
     # Loading the plist starts the gateway (RunAtLoad), so a no-start install writes it without
     # loading it. A gateway that launchd already runs is still reloaded; this install did not start it.
@@ -673,11 +673,11 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
             else:
                 # The plist was rewritten but launchd never registered it (or the write was refused):
                 # a success line here would hide an unloaded service with no KeepAlive.
-                from kova_constants import display_hermes_home
+                from kova_constants import display_kova_home
                 print(
                     "⚠ Service definition could not be reloaded with launchd. "
                     "Run 'hermes gateway install --force' or check "
-                    f"{display_hermes_home()}/logs/launchd-reload.log for details."
+                    f"{display_kova_home()}/logs/launchd-reload.log for details."
                 )
             return
 
@@ -730,7 +730,7 @@ def launchd_install(force: bool = False, *, start_now: bool = True, force_unit_p
     print()
     print("Next steps:")
     print("  hermes gateway status             # Check status")
-    from kova_constants import display_hermes_home as _dhh
+    from kova_constants import display_kova_home as _dhh
     print(f"  tail -f {_dhh()}/logs/gateway.log  # View logs")
 
 
@@ -969,7 +969,7 @@ def launchd_status(deep: bool = False):
     # `launchctl list` exits 0 for any registered definition (even `state = not running`); only a PID proves a process.
     launchd_pid = _gw()._parse_launchd_pid_from_list_output(list_output) if service_listed else None
 
-    # Hermes PID may be a detached fallback process; when launchd IS supervising both PIDs match — don't double-count.
+    # Kova PID may be a detached fallback process; when launchd IS supervising both PIDs match — don't double-count.
     from gateway.status import get_running_pid
     fallback_pid = get_running_pid(cleanup_stale=False)
     if launchd_pid is not None and fallback_pid == launchd_pid:
@@ -980,9 +980,9 @@ def launchd_status(deep: bool = False):
 
     print(f"Launchd plist: {plist_path}")
     if _gw().launchd_plist_is_current():
-        print("✓ Service definition matches the current Hermes install")
+        print("✓ Service definition matches the current Kova install")
     else:
-        print("⚠ Service definition is stale relative to the current Hermes install")
+        print("⚠ Service definition is stale relative to the current Kova install")
         print("  Run: hermes gateway start")
 
     if not service_listed:
@@ -1013,7 +1013,7 @@ def launchd_status(deep: bool = False):
             print(f"  Detached gateway process is running (PID {fallback_pid})")
 
     if deep:
-        log_file = _gw().get_hermes_home() / "logs" / "gateway.log"
+        log_file = _gw().get_kova_home() / "logs" / "gateway.log"
         if log_file.exists():
             print()
             print("Recent logs:")

@@ -422,7 +422,7 @@ def canonical_custom_identity(*, base_url: Optional[str] = None, config_provider
         except Exception:
             candidate = ""
     if not candidate:
-        candidate = os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip()
+        candidate = os.environ.get("KOVA_INFERENCE_PROVIDER", "").strip()
     candidate_norm = _normalize_custom_provider_name(candidate)
     # A bare/non-routable candidate cannot heal a bare custom override.
     if not candidate_norm or candidate_norm in {"custom", "auto", "openrouter"}:
@@ -621,7 +621,7 @@ def _resolve_llamacpp_runtime(requested_provider: str, explicit_api_key: Optiona
                                            "model with /model.", retryable=True)
     # Every chat surface (messaging, TUI, Webapp) shows this sentence, so it names both places a
     # user can start the server and no Desktop-only pane; the Desktop client links its pane itself.
-    raise LocalRuntimeUnavailableError("The local model server is turned off. Start it from the Hermes "
+    raise LocalRuntimeUnavailableError("The local model server is turned off. Start it from the Kova "
                                        "desktop app or `hermes model` → Local models, or switch to "
                                        "another model with /model.")
 

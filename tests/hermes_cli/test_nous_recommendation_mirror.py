@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 PAYLOAD = {"paidRecommendedModels": [{"modelName": "mirrored"}]}
 
@@ -85,7 +85,7 @@ def test_gateway_refresh_fetches_recommendations_only_for_a_nous_account(server,
     monkeypatch.setattr(model_catalog, "get_catalog", lambda **_kw: {})
     monkeypatch.setattr(models, "fetch_openrouter_models", lambda **_kw: [])
     if auth_store is not None:
-        (get_hermes_home() / "auth.json").write_text(json.dumps(auth_store), encoding="utf-8")
+        (get_kova_home() / "auth.json").write_text(json.dumps(auth_store), encoding="utf-8")
     if env_key is not None:
         monkeypatch.setenv("NOUS_API_KEY", env_key)
 

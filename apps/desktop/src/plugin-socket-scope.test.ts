@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 
 // pluginSocket must dial the ACTIVE gateway's backend — resolved through the
 // same (connectionId, profile) source of truth ensureGatewayProfile /
@@ -17,7 +17,7 @@ vi.mock('@/hermes', async importOriginal => {
   return {
     ...actual,
     // Stub only the socket class so gateway activations don't dial real WS.
-    HermesGateway: class {
+    KovaGateway: class {
       connectionState = 'closed'
       connect = async (_wsUrl: string): Promise<void> => {
         this.connectionState = 'open'
@@ -39,7 +39,7 @@ const { $activeGatewayProfile, ensureGatewayAgent, ensureGatewayProfile } = awai
 
 // authMode 'oauth' makes pluginSocket stop after resolving the connection
 // (polling fallback), so the assertions cover resolution without a WS dial.
-const conn = (over: Partial<HermesConnection> = {}): HermesConnection =>
+const conn = (over: Partial<KovaConnection> = {}): KovaConnection =>
   ({
     authMode: 'oauth',
     baseUrl: 'https://pool.invalid',
@@ -47,7 +47,7 @@ const conn = (over: Partial<HermesConnection> = {}): HermesConnection =>
     token: 'fake-test-token',
     wsUrl: 'wss://pool.invalid/api/ws?token=fake-test-token',
     ...over
-  }) as HermesConnection
+  }) as KovaConnection
 
 let getConnection: ReturnType<typeof vi.fn>
 let getConnectionFor: ReturnType<typeof vi.fn>

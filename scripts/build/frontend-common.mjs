@@ -29,7 +29,7 @@ function contains(parent, child) {
   return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))
 }
 
-const productMarker = '.hermes-product'
+const productMarker = '.kova-product'
 const productOwner = 'hermes-frontend-product-v1\n'
 const developerOutputs = ['ui-tui/dist', 'kova_cli/web_dist', 'apps/desktop/dist', 'apps/desktop/dist-webapp', 'apps/desktop/build/native-deps']
 

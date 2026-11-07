@@ -73,11 +73,11 @@ def _transition(db, session_id: str, event: Event) -> Step | None:
 def _close_install_flag() -> None:
     from kova_cli import config as config_mod
     from kova_cli.onboarding_run import set_run
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     from agent.onboarding import PROFILE_BUILD_FLAG
 
-    section = config_mod.read_user_config_raw(get_default_hermes_root() / "config.yaml").get("onboarding")
+    section = config_mod.read_user_config_raw(get_default_kova_root() / "config.yaml").get("onboarding")
     section = section if isinstance(section, dict) else {}
     seen = section.get("seen") if isinstance(section.get("seen"), dict) else {}
     if section.get("run") is not False or not seen.get(PROFILE_BUILD_FLAG):

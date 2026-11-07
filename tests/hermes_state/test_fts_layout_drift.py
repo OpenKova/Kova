@@ -130,7 +130,7 @@ def _notice_for(db_path: pathlib.Path, monkeypatch) -> str:
     from kova_cli import update_cmd_maint
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: db_path.parent)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: db_path.parent)
     real_stat = pathlib.Path.stat
 
     def _big(path, *args, **kwargs):

@@ -23,8 +23,8 @@ def _owner(home, monkeypatch):
     import kova_state_runtime as rt
     home.mkdir(parents=True, exist_ok=True)
     (home / 'config.yaml').write_text(json.dumps({'model': {'default': 'm'}}))
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setenv('KOVA_HOME', str(home))
+    monkeypatch.setattr(run, '_kova_home', home)
     store = SessionStore(home / 'sessions', GatewayConfig())
     db = store._db
     runner = SimpleNamespace(session_store=store, _session_db=db, adapters={}, _draining=False,
@@ -257,7 +257,7 @@ async def test_latest_skips_a_newer_empty_launch_stub(tmp_path, monkeypatch, adm
 
         from kova_cli.main import _resolve_last_session
         monkeypatch.setattr('kova_cli.main._resolve_workspace_key', lambda: None)
-        monkeypatch.setattr('kova_cli.main.get_hermes_home', lambda: authority.db.db_path.parent)
+        monkeypatch.setattr('kova_cli.main.get_kova_home', lambda: authority.db.db_path.parent)
         assert _resolve_last_session('cli') == expected
 
         resumed = await _call(owner, 'session.resume', latest='cli')

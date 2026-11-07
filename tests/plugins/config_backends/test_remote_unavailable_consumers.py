@@ -36,7 +36,7 @@ def test_readiness_probe_reports_config_backend_unavailable(tmp_path, monkeypatc
     monkeypatch.setattr("kova_cli.config_backend.read_config_doc_readonly", _outage)
     assert readiness._probe_config(tmp_path)["status"] == "degraded"
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     result = readiness.collect_runtime_readiness(configured_model="m", runtime_status={})
     assert result["status"] == "degraded" and result["checks"]["config"]["status"] == "degraded"
 
@@ -54,7 +54,7 @@ def test_cron_tick_fails_only_that_fire_and_never_runs_on_defaults(tmp_path, mon
     monkeypatch.setattr("gateway.session_cron.current_execution", lambda: (None, "s", "j", "fire"))
     monkeypatch.setattr(scheduler, "_prepare_job_prompt", lambda *a, **k: (None, "do the thing"))
     monkeypatch.setattr(scheduler, "_reload_dotenv_and_publish_delivery_target", lambda job: None)
-    monkeypatch.setattr(scheduler, "_get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(scheduler, "_get_kova_home", lambda: tmp_path)
     success, doc, final, error = scheduler.run_job({"id": "j", "name": "job", "prompt": "p"},
                                                    execution_id="fire")
     assert success is False and final == ""

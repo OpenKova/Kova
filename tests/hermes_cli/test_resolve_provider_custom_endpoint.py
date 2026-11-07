@@ -17,9 +17,9 @@ def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     for var in ("OPENAI_API_KEY", "OPENROUTER_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_BASE_URL",
-                "OPENROUTER_BASE_URL", "HERMES_INFERENCE_PROVIDER", "NOUS_API_KEY"):
+                "OPENROUTER_BASE_URL", "KOVA_INFERENCE_PROVIDER", "NOUS_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr("agent.bedrock_adapter.has_aws_credentials", lambda *_a, **_kw: False)
     from kova_cli import free_tier_bootstrap as fb
@@ -134,15 +134,15 @@ def test_a_provider_configured_after_boot_flips_the_stale_setup_record(isolated_
 
     # The record is the launch profile's: a write scoped to another profile (the dashboard's
     # ``?profile=b``) must not let THAT profile's provider open the launch gate.
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     profile_b = isolated_home / "profiles" / "b"
     profile_b.mkdir(parents=True)
     (profile_b / "config.yaml").write_text("model:\n  default: qwen3\n  provider: custom\n  base_url: http://127.0.0.1:8000/v1\n  api_key: dummy\n", encoding="utf-8")
-    token = set_hermes_home_override(str(profile_b))
+    token = set_kova_home_override(str(profile_b))
     try:
         assert fb.reconcile_record() is boot and broadcasts == [], "another profile's provider is not ours"
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
     (isolated_home / "config.yaml").write_text(
         "model:\n  default: qwen3\n  provider: custom\n  base_url: http://127.0.0.1:8000/v1\n  api_key: dummy\n",

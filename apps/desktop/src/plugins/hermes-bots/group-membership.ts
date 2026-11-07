@@ -428,7 +428,7 @@ export function durableGroupChatMembers(bots: RosterRow[]): GroupMember[] {
       // botHandle re-derives 'hermes' for it: keep the claim, or a room whose
       // live row is gone tells two bots they are both @hermes. A live row
       // (groupChatMemberBots prefers it) recomputes this from the roster.
-      ...(bot.hermesHandleTaken
+      ...(bot.kovaHandleTaken
         ? {
             hermesHandleTaken: true
           }

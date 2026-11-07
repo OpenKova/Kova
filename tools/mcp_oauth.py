@@ -2,8 +2,8 @@
 """MCP OAuth 2.1 client support: browser authorization-code flow with PKCE.
 
 The SDK's ``OAuthClientProvider`` does discovery, client identification, PKCE, exchange and
-refresh; this module supplies ``HermesTokenStorage`` (on-disk persistence), the localhost callback
-listener and ``build_oauth_auth()`` (legacy entry point). client_id is Hermes' Client ID Metadata
+refresh; this module supplies ``KovaTokenStorage`` (on-disk persistence), the localhost callback
+listener and ``build_oauth_auth()`` (legacy entry point). client_id is Kova' Client ID Metadata
 Document URL (CIMD) when the server supports it, else RFC 7591 DCR. ``mcp_servers.<name>.oauth`` keys
 (all optional): client_id, client_secret, scope, redirect_port, redirect_uri (proxy callback),
 redirect_host, client_name, client_metadata_url, cimd, user_agent, timeout."""
@@ -109,9 +109,9 @@ async def acquire_refresh_fence(path: Path, *, timeout: float = _REFRESH_FENCE_T
     """
     lock_path = _refresh_lock_path(path)
     try:
-        from kova_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_kova_home
 
-        mkdir_under_hermes_home(lock_path.parent)
+        mkdir_under_kova_home(lock_path.parent)
         secure_parent_dir(lock_path)
         fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
     except OSError as exc:
@@ -226,11 +226,11 @@ _SKIP_TOKENS = frozenset({"skip", "cancel", "s", "n", "no", "q", "quit"})
 _USER_SKIPPED_SENTINEL = "__hermes_user_skipped__"
 
 
-def _get_token_dir(hermes_home: str | Path | None = None) -> Path:
-    """``HERMES_HOME/mcp-tokens/`` — per-profile token directory."""
-    from kova_constants import get_hermes_home
+def _get_token_dir(kova_home: str | Path | None = None) -> Path:
+    """``KOVA_HOME/mcp-tokens/`` — per-profile token directory."""
+    from kova_constants import get_kova_home
 
-    return Path(hermes_home if hermes_home is not None else get_hermes_home()) / "mcp-tokens"
+    return Path(kova_home if kova_home is not None else get_kova_home()) / "mcp-tokens"
 
 
 def _safe_filename(name: str) -> str:
@@ -275,7 +275,7 @@ def _reserve_callback_port() -> int:
     return _bind_reserved(0)  # type: ignore[return-value]  # port 0 never returns None
 
 
-def _cached_client_info(storage: "HermesTokenStorage | None") -> dict | None:
+def _cached_client_info(storage: "KovaTokenStorage | None") -> dict | None:
     """The on-disk client registration for *storage*, or None."""
     try:
         info = _read_json(storage._client_info_path()) if storage is not None else None
@@ -286,7 +286,7 @@ def _cached_client_info(storage: "HermesTokenStorage | None") -> dict | None:
     return info if isinstance(info, dict) else None
 
 
-def _cached_redirect(storage: "HermesTokenStorage | None") -> tuple[str | None, int | None]:
+def _cached_redirect(storage: "KovaTokenStorage | None") -> tuple[str | None, int | None]:
     """``(https proxy URI, loopback callback port)`` from the cached client registration (None when
     absent): a DCR ``client_id`` is bound to its registered redirect URI, so a new random port under
     it gets ``redirect_uri does not match any registered URIs``."""
@@ -397,9 +397,9 @@ def _read_json(path: Path) -> dict | None:
 def _write_json(path: Path, data: dict) -> None:
     """OAuth tokens/client info at 0600 from creation, parent tightened to 0700 (``secure_parent_dir``
     refuses ``/``, top-level dirs and the install tree — #25821, #93050)."""
-    from kova_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_kova_home
 
-    mkdir_under_hermes_home(path.parent)
+    mkdir_under_kova_home(path.parent)
     secure_parent_dir(path)
     atomic_json_write(path, data, mode=0o600, default=str)
 
@@ -409,13 +409,13 @@ def _model_json(model: Any) -> dict:
     return model.model_dump(mode="json", exclude_none=True)
 
 
-class HermesTokenStorage:
-    """Persist OAuth state as ``HERMES_HOME/mcp-tokens/<server_name>`` + ``.json`` (tokens),
+class KovaTokenStorage:
+    """Persist OAuth state as ``KOVA_HOME/mcp-tokens/<server_name>`` + ``.json`` (tokens),
     ``.client.json`` (client info), ``.meta.json`` (server metadata), ``.cimd-off`` (CIMD refused)."""
 
-    def __init__(self, server_name: str, *, hermes_home: str | Path | None = None):
+    def __init__(self, server_name: str, *, kova_home: str | Path | None = None):
         self._server_name = _safe_filename(server_name)
-        self._hermes_home = Path(hermes_home) if hermes_home is not None else None
+        self._kova_home = Path(kova_home) if kova_home is not None else None
         # Issuer binding: ``loaded_issuer`` is what the token file on disk recorded (the authorization
         # server that granted the stored refresh token); ``_bound_issuer`` is stamped onto the next
         # ``set_tokens`` write. See ``tools.mcp_oauth_provider.enforce_refresh_token_issuer``.
@@ -423,7 +423,7 @@ class HermesTokenStorage:
         self._bound_issuer: str | None = None
 
     def _path(self, suffix: str) -> Path:
-        return _get_token_dir(self._hermes_home) / f"{self._server_name}{suffix}"
+        return _get_token_dir(self._kova_home) / f"{self._server_name}{suffix}"
 
     _tokens_path = partialmethod(_path, ".json")
     _client_info_path = partialmethod(_path, ".client.json")
@@ -479,7 +479,7 @@ class HermesTokenStorage:
                 data["expires_in"] = int(max(implied_expiry - time.time(), 0))
 
     def _fixup_loaded_tokens(self, data: dict) -> None:
-        # ``hermes_issuer`` is Hermes bookkeeping, not an SDK OAuthToken field: pop before validation.
+        # ``hermes_issuer`` is Kova bookkeeping, not an SDK OAuthToken field: pop before validation.
         self.loaded_issuer = data.pop("hermes_issuer", None)
         self._rebase_expires_in(data)
 
@@ -574,9 +574,9 @@ class HermesTokenStorage:
         the refused client_id. Cleared by ``remove()`` so a fixed document gets a retry."""
         path = self._cimd_rejected_path()
         try:
-            from kova_constants import mkdir_under_hermes_home
+            from kova_constants import mkdir_under_kova_home
 
-            mkdir_under_hermes_home(path.parent)
+            mkdir_under_kova_home(path.parent)
             path.touch()
         except OSError as exc:  # non-fatal — worst case we retry CIMD later
             logger.debug("Could not record CIMD rejection at %s: %s", path, exc)
@@ -612,10 +612,10 @@ class HermesTokenStorage:
         self.remove()
         if not snapshot:
             return
-        token_dir = _get_token_dir(self._hermes_home)
-        from kova_constants import mkdir_under_hermes_home
+        token_dir = _get_token_dir(self._kova_home)
+        from kova_constants import mkdir_under_kova_home
 
-        mkdir_under_hermes_home(token_dir)
+        mkdir_under_kova_home(token_dir)
         for fname, data in snapshot.items():
             try:
                 fd = os.open(str(token_dir / fname), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, stat.S_IRUSR | stat.S_IWUSR)
@@ -697,10 +697,10 @@ def _make_callback_handler() -> tuple[type, dict]:
                 status, body = 404, "<h2>Not Found</h2>"
             elif _result_taken(result):
                 # First terminal result (HTTP or paste) wins; a duplicate or refreshed callback never replaces it.
-                body = "<h2>Authorization already received</h2><p>You can close this tab and return to Hermes.</p>"
+                body = "<h2>Authorization already received</h2><p>You can close this tab and return to Kova.</p>"
             else:
                 result.update(auth_code=parsed["code"], state=parsed["state"], error=parsed["error"], iss=parsed["iss"])
-                body = ("<h2>Authorization Successful</h2><p>You can close this tab and return to Hermes.</p>" if parsed["code"]
+                body = ("<h2>Authorization Successful</h2><p>You can close this tab and return to Kova.</p>" if parsed["code"]
                         else f"<h2>Authorization Failed</h2><p>Error: {html.escape(parsed['error'] or 'unknown')}</p>")
             self.send_response(status)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -771,7 +771,7 @@ _SSH_HINT_LOOPBACK = (
     "         ssh -N -L {port}:127.0.0.1:{port} <user>@<this-host>\n"
     "       then open the URL above and let it redirect normally.\n"
     "\n"
-    "  See: https://hermes-agent.nousresearch.com/docs/guides/oauth-over-ssh\n")
+    "  See: https://kova-agent.nousresearch.com/docs/guides/oauth-over-ssh\n")
 
 
 def _announce_authorization_url(
@@ -855,7 +855,7 @@ def _callback_outcome(result: dict, cimd_url: str | None):
     if result["auth_code"] is None:
         hint = (
             " If the browser showed an invalid-client error instead of an approval prompt, the authorization "
-            f"server rejected Hermes' Client ID Metadata Document ({cimd_url}); set ``cimd: false`` under that "
+            f"server rejected Kova' Client ID Metadata Document ({cimd_url}); set ``cimd: false`` under that "
             "server's ``oauth:`` block in config.yaml to authorize via dynamic client registration instead."
         ) if cimd_url else ""
         raise OAuthNonInteractiveError(
@@ -923,20 +923,20 @@ def _make_callback_waiter(port: int, cimd_url: str | None = None, timeout: float
 
 
 # Legacy build_oauth_auth provider class, built lazily (SDK) and cached here.
-HermesOAuthClientProvider: Any = None
+KovaOAuthClientProvider: Any = None
 
 
-def remove_oauth_tokens(server_name: str, *, hermes_home: str | Path | None = None) -> None:
+def remove_oauth_tokens(server_name: str, *, kova_home: str | Path | None = None) -> None:
     """Delete stored OAuth tokens and client info for a server."""
-    HermesTokenStorage(server_name, hermes_home=hermes_home).remove()
+    KovaTokenStorage(server_name, kova_home=kova_home).remove()
     logger.info("OAuth tokens removed for '%s'", server_name)
 
 
 # CIMD (OAuth Client ID Metadata Documents): the client_id IS an HTTPS URL the server fetches for our
-# name/logo/redirect URIs, replacing per-install DCR. The SDK does the protocol; Hermes only decides
+# name/logo/redirect URIs, replacing per-install DCR. The SDK does the protocol; Kova only decides
 # eligibility. Published from ``website/static/oauth/client-metadata.json``; the github.io origin is
-# deliberate — servers MUST NOT follow redirects when fetching it, and hermes-agent.nousresearch.com/docs/* 301s here.
-_CIMD_CLIENT_METADATA_URL = "https://nousresearch.github.io/hermes-agent/docs/oauth/client-metadata.json"
+# deliberate — servers MUST NOT follow redirects when fetching it, and kova-agent.nousresearch.com/docs/* 301s here.
+_CIMD_CLIENT_METADATA_URL = "https://nousresearch.github.io/kova-agent/docs/oauth/client-metadata.json"
 # Loopback ports/hosts declared in that document (exact match, so no ephemeral port under CIMD);
 # below Linux's 32768 ephemeral floor. tests/tools/test_mcp_cimd.py keeps them in sync.
 _CIMD_PORTS = (27890, 27891, 27892, 27893, 27894)
@@ -982,9 +982,9 @@ def _pick_cimd_port() -> int | None:
     return _assigned_cimd_ports[0] if _assigned_cimd_ports else None
 
 
-def _server_declined_cimd(storage: HermesTokenStorage | None) -> bool:
+def _server_declined_cimd(storage: KovaTokenStorage | None) -> bool:
     """True when cached metadata shows this server doesn't advertise CIMD. The SDK decides CIMD vs DCR
-    in its 401 branch — after Hermes must fix the redirect URI — so cached metadata closes the gap;
+    in its 401 branch — after Kova must fix the redirect URI — so cached metadata closes the gap;
     only a genuinely unknown server pays the optimistic pin."""
     try:
         metadata = storage.load_oauth_metadata() if storage is not None else None
@@ -993,7 +993,7 @@ def _server_declined_cimd(storage: HermesTokenStorage | None) -> bool:
     return metadata is not None and getattr(metadata, "client_id_metadata_document_supported", None) is not True
 
 
-def _maybe_use_cimd(cfg: dict, storage: HermesTokenStorage | None = None) -> tuple[str, int] | None:
+def _maybe_use_cimd(cfg: dict, storage: KovaTokenStorage | None = None) -> tuple[str, int] | None:
     """``(client_id URL, pinned callback port)``, or None to use DCR. Each ineligibility case means the
     redirect URI is not one the document declares, the client identity is already settled, or the
     server is known not to want a document — a metadata URL would be rejected."""
@@ -1047,7 +1047,7 @@ def login_connect_timeout(config: dict) -> float:
                _seconds(oauth_cfg.get("timeout"), 300.0) + 15.0)
 
 
-def _configure_callback_port(cfg: dict, storage: HermesTokenStorage | None = None) -> int:
+def _configure_callback_port(cfg: dict, storage: KovaTokenStorage | None = None) -> int:
     """Resolve the callback port into ``cfg['_resolved_port']`` (0 = non-loopback URI). Precedence:
     dashboard flow / cached https redirect URI → CIMD pinned port (sets ``cfg['_cimd_url']``) →
     ``oauth.redirect_port`` → cached registration port → fresh ephemeral port (the only parked one).
@@ -1140,7 +1140,7 @@ def _build_client_metadata(cfg: dict) -> "OAuthClientMetadata":
     # Public client by default; confidential only with a known secret or a provider (Figma) needing confidential-style token posts.
     auth_method = cfg.get("token_endpoint_auth_method") or ("client_secret_post" if cfg.get("client_secret") else "none")
     metadata_kwargs: dict[str, Any] = {
-        "client_name": cfg.get("client_name", "Hermes Agent"),
+        "client_name": cfg.get("client_name", "Kova Agent"),
         "redirect_uris": [AnyUrl(_resolve_redirect_uri(cfg, port))],
         "grant_types": ["authorization_code", "refresh_token"],
         "response_types": ["code"],
@@ -1158,7 +1158,7 @@ def _build_client_metadata(cfg: dict) -> "OAuthClientMetadata":
 
 
 def _invalidate_tokens_on_client_change(
-    storage: HermesTokenStorage, new_client_id: str, new_client_secret: str | None) -> None:
+    storage: KovaTokenStorage, new_client_id: str, new_client_secret: str | None) -> None:
     """Drop cached tokens when the configured client identity changes: tokens minted under the old
     ``client_id`` fail refresh with ``invalid_client``, and pre-registered clients are exempt from
     auto-poison, so stale tokens would wedge every request until a manual wipe. Compares on-disk
@@ -1187,7 +1187,7 @@ def _invalidate_tokens_on_client_change(
             storage._server_name, old_client_id, new_client_id, storage._server_name)
 
 
-def _maybe_preregister_client(storage: HermesTokenStorage, cfg: dict, client_metadata: "OAuthClientMetadata") -> None:
+def _maybe_preregister_client(storage: KovaTokenStorage, cfg: dict, client_metadata: "OAuthClientMetadata") -> None:
     """If cfg has a pre-registered client_id, persist it to storage."""
     client_id = cfg.get("client_id")
     if not client_id:
@@ -1209,7 +1209,7 @@ def humanize_oauth_registration_error(
     server_name: str, exc: BaseException | str, *, server_url: str | None = None) -> str | None:
     """Turn a DCR 403/Forbidden or 404 into a useful next step; None for anything else so the caller keeps the
     original text. Figma gates DCR on exact ``client_name`` (auto-set to ``Claude Code``), so this fires
-    when the user overrode it or an older Hermes is running."""
+    when the user overrode it or an older Kova is running."""
     msg = str(exc)
     lowered = msg.lower()
     from tools.mcp_oauth_provider import _DISCOVERY_CONTEXT_LEAD
@@ -1233,7 +1233,7 @@ def humanize_oauth_registration_error(
     if _is_figma_remote_mcp(server_name, server_url):
         return (
             f"'{server_name}' is Figma's remote MCP — DCR is allowlisted by exact client_name "
-            f"(\"{_FIGMA_DCR_CLIENT_NAME}\" and \"Codex\" work; most other names 403). Hermes defaults to "
+            f"(\"{_FIGMA_DCR_CLIENT_NAME}\" and \"Codex\" work; most other names 403). Kova defaults to "
             f"client_name: {_FIGMA_DCR_CLIENT_NAME!r} automatically. If you set oauth.client_name yourself, "
             f"change it to one of those, or clear it and re-run:\n  hermes mcp login {server_name}")
     return (
@@ -1246,7 +1246,7 @@ def humanize_oauth_registration_error(
 def build_oauth_auth(server_name: str, server_url: str, oauth_config: dict | None = None) -> "OAuthClientProvider | None":
     """``httpx.Auth`` OAuth handler for an MCP server; None if the SDK lacks OAuth. Legacy API — new code
     uses :func:`tools.mcp_oauth_manager.get_manager` so state is shared across config-time, runtime and reconnect paths."""
-    global HermesOAuthClientProvider
+    global KovaOAuthClientProvider
     if not _OAUTH_AVAILABLE or _sdk_class("OAuthClientProvider") is None:
         logger.warning("MCP OAuth requested for '%s' but SDK auth types are not available. Run: "
                        f"{install_hint('mcp')}", server_name)
@@ -1260,10 +1260,10 @@ def build_oauth_auth(server_name: str, server_url: str, oauth_config: dict | Non
             f"requires browser authorization. Run `hermes mcp login {server_name}` interactively first to complete "
             "initial authorization, then cached tokens will be reused.")
     kwargs = build_provider_kwargs(cfg, storage, ssh_proxy_hint=True)
-    if HermesOAuthClientProvider is None:
-        from tools.mcp_oauth_provider import HermesProviderMixin
+    if KovaOAuthClientProvider is None:
+        from tools.mcp_oauth_provider import KovaProviderMixin
 
-        HermesOAuthClientProvider = type("HermesOAuthClientProvider", (HermesProviderMixin, _sdk_class("OAuthClientProvider")), {
-            "__doc__": "SDK provider plus Hermes' token-endpoint fixes (see ``HermesProviderMixin``).",
+        KovaOAuthClientProvider = type("KovaOAuthClientProvider", (KovaProviderMixin, _sdk_class("OAuthClientProvider")), {
+            "__doc__": "SDK provider plus Kova' token-endpoint fixes (see ``KovaProviderMixin``).",
             "__module__": __name__, "_hermes_logger": logger})
-    return HermesOAuthClientProvider(server_url=server_url, **kwargs)
+    return KovaOAuthClientProvider(server_url=server_url, **kwargs)

@@ -1,4 +1,4 @@
-"""Configuration management for Hermes Agent: config.yaml / .env loading, saving,
+"""Configuration management for Kova Agent: config.yaml / .env loading, saving,
 validation, migration, and the ``hermes config`` command."""
 
 # Stale-module bridge — must run before ANY import below can bind a root-level symbol.
@@ -36,14 +36,14 @@ from kova_cli import managed_scope
 from kova_cli.default_soul import DEFAULT_SOUL_MD, is_legacy_template_soul
 from kova_cli.left_core_migration import profile_env_names as _left_core_profile_env
 from kova_cli.secret_prompt import masked_secret_prompt
-# Managed-mode, container and HERMES_UID/GID policy live in kova_constants (import-safe);
+# Managed-mode, container and KOVA_UID/GID policy live in kova_constants (import-safe);
 # re-exported here so existing callers/patch targets keep working.
 from kova_constants import (
     _IGNORED_MANAGED_VALUES, _LEGACY_MANAGED_SYSTEM, _MANAGED_FALSE_VALUES, _MANAGED_TRUE_VALUES,
     _chown_to_hermes_uid, _container_or_chmod_skipped, _resolve_hermes_uid_gid,
     apply_secure_dir_policy, get_managed_system)
 # Re-export from kova_constants — canonical definition lives there.
-from kova_constants import get_hermes_home, get_process_hermes_home
+from kova_constants import get_kova_home, get_process_kova_home
 from utils import atomic_replace, fast_safe_load, file_cache_version, file_signature, mkstemp_beside
 from kova_cli.config_issues import ConfigIssue, _issue
 from kova_cli.config_backend import (
@@ -82,13 +82,13 @@ _ENV_VAR_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 # Env var names that influence how the next subprocess executes — never writable through
 # ``save_env_value``: dynamic loader (LD_*/DYLD_*: attacker code loads before main()),
-# interpreter init (PYTHON*, NODE_*: Hermes restarts through them), PATH (fix tool lookup
+# interpreter init (PYTHON*, NODE_*: Kova restarts through them), PATH (fix tool lookup
 # with absolute paths instead), git rewrites (fire on every plugin install/update),
 # implicitly-invoked commands (BROWSER/EDITOR/VISUAL/PAGER = RCE on next $EDITOR), SHELL,
-# and Hermes runtime-location / security-policy flags (config.yaml is the supported surface).
+# and Kova runtime-location / security-policy flags (config.yaml is the supported surface).
 #
-# ``HERMES_*`` overall is NOT blocked — many integration credentials use that prefix
-# (HERMES_LANGFUSE_PUBLIC_KEY, HERMES_SPOTIFY_CLIENT_ID, ...). The denylist is name-by-name so
+# ``KOVA_*`` overall is NOT blocked — many integration credentials use that prefix
+# (KOVA_LANGFUSE_PUBLIC_KEY, KOVA_SPOTIFY_CLIENT_ID, ...). The denylist is name-by-name so
 # it cannot break provider setup wizards. Enforced on *write* only: pre-existing/out-of-band
 # ``.env`` values keep working; the dashboard's writable surface just cannot escalate.
 
@@ -122,16 +122,16 @@ _ENV_VAR_NAME_DENYLIST: frozenset[str] = frozenset({
     "GIT_PROXY_COMMAND", "GIT_TEMPLATE_DIR", "GIT_DIR",
     # Shell init files / interactive hooks — sourced before or during execution
     "BASH_ENV", "ENV", "ZDOTDIR", "PROMPT_COMMAND", "VIMINIT", "EXINIT",
-    # Hermes runtime location
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV",
-    "HERMES_CONFIG_PATH", "HERMES_ENV_PATH",
+    # Kova runtime location
+    "KOVA_HOME", "KOVA_PROFILE", "KOVA_CONFIG", "KOVA_ENV",
+    "KOVA_CONFIG_PATH", "KOVA_ENV_PATH",
     # MCP catalog trust root; package-manager wrappers may still set it in the process env.
-    "HERMES_OPTIONAL_MCPS",
+    "KOVA_OPTIONAL_MCPS",
     # Security policy / approval-routing context — set via their dedicated controls only.
-    "HERMES_YOLO_MODE", "HERMES_ACCEPT_HOOKS", "HERMES_REDACT_SECRETS",
-    "HERMES_INTERACTIVE", "HERMES_EXEC_ASK", "HERMES_GATEWAY_SESSION",
-    "HERMES_CRON_SESSION", "HERMES_SINGLE_QUERY_SESSION",
-    "HERMES_SESSION_KEY", "HERMES_SESSION_PLATFORM"})
+    "KOVA_YOLO_MODE", "KOVA_ACCEPT_HOOKS", "KOVA_REDACT_SECRETS",
+    "KOVA_INTERACTIVE", "KOVA_EXEC_ASK", "KOVA_GATEWAY_SESSION",
+    "KOVA_CRON_SESSION", "KOVA_SINGLE_QUERY_SESSION",
+    "KOVA_SESSION_KEY", "KOVA_SESSION_PLATFORM"})
 
 
 def _env_var_policy_name(key: str, *, is_windows: Optional[bool] = None) -> str:
@@ -152,8 +152,8 @@ def validate_env_var_name_for_write(key: str) -> None:
         raise ValueError(
             f"Environment variable {key!r} is on the writer denylist. "
             "Names that influence subprocess execution (LD_PRELOAD, PYTHONPATH, PATH, EDITOR, ...) "
-            "or Hermes runtime location and security policy (HERMES_HOME, HERMES_YOLO_MODE, ...) "
-            "cannot be persisted via the env writer. If you really need this, edit ~/.hermes/.env "
+            "or Kova runtime location and security policy (KOVA_HOME, KOVA_YOLO_MODE, ...) "
+            "cannot be persisted via the env writer. If you really need this, edit ~/.kova/.env "
             "directly.")
 
 
@@ -209,35 +209,35 @@ _EXTRA_ENV_KEYS = frozenset({
     "IRC_SERVER", "IRC_PORT", "IRC_NICKNAME", "IRC_CHANNEL", "IRC_USE_TLS", "IRC_SERVER_PASSWORD",
     "IRC_NICKSERV_PASSWORD", "TERMINAL_ENV", "TERMINAL_SSH_KEY", "TERMINAL_SSH_PORT",
     # Deprecated (replaced by display.tool_progress) but STILL READ by the gateway as a
-    # back-compat fallback. The boolean HERMES_TOOL_PROGRESS variant is unsupported (its only
+    # back-compat fallback. The boolean KOVA_TOOL_PROGRESS variant is unsupported (its only
     # consumer, the v3->4 migration, is below the v12 support floor); doctor flags it as ignored.
-    "HERMES_TOOL_PROGRESS_MODE",
+    "KOVA_TOOL_PROGRESS_MODE",
     "WHATSAPP_MODE", "WHATSAPP_ENABLED",
     "MATTERMOST_HOME_CHANNEL", "MATTERMOST_HOME_CHANNEL_NAME", "MATTERMOST_REPLY_MODE",
     "MATRIX_PASSWORD", "MATRIX_ENCRYPTION", "MATRIX_DEVICE_ID", "MATRIX_HOME_ROOM",
     "MATRIX_REQUIRE_MENTION", "MATRIX_FREE_RESPONSE_ROOMS", "MATRIX_AUTO_THREAD", "MATRIX_DM_AUTO_THREAD",
     "MATRIX_RECOVERY_KEY",
     # ACP (Agent Client Protocol) keys — profile-isolable so profiles can use different backends.
-    "HERMES_ACP_AUTH_METHOD", "HERMES_ACP_AUTO_APPROVE"}) | _left_core_profile_env()  # moved providers' env
+    "KOVA_ACP_AUTH_METHOD", "KOVA_ACP_AUTO_APPROVE"}) | _left_core_profile_env()  # moved providers' env
 
 
 # ---- Managed mode (NixOS declarative config) ----
 
 _NIX_MANAGED_SYSTEMS = {"nixos", "home-manager"}
 # Nix store root; identifies `nix run` / `nix profile install` installs (which don't set
-# HERMES_MANAGED). Module-level so tests can patch it without touching /nix/store.
+# KOVA_MANAGED). Module-level so tests can patch it without touching /nix/store.
 _NIX_STORE = Path("/nix/store")
 
 
 def is_managed() -> bool:
-    """Check if Hermes is running in package-manager-managed mode."""
+    """Check if Kova is running in package-manager-managed mode."""
     return get_managed_system() is not None
 
 
 # Nix installs arrive by several routes (nix run, nix profile, system flake, home-manager) and
 # the running process cannot tell which, so the text names the routes instead of one command.
 _NIX_UPDATE_MSG = (
-    "Update Hermes through the Nix source that installed it "
+    "Update Kova through the Nix source that installed it "
     "(e.g. nix profile upgrade, or update your flake input and rebuild with nixos-rebuild or home-manager switch)"
 )
 
@@ -262,10 +262,10 @@ def _install_method_stamp(path: Path) -> Optional[str]:
 
 
 def detect_install_method(project_root: Optional[Path] = None) -> str:
-    """Detect how Hermes was installed: apt/docker/nix/nixos/home-manager/git/unknown.
+    """Detect how Kova was installed: apt/docker/nix/nixos/home-manager/git/unknown.
     Order: code-scoped ``<install tree>/.install_method`` stamp (authoritative) -> legacy
-    ``$HERMES_HOME/.install_method`` -> managed marker -> /nix/store path -> .git dir -> unknown.
-    The stamp lives next to the code because HERMES_HOME is shared data: a container and a host
+    ``$KOVA_HOME/.install_method`` -> managed marker -> /nix/store path -> .git dir -> unknown.
+    The stamp lives next to the code because KOVA_HOME is shared data: a container and a host
     install can bind-mount the same home, so a home-scoped ``docker`` stamp would make the host
     ``hermes update`` refuse to run. A legacy ``docker`` value is therefore ignored unless we are
     really inside a container, and being in a container alone never implies 'docker'.
@@ -277,14 +277,14 @@ def detect_install_method(project_root: Optional[Path] = None) -> str:
     clone in a container still resolves via ``.git``, not container presence alone.
     See issue #34397.
     """
-    # The stamp is a property of the running code tree (parent of kova_cli/), NOT of $HERMES_HOME,
+    # The stamp is a property of the running code tree (parent of kova_cli/), NOT of $KOVA_HOME,
     # so it survives two installs sharing a home.
     root = project_root if project_root is not None else get_project_root()
     method = _install_method_stamp(root / ".install_method")
     if method:
         return method
 
-    method = _install_method_stamp(get_hermes_home() / ".install_method")
+    method = _install_method_stamp(get_kova_home() / ".install_method")
     if method and not (method == "docker" and not _running_in_container()):
         return method
 
@@ -326,8 +326,8 @@ def is_nix_install_method(method: str) -> bool:
 
 
 _UPDATE_COMMAND_BY_METHOD = {
-    "docker": "docker pull nousresearch/hermes-agent:latest",
-    "apt": "pkg upgrade hermes-agent",  # "apt" == Termux APT by contract; uses Termux's `pkg`.
+    "docker": "docker pull nousresearch/kova-agent:latest",
+    "apt": "pkg upgrade kova-agent",  # "apt" == Termux APT by contract; uses Termux's `pkg`.
 }
 
 
@@ -348,31 +348,31 @@ def recommended_update_command() -> str:
 
 # Shared by ``cmd_update`` and ``_cmd_update_check`` (kova_cli/main.py) so the wording never
 # forks. The published image excludes ``.git``, so the git update path can never succeed there
-# and the generic "reinstall via install.sh" fallback would install a NEW host-side Hermes.
+# and the generic "reinstall via install.sh" fallback would install a NEW host-side Kova.
 _DOCKER_UPDATE_MESSAGE = """\
 ✗ ``hermes update`` doesn't apply inside the Docker container.
 
-Hermes Agent runs as a published image (nousresearch/hermes-agent), not a
+Kova Agent runs as a published image (nousresearch/kova-agent), not a
 git checkout — the container has no working tree to pull into.  Update by
 pulling a fresh image and restarting your container instead:
 
-  docker pull nousresearch/hermes-agent:latest
+  docker pull nousresearch/kova-agent:latest
   # then restart whatever started the container, e.g.:
-  docker compose up -d --force-recreate hermes-agent
+  docker compose up -d --force-recreate kova-agent
   # or, for ad-hoc runs, exit the current container and `docker run` again
 
 Verify the new version after restart:
-  docker run --rm nousresearch/hermes-agent:latest --version
+  docker run --rm nousresearch/kova-agent:latest --version
 
 Notes:
   • If you pinned a specific tag (e.g. ``:v0.14.0``) the ``:latest`` tag
     won't move your container — pull the newer tag you actually want, or
     switch to ``:latest`` / ``:main`` for rolling updates.  See available
-    tags at https://hub.docker.com/r/nousresearch/hermes-agent/tags
+    tags at https://hub.docker.com/r/nousresearch/kova-agent/tags
   • On a ``-desktop`` tag (the one carrying Bot Screen)?  Keep the suffix:
     the unsuffixed image has no Xvnc/Xfce and no sudo to add them, so
     pulling it stops the bots' screens from starting.
-  • Your config and session history live under ``$HERMES_HOME`` (``/opt/data``
+  • Your config and session history live under ``$KOVA_HOME`` (``/opt/data``
     in the container, typically bind-mounted from the host) and persist
     across image upgrades — re-pulling doesn't lose any state.
   • Running a fork?  Build your own image with this repo's ``Dockerfile``
@@ -384,12 +384,12 @@ def format_docker_update_message() -> str:
     return _DOCKER_UPDATE_MESSAGE
 
 
-def format_managed_message(action: str = "modify this Hermes installation") -> str:
+def format_managed_message(action: str = "modify this Kova installation") -> str:
     """Build a user-facing error for managed installs."""
     managed_system = get_managed_system() or "a package manager"
     return (
-        f"Cannot {action}: this Hermes installation is managed by {managed_system}.\n"
-        "Use your package manager to upgrade or reinstall Hermes.")
+        f"Cannot {action}: this Kova installation is managed by {managed_system}.\n"
+        "Use your package manager to upgrade or reinstall Kova.")
 
 
 def managed_error(action: str = "modify configuration"):
@@ -398,12 +398,12 @@ def managed_error(action: str = "modify configuration"):
 
 
 def get_container_exec_info() -> Optional[dict]:
-    """Read container mode metadata from HERMES_HOME/.container-mode.
+    """Read container mode metadata from KOVA_HOME/.container-mode.
     Written by the NixOS activation script when container.enable = true; tells the host CLI to
     exec into the container instead of running locally. None when container mode is off, when
-    already inside the container, or when HERMES_DEV=1 is set. Only FileNotFoundError is
+    already inside the container, or when KOVA_DEV=1 is set. Only FileNotFoundError is
     swallowed; other errors (permissions, malformed data) propagate."""
-    if os.environ.get("HERMES_DEV") == "1":
+    if os.environ.get("KOVA_DEV") == "1":
         return None
 
     from kova_constants import is_container
@@ -412,7 +412,7 @@ def get_container_exec_info() -> Optional[dict]:
 
     try:
         info = {}
-        with open(get_hermes_home() / ".container-mode", "r", encoding="utf-8-sig") as f:
+        with open(get_kova_home() / ".container-mode", "r", encoding="utf-8-sig") as f:
             for line in f:
                 line = line.strip()
                 if "=" in line and not line.startswith("#"):
@@ -423,16 +423,16 @@ def get_container_exec_info() -> Optional[dict]:
 
     return {
         "backend": info.get("backend", "docker"),
-        "container_name": info.get("container_name", "hermes-agent"),
+        "container_name": info.get("container_name", "kova-agent"),
         "exec_user": info.get("exec_user", "hermes"),
         "hermes_bin": info.get("hermes_bin", "/data/current-package/bin/hermes")}
 
 
-# ---- Config paths / HERMES_HOME skeleton ----
+# ---- Config paths / KOVA_HOME skeleton ----
 
 def get_config_path() -> Path:
     """Get the main config file path."""
-    return get_hermes_home() / "config.yaml"
+    return get_kova_home() / "config.yaml"
 
 
 def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
@@ -440,8 +440,8 @@ def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
     Interactive surfaces keep ``load_config()``'s recovery behavior so the operator can repair
     the file; a one-shot run has no such chance, and defaults there could silently pick a hosted
     provider and spend against ``.env`` credentials. Missing/empty files stay valid first-run
-    states; ``--ignore-user-config`` / HERMES_IGNORE_USER_CONFIG=1 remain authoritative."""
-    if ignore_user_config or os.environ.get("HERMES_IGNORE_USER_CONFIG") == "1":
+    states; ``--ignore-user-config`` / KOVA_IGNORE_USER_CONFIG=1 remain authoritative."""
+    if ignore_user_config or os.environ.get("KOVA_IGNORE_USER_CONFIG") == "1":
         return
 
     config_path = get_config_path()
@@ -460,7 +460,7 @@ def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
     backup_path = backup_config(config_path, "corrupt")
     where = _yaml_error_location(parse_error)
     message = (
-        f"Hermes stopped because your settings file ({config_path}) has a formatting error"
+        f"Kova stopped because your settings file ({config_path}) has a formatting error"
         f"{f' at {where}' if where else ''}. Fix it with `hermes config edit` and check with "
         "`hermes config check`, or add --ignore-user-config to run once with default settings.")
     if backup_path is not None:
@@ -472,7 +472,7 @@ def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
 
 def get_env_path() -> Path:
     """Get the .env file path (for API keys)."""
-    return get_hermes_home() / ".env"
+    return get_kova_home() / ".env"
 
 
 def get_project_root() -> Path:
@@ -481,12 +481,12 @@ def get_project_root() -> Path:
 
 
 def _secure_dir(path):
-    """chmod a directory owner-only (0700) and apply HERMES_UID/GID ownership. No-op when managed;
-    in a container only an explicit HERMES_HOME_MODE is applied. HERMES_HOME_MODE (e.g. 0701)
-    overrides the mode so a web server can traverse HERMES_HOME to a served subdirectory without
+    """chmod a directory owner-only (0700) and apply KOVA_UID/GID ownership. No-op when managed;
+    in a container only an explicit KOVA_HOME_MODE is applied. KOVA_HOME_MODE (e.g. 0701)
+    overrides the mode so a web server can traverse KOVA_HOME to a served subdirectory without
     directory listings.
 
-    Also applies ``HERMES_UID``/``HERMES_GID``-based ownership when those env vars are set (#34107 — Docker
+    Also applies ``KOVA_UID``/``KOVA_GID``-based ownership when those env vars are set (#34107 — Docker
     deployments need this so profile subdirs created at runtime by kanban workers don't land as root:root
     and block subsequent uid-mapped workers).
 
@@ -560,27 +560,27 @@ def _ensure_default_soul_md(home: Path) -> None:
 
 # Home paths whose directory skeleton was created this process. Only successful passes are
 # recorded, so a raised managed-mode/missing-profile error keeps re-checking on later loads.
-_HERMES_HOME_ENSURED: set = set()
-_HERMES_HOME_SUBDIRS = (
+_KOVA_HOME_ENSURED: set = set()
+_KOVA_HOME_SUBDIRS = (
     "cron", "sessions", "logs", "logs/curator", "memories",
     "pairing", "hooks", "image_cache", "audio_cache", "skills")
 
 
-def ensure_hermes_home():
-    """Ensure the ~/.hermes directory skeleton exists with secure permissions.
+def ensure_kova_home():
+    """Ensure the ~/.kova directory skeleton exists with secure permissions.
     Memoized per home path: this runs on EVERY ``load_config()`` and the ~14 mkdir/chmod syscalls
     made repeated loads the dominant cost of hot read paths."""
-    home = get_hermes_home()
+    home = get_kova_home()
     key = str(home)
 
     # Named profiles must be created explicitly. Check tombstones BEFORE the memo so a stale
     # empty shell cannot skip the deleted-profile guard.
     from kova_constants import assert_named_profile_home_live
     assert_named_profile_home_live(home)
-    if key in _HERMES_HOME_ENSURED and home.is_dir():
+    if key in _KOVA_HOME_ENSURED and home.is_dir():
         return
     from kova_cli.config_home import initialize_home
-    initialize_home(home, _HERMES_HOME_SUBDIRS, _HERMES_HOME_ENSURED)
+    initialize_home(home, _KOVA_HOME_SUBDIRS, _KOVA_HOME_ENSURED)
 
 
 # ---- Config loading/saving ----
@@ -1076,7 +1076,7 @@ def validate_config_structure(config: Optional[dict[str, Any]] = None) -> list[C
 
     if cp and not config.get("model"):
         _issue(issues, "warning",
-               "custom_providers defined but no 'model' section — Hermes won't know which provider to use",
+               "custom_providers defined but no 'model' section — Kova won't know which provider to use",
                "Add a model section:\n  model:\n    provider: custom\n    default: your-model-name\n"
                "    base_url: https://...")
 
@@ -1126,9 +1126,9 @@ def warn_deprecated_cwd_env_vars() -> None:
         if val:
             lines.append(f"  \033[33m⚠\033[0m {name}={val} found in .env — this is deprecated.")
     if lines:
-        from kova_constants import display_hermes_home
+        from kova_constants import display_kova_home
 
-        hint_path = display_hermes_home()
+        hint_path = display_kova_home()
         lines.insert(0, "\033[33m⚠ Deprecated .env settings detected:\033[0m")
         lines.append(
             "  \033[2mMove to config.yaml instead:  "
@@ -1142,7 +1142,7 @@ def _persist_migration(config: dict[str, Any]) -> None:
     persist values that DIFFER from the schema default, plus explicit removals/renames of user
     data. Every migration step MUST write through here (``save_config`` with default-stripping
     ON, no ``merge_existing``) so the invariant cannot regress one migration at a time. A migration
-    is Hermes' own write, never a user turning a feature off. A backend without file tooling
+    is Kova' own write, never a user turning a feature off. A backend without file tooling
     migrates in memory on read and never writes back (D12)."""
     from kova_cli.observability.shared_metrics_disabled import hermes_applied_write
 
@@ -1446,7 +1446,7 @@ def _env_expand_match(m: re.Match) -> str:
         return val
     if inner.startswith("env:"):
         logger.warning(
-            "Config ref %r: %s is not set (check ~/.hermes/.env); "
+            "Config ref %r: %s is not set (check ~/.kova/.env); "
             "keeping the literal placeholder", raw, name)
     return raw
 
@@ -1709,7 +1709,7 @@ def _canonicalize_config(config: dict[str, Any]) -> dict[str, Any]:
 
 
 # Sentinel for an unlimited turn budget. ``sys.maxsize`` survives the str->int round-trip through
-# the HERMES_MAX_ITERATIONS env bridge, works in every ``<``/``>=``/``max - used`` comparison in
+# the KOVA_MAX_ITERATIONS env bridge, works in every ``<``/``>=``/``max - used`` comparison in
 # the iteration budget without an "unlimited" special case, and is unreachable in practice.
 TURN_LIMIT_UNLIMITED = sys.maxsize
 
@@ -2052,7 +2052,7 @@ def terminal_config_env_var_for_key(key: str) -> Optional[str]:
 
 
 def _is_ssh_remote_tilde_cwd(backend: str, cwd: str) -> bool:
-    """Whether the remote SSH shell must expand *cwd* itself: ``~`` expanded on the Hermes host
+    """Whether the remote SSH shell must expand *cwd* itself: ``~`` expanded on the Kova host
     would name the host/container home instead of the SSH user's."""
     return (backend or "").strip().lower() == "ssh" and (cwd == "~" or cwd.startswith("~/"))
 
@@ -2235,7 +2235,7 @@ def _load_config_impl(*, want_deepcopy: bool) -> dict[str, Any]:
         pass
 
     with _CONFIG_LOCK:
-        ensure_hermes_home()
+        ensure_kova_home()
         config_path = get_config_path()
         path_key = str(config_path)
 
@@ -2366,7 +2366,7 @@ def _commented_sections_for_save(normalized: dict[str, Any]) -> Optional[str]:
 def save_config(
     config: dict[str, Any], *, strip_defaults: bool = True,
     preserve_keys: Optional[set[tuple[str, ...]]] = None, merge_existing: bool = False):
-    """Save configuration to ~/.hermes/config.yaml.
+    """Save configuration to ~/.kova/config.yaml.
     Schema defaults are not written unless the user explicitly set them (the path exists in the
     raw config before normalisation), so config.yaml is never contaminated with defaults that
     would hide future default changes. ``merge_existing`` deep-merges the on-disk raw config
@@ -2380,7 +2380,7 @@ def save_config(
         _refuse_failed_read(config_path, config)
         config = _strip_managed_keys_for_save(config)
 
-        ensure_hermes_home()
+        ensure_kova_home()
         # Explicit user paths come from the RAW dict BEFORE normalisation (which may inject
         # agent.max_turns) so _strip_default_values keeps exactly what the user set. The
         # fail-closed read is the single authority here: ``read_raw_config()`` is cached and
@@ -2412,7 +2412,7 @@ def save_config(
 
 
 def load_env() -> dict[str, str]:
-    """Load ~/.hermes/.env as a dict. Memoised inside ``load_env_file`` (``get_env_value()`` runs
+    """Load ~/.kova/.env as a dict. Memoised inside ``load_env_file`` (``get_env_value()`` runs
     hundreds of times per interactive menu render). Each assignment's value is opaque data for
     boundary discovery."""
     # A frozen-policy worker never opens the profile's files; its secrets arrive
@@ -2422,7 +2422,7 @@ def load_env() -> dict[str, str]:
     from agent.secret_scope import load_env_file  # the one .env tokenizer; also installs profile scopes
 
     env = load_env_file(get_env_path())
-    _note_policy("note_env_policy", env.get("HERMES_REDACT_SECRETS"))
+    _note_policy("note_env_policy", env.get("KOVA_REDACT_SECRETS"))
     return env
 
 
@@ -2430,8 +2430,8 @@ def _note_policy(setter: str, raw: Any) -> None:
     """Record the loaded profile's redaction policy for the log formatter, which never reads config."""
     note = getattr(sys.modules.get("agent.redact"), setter, None)
     if note is not None:
-        from kova_constants import hermes_home_key
-        note(hermes_home_key(), raw)
+        from kova_constants import kova_home_key
+        note(kova_home_key(), raw)
 
 
 def _parse_env_value(raw_value: str) -> str:
@@ -2468,7 +2468,7 @@ def _sanitize_env_lines(lines: list) -> list:
 
 
 def sanitize_env_file() -> int:
-    """Rewrite ~/.hermes/.env with normalized line formatting; returns the number of changed lines."""
+    """Rewrite ~/.kova/.env with normalized line formatting; returns the number of changed lines."""
     env_path = get_env_path()
     if not env_path.exists():
         return 0
@@ -2686,14 +2686,14 @@ def _managed_source(filename: str):
 
 
 def save_env_value(key: str, value: str):
-    """Save or update a value in ~/.hermes/.env (also matching ``export KEY=`` lines, so a save
+    """Save or update a value in ~/.kova/.env (also matching ``export KEY=`` lines, so a save
     never appends a second line that a later delete would resurrect)."""
     if _env_write_blocked(key, "set"):
         return
     validate_env_var_name_for_write(key)
     value = value.replace("\n", "").replace("\r", "")
     value = _check_non_ascii_credential(key, value)
-    ensure_hermes_home()
+    ensure_kova_home()
     env_path = get_env_path()
 
     with _env_write_lock(env_path):
@@ -2716,14 +2716,14 @@ def save_env_value(key: str, value: str):
 def custom_endpoint_key_env(identity: str) -> str:
     """Env var name holding a custom endpoint's API key.
     ``identity`` is the endpoint's own id (Desktop endpoint id, or ``host:port`` for CLI setup),
-    so two endpoints on one host get separate slots. The fixed ``HERMES_CUSTOM_`` prefix keeps the
+    so two endpoints on one host get separate slots. The fixed ``KOVA_CUSTOM_`` prefix keeps the
     name POSIX-valid when the slug starts with a digit (``save_env_value`` rejects those)."""
     slug = re.sub(r"[^A-Z0-9]+", "_", str(identity or "").upper()).strip("_")
-    return f"HERMES_CUSTOM_{slug}_API_KEY" if slug else "HERMES_CUSTOM_API_KEY"
+    return f"KOVA_CUSTOM_{slug}_API_KEY" if slug else "KOVA_CUSTOM_API_KEY"
 
 
 def remove_env_value(key: str) -> bool:
-    """Remove a key from ~/.hermes/.env and os.environ; True if it was found and removed."""
+    """Remove a key from ~/.kova/.env and os.environ; True if it was found and removed."""
     if _env_write_blocked(key, "remove"):
         return False
     if not _ENV_VAR_NAME_RE.match(key):
@@ -2780,8 +2780,8 @@ def save_env_value_secure(key: str, value: str) -> dict[str, Any]:
 
 
 def reload_env() -> int:
-    """Re-read ~/.hermes/.env into os.environ; returns count of vars changed. Removes deleted vars only when
-    known to Hermes (OPTIONAL_ENV_VARS and _EXTRA_ENV_KEYS), and none while the .env exists but is unreadable."""
+    """Re-read ~/.kova/.env into os.environ; returns count of vars changed. Removes deleted vars only when
+    known to Kova (OPTIONAL_ENV_VARS and _EXTRA_ENV_KEYS), and none while the .env exists but is unreadable."""
     from kova_cli.env_loader import dotenv_unreadable
     env_vars = load_env()
     count = 0
@@ -2809,7 +2809,7 @@ def _scoped_environ_get(key: str) -> Optional[str]:
 
 
 def get_env_value(key: str) -> Optional[str]:
-    """Get a value from ``os.environ`` (scope-aware) or ``~/.hermes/.env``.
+    """Get a value from ``os.environ`` (scope-aware) or ``~/.kova/.env``.
 
     The ``os.environ`` read routes through ``agent.secret_scope.get_secret`` so that, under an active
     profile scope (multiplexed gateway turn), this is scope-checked rather than leaking another profile's
@@ -2824,7 +2824,7 @@ def get_env_value(key: str) -> Optional[str]:
 
 
 def get_env_value_prefer_dotenv(key: str) -> Optional[str]:
-    """Resolve a Hermes-managed credential preferring ``~/.hermes/.env`` over ``os.environ``, so a
+    """Resolve a Kova-managed credential preferring ``~/.kova/.env`` over ``os.environ``, so a
     deliberate .env edit beats a stale value inherited from the parent shell.
 
     An unresolved ``op://`` reference left in .env yields to the already-resolved value from the
@@ -3271,7 +3271,7 @@ def _touch_skin_file(key: str, value: Any) -> None:
     (name, mtime) signature moves even when the name is unchanged. Best-effort."""
     if key == "display.skin" and isinstance(value, str) and value:
         try:
-            skin_file = get_hermes_home() / "skins" / f"{value}.yaml"
+            skin_file = get_kova_home() / "skins" / f"{value}.yaml"
             if skin_file.exists():
                 skin_file.touch()
         except Exception:
@@ -3285,7 +3285,7 @@ def _exit_invalid(msg: str) -> None:
 
 def _write_user_config(config_path: Path, user_config: dict[str, Any]) -> None:
     """Write only the user's raw config back (never the merged defaults)."""
-    ensure_hermes_home()
+    ensure_kova_home()
     from kova_cli.observability.shared_metrics_disabled import recording_raw_config_write
     recording_raw_config_write(config_path, user_config, atomic_config_replace)
 
@@ -3293,7 +3293,7 @@ def _write_user_config(config_path: Path, user_config: dict[str, Any]) -> None:
 def _print_unknown_key_notice(key: str, suggestion: Optional[str]) -> None:
     print(color(
         f"⚠ '{key}' is not a recognized config key — it was saved anyway, "
-        "but Hermes may not read it.", Colors.YELLOW))
+        "but Kova may not read it.", Colors.YELLOW))
     if suggestion:
         print(color(f"  Did you mean: {suggestion}", Colors.YELLOW))
     # The env bridge covers custom TOP-LEVEL keys only; an unseeded nested path (``stt.provider``)
@@ -3341,7 +3341,7 @@ def set_config_value(key: str, value: str, force: bool = False):
     if is_env_setting_key(key):
         # Every UPPER_SNAKE name is an environment setting: same file the platform setup flows and
         # /sethome write, and the only one os.getenv readers see. config.yaml never gets one from
-        # here, --force included (#111848). The env writer's denylist (HERMES_YOLO_MODE, PATH, ...)
+        # here, --force included (#111848). The env writer's denylist (KOVA_YOLO_MODE, PATH, ...)
         # therefore also refuses the config.yaml detour that used to bridge those into os.environ.
         try:
             save_env_setting(key, value)
@@ -3492,7 +3492,7 @@ def get_config_value(key: str, *, as_json: bool = False, raw: bool = False):
         is_known, suggestion = _validate_config_key(key)
         if not is_known:
             print(color(
-                f"⚠ '{key}' is not a recognized config key — Hermes may not read it; the value "
+                f"⚠ '{key}' is not a recognized config key — Kova may not read it; the value "
                 "printed above comes from your config file.", Colors.YELLOW), file=sys.stderr)
             if suggestion:
                 print(color(f"  Did you mean: {suggestion}", Colors.YELLOW), file=sys.stderr)
@@ -3762,7 +3762,7 @@ def _platform_manifest_paths(home: Optional[Path] = None, source: PlatformManife
     """Yield ``(dir_name, manifest_path, require_kind, stat)`` for every platform plugin manifest.
     ``source`` is ``"bundled"`` (shipped ``plugins/platforms/*``), ``"user"`` (``<home>/plugins/
     platforms/*`` plus flat ``<home>/plugins/*`` installs, which must declare ``kind: platform``,
-    #46600) or ``"all"``. ``home`` defaults to the bound Hermes home. A directory that cannot be
+    #46600) or ``"all"``. ``home`` defaults to the bound Kova home. A directory that cannot be
     listed or searched yields ``(name, None, require_kind, error)``: a plugin there can't load
     either, so callers skip it. One ``scandir`` per root and one ``stat`` per candidate, because
     the child-env scrub stamps these on every spawn."""
@@ -3770,7 +3770,7 @@ def _platform_manifest_paths(home: Optional[Path] = None, source: PlatformManife
     if source in ("all", "bundled"):
         roots.append((get_project_root() / "plugins" / "platforms", False))
     if source in ("all", "user"):
-        user_plugins = (home if home is not None else get_hermes_home()) / "plugins"
+        user_plugins = (home if home is not None else get_kova_home()) / "plugins"
         roots += [(user_plugins / "platforms", False), (user_plugins, True)]
     for root, require_kind in roots:
         try:

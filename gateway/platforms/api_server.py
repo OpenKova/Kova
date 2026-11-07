@@ -54,8 +54,8 @@ _STATIC_FEATURE_FLAGS = {
     "reasoning_streaming": True,
     "admin_config_rw": False, "jobs_admin": False, "memory_write_api": False,
     "skills_api": True, "audio_api": False, "realtime_voice": False,
-    "session_continuity_header": "X-Hermes-Session-Id",
-    "session_key_header": "X-Hermes-Session-Key"}
+    "session_continuity_header": "X-Kova-Session-Id",
+    "session_key_header": "X-Kova-Session-Key"}
 # /v1/capabilities "endpoints" table: name -> (method, path[, feature]). An entry naming a
 # feature is advertised only while that "features" flag is truthy on this listener.
 _CAPABILITY_ENDPOINTS = (
@@ -271,9 +271,9 @@ def _request_agent_overrides(
 ) -> dict[str, Any]:
     """Extract per-request model/provider/options for _run_agent.
 
-    The virtual model (``hermes-agent``) means "gateway default". A bare ``model`` without
+    The virtual model (``kova-agent``) means "gateway default". A bare ``model`` without
     ``provider`` is honored only when ``allow_bare_model`` (generic clients hardcode "gpt-4o";
-    OpenAI-compatible handlers pass the ``direct_model_requests`` opt-in, Hermes-native
+    OpenAI-compatible handlers pass the ``direct_model_requests`` opt-in, Kova-native
     endpoints always allow it). An explicit ``provider`` is always honored.
     """
     if not isinstance(body, dict):
@@ -630,7 +630,7 @@ def check_api_server_requirements() -> bool:
 
 _CORS_HEADERS = {
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type, Idempotency-Key, X-Hermes-Session-Id"}
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, Idempotency-Key, X-Kova-Session-Id"}
 _SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
@@ -870,8 +870,8 @@ def _names_launch_profile(profile: str) -> bool:
     un-prefixed and prefixed requests are one profile and must key one session."""
     try:
         from kova_cli.profiles import profile_matches_home
-        from kova_constants import get_routing_process_hermes_home
-        return profile_matches_home(profile, home=get_routing_process_hermes_home())
+        from kova_constants import get_routing_process_kova_home
+        return profile_matches_home(profile, home=get_routing_process_kova_home())
     except Exception:
         return False
 
@@ -879,7 +879,7 @@ def _names_launch_profile(profile: str) -> bool:
 def _derive_chat_session_id(system_prompt: Optional[str], first_user_message: str,
                             profile: Optional[str] = None) -> str:
     """Stable session id from the system prompt + first user message (constant across all
-    turns of an Open WebUI-style conversation), so one Hermes session/sandbox is reused.
+    turns of an Open WebUI-style conversation), so one Kova session/sandbox is reused.
     A routed ``/p/<profile>/`` prefix namespaces the seed: the id keys process-wide state
     (session store, per-session sandbox), so two profiles opening with identical text must not
     collide (#123989). Default/standalone ids are unchanged so live conversations survive, and
@@ -1032,7 +1032,7 @@ def _run_route_delegate(name: str):
 
 
 class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
-    """aiohttp server routing OpenAI-format requests through hermes-agent's AIAgent."""
+    """aiohttp server routing OpenAI-format requests through kova-agent's AIAgent."""
 
     # Stateless request/response (``send()`` is a stub): async-delivery tools must not promise
     # delivery here, and a resumed turn completes the work rather than asking.
@@ -1066,7 +1066,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         # hardcode "gpt-4o" etc., hence off by default).
         # Off by default: generic OpenAI clients routinely hardcode model names ("gpt-4o", ...), and
         # existing deployments rely on those falling back to the gateway default rather than switching the
-        # executing model. Requests that send an explicit ``provider`` — and the Hermes-native session-chat
+        # executing model. Requests that send an explicit ``provider`` — and the Kova-native session-chat
         # and /v1/runs endpoints — are always honored regardless of this flag. (Idea credit: PR #22825 by
         # @mssteuer.)
         self._direct_model_requests: bool = _coerce_request_bool(
@@ -1079,9 +1079,9 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         self._app: Optional[web.Application] = None
         self._runner: Optional[web.AppRunner] = None
         self._site: Optional[web.TCPSite] = None
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         self._response_store = ResponseStore()  # this home's; a /p/<profile>/ route gets its own
-        self._response_store_home = str(get_hermes_home())
+        self._response_store_home = str(get_kova_home())
         self._response_stores: dict[str, ResponseStore] = {}
         self._response_store_lock = threading.Lock()
         _api_runs._initialize_run_state(self, store_factory=RunIdempotencyStore)
@@ -1310,7 +1310,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     @staticmethod
     def _resolve_model_name(explicit: str) -> str:
-        """Advertised /v1/models name: explicit override > active profile name > "hermes-agent"
+        """Advertised /v1/models name: explicit override > active profile name > "kova-agent"
         (precedence owned by ``kova_cli.model_switch.resolve_effective_model``)."""
         from kova_cli.model_switch import resolve_effective_model
         profile_name = ""
@@ -1319,7 +1319,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             profile = get_active_profile_name()  # launch profile, pre-identity (advertised model name)
             if profile and profile not in {"default", "custom"}:
                 profile_name = profile
-        return resolve_effective_model(explicit, profile_name, "hermes-agent")
+        return resolve_effective_model(explicit, profile_name, "kova-agent")
 
     def _cors_headers_for_origin(self, origin: str) -> Optional[dict[str, str]]:
         """Return CORS headers for an allowed browser origin."""
@@ -1516,8 +1516,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
                 from agent.secret_scope import is_multiplex_active
                 if is_multiplex_active():
                     from gateway.run import _profile_runtime_scope
-                    from kova_constants import get_hermes_home
-                    return _profile_runtime_scope(get_hermes_home())
+                    from kova_constants import get_kova_home
+                    return _profile_runtime_scope(get_kova_home())
             return nullcontext()
         from gateway.run import _profile_runtime_scope
         from kova_cli.profiles import get_profile_dir
@@ -1601,7 +1601,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
     _SESSION_SOURCE = "api_server"
 
     def _declared_conversation_session(self, gateway_session_key: Optional[str]) -> Optional[str]:
-        """Resolve the live session a client declared with ``X-Hermes-Session-Key`` (the key
+        """Resolve the live session a client declared with ``X-Kova-Session-Key`` (the key
         names the conversation, ``session_id`` its current transcript). Same reset-fenced
         recovery as ``SessionStore._recover_session_for_peer``; concurrent first requests
         converge (later row wins). None when undeclared, no live row, or DB error."""
@@ -1654,17 +1654,17 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     def _parse_session_key_header(
         self, request: web.Request) -> tuple[Optional[str], Optional[web.Response]]:
-        """Validate ``X-Hermes-Session-Key`` (per-channel memory scope) -> ``(key_or_None, None)``
+        """Validate ``X-Kova-Session-Key`` (per-channel memory scope) -> ``(key_or_None, None)``
         or ``(None, error)``. Requires API-key auth so a client can't guess another scope."""
-        raw = request.headers.get("X-Hermes-Session-Key", "").strip()
+        raw = request.headers.get("X-Kova-Session-Key", "").strip()
         if not raw:
             return None, None
         if not self._api_key:
             logger.warning(
-                "X-Hermes-Session-Key rejected: no API key configured. "
+                "X-Kova-Session-Key rejected: no API key configured. "
                 "Set API_SERVER_KEY to enable long-term memory scoping.")
             return None, _error_response(
-                "X-Hermes-Session-Key requires API key authentication. "
+                "X-Kova-Session-Key requires API key authentication. "
                 "Configure API_SERVER_KEY to enable this feature.", 403)
         # Control characters could enable header injection on the echo path.
         if re.search(r'[\r\n\x00]', raw):
@@ -1678,8 +1678,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
     def _current_response_store(self) -> ResponseStore:
         """Responses state of the routed profile's home. Conversation names are client-chosen, so one
         shared store let any profile's key read, chain onto and overwrite another's (#84253)."""
-        from kova_constants import get_hermes_home
-        home = get_hermes_home()
+        from kova_constants import get_kova_home
+        home = get_kova_home()
         if str(home) == self._response_store_home:
             return self._response_store
         with self._response_store_lock:
@@ -1735,17 +1735,17 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
                 logger.debug("Failed to close API-server SessionDB", exc_info=True)
 
     def _ensure_session_db(self):
-        """SessionDB for the active profile home (the runtime scope redirects ``get_hermes_home()``
+        """SessionDB for the active profile home (the runtime scope redirects ``get_kova_home()``
         per profile). Sync, for ``_create_agent``; handlers use ``_ensure_session_db_async``."""
         if self.gateway_runner is not None:
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             from gateway.platforms.api_server_store import selected_session_db
-            return selected_session_db(self, get_hermes_home())
+            return selected_session_db(self, get_kova_home())
         if self._session_db is not None:
             return self._session_db
         try:
-            from kova_constants import get_hermes_home
-            return self._open_and_cache_session_db(get_hermes_home())
+            from kova_constants import get_kova_home
+            return self._open_and_cache_session_db(get_kova_home())
         except Exception as e:
             logger.debug("SessionDB unavailable for API server: %s", e)
             return None
@@ -1754,14 +1754,14 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         """Async variant: the profile home is captured on the loop thread (its scope is invisible
         inside ``to_thread``), only the blocking open runs in the worker, single-flight locked."""
         if self.gateway_runner is not None:
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             from gateway.platforms.api_server_store import selected_session_db
-            return selected_session_db(self, get_hermes_home())
+            return selected_session_db(self, get_kova_home())
         if self._session_db is not None:
             return self._session_db
         try:
-            from kova_constants import get_hermes_home
-            home = get_hermes_home()
+            from kova_constants import get_kova_home
+            home = get_kova_home()
             key = str(home)
             with self._session_db_cache_lock:
                 cached = self._cached_session_db_locked(key)
@@ -1815,7 +1815,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     def _stored_session_model(self, session: Any) -> Optional[str]:
         """The model persisted on a session row, minus the virtual alias (replaying
-        "hermes-agent" upstream as a provider model id 400s)."""
+        "kova-agent" upstream as a provider model id 400s)."""
         stored = session.get("model") if isinstance(session, dict) else None
         if not stored or stored == self._model_name:
             return None
@@ -2265,7 +2265,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     async def _handle_health(self, request: web.Request) -> web.Response:
         """GET /health — simple health check."""
-        return web.json_response({"status": "ok", "platform": "hermes-agent", "version": _hermes_version()})
+        return web.json_response({"status": "ok", "platform": "kova-agent", "version": _hermes_version()})
 
     @_require_auth
     async def _handle_health_detailed(self, request: web.Request) -> web.Response:
@@ -2297,7 +2297,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             active_api_runs=active_api_runs, process_completion_queue_depth=process_depth,
             active_delegations=active_delegations)
         return web.json_response({
-"status": readiness["status"], "readiness": readiness, "platform": "hermes-agent",
+"status": readiness["status"], "readiness": readiness, "platform": "kova-agent",
             "version": _hermes_version(), "gateway_state": gw_state,
             "platforms": platforms,
             "api_server": api_status,
@@ -2314,7 +2314,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     @_require_auth
     async def _handle_models(self, request: web.Request) -> web.Response:
-        """GET /v1/models — hermes-agent plus configured model_routes aliases (alias + resolved
+        """GET /v1/models — kova-agent plus configured model_routes aliases (alias + resolved
         model only, never credentials). Under /p/<profile>/ the primary id follows that profile."""
         now = int(time.time())
         # The middleware already entered the profile scope, so get_active_profile_name() resolves.
@@ -2361,13 +2361,13 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             "run_unknown_resolution": getattr(runner, "session_authority", None) is not None,
             "cors": bool(self._cors_origins)}
         return web.json_response({
-            "object": "hermes.api_server.capabilities", "platform": "hermes-agent",
+            "object": "hermes.api_server.capabilities", "platform": "kova-agent",
             "model": self._model_name,
             "auth": {"type": "bearer", "required": bool(self._api_key)},
             "runtime": {
                 "mode": "server_agent", "tool_execution": "server", "split_runtime": False,
                 "description": (
-                    "The API server creates a server-side Hermes AIAgent; "
+                    "The API server creates a server-side Kova AIAgent; "
                     "tools execute on the API-server host unless a future "
                     "explicit split-runtime mode is enabled.")},
             "features": features,
@@ -2518,7 +2518,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     @_require_auth
     async def _handle_list_sessions(self, request: web.Request) -> web.Response:
-        """GET /api/sessions — list persisted Hermes sessions."""
+        """GET /api/sessions — list persisted Kova sessions."""
         db = await self._ensure_session_db_async()
         if db is None:
             return self._session_db_unavailable()
@@ -2572,7 +2572,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     @_require_auth
     async def _handle_create_session(self, request: web.Request) -> web.Response:
-        """POST /api/sessions -- create an empty Hermes session row. Existence check, insert and
+        """POST /api/sessions -- create an empty Kova session row. Existence check, insert and
         title handling run as ONE off-loop write so concurrent same-id creates can't both 201."""
         body, err = await self._read_json_body(request)
         if err:
@@ -2600,7 +2600,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             return lock_error
         requested = runtime_request.get("requested") or {}
         # The normalized requested["model"] (prefix split, virtual alias nulled) — the raw body
-        # would persist "hermes-agent" and later send it to the provider literally.
+        # would persist "kova-agent" and later send it to the provider literally.
         model_name = self._clean_runtime_id(requested.get("model")) or None
         model_config = None
         if requested.get("model") or requested.get("provider"):
@@ -2700,11 +2700,11 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         if db is None:
             return self._session_db_unavailable()
         # Same profile home the DB was resolved from (the profile middleware scopes
-        # get_hermes_home() for this request) — without it the transcript/dump scrub is skipped.
+        # get_kova_home() for this request) — without it the transcript/dump scrub is skipped.
         sessions_dir = None
         try:
-            from kova_constants import get_hermes_home
-            sessions_dir = Path(get_hermes_home()) / "sessions"
+            from kova_constants import get_kova_home
+            sessions_dir = Path(get_kova_home()) / "sessions"
         except Exception:
             logger.debug("sessions dir unavailable for delete of %s", session_id, exc_info=True)
         try:
@@ -2877,10 +2877,10 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
 
     @staticmethod
     def _session_headers(session_id: str, gateway_session_key: Optional[str]) -> dict[str, str]:
-        """``X-Hermes-Session-Id`` (+ ``X-Hermes-Session-Key`` when declared) response headers."""
-        headers = {"X-Hermes-Session-Id": session_id}
+        """``X-Kova-Session-Id`` (+ ``X-Kova-Session-Key`` when declared) response headers."""
+        headers = {"X-Kova-Session-Id": session_id}
         if gateway_session_key:
-            headers["X-Hermes-Session-Key"] = gateway_session_key
+            headers["X-Kova-Session-Key"] = gateway_session_key
         return headers
 
     def _effective_turn_runtime(self, runtime_request: dict[str, Any], result: Any, usage: Any) -> dict[str, Any]:
@@ -2892,7 +2892,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             # to the requested profile) while the Channels page rendered "The gateway is not running" (it
             # did neither). Cross-container, profile-scoped, and launch-service-managed deployments each hit
             # that split. profile_home is passed when the request was scoped to a named profile:
-            # gateway/status readers resolve process-level paths and do NOT follow the HERMES_HOME
+            # gateway/status readers resolve process-level paths and do NOT follow the KOVA_HOME
             # contextvar override (#56986 / #69143), so the profile's directory has to be handed over
             # explicitly or messaging silently reports another profile's gateway (#71211).
             runtime=runtime,
@@ -3577,7 +3577,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         declaration or fingerprint-derived identity keeps delegation synchronous.
 
         ``profile`` is the ``/p/<profile>/`` prefix serving the request (``""`` = default). It must
-        reach ``HERMES_SESSION_PROFILE``: the persistent-Docker container key is derived from it, so an
+        reach ``KOVA_SESSION_PROFILE``: the persistent-Docker container key is derived from it, so an
         unbound profile collapses every profile's turns onto the default sandbox (#96370)."""
         from gateway.session_context import set_session_vars
         return set_session_vars(

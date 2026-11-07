@@ -60,11 +60,11 @@ class GatewayConfigLoadersMixin:
     def _load_prefill_messages() -> list[dict[str, Any]]:
         """Load ephemeral prefill messages from config or env var.
 
-        HERMES_PREFILL_MESSAGES_FILE env wins, then top-level prefill_messages_file in config.yaml,
-        then legacy agent.prefill_messages_file. Relative paths resolve from ~/.hermes/.
+        KOVA_PREFILL_MESSAGES_FILE env wins, then top-level prefill_messages_file in config.yaml,
+        then legacy agent.prefill_messages_file. Relative paths resolve from ~/.kova/.
         """
         from gateway.run import _gateway_config_home, _load_gateway_config
-        file_path = os.getenv("HERMES_PREFILL_MESSAGES_FILE", "")
+        file_path = os.getenv("KOVA_PREFILL_MESSAGES_FILE", "")
         if not file_path:
             cfg = _load_gateway_config()
             file_path = str(
@@ -91,11 +91,11 @@ class GatewayConfigLoadersMixin:
 
     @staticmethod
     def _load_ephemeral_system_prompt() -> str:
-        """HERMES_EPHEMERAL_SYSTEM_PROMPT env first (a local session's: its client's), then
+        """KOVA_EPHEMERAL_SYSTEM_PROMPT env first (a local session's: its client's), then
         ``display.personality`` / ``agent.system_prompt``."""
         from agent.session_client_env import session_env
         from gateway.run import _load_gateway_config
-        prompt = session_env("HERMES_EPHEMERAL_SYSTEM_PROMPT")
+        prompt = session_env("KOVA_EPHEMERAL_SYSTEM_PROMPT")
         if prompt:
             return prompt
         return resolve_ephemeral_system_prompt_from_config(_load_gateway_config())
@@ -310,7 +310,7 @@ class GatewayConfigLoadersMixin:
     @classmethod
     def _load_busy_input_mode(cls) -> str:
         """Gateway drain-time busy-input behavior from env/config (default ``interrupt``)."""
-        mode = cls._env_or_cfg_str("HERMES_GATEWAY_BUSY_INPUT_MODE", "display", "busy_input_mode").lower()
+        mode = cls._env_or_cfg_str("KOVA_GATEWAY_BUSY_INPUT_MODE", "display", "busy_input_mode").lower()
         return mode if mode in {"queue", "steer"} else "interrupt"
 
     @classmethod
@@ -321,7 +321,7 @@ class GatewayConfigLoadersMixin:
         is honored only when explicitly set so existing queue setups keep working.
         """
         from gateway.run import GatewayRunner
-        legacy = cls._env_or_cfg_str("HERMES_GATEWAY_BUSY_TEXT_MODE", "display", "busy_text_mode").lower()
+        legacy = cls._env_or_cfg_str("KOVA_GATEWAY_BUSY_TEXT_MODE", "display", "busy_text_mode").lower()
         if legacy in {"interrupt", "queue"}:
             return legacy
         return "queue" if GatewayRunner._load_busy_input_mode() == "queue" else "interrupt"
@@ -447,7 +447,7 @@ class GatewayConfigLoadersMixin:
     @classmethod
     def _load_restart_drain_timeout(cls) -> float:
         """Graceful gateway restart/stop drain timeout in seconds."""
-        raw = cls._env_or_cfg_str("HERMES_RESTART_DRAIN_TIMEOUT", "agent", "restart_drain_timeout")
+        raw = cls._env_or_cfg_str("KOVA_RESTART_DRAIN_TIMEOUT", "agent", "restart_drain_timeout")
         value = parse_restart_drain_timeout(raw)
         if raw and value == DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT:
             cls._warn_unparsable_timeout("restart_drain_timeout", raw, DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT)
@@ -506,7 +506,7 @@ class GatewayConfigLoadersMixin:
     def _load_restart_after_turn_timeout(cls) -> float:
         """In-band restart wait-for-idle timeout in seconds."""
         return cls._load_env_or_agent_cfg_timeout(
-            "HERMES_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout",
+            "KOVA_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout",
             parse_restart_after_turn_timeout, DEFAULT_GATEWAY_RESTART_AFTER_TURN_TIMEOUT,
         )
 
@@ -517,7 +517,7 @@ class GatewayConfigLoadersMixin:
         See #82161.
         """
         return cls._load_env_or_agent_cfg_timeout(
-            "HERMES_CRON_DRAIN_TIMEOUT", "cron_drain_timeout",
+            "KOVA_CRON_DRAIN_TIMEOUT", "cron_drain_timeout",
             parse_cron_drain_timeout, DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT,
         )
 
@@ -548,7 +548,7 @@ class GatewayConfigLoadersMixin:
         secondary sees its own ``.env`` value, not the launch profile's ``os.environ``."""
         from gateway.run import _load_gateway_config
         from gateway.platforms._shared import platform_gate_env as _platform_gate_env
-        mode = _platform_gate_env("HERMES_BACKGROUND_NOTIFICATIONS")
+        mode = _platform_gate_env("KOVA_BACKGROUND_NOTIFICATIONS")
         if not mode:
             raw = cfg_get(_load_gateway_config(), "display", "background_process_notifications")
             if raw is False:
@@ -598,12 +598,12 @@ class GatewayConfigLoadersMixin:
         """
         from kova_cli.config_backend import config_exists
         from gateway.run import _gateway_config_home
-        from kova_constants import hermes_home_key
+        from kova_constants import kova_home_key
         home = _gateway_config_home()
         by_home = getattr(self, "_fallback_model_by_home", None)
         if by_home is None:
             by_home = self._fallback_model_by_home = {}
-        home_key = hermes_home_key(home)
+        home_key = kova_home_key(home)
         try:
             from kova_cli.config_effective import load_user_config_effective
             cfg_path = home / "config.yaml"

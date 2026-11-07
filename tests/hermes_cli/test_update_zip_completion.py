@@ -19,19 +19,19 @@ import kova_yaml
 
 def _swap_leftovers(root):
     """Staging/backup siblings and the journal; the swap lock is a stable sidecar that stays (one inode)."""
-    return [p for p in root.glob("*.hermes-update-*") if p.name != ".hermes-update-zip-swap.lock"]
+    return [p for p in root.glob("*.kova-update-*") if p.name != ".kova-update-zip-swap.lock"]
 
 
 @pytest.fixture
 def zip_update(tmp_path, monkeypatch, isolated_source_completion):
     home = tmp_path / "home"
-    active = home / ".hermes"
+    active = home / ".kova"
     sibling = active / "profiles/other"
     sibling.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(active))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "store"))
+    monkeypatch.setenv("KOVA_HOME", str(active))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "store"))
     for profile in (active, sibling):
         (profile / "config.yaml").write_text(
             f"_config_version: {DEFAULT_CONFIG['_config_version'] - 1}\n"
@@ -46,18 +46,18 @@ def zip_update(tmp_path, monkeypatch, isolated_source_completion):
     root.mkdir()
     (root / "pyproject.toml").write_text('[project]\nversion="1.0"\n', encoding="utf-8")
     (root / "payload.txt").write_text("old", encoding="utf-8")
-    for name in ("tools/code.py", "apps/desktop/source.js", "apps/desktop/release/Hermes.exe",
+    for name in ("tools/code.py", "apps/desktop/source.js", "apps/desktop/release/Kova.exe",
                  "venv/keep", "node_modules/keep", ".env"):
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("retained", encoding="utf-8")
     archive = tmp_path / "source.zip"
     with zipfile.ZipFile(archive, "w") as out:
-        out.writestr("hermes-agent-main/pyproject.toml", '[project]\nversion="2.0"\n')
-        out.writestr("hermes-agent-main/payload.txt", "new")
+        out.writestr("kova-agent-main/pyproject.toml", '[project]\nversion="2.0"\n')
+        out.writestr("kova-agent-main/payload.txt", "new")
         for name in ("new-entry/data", "tools/code.py", "apps/desktop/source.js",
                      "venv/keep", "node_modules/keep", ".env"):
-            out.writestr("hermes-agent-main/" + name, "new")
+            out.writestr("kova-agent-main/" + name, "new")
         out.comment = b"8192da90e0afb20010a1c2f5da83db305d05ac5a"  # git archive's commit identity
     # Only redirect transport: extraction, staging, dirty recheck and swap run.
     monkeypatch.setattr("urllib.request.urlretrieve", lambda url, dst: urlretrieve(archive.as_uri(), dst))
@@ -149,7 +149,7 @@ def test_zip_command_migrates_profiles_recovers_snapshot_and_verifies_fleet(
     assert (state.root / "payload.txt").read_text() == "new"
     for name in ("tools/code.py", "apps/desktop/source.js", "new-entry/data"):
         assert (state.root / name).read_text(encoding="utf-8") == "new"
-    for name in ("apps/desktop/release/Hermes.exe", "venv/keep", "node_modules/keep", ".env"):
+    for name in ("apps/desktop/release/Kova.exe", "venv/keep", "node_modules/keep", ".env"):
         assert (state.root / name).read_text(encoding="utf-8") == "retained"
     assert state.events == ["prepare", *([("marker", True)] if gateway_mode else []),
                             "restart", "resume", "finalize"]
@@ -211,7 +211,7 @@ def test_zip_failure_recovers_pause_without_completion_mutations(zip_update, mon
     if failure in {"swap", "late-swap"}:
         def failing_nth_swap(move):  # root files swap by os.replace, directories by os.rename
             def fail_second_swap(src, dst):
-                if str(src).endswith(".hermes-update-staging"):
+                if str(src).endswith(".kova-update-staging"):
                     installed.append(dst)
                     if len(installed) == (5 if failure == "late-swap" else 2):
                         raise OSError("locked replacement")
@@ -226,7 +226,7 @@ def test_zip_failure_recovers_pause_without_completion_mutations(zip_update, mon
         copytree = shutil.copytree
 
         def fail_copy(src, dst, *args, **kwargs):
-            if str(dst).endswith(".hermes-update-staging"):
+            if str(dst).endswith(".kova-update-staging"):
                 raise OSError("staging disk full")
             return copytree(src, dst, *args, **kwargs)
         monkeypatch.setattr(shutil, "copytree", fail_copy)
@@ -240,7 +240,7 @@ def test_zip_failure_recovers_pause_without_completion_mutations(zip_update, mon
         assert (state.root / "payload.txt").read_text() == "old"
     if failure != "preparation":
         assert {p.relative_to(state.root): p.read_bytes() for p in state.root.rglob("*")
-                if p.is_file() and p.name != ".hermes-update-zip-swap.lock"} == original_tree
+                if p.is_file() and p.name != ".kova-update-zip-swap.lock"} == original_tree
     assert state.events == ["resume"]
     assert state.token["resume_needed"] is False
     assert {profile: (profile / "config.yaml").read_bytes() for profile in before} == before
@@ -356,9 +356,9 @@ def test_zip_recovers_crashed_backup_before_failed_copy_and_retry(zip_update, mo
 
     root = zip_update.root
     target = root / entry
-    backup = root / (entry + ".hermes-update-old")
+    backup = root / (entry + ".kova-update-old")
     target.rename(backup)
-    leftover = root / (entry + ".hermes-update-staging")
+    leftover = root / (entry + ".kova-update-staging")
     leftover.write_text("interrupted copy", encoding="utf-8")
     # The file copy is update_cmd_zip's exclusive create (review Z2), no longer shutil.copy2.
     owner, function = (shutil, "copytree") if entry == "tools" else (update_cmd_zip, "_copy_file_exclusive")
@@ -377,7 +377,7 @@ def test_zip_recovers_crashed_backup_before_failed_copy_and_retry(zip_update, mo
     witness = target / "code.py" if entry == "tools" else target
     assert witness.read_text(encoding="utf-8") == ("retained" if entry == "tools" else "old")
     # Nothing journaled the leftover copy: it is kept aside, never deleted (F78).
-    kept = root / (leftover.name + ".hermes-update-kept")
+    kept = root / (leftover.name + ".kova-update-kept")
     assert _swap_leftovers(root) == [kept] and kept.read_text(encoding="utf-8") == "interrupted copy"
     kept.unlink()
     update_cmd_zip._download_and_swap_zip("main", "local fixture")
@@ -421,17 +421,17 @@ def test_venv_layout_explicit_and_native(tmp_path, windows, folder, executable):
 @pytest.mark.platforms("macos")
 @pytest.mark.parametrize(("mechanism", "rebuilt"), [("self", True), ("electron-updater", False)])
 def test_installed_app_without_a_checkout_build_is_still_rebuilt(zip_update, monkeypatch, tmp_path, mechanism, rebuilt):
-    """#52339: an installed Hermes.app only ``hermes update`` refreshes needs a Desktop build even
+    """#52339: an installed Kova.app only ``hermes update`` refreshes needs a Desktop build even
     when release/ is gone, or it never gets newer. A self-updating release is not ours to rebuild."""
-    installed = tmp_path / "Applications" / "Hermes.app"
+    installed = tmp_path / "Applications" / "Kova.app"
     (installed / "Contents" / "Resources").mkdir(parents=True)
     (installed / "Contents" / "Resources" / "install-stamp.json").write_text(
         json.dumps({"updateMechanism": mechanism}), encoding="utf-8")
     monkeypatch.setattr("kova_cli.gui_uninstall.packaged_gui_app_paths", lambda: [installed])
-    # The checkout under the default Hermes home is the one an installed app runs.
+    # The checkout under the default Kova home is the one an installed app runs.
     (tmp_path / "default-home").mkdir()
-    (tmp_path / "default-home" / "hermes-agent").symlink_to(zip_update.root)
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda **kw: tmp_path / "default-home")
+    (tmp_path / "default-home" / "kova-agent").symlink_to(zip_update.root)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda **kw: tmp_path / "default-home")
     built = []
     monkeypatch.setattr("kova_cli.source_build.build_update_products",
                         lambda selected, *, desktop, after_dependencies=None: built.append(desktop))
@@ -454,7 +454,7 @@ def test_unpinned_zip_update_owes_the_restart_for_the_archive_commit(tmp_path, m
     (root / "payload.txt").write_text("old", encoding="utf-8")
     archive = tmp_path / "source.zip"
     with zipfile.ZipFile(archive, "w") as out:
-        out.writestr("hermes-agent-main/payload.txt", "new")
+        out.writestr("kova-agent-main/payload.txt", "new")
         out.comment = sha.encode()
     monkeypatch.setattr("urllib.request.urlretrieve", lambda url, dst: urlretrieve(archive.as_uri(), dst))
     monkeypatch.setattr(main, "PROJECT_ROOT", root)
@@ -481,7 +481,7 @@ def test_a_zip_that_does_not_name_its_commit_is_refused_before_the_swap(tmp_path
     (root / "payload.txt").write_text("old", encoding="utf-8")
     archive = tmp_path / "source.zip"
     with zipfile.ZipFile(archive, "w") as out:
-        out.writestr("hermes-agent-main/payload.txt", "new")
+        out.writestr("kova-agent-main/payload.txt", "new")
         out.comment = comment
     monkeypatch.setattr("urllib.request.urlretrieve", lambda url, dst: urlretrieve(archive.as_uri(), dst))
     monkeypatch.setattr(main, "PROJECT_ROOT", root)

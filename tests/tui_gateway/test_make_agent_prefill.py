@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import types
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from tui_gateway import server
 
 
@@ -30,16 +30,16 @@ def _built_prefill(monkeypatch, home):
         return types.SimpleNamespace(model=kwargs.get("model"))
 
     monkeypatch.setattr("run_agent.AIAgent", fake_agent)
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         server._make_agent("sid", "session-key")
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     return captured["prefill_messages"]
 
 
 def test_make_agent_injects_the_active_profiles_prefill(monkeypatch, tmp_path):
-    monkeypatch.delenv("HERMES_PREFILL_MESSAGES_FILE", raising=False)
+    monkeypatch.delenv("KOVA_PREFILL_MESSAGES_FILE", raising=False)
     monkeypatch.setattr(server, "_resolve_agent_model_runtime", lambda *_a: ("test-model", {}))
     monkeypatch.setattr(server, "_load_enabled_toolsets", lambda *_a, **_kw: None)
     monkeypatch.setattr(server, "_get_db", lambda: None)

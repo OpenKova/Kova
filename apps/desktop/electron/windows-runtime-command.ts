@@ -12,7 +12,7 @@ export interface WindowsRuntime {
 // Helpers enter through the launcher's own module dispatch, which owns PM activation;
 // every caller then needs only the launcher path it already carries.
 export function windowsHelperArgv(runtime: WindowsRuntime, operation: string, args: string[] = []): string[] {
-  return [runtime.hermesPath, '--run-module', 'kova_cli.windows_ssh_runtime', operation, ...args]
+  return [runtime.kovaPath, '--run-module', 'kova_cli.windows_ssh_runtime', operation, ...args]
 }
 
 // Same ancestor/leaf guard as the existing platform and marker probes.

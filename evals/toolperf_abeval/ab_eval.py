@@ -18,15 +18,15 @@ Usage:
 
 Environment:
   ABEVAL_ROOT    working/results root   (default: ./abeval-workspace)
-  ABEVAL_HOME    HERMES_HOME for runs   (default: $ABEVAL_ROOT/home)
-                 Must be a configured Hermes home with credentials for the
+  ABEVAL_HOME    KOVA_HOME for runs   (default: $ABEVAL_ROOT/home)
+                 Must be a configured Kova home with credentials for the
                  models under test. See README.md for a minimal setup.
 
 Results append to $ABEVAL_ROOT/results/<model>/<arm>/meta.jsonl (resume-safe:
 completed run_ids are skipped). ATOF traces land beside the meta file.
 
 This is the harness used for the August 2026 core-toolset performance batch
-(tracker: NousResearch/hermes-agent#77056).
+(tracker: NousResearch/kova-agent#77056).
 """
 import json
 import os
@@ -191,8 +191,8 @@ mode = "overwrite"
             env = dict(os.environ)
             env.update({
                 "PYTHONPATH": pythonpath,
-                "HERMES_HOME": str(HOME),
-                "HERMES_NEMO_RELAY_PLUGINS_TOML": str(relay_config),
+                "KOVA_HOME": str(HOME),
+                "KOVA_NEMO_RELAY_PLUGINS_TOML": str(relay_config),
             })
             q = task.replace("{WORK}", str(work))
             t0 = time.time()

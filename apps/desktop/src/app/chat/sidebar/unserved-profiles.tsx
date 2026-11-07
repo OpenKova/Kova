@@ -20,7 +20,7 @@ export function useUnservedProfiles(profiles: readonly ProfileInfo[]): ReadonlyS
   const [unserved, setUnserved] = useState(NONE)
 
   useEffect(() => {
-    const roster = hostHas('servedProfileRoster') ? window.hermesDesktop?.getAgentRoster : undefined
+    const roster = hostHas('servedProfileRoster') ? window.kovaDesktop?.getAgentRoster : undefined
 
     if (!roster || !profiles.length) {
       return

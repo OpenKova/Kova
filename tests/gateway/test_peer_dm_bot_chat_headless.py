@@ -26,7 +26,7 @@ async def headless(tmp_path, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import initialize_session_authority
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     # A following Bot Chat reads the profile config by path.
     monkeypatch.setattr(run, '_load_gateway_config',
                         lambda *_path: {'platform_toolsets': {'cli': []}, 'model': {'default': 'fixture'}})
@@ -407,12 +407,12 @@ async def test_a_turn_after_the_move_aside_names_the_local_bot_chat(headless, do
         resp = await headless.cli.post(f"/api/sessions/{old}/chat", json={"message": 'one', "author": AUTHOR})
         body = await resp.json()
         assert resp.status == 200, body
-        named = {body['session_id'], resp.headers['X-Hermes-Session-Id']}
+        named = {body['session_id'], resp.headers['X-Kova-Session-Id']}
     elif door == 'stream':
         resp = await headless.cli.post(f"/api/sessions/{old}/chat/stream", json={"message": 'one', "author": AUTHOR})
         assert resp.status == 200, await resp.text()
         frames = [json.loads(line[6:]) for line in (await resp.text()).splitlines() if line.startswith('data: ')]
-        named = {resp.headers['X-Hermes-Session-Id']} | {f['session_id'] for f in frames if 'session_id' in f}
+        named = {resp.headers['X-Kova-Session-Id']} | {f['session_id'] for f in frames if 'session_id' in f}
     else:
         resp = await headless.cli.post("/v1/runs", json={"input": 'one', "session_id": old, "author": AUTHOR})
         run_id = (await resp.json())['run_id']

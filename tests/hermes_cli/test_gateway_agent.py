@@ -1,4 +1,4 @@
-"""GatewayAgent drives main's HermesCLI callbacks from a scripted gateway (no live gateway)."""
+"""GatewayAgent drives main's KovaCLI callbacks from a scripted gateway (no live gateway)."""
 import asyncio
 import json
 import threading
@@ -1045,7 +1045,7 @@ def test_a_voice_stopped_correction_is_consumed_not_requeued(make_agent, mode):
     voice is already off, and that becomes an agent turn."""
     import queue
 
-    from cli import HermesCLI
+    from cli import KovaCLI
 
     agent, client = make_agent([])
     agent._generation = 7
@@ -1060,7 +1060,7 @@ def test_a_voice_stopped_correction_is_consumed_not_requeued(make_agent, mode):
     client.rpc = rpc
     printed = []
     agent._print_fn = printed.append
-    shell = object.__new__(HermesCLI)
+    shell = object.__new__(KovaCLI)
     shell.busy_input_mode = mode
     shell.agent = agent
     shell._pending_input, shell._interrupt_queue = queue.Queue(), queue.Queue()

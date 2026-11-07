@@ -55,7 +55,7 @@ from tests.e2e.core.upgrade._helpers import (
     sandbox_required_reason,
     wait_for,
 )
-from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_kova_home
 
 pytestmark = [
     pytest.mark.skipif(sys.platform != "linux", reason="fork()-based import isolation and bwrap sandbox are Linux-only"),
@@ -119,7 +119,7 @@ _POST_PURGE_IMPORTS = (
 # What the pre-hand-off ``hermes update`` process had imported before the pull.
 _OLD_UPDATER_GRAPH = ("kova_cli.main", "kova_cli.update_cmd", "kova_cli.config", "kova_cli.gateway")
 
-_READY_RE = re.compile(r"^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)", re.MULTILINE)  # electron/backend-ready.ts
+_READY_RE = re.compile(r"^KOVA_(?:BACKEND|DASHBOARD)_READY port=(\d+)", re.MULTILINE)  # electron/backend-ready.ts
 
 
 # --------------------------------------------------------------------------- packaging model
@@ -134,7 +134,7 @@ def _requirements():
 
     core = [Requirement(r) for r in PYPROJECT["project"]["dependencies"]]
     extras = {_canonical(Requirement(r).name) for reqs in PYPROJECT["project"]["optional-dependencies"].values()
-              for r in reqs if not r.startswith("hermes-agent")}
+              for r in reqs if not r.startswith("kova-agent")}
     return core, extras
 
 
@@ -657,7 +657,7 @@ _ENTRIES = {
     "hermes-help": Entry("hermes", ("--help",), frozenset({0})),
     "hermes-acp-version": Entry("hermes-acp", ("--version",), frozenset({0}), prints_version=True),
     "hermes-acp-help": Entry("hermes-acp", ("--help",), frozenset({0})),
-    "hermes-agent-help": Entry("hermes-agent", ("--help",), frozenset({0})),
+    "kova-agent-help": Entry("kova-agent", ("--help",), frozenset({0})),
 }
 def _run_on_tty(argv: list[str], *, env: dict[str, str], cwd: Path, writable: list[Path],
                 timeout: float) -> subprocess.CompletedProcess:
@@ -722,10 +722,10 @@ def test_entrypoint_in_a_fresh_process(case, tmp_path):
     reply = f"FAKE-REPLY-{uuid.uuid4().hex[:12]}"
     env = isolated_env(tmp_path, pythonpath=WORKTREE,
                        extra={"TERM": "xterm-256color", "COLUMNS": "120", "LINES": "40"} if entry.tty else None)
-    hermes_home = Path(env["HERMES_HOME"])
+    kova_home = Path(env["KOVA_HOME"])
     with FakeLLMServer([Text(reply)]) as srv:
-        write_hermes_home(hermes_home, srv.base_url)
-        config_before = (hermes_home / "config.yaml").read_bytes()
+        write_kova_home(kova_home, srv.base_url)
+        config_before = (kova_home / "config.yaml").read_bytes()
         args = [*entry.args, canary] if entry.turn else list(entry.args)
         if entry.via == "module":
             argv = [PY, "-m", "kova_cli.main", *args]
@@ -745,12 +745,12 @@ def test_entrypoint_in_a_fresh_process(case, tmp_path):
         from kova_cli.version_info import get_version_info
         commit = get_version_info().commit
         assert commit and commit[:7] in cp.stdout, describe(cp)
-    db = hermes_home / "state.db"
+    db = kova_home / "state.db"
     if db.exists():
         assert _db_rows(db, "PRAGMA integrity_check") == [("ok",)], f"{case} left a corrupt state.db"
     if case == "module-doctor":
         assert cp.stdout.strip(), describe(cp)
-        assert (hermes_home / "config.yaml").read_bytes() == config_before, "doctor without --fix rewrote config.yaml"
+        assert (kova_home / "config.yaml").read_bytes() == config_before, "doctor without --fix rewrote config.yaml"
     if not entry.turn:
         assert main_requests == [], f"{case} made {len(main_requests)} model call(s)"
         return
@@ -771,12 +771,12 @@ def test_serve_announces_ready_and_stops_cleanly_on_sigterm(tmp_path):
     _sandbox_or_skip()
     psutil = pytest.importorskip("psutil")
     lock_dir = tmp_path / "host-locks"
-    env = isolated_env(tmp_path, pythonpath=WORKTREE, extra={"HERMES_GATEWAY_LOCK_DIR": str(lock_dir)})
+    env = isolated_env(tmp_path, pythonpath=WORKTREE, extra={"KOVA_GATEWAY_LOCK_DIR": str(lock_dir)})
     reaper = _write_script(tmp_path / "runner", "subreaper.py", _SUBREAPER)
     report_path = tmp_path / "reaper.json"
     stdout_path, stderr_path = tmp_path / "serve.out", tmp_path / "serve.err"
     with FakeLLMServer() as srv, open(stdout_path, "w", encoding="utf-8") as out, open(stderr_path, "w", encoding="utf-8") as err:
-        write_hermes_home(Path(env["HERMES_HOME"]), srv.base_url)
+        write_kova_home(Path(env["KOVA_HOME"]), srv.base_url)
         argv = [PY, str(reaper), str(report_path),
                 PY, "-m", "kova_cli.main", "serve", "--host", "127.0.0.1", "--port", "0"]
         proc = subprocess.Popen(sandbox_argv(argv, writable=[tmp_path]), env=env, cwd=str(WORKTREE),
@@ -793,7 +793,7 @@ def test_serve_announces_ready_and_stops_cleanly_on_sigterm(tmp_path):
                 assert proc.poll() is None, f"serve exited rc={proc.returncode} before READY\n{_logs()}"
                 return None
 
-            port = wait_for(_ready, timeout=180, what="HERMES_BACKEND_READY on stdout")
+            port = wait_for(_ready, timeout=180, what="KOVA_BACKEND_READY on stdout")
             socket.create_connection(("127.0.0.1", port), timeout=10).close()
             record_file = lock_dir / "host-serve.json"
             record = json.loads(record_file.read_text(encoding="utf-8"))

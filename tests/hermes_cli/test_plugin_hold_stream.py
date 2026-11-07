@@ -35,8 +35,8 @@ def test_only_the_declaring_profile_holds(tmp_path, monkeypatch):
     from kova_cli import plugins
     from kova_cli.plugins_dispatch import stream_held
 
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "0")
-    monkeypatch.setenv("HERMES_BUNDLED_PLUGINS", str(tmp_path / "no-bundled"))
+    monkeypatch.setenv("KOVA_ENABLE_PROJECT_PLUGINS", "0")
+    monkeypatch.setenv("KOVA_BUNDLED_PLUGINS", str(tmp_path / "no-bundled"))
     homes = {name: tmp_path / name for name in ("alpha", "beta")}
     for name, home in homes.items():
         plugin = home / "plugins" / "redactor"
@@ -49,7 +49,7 @@ def test_only_the_declaring_profile_holds(tmp_path, monkeypatch):
     try:
         seen = []
         for name in ("alpha", "beta", "alpha"):
-            monkeypatch.setenv("HERMES_HOME", str(homes[name]))
+            monkeypatch.setenv("KOVA_HOME", str(homes[name]))
             seen.append(stream_held())
         assert seen == [True, False, True]
     finally:
@@ -77,9 +77,9 @@ def test_a_turn_starting_during_a_plugin_reload_sees_the_settled_hold(tmp_path, 
     gate = types.ModuleType("hold_stream_reload_gate")
     gate.loading, gate.entered, gate.release = threading.Event(), threading.Event(), threading.Event()
     monkeypatch.setitem(sys.modules, gate.__name__, gate)
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "0")
-    monkeypatch.setenv("HERMES_BUNDLED_PLUGINS", str(tmp_path / "no-bundled"))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_ENABLE_PROJECT_PLUGINS", "0")
+    monkeypatch.setenv("KOVA_BUNDLED_PLUGINS", str(tmp_path / "no-bundled"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     plugin = tmp_path / "plugins" / "redactor"
     plugin.mkdir(parents=True)
     (plugin / "plugin.yaml").write_text(yaml.safe_dump({"name": "redactor", "version": "0.1.0"}))

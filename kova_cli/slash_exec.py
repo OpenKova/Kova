@@ -61,9 +61,9 @@ def _exec_profile(ctx: CommandContext) -> CommandReply:
     (``profile_name`` / ``home_display``); otherwise process-level values are used.
     """
     from kova_cli.profiles import get_active_profile_name
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     profile_name = str(ctx.options.get("profile_name") or "").strip() or get_active_profile_name()
-    home_display = str(ctx.options.get("home_display") or "").strip() or display_hermes_home()
+    home_display = str(ctx.options.get("home_display") or "").strip() or display_kova_home()
     # Presentation-only display name (profile.yaml); `data.profile` stays the canonical id.
     label = profile_name
     try:

@@ -26,7 +26,7 @@ def test_goal_mode_worker_takes_the_same_stdout_rich_path_as_a_one_shot_worker(m
     monkeypatch.setattr(dispatch, "_resolve_worker_cli_toolsets", lambda home: None)
     plain = dispatch._worker_argv(_task(goal_mode=False), "worker", None)
     goal = dispatch._worker_argv(_task(goal_mode=True), "worker", None)
-    # The mode travels in HERMES_KANBAN_GOAL_MODE; the argv must not opt the worker out of
+    # The mode travels in KOVA_KANBAN_GOAL_MODE; the argv must not opt the worker out of
     # the tool feed that the Worker log is made of.
     assert goal == plain
     assert "-Q" not in goal

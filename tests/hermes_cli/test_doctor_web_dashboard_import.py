@@ -44,7 +44,7 @@ def test_drifted_pair_is_a_reported_issue(capsys, monkeypatch):
     out = capsys.readouterr().out
     assert "Dashboard web surface" in out and "✗" in out
     assert "Router.__init__() got an unexpected keyword argument 'on_startup'" in out
-    assert any("hermes pm repair" in i for i in finding.issues)
+    assert any("kova pm repair" in i for i in finding.issues)
 
 
 def test_probe_runs_without_lazy_installs(capsys, monkeypatch):
@@ -55,5 +55,5 @@ def test_probe_runs_without_lazy_installs(capsys, monkeypatch):
     assert args[0][:2] == [sys.executable, "-c"]
     assert args[0][2] == "import kova_cli.web_server"
     env = kwargs["env"]
-    assert env["HERMES_DISABLE_LAZY_INSTALLS"] == "1"
+    assert env["KOVA_DISABLE_LAZY_INSTALLS"] == "1"
     assert kwargs["timeout"] >= 60

@@ -1,7 +1,7 @@
 """The gateway pid scan follows a process's real home.
 
-Regression: a web server started on a temp HERMES_HOME runs the orphan reaper at startup. Its
-current-profile scan claimed every ``gateway run`` with no profile flag and no ``HERMES_HOME=`` on
+Regression: a web server started on a temp KOVA_HOME runs the orphan reaper at startup. Its
+current-profile scan claimed every ``gateway run`` with no profile flag and no ``KOVA_HOME=`` on
 argv, so it SIGTERMed the operator's launchd gateway, whose home arrives through the plist
 environment and never appears on argv.
 
@@ -54,21 +54,21 @@ def test_scan_claims_a_bare_gateway_only_for_the_home_its_environment_names(tmp_
     monkeypatch.setattr(gateway, "_get_service_pids", lambda all_profiles=False: set())
     proc = subprocess.Popen(
         _gateway_argv(tmp_path),
-        env={**os.environ, "HERMES_HOME": str(home_a), "STUB_READY": str(ready)},
+        env={**os.environ, "KOVA_HOME": str(home_a), "STUB_READY": str(ready)},
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     # Any other gateway on the host reads as an unreadable environment, so resolving it never
     # touches the operator's real home; only the stub's own environment is replayed.
-    real_home_for_pid = dashboard_procs._hermes_home_for_pid
+    real_home_for_pid = dashboard_procs._kova_home_for_pid
     monkeypatch.setattr(
-        dashboard_procs, "_hermes_home_for_pid",
+        dashboard_procs, "_kova_home_for_pid",
         lambda pid, **kw: real_home_for_pid(pid, **kw) if pid == proc.pid else None,
     )
     try:
         _wait_for(ready, proc)
-        monkeypatch.setenv("HERMES_HOME", str(home_b))
+        monkeypatch.setenv("KOVA_HOME", str(home_b))
         assert proc.pid not in gateway.find_gateway_pids()
-        monkeypatch.setenv("HERMES_HOME", str(home_a))
+        monkeypatch.setenv("KOVA_HOME", str(home_a))
         assert proc.pid in gateway.find_gateway_pids()
     finally:
         proc.terminate()

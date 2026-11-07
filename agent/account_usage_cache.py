@@ -41,10 +41,10 @@ _inflight: set[tuple[str, str, str, str]] = set()
 
 
 def _key(provider: str, identity_id: Optional[str] = None, base_url: Optional[str] = None) -> tuple[str, str, str, str]:
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
     return (
-        hermes_home_key(),
+        kova_home_key(),
         str(provider or "").strip().lower(),
         str(identity_id or "").strip(),
         str(base_url or "").strip().rstrip("/"),

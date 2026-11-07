@@ -2,7 +2,7 @@
 
 ``cmd_sessions`` routes ``args.sessions_action`` through ``_PRE_DB_HANDLERS`` (repair / recover /
 import — must run without opening ``SessionDB()``, which a malformed schema prevents) and
-``_DB_HANDLERS`` (everything else, sharing one ``SessionDB``). ``get_hermes_home`` is resolved through
+``_DB_HANDLERS`` (everything else, sharing one ``SessionDB``). ``get_kova_home`` is resolved through
 ``kova_cli.main`` at call time so monkeypatches keep working. Picker: :mod:`kova_cli.sessions_cmd_browse`.
 """
 
@@ -19,13 +19,13 @@ from kova_cli.sessions_cmd_browse import _relative_time, _session_browse_picker
 from kova_state_errors import SessionActiveWriteGuardError
 
 
-def get_hermes_home():
+def get_kova_home():
     from kova_cli import main
-    return main.get_hermes_home()
+    return main.get_kova_home()
 
 
 def _sessions_dir() -> Path:
-    return get_hermes_home() / "sessions"
+    return get_kova_home() / "sessions"
 
 
 def _size_mb(path) -> float:
@@ -96,8 +96,8 @@ def _any_filter_args(args) -> bool:
 
 
 def _export_dir(output) -> Path:
-    """``--output`` dir for multi-file exports; ``~/.hermes/session-exports`` when empty or ``-``."""
-    return Path(output).expanduser() if output and output != "-" else get_hermes_home() / "session-exports"
+    """``--output`` dir for multi-file exports; ``~/.kova/session-exports`` when empty or ``-``."""
+    return Path(output).expanduser() if output and output != "-" else get_kova_home() / "session-exports"
 
 
 def _output_file_in_dir(output, default_name: str):
@@ -1412,7 +1412,7 @@ def cmd_sessions(args, sessions_parser=None):
     if pre is not None:
         return pre(args)
     from kova_state import SessionDB
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     # Verified deletion is an explicit mutation, not a read-only export.
     deleting_export = (
         action == "export" and getattr(args, "delete_after_verified", False)
@@ -1427,7 +1427,7 @@ def cmd_sessions(args, sessions_parser=None):
         args.owner_endpoint = live_owner()
         observational = args.owner_endpoint is not None
     # A served-profile process has no single default home: pass the store path explicitly.
-    path = get_hermes_home() / "state.db"
+    path = get_kova_home() / "state.db"
     try:
         db = SessionDB(db_path=path, read_only=observational)
     except Exception as e:

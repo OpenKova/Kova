@@ -28,7 +28,7 @@ from kova_cli import (
     status_auth,
 )
 from kova_cli.auth import _load_auth_store
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tests.kova_cli.anon_portal import as_local_desktop_backend, off_local_desktop
 
 WELCOME = "https://welcome-api.nousresearch.com/v1"
@@ -45,7 +45,7 @@ def _jwt(**claims) -> str:
 
 
 def _write_auth(nous_state: dict) -> None:
-    home = Path(get_hermes_home())
+    home = Path(get_kova_home())
     home.mkdir(parents=True, exist_ok=True)
     (home / "auth.json").write_text(json.dumps({"active_provider": "nous", "providers": {"nous": nous_state}}))
 
@@ -70,7 +70,7 @@ def _account_state() -> dict:
 
 @pytest.fixture
 def isolated_store(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
+    monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
     # The welcome trial carries inference only on the desktop's local backend.
     as_local_desktop_backend(monkeypatch)
     for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "NOUS_API_KEY"):
@@ -183,7 +183,7 @@ def test_keepalive_does_not_start_for_free_tier(isolated_store, monkeypatch):
 _HANDOFF_VIEWS = [
     *({"state": "claimed", "account_email": "person@example.test", "connectors_kind": kind,
        "moved_toolkits": ["gmail"], "dropped_toolkits": ["slack"]} for kind in ("moved", "conflict", "none")),
-    # The retrying line names Hermes as a subject ("Hermes keeps trying"), not a command; it is not checked here.
+    # The retrying line names Kova as a subject ("Kova keeps trying"), not a command; it is not checked here.
     {"state": "failed", "error": "no_destination"}, {"state": "gone", "probably_moved": True},
 ]
 

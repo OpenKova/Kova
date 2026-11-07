@@ -3,7 +3,7 @@
 Failure class: users and permissions. A second uid sharing an install (a root gateway whose
 workers run as other uids, #120151's topology), an admin-provisioned machine or an image leaves
 the code and PM state (checkout, tool store, ``installs/``) readable but not writable by the user
-who runs Hermes, while their own data under HERMES_HOME stays writable. On such a tree:
+who runs Kova, while their own data under KOVA_HOME stays writable. On such a tree:
 
 * a turn must work: deciding that an install is current is a read, and nothing on the launch
   path may need write access to the install, or the launch fails once saying the install is not
@@ -39,14 +39,14 @@ pytestmark = [
     pytest.mark.skipif(I.real_uv() is None, reason="uv required"),
 ]
 
-# What the install owns; HERMES_HOME itself (config, .env, sessions, logs) stays the user's.
-CODE_DIRS = ("hermes-agent", "tools", "installs")
+# What the install owns; KOVA_HOME itself (config, .env, sessions, logs) stays the user's.
+CODE_DIRS = ("kova-agent", "tools", "installs")
 ACTIONABLE = re.compile(r"(?i)permission denied|read-only|not writable|no write access|EACCES|Errno 13")
 
 
 def _chmod_code(sb: I.Sandbox, *, writable: bool) -> None:
     for name in CODE_DIRS:
-        subprocess.run(["chmod", "-R", "u+w" if writable else "a-w", str(sb.hermes_home / name)], check=True)
+        subprocess.run(["chmod", "-R", "u+w" if writable else "a-w", str(sb.kova_home / name)], check=True)
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +71,7 @@ def world(tmp_path_factory, provider):
             n = len(provider.main_requests())
             _chmod_code(sb, writable=False)
             try:
-                out["ro_turn"] = sb.run([sb.hermes, "-z", "turn on a read-only install tree"], timeout=900)
+                out["ro_turn"] = sb.run([sb.kova, "-z", "turn on a read-only install tree"], timeout=900)
                 out["ro_turn_requests"] = len(provider.main_requests()) - n
             finally:
                 _chmod_code(sb, writable=True)
@@ -86,7 +86,7 @@ def world(tmp_path_factory, provider):
             out["rw_update"] = sb.cli("update", "--yes", "--branch", "main", timeout=X.UPDATE_TIMEOUT)
         yield out
     finally:
-        if sb.hermes_home.exists():
+        if sb.kova_home.exists():
             _chmod_code(sb, writable=True)
 
 
@@ -96,7 +96,7 @@ def test_read_only_install_tree_still_runs_a_turn(world, provider):
     err = cp.stdout + cp.stderr
     assert I.TRACEBACK not in err, "a turn crashed on a read-only install tree:\n" + I.describe(cp)
     # Either it works, or it says the install is not writable by this user without sending them
-    # to a remedy that needs the same write access (`hermes pm repair`, "finish the update").
+    # to a remedy that needs the same write access (`kova pm repair`, "finish the update").
     if cp.returncode != 0:
         misleading = re.findall(r"run `hermes (?:pm repair|update)`[^\n]*", err)
         assert ACTIONABLE.search(err) and not misleading, (

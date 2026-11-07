@@ -83,10 +83,10 @@ def test_guard_allows_ordinary_session(tmp_path):
 
 
 def test_guard_exempts_dispatcher_owned_run(tmp_path, monkeypatch):
-    """A process holding HERMES_KANBAN_TASK is a dispatcher-owned run — the supervised
+    """A process holding KOVA_KANBAN_TASK is a dispatcher-owned run — the supervised
     continuation — and may resume (env beats no other signal)."""
     db = _db(tmp_path, source="kanban", session_id="worker-1")
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "task-42")
+    monkeypatch.setenv("KOVA_KANBAN_TASK", "task-42")
     assert _refusal(db, "worker-1") is None
 
 
@@ -103,7 +103,7 @@ def test_guard_fails_open_on_probe_error(tmp_path):
 # ── CLI startup --resume / -c ────────────────────────────────────────
 
 def _make_cli(resume=None):
-    from cli import HermesCLI
+    from cli import KovaCLI
     import cli as _cli_mod
 
     _clean_config = {
@@ -115,10 +115,10 @@ def _make_cli(resume=None):
     }
     with (
         patch("cli.get_tool_definitions", return_value=[]),
-        patch.dict("os.environ", {"LLM_MODEL": "", "HERMES_MAX_ITERATIONS": ""}, clear=False),
+        patch.dict("os.environ", {"LLM_MODEL": "", "KOVA_MAX_ITERATIONS": ""}, clear=False),
         patch.dict(_cli_mod.__dict__, {"CLI_CONFIG": _clean_config}),
     ):
-        return HermesCLI(resume=resume)
+        return KovaCLI(resume=resume)
 
 
 def test_startup_resume_refuses_kanban_session_and_starts_fresh(tmp_path):

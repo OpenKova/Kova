@@ -33,7 +33,7 @@ def signed_out(tmp_path_factory):
     for path in (home, user):
         path.mkdir()
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1")
     result = subprocess.run(
         [sys.executable, str(root / "tests/gateway/fixtures/webapp_gated_sign_out_peer.py"), str(_free_port())],

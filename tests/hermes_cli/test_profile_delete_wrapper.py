@@ -16,8 +16,8 @@ from kova_cli.profiles import create_profile, create_wrapper_script, delete_prof
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    (tmp_path / ".hermes").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    (tmp_path / ".kova").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     for stub in ("_cleanup_gateway_service", "_maybe_unregister_gateway_service", "_stop_profile_backends"):
         monkeypatch.setattr(profiles, stub, lambda *a, **k: None)
     return tmp_path

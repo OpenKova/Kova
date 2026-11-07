@@ -113,17 +113,17 @@ NPM_PUBLIC_REGISTRY = "https://registry.npmjs.org/"
 
 
 def hermes_npmrc() -> Path | None:
-    """The profile's ``$HERMES_HOME/npmrc`` when it exists."""
-    from kova_constants import get_hermes_home
+    """The profile's ``$KOVA_HOME/npmrc`` when it exists."""
+    from kova_constants import get_kova_home
 
-    path = get_hermes_home() / "npmrc"
+    path = get_kova_home() / "npmrc"
     return path if path.is_file() else None
 
 
 def user_npmrc(env: Mapping[str, str]) -> Path:
-    """The user npmrc Hermes's npm and pnpm children read: ``npm_config_userconfig`` (any case),
+    """The user npmrc Kova's npm and pnpm children read: ``npm_config_userconfig`` (any case),
     else ``hermes_npmrc()`` (``source_build_env`` points ``NPM_CONFIG_USERCONFIG`` at it), else
-    ``~/.npmrc``. As npm's userconfig, the Hermes file replaces ``~/.npmrc``; the two never merge."""
+    ``~/.npmrc``. As npm's userconfig, the Kova file replaces ``~/.npmrc``; the two never merge."""
     explicit = next((value for key, value in env.items() if key.lower() == "npm_config_userconfig" and value), "")
     if explicit:
         return Path(explicit).expanduser()

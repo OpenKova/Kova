@@ -126,8 +126,8 @@ def enumerate_stores() -> list[Store]:
     """Default root plus every live named profile (a live profile claims its namespace whether or not
     it has written a ``state.db`` yet). The root store owns the routing index: the multiplexer's
     ``_routing_home`` is its launch home, the root."""
-    from kova_cli.profiles import _get_default_hermes_home, _iter_named_profile_dirs
-    root = _get_default_hermes_home()
+    from kova_cli.profiles import _get_default_kova_home, _iter_named_profile_dirs
+    root = _get_default_kova_home()
     stores = [Store("default", root, routing=True)]
     stores.extend(Store(entry.name, entry) for entry in _iter_named_profile_dirs())
     return stores
@@ -527,7 +527,7 @@ def scan_stores(stores: Optional[list[Store]] = None, *, legacy_main: str = "rep
 def default_snapshot(store: Store) -> Optional[str]:
     from kova_cli.backup import create_quick_snapshot
     try:
-        return create_quick_snapshot(label="repair-profiles", hermes_home=store.home)
+        return create_quick_snapshot(label="repair-profiles", kova_home=store.home)
     except Exception as exc:
         logger.warning("repair-profiles: snapshot of %s failed: %s", store.home, exc)
         return None

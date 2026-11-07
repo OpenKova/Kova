@@ -32,8 +32,8 @@ class TerminalEnvironmentProvider(ProviderBase):
       passed through, host-looking cwds sanitized, file tools use container path resolution.
     * ``skip_container_guards`` — sandbox disposable enough to skip dangerous-command approval
       prompts. Defaults to ``is_container``; backends that can mount host paths override to False.
-    * ``cache_path_base`` — where auto-synced ``~/.hermes/cache`` files land inside the backend
-      (``"~/.hermes"``, ``"/root/.hermes"``), or ``None`` when host paths remain correct.
+    * ``cache_path_base`` — where auto-synced ``~/.kova/cache`` files land inside the backend
+      (``"~/.kova"``, ``"/root/.kova"``), or ``None`` when host paths remain correct.
     * ``strip_env_keys`` — vendor credential env vars, stripped from every subprocess the agent
       spawns so a model-authored command can never read them.
     * ``session_isolated_when_nonpersistent`` — non-persistent mode gives each session its own
@@ -50,7 +50,7 @@ class TerminalEnvironmentProvider(ProviderBase):
       docker/ssh, instead of refusing.
 
     ``default_cwd`` home resolution and ``exec_prefix`` need the environment object itself, so they
-    work for in-process plugins only; under ``plugins.isolation: host`` the environment reaches Hermes
+    work for in-process plugins only; under ``plugins.isolation: host`` the environment reaches Kova
     as an opaque placeholder and Bot Desktop placement refuses a ``supports_streams`` backend.
     """
 

@@ -26,8 +26,8 @@ from typing import Any, Callable, NamedTuple, Optional
 # namespace (method_ctx.bind_module) — deleting one breaks a handler at call time, not import time.
 from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
 from kova_constants import (
-    get_hermes_home, get_hermes_home_override, get_process_hermes_home, profile_name_for_home,
-    reset_hermes_home_override, set_hermes_home_override)
+    get_kova_home, get_kova_home_override, get_process_kova_home, profile_name_for_home,
+    reset_kova_home_override, set_kova_home_override)
 from kova_cli import config_backend as _config_backend
 from kova_cli.config_backend import Changes, ConfigBackendUnavailable, config_exists, supports_file_tooling
 from kova_cli.env_loader import load_hermes_dotenv
@@ -59,13 +59,13 @@ from tui_gateway.transport import (FanoutTransport, StdioTransport, Transport, b
 
 logger = logging.getLogger(__name__)
 
-_hermes_home = _HERMES_HOME_AT_IMPORT = get_hermes_home()
-load_hermes_dotenv(hermes_home=_hermes_home, project_env=Path(__file__).parent.parent / ".env")
+_kova_home = _KOVA_HOME_AT_IMPORT = get_kova_home()
+load_hermes_dotenv(kova_home=_kova_home, project_env=Path(__file__).parent.parent / ".env")
 
 
 # ── Panic logger: crashes otherwise leave no forensics (stdout is the JSON-RPC pipe, stderr doesn't
 # flush before exit) → append every unhandled exception to the crash log + one-line stderr summary.
-_CRASH_LOG = os.path.join(_hermes_home, "logs", "tui_gateway_crash.log")
+_CRASH_LOG = os.path.join(_kova_home, "logs", "tui_gateway_crash.log")
 
 
 def _record_crash(kind: str, exc_type, exc_value, exc_tb, *, thread_name: str | None = None) -> None:
@@ -119,7 +119,7 @@ _cfg_path = None
 _idempotency_keys: dict[str, tuple[str, float]] = {}
 _IDEMPOTENCY_KEY_TTL = 300.0  # 5 min: longer than any realistic retry window
 _session_resume_lock = threading.Lock()
-_SLASH_WORKER_TIMEOUT_S = max(5.0, env_float("HERMES_TUI_SLASH_TIMEOUT_S", 45.0))
+_SLASH_WORKER_TIMEOUT_S = max(5.0, env_float("KOVA_TUI_SLASH_TIMEOUT_S", 45.0))
 
 def _ws_orphan_setting(env_var: str, cfg_key: str, default: float) -> float:
     """``dashboard.<cfg_key>`` seconds; the env var is an internal override that wins when set."""
@@ -146,7 +146,7 @@ def _resolve_ws_orphan_reap_grace() -> float:
     """Grace before an orphaned WS session is interrupted/reaped (0 = park forever): ws.py parks a
     disconnected session for a quick reattach, but a browser refresh mints a NEW sid and never
     reattaches the old one (leaking its slash worker)."""
-    return _ws_orphan_setting("HERMES_TUI_WS_ORPHAN_REAP_GRACE_S", "ws_orphan_reap_grace_s", 20.0)
+    return _ws_orphan_setting("KOVA_TUI_WS_ORPHAN_REAP_GRACE_S", "ws_orphan_reap_grace_s", 20.0)
 
 
 _WS_ORPHAN_REAP_GRACE_S = _resolve_ws_orphan_reap_grace()
@@ -157,7 +157,7 @@ _WS_ORPHAN_REAP_GRACE_S = _resolve_ws_orphan_reap_grace()
 _WS_ORPHAN_REAP_SLEEP_SLACK_S = 0.5
 # A detached RUNNING turn is interrupted only once its activity clock (API waits, stream tokens, tool
 # heartbeats) idled this long; 600s = the turn-liveness watchdog so "wedged" means the same. 0 disables.
-_WS_ORPHAN_ACTIVITY_STALE_S = _ws_orphan_setting("HERMES_TUI_WS_ORPHAN_ACTIVITY_STALE_S", "ws_orphan_activity_stale_s", 600.0)
+_WS_ORPHAN_ACTIVITY_STALE_S = _ws_orphan_setting("KOVA_TUI_WS_ORPHAN_ACTIVITY_STALE_S", "ws_orphan_activity_stale_s", 600.0)
 _WS_ORPHAN_INTERRUPT_REAP_POLL_S = 1.0
 # Interrupt-then-reap poll budget: a turn that never settles (thread hung in a syscall) would
 # reschedule the 1s poll forever; after this many polls, log loudly and force-reap.
@@ -203,7 +203,7 @@ _LONG_HANDLERS = frozenset({
     "shared_metrics.set",  # consent reconcile waits on the metrics store's write lock
 })
 
-_rpc_pool_workers = max(2, env_int("HERMES_TUI_RPC_POOL_WORKERS", 8))
+_rpc_pool_workers = max(2, env_int("KOVA_TUI_RPC_POOL_WORKERS", 8))
 _pool = concurrent.futures.ThreadPoolExecutor(max_workers=_rpc_pool_workers, thread_name_prefix="tui-rpc")
 atexit.register(lambda: _pool.shutdown(wait=False, cancel_futures=True))
 
@@ -271,12 +271,12 @@ def _shutdown_sessions() -> None:
 # Session reaping / flushing knobs (session_reaper.py). TTL is the last-resort net for disconnect paths that
 # slip past the WS finally; hours-scale because last_active freezes during a long turn and on passive
 # viewing — running/pending/starting/live-transport are hard exemptions.
-_SESSION_TTL_S = max(0.0, env_float("HERMES_TUI_SESSION_TTL_S", float(6 * 3600)))
+_SESSION_TTL_S = max(0.0, env_float("KOVA_TUI_SESSION_TTL_S", float(6 * 3600)))
 _REAPER_SCAN_S = 300.0
 # Flush-on-kill budget + periodic incremental flush (piggybacks the reaper scan): a SIGTERM/SIGKILL
 # mid-update loses at most one flush interval of session state.
-_EXIT_FLUSH_BUDGET_S = max(0.0, env_float("HERMES_TUI_EXIT_FLUSH_BUDGET_S", 5.0))
-_INCREMENTAL_FLUSH_INTERVAL_S = max(0.0, env_float("HERMES_TUI_SESSION_FLUSH_INTERVAL_S", _REAPER_SCAN_S))
+_EXIT_FLUSH_BUDGET_S = max(0.0, env_float("KOVA_TUI_EXIT_FLUSH_BUDGET_S", 5.0))
+_INCREMENTAL_FLUSH_INTERVAL_S = max(0.0, env_float("KOVA_TUI_SESSION_FLUSH_INTERVAL_S", _REAPER_SCAN_S))
 
 
 def _start_idle_reaper() -> None:
@@ -296,14 +296,14 @@ _start_idle_reaper()
 
 
 def _launch_home() -> Path:
-    """The launch profile's home at call time: the patched ``_hermes_home`` when a test changed
-    it, else the live process home — resolved through :func:`get_process_hermes_home`, which honours
-    ``HERMES_HOME`` but ignores the context-local override. The desktop multiplex cron ticker sets
+    """The launch profile's home at call time: the patched ``_kova_home`` when a test changed
+    it, else the live process home — resolved through :func:`get_process_kova_home`, which honours
+    ``KOVA_HOME`` but ignores the context-local override. The desktop multiplex cron ticker sets
     that override per profile at startup, and a first touch inside a foreign window would bind
     process-wide launch state (the shared ``state.db`` handle, the launch ``.env`` secrets) to
     another profile (#102526). Resolving here rather than at import time lets a harness that
-    redirects ``HERMES_HOME`` after import be honoured (#112692)."""
-    home = _hermes_home if _hermes_home != _HERMES_HOME_AT_IMPORT else get_process_hermes_home()
+    redirects ``KOVA_HOME`` after import be honoured (#112692)."""
+    home = _kova_home if _kova_home != _KOVA_HOME_AT_IMPORT else get_process_kova_home()
     return Path(home)
 
 
@@ -415,7 +415,7 @@ def _canonical_profile_request(name: str) -> str:
     installation details — unless a real named profile of that name exists (``hermes`` is a legal
     id), in which case it wins; other unknown names keep failing closed in ``_profile_home``.
     """
-    if name.casefold() in {".hermes", "hermes"}:
+    if name.casefold() in {".kova", "hermes"}:
         from kova_cli import profiles as profiles_mod
         # Check the profiles root directly: get_profile_dir rejects "hermes" as a
         # reserved name, but a pre-reserved-list install may still carry that dir.
@@ -445,7 +445,7 @@ def _db_unavailable_error(rid, *, code: int):
 
 
 # ── Per-session profile scoping: the desktop's app-global remote mode points every profile at this
-# backend, so calls carry ``profile`` → open that profile's db and bind its HERMES_HOME (ContextVar
+# backend, so calls carry ``profile`` → open that profile's db and bind its KOVA_HOME (ContextVar
 # override) so config/skills/model/persistence resolve to it. Omitted/own profile → launch profile.
 class ProfileUnavailableError(FileNotFoundError):
     """An explicit ``profile`` param names no live profile on this host. Raised out of the method
@@ -464,7 +464,7 @@ def _profile_home(profile: str | None) -> Path | None:
         home = None
     if home is None or not home.is_dir():
         raise ProfileUnavailableError(f"Profile '{name}' does not exist.")
-    if home.resolve() == Path(_hermes_home).resolve():
+    if home.resolve() == Path(_kova_home).resolve():
         return None  # already the launch profile (no override needed)
     if home not in _served_profile_homes:
         # This process now hosts a second profile home: freeze the launch env as the launch
@@ -483,7 +483,7 @@ _served_profile_homes: set[Path] = set()
 
 
 def _profile_scoped(handler):
-    """Bind ``params['profile']``'s full runtime scope (HERMES_HOME + secrets + terminal policy) around a
+    """Bind ``params['profile']``'s full runtime scope (KOVA_HOME + secrets + terminal policy) around a
     handler, so config.yaml ``${VAR}`` refs, provider credential checks and ``.env`` writes resolve to
     THAT profile (app-global remote mode hits the focused profile). Home alone left ``get_secret`` on the
     launch process's ``os.environ``: ``config.get full`` for a secondary shipped the default profile's
@@ -553,9 +553,9 @@ def _profile_configured_cwd(profile_home: Path | None) -> str | None:
 def _launch_configured_cwd() -> str | None:
     """Launch profile's ``terminal.cwd`` from config.yaml: the dashboard's in-memory gateway gets no bridged
     ``TERMINAL_CWD`` env (only the Node PTY child does), so a fresh /chat would otherwise start in ``os.getcwd()``."""
-    # Read the launch file by path. ``_load_cfg`` follows the active HERMES_HOME
+    # Read the launch file by path. ``_load_cfg`` follows the active KOVA_HOME
     # override, which may belong to a different profile-scoped RPC.
-    return _profile_configured_cwd(Path(_hermes_home))
+    return _profile_configured_cwd(Path(_kova_home))
 
 
 def _default_session_cwd() -> str:
@@ -724,7 +724,7 @@ def _emit_approval_request(sid: str, data: dict | None) -> None:
             if request_id:
                 _approval.withdraw_gateway_approval(session_key, request_id,
                                                     "the attached client cannot answer approval requests "
-                                                    "(update the Hermes app)")
+                                                    "(update the Kova app)")
             return
         choice = str(result.get("choice") or "deny")
         _approval.resolve_gateway_approval(session_key, choice, resolve_all=bool(result.get("all")),
@@ -856,8 +856,8 @@ def _load_dashboard_process_isolation_config(cfg: dict | None = None) -> dict[st
 
 def _active_config_path() -> Path:
     """config.yaml of the per-session profile override (session.resume) when bound, else the launch home."""
-    override = get_hermes_home_override()
-    return Path(override if isinstance(override, str) and override else _hermes_home) / "config.yaml"
+    override = get_kova_home_override()
+    return Path(override if isinstance(override, str) and override else _kova_home) / "config.yaml"
 
 
 def _load_cfg_raw() -> dict:
@@ -937,7 +937,7 @@ def _set_session_context(session_key: str, cwd: str | None = None, *, ui_session
         resolved = cwd if cwd is not None else (str(sess.get("cwd") or "") if sess is not None else "")
         source = _resolve_session_platform()
         profile = _current_profile_name()
-        # Live conversation id for subprocess HERMES_SESSION_ID: an explicitly empty contextvar is authoritative
+        # Live conversation id for subprocess KOVA_SESSION_ID: an explicitly empty contextvar is authoritative
         # (no os.environ fallback), so never leave it "" — agent's durable session_id, then session_key.
         session_id = session_key
         if sess is not None:
@@ -960,7 +960,7 @@ def _clear_session_context(tokens: list) -> None:
 
 def _enable_gateway_prompts() -> None:
     """Route approvals through gateway callbacks instead of CLI input()."""
-    os.environ.update(HERMES_GATEWAY_SESSION="1", HERMES_EXEC_ASK="1", HERMES_INTERACTIVE="1")
+    os.environ.update(KOVA_GATEWAY_SESSION="1", KOVA_EXEC_ASK="1", KOVA_INTERACTIVE="1")
 
 
 # ── Blocking prompt factory ──────────────────────────────────────────
@@ -1006,9 +1006,9 @@ _TOUR_PROBE_TIMEOUT_S = 10
 
 _TOUR_BRIDGE_UNAVAILABLE = json.dumps({
     "success": False,
-    "error": ("No Hermes Desktop window answered the tour request. The tour is driven by the desktop app's "
+    "error": ("No Kova Desktop window answered the tour request. The tour is driven by the desktop app's "
               "renderer, which updates separately from this backend, so an app build older than the tour tool "
-              "has nothing listening. Update the Hermes Desktop app and start a new session. Do not retry tour "
+              "has nothing listening. Update the Kova Desktop app and start a new session. Do not retry tour "
               "in this session.")})
 
 
@@ -1049,10 +1049,10 @@ _PREVIEW_ACTION_REPROBE_COOLDOWN_S = 30
 
 _PREVIEW_ACTION_BRIDGE_UNAVAILABLE = json.dumps({
     "success": False,
-    "error": ("No Hermes Desktop window answered the preview action request. The drive_preview / "
+    "error": ("No Kova Desktop window answered the preview action request. The drive_preview / "
               "annotate_preview bridge is served by the desktop app's renderer, which updates "
               "separately from this backend, so an app build older than the tool has nothing "
-              "listening. Update the Hermes Desktop app, open a page with open_preview, and try "
+              "listening. Update the Kova Desktop app, open a page with open_preview, and try "
               "again in this session after a short cooldown.")})
 
 # One in-flight cooldown-expiry reprobe per session: concurrent callers fail fast.
@@ -1132,7 +1132,7 @@ def _persist_live_session_system_prompt(session: dict | None) -> None:
     agent, session_key, db = live
     # Re-bind the session's profile runtime scope (the build's finally reset it → root profile's SOUL.md/skills,
     # #50233) and session context (on the RPC thread _SESSION_CWD is unset → the process TERMINAL_CWD would
-    # persist). The full scope, not HERMES_HOME alone: the external memory provider's system_prompt_block()
+    # persist). The full scope, not KOVA_HOME alone: the external memory provider's system_prompt_block()
     # reads its credential through get_secret, which fails closed once this process multiplexes (#112927).
     session_tokens = _set_session_context(session_key, cwd=_session_cwd(session))
     try:
@@ -1329,8 +1329,8 @@ def _get_usage(agent) -> dict:
     with contextlib.suppress(Exception):
         from tools.async_delegation import active_count as _async_active_count
         usage["active_subagents"] = _async_active_count()
-    # Dev-only live credits-spent readout, gated on HERMES_DEV_CREDITS so the payload stays clean otherwise.
-    if is_truthy_value(os.environ.get("HERMES_DEV_CREDITS")):
+    # Dev-only live credits-spent readout, gated on KOVA_DEV_CREDITS so the payload stays clean otherwise.
+    if is_truthy_value(os.environ.get("KOVA_DEV_CREDITS")):
         with contextlib.suppress(Exception):
             spent = agent.get_credits_spent_micros()
             if spent is not None:
@@ -1486,7 +1486,7 @@ def _session_info(agent, session: dict | None = None) -> dict:
     model = pending_model or mirror.get("model", getattr(agent, "model", ""))
     # The level the route's entry clamp actually sends (== reasoning_effort when verbatim), so the
     # Desktop can say "ultra sends max on this route" like `/reasoning` does instead of presenting a
-    # Hermes-internal step (#61634) as a wire level the route does not have.
+    # Kova-internal step (#61634) as a wire level the route does not have.
     reasoning_effort_wire = ""
     if reasoning_effort and reasoning_effort != "none":
         reasoning_effort_wire = str(clamp_effort(reasoning_effort, route_supported_efforts(
@@ -1652,7 +1652,7 @@ def _hydrate_session_cwd(sid: str, key: str, session_db, profile_home: str | Non
             elif (not (row and row.get("cwd")) or _is_other_profiles_cwd(row["cwd"], profile_home)) and hasattr(
                 db, "update_session_cwd"
             ) and not _is_remote_launch_cwd(_sessions.get(sid)):
-                # A stored cwd that was set aside (Hermes's own host tree) stays as stored: only an empty row is filled,
+                # A stored cwd that was set aside (Kova's own host tree) stays as stored: only an empty row is filled,
                 # or a named profile's row holding another profile's dir (#87584), repaired to this session's own.
                 try:
                     _persist_session_cwd_and_schedule_git_meta(_sessions[sid], _sessions[sid]["cwd"], db=db)
@@ -1740,7 +1740,7 @@ def _pet_active_selection():
 
 def _pet_gen_root():
     """Profile-scoped staging dir for in-progress generation drafts."""
-    root = get_hermes_home() / "cache" / "pet-gen"
+    root = get_kova_home() / "cache" / "pet-gen"
     root.mkdir(parents=True, exist_ok=True)
     return root
 
@@ -1773,7 +1773,7 @@ _pet_cancel_lock = threading.Lock()
 _pet_cancelled: set[str] = set()
 _PET_REFERENCE_MIME_EXT = {"png": "png", "jpeg": "jpg", "jpg": "jpg", "webp": "webp", "gif": "gif"}
 try:
-    _PET_REFERENCE_MAX_BYTES = max(1, int(os.environ.get("HERMES_PET_REFERENCE_MAX_BYTES") or str(16 * 1024 * 1024)))
+    _PET_REFERENCE_MAX_BYTES = max(1, int(os.environ.get("KOVA_PET_REFERENCE_MAX_BYTES") or str(16 * 1024 * 1024)))
 except (TypeError, ValueError):
     _PET_REFERENCE_MAX_BYTES = 16 * 1024 * 1024
 
@@ -1824,7 +1824,7 @@ def _pet_is_cancelled(token: str) -> bool:
 
 
 def _spawn_trees_root():
-    root = get_hermes_home() / "spawn-trees"
+    root = get_kova_home() / "spawn-trees"
     root.mkdir(parents=True, exist_ok=True)
     return root
 

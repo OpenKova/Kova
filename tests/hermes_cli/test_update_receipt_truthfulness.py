@@ -3,7 +3,7 @@
 Bug class ("update reports success while reality disagrees" — #88654,
 #88848, #91378, #91439, #91962, #92780, #92902): the updater's word must be
 backed by evidence. This suite pins the honesty contract of the receipt
-subsystem with REAL module functions against a temp HERMES_HOME — it is not
+subsystem with REAL module functions against a temp KOVA_HOME — it is not
 a fleet E2E (that lives in the CI install/update harness).
 
 Invariants pinned, and WHERE each is enforced:
@@ -54,11 +54,11 @@ from kova_cli.update_inventory import (
 
 @pytest.fixture()
 def receipt_home(tmp_path, monkeypatch):
-    """Hermetic HERMES_HOME so receipts never touch the real profile."""
-    home = tmp_path / ".hermes"
+    """Hermetic KOVA_HOME so receipts never touch the real profile."""
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(
-        "kova_cli.config.get_hermes_home", lambda: home, raising=False
+        "kova_cli.config.get_kova_home", lambda: home, raising=False
     )
     ur._current.set(None)
     yield home
@@ -228,7 +228,7 @@ class TestSuccessImpliesAccounting:
             relaunched_profiles=[],
             externally_supervised_profiles=[],
             killed_pids=set(),
-            failed_units=["hermes-gateway.service"],
+            failed_units=["kova-gateway.service"],
         )
         assert outcomes[0]["outcome"] == "failed"
         ur.finalize_update_receipt("partial")

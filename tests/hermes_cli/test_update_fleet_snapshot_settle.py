@@ -15,7 +15,7 @@ from types import SimpleNamespace
 from kova_cli import update_cmd
 from kova_cli import update_cmd_fleet
 import kova_cli.update_cmd_fleet_verify as fleet_verify
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 class _FakeClock:
@@ -64,7 +64,7 @@ def test_snapshot_stops_waiting_once_the_restarted_unit_is_dead(monkeypatch) -> 
         lambda cmd, *, timeout: SimpleNamespace(
             stdout="LoadState=loaded\nActiveState=failed\n", stderr="", returncode=0))
 
-    restart = SimpleNamespace(pre_restart_gateway_pids=[101], restarted_scoped_units={"user/hermes-gateway.service"})
+    restart = SimpleNamespace(pre_restart_gateway_pids=[101], restarted_scoped_units={"user/kova-gateway.service"})
     assert fleet_verify._collect_fleet_snapshot(restart, rows_expected=True) == []
     assert clock.now < 30.0
 
@@ -86,9 +86,9 @@ def test_snapshot_keeps_waiting_when_the_unit_is_unknown_to_the_asked_scope(monk
             stderr="", returncode=0)
 
     monkeypatch.setattr(update_cmd_fleet, "_systemctl", systemctl)
-    assert fleet_verify._restarted_units_gone(("system/hermes-gateway.service",)) is False
+    assert fleet_verify._restarted_units_gone(("system/kova-gateway.service",)) is False
 
-    restart = SimpleNamespace(pre_restart_gateway_pids=[101], restarted_scoped_units={"system/hermes-gateway.service"})
+    restart = SimpleNamespace(pre_restart_gateway_pids=[101], restarted_scoped_units={"system/kova-gateway.service"})
     assert fleet_verify._collect_fleet_snapshot(restart, rows_expected=True) == []
     assert clock.now >= fleet_verify._FLEET_PROBE_SETTLE_TIMEOUT_SECONDS
 
@@ -127,7 +127,7 @@ def test_verifier_clears_marker_after_late_current_gateway_state(monkeypatch) ->
     clock = _FakeClock()
     expected = {"profile": "default", "pid": 202, "code_sha": "new", "state": "current"}
     snapshots = iter([[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [expected]])
-    marker = get_hermes_home() / "fleet_restart_pending"
+    marker = get_kova_home() / "fleet_restart_pending"
     marker.write_text("started=1\npid=101\nexpected_sha=new\n", encoding="utf-8")
 
     monkeypatch.setattr(update_cmd_fleet._time, "monotonic", clock.monotonic)
@@ -150,7 +150,7 @@ def test_verifier_clears_marker_after_late_current_gateway_state(monkeypatch) ->
     restart = SimpleNamespace(
         incomplete=False,
         pre_restart_gateway_pids=[101],
-        restarted_services=["hermes-gateway.service"],
+        restarted_services=["kova-gateway.service"],
         relaunched_profiles=[],
         externally_supervised_profiles=[],
         killed_pids=set(),

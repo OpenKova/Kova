@@ -31,9 +31,9 @@ def test_restore_windows_gateway_service_waits_out_stop_pending(monkeypatch):
         lambda name: restarted.append(name),
     )
 
-    update_cmd._restore_windows_gateway_service("HermesGateway")
+    update_cmd._restore_windows_gateway_service("KovaGateway")
 
-    assert restarted == ["HermesGateway"]
+    assert restarted == ["KovaGateway"]
 
 
 def test_stop_windows_gateway_service_waits_for_original_descendants(
@@ -55,7 +55,7 @@ def test_stop_windows_gateway_service_waits_for_original_descendants(
     )
     with pytest.raises(RuntimeError, match="process tree"):
         update_cmd._stop_windows_gateway_service(
-            "HermesGateway",
+            "KovaGateway",
             expected_processes=((123, 12.5),),
             timeout=0,
         )
@@ -176,7 +176,7 @@ def test_stop_service_refuses_pid_reuse_before_sc_stop(monkeypatch):
 
     with pytest.raises(RuntimeError, match="identity changed"):
         update_cmd._stop_windows_gateway_service(
-            "HermesGateway", expected_service_identity=(11, 11.0)
+            "KovaGateway", expected_service_identity=(11, 11.0)
         )
 
     assert calls == []

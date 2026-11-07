@@ -34,7 +34,7 @@ STALE_TMP_PACK_MIN_AGE_SECONDS = STALE_LOCK_MIN_AGE_SECONDS
 # ``shallow.lock`` is the one observed in the wild; the others are the same class of failure
 # (interrupted git operation). Locks held by a live git process are protected by the process guard.
 LOCK_NAMES = ("shallow.lock", "index.lock", "HEAD.lock", "MERGE_HEAD.lock")
-# Object-store indexes a killed git (Hermes kills git trees on timeout) leaves locked. Each lock fails
+# Object-store indexes a killed git (Kova kills git trees on timeout) leaves locked. Each lock fails
 # every later write of that file, so the commit-graph that keeps ``git tag --merged`` and ancestry
 # walks fast stops refreshing for good (one sat on a real checkout for two months).
 OBJECT_STORE_LOCK_NAMES = (
@@ -162,7 +162,7 @@ def clear_stale_git_locks(repo_root: Path, *, min_age_seconds: Optional[int] = N
 
 def clear_stale_object_store_locks(git_dir: Path) -> list[str]:
     """``OBJECT_STORE_LOCK_NAMES`` only, under ``git_dir`` itself (a linked worktree's or submodule's
-    common dir), for repos Hermes does not own: index.lock / HEAD.lock there are the user's git's."""
+    common dir), for repos Kova does not own: index.lock / HEAD.lock there are the user's git's."""
     return _sweep_locks(Path(git_dir), OBJECT_STORE_LOCK_NAMES, None)
 
 
@@ -642,7 +642,7 @@ def repair_broken_shallow_boundaries(repo_root: Path) -> int:
             if not repaired:
                 return 0
             _write_shallow(shallow_path, "\n".join(sorted(existing | repaired)) + "\n",
-                           suffix=".hermes-repair")
+                           suffix=".kova-repair")
             # Self-check under the same lock hold (rev-list never takes
             # shallow.lock): the rollback cannot be defeated by lock contention.
             if not _git_stdout_lines(repo_root, ["rev-list", "--count", "--all", "--reflog"]):
@@ -705,7 +705,7 @@ def prune_stale_shallow_grafts(repo_root: Path) -> int:
                         cwd=str(repo_root), capture_output=True, timeout=10,
                         creationflags=windows_hide_flags(),
                     )
-            _write_shallow(shallow_path, "\n".join(sorted(keep)) + "\n", suffix=".hermes-prune")
+            _write_shallow(shallow_path, "\n".join(sorted(keep)) + "\n", suffix=".kova-prune")
             # Fail-safe: if any reachable walk now crosses a boundary we wrongly
             # removed, put the grafts back — a growing file beats a broken repo.
             # Runs under the same lock hold (rev-list never takes shallow.lock) so

@@ -5,11 +5,11 @@ Channel storage — per install, never home-global::
     update:
       installs:
         a4f3b2c1d0e9f8a7:                      # install id (sha16 of the
-          path: /home/u/.hermes/hermes-agent   #   canonical install root)
+          path: /home/u/.kova/kova-agent   #   canonical install root)
           channel: canary
 
 One config.yaml serves many installs (host + docker gateway + desktop all
-bind-mount one ``~/.hermes``), so a home-global ``update.channel`` key is
+bind-mount one ``~/.kova``), so a home-global ``update.channel`` key is
 UNSAFE and does not exist: setting canary for a dev checkout must not
 flip the desktop app's feed. The id is sha16 of the canonical
 install-root PATH — the same key that names the ``installs/<sha16>/``

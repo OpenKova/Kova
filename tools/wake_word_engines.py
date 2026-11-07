@@ -141,7 +141,7 @@ class _OpenWakeWordEngine(_Engine):
 
 
 # sherpa-onnx open-vocabulary KWS model: small streaming zipformer transducer (English,
-# GigaSpeech), downloaded once under HERMES_HOME. Keywords are tokenized at RUNTIME.
+# GigaSpeech), downloaded once under KOVA_HOME. Keywords are tokenized at RUNTIME.
 _SHERPA_KWS_MODEL_URL = (
     "https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/"
     "sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01.tar.bz2"
@@ -150,8 +150,8 @@ _SHERPA_KWS_MODEL_DIR = "sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01"
 
 
 def _sherpa_model_root() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "cache" / "wakewords"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "cache" / "wakewords"
 
 
 def _ensure_sherpa_model(root: Optional[Path] = None) -> Path:

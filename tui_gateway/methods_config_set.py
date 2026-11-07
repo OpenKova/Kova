@@ -368,11 +368,11 @@ def _set_yolo(rid, params, key, value, session):
         enable = toggle_session_yolo(session["session_key"], _BOOL_WORDS.get(raw), persist=persist)
         _emit_session_info(params.get("session_id", ""), session)
     else:
-        enable = _BOOL_WORDS.get(raw, not is_truthy_value(os.environ.get("HERMES_YOLO_MODE")))
+        enable = _BOOL_WORDS.get(raw, not is_truthy_value(os.environ.get("KOVA_YOLO_MODE")))
         if enable:
-            os.environ["HERMES_YOLO_MODE"] = "1"
+            os.environ["KOVA_YOLO_MODE"] = "1"
         else:
-            os.environ.pop("HERMES_YOLO_MODE", None)
+            os.environ.pop("KOVA_YOLO_MODE", None)
     return _kv(rid, key, "1" if enable else "0", scope=scope if scope == "global" else "session")
 
 
@@ -508,7 +508,7 @@ def _set_cwd(rid, params, key, value, session):
     _write_config_key("terminal.cwd", cwd)
     # ``TERMINAL_CWD`` belongs to the launch process. Keep launch-profile updates live, but never
     # publish an explicit or session-bound secondary profile's cwd into that process-wide carrier.
-    if Path(get_hermes_home()).resolve() == Path(_hermes_home).resolve():
+    if Path(get_kova_home()).resolve() == Path(_kova_home).resolve():
         os.environ["TERMINAL_CWD"] = cwd
     return _kv(rid, "terminal.cwd", cwd, cwd=cwd, branch=git_probe.branch(cwd))
 

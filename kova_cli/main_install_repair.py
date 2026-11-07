@@ -31,7 +31,7 @@ def _pyproject_project(debug_fmt: str | None = None) -> dict | None:
     return project if isinstance(project, dict) else None
 
 
-# Install-scoped breadcrumbs live next to the venv (not under $HERMES_HOME)
+# Install-scoped breadcrumbs live next to the venv (not under $KOVA_HOME)
 # because the venv is shared across profiles.
 #   ``.update-incomplete``       — generic core ``.[all]`` install was interrupted;
 #     cleared only after a confirmed full dependency reinstall/recovery.
@@ -77,7 +77,7 @@ def _clear_lazy_refresh_incomplete_marker() -> None:
 
 
 # Frozen old-updater import; current updates never detach dependency work.
-_UPDATE_REEXEC_ENV = "HERMES_UPDATE_REEXEC"
+_UPDATE_REEXEC_ENV = "KOVA_UPDATE_REEXEC"
 
 
 def _reexec_dependency_sync_off_windows_shim() -> NoReturn:
@@ -107,10 +107,10 @@ def _hermes_exe_shims(scripts_dir: Path) -> list[Path]:
     only; POSIX shims are plain scripts replaced atomically."""
     if not _is_windows():
         return []
-    names = set(_load_console_script_names()) or {"hermes", "hermes-agent", "hermes-acp"}
+    names = set(_load_console_script_names()) or {"hermes", "kova-agent", "hermes-acp"}
     # Not a [project.scripts] entry point, but older update/install paths still
     # rewrite and quarantine it.
-    names.add("hermes-gateway")
+    names.add("kova-gateway")
     return [scripts_dir / f"{name}.exe" for name in sorted(names)]
 
 
@@ -145,7 +145,7 @@ def _filter_pending_shim_renames(entries: list[str], shims: list[Path]) -> tuple
 
 
 def _cleanup_pending_shim_renames(scripts_dir: Path) -> int:
-    """Drop reboot renames older Hermes versions queued for our shims: ``MOVEFILE_DELAY_UNTIL_REBOOT``
+    """Drop reboot renames older Kova versions queued for our shims: ``MOVEFILE_DELAY_UNTIL_REBOOT``
     fallbacks outlive the update that queued them and move away whatever sits at the shim path
     at next boot — even a shim a later repair just wrote. Needs elevation; a no-op otherwise."""
     if not _is_windows():
@@ -340,7 +340,7 @@ def _is_windows_npm_path(npm_path: str) -> bool:
 def _resolve_node_runtime_npm() -> str | None:
     """PM's npm, refused on a POSIX host when it is a Windows shim (EISDIR over WSL UNC paths, #30271).
 
-    Never re-scans the user's PATH for another npm: Hermes runs only its PM-managed toolchain.
+    Never re-scans the user's PATH for another npm: Kova runs only its PM-managed toolchain.
     """
     from kova_constants import find_node_executable
     npm = find_node_executable("npm")

@@ -1,11 +1,11 @@
 """Install, update, gateway and a turn in a home whose path has spaces and non-ASCII bytes.
 
-Failure class: path handling. Users run Hermes from homes like ``/home/José Müller`` or a
+Failure class: path handling. Users run Kova from homes like ``/home/José Müller`` or a
 CJK-named directory. Every path the installer and updater write (clone target, uv/python/node
 store, PM generation, the ``~/.local/bin/hermes`` launcher, the rc-file PATH line, sys.path) must
 survive a space and non-ASCII bytes.
 
-One real install through HEAD's ``scripts/install.sh`` with the whole sandbox (HOME, HERMES_HOME,
+One real install through HEAD's ``scripts/install.sh`` with the whole sandbox (HOME, KOVA_HOME,
 TMPDIR) under ``José Müller 漢字 dir``; then a one-shot turn, a new login shell resolving
 ``hermes``, an upstream release and ``hermes update``, a turn on the new commit and
 ``hermes gateway run``. The symlinked-home shapes live in ``test_paths_symlinked.py`` so the two
@@ -65,8 +65,8 @@ def test_install_update_gateway_and_turn_under_a_non_ascii_spaced_home(odd_home,
     probe = X.login_shell(sb, "command -v hermes; hermes --version >/dev/null && echo LAUNCH-OK")
     assert probe.returncode == 0, H.describe(probe)
     lines = probe.stdout.strip().splitlines()
-    assert lines and lines[0] == sb.hermes and "LAUNCH-OK" in lines, (
-        f"a new login shell does not run the installed launcher (want {sb.hermes}):\n" + H.describe(probe))
+    assert lines and lines[0] == sb.kova and "LAUNCH-OK" in lines, (
+        f"a new login shell does not run the installed launcher (want {sb.kova}):\n" + H.describe(probe))
 
     # Every sys.path entry of the selected interpreter names a real location.
     seen = X.interpreter_paths(sb)

@@ -7,7 +7,7 @@ import pytest
 import kova_cli.gateway as gateway_cli
 
 
-LABEL = "ai.hermes.gateway"
+LABEL = "ai.kova.gateway"
 DOMAIN = "gui/501"
 
 

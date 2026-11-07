@@ -6,9 +6,9 @@ from utils import file_signature
 
 
 def _make_cli(tmp_path, mcp_servers=None, extra_config=None):
-    """Create a minimal HermesCLI instance with mocked config."""
+    """Create a minimal KovaCLI instance with mocked config."""
     import cli as cli_mod
-    obj = object.__new__(cli_mod.HermesCLI)
+    obj = object.__new__(cli_mod.KovaCLI)
     cfg = {"mcp_servers": mcp_servers or {}}
     if extra_config:
         cfg.update(extra_config)
@@ -203,12 +203,12 @@ def test_tui_init_run_state_seeds_config_sig_when_config_exists(monkeypatch):
     import cli as cli_mod
 
     # Bare object: skip the tool-callback / security wiring at the end of the init.
-    monkeypatch.setenv("HERMES_DEFER_AGENT_STARTUP", "1")
+    monkeypatch.setenv("KOVA_DEFER_AGENT_STARTUP", "1")
     cfg_file = get_config_path()
     cfg_file.parent.mkdir(parents=True, exist_ok=True)
     cfg_file.write_text("mcp_servers: {}\n")
 
-    obj = object.__new__(cli_mod.HermesCLI)
+    obj = object.__new__(cli_mod.KovaCLI)
     obj.config = {"mcp_servers": {}}
     obj._tui_init_run_state()
 

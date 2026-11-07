@@ -16,7 +16,7 @@ import pytest
 
 _IMPORT_PROBE = r'''
 import json, os, sys
-home = os.environ["HERMES_HOME"]
+home = os.environ["KOVA_HOME"]
 connects = []
 sys.addaudithook(lambda ev, a: connects.append(str(a[0])) if ev == "sqlite3.connect" and home in str(a[0]) else None)
 import tools.process_registry  # noqa: F401
@@ -27,8 +27,8 @@ print(json.dumps(connects))
 def test_importing_process_registry_does_not_connect_to_state_db(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERMES_")}
-    env.update(HERMES_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=os.getcwd())
+    env = {k: v for k, v in os.environ.items() if not k.startswith("KOVA_")}
+    env.update(KOVA_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=os.getcwd())
     out = subprocess.run([sys.executable, "-c", _IMPORT_PROBE], env=env, capture_output=True, text=True,
                          timeout=120, stdin=subprocess.DEVNULL, check=False)
     assert out.returncode == 0, out.stderr
@@ -45,7 +45,7 @@ async def test_gateway_startup_restores_pending_delegation_completions(tmp_path,
     from tools.process_registry import process_registry
 
     monkeypatch.setattr(ad, "_db_path", lambda: tmp_path / "state.db")
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr("kova_cli.plugins.discover_plugins", lambda: None)
     monkeypatch.setattr("agent.shell_hooks.register_from_config", lambda *a, **k: None)
     monkeypatch.setattr(process_registry, "recover_from_checkpoint", lambda: 0)

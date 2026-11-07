@@ -158,7 +158,7 @@ class TestBuildSessionContextPrompt:
 
 
 
-    def test_local_delivery_path_uses_display_hermes_home(self):
+    def test_local_delivery_path_uses_display_kova_home(self):
         config = GatewayConfig()
         source = SessionSource(
             platform=Platform.LOCAL, chat_id="cli",
@@ -166,10 +166,10 @@ class TestBuildSessionContextPrompt:
         )
         ctx = build_session_context(source, config)
 
-        with patch("kova_constants.display_hermes_home", return_value="~/.hermes/profiles/coder"):
+        with patch("kova_constants.display_kova_home", return_value="~/.kova/profiles/coder"):
             prompt = build_session_context_prompt(ctx)
 
-        assert "~/.hermes/profiles/coder/cron/output/" in prompt
+        assert "~/.kova/profiles/coder/cron/output/" in prompt
 
 
     def test_prompt_quotes_untrusted_metadata_labels(self):
@@ -521,7 +521,7 @@ class TestWhatsAppSessionKeyConsistency:
             json.dumps("15551234567@s.whatsapp.net"),
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_home))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_home))
 
         lid_source = SessionSource(
             platform=Platform.WHATSAPP,
@@ -865,7 +865,7 @@ class TestWhatsAppIdentifierPublicHelpers:
             json.dumps("15551234567@s.whatsapp.net"),
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         canonical = canonical_whatsapp_identifier("999999999999999@lid")
         assert canonical == "15551234567"
@@ -1450,8 +1450,8 @@ class TestGatewaySessionDbRecovery:
         from types import SimpleNamespace
         import kova_constants
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-        monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+        monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
         store = object.__new__(SessionStore)
         store._db = None
         store._transcript_retry_lock = threading.Lock()

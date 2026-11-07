@@ -17,17 +17,17 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_time import now as _hermes_now
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
 
-# Per-profile by design (anchored on get_hermes_home(), see cron/jobs.py). Optional test override;
-# production resolves the path at CALL time so multiplexed profile ticks (set_hermes_home_override)
+# Per-profile by design (anchored on get_kova_home(), see cron/jobs.py). Optional test override;
+# production resolves the path at CALL time so multiplexed profile ticks (set_kova_home_override)
 # cannot leak one profile's suggestions into the import-time home.
 # Per-profile by design (issue #4707): suggestions live alongside the active profile's cron store. Anchor on
-# get_hermes_home() (profile home), not the shared default root. Same pattern as cron/executions.py.
+# get_kova_home() (profile home), not the shared default root. Same pattern as cron/executions.py.
 SUGGESTIONS_FILE: Optional[Path] = None
 
 # Protects load->modify->save cycles (the background review fork and the main agent can both write).
@@ -43,7 +43,7 @@ _STATUS_DISMISSED = "dismissed"
 
 
 def _current_suggestions_file() -> Path:
-    return SUGGESTIONS_FILE or (get_hermes_home().resolve() / "cron" / "suggestions.json")
+    return SUGGESTIONS_FILE or (get_kova_home().resolve() / "cron" / "suggestions.json")
 
 
 def _ensure_dir() -> None:

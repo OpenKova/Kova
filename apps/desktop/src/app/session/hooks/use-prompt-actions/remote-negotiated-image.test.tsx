@@ -1,7 +1,7 @@
 import { cleanup } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 
-import { hermesApi, HermesGateway } from '@/api/client'
+import { hermesApi, KovaGateway } from '@/api/client'
 import { $composerAttachments } from '@/store/composer'
 import { $connectionWires, recordConnectionWire } from '@/store/connection-wire'
 import { requestGatewayForAgent } from '@/store/gateway'
@@ -78,13 +78,13 @@ test.each(['public-canonical', 'public-legacy', 'native-canonical'] as const)('%
       type: 'gateway.ready', payload: canonical ? { session_authority: true } : {}
     } }))
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
   const ready = new Promise<void>(resolve => client.on('gateway.ready', () => resolve()))
   const { port } = server.address() as { port: number }
   // The public cases have no native_dial marker or locally patched resolver.
   const wsUrl = `ws://127.0.0.1:${port}/api/ws?ticket=fixture${native ? '&native_dial=1' : ''}`
-  const previous = window.hermesDesktop
-  window.hermesDesktop = { ...previous, readFileDataUrl: vi.fn(async () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jC5sAAAAASUVORK5CYII=') }
+  const previous = window.kovaDesktop
+  window.kovaDesktop = { ...previous, readFileDataUrl: vi.fn(async () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jC5sAAAAASUVORK5CYII=') }
 
   try {
     await client.connect(wsUrl)
@@ -127,7 +127,7 @@ test.each(['public-canonical', 'public-legacy', 'native-canonical'] as const)('%
     }
 
   } finally {
-    window.hermesDesktop = previous
+    window.kovaDesktop = previous
     client.close()
 
     for (const socket of server.clients) { socket.terminate() }

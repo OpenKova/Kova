@@ -26,13 +26,13 @@ from kova_cli import auth
 # --- helpers ---------------------------------------------------------------
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    """Point HERMES_HOME at a tmp dir so we never touch the real auth store.
+def kova_home(tmp_path, monkeypatch):
+    """Point KOVA_HOME at a tmp dir so we never touch the real auth store.
 
     Required because ``_auth_file_path()`` has a seat belt that refuses to
-    resolve to the real user's ~/.hermes/auth.json under pytest.
+    resolve to the real user's ~/.kova/auth.json under pytest.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     return tmp_path
 
 
@@ -75,7 +75,7 @@ def windows_default_encoding(monkeypatch):
 # --- the bug: a non-ASCII label must survive save → load -------------------
 
 class TestAuthStoreEncodingRoundTrip:
-    def test_load_reads_utf8_with_non_ascii_label(self, hermes_home, windows_default_encoding):
+    def test_load_reads_utf8_with_non_ascii_label(self, kova_home, windows_default_encoding):
         """A UTF-8 store with a CJK/emoji label loads intact (not wiped).
 
         Under the Windows-default-encoding fixture, a no-encoding read_text()
@@ -92,7 +92,7 @@ class TestAuthStoreEncodingRoundTrip:
                 }
             },
         }
-        auth_path = hermes_home / "auth.json"
+        auth_path = kova_home / "auth.json"
         _write_utf8(auth_path, store)
 
         loaded = auth._load_auth_store(auth_path)
@@ -101,7 +101,7 @@ class TestAuthStoreEncodingRoundTrip:
         assert "openai-codex" in loaded["providers"]
         assert loaded["providers"]["openai-codex"]["label"] == "工作账号 🔥"
 
-    def test_load_does_not_corrupt_store_on_non_ascii(self, hermes_home, windows_default_encoding):
+    def test_load_does_not_corrupt_store_on_non_ascii(self, kova_home, windows_default_encoding):
         """The pre-fix bug wiped the store to empty on a UnicodeDecodeError.
 
         After the fix, loading a valid UTF-8 store must never produce the empty
@@ -111,21 +111,21 @@ class TestAuthStoreEncodingRoundTrip:
             "version": auth.AUTH_STORE_VERSION,
             "providers": {"x": {"label": "José's key"}},
         }
-        auth_path = hermes_home / "auth.json"
+        auth_path = kova_home / "auth.json"
         _write_utf8(auth_path, store)
 
         auth._load_auth_store(auth_path)
 
-        assert not (hermes_home / "auth.json.corrupt").exists()
+        assert not (kova_home / "auth.json.corrupt").exists()
         # original file untouched — read it back and compare structurally
         # (json.dumps may escape non-ASCII, so compare parsed values, not text)
         on_disk = json.loads(auth_path.read_text(encoding="utf-8"))
         assert on_disk["providers"]["x"]["label"] == "José's key"
 
-    def test_load_handles_utf8_with_bom(self, hermes_home):
+    def test_load_handles_utf8_with_bom(self, kova_home):
         """A BOM (e.g. from Notepad editing) must not break the read."""
         store = {"version": auth.AUTH_STORE_VERSION, "providers": {"x": {"label": "café"}}}
-        auth_path = hermes_home / "auth.json"
+        auth_path = kova_home / "auth.json"
         payload = json.dumps(store)
         # write with utf-8-sig to prepend the BOM
         auth_path.write_text(payload, encoding="utf-8-sig")
@@ -138,14 +138,14 @@ class TestAuthStoreEncodingRoundTrip:
 
 
 
-# --- sibling readers of the same ~/.hermes/auth.json in other modules -------
+# --- sibling readers of the same ~/.kova/auth.json in other modules -------
 #
 # _load_auth_store lives in kova_cli/auth.py, but several other modules read
-# the same ~/.hermes/auth.json directly. They had the same UTF-8-vs-cp1252
+# the same ~/.kova/auth.json directly. They had the same UTF-8-vs-cp1252
 # asymmetry on Windows — these tests pin the sibling reads too.
 
 class TestAuthJsonSiblingReaders:
-    def test_has_xai_credentials_reads_non_ascii_store(self, hermes_home, windows_default_encoding, monkeypatch):
+    def test_has_xai_credentials_reads_non_ascii_store(self, kova_home, windows_default_encoding, monkeypatch):
         """tools/xai_http.has_xai_credentials must read a non-ASCII auth.json.
 
         Pre-fix, a UTF-8 store with a non-ASCII label raised UnicodeDecodeError
@@ -165,13 +165,13 @@ class TestAuthJsonSiblingReaders:
                 }
             },
         }
-        _write_utf8(hermes_home / "auth.json", store)
+        _write_utf8(kova_home / "auth.json", store)
 
         from tools.xai_http import has_xai_credentials
 
         assert has_xai_credentials() is True
 
-    def test_auxiliary_nous_provider_reads_non_ascii_store(self, hermes_home, windows_default_encoding, monkeypatch):
+    def test_auxiliary_nous_provider_reads_non_ascii_store(self, kova_home, windows_default_encoding, monkeypatch):
         """agent/auxiliary_client's Nous-provider lookup reads the same store.
 
         The lookup returns None on any read failure, silently disabling Nous as
@@ -183,14 +183,14 @@ class TestAuthJsonSiblingReaders:
             "active_provider": "nous",
             "providers": {"nous": {"agent_key": "k", "label": "工作账号"}},
         }
-        _write_utf8(hermes_home / "auth.json", store)
+        _write_utf8(kova_home / "auth.json", store)
 
         import agent.auxiliary_client as aux
 
         # _AUTH_JSON_PATH is resolved at module import time, so the
-        # HERMES_HOME env from the fixture doesn't reach it — point it at
+        # KOVA_HOME env from the fixture doesn't reach it — point it at
         # the tmp store explicitly.
-        monkeypatch.setattr(aux, "_AUTH_JSON_PATH", hermes_home / "auth.json")
+        monkeypatch.setattr(aux, "_AUTH_JSON_PATH", kova_home / "auth.json")
 
         # _read_nous_auth consults the credential pool FIRST and returns early
         # when a pool entry exists, never reaching the auth.json read. Force the
@@ -215,7 +215,7 @@ class TestAuthJsonSiblingReaders:
         # The shared-store path has a seat belt that refuses to resolve to the
         # real user's store under pytest; pin it to a tmp dir explicitly.
         shared_dir = tmp_path / "shared"
-        monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(shared_dir))
+        monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(shared_dir))
 
         payload = {
             "refresh_token": "rt",
@@ -233,7 +233,7 @@ class TestAuthJsonSiblingReaders:
         assert provider["display_name"] == "Réne — Noël"
 
     def test_has_any_provider_configured_reads_non_ascii_auth_store(
-        self, hermes_home, monkeypatch, windows_default_encoding
+        self, kova_home, monkeypatch, windows_default_encoding
     ):
         """kova_cli.main._has_any_provider_configured reads auth.json.
 
@@ -253,7 +253,7 @@ class TestAuthJsonSiblingReaders:
                 }
             },
         }
-        _write_utf8(hermes_home / "auth.json", store)
+        _write_utf8(kova_home / "auth.json", store)
 
         import kova_cli.auth as auth_mod
         import kova_cli.main as main_mod
@@ -280,7 +280,7 @@ class TestAuthJsonSiblingReaders:
         assert main_mod._has_any_provider_configured() is True
 
     def test_managed_tool_gateway_reads_non_ascii_nous_state(
-        self, hermes_home, windows_default_encoding
+        self, kova_home, windows_default_encoding
     ):
         """tools.managed_tool_gateway._read_nous_provider_state reads auth.json.
 
@@ -299,7 +299,7 @@ class TestAuthJsonSiblingReaders:
                 }
             },
         }
-        _write_utf8(hermes_home / "auth.json", store)
+        _write_utf8(kova_home / "auth.json", store)
 
         from tools.managed_tool_gateway import _read_nous_provider_state
 

@@ -7,7 +7,7 @@ import { isMain } from './frontend-common.mjs'
 
 const receiptName = 'hermes-build.json'
 // What `hermes update` leaves in a product it could not rebuild (STALE_MARKER in kova_cli/webapp.py).
-const staleMarker = '.hermes-stale'
+const staleMarker = '.kova-stale'
 const workspaces = { tui: 'ui-tui', web: 'web', desktop: 'apps/desktop' }
 // Another product's output under a workspace is never this product's input.
 const generated = new Set(['node_modules', 'dist', 'dist-webapp', 'build', 'release', '.cache', '.git', 'coverage', 'test-results', 'playwright-report'])
@@ -107,7 +107,7 @@ export function sourceEntries(source, product) {
 function outputHash(out, ignored = []) {
   // Native binaries can be signed after compilation. Their ABI validation is
   // owned by native preparation; renderer/main/preload bytes must stay intact.
-  return treeHash(out, readdirSync(out).sort(), name => name === receiptName || name === '.hermes-product' || ignored.includes(name),
+  return treeHash(out, readdirSync(out).sort(), name => name === receiptName || name === '.kova-product' || ignored.includes(name),
     name => !name.split('/').includes('node_modules') && !name.startsWith('native/'))
 }
 

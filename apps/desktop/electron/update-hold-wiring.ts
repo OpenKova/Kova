@@ -48,7 +48,7 @@ export function markerGateProbe(host: MarkerGateHost, { onLiveMarker, onHeld, on
   // helper decides under its lock whether a completion still holds the
   // checkout (R6) — see update-marker-gate.ts.
   return liveMarkerProbe({
-    hermesHome: host.hermesHome,
+    hermesHome: host.kovaHome,
     createTime,
     onLiveMarker,
     onHeld,
@@ -60,7 +60,7 @@ export function markerGateProbe(host: MarkerGateHost, { onLiveMarker, onHeld, on
     reclaim: () =>
       runMarkerHelper('reclaim', {
         updateRoot: host.updateRoot(),
-        hermesHome: host.hermesHome,
+        hermesHome: host.kovaHome,
         isWindows: host.isWindows
       })
   })
@@ -90,7 +90,7 @@ export function createUpdateHoldScreen(host: UpdateHoldScreenHost) {
     ownerPid: state.ownerPid,
     since: state.since,
     checkedAt: state.checkedAt,
-    logPath: path.join(host.hermesHome, 'logs', 'update.log')
+    logPath: path.join(host.kovaHome, 'logs', 'update.log')
   })
 
   function render(state: HeldState, bootPhase: boolean) {
@@ -199,7 +199,7 @@ export function registerUpdateHoldIpc(ipc: IpcMain, host: UpdateHoldIpcHost) {
     }
 
     const hold = host.currentHold()
-    host.log(`[updates] user quit Hermes from the update-hold screen${hold ? ` (hold ${hold.holdId})` : ''}`)
+    host.log(`[updates] user quit Kova from the update-hold screen${hold ? ` (hold ${hold.holdId})` : ''}`)
     host.quit()
 
     return { ok: true }

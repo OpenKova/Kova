@@ -23,7 +23,7 @@ import { setActiveSessionId } from './session'
 import { dropSessionState, publishSessionState } from './session-states'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialKovaDesktop = desktopWindow.kovaDesktop
 
 const notify = vi.fn().mockResolvedValue(true)
 
@@ -44,7 +44,7 @@ function freshSession(): string {
 
 beforeEach(() => {
   notify.mockClear()
-  desktopWindow.hermesDesktop = { notify } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { notify } as unknown as Window['hermesDesktop']
   setNativeNotifyEnabled(true)
 
   for (const kind of NATIVE_NOTIFICATION_KINDS) {
@@ -60,10 +60,10 @@ beforeEach(() => {
 afterEach(() => {
   clearPluginNotifyHandlers()
 
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialKovaDesktop) {
+    desktopWindow.kovaDesktop = initialKovaDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
   }
 
   resetBackgroundPollingGuard()
@@ -298,7 +298,7 @@ describe('sendTestNativeNotification', () => {
   it('fires regardless of focus or active session', () => {
     setWindowState({ focused: true, hidden: false })
     setActiveSessionId('on-screen')
-    sendTestNativeNotification('Hermes', 'works')
+    sendTestNativeNotification('Kova', 'works')
     expect(notify).toHaveBeenCalledTimes(1)
   })
 })

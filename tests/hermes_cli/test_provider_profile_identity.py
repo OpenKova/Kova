@@ -1,6 +1,6 @@
 """Plugin ProviderProfiles resolve wherever a provider NAME is resolved at switch time (#69576).
 
-Discovery is real (a plugin dir under the test HERMES_HOME); only the remote model probe is stubbed.
+Discovery is real (a plugin dir under the test KOVA_HOME); only the remote model probe is stubbed.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import kova_yaml as yaml
 from kova_cli import auth as auth_mod
 from kova_cli.model_switch import switch_model
 from kova_cli.providers import resolve_provider_full
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 KEY = "test-profile-credential"
 ACCEPT = {"accepted": True, "persist": True, "recognized": True, "message": None}
@@ -35,7 +35,7 @@ def install_profile(monkeypatch):
         monkeypatch.setenv(env_var, KEY)
         monkeypatch.setattr(profiles, "_discovered", False)
         monkeypatch.delitem(sys.modules, f"_hermes_user_provider_{name}", raising=False)
-        plugin_dir = get_hermes_home() / "plugins" / "model-providers" / name
+        plugin_dir = get_kova_home() / "plugins" / "model-providers" / name
         plugin_dir.mkdir(parents=True, exist_ok=True)
         (plugin_dir / "plugin.yaml").write_text(
             f"name: {name}\nkind: model-provider\nversion: 0.0.1\ndescription: switch fixture\n", encoding="utf-8")
@@ -90,7 +90,7 @@ def test_persisted_alias_config_applies_to_the_canonical_runtime_provider(instal
     from kova_cli import runtime_provider as rp
 
     install_profile("testgw", aliases=("testgw-alias",), base_url="https://gw.example.test/v1", env_var="TESTGW_API_KEY")
-    (get_hermes_home() / "config.yaml").write_text(yaml.safe_dump(
+    (get_kova_home() / "config.yaml").write_text(yaml.safe_dump(
         {"model": {"provider": "testgw-alias", "default": "test-model", "base_url": "https://cfg.example.test/v1"}}),
         encoding="utf-8")
 

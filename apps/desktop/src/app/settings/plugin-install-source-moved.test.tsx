@@ -60,12 +60,12 @@ afterEach(() => {
   cleanup()
   closePluginInstallRequest()
   vi.unstubAllGlobals()
-  delete window.document.documentElement.dataset.hermesDesktopHost
+  delete window.document.documentElement.dataset.kovaDesktopHost
 })
 
 describe('Install after the source moved past the reviewed commit', () => {
   it('browser-hosted: re-inspects, shows the new commit, and installs that one instead of resending the old', async () => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     let tip = V1
 
     requestGateway.mockImplementation(async (method, params) => {
@@ -108,7 +108,7 @@ describe('Install after the source moved past the reviewed commit', () => {
   })
 
   it('an ordinary install failure still offers Retry and never re-inspects', async () => {
-    window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+    window.document.documentElement.dataset.kovaDesktopHost = 'browser'
     requestGateway.mockImplementation(async (method, params) => {
       if (method === 'plugins.manage' && params?.action === 'inspect') {
         return { ok: true, agent: true, agent_name: 'pkg', desktop: false, sha: V1, warnings: [] }

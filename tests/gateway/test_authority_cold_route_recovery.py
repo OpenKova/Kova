@@ -1,4 +1,4 @@
-"""A cold messaging-platform session mounts for a local viewer (TUI-8, NousResearch/hermes-agent#134889).
+"""A cold messaging-platform session mounts for a local viewer (TUI-8, NousResearch/kova-agent#134889).
 
 Before its first post-restart inbound nothing publishes a messaging-platform lane (Telegram, Weixin,
 Discord, ...) into the authority, so ``session.resume`` of its row answered ``not_found`` until
@@ -71,7 +71,7 @@ def _seed(tmp_path, sid, source, *, routed=True, row_origin=_ROUTE, row_source=N
         entry = SessionEntry(entry_key or route, sid, now, now, origin=entry_source or None,
                              platform=source.platform, transport_profile=transport_profile)
         # The routing index lives in the store's routing home, which is cached per process: write where
-        # the cold store will read, not where this test's HERMES_HOME happens to point.
+        # the cold store will read, not where this test's KOVA_HOME happens to point.
         store._routing_db.save_gateway_routing_entry(
             route, json.dumps(entry.to_dict()), scope=store._routing_scope())
     return route
@@ -106,7 +106,7 @@ async def _refused(tmp_path, sid, reason='not_found', **cold_args):
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
 
 
 @pytest.mark.asyncio

@@ -269,7 +269,7 @@ class MCPServerRunMixin:
         self._sampling = (_sampling.SamplingHandler(self.name, sampling_config)
                           if sampling_config.get("enabled", True) and _core._MCP_SAMPLING_TYPES else None)
         # elicitation/create lets a server ask for structured input mid-call; the handler
-        # routes it through Hermes' approval system.
+        # routes it through Kova' approval system.
         elicitation_config = config.get("elicitation", {})
         self._elicitation = (_sampling.ElicitationHandler(self.name, elicitation_config,
                                                        call_context=lambda: self._pending_call_context)
@@ -362,7 +362,7 @@ class MCPServerRunMixin:
                 # Task was cancelled (shutdown, gateway restart, explicit task.cancel()). Don't treat this
                 # as a connection failure — CancelledError inherits from BaseException (not Exception) in
                 # Python 3.11+, so the broad ``except Exception`` below would NOT catch it; we'd silently
-                # exit the reconnect loop and the MCP server would stay dead until Hermes is fully
+                # exit the reconnect loop and the MCP server would stay dead until Kova is fully
                 # restarted. See #9930.
                 self.session = None
                 raise
@@ -531,9 +531,9 @@ class MCPServerRunMixin:
         refresh token, so a backend building agents (each one re-runs discovery while no server is
         connected) hit the authorization server once per session, enough for a rate-limit ban."""
         if self._auth_type == "oauth" and _errors._is_auth_error(root):
-            from kova_constants import get_hermes_home
-            from tools.mcp_oauth import HermesTokenStorage
-            storage = HermesTokenStorage(self.name, hermes_home=get_hermes_home())
+            from kova_constants import get_kova_home
+            from tools.mcp_oauth import KovaTokenStorage
+            storage = KovaTokenStorage(self.name, kova_home=get_kova_home())
             self._auth_park = (storage, storage.credential_stamp())
 
     async def start(self, config: dict):

@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 from cron.executions import cancellable_execution
 
@@ -34,7 +34,7 @@ _DEFAULT_REASON = "cancelled on request (hermes cron cancel)"
 
 def _cancels_dir() -> Path:
     """Resolved per call so a multiplexed gateway never writes into another profile's home."""
-    return get_hermes_home().resolve() / "cron" / "cancels"
+    return get_kova_home().resolve() / "cron" / "cancels"
 
 
 def _marker_path(execution_id: str) -> Path:

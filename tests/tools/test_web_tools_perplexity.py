@@ -17,14 +17,14 @@ def _ok(payload):
 
 
 def _assert_hermes_identity_headers(headers):
-    """Both Perplexity endpoints carry the Hermes identity headers (same set as Kimi/OpenCode)
+    """Both Perplexity endpoints carry the Kova identity headers (same set as Kimi/OpenCode)
     plus Perplexity's integration header."""
     from kova_cli.version_info import get_version_info
 
-    assert headers["HTTP-Referer"] == "https://hermes-agent.nousresearch.com"
-    assert headers["X-Title"] == "Hermes Agent"
-    assert headers["User-Agent"] == f"HermesAgent/{get_version_info().base_version}"
-    assert headers["X-Pplx-Integration"] == "hermes-agent"
+    assert headers["HTTP-Referer"] == "https://kova-agent.nousresearch.com"
+    assert headers["X-Title"] == "Kova Agent"
+    assert headers["User-Agent"] == f"KovaAgent/{get_version_info().base_version}"
+    assert headers["X-Pplx-Integration"] == "kova-agent"
 
 
 def test_search_dispatch_maps_search_api_shape():

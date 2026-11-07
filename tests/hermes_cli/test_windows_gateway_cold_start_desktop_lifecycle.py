@@ -43,8 +43,8 @@ def _live_serve_ledger_entry() -> dict:
 def test_control_plane_argv_is_not_a_gateway():
     from gateway.status import looks_like_gateway_command_line
 
-    serve = "C:\\Hermes\\.venv\\Scripts\\python.exe -m kova_cli.main serve --host 127.0.0.1"
-    run = "C:\\Hermes\\.venv\\Scripts\\python.exe -m kova_cli.main gateway run"
+    serve = "C:\\Kova\\.venv\\Scripts\\python.exe -m kova_cli.main serve --host 127.0.0.1"
+    run = "C:\\Kova\\.venv\\Scripts\\python.exe -m kova_cli.main gateway run"
 
     assert update_cmd._looks_like_desktop_control_plane(serve) is True
     assert looks_like_gateway_command_line(serve) is False
@@ -55,7 +55,7 @@ def test_control_plane_classifier_is_token_based_not_substring():
     """#90778/#91869 class: flag values and lookalike tokens must not read
     as a control plane. The salvage swapped the original substring check
     for the parser-derived subcommand classifier."""
-    py = "C:\\Hermes\\.venv\\Scripts\\python.exe -m kova_cli.main"
+    py = "C:\\Kova\\.venv\\Scripts\\python.exe -m kova_cli.main"
     # "dashboard" as a FLAG VALUE, real subcommand is chat
     assert update_cmd._looks_like_desktop_control_plane(f"{py} -m dashboard chat") is False
     # "--preserve-cache" contains "serve"; real subcommand is kanban
@@ -99,7 +99,7 @@ def _running_beta_pause_fixture(monkeypatch, tmp_path):
 
     homes = {"default": tmp_path, "beta": tmp_path / "profiles" / "beta"}
     homes["beta"].mkdir(parents=True)
-    monkeypatch.setattr("kova_cli.config.get_hermes_home", lambda: str(tmp_path))
+    monkeypatch.setattr("kova_cli.config.get_kova_home", lambda: str(tmp_path))
     monkeypatch.setattr(update_cmd, "_desktop_owns_gateway_lifecycle", lambda: True)
     monkeypatch.setattr(update_cmd_windows, "_desktop_owns_gateway_lifecycle", lambda: True)
     beta = SimpleNamespace(pid=777, profile="beta")
@@ -200,7 +200,7 @@ def test_service_supervised_running_profile_is_not_cold_started(monkeypatch, tmp
 
     homes = _running_beta_pause_fixture(monkeypatch, tmp_path)
     svc_proc = SimpleNamespace(pid=900, profile="beta", path=homes["beta"])
-    service = SimpleNamespace(name="HermesGw-beta", profile="beta", service_pid=800, gateway_pid=900,
+    service = SimpleNamespace(name="KovaGw-beta", profile="beta", service_pid=800, gateway_pid=900,
                               descendant_identities=(), service_create_time=1.0, gateway_create_time=2.0)
     monkeypatch.setattr(update_cmd_windows, "_discover_windows_gateways", lambda: ({900: svc_proc}, [service], {900}, [900]))
     monkeypatch.setattr(update_cmd_windows, "_request_socket_pauses", lambda *a, **k: ({}, [], []))
@@ -209,6 +209,6 @@ def test_service_supervised_running_profile_is_not_cold_started(monkeypatch, tmp
 
     token = update_cmd._pause_windows_gateways_for_update()
 
-    assert token["services"] == ["HermesGw-beta"]
+    assert token["services"] == ["KovaGw-beta"]
     assert token["profiles"] == {}
     assert "cold_start_profiles" not in token

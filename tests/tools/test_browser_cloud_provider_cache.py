@@ -14,7 +14,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 from tools import browser_session_cloud as bs_cloud
 
 
@@ -26,16 +26,16 @@ def _reset_resolver_state(monkeypatch):
 
 def _resolution_cached() -> bool:
     """Whether the active profile has a cached provider resolution."""
-    scope = hermes_home_key()
+    scope = kova_home_key()
     return any(key[0] == scope for key in bs_cloud._cached_providers)
 
 
 class TestCloudProviderCachePolicy:
-    def test_cache_is_isolated_by_hermes_home(self, tmp_path, monkeypatch):
+    def test_cache_is_isolated_by_kova_home(self, tmp_path, monkeypatch):
         from kova_constants import (
-            get_hermes_home,
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            get_kova_home,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
         monkeypatch.setattr(
@@ -46,7 +46,7 @@ class TestCloudProviderCachePolicy:
         resolutions = []
 
         def resolve(_name):
-            home = str(get_hermes_home())
+            home = str(get_kova_home())
             resolutions.append(home)
             return providers[home]
 
@@ -58,11 +58,11 @@ class TestCloudProviderCachePolicy:
         providers[str(home_b)] = Mock(name="provider-b")
 
         def resolve_for(home):
-            token = set_hermes_home_override(home)
+            token = set_kova_home_override(home)
             try:
                 return bs_cloud.get_cloud_provider()
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
         assert resolve_for(home_a) is providers[str(home_a)]
         assert resolve_for(home_b) is providers[str(home_b)]
@@ -75,8 +75,8 @@ class TestCloudProviderCachePolicy:
         from agent.browser_provider import BrowserProvider
         from agent import browser_registry
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
         class Provider(BrowserProvider):
@@ -107,7 +107,7 @@ class TestCloudProviderCachePolicy:
             lambda: {"browser": {"cloud_provider": "cache-replacement"}},
         )
         monkeypatch.setattr("tools.browser_session_cloud._ensure_browser_plugins_loaded", lambda: None)
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             browser_registry.register_provider(first, scope=home)
             assert bs_cloud.get_cloud_provider() is first
@@ -121,7 +121,7 @@ class TestCloudProviderCachePolicy:
                 browser_registry.restore_registration(
                     "cache-replacement", current, None, scope=home
                 )
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     def test_concurrent_registry_replacement_discards_stale_resolution(
         self, tmp_path, monkeypatch
@@ -132,8 +132,8 @@ class TestCloudProviderCachePolicy:
         from agent.browser_provider import BrowserProvider
         from agent import browser_registry
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
         class Provider(BrowserProvider):
@@ -182,11 +182,11 @@ class TestCloudProviderCachePolicy:
         browser_registry.register_provider(first, scope=home)
 
         def resolve():
-            token = set_hermes_home_override(home)
+            token = set_kova_home_override(home)
             try:
                 return bs_cloud.get_cloud_provider()
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
         try:
             with ThreadPoolExecutor(max_workers=1) as pool:

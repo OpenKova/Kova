@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/hermes', () => ({
   setApiRequestConnection: vi.fn(),
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     connect = vi.fn()
     close = vi.fn()
@@ -36,12 +36,12 @@ const primary = () => ({ connectionState: 'open', request: vi.fn(async () => ({}
 
 beforeEach(() => {
   configureGatewayRegistry({ onEvent: vi.fn(), primaryProfile: 'default' } as never)
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = shared()
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = shared()
 })
 
 afterEach(() => {
   closeSecondaryGateways()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('primary rider hint', () => {

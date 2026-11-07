@@ -2,9 +2,9 @@
 
 The dashboard is ONE machine-level management surface: config, env, MCP,
 model, and chat-PTY endpoints accept an optional ``profile`` so the global
-profile switcher can target any profile's HERMES_HOME. These tests pin:
+profile switcher can target any profile's KOVA_HOME. These tests pin:
 reads/writes land in the REQUESTED profile, the dashboard's own profile
-stays untouched, and the chat PTY env is scoped via HERMES_HOME.
+stays untouched, and the chat PTY env is scoped via KOVA_HOME.
 """
 import json
 from pathlib import Path
@@ -19,12 +19,12 @@ import kova_cli.web_server_messaging as _web_server_messaging
 
 
 @pytest.fixture
-def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
+def isolated_profiles(tmp_path, monkeypatch, _isolate_kova_home):
     """Isolated default home + one named profile, each with config + .env."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_beta"
     for home in (default_home, worker_home):
@@ -32,7 +32,7 @@ def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
         (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     (worker_home / ".env").write_text("", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_beta": worker_home}
 
@@ -45,10 +45,10 @@ def client(monkeypatch, isolated_profiles):
         pytest.skip("fastapi/starlette not installed")
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c
@@ -222,8 +222,8 @@ class TestProfileScopedMcp:
         # same env name — the probe must not use it.
         monkeypatch.setenv("GITHUB_PERSONAL_ACCESS_TOKEN", "default-profile-token")
 
-        def _worker_sources(hermes_home):
-            if Path(hermes_home).resolve() == worker_home.resolve():
+        def _worker_sources(kova_home):
+            if Path(kova_home).resolve() == worker_home.resolve():
                 return {"GITHUB_PERSONAL_ACCESS_TOKEN": "bw-worker-token"}
             return {}
 
@@ -258,8 +258,8 @@ class TestProfileScopedMcp:
         monkeypatch.setenv("MCP_GH_URL", "http://default-profile/mcp")
         monkeypatch.setattr(
             env_loader, "get_secret_source_values",
-            lambda hermes_home: {"MCP_GH_URL": "http://worker/mcp"}
-            if Path(hermes_home).resolve() == worker_home.resolve() else {},
+            lambda kova_home: {"MCP_GH_URL": "http://worker/mcp"}
+            if Path(kova_home).resolve() == worker_home.resolve() else {},
         )
 
         resp = client.get("/api/mcp/servers", params={"profile": "worker_beta"})
@@ -308,7 +308,7 @@ class TestProfileScopedModel:
         create silently returned model_set: false. Validation must see the dashboard home's
         config; the write must still land in the new profile only."""
         import kova_cli.profiles as profiles_mod
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         monkeypatch.setattr(profiles_mod, "create_wrapper_script", lambda name: None)
         (isolated_profiles["default"] / "config.yaml").write_text(
@@ -318,7 +318,7 @@ class TestProfileScopedModel:
         def _switch(*, raw_input, explicit_provider, user_providers, **_kw):
             from kova_cli.model_switch import ModelSwitchResult
             seen["user_providers"] = user_providers
-            seen["home"] = get_hermes_home()
+            seen["home"] = get_kova_home()
             if explicit_provider not in user_providers:
                 return ModelSwitchResult(success=False, error_message=f"Unknown provider '{explicit_provider}'.")
             return ModelSwitchResult(success=True, new_model=raw_input, target_provider=explicit_provider)
@@ -349,7 +349,7 @@ class TestProfileScopedPostSetup:
         self, client, isolated_profiles, monkeypatch
     ):
         """Post-setup runs in a -p scoped subprocess so hooks that read
-        config / write per-profile state see the same HERMES_HOME the rest
+        config / write per-profile state see the same KOVA_HOME the rest
         of the drawer's writes targeted."""
 
         calls = []
@@ -383,14 +383,14 @@ class TestProfileScopedGateway:
         self, client, isolated_profiles, monkeypatch
     ):
         from kova_cli import web_server
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         seen_homes = []
 
         def fake_get_running_pid(*args, **kwargs):
             # /api/status?profile= now passes pid_path= explicitly (the TTL
             # cache would otherwise serve another profile's PID) — accept it.
-            seen_homes.append(str(get_hermes_home()))
+            seen_homes.append(str(get_kova_home()))
 
         monkeypatch.setattr(_cfg_mod, "check_config_version", lambda: (1, 1))
         # get_status probes via the TTL-cached wrapper (PR #53511 salvage);
@@ -407,7 +407,7 @@ class TestProfileScopedGateway:
 
         assert resp.status_code == 200
         assert seen_homes[0] == str(isolated_profiles["worker_beta"])
-        assert resp.json()["hermes_home"] == str(isolated_profiles["worker_beta"])
+        assert resp.json()["kova_home"] == str(isolated_profiles["worker_beta"])
 
     def test_status_uses_runtime_pid_when_profile_pid_file_is_missing(
         self, client, isolated_profiles, monkeypatch
@@ -623,7 +623,7 @@ class TestProfileScopedTelegramOnboarding:
 
 
 class TestProfileScopedChatPty:
-    def test_chat_argv_scopes_hermes_home(self, isolated_profiles, monkeypatch):
+    def test_chat_argv_scopes_kova_home(self, isolated_profiles, monkeypatch):
 
         monkeypatch.setattr(
             "kova_cli.main_tui_launch._make_tui_argv",
@@ -632,9 +632,9 @@ class TestProfileScopedChatPty:
         )
         _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["KOVA_HOME"] == str(isolated_profiles["worker_beta"])
         # Scoped chat must NOT attach to the dashboard's in-memory gateway.
-        assert "HERMES_TUI_GATEWAY_URL" not in env
+        assert "KOVA_TUI_GATEWAY_URL" not in env
 
     def test_chat_argv_bridges_selected_profile_terminal_config(
         self, isolated_profiles, monkeypatch
@@ -665,7 +665,7 @@ class TestProfileScopedChatPty:
         _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
 
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["KOVA_HOME"] == str(isolated_profiles["worker_beta"])
         assert env["TERMINAL_ENV"] == "ssh"
         assert env["TERMINAL_SSH_HOST"] == "worker.example.test"
         assert env["TERMINAL_CWD"] == "~"
@@ -749,7 +749,7 @@ class TestProfileScopedChatPty:
             _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
 
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["KOVA_HOME"] == str(isolated_profiles["worker_beta"])
         assert "TERMINAL_ENV" not in env
 
 
@@ -772,9 +772,9 @@ class TestProfileScopedAudio:
         seen = {}
 
         def _fake_transcribe(path):
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            seen["home"] = str(get_hermes_home())
+            seen["home"] = str(get_kova_home())
             return {"success": True, "transcript": "hi", "provider": "fake"}
 
         monkeypatch.setattr(voice_mode, "transcribe_recording", _fake_transcribe)

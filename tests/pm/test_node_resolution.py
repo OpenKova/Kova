@@ -16,7 +16,7 @@ from pm.package import Runner
 from pm.registry import get_package
 from pm.store import current_target, tree_digest
 
-_REAL_HERMES_HOME = Path.home() / ".hermes"  # Captured before per-test HOME isolation.
+_REAL_KOVA_HOME = Path.home() / ".kova"  # Captured before per-test HOME isolation.
 
 
 def _register_installed_tool(name, executable, companions=()):
@@ -47,15 +47,15 @@ def node_store(tmp_path, monkeypatch):
         pytest.skip("requires an already-installed Node executable")
     # The fixture hashes its input. Never read the developer's live PM store to
     # fabricate a temporary one; CI's external Node still exercises this path.
-    if Path(node).absolute().is_relative_to(_REAL_HERMES_HOME):
-        pytest.skip("requires a Node binary outside the real Hermes home")
+    if Path(node).absolute().is_relative_to(_REAL_KOVA_HOME):
+        pytest.skip("requires a Node binary outside the real Kova home")
     monkeypatch.setenv("PATH", str(Path(node).parent))
     home = tmp_path / "home"
     home.mkdir()
     store = home / "tools"
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")
     lock_path = tmp_path / "lock.json"
     monkeypatch.setattr(paths, "lockfile_path", lambda: lock_path)
     binary = _register_installed_tool("node", node)
@@ -96,9 +96,9 @@ def test_passive_discovery_never_installs_or_repairs_a_legacy_tree(tmp_path, mon
     legacy.parent.mkdir(parents=True)
     legacy.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     legacy.chmod(0o755)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")
     monkeypatch.setenv("PATH", "")
     before = {p.relative_to(home): p.read_bytes() for p in home.rglob("*") if p.is_file()}
     attempts = []
@@ -115,7 +115,7 @@ def test_passive_discovery_never_installs_or_repairs_a_legacy_tree(tmp_path, mon
     assert {p.relative_to(home): p.read_bytes() for p in home.rglob("*") if p.is_file()} == before
     assert not (home / "tools").exists()
 
-    # A user-owned PATH toolchain is never selected: Hermes runs only PM's copy.
+    # A user-owned PATH toolchain is never selected: Kova runs only PM's copy.
     external = tmp_path / "external"
     external.mkdir()
     npm = external / "npm"
@@ -170,7 +170,7 @@ def test_npm_and_npx_use_the_paired_pm_entry(node_store, monkeypatch):
 
 @pytest.mark.platforms("windows")
 def test_windows_path_prefers_launchable_cmd_but_never_for_pm_tools(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "absent-store"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "absent-store"))
     monkeypatch.setenv("PATH", str(tmp_path))
     for tool in ("npm", "pnpm"):
         for name in (tool, f"{tool}.ps1", f"{tool}.cmd"):
@@ -302,8 +302,8 @@ def test_adapter_availability_never_provisions_missing_node(tmp_path, monkeypatc
     from plugins.platforms.photon import adapter as photon
     from plugins.platforms.whatsapp import adapter as whatsapp
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "missing-tools"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "missing-tools"))
     monkeypatch.setenv("PATH", "")
     monkeypatch.delenv("PHOTON_NODE_BIN", raising=False)
     monkeypatch.setattr(photon, "_sidecar_dir", lambda: tmp_path)

@@ -71,7 +71,7 @@ vi.mock('@/lib/desktop-git', async importOriginal => ({
 }))
 
 vi.mock('@/hermes', () => ({
-  getHermesConfig: vi.fn(),
+  getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
   hermesApi: vi.fn(),
   setApiRequestProfile: vi.fn(),
@@ -91,7 +91,7 @@ const git = await import('@/lib/desktop-git')
 const desktopGit = vi.mocked(git.desktopGit)
 
 const hermes = await import('@/hermes')
-const getHermesConfig = vi.mocked(hermes.getHermesConfig)
+const getKovaConfig = vi.mocked(hermes.getKovaConfig)
 const notifications = await import('@/store/notifications')
 const notify = vi.mocked(notifications.notify)
 
@@ -399,7 +399,7 @@ describe('startWorkInRepo remote capability gate (#81724)', () => {
     desktopGit.mockReturnValue({
       worktreeAdd: vi.fn(async () => {
         throw new Error(
-          'Expected JSON from https://vps/api/git/worktree/add but got HTML (status 404). The endpoint is likely missing on the Hermes backend.'
+          'Expected JSON from https://vps/api/git/worktree/add but got HTML (status 404). The endpoint is likely missing on the Kova backend.'
         )
       })
     } as never)
@@ -516,11 +516,11 @@ describe('createProject', () => {
   })
 
   it.each(['default', 'coder'])('creates in the active %s profile without leaving All profiles', async profile => {
-    const created = { folders: [], id: 'p_new', name: 'Hermes Agent', primary_path: '/srv/hermes' }
+    const created = { folders: [], id: 'p_new', name: 'Kova Agent', primary_path: '/srv/hermes' }
     const tree = { id: created.id, label: created.name, path: created.primary_path, repos: [], sessionCount: 0 }
     const request = vi.fn().mockResolvedValue({ project: created })
     activeGateway.mockReturnValue({ connectionState: 'open', request } as never)
-    vi.mocked(hermes.hermesApi).mockResolvedValue({ projects: [tree], active_id: created.id })
+    vi.mocked(hermes.kovaApi).mockResolvedValue({ projects: [tree], active_id: created.id })
     $activeGatewayProfile.set(profile)
     setShowAllProfiles(true)
 
@@ -531,7 +531,7 @@ describe('createProject', () => {
     expect($projects.get()).toContainEqual(created)
     expect($projectTree.get()).toEqual(expect.arrayContaining([expect.objectContaining({ id: created.id })]))
     expect($activeProjectId.get()).toBe(created.id)
-    expect(hermes.hermesApi).toHaveBeenCalledWith(
+    expect(hermes.kovaApi).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/api/profiles/projects/tree?preview_limit=3' })
     )
   })
@@ -544,8 +544,8 @@ describe('createProject', () => {
     $activeGatewayProfile.set('coder')
     setShowAllProfiles(true)
 
-    const pending = createProject({ folders: ['/srv/hermes'], name: 'Hermes Agent' })
-    const rejection = expect(pending).rejects.toThrow('Active Hermes profile changed while connecting')
+    const pending = createProject({ folders: ['/srv/hermes'], name: 'Kova Agent' })
+    const rejection = expect(pending).rejects.toThrow('Active Kova profile changed while connecting')
     const otherGateway = { connectionState: 'open', request }
     $activeGatewayProfile.set('other')
     activeGateway.mockReturnValue(otherGateway as never)
@@ -828,7 +828,7 @@ describe('repository discovery policy', () => {
     gatewayWith(request)
     const scanRepos = vi.fn()
     desktopGit.mockReturnValue({ scanRepos } as never)
-    getHermesConfig.mockResolvedValue({
+    getKovaConfig.mockResolvedValue({
       desktop: {
         repo_scan_enabled: false,
         repo_scan_exclude_paths: [],
@@ -856,7 +856,7 @@ describe('repository discovery policy', () => {
     gatewayWith(request)
     const scanRepos = vi.fn().mockResolvedValue([{ label: 'repo', root: '/work/repo' }])
     desktopGit.mockReturnValue({ scanRepos } as never)
-    getHermesConfig.mockResolvedValue({
+    getKovaConfig.mockResolvedValue({
       desktop: {
         repo_scan_enabled: true,
         repo_scan_exclude_paths: ['/work/vendor'],
@@ -866,7 +866,7 @@ describe('repository discovery policy', () => {
 
     await scanAndRecordRepos()
 
-    expect(getHermesConfig).toHaveBeenCalledWith('default')
+    expect(getKovaConfig).toHaveBeenCalledWith('default')
     expect(scanRepos).toHaveBeenCalledWith(['/work'], {
       enabled: true,
       excludePaths: ['/work/vendor']
@@ -901,10 +901,10 @@ describe('repository discovery policy', () => {
     await scanAndRecordRepos(true)
 
     expect(scanRepos).not.toHaveBeenCalled()
-    expect(getHermesConfig).not.toHaveBeenCalled()
+    expect(getKovaConfig).not.toHaveBeenCalled()
     // The desktop can't crawl the remote host's filesystem, so it asks the
     // host to scan its own discovery roots (`projects.discover_repos` with
-    // `scan: true`) — repos with zero Hermes sessions must still surface —
+    // `scan: true`) — repos with zero Kova sessions must still surface —
     // then refreshes the tree to pick up the merged list. Regression for
     // #81723: the sidebar used to go silent in remote mode and never
     // refresh again.
@@ -1001,7 +1001,7 @@ describe('repository discovery policy', () => {
     })
 
     desktopGit.mockReturnValue({ scanRepos } as never)
-    getHermesConfig.mockResolvedValue({
+    getKovaConfig.mockResolvedValue({
       desktop: {
         repo_scan_enabled: true,
         repo_scan_exclude_paths: [],

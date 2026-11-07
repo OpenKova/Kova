@@ -72,8 +72,8 @@ export function DeleteProfileDialog({
         await (remote ? deleteProfile(profile.name, scope) : deleteProfile(profile.name))
         // The profile is gone. Drop its persisted tiles now — a leftover
         // session/Bot tile restores on relaunch and dials the deleted
-        // profile's backend, whose ensure_hermes_home() re-creates the
-        // directory the delete just removed (hermes-agent#94235).
+        // profile's backend, whose ensure_kova_home() re-creates the
+        // directory the delete just removed (kova-agent#94235).
         dropTilesForProfile(profile.name)
         await onDeleted?.()
 

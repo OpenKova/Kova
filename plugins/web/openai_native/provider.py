@@ -44,9 +44,9 @@ def has_codex_credentials() -> bool:
     exception so a corrupted auth store cannot block other availability scans.
     """
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        auth_path = get_hermes_home() / "auth.json"
+        auth_path = get_kova_home() / "auth.json"
         if not auth_path.exists():
             return False
         store = json.loads(auth_path.read_text(encoding="utf-8-sig"))

@@ -752,7 +752,7 @@ export async function migrateBotMeta(storage: BotMetaStorage | undefined = getPl
 // ── data ─────────────────────────────────────────────────────────────────────
 
 /** True once profiles.list reports the backend injects the bot-to-bot
- *  protocol into the system prompt itself (hermes-agent bot_mode_probe).
+ *  protocol into the system prompt itself (kova-agent bot_mode_probe).
  *  Gates every SOUL.md protocol append below. */
 export let serverInjectsProtocol = false
 
@@ -884,7 +884,7 @@ async function fetchRosterSnapshot(activeConnectionId: null | string | undefined
   // carry a second copy. Older gateways lack the flag: keep appending.
   serverInjectsProtocol = Boolean(local?.bot_mode_protocol)
 
-  // Multi-source desktops (hermes-agent #86875) also expose the union
+  // Multi-source desktops (kova-agent #86875) also expose the union
   // agent roster across every registered connection. Merge agents from
   // OTHER sources in as additional rows. Feature-detected + best-effort:
   // an older Desktop build (no host.agents) or a roster hiccup leaves
@@ -1239,18 +1239,18 @@ export function mergeMultiSourceRoster(
  *  'default' — so the word 'default' never surfaces in the UI, unless a real
  *  `hermes` profile on the same source holds that handle (`claimDefaultHandles`). */
 export function botHandle(name: string, bot?: Partial<RosterRow> | null): string {
-  if (bot?.handle && bot.handle !== name && !(bot.hermesHandleTaken && bot.handle === 'hermes')) {
+  if (bot?.handle && bot.handle !== name && !(bot.kovaHandleTaken && bot.handle === 'hermes')) {
     return bot.handle
   }
 
-  return (name || '').trim().toLowerCase() === 'default' && !bot?.hermesHandleTaken ? 'hermes' : name
+  return (name || '').trim().toLowerCase() === 'default' && !bot?.kovaHandleTaken ? 'hermes' : name
 }
 
 /** The row's own `handle` as a mention form, lowercased. A stale 'hermes'
  *  handle on a default row whose source has a real 'hermes' profile is that
  *  profile's tag, not this row's (same rule as `botHandle`). */
 function claimableRowHandle(bot: Partial<RosterRow>): string {
-  return bot.handle && !(bot.hermesHandleTaken && bot.handle === 'hermes') ? String(bot.handle).toLowerCase() : ''
+  return bot.handle && !(bot.kovaHandleTaken && bot.handle === 'hermes') ? String(bot.handle).toLowerCase() : ''
 }
 
 /** Mark each default row whose source also lists a real `hermes` profile, so
@@ -1273,7 +1273,7 @@ export function claimDefaultHandles<T extends Partial<RosterRow>>(rows: T[]): T[
  *  display name (`hermes profile rename`) and the Bot Mode title. Free text
  *  reduces to the mention charset two ways: slugified ("Research Buddy" →
  *  research-buddy, the form autocomplete inserts) and collapsed
- *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Hermes"
+ *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Kova"
  *  can never hijack the primary profile's @hermes alias. */
 export function mentionNameForms(value: null | string | undefined): string[] {
   const name = String(value || '')
@@ -1393,7 +1393,7 @@ export function newBotChat(bot: RosterRow) {
     host.notify?.({
       kind: 'error',
       message:
-        getPluginCtx()?.i18n?.t('bot.openAnotherChatUnsupported') ?? 'Update Hermes Desktop to open another Bot chat.'
+        getPluginCtx()?.i18n?.t('bot.openAnotherChatUnsupported') ?? 'Update Kova Desktop to open another Bot chat.'
     })
 
     return
@@ -1405,7 +1405,7 @@ export function newBotChat(bot: RosterRow) {
     host.notify?.({
       kind: 'error',
       message:
-        getPluginCtx()?.i18n?.t('bot.openAnotherChatUnsupported') ?? 'Update Hermes Desktop to open another Bot chat.'
+        getPluginCtx()?.i18n?.t('bot.openAnotherChatUnsupported') ?? 'Update Kova Desktop to open another Bot chat.'
     })
 
     return

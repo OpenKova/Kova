@@ -23,7 +23,7 @@ export interface PluginFilesIpcDeps extends Omit<PluginFilesDeps, 'protectedRoot
   windowFor: (event: IpcMainInvokeEvent) => BrowserWindow | null
   /** Tell every app window a plugin's grants changed (Folder access lists). */
   broadcastChange: (change: { pluginId: string }) => void
-  /** The resolved HERMES_HOME plus the platform-default homes it may differ from. */
+  /** The resolved KOVA_HOME plus the platform-default homes it may differ from. */
   hermesHomes: () => string[]
 }
 
@@ -31,7 +31,7 @@ const label = (value: unknown, fallback: string) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, LABEL_MAX) : fallback
 
 export function registerPluginFilesIpc(deps: PluginFilesIpcDeps): PluginFiles {
-  const files = createPluginFiles({ ...deps, protectedRoots: deps.hermesHomes })
+  const files = createPluginFiles({ ...deps, protectedRoots: deps.kovaHomes })
 
   deps.ipcMain.handle(
     'hermes:pluginFiles:request',

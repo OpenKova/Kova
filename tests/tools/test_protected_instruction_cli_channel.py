@@ -16,7 +16,7 @@ def _gate_on(monkeypatch):
     import tools.file_tools_write_guards as guards
     from tools.terminal_tool import set_approval_callback
     monkeypatch.setattr(guards, "_protected_instruction_config", lambda: (True, []))
-    for name in ("HERMES_SINGLE_QUERY_SESSION", "HERMES_CRON_SESSION", "HERMES_SESSION_PLATFORM"):
+    for name in ("KOVA_SINGLE_QUERY_SESSION", "KOVA_CRON_SESSION", "KOVA_SESSION_PLATFORM"):
         monkeypatch.delenv(name, raising=False)
     set_approval_callback(None)
     yield
@@ -24,9 +24,9 @@ def _gate_on(monkeypatch):
 
 
 @pytest.mark.parametrize("env", [
-    {"HERMES_SINGLE_QUERY_SESSION": "1"},
-    {"HERMES_CRON_SESSION": "1"},
-    {"HERMES_SESSION_PLATFORM": "webhook"},
+    {"KOVA_SINGLE_QUERY_SESSION": "1"},
+    {"KOVA_CRON_SESSION": "1"},
+    {"KOVA_SESSION_PLATFORM": "webhook"},
 ], ids=["single_query", "cron", "webhook"])
 def test_registered_callback_is_never_asked_without_a_user(tmp_path, monkeypatch, env):
     from tools.terminal_tool import set_approval_callback
@@ -53,7 +53,7 @@ def test_single_query_mode_never_auto_approves_this_gate(tmp_path, monkeypatch, 
     from tools.file_tools import write_file_tool
     from tools.terminal_tool import set_approval_callback
 
-    monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+    monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
     monkeypatch.setattr(approval_context, "_get_single_query_approval_mode", lambda: mode)
     asked = []
     set_approval_callback(lambda command, description, **kw: asked.append(command) or "once")

@@ -44,7 +44,7 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
     shutil.copy2(python, bootstrap / f"bin/python{minor}")
     (bootstrap / "bin/python3").symlink_to(f"python{minor}")
     env = {"PATH": os.environ["PATH"], "HOME": str(home), "LANG": "C.UTF-8",
-           "HERMES_HOME": str(home / ".hermes"), "UV_PYTHON_INSTALL_DIR": str(managed),
+           "KOVA_HOME": str(home / ".kova"), "UV_PYTHON_INSTALL_DIR": str(managed),
            "UV_PYTHON_DOWNLOADS": "never", "UV_CACHE_DIR": str(tmp_path / "cache")}
     canary = tmp_path / "ambient-bin"
     canary.mkdir()
@@ -128,21 +128,21 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
          "commit", "-m", "fixture"], cwd=source)
     commit = run(["git", "rev-parse", "HEAD"], cwd=source).stdout.strip()
     install = tmp_path / "installed source"
-    env["HERMES_REPO_URL"] = str(source)
+    env["KOVA_REPO_URL"] = str(source)
     command = ["bash", str(ROOT / "scripts/install.sh"), "--dir", str(install),
                "--branch", "fixture", "--commit", commit, "--non-interactive", "--json"]
     result = run(command, expected=1 if fault else 0)
     assert not manager_called.exists()
     if fault:
-        assert not (install / ".hermes-bootstrap-complete").exists()
+        assert not (install / ".kova-bootstrap-complete").exists()
         assert not (home / ".local/bin/hermes").exists()
-        for facts in (home / ".hermes/installs").glob("*/facts.json"):
+        for facts in (home / ".kova/installs").glob("*/facts.json"):
             assert "venv" not in json.loads(facts.read_text())["packages"]
         assert '"stage":"python-deps"' in result.stdout
         return
     assert '"stage":"python-deps"' in result.stdout
-    assert json.loads((install / ".hermes-bootstrap-complete").read_text())["pinnedCommit"] == commit
-    facts = next((home / ".hermes/installs").glob("*/facts.json"))
+    assert json.loads((install / ".kova-bootstrap-complete").read_text())["pinnedCommit"] == commit
+    facts = next((home / ".kova/installs").glob("*/facts.json"))
     selection = json.loads(facts.read_text())["packages"]["venv"]
     launcher = home / ".local/bin/hermes"
     child = json.loads(run([str(launcher), "from elsewhere"]).stdout)

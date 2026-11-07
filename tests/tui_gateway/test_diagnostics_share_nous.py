@@ -100,7 +100,7 @@ def test_share_nous_client_text_gets_upload_safe_log_redaction(captured_upload):
 def test_redacted_support_egress_scrubs_structured_values_and_errors(
     captured_upload, monkeypatch
 ):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     canaries = {
         "url": "r36_REDACTED_url_canary_0123456789",
@@ -110,7 +110,7 @@ def test_redacted_support_egress_scrubs_structured_values_and_errors(
         "bearer": "r36_REDACTED_bearer_canary_0123456789",
         "error": "r36_REDACTED_error_canary_0123456789",
     }
-    home = get_hermes_home()
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "fallback_providers:\n"

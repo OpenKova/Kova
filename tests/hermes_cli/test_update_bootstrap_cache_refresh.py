@@ -28,8 +28,8 @@ BOM = b"\xef\xbb\xbf"
 
 
 def _setup(tmp_path, *, ps1=b"WRITE-HOST current\n", sh=b"echo current\n"):
-    home = tmp_path / "hermes_home"
-    root = tmp_path / "hermes-agent"
+    home = tmp_path / "kova_home"
+    root = tmp_path / "kova-agent"
     (root / "scripts").mkdir(parents=True)
     (home / "bootstrap-cache").mkdir(parents=True)
     if ps1 is not None:
@@ -40,7 +40,7 @@ def _setup(tmp_path, *, ps1=b"WRITE-HOST current\n", sh=b"echo current\n"):
 
 
 def _run(home, root, branch="main"):
-    with patch.object(cli_main, "get_hermes_home", return_value=str(home)), patch.object(
+    with patch.object(cli_main, "get_kova_home", return_value=str(home)), patch.object(
         cli_main, "PROJECT_ROOT", root
     ):
         cli_main._refresh_bootstrap_cache_scripts(branch)
@@ -147,5 +147,5 @@ def test_missing_sources_is_noop(tmp_path):
 
 def test_never_raises_on_io_error(tmp_path):
     _home, _root = _setup(tmp_path)
-    with patch.object(cli_main, "get_hermes_home", side_effect=OSError("boom")):
+    with patch.object(cli_main, "get_kova_home", side_effect=OSError("boom")):
         cli_main._refresh_bootstrap_cache_scripts()  # must not raise

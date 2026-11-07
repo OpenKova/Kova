@@ -24,15 +24,15 @@ def _find_stale_dashboard_pids(*, exclude_pids: set[int] | None = None,
                                scope_home: str | None = None) -> list[int]:
     """PIDs of running ``dashboard``/``serve`` backends the caller may stop.
 
-    *scope_home*: keep only backends whose resolved Hermes home (see
-    ``_hermes_home_for_pid``) is this home; unreadable ownership is spared, never guessed.
+    *scope_home*: keep only backends whose resolved Kova home (see
+    ``_kova_home_for_pid``) is this home; unreadable ownership is spared, never guessed.
     ``--stop`` and the post-update cleanup pass their own home so another install's or
     profile's backend on the same machine is never a target (#113978).
     """
     from kova_cli.dashboard_procs import (
         _caller_ancestor_pids,
         _is_caller_wrapper_shell,
-        _pids_owned_by_hermes_home,
+        _pids_owned_by_kova_home,
         _scan_dashboard_processes,
     )
     pids = [pid for pid, _cmd in _scan_dashboard_processes(exclude_pids=exclude_pids)]
@@ -40,7 +40,7 @@ def _find_stale_dashboard_pids(*, exclude_pids: set[int] | None = None,
     # killing it takes down the invoking terminal.
     ancestors = _caller_ancestor_pids()
     pids = [pid for pid in pids if not _is_caller_wrapper_shell(pid, ancestors)]
-    return _pids_owned_by_hermes_home(pids, scope_home) if scope_home else pids
+    return _pids_owned_by_kova_home(pids, scope_home) if scope_home else pids
 
 
 def _parse_dashboard_runtime(command: str) -> tuple[str, str, int] | None:
@@ -103,7 +103,7 @@ def _restart_managed_dashboard_service(reason: str, unit: str = _DASHBOARD_SYSTE
     def _systemctl(*args: str, timeout: int = 10) -> subprocess.CompletedProcess:
         return _run_probe(["systemctl", *args], timeout=timeout)
 
-    # User manager first (Hermes installs Linux services in the user scope by
+    # User manager first (Kova installs Linux services in the user scope by
     # default), system manager only when the unit isn't there. Keep the selected
     # scope for ALL probes and the restart — a user unit must never be restarted
     # through the system manager (or raw-killed).
@@ -425,11 +425,11 @@ def _respawn_dashboard_processes(commands: list[list[str]]) -> list[list[str]]:
 
     See #78821.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     respawned: list[list[str]] = []
     spawned: list[tuple[list[str], list[str], subprocess.Popen]] = []
     failed: list[tuple[list[str], list[str], str]] = []
-    log_path = get_hermes_home() / "logs" / "dashboard-restart.log"
+    log_path = get_kova_home() / "logs" / "dashboard-restart.log"
     with contextlib.suppress(OSError):
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -540,14 +540,14 @@ def _install_hangup_protection(gateway_mode: bool = False):
         # Late-bound import so tests can monkeypatch it to simulate setup failure. The ROOT
         # home, never a sticky profile's: the update mutates the shared checkout, and the
         # Desktop and the hand-off scripts read <root>/logs/update.log.
-        from kova_constants import get_default_hermes_root as _get_root_home
+        from kova_constants import get_default_kova_root as _get_root_home
         logs_dir = _get_root_home() / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
         log_file = open(logs_dir / "update.log", "a", buffering=1, encoding="utf-8")
 
         import datetime as _dt
 
-        stage = "continued on the pulled code" if os.environ.get("HERMES_UPDATE_POST_SWAP") == "1" else "started"
+        stage = "continued on the pulled code" if os.environ.get("KOVA_UPDATE_POST_SWAP") == "1" else "started"
         log_file.write(f"\n=== hermes update {stage} {_dt.datetime.now().isoformat(timespec='seconds')} ===\n")
 
         state["log_file"] = log_file
@@ -676,8 +676,8 @@ def _maybe_setup_dashboard_auth_interactively(args) -> None:
             "the dashboard again:\n"
             "    hermes dashboard register\n"
             "  It provisions a Nous Portal OAuth client and writes "
-            "HERMES_DASHBOARD_OAUTH_CLIENT_ID into ~/.hermes/.env for you.\n"
-            "  Docs: https://hermes-agent.nousresearch.com/docs/"
+            "KOVA_DASHBOARD_OAUTH_CLIENT_ID into ~/.kova/.env for you.\n"
+            "  Docs: https://kova-agent.nousresearch.com/docs/"
             "user-guide/features/web-dashboard#authentication-gated-mode"
         )
         sys.exit(0)
@@ -753,12 +753,12 @@ def _read_ssh_session_token_file(path: str) -> str:
     if not os.path.isabs(path):
         raise SystemExit("--ssh-session-token-file must be absolute")
 
-    # The Desktop client writes the token under the account's $HOME/.hermes/
-    # desktop-ssh, independent of HERMES_HOME and the active profile. Anchor
-    # validation there, NOT get_hermes_home(): a non-default profile or a Docker
-    # /opt/data root re-homes get_hermes_home() and would reject every token.
+    # The Desktop client writes the token under the account's $HOME/.kova/
+    # desktop-ssh, independent of KOVA_HOME and the active profile. Anchor
+    # validation there, NOT get_kova_home(): a non-default profile or a Docker
+    # /opt/data root re-homes get_kova_home() and would reject every token.
     # See #69551.
-    token_root = Path.home() / ".hermes" / "desktop-ssh"
+    token_root = Path.home() / ".kova" / "desktop-ssh"
     try:
         relative = Path(path).relative_to(token_root)
     except ValueError as exc:
@@ -829,7 +829,7 @@ def _read_ssh_session_token_file(path: str) -> str:
 def _is_electron_packaged_web_dist(path: str) -> bool:
     """True when *path* is an Electron-packaged renderer dist (``app.asar[.unpacked]/dist``).
 
-    A standalone ``hermes dashboard`` inheriting that ``HERMES_WEB_DIST`` would
+    A standalone ``hermes dashboard`` inheriting that ``KOVA_WEB_DIST`` would
     serve the desktop frontend in the browser ("Desktop IPC bridge is unavailable").
     """
     if not path:
@@ -898,7 +898,7 @@ def _attach_to_host_backend(args, headless_backend: bool) -> None:
     Exactly ONE backend runs per host and multiplexes every profile, so a second invocation —
     for ANY profile, the default included — reports the live one and exits 0 instead of binding
     a second port. ``--isolated`` opts out (Desktop's SSH backend proves ownership with it) and
-    Desktop pool backends (HERMES_DESKTOP=1) keep their own lifecycle.
+    Desktop pool backends (KOVA_DESKTOP=1) keep their own lifecycle.
 
     Exit 0 means "the host backend answered and serves what you asked for", and nothing else:
 
@@ -954,7 +954,7 @@ def _attach_to_host_backend(args, headless_backend: bool) -> None:
     url = f"http://{format_url_host(hr.dial_host(record))}:{record.port}/?profile={wanted}"
 
     kind = "backend" if headless_backend else "dashboard"
-    print(f"Hermes {kind} already running on this host: PID {record.pid}, port {record.port}.")
+    print(f"Kova {kind} already running on this host: PID {record.pid}, port {record.port}.")
     print(f"  Managing profile '{wanted}': {url}")
     if not headless_backend and not args.no_open:
         with contextlib.suppress(Exception):
@@ -971,7 +971,7 @@ def _route_named_profile_dashboard(
     No-record fallback to :func:`_attach_to_host_backend`, which already attached (and exited)
     when the host publishes a live rendezvous record: re-exec pinned to ``-p default`` (so
     ``_apply_profile_override`` can't re-route via the sticky active_profile file). ``--isolated``
-    opts out; Desktop pool backends (HERMES_DESKTOP=1) stay per-profile. Returns normally when no
+    opts out; Desktop pool backends (KOVA_DESKTOP=1) stay per-profile. Returns normally when no
     routing applies.
     """
     try:
@@ -1010,19 +1010,19 @@ def _route_named_profile_dashboard(
         if enabled:
             reexec_argv.extend(extra)
     from tools.environments.local import build_subprocess_env
-    # HERMES_HOME is pinned to the machine root below — the factory must not
+    # KOVA_HOME is pinned to the machine root below — the factory must not
     # re-inject a profile home.
     env = build_subprocess_env(scrub_secrets=False, inherit_profile_home=False)
     # Pin the child to the machine ROOT, resolved explicitly rather than by
-    # dropping HERMES_HOME: in the Docker layout the root is /opt/data, and an
-    # unset HERMES_HOME would fall back to $HOME/.hermes = /opt/data/.hermes — an
+    # dropping KOVA_HOME: in the Docker layout the root is /opt/data, and an
+    # unset KOVA_HOME would fall back to $HOME/.kova = /opt/data/.kova — an
     # empty auto-seeded home with only the default profile and no install stamp.
-    # get_default_hermes_root() strips a trailing profiles/<name> for both layouts.
+    # get_default_kova_root() strips a trailing profiles/<name> for both layouts.
     try:
-        from kova_constants import get_default_hermes_root
-        env["HERMES_HOME"] = str(get_default_hermes_root())
+        from kova_constants import get_default_kova_root
+        env["KOVA_HOME"] = str(get_default_kova_root())
     except Exception:
-        env.pop("HERMES_HOME", None)  # prior behaviour rather than blocking the reroute
+        env.pop("KOVA_HOME", None)  # prior behaviour rather than blocking the reroute
     # On Windows os.execvpe() spawns via CreateProcess then exits, which under
     # Python 3.14+ can crash with STATUS_ACCESS_VIOLATION; use Popen + exit.
     if sys.platform == "win32":
@@ -1038,35 +1038,35 @@ def _route_named_profile_dashboard(
 def _resolve_dashboard_web_dist(args, _headless_backend: bool) -> None:
     """Build or validate the web UI dist before the server imports.
 
-    ``serve`` sets HERMES_SERVE_HEADLESS so mount_spa() stays off. Otherwise build
-    unless HERMES_WEB_DIST / --skip-build promise a dist — then verify index.html
+    ``serve`` sets KOVA_SERVE_HEADLESS so mount_spa() stays off. Otherwise build
+    unless KOVA_WEB_DIST / --skip-build promise a dist — then verify index.html
     (else the server serves 404s). --skip-build on the default location gets ONE
-    recovery build; a caller-managed HERMES_WEB_DIST can't be populated.
+    recovery build; a caller-managed KOVA_WEB_DIST can't be populated.
     """
     from kova_cli.main import PROJECT_ROOT
     from kova_cli.main_web_build import _build_web_ui
     skip_build = getattr(args, "skip_build", False)
     if _headless_backend:
-        os.environ["HERMES_SERVE_HEADLESS"] = "1"  # set before web_server import
-    elif "HERMES_WEB_DIST" not in os.environ and not skip_build:
+        os.environ["KOVA_SERVE_HEADLESS"] = "1"  # set before web_server import
+    elif "KOVA_WEB_DIST" not in os.environ and not skip_build:
         if not _build_web_ui(PROJECT_ROOT / "web", fatal=True):
             sys.exit(1)
     elif skip_build:
         _dist_root = (
             # --build-mode skip trusts the caller to have pre-built the web UI. Verify the dist actually
             # exists; otherwise the server will start and serve 404s with no obvious cause (issue #23817).
-            Path(os.environ["HERMES_WEB_DIST"])
-            if "HERMES_WEB_DIST" in os.environ
+            Path(os.environ["KOVA_WEB_DIST"])
+            if "KOVA_WEB_DIST" in os.environ
             else PROJECT_ROOT / "kova_cli" / "web_dist"
         )
         if not (_dist_root / "index.html").exists():
             # Only the default dist location is recoverable (desktop launches with
-            # --build-mode skip after a wipe of web_dist); a custom HERMES_WEB_DIST
+            # --build-mode skip after a wipe of web_dist); a custom KOVA_WEB_DIST
             # is a caller-managed directory the build cannot populate.
             # The caller promised a pre-built dist but there isn't one. Instead of hard-failing (issue
             # #59288 — desktop launches with --build-mode skip after a wipe of web_dist), warn and attempt
             # ONE recovery build through the normal build path.
-            _recoverable = "HERMES_WEB_DIST" not in os.environ
+            _recoverable = "KOVA_WEB_DIST" not in os.environ
             if _recoverable:
                 print(f"⚠ --skip-build was passed but no web dist found at: {_dist_root}")
                 print("  Attempting one recovery build of the web UI...")
@@ -1081,22 +1081,22 @@ def _resolve_dashboard_web_dist(args, _headless_backend: bool) -> None:
             print("  ✓ Recovery build produced a web dist")
         print(f"→ Skipping web UI build (--skip-build); using dist at {_dist_root}")
     else:
-        # HERMES_WEB_DIST without --skip-build: the env var points at a
+        # KOVA_WEB_DIST without --skip-build: the env var points at a
         # caller-managed dist, so validate it like the --skip-build branch.
-        # HERMES_WEB_DIST is set without --skip-build: the build is skipped (the env var points at a
+        # KOVA_WEB_DIST is set without --skip-build: the build is skipped (the env var points at a
         # caller-managed dist), so validate it the same way the --skip-build branch does — otherwise the
         # server starts and serves 404s with no obvious cause (same failure mode as #23817, via the env-var
         # path).
-        _dist_root = Path(os.environ["HERMES_WEB_DIST"]).expanduser()
+        _dist_root = Path(os.environ["KOVA_WEB_DIST"]).expanduser()
         if not (_dist_root / "index.html").exists():
-            print(f"✗ HERMES_WEB_DIST is set but no web dist found at: {_dist_root}")
+            print(f"✗ KOVA_WEB_DIST is set but no web dist found at: {_dist_root}")
             print(_PRE_BUILD_HINT)
-            print("  Or unset HERMES_WEB_DIST to build and use the default web UI dist.")
+            print("  Or unset KOVA_WEB_DIST to build and use the default web UI dist.")
             sys.exit(1)
-        # web_server reads HERMES_WEB_DIST raw at import (no expanduser), so a
+        # web_server reads KOVA_WEB_DIST raw at import (no expanduser), so a
         # validated "~/dist" would otherwise pass here and still 404 there.
-        os.environ["HERMES_WEB_DIST"] = str(_dist_root)
-        print(f"→ Using web dist from HERMES_WEB_DIST: {_dist_root}")
+        os.environ["KOVA_WEB_DIST"] = str(_dist_root)
+        print(f"→ Using web dist from KOVA_WEB_DIST: {_dist_root}")
 
 
 def _dashboard_validate_serve_args(args, headless_backend, token_file):

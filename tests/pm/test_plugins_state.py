@@ -21,7 +21,7 @@ def homes(tmp_path, monkeypatch):
     import kova_constants
 
     monkeypatch.setattr(
-        kova_constants, "get_default_hermes_root", lambda: default_home
+        kova_constants, "get_default_kova_root", lambda: default_home
     )
     monkeypatch.setattr(pstate, "_profiles_root", lambda: tmp_path / "profiles")
     return default_home, profile_home

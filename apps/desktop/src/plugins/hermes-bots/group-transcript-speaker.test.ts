@@ -3,7 +3,7 @@
  * speaker's OWN machine reports it, also once the speaker has left the room
  * (or before its source has painted after a relaunch). An unseated remote
  * `default` used to fall back to a bare `{ name: 'default' }` row and read as
- * this device's "Hermes".
+ * this device's "Kova".
  *
  * Drives the real `routing` + `labels` modules; only the SDK `host` is mocked.
  */
@@ -26,9 +26,9 @@ const label = (entry: typeof remoteLine | typeof localLine, members: RosterRow[]
   displayName(groupTranscriptSpeaker(entry, members, roster)!, groupTranscriptSpeakerMeta(entry, members, allMeta, roster))
 
 describe('group transcript speaker', () => {
-  it('names a seated remote default by its machine, the local one as Hermes', () => {
+  it('names a seated remote default by its machine, the local one as Kova', () => {
     expect(label(remoteLine, [localDefault, homelabDefault])).toBe('Homelab')
-    expect(label(localLine, [localDefault, homelabDefault])).toBe('Hermes')
+    expect(label(localLine, [localDefault, homelabDefault])).toBe('Kova')
   })
 
   it('keeps a removed remote member owner-qualified instead of reading as this device', () => {

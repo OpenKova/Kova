@@ -54,7 +54,7 @@ function onNativeWake(token: string): void {
 }
 
 function connectBridge(): void {
-  const candidate = typeof window === 'undefined' ? undefined : window.hermesDesktop
+  const candidate = typeof window === 'undefined' ? undefined : window.kovaDesktop
 
   if (candidate?.scheduleStreamWorkWake && candidate.onStreamWorkWake) {
     bridge = {

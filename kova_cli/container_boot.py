@@ -1,7 +1,7 @@
 """Container-boot reconciliation of per-profile gateway s6 services.
 
 Wired into the image as /etc/cont-init.d/02-reconcile-profiles. Runs as root after
-01-hermes-setup (the stage2 hook) has chowned the volume and seeded $HERMES_HOME, but
+01-hermes-setup (the stage2 hook) has chowned the volume and seeded $KOVA_HOME, but
 before s6-rc starts user services.
 """
 from __future__ import annotations
@@ -66,9 +66,9 @@ def _slot_action(profile: str, profile_dir: Path, prior_state: str | None, start
                            folded_into_root=folded_into_root)
 
 
-def _named_profile_dirs(hermes_home: Path) -> list[tuple[str, Path]]:
-    """Every real named profile under ``$HERMES_HOME/profiles`` (``SOUL.md`` is the marker)."""
-    profiles_root = hermes_home / "profiles"
+def _named_profile_dirs(kova_home: Path) -> list[tuple[str, Path]]:
+    """Every real named profile under ``$KOVA_HOME/profiles`` (``SOUL.md`` is the marker)."""
+    profiles_root = kova_home / "profiles"
     if not profiles_root.is_dir():
         return []
     found: list[tuple[str, Path]] = []
@@ -85,12 +85,12 @@ def _named_profile_dirs(hermes_home: Path) -> list[tuple[str, Path]]:
 
 
 def reconcile_profile_gateways(
-    *, hermes_home: Path, scandir: Path, dry_run: bool = False,
+    *, kova_home: Path, scandir: Path, dry_run: bool = False,
     container_argv: Sequence[str] | None = None) -> list[ReconcileAction]:
     """Recreate s6 service registrations for every persistent profile.
 
     Always registers a ``gateway-default`` slot for the root profile (the implicit profile at
-    the top of ``$HERMES_HOME``): ``kova_cli.gateway`` maps an empty profile suffix to it,
+    the top of ``$KOVA_HOME``): ``kova_cli.gateway`` maps an empty profile suffix to it,
     so it is what ``hermes gateway start`` (no ``-p``) targets.
 
     Without it, bare ``hermes gateway start`` inside the container would land on ``s6-svc -u
@@ -108,7 +108,7 @@ def reconcile_profile_gateways(
     # It used to be gated on `gateway.multiplex_profiles`, which made the UNSET default (on) boot
     # the slots anyway — the container shipped the opt-out topology by accident. The key is retired
     # as a topology switch (kova_cli/gateway_multiplex_mode.py), so there is nothing to read.
-    named = [(name, entry, _read_desired_state(entry)) for name, entry in _named_profile_dirs(hermes_home)]
+    named = [(name, entry, _read_desired_state(entry)) for name, entry in _named_profile_dirs(kova_home)]
     # The exception is a `gateway.standalone` profile: the root multiplexer never serves it
     # (profiles_to_serve excludes it), so it boots its own slot from its own intent, beside the root.
     from kova_cli.profiles import profile_is_standalone
@@ -116,8 +116,8 @@ def reconcile_profile_gateways(
 
     # A legacy `gateway run` container with no state yet seeds `running` (pre-s6 behavior).
     legacy_default_state = _maybe_migrate_legacy_gateway_run_state(
-        hermes_home, container_argv=container_argv, dry_run=dry_run)
-    default_prior_state = legacy_default_state or _read_desired_state(hermes_home)
+        kova_home, container_argv=container_argv, dry_run=dry_run)
+    default_prior_state = legacy_default_state or _read_desired_state(kova_home)
     # The root slot INHERITS every named slot's autostart intent, because it is the one process
     # that serves them. Without this an image only ever driven as `hermes -p coder gateway start`
     # booted with ZERO gateways: it has no root state (or "stopped"), every named slot is now
@@ -129,9 +129,9 @@ def reconcile_profile_gateways(
     if folded and default_prior_state not in _AUTOSTART_STATES:
         log.warning("%s", boot_notice(folded))
     if not dry_run:
-        _cleanup_stale_runtime_files(hermes_home)
+        _cleanup_stale_runtime_files(kova_home)
         _register_service(scandir, "default", start=default_should_start)
-    actions.append(_slot_action("default", hermes_home, default_prior_state, default_should_start,
+    actions.append(_slot_action("default", kova_home, default_prior_state, default_should_start,
                                 folded_into_root=bool(folded)))
 
     for name, entry, prior_state in named:
@@ -143,7 +143,7 @@ def reconcile_profile_gateways(
         actions.append(_slot_action(name, entry, prior_state, should_start,
                                     folded_into_root=name in folded))
     if not dry_run:
-        _write_reconcile_log(hermes_home, actions)
+        _write_reconcile_log(kova_home, actions)
     return actions
 
 
@@ -155,13 +155,13 @@ def boot_notice(folded: Sequence[str]) -> str:
 
 
 def _maybe_migrate_legacy_gateway_run_state(
-    hermes_home: Path, *, container_argv: Sequence[str] | None, dry_run: bool) -> str | None:
+    kova_home: Path, *, container_argv: Sequence[str] | None, dry_run: bool) -> str | None:
     """Seed root gateway_state for pre-s6 `gateway run` containers (the tini image let users run
     the gateway as the container command; post-s6 it would register down and never start)."""
-    state_file = hermes_home / "gateway_state.json"
+    state_file = kova_home / "gateway_state.json"
     if state_file.exists():
         return None
-    if os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
+    if os.environ.get("KOVA_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
         return None
     argv = tuple(container_argv) if container_argv is not None else _read_container_argv()
     if not _is_legacy_gateway_run_request(argv):
@@ -325,8 +325,8 @@ def _register_service(scandir: Path, profile: str, *, start: bool) -> None:
 _LOG_ROTATE_BYTES = 256 * 1024
 
 
-def _write_reconcile_log(hermes_home: Path, actions: list[ReconcileAction]) -> None:
-    """Append one line per profile to $HERMES_HOME/logs/container-boot.log (rotated to ``.1``) —
+def _write_reconcile_log(kova_home: Path, actions: list[ReconcileAction]) -> None:
+    """Append one line per profile to $KOVA_HOME/logs/container-boot.log (rotated to ``.1``) —
     a separate greppable file for "why didn't my profile come back up".
 
     Size-bounded: when the file exceeds ``_LOG_ROTATE_BYTES`` (defaults to 256 KiB ≈ 3000 reconcile lines),
@@ -336,7 +336,7 @@ def _write_reconcile_log(hermes_home: Path, actions: list[ReconcileAction]) -> N
     item O3).
     """
     import time
-    log_dir = hermes_home / "logs"
+    log_dir = kova_home / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / "container-boot.log"
     try:
@@ -354,7 +354,7 @@ def _write_reconcile_log(hermes_home: Path, actions: list[ReconcileAction]) -> N
 
 def main() -> int:
     """Entry point invoked from /etc/cont-init.d/02-reconcile-profiles."""
-    # A dashboard-only container must not reconcile: with a shared bind-mounted HERMES_HOME both
+    # A dashboard-only container must not reconcile: with a shared bind-mounted KOVA_HOME both
     # containers race to flock() the same s6-log files → "Resource busy" restart storm. Detected
     # from PID 1 argv, not an operator flag (a flag can be forgotten in a hand-written manifest).
     if _is_dashboard_container(_read_container_argv()):
@@ -363,9 +363,9 @@ def main() -> int:
 
     from kova_cli.service_manager import S6_DYNAMIC_SCANDIR
 
-    hermes_home = Path(os.environ.get("HERMES_HOME", "/opt/data"))
+    kova_home = Path(os.environ.get("KOVA_HOME", "/opt/data"))
     scandir = Path(os.environ.get("S6_PROFILE_GATEWAY_SCANDIR", str(S6_DYNAMIC_SCANDIR)))
-    actions = reconcile_profile_gateways(hermes_home=hermes_home, scandir=scandir)
+    actions = reconcile_profile_gateways(kova_home=kova_home, scandir=scandir)
     folded = [a.profile for a in actions if a.profile != "default" and a.folded_into_root]
     if folded:
         print(boot_notice(folded))

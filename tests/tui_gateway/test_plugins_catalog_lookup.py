@@ -1,4 +1,4 @@
-"""``plugins.catalog.lookup``: the deep link's catalog lookup, resolved by the backend (hermes-agent 136483)."""
+"""``plugins.catalog.lookup``: the deep link's catalog lookup, resolved by the backend (kova-agent 136483)."""
 
 import pytest
 

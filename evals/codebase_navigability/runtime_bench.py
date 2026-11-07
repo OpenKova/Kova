@@ -1,6 +1,6 @@
 """Runtime benchmarks for one tree. Usage: python runtime_bench.py <tree> <label> [reps]
 
-Each probe runs in a FRESH subprocess with an isolated HERMES_HOME so nothing is cached across reps.
+Each probe runs in a FRESH subprocess with an isolated KOVA_HOME so nothing is cached across reps.
 Reports medians + min over reps. Writes <label>.runtime.json.
 """
 import json, os, statistics, subprocess, sys, tempfile, time, shutil
@@ -11,10 +11,10 @@ PY = os.environ.get("NAV_PY", sys.executable)
 HOME = tempfile.mkdtemp(prefix=f"hh_{LABEL}_")
 os.makedirs(f"{HOME}/skills", exist_ok=True)
 open(f"{HOME}/config.yaml", "w", encoding="utf-8").write("model:\n  default: openai/gpt-4o-mini\n  provider: openrouter\nterminal:\n  backend: local\n")
-ENV = {**os.environ, "HERMES_HOME": HOME, "PYTHONPATH": TREE, "PYTHONDONTWRITEBYTECODE": "0", "OPENROUTER_API_KEY": "sk-bench-placeholder",
-       "HERMES_SKIP_UPDATE_CHECK": "1", "NO_COLOR": "1", "TERM": "dumb", "COLUMNS": "120"}
+ENV = {**os.environ, "KOVA_HOME": HOME, "PYTHONPATH": TREE, "PYTHONDONTWRITEBYTECODE": "0", "OPENROUTER_API_KEY": "sk-bench-placeholder",
+       "KOVA_SKIP_UPDATE_CHECK": "1", "NO_COLOR": "1", "TERM": "dumb", "COLUMNS": "120"}
 for k in list(ENV):
-    if k.startswith(("HERMES_SESSION", "HERMES_PROFILE")): ENV.pop(k)
+    if k.startswith(("KOVA_SESSION", "KOVA_PROFILE")): ENV.pop(k)
 
 def run(argv, code=None, timeout=300):
     t0 = time.perf_counter()
@@ -50,7 +50,7 @@ except Exception as e:
     err=repr(e)[:200]
 dt=time.perf_counter()-t0
 rss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-tree=os.getcwd(); foreign=[m for m,mod in list(sys.modules.items()) if getattr(mod,"__file__",None) and "hermes-agent" in mod.__file__ and not mod.__file__.startswith(tree) and "site-packages" not in mod.__file__]
+tree=os.getcwd(); foreign=[m for m,mod in list(sys.modules.items()) if getattr(mod,"__file__",None) and "kova-agent" in mod.__file__ and not mod.__file__.startswith(tree) and "site-packages" not in mod.__file__]
 if foreign: err=(err or "")+f" FOREIGN_MODULES:{foreign[:3]}"
 print(json.dumps({"dt":dt,"mods":len(sys.modules)-n0,"rss_kb":rss,"err":err}))
 '''

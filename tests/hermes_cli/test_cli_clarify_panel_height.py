@@ -8,11 +8,11 @@ choice; a tall one must keep the full question text.
 import shutil
 from unittest.mock import patch
 
-from cli import HermesCLI
+from cli import KovaCLI
 
 
 def _make_cli(questions, answers, choices, active):
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._clarify_freetext = False
     cli._clarify_state = {
         "questions": [

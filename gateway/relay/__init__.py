@@ -1,4 +1,4 @@
-"""Relay/connector support package for the Hermes gateway.
+"""Relay/connector support package for the Kova gateway.
 
 EXPERIMENTAL gateway side of the "Gateway Gateway" relay design: a generic
 ``RelayAdapter`` plus the wire-serializable ``CapabilityDescriptor`` the connector
@@ -96,9 +96,9 @@ def _launch_profile_scope():
     if not is_multiplex_active():
         return contextlib.nullcontext()
     from gateway.run import _profile_runtime_scope  # late import to avoid cycle
-    from kova_constants import get_process_hermes_home
+    from kova_constants import get_process_kova_home
 
-    return _profile_runtime_scope(get_process_hermes_home())
+    return _profile_runtime_scope(get_process_kova_home())
 
 
 def _env_or_cfg(env_var: str, cfg_key: str) -> str:
@@ -124,10 +124,10 @@ def relay_explicitly_disabled() -> bool:
     """
     from gateway.config import Platform, PlatformConfig
     from gateway.config_loader import bridge_platform_shared_keys, merge_platform_sections, read_yaml_layers
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     try:
-        cfg = read_yaml_layers(get_hermes_home())
+        cfg = read_yaml_layers(get_kova_home())
     except Exception:
         return False
     if not isinstance(cfg, dict):
@@ -263,10 +263,10 @@ def relay_display_name() -> Optional[str]:
         except Exception:
             value = ""
         # The stock brand is identical on every default install: forwarding it would
-        # prefix every reply "**Hermes Agent:**" and shadow the connector's
+        # prefix every reply "**Kova Agent:**" and shadow the connector's
         # linked-owner fallback, which actually disambiguates. Only a customized
         # name is forwarded.
-        if value == "Hermes Agent":
+        if value == "Kova Agent":
             value = ""
     # Mirror the connector's ingest sanitization (trim + 64-char cap).
     return value[:64] or None
@@ -539,7 +539,7 @@ def self_provision_relay() -> bool:
     identity token, POSTs ``/relay/provision`` for EACH fronted platform and sets
     ``GATEWAY_RELAY_ID`` / ``_SECRET`` / ``_DELIVERY_KEY`` in ``os.environ`` for
     ``register_relay_adapter()``. Creds live ONLY in process memory (never
-    ``~/.hermes/.env``), so a hosted container re-provisions every boot; the
+    ``~/.kova/.env``), so a hosted container re-provisions every boot; the
     connector's rotation window covers a still-connected prior instance. The trigger
     is deliberately NOT ``is_managed()`` (False on a NAS-hosted Fly agent): "pointed
     at a connector without a pinned secret" is the real signal and self-guards (an

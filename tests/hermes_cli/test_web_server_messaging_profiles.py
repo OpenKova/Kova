@@ -5,7 +5,7 @@ read/wrote the dashboard process's own (root) ``.env`` via ``load_env()`` /
 ``save_env_value()`` — so a dashboard switched to a freshly created profile
 still displayed and persisted the ROOT install's messaging credentials.
 These tests pin the new behavior: reads and writes land in the REQUESTED
-profile's HERMES_HOME, and the dashboard's own profile stays untouched.
+profile's KOVA_HOME, and the dashboard's own profile stays untouched.
 """
 import pytest
 import kova_yaml as yaml
@@ -17,12 +17,12 @@ _VALID_BODY_BOT_TOKEN = "987654321:ZYXWVUTSRQPONMLKJIHGFEDCBA_4321"
 
 
 @pytest.fixture
-def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
+def isolated_profiles(tmp_path, monkeypatch, _isolate_kova_home):
     """Isolated default home + one named profile, each with its own .env."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import profiles
 
-    default_home = get_hermes_home()
+    default_home = get_kova_home()
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_alpha"
     for home in (default_home, worker_home):
@@ -34,7 +34,7 @@ def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
     )
     (worker_home / ".env").write_text("", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}
 
@@ -47,10 +47,10 @@ def client(monkeypatch, isolated_profiles):
         pytest.skip("fastapi/starlette not installed")
 
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     # The dashboard process's os.environ may carry root-install credentials;
     # make sure the scoped path never falls back to them.
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
@@ -244,7 +244,7 @@ class TestProfileScopedMessagingReads:
             "read_runtime_status",
             # Accepts path= : the profile-scoped read now passes the
             # profile's own gateway_state.json explicitly rather than
-            # relying on process-level HERMES_HOME resolution (#71211).
+            # relying on process-level KOVA_HOME resolution (#71211).
             lambda *a, **k: {
                 "gateway_state": "startup_failed",
                 "exit_reason": "all configured messaging platforms failed to connect",
@@ -402,18 +402,18 @@ class TestMultiplexPortBindingGuard:
             assert resp.status_code == 200
 
 def test_named_current_home_matches_unscoped(client, isolated_profiles, monkeypatch):
-    from kova_cli.web_server_profiles import _config_profile_scope, _hermes_home_scope
-    from kova_constants import get_hermes_home
+    from kova_cli.web_server_profiles import _config_profile_scope, _kova_home_scope
+    from kova_constants import get_kova_home
 
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "root-token")
     for scope in (None, "current", "default"):
         response = client.get("/api/messaging/platforms", params={"profile": scope} if scope else {})
         assert response.status_code == 200
         assert _telegram(response.json())["enabled"] is True
-    with _hermes_home_scope(isolated_profiles["worker_alpha"]):
+    with _kova_home_scope(isolated_profiles["worker_alpha"]):
         with _config_profile_scope("default") as scoped:
             assert scoped is None
-            assert get_hermes_home() == isolated_profiles["default"]
+            assert get_kova_home() == isolated_profiles["default"]
 
 
 def test_scoped_enablement_uses_only_own_credentials(client, isolated_profiles, monkeypatch):

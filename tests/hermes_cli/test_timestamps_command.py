@@ -23,13 +23,13 @@ class _Stub(CLICommandsMixin):
 
 
 def _seed(tmp_path, monkeypatch, value=False):
-    hh = tmp_path / ".hermes"
+    hh = tmp_path / ".kova"
     hh.mkdir()
     (hh / "config.yaml").write_text(f"display:\n  timestamps: {str(value).lower()}\n")
-    monkeypatch.setenv("HERMES_HOME", str(hh))
+    monkeypatch.setenv("KOVA_HOME", str(hh))
     import cli
 
-    monkeypatch.setattr(cli, "_hermes_home", hh, raising=False)
+    monkeypatch.setattr(cli, "_kova_home", hh, raising=False)
     return hh
 
 
@@ -42,9 +42,9 @@ def test_timestamps_on_sets_and_persists(tmp_path, monkeypatch):
 
 
 def _render_history(history, show_ts):
-    from cli import HermesCLI
+    from cli import KovaCLI
 
-    h = HermesCLI.__new__(HermesCLI)
+    h = KovaCLI.__new__(KovaCLI)
     h.show_timestamps = show_ts
     h.conversation_history = history
     h._show_recent_sessions = lambda reason="history", limit=10: True
@@ -68,7 +68,7 @@ def test_history_shows_timestamp_for_stored_turns():
     out = _render_history(hist, show_ts=True)
     hhmm = datetime.fromtimestamp(ts).strftime("%H:%M")
     assert f"[You #1]  [{hhmm}]" in out
-    assert "[Hermes #2]  [" in out
+    assert "[Kova #2]  [" in out
     # a turn with no stored timestamp must NOT get a fabricated time
     assert "[You #3]\n" in out
 

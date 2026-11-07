@@ -100,7 +100,7 @@ async def release_abandoned_capture(scope):
 
 def native_inputs_store():
     """The store's path as the profile names it, unresolved. The one value ``make_user_dir`` gets:
-    ``resolve()`` erases a link planted below the Hermes home (``cache/documents`` -> elsewhere),
+    ``resolve()`` erases a link planted below the Kova home (``cache/documents`` -> elsewhere),
     and an elevated grant on the resolved path would land outside the home with no home fence."""
     from gateway.platforms.base import get_document_cache_dir
     return get_document_cache_dir() / 'native-inputs'
@@ -496,8 +496,8 @@ def collect_unheld_api_images(db):
     Candidates are enumerated from the ACTIVE home's media root while ownership is decided by
     ``db``: a sweep whose database belongs to another profile would see every image here as
     unowned, so it collects nothing."""
-    from kova_constants import get_hermes_home
-    if Path(db.db_path).resolve().parent != get_hermes_home().resolve():
+    from kova_constants import get_kova_home
+    if Path(db.db_path).resolve().parent != get_kova_home().resolve():
         logger.warning(
             'Skipped retained API image collection: %s is not the active profile store', db.db_path)
         return 0

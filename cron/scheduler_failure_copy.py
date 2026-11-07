@@ -11,12 +11,12 @@ from __future__ import annotations
 import re
 from typing import Any, Optional
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 
 def cron_output_dir_display(job_id: str) -> str:
     """User-facing path of a job's saved run output (profile-aware)."""
-    return f"{display_hermes_home()}/cron/output/{job_id}/"
+    return f"{display_kova_home()}/cron/output/{job_id}/"
 
 
 _HTTP_STATUS_IN_TEXT = re.compile(r"(?:\bHTTP\b|\bError code\b|\bstatus(?: code)?\b)\W{0,3}(\b[45]\d\d\b)", re.IGNORECASE)
@@ -142,7 +142,7 @@ def blocked_config_notice(job_name: str, reason: str) -> str:
     if reason and reason[-1] not in ".!?":
         reason += "."
     return (
-        f"⛔ Cron '{job_name}' did not run: {reason} Nothing was charged. Hermes will try again at "
+        f"⛔ Cron '{job_name}' did not run: {reason} Nothing was charged. Kova will try again at "
         "the next scheduled time and will not repeat this alert; check with "
         "`hermes cron doctor`."
     )

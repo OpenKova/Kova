@@ -14,19 +14,19 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture()
-def client(_isolate_hermes_home, monkeypatch):
+def client(_isolate_kova_home, monkeypatch):
     from kova_cli import profiles as profiles_mod
 
     freebie = profiles_mod.get_profile_dir("freebie")
     freebie.mkdir(parents=True, exist_ok=True)
     (freebie / "config.yaml").write_text("model: {}\n", encoding="utf-8")
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import nous_account
 
     # The launch profile's account is paid, the "freebie" profile's is free tier.
     monkeypatch.setattr(nous_account, "get_nous_portal_account_info", lambda **_k: SimpleNamespace(
-        is_free_tier=get_hermes_home().name == "freebie"))
+        is_free_tier=get_kova_home().name == "freebie"))
 
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 

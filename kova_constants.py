@@ -1,4 +1,4 @@
-"""Shared constants for Hermes Agent.
+"""Shared constants for Kova Agent.
 
 Import-safe, stdlib-only — importable from anywhere without circular-import risk.
 """
@@ -15,58 +15,72 @@ from pathlib import Path
 
 _profile_fallback_warned: bool = False
 _UNSET = object()
-_HERMES_HOME_OVERRIDE: ContextVar[str | object] = ContextVar("_HERMES_HOME_OVERRIDE", default=_UNSET)
+_KOVA_HOME_OVERRIDE: ContextVar[str | object] = ContextVar("_KOVA_HOME_OVERRIDE", default=_UNSET)
 
 # TUI busy-indicator styles (CLI /indicator, TUI gateway config, /help registry).
 # Keep in sync with INDICATOR_STYLES / DEFAULT_INDICATOR_STYLE in ui-tui/src/app/interfaces.ts.
 INDICATOR_STYLES: tuple[str, ...] = ("ascii", "emoji", "kaomoji", "unicode")
 DEFAULT_INDICATOR_STYLE: str = "kaomoji"
 
-# Browser-hosted attachments are staged on the Hermes host and then read back
+# Browser-hosted attachments are staged on the Kova host and then read back
 # as a base64 data URL for the normal remote attachment RPC. Keep the upload
 # and read-back boundaries identical so a successful picker/drop can always be
 # attached afterward.
 WEBAPP_ATTACHMENT_MAX_BYTES: int = 16 * 1024 * 1024
 
 
-def set_hermes_home_override(path: str | Path | None) -> Token:
-    """Set a context-local Hermes home override and return its reset token.
+def set_kova_home_override(path: str | Path | None) -> Token:
+    """Set a context-local Kova home override and return its reset token.
 
     Deliberately does not mutate ``os.environ`` (shared by every thread in the process).
     """
     value: str | object = _UNSET if path is None else str(path)
-    return _HERMES_HOME_OVERRIDE.set(value)
+    return _KOVA_HOME_OVERRIDE.set(value)
 
 
-def reset_hermes_home_override(token: Token) -> None:
-    """Restore the previous context-local Hermes home override."""
-    _HERMES_HOME_OVERRIDE.reset(token)
+def reset_kova_home_override(token: Token) -> None:
+    """Restore the previous context-local Kova home override."""
+    _KOVA_HOME_OVERRIDE.reset(token)
 
 
-def get_hermes_home_override() -> str | None:
-    """Return the active context-local Hermes home override, if any."""
-    override = _HERMES_HOME_OVERRIDE.get()
+def get_kova_home_override() -> str | None:
+    """Return the active context-local Kova home override, if any."""
+    override = _KOVA_HOME_OVERRIDE.get()
     return str(override) if override is not _UNSET and override else None
 
 
-def _expand_hermes_home(path: str) -> Path:
-    """Expand environment and user-home syntax in a Hermes home path."""
+def _expand_kova_home(path: str) -> Path:
+    """Expand environment and user-home syntax in a Kova home path."""
     return Path(os.path.expanduser(os.path.expandvars(path)))
 
 
-def _platform_default_hermes_home(environ: Mapping[str, str], user_home: Callable[[], Path]) -> Path:
+def _platform_default_kova_home(environ: Mapping[str, str], user_home: Callable[[], Path]) -> Path:
     """The platform default that *environ* names, with the literal data-directory suffix."""
-    suffix = environ.get("HERMES_DATA_DIR_SUFFIX", "")
+    suffix = environ.get("KOVA_DATA_DIR_SUFFIX", "")
     if sys.platform == "win32":
         local_appdata = environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else user_home() / "AppData" / "Local"
-        return base / ("hermes" + suffix)
-    return user_home() / (".hermes" + suffix)
+        return base / ("kova" + suffix)
+    return user_home() / (".kova" + suffix)
 
 
-def _get_platform_default_hermes_home() -> Path:
+def _legacy_hermes_home() -> Path | None:
+    """Pre-rebrand home (~/.hermes or %LOCALAPPDATA%\\hermes) if it still exists."""
+    try:
+        if sys.platform == "win32":
+            local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+            base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
+            legacy = base / "hermes"
+        else:
+            legacy = Path.home() / ".hermes"
+        return legacy if legacy.exists() else None
+    except Exception:
+        return None
+
+
+def _get_platform_default_kova_home() -> Path:
     """Return the platform default with the literal data-directory suffix."""
-    return _platform_default_hermes_home(os.environ, Path.home)
+    return _platform_default_kova_home(os.environ, Path.home)
 
 
 def _account_home() -> Path:
@@ -80,12 +94,12 @@ def _account_home() -> Path:
         return Path(get_real_home())
 
 
-def account_default_hermes_home() -> Path:
+def account_default_kova_home() -> Path:
     """The platform default of the OS ACCOUNT, never of a foreign process ``HOME``.
 
     Host service identities (``systemctl --user`` units, LaunchAgents) belong to the account, and their
     definitions are found under the account home. A process started with ``HOME=<scratch>`` used to call
-    ``<scratch>/.hermes`` native, name the bare ``hermes-gateway`` unit, and stop the account's real
+    ``<scratch>/.kova`` native, name the bare ``kova-gateway`` unit, and stop the account's real
     gateway through it. When the process HOME is the account home the two answers are the same home.
     """
     account = _account_home()
@@ -93,16 +107,16 @@ def account_default_hermes_home() -> Path:
         same = Path.home().resolve() == account.resolve()
     except (OSError, RuntimeError):
         same = False
-    return _get_platform_default_hermes_home() if same else _platform_default_hermes_home(os.environ, lambda: account)
+    return _get_platform_default_kova_home() if same else _platform_default_kova_home(os.environ, lambda: account)
 
 
-def _hermes_root_of(native_home: Path, env_path: Path | None) -> Path:
+def _kova_root_of(native_home: Path, env_path: Path | None) -> Path:
     """The root that holds *env_path*: the native home, a custom root, or *env_path* itself."""
     if env_path is None:
         return native_home
     try:
-        env_path.resolve().relative_to(native_home.resolve())  # under ~/.hermes (normal or profile mode)
-    except ValueError:  # Docker/custom root: <root>/profiles/<name> -> <root>, else HERMES_HOME itself
+        env_path.resolve().relative_to(native_home.resolve())  # under ~/.kova (normal or profile mode)
+    except ValueError:  # Docker/custom root: <root>/profiles/<name> -> <root>, else KOVA_HOME itself
         return env_path.parent.parent if env_path.parent.name == "profiles" else env_path
     return native_home
 
@@ -110,14 +124,14 @@ def _hermes_root_of(native_home: Path, env_path: Path | None) -> Path:
 _ENV_REFERENCE = re.compile(r"%([^%]+)%|\$\{([^}]+)\}|\$([A-Za-z0-9_-]+)")
 
 
-def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
-    """The Hermes root that a process started with *environ* resolves, or None.
+def kova_root_for_environment(environ: Mapping[str, str]) -> Path | None:
+    """The Kova root that a process started with *environ* resolves, or None.
 
-    Applies the root rules of ``get_default_hermes_root`` to another process's
+    Applies the root rules of ``get_default_kova_root`` to another process's
     environment. ``%NAME%``, ``${NAME}`` and ``$NAME`` references and a leading
     ``~`` expand from *environ* alone, never from this process. Returns None
     when the answer depends on anything outside *environ*: a relative
-    HERMES_HOME, an undefined variable, or a missing user profile folder.
+    KOVA_HOME, an undefined variable, or a missing user profile folder.
     """
     names = {key.upper(): value for key, value in environ.items()}
     profile = names.get("USERPROFILE" if sys.platform == "win32" else "HOME", "").strip()
@@ -127,9 +141,9 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
             raise LookupError("no user profile folder")
         return Path(profile)
 
-    raw = names.get("HERMES_HOME", "").strip()
+    raw = names.get("KOVA_HOME", "").strip()
     try:
-        native_home = _platform_default_hermes_home(names, user_home)
+        native_home = _platform_default_kova_home(names, user_home)
         if not raw:
             return native_home
         expanded = _ENV_REFERENCE.sub(lambda match: names[match.group(match.lastindex).upper()], raw)
@@ -138,13 +152,13 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
     except LookupError:
         return None
     env_path = Path(expanded)
-    return _hermes_root_of(native_home, env_path) if env_path.is_absolute() else None
+    return _kova_root_of(native_home, env_path) if env_path.is_absolute() else None
 
 
 def sudo_invoker_default_home() -> Path | None:
-    """The invoking user's native ``~/.hermes`` when this process is root under ``sudo``, else None.
+    """The invoking user's native ``~/.kova`` when this process is root under ``sudo``, else None.
 
-    sudo strips HERMES_HOME and sets HOME=/root, so the process's own default is root's; the profile
+    sudo strips KOVA_HOME and sets HOME=/root, so the process's own default is root's; the profile
     store and the system service being operated on belong to SUDO_USER.
     """
     if not hasattr(os, "geteuid") or os.geteuid() != 0:
@@ -155,22 +169,22 @@ def sudo_invoker_default_home() -> Path | None:
     import pwd
 
     try:
-        return Path(pwd.getpwnam(sudo_user).pw_dir) / ".hermes"
+        return Path(pwd.getpwnam(sudo_user).pw_dir) / ".kova"
     except KeyError:  # SUDO_USER not in passwd (chroot/container)
         return None
 
 
 def _warn_profile_fallback_once() -> None:
-    """Warn once when HERMES_HOME is unset but a non-default profile is sticky-active (wrong fallback)."""
+    """Warn once when KOVA_HOME is unset but a non-default profile is sticky-active (wrong fallback)."""
     global _profile_fallback_warned
     if _profile_fallback_warned:
         return
     # Latch on the FIRST check regardless of outcome (one-shot contract). Previously the latch
     # was only set on the warning branch, so with no active_profile (or "default") the stat +
-    # read re-ran on every get_hermes_home() call (#90065).
+    # read re-ran on every get_kova_home() call (#90065).
     _profile_fallback_warned = True
     try:
-        fallback_home = _get_platform_default_hermes_home()
+        fallback_home = _get_platform_default_kova_home()
         active_path = fallback_home / "active_profile"
         active = active_path.read_text(encoding="utf-8").strip() if active_path.exists() else ""
     except (UnicodeDecodeError, OSError):
@@ -179,11 +193,11 @@ def _warn_profile_fallback_once() -> None:
         # Direct stderr, not logging: runs at import time (often before logging is
         # configured) and root-logger propagation would double-emit.
         msg = (
-            f"[HERMES_HOME fallback] HERMES_HOME is unset but active "
+            f"[KOVA_HOME fallback] KOVA_HOME is unset but active "
             f"profile is {active!r}. Falling back to {fallback_home}, which "
             f"is the DEFAULT profile — not {active!r}. Any data this "
             f"process writes will land in the wrong profile. The "
-            f"subprocess spawner should pass HERMES_HOME explicitly "
+            f"subprocess spawner should pass KOVA_HOME explicitly "
             f"(see issue #18594)."
         )
         with contextlib.suppress(Exception):
@@ -191,14 +205,14 @@ def _warn_profile_fallback_once() -> None:
             sys.stderr.flush()
 
 
-def get_hermes_home() -> Path:
-    """Hermes home: context-local override → ``HERMES_HOME`` env var → platform default."""
-    override = get_hermes_home_override()
+def get_kova_home() -> Path:
+    """Kova home: context-local override → ``KOVA_HOME`` env var → platform default."""
+    override = get_kova_home_override()
     if override:
-        return _expand_hermes_home(override)
-    if not os.environ.get("HERMES_HOME", "").strip():
+        return _expand_kova_home(override)
+    if not os.environ.get("KOVA_HOME", "").strip():
         _warn_profile_fallback_once()
-    return get_process_hermes_home()
+    return get_process_kova_home()
 
 
 # Resolved keys, keyed by the path string that was handed in. Path.resolve()
@@ -209,8 +223,8 @@ def get_hermes_home() -> Path:
 _HOME_KEY_CACHE: dict[str, str] = {}
 
 
-def hermes_home_key(path: str | Path | None = None) -> str:
-    """Stable registry key for a Hermes home/profile dir.
+def kova_home_key(path: str | Path | None = None) -> str:
+    """Stable registry key for a Kova home/profile dir.
 
     ``strict=False`` so profiles whose directories don't exist yet still get a key.
 
@@ -218,7 +232,7 @@ def hermes_home_key(path: str | Path | None = None) -> str:
     not exist yet is resolved without touching the cache, because the answer
     can change once it is created (e.g. part of the path turns out to be a symlink).
     """
-    candidate = Path(path) if path is not None else get_hermes_home()
+    candidate = Path(path) if path is not None else get_kova_home()
     raw = str(candidate)
     cached = _HOME_KEY_CACHE.get(raw)
     if cached is not None:
@@ -235,57 +249,64 @@ def hermes_home_key(path: str | Path | None = None) -> str:
     return key
 
 
-def reset_hermes_home_key_cache() -> None:
+def reset_kova_home_key_cache() -> None:
     """Forget every remembered home key (for tests that move a home dir on disk)."""
     _HOME_KEY_CACHE.clear()
 
 
-def get_process_hermes_home() -> Path:
-    """Hermes home of the running process, ignoring task overrides.
+def get_process_kova_home() -> Path:
+    """Kova home of the running process, ignoring task overrides.
 
     For process-level assets (theme YAML, dashboard plugin manifests) that must stay visible while a
     request is scoped to another profile (e.g. embedded ``/chat`` under ``--open-profile``). Follows
-    ``HERMES_HOME`` live on purpose: routed-profile DECISIONS compare against
-    :func:`get_routing_process_hermes_home` instead (#119242).
+    ``KOVA_HOME`` live on purpose: routed-profile DECISIONS compare against
+    :func:`get_routing_process_kova_home` instead (#119242).
     """
-    val = os.environ.get("HERMES_HOME", "").strip()
-    return _expand_hermes_home(val) if val else _get_platform_default_hermes_home()
+    val = os.environ.get("KOVA_HOME", "").strip()
+    if val:
+        return _expand_kova_home(val)
+    default = _get_platform_default_kova_home()
+    if not default.exists():
+        legacy = _legacy_hermes_home()
+        if legacy is not None:
+            return legacy
+    return default
 
 
-# Host-pinned identity of the profile this process serves as its own (None: follow HERMES_HOME).
-_PINNED_PROCESS_HERMES_HOME: str | None = None
+# Host-pinned identity of the profile this process serves as its own (None: follow KOVA_HOME).
+_PINNED_PROCESS_KOVA_HOME: str | None = None
 
 
-def pin_process_hermes_home(path: str | Path | None) -> None:
+def pin_process_kova_home(path: str | Path | None) -> None:
     """Pin the home this process serves as its own profile, for "is this task routed?" decisions.
 
     An embedding host that serves several profiles and mirrors the active turn's profile into
-    ``os.environ["HERMES_HOME"]`` for legacy readers (Hermes WebUI) otherwise makes every turn's own
+    ``os.environ["KOVA_HOME"]`` for legacy readers (Kova WebUI) otherwise makes every turn's own
     profile look like the launch profile: ``agent.secret_scope.serves_routed_profile()`` turns
     False and that turn's MCP connections fall back to bare, cross-profile names; the sibling
     launch-home checks (``secret_scope._is_process_home``, ``tools.environments.local._is_routed_home``,
-    ``kova_cli.env_loader._process_hermes_home``) misjudge the same way. ``None`` clears the pin.
+    ``kova_cli.env_loader._process_kova_home``) misjudge the same way. ``None`` clears the pin.
 
     Process-global on purpose: it names the process's own identity, not a per-task value. It is NOT
-    folded into :func:`get_process_hermes_home`: :func:`get_hermes_home` falls back to that for
+    folded into :func:`get_process_kova_home`: :func:`get_kova_home` falls back to that for
     tasks carrying no override, and the host's mirror exists precisely so those readers see the
-    served profile. Hosts that never mutate ``HERMES_HOME`` need not call this (no-op).
+    served profile. Hosts that never mutate ``KOVA_HOME`` need not call this (no-op).
     """
-    global _PINNED_PROCESS_HERMES_HOME
-    _PINNED_PROCESS_HERMES_HOME = None if path is None else str(path)
+    global _PINNED_PROCESS_KOVA_HOME
+    _PINNED_PROCESS_KOVA_HOME = None if path is None else str(path)
 
 
-def process_hermes_home_is_pinned() -> bool:
-    return _PINNED_PROCESS_HERMES_HOME is not None
+def process_kova_home_is_pinned() -> bool:
+    return _PINNED_PROCESS_KOVA_HOME is not None
 
 
-def get_routing_process_hermes_home() -> Path:
-    """Launch home for routed-profile decisions: the pinned home, else :func:`get_process_hermes_home`."""
-    pinned = _PINNED_PROCESS_HERMES_HOME
-    return _expand_hermes_home(pinned) if pinned else get_process_hermes_home()
+def get_routing_process_kova_home() -> Path:
+    """Launch home for routed-profile decisions: the pinned home, else :func:`get_process_kova_home`."""
+    pinned = _PINNED_PROCESS_KOVA_HOME
+    return _expand_kova_home(pinned) if pinned else get_process_kova_home()
 
 
-# Hermes-managed runtime downloads at the root of a home (GGUF models, llama.cpp runtimes,
+# Kova-managed runtime downloads at the root of a home (GGUF models, llama.cpp runtimes,
 # managed Node): re-downloadable on demand and routinely tens to hundreds of GB. Shared by
 # ``hermes backup`` (excludes them) and ``profile create --clone-all`` (skips them from the
 # default profile) so the two lists cannot drift apart.
@@ -294,50 +315,50 @@ LOCAL_RUNTIME_ROOT_DIRS: frozenset[str] = frozenset({"models", "runtimes", "node
 # Where connector tool results save the files they return, under each profile's home.
 CONNECTOR_DOWNLOADS_SUBDIR = Path("downloads", "connectors")
 
-# get_default_hermes_root() memo keyed on (native home, expanded HERMES_HOME) so it stays
+# get_default_kova_root() memo keyed on (native home, expanded KOVA_HOME) so it stays
 # fresh when a test or plugin mutates either input; saves ~80us/call at 31+ sites.
-_default_hermes_root_memo: tuple[str, str, Path] | None = None
+_default_kova_root_memo: tuple[str, str, Path] | None = None
 
 
-def get_default_hermes_root(*, home: str | Path | None = None) -> Path:
+def get_default_kova_root(*, home: str | Path | None = None) -> Path:
     """Root of an explicit home, or the process home when none is supplied."""
-    global _default_hermes_root_memo
-    native_home = _get_platform_default_hermes_home()
-    env_home = str(home).strip() if home is not None else os.environ.get("HERMES_HOME", "").strip()
-    env_path = _expand_hermes_home(env_home) if env_home else None
+    global _default_kova_root_memo
+    native_home = _get_platform_default_kova_home()
+    env_home = str(home).strip() if home is not None else os.environ.get("KOVA_HOME", "").strip()
+    env_path = _expand_kova_home(env_home) if env_home else None
     memo_key = (str(native_home), str(env_path) if env_path is not None else "")
-    memo = _default_hermes_root_memo
+    memo = _default_kova_root_memo
     if memo is not None and memo[:2] == memo_key:
         return memo[2]
-    result = _hermes_root_of(native_home, env_path)
-    _default_hermes_root_memo = (*memo_key, result)
+    result = _kova_root_of(native_home, env_path)
+    _default_kova_root_memo = (*memo_key, result)
     return result
 
 
 # Tombstone lives beside the profile dir (not inside) so a stale mkdir or rmtree cannot erase it.
 _DELETED_PROFILES_DIR = ".deleted"
-# Files marking a real Hermes home; arbitrary dirs with a ``profiles`` segment lack them.
-_HERMES_HOME_MARKERS = ("config.yaml", ".env", "state.db")
+# Files marking a real Kova home; arbitrary dirs with a ``profiles`` segment lack them.
+_KOVA_HOME_MARKERS = ("config.yaml", ".env", "state.db")
 
 
 def _is_hermes_profiles_root(profiles_dir: Path) -> bool:
     """True when *profiles_dir* is provably ``<hermes-home>/profiles``.
 
-    Accepts the classic ``~/.hermes`` layout, a root carrying Hermes-home marker files, a
+    Accepts the classic ``~/.kova`` layout, a root carrying Kova-home marker files, a
     ``profiles/.deleted`` tombstone dir (only ``profile delete`` creates it), or the default root.
     """
     root = profiles_dir.parent
-    if root.name == ".hermes":
+    if root.name == ".kova":
         return True
     try:
         if (profiles_dir / _DELETED_PROFILES_DIR).is_dir() or any(
-            (root / marker).exists() for marker in _HERMES_HOME_MARKERS
+            (root / marker).exists() for marker in _KOVA_HOME_MARKERS
         ):
             return True
     except OSError:
         pass
     try:
-        return root.resolve(strict=False) == get_default_hermes_root().resolve(strict=False)
+        return root.resolve(strict=False) == get_default_kova_root().resolve(strict=False)
     except OSError:
         return False
 
@@ -345,7 +366,7 @@ def _is_hermes_profiles_root(profiles_dir: Path) -> bool:
 def named_profile_home(path: str | Path) -> Path | None:
     """Return ``<root>/profiles/<name>`` when *path* is that home or under it.
 
-    Requires ``<name>`` not to start with ``.`` and the ``profiles`` parent to be a real Hermes home;
+    Requires ``<name>`` not to start with ``.`` and the ``profiles`` parent to be a real Kova home;
     a default home whose path merely contains a ``profiles`` segment is not a named profile.
     """
     current = Path(path)
@@ -353,7 +374,7 @@ def named_profile_home(path: str | Path) -> Path | None:
         if (candidate.parent.name == "profiles" and not candidate.name.startswith(".")
                 and _is_hermes_profiles_root(candidate.parent)):
             return candidate
-        if candidate.name == ".hermes":  # default home: a coincidental profiles/ ancestor is not a root
+        if candidate.name == ".kova":  # default home: a coincidental profiles/ ancestor is not a root
             return None
     return None
 
@@ -361,14 +382,14 @@ def named_profile_home(path: str | Path) -> Path | None:
 def profile_name_for_home(path: str | Path | None) -> str | None:
     """Return the canonical profile id owning *path*, or ``None`` when it is not a profile home.
 
-    The default home is the Hermes root itself, so its basename is an installation detail (``.hermes``
+    The default home is the Kova root itself, so its basename is an installation detail (``.kova``
     on POSIX and commonly ``hermes`` on Windows), not the profile id ``default``.
     """
     if path is None or not str(path).strip():
         return None
     current = Path(path).expanduser()
     try:
-        default_root = get_default_hermes_root()
+        default_root = get_default_kova_root()
         for candidate in (current, current.resolve(strict=False)):
             if candidate == default_root or candidate == default_root.resolve(strict=False):
                 return "default"
@@ -433,7 +454,7 @@ def named_profile_has_servable_identity(profile_home: str | Path) -> bool:
 def named_profile_is_live(profile_home: str | Path) -> bool:
     """A resolvable named profile: an existing dir with identity that has not been deleted.
     ``-p``/``--profile`` resolution and ``profile_exists`` share this so a stale ghost shell can
-    never be started as a backend (whose ``ensure_hermes_home`` would rebuild the full tree)."""
+    never be started as a backend (whose ``ensure_kova_home`` would rebuild the full tree)."""
     home = Path(profile_home)
     return home.is_dir() and named_profile_has_identity(home) and not named_profile_is_deleted(home)
 
@@ -458,7 +479,7 @@ def assert_named_profile_home_live(path: str | Path) -> None:
         )
 
 
-def mkdir_under_hermes_home(path: str | Path) -> Path:
+def mkdir_under_kova_home(path: str | Path) -> Path:
     """Create *path*, but never materialize a deleted/missing named profile."""
     target = Path(path)
     assert_named_profile_home_live(target)
@@ -474,29 +495,29 @@ def _packaged_dir(env_var: str, default: Path | None, subdir: str) -> Path:
     """Resolve a package-manager-relocatable directory.
 
     Order: *env_var* (Nix wrapper / explicit override) → caller ``default`` (source checkout) →
-    ``<HERMES_HOME>/<subdir>``.
+    ``<KOVA_HOME>/<subdir>``.
     """
     override = os.getenv(env_var, "").strip()
-    return Path(override) if override else default if default is not None else get_hermes_home() / subdir
+    return Path(override) if override else default if default is not None else get_kova_home() / subdir
 
 
 def get_optional_skills_dir(default: Path | None = None) -> Path:
     """Return the optional-skills directory, honoring package-manager wrappers."""
-    return _packaged_dir("HERMES_OPTIONAL_SKILLS", default, "optional-skills")
+    return _packaged_dir("KOVA_OPTIONAL_SKILLS", default, "optional-skills")
 
 
 def get_optional_mcps_dir(default: Path | None = None) -> Path:
-    """Return the optional-mcps directory, honoring package-manager wrappers (``HERMES_OPTIONAL_MCPS``)."""
-    return _packaged_dir("HERMES_OPTIONAL_MCPS", default, "optional-mcps")
+    """Return the optional-mcps directory, honoring package-manager wrappers (``KOVA_OPTIONAL_MCPS``)."""
+    return _packaged_dir("KOVA_OPTIONAL_MCPS", default, "optional-mcps")
 
 
 def get_bundled_skills_dir(default: Path | None = None) -> Path:
-    """Return the bundled skills directory, honoring package-manager wrappers (``HERMES_BUNDLED_SKILLS``)."""
-    return _packaged_dir("HERMES_BUNDLED_SKILLS", default, "skills")
+    """Return the bundled skills directory, honoring package-manager wrappers (``KOVA_BUNDLED_SKILLS``)."""
+    return _packaged_dir("KOVA_BUNDLED_SKILLS", default, "skills")
 
 
 def get_hermes_dir(new_subpath: str, old_name: str, *, home: Path | None = None) -> Path:
-    """Resolve a Hermes subdirectory, honouring a populated legacy ``<old_name>/`` (no migration).
+    """Resolve a Kova subdirectory, honouring a populated legacy ``<old_name>/`` (no migration).
 
     An empty legacy dir does NOT count (install scaffolds, manual mkdir) so it cannot shadow the new path.
 
@@ -505,14 +526,14 @@ def get_hermes_dir(new_subpath: str, old_name: str, *, home: Path | None = None)
     otherwise silently shadow real data populated at ``<new_subpath>/``. See #27602 for the pairing-store
     regression where a dormant empty ``pairing/`` orphaned approved-user data in ``platforms/pairing/``.
     """
-    home = home or get_hermes_home()
+    home = home or get_kova_home()
     old_path = home / old_name
     return old_path if _legacy_path_has_content(old_path) else home / new_subpath
 
 
 def iter_hermes_node_dirs(home: Path | None = None) -> list[Path]:
     """Historical layout for old-updater diagnostics, never runtime selection."""
-    node_dir = (home or get_hermes_home()) / "node"
+    node_dir = (home or get_kova_home()) / "node"
     return [node_dir, node_dir / "bin"] if sys.platform == "win32" else [node_dir / "bin", node_dir]
 
 
@@ -542,7 +563,7 @@ def _run_version_probe(argv: list[str], **kwargs):
 
 
 def _version_probe_ok(path: str) -> bool:
-    """True when ``<path> --version`` exits 0 under the Hermes-managed Node PATH."""
+    """True when ``<path> --version`` exits 0 under the Kova-managed Node PATH."""
     result = _run_version_probe([path, "--version"], env=with_hermes_node_path())
     return result is not None and result.returncode == 0
 
@@ -578,7 +599,7 @@ def find_node_executable(command: str) -> str | None:
     Never falls back to the user's PATH copy (callers ``pm.ensure`` on ``None``):
     mixing toolchains breaks native-addon ABIs and npm caches. Explicit
     executable paths remain caller-owned. Discovery never installs, probes,
-    repairs, or activates the retired ``HERMES_HOME/node`` layout.
+    repairs, or activates the retired ``KOVA_HOME/node`` layout.
     """
     command = str(command)
     if any(sep in command for sep in ("/", "\\")):
@@ -645,14 +666,14 @@ def _legacy_path_has_content(path: Path) -> bool:
     return True
 
 
-def display_hermes_home(home: Path | None = None) -> str:
-    """User-facing ``~/`` display string for HERMES_HOME (``~/.hermes/profiles/coder``).
+def display_kova_home(home: Path | None = None) -> str:
+    """User-facing ``~/`` display string for KOVA_HOME (``~/.kova/profiles/coder``).
 
     ``home`` overrides the lookup for callers that run before the CLI has applied the sticky
-    ``active_profile`` (``get_hermes_home()`` would emit the wrong-profile fallback warning there).
+    ``active_profile`` (``get_kova_home()`` would emit the wrong-profile fallback warning there).
     """
     if home is None:
-        home = get_hermes_home()
+        home = get_kova_home()
     try:  # as_posix(): str() on Windows yields chimeras like ~/AppData\Local\hermes/skills/
         return "~/" + home.relative_to(Path.home()).as_posix()
     except ValueError:
@@ -663,25 +684,25 @@ def profile_cli_selector() -> str:
     """``-p <name> `` (trailing space) pinning copy-pasteable ``hermes ...`` guidance to the
     active NAMED profile, else ``""``: a bare ``hermes`` follows the sticky ``active_profile``
     file, which can name a different database than the one that failed (#105887). A custom
-    home outside the profile tree has no selector (only HERMES_HOME names it)."""
-    name = profile_name_for_home(get_hermes_home())
+    home outside the profile tree has no selector (only KOVA_HOME names it)."""
+    name = profile_name_for_home(get_kova_home())
     return f"-p {name} " if name and name != "default" else ""
 
 
 def secure_parent_dir(path: Path) -> None:
-    """Chmod ``0o700`` on *path*'s parent, refusing ``/`` and top-level dirs (misresolved HERMES_HOME)."""
+    """Chmod ``0o700`` on *path*'s parent, refusing ``/`` and top-level dirs (misresolved KOVA_HOME)."""
     parent = path.parent.resolve()
     if parent == Path("/") or len(parent.parts) < 3:
         return
     # Refuse the install tree: chmod 0700 breaks hermes-user traversal in Docker (UID 10000).
-    # A credential file here means HERMES_HOME misresolved; surface it (caused production lockouts).
+    # A credential file here means KOVA_HOME misresolved; surface it (caused production lockouts).
     # See #25821, #93050.
     if parent == _INSTALL_ROOT or _INSTALL_ROOT in parent.parents:
         import logging
 
         logging.getLogger(__name__).warning(
             "Not restricting permissions on %s: it is inside the "
-            "hermes-agent install directory (%s). Credential files are "
+            "kova-agent install directory (%s). Credential files are "
             "normally stored under the hermes home directory instead.", parent, _INSTALL_ROOT,
         )
         return
@@ -701,11 +722,11 @@ def _norm_home_path(path: str | None) -> str:
 
 
 def _profile_home_path(env: dict[str, str] | None = None) -> str | None:
-    """Return ``{HERMES_HOME}/home`` when the profile-home directory exists."""
-    hermes_home = get_hermes_home_override() or (env or {}).get("HERMES_HOME") or os.getenv("HERMES_HOME")
-    if not hermes_home:
+    """Return ``{KOVA_HOME}/home`` when the profile-home directory exists."""
+    kova_home = get_kova_home_override() or (env or {}).get("KOVA_HOME") or os.getenv("KOVA_HOME")
+    if not kova_home:
         return None
-    profile_home = str(_expand_hermes_home(hermes_home) / "home")
+    profile_home = str(_expand_kova_home(kova_home) / "home")
     return profile_home if os.path.isdir(profile_home) else None
 
 
@@ -721,7 +742,7 @@ def _env_get(env: dict[str, str], key: str, default: str = "") -> str:
 def _iter_real_home_candidates(env: dict[str, str] | None = None) -> list[str]:
     """Return likely OS-user home candidates in trust order."""
     env = env or {}
-    candidates = [_env_get(env, "HERMES_REAL_HOME"), _env_get(env, "HOME")]
+    candidates = [_env_get(env, "KOVA_REAL_HOME"), _env_get(env, "HOME")]
     with contextlib.suppress(Exception):
         import pwd
         candidates.append(pwd.getpwuid(os.getuid()).pw_dir.strip())  # windows-footgun: ok — POSIX-only module inside try/except
@@ -736,10 +757,10 @@ def _iter_real_home_candidates(env: dict[str, str] | None = None) -> list[str]:
 
 
 def get_real_home(env: dict[str, str] | None = None) -> str:
-    """The OS user's real home, avoiding the Hermes profile HOME.
+    """The OS user's real home, avoiding the Kova profile HOME.
 
     ``HOME`` belongs to the OS account and external CLIs keeping credentials under ``~``; a parent
-    already running with ``HOME={HERMES_HOME}/home`` is repaired back when possible.
+    already running with ``HOME={KOVA_HOME}/home`` is repaired back when possible.
     """
     profile_home = _profile_home_path(env)
     seen: set[str] = set()
@@ -766,7 +787,7 @@ def get_subprocess_home(env: dict[str, str] | None = None) -> str | None:
     """Subprocess ``HOME`` override, or ``None``.
 
     ``auto``: hosts keep real HOME (repairing a profile-home parent), containers use
-    ``{HERMES_HOME}/home``; ``real``: always real HOME; ``profile``: always the profile home.
+    ``{KOVA_HOME}/home``; ``real``: always real HOME; ``profile``: always the profile home.
     """
     env = env or {}
     profile_home = _profile_home_path(env)
@@ -789,28 +810,28 @@ def get_subprocess_home(env: dict[str, str] | None = None) -> str | None:
 
 
 def apply_subprocess_home_env(env: MutableMapping[str, str]) -> None:
-    """Apply Hermes' subprocess HOME contract to *env* in-place: ``HOME``/``HERMES_REAL_HOME``
-    per the home mode, and the temp vars re-pointed at ``env["HERMES_HOME"]``'s scratch dir."""
+    """Apply Kova' subprocess HOME contract to *env* in-place: ``HOME``/``KOVA_REAL_HOME``
+    per the home mode, and the temp vars re-pointed at ``env["KOVA_HOME"]``'s scratch dir."""
     real_home = get_real_home(env)
     if real_home:
-        env["HERMES_REAL_HOME"] = real_home
+        env["KOVA_REAL_HOME"] = real_home
     home = get_subprocess_home(env)
     if home:
         env["HOME"] = home
     apply_scratch_tmp_env(env)
 
 
-# --- Scratch dir: Hermes' own temp space, never the system /tmp ---
+# --- Scratch dir: Kova' own temp space, never the system /tmp ---
 # System temp is tmpfs on most Linux distros and containers, so browser profiles, PTY probes,
-# download spools and every ``tempfile.mkdtemp()`` a Hermes-launched script performs eat RAM
-# and vanish on reboot. ``HERMES_HOME/cache/scratch`` is real storage with an IDLE retention:
+# download spools and every ``tempfile.mkdtemp()`` a Kova-launched script performs eat RAM
+# and vanish on reboot. ``KOVA_HOME/cache/scratch`` is real storage with an IDLE retention:
 # an entry lives while anything inside it is still being written and goes 24h after the last
 # write anywhere in its subtree. A fixed age was wrong both ways — a directory's own mtime only
 # moves when a direct child is added or removed, so a lane writing deep inside a tree looked
 # untouched and lost its worktree at the deadline, while finished trees (a 7 GB clone with its
 # own venv per campaign lane) sat for three days and filled the disk.
 SCRATCH_TMP_ENV_VARS = ("TMPDIR", "TMP", "TEMP")
-SCRATCH_DIR_MARKER_ENV = "HERMES_SCRATCH_DIR"
+SCRATCH_DIR_MARKER_ENV = "KOVA_SCRATCH_DIR"
 SCRATCH_MAX_IDLE_HOURS = 24
 _SCRATCH_PRUNE_STAMP = ".last_prune"
 _SCRATCH_PRUNE_INTERVAL_SECONDS = 3600
@@ -846,22 +867,22 @@ _LEGACY_MANAGED_SYSTEM = "nixos"
 # Homebrew is no longer a supported distribution: these markers fall through to git/unknown
 # detection instead of blocking config writes.
 _IGNORED_MANAGED_VALUES = frozenset({"brew", "homebrew"})
-# Explicit opt-out (``HERMES_MANAGED=false``): without this a bool-shaped value became a package
+# Explicit opt-out (``KOVA_MANAGED=false``): without this a bool-shaped value became a package
 # manager literally named "false" and is_managed() blocked `hermes update` (#12864).
 _MANAGED_FALSE_VALUES = frozenset({"false", "0", "no", "off"})
 
 
 def get_managed_system(home: str | Path | None = None) -> str | None:
     """Return the package manager owning this install, if any.
-    Signals: HERMES_MANAGED env var (systemd service) or a ``.managed`` marker file in
-    HERMES_HOME (NixOS activation script — interactive shells don't see the service env).
+    Signals: KOVA_MANAGED env var (systemd service) or a ``.managed`` marker file in
+    KOVA_HOME (NixOS activation script — interactive shells don't see the service env).
     An unreadable or empty marker still counts as managed (the legacy NixOS shape).
 
     ``home`` names the home whose marker file is read, for callers that already resolved it
     (:func:`get_scratch_dir` at boot, before ``--profile`` re-homes the process).
     Defaults to the effective home."""
-    marker = os.getenv("HERMES_MANAGED", "").strip().lower() or None
-    managed_marker = (Path(home) if home is not None else get_hermes_home()) / ".managed"
+    marker = os.getenv("KOVA_MANAGED", "").strip().lower() or None
+    managed_marker = (Path(home) if home is not None else get_kova_home()) / ".managed"
     if marker is None and managed_marker.exists():
         try:
             marker = managed_marker.read_text(encoding="utf-8", errors="replace").strip().lower()
@@ -875,24 +896,24 @@ def get_managed_system(home: str | Path | None = None) -> str | None:
 
 
 def _container_or_chmod_skipped() -> bool:
-    """Container/chmod-skip detection: the ``HERMES_CONTAINER``/``HERMES_SKIP_CHMOD`` operator
+    """Container/chmod-skip detection: the ``KOVA_CONTAINER``/``KOVA_SKIP_CHMOD`` operator
     overrides on top of the canonical :func:`_detect_container` signals (same breadth as
     :func:`is_container` — Docker/Podman/LXC/Kubernetes, cgroup and root-mountinfo). The cached
     :func:`is_container` itself is deliberately avoided: it ignores these env overrides and is
     computed only once per process, so tests could not flip it. Volume-mounted config is not
     forced to owner-only in containers: gateway and dashboard may run as different UIDs, or
     the mount itself needs broader permissions."""
-    if os.environ.get("HERMES_CONTAINER") or os.environ.get("HERMES_SKIP_CHMOD"):
+    if os.environ.get("KOVA_CONTAINER") or os.environ.get("KOVA_SKIP_CHMOD"):
         return True
     return _detect_container()
 
 
 def _resolve_hermes_uid_gid() -> tuple[int | None, int | None]:
-    """Read HERMES_UID / HERMES_GID (set by Docker deployments); (None, None) if unset/invalid/Windows.
-    The entrypoint chowns HERMES_HOME once, but subdirs created at runtime (``profiles/<name>/``)
+    """Read KOVA_UID / KOVA_GID (set by Docker deployments); (None, None) if unset/invalid/Windows.
+    The entrypoint chowns KOVA_HOME once, but subdirs created at runtime (``profiles/<name>/``)
     need the same chown or they land root:root and block later uid-mapped workers.
 
-    Docker containers running Hermes commonly set these to map the in-container user to a host user so
+    Docker containers running Kova commonly set these to map the in-container user to a host user so
     volume-mounted state files end up with the right ownership. See #34107.
     """
     if sys.platform == "win32":
@@ -904,15 +925,15 @@ def _resolve_hermes_uid_gid() -> tuple[int | None, int | None]:
         except (TypeError, ValueError):
             return None
 
-    return _env_int("HERMES_UID"), _env_int("HERMES_GID")
+    return _env_int("KOVA_UID"), _env_int("KOVA_GID")
 
 
 def _chown_to_hermes_uid(path) -> None:
-    """Chown ``path`` to ``HERMES_UID:HERMES_GID`` when set; EPERM/ENOENT are non-fatal (the
+    """Chown ``path`` to ``KOVA_UID:KOVA_GID`` when set; EPERM/ENOENT are non-fatal (the
     entrypoint's startup chown -R fixes ownership on the next restart).
 
     Used by :func:`apply_secure_dir_policy` to keep ownership consistent across all directories
-    created by ``ensure_hermes_home`` on Docker deployments. See #34107.
+    created by ``ensure_kova_home`` on Docker deployments. See #34107.
     """
     uid, gid = _resolve_hermes_uid_gid()
     if uid is None and gid is None:
@@ -924,15 +945,15 @@ def _chown_to_hermes_uid(path) -> None:
 
 
 def apply_secure_dir_policy(path, *, home: str | Path | None = None) -> None:
-    """Apply the canonical Hermes home-directory permission policy to *path*.
+    """Apply the canonical Kova home-directory permission policy to *path*.
 
     Owner-only ``0700`` by default, but the operator's explicit and managed sharing choices
     win (#117347): managed installs are left exactly as the package manager / activation
-    script set them (#77579); in a container only an explicit ``HERMES_HOME_MODE`` is applied
+    script set them (#77579); in a container only an explicit ``KOVA_HOME_MODE`` is applied
     (a bind-mounted data dir is often shared with sibling containers, #10757); elsewhere
-    ``HERMES_HOME_MODE`` (e.g. ``0701``, ``2770``) is passed to the host's ``chmod``. Special
+    ``KOVA_HOME_MODE`` (e.g. ``0701``, ``2770``) is passed to the host's ``chmod``. Special
     bits may be cleared by the host filesystem (macOS commonly clears setgid on directories
-    whose group the caller does not belong to). ``HERMES_UID`` / ``HERMES_GID`` ownership is
+    whose group the caller does not belong to). ``KOVA_UID`` / ``KOVA_GID`` ownership is
     applied when those env vars are set (#34107).
 
     ``home`` (keyword-only: both arguments are path-likes) names the home whose managed-mode
@@ -944,7 +965,7 @@ def apply_secure_dir_policy(path, *, home: str | Path | None = None) -> None:
     """
     if get_managed_system(home) is not None:
         return
-    explicit_mode = os.environ.get("HERMES_HOME_MODE", "").strip()
+    explicit_mode = os.environ.get("KOVA_HOME_MODE", "").strip()
     if _container_or_chmod_skipped() and not explicit_mode:
         _chown_to_hermes_uid(path)
         return
@@ -960,9 +981,9 @@ def apply_secure_dir_policy(path, *, home: str | Path | None = None) -> None:
 
 
 def get_scratch_dir(home: str | Path | None = None, *, prune: bool = True) -> Path:
-    """``<home>/cache/scratch`` (created, owner-only); *home* defaults to the active Hermes home.
+    """``<home>/cache/scratch`` (created, owner-only); *home* defaults to the active Kova home.
 
-    Every Hermes process and child gets ``TMPDIR``/``TMP``/``TEMP`` pointed here at boot (see
+    Every Kova process and child gets ``TMPDIR``/``TMP``/``TEMP`` pointed here at boot (see
     :func:`export_scratch_tmp_env`), so ``tempfile`` defaults land here without call sites
     knowing. Entries idle for ``SCRATCH_MAX_IDLE_HOURS`` are pruned at most once per process
     and once per hour across processes (stamp file), so a fan-out of children stays cheap.
@@ -971,10 +992,10 @@ def get_scratch_dir(home: str | Path | None = None, *, prune: bool = True) -> Pa
     included) waits on the idle scan or the ``rmtree`` of a multi-GB entry, and the pass still
     finishes when the caller is a ``hermes`` command that exits a moment later.
 
-    Permissions follow :func:`apply_secure_dir_policy`, so an explicit ``HERMES_HOME_MODE`` or
+    Permissions follow :func:`apply_secure_dir_policy`, so an explicit ``KOVA_HOME_MODE`` or
     a managed/shared home is honored instead of a blanket ``0700`` (#117347).
     """
-    base = Path(home) if home is not None else get_hermes_home()
+    base = Path(home) if home is not None else get_kova_home()
     scratch = base / "cache" / "scratch"
     try:
         scratch.mkdir(parents=True, exist_ok=True)
@@ -1033,11 +1054,11 @@ def scratch_dir_usage_bytes(scratch: Path | None = None) -> int:
 
 
 def apply_scratch_tmp_env(env: MutableMapping[str, str]) -> bool:
-    """Point ``TMPDIR``/``TMP``/``TEMP`` in *env* at the scratch dir of ``env["HERMES_HOME"]``.
+    """Point ``TMPDIR``/``TMP``/``TEMP`` in *env* at the scratch dir of ``env["KOVA_HOME"]``.
 
     A temp var the user (or the OS: macOS ``/var/folders``, Windows ``%TEMP%``) set is
-    respected and nothing changes. A value Hermes itself exported earlier — recognisable
-    because it equals ``HERMES_SCRATCH_DIR`` — is re-derived, so a child running under another
+    respected and nothing changes. A value Kova itself exported earlier — recognisable
+    because it equals ``KOVA_SCRATCH_DIR`` — is re-derived, so a child running under another
     profile's home gets that home's scratch dir rather than its parent's. Returns True when
     the vars were (re)written.
     """
@@ -1046,11 +1067,11 @@ def apply_scratch_tmp_env(env: MutableMapping[str, str]) -> bool:
         value = env.get(key, "").strip()
         if value and value != ours:
             return False
-    home = env.get("HERMES_HOME", "").strip()
+    home = env.get("KOVA_HOME", "").strip()
     try:
-        scratch = str(get_scratch_dir(_expand_hermes_home(home) if home else get_process_hermes_home()))
+        scratch = str(get_scratch_dir(_expand_kova_home(home) if home else get_process_kova_home()))
     except (RuntimeError, OSError):
-        # No HERMES_HOME and no resolvable user home (a child env built from nothing on
+        # No KOVA_HOME and no resolvable user home (a child env built from nothing on
         # Windows): there is no scratch dir to point at; the child keeps the OS default.
         return False
     for key in SCRATCH_TMP_ENV_VARS:
@@ -1253,7 +1274,7 @@ def wsl_unc_path_to_posix(path: str) -> str | None:
 
 
 def translate_cwd_for_wsl_backend(cwd: str) -> str:
-    """Map a Windows-host cwd (drive path or ``\\\\wsl.localhost\\`` UNC) to POSIX when Hermes runs in WSL.
+    """Map a Windows-host cwd (drive path or ``\\\\wsl.localhost\\`` UNC) to POSIX when Kova runs in WSL.
 
     No-op off WSL and for paths already POSIX.
     """
@@ -1267,18 +1288,18 @@ def translate_cwd_for_wsl_backend(cwd: str) -> str:
 
 
 def get_config_path() -> Path:
-    """Return the path to ``config.yaml`` under HERMES_HOME."""
-    return get_hermes_home() / "config.yaml"
+    """Return the path to ``config.yaml`` under KOVA_HOME."""
+    return get_kova_home() / "config.yaml"
 
 
 def get_skills_dir() -> Path:
-    """Return the path to the skills directory under HERMES_HOME."""
-    return get_hermes_home() / "skills"
+    """Return the path to the skills directory under KOVA_HOME."""
+    return get_kova_home() / "skills"
 
 
 def get_env_path() -> Path:
-    """Return the path to the ``.env`` file under HERMES_HOME."""
-    return get_hermes_home() / ".env"
+    """Return the path to the ``.env`` file under KOVA_HOME."""
+    return get_kova_home() / ".env"
 
 
 def apply_ipv4_preference(force: bool = False) -> None:
@@ -1371,7 +1392,7 @@ def project_venv_dir(project_root) -> Path | None:
     Windows shim-lock preflight skipped itself entirely (#79542). ``venv`` wins when both exist, matching
     what the installers write.
 
-    Installers that keep the interpreter out of the checkout (``$HERMES_HOME/venvs/<name>``, the layout the
+    Installers that keep the interpreter out of the checkout (``$KOVA_HOME/venvs/<name>``, the layout the
     shipped Windows launchers assume) have neither, and the ``project_venv_dir(root) or root / "venv"``
     idiom those call sites share then handed ``uv`` a ``VIRTUAL_ENV`` that does not exist: that one invented
     path skipped the import probe, reclassified every ``hermes tools`` dependency as missing and failed the
@@ -1396,7 +1417,7 @@ def project_venv_dir(project_root) -> Path | None:
 
 
 def _venv_installs_checkout(venv: Path, root: Path) -> bool:
-    """Is *venv*'s own ``hermes-agent`` installed from *root*?
+    """Is *venv*'s own ``kova-agent`` installed from *root*?
 
     Where this module was loaded from does not answer that: ``PYTHONPATH=<checkout>
     <other install>/bin/python`` runs one checkout's code on another install's interpreter,
@@ -1411,7 +1432,7 @@ def _venv_installs_checkout(venv: Path, root: Path) -> bool:
 
     from pm.environments import site_packages
 
-    for dist in distributions(name="hermes-agent", path=[str(site_packages(venv))]):
+    for dist in distributions(name="kova-agent", path=[str(site_packages(venv))]):
         try:
             raw = dist.read_text("direct_url.json")  # windows-footgun: ok — importlib.metadata API, reads utf-8, no encoding=
             url = json.loads(raw or "{}").get("url", "")
@@ -1438,7 +1459,7 @@ FIRST_PARTY_MODULE_ROOTS = frozenset({
 
 
 def is_first_party_module(name: str | None) -> bool:
-    """True when *name* ships with Hermes (exact first segment; ``startswith`` would claim ``agentops``)."""
+    """True when *name* ships with Kova (exact first segment; ``startswith`` would claim ``agentops``)."""
     root = str(name).split(".")[0] if name else ""
     return bool(root) and (root in FIRST_PARTY_MODULE_ROOTS or root.startswith("hermes_"))
 
@@ -1455,7 +1476,7 @@ def partial_update_hint(exc: BaseException) -> list[str]:
         "and a related one was not.",
         "Re-run the update to bring the whole tree to the same version:",
         "    hermes update",
-        "If that also fails, reinstall: https://hermes-agent.nousresearch.com",
+        "If that also fails, reinstall: https://kova-agent.nousresearch.com",
     ]
 
 
@@ -1478,7 +1499,7 @@ def normalize_scope(scope: str | Path | None) -> str | None:
       ``restore_registration``, tool-registry slot lookup): ``None`` means
       the process-global layer and must stay ``None``. Use this function.
     * **Read paths** (``list_providers``, ``get_provider``): ``None`` means
-      "the active home's scope" and must go through :func:`hermes_home_key`
+      "the active home's scope" and must go through :func:`kova_home_key`
       (falsy input resolves to the active default home). Using this
       function there hides every scoped registration — the exact bug
       fixed after e66a627aa5.
@@ -1486,5 +1507,5 @@ def normalize_scope(scope: str | Path | None) -> str | None:
     Both normalize non-None values identically (resolved absolute path,
     normcase on Windows) so writes and reads agree on the key.
     """
-    return hermes_home_key(scope) if scope is not None else None
+    return kova_home_key(scope) if scope is not None else None
 

@@ -2,7 +2,7 @@
  * C2 core: a reply is painted ONCE inside its bubble, whatever tool round
  * the turn ends on.
  *
- * Report: "Hermes Desktop sometimes duplicates the same agent output twice
+ * Report: "Kova Desktop sometimes duplicates the same agent output twice
  * consecutively within a single message bubble, with no line break or UI
  * elements between them."
  *
@@ -166,7 +166,7 @@ async function withApp(
 ) {
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox(label)
-  writeProviderHome(sandbox.hermesHome, provider.url, config(interim))
+  writeProviderHome(sandbox.kovaHome, provider.url, config(interim))
   const { app, page } = await launchCoreApp(coreAppEnv(sandbox))
   const ws = recordWebSockets(page)
 

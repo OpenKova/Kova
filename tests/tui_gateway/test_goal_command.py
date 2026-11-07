@@ -20,13 +20,13 @@ import pytest
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+def kova_home(tmp_path, monkeypatch):
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
-    # Bust the goal-module DB cache so it re-resolves HERMES_HOME.
+    # Bust the goal-module DB cache so it re-resolves KOVA_HOME.
     from kova_cli import goals
 
     goals._DB_CACHE.clear()
@@ -35,7 +35,7 @@ def hermes_home(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def server(hermes_home, monkeypatch):
+def server(kova_home, monkeypatch):
     # Mocks are scoped to the initial import only (see
     # tests/tui_gateway/test_protocol.py for the rationale).
     with patch.dict(
@@ -47,18 +47,18 @@ def server(hermes_home, monkeypatch):
     ):
         mod = importlib.import_module("tui_gateway.server")
 
-    # Pin config resolution to the isolated HERMES_HOME. Sibling test
+    # Pin config resolution to the isolated KOVA_HOME. Sibling test
     # files (test_billing_rpc, test_delegation_session_lifecycle,
     # test_gateway_owned_session_reap, ...) import tui_gateway.server at
     # collection time — BEFORE the conftest env isolation runs — so the
-    # module-level ``_hermes_home = get_hermes_home()`` snapshot freezes
+    # module-level ``_kova_home = get_kova_home()`` snapshot freezes
     # the developer's real home. When any of them precede this file in
     # the same process, ``importlib.import_module`` returns that cached
     # module and ``_load_cfg()`` would read the REAL config.yaml (e.g. a
     # local MoA preset) instead of the one ``_write_moa_config`` writes.
     # Also reset the mtime-keyed config cache; monkeypatch restores the
     # originals on teardown so nothing leaks to later tests either.
-    monkeypatch.setattr(mod, "_hermes_home", hermes_home)
+    monkeypatch.setattr(mod, "_kova_home", kova_home)
     monkeypatch.setattr(mod, "_cfg_cache", None)
     monkeypatch.setattr(mod, "_cfg_sig", None)
     monkeypatch.setattr(mod, "_cfg_path", None)
@@ -539,7 +539,7 @@ def test_goal_draft_uses_session_profile_without_blocking_rpc_reader(
     server, session, monkeypatch, tmp_path, method,
 ):
     from kova_cli import goals
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     import kova_state
 
     # Restore call-time profile resolution; conftest pins this constant to one DB.
@@ -553,7 +553,7 @@ def test_goal_draft_uses_session_profile_without_blocking_rpc_reader(
     observed, frames = [], []
 
     def draft(objective):
-        observed.append(get_hermes_home())
+        observed.append(get_kova_home())
         started.set()
         assert release.wait(10)
         return goals.GoalContract(verification="tests pass")

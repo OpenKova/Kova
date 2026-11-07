@@ -1,4 +1,4 @@
-"""Security advisory checker for Hermes Agent.
+"""Security advisory checker for Kova Agent.
 
 Cheap (one ``importlib.metadata.version()`` call per advisory package, safe on every CLI startup)
 and silent unless a compromised package is actually installed.
@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 class Advisory:
     """``id`` is lowercase-hyphen, stable and never reused (it is what acks key on). ``remediation``
     is ordered: uninstall command first, then credential audit/rotation guidance. Steps may use
-    ``{hermes_home}``; ``full_remediation_text`` fills it with ``display_hermes_home()`` at render
-    time so a profile / HERMES_HOME user is sent to their own .env.
+    ``{kova_home}``; ``full_remediation_text`` fills it with ``display_kova_home()`` at render
+    time so a profile / KOVA_HOME user is sent to their own .env.
     """
 
     id: str
@@ -63,7 +63,7 @@ ADVISORIES: tuple[Advisory, ...] = (
         compromised=(("mistralai", frozenset({"2.4.6"})),),
         remediation=(
             "Run: pip uninstall -y mistralai  (or: uv pip uninstall mistralai)",
-            "Rotate API keys in {hermes_home}/.env (OpenRouter, Anthropic, OpenAI, "
+            "Rotate API keys in {kova_home}/.env (OpenRouter, Anthropic, OpenAI, "
             "Nous, GitHub, AWS, Google, Mistral, etc.).",
             "Audit ~/.npmrc, ~/.pypirc, ~/.aws/credentials, ~/.config/gh/hosts.yml, "
             "and any other credential files for tokens that may have been read.",
@@ -190,12 +190,12 @@ def full_remediation_text(hit: AdvisoryHit) -> list[str]:
         a.summary,
         "",
         "Remediation:",
-        *(f"  {i}. {step.format(hermes_home=display_hermes_home())}" for i, step in enumerate(a.remediation, 1)),
+        *(f"  {i}. {step.format(kova_home=display_kova_home())}" for i, step in enumerate(a.remediation, 1)),
     ]
 
 
 # ─── Startup-banner gating ────────────────────────────────────────────────────
-# Once the banner is seen we cache that in ``~/.hermes/cache/advisory_banner_seen`` (one
+# Once the banner is seen we cache that in ``~/.kova/cache/advisory_banner_seen`` (one
 # ``<id> <timestamp>`` line per advisory). Acked advisories never re-banner; cached-but-not-acked
 # ones re-banner after 24h so the user doesn't fully forget.
 
@@ -205,8 +205,8 @@ _BANNER_REPEAT_HOURS = 24
 
 def _banner_cache_path() -> Optional[Path]:
     try:
-        from kova_constants import get_hermes_home
-        cache_dir = Path(get_hermes_home()) / "cache"
+        from kova_constants import get_kova_home
+        cache_dir = Path(get_kova_home()) / "cache"
         cache_dir.mkdir(parents=True, exist_ok=True)
         return cache_dir / _BANNER_CACHE_FILE
     except Exception:

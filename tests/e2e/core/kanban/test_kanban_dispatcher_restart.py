@@ -94,7 +94,7 @@ def _overlapping_runs(runs: list[dict]) -> list[tuple[int, int]]:
 def test_dispatcher_sigkill_mid_tick_never_destroys_or_duplicates_cards(tmp_path) -> None:
     completer = Completer()
     with FakeLLMServer(completer) as srv:
-        board = Board(tmp_path, srv.base_url, env_extra={"HERMES_KANBAN_CLAIM_TTL_SECONDS": "3"})
+        board = Board(tmp_path, srv.base_url, env_extra={"KOVA_KANBAN_CLAIM_TTL_SECONDS": "3"})
         try:
             created = {}
             for i in range(N_CARDS):
@@ -156,7 +156,7 @@ def test_ttl_expiry_extends_a_live_hung_workers_claim_instead_of_respawning(tmp_
     ttl = 2
     model = SlowModel()
     with FakeLLMServer(model) as srv:
-        board = Board(tmp_path, srv.base_url, env_extra={"HERMES_KANBAN_CLAIM_TTL_SECONDS": str(ttl)})
+        board = Board(tmp_path, srv.base_url, env_extra={"KOVA_KANBAN_CLAIM_TTL_SECONDS": str(ttl)})
         try:
             tid = board.create("slow model card")
             board.dispatch()

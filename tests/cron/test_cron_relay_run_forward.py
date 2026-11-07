@@ -198,7 +198,7 @@ class TestManualRunPromptConsumption:
 
 class TestTriggerJobPromptStamp:
     def test_trigger_stamps_and_mark_run_clears(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         import cron.jobs as jobs_mod
         import importlib
 
@@ -216,7 +216,7 @@ class TestTriggerJobPromptStamp:
         assert "manual_run_at" not in after
 
     def test_retrigger_without_prompt_clears_stale_stamp(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         import cron.jobs as jobs_mod
         import importlib
 

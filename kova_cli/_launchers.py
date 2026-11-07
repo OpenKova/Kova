@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
 from pm.environments import owning_home_root, store_root
 
-# ``sys`` attribute a launcher sets before ``import kova_bootstrap``: pin HERMES_HOME to the
+# ``sys`` attribute a launcher sets before ``import kova_bootstrap``: pin KOVA_HOME to the
 # install's default root once the launch-time repair ran (``kova_bootstrap._pin_launcher_home``).
 PIN_DEFAULT_HOME_FLAG = "_hermes_pin_default_home"
 
@@ -53,12 +53,12 @@ def runtime_command(repo_root: Path, args=(), *, module: str = "kova_cli.main",
     # checkout, so it is pinned only after ``kova_bootstrap``'s launch-time repair (see
     # ``_launcher_script``), here again for a bootstrap that predates that hook.
     if home is not None:
-        pin, settle = (f"os.environ['HERMES_HOME'] = os.environ.get('HERMES_HOME') or "
+        pin, settle = (f"os.environ['KOVA_HOME'] = os.environ.get('KOVA_HOME') or "
                        f"{_inline_string_literal(str(home))}; "), ""
     else:
         pin = f"sys.{PIN_DEFAULT_HOME_FLAG} = True; "
-        settle = ("os.environ.get('HERMES_HOME') or os.environ.__setitem__('HERMES_HOME', "
-                  "str(__import__('kova_constants').get_default_hermes_root())); ")
+        settle = ("os.environ.get('KOVA_HOME') or os.environ.__setitem__('KOVA_HOME', "
+                  "str(__import__('kova_constants').get_default_kova_root())); ")
     bootstrap = (
         "import os, sys, runpy; "
         "os.environ.pop('PYTHONHOME', None); os.environ.pop('PYTHONPATH', None); "
@@ -96,7 +96,7 @@ def installation_command(repo_root: Path, args=(), *, module: str = "kova_cli.ma
     if resolve_store_python(root) is None:
         return runtime_command(root, args, module=module, python=python, home=home)
     prefix = [] if module == "kova_cli.main" else ["--run-module", module]
-    return [str(root / ".hermes" / "bin" / "hermes"), *prefix, *args]
+    return [str(root / ".kova" / "bin" / "hermes"), *prefix, *args]
 
 #: Launcher command names — keep in lockstep with scripts/install.ps1
 #: Publish-UserCommand and kova_cli/_install_repair.py.
@@ -119,7 +119,7 @@ def resolve_store_python(repo_root: Path, *, publication: bool = False) -> Path 
 
     Callers that PERSIST the result in a launcher (``stage_launcher`` and the
     publication gates below) pass ``publication=True``: the tree's own store
-    wins over an inherited ``HERMES_RUNTIME_DIR``. The override names a store
+    wins over an inherited ``KOVA_RUNTIME_DIR``. The override names a store
     for the running process (an e2e fixture, a desktop toolchain) that a later
     scratch cleanup may delete, leaving the launcher to exit 127 forever
     (#131745). It still supplies the store when the tree records none.
@@ -489,8 +489,8 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         "        _early_recovery = None  # a tree without the repair: the imports below report real damage\n"
         f"    if _early_recovery is not None and _early_recovery.restore_interrupted_pull(Path({root!r})):\n"
         "        _early_recovery.relaunch_after_restore()\n"
-        "    from kova_constants import get_default_hermes_root\n"
-        "    os.environ['HERMES_HOME'] = os.environ.get('HERMES_HOME') or str(get_default_hermes_root())\n"
+        "    from kova_constants import get_default_kova_root\n"
+        "    os.environ['KOVA_HOME'] = os.environ.get('KOVA_HOME') or str(get_default_kova_root())\n"
         "    from kova_cli._launchers import print_runtime_command\n"
         f"    print_runtime_command(Path({root!r}), sys.argv[2:])\n"
         "    sys.exit(0)\n"
@@ -500,9 +500,9 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         "except Exception:\n"
         "    _hermes_closure_repair()\n"
         "    raise\n"
-        "if not os.environ.get('HERMES_HOME'):\n"
-        "    from kova_constants import get_default_hermes_root\n"
-        "    os.environ['HERMES_HOME'] = str(get_default_hermes_root())\n"
+        "if not os.environ.get('KOVA_HOME'):\n"
+        "    from kova_constants import get_default_kova_root\n"
+        "    os.environ['KOVA_HOME'] = str(get_default_kova_root())\n"
         "if sys.argv[1:2] == ['--run-module']:\n"
         "    import runpy\n"
         "    if len(sys.argv) < 3: sys.exit('hermes: --run-module needs a module')\n"
@@ -547,7 +547,7 @@ def _owns_launcher(target: Path, root: Path) -> bool:
     paths = {str(root / p) for p in (
         "hermes", "run_agent.py", "venv/bin/python", "venv/bin/python3",
         "venv/bin/hermes",
-        ".hermes/bin/hermes", ".hermes/bin/hermes-acp",
+        ".kova/bin/hermes", ".kova/bin/hermes-acp",
     )}
     # Current store launchers pass this Python bootstrap as one shell argument.
     bootstrap = f"sys.path.insert(0, {str(root)!r})"
@@ -574,8 +574,8 @@ def _publish_conveniences(root: Path, out_dir: Path, names, *, create: bool = Tr
         if (not create or target.exists() or target.is_symlink()) and not _owns_launcher(target, root):
             continue
         before = target.lstat().st_mtime_ns if target.exists() or target.is_symlink() else None
-        command = ([str(root / ".hermes/bin/hermes"), "--run-module", "run_agent"]
-                   if name == "hermes-agent" else [str(root / ".hermes/bin" / name)])
+        command = ([str(root / ".kova/bin/hermes"), "--run-module", "run_agent"]
+                   if name == "kova-agent" else [str(root / ".kova/bin" / name)])
         if _write_shell(target, command) is None:
             raise OSError(f"could not publish launcher {target}")
         published[target] = before != target.lstat().st_mtime_ns
@@ -773,10 +773,10 @@ def _is_home_checkout(root: Path, store: Path) -> bool:
 
     That checkout sits at ``<home>/<checkout>`` and runs ``<home>/tools``. The
     layout alone is not proof: a root that only borrows the checkout can match
-    it through HERMES_RUNTIME_DIR=<home>/tools, so the home must also own it.
+    it through KOVA_RUNTIME_DIR=<home>/tools, so the home must also own it.
     """
-    from kova_constants import get_default_hermes_root
-    home = get_default_hermes_root().resolve()
+    from kova_constants import get_default_kova_root
+    home = get_default_kova_root().resolve()
     return (root.parent == home and store.resolve() == (home / "tools").resolve()
             and owning_home_root(root) is None)
 
@@ -784,7 +784,7 @@ def _is_home_checkout(root: Path, store: Path) -> bool:
 def _kept_shared_launcher(name: str, local: Path, store: Path, own: Path | None) -> Path | None:
     """Existing checkout launcher already bound outside this root's store.
 
-    Checkout launchers are shared by every HERMES_HOME; a launch under one
+    Checkout launchers are shared by every KOVA_HOME; a launch under one
     data root must never repoint them at another root's interpreter (#123238):
     once that root is deleted, every hermes breaks. Keep the file when it
     execs a live interpreter outside *store*. Missing launchers, dead
@@ -834,7 +834,7 @@ def _kept_shared_launcher(name: str, local: Path, store: Path, own: Path | None)
 def ensure_install_launchers(repo_root: Path, out_dir: Path) -> list[str]:
     """Publish exact-install commands; conveniences follow them across Python repins."""
     root = Path(repo_root).resolve()
-    local = root / ".hermes" / "bin"
+    local = root / ".kova" / "bin"
     local.mkdir(parents=True, exist_ok=True)
     store = store_root(root)
     own = resolve_store_python(root)
@@ -879,7 +879,7 @@ def expose_cli(project_root: Path | None = None, *, create: bool = True) -> dict
 
     root = Path(project_root or install_root()).resolve()
     if _is_windows():
-        # The installer stages the user-facing commands into $HERMES_HOME\bin
+        # The installer stages the user-facing commands into $KOVA_HOME\bin
         # and registers that directory in the User PATH. An update skipped both
         # (this used to answer "windows-installer-owned"), so a machine updated
         # from a release predating that convention kept the old
@@ -905,19 +905,19 @@ def expose_cli(project_root: Path | None = None, *, create: bool = True) -> dict
     if resolve_store_python(root, publication=True) is None:
         return {"ok": True, "skipped": "no-store-python"}
     try:
-        local = root / ".hermes" / "bin"
+        local = root / ".kova" / "bin"
         if len(ensure_install_launchers(root, local)) != len(WINDOWS_BIN_LAUNCHERS):
             return {"ok": False, "error": "source launcher publication failed"}
         dirs = [Path.home() / ".local" / "bin"]
         # Repair existing FHS/custom-home exposure, but never create new global
         # entries or reclaim a convenience that was repointed to another root.
-        from kova_constants import get_default_hermes_root
-        for directory in (get_default_hermes_root() / "bin", Path("/usr/local/bin")):
+        from kova_constants import get_default_kova_root
+        for directory in (get_default_kova_root() / "bin", Path("/usr/local/bin")):
             if directory not in dirs and (not create or _owns_launcher(directory / "hermes", root)):
                 dirs.append(directory)
         written = []
         for directory in dirs:
-            published = _publish_conveniences(root, directory, (*WINDOWS_BIN_LAUNCHERS, "hermes-agent"), create=create)
+            published = _publish_conveniences(root, directory, (*WINDOWS_BIN_LAUNCHERS, "kova-agent"), create=create)
             written.extend(path.name for path, changed in published.items() if changed)
         return {"ok": True, "written": written}
     except OSError as exc:
@@ -933,7 +933,7 @@ def _new_console_environment() -> dict[str, str] | None:
 
     CreateEnvironmentBlock builds it from the user's stored variables
     (HKCU\\Environment, the profile folders, the system variables) and ignores
-    this process's environment. A sandbox that overrides HERMES_HOME or
+    this process's environment. A sandbox that overrides KOVA_HOME or
     LOCALAPPDATA for its own processes does not change the result. Names are
     upper-cased because Windows compares them case-insensitively.
     """
@@ -984,11 +984,11 @@ def _read_environment_block(address: int) -> dict[str, str]:
 
 
 def new_console_hermes_root() -> Path | None:
-    """The Hermes root that a newly opened console resolves, or None when Windows cannot say."""
-    from kova_constants import hermes_root_for_environment
+    """The Kova root that a newly opened console resolves, or None when Windows cannot say."""
+    from kova_constants import kova_root_for_environment
 
     environ = _new_console_environment()
-    return None if environ is None else hermes_root_for_environment(environ)
+    return None if environ is None else kova_root_for_environment(environ)
 
 
 def owns_user_path(root: Path) -> bool:
@@ -996,7 +996,7 @@ def owns_user_path(root: Path) -> bool:
 
     Every console the user opens reads the User PATH, so only the root that
     new consoles resolve may register there. A custom root qualifies only when
-    HERMES_HOME is stored as a user variable. A process whose own HERMES_HOME,
+    KOVA_HOME is stored as a user variable. A process whose own KOVA_HOME,
     LOCALAPPDATA or USERPROFILE override selects a different root (a review
     sandbox, a test home, a suffixed data directory) gets False. So does any
     root when Windows cannot report the console environment.
@@ -1010,7 +1010,7 @@ def owns_user_path(root: Path) -> bool:
 
     logging.getLogger(__name__).info(
         "User PATH left unchanged: new consoles use %s, not %s",
-        console_root or "an unknown Hermes home", root)
+        console_root or "an unknown Kova home", root)
     return False
 
 
@@ -1065,7 +1065,7 @@ def _broadcast_environment_change() -> None:
 def _expose_windows_user_bin(root: Path, *, create: bool) -> dict:
     """Windows twin of expose_cli's POSIX half.
 
-    Stage the user-facing commands into ``$HERMES_HOME\\bin`` and register that
+    Stage the user-facing commands into ``$KOVA_HOME\\bin`` and register that
     directory in the User PATH -- the same two things scripts/install.ps1 does --
     so an update converges a machine installed under the older venv\\Scripts
     convention instead of leaving it there forever. The registration happens
@@ -1075,9 +1075,9 @@ def _expose_windows_user_bin(root: Path, *, create: bool) -> dict:
     place unless *root* is the home's own checkout: a review tree or worktree
     started against the home leaves the installed ``hermes`` alone.
     """
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    directory = get_default_hermes_root() / "bin"
+    directory = get_default_kova_root() / "bin"
     try:
         if not create:
             # Bootstrap: repair only commands we already own, enable nothing new.
@@ -1114,7 +1114,7 @@ def _is_bundled_payload(root: Path) -> bool:
 
 
 def _symlink_sealed_launchers(payload_bin) -> dict:
-    """Link ~/.local/bin/{hermes,hermes-agent,hermes-acp} at a sealed
+    """Link ~/.local/bin/{hermes,kova-agent,hermes-acp} at a sealed
     bundle's own prebuilt shims (macOS only).
 
     Symlinks, not copies: the shims are signed as part of the app bundle,
@@ -1132,7 +1132,7 @@ def _symlink_sealed_launchers(payload_bin) -> dict:
     written: list[str] = []
     try:
         link_dir.mkdir(parents=True, exist_ok=True)
-        for name in ("hermes", "hermes-agent", "hermes-acp"):
+        for name in ("hermes", "kova-agent", "hermes-acp"):
             source = payload_bin / name
             if not source.is_file():
                 continue

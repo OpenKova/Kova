@@ -2,7 +2,7 @@
 
 Maps gateway monitoring events to OTel spans for the operator-configured ``monitoring.export.otlp``
 endpoint (no default destination ships) and hosts the OTLP plumbing shared with
-``gateway_health_export``.  The OTel SDK is an optional extra (``hermes-agent[otlp]``) imported
+``gateway_health_export``.  The OTel SDK is an optional extra (``kova-agent[otlp]``) imported
 lazily; ``headers_env`` values are read at export time and never logged or stored.  The streaming
 subscriber runs fail-isolated on the emitter thread; ``event_filter`` keeps other planes off it.
 """
@@ -141,7 +141,7 @@ def _safe_resource_attributes(raw: Any) -> dict[str, str]:
 def _runtime_resource_attributes(config: dict[str, Any], *, telemetry_scope: str) -> dict[str, str]:
     """Build the safe OTLP resource shared by spans, metrics and diagnostic logs."""
     attrs = _safe_resource_attributes(_monitoring_section(config, "gateway_health_export").get("resource_attributes"))
-    attrs["service.name"] = "hermes-gateway"
+    attrs["service.name"] = "kova-gateway"
     attrs["service.instance.id"] = _safe_instance_id(_install_id(config))
     attrs["telemetry.scope"] = telemetry_scope
     return attrs
@@ -274,7 +274,7 @@ def start_streaming(
         _require_sdk()
     except OTLPUnavailable:
         logger.warning("monitoring.export.otlp.enabled but the OTel SDK could not "
-                       "be installed/imported; install 'hermes-agent[otlp]'")
+                       "be installed/imported; install 'kova-agent[otlp]'")
         return None
     from agent.monitoring.emitter import get_emitter
     streamer = OTLPStreamer(config, event_filter=event_filter)

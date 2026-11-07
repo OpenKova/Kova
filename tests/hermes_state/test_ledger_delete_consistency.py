@@ -148,7 +148,7 @@ def test_startup_repair_latches_after_a_refusal_and_warns_once(monkeypatch, capl
     import kova_constants
 
     monkeypatch.setattr(kova_cli.config, 'load_config', lambda: {'sessions': {'auto_prune': False}})
-    monkeypatch.setattr(kova_constants, 'get_hermes_home', lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, 'get_kova_home', lambda: tmp_path)
     meta = {}
     session_db = MagicMock()
     session_db.get_meta.side_effect = meta.get

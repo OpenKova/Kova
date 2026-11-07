@@ -319,7 +319,7 @@ def test_a_token_without_a_scope_keeps_the_requested_scope(portal, free_account,
 
 def test_the_ca_bundle_is_honoured_for_the_whole_sign_in(portal, free_account, monkeypatch):
     import certifi
-    monkeypatch.setenv("HERMES_CA_BUNDLE", certifi.where())
+    monkeypatch.setenv("KOVA_CA_BUNDLE", certifi.where())
     seen = []
     from kova_cli import auth_nous
     real_client = auth_nous._nous_http_client

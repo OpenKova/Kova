@@ -18,8 +18,8 @@ def homes(tmp_path, monkeypatch):
     launch = tmp_path / 'root'
     bee = launch / 'profiles' / 'bee'
     bee.mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(launch))
-    monkeypatch.setattr(server, '_hermes_home', launch)
+    monkeypatch.setenv('KOVA_HOME', str(launch))
+    monkeypatch.setattr(server, '_kova_home', launch)
     return server, launch, bee
 
 
@@ -38,12 +38,12 @@ def test_secondary_ticket_runs_connectors_and_billing_in_its_own_profile(homes, 
     import tools.connectors
     import tools.connectors.managed
     import tools.managed_tool_gateway
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     server, launch, bee = homes
     seen = []
 
     def rec(label):
-        seen.append((label, Path(str(get_hermes_home())).resolve()))
+        seen.append((label, Path(str(get_kova_home())).resolve()))
 
     monkeypatch.setattr(tools.connectors, 'connectors_available', lambda *a, **k: True)
     monkeypatch.setattr(tools.managed_tool_gateway, 'read_nous_access_token', lambda: 'token')

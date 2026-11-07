@@ -46,15 +46,15 @@ _AWS_SCOPED_CREDENTIAL_VARS: tuple[tuple[str, str], ...] = (
 def scoped_aws_session_kwargs() -> dict[str, str]:
     """``boto3.session.Session`` kwargs from the routed profile's secret scope, ``{}`` when unscoped.
 
-    Under a HERMES_HOME override the process env holds the LAUNCH profile's ``AWS_*`` (or nothing), so
+    Under a KOVA_HOME override the process env holds the LAUNCH profile's ``AWS_*`` (or nothing), so
     every Bedrock client for a served profile must be built from that profile's own ``.env`` values.
     Under multiplexing a profile that sets none of its own must NOT get ``{}`` — ``boto3.Session()``
     would then resolve the ambient default chain (process env, ~/.aws, instance metadata), i.e. the
     launch context's identity, exactly the borrow the Entra adapter refuses. ``AWS_PROFILE`` counts as
     an explicit per-profile choice (it names an entry in the shared AWS config, like the Entra
     ``AZURE_CLIENT_ID``-only managed-identity opt-in)."""
-    from kova_constants import get_hermes_home_override
-    if get_hermes_home_override() is None:
+    from kova_constants import get_kova_home_override
+    if get_kova_home_override() is None:
         return {}
     from agent.secret_scope import current_secret_scope, is_multiplex_active
     scope = current_secret_scope() or {}
@@ -123,14 +123,14 @@ def _require_boto3():
     if version < _MIN_BOTO3_VERSION:
         raise RuntimeError(
             f"boto3 {boto3.__version__} does not support converse_stream "
-            f"(minimum 1.34.59 required). Run: hermes pm repair"
+            f"(minimum 1.34.59 required). Run: kova pm repair"
         )
     return boto3
 
 
 def _new_client(factory: Any, service: str, region: str, read_timeout: Optional[float]):
     """``factory.client(...)`` with botocore's own timeouts (60s read / 60s connect) unless a
-    request timeout is configured. The model-call client makes one attempt per call: Hermes's
+    request timeout is configured. The model-call client makes one attempt per call: Kova's
     retry loop owns retries and backoff (throttles classify as rate_limit there), and botocore's
     default of 5 attempts re-sends a read timeout, so a hung call took ~5x the timeout to fail.
     ``total_max_attempts`` counts the first request; ``max_attempts`` would count retries only."""
@@ -146,13 +146,13 @@ def _cached_client(cache: dict[tuple[str, Optional[float]], Any], service: str, 
     """Get or create a boto3 client per (region, read timeout). Unscoped: the default credential
     chain. Routed profile: one client per (home, service, region, read timeout), built from that
     profile's scoped ``AWS_*`` (falling back to the default chain only for what the profile does not set)."""
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    if get_hermes_home_override() is None:
+    from kova_constants import get_kova_home_override, kova_home_key
+    if get_kova_home_override() is None:
         key = (region, read_timeout)
         if key not in cache:
             cache[key] = _new_client(_require_boto3(), service, region, read_timeout)
         return cache[key]
-    home_key = (hermes_home_key(), service, region, read_timeout)
+    home_key = (kova_home_key(), service, region, read_timeout)
     client = _bedrock_clients_by_home.get(home_key)
     if client is None:
         # Scope check first: a cred-less multiplex profile must hit the ambient-chain
@@ -189,10 +189,10 @@ def reset_client_cache():
 def invalidate_runtime_client(region: str) -> bool:
     """Evict one region's cached ``bedrock-runtime`` clients, every read timeout (stale HTTP pool);
     True if any was evicted."""
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    if get_hermes_home_override() is not None:
+    from kova_constants import get_kova_home_override, kova_home_key
+    if get_kova_home_override() is not None:
         cache: dict = _bedrock_clients_by_home
-        prefix = (hermes_home_key(), "bedrock-runtime", region)
+        prefix = (kova_home_key(), "bedrock-runtime", region)
     else:
         cache, prefix = _bedrock_runtime_client_cache, (region,)
     stale = [key for key in list(cache) if key[:len(prefix)] == prefix]
@@ -262,12 +262,12 @@ def is_bedrock_openai_base_url(base_url: str) -> bool:
 def resolve_bedrock_bearer_token(env: Optional[dict[str, str]] = None) -> str:
     """Return AWS_BEARER_TOKEN_BEDROCK when Bedrock API-key auth is configured.
 
-    Under a HERMES_HOME override the read goes through the profile secret scope so a
+    Under a KOVA_HOME override the read goes through the profile secret scope so a
     served profile never inherits the launch profile's bearer from the process env."""
     if env is not None:
         return (env.get("AWS_BEARER_TOKEN_BEDROCK", "") or "").strip()
-    from kova_constants import get_hermes_home_override
-    if get_hermes_home_override() is not None:
+    from kova_constants import get_kova_home_override
+    if get_kova_home_override() is not None:
         from agent.secret_scope import get_secret
         return (get_secret("AWS_BEARER_TOKEN_BEDROCK", "") or "").strip()
     return (os.environ.get("AWS_BEARER_TOKEN_BEDROCK", "") or "").strip()
@@ -1445,10 +1445,10 @@ def discover_bedrock_models(region: str, provider_filter: Optional[list[str]] = 
     by name; [] when the client cannot be built."""
     # The list is account-scoped (whichever credentials the control client signs with), so a routed
     # profile gets its own entry; unscoped keeps the region:filter key byte-for-byte.
-    from kova_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_kova_home_override, kova_home_key
     cache_key = f"{region}:{','.join(sorted(provider_filter or []))}"
-    if get_hermes_home_override() is not None:
-        cache_key = f"{hermes_home_key()}|{cache_key}"
+    if get_kova_home_override() is not None:
+        cache_key = f"{kova_home_key()}|{cache_key}"
     cached = _discovery_cache.get(cache_key)
     if cached and (time.time() - cached["timestamp"]) < _DISCOVERY_CACHE_TTL_SECONDS:
         return cached["models"]

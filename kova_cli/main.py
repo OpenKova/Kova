@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hermes CLI - Main entry point.
+"""Kova CLI - Main entry point.
 
 Usage:
     hermes                     # Interactive chat (default)
@@ -47,9 +47,9 @@ if _bootstrap_root not in sys.path:
 from kova_cli import _startup_fast
 import itertools
 
-# A literal ``~``/``$VAR`` in HERMES_HOME (fish, or any quoted value) must become absolute
-# before the first reader — otherwise it resolves against cwd and scaffolds <cwd>/~/.hermes.
-_startup_fast.normalize_hermes_home_env()
+# A literal ``~``/``$VAR`` in KOVA_HOME (fish, or any quoted value) must become absolute
+# before the first reader — otherwise it resolves against cwd and scaffolds <cwd>/~/.kova.
+_startup_fast.normalize_kova_home_env()
 
 # Startup-liveness watchdog: for gateway runs, arm BEFORE the heavy import
 # graph below — an import-time deadlock (native-extension init, contended
@@ -157,17 +157,17 @@ def _set_process_title() -> None:
 # kova_cli.config is importable. Cached per config path so early callers
 # don't re-parse YAML, and so the answer follows the home the process ends up
 # in: mouse-residue suppression reads this BEFORE `_apply_profile_override()`
-# sets HERMES_HOME, and a cache keyed on nothing pinned every later caller to
+# sets KOVA_HOME, and a cache keyed on nothing pinned every later caller to
 # the default home's interface for the whole run (#116902).
 _EARLY_INTERFACE_CACHE: tuple[str, str] | None = None
 
 
 def _early_interface_config_path() -> str:
     """config.yaml of the home this process is currently pointed at."""
-    home = os.environ.get("HERMES_HOME")
+    home = os.environ.get("KOVA_HOME")
     if home:
         return os.path.join(home, "config.yaml")
-    return os.path.join(os.path.expanduser("~"), ".hermes", "config.yaml")
+    return os.path.join(os.path.expanduser("~"), ".kova", "config.yaml")
 
 
 def _config_default_interface_early() -> str:
@@ -196,7 +196,7 @@ def _config_default_interface_early() -> str:
 def _wants_tui_early(argv: list[str] | None = None) -> bool:
     """Earliest TUI decision, usable before argparse/config imports.
 
-    Precedence: ``--cli`` wins, then ``--tui``/``HERMES_TUI=1``, then a
+    Precedence: ``--cli`` wins, then ``--tui``/``KOVA_TUI=1``, then a
     real-TTY gate, then ``display.interface``. The TTY gate is load-bearing
     for headless spawners (kanban workers, cron, pipes running ``chat -q``):
     a ``display.interface: tui`` default used to boot the TUI here, whose
@@ -207,7 +207,7 @@ def _wants_tui_early(argv: list[str] | None = None) -> bool:
         argv = sys.argv[1:]
     if "--cli" in argv:
         return False
-    if os.environ.get("HERMES_TUI") == "1" or any(flag in argv for flag in ("--tui", "--native", "--tui-native")):
+    if os.environ.get("KOVA_TUI") == "1" or any(flag in argv for flag in ("--tui", "--native", "--tui-native")):
         return True
     try:
         if not (sys.stdin.isatty() and sys.stdout.isatty()):
@@ -221,10 +221,10 @@ def _wants_tui_early(argv: list[str] | None = None) -> bool:
 # TUI hot path: while the launcher is still importing (~100-300ms, cooked+echo
 # mode, before the Node TUI takes stdin raw) incoming SGR/X10 mouse reports
 # echo into the shell scrollback as ``^[[<…M``. entry.tsx's
-# `resetTerminalModes()` is the later cousin. ``HERMES_TUI_NO_EARLY_DISABLE``
+# `resetTerminalModes()` is the later cousin. ``KOVA_TUI_NO_EARLY_DISABLE``
 # escapes the behaviour for diagnostics.
 def _suppress_mouse_residue_early() -> None:
-    if os.environ.get("HERMES_TUI_NO_EARLY_DISABLE") == "1":
+    if os.environ.get("KOVA_TUI_NO_EARLY_DISABLE") == "1":
         return
     if not _wants_tui_early():
         return
@@ -340,9 +340,9 @@ _startup_fast.ensure_project_root_on_path()
 
 
 # Profile override — MUST happen before any hermes module import: many modules
-# cache HERMES_HOME at import time. --profile/-p is pre-parsed from sys.argv,
-# HERMES_HOME set, and the flag stripped so argparse never sees it. Falls back
-# to ~/.hermes/active_profile for the sticky default.
+# cache KOVA_HOME at import time. --profile/-p is pre-parsed from sys.argv,
+# KOVA_HOME set, and the flag stripped so argparse never sees it. Falls back
+# to ~/.kova/active_profile for the sticky default.
 _PROFILE_NAME_RE = r"^[a-z0-9][a-z0-9_-]{0,63}$"  # mirrors kova_cli.profiles._PROFILE_ID_RE
 # Set only when -p/--profile was on argv. Sticky active_profile must not count:
 # `hermes desktop` with no flag must not overwrite Desktop's stored profile.
@@ -354,7 +354,7 @@ def _inside_mcp_add_args(argv: list, index: int) -> bool:
 
     ``mcp add --args`` is command-argv passthrough. Flags after that point
     belong to the child MCP command (for example Docker MCP Toolkit's
-    ``--profile``), not to Hermes' own profile selector.
+    ``--profile``), not to Kova' own profile selector.
     """
     try:
         mcp_index = argv.index("mcp", 0, index)
@@ -452,30 +452,30 @@ def _under_gateway_supervisor(argv: list) -> bool:
     """A supervisor-launched gateway child must NOT follow the sticky active_profile.
 
     Each supervised slot has a fixed profile identity: named slots pass
-    ``-p <name>`` or pin HERMES_HOME to the profile dir; a bare invocation
-    means "the root HERMES_HOME profile". If a supervised default-profile
+    ``-p <name>`` or pin KOVA_HOME to the profile dir; a bare invocation
+    means "the root KOVA_HOME profile". If a supervised default-profile
     child read active_profile, switching the active profile (dashboard,
     ``hermes profile use``) would silently redirect the default gateway into
     that profile — adopting its credentials and double-polling a Telegram
     token already owned by that profile's own gateway (#74872).
 
     Markers (see gateway/restart.py ``is_gateway_supervisor_process``):
-    HERMES_SUPERVISED_CHILD (systemd unit / launchd plist / Windows task),
-    HERMES_S6_SUPERVISED_CHILD (legacy s6 container), INVOCATION_ID (systemd
+    KOVA_SUPERVISED_CHILD (systemd unit / launchd plist / Windows task),
+    KOVA_S6_SUPERVISED_CHILD (legacy s6 container), INVOCATION_ID (systemd
     service children only — consulted ONLY for gateway commands because it is
     inherited by every descendant of a systemd-launched process, e.g.
-    self-hosted CI runners), HERMES_GATEWAY_EXTERNAL_SUPERVISOR (explicit
-    opt-in) and HERMES_GATEWAY_PROFILE_PIN (its tool children's copy, which is
+    self-hosted CI runners), KOVA_GATEWAY_EXTERNAL_SUPERVISOR (explicit
+    opt-in) and KOVA_GATEWAY_PROFILE_PIN (its tool children's copy, which is
     no supervisor claim). XPC_SERVICE_NAME is deliberately NOT consulted:
     interactive macOS terminals set it too.
     """
-    if os.environ.get("HERMES_SUPERVISED_CHILD") or os.environ.get("HERMES_S6_SUPERVISED_CHILD"):
+    if os.environ.get("KOVA_SUPERVISED_CHILD") or os.environ.get("KOVA_S6_SUPERVISED_CHILD"):
         return True
     is_gateway_cmd = next((a for a in argv if not a.startswith("-")), None) == "gateway"
     if is_gateway_cmd and os.environ.get("INVOCATION_ID"):
         return True
     return any(os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
-               for name in ("HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "HERMES_GATEWAY_PROFILE_PIN"))
+               for name in ("KOVA_GATEWAY_EXTERNAL_SUPERVISOR", "KOVA_GATEWAY_PROFILE_PIN"))
 
 
 def _s6_supervised_gateway_run(argv: list) -> bool:
@@ -490,7 +490,7 @@ def _s6_supervised_gateway_run(argv: list) -> bool:
     words = [a for a in argv if not a.startswith("-")]
     if words[:2] != ["gateway", "run"] or "--no-supervise" in argv:
         return False
-    if os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
+    if os.environ.get("KOVA_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
         return False
     from kova_cli.service_manager import _s6_running
     return _s6_running()
@@ -506,29 +506,29 @@ def explicit_cli_profile() -> str | None:
 
 
 def _apply_profile_override() -> None:
-    """Pre-parse --profile/-p and set HERMES_HOME before imports."""
+    """Pre-parse --profile/-p and set KOVA_HOME before imports."""
     global _explicit_cli_profile
     _explicit_cli_profile = None
     argv = sys.argv[1:]
     profile_name, consume, profile_index = _scan_profile_flag(argv)
     from_sticky_profile = False
 
-    # HERMES_HOME already set with no explicit flag: trust it only when it
+    # KOVA_HOME already set with no explicit flag: trust it only when it
     # points at a specific profile dir ("profiles" as immediate parent). If it
-    # points at the hermes root (systemd hardcodes HERMES_HOME=/root/.hermes)
+    # points at the hermes root (systemd hardcodes KOVA_HOME=/root/.kova)
     # we must still read active_profile — the user may have run
     # `hermes profile use` and the gateway should honour it (#22502).
-    hermes_home_env = os.environ.get("HERMES_HOME", "")
-    if profile_name is None and hermes_home_env and Path(hermes_home_env).parent.name == "profiles":
+    kova_home_env = os.environ.get("KOVA_HOME", "")
+    if profile_name is None and kova_home_env and Path(kova_home_env).parent.name == "profiles":
         return
 
     if (profile_name is None and not _under_gateway_supervisor(argv)
             and not _startup_fast.is_desktop_ssh_backend_argv(argv)
             and not _s6_supervised_gateway_run(argv)):
         try:
-            from kova_constants import get_default_hermes_root
+            from kova_constants import get_default_kova_root
 
-            active_path = get_default_hermes_root() / "active_profile"
+            active_path = get_default_kova_root() / "active_profile"
             if active_path.exists():
                 name = active_path.read_text(encoding="utf-8-sig").strip()
                 if name and name != "default":
@@ -542,15 +542,15 @@ def _apply_profile_override() -> None:
     try:
         from kova_cli.profiles import resolve_profile_env
 
-        hermes_home = resolve_profile_env(profile_name)
+        kova_home = resolve_profile_env(profile_name)
     except FileNotFoundError as exc:
-        hermes_home = _resolve_sudo_user_profile_env(profile_name)
+        kova_home = _resolve_sudo_user_profile_env(profile_name)
         error = str(exc)
-        if not hermes_home and from_sticky_profile:
+        if not kova_home and from_sticky_profile:
             from kova_cli.main_profile_recovery import is_stale_profile_recovery_command
 
             if is_stale_profile_recovery_command(argv):
-                hermes_home = resolve_profile_env("default")
+                kova_home = resolve_profile_env("default")
                 print(
                     f"Warning: saved profile '{profile_name}' no longer exists; "
                     "running this recovery command in the default profile.",
@@ -558,7 +558,7 @@ def _apply_profile_override() -> None:
                 )
             else:
                 error = f"Saved profile '{profile_name}' no longer exists. Switch back with: hermes profile use default"
-        if not hermes_home:
+        if not kova_home:
             print(f"Error: {error}", file=sys.stderr)
             sys.exit(1)
     except ValueError as exc:
@@ -568,7 +568,7 @@ def _apply_profile_override() -> None:
         # A bug in profiles.py must NEVER prevent hermes from starting
         print(f"Warning: profile override failed ({exc}), using default", file=sys.stderr)
         return
-    os.environ["HERMES_HOME"] = hermes_home
+    os.environ["KOVA_HOME"] = kova_home
     if consume > 0:
         _explicit_cli_profile = profile_name
     # Strip the flag from argv so argparse doesn't choke
@@ -614,9 +614,9 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Load .env from ~/.hermes/.env first, then project root as dev fallback.
+# Load .env from ~/.kova/.env first, then project root as dev fallback.
 # User-managed env files should override stale shell exports on restart.
-from kova_cli.config import get_hermes_home
+from kova_cli.config import get_kova_home
 from kova_cli.env_loader import load_hermes_dotenv
 
 # ``update`` must not resolve external secret sources (Windows self-lock via cryptography, slow
@@ -624,7 +624,7 @@ from kova_cli.env_loader import load_hermes_dotenv
 # owns that argv check for every dotenv load in the process. See #73381.
 load_hermes_dotenv(project_env=PROJECT_ROOT / ".env")
 
-# Bridge security.redact_secrets → HERMES_REDACT_SECRETS BEFORE kova_logging
+# Bridge security.redact_secrets → KOVA_REDACT_SECRETS BEFORE kova_logging
 # imports agent.redact, which snapshots the flag exactly once at import. A
 # .env value still wins — this is config.yaml fallback only. network.force_ipv4
 # is read from the same parse to avoid a second full load_config() (~17ms).
@@ -636,15 +636,15 @@ try:
     # Managed overlay included: administrator-pinned redact_secrets / force_ipv4 win here too.
     from kova_cli.config_effective import load_user_config_effective as _load_effective_early
 
-    _cfg_path = get_hermes_home() / "config.yaml"
+    _cfg_path = get_kova_home() / "config.yaml"
     if config_exists(_cfg_path):
         _early_cfg_raw = _load_effective_early(_cfg_path)
-        if "HERMES_REDACT_SECRETS" not in os.environ:
+        if "KOVA_REDACT_SECRETS" not in os.environ:
             _early_sec_cfg = _early_cfg_raw.get("security", {})
             if isinstance(_early_sec_cfg, dict):
                 _early_redact = _early_sec_cfg.get("redact_secrets")
                 if _early_redact is not None:
-                    os.environ["HERMES_REDACT_SECRETS"] = str(_early_redact).lower()
+                    os.environ["KOVA_REDACT_SECRETS"] = str(_early_redact).lower()
         _early_net_cfg = _early_cfg_raw.get("network", {})
         if isinstance(_early_net_cfg, dict) and _early_net_cfg.get("force_ipv4"):
             _FORCE_IPV4_EARLY = True
@@ -922,13 +922,13 @@ def _termux_bundled_skills_fingerprint() -> str:
 
 
 def _termux_bundled_skills_stamp_path() -> Path:
-    return get_hermes_home() / "skills" / ".termux_bundled_sync_stamp"
+    return get_kova_home() / "skills" / ".termux_bundled_sync_stamp"
 
 
 def _termux_bundled_skills_sync_needed() -> bool:
     if not _is_termux_startup_environment():
         return True
-    if os.environ.get("HERMES_TERMUX_FORCE_SKILLS_SYNC") == "1":
+    if os.environ.get("KOVA_TERMUX_FORCE_SKILLS_SYNC") == "1":
         return True
     try:
         stamp = _termux_bundled_skills_stamp_path()
@@ -968,11 +968,11 @@ def _sync_bundled_skills_for_startup() -> bool:
 def _termux_should_prefetch_update_check() -> bool:
     if not _is_termux_startup_environment():
         return True
-    return os.environ.get("HERMES_TERMUX_PREFETCH_UPDATES") == "1"
+    return os.environ.get("KOVA_TERMUX_PREFETCH_UPDATES") == "1"
 
 
 def _dotenv_has_provider_key(env_file: Path, provider_env_vars: set) -> bool:
-    """True if ~/.hermes/.env assigns a non-empty value to any provider key."""
+    """True if ~/.kova/.env assigns a non-empty value to any provider key."""
     if not env_file.exists():
         return False
     try:
@@ -1018,7 +1018,7 @@ def _has_any_provider_configured(*, strict_profile_scope: bool = False) -> bool:
     env and host-wide fallbacks (gh auth, Claude Code credentials) must not
     make it appear ready. Unscoped callers keep the legacy behavior.
     """
-    from kova_cli.config import DEFAULT_CONFIG, get_env_path, get_hermes_home, load_config
+    from kova_cli.config import DEFAULT_CONFIG, get_env_path, get_kova_home, load_config
     from kova_cli.auth import PROVIDER_REGISTRY, get_auth_status
 
     cfg = load_config()
@@ -1060,7 +1060,7 @@ def _has_any_provider_configured(*, strict_profile_scope: bool = False) -> bool:
     # Cheap on-disk checks (auth.json, config.yaml) first: the PROVIDER_REGISTRY
     # sweep below spawns subprocesses (gh) and can take 15-20s — long enough
     # that desktop setup.status calls time out.
-    if _auth_store_logged_in(get_hermes_home() / "auth.json", PROVIDER_REGISTRY, strict_profile_scope):
+    if _auth_store_logged_in(get_kova_home() / "auth.json", PROVIDER_REGISTRY, strict_profile_scope):
         return True
 
     # model as a dict with provider/base_url/api_key means setup ran (fresh
@@ -1083,7 +1083,7 @@ def _has_any_provider_configured(*, strict_profile_scope: bool = False) -> bool:
         except Exception:
             pass
 
-    # Claude Code OAuth credentials count only once Hermes is explicitly
+    # Claude Code OAuth credentials count only once Kova is explicitly
     # configured — having Claude Code installed isn't consent to use its tokens.
     if _has_hermes_config and not strict_profile_scope:
         try:
@@ -1220,7 +1220,7 @@ def _session_db():
     try:
         from kova_state import SessionDB
 
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        db = SessionDB(db_path=get_kova_home() / "state.db", read_only=True)
     except Exception:
         pass
     try:
@@ -1508,7 +1508,7 @@ def _start_chat_background_prefetch() -> None:
     foreground and competes for CPU on single-core devices). The skills sync
     is idempotent and hash-gated (~120-170ms of rglob/hashing) so it normally
     runs in a daemon thread — skill loading happens at agent init, long after.
-    The ONE exception is an unseeded ~/.hermes/skills: there the banner
+    The ONE exception is an unseeded ~/.kova/skills: there the banner
     prefetch races the sync and caches an empty index ("No skills installed"
     on the very first launch), so the first run syncs in the foreground and
     drops the banner's skills cache.
@@ -1524,8 +1524,8 @@ def _start_chat_background_prefetch() -> None:
 
     def _skills_dir_is_unseeded() -> bool:
         try:
-            from kova_cli.config import get_hermes_home
-            skills_dir = Path(get_hermes_home()) / "skills"
+            from kova_cli.config import get_kova_home
+            skills_dir = Path(get_kova_home()) / "skills"
             if not skills_dir.is_dir():
                 return True
             return next(skills_dir.rglob("SKILL.md"), None) is None
@@ -1556,7 +1556,7 @@ def _first_run_setup_guard(args) -> None:
     """No provider configured: offer `hermes setup` (TTY) or exit 1 with guidance."""
     print()
     print(
-        "It looks like Hermes isn't configured yet -- no API keys or providers found."
+        "It looks like Kova isn't configured yet -- no API keys or providers found."
     )
     print()
     print("  Run:  hermes setup")
@@ -1598,7 +1598,7 @@ def cmd_chat(args):
     """Run interactive chat CLI."""
     from kova_cli.stream_json import stream_json_requested
     # stream-json and the --safe-mode / --ignore-user-config bypass keep the transport client; the
-    # classic CLI (interactive, -q/-Q) is main's HermesCLI with a gateway-backed agent (gateway_agent.py).
+    # classic CLI (interactive, -q/-Q) is main's KovaCLI with a gateway-backed agent (gateway_agent.py).
     if stream_json_requested(args) or _bypass_chat_launch(args):
         from kova_cli.gateway_chat_startup import launch_gateway_chat
         sys.exit(launch_gateway_chat(args))
@@ -1627,17 +1627,17 @@ def cmd_chat(args):
     # before tool imports freeze _YOLO_MODE_FROZEN. This is a safety net for
     # callers that invoke cmd_chat directly (e.g. subcommand dispatch).
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["KOVA_YOLO_MODE"] = "1"
     # --ignore-rules: skip AGENTS.md/SOUL.md/.cursorrules injection, memory
     # entries and preloaded skills (AIAgent(skip_context_files, skip_memory)).
     if getattr(args, "ignore_rules", False):
-        os.environ["HERMES_IGNORE_RULES"] = "1"
+        os.environ["KOVA_IGNORE_RULES"] = "1"
     # --source: tag session source for filtering (e.g. 'tool' for integrations)
     if getattr(args, "source", None):
-        os.environ["HERMES_SESSION_SOURCE"] = args.source
+        os.environ["KOVA_SESSION_SOURCE"] = args.source
         # Explicit flag, not a label inherited from a parent TUI/Desktop session — one-shot
         # runs must keep it (see agent.session_source.session_source_for).
-        os.environ["HERMES_SESSION_SOURCE_EXPLICIT"] = "1"
+        os.environ["KOVA_SESSION_SOURCE_EXPLICIT"] = "1"
 
     _pin_kanban_board_env()
     from kova_cli.observability.shared_metrics_consent import offer_consent_before_chat
@@ -1690,7 +1690,7 @@ def cmd_chat(args):
     except ImportError as e:
         # Mixed-version installs (new cli.py, older kova_cli.config) crash
         # here — e.g. missing resolve_turn_limit / split_model_config_default
-        # (#96900). The agent-setup mixin prints this hint too late: HermesCLI
+        # (#96900). The agent-setup mixin prints this hint too late: KovaCLI
         # construction already failed. Fast-chat launch also goes through
         # cmd_chat, so this one catch covers `hermes` / `hermes chat`.
         from kova_constants import emit_partial_update_hint
@@ -1740,7 +1740,7 @@ def _forward_command(name: str, module: str, attr: str, *, forward_return: bool 
 
 
 cmd_setup = _forward_command("cmd_setup", "kova_cli.setup", "run_setup_wizard", doc='Interactive setup wizard.')
-cmd_login = _forward_command("cmd_login", "kova_cli.auth", "login_command", doc='Authenticate Hermes CLI with a provider.')
+cmd_login = _forward_command("cmd_login", "kova_cli.auth", "login_command", doc='Authenticate Kova CLI with a provider.')
 cmd_logout = _forward_command("cmd_logout", "kova_cli.auth", "logout_command", doc='Clear provider authentication.')
 cmd_auth = _forward_command("cmd_auth", "kova_cli.auth_commands", "auth_command", doc='Manage pooled credentials.')
 cmd_status = _forward_command("cmd_status", "kova_cli.status", "show_status", doc='Show status of all components.')
@@ -1753,7 +1753,7 @@ cmd_doctor = _forward_command("cmd_doctor", "kova_cli.doctor", "run_doctor", for
 cmd_dump = _forward_command("cmd_dump", "kova_cli.dump", "run_dump", doc='Dump setup summary for support/debugging.')
 cmd_debug = _forward_command("cmd_debug", "kova_cli.debug", "run_debug", doc='Debug tools (share report, etc.).')
 cmd_skin = _forward_command("cmd_skin", "kova_cli.skin_cmd", "skin_command", doc='Skin management (list / use / set).')
-cmd_import = _forward_command("cmd_import", "kova_cli.backup", "run_import", forward_return=True, doc='Restore a Hermes backup from a zip file.')
+cmd_import = _forward_command("cmd_import", "kova_cli.backup", "run_import", forward_return=True, doc='Restore a Kova backup from a zip file.')
 cmd_dashboard_register = _forward_command("cmd_dashboard_register", "kova_cli.dashboard_register", "cmd_dashboard_register", doc='Register a self-hosted dashboard OAuth client with Nous Portal.')
 cmd_webapp = _forward_command("cmd_webapp", "kova_cli.webapp_launcher", "cmd_webapp", forward_return=True, doc='Open the browser-hosted Desktop the gateway serves.')
 cmd_gateway_enroll = _forward_command("cmd_gateway_enroll", "kova_cli.gateway_enroll", "cmd_gateway_enroll", doc='Enroll a self-hosted gateway with a relay connector.')
@@ -1913,7 +1913,7 @@ def select_provider_and_model(args=None):
     # Effective provider the same way the CLI resolves it at startup:
     # config.yaml model.provider > env var > auto-detect
     config_provider = model_cfg.get("provider") if isinstance(model_cfg, dict) else None
-    effective_provider = config_provider or os.getenv("HERMES_INFERENCE_PROVIDER") or "auto"
+    effective_provider = config_provider or os.getenv("KOVA_INFERENCE_PROVIDER") or "auto"
 
     # User-defined custom providers from config.yaml: key → {name, base_url, api_key}
     _custom_provider_map = _named_custom_provider_map(config)
@@ -1980,7 +1980,7 @@ def select_provider_and_model(args=None):
     _offer_reasoning_after_pick(current_model, saves_before)
 
     # Post-switch cleanup: switching to a named provider (anything except
-    # "custom") leaves a stale OPENAI_BASE_URL in ~/.hermes/.env that poisons
+    # "custom") leaves a stale OPENAI_BASE_URL in ~/.kova/.env that poisons
     # auxiliary clients using provider:auto — clear it proactively. (#5161)
     if selected_provider not in {
         "custom",
@@ -2097,7 +2097,7 @@ def cmd_config(args):
 
 
 def cmd_backup(args):
-    """Back up Hermes home directory to a zip file."""
+    """Back up Kova home directory to a zip file."""
     from kova_cli import backup
 
     if getattr(args, "quick", False):
@@ -2117,7 +2117,7 @@ def cmd_version(args):
 
 
 def cmd_uninstall(args):
-    """Uninstall Hermes Agent (or just the Chat GUI with --gui).
+    """Uninstall Kova Agent (or just the Chat GUI with --gui).
 
     ``--yes`` paths run from the desktop app's non-interactive cleanup scripts,
     so the TTY gate applies only when we actually need to prompt.
@@ -2197,7 +2197,7 @@ def _update_preflight_handled(args) -> bool:
     if handle_metadata_args(args, PROJECT_ROOT):
         sys.exit(0)
     if is_managed():
-        managed_error("update Hermes Agent")
+        managed_error("update Kova Agent")
         if not any(getattr(args, flag, False) for flag in ("plan", "check", "list_venv_holders")):
             _record_stop("managed_install", without_receipt="refused")  # an update attempt: a metrics row only
         return True
@@ -2206,7 +2206,7 @@ def _update_preflight_handled(args) -> bool:
     # docker/nix/apt refusal gates: on an image/package-managed install the
     # plan itself reports "not updatable in place" plus the right mechanism.
     if getattr(args, "plan", False):
-        # Read-only plan phase (#91277 Phase 2): inventory every running Hermes runtime across profiles, its
+        # Read-only plan phase (#91277 Phase 2): inventory every running Kova runtime across profiles, its
         # supervisor, and its running code version — without mutating anything. Safe on a live fleet.
         from kova_cli.update_inventory import (
             collect_runtime_inventory,
@@ -2263,7 +2263,7 @@ from kova_cli.update_receipt import update_receipt_scope
 
 @update_receipt_scope()
 def cmd_update(args):
-    """Update Hermes Agent: hangup protection + update lock around ``_cmd_update_impl``."""
+    """Update Kova Agent: hangup protection + update lock around ``_cmd_update_impl``."""
     # Marks this frame as the CURRENT updater for
     # _old_updater.in_historical_update(); historical on-disk updaters do not
     # declare this local, so only they hand off through retired shims.
@@ -2395,9 +2395,9 @@ def _dashboard_lifecycle_flags(args, token_file) -> None:
     if getattr(args, "stop", False):
         # Scoped to the invoking home (`-p` applied by _apply_profile_override): another
         # install's or profile's backend on this machine is never a target (#113978).
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        own_home = str(get_hermes_home())
+        own_home = str(get_kova_home())
         if not _find_stale_dashboard_pids(scope_home=own_home):
             print("No hermes dashboard processes running for this profile.")
             sys.exit(0)
@@ -2414,31 +2414,31 @@ def _dashboard_lifecycle_flags(args, token_file) -> None:
 def _dashboard_sanitize_desktop_env(headless_backend) -> None:
     """Strip Desktop-inherited env that hijacks a standalone launch.
 
-    Desktop Electron spawns its backend with HERMES_DESKTOP=1 plus
-    HERMES_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
-    HERMES_SERVE_HEADLESS=1). A shell inheriting those then running
+    Desktop Electron spawns its backend with KOVA_DESKTOP=1 plus
+    KOVA_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
+    KOVA_SERVE_HEADLESS=1). A shell inheriting those then running
     `hermes dashboard` would serve the desktop renderer ("Desktop IPC bridge
     is unavailable", #52945) or disable the SPA. Only Electron-packaged
     WEB_DIST contamination is stripped from browser dashboards — caller-managed
     overrides (dev / custom builds) must still work, while headless `serve`
     keeps the packaged path used by the Desktop backend. Headless `serve`
-    re-sets HERMES_SERVE_HEADLESS itself.
+    re-sets KOVA_SERVE_HEADLESS itself.
 
     The Desktop's legacy fallback spawn (`dashboard --no-open`, taken when the
     `serve --help` probe times out on a cold host) is not headless yet must keep
     its packaged dist: it is told apart by the per-spawn
-    HERMES_DASHBOARD_SESSION_TOKEN, which the terminal pane never receives and
+    KOVA_DASHBOARD_SESSION_TOKEN, which the terminal pane never receives and
     the terminal tool's env policy strips from agent children.
     """
     desktop_owned_child = _is_desktop_owned_backend()
     if (
         not headless_backend
         and not desktop_owned_child
-        and _is_electron_packaged_web_dist(os.environ.get("HERMES_WEB_DIST", ""))
+        and _is_electron_packaged_web_dist(os.environ.get("KOVA_WEB_DIST", ""))
     ):
-        os.environ.pop("HERMES_WEB_DIST", None)
+        os.environ.pop("KOVA_WEB_DIST", None)
     if not headless_backend:
-        os.environ.pop("HERMES_SERVE_HEADLESS", None)
+        os.environ.pop("KOVA_SERVE_HEADLESS", None)
 
 
 def _require_dashboard_web_deps() -> None:
@@ -2469,7 +2469,7 @@ def _dashboard_prepare_runtime(args, headless_backend) -> bool:
     Returns ``start_mcp_discovery_after_bind`` for start_server.
     """
     # Attach gui.log early so dashboard startup/build failures are captured in
-    # the same logs directory as every other Hermes surface.
+    # the same logs directory as every other Kova surface.
     try:
         from kova_logging import setup_logging as _setup_logging_gui
         _setup_logging_gui(mode="gui")
@@ -2614,7 +2614,7 @@ def cmd_completion(args, parser=None):
 
 
 def cmd_logs(args):
-    """View and filter Hermes log files."""
+    """View and filter Kova log files."""
     from kova_cli.logs import tail_log, list_logs
 
     log_name = getattr(args, "log_name", "agent") or "agent"
@@ -2635,7 +2635,7 @@ def cmd_logs(args):
 
 
 def cmd_console(args):
-    """Open the safe Hermes command console."""
+    """Open the safe Kova command console."""
     from kova_cli.console_engine import run_console_repl
 
     return run_console_repl()
@@ -2726,10 +2726,10 @@ _AGENT_SUBCOMMANDS = {
 def _is_tui_chat_launch(args) -> bool:
     if _bypass_chat_launch(args):
         return False
-    if getattr(args, "tui", False) or os.environ.get("HERMES_TUI") == "1":
+    if getattr(args, "tui", False) or os.environ.get("KOVA_TUI") == "1":
         return True
     # The chat path decides TUI-vs-classic via _resolve_use_tui (--cli/--tui
-    # flags, TTY gate, HERMES_TUI env, display.interface config). Bare
+    # flags, TTY gate, KOVA_TUI env, display.interface config). Bare
     # `hermes`/`hermes chat` with a TUI display config was previously missed
     # here, so the wrapper pre-warmed its own MCP discovery while the TUI
     # gateway (spawned moments later) ran a second one — an idle stdio MCP
@@ -2761,13 +2761,13 @@ def _chat_runs_at_gateway(args) -> bool:
 
 def _prepare_agent_startup(args) -> None:
     """Discover plugins/MCP/hooks for commands that can run an agent turn."""
-    # --yolo chokepoint: HERMES_YOLO_MODE must be set before any discovery
+    # --yolo chokepoint: KOVA_YOLO_MODE must be set before any discovery
     # below imports tools.approval, which freezes _YOLO_MODE_FROZEN at import.
     # main() sets it earlier too, but other launchers (Termux fast-CLI) reach
     # here directly, so the guarantee lives where the import is triggered.
     # See #7994.
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["KOVA_YOLO_MODE"] = "1"
     if args.command in {None, "chat"} and _bypass_chat_launch(args):
         # Bypass launches are frozen by the gateway owner and executed out of process. This
         # client is a transport: no env mutation (it would ride into an authority spawn),
@@ -2809,7 +2809,7 @@ def _prepare_agent_startup(args) -> None:
     # TUI launches background MCP discovery with a bounded join; acp/gateway/cron do their own.
     if _chat_runs_at_gateway(args):  # chat turns run in the gateway: it owns MCP, hooks, webhooks
         if _accept_hooks:  # rides session.create (env_launch_flags) and the classic CLI's consent check
-            os.environ["HERMES_ACCEPT_HOOKS"] = "1"
+            os.environ["KOVA_ACCEPT_HOOKS"] = "1"
         return
     if _should_background_mcp_startup(args):
         try:
@@ -2845,15 +2845,15 @@ def _prepare_agent_startup(args) -> None:
 def _apply_safe_mode(args) -> None:
     if not getattr(args, "safe_mode", False):
         return
-    os.environ["HERMES_SAFE_MODE"] = "1"
-    os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
-    os.environ["HERMES_IGNORE_RULES"] = "1"
+    os.environ["KOVA_SAFE_MODE"] = "1"
+    os.environ["KOVA_IGNORE_USER_CONFIG"] = "1"
+    os.environ["KOVA_IGNORE_RULES"] = "1"
 
 
 def _apply_user_config_bypass(args) -> None:
     """Apply the explicit config bypass before any startup config reads."""
     if getattr(args, "ignore_user_config", False):
-        os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
+        os.environ["KOVA_IGNORE_USER_CONFIG"] = "1"
 
 
 def _guard_noninteractive_user_config(args) -> None:
@@ -2941,7 +2941,7 @@ def _try_fast_serve_launch() -> bool:
     thousands of filesystem-backed lookups on Windows. Unknown or global
     arguments fall back to normal parsing so error reporting is unchanged.
     """
-    if os.environ.get("HERMES_DISABLE_FAST_SERVE_LAUNCH") == "1":
+    if os.environ.get("KOVA_DISABLE_FAST_SERVE_LAUNCH") == "1":
         return False
 
     argv = sys.argv[1:]
@@ -2982,7 +2982,7 @@ def _try_fast_chat_launch() -> bool:
     ``_try_termux_fast_cli_launch`` minus the Termux deferred startup; kept
     separate so phone-tuned behavior doesn't leak to desktops.
     """
-    if os.environ.get("HERMES_DISABLE_FAST_CHAT_LAUNCH") == "1":
+    if os.environ.get("KOVA_DISABLE_FAST_CHAT_LAUNCH") == "1":
         return False
     argv = sys.argv[1:]
     if "-h" in argv or "--help" in argv:
@@ -3014,7 +3014,7 @@ def _try_fast_chat_launch() -> bool:
 
     _enable_cpu_profile(args)
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["KOVA_YOLO_MODE"] = "1"
     _prepare_agent_startup(args)
 
     if getattr(args, "oneshot", None):
@@ -3030,7 +3030,7 @@ def _try_termux_fast_cli_launch() -> bool:
     """Run obvious Termux non-TUI chat/oneshot/version paths on a light parser."""
     if not _is_termux_startup_environment():
         return False
-    if os.environ.get("HERMES_TERMUX_DISABLE_FAST_CLI") == "1":
+    if os.environ.get("KOVA_TERMUX_DISABLE_FAST_CLI") == "1":
         return False
 
     argv = sys.argv[1:]
@@ -3069,10 +3069,10 @@ def _try_termux_fast_cli_launch() -> bool:
         if not getattr(args, "query", None) and not getattr(args, "image", None):  # interactive prompt
             # Reach the prompt first; agent-only discovery on the first turn.
             args.compact = True
-            os.environ["HERMES_DEFER_AGENT_STARTUP"] = "1"
-            os.environ["HERMES_FAST_STARTUP_BANNER"] = "1"
+            os.environ["KOVA_DEFER_AGENT_STARTUP"] = "1"
+            os.environ["KOVA_FAST_STARTUP_BANNER"] = "1"
             if getattr(args, "accept_hooks", False):
-                os.environ["HERMES_ACCEPT_HOOKS"] = "1"
+                os.environ["KOVA_ACCEPT_HOOKS"] = "1"
         else:
             _prepare_agent_startup(args)
         cmd_chat(args)
@@ -3122,15 +3122,15 @@ def _advertise_agent_env() -> None:
 
     ``AI_AGENT`` is the cross-agent standard (huggingface_hub reads it); the
     value must be our id in the public agent-harness registry
-    (``hermes-agent``) — matching is exact. ``HERMES_AGENT`` is the
-    Hermes-specific marker. setdefault: never clobber an outer harness.
+    (``kova-agent``) — matching is exact. ``KOVA_AGENT`` is the
+    Kova-specific marker. setdefault: never clobber an outer harness.
 
     ``AI_AGENT`` is the emerging cross-agent standard (huggingface_hub's agent detection reads it; pi and
     other agents set it — earendil-works/pi#7493) so generic tooling can attribute subprocesses to the
-    harness that spawned them. Hermes running inside another agent's terminal).
+    harness that spawned them. Kova running inside another agent's terminal).
     """
-    os.environ.setdefault("AI_AGENT", "hermes-agent")
-    os.environ.setdefault("HERMES_AGENT", "true")
+    os.environ.setdefault("AI_AGENT", "kova-agent")
+    os.environ.setdefault("KOVA_AGENT", "true")
 
 
 def _attach_plugin_cli_command(subparsers, cmd_info) -> None:
@@ -3280,7 +3280,7 @@ def _build_cli_parser():
     build_dashboard_parser(
         subparsers, cmd_dashboard=cmd_dashboard, cmd_dashboard_register=cmd_dashboard_register)
     build_webapp_parser(subparsers, cmd_webapp=cmd_webapp)
-    # "desktop" is canonical (Hermes-Setup.exe tells users to run it, so it
+    # "desktop" is canonical (Kova-Setup.exe tells users to run it, so it
     # must be the name --help shows); "gui" is a deprecated alias.
     build_gui_parser(subparsers, cmd_gui=cmd_gui)
     build_logs_parser(subparsers, cmd_logs=cmd_logs)
@@ -3424,7 +3424,7 @@ def main():
     # --yolo must be set *before* plugin discovery: tools.approval freezes
     # _YOLO_MODE_FROZEN at import; set later (inside cmd_chat) it does nothing.
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["KOVA_YOLO_MODE"] = "1"
 
     # Plugin discovery + shell hooks once, gated so introspection commands
     # (hooks list, cron list, gateway status, ...) pay no discovery cost and

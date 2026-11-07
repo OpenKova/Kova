@@ -97,14 +97,14 @@ def _parse_branch_flag(value: Optional[str]) -> Optional[str]:
     return branch
 
 
-def _check_dispatcher_presence(hermes_home: Optional[Path] = None) -> tuple[bool, str]:
+def _check_dispatcher_presence(kova_home: Optional[Path] = None) -> tuple[bool, str]:
     """``(running, message)`` for the "will anything dispatch this?" warning: True when a gateway is
-    alive for this HERMES_HOME with ``kanban.dispatch_in_gateway`` on, else False + human guidance.
+    alive for this KOVA_HOME with ``kanban.dispatch_in_gateway`` on, else False + human guidance.
     Fails OPEN (probe/config errors -> ``(True, "")``) — a missed warning beats crying wolf.
-    ``hermes_home`` scopes the probe to a profile dir (dashboard backend); CLI callers pass None.
+    ``kova_home`` scopes the probe to a profile dir (dashboard backend); CLI callers pass None.
 
     The dashboard plugin API passes it because the dashboard backend process can be running under a
-    different HERMES_HOME than the profile the request targets, which otherwise produced a "no gateway is
+    different KOVA_HOME than the profile the request targets, which otherwise produced a "no gateway is
     running" warning against a perfectly healthy profile gateway (#71211). CLI callers leave it ``None`` and
     keep the existing process-level behavior.
     """
@@ -113,7 +113,7 @@ def _check_dispatcher_presence(hermes_home: Optional[Path] = None) -> tuple[bool
 
         # Same ladder as the dashboard status endpoints so PID-file-less / cross-container gateways
         # aren't misreported; use_cache=False because this one-shot probe must see the state now.
-        liveness = resolve_gateway_liveness(profile_dir=hermes_home, use_cache=False)
+        liveness = resolve_gateway_liveness(profile_dir=kova_home, use_cache=False)
     except Exception:
         return (True, "")  # can't probe — silent
     if liveness.probe_error:  # resolver swallows per-rung failures; "can't tell" != "no gateway"
@@ -158,7 +158,7 @@ def kanban_command(args: argparse.Namespace) -> int:
     if action == "boards":
         return _dispatch_boards(args)
 
-    # `--board <slug>` pins HERMES_KANBAN_BOARD for the duration of this call so it inherits the
+    # `--board <slug>` pins KOVA_KANBAN_BOARD for the duration of this call so it inherits the
     # exact resolution the dispatcher uses for workers.
     board_override = getattr(args, "board", None)
     board_scope = contextlib.nullcontext()
@@ -182,7 +182,7 @@ def kanban_command(args: argparse.Namespace) -> int:
         if action == "repair":
             return _cmd_repair(args)
         # init_db is idempotent (one sqlite_master SELECT when tables exist) and prevents
-        # "no such table: tasks" on first use from a fresh HERMES_HOME.
+        # "no such table: tasks" on first use from a fresh KOVA_HOME.
         try:
             kb.init_db()
         except Exception as exc:
@@ -297,7 +297,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
         for name in profiles:
             print(f"  {name}")
     else:
-        print("No profiles found under ~/.hermes/profiles/.\n"
+        print("No profiles found under ~/.kova/profiles/.\n"
               "Create one with `hermes -p <name> setup` before assigning tasks.")
     print(
         "\nNext step: start the gateway so ready tasks actually get picked up.\n"
@@ -375,7 +375,7 @@ def _cmd_create(args: argparse.Namespace) -> int:
             goal_max_turns=getattr(args, "goal_max_turns", None),
             completion_contract=getattr(args, "completion_contract", None),
             initial_status=getattr(args, "initial_status", "running"),
-            creator_task_id=(os.environ.get("HERMES_KANBAN_TASK")
+            creator_task_id=(os.environ.get("KOVA_KANBAN_TASK")
                              if is_dispatcher_owned_worker_context() else None),
         )
         task = kb.get_task(conn, task_id)
@@ -709,7 +709,7 @@ def _cmd_link(args: argparse.Namespace) -> int:
     # ownership with its run id; linking a foreign task never needs one.
     expected_child_run_id = (
         _worker_run_id_for(args.child_id)
-        if args.child_id == os.environ.get("HERMES_KANBAN_TASK") else None)
+        if args.child_id == os.environ.get("KOVA_KANBAN_TASK") else None)
     with kbc.connect_closing() as conn:
         gated = kb.link_tasks(conn, args.parent_id, args.child_id,
                               expected_child_run_id=expected_child_run_id)
@@ -813,11 +813,11 @@ def _cmd_attach_rm(args: argparse.Namespace) -> int:
 
 
 def _worker_run_id_for(task_id: str) -> Optional[int]:
-    env_tid = os.environ.get("HERMES_KANBAN_TASK")
+    env_tid = os.environ.get("KOVA_KANBAN_TASK")
     if env_tid and env_tid != task_id:
         raise ValueError(f"worker is scoped to task {env_tid}; refusing to mutate {task_id}")
-    raw = os.environ.get("HERMES_KANBAN_RUN_ID")
-    if os.environ.get("HERMES_KANBAN_TASK") != task_id or not raw:
+    raw = os.environ.get("KOVA_KANBAN_RUN_ID")
+    if os.environ.get("KOVA_KANBAN_TASK") != task_id or not raw:
         return None
     try:
         return int(raw)
@@ -1018,7 +1018,7 @@ def _cmd_schedule(args: argparse.Namespace) -> int:
 
 
 def _cmd_unblock(args: argparse.Namespace) -> int:
-    if os.environ.get("HERMES_KANBAN_TASK"):
+    if os.environ.get("KOVA_KANBAN_TASK"):
         return _err("kanban unblock is orchestrator-only; workers must hand off their assigned task")
     ids, rc = _require_ids(args)
     if rc:

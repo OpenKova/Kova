@@ -33,7 +33,7 @@ export function bundledPayload(
     storePython: path.join(root, runtime.storePython),
     sitePackages: path.join(root, runtime.sitePackages),
     commands,
-    shim: commands.hermes
+    shim: commands.kova
   }
 }
 
@@ -47,7 +47,7 @@ export function payloadPythonPath(payload: Pick<PayloadInfo, 'repoDir' | 'sitePa
 }
 
 /**
- * The bundled shim is the Hermes CLI, not an interpreter, so it rejects the
+ * The bundled shim is the Kova CLI, not an interpreter, so it rejects the
  * ticket bridge's `-P -u -c`. Ticket minting runs the payload python against
  * the same import closure the shim gives the CLI.
  */

@@ -8,7 +8,7 @@ import { runGatewayEnsure, runGatewayOwnerRestart } from './local-gateway'
 
 // A real bounded client against a fake `hermes`: `new` knows `--detach`; `old` predates it and
 // rejects it the way argparse does. Each run appends its argv, so the test reads what was executed.
-async function fakeHermes(kind: 'new' | 'old') {
+async function fakeKova(kind: 'new' | 'old') {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'gw-detach-'))
   const calls = path.join(dir, 'calls')
 
@@ -24,7 +24,7 @@ async function fakeHermes(kind: 'new' | 'old') {
 }
 
 test.skipIf(process.platform === 'win32')('a stale-owner restart asks for a detached replacement', async () => {
-  const hermes = await fakeHermes('new')
+  const hermes = await fakeKova('new')
   const result = await runGatewayOwnerRestart(hermes.run, 'work')
 
   expect(result.code).toBe(0)
@@ -34,7 +34,7 @@ test.skipIf(process.platform === 'win32')('a stale-owner restart asks for a deta
 // apps/desktop/AGENTS.md "Compatibility": a runtime older than `--detach` still restarts (its old
 // behaviour, which works under a service) instead of failing on the flag and leaving the stale owner.
 test.skipIf(process.platform === 'win32')('a runtime that predates --detach still restarts the owner', async () => {
-  const hermes = await fakeHermes('old')
+  const hermes = await fakeKova('old')
   const result = await runGatewayOwnerRestart(hermes.run, 'default')
 
   expect(result.code).toBe(0)

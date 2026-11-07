@@ -109,7 +109,7 @@ class TestProviderModelsSWR:
             return f"{segment({'alg': 'none'})}.{segment(claims)}.sig"
 
         auth_path = tmp_path / "auth.json"
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setenv("HOME", str(tmp_path))
 
         def write_auth(token, request_count, mtime_ns):

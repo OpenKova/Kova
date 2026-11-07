@@ -101,7 +101,7 @@ def _preflight_check_provider_key(job: dict, cfg: dict) -> Optional[str]:
         return None  # fail-open: never block on a preflight-internal error
 
     requested = job.get("provider") or cron_default_provider(cfg) or None
-    model = job.get("model") or cron_env_setting("HERMES_MODEL") or ""
+    model = job.get("model") or cron_env_setting("KOVA_MODEL") or ""
 
     from kova_cli.auth import AuthError, is_rate_limited_auth_error
     try:
@@ -127,16 +127,16 @@ def _preflight_check_provider_key(job: dict, cfg: dict) -> Optional[str]:
 
 
 def _credential_store_scope_label() -> str:
-    """``[profile '<name>', HERMES_HOME <path>]`` for the home this preflight read credentials from.
+    """``[profile '<name>', KOVA_HOME <path>]`` for the home this preflight read credentials from.
 
     The verdict must name the store it judged: a scheduler process whose home differs from the
-    shell where "the same credential works" (Docker HOME vs HERMES_HOME, a multiplexed satellite
+    shell where "the same credential works" (Docker HOME vs KOVA_HOME, a multiplexed satellite
     profile, a gateway launched without the shell's env) otherwise reports a bare "No credentials
     stored" that cannot be told apart from a real login gap (#116213).
     """
     from kova_cli.profiles import get_active_profile_name
-    from kova_constants import get_hermes_home
-    return f"[profile '{get_active_profile_name() or 'default'}', HERMES_HOME {get_hermes_home()}]"
+    from kova_constants import get_kova_home
+    return f"[profile '{get_active_profile_name() or 'default'}', KOVA_HOME {get_kova_home()}]"
 
 
 def _primary_profile_routes_for_current_home() -> list:
@@ -153,9 +153,9 @@ def _primary_profile_routes_for_current_home() -> list:
     ``duplicate_credential`` fatal).
     """
     try:
-        from kova_constants import get_default_hermes_root, get_hermes_home
-        primary_home = get_default_hermes_root()
-        current_home = _sched.Path(get_hermes_home())
+        from kova_constants import get_default_kova_root, get_kova_home
+        primary_home = get_default_kova_root()
+        current_home = _sched.Path(get_kova_home())
         if (
             primary_home.expanduser().resolve(strict=False)
             == current_home.expanduser().resolve(strict=False)

@@ -79,7 +79,7 @@ def test_reap_only_kills_ppid1_local_serves():
         ),
         patch("os.kill", side_effect=fake_kill),
     ):
-        os.environ.pop("HERMES_DESKTOP_CHILD_PID", None)
+        os.environ.pop("KOVA_DESKTOP_CHILD_PID", None)
         result = _reap_orphaned_desktop_local_serves(
             sleep_fn=lambda _s: None,
             signal_term=15,
@@ -100,7 +100,7 @@ def test_reap_passes_child_pid_exclude_to_scan():
             "kova_cli.dashboard_procs._scan_dashboard_processes",
             return_value=[],
         ) as scan,
-        patch.dict(os.environ, {"HERMES_DESKTOP_CHILD_PID": "999,111"}, clear=False),
+        patch.dict(os.environ, {"KOVA_DESKTOP_CHILD_PID": "999,111"}, clear=False),
     ):
         result = _reap_orphaned_desktop_local_serves(sleep_fn=lambda _s: None)
 
@@ -137,8 +137,8 @@ def _valid_lock_payload(pid: int, ownership_id: str, spawn_nonce: str) -> dict:
         "port": 0,
         "profile": "default",
         "hermesPath": "/opt/hermes/bin/hermes",
-        "hermesHome": "~/.hermes",
-        "logPath": f"~/.hermes/desktop-ssh/{ownership_id}/{spawn_nonce}.log",
+        "hermesHome": "~/.kova",
+        "logPath": f"~/.kova/desktop-ssh/{ownership_id}/{spawn_nonce}.log",
         "startedAt": "2026-08-04T20:00:00Z",
     }
 
@@ -161,12 +161,12 @@ def test_lock_owned_serve_pids_reads_valid_backend_lock(tmp_path):
 
 
 def test_lock_owned_serve_pids_sees_root_home_locks_from_a_profile_home(tmp_path, monkeypatch):
-    """A profile backend (``HERMES_HOME=<root>/profiles/<name>``) must still see the Desktop's SSH
+    """A profile backend (``KOVA_HOME=<root>/profiles/<name>``) must still see the Desktop's SSH
     locks, which live under ``<root>/desktop-ssh`` — otherwise its reaper kills the sibling
     profile's live SSH backend on every profile switch (#89811)."""
     import kova_constants
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     profile_home = root / "profiles" / "flocki"
     profile_home.mkdir(parents=True)
     oid = "f" * 32
@@ -175,9 +175,9 @@ def test_lock_owned_serve_pids_sees_root_home_locks_from_a_profile_home(tmp_path
     (root / "desktop-ssh" / oid / "backend.lock.json").write_text(
         json.dumps(_valid_lock_payload(7777, oid, nonce))
     )
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
-    monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: root)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None, raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(profile_home))
+    monkeypatch.setattr(kova_constants, "_get_platform_default_kova_home", lambda: root)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None, raising=False)
 
     assert _lock_owned_serve_pids() == {7777}
 
@@ -205,7 +205,7 @@ def test_valid_lockfile_payload_rejects_wrong_owner_and_shape():
     assert _valid_lockfile_payload(bad_nonce, oid) is False
     # logPath not ending in <oid>/<nonce>.log.
     bad_log = _valid_lock_payload(1, oid, nonce)
-    bad_log["logPath"] = f"~/.hermes/desktop-ssh/{oid}/other.log"
+    bad_log["logPath"] = f"~/.kova/desktop-ssh/{oid}/other.log"
     assert _valid_lockfile_payload(bad_log, oid) is False
 
 
@@ -249,7 +249,7 @@ def test_reap_spare_lock_owned_ssh_remote_backend_of_foreign_client():
         ),
         patch("os.kill", side_effect=fake_kill),
     ):
-        os.environ.pop("HERMES_DESKTOP_CHILD_PID", None)
+        os.environ.pop("KOVA_DESKTOP_CHILD_PID", None)
         result = _reap_orphaned_desktop_local_serves(
             sleep_fn=lambda _s: None,
             signal_term=15,
@@ -365,7 +365,7 @@ def test_reap_age_boundary_makes_180_second_orphan_eligible():
 
 def test_reap_spare_lock_owned_backend_even_without_exclude_match(tmp_path):
     """End-to-end through the real lock scanner: a backend.lock.json on disk
-    spares a matching orphaned serve even when HERMES_DESKTOP_CHILD_PID is
+    spares a matching orphaned serve even when KOVA_DESKTOP_CHILD_PID is
     unset (foreign-client backend, not ours by env either)."""
     oid = "a" * 32
     nonce = "b" * 16
@@ -393,7 +393,7 @@ def test_reap_spare_lock_owned_backend_even_without_exclude_match(tmp_path):
         ),
         patch("os.kill", side_effect=fake_kill),
     ):
-        os.environ.pop("HERMES_DESKTOP_CHILD_PID", None)
+        os.environ.pop("KOVA_DESKTOP_CHILD_PID", None)
         result = _reap_orphaned_desktop_local_serves(
             sleep_fn=lambda _s: None,
             signal_term=15,
@@ -430,7 +430,7 @@ def test_reap_kills_descendants_of_killed_roots_but_spares_a_failed_roots_subtre
         patch("psutil.pid_exists", return_value=True),
         patch("os.kill", side_effect=fake_kill),
     ):
-        os.environ.pop("HERMES_DESKTOP_CHILD_PID", None)
+        os.environ.pop("KOVA_DESKTOP_CHILD_PID", None)
         result = _reap_orphaned_desktop_local_serves(
             sleep_fn=lambda _s: None, signal_term=15, signal_kill=9,
             process_age_seconds_fn=lambda _pid: 600.0,

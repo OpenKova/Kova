@@ -158,7 +158,7 @@ def _resolve_matrix_bang_command(name: str) -> str | None:
 
 
 def _normalize_matrix_bang_command(text: str) -> str:
-    """Convert Matrix ``!command`` aliases to normal Hermes ``/command`` text."""
+    """Convert Matrix ``!command`` aliases to normal Kova ``/command`` text."""
     if not text or not text.startswith("!"):
         return text
     match = _MATRIX_BANG_COMMAND_RE.match(text)
@@ -777,7 +777,7 @@ def ensure_matrix_deps() -> bool:
     if extras.missing("matrix") and not extras.ensure_and_bind("matrix", _import, globals()):
         logger.warning(
             "Matrix: required packages not installed or need a restart. "
-            "Run `hermes pm install`, then restart Hermes."
+            "Run `hermes pm install`, then restart Kova."
         )
         return False
     e2ee_mode = _resolve_e2ee_mode()
@@ -797,7 +797,7 @@ class MatrixAdapter(BasePlatformAdapter):
     serial_receive_loop = True  # _sync_loop reads the next sync only after this sync's handlers return
     supports_code_blocks = True  # Matrix renders fenced code blocks (HTML/markdown)
     splits_long_messages = True  # send() chunks via truncate_message(max_message_length)
-    typed_command_prefix = "!"  # clients reserve typed "/" for local commands; "!command" always reaches Hermes
+    typed_command_prefix = "!"  # clients reserve typed "/" for local commands; "!command" always reaches Kova
     # Class-level defaults keep object.__new__-built test instances working.
     max_message_length = DEFAULT_MAX_MESSAGE_LENGTH
     _SPLIT_THRESHOLD = DEFAULT_MAX_MESSAGE_LENGTH - 100
@@ -882,8 +882,8 @@ class MatrixAdapter(BasePlatformAdapter):
             logger.info("Matrix: proxy configured — %s", self._proxy_url)
         self._max_media_bytes = _env_number("MATRIX_MAX_MEDIA_BYTES", 100 * 1024 * 1024, int)
         # Text batching merges client-side splits (~4000 chars) of one long message.
-        self._text_batch_delay_seconds = float(os.getenv("HERMES_MATRIX_TEXT_BATCH_DELAY_SECONDS", "0.6"))
-        self._text_batch_split_delay_seconds = float(os.getenv("HERMES_MATRIX_TEXT_BATCH_SPLIT_DELAY_SECONDS", "2.0"))
+        self._text_batch_delay_seconds = float(os.getenv("KOVA_MATRIX_TEXT_BATCH_DELAY_SECONDS", "0.6"))
+        self._text_batch_split_delay_seconds = float(os.getenv("KOVA_MATRIX_TEXT_BATCH_SPLIT_DELAY_SECONDS", "2.0"))
         self._approval_reaction_map = {
             "✅": "once", "🌀": "session", "♾️": "always", "♾": "always", "\u267e\ufe0f": "always",
             "\u267e": "always", "❌": "deny", "❎": "deny"}
@@ -1161,7 +1161,7 @@ class MatrixAdapter(BasePlatformAdapter):
         elif self._password and self._user_id:
             try:
                 resp = await client.login(
-                    identifier=self._user_id, password=self._password, device_name="Hermes Agent",
+                    identifier=self._user_id, password=self._password, device_name="Kova Agent",
                     device_id=self._device_id or None)
                 if resp and hasattr(resp, "device_id"):
                     client.device_id = resp.device_id
@@ -2984,7 +2984,7 @@ class MatrixAdapter(BasePlatformAdapter):
 
     def _strip_mention(self, body: str) -> str:
         """Strip explicit ``@user:server`` / ``@localpart`` tokens only — never bare localpart
-        words, or "Hermes Agent" would become "Agent"."""
+        words, or "Kova Agent" would become "Agent"."""
         if not body:
             return ""
         if self._user_id:
@@ -3211,10 +3211,10 @@ def interactive_setup() -> None:
 
             print_info("Preparing Matrix dependencies...")
             sync_venv(["matrix"], explicit=True)
-            print_success("Matrix dependencies prepared. Restart Hermes to use them.")
+            print_success("Matrix dependencies prepared. Restart Kova to use them.")
         except Exception as exc:
             print_warning(f"Matrix dependencies could not be prepared: {exc}")
-            print_info("Run `hermes pm install`, then restart Hermes.")
+            print_info("Run `hermes pm install`, then restart Kova.")
         print_info("🔒 Security: Restrict who can use your bot")
         print_info("   Matrix user IDs look like @username:server")
         allowed_users = prompt("Allowed user IDs (comma-separated, leave empty for open access)")
@@ -3223,7 +3223,7 @@ def interactive_setup() -> None:
             print_success("Matrix allowlist configured")
         else:
             print_info("⚠️  No allowlist set - anyone who can message the bot can use it!")
-        for line in ("📬 Home Room: where Hermes delivers cron job results and notifications.",
+        for line in ("📬 Home Room: where Kova delivers cron job results and notifications.",
                      "   Room IDs look like !abc123:server (shown in Element room settings)",
                      "   You can also set this later by typing /set-home in a Matrix room.",
                      "Leave blank to clear a previously saved home room (cron / notifications)."):

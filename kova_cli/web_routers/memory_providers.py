@@ -33,7 +33,7 @@ router = APIRouter()
 
 # Late-bound so a test's monkeypatch on the owning module wins at call time.
 _discover_memory_provider_statuses = late("_discover_memory_provider_statuses", "kova_cli.web_server_memory")
-get_hermes_home = late("get_hermes_home", "kova_cli.config")
+get_kova_home = late("get_kova_home", "kova_cli.config")
 load_config = late("load_config", "kova_cli.config")
 save_config = late("save_config", "kova_cli.config")
 save_env_value = late("save_env_value", "kova_cli.config")
@@ -116,7 +116,7 @@ def _read_json_dict(path: Path, what: str) -> dict[str, Any]:
 
 
 def _flat_json_path(provider: ProviderConfigSchema) -> Path:
-    return get_hermes_home() / provider.name / "config.json"
+    return get_kova_home() / provider.name / "config.json"
 
 
 def _read_flat_json(provider: ProviderConfigSchema) -> dict[str, Any]:
@@ -125,7 +125,7 @@ def _read_flat_json(provider: ProviderConfigSchema) -> dict[str, Any]:
 
 def _honcho_resolvers(name: str):
     """Host-block resolvers of provider *name*'s own ``client`` module, wherever the provider is
-    installed (bundled or ``$HERMES_HOME/plugins/``)."""
+    installed (bundled or ``$KOVA_HOME/plugins/``)."""
     from plugins.memory import import_provider_module
 
     client = import_provider_module(name, "client")
@@ -178,8 +178,8 @@ def _apply_field_values(provider: ProviderConfigSchema, values: dict[str, str], 
 
 def _write_json_0600(path: Path, data: dict[str, Any]) -> None:
     from utils import atomic_json_write
-    from kova_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(path.parent)
+    from kova_constants import mkdir_under_kova_home
+    mkdir_under_kova_home(path.parent)
     atomic_json_write(path, data, mode=0o600)
 
 
@@ -196,7 +196,7 @@ def _write_provider_own(provider: ProviderConfigSchema, values: dict[str, str]) 
     fields: dict[str, Any] = {field.key: submitted for field, submitted in _submitted_secrets(provider, values)}
     fields.update({k: None if v is _UNSET else v for k, v in _submitted_natives(provider, values).items()})
     try:
-        _provider_instance(provider).write_config_fields(fields, str(get_hermes_home()))
+        _provider_instance(provider).write_config_fields(fields, str(get_kova_home()))
     except NotImplementedError as exc:  # declares storage=provider without the writer: a plugin bug
         raise HTTPException(status_code=501, detail=str(exc)) from exc
     _save_submitted_secrets(provider, values)
@@ -291,7 +291,7 @@ def _declared_provider_payload(provider: ProviderConfigSchema) -> dict[str, Any]
     own = provider.storage == STORAGE_PROVIDER
     placeholders: dict[str, Any] = {}
     if own:
-        stored = _provider_instance(provider).read_config_fields(str(get_hermes_home())) or {}
+        stored = _provider_instance(provider).read_config_fields(str(get_kova_home())) or {}
         data = dict(stored.get("values") or {})
         placeholders = dict(stored.get("placeholders") or {})
 
@@ -516,7 +516,7 @@ def _save_memory_provider_native_config(name: str, provider: Any, values: dict[s
         except Exception:
             _BaseMemoryProvider = None
         if _BaseMemoryProvider is None or type(provider).save_config is not _BaseMemoryProvider.save_config:
-            provider.save_config(values, str(get_hermes_home()))
+            provider.save_config(values, str(get_kova_home()))
             return
     with _CONFIG_MUTATION_LOCK:  # RMW span vs. the dashboard's config autosave
         cfg = load_config()

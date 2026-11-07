@@ -74,12 +74,12 @@ class TestCollectProfileGatewayTopology:
     def test_running_standalone_profile_is_in_topology(self, tmp_path, monkeypatch):
         from kova_cli import profiles
 
-        root = tmp_path / ".hermes"
+        root = tmp_path / ".kova"
         solo = root / "profiles" / "solo"
         solo.mkdir(parents=True)
         (solo / "config.yaml").write_text("gateway:\n  standalone: true\n")
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("KOVA_HOME", str(root))
         monkeypatch.setattr(profiles, "_check_gateway_running", lambda home: home == solo)
         topo = _collect_profile_gateway_topology()
         assert "solo" in topo["profiles"]
@@ -273,18 +273,18 @@ class TestCollectProfileGatewayTopology:
 
 class TestStatusEndpointTopology:
     @pytest.fixture(autouse=True)
-    def _setup_client(self, monkeypatch, _isolate_hermes_home):
+    def _setup_client(self, monkeypatch, _isolate_kova_home):
         try:
             from starlette.testclient import TestClient
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
         import kova_state
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         monkeypatch.setattr(
-            kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db"
+            kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db"
         )
         self.client = TestClient(app)
         self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
@@ -382,7 +382,7 @@ class TestStatusEndpointTopology:
 
     def test_profile_scoped_status_folds_default_flat_adapters_on_default_root(self, monkeypatch, tmp_path):
         # ?profile=default resolves the DEFAULT ROOT directory itself — the shipped root is
-        # ``~/.hermes``, so the directory's basename (".hermes") is not the profile id. The
+        # ``~/.kova``, so the directory's basename (".kova") is not the profile id. The
         # re-key used to fold on that basename: the multiplexer rung's flat keys never matched
         # (the ``gateway_platforms: {}`` symptom of #123088, one call site over from the fix
         # bare /api/status got), and the basename read as a NAMED profile, so the mirror arm
@@ -393,11 +393,11 @@ class TestStatusEndpointTopology:
         import kova_cli.web_routers.status as status_router
         from kova_cli import web_server_profiles
 
-        home = tmp_path / ".hermes"  # the shipped default root: basename != profile id
+        home = tmp_path / ".kova"  # the shipped default root: basename != profile id
         home.mkdir()
         # The resolver names a default root by IDENTITY, not basename: only the root the
-        # process resolves (HERMES_HOME here) folds as "default".
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        # process resolves (KOVA_HOME here) folds as "default".
+        monkeypatch.setenv("KOVA_HOME", str(home))
         record = {
             "gateway_state": "running",
             "served_profiles": ["default", "coder"],
@@ -537,7 +537,7 @@ class TestStatusEndpointTopology:
                               "coder:telegram": {"state": "connected"}},
             },
         )
-        monkeypatch.setattr(status_router, "get_process_hermes_home", lambda: tmp_path / "profiles" / "coder")
+        monkeypatch.setattr(status_router, "get_process_kova_home", lambda: tmp_path / "profiles" / "coder")
 
         resp = self.client.get("/api/status")
 
@@ -627,7 +627,7 @@ class TestStatusEndpointTopology:
         from gateway import host_topology
         from gateway.status import GatewayLiveness
         import kova_cli.web_routers.status as status_router
-        from kova_constants import get_process_hermes_home
+        from kova_constants import get_process_kova_home
 
         monkeypatch.setattr(_gw_status, "read_runtime_status", lambda path=None: record)
         monkeypatch.setattr(_gw_status, "get_runtime_status_running_pid",
@@ -641,7 +641,7 @@ class TestStatusEndpointTopology:
             "profiles": ["default", "reviewer"], "gateway_mode": "multiplex", "gateways": [],
             "profile_platforms": {}})
         # The lookup genuinely succeeds here (no zero-arg PID-probe trap making it raise).
-        assert _gw_status.multiplexer_liveness_for_profile(get_process_hermes_home()) == (4242, record)
+        assert _gw_status.multiplexer_liveness_for_profile(get_process_kova_home()) == (4242, record)
         resp = self.client.get("/api/status")
         assert resp.status_code == 200
         return resp.json()
@@ -884,7 +884,7 @@ class TestStatusEndpointTopology:
 
     def test_profile_names_and_mode_public_when_auth_gated(self, monkeypatch):
         # Profile NAMES + gateway_mode are low-sensitivity product surface: the
-        # Hermes Cloud Portal reads /api/status over the network (a gated bind)
+        # Kova Cloud Portal reads /api/status over the network (a gated bind)
         # to render the profile list, so they must survive the auth gate.
         monkeypatch.setattr(
             _web_server_gateway, "_collect_profile_gateway_topology",
@@ -902,9 +902,9 @@ class TestStatusEndpointTopology:
             assert data["profiles"] == ["default", "coder"]
             assert data["gateway_mode"] == "multiplex"
             # But the per-gateway detail (host ports = recon) stays gated,
-            # alongside hermes_home / gateway_pid.
+            # alongside kova_home / gateway_pid.
             assert "gateways" not in data
-            assert "hermes_home" not in data
+            assert "kova_home" not in data
             assert "gateway_pid" not in data
         finally:
             monkeypatch.setattr(

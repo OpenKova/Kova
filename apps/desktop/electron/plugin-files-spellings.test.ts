@@ -31,7 +31,7 @@ const make = (platform?: NodeJS.Platform): PluginFiles =>
 beforeEach(() => {
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-spell-')))
   userData = path.join(scratch, 'userData')
-  hermesHome = path.join(scratch, 'home', '.hermes')
+  hermesHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
   fs.mkdirSync(userData, { recursive: true })
   fs.mkdirSync(hermesHome, { recursive: true })
@@ -81,7 +81,7 @@ describe('case on a case-sensitive macOS volume', () => {
     })
   })
 
-  it.runIf(posix)('a differently-cased spelling of the Hermes home still cannot be granted', async () => {
+  it.runIf(posix)('a differently-cased spelling of the Kova home still cannot be granted', async () => {
     const lookalike = path.join(scratch, 'home', '.HERMES')
     fs.mkdirSync(lookalike)
 
@@ -165,8 +165,8 @@ describe('Windows second paths to this machine', () => {
     ['\\\\wsl$\\Ubuntu\\home', true],
     ['\\\\wsl.localhost\\Ubuntu\\home\\me', true],
     ['\\\\wsl.localhost\\Ubuntu\\root', true],
-    ['\\\\wsl.localhost\\Ubuntu\\home\\me\\.hermes\\profiles', true],
-    ['\\\\WSL.LOCALHOST\\Debian\\HOME\\me\\.Hermes', true],
+    ['\\\\wsl.localhost\\Ubuntu\\home\\me\\.kova\\profiles', true],
+    ['\\\\WSL.LOCALHOST\\Debian\\HOME\\me\\.Kova', true],
     // The distro's own process environments and its view of the Windows drives.
     ['\\\\wsl.localhost\\Ubuntu\\proc', true],
     ['\\\\wsl$\\Ubuntu\\proc\\1\\environ', true],
@@ -232,7 +232,7 @@ describe('kernel pseudo-filesystems wherever they are mounted', () => {
   })
 })
 
-describe('Hermes data reached by another spelling', () => {
+describe('Kova data reached by another spelling', () => {
   it('compares folders by filesystem identity', async () => {
     expect(await overlapsByIdentity(hermesHome, [hermesHome])).toBe(true)
     expect(await overlapsByIdentity(path.join(scratch, 'home'), [hermesHome])).toBe(true)

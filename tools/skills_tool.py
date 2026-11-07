@@ -13,7 +13,7 @@ from contextlib import contextmanager, suppress
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Dict, List, Optional, Tuple
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.registry import registry, tool_error
 from kova_cli.config import cfg_get
 from agent.skill_utils import (
@@ -85,16 +85,16 @@ def _skills_scan_signature(dirs_to_scan, disabled) -> tuple:
     return (tuple(sig), frozenset(disabled), platform)
 
 
-HERMES_HOME = get_hermes_home()  # all skills live in ~/.hermes/skills/ (seeded from bundled)
-SKILLS_DIR = HERMES_HOME / "skills"
+KOVA_HOME = get_kova_home()  # all skills live in ~/.kova/skills/ (seeded from bundled)
+SKILLS_DIR = KOVA_HOME / "skills"
 _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time: the patched ``SKILLS_DIR`` when a patcher changed
-    it, else live profile-scoped HERMES_HOME (long-lived runtimes may import before profile set)."""
+    it, else live profile-scoped KOVA_HOME (long-lived runtimes may import before profile set)."""
     configured = Path(SKILLS_DIR)
-    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
+    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_kova_home() / "skills"
 
 
 _secret_capture_callback = None
@@ -116,7 +116,7 @@ def skill_lookup_path_error(name: str) -> Optional[str]:
 
 
 def load_env() -> dict[str, str]:
-    """Snapshot of HERMES_HOME/.env for the post-skill secret-capture diff (same tokenizer that
+    """Snapshot of KOVA_HOME/.env for the post-skill secret-capture diff (same tokenizer that
     installs the profile scope, so a captured value never differs from the served one). A frozen-policy
     worker never opens the profile ``.env``: ``kova_cli.config.load_env`` owns that short-circuit."""
     from agent.safe_worker_policy import worker_config_snapshot
@@ -125,7 +125,7 @@ def load_env() -> dict[str, str]:
         return {}
     from agent.secret_scope import load_env_file
 
-    return load_env_file(get_hermes_home() / ".env")
+    return load_env_file(get_kova_home() / ".env")
 
 
 def set_secret_capture_callback(callback) -> None:
@@ -170,7 +170,7 @@ def check_skills_requirements() -> bool:
 
 
 def _get_category_from_path(skill_path: Path) -> Optional[str]:
-    """``~/.hermes/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
+    """``~/.kova/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
     (respects test monkeypatching), then skills.external_dirs."""
     dirs_to_check = [_skills_dir()]
     with suppress(Exception):
@@ -197,16 +197,16 @@ def _parse_tags(tags_value) -> list[str]:
 
 def _is_skill_disabled(*names: str, platform: str | None = None) -> bool:
     """Any of *names* disabled in config (one config load)? Platform precedence: explicit arg,
-    ``HERMES_PLATFORM``, session ``HERMES_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
+    ``KOVA_PLATFORM``, session ``KOVA_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
     (keep in sync with agent.skill_utils.get_disabled_skill_names)."""
     try:
         from kova_cli.config import load_config
         skills_cfg = load_config().get("skills", {})
-        resolved_platform = platform or os.getenv("HERMES_PLATFORM")
+        resolved_platform = platform or os.getenv("KOVA_PLATFORM")
         if not resolved_platform:
             with suppress(Exception):
                 from gateway.session_context import get_session_env
-                resolved_platform = get_session_env("HERMES_SESSION_PLATFORM") or ""
+                resolved_platform = get_session_env("KOVA_SESSION_PLATFORM") or ""
         platform_disabled = None
         if resolved_platform:
             platform_disabled = cfg_get(skills_cfg, "platform_disabled", resolved_platform)
@@ -603,7 +603,7 @@ def _log_security_warnings(name: str, skill_md: Path, content: str, all_dirs, ac
         trusted_dirs.extend(d.resolve() for d in all_dirs)
     warnings = []
     if not _under_any(skill_md, trusted_dirs):
-        warnings.append(f"skill file is outside the trusted skills directory (~/.hermes/skills/): {skill_md}")
+        warnings.append(f"skill file is outside the trusted skills directory (~/.kova/skills/): {skill_md}")
     if any(p in content.lower() for p in _INJECTION_PATTERNS):
         warnings.append("skill content contains patterns that may indicate prompt injection")
     if warnings:
@@ -654,7 +654,7 @@ def skill_view(
             return _serve_skill_file(
                 skill_dir, file_path, name, list_available=True, mark_read=True,
                 hint="Use a relative path within the skill directory")
-        # tags/related_skills: metadata.hermes.* (agentskills.io) first, then top-level.
+        # tags/related_skills: metadata.kova.* (agentskills.io) first, then top-level.
         metadata = frontmatter.get("metadata")
         hermes_meta = (metadata.get("hermes", {}) or {}) if isinstance(metadata, dict) else {}
         tags, related_skills = (

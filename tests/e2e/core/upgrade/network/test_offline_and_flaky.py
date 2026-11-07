@@ -50,7 +50,7 @@ def inst(tmp_path_factory):
 def test_offline_update_fails_fast_and_changes_nothing(inst):
     inst.publish("offline")
     before = inst.state()
-    r = inst.hermes("update", "--yes", edge=None, timeout=300)
+    r = inst.kova("update", "--yes", edge=None, timeout=300)
     assert r.secs < FAST, f"an offline update took {r.secs:.0f}s to give up\n" + r.report(inst)
     S.assert_nothing_changed(inst, before, r, "offline update")
     assert "unavailable" in r.out.lower() or "cannot reach" in r.out.lower(), (
@@ -63,12 +63,12 @@ def test_offline_provisioning_of_a_missing_tool_fails_loudly(inst):
     the download, and leave every other tool alone."""
     with S.tool_missing(inst, "ripgrep") as tool:
         before = inst.state()
-        r = inst.hermes("pm", "install", "ripgrep", edge=None, timeout=300)
+        r = inst.kova("pm", "install", "ripgrep", edge=None, timeout=300)
         assert r.secs < FAST, f"offline provisioning took {r.secs:.0f}s to give up\n" + r.report(inst)
         S.assert_nothing_changed(inst, before, r, "offline `hermes pm install ripgrep`")
         assert "ripgrep" in r.out and "download failed" in r.out, (
             "the failure does not name the tool and the failed download\n" + r.report(inst))
-        assert not (inst.sb.hermes_home / "tools" / tool["entry"]).exists(), (
+        assert not (inst.sb.kova_home / "tools" / tool["entry"]).exists(), (
             "an offline install left a store entry behind\n" + r.report(inst))
 
 
@@ -80,7 +80,7 @@ def test_main_update_reads_no_release_record_and_survives_a_release_host_outage(
     assets = N.static_app({}, always={MAIN_RECORD: N.Response(503, b"down\n", {"Retry-After": "1"})})
     edge = inst.edge(assets=assets)
     try:
-        r = inst.hermes("update", "--yes", edge=edge)
+        r = inst.kova("update", "--yes", edge=edge)
     finally:
         edge.close()
     assert r.rc == 0 and inst.head() == new, "a release-host outage blocked a main update\n" + r.report(inst)
@@ -96,7 +96,7 @@ def test_forge_rate_limit_fails_truthfully(inst):
     git = N.git_app(inst.gitroot, faults=[N.Response(429, b"rate limited\n", {"Retry-After": "1"})] * 50)
     edge = inst.edge(git=git)
     try:
-        r = inst.hermes("update", "--yes", edge=edge, timeout=300)
+        r = inst.kova("update", "--yes", edge=edge, timeout=300)
     finally:
         edge.close()
     assert r.secs < FAST * 2, f"a rate-limited fetch took {r.secs:.0f}s to give up\n" + r.report(inst)
@@ -123,7 +123,7 @@ def test_pm_download_retries_then_refuses_a_digest_mismatch(inst, tool_name):
         before = inst.state()
         edge = inst.edge(assets=N.static_app({"*": bad}), git=extra.pop("github.com", None), extra=extra)
         try:
-            r = inst.hermes("pm", "install", tool_name, edge=edge, timeout=600)
+            r = inst.kova("pm", "install", tool_name, edge=edge, timeout=600)
         finally:
             edge.close()
         served = [h for h in edge.proxy.hits if h.kind == "request" and h.host in ARTIFACT_HOSTS[tool_name]]
@@ -131,6 +131,6 @@ def test_pm_download_retries_then_refuses_a_digest_mismatch(inst, tool_name):
             f"the artifact host was not retried past its 503s: {[str(h) for h in served]}\n" + r.report(inst))
         assert "sha256 mismatch" in r.out or "digest" in r.out.lower(), (
             f"{tool_name}: the failure does not say the download failed verification\n" + r.report(inst))
-        assert not (inst.sb.hermes_home / "tools" / tool["entry"]).exists(), (
+        assert not (inst.sb.kova_home / "tools" / tool["entry"]).exists(), (
             f"{tool_name}: unverified bytes were published to the tool store\n" + r.report(inst))
         S.assert_nothing_changed(inst, before, r, f"`hermes pm install {tool_name}` with a digest mismatch")

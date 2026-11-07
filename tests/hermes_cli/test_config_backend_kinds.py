@@ -1,4 +1,4 @@
-"""``HERMES_CONFIG_BACKEND=<kind>`` resolves to the package ``plugins/config_backends/<kind>/``
+"""``KOVA_CONFIG_BACKEND=<kind>`` resolves to the package ``plugins/config_backends/<kind>/``
 through one entry point (``get_backend()``), and everything core needs from a backend is a protocol
 method (teknium1 P2-1 on #122509). A backend core has never heard of is served end to end: the
 fake package below lives in a temp directory, and nothing in core is patched or edited."""
@@ -59,7 +59,7 @@ def fake_kind(tmp_path, monkeypatch):
     monkeypatch.setattr(plugins.config_backends, "__path__", [*plugins.config_backends.__path__, str(root)])
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv(cb.BACKEND_ENV, raising=False)
     monkeypatch.delenv("FAKE_P21_PLANE", raising=False)
     monkeypatch.setattr(cb, "_BOOTSTRAPPED", False)
@@ -73,7 +73,7 @@ def test_unknown_kind_is_served_through_protocol_methods_only(fake_kind):
     from kova_cli.doctor_report import Finding
 
     home = fake_kind
-    (home / ".env").write_text(f"HERMES_CONFIG_BACKEND={FAKE}\nFAKE_P21_PLANE=https://plane.test\n", encoding="utf-8")
+    (home / ".env").write_text(f"KOVA_CONFIG_BACKEND={FAKE}\nFAKE_P21_PLANE=https://plane.test\n", encoding="utf-8")
     (home / "config.yaml").write_text("a: 1\n", encoding="utf-8")
 
     backend = cb.get_config_backend()

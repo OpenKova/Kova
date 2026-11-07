@@ -14,11 +14,11 @@ import pytest
 
 @pytest.fixture
 def isolated_home(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME + reset any module-level catalog cache per test."""
-    home = tmp_path / ".hermes"
+    """Isolate KOVA_HOME + reset any module-level catalog cache per test."""
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     # Force a fresh catalog module state for each test.
     import importlib
@@ -179,7 +179,7 @@ class TestFetchFailure:
         """A multiplexed gateway serves many profiles: one profile's dead override must not
         suppress another profile's request to the same URL."""
         from kova_cli import model_catalog
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         calls: list[str] = []
         cfg = {"enabled": True, "url": "http://master", "ttl_hours": 24.0,
                "providers": {"openrouter": {"url": "http://override"}}}
@@ -191,18 +191,18 @@ class TestFetchFailure:
         for name in ("alpha", "beta"):
             (tmp_path / name).mkdir()
         with patch.object(model_catalog, "_load_catalog_config", return_value=cfg):
-            token = set_hermes_home_override(str(tmp_path / "alpha"))
+            token = set_kova_home_override(str(tmp_path / "alpha"))
             try:
                 with patch.object(model_catalog, "_fetch_manifest", return_value=None):
                     model_catalog.get_curated_openrouter_models()
             finally:
-                reset_hermes_home_override(token)
-            token = set_hermes_home_override(str(tmp_path / "beta"))
+                reset_kova_home_override(token)
+            token = set_kova_home_override(str(tmp_path / "beta"))
             try:
                 with patch.object(model_catalog, "_fetch_manifest", side_effect=fetch):
                     model_catalog.get_curated_openrouter_models()
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
         assert "http://override" in calls, "profile beta skipped the override after alpha's failure"
 
     def test_dead_override_on_the_manifest_url_keeps_the_fallback_chain(self, isolated_home):
@@ -246,9 +246,9 @@ class TestFallbackChain:
     releases (opus 4.8, etc.) never reach the picker.
     """
 
-    PRIMARY = "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json"
+    PRIMARY = "https://kova-agent.nousresearch.com/docs/api/model-catalog.json"
     FALLBACK = (
-        "https://raw.githubusercontent.com/NousResearch/hermes-agent"
+        "https://raw.githubusercontent.com/NousResearch/kova-agent"
         "/main/website/static/api/model-catalog.json"
     )
 
@@ -453,9 +453,9 @@ class TestIntegrationWithModelsModule:
         # We deliberately do NOT use the ``isolated_home`` fixture here:
         # that fixture monkeypatches ``Path.home`` to ``tmp_path``, which
         # trips the auth-store seat-belt in ``_auth_file_path()`` because
-        # ``HERMES_HOME / auth.json`` then resolves to the same path the
+        # ``KOVA_HOME / auth.json`` then resolves to the same path the
         # seat-belt thinks is the "real" user store. Use the autouse
-        # ``_hermetic_environment`` HERMES_HOME directly instead.
+        # ``_hermetic_environment`` KOVA_HOME directly instead.
         import importlib
         from kova_cli import model_catalog
         from kova_cli.models import get_curated_nous_model_ids
@@ -463,7 +463,7 @@ class TestIntegrationWithModelsModule:
         try:
             from kova_cli.model_switch_providers import list_picker_providers
 
-            active_home = Path(os.environ["HERMES_HOME"])
+            active_home = Path(os.environ["KOVA_HOME"])
             (active_home / "auth.json").write_text(
                 json.dumps(
                     {
@@ -513,7 +513,7 @@ class TestIntegrationWithModelsModule:
             from kova_cli.model_switch import list_authenticated_providers
             from kova_cli.model_switch_providers import list_picker_providers
 
-            active_home = Path(os.environ["HERMES_HOME"])
+            active_home = Path(os.environ["KOVA_HOME"])
             (active_home / "auth.json").write_text(
                 json.dumps(
                     {
@@ -576,7 +576,7 @@ class TestIntegrationWithModelsModule:
 
 
 class TestSwrRefreshProfileScope:
-    """Two profile homes — A (process default) and B (routed via the HERMES_HOME ContextVar, as
+    """Two profile homes — A (process default) and B (routed via the KOVA_HOME ContextVar, as
     tui_gateway ``_profile_scoped`` does). The off-thread stale-while-revalidate refresh spawned
     under B must write B's cache file, and A's in-flight refresh must not suppress B's."""
 
@@ -599,7 +599,7 @@ class TestSwrRefreshProfileScope:
     def test_refresh_under_profile_override_writes_that_profiles_cache(self, isolated_home, tmp_path):
         from agent.secret_scope import set_multiplex_active
         from kova_cli import model_catalog
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         old = _valid_manifest()
         fresh = {**_valid_manifest(), "updated_at": "2026-05-01T00:00:00Z"}
@@ -616,11 +616,11 @@ class TestSwrRefreshProfileScope:
         try:
             with patch.object(model_catalog, "_load_catalog_config", return_value=self._CFG), \
                  patch.object(model_catalog, "_fetch_manifest_with_fallback", fetch):
-                token = set_hermes_home_override(path_b.parent.parent)
+                token = set_kova_home_override(path_b.parent.parent)
                 try:
                     assert model_catalog.get_catalog() == old  # stale copy served without blocking
                 finally:
-                    reset_hermes_home_override(token)  # the handler returns before the fetch completes
+                    reset_kova_home_override(token)  # the handler returns before the fetch completes
                 release.set()
                 self._join_swr_threads()
         finally:
@@ -632,7 +632,7 @@ class TestSwrRefreshProfileScope:
     def test_inflight_refresh_for_one_profile_does_not_suppress_another(self, isolated_home, tmp_path):
         from agent.secret_scope import set_multiplex_active
         from kova_cli import model_catalog
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         old = _valid_manifest()
         path_a = self._seed_expired(isolated_home, old)
@@ -651,11 +651,11 @@ class TestSwrRefreshProfileScope:
             with patch.object(model_catalog, "_load_catalog_config", return_value=self._CFG), \
                  patch.object(model_catalog, "_fetch_manifest_with_fallback", fetch):
                 model_catalog.get_catalog()  # A's refresh is now in flight (blocked on `release`)
-                token = set_hermes_home_override(path_b.parent.parent)
+                token = set_kova_home_override(path_b.parent.parent)
                 try:
                     model_catalog.get_catalog()  # B must get its own refresh
                 finally:
-                    reset_hermes_home_override(token)
+                    reset_kova_home_override(token)
                 release.set()
                 self._join_swr_threads()
         finally:

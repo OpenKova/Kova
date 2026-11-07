@@ -13,19 +13,19 @@ from typing import Any, Dict, List, Optional, Union
 
 import copy
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 logger = logging.getLogger(__name__)
 
 # Heartbeat cadence keeping the caller's inactivity watchdog at bay while a manual
-# `cronjob(action="run")` executes in-process (comfortably below HERMES_AGENT_TIMEOUT).
+# `cronjob(action="run")` executes in-process (comfortably below KOVA_AGENT_TIMEOUT).
 # Mirrors the 10s cadence of tools/environments/base.py::touch_activity_if_due (delegate_task's heartbeat
-# uses 30s) — comfortably below the 1800s default HERMES_AGENT_TIMEOUT. See #76502.
+# uses 30s) — comfortably below the 1800s default KOVA_AGENT_TIMEOUT. See #76502.
 _CRON_RUN_HEARTBEAT_INTERVAL = 10.0
-# Hard ceiling: with HERMES_CRON_TIMEOUT=0 a truly hung run would otherwise mask the
+# Hard ceiling: with KOVA_CRON_TIMEOUT=0 a truly hung run would otherwise mask the
 # gateway watchdog forever; past this the heartbeat stops and the watchdog regains authority.
-# The child cron run has its own inactivity watchdog (HERMES_CRON_TIMEOUT, default 600s) that bounds a
-# wedged job, but with HERMES_CRON_TIMEOUT=0 (explicit "unlimited") a truly hung run_one_job would otherwise
+# The child cron run has its own inactivity watchdog (KOVA_CRON_TIMEOUT, default 600s) that bounds a
+# wedged job, but with KOVA_CRON_TIMEOUT=0 (explicit "unlimited") a truly hung run_one_job would otherwise
 # mask the gateway watchdog forever — pre-#76502 the parent was at least reaped at ~1800s.
 _CRON_RUN_HEARTBEAT_CEILING = 6 * 3600.0
 
@@ -359,13 +359,13 @@ def _run_claimed_job(job: dict[str, Any], extra_prompt: Optional[str] = None) ->
         runner = runner_ref() if callable(runner_ref) else None
         adapters = getattr(runner, "adapters", None) if runner is not None else None
         # ``runner.adapters`` is the LAUNCH profile's map; under multiplex the run executes with
-        # HERMES_HOME bound to the owning profile, so resolve that profile's adapters the way the
+        # KOVA_HOME bound to the owning profile, so resolve that profile's adapters the way the
         # ticker (``tick_adapters_for``) does — fail closed, never the default bot (#124248). A
         # resolution error propagates to the ``except`` below and marks the run failed.
         if runner is not None and hasattr(runner, "_adapters_for_profile"):
-            from kova_constants import get_hermes_home, profile_name_for_home
+            from kova_constants import get_kova_home, profile_name_for_home
 
-            profile = profile_name_for_home(get_hermes_home())
+            profile = profile_name_for_home(get_kova_home())
             adapters = runner._adapters_for_profile(profile)
             # A credentialless shared-bot satellite borrows the primary's bot for ROUTED targets
             # only — the same grant the ticker's ``tick_adapters_for`` makes, never the full map.
@@ -510,11 +510,11 @@ def _run_session_usage(job_id: str, execution_id: Optional[str]) -> dict[str, An
         return {}
     import sqlite3
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
     # A missing or locked state.db costs the notice its usage line, never the completion.
     try:
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        db = SessionDB(db_path=get_kova_home() / "state.db", read_only=True)
     except (sqlite3.Error, OSError):
         return {}
     try:
@@ -608,7 +608,7 @@ def _try_dispatch_background_run(
     origin_ui_session_id = ""
     try:
         from gateway.session_context import get_session_env
-        origin_ui_session_id = get_session_env("HERMES_UI_SESSION_ID", "") or ""
+        origin_ui_session_id = get_session_env("KOVA_UI_SESSION_ID", "") or ""
     except Exception:
         pass
 
@@ -1114,7 +1114,7 @@ def _cronjob_schema_overrides() -> dict:
     static schema is built once per process, but the multiplexed gateway serves every profile from
     that process, so a path baked in at import would name the launch profile's home (#95685)."""
     params = copy.deepcopy(CRONJOB_SCHEMA["parameters"])
-    params["properties"]["script"]["description"] = _script_description(display_hermes_home())
+    params["properties"]["script"]["description"] = _script_description(display_kova_home())
     return {"parameters": params}
 
 
@@ -1176,7 +1176,7 @@ Jobs run in a fresh session with no current-chat context, so prompts must be sel
             },
             "script": {
                 "type": "string",
-                "description": _script_description("the profile HERMES_HOME")
+                "description": _script_description("the profile KOVA_HOME")
             },
             "monitor": {
                 "type": "string",
@@ -1227,10 +1227,10 @@ def check_cronjob_requirements() -> bool:
     from gateway.session_context import get_session_env
     from utils import env_var_enabled, is_truthy_value
     return (
-        env_var_enabled("HERMES_INTERACTIVE")
-        or env_var_enabled("HERMES_GATEWAY_SESSION")
-        or env_var_enabled("HERMES_EXEC_ASK")
-        or is_truthy_value(get_session_env("HERMES_CRON_SESSION", ""))
+        env_var_enabled("KOVA_INTERACTIVE")
+        or env_var_enabled("KOVA_GATEWAY_SESSION")
+        or env_var_enabled("KOVA_EXEC_ASK")
+        or is_truthy_value(get_session_env("KOVA_CRON_SESSION", ""))
     )
 
 

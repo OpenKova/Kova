@@ -20,8 +20,8 @@ def _cmd_memory_off():
 
 
 def _cmd_memory_reset(args):
-    from kova_constants import get_hermes_home, display_hermes_home
-    mem_dir = get_hermes_home() / "memories"
+    from kova_constants import get_kova_home, display_kova_home
+    mem_dir = get_kova_home() / "memories"
     target = getattr(args, "target", "all")
     files_to_reset = []
     if target in {"all", "memory"}:
@@ -31,7 +31,7 @@ def _cmd_memory_reset(args):
 
     existing = [(f, desc) for f, desc in files_to_reset if (mem_dir / f).exists()]
     if not existing:
-        print(f"\n  Nothing to reset — no memory files found in {display_hermes_home()}/memories/\n")
+        print(f"\n  Nothing to reset — no memory files found in {display_kova_home()}/memories/\n")
         return
 
     print("\n  This will permanently erase the following memory files:")
@@ -54,7 +54,7 @@ def _cmd_memory_reset(args):
         print(f"  ✓ Deleted {f} ({desc})")
 
     print("\n  Memory reset complete. New sessions will start with a blank slate.")
-    print(f"  Files were in: {display_hermes_home()}/memories/\n")
+    print(f"  Files were in: {display_kova_home()}/memories/\n")
 
 
 def cmd_memory(args):
@@ -78,16 +78,16 @@ _ACP_FLAGS = (
 
 
 def cmd_acp(args):
-    """Launch Hermes Agent as an ACP server."""
+    """Launch Kova Agent as an ACP server."""
     import os
     # The gateway-backed ACP server forwards launch flags from their documented env equivalents
     # (main() already exported --yolo / --safe-mode / --ignore-user-config).
-    for attr, name in (("accept_hooks", "HERMES_ACCEPT_HOOKS"), ("ignore_rules", "HERMES_IGNORE_RULES")):
+    for attr, name in (("accept_hooks", "KOVA_ACCEPT_HOOKS"), ("ignore_rules", "KOVA_IGNORE_RULES")):
         if getattr(args, attr, False):
             os.environ[name] = "1"
     # -m / --provider: the route a --safe-mode / --ignore-user-config session freezes (it reads no
     # profile default), carried like the TUI launcher's.
-    for attr, name in (("model", "HERMES_MODEL"), ("provider", "HERMES_INFERENCE_PROVIDER")):
+    for attr, name in (("model", "KOVA_MODEL"), ("provider", "KOVA_INFERENCE_PROVIDER")):
         if getattr(args, attr, None):
             os.environ[name] = getattr(args, attr)
     try:
@@ -95,9 +95,9 @@ def cmd_acp(args):
         acp_main([flag for attr, flag in _ACP_FLAGS if getattr(args, attr, False)])
     except ImportError as e:
         print("The ACP server can't start: its protocol packages are missing from this install.", file=sys.stderr)
-        print("From the Hermes environment, run: "
+        print("From the Kova environment, run: "
               f"{install_hint('acp')}", file=sys.stderr)
-        print("Then restart Hermes.", file=sys.stderr)
+        print("Then restart Kova.", file=sys.stderr)
         print(f"Details: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -122,8 +122,8 @@ def cmd_insights(args):
     try:
         from kova_state import SessionDB
         from agent.insights import InsightsEngine
-        from kova_cli.config import get_hermes_home
-        path = get_hermes_home() / "state.db"
+        from kova_cli.config import get_kova_home
+        path = get_kova_home() / "state.db"
         if not path.exists():
             from agent.i18n import t
             print(f"  {t('cli.insights.no_session_data')}")
@@ -176,7 +176,7 @@ def cmd_monitoring(args):
         else:
             print("  OTLP endpoint:  not configured (monitoring.export.otlp)")
         print(f"  OTel SDK:       {'installed' if otlp_exporter.is_available() else 'not installed'} "
-              f"(optional extra: hermes-agent[otlp])")
+              f"(optional extra: kova-agent[otlp])")
         print("\n  Scope: gateway service health + redacted diagnostics only.")
         print("  No prompts, messages, tool args/results, usage analytics, or traces.")
         return

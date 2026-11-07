@@ -6,7 +6,7 @@ parks every ``fetch`` while a hold file exists and logs which home reached it, s
 past the lock" is observed directly: the fetch is the first step after the lock.
 
 Cells (contract C1 + C1.7):
-(a) two updates of ONE checkout from two different HERMES_HOMEs: the second must exit 2.
+(a) two updates of ONE checkout from two different KOVA_HOMEs: the second must exit 2.
 (b) a live owner whose v2 marker is 25 minutes old (matching creation time): refused, not aged out.
 (c) a v2 marker whose pid was reused (creation time mismatch): reclaimed, the update proceeds.
 (d) the update owner is SIGKILLed while a process of its tree still holds the checkout lock:
@@ -33,7 +33,7 @@ pytestmark = [
     pytest.mark.skipif(H.sandbox_required_reason() is not None, reason=str(H.sandbox_required_reason())),
 ]
 
-REFUSAL = "Another Hermes update is already running"
+REFUSAL = "Another Kova update is already running"
 
 # Runs inside the sandbox (its own pid namespace), so owners, updates and completion children
 # see each other's pids and creation times exactly as on a real machine.
@@ -82,7 +82,7 @@ def completion_child(home):
             env = (p / "environ").read_bytes()
         except OSError:
             continue
-        if b"update_completion.py" in cmd and f"HERMES_HOME={home}".encode() in env.split(b"\0"):
+        if b"update_completion.py" in cmd and f"KOVA_HOME={home}".encode() in env.split(b"\0"):
             return int(p.name)
     return None
 
@@ -92,7 +92,7 @@ if mode == "owner":
     age, offset = float(sys.argv[4]), float(sys.argv[5])
     owner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"])
     time.sleep(0.2)
-    marker = Path(envs["home-a"]["HERMES_HOME"]) / ".hermes-update-in-progress"
+    marker = Path(envs["home-a"]["KOVA_HOME"]) / ".kova-update-in-progress"
     marker.parent.mkdir(parents=True, exist_ok=True)
     body = f"{owner.pid}\n{int(time.time() - age)}\nct:{ct(owner.pid) + offset:.3f}\n"
     marker.write_text(body, encoding="utf-8")
@@ -105,7 +105,7 @@ elif mode in ("kill-mid-completion", "orphan-reader"):
     child = None
     deadline = time.time() + 240
     while child is None and time.time() < deadline and first.poll() is None:
-        child = completion_child(envs["home-a"]["HERMES_HOME"])
+        child = completion_child(envs["home-a"]["KOVA_HOME"])
         time.sleep(0.05)
     result["child_seen"] = child is not None
     try:
@@ -120,7 +120,7 @@ elif mode in ("kill-mid-completion", "orphan-reader"):
             result["rc"], result["out"] = update("home-b")
         else:
             # The killed owner's marker is gone (any reader compare-and-deletes a dead claim).
-            (Path(envs["home-a"]["HERMES_HOME"]) / ".hermes-update-in-progress").unlink(missing_ok=True)
+            (Path(envs["home-a"]["KOVA_HOME"]) / ".kova-update-in-progress").unlink(missing_ok=True)
             reader = subprocess.run([sys.executable, "-c", READER, checkout], env=envs["home-b"], cwd=checkout,
                                     stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120)
             result["reader_out"] = reader.stdout[-2000:] + reader.stderr[-2000:]
@@ -150,7 +150,7 @@ class Rig:
         (wrap / "git").write_text(
             "#!/usr/bin/env bash\n"
             'for a in "$@"; do if [ "$a" = fetch ]; then\n'
-            f'  echo "fetch $HERMES_HOME" >> "{self.fetch_log}"\n'
+            f'  echo "fetch $KOVA_HOME" >> "{self.fetch_log}"\n'
             f'  for _ in $(seq 600); do [ -e "{self.hold}" ] || break; sleep 0.2; done\n'
             "fi; done\n"
             f'exec "{real_git}" "$@"\n', encoding="utf-8")
@@ -184,7 +184,7 @@ class Rig:
         return self.fetch_log.read_text(encoding="utf-8-sig").splitlines() if self.fetch_log.exists() else []
 
     def marker(self, name: str) -> Path:
-        return Path(self.env(name)["HERMES_HOME"]) / ".hermes-update-in-progress"
+        return Path(self.env(name)["KOVA_HOME"]) / ".kova-update-in-progress"
 
 
 def _finish(proc: subprocess.Popen, timeout: float = 120) -> tuple[int, str]:
@@ -203,7 +203,7 @@ def rig(tmp_path):
 
 
 def test_two_homes_cannot_update_one_checkout_at_once(rig):
-    """(a) The checkout lock is keyed on the install root, not on HERMES_HOME (cli V3)."""
+    """(a) The checkout lock is keyed on the install root, not on KOVA_HOME (cli V3)."""
     rig.hold.touch()
     first = rig.update("home-a")
     try:

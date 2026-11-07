@@ -14,7 +14,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from kova_cli._subprocess_compat import windows_detach_flags, windows_detach_flags_without_breakaway
-from kova_cli.config import get_hermes_home
+from kova_cli.config import get_kova_home
 
 # Same logger the code used before extraction (record parity).
 _log = logging.getLogger("kova_cli.web_server")
@@ -290,9 +290,9 @@ def _display_system_platform(*, system: str, release: str, version: str, platfor
 
 # Gateway + update actions (invoked from the Status page). Spawned detached so the request
 # returns immediately; stdin is DEVNULL so stray input() fails fast; stdout/stderr stream to
-# ~/.hermes/logs/<action>.log which the dashboard tails.
+# ~/.kova/logs/<action>.log which the dashboard tails.
 
-_ACTION_LOG_DIR: Path = get_hermes_home() / "logs"
+_ACTION_LOG_DIR: Path = get_kova_home() / "logs"
 
 # Short ``name`` (from the URL) → log file name under _ACTION_LOG_DIR.
 _ACTION_LOG_FILES: dict[str, str] = {
@@ -373,9 +373,9 @@ def _profile_action_environment(
     does not override keys already present): a supposedly A2A-only profile then claims the default
     Discord token and binds the default API/BlueBubbles ports.
 
-    Named-profile actions therefore start from Hermes' standard scrubbed subprocess env, then drop
+    Named-profile actions therefore start from Kova' standard scrubbed subprocess env, then drop
     the profile-managed keys plus every key declared by the dashboard/default profile dotenv files
-    and their hydrated secret sources, and pin ``HERMES_HOME`` to the target profile. The child's
+    and their hydrated secret sources, and pin ``KOVA_HOME`` to the target profile. The child's
     normal startup then loads that profile's own ``.env``. A host-gateway verb (bare ``gateway``
     or ``-p default gateway``) starts from ``host_gateway_child_env`` so a named-profile dashboard
     cannot donate its dotenv to the multiplexer. Other actions without a profile selector keep
@@ -392,7 +392,7 @@ def _profile_action_environment(
             _PROFILE_MANAGED_ENV_KEYS, _env_keys_defined_in_dotenv, get_secret_source_values,
         )
         from kova_cli.web_server_profiles import _resolve_profile_dir
-        from kova_constants import apply_subprocess_home_env, get_default_hermes_root
+        from kova_constants import apply_subprocess_home_env, get_default_kova_root
         from tools.environments.local import build_subprocess_env, strip_launch_profile_env
 
         target_home = _resolve_profile_dir(profile)
@@ -400,7 +400,7 @@ def _profile_action_environment(
 
         profile_keys = set(_PROFILE_MANAGED_ENV_KEYS)
         try:
-            source_homes = {str(get_default_hermes_root()), str(get_hermes_home())}
+            source_homes = {str(get_default_kova_root()), str(get_kova_home())}
         except Exception:
             source_homes = set()
         for source_home in source_homes:
@@ -417,18 +417,18 @@ def _profile_action_environment(
 
         # Pin the child before import-time startup runs; the explicit -p flag stays authoritative
         # and resolves to the same validated directory.
-        action_env["HERMES_HOME"] = str(target_home)
+        action_env["KOVA_HOME"] = str(target_home)
         apply_subprocess_home_env(action_env)
 
-    action_env["HERMES_NONINTERACTIVE"] = "1"
+    action_env["KOVA_NONINTERACTIVE"] = "1"
     # A config.yaml allow_all_users grant bridged into os.environ must not outlive the config that
     # produced it: drop it so the restarted child re-derives the posture from its own config.yaml.
     from gateway.config_loader import drop_bridged_env
     drop_bridged_env(action_env)
-    # The dashboard runs inside the gateway process, so os.environ carries _HERMES_GATEWAY=1;
+    # The dashboard runs inside the gateway process, so os.environ carries _KOVA_GATEWAY=1;
     # inheriting it trips the child's in-process restart-loop guard (exit 1). Drop it, like
     # the gateway's own restart watcher does (gateway/run.py, #52470).
-    action_env.pop("_HERMES_GATEWAY", None)
+    action_env.pop("_KOVA_GATEWAY", None)
     if env_overrides:
         action_env.update(env_overrides)
     return action_env
@@ -459,20 +459,20 @@ def _action_targets_system_gateway(subcommand: list[str]) -> bool:
         return False
 
     from kova_cli.gateway import _select_systemd_scope
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     profile = _named_profile_from_action(subcommand)
     if profile is None:
         return _select_systemd_scope(False)
-    # Unit names are derived from HERMES_HOME, so a selector-bearing action must be resolved
+    # Unit names are derived from KOVA_HOME, so a selector-bearing action must be resolved
     # against the TARGET profile's home (``-p default gateway restart`` from a pooled named
     # dashboard asks about the default unit, not about its own).
     from kova_cli.web_server_profiles import _resolve_profile_dir
-    token = set_hermes_home_override(_resolve_profile_dir(profile))
+    token = set_kova_home_override(_resolve_profile_dir(profile))
     try:
         return _select_systemd_scope(False)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _spawn_hermes_action(
@@ -485,7 +485,7 @@ def _spawn_hermes_action(
     section_start = os.fstat(log_file.fileno()).st_size
     # The header carries the action id durably: the update's completion marker lands in the ROOT
     # update.log every profile shares, and only this id ties one to the action THIS log started.
-    action_id = (env_overrides or {}).get("HERMES_ACTION_ID")
+    action_id = (env_overrides or {}).get("KOVA_ACTION_ID")
     stamp = time.strftime('%Y-%m-%d %H:%M:%S') + (f" {action_id}" if action_id else "")
     log_file.write(f"\n=== {name} started {stamp} ===\n".encode())
     if action_id:
@@ -500,7 +500,7 @@ def _spawn_hermes_action(
         # A system-scope lifecycle verb spawned as the dashboard's own user can only ever write
         # "System gateway <verb> requires root" into this log, so the button never worked on a
         # system install (#110820). Elevate — the CLI is sudo-aware: it adopts the unit's
-        # HERMES_HOME past sudo's env_reset and reads SUDO_USER for the service identity.
+        # KOVA_HOME past sudo's env_reset and reads SUDO_USER for the service identity.
         # ``-n`` never prompts (stdin is DEVNULL anyway); without a passwordless path the
         # REQUEST fails instead of reporting a started action whose child refuses. Same
         # two-step gate as the ``hermes update`` fleet restart: a refused blanket probe falls
@@ -518,7 +518,7 @@ def _spawn_hermes_action(
             raise RuntimeError(message)
         cmd = ["sudo", "-n", *cmd]
     # Named-profile actions get a scrubbed, pinned environment so the child cannot inherit the
-    # dashboard profile's credentials; see _profile_action_environment (also drops _HERMES_GATEWAY).
+    # dashboard profile's credentials; see _profile_action_environment (also drops _KOVA_GATEWAY).
     action_env = _profile_action_environment(subcommand, env_overrides)
 
     def _popen(**detach: Any) -> subprocess.Popen:
@@ -573,8 +573,8 @@ def _own_profile_selector(profile: Optional[str]) -> Optional[str]:
     requested = (profile or "").strip()
     if requested:
         return requested
-    from kova_constants import get_process_hermes_home, profile_name_for_home
-    return profile_name_for_home(get_process_hermes_home()) or None
+    from kova_constants import get_process_kova_home, profile_name_for_home
+    return profile_name_for_home(get_process_kova_home()) or None
 
 
 def _gateway_subcommand(profile: Optional[str], verb: str) -> list[str]:
@@ -583,7 +583,7 @@ def _gateway_subcommand(profile: Optional[str], verb: str) -> list[str]:
     that actually serves X — a ``-p X gateway restart`` child only exits 78 into the action log while the
     UI reports "restarted"); ``start``/``stop`` are refused by the caller (``multiplexed_profile_refusal``).
     The multiplexer is addressed as ``-p default`` explicitly: a bare ``gateway restart`` spawned from a
-    pooled ``--profile X serve`` would inherit X's ``HERMES_HOME`` and hit the same exit-78 refusal. The
+    pooled ``--profile X serve`` would inherit X's ``KOVA_HOME`` and hit the same exit-78 refusal. The
     selector is explicit for the default home too: a bare child re-reads the sticky ``active_profile``
     and would restart another profile's gateway."""
     from kova_cli.web_server_profiles import _profile_cli_args

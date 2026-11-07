@@ -600,7 +600,7 @@ def test_concurrent_refresh_rotates_token_once_and_keeps_login(tmp_path, monkeyp
     """
     from kova_cli.auth import build_minimax_oauth_token_provider
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _minimax_state(tmp_path, expires_in=30, refresh_token="r1")
     portal = _RotatingPortal().start()
     try:
@@ -665,7 +665,7 @@ def test_aux_refresh_preserves_active_provider(tmp_path, monkeypatch):
     rule ``_save_provider_state_to_source`` already documents)."""
     from kova_cli.auth import build_minimax_oauth_token_provider, get_active_provider
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _minimax_state(tmp_path, expires_in=30, refresh_token="r1")
     portal = _RotatingPortal().start()
     try:
@@ -691,7 +691,7 @@ def test_minimax_oauth_login_sets_active_provider(tmp_path, monkeypatch):
     minimax-oauth the active provider (the user just chose it)."""
     from kova_cli import auth_minimax
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     store = {"version": 1, "active_provider": "", "providers": {}}
     (tmp_path / "auth.json").write_text(json.dumps(store), encoding="utf-8")
 

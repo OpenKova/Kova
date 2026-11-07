@@ -16,11 +16,11 @@ FACTS = Facts(os="macos", arch="arm64", machine_kind="Mac", plugins=())
 
 @pytest.fixture
 def db(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     db = server._get_db()
     db.create_session("onb", "desktop")
@@ -36,7 +36,7 @@ def ended(monkeypatch) -> list[dict]:
 
 
 def _flag(db) -> bool:
-    return read_user_config_raw(Path(server._hermes_home) / "config.yaml")["onboarding"]["run"]
+    return read_user_config_raw(Path(server._kova_home) / "config.yaml")["onboarding"]["run"]
 
 
 def test_a_refused_delete_leaves_the_run_going(db, ended):

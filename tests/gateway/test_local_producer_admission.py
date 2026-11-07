@@ -34,7 +34,7 @@ class _Gateway:
 
     def __init__(self, tmp_path, monkeypatch):
         from pathlib import Path
-        self.tmp_path, root = tmp_path, tmp_path / '.hermes'
+        self.tmp_path, root = tmp_path, tmp_path / '.kova'
         self.homes = (('default', root), ('beta', root / 'profiles' / 'beta'))
         for name, home in self.homes:
             home.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -42,7 +42,7 @@ class _Gateway:
                 'default': f'{name}-model', 'provider': 'custom', 'base_url': 'http://127.0.0.1:9/v1',
                 'api_key': 'loopback-only'}}))
         monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-        monkeypatch.setenv('HERMES_HOME', str(root))
+        monkeypatch.setenv('KOVA_HOME', str(root))
         import kova_state
         monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
         self.turns, self.gate = [], None
@@ -218,7 +218,7 @@ async def messaging(tmp_path, monkeypatch):
     from gateway.session_ingress_context import native_callback, register_transport_home
     from kova_state import SessionDB
     from plugins.platforms.discord.adapter import DiscordAdapter
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setenv('DISCORD_ALLOWED_USERS', '42')
     monkeypatch.setattr(SessionAuthority, '_schedule', lambda self, ref: None)
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / 'sessions'))

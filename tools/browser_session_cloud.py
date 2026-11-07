@@ -1,8 +1,8 @@
 """``browser.*`` config knobs and cloud browser provider resolution (explicit ``browser.cloud_provider``,
 auto-detect, per-profile cache).
 
-Every config read is profile-scoped: under a routed profile (multiplexed gateway, HERMES_HOME override)
-the cached slots are bypassed or keyed by ``hermes_home_key()``, so one profile's engine / headed /
+Every config read is profile-scoped: under a routed profile (multiplexed gateway, KOVA_HOME override)
+the cached slots are bypassed or keyed by ``kova_home_key()``, so one profile's engine / headed /
 private-URL policy never reaches another.
 """
 
@@ -13,7 +13,7 @@ import threading
 from typing import Any, Callable, Optional
 
 from agent.browser_provider import BrowserProvider
-from kova_constants import get_hermes_home_override, hermes_home_key
+from kova_constants import get_kova_home_override, kova_home_key
 from tools.tool_backend_helpers import normalize_browser_cloud_provider
 from utils import is_truthy_value
 
@@ -53,9 +53,9 @@ def browser_cfg(key: str, default, parse: Callable[[Any], Any] = lambda v: v):
 
 def _memo(name: str, compute: Callable[[], Any]):
     """Process cache, one slot per profile home; a routed profile always recomputes."""
-    if get_hermes_home_override() is not None:
+    if get_kova_home_override() is not None:
         return compute()
-    home = hermes_home_key()
+    home = kova_home_key()
     with _memo_lock:
         slot = _memo_slots.setdefault(name, {})
         if home in slot:
@@ -111,7 +111,7 @@ def executable_path() -> str:
 
 def user_data_dir() -> str:
     """``browser.user_data_dir``: a persistent profile every session shares ("" = fresh per session).
-    ``~`` expands; a relative path is anchored at this profile's HERMES_HOME."""
+    ``~`` expands; a relative path is anchored at this profile's KOVA_HOME."""
     import os
     raw = browser_cfg("user_data_dir", "", lambda v: str(v or "").strip())
     if not raw:
@@ -119,8 +119,8 @@ def user_data_dir() -> str:
     raw = os.path.expanduser(raw)
     if os.path.isabs(raw):
         return raw
-    from kova_constants import get_hermes_home
-    return str(get_hermes_home() / raw)
+    from kova_constants import get_kova_home
+    return str(get_kova_home() / raw)
 
 
 def get_browser_engine() -> str:
@@ -237,7 +237,7 @@ def _resolve_provider_uncached() -> tuple[Optional[BrowserProvider], bool]:
 
 def get_cloud_provider() -> Optional[BrowserProvider]:
     """The cloud provider for the active profile, or None for local browsing."""
-    scope = hermes_home_key()
+    scope = kova_home_key()
     with _provider_lock:
         while True:
             before = _registry_generation(scope)

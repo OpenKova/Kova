@@ -56,9 +56,9 @@ class TestOsc52MultiplexerWrapping:
     def _capture_seq(self, env):
         import io
         from unittest.mock import patch as _patch
-        from cli import HermesCLI
+        from cli import KovaCLI
 
-        cli_obj = HermesCLI.__new__(HermesCLI)
+        cli_obj = KovaCLI.__new__(KovaCLI)
         cli_obj._app = None
         buf = io.StringIO()
         with _patch.dict(clip.os.environ, env, clear=False), \

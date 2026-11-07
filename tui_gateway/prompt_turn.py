@@ -207,7 +207,7 @@ class _TurnScopes:
 
     approval: Any = None
     session_tokens: list = dataclasses.field(default_factory=list)
-    home: Any = None  # per-turn HERMES_HOME override for a resumed remote profile
+    home: Any = None  # per-turn KOVA_HOME override for a resumed remote profile
     secret: Any = None
     terminal: Any = None
 
@@ -642,11 +642,11 @@ def _stage_first_contact_onboarding_note(session: dict, agent, history_empty: bo
     try:
         from agent.onboarding import first_contact_turn_note
         from kova_cli.config import load_config as _load_onboarding_config
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         note = first_contact_turn_note(
             _load_onboarding_config() or {},
-            get_hermes_home() / "config.yaml",
+            get_kova_home() / "config.yaml",
             session_history_empty=history_empty,
             install_has_prior_sessions=_install_has_prior_sessions(session),
             onboarding_run_active="setup_beat" in (getattr(agent, "valid_tool_names", None) or ()),
@@ -1081,7 +1081,7 @@ def _release_turn_scopes(sid: str, session: dict, st: _TurnRun) -> None:
 
 def _post_turn_housekeeping(sid: str, session: dict, st: _TurnRun) -> None:
     """Best-effort tail AFTER the turn settled: a slow trim must not hold the bookend (#131740)."""
-    try:  # while the profile HERMES_HOME override is still active (session's own config)
+    try:  # while the profile KOVA_HOME override is still active (session's own config)
         from kova_cli.mem_trim import trim_memory
         # Every OTHER session must be idle (#58576).
         if _sessions_quiescent(exclude=sid):
@@ -1089,7 +1089,7 @@ def _post_turn_housekeeping(sid: str, session: dict, st: _TurnRun) -> None:
     except Exception:
         logger.debug("post-turn memory trim failed", exc_info=True)
     if st.scopes.home is not None:
-        reset_hermes_home_override(st.scopes.home)
+        reset_kova_home_override(st.scopes.home)
 
 
 # Bounded so a contended state.db cannot hold ``_sessions_lock``; a skipped heal is retried on the next prompt.
@@ -1213,7 +1213,7 @@ def _run_prompt_submit(
             _recover_turn_exception(sid, session, st, e)
         finally:
             _release_turn_scopes(sid, session, st)
-            try:  # a raising settle step must not skip the trim / HERMES_HOME reset
+            try:  # a raising settle step must not skip the trim / KOVA_HOME reset
                 _current_runtime_session_record.reset(runtime_session_token)
                 reset_transport(transport_token)
                 # A stale interim closure must not fire during a later turn.

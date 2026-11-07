@@ -1,4 +1,4 @@
-"""Dashboard Hermes Console websocket tests."""
+"""Dashboard Kova Console websocket tests."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from kova_cli import web_server
 
 
 @pytest.fixture
-def console_client(monkeypatch, _isolate_hermes_home):
+def console_client(monkeypatch, _isolate_kova_home):
     previous_auth_required = getattr(web_server.app.state, "auth_required", None)
     previous_bound_host = getattr(web_server.app.state, "bound_host", None)
     web_server.app.state.auth_required = False
@@ -71,13 +71,13 @@ def test_console_ws_rejects_missing_or_bad_token(console_client):
 
 
 def test_console_ws_cancel_returns_to_prompt(console_client, monkeypatch):
-    from kova_cli.console_engine import ConsoleResult, HermesConsoleEngine
+    from kova_cli.console_engine import ConsoleResult, KovaConsoleEngine
 
     def slow_execute(self, line: str, *, confirmed: bool = False):
         time.sleep(0.2)
         return ConsoleResult("ok", output="late", command=line)
 
-    monkeypatch.setattr(HermesConsoleEngine, "execute", slow_execute)
+    monkeypatch.setattr(KovaConsoleEngine, "execute", slow_execute)
 
     with console_client.websocket_connect(_url()) as conn:
         assert conn.receive_json()["type"] == "ready"
@@ -145,12 +145,12 @@ def test_console_cancel_stops_forked_agent_request_before_reporting(console_clie
 
     from agent import curator
     from kova_cli.web_routers import chat_ws
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools import skill_usage
 
     # The LLM pass only forks when an agent-created skill is a candidate: bundled
     # built-ins are excluded from the review list, so the temp home needs one.
-    skill_dir = get_hermes_home() / "skills" / "console-cancel-probe"
+    skill_dir = get_kova_home() / "skills" / "console-cancel-probe"
     skill_dir.mkdir(parents=True, exist_ok=True)
     (skill_dir / "SKILL.md").write_text("---\nname: console-cancel-probe\ndescription: x\n---\n", encoding="utf-8")
     skill_usage.record_created("console-cancel-probe", agent_created=True)

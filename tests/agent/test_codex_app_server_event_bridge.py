@@ -1,4 +1,4 @@
-"""Regression tests for the codex_app_server → Hermes UI event bridge.
+"""Regression tests for the codex_app_server → Kova UI event bridge.
 
 Pin the translation of codex JSON-RPC notifications into agent callbacks
 (`tool_progress_callback`, `_fire_stream_delta`, `_fire_reasoning_delta`,
@@ -55,10 +55,10 @@ class TestCodexItemToToolName:
         ) == "web_search"
 
     def test_hermes_tools_mcp_server_emits_bare_tool_name(self):
-        """The hermes-tools MCP server wraps Hermes' own tools for codex;
+        """The hermes-tools MCP server wraps Kova' own tools for codex;
         the inner dispatch subprocess can't fire native progress events,
         so the codex-level event IS the display event — shown without the
-        mcp.hermes-tools.* namespacing (from #26541 by @simpolism)."""
+        mcp.kova-tools.* namespacing (from #26541 by @simpolism)."""
         assert _codex_item_to_tool_name(
             {"type": "mcpToolCall", "server": "hermes-tools", "tool": "web_search"}
         ) == "web_search"

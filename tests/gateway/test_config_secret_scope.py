@@ -27,11 +27,11 @@ _LATER_FIELDS = ('kanban_json', 'safe_mode', 'ignore_user_config', 'skills_promp
 
 def _home(monkeypatch):
     from gateway import run
-    from kova_constants import get_hermes_home
-    home = get_hermes_home()
+    from kova_constants import get_kova_home
+    home = get_kova_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / 'config.yaml').write_text(CONFIG)
-    monkeypatch.setattr(run, '_hermes_home', home)
+    monkeypatch.setattr(run, '_kova_home', home)
     return home
 
 
@@ -157,7 +157,7 @@ def _bound_policy(tmp_path, monkeypatch):
     from gateway.session_policy import bind_launch_key, build_policy
     home = tmp_path / 'profile'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     cfg = {'model': {'provider': 'custom', 'api_key': 'route-token', 'base_url': 'http://127.0.0.1:1234/v1'},
            'mcp_servers': {'docs': {'command': 'docs-mcp', 'env': {'DOCS_TOKEN': 'mcp-token'}}}}
     (home / 'config.yaml').write_text(json.dumps(cfg))
@@ -226,7 +226,7 @@ def _bind(tmp_path, monkeypatch, cfg):
     from gateway.session_policy import bind_launch_key, build_policy
     home = tmp_path / 'profile'
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     (home / 'config.yaml').write_text(json.dumps(cfg))
 
     def owner():

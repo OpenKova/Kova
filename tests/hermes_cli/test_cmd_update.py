@@ -107,9 +107,9 @@ class TestGitTrampolineSelfHeal:
         run.assert_not_called()
 
     def test_portable_git_candidates_check_shared_root_first(self, tmp_path, monkeypatch):
-        # Profile-scoped layout: HERMES_HOME = <root>/profiles/foo, but the
+        # Profile-scoped layout: KOVA_HOME = <root>/profiles/foo, but the
         # PortableGit tree lives under the SHARED root (monerostar review on
-        # #88136). The candidate list must check get_default_hermes_root()
+        # #88136). The candidate list must check get_default_kova_root()
         # before the profile home.
         import kova_constants
         from kova_cli.update_cmd_git import _portable_git_candidates
@@ -117,8 +117,8 @@ class TestGitTrampolineSelfHeal:
         root = tmp_path / "root"
         profile_home = root / "profiles" / "foo"
 
-        monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: root)
-        monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: profile_home)
+        monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: root)
+        monkeypatch.setattr(kova_constants, "get_kova_home", lambda: profile_home)
 
         candidates = _portable_git_candidates()
         assert candidates[0] == (

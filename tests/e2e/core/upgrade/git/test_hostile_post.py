@@ -114,8 +114,8 @@ _HOSTILE_DEPS = f"""    {_DEPS_MARK}
 
 @pytest.fixture(scope="module")
 def w() -> Iterator[G.World]:
-    """A SHORT root (the gateway's AF_UNIX control socket lives under ``$HERMES_HOME``; pytest's deep
-    ``tmp_path`` overflows ``sun_path``). Set ``HERMES_E2E_KEEP_ROOT=1`` to keep it for a post-mortem."""
+    """A SHORT root (the gateway's AF_UNIX control socket lives under ``$KOVA_HOME``; pytest's deep
+    ``tmp_path`` overflows ``sun_path``). Set ``KOVA_E2E_KEEP_ROOT=1`` to keep it for a post-mortem."""
     base = os.environ.get("TMPDIR") or tempfile.gettempdir()
     root = Path(tempfile.mkdtemp(prefix="hp", dir=base))
     try:
@@ -123,12 +123,12 @@ def w() -> Iterator[G.World]:
             _edit_config(world, lambda cfg: cfg.update(updates={**(cfg.get("updates") or {}), "check": False}))
             yield world
     finally:
-        if not os.environ.get("HERMES_E2E_KEEP_ROOT"):
+        if not os.environ.get("KOVA_E2E_KEEP_ROOT"):
             shutil.rmtree(root, ignore_errors=True)
 
 
 def _config_path(w: G.World) -> Path:
-    return w.sb.hermes_home / "config.yaml"
+    return w.sb.kova_home / "config.yaml"
 
 
 def _load_config(w: G.World) -> dict:
@@ -163,7 +163,7 @@ def _clear_toggles(w: G.World) -> None:
 
 def _pending_markers(w: G.World) -> list[str]:
     """The ``source-completion-pending`` obligation(s) in the install-state dir(s)."""
-    installs = w.sb.hermes_home / "installs"
+    installs = w.sb.kova_home / "installs"
     return sorted(str(p) for p in installs.glob("**/source-completion-pending")) if installs.is_dir() else []
 
 
@@ -177,7 +177,7 @@ def _followup_steps(rec: dict) -> set[str]:
 
 
 def _update_log(w: G.World) -> Path:
-    return w.sb.hermes_home / "logs" / "update.log"
+    return w.sb.kova_home / "logs" / "update.log"
 
 
 def _read(p: Path) -> str:
@@ -200,7 +200,7 @@ def _obligation(w: G.World) -> str:
     """The host fleet-restart obligation record(s) anywhere in the sandbox (diagnostics only)."""
     found = []
     for base, dirs, files in os.walk(w.sb.root):
-        dirs[:] = [d for d in dirs if d not in ("node_modules", ".git", "venv", ".venv", "hermes-agent")]
+        dirs[:] = [d for d in dirs if d not in ("node_modules", ".git", "venv", ".venv", "kova-agent")]
         if "host-update-restart.json" in files:
             path = Path(base) / "host-update-restart.json"
             found.append(f"{path}: {_read(path)[:600]}")
@@ -294,7 +294,7 @@ def _namespace(w: G.World) -> Iterator[NamespaceHost]:
 
 
 def _ns_cli(host: NamespaceHost, w: G.World, *args: str, timeout: float = 600):
-    cp = host.run([w.sb.hermes, *args], timeout=timeout)
+    cp = host.run([w.sb.kova, *args], timeout=timeout)
     w.transcripts.append(f"$ hermes {' '.join(args)} -> rc={cp.returncode}\n{(cp.stdout or '')[-6000:]}\n"
                          f"{(cp.stderr or '')[-3000:]}")
     return cp
@@ -308,7 +308,7 @@ def _identify(w: G.World) -> dict | None:
     from gateway.control_socket import identify_gateway
 
     with contextlib.suppress(Exception):
-        return identify_gateway(w.sb.hermes_home, timeout=5.0)
+        return identify_gateway(w.sb.kova_home, timeout=5.0)
     return None
 
 
@@ -337,7 +337,7 @@ def _kill_born_after(host: NamespaceHost, before: set[int]) -> list[int]:
 
 
 def _gateway_logs(w: G.World) -> str:
-    logs = w.sb.hermes_home / "logs"
+    logs = w.sb.kova_home / "logs"
     chunks = [_read(p)[-4000:] for p in sorted(logs.glob("*.log"))] if logs.is_dir() else []
     chunks += [_read(p)[-4000:] for p in sorted(w.sb.root.glob("gateway-*.log"))]
     return "\n".join(chunks)
@@ -401,7 +401,7 @@ def test_gateway_that_cannot_reboot_is_an_owed_restart_not_a_failed_update(w):
     _clear_toggles(w)
     with _namespace(w) as host:
         try:
-            gw = host.spawn([w.sb.hermes, "gateway", "run"], log=w.sb.root / "gateway-b.log")  # sandbox-writable
+            gw = host.spawn([w.sb.kova, "gateway", "run"], log=w.sb.root / "gateway-b.log")  # sandbox-writable
             before_sha = w.head()
             try:
                 ident = H.wait_for(lambda: _serving(w, before_sha), timeout=240, interval=1.0,
@@ -454,7 +454,7 @@ def test_gateway_that_cannot_reboot_is_an_owed_restart_not_a_failed_update(w):
                 if p["pid"] > 2 and "gateway" in p["cmdline"]:
                     host.kill(p["pid"], signal.SIGKILL)  # windows-footgun: ok - linux-only (bwrap) module
     # The namespace (and its gateways) is gone; its PID file names a PID of a dead namespace.
-    (w.sb.hermes_home / "gateway.pid").unlink(missing_ok=True)
+    (w.sb.kova_home / "gateway.pid").unlink(missing_ok=True)
 
 
 def test_sigkill_during_post_commit_tail_leaves_a_running_receipt(w):
@@ -470,7 +470,7 @@ def test_sigkill_during_post_commit_tail_leaves_a_running_receipt(w):
         with _namespace(w) as host:
             before = {p["pid"] for p in host.procs()}
             spawn_log = w.sb.root / "update-c.log"  # sandbox-writable
-            upd = host.spawn([w.sb.hermes, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
+            upd = host.spawn([w.sb.kova, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
                              log=spawn_log)
 
             def _slow_build_running():
@@ -515,7 +515,7 @@ def test_sigkill_during_post_commit_tail_leaves_a_running_receipt(w):
 def test_sticky_profile_update_logs_and_receipts_land_in_the_root_home(w):
     w.reset_clean()
     _clear_toggles(w)
-    root = w.sb.hermes_home
+    root = w.sb.kova_home
     prof_receipts = root / "profiles" / PROFILE / "logs" / "update_receipts"
     if not (root / "profiles" / PROFILE).is_dir():
         cp = w.sb.cli("profile", "create", PROFILE, "--no-alias", timeout=300)
@@ -617,7 +617,7 @@ def test_ctrl_c_after_commit_reports_the_new_code_not_a_failed_update(w):
     try:
         with _namespace(w) as host:
             spawn_log = w.sb.root / "update-f.log"  # sandbox-writable
-            upd = host.spawn([w.sb.hermes, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
+            upd = host.spawn([w.sb.kova, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
                              log=spawn_log)
 
             def _slow_build_running():

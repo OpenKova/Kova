@@ -43,7 +43,7 @@ async def test_a_peer_turn_into_a_bot_chat_without_an_authority_runs_here(tmp_pa
     """Without a profile authority nothing else may execute the Bot Chat's turn: a Desktop viewer
     lease is not an owner, so the turn runs here and no mailbox delivery is admitted."""
     home = tmp_path.resolve()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("tools.bot_mode_dm._LIVE_WAIT_SECONDS", 1.0)
     db = SessionDB(home / "state.db")
     db.create_session("bot-chat", "desktop")
@@ -107,7 +107,7 @@ async def test_a_peer_run_into_a_bot_chat_without_an_authority_runs_here(tmp_pat
     """`peer run` into the Bot Chat with no authority to hand it to runs here like any other
     session; the run keeps its run_id and `peer status` keeps working."""
     home = tmp_path.resolve()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     db = SessionDB(home / "state.db")
     db.create_session("bot-chat", "desktop")
     db.set_session_title("bot-chat", "Bot Chat")

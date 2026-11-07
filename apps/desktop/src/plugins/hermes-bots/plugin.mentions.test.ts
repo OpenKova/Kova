@@ -573,12 +573,12 @@ describe('the local default when a real hermes profile exists', () => {
     })
 
     const toDefault = (await handler({ text: 'please ask @default to review' })).text
-    const toHermes = (await handler({ text: 'please ask @hermes to review' })).text
+    const toKova = (await handler({ text: 'please ask @hermes to review' })).text
 
     // message_agent maps 'hermes' to the real hermes profile, so the default must never be handed it.
     expect(toDefault).toMatch(/@default = agent profile "default"/)
     expect(toDefault).not.toMatch(/message_agent target: "hermes"/)
-    expect(toHermes).toMatch(/@hermes = agent profile "hermes"/)
-    expect(toHermes).not.toMatch(/agent profile "default"/)
+    expect(toKova).toMatch(/@hermes = agent profile "hermes"/)
+    expect(toKova).not.toMatch(/agent profile "default"/)
   })
 })

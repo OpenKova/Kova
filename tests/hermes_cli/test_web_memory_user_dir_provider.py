@@ -1,4 +1,4 @@
-"""A memory provider installed under ``$HERMES_HOME/plugins/`` (catalog install) keeps the
+"""A memory provider installed under ``$KOVA_HOME/plugins/`` (catalog install) keeps the
 Desktop surfaces a bundled copy has: host-block config storage and the OAuth connect routes
 resolve the provider's own ``client`` / ``oauth_flow`` modules through ``find_provider_dir``,
 not a hard-coded ``plugins.memory.<name>`` import that only the bundled copy satisfies."""
@@ -18,7 +18,7 @@ def resolve_active_host():
     return "hermes"
 
 def resolve_config_path():
-    return Path(os.environ["HERMES_HOME"]) / "honcho.json"
+    return Path(os.environ["KOVA_HOME"]) / "honcho.json"
 
 def _host_block(cfg, host):
     return (cfg.get("hosts") or {}).get(host) or {}
@@ -45,20 +45,20 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
 
 @pytest.fixture
-def user_dir_honcho(monkeypatch, tmp_path, _isolate_hermes_home):
+def user_dir_honcho(monkeypatch, tmp_path, _isolate_kova_home):
     """A user-dir ``honcho`` with the bundled copy gone: empty bundled root and the bundled
     module path blocked, the way a post-removal core + a catalog install look."""
     import plugins.memory as memory_pkg
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    plugin_dir = get_hermes_home() / "plugins" / "honcho"
+    plugin_dir = get_kova_home() / "plugins" / "honcho"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(
         '"""fake provider: register_memory_provider"""\nfrom .client import resolve_active_host\n', encoding="utf-8"
     )
     for stem, source in (("client", _CLIENT), ("oauth_flow", _OAUTH_FLOW), ("config_schema", _CONFIG_SCHEMA)):
         (plugin_dir / f"{stem}.py").write_text(textwrap.dedent(source), encoding="utf-8")
-    (get_hermes_home() / "honcho.json").write_text(
+    (get_kova_home() / "honcho.json").write_text(
         json.dumps({"hosts": {"hermes": {"workspace": "from-user-dir"}}}), encoding="utf-8"
     )
 
@@ -96,12 +96,12 @@ def test_oauth_routes_load_the_provider_from_the_requested_profile(tmp_path, mon
     from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
     from starlette.testclient import TestClient
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     work_home = default_home / "profiles" / "work"
     work_home.mkdir(parents=True)
     (work_home / "profile.yaml").write_text("name: work\n", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     monkeypatch.setattr(memory_pkg, "_MEMORY_PLUGINS_DIR", tmp_path / "no-bundled")
 
     for home, label in ((default_home, "default"), (work_home, "work")):

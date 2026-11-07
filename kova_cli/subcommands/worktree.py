@@ -7,12 +7,12 @@ def build_worktree_parser(subparsers) -> None:
     """Attach the ``worktree`` subcommand to ``subparsers``."""
     worktree_parser = subparsers.add_parser(
         "worktree", help="Audit and reclaim accumulated git worktrees and merged branches",
-        description="Audit, reclaim and restore the .worktrees/ trees Hermes sessions "
+        description="Audit, reclaim and restore the .worktrees/ trees Kova sessions "
             "accumulate. Idle trees with uncommitted changes or unpushed commits are "
             "archived to refs/hermes/archive/<tree> before removal "
             "(worktrees.archive_dirty); `restore` brings one back. In-use trees are "
             "never touched. See: "
-            "https://hermes-agent.nousresearch.com/docs/user-guide/git-worktrees")
+            "https://kova-agent.nousresearch.com/docs/user-guide/git-worktrees")
     worktree_subparsers = worktree_parser.add_subparsers(dest="worktree_action")
     worktree_list = worktree_subparsers.add_parser(
         "list", aliases=["ls", "audit"],

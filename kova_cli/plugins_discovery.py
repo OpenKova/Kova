@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_cli.config import cfg_get
 from kova_cli.plugin_capabilities import VALID_CAPABILITY_IDS
 from kova_cli.plugin_capabilities import parse_declared_capabilities as _parse_declared_capabilities
@@ -207,21 +207,21 @@ def collect_directory_manifests() -> list[PluginManifest]:
     logger.debug("Scanning bundled plugins: %s", repo_plugins)
     _scan("bundled (top-level)", repo_plugins, "bundled",
           {"memory", "context_engine", "model-providers", "cron_providers", "computer_use", "config_backends"})
-    user_dir = get_hermes_home() / "plugins"
+    user_dir = get_kova_home() / "plugins"
     logger.debug("Scanning user plugins: %s", user_dir)
     _scan("user", user_dir, "user")
-    if _origin._env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
-        project_dir = Path.cwd() / ".hermes" / "plugins"
+    if _origin._env_enabled("KOVA_ENABLE_PROJECT_PLUGINS"):
+        project_dir = Path.cwd() / ".kova" / "plugins"
         logger.debug("Scanning project plugins: %s", project_dir)
         _scan("project", project_dir, "project")
     else:
-        logger.debug("Project plugins disabled (set HERMES_ENABLE_PROJECT_PLUGINS=1 to enable)")
+        logger.debug("Project plugins disabled (set KOVA_ENABLE_PROJECT_PLUGINS=1 to enable)")
     return manifests
 
 
 def resolve_manifest_winners(manifests: list[PluginManifest]) -> dict[str, PluginManifest]:
     """Later sources win on key collision (project > user > bundled): a same-named copy under
-    ``~/.hermes/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
+    ``~/.kova/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
     user/project manifest that claims a bundled key from a *differently named* directory is an impostor, not
     an override (``impostor_dir/plugin.yaml`` with ``name: kanban``): it is skipped with a warning so
     ``hermes plugins enable kanban`` never activates unrelated code under the bundled name."""
@@ -283,10 +283,10 @@ def gate_manifest(
     # Relay lifecycle is core-owned; an old plugin copy would compete for its registries.
     if names & LEGACY_RELAY_PLUGIN_KEYS:
         error = (
-            "removed — Relay lifecycle is owned by Hermes core; configure a standard user or system Relay "
+            "removed — Relay lifecycle is owned by Kova core; configure a standard user or system Relay "
             f"plugins.toml, or use {RELAY_PLUGINS_CONFIG_ENV} for an explicit user-file override"
         )
-        return _placeholder(error, logging.WARNING, "Refusing to load removed Hermes Relay plugin '%s'; %s", error)
+        return _placeholder(error, logging.WARNING, "Refusing to load removed Kova Relay plugin '%s'; %s", error)
     if names & disabled:
         if enabled and names & enabled:
             # Contradictory config (#131980): the disable wins, but a silent DEBUG skip hides the
@@ -328,7 +328,7 @@ def gate_manifest(
         from kova_cli.plugins_cmd_catalog import installed_plugin_removal
         removed = installed_plugin_removal(manifest.name, manifest.path)
         if removed is not None:
-            error = f"removed from the Hermes plugin catalog: {removed.reason or 'no reason recorded'}"
+            error = f"removed from the Kova plugin catalog: {removed.reason or 'no reason recorded'}"
             return _placeholder(error, logging.WARNING, "Refusing to load plugin '%s' — %s; run `hermes plugins remove`",
                                 error)
     return ManifestGate("load")

@@ -5,7 +5,7 @@ gateway host and this module via ``placement()``; callers keep using ``runtime.s
 
 Layout inside the sandbox, under ``<sandbox tmp>/hermes-bot-desktop/<profile>/``: ``launcher.sh`` (copied in
 at start), ``env`` (published DISPLAY/XAUTHORITY/DBUS), ``rfb.sock`` (Xvnc's unix socket), ``launcher.pid``.
-Host-side state under ``<HERMES_HOME>/bot-desktop/``: ``sandbox.json`` = ``{"env_key": ..., "display": ...}``
+Host-side state under ``<KOVA_HOME>/bot-desktop/``: ``sandbox.json`` = ``{"env_key": ..., "display": ...}``
 so status() knows which terminal environment owns the screen without re-deriving it.
 
 The Desktop pane never sees a socket path: ``open_rfb_stream()`` returns a Popen whose stdin/stdout ARE the
@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from agent.deadline import poll_until
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.environments import streams
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def plugin_image_advice(backend: Optional[str]) -> Optional[str]:
 
 
 def _marker() -> Path:
-    return get_hermes_home() / "bot-desktop" / "sandbox.json"
+    return get_kova_home() / "bot-desktop" / "sandbox.json"
 
 
 def _read_marker() -> dict[str, Any]:
@@ -133,7 +133,7 @@ def desktop_home(env: Any) -> str:
 def browser_profile_dir(env: Any) -> str:
     """The ONE ``--user-data-dir`` the agent's browser and the dock's Browser icon share inside the
     sandbox (same rule as the host: two profiles would mean the human logs into a jar the bot never sees)."""
-    return f"{desktop_home(env).rstrip('/')}/.hermes/bot-desktop/browser-profile"
+    return f"{desktop_home(env).rstrip('/')}/.kova/bot-desktop/browser-profile"
 
 
 _CHROMIUM_PROBE = (
@@ -228,7 +228,7 @@ def start(env: Any, profile: str, *, geometry: str, wait_seconds: float = 20.0,
     rdir = _remote_dir(env, profile)
     live = _published(env, rdir)
     if live.get("DISPLAY"):
-        # Adopting a screen the sandbox kept while this host's state was lost (fresh HERMES_HOME, a stop()
+        # Adopting a screen the sandbox kept while this host's state was lost (fresh KOVA_HOME, a stop()
         # whose kill missed): without the marker, status/thumbnail/stop would not know it is ours.
         return _record(env, rdir, profile, live)
     stop(env, profile)  # a dead launcher may have left Xvnc holding :20; the relaunch needs it gone
@@ -254,13 +254,13 @@ def start(env: Any, profile: str, *, geometry: str, wait_seconds: float = 20.0,
         raise RuntimeError(f"could not seed the sandbox desktop dir: {proc.stderr.decode('utf-8', 'replace')[-500:]}")
     num = 20  # one profile per sandbox; the launcher's stale-lock logic handles a leftover :20
     child_env = {
-        "HERMES_BD_PROFILE": profile, "HERMES_BD_DISPLAY_NUM": str(num), "HERMES_BD_SOCKET": f"{rdir}/rfb.sock",
-        "HERMES_BD_XAUTH": f"{rdir}/Xauthority", "HERMES_BD_ENV_FILE": f"{rdir}/env",
-        "HERMES_BD_CONFIG_HOME": f"{rdir}/xdg", "HERMES_BD_GEOMETRY": geometry, "HERMES_BD_WALLPAPER": f"{rdir}/wallpaper.png",
+        "KOVA_BD_PROFILE": profile, "KOVA_BD_DISPLAY_NUM": str(num), "KOVA_BD_SOCKET": f"{rdir}/rfb.sock",
+        "KOVA_BD_XAUTH": f"{rdir}/Xauthority", "KOVA_BD_ENV_FILE": f"{rdir}/env",
+        "KOVA_BD_CONFIG_HOME": f"{rdir}/xdg", "KOVA_BD_GEOMETRY": geometry, "KOVA_BD_WALLPAPER": f"{rdir}/wallpaper.png",
     }
     if browser_exec and browser_exec_line:
-        child_env["HERMES_BD_BROWSER_EXEC"] = browser_exec
-        child_env["HERMES_BD_BROWSER_EXEC_LINE"] = browser_exec_line
+        child_env["KOVA_BD_BROWSER_EXEC"] = browser_exec
+        child_env["KOVA_BD_BROWSER_EXEC_LINE"] = browser_exec_line
     # The launcher must outlive this exec (docker exec / ssh) and be its own session so stop() can take the
     # whole group (Xvnc, dbus, Xfce) with one kill. `setsid -f` forks, so `$!` would be the wrong pid: the
     # launcher records ITS OWN pid (= its session id) before doing anything else.

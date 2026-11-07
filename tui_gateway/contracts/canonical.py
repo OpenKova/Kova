@@ -1,4 +1,4 @@
-"""Canonical ``hermes-gateway-v1`` methods that only the session authority serves.
+"""Canonical ``kova-gateway-v1`` methods that only the session authority serves.
 
 ``gateway/session_controls.py::AuthorityConnection.dispatch`` answers these on the authenticated
 native socket; the TUI sidecar (``server._methods``) never registers them, so they live in

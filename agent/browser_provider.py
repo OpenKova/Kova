@@ -2,7 +2,7 @@
 
 Providers register via :meth:`PluginContext.register_browser_provider`; the active one (selected by
 ``browser.cloud_provider``) supplies the CDP browser ``browser_exec`` drives in cloud mode. They live in
-``<repo>/plugins/browser/<name>/`` (built-in) or ``~/.hermes/plugins/browser/<name>/`` (user).
+``<repo>/plugins/browser/<name>/`` (built-in) or ``~/.kova/plugins/browser/<name>/`` (user).
 
 Session metadata contract (legacy ``CloudBrowserProvider`` shape; ``tools.browser_session`` caches it
 as-is). ``bb_session_id`` is a legacy key name kept verbatim — it holds the provider's session ID

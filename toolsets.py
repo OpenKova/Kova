@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Set, Optional, Tuple
 # in `desktop_ui`/`project`, enabled per desktop-sourced session by the GUI gateway
 # (tui_gateway/server.py::_load_enabled_toolsets). HA, kanban and computer_use
 # entries are further gated by their tools' check_fns.
-_HERMES_CORE_TOOLS = [
+_KOVA_CORE_TOOLS = [
     "web_search", "web_extract",
     "terminal", "process_manage",
     "read_file", "write_file", "patch", "search_files",
@@ -36,7 +36,7 @@ _HERMES_CORE_TOOLS = [
 ]
 
 # Webhook payloads are untrusted third-party content: no file/system execution.
-_HERMES_WEBHOOK_SAFE_TOOLS = ["web_search", "web_extract", "vision_analyze", "clarify"]
+_KOVA_WEBHOOK_SAFE_TOOLS = ["web_search", "web_extract", "vision_analyze", "clarify"]
 _FEISHU_TOOLS = [
     "feishu_doc_read", "feishu_drive_list_comments", "feishu_drive_list_comment_replies",
     "feishu_drive_reply_comment", "feishu_drive_add_comment",
@@ -50,12 +50,12 @@ def _ts(description, tools=(), includes=(), **extra):
 
 def _bundle(description, extras=()):
     """A `hermes-*` platform bundle: the shared core tools plus optional platform extras."""
-    return _ts(description, _HERMES_CORE_TOOLS + list(extras))
+    return _ts(description, _KOVA_CORE_TOOLS + list(extras))
 
 
 def _core_without(*excluded, kanban=True):
-    """_HERMES_CORE_TOOLS minus *excluded* (and, unless kanban=True, every kanban_* tool); order preserved."""
-    return [t for t in _HERMES_CORE_TOOLS if t not in excluded and (kanban or not t.startswith("kanban_"))]
+    """_KOVA_CORE_TOOLS minus *excluded* (and, unless kanban=True, every kanban_* tool); order preserved."""
+    return [t for t in _KOVA_CORE_TOOLS if t not in excluded and (kanban or not t.startswith("kanban_"))]
 
 
 # Coding posture: everything you reach for while pairing on code; drops messaging,
@@ -108,7 +108,7 @@ TOOLSETS = {
     "browser": _ts(
         "Browser automation: drive a real browser with Python over CDP (navigate, "
         "click, type, extract, screenshots), raw CDP, dialogs and vault logins",
-        [t for t in _HERMES_CORE_TOOLS if t.startswith("browser_")],
+        [t for t in _KOVA_CORE_TOOLS if t.startswith("browser_")],
     ),
     "cronjob": _ts(
         "Cronjob management tool - create, list, update, pause, resume, remove, and "
@@ -152,13 +152,13 @@ TOOLSETS = {
     "delegation": _ts("Spawn subagents with isolated context for complex subtasks", ["delegate_task"]),
     "kanban": _ts(
         "Kanban multi-agent coordination — only active when the agent is spawned by "
-        "the kanban dispatcher (HERMES_KANBAN_TASK env set). The dispatcher runs "
+        "the kanban dispatcher (KOVA_KANBAN_TASK env set). The dispatcher runs "
         "inside the gateway by default; see `kanban.dispatch_in_gateway` in "
         "config.yaml. Lets workers mark tasks done with structured handoffs, enter "
         "first-class review (request_review — not a block), return review changes, "
         "block for human input, heartbeat during long ops, comment on threads, attach "
         "files, and (for orchestrators) list, unblock, and fan out tasks.",
-        [t for t in _HERMES_CORE_TOOLS if t.startswith("kanban_")],
+        [t for t in _KOVA_CORE_TOOLS if t.startswith("kanban_")],
     ),
     "discord": _ts("Discord read and participate tools (fetch messages, search members, create threads)", ["discord"]),
     "discord_admin": _ts("Discord server management (list channels/roles, pin messages, assign roles)", ["discord_admin"]),
@@ -180,7 +180,7 @@ TOOLSETS = {
         posture=True,
     ),
 
-    # Full Hermes toolsets (CLI + messaging platforms). All share the core tools;
+    # Full Kova toolsets (CLI + messaging platforms). All share the core tools;
     # there is deliberately no agent-callable send_message tool. hermes-acp is the
     # coding posture minus the interactive clarify UI.
     "hermes-acp": _ts(
@@ -208,7 +208,7 @@ TOOLSETS = {
     "hermes-slack": _bundle("Slack bot toolset - full access for workspace use (terminal has safety checks)"),
     "hermes-signal": _bundle("Signal bot toolset - encrypted messaging platform (full access)"),
     "hermes-bluebubbles": _bundle("BlueBubbles iMessage bot toolset - Apple iMessage via local BlueBubbles server"),
-    "hermes-email": _bundle("Email bot toolset - interact with Hermes via email (IMAP/SMTP)"),
+    "hermes-email": _bundle("Email bot toolset - interact with Kova via email (IMAP/SMTP)"),
     "hermes-mattermost": _bundle("Mattermost bot toolset - self-hosted team messaging (full access)"),
     "hermes-matrix": _bundle("Matrix bot toolset - decentralized encrypted messaging (full access)"),
     "hermes-dingtalk": _bundle("DingTalk bot toolset - enterprise messaging platform (full access)"),
@@ -217,9 +217,9 @@ TOOLSETS = {
     "hermes-qqbot": _bundle("QQBot toolset - QQ messaging via Official Bot API v2 (full access)"),
     "hermes-wecom": _bundle("WeCom bot toolset - enterprise WeChat messaging (full access)"),
     "hermes-wecom-callback": _bundle("WeCom callback toolset - enterprise self-built app messaging (full access)"),
-    "hermes-sms": _bundle("SMS bot toolset - interact with Hermes via SMS (Twilio)"),
-    "hermes-webhook": _ts("Webhook toolset - receive and process external webhook events", _HERMES_WEBHOOK_SAFE_TOOLS),
-    "hermes-gateway": _ts(
+    "hermes-sms": _bundle("SMS bot toolset - interact with Kova via SMS (Twilio)"),
+    "hermes-webhook": _ts("Webhook toolset - receive and process external webhook events", _KOVA_WEBHOOK_SAFE_TOOLS),
+    "kova-gateway": _ts(
         "Gateway toolset - union of all messaging platform tools",
         [],
         includes=[
@@ -308,13 +308,13 @@ def get_toolset(name: str, *, include_registry: bool = True) -> Optional[dict[st
 
 
 def bundle_non_core_tools(toolset_name: str) -> set[str]:
-    """A bundle's tools minus _HERMES_CORE_TOOLS (one level of includes).
+    """A bundle's tools minus _KOVA_CORE_TOOLS (one level of includes).
 
     Disabling a `core + extras` bundle must not strip the core tools every other
-    toolset shares. One `includes` pass suffices (only hermes-gateway nests
+    toolset shares. One `includes` pass suffices (only kova-gateway nests
     bundles). Unknown names: full resolution minus core.
     """
-    core = set(_HERMES_CORE_TOOLS)
+    core = set(_KOVA_CORE_TOOLS)
     ts_def = get_toolset(toolset_name)
     if not (ts_def and "tools" in ts_def):
         return set(resolve_toolset(toolset_name)) - core
@@ -344,7 +344,7 @@ def _plugin_platform_bundle(name: str) -> list[str]:
             return []
     except Exception:
         return []
-    tools = set(_HERMES_CORE_TOOLS)
+    tools = set(_KOVA_CORE_TOOLS)
     try:
         tools.update(e.name for e in _registry_call("get_all_entries", ()) if e.toolset == platform_name)
     except Exception:

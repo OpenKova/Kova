@@ -5,8 +5,8 @@ agent-browser. Every reader must skip that fact, `pm gc` reclaims its entry, and
 an opt-out recorded as `--without agent-browser` (what the installers'
 `--skip-browser` passes) keeps skipping the browser, which is Chromium alone now.
 
-Real pm code paths over a fixture store under a scratch HERMES_HOME and
-HERMES_RUNTIME_DIR; the real registry and pm/lock.json.
+Real pm code paths over a fixture store under a scratch KOVA_HOME and
+KOVA_RUNTIME_DIR; the real registry and pm/lock.json.
 """
 
 from __future__ import annotations
@@ -36,8 +36,8 @@ def _record(facts: Facts, store: Path, name: str, version: str, entry: Path, env
 def upgraded_store(tmp_path, monkeypatch):
     """A store as the agent-browser era left it: both entries, the old chromium env, the opt-out."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "runtime"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "runtime"))
     target = current_target()
     chromium = pm.get_package("chromium")
     if chromium.missing_reason(target) is not None:

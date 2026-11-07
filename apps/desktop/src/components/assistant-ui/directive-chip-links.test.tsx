@@ -8,12 +8,12 @@ import { DirectiveContent } from './directive-text'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
 
-const PR_URL = 'https://github.com/NousResearch/hermes-agent/pull/107950'
+const PR_URL = 'https://github.com/NousResearch/kova-agent/pull/107950'
 
 function installDesktopBridge() {
   const openExternal = vi.fn().mockResolvedValue(undefined)
 
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     fetchLinkTitle: vi.fn().mockResolvedValue(''),
     openExternal
   } as unknown as Window['hermesDesktop']
@@ -25,7 +25,7 @@ afterEach(() => {
   closeRightRail()
   vi.restoreAllMocks()
   cleanup()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.kovaDesktop
   document.body.replaceChildren()
 })
 

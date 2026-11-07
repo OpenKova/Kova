@@ -17,13 +17,13 @@ from datetime import UTC
 
 class TestGatewayPidState:
     def test_write_pid_file_records_gateway_metadata(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         status.write_pid_file()
 
         payload = json.loads((tmp_path / "gateway.pid").read_text())
         assert payload["pid"] == os.getpid()
-        assert payload["kind"] == "hermes-gateway"
+        assert payload["kind"] == "kova-gateway"
         assert isinstance(payload["argv"], list)
         assert payload["argv"]
 
@@ -36,7 +36,7 @@ class TestGatewayPidState:
         """
         import pytest
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         # First write wins.
         status.write_pid_file()
@@ -53,7 +53,7 @@ class TestGatewayPidState:
 
 
     def test_runtime_lock_claims_and_releases_liveness(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         assert status.is_gateway_runtime_lock_active() is False
         assert status.acquire_gateway_runtime_lock() is True
@@ -65,7 +65,7 @@ class TestGatewayPidState:
 
 
     def test_get_running_pid_cached_invalidates_when_pid_file_changes(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         status._clear_running_pid_cache()
 
         pid_path = tmp_path / "gateway.pid"
@@ -73,7 +73,7 @@ class TestGatewayPidState:
         def _write_record(pid: int, start_time: int) -> None:
             record = {
                 "pid": pid,
-                "kind": "hermes-gateway",
+                "kind": "kova-gateway",
                 "argv": ["python", "-m", "kova_cli.main", "gateway"],
                 "start_time": start_time,
             }
@@ -102,11 +102,11 @@ class TestGatewayPidState:
 
 
     def test_get_running_pid_falls_back_to_live_lock_record(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         pid_path = tmp_path / "gateway.pid"
         pid_path.write_text(json.dumps({
             "pid": 99999,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["python", "-m", "kova_cli.main", "gateway"],
             "start_time": 123,
         }))
@@ -118,7 +118,7 @@ class TestGatewayPidState:
             "_build_pid_record",
             lambda: {
                 "pid": os.getpid(),
-                "kind": "hermes-gateway",
+                "kind": "kova-gateway",
                 "argv": ["python", "-m", "kova_cli.main", "gateway"],
                 "start_time": 123,
             },
@@ -139,26 +139,26 @@ class TestGatewayPidState:
     def test_gateway_identity_files_use_process_home_not_context_override(
         self, tmp_path, monkeypatch
     ):
-        """Regression: pid/lock/state files must use process-level HERMES_HOME.
+        """Regression: pid/lock/state files must use process-level KOVA_HOME.
 
         When a profile context override is active (e.g., during session dispatch
         for a named profile), gateway identity files should still be written to
-        the process-level HERMES_HOME, not the profile's directory.  See #56986.
+        the process-level KOVA_HOME, not the profile's directory.  See #56986.
         """
-        from kova_constants import set_hermes_home_override, reset_hermes_home_override
+        from kova_constants import set_kova_home_override, reset_kova_home_override
 
         process_home = tmp_path / "default"
         process_home.mkdir()
         profile_home = tmp_path / "profiles" / "cfo"
         profile_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(process_home))
+        monkeypatch.setenv("KOVA_HOME", str(process_home))
 
         # Simulate a profile context override being active during write.
-        token = set_hermes_home_override(str(profile_home))
+        token = set_kova_home_override(str(profile_home))
         try:
             status.write_pid_file()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
         # PID file must land in the process-level home, not the profile home.
         assert (process_home / "gateway.pid").exists()
@@ -168,7 +168,7 @@ class TestGatewayPidState:
         assert payload["pid"] == os.getpid()
 
         # Cleanup for atexit hooks.
-        monkeypatch.setenv("HERMES_HOME", str(process_home))
+        monkeypatch.setenv("KOVA_HOME", str(process_home))
         (process_home / "gateway.pid").unlink(missing_ok=True)
 
     def test_unscoped_live_identity_mismatch_never_unlinks_active_files(
@@ -177,11 +177,11 @@ class TestGatewayPidState:
         """A live PID behind a HELD lock is not stale-cleanup authority, even unscoped: an
         identity rejection (a matcher lagging a launcher shape) must not unlink the live
         gateway's gateway.pid/gateway.lock (#125610, #123109)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         record = {
-            "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
+            "pid": 4242, "kind": "kova-gateway", "start_time": 123,
             "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
-            "hermes_home": str(tmp_path.resolve()),
+            "kova_home": str(tmp_path.resolve()),
         }
         pid_path = tmp_path / "gateway.pid"
         lock_path = tmp_path / "gateway.lock"
@@ -201,11 +201,11 @@ class TestGatewayPidState:
     ):
         """A live gateway.pid that names ANOTHER home's gateway is poison inside this home and goes
         on refusal (#89315); the HELD gateway.lock is the holder's and stays (#125610)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         record = {
-            "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
+            "pid": 4242, "kind": "kova-gateway", "start_time": 123,
             "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
-            "hermes_home": str((tmp_path / "other-home").resolve()),
+            "kova_home": str((tmp_path / "other-home").resolve()),
         }
         pid_path = tmp_path / "gateway.pid"
         lock_path = tmp_path / "gateway.lock"
@@ -233,10 +233,10 @@ class TestScopedGatewayPidQuery:
         profile_dir.mkdir(parents=True)
         record = {
             "pid": 4242,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["python", "-m", "kova_cli.main", "gateway", "--profile", "wiki"],
             "start_time": 123,
-            "hermes_home": str(profile_dir.resolve()),
+            "kova_home": str(profile_dir.resolve()),
         }
         pid_path = profile_dir / "gateway.pid"
         pid_path.write_text(json.dumps(record))
@@ -245,7 +245,7 @@ class TestScopedGatewayPidQuery:
 
     def test_scoped_query_reports_live_foreign_profile_pid(self, tmp_path, monkeypatch):
         # The serve process polls from the DEFAULT home; the live wiki record must still count.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default-home"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "default-home"))
         profile_dir, pid_path, _ = self._write_scoped_profile(tmp_path)
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda lock: True)
         monkeypatch.setattr(status, "_pid_exists", lambda pid: True)
@@ -260,7 +260,7 @@ class TestScopedGatewayPidQuery:
 
     def test_scoped_query_still_cleans_dead_pid_record(self, tmp_path, monkeypatch):
         # A dead PID's stale record is still cleanup-unlinked, scoped or not.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default-home"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "default-home"))
         profile_dir, pid_path, _ = self._write_scoped_profile(tmp_path)
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda lock: True)
         monkeypatch.setattr(status, "_pid_exists", lambda pid: False)
@@ -274,7 +274,7 @@ class TestScopedGatewayPidQuery:
 
 class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_preserves_primary_entries(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({
                 "platforms": {
@@ -296,7 +296,7 @@ class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_and_write_are_one_atomic_update(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({
                 "platforms": {
@@ -328,7 +328,7 @@ class TestGatewayRuntimeStatus:
         # therefore stamped with the writer's (pid, start_time) identity —
         # the same PID-reuse fingerprint the liveness checks use — so
         # ownership is exact equality, not clock heuristics.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         status.write_runtime_status(platform="telegram", platform_state="connected")
 
@@ -341,7 +341,7 @@ class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_repairs_malformed_platforms(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({"platforms": ["not", "a", "mapping"]}),
             encoding="utf-8",
@@ -354,14 +354,14 @@ class TestGatewayRuntimeStatus:
 
     def test_write_runtime_status_overwrites_stale_pid_on_restart(self, tmp_path, monkeypatch):
         """Regression: setdefault() preserved stale PID from previous process (#1631)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         # Simulate a previous gateway run that left a state file with a stale PID
         state_path = tmp_path / "gateway_state.json"
         state_path.write_text(json.dumps({
             "pid": 99999,
             "start_time": 1000.0,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "platforms": {},
             "updated_at": "2025-01-01T00:00:00Z",
         }))
@@ -387,7 +387,7 @@ class TestGatewayRuntimeStatus:
         payload = {
             "pid": 139,
             "gateway_state": "running",
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["hermes", "gateway", "run"],
         }
         coder_home = Path("/opt/data/profiles/coder")
@@ -410,7 +410,7 @@ class TestGatewayRuntimeStatus:
         payload = {
             "pid": 139,
             "gateway_state": "running",
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["hermes", "gateway", "run"],
             "start_time": 1000,
         }
@@ -421,7 +421,7 @@ class TestGatewayRuntimeStatus:
         for cmdline in (
             "hermes -p coder gateway run --replace",
             "/opt/hermes/.venv/bin/hermes --profile coder gateway run --replace",
-            "hermes_home=/opt/data/profiles/coder hermes gateway run --replace",
+            "kova_home=/opt/data/profiles/coder hermes gateway run --replace",
         ):
             monkeypatch.setattr(status, "_read_process_cmdline", lambda pid, c=cmdline: c)
             assert (
@@ -443,53 +443,53 @@ class TestGatewayRuntimeStatus:
         assert status._command_line_belongs_to_profile("hermes -p coder gateway run", default_home) is False
 
     def test_command_line_belongs_to_profile_normalizes_separators(self):
-        """A Windows argv renders HERMES_HOME with backslashes while the
+        """A Windows argv renders KOVA_HOME with backslashes while the
         profile's Path may carry forward slashes (and, on Windows, vice
         versa).  The separator difference must not defeat the match."""
         home = Path("c:/opt/data/profiles/coder")
-        cmdline = r"hermes_home=c:\opt\data\profiles\coder hermes gateway run --replace"
+        cmdline = r"kova_home=c:\opt\data\profiles\coder hermes gateway run --replace"
         assert status._command_line_belongs_to_profile(cmdline, home) is True
 
     def test_command_line_belongs_to_profile_rejects_sibling_homes(self):
-        """A substring test let ``HERMES_HOME=/root/profiles/ops2`` satisfy the ``ops`` profile's
+        """A substring test let ``KOVA_HOME=/root/profiles/ops2`` satisfy the ``ops`` profile's
         predicate, so a stale state record could borrow the sibling's live gateway identity (same
         shape as the ``-p ops`` vs ``-p ops-2`` token rule) -- on the named AND the default branch
         (#115031). An exact or absent assignment still matches."""
         home = Path("/fixture/profiles/ops")
         for cmdline in (
-            "HERMES_HOME=/fixture/profiles/ops2 hermes gateway run",
-            "HERMES_HOME=/fixture/profiles/ops-backup hermes gateway run",
-            "HERMES_HOME=/fixture/profiles/ops/2 hermes gateway run",
+            "KOVA_HOME=/fixture/profiles/ops2 hermes gateway run",
+            "KOVA_HOME=/fixture/profiles/ops-backup hermes gateway run",
+            "KOVA_HOME=/fixture/profiles/ops/2 hermes gateway run",
         ):
             assert not status._command_line_belongs_to_profile(cmdline, home), cmdline
         default_home = Path("/opt/hermes-data")
-        assert not status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data2 hermes gateway run", default_home)
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data hermes gateway run", default_home)
+        assert not status._command_line_belongs_to_profile("KOVA_HOME=/opt/hermes-data2 hermes gateway run", default_home)
+        assert status._command_line_belongs_to_profile("KOVA_HOME=/opt/hermes-data hermes gateway run", default_home)
         assert status._command_line_belongs_to_profile("hermes gateway run", default_home)
 
     def test_command_line_belongs_to_profile_matches_own_home_spellings_only(self):
         """Token-bounded value AND name: quoted values (ps/wmic re-quoting) and a trailing separator
-        (systemd ``Environment=``, ``sh -c`` wrappers) are the same home; ``FOO=hermes_home=/x``
+        (systemd ``Environment=``, ``sh -c`` wrappers) are the same home; ``FOO=kova_home=/x``
         embeds the name inside another token and is not an assignment."""
         home = Path("/opt/data/profiles/coder with space")
         assert status._command_line_belongs_to_profile(
-            'hermes_home="/opt/data/profiles/coder with space" hermes gateway run', home)
+            'kova_home="/opt/data/profiles/coder with space" hermes gateway run', home)
         # /proc and psutil hand argv back space-joined, so an unquoted value with a space is cut at
         # the space by the token parser; the whole-home literal match must still claim it.
         assert status._command_line_belongs_to_profile(
-            "HERMES_HOME=/opt/data/profiles/coder with space hermes gateway run", home)
+            "KOVA_HOME=/opt/data/profiles/coder with space hermes gateway run", home)
         assert status._command_line_belongs_to_profile(
-            r"HERMES_HOME=C:\Users\John Doe\.hermes hermes gateway run", Path(r"C:\Users\John Doe\.hermes"))
+            r"KOVA_HOME=C:\Users\John Doe\.kova hermes gateway run", Path(r"C:\Users\John Doe\.kova"))
         assert not status._command_line_belongs_to_profile(
-            "HERMES_HOME=/opt/data/profiles/coder with spaces hermes gateway run", home)
+            "KOVA_HOME=/opt/data/profiles/coder with spaces hermes gateway run", home)
         home = Path("/fixture/profiles/ops")
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/fixture/profiles/ops/ hermes gateway run", home)
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data/ hermes gateway run", Path("/opt/hermes-data"))
-        assert not status._command_line_belongs_to_profile("FOO=hermes_home=/fixture/profiles/ops hermes gateway run", home)
+        assert status._command_line_belongs_to_profile("KOVA_HOME=/fixture/profiles/ops/ hermes gateway run", home)
+        assert status._command_line_belongs_to_profile("KOVA_HOME=/opt/hermes-data/ hermes gateway run", Path("/opt/hermes-data"))
+        assert not status._command_line_belongs_to_profile("FOO=kova_home=/fixture/profiles/ops hermes gateway run", home)
 
 
     def test_write_runtime_status_explicit_none_clears_stale_fields(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         status.write_runtime_status(
             gateway_state="startup_failed",
@@ -522,7 +522,7 @@ class TestGatewayRuntimeStatus:
         ``connected`` write, not only the watcher's. A gateway restart after an escalation stamps
         ``connected`` from the startup path / adapter, which left the flag sticky for weeks on a
         healthy Telegram record."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         status.write_runtime_status(
             platform="telegram", platform_state="retrying", needs_attention=True,
             retrying_since="2026-08-30T07:53:47+00:00",
@@ -549,7 +549,7 @@ class TestRuntimeStatusBackgroundWriter:
     def test_blocked_write_does_not_block_publish_and_burst_coalesces(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         write_started = threading.Event()
         release_write = threading.Event()
         publish_returned = threading.Event()
@@ -607,7 +607,7 @@ class TestRuntimeStatusBackgroundWriter:
     def test_sync_write_can_bound_a_blocked_persistence_wait(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         write_started = threading.Event()
         release_write = threading.Event()
 
@@ -627,7 +627,7 @@ class TestRuntimeStatusBackgroundWriter:
             release_write.set()
         assert writer.flush(timeout=2.0)
     def test_write_runtime_status_records_platform_metrics(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         status.write_runtime_status(
             platform="api_server",
@@ -805,13 +805,13 @@ class TestScopedLocks:
         assert lock_path.read_text(encoding="utf-8") == "\n"
 
     def test_acquire_scoped_lock_rejects_live_other_process(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": 99999,
             "start_time": 123,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }))
 
         # Post-#21561 the liveness probe routes through
@@ -832,14 +832,14 @@ class TestScopedLocks:
         succeeds) but belongs to a completely different program.  The lock
         must be treated as stale.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": 873,
             "start_time": None,
-            "kind": "hermes-gateway",
-            "argv": ["/Users/user/.hermes/hermes-agent/kova_cli/main.py", "gateway", "run", "--replace"],
+            "kind": "kova-gateway",
+            "argv": ["/Users/user/.kova/kova-agent/kova_cli/main.py", "gateway", "run", "--replace"],
         }))
 
         # Post-#21561 the liveness probe routes through
@@ -869,13 +869,13 @@ class TestScopedLocks:
         freshly built record has a real fingerprint. Requiring equality made
         the gateway report its own PID as a foreign token squatter.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": os.getpid(),
             "start_time": None,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["kova_cli/main.py", "--profile", "milena", "gateway", "run", "--replace"],
             "scope": "discord-bot-token",
         }))
@@ -901,13 +901,13 @@ class TestScopedLocks:
 
     def test_release_scoped_lock_allows_null_disk_start_time(self, tmp_path, monkeypatch):
         """#81468: release must not no-op when disk start_time is null."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": os.getpid(),
             "start_time": None,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 987654321)
 
@@ -924,13 +924,13 @@ class TestScopedLocks:
         psutil transient) while the live process now reports a different value.
         Since the PID is ours, start_time equality is not required.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": os.getpid(),
             "start_time": 111,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["kova_cli/main.py", "gateway", "run", "--replace"],
             "scope": "discord-bot-token",
         }))
@@ -952,13 +952,13 @@ class TestScopedLocks:
         os.replace() hits FileNotFoundError (winner already claimed the stale
         file) and the winner's FRESH lock must survive: the loser must fall
         through to O_EXCL and lose, not clobber it like the old unlink() did."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         stale_record = {
             "pid": 99999,
             "start_time": 123,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }
         lock_path.write_text(json.dumps(stale_record))
         monkeypatch.setattr(status, "_pid_exists", lambda pid: False)
@@ -966,7 +966,7 @@ class TestScopedLocks:
         winner_record = {
             "pid": 424242,
             "start_time": 456,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "scope": "telegram-bot-token",
         }
         real_replace = os.replace
@@ -991,13 +991,13 @@ class TestScopedLocks:
 
 
     def test_acquire_scoped_lock_replaces_stale_record(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
             "pid": 99999,
             "start_time": 123,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }))
 
         # Post-#21561: simulate "PID gone" via _pid_exists returning False.
@@ -1012,7 +1012,7 @@ class TestScopedLocks:
 
 
     def test_release_all_scoped_locks_can_target_single_owner(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_dir = tmp_path / "locks"
         lock_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1021,12 +1021,12 @@ class TestScopedLocks:
         target_lock.write_text(json.dumps({
             "pid": 111,
             "start_time": 222,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }))
         other_lock.write_text(json.dumps({
             "pid": 999,
             "start_time": 333,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
         }))
 
         removed = release_all_scoped_locks(
@@ -1040,8 +1040,8 @@ class TestScopedLocks:
 
     def test_acquire_scoped_lock_stamps_profile_label(self, tmp_path, monkeypatch):
         """OOF-3: scoped locks are machine-global — record which profile owns them."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profiles" / "lead-gen-outreach"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "profiles" / "lead-gen-outreach"))
 
         acquired, _existing = status.acquire_scoped_lock(
             "telegram-bot-token", "secret", metadata={"platform": "telegram"}
@@ -1056,8 +1056,8 @@ class TestScopedLocks:
 
     def test_acquire_scoped_lock_omits_profile_when_not_inferable(self, tmp_path, monkeypatch):
         """No label for unrecognizable custom homes — field omitted, not null."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "some-custom-dir"))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "some-custom-dir"))
         monkeypatch.setattr(status, "_profile_label_for_home", lambda home: None)
 
         acquired, _ = status.acquire_scoped_lock("telegram-bot-token", "secret")
@@ -1084,11 +1084,11 @@ class TestScopedLockOwnerLabel:
         )
 
     def test_profile_label_for_root_home_is_default(self, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", "/opt/data")
+        monkeypatch.setenv("KOVA_HOME", "/opt/data")
         assert status._profile_label_for_home("/opt/data") == "default"
 
     def test_profile_label_for_unknown_layout_is_none(self, monkeypatch):
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         assert status._profile_label_for_home("/somewhere/else") is None
 
     def test_profile_label_rejects_invalid_directory_names(self, tmp_path):
@@ -1098,7 +1098,7 @@ class TestScopedLockOwnerLabel:
         assert status._profile_label_for_home(home) is None
 
     def test_owner_label_prefers_explicit_profile_field(self):
-        record = {"profile": "coder", "hermes_home": "/opt/data/profiles/other"}
+        record = {"profile": "coder", "kova_home": "/opt/data/profiles/other"}
         assert status.scoped_lock_owner_label(record) == "coder"
 
     def test_owner_label_rejects_malformed_profile_field(self):
@@ -1110,16 +1110,16 @@ class TestScopedLockOwnerLabel:
 
     def test_owner_label_ignores_invalid_profile_and_uses_home(self):
         # An invalid persisted profile string must not block the safe
-        # hermes_home fallback — attribution degrades, never corrupts.
+        # kova_home fallback — attribution degrades, never corrupts.
         record = {
             "profile": "bad; rm -rf /",
-            "hermes_home": "/opt/data/profiles/zerocool",
+            "kova_home": "/opt/data/profiles/zerocool",
         }
         assert status.scoped_lock_owner_label(record) == "zerocool"
 
-    def test_owner_label_falls_back_to_hermes_home(self):
+    def test_owner_label_falls_back_to_kova_home(self):
         # Locks written before the profile field existed still attribute.
-        record = {"pid": 559, "hermes_home": "/opt/data/profiles/zerocool"}
+        record = {"pid": 559, "kova_home": "/opt/data/profiles/zerocool"}
         assert status.scoped_lock_owner_label(record) == "zerocool"
 
     def test_owner_label_none_for_legacy_and_malformed_records(self):
@@ -1138,7 +1138,7 @@ class TestTakeoverMarker:
     """
 
     def test_write_marker_records_target_identity(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         ok = status.write_takeover_marker(target_pid=12345)
@@ -1166,7 +1166,7 @@ class TestTakeoverMarker:
         misclassified as an unexpected UNKNOWN exit. With start_time
         unavailable we fall back to PID equality alone, bounded by the TTL.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         # Simulate Windows: no start_time available for any PID.
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: None)
 
@@ -1181,24 +1181,24 @@ class TestTakeoverMarker:
         assert not (tmp_path / ".gateway-takeover.json").exists()
 
 
-    def test_write_marker_records_replacer_hermes_home(self, tmp_path, monkeypatch):
-        """The marker stamps the replacer's HERMES_HOME for cross-profile guard (#29092)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    def test_write_marker_records_replacer_kova_home(self, tmp_path, monkeypatch):
+        """The marker stamps the replacer's KOVA_HOME for cross-profile guard (#29092)."""
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         status.write_takeover_marker(target_pid=12345)
 
         payload = json.loads((tmp_path / ".gateway-takeover.json").read_text())
-        assert payload["replacer_hermes_home"] == str(tmp_path)
+        assert payload["replacer_kova_home"] == str(tmp_path)
 
     def test_consume_rejects_marker_from_different_profile(self, tmp_path, monkeypatch):
         """Regression (#29092): a marker written by a gateway under a DIFFERENT
-        HERMES_HOME must be rejected even when PID + start_time coincidentally
-        match — otherwise two profile services sharing a default ~/.hermes flap
+        KOVA_HOME must be rejected even when PID + start_time coincidentally
+        match — otherwise two profile services sharing a default ~/.kova flap
         each other in an infinite SIGTERM/Restart loop. The mismatched marker is
         left in place so the profile it was actually meant for can consume it.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         marker_path = tmp_path / ".gateway-takeover.json"
         from datetime import datetime, timezone
@@ -1208,7 +1208,7 @@ class TestTakeoverMarker:
             "target_pid": os.getpid(),
             "target_start_time": 100,
             "replacer_pid": 99999,
-            "replacer_hermes_home": str(tmp_path / "profiles" / "other"),
+            "replacer_kova_home": str(tmp_path / "profiles" / "other"),
             "written_at": datetime.now(UTC).isoformat(),
         }))
 
@@ -1218,12 +1218,12 @@ class TestTakeoverMarker:
         # Left in place for the correct profile, not griefed away.
         assert marker_path.exists()
 
-    def test_consume_accepts_legacy_marker_without_hermes_home(self, tmp_path, monkeypatch):
-        """Back-compat (#29092): markers written by older Hermes versions have no
-        ``replacer_hermes_home`` field; an absent field is treated as same-home so
+    def test_consume_accepts_legacy_marker_without_kova_home(self, tmp_path, monkeypatch):
+        """Back-compat (#29092): markers written by older Kova versions have no
+        ``replacer_kova_home`` field; an absent field is treated as same-home so
         single-profile setups and mixed old/new deployments keep working.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         marker_path = tmp_path / ".gateway-takeover.json"
         from datetime import datetime, timezone
@@ -1248,10 +1248,10 @@ class TestScopedLockTakeover:
         target_home.mkdir(parents=True, exist_ok=True)
         record = {
             "pid": pid,
-            "kind": "hermes-gateway",
+            "kind": "kova-gateway",
             "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
             "start_time": start_time,
-            "hermes_home": str(target_home),
+            "kova_home": str(target_home),
         }
         (target_home / "gateway.pid").write_text(json.dumps(record))
         return record
@@ -1262,7 +1262,7 @@ class TestScopedLockTakeover:
         replacer_home = tmp_path / "replacer"
         target_home = tmp_path / "target"
         replacer_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(replacer_home))
+        monkeypatch.setenv("KOVA_HOME", str(replacer_home))
         record = self._owner_record(target_home)
 
         alive = iter([True, True, False])
@@ -1283,8 +1283,8 @@ class TestScopedLockTakeover:
             marker_path = target_home / ".gateway-takeover.json"
             assert marker_path.exists()
             payload = json.loads(marker_path.read_text())
-            assert payload["target_hermes_home"] == str(target_home)
-            assert payload["replacer_hermes_home"] == str(replacer_home)
+            assert payload["target_kova_home"] == str(target_home)
+            assert payload["replacer_kova_home"] == str(replacer_home)
             calls.append((pid, force))
 
         monkeypatch.setattr(status, "terminate_pid", terminate)
@@ -1327,7 +1327,7 @@ class TestPlannedStopMarker:
     """Tests for intentional service/manual gateway stop markers."""
 
     def test_write_marker_records_target_identity(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         ok = status.write_planned_stop_marker(target_pid=12345)
@@ -1357,7 +1357,7 @@ class TestPlannedStopMarker:
         With start_time unavailable on BOTH sides we fall back to PID
         equality alone, bounded by the marker TTL.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         # Simulate Windows: no start_time available for any PID.
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: None)
 
@@ -1382,7 +1382,7 @@ class TestPlannedStopMarker:
         unavailable. When both sides report one (Linux), a mismatch must
         still reject — otherwise PID reuse could resurrect a stale marker.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         status.write_planned_stop_marker(target_pid=os.getpid())
 
@@ -1456,7 +1456,7 @@ class TestActiveAgentsTurnBoundaryWrite:
     not clobber it."""
 
     def test_active_agents_only_write_preserves_gateway_state(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         # Lifecycle transition sets running.
         status.write_runtime_status(gateway_state="running", active_agents=0)
@@ -1506,7 +1506,7 @@ class TestGatewayBusyDerivation:
 
 class TestRespawnStormBreaker:
     def test_no_storm_under_threshold(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         for _ in range(5):
             result = status.record_start_and_check_storm(
                 max_starts=5, window_s=120.0
@@ -1516,7 +1516,7 @@ class TestRespawnStormBreaker:
 
 class TestLaunchdPlistRespawnGovernance:
     def test_plist_has_throttle_interval(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         from kova_cli.gateway import generate_launchd_plist
 
         plist = generate_launchd_plist()
@@ -1535,7 +1535,7 @@ class TestLaunchdPlistRespawnGovernance:
         from gateway.restart import LAUNCHD_GUI_EXIT_TIMEOUT_CLAMP_S, LAUNCHD_STOP_CLEANUP_RESERVE_S
         from kova_cli.gateway import generate_launchd_plist
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         plist = generate_launchd_plist()
         m = re.search(r"<key>ExitTimeOut</key>\s*<integer>(\d+)</integer>", plist)
         assert m, plist
@@ -1546,7 +1546,7 @@ class TestLaunchdPlistRespawnGovernance:
 class TestPermissionErrorOnLockFile:
     @pytest.mark.platforms("linux")
     def test_inaccessible_lock_is_not_deleted_or_treated_as_absence(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         lock = tmp_path / "gateway.lock"
         lock.write_text("existing owner")
         # The owner is live (its gateway.pid names a running process). Without one, an unreadable
@@ -1567,7 +1567,7 @@ class TestPermissionErrorOnLockFile:
 
     @pytest.mark.platforms("linux")
     def test_runtime_lock_does_not_follow_symlink(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         target = tmp_path / "unrelated"
         target.write_text("unchanged")
         (tmp_path / "gateway.lock").symlink_to(target)
@@ -1625,7 +1625,7 @@ class TestRuntimeStatusUpdatedAtContract:
         string|null contract every emit surface relies on."""
         from datetime import datetime
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
         status.write_runtime_status(gateway_state="running")
 
@@ -1679,7 +1679,7 @@ class TestResolveGatewayLiveness:
         permissions error must not turn into a 500.
         """
         # Empty rendezvous dir: no host gateway owns the role, so the multiplexer rung stays quiet.
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path))
 
         def _boom(*a, **k):
             raise RuntimeError("probe exploded")
@@ -1701,7 +1701,7 @@ class TestResolveGatewayLiveness:
         """Gateway identity files live in the per-profile home.
 
         The status readers resolve process-level paths and deliberately
-        ignore the HERMES_HOME contextvar override (#56986), so the profile
+        ignore the KOVA_HOME contextvar override (#56986), so the profile
         directory must be threaded through explicitly or a scoped request
         silently reports a DIFFERENT profile's gateway (#71211).
         """
@@ -1771,7 +1771,7 @@ def test_strict_gateway_identity_raises_on_malformed_active_metadata(
 def test_strict_gateway_identity_rejects_reused_pid(tmp_path, monkeypatch):
     pid_path = tmp_path / "gateway.pid"
     lock_path = tmp_path / "gateway.lock"
-    record = {"pid": 123, "start_time": 10.0, "kind": "hermes-gateway"}
+    record = {"pid": 123, "start_time": 10.0, "kind": "kova-gateway"}
     pid_path.write_text(json.dumps(record), encoding="utf-8")
     lock_path.write_text(json.dumps(record), encoding="utf-8")
     monkeypatch.setattr(status, "_get_gateway_lock_path", lambda _path=None: lock_path)
@@ -1789,7 +1789,7 @@ def test_strict_gateway_identity_adopts_held_lock_when_pid_file_is_gone(tmp_path
     gateway.pid, and raising there aborted every following `hermes update` (#123430)."""
     pid_path = tmp_path / "gateway.pid"
     lock_path = tmp_path / "gateway.lock"
-    record = {"pid": 123, "start_time": 10.0, "kind": "hermes-gateway",
+    record = {"pid": 123, "start_time": 10.0, "kind": "kova-gateway",
               "argv": ["python", "-m", "kova_cli.main", "gateway", "run", "--replace"]}
     lock_path.write_text(json.dumps(record), encoding="utf-8")
     monkeypatch.setattr(status, "_get_gateway_lock_path", lambda _path=None: lock_path)
@@ -1812,9 +1812,9 @@ def test_pid_record_names_the_entry_point_under_an_inline_launcher(tmp_path, mon
     (#124029, #123151)."""
     import types
 
-    entry = types.SimpleNamespace(__file__="/opt/Hermes Agent/hermes-agent/kova_cli/main.py")
+    entry = types.SimpleNamespace(__file__="/opt/Kova Agent/kova-agent/kova_cli/main.py")
     monkeypatch.setitem(status.sys.modules, "kova_cli.main", entry)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(status.sys, "argv", ["-c", "gateway", "run"])
     record = status._build_pid_record()
     assert record["argv"] == [entry.__file__, "gateway", "run"]

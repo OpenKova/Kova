@@ -6,7 +6,7 @@ import path from 'node:path'
 import { z } from 'zod'
 
 import { parseSpawnLedger, SPAWN_LEDGER_FILENAME } from '../../apps/desktop/electron/backend-discovery.ts'
-import { resolveDesktopHermesHome } from '../../apps/desktop/electron/data-paths.mjs'
+import { resolveDesktopKovaHome } from '../../apps/desktop/electron/data-paths.mjs'
 import { within } from '../../tests/install/e2e-assets/smoke-env.mjs'
 
 export interface NativeProcess {
@@ -53,7 +53,7 @@ export function readInstallationCommit(root: string, origin: 'source' | 'bundled
   // The install drivers export their real git: a fresh-machine leg takes every
   // git off PATH so the product must provision its own, which this observer
   // must not depend on.
-  const git: string = process.env.HERMES_E2E_REAL_GIT || 'git'
+  const git: string = process.env.KOVA_E2E_REAL_GIT || 'git'
 
   const commit = origin === 'source' ? nativeText(git, ['-C', root, 'rev-parse', 'HEAD'])
     : z.object({ payload: z.literal('bundled'), commit: z.string() }).parse(
@@ -65,7 +65,7 @@ export function readInstallationCommit(root: string, origin: 'source' | 'bundled
 
 /** The file the HEAD -> NEXT legs' synthetic commit adds (installer-common.sh::resolve_update_ref,
  * windows-e2e.ps1::New-NextCommit). */
-const SYNTHETIC_NEXT_MARKER = '.hermes-e2e-next'
+const SYNTHETIC_NEXT_MARKER = '.kova-e2e-next'
 
 /** The commit a reused packaged app may still report for an installed source checkout.
  *
@@ -79,7 +79,7 @@ export function reusedDesktopBuildCommit(root: string, origin: 'source' | 'bundl
     return undefined
   }
 
-  const git: string = process.env.HERMES_E2E_REAL_GIT || 'git'
+  const git: string = process.env.KOVA_E2E_REAL_GIT || 'git'
   const parents = nativeText(git, ['-C', root, 'rev-list', '--parents', '-n', '1', installed]).split(/\s+/).slice(1)
 
   if (parents.length !== 1) {
@@ -94,7 +94,7 @@ export function reusedDesktopBuildCommit(root: string, origin: 'source' | 'bundl
 const bundleEnvSchema = z.record(z.string(), z.string().nullable())
 
 /** The baked runtime defaults/clears of a bundled artifact, recorded in the
- * install stamp so the smoke driver can predict the app's resolved Hermes home
+ * install stamp so the smoke driver can predict the app's resolved Kova home
  * without reimplementing the banner. Absent for artifacts built before the
  * stamp carried it, and for source checkpoints. */
 export function readBundledBundleEnv(root: string): Record<string, string | null> | undefined {
@@ -213,7 +213,7 @@ function processStartTime(pid: number): number | null {
 }
 
 const gatewayStateSchema = z.object({
-  pid: z.number().int().positive(), kind: z.literal('hermes-gateway'),
+  pid: z.number().int().positive(), kind: z.literal('kova-gateway'),
   gateway_state: z.string(), start_time: z.number().nullable().optional(),
   code_sha: z.string().nullable().optional(),
 }).passthrough()
@@ -273,9 +273,9 @@ export function localBackendProcess(port: number, electronPid: number, hermesHom
 
   if (hermesHome) {
     // The product writes one machine-root ledger for every profile, and the app
-    // reads it at its own resolved root (`main.ts` -> `spawnLedgerPath(HERMES_HOME)`,
+    // reads it at its own resolved root (`main.ts` -> `spawnLedgerPath(KOVA_HOME)`,
     // where a `<root>/profiles/<name>` home resolves to `<root>`).
-    const ledgerRoot = resolveDesktopHermesHome({ home: os.homedir(), env: { HERMES_HOME: hermesHome } })
+    const ledgerRoot = resolveDesktopKovaHome({ home: os.homedir(), env: { KOVA_HOME: hermesHome } })
     // A named profile is served by the root's multiplexer; a standalone one by its own gateway.
     gateways = canonicalGateways([hermesHome, ledgerRoot], processes)
 
@@ -331,13 +331,13 @@ export function localBackendProcess(port: number, electronPid: number, hermesHom
     backend.cwd = fs.readlinkSync(`/proc/${backend.pid}/cwd`)
     backend.command = fs.readFileSync(`/proc/${backend.pid}/cmdline`, 'utf8').split('\0').filter(Boolean).map((arg: string): string => JSON.stringify(arg)).join(' ')
     backend.sourceRoot = fs.readFileSync(`/proc/${backend.pid}/environ`, 'utf8').split('\0')
-      .find((entry: string): boolean => entry.startsWith('HERMES_PYTHON_SRC_ROOT='))?.slice('HERMES_PYTHON_SRC_ROOT='.length)
+      .find((entry: string): boolean => entry.startsWith('KOVA_PYTHON_SRC_ROOT='))?.slice('KOVA_PYTHON_SRC_ROOT='.length)
   } else if (process.platform === 'darwin') {
     backend.command = nativeText('ps', ['-p', String(backend.pid), '-o', 'args='])
     backend.cwd = nativeText('/usr/sbin/lsof', ['-a', '-p', String(backend.pid), '-d', 'cwd', '-Fn'])
       .split('\n').find((line: string): boolean => line.startsWith('n'))?.slice(1)
     const environment = nativeText('ps', ['eww', '-p', String(backend.pid), '-o', 'args='])
-    backend.sourceRoot = psEnvValue(environment, 'HERMES_PYTHON_SRC_ROOT')
+    backend.sourceRoot = psEnvValue(environment, 'KOVA_PYTHON_SRC_ROOT')
     backend.pythonPath = psEnvValue(environment, 'PYTHONPATH')
     backend.virtualEnv = psEnvValue(environment, 'VIRTUAL_ENV')
   }
@@ -414,7 +414,7 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
     if (backend.sourceRoot !== undefined) {
       if (!sameTree(backend.sourceRoot)) {
         throw new Error('Source backend listener imports a different source tree'
-          + ` (HERMES_PYTHON_SRC_ROOT=${backend.sourceRoot}, expected=${root}, command=${backend.command})`)
+          + ` (KOVA_PYTHON_SRC_ROOT=${backend.sourceRoot}, expected=${root}, command=${backend.command})`)
       }
 
       return
@@ -442,7 +442,7 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
 
     if (!sameTree(backend.cwd) && !namesInstallRoot && !usesInstallEnvironment && !appOwnsBackend) {
       throw new Error('Source backend listener imports a different source tree'
-        + ` (cwd=${backend.cwd ?? '(unreadable)'}, HERMES_PYTHON_SRC_ROOT=(unset),`
+        + ` (cwd=${backend.cwd ?? '(unreadable)'}, KOVA_PYTHON_SRC_ROOT=(unset),`
         + ` executable=${backend.executable}, expected=${root},`
         + ` appReportedRoot=${evidence.appReportedRoot ?? '(unreported)'}, command=${backend.command})`)
     }

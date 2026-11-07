@@ -32,7 +32,7 @@ _MARKER_NAME = ".tcc-anchor-source"
 
 _STORE_COMMON_MARKERS = ("cpython-", "-macos-")
 # Recognize both historical interpreter locations during upgrades.
-_STORE_ROOT_MARKERS = ("/uv/python/", "/.hermes-runtime/python/")
+_STORE_ROOT_MARKERS = ("/uv/python/", "/.kova-runtime/python/")
 
 _ALIAS_NAMES = ("python3", f"python3.{sys.version_info.minor}")
 _STORE_BIN_NAMES = (f"python3.{sys.version_info.minor}", "python3", "python")

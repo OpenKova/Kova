@@ -24,7 +24,7 @@ COMMANDS = {
     'pinned': ['sessions', 'pinned', '--json'],
 }
 EXPECTED = {
-    'insights': ['No sessions found in the last 30 days (source: tui).', 'Hermes Insights'],
+    'insights': ['No sessions found in the last 30 days (source: tui).', 'Kova Insights'],
     'list': ['No sessions found.', 'reader-fixture'],
     'stats': ['Total sessions: 0', 'Total sessions: 1'],
     'pinned': ['[]', 'reader-fixture'],
@@ -37,7 +37,7 @@ for (label, tree), (name, command), populated in itertools.product(TREES.items()
         home = Path(tmp) / 'profile'
         home.mkdir()
         env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ') if k in os.environ}
-        env.update(HOME=tmp, USERPROFILE=tmp, HERMES_HOME=str(home), PYTHONPATH=str(tree))
+        env.update(HOME=tmp, USERPROFILE=tmp, KOVA_HOME=str(home), PYTHONPATH=str(tree))
         def run(args):
             return subprocess.run([PYTHON, *args], cwd=tree, env=env, stdin=subprocess.DEVNULL,
                                   capture_output=True, text=True, timeout=45, check=False)

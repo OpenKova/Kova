@@ -44,13 +44,13 @@ def _runner_with_store(tmp_path, monkeypatch):
     from gateway.run import GatewayRunner
     from kova_cli.model_switch import ModelSwitchResult
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / "config.yaml").write_text(
         _yaml.safe_dump({"model": {"default": "old-model", "provider": "openrouter"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(gateway_run, "_hermes_home", hermes_home)
+    monkeypatch.setattr(gateway_run, "_kova_home", kova_home)
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
     monkeypatch.setattr(
         "kova_cli.model_switch.switch_model",
@@ -65,8 +65,8 @@ def _runner_with_store(tmp_path, monkeypatch):
             provider_label="OpenRouter",
         ),
     )
-    monkeypatch.setattr("kova_constants.get_hermes_home", lambda: hermes_home)
-    monkeypatch.setattr("kova_cli.config.get_hermes_home", lambda: hermes_home)
+    monkeypatch.setattr("kova_constants.get_kova_home", lambda: kova_home)
+    monkeypatch.setattr("kova_cli.config.get_kova_home", lambda: kova_home)
     # No expensive-model confirmation detour.
     monkeypatch.setattr(
         "kova_cli.model_cost_guard.expensive_model_warning",

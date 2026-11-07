@@ -174,7 +174,7 @@ class TestDiscoverAllPlugins:
         self, mock_user_dir, mock_bundled_dir, tmp_path
     ):
         """The model-providers skip only applies to *bundled* — a user plugin
-        at ``~/.hermes/plugins/model-providers/<x>/`` is still discovered so
+        at ``~/.kova/plugins/model-providers/<x>/`` is still discovered so
         ``hermes plugins list`` shows what the user installed."""
         from kova_cli.plugins_cmd import _discover_all_plugins
 

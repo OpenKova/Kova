@@ -10,17 +10,17 @@ import pytest
 import kova_yaml as yaml
 
 from kova_cli import skin_cmd
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def _skins():
-    d = get_hermes_home() / "skins"
+    d = get_kova_home() / "skins"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
 
 def _activate(name: str) -> None:
-    (get_hermes_home() / "config.yaml").write_text(f"display:\n  skin: {name}\n", encoding="utf-8")
+    (get_kova_home() / "config.yaml").write_text(f"display:\n  skin: {name}\n", encoding="utf-8")
 
 
 def test_set_edits_active_user_skin_in_place_preserving_everything_else():
@@ -52,7 +52,7 @@ def test_set_forks_a_builtin_without_inventing_a_background():
     assert "background" not in data["colors"]
     # full palette carried over, and it became active.
     assert data["colors"].get("banner_title")
-    assert (get_hermes_home() / "config.yaml").read_text().find("default-custom") != -1
+    assert (get_kova_home() / "config.yaml").read_text().find("default-custom") != -1
 
 
 def test_set_rejects_non_hex():

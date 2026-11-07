@@ -25,7 +25,7 @@ let unmount = () => {}
 
 beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'backtrack-image-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('KOVA_HOME', home)
   resetUiState()
   resetOverlayState()
   patchUiState({ sid: 'A' })

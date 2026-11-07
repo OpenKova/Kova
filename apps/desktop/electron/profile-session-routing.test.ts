@@ -902,7 +902,7 @@ test('registry sources: ssh backends use the shared cross-profile aggregate', as
   )
 
   assert.equal(calls.length, 1)
-  // One warm SSH backend serves the shared remote HERMES_HOME.
+  // One warm SSH backend serves the shared remote KOVA_HOME.
   assert.equal(calls[0].descriptor, 'spark-desc')
   assert.ok(calls[0].path.startsWith('/api/profiles/sessions?') && calls[0].path.includes('profile=all'))
   // Hidden Bot Mode chats must stay hidden — include_hidden is never requested.
@@ -1836,7 +1836,7 @@ test('all-profiles cron list merges one read per profile like the gateway', asyn
 test('the primary aggregate names this device only for a local backend', async () => {
   assert.equal(await primaryAggregateConnectionId(async () => ({ connectionId: 'butler', mode: 'remote' })), 'butler')
   assert.equal(await primaryAggregateConnectionId(async () => ({ mode: 'local' })), 'local')
-  // HERMES_DESKTOP_REMOTE_URL: remote with no registry id. Its rows are not This device's.
+  // KOVA_DESKTOP_REMOTE_URL: remote with no registry id. Its rows are not This device's.
   assert.equal(await primaryAggregateConnectionId(async () => ({ mode: 'remote' })), null)
   assert.equal(await primaryAggregateConnectionId(async () => null), null)
   assert.equal(

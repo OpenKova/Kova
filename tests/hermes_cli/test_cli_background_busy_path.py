@@ -23,10 +23,10 @@ from __future__ import annotations
 
 
 def _make_cli():
-    """Bare HermesCLI (no __init__): the detector only reads _agent_running."""
-    from cli import HermesCLI
+    """Bare KovaCLI (no __init__): the detector only reads _agent_running."""
+    from cli import KovaCLI
 
-    return HermesCLI.__new__(HermesCLI)
+    return KovaCLI.__new__(KovaCLI)
 
 
 class TestBackgroundInlineDetector:

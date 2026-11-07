@@ -1,7 +1,7 @@
 """Tests for kova_cli.foreign_sessions — Claude Code / Codex CLI import.
 
 Fixture JSONL is synthesized inline (tmp_path); imports reach a gateway owner over a temp
-state.db, so nothing touches the real HERMES_HOME store.
+state.db, so nothing touches the real KOVA_HOME store.
 """
 
 import asyncio

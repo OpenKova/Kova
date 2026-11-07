@@ -1,7 +1,7 @@
 import { randomUuid } from '@kova/shared'
 import { atom } from 'nanostores'
 
-import type { HermesStagedUpload } from '@/global'
+import type { KovaStagedUpload } from '@/global'
 import { deriveDraftTitle } from '@/lib/draft-title'
 import { triggerHaptic } from '@/lib/haptics'
 import { persistString, storedString } from '@/lib/storage'
@@ -87,10 +87,10 @@ export interface ComposerAttachment {
   thumbnailUrl?: string
   path?: string
   /** Ownership of browser-staged bytes; survives failed uploads and draft clones. */
-  stagedUpload?: HermesStagedUpload
+  stagedUpload?: KovaStagedUpload
   /** Validated MIME returned by canonical owner staging. */
   mime?: string
-  /** Bounded source text from a Hermes-generated large paste, sent only to the title path. */
+  /** Bounded source text from a Kova-generated large paste, sent only to the title path. */
   titlePreview?: string
   attachedSessionId?: string
   /** Set while the file/image bytes are being staged into the session

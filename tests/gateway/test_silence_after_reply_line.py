@@ -61,7 +61,7 @@ async def _run(monkeypatch, tmp_path, *, queued_reply_expected=None, queued=Fals
     monkeypatch.setitem(_ACTIVE_ADAPTER, "adapter", adapter)
     runner = _make_runner(adapter)
     gateway_run = importlib.import_module("gateway.run")
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     monkeypatch.setattr(gateway_run, "_resolve_runtime_agent_kwargs", lambda: {"api_key": "***"})
     session_key = "agent:main:telegram:dm:dm-1"
     if queued:

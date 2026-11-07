@@ -421,7 +421,7 @@ describe('shared WebGL atlas refresh fan-out', () => {
     // The store subscribes to the main process's powerMonitor broadcast at
     // import time (same pattern as store/power.ts), so the mock must exist
     // before the module loads.
-    window.hermesDesktop = {
+    window.kovaDesktop = {
       onPowerResume: vi.fn((callback: () => void) => {
         powerResumed = callback
 

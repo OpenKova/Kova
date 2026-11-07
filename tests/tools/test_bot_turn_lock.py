@@ -147,9 +147,9 @@ def test_turn_wait_seconds_reads_config(monkeypatch):
 
 def test_peer_stdin_delivery_skips_local_lock(root, tmp_path, monkeypatch):
     """Peer transports run their turn on the remote gateway — no local lock."""
-    home = root / ".hermes"
+    home = root / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     dm = tmp_path / "dm.txt"
     dm.write_text("hi", encoding="utf-8")
 

@@ -204,7 +204,7 @@ async function sweepOnce(requireLoaded = true): Promise<void> {
     return
   }
 
-  if (typeof window === 'undefined' || !window.hermesDesktop) {
+  if (typeof window === 'undefined' || !window.kovaDesktop) {
     return
   }
 

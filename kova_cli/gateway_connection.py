@@ -1,6 +1,6 @@
 """One gateway connection per classic-CLI process (CALLMAP §3.1, §4).
 
-A daemon thread owns an asyncio loop and one ``GatewayClient``. It never calls a HermesCLI
+A daemon thread owns an asyncio loop and one ``GatewayClient``. It never calls a KovaCLI
 method and never blocks: every event frame goes into a thread-safe ``queue.Queue`` that the
 agent thread drains (``GatewayAgent.run_conversation``), and ``session.info``-class frames
 also update the plain-attribute ``SessionState`` caches the status bar reads.
@@ -231,7 +231,7 @@ class GatewayConnection:
                         self._error = None
                         self._ready.clear()
                         self.closed = False
-                    thread = self._thread = spawn_context_thread(self._run, name="hermes-gateway-loop")
+                    thread = self._thread = spawn_context_thread(self._run, name="kova-gateway-loop")
                     thread.start()
             # Every caller waits out a dial in progress, its own or another thread's.
             if not self._ready.wait(max(deadline - time.monotonic(), 0)):
@@ -436,7 +436,7 @@ class GatewayConnection:
         answer, sent = concurrent.futures.Future(), threading.Event()
         answer.add_done_callback(lambda _done: wake.set())
         thread = spawn_context_thread(lambda: asyncio.run(self._command(method, params, wake, answer, sent)),
-                                      name="hermes-gateway-command")
+                                      name="kova-gateway-command")
         with self._side_lock:
             self._commands.add(wake)
         thread.start()

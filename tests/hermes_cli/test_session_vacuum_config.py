@@ -21,7 +21,7 @@ def test_explicit_auto_prune_false_is_respected(monkeypatch, tmp_path: Path):
         "load_config",
         lambda: {"sessions": {"auto_prune": False, "retention_days": 90}},
     )
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
 
     cli._run_state_db_auto_maintenance(session_db)
 
@@ -50,7 +50,7 @@ def test_negative_retention_days_in_config_deletes_nothing(monkeypatch, tmp_path
             "load_config",
             lambda: {"sessions": {"auto_prune": True, "retention_days": -1}},
         )
-        monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
 
         cli._run_state_db_auto_maintenance(session_db)
 
@@ -79,7 +79,7 @@ def test_cli_auto_maintenance_forwards_vacuum_interval(monkeypatch, tmp_path: Pa
             }
         },
     )
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
 
     cli._run_state_db_auto_maintenance(session_db)
 

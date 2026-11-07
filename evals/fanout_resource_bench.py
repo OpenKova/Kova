@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fan-out resource benchmark for hermes-agent.
+"""Fan-out resource benchmark for kova-agent.
 
 Spawns N in-process child AIAgents via the REAL delegate_task code path
 (tools.delegate_tool.delegate_task) against a local fake OpenAI server, with
@@ -139,12 +139,12 @@ def main() -> None:
 
     _REPLY_KB[0] = a.reply_kb
     home = tempfile.mkdtemp(prefix="hermes_bench_home_")
-    os.environ["HERMES_HOME"] = home
+    os.environ["KOVA_HOME"] = home
     os.environ["TERMINAL_ENV"] = "local"
     os.environ.pop("OPENROUTER_API_KEY", None)
     sys.path.insert(0, a.repo)
     os.chdir(a.repo)
-    pyright = shutil.which("pyright-langserver", path=os.path.expanduser("~/.hermes/lsp/bin") + os.pathsep + os.environ.get("PATH", ""))
+    pyright = shutil.which("pyright-langserver", path=os.path.expanduser("~/.kova/lsp/bin") + os.pathsep + os.environ.get("PATH", ""))
     with open(os.path.join(home, "config.yaml"), "w", encoding="utf-8") as f:
         f.write("lsp:\n  enabled: true\n  wait_timeout: 5.0\n  install_strategy: manual\n")
         if pyright:

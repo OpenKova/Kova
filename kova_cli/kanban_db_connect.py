@@ -52,7 +52,7 @@ def _resolve_busy_timeout_ms() -> int:
     shared cross-profile dispatch bus, so worker stampedes are expected; a
     long timeout lets WAL serialize writers instead of surfacing transient
     ``database is locked`` failures."""
-    return _kb._env_int("HERMES_KANBAN_BUSY_TIMEOUT_MS", DEFAULT_BUSY_TIMEOUT_MS, minimum=1)
+    return _kb._env_int("KOVA_KANBAN_BUSY_TIMEOUT_MS", DEFAULT_BUSY_TIMEOUT_MS, minimum=1)
 
 
 def _sqlite_connect(path: Path) -> sqlite3.Connection:
@@ -669,7 +669,7 @@ def _refuse_dead_board_resurrection(path: Path, board: Optional[str]) -> None:
 
     ``board=None`` (or ``default``) is unaffected — except that a None board
     can still *resolve* through the current-board context (``--board`` scope,
-    ``HERMES_KANBAN_BOARD``, the ``current`` file) to a named board dir; an
+    ``KOVA_KANBAN_BOARD``, the ``current`` file) to a named board dir; an
     ``archived`` tombstone in that dir gets the same refusal. For any other
     slug whose DB file does not exist yet, opening it would mkdir the board
     directory and leave an empty DB-only stub — exactly how archived boards
@@ -717,7 +717,7 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
     every connection so a re-created file stays robust; the first connection
     per path auto-runs :func:`init_db`, later ones skip via
     ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
-    :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
+    :func:`kanban_db_path` (``KOVA_KANBAN_DB`` -> ``KOVA_KANBAN_BOARD`` ->
     ``<root>/kanban/current`` -> ``default``)."""
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     from agent.delegation_context import kanban_path_is_fenced
@@ -817,7 +817,7 @@ def init_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> P
 
 
 # Nullable/defaulted columns of the v1 ``tasks`` CREATE TABLE that external
-# harnesses seeding a board with a reduced schema have omitted. Hermes's own
+# harnesses seeding a board with a reduced schema have omitted. Kova's own
 # DBs always carry them, so this is a no-op there; without it a board that
 # also has ``task_runs`` fails every ``connect()`` inside
 # ``_backfill_legacy_inflight_runs`` ("no such column: claim_lock") — before

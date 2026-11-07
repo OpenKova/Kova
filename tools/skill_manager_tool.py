@@ -2,7 +2,7 @@
 """Skill Manager Tool — agent-managed skill creation & editing.
 
 Skills are the agent's procedural memory (narrow "how to do X"; MEMORY.md/USER.md are
-broad, declarative). New skills land in ~/.hermes/skills/ (or ``skills.create_dir``);
+broad, declarative). New skills land in ~/.kova/skills/ (or ``skills.create_dir``);
 existing skills (bundled, hub, user) are modified in place. Layout:
 ``<skills>/[category/]<skill>/SKILL.md`` + optional ``references/ templates/ scripts/ assets/``.
 """
@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import kova_yaml as yaml
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_write_text, is_truthy_value
 from kova_cli.config import cfg_get
 from agent.skill_utils import (
@@ -64,21 +64,21 @@ def _security_scan_skill(skill_dir: Path) -> Optional[str]:
     return None
 
 
-# All skills live in ~/.hermes/skills/ (single source of truth)
-HERMES_HOME = get_hermes_home()
-SKILLS_DIR = HERMES_HOME / "skills"
+# All skills live in ~/.kova/skills/ (single source of truth)
+KOVA_HOME = get_kova_home()
+SKILLS_DIR = KOVA_HOME / "skills"
 _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time (multi-profile runtimes rebind per session).
-    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live HERMES_HOME.
+    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live KOVA_HOME.
 
     Long-lived multi-profile runtimes (Dashboard/TUI/Desktop backend, cron, kanban workers) import this
-    module once under the launch HERMES_HOME and later bind a different profile per session (#40677).
+    module once under the launch KOVA_HOME and later bind a different profile per session (#40677).
     """
     configured = Path(SKILLS_DIR)
-    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
+    return configured if configured != _SKILLS_DIR_AT_IMPORT else get_kova_home() / "skills"
 
 
 def _skill_lock_path(name: str) -> Path:
@@ -310,8 +310,8 @@ def _find_skill_in_other_profiles(name: str) -> list[tuple[str, Path]]:
     error can explain a wrong-profile mistake). Fail-quiet."""
     matches: list[tuple[str, Path]] = []
     try:
-        from kova_constants import get_default_hermes_root
-        root = get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        root = get_default_kova_root()
     except Exception:
         return matches
     _active = _skills_dir()
@@ -416,8 +416,8 @@ def _guarded_write(name: str, skill_dir: Path, target: Path, action: str, label:
         original = target.read_text(encoding="utf-8-sig")
     if target == skill_dir / "SKILL.md" and (err := _description_budget_error(content, before=original)):
         return _err(err)
-    from kova_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(target.parent)
+    from kova_constants import mkdir_under_kova_home
+    mkdir_under_kova_home(target.parent)
     atomic_write_text(target, content, preserve_mode=True, create_mode=0o644)
     scan_error = _security_scan_skill(skill_dir)
     if not scan_error:
@@ -456,7 +456,7 @@ def _attach_lint_findings(result: dict[str, Any], skill_md: Path, before: Option
         {"severity": f.severity, "rule": f.rule, "message": f.message} for f in findings]
     result["lint_hint"] = (
         "The write succeeded. These are advisory authoring-convention findings (not blockers) "
-        "— fix them with skill_manage(action='patch') to match Hermes skill standards.")
+        "— fix them with skill_manage(action='patch') to match Kova skill standards.")
 
 
 def _clip(text: str, n: int, ellipsis: str) -> str:
@@ -472,8 +472,8 @@ def _create_skill(name: str, content: str, category: str | None = None) -> dict[
     if existing := _find_skill(name):
         return _err(f"A skill named '{name}' already exists at {existing['path']}.")
     skill_dir = _resolve_skill_dir(name, category)
-    from kova_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(skill_dir.parent)
+    from kova_constants import mkdir_under_kova_home
+    mkdir_under_kova_home(skill_dir.parent)
     try:
         skill_dir.mkdir(exist_ok=False)
     except FileExistsError:
@@ -766,7 +766,7 @@ def _record_success(action, name, result, *, file_path, absorbed_into, task_id,
     with suppress(Exception):
         from tools.skill_usage import bump_patch, forget, record_created
         # During the curator consolidation pass, a verified consolidation must be RECOVERABLE: archival into
-        # ~/.hermes/skills/.archive/ is documented as the maximum destructive action the curator may take,
+        # ~/.kova/skills/.archive/ is documented as the maximum destructive action the curator may take,
         # and `hermes curator restore` promises the skill can be brought back. Route through the recoverable
         # archive primitive instead of permanent rmtree so a misjudged consolidation can be undone (#29912).
         # Foreground, user-directed deletes keep their existing hard-delete semantics.

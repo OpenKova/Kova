@@ -8,8 +8,8 @@ break an update (every public entry point is exception-swallowing):
 
 1. **Update receipt** — a machine-readable JSON record of what one
    ``hermes update`` run discovered, did, skipped (and why), written to
-   the ROOT home's ``logs/update_receipts/`` (``get_default_hermes_root()``,
-   never a sticky profile's ``HERMES_HOME``). Silent-failure classes this
+   the ROOT home's ``logs/update_receipts/`` (``get_default_kova_root()``,
+   never a sticky profile's ``KOVA_HOME``). Silent-failure classes this
    makes visible: #88848 (helper died after "success" printed), #74973
    (restart silently skipped), #85753 (restart phase never ran), #81193
    (desktop shows failure for a successful update).
@@ -135,10 +135,10 @@ def _str_records(entries: Any, keys: tuple[str, ...], *, pid: bool = False) -> l
 def _launcher_correlation_id() -> Optional[str]:
     """Correlation id handed in by an external launcher, or None.
 
-    Desktop's managed SSH update exports ``HERMES_UPDATE_CORRELATION_ID`` and
+    Desktop's managed SSH update exports ``KOVA_UPDATE_CORRELATION_ID`` and
     only accepts a receipt whose ``correlation_id`` equals it. This is separate
     from ``update_id``, which stays the CLI's own id for pm sync receipts."""
-    return os.environ.get("HERMES_UPDATE_CORRELATION_ID", "").strip() or None
+    return os.environ.get("KOVA_UPDATE_CORRELATION_ID", "").strip() or None
 
 
 class UpdateReceipt:
@@ -159,7 +159,7 @@ class UpdateReceipt:
         self.data["correlation_id"] = _launcher_correlation_id()
         # The dashboard action that spawned this run: the receipt store is root-wide, so the
         # action-status route certifies an outcome only from a receipt naming ITS action.
-        self.data["action_id"] = os.environ.get("HERMES_ACTION_ID", "").strip() or None
+        self.data["action_id"] = os.environ.get("KOVA_ACTION_ID", "").strip() or None
 
     def step(self, name: str, ok: bool, detail: str = "") -> None:
         self.data["steps"].append({"name": name, "ok": bool(ok), "detail": detail, "at": _utc_now_iso()})
@@ -231,19 +231,19 @@ def _receipt_dir() -> Path:
     # writable from the refused/failed paths where config loading itself may be what broke
     # (#112465, #112558). The ROOT home, never a sticky profile's: an update mutates the
     # checkout every profile shares, and the Desktop and the hand-off scripts read the root.
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    return get_default_hermes_root() / "logs" / "update_receipts"
+    return get_default_kova_root() / "logs" / "update_receipts"
 
 
 def _receipt_dirs() -> list[Path]:
     """The root store, then the profile's own when a named profile makes them differ. ``pm/``
-    writes its sync receipts to ``get_hermes_home()`` and receipts from before the root move live
+    writes its sync receipts to ``get_kova_home()`` and receipts from before the root move live
     there too, so readers take both and writers mirror ``latest.json`` into it (``hermes -p <name>
     pm status`` reads only that one)."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    root, profile = _receipt_dir(), get_hermes_home() / "logs" / "update_receipts"
+    root, profile = _receipt_dir(), get_kova_home() / "logs" / "update_receipts"
     return [root] if profile.resolve() == root.resolve() else [root, profile]
 
 
@@ -537,7 +537,7 @@ _GIT_FILE_PERMISSION = re.compile(r"Permission denied(?! *\()|\bEACCES\b")
 def git_error_stop_class(exc: BaseException) -> Optional[str]:
     """The closed stop token for a git ``CalledProcessError`` that is about to end the run, or None.
 
-    Reads only the failed argv and fixed git/Hermes phrases in its output, never stores either.
+    Reads only the failed argv and fixed git/Kova phrases in its output, never stores either.
     """
     if not isinstance(exc, subprocess.CalledProcessError):
         return None
@@ -573,7 +573,7 @@ def _started_by_handoff_partner() -> str | None:
     ours" (update_cmd._record_update_initiator, which runs under the lock) would call every
     refusal Desktop-started. The claim is ours only when it names us as its delegate (the posix and
     Windows hand-offs write that line before the update runs) or names our hand-off partner on
-    line 1 or the delegate line (``HERMES_UPDATE_HANDOFF_PID``, the Tauri updater; our parent, a
+    line 1 or the delegate line (``KOVA_UPDATE_HANDOFF_PID``, the Tauri updater; our parent, a
     launcher between the hand-off and us). The marker is read raw: no liveness probe and no
     cleanup (those are lock policy, not a metrics side effect).
     """
@@ -733,7 +733,7 @@ def _collection_enabled_now() -> Optional[bool]:
 
 
 #: The leading label of a stop reason the parked copy may keep, exactly what the classifier reads:
-#: an exception type name (plus its errno token) or one of the fixed phrases Hermes writes
+#: an exception type name (plus its errno token) or one of the fixed phrases Kova writes
 #: (shared_metrics_update._STOP_REASON_PREFIX_CLASSES); never the message after it.
 _PARKED_REASON_LABEL = re.compile(
     r"(?:[A-Z][A-Za-z0-9_]{0,63}:(?: \[(?:Errno|WinError) \d+\])?"
@@ -804,10 +804,10 @@ def _bare_collection_enabled() -> Optional[bool]:
     enabled = _collection_enabled_now()
     if enabled is not None:
         return enabled
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     try:
-        (get_hermes_home() / "config.yaml").stat()  # config-reader: ok — bare interpreter has no config stack; presence probe only
+        (get_kova_home() / "config.yaml").stat()  # config-reader: ok — bare interpreter has no config stack; presence probe only
     except FileNotFoundError:
         return False
     except OSError:
@@ -816,13 +816,13 @@ def _bare_collection_enabled() -> Optional[bool]:
 
 
 def _park_metric_receipt(data: dict[str, Any], enabled: Optional[bool]) -> None:
-    """Keep the bounded fields for the next Hermes start (stdlib only): ``report_pending_updates``
+    """Keep the bounded fields for the next Kova start (stdlib only): ``report_pending_updates``
     records them when collection is on, ``begin_process`` purges them when it is off. Collection
     known off: park nothing and purge what an earlier run parked."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.runtime_state import _atomic_bytes
 
-    pending = get_hermes_home() / "telemetry" / "shared_metrics" / "pending_updates"  # = PENDING_DIRNAME
+    pending = get_kova_home() / "telemetry" / "shared_metrics" / "pending_updates"  # = PENDING_DIRNAME
     if enabled is False:
         import shutil
 
@@ -1014,10 +1014,10 @@ def read_receipt_for_action(action_id: str) -> Optional[dict[str, Any]]:
 
 def _profile_homes() -> list[tuple[str, Path]]:
     """``(profile, home)`` for the default home plus every valid named profile dir, sorted."""
-    from kova_cli.profiles import _get_default_hermes_home, _get_profiles_root, _PROFILE_ID_RE
+    from kova_cli.profiles import _get_default_kova_home, _get_profiles_root, _PROFILE_ID_RE
 
     homes: list[tuple[str, Path]] = []
-    default_home = _get_default_hermes_home()
+    default_home = _get_default_kova_home()
     if default_home.is_dir():
         homes.append(("default", default_home))
     root = _get_profiles_root()
@@ -1052,7 +1052,7 @@ _CODE_ROOT_MAX_DEPTH = 8
 
 
 def _code_root_for_path(raw: Any) -> Optional[Path]:
-    """Return the Hermes checkout containing an absolute process path."""
+    """Return the Kova checkout containing an absolute process path."""
     if not isinstance(raw, str) or not raw:
         return None
     with suppress(Exception):

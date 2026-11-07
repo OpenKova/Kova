@@ -33,7 +33,7 @@ def _load_prefill_messages(file_path: str, base_dir: Path | None = None) -> list
         return []
     path = Path(file_path).expanduser()
     if not path.is_absolute():
-        path = (base_dir or _cli()._hermes_home) / path
+        path = (base_dir or _cli()._kova_home) / path
     if not path.exists():
         logger.warning("Prefill messages file not found: %s", path)
         return []
@@ -54,7 +54,7 @@ def _resolve_prefill_messages_file(config: dict[str, Any]) -> str:
     from agent.session_client_env import session_env
     agent_cfg = config.get("agent", {})
     return (
-        session_env("HERMES_PREFILL_MESSAGES_FILE").strip()
+        session_env("KOVA_PREFILL_MESSAGES_FILE").strip()
         or str(config.get("prefill_messages_file", "") or "").strip()
         or (str(agent_cfg.get("prefill_messages_file", "") or "").strip() if isinstance(agent_cfg, dict) else "")
     )
@@ -139,7 +139,7 @@ def _mirror_config_to_env(defaults, _file_has_terminal_config):
 
     # TERMINAL_CWD is force-exported (beats stale .env) except inside a gateway process,
     # whose config bridge already set it. Ask whether THIS process imported gateway.run:
-    # its _HERMES_GATEWAY env marker is inherited by every shell the gateway's terminal
+    # its _KOVA_GATEWAY env marker is inherited by every shell the gateway's terminal
     # tool spawns, so a `hermes chat` launched there would keep the gateway's directory.
     _is_gateway = "gateway.run" in sys.modules
     for config_key, env_var in _TERMINAL_ENV_MAPPINGS.items():
@@ -171,13 +171,13 @@ def _mirror_config_to_env(defaults, _file_has_terminal_config):
     if isinstance(security_config, dict):
         redact = security_config.get("redact_secrets")
         if redact is not None:
-            os.environ["HERMES_REDACT_SECRETS"] = str(redact).lower()
+            os.environ["KOVA_REDACT_SECRETS"] = str(redact).lower()
 
     # Session-search index knobs (kova_state reads the env carriers).
     sessions_config = defaults.get("sessions", {})
     if isinstance(sessions_config, dict):
         if "search_slow_ms" in sessions_config:
-            os.environ["HERMES_SEARCH_SLOW_MS"] = str(sessions_config["search_slow_ms"])
+            os.environ["KOVA_SEARCH_SLOW_MS"] = str(sessions_config["search_slow_ms"])
 
 
 def _cli_config_defaults():
@@ -228,7 +228,7 @@ def _merge_file_config(defaults: dict[str, Any], file_config: dict[str, Any]) ->
             defaults["model"]["default"] = file_config["model"]
         elif isinstance(file_config["model"], dict):
             defaults["model"].update(file_config["model"])
-            # Promote model.model -> model.default (HermesCLI checks "default" first).
+            # Promote model.model -> model.default (KovaCLI checks "default" first).
             if "model" in file_config["model"] and "default" not in file_config["model"]:
                 defaults["model"]["default"] = file_config["model"]["model"]
 
@@ -254,20 +254,20 @@ def _merge_file_config(defaults: dict[str, Any], file_config: dict[str, Any]) ->
 
 
 def load_cli_config() -> dict[str, Any]:
-    """~/.hermes/config.yaml over built-in defaults; env vars win.
+    """~/.kova/config.yaml over built-in defaults; env vars win.
 
-    ``HERMES_IGNORE_USER_CONFIG=1`` skips the user config entirely (``.env`` still loads).
+    ``KOVA_IGNORE_USER_CONFIG=1`` skips the user config entirely (``.env`` still loads).
     """
-    from cli import _cli_config_defaults, _hermes_home, _merge_file_config, _mirror_config_to_env
+    from cli import _cli_config_defaults, _kova_home, _merge_file_config, _mirror_config_to_env
     from kova_cli.config_backend import config_exists, read_config_doc
-    config_path = _hermes_home / 'config.yaml'
+    config_path = _kova_home / 'config.yaml'
 
     defaults = _cli_config_defaults()
 
     # Only a file's terminal section may overwrite terminal env vars already set by .env.
     _file_has_terminal_config = False
 
-    if os.environ.get("HERMES_IGNORE_USER_CONFIG") != "1" and config_exists(config_path):
+    if os.environ.get("KOVA_IGNORE_USER_CONFIG") != "1" and config_exists(config_path):
         try:
             from kova_cli.config import _normalize_root_model_keys
 

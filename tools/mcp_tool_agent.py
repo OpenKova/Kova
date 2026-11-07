@@ -233,8 +233,8 @@ def persist_agent_tool_names(agent) -> None:
 
 
 def _pinned_snapshot_key(session_id) -> tuple:
-    from kova_constants import hermes_home_key
-    return hermes_home_key(), str(session_id)
+    from kova_constants import kova_home_key
+    return kova_home_key(), str(session_id)
 
 
 def _record_pinned_snapshot(agent, session_id) -> None:

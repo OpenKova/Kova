@@ -10,7 +10,7 @@
 // (`kova_cli/process_identity.py::register_self`, called from
 // `web_server.py` with `detail={host, port, profile}`), and an ungated
 // loopback backend serves its session token at `GET /`
-// (`window.__HERMES_SESSION_TOKEN__`, `web_server_dashboard.py`). The ledger is
+// (`window.__KOVA_SESSION_TOKEN__`, `web_server_dashboard.py`). The ledger is
 // DISCOVERY ONLY — a record is never trusted as proof of a usable backend; the
 // HTTP probe and the token handshake are the boundary that validates it.
 //
@@ -29,7 +29,7 @@ export interface HostBackendRecord {
   registeredAt: number
 }
 
-/** Filename the CLI writes under the machine Hermes root. */
+/** Filename the CLI writes under the machine Kova root. */
 export const SPAWN_LEDGER_FILENAME = 'spawn-ledger.json'
 
 /** Ledger purposes that denote a JSON-RPC/WebSocket backend we can attach to. */

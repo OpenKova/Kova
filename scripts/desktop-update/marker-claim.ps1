@@ -62,8 +62,8 @@ function Invoke-MarkerAdoptRun($Read, [int]$Desktop, [string]$Run) {
 # it spawned (its cmd.exe wrapper) instead of itself. It is adopted iff it does
 # not name the Desktop and
 #   the named pid is alive: it is our parent AND (its parent is the Desktop OR
-#                           line 2 == HERMES_UPDATE_STARTED_AT);
-#   the named pid is gone:  line 2 == HERMES_UPDATE_STARTED_AT (`start /b`
+#                           line 2 == KOVA_UPDATE_STARTED_AT);
+#   the named pid is gone:  line 2 == KOVA_UPDATE_STARTED_AT (`start /b`
 #                           wrappers exit at once).
 function Test-MarkerLauncherRule($Facts) {
     if (-not $Facts.V1 -or $Facts.NamesDesktop) { return $false }
@@ -72,8 +72,8 @@ function Test-MarkerLauncherRule($Facts) {
 }
 
 function Test-MarkerEnvStartedAt([string]$Line2) {
-    # HERMES_UPDATE_STARTED_AT is plain ASCII digits (no sign, no spaces) of line 2's value.
-    $e = [string]$env:HERMES_UPDATE_STARTED_AT
+    # KOVA_UPDATE_STARTED_AT is plain ASCII digits (no sign, no spaces) of line 2's value.
+    $e = [string]$env:KOVA_UPDATE_STARTED_AT
     if ($e -cnotmatch '\A[0-9]+\z' -or $Line2 -cnotmatch '\A[0-9]+\z') { return $false }
     $e = $e.TrimStart('0'); $want = $Line2.TrimStart('0')
     return $e -ceq $want
@@ -140,7 +140,7 @@ function Invoke-MarkerClaim {
     $script:ResultRunId = if ($HandoffRun) { $HandoffRun } else { [Guid]::NewGuid().ToString("N") }
     $epoch = Get-UnixNow
     $startedAt = 0L
-    $hasStartedAt = [int64]::TryParse($env:HERMES_UPDATE_STARTED_AT, [ref]$startedAt)
+    $hasStartedAt = [int64]::TryParse($env:KOVA_UPDATE_STARTED_AT, [ref]$startedAt)
     if (-not $hasStartedAt -or $startedAt -gt $epoch -or ($epoch - $startedAt) -gt $script:MarkerCeilingSeconds) {
         $startedAt = $epoch
     }

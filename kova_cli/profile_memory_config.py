@@ -102,10 +102,10 @@ def notify_memory_provider(profile_dir: Path, call: Callable[[MemoryProvider], N
     provider, or an unreadable config, is logged and never fails the create/rename that called it
     (the directory is already published). A plugin host the hook started for that profile is
     stopped afterwards (``plugins.isolation: host``), so a long-lived dashboard keeps none behind."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     name = None
-    home_token = set_hermes_home_override(str(profile_dir))
+    home_token = set_kova_home_override(str(profile_dir))
     secret_token = None
     try:
         if not _names_external_provider(profile_dir):
@@ -132,7 +132,7 @@ def notify_memory_provider(profile_dir: Path, call: Callable[[MemoryProvider], N
         if secret_token is not None:
             from agent.secret_scope import reset_secret_scope
             reset_secret_scope(secret_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
 
 def cloned_memory_provider(profile_dir: Path) -> Optional[str]:

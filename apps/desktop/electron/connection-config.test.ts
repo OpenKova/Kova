@@ -89,7 +89,7 @@ test('normalizeRemoteHeaders keeps safe proxy headers and drops transport/auth h
       Authorization: { encoding: 'plain', value: 'bearer' },
       Cookie: { encoding: 'plain', value: 'a=b' },
       Host: { encoding: 'plain', value: 'example.com' },
-      'X-Hermes-Session-Token': { encoding: 'plain', value: 'token' },
+      'X-Kova-Session-Token': { encoding: 'plain', value: 'token' },
       'Bad Header': { encoding: 'plain', value: 'bad' },
       Empty: { encoding: 'plain', value: '' }
     }),
@@ -353,7 +353,7 @@ test('normalizeSshConfig strips a pasted "ssh " command prefix', () => {
 })
 
 test('localProfileEntry preserves inactive SSH drafts but drops Cloud state', () => {
-  const ssh = { mode: 'ssh', host: 'box', user: 'alice', remoteHermesPath: '/hermes' }
+  const ssh = { mode: 'ssh', host: 'box', user: 'alice', remoteKovaPath: '/hermes' }
   assert.deepEqual(localProfileEntry(ssh), { mode: 'local', savedSsh: ssh })
   assert.deepEqual(localProfileEntry({ mode: 'local', savedSsh: ssh }), {
     mode: 'local',
@@ -424,7 +424,7 @@ const ROUTES = [
   },
   {
     // THE INVARIANT this collapse must not eat: a route the server cannot
-    // profile-scope has only the backend PROCESS's HERMES_HOME left as a
+    // profile-scope has only the backend PROCESS's KOVA_HOME left as a
     // scope, so it keeps a pooled backend. /api/files/upload acts on host
     // paths and takes no `profile` even after #118275.
     name: 'a mutating local request the server cannot scope keeps its pooled backend',
@@ -556,7 +556,7 @@ const ROUTES = [
     expected: { backend: 'pool', descriptorProfile: null, scopePath: false }
   },
   {
-    name: 'HERMES_DESKTOP_ISOLATED_BACKEND keeps a local profile on its own pooled backend',
+    name: 'KOVA_DESKTOP_ISOLATED_BACKEND keeps a local profile on its own pooled backend',
     profile: 'coder',
     opts: {
       primaryProfile: 'default',
@@ -957,7 +957,7 @@ test('resolveProfileApiRequest scopes destructive profile-owned routes to the sh
 
 test('resolveProfileApiRequest keeps an unscopable mutating route on a process-scoped backend', () => {
   // The load-bearing half of the collapse: a route the server cannot scope has
-  // nothing left but the backend process's own HERMES_HOME, so it must NOT fall
+  // nothing left but the backend process's own KOVA_HOME, so it must NOT fall
   // through to the shared primary. Live proof of the failure mode this pins:
   // `POST /api/memory/reset?profile=beta` on an unfixed server deleted ALPHA's
   // MEMORY.md and returned ok:true.
@@ -1533,7 +1533,7 @@ test('gateway WS URL IPC result serializes success and the auth-vs-transport mat
 
   for (const error of [
     Object.assign(new Error('500: unavailable'), { statusCode: 500 }),
-    new Error('Timed out connecting to Hermes backend after 8000ms'),
+    new Error('Timed out connecting to Kova backend after 8000ms'),
     Object.assign(new Error('socket reset'), { code: 'ECONNRESET' })
   ]) {
     assert.deepEqual(await gatewayWsUrlIpcResult(async () => Promise.reject(error)), {
@@ -1575,7 +1575,7 @@ test('gatewayTicketFailure only copies an integer statusCode, not a message pref
 })
 
 // OAuth integration regression (#85373): the WS-ticket mint boundary runs
-// BEFORE waitForHermesReady. This mirrors main.ts buildRemoteConnection's
+// BEFORE waitForKovaReady. This mirrors main.ts buildRemoteConnection's
 // catch — classify a Nous Cloud server fault via the shared factory, else
 // fall through to gatewayTicketFailure. Proves the production composition:
 //   1. Cloud + OAuth ticket mint + 503  -> actionable Cloud-down error
@@ -1615,7 +1615,7 @@ test('OAuth ticket-mint 401 stays on the reauth path (never Cloud-down)', () => 
   assert.equal((wrapped as any).statusCode, 401)
 })
 
-test('FIX #95701: a confirmed 401/403 ticket rejection is tagged isReauthRequired so startHermes latches it', () => {
+test('FIX #95701: a confirmed 401/403 ticket rejection is tagged isReauthRequired so startKova latches it', () => {
   for (const statusCode of [401, 403]) {
     const source = Object.assign(new Error(`${statusCode}: rejected`), { statusCode })
     const wrapped = gatewayTicketFailure(source, 'auth copy', 'transport copy') as any
@@ -1635,7 +1635,7 @@ test('FIX #95701: a confirmed 401/403 ticket rejection is tagged isReauthRequire
 test('FIX #95701: transport and server failures at the ticket mint stay retryable — never reauth', () => {
   for (const source of [
     Object.assign(new Error('503: unavailable'), { statusCode: 503 }),
-    new Error('Timed out connecting to Hermes backend after 8000ms'),
+    new Error('Timed out connecting to Kova backend after 8000ms'),
     Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' })
   ]) {
     const wrapped = gatewayTicketFailure(source, 'auth copy', 'transport copy') as any

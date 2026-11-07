@@ -44,8 +44,8 @@ def _make_args(**kwargs):
 
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr("kova_cli.config.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setattr("kova_cli.config.get_kova_home", lambda: tmp_path)
     config_path = tmp_path / "config.yaml"
     env_path = tmp_path / ".env"
     monkeypatch.setattr("kova_cli.config.get_config_path", lambda: config_path)

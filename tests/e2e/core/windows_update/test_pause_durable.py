@@ -33,7 +33,7 @@ pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
 _PAUSED = "Paused gateway profile"
-_RECORD_STEM = ".hermes-update-paused-gateways"  # <stem>.<checkout key>.json, plus <record>.<pid>.<nonce>.claim
+_RECORD_STEM = ".kova-update-paused-gateways"  # <stem>.<checkout key>.json, plus <record>.<pid>.<nonce>.claim
 _EARLY, _HELD = "AGENTS.md", "website/package.json"  # checkout order: the early file is written first
 _PULL_MARKER = "hermes-update-pull"  # kova_cli._early_recovery.INTERRUPTED_PULL_MARKER, in the git dir
 _RESTORED = "Checkout restored"  # the updater's own in-place restore of git's half-written files
@@ -48,7 +48,7 @@ def _alive(pid: int) -> bool:
 
 def _record_held(machine) -> bool:
     """The paused set is still on disk (the record or a recovering launch's claim)."""
-    return any(p.suffix in (".json", ".claim") for p in machine.hermes_home.glob(_RECORD_STEM + "*"))
+    return any(p.suffix in (".json", ".claim") for p in machine.kova_home.glob(_RECORD_STEM + "*"))
 
 
 def _running_gateway(machine, not_pid: int, timeout: float) -> dict | None:
@@ -61,7 +61,7 @@ def _running_gateway(machine, not_pid: int, timeout: float) -> dict | None:
 def _update_killed_after_pause(machine) -> tuple[bool, str]:
     """Start ``hermes update`` and ``taskkill /F /T`` it the moment it reports the pause."""
     log = machine.logs / "update-killed.log"
-    proc = subprocess.Popen([str(machine.hermes_exe), "update", "--yes"], cwd=machine.profile,
+    proc = subprocess.Popen([str(machine.kova_exe), "update", "--yes"], cwd=machine.profile,
                             env=machine.env(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     seen = threading.Event()
@@ -91,8 +91,8 @@ def _mint_two_file_change(machine) -> str:
     """A target commit on top of the installed HEAD that rewrites two existing tracked files."""
     base = machine.installed_head()
     index = machine.root / "torn.index"
-    env = {"GIT_INDEX_FILE": str(index), "GIT_AUTHOR_NAME": "Hermes E2E", "GIT_AUTHOR_EMAIL": "e2e@hermes.invalid",
-           "GIT_COMMITTER_NAME": "Hermes E2E", "GIT_COMMITTER_EMAIL": "e2e@hermes.invalid"}
+    env = {"GIT_INDEX_FILE": str(index), "GIT_AUTHOR_NAME": "Kova E2E", "GIT_AUTHOR_EMAIL": "e2e@hermes.invalid",
+           "GIT_COMMITTER_NAME": "Kova E2E", "GIT_COMMITTER_EMAIL": "e2e@hermes.invalid"}
     harness_git("-C", str(machine.serve), "read-tree", base, env=env)
     for path in (_EARLY, _HELD):
         src = machine.root / ("torn-" + path.replace("/", "_"))
@@ -123,7 +123,7 @@ def journey(tmp_path_factory):
                 out["a_paused"], out["a_tail"] = _update_killed_after_pause(machine)
                 out["a_old_stopped"] = not _alive(old)
                 out["a_record"] = _record_held(machine)
-                out["a_launch"] = machine.hermes("gateway", "status", label="next-launch")
+                out["a_launch"] = machine.kova("gateway", "status", label="next-launch")
                 out["a_after"] = _running_gateway(machine, old, 120)
                 machine.kill_owned()
 
@@ -131,7 +131,7 @@ def journey(tmp_path_factory):
                 machine.spawn_gateway()
                 old = int(machine.wait_gateway_running().get("pid") or 0)
                 out["c_pre"] = machine.installed_head()
-                out["c_update"] = machine.hermes("update", "--yes", label="update-ok", timeout=900)
+                out["c_update"] = machine.kova("update", "--yes", label="update-ok", timeout=900)
                 out["c_head"] = machine.installed_head()
                 after = _running_gateway(machine, old, 120)
                 time.sleep(30)
@@ -145,7 +145,7 @@ def journey(tmp_path_factory):
                 old = int(machine.wait_gateway_running().get("pid") or 0)
                 out["b_pre"] = _mint_two_file_change(machine)
                 with (machine.install_dir / _HELD).open("rb"):  # no FILE_SHARE_DELETE: git cannot replace it
-                    out["b_update"] = machine.hermes("update", "--yes", label="update-torn", timeout=900)
+                    out["b_update"] = machine.kova("update", "--yes", label="update-torn", timeout=900)
                 out["b_head"] = machine.installed_head()
                 out["b_status"] = harness_git("-C", str(machine.install_dir), "status", "--porcelain",
                                               "--untracked-files=no")

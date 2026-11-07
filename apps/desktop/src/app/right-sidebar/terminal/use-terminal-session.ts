@@ -196,7 +196,7 @@ export function useTerminalSession({
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
     const host = hostRef.current
-    const terminalApi = window.hermesDesktop?.terminal
+    const terminalApi = window.kovaDesktop?.terminal
 
     if (!host || !terminalApi) {
       setStatus('closed')
@@ -605,7 +605,7 @@ export function useTerminalSession({
       }
 
       hasSessionActivityRef.current = true
-      void window.hermesDesktop?.terminal?.write(sessionId, `${command}\r`)
+      void window.kovaDesktop?.terminal?.write(sessionId, `${command}\r`)
       $terminalInjection.set(null)
       termRef.current?.focus()
     })

@@ -10,7 +10,7 @@ from .method_ctx import HandlerRegistry, bind_module
 from ._env import env_int
 
 from kova_constants import DEFAULT_INDICATOR_STYLE, INDICATOR_STYLES
-from kova_constants import display_hermes_home as _display_hermes_home
+from kova_constants import display_kova_home as _display_kova_home
 
 _registry = HandlerRegistry()
 method = _registry.method
@@ -42,7 +42,7 @@ _profile_scoped = _registry.profile_scoped
 #   keeps running in the background; the in-flight entry is cleared when it
 #   settles, so the next poll starts a fresh probe and never reads a stale one.
 _readiness_pool = concurrent.futures.ThreadPoolExecutor(
-    max_workers=max(2, min(4, env_int("HERMES_TUI_RPC_POOL_WORKERS", 8))),
+    max_workers=max(2, min(4, env_int("KOVA_TUI_RPC_POOL_WORKERS", 8))),
     thread_name_prefix="tui-readiness")
 atexit.register(lambda: _readiness_pool.shutdown(wait=False, cancel_futures=True))
 _readiness_lock = threading.Lock()
@@ -246,7 +246,7 @@ def _cfg_get_thinking_mode(params):
 def _cfg_get_mtime(params):
     from kova_cli.config_backend import config_version_or_none, version_token
     try:
-        mtime = version_token(config_version_or_none(_hermes_home / "config.yaml"))
+        mtime = version_token(config_version_or_none(_kova_home / "config.yaml"))
     except Exception:
         return {"mtime": 0}
     # mcp_rev: hash of the MCP-relevant sections so the poller reloads MCP servers only when
@@ -257,7 +257,7 @@ def _cfg_get_mtime(params):
 # key -> getter(params); bind_module rebinds the table's functions onto server.py's globals.
 _CONFIG_GETTERS = {
     "provider": _cfg_get_provider,
-    "profile": lambda params: {"home": str(_hermes_home), "display": _display_hermes_home()},
+    "profile": lambda params: {"home": str(_kova_home), "display": _display_kova_home()},
     "project": _cfg_get_project,
     "full": lambda params: {"config": _load_cfg()},
     "prompt": lambda params: {"prompt": _load_cfg().get("custom_prompt", "")},
@@ -353,7 +353,7 @@ def _readiness_share(rid, key, run_probe, wait_seconds):
 
 def _readiness_check(rid, params, probe, *, probe_key, wait_seconds):
     """Shared shell of setup.status / setup.runtime_check. ``probe(profile, scoped)`` runs inside the
-    optional ``profile`` param's HERMES_HOME + ``.env`` secret scope (ContextVars: concurrent checks
+    optional ``profile`` param's KOVA_HOME + ``.env`` secret scope (ContextVars: concurrent checks
     stay isolated); ``scoped`` is the ``{"profile": ...}`` payload stamp (``{}`` for the launch
     profile). An unknown profile answers ``ok=False`` (never a JSON-RPC error, never a quiet answer
     for the launch profile instead). ``probe_key`` + the profile single-flight the probe, and
@@ -369,7 +369,7 @@ def _readiness_check(rid, params, probe, *, probe_key, wait_seconds):
     # ``profile_home=None`` is the launch profile: once this process multiplexes its probe must
     # run under its own frozen secret scope too (``_profile_runtime_scope_tokens`` binds nothing in
     # a single-profile process), or the first profile-scoped read inside the resolver
-    # (``HERMES_CODEX_BASE_URL`` for openai-codex) fails closed and the UI shows onboarding.
+    # (``KOVA_CODEX_BASE_URL`` for openai-codex) fails closed and the UI shows onboarding.
     def run_probe():
         # Applied on the readiness pool thread: ContextVars do not cross threads, and
         # concurrent probes (different profiles) stay isolated exactly as they did when
@@ -463,7 +463,7 @@ def _(rid, params: dict) -> dict:
                         "source": src, "error": error, **scoped}
             if (not provider_configured and provider == "bedrock"
                     and source in {"iam-role", "aws-sdk-default-chain"}):
-                return fail("No Hermes provider is configured.", source)
+                return fail("No Kova provider is configured.", source)
             api_key = runtime.get("api_key")
             api_key_text = "" if callable(api_key) else str(api_key or "").strip()
             if not (callable(api_key) or api_key_text in {"aws-sdk", "no-key-required"}

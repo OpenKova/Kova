@@ -1,4 +1,4 @@
-"""Language Server Protocol (LSP) integration for Hermes Agent.
+"""Language Server Protocol (LSP) integration for Kova Agent.
 
 Real language servers (pyright, gopls, ...) run as subprocesses and their
 ``publishDiagnostics`` feed the post-write lint delta filter of ``write_file`` /
@@ -18,7 +18,7 @@ from agent.lsp.manager import LSPService
 logger = logging.getLogger("agent.lsp")
 
 _service: Optional[LSPService] = None
-# Routed multiplex profiles (HERMES_HOME override) each get their own service: ``lsp.*`` config
+# Routed multiplex profiles (KOVA_HOME override) each get their own service: ``lsp.*`` config
 # (enabled, servers, idle timeout) is per profile, so one process-wide singleton would let the first
 # profile's settings decide whether every other profile gets diagnostics.
 _services_by_home: dict = {}
@@ -48,9 +48,9 @@ def get_service() -> Optional[LSPService]:
     process group) kills whatever is left then.
     """
     global _service
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    if get_hermes_home_override() is not None:
-        home_key = hermes_home_key()
+    from kova_constants import get_kova_home_override, kova_home_key
+    if get_kova_home_override() is not None:
+        home_key = kova_home_key()
         with _service_lock:
             if home_key not in _services_by_home:
                 _services_by_home[home_key] = LSPService.create_from_config()

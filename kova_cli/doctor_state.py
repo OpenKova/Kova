@@ -1,4 +1,4 @@
-"""HERMES_HOME state checks for hermes doctor: directories, memory files, state.db health, skills hub, memory provider, profiles.
+"""KOVA_HOME state checks for hermes doctor: directories, memory files, state.db health, skills hub, memory provider, profiles.
 Split out of ``kova_cli/doctor.py``, which re-exports every name so ``kova_cli.doctor.<name>`` keeps resolving (and monkeypatching)."""
 
 from __future__ import annotations
@@ -14,13 +14,13 @@ from kova_cli.sizefmt import format_bytes as _human_bytes
 from kova_state_holders import read_only_db_uri
 
 
-def _doctor_memory_config(hermes_home: Path | None = None) -> dict:
+def _doctor_memory_config(kova_home: Path | None = None) -> dict:
     """Return the effective memory section used by doctor diagnostics."""
     from kova_cli.config_backend import config_exists
-    from kova_cli.doctor import HERMES_HOME
+    from kova_cli.doctor import KOVA_HOME
     try:
         from kova_cli.config_effective import load_user_config_effective
-        config_path = (hermes_home if hermes_home is not None else HERMES_HOME) / "config.yaml"
+        config_path = (kova_home if kova_home is not None else KOVA_HOME) / "config.yaml"
         if not config_exists(config_path):
             return {}
         section = load_user_config_effective(config_path).get("memory")
@@ -106,16 +106,16 @@ def _render_state_db_stats(stats: dict, holders=None, host_note: str = "") -> li
     return lines
 
 
-def _memory_store_flags(hermes_home: Path) -> tuple:
+def _memory_store_flags(kova_home: Path) -> tuple:
     from tools.memory_tool import get_builtin_memory_store_flags
-    return get_builtin_memory_store_flags({"memory": _doctor_memory_config(hermes_home)})
+    return get_builtin_memory_store_flags({"memory": _doctor_memory_config(kova_home)})
 
 
 def check_legacy_desktop_checkout() -> None:
     """Report the unused legacy checkout under an embedded desktop install.
 
     Before the embedded runtime existed, the desktop app installed a git
-    checkout at $HERMES_HOME/hermes-agent. An embedded app never uses it,
+    checkout at $KOVA_HOME/kova-agent. An embedded app never uses it,
     so it sits on disk (1-2 GB of tree + venv). Doctor only REPORTS the
     checkout and its size — it never suggests a deletion command, and
     never deletes anything itself: a pristineness probe cannot prove no
@@ -132,9 +132,9 @@ def check_legacy_desktop_checkout() -> None:
     if sealed_steward(Path(PROJECT_ROOT)) != STEWARD_DESKTOP:
         return
 
-    from kova_cli.doctor import HERMES_HOME, _DHH
+    from kova_cli.doctor import KOVA_HOME, _DHH
 
-    checkout = HERMES_HOME / "hermes-agent"
+    checkout = KOVA_HOME / "kova-agent"
     if not (checkout / ".git").exists():
         return
 
@@ -171,13 +171,13 @@ def check_legacy_desktop_checkout() -> None:
 
     if pristine:
         check_warn(
-            f"Unused checkout at {_DHH}/hermes-agent{size_note}",
+            f"Unused checkout at {_DHH}/kova-agent{size_note}",
             "(the desktop app runs embedded and does not use it; the tree is clean)",
         )
         print("    Review it and decide whether to keep or remove it — doctor does not delete anything.")
     else:
         check_info(
-            f"A checkout exists at {_DHH}/hermes-agent but holds local work "
+            f"A checkout exists at {_DHH}/kova-agent but holds local work "
             "(changes, a branch, or stashes). The desktop app does not use "
             "it; review it before you remove anything."
         )
@@ -185,23 +185,23 @@ def check_legacy_desktop_checkout() -> None:
 
 @doctor_check()
 def _check_directory_structure(should_fix: bool, f: Finding) -> None:
-    """HERMES_HOME, expected subdirs, SOUL.md, and the enabled built-in memory files."""
+    """KOVA_HOME, expected subdirs, SOUL.md, and the enabled built-in memory files."""
     try:
         check_legacy_desktop_checkout()
     except Exception:
         pass  # best-effort report; must never break the directory check
-    from kova_cli.doctor import HERMES_HOME, _DHH
-    hermes_home = HERMES_HOME
-    ensure_dir(f, should_fix, hermes_home, f"{_DHH} directory exists", f"Created {_DHH} directory", f"{_DHH} not found")
-    _memory_enabled, _user_profile_enabled = _memory_store_flags(hermes_home)
+    from kova_cli.doctor import KOVA_HOME, _DHH
+    kova_home = KOVA_HOME
+    ensure_dir(f, should_fix, kova_home, f"{_DHH} directory exists", f"Created {_DHH} directory", f"{_DHH} not found")
+    _memory_enabled, _user_profile_enabled = _memory_store_flags(kova_home)
     memory_on = bool(_memory_enabled or _user_profile_enabled)
     # The built-in file store neither creates nor consumes memories/ when both targets are disabled.
     for subdir_name in ["cron", "sessions", "logs", "skills"] + (["memories"] if memory_on else []):
-        ensure_dir(f, should_fix, hermes_home / subdir_name, f"{_DHH}/{subdir_name}/ exists",
+        ensure_dir(f, should_fix, kova_home / subdir_name, f"{_DHH}/{subdir_name}/ exists",
                    f"Created {_DHH}/{subdir_name}/", f"{_DHH}/{subdir_name}/ not found")
-    _check_scratch_dir(hermes_home, _DHH)
+    _check_scratch_dir(kova_home, _DHH)
     # SOUL.md persona file
-    soul_path = hermes_home / "SOUL.md"
+    soul_path = kova_home / "SOUL.md"
     if soul_path.exists():
         lines = soul_path.read_text(encoding="utf-8-sig").strip().splitlines()
         if any(l.strip() and not l.strip().startswith(("<!--", "-->", "#")) for l in lines):
@@ -209,16 +209,16 @@ def _check_directory_structure(should_fix: bool, f: Finding) -> None:
         else:  # template comments only (no real content)
             check_info(f"{_DHH}/SOUL.md exists but is empty — edit it to customize personality")
     else:
-        check_warn(f"{_DHH}/SOUL.md not found", "(create it to give Hermes a custom personality)")
+        check_warn(f"{_DHH}/SOUL.md not found", "(create it to give Kova a custom personality)")
         if should_fix:
             soul_path.parent.mkdir(parents=True, exist_ok=True)
-            soul_path.write_text("# Hermes Agent Persona\n\n<!-- Edit this file to customize how Hermes communicates. -->\n\n"
-                                 "You are Hermes, a helpful AI assistant.\n", encoding="utf-8")
+            soul_path.write_text("# Kova Agent Persona\n\n<!-- Edit this file to customize how Kova communicates. -->\n\n"
+                                 "You are Kova, a helpful AI assistant.\n", encoding="utf-8")
             check_ok(f"Created {_DHH}/SOUL.md with basic template")
             f.fixed += 1
     # Only enabled built-in stores: users can disable either legacy file target, and stale migration files
     # must not read as active memory usage.
-    memories_dir = hermes_home / "memories"
+    memories_dir = kova_home / "memories"
     if not memory_on:
         return check_info("Built-in memory files disabled by config")
     existed = memories_dir.exists()
@@ -236,14 +236,14 @@ _UNPRUNED_CACHE_WARN_BYTES = 1 << 30
 _PRUNED_CACHE_DIRS = frozenset({"scratch", "terminal"})
 
 
-def unpruned_cache_hogs(hermes_home: Path, min_bytes: int = _UNPRUNED_CACHE_WARN_BYTES) -> list[tuple[str, int]]:
+def unpruned_cache_hogs(kova_home: Path, min_bytes: int = _UNPRUNED_CACHE_WARN_BYTES) -> list[tuple[str, int]]:
     """``(name, bytes)`` for ``cache/`` entries outside the pruned dirs that exceed *min_bytes*.
 
     Finished campaign trees parked at the cache root sat for weeks (95 GB on one host)
     because only ``scratch/`` and ``terminal/`` are reaped; doctor is where that shows."""
     from kova_constants import scratch_dir_usage_bytes
 
-    cache = hermes_home / "cache"
+    cache = kova_home / "cache"
     hogs: list[tuple[str, int]] = []
     try:
         entries = [e for e in cache.iterdir() if e.is_dir() and not e.is_symlink() and e.name not in _PRUNED_CACHE_DIRS]
@@ -256,17 +256,17 @@ def unpruned_cache_hogs(hermes_home: Path, min_bytes: int = _UNPRUNED_CACHE_WARN
     return sorted(hogs, key=lambda item: -item[1])
 
 
-def _check_scratch_dir(hermes_home: Path, _DHH: str) -> None:
+def _check_scratch_dir(kova_home: Path, _DHH: str) -> None:
     """Report the scratch dir (TMPDIR target) and its size; a user-set TMPDIR elsewhere is shown, not judged."""
     from kova_constants import (
         SCRATCH_DIR_MARKER_ENV, SCRATCH_MAX_IDLE_HOURS, get_scratch_dir, scratch_dir_usage_bytes)
-    scratch = get_scratch_dir(hermes_home, prune=False)
+    scratch = get_scratch_dir(kova_home, prune=False)
     size = _human_bytes(scratch_dir_usage_bytes(scratch))
     check_ok(f"{_DHH}/cache/scratch/ is the scratch dir (TMPDIR; {size}, entries pruned after {SCRATCH_MAX_IDLE_HOURS}h idle)")
     from kova_constants_scratch_stuck import removal_hint, stuck_entries
     for entry in stuck_entries(scratch):
         check_warn(f"{_DHH}/cache/scratch/{entry.name}/ holds files you may not delete, so the prune skips it — {removal_hint(entry)}")
-    for name, nbytes in unpruned_cache_hogs(hermes_home):
+    for name, nbytes in unpruned_cache_hogs(kova_home):
         check_warn(
             f"{_DHH}/cache/{name}/ is {_human_bytes(nbytes)} and outside every pruner "
             f"(only cache/scratch/ and cache/terminal/ are reaped) — move task files under "
@@ -274,7 +274,7 @@ def _check_scratch_dir(hermes_home: Path, _DHH: str) -> None:
         )
     tmpdir = os.environ.get("TMPDIR", "")
     if tmpdir and tmpdir != os.environ.get(SCRATCH_DIR_MARKER_ENV, ""):
-        check_info(f"TMPDIR={tmpdir} is set by you or the OS, so Hermes leaves it alone")
+        check_info(f"TMPDIR={tmpdir} is set by you or the OS, so Kova leaves it alone")
 
 
 def _session_count(state_db_path: Path):
@@ -485,8 +485,8 @@ def _retired_wal_holders(f: Finding, state_db_path: Path, _DHH: str) -> bool:
 @doctor_check()
 def _check_state_db(should_fix: bool, f: Finding) -> None:
     """state.db session count, FTS write health, schema repair, stats snapshot, WAL size."""
-    from kova_cli.doctor import HERMES_HOME, _DHH
-    state_db_path = HERMES_HOME / "state.db"
+    from kova_cli.doctor import KOVA_HOME, _DHH
+    state_db_path = KOVA_HOME / "state.db"
     # A read-only connect on the new generation is itself another opener, so nothing below may run.
     if _retired_wal_holders(f, state_db_path, _DHH):
         return
@@ -501,9 +501,9 @@ def _check_state_db(should_fix: bool, f: Finding) -> None:
 @doctor_check()
 def _check_cron_store(should_fix: bool, f: Finding) -> None:
     """The cron store accepts writes and its filesystem is not nearly full (jobs skip otherwise)."""
-    from kova_cli.doctor import HERMES_HOME, _DHH
+    from kova_cli.doctor import KOVA_HOME, _DHH
     from cron.store_health import LOW_FREE_BYTES, free_bytes, probe_report
-    cron_dir = HERMES_HOME / "cron"
+    cron_dir = KOVA_HOME / "cron"
     if (report := probe_report(cron_dir)) is not None:
         check_warn(f"{_DHH}/cron/ is NOT writable ({report['error']}) — scheduled cron jobs are being skipped")
         return f.issues.append(f"Cron store {report['store']} is not writable: {report['fix']}")
@@ -552,10 +552,10 @@ def _plugin_provenance_rows(plugins_dir) -> list:
 @doctor_check("")
 def _check_update_provenance(should_fix: bool, f: Finding) -> None:
     """Inspect local plugin update provenance without network or writes."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     printers = {"warn": check_warn, "ok": check_ok, "info": lambda text, detail: check_info(f"{text} {detail}".rstrip())}
-    for kind, text, detail in _plugin_provenance_rows(get_hermes_home() / "plugins"):
+    for kind, text, detail in _plugin_provenance_rows(get_kova_home() / "plugins"):
         printers[kind](text, detail)
 
 
@@ -581,8 +581,8 @@ def _gh_authenticated() -> bool:
 
 @doctor_check()
 def _check_skills_hub(should_fix: bool, f: Finding) -> None:
-    from kova_cli.doctor import HERMES_HOME, _DHH
-    hub_dir = HERMES_HOME / "skills" / ".hub"
+    from kova_cli.doctor import KOVA_HOME, _DHH
+    hub_dir = KOVA_HOME / "skills" / ".hub"
     if check_bool(hub_dir.exists(), "Skills Hub directory exists", ("Skills Hub directory not initialized", "(run: hermes skills list)")):
         lock_file = hub_dir / "lock.json"
         if lock_file.exists():
@@ -624,9 +624,9 @@ def _memory_provider_generic(name: str) -> None:
 
 @doctor_check()
 def _check_memory_provider(should_fix: bool, f: Finding) -> None:
-    from kova_cli.doctor import HERMES_HOME
+    from kova_cli.doctor import KOVA_HOME
     from agent.memory_provider import is_core_memory_provider
-    name = _doctor_memory_config(HERMES_HOME).get("provider", "")
+    name = _doctor_memory_config(KOVA_HOME).get("provider", "")
     if is_core_memory_provider(name):
         check_ok("Built-in memory active", "(no external provider configured — this is fine)")
         return
@@ -650,9 +650,9 @@ def _check_memory_provider(should_fix: bool, f: Finding) -> None:
 @doctor_check("")  # best-effort: an unreadable config is the config check's finding
 def _check_plugins_disabled_by_update(should_fix: bool, f: Finding) -> None:
     """Plugins an update turned off (pm.plugin_eviction): every later update retries them."""
-    from kova_cli.doctor import HERMES_HOME
+    from kova_cli.doctor import KOVA_HOME
     from pm.plugins_state import RECORD, read_home_selection
-    plugins = (read_home_selection(HERMES_HOME) or {}).get("plugins") or {}
+    plugins = (read_home_selection(KOVA_HOME) or {}).get("plugins") or {}
     record, disabled = plugins.get(RECORD), set(plugins.get("disabled") or ())
     entries = {name: entry for name, entry in record.items() if name in disabled} if isinstance(record, dict) else {}
     if not entries:

@@ -33,7 +33,7 @@ async def test_explicit_remote_failure_never_ensures_local(monkeypatch):
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", forbidden)
     with socket.socket() as unavailable:
         unavailable.bind(("127.0.0.1", 0))
-        monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", f"ws://127.0.0.1:{unavailable.getsockname()[1]}/api/ws?token=private-test-value")
+        monkeypatch.setenv("KOVA_TUI_GATEWAY_URL", f"ws://127.0.0.1:{unavailable.getsockname()[1]}/api/ws?token=private-test-value")
         with pytest.raises(GatewayClientError, match="no local fallback") as caught:
             async with connect_gateway():
                 raise AssertionError("Unavailable remote unexpectedly connected")

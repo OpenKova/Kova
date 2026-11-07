@@ -8,7 +8,7 @@ sent.  Moving the ``add_middleware(CORSMiddleware, …)`` call *after*
 all ``@app.middleware("http")`` registrations makes CORS outermost so
 preflights are answered before auth runs.
 
-See: https://github.com/NousResearch/hermes-agent/issues/59052
+See: https://github.com/NousResearch/kova-agent/issues/59052
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from starlette.testclient import TestClient
 @pytest.fixture
 def client(monkeypatch):
     # CORS grants only the backend's own loopback origin: the port it bound.
-    monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+    monkeypatch.delenv("KOVA_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "127.0.0.1", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_port", 8092, raising=False)
     return TestClient(web_server.app, base_url="http://127.0.0.1:8092")

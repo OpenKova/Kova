@@ -13,7 +13,7 @@ def test_nous_portal_tags_contains_product_and_client():
     from kova_cli.version_info import get_version_info
 
     tags = nous_portal_tags()
-    assert "product=hermes-agent" in tags
+    assert "product=kova-agent" in tags
     assert f"client=hermes-client-v{get_version_info().base_version}" in tags
 
 

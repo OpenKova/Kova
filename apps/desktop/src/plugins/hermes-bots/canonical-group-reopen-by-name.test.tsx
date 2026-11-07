@@ -1,4 +1,4 @@
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { host } from '@hermes/plugin-sdk'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { WritableAtom } from 'nanostores'
@@ -19,7 +19,7 @@ const { request, notify, openWorkspace, catalog } = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
   const { captureGroupRequests } = await import('./canonical-group-contract-test-utils')
   const { en } = await import('@/i18n/en')
 

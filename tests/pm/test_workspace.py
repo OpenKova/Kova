@@ -61,7 +61,7 @@ def test_missing_explicit_seed_cannot_silently_resolve_new_versions(layout):
 
 
 def test_plugin_workspace_trusts_core_lock_instead_of_rechecking_release_age(layout, locked_project):  # health: allow F811 -- pytest injects the imported locked_project fixture by parameter name
-    """Release age is checked when Hermes locks, never on the user's machine (#135589).
+    """Release age is checked when Kova locks, never on the user's machine (#135589).
 
     The generated root carries no ``exclude-newer`` (a mirror without upload times makes
     uv reject every file it cannot date) and adds no constraints of its own: core's ranges
@@ -359,8 +359,8 @@ def test_undated_index_failure_names_the_index_not_a_conflict():
     from pm.workspace import ResolutionConflict, classify_uv_failure
 
     seeded = ("  x No solution found when resolving dependencies:\n"
-              "  Because resvg-py==0.4.0 has no publish time and hermes-agent depends on resvg-py==0.4.0, "
-              "we can conclude that hermes-agent's requirements are unsatisfiable.")
+              "  Because resvg-py==0.4.0 has no publish time and kova-agent depends on resvg-py==0.4.0, "
+              "we can conclude that kova-agent's requirements are unsatisfiable.")
     cold = ("warning: cffi-2.0.0.tar.gz is missing an upload date, but user provided: 2026-09-25T00:00:00Z\n"
             "  x No solution found when resolving dependencies:\n"
             "  Because there are no versions of cffi and you require cffi>=2.0.0, we can conclude that "
@@ -415,7 +415,7 @@ def test_staging_root_and_env_are_honored_without_live_mutation(layout, monkeypa
 
 
 def test_selected_plugin_extra_naming_core_installs_the_workspace_core(layout):
-    """A plugin extra pinning core (``hermes-agent[x] @ git+…``) resolves to this checkout.
+    """A plugin extra pinning core (``kova-agent[x] @ git+…``) resolves to this checkout.
 
     The generated root IS core, so uv refuses any member requirement naming it without a
     ``{ workspace = true }`` source ("is included as a workspace member, but is missing an
@@ -428,7 +428,7 @@ def test_selected_plugin_extra_naming_core_installs_the_workspace_core(layout):
     (plugin / "pyproject.toml").write_text(
         '[project]\nname="core-pinning-plugin"\nversion="1"\nrequires-python=">=3.11"\n'
         'dependencies=["member-dep==1.0"]\n[project.optional-dependencies]\n'
-        'chosen=["Construction_Root[other] @ git+https://example.invalid/hermes-agent'
+        'chosen=["Construction_Root[other] @ git+https://example.invalid/kova-agent'
         '@0000000000000000000000000000000000000000"]\n[tool.uv]\npackage=false\n', encoding="utf-8")
     environment = managed_environment(tmp / "env")
     ws.lock_and_sync([plugin], ["chosen"], root=tmp / "workspace", source=core, seed_lock=None,

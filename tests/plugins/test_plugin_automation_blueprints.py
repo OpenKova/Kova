@@ -55,14 +55,14 @@ def homes(tmp_path, monkeypatch):
     """Default profile home (active) plus a second profile home, both isolated."""
     from kova_cli import profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     profiles_root = default_home / "profiles"
     other_home = profiles_root / "other"
     for home in (default_home, other_home):
         (home / "cron").mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("model: test-model\n")
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "other": other_home}
 

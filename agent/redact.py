@@ -41,8 +41,8 @@ _VAULT_REDACTION_LOCK = threading.Lock()
 
 
 def _vault_scope() -> str:
-    from kova_constants import get_hermes_home
-    return str(get_hermes_home())
+    from kova_constants import get_kova_home
+    return str(get_kova_home())
 
 
 def register_vault_redaction_value(value) -> None:
@@ -95,22 +95,22 @@ _SENSITIVE_QUERY_PARAMS = frozenset({
 })
 
 # Snapshot at import time so runtime env mutations (e.g. an LLM-generated
-# `export HERMES_REDACT_SECRETS=false`) cannot disable redaction mid-session.
+# `export KOVA_REDACT_SECRETS=false`) cannot disable redaction mid-session.
 # ON by default; `security.redact_secrets: false` bridges to this env var.
 # ON by default — secure default per issue #17691. Users who need raw credential values in tool output (e.g.
 # working on the redactor itself) can opt out via `security.redact_secrets: false` in config.yaml (bridged
-# to this env var in kova_cli/main.py, gateway/run.py, and cli.py) or `HERMES_REDACT_SECRETS=false` in
-# ~/.hermes/.env. An opt-out warning is logged at gateway and CLI startup so operators see the downgrade —
+# to this env var in kova_cli/main.py, gateway/run.py, and cli.py) or `KOVA_REDACT_SECRETS=false` in
+# ~/.kova/.env. An opt-out warning is logged at gateway and CLI startup so operators see the downgrade —
 # see `_log_redaction_status()` in gateway/run.py and cli.py.
-_REDACT_ENABLED = os.getenv("HERMES_REDACT_SECRETS", "true").lower() in {"1", "true", "yes", "on"}
+_REDACT_ENABLED = os.getenv("KOVA_REDACT_SECRETS", "true").lower() in {"1", "true", "yes", "on"}
 
 # Routed multiplex profiles: the import-time snapshot above is the LAUNCH profile's policy. A profile
-# served under a HERMES_HOME override follows its own ``security.redact_secrets`` (its ``.env`` value
+# served under a KOVA_HOME override follows its own ``security.redact_secrets`` (its ``.env`` value
 # first, like the standalone bridge in kova_cli/main.py). The formatter never reads config or files
 # for it (it runs under the logging handler's lock, per record): the values are recorded when that
 # profile's .env / config is loaded (``note_env_policy`` / ``note_config_policy``) or when log routing
 # is set up for it (``resolve_profile_policy``). Until then the profile redacts (the secure default).
-_ENV_POLICY_BY_HOME: dict = {}     # home key -> raw HERMES_REDACT_SECRETS from its .env, or None
+_ENV_POLICY_BY_HOME: dict = {}     # home key -> raw KOVA_REDACT_SECRETS from its .env, or None
 _CONFIG_POLICY_BY_HOME: dict = {}  # home key -> raw security.redact_secrets from its config, or None
 
 
@@ -124,29 +124,29 @@ def note_config_policy(home_key: str, raw) -> None:
 
 def resolve_profile_policy(home) -> None:
     """Record ``home``'s redaction policy now (log-routing setup), so its records never wait for it."""
-    from kova_constants import hermes_home_key, reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(home)
+    from kova_constants import kova_home_key, reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(home)
     try:
-        key = hermes_home_key()
+        key = kova_home_key()
         from kova_cli.config import load_config_readonly, load_env
-        note_env_policy(key, load_env().get("HERMES_REDACT_SECRETS"))
+        note_env_policy(key, load_env().get("KOVA_REDACT_SECRETS"))
         note_config_policy(key, (load_config_readonly().get("security") or {}).get("redact_secrets"))
     except (Exception, SystemExit) as exc:  # health: allow BLE001 -- unreadable now: stays unknown, which redacts
         logging.getLogger(__name__).debug("redaction policy for %s not read: %s", home, exc)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _redact_enabled() -> bool:
     """Effective redaction switch for the active profile (launch snapshot when no override). Reads
     only in-memory state: the live secret scope and the recorded per-profile policy."""
-    from kova_constants import get_hermes_home_override, hermes_home_key
-    if get_hermes_home_override() is None:
+    from kova_constants import get_kova_home_override, kova_home_key
+    if get_kova_home_override() is None:
         return _REDACT_ENABLED
-    home_key = hermes_home_key()
+    home_key = kova_home_key()
     from agent.secret_scope import current_secret_scope
     scope = current_secret_scope()
-    raw = scope.get("HERMES_REDACT_SECRETS") if scope else None
+    raw = scope.get("KOVA_REDACT_SECRETS") if scope else None
     if raw is None and scope is None:
         # No live scope (the log listener thread formats routed records): the profile's own .env, as
         # its scope would have it. Not recorded yet: redact, since .env may opt the profile back in.
@@ -1596,7 +1596,7 @@ _ENV_DUMP_COMMANDS = frozenset({"env", "printenv", "set", "export", "declare"})
 
 # Commands that read file contents to stdout, plus the filter readers (``grep``/``awk``/``sed``)
 # the model reaches for on config files. A secret-bearing target (``.env`` per AGENTS.md,
-# a shell rc/profile, Hermes' own ``config.yaml`` where ``hermes mcp add --env`` writes
+# a shell rc/profile, Kova' own ``config.yaml`` where ``hermes mcp add --env`` writes
 # tokens) is a credential dump, so the ENV/YAML assignment pass must run. Arbitrary
 # ``config.yaml`` / source files stay on the code_file path (``MAX_TOKENS: 100``).
 _FILE_READ_COMMANDS = frozenset({
@@ -1610,8 +1610,8 @@ _SHELL_RC_BASENAMES = frozenset({
 # Filter readers take a PATTERN/program as their first positional; only the operands after
 # it are files, so ``grep .bashrc app.py`` must not gate on the pattern.
 _PATTERN_FIRST_COMMANDS = frozenset({"grep", "awk", "sed"})
-_HERMES_HOME_PREFIXES = ("$HERMES_HOME/", "${HERMES_HOME}/")
-# ``$HOME/.hermes/config.yaml`` keeps the ``.hermes`` segment, so stripping the prefix is
+_KOVA_HOME_PREFIXES = ("$KOVA_HOME/", "${KOVA_HOME}/")
+# ``$HOME/.kova/config.yaml`` keeps the ``.kova`` segment, so stripping the prefix is
 # enough to gate it; ``~/`` already survives the ``$``-bearing-path bail-out.
 _HOME_PREFIXES = ("$HOME/", "${HOME}/")
 
@@ -1646,11 +1646,11 @@ def _command_segments(command: str) -> list[str]:
     return segments
 
 
-def _is_under_hermes_home(path: str) -> bool:
-    """True when an absolute ``config.yaml`` path sits under the active Hermes home or root.
+def _is_under_kova_home(path: str) -> bool:
+    """True when an absolute ``config.yaml`` path sits under the active Kova home or root.
 
-    The default home's basename is an installation detail — ``.hermes`` on POSIX, ``hermes``
-    under ``AppData/Local`` on Windows — and a resolved path never spells ``$HERMES_HOME``,
+    The default home's basename is an installation detail — ``.kova`` on POSIX, ``hermes``
+    under ``AppData/Local`` on Windows — and a resolved path never spells ``$KOVA_HOME``,
     so the literal-segment test in ``_is_secret_file_arg`` cannot see a native Windows path.
     Compare against the resolved homes instead. Only reached for a ``config.yaml`` basename,
     so the resolve cost stays off the per-token command scan.
@@ -1673,15 +1673,15 @@ def _is_under_hermes_home(path: str) -> bool:
 
 def _is_secret_file_arg(arg: str) -> bool:
     """``.env``-style or shell rc basename anywhere; ``config.yaml`` only under a
-    ``.hermes`` directory, ``$HERMES_HOME``, or the resolved Hermes home (never arbitrary
+    ``.kova`` directory, ``$KOVA_HOME``, or the resolved Kova home (never arbitrary
     YAML). The resolved-home arm is what covers native Windows, where the home directory
-    is ``%LOCALAPPDATA%\\hermes`` and carries no ``.hermes`` segment."""
+    is ``%LOCALAPPDATA%\\hermes`` and carries no ``.kova`` segment."""
     path = arg.strip("\"'").replace("\\", "/")
-    hermes_home = False
-    for prefix in _HERMES_HOME_PREFIXES:
+    kova_home = False
+    for prefix in _KOVA_HOME_PREFIXES:
         if path.startswith(prefix):
             path = path[len(prefix):]
-            hermes_home = True
+            kova_home = True
             break
     for prefix in _HOME_PREFIXES:
         if path.startswith(prefix):
@@ -1694,11 +1694,11 @@ def _is_secret_file_arg(arg: str) -> bool:
         return False
     if parts[-1] in _ENV_FILE_BASENAMES or parts[-1] in _SHELL_RC_BASENAMES:
         return True
-    # ``config.yaml`` plus the ``config.yaml.good.<stamp>`` / ``.corrupt.<stamp>`` copies Hermes
+    # ``config.yaml`` plus the ``config.yaml.good.<stamp>`` / ``.corrupt.<stamp>`` copies Kova
     # writes under ``backups/config/`` — same contents, same secrets.
     if parts[-1] != "config.yaml" and not parts[-1].startswith(("config.yaml.good.", "config.yaml.corrupt.")):
         return False
-    return hermes_home or ".hermes" in parts[:-1] or _is_under_hermes_home(path)
+    return kova_home or ".kova" in parts[:-1] or _is_under_kova_home(path)
 
 
 def _command_reads_secret_file(command: str | None) -> bool:
@@ -1762,7 +1762,7 @@ def redact_for_egress(text: str) -> str:
 def redact_terminal_output(output: str, command: str | None = None, *, force: bool = False) -> str:
     """Single redaction policy for ALL terminal-output surfaces: the ENV/YAML-assignment
     pass runs only when ``command`` is an env dump or reads a secret-bearing file (``.env``,
-    shell rc, Hermes ``config.yaml``); otherwise code_file=True avoids false positives on
+    shell rc, Kova ``config.yaml``); otherwise code_file=True avoids false positives on
     source/config dumps."""
     if not output:
         return output

@@ -8,7 +8,7 @@ the browser fill path and never enter tool results, logs, or the session DB.
 
 Design notes:
 - Follows the repo's "default frictionless, 0600 files OK" policy: the key
-  file and vault file are created 0600 under ``<HERMES_HOME>/vault/``.
+  file and vault file are created 0600 under ``<KOVA_HOME>/vault/``.
   ``vault.key_storage: keychain`` (opt-in) keeps the key in the OS keychain
   instead (agent/vault_keychain.py); ``hermes vault key migrate`` moves it.
 - Ported design (opaque-handle vault fill) from Merit-Systems/OpenInstinct
@@ -33,7 +33,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlsplit
 from kova_dir_acl import make_user_dir
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_write_bytes
 
 logger = logging.getLogger(__name__)
@@ -206,11 +206,11 @@ class VaultItemMeta:
 
 
 class VaultStore:
-    """Encrypted, profile-scoped vault under ``<HERMES_HOME>/vault/``."""
+    """Encrypted, profile-scoped vault under ``<KOVA_HOME>/vault/``."""
 
     def __init__(self, base_dir: Optional[Path] = None):
         self._base = Path(base_dir) if base_dir is not None else (
-            Path(get_hermes_home()) / "vault"
+            Path(get_kova_home()) / "vault"
         )
         self._vault_path = self._base / "vault.json.enc"
         self._key_path = self._base / "vault.key"
@@ -223,7 +223,7 @@ class VaultStore:
     def _ensure_dir(self) -> None:
         make_user_dir(self._base, mode=0o700, parents=True, exist_ok=True)
         # Route through the canonical securer (honors managed/NixOS
-        # group-share mode and HERMES_UID/GID ownership) rather than a
+        # group-share mode and KOVA_UID/GID ownership) rather than a
         # bespoke chmod — same requirement as the browser-profile snapshot
         # dir (f1d05c review).
         try:

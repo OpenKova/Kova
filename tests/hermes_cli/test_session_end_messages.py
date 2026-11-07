@@ -49,7 +49,7 @@ def test_session_end_messages_accepts_str_and_message_dict_only():
 
 
 def test_cli_new_prints_finalize_message(finalize_hook, capsys):
-    cli = cli_mod.HermesCLI()
+    cli = cli_mod.KovaCLI()
     cli.agent = MagicMock()
     cli.agent.session_id = "old-session"
 
@@ -67,7 +67,7 @@ def test_cli_exit_prints_finalize_message_after_screen_clear(finalize_hook, caps
     monkeypatch.setattr(cli_mod, "_session_end_messages", [])
 
     cli_mod._run_cleanup()
-    obj = cli_mod.HermesCLI()
+    obj = cli_mod.KovaCLI()
     obj.conversation_history = []
     obj._print_exit_summary(clear_screen=False)
 

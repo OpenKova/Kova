@@ -1,7 +1,7 @@
 """``plugins remove`` (CLI, dashboard, ``plugins.manage`` RPC) leaves no config residue and never
 follows a symlink (#54336, plugin-scan L2-F1/F2/F5).
 
-Real removal core against a temp HERMES_HOME; the RPC path goes through ``tui_gateway.server``.
+Real removal core against a temp KOVA_HOME; the RPC path goes through ``tui_gateway.server``.
 """
 
 from __future__ import annotations
@@ -23,10 +23,10 @@ def _write_plugin(root, rel, name, extra=""):
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    (hermes_home / "plugins").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    return hermes_home
+    kova_home = tmp_path / "hermes-home"
+    (kova_home / "plugins").mkdir(parents=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    return kova_home
 
 
 def _config(home):

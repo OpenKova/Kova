@@ -27,7 +27,7 @@ from unittest.mock import patch
 import pytest
 
 import cron.scheduler as scheduler_mod
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 
 
 @pytest.fixture()
@@ -130,7 +130,7 @@ class TestTickReapsDeadOwnerClaims:
         monkeypatch.setattr(
             scheduler_mod,
             "_last_dead_owner_reap_at",
-            {hermes_home_key(scheduler_mod._get_hermes_home()):
+            {kova_home_key(scheduler_mod._get_kova_home()):
              time.monotonic() - scheduler_mod._DEAD_OWNER_REAP_INTERVAL_SECONDS - 1},
         )
         _run_tick()
@@ -199,7 +199,7 @@ class TestOneShotCliRunIsSynchronous:
         from tools.cronjob_tools import _try_dispatch_background_run
 
         declare_stateless_channel()
-        monkeypatch.setenv("HERMES_SESSION_KEY", "inherited-gateway-session")
+        monkeypatch.setenv("KOVA_SESSION_KEY", "inherited-gateway-session")
 
         result = _try_dispatch_background_run(
             {"id": "job-x", "name": "job-x"}, session_id="sess-1"
@@ -222,9 +222,9 @@ def test_reap_throttle_is_profile_scoped(monkeypatch, tmp_path):
     home_a.mkdir()
     home_b.mkdir()
     monkeypatch.setattr(scheduler_mod, "_last_dead_owner_reap_at", {})
-    monkeypatch.setattr(scheduler_mod, "_get_hermes_home", lambda: home_a)
+    monkeypatch.setattr(scheduler_mod, "_get_kova_home", lambda: home_a)
     scheduler_mod._maybe_reap_dead_owners()
-    monkeypatch.setattr(scheduler_mod, "_get_hermes_home", lambda: home_b)
+    monkeypatch.setattr(scheduler_mod, "_get_kova_home", lambda: home_b)
     scheduler_mod._maybe_reap_dead_owners()
     assert len(calls) == 2, (
         "each profile must get its own dead-owner scan per cycle, "

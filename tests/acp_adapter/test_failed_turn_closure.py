@@ -7,7 +7,7 @@ the tail. The next prompt then appended a second user row and ``repair_message_s
 merged the failed request into the new one. Closed at the core seam
 (``agent/conversation_loop.py::_close_durable_failed_turn``).
 
-Driven through the real ``HermesACPAgent.prompt()`` with a real ``AIAgent`` and ``SessionDB``
+Driven through the real ``KovaACPAgent.prompt()`` with a real ``AIAgent`` and ``SessionDB``
 against a loopback OpenAI-compatible endpoint; assertions read SQLite rows and the request
 body the provider actually received.
 """
@@ -100,8 +100,8 @@ class _RecordingConn:
 
 @pytest.fixture
 def acp(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_DISABLE_PLUGINS", "1")
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_DISABLE_PLUGINS", "1")
     monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
     provider = _LoopbackProvider()
 
@@ -121,13 +121,13 @@ def acp(tmp_path, monkeypatch):
     monkeypatch.setattr(mcp_startup, "ensure_mcp_discovery_before_agent_build", lambda **k: None)
     monkeypatch.setattr(acp_session, "_expand_acp_enabled_toolsets", lambda *a, **k: [])
 
-    from acp_adapter.server import HermesACPAgent, TextContentBlock
+    from acp_adapter.server import KovaACPAgent, TextContentBlock
     from acp_adapter.session import SessionManager
     from kova_state import SessionDB
 
     db_path = tmp_path / "state.db"
     db = SessionDB(db_path)
-    server = HermesACPAgent(session_manager=SessionManager(db=db))
+    server = KovaACPAgent(session_manager=SessionManager(db=db))
     conn = _RecordingConn()
     server.on_connect(conn)
     sid = server.session_manager.create_session(cwd=str(tmp_path)).session_id
@@ -157,7 +157,7 @@ def test_acp_refusal_never_poisons_the_next_prompt(acp):
     Invariant: a safety-filter refusal is deterministic for the unchanged conversation (the filter
     judges the whole thread), so the refused turn is dropped from the live history and never rides
     into the next prompt. Otherwise every later message re-refuses and the chat locks up (the
-    "Hermes Bot stuck sessions" report). The refusal still reaches the client live; transient
+    "Kova Bot stuck sessions" report). The refusal still reaches the client live; transient
     failures keep their close-and-replay path (the server_error / rate_limit / timeout tests below),
     which this does not touch.
     """
@@ -291,7 +291,7 @@ def test_acp_reload_replays_the_refused_ask_and_notice_to_the_editor(acp):
     DB rows — carries the refused ask plus the refusal notice, and still the prior clean exchange.
     """
     from agent.turn_failure_copy import CONTENT_REFUSED_NOTICE
-    from acp_adapter.server import HermesACPAgent
+    from acp_adapter.server import KovaACPAgent
     from acp_adapter.session import SessionManager
 
     provider, prompt, _rows, db, sid, _conn, server = acp
@@ -306,7 +306,7 @@ def test_acp_reload_replays_the_refused_ask_and_notice_to_the_editor(acp):
     # Reopen from a fresh process: a new server + manager on the same DB cold-restores the session,
     # then replays it to the editor.
     reopened_conn = _RecordingConn()
-    reopened = HermesACPAgent(session_manager=SessionManager(db=db))
+    reopened = KovaACPAgent(session_manager=SessionManager(db=db))
     reopened.on_connect(reopened_conn)
     resp = asyncio.run(reopened.load_session(cwd=cwd, session_id=sid))
     assert resp is not None
@@ -332,7 +332,7 @@ def test_failed_turn_boundary_is_idempotent_on_the_durable_tail_and_skips_contex
     from agent.turn_failure_copy import PARTIAL_FAILED_TURN_NOTICE
     from kova_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="acp", model="m")
@@ -403,7 +403,7 @@ def test_failed_turn_boundary_keeps_the_error_card_for_rehydration(tmp_path, mon
     from agent.conversation_loop import _close_durable_failed_turn
     from kova_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="acp", model="m")
@@ -438,7 +438,7 @@ def test_failed_turn_after_a_tool_row_is_closed_with_its_error_card(tmp_path, mo
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, PARTIAL_FAILED_TURN_NOTICE
     from kova_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="tui", model="m")

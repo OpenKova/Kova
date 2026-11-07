@@ -1,7 +1,7 @@
 """Regression: Windows Desktop update steps must drain and terminate reliably.
 
 ``scripts/desktop-update/windows.ps1`` runs each update step through
-``Invoke-HermesStep``, which starts the step with ``RedirectStandardOutput`` /
+``Invoke-KovaStep``, which starts the step with ``RedirectStandardOutput`` /
 ``RedirectStandardError``. Reading those pipes back has two failure modes, and
 this fixture covers both because they pull in opposite directions.
 
@@ -14,12 +14,12 @@ last of them to close it. ``hermes update`` deliberately runs build steps with
 stdout inherited (the tee-stderr runner in ``kova_cli/main.py``), so the
 process tree under a step is arbitrarily deep and not something the hand-off can
 enumerate. When one of those descendants is a resident gateway, the pipe never
-closes and ``Invoke-HermesStep`` blocks for the life of the gateway.
+closes and ``Invoke-KovaStep`` blocks for the life of the gateway.
 
 Everything the hand-off owes the Desktop is downstream of that call:
-``.hermes-update-result.json`` is never written, ``.hermes-update-in-progress``
+``.kova-update-result.json`` is never written, ``.kova-update-in-progress``
 is never cleared, and the Desktop is never relaunched -- so the app sits on
-"Updating Hermes" until the user kills the gateway by hand, and the stale marker
+"Updating Kova" until the user kills the gateway by hand, and the stale marker
 then refuses the next update too.
 
 **Trickling toward EOF.** The fix reads in chunks so an abandoned pipe still
@@ -63,12 +63,12 @@ def test_update_step_survives_pipe_leak_flood_and_live_child_stall(
     """Execute the real hand-off runner against all three step shapes.
 
     ``-SelfTestPipeDrain`` runs three steps through the real
-    ``Invoke-HermesStep``:
+    ``Invoke-KovaStep``:
 
     *leak* -- a step that spawns a grandchild with ``UseShellExecute = $false``
     and no redirection (the shape that makes the grandchild inherit the step's
     stdout/stderr), then exits 7 while the grandchild sleeps on. The fixture
-    asserts the grandchild was **still alive** when ``Invoke-HermesStep``
+    asserts the grandchild was **still alive** when ``Invoke-KovaStep``
     returned, so a pass cannot be a timing coincidence, and that the exit code
     and the step's output both survived the abandonment.
 
@@ -109,10 +109,10 @@ def test_update_step_survives_pipe_leak_flood_and_live_child_stall(
         # Keep the test quick. The grace is what the fix bounds; the hold is
         # how long the leaking grandchild lives. hold >> grace is what makes a
         # regression measurable rather than lucky.
-        "HERMES_UPDATE_PIPE_DRAIN_SECONDS": "3",
+        "KOVA_UPDATE_PIPE_DRAIN_SECONDS": "3",
         # Cold PowerShell children can take more than three seconds to emit.
-        "HERMES_UPDATE_STEP_IDLE_SECONDS": "15",
-        "HERMES_SELFTEST_HOLD_SECONDS": "45",
+        "KOVA_UPDATE_STEP_IDLE_SECONDS": "15",
+        "KOVA_SELFTEST_HOLD_SECONDS": "45",
     }
 
     result = subprocess.run(

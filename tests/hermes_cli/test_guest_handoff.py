@@ -1,6 +1,6 @@
 """The guest handoff step: a Nous account replacing the free tier moves the free tier's apps into it.
 
-Driven end to end through Hermes' real writers, stores and HTTP client against a fake account
+Driven end to end through Kova' real writers, stores and HTTP client against a fake account
 service (``anon_portal.FakePortal`` plus the claim and token-refresh routes).
 """
 
@@ -138,11 +138,11 @@ def _sibling_adoption(account, monkeypatch, tmp_path):
     """Another profile signed in (account in the shared store); this one adopts it on next use."""
     import os
     from kova_cli import anon_auth, auth_nous
-    mine, sibling = os.environ["HERMES_HOME"], tmp_path / "sibling-profile"
+    mine, sibling = os.environ["KOVA_HOME"], tmp_path / "sibling-profile"
     sibling.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(sibling))
+    monkeypatch.setenv("KOVA_HOME", str(sibling))
     auth_nous._write_shared_nous_state(account, renewal=False)
-    monkeypatch.setenv("HERMES_HOME", mine)
+    monkeypatch.setenv("KOVA_HOME", mine)
     anon_auth.ensure_portal_identity(explicit=True)
 
 
@@ -267,16 +267,16 @@ def test_a_retry_not_yet_due_sends_nothing(portal):
 def test_two_profiles_sharing_one_guest_claim_once(portal, monkeypatch, tmp_path):
     from kova_cli import anon_auth, guest_handoff
     import os
-    first = os.environ["HERMES_HOME"]
+    first = os.environ["KOVA_HOME"]
     second = tmp_path / "second-profile"
     second.mkdir()
     anon = _mint_guest()
-    monkeypatch.setenv("HERMES_HOME", str(second))
+    monkeypatch.setenv("KOVA_HOME", str(second))
     assert anon_auth.ensure_portal_identity(explicit=True)["anon_token"] == anon   # adopts the guest
 
-    monkeypatch.setenv("HERMES_HOME", first)
+    monkeypatch.setenv("KOVA_HOME", first)
     _persist(_account())
-    monkeypatch.setenv("HERMES_HOME", str(second))
+    monkeypatch.setenv("KOVA_HOME", str(second))
     anon_auth.ensure_portal_identity(explicit=True)      # adopts the account, replacing the guest
 
     assert len(portal.claims) == 1
@@ -403,9 +403,9 @@ def test_a_long_lived_process_with_a_guest_still_runs_the_handoff_worker(portal,
 
 def test_a_guest_token_still_cached_from_a_connector_call_does_not_skip_the_move(portal):
     from kova_cli import auth
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     _mint_guest()
-    auth._RESOLVE_TOKEN_CACHE[hermes_home_key()] = (time.monotonic(), make_jwt())   # the guest's own token
+    auth._RESOLVE_TOKEN_CACHE[kova_home_key()] = (time.monotonic(), make_jwt())   # the guest's own token
     _persist(_account())
     assert len(portal.claims) == 1 and _only_record()["state"] == "claimed"
 

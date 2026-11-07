@@ -46,11 +46,11 @@ async def test_takeover_revokes_waiting_workers_and_waits_for_an_admitted_write(
     import tty
     from kova_cli import pty_bridge
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     master, slave = pty.openpty()
     tty.setraw(slave)
@@ -196,11 +196,11 @@ async def test_takeover_during_an_admitted_input_write_keeps_the_shell(tmp_path,
     from types import SimpleNamespace
     from kova_cli.web_host_terminal_sessions import _pump_input
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     entered, release = threading.Event(), threading.Event()
 
@@ -454,11 +454,11 @@ async def test_closing_the_tab_during_a_waiting_paste_detaches_and_keeps_the_she
     hide the close."""
     from kova_cli import web_host_terminal_sessions as host_sessions
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     registry = HostTerminalRegistry()
     # 1 MiB: more than a pseudo-terminal buffers anywhere between its master and the program.
@@ -667,11 +667,11 @@ def test_a_tab_closed_behind_more_keys_than_the_input_queue_holds_is_detached(tm
     then some, so the tab's close is unread behind them when it comes, and the browser drops the
     connection. Over a real socket the shell is still detached within a few seconds: it keeps
     running, retained for a reattach."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     # 1 MiB: more than a pseudo-terminal buffers anywhere between its master and the program.
     paste = b"".join(b"%05d %s\n" % (n, b"x" * 57) for n in range(16 * 1024))
@@ -705,11 +705,11 @@ def test_a_live_tab_typing_behind_a_waiting_write_answers_keepalive_pings(tmp_pa
     program must not stop the server reading the socket, where the pongs arrive: the tab, answering
     every ping, stays attached through several ping timeouts, and everything reaches the program in
     order once it reads."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     bridge = SlowAccept()
     session = PtySession("terminal", bridge, buffer_cap=32, read_timeout=0.01)
@@ -777,11 +777,11 @@ async def test_a_live_tab_typing_past_a_full_input_queue_is_held_back_and_loses_
     order. Text frames count the UTF-8 bytes they are written as."""
     from kova_cli import web_host_terminal_sessions as host_sessions
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     registry = HostTerminalRegistry()
     bridge = SlowAccept()

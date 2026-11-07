@@ -22,7 +22,7 @@ from typing import Any, Callable, Iterator, Optional
 from agent.deadline import poll_until
 from agent.redact import redact_sensitive_text
 from cron.executions import _owner_is_live, _process_start_time
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_time import now as _hermes_now
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def queue_path(home: Optional[Path] = None) -> Path:
     """The queue file of ``home`` (the active home when None); a test override wins."""
     if DELIVERY_DB is not None:
         return DELIVERY_DB
-    root = Path(home) if home is not None else get_hermes_home()
+    root = Path(home) if home is not None else get_kova_home()
     return root.resolve() / "cron" / "deliveries.db"
 
 

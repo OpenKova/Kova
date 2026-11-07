@@ -22,7 +22,7 @@ def temp_pyproject(tmp_path, monkeypatch):
 
         [project.scripts]
         hermes = "kova_cli.main:main"
-        hermes-agent = "run_agent:main"
+        kova-agent = "run_agent:main"
         hermes-acp = "acp_adapter.entry:main"
     """
         )
@@ -40,7 +40,7 @@ def fake_scripts_dir(tmp_path):
     return scripts
 
 
-class TestHermesExeShims:
+class TestKovaExeShims:
     """The orphan sweep includes declared scripts and the legacy gateway shim."""
 
     def test_shims_include_declared_console_scripts(
@@ -48,5 +48,5 @@ class TestHermesExeShims:
     ):
         names = {path.name for path in main_install_repair._hermes_exe_shims(fake_scripts_dir)}
 
-        assert {"hermes.exe", "hermes-agent.exe", "hermes-acp.exe"} <= names
-        assert "hermes-gateway.exe" in names
+        assert {"hermes.exe", "kova-agent.exe", "hermes-acp.exe"} <= names
+        assert "kova-gateway.exe" in names

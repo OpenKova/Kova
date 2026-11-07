@@ -69,12 +69,12 @@ def home_with_meta_plugin(tmp_path, monkeypatch):
     import providers
     from kova_cli import auth_plugin_providers as app
     from kova_cli.auth import PROVIDER_REGISTRY
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     plugin = tmp_path / "plugins" / "model-providers" / "my-meta"
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text(_HOME_PLUGIN, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -82,9 +82,9 @@ def home_with_meta_plugin(tmp_path, monkeypatch):
     monkeypatch.setattr(providers, "_PLUGIN_DIR_STAMP_TTL_SECONDS", 0.0)
     monkeypatch.setattr(app, "PLUGIN_MIRRORED_PROVIDERS", set(app.PLUGIN_MIRRORED_PROVIDERS))
     rows = list(dict.items(PROVIDER_REGISTRY))
-    token = set_hermes_home_override(tmp_path)
+    token = set_kova_home_override(tmp_path)
     yield
-    reset_hermes_home_override(token)
+    reset_kova_home_override(token)
     PROVIDER_REGISTRY.clear()
     PROVIDER_REGISTRY.update(rows)
     for mod in [m for m in sys.modules if m.startswith("_hermes_user_provider")]:

@@ -26,7 +26,7 @@ def marks(monkeypatch):
 
 
 def _install_platform_plugin(home, monkeypatch, *, dir_name, platform, catalog_name=None):
-    """A user plugin under $HERMES_HOME/plugins registering ``platform``; ``catalog_name`` writes the
+    """A user plugin under $KOVA_HOME/plugins registering ``platform``; ``catalog_name`` writes the
     installer-owned record a plugin-catalog install leaves (a URL install writes none)."""
     from gateway.platform_registry import PlatformEntry, platform_registry
 
@@ -37,7 +37,7 @@ def _install_platform_plugin(home, monkeypatch, *, dir_name, platform, catalog_n
             return None
     """), encoding="utf-8")
     # Anything inside the tree is the repo's to write: it must never prove a catalog install.
-    (plugin_dir / ".hermes-catalog.json").write_text(json.dumps({"catalog_name": "sendblue"}), encoding="utf-8")
+    (plugin_dir / ".kova-catalog.json").write_text(json.dumps({"catalog_name": "sendblue"}), encoding="utf-8")
     namespace = {}
     exec(compile((plugin_dir / "adapter.py").read_text(), str(plugin_dir / "adapter.py"), "exec"), namespace)
     if catalog_name:
@@ -53,8 +53,8 @@ def _install_platform_plugin(home, monkeypatch, *, dir_name, platform, catalog_n
 
 
 def test_platform_names_are_published_or_proven_by_the_installer_record(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    home = tmp_path / ".kova"
+    monkeypatch.setenv("KOVA_HOME", str(home))
     cleanup = [
         _install_platform_plugin(home, monkeypatch, dir_name="vk", platform="vk", catalog_name="vk-platform"),
         # A URL install claiming a catalog name everywhere it can (tree sidecar, manifest name) stays anonymous.

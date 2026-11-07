@@ -15,7 +15,7 @@ def test_unmanaged_runtime_drops_session_config_bypass_flags(tmp_path, monkeypat
     from kova_cli import gateway_runtime_start as start
     from kova_cli import gateway_windows
 
-    flags = ('HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG')
+    flags = ('KOVA_SAFE_MODE', 'KOVA_IGNORE_USER_CONFIG')
     for key in flags:
         monkeypatch.setenv(key, '1')
     monkeypatch.setenv('RUNTIME_TEST_SENTINEL', 'retained')
@@ -83,8 +83,8 @@ def test_installed_service_start_is_nonmutating_and_failed_manager_never_spawns(
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / "profile"
     home.mkdir(mode=0o700)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    unit = tmp_path / ".config/systemd/user" / f"hermes-gateway-{service_suffix(home)}.service"
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    unit = tmp_path / ".config/systemd/user" / f"kova-gateway-{service_suffix(home)}.service"
     unit.parent.mkdir(parents=True)
     unit.write_text("[Service]\nExecStart=/owned/inert/gateway\n", encoding="utf-8")
     original = unit.read_bytes()
@@ -93,7 +93,7 @@ def test_installed_service_start_is_nonmutating_and_failed_manager_never_spawns(
     from kova_cli.gateway_runtime_service_identity import SYSTEMD_IDENTITY_PROPERTIES
     identity = {key: "" for key in SYSTEMD_IDENTITY_PROPERTIES}
     identity.update(User=str(os.getuid()), DynamicUser="no",
-                    Environment=f'"HERMES_HOME={home}"',
+                    Environment=f'"KOVA_HOME={home}"',
                     ExecStart=f'{{ path={sys.executable} ; argv[]={sys.executable} -m kova_cli.main gateway run ; ignore_errors=no ; }}')
     effective = "\n".join(f"{key}={value}" for key, value in identity.items())
     helper.write_text('#!' + sys.executable + '\nimport json,sys,time\nfrom pathlib import Path\n'
@@ -142,10 +142,10 @@ def test_public_ensure_json_deadline_and_invalid_invocation(tmp_path):
     home.mkdir(mode=0o700)
     # A LIVE claim (this test process, at its own incarnation) fences; a dead one would not.
     from kova_cli.update_lock import process_create_time
-    (home / ".hermes-update-in-progress").write_text(
+    (home / ".kova-update-in-progress").write_text(
         f"{os.getpid()}\n{int(time.time())}\nct:{process_create_time():.3f}\nrun:private-token-not-for-stdout\n",
         encoding="utf-8")
-    env = {**os.environ, "HERMES_HOME": str(home)}
+    env = {**os.environ, "KOVA_HOME": str(home)}
     result = subprocess.run([sys.executable, "-m", "kova_cli.main", "gateway", "ensure", "--json"],
                             env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15, check=False)
     assert result.returncode == 6, result.stderr
@@ -205,13 +205,13 @@ def test_unmanaged_child_uses_explicit_home_and_survives_launcher_exit(tmp_path,
         " if 'kova_cli.main' not in argv: return real(argv, **kw)  # e.g. git from the env builder\n"
         " assert argv[-3:] == ['gateway','run','--quiet']\n"
         " assert '--replace' not in argv and '--force' not in argv\n"
-        " assert kw['env']['HERMES_HOME'] == str(home)\n"
-        " code=\"import os,json,time; from pathlib import Path; h=Path(os.environ['HERMES_HOME']); (h/'child.json').write_text(json.dumps({'pid':os.getpid(),'sid':os.getsid(0),'home':str(h)}));\\nwhile not (h/'exit').exists(): time.sleep(.02)\"\n"
+        " assert kw['env']['KOVA_HOME'] == str(home)\n"
+        " code=\"import os,json,time; from pathlib import Path; h=Path(os.environ['KOVA_HOME']); (h/'child.json').write_text(json.dumps({'pid':os.getpid(),'sid':os.getsid(0),'home':str(h)}));\\nwhile not (h/'exit').exists(): time.sleep(.02)\"\n"
         " return real([sys.executable,'-c',code], **kw)\n"
         "start.subprocess.Popen=boundary\n"
         "child=spawn_unmanaged_gateway(home, deadline=time.monotonic()+5)\n"
         "print(child.pid, flush=True)\n", encoding="utf-8")
-    env = {**os.environ, "PYTHONPATH": str(Path.cwd()), "HERMES_HOME": str(tmp_path / "wrong")}
+    env = {**os.environ, "PYTHONPATH": str(Path.cwd()), "KOVA_HOME": str(tmp_path / "wrong")}
     result = subprocess.run([sys.executable, str(launcher)], env=env, stdin=subprocess.DEVNULL,
                             capture_output=True, text=True, timeout=10, check=False)
     try:
@@ -243,14 +243,14 @@ def test_unmanaged_runtime_does_not_inherit_client_launch_flags(tmp_path, monkey
         + f'sys.path.insert(0, {str(repo)!r})\n'
         + 'from tools import approval\n'
         + f'Path({str(witness)!r}).write_text(json.dumps('
-        + "{'yolo': approval._YOLO_MODE_FROZEN, 'ignore_rules': os.environ.get('HERMES_IGNORE_RULES'),"
+        + "{'yolo': approval._YOLO_MODE_FROZEN, 'ignore_rules': os.environ.get('KOVA_IGNORE_RULES'),"
         + " 'sentinel': os.environ.get('RUNTIME_TEST_SENTINEL')}))\n",
         encoding='utf-8',
     )
     executable.chmod(0o700)
     monkeypatch.setattr(sys, 'executable', str(executable))
-    monkeypatch.setenv('HERMES_YOLO_MODE', '1')
-    monkeypatch.setenv('HERMES_IGNORE_RULES', '1')
+    monkeypatch.setenv('KOVA_YOLO_MODE', '1')
+    monkeypatch.setenv('KOVA_IGNORE_RULES', '1')
     monkeypatch.setenv('RUNTIME_TEST_SENTINEL', 'retained')
     child = start.spawn_unmanaged_gateway(home, deadline=time.monotonic() + 5)
     try:
@@ -260,7 +260,7 @@ def test_unmanaged_runtime_does_not_inherit_client_launch_flags(tmp_path, monkey
             child.kill()
             child.wait(timeout=5)
     assert json.loads(witness.read_text()) == {'yolo': False, 'ignore_rules': None, 'sentinel': 'retained'}
-    assert os.environ['HERMES_YOLO_MODE'] == os.environ['HERMES_IGNORE_RULES'] == '1'
+    assert os.environ['KOVA_YOLO_MODE'] == os.environ['KOVA_IGNORE_RULES'] == '1'
 
 
 @pytest.mark.platforms("linux")
@@ -342,7 +342,7 @@ def test_unmanaged_root_home_child_ignores_sticky_active_profile(tmp_path, monke
     """Explicit default selection survives the CLI child's own profile bootstrap (F15): with
     active_profile=other sticky, the spawned `gateway run` must still resolve the root home."""
     from kova_cli import gateway_runtime_start as start
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     (root / "profiles" / "other").mkdir(parents=True)
     (root / "active_profile").write_text("other", encoding="utf-8")
     witness = tmp_path / "resolved.json"
@@ -352,7 +352,7 @@ def test_unmanaged_root_home_child_ignores_sticky_active_profile(tmp_path, monke
         assert argv[:3] == [sys.executable, "-m", "kova_cli.main"]
         # Same argv and env as the real child; the module-import bootstrap is what resolves the profile.
         code = ("import json, os, sys\nsys.argv = ['hermes', *sys.argv[1:]]\nimport kova_cli.main\n"
-                f"open({str(witness)!r}, 'w').write(json.dumps({{'home': os.environ['HERMES_HOME'], 'argv': sys.argv}}))")
+                f"open({str(witness)!r}, 'w').write(json.dumps({{'home': os.environ['KOVA_HOME'], 'argv': sys.argv}}))")
         return real([sys.executable, "-c", code, *argv[3:]], **kwargs)
 
     monkeypatch.setattr(start.subprocess, "Popen", boundary)
@@ -375,7 +375,7 @@ def test_named_profile_without_multiplex_evidence_starts_the_host_gateway(tmp_pa
     """`gateway run` refuses a profiles/<name> home a gateway of its own, so ensure must start the host."""
     from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     home = root / "profiles" / "alpha"
     home.mkdir(parents=True, mode=0o700)
     if standalone:
@@ -397,7 +397,7 @@ def test_cold_start_target_follows_boot_multiplex_policy(tmp_path, monkeypatch, 
     from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
 
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     home = root / "profiles" / "alpha"
     home.mkdir(parents=True, mode=0o700)
     (root / "config.yaml").write_text(f"gateway:\n  multiplex_profiles: {flag}\n", encoding="utf-8")
@@ -420,7 +420,7 @@ def test_reserved_root_never_suppresses_a_standalone_profile_start(tmp_path, mon
     from gateway.runtime_ownership import ProfileOwnership
     from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     home = root / "profiles" / "alpha"
     home.mkdir(parents=True, mode=0o700)
     (root / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
@@ -443,7 +443,7 @@ def _standalone_host(tmp_path, monkeypatch, record):
     from kova_cli import gateway_runtime as runtime, gateway_runtime_discovery as discovery
     from kova_cli import gateway_runtime_service as service, gateway_runtime_start as start
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     home = root / "profiles" / "alpha"
     home.mkdir(parents=True, mode=0o700)
     if record is not None:

@@ -33,7 +33,7 @@ from kova_state import SessionDB
 
 @pytest.fixture()
 def db(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     d = SessionDB(db_path=tmp_path / "state.db")
     yield d
     d.close()

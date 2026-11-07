@@ -17,13 +17,13 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from kova_constants import get_process_hermes_home
+from kova_constants import get_process_kova_home
 from tools.environments.base import BaseEnvironment
 from tools.environments.base_output import _pipe_stdin
 from kova_cli._subprocess_compat import windows_hide_flags
 from kova_cli.process_identity import own_process_groups, release_process_groups
 from tools.environments.local_env_policy import (
-    _ALWAYS_STRIP_FOLDED, _ALWAYS_STRIP_KEYS, _HERMES_PROVIDER_ENV_BLOCKLIST, _HERMES_PROVIDER_ENV_FORCE_PREFIX,
+    _ALWAYS_STRIP_FOLDED, _ALWAYS_STRIP_KEYS, _KOVA_PROVIDER_ENV_BLOCKLIST, _KOVA_PROVIDER_ENV_FORCE_PREFIX,
     _is_hermes_internal_secret, _is_provider_env_blocklisted, _is_terminal_first_party_env,
     _home_adapter_secret_env, _matches_terminal_first_party_prefix, _plugin_terminal_env_strip_keys,
     _registered_adapter_secret_env, _registry_adapter_secret_env,
@@ -37,7 +37,7 @@ _IS_WINDOWS = platform.system() == "Windows"
 logger = logging.getLogger(__name__)
 
 # --- Terminal temp-cache pruning ---
-# get_temp_dir() defaults to HERMES_HOME/cache/terminal (real storage, not tmpfs), so
+# get_temp_dir() defaults to KOVA_HOME/cache/terminal (real storage, not tmpfs), so
 # stale artifacts don't vanish on reboot: the gateway housekeeping loop prunes hourly
 # and a once-per-process sweep covers CLI-only installs. Retention is idle-based like
 # the scratch dir: an entry goes 24h after the last write anywhere inside it.
@@ -51,10 +51,10 @@ _BG_GROUP_RE = re.compile(r"^(hermes_bg_[A-Za-z0-9_-]+)\.(log|pid|exit)$")
 
 
 def _default_terminal_temp_dir() -> Path | None:
-    """Return HERMES_HOME/cache/terminal, or None if unresolvable."""
+    """Return KOVA_HOME/cache/terminal, or None if unresolvable."""
     try:
-        from kova_constants import get_hermes_home
-        return get_hermes_home() / "cache" / "terminal"
+        from kova_constants import get_kova_home
+        return get_kova_home() / "cache" / "terminal"
     except Exception:
         return None
 
@@ -232,18 +232,18 @@ def _resolve_safe_cwd(cwd: str) -> str:
 
 # --- Child-process environment construction ---
 def _apply_profile_home(env: dict) -> None:
-    """Bridge the context-local HERMES_HOME override, then the subprocess HOME contract."""
-    from kova_constants import apply_subprocess_home_env, get_hermes_home_override
+    """Bridge the context-local KOVA_HOME override, then the subprocess HOME contract."""
+    from kova_constants import apply_subprocess_home_env, get_kova_home_override
     try:
-        if value := get_hermes_home_override():
-            env["HERMES_HOME"] = value
+        if value := get_kova_home_override():
+            env["KOVA_HOME"] = value
     except Exception:
         pass
     apply_subprocess_home_env(env)
 
 
 def _inject_session_context_env(env: dict) -> None:
-    """Bridge gateway session ContextVars (HERMES_SESSION_*) into a child env.
+    """Bridge gateway session ContextVars (KOVA_SESSION_*) into a child env.
     Cross-session leak guard: the vars' last-writer-wins ``os.environ`` mirror may
     belong to another turn on a concurrent multi-session host, so once the session
     context is engaged ContextVars are authoritative — a bound value (incl. "") wins
@@ -263,7 +263,7 @@ def _inject_session_context_env(env: dict) -> None:
         elif _engaged:
             env.pop(var_name, None)
     from kova_cli.plugins_session_env import resolve_session_env
-    if plugin_env := resolve_session_env(env.get("HERMES_SESSION_ID", "")):
+    if plugin_env := resolve_session_env(env.get("KOVA_SESSION_ID", "")):
         for name, value in _scrub_credentials(plugin_env, inherit_credentials=False).items():
             if value is None:
                 env.pop(name, None)
@@ -274,7 +274,7 @@ def _inject_session_context_env(env: dict) -> None:
 def _filter_secret_env(
     items: Mapping[str, str], out: dict, *, unwrap_force: bool,
     plugin_strip: frozenset = frozenset()) -> None:
-    """Copy *items* into *out*, dropping Hermes-managed secrets. ``_HERMES_FORCE_<NAME>``
+    """Copy *items* into *out*, dropping Kova-managed secrets. ``_KOVA_FORCE_<NAME>``
     unwraps to ``NAME`` when ``unwrap_force`` (caller extras / terminal env), else is
     dropped. Blocklisted names survive only via env_passthrough registration or as
     context-entitled first-party ``BUZZ_*`` vars; the latter are used directly, never
@@ -286,10 +286,10 @@ def _filter_secret_env(
     plugin_strip_folded = frozenset(k.upper() for k in plugin_strip)
     registered = _registered_adapter_secret_env()
     for key, value in items.items():
-        if key.startswith(_HERMES_PROVIDER_ENV_FORCE_PREFIX):
+        if key.startswith(_KOVA_PROVIDER_ENV_FORCE_PREFIX):
             if not unwrap_force:
                 continue
-            key = key[len(_HERMES_PROVIDER_ENV_FORCE_PREFIX):]
+            key = key[len(_KOVA_PROVIDER_ENV_FORCE_PREFIX):]
             if not _is_hermes_internal_secret(key):
                 out[key] = value
             continue
@@ -307,7 +307,7 @@ def _filter_secret_env(
 
 def _finalize_child_env(env: dict) -> dict:
     """Guards shared by every spawn surface: profile-home propagation, session-context
-    bridging, Hermes-owned PYTHONPATH + venv-marker strip, MSYS defaults, delegate_task
+    bridging, Kova-owned PYTHONPATH + venv-marker strip, MSYS defaults, delegate_task
     Kanban scrub. Returns the (possibly new) dict."""
     _apply_profile_home(env)
     _inject_session_context_env(env)
@@ -341,7 +341,7 @@ def _scrubbed_env(parts, plugin_strip: frozenset, fix_path) -> dict:
 
 
 def _sanitize_subprocess_env(base_env: dict | None, extra_env: dict | None = None) -> dict:
-    """Filter Hermes-managed secrets from a subprocess environment (background/PTY
+    """Filter Kova-managed secrets from a subprocess environment (background/PTY
     spawn path, search workers, computer-use driver, user-script runners)."""
     return _scrubbed_env([(base_env or {}, False), (extra_env or {}, True)],
                          _plugin_terminal_env_strip_keys(), lambda p: p)
@@ -382,7 +382,7 @@ def _scrub_credentials(env: dict, *, inherit_credentials: bool) -> dict:
     for key in list(env):
         if (key.upper() in strip_folded
                 or (not inherit_credentials and _is_provider_env_blocklisted(key, registered))
-                or key.startswith(_HERMES_PROVIDER_ENV_FORCE_PREFIX)
+                or key.startswith(_KOVA_PROVIDER_ENV_FORCE_PREFIX)
                 or _is_hermes_internal_secret(key)):
             del env[key]
     return env
@@ -396,7 +396,7 @@ def build_subprocess_env(
     ``scrub_secrets=True`` -> :func:`_sanitize_subprocess_env` (profile home inherent,
     ``inherit_profile_home`` ignored). ``scrub_secrets=False`` keeps the base's secrets
     (git credential flows, ``bws``/``op``); ``inherit_profile_home``
-    bridges HERMES_HOME + HOME and ``extra`` is applied last so caller overrides win. Both modes
+    bridges KOVA_HOME + HOME and ``extra`` is applied last so caller overrides win. Both modes
     drop the supervised process's own identity (:func:`strip_supervised_process_identity`).
     ``strip_launch_profile`` drops the LAUNCH profile's ``.env`` residue from the base first
     (:func:`strip_launch_profile_env`; a no-op unless a routed home is active) so a child that
@@ -447,11 +447,11 @@ def served_profile_child_env(
     ``hermes_subprocess_env`` snapshot."""
     from agent.secret_scope import (
         UnscopedSecretError, build_profile_secret_scope, current_secret_scope, is_multiplex_active)
-    from kova_constants import apply_scratch_tmp_env, get_hermes_home_override
+    from kova_constants import apply_scratch_tmp_env, get_kova_home_override
     env = dict(base) if base is not None else hermes_subprocess_env(inherit_credentials=inherit_credentials)
-    target = str(target_home or get_hermes_home_override() or "")
+    target = str(target_home or get_kova_home_override() or "")
     if target:
-        env["HERMES_HOME"] = target
+        env["KOVA_HOME"] = target
         apply_scratch_tmp_env(env)  # TMPDIR follows the served home, like HOME does
         if _is_routed_home(target):
             strip_launch_profile_env(env, target)
@@ -479,9 +479,9 @@ def host_gateway_child_env(
     (desktop, fleet restart, detached watcher) must not donate its dotenv to the
     multiplexer that owns the primary adapter map.
     """
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     return served_profile_child_env(
-        base=base, target_home=get_default_hermes_root(), inherit_credentials=True,
+        base=base, target_home=get_default_kova_root(), inherit_credentials=True,
     )
 
 
@@ -489,11 +489,11 @@ def _is_routed_home(target_home: str | Path) -> bool:
     """True when ``target_home`` is not the process's own (launch) home.
 
     Same launch-home identity as ``agent.secret_scope.serves_routed_profile()``: under a host that
-    mirrors the served profile into ``HERMES_HOME``, the live env var names the served home and the
+    mirrors the served profile into ``KOVA_HOME``, the live env var names the served home and the
     launch residue would never be stripped from that profile's child env."""
-    from kova_constants import get_routing_process_hermes_home
+    from kova_constants import get_routing_process_kova_home
     try:
-        return Path(target_home).resolve() != get_routing_process_hermes_home().resolve()
+        return Path(target_home).resolve() != get_routing_process_kova_home().resolve()
     except OSError:
         return True
 
@@ -501,19 +501,19 @@ def _is_routed_home(target_home: str | Path) -> bool:
 def strip_launch_profile_env(env: dict, target_home: str | Path | None = None) -> dict:
     """Drop the LAUNCH profile's residue from a child env built for another served profile.
     ``os.environ`` holds the default profile's ``.env`` and its bridged ``TERMINAL_*`` settings;
-    the secret scrub removes credentials but not settings (``HERMES_MODEL``, ``TERMINAL_ENV``,
-    ``HERMES_LANGUAGE``...), so a standalone ``hermes -p X`` worker and a served one saw different
+    the secret scrub removes credentials but not settings (``KOVA_MODEL``, ``TERMINAL_ENV``,
+    ``KOVA_LANGUAGE``...), so a standalone ``hermes -p X`` worker and a served one saw different
     envs. The child re-loads X's own ``.env`` and bridges X's config itself. ``target_home``
     defaults to the active home override; no-op when there is no target or the target IS the
     launch profile. The authority test is "does this task serve a routed home", not "is the
     gateway-wide multiplex flag on": the Desktop/dashboard backend serves ``?profile=B`` by
-    installing a HERMES_HOME override without that flag."""
+    installing a KOVA_HOME override without that flag."""
     from agent.secret_scope import _is_global_env, load_env_file
-    from kova_constants import get_hermes_home_override, get_routing_process_hermes_home
-    target = target_home or get_hermes_home_override()
+    from kova_constants import get_kova_home_override, get_routing_process_kova_home
+    target = target_home or get_kova_home_override()
     if not target or not _is_routed_home(target):
         return env
-    launch_home = get_routing_process_hermes_home()
+    launch_home = get_routing_process_kova_home()
     from kova_cli.config import TERMINAL_CONFIG_ENV_MAP
     # Folded strip: on Windows the env block is case-insensitive, so residue
     # stored under a variant casing is the same variable and must go too. The
@@ -559,7 +559,7 @@ def restore_managed_env(env: dict) -> dict:
 
 # --- Shell discovery ---
 def _find_bash() -> str:
-    """Resolve the shell Hermes runs commands with. Owned by pm (the store
+    """Resolve the shell Kova runs commands with. Owned by pm (the store
     is the authority on bundled bash); this is a thin wrapper over
     pm.shell() for callers that need a bash binary."""
     import pm.shell
@@ -568,7 +568,7 @@ def _find_bash() -> str:
     if bash:
         return bash
     raise RuntimeError(
-        "No shell found. Hermes needs bash (Git for Windows on Windows). "
+        "No shell found. Kova needs bash (Git for Windows on Windows). "
         "Run `hermes pm install` or reinstall the bundle."
     )
 
@@ -608,7 +608,7 @@ def _prepend_missing_path_entries(existing_path: str, dirs: list[str]) -> str:
 
 
 def _user_tools_first(existing_path: str) -> str:
-    """*existing_path* with the user's tools before Hermes's (``pm.user_facing``) and, on
+    """*existing_path* with the user's tools before Kova's (``pm.user_facing``) and, on
     Windows, Git Bash's dirs first. They go first even when already listed: they are store
     dirs that now sit behind the user's entries, and a non-login ``bash -c`` needs its
     coreutils ahead of System32's lookalikes."""
@@ -649,9 +649,9 @@ _SANE_PATH = ("/opt/homebrew/bin:/opt/homebrew/sbin:"
 # Cached directory containing the ``hermes`` console-script.
 # ``_SENTINEL`` distinguishes "not resolved yet" from a resolved ``None``.
 _SENTINEL = object()
-_HERMES_BIN_DIR: str | None | object = _SENTINEL
+_KOVA_BIN_DIR: str | None | object = _SENTINEL
 # True when the cached dir is a sealed payload's own launcher dir (see below).
-_HERMES_BIN_DIR_IS_PAYLOAD = False
+_KOVA_BIN_DIR_IS_PAYLOAD = False
 
 
 def _resolve_hermes_bin_dir() -> str | None:
@@ -660,17 +660,17 @@ def _resolve_hermes_bin_dir() -> str | None:
     ``hermes`` exits 127. Order: a sealed payload's own launcher dir; ``which``; absolute
     ``sys.argv[0]`` naming a real hermes executable; ``sys.executable``'s dir if it holds
     the shim."""
-    global _HERMES_BIN_DIR, _HERMES_BIN_DIR_IS_PAYLOAD
-    if _HERMES_BIN_DIR is not _SENTINEL:
-        return _HERMES_BIN_DIR  # type: ignore[return-value]
+    global _KOVA_BIN_DIR, _KOVA_BIN_DIR_IS_PAYLOAD
+    if _KOVA_BIN_DIR is not _SENTINEL:
+        return _KOVA_BIN_DIR  # type: ignore[return-value]
     from pm.environments import payload_command_dir
 
     # A payload's venv also holds a `hermes`, but on Windows its redirector names the
     # build machine's interpreter, so PATH order must not decide which copy children get.
     payload_dir = payload_command_dir(Path(__file__).resolve().parents[2])
     if payload_dir is not None and payload_dir.is_dir():
-        _HERMES_BIN_DIR, _HERMES_BIN_DIR_IS_PAYLOAD = str(payload_dir), True
-        return _HERMES_BIN_DIR
+        _KOVA_BIN_DIR, _KOVA_BIN_DIR_IS_PAYLOAD = str(payload_dir), True
+        return _KOVA_BIN_DIR
     which = shutil.which("hermes")
     argv0 = sys.argv[0] if sys.argv else ""
     base = os.path.basename(argv0).lower()
@@ -683,9 +683,9 @@ def _resolve_hermes_bin_dir() -> str | None:
         candidate = os.path.dirname(argv0)
     else:
         candidate = exe_dir if exe_dir and os.path.isfile(os.path.join(exe_dir, shim)) else None
-    _HERMES_BIN_DIR = candidate if candidate and os.path.isdir(candidate) else None
-    _HERMES_BIN_DIR_IS_PAYLOAD = False
-    return _HERMES_BIN_DIR
+    _KOVA_BIN_DIR = candidate if candidate and os.path.isdir(candidate) else None
+    _KOVA_BIN_DIR_IS_PAYLOAD = False
+    return _KOVA_BIN_DIR
 
 
 def _prepend_hermes_bin_dir(existing_path: str) -> str:
@@ -693,37 +693,37 @@ def _prepend_hermes_bin_dir(existing_path: str) -> str:
     launcher dir moves to the front even when already listed: a login PATH can list
     another install's ``hermes`` ahead of it."""
     bin_dir = _resolve_hermes_bin_dir()
-    if bin_dir and _HERMES_BIN_DIR_IS_PAYLOAD:
+    if bin_dir and _KOVA_BIN_DIR_IS_PAYLOAD:
         rest = [entry for entry in existing_path.split(os.pathsep) if entry and entry != bin_dir]
         return os.pathsep.join([bin_dir, *rest])
     return _prepend_missing_path_entries(existing_path, [bin_dir] if bin_dir else [])
 
 
 def _managed_runtime_path_entries() -> list[str]:
-    """Return existing Hermes-managed runtime dirs for the terminal subshell PATH.
+    """Return existing Kova-managed runtime dirs for the terminal subshell PATH.
 
     The terminal tool spawns a subshell whose PATH is the agent process's PATH
-    plus ``_SANE_PATH``. Neither carries the runtimes Hermes installs for
-    itself, so on a machine where Hermes provisioned its own toolchain a
+    plus ``_SANE_PATH``. Neither carries the runtimes Kova installs for
+    itself, so on a machine where Kova provisioned its own toolchain a
     command the agent runs resolves a system copy instead — or nothing at all:
 
     - the pm store's node/npm entries — installed to satisfy the desktop
       toolchain; the agent's shell deserves the same.
-    - ``$HERMES_HOME/bin`` — the managed ``uv``. ``install.sh`` writes it there
+    - ``$KOVA_HOME/bin`` — the managed ``uv``. ``install.sh`` writes it there
       and nothing has ever put that directory on PATH, so an install whose only
       uv is the managed one looks uv-less to both the agent and the model.
 
     Resolved per call rather than cached in a module constant because
-    ``get_hermes_home()`` is profile-scoped and a managed runtime can appear
+    ``get_kova_home()`` is profile-scoped and a managed runtime can appear
     mid-process (a lazy pm install, a first browser install).
     """
     try:
         import pm
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         env = pm.env_for("npm", base_env={"PATH": ""})
         managed = [Path(d) for d in env.get("PATH", "").split(os.pathsep) if d]
-        candidates = [*managed, get_hermes_home() / "bin"]
+        candidates = [*managed, get_kova_home() / "bin"]
         return [str(d) for d in candidates if d.is_dir()]
     except Exception:
         return []
@@ -766,7 +766,7 @@ def _apply_windows_msys_bash_env_defaults(env: dict) -> None:
 
     Git Bash rewrites arguments that look like Unix paths (``/FO``, ``/TN``, ``/Create``) into
     ``C:/.../git/FO``-style paths, which breaks native Windows commands such as ``tasklist``, ``schtasks``,
-    and ``wmic``. Hermes runs terminal commands through bash on Windows, so set the standard MSYS opt-out by
+    and ``wmic``. Kova runs terminal commands through bash on Windows, so set the standard MSYS opt-out by
     default. Refs #56700.
     MSYS2-proper and Cygwin bash (which ``_find_bash`` can still return via the final ``shutil.which``
     fallback) ignore it and honor ``MSYS2_ARG_CONV_EXCL`` instead, so set both. ``*`` disables all argv
@@ -814,15 +814,15 @@ def _make_run_env(env: dict) -> dict:
     return run_env
 
 
-# --- Hermes venv / repo-root detection (module-level, computed once) ---
+# --- Kova venv / repo-root detection (module-level, computed once) ---
 # Owned here; read lazily by tools.environments.local_pythonpath (tests patch here).
 # The Electron app prepends the repo root to PYTHONPATH so the backend can ``import
 # tools``; other subprocesses must not inherit it. Aliases: launchers may emit other
-# spellings — the Windows gateway launcher renders Hermes-owned paths under the
-# configured HERMES_HOME spelling (possibly a junction to another drive).
+# spellings — the Windows gateway launcher renders Kova-owned paths under the
+# configured KOVA_HOME spelling (possibly a junction to another drive).
 _hermes_repo_root: Path = Path(__file__).resolve().parents[2]
 _hermes_repo_root_aliases: tuple[Path, ...] = _build_hermes_repo_root_aliases(
-    _hermes_repo_root, Path(__file__).absolute().parents[2], get_process_hermes_home())
+    _hermes_repo_root, Path(__file__).absolute().parents[2], get_process_kova_home())
 _in_venv: bool = (getattr(sys, "base_prefix", sys.prefix) != sys.prefix
                   or hasattr(sys, "real_prefix"))  # real_prefix: virtualenv<20
 _hermes_site_packages: list[Path] | None = None  # lazily cached by local_pythonpath
@@ -1053,7 +1053,7 @@ class LocalEnvironment(BaseEnvironment):
 
     _passwordless_sudo_probe_supported = True
     _profile_scoped_passthrough = True
-    # Commands run on the Hermes host itself — controller-side platform behavior
+    # Commands run on the Kova host itself — controller-side platform behavior
     # (macOS TCC pruning, etc.) legitimately applies here.
     is_local = True
     # A subclass that confines its commands (a sandbox) sets this False: see BaseEnvironment.
@@ -1081,11 +1081,11 @@ class LocalEnvironment(BaseEnvironment):
 
     def get_temp_dir(self) -> str:
         """Shell-safe writable temp dir. Precedence: ``TERMINAL_TEMP_DIR``, TMPDIR/TMP/TEMP
-        (Termux has no system temp dir), ``HERMES_HOME/cache/terminal`` (real storage: a
-        tmpfs system temp dir fills under Hermes load; pruned by ``cleanup_terminal_temp_cache``),
+        (Termux has no system temp dir), ``KOVA_HOME/cache/terminal`` (real storage: a
+        tmpfs system temp dir fills under Kova load; pruned by ``cleanup_terminal_temp_cache``),
         ``tempfile.gettempdir()``; backend env before process env so terminal.env
         overrides work. Windows: ``%TEMP%`` often has spaces that break unquoted bash,
-        so always the HERMES_HOME cache dir with forward slashes (bash- and Python-valid)."""
+        so always the KOVA_HOME cache dir with forward slashes (bash- and Python-valid)."""
         if _IS_WINDOWS:
             for key in ("TERMINAL_TEMP_DIR", "TMPDIR"):
                 candidate = self.env.get(key) or os.environ.get(key)

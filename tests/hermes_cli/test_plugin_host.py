@@ -45,7 +45,7 @@ def register(ctx):
 
 
 def _home_with_plugins(tmp_path, monkeypatch, plugins: dict, isolation="host"):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     for name, body in plugins.items():
         plugin_dir = home / "plugins" / name
@@ -57,7 +57,7 @@ def _home_with_plugins(tmp_path, monkeypatch, plugins: dict, isolation="host"):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     return home
 
@@ -78,10 +78,10 @@ def test_plugin_runs_out_of_process_with_ctx_round_trips_and_survives_host_crash
         first = json.loads(registry.dispatch("hostprobe_pid", {"x": 1}, scope=manager.scope_key))
         host_pid = first["pid"]
         assert host_pid != os.getpid()
-        # A handler calling back into Hermes while Hermes waits on it (nested ctx.dispatch_tool).
+        # A handler calling back into Kova while Kova waits on it (nested ctx.dispatch_tool).
         nested = json.loads(registry.dispatch("hostprobe_nested", {}, scope=manager.scope_key))
         assert nested["pid"] == host_pid and nested["x"] == "nested"
-        # Hooks fire in the host; provider objects arrive as instances of the ABC Hermes checks.
+        # Hooks fire in the host; provider objects arrive as instances of the ABC Kova checks.
         manager.invoke_hook("post_tool_call", tool_name="read_file", args={}, result="ok")
         assert "read_file" in json.loads(registry.dispatch("hostprobe_pid", {}, scope=manager.scope_key))["seen"]
         painter = image_gen_registry.get_provider("hostpainter")
@@ -90,7 +90,7 @@ def test_plugin_runs_out_of_process_with_ctx_round_trips_and_survives_host_crash
         # Live-object ctx surfaces fail the plugin with the boundary's reason, not a crash.
         assert "register_platform" in str(manager._plugins["platformprobe"].error)
 
-        # A plugin killing its host costs one tool error; Hermes keeps running and the host restarts.
+        # A plugin killing its host costs one tool error; Kova keeps running and the host restarts.
         crashed = registry.dispatch("hostprobe_crash", {}, scope=manager.scope_key)
         assert "plugin host" in crashed
         deadline, result = time.monotonic() + 15, ""
@@ -135,7 +135,7 @@ def test_managed_scope_pins_host_isolation_over_the_profiles_own_config(tmp_path
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     manager = PluginManager()
     manager.discover_and_load()
@@ -191,7 +191,7 @@ import asyncio, json
 S = {"type": "object", "properties": {}}
 
 def register(ctx):
-    async def whoami(args, **kw):  # async plugin code calling back into Hermes
+    async def whoami(args, **kw):  # async plugin code calling back into Kova
         return json.dumps({"inner": json.loads(ctx.dispatch_tool("session_probe", {})),
                            "acomplete_awaitable": asyncio.iscoroutinefunction(ctx.llm.acomplete)})
     ctx.register_tool(name="async_whoami", toolset="asyncprobe", schema={"name": "async_whoami",
@@ -275,7 +275,7 @@ def test_hosted_memory_provider_stays_live_across_a_host_crash(tmp_path, monkeyp
         deadline = time.monotonic() + 10
         while host.alive and time.monotonic() < deadline:
             time.sleep(0.1)
-        # The proxy Hermes already holds reloads the provider into the new host on next use.
+        # The proxy Kova already holds reloads the provider into the new host on next use.
         assert provider.whoami() not in {first_pid, os.getpid()}
     finally:
         host.shutdown()

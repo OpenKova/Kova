@@ -11,7 +11,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { registerPluginFilesIpc } from './plugin-files-ipc'
 
 const scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-ipc-')))
-const hermesHome = path.join(scratch, '.hermes')
+const hermesHome = path.join(scratch, '.kova')
 const vault = path.join(scratch, 'Vault')
 fs.mkdirSync(hermesHome)
 fs.mkdirSync(vault)
@@ -53,7 +53,7 @@ describe('hermes:pluginFiles:request', () => {
     expect(await call('hermes:pluginFiles:grants', 'plexus')).toEqual([])
   })
 
-  it('the Hermes home is refused even when the user picks it', async () => {
+  it('the Kova home is refused even when the user picks it', async () => {
     showOpenDialog.mockResolvedValueOnce({ canceled: false, filePaths: [hermesHome] })
 
     expect(await call('hermes:pluginFiles:request', 'plexus')).toMatchObject({ ok: false, error: 'protected' })

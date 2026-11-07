@@ -94,7 +94,7 @@ def test_a_stale_reclaim_never_deletes_a_claim_published_after_its_read(tmp_path
     """R3: the reader judged a dead marker, then paused right at its unlink. A second real
     process claims meanwhile. Pre-A7 the resumed reader deleted that live claim; now the
     decision and the unlink share one hold of the marker mutex, so the claimant waits."""
-    marker = tmp_path / ".hermes-update-in-progress"
+    marker = tmp_path / ".kova-update-in-progress"
     marker.write_bytes(b"0\n0\n")  # malformed: dead
     reader = _python(tmp_path, _STALE_READER, marker)
     claimant = None
@@ -153,7 +153,7 @@ def test_a_reader_reports_the_live_claim_that_replaced_its_stale_snapshot(tmp_pa
     home, install = tmp_path / "home", tmp_path / "install"
     home.mkdir()
     install.mkdir()
-    marker = home / ".hermes-update-in-progress"
+    marker = home / ".kova-update-in-progress"
     _dead_marker(marker)
     reader = _python(tmp_path, _RECLAIM_PAUSED_READER, marker, install, stdout=subprocess.PIPE, text=True)
     claimant = None
@@ -195,7 +195,7 @@ with marker_mutex(Path(sys.argv[2])):
 def test_marker_mutations_wait_for_the_mutex_another_process_holds(tmp_path):
     """A7 rule 1 on every OS (POSIX flock / Windows share-none open of ``<marker>.lock``):
     while another process holds the marker mutex, a reclaim of even a dead marker waits."""
-    marker = tmp_path / ".hermes-update-in-progress"
+    marker = tmp_path / ".kova-update-in-progress"
     marker.write_bytes(b"0\n0\n")
     holder = _python(tmp_path, _MUTEX_HOLDER, marker, tmp_path / "held")
     try:
@@ -399,7 +399,7 @@ def test_a_completion_from_another_home_never_builds_an_owned_checkout(tmp_path,
 
     root = tmp_path / "checkout"
     (root / ".git").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "other-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "other-home"))
     entered = []
     monkeypatch.setattr(source_completion, "_complete_locked", lambda *a, **k: entered.append(a))
     holder = subprocess.Popen([sys.executable, str(_script(tmp_path, _HOLDER)), str(REPO_ROOT), str(root),
@@ -417,24 +417,24 @@ def test_a_completion_from_another_home_never_builds_an_owned_checkout(tmp_path,
 
 def test_a_live_legacy_profile_claim_is_honored(tmp_path, monkeypatch):
     """R11: before the root marker, an update under a named profile claimed
-    ``<root>/profiles/<p>/.hermes-update-in-progress`` (v1) and never took the checkout lock.
+    ``<root>/profiles/<p>/.kova-update-in-progress`` (v1) and never took the checkout lock.
     While such a claim is live, a new update from that root refuses."""
     root = tmp_path / "root"
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
     legacy = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"], stdin=subprocess.DEVNULL)
     try:
-        (profile / ".hermes-update-in-progress").write_text(f"{legacy.pid}\n{int(time.time())}\n")
-        lock = UpdateLock(path=root / ".hermes-update-in-progress")
+        (profile / ".kova-update-in-progress").write_text(f"{legacy.pid}\n{int(time.time())}\n")
+        lock = UpdateLock(path=root / ".kova-update-in-progress")
         assert lock.acquire() is False
         assert lock.holder is not None and lock.holder.pid == legacy.pid
-        assert not (root / ".hermes-update-in-progress").exists()
+        assert not (root / ".kova-update-in-progress").exists()
     finally:
         legacy.kill()
         legacy.wait()
     # Dead: no longer honored (and left for the old updater that wrote it).
-    lock = UpdateLock(path=root / ".hermes-update-in-progress")
+    lock = UpdateLock(path=root / ".kova-update-in-progress")
     assert lock.acquire() is True
     lock.release()
 
@@ -458,7 +458,7 @@ def test_dead_marker_is_kept_and_reported_held_while_the_checkout_lock_is_held(t
 
     install = tmp_path / "install"
     install.mkdir()
-    marker = tmp_path / ".hermes-update-in-progress"
+    marker = tmp_path / ".kova-update-in-progress"
     dead = subprocess.Popen([sys.executable, "-c", "pass"])
     dead.wait()
     marker.write_text(f"{dead.pid}\n{int(time.time())}\nct:1.5\n", encoding="utf-8")
@@ -489,7 +489,7 @@ def test_a_claimer_never_reclaims_a_dead_marker_while_the_checkout_lock_is_held(
 
     install = tmp_path / "install"
     install.mkdir()
-    marker = tmp_path / ".hermes-update-in-progress"
+    marker = tmp_path / ".kova-update-in-progress"
     _dead_marker(marker)
     dead_bytes = marker.read_bytes()
     holder = _python(tmp_path, _LOCK_HOLDER, install, tmp_path / "ready")
@@ -542,7 +542,7 @@ def test_a_refusal_over_a_dead_updaters_lock_uses_the_held_wording(tmp_path):
     dead_pid = updater.pid
     _wait_for(tmp_path / "child")
     try:
-        lock = UpdateLock(path=tmp_path / ".hermes-update-in-progress", install_root=install)
+        lock = UpdateLock(path=tmp_path / ".kova-update-in-progress", install_root=install)
         assert lock.acquire() is False
         assert lock.holder is not None and lock.holder.held and lock.holder.pid == 0
         text = update_lock.describe_holder(lock.holder)
@@ -608,7 +608,7 @@ def test_oversized_marker_numbers_never_raise_and_are_reclaimed(tmp_path):
 
     install = tmp_path / "install"
     install.mkdir()
-    marker = tmp_path / ".hermes-update-in-progress"
+    marker = tmp_path / ".kova-update-in-progress"
     for text in ("1" * 5000 + "\n1\nct:1.5\n", "4242\n" + "9" * 5000 + "\nct:1.5\n",
                  "4242\n1\nct:1.5\ndelegate:" + "7" * 5000 + " ct:1.5\n"):
         marker.write_text(text, encoding="utf-8")

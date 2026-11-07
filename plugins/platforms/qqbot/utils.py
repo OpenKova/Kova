@@ -10,19 +10,19 @@ from .constants import QQBOT_VERSION
 
 
 def _get_hermes_version() -> str:
-    """Return the hermes-agent package version, or 'dev' if unavailable."""
+    """Return the kova-agent package version, or 'dev' if unavailable."""
     try:
         from importlib.metadata import version
-        return version("hermes-agent")
+        return version("kova-agent")
     except Exception:
         return "dev"
 
 
 def build_user_agent() -> str:
-    """``QQBotAdapter/<qqbot_version> (Python/<py_version>; <os>; Hermes/<hermes_version>)``."""
+    """``QQBotAdapter/<qqbot_version> (Python/<py_version>; <os>; Kova/<hermes_version>)``."""
     v = sys.version_info
     return (f"QQBotAdapter/{QQBOT_VERSION} (Python/{v.major}.{v.minor}.{v.micro}; "
-            f"{platform.system().lower()}; Hermes/{_get_hermes_version()})")
+            f"{platform.system().lower()}; Kova/{_get_hermes_version()})")
 
 
 def get_api_headers() -> dict[str, str]:

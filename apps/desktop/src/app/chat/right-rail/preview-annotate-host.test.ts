@@ -123,7 +123,7 @@ describe('preview annotate host', () => {
   it.each([false, true])(
     'keeps a hidden crop awake through both real paint waits and cleanup (failure=%s)',
     async fail => {
-      const previousDesktop = window.hermesDesktop
+      const previousDesktop = window.kovaDesktop
       const guestWindow = window as Window & { __hermesAnnotate?: AnnotateInPage }
       const previousOverlay = guestWindow.__hermesAnnotate
       let awake = false
@@ -138,7 +138,7 @@ describe('preview annotate host', () => {
         awake = false
       })
 
-      window.hermesDesktop = {
+      window.kovaDesktop = {
         beginPreviewGuestActivity: begin,
         endPreviewGuestActivity: end
       } as unknown as Window['hermesDesktop']
@@ -238,7 +238,7 @@ describe('preview annotate host', () => {
         api.teardown()
         raf.mockRestore()
         visibility.mockRestore()
-        window.hermesDesktop = previousDesktop
+        window.kovaDesktop = previousDesktop
         guestWindow.__hermesAnnotate = previousOverlay
       }
     }

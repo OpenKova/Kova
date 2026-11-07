@@ -1,7 +1,7 @@
 """Keep a checkout's commit-graph fresh: the ``hermes -w`` pass and every ``hermes update``.
 
 Generation numbers in the commit-graph keep ``git tag --merged HEAD`` (the version lookup) and
-ancestry checks off a full history walk: on hermes-agent a graph two months behind cost 0.33 s
+ancestry checks off a full history walk: on kova-agent a graph two months behind cost 0.33 s
 per lookup, a fresh one 0.04 s. Partial clones have git's own graph writers switched off
 (gitlock._TREE0_MAINTENANCE_OFF, #127711), so nothing else refreshes it there. Without Bloom data
 the write reads commits only, never trees, so it cannot start that lazy-fetch loop, and it costs
@@ -231,10 +231,10 @@ class _LogDirOnFailureHandler(logging.FileHandler):
 
     def emit(self, record: logging.LogRecord) -> None:
         if self.stream is None:
-            from kova_constants import mkdir_under_hermes_home
+            from kova_constants import mkdir_under_kova_home
 
             try:
-                mkdir_under_hermes_home(Path(self.baseFilename).parent)
+                mkdir_under_kova_home(Path(self.baseFilename).parent)
                 self.stream = self._open()
             except OSError:  # a missing/deleted named profile is FileNotFoundError
                 self.handleError(record)
@@ -265,14 +265,14 @@ def spawn_commit_graph_refresh(repo_root: Path) -> bool:
     because the write takes seconds and must neither delay the update nor die with it. A spawn that
     fails gives the slot back, so the next update retries instead of waiting out the interval.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     git_dir = common_git_dir(repo_root)
     if git_dir is None or not (git_dir / "objects").is_dir() or not claim_commit_graph_refresh(git_dir):
         return False
     code_root = Path(__file__).resolve().parents[1]
     argv = [sys.executable, "-c", _CHILD, str(code_root), str(repo_root), str(git_dir),
-            str(get_hermes_home() / "logs" / "agent.log")]
+            str(get_kova_home() / "logs" / "agent.log")]
     kwargs: dict = dict(cwd=str(repo_root), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL, close_fds=True)
     try:

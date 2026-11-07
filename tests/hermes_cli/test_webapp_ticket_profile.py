@@ -23,13 +23,13 @@ def two_profiles(monkeypatch, tmp_path):
     from kova_state import SessionDB
     from kova_state_runtime import begin_runtime_epoch
 
-    launch = tmp_path / ".hermes"
+    launch = tmp_path / ".kova"
     beta = launch / "profiles" / "beta"
     beta.mkdir(parents=True)
     for home in (launch, beta):
         (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     registry = SessionAuthorities(launch, multiplexed=True)
     runner = SimpleNamespace(_draining=False, session_authorities=registry)
     authorities, dbs = {}, {}
@@ -55,7 +55,7 @@ def two_profiles(monkeypatch, tmp_path):
 def _ask(client, method, params, profile=None):
     """*method*'s reply on a tab socket opened for *profile* (``?profile=`` on the page)."""
     query = f"&profile={profile}" if profile else ""
-    minted = client.post(f"/api/webapp/socket-ticket?socket=gateway{query}", headers={"X-Hermes-Session-Token": _TOKEN})
+    minted = client.post(f"/api/webapp/socket-ticket?socket=gateway{query}", headers={"X-Kova-Session-Token": _TOKEN})
     assert minted.status_code == 200, minted.text
     ticket = minted.json()["ticket"]
     socket_query = f"&profile={profile}" if profile else ""

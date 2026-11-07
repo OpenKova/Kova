@@ -17,12 +17,12 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 
 from kova_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, open_db, write_txn
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 def projects_db_path() -> Path:
-    """The per-profile projects DB path (``$HERMES_HOME/projects.db``)."""
-    return get_hermes_home() / "projects.db"
+    """The per-profile projects DB path (``$KOVA_HOME/projects.db``)."""
+    return get_kova_home() / "projects.db"
 
 
 SCHEMA_SQL = """

@@ -23,7 +23,7 @@ def _args(**overrides) -> Namespace:
 def home(monkeypatch, tmp_path):
     root = tmp_path / "root"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(launcher, "_build", lambda args: pytest.fail("built a Webapp that is off"))
     monkeypatch.setattr(launcher, "_ensure", lambda home: pytest.fail("started a gateway for a Webapp that is off"))
     return root

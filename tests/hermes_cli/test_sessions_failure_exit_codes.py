@@ -60,9 +60,9 @@ def _vacuum_fails(monkeypatch):
 
 def _store(monkeypatch, tmp_path, build):
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    db_path = get_hermes_home() / "state.db"
+    db_path = get_kova_home() / "state.db"
     build(db_path)
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", db_path)
     monkeypatch.chdir(tmp_path)
@@ -134,11 +134,11 @@ def test_redirected_null_stdin_is_unattended_on_every_os(tmp_path):
     import subprocess
     from pathlib import Path
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     _old_ended_session(home / "state.db")
     root = str(Path(__file__).resolve().parents[2])
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": root}
+    env = {**os.environ, "KOVA_HOME": str(home), "PYTHONPATH": root}
     proc = subprocess.run([sys.executable, "-m", "kova_cli.main", "sessions", "delete", "s-old"], cwd=root,
                           env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", timeout=120, check=False)

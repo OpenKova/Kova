@@ -1,7 +1,7 @@
 """Bundled-payload CLI entry wrapper — the distlib launcher's zip overlay.
 
 scripts/build/launchers.py reads this file, substitutes the four
-HERMES_* placeholders (see the constants below), and hands the result to
+KOVA_* placeholders (see the constants below), and hands the result to
 a distlib ScriptMaker as
 the script text. On win32 the minted artifact is a real PE: the distlib
 launcher stub + a shebang whose interpreter is the ``<launcher_dir>``
@@ -38,10 +38,10 @@ import os
 import site
 import sys
 
-HERMES_ENTRY_MODULE = "__HERMES_ENTRY_MODULE__"
-HERMES_ENTRY_FUNC = "__HERMES_ENTRY_FUNC__"
-HERMES_REPO_REL = "__HERMES_REPO_REL__"
-HERMES_SITE_REL = "__HERMES_SITE_REL__"
+KOVA_ENTRY_MODULE = "__KOVA_ENTRY_MODULE__"
+KOVA_ENTRY_FUNC = "__KOVA_ENTRY_FUNC__"
+KOVA_REPO_REL = "__KOVA_REPO_REL__"
+KOVA_SITE_REL = "__KOVA_SITE_REL__"
 
 
 def _join_rel(here, rel):
@@ -59,7 +59,7 @@ def launcher_dir(argv0):
 def payload_sys_paths(here):
     """Import roots for the sealed payload: repo first (wins), then the
     venv's dependency tree — mirroring the old shim's PYTHONPATH order."""
-    return [_join_rel(here, HERMES_REPO_REL), _join_rel(here, HERMES_SITE_REL)]
+    return [_join_rel(here, KOVA_REPO_REL), _join_rel(here, KOVA_SITE_REL)]
 
 
 def default_pycache_dir(environ):
@@ -105,7 +105,7 @@ def configure(here, environ=None):
         # baked bytecode and re-pay the cold-compile stall this marker exists
         # to remove. Without the marker (old payloads), the user-level
         # redirect below keeps bytecode writes out of the sealed tree.
-        if not os.path.exists(os.path.join(os.path.dirname(repo_entry), ".hermes-baked-pycache")):
+        if not os.path.exists(os.path.join(os.path.dirname(repo_entry), ".kova-baked-pycache")):
             default = default_pycache_dir(environ)
             if default:
                 environ["PYTHONPYCACHEPREFIX"] = default
@@ -121,8 +121,8 @@ def main(argv=None):
     here = launcher_dir(argv[0] if argv else sys.argv[0])
     configure(here)
     importlib.import_module("kova_bootstrap")
-    module = importlib.import_module(HERMES_ENTRY_MODULE)
-    target = getattr(module, HERMES_ENTRY_FUNC)
+    module = importlib.import_module(KOVA_ENTRY_MODULE)
+    target = getattr(module, KOVA_ENTRY_FUNC)
     # main() reads sys.argv; hand it the real argv (argv[0] stays the
     # launcher path, exactly like a console-script entry point).
     return target()

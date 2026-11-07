@@ -4,7 +4,7 @@
  *
  *   source (plain ESM js) -> import allowlist (`@hermes/plugin-sdk` / `react*`
  *   only) -> bare-specifier rewrite to live shim blobs (see sdk/runtime.ts)
- *   -> blob `import()` -> validate default HermesPlugin -> register(ctx)
+ *   -> blob `import()` -> validate default KovaPlugin -> register(ctx)
  *
  * Loading the same plugin id again disposes the previous registrations first
  * (agent rewrites a plugin file -> clean reload) — everything taken out
@@ -43,13 +43,13 @@ import { notifyError } from '@/store/notifications'
 import { forgetPluginPreviewAccess } from '@/store/plugin-preview-grants'
 
 import { trackGatewayEventDisposers } from './events'
-import { createPluginContext, declaredCapabilities, type HermesPlugin } from './plugin'
+import { createPluginContext, declaredCapabilities, type KovaPlugin } from './plugin'
 import { $pluginRecords, dropPlugin, pluginActive, type PluginKind, publishPlugin } from './plugins-store'
 
 interface LoadOptions {
   /** Root-level default-enable CAP: `false` ships the plugin opt-in (inventory
    *  row, off until the user toggles) even if the plugin says otherwise. The
-   *  unified agent-plugin root sets this so `~/.hermes/plugins` keeps its
+   *  unified agent-plugin root sets this so `~/.kova/plugins` keeps its
    *  installed-but-inert posture (GHSA-mcfc-hp25-cjv7) on the desktop side too. */
   defaultEnabled?: boolean
   /** Absolute plugin.js path (disk plugins) — recorded for reveal/inventory. */
@@ -401,12 +401,12 @@ export async function loadRuntimePlugin(
 
     const url = URL.createObjectURL(new Blob([rewriteSpecifiers(source)], { type: 'text/javascript' }))
 
-    let mod: { default?: HermesPlugin }
+    let mod: { default?: KovaPlugin }
     let deadline: ReturnType<typeof setTimeout> | undefined
 
     try {
       mod = await Promise.race([
-        import(/* @vite-ignore */ url) as Promise<{ default?: HermesPlugin }>,
+        import(/* @vite-ignore */ url) as Promise<{ default?: KovaPlugin }>,
         new Promise<never>((_, reject) => {
           deadline = setTimeout(
             () =>
@@ -425,7 +425,7 @@ export async function loadRuntimePlugin(
     const plugin = mod.default
 
     if (!plugin?.id || typeof plugin.register !== 'function') {
-      throw new Error(`${origin} has no valid default HermesPlugin export`)
+      throw new Error(`${origin} has no valid default KovaPlugin export`)
     }
 
     // A disk/runtime copy of a plugin that now ships BUNDLED (e.g. a
@@ -553,7 +553,7 @@ export async function loadRuntimePlugin(
 // ---------------------------------------------------------------------------
 // The on-disk plugin door — ONE app-level root, `<hermes home>/desktop-plugins/`:
 //  - `<id>/plugin.js` — a standalone desktop plugin (agent- or user-written);
-//  - `<package>/plugin.js` + `.hermes-package.json` — the desktop HALF of a
+//  - `<package>/plugin.js` + `.kova-package.json` — the desktop HALF of a
 //    unified agent+desktop package, COPIED here by Electron from the package's
 //    `plugins/<package>/desktop/` folder (electron/desktop-plugins-root.ts).
 //    The agent half stays in its profile; the desktop half lives with the app,
@@ -578,10 +578,10 @@ interface DiskRoot {
 }
 
 /** The app-level root, resolved fresh each pass (Electron-local, never the
- *  backend's hermes_home — #66899). Resolving it also runs Electron's
+ *  backend's kova_home — #66899). Resolving it also runs Electron's
  *  reconcile, so unified packages' desktop halves are current before we scan. */
 async function diskRoots(): Promise<DiskRoot[]> {
-  const root = await window.hermesDesktop?.desktopPluginsRoot?.()
+  const root = await window.kovaDesktop?.desktopPluginsRoot?.()
 
   return root ? [{ dir: root, entrySegments: ['plugin.js'] }] : []
 }
@@ -591,7 +591,7 @@ async function diskRoots(): Promise<DiskRoot[]> {
  *  until allowlisted — GHSA-mcfc-hp25-cjv7 — so the desktop half matches), and
  *  the record carries the package name so the Plugins page pairs it with the
  *  agent row. */
-const PACKAGE_MARKER = '.hermes-package.json'
+const PACKAGE_MARKER = '.kova-package.json'
 
 interface PackageMarker {
   /** The package is a symlinked dev checkout; `source` is its `desktop/` dir. */
@@ -684,7 +684,7 @@ class PluginSourceOversizeError extends Error {}
  *  the preview read, which silently truncates at 512 KiB — there the read
  *  fails loudly instead of handing a partial file to the evaluator. */
 async function readPluginSourceText(file: string): Promise<string> {
-  const desktop = window.hermesDesktop!
+  const desktop = window.kovaDesktop!
 
   if (desktop.readPluginSource) {
     return (await desktop.readPluginSource(file)).text
@@ -698,7 +698,7 @@ async function readPluginSourceText(file: string): Promise<string> {
 
   if (result.truncated) {
     throw new PluginSourceOversizeError(
-      "plugin.js exceeds this shell's 512 KiB read limit — update Hermes Desktop to load larger plugins"
+      "plugin.js exceeds this shell's 512 KiB read limit — update Kova Desktop to load larger plugins"
     )
   }
 
@@ -839,7 +839,7 @@ async function watchDiskPluginSource(desktop: NonNullable<Window['hermesDesktop'
  *  reconcile — the one writer of that folder), then reload every copy that
  *  pass replaced and re-bind its watch, which the folder swap orphaned. */
 async function resyncLinkedDiskPlugins(): Promise<void> {
-  const desktop = window.hermesDesktop
+  const desktop = window.kovaDesktop
 
   if (!desktop?.reconcileDesktopPlugins) {
     return
@@ -867,7 +867,7 @@ async function resyncLinkedDiskPlugins(): Promise<void> {
  *  same path, so the fs watch on the old inode never fires and the stale
  *  module would otherwise stay live until restart (#91503). */
 async function scanDiskPlugins(reloadKnown = false): Promise<void> {
-  const desktop = window.hermesDesktop
+  const desktop = window.kovaDesktop
 
   // Re-entrancy guard: the 5s poll must not overlap a slow in-flight scan
   // (reads/loads can exceed the interval).
@@ -980,11 +980,11 @@ function retireDiskPlugin(file: string, record: DiskPlugin): void {
   dropOriginRecord(record.origin, record)
 
   if (record.watchId) {
-    void window.hermesDesktop?.stopPreviewFileWatch(record.watchId)
+    void window.kovaDesktop?.stopPreviewFileWatch(record.watchId)
   }
 
   if (record.sourceWatchId) {
-    void window.hermesDesktop?.stopPreviewFileWatch(record.sourceWatchId)
+    void window.kovaDesktop?.stopPreviewFileWatch(record.sourceWatchId)
   }
 
   disk.delete(file)
@@ -1008,10 +1008,10 @@ export async function uninstallDiskPlugin(
   }
 
   const [file, record] = found
-  const remove = removeDesktop ?? window.hermesDesktop?.removeDesktopPlugin
+  const remove = removeDesktop ?? window.kovaDesktop?.removeDesktopPlugin
 
   if (!remove) {
-    return { ok: false, error: 'this Hermes Desktop build cannot remove desktop plugins — delete the folder by hand' }
+    return { ok: false, error: 'this Kova Desktop build cannot remove desktop plugins — delete the folder by hand' }
   }
 
   const result = await remove({ name: record.origin })
@@ -1027,7 +1027,7 @@ export async function uninstallDiskPlugin(
   // could not revoke it there any more.
   if (record.id) {
     try {
-      await window.hermesDesktop?.pluginFiles?.revoke(record.id)
+      await window.kovaDesktop?.pluginFiles?.revoke(record.id)
     } catch (error) {
       return {
         ok: false,
@@ -1051,7 +1051,7 @@ export const $diskPluginsScanPending = atom(false)
 /** Start the self-maintaining disk door: initial scan, per-file hot reload,
  *  fs-watched folder reconciliation (poll fallback on older shells). Idempotent. */
 export function watchRuntimePlugins(): void {
-  const desktop = window.hermesDesktop
+  const desktop = window.kovaDesktop
 
   if (watching || !desktop) {
     return

@@ -10,7 +10,7 @@ import { resetServerRequestsForTests } from '@/store/server-requests'
 import type { SessionResumeResult } from '@/types/hermes'
 
 import { CanonicalDesktopProtocol } from './canonical-protocol'
-import { HermesGateway } from './client'
+import { KovaGateway } from './client'
 
 beforeEach(() => {
   $clarifyRequests.set({})
@@ -36,7 +36,7 @@ test.each([
     return { status: 'resolved' } as never
   })
 
-  const client = new HermesGateway()
+  const client = new KovaGateway()
   const previousGateway = $gateway.get()
   $gateway.set(client)
 

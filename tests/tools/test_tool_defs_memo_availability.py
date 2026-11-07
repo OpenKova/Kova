@@ -345,7 +345,7 @@ def test_selection_widened_by_a_late_connection_appends_with_the_generation_unch
     """``adopt_late_connections`` widens the selection to a server another session already
     connected in this process: nothing registers, the generation stays put, and the server's
     tools must still append between turns, as on main."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.connectors import mcp as connectors_mcp
     from tools.mcp_tool_agent import refresh_agent_mcp_tools
 
@@ -357,7 +357,7 @@ def test_selection_widened_by_a_late_connection_appends_with_the_generation_unch
     agent.session_id = "late-session"
     sent = list(agent.tools)
     generation = registry._generation
-    monkeypatch.setitem(connectors_mcp._LATE_ATTEMPTS, (hermes_home_key(), "late-session"),
+    monkeypatch.setitem(connectors_mcp._LATE_ATTEMPTS, (kova_home_key(), "late-session"),
                         {"probe_late": _ApprovedLateAttempt()})
     monkeypatch.setattr("tools.mcp_tool_config._load_mcp_config", lambda: {"probe_late": {"command": "probe"}})
     monkeypatch.setattr("tools.mcp_tool_discovery.register_mcp_servers", lambda servers: None)  # connected already

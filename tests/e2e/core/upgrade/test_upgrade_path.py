@@ -38,7 +38,7 @@ The install's origin is the official URL rewritten (``url.<store>.insteadOf``) t
 store, so the updater takes the normal non-fork path and never touches the network.
 
 All processes run in the bubblewrap sandbox from ``_helpers`` (own PID namespace, no user
-systemd bus, real ~/.hermes read-only): the updater's all-profile gateway scan cannot reach a
+systemd bus, real ~/.kova read-only): the updater's all-profile gateway scan cannot reach a
 live gateway on the host.
 """
 
@@ -90,11 +90,11 @@ def _git(*args: str, cwd: Path, check: bool = True) -> str:
 
 
 def _real_uv() -> str | None:
-    cand = shutil.which("uv") or str(H.REAL_HOME / ".hermes" / "bin" / "uv")
+    cand = shutil.which("uv") or str(H.REAL_HOME / ".kova" / "bin" / "uv")
     return cand if cand and Path(cand).exists() else None
 
 
-OFFICIAL_URL = "https://github.com/NousResearch/hermes-agent.git"
+OFFICIAL_URL = "https://github.com/NousResearch/kova-agent.git"
 
 
 class _Refs(NamedTuple):
@@ -184,11 +184,11 @@ for spec in proj["dependencies"]:
         continue
     if req.specifier and not req.specifier.contains(have, prereleases=True):
         bad.append(f"{req.name}: {have} does not satisfy {req.specifier}")
-dist = metadata.distribution("hermes-agent")
+dist = metadata.distribution("kova-agent")
 declared = sorted(str(Requirement(r)) for r in (dist.requires or []) if "extra ==" not in r)
 wanted = sorted(str(Requirement(r)) for r in proj["dependencies"])
 if declared != wanted:
-    bad.append(f"installed hermes-agent metadata is stale: {sorted(set(declared) ^ set(wanted))}")
+    bad.append(f"installed kova-agent metadata is stale: {sorted(set(declared) ^ set(wanted))}")
 if bad:
     sys.exit("\n".join(bad))
 """
@@ -256,20 +256,20 @@ class Leg:
     origin: Path
     install: Path
     env: dict[str, str]
-    hermes_home: Path
+    kova_home: Path
     wrap_dir: Path
     snapshot: dict = field(default_factory=dict)
 
     @property
     def hermes(self) -> str:
-        published = self.install / ".hermes" / "bin" / "hermes"
+        published = self.install / ".kova" / "bin" / "hermes"
         return str(published if published.exists() else self.install / "venv" / "bin" / "hermes")
 
     @property
     def python(self) -> str:
         from pm.environments import install_key
 
-        facts = self.hermes_home / "installs" / install_key(self.install) / "facts.json"
+        facts = self.kova_home / "installs" / install_key(self.install) / "facts.json"
         if facts.exists():
             selected = json.loads(facts.read_text(encoding="utf-8"))["packages"]["venv"]["environment"]
             return str(Path(selected) / "bin" / "python")
@@ -277,20 +277,20 @@ class Leg:
 
     def run(self, *args: str, timeout: float = CLI_TIMEOUT, argv0: str | None = None,
             cwd: Path | None = None) -> subprocess.CompletedProcess:
-        return H.run([argv0 or self.hermes, *args], env=self.env, cwd=cwd or self.install,
+        return H.run([argv0 or self.kova, *args], env=self.env, cwd=cwd or self.install,
                      writable=[self.root], timeout=timeout)
 
     def popen(self, *args: str) -> subprocess.Popen:
         log = open(self.root / f"popen-{int(time.monotonic() * 1000)}.log", "w")
         return subprocess.Popen(
-            H.sandbox_argv([*_KILLED_RUN_PREFIX, self.hermes, *args], writable=[self.root]),
+            H.sandbox_argv([*_KILLED_RUN_PREFIX, self.kova, *args], writable=[self.root]),
             env=self.env, cwd=str(self.install), stdin=subprocess.DEVNULL,
             stdout=log, stderr=subprocess.STDOUT, text=True, start_new_session=True,
         )
 
 
 # Each sandboxed command gets a fresh PID namespace, so pids restart at 2 every time. The update
-# marker a killed run leaves (``$HERMES_HOME/.hermes-update-in-progress``) holds its pid; if the
+# marker a killed run leaves (``$KOVA_HOME/.kova-update-in-progress``) holds its pid; if the
 # retry came up under the SAME pid it would see a "live" holder that is really itself, an
 # artefact of the harness, not of a user retrying later (the killed pid is dead for them). So
 # the killed run's updater is pid 3 (a non-exec shell is pid 2) and every retry's updater is
@@ -308,11 +308,11 @@ def _make_origin(root: Path, base: str) -> Path:
     return origin
 
 
-def _write_wrappers(leg_root: Path, install: Path, hermes_home: Path) -> Path:
+def _write_wrappers(leg_root: Path, install: Path, kova_home: Path) -> Path:
     """Managed uv (as the installer provisions it) and an armable PATH git wrapper."""
     real_uv = _real_uv()
     real_git = shutil.which("git")
-    bin_dir = hermes_home / "bin"
+    bin_dir = kova_home / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     uv = bin_dir / "uv"
     uv.write_text(
@@ -385,13 +385,13 @@ def make_leg(root: Path, template_home: Path | None, base: str | None = None) ->
                         env=uv_env, capture_output=True, text=True, timeout=1800, check=False)
     assert cp.returncode == 0, f"N-1 venv install from its uv.lock failed:\n{cp.stderr[-4000:]}"
     env_probe = H.isolated_env(root)
-    hermes_home = Path(env_probe["HERMES_HOME"])
+    kova_home = Path(env_probe["KOVA_HOME"])
     if template_home is not None:
-        shutil.rmtree(hermes_home)
-        shutil.copytree(template_home, hermes_home, symlinks=True, ignore=_sockets)
-    wrap = _write_wrappers(root, install, hermes_home)
+        shutil.rmtree(kova_home)
+        shutil.copytree(template_home, kova_home, symlinks=True, ignore=_sockets)
+    wrap = _write_wrappers(root, install, kova_home)
     env = H.isolated_env(root, extra_path=[wrap])
-    return Leg(root=root, origin=origin, install=install, env=env, hermes_home=hermes_home, wrap_dir=wrap)
+    return Leg(root=root, origin=origin, install=install, env=env, kova_home=kova_home, wrap_dir=wrap)
 
 
 # ---------------------------------------------------------------------------
@@ -424,7 +424,7 @@ def db_fingerprint(db: Path) -> dict:
 
 
 def _profile_homes(leg: Leg) -> dict[str, Path]:
-    return {"default": leg.hermes_home, "work": leg.hermes_home / "profiles" / "work"}
+    return {"default": leg.kova_home, "work": leg.kova_home / "profiles" / "work"}
 
 
 def snapshot_state(leg: Leg) -> dict:
@@ -435,7 +435,7 @@ def snapshot_state(leg: Leg) -> dict:
             "env": (home / ".env").read_bytes() if (home / ".env").exists() else None,
             "db": db_fingerprint(home / "state.db"),
         }
-    snap["cron"] = json.loads((leg.hermes_home / "cron" / "jobs.json").read_text(encoding="utf-8"))
+    snap["cron"] = json.loads((leg.kova_home / "cron" / "jobs.json").read_text(encoding="utf-8"))
     return snap
 
 
@@ -457,7 +457,7 @@ def migrate_oracle(leg: Leg, name: str, before: bytes) -> bytes:
     if oroot.exists():
         shutil.rmtree(oroot)
     env = H.isolated_env(oroot, pythonpath=H.WORKTREE)
-    home = Path(env["HERMES_HOME"])
+    home = Path(env["KOVA_HOME"])
     (home / "config.yaml").write_bytes(before)
     src_env = _profile_homes(leg)[name] / ".env"
     if src_env.exists():
@@ -482,7 +482,7 @@ def assert_healthy_at_head(leg: Leg, provider: FakeLLMServer, final: subprocess.
     assert cp.returncode == 0, "the updated venv does not serve HEAD's tree:\n" + H.describe(cp)
     # The venv satisfies HEAD's declared dependency set (not just "the old release still imports"):
     # every core requirement in the pulled pyproject is installed at a satisfying version, and the
-    # installed hermes-agent distribution was built from the pulled pyproject.
+    # installed kova-agent distribution was built from the pulled pyproject.
     cp = leg.run("-c", DEPS_PROBE, str(leg.install / "pyproject.toml"), argv0=leg.python, cwd=leg.root)
     assert cp.returncode == 0, "venv does not satisfy HEAD's dependencies:\n" + H.describe(cp)
     # 2. state integrity: nothing lost, nothing corrupted (measured BEFORE any new turn)
@@ -495,7 +495,7 @@ def assert_healthy_at_head(leg: Leg, provider: FakeLLMServer, final: subprocess.
         assert fp["messages"] == before[name]["db"]["messages"], f"{name} pre-existing messages changed"
         if before[name]["env"] is not None:
             assert (home / ".env").read_bytes() == before[name]["env"], f"{name} .env rewritten by the update"
-    jobs_after = json.loads((leg.hermes_home / "cron" / "jobs.json").read_text(encoding="utf-8"))
+    jobs_after = json.loads((leg.kova_home / "cron" / "jobs.json").read_text(encoding="utf-8"))
     assert _job_ids(jobs_after) == _job_ids(before["cron"]) and _job_ids(jobs_after), "cron jobs lost/changed"
     # 3. config: exactly HEAD's documented migrations, nothing else (asserted last, see the end)
     drift = []
@@ -532,7 +532,7 @@ def assert_healthy_at_head(leg: Leg, provider: FakeLLMServer, final: subprocess.
     assert provider.default_text in turn.stdout, H.describe(turn)
     new = provider.main_requests()[n_before:]
     assert len(new) == 1 and marker in json.dumps(new[0]["messages"]), "one-shot turn did not reach the provider once"
-    fp = db_fingerprint(leg.hermes_home / "state.db")
+    fp = db_fingerprint(leg.kova_home / "state.db")
     assert fp["integrity"] == [("ok",)]
     assert len(fp["sessions"]) == len(before["default"]["db"]["sessions"]) + 1, "post-update turn not persisted"
     # HEAD's first real use of the DB (its schema migrations run on open) keeps every old row intact.
@@ -562,18 +562,18 @@ def provider():
 
 @pytest.fixture(scope="module")
 def template_home(tmp_path_factory, provider) -> Path:
-    """HERMES_HOME populated by the N-1 CLI itself (sessions, profile, cron, config)."""
+    """KOVA_HOME populated by the N-1 CLI itself (sessions, profile, cron, config)."""
     seed = make_leg(tmp_path_factory.mktemp("seed"), None)
     version = _base_config_version(seed)
     cfg = user_config(provider.base_url, version)
-    (seed.hermes_home / "config.yaml").write_text(cfg, encoding="utf-8")
-    (seed.hermes_home / ".env").write_text("OPENAI_API_KEY=sk-fake-e2e\n", encoding="utf-8")
+    (seed.kova_home / "config.yaml").write_text(cfg, encoding="utf-8")
+    (seed.kova_home / ".env").write_text("OPENAI_API_KEY=sk-fake-e2e\n", encoding="utf-8")
     for prompt in ("first session before the upgrade", "second session before the upgrade"):
         cp = seed.run("-z", prompt)
         assert cp.returncode == 0, H.describe(cp)
     cp = seed.run("profile", "create", "work", "--no-alias")
     assert cp.returncode == 0, H.describe(cp)
-    work = seed.hermes_home / "profiles" / "work"
+    work = seed.kova_home / "profiles" / "work"
     (work / "config.yaml").write_text(cfg, encoding="utf-8")
     (work / ".env").write_text("OPENAI_API_KEY=sk-fake-e2e-work\n", encoding="utf-8")
     cp = seed.run("-p", "work", "-z", "work profile session before the upgrade")
@@ -581,10 +581,10 @@ def template_home(tmp_path_factory, provider) -> Path:
     cp = seed.run("cron", "create", "--name", "nightly", "0 3 * * *", "summarize the day")
     assert cp.returncode == 0, H.describe(cp)
     # Configs were written by hand AFTER the N-1 CLI touched them; re-pin them to the user's bytes.
-    (seed.hermes_home / "config.yaml").write_text(cfg, encoding="utf-8")
+    (seed.kova_home / "config.yaml").write_text(cfg, encoding="utf-8")
     (work / "config.yaml").write_text(cfg, encoding="utf-8")
     template = seed.root / "template-home"
-    shutil.copytree(seed.hermes_home, template, symlinks=True, ignore=_sockets)
+    shutil.copytree(seed.kova_home, template, symlinks=True, ignore=_sockets)
     return template
 
 
@@ -602,7 +602,7 @@ def _publish_head(leg: Leg) -> None:
 
 
 def _update(leg: Leg) -> subprocess.CompletedProcess:
-    return leg.run(*_RETRY_PREFIX[1:], leg.hermes, "update", "--yes", "--branch", "main",
+    return leg.run(*_RETRY_PREFIX[1:], leg.kova, "update", "--yes", "--branch", "main",
                    argv0=_RETRY_PREFIX[0], timeout=UPDATE_TIMEOUT)
 
 

@@ -39,8 +39,8 @@ def _profile_home(authority):
     home = Path(str(authority.profile_id))
     if home.is_absolute() and home.is_dir():
         return home
-    from kova_constants import get_hermes_home
-    return get_hermes_home()
+    from kova_constants import get_kova_home
+    return get_kova_home()
 
 
 def _multiplexed(authority):

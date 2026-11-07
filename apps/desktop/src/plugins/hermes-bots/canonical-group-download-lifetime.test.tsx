@@ -26,13 +26,13 @@ import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
 const binding = { connectionId: 'owner-a', profile: 'reviewer', roomId: 'room-one' }
 const attachment = { attachment_id: 'att_00000000000000000000000000000001', kind: 'file', name: 'retained.txt', mime: 'text/plain', size: 1 }
-const originalDesktop = window.hermesDesktop
-afterEach(() => { cleanup(); request.mockReset(); vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); window.hermesDesktop = originalDesktop })
+const originalDesktop = window.kovaDesktop
+afterEach(() => { cleanup(); request.mockReset(); vi.restoreAllMocks(); vi.unstubAllGlobals(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 function setup() {
   const observed = observeDownloads()
   const cache = vi.fn().mockResolvedValue('/private/composer-images/not-a-user-download')
-  window.hermesDesktop = { saveImageBuffer: cache } as unknown as typeof window.hermesDesktop
+  window.kovaDesktop = { saveImageBuffer: cache } as unknown as typeof window.kovaDesktop
   let release!: (value: unknown) => void
   const held = new Promise(resolve => { release = resolve })
   request.mockImplementation(async (_route, method) => {

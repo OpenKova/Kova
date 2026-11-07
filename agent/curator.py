@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from agent.skill_utils import get_disabled_skill_names
 from tools import skill_usage
 from utils import atomic_json_write
@@ -38,7 +38,7 @@ DEFAULT_CONSOLIDATE = False
 # --- .curator_state — persistent scheduler + status ---
 
 def _state_file() -> Path:
-    return get_hermes_home() / "skills" / ".curator_state"
+    return get_kova_home() / "skills" / ".curator_state"
 
 
 def load_state() -> dict[str, Any]:
@@ -82,7 +82,7 @@ def _subdict(node: Any, *keys: str) -> dict[str, Any]:
 
 
 def _read_config_section(*path: str, label: str, log: logging.Logger = logger) -> dict[str, Any]:
-    """Read a nested section of ~/.hermes/config.yaml. Tolerates missing file."""
+    """Read a nested section of ~/.kova/config.yaml. Tolerates missing file."""
     try:
         from kova_cli.config import load_config_readonly
         cfg = load_config_readonly()
@@ -290,7 +290,7 @@ CURATOR_DRY_RUN_BANNER = (
 
 
 CURATOR_REVIEW_PROMPT = (
-    "You are running as Hermes' background skill CURATOR. This is an "
+    "You are running as Kova' background skill CURATOR. This is an "
     "UMBRELLA-BUILDING consolidation pass, not a passive audit and not a "
     "duplicate-finder.\n\n"
     "The goal of the skill collection is a LIBRARY OF CLASS-LEVEL "
@@ -320,7 +320,7 @@ CURATOR_REVIEW_PROMPT = (
     "to local curator-managed skills only; external skills are externally "
     "owned and read-only to this background curator.\n"
     "2. DO NOT delete any skill. Archiving (moving the skill's directory "
-    "into ~/.hermes/skills/.archive/) is the maximum destructive action. "
+    "into ~/.kova/skills/.archive/) is the maximum destructive action. "
     "Archives are recoverable; deletion is not.\n"
     "3. DO NOT touch skills shown as pinned=yes. Skip them entirely.\n"
     "3b. DO NOT archive, delete, consolidate, move, or otherwise modify any "
@@ -473,8 +473,8 @@ CURATOR_REVIEW_PROMPT = (
 # --- Per-run reports — {YYYYMMDD-HHMMSS}/run.json + REPORT.md under logs/curator/ ---
 
 def _reports_root() -> Path:
-    """``~/.hermes/logs/curator/`` (telemetry next to agent.log, not under skills/). mkdir'd here too so gateway-only / bare-library entry paths work."""
-    root = get_hermes_home() / "logs" / "curator"
+    """``~/.kova/logs/curator/`` (telemetry next to agent.log, not under skills/). mkdir'd here too so gateway-only / bare-library entry paths work."""
+    root = get_kova_home() / "logs" / "curator"
     try:
         root.mkdir(parents=True, exist_ok=True)
     except OSError as e:
@@ -774,11 +774,11 @@ def _cron_rewrite_lines(entry: dict[str, Any]) -> list[str]:
 _REPORT_SECTIONS = (
     ("consolidated", "Consolidated into umbrella skills",
      "_These skills were **absorbed into another skill** during this run — their content still lives, just under a different name. "
-     "The original directory was moved to `~/.hermes/skills/.archive/` for safety and can be restored via "
+     "The original directory was moved to `~/.kova/skills/.archive/` for safety and can be restored via "
      "`hermes curator restore <name>` if the consolidation was wrong._\n", _consolidated_lines, 50, "see `run.json`"),
     ("pruned", "Pruned — archived for staleness",
      "_These skills were archived without being merged into an umbrella (e.g. stale, unused, or judged irrelevant). "
-     "Directories live under `~/.hermes/skills/.archive/`. Restore any via `hermes curator restore <name>`._\n",
+     "Directories live under `~/.kova/skills/.archive/`. Restore any via `hermes curator restore <name>`._\n",
      _pruned_lines, 50, "see `run.json`"),
     ("added", "New skills this run", "_Usually these are new class-level umbrellas created via `skill_manage action=create`._\n",
      lambda n: [f"- `{n}`"], None, ""),
@@ -824,7 +824,7 @@ def _render_report_markdown(p: dict[str, Any]) -> str:
     elif not error and (p.get("llm_summary") or ""):
         lines += ["## LLM summary\n", p.get("llm_summary"), ""]
     lines += ["## Recovery\n", "- Restore an archived skill: `hermes curator restore <name>`",
-              "- All archives live under `~/.hermes/skills/.archive/` and are recoverable by `mv`",
+              "- All archives live under `~/.kova/skills/.archive/` and are recoverable by `mv`",
               "- See `run.json` in this directory for the full machine-readable record.", ""]
     return "\n".join(lines)
 
@@ -926,7 +926,7 @@ def run_curator_review(
     recorded in ``state.last_report_path`` so users can read what WOULD have happened."""
     consolidate = get_consolidate() if consolidate is None else consolidate
     start = datetime.now(UTC)
-    hermes_home = get_hermes_home()  # the LLM pass may run on a thread with no profile binding
+    kova_home = get_kova_home()  # the LLM pass may run on a thread with no profile binding
     if dry_run:  # count candidates without mutating state
         counts = {"checked": len(_safe_curated_report()), "marked_stale": 0, "archived": 0, "reactivated": 0}
     else:
@@ -983,7 +983,7 @@ def run_curator_review(
         except Exception as e:
             logger.debug("Curator report write failed: %s", e, exc_info=True)
         save_state(state2)
-        _record_run_metric(trigger, dry_run, counts, before_report, after_report, llm_meta, hermes_home)
+        _record_run_metric(trigger, dry_run, counts, before_report, after_report, llm_meta, kova_home)
         _notify(on_summary, f"curator: {final_summary}")
 
     if synchronous:
@@ -1004,7 +1004,7 @@ def run_curator_review(
 
 # --- Provider/model resolution for the review fork ---
 
-def _record_run_metric(trigger, dry_run, counts, before_report, after_report, llm_meta, hermes_home) -> None:
+def _record_run_metric(trigger, dry_run, counts, before_report, after_report, llm_meta, kova_home) -> None:
     from kova_cli.observability.shared_metrics_loop import record_curator_run
 
     def what_changed() -> dict[str, int]:
@@ -1016,7 +1016,7 @@ def _record_run_metric(trigger, dry_run, counts, before_report, after_report, ll
                 "merged": len(diff.consolidated), "patched": patched}
 
     outcome = "skipped" if dry_run else "failed" if llm_meta.get("error") else "success"
-    record_curator_run(trigger=trigger, outcome=outcome, counts=what_changed, hermes_home=hermes_home)
+    record_curator_run(trigger=trigger, outcome=outcome, counts=what_changed, kova_home=kova_home)
 
 
 class _ReviewRuntimeBinding(NamedTuple):
@@ -1169,7 +1169,7 @@ _CLAIM_STALE_SECONDS = 3600.0
 
 
 def _run_claim_path() -> Path:
-    return get_hermes_home() / "skills" / ".locks" / "curator-run"
+    return get_kova_home() / "skills" / ".locks" / "curator-run"
 
 
 def _claim_run() -> bool:

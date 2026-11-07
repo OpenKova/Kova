@@ -180,12 +180,12 @@ def test_a_preinstalled_plugin_gets_the_scope_conversion_once(tmp_path):
 
     config = read_user_config_raw(home / "config.yaml")
     _save_platform_tools(config, "telegram", {"web", "homeassistant"})  # the user's later choice
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(home)
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(home)
     try:
         save_config(config)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     lcm.migrate_home(home, install=lambda n: pytest.fail("reinstalled"), say=print)
     assert ha_on() == {"telegram": True, "acp": False, "webhook": False}
 
@@ -221,7 +221,7 @@ def test_migrate_all_homes_migrates_only_the_profile_that_used_it(tmp_path, monk
 
 def test_startup_honours_lazy_install_opt_out(tmp_path, monkeypatch):
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: False)
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: pytest.fail("installed"))
@@ -234,7 +234,7 @@ def test_startup_honours_lazy_install_opt_out(tmp_path, monkeypatch):
 
 def test_gateway_start_outcome_waits_for_the_first_agent(tmp_path, monkeypatch):
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     consents = []
@@ -255,7 +255,7 @@ def test_an_agent_start_install_of_a_platform_keeps_the_restart_hint(tmp_path, m
     """An agent start keeps its outcome for the next turn someone sees, with the hint to restart the gateway
     serving the home; the gateway's own start loads the platform right after, so it needs none."""
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, consent=None: lambda name: {"ok": True})
@@ -271,7 +271,7 @@ def test_a_malformed_route_url_does_not_abort_the_home_migration(tmp_path, monke
     """`urlparse` raises on an unclosed IPv6 bracket: that one slot is at no host, and the home's other
     features (Home Assistant here) still migrate."""
     home = _home(tmp_path, env="HASS_TOKEN=abc\n", config="model:\n  provider: custom\n  base_url: http://[fe80::1/v1\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, consent=None: lambda name: {"ok": True})
@@ -302,7 +302,7 @@ def test_the_migration_installs_once_so_a_removal_sticks(tmp_path, monkeypatch):
     import shutil
     shutil.rmtree(plugin)  # `hermes plugins remove homeassistant`
     assert lcm.migrate_home(home, install=install, say=quiet) == []
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: install)
     assert lcm.recover_at_startup(say=quiet) == []
@@ -315,7 +315,7 @@ def test_a_failed_startup_install_backs_off_and_reports_one_line(tmp_path, monke
     import kova_cli.memory_provider_migration as mpm
     import pm.install
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     lookups = []
     monkeypatch.setattr(mpm, "catalog_source", lambda name: lookups.append(name) or name)
@@ -345,7 +345,7 @@ def test_repeated_startup_failures_back_off_exponentially(tmp_path, monkeypatch)
     import kova_cli.memory_provider_migration as mpm
     import pm.install
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     attempts = []
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: lambda n: attempts.append(n) or {"ok": False, "error": "x"})
@@ -370,7 +370,7 @@ def test_repeated_startup_failures_back_off_exponentially(tmp_path, monkeypatch)
     assert len(attempts) == 3
     start_after(24 * 7.1)
     assert len(attempts) == 4
-    stamp.write_text("", encoding="utf-8")               # an older Hermes's empty stamp counts once
+    stamp.write_text("", encoding="utf-8")               # an older Kova's empty stamp counts once
     start_after(1.5)
     assert len(attempts) == 5
 
@@ -394,7 +394,7 @@ def test_spotify_in_use_is_a_stored_login_or_the_toolset(tmp_path, auth_json, co
 def test_old_spotify_commands_point_at_the_plugin(tmp_path, monkeypatch):
     """`hermes auth spotify` / `hermes spotify` name the new command and how to get it for this home."""
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     hint = lcm.moved_command_hint("hermes auth", "spotify", "status")
     assert "`hermes auth status spotify` is now `hermes spotify status`" in hint
     assert "plugins install spotify" in hint
@@ -411,7 +411,7 @@ def test_old_mcp_serve_spelling_names_the_plugin_command(tmp_path, monkeypatch, 
 
     from kova_cli import main as main_mod
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(sys, "argv", ["hermes", "mcp", "serve", "--tools"])
     parser, _ = main_mod._build_cli_parser()
     with pytest.raises(SystemExit) as exc:
@@ -426,7 +426,7 @@ def test_old_mcp_serve_spelling_names_the_plugin_command(tmp_path, monkeypatch, 
 
 
 def test_mcp_serve_is_never_installed_automatically(tmp_path):
-    """MCP clients live outside Hermes, so no home shows the feature in use: hint only, no install."""
+    """MCP clients live outside Kova, so no home shows the feature in use: hint only, no install."""
     installs = []
     home = _home(tmp_path, config="mcp_servers:\n  hermes:\n    command: hermes\n    args: [mcp, serve]\n")
     assert lcm.migrate_home(home, install=lambda name: installs.append(name) or {"ok": True},
@@ -434,7 +434,7 @@ def test_mcp_serve_is_never_installed_automatically(tmp_path):
     assert installs == []
 
 
-_LANGFUSE_KEYS_ENV = "HERMES_LANGFUSE_PUBLIC_KEY=pk-lf-x\nHERMES_LANGFUSE_SECRET_KEY=sk-lf-x\n"
+_LANGFUSE_KEYS_ENV = "KOVA_LANGFUSE_PUBLIC_KEY=pk-lf-x\nKOVA_LANGFUSE_SECRET_KEY=sk-lf-x\n"
 
 
 @pytest.mark.parametrize(("config", "managed", "in_use"), [
@@ -451,7 +451,7 @@ def test_langfuse_in_use_is_the_bundled_plugin_enabled(tmp_path, monkeypatch, co
     managed_dir.mkdir()
     if managed:
         (managed_dir / "config.yaml").write_text(managed, encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed_dir))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed_dir))
     assert lcm.langfuse_in_use(home) is in_use
 
 
@@ -462,7 +462,7 @@ def test_old_langfuse_plugin_key_keeps_naming_the_catalog_plugin(tmp_path, monke
     from kova_cli.plugins_discovery import IN_BOTH_LISTS, gate_manifest
     from kova_cli.plugins_manifest import PluginManifest
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     for name in ("observability/langfuse", "langfuse"):
         message = _unknown_plugin_message(name)
         assert "moved out of core into the 'langfuse' plugin" in message

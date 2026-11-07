@@ -2,7 +2,7 @@
 
 ``_canonical_home`` resolves symlinks and case-folds (Windows ``normcase``). A caller
 passing an un-canonicalized spelling of the same directory (the managed worker's
-``WorkerRPC``, a symlinked HERMES_HOME) must still find its owner; otherwise the worker
+``WorkerRPC``, a symlinked KOVA_HOME) must still find its owner; otherwise the worker
 sees ``profile_mismatch`` -> ``owner_unavailable`` although the daemon is ready.
 """
 import os

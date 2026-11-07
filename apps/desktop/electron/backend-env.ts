@@ -2,11 +2,11 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { resolveDesktopHermesHome } from './data-paths'
+import { resolveDesktopKovaHome } from './data-paths'
 
 // macOS apps launched from Finder/Dock inherit only /usr/bin:/bin:/usr/sbin:/sbin,
 // which misses Homebrew and user-installed CLI tools (codex, git credential
-// helpers). Hermes' own managed tools need no PATH help — the backend composes
+// helpers). Kova' own managed tools need no PATH help — the backend composes
 // their environment in-process via pm — but user tools on PATH do.
 const POSIX_SANE_PATH_ENTRIES = Object.freeze([
   '/opt/homebrew/bin',
@@ -59,9 +59,9 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
   return ordered.join(delimiter)
 }
 
-function resolveHermesHomePath(hermesHome, { pathModule, homedir = os.homedir() }: any) {
+function resolveKovaHomePath(hermesHome, { pathModule, homedir = os.homedir() }: any) {
   // fish (and any shell when the value is quoted) hands a literal `~` through; path.resolve()
-  // would pin it under cwd and the Python backend inherits that absolute path via HERMES_HOME.
+  // would pin it under cwd and the Python backend inherits that absolute path via KOVA_HOME.
   let raw = String(hermesHome)
 
   if (raw === '~' || raw.startsWith('~/') || (pathModule === path.win32 && raw.startsWith('~\\'))) {
@@ -75,7 +75,7 @@ function isProfileHome(resolved, pathModule) {
   return pathModule.basename(pathModule.dirname(resolved)).toLowerCase() === 'profiles'
 }
 
-function normalizeHermesHomeRoot(
+function normalizeKovaHomeRoot(
   hermesHome,
   { pathModule = pathModuleForPlatform(process.platform), homedir = os.homedir() }: any = {}
 ) {
@@ -83,7 +83,7 @@ function normalizeHermesHomeRoot(
     return hermesHome
   }
 
-  const resolved = resolveHermesHomePath(hermesHome, { pathModule, homedir })
+  const resolved = resolveKovaHomePath(hermesHome, { pathModule, homedir })
 
   return isProfileHome(resolved, pathModule) ? pathModule.dirname(pathModule.dirname(resolved)) : resolved
 }
@@ -92,7 +92,7 @@ function normalizeHermesHomeRoot(
 const PROCESS_ENV_NAMES = new Set([
   'APPDATA',
   'COMSPEC',
-  'HERMES_HOME',
+  'KOVA_HOME',
   'HOME',
   'LANG',
   'LC_ALL',
@@ -158,7 +158,7 @@ function profileBackendParentEnv({
   }
 
   const fold = platform === 'win32' ? (value: string) => value.toUpperCase() : (value: string) => value
-  const inheritedHome = currentEnv?.HERMES_HOME ? resolveHermesHomePath(currentEnv.HERMES_HOME, { pathModule }) : null
+  const inheritedHome = currentEnv?.KOVA_HOME ? resolveKovaHomePath(currentEnv.KOVA_HOME, { pathModule }) : null
   const launchHome = inheritedHome && isProfileHome(inheritedHome, pathModule) ? inheritedHome : hermesHome
   const name = profile || readTextOrEmpty(fsModule, pathModule.join(hermesHome, 'active_profile')).trim()
   const targetHome = !name || name === 'default' ? hermesHome : pathModule.join(hermesHome, 'profiles', name)
@@ -184,9 +184,9 @@ function profileBackendParentEnv({
 }
 
 /**
- * PATH with the entries under the PM store (HERMES_RUNTIME_DIR, else
+ * PATH with the entries under the PM store (KOVA_RUNTIME_DIR, else
  * <hermes home>/tools, as pm.environments.store_root resolves it) moved to the
- * front, every other entry kept in order. Hermes's own children must run the
+ * front, every other entry kept in order. Kova's own children must run the
  * store's uv/node/npm, but shell-path.ts puts the user's login-shell entries
  * (nvm, Homebrew, ~/.local/bin) ahead of the inherited PATH, which is where
  * `hermes desktop` put the store dirs.
@@ -197,8 +197,8 @@ function storeFirstPath(
 ) {
   const pathModule = pathModuleForPlatform(platform)
   const delimiter = delimiterForPlatform(platform)
-  const hermesHome = resolveDesktopHermesHome({ home: homedir, env: currentEnv, platform })
-  const roots = [currentEnv?.HERMES_RUNTIME_DIR, pathModule.join(hermesHome, 'tools')].filter(Boolean)
+  const hermesHome = resolveDesktopKovaHome({ home: homedir, env: currentEnv, platform })
+  const roots = [currentEnv?.KOVA_RUNTIME_DIR, pathModule.join(hermesHome, 'tools')].filter(Boolean)
 
   const owned = (entry: string) =>
     roots.some(root => {
@@ -248,7 +248,7 @@ export {
   appendUniquePathEntries,
   buildDesktopBackendEnv,
   delimiterForPlatform,
-  normalizeHermesHomeRoot,
+  normalizeKovaHomeRoot,
   pathEnvKey,
   POSIX_SANE_PATH_ENTRIES,
   profileBackendParentEnv,

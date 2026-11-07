@@ -25,7 +25,7 @@ import threading
 import pytest
 
 import kova_cli.mcp_startup as startup
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 from tui_gateway import entry
 
 
@@ -56,7 +56,7 @@ def test_entry_in_flight_sees_startup_thread(clean_discovery_globals):
     scheduler does not bail (the #51587 bug).
     """
     stop = threading.Event()
-    startup._mcp_discovery_thread[hermes_home_key()] = _alive_thread(stop)
+    startup._mcp_discovery_thread[kova_home_key()] = _alive_thread(stop)
     try:
         # Entry's own thread is None, but the startup thread is alive.
         assert entry._mcp_discovery_thread is None
@@ -78,7 +78,7 @@ def test_startup_module_exposes_in_flight_helpers(clean_discovery_globals):
 
     stop = threading.Event()
     t = _alive_thread(stop)
-    startup._mcp_discovery_thread[hermes_home_key()] = t
+    startup._mcp_discovery_thread[kova_home_key()] = t
     try:
         assert startup.mcp_discovery_in_flight() is True
         assert startup.join_mcp_discovery(timeout=0.1) is False

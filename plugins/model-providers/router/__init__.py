@@ -36,7 +36,7 @@ _disk_checked = False
 
 
 class _CacheState:
-    """Efforts cache + once-only flags for one Hermes home (same names as the module slots)."""
+    """Efforts cache + once-only flags for one Kova home (same names as the module slots)."""
 
     __slots__ = ("_disk_checked", "_efforts_cache", "_warm_started")
 
@@ -55,12 +55,12 @@ _state_by_home: dict[str, _CacheState] = {}
 def _state() -> Any:
     """Holder of ``_efforts_cache``/``_warm_started``/``_disk_checked``: this module when unscoped
     (tests monkeypatch those slots), else the active home's ``_CacheState``."""
-    from kova_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_kova_home_override, kova_home_key
 
-    if get_hermes_home_override() is None:
+    if get_kova_home_override() is None:
         return sys.modules[__name__]
     with _efforts_lock:
-        return _state_by_home.setdefault(hermes_home_key(), _CacheState())
+        return _state_by_home.setdefault(kova_home_key(), _CacheState())
 
 
 def _base_url() -> str:
@@ -138,8 +138,8 @@ def _parse_efforts(items: Any) -> Optional[dict[str, list[str]]]:
 
 def _disk_path() -> Optional[Path]:
     try:
-        from kova_constants import get_hermes_home
-        return get_hermes_home() / "cache" / "router_catalog.json"
+        from kova_constants import get_kova_home
+        return get_kova_home() / "cache" / "router_catalog.json"
     except Exception:
         return None
 
@@ -294,7 +294,7 @@ router = RouterProfile(
     env_vars=("RAMP_ROUTER_API_KEY", "ROUTER_API_KEY", "RAMP_ROUTER_BASE_URL"), base_url=_base_url(),
     auth_type="api_key",
     # Router attributes coding-agent clients by UA prefix; its WAF rejects default UAs.
-    default_headers=LazyHeaders({"User-Agent": lambda: hermes_user_agent("Hermes-Agent")}),
+    default_headers=LazyHeaders({"User-Agent": lambda: hermes_user_agent("Kova-Agent")}),
     supports_vision=True, default_aux_model="gpt-5.4-mini",
     fallback_models=(),  # account-scoped IDs; the picker uses fetch_models()
 )

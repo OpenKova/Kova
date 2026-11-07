@@ -6,7 +6,7 @@ duplicate-credential finding per platform.
 
 The inventory is OWNERSHIP-based and evaluated in the SOURCE profile's plugin scope: every adapter
 (built-in ``Platform`` member, a platform that left core — its ``LEFT_CORE`` row, plugin installed or
-not — or a plugin registered under the source's ``HERMES_HOME``) owns the env
+not — or a plugin registered under the source's ``KOVA_HOME``) owns the env
 keys it declares outright (``required_env``, allowlist / allow-all / home-channel names, its
 ``env_overrides`` / ``env_enable_credentials``, core's ``config_env._ENV_ENABLE_CREDENTIALS``) plus every key
 under its canonical ``<PLATFORM>_`` prefix and its historical alias prefixes. Gateway-wide channel
@@ -65,12 +65,12 @@ def _plugin_scope(source_dir: Optional[Path]):
     if source_dir is None:
         yield
         return
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(str(source_dir))
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(str(source_dir))
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def platform_env_prefixes(platform_id: str) -> tuple[str, ...]:

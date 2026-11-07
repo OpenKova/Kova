@@ -62,13 +62,13 @@ def _session_is_messaging_surface() -> bool:
 def verify_on_stop_enabled(config: dict[str, Any] | None = None) -> bool:
     """Return whether edit -> verify-before-finish behavior is enabled.
 
-    Precedence: ``HERMES_VERIFY_ON_STOP`` env var, then ``agent.verify_on_stop``
+    Precedence: ``KOVA_VERIFY_ON_STOP`` env var, then ``agent.verify_on_stop``
     config; default OFF (opt-in). A bool forces the behavior; ``"auto"`` is the
     legacy surface-aware mode: ON for interactive coding surfaces and
     programmatic callers, OFF for messaging surfaces where the verification
     narrative is chat noise. Missing/unrecognized values fall back to OFF.
     """
-    env = os.environ.get("HERMES_VERIFY_ON_STOP")
+    env = os.environ.get("KOVA_VERIFY_ON_STOP")
     if env is not None:
         return env.strip().lower() not in _FALSY_TOKENS
     if config is None:
@@ -132,7 +132,7 @@ def _format_changed_paths(paths: list[str]) -> str:
 
 def _workspace_has_runnable_recipe(root: Any) -> bool:
     """Whether ``hermes verify`` has a runtime recipe here: a saved
-    ``.hermes/environment.json`` or a statically detected recipe with a start
+    ``.kova/environment.json`` or a statically detected recipe with a start
     command. Fail-silent and cheap — it only decorates the nudge text."""
     if not root:
         return False

@@ -30,7 +30,7 @@ OFFER_CHOICES = (
     ("No thanks", False, False),
 )
 _NO_THANKS = len(OFFER_CHOICES) - 1
-DOCS_URL = "https://hermes-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics"
+DOCS_URL = "https://kova-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics"
 _OFFER_DESCRIPTION = "\n".join((
     "Shared metrics are bounded counters: activity, outcomes, error classes (with a",
     "fixed-list reason when a memory write, compression, update or install fails),",
@@ -112,11 +112,11 @@ def save_consent(enabled: bool, send: bool, config: dict | None = None) -> None:
     # Unconditional: a send key already false may still have an open consent window.
     _record_send_consent_change(enabled=send)
     if not enabled:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         from .shared_metrics_process import purge_pending_receipts
 
-        purge_pending_receipts(get_hermes_home())
+        purge_pending_receipts(get_kova_home())
 
 
 def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
@@ -126,11 +126,11 @@ def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
     from kova_cli.cli_output import print_info, print_success
     from kova_cli.curses_ui import curses_radiolist, flush_stdin
 
-    # The offer appears seconds into startup; an Enter typed while Hermes booted would otherwise
+    # The offer appears seconds into startup; an Enter typed while Kova booted would otherwise
     # answer it ("No thanks") before it was ever on screen, so the user was never really asked.
     flush_stdin()
     idx = curses_radiolist(
-        "Help improve Hermes?", [label for label, _, _ in OFFER_CHOICES], selected=_NO_THANKS, cancel_returns=-1,
+        "Help improve Kova?", [label for label, _, _ in OFFER_CHOICES], selected=_NO_THANKS, cancel_returns=-1,
         description=f"{_REASK_NOTE}\n{_OFFER_DESCRIPTION}" if reask else _OFFER_DESCRIPTION,
     )
     if idx < 0 and reask:
@@ -138,7 +138,7 @@ def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
         print_info("Kept \"No thanks\". Change it any time with `hermes setup telemetry`.")
         return True
     if idx < 0:
-        print_info("Not answered; Hermes will ask again. Decide any time with `hermes setup telemetry`.")
+        print_info("Not answered; Kova will ask again. Decide any time with `hermes setup telemetry`.")
         return False
     _, enabled, send = OFFER_CHOICES[idx]
     save_consent(enabled, send, config)
@@ -175,7 +175,7 @@ def offer_consent_before_chat(args: Any) -> None:
         return
     if getattr(args, "safe_mode", False) or getattr(args, "ignore_user_config", False):
         return
-    if os.environ.get("HERMES_DESKTOP") or is_noninteractive():
+    if os.environ.get("KOVA_DESKTOP") or is_noninteractive():
         return
     if not (sys.stdin.isatty() and sys.stdout.isatty()) or is_managed():
         return

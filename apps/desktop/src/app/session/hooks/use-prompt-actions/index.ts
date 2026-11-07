@@ -138,7 +138,7 @@ export async function uploadComposerAttachment(
   // source descriptor here. Absence means an older browser backend/native file
   // and retains the existing byte-upload rules.
   const stagedUpload = attachment.kind === 'file'
-    ? attachment.stagedUpload ?? window.hermesDesktop?.getStagedFileForAttach?.(path)
+    ? attachment.stagedUpload ?? window.kovaDesktop?.getStagedFileForAttach?.(path)
     : undefined
 
   if (stagedUpload && stagedUpload.path !== path) {

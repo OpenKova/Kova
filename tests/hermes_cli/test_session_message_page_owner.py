@@ -10,12 +10,12 @@ def test_message_pages_identify_the_serving_profile(tmp_path, monkeypatch, servi
     from kova_state import SessionDB
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     work_home = default_home / "profiles" / "work" if serving_profile else default_home / "custom-home"
     default_home.mkdir(parents=True)
     work_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(work_home))
-    # conftest redirects this legacy override independently of HERMES_HOME.
+    monkeypatch.setenv("KOVA_HOME", str(work_home))
+    # conftest redirects this legacy override independently of KOVA_HOME.
     monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", work_home / "state.db")
 
     for home, count in ((default_home, 1), (work_home, 199)):
@@ -55,10 +55,10 @@ def test_message_pages_type_untyped_failed_turn_rows(tmp_path, monkeypatch):
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, FAILED_TURN_NOTICE, PARTIAL_FAILED_TURN_NOTICE
     from kova_state import SessionDB
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", home / "state.db")
     db = SessionDB(db_path=home / "state.db")
     try:
@@ -69,7 +69,7 @@ def test_message_pages_type_untyped_failed_turn_rows(tmp_path, monkeypatch):
             {"role": "user", "content": "b"},
             {"role": "assistant", "content": PARTIAL_FAILED_TURN_NOTICE},
             {"role": "user", "content": "c"},
-            {"role": "assistant", "content": f"Quoting Hermes: {FAILED_TURN_NOTICE}"},
+            {"role": "assistant", "content": f"Quoting Kova: {FAILED_TURN_NOTICE}"},
         ])
     finally:
         db.close()

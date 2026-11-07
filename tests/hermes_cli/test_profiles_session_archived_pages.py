@@ -3,13 +3,13 @@
 from starlette.testclient import TestClient
 
 
-def test_archived_profiles_pages_do_not_lose_rows_to_non_archived_pins(_isolate_hermes_home, monkeypatch):
+def test_archived_profiles_pages_do_not_lose_rows_to_non_archived_pins(_isolate_kova_home, monkeypatch):
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
     from kova_state import SessionDB
 
-    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_kova_home() / "state.db")
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 

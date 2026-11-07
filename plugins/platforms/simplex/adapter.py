@@ -5,7 +5,7 @@ Env: SIMPLEX_WS_URL (required; default ws://127.0.0.1:5225) · SIMPLEX_ALLOWED_U
 contactIds — stable across renames, see ``/contacts``) · SIMPLEX_ALLOW_ALL_USERS ·
 SIMPLEX_AUTO_ACCEPT ('false' disables contact-request auto-accept; default true) ·
 SIMPLEX_GROUP_ALLOWED (group IDs or '*'; omit to ignore groups) · SIMPLEX_HOME_CHANNEL[_NAME] ·
-HERMES_SIMPLEX_TEXT_BATCH_DELAY (quiet seconds, default 0.8, merging rapid-fire inbound text).
+KOVA_SIMPLEX_TEXT_BATCH_DELAY (quiet seconds, default 0.8, merging rapid-fire inbound text).
 ``websockets`` is imported lazily so the plugin stays discoverable when the package is missing.
 """
 
@@ -29,7 +29,7 @@ from gateway.platforms._shared import (
     platform_gate_env as _platform_gate_env, seed_extra_from_env as _seed_extra_from_env, send_error
 )
 from gateway.config import Platform, PlatformConfig
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 from gateway.platforms.base import BasePlatformAdapter, SendResult, cache_image_from_url
 from gateway.platforms.helpers import cancel_task
 from gateway.platforms.event import MessageEvent, MessageType
@@ -69,7 +69,7 @@ def _warn_name_allowlist_entries() -> None:
     names = [u for u in entries if u and u != "*" and not u.isdigit()]
     if not names:
         return
-    key = (hermes_home_key(), frozenset(names))
+    key = (kova_home_key(), frozenset(names))
     if key in _NAME_ALLOWLIST_WARNED:
         return
     _NAME_ALLOWLIST_WARNED.add(key)
@@ -145,7 +145,7 @@ class SimplexAdapter(BasePlatformAdapter):
         self._pending_responses: dict[str, asyncio.Future] = {}  # awaited command replies
         self._corr_counter = 0
         # SimpleX has no client-side split, so the split delay equals the plain one.
-        self._text_batch_delay_seconds = float(os.getenv("HERMES_SIMPLEX_TEXT_BATCH_DELAY", "0.8"))
+        self._text_batch_delay_seconds = float(os.getenv("KOVA_SIMPLEX_TEXT_BATCH_DELAY", "0.8"))
         self._text_batch_split_delay_seconds = self._text_batch_delay_seconds
         logger.info(
             "SimpleX adapter initialized: url=%s auto_accept=%s groups=%s",
@@ -677,7 +677,7 @@ _SETUP_PROMPTS = (
 
 
 def interactive_setup() -> None:
-    """``hermes setup gateway`` → SimpleX wizard (writes ``~/.hermes/.env``); CLI helpers are lazy-imported."""
+    """``hermes setup gateway`` → SimpleX wizard (writes ``~/.kova/.env``); CLI helpers are lazy-imported."""
     from kova_cli.config import get_env_value, save_env_value
     from kova_cli.cli_output import print_header, print_info, prompt
     from kova_cli.setup_platforms import declines_reconfigure
@@ -698,8 +698,8 @@ def interactive_setup() -> None:
 def register(ctx) -> None:
     ctx.register_platform(
         name="simplex", label="SimpleX Chat", adapter_factory=lambda cfg: SimplexAdapter(cfg),
-        dashboard_description="Talk to Hermes over SimpleX Chat via a local simplex-chat daemon.",
-        docs_url="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/simplex",
+        dashboard_description="Talk to Kova over SimpleX Chat via a local simplex-chat daemon.",
+        docs_url="https://kova-agent.nousresearch.com/docs/user-guide/messaging/simplex",
         check_fn=check_requirements, validate_config=validate_config, is_connected=is_connected,
         required_env=["SIMPLEX_WS_URL"],
         install_hint=("pip install websockets   # SimpleX adapter requires the websockets package"),

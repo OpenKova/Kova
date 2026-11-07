@@ -1,6 +1,6 @@
 """Memory provider plugin discovery: bundled ``plugins/memory/<name>/``, user
-``$HERMES_HOME/plugins/<name>/``, project ``./.hermes/plugins/<name>/`` (opt-in via
-HERMES_ENABLE_PROJECT_PLUGINS), then ``kova_agent.memory_providers`` entry points.
+``$KOVA_HOME/plugins/<name>/``, project ``./.kova/plugins/<name>/`` (opt-in via
+KOVA_ENABLE_PROJECT_PLUGINS), then ``kova_agent.memory_providers`` entry points.
 Precedence is deliberately the REVERSE of PluginManager's later-source-wins:
 bundled wins, then user, project, entry point — a provider is activated by name
 (``memory.provider``, one at a time), so a directory dropped into the working tree
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 _MEMORY_PLUGINS_DIR = Path(__file__).parent
 ENTRY_POINTS_GROUP = "kova_agent.memory_providers"
-# Per Hermes home (plugin managers are per home too): pruning under one multiplexed profile must
+# Per Kova home (plugin managers are per home too): pruning under one multiplexed profile must
 # only retract that profile's provider skills, never a sibling profile's.
 _REGISTERED_MEMORY_PROVIDER_SKILLS: dict[str, dict[str, Path]] = {}
 # Native extensions whose first import must not race another thread (#58083 warm-up).
@@ -38,9 +38,9 @@ _NATIVE_WARM_IMPORTS: tuple[str, ...] = ("numpy",)
 
 
 def _registered_skills_for_active_home() -> dict[str, Path]:
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
 
-    return _REGISTERED_MEMORY_PROVIDER_SKILLS.setdefault(hermes_home_key(), {})
+    return _REGISTERED_MEMORY_PROVIDER_SKILLS.setdefault(kova_home_key(), {})
 
 # Synthetic parent package so user-installed providers don't collide with bundled ones.
 _USER_NAMESPACE = "_hermes_user_memory"
@@ -50,14 +50,14 @@ _get_user_plugins_dir = _loader.user_plugins_dir
 
 
 def _get_project_plugins_dir() -> Optional[Path]:
-    """``./.hermes/plugins/`` or None. Gated on HERMES_ENABLE_PROJECT_PLUGINS like the
+    """``./.kova/plugins/`` or None. Gated on KOVA_ENABLE_PROJECT_PLUGINS like the
     PluginManager scan: a repo you merely ``cd`` into must not offer a memory backend."""
     try:
         from kova_cli.plugins import _env_enabled
 
-        if not _env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
+        if not _env_enabled("KOVA_ENABLE_PROJECT_PLUGINS"):
             return None
-        d = Path.cwd() / ".hermes" / "plugins"
+        d = Path.cwd() / ".kova" / "plugins"
         return d if d.is_dir() else None
     except Exception:
         return None
@@ -296,7 +296,7 @@ def import_provider_module(name: str, submodule: Optional[str] = None):
 
     Host-side code (dashboard host-block storage, OAuth routes, doctor, profile clone) used to
     ``import plugins.memory.<name>.<submodule>``, which only exists for the bundled copy; a
-    catalog install under ``$HERMES_HOME/plugins/`` loads under the synthetic user namespace,
+    catalog install under ``$KOVA_HOME/plugins/`` loads under the synthetic user namespace,
     so those surfaces 500'd/404'd the moment the bundled copy left core. Resolving through
     ``find_provider_dir`` makes bundled and user-dir copies behave identically. Raises
     ``ImportError`` when the provider is not installed or lacks the submodule.

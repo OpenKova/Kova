@@ -1,4 +1,4 @@
-"""Hermes update pipeline: dispatchers (``_cmd_update_impl``/``_cmd_update_check``) + git plumbing.
+"""Kova update pipeline: dispatchers (``_cmd_update_impl``/``_cmd_update_check``) + git plumbing.
 
 Each concern lives in ``update_cmd_<concern>.py`` and is re-imported here so
 ``kova_cli.update_cmd.<name>`` keeps resolving (and stays monkeypatchable). Imports are one-way:
@@ -19,7 +19,7 @@ from typing import NoReturn
 
 # Old updaters load _no_prompt_git_kwargs from here after the checkout swap (frozen surface).
 from kova_cli._subprocess_compat import no_prompt_git_kwargs as _no_prompt_git_kwargs
-from kova_cli.config import get_hermes_home
+from kova_cli.config import get_kova_home
 from kova_cli import update_handoff as _update_handoff
 from kova_cli.update_cmd_common import _best_effort, _record_stop
 # Captured BEFORE a checkout swap: parent transport/lifecycle never imports new code.
@@ -121,7 +121,7 @@ from datetime import UTC
 logger = logging.getLogger(__name__)
 
 
-def get_default_hermes_root() -> NoReturn:
+def get_default_kova_root() -> NoReturn:
     # Shim to suppress old updater work until relaunch. No path is safe to invent.
     stop_for_relaunch()
 
@@ -200,7 +200,7 @@ def _map_ssl_cert_file_for_git(git_cmd) -> None:
     os.environ["GIT_SSL_CAINFO"] = bundle
 
 
-# Startup files of a tree that does not declare its own (pyproject ``[tool.hermes]
+# Startup files of a tree that does not declare its own (pyproject ``[tool.kova]
 # update-startup-files``, read by ``update_cmd_commit.startup_files``): every release before the
 # declaration has this layout, so the list stays as it is when files move. The first rows are what
 # the launcher and ``kova_bootstrap`` import before any application code (review G3).
@@ -367,12 +367,12 @@ def _gateway_prompt(prompt_text: str, default: str = "", timeout: float = 300.0)
     """
     import json as _json
     import uuid as _uuid
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     if _posix_pause.gateways_paused():  # the gateway that would relay it is stopped for the update
         print(f"  → {prompt_text} → {default or '(empty)'} (gateways are paused for the update)")
         return default
-    home = get_hermes_home()
+    home = get_kova_home()
     prompt_path = home / ".update_prompt.json"
     response_path = home / ".update_response"
 
@@ -531,7 +531,7 @@ def _filter_non_gateway_concurrent_instances(
 
 
 def _log_only_write(text: str) -> None:
-    """Write ``text`` to ``~/.hermes/logs/update.log`` only, never the terminal.
+    """Write ``text`` to ``~/.kova/logs/update.log`` only, never the terminal.
 
     During ``hermes update`` ``sys.stdout`` is an ``_UpdateOutputStream`` that
     mirrors to both the terminal and ``update.log``. Loud, low-signal
@@ -546,9 +546,9 @@ def _log_only_write(text: str) -> None:
     log_file = getattr(stream, "_log", None)
     with suppress(Exception):
         if log_file is None:
-            from kova_constants import get_default_hermes_root
+            from kova_constants import get_default_kova_root
 
-            log_path = get_default_hermes_root() / "logs" / "update.log"  # the root home's tee
+            log_path = get_default_kova_root() / "logs" / "update.log"  # the root home's tee
             log_path.parent.mkdir(parents=True, exist_ok=True)
             with log_path.open("a", encoding="utf-8") as fallback:
                 fallback.write(text)
@@ -700,7 +700,7 @@ def _source_completion_request(opts, plan, snapshot_id, windows_resume, desktop,
         current = _completion_receipt._current.get()
     return {
         "schema": 1, "source": str(_m().PROJECT_ROOT.resolve()),
-        "home": str(get_hermes_home()), "branch": "main", "desktop": desktop,
+        "home": str(get_kova_home()), "branch": "main", "desktop": desktop,
         "assume_yes": opts.assume_yes, "gateway_mode": gateway_mode,
         "no_gateway_restart": getattr(opts, "no_gateway_restart", False),
         "pre_update_version": opts.pre_update_version, "snapshot_id": snapshot_id,
@@ -1530,7 +1530,7 @@ def _begin_update_receipt_and_plan(args):
 
     # Plan phase: snapshot runtimes/supervisors/version (read-only; probe failure records
     # nothing). Re-read AFTER the restart phase to reconcile — the plan is the worklist.
-    # Plan phase (#91277 Phase 2): snapshot the pre-update fleet — every running Hermes runtime, its
+    # Plan phase (#91277 Phase 2): snapshot the pre-update fleet — every running Kova runtime, its
     # supervisor, and its running code version — into the receipt, so a post-mortem can compare what the
     # update SAW against what it did. ``_pre_update_plan`` is read again AFTER the restart phase to
     # reconcile every planned runtime against the phase's bookkeeping (restart via declared mechanism — the
@@ -1567,7 +1567,7 @@ def _prepare_git_command(*, checkout_move=None) -> tuple[bool, list, bool]:
     use_zip_update = not git_dir.exists()
     if use_zip_update and sys.platform != "win32":
         print("✗ Not a git repository. Please reinstall:")
-        print("  curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash")
+        print("  curl -fsSL https://kova-agent.nousresearch.com/install.sh | bash")
         _record_stop("not_git_checkout")
         sys.exit(1)
 
@@ -1672,7 +1672,7 @@ def _handle_update_called_process_error(
             print(f"✗ {stage} (the code update itself succeeded).")
             _print_called_process_error_tail(e)
             print()
-            print("  Hermes may not start until the dependencies are installed. Fix the error above")
+            print("  Kova may not start until the dependencies are installed. Fix the error above")
             print("  (usually network or disk space), then run `hermes update` again.")
             if _m()._is_windows():
                 print("  If `hermes update` itself will not start, retry through the venv interpreter:")
@@ -1803,7 +1803,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
     opts = _resolve_update_options(args, gateway_mode)
     gw_input_fn, assume_yes = opts.gw_input_fn, opts.assume_yes
 
-    print("☤ Updating Hermes Agent...")
+    print("☤ Updating Kova Agent...")
     print()
 
     _pre_update_plan = _begin_update_receipt_and_plan(args)
@@ -1822,7 +1822,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         import atexit as _atexit
         _atexit.register(_m()._resume_windows_gateways_after_update, _windows_gateway_resume)
     desktop_dir = _m().PROJECT_ROOT / "apps" / "desktop"
-    # An installed Hermes.app only this update refreshes counts even with no release/ build
+    # An installed Kova.app only this update refreshes counts even with no release/ build
     # beside it: without one it was never rebuilt, so it never got newer (#52339).
     had_desktop_app_before_update = (
         _m()._desktop_packaged_executable(desktop_dir) is not None
@@ -1892,7 +1892,7 @@ def _cmd_update_impl(args, gateway_mode: bool):
         if fetch_result.returncode != 0:
             if is_partial_clone_pack_objects_crash(fetch_result.stderr or ""):
                 print("✗ git still crashed after marking this checkout's packs. See 'Fetch fails with"
-                      " should_include_obj' in https://hermes-agent.nousresearch.com/docs/getting-started/updating")
+                      " should_include_obj' in https://kova-agent.nousresearch.com/docs/getting-started/updating")
             _print_fetch_failure(fetch_result.stderr, git_cmd=git_cmd, root=_m().PROJECT_ROOT)
             _m()._resume_windows_gateways_after_update(_windows_gateway_resume)
             _record_stop("git_timeout" if fetch_result.returncode == 124 else "disk_full"

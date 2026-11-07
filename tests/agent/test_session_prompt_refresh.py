@@ -7,7 +7,7 @@ profile's state.db; the session's next turn rebuilds its prompt once, keeps its 
 and persists the new bytes so later turns restore them verbatim.
 
 Everything is real except the model: a real ``AIAgent`` per turn (as the messaging gateway runs
-it), the real ``SessionDB`` in a temp HERMES_HOME, the real CLI entrypoint, and a recording
+it), the real ``SessionDB`` in a temp KOVA_HOME, the real CLI entrypoint, and a recording
 ``FakeLLMServer`` whose request bodies are what the model was actually sent.
 """
 
@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 from tests.e2e.core.history._helpers import NO_BACKGROUND_REVIEW, OFFLINE_CONFIG
-from tests.fakes.fake_llm_provider import FakeLLMServer, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, write_kova_home
 
 SOUL_V1 = "You are Wren, the operations assistant. Soul revision one."
 SOUL_V2 = "You are Wren, the operations assistant. Soul revision two."
@@ -34,7 +34,7 @@ def _skill(home: Path, name: str, description: str) -> None:
 
 
 def _write_profile(home: Path, base_url: str, project: Path) -> None:
-    write_hermes_home(home, base_url, extra_config=OFFLINE_CONFIG + NO_BACKGROUND_REVIEW)
+    write_kova_home(home, base_url, extra_config=OFFLINE_CONFIG + NO_BACKGROUND_REVIEW)
     (home / "SOUL.md").write_text(SOUL_V1, encoding="utf-8")
     _skill(home, "deploy-runbook", "Roll out a release. Description revision one.")
     project.mkdir(parents=True, exist_ok=True)
@@ -51,7 +51,7 @@ def _update_profile(home: Path, project: Path) -> None:
 
 @pytest.fixture
 def profile(monkeypatch, tmp_path):
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     project = tmp_path / "project"
     with FakeLLMServer() as srv:
         _write_profile(home, srv.base_url, project)
@@ -105,7 +105,7 @@ def _refresh_prompts(monkeypatch, home: Path, *extra: str) -> None:
     """Run the real CLI entrypoint against ``home`` (what an operator's update script calls)."""
     import kova_cli.main as main_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", *extra])
     try:
         main_mod.main()
@@ -222,17 +222,17 @@ def test_refresh_request_is_scoped_to_its_profile(profile, monkeypatch, tmp_path
     _write_profile(home_b, srv.base_url, project)
 
     history_a, _ = _turn(srv, home_a, "chat-a", "hello", [])
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("KOVA_HOME", str(home_b))
     history_b, _ = _turn(srv, home_b, "chat-b", "hello", [])
 
     _update_profile(home_a, project)
     _update_profile(home_b, project)
     _refresh_prompts(monkeypatch, home_a)
 
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("KOVA_HOME", str(home_a))
     _, system_a = _turn(srv, home_a, "chat-a", "next", history_a)
     _assert_updated(system_a)
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("KOVA_HOME", str(home_b))
     _, system_b = _turn(srv, home_b, "chat-b", "next", history_b)
     assert SOUL_V1 in system_b and "incident-triage" not in system_b
 

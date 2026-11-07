@@ -16,7 +16,7 @@ def locked_home(tmp_path, monkeypatch):
                          ("training/accelerate", "huggingface-accelerate")):
         (skills / rel / "scripts").mkdir(parents=True)
         (skills / rel / "SKILL.md").write_text(f"---\nname: {display}\ndescription: x\n---\nbody\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     from tools import skill_usage
     assert skill_usage.set_locked("locked-skill", True)
     return home

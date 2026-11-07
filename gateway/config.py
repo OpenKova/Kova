@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass, field, fields, is_dataclass
 from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
 
-from kova_cli.config import get_hermes_home
+from kova_cli.config import get_kova_home
 from agent.secret_scope import current_secret_scope, get_secret as _get_secret
 from gateway.shutdown_watchdog import (
     DEFAULT_LOOP_WATCHDOG_INTERVAL_S,
@@ -600,7 +600,7 @@ class GatewayConfig:
     platforms: dict[Platform, PlatformConfig] = field(default_factory=dict)
     reset_triggers: list[str] = field(default_factory=lambda: ["/new", "/reset"])
     quick_commands: dict[str, Any] = field(default_factory=dict)  # slash commands that bypass the agent loop
-    sessions_dir: Path = field(default_factory=lambda: get_hermes_home() / "sessions")
+    sessions_dir: Path = field(default_factory=lambda: get_kova_home() / "sessions")
     # Legacy sessions.json mirror of the routing index (primary: state.db) for external tooling / downgrades.
     # The primary copy lives in state.db (gateway_routing table, #9006). Default True for backward
     # compatibility with external tooling and downgrade safety; set gateway.write_sessions_json: false in
@@ -624,7 +624,7 @@ class GatewayConfig:
     # verbatim. Every reader tests truthiness, so an unresolved ``None`` never multiplexes by accident.
     multiplex_profiles: Optional[bool] = None
     # Public HTTPS endpoint for scoped RoomLink calls (an API key alone must never advertise a
-    # route); HERMES_ROOM_LINK_URL overrides.
+    # route); KOVA_ROOM_LINK_URL overrides.
     room_link_url: Optional[str] = None
     systemd_watchdog_seconds: int = 0  # opt-in; zero keeps Type=simple and disables sd_notify
     # In-process loop liveness watchdog: after consecutive missed probes it dumps all-thread stacks
@@ -787,7 +787,7 @@ class GatewayConfig:
             platforms=by_platform("platforms", PlatformConfig.from_dict, dicts_only=True),
             reset_triggers=data.get("reset_triggers", ["/new", "/reset"]),
             quick_commands=_coerce_dict(data.get("quick_commands", {})),
-            sessions_dir=Path(data["sessions_dir"]) if "sessions_dir" in data else get_hermes_home() / "sessions",
+            sessions_dir=Path(data["sessions_dir"]) if "sessions_dir" in data else get_kova_home() / "sessions",
             **{name: _coerce_bool(data.get(name), default) for name, default in _TOPLEVEL_BOOL_DEFAULTS.items()},
             stt_enabled=_coerce_bool(stt_setting("stt_enabled", "enabled"), True),
             stt_echo_transcripts=_coerce_bool(stt_setting("stt_echo_transcripts", "echo_transcripts"), True),
@@ -829,10 +829,10 @@ class GatewayConfig:
 
 
 def load_gateway_config() -> GatewayConfig:
-    """Load gateway configuration. Priority: env > ~/.hermes/config.yaml > legacy gateway.json > defaults."""
+    """Load gateway configuration. Priority: env > ~/.kova/config.yaml > legacy gateway.json > defaults."""
     from gateway import config_loader
 
-    _home = get_hermes_home()
+    _home = get_kova_home()
     gw_data = config_loader.load_legacy_gateway_json(_home)
     try:
         config_loader.load_yaml_layer(_home, gw_data)

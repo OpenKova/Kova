@@ -1,7 +1,7 @@
 import { atom } from 'nanostores'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesModule from '@/hermes'
+import type * as KovaModule from '@/hermes'
 import { $activeGatewayProfile } from '@/store/profile'
 
 // Voice mode and the Appearance display toggles write `config.set` for the
@@ -13,8 +13,8 @@ import { $activeGatewayProfile } from '@/store/profile'
 const sockets = vi.hoisted(() => [] as Array<{ requests: Array<[string, unknown]>; wsUrl: string }>)
 
 vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesModule>()),
-  HermesGateway: class {
+  ...(await importOriginal<typeof KovaModule>()),
+  KovaGateway: class {
     connectionState = 'closed'
     record = { requests: [] as Array<[string, unknown]>, wsUrl: '' }
     constructor() {
@@ -62,7 +62,7 @@ afterEach(() => {
   closeSecondaryGateways()
   sockets.length = 0
   $activeGatewayProfile.set('default')
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('config writes on a remote-only profile', () => {
@@ -77,7 +77,7 @@ describe('config writes on a remote-only profile', () => {
 
     const primaryRequest = vi.fn(async () => ({}))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection,
       getConnectionFor: vi.fn(async () => boxGamma)
     }
@@ -113,7 +113,7 @@ describe('config writes on a remote-only profile', () => {
       wsUrl: profile === 'gamma' ? boxGamma.wsUrl : `ws://box.invalid/api/ws?profile=${profile}`
     }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
       getConnection: vi.fn(async () => ({ mode: 'local', port: 4242, token: 'primary-token' })),
       getConnectionFor
     }

@@ -133,7 +133,7 @@ export function prepareNodeDependencies({ source, workspaces, env = process.env,
   ]
   // This receipt certifies dependency preparation, never compiled product freshness.
   // Keep it inside the cached tree so removing node_modules also removes the receipt.
-  const receipt = join(source, 'node_modules/.hermes-node-deps')
+  const receipt = join(source, 'node_modules/.kova-node-deps')
   // Ordinary product builders consume the baseline receipt; preparation also
   // binds lifecycle outputs to its compiler/SDK identity.
   const nativeReceipt = `${receipt}.native-toolchain`

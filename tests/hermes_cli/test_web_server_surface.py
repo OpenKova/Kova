@@ -68,27 +68,27 @@ def _web_access_statuses(client: TestClient) -> list[int]:
 @pytest.mark.parametrize("serves_spa", [True, False], ids=["hermes-dashboard", "hermes-serve"])
 def test_the_standalone_dashboard_and_serve_have_neither_web_access_nor_browser_file_routes(
         monkeypatch, serves_spa):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     monkeypatch.setattr(web_server.app.state, "serves_spa", serves_spa, raising=False)
     client = _owner_client()
 
     assert _browser_file_statuses(client) == (404, 404)
     assert _web_access_statuses(client) == [404] * len(WEB_ACCESS)
-    assert not (get_hermes_home() / "uploads").exists()
+    assert not (get_kova_home() / "uploads").exists()
 
 
 def test_the_gateways_own_listener_serves_web_access_but_not_the_browser_file_routes(monkeypatch):
     """With the Webapp off, native Desktop's Web Access pane works on the gateway's listener; the
     browser's file routes, which only the Webapp calls, are not there."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     native = native_desktop_client(monkeypatch)
 
     assert native.get("/api/webapp-access/status").status_code == 200
     assert native.post("/api/webapp-access/start", json={}).status_code == 422  # reached its handler
     assert _browser_file_statuses(native) == (404, 404)
-    assert not (get_hermes_home() / "uploads").exists()
+    assert not (get_kova_home() / "uploads").exists()
 
 
 def test_the_webapp_serves_web_access_and_the_browser_file_routes(monkeypatch):

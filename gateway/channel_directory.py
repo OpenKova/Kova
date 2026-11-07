@@ -1,6 +1,6 @@
 """Channel directory -- cached map of reachable channels/contacts per platform.
 
-Built on gateway startup, refreshed every 5 min, saved to ``<HERMES_HOME>/channel_directory.json``.
+Built on gateway startup, refreshed every 5 min, saved to ``<KOVA_HOME>/channel_directory.json``.
 send_message reads it for action="list" and to resolve friendly channel names to IDs.
 """
 
@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from kova_cli.config import get_hermes_home
+from kova_cli.config import get_kova_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -38,11 +38,11 @@ _SLACK_RAW_ID_PREFIXES = ("C0", "D0", "G0")
 
 
 def _directory_path() -> Path:
-    return DIRECTORY_PATH or get_hermes_home() / "channel_directory.json"
+    return DIRECTORY_PATH or get_kova_home() / "channel_directory.json"
 
 
 def _aliases_path() -> Path:
-    return CHANNEL_ALIASES_PATH or get_hermes_home() / "channel_aliases.json"
+    return CHANNEL_ALIASES_PATH or get_kova_home() / "channel_aliases.json"
 
 
 def _read_json(path: Path) -> Any:
@@ -370,7 +370,7 @@ def _build_from_sessions_db(platform_name: str) -> list[dict[str, str]]:
 
 def _build_from_sessions_json(platform_name: str) -> list[dict[str, str]]:
     """Legacy fallback: pull channels/contacts from sessions.json origin data."""
-    sessions_path = get_hermes_home() / "sessions" / "sessions.json"
+    sessions_path = get_kova_home() / "sessions" / "sessions.json"
     if not sessions_path.exists():
         return []
     def _origins() -> Iterable[tuple[dict[str, Any], Any]]:

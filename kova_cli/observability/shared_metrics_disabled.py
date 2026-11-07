@@ -1,4 +1,4 @@
-"""hermes.feature_disabled.count: a user turns off something Hermes ships on, or removes something shipped.
+"""hermes.feature_disabled.count: a user turns off something Kova ships on, or removes something shipped.
 
 One chokepoint sees every write: ``save_config`` hands over the raw config it replaced and the one it
 wrote, and :func:`config_transitions` diffs only what the user moved away from the shipped default
@@ -10,8 +10,8 @@ each (kind, name, event) at most once per day.
 The surface is the entry point that is running: ``set_process_surface`` from the ``hermes`` command
 dispatch (``tools`` / ``config`` / ``skills`` / ``plugins`` / chat slash commands / the web server) and
 the TUI gateway. A process with no surface (setup wizard, updates) records nothing, nor does a write
-Hermes makes itself inside a surfaced process (migrations, under :func:`hermes_applied_write`): those
-are Hermes applying choices, not a user turning something off.
+Kova makes itself inside a surfaced process (migrations, under :func:`hermes_applied_write`): those
+are Kova applying choices, not a user turning something off.
 
 ``save_config``'s callers may hold their own write lock (the dashboard's ``_CONFIG_MUTATION_LOCK``), so
 the hook only runs the cheap gate inline; the diff and the record run on a thread bound to the owning
@@ -226,7 +226,7 @@ def _emit(transitions: Iterable[tuple[str, str, str]], surface: str) -> None:
 
 @contextlib.contextmanager
 def hermes_applied_write() -> Iterator[None]:
-    """Config writes Hermes makes on its own (migrations) record nothing, whatever the surface."""
+    """Config writes Kova makes on its own (migrations) record nothing, whatever the surface."""
     token = _hermes_write.set(True)
     try:
         yield
@@ -235,15 +235,15 @@ def hermes_applied_write() -> Iterator[None]:
 
 
 def _record(old: Any, new: Any, surface: str, home: str) -> None:
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    token = set_hermes_home_override(home)  # a thread does not inherit the profile binding
+    token = set_kova_home_override(home)  # a thread does not inherit the profile binding
     try:
         _emit(config_transitions(old, new), surface)
     except Exception:
         logger.debug("Feature-disabled not recorded", exc_info=True)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def record_config_saved(old_raw: Any, new_config: Any) -> None:
@@ -251,7 +251,7 @@ def record_config_saved(old_raw: Any, new_config: Any) -> None:
     if _process_surface is None or _hermes_write.get():
         return
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         from .relay_shared_metrics import enabled
 
@@ -259,7 +259,7 @@ def record_config_saved(old_raw: Any, new_config: Any) -> None:
             return
         # Not a daemon: a CLI command that exits right after its write still records.
         threading.Thread(
-            target=_record, args=(copy.deepcopy(old_raw), copy.deepcopy(new_config), surface, str(get_hermes_home())),
+            target=_record, args=(copy.deepcopy(old_raw), copy.deepcopy(new_config), surface, str(get_kova_home())),
             name="hermes-feature-disabled",
         ).start()
     except Exception:

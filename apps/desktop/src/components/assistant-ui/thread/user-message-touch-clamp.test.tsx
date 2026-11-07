@@ -72,14 +72,14 @@ function renderTouchThread() {
 }
 
 beforeEach(() => {
-  window.document.documentElement.dataset.hermesDesktopHost = 'browser'
+  window.document.documentElement.dataset.kovaDesktopHost = 'browser'
   $touchPointer.set(true)
 })
 
 afterEach(() => {
   cleanup()
   $touchPointer.set(false)
-  delete window.document.documentElement.dataset.hermesDesktopHost
+  delete window.document.documentElement.dataset.kovaDesktopHost
 })
 
 describe('touch user bubble clamp', () => {

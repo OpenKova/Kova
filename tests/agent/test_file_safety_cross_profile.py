@@ -7,14 +7,14 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# Helpers — set up a fake Hermes root with two profiles, monkeypatch the
+# Helpers — set up a fake Kova root with two profiles, monkeypatch the
 # resolver helpers so the classifier sees the test layout.
 # ---------------------------------------------------------------------------
 
 
 @pytest.fixture
 def fake_hermes(tmp_path, monkeypatch):
-    """Build a fake Hermes layout:
+    """Build a fake Kova layout:
 
         <tmp>/
           skills/foo/SKILL.md           # default profile
@@ -47,7 +47,7 @@ def fake_hermes(tmp_path, monkeypatch):
     # Monkeypatch the resolver functions used by file_safety so each test
     # can choose which profile is "active".
     import kova_constants
-    monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: root)
+    monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: root)
 
     import agent.file_safety as fs
     monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
@@ -60,10 +60,10 @@ def fake_hermes(tmp_path, monkeypatch):
     }
 
 
-def _set_active_home(monkeypatch, hermes_home: Path):
-    """Point file_safety._hermes_home_path at a specific profile dir."""
+def _set_active_home(monkeypatch, kova_home: Path):
+    """Point file_safety._kova_home_path at a specific profile dir."""
     import agent.file_safety as fs
-    monkeypatch.setattr(fs, "_hermes_home_path", lambda: hermes_home)
+    monkeypatch.setattr(fs, "_kova_home_path", lambda: kova_home)
 
 
 # ---------------------------------------------------------------------------
@@ -79,12 +79,12 @@ class TestResolveActiveProfileName:
 
 
     def test_falls_back_to_default_on_resolution_failure(self, fake_hermes, monkeypatch):
-        """If HERMES_HOME resolution raises, return 'default' rather than crashing the tool."""
+        """If KOVA_HOME resolution raises, return 'default' rather than crashing the tool."""
         import agent.file_safety as fs
 
         def _boom():
             raise RuntimeError("simulated")
 
-        monkeypatch.setattr(fs, "_hermes_home_path", _boom)
+        monkeypatch.setattr(fs, "_kova_home_path", _boom)
         # Should not raise — falls back to "default"
         assert fs._resolve_active_profile_name() == "default"

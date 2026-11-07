@@ -14,7 +14,7 @@ from collections import deque
 from pathlib import Path
 from typing import IO, Callable, Protocol
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.environments.fd_wait import open_fd_waiter
 from tools.tool_output_truncate import head_tail_split, truncation_notice
 from kova_cli._subprocess_compat import windows_hide_flags
@@ -169,7 +169,7 @@ class _BoundedOutputCollector:
 def _new_output_collector(proc, bounded_capture: bool) -> _BoundedOutputCollector:
     """Build the collector for one ``_wait_for_process`` call. ``bounded_capture`` (foreground
     terminal path only) caps retention at ``tool_output.max_bytes`` and tees overflow to a
-    spill file under ``$HERMES_HOME/cache/terminal-output`` (created only on actual overflow;
+    spill file under ``$KOVA_HOME/cache/terminal-output`` (created only on actual overflow;
     spills older than 7 days are pruned opportunistically). Otherwise the collector is
     effectively unbounded so internal consumers keep full-fidelity output."""
     if not bounded_capture:
@@ -181,7 +181,7 @@ def _new_output_collector(proc, bounded_capture: bool) -> _BoundedOutputCollecto
         capture_limit = 50_000
     spill_path = None
     try:
-        spill_dir = get_hermes_home() / "cache" / "terminal-output"
+        spill_dir = get_kova_home() / "cache" / "terminal-output"
         spill_path = spill_dir / f"out-{int(time.time())}-{os.getpid()}-{id(proc) & 0xffff:x}.log"
         if spill_dir.is_dir():
             cutoff = time.time() - _SPILL_MAX_AGE_S

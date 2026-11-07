@@ -22,7 +22,7 @@ import pytest
 
 class TestConfigSchemaOffLoop:
     @pytest.fixture(autouse=True)
-    def _home(self, _isolate_hermes_home):
+    def _home(self, _isolate_kova_home):
         pass
 
     def test_schema_build_runs_off_the_loop_and_keeps_it_responsive(self, monkeypatch):

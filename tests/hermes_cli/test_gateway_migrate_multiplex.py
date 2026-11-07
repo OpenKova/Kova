@@ -32,11 +32,11 @@ def fleet(tmp_path, monkeypatch):
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:default-token\n", encoding="utf-8")
     (root / "profiles/coder/.env").write_text("TELEGRAM_BOT_TOKEN=222222:coder-token\n", encoding="utf-8")
     (root / "profiles/ops/.env").write_text("DISCORD_BOT_TOKEN=ops-discord-333333\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY", "WEBHOOK_ENABLED"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
 
     state = SimpleNamespace(
         # profile -> installed unit(s); a tuple is one unit, a list is every installed unit.
@@ -70,10 +70,10 @@ def fleet(tmp_path, monkeypatch):
         elif verb == "enable":
             state.enabled.add((name, kind, system))
         elif verb in ("start", "restart") and name == "default":
-            (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}))
+            (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}))
             runtime_path = root / "gateway_state.json"
             runtime = json.loads(runtime_path.read_text()) if runtime_path.exists() else {}
-            runtime.update({"pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running"})
+            runtime.update({"pid": os.getpid(), "kova_home": str(root), "gateway_state": "running"})
             # Multiplex startup records ownership; standalone startup historically preserved the
             # old key, which is the stale-state half of #109473's rollback failure.
             if _config_flag(root):
@@ -111,7 +111,7 @@ def fleet(tmp_path, monkeypatch):
 
 def _fake_spawn(state, home: Path) -> bool:
     root = state.root
-    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}))
+    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}))
     return True
 
 
@@ -436,9 +436,9 @@ def test_update_hook_never_touches_single_profile_or_already_multiplexed(fleet, 
 
 
 def test_update_hook_reads_a_masked_default_unit_as_an_opt_out(fleet, capsys, monkeypatch, tmp_path):
-    """`systemctl mask hermes-gateway` is the operator's "never start this": no refusal, no change (#139324)."""
+    """`systemctl mask kova-gateway` is the operator's "never start this": no refusal, no change (#139324)."""
     from kova_cli import gateway as gw
-    unit = tmp_path / "systemd/user/hermes-gateway.service"
+    unit = tmp_path / "systemd/user/kova-gateway.service"
     unit.parent.mkdir(parents=True)
     unit.symlink_to(os.devnull)  # exactly what `systemctl --user mask` leaves on disk
     monkeypatch.setattr(gw, "get_systemd_unit_path", lambda system=False: unit if not system else tmp_path / "none")
@@ -462,7 +462,7 @@ def test_update_hook_refuses_to_cross_service_user_or_home_boundary(
     fleet, capsys, monkeypatch, secondary_service, secondary_uid, secondary_home, expected,
 ):
     """#109954: the unattended hook must not fold a secondary that sits behind a kernel-enforced
-    boundary (other service domain, other UNIX user, HERMES_HOME outside profiles/). It prints the
+    boundary (other service domain, other UNIX user, KOVA_HOME outside profiles/). It prints the
     boundary + the explicit command and touches nothing; the dry-run plan shows the same finding as a
     notice and the explicit command stays available."""
     fleet.services["default"] = ("systemd", False)
@@ -576,9 +576,9 @@ def test_explicit_migrate_with_no_standalone_secondaries_still_flips_flag_and_re
 
     def _detached(home):  # no service manager anywhere -> detached start writes the served record
         fleet.services["default-detached"] = True
-        (fleet.root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(fleet.root)}))
+        (fleet.root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(fleet.root)}))
         (fleet.root / "gateway_state.json").write_text(json.dumps({
-            "pid": os.getpid(), "hermes_home": str(fleet.root), "gateway_state": "running",
+            "pid": os.getpid(), "kova_home": str(fleet.root), "gateway_state": "running",
             "served_profiles": ["default", "coder", "ops"]}))
         return True
     monkeypatch.setattr(gm, "_spawn_detached_gateway", _detached)
@@ -730,7 +730,7 @@ def test_opt_out_reads_effective_config_managed_false_wins_and_string_false_is_f
     assert auto_migration_opted_out(fleet.root) is False
     managed = tmp_path / "managed"; managed.mkdir()
     (managed / "config.yaml").write_text("gateway:\n  auto_multiplex_migration: false\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     with gm._home_env(fleet.root):
         assert cfg.load_config()["gateway"]["auto_multiplex_migration"] is False

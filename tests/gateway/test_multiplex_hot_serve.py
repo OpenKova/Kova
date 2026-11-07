@@ -40,9 +40,9 @@ class _Adapter:
 
 
 def _runner(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     (home / "profiles").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     runner = object.__new__(GatewayRunner)
     runner.config = GatewayConfig(multiplex_profiles=True)
@@ -358,10 +358,10 @@ async def test_unserve_releases_gateway_held_log_and_mcp_handles(tmp_path, monke
 
     import kova_logging
     from kova_constants import (
-        hermes_home_key,
+        kova_home_key,
         mark_named_profile_deleted,
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
 
     runner, home = _runner(tmp_path, monkeypatch)
@@ -386,15 +386,15 @@ async def test_unserve_releases_gateway_held_log_and_mcp_handles(tmp_path, monke
     )
     kova_logging._reset_queued_handlers()  # a prior test's routers would route to stale homes
     try:
-        kova_logging.setup_logging(hermes_home=home)
+        kova_logging.setup_logging(kova_home=home)
         assert kova_logging.enable_profile_log_routing([home, alpha_dir, gamma_dir]) is True
         logger = _logging.getLogger("agent.unserve-handle-release")
         for profile_home in (alpha_dir, gamma_dir):
-            token = set_hermes_home_override(profile_home)
+            token = set_kova_home_override(profile_home)
             try:
                 logger.warning("open routed handles for %s", profile_home.name)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
         kova_logging.flush_log_queue()
         routers = [
             handler for handler in kova_logging._queued_file_handlers
@@ -416,7 +416,7 @@ async def test_unserve_releases_gateway_held_log_and_mcp_handles(tmp_path, monke
         assert result["removed"] == ["gamma"]
         # The gateway-side scoped MCP servers (whose children write mcp-stderr.log) are stopped
         # for exactly the deleted profile's scope, never a sibling's.
-        assert shutdowns == [hermes_home_key(gamma_dir)]
+        assert shutdowns == [kova_home_key(gamma_dir)]
         # This process's routed log files for the deleted home are closed and forgotten while a
         # still-served sibling keeps its handles.
         assert all(gamma_dir.resolve() not in handler._profile_handlers for handler in routers)

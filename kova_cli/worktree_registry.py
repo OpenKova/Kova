@@ -1,11 +1,11 @@
-"""Per-profile registry of every repository Hermes has created a worktree in.
+"""Per-profile registry of every repository Kova has created a worktree in.
 
-The 6-hourly cron sweep (``cron.scheduler._worktree_maintenance_repos``) only knew the Hermes
+The 6-hourly cron sweep (``cron.scheduler._worktree_maintenance_repos``) only knew the Kova
 checkout and cron job workdirs, so trees made by ``hermes -w`` / ``/worktree new`` / subagent
 isolation / the Desktop git pane in any other repo were never swept. Each creation path records
 its repo here; the sweep unions this list with its other sources.
 
-The file lives under the ACTIVE profile's home (``get_hermes_home()``), so one profile's sweep
+The file lives under the ACTIVE profile's home (``get_kova_home()``), so one profile's sweep
 never visits another profile's repos. Writes are atomic under a cross-process lock; entries whose
 repo no longer exists are dropped on every read-modify-write and filtered on read.
 """
@@ -24,8 +24,8 @@ _holder = threading.local()
 
 
 def registry_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / _REGISTRY_NAME
+    from kova_constants import get_kova_home
+    return get_kova_home() / _REGISTRY_NAME
 
 
 def _repo_exists(repo: str) -> bool:
@@ -48,7 +48,7 @@ def registered_repos() -> list[str]:
 
 
 def record_worktree_repo(repo_root) -> None:
-    """Remember *repo_root* as a repo with Hermes-made worktrees. Never raises."""
+    """Remember *repo_root* as a repo with Kova-made worktrees. Never raises."""
     if not repo_root:
         return
     try:

@@ -1,6 +1,6 @@
 /**
  * The plugin authoring contract. A plugin is a file that default-exports a
- * `HermesPlugin`; it never touches the registry directly — it receives a
+ * `KovaPlugin`; it never touches the registry directly — it receives a
  * scoped `PluginContext` whose `register` auto-tags provenance
  * (`source: 'plugin:<id>'`) and namespaces the contribution id
  * (`<id>:<localId>`), so authors write plain contributions and collisions
@@ -41,7 +41,7 @@ import type { Contribution } from './types'
 
 export type { PluginSettingsPage, PluginSettingsSubpage } from './settings-pages'
 export type { PluginRestOptions } from '@/hermes'
-export type { HermesOpenTarget } from '@/lib/hermes-open-target'
+export type { KovaOpenTarget } from '@/lib/hermes-open-target'
 export type { PluginAppActionId, PluginAppActionInfo, PluginRunActionResult } from '@/lib/keybinds/plugin-actions'
 export type { PluginNativeNotificationInput, PluginNotificationAction } from '@/store/native-notifications'
 export type { PetMessageTone, PetSayOptions } from '@/store/pet-plugin-messages'
@@ -59,14 +59,14 @@ export interface PluginStorage {
 }
 
 /** The curated OS door — every way a plugin reaches outside the app window,
- *  in one attributed namespace instead of the raw `window.hermesDesktop`
+ *  in one attributed namespace instead of the raw `window.kovaDesktop`
  *  bridge. Every member resolves a result instead of throwing when the
  *  capability can't apply (no Electron shell, older desktop build), so
  *  callers branch on the return value rather than sniffing the bridge. */
 export interface PluginOs {
   /** Native OS notification (Electron), attributed to this plugin. Gated by
    *  Settings ▸ Notifications ▸ "Plugin notifications" and fires only while
-   *  the user is away from Hermes — use `host.notify` for the in-app toast.
+   *  the user is away from Kova — use `host.notify` for the in-app toast.
    *  Throttled per plugin; reserve it for genuinely notable events.
    *  Supports `icon`, `activate` (e.g. `hermes://index-network/intent/1`),
    *  action buttons, and renderer `onActivate` / `onAction` callbacks. */
@@ -184,7 +184,7 @@ export interface PluginContext {
   storage: PluginStorage
   /** Folder-scoped file access: this plugin's own data folder plus folders
    *  the user grants it through the app's picker, by relative path. The app
-   *  checks every call; nothing outside those folders (or inside Hermes'
+   *  checks every call; nothing outside those folders (or inside Kova'
    *  own data) is reachable. Feature-detect on older hosts: `ctx.files?.…`. */
   files: PluginFiles
   /** Plugin-scoped i18n: ship + register locale bundles under this plugin,
@@ -192,7 +192,7 @@ export interface PluginContext {
   i18n: PluginI18n
 }
 
-export interface HermesPlugin {
+export interface KovaPlugin {
   /** Stable slug — becomes the `plugin:<id>` source and the id namespace. */
   id: string
   /** Human name for settings / about UI. */
@@ -237,8 +237,8 @@ function createPluginStorage(pluginId: string): PluginStorage {
 // Electron shell (or run in a plain browser), so every door degrades to a
 // false result the plugin can branch on.
 function createPluginOs(pluginId: string): PluginOs {
-  const attempt = async (run: (bridge: NonNullable<typeof window.hermesDesktop>) => Promise<boolean>) => {
-    const bridge = typeof window === 'undefined' ? undefined : window.hermesDesktop
+  const attempt = async (run: (bridge: NonNullable<typeof window.kovaDesktop>) => Promise<boolean>) => {
+    const bridge = typeof window === 'undefined' ? undefined : window.kovaDesktop
 
     if (!bridge) {
       return false
@@ -252,8 +252,8 @@ function createPluginOs(pluginId: string): PluginOs {
   }
 
   // Same shape as `attempt`, for the pickers that answer with a path.
-  const attemptPath = async (run: (bridge: NonNullable<typeof window.hermesDesktop>) => Promise<null | string>) => {
-    const bridge = typeof window === 'undefined' ? undefined : window.hermesDesktop
+  const attemptPath = async (run: (bridge: NonNullable<typeof window.kovaDesktop>) => Promise<null | string>) => {
+    const bridge = typeof window === 'undefined' ? undefined : window.kovaDesktop
 
     if (!bridge) {
       return null
@@ -362,7 +362,7 @@ function createPluginLifetime(track: (dispose: () => void) => () => void) {
 }
 
 /** The declared capabilities of a plugin export, strings only. */
-export function declaredCapabilities(plugin: Pick<HermesPlugin, 'capabilities'>): string[] {
+export function declaredCapabilities(plugin: Pick<KovaPlugin, 'capabilities'>): string[] {
   return Array.isArray(plugin.capabilities)
     ? plugin.capabilities.filter((entry): entry is string => typeof entry === 'string')
     : []

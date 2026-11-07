@@ -17,7 +17,7 @@ const gatewayMocks = vi.hoisted(() => ({
 vi.mock('@/hermes', async importActual => ({
   ...(await importActual<Record<string, unknown>>()),
   setApiRequestConnection: vi.fn(),
-  HermesGateway: class {
+  KovaGateway: class {
     connectionState = 'closed'
     wsUrl = ''
     connect = async (wsUrl: string): Promise<void> => {
@@ -53,7 +53,7 @@ const { stampSecondaryProfileOwner } = await import('./session-event-provenance'
 const { $selectedStoredSessionId, $sessions, setActiveSessionId } = await import('@/store/session')
 
 function installDesktop(): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+  ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {
     getConnection: vi.fn(async (profile?: string) => ({
       authMode: 'token',
       profile: profile || 'default',
@@ -101,7 +101,7 @@ afterEach(() => {
   setActiveSessionId(null)
   $selectedStoredSessionId.set(null)
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { hermesDesktop?: unknown }).kovaDesktop
 })
 
 describe('foreground tile retention vs. the live-work pruner (#93892)', () => {

@@ -2,7 +2,7 @@
 
 When a resumed session is already open elsewhere, the launcher reads the owner's lease from the
 active-session registry, calls ``GET <metadata.shared_runtime_url>/api/session-attach`` and exports the
-reply's ``websocket_url`` as ``HERMES_TUI_GATEWAY_URL`` for the TUI child. Whoever answers on the
+reply's ``websocket_url`` as ``KOVA_TUI_GATEWAY_URL`` for the TUI child. Whoever answers on the
 advertised loopback port is therefore trusted with the user's session traffic.
 
 Real processes throughout:
@@ -12,7 +12,7 @@ Real processes throughout:
 * the client is the real ``hermes --tui --resume SID`` CLI (argparse, profile-home resolution, the
   launcher's discovery, its error exit);
 * the TUI child is a recording stand-in bundle selected through the supported prebuilt-bundle override
-  (``HERMES_TUI_DIR/dist/entry.js``). It writes the environment the launcher handed it and exits, so the
+  (``KOVA_TUI_DIR/dist/entry.js``). It writes the environment the launcher handed it and exits, so the
   assertion reads the exact launcher -> TUI hand-off. The Ink app itself is not what is under test.
 
 Scenarios (the listener answering the advertised port):
@@ -25,7 +25,7 @@ Scenarios (the listener answering the advertised port):
 * control ``test_genuine_owner_is_attached``: the lease holder itself serves the endpoint and answers with
   its own identity; the TUI must receive that owner's socket and the lease must stay with the owner.
 
-Why the owner side is a test process: no shipped Hermes runtime advertises ``shared_runtime_url`` or
+Why the owner side is a test process: no shipped Kova runtime advertises ``shared_runtime_url`` or
 serves ``/api/session-attach`` yet (``hermes serve`` and the dashboard do not register one), so the
 closest real owner is a process holding the real lease that answers from its own lease knowledge. It
 speaks both the current dialect (``lease_id`` in the reply) and the proof dialect of the candidate fix
@@ -78,7 +78,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_state import SessionDB
 from kova_cli.active_sessions import try_acquire_active_session
 
@@ -86,7 +86,7 @@ sid, advertise, token = sys.argv[1], sys.argv[2], sys.argv[3]
 db = SessionDB()
 db.create_session(session_id=sid, source="cli")
 db.close()
-home = str(Path(get_hermes_home()).resolve())
+home = str(Path(get_kova_home()).resolve())
 state = {}
 
 
@@ -133,20 +133,20 @@ sys.stdin.read()
 lease.release()
 """
 
-# Recording TUI bundle: the launcher runs ``node $HERMES_TUI_DIR/dist/entry.js`` with the env it built.
+# Recording TUI bundle: the launcher runs ``node $KOVA_TUI_DIR/dist/entry.js`` with the env it built.
 PROBE_ENTRY = """
 const fs = require("fs");
 fs.writeFileSync(process.env.ATTACH_PROBE_OUT, JSON.stringify({
-  gateway_url: process.env.HERMES_TUI_GATEWAY_URL || null,
-  resume: process.env.HERMES_TUI_RESUME || null,
+  gateway_url: process.env.KOVA_TUI_GATEWAY_URL || null,
+  resume: process.env.KOVA_TUI_RESUME || null,
 }));
 """
 
 SNAPSHOT_CODE = r"""
 import json, sys
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_cli.active_sessions import active_session_registry_snapshot
-rows = [e for e in active_session_registry_snapshot(get_hermes_home(), strict=True)
+rows = [e for e in active_session_registry_snapshot(get_kova_home(), strict=True)
         if e.get("session_id") == sys.argv[1]]
 print(json.dumps([{"pid": e.get("pid"), "url": (e.get("metadata") or {}).get("shared_runtime_url")}
                   for e in rows]))
@@ -237,7 +237,7 @@ class OwnerProcess:
 def home(tmp_path: Path) -> Path:
     home = tmp_path / "home"
     # The model is never called: the launcher hands off to the TUI stand-in before any turn.
-    write_home(home / ".hermes", "http://127.0.0.1:9/v1", api_key=canary("unused-key"))
+    write_home(home / ".kova", "http://127.0.0.1:9/v1", api_key=canary("unused-key"))
     probe = tmp_path / "tui-probe" / "dist"
     probe.mkdir(parents=True)
     (probe / "entry.js").write_text(PROBE_ENTRY, encoding="utf-8")
@@ -249,7 +249,7 @@ def _resume(home: Path, sid: str) -> tuple[subprocess.CompletedProcess, dict | N
     out = home.parent / f"handoff-{uuid.uuid4().hex}.json"
     result = run_hermes(
         ["--tui", "--resume", sid], home, timeout=90,
-        extra_env={"HERMES_TUI_DIR": str(home.parent / "tui-probe"), "HERMES_SKIP_NODE_BOOTSTRAP": "1",
+        extra_env={"KOVA_TUI_DIR": str(home.parent / "tui-probe"), "KOVA_SKIP_NODE_BOOTSTRAP": "1",
                    "ATTACH_PROBE_OUT": str(out)})
     handoff = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
     return result, handoff

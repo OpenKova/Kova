@@ -60,7 +60,7 @@ def _pm_package_for_command(command: str) -> str | None:
 
 
 def _doctor_tool(name: str) -> tuple[str | None, str]:
-    """Resolve the tool Hermes would actually run: the pm store first
+    """Resolve the tool Kova would actually run: the pm store first
     (pinned installs run tools out of the store, which nothing puts on
     PATH), then PATH. *name* is the command ("rg"); its pm package
     ("ripgrep") is resolved from pm's own definitions. Returns
@@ -83,7 +83,7 @@ def _run_ok(cmd: list[str], timeout: int, **kw) -> bool:
 
 
 _TERMUX_INSTALL_ALL_FALLBACK_NOTES = (
-    "Termux uses the Hermes APT package: pkg install hermes-agent.",
+    "Termux uses the Kova APT package: pkg install kova-agent.",
     "Matrix E2EE extra is excluded on Termux (python-olm currently fails to build).",
     "Local faster-whisper extra is excluded on Termux (ctranslate2/av build path unavailable).",
     "STT fallback: use Groq Whisper (set GROQ_API_KEY) or OpenAI Whisper (set VOICE_TOOLS_OPENAI_KEY).",
@@ -93,13 +93,13 @@ _TERMUX_INSTALL_ALL_FALLBACK_NOTES = (
 def _is_kanban_worker_env_gate(item: dict) -> bool:
     """Return True when Kanban is unavailable only because this is not a worker process."""
     tools = item.get("tools") or []
-    return (item.get("name") == "kanban" and not os.environ.get("HERMES_KANBAN_TASK")
+    return (item.get("name") == "kanban" and not os.environ.get("KOVA_KANBAN_TASK")
             and bool(tools) and all(str(tool).startswith("kanban_") for tool in tools))
 
 
 def _doctor_tool_availability_detail(toolset: str) -> str:
     """Optional explanatory suffix for toolsets whose doctor status needs context."""
-    if toolset == "kanban" and not os.environ.get("HERMES_KANBAN_TASK"):
+    if toolset == "kanban" and not os.environ.get("KOVA_KANBAN_TASK"):
         return "(runtime-gated; loaded only for dispatcher-spawned workers)"
     return ""
 
@@ -243,7 +243,7 @@ def _check_daytona_backend(issues: list[str]) -> None:
         from daytona import Daytona
         check_ok("daytona SDK", "(installed)")
     except ImportError:
-        _fail_and_issue("daytona SDK not installed", "(run hermes setup terminal)", "Run hermes setup terminal and select Daytona, then restart Hermes", issues)
+        _fail_and_issue("daytona SDK not installed", "(run hermes setup terminal)", "Run hermes setup terminal and select Daytona, then restart Kova", issues)
 
 
 def _check_vercel_backend(issues: list[str]) -> None:
@@ -257,7 +257,7 @@ def _check_vercel_backend(issues: list[str]) -> None:
              "Vercel Sandbox does not support custom container_disk; use the shared default 51200", issues)
     _require(importlib.util.find_spec("vercel") is not None, ("vercel SDK", "(installed)"),
              ("vercel SDK not installed", "(run hermes setup terminal)"),
-             "Run hermes setup terminal and select Vercel Sandbox, then restart Hermes", issues)
+             "Run hermes setup terminal and select Vercel Sandbox, then restart Kova", issues)
     auth_status = describe_vercel_auth()
     if auth_status.ok:
         check_ok("Vercel auth", f"({auth_status.label})")
@@ -402,7 +402,7 @@ def _audit_one(tool: str, cwd, label: str, audit_extra: list[str], manual_issues
     from kova_constants import with_hermes_node_path
     from pm.packages import pnpm_env
     env = with_hermes_node_path()
-    if audit_extra:  # pnpm rows: its state and metadata cache stay Hermes-owned, not in the user's XDG dirs
+    if audit_extra:  # pnpm rows: its state and metadata cache stay Kova-owned, not in the user's XDG dirs
         env = pnpm_env(env)
     try:
         # Resolved absolute path so Windows can execute npm.cmd (CreateProcessW can't run bare .cmd names).
@@ -441,7 +441,7 @@ def _check_npm_audit(should_fix: bool, f: Finding) -> None:
     """pnpm audit per installed workspace (root, web, ui-tui); npm audit for the WhatsApp bridge.
 
     The workspaces are audited one --filter each, so the desktop app's tree (Electron, node-pty, ...) is
-    never part of a routine check (#38772). The WhatsApp bridge may live under a writable HERMES_HOME
+    never part of a routine check (#38772). The WhatsApp bridge may live under a writable KOVA_HOME
     mirror rather than the (possibly read-only) Docker install tree, hence the shared resolver.
     """
     from kova_cli.doctor import PROJECT_ROOT
@@ -450,7 +450,7 @@ def _check_npm_audit(should_fix: bool, f: Finding) -> None:
     # Termux has no pnpm: nothing installs the JS workspaces on device.
     pnpm_bin = _pm_tool_path("pnpm")
     try:
-        # The WhatsApp bridge may live under a writable HERMES_HOME mirror instead of the (possibly
+        # The WhatsApp bridge may live under a writable KOVA_HOME mirror instead of the (possibly
         # read-only) install tree in Docker — resolve it through the shared helper so we audit the dir
         # that actually holds node_modules. See #49561.
         from gateway.platforms.whatsapp_common import resolve_whatsapp_bridge_dir

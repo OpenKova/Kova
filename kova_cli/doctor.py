@@ -1,4 +1,4 @@
-"""``hermes doctor`` — diagnose (and with --fix, repair) a Hermes install.
+"""``hermes doctor`` — diagnose (and with --fix, repair) a Kova install.
 
 ``run_doctor`` walks ``DOCTOR_CHECKS`` in order; each check prints its own rows and returns a ``Finding``.
 Check bodies live in the ``doctor_*`` siblings.
@@ -7,17 +7,17 @@ Check bodies live in the ``doctor_*`` siblings.
 import os
 import sys
 
-from kova_cli.config import get_env_path, get_hermes_home, get_project_root
+from kova_cli.config import get_env_path, get_kova_home, get_project_root
 from kova_cli.env_loader import load_hermes_dotenv
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 PROJECT_ROOT = get_project_root()
-HERMES_HOME = get_hermes_home()
-_DHH = display_hermes_home()  # user-facing display path (e.g. ~/.hermes or ~/.hermes/profiles/coder)
+KOVA_HOME = get_kova_home()
+_DHH = display_kova_home()  # user-facing display path (e.g. ~/.kova or ~/.kova/profiles/coder)
 
-# Load environment variables from ~/.hermes/.env so API key checks work
+# Load environment variables from ~/.kova/.env so API key checks work
 _env_path = get_env_path()
-load_hermes_dotenv(hermes_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
+load_hermes_dotenv(kova_home=_env_path.parent, project_env=PROJECT_ROOT / ".env")
 
 from kova_cli.colors import Colors, color
 from kova_cli.doctor_report import Finding, _section, check_bool, check_info, doctor_check, warn_on_error
@@ -76,7 +76,7 @@ def _check_auth_providers(should_fix: bool, f: Finding) -> None:
     with warn_on_error("Auth provider status", "(could not check: {e})"):
         from kova_cli.auth import get_nous_auth_status_local, get_codex_auth_status, get_minimax_oauth_auth_status
         _login_row("Nous Portal auth", get_nous_auth_status_local())
-        # Native OAuth is Hermes' own device-code flow; the Codex CLI only imports existing ~/.codex/auth.json
+        # Native OAuth is Kova' own device-code flow; the Codex CLI only imports existing ~/.codex/auth.json
         # tokens, so the hint sits under the Codex row (not as another provider's remedy).
         if not _login_row("OpenAI Codex auth", get_codex_auth_status(), show_error=True) and not _safe_which("codex"):
             check_info("codex CLI not installed (optional — only required to import tokens from an existing Codex CLI login)")
@@ -177,12 +177,12 @@ def run_doctor(args):
     """Run diagnostic checks."""
     should_fix = getattr(args, 'fix', False)
     # Doctor runs from the interactive CLI, so CLI-gated tool checks (e.g. cronjob) see the same context.
-    os.environ.setdefault("HERMES_INTERACTIVE", "1")
+    os.environ.setdefault("KOVA_INTERACTIVE", "1")
     if getattr(args, 'ack', None):
         return _ack_advisory(args.ack)
     print()
     for line in ("┌─────────────────────────────────────────────────────────┐",
-                 "│                 🩺 Hermes Doctor                        │",
+                 "│                 🩺 Kova Doctor                        │",
                  "└─────────────────────────────────────────────────────────┘"):
         print(color(line, Colors.CYAN))
     total = Finding()

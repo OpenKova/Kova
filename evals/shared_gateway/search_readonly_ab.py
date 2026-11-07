@@ -10,10 +10,10 @@ import tempfile
 
 
 def child(repo, case, account):
-    home = account / '.hermes'
+    home = account / '.kova'
     home.mkdir()
     os.environ['HOME'] = str(account)
-    os.environ['HERMES_HOME'] = str(home)
+    os.environ['KOVA_HOME'] = str(home)
     sys.path.insert(0, str(repo))
     from kova_state import SessionDB
     import tools.session_search_tool as search
@@ -68,7 +68,7 @@ def main():
         for case in ['empty', 'foreign', 'existing']:
             with tempfile.TemporaryDirectory(prefix='hermes-reader-ab-') as tmp:
                 env = {'PATH': os.environ.get('PATH', ''), 'LANG': 'C.UTF-8', 'TZ': 'UTC',
-                       'HOME': tmp, 'HERMES_HOME': str(Path(tmp) / '.hermes'),
+                       'HOME': tmp, 'KOVA_HOME': str(Path(tmp) / '.kova'),
                        'PYTHONDONTWRITEBYTECODE': '1'}
                 proc = subprocess.run([sys.executable, str(Path(__file__).resolve()), '--child', str(repo),
                                        '--case', case, '--account', tmp], cwd=repo, env=env,

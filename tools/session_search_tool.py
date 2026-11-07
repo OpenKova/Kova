@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Union
 from kova_state_common import _BOUNDARY_END_REASONS
 from kova_time import safe_strftime
 
-# Hidden from browsing/searching — integrations (HERMES_SESSION_SOURCE=tool), delegate
+# Hidden from browsing/searching — integrations (KOVA_SESSION_SOURCE=tool), delegate
 # subagent runs, kanban workers are not the user's history.
 _HIDDEN_SESSION_SOURCES = ("kanban", "subagent", "tool")
 # Searchable but DEMOTED below interactive sessions: cron vocabulary dominates bare
@@ -606,7 +606,7 @@ def session_search(query: str = "", role_filter: str | None = None, limit: int |
                    after: str | None = None, before: str | None = None, exclude_session_ids: Optional[list[str]] = None) -> str:
     """Run session search, closing DBs opened here. Positional order is frozen for old callers;
     new parameters are appended after ``detail``."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB, format_session_db_unavailable
     from kova_state_registry import release_or_close
     owned_dbs: list[Any] = []
@@ -637,7 +637,7 @@ def session_search(query: str = "", role_filter: str | None = None, limit: int |
         db = None
     if db is None:
         db = _quiet(
-            lambda: SessionDB(db_path=get_hermes_home() / "state.db", read_only=True),
+            lambda: SessionDB(db_path=get_kova_home() / "state.db", read_only=True),
             None, "SessionDB unavailable for session_search",
         )
         if db is None:
@@ -664,7 +664,7 @@ def check_session_search_requirements() -> bool:
 SESSION_SEARCH_SCHEMA = {
     "name": "session_search",
     "description": (
-        "Search or read past Hermes conversations (FTS5), or scroll inside one. Four shapes, picked by args: `query` = discovery "
+        "Search or read past Kova conversations (FTS5), or scroll inside one. Four shapes, picked by args: `query` = discovery "
         "(top-N matching sessions, top result fully hydrated); `session_id` + "
         "`around_message_id` = scroll (window of messages around an anchor); "
         "`session_id` alone = read a whole session — how you resolve an "
@@ -781,7 +781,7 @@ SESSION_SEARCH_SCHEMA = {
             "profile": {
                 "type": "string",
                 "description": (
-                    "Optional. Read sessions from another Hermes profile's database "
+                    "Optional. Read sessions from another Kova profile's database "
                     "(read-only). Use when resolving an `@session:<profile>/<id>` link: "
                     "pass the profile segment here with session_id as the id segment. "
                     "Omit to use the current profile."

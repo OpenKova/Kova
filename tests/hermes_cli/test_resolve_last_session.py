@@ -7,7 +7,7 @@ from kova_cli.main import _resolve_last_session
 
 def test_search_sessions_exposes_last_active_column(tmp_path, monkeypatch):
     # End-to-end: SessionDB must surface last_active and order by MRU.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
 
     import kova_state
@@ -53,7 +53,7 @@ def test_search_sessions_exposes_last_active_column(tmp_path, monkeypatch):
 def test_resolve_last_session_real_db_prefers_workspace(monkeypatch, tmp_path):
     # End-to-end through the real SessionDB + _resolve_last_session: -c from
     # repo A picks repo A's session even though repo B is globally newer.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
 
     import kova_state
@@ -82,14 +82,14 @@ def test_resolve_last_session_real_db_prefers_workspace(monkeypatch, tmp_path):
             cmd, 0, stdout=str(repo_a), stderr=""
         ),
     )
-    monkeypatch.setattr("kova_cli.main.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr("kova_cli.main.get_kova_home", lambda: tmp_path)
     assert _resolve_last_session("cli") == "repo_a"
 
 
 def test_resolve_last_session_cli_continues_a_oneshot(monkeypatch, tmp_path):
     """`hermes -z … --resume latest` / `hermes -c` chain on the previous one-shot: its distinct `oneshot`
     source hides it from pickers but it is still CLI history (#112550)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
 
     import kova_state
@@ -110,6 +110,6 @@ def test_resolve_last_session_cli_continues_a_oneshot(monkeypatch, tmp_path):
     monkeypatch.setattr("kova_cli.main._resolve_workspace_key", lambda: None)
     # The lookup opens the active home's store by explicit path (a served-profile process has no
     # single default home), so the home is the seam — same as the workspace test above.
-    monkeypatch.setattr("kova_cli.main.get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr("kova_cli.main.get_kova_home", lambda: tmp_path)
     assert _resolve_last_session("cli") == "oneshot_run"
     assert _resolve_last_session("tui") == "tui_chat"

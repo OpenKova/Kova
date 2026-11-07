@@ -34,7 +34,7 @@ class Agent(StatusOutputMixin):
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     import model_tools
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(lcm, "_attempted", set())
     monkeypatch.setattr("kova_cli.plugins.discover_plugins", lambda: None)
     monkeypatch.setattr(model_tools, "get_tool_definitions", lambda **kw: [])

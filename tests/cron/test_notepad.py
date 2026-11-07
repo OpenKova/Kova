@@ -29,20 +29,20 @@ def notepad(monkeypatch, tmp_path):
 
 @pytest.fixture
 def cron_env(tmp_path, monkeypatch, notepad):
-    """Isolated cron environment with temp HERMES_HOME (mirrors test_cron_context_from)."""
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    (hermes_home / "cron").mkdir()
-    (hermes_home / "cron" / "output").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    """Isolated cron environment with temp KOVA_HOME (mirrors test_cron_context_from)."""
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    (kova_home / "cron").mkdir()
+    (kova_home / "cron" / "output").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     import cron.jobs as jobs_mod
 
-    monkeypatch.setattr(jobs_mod, "HERMES_DIR", hermes_home)
-    monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
-    monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
-    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")
-    return hermes_home
+    monkeypatch.setattr(jobs_mod, "KOVA_DIR", kova_home)
+    monkeypatch.setattr(jobs_mod, "CRON_DIR", kova_home / "cron")
+    monkeypatch.setattr(jobs_mod, "JOBS_FILE", kova_home / "cron" / "jobs.json")
+    monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", kova_home / "cron" / "output")
+    return kova_home
 
 
 class TestNotepadCrud:
@@ -100,25 +100,25 @@ class TestNotepadCrud:
 class TestNotepadProfileIsolation:
     def test_profile_override_routes_writes_to_current_home(self, tmp_path):
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
         import cron.notepad as notepad_mod
 
         profile_a = tmp_path / "profile-a"
         profile_b = tmp_path / "profile-b"
 
-        import_token = set_hermes_home_override(profile_a)
+        import_token = set_kova_home_override(profile_a)
         try:
             importlib.reload(notepad_mod)
         finally:
-            reset_hermes_home_override(import_token)
+            reset_kova_home_override(import_token)
 
-        runtime_token = set_hermes_home_override(profile_b)
+        runtime_token = set_kova_home_override(profile_b)
         try:
             notepad_mod.set_note("job-1", "cursor", "page=7")
         finally:
-            reset_hermes_home_override(runtime_token)
+            reset_kova_home_override(runtime_token)
 
         assert (profile_b / "cron" / "notepad.db").exists()
         assert not (profile_a / "cron" / "notepad.db").exists()

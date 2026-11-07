@@ -56,7 +56,7 @@ def _notify_session_boundary(event_type: str, session_id: str | None, platform: 
     return []
 
 
-_SESSION_OWNERSHIP_UNAVAILABLE = "Hermes could not safely reserve this session. Try again."
+_SESSION_OWNERSHIP_UNAVAILABLE = "Kova could not safely reserve this session. Try again."
 _AUTOMATIC_SESSION_END_REASONS = frozenset({"ws_orphan_reap", "ws_disconnect", "idle_timeout", "lru_evict", "tui_shutdown"})
 
 
@@ -634,9 +634,9 @@ def _pop_session_by_id(sid: str) -> dict | None:
     with _sessions_lock:
         session = _sessions.pop(sid, None)
         if session is not None:
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            home = str(Path(session.get("profile_home") or get_hermes_home()).resolve())
+            home = str(Path(session.get("profile_home") or get_kova_home()).resolve())
             last_active = time.time() if session.get("running") else float(session.get("last_active") or 0)
             _closed_session_activity[home] = max(_closed_session_activity.get(home, 0), last_active)
             session["_closing"] = True
@@ -800,7 +800,7 @@ def _interrupt_session_turn(
         # live TUI/desktop turn is the same "loop is gone" event for plugins holding per-turn external
         # resources. Observer-only; dispatch failures never break the interrupt.
         # Every caller (session.interrupt RPC, orphan/idle reapers, lease takeover) is off-turn, so bind the
-        # SESSION's profile as _finalize_session does or an observer's get_hermes_home() names the launch
+        # SESSION's profile as _finalize_session does or an observer's get_kova_home() names the launch
         # profile (#125063). hydrate_secrets=False: observer-only, /stop must stay fast.
         try:
             from kova_cli.plugins import invoke_hook as _invoke_hook

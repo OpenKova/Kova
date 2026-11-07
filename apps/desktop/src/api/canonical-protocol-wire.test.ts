@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, test, vi } from 'vitest'
 
-import { HermesGateway } from './client'
+import { KovaGateway } from './client'
 
 test('named canonical prompt listeners receive replay-safe IDs before answering on the wire', async () => {
   const wsPackage = 'ws'
@@ -17,7 +17,7 @@ test('named canonical prompt listeners receive replay-safe IDs before answering 
     })
     socket.send(JSON.stringify({ jsonrpc: '2.0', method: 'event', params: { type: 'approval.request', session_id: 's', payload: { prompt_id: 'p', execution_generation: 4, choices: ['once', 'deny'] } } }))
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
   let projected: any
   let received!: () => void
   const ready = new Promise<void>(resolve => { received = resolve })
@@ -54,7 +54,7 @@ test('a legacy (non-canonical) dial strips canonical-only identity keys the serv
       socket.send(JSON.stringify({ jsonrpc: '2.0', id: frame.id, result: { session_id: 'abc' } }))
     })
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
 
   try {
     const address = server.address() as { port: number }
@@ -91,7 +91,7 @@ test('a legacy dial branches from a message with the serve contract\'s count, ne
         : { jsonrpc: '2.0', id: frame.id, result: { session_id: 'child', kept: frame.params.count } }))
     })
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
 
   try {
     const address = server.address() as { port: number }
@@ -120,7 +120,7 @@ test('a compress settle resumes under the caller\'s original timeout and abort s
       : { session_id: 's', revision: 4, execution_generation: 1, messages: [] }) as never
   })
 
-  const client = new HermesGateway()
+  const client = new KovaGateway()
   Object.assign(client, { canonical: true })
 
   try {
@@ -168,7 +168,7 @@ test('shared-socket equal-ID streams use replay owners and unknown epochs reconc
       socket.send(JSON.stringify({ jsonrpc: '2.0', id: frame.id, result }))
     })
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
   const named: any[] = []
   const wildcard: any[] = []
   client.on('session.info', event => named.push(event))

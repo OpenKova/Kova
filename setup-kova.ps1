@@ -1,5 +1,5 @@
 # ============================================================================
-# Hermes Agent Setup Script (Windows) — THE dev-environment entry point.
+# Kova Agent Setup Script (Windows) — THE dev-environment entry point.
 # ============================================================================
 # Sets up the pm-managed development environment from a fresh clone:
 #   1. Stage the pinned uv from pm/lock.json (sha256-verified, into the pm
@@ -16,7 +16,7 @@ param([switch]$RuntimeOnly, [string]$TestExtras = '')
 $ErrorActionPreference = 'Stop'
 
 Write-Host ''
-Write-Host 'Hermes Agent Setup' -ForegroundColor Cyan
+Write-Host 'Kova Agent Setup' -ForegroundColor Cyan
 Write-Host ''
 
 $repo = $PSScriptRoot
@@ -40,7 +40,7 @@ if (-not $artifact) { throw "no uv artifact for $target" }
 $pyPin = $lock.packages.python
 $pyVersion = if ($pyPin) { ($pyPin.version -split '\+')[0] -replace '^(\d+\.\d+).*', '$1' } else { '3.11' }
 
-$store = if ($env:HERMES_RUNTIME_DIR) { $env:HERMES_RUNTIME_DIR } else { Join-Path $HOME '.hermes/tools' }
+$store = if ($env:KOVA_RUNTIME_DIR) { $env:KOVA_RUNTIME_DIR } else { Join-Path $HOME '.kova/tools' }
 $entry = Join-Path $store "uv-$($uvPin.version)-$target"
 $uv = Join-Path $entry 'uv.exe'
 
@@ -120,9 +120,9 @@ if (-not (Test-Path $envFile)) {
 }
 
 # ---------------------------------------------------------------------------
-# Seed bundled skills into ~/.hermes/skills/
+# Seed bundled skills into ~/.kova/skills/
 # ---------------------------------------------------------------------------
-$skillsDir = if ($env:HERMES_HOME) { Join-Path $env:HERMES_HOME 'skills' } else { Join-Path $HOME '.hermes/skills' }
+$skillsDir = if ($env:KOVA_HOME) { Join-Path $env:KOVA_HOME 'skills' } else { Join-Path $HOME '.kova/skills' }
 New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
 $sync = Join-Path $repo 'tools/skills_sync.py'
 $venvPy = Join-Path $repo 'venv/Scripts/python.exe'

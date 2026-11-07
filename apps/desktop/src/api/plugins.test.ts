@@ -165,7 +165,7 @@ describe('pluginSocket credentials and refusals (PLG-1)', () => {
     vi.useFakeTimers()
     vi.stubGlobal('WebSocket', FakeSocket)
     desktop(local)
-    const getConnection = vi.mocked(window.hermesDesktop.getConnection)
+    const getConnection = vi.mocked(window.kovaDesktop.getConnection)
     const frames: unknown[] = []
 
     const dispose = pluginSocket('kanban', '/events', frame => frames.push(frame))
@@ -190,7 +190,7 @@ describe('pluginSocket credentials and refusals (PLG-1)', () => {
     vi.useFakeTimers()
     vi.stubGlobal('WebSocket', FakeSocket)
     desktop(local)
-    const getConnection = vi.mocked(window.hermesDesktop.getConnection)
+    const getConnection = vi.mocked(window.kovaDesktop.getConnection)
     const frames: unknown[] = []
 
     const dispose = pluginSocket('kanban', '/events', frame => frames.push(frame))
@@ -212,7 +212,7 @@ describe('pluginSocket credentials and refusals (PLG-1)', () => {
     vi.stubGlobal('WebSocket', FakeSocket)
     setApiRequestProfile('coder')
     const mint = desktop(local)
-    const getConnection = vi.mocked(window.hermesDesktop.getConnection)
+    const getConnection = vi.mocked(window.kovaDesktop.getConnection)
 
     const dispose = pluginSocket('kanban', '/events', () => undefined)
     await vi.advanceTimersByTimeAsync(0)

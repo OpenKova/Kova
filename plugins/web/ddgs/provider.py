@@ -96,7 +96,7 @@ def _spawn_worker(env: dict[str, str]) -> subprocess.Popen:
 
     # pm store PATH: the worker runs under the STORE python, whose third-party
     # imports (ddgs/primp) arrive via the launcher-composed PYTHONPATH. The
-    # sanitizer strips Hermes-owned entries (cross-version protection); this
+    # sanitizer strips Kova-owned entries (cross-version protection); this
     # worker is the SAME interpreter, so merge the ambient PYTHONPATH back in.
     _ambient_pp = os.environ.get("PYTHONPATH")
     if _ambient_pp:
@@ -151,7 +151,7 @@ def _run_ddgs_search_bounded(query: str, safe_limit: int) -> list[dict[str, Any]
     env = _sanitize_subprocess_env(dict(os.environ))
     if _test_hook:
         request["test_hook"] = _test_hook
-        env["HERMES_DDGS_ALLOW_TEST_HOOKS"] = "1"
+        env["KOVA_DDGS_ALLOW_TEST_HOOKS"] = "1"
     proc = _last_worker_proc = _spawn_worker(env)
     # ``communicate`` runs in a side thread so the parent can poll interrupt /
     # deadline without blocking; killing the child unblocks it.
@@ -199,7 +199,7 @@ class DDGSWebSearchProvider(BaseWebSearchProvider):
 
     def search(self, query: str, limit: int = 5) -> dict[str, Any]:
         """Run the search in a disposable child with a hard wall-clock timeout so a
-        hung native ``primp`` call cannot freeze the Hermes process.
+        hung native ``primp`` call cannot freeze the Kova process.
 
         See #36776, #68096.
         """

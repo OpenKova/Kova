@@ -42,7 +42,7 @@ def test_resolve_verifies_exact_manifest_and_preserves_retirement_constraints():
         manifest, record = seed_manifest(pub, request, objects)
         record["policy"] = "stable-release"
         objects["releases/channels/next-preview.json"] = canonical_json(record)
-        reader = ChannelReader(url + "/bucket", repository="example/hermes-agent")
+        reader = ChannelReader(url + "/bucket", repository="example/kova-agent")
         assert reader.resolve("next-preview").manifest == manifest
         old = pub._read("old-preview")[0]
         old.update(state="retired", destination="next-preview", minimumVersion="1.0.0",
@@ -172,7 +172,7 @@ def test_reader_rejects_cycles_identity_substitution_and_cross_authority():
         pub.create("alpha")
         request = pub.allocate("alpha", "a" * 40, "1.2.3")
         manifest, record = seed_manifest(pub, request, objects)
-        reader = ChannelReader(url + "/bucket", repository="example/hermes-agent")
+        reader = ChannelReader(url + "/bucket", repository="example/kova-agent")
         substituted = deepcopy(manifest)
         substituted["request"]["identity"]["appId"] = "ai.other.identity"
         raw = canonical_json(substituted)
@@ -181,11 +181,11 @@ def test_reader_rejects_cycles_identity_substitution_and_cross_authority():
         objects["releases/channels/alpha.json"] = canonical_json(record)
         with pytest.raises(ChannelError, match="identity"):
             reader.resolve("alpha")
-        record["repository"] = "other/hermes-agent"
+        record["repository"] = "other/kova-agent"
         objects["releases/channels/alpha.json"] = canonical_json(record)
         with pytest.raises(ChannelError, match="authority"):
             reader.resolve("alpha")
-        record["repository"] = "example/hermes-agent"
+        record["repository"] = "example/kova-agent"
         record.update(state="retired", destination="alpha", minimumVersion="1.0.0", lastHead=record["head"],
                       destinationHead=record["head"], receiverProtocol=1,
                       receiver={"kind": "discontinued"})
@@ -276,7 +276,7 @@ def test_malformed_record_and_unqualified_retirement_never_resolve():
 def test_malformed_wire_types_are_channel_errors(field, value):
     from kova_cli.release_channels import validate_record, ChannelError
     from scripts.releases.channels import preview_identity
-    record = {"schema": 1, "name": "arbitrary", "repository": "example/hermes-agent", "policy": "preview",
+    record = {"schema": 1, "name": "arbitrary", "repository": "example/kova-agent", "policy": "preview",
               "state": "active", "revision": 1, "nextSequence": 1, "head": None,
               "identity": preview_identity("arbitrary", "a" * 16)}
     record[field] = value
@@ -287,7 +287,7 @@ def test_malformed_wire_types_are_channel_errors(field, value):
 def stable_request(version="1.2.3", archive_ref=None):
     from scripts.releases.channels import preview_identity
     request = {"schema": 1, "buildId": "a" * 32, "channel": "stable", "sequence": 1,
-               "repository": "example/hermes-agent", "commit": "b" * 40,
+               "repository": "example/kova-agent", "commit": "b" * 40,
                "sourceVersion": version, "version": version, "windowsVersion": version + ".0",
                "releaseTag": "v" + version, "identity": preview_identity("stable", "a" * 16),
                "bundleEnv": {}, "publicBase": "https://releases.example"}
@@ -301,7 +301,7 @@ def stable_manifest(request, archive_prefix):
     manifest = {"schema": 1, "receiverProtocol": 1, "request": request, "packages": [
         {"platform": "darwin", "arch": "arm64", "variant": "bundled",
          "identity": request["identity"]["appId"], "version": request["version"], "teamId": "ABCDEFGHIJ",
-         "artifact": {"key": archive_prefix + "Hermes.dmg", "sha256": "d" * 64, "size": 100},
+         "artifact": {"key": archive_prefix + "Kova.dmg", "sha256": "d" * 64, "size": 100},
          "feed": {"key": archive_prefix + "stable-mac.yml", "channel": "stable"}}]}
     record = {"schema": 1, "name": request["channel"], "repository": request["repository"],
               "policy": "stable-release", "state": "active", "revision": 1, "nextSequence": 2,

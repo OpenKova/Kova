@@ -83,7 +83,7 @@ def _spawn_lock_holder(
     argv = [sys.executable, str(script), *(["gateway", "run"] if as_gateway else [])]
     proc = subprocess.Popen(
         argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "KOVA_HOME": str(home)},
     )
     assert proc.stdout is not None
     line = _readline(proc.stdout).strip()
@@ -130,7 +130,7 @@ def gateway_holder(tmp_path_factory):
 def home(gateway_holder, monkeypatch):
     """The holder's home; the identity files each test mutates are restored afterwards."""
     home, _pid = gateway_holder
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     pid_bytes = (home / "gateway.pid").read_bytes()
     lock_bytes = (home / "gateway.lock").read_bytes()
     yield home
@@ -159,7 +159,7 @@ class TestStrictIdentityWithLiveLock:
     def test_updater_discovery_maps_the_profile_without_a_pid_file(self, home, gateway_holder, monkeypatch):
         from kova_cli.gateway import find_profile_gateway_processes
 
-        monkeypatch.setattr("kova_cli.profiles._get_default_hermes_home", lambda: home)
+        monkeypatch.setattr("kova_cli.profiles._get_default_kova_home", lambda: home)
         monkeypatch.setattr("kova_cli.profiles._get_profiles_root", lambda: home / "no-profiles")
         (home / "gateway.pid").unlink()
 
@@ -190,7 +190,7 @@ class TestStrictIdentityWithLiveLock:
     ):
         from kova_cli.gateway import find_profile_gateway_processes
 
-        monkeypatch.setattr("kova_cli.profiles._get_default_hermes_home", lambda: home)
+        monkeypatch.setattr("kova_cli.profiles._get_default_kova_home", lambda: home)
         monkeypatch.setattr("kova_cli.profiles._get_profiles_root", lambda: home / "no-profiles")
         _write_previous_gateway_pid_file(home, _exited_pid())
 
@@ -224,7 +224,7 @@ class TestStrictIdentityWithLiveLock:
 
 def test_lock_holder_that_is_not_a_gateway_still_aborts(tmp_path, monkeypatch):
     home = _make_home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     proc, holder = _spawn_lock_holder(tmp_path / "bin", home, as_gateway=False)
     try:
         (home / "gateway.pid").unlink()

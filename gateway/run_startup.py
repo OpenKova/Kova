@@ -55,12 +55,12 @@ def recover_left_core_at_gateway_start() -> bool:
     so a platform plugin it gets starts its adapter in the same gateway start. True when a plugin
     that ships a gateway platform was installed: platform config loaded before it lacks the platform."""
     from kova_cli.left_core_migration import LEFT_CORE
-    from kova_constants import get_default_hermes_root, get_hermes_home
+    from kova_constants import get_default_kova_root, get_kova_home
     # The launch home too runs in its own scope: a multiplexing config load already armed fail-closed
     # secret reads, so an unscoped install read of its own .env raised. Its sources were hydrated at boot.
-    launch = Path(get_hermes_home())
+    launch = Path(get_kova_home())
     installed = recover_left_core_in(launch, hydrate_secrets=False)
-    root = Path(get_default_hermes_root())
+    root = Path(get_default_kova_root())
     if root.resolve() != launch.resolve():
         installed += recover_left_core_in(root)
     return any(feature.platform and feature.plugin in installed for feature in LEFT_CORE)
@@ -87,12 +87,12 @@ class GatewayStartupMixin:
     @staticmethod
     def _log_agent_budget() -> None:
         """Report the ENFORCED per-turn budget: ``agent.max_turns`` is bridged into
-        ``HERMES_MAX_ITERATIONS`` before this runs, so the env slot already carries the config value;
+        ``KOVA_MAX_ITERATIONS`` before this runs, so the env slot already carries the config value;
         resolve it the same way the turn loop does (``none``/``unlimited`` spellings included) instead of
         ``int()`` on the raw string with an invented ``500`` default (#116888)."""
         from kova_cli.config import TURN_LIMIT_UNLIMITED, resolve_turn_limit
-        limit = resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
-        logger.info("Agent budget: max_iterations=%s (agent.max_turns from config.yaml, else the HERMES_MAX_ITERATIONS bridge)",
+        limit = resolve_turn_limit(os.getenv("KOVA_MAX_ITERATIONS"))
+        logger.info("Agent budget: max_iterations=%s (agent.max_turns from config.yaml, else the KOVA_MAX_ITERATIONS bridge)",
                     "unlimited" if limit == TURN_LIMIT_UNLIMITED else limit)
 
     # A configured platform failed non-retryably this boot and is parked: every "we are serving"
@@ -198,9 +198,9 @@ class GatewayStartupMixin:
         loop = asyncio.get_running_loop()
         if getattr(self.config, "multiplex_profiles", False):
             from gateway.run import _async_profile_runtime_scope
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             try:
-                async with _async_profile_runtime_scope(get_hermes_home()):
+                async with _async_profile_runtime_scope(get_kova_home()):
                     return await loop.run_in_executor(None, copy_context().run, fn)
             except Exception:
                 # Same fallback as load_gateway_config_for_runner: a scope that cannot be built must not
@@ -775,7 +775,7 @@ class GatewayStartupMixin:
         ledgered)."""
         from gateway.run import _float_env
         resumed = ledgered = 0
-        max_age = max(60 * 60, int(max(1.0, _float_env("HERMES_AGENT_TIMEOUT", 1800)) * 2))
+        max_age = max(60 * 60, int(max(1.0, _float_env("KOVA_AGENT_TIMEOUT", 1800)) * 2))
         with _log_suppressed(logging.WARNING, "Crash-left reply recovery on startup failed: %s"):
             ledgered = await self._ledger_crash_left_replies(max_age)
         with _log_suppressed(logging.WARNING, "Exact active-turn recovery on startup failed: %s"):
@@ -921,8 +921,8 @@ class GatewayStartupMixin:
 
     def _open_faulthandler_log(self):
         """Open (append) ``<log_dir>/gateway_faulthandler.log``, creating the directory."""
-        from gateway.run import get_hermes_home
-        log_dir = getattr(self.config, "log_dir", None) or os.path.join(str(get_hermes_home()), "logs")
+        from gateway.run import get_kova_home
+        log_dir = getattr(self.config, "log_dir", None) or os.path.join(str(get_kova_home()), "logs")
         os.makedirs(log_dir, exist_ok=True)
         return open(os.path.join(log_dir, "gateway_faulthandler.log"), "a", encoding="utf-8")  # windows-footgun: ok (append log writer, not a read)
 
@@ -968,7 +968,7 @@ class GatewayStartupMixin:
         # so this line is the source of truth for the process lifetime.
         with suppress(Exception):
             # Redaction status: ON by default (#17691).
-            _redact_raw = os.getenv("HERMES_REDACT_SECRETS", "true")
+            _redact_raw = os.getenv("KOVA_REDACT_SECRETS", "true")
             if _redact_raw.lower() in {"1", "true", "yes", "on"}:
                 logger.info(
                     "Secret redaction: ENABLED (tool output, logs, and chat "
@@ -976,7 +976,7 @@ class GatewayStartupMixin:
                 )
             else:
                 logger.warning(
-                    "Secret redaction: DISABLED (HERMES_REDACT_SECRETS=%s). API keys and tokens may appear "
+                    "Secret redaction: DISABLED (KOVA_REDACT_SECRETS=%s). API keys and tokens may appear "
                     "verbatim in chat output, session JSONs, and logs. Set security.redact_secrets: true "
                     "in config.yaml to re-enable.", _redact_raw,
                 )
@@ -1166,8 +1166,8 @@ class GatewayStartupMixin:
                 "shell-hook/webhook registration failed at gateway startup", level=logging.WARNING)
             return
         from gateway.run import _profile_runtime_scope
-        from kova_constants import get_process_hermes_home
-        with _profile_runtime_scope(get_process_hermes_home()):
+        from kova_constants import get_process_kova_home
+        with _profile_runtime_scope(get_process_kova_home()):
             GatewayStartupMixin._register_config_hooks(
                 "shell-hook/webhook registration failed at gateway startup", level=logging.WARNING)
 
@@ -1177,7 +1177,7 @@ class GatewayStartupMixin:
 
         The gateway never prompts (register_from_config defaults to ``interactive=False``), even
         when a hidden console makes stdin look like a TTY, so consent must come from the allowlist,
-        --accept-hooks, HERMES_ACCEPT_HOOKS, or hooks_auto_accept: true; ``accept_hooks=False`` lets
+        --accept-hooks, KOVA_ACCEPT_HOOKS, or hooks_auto_accept: true; ``accept_hooks=False`` lets
         register_from_config resolve env + config.
         Never raises (logged at ``level``).
         """
@@ -1197,8 +1197,8 @@ class GatewayStartupMixin:
         if not getattr(self.config, "multiplex_profiles", False):
             return 0
         from gateway.run import _multiplex_profile_homes, _profile_runtime_scope
-        from kova_constants import get_hermes_home
-        launch_home = get_hermes_home().resolve()
+        from kova_constants import get_kova_home
+        launch_home = get_kova_home().resolve()
         recovered = 0
         for profile_name, profile_home in _multiplex_profile_homes(self.config):
             if Path(profile_home).resolve() == launch_home:
@@ -1212,7 +1212,7 @@ class GatewayStartupMixin:
 
     async def _start_recover_previous_run(self) -> None:
         """Plugins, relay, hooks, then crash/clean-exit recovery of processes and sessions."""
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         self._start_register_plugins_relay_hooks()
         self._start_relay_provision_retry()
         # Plugins that load later (force re-discovery, install/enable nudge) re-wire live adapters (#87770).
@@ -1236,7 +1236,7 @@ class GatewayStartupMixin:
             restore_undelivered_completions(process_registry.completion_queue)
         # Recover the turns the last process left marked (in flight, or reply not yet ledgered).
         # SKIP after a clean exit — the previous process already drained.
-        _clean_marker = _hermes_home / ".clean_shutdown"
+        _clean_marker = _kova_home / ".clean_shutdown"
         if _clean_marker.exists():
             logger.info("Previous gateway exited cleanly — skipping session suspension")
             try:
@@ -1563,7 +1563,7 @@ class GatewayStartupMixin:
 
     async def _start_post_connect_services(self, connected_count: int) -> None:
         """Room worker, heartbeat, gateway:startup hook, channel directory, /update notice."""
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         try:
             await self._ensure_hosted_room_worker()
         except Exception:
@@ -1591,7 +1591,7 @@ class GatewayStartupMixin:
         # Restarting after a /update still in progress: keep watching so we notify when it finishes.
         notified = await self._send_update_notification()
         if not notified and any(
-            (_hermes_home / name).exists()
+            (_kova_home / name).exists()
             for name in (".update_pending.json", ".update_pending.claimed.json")
         ):
             self._schedule_update_notification_watch()
@@ -1709,7 +1709,7 @@ class GatewayStartupMixin:
             await self._start_flush_runtime_status()
 
     async def _start_impl(self) -> bool:
-        logger.info("Starting Hermes Gateway...")
+        logger.info("Starting Kova Gateway...")
         self._start_install_faulthandler()
         await self._start_log_startup_environment()
         if await self._abort_startup_if_shutdown_requested():

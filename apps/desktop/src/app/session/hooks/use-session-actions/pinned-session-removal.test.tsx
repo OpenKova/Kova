@@ -51,7 +51,7 @@ function Harness({ onReady }: { onReady: (handle: Handle) => void }) {
 }
 
 beforeAll(() => {
-  window.hermesDesktop = {} as typeof window.hermesDesktop
+  window.kovaDesktop = {} as typeof window.kovaDesktop
   watchSessionPins()
 })
 

@@ -17,24 +17,24 @@ from kova_cli.gateway_runtime_service import RuntimeStartError, remaining
 # prefill file, provider request, project plugins) ride each session's ``client_env`` instead
 # (agent.session_client_env); an operator-started gateway keeps its own environment.
 DAEMON_STRIPPED_ENV = (
-    "HERMES_PROFILE", "HERMES_YOLO_MODE", "HERMES_IGNORE_RULES", "HERMES_SAFE_MODE",
-    "HERMES_IGNORE_USER_CONFIG", "HERMES_ACCEPT_HOOKS", "HERMES_SESSION_SOURCE", "TERMINAL_CWD",
-    "HERMES_KANBAN_TASK", "HERMES_KANBAN_WORKSPACE", "HERMES_KANBAN_BRANCH", "HERMES_KANBAN_RUN_ID",
-    "HERMES_KANBAN_CLAIM_LOCK", "HERMES_KANBAN_CLAIM_TTL_SECONDS", "HERMES_KANBAN_GOAL_MODE",
-    "HERMES_KANBAN_GOAL_MAX_TURNS", "HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT",
-    "HERMES_KANBAN_BOARD", "HERMES_TENANT", "HERMES_SESSION_SOURCE_EXPLICIT", "HERMES_TURN_AUTHOR",
+    "KOVA_PROFILE", "KOVA_YOLO_MODE", "KOVA_IGNORE_RULES", "KOVA_SAFE_MODE",
+    "KOVA_IGNORE_USER_CONFIG", "KOVA_ACCEPT_HOOKS", "KOVA_SESSION_SOURCE", "TERMINAL_CWD",
+    "KOVA_KANBAN_TASK", "KOVA_KANBAN_WORKSPACE", "KOVA_KANBAN_BRANCH", "KOVA_KANBAN_RUN_ID",
+    "KOVA_KANBAN_CLAIM_LOCK", "KOVA_KANBAN_CLAIM_TTL_SECONDS", "KOVA_KANBAN_GOAL_MODE",
+    "KOVA_KANBAN_GOAL_MAX_TURNS", "KOVA_KANBAN_DB", "KOVA_KANBAN_WORKSPACES_ROOT",
+    "KOVA_KANBAN_BOARD", "KOVA_TENANT", "KOVA_SESSION_SOURCE_EXPLICIT", "KOVA_TURN_AUTHOR",
     # Human-presence/one-shot markers: inherited, every messaging/cron turn would read as attended or -q.
-    "HERMES_INTERACTIVE", "HERMES_GATEWAY_SESSION", "HERMES_SINGLE_QUERY_SESSION",
-    "HERMES_EPHEMERAL_SYSTEM_PROMPT", "HERMES_PREFILL_MESSAGES_FILE", "HERMES_INFERENCE_PROVIDER",
-    "HERMES_ENABLE_PROJECT_PLUGINS", "HERMES_TUI_CLIENT_ENV",
+    "KOVA_INTERACTIVE", "KOVA_GATEWAY_SESSION", "KOVA_SINGLE_QUERY_SESSION",
+    "KOVA_EPHEMERAL_SYSTEM_PROMPT", "KOVA_PREFILL_MESSAGES_FILE", "KOVA_INFERENCE_PROVIDER",
+    "KOVA_ENABLE_PROJECT_PLUGINS", "KOVA_TUI_CLIENT_ENV",
     # A terminal's shell under a systemd service (gnome-terminal-server, a user unit) carries these; the
     # unmanaged daemon would then identify as "systemd" and maintenance would refuse it as supervised.
     "INVOCATION_ID", "JOURNAL_STREAM",
     # Same for any process below a launchd/--external-supervisor gateway (its agents' tools, scripts they
     # run): the daemon would identify as "launchd", never arm --idle-exit, and outlive every client.
-    # HERMES_S6_SUPERVISED_CHILD stays: without it `gateway run` in an s6 container redirects to s6.
-    "XPC_SERVICE_NAME", "LAUNCHD_SOCKET", "HERMES_LAUNCHD_LABEL",
-    "HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "HERMES_SUPERVISED_CHILD",
+    # KOVA_S6_SUPERVISED_CHILD stays: without it `gateway run` in an s6 container redirects to s6.
+    "XPC_SERVICE_NAME", "LAUNCHD_SOCKET", "KOVA_LAUNCHD_LABEL",
+    "KOVA_GATEWAY_EXTERNAL_SUPERVISOR", "KOVA_SUPERVISED_CHILD",
     # systemd's notify socket and watchdog name the unit's main process: the daemon would feed them.
     "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
 )
@@ -70,7 +70,7 @@ def spawn_unmanaged_gateway(profile_home: Path, *, deadline: float, idle_exit: b
             raise RuntimeStartError("windows_interpreter_unavailable")
         env.update(overlay)
         env[_WINDOWS_GATEWAY_BREAKAWAY_ENV] = "1"
-    env.update(HERMES_HOME=str(home), HERMES_GATEWAY_DETACHED="1", PYTHONIOENCODING="utf-8")
+    env.update(KOVA_HOME=str(home), KOVA_GATEWAY_DETACHED="1", PYTHONIOENCODING="utf-8")
     # Profile selection is the explicit home, not the invoking client's display
     # name. Launch-only approval/context/config flags ride the launching session's frozen
     # policy, not the shared daemon or every later session.

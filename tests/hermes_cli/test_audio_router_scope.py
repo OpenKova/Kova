@@ -40,8 +40,8 @@ async def test_voices_route_scope_failure_never_borrows_env(tmp_path, monkeypatc
     from agent import secret_scope as ss
     from kova_cli.web_routers.audio import get_elevenlabs_voices
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    (tmp_path / ".hermes").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    (tmp_path / ".kova").mkdir()
     monkeypatch.setenv("ELEVENLABS_API_KEY", "sk-foreign-profile")
 
     def _urlopen(*a, **k):
@@ -67,8 +67,8 @@ async def test_voices_route_bounds_response_read(monkeypatch, tmp_path):
     from kova_cli import web_server_gateway
     from kova_cli.web_routers import audio
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    (tmp_path / ".hermes").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    (tmp_path / ".kova").mkdir()
     monkeypatch.setenv("ELEVENLABS_API_KEY", "sk-test")
     captured = {}
 
@@ -101,8 +101,8 @@ async def test_voices_route_rejects_oversized_response(monkeypatch, tmp_path):
     from kova_cli import web_server_gateway
     from kova_cli.web_routers import audio
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    (tmp_path / ".hermes").mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    (tmp_path / ".kova").mkdir()
     monkeypatch.setenv("ELEVENLABS_API_KEY", "sk-test")
     monkeypatch.setattr(
         web_server_gateway, "_DASHBOARD_JSON_RESPONSE_BODY_MAX_BYTES", 8

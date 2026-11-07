@@ -38,10 +38,10 @@ def _fresh_warning_latch():
 
 def test_seeded_plugin_platform_rows_log_nothing_on_schema_build(caplog):
     """The kanban gate runs on every schema build and skills scan and resolves every saved row."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.kanban_tools import _profile_has_kanban_toolset
 
-    _write_config(get_hermes_home(), _SEEDED_ROWS)
+    _write_config(get_kova_home(), _SEEDED_ROWS)
     with caplog.at_level(logging.WARNING, logger="kova_cli.tools_config"):
         _profile_has_kanban_toolset()
 
@@ -49,10 +49,10 @@ def test_seeded_plugin_platform_rows_log_nothing_on_schema_build(caplog):
 
 
 def test_invalid_plugin_platform_row_still_warns(caplog):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.kanban_tools import _profile_has_kanban_toolset
 
-    _write_config(get_hermes_home(), {"cli": ["hermes-cli"], "teams": ["hermes-tems"]})
+    _write_config(get_kova_home(), {"cli": ["hermes-cli"], "teams": ["hermes-tems"]})
     with caplog.at_level(logging.WARNING, logger="kova_cli.tools_config"):
         _profile_has_kanban_toolset()
 
@@ -64,10 +64,10 @@ def test_seeded_config_rows_need_no_plugin():
     """A config.yaml seeded the way the installers seed it names only toolsets that resolve without any
     plugin loaded: a plugin platform falls back to ``hermes-<platform>`` on its own."""
     from kova_cli.config import read_raw_config, seed_config_file
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from toolsets import validate_toolset
 
-    assert seed_config_file(get_hermes_home() / "config.yaml") is True
+    assert seed_config_file(get_kova_home() / "config.yaml") is True
     rows = read_raw_config().get("platform_toolsets") or {}
     unresolved = {p: names for p, names in rows.items() if not all(validate_toolset(n) for n in names)}
     assert unresolved == {}

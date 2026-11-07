@@ -61,7 +61,7 @@ export function runFreeTierChallenge(
     return outcome
   }
 
-  const bridge = window.hermesDesktop?.freeTierChallenge
+  const bridge = window.kovaDesktop?.freeTierChallenge
 
   if (!bridge) {
     // A web build, or a desktop shell older than this renderer: nothing can

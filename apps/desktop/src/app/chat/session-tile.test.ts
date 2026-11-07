@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 import { getSession } from '@/hermes'
 import { clearSessionDraft, stashSessionDraft } from '@/store/composer'
 import { $gatewaySwitching } from '@/store/gateway-switch'
@@ -22,7 +22,7 @@ vi.mock('@/hermes', async importOriginal => ({
   getSession: vi.fn()
 }))
 
-function localConnection(): HermesConnection {
+function localConnection(): KovaConnection {
   return {
     baseUrl: 'http://127.0.0.1:9119',
     isFullscreen: false,

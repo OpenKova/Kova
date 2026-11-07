@@ -20,7 +20,7 @@ from tests.gateway.test_cli_plugin_command_in_gateway import (
 from tests.waiting import wait_until
 
 # The command socket's thread (kova_cli/gateway_connection.py); none may outlive its command.
-_COMMAND_THREAD = 'hermes-gateway-command'
+_COMMAND_THREAD = 'kova-gateway-command'
 
 
 def _command_threads():
@@ -30,15 +30,15 @@ def _command_threads():
 def _cli(monkeypatch, home):
     """``(cli, connection)``: a classic CLI on its own production connection to ``home``."""
     import cli as cli_mod
-    from cli import HermesCLI
+    from cli import KovaCLI
     from kova_cli.gateway_connection import GatewayConnection
     from kova_cli.gateway_session_store import GatewaySessionStore
     _no_local_plugins(monkeypatch)
     monkeypatch.setattr(cli_mod, '_ensure_skill_commands', dict)
     monkeypatch.setattr(cli_mod, 'get_skill_bundles', dict)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('KOVA_HOME', str(home))
     conn = GatewayConnection(connect=_dial_running(home))
-    c = HermesCLI()
+    c = KovaCLI()
     c.agent, c._session_db, c._gateway_session_open = None, GatewaySessionStore(conn), False
     return c, conn
 

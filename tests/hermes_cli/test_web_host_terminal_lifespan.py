@@ -64,12 +64,12 @@ def test_real_shells_remain_owned_after_overlapping_lifespan_exit(tmp_path, monk
     from kova_cli.web_routers.webapp import SESSION_TOKEN_OWNER, mint_socket_ticket, router
     from kova_cli.web_session_sockets import HOST_TERMINAL_SOCKET
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)

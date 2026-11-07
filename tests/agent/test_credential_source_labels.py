@@ -23,9 +23,9 @@ def _never_called() -> str:
 
 
 def _config_api_line(capsys, api_key) -> str:
-    from cli import HermesCLI
+    from cli import KovaCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.api_key, cli.agent = api_key, None
     cli.model, cli.base_url = "m", "https://example.invalid/v1"
     cli.max_turns, cli.enabled_toolsets, cli.verbose = 10, [], False

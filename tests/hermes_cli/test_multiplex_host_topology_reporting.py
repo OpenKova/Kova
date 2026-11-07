@@ -25,10 +25,10 @@ def served_host(tmp_path, monkeypatch):
     home.mkdir(parents=True)
     locks = tmp_path / "locks"
     locks.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "served")
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(locks))
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_PROFILE", "served")
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(locks))
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     monkeypatch.setattr("kova_cli.gateway.find_gateway_pids", list)
     monkeypatch.setattr("gateway.status.is_gateway_runtime_lock_active", lambda lock_path=None: False)
     # A live owner holds the host lock for its lifetime (run.py claims before it publishes).
@@ -107,7 +107,7 @@ def test_doctor_checks_host_unit_linger_under_a_served_profile(served_host, tmp_
     config_home = (tmp_path / "xdgconfig") if xdg else (fake_home / ".config")
     unit_dir = config_home / "systemd" / "user"
     unit_dir.mkdir(parents=True)
-    (unit_dir / "hermes-gateway.service").write_text("[Unit]\n")  # the HOST unit; no per-profile unit
+    (unit_dir / "kova-gateway.service").write_text("[Unit]\n")  # the HOST unit; no per-profile unit
     monkeypatch.setenv("HOME", str(fake_home))
     # A host that moves XDG_CONFIG_HOME keeps its units there; probing ~/.config false-negatives.
     if xdg:

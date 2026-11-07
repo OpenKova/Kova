@@ -29,7 +29,7 @@ HANDOFF_LOG_BODY = (
 
 @pytest.fixture
 def home_with_update_logs(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME whose logs directory holds the update pair."""
+    """Isolated KOVA_HOME whose logs directory holds the update pair."""
     home = tmp_path / "hermes_test_home"
     logs = home / "logs"
     logs.mkdir(parents=True)
@@ -38,19 +38,19 @@ def home_with_update_logs(tmp_path, monkeypatch):
     )
     (logs / "update.log").write_text(UPDATE_LOG_BODY)
     (logs / "desktop-update-handoff.log").write_text(HANDOFF_LOG_BODY)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
 @pytest.fixture
 def home_without_update_logs(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with only the classic five logs present."""
+    """Isolated KOVA_HOME with only the classic five logs present."""
     home = tmp_path / "hermes_test_home"
     logs = home / "logs"
     logs.mkdir(parents=True)
     for name in ("agent.log", "errors.log", "gateway.log", "gui.log", "desktop.log"):
         (logs / name).write_text("2026-09-02 03:21:00 INFO x: one line\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     return home
 
 
@@ -77,7 +77,7 @@ class TestCaptureDefaultLogSnapshots:
         (profile / "logs").mkdir(parents=True)
         (root / "logs" / "update.log").write_text(UPDATE_LOG_BODY)
         (root / "logs" / "desktop-update-handoff.log").write_text(HANDOFF_LOG_BODY)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("KOVA_HOME", str(profile))
 
         snaps = _capture_default_log_snapshots(100)
 
@@ -208,7 +208,7 @@ class TestLogsRegistry:
         assert LOG_FILES.get("update") == "update.log"
         assert LOG_FILES.get("handoff") == "desktop-update-handoff.log"
 
-    def test_tail_log_reads_update_log_from_hermes_home(self, home_with_update_logs):
+    def test_tail_log_reads_update_log_from_kova_home(self, home_with_update_logs):
         """End-to-end: `hermes logs update` resolves and prints the file."""
         from kova_cli import logs as logs_mod
 

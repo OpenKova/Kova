@@ -27,7 +27,7 @@ def _(rid, params: dict) -> dict:
 
 
 def _run_state(*, assume_fresh: bool = False) -> dict:
-    """``run``: the root config says so, else this OS user never used Hermes (or the unpackaged
+    """``run``: the root config says so, else this OS user never used Kova (or the unpackaged
     desktop's ``--fresh-install`` says to assume that). ``eligible``: this is the desktop's local
     backend and something can carry the first chat (the welcome trial or a configured provider);
     remote backends answer at once and run onboarding only from Settings. On the local backend the
@@ -59,10 +59,10 @@ def _due_stamp() -> tuple:
     first chat), the shared Nous store (another profile's sign-in or connector guest) and the managed
     layer's ``config.yaml`` and ``.env`` (an admin's onboarding or provider policy)."""
     from kova_cli import managed_scope
-    from kova_constants import get_default_hermes_root
-    home = Path(_profile_home("default") or get_default_hermes_root())
+    from kova_constants import get_default_kova_root
+    home = Path(_profile_home("default") or get_default_kova_root())
     managed = managed_scope.get_managed_dir()
-    paths = (get_default_hermes_root() / "config.yaml", home / "config.yaml", home / ".env", home / "auth.json",
+    paths = (get_default_kova_root() / "config.yaml", home / "config.yaml", home / ".env", home / "auth.json",
              *_shared_nous_store(), *((managed / "config.yaml", managed / ".env") if managed else ()))
     return tuple(_version(path) for path in paths)
 
@@ -282,7 +282,7 @@ def _discard_unfinished_runs(db, stored_ids: list[str]) -> None:
     from agent.onboarding_record import advance, delete_chat
     for sid in _live_session_ids(stored_ids):
         _close_session_by_id(sid, end_reason="onboarding_restart")
-    sessions_dir = Path(_profile_home("default") or get_hermes_home()) / "sessions"
+    sessions_dir = Path(_profile_home("default") or get_kova_home()) / "sessions"
     for old in stored_ids:
         try:
             deleted = delete_chat(db, old, lambda old=old: db.delete_session(

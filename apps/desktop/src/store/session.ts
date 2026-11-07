@@ -4,7 +4,7 @@ import { atom, computed } from 'nanostores'
 import { setApiRequestLocalMode } from '@/api/client'
 import { lastVisibleMessageIsUser } from '@/app/chat/thread-loading'
 import type { ContextSuggestion } from '@/app/types'
-import type { HermesConnection } from '@/global'
+import type { KovaConnection } from '@/global'
 import { browserPageBasePath, readBrowserDefaultProjectDir } from '@/lib/browser-settings'
 import type { ChatMessage } from '@/lib/chat-messages'
 import {
@@ -54,7 +54,7 @@ const COMPOSER_SERVICE_TIER_KEY = 'hermes.desktop.composer.service-tier'
 // paint, but must not be written through the previous backend's storage key.
 let composerSelectionScope: string | null = ''
 
-function composerScopeForConnection(connection: HermesConnection | null): string | null {
+function composerScopeForConnection(connection: KovaConnection | null): string | null {
   if (!connection) {
     return null
   }
@@ -338,7 +338,7 @@ export function setRememberedRoute(path: null | string, profile: string): void {
 
 let configuredDefaultProjectDir = ''
 
-function workspaceCwdKey(connection: HermesConnection | null = $connection.get()): string {
+function workspaceCwdKey(connection: KovaConnection | null = $connection.get()): string {
   const profile = connection?.profile?.trim() || 'default'
 
   if (connection?.mode !== 'remote') {
@@ -360,7 +360,7 @@ export type NewChatWorkspaceTarget = null | string | undefined
 export const getConfiguredDefaultProjectDir = (): string => configuredDefaultProjectDir
 
 export async function syncConfiguredDefaultProjectDir(shouldPublish: () => boolean = () => true): Promise<string> {
-  const settings = window.hermesDesktop?.settings?.getDefaultProjectDir
+  const settings = window.kovaDesktop?.settings?.getDefaultProjectDir
 
   if (!settings) {
     if (shouldPublish()) {
@@ -383,7 +383,7 @@ export async function syncConfiguredDefaultProjectDir(shouldPublish: () => boole
  *  packaged, optional Settings override). Clears stale install-dir paths that
  *  PR #37586's localStorage stickiness can preserve across the #37536 fix. */
 export async function ensureDefaultWorkspaceCwd(shouldPublish: () => boolean = () => true): Promise<void> {
-  const sanitize = window.hermesDesktop?.sanitizeWorkspaceCwd
+  const sanitize = window.kovaDesktop?.sanitizeWorkspaceCwd
 
   if (!sanitize || !shouldPublish()) {
     return
@@ -971,7 +971,7 @@ export function applySessionTitle(storedSessionId: string | null | undefined, ti
   setUnlistedSessionOwnerRows(patch)
 }
 
-export const $connection = atom<HermesConnection | null>(null)
+export const $connection = atom<KovaConnection | null>(null)
 export const $gatewayState = atom<ConnectionState>('idle')
 export const $sessions = atom<SessionInfo[]>([])
 // Cron-job sessions (source === 'cron') are fetched as their own list so the
@@ -1482,7 +1482,7 @@ function rescopeComposerSelection(nextScope: string | null): void {
 
 /** Publish an exact registry route before active-profile effects can persist a
  * forced default. A registry id is authority even while its descriptive
- * HermesConnection lookup is unavailable. */
+ * KovaConnection lookup is unavailable. */
 export function setComposerSelectionOwner(connectionId: string, profile: string): void {
   rescopeComposerSelection(
     `.registry.${encodeURIComponent(connectionId)}.${encodeURIComponent(profile.trim() || 'default')}`
@@ -1494,7 +1494,7 @@ export function clearComposerSelectionOwner(): void {
   rescopeComposerSelection(null)
 }
 
-export const setConnection = (next: Updater<HermesConnection | null>) => {
+export const setConnection = (next: Updater<KovaConnection | null>) => {
   updateAtom($connection, next)
   // Repoint connection-scoped persistence (pins, manual session order,
   // remembered navigation) at the new backend's storage scope before any
@@ -1778,7 +1778,7 @@ export const setCurrentReasoningEffort = (next: Updater<string>) => {
 
 /** The level the route actually sends for `$currentReasoningEffort`
  *  (`session.info.reasoning_effort_wire`): '' when unknown, equal when verbatim,
- *  weaker when the route clamps a Hermes-internal step such as `ultra`. Never
+ *  weaker when the route clamps a Kova-internal step such as `ultra`. Never
  *  persisted — it describes the live route, not a user preference. */
 export const $currentReasoningEffortWire = atom('')
 
@@ -1789,7 +1789,7 @@ export const setCurrentReasoningEffortWire = (next: string) => {
 // The profile's `agent.reasoning_effort`, mirrored from config so surfaces that
 // need to render or apply "the default" resolve the user's configured level
 // instead of assuming DEFAULT_REASONING_EFFORT (lib/reasoning-effort). Empty
-// until config loads, and re-seeded on every profile switch by useHermesConfig.
+// until config loads, and re-seeded on every profile switch by useKovaConfig.
 export const $defaultReasoningEffort = atom('')
 
 export const setDefaultReasoningEffort = (next: string) => updateAtom($defaultReasoningEffort, next)

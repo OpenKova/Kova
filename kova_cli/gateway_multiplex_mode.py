@@ -109,9 +109,9 @@ def default_gateway_multiplexes(default_home: Optional[Path] = None) -> bool:
     (warned about and ignored at boot, see :func:`resolve_multiplex_mode`), so answering False from
     it made every CLI surface contradict the gateway that was about to multiplex anyway.
     """
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     from kova_cli.gateway_multiplex_served import recorded_served_profiles
-    root = Path(default_home) if default_home is not None else get_default_hermes_root()
+    root = Path(default_home) if default_home is not None else get_default_kova_root()
     recorded = recorded_served_profiles(root)
     if recorded is not None:
         return bool(recorded)
@@ -129,10 +129,10 @@ class MultiplexDecision:
 
 
 def _standalone_launcher() -> bool:
-    from kova_constants import get_hermes_home, profile_name_for_home
+    from kova_constants import get_kova_home, profile_name_for_home
     from kova_cli.profiles import profile_is_standalone
 
-    home = get_hermes_home()
+    home = get_kova_home()
     return profile_name_for_home(home) not in (None, "default") and profile_is_standalone(home)
 
 
@@ -187,8 +187,8 @@ def implicit_multiplex_blocker() -> Optional[str]:
 
 
 def _default_profile_home() -> Path:
-    from kova_constants import get_default_hermes_root
-    return get_default_hermes_root()
+    from kova_constants import get_default_kova_root
+    return get_default_kova_root()
 
 
 def persist_resolved_default(decision: MultiplexDecision, default_home: Optional[Path] = None) -> bool:
@@ -333,9 +333,9 @@ def log_multiplex_decision(decision: MultiplexDecision) -> None:
 
 def unserved_profiles() -> list[str]:
     """Named profiles a standalone gateway leaves without a bot (the whole point of the warning)."""
-    from kova_constants import get_hermes_home, profile_name_for_home
+    from kova_constants import get_kova_home, profile_name_for_home
     from kova_cli.profiles import profiles_to_serve
-    me = profile_name_for_home(get_hermes_home()) or "default"
+    me = profile_name_for_home(get_kova_home()) or "default"
     return [name for name, _home in profiles_to_serve(multiplex=True, include_parked=True) if name != me]
 
 

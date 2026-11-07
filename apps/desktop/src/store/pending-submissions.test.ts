@@ -153,7 +153,7 @@ it('a delayed older empty snapshot never retires a receipt a newer frame still l
   protocol.event(live)
   handleSessionInfoEvent({
     deps: { activeGatewayProfile: 'default', activeSessionIdRef: { current: null }, hydrateFromStoredSession: vi.fn(),
-      lastCwdInfoSessionRef: { current: null }, queryClient: { invalidateQueries: vi.fn() }, refreshHermesConfig: vi.fn(),
+      lastCwdInfoSessionRef: { current: null }, queryClient: { invalidateQueries: vi.fn() }, refreshKovaConfig: vi.fn(),
       scheduleSessionsRefresh: vi.fn(), sessionInterrupted: () => false, sessionStateByRuntimeIdRef: { current: new Map() },
       updateSessionState: vi.fn(state => state), upsertToolCall: vi.fn() },
     event: live, explicitSid: 'fenced', fromActiveSource: () => true, isActiveEvent: false, occurredAt: Date.now() / 1000,

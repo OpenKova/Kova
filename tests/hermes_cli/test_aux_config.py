@@ -24,9 +24,9 @@ from kova_cli.main_provider_setup import _DELEGATION_TASK_KEY, _delegation_cfg_a
 def test_save_aux_choice_persists_to_config_yaml(tmp_path, monkeypatch):
     """Saving a task writes provider/model/base_url/api_key to auxiliary.<task>."""
     from pathlib import Path
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    (tmp_path / ".hermes").mkdir(exist_ok=True)
+    (tmp_path / ".kova").mkdir(exist_ok=True)
 
     _save_aux_choice(
         "vision", provider="openrouter", model="google/gemini-2.5-flash",
@@ -47,9 +47,9 @@ def test_save_aux_choice_persists_to_config_yaml(tmp_path, monkeypatch):
 def _isolate_home(tmp_path, monkeypatch):
     from pathlib import Path
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    (tmp_path / ".hermes").mkdir(exist_ok=True)
+    (tmp_path / ".kova").mkdir(exist_ok=True)
 
 def test_save_delegation_writes_top_level_section(tmp_path, monkeypatch):
     """Delegation picks write to delegation.*, never auxiliary.delegation."""
@@ -111,8 +111,8 @@ def test_delegation_cfg_as_task_projection():
     """Projection renders empty provider as auto via _format_aux_current."""
     assert _format_aux_current(_delegation_cfg_as_task({})) == "auto"
     shaped = _delegation_cfg_as_task(
-        {"delegation": {"provider": "nous", "model": "Hermes-4.5"}}
+        {"delegation": {"provider": "nous", "model": "Kova-4.5"}}
     )
-    assert _format_aux_current(shaped) == "nous · Hermes-4.5"
+    assert _format_aux_current(shaped) == "nous · Kova-4.5"
     # Non-dict delegation section must not crash
     assert _format_aux_current(_delegation_cfg_as_task({"delegation": "bogus"})) == "auto"

@@ -27,7 +27,7 @@ SOURCE = SimpleNamespace(chat_type="group", scope_id=str(GUILD_ID), user_id=USER
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     # The default-profile YAML bridge seeds DISCORD_ALLOWED_ROLES first-writer-wins; undo it per test
     # (setenv first so teardown also removes a value the loader copies in during the test).
     monkeypatch.setenv("DISCORD_ALLOWED_ROLES", "")

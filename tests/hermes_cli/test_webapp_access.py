@@ -76,7 +76,7 @@ def _dashboard_setup() -> tuple[object, object]:
     """The standalone dashboard's own public URL, in config.yaml and in .env, as Web Access found it."""
     from kova_cli.config import load_env, read_raw_config
 
-    return read_raw_config().get("dashboard", {}).get("public_url"), load_env().get("HERMES_DASHBOARD_PUBLIC_URL")
+    return read_raw_config().get("dashboard", {}).get("public_url"), load_env().get("KOVA_DASHBOARD_PUBLIC_URL")
 
 
 def test_web_access_keeps_its_url_in_the_webapp_block_and_leaves_the_dashboard_alone(client, restarts, nous):
@@ -87,7 +87,7 @@ def test_web_access_keeps_its_url_in_the_webapp_block_and_leaves_the_dashboard_a
     from kova_cli.config import save_config, save_env_value
 
     save_config({**_config(), "dashboard": {"public_url": "https://dashboard.example.test"}})
-    save_env_value("HERMES_DASHBOARD_PUBLIC_URL", "https://dashboard.example.test")
+    save_env_value("KOVA_DASHBOARD_PUBLIC_URL", "https://dashboard.example.test")
     dashboard = _dashboard_setup()
 
     response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "https://hermes.example.test"})
@@ -213,7 +213,7 @@ def lan_browser(monkeypatch):
     from kova_cli.dashboard_auth import clear_providers, register_provider
     from kova_cli.dashboard_auth.routes import _reset_password_rate_limit
 
-    monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("KOVA_DASHBOARD_PUBLIC_URL", raising=False)
     for key, value in (("bound_host", "0.0.0.0"), ("bound_port", 9120), ("auth_required", True),
                        ("trusted_public_hosts", frozenset()), ("ui_surface", "webapp"),
                        ("listener_public_url", "")):
@@ -409,8 +409,8 @@ def portal(monkeypatch):
         clients[client_id] = custom_redirect_uri
         return {"client_id": client_id, "name": name or "kept"}
 
-    monkeypatch.delenv("HERMES_DASHBOARD_OAUTH_CLIENT_ID", raising=False)
-    monkeypatch.setenv("HERMES_DASHBOARD_PORTAL_URL", "https://portal.example.test")
+    monkeypatch.delenv("KOVA_DASHBOARD_OAUTH_CLIENT_ID", raising=False)
+    monkeypatch.setenv("KOVA_DASHBOARD_PORTAL_URL", "https://portal.example.test")
     monkeypatch.setattr(dashboard_register, "_register_self_hosted_client", register)
     monkeypatch.setattr(auth, "resolve_nous_access_token", lambda: "throwaway-access-token")
     monkeypatch.setattr(webapp_access, "nous_signed_in", lambda: True)
@@ -428,14 +428,14 @@ def _env_bytes() -> bytes:
 def test_start_registers_a_portal_client_of_its_own_and_never_the_dashboards(client, restarts, portal, monkeypatch):
     """Web Access signs the Webapp in with a Portal client of its own, so turning it on can never
     change the redirect URI of the standalone dashboard's client, whatever the Portal does on an
-    update. The first Start registers a new client, never ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``, and
+    update. The first Start registers a new client, never ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``, and
     writes nothing to ``.env``; a second Start with the same callback asks the Portal nothing; a moved
     callback updates Web Access's own client. The dashboard's client keeps its redirect URI and
     ``.env`` stays exactly as it was."""
     from kova_cli import webapp_access
     from kova_cli.config import save_env_value
 
-    save_env_value("HERMES_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
+    save_env_value("KOVA_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
     env = _env_bytes()
 
     assert client.post("/api/webapp-access/start", json={"mode": "lan"}).status_code == 200
@@ -459,21 +459,21 @@ def test_start_registers_a_portal_client_of_its_own_and_never_the_dashboards(cli
 def test_web_access_keeps_its_client_id_under_the_gateway_home_not_in_env(portal):
     """The id of Web Access's client lives in ``webapp/sign-in-registration.json`` under the gateway
     home, beside the Portal it was registered on and the callback it carries; ``.env`` gets no
-    ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``, so a standalone dashboard on this home finds no client it
+    ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``, so a standalone dashboard on this home finds no client it
     did not register itself."""
     import json
 
     from kova_cli import webapp_access
     from kova_cli.config import load_env
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     webapp_access.register(LAN_CALLBACK)
 
-    record = json.loads((get_hermes_home() / "webapp" / "sign-in-registration.json").read_text(encoding="utf-8"))
+    record = json.loads((get_kova_home() / "webapp" / "sign-in-registration.json").read_text(encoding="utf-8"))
     assert {key: record.get(key) for key in ("portal", "client_id", "callback")} == {
         "portal": "https://portal.example.test", "client_id": "agent:client-1", "callback": LAN_CALLBACK}
-    assert "HERMES_DASHBOARD_OAUTH_CLIENT_ID" not in load_env()
-    assert webapp_access.sign_in_client(get_hermes_home()) == ("agent:client-1", "https://portal.example.test")
+    assert "KOVA_DASHBOARD_OAUTH_CLIENT_ID" not in load_env()
+    assert webapp_access.sign_in_client(get_kova_home()) == ("agent:client-1", "https://portal.example.test")
 
 
 @pytest.mark.platforms("posix")  # POSIX mode bits; a Windows home keeps its own ACL
@@ -481,10 +481,10 @@ def test_web_access_keeps_its_client_record_user_only(portal):
     import stat
 
     from kova_cli import webapp_access
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     webapp_access.register(LAN_CALLBACK)
-    record = get_hermes_home() / "webapp" / "sign-in-registration.json"
+    record = get_kova_home() / "webapp" / "sign-in-registration.json"
     assert stat.S_IMODE(record.stat().st_mode) == 0o600
     assert stat.S_IMODE(record.parent.stat().st_mode) == 0o700
 
@@ -498,21 +498,21 @@ def test_a_home_registered_on_the_dashboards_client_gets_its_own_at_the_next_sta
 
     from kova_cli import webapp_access
     from kova_cli.config import save_env_value
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    save_env_value("HERMES_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
-    record = get_hermes_home() / "webapp" / "sign-in-registration.json"
+    save_env_value("KOVA_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
+    record = get_kova_home() / "webapp" / "sign-in-registration.json"
     record.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     record.write_text(json.dumps({"portal": "https://portal.example.test", "client_id": DASHBOARD_CLIENT,
                                   "callback": LAN_CALLBACK}) + "\n", encoding="utf-8")
     env = _env_bytes()
-    assert webapp_access.sign_in_client(get_hermes_home()) is None
+    assert webapp_access.sign_in_client(get_kova_home()) is None
 
     webapp_access.register(LAN_CALLBACK)
 
     assert [(r["callback"], r["client_id"]) for r in portal.requests] == [(LAN_CALLBACK, None)]
     assert portal.clients[DASHBOARD_CLIENT] == DASHBOARD_CALLBACK
-    assert webapp_access.sign_in_client(get_hermes_home()) == ("agent:client-1", "https://portal.example.test")
+    assert webapp_access.sign_in_client(get_kova_home()) == ("agent:client-1", "https://portal.example.test")
     assert _env_bytes() == env
     webapp_access.register(LAN_CALLBACK)
     assert len(portal.requests) == 1
@@ -526,18 +526,18 @@ def test_dashboard_register_leaves_web_access_and_its_client_alone(portal):
 
     from kova_cli import dashboard_register, webapp_access
     from kova_cli.config import save_env_value
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    save_env_value("HERMES_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
+    save_env_value("KOVA_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
     webapp_access.register(LAN_CALLBACK)
-    record = (get_hermes_home() / "webapp" / "sign-in-registration.json").read_bytes()
+    record = (get_kova_home() / "webapp" / "sign-in-registration.json").read_bytes()
 
     dashboard_register.cmd_dashboard_register(argparse.Namespace(
         name=None, redirect_uri="https://dashboard2.example.test/auth/callback", portal_url=None))
 
     assert portal.requests[-1]["client_id"] == DASHBOARD_CLIENT
     assert portal.clients["agent:client-1"] == LAN_CALLBACK
-    assert (get_hermes_home() / "webapp" / "sign-in-registration.json").read_bytes() == record
+    assert (get_kova_home() / "webapp" / "sign-in-registration.json").read_bytes() == record
     webapp_access.register(LAN_CALLBACK)
     assert len(portal.requests) == 2
 
@@ -587,7 +587,7 @@ def gateway_listeners(tmp_path, monkeypatch):
     from kova_cli import web_server
     from kova_cli.dashboard_auth import clear_providers, listener_client
     from kova_cli.dashboard_auth.registry import register_global_provider
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     for key in ("bound_host", "bound_port", "auth_required", "trusted_public_hosts"):
         monkeypatch.setattr(web_server.app.state, key, getattr(web_server.app.state, key, None), raising=False)
@@ -601,7 +601,7 @@ def gateway_listeners(tmp_path, monkeypatch):
 
     def listener(*, webapp: bool):
         state = types.SimpleNamespace(bound_host="0.0.0.0", bound_port=9120,
-                                      **({"webapp": WebappMount(dist, get_hermes_home())} if webapp else {}))
+                                      **({"webapp": WebappMount(dist, get_kova_home())} if webapp else {}))
         return GatewayDashboardMount(types.SimpleNamespace(session_authority=None), state)
 
     clear_providers()
@@ -614,7 +614,7 @@ def test_the_webapps_nous_sign_in_uses_its_own_client_and_the_dashboards_keeps_i
         portal, gateway_listeners, monkeypatch, dashboard_client):
     """The gateway's Webapp listener signs browsers in to Nous with the client Web Access registered
     for it, also on a home with no dashboard client at all. The gateway's private listener mounted
-    after it signs in with ``HERMES_DASHBOARD_OAUTH_CLIENT_ID`` as on main (the standalone dashboard
+    after it signs in with ``KOVA_DASHBOARD_OAUTH_CLIENT_ID`` as on main (the standalone dashboard
     reads the same setting), or offers no Nous sign-in when that is unset."""
     import asyncio
 
@@ -623,7 +623,7 @@ def test_the_webapps_nous_sign_in_uses_its_own_client_and_the_dashboards_keeps_i
 
     webapp_access.register(LAN_CALLBACK)
     if dashboard_client:
-        monkeypatch.setenv("HERMES_DASHBOARD_OAUTH_CLIENT_ID", dashboard_client)
+        monkeypatch.setenv("KOVA_DASHBOARD_OAUTH_CLIENT_ID", dashboard_client)
     gateway_listeners.discover()
 
     async def scenario():
@@ -648,13 +648,13 @@ def test_the_webapps_nous_sign_in_uses_its_own_client_and_the_dashboards_keeps_i
 
 def test_a_plugin_reload_while_the_webapp_serves_keeps_its_own_client(portal, gateway_listeners, monkeypatch):
     """Reloading plugins re-registers the Nous provider; while the gateway serves the Webapp it
-    is rebuilt on Web Access's client, not on ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``."""
+    is rebuilt on Web Access's client, not on ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``."""
     import asyncio
 
     from kova_cli import webapp_access
 
     webapp_access.register(LAN_CALLBACK)
-    monkeypatch.setenv("HERMES_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
+    monkeypatch.setenv("KOVA_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
     gateway_listeners.discover()
 
     async def scenario():
@@ -676,20 +676,20 @@ def test_a_disabled_nous_plugin_keeps_nous_sign_in_off_the_webapp(portal, gatewa
     from gateway.webapp_listener import WebappMount, use_own_sign_in
     from kova_cli import webapp_access
     from kova_cli.dashboard_auth import get_provider
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     webapp_access.register(LAN_CALLBACK)
 
-    assert use_own_sign_in(WebappMount(tmp_path, get_hermes_home())) is None
+    assert use_own_sign_in(WebappMount(tmp_path, get_kova_home())) is None
     assert get_provider("nous") is None
 
 
 def test_a_webapp_without_a_web_access_client_signs_in_with_the_configured_one(portal, gateway_listeners, monkeypatch):
     """A Webapp whose Nous sign-in was set up by hand (``hermes dashboard register`` for its address,
-    no Web Access Start) keeps signing in with ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``."""
+    no Web Access Start) keeps signing in with ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``."""
     import asyncio
 
-    monkeypatch.setenv("HERMES_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
+    monkeypatch.setenv("KOVA_DASHBOARD_OAUTH_CLIENT_ID", DASHBOARD_CLIENT)
     gateway_listeners.discover()
 
     async def scenario():

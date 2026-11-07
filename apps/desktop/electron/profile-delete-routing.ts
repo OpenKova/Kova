@@ -3,7 +3,7 @@
 // When the renderer issues DELETE /api/profiles/<name>, the handler must
 // tear down every local backend for that profile and route the DELETE itself
 // away from the just-deleted profile. Concurrent and delayed starts must also
-// be rejected: spawning a fresh backend would call ensure_hermes_home() and
+// be rejected: spawning a fresh backend would call ensure_kova_home() and
 // recreate the profile directory the delete just removed, leaving a zombie
 // process behind (issue #52279).
 //
@@ -123,7 +123,7 @@ export async function dispatchConnectionScopedProfileDelete<T>(
  * Process-local barrier for profile deletion. Electron IPC handlers run
  * concurrently, so tearing down a pooled backend is not enough by itself: a
  * renderer reconnect can enter ensureBackend() while the DELETE request is
- * still removing the profile and recreate its HERMES_HOME.
+ * still removing the profile and recreate its KOVA_HOME.
  *
  * Counts instead of a Set keep overlapping requests for the same profile
  * blocked until the last request releases its lease.
@@ -236,7 +236,7 @@ export function decideProfileDeleteAction(
  * Route the next `hermes:api` request away from the primary/window backend
  * whenever a profile was just torn down -- otherwise ensureBackend would
  * spawn a fresh pool backend for the deleted profile, whose
- * ensure_hermes_home() recreates the directory the delete just removed.
+ * ensure_kova_home() recreates the directory the delete just removed.
  */
 export function resolveRouteProfile(
   tornDownProfile: string | null,

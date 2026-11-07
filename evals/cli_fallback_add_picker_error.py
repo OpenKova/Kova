@@ -46,7 +46,7 @@ def _persisted_model(root: Path, env: dict) -> dict:
 
 def run(root: Path, output: Path) -> dict:
     with tempfile.TemporaryDirectory(prefix="hermes_test_fallback_") as home:
-        hh = Path(home) / ".hermes"
+        hh = Path(home) / ".kova"
         hh.mkdir()
         (hh / "config.yaml").write_text(CONFIG, encoding="utf-8")
         (hh / ".env").write_text("OPENROUTER_API_KEY=local-not-used\n", encoding="utf-8")
@@ -57,7 +57,7 @@ def run(root: Path, output: Path) -> dict:
         shim = Path(home) / "shim" / "curses"
         shim.mkdir(parents=True)
         (shim / "__init__.py").write_text("raise ImportError('curses disabled for PTY harness')\n")
-        env = {"PATH": os.environ["PATH"], "HOME": home, "HERMES_HOME": str(hh),
+        env = {"PATH": os.environ["PATH"], "HOME": home, "KOVA_HOME": str(hh),
                "PYTHONPATH": f"{shim.parent}{os.pathsep}{root}", "PYTHONUNBUFFERED": "1",
                "TERM": "dumb", "LANG": "C.UTF-8"}
         master, slave = pty.openpty()

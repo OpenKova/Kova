@@ -1,4 +1,4 @@
-"""A profile directory copied out of another HERMES_HOME must never read as running.
+"""A profile directory copied out of another KOVA_HOME must never read as running.
 
 Copying a profile directory wholesale (sandbox injection, restore-from-backup, cloning) carries
 that home's ``gateway_state.json`` along, and a copy with NO identity files at all still keeps
@@ -18,19 +18,19 @@ _LIVE_PID = 4242
 
 @pytest.fixture
 def fake_root(tmp_path, monkeypatch):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     root.mkdir()
     monkeypatch.setattr(kova_constants.Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None, raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None, raising=False)
     return root
 
 
-def _live_record(hermes_home):
+def _live_record(kova_home):
     return {
-        "pid": _LIVE_PID, "kind": "hermes-gateway", "gateway_state": "running", "start_time": 1000,
+        "pid": _LIVE_PID, "kind": "kova-gateway", "gateway_state": "running", "start_time": 1000,
         "argv": ["python", "-m", "kova_cli.main", "-p", "eagle", "gateway", "run"],
-        "hermes_home": str(hermes_home),
+        "kova_home": str(kova_home),
     }
 
 

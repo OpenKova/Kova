@@ -175,7 +175,7 @@ class ProviderProfile:
     # FIRST with the parsed CLI namespace; truthy = the plugin owned the action, falsy = built-in path.
     # ``refresh_credential(entry) -> Mapping | None``: the credential pool's refresh of a pooled OAuth
     # row — return the rotated fields (``access_token``, ``refresh_token``, ``expires_at_ms`` …) or raise.
-    # Both own their own token endpoints; Hermes passes no secrets beyond the pooled row itself.
+    # Both own their own token endpoints; Kova passes no secrets beyond the pooled row itself.
     # ``classify_api_error(error, *, status_code, error_code, message, body, model) -> Mapping | None``:
     # consulted by ``agent.error_classifier.classify_api_error`` for THIS provider's failures only, after
     # the generic ``transform_api_error_classification`` plugin hooks and before the built-in pipeline.
@@ -505,7 +505,7 @@ class ProviderProfile:
         through to its existing construction path.
 
         This is the hook that lets a provider ship *outside* this tree: with it,
-        a profile registered from ``~/.hermes/plugins/model-providers/`` or a
+        a profile registered from ``~/.kova/plugins/model-providers/`` or a
         pip entry point can supply its own transport without any core edit. See
         ``website/docs/developer-guide/model-provider-plugin.md``.
         """
@@ -730,7 +730,7 @@ class ProviderProfile:
     picker_group: tuple = ()  # (group_id, label, description): fold with same-group rows in interactive pickers
     catalog_aliases: bool = False  # ``aliases`` also normalize in the model catalog (``/model``, pickers)
     aggregator: bool = False  # catalog re-exposes many vendors' models (vendor/family ids, alias resolution)
-    # HermesOverlay fields (transport, auth_type, extra_env_vars, base_url_override, base_url_env_var) for
+    # KovaOverlay fields (transport, auth_type, extra_env_vars, base_url_override, base_url_env_var) for
     # the provider's models.dev-keyed definition, keyed by ``models_dev_id`` or ``name``; {} = none.
     provider_overlay: dict = field(default_factory=dict)
     # Extra names that normalize to the ``provider_overlay`` definition (its id, else ``name``); () = none.

@@ -26,7 +26,7 @@ def finite_clarify_reply():
 
 def unattended_turn():
     # `hermes -z`: nobody can answer a prompt, so the classic one-shot contract auto-approves
-    # (legacy oneshot.py set HERMES_YOLO_MODE). `-q` stays single-query (approvals.single_query_mode).
+    # (legacy oneshot.py set KOVA_YOLO_MODE). `-q` stays single-query (approvals.single_query_mode).
     return _unattended_turn.get()
 
 

@@ -1,10 +1,10 @@
 """Secret-source contract: the ABC every secret backend implements.
 
 A *secret source* resolves credentials from an external secret manager into
-env-var-shaped values at process startup, AFTER ``~/.hermes/.env`` has loaded
-and BEFORE the rest of Hermes reads ``os.environ``. The contract is deliberately
+env-var-shaped values at process startup, AFTER ``~/.kova/.env`` has loaded
+and BEFORE the rest of Kova reads ``os.environ``. The contract is deliberately
 narrow: read-only; startup-time and synchronous (one ``fetch()`` per process per
-HERMES_HOME, under a registry-enforced wall-clock timeout, no background
+KOVA_HOME, under a registry-enforced wall-clock timeout, no background
 refreshers); never raises, never prompts (errors go in ``FetchResult.error``
 with an :class:`ErrorKind`; interactive auth belongs in the CLI ``setup`` flow);
 sources fetch, the orchestrator (``registry.apply_all``) applies.

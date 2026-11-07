@@ -3,13 +3,13 @@
 Tier (stated honestly): REAL ``hermes -z`` processes with ``model.provider: openai-codex``
 and a seeded two-login pool in ``auth.json``. Two vendor boundaries are faked:
 
-* the ChatGPT Codex Responses backend — ``HERMES_CODEX_BASE_URL`` points at
+* the ChatGPT Codex Responses backend — ``KOVA_CODEX_BASE_URL`` points at
   ``FakeResponsesServer``, which accepts ONLY login A's bearer, so a reply proves which login
   served the turn;
 * the OpenAI OAuth token endpoint. Its URL is a hard-coded ``https://`` constant with no
   override, and the proxy-impersonation route cannot carry https, so a ``sitecustomize`` shim
   on the child's ``PYTHONPATH`` redirects exactly that URL, at the ``httpx.Client.send``
-  layer, to a loopback token fake. No Hermes function is patched; everything from the pool
+  layer, to a loopback token fake. No Kova function is patched; everything from the pool
   through the refresh POST, the terminal classification and the auth.json write-back runs as
   shipped.
 
@@ -58,7 +58,7 @@ _SHIM = '''\
 """E2E vendor-boundary shim: route the hard-coded OAuth token URL to a loopback fake."""
 import os
 
-_pairs = [p.split("=", 1) for p in os.environ.get("HERMES_E2E_URL_REDIRECT", "").split(";") if "=" in p]
+_pairs = [p.split("=", 1) for p in os.environ.get("KOVA_E2E_URL_REDIRECT", "").split(";") if "=" in p]
 if _pairs:
     import httpx
 
@@ -174,14 +174,14 @@ def _home(tmp_path: Path, store: dict[str, Any]) -> Home:
 def _env(tmp_path: Path, codex_url: str, token: FakeTokenServer, dead_port: int) -> dict[str, str]:
     """Child env: the shim, the Codex fake, and every other egress pinned to a refusing proxy."""
     proxy = f"http://127.0.0.1:{dead_port}"
-    return {"HERMES_CODEX_BASE_URL": codex_url, "PYTHONPATH": f"{tmp_path / 'shim'}:{REPO_ROOT}",
-            "HERMES_E2E_URL_REDIRECT": f"{TOKEN_URL}={token.url}",
+    return {"KOVA_CODEX_BASE_URL": codex_url, "PYTHONPATH": f"{tmp_path / 'shim'}:{REPO_ROOT}",
+            "KOVA_E2E_URL_REDIRECT": f"{TOKEN_URL}={token.url}",
             **{k: proxy for k in ("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy")},
             "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost"}
 
 
 def _auth(h: Home) -> dict[str, Any]:
-    return json.loads((h.hermes_home / "auth.json").read_text(encoding="utf-8"))
+    return json.loads((h.kova_home / "auth.json").read_text(encoding="utf-8"))
 
 
 def _answer(run) -> str:

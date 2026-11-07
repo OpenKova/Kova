@@ -41,7 +41,7 @@ def _cron(hosted_owner, tmp_path, monkeypatch):
     from gateway.session_contract import SessionActor
     from kova_state import SessionDB
     from kova_state_runtime import admit_session_input, begin_runtime_epoch
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'cron.db')
     db.create_session('s', source='cron')
     authority = SessionAuthority(SimpleNamespace(_draining=False), profile_id='p', instance_id='t', db=db,

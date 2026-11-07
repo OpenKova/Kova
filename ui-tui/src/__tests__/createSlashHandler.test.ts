@@ -11,7 +11,7 @@ import * as ClipboardModule from '../lib/clipboard.js'
 import * as Osc52Module from '../lib/osc52.js'
 import * as TerminalSetupModule from '../lib/terminalSetup.js'
 
-// DASHBOARD_TUI_MODE resolves once at module load from HERMES_TUI_DASHBOARD,
+// DASHBOARD_TUI_MODE resolves once at module load from KOVA_TUI_DASHBOARD,
 // so toggling process.env in a test body can't move it. Mock just that one
 // export (everything else stays real) and flip the holder per test.
 const envState = { dashboardTuiMode: false }
@@ -186,14 +186,14 @@ describe('createSlashHandler', () => {
 
   it('routes /status to live session.status instead of slash worker', async () => {
     patchUiState({ sid: 'sid-abc' })
-    const rpc = vi.fn(() => Promise.resolve({ output: 'Hermes TUI Status' }))
+    const rpc = vi.fn(() => Promise.resolve({ output: 'Kova TUI Status' }))
     const ctx = buildCtx({ gateway: { ...buildGateway(), rpc } })
 
     expect(createSlashHandler(ctx)('/status')).toBe(true)
     expect(rpc).toHaveBeenCalledWith('session.status', { session_id: 'sid-abc' })
     expect(gatewayWork(ctx)).toEqual([])
     await vi.waitFor(() => {
-      expect(ctx.transcript.page).toHaveBeenCalledWith('Hermes TUI Status', t('slashCmd.core.status.pageTitle'))
+      expect(ctx.transcript.page).toHaveBeenCalledWith('Kova TUI Status', t('slashCmd.core.status.pageTitle'))
     })
   })
 
@@ -890,7 +890,7 @@ describe('createSlashHandler', () => {
 
   it('falls through to command.dispatch for skill commands, sending the body but showing the invocation', async () => {
     const skillMessage =
-      '[IMPORTANT: The user has invoked the "hermes-agent-dev" skill, indicating they want you to follow its instructions.\n' +
+      '[IMPORTANT: The user has invoked the "kova-agent-dev" skill, indicating they want you to follow its instructions.\n' +
       'The full skill content is loaded below.]\n\nUse this skill to do X.\n\n## Steps\n1. First step'
 
     const ctx = buildCtx({
@@ -906,8 +906,8 @@ describe('createSlashHandler', () => {
               return Promise.resolve({
                 type: 'skill',
                 message: skillMessage,
-                name: 'hermes-agent-dev',
-                display: '/hermes-agent-dev'
+                name: 'kova-agent-dev',
+                display: '/kova-agent-dev'
               })
             }
 
@@ -919,9 +919,9 @@ describe('createSlashHandler', () => {
     })
 
     const h = createSlashHandler(ctx)
-    expect(h('/hermes-agent-dev')).toBe(true)
+    expect(h('/kova-agent-dev')).toBe(true)
     await vi.waitFor(() => {
-      expect(ctx.transcript.send).toHaveBeenCalledWith(skillMessage, true, '/hermes-agent-dev')
+      expect(ctx.transcript.send).toHaveBeenCalledWith(skillMessage, true, '/kova-agent-dev')
     })
 
     // The expanded skill body is model-facing: no transcript line may carry it.
@@ -1014,7 +1014,7 @@ describe('createSlashHandler', () => {
         gw: {
           getLogTail: vi.fn(() => ''),
           request: vi.fn((method: string) =>
-            Promise.resolve(method === 'slash.exec' ? { output: 'Hermes v1', type: 'exec' } : {})
+            Promise.resolve(method === 'slash.exec' ? { output: 'Kova v1', type: 'exec' } : {})
           )
         },
         rpc: vi.fn(() => Promise.resolve({}))
@@ -1022,7 +1022,7 @@ describe('createSlashHandler', () => {
     })
 
     expect(createSlashHandler(ctx)('/version')).toBe(true)
-    await vi.waitFor(() => expect(ctx.transcript.sys).toHaveBeenCalledWith('Hermes v1'))
+    await vi.waitFor(() => expect(ctx.transcript.sys).toHaveBeenCalledWith('Kova v1'))
     expect(ctx.transcript.page).not.toHaveBeenCalled()
   })
 

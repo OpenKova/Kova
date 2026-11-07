@@ -39,7 +39,7 @@ class TestRouting:
         from plugins.config_backends import remote
         (home / "config.yaml").write_text("a: 1\n", encoding="utf-8")
         monkeypatch.setenv(cb.BACKEND_ENV, "remote")
-        monkeypatch.delenv("HERMES_CONFIG_INSTANCE_ID", raising=False)
+        monkeypatch.delenv("KOVA_CONFIG_INSTANCE_ID", raising=False)
         remote._reset_for_tests()
         try:
             assert cb.get_config_backend().name == "remote"
@@ -66,17 +66,17 @@ class TestBootstrapSelector:
     @pytest.fixture(autouse=True)
     def fresh_bootstrap(self, home, monkeypatch):
         from plugins.config_backends import remote
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.delenv("HERMES_CONFIG_INSTANCE_ID", raising=False)
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        monkeypatch.delenv("KOVA_CONFIG_INSTANCE_ID", raising=False)
         monkeypatch.setattr(cb, "_BOOTSTRAPPED", False)
         remote._reset_for_tests()
         yield
         remote._reset_for_tests()
 
     @pytest.mark.parametrize("shell, dotenv, expected", [
-        ("remote", "HERMES_CONFIG_BACKEND=file\n", "file"),       # stale shell value, .env says file
-        ("remote", "HERMES_CONFIG_BACKEND=\n", "file"),           # explicit empty value resets
-        (None, "HERMES_CONFIG_BACKEND=remote\n", "remote"),       # .env-only remote selects remote
+        ("remote", "KOVA_CONFIG_BACKEND=file\n", "file"),       # stale shell value, .env says file
+        ("remote", "KOVA_CONFIG_BACKEND=\n", "file"),           # explicit empty value resets
+        (None, "KOVA_CONFIG_BACKEND=remote\n", "remote"),       # .env-only remote selects remote
         ("remote", "OTHER=1\n", "remote"),                        # absent key keeps the shell value
     ])
     def test_dotenv_selector(self, home, monkeypatch, shell, dotenv, expected):
@@ -186,13 +186,13 @@ class _RecordingBackend(cb.FileBackend):
 
 @pytest.fixture
 def recording(monkeypatch, tmp_path):
-    """A fresh HERMES_HOME with a config.yaml and every config read/write recorded."""
+    """A fresh KOVA_HOME with a config.yaml and every config read/write recorded."""
     from kova_cli import config as config_mod
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text(
         "# hand-tuned\nmodel:\n  default: my-model\nsecrets:\n  sources: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     for cache in (config_mod._LOAD_CONFIG_CACHE, config_mod._RAW_CONFIG_CACHE):
         cache.clear()
     backend = _RecordingBackend()

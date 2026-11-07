@@ -35,7 +35,7 @@ describe('build stamp → update ownership', () => {
   ] as const)('%s %s dispatches its declared owner without a Store flag', (platform, variant, declared, strategy) => {
     const stamp: ReturnType<typeof buildStampPayload> = buildStampPayload(
       provenance,
-      { HERMES_DESKTOP_VARIANT: variant, HERMES_PAYLOAD_TAG: 'v1.2.3' },
+      { KOVA_DESKTOP_VARIANT: variant, KOVA_PAYLOAD_TAG: 'v1.2.3' },
       platform,
       { runtime }
     )

@@ -26,9 +26,9 @@ def client(tmp_path, monkeypatch):
     from kova_state import SessionDB
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", home / "state.db")
 
     db = SessionDB(home / "state.db")

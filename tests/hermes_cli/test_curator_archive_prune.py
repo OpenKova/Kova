@@ -43,7 +43,7 @@ def test_purge_ages_an_archive_from_when_it_was_archived(tmp_path, monkeypatch):
     import kova_cli.curator as curator_cli
     from tools import skill_usage
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     skill_dir = tmp_path / "skills" / "old-helper"
     skill_dir.mkdir(parents=True)
     (skill_dir / "SKILL.md").write_text(
@@ -72,7 +72,7 @@ def test_purge_prefers_recorded_archived_at_over_a_stale_dir_mtime(tmp_path, mon
     import kova_cli.curator as curator_cli
     from tools import skill_usage
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     skill_dir = tmp_path / "skills" / "legacy"
     skill_dir.mkdir(parents=True)
     (skill_dir / "SKILL.md").write_text(

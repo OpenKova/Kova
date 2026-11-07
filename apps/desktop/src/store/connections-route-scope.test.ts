@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import type { DesktopConnectionsRegistry, HermesConnection } from '@/global'
-import type * as Hermes from '@/hermes'
+import type { DesktopConnectionsRegistry, KovaConnection } from '@/global'
+import type * as Kova from '@/hermes'
 
 vi.mock('@/app/contrib/hooks/use-background-sync', () => ({ resetLiveRuntimeTracking: vi.fn() }))
 vi.mock('@/hermes', async importOriginal => {
-  const actual = await importOriginal<typeof Hermes>()
+  const actual = await importOriginal<typeof Kova>()
 
   return {
     ...actual,
     getProfiles: vi.fn(async () => ({ profiles: [{ name: 'default' }] })),
     getStarmapGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
     hermesApi: vi.fn(async () => ({ current: 'default', profiles: [{ name: 'default' }] })),
-    HermesGateway: class {
+    KovaGateway: class {
       connectionState = 'closed'
       wsUrl = ''
       connect = async (url: string) => {
@@ -62,7 +62,7 @@ const registry: DesktopConnectionsRegistry = {
   ]
 }
 
-function descriptor(connectionId: string, profile = 'default'): HermesConnection {
+function descriptor(connectionId: string, profile = 'default'): KovaConnection {
   return {
     connectionId,
     profile,

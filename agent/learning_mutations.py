@@ -56,11 +56,11 @@ def _locate_memory(node_id: str) -> tuple[Path, list[str], int]:
     fingerprinted id resolves by the entry's text; a legacy id by position (a profile
     card's local index is its global index minus the MEMORY.md card count). Read-only
     view: mutations resolve the id again INSIDE ``_mutate_memory``'s lock."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools.memory_tool import MemoryStore
 
     source, gidx, fingerprint = _parse_memory_id(node_id)
-    path = get_hermes_home() / "memories" / _MEMORY_FILES[source]
+    path = get_kova_home() / "memories" / _MEMORY_FILES[source]
     if not path.exists():
         raise ValueError(f"{path.name} not found")
     chunks = MemoryStore._read_file(path)

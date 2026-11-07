@@ -20,7 +20,7 @@ class TestPostSetupGate:
         provider-setup flow runs and triggers `_run_post_setup`."""
         from kova_cli import tools_config
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         monkeypatch.setattr("shutil.which", lambda name, path=None: None)
 
         assert tools_config._toolset_needs_configuration_prompt(
@@ -66,7 +66,7 @@ class TestBrowserBackendPrompt:
     def test_browser_cloud_provider_set_skips_provider_picker(self, monkeypatch, tmp_path):
         from kova_cli import tools_config
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         config = {"browser": {"cloud_provider": "local"}}
         assert tools_config._toolset_needs_configuration_prompt("browser", config) is False
 
@@ -74,7 +74,7 @@ class TestBrowserBackendPrompt:
     def test_browser_empty_still_prompts(self, monkeypatch, tmp_path):
         from kova_cli import tools_config
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         config = {"browser": None}
         assert tools_config._toolset_needs_configuration_prompt("browser", config) is True
 
@@ -95,7 +95,7 @@ class TestBrowserBackendPromptThroughLoader:
         from kova_cli import tools_config
         from kova_cli.config import load_config
 
-        monkeypatch.setenv("HERMES_HOME", str(self._home(tmp_path, "cli: {}\n")))
+        monkeypatch.setenv("KOVA_HOME", str(self._home(tmp_path, "cli: {}\n")))
         config = load_config()
         assert tools_config._toolset_needs_configuration_prompt("browser", config) is True
 
@@ -103,6 +103,6 @@ class TestBrowserBackendPromptThroughLoader:
         from kova_cli import tools_config
         from kova_cli.config import load_config
 
-        monkeypatch.setenv("HERMES_HOME", str(self._home(tmp_path, "browser:\n  cloud_provider: browser-use\n")))
+        monkeypatch.setenv("KOVA_HOME", str(self._home(tmp_path, "browser:\n  cloud_provider: browser-use\n")))
         config = load_config()
         assert tools_config._toolset_needs_configuration_prompt("browser", config) is False

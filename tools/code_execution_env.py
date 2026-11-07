@@ -18,10 +18,10 @@ logger = logging.getLogger("tools.code_execution_tool")
 _IS_WINDOWS = platform.system() == "Windows"
 
 # Scrub order: secret-substring block first; whatever is left must match a safe
-# prefix, the exact-name HERMES_ allowlist, or (Windows) an OS-essential name.
-# The broad "HERMES_" prefix is deliberately NOT safe — it leaked config vars
-# without a secret substring (HERMES_BASE_URL, HERMES_KANBAN_DB, *_WEBHOOK).
-# HERMES_RPC_SOCKET / HERMES_RPC_DIR / TZ / HOME are injected after scrubbing.
+# prefix, the exact-name KOVA_ allowlist, or (Windows) an OS-essential name.
+# The broad "KOVA_" prefix is deliberately NOT safe — it leaked config vars
+# without a secret substring (KOVA_BASE_URL, KOVA_KANBAN_DB, *_WEBHOOK).
+# KOVA_RPC_SOCKET / KOVA_RPC_DIR / TZ / HOME are injected after scrubbing.
 _SAFE_ENV_PREFIXES = ("PATH", "HOME", "USER", "LANG", "LC_", "TERM", "TMPDIR", "TMP", "TEMP", "SHELL",
                       "LOGNAME", "XDG_", "PYTHONPATH", "VIRTUAL_ENV", "CONDA")
 # "PASS" is intentionally absent: it false-positives on BYPASS_CACHE /
@@ -35,11 +35,11 @@ def is_secret_env_name(name: str) -> bool:
     return any(s in name.upper() for s in _SECRET_SUBSTRINGS)
 
 # Non-secret runtime-location flags that repo-root modules a sandbox script
-# imports may read at import time. HERMES_DELEGATED_CHILD_CONTEXT must ride
-# along or a child that imports Hermes code loses the Kanban mutation guard
-# while still inheriting HERMES_HOME.
-_HERMES_CHILD_ALLOWED = frozenset({
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV", "HERMES_DELEGATED_CHILD_CONTEXT",
+# imports may read at import time. KOVA_DELEGATED_CHILD_CONTEXT must ride
+# along or a child that imports Kova code loses the Kanban mutation guard
+# while still inheriting KOVA_HOME.
+_KOVA_CHILD_ALLOWED = frozenset({
+    "KOVA_HOME", "KOVA_PROFILE", "KOVA_CONFIG", "KOVA_ENV", "KOVA_DELEGATED_CHILD_CONTEXT",
 })
 
 # Windows-only: without these the CRT itself fails — socket.socket() raises
@@ -61,7 +61,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     through the active profile secret scope — an absent scoped value is
     omitted; (2) secret-substring names are blocked; (3) safe prefixes pass,
     as do a local session's client ``toolchain`` names (NVM_DIR, GOPATH...);
-    (4) operational HERMES_* pass by exact name; (5) on Windows the
+    (4) operational KOVA_* pass by exact name; (5) on Windows the
     OS-essential allowlist passes by exact name.
     """
     try:
@@ -75,7 +75,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     if is_windows is None:
         is_windows = _IS_WINDOWS
     scrubbed = {}
-    # Non-secret HERMES_* vars no allowlist admits are dropped on purpose; a script importing a
+    # Non-secret KOVA_* vars no allowlist admits are dropped on purpose; a script importing a
     # repo module that reads one would see it silently unset — log the drop, point at the opt-in.
     _dropped_hermes = []
     for k, v in source_env.items():
@@ -87,17 +87,17 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
         if is_secret_env_name(k):
             continue
         if (any(k.startswith(p) for p in _SAFE_ENV_PREFIXES) or k in toolchain
-                or k in _HERMES_CHILD_ALLOWED
+                or k in _KOVA_CHILD_ALLOWED
                 or (is_windows and k.upper() in _WINDOWS_ESSENTIAL_ENV_VARS)):
             scrubbed[k] = v
-        elif k.startswith("HERMES_"):
+        elif k.startswith("KOVA_"):
             _dropped_hermes.append(k)
     # Declared names only the bound profile scope holds (a routed profile's own .env / sources
     # never enter the process env) — the loop above sees only names ``source_env`` carries.
     scrubbed.update((k, v) for k, v in scoped_passthrough_additions(scrubbed).items() if is_passthrough(k))
     if _dropped_hermes:
         logger.debug(
-            "execute_code: dropped %d non-allowlisted HERMES_* var(s) from the "
+            "execute_code: dropped %d non-allowlisted KOVA_* var(s) from the "
             "sandbox child env (%s). This is intentional hardening (#27303); if "
             "a sandbox script legitimately needs one, declare it via "
             "env_passthrough in the skill/config so it passes by explicit opt-in.",
@@ -111,9 +111,9 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     )
     scoped = delegated_child_subprocess_env(source_env)
     # Preserve location only when carrying the descendant fence, not for arbitrary
-    # non-allowlisted HERMES_* values in otherwise ordinary execution environments.
+    # non-allowlisted KOVA_* values in otherwise ordinary execution environments.
     if scoped.get(DELEGATED_CHILD_ENV_MARKER):
-        for key in (DELEGATED_CHILD_ENV_MARKER, "HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+        for key in (DELEGATED_CHILD_ENV_MARKER, "KOVA_KANBAN_DB", "KOVA_KANBAN_BOARD"):
             if key in scoped:
                 scrubbed[key] = scoped[key]
     return delegated_child_subprocess_env(scrubbed)
@@ -122,19 +122,19 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
 def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
                      child_python: str) -> dict[str, str]:
     """Build the scrubbed child environment both execution paths share."""
-    from kova_constants import apply_scratch_tmp_env, apply_subprocess_home_env, get_hermes_home_override
+    from kova_constants import apply_scratch_tmp_env, apply_subprocess_home_env, get_kova_home_override
     from agent.session_client_env import tool_env, toolchain_environ
     # A local session's client toolchain replaces the daemon's PATH / venv, then the whole scrub (secret
     # names, delegated-child restrictions) runs over the merged environment.
     child_env = _scrub_child_env(toolchain_environ(), toolchain=frozenset(tool_env()))
-    child_env["HERMES_RPC_SOCKET"] = rpc_endpoint
-    child_env["HERMES_RPC_TOKEN"] = rpc_token
+    child_env["KOVA_RPC_SOCKET"] = rpc_endpoint
+    child_env["KOVA_RPC_TOKEN"] = rpc_token
     child_env["PYTHONDONTWRITEBYTECODE"] = "1"
     # Force UTF-8 stdio and default file encoding: on Windows sys.stdout is bound to the console
     # code page (cp1252) and print("→") raises; harmless under a C/POSIX locale (containers).
     child_env["PYTHONIOENCODING"] = "utf-8"
     child_env["PYTHONUTF8"] = "1"
-    # Only TZ reaches the child; HERMES_TIMEZONE is an internal setting (and under the multiplexed
+    # Only TZ reaches the child; KOVA_TIMEZONE is an internal setting (and under the multiplexed
     # gateway holds only the default profile's value — kova_time resolves the routed profile's).
     from kova_time import get_timezone_name
 
@@ -143,24 +143,24 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     # preserves the OS-configured local timezone for the child process.
     if _tz_name and not _IS_WINDOWS:
         child_env["TZ"] = _tz_name
-    child_env.pop("HERMES_TIMEZONE", None)
+    child_env.pop("KOVA_TIMEZONE", None)
     apply_subprocess_home_env(child_env)
     # Multiplexed gateway/Desktop (#110303): the server process env carries the machine-default
-    # HERMES_HOME, but this turn runs under a per-profile override (ContextVar bound per turn).
+    # KOVA_HOME, but this turn runs under a per-profile override (ContextVar bound per turn).
     # The scrub above passed the stale default through; rewrite it so skill scripts see the
     # active profile's home — the same per-turn rewrite apply_subprocess_home_env does for HOME.
     # No override (dedicated per-profile process) → leave the inherited value untouched.
-    _home_override = get_hermes_home_override()
+    _home_override = get_kova_home_override()
     if _home_override:
-        child_env["HERMES_HOME"] = _home_override
+        child_env["KOVA_HOME"] = _home_override
         apply_scratch_tmp_env(child_env)  # TMPDIR follows the routed home, like HOME does
     # PYTHONPATH: the staging dir (hermes_tools.py) must always be importable even when project
-    # mode changes CWD. Hermes's root is added ONLY when the child runs in Hermes's Python env —
-    # exposing Hermes's site-packages to an external interpreter can mix incompatible compiled
-    # extensions (3.12 NumPy under a 3.9 venv). Inherited Hermes-owned entries are stripped first.
-    # Before re-injecting PYTHONPATH, strip Hermes-owned entries that leaked through _scrub_child_env
+    # mode changes CWD. Kova's root is added ONLY when the child runs in Kova's Python env —
+    # exposing Kova's site-packages to an external interpreter can mix incompatible compiled
+    # extensions (3.12 NumPy under a 3.9 venv). Inherited Kova-owned entries are stripped first.
+    # Before re-injecting PYTHONPATH, strip Kova-owned entries that leaked through _scrub_child_env
     # (PYTHONPATH is in _SAFE_ENV_PREFIXES so it passes the scrub). External project interpreters
-    # must not inherit Hermes dependencies (#74817). PM's own interpreter, however, can be a
+    # must not inherit Kova dependencies (#74817). PM's own interpreter, however, can be a
     # bare bundled Python whose dependencies live in the selected generation, not sys.prefix.
     from tools.environments.local_pythonpath import (
         _strip_hermes_owned_pythonpath, _validated_runtime_venv, _same_path,
@@ -187,7 +187,7 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     elif child_python not in _external_env_logged:
         # Surface once per interpreter so "import kova_constants fails" is diagnosable.
         _external_env_logged.add(child_python)
-        logger.info("execute_code: child interpreter %s is outside the Hermes "
+        logger.info("execute_code: child interpreter %s is outside the Kova "
                     "environment; hermes root omitted from PYTHONPATH", child_python)
     if _existing_pp:
         _pp_parts.append(_existing_pp)
@@ -201,7 +201,7 @@ _PROBE_CACHE_MAX = 32
 _usable_python_cache: dict = {}
 _python_prefix_cache: dict = {}
 
-# Interpreter paths already reported as outside the Hermes environment.
+# Interpreter paths already reported as outside the Kova environment.
 _external_env_logged: set = set()
 
 
@@ -253,7 +253,7 @@ def _python_environment_prefix(python_path: str) -> str:
 
 
 def _uses_hermes_python_environment(python_path: str) -> bool:
-    """Whether *python_path* belongs to Hermes's active Python environment. Short-circuits when
+    """Whether *python_path* belongs to Kova's active Python environment. Short-circuits when
     it IS the running interpreter (by path or realpath — covers ``uv run`` venvs) so no probe
     runs on the default strict path and a flaky probe can never drop the hermes root."""
     if python_path == sys.executable or os.path.realpath(python_path) == os.path.realpath(sys.executable):

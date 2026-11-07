@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import { beforeEach, expect, it, vi } from 'vitest'
 
-import type { HermesNotification } from './notification-types'
+import type { KovaNotification } from './notification-types'
 
 const host = vi.hoisted(() => ({
   handle: vi.fn(),
@@ -55,7 +55,7 @@ it('returns native clicks and approval actions to the emitting window, not the p
 
   const notify = host.handle.mock.calls[0][1] as (
     event: IpcMainInvokeEvent,
-    payload: HermesNotification
+    payload: KovaNotification
   ) => Promise<boolean>
 
   const payload = {
@@ -103,7 +103,7 @@ it('delivers plugin callbacks to their source and falls back only for navigation
 
   const notify = host.handle.mock.calls[0][1] as (
     event: IpcMainInvokeEvent,
-    payload: HermesNotification
+    payload: KovaNotification
   ) => Promise<boolean>
 
   await notify({ sender: source.webContents } as unknown as IpcMainInvokeEvent, {
@@ -140,19 +140,19 @@ it('flashes an unfocused source window until it regains focus, and leaves a focu
 
   const notify = host.handle.mock.calls[0][1] as (
     event: IpcMainInvokeEvent,
-    payload: HermesNotification
+    payload: KovaNotification
   ) => Promise<boolean>
 
   const event = { sender: source.webContents } as unknown as IpcMainInvokeEvent
 
-  await notify(event, { kind: 'turnDone', sessionId: 'a', title: 'Hermes finished' })
-  await notify(event, { kind: 'turnDone', sessionId: 'b', title: 'Hermes finished' })
+  await notify(event, { kind: 'turnDone', sessionId: 'a', title: 'Kova finished' })
+  await notify(event, { kind: 'turnDone', sessionId: 'b', title: 'Kova finished' })
   expect(source.flashFrame.mock.calls).toEqual([[true]])
 
   source.emit('focus')
   expect(source.flashFrame.mock.calls).toEqual([[true], [false]])
 
   source.isFocused.mockReturnValue(true)
-  await notify(event, { kind: 'turnDone', sessionId: 'c', title: 'Hermes finished' })
+  await notify(event, { kind: 'turnDone', sessionId: 'c', title: 'Kova finished' })
   expect(source.flashFrame).toHaveBeenCalledTimes(2)
 })

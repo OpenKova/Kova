@@ -589,7 +589,7 @@ def cron_status():
                 _print_ticker_health([], restart_command="hermes --profile default gateway restart")
             elif in_process_ticker:
                 print(f"  Scheduler host: an in-process ticker (hermes serve / Desktop backend) ticking profile '{active}'")
-                _print_ticker_health([], restart_command="restart the Hermes Desktop app (or its serve backend)")
+                _print_ticker_health([], restart_command="restart the Kova Desktop app (or its serve backend)")
             else:
                 _print_ticker_health(pids)
         else:
@@ -879,12 +879,12 @@ def _job_action(action: str, job_id: str, success_verb: str) -> int:
     _stateless_token = None
     if action == "run":
         # One-shot CLI: a background-dispatched run (daemon thread, triggered when the CLI
-        # inherits HERMES_SESSION_KEY) would be orphaned mid-LLM-call, leaving the execution row
+        # inherits KOVA_SESSION_KEY) would be orphaned mid-LLM-call, leaving the execution row
         # stuck 'claimed'. Declaring the channel stateless forces a synchronous run; scoped to
         # this call so in-process callers (tests, embedding apps) are not tainted.
         with contextlib.suppress(Exception):
             # The background path in ``_try_dispatch_background_run`` triggers when the CLI inherits a
-            # gateway/desktop session env (HERMES_SESSION_KEY); declare the channel stateless so
+            # gateway/desktop session env (KOVA_SESSION_KEY); declare the channel stateless so
             # ``async_delivery_supported()`` gates it off and the run executes synchronously to completion
             # instead. See #86721.
             from gateway.session_context import _SESSION_ASYNC_DELIVERY

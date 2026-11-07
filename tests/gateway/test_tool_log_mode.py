@@ -1,7 +1,7 @@
 """Tests for the `log` tool_progress mode (salvage of #3459 / #3458).
 
 `display.tool_progress: log` keeps the chat silent and appends tool-call
-lines to ~/.hermes/logs/tool_calls.log via write_tool_log's rotating handler.
+lines to ~/.kova/logs/tool_calls.log via write_tool_log's rotating handler.
 These tests exercise the mode's building blocks without spinning up a full
 gateway run: the writer coroutine.
 """
@@ -21,7 +21,7 @@ async def test_write_tool_log_shares_one_logger_across_turns(tmp_path, monkeypat
     import gateway.run as gateway_run
     from gateway.run_turn import GatewayTurnMixin
 
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     shared = logging.getLogger("hermes.tool_calls")
     for h in list(shared.handlers):
         shared.removeHandler(h)

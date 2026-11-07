@@ -25,10 +25,10 @@ FACTS = Facts(os="windows", arch="amd64", machine_kind="PC", nvidia_platform="di
 
 @pytest.fixture
 def chat(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     db = server._get_db()
     db.create_session(STORED, "desktop")

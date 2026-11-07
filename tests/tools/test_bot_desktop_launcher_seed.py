@@ -35,11 +35,11 @@ def _seed(tmp_path: Path, fake_bins: list[str], browser_exec: str = "", profile_
     env = {
         "PATH": str(bindir),
         "HOME": str(tmp_path),
-        "HERMES_BD_PROFILE": "t", "HERMES_BD_DISPLAY_NUM": "99",
-        "HERMES_BD_SOCKET": str(tmp_path / "rfb.sock"), "HERMES_BD_XAUTH": str(tmp_path / "Xauthority"),
-        "HERMES_BD_ENV_FILE": str(tmp_path / "env"), "HERMES_BD_CONFIG_HOME": str(cfg),
-        "HERMES_BD_SEED_ONLY": "1",
-        **({"HERMES_BD_BROWSER_EXEC": browser_exec, "HERMES_BD_BROWSER_EXEC_LINE": f"Exec={browser_exec} --user-data-dir={profile_dir or f'{tmp_path}/bp'}"} if browser_exec else {}),
+        "KOVA_BD_PROFILE": "t", "KOVA_BD_DISPLAY_NUM": "99",
+        "KOVA_BD_SOCKET": str(tmp_path / "rfb.sock"), "KOVA_BD_XAUTH": str(tmp_path / "Xauthority"),
+        "KOVA_BD_ENV_FILE": str(tmp_path / "env"), "KOVA_BD_CONFIG_HOME": str(cfg),
+        "KOVA_BD_SEED_ONLY": "1",
+        **({"KOVA_BD_BROWSER_EXEC": browser_exec, "KOVA_BD_BROWSER_EXEC_LINE": f"Exec={browser_exec} --user-data-dir={profile_dir or f'{tmp_path}/bp'}"} if browser_exec else {}),
     }
     subprocess.run(["bash", str(LAUNCHER)], env=env, check=True, stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
     return cfg
@@ -78,12 +78,12 @@ def test_browser_launcher_follows_the_profile_without_reseeding_the_panel(tmp_pa
 
 
 def test_browser_launcher_seeded_before_the_marker_still_follows_a_rename(tmp_path):
-    """Profiles seeded by an earlier launcher have the Browser entry but no `.hermes-browser-launcher`;
+    """Profiles seeded by an earlier launcher have the Browser entry but no `.kova-browser-launcher`;
     a rename must still reach their Exec= (the marker is recovered from our own entry), not leave them
     opening the old profile's empty cookie jar forever."""
     chrome = tmp_path / "bin" / "chrome"
     cfg = _seed(tmp_path, ["xfce4-terminal", "chrome"], browser_exec=str(chrome), profile_dir="/old name/bp")
-    (cfg / "xfce4/panel/.hermes-browser-launcher").unlink()
+    (cfg / "xfce4/panel/.kova-browser-launcher").unlink()
     shutil.rmtree(tmp_path / "bin")
     _seed(tmp_path, ["xfce4-terminal", "chrome"], browser_exec=str(chrome), profile_dir="/new name/bp")
     execs = [

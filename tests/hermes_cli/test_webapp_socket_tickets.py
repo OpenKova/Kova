@@ -21,7 +21,7 @@ from starlette.websockets import WebSocketDisconnect
 from tests.kova_cli.test_web_host_terminal_persistence import IdleBridge, metadata
 
 _TOKEN = "a" * 43
-_SESSION = {"X-Hermes-Session-Token": _TOKEN}
+_SESSION = {"X-Kova-Session-Token": _TOKEN}
 
 
 def serve_webapp(tmp_path, monkeypatch):
@@ -31,12 +31,12 @@ def serve_webapp(tmp_path, monkeypatch):
     from kova_cli.web_host_terminal_sessions import host_terminal_lifespan
     from kova_cli.web_routers.webapp import router
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
@@ -97,14 +97,14 @@ def test_the_host_terminal_refuses_the_session_token_and_every_other_ticket(weba
         _refused(shells, f"ws://localhost/api/host-terminal?token={_TOKEN}")
         for ticket in others:
             _refused(shells, f"ws://localhost/api/host-terminal?ticket={ticket}")
-        protocols = ["hermes-gateway-v1", f"hermes-gateway-ticket.{_mint(client, 'gateway')}"]
+        protocols = ["kova-gateway-v1", f"kova-gateway-ticket.{_mint(client, 'gateway')}"]
         _refused(shells, "ws://localhost/api/host-terminal", subprotocols=protocols)
     assert webapp.shells == []
 
 
 def test_a_terminal_ticket_does_not_open_the_chat_socket(webapp):
     client = webapp.client
-    protocols = ["hermes-gateway-v1", f"hermes-gateway-ticket.{_mint(client, 'host-terminal')}"]
+    protocols = ["kova-gateway-v1", f"kova-gateway-ticket.{_mint(client, 'host-terminal')}"]
     _refused(client, "ws://localhost/api/ws?native_dial=browser", subprotocols=protocols)
     _refused(client, f"ws://localhost/api/ws?ticket={_mint(client, 'host-terminal')}")
 
@@ -214,7 +214,7 @@ def test_a_voice_stream_refuses_a_ticket_minted_for_another_socket(webapp, voice
         for ticket in (_mint(client, "gateway"), _mint(client, "host-terminal"), _mint(client, other)):
             _refused(client, f"ws://localhost{url}?ticket={ticket}")
     _refused(client, f"ws://localhost/api/ws?ticket={_mint(client, 'speak-stream')}")
-    protocols = ["hermes-gateway-v1", f"hermes-gateway-ticket.{_mint(client, 'transcribe-stream')}"]
+    protocols = ["kova-gateway-v1", f"kova-gateway-ticket.{_mint(client, 'transcribe-stream')}"]
     _refused(client, "ws://localhost/api/ws?native_dial=browser", subprotocols=protocols)
     with TestClient(host) as shells:
         _refused(shells, f"ws://localhost/api/host-terminal?ticket={_mint(client, 'speak-stream')}")

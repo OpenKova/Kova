@@ -474,7 +474,7 @@ function IdleSince({ endedAt }: { endedAt: number }) {
 }
 
 // `wire` is the level the route actually sends (session.info.reasoning_effort_wire):
-// a clamped Hermes step such as `ultra` reads `ultra→max`, like the CLI's
+// a clamped Kova step such as `ultra` reads `ultra→max`, like the CLI's
 // "ultra (sends max on this route)", never as a distinct wire level (#61634).
 const effortLabel = (effort?: string, wire?: string) => {
   const value = String(effort ?? '')
@@ -645,7 +645,7 @@ export function StatusRule({
   const sessionCountText = liveSessionCount > 0 ? statusSessionCountLabel(liveSessionCount) : ''
   const compressions = typeof usage.compressions === 'number' ? usage.compressions : 0
 
-  // Dev-only readout (HERMES_DEV_CREDITS). The server omits the key entirely unless the
+  // Dev-only readout (KOVA_DEV_CREDITS). The server omits the key entirely unless the
   // flag is on, so this segment self-hides for normal users. micros→cents is allowed money
   // math (display formatting) — never parseFloat a *_usd. Signed: a mid-session top-up that
   // raises remaining nets a negative Δ (honest).
@@ -697,7 +697,7 @@ export function StatusRule({
     subagentCount === 1 ? T.status.resumesWhenSubagentFinishes : T.status.resumesWhenSubagentsFinish(subagentCount)
 
   const showResumeHint = !busy && subagentCount > 0 && fits(SEP + stringWidth(resumeHintText))
-  // Dev-gated readout (HERMES_DEV_CREDITS), lowest priority,
+  // Dev-gated readout (KOVA_DEV_CREDITS), lowest priority,
   // so it consumes tail budget LAST and drops first on a narrow terminal.
   const showDevCredits = !!devCreditsText && fits(SEP + stringWidth(devCreditsText))
 

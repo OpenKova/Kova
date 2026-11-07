@@ -29,10 +29,10 @@ _lease_listener_installed = threading.Event()
 
 
 def _display_snapshot() -> dict:
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.bot_desktop import lease as _bd_lease, runtime as _bd_runtime
     st = _bd_runtime.status()
-    return {**st.as_dict(), "lease": _bd_lease.public_view(_bd_lease.get()), "profile_key": hermes_home_key()}
+    return {**st.as_dict(), "lease": _bd_lease.public_view(_bd_lease.get()), "profile_key": kova_home_key()}
 
 
 def _install_lease_listener() -> None:
@@ -152,7 +152,7 @@ def _(rid, params: dict) -> dict:
     """Mint a single-use, 30 s ticket for ``/api/display/ws``. The ticket carries the profile home so
     the bridge dials THIS profile's RFB socket, and a server-minted viewer id (returned to the caller,
     who passes it to ``display.lease.acquire`` / ``release``) so the lease can name the holder."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     from kova_cli.web_session_sockets import admission_of
     from tools.bot_desktop import runtime as _bd_runtime
@@ -161,7 +161,7 @@ def _(rid, params: dict) -> dict:
         if _bd_runtime.rfb_socket_path() is None and not _bd_runtime.sandbox_screen_running():
             return _err(rid, _DISPLAY_ERR, "this profile's Bot Desktop is not running; call display.start first")
         viewer_id = _mint_viewer_id(str(params.get("viewer_id") or "").strip())
-        extra = {"hermes_home": str(get_hermes_home()), "viewer_id": viewer_id}
+        extra = {"kova_home": str(get_kova_home()), "viewer_id": viewer_id}
         # A viewer a browser tab opens watches and can drive this screen: it signs out with that tab,
         # so the ticket carries the credential digest the tab's socket was admitted with.
         if (admitted := admission_of(getattr(current_transport(), "ws", None))) is not None:
@@ -192,7 +192,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """Start the package install in the background; the renderer follows ``display.install.log`` /
     ``display.install.done``. Refused while one is already running for this profile."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.bot_desktop import install as _bd_install, runtime as _bd_runtime
     if not _bd_runtime.is_supported_host():
         return _err(rid, _DISPLAY_ERR, "Bot Desktop runs on Linux gateway hosts only")
@@ -202,7 +202,7 @@ def _(rid, params: dict) -> dict:
                                        "instead of installing on the gateway host")
     if _bd_runtime.install_command() is None:
         return _err(rid, _DISPLAY_ERR, "no supported package manager (apt-get, dnf, pacman) on this host")
-    profile_key = hermes_home_key()
+    profile_key = kova_home_key()
 
     def _ask_password() -> str:
         # App-level card, no session: it reaches the connection that clicked Install through the

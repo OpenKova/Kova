@@ -1,18 +1,18 @@
 /**
- * Hermes Kanban — Dashboard Plugin
+ * Kova Kanban — Dashboard Plugin
  *
  * Board view for the multi-agent collaboration board backed by
- * ~/.hermes/kanban.db. Calls the plugin's backend at /api/plugins/kanban/
+ * ~/.kova/kanban.db. Calls the plugin's backend at /api/plugins/kanban/
  * and tails task_events over a WebSocket for live updates.
  *
- * Plain IIFE, no build step. Uses window.__HERMES_PLUGIN_SDK__ for React +
+ * Plain IIFE, no build step. Uses window.__KOVA_PLUGIN_SDK__ for React +
  * shadcn primitives; HTML5 drag-and-drop for card movement on desktop and
  * a pointer-based fallback for touch.
  */
 (function () {
   "use strict";
 
-  const SDK = window.__HERMES_PLUGIN_SDK__;
+  const SDK = window.__KOVA_PLUGIN_SDK__;
   if (!SDK) return;
 
   const { React } = SDK;
@@ -267,8 +267,8 @@
   // Docs link — surfaced as a `?` icon next to the board switcher and as
   // `title=` hints on unlabelled controls. Kept in one place so rebrands or
   // path changes are a single edit.
-  const DOCS_URL = "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban";
-  const DOCS_TUTORIAL_URL = "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban-tutorial";
+  const DOCS_URL = "https://kova-agent.nousresearch.com/docs/user-guide/features/kanban";
+  const DOCS_TUTORIAL_URL = "https://kova-agent.nousresearch.com/docs/user-guide/features/kanban-tutorial";
 
   // localStorage key for the user's selected board. Independent of the
   // CLI's on-disk ``<root>/kanban/current`` pointer so browser users
@@ -752,7 +752,7 @@
         if (wsClosedRef.current) return;
         // Build the WS URL via the host SDK so the correct auth param is used
         // in BOTH modes: single-use ?ticket= in gated OAuth mode, ?token= in
-        // loopback. Reading window.__HERMES_SESSION_TOKEN__ directly (the old
+        // loopback. Reading window.__KOVA_SESSION_TOKEN__ directly (the old
         // path) sends an empty token and is rejected in gated mode. buildWsUrl
         // also applies the dashboard base-path prefix for reverse-proxied
         // deployments, which the old inline URL did not. It's async (gated
@@ -1596,7 +1596,7 @@
       if (action.kind === "comment") {
         // Scroll the comment input into view; the drawer already has one
         // at the bottom. Focus it so the operator can start typing.
-        const ta = document.querySelector(".hermes-kanban-drawer-comment-row input, .hermes-kanban-drawer-comment-row textarea");
+        const ta = document.querySelector(".kova-kanban-drawer-comment-row input, .kova-kanban-drawer-comment-row textarea");
         if (ta) {
           ta.scrollIntoView({ behavior: "smooth", block: "nearest" });
           ta.focus();
@@ -1805,8 +1805,8 @@
       target: "_blank",
       rel: "noopener noreferrer",
       className: "hermes-kanban-docs-link",
-      title: "Open Hermes Kanban docs in a new tab",
-      "aria-label": "Hermes Kanban documentation",
+      title: "Open Kova Kanban docs in a new tab",
+      "aria-label": "Kova Kanban documentation",
     }, "?");
   }
 
@@ -2221,7 +2221,7 @@
     );
   }
 
-  // Live (non-archived) Hermes projects available for board scoping,
+  // Live (non-archived) Kova projects available for board scoping,
   // fetched from GET /projects on mount. On failure the list stays empty
   // and both dialogs omit the project_id field from their payloads, so a
   // projects-store hiccup can never clear an existing binding.
@@ -2569,7 +2569,7 @@
         ),
       ),
       h("div", { className: "flex flex-col gap-1",
-                 title: "Filter by assigned Hermes profile. Profiles are the named agent identities that claim and work on tasks." },
+                 title: "Filter by assigned Kova profile. Profiles are the named agent identities that claim and work on tasks." },
         h(Label, { className: "text-xs text-muted-foreground" }, tx(t, "assignee", "Assignee")),
         h(Select, Object.assign({
           value: props.assigneeFilter,
@@ -2699,7 +2699,7 @@
         }, tx(t, "setPriority", "Set priority")),
       ),
       h("div", { className: "hermes-kanban-bulk-reassign",
-                 title: "Reassign selected tasks to a different Hermes profile. Pick a profile (or unassign) and click Apply." },
+                 title: "Reassign selected tasks to a different Kova profile. Pick a profile (or unassign) and click Apply." },
         h(Select, Object.assign({
           value: assignee,
           className: "h-7 text-xs",
@@ -2838,9 +2838,9 @@
 
     const isPanBlockedTarget = useCallback(function (target) {
       if (!target) return true;
-      if (target.closest && target.closest(".hermes-kanban-card")) return true;
-      if (target.closest && target.closest(".hermes-kanban-column-add")) return true;
-      if (target.closest && target.closest(".hermes-kanban-col-check")) return true;
+      if (target.closest && target.closest(".kova-kanban-card")) return true;
+      if (target.closest && target.closest(".kova-kanban-column-add")) return true;
+      if (target.closest && target.closest(".kova-kanban-col-check")) return true;
       if (target.closest && target.closest("button,input,textarea,select,a,[role='button']")) return true;
       return false;
     }, []);
@@ -2901,7 +2901,7 @@
     }, [isPanBlockedTarget, stopPan]);
 
     const handleDragStart = useCallback(function (e) {
-      const card = e.target.closest && e.target.closest(".hermes-kanban-card");
+      const card = e.target.closest && e.target.closest(".kova-kanban-card");
       if (!card) return;
       const taskId = card.getAttribute("data-task-id");
       if (taskId && props.onDragStart) props.onDragStart(taskId);
@@ -3130,7 +3130,7 @@
     const handleDragStart = function (e) {
       e.dataTransfer.setData(MIME_TASK, t.id);
       e.dataTransfer.effectAllowed = "move";
-      const selectedCards = document.querySelectorAll(".hermes-kanban-card--selected");
+      const selectedCards = document.querySelectorAll(".kova-kanban-card--selected");
       if (selectedCards.length > 1 && props.selected) {
         const ghost = document.createElement("div");
         ghost.className = "hermes-kanban-drag-ghost";
@@ -3254,7 +3254,7 @@
           h("div", { className: "hermes-kanban-card-row hermes-kanban-card-meta" },
             t.assignee
               ? h("span", { className: "hermes-kanban-assignee",
-                            title: `Assigned to Hermes profile @${t.assignee}` }, "@", t.assignee)
+                            title: `Assigned to Kova profile @${t.assignee}` }, "@", t.assignee)
               : h("span", { className: "hermes-kanban-unassigned",
                             title: needsAssignee
                               ? tx(i18n, "needsAssigneeHint", "Dependencies are satisfied, but the dispatcher skips this task until you assign a profile.")
@@ -3401,8 +3401,8 @@
                   : tx(t, "assigneePlaceholder", "assignee"),
                 className: "h-8 text-sm",
                 title: props.columnName === "triage"
-                  ? "Hermes profile that will spec this task (default: the dispatcher's configured specifier). Leave blank to let the dispatcher pick."
-                  : "Hermes profile to assign. Leave blank and the dispatcher will pick from available profiles when the task is Ready.",
+                  ? "Kova profile that will spec this task (default: the dispatcher's configured specifier). Leave blank to let the dispatcher pick."
+                  : "Kova profile to assign. Leave blank and the dispatcher will pick from available profiles when the task is Ready.",
                 style: { textTransform: "none" },
                 autoCapitalize: "none",
                 autoCorrect: "off",
@@ -4907,7 +4907,7 @@
   // Register
   // -------------------------------------------------------------------------
 
-  if (window.__HERMES_PLUGINS__ && typeof window.__HERMES_PLUGINS__.register === "function") {
-    window.__HERMES_PLUGINS__.register("kanban", KanbanPage);
+  if (window.__KOVA_PLUGINS__ && typeof window.__KOVA_PLUGINS__.register === "function") {
+    window.__KOVA_PLUGINS__.register("kanban", KanbanPage);
   }
 })();

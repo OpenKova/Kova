@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 import kova_yaml as yaml
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 _PLUGIN = '''
 from pathlib import Path
@@ -74,7 +74,7 @@ def _clean():
 
 def test_selected_plugin_receives_tool_calls_and_unselected_stays_dormant(tmp_path, grant_computer_use_approvals):
     home = _home(tmp_path / "home", ("cu-alpha", "cu-beta"), "cu-beta")
-    tok = set_hermes_home_override(str(home))
+    tok = set_kova_home_override(str(home))
     try:
         from tools.computer_use.tool import check_computer_use_requirements, handle_computer_use
         assert check_computer_use_requirements() is True
@@ -87,12 +87,12 @@ def test_selected_plugin_receives_tool_calls_and_unselected_stays_dormant(tmp_pa
         assert [r["computer_use_backend"] for r in _computer_use_provider_rows()] == ["cu-alpha", "cu-beta"]
         assert "_hermes_user_computer_use.cu-alpha" not in sys.modules  # listing does not import either
     finally:
-        reset_hermes_home_override(tok)
+        reset_kova_home_override(tok)
 
 
 def test_unknown_backend_errors_naming_configured_and_available(tmp_path):
     home = _home(tmp_path / "home", (), "nope")
-    tok = set_hermes_home_override(str(home))
+    tok = set_kova_home_override(str(home))
     try:
         from tools.computer_use.tool import check_computer_use_requirements, handle_computer_use
         out = json.loads(handle_computer_use({"action": "list_apps"}, session_id="s1"))
@@ -100,13 +100,13 @@ def test_unknown_backend_errors_naming_configured_and_available(tmp_path):
         assert "hint" not in out  # the cua-driver install hint would mislead here
         assert check_computer_use_requirements() is True  # the tool stays visible so the call can say why
     finally:
-        reset_hermes_home_override(tok)
+        reset_kova_home_override(tok)
 
 
 @pytest.mark.parametrize("backend", [None, "cua"])
 def test_builtin_cua_is_default_and_plugin_never_self_activates(tmp_path, backend):
     home = _home(tmp_path / "home", ("cu-alpha",), backend)  # installed but not selected
-    tok = set_hermes_home_override(str(home))
+    tok = set_kova_home_override(str(home))
     try:
         from plugins.computer_use import get_active_provider
         from tools.computer_use.cua_backend import CuaDriverBackend
@@ -115,16 +115,16 @@ def test_builtin_cua_is_default_and_plugin_never_self_activates(tmp_path, backen
         assert isinstance(_new_backend("standard"), CuaDriverBackend)
         assert "_hermes_user_computer_use.cu-alpha" not in sys.modules
     finally:
-        reset_hermes_home_override(tok)
+        reset_kova_home_override(tok)
 
 
 def test_each_profile_gets_its_own_configured_backend(tmp_path):
     home_a = _home(tmp_path / "profiles" / "a", ("cu-alpha",), "cu-alpha")
     home_b = _home(tmp_path / "profiles" / "b", ("cu-beta",), "cu-beta")
     for home, expected in ((home_a, "cu-alpha"), (home_b, "cu-beta"), (home_a, "cu-alpha")):
-        tok = set_hermes_home_override(str(home))
+        tok = set_kova_home_override(str(home))
         try:
             app = _list_apps(session_id="shared")[0]
             assert app["backend"] == expected and str(home) in app["file"]
         finally:
-            reset_hermes_home_override(tok)
+            reset_kova_home_override(tok)

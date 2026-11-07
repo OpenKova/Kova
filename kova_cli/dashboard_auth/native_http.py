@@ -12,14 +12,14 @@ from pathlib import Path
 from fastapi import HTTPException
 from starlette.responses import JSONResponse
 
-HEADER = 'x-hermes-gateway-ticket'
+HEADER = 'x-kova-gateway-ticket'
 
 
 def native_profile_scope(request):
     """Resolve the request's implicit selectors (omitted / '' / 'current') in the TICKET's home.
 
     ``_own_profile`` lets those selectors through unbound; the routes then resolve
-    ``get_hermes_home()`` / ``_default_db_path()``, which is the launch home unless the
+    ``get_kova_home()`` / ``_default_db_path()``, which is the launch home unless the
     task-local override says otherwise. A secondary-profile ticket must read and write its
     own profile, never the launch profile's dashboard state. The launch profile's own ticket
     binds its home override too, so it never inherits a foreign override that happens to be
@@ -34,13 +34,13 @@ def grant_home_scope(grant):
     if grant is None:
         yield
         return
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     home = Path(grant['profile_id'])
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _own_profile(value, profile_id, *, current=True):
@@ -153,11 +153,11 @@ def _check_registry_scope(request, profile_id, launch_home):
     if launch_home is None:
         # Fail closed: with no known launch home the guard below cannot tell it apart.
         raise PermissionError('profile_scope_mismatch')
-    from kova_constants import get_default_hermes_root, hermes_home_key
-    # Compared by hermes_home_key, as SessionAuthorities keys homes (symlinks, case, separators).
-    launch = hermes_home_key(launch_home)
-    if hermes_home_key(profile_id) == launch and not (
-            request.method == 'PATCH' and launch == hermes_home_key(get_default_hermes_root())):
+    from kova_constants import get_default_kova_root, kova_home_key
+    # Compared by kova_home_key, as SessionAuthorities keys homes (symlinks, case, separators).
+    launch = kova_home_key(launch_home)
+    if kova_home_key(profile_id) == launch and not (
+            request.method == 'PATCH' and launch == kova_home_key(get_default_kova_root())):
         raise PermissionError('profile_scope_mismatch')
 
 

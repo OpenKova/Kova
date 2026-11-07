@@ -1,4 +1,4 @@
-"""``$HERMES_HOME`` model-provider plugins resolve for the profile home bound at lookup time (#88143).
+"""``$KOVA_HOME`` model-provider plugins resolve for the profile home bound at lookup time (#88143).
 
 One process serves several profiles (multiplex gateway, Desktop ``serve``); discovery used to read the
 plugins of whichever home was bound first and never look again, so a plugin installed in a secondary
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 _PLUGIN = textwrap.dedent(
     """
@@ -41,7 +41,7 @@ def homes(tmp_path, monkeypatch):
     secondary = tmp_path / "profiles" / "scaleup"
     launch.mkdir()
     secondary.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -52,11 +52,11 @@ def homes(tmp_path, monkeypatch):
 
 
 def _bound(home: Path, fn):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return fn()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def test_secondary_profile_plugin_resolves_for_its_home_only(homes):

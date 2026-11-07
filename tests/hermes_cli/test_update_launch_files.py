@@ -32,7 +32,7 @@ def systemd_update(tmp_path, monkeypatch):
     """One user unit on disk, a paused gateway, and the real completion ordering around them."""
     root = tmp_path / "checkout"
     root.mkdir()
-    unit = tmp_path / "systemd" / "hermes-gateway.service"
+    unit = tmp_path / "systemd" / "kova-gateway.service"
     unit.parent.mkdir()
     unit.write_text(STALE_UNIT, encoding="utf-8")
     events: list[tuple] = []
@@ -110,7 +110,7 @@ def test_one_failed_launch_file_is_a_followup_and_the_other_profiles_are_still_r
     seen: list[str] = []
 
     def refresh():
-        home = Path(gateway_cli.get_hermes_home())
+        home = Path(gateway_cli.get_kova_home())
         seen.append(home.name)
         if home.name == "work":
             raise ConfigBackendUnavailable("the remote config backend is unreachable")
@@ -130,7 +130,7 @@ def test_windows_launcher_scripts_are_rewritten_when_their_contents_drift(tmp_pa
     """The task XML can match the template while the .cmd/.vbs it runs still name an older command."""
     from kova_cli import update_launch_files
 
-    script = tmp_path / "gateway-service" / "Hermes_Gateway.cmd"
+    script = tmp_path / "gateway-service" / "Kova_Gateway.cmd"
     script.parent.mkdir()
     monkeypatch.setattr(gateway_windows, "_assert_windows", lambda: None)
     monkeypatch.setattr(gateway_windows, "get_task_script_path", lambda: script)

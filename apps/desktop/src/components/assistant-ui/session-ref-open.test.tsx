@@ -19,7 +19,7 @@ afterEach(() => {
   cleanup()
   closeRightRail()
   openSession.mockClear()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.kovaDesktop
   __resetSessionLinkTitleCache()
 })
 
@@ -54,7 +54,7 @@ describe('url refs open in the browser pane', () => {
   it('opens a url chip in the user transcript', async () => {
     const openExternal = vi.fn().mockResolvedValue(undefined)
 
-    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+    desktopWindow.kovaDesktop = { openExternal } as unknown as Window['hermesDesktop']
 
     render(<DirectiveContent text="see @url:`https://example.com/docs` when you can" />)
 

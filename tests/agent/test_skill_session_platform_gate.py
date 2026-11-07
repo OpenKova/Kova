@@ -1,6 +1,6 @@
 """The session_platforms frontmatter gate (skills-index slim PR).
 
-A skill whose metadata.hermes.session_platforms names gateway channels is
+A skill whose metadata.kova.session_platforms names gateway channels is
 hidden from the skills index on every other channel; unknown platform
 fails OPEN (offline builds/tests must not hide skills).
 """

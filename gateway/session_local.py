@@ -220,21 +220,21 @@ def profile_env_scope(home=None):
 
 def project_plugins_warning(policy):
     """The plain notice for a session whose client opted into project plugins (its forwarded
-    ``HERMES_ENABLE_PROJECT_PLUGINS``) in a folder that has some: the gateway never loads them."""
+    ``KOVA_ENABLE_PROJECT_PLUGINS``) in a folder that has some: the gateway never loads them."""
     from pathlib import Path
     from utils import is_truthy_value
     # The client's folder is a path on this host only for a client the gateway proved local.
     env = policy.client_env() if policy is not None and not policy.client_env_remote else None
-    folder = Path(policy.cwd) / '.hermes' / 'plugins' if env else None
-    if not env or not is_truthy_value(env.get('HERMES_ENABLE_PROJECT_PLUGINS')) or not folder.is_dir():
+    folder = Path(policy.cwd) / '.kova' / 'plugins' if env else None
+    if not env or not is_truthy_value(env.get('KOVA_ENABLE_PROJECT_PLUGINS')) or not folder.is_dir():
         return None
     try:
         if not any(folder.iterdir()):
             return None
     except OSError:  # an unlistable folder skips the optional notice, never the session
         return None
-    return (f'project plugins in {folder} are not loaded: the gateway that runs Hermes sessions does not '
-            'load ./.hermes/plugins, so HERMES_ENABLE_PROJECT_PLUGINS has no effect here.')
+    return (f'project plugins in {folder} are not loaded: the gateway that runs Kova sessions does not '
+            'load ./.kova/plugins, so KOVA_ENABLE_PROJECT_PLUGINS has no effect here.')
 
 
 def create_local_session(authority, actor, params, *, trusted_policy=None, trusted_secrets=None, skills_prompt=None,
@@ -499,7 +499,7 @@ def local_session_info(authority, ref):
 
 
 def _classic_cli_fields(authority, ref, live, agent, policy):
-    """What main's HermesCLI read off itself for /status, the status bar and the exit summary: the
+    """What main's KovaCLI read off itself for /status, the status bar and the exit summary: the
     stored title, archived flag, and times, the session's yolo, api_mode, the loaded tool count and a
     masked credential hint (never the key). Lazy sessions report what is known without building an
     agent. ``archived`` is a JSON boolean (``bool(row.get("archived"))``), never SQLite ``1``:

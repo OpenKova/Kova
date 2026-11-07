@@ -1,4 +1,4 @@
-"""Canonical runtime identity for Hermes.
+"""Canonical runtime identity for Kova.
 
 Resolution order:
 1. Install stamp (``install-stamp.json``) — written at build time by
@@ -77,9 +77,9 @@ def _resolve_repo_dir() -> Path | None:
         return repo_dir
     # The PROCESS home: this is the running code's identity and is cached
     # process-wide, so a profile's context-local override must not pick it.
-    from kova_constants import get_process_hermes_home
+    from kova_constants import get_process_kova_home
 
-    candidate = get_process_hermes_home() / "hermes-agent"
+    candidate = get_process_kova_home() / "kova-agent"
     if (candidate / ".git").exists():
         return candidate
     return None
@@ -316,7 +316,7 @@ def hermes_user_agent(product: str = "hermes-cli") -> str:
     """``<product>/<base version>`` for an outbound request.
 
     Call it where the request is built, never at module level: a source checkout resolves the
-    release from git, so a module-level read made every Hermes start pay that walk whether or not
+    release from git, so a module-level read made every Kova start pay that walk whether or not
     it ever sent the request.
     """
     return f"{product}/{get_version_info().base_version}"

@@ -601,7 +601,7 @@ class TestStatusSurfacesDeadScheduler:
         # so an unrelated host record can never make this profile look served. (Superseded by the
         # tests/conftest.py hook in #118097 once that lands.)
         lock_dir.mkdir(exist_ok=True)
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
+        monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(lock_dir))
         monkeypatch.setattr("kova_cli.gateway.find_gateway_pids", list)
         monkeypatch.setattr(
             "kova_cli.gateway.named_profile_served_by_running_multiplexer", lambda: None

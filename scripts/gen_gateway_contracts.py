@@ -247,7 +247,7 @@ def render_ts() -> str:
     out.append("export type RpcMethod = keyof RpcMethods\n")
     out.append("export const RPC_METHODS = [\n" + _const_items(sorted(METHODS)) + "] as const satisfies readonly RpcMethod[]\n")
 
-    out.append("\n// ── Canonical (hermes-gateway-v1) methods only the session authority serves ──\n")
+    out.append("\n// ── Canonical (kova-gateway-v1) methods only the session authority serves ──\n")
     out.append("export interface CanonicalRpcMethods {\n")
     for m in sorted(CANONICAL_METHODS.values(), key=lambda x: x.name):
         out.append(_doc(m.doc, "  "))
@@ -335,7 +335,7 @@ def render_openrpc() -> str:
 
     doc = {
         "openrpc": "1.3.2",
-        "info": {"title": "Hermes TUI/Desktop gateway", "version": "1",
+        "info": {"title": "Kova TUI/Desktop gateway", "version": "1",
                  "description": "Generated from tui_gateway/contracts by scripts/gen_gateway_contracts.py."},
         "methods": [
             {"name": m.name, "summary": " ".join(m.doc.split()),

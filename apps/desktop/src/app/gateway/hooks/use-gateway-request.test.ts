@@ -12,9 +12,9 @@ const gatewayMocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/hermes', async importOriginal => {
-  const actual = await importOriginal<typeof HermesModule>()
+  const actual = await importOriginal<typeof KovaModule>()
 
-  class FakeHermesGateway {
+  class FakeKovaGateway {
     connectionState = 'closed'
     wsUrl = ''
     request = vi.fn()
@@ -47,7 +47,7 @@ vi.mock('@/hermes', async importOriginal => {
     }
   }
 
-  return { ...actual, HermesGateway: FakeHermesGateway }
+  return { ...actual, KovaGateway: FakeKovaGateway }
 })
 
 // A secondary's reopen does `await import('@/store/session-states')` (store/gateway.ts). Load that
@@ -55,8 +55,8 @@ vi.mock('@/hermes', async importOriginal => {
 // out on a loaded runner.
 import '@/store/session-states'
 
-import type * as HermesModule from '@/hermes'
-import type { HermesGateway } from '@/hermes'
+import type * as KovaModule from '@/hermes'
+import type { KovaGateway } from '@/hermes'
 import {
   $gateway,
   closeSecondaryGateways,
@@ -76,7 +76,7 @@ interface TestGateway {
   wsUrl?: string
 }
 
-const fakeGateway = { connectionState: 'open' } as unknown as HermesGateway
+const fakeGateway = { connectionState: 'open' } as unknown as KovaGateway
 
 const remoteConnection = {
   authMode: 'oauth' as const,
@@ -173,8 +173,8 @@ async function activateRemoteGateway() {
   const desktop = installRemoteDesktop()
   const primary = makePrimaryGateway()
 
-  setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-  $gateway.set(primary as unknown as HermesGateway)
+  setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+  $gateway.set(primary as unknown as KovaGateway)
   await ensureGatewayForAgent('ssh-source', 'research')
 
   const gateway = $gateway.get() as unknown as TestGateway
@@ -259,8 +259,8 @@ describe('useGatewayRequest', () => {
     const primary = makePrimaryGateway()
     primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
 
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('open')
 
     const { result } = renderHook(() => useGatewayRequest())
@@ -279,8 +279,8 @@ describe('useGatewayRequest', () => {
     primary.connectionState = 'closed'
     primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
 
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('open')
 
     const { result } = renderHook(() => useGatewayRequest())
@@ -334,8 +334,8 @@ describe('useGatewayRequest', () => {
           rejectRequest = reject
         })
     )
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('open')
     const { result } = renderHook(() => useGatewayRequest())
 
@@ -370,8 +370,8 @@ describe('useGatewayRequest', () => {
           finishRecovery = resolve
         })
     )
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('closed')
     const { result } = renderHook(() => useGatewayRequest())
     const pending = result.current.requestGateway('prompt.submit', { text: 'local-only' }).catch(error => error)
@@ -408,8 +408,8 @@ describe('useGatewayRequest', () => {
               outcome === 'resolves' ? resolve(localConnection) : reject(new Error('local backend unavailable'))
           })
       )
-      setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-      $gateway.set(primary as unknown as HermesGateway)
+      setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+      $gateway.set(primary as unknown as KovaGateway)
       $gatewayState.set('closed')
       const { result } = renderHook(() => useGatewayRequest())
       const pending = result.current.requestGateway('prompt.submit', { text: 'local-only' }).catch(error => error)
@@ -443,8 +443,8 @@ describe('useGatewayRequest', () => {
           releaseMint = () => resolve({ ok: true as const, wsUrl: 'ws://127.0.0.1:5151/api/ws?token=fresh-local' })
         })
     )
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('closed')
     const { result } = renderHook(() => useGatewayRequest())
     const pending = result.current.requestGateway('prompt.submit', { text: 'local-only' }).catch(error => error)
@@ -506,7 +506,7 @@ describe('useGatewayRequest', () => {
 
   it('surfaces a missing optional scoped mint bridge without falling back to a stale ticket or local lookup', async () => {
     const { desktop, gateway } = await activateRemoteGateway()
-    Reflect.deleteProperty(window.hermesDesktop, 'getGatewayWsUrlFor')
+    Reflect.deleteProperty(window.kovaDesktop, 'getGatewayWsUrlFor')
 
     const { result } = renderHook(() => useGatewayRequest())
 
@@ -525,8 +525,8 @@ describe('useGatewayRequest', () => {
     const primary = makePrimaryGateway()
     primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
 
-    setPrimaryGateway(primary as unknown as HermesGateway, 'default')
-    $gateway.set(primary as unknown as HermesGateway)
+    setPrimaryGateway(primary as unknown as KovaGateway, 'default')
+    $gateway.set(primary as unknown as KovaGateway)
     $gatewayState.set('closed')
 
     const { result } = renderHook(() => useGatewayRequest())
@@ -561,8 +561,8 @@ describe('useGatewayRequest', () => {
 
       const primary = makePrimaryGateway()
       primary.request.mockRejectedValueOnce(new Error('connection closed')).mockResolvedValueOnce({ recovered: true })
-      setPrimaryGateway(primary as unknown as HermesGateway, connection.profile)
-      $gateway.set(primary as unknown as HermesGateway)
+      setPrimaryGateway(primary as unknown as KovaGateway, connection.profile)
+      $gateway.set(primary as unknown as KovaGateway)
       $activeGatewayProfile.set(connection.profile)
       $gatewayState.set('closed')
 
@@ -593,11 +593,11 @@ describe('useGatewayRequest', () => {
     const dropped = {
       connectionState: 'closed',
       request: vi.fn().mockRejectedValue(new Error('connection closed'))
-    } as unknown as HermesGateway
+    } as unknown as KovaGateway
 
     const getConnection = vi.fn(() => new Promise(() => undefined))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { getConnection }
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { getConnection }
     $gateway.set(dropped)
 
     const { result } = renderHook(() => useGatewayRequest())

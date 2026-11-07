@@ -28,7 +28,7 @@ vi.mock(import('@/store/terminal-backend-warning'), () => ({
   warnIfTerminalBackendUnavailable: vi.fn(async () => false)
 }))
 
-type WebappWindow = Window & { __HERMES_DASHBOARD_PROFILE__?: string }
+type WebappWindow = Window & { __KOVA_DASHBOARD_PROFILE__?: string }
 
 function Harness() {
   useGatewayBoot({
@@ -37,7 +37,7 @@ function Harness() {
     handleServerRequest: () => false,
     onConnectionReady: () => undefined,
     onGatewayReady: () => undefined,
-    refreshHermesConfig: async () => undefined,
+    refreshKovaConfig: async () => undefined,
     refreshSessions: async () => undefined
   })
 
@@ -68,7 +68,7 @@ async function flush() {
 
 /** Boot a Webapp tab at `url` against a gateway launched as `launch`; resolves once boot is done. */
 async function bootWebappTab(url: string, launch = 'default') {
-  ;(window as WebappWindow).__HERMES_DASHBOARD_PROFILE__ = launch
+  ;(window as WebappWindow).__KOVA_DASHBOARD_PROFILE__ = launch
   window.history.replaceState(null, '', url)
   seedWebappSession('served-token')
   expect(installBrowserDesktopBridge()).toBe(true)
@@ -147,7 +147,7 @@ afterEach(() => {
   vi.restoreAllMocks()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
   Reflect.deleteProperty(window, 'hermesDesktop')
-  delete (window as WebappWindow).__HERMES_DASHBOARD_PROFILE__
+  delete (window as WebappWindow).__KOVA_DASHBOARD_PROFILE__
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   clearWebappSession()
   window.localStorage.clear()
@@ -232,7 +232,7 @@ it('a refused pick is final: the store does not redial the profile the gateway d
   installed = ['default', 'research', 'solo']
   served = ['default', 'research']
   await bootWebappTab('/?profile=research#/')
-  const dials = vi.spyOn(window.hermesDesktop!, 'getGatewayWsUrl')
+  const dials = vi.spyOn(window.kovaDesktop!, 'getGatewayWsUrl')
 
   await expect(ensureGatewayProfile('solo')).rejects.toThrow('This gateway does not serve profile "solo"')
   // Well past the redial ladder's ceiling: every scheduled redial would have run by now.

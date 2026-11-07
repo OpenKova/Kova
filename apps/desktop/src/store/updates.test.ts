@@ -61,13 +61,13 @@ vi.mock('@/store/connections', () => ({
   refreshConnectionsRegistry: () => Promise.resolve($mockConnectionsRegistry.get())
 }))
 
-const checkHermesUpdateSpy = vi.fn()
-const updateHermesSpy = vi.fn()
+const checkKovaUpdateSpy = vi.fn()
+const updateKovaSpy = vi.fn()
 const getActionStatusSpy = vi.fn()
 
 vi.mock('@/hermes', () => ({
-  checkHermesUpdate: (...args: unknown[]) => checkHermesUpdateSpy(...args),
-  updateHermes: (...args: unknown[]) => updateHermesSpy(...args),
+  checkKovaUpdate: (...args: unknown[]) => checkKovaUpdateSpy(...args),
+  updateKova: (...args: unknown[]) => updateKovaSpy(...args),
   getActionStatus: (...args: unknown[]) => getActionStatusSpy(...args)
 }))
 
@@ -162,8 +162,8 @@ describe('gateway version refresh', () => {
     }
 
     const getVersion = vi.fn().mockResolvedValue(version)
-    const previous = window.hermesDesktop
-    window.hermesDesktop = { ...previous, getVersion }
+    const previous = window.kovaDesktop
+    window.kovaDesktop = { ...previous, getVersion }
 
     try {
       expect(await refreshDesktopVersion()).toEqual(version)
@@ -183,7 +183,7 @@ describe('gateway version refresh', () => {
       expect(await pending).toBeNull()
       expect($desktopVersion.get()).toBeNull()
     } finally {
-      window.hermesDesktop = previous
+      window.kovaDesktop = previous
     }
   })
 })
@@ -318,10 +318,10 @@ describe('reportBackendContract', () => {
     expect(dismissSpy).toHaveBeenCalledWith('backend-contract-skew')
     expect(notifySpy).not.toHaveBeenCalled()
 
-    reportBackendContract(undefined, 'hermes-gateway-v0')
+    reportBackendContract(undefined, 'kova-gateway-v0')
     expect(notifySpy).toHaveBeenCalledTimes(1)
 
-    reportBackendContract(Number.MAX_SAFE_INTEGER, 'hermes-gateway-v0')
+    reportBackendContract(Number.MAX_SAFE_INTEGER, 'kova-gateway-v0')
     expect(notifySpy).toHaveBeenCalledTimes(2)
   })
 
@@ -406,14 +406,14 @@ describe('checkBackendUpdates', () => {
   beforeEach(() => {
     storage.clear()
     notifySpy.mockClear()
-    checkHermesUpdateSpy.mockReset()
+    checkKovaUpdateSpy.mockReset()
     $backendUpdateStatus.set(null)
     vi.useRealTimers()
   })
 
   it('maps the backend /update/check onto the backend status, including commits', async (): Promise<void> => {
     setRemote(true)
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockResolvedValue({
       install_method: 'git',
       current_version: '0.16.0',
       behind: 2,
@@ -426,7 +426,7 @@ describe('checkBackendUpdates', () => {
 
     const result = await checkBackendUpdates()
 
-    expect(checkHermesUpdateSpy).toHaveBeenCalledWith(false)
+    expect(checkKovaUpdateSpy).toHaveBeenCalledWith(false)
     expect(result?.behind).toBe(2)
     expect(result?.updateAvailable).toBe(true)
     expect(result?.commits?.[0]?.sha).toBe('abc1234')
@@ -434,12 +434,12 @@ describe('checkBackendUpdates', () => {
     expect($backendUpdateStatus.get()?.commits?.[0]?.summary).toBe('feat: x')
 
     await checkBackendUpdates({ force: true })
-    expect(checkHermesUpdateSpy).toHaveBeenLastCalledWith(true)
+    expect(checkKovaUpdateSpy).toHaveBeenLastCalledWith(true)
   })
 
   it('preserves backend update_available when the backend cannot count commits', async () => {
     setRemote(true)
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockResolvedValue({
       install_method: 'nixos',
       current_version: '0.16.0',
       behind: -1,
@@ -460,7 +460,7 @@ describe('checkBackendUpdates', () => {
 
   it('honours can_apply=false (docker/nix): not supported, carries message', async () => {
     setRemote(true)
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockResolvedValue({
       install_method: 'docker',
       current_version: '0.16.0',
       behind: null,
@@ -479,11 +479,11 @@ describe('checkBackendUpdates', () => {
   it('is a no-op in local mode (backend check only runs when remote)', async () => {
     setRemote(false)
     await checkBackendUpdates()
-    expect(checkHermesUpdateSpy).not.toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).not.toHaveBeenCalled()
   })
 })
 
-// The ⌘K "Update Hermes" row. It used to call applyBackendUpdate() flat, which
+// The ⌘K "Update Kova" row. It used to call applyBackendUpdate() flat, which
 // in local mode aimed at the backend checkout instead of the client and, with
 // no overlay open, showed nothing at all.
 describe('requestActiveUpdate', () => {
@@ -496,8 +496,8 @@ describe('requestActiveUpdate', () => {
     dismissSpy.mockClear()
     applyClientMock.mockReset().mockResolvedValue({ ok: true, handedOff: true })
     checkClientMock.mockReset().mockResolvedValue(status({ behind: 0 }))
-    updateHermesSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
-    checkHermesUpdateSpy.mockReset().mockResolvedValue({
+    updateKovaSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
+    checkKovaUpdateSpy.mockReset().mockResolvedValue({
       install_method: 'git',
       current_version: '0.4.2',
       behind: 0,
@@ -536,7 +536,7 @@ describe('requestActiveUpdate', () => {
     requestActiveUpdate()
     await vi.waitFor(() => expect(applyClientMock).toHaveBeenCalled())
 
-    expect(updateHermesSpy).not.toHaveBeenCalled()
+    expect(updateKovaSpy).not.toHaveBeenCalled()
     expect($updateOverlayTarget.get()).toBe('client')
   })
 
@@ -545,7 +545,7 @@ describe('requestActiveUpdate', () => {
     $backendUpdateStatus.set(status({ behind: 3 }))
 
     requestActiveUpdate()
-    await vi.waitFor(() => expect(updateHermesSpy).toHaveBeenCalled())
+    await vi.waitFor(() => expect(updateKovaSpy).toHaveBeenCalled())
 
     expect(applyClientMock).not.toHaveBeenCalled()
     expect($updateOverlayTarget.get()).toBe('backend')
@@ -568,7 +568,7 @@ describe('requestActiveUpdate', () => {
 
     expect($updateOverlayOpen.get()).toBe(true)
     expect(applyClientMock).not.toHaveBeenCalled()
-    expect(updateHermesSpy).not.toHaveBeenCalled()
+    expect(updateKovaSpy).not.toHaveBeenCalled()
   })
 
   it('applies on a backend that reports an update it cannot count commits for', async () => {
@@ -576,16 +576,16 @@ describe('requestActiveUpdate', () => {
     $backendUpdateStatus.set(status({ behind: 0, updateAvailable: true }))
 
     requestActiveUpdate()
-    await vi.waitFor(() => expect(updateHermesSpy).toHaveBeenCalled())
+    await vi.waitFor(() => expect(updateKovaSpy).toHaveBeenCalled())
   })
 
   it('shows the refusal message, not a fake command, when the backend has no command to run', async () => {
     setRemote(true)
-    updateHermesSpy.mockResolvedValue({
+    updateKovaSpy.mockResolvedValue({
       ok: false,
       name: 'hermes-update',
       error: 'dashboard_update_managed_externally',
-      message: 'Hermes updates are managed outside this dashboard in containerized environments.',
+      message: 'Kova updates are managed outside this dashboard in containerized environments.',
       update_command: ''
     })
 
@@ -600,7 +600,7 @@ describe('requestActiveUpdate', () => {
 
   it('falls back to `hermes update` only when an older backend omits update_command', async () => {
     setRemote(true)
-    updateHermesSpy.mockResolvedValue({ ok: false, name: 'hermes-update', message: 'Run it yourself.' })
+    updateKovaSpy.mockResolvedValue({ ok: false, name: 'hermes-update', message: 'Run it yourself.' })
 
     await applyBackendUpdate()
 
@@ -623,8 +623,8 @@ describe('explicit update targets', () => {
     dismissSpy.mockClear()
     applyClientMock.mockReset().mockResolvedValue({ ok: true, handedOff: true })
     checkClientMock.mockReset().mockResolvedValue(status({ behind: 4, updateAvailable: true }))
-    updateHermesSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
-    checkHermesUpdateSpy.mockReset().mockResolvedValue({
+    updateKovaSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
+    checkKovaUpdateSpy.mockReset().mockResolvedValue({
       install_method: 'git',
       current_version: '0.4.2',
       behind: 0,
@@ -661,14 +661,14 @@ describe('explicit update targets', () => {
 
     expect($updateOverlayTarget.get()).toBe('client')
     await vi.waitFor(() => expect(checkClientMock).toHaveBeenCalledTimes(1))
-    expect(checkHermesUpdateSpy).not.toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).not.toHaveBeenCalled()
   })
 
   it('still defaults to the connected machine when no target is named', async () => {
     openUpdatesWindow()
 
     expect($updateOverlayTarget.get()).toBe('backend')
-    await vi.waitFor(() => expect(checkHermesUpdateSpy).toHaveBeenCalled())
+    await vi.waitFor(() => expect(checkKovaUpdateSpy).toHaveBeenCalled())
     expect(checkClientMock).not.toHaveBeenCalled()
   })
 
@@ -677,7 +677,7 @@ describe('explicit update targets', () => {
 
     expect($updateOverlayTarget.get()).toBe('client')
     await vi.waitFor(() => expect(applyClientMock).toHaveBeenCalledTimes(1))
-    expect(updateHermesSpy).not.toHaveBeenCalled()
+    expect(updateKovaSpy).not.toHaveBeenCalled()
     expect($updateEverything.get().running).toBe(false)
   })
 
@@ -686,7 +686,7 @@ describe('explicit update targets', () => {
 
     startActiveUpdate()
 
-    await vi.waitFor(() => expect(updateHermesSpy).toHaveBeenCalled(), { timeout: 5000 })
+    await vi.waitFor(() => expect(updateKovaSpy).toHaveBeenCalled(), { timeout: 5000 })
   })
 
   // A toast raised by the CLIENT check must open the client overlay: the user
@@ -722,8 +722,8 @@ describe('applyEverythingUpdate', () => {
     applyClientMock.mockReset().mockResolvedValue({ ok: true, handedOff: true })
     checkClientMock.mockReset().mockResolvedValue(status({ behind: 0, updateAvailable: false }))
     updateAllMock.mockReset().mockResolvedValue({ ok: true, results: [] })
-    updateHermesSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
-    checkHermesUpdateSpy.mockReset().mockResolvedValue({
+    updateKovaSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
+    checkKovaUpdateSpy.mockReset().mockResolvedValue({
       install_method: 'git',
       current_version: '0.4.2',
       behind: 0,
@@ -776,7 +776,7 @@ describe('applyEverythingUpdate', () => {
 
     await applyEverythingUpdate()
 
-    expect(updateHermesSpy).toHaveBeenCalledTimes(1)
+    expect(updateKovaSpy).toHaveBeenCalledTimes(1)
     expect(applyClientMock).toHaveBeenCalledTimes(1)
   })
 
@@ -787,7 +787,7 @@ describe('applyEverythingUpdate', () => {
 
     await applyEverythingUpdate()
 
-    expect(updateHermesSpy).toHaveBeenCalledTimes(1)
+    expect(updateKovaSpy).toHaveBeenCalledTimes(1)
     expect(applyClientMock).not.toHaveBeenCalled()
   })
 
@@ -811,7 +811,7 @@ describe('applyEverythingUpdate', () => {
 
     await applyEverythingUpdate()
 
-    expect(updateHermesSpy).not.toHaveBeenCalled()
+    expect(updateKovaSpy).not.toHaveBeenCalled()
     expect(updateAllMock).toHaveBeenCalledTimes(1)
     expect(applyClientMock).toHaveBeenCalledTimes(1)
   })
@@ -819,7 +819,7 @@ describe('applyEverythingUpdate', () => {
   it('a failed backend leg does not strand the fan-out or the client', async () => {
     setRemote(true)
     $mockConnectionsRegistry.set(registryOf(['local', 'vps']))
-    updateHermesSpy.mockRejectedValue(new Error('backend gone'))
+    updateKovaSpy.mockRejectedValue(new Error('backend gone'))
     checkClientMock.mockResolvedValue(status({ behind: 4, updateAvailable: true }))
 
     await applyEverythingUpdate()
@@ -915,8 +915,8 @@ describe('client nudge after a backend update', () => {
     dismissSpy.mockClear()
     applyClientMock.mockReset().mockResolvedValue({ ok: true, handedOff: true })
     checkClientMock.mockReset()
-    updateHermesSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
-    checkHermesUpdateSpy.mockReset().mockResolvedValue({
+    updateKovaSpy.mockReset().mockResolvedValue({ ok: true, name: 'update' })
+    checkKovaUpdateSpy.mockReset().mockResolvedValue({
       install_method: 'git',
       current_version: '0.4.2',
       behind: 0,
@@ -1091,7 +1091,7 @@ describe('applyUpdates terminal state', () => {
       guiUpdated: false,
       manualRestart: true,
       sandboxBlocked: true,
-      message: 'Backend updated. Quit and reopen Hermes to finish.'
+      message: 'Backend updated. Quit and reopen Kova to finish.'
     })
 
     const result = await applyUpdates()
@@ -1108,8 +1108,8 @@ describe('applyUpdates terminal state', () => {
 describe('applyBackendUpdate recovery', () => {
   beforeEach(() => {
     storage.clear()
-    checkHermesUpdateSpy.mockReset()
-    updateHermesSpy.mockReset()
+    checkKovaUpdateSpy.mockReset()
+    updateKovaSpy.mockReset()
     getActionStatusSpy.mockReset()
     $backendUpdateStatus.set(null)
     $backendUpdateApply.set({
@@ -1130,7 +1130,7 @@ describe('applyBackendUpdate recovery', () => {
 
   it('waits for the backend to return after the restart drops the connection, then clears the overlay', async () => {
     const actionId = 'd'.repeat(32)
-    updateHermesSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       exit_code: null,
       lines: [`=== hermes-update completed ${actionId} ===`],
@@ -1150,7 +1150,7 @@ describe('applyBackendUpdate recovery', () => {
 
   it('surfaces backend update action log lines while the action is running', async () => {
     const actionId = 'e'.repeat(32)
-    updateHermesSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'update', pid: 1 })
     getActionStatusSpy
       .mockResolvedValueOnce({
         exit_code: null,
@@ -1183,7 +1183,7 @@ describe('applyBackendUpdate recovery', () => {
 
   it('keeps waiting past the old 45-second cutoff while the update action is running', async () => {
     const actionId = 'f'.repeat(32)
-    updateHermesSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
 
     for (let attempt = 0; attempt < 31; attempt += 1) {
       getActionStatusSpy.mockResolvedValueOnce({
@@ -1214,7 +1214,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('treats a successful no-op as complete without waiting for a restart', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['stale output from another run', '=== hermes-update started now ===', '✓ Already up to date!'],
@@ -1232,7 +1232,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('treats a successful dependency repair as complete without waiting for a restart', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['=== hermes-update started now ===', '✓ Dependencies repaired!', '✓ Update complete!'],
@@ -1248,7 +1248,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('trusts the current action exit code without parsing its output', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['✓ Already up to date!'],
@@ -1259,12 +1259,12 @@ describe('applyBackendUpdate recovery', () => {
     const promise = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(1500)
     await expect(promise).resolves.toMatchObject({ ok: true })
-    expect(checkHermesUpdateSpy).not.toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).not.toHaveBeenCalled()
   })
 
   it('waits for current-action completion proof after the backend restarts', async () => {
     const actionId = 'a'.repeat(32)
-    updateHermesSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
       .mockResolvedValueOnce({
@@ -1285,12 +1285,12 @@ describe('applyBackendUpdate recovery', () => {
     const promise = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(5000)
     await expect(promise).resolves.toMatchObject({ ok: true })
-    expect(checkHermesUpdateSpy).not.toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).not.toHaveBeenCalled()
   })
 
   it('accepts its terminal receipt when a verbose update pushes the start marker out of the log tail', async () => {
     const actionId = 'b'.repeat(32)
-    updateHermesSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       exit_code: null,
       lines: ['final build output', 'Update complete!', `=== hermes-update completed ${actionId} ===`],
@@ -1315,7 +1315,7 @@ describe('applyBackendUpdate recovery', () => {
       targetSha: 'backend:0.18.2',
       updateAvailable: true
     })
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValue({
       exit_code: null,
       lines: ['verbose output', 'Update complete!'],
@@ -1323,7 +1323,7 @@ describe('applyBackendUpdate recovery', () => {
       pid: null,
       running: false
     })
-    checkHermesUpdateSpy
+    checkKovaUpdateSpy
       .mockResolvedValueOnce({
         behind: null,
         can_apply: true,
@@ -1349,7 +1349,7 @@ describe('applyBackendUpdate recovery', () => {
     await vi.advanceTimersByTimeAsync(5000)
 
     await expect(promise).resolves.toMatchObject({ ok: true })
-    expect(checkHermesUpdateSpy).toHaveBeenCalledTimes(2)
+    expect(checkKovaUpdateSpy).toHaveBeenCalledTimes(2)
   })
 
   it('proves a fast pre-action-ID packaged update by its changed version', async () => {
@@ -1361,7 +1361,7 @@ describe('applyBackendUpdate recovery', () => {
       targetSha: 'backend:0.18.2',
       updateAvailable: true
     })
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: null,
       lines: ['verbose output without a retained start marker'],
@@ -1369,7 +1369,7 @@ describe('applyBackendUpdate recovery', () => {
       pid: null,
       running: false
     })
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockResolvedValue({
       behind: -1,
       can_apply: true,
       commits: [],
@@ -1384,11 +1384,11 @@ describe('applyBackendUpdate recovery', () => {
     await vi.advanceTimersByTimeAsync(1500)
 
     await expect(promise).resolves.toMatchObject({ ok: true })
-    expect(checkHermesUpdateSpy).toHaveBeenCalledWith(true)
+    expect(checkKovaUpdateSpy).toHaveBeenCalledWith(true)
   })
 
   it('resumes action polling after a transient status failure', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockResolvedValueOnce({
@@ -1413,7 +1413,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('restores the fixed action deadline after reconnecting', async () => {
-    updateHermesSpy.mockResolvedValue({ action_id: 'a'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'a'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
 
     const running = {
       exit_code: null,
@@ -1437,7 +1437,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('shares one in-flight update between concurrent apply requests', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['=== hermes-update started now ===', '✓ Already up to date!'],
@@ -1452,11 +1452,11 @@ describe('applyBackendUpdate recovery', () => {
     expect(second).toBe(first)
     await vi.advanceTimersByTimeAsync(1500)
     await Promise.all([first, second])
-    expect(updateHermesSpy).toHaveBeenCalledTimes(1)
+    expect(updateKovaSpy).toHaveBeenCalledTimes(1)
   })
 
   it('fails closed when the update action never reaches a terminal state', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: null,
       lines: ['=== hermes-update started now ===', 'still running'],
@@ -1472,7 +1472,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('fails immediately when the update action exits nonzero', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 1,
       lines: ['=== hermes-update started now ===', 'update failed'],
@@ -1484,14 +1484,14 @@ describe('applyBackendUpdate recovery', () => {
     const promise = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(1500)
     await expect(promise).resolves.toMatchObject({ ok: false, error: 'apply-failed' })
-    expect(checkHermesUpdateSpy).not.toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).not.toHaveBeenCalled()
     expect($backendUpdateApply.get().stage).toBe('error')
   })
 
   it('surfaces an error when the backend never comes back after the restart', async () => {
-    updateHermesSpy.mockResolvedValue({ ok: true, name: 'update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'update', pid: 1 })
     getActionStatusSpy.mockRejectedValue(new Error('ECONNREFUSED'))
-    checkHermesUpdateSpy.mockRejectedValue(new Error('ECONNREFUSED'))
+    checkKovaUpdateSpy.mockRejectedValue(new Error('ECONNREFUSED'))
 
     const promise = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(250000)
@@ -1502,7 +1502,7 @@ describe('applyBackendUpdate recovery', () => {
   }, 10000)
 
   it('reports a committed update with owed follow-ups as success plus an owed-step warning', async () => {
-    updateHermesSpy.mockResolvedValue({ action_id: 'e'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'e'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['Update complete!'],
@@ -1530,7 +1530,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it("names a partial update's owed user action verbatim, only from this action's own receipt", async () => {
-    const instruction = 'Your local changes are parked in stash@{0}; run `git stash pop` in ~/.hermes/hermes-agent.'
+    const instruction = 'Your local changes are parked in stash@{0}; run `git stash pop` in ~/.kova/kova-agent.'
 
     const status = (actionId: string) => ({
       exit_code: 1,
@@ -1546,7 +1546,7 @@ describe('applyBackendUpdate recovery', () => {
       }
     })
 
-    updateHermesSpy.mockResolvedValue({ action_id: 'c'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'c'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue(status('c'.repeat(32)))
     const own = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(1500)
@@ -1583,7 +1583,7 @@ describe('applyBackendUpdate recovery', () => {
       }
     })
 
-    updateHermesSpy.mockResolvedValue({ action_id: 'b'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'b'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue(receipt('a'.repeat(32)))
     const foreign = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(6 * 60 * 1000 + 1500)
@@ -1679,8 +1679,8 @@ describe('startUpdatePoller', () => {
     // Both profiles resolve to mode: 'remote' — only baseUrl differs. A
     // mode-only comparison would treat this as "no change" and never
     // re-check, leaving profile A's stale status on screen for profile B.
-    checkHermesUpdateSpy.mockReset()
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockReset()
+    checkKovaUpdateSpy.mockResolvedValue({
       install_method: 'git',
       current_version: '0.16.0',
       behind: 1,
@@ -1703,7 +1703,7 @@ describe('startUpdatePoller', () => {
 
     startUpdatePoller()
     await vi.advanceTimersByTimeAsync(0)
-    checkHermesUpdateSpy.mockClear()
+    checkKovaUpdateSpy.mockClear()
 
     setConnection({
       baseUrl: 'http://profile-b:9119',
@@ -1717,7 +1717,7 @@ describe('startUpdatePoller', () => {
     })
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(checkHermesUpdateSpy).toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).toHaveBeenCalled()
   })
 
   it('re-checks backend updates when switching between two profiles on the same remote backend', async () => {
@@ -1725,8 +1725,8 @@ describe('startUpdatePoller', () => {
     // update check is profile-scoped (per-profile overrides can pin a
     // different channel/branch), so a baseUrl-only key would treat this as
     // "no change" and keep the first profile's status on screen.
-    checkHermesUpdateSpy.mockReset()
-    checkHermesUpdateSpy.mockResolvedValue({
+    checkKovaUpdateSpy.mockReset()
+    checkKovaUpdateSpy.mockResolvedValue({
       install_method: 'git',
       current_version: '0.16.0',
       behind: 1,
@@ -1751,12 +1751,12 @@ describe('startUpdatePoller', () => {
     setConnection(pooled('alpha'))
     startUpdatePoller()
     await vi.advanceTimersByTimeAsync(0)
-    checkHermesUpdateSpy.mockClear()
+    checkKovaUpdateSpy.mockClear()
 
     setConnection(pooled('beta'))
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(checkHermesUpdateSpy).toHaveBeenCalled()
+    expect(checkKovaUpdateSpy).toHaveBeenCalled()
   })
 
   it('discards a stale in-flight response and re-checks after switching to B before A resolves', async () => {
@@ -1764,7 +1764,7 @@ describe('startUpdatePoller', () => {
     // trigger is locked out by $backendUpdateChecking. Once A's (now stale)
     // response lands it must not overwrite the display with A's result, and
     // B's own check must still run once the lock clears.
-    checkHermesUpdateSpy.mockReset()
+    checkKovaUpdateSpy.mockReset()
 
     let resolveA: (value: unknown) => void = () => {}
 
@@ -1772,8 +1772,8 @@ describe('startUpdatePoller', () => {
       resolveA = resolve
     })
 
-    checkHermesUpdateSpy.mockImplementationOnce(() => aPending)
-    checkHermesUpdateSpy.mockResolvedValueOnce({
+    checkKovaUpdateSpy.mockImplementationOnce(() => aPending)
+    checkKovaUpdateSpy.mockResolvedValueOnce({
       install_method: 'git',
       current_version: '0.17.0',
       behind: 4,
@@ -1795,7 +1795,7 @@ describe('startUpdatePoller', () => {
     })
 
     startUpdatePoller()
-    // A's checkHermesUpdate() call is now in flight (aPending unresolved).
+    // A's checkKovaUpdate() call is now in flight (aPending unresolved).
     // Switch profiles before it settles.
 
     setConnection({
@@ -1823,7 +1823,7 @@ describe('startUpdatePoller', () => {
     // Flush the automatic follow-up check queued for B once A's lock cleared.
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(checkHermesUpdateSpy).toHaveBeenCalledTimes(2)
+    expect(checkKovaUpdateSpy).toHaveBeenCalledTimes(2)
     // B's result (behind: 4), not A's stale one (behind: 1).
     expect($backendUpdateStatus.get()?.behind).toBe(4)
   })

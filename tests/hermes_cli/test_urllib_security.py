@@ -383,7 +383,7 @@ def test_azure_anthropic_probe_drops_api_key_and_bearer_on_redirect():
 
 def _clear_ca_bundle_env(monkeypatch) -> None:
     for name in (
-        "HERMES_CA_BUNDLE",
+        "KOVA_CA_BUNDLE",
         "SSL_CERT_FILE",
         "REQUESTS_CA_BUNDLE",
         "CURL_CA_BUNDLE",
@@ -412,7 +412,7 @@ def test_hermes_owned_opener_uses_resolved_https_context(monkeypatch):
 
 
 def test_resolved_https_context_defers_to_the_platform_store(monkeypatch, tmp_path):
-    """Hermes-owned urllib openers verify against the OS certificate store.
+    """Kova-owned urllib openers verify against the OS certificate store.
 
     None means "urllib's default context", which — with truststore installed
     process-wide — IS the platform verifier. There is no CA-bundle ladder
@@ -423,13 +423,13 @@ def test_resolved_https_context_defers_to_the_platform_store(monkeypatch, tmp_pa
 
     assert urllib_security._resolved_https_context() is None
 
-    for var in ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
+    for var in ("KOVA_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
         monkeypatch.setenv(var, str(tmp_path / "nope.pem"))
     assert urllib_security._resolved_https_context() is None
 
 
 def test_resolved_https_context_installs_the_platform_verifier():
-    """Resolving trust for a Hermes opener must put truststore in force.
+    """Resolving trust for a Kova opener must put truststore in force.
 
     A stdlib urllib request is the call path certifi never covered (the
     llama.cpp engine download among them), so the install has to happen here

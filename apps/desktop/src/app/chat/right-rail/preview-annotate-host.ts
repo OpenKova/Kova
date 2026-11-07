@@ -63,7 +63,7 @@ export function createPreviewAnnotateGuest(webview: PreviewDriveGuest | null): n
         signal
       )) as { height: number; width: number }
       signal?.throwIfAborted()
-      const dataUrl = await window.hermesDesktop.capturePreview?.({ rect, viewport, webContentsId })
+      const dataUrl = await window.kovaDesktop.capturePreview?.({ rect, viewport, webContentsId })
 
       if (!dataUrl) {
         throw new Error('preview capture is unavailable')

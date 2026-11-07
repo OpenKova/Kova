@@ -4,7 +4,7 @@
 Validates ``plugin-catalog/*.yaml`` catalog entries and
 ``plugin-catalog/removed.yaml`` against the catalog contract schema, using
 only stdlib + ruamel.yaml so the admission CI (and third-party repos) can run it
-WITHOUT installing hermes-agent.
+WITHOUT installing kova-agent.
 
 NOTE: this script intentionally duplicates the schema rules instead of
 importing ``kova_cli`` — the whole point is the no-install requirement for

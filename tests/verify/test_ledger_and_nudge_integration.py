@@ -26,7 +26,7 @@ from kova_cli.verify_cmd import run_verify_command
 @pytest.fixture(autouse=True)
 def _ledger_on(monkeypatch):
     """The ledger is inert unless verify-on-stop is enabled; these tests exercise the ledger."""
-    monkeypatch.setenv("HERMES_VERIFY_ON_STOP", "1")
+    monkeypatch.setenv("KOVA_VERIFY_ON_STOP", "1")
 
 
 
@@ -47,9 +47,9 @@ def make_args(path, **overrides):
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes-home"))
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+def kova_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova-home"))
+    monkeypatch.delenv("KOVA_SESSION_ID", raising=False)
     return tmp_path
 
 
@@ -61,7 +61,7 @@ def _workspace(tmp_path, *, scripts=None, manifest_recipe=None):
         json.dumps({"scripts": scripts} if scripts else {}), encoding="utf-8"
     )
     if manifest_recipe is not None:
-        hermes_dir = project / ".hermes"
+        hermes_dir = project / ".kova"
         hermes_dir.mkdir()
         (hermes_dir / "environment.json").write_text(
             json.dumps({"version": 1, "recipe": manifest_recipe}), encoding="utf-8"
@@ -74,8 +74,8 @@ def _workspace(tmp_path, *, scripts=None, manifest_recipe=None):
 # ---------------------------------------------------------------------------
 
 
-def test_record_verify_run_marks_workspace_passed(hermes_home):
-    project = _workspace(hermes_home)
+def test_record_verify_run_marks_workspace_passed(kova_home):
+    project = _workspace(kova_home)
     event = record_verify_run(root=project, session_id="s1", ok=True, output="all green")
     assert event is not None
     assert event["status"] == "passed"
@@ -85,15 +85,15 @@ def test_record_verify_run_marks_workspace_passed(hermes_home):
     assert status["evidence"]["canonical_command"] == "hermes verify"
 
 
-def test_record_verify_run_records_failure(hermes_home):
-    project = _workspace(hermes_home)
+def test_record_verify_run_records_failure(kova_home):
+    project = _workspace(kova_home)
     record_verify_run(root=project, session_id="s1", ok=False, output="boom")
     status = verification_status(session_id="s1", cwd=project)
     assert status["status"] == "failed"
 
 
-def test_cli_passing_run_writes_ledger_evidence(hermes_home, capsys):
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+def test_cli_passing_run_writes_ledger_evidence(kova_home, capsys):
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     code = run_verify_command(make_args(project))
     assert code == 0
     assert json.loads(capsys.readouterr().out)["ok"] is True
@@ -102,34 +102,34 @@ def test_cli_passing_run_writes_ledger_evidence(hermes_home, capsys):
     assert status["evidence"]["scope"] == "full"
 
 
-def test_cli_failing_run_writes_failed_evidence(hermes_home, capsys):
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["false"]})
+def test_cli_failing_run_writes_failed_evidence(kova_home, capsys):
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["false"]})
     code = run_verify_command(make_args(project))
     assert code == 1
     status = verification_status(session_id=None, cwd=project)
     assert status["status"] == "failed"
 
 
-def test_cli_partial_run_records_targeted_scope(hermes_home, capsys):
+def test_cli_partial_run_records_targeted_scope(kova_home, capsys):
     # --skip-start / --phase subsets must never present as full workspace green.
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     code = run_verify_command(make_args(project, skip_start=True))
     assert code == 0
     status = verification_status(session_id=None, cwd=project)
     assert status["evidence"]["scope"] == "targeted"
 
 
-def test_cli_run_uses_hermes_session_id_env(hermes_home, capsys, monkeypatch):
-    monkeypatch.setenv("HERMES_SESSION_ID", "sess-42")
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+def test_cli_run_uses_hermes_session_id_env(kova_home, capsys, monkeypatch):
+    monkeypatch.setenv("KOVA_SESSION_ID", "sess-42")
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     run_verify_command(make_args(project))
     assert verification_status(session_id="sess-42", cwd=project)["status"] == "passed"
 
 
-def test_cli_verify_clears_stale_on_editing_session(hermes_home, capsys):
+def test_cli_verify_clears_stale_on_editing_session(kova_home, capsys):
     """Standalone ``hermes verify`` records under default; the editing session
     must still see a pass (#103271)."""
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     changed = str(project / "src" / "app.ts")
     edit_session = "20260717_230325_f2d00d"
     mark_workspace_edited(session_id=edit_session, cwd=project, paths=[changed])
@@ -148,8 +148,8 @@ def test_cli_verify_clears_stale_on_editing_session(hermes_home, capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_passing_verify_run_satisfies_stop_guard(hermes_home, capsys):
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+def test_passing_verify_run_satisfies_stop_guard(kova_home, capsys):
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="default", cwd=project, paths=[changed])
     assert build_verify_on_stop_nudge(session_id="default", changed_paths=[changed]) is not None
@@ -164,8 +164,8 @@ def test_passing_verify_run_satisfies_stop_guard(hermes_home, capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_nudge_mentions_hermes_verify_when_recipe_has_start(hermes_home):
-    project = _workspace(hermes_home, scripts={"test": "vitest", "dev": "vite"})
+def test_nudge_mentions_hermes_verify_when_recipe_has_start(kova_home):
+    project = _workspace(kova_home, scripts={"test": "vitest", "dev": "vite"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -175,10 +175,10 @@ def test_nudge_mentions_hermes_verify_when_recipe_has_start(hermes_home):
     assert "npm run test" in nudge
 
 
-def test_nudge_mentions_hermes_verify_when_manifest_exists(hermes_home):
-    # No start script, but a saved .hermes/environment.json qualifies.
+def test_nudge_mentions_hermes_verify_when_manifest_exists(kova_home):
+    # No start script, but a saved .kova/environment.json qualifies.
     project = _workspace(
-        hermes_home,
+        kova_home,
         scripts={"test": "vitest"},
         manifest_recipe={"name": "Fake", "test": ["echo ok"]},
     )
@@ -189,9 +189,9 @@ def test_nudge_mentions_hermes_verify_when_manifest_exists(hermes_home):
     assert "hermes verify --json" in nudge
 
 
-def test_nudge_keeps_plain_wording_without_recipe_start(hermes_home):
+def test_nudge_keeps_plain_wording_without_recipe_start(kova_home):
     # Verify commands but no start script and no manifest: today's wording.
-    project = _workspace(hermes_home, scripts={"test": "vitest"})
+    project = _workspace(kova_home, scripts={"test": "vitest"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -199,7 +199,7 @@ def test_nudge_keeps_plain_wording_without_recipe_start(hermes_home):
     assert "hermes verify" not in nudge
 
 
-def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
+def test_nudge_recipe_detection_failure_is_silent(kova_home, monkeypatch):
     # A broken recipe detector must never break the nudge path.
     from agent.verify import recipes
 
@@ -207,7 +207,7 @@ def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
         raise RuntimeError("detector exploded")
 
     monkeypatch.setattr(recipes, "detect_recipe", boom)
-    project = _workspace(hermes_home, scripts={"test": "vitest", "dev": "vite"})
+    project = _workspace(kova_home, scripts={"test": "vitest", "dev": "vite"})
     changed = str(project / "src" / "app.ts")
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
@@ -220,8 +220,8 @@ def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_detect_path_merges_project_facts_commands(hermes_home, capsys):
-    project = _workspace(hermes_home)  # package.json with no scripts
+def test_detect_path_merges_project_facts_commands(kova_home, capsys):
+    project = _workspace(kova_home)  # package.json with no scripts
     scripts_dir = project / "scripts"
     scripts_dir.mkdir()
     (scripts_dir / "run_tests.sh").write_text("#!/bin/sh\n", encoding="utf-8")
@@ -236,9 +236,9 @@ def test_detect_path_merges_project_facts_commands(hermes_home, capsys):
     assert "pytest" in tests
 
 
-def test_manifest_recipe_is_not_merged(hermes_home, capsys):
+def test_manifest_recipe_is_not_merged(kova_home, capsys):
     # A saved manifest is the user-edited source of truth; leave it alone.
-    project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
+    project = _workspace(kova_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     (project / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
     code = run_verify_command(make_args(project, detect_only=True))
     assert code == 0
@@ -247,8 +247,8 @@ def test_manifest_recipe_is_not_merged(hermes_home, capsys):
     assert payload["recipe"]["test"] == ["echo ok"]
 
 
-def test_merge_skips_commands_recipe_already_has(hermes_home, capsys):
-    project = _workspace(hermes_home, scripts={"test": "vitest"})
+def test_merge_skips_commands_recipe_already_has(kova_home, capsys):
+    project = _workspace(kova_home, scripts={"test": "vitest"})
     code = run_verify_command(make_args(project, detect_only=True))
     assert code == 0
     payload = json.loads(capsys.readouterr().out)

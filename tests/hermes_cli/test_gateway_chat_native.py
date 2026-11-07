@@ -1,6 +1,6 @@
 """Native PTY clients against an ordinary daemon and loopback model only.
 
-`hermes --cli chat` (interactive and -q/-Q) is main's HermesCLI again, its agent and session store the
+`hermes --cli chat` (interactive and -q/-Q) is main's KovaCLI again, its agent and session store the
 gateway's; `-z` stays on the gateway transport client. The CLI process may read state.db (maintainer
 ruling) but builds no AIAgent, no GatewayRunner and no SessionDB writer. The thin client's
 `/approve <id>` detach/reconnect leg is retired: main's classic approval is the modal the A/B harness
@@ -39,12 +39,12 @@ def test_native_classic_fresh_resume_and_oneshot(tmp_path, model_peer, request):
         "approvals": {"mode": "manual", "timeout": 60},
         "model": {"provider": "custom", "default": "local-wire-stub", "base_url": model_url},
         "auxiliary": {"title_generation": {"enabled": False}},
-        # Answered at the current offer version, as tests/fakes/fake_llm_provider.write_hermes_home
+        # Answered at the current offer version, as tests/fakes/fake_llm_provider.write_kova_home
         # does: main's interactive chat asks it first on a home that never answered.
         "telemetry": {"shared_metrics": {"enabled": False, "send": False, "offer_version": OFFER_VERSION}},
     }))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED="1",
                OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=model_url)
     # Instrument constructor calls without replacing runtime predicates or behavior.
@@ -125,7 +125,7 @@ finally:
                 tmux("send-keys", "-t", "chat", "Enter")
 
             launch("--cli", "chat")
-            first = until("Welcome to Hermes Agent")
+            first = until("Welcome to Kova Agent")
             until("❯ ")  # the banner prints before the prompt accepts input
             type_line("WS_SHARED")
             fresh = until("LOCAL_ACK_WS_SHARED")

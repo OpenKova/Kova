@@ -1,8 +1,8 @@
-"""Regression tests for NousResearch/hermes-agent#2765.
+"""Regression tests for NousResearch/kova-agent#2765.
 
 A memory provider configured via ``memory.provider`` but reporting
 ``is_available() == False`` (e.g. missing credentials, or a systemd/gateway
-service that didn't inherit ``~/.hermes/.env``) used to be dropped silently.
+service that didn't inherit ``~/.kova/.env``) used to be dropped silently.
 ``agent_init`` now emits a one-time, deduped warning instead.
 """
 
@@ -52,9 +52,9 @@ def test_parked_provider_is_reported_and_never_reinstalled(monkeypatch):
     """A provider that plugins.disabled parks (by the user, or by an update that could not install it)
     is reported once with how to turn it back on and the update's reason; it is never re-installed."""
     from kova_cli import memory_provider_migration
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = get_hermes_home()
+    home = get_kova_home()
     plugin = home / "plugins" / "parkedmem"
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text("from agent.memory_provider import MemoryProvider\n", encoding="utf-8")
@@ -76,9 +76,9 @@ def test_provider_that_still_fails_after_recovery_is_reported(monkeypatch):
     """An install notice from startup recovery does not explain a provider that still cannot load:
     the user is told external memory is off."""
     from kova_cli import memory_provider_migration
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    plugin = get_hermes_home() / "plugins" / "brokenmem"
+    plugin = get_kova_home() / "plugins" / "brokenmem"
 
     def recover(name, say=None):
         plugin.mkdir(parents=True)

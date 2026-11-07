@@ -125,7 +125,7 @@ def test_prepare_agent_startup_skips_discovery_when_chat_resolves_to_tui(
 ):
     """Bare ``hermes`` / ``hermes chat`` on a TTY with ``display.interface:
     tui`` resolves to the TUI via ``_resolve_use_tui``, but does NOT pass
-    ``--tui`` or ``HERMES_TUI``. Discovery must be skipped in the wrapper:
+    ``--tui`` or ``KOVA_TUI``. Discovery must be skipped in the wrapper:
     the TUI gateway owns it, and the wrapper would otherwise hold a dead
     MCP server for the entire session (3 copies per TUI instance).
     """
@@ -452,7 +452,7 @@ def test_server_added_after_discovery_is_connected_by_the_next_agent_build(monke
     from tools import mcp_tool
     from tools import mcp_tool_config as _config
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("mcp_servers:\n  github:\n    url: https://mcp.example.test/gh\n")
     configured = {"github": {"url": "https://mcp.example.test/gh"}}
     monkeypatch.setattr(_config, "_load_mcp_config", lambda: dict(configured))

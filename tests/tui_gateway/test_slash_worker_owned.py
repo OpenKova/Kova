@@ -66,11 +66,11 @@ def _cmdline(proc: psutil.Process) -> list[str]:
 
 def _home(tmp_path: Path, name: str) -> dict:
     home = tmp_path / name
-    (home / ".hermes").mkdir(parents=True)
-    (home / ".hermes" / "config.yaml").write_text(
+    (home / ".kova").mkdir(parents=True)
+    (home / ".kova" / "config.yaml").write_text(
         "quick_commands:\n  linger:\n    type: exec\n    command: sleep 120\n", encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if not k.endswith("_API_KEY")}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), PYTHONPATH=str(_REPO))
+    env.update(HOME=str(home), KOVA_HOME=str(home / ".kova"), PYTHONPATH=str(_REPO))
     return env
 
 
@@ -167,11 +167,11 @@ def test_a_worker_that_already_died_is_never_group_signalled(monkeypatch):
 
 
 def test_main_arms_the_legacy_watchdog_then_imports_cli_before_runtime_prep(monkeypatch):
-    """``cli`` loads ~/.hermes/.env, which MCP discovery in the runtime prep needs. A gateway started
+    """``cli`` loads ~/.kova/.env, which MCP discovery in the runtime prep needs. A gateway started
     before an update still passes ``--parent-pid``; its death guard starts before the slow import."""
     events = []
 
-    class FakeHermesCLI:
+    class FakeKovaCLI:
         def __init__(self, **kwargs):
             events.append(("cli", kwargs["resume"]))
 
@@ -184,7 +184,7 @@ def test_main_arms_the_legacy_watchdog_then_imports_cli_before_runtime_prep(monk
 
         def exec_module(self, module):
             events.append(("cli-import",))
-            module.HermesCLI = FakeHermesCLI
+            module.KovaCLI = FakeKovaCLI
 
     # setitem first so teardown also removes the stub module the import below inserts.
     monkeypatch.setitem(sys.modules, "cli", None)

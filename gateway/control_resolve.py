@@ -109,13 +109,13 @@ def resolve_profile(home: str, *, identify: Callable[[], dict[str, Any]], own_ho
     from kova_cli import gateway_runtime as runtime
     from kova_cli.gateway_client import GATEWAY_WS_PROTOCOL, GATEWAY_WS_TICKET_PREFIX, gateway_ws_target
     from kova_cli.gateway_runtime_attach import failure_message
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     own = Path(runtime._canonical_home(own_home))
     requested = _contained_home(home, own)
     control, verdict = _verdict(identify(), requested, own)
     # The set ``ensure`` checks for this client ({its home, its process home, the default root}).
-    fence_homes = {own, get_default_hermes_root()} | ({requested} if control else set())
+    fence_homes = {own, get_default_kova_root()} | ({requested} if control else set())
     ok = runtime.attachable(verdict)
     endpoint = None
     if verdict.endpoint is not None:

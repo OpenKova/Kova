@@ -49,7 +49,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
   const session = await startInstallSession()
   const { facts, provider, env } = session
   const target = publishUpstream('release: next upstream main', 'UPSTREAM_RELEASE.md', `next release ${RUN}\n`)
-  const marker = path.join(facts.hermesHome, '.hermes-update-in-progress')
+  const marker = path.join(facts.kovaHome, '.kova-update-in-progress')
   const cliLog = path.join(facts.sandboxRoot, 'terminal-update.log')
   let cliExit: null | number = null
 
@@ -80,7 +80,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
       await test.step('a terminal `hermes update` is running', async () => {
         const out = fs.openSync(cliLog, 'w')
 
-        const cli = spawn(facts.hermes, ['update', '--yes'], {
+        const cli = spawn(facts.kova, ['update', '--yes'], {
           cwd: facts.home,
           env: { ...env, TERM: 'dumb' },
           stdio: ['ignore', out, out]

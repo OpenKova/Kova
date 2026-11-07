@@ -95,13 +95,13 @@ def _discussion_limits(root: Path) -> discussion.DiscussionLimits:
     """Read the room owner's config, never the current member's profile scope. A malformed value
     keeps today's defaults (logged) rather than taking every room on this store offline."""
     from kova_cli.config_effective import load_user_config_effective
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    token = set_hermes_home_override(str(root))
+    token = set_kova_home_override(str(root))
     try:
         config = load_user_config_effective(root / "config.yaml")
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     try:
         rooms = config.get("hosted_rooms", {})
         if not isinstance(rooms, Mapping):
@@ -119,7 +119,7 @@ def _discussion_limits(root: Path) -> discussion.DiscussionLimits:
 
 def _hosted_room_turn_timeout_seconds() -> float:
     try:
-        agent_timeout = float(os.getenv("HERMES_AGENT_TIMEOUT", "1800"))
+        agent_timeout = float(os.getenv("KOVA_AGENT_TIMEOUT", "1800"))
     except (TypeError, ValueError):
         agent_timeout = 0.0
     return (agent_timeout if agent_timeout > 0 else 1800.0) + _HOSTED_ROOM_TERMINAL_GRACE_SECONDS

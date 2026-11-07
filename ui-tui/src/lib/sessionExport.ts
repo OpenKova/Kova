@@ -17,9 +17,9 @@ export const defaultSaveName = (format: string, now = new Date()) =>
 
 /** Write a `session.export` payload on THIS machine (the client), never the gateway host: a named
  *  file resolves against `cwd` (the user's launch folder: the launcher starts Node inside the
- *  install), else `<HERMES_HOME>/sessions/saved/<the owner's filename>`. Returns the path written. */
+ *  install), else `<KOVA_HOME>/sessions/saved/<the owner's filename>`. Returns the path written. */
 export function writeSessionExport(payload: SessionExportPayload, filename?: string, cwd = process.cwd()): string {
-  const home = process.env.HERMES_HOME ?? join(homedir(), '.hermes')
+  const home = process.env.KOVA_HOME ?? join(homedir(), '.kova')
 
   const path = filename
     ? isAbsolute(filename.replace(/^~(?=$|\/)/, homedir()))

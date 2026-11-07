@@ -183,8 +183,8 @@ class RemoteBackend:
 
     @staticmethod
     def _key(home: Path) -> str:
-        from kova_constants import hermes_home_key
-        return hermes_home_key(home)
+        from kova_constants import kova_home_key
+        return kova_home_key(home)
 
     @staticmethod
     def _profile_for(home: Path) -> str:
@@ -192,8 +192,8 @@ class RemoteBackend:
         name = profile_name_for_home(home)
         if not name or not PROFILE_ID_RE.match(name):
             raise ConfigBackendUnavailable(
-                f"Remote Config: {home} is not a Hermes profile home, so it has no remote config "
-                "(HERMES_CONFIG_BACKEND=remote serves profile homes only).")
+                f"Remote Config: {home} is not a Kova profile home, so it has no remote config "
+                "(KOVA_CONFIG_BACKEND=remote serves profile homes only).")
         return name
 
     def _state(self, home: Path) -> _ProfileState:
@@ -212,7 +212,7 @@ class RemoteBackend:
             raise ConfigBackendUnavailable(
                 f"Remote Config: a config read for {home} re-entered the load of that profile's config "
                 "on the same thread (code on the boot path read config before it was loaded). This is "
-                "a Hermes bug; refusing the read instead of deadlocking.")
+                "a Kova bug; refusing the read instead of deadlocking.")
         with self._lock:
             fetch_lock = self._fetch_locks.setdefault(key, threading.Lock())
         booting = self._booting()
@@ -244,8 +244,8 @@ class RemoteBackend:
         profile = self._profile_for(home)
         if not client.instance_id():
             raise ConfigBackendUnavailable(
-                f"Remote Config: {client.INSTANCE_ENV} is not set, so Hermes cannot identify this agent "
-                "to the config plane. Hermes does not start without its remote config.")
+                f"Remote Config: {client.INSTANCE_ENV} is not set, so Kova cannot identify this agent "
+                "to the config plane. Kova does not start without its remote config.")
         delays = list(BOOT_RETRY_DELAYS)
         while True:
             notes: list[str] = []
@@ -270,8 +270,8 @@ class RemoteBackend:
                     continue
                 raise ConfigBackendUnavailable(
                     f"Remote Config: cannot load the config for profile {profile!r} from "
-                    f"{client.shown_url()}: {exc}. Hermes does not start without its remote config "
-                    "(HERMES_CONFIG_BACKEND=remote has no local fallback).") from exc
+                    f"{client.shown_url()}: {exc}. Kova does not start without its remote config "
+                    "(KOVA_CONFIG_BACKEND=remote has no local fallback).") from exc
 
     @staticmethod
     def _bearer(home: Path) -> str:
@@ -400,7 +400,7 @@ class RemoteBackend:
         for key in sorted(set(doc) - _known_top_level_keys() - {"_config_version"}):
             if key not in self._unknown_warned:
                 self._unknown_warned.add(key)
-                logger.warning("Remote Config: unknown config key %r is ignored by this Hermes version", key)
+                logger.warning("Remote Config: unknown config key %r is ignored by this Kova version", key)
         latest = _latest_config_version()
         if SUPPORT_FLOOR_VERSION <= current < latest:
             self._migrate_in_memory(st, seen, current, doc)
@@ -417,16 +417,16 @@ class RemoteBackend:
         """Run the migrations from schema *current* over a private copy of *doc* and return it.
         Nothing is published: only this thread sees the copy while the steps run (:class:`_Private`)."""
         from kova_cli.config_migrations import run_migrations
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         m = _Private(st=st, doc=copy.deepcopy(doc), serial=next(_PRIVATE_SERIAL))
         m.doc["_config_version"] = current
         private_token = _PRIVATE.set(m)
-        home_token = set_hermes_home_override(st.home)
+        home_token = set_kova_home_override(st.home)
         try:
             # config_only: a read (or a refused write's check) must change no local file (D12).
             run_migrations(current, {"env_added": [], "config_added": [], "warnings": []}, True, config_only=True)
         finally:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
             _PRIVATE.reset(private_token)
         return m.doc
 
@@ -857,7 +857,7 @@ class RemoteBackend:
             self._managed_warned = True
             path = managed_config_file()
             if path is not None:
-                msg = (f"WARNING: {path} exists but is IGNORED: HERMES_CONFIG_BACKEND=remote takes config "
+                msg = (f"WARNING: {path} exists but is IGNORED: KOVA_CONFIG_BACKEND=remote takes config "
                        "and locks only from Remote Config (D18). Remove the file.")
                 logger.warning(msg)
                 print(msg, file=sys.stderr)

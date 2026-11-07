@@ -371,7 +371,7 @@ export function ModelPicker({
                         authenticated: false,
                         models: [],
                         total_models: 0,
-                        warning: p.key_env ? M.pasteKeyToActivate(p.key_env) : M.runHermesModelToConfigure
+                        warning: p.key_env ? M.pasteKeyToActivate(p.key_env) : M.runKovaModelToConfigure
                       }
                     : p
                 )

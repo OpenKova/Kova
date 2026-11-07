@@ -4,7 +4,7 @@ from kova_cli.web_server import _SESSION_TOKEN, app
 from fastapi.testclient import TestClient
 
 client = TestClient(app)
-HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
+HEADERS = {"X-Kova-Session-Token": _SESSION_TOKEN}
 
 
 def test_expired_claude_code_token_is_not_connected(monkeypatch):

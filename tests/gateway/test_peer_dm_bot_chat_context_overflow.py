@@ -117,7 +117,7 @@ def overflow_run(tmp_path_factory):
                       'compression': {'provider': 'custom', 'model': 'fake-model', 'base_url': url}},
         'platforms': {'api_server': {'enabled': True, 'extra': {'host': '127.0.0.1', 'port': api_port, 'key': KEY}}},
         'platform_toolsets': {'cli': [], 'api_server': []}}))
-    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                              OPENAI_API_KEY='loopback-only', PYTHONUNBUFFERED='1')
     big = 'MKBIG ' + 'lorem ipsum dolor sit amet ' * 12000  # the live repro's DM (capped to 64 KB at the door)
     try:
@@ -196,7 +196,7 @@ def racing_run(tmp_path_factory):
                       'compression': {'provider': 'custom', 'model': 'fake-model', 'base_url': url}},
         'platforms': {'api_server': {'enabled': True, 'extra': {'host': '127.0.0.1', 'port': api_port, 'key': KEY}}},
         'platform_toolsets': {'cli': [], 'api_server': []}}))
-    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                              OPENAI_API_KEY='loopback-only', PYTHONUNBUFFERED='1')
     big = 'MKBIG ' + 'lorem ipsum dolor sit amet ' * 12000
     results = {}

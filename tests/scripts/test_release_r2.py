@@ -130,12 +130,12 @@ def test_disposable_scope_streams_lists_and_never_touches_production(r2_server, 
 @pytest.mark.parametrize('method,path,query,payload,scope,signature', [
     ('GET', '/', {}, EMPTY_SHA, 'us-east-1/service',
      '33399fd3d4a9d6104710c7c04005f7c959f8b1f8bf41b823587ed36b079e453f'),
-    ('PUT', '/hermes-releases/HermesBundled-0.28.0-win-x64.msix', {},
+    ('PUT', '/hermes-releases/KovaBundled-0.28.0-win-x64.msix', {},
      '44ce7dd67c959e0d3524ffac1771dfbba87d2b6b4b4e99e42034a8b803f8b072', 'auto/s3',
      '05ba50acfb54042fac330848af50877e5fb477c4f2063c2f77f9cc80855eb1e9'),
-    ('GET', '/hermes-releases', {'list-type': '2', 'prefix': 'HermesBundled-0.28.0-', 'max-keys': '1000'},
+    ('GET', '/hermes-releases', {'list-type': '2', 'prefix': 'KovaBundled-0.28.0-', 'max-keys': '1000'},
      EMPTY_SHA, 'auto/s3', '3ec423c452a318664c85fbcc25667ad07201aedce688e3bb6b345b4baaa39d90'),
-    ('DELETE', '/hermes-releases/HermesBundled-0.28.0+canary.20260818T000000Z-win-arm64.msix', {},
+    ('DELETE', '/hermes-releases/KovaBundled-0.28.0+canary.20260818T000000Z-win-arm64.msix', {},
      EMPTY_SHA, 'auto/s3', '40dba7bf7356837cf496d950605dfc2c62d82ca2b30aa45c8c0dc8dab7bc1bd1'),
 ])
 def test_independent_sigv4_vectors(method, path, query, payload, scope, signature):
@@ -147,7 +147,7 @@ def test_independent_sigv4_vectors(method, path, query, payload, scope, signatur
         signed = 'host;x-amz-content-sha256;x-amz-date'
     encoded = canonical_query(query)
     if query:
-        assert encoded == 'list-type=2&max-keys=1000&prefix=HermesBundled-0.28.0-'
+        assert encoded == 'list-type=2&max-keys=1000&prefix=KovaBundled-0.28.0-'
     region, service = scope.split('/')
     assert _auth(method=method, host=host, path=path, query=encoded, headers=headers,
                  payload_hash=payload, region=region, service=service) == (
@@ -158,12 +158,12 @@ def test_independent_sigv4_vectors(method, path, query, payload, scope, signatur
 # ── Encoding / layout helpers ───────────────────────────────────────────────
 
 def test_rfc3986_encode_escapes_the_aws_reserved_set_keeps_unreserved():
-    assert rfc3986_encode("HermesBundled-0.28.0-win-x64.msix") == "HermesBundled-0.28.0-win-x64.msix"
+    assert rfc3986_encode("KovaBundled-0.28.0-win-x64.msix") == "KovaBundled-0.28.0-win-x64.msix"
     assert rfc3986_encode("a b!'()*c") == "a%20b%21%27%28%29%2Ac"
 
 
 def test_encode_key_path_encodes_segment_wise_preserves_separators():
-    assert encode_key_path("HermesBundled-0.28.0-win-x64.msix") == "HermesBundled-0.28.0-win-x64.msix"
+    assert encode_key_path("KovaBundled-0.28.0-win-x64.msix") == "KovaBundled-0.28.0-win-x64.msix"
     assert encode_key_path("a b/c d") == "a%20b/c%20d"
 
 
@@ -192,8 +192,8 @@ def test_relative_artifact_path_rejects_windows_reserved_names_without_ntpath(mo
         check(bad)
     # Real artifact names, including the nested Termux receipt shape, pass.
     for good in ("app.msix", "deb/pool/hermes_0.28.0_aarch64.deb",
-                 "HermesBundled-0.28.0-win-x64.msix", "key.asc", "com10.txt",
-                 "xcom1.tar.gz", "hermes-agent-setup.exe"):
+                 "KovaBundled-0.28.0-win-x64.msix", "key.asc", "com10.txt",
+                 "xcom1.tar.gz", "kova-agent-setup.exe"):
         assert r2.relative_artifact_path(good) == good
 
 
@@ -204,8 +204,8 @@ def test_download_page_keys_and_public_urls():
     commit = "a" * 40
     assert commit_page_key_for(commit) == f"releases/commit/{commit}/index.html"
     assert commit_prefix_for(commit) == f"releases/commit/{commit}/"
-    assert public_url_for("https://cdn.example.com/", "releases/tag/v1/Hermes-1-x64.msix") == (
-        "https://cdn.example.com/releases/tag/v1/Hermes-1-x64.msix"
+    assert public_url_for("https://cdn.example.com/", "releases/tag/v1/Kova-1-x64.msix") == (
+        "https://cdn.example.com/releases/tag/v1/Kova-1-x64.msix"
     )
     # Segment-wise encoding: spaces and non-ASCII survive a link.
     assert public_url_for("https://cdn.example.com", "a b/\u00fc.msix") == (
@@ -274,7 +274,7 @@ def test_canonical_request_reads_mixed_case_header_values():
         "Content-Type": "application/msix",
     }
     canon = canonical_request(
-        "PUT", "/hermes-releases/HermesBundled-0.28.0-win-x64.msix", "", headers, body_hash
+        "PUT", "/hermes-releases/KovaBundled-0.28.0-win-x64.msix", "", headers, body_hash
     )
     assert "content-type:application/msix" in canon
     assert "undefined" not in canon
@@ -287,31 +287,31 @@ CANARY_FEED_XML = (
     '<?xml version="1.0" encoding="utf-8"?>\n'
     '<AppInstaller Uri="https://r2.example/releases/win32/canary/canary.appinstaller" '
     'Version="0.27.2.9" xmlns="http://schemas.microsoft.com/appx/appinstaller/2017/2">\n'
-    '  <MainPackage Name="NousResearch.HermesBundled" Publisher="CN=..." Version="0.27.2.9" '
-    'Uri="https://r2.example/releases/win32/canary/HermesBundled-0.27.2.9-win.msixbundle" />\n'
+    '  <MainPackage Name="NousResearch.KovaBundled" Publisher="CN=..." Version="0.27.2.9" '
+    'Uri="https://r2.example/releases/win32/canary/KovaBundled-0.27.2.9-win.msixbundle" />\n'
     "</AppInstaller>\n"
 )
 
 
 def test_referenced_feed_bundle_filenames_reads_main_package_only():
     names = referenced_feed_bundle_filenames(CANARY_FEED_XML)
-    assert names == ["HermesBundled-0.27.2.9-win.msixbundle"]
+    assert names == ["KovaBundled-0.27.2.9-win.msixbundle"]
     # The AppInstaller ROOT Uri (the feed pointer itself) must NOT count.
     assert "canary.appinstaller" not in names
     assert referenced_feed_bundle_filenames("") == []
     assert referenced_feed_bundle_filenames("<html>ServiceUnavailable</html>") == []
     # A bundle Uri OUTSIDE MainPackage/MainBundle is not a reference.
-    assert referenced_feed_bundle_filenames('<Foo Uri="https://x/HermesBundled-1.0.0-win.msixbundle" />') == []
+    assert referenced_feed_bundle_filenames('<Foo Uri="https://x/KovaBundled-1.0.0-win.msixbundle" />') == []
 
 
 def test_feed_referenced_keys_protects_bundle_and_absolute_tag_uris():
     tag_feed = CANARY_FEED_XML.replace(
-        'Uri="https://r2.example/releases/win32/canary/HermesBundled-0.27.2.9-win.msixbundle"',
-        'Uri="https://r2.example/releases/tag/v0.27.2+canary.20260829T000000Z/HermesBundled-0.27.2-win-x64.msix"',
+        'Uri="https://r2.example/releases/win32/canary/KovaBundled-0.27.2.9-win.msixbundle"',
+        'Uri="https://r2.example/releases/tag/v0.27.2+canary.20260829T000000Z/KovaBundled-0.27.2-win-x64.msix"',
     )
     keys = feed_referenced_keys("releases/win32/canary", tag_feed)
-    assert "releases/win32/canary/HermesBundled-0.27.2-win-x64.msix" in keys
-    assert "releases/tag/v0.27.2+canary.20260829T000000Z/HermesBundled-0.27.2-win-x64.msix" in keys
+    assert "releases/win32/canary/KovaBundled-0.27.2-win-x64.msix" in keys
+    assert "releases/tag/v0.27.2+canary.20260829T000000Z/KovaBundled-0.27.2-win-x64.msix" in keys
 
 
 CANARY_DIR = "releases/win32/canary"
@@ -612,7 +612,7 @@ def test_put_page_object_carries_html_type_and_no_store(r2_server):
     octet-stream download."""
     import tempfile
 
-    page = "<!DOCTYPE html>\n<html lang=\"en\"><body><h1>Hermes stable builds</h1></body></html>\n"
+    page = "<!DOCTYPE html>\n<html lang=\"en\"><body><h1>Kova stable builds</h1></body></html>\n"
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="\n", delete=False) as handle:
         handle.write(page)
         path = handle.name
@@ -631,13 +631,13 @@ def test_put_immutable_conflict_verifies_remote_bytes(r2_server):
     import tempfile
 
     existing = b"already published artifact"
-    key = "releases/tag/v0.28.0/HermesBundled-0.28.0-mac-arm64.zip"
+    key = "releases/tag/v0.28.0/KovaBundled-0.28.0-mac-arm64.zip"
     r2_server.store[key] = (existing, '"etag-1"')
     with tempfile.NamedTemporaryFile(delete=False) as handle:
         handle.write(existing)
         path = handle.name
     try:
-        r2.put("v0.28.0", "HermesBundled-0.28.0-mac-arm64.zip", path, immutable=True)
+        r2.put("v0.28.0", "KovaBundled-0.28.0-mac-arm64.zip", path, immutable=True)
     finally:
         os.unlink(path)
     # Nothing was overwritten: the remote bytes are unchanged.
@@ -647,14 +647,14 @@ def test_put_immutable_conflict_verifies_remote_bytes(r2_server):
 def test_put_immutable_conflict_with_corrupt_remote_fails(r2_server):
     import tempfile
 
-    key = "releases/tag/v0.28.0/HermesBundled-0.28.0-mac-x64.zip"
+    key = "releases/tag/v0.28.0/KovaBundled-0.28.0-mac-x64.zip"
     r2_server.store[key] = (b"corrupt different bytes", '"etag-1"')
     with tempfile.NamedTemporaryFile(delete=False) as handle:
         handle.write(b"local truth")
         path = handle.name
     try:
         with pytest.raises(ValueError, match="checksum mismatch"):
-            r2.put("v0.28.0", "HermesBundled-0.28.0-mac-x64.zip", path, immutable=True)
+            r2.put("v0.28.0", "KovaBundled-0.28.0-mac-x64.zip", path, immutable=True)
     finally:
         os.unlink(path)
     assert r2_server.store[key][0] == b"corrupt different bytes"
@@ -681,7 +681,7 @@ def test_real_prune_retention_and_second_feed_failure(r2_server, capsys, bad_fee
     tag_reference = 'releases/tag/v0.27.2+canary.20260801T000000Z/live.msixbundle'
     second = f'<AppInstaller><MainBundle Uri="https://cdn.example/{tag_reference}" /></AppInstaller>'
     doomed = {f'{CANARY_DIR}/old.msixbundle', 'releases/tag/v0.27.2+canary.20260801T000000Z/old.zip'}
-    kept = {f'{CANARY_DIR}/HermesBundled-0.27.2.9-win.msixbundle', f'{CANARY_DIR}/live.msixbundle',
+    kept = {f'{CANARY_DIR}/KovaBundled-0.27.2.9-win.msixbundle', f'{CANARY_DIR}/live.msixbundle',
             f'{CANARY_DIR}/fresh.msixbundle', f'{CANARY_DIR}/unknown.msixbundle', tag_reference,
             'releases/win32/stable/old.msixbundle', 'releases/unknown/old.msixbundle',
             'releases/tag/v0.28.0/old.zip', 'releases/tag/v0.28.0+canary.20260904T000000Z/today.zip'}

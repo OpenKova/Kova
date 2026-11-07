@@ -7,7 +7,7 @@ from gateway.restart import GATEWAY_FATAL_CONFIG_EXIT_CODE
 
 class TestServedProfilesStatus:
     def test_write_and_read_served_profiles(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         import importlib
         from gateway import status
         importlib.reload(status)
@@ -25,8 +25,8 @@ def test_cron_profile_homes_serve_every_live_profile(tmp_path, monkeypatch):
     """The helper wired into in-process cron returns default + every live named profile;
     a tombstoned profile dir is skipped."""
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    default_home = tmp_path / ".kova"
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     for name in ("worker", "guest", "gone"):
         (default_home / "profiles" / name).mkdir(parents=True)
         (default_home / "profiles" / name / "config.yaml").write_text("{}\n")  # identity marker
@@ -44,11 +44,11 @@ def test_cron_tick_homes_include_active_named_host(tmp_path, monkeypatch):
     """A named-profile host running the multiplexer ticks its own store exactly once:
     it is part of the served set, and cron must not union it a second time."""
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     for name in ("host", "worker"):
         (default_home / "profiles" / name).mkdir(parents=True)
         (default_home / "profiles" / name / "config.yaml").write_text("{}\n")  # identity marker
-    monkeypatch.setenv("HERMES_HOME", str(default_home / "profiles" / "host"))
+    monkeypatch.setenv("KOVA_HOME", str(default_home / "profiles" / "host"))
 
     import gateway.run as gateway_run
 
@@ -72,7 +72,7 @@ class TestNamedProfileMultiplexerGuard:
         from kova_cli import gateway as gw
         monkeypatch.setattr(gw, "_profile_suffix", lambda: "coder")
         monkeypatch.setattr(
-            "kova_constants.get_default_hermes_root", lambda: tmp_path
+            "kova_constants.get_default_kova_root", lambda: tmp_path
         )
         # No gateway.pid in tmp_path => no running default gateway => no raise.
         gw._guard_named_profile_under_multiplexer(force=False)
@@ -84,7 +84,7 @@ class TestNamedProfileMultiplexerGuard:
 
         monkeypatch.setattr(gw, "_profile_suffix", lambda: "coder")
         monkeypatch.setattr(
-            "kova_constants.get_default_hermes_root", lambda: tmp_path
+            "kova_constants.get_default_kova_root", lambda: tmp_path
         )
         import json
         import os
@@ -92,7 +92,7 @@ class TestNamedProfileMultiplexerGuard:
         # process stands in for the gateway by wearing a gateway command line.
         (tmp_path / "gateway.pid").write_text(str(os.getpid()), encoding="utf-8")
         (tmp_path / "gateway_state.json").write_text(json.dumps(
-            {"pid": os.getpid(), "hermes_home": str(tmp_path), "gateway_state": "running"}))
+            {"pid": os.getpid(), "kova_home": str(tmp_path), "gateway_state": "running"}))
         monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
 
     def test_unset_allowlist_preserves_historical_guard(self, monkeypatch, tmp_path):
@@ -119,7 +119,7 @@ class TestNamedProfileMultiplexerGuard:
         import json
         import os
         (tmp_path / "gateway_state.json").write_text(json.dumps({
-            "pid": os.getpid(), "hermes_home": str(tmp_path), "gateway_state": "running",
+            "pid": os.getpid(), "kova_home": str(tmp_path), "gateway_state": "running",
             "served_profiles": ["default", "worker"]}))
 
         from kova_cli import gateway as gw

@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 # Late-bound so a test's monkeypatch on the owning module wins at call time.
 _profile_scope = late("_profile_scope", "kova_cli.web_server_profiles")
-get_hermes_home = late("get_hermes_home", "kova_cli.config")
+get_kova_home = late("get_kova_home", "kova_cli.config")
 load_config = late("load_config", "kova_cli.config")
 load_env = late("load_env", "kova_cli.config")
 _require_token = late("_require_token")
@@ -76,7 +76,7 @@ _FS_READDIR_HIDDEN = {
 
 # Basenames the managed-files API must never list, read or download: credential
 # stores that become live secrets in the browsable tree the moment an operator
-# points the managed root at HERMES_HOME. Mirrors the two canonical guards
+# points the managed root at KOVA_HOME. Mirrors the two canonical guards
 # (agent.file_safety.get_read_block_error, gateway.platforms.base
 # ._ROOT_CREDENTIAL_FILES) so the Files tab never lags behind them.
 # These typically contain credentials (API keys, tokens) and exposing them through the dashboard file
@@ -93,7 +93,7 @@ _SENSITIVE_MANAGED_FILE_BASENAMES = frozenset({
 # guards deny these as trees: _ROOT_CREDENTIAL_DIRS and the mcp-tokens/ prefix
 # match). The browser can descend into subdirs, so a basename-only guard would
 # still expose ``mcp-tokens/<server>.json``; match on ANY path component so the
-# trees are blocked wherever they sit under the root, no HERMES_HOME resolution.
+# trees are blocked wherever they sit under the root, no KOVA_HOME resolution.
 _SENSITIVE_MANAGED_DIR_NAMES = frozenset({"mcp-tokens", "pairing"})
 
 
@@ -357,7 +357,7 @@ def _is_host_file(path: str, profile: Optional[str]) -> bool:
     except (OSError, RuntimeError, ValueError):  # ValueError: a decoded NUL (``%00``)
         return False  # not on this host: the workspace's to answer
     with _profile_scope(profile):
-        home = get_hermes_home()
+        home = get_kova_home()
         cache = _chat_image_dir(home)
     try:
         if target.parent == cache.resolve(strict=True):
@@ -406,7 +406,7 @@ def _media_serve_roots() -> list[Path]:
     """Directories GET /api/media may read: where the agent and attach pipeline
     actually write media (images, screenshots, cache). Stops an authenticated
     client reading image-suffixed files anywhere else on disk."""
-    home = get_hermes_home()
+    home = get_kova_home()
     out: list[Path] = []
     for root in (home / "images", home / "screenshots", home / "cache"):
         try:
@@ -571,7 +571,7 @@ async def upload_chat_image(payload: ChatImageUpload, profile: Optional[str] = N
 
     Browser clipboard bytes aren't visible to the server-side clipboard, so the
     /chat page uploads them here and drives the TUI's ``/image <path>`` with
-    the returned gateway-visible path under ``HERMES_HOME/images/`` (the same
+    the returned gateway-visible path under ``KOVA_HOME/images/`` (the same
     dir ``clipboard.paste`` / ``image.attach`` use).
     """
     def _run():
@@ -1129,7 +1129,7 @@ async def fs_write_text(payload: FsWriteText, profile: Optional[str] = None):
     if not target.parent.is_dir():
         raise HTTPException(status_code=400, detail="Parent directory does not exist")
 
-    tmp = target.with_name(f".{target.name}.hermes-tmp-{os.getpid()}")
+    tmp = target.with_name(f".{target.name}.kova-tmp-{os.getpid()}")
     try:
         tmp.write_text(text, encoding="utf-8")
         os.replace(tmp, target)
@@ -1183,7 +1183,7 @@ async def _fs_owned_session(session_id: Optional[str], profile: Optional[str]) -
 
 
 def _fs_profile_home(profile: Optional[str]) -> Optional[Path]:
-    """HERMES_HOME of a requested profile (404/400 on an unknown one), None for the request's
+    """KOVA_HOME of a requested profile (404/400 on an unknown one), None for the request's
     own profile (omitted, ``""`` or ``current``, as ``_is_current_profile`` reads them)."""
     from kova_cli.web_server_cron import _cron_profile_home
     from kova_cli.web_server_profiles import _is_current_profile

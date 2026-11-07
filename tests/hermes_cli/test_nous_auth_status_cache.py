@@ -14,7 +14,7 @@ import json
 from unittest.mock import patch
 
 def _seed_auth_file(tmp_path):
-    """Drop a placeholder auth.json into the test HERMES_HOME.
+    """Drop a placeholder auth.json into the test KOVA_HOME.
 
     The exact content doesn't matter for cache-key purposes — only that
     the file exists and we can mutate it to bump mtime.
@@ -25,7 +25,7 @@ def _seed_auth_file(tmp_path):
 
 def test_get_nous_auth_status_caches_consecutive_calls(tmp_path, monkeypatch):
     """A second call within the TTL skips re-computing the snapshot."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _seed_auth_file(tmp_path)
 
     from kova_cli import auth as auth_mod

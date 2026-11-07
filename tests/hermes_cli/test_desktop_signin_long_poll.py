@@ -17,7 +17,7 @@ from kova_cli.web_server import _SESSION_TOKEN, app
 from tests.kova_cli.test_anon_upgrade import EMAIL, free_account, portal
 
 client = TestClient(app)
-HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}
+HEADERS = {"X-Kova-Session-Token": _SESSION_TOKEN}
 
 __all__ = ["free_account", "portal"]  # fixtures imported from the CLI test module
 

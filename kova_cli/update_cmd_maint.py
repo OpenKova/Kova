@@ -36,8 +36,8 @@ _PRE_UPDATE_SNAPSHOT_MAX_FILE_SIZE = 1 << 30  # 1 GiB
 #: Reinstalling through the official installer swaps in a Python whose SQLite is safe; the
 #: one-liner differs per OS (mirrors ``uninstall._REINSTALL_HINT``). windows -> command
 _REINSTALL_ONE_LINER = {
-    True: "iex (irm https://hermes-agent.nousresearch.com/install.ps1)",
-    False: "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
+    True: "iex (irm https://kova-agent.nousresearch.com/install.ps1)",
+    False: "curl -fsSL https://kova-agent.nousresearch.com/install.sh | bash",
 }
 
 
@@ -48,7 +48,7 @@ def _sqlite_partial_completion_lines(sqlite_version: str) -> list[str]:
     from kova_cli.update_cmd import _m
     return [
         f"⚠ Update partially complete — your Python's SQLite ({sqlite_version}) has a known "
-        "corruption bug. Hermes works, but sessions could be damaged.",
+        "corruption bug. Kova works, but sessions could be damaged.",
         f"  Fix: run the installer again ({_REINSTALL_ONE_LINER[bool(_m()._is_windows())]}) "
         "which installs a safe Python, then run `hermes doctor` to confirm.",
     ]
@@ -102,7 +102,7 @@ def _print_curator_first_run_notice() -> None:
     )
     print("  Preview now:  hermes curator run --dry-run")
     print("  Pause it:     hermes curator pause")
-    print("  Docs:         https://hermes-agent.nousresearch.com/docs/user-guide/features/curator")
+    print("  Docs:         https://kova-agent.nousresearch.com/docs/user-guide/features/curator")
 
 
 def _print_fts_optimize_available_notice() -> None:
@@ -119,11 +119,11 @@ def _print_fts_optimize_available_notice() -> None:
         return
 
     try:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_state import SessionDB
     except Exception:
         return
-    db_path = get_hermes_home() / "state.db"
+    db_path = get_kova_home() / "state.db"
     if not db_path.exists():
         return
     try:
@@ -286,12 +286,12 @@ def _refresh_dashboard_after_update(*, already_restarted_units: set[str] | None 
     See #83595.
     """
     from kova_cli.update_cmd import _m, _record_update_step
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     try:
         stop_result = _m()._kill_stale_dashboard_processes(
             restart_managed=True, already_restarted_units=already_restarted_units,
-            scope_home=str(get_hermes_home()),
+            scope_home=str(get_kova_home()),
         )
     except Exception as exc:
         # Isolated like every sibling post-update step: a failure here (#112604) used to abort
@@ -324,7 +324,7 @@ def _print_update_completion(message: str) -> None:
     """
     from kova_cli.update_cmd import _branch_head_suffix
     print(f"{message}{_branch_head_suffix()}")
-    action_id = os.environ.get("HERMES_ACTION_ID", "")
+    action_id = os.environ.get("KOVA_ACTION_ID", "")
     if len(action_id) == 32 and all(char in "0123456789abcdef" for char in action_id):
         print(f"=== hermes-update completed {action_id} ===")
 
@@ -383,7 +383,7 @@ def _post_update_sqlite_runtime_status():
 
 
 def _print_verified_update_completion(message: str) -> bool:
-    """Print a success completion only after probing the next Hermes runtime."""
+    """Print a success completion only after probing the next Kova runtime."""
     from kova_cli.update_cmd import _post_update_sqlite_runtime_status
     if not message.startswith("✓"):
         _print_update_completion(message)
@@ -475,8 +475,8 @@ def _verify_and_restore_state_dbs_post_update() -> None:
 
     See #97994.
     """
-    from kova_cli.update_cmd import get_hermes_home
-    home = get_hermes_home()
+    from kova_cli.update_cmd import get_kova_home
+    home = get_kova_home()
     _verify_and_restore_one_state_db(home, label="default home")
     with _best_effort('Sibling-profile state.db guard sweep failed: %s'):
         from kova_cli.backup import _sibling_profile_homes
@@ -493,8 +493,8 @@ def _invalidate_live_plugin_catalog_caches() -> None:
     TTL (#119340). Mirrors the state.db guard's home + siblings iteration. Never raises —
     :func:`plugin_catalog.invalidate_live_cache_for_home` is best-effort per home.
     """
-    from kova_cli.update_cmd import get_hermes_home
-    home = get_hermes_home()
+    from kova_cli.update_cmd import get_kova_home
+    home = get_kova_home()
     from kova_cli.plugin_catalog import invalidate_live_cache_for_home
     invalidate_live_cache_for_home(home)
     with suppress(Exception):
@@ -506,8 +506,8 @@ def _invalidate_live_plugin_catalog_caches() -> None:
 def _report_catalog_plugin_updates() -> None:
     from kova_cli.backup import _sibling_profile_homes
     from kova_cli.plugins_auto_update import report_catalog_updates_after_hermes_update
-    from kova_cli.update_cmd import get_hermes_home
-    home = get_hermes_home()
+    from kova_cli.update_cmd import get_kova_home
+    home = get_kova_home()
     report_catalog_updates_after_hermes_update(home, _sibling_profile_homes(home))
 
 
@@ -580,7 +580,7 @@ def _ensure_fhs_path_guard() -> None:
         return  # already on PATH, nothing to do
 
     path_line = 'export PATH="/usr/local/bin:$PATH"'
-    path_comment = "# Hermes Agent — ensure /usr/local/bin is on PATH (RHEL non-login shells)"
+    path_comment = "# Kova Agent — ensure /usr/local/bin is on PATH (RHEL non-login shells)"
     wrote_any = False
     for candidate in (".bashrc", ".bash_profile"):
         cfg = Path(home) / candidate
@@ -652,8 +652,8 @@ def _verify_state_db_after_snapshot(snapshot_id: str) -> None:
     """Verify live state.db after the snapshot: a concurrent process (antivirus, killed
     gateway, Windows filter driver) can corrupt it and we'd otherwise exit 0 silently."""
     from kova_cli.backup import _quick_snapshot_root, verify_sqlite_integrity
-    from kova_cli.config import get_hermes_home
-    _src_path = get_hermes_home() / "state.db"
+    from kova_cli.config import get_kova_home
+    _src_path = get_kova_home() / "state.db"
     if not _src_path.exists():
         return
     _integrity = verify_sqlite_integrity(
@@ -662,7 +662,7 @@ def _verify_state_db_after_snapshot(snapshot_id: str) -> None:
     if _integrity.get("valid"):
         return
     print(f"  ⚠ state.db integrity check FAILED after snapshot: {_integrity.get('message', 'unknown error')}")
-    _snap_state = _quick_snapshot_root(get_hermes_home()) / snapshot_id / "state.db"
+    _snap_state = _quick_snapshot_root(get_kova_home()) / snapshot_id / "state.db"
     if not _snap_state.exists():
         print("  ⚠ Snapshot does not contain state.db (was skipped or too large).")
     elif verify_sqlite_integrity(_snap_state, check_header=True, run_pragma=True).get("valid"):
@@ -705,7 +705,7 @@ def _run_quick_snapshots() -> Optional[str]:
 
 
 def _run_full_backup() -> None:
-    """Zip HERMES_HOME under ``backups/`` (restorable via ``hermes import``). Never raises."""
+    """Zip KOVA_HOME under ``backups/`` (restorable via ``hermes import``). Never raises."""
     try:
         from kova_cli.backup import create_pre_update_backup
     except Exception as exc:
@@ -740,10 +740,10 @@ def _run_full_backup() -> None:
         size_bytes = 0
 
     from kova_cli.sizefmt import format_bytes
-    # display_hermes_home so the user sees ~/.hermes/...
+    # display_kova_home so the user sees ~/.kova/...
     try:
-        from kova_constants import get_hermes_home, display_hermes_home
-        display_path = f"{display_hermes_home()}/{out_path.relative_to(get_hermes_home())}"
+        from kova_constants import get_kova_home, display_kova_home
+        display_path = f"{display_kova_home()}/{out_path.relative_to(get_kova_home())}"
     except Exception:
         display_path = str(out_path)
 
@@ -758,7 +758,7 @@ def _run_pre_update_backup(args) -> Optional[str]:
 
     ``off`` — nothing. ``quick`` (default) — snapshot of critical small files under
     ``state-snapshots/``, files over 1 GiB skipped so a bloated state.db can't stall the update.
-    ``full`` — quick snapshot PLUS a zip of HERMES_HOME under ``backups/`` (``hermes import``).
+    ``full`` — quick snapshot PLUS a zip of KOVA_HOME under ``backups/`` (``hermes import``).
 
     Explicit user opt-out is honored fully. See #34600.
     """
@@ -842,7 +842,7 @@ def _profile_skill_sync_status(r) -> str:
 def _sync_profiles_after_update() -> None:
     """Best-effort per-profile syncs: bundled skills, ``.env`` backfill, Honcho profiles."""
     # All profiles incl. the active one: seed_profile_skills() subprocesses with an explicit
-    # HERMES_HOME, so sync_skills()'s module-level HERMES_HOME cache can't skew it.
+    # KOVA_HOME, so sync_skills()'s module-level KOVA_HOME cache can't skew it.
     with suppress(Exception):
         from kova_cli.profiles import list_profiles, seed_profile_skills
         all_profiles = list_profiles()
@@ -877,7 +877,7 @@ def _refresh_cua_driver_after_update() -> None:
 
     if not _load_updates_cfg().get("refresh_cua_driver", True):
         return
-    if os.environ.get("HERMES_CUA_DRIVER_CMD", "").strip():
+    if os.environ.get("KOVA_CUA_DRIVER_CMD", "").strip():
         return
     if pm.installed_package("cua-driver", allow_outdated=True) is None:
         return
@@ -913,7 +913,7 @@ def _install_default_tools_after_update() -> None:
     from pm.paths import lockfile_path
 
     # Sealed payloads ship their tools; the lazy-install policy (config or the
-    # Docker/test bridge) means the user asked Hermes not to fetch on its own.
+    # Docker/test bridge) means the user asked Kova not to fetch on its own.
     if sealed() or not lazy_installs_allowed():
         return
     for name in default_packages(Lockfile(lockfile_path()).names()):
@@ -958,7 +958,7 @@ def _print_post_update_notices_and_self_heals() -> None:
         ('cua-driver refresh failed: %s', _refresh_cua_driver_after_update),
         ('Default PM tool install failed: %s', _install_default_tools_after_update),
         ('Checkpoint footprint notice failed: %s', _print_checkpoint_footprint_notice),
-        # Legacy HERMES_NEMO_RELAY_ATIF_*/ATOF_* vars produce no traces since the Relay cutover;
+        # Legacy KOVA_NEMO_RELAY_ATIF_*/ATOF_* vars produce no traces since the Relay cutover;
         # generate each profile's relay-plugins.toml instead of leaving exports silently dead.
         ('Relay exporter migration failed: %s', _migrate_relay_exporter_env),
     ):
@@ -1007,9 +1007,9 @@ def _run_post_update_maintenance(
     if sys.platform == "darwin" and had_desktop_app_before_update:
         print()
         print(
-            "  ℹ macOS: if Hermes re-prompts for permissions you already "
+            "  ℹ macOS: if Kova re-prompts for permissions you already "
             "granted (toggle shows ON), the stored grant is stale — run "
-            "`tccutil reset ScreenCapture com.nousresearch.hermes` (repeat "
+            "`tccutil reset ScreenCapture com.nousresearch.kova` (repeat "
             "per affected service), toggle it ON in System Settings, then "
             "fully quit & relaunch once."
         )

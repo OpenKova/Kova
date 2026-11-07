@@ -25,7 +25,7 @@ export async function uploadServerOwnedImage(
 
   const dataUrl = attachment.previewUrl?.includes(';base64,')
     ? attachment.previewUrl
-    : await window.hermesDesktop?.readFileDataUrl(path)
+    : await window.kovaDesktop?.readFileDataUrl(path)
 
   if (!dataUrl) {
     throw new Error(`Could not read ${label}`)

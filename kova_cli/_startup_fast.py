@@ -34,7 +34,7 @@ __all__ = [
     "is_container_startup_environment",
     "is_desktop_ssh_backend_argv",
     "is_global_fast_version_argv",
-    "normalize_hermes_home_env",
+    "normalize_kova_home_env",
     "print_fast_version_info",
     "project_root_str",
     "read_install_method",
@@ -57,23 +57,23 @@ def project_root_str() -> str:
     return os.path.realpath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 
-def normalize_hermes_home_env() -> None:
-    """Expand ``~``/``$VAR`` in ``HERMES_HOME`` once, at process entry, and write it back.
+def normalize_kova_home_env() -> None:
+    """Expand ``~``/``$VAR`` in ``KOVA_HOME`` once, at process entry, and write it back.
 
     fish does not expand ``~`` inside ``VAR=~/...`` and every shell passes a quoted value
-    through verbatim, so a literal tilde reaches the process. ``Path("~/.hermes")`` is
-    *relative*: the many raw ``os.environ["HERMES_HOME"]`` readers (this fast path, the
+    through verbatim, so a literal tilde reaches the process. ``Path("~/.kova")`` is
+    *relative*: the many raw ``os.environ["KOVA_HOME"]`` readers (this fast path, the
     active_profile probe, profile re-home, the dotenv loader) would each resolve it against
-    cwd and scaffold a full home under ``<cwd>/~/.hermes``. One expansion here gives every
+    cwd and scaffold a full home under ``<cwd>/~/.kova``. One expansion here gives every
     reader the same absolute spelling; ``kova_constants`` expands as well for non-CLI
     entry points. A relative value that is not tilde/variable-shaped is left alone.
     """
-    raw = os.environ.get("HERMES_HOME", "")
+    raw = os.environ.get("KOVA_HOME", "")
     if not raw.strip():
         return
     expanded = os.path.expanduser(os.path.expandvars(raw.strip()))
     if expanded != raw:
-        os.environ["HERMES_HOME"] = expanded
+        os.environ["KOVA_HOME"] = expanded
 
 
 def _realpath_or_self(path: str) -> str:
@@ -108,7 +108,7 @@ def is_desktop_ssh_backend_argv(argv: list[str]) -> bool:
 
     That child has a fixed identity: Desktop names the remote profile explicitly (or none for
     the root home) and hands its session token through a 0600 FILE, never the
-    ``HERMES_DASHBOARD_SESSION_TOKEN`` env var the local pool spawn uses. Every reader of
+    ``KOVA_DASHBOARD_SESSION_TOKEN`` env var the local pool spawn uses. Every reader of
     "is this process Desktop's backend" needs both shapes; this is the argv half.
     """
     return "--ssh-session-token-file" in argv
@@ -123,17 +123,17 @@ def is_container_startup_environment() -> bool:
 
 
 def active_profile_may_override_home(hermes_root: str) -> bool:
-    """Cheap probe: does an active non-default profile redirect HERMES_HOME?"""
+    """Cheap probe: does an active non-default profile redirect KOVA_HOME?"""
     active = (_read_text(os.path.join(hermes_root, "active_profile")) or "").strip()
     return bool(active and active != "default")
 
 
 def _default_home() -> str:
-    return os.path.join(os.path.expanduser("~"), ".hermes")
+    return os.path.join(os.path.expanduser("~"), ".kova")
 
 
 def _resolved_home() -> str:
-    return os.environ.get("HERMES_HOME", "").strip() or _default_home()
+    return os.environ.get("KOVA_HOME", "").strip() or _default_home()
 
 
 def container_mode_may_be_active() -> bool:
@@ -143,14 +143,14 @@ def container_mode_may_be_active() -> bool:
     they'd print the host's version instead of the container's — so any profile ambiguity means "may
     be active".
     """
-    if os.environ.get("HERMES_DEV") == "1" or is_container_startup_environment():
+    if os.environ.get("KOVA_DEV") == "1" or is_container_startup_environment():
         return False
-    hermes_home = os.environ.get("HERMES_HOME", "").strip()
-    if hermes_home:
-        if os.path.exists(os.path.join(hermes_home, ".container-mode")):
+    kova_home = os.environ.get("KOVA_HOME", "").strip()
+    if kova_home:
+        if os.path.exists(os.path.join(kova_home, ".container-mode")):
             return True
-        parent_name = os.path.basename(os.path.dirname(os.path.normpath(hermes_home)))
-        return parent_name != "profiles" and active_profile_may_override_home(hermes_home)
+        parent_name = os.path.basename(os.path.dirname(os.path.normpath(kova_home)))
+        return parent_name != "profiles" and active_profile_may_override_home(kova_home)
     default_home = _default_home()
     return active_profile_may_override_home(default_home) or os.path.exists(
         os.path.join(default_home, ".container-mode"))
@@ -200,7 +200,7 @@ def print_fast_version_info(*, check_updates: bool = True) -> None:
         from kova_cli import __release_date__
         from kova_cli.version_info import get_version_info
 
-        print(f"Hermes Agent v{get_version_info().derived_version} ({__release_date__})")
+        print(f"Kova Agent v{get_version_info().derived_version} ({__release_date__})")
     print(f"Install directory: {project_root_str()}")
     # Authoritative resolver first (code-scoped stamp → managed → nix → git → pip; also self-heals
     # poisoned shared-home 'docker' stamps); cheap stdlib stamp probe only if it fails.

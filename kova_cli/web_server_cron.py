@@ -99,7 +99,7 @@ def _cron_default_profile() -> str:
 
     A desktop pool backend runs one process per profile, but these endpoints route storage through
     the profiles tree via ``_cron_profile_home`` — a hardcoded "default" would write a non-default
-    profile's job into ~/.hermes. ``custom`` (HERMES_HOME outside the profiles tree) has no
+    profile's job into ~/.kova. ``custom`` (KOVA_HOME outside the profiles tree) has no
     profile-dir equivalent, so it keeps the legacy "default" fallback.
     """
     try:
@@ -111,7 +111,7 @@ def _cron_default_profile() -> str:
 
 
 def _cron_profile_home(profile: Optional[str]) -> tuple[str, Path]:
-    """Resolve a profile query value to (profile_name, HERMES_HOME)."""
+    """Resolve a profile query value to (profile_name, KOVA_HOME)."""
     from kova_cli import profiles as profiles_mod
     raw = (profile or _cron_default_profile()).strip() or "default"
     try:
@@ -131,7 +131,7 @@ def _annotate_cron_job(
         **job,
         "profile": profile,
         "profile_name": profile,
-        "hermes_home": str(home),
+        "kova_home": str(home),
         "is_default_profile": profile == "default",
         # Seconds since this profile's ticker last iterated (None = never/unknown): a
         # `next_run_at` parked in the past is only explained by a scheduler that stopped
@@ -141,19 +141,19 @@ def _annotate_cron_job(
 
 @contextlib.contextmanager
 def _cron_store_scope(home: Path):
-    """Point HERMES_HOME and the cron.jobs store at one profile's home for the block.
+    """Point KOVA_HOME and the cron.jobs store at one profile's home for the block.
 
     The dashboard is a single process inspecting many profiles; cron.jobs' execution-context
     override keeps these calls from retargeting a concurrent desktop ticker's load/save.
     """
     from cron import jobs as cron_jobs
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    token = set_hermes_home_override(str(home))
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    token = set_kova_home_override(str(home))
     try:
         with cron_jobs.use_cron_store(home):
             yield cron_jobs
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _call_cron_for_profile(target_profile: Optional[str], func_name: str, *args, **kwargs):
@@ -350,8 +350,8 @@ def _gateway_fire_endpoint(profile: str, home: Path) -> str:
 
     listener_profile, listener_home = profile, home
     if multiplex and profile != "default":
-        from kova_constants import get_default_hermes_root
-        listener_profile, listener_home = "default", get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        listener_profile, listener_home = "default", get_default_kova_root()
         _log.info(
             "cron fire: multiplex gateway — resolving api_server port for %s "
             "from the default profile's listener (%s)", profile, listener_home,
@@ -361,12 +361,12 @@ def _gateway_fire_endpoint(profile: str, home: Path) -> str:
     try:
         # Profile-scoped read through the CANONICAL loader (managed-scope overlay, ${ENV_VAR}
         # expansion) — never a raw yaml.safe_load (tests/kova_cli/test_config_read_guard.py).
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
-        token = set_hermes_home_override(str(listener_home))
+        from kova_constants import reset_kova_home_override, set_kova_home_override
+        token = set_kova_home_override(str(listener_home))
         try:
             profile_cfg = load_config()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
         raw = cfg_get(profile_cfg, "platforms", "api_server", "extra", "port", default=None)
         if raw:
             port = int(raw)

@@ -77,7 +77,7 @@ def _make_runner():
     # A bare MagicMock attribute is os.fspath()-able as the RELATIVE path "MagicMock/<name>/<id>":
     # startup's heartbeat restore treats ``_routing_home`` as the launch home and would build a
     # profile home (state.db, SOUL.md) under the cwd, i.e. the repo checkout. None falls back to
-    # the test's isolated HERMES_HOME.
+    # the test's isolated KOVA_HOME.
     runner.session_store._routing_home = None
     return runner
 
@@ -93,7 +93,7 @@ class TestStartupPlatformIsolation:
         # Skip the boot warm-up and boot-path sends: unrelated to platform
         # isolation, and with create_task stubbed below the bounded wait on
         # the (never-started) send task would hold start() for 30 s.
-        monkeypatch.setenv("HERMES_STARTUP_WARMUP_TIMEOUT", "0")
+        monkeypatch.setenv("KOVA_STARTUP_WARMUP_TIMEOUT", "0")
         runner = _make_runner()
         runner._await_startup_boot_sends = AsyncMock()
         runner.config = GatewayConfig(
@@ -862,7 +862,7 @@ class TestVoiceInputCallbackWiring:
     @pytest.mark.asyncio
     async def test_startup_wires_voice_input_callback(self, tmp_path, monkeypatch):
         """Cold-start connect must wire _voice_input_callback on Discord adapter."""
-        monkeypatch.setenv("HERMES_STARTUP_WARMUP_TIMEOUT", "0")
+        monkeypatch.setenv("KOVA_STARTUP_WARMUP_TIMEOUT", "0")
         runner = self._make_runner_with_discord()
         runner._await_startup_boot_sends = AsyncMock()  # see TestStartupPlatformIsolation
         adapter = self._make_discord_voice_adapter()

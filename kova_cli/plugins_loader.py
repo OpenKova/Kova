@@ -22,7 +22,7 @@ from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Mapping, Optional, Union
 
-from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+from kova_constants import get_kova_home, reset_kova_home_override, set_kova_home_override
 from registration_lifecycle import replacement_coordinator
 from kova_cli.plugins_discovery import ENTRY_POINTS_GROUP, _select_entry_point_group
 from kova_cli.plugins_manifest import PluginManifest, manifest_key, portable_mcp_server_name, validate_config_schema
@@ -99,14 +99,14 @@ def _reserve_abandoned_loader_slot() -> None:
             return
     raise PluginLoadTimeout(
         f"not loaded: {_MAX_ABANDONED_LOADERS} abandoned plugin loader thread(s) are still running "
-        f"(plugins.load_timeout_seconds); restart Hermes to retry"
+        f"(plugins.load_timeout_seconds); restart Kova to retry"
     )
 
 
 def run_with_load_deadline(plugin_key: str, ctx: PluginContext, fn: Callable[[], Any]) -> Any:
     """Run ``fn`` (a plugin's import + ``register()``) under the per-plugin deadline.
 
-    The worker inherits the caller's context (the Hermes-home override is a ContextVar). On timeout the
+    The worker inherits the caller's context (the Kova-home override is a ContextVar). On timeout the
     worker is abandoned as a daemon, ``ctx`` is marked so any registration it still attempts is ignored,
     and :class:`PluginLoadTimeout` is raised on the calling thread so the usual failure path records the
     reason and disposes whatever was registered before the hang.
@@ -182,12 +182,12 @@ def _serialized_replacement(method):
 
 @contextmanager
 def _plugin_home_scope(home: Path):
-    """Bind discovery and loading to the manager's immutable Hermes home."""
-    token = set_hermes_home_override(home)
+    """Bind discovery and loading to the manager's immutable Kova home."""
+    token = set_kova_home_override(home)
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _load_error_text(exc: BaseException) -> str:
@@ -233,7 +233,7 @@ def missing_python_dependencies(manifest: Any) -> list[str]:
 
 
 def _declared_requirements(manifest: Any) -> tuple[str, ...]:
-    """What PM installs into Hermes's environment for this plugin: its declaration read the way
+    """What PM installs into Kova's environment for this plugin: its declaration read the way
     admission reads it (``pm.plugin_declarations.read_python_declaration`` — an authored
     ``pyproject.toml`` first, then ``python_dependencies`` / ``pip_dependencies``; nothing for a
     ``python_runtime: external`` sidecar). A plugin with no directory (an entry point) has only its
@@ -249,10 +249,10 @@ def _declared_requirements(manifest: Any) -> tuple[str, ...]:
 
 
 def hermes_fit_error(manifest: Any) -> Optional[str]:
-    """Why this Hermes is not one the plugin accepts: ``requires_hermes``, then the plugin's own
-    requirement on ``hermes-agent``. PM's build leaves such a plugin out by the same gate
-    (``pm.workspace.hermes_fit_error``), so it is skipped here rather than imported without its
-    dependencies, and loads again once Hermes fits."""
+    """Why this Kova is not one the plugin accepts: ``requires_hermes``, then the plugin's own
+    requirement on ``kova-agent``. PM's build leaves such a plugin out by the same gate
+    (``pm.workspace.kova_fit_error``), so it is skipped here rather than imported without its
+    dependencies, and loads again once Kova fits."""
     from kova_cli.plugins_manifest import requires_hermes_error
 
     reason = requires_hermes_error(manifest)
@@ -523,15 +523,15 @@ class PluginLoaderMixin:
         if installed_in_selected_environment(missing):
             logger.warning(
                 "Plugin %s's Python dependencies were installed after this process started: %s. "
-                "A running process never switches dependency environments; restart Hermes "
+                "A running process never switches dependency environments; restart Kova "
                 "(hermes gateway restart for the gateway) to load them.",
                 key, ", ".join(missing),
             )
         else:
             logger.warning(
                 "Plugin %s declares Python dependencies that are not "
-                "installed: %s. For an enabled plugin, run hermes pm repair, "
-                "then restart Hermes. Discovery does not install dependencies.",
+                "installed: %s. For an enabled plugin, run kova pm repair, "
+                "then restart Kova. Discovery does not install dependencies.",
                 key, ", ".join(missing),
             )
 
@@ -745,7 +745,7 @@ class PluginLoaderMixin:
         try:
             from kova_cli.agent_plugins import load_agent_plugin
             package = load_agent_plugin(
-                Path(manifest.path), get_hermes_home() / "plugin-data" / manifest.data_namespace)
+                Path(manifest.path), get_kova_home() / "plugin-data" / manifest.data_namespace)
             ctx = PluginContext(manifest, self)
             for diagnostic in package.diagnostics:
                 logger.warning("Agent Plugin '%s' [%s]: %s", lookup_key, diagnostic.scope, diagnostic.message)
@@ -826,7 +826,7 @@ class PluginLoaderMixin:
             ns_pkg.__package__ = _NS_PARENT
             sys.modules[_NS_PARENT] = ns_pkg
         module_name = module_name or self._directory_module_name(manifest)
-        # Evict stale entries for this slug (same slug cached from another Hermes home, or an earlier force
+        # Evict stale entries for this slug (same slug cached from another Kova home, or an earlier force
         # reload). Replacing only sys.modules[module_name] is not enough: the plugin's relative imports are
         # cached as "module_name.sub" and resolve from sys.modules first, so a stale submodule would keep
         # serving the previous load's code/state.

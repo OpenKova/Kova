@@ -19,7 +19,7 @@ def publish_fixture_launcher(root: Path, main_source: str) -> Path:
     (root / "pm").mkdir(exist_ok=True)
     for relative in ("kova_constants.py", "kova_cli/_launchers.py", "pm/environments.py"):
         shutil.copyfile(repository / relative, root / relative)
-    out = root / ".hermes" / "bin"
+    out = root / ".kova" / "bin"
     out.mkdir(parents=True)
     launcher = mint_launcher("hermes", root, out, Path(sys.executable), None)
     assert launcher is not None

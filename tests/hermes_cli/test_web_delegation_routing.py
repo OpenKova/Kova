@@ -44,7 +44,7 @@ SECRET = "sk-route-secret-0123456789abcdef"
 def homes(tmp_path, monkeypatch):
     from kova_cli import plugins as plugins_mod
 
-    root = tmp_path / "hermes_home"
+    root = tmp_path / "kova_home"
     work = root / "profiles" / "work"
     plugin_dir = work / "plugins" / "routes"
     plugin_dir.mkdir(parents=True)
@@ -62,7 +62,7 @@ def homes(tmp_path, monkeypatch):
     (root / "config.yaml").write_text(yaml.safe_dump({"delegation": {"backend": "model_map"}}), encoding="utf-8")
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     from agent import secret_scope
     from tui_gateway import launch_profile_policy as lpp
@@ -123,7 +123,7 @@ def test_a_managed_install_refuses_every_routing_write_with_the_reason(client, h
     never a silent ``ok`` over an untouched file."""
     _root, work = homes
     before = (work / "config.yaml").read_text(encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED", "nixos")
+    monkeypatch.setenv("KOVA_MANAGED", "nixos")
     resp = client.put(f"{path}?profile=work", json=body)
     assert resp.status_code == 409, resp.text
     assert "managed by nixos" in resp.json()["detail"] and "\n" not in resp.json()["detail"]

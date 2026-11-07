@@ -29,7 +29,7 @@ _ORPHAN_RESCUE_REF_MAX_AGE_DAYS = 30
 _GIT_TEXT_KW = dict(capture_output=True, text=True, encoding="utf-8", errors="replace",
                    creationflags=windows_hide_flags())
 _BAR = "=" * 68
-_UPSTREAM_ADD_CMD = "git remote add upstream https://github.com/NousResearch/hermes-agent.git"
+_UPSTREAM_ADD_CMD = "git remote add upstream https://github.com/NousResearch/kova-agent.git"
 
 
 def _git_ok(git_cmd, args, cwd, **kw) -> bool:
@@ -272,12 +272,12 @@ def _print_parked_branch_kept_notice(current_branch: str, target_branch: str, un
 
 
 OFFICIAL_REPO_URLS = {
-    "https://github.com/NousResearch/hermes-agent.git",
-    "git@github.com:NousResearch/hermes-agent.git",
-    "https://github.com/NousResearch/hermes-agent",
-    "git@github.com:NousResearch/hermes-agent",
+    "https://github.com/NousResearch/kova-agent.git",
+    "git@github.com:NousResearch/kova-agent.git",
+    "https://github.com/NousResearch/kova-agent",
+    "git@github.com:NousResearch/kova-agent",
 }
-OFFICIAL_REPO_URL = "https://github.com/NousResearch/hermes-agent.git"
+OFFICIAL_REPO_URL = "https://github.com/NousResearch/kova-agent.git"
 SKIP_UPSTREAM_PROMPT_FILE = ".skip_upstream_prompt"
 
 
@@ -319,15 +319,15 @@ def _count_commits_between(git_cmd: list[str], cwd: Path, base: str, head: str) 
 
 def _should_skip_upstream_prompt() -> bool:
     """Check if user previously declined to add upstream."""
-    from kova_constants import get_hermes_home
-    return (get_hermes_home() / SKIP_UPSTREAM_PROMPT_FILE).exists()
+    from kova_constants import get_kova_home
+    return (get_kova_home() / SKIP_UPSTREAM_PROMPT_FILE).exists()
 
 
 def _mark_skip_upstream_prompt():
     """Create marker file to skip future upstream prompts."""
     with suppress(Exception):
-        from kova_constants import get_hermes_home
-        (get_hermes_home() / SKIP_UPSTREAM_PROMPT_FILE).touch()
+        from kova_constants import get_kova_home
+        (get_kova_home() / SKIP_UPSTREAM_PROMPT_FILE).touch()
 
 
 def _sync_fork_with_upstream(git_cmd: list[str], cwd: Path) -> bool:
@@ -341,8 +341,8 @@ def _offer_upstream_remote(git_cmd: list[str], cwd: Path, *, assume_yes: bool, i
     ``--yes`` means "don't block", not "mutate my remotes", so a non-interactive skip is NOT persisted."""
     from kova_cli.update_cmd import _add_upstream_remote, _mark_skip_upstream_prompt
     print(
-        "\nℹ Your fork is not tracking the official Hermes repository.\n"
-        "  This means you may miss updates from NousResearch/hermes-agent.\n"
+        "\nℹ Your fork is not tracking the official Kova repository.\n"
+        "  This means you may miss updates from NousResearch/kova-agent.\n"
     )
     if assume_yes or (input_fn is None and not (sys.stdin.isatty() and sys.stdout.isatty())):
         print(f"  Skipping upstream setup (non-interactive run).\n  Add it later with: {_UPSTREAM_ADD_CMD}")
@@ -363,7 +363,7 @@ def _offer_upstream_remote(git_cmd: list[str], cwd: Path, *, assume_yes: bool, i
     if not _add_upstream_remote(git_cmd, cwd):
         print("  ✗ Failed to add upstream remote. Skipping upstream sync.")
         return False
-    print("  ✓ Added upstream: https://github.com/NousResearch/hermes-agent.git")
+    print("  ✓ Added upstream: https://github.com/NousResearch/kova-agent.git")
     return True
 
 
@@ -503,11 +503,11 @@ def _damaged_checkout_message(root: Path) -> str:
     would rebuild the default directory and leave a ``--dir`` install broken)."""
     if sys.platform == "win32":
         quoted = "'" + str(root).replace("'", "''") + "'"
-        repair = ("& ([scriptblock]::Create((irm https://hermes-agent.nousresearch.com/install.ps1)))"
+        repair = ("& ([scriptblock]::Create((irm https://kova-agent.nousresearch.com/install.ps1)))"
                   f" -InstallDir {quoted}")
     else:
-        repair = f"curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash -s -- --dir {shlex.quote(str(root))}"
-    return (f"✗ This Hermes checkout's git data is damaged (git no longer recognizes {root / '.git'}),"
+        repair = f"curl -fsSL https://kova-agent.nousresearch.com/install.sh | bash -s -- --dir {shlex.quote(str(root))}"
+    return (f"✗ This Kova checkout's git data is damaged (git no longer recognizes {root / '.git'}),"
             " so it cannot be updated in place.\n"
             "  Run the installer again to repair it; it moves the damaged checkout aside and keeps"
             f" your config and chats:\n    {repair}")
@@ -550,7 +550,7 @@ _FETCH_FAILURE_RULES = (
     # key (or lack of one) was the cause (#82169).
     (lambda s: "Permission denied (publickey)" in s or "Host key verification failed" in s,
      "✗ SSH authentication failed — check your SSH key is added to GitHub, or switch"
-     " `origin` to HTTPS: `git remote set-url origin https://github.com/NousResearch/hermes-agent.git`."),
+     " `origin` to HTTPS: `git remote set-url origin https://github.com/NousResearch/kova-agent.git`."),
 )
 
 
@@ -600,16 +600,16 @@ def _git_is_trampoline(git_cmd: list) -> bool:
 
 def _portable_git_candidates() -> list:
     """PortableGit candidates: shared root first (where the managed tree actually lives, not the
-    profile-scoped HERMES_HOME), then profile home as a fallback for custom layouts.
+    profile-scoped KOVA_HOME), then profile home as a fallback for custom layouts.
 
-    The Hermes-managed PortableGit tree lives under the SHARED root (``<root>/git/...``), not the
-    profile-scoped HERMES_HOME (``<root>/profiles/<name>``), so a profile-scoped ``hermes update`` must look
+    The Kova-managed PortableGit tree lives under the SHARED root (``<root>/git/...``), not the
+    profile-scoped KOVA_HOME (``<root>/profiles/<name>``), so a profile-scoped ``hermes update`` must look
     there (monerostar review, #87876).
     """
-    from kova_constants import get_default_hermes_root, get_hermes_home
+    from kova_constants import get_default_kova_root, get_kova_home
     candidates = []
     with suppress(Exception):
-        candidates += [root / "git" / "mingw64" / "libexec" / "git-core" / "git.exe" for root in (get_default_hermes_root(), Path(get_hermes_home()))]
+        candidates += [root / "git" / "mingw64" / "libexec" / "git-core" / "git.exe" for root in (get_default_kova_root(), Path(get_kova_home()))]
     return candidates
 
 

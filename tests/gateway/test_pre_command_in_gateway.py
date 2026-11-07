@@ -29,9 +29,9 @@ from pathlib import Path
 
 def register(ctx):
     def seen(**kw):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         with open(%r, "a") as log:
-            log.write(json.dumps(dict(kw, pid=os.getpid(), home=str(get_hermes_home()))) + "\\n")
+            log.write(json.dumps(dict(kw, pid=os.getpid(), home=str(get_kova_home()))) + "\\n")
     ctx.register_hook("pre_command", seen)
     ctx.register_command("probe-hook-cmd", lambda arg: "ok", description="Probe command")
     ctx.register_skill("probe", Path(__file__).with_name("SKILL.md"), "Probe plugin skill")
@@ -94,8 +94,8 @@ def _gateway(tmp_path, *, isolation=None, beta=False, project=False):
                'plugins': {'enabled': ['probe-hook'], **({'isolation': isolation} if isolation else {})}}
     if project:
         (work / '.git').mkdir()
-        (work / '.hermes' / 'skills' / 'repo-skill').mkdir(parents=True)
-        (work / '.hermes' / 'skills' / 'repo-skill' / 'SKILL.md').write_text(
+        (work / '.kova' / 'skills' / 'repo-skill').mkdir(parents=True)
+        (work / '.kova' / 'skills' / 'repo-skill' / 'SKILL.md').write_text(
             '---\nname: repo-skill\ndescription: Repo-only skill\n---\nSay REPO_SKILL_BODY.\n')
         profile['skills'] = {'trusted_project_dirs': [str(work)], 'auto_load': ['probe-hook:probe']}
     (home / 'config.yaml').write_text(json.dumps({'gateway': {'multiplex_profiles': beta}, **profile}))
@@ -104,7 +104,7 @@ def _gateway(tmp_path, *, isolation=None, beta=False, project=False):
         (home / 'profiles' / 'beta' / 'config.yaml').write_text(json.dumps(profile))
         _probe_plugin(home / 'profiles' / 'beta', tmp_path / 'beta.jsonl')
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
     try:
         with daemon(root, home, env, barrier=False) as (proc, desc):
@@ -176,7 +176,7 @@ def test_real_cli_startup_and_commands_run_no_plugin_code_in_the_cli(tmp_path, m
 def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tmp_path, monkeypatch, capsys):
     import kova_cli.plugins as plugins_mod
     from agent.i18n import t
-    from cli import HermesCLI
+    from cli import KovaCLI
     root = Path(__file__).resolve().parents[2]
     home, user, work = tmp_path / 'state', tmp_path / 'user', tmp_path / 'work'
     home.mkdir(mode=0o700)
@@ -197,7 +197,7 @@ def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tm
         'plugins': {'enabled': ['probe-hook']},
     }))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
 
     def no_local_plugin(*_a, **_k):
@@ -228,9 +228,9 @@ def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tm
 
                 # The classic CLI: a command it forwards fires once, in the gateway; /plugins lists
                 # the gateway's loaded plugins. Both read this profile's home as the CLI process does.
-                monkeypatch.setenv('HERMES_HOME', str(home))
+                monkeypatch.setenv('KOVA_HOME', str(home))
                 monkeypatch.setattr('kova_cli.gateway_side.connection_for', lambda _cli: wire)
-                c = HermesCLI.__new__(HermesCLI)
+                c = KovaCLI.__new__(KovaCLI)
                 c.config, c.session_id = {}, sent['cli']
                 assert c.process_command('/busy queue') is True
                 assert [(r['pid'], r['command'], r['args_raw'], r['session_key'])
@@ -328,7 +328,7 @@ class _ProfileWire(_Wire):
 
         async def _open():
             return await connect(desc['api_origin'].replace('http:', 'ws:') + '/api/ws',
-                                 subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + grant['ticket']])
+                                 subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + grant['ticket']])
         self.ws = self._run(_open())
 
 
@@ -430,7 +430,7 @@ def test_commands_refused_during_a_turn_fire_nothing(tmp_path):
 def test_commands_the_cli_refuses_on_the_gateway_fire_nothing(monkeypatch, capsys):
     """A named refusal (``/handoff``) and a registry command with no classic CLI handler run nothing in
     the CLI, so no ``command.observe`` goes out; a command the CLI runs is still reported."""
-    from cli import HermesCLI
+    from cli import KovaCLI
     from kova_cli.commands import COMMAND_REGISTRY
 
     class Connection:
@@ -447,8 +447,8 @@ def test_commands_the_cli_refuses_on_the_gateway_fire_nothing(monkeypatch, capsy
     monkeypatch.setattr('kova_cli.gateway_side.connection_for', lambda _cli: connection)
     monkeypatch.setattr('kova_cli.plugins.fire_pre_command_hook', lambda **_k: pytest.fail('fired locally'))
     unhandled = next(cmd.name for cmd in COMMAND_REGISTRY
-                     if HermesCLI._slash_handler(cmd.name) is None and cmd.name != 'handoff')
-    c = HermesCLI.__new__(HermesCLI)
+                     if KovaCLI._slash_handler(cmd.name) is None and cmd.name != 'handoff')
+    c = KovaCLI.__new__(KovaCLI)
     c.config, c.session_id = {}, 's1'
     c.process_command('/handoff telegram')
     c.process_command('/' + unhandled)

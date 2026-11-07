@@ -315,7 +315,7 @@ def cmd_check_updates(args: Any | None = None) -> None:
         if r.needs_fixing:
             status = f"[red]needs fixing[/red]\n[dim]{r.needs_fixing}[/dim]"
         elif r.update_available is True and (held := held_for_newer_hermes(r)):
-            status = f"[yellow]update available after updating Hermes[/yellow]\n[dim]{held}[/dim]"
+            status = f"[yellow]update available after updating Kova[/yellow]\n[dim]{held}[/dim]"
         elif r.update_available is True:
             status = "[green]update available[/green]"
         elif r.update_available is False:
@@ -335,7 +335,7 @@ def cmd_check_updates(args: Any | None = None) -> None:
 def dashboard_update_user_plugin(name: str, *, accept_capabilities: bool = False, force: bool = False,
                                  unattended: bool = False) -> dict[str, Any]:
     """The one non-interactive update for the dashboard and Desktop: ``git pull`` inside
-    ``~/.hermes/plugins/<name>``; catalog installs re-pin instead. Nothing changes on a refusal:
+    ``~/.kova/plugins/<name>``; catalog installs re-pin instead. Nothing changes on a refusal:
     a re-pin that widens the plugin returns ``{"ok": False, "consent_required": True, "delta": {...}}``
     (retry with *accept_capabilities*), and a git update the security scan blocks returns
     ``{"ok": False, "scan_blocked": True, "scan_verdict", "scan_findings"}`` (retry a caution verdict

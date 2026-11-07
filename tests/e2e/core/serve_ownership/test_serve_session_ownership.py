@@ -197,16 +197,16 @@ def _settled(db: Path, sid: str, on_gateway: bool) -> bool:
 def scenario(tmp_path_factory: pytest.TempPathFactory):
     root, tag, model = tmp_path_factory.mktemp("serve-own"), new_tag(), _Model()
     model.start()
-    home, hermes_home = write_chaos_home(
+    home, kova_home = write_chaos_home(
         root, model.base_url, stale_timeout=600, request_timeout=600,
         extra="auxiliary:\n  title_generation:\n    enabled: false\n")
-    db, log = hermes_home / "state.db", root / "procs.log"
-    env = hermetic_env(home, hermes_home, tag)
+    db, log = kova_home / "state.db", root / "procs.log"
+    env = hermetic_env(home, kova_home, tag)
     for key in ("NOTIFY_SOCKET", "INVOCATION_ID", "XDG_STATE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
                 "XDG_CACHE_HOME", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(key, None)
     # Host rendezvous stays inside the tmp root: the developer's live gateway is never seen.
-    env.update(HERMES_GATEWAY_LOCK_DIR=str(root / "locks"), HERMES_GATEWAY_MAX_STARTS="0")
+    env.update(KOVA_GATEWAY_LOCK_DIR=str(root / "locks"), KOVA_GATEWAY_MAX_STARTS="0")
     out, sinks, facts = open(log, "wb"), [], {}
 
     def spawn(*argv: str, **extra: str) -> subprocess.Popen:
@@ -215,17 +215,17 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
                                 stderr=subprocess.STDOUT)
     try:
         gateway = model.procs["gateway"] = spawn("gateway", "run", "--quiet")
-        desc = _poll(lambda: _identify(hermes_home) or (gateway.poll() is not None and {"exited": True}),
+        desc = _poll(lambda: _identify(kova_home) or (gateway.poll() is not None and {"exited": True}),
                      BOOT_S, "gateway identify ready", log)
         assert "exited" not in desc, f"gateway exited rc={gateway.returncode}\n{log.read_text(errors='replace')}"
         served = {Path(p["home"]).resolve() for p in desc.get("served_profiles", [])}
-        assert hermes_home.resolve() in served, desc
+        assert kova_home.resolve() in served, desc
 
         # Control: a turn through the gateway's own /api/ws is admitted and runs in the gateway.
-        grant = _control(hermes_home, "session-ticket", {"profile_id": str(hermes_home.resolve()),
+        grant = _control(kova_home, "session-ticket", {"profile_id": str(kova_home.resolve()),
                                                          "instance_id": desc["instance_id"], "purpose": "interactive"})
         url = desc["api_origin"].replace("http:", "ws:") + "/api/ws"
-        with connect(url, subprotocols=["hermes-gateway-v1", "hermes-gateway-ticket." + grant["ticket"]],
+        with connect(url, subprotocols=["kova-gateway-v1", "kova-gateway-ticket." + grant["ticket"]],
                      open_timeout=60, max_size=None) as gws:
             sid = _rpc(gws, 1, "session.create", {"request_id": "control", "source": "cli"})["session_id"]
             _rpc(gws, 2, "prompt.submit", {"session_id": sid, "text": "control turn", "input_id": "control-0"})
@@ -237,7 +237,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
         # serve beside the owner: one prompt, held at the model, then SIGTERM to serve mid-turn.
         token = secrets.token_urlsafe(24)
         serve = model.procs["serve"] = spawn("serve", "--host", "127.0.0.1", "--port", "0",
-                                             HERMES_DASHBOARD_SESSION_TOKEN=token)
+                                             KOVA_DASHBOARD_SESSION_TOKEN=token)
         port = int(_poll(lambda: (m := re.search(rb"backend listening on [\d.]+:(\d+)", log.read_bytes()))
                          and m.group(1) or (serve.poll() is not None and b"-1"), BOOT_S, "serve port", log))
         assert port > 0, f"serve exited rc={serve.returncode}\n{log.read_text(errors='replace')}"

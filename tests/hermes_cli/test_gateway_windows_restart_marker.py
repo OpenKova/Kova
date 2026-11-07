@@ -17,18 +17,18 @@ MARKER = ".restart_pending.json"
 
 
 @pytest.fixture
-def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
+def kova_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setattr(gateway_run, "_kova_home", tmp_path)
     return tmp_path
 
 
 @pytest.mark.platforms("windows")
-def test_restart_stamps_the_marker_after_the_old_gateway_is_gone(hermes_home, monkeypatch):
+def test_restart_stamps_the_marker_after_the_old_gateway_is_gone(kova_home, monkeypatch):
     from kova_cli import gateway as gw_facade
     from kova_cli import gateway_windows as gw
 
-    marker = hermes_home / MARKER
+    marker = kova_home / MARKER
     seen: dict[str, bool] = {}
     monkeypatch.setattr(gw, "_wait_for_gateway_absent", lambda timeout_s=30.0: True)
     monkeypatch.setattr(gw_facade, "_wait_for_api_server_port_free", lambda: None)

@@ -18,7 +18,7 @@ def isolated_profiles(tmp_path, monkeypatch):
     """Give profile discovery an isolated default home with one named profile."""
     from kova_cli import profiles
 
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     profiles_root = default_home / "profiles"
     worker_home = profiles_root / "worker_alpha"
 
@@ -26,7 +26,7 @@ def isolated_profiles(tmp_path, monkeypatch):
         (home / "cron").mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("model: test-model\n", encoding="utf-8")
 
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}
 
@@ -53,19 +53,19 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
     from cron import scheduler
 
     from kova_constants import (
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
 
     default_home = isolated_profiles["default"]
     worker_home = isolated_profiles["worker_alpha"]
-    monkeypatch.setattr(scheduler, "_hermes_home", None)
+    monkeypatch.setattr(scheduler, "_kova_home", None)
     captured = {}
 
     class RecordingProvider:
         def fire_due(self, job_id, *, adapters=None, loop=None):
             captured["job_id"] = job_id
-            captured["runtime_home"] = scheduler._get_hermes_home()
+            captured["runtime_home"] = scheduler._get_kova_home()
             captured["jobs_file"] = cron_jobs._current_cron_store().jobs_file
             return True
 
@@ -74,7 +74,7 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
         lambda: RecordingProvider(),
     )
 
-    outer_token = set_hermes_home_override(default_home)
+    outer_token = set_kova_home_override(default_home)
     try:
         assert _web_server_cron._fire_cron_job_for_profile("worker_alpha", "worker-job") is True
         assert captured == {
@@ -82,9 +82,9 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
             "runtime_home": worker_home,
             "jobs_file": worker_home / "cron" / "jobs.json",
         }
-        assert scheduler._get_hermes_home() == default_home
+        assert scheduler._get_kova_home() == default_home
     finally:
-        reset_hermes_home_override(outer_token)
+        reset_kova_home_override(outer_token)
 
 
 def test_create_registers_scheduler_inside_target_profile(
@@ -94,7 +94,7 @@ def test_create_registers_scheduler_inside_target_profile(
     """Dashboard create must resolve and register under the selected profile."""
     from cron import jobs as cron_jobs
     from cron.scheduler_provider import CronScheduler
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     worker_home = isolated_profiles["worker_alpha"]
     captured = {}
@@ -109,7 +109,7 @@ def test_create_registers_scheduler_inside_target_profile(
 
         def register_job(self, job):
             captured["job"] = job
-            captured["runtime_home"] = get_hermes_home()
+            captured["runtime_home"] = get_kova_home()
             captured["jobs_file"] = cron_jobs._current_cron_store().jobs_file
 
     monkeypatch.setattr(
@@ -179,13 +179,13 @@ def test_notify_cron_provider_scopes_store_and_runtime_home_together(
     from cron import scheduler
 
     from kova_constants import (
-        reset_hermes_home_override,
-        set_hermes_home_override,
+        reset_kova_home_override,
+        set_kova_home_override,
     )
 
     default_home = isolated_profiles["default"]
     worker_home = isolated_profiles["worker_alpha"]
-    monkeypatch.setattr(scheduler, "_hermes_home", None)
+    monkeypatch.setattr(scheduler, "_kova_home", None)
     monkeypatch.setattr(
         _web_server_cron,
         "_cron_profile_dicts",
@@ -195,7 +195,7 @@ def test_notify_cron_provider_scopes_store_and_runtime_home_together(
 
     class RecordingProvider:
         def on_jobs_changed(self):
-            captured["runtime_home"] = scheduler._get_hermes_home()
+            captured["runtime_home"] = scheduler._get_kova_home()
             captured["jobs_file"] = cron_jobs._current_cron_store().jobs_file
 
     monkeypatch.setattr(
@@ -203,16 +203,16 @@ def test_notify_cron_provider_scopes_store_and_runtime_home_together(
         lambda: RecordingProvider(),
     )
 
-    outer_token = set_hermes_home_override(default_home)
+    outer_token = set_kova_home_override(default_home)
     try:
         _web_server_cron._notify_cron_provider_for_profile("worker_alpha")
         assert captured == {
             "runtime_home": worker_home,
             "jobs_file": worker_home / "cron" / "jobs.json",
         }
-        assert scheduler._get_hermes_home() == default_home
+        assert scheduler._get_kova_home() == default_home
     finally:
-        reset_hermes_home_override(outer_token)
+        reset_kova_home_override(outer_token)
 
 
 def test_notify_cron_provider_failure_is_best_effort(
@@ -258,7 +258,7 @@ def test_external_provider_reconcile_fails_closed_with_multiple_profiles(
     succeeds (fail-closed only skips the remote converge)."""
     from cron import scheduler
 
-    monkeypatch.setattr(scheduler, "_hermes_home", None)
+    monkeypatch.setattr(scheduler, "_kova_home", None)
     monkeypatch.setattr(
         _web_server_cron,
         "_cron_profile_dicts",
@@ -306,7 +306,7 @@ def test_builtin_provider_hook_still_fires_with_multiple_profiles(
     from cron import scheduler
     from cron.scheduler_provider import InProcessCronScheduler
 
-    monkeypatch.setattr(scheduler, "_hermes_home", None)
+    monkeypatch.setattr(scheduler, "_kova_home", None)
     monkeypatch.setattr(
         _web_server_cron,
         "_cron_profile_dicts",
@@ -979,11 +979,11 @@ async def test_create_cron_job_without_profile_uses_backend_own_profile(
     isolated_profiles, monkeypatch
 ):
     """A pool backend scoped to a named profile must not default creates to
-    ``~/.hermes`` when the request carries no explicit ``profile`` (the
+    ``~/.kova`` when the request carries no explicit ``profile`` (the
     Desktop app's pre-profileScoped clients sent none)."""
 
     monkeypatch.setenv(
-        "HERMES_HOME", str(isolated_profiles["worker_alpha"])
+        "KOVA_HOME", str(isolated_profiles["worker_alpha"])
     )
 
     job = await _rt_cron.create_cron_job(
@@ -1004,10 +1004,10 @@ async def test_create_cron_job_without_profile_uses_backend_own_profile(
 async def test_create_cron_job_without_profile_defaults_when_unscoped(
     isolated_profiles, monkeypatch
 ):
-    """HERMES_HOME at the default home (or unrecognized) keeps the legacy
+    """KOVA_HOME at the default home (or unrecognized) keeps the legacy
     ``default`` fallback."""
 
-    monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["default"]))
+    monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["default"]))
 
     job = await _rt_cron.create_cron_job(
         _web_models.CronJobCreate(
@@ -1298,7 +1298,7 @@ class TestCronRunHistoryFallback:
         """The filename stem is written by save_job_output via kova_time.now()
         — the configured zone. Reading it back must use that zone, not the
         server's (review of #61403: a fixed-offset snapshot was off by hours
-        when HERMES_TIMEZONE differs from the server zone)."""
+        when KOVA_TIMEZONE differs from the server zone)."""
         from zoneinfo import ZoneInfo
         from kova_time import _tz_cache
 
@@ -1307,7 +1307,7 @@ class TestCronRunHistoryFallback:
         # Wall time 2026-07-10_00-14-10 in Asia/Taipei (+08:00) = 2026-07-09 16:14:10 UTC.
         self._write_output_doc(monkeypatch, home, job_id, "2026-07-10_00-14-10.md", "tz output\n")
 
-        monkeypatch.setenv("HERMES_TIMEZONE", "Asia/Taipei")
+        monkeypatch.setenv("KOVA_TIMEZONE", "Asia/Taipei")
         _tz_cache.clear()
 
         monkeypatch.setattr(_rt_cron, "_job_owner_profile", lambda _job_id, _profile: "default")
@@ -1321,7 +1321,7 @@ class TestCronRunHistoryFallback:
         try:
             result = _rt_cron._list_cron_job_runs_sync(job_id, limit=5)
         finally:
-            monkeypatch.delenv("HERMES_TIMEZONE", raising=False)
+            monkeypatch.delenv("KOVA_TIMEZONE", raising=False)
             _tz_cache.clear()
 
         started = result["runs"][0]["started_at"]
@@ -1468,7 +1468,7 @@ class TestCronRunHistoryFallback:
     ):
         """Review of #42433: the filename stem is written with the OWNER
         profile's configured zone. A cross-profile request must decode it in
-        that zone — not the dashboard's — with no global HERMES_TIMEZONE set
+        that zone — not the dashboard's — with no global KOVA_TIMEZONE set
         (both profiles configure config.yaml timezones, so a shared env var
         cannot mask the mix-up)."""
         from zoneinfo import ZoneInfo

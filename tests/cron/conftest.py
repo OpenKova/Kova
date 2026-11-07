@@ -1,13 +1,13 @@
 """Cron-test fixtures.
 
-Provides a default ``HERMES_MODEL`` for cron run_job tests so each one
+Provides a default ``KOVA_MODEL`` for cron run_job tests so each one
 doesn't have to spell out a model. The global conftest blanks
-HERMES_MODEL hermetically; without this autouse fixture every cron test
+KOVA_MODEL hermetically; without this autouse fixture every cron test
 that exercises ``run_job`` would hit the fail-fast guard added in
 ``cron/scheduler.py`` (see issue #23979) and have to be rewritten.
 
-Tests that specifically need ``HERMES_MODEL`` unset — model-resolution
-edge cases — call ``monkeypatch.delenv("HERMES_MODEL", raising=False)``
+Tests that specifically need ``KOVA_MODEL`` unset — model-resolution
+edge cases — call ``monkeypatch.delenv("KOVA_MODEL", raising=False)``
 inside the test, which overrides this fixture's value for that scope.
 """
 
@@ -54,13 +54,13 @@ def make_cron_provider():
 def _no_managed_store(tmp_path, monkeypatch):
     """Point PM's store at an empty dir: script runs must not select the host install's
     dependency venv (POSIX cron scripts run on it when a store is committed)."""
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "no-pm-store"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "no-pm-store"))
 
 
 @pytest.fixture(autouse=True)
 def _default_cron_test_model(monkeypatch):
-    """Pin a default HERMES_MODEL so cron run_job tests have a resolvable model."""
-    monkeypatch.setenv("HERMES_MODEL", "test-cron-default-model")
+    """Pin a default KOVA_MODEL so cron run_job tests have a resolvable model."""
+    monkeypatch.setenv("KOVA_MODEL", "test-cron-default-model")
     yield
 
 
@@ -95,9 +95,9 @@ def owner_execution_runner():
     from kova_state_registry import acquire, release
 
     def run(job, *, extra_prompt=None, cancel_event=None, execution_id=None):
-        from cron.scheduler import _get_hermes_home
+        from cron.scheduler import _get_kova_home
 
-        db = acquire(_get_hermes_home() / "state.db")
+        db = acquire(_get_kova_home() / "state.db")
         identity = uuid4().hex
         ref = SessionRef("test-profile", "cron-" + identity)
         db.create_session(ref.session_id, source="cron")

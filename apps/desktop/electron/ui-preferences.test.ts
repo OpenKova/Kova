@@ -7,13 +7,13 @@ import { promisify } from 'node:util'
 
 import { afterEach, test } from 'vitest'
 
-import { resolveDesktopHermesHome } from './data-paths'
+import { resolveDesktopKovaHome } from './data-paths'
 import { readUiPreferences, uiPreferencesPath, uiPreferencesRoot, writeUiPreferences } from './ui-preferences'
 
 // Native Desktop (this module) and the Webapp's Python server must land on ONE
 // file and merge into it without losing each other's keys (#145213).
 const repo = path.resolve(import.meta.dirname, '../../..')
-const python = process.env.HERMES_PYTHON || 'python3'
+const python = process.env.KOVA_PYTHON || 'python3'
 const homes: string[] = []
 
 afterEach(() => {
@@ -30,14 +30,14 @@ function scratchHome(): string {
 }
 
 function pythonEnv(home: string, hermesHome: string): NodeJS.ProcessEnv {
-  return { HERMES_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
+  return { KOVA_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
 }
 
 const PY_PATH = 'from kova_cli.ui_preferences import store_path; print(store_path())'
 
-/** The file main's IPC registers for this HERMES_HOME (registerUiPreferencesIpc). */
+/** The file main's IPC registers for this KOVA_HOME (registerUiPreferencesIpc). */
 const electronStorePath = (home: string, hermesHome: string) =>
-  uiPreferencesPath(uiPreferencesRoot(resolveDesktopHermesHome({ env: { HERMES_HOME: hermesHome }, home })))
+  uiPreferencesPath(uiPreferencesRoot(resolveDesktopKovaHome({ env: { KOVA_HOME: hermesHome }, home })))
 
 test('native Desktop and the Webapp server resolve the same store from a profile home', () => {
   const home = scratchHome()
@@ -61,7 +61,7 @@ test.skipIf(process.platform === 'win32')(
   'a symlinked profile directory still resolves its root, the same store on both sides',
   () => {
     const home = scratchHome()
-    const root = path.join(home, '.hermes')
+    const root = path.join(home, '.kova')
     const elsewhere = path.join(home, 'elsewhere', 'coder')
     fs.mkdirSync(path.join(root, 'profiles'), { recursive: true })
     fs.mkdirSync(elsewhere, { recursive: true })
@@ -81,7 +81,7 @@ test.skipIf(process.platform === 'win32')(
 
 test('a custom home inside the default home resolves the same store on both sides', () => {
   const home = scratchHome()
-  const sandbox = path.join(home, '.hermes', 'sandbox')
+  const sandbox = path.join(home, '.kova', 'sandbox')
   fs.mkdirSync(sandbox, { recursive: true })
 
   const electronFile = electronStorePath(home, sandbox)

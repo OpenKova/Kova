@@ -2,7 +2,7 @@
 
 Sends REAL packages through the REAL sender to the REAL staging ingest
 service, then reports what the service acknowledged. Uses a throwaway
-HERMES_HOME so the operator's own telemetry state is untouched.
+KOVA_HOME so the operator's own telemetry state is untouched.
 
 Usage:
     .venv/bin/python scripts/e2e_shared_metrics_staging.py
@@ -26,7 +26,7 @@ STAGING = "https://telemetry.staging-nousresearch.com/v1/telemetry"
 
 def main() -> int:
     scratch = Path(tempfile.mkdtemp(prefix="hermes-telemetry-e2e-"))
-    os.environ["HERMES_HOME"] = str(scratch)
+    os.environ["KOVA_HOME"] = str(scratch)
 
     # Staging is selected by writing config into the THROWAWAY profile, not by
     # an environment override: a runtime env var that can retarget consented
@@ -138,7 +138,7 @@ def main() -> int:
             )
         packages.append((package_id, metric_count))
 
-    print(f"scratch HERMES_HOME : {scratch}")
+    print(f"scratch KOVA_HOME : {scratch}")
     print(f"endpoint            : {STAGING}")
     print(f"local install_id    : {real_install_id}")
     print(f"packages queued     : {len(packages)}")
@@ -188,7 +188,7 @@ def main() -> int:
     print()
     print("Verify the objects in S3 with the package ids above:")
     print("  aws s3 ls --recursive "
-          "s3://hermes-agent-telemetry-staging-767397871023-us-west-2-an/raw/ "
+          "s3://kova-agent-telemetry-staging-767397871023-us-west-2-an/raw/ "
           "| tail -20")
     return 0
 

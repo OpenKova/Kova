@@ -8,7 +8,7 @@ import { customWindowControlsEnabled } from './window-controls'
 // needs it before its first paint, and answered by main because deciding it
 // needs `os.release()` — a sandboxed preload may only require electron, events,
 // timers and url, so importing node:os here throws before contextBridge runs
-// and takes the ENTIRE bridge down with it (window.hermesDesktop undefined =>
+// and takes the ENTIRE bridge down with it (window.kovaDesktop undefined =>
 // "Desktop IPC bridge is unavailable"). No reply means no glass, which degrades
 // to an ordinary opaque window rather than a page thinned over nothing.
 const translucencySupport = ipcRenderer.sendSync('hermes:translucency:support')
@@ -326,7 +326,7 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   oauthLoginConnectionConfig: (remoteUrl, options) =>
     ipcRenderer.invoke('hermes:connection-config:oauth-login', remoteUrl, options),
   oauthLogoutConnectionConfig: remoteUrl => ipcRenderer.invoke('hermes:connection-config:oauth-logout', remoteUrl),
-  // Hermes Cloud: one portal login powers discovery + silent per-agent sign-in
+  // Kova Cloud: one portal login powers discovery + silent per-agent sign-in
   // (cloud-auto-discovery Phase 3).
   cloud: {
     status: () => ipcRenderer.invoke('hermes:cloud:status'),

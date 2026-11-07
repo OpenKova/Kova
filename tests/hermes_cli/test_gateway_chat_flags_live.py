@@ -1,4 +1,4 @@
-"""Launch flags on the classic CLI (main's HermesCLI, gateway-backed): bare -c, --resume latest, --list-tools,
+"""Launch flags on the classic CLI (main's KovaCLI, gateway-backed): bare -c, --resume latest, --list-tools,
 resume footer. Expectations are main's (git archive 3b63f7b0a4c, lanes/pushready/probe_oneshot.py)."""
 import json
 from http.server import ThreadingHTTPServer
@@ -36,7 +36,7 @@ def test_continue_latest_footer_and_tool_listing(tmp_path):
         "model": {"provider": "custom", "default": "flags-model", "base_url": url},
         "auxiliary": {"title_generation": {"enabled": False}}}))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
     def hermes(*args, cwd, module="kova_cli.main"):

@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_time import now as _hermes_now
 from cron.constants import CLAIM_TTL_INACTIVITY_HEADROOM
 from kova_cli.observability.shared_metrics_gateway import record_cron_finish
@@ -54,7 +54,7 @@ def _connect() -> sqlite3.Connection:
     from cron.jobs import _ensure_cron_dir
     from kova_cli.sqlite_util import open_db
 
-    path = EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")
+    path = EXECUTIONS_FILE or (get_kova_home().resolve() / "cron" / "executions.db")
     _ensure_cron_dir(path.parent)
     return open_db(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema)
 
@@ -188,7 +188,7 @@ def _live_owner_stale_after_seconds() -> Optional[float]:
     """Age past which a claimed/running row with a LIVE owner is treated as wedged.
 
     Derived from the existing knobs, never a bare wall-clock constant:
-    ``max(3 × HERMES_CRON_TIMEOUT, cron script timeout, 7200)``. Returns ``None`` (never reclaim
+    ``max(3 × KOVA_CRON_TIMEOUT, cron script timeout, 7200)``. Returns ``None`` (never reclaim
     live owners — today's behaviour) when the inactivity timeout is 0/unlimited or not a finite
     positive number: with no bound to derive from, fail closed.
     """

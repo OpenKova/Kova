@@ -12,7 +12,7 @@ callback); a gated bind without it would keep the Webapp off. Two shapes:
 
 Of the config it writes only the ``webapp:`` block; ``dashboard.public_url`` belongs to the standalone
 dashboard, which may sit behind its own tunnel or proxy. Nous sign-in uses a portal client of Web
-Access's own, never the dashboard's ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``, so registering the Webapp's
+Access's own, never the dashboard's ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``, so registering the Webapp's
 callback cannot change the redirect URI the dashboard's sign-in needs. Its id is kept in a user-only
 file under the gateway home, which the gateway reads when it serves the Webapp; ``.env`` is untouched.
 """
@@ -67,9 +67,9 @@ def _public_url(raw: Optional[str]) -> str:
 def gateway_home() -> Path:
     """The home whose gateway serves the current one; its config holds the Webapp's settings."""
     from kova_cli.webapp_launcher import _gateway_home
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    return _gateway_home(get_hermes_home())
+    return _gateway_home(get_kova_home())
 
 
 def nous_signed_in() -> bool:
@@ -130,11 +130,11 @@ def _register_nous_sign_in(callback_url: str) -> None:
         _register_self_hosted_client,
         _resolve_portal_base_url,
     )
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from utils import atomic_write_text
 
-    home = get_hermes_home()
-    portal = _resolve_portal_base_url(os.environ.get("HERMES_DASHBOARD_PORTAL_URL"))
+    home = get_kova_home()
+    portal = _resolve_portal_base_url(os.environ.get("KOVA_DASHBOARD_PORTAL_URL"))
     own = sign_in_client(home)
     existing = own[0] if own and own[1] == portal else None
     if existing and _registration(home).get("callback") == callback_url:
@@ -181,7 +181,7 @@ def plan(mode: str, public_url: Optional[str] = None) -> tuple[str, Optional[int
 
 #: How many ports above the default Start tries for a standalone profile's Webapp.
 _PORT_SEARCH = 100
-#: Under the Hermes root every profile shares: one standalone profile's gateway at a time chooses and
+#: Under the Kova root every profile shares: one standalone profile's gateway at a time chooses and
 #: saves its Webapp port, so a Start in another gateway's process sees that claim before it chooses.
 _PORT_CLAIM_LOCK = Path("webapp") / "port-claim.lock"
 _PORT_CLAIM_HOLDER = threading.local()
@@ -194,7 +194,7 @@ def _port_to_serve(home: Path, host: str) -> tuple[int, Optional[int]]:
     A ``webapp.port`` in *home*'s config is the user's, and so is the default profile's gateway, which
     serves the documented address (9120 unless set): both keep it, and Start writes no port. A standalone
     profile's gateway with no ``webapp.port`` would find the default port taken by the default gateway's
-    Webapp, so it gets the first port above it that no other Hermes home on this machine claims and
+    Webapp, so it gets the first port above it that no other Kova home on this machine claims and
     nothing listens on now, and Start writes it to that profile's ``webapp.port``: the profile keeps that
     address across restarts, and the gateway, the launcher and the sign-in callback all use it.
 
@@ -213,7 +213,7 @@ def _port_to_serve(home: Path, host: str) -> tuple[int, Optional[int]]:
     _create_user_only(lock)
     try:
         with _file_lock(lock, _PORT_CLAIM_HOLDER, _PORT_CLAIM_TIMEOUT_SECONDS,
-                        "Timed out waiting for another Hermes profile to choose its Webapp port"):
+                        "Timed out waiting for another Kova profile to choose its Webapp port"):
             claimed = _claimed_ports(home)
             for port in range(DEFAULT_PORT + 1, DEFAULT_PORT + 1 + _PORT_SEARCH):
                 if port not in claimed and _port_free(host, port):
@@ -262,7 +262,7 @@ def _own_port(home: Path) -> Optional[object]:
 
 
 def _claimed_ports(home: Path) -> set[int]:
-    """The Webapp ports the other Hermes homes beside *home* claim: the default profile's (9120 unless
+    """The Webapp ports the other Kova homes beside *home* claim: the default profile's (9120 unless
     set) and every other profile's own ``webapp.port``, whether or not its gateway runs now. Only that
     setting is read from their configs."""
     from gateway.webapp_listener import DEFAULT_PORT

@@ -70,9 +70,9 @@ def test_write_read_delete_roundtrip(record_path: Path) -> None:
 
 
 def test_record_lives_at_the_top_of_the_profile_home() -> None:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    assert photon_adapter._runtime_record_path() == get_hermes_home() / "photon-sidecar.json"
+    assert photon_adapter._runtime_record_path() == get_kova_home() / "photon-sidecar.json"
 
 
 def test_read_deletes_a_previous_record_unread(record_path: Path) -> None:
@@ -283,6 +283,6 @@ async def test_standalone_send_consumes_record_when_env_missing(
     assert result == {"success": True, "message_id": "m1"}
     url, _body, headers = _SendClient.calls[0]
     assert ":9111/" in url
-    assert headers["X-Hermes-Sidecar-Token"] == "record-token"
+    assert headers["X-Kova-Sidecar-Token"] == "record-token"
 
 

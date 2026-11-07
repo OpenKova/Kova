@@ -28,7 +28,7 @@ def marks(tmp_path, monkeypatch):
     policy = {"on": True}
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: policy["on"])
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", lambda mark, data: captured.append((mark, data)))
     store = {"saves": True}
@@ -72,7 +72,7 @@ def test_feature_use_counts_each_area_once_per_day_and_collapses_unknown_areas(m
 def test_friction_detail_is_checked_against_its_own_kind_and_capped_per_day(marks):
     _rpc("shared_metrics.desktop_friction", kind="renderer_crash", detail="oom")
     _rpc("shared_metrics.desktop_friction", kind="renderer_crash", detail="network")  # a disconnect word
-    _rpc("shared_metrics.desktop_friction", kind="error_toast", detail="ENOSPC: /home/alice/.hermes is full")
+    _rpc("shared_metrics.desktop_friction", kind="error_toast", detail="ENOSPC: /home/alice/.kova is full")
     _rpc("shared_metrics.desktop_friction", kind="made_up", detail="crash")
     for _ in range(desktop.FRICTION_DAILY_CAP + 5):
         _rpc("shared_metrics.desktop_friction", kind="slow_frame", detail="1s_to_5s")

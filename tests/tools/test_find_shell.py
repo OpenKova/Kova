@@ -99,7 +99,7 @@ class TestFindShellWindowsBehavior:
 
 class TestFindBashCollapsedToPmShell:
     """_find_bash is now a thin wrapper over pm.shell(); the Windows
-    candidate ladder (HERMES_GIT_BASH_PATH → %LOCALAPPDATA%\\hermes\\git →
+    candidate ladder (KOVA_GIT_BASH_PATH → %LOCALAPPDATA%\\hermes\\git →
     Program Files) and the ASLR diagnostic were deleted — the store is the
     authority on bundled bash."""
 

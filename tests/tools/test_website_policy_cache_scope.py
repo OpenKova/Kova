@@ -9,16 +9,16 @@ import pytest
 
 import kova_yaml as yaml
 from tools import website_policy
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @contextmanager
 def _profile(home: Path):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _write_policy(home: Path, *, enabled: bool, domains: list[str] | None = None) -> None:

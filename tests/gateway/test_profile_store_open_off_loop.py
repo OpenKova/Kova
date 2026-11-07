@@ -15,7 +15,7 @@ async def test_secondary_store_opens_run_off_the_loop_in_their_own_scope(tmp_pat
     import kova_state_registry
     from gateway.run_runtime import initialize_gateway_runtime
     from gateway.runtime_ownership import process_ownership
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     root, homes = _reserve_homes(tmp_path, monkeypatch)
     process_ownership.reserve([home for _, home in homes])
@@ -23,7 +23,7 @@ async def test_secondary_store_opens_run_off_the_loop_in_their_own_scope(tmp_pat
     real_open = kova_state_registry._open_session_db
 
     def spy(path):
-        opens.append((path.parent.resolve(), threading.get_ident(), get_hermes_home().resolve()))
+        opens.append((path.parent.resolve(), threading.get_ident(), get_kova_home().resolve()))
         return real_open(path)
 
     monkeypatch.setattr(kova_state_registry, "_open_session_db", spy)

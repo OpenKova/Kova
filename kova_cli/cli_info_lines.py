@@ -31,10 +31,10 @@ def toolsets_lines(enabled) -> list[str]:
 
 def platforms_lines() -> list[str]:
     """``/platforms``: the messaging platforms the profile's gateway config enables."""
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     from gateway.config import load_gateway_config, Platform
     out = ["", *_box(t("cli.gateway_status.header"), 60), ""]
-    config_file = f"{display_hermes_home()}/config.yaml"
+    config_file = f"{display_kova_home()}/config.yaml"
     try:
         config = load_gateway_config()
         out += [f"  {t('cli.gateway_status.platform_config_header')}", "  " + "-" * 55]

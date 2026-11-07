@@ -1,7 +1,7 @@
-"""Multi-provider authentication system for Hermes Agent.
+"""Multi-provider authentication system for Kova Agent.
 
 - ``ProviderConfig`` / ``PROVIDER_REGISTRY`` describe every known inference provider.
-- The auth store (``~/.hermes/auth.json``) holds per-provider state, the credential pool and
+- The auth store (``~/.kova/auth.json``) holds per-provider state, the credential pool and
   suppression markers; ``_auth_store_lock`` / ``_load_auth_store`` / ``_save_auth_store`` are the
   only I/O primitives (cross-process flock, atomic 0o600 writes).
 - ``resolve_provider()`` picks the active provider via the documented priority chain.
@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, FrozenSet, Iterable, List, Optional, Tuple
 from urllib.parse import urlparse
 
-from kova_constants import OPENROUTER_BASE_URL, hermes_home_key, secure_parent_dir
+from kova_constants import OPENROUTER_BASE_URL, kova_home_key, secure_parent_dir
 from agent.credential_persistence import sanitize_borrowed_credential_payload
 from utils import atomic_json_write, env_float, file_cache_version, is_truthy_value
 from kova_cli.auth_zai_kimi import (
@@ -249,7 +249,7 @@ BUILTIN_PROVIDER_IDS = frozenset(dict.keys(PROVIDER_REGISTRY))
 # a plugin never observes a partially initialized auth module (CONTRACT: during discovery a plugin may
 # rely only on ``ProviderConfig`` and ``PROVIDER_REGISTRY`` from here — nothing defined below).
 from kova_cli.config import (
-    atomic_config_replace, config_exists, get_hermes_home, get_config_path, read_raw_config, require_readable_config_before_write)
+    atomic_config_replace, config_exists, get_kova_home, get_config_path, read_raw_config, require_readable_config_before_write)
 
 # Plugin profiles (plugins/model-providers/<name>/) are mirrored into PROVIDER_REGISTRY with the
 # auth_type they declare; the mirror lives in the sibling so it can be re-run after discovery.
@@ -265,7 +265,7 @@ def get_anthropic_key() -> str:
 
     Order mirrors ``PROVIDER_REGISTRY["anthropic"].api_key_env_vars``.
 
-    Checks both the ``.env`` file and the process environment, preferring ``~/.hermes/.env`` so a deliberate
+    Checks both the ``.env`` file and the process environment, preferring ``~/.kova/.env`` so a deliberate
     key rotation isn't shadowed by a stale shell export (matches the api-key resolution path — see #20591).
     """
     from kova_cli.config import get_env_value_prefer_dotenv
@@ -354,7 +354,7 @@ def _model_level_key_env(provider_id: str) -> str:
     """``model.key_env`` when config.yaml's main model targets *provider_id*, else ``""``.
 
     The Desktop settings UI saves registry-provider keys as a credential pointer
-    (``model.key_env`` → ``$HERMES_HOME/.env``) instead of the registry's canonical env var,
+    (``model.key_env`` → ``$KOVA_HOME/.env``) instead of the registry's canonical env var,
     so credential resolution must consult it (#106336).
     """
     try:
@@ -376,12 +376,12 @@ def _resolve_api_key_provider_secret(provider_id: str, pconfig: ProviderConfig) 
     if owned is not None:  # provider-owned resolution (token validation / exchange) is final
         return owned
 
-    # Prefer ~/.hermes/.env over os.environ so a deliberate key rotation in .env isn't shadowed by
+    # Prefer ~/.kova/.env over os.environ so a deliberate key rotation in .env isn't shadowed by
     # a stale shell export inherited from a parent process (Codex CLI, test runners, etc.).
     from kova_cli.config import get_env_value_prefer_dotenv
 
     # Desktop-saved credential pointer: the settings UI persists registry-provider keys as
-    # model.key_env → $HERMES_HOME/.env (e.g. HERMES_CUSTOM_LMSTUDIO_API_KEY) while keeping
+    # model.key_env → $KOVA_HOME/.env (e.g. KOVA_CUSTOM_LMSTUDIO_API_KEY) while keeping
     # model.provider on the registry id, so the pointer must be honored here or the UI-saved
     # key is silently ignored and lmstudio falls through to its no-auth placeholder (#106336).
     key_env = _model_level_key_env(provider_id)
@@ -474,17 +474,17 @@ def _nonempty_str(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-# ── Auth Store — persistence layer for ~/.hermes/auth.json ──────────────────────────────────────────
+# ── Auth Store — persistence layer for ~/.kova/auth.json ──────────────────────────────────────────
 
 def _auth_file_path() -> Path:
-    path = get_hermes_home() / "auth.json"
+    path = get_kova_home() / "auth.json"
     # Seat belt: under pytest, refuse to touch the real user's auth store (tests that forgot to
-    # monkeypatch HERMES_HOME or escaped the hermetic conftest). In production: one dict lookup.
+    # monkeypatch KOVA_HOME or escaped the hermetic conftest). In production: one dict lookup.
     if (os.environ.get("PYTEST_CURRENT_TEST")
-            and _same_path(path, Path.home() / ".hermes" / "auth.json")):
+            and _same_path(path, Path.home() / ".kova" / "auth.json")):
         raise RuntimeError(
             f"Refusing to touch real user auth store during test run: {path}. "
-            "Set HERMES_HOME to a tmp_path in your test fixture, or run "
+            "Set KOVA_HOME to a tmp_path in your test fixture, or run "
             "via scripts/run_tests.sh for hermetic CI-parity env.")
     return path
 
@@ -494,11 +494,11 @@ def _global_auth_file_path() -> Optional[Path]:
 
     Read-only fallback path, so no pytest seat belt here (it lives on ``_auth_file_path()``)."""
     try:
-        from kova_constants import get_default_hermes_root
-        global_root = get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        global_root = get_default_kova_root()
     except Exception:
         return None
-    return None if _same_path(get_hermes_home(), global_root) else global_root / "auth.json"
+    return None if _same_path(get_kova_home(), global_root) else global_root / "auth.json"
 
 
 def _load_global_auth_store() -> dict[str, Any]:
@@ -518,7 +518,7 @@ def _load_global_auth_store() -> dict[str, Any]:
     if cache_key is not None and cached is not None and cached[:2] == cache_key:
         return cached[2]
     if os.environ.get("PYTEST_CURRENT_TEST") and os.environ.get("HOME"):
-        real_root = Path(os.environ["HOME"]) / ".hermes" / "auth.json"
+        real_root = Path(os.environ["HOME"]) / ".kova" / "auth.json"
         try:
             if os.path.normcase(os.path.abspath(global_path)) == os.path.normcase(os.path.abspath(real_root)):
                 _global_auth_store_cache = None
@@ -774,8 +774,8 @@ def _load_auth_store(auth_file: Optional[Path] = None) -> dict[str, Any]:
 def _save_private_json(target: Path, data: Any, *, fsync_dir: bool = False, **dump_kwargs: Any) -> None:
     """0600 credential JSON under a 0700 parent (``secure_parent_dir`` refuses ``/``, top-level dirs
     and the install tree). ``atomic_json_write`` creates the temp file 0600 before any byte lands."""
-    from kova_constants import mkdir_under_hermes_home
-    mkdir_under_hermes_home(target.parent)
+    from kova_constants import mkdir_under_kova_home
+    mkdir_under_kova_home(target.parent)
     secure_parent_dir(target)
     atomic_json_write(target, data, mode=0o600, fsync_dir=fsync_dir, **dump_kwargs)
 
@@ -1252,12 +1252,12 @@ def _config_selects_provider(normalized: str) -> bool:
 
 
 def _explicit_pool_entry_present(normalized: str) -> bool:
-    """Pool rows from EXPLICIT Hermes flows (manual add / device-code / PKCE) or live env keys;
+    """Pool rows from EXPLICIT Kova flows (manual add / device-code / PKCE) or live env keys;
     ambient borrowed sources (gh_cli / claude_code / qwen-cli) are deliberately excluded."""
     return any(_pool_entry_is_explicit(entry) for entry in read_credential_pool(normalized))
 
 
-# Set by Claude Code itself, not by the user explicitly configuring anthropic in Hermes.
+# Set by Claude Code itself, not by the user explicitly configuring anthropic in Kova.
 _IMPLICIT_ENV_VARS = frozenset({"CLAUDE_CODE_OAUTH_TOKEN"})
 _EXPLICIT_POOL_SOURCES = frozenset({"device_code", "loopback_pkce", "hermes_pkce", "manual"})
 _VERTEX_PROVIDER_IDS = ("vertex", "google-vertex", "vertex-ai", "gcp-vertex", "vertexai")
@@ -1271,7 +1271,7 @@ def _env_secret(name: str) -> bool:
     profile's ``.env`` would be invisible to ``explicit_only`` Settings → Model
     until a Bot-chat Refresh ran against that profile's own backend.
     Same reader as the credential resolver (``get_env_value_prefer_dotenv``: the current
-    HERMES_HOME ``.env`` first, then the scope-checked environ) so the gate and the key that
+    KOVA_HOME ``.env`` first, then the scope-checked environ) so the gate and the key that
     actually authenticates never disagree — an empty ``DEEPSEEK_API_KEY=`` export in the parent
     shell must not hide a real key in ``.env`` (#77007).
     """
@@ -1300,7 +1300,7 @@ def _explicit_env_credentials_present(normalized: str) -> bool:
 
 
 def _pool_entry_is_explicit(entry: Any) -> bool:
-    """True for pool rows the user created via an explicit Hermes flow (or a still-live env key)."""
+    """True for pool rows the user created via an explicit Kova flow (or a still-live env key)."""
     if not isinstance(entry, dict):
         return False
     source = str(entry.get("source") or "").strip().lower()
@@ -1314,11 +1314,11 @@ def _pool_entry_is_explicit(entry: Any) -> bool:
 
 
 def _keyless_provider_has_explicit_config(normalized: str) -> bool:
-    """Vertex / Bedrock count as explicit when Hermes-scoped routing config is present.
+    """Vertex / Bedrock count as explicit when Kova-scoped routing config is present.
 
     Uses has_explicit_vertex_config(), NOT has_vertex_credentials(): the latter also counts an
     ambient GOOGLE_APPLICATION_CREDENTIALS path (commonly set for unrelated GCP work). Only
-    Hermes-scoped signals (VERTEX_PROJECT_ID / vertex.project_id / VERTEX_CREDENTIALS_PATH) count
+    Kova-scoped signals (VERTEX_PROJECT_ID / vertex.project_id / VERTEX_CREDENTIALS_PATH) count
     here."""
     if normalized in _VERTEX_PROVIDER_IDS:
         from agent.vertex_adapter import has_explicit_vertex_config
@@ -1342,7 +1342,7 @@ _EXPLICIT_CONFIG_CHECKS: tuple[tuple[Callable[[str], bool], bool], ...] = (
 def is_provider_explicitly_configured(provider_id: str) -> bool:
     """True only if the user explicitly configured this provider: auth.json ``active_provider``,
     config.yaml ``model.provider`` / MoA slots, a pasted provider env var, a pool entry from a
-    Hermes-initiated flow, or Hermes-scoped routing config for keyless cloud-SDK providers. Ambient
+    Kova-initiated flow, or Kova-scoped routing config for keyless cloud-SDK providers. Ambient
     borrowed credentials (gh CLI, qwen-cli, ~/.claude/.credentials.json) never count."""
     normalized = (provider_id or "").strip().lower()
     for check, best_effort in _EXPLICIT_CONFIG_CHECKS:
@@ -1583,7 +1583,7 @@ def _credential_profile(provider_id: str) -> Any:
 def _env_key_auto_detected(
     scoped_key_env: Callable[[str], str], oauth_active: Optional[str]) -> Optional[str]:
     """First registry api_key provider (registry order) with a usable env key, warning when it
-    preempts a logged-in OAuth provider so a stale key in ~/.hermes/.env never switches silently."""
+    preempts a logged-in OAuth provider so a stale key in ~/.kova/.env never switches silently."""
     from providers import list_providers
 
     ambient = {p.name for p in list_providers() if p.ambient_credentials}  # never per-pid lookups: a miss walks the ladder
@@ -1596,7 +1596,7 @@ def _env_key_auto_detected(
                     logger.warning(
                         # An exported API key now wins over a logged-in OAuth provider (the #29285 fix).
                         # Surface that so a user who deliberately uses OAuth but has a stale key in
-                        # ~/.hermes/.env isn't silently switched without knowing why.
+                        # ~/.kova/.env isn't silently switched without knowing why.
                         "Provider resolved to %r via %s, preempting your "
                         "logged-in OAuth provider %r. If you meant to use the "
                         "OAuth login, unset %s or set `model.provider` "
@@ -1693,11 +1693,11 @@ def resolve_provider(
             return "bedrock"
     except ImportError:
         pass  # boto3 not installed
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     raise AuthError(
-        "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one, type `/login` in chat, "
+        "Kova is not connected to any AI provider yet. Run `hermes model` to pick one, type `/login` in chat, "
         f"or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in "
-        f"{display_hermes_home()}/.env.)",
+        f"{display_kova_home()}/.env.)",
         code="no_provider_configured")
 
 
@@ -1775,8 +1775,8 @@ _NOUS_PORTAL_ALLOWED_HOSTS: frozenset[str] = frozenset({
 # Per-process memo for resolve_nous_access_token: startup runs one check_fn per managed tool and
 # each would trigger its own ~15s blocking refresh of an expired token; a short-TTL memo collapses
 # the burst into one round-trip. Callers needing freshness use force_fresh/refresh_nous_oauth_pure.
-# Keyed by hermes_home_key(): the resolution itself is profile-scoped (_auth_file_path reads the
-# per-turn HERMES_HOME override a multiplex gateway sets), so a single slot would hand profile A's
+# Keyed by kova_home_key(): the resolution itself is profile-scoped (_auth_file_path reads the
+# per-turn KOVA_HOME override a multiplex gateway sets), so a single slot would hand profile A's
 # Portal bearer to profile B for up to the TTL.
 _RESOLVE_TOKEN_CACHE_LOCK = threading.Lock()
 _RESOLVE_TOKEN_CACHE: dict[str, tuple[float, str]] = {}
@@ -1806,7 +1806,7 @@ def _resolve_nous_access_token(
     refresh_skew_seconds: int) -> str:
     # Only a default-TLS resolution is memoised; error paths never populate the memo.
     memoable = not insecure and ca_bundle is None
-    cache_key = hermes_home_key()
+    cache_key = kova_home_key()
     if memoable:
         with _RESOLVE_TOKEN_CACHE_LOCK:
             cached = _RESOLVE_TOKEN_CACHE.get(cache_key)
@@ -1821,7 +1821,7 @@ def _resolve_nous_access_token(
 
     with _provider_state_transaction("nous") as (auth_store, state, state_source_path):
         if not state:
-            raise _nous_err("Hermes is not logged into Nous Portal.", "nous_auth_missing", relogin=True)
+            raise _nous_err("Kova is not logged into Nous Portal.", "nous_auth_missing", relogin=True)
         portal_base_url = _nous_portal_base_url(state)
         client_id = str(state.get("client_id") or DEFAULT_NOUS_CLIENT_ID)
         verify = _resolve_verify(insecure=insecure, ca_bundle=ca_bundle, auth_state=state)
@@ -2062,7 +2062,7 @@ def _external_process_auth_evidence(provider_id: str, resolved_command: Optional
 
     False means "not verifiable from here", NOT "signed out". Subprocess-free (spawning the CLI from
     status endpoints/pickers re-creates a cold-start stall). Generic evidence
-    for any external-process profile is its binary resolving: the subprocess owns real auth and Hermes
+    for any external-process profile is its binary resolving: the subprocess owns real auth and Kova
     has nothing else to inspect, so out-of-tree ACP rows pass credential-gated surfaces (Desktop
     ``explicit_only`` picker); a profile whose CLI exposes readable token stores answers
     ``external_auth_evidence()`` instead."""
@@ -2185,9 +2185,9 @@ def _get_azure_foundry_auth_status() -> dict[str, Any]:
                     "azure-identity is installed; live credential validation "
                     "is skipped here. Run `hermes doctor` to verify token acquisition."
                 ) if installed else (
-                    "azure-identity not installed. From the Hermes environment, run: "
+                    "azure-identity not installed. From the Kova environment, run: "
                     f"{install_hint('azure-identity')}. "
-                    "Then restart Hermes."))
+                    "Then restart Kova."))
         except Exception as exc:
             info["logged_in"] = False
             info["error"] = f"azure-identity check failed: {exc}"
@@ -2419,6 +2419,6 @@ def logout_command(args) -> None:
     if not should_reset_config:
         print("Model provider configuration was unchanged.")
     elif os.getenv("OPENROUTER_API_KEY"):
-        print("Hermes will use OpenRouter for inference.")
+        print("Kova will use OpenRouter for inference.")
     else:
-        print("Run `hermes model` or configure an API key to use Hermes.")
+        print("Run `hermes model` or configure an API key to use Kova.")

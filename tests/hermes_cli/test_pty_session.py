@@ -327,7 +327,7 @@ async def test_a_reattach_that_replays_part_of_the_history_says_output_was_trimm
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(pty_session, "_VIEWER_SEND_TIMEOUT_SECONDS", 0.01)
     monkeypatch.setattr(pty_session, "_REPLAY_MIN_BYTES_PER_SECOND", 1024 ** 3)
     history = bytes(range(256)) * 256

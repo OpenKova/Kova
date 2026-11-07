@@ -148,7 +148,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
     def _adapter_disconnect_timeout_secs(self) -> float:
         """Return the per-adapter disconnect timeout used during shutdown."""
         from gateway.run import _ADAPTER_DISCONNECT_TIMEOUT_SECS_DEFAULT
-        override = self._env_timeout_override("HERMES_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT")
+        override = self._env_timeout_override("KOVA_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT")
         return _ADAPTER_DISCONNECT_TIMEOUT_SECS_DEFAULT if override is None else override
 
     def _platform_connect_timeout_secs(self, platform=None, *, initial: bool = False) -> float:
@@ -163,7 +163,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
             _PLATFORM_CONNECT_TIMEOUT_SECS_DEFAULT, _TELEGRAM_CONNECT_TIMEOUT_SECS_DEFAULT,
             _TELEGRAM_INITIAL_CONNECT_TIMEOUT_SECS_DEFAULT,
         )
-        override = self._env_timeout_override("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT")
+        override = self._env_timeout_override("KOVA_GATEWAY_PLATFORM_CONNECT_TIMEOUT")
         if override is not None:
             return override
         if platform != Platform.TELEGRAM:
@@ -574,7 +574,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
                 # ``_process_handoff(row)`` with no second parameter, and a keyword call would TypeError
                 # into the failure branch — turning a passing suite into a silent no-op watcher. Arity is
                 # probed above. It still sees the profile's home and secret scope only because
-                # ``set_hermes_home_override`` and ``set_secret_scope`` are ContextVar-based — ensure_future
+                # ``set_kova_home_override`` and ``set_secret_scope`` are ContextVar-based — ensure_future
                 # copies the current Context into the Task. If either seam is ever migrated to a
                 # thread-local or module global, secondary- profile handoffs silently regress to
                 # primary-config delivery (the exact bug fixed in #91217) while still recording
@@ -959,7 +959,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
 
     async def _start_secondary_profile_adapters(self) -> int:
         """Bring up adapters for every non-active profile (multiplex only); returns connected count.
-        Each profile connects under its own HERMES_HOME + secret scope; credential/listener collisions
+        Each profile connects under its own KOVA_HOME + secret scope; credential/listener collisions
         are refused here — the only point seeing every profile's credentials together."""
         from gateway.run import MultiplexConfigError, _multiplex_profile_homes
         from gateway.run_profile_reconcile import profile_serve_signature
@@ -1053,8 +1053,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
             # its served set in step with the live one (it is republished, never re-claimed).
             from gateway.host_rendezvous import ROLE_GATEWAY, owns_host_lock, publish_record
             if owns_host_lock(ROLE_GATEWAY):
-                from kova_constants import get_hermes_home
-                publish_record(ROLE_GATEWAY, profiles=tuple(served), home=str(get_hermes_home()))
+                from kova_constants import get_kova_home
+                publish_record(ROLE_GATEWAY, profiles=tuple(served), home=str(get_kova_home()))
 
     async def _load_secondary_profile_config(self, profile_name: str, profile_home: Path):
         """Hydrate + enter ``profile_home``'s scope once; return its gateway config. Raises
@@ -1139,8 +1139,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         owner_home = None
         if owner == "default":
             try:
-                from kova_constants import get_default_hermes_root
-                owner_home = get_default_hermes_root()
+                from kova_constants import get_default_kova_root
+                owner_home = get_default_kova_root()
             except Exception:
                 owner_home = None
         else:
@@ -1452,7 +1452,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         try:
             # The notification may arrive outside the profile's scope: the row is that profile's.
             if (profile_home := self._routed_profile_home(profile_name)) is not UNRESOLVED_PROFILE_HOME:
-                record_platform_disconnect(adapter, hermes_home=profile_home)
+                record_platform_disconnect(adapter, kova_home=profile_home)
             await self._safe_adapter_disconnect(adapter, platform)
             if not self._running or getattr(self, "_profile_adapters", {}).get(profile_name) is not profile_map:
                 return  # shutting down, or the profile was unserved while it tore down: nothing to reconnect
@@ -1584,8 +1584,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
     def _make_default_profile_message_handler(self):
         """Scope primary-adapter messages to their routed multiplex profile. Authorization stays
         with the transport profile (a routed profile may have no credential/allowlist)."""
-        from gateway.run import _async_profile_runtime_scope, get_hermes_home
-        default_home = Path(get_hermes_home())
+        from gateway.run import _async_profile_runtime_scope, get_kova_home
+        default_home = Path(get_kova_home())
         from gateway.session_ingress_context import register_transport_home
         register_transport_home(self, None, default_home)
 
@@ -1603,8 +1603,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         """Busy-path twin of ``_make_default_profile_message_handler``: busy callbacks bypass the message
         handler, so the routed scope and transport-home authorization must be re-established here or the
         follow-up is authorized in whatever scope is ambient (#103717)."""
-        from gateway.run import _async_profile_runtime_scope, get_hermes_home
-        default_home = Path(get_hermes_home())
+        from gateway.run import _async_profile_runtime_scope, get_kova_home
+        default_home = Path(get_kova_home())
 
         async def _handler(event, _session_key):
             source = event.source
@@ -1679,8 +1679,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
 
     def _make_default_profile_platform_event_handler(self):
         """Scope primary-transport events to their routed multiplex profile."""
-        from gateway.run import _profile_runtime_scope, get_hermes_home
-        default_home = Path(get_hermes_home())
+        from gateway.run import _profile_runtime_scope, get_kova_home
+        default_home = Path(get_kova_home())
 
         async def _handler(event, source):
             profile_home = self._admit_primary_source(source, default_home)
@@ -1781,8 +1781,8 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         back to os.environ (the default profile's env) and denies the secondary's own allowlisted
         callers (#120639).
         """
-        from gateway.run import get_hermes_home
-        transport_home = Path(get_hermes_home()) if self._multiplex_on() and profile_name is None else None
+        from gateway.run import get_kova_home
+        transport_home = Path(get_kova_home()) if self._multiplex_on() and profile_name is None else None
         # Resolved once; the scope is entered per call so an ``.env`` allowlist edit reaches the next
         # tap, matching the message path's per-message re-read.
         profile_home = self._routed_profile_home(profile_name) if profile_name else None

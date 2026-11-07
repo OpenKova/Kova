@@ -30,7 +30,7 @@ async def peer(tmp_path, monkeypatch):
     from gateway.session_local import create_local_session
     from gateway.session_local_title import title_new_session
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     monkeypatch.setattr('tools.bot_mode_dm._LIVE_WAIT_SECONDS', 2.0)
     from kova_state import SessionDB

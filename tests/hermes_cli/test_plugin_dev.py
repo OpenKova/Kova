@@ -124,7 +124,7 @@ def test_doctor_default_target_does_not_copy_cwd(
     """``hermes plugins doctor`` with no argument defaults to ``.``.
 
     Before the manifest guard, that copied the whole working directory into
-    a temporary HERMES_HOME — running it from ``$HOME`` copied the home
+    a temporary KOVA_HOME — running it from ``$HOME`` copied the home
     directory, cloud-storage placeholders included.
     """
     import os
@@ -166,7 +166,7 @@ def test_doctor_does_not_copy_home_with_a_plugin_checkout(
     from kova_cli import plugin_dev
 
     home = tmp_path / "fake-home"
-    (home / ".hermes" / "cache" / "scratch").mkdir(parents=True)
+    (home / ".kova" / "cache" / "scratch").mkdir(parents=True)
     plugin = home / "plugin-checkout"
     plugin.mkdir()
     (plugin / "plugin.yaml").write_text("name: checkout\n", encoding="utf-8")
@@ -279,15 +279,15 @@ def test_resolve_prefers_installed_id_over_unrelated_local_dir(
     """A same-named local directory must not shadow the installed plugin."""
     from kova_cli import plugin_dev
 
-    hermes_home = tmp_path / "hermes-home"
-    installed = hermes_home / "plugins" / "sample"
+    kova_home = tmp_path / "hermes-home"
+    installed = kova_home / "plugins" / "sample"
     installed.mkdir(parents=True)
     (installed / "plugin.yaml").write_text("name: sample\n", encoding="utf-8")
 
     workdir = tmp_path / "workdir"
     (workdir / "sample").mkdir(parents=True)
     monkeypatch.chdir(workdir)
-    monkeypatch.setattr(plugin_dev, "get_hermes_home", lambda: hermes_home)
+    monkeypatch.setattr(plugin_dev, "get_kova_home", lambda: kova_home)
 
     assert plugin_dev.resolve_plugin_path("sample") == installed.resolve()
 

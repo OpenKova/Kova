@@ -27,13 +27,13 @@ def clean_logging():
 
 
 def _emit_under(home: Path, name: str, level: int, msg: str) -> None:
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         logging.getLogger(name).log(level, msg)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _contains(home: Path, filename: str, needle: str) -> bool:
@@ -50,7 +50,7 @@ def test_multiplex_gateway_routes_profile_records_to_their_own_logs(
     homes = [("default", default_home), ("beta", beta_home)]
     monkeypatch.setattr(run, "_multiplex_profile_homes", lambda _cfg: homes)
 
-    kova_logging.setup_logging(hermes_home=default_home, mode="gateway")
+    kova_logging.setup_logging(kova_home=default_home, mode="gateway")
 
     # Single-profile gateway: wiring is inert and handlers stay static.
     assert run._enable_multiplex_log_routing(types.SimpleNamespace(multiplex_profiles=False)) is False

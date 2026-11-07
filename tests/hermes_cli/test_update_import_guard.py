@@ -165,7 +165,7 @@ def test_import_guard_does_not_accept_forged_static_marker(monkeypatch, probe_ro
     """Imported stdout cannot impersonate the per-probe completion marker."""
     (probe_root / "consumer.py").write_text(
         "import os, sys\n"
-        "sys.stdout.write('__HERMES_IMPORT_HEALTH__[]')\n"
+        "sys.stdout.write('__KOVA_IMPORT_HEALTH__[]')\n"
         "sys.stdout.flush()\n"
         "os._exit(7)\n"
     )
@@ -184,7 +184,7 @@ def test_import_guard_rejects_malformed_health_payload(monkeypatch, tmp_path):
         stdout = ""
 
     def malformed(_cmd, **_kwargs):
-        Result.stdout = "__HERMES_IMPORT_HEALTH_fixed__{}"
+        Result.stdout = "__KOVA_IMPORT_HEALTH_fixed__{}"
         return Result()
 
     monkeypatch.setattr(secrets, "token_hex", lambda _length: "fixed")

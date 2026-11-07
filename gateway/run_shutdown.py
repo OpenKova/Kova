@@ -1299,8 +1299,8 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
 
     # Stuck-loop (restart failure) counters
     def _stuck_loop_counts_path(self) -> Path:
-        from gateway.run import _hermes_home
-        return _hermes_home / self._STUCK_LOOP_FILE
+        from gateway.run import _kova_home
+        return _kova_home / self._STUCK_LOOP_FILE
 
     @staticmethod
     def _read_json_counts(path: Path) -> Optional[dict]:
@@ -1355,7 +1355,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
     # Restart orchestration
     @staticmethod
     def _restart_watcher_env() -> dict:
-        """Watcher env minus ``_HERMES_GATEWAY`` (else the CLI's self-restart guard refuses; gateway stays down).
+        """Watcher env minus ``_KOVA_GATEWAY`` (else the CLI's self-restart guard refuses; gateway stays down).
 
         The host multiplexer is respawned with ``host_gateway_child_env`` (default-root
         secrets via ``served_profile_child_env``, not ``os.environ.copy()``). A standalone
@@ -1363,12 +1363,12 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         already on the default root, is the host.
         """
         from gateway.config_loader import drop_bridged_env
-        from kova_constants import get_default_hermes_root, get_hermes_home
+        from kova_constants import get_default_kova_root, get_kova_home
         from tools.environments.local import host_gateway_child_env, served_profile_child_env
 
-        home = get_hermes_home()
+        home = get_kova_home()
         try:
-            on_default = home.resolve() == get_default_hermes_root().resolve()
+            on_default = home.resolve() == get_default_kova_root().resolve()
         except Exception:
             on_default = False
         # ``resolve_multiplex_mode`` settles the default-on/unset decision before
@@ -1402,7 +1402,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
                 target_home=home, inherit_credentials=True,
             )
         watcher_env = drop_bridged_env(watcher_env)
-        watcher_env.pop("_HERMES_GATEWAY", None)
+        watcher_env.pop("_KOVA_GATEWAY", None)
         return watcher_env
 
     @staticmethod
@@ -1524,7 +1524,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         an unreadable activity summary means "not wedged".
         """
         from gateway.run import _AGENT_PENDING_SENTINEL, _float_env
-        timeout = _float_env("HERMES_AGENT_TIMEOUT", 1800)
+        timeout = _float_env("KOVA_AGENT_TIMEOUT", 1800)
         if timeout <= 0:
             return 0
 
@@ -1701,7 +1701,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         # may garbage-collect a still-pending task mid-flight. The cancel loop in _stop_impl explicitly
         # skips _restart_task for the same reason it skips _stop_task.
         # Empty Context: /restart is handled inside the requester's profile scope, and a copied context
-        # would run the HOST restart as that profile (watcher HERMES_HOME, stop()'s flushes).
+        # would run the HOST restart as that profile (watcher KOVA_HOME, stop()'s flushes).
         self._restart_task = Context().run(lambda: asyncio.create_task(_run_restart()))
         return True
 
@@ -1716,7 +1716,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         if not watchdog.start():
             return False
         self._systemd_watchdog = watchdog
-        watchdog.ready("Hermes Gateway running")
+        watchdog.ready("Kova Gateway running")
         return True
 
     async def _stop_systemd_watchdog(self) -> None:
@@ -2109,14 +2109,14 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
     async def _stop_persist_exit_state(self, ctx: GatewayShutdownMixin._StopContext) -> None:
         """Clean-shutdown marker, restart markers, terminal runtime status; process bootstrap
         releases PID/lock ownership after the writer drain."""
-        from gateway.run import _hermes_home, _shutdown_gateway_health_export
+        from gateway.run import _kova_home, _shutdown_gateway_health_export
         if getattr(self, "_startup_cleanup_only", False):  # start never ran: keep startup_failed + crash markers
             return _shutdown_gateway_health_export(self)
         # Clean-shutdown marker skips crash-turn recovery next boot; a timed-out drain left
         # half-finished sessions, so no marker — the next startup recovers their turn markers.
         if not ctx.timed_out:
             with suppress(Exception):
-                (_hermes_home / ".clean_shutdown").touch()
+                (_kova_home / ".clean_shutdown").touch()
         else:
             logger.info("Skipping .clean_shutdown marker — drain timed out with interrupted agents; "
                         "next startup will recover their interrupted turns.")

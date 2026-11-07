@@ -68,7 +68,7 @@ def _consume_display_ticket(ws: WebSocket) -> Optional[dict]:
         info = consume_ticket(ticket)
     except TicketInvalid:
         return None
-    if info.get("provider") != "bot-desktop" or not info.get("hermes_home"):
+    if info.get("provider") != "bot-desktop" or not info.get("kova_home"):
         return None
     return info
 
@@ -114,9 +114,9 @@ async def _open_rfb(profile_home: Path):
     """``(reader, writer, relay)`` for THIS profile's Xvnc. Gateway-hosted screen: its unix socket. Screen inside
     the terminal backend: a ``docker exec`` / ``ssh`` relay whose stdio IS the RFB stream (``relay`` is that
     Popen; None for a socket). Raises OSError when nothing is running."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.bot_desktop import runtime as _bd_runtime
-    token = set_hermes_home_override(profile_home)
+    token = set_kova_home_override(profile_home)
     try:
         if _bd_runtime.sandbox_screen_running():
             relay = _bd_runtime.open_rfb_stream()
@@ -127,7 +127,7 @@ async def _open_rfb(profile_home: Path):
             reader, writer = await asyncio.open_unix_connection(str(sock))
             return reader, writer, None
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     loop = asyncio.get_running_loop()
     reader = asyncio.StreamReader()
     await loop.connect_read_pipe(lambda: asyncio.StreamReaderProtocol(reader), relay.stdout)
@@ -141,12 +141,12 @@ async def _open_rfb(profile_home: Path):
 async def _bridge(ws: WebSocket, info: dict) -> None:
     """Pump RFB bytes between the viewer socket (already accepted) and THIS profile's Xvnc, gated by
     the lease."""
-    from kova_constants import hermes_home_key
+    from kova_constants import kova_home_key
     from tools.bot_desktop import lease as _lease
     from tools.bot_desktop.rfb_filter import RfbClientFilter
 
-    profile_home = str(info["hermes_home"])
-    profile_key = hermes_home_key(profile_home)
+    profile_home = str(info["kova_home"])
+    profile_key = kova_home_key(profile_home)
     viewer_id = str(info.get("viewer_id") or info.get("user_id") or "viewer")
     try:
         reader, writer, relay = await _open_rfb(Path(profile_home))

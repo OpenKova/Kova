@@ -17,11 +17,11 @@ def test_run_task_kanban_write_never_blocks_the_loop(tmp_path, monkeypatch):
     from kova_cli.kanban_db_connect import connect
     from gateway.session_contract import SessionActor
     from gateway.session_kanban import run_task
-    monkeypatch.setenv('HERMES_KANBAN_HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_KANBAN_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setenv('HOME', str(tmp_path / 'home'))
-    monkeypatch.delenv('HERMES_KANBAN_DB', raising=False)
-    monkeypatch.delenv('HERMES_DELEGATED_CHILD', raising=False)
+    monkeypatch.delenv('KOVA_KANBAN_DB', raising=False)
+    monkeypatch.delenv('KOVA_DELEGATED_CHILD', raising=False)
     monkeypatch.setattr('kova_cli.profiles.resolve_profile_env',
                         lambda name: str(tmp_path) if name == 'default' else str(tmp_path / name))
     workspace = tmp_path / 'workspace'

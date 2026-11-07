@@ -27,10 +27,10 @@ def test_auth_failure_names_the_pinned_provider_and_the_failing_profile(monkeypa
     """A profile's credentials are its own (93889b770da): the notice must send the operator to
     THIS profile's sign-in for the job's pinned provider, never a bare placeholder (#114012)."""
     _no_chain(monkeypatch)
-    profile_home = tmp_path / ".hermes" / "profiles" / "ops"
+    profile_home = tmp_path / ".kova" / "profiles" / "ops"
     profile_home.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("KOVA_HOME", str(profile_home))
     msg = _summarize_cron_failure_for_delivery(
         {**JOB, "provider": "openai-codex"}, "Error code: 401 - Unauthorized")
     assert "`hermes -p ops auth add openai-codex --type oauth`" in msg, msg

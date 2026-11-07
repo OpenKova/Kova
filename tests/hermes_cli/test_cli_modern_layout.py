@@ -10,10 +10,10 @@ def _plain(s: str) -> str:
 
 
 def _run_turn(monkeypatch, width: int, *, modern: bool) -> list[str]:
-    from cli import HermesCLI
+    from cli import KovaCLI
     import cli as climod
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout = modern
     cli.show_reasoning, cli.reasoning_full = True, False
     cli.final_response_markdown, cli.show_timestamps = "raw", False
@@ -21,7 +21,7 @@ def _run_turn(monkeypatch, width: int, *, modern: bool) -> list[str]:
     emitted: list[str] = []
     monkeypatch.setattr(climod, "_cprint", lambda s: emitted.append(_plain(s)))
     monkeypatch.setattr(climod, "_terminal_width_for_streaming", lambda: width)
-    monkeypatch.setattr(HermesCLI, "_scrollback_box_width", lambda self: width)
+    monkeypatch.setattr(KovaCLI, "_scrollback_box_width", lambda self: width)
     cli._stream_reasoning_delta("**Planning the change**\nI will read calc.py first.\n")
     cli._stream_delta("Added multiply to calc.py.\n")
     cli._flush_stream()
@@ -45,7 +45,7 @@ def test_glyph_layout_scrollback_is_width_independent(monkeypatch, modern):
     start = rows.index("**Planning the change**")
     assert rows[start - 1] == "─" * 40 and rows[start + 1] == "I will read calc.py first.", rows
     assert rows[start + 2] == thought[0], rows
-    assert rows[next(i for i, r in enumerate(rows) if r.startswith("☤ Hermes")) - 1] == "─" * 40, rows
+    assert rows[next(i for i, r in enumerate(rows) if r.startswith("☤ Kova")) - 1] == "─" * 40, rows
     assert any("Added multiply to calc.py." in line for line in rows)
 
 
@@ -57,17 +57,17 @@ def test_glyph_layout_scrollback_is_width_independent(monkeypatch, modern):
 ])
 def test_one_line_reasoning_is_shown_once(monkeypatch, reasoning):
     """Reasoning streams above its ∴ summary, so a one-sentence block must not reappear as the title."""
-    from cli import HermesCLI
+    from cli import KovaCLI
     import cli as climod
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout, cli.show_reasoning, cli.reasoning_full = True, True, False
     cli.final_response_markdown, cli.show_timestamps = "raw", False
     cli._reset_stream_state()
     emitted: list[str] = []
     monkeypatch.setattr(climod, "_cprint", lambda s: emitted.append(_plain(s)))
     monkeypatch.setattr(climod, "_terminal_width_for_streaming", lambda: 100)
-    monkeypatch.setattr(HermesCLI, "_scrollback_box_width", lambda self: 100)
+    monkeypatch.setattr(KovaCLI, "_scrollback_box_width", lambda self: 100)
     cli._stream_reasoning_delta(reasoning)
     cli._stream_delta("GAMMA answered.\n")
     cli._flush_stream()
@@ -80,9 +80,9 @@ def test_one_line_reasoning_is_shown_once(monkeypatch, reasoning):
 
 @pytest.mark.parametrize("modern", [True, False])
 def test_status_line_sits_under_the_composer_only_in_the_glyph_layout(modern):
-    from cli import HermesCLI
+    from cli import KovaCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout = modern
     names = ("sudo_widget", "secret_widget", "approval_widget", "clarify_widget", "spacer", "status_bar",
              "input_rule_top", "image_bar", "input_area", "input_rule_bot", "voice_status_bar", "completions_menu")
@@ -114,10 +114,10 @@ def test_layout_and_busy_default_through_the_config_loader(tmp_path, monkeypatch
     import cli
     from kova_cli.cli_modern_layout import busy_input_mode_from_config, layout_from_config
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(cli, "_hermes_home", home)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(cli, "_kova_home", home)
     (home / "config.yaml").write_text(yaml.safe_dump({"display": display} if display else {"model": {}}))
     loaded = cli.load_cli_config()["display"]
     assert layout_from_config(loaded) is modern
@@ -127,20 +127,20 @@ def test_layout_and_busy_default_through_the_config_loader(tmp_path, monkeypatch
 def test_status_line_keeps_every_classic_status_bar_field(monkeypatch):
     """The glyph footer renders the classic bar's segments: nothing (tps, cache, latency, context
     detail, duration...) is dropped by a layout-private default subset."""
-    from cli import HermesCLI
+    from cli import KovaCLI
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout, cli._status_bar_visible = True, True
     snapshot = {"model_short": "m", "duration": "6h 43m", "context_percent": 7, "context_length": 1_000_000,
                 "context_tokens": 73_200, "context_estimated": True, "avg_latency_label": "9.0s",
                 "avg_velocity_label": "61 t/s", "cache_hit_rate": 28.9, "cache_read_tokens": 1, "prompt_tokens": 1,
                 "active_background_subagents": 3, "prompt_elapsed": "⏱ 10s"}
-    monkeypatch.setattr(HermesCLI, "_get_status_bar_snapshot", lambda self: snapshot)
-    monkeypatch.setattr(HermesCLI, "_get_tui_terminal_width", lambda self: 400)
-    monkeypatch.setattr(HermesCLI, "_get_status_bar_field_set", lambda self: None)
-    monkeypatch.setattr(HermesCLI, "_is_session_yolo_active", lambda self: False)
-    monkeypatch.setattr(HermesCLI, "_vim_mode_label", lambda self: "")
-    monkeypatch.setattr(HermesCLI, "_cache_hit_rate", lambda self, snap, precision=1: (28.9, "◎ 28.9%"))
+    monkeypatch.setattr(KovaCLI, "_get_status_bar_snapshot", lambda self: snapshot)
+    monkeypatch.setattr(KovaCLI, "_get_tui_terminal_width", lambda self: 400)
+    monkeypatch.setattr(KovaCLI, "_get_status_bar_field_set", lambda self: None)
+    monkeypatch.setattr(KovaCLI, "_is_session_yolo_active", lambda self: False)
+    monkeypatch.setattr(KovaCLI, "_vim_mode_label", lambda self: "")
+    monkeypatch.setattr(KovaCLI, "_cache_hit_rate", lambda self, snap, precision=1: (28.9, "◎ 28.9%"))
     monkeypatch.setattr("kova_cli.cli_modern_layout.hint_pairs", lambda cli: [])
     monkeypatch.setattr("kova_cli.cli_modern_layout._cwd_label", lambda: "~")
     line = "".join(text for _, text in cli._get_status_bar_fragments())
@@ -177,11 +177,11 @@ def test_tab_never_queues_what_a_prompt_owns(prompt):
 def test_long_user_message_soft_wraps_so_a_resize_reflows_it(monkeypatch):
     """The glyph layout's echo of a long prompt is one logical line per source line: the terminal
     wraps it, so widening the window re-flows it instead of keeping old-width breaks."""
-    from cli import HermesCLI
+    from cli import KovaCLI
     import cli as climod
     import shutil
 
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout, cli.show_timestamps = True, False
     long_line = "word " * 60
     for text in (long_line.strip(), f"{long_line.strip()}\nsecond line"):
@@ -217,10 +217,10 @@ def test_refused_skill_write_reads_neutral_not_failed():
     from agent.display import get_tool_emoji
     from kova_cli.cli_modern_layout import _RED, tool_row
 
-    refused = ('{"success": false, "error": "operations[0] (patch on \'hermes-agent-dev\') failed: '
+    refused = ('{"success": false, "error": "operations[0] (patch on \'kova-agent-dev\') failed: '
                'SKILL.md content is 100,193 characters (limit: 100,000).", '
                '"file_preview": "Never ignore a ROLLBACK FAILED note."}')
-    row = tool_row("skill_manage", {"operations": [{"action": "patch", "name": "hermes-agent-dev"}]}, 1.1, refused)
+    row = tool_row("skill_manage", {"operations": [{"action": "patch", "name": "kova-agent-dev"}]}, 1.1, refused)
     assert _plain(row).startswith(get_tool_emoji("skill_manage") + " "), row
     assert "[operations[0]" in _plain(row) and _RED not in row, row
     # A failed rollback left partial changes on disk: that one stays a red failure.
@@ -233,13 +233,13 @@ def test_every_block_is_framed_by_bars_and_blank_lines(monkeypatch):
     The blank line after a closing bar is paid by whatever prints next (a tool row, the footer)
     and never doubled when the next block opens with its own blank line + bar. Tool rows inside a
     run stay tight."""
-    from cli import HermesCLI
+    from cli import KovaCLI
     import cli as climod
     from kova_cli import cli_modern_layout as layout
 
     out: list[str] = []
     monkeypatch.setattr(climod, "_cprint", lambda s: out.extend(_plain(s).split("\n")))
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli._modern_layout, cli.show_timestamps = True, False
     bar = "─" * 40
 

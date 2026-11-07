@@ -26,7 +26,7 @@ _PROBE = textwrap.dedent("""
         import tui_gateway.ws
 
         async def fake_handle_ws(ws, **kwargs):
-            await ws.accept(subprotocol="hermes-gateway-v1")
+            await ws.accept(subprotocol="kova-gateway-v1")
             await ws.send_json({"native": True, "dashboard_loaded": "kova_cli.web_server" in sys.modules})
             await ws.close()
         tui_gateway.ws.handle_ws = fake_handle_ws
@@ -42,7 +42,7 @@ _PROBE = textwrap.dedent("""
             out["after_bind"] = sorted(m for m in ("kova_cli.web_server", "fastapi") if m in sys.modules)
             url = handle.api_origin.replace("http:", "ws:") + "/api/ws"
             def protocols():
-                return ["hermes-gateway-v1", "hermes-gateway-ticket." + tickets.mint(
+                return ["kova-gateway-v1", "kova-gateway-ticket." + tickets.mint(
                     profile_id=home, subject="human", purpose="interactive")]
             async with connect(url, subprotocols=protocols()) as ws:
                 out["native"] = json.loads(await ws.recv())
@@ -77,10 +77,10 @@ _PROBE = textwrap.dedent("""
 
 
 def test_session_listener_serves_native_ws_before_importing_the_dashboard(tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "HERMES_RUNTIME_DIR", "TMPDIR"}}
-    env.update(HOME=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(REPO))
+    env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "KOVA_RUNTIME_DIR", "TMPDIR"}}
+    env.update(HOME=str(tmp_path), KOVA_HOME=str(home), PYTHONPATH=str(REPO))
     proc = subprocess.run([sys.executable, "-c", _PROBE, str(home)], cwd=str(REPO), env=env,
                           capture_output=True, text=True, timeout=120, check=False)
     lines = [ln for ln in (proc.stdout + proc.stderr).splitlines() if ln.startswith("RESULT ")]

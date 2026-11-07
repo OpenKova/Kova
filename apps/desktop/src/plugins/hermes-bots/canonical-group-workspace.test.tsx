@@ -31,9 +31,9 @@ import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 import { renderGatewayRooms } from './gateway-group-rooms-test-harness'
 import { $groupChatWorkspace } from './group-chat'
 import { GroupChatWorkspace } from './group-chat-view'
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
-afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.hermesDesktop = originalDesktop; vi.unstubAllGlobals(); vi.useRealTimers() })
+afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop; vi.unstubAllGlobals(); vi.useRealTimers() })
 // What gateway/session_group_controls.py answers for groups.send.
 const receipt = (params: { event_id?: string }) => ({ event: {}, client_event_id: params.event_id, accepted: true, driver_started: true })
 
@@ -107,7 +107,7 @@ it('blocks Send until journal restore and durable preparation complete', async (
     })
   }
 
-  window.hermesDesktop = { preparedSubmissions: native } as unknown as typeof window.hermesDesktop
+  window.kovaDesktop = { preparedSubmissions: native } as unknown as typeof window.kovaDesktop
   request.mockImplementation(async (_route, method, params) => method === 'groups.state'
     ? { room: { name: 'Room' }, driver_status: {} } : method === 'groups.log' ? { events: [] } : receipt(params))
   render(<CanonicalGroupWorkspace binding={{ connectionId: 'remote', profile: 'team', roomId: 'new' }} />)
@@ -792,7 +792,7 @@ it('reopens a message the gateway proved unsent as an editable draft, not a rest
   expect(await readCanonicalGroupSend(binding)).toBeUndefined()
 })
 
-// Send outcomes. Seams: `host.requestProfile` is the gateway transport; `window.hermesDesktop.preparedSubmissions`
+// Send outcomes. Seams: `host.requestProfile` is the gateway transport; `window.kovaDesktop.preparedSubmissions`
 // is the native journal's IPC (an in-memory compare-and-set owner here), or absent for the browser-storage
 // journal. A refusal carries `admitted: false` only when the gateway refused before the user event committed
 // (HostedRoomService.send).
@@ -822,7 +822,7 @@ function room(sendReply: (params: Record<string, unknown>, attempt: number) => u
 function nativeJournal(beforeMutation?: (call: number, entry: string | null) => Promise<void> | void) {
   const journal: Record<string, unknown> = {}
   let calls = 0
-  window.hermesDesktop = { preparedSubmissions: {
+  window.kovaDesktop = { preparedSubmissions: {
     read: async () => JSON.stringify(journal),
     compareAndSet: async (key: string, expected: string | null, entry: string | null) => {
       await beforeMutation?.(++calls, entry)
@@ -834,7 +834,7 @@ function nativeJournal(beforeMutation?: (call: number, entry: string | null) => 
 
       return { applied: true, current: entry }
     }
-  } } as unknown as typeof window.hermesDesktop
+  } } as unknown as typeof window.kovaDesktop
 
   return journal
 }
@@ -1126,7 +1126,7 @@ it('offers a read-only retry when the Send journal cannot be read, then restores
   const saved = localStorage.getItem('hermes.desktop.canonicalGroupSends.v1')!
   const compareAndSet = vi.fn()
   const read = vi.fn().mockRejectedValueOnce(new Error('EACCES: journal unreadable')).mockResolvedValue(saved)
-  window.hermesDesktop = { preparedSubmissions: { read, compareAndSet } } as unknown as typeof window.hermesDesktop
+  window.kovaDesktop = { preparedSubmissions: { read, compareAndSet } } as unknown as typeof window.kovaDesktop
   room(params => receipt(params))
   render(<CanonicalGroupWorkspace binding={binding} />)
   await screen.findByText(/Saved messages couldn’t be loaded/)

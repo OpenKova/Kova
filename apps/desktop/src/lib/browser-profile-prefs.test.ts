@@ -17,19 +17,19 @@ import {
 } from './browser-settings'
 import { browserStartupProfileKey } from './browser-startup-profile'
 
-type BootstrapWindow = Window & { __HERMES_BASE_PATH__?: string; __HERMES_DASHBOARD_PROFILE__?: string }
+type BootstrapWindow = Window & { __KOVA_BASE_PATH__?: string; __KOVA_DASHBOARD_PROFILE__?: string }
 
 const win = window as BootstrapWindow
 
 function host(basePath = '/hermes') {
-  document.documentElement.dataset.hermesDesktopHost = 'browser'
-  win.__HERMES_BASE_PATH__ = basePath
+  document.documentElement.dataset.kovaDesktopHost = 'browser'
+  win.__KOVA_BASE_PATH__ = basePath
 }
 
 function unhost() {
-  delete document.documentElement.dataset.hermesDesktopHost
-  delete win.__HERMES_BASE_PATH__
-  delete win.__HERMES_DASHBOARD_PROFILE__
+  delete document.documentElement.dataset.kovaDesktopHost
+  delete win.__KOVA_BASE_PATH__
+  delete win.__KOVA_DASHBOARD_PROFILE__
 }
 
 function putFolder(profile: string, dir: string, basePath = '/hermes') {
@@ -247,7 +247,7 @@ describe('browser profile prefs follow rename and delete', () => {
   })
 
   it('keeps folder and startup prefs when this page is not the browser host', () => {
-    win.__HERMES_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/hermes'
     putFolder('alpha', '/srv/alpha')
     putStartup('alpha')
     $defaultProfileRoute.set({ connectionId: null, profile: 'alpha' })
@@ -272,7 +272,7 @@ describe('browser folder saved by an older build', () => {
 
   function serveAlphaWithLegacy(dir: string) {
     host()
-    win.__HERMES_DASHBOARD_PROFILE__ = 'alpha'
+    win.__KOVA_DASHBOARD_PROFILE__ = 'alpha'
     localStorage.setItem(legacyKey, dir)
   }
 
@@ -333,7 +333,7 @@ describe('browser folder saved by an older build', () => {
 
     expect(resolveNewSessionCwd('default')).toBe('/srv/default')
 
-    win.__HERMES_DASHBOARD_PROFILE__ = 'alpha'
+    win.__KOVA_DASHBOARD_PROFILE__ = 'alpha'
 
     expect(resolveNewSessionCwd('alpha')).toBe('')
     expect(resolveNewSessionCwd('default')).toBe('/srv/default')

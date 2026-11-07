@@ -27,7 +27,7 @@ async def test_keyless_injection_from_a_cli_session_turn_lands_in_that_session(t
     from gateway.session_policy import _ACTIVE_POLICY
     from kova_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(SessionAuthority, "_schedule", lambda self, ref: None)
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / "sessions"))
     db = SessionDB(tmp_path / "state.db")
@@ -73,10 +73,10 @@ async def test_keyed_local_injection_stays_inside_the_plugins_own_profile(tmp_pa
     from kova_state import SessionDB
     from kova_state_runtime import begin_runtime_epoch
 
-    launch = tmp_path / ".hermes"
+    launch = tmp_path / ".kova"
     beta = launch / "profiles" / "beta"
     beta.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(SessionAuthority, "_schedule", lambda self, ref: None)
     runner = GatewayRunner(GatewayConfig(sessions_dir=launch / "sessions"))
     runner.config.multiplex_profiles = True
@@ -164,10 +164,10 @@ async def test_keyed_messaging_injection_stays_inside_the_plugins_own_profile(tm
     from gateway.run import GatewayRunner
     from gateway.session import SessionEntry, SessionSource
 
-    launch = tmp_path / ".hermes"
+    launch = tmp_path / ".kova"
     beta = launch / "profiles" / "beta"
     beta.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     runner = GatewayRunner(GatewayConfig(sessions_dir=launch / "sessions"))
     runner.config.multiplex_profiles = True
     runner.config._runtime_profile_homes = [("default", launch), ("beta", beta)]

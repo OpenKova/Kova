@@ -3,7 +3,7 @@ picked value back, on the surfaces the gateway serves:
 
 * a messaging chat gets the clarify prompt (here the base adapter's numbered text) and the typed
   number answers it while the command is still running;
-* a local session (classic CLI, Ink TUI, Desktop over ``hermes-gateway-v1``) gets the ``clarify``
+* a local session (classic CLI, Ink TUI, Desktop over ``kova-gateway-v1``) gets the ``clarify``
   server request on its own socket, and the viewer's response frame settles it although that
   socket's ``slash.exec`` is still waiting for the handler.
 """
@@ -123,7 +123,7 @@ def test_a_local_viewer_answers_the_choice_while_its_slash_exec_waits(tmp_path):
         "model": {"provider": "custom", "default": "m", "base_url": "http://127.0.0.1:9/v1"},
         "platform_toolsets": {"cli": []}, "plugins": {"enabled": ["pick"]}}))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY="loopback-only", PYTHONUNBUFFERED="1", PYTHONDONTWRITEBYTECODE="1")
 
     async def viewer(desc):

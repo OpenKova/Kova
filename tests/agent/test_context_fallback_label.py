@@ -1,4 +1,4 @@
-"""A context window Hermes only defaulted to is labelled "fallback" wherever it is shown, so an operator can
+"""A context window Kova only defaulted to is labelled "fallback" wherever it is shown, so an operator can
 tell it from a known or detected limit (field report: GPT-6.1 Terra on Bedrock showed "128K (detected)")."""
 from __future__ import annotations
 
@@ -85,17 +85,17 @@ class TestFallbackMarker:
     def test_profiles_keep_their_own_label(self, tmp_path, defaulted_first):
         """Greptile: a multiplexed gateway resolves for several profiles; one profile's answer is not another's."""
         from agent.context_pin import context_window_marker
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         homes = {"defaulted": tmp_path / "a", "confirmed": tmp_path / "b"}
         for home in homes.values():
             home.mkdir()
 
         def in_home(name, fn):
-            token = set_hermes_home_override(homes[name])
+            token = set_kova_home_override(homes[name])
             try:
                 return fn()
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
         def confirmed():
             with patch("agent.model_metadata.get_cached_context_length", return_value=128_000):
@@ -146,7 +146,7 @@ class TestFallbackIsLabelledOnSurfaces:
         runner = GatewayRunner.__new__(GatewayRunner)
         (tmp_path / "config.yaml").write_text("model:\n  default: acme.unknown-model-v1\n  provider: bedrock\n")
         runtime = {"provider": "bedrock", "base_url": RUNTIME_URL, "api_key": "aws-sdk"}
-        with patch("gateway.run._hermes_home", tmp_path), \
+        with patch("gateway.run._kova_home", tmp_path), \
                 patch("gateway.run._resolve_gateway_model", return_value="acme.unknown-model-v1"), \
                 patch("gateway.run._resolve_runtime_agent_kwargs", return_value=runtime):
             info = runner._format_session_info()
@@ -156,8 +156,8 @@ class TestFallbackIsLabelledOnSurfaces:
 
     def _cli_with_bedrock_agent(self, model="acme.unknown-model-v1", context_length=128_000):
         from datetime import datetime, timedelta
-        from cli import HermesCLI
-        cli_obj = HermesCLI.__new__(HermesCLI)
+        from cli import KovaCLI
+        cli_obj = KovaCLI.__new__(KovaCLI)
         cli_obj.model = model
         cli_obj.session_start = datetime.now() - timedelta(minutes=3)
         cli_obj.conversation_history = [{"role": "user", "content": "hi"}]

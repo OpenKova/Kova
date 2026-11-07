@@ -34,14 +34,14 @@ def _cmd_list(_args) -> None:
     outbound = outbound_webhooks.iter_configured_targets(cfg)
 
     if not specs and not outbound:
-        print("No shell hooks or outbound webhooks configured in ~/.hermes/config.yaml.")
+        print("No shell hooks or outbound webhooks configured in ~/.kova/config.yaml.")
         print("See `hermes hooks --help` or")
         print("    website/docs/user-guide/features/hooks.md")
         print("for the config schema and worked examples.")
         return
 
     if not specs:
-        print("No shell hooks configured in ~/.hermes/config.yaml.")
+        print("No shell hooks configured in ~/.kova/config.yaml.")
     else:
         by_event: dict[str, list] = {}
         for spec in specs:
@@ -238,7 +238,7 @@ def _print_run_result(result: dict[str, Any]) -> None:
     # to show — failed-open and failed-closed must not render identically (#115968).
     parsed = result.get("parsed")
     if parsed:
-        print(f"      parsed (Hermes wire shape): {json.dumps(parsed)}")
+        print(f"      parsed (Kova wire shape): {json.dumps(parsed)}")
     else:
         print("      parsed: <none — hook contributed nothing to the dispatcher>")
 
@@ -261,7 +261,7 @@ def _cmd_revoke(args) -> None:
     print(f"Removed {removed} allowlist entry/entries for: {args.command}")
     print(
         "Note: a running gateway stops running it within about 30 seconds (unless "
-        "--accept-hooks / HERMES_ACCEPT_HOOKS / hooks_auto_accept approves every hook there); "
+        "--accept-hooks / KOVA_ACCEPT_HOOKS / hooks_auto_accept approves every hook there); "
         "other running processes keep it until they restart."
     )
 

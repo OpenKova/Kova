@@ -316,7 +316,7 @@ export function createDesktopProfilePreferences(
     }
   }
 
-  // userData outlives HERMES_HOME: a reinstall that wiped the Hermes home, or a
+  // userData outlives KOVA_HOME: a reinstall that wiped the Kova home, or a
   // `hermes profile delete` while the app was closed, never reaches
   // afterProfileRequest. A remembered local profile that is gone would launch
   // `--profile <gone>` on every boot, which the backend refuses, so apply the

@@ -34,7 +34,7 @@ def _adapter(channel_id: str) -> SlackAdapter:
             {"id": channel_id, "is_im": True, "user": "U_ALICE"} if channel_id.startswith("D")
             else {"id": channel_id, "name": "ops"})})
     a._bot_user_id = "U_BOT"
-    a._bot_display_name = "HermesBot"
+    a._bot_display_name = "KovaBot"
     a._running = True
     a.handle_message = AsyncMock()
     return a

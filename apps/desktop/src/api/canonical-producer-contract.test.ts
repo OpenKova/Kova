@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { expect, test } from 'vitest'
 
-import { HermesGateway } from './client'
+import { KovaGateway } from './client'
 
 // Class sweep: every Desktop producer frame that reaches the shared owner must fit the closed
 // (`additionalProperties: false`) canonical contract generated from tui_gateway/contracts. The
@@ -246,7 +246,7 @@ test.each(SITES)('%s: the canonical frame fits the generated contract', async (_
       )
     })
   })
-  const client = new HermesGateway()
+  const client = new KovaGateway()
 
   try {
     const address = server.address() as { port: number }

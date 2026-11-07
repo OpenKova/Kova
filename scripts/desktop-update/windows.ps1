@@ -2,8 +2,8 @@
 #
 # WHY THIS EXISTS (the frozen-binary problem): the Desktop's Update button
 # used to hand off exclusively to the staged Tauri binary
-# (%HERMES_HOME%\hermes-setup.exe). That binary has no self-update path --
-# copy_self_to_hermes_home deliberately no-ops during --update -- so every
+# (%KOVA_HOME%\hermes-setup.exe). That binary has no self-update path --
+# copy_self_to_kova_home deliberately no-ops during --update -- so every
 # updater-side fix (cache refresh #67369, marker self-adopt #74782, straggler
 # handling) only reaches users when a new installer is built, signed, and
 # published. In practice binaries go months stale and users hit long-fixed
@@ -19,12 +19,12 @@
 # CONTRACT (keep in sync with apps/desktop/electron/main.ts):
 #   cmd /d /s /c start "" /b powershell -NoProfile -ExecutionPolicy Bypass
 #     -File scripts\desktop-update\windows.ps1
-#     -InstallRoot <path>   repo checkout (HERMES_HOME\hermes-agent)
+#     -InstallRoot <path>   repo checkout (KOVA_HOME\kova-agent)
 #     [-Branch <ref> | -Channel stable|canary|main]  default: branch main
 #     -DesktopPid <pid>     the Electron main process to wait out
-#     [-RelaunchExe <path>] Hermes.exe to start when done (omit = no relaunch)
+#     [-RelaunchExe <path>] Kova.exe to start when done (omit = no relaunch)
 #     [-NoUi]               headless (tests); default shows a progress window
-#     [-NoMarkerCleanup]    leave .hermes-update-in-progress in place (tests)
+#     [-NoMarkerCleanup]    leave .kova-update-in-progress in place (tests)
 #     [-ProbeTimeoutSeconds <n>] launcher probe bound, default 60 (tests)
 #     [-HandoffRun <id>]    protocol 2: the run id of the Desktop's bridge claim
 #
@@ -44,11 +44,11 @@
 # exits, or a venv shim that never unlocks, aborts the hand-off without
 # mutating the install -- a skipped update is recoverable, a half-updated
 # venv is not. Every exit path (success, abort, crash) writes
-# .hermes-update-result.json for the relaunched Desktop to surface, and
+# .kova-update-result.json for the relaunched Desktop to surface, and
 # relaunches the Desktop so the user is never left stranded. The one
 # exception is a refused run (exit 2): it changed nothing and writes no result.
 #
-# Marker (contract C1 v2 + A7, marker.ps1): claiming HERMES_HOME\.hermes-update-
+# Marker (contract C1 v2 + A7, marker.ps1): claiming KOVA_HOME\.kova-update-
 # in-progress is the FIRST thing the script does -- before any Add-Type, UI
 # or probe -- and every read/judge/mutate of it happens inside one hold of
 # the kernel lock on "<marker>.lock". With -HandoffRun it only adopts the
@@ -98,14 +98,14 @@ if (-not $SelfTestUi -and -not $SelfTestPipeDrain -and -not $SelfTestLogConcurre
 
 $ErrorActionPreference = "Continue"
 $TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-$HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } elseif ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
-$env:HERMES_HOME = $HermesHome
-$MarkerPath = Join-Path $HermesHome ".hermes-update-in-progress"
-$LogDir = Join-Path $HermesHome "logs"
+$KovaHome = if ($env:KOVA_HOME) { $env:KOVA_HOME } elseif ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
+$env:KOVA_HOME = $KovaHome
+$MarkerPath = Join-Path $KovaHome ".kova-update-in-progress"
+$LogDir = Join-Path $KovaHome "logs"
 $LogPath = Join-Path $LogDir "desktop-update-handoff.log"
-$ResultPath = Join-Path $HermesHome ".hermes-update-result.json"
+$ResultPath = Join-Path $KovaHome ".kova-update-result.json"
 $script:HandoffLogMutex = $null
-# One mutex per log path (case-normalized: the same HERMES_HOME spelled
+# One mutex per log path (case-normalized: the same KOVA_HOME spelled
 # differently must still serialize), hashed because a mutex name cannot carry
 # path characters.
 $handoffLogHash = ""
@@ -113,7 +113,7 @@ $handoffSha = [System.Security.Cryptography.SHA1]::Create()
 try {
     $handoffLogHash = [BitConverter]::ToString($handoffSha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($LogPath.ToLowerInvariant())), 0, 8).Replace("-", "")
 } finally { $handoffSha.Dispose() }
-$script:HandoffLogMutexName = "Global\HermesHandoffLog-$handoffLogHash"
+$script:HandoffLogMutexName = "Global\KovaHandoffLog-$handoffLogHash"
 # Lines the log could not take yet, oldest first (Write-HandoffLog).
 $script:PendingLogLines = New-Object System.Collections.Generic.List[string]
 
@@ -173,7 +173,7 @@ function Write-HandoffLog([string]$Message) {
     $script:PendingLogLines.Add($line)
     [void](Sync-HandoffLog)
     if ($MarkerOp) { return }   # a helper op's stdout is its one verdict line
-    if ($script:ConsoleInput -and [HermesHandoff.ConsoleInput]::Selecting()) { return }
+    if ($script:ConsoleInput -and [KovaHandoff.ConsoleInput]::Selecting()) { return }
     Write-Host $line
 }
 
@@ -214,9 +214,9 @@ if (-not $SelfTestUi -and -not $SelfTestPipeDrain -and -not $SelfTestLogConcurre
 # unless we explicitly claim focus --
 # and after the update we must hand focus TO the relaunched Desktop (a
 # WMI-spawned process starts unfocused). AllowSetForegroundWindow lets us
-# pass our foreground right on to the new Hermes.exe pid.
+# pass our foreground right on to the new Kova.exe pid.
 try {
-    Add-Type -Namespace HermesHandoff -Name Win32 -MemberDefinition @'
+    Add-Type -Namespace KovaHandoff -Name Win32 -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetForegroundWindow(System.IntPtr hWnd);
 [DllImport("user32.dll")] public static extern bool AllowSetForegroundWindow(int dwProcessId);
 [DllImport("user32.dll")] public static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
@@ -232,7 +232,7 @@ try {
 # stray click cannot start a selection) and the console echo is skipped while
 # one is active; the log file keeps every line either way.
 try {
-    Add-Type -Namespace HermesHandoff -Name ConsoleInput -MemberDefinition @'
+    Add-Type -Namespace KovaHandoff -Name ConsoleInput -MemberDefinition @'
 [StructLayout(LayoutKind.Sequential)] public struct SelectionInfo { public uint Flags; public uint Anchor; public ulong Window; }
 [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
 static extern IntPtr CreateFile(string name, uint access, uint share, IntPtr attributes, uint disposition, uint flags, IntPtr template);
@@ -268,7 +268,7 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 $script:Ui = $null
-$script:UiStage = "Hermes will open once done."   # until the first gate; matches ui.html
+$script:UiStage = "Kova will open once done."   # until the first gate; matches ui.html
 $script:UiStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 # ── The shim: repo-owned HTML in a chromeless default-browser app window ───
@@ -293,7 +293,7 @@ $script:UiServer = $null     # @{ Listener; Runspace; PowerShell; Port; BrowserP
 # to the window, which otherwise read "Updating code and dependencies" for a whole 20-60 minute
 # run (#139952, #135363), and to the hand-off log, whose timestamps then name the slow stage.
 $script:ChildStageFile = Join-Path ([IO.Path]::GetTempPath()) ("hermes-update-status.{0}" -f $PID)
-$env:HERMES_UPDATE_STATUS_FILE = $script:ChildStageFile
+$env:KOVA_UPDATE_STATUS_FILE = $script:ChildStageFile
 $script:ChildStageSeen = $null
 
 function Get-UiHtmlPath {
@@ -467,7 +467,7 @@ function Stop-UiServer([switch]$LeaveWindow) {
     }
     # Best-effort removal of the dedicated browser profile dirs: this run's
     # profile plus hermes-update-ui-<pid> leftovers whose hand-off process is
-    # gone. %TEMP% is shared by every HERMES_HOME of this user, and the marker
+    # gone. %TEMP% is shared by every KOVA_HOME of this user, and the marker
     # only serialises one home, so a dir whose pid is still running belongs to
     # another live hand-off and is left alone. A browser that is still
     # shutting down may hold the lock; the delete then silently no-ops.
@@ -525,7 +525,7 @@ function Get-UiProgressLine {
 
 function Publish-UiProgress([string]$Message) {
     # Stages come from the orchestrator's own control flow. Child stdout and
-    # stderr remain asynchronously drained in Invoke-HermesStep and are never
+    # stderr remain asynchronously drained in Invoke-KovaStep and are never
     # read or parsed for UI updates.
     $script:UiStage = $Message
     $script:UiState.message = $Message
@@ -602,7 +602,7 @@ function Show-ProgressWindow {
             $mute = [System.Drawing.ColorTranslator]::FromHtml("#A8A8A8")
         }
         $form = New-Object System.Windows.Forms.Form
-        $form.Text = "Hermes"
+        $form.Text = "Kova"
         $form.FormBorderStyle = "FixedSingle"
         $form.MaximizeBox = $false
         $form.MinimizeBox = $false
@@ -616,7 +616,7 @@ function Show-ProgressWindow {
         $bar.MarqueeAnimationSpeed = 30
         $bar.SetBounds(60, 128, 160, 8)
         $title = New-Object System.Windows.Forms.Label
-        $title.Text = "Updating Hermes"
+        $title.Text = "Updating Kova"
         $title.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
         $title.ForeColor = $fore
         $title.TextAlign = "MiddleCenter"
@@ -637,7 +637,7 @@ function Show-ProgressWindow {
         # window is decoration and competes with nothing (no TopMost).
         try {
             $form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($form.Handle) | Out-Null }
+            if ($script:Win32) { [KovaHandoff.Win32]::SetForegroundWindow($form.Handle) | Out-Null }
         } catch {}
         [System.Windows.Forms.Application]::DoEvents()
         $script:Ui = [pscustomobject]@{ Form = $form; Bar = $bar; Title = $title; Sub = $sub; Timer = $null }
@@ -686,7 +686,7 @@ function Show-ErrorFinale([string]$Message) {
         $ui.Form.AcceptButton = $close
         try {
             $ui.Form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
+            if ($script:Win32) { [KovaHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
         } catch {}
         # Hold for dismissal so the failure is actually seen, but never park
         # forever -- the marker is already cleaned up and the relaunched
@@ -704,7 +704,7 @@ function Show-ManualFinale([string]$Message) {
     # shape as the error finale, success glyph semantics: the shim renders
     # `manual` itself; the WinForms card swaps its copy. Held so the user
     # actually sees the instruction — this window is the only surface until
-    # they reopen Hermes themselves.
+    # they reopen Kova themselves.
     if ($script:UiServer) {
         Publish-UiEvent "manual" $Message
         Stop-UiServer -LeaveWindow
@@ -728,7 +728,7 @@ function Show-ManualFinale([string]$Message) {
         $ui.Form.AcceptButton = $close
         try {
             $ui.Form.Activate()
-            if ($script:Win32) { [HermesHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
+            if ($script:Win32) { [KovaHandoff.Win32]::SetForegroundWindow($ui.Form.Handle) | Out-Null }
         } catch {}
         $deadline = (Get-Date).AddMinutes(5)
         while (-not $script:ErrorDismissed -and (Get-Date) -lt $deadline -and $ui.Form.Visible) {
@@ -836,17 +836,17 @@ function Get-DesktopWorkingDirectory {
 
 function Restore-UserProxyEnv {
     # Port of restoreUserProxyEnv (electron/updater/system-proxy-env.ts): the Desktop handed its
-    # system proxy to the update only. HERMES_UPDATE_SYSTEM_PROXY names the variables it added and
-    # HERMES_UPDATE_USER_NO_PROXY holds the user's own NO_PROXY it extended.
-    foreach ($key in ("$env:HERMES_UPDATE_SYSTEM_PROXY" -split ',')) {
+    # system proxy to the update only. KOVA_UPDATE_SYSTEM_PROXY names the variables it added and
+    # KOVA_UPDATE_USER_NO_PROXY holds the user's own NO_PROXY it extended.
+    foreach ($key in ("$env:KOVA_UPDATE_SYSTEM_PROXY" -split ',')) {
         if (@('HTTPS_PROXY', 'HTTP_PROXY', 'NO_PROXY') -contains $key) { Remove-Item "Env:$key" -ErrorAction SilentlyContinue }
     }
-    $saved = [Environment]::GetEnvironmentVariable('HERMES_UPDATE_USER_NO_PROXY', 'Process')
+    $saved = [Environment]::GetEnvironmentVariable('KOVA_UPDATE_USER_NO_PROXY', 'Process')
     if ($null -ne $saved) {
         [Environment]::SetEnvironmentVariable('NO_PROXY', $saved, 'Process')
-        Remove-Item Env:HERMES_UPDATE_USER_NO_PROXY -ErrorAction SilentlyContinue
+        Remove-Item Env:KOVA_UPDATE_USER_NO_PROXY -ErrorAction SilentlyContinue
     }
-    Remove-Item Env:HERMES_UPDATE_SYSTEM_PROXY -ErrorAction SilentlyContinue
+    Remove-Item Env:KOVA_UPDATE_SYSTEM_PROXY -ErrorAction SilentlyContinue
 }
 
 function Start-DesktopRelaunch {
@@ -856,7 +856,7 @@ function Start-DesktopRelaunch {
     # — the sibling truth contract to posix.sh's launch acceptance.
     if (-not $RelaunchExe) { return $false }
     # electron-builder replaces win-unpacked in place. After a successful
-    # update it can remove the old Hermes.exe before writing the replacement,
+    # update it can remove the old Kova.exe before writing the replacement,
     # so a one-shot existence check races the rebuild and strands the user.
     $relaunchDeadline = (Get-Date).AddSeconds(120)
     while (-not (Test-Path -LiteralPath $RelaunchExe)) {
@@ -868,7 +868,7 @@ function Start-DesktopRelaunch {
         if ($script:Ui) { [System.Windows.Forms.Application]::DoEvents() }
     }
     Write-HandoffLog "relaunching desktop: $RelaunchExe"
-    # DO NOT spawn Hermes.exe as our child: Electron/Chromium calls
+    # DO NOT spawn Kova.exe as our child: Electron/Chromium calls
     # AttachConsole(ATTACH_PARENT_PROCESS) at boot, so a Desktop launched
     # directly from this console PowerShell latches onto OUR console --
     # the console window then outlives the script (it can't close while
@@ -894,7 +894,7 @@ function Start-DesktopRelaunch {
             # takes a couple seconds to create it.
             try {
                 if ($script:Win32) {
-                    [HermesHandoff.Win32]::AllowSetForegroundWindow([int]$r.ProcessId) | Out-Null
+                    [KovaHandoff.Win32]::AllowSetForegroundWindow([int]$r.ProcessId) | Out-Null
                     $deadline = (Get-Date).AddSeconds(20)
                     while ((Get-Date) -lt $deadline) {
                         $hwnd = [System.IntPtr]::Zero
@@ -909,8 +909,8 @@ function Start-DesktopRelaunch {
                             break
                         }
                         if ($hwnd -ne [System.IntPtr]::Zero) {
-                            [HermesHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
-                            [HermesHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
+                            [KovaHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
+                            [KovaHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
                             Write-HandoffLog "focused relaunched desktop window"
                             break
                         }
@@ -934,7 +934,7 @@ function Start-DesktopRelaunch {
         # window can't close while the app lives. Explorer re-parents the
         # target exactly like a normal shell launch, giving the same
         # no-console detachment WMI would have. Explorer returns no pid, so
-        # verify by watching for a fresh Hermes process.
+        # verify by watching for a fresh Kova process.
         try {
             $exeName = [System.IO.Path]::GetFileNameWithoutExtension($RelaunchExe)
             $before = @(Get-Process -Name $exeName -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
@@ -950,14 +950,14 @@ function Start-DesktopRelaunch {
                     # (us) can delegate that right.
                     try {
                         if ($script:Win32) {
-                            [HermesHandoff.Win32]::AllowSetForegroundWindow([int]$fresh[0].Id) | Out-Null
+                            [KovaHandoff.Win32]::AllowSetForegroundWindow([int]$fresh[0].Id) | Out-Null
                             $focusDeadline = (Get-Date).AddSeconds(20)
                             while ((Get-Date) -lt $focusDeadline) {
                                 $hwnd = [System.IntPtr]::Zero
                                 try { $hwnd = (Get-Process -Id $fresh[0].Id -ErrorAction Stop).MainWindowHandle } catch { break }
                                 if ($hwnd -ne [System.IntPtr]::Zero) {
-                                    [HermesHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
-                                    [HermesHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
+                                    [KovaHandoff.Win32]::ShowWindow($hwnd, 9) | Out-Null  # SW_RESTORE
+                                    [KovaHandoff.Win32]::SetForegroundWindow($hwnd) | Out-Null
                                     Write-HandoffLog "focused relaunched desktop window"
                                     break
                                 }
@@ -986,7 +986,7 @@ function Start-DesktopRelaunch {
             # Fallback keeps the old behavior (console tie-in and all) --
             # a tethered Desktop beats no Desktop. Unlike the WMI and explorer rungs it inherits
             # this script's environment: the stage relay is the update's, never the app's.
-            Remove-Item Env:HERMES_UPDATE_STATUS_FILE -ErrorAction SilentlyContinue
+            Remove-Item Env:KOVA_UPDATE_STATUS_FILE -ErrorAction SilentlyContinue
             $p = Start-Process -FilePath $RelaunchExe -WorkingDirectory (Get-DesktopWorkingDirectory) -PassThru
             Start-Sleep -Milliseconds 1500
             if ($p -and -not $p.HasExited) { $spawned = $true }
@@ -1016,9 +1016,9 @@ function Start-DesktopRelaunch {
 # Overridable so the pipe-drain self-test does not have to sit out the real
 # grace; not documented as a user knob.
 $script:StepDrainGraceSeconds = 20
-if ($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS) {
+if ($env:KOVA_UPDATE_PIPE_DRAIN_SECONDS) {
     $parsedGrace = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS, [ref]$parsedGrace) -and $parsedGrace -ge 0) {
+    if ([int]::TryParse($env:KOVA_UPDATE_PIPE_DRAIN_SECONDS, [ref]$parsedGrace) -and $parsedGrace -ge 0) {
         $script:StepDrainGraceSeconds = $parsedGrace
     }
 }
@@ -1030,9 +1030,9 @@ if ($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS) {
 # every step is assigned to a private, non-breakaway Windows job and a timed-out
 # step is retryable only after that job reports zero active processes.
 $script:StepIdleTimeoutSeconds = 600
-if ($env:HERMES_UPDATE_STEP_IDLE_SECONDS) {
+if ($env:KOVA_UPDATE_STEP_IDLE_SECONDS) {
     $parsedIdle = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_STEP_IDLE_SECONDS, [ref]$parsedIdle) -and $parsedIdle -gt 0) {
+    if ([int]::TryParse($env:KOVA_UPDATE_STEP_IDLE_SECONDS, [ref]$parsedIdle) -and $parsedIdle -gt 0) {
         $script:StepIdleTimeoutSeconds = $parsedIdle
     }
 }
@@ -1042,9 +1042,9 @@ if ($env:HERMES_UPDATE_STEP_IDLE_SECONDS) {
 # refuses, so nothing is replaced under a live Desktop. Overridable so the
 # self-tests need not sit it out; not documented as a user knob.
 $script:DesktopExitSeconds = 150
-if ($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS) {
+if ($env:KOVA_UPDATE_DESKTOP_EXIT_SECONDS) {
     $parsedExit = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS, [ref]$parsedExit) -and $parsedExit -gt 0) {
+    if ([int]::TryParse($env:KOVA_UPDATE_DESKTOP_EXIT_SECONDS, [ref]$parsedExit) -and $parsedExit -gt 0) {
         $script:DesktopExitSeconds = $parsedExit
     }
 }
@@ -1059,8 +1059,8 @@ if ($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS) {
 # Overridable so the pipe-drain self-test can point it at its own file; not
 # documented as a user knob.
 $script:StepProgressLogPath = Join-Path $LogDir "update.log"
-if ($env:HERMES_UPDATE_PROGRESS_LOG) {
-    $script:StepProgressLogPath = $env:HERMES_UPDATE_PROGRESS_LOG
+if ($env:KOVA_UPDATE_PROGRESS_LOG) {
+    $script:StepProgressLogPath = $env:KOVA_UPDATE_PROGRESS_LOG
 }
 
 function Get-StepProgressLogStamp {
@@ -1119,7 +1119,7 @@ function Sync-ChildStage {
     Publish-UiProgress $message
 }
 
-function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
+function Invoke-KovaStep([string]$Exe, [string[]]$KovaArgs, [string]$Tag) {
     # A stage left by the previous step must not replace the one the orchestrator just published.
     Remove-Item -LiteralPath $script:ChildStageFile -Force -ErrorAction SilentlyContinue
     $script:ChildStageSeen = $null
@@ -1133,22 +1133,22 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     # The drain is bounded once the step exits (#90455). Waiting for pipe EOF
     # is waiting on the step's whole surviving descendant tree, and this
     # function sits upstream of every terminal obligation the hand-off has --
-    # .hermes-update-result.json, clearing .hermes-update-in-progress,
+    # .kova-update-result.json, clearing .kova-update-in-progress,
     # relaunching the Desktop. One resident grandchild holding an inherited
     # handle used to strand all three and leave the Desktop on "Updating
-    # Hermes" until the user killed something by hand. Losing the tail of a
+    # Kova" until the user killed something by hand. Losing the tail of a
     # log is the strictly better failure.
     # System.Diagnostics.Process directly: Start-Process's .ExitCode is
     # unreliably $null under PS 5.1 even with the Handle-touch workaround.
     # CREATE_SUSPENDED closes the startup race: no updater instruction can run
     # before the process is assigned to its private job and resumed.
-    $arguments = ($HermesArgs | ForEach-Object { '"{0}"' -f ($_ -replace '"', '\"') }) -join ' '
+    $arguments = ($KovaArgs | ForEach-Object { '"{0}"' -f ($_ -replace '"', '\"') }) -join ' '
     # CreateProcess inherits this process's environment. Set Python's encoding
     # and buffering only for the atomic launch, then restore the hand-off host.
     # Historical user-bin publication could be a command file rather than a
     # native launcher. Keep the wrapper inside the same supervised job.
     if ([IO.Path]::GetExtension($Exe) -eq '.cmd') {
-        if ($Exe -match '[%!"\x0D\x0A]' -or @($HermesArgs | Where-Object { $_ -match '[%!"\x0D\x0A]' }).Count) {
+        if ($Exe -match '[%!"\x0D\x0A]' -or @($KovaArgs | Where-Object { $_ -match '[%!"\x0D\x0A]' }).Count) {
             throw 'The legacy command launcher cannot safely quote this update target; refresh the installation launcher first.'
         }
         $arguments = '/d /s /c ""' + $Exe + '" ' + $arguments + '"'
@@ -1161,7 +1161,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
         $env:PYTHONIOENCODING = "utf-8"
         $env:PYTHONUTF8 = "1"
         $env:PYTHONUNBUFFERED = "1"
-        $started = [HermesUpdateJob]::StartAssigned($Exe, $arguments)
+        $started = [KovaUpdateJob]::StartAssigned($Exe, $arguments)
     } finally {
         if ($null -eq $savedPythonIoEncoding) { Remove-Item Env:PYTHONIOENCODING -ErrorAction SilentlyContinue } else { $env:PYTHONIOENCODING = $savedPythonIoEncoding }
         if ($null -eq $savedPythonUtf8) { Remove-Item Env:PYTHONUTF8 -ErrorAction SilentlyContinue } else { $env:PYTHONUTF8 = $savedPythonUtf8 }
@@ -1175,12 +1175,12 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     if ($Tag -eq 'update') {
         $delegate = Add-MarkerDelegate @($proc.Id)
         if ($delegate -notin @('published', 'kept')) {
-            [void][HermesUpdateJob]::TerminateAndWait($started.Job, 1, 5000)
-            [HermesUpdateJob]::Close($started.Job)
+            [void][KovaUpdateJob]::TerminateAndWait($started.Job, 1, 5000)
+            [KovaUpdateJob]::Close($started.Job)
             throw "could not name the update process as the update marker's delegate ($delegate); nothing was run"
         }
     }
-    [HermesUpdateJob]::Resume($started)
+    [KovaUpdateJob]::Resume($started)
     $stdoutReader = $started.StandardOutput
     $stderrReader = $started.StandardError
     $job = $started.Job
@@ -1200,7 +1200,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     $abandoned = $false
     $lastProgressAt = Get-Date
     $progressLogStamp = Get-StepProgressLogStamp
-    $jobActivity = [HermesUpdateJob]::Activity($job)
+    $jobActivity = [KovaUpdateJob]::Activity($job)
     $stalled = $false
     $nextStageCheck = Get-Date
     while ($true) {
@@ -1213,7 +1213,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
             # CPU or I/O spent inside the job is progress too: a pipe-silent
             # wheel download or extraction is busy, not stalled. One cheap
             # kernel query per idle pass; never on the hot drain path.
-            $currentActivity = [HermesUpdateJob]::Activity($job)
+            $currentActivity = [KovaUpdateJob]::Activity($job)
             if ($currentActivity -ne $jobActivity) {
                 $jobActivity = $currentActivity
                 $lastProgressAt = Get-Date
@@ -1248,12 +1248,12 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
                 # venv, or release tree can overlap two installers and
                 # corrupt the install.
                 Write-HandoffLog ("{0}!| step stalled: no stdout/stderr, no update.log growth and no CPU/IO in its process tree for {1}s while pid {2} remained alive; cancelling its process tree." -f $Tag, $script:StepIdleTimeoutSeconds, $proc.Id)
-                $stalled = [HermesUpdateJob]::TerminateAndWait($job, 124, 10000)
+                $stalled = [KovaUpdateJob]::TerminateAndWait($job, 124, 10000)
                 if (-not $stalled) {
                     Write-HandoffLog ("{0}!| process-tree cancellation could not prove quiescence; refusing the timeout retry." -f $Tag)
                     $script:TreeSafeToFinalize = $false
-                    $script:UnquiescedPids = @([HermesUpdateJob]::ProcessIds($job))
-                    [HermesUpdateJob]::Close($job)
+                    $script:UnquiescedPids = @([KovaUpdateJob]::ProcessIds($job))
+                    [KovaUpdateJob]::Close($job)
                     throw "Unable to quiesce stalled update process tree"
                 }
             }
@@ -1308,14 +1308,14 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     $all = $outText
     if ($errText) { $all += "`n" + $errText }
     $code = if ($stalled) { 124 } else { $proc.ExitCode }
-    [HermesUpdateJob]::Close($job)
+    [KovaUpdateJob]::Close($job)
     return @{ Code = $code; Output = $all; TreeQuiesced = (-not $stalled -or $proc.HasExited); StartedAfterJobAssignment = $true }
 }
 
 # `hermes update` can COMPLETE (its output carries "✓ Update complete!") and
 # still be killed with the idle-watchdog sentinel 124: the post-update phase
 # (gateway restart hand-off) stayed alive and silent past the ceiling, so
-# Invoke-HermesStep terminated the tree (#96205). The install is done; failing
+# Invoke-KovaStep terminated the tree (#96205). The install is done; failing
 # would keep the old Desktop and a legacy install would re-run the whole update.
 # Surface success so the hand-off verifies, restores the gateways and relaunches.
 # Only 124 is remapped, and never when anything after the banner reports a
@@ -1323,7 +1323,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
 # incomplete — …", "✗ <unit> failed to come back after restart" or
 # "verification incomplete" there. \u2717 (✗) stays an escape: Windows
 # PowerShell reads this BOM-less script as ANSI, never as UTF-8.
-function Resolve-HermesUpdateOutcome($StepResult) {
+function Resolve-KovaUpdateOutcome($StepResult) {
     $banner = if ($StepResult.Output) { $StepResult.Output.LastIndexOf('Update complete!') } else { -1 }
     if ($StepResult.Code -eq 124 -and $banner -ge 0 -and $StepResult.Output.Substring($banner) -notmatch 'incomplete|not complete|\u2717') {
         Write-HandoffLog "update completed before the idle watchdog killed its finalizing step (exit 124); treating it as success, not retrying (#96205)"
@@ -1342,8 +1342,8 @@ function Resolve-HermesUpdateOutcome($StepResult) {
 # act) | interrupted (Ctrl-C after the code moved). A reconciled "interrupted"
 # record keeps finished_at null, so it never matches.
 function Get-CommittedReceiptOutcome {
-    $root = $HermesHome
-    # kova_constants.get_default_hermes_root: a <root>\profiles\<name> home files under <root>
+    $root = $KovaHome
+    # kova_constants.get_default_kova_root: a <root>\profiles\<name> home files under <root>
     $parent = Split-Path -Parent $root
     if ($parent -and (Split-Path -Leaf $parent) -eq 'profiles') { $root = Split-Path -Parent $parent }
     $path = Join-Path $root 'logs\update_receipts\latest.json'
@@ -1371,8 +1371,8 @@ $script:TreeSafeToFinalize = $true
 # Manual QA for the Edge shell without a checkout or a real update. Exits
 # before the marker/desktop/venv machinery — touches nothing. Off Windows
 # (or without Edge) the loopback server still starts and the URL prints, so
-# the page can be QA'd in any browser; HERMES_SELFTEST_FAIL=1 exercises the
-# error state, HERMES_SELFTEST_HOLD_SECONDS delays the terminal event.
+# the page can be QA'd in any browser; KOVA_SELFTEST_FAIL=1 exercises the
+# error state, KOVA_SELFTEST_HOLD_SECONDS delays the terminal event.
 if ($SelfTestUi) {
     New-Item -ItemType Directory -Path $LogDir -Force -ErrorAction SilentlyContinue | Out-Null
     Show-ProgressWindow
@@ -1387,10 +1387,10 @@ if ($SelfTestUi) {
     }
     Write-HandoffLog "SELF-TEST: shim simulation (no update will run)"
     $hold = 6
-    if ($env:HERMES_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:HERMES_SELFTEST_HOLD_SECONDS }
+    if ($env:KOVA_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:KOVA_SELFTEST_HOLD_SECONDS }
     Publish-UiProgress "Testing quiet update"
     Start-Sleep -Seconds $hold
-    if ($env:HERMES_SELFTEST_FAIL) {
+    if ($env:KOVA_SELFTEST_FAIL) {
         Show-ErrorFinale "self-test error state"
     } else {
         Close-ProgressWindow
@@ -1398,8 +1398,8 @@ if ($SelfTestUi) {
     exit 0
 }
 
-# -SelfTestPipeDrain: prove Invoke-HermesStep survives a leaked pipe ------
-# The #90455 deadlock needs no update, no checkout and no Hermes install to
+# -SelfTestPipeDrain: prove Invoke-KovaStep survives a leaked pipe ------
+# The #90455 deadlock needs no update, no checkout and no Kova install to
 # reproduce -- only a step whose grandchild outlives it holding the inherited
 # write end of the redirected pipe. That is exactly what this builds, so the
 # fix has an executable proof on Windows instead of a source-grep. Exits
@@ -1425,9 +1425,9 @@ if ($SelfTestUi) {
 if ($SelfTestPipeDrain) {
     New-Item -ItemType Directory -Path $LogDir -Force -ErrorAction SilentlyContinue | Out-Null
     $hold = 60
-    if ($env:HERMES_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:HERMES_SELFTEST_HOLD_SECONDS }
+    if ($env:KOVA_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:KOVA_SELFTEST_HOLD_SECONDS }
     $floodKb = 8192
-    if ($env:HERMES_SELFTEST_FLOOD_KB) { $floodKb = [int]$env:HERMES_SELFTEST_FLOOD_KB }
+    if ($env:KOVA_SELFTEST_FLOOD_KB) { $floodKb = [int]$env:KOVA_SELFTEST_FLOOD_KB }
     # $PSHOME is this interpreter's own directory -- no hardcoded system path.
     $powershell = Join-Path $PSHOME "powershell.exe"
     $stamp = [Guid]::NewGuid().ToString("N")
@@ -1502,7 +1502,7 @@ exit 3
     $savedIdle = $script:StepIdleTimeoutSeconds
     try {
         $script:StepIdleTimeoutSeconds = 120
-        $res = Invoke-HermesStep $powershell @(
+        $res = Invoke-KovaStep $powershell @(
             "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $childPs1,
             "-Hold", [string]$hold, "-PidFile", $pidFile
         ) "pipedrain"
@@ -1526,7 +1526,7 @@ exit 3
     }
 
     $floodSw = [System.Diagnostics.Stopwatch]::StartNew()
-    $flood = Invoke-HermesStep $powershell @(
+    $flood = Invoke-KovaStep $powershell @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $floodPs1,
         "-Kb", [string]$floodKb
     ) "pipeflood"
@@ -1535,7 +1535,7 @@ exit 3
     $floodBytes = $flood.Output.Length
 
     $stallSw = [System.Diagnostics.Stopwatch]::StartNew()
-    $stall = Invoke-HermesStep $powershell @(
+    $stall = Invoke-KovaStep $powershell @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $stallPs1,
         "-Hold", [string]$hold, "-PidFile", $stallPidFile,
         "-GrandchildPidFile", $stallGrandchildPidFile
@@ -1562,7 +1562,7 @@ exit 3
     $script:StepProgressLogPath = $logStallProgress
     $logStallSw = [System.Diagnostics.Stopwatch]::StartNew()
     try {
-        $logstall = Invoke-HermesStep $powershell @(
+        $logstall = Invoke-KovaStep $powershell @(
             "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $logStallPs1,
             "-Hold", [string]$hold, "-ProgressLog", $logStallProgress
         ) "logstall"
@@ -1592,8 +1592,8 @@ exit 3
     if ($stallElapsed -ge $stallBudget) { $problems += "stall arm returned in ${stallElapsed}s, over the ${stallBudget}s budget" }
     if ($stall.Code -ne 124) { $problems += "stall arm exit code $($stall.Code), expected 124" }
     if ($stall.Output -notmatch "step entered silent finalization") { $problems += "stall arm step output was lost" }
-    if ($stallAlive) { $problems += "stalled child pid $stallPid remained alive after Invoke-HermesStep returned" }
-    if ($stallGrandchildAlive) { $problems += "stalled descendant pid $stallGrandchildPid remained alive after Invoke-HermesStep returned" }
+    if ($stallAlive) { $problems += "stalled child pid $stallPid remained alive after Invoke-KovaStep returned" }
+    if ($stallGrandchildAlive) { $problems += "stalled descendant pid $stallGrandchildPid remained alive after Invoke-KovaStep returned" }
     if (-not $stall.TreeQuiesced) { $problems += "stall arm returned without proving its process tree quiescent" }
     if (-not $stall.StartedAfterJobAssignment) { $problems += "stall arm started before cancellation-job assignment" }
     $logStallBudget = $hold + 60
@@ -1689,7 +1689,7 @@ Complete-HandoffLog
     exit 0
 }
 
-$savedConsoleInputMode = if ($script:ConsoleInput) { [HermesHandoff.ConsoleInput]::DisableQuickEdit() } else { $null }
+$savedConsoleInputMode = if ($script:ConsoleInput) { [KovaHandoff.ConsoleInput]::DisableQuickEdit() } else { $null }
 try {
     # -- 0. The marker was claimed before anything else (top of script) -----
     if ($script:MarkerClaim -eq "refused") {
@@ -1697,7 +1697,7 @@ try {
         # (or the Desktop that gave up on this hand-off) reports its own.
         $finalCode = 2
         $blocker = if ($script:MarkerBlocker -gt 0) { " (process $($script:MarkerBlocker))" } else { "" }
-        $finalMsg = "Another Hermes update is already running$blocker, or the Desktop gave up on this hand-off. Nothing was changed."
+        $finalMsg = "Another Kova update is already running$blocker, or the Desktop gave up on this hand-off. Nothing was changed."
         Write-HandoffLog $finalMsg
         exit $finalCode
     }
@@ -1714,7 +1714,7 @@ try {
 
     # StartAssigned passes a null CreateProcess currentDirectory, so children
     # inherit the hand-off process directory rather than PowerShell's $PWD.
-    # Desktop launches us from HERMES_HOME; pin the process directory to the
+    # Desktop launches us from KOVA_HOME; pin the process directory to the
     # checkout before any update child can resolve files against the wrong tree.
     try {
         $resolvedInstallRoot = Set-InstallRootCurrentDirectory $InstallRoot
@@ -1730,7 +1730,7 @@ try {
     if ($SelfTestWorkingDirectory) {
         $expectedRoot = [System.IO.Path]::GetFullPath($InstallRoot)
         $probeExe = Join-Path $PSHOME "powershell.exe"
-        $probe = Invoke-HermesStep $probeExe @("-NoProfile", "-Command", "[Environment]::CurrentDirectory; [Console]::IsInputRedirected") "cwd"
+        $probe = Invoke-KovaStep $probeExe @("-NoProfile", "-Command", "[Environment]::CurrentDirectory; [Console]::IsInputRedirected") "cwd"
         $observed, $stdinRedirected = @($probe.Output.Trim() -split "`r?`n" | ForEach-Object { $_.Trim() })
         if ($probe.Code -ne 0 -or -not [string]::Equals($observed, $expectedRoot, [StringComparison]::OrdinalIgnoreCase)) {
             $finalMsg = "WORKING-DIRECTORY SELF-TEST: FAIL expected=$expectedRoot observed=$observed code=$($probe.Code)"
@@ -1749,11 +1749,11 @@ try {
         exit 0
     }
 
-    $HermesProbeTimeoutSeconds = $ProbeTimeoutSeconds
+    $KovaProbeTimeoutSeconds = $ProbeTimeoutSeconds
     . (Join-Path $PSScriptRoot 'runtime.ps1')
     $legacyInstall = -not (Test-Path -LiteralPath (Join-Path $InstallRoot 'pm') -PathType Container)
     try {
-        $runtimeCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot)
+        $runtimeCommand = @(Get-KovaRuntimeCommand -InstallRoot $InstallRoot)
     } catch {
         $finalCode = 3
         $finalMsg = $_.Exception.Message
@@ -1762,13 +1762,13 @@ try {
     }
 
     # -- 1. Wait for the Desktop to exit (FAIL CLOSED) ----------------------
-    Publish-UiProgress "Waiting for Hermes to close"
+    Publish-UiProgress "Waiting for Kova to close"
     if ($DesktopPid -gt 0) {
         # Identity, not pid: the Desktop's creation time was pinned at start.
         if (-not (Wait-DesktopExit $script:DesktopExitSeconds)) {
             # The running Desktop still owns application outputs being replaced.
             $finalCode = 4
-            $finalMsg = "Update aborted: the Hermes window (pid $DesktopPid) did not exit within $($script:DesktopExitSeconds)s. Nothing was changed. Close Hermes fully and try again."
+            $finalMsg = "Update aborted: the Kova window (pid $DesktopPid) did not exit within $($script:DesktopExitSeconds)s. Nothing was changed. Close Kova fully and try again."
             Write-HandoffLog $finalMsg
             exit $finalCode
         }
@@ -1797,9 +1797,9 @@ try {
     # --keep-stash: never re-apply local source edits after the update (they
     # stay parked in git stash). Probe --help first: the flag ships with newer
     # backends and an unknown flag would abort argparse with exit 2, which
-    # collides with the "close all Hermes windows" sentinel.
+    # collides with the "close all Kova windows" sentinel.
     try {
-        $helpProbe = Invoke-HermesProbe $pythonExe (@($runtimeArgs) + @('update', '--help'))
+        $helpProbe = Invoke-KovaProbe $pythonExe (@($runtimeArgs) + @('update', '--help'))
         if ($helpProbe.TimedOut) {
             Write-HandoffLog "update --help probe timed out; running without --keep-stash"
         } elseif ($helpProbe.Output -match "--keep-stash") {
@@ -1815,27 +1815,27 @@ try {
     # close-holder consent is bound to -HandoffRun. That run id beats an inherited
     # one: a Desktop the Start-Process rung relaunched carried the previous run's
     # id, under which its next retry's consent could never match (#101789).
-    $script:UpdateCorrelation = if ($HandoffRun) { $HandoffRun } elseif ($env:HERMES_UPDATE_CORRELATION_ID) { $env:HERMES_UPDATE_CORRELATION_ID } else { $script:ResultRunId }
-    $env:HERMES_UPDATE_CORRELATION_ID = $script:UpdateCorrelation
+    $script:UpdateCorrelation = if ($HandoffRun) { $HandoffRun } elseif ($env:KOVA_UPDATE_CORRELATION_ID) { $env:KOVA_UPDATE_CORRELATION_ID } else { $script:ResultRunId }
+    $env:KOVA_UPDATE_CORRELATION_ID = $script:UpdateCorrelation
     Write-HandoffLog ("running: python " + ($updateArgs -join " "))
     Publish-UiProgress "Updating code and dependencies"
-    $res = Invoke-HermesStep $pythonExe $updateArgs "update"
+    $res = Invoke-KovaStep $pythonExe $updateArgs "update"
     Write-HandoffLog "hermes update exit code: $($res.Code)"
-    $res = Resolve-HermesUpdateOutcome $res
+    $res = Resolve-KovaUpdateOutcome $res
 
     # Retry only the identified pre-PM update-boundary transition. Current
     # update/build failures propagate and must not trigger another owner.
     if ($legacyInstall -and $res.Code -ne 0 -and $res.Code -ne 2) {
         Write-HandoffLog "legacy update failed; retrying once from the updated installation"
         Publish-UiProgress "Retrying update"
-        $runtimeCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot)
+        $runtimeCommand = @(Get-KovaRuntimeCommand -InstallRoot $InstallRoot)
         $pythonExe = $runtimeCommand[0]
         $runtimeArgs = @($runtimeCommand | Select-Object -Skip 1)
         # Same request as the first attempt (--force included): the installation is still the
         # legacy one being converted until this run succeeds.
         $updateArgs = $runtimeArgs + @('update', '--yes') + $gatewayArg + $forceArg + $targetArgs
-        $res = Invoke-HermesStep $pythonExe $updateArgs 'update'
-        $res = Resolve-HermesUpdateOutcome $res
+        $res = Invoke-KovaStep $pythonExe $updateArgs 'update'
+        $res = Resolve-KovaUpdateOutcome $res
     }
 
     $committedAfterExit = $null
@@ -1873,9 +1873,9 @@ try {
         Publish-UiProgress "Rebuilding Desktop"
         $rebuildFailure = $null
         try {
-            $runtimeCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot)
+            $runtimeCommand = @(Get-KovaRuntimeCommand -InstallRoot $InstallRoot)
             $rebuildArgs = @($runtimeCommand | Select-Object -Skip 1) + @('desktop', '--force-build', '--build-only')
-            $rebuild = Invoke-HermesStep $runtimeCommand[0] $rebuildArgs 'rebuild'
+            $rebuild = Invoke-KovaStep $runtimeCommand[0] $rebuildArgs 'rebuild'
             Write-HandoffLog "desktop rebuild exit code: $($rebuild.Code)"
             if ($rebuild.Code -ne 0) { $rebuildFailure = "exit $($rebuild.Code)" }
         } catch {
@@ -1889,9 +1889,9 @@ try {
 
     # Contract C3: a Desktop build that failed after the code committed is an owed follow-up
     # (exit 0); the CLI prints one whole "Desktop app build owed:" line for it. The user is on
-    # the new Hermes but this app was not rebuilt: a manual outcome, never plain success.
+    # the new Kova but this app was not rebuilt: a manual outcome, never plain success.
     if (-not $desktopBuildFailed -and $res.Output -match '(?m)^\s*Desktop app build owed: ') {
-        # #101789: a program that is not part of Hermes (an IME cloud helper, an AV
+        # #101789: a program that is not part of Kova (an IME cloud helper, an AV
         # component) has its working folder inside release\ and Windows refuses the swap.
         # kova_cli/desktop_release_holders.py names each one on its own line; the
         # relaunched Desktop offers to close exactly those and retry, never silently.
@@ -1906,7 +1906,7 @@ try {
             $holderNames = (@($script:ReleaseHolders) | ForEach-Object { "$($_.name) (pid $($_.pid))" }) -join ', '
             # A holder with no readable program path cannot be closed from the Desktop dialog.
             $closeOffer = if (@($script:ReleaseHolders | Where-Object { $_.exe }).Count -gt 0) { 'Close it and update again, or choose to close it below.' } else { 'Close it yourself (Task Manager) and update again.' }
-            Add-Followup "build: the Desktop app folder is in use by $holderNames" "the Desktop app could not be replaced because $holderNames is using its folder. It is not part of Hermes, so it was left running. $closeOffer" -Manual
+            Add-Followup "build: the Desktop app folder is in use by $holderNames" "the Desktop app could not be replaced because $holderNames is using its folder. It is not part of Kova, so it was left running. $closeOffer" -Manual
         } else {
             Add-Followup "build: the Desktop app build is owed by the committed update" "the Desktop app could not be rebuilt, so it still runs its old build. Run 'hermes desktop --force-build' in a terminal to rebuild it; the update log has the build error." -Manual
         }
@@ -1932,15 +1932,15 @@ try {
     if (-not $desktopBuildFailed) {
         $verifyFailure = $null
         try {
-            $verifyCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot -Module 'kova_cli.desktop_update_verify')
+            $verifyCommand = @(Get-KovaRuntimeCommand -InstallRoot $InstallRoot -Module 'kova_cli.desktop_update_verify')
             $verifyArgs = @($verifyCommand | Select-Object -Skip 1)
-            $verify = Invoke-HermesStep $verifyCommand[0] $verifyArgs 'verify'
+            $verify = Invoke-KovaStep $verifyCommand[0] $verifyArgs 'verify'
             if ($verify.Code -ne 0) { $verifyFailure = "exit $($verify.Code)" }
         } catch {
             $verifyFailure = $_.Exception.Message
         }
         if ($verifyFailure) {
-            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If Hermes does not start normally, run 'hermes desktop --force-build' in a terminal to rebuild it." -Manual
+            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If Kova does not start normally, run 'hermes desktop --force-build' in a terminal to rebuild it." -Manual
         }
     }
 
@@ -1956,9 +1956,9 @@ try {
         try {
             # Resolve again after update: PM may have published a new generation,
             # and its command can include an isolation/bootstrap prefix.
-            $gatewayCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot)
+            $gatewayCommand = @(Get-KovaRuntimeCommand -InstallRoot $InstallRoot)
             $gatewayArgs = @($gatewayCommand | Select-Object -Skip 1) + @("gateway", "start", "--all")
-            $gatewayRestart = Invoke-HermesStep $gatewayCommand[0] $gatewayArgs "gateway restart"
+            $gatewayRestart = Invoke-KovaStep $gatewayCommand[0] $gatewayArgs "gateway restart"
             if ($gatewayRestart.Code -ne 0) { $gatewayFailure = "exit $($gatewayRestart.Code)" }
         } catch {
             $gatewayFailure = $_.Exception.Message
@@ -1982,7 +1982,7 @@ try {
 } finally {
     # This run's id is ours, not the relaunched Desktop's: the Start-Process rung
     # would hand it on to every update that Desktop starts.
-    Remove-Item -LiteralPath Env:HERMES_UPDATE_CORRELATION_ID -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath Env:KOVA_UPDATE_CORRELATION_ID -ErrorAction SilentlyContinue
     if (@('claimed', 'adopted') -contains $script:MarkerClaim -and $InstallRoot) {
         # #101789: a Desktop "close and retry" consent belongs to this run alone. One its swap
         # never reached (a failed build) must not let a later update close the program unasked.
@@ -1992,7 +1992,7 @@ try {
     #   1. durable result + marker removal (the relaunched Desktop consumes
     #      the result on boot and must not park on our marker);
     #   2. attempt the relaunch and require ACCEPTANCE;
-    #   3. only then the terminal UI state — done means "Hermes is back",
+    #   3. only then the terminal UI state — done means "Kova is back",
     #      manual means "it is not, reopen it", error is error (and still
     #      tries to bring the app back after showing itself).
     if ($script:MarkerClaim -eq "refused") {
@@ -2007,14 +2007,14 @@ try {
         if ($script:Committed) {
             # C3: the update landed; only a follow-up step outlived its cancellation.
             $finalCode = 0
-            Add-Followup "follow-up processes could not be stopped" "a follow-up step's processes could not be stopped, so Hermes was not reopened. Reopen Hermes once they finish, or restart Windows first." -Manual
-            $finalMsg = "Hermes was updated, but " + ($script:FollowupText -join " Also, ")
+            Add-Followup "follow-up processes could not be stopped" "a follow-up step's processes could not be stopped, so Kova was not reopened. Reopen Kova once they finish, or restart Windows first." -Manual
+            $finalMsg = "Kova was updated, but " + ($script:FollowupText -join " Also, ")
             Write-Result $true $finalCode $finalMsg $true
             Write-HandoffLog $finalMsg
             Show-ManualFinale $finalMsg
         } else {
             $finalCode = 7
-            $finalMsg = "Update recovery could not stop every updater process. Hermes was not restarted to avoid overlapping the active install. Wait for it to finish or restart Windows, then reopen Hermes."
+            $finalMsg = "Update recovery could not stop every updater process. Kova was not restarted to avoid overlapping the active install. Wait for it to finish or restart Windows, then reopen Kova."
             Write-Result $false $finalCode $finalMsg
             Write-HandoffLog $finalMsg
             Show-ErrorFinale $finalMsg
@@ -2022,7 +2022,7 @@ try {
         Close-ProgressWindow
     } else {
         if ($finalCode -eq 0 -and $script:FollowupText.Count -gt 0) {
-            $finalMsg = "Hermes was updated, but " + ($script:FollowupText -join " Also, ")
+            $finalMsg = "Kova was updated, but " + ($script:FollowupText -join " Also, ")
         }
         $manualAction = $finalCode -eq 0 -and $script:ManualFollowup
         Write-Result ($finalCode -eq 0) $finalCode $finalMsg $manualAction
@@ -2044,19 +2044,19 @@ try {
                 [void](Start-DesktopRelaunch)
             }
         } else {
-            Publish-UiProgress "Opening Hermes"
+            Publish-UiProgress "Opening Kova"
             $cameBack = Start-DesktopRelaunch
             if (-not $cameBack -and $RelaunchExe) {
                 # Launch was due and did not verifiably land: truthful result
                 # for the next boot, manual state held on screen now.
-                $finalMsg = "Update complete. Reopen Hermes to finish (it could not restart itself)."
+                $finalMsg = "Update complete. Reopen Kova to finish (it could not restart itself)."
                 Write-Result $true 0 $finalMsg $true
                 Show-ManualFinale $finalMsg
             }
             Close-ProgressWindow
         }
     }
-    if ($null -ne $savedConsoleInputMode) { [HermesHandoff.ConsoleInput]::Restore($savedConsoleInputMode) }
+    if ($null -ne $savedConsoleInputMode) { [KovaHandoff.ConsoleInput]::Restore($savedConsoleInputMode) }
     Complete-HandoffLog
 }
 exit $finalCode

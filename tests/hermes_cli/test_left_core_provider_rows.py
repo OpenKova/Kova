@@ -25,7 +25,7 @@ ACME = lcm.LeftCoreFeature(
 @pytest.fixture(autouse=True)
 def _fresh(monkeypatch):
     monkeypatch.setattr(lcm, "_attempted", set())
-    for name in ("HERMES_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN", "ACME_CLI_PATH"):
+    for name in ("KOVA_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN", "ACME_CLI_PATH"):
         monkeypatch.delenv(name, raising=False)
     import kova_cli.memory_provider_migration as mpm
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name)  # never the network
@@ -58,7 +58,7 @@ def _home(tmp_path: Path, *, env: str = "", config: str = "", auth: dict | None 
     ("delegation:\n  fallback_providers:\n    - provider: copilot\n      model: gpt-5.4\n", "", None, None),
     ("moa:\n  presets:\n    mine:\n      reference_models:\n        - provider: copilot\n          model: gpt-5.4\n"
      "      aggregator:\n        provider: nous\n        model: hermes-4\n", "", None, None),
-    ("", "HERMES_INFERENCE_PROVIDER=copilot\n", None, None),
+    ("", "KOVA_INFERENCE_PROVIDER=copilot\n", None, None),
     ("", "", {"active_provider": "copilot"}, None),
     ("", "", None, [{"id": "j1", "provider": "copilot", "model": "gpt-5.4"}]),
     ("cron:\n  model: gpt-5.4\n  model_provider: copilot\n", "", None, None),
@@ -89,8 +89,8 @@ def test_copilot_credentials_alone_are_not_use(tmp_path, config, env, auth):
 
 def test_process_env_provider_counts_only_for_the_launch_home(tmp_path, monkeypatch):
     home = _home(tmp_path, config="model:\n  provider: nous\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "copilot")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_INFERENCE_PROVIDER", "copilot")
     assert lcm.copilot_in_use(home) is False
     assert lcm.copilot_in_use(home, process_env=True) is True
 
@@ -136,7 +136,7 @@ def test_update_reads_the_launch_homes_exported_token_for_the_relogin_notice(tmp
     import pm.plugins_state as ps
     launch, other = (_home(tmp_path / name, config="model:\n  provider: copilot\n").rename(tmp_path / name / name)
                      for name in ("launch", "other"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv("GH_TOKEN", "gho_exported")
     monkeypatch.setattr(ps, "dependency_homes", lambda: [launch, other])
     monkeypatch.setattr(lcm, "_home_consent", lambda home: True)
@@ -159,7 +159,7 @@ def test_update_reads_the_launch_homes_exported_token_for_the_relogin_notice(tmp
 def acme_row(monkeypatch, tmp_path):
     monkeypatch.setattr(lcm, "LEFT_CORE", (ACME,))
     home = _home(tmp_path, config="model:\n  provider: acme\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import providers
     monkeypatch.setattr(providers, "get_provider_profile", lambda name: None)
     return home
@@ -231,11 +231,11 @@ def test_copilot_launch_names_stay_refused_and_its_base_url_writable(tmp_path, m
     from kova_cli.config import validate_env_var_name_for_write
     import providers
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(providers, "list_providers", list)  # no profile registered: plugin not loaded
     if plugin_dir:
         (home / "plugins" / "github-copilot").mkdir(parents=True)
-    for name in ("HERMES_COPILOT_ACP_COMMAND", "HERMES_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"):
+    for name in ("KOVA_COPILOT_ACP_COMMAND", "KOVA_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"):
         with pytest.raises(ValueError, match="denylist"):
             validate_env_var_name_for_write(name)
     validate_env_var_name_for_write("COPILOT_ACP_BASE_URL")

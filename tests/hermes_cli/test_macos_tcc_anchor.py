@@ -98,7 +98,7 @@ class TestUvStoreDetection:
 
     def test_matches_hermes_runtime_repair_generation(self):
         path = (
-            "/Users/u/hermes-agent/.hermes-runtime/python/"
+            "/Users/u/kova-agent/.kova-runtime/python/"
             "generation-a1b2c3/cpython-3.11.15-macos-aarch64-none/bin/python3.11"
         )
         assert tcc._is_uv_macos_store(path)
@@ -158,7 +158,7 @@ class TestEnsureTccAnchor:
         store = (
             tmp_path
             / "checkout"
-            / ".hermes-runtime"
+            / ".kova-runtime"
             / "python"
             / "generation-a1b2c3"
             / "cpython-3.11.15-macos-aarch64-none"
@@ -561,8 +561,8 @@ class TestAnchoredAliasesBootE2E:
         # this disposable source a different identity so a skipped sign fails.
         subprocess.run(
             ["codesign", "--force", "--sign", "-", "--timestamp=none",
-             "--identifier", "test.hermes.unanchored", "--requirements",
-             '=designated => identifier "test.hermes.unanchored"', str(store_bin / minor)],
+             "--identifier", "test.kova.unanchored", "--requirements",
+             '=designated => identifier "test.kova.unanchored"', str(store_bin / minor)],
             check=True, capture_output=True, timeout=30,
         )
         os.symlink(base / "lib", store / "lib")
@@ -594,7 +594,7 @@ class TestAnchoredAliasesBootE2E:
                 ["codesign", "-d", "-r-", str(executable)],
                 check=True, capture_output=True, text=True, timeout=30,
             )
-            assert 'designated => identifier "com.nousresearch.hermes.managed-python"' in identity.stdout
+            assert 'designated => identifier "com.nousresearch.kova.managed-python"' in identity.stdout
             probe = subprocess.run(
                 [str(venv_bin / name), "-c",
                  "import encodings, sys; print(sys.prefix)"],

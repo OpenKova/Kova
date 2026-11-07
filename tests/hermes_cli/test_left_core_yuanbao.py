@@ -96,7 +96,7 @@ def test_a_yuanbao_home_gets_the_plugin_once_with_the_labs_notice(tmp_path):
     assert lcm.migrate_home(home, install=install, say=said.append) == ["yuanbao"]
     assert lcm.migrate_home(home, install=install, say=said.append) == []
     assert calls == ["yuanbao"]
-    assert "Yuanbao is now a Hermes Labs plugin: built by Nous Research, not supported" in said[0]
+    assert "Yuanbao is now a Kova Labs plugin: built by Nous Research, not supported" in said[0]
     # The yb_* tools lived only in hermes-yuanbao: every other platform keeps them off.
     from kova_cli.config import read_user_config_raw
     known = read_user_config_raw(home / "config.yaml")["known_plugin_toolsets"]
@@ -206,9 +206,9 @@ def test_every_platform_core_knows_but_yuanbao_keeps_the_yb_tools_off():
 
 def test_a_legacy_hermes_list_kept_the_yb_tools_off_and_keeps_them_off(tmp_path):
     """tools_config reads a saved ``[hermes]`` as hermes-cli + hermes-api-server, neither of which carried yb_*;
-    ``hermes-gateway`` included ``hermes-yuanbao``, so that row keeps them."""
+    ``kova-gateway`` included ``hermes-yuanbao``, so that row keeps them."""
     home = _home(tmp_path, env="YUANBAO_APP_ID=a\nYUANBAO_APP_SECRET=s\n",
-                 config="platform_toolsets:\n  telegram: [hermes]\n  slack: [hermes-gateway]\n")
+                 config="platform_toolsets:\n  telegram: [hermes]\n  slack: [kova-gateway]\n")
     lcm.migrate_home(home, install=lambda name: (home / "plugins" / name).mkdir(parents=True) or {"ok": True},
                      say=lambda message: None)
     from kova_cli.config import read_user_config_raw
@@ -216,9 +216,9 @@ def test_a_legacy_hermes_list_kept_the_yb_tools_off_and_keeps_them_off(tmp_path)
     assert known["telegram"] == ["yuanbao"] and "slack" not in known
 
 
-@pytest.mark.parametrize("bundle", ["hermes-yuanbao", "hermes-gateway"])
+@pytest.mark.parametrize("bundle", ["hermes-yuanbao", "kova-gateway"])
 def test_a_disabled_hermes_yuanbao_bundle_keeps_the_yb_tools_disabled(tmp_path, bundle):
-    """Core's ``hermes-yuanbao`` bundle was the core tools plus yb_*, and ``hermes-gateway`` included it;
+    """Core's ``hermes-yuanbao`` bundle was the core tools plus yb_*, and ``kova-gateway`` included it;
     ``agent.disabled_toolsets`` naming either removed the yb_* tools. Neither does once the bundle is gone,
     so the conversion disables the plugin's ``yuanbao`` toolset there, once, and turns nothing else off."""
     home = _home(tmp_path, env="YUANBAO_APP_ID=a\nYUANBAO_APP_SECRET=s\n",

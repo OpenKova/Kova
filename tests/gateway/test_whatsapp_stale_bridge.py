@@ -112,7 +112,7 @@ def _fresh_node_modules(bridge_dir: Path) -> None:
 
     nm = bridge_dir / "node_modules"
     nm.mkdir()
-    (nm / ".hermes-pkg-hash").write_text(
+    (nm / ".kova-pkg-hash").write_text(
         _file_content_hash(bridge_dir / "package.json")
     )
 
@@ -273,7 +273,7 @@ class TestCacheDirEnvPassthrough:
             get_document_cache_dir,
             get_image_cache_dir,
         )
-        assert env["HERMES_IMAGE_CACHE_DIR"] == str(get_image_cache_dir())
-        assert env["HERMES_AUDIO_CACHE_DIR"] == str(get_audio_cache_dir())
-        assert env["HERMES_DOCUMENT_CACHE_DIR"] == str(get_document_cache_dir())
+        assert env["KOVA_IMAGE_CACHE_DIR"] == str(get_image_cache_dir())
+        assert env["KOVA_AUDIO_CACHE_DIR"] == str(get_audio_cache_dir())
+        assert env["KOVA_DOCUMENT_CACHE_DIR"] == str(get_document_cache_dir())
         assert env["WHATSAPP_SEND_READ_RECEIPTS"] == "true"

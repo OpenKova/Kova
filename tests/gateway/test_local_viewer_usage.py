@@ -1,4 +1,4 @@
-"""``session.usage`` / ``session.stats``: the session-cumulative counters main's HermesCLI read off its
+"""``session.usage`` / ``session.stats``: the session-cumulative counters main's KovaCLI read off its
 in-process agent (status bar, /usage, exit summary), published from the gateway (wave A2, CALLMAP W3)."""
 from __future__ import annotations
 
@@ -203,7 +203,7 @@ def test_turn_end_publishes_the_agents_banner_info():
     from gateway.session_local_inventory import publish_settled_info
     published = []
     agent = _agent()
-    agent._cached_system_prompt = 'You are Hermes.' * 10
+    agent._cached_system_prompt = 'You are Kova.' * 10
     agent.tools = [{'function': {'name': 'terminal'}}]
     turn = _turn(Platform.LOCAL, published, agent)
     turn._approval_owner = (SimpleNamespace(profile_id='p'), 's', 1)

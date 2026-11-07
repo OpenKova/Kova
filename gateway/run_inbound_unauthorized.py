@@ -51,7 +51,7 @@ def pairing_rate_limited_reply() -> str:
 
 
 def unauthorized_owner_hint(
-    platform_name: str, user_id: str, user_name: str = "", *, hermes_home: str,
+    platform_name: str, user_id: str, user_name: str = "", *, kova_home: str,
 ) -> str:
     """One-line hint for the owner (log + home channel): who was dropped and how to let them in.
     No pairing request is minted for an ignored sender (a configured allowlist means the owner chose
@@ -66,10 +66,10 @@ def unauthorized_owner_hint(
     who = f"{safe_name} ({user_id})" if safe_name else str(user_id)
     env_var = _allowlist_env_for_platform(platform_name)
     allowlist = (
-        t("gateway.unauthorized.owner_hint_env", env_var=env_var, home=hermes_home)
+        t("gateway.unauthorized.owner_hint_env", env_var=env_var, home=kova_home)
         if env_var else t("gateway.unauthorized.owner_hint_generic")
     )
-    return t("gateway.unauthorized.owner_notice", platform=platform_name, who=who, allowlist=allowlist, home=hermes_home)
+    return t("gateway.unauthorized.owner_notice", platform=platform_name, who=who, allowlist=allowlist, home=kova_home)
 
 
 class UnauthorizedOwnerNotifier:

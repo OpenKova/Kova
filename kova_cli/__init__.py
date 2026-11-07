@@ -1,4 +1,4 @@
-"""Hermes CLI - Unified command-line interface for Hermes Agent."""
+"""Kova CLI - Unified command-line interface for Kova Agent."""
 
 import sys
 

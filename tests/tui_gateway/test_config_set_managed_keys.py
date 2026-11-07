@@ -21,8 +21,8 @@ def homes(tmp_path, monkeypatch):
     (managed / "config.yaml").write_text("display:\n  skin: corp\n  sections:\n    tools: collapsed\n"
                                          "custom_prompt: policy\nmodel:\n  default: acme/pinned\n")
     (home / "config.yaml").write_text("display:\n  tui_theme: dark\n")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
-    monkeypatch.setattr(server, "_hermes_home", home)
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
+    monkeypatch.setattr(server, "_kova_home", home)
     managed_scope.invalidate_managed_cache()
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     yield home
@@ -64,7 +64,7 @@ def test_tui_persisting_model_pick_is_refused_before_anything_changes(homes, mon
         (homes.parent / "managed" / "config.yaml").write_text(managed)
         managed_scope.invalidate_managed_cache()
     (homes / "config.yaml").write_text("model:\n  default: old/model\n  provider: nous\n  context_length: 4096\n")
-    monkeypatch.setenv("HERMES_HOME", str(homes))
+    monkeypatch.setenv("KOVA_HOME", str(homes))
     monkeypatch.setattr("kova_cli.model_switch.switch_model", lambda **kw: ModelSwitchResult(
         success=True, new_model="other/model", target_provider="openrouter", is_global=True))
     agent = SimpleNamespace(model="old/model", provider="nous", reasoning_config=None)  # no switch_model: never swapped
@@ -92,7 +92,7 @@ def _queue_then_apply(homes, monkeypatch, raw_model, pick, resolved):
     (homes.parent / "managed" / "config.yaml").write_text("model:\n  context_length: 8192\n")
     managed_scope.invalidate_managed_cache()
     (homes / "config.yaml").write_text(raw_model)
-    monkeypatch.setenv("HERMES_HOME", str(homes))
+    monkeypatch.setenv("KOVA_HOME", str(homes))
     monkeypatch.setattr("kova_cli.model_switch.switch_model", lambda **kw: ModelSwitchResult(
         success=True, is_global=True, **resolved))
     swaps, notices = [], []

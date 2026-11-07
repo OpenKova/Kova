@@ -53,14 +53,14 @@ def _register_fake_source(values: dict[str, str], *, override_existing: bool):
 
 
 def _make_home(tmp_path: Path, monkeypatch, env_text: str, *, preserve: str = "") -> Path:
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     secrets = "secrets:\n  fakebulk:\n    enabled: true\n"
     if preserve:
         secrets += f"  preserve_existing: [{preserve}]\n"
     (home / "config.yaml").write_text(secrets, encoding="utf-8")
     (home / ".env").write_text(env_text, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("GLM_API_KEY", raising=False)
     return home
 
@@ -73,10 +73,10 @@ def test_source_secret_survives_second_load_hermes_dotenv(tmp_path, monkeypatch)
     # override_existing=True: the source is authoritative over .env, which is what makes the restore legal.
     _register_fake_source({"GLM_API_KEY": "vault-value"}, override_existing=True)
 
-    env_loader.load_hermes_dotenv(hermes_home=home)
+    env_loader.load_hermes_dotenv(kova_home=home)
     assert os.environ["GLM_API_KEY"] == "vault-value"
 
-    env_loader.load_hermes_dotenv(hermes_home=home)
+    env_loader.load_hermes_dotenv(kova_home=home)
     assert os.environ["GLM_API_KEY"] == "vault-value", (
         "second load_hermes_dotenv() wrote the .env placeholder back over the source-resolved value"
     )
@@ -95,11 +95,11 @@ def test_reload_restore_keeps_dotenv_precedence(tmp_path, monkeypatch, override_
     home = _make_home(tmp_path, monkeypatch, "", preserve=preserve)
     _register_fake_source({"GLM_API_KEY": "vault-value"}, override_existing=override_existing)
 
-    env_loader.load_hermes_dotenv(hermes_home=home)
+    env_loader.load_hermes_dotenv(kova_home=home)
     assert os.environ["GLM_API_KEY"] == "vault-value"
 
     (home / ".env").write_text("GLM_API_KEY=local\n", encoding="utf-8")
-    env_loader.load_hermes_dotenv(hermes_home=home)
+    env_loader.load_hermes_dotenv(kova_home=home)
     assert os.environ["GLM_API_KEY"] == "local", (
         "reload restore re-asserted a source value over the user's .env edit"
     )

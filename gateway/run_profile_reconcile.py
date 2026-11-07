@@ -134,8 +134,8 @@ class GatewayProfileReconcileMixin:
         changed since the last tick, under that home's scope: hooks consented since start register, revoked ones stop
         firing. A home seen for the first time syncs once (consent may have landed after startup
         registered). Hook registration only: adapters and sessions are never touched."""
-        from kova_constants import get_process_hermes_home
-        homes = {Path(h) for h in (get_process_hermes_home(), *(self._served_profile_homes or {}).values())}
+        from kova_constants import get_process_kova_home
+        homes = {Path(h) for h in (get_process_kova_home(), *(self._served_profile_homes or {}).values())}
         self._hook_consent_signatures = await asyncio.to_thread(
             self._resync_changed_hook_consent, homes, self._hook_consent_signatures or {})
 
@@ -368,7 +368,7 @@ class GatewayProfileReconcileMixin:
             AUTO_MIGRATION_OPTED_OUT_REASON, SINGLE_PROFILE_REASON, MultiplexDecision, log_multiplex_decision,
             record_multiplex_decision, recorded_standalone_reason)
         from kova_cli.profiles import profiles_to_serve
-        from kova_constants import get_default_hermes_root, get_process_hermes_home
+        from kova_constants import get_default_kova_root, get_process_kova_home
         # Serialized with reconcile: a second rescan (watcher + creator) resuming mid-activation
         # reset the reservation the first one's reconcile had already grown.
         async with self._reconcile_lock():
@@ -378,8 +378,8 @@ class GatewayProfileReconcileMixin:
                 return False  # shutdown began: never arm fail-closed secrets under drain-time work
             if recorded_standalone_reason() not in (SINGLE_PROFILE_REASON, AUTO_MIGRATION_OPTED_OUT_REASON):
                 return False
-            launch = get_process_hermes_home().resolve()
-            if launch != get_default_hermes_root().resolve():
+            launch = get_process_kova_home().resolve()
+            if launch != get_default_kova_root().resolve():
                 return False  # only the default home runs the multiplexer (``_launch_home_may_multiplex``)
             if len(profiles_to_serve(multiplex=True, include_parked=True)) < 2:
                 return False
@@ -395,11 +395,11 @@ class GatewayProfileReconcileMixin:
                 return False
             if not self._running or getattr(self, "_draining", False):
                 return False  # shutdown began during the preflight await
-            from kova_constants import hermes_home_key
+            from kova_constants import kova_home_key
             from tools.mcp_tool_scope import rekey_unscoped_connections
             from tui_gateway.launch_profile_policy import activate_multi_profile_hosting
             activate_multi_profile_hosting()
-            rekey_unscoped_connections(hermes_home_key(launch))
+            rekey_unscoped_connections(kova_home_key(launch))
             self.config.multiplex_profiles = True
             self.config._runtime_profile_homes = (("default", launch),)
             registry = getattr(self, "session_authorities", None)
@@ -563,9 +563,9 @@ class GatewayProfileReconcileMixin:
                 # ``asyncio.to_thread`` copies the context, so the surrounding
                 # ``_profile_runtime_scope`` home/secret override stays visible in the worker.
                 with _log_suppressed(logging.DEBUG, "scoped MCP shutdown failed", exc_info=True):
-                    from kova_constants import hermes_home_key
+                    from kova_constants import kova_home_key
                     from tools.mcp_tool_lifecycle import shutdown_mcp_servers
-                    await asyncio.to_thread(shutdown_mcp_servers, scope=hermes_home_key(home))
+                    await asyncio.to_thread(shutdown_mcp_servers, scope=kova_home_key(home))
                 with _log_suppressed(logging.DEBUG, "profile log handler release failed", exc_info=True):
                     from kova_logging import release_profile_log_handlers
                     await asyncio.to_thread(release_profile_log_handlers, home)
@@ -660,7 +660,7 @@ def _for_each_served_profile(runner, body) -> None:
     """Run ``body(profile_label)`` once per served profile, inside that profile's runtime scope.
 
     Housekeeping runs on a bare thread with no turn on the stack, so nothing binds a profile for it:
-    ``get_hermes_home()`` and ``get_secret()`` see the LAUNCH profile's values, and under
+    ``get_kova_home()`` and ``get_secret()`` see the LAUNCH profile's values, and under
     ``gateway.multiplex_profiles`` a fail-closed credential read logs ``no profile secret scope on a
     multiplexed call`` on every tick (the skills-sync pulls resolved Nous credentials this way, four
     WARNINGs per hourly tick per chore). A single-profile gateway runs ``body`` once, unscoped:

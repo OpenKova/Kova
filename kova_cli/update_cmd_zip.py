@@ -22,15 +22,15 @@ from kova_cli.update_cmd_common import _record_stop
 # Log-record parity with the origin module.
 logger = logging.getLogger("kova_cli.update_cmd")
 
-_ZIP_STAGING_ARTIFACT_SUFFIXES = ".hermes-update-staging", ".hermes-update-old"
-# Hermes' own root breadcrumbs: the swap journal + its owner lock, and the update/refresh markers.
+_ZIP_STAGING_ARTIFACT_SUFFIXES = ".kova-update-staging", ".kova-update-old"
+# Kova' own root breadcrumbs: the swap journal + its owner lock, and the update/refresh markers.
 # They are never user work, so the dirty-tree guard must not refuse (and wedge) on them.
-_ZIP_HERMES_ROOT_ARTIFACTS = frozenset({
-    ".hermes-update-zip-swap", ".hermes-update-zip-swap.lock", ".update-incomplete", ".lazy-refresh-incomplete"})
+_ZIP_KOVA_ROOT_ARTIFACTS = frozenset({
+    ".kova-update-zip-swap", ".kova-update-zip-swap.lock", ".update-incomplete", ".lazy-refresh-incomplete"})
 # A journal temp a killed writer left (``write_durable_text``'s unpredictable name). The swap never
 # touches it (no ZIP ships it) and nothing deletes it, so admitting it risks no user bytes. A file at
-# the old fixed ``.hermes-update-zip-swap.tmp`` name is no longer Hermes': it blocks (review Z5).
-_ZIP_JOURNAL_TEMP = re.compile(r"\.hermes-update-zip-swap\.[0-9a-f]{12}\.tmp")
+# the old fixed ``.kova-update-zip-swap.tmp`` name is no longer Kova': it blocks (review Z5).
+_ZIP_JOURNAL_TEMP = re.compile(r"\.kova-update-zip-swap\.[0-9a-f]{12}\.tmp")
 
 # Single source of truth for entries the ZIP swap preserves — used by the dirty-tree filter and the swap loop.
 _ZIP_PRESERVED_TOP_LEVEL = {"venv", ".venv", "node_modules", ".git", ".env"}
@@ -83,8 +83,8 @@ def _stage_replacement(src: str, dst: str, on_created=None) -> str:
     """Phase 1: copy *src* (dir or file) to a sibling staging path for *dst*; return it.
     Touches nothing live, so a failure here leaves the install untouched. ``on_created(staging)`` runs
     once the staging entry exists (a directory: before it is filled), so the journal can record it."""
-    staging = f"{dst}.hermes-update-staging"
-    backup = f"{dst}.hermes-update-old"
+    staging = f"{dst}.kova-update-staging"
+    backup = f"{dst}.kova-update-old"
     # A prior run may have died mid-swap leaving the backup as the ONLY copy. Restore it BEFORE
     # clearing leftovers, else deleting it then failing to stage (disk exhaustion) leaves a hole.
     if not os.path.lexists(dst) and os.path.lexists(backup):  # a dangling symlink backup is still one (Z3)
@@ -204,7 +204,7 @@ def _commit_staged_replacements(staged, *, on_committed=None, tag: str = "", on_
     swapped: list[tuple[str, str]] = []  # (dst, backup) in swap order; "" = absent
     try:
         for staging, dst in staged:
-            backup = f"{dst}.hermes-update-old"
+            backup = f"{dst}.kova-update-old"
             if os.path.lexists(backup):  # appeared since staging set leftovers aside: not ours to replace (F78)
                 raise FileExistsError(f"{backup} appeared during the update; it was left in place")
             if os.path.isfile(dst) and not os.path.islink(dst):
@@ -245,7 +245,7 @@ def _zip_overlay_block_reason(
 
     The swap replaces every top-level entry (minus a tiny preserve set) and deletes backups, so uncommitted
     edits and untracked files are gone. Fails closed when git status cannot run. ``staged`` is for the
-    pre-swap re-check: phase 1 leaves ``<entry>.hermes-update-staging`` for those entries, which git
+    pre-swap re-check: phase 1 leaves ``<entry>.kova-update-staging`` for those entries, which git
     reports as untracked; without the filter the re-check always refuses. ``shipped`` is the extracted
     ZIP's top-level entry set once known (the re-check); before the download the tracked root entries stand
     in for it. A gitignored path under a root entry the ZIP does not ship is never touched by the swap.
@@ -296,7 +296,7 @@ def _status_top_level(path: str) -> str:
 def _is_zip_preserved_entry_status_line(line: str, shipped: Optional[Collection[str]] = None) -> bool:
     """True when the swap would not destroy what a porcelain status line names: every path sits under a
     preserved top-level entry; or the line is gitignored (``!!``) and under a root entry the ZIP does not
-    ship (``.bytecode-fingerprint``, ``.hermes-bootstrap-complete``, ``kova_agent.egg-info/`` — the swap
+    ship (``.bytecode-fingerprint``, ``.kova-bootstrap-complete``, ``kova_agent.egg-info/`` — the swap
     replaces ``shipped`` entries only); or a ``!!`` build output nested under a shipped dir that the swap
     keeps (`_ZIP_PRESERVED_NESTED`) or regenerates (``__pycache__``, ``node_modules``). Every real install
     has all of these, and blocking on them made the ZIP fallback refuse every install. Tracked edits,
@@ -321,11 +321,11 @@ def _is_zip_preserved_entry_status_line(line: str, shipped: Optional[Collection[
 
 
 def _is_zip_staging_artifact_status_line(line: str, staged: Collection[str] = ()) -> bool:
-    """True when a porcelain status line is Hermes' own: a root breadcrumb, or the staging copy of an
-    entry this run staged. Any other ``*.hermes-update-staging``/``-old`` may be a user's file (a manual
-    ``cp -r tools tools.hermes-update-old``) that staging would delete, so it blocks."""
+    """True when a porcelain status line is Kova' own: a root breadcrumb, or the staging copy of an
+    entry this run staged. Any other ``*.kova-update-staging``/``-old`` may be a user's file (a manual
+    ``cp -r tools tools.kova-update-old``) that staging would delete, so it blocks."""
     top = _status_top_level(line[3:] if len(line) >= 3 else line)
-    return (top in _ZIP_HERMES_ROOT_ARTIFACTS or bool(_ZIP_JOURNAL_TEMP.fullmatch(top))
+    return (top in _ZIP_KOVA_ROOT_ARTIFACTS or bool(_ZIP_JOURNAL_TEMP.fullmatch(top))
             or top in {item + _ZIP_STAGING_ARTIFACT_SUFFIXES[0] for item in staged})
 
 
@@ -375,8 +375,8 @@ def _archive_commit(zip_path: str) -> Optional[str]:
 
 
 def _extracted_root(tmp_dir: str, branch: str) -> str:
-    """GitHub ZIPs extract to ``hermes-agent-<branch>/``; fall back to the first non-``__MACOSX`` dir."""
-    extracted = os.path.join(tmp_dir, f"hermes-agent-{branch}")
+    """GitHub ZIPs extract to ``kova-agent-<branch>/``; fall back to the first non-``__MACOSX`` dir."""
+    extracted = os.path.join(tmp_dir, f"kova-agent-{branch}")
     if not os.path.isdir(extracted):
         for d in os.listdir(tmp_dir):
             candidate = os.path.join(tmp_dir, d)
@@ -412,7 +412,7 @@ def _require_staging_space(extracted: str, entries: list[str], project_root: str
 
 def _link_or_copy_artifact(source: str, destination: str) -> None:
     """Hardlink where the filesystem allows (apps/desktop/release is hundreds of MB, and a link stays
-    valid after the swap unlinks the old tree; on Windows a link also succeeds on a locked Hermes.exe
+    valid after the swap unlinks the old tree; on Windows a link also succeeds on a locked Kova.exe
     where copy2 raises); byte copy otherwise."""
     try:
         os.link(source, destination)
@@ -456,7 +456,7 @@ def _stage_entries(extracted: str, entries: list[str], project_root: str,
     return staged
 
 
-def _drop_journal_if_clean(root: Path, entries: list[str], suffixes=(".hermes-update-staging",)) -> None:
+def _drop_journal_if_clean(root: Path, entries: list[str], suffixes=(".kova-update-staging",)) -> None:
     """The journal is the only record of the swap's siblings (``<entry><suffix>``): it goes only once
     every one of them is gone, else the next launch's recovery could not tell them from a user's file."""
     left = [item for item in entries if any(os.path.lexists(os.path.join(root, item + x)) for x in suffixes)]
@@ -487,7 +487,7 @@ def _journaled_stage_and_swap(extracted: str, entries: list[str], root: Path, ta
         # Z1): its staging copy's, recorded as the copy comes into existence, and the live entry's (the
         # one its backup links or renames), recorded at the swapping phase.
         journal_entries = [[item, any(os.path.lexists(os.path.join(root, item + suffix))
-                                      for suffix in ("", ".hermes-update-old")), "", ""] for item in entries]
+                                      for suffix in ("", ".kova-update-old")), "", ""] for item in entries]
         gen = os.urandom(6).hex()
         write_zip_swap_journal(root, "staging", journal_entries, gen)
 
@@ -545,8 +545,8 @@ def _journaled_stage_and_swap(extracted: str, entries: list[str], root: Path, ta
         # while a backup (or backup temp) the best-effort cleanup could not remove is still on disk:
         # recovery's own terminal check, else that backup is orphaned and wedges the retry (Q1/F79).
         with suppress(OSError):
-            _drop_journal_if_clean(root, entries, (".hermes-update-staging", ".hermes-update-old",
-                                                   f".hermes-update-old.{gen}.tmp"))
+            _drop_journal_if_clean(root, entries, (".kova-update-staging", ".kova-update-old",
+                                                   f".kova-update-old.{gen}.tmp"))
     return staged
 
 
@@ -577,7 +577,7 @@ def _download_and_swap_zip(branch: str, zip_url: str, target_sha: str | None = N
     tmp_dir = tempfile.mkdtemp(prefix="hermes-update-")
     downloaded = False
     try:
-        zip_path = os.path.join(tmp_dir, f"hermes-agent-{branch}.zip")
+        zip_path = os.path.join(tmp_dir, f"kova-agent-{branch}.zip")
         urlretrieve(zip_url, zip_path)
         downloaded = True
         print("→ Extracting...")
@@ -607,7 +607,7 @@ def _download_and_swap_zip(branch: str, zip_url: str, target_sha: str | None = N
         print(f"✗ ZIP update failed: {e}")
         # Two-phase replace commits all or rolls all back, so no mixed tree here — don't push a needless reinstall.
         print("  Your existing install was left in place.")
-        print("  Re-run `hermes update` to retry; if the agent won't start, reinstall from https://hermes-agent.nousresearch.com")
+        print("  Re-run `hermes update` to retry; if the agent won't start, reinstall from https://kova-agent.nousresearch.com")
         _record_stop(_zip_stop_class(e, downloaded=downloaded))
         _m().sys.exit(1)
     finally:
@@ -644,7 +644,7 @@ def _update_via_zip(args, *, had_desktop_app_before_update: bool = False,
     if target_sha is not None and not re.fullmatch(r"[0-9a-f]{40}", target_sha):
         raise ValueError("ZIP update requires an exact full commit SHA")
     ref = target_sha if target_sha is not None else f"refs/heads/{branch}"
-    repository = target_repository or "NousResearch/hermes-agent"
+    repository = target_repository or "NousResearch/kova-agent"
     if (not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)
             or any(part in (".", "..") for part in repository.split("/"))):
         raise ValueError("ZIP update requires a GitHub owner/repository")

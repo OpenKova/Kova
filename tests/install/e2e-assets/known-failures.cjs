@@ -21,7 +21,7 @@ function readOptional(file) {
 }
 
 // Each harness keeps its own work-root layout: shas.json + hermes-home on
-// windows-e2e.ps1, shas.env + home/.hermes on macos-desktop-e2e.sh.
+// windows-e2e.ps1, shas.env + home/.kova on macos-desktop-e2e.sh.
 const WORK_ROOTS = {
   windows: root => ({
     state: JSON.parse(fs.readFileSync(path.join(root, 'shas.json'), 'utf8').replace(/^\uFEFF/, '')),
@@ -35,7 +35,7 @@ const WORK_ROOTS = {
       .split(/\r?\n/).filter(line => line.includes('=')).map(line => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]))
     return {
       state: { old: env.OLD_SHA, current: env.TARGET_SHA, old_ref: env.OLD_REF },
-      logs: { bootstrap: readOptional(path.join(root, 'home', '.hermes', 'logs', 'bootstrap-installer.log')) },
+      logs: { bootstrap: readOptional(path.join(root, 'home', '.kova', 'logs', 'bootstrap-installer.log')) },
     }
   },
 }

@@ -19,20 +19,20 @@ def _client():
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
     import kova_state
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
-    # Keep the state DB under the isolated HERMES_HOME for any handler that
+    # Keep the state DB under the isolated KOVA_HOME for any handler that
     # touches it.
-    kova_state.DEFAULT_DB_PATH = get_hermes_home() / "state.db"
+    kova_state.DEFAULT_DB_PATH = get_kova_home() / "state.db"
     return client, _SESSION_HEADER_NAME
 
 
 class TestMcpEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, self.header = _client()
 
 
@@ -50,9 +50,9 @@ class TestMcpEndpoints:
         assert srv["env"]["API_KEY"] != "sk-secret-1234567890"
 
     def test_http_bearer_auth_separates_secret_from_config(
-        self, _isolate_hermes_home
+        self, _isolate_kova_home
     ):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         secret = "dashboard-secret-value"
         response = self.client.post(
@@ -69,9 +69,9 @@ class TestMcpEndpoints:
         assert response.json()["auth"] == "header"
         assert "bearer_token" not in response.json()
 
-        hermes_home = get_hermes_home()
-        config_text = (hermes_home / "config.yaml").read_text()
-        env_text = (hermes_home / ".env").read_text()
+        kova_home = get_kova_home()
+        config_text = (kova_home / "config.yaml").read_text()
+        env_text = (kova_home / ".env").read_text()
         assert secret not in config_text
         assert "Bearer ${MCP_BEARER_SERVER_API_KEY}" in config_text
         assert f"MCP_BEARER_SERVER_API_KEY={secret}" in env_text
@@ -144,14 +144,14 @@ class TestMcpEndpoints:
 
 class TestCredentialPoolEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
 
     def test_env_seeded_delete_stays_deleted(self):
         """#55217: DELETE must suppress the source or load_pool() resurrects it.
 
-        load_pool() re-seeds from ~/.hermes/.env on every call, so removing
+        load_pool() re-seeds from ~/.kova/.env on every call, so removing
         just the pool row silently reverts on the next dashboard refresh.
         The endpoint must mirror `hermes auth remove`: clean up the backing
         source and suppress (provider, source).
@@ -211,11 +211,11 @@ class TestCredentialPoolEndpoints:
 
 class TestMemoryEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        (get_hermes_home() / "memories").mkdir(parents=True, exist_ok=True)
+        (get_kova_home() / "memories").mkdir(parents=True, exist_ok=True)
 
     def test_status_and_select(self):
         data = self.client.get("/api/memory").json()
@@ -230,9 +230,9 @@ class TestMemoryEndpoints:
         assert r.status_code == 400
 
     def test_reset_targets(self):
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        mem = get_hermes_home() / "memories"
+        mem = get_kova_home() / "memories"
         (mem / "MEMORY.md").write_text("notes")
         (mem / "USER.md").write_text("user")
 
@@ -271,11 +271,11 @@ class ScopedProvMemoryProvider(MemoryProvider):
         ``is_available`` reads the launch profile's credential must still resolve it from the
         launch home's ``.env`` instead of rendering "unavailable" with no visible error
         (``probe_availability`` swallows the ``UnscopedSecretError``)."""
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.web_server_dashboard import _invalidate_plugins_hub_cache
         from tui_gateway.launch_profile_policy import activate_multi_profile_hosting
 
-        home = get_hermes_home()
+        home = get_kova_home()
         (home / ".env").write_text("SCOPEDPROV_API_KEY=launch-key\n", encoding="utf-8")
         plugin_dir = home / "plugins" / "scopedprov"
         plugin_dir.mkdir(parents=True)
@@ -292,7 +292,7 @@ class ScopedProvMemoryProvider(MemoryProvider):
 
 class TestPairingEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
     def test_approve_pending_request_id(self):
@@ -324,10 +324,10 @@ class TestPairingEndpoints:
         as approved.
         """
         from gateway.pairing import PairingStore
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        (get_hermes_home() / "profiles" / "work").mkdir(parents=True, exist_ok=True)
-        (get_hermes_home() / "profiles" / "work" / "config.yaml").write_text("{}\n")  # identity marker
+        (get_kova_home() / "profiles" / "work").mkdir(parents=True, exist_ok=True)
+        (get_kova_home() / "profiles" / "work" / "config.yaml").write_text("{}\n")  # identity marker
         PairingStore().generate_code("telegram", "global-1", "GlobalGuy")
         PairingStore(profile="work").generate_code("telegram", "work-1", "WorkGal")
 
@@ -362,7 +362,7 @@ class TestPairingEndpoints:
 
 class TestWebhookEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
 
@@ -459,7 +459,7 @@ class TestWebhookEndpoints:
 
 class TestOpsEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
 
@@ -513,7 +513,7 @@ class TestOpsEndpoints:
 
 class TestSessionManagementEndpoints:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
         from kova_state import SessionDB
 
@@ -607,7 +607,7 @@ class _FakeBundle:
 
 class TestSkillsHubSourcesEndpoint:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
     def test_sources_lists_configured_hubs(self, monkeypatch):
@@ -652,7 +652,7 @@ class TestSkillsHubSourcesEndpoint:
 
 class TestOfficialSkillsCatalogEndpoint:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
     def test_lists_full_catalog_with_installed_flags(self, monkeypatch):
@@ -688,7 +688,7 @@ class TestOfficialSkillsCatalogEndpoint:
 
 class TestSkillsHubPreviewEndpoint:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
 
@@ -727,7 +727,7 @@ class TestSkillsHubPreviewEndpoint:
 
 class TestSkillsHubScanEndpoint:
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
 
@@ -797,7 +797,7 @@ class TestUpdateCheckEndpoint:
     """
 
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, _ = _client()
 
     def test_git_install_reports_behind_count(self, monkeypatch):
@@ -881,11 +881,11 @@ class TestDebugShareEndpoint:
     dashboard can render them as copyable links (not a backgrounded log tail)."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, self.header = _client()
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
-        logs = get_hermes_home() / "logs"
+        logs = get_kova_home() / "logs"
         logs.mkdir(parents=True, exist_ok=True)
         (logs / "agent.log").write_text("agent line\n")
         (logs / "errors.log").write_text("err line\n")
@@ -942,7 +942,7 @@ class TestToolsConfigEndpoints:
     the dashboard surface that replicates the `hermes tools` configurator."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, _isolate_hermes_home):
+    def _setup(self, _isolate_kova_home):
         self.client, self.header = _client()
 
 
@@ -986,13 +986,13 @@ class TestToolsConfigEndpoints:
 
 def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
     """The dashboard runs inside the gateway, so os.environ has
-    _HERMES_GATEWAY=1. Spawned actions (e.g. `gateway restart`) must NOT inherit
+    _KOVA_GATEWAY=1. Spawned actions (e.g. `gateway restart`) must NOT inherit
     it, or the in-process restart-loop guard rejects the restart and it silently
     fails (#52470).
     """
     import kova_cli.web_server as ws
 
-    monkeypatch.setenv("_HERMES_GATEWAY", "1")
+    monkeypatch.setenv("_KOVA_GATEWAY", "1")
     monkeypatch.setenv("OPENAI_API_KEY", "default-action-provider-key")
     monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", tmp_path)
     # Isolate the module-global proc registry: _spawn_hermes_action stores
@@ -1013,8 +1013,8 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
 
     _web_server_gateway._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
 
-    assert "_HERMES_GATEWAY" not in captured["env"]
-    assert captured["env"]["HERMES_NONINTERACTIVE"] == "1"
+    assert "_KOVA_GATEWAY" not in captured["env"]
+    assert captured["env"]["KOVA_NONINTERACTIVE"] == "1"
     # Default-profile actions preserve the historical process environment.
     assert captured["env"]["OPENAI_API_KEY"] == "default-action-provider-key"
 
@@ -1094,7 +1094,7 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
     import kova_cli.web_server as ws
 
     user_home = tmp_path / "user"
-    default_home = user_home / ".hermes"
+    default_home = user_home / ".kova"
     target_home = default_home / "profiles" / "verifier"
     target_home.mkdir(parents=True)
 
@@ -1120,7 +1120,7 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
     )
 
     monkeypatch.setattr(Path, "home", lambda: user_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     for key, value in {
         "DISCORD_BOT_TOKEN": "default-discord",
         "API_SERVER_ENABLED": "true",
@@ -1133,7 +1133,7 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
         "ZAI_API_KEY": "default-zai",
         "A2A_AUTH_MINI": "default-a2a-auth",
         "EXTERNAL_PROFILE_AUTH": "default-secret-source-auth",
-        "HERMES_ACP_AUTH_METHOD": "default-acp",
+        "KOVA_ACP_AUTH_METHOD": "default-acp",
         "PROFILE_ENV_TEST_BENIGN": "keep-me",
     }.items():
         monkeypatch.setenv(key, value)
@@ -1164,13 +1164,13 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
 
     child_env = captured["env"]
     assert captured["cmd"][-4:] == ["-p", "verifier", "gateway", "restart"]
-    assert child_env["HERMES_HOME"] == str(target_home)
-    assert child_env["HERMES_NONINTERACTIVE"] == "1"
+    assert child_env["KOVA_HOME"] == str(target_home)
+    assert child_env["KOVA_NONINTERACTIVE"] == "1"
     assert child_env["PROFILE_ENV_TEST_BENIGN"] == "keep-me"
     for leaked_key in (
         "DISCORD_BOT_TOKEN", "API_SERVER_ENABLED", "API_SERVER_KEY", "BLUEBUBBLES_SERVER_URL",
         "BLUEBUBBLES_PASSWORD", "NTFY_TOPIC", "NTFY_TOKEN", "OPENAI_API_KEY", "ZAI_API_KEY",
-        "A2A_AUTH_MINI", "EXTERNAL_PROFILE_AUTH", "HERMES_ACP_AUTH_METHOD",
+        "A2A_AUTH_MINI", "EXTERNAL_PROFILE_AUTH", "KOVA_ACP_AUTH_METHOD",
     ):
         assert leaked_key not in child_env, leaked_key
 
@@ -1183,7 +1183,7 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
             sys.executable, "-c",
             "import json, os; "
             "from kova_cli.env_loader import load_hermes_dotenv; "
-            "load_hermes_dotenv(hermes_home=os.environ['HERMES_HOME']); "
+            "load_hermes_dotenv(kova_home=os.environ['KOVA_HOME']); "
             "keys=['A2A_PORT','OPENAI_API_KEY','TARGET_ONLY_TOKEN','DISCORD_BOT_TOKEN',"
             "'API_SERVER_ENABLED','API_SERVER_KEY','BLUEBUBBLES_SERVER_URL','BLUEBUBBLES_PASSWORD',"
             "'NTFY_TOPIC','NTFY_TOKEN','ZAI_API_KEY','A2A_AUTH_MINI','EXTERNAL_PROFILE_AUTH']; "
@@ -1227,8 +1227,8 @@ def test_desktop_lifespan_terminates_managed_gateway_restart(monkeypatch):
         def terminate(self):
             calls.append("terminate")
 
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
     monkeypatch.setattr(ws, "_warm_gateway_module", lambda: None)
     monkeypatch.setattr(ws, "_start_desktop_cron_ticker", lambda *_args: None)
     monkeypatch.setitem(_web_server_gateway._ACTION_PROCS, "gateway-restart", _FakeRunningProc())
@@ -1255,8 +1255,8 @@ def test_desktop_lifespan_reaps_orphans_with_a_startup_grace(monkeypatch):
         seen["min_age_s"] = min_age_s
         return False
 
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
     monkeypatch.setattr(ws, "_warm_gateway_module", lambda: None)
     monkeypatch.setattr(ws, "_start_desktop_cron_ticker", lambda *_args: None)
     monkeypatch.setattr("kova_cli.gateway._reap_unsupervised_gateway_orphans", _fake_reap)

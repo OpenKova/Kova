@@ -32,7 +32,7 @@ import { expect, test } from './test'
 // — roster, routines pane, hero, pane, store, listeners — is the shipped renderer.
 //
 // The orphan-row branch (a source-scoped row whose connection was deleted) is
-// not reachable in this single-local-source rig: `window.hermesDesktop` is a
+// not reachable in this single-local-source rig: `window.kovaDesktop` is a
 // non-writable contextBridge object, so the union roster cannot be seeded with
 // a connection-less agent. That branch stays covered by
 // `src/plugins/hermes-bots/screen-connection.test.ts`; the second test here
@@ -77,7 +77,7 @@ async function seedBot(hermesHome: string, mockUrl: string, name: string): Promi
   }
 }
 
-const PROFILE_KEY = '/e2e/alpha/.hermes'
+const PROFILE_KEY = '/e2e/alpha/.kova'
 
 function snapshot(running: boolean) {
   return {
@@ -207,9 +207,9 @@ async function revealScreenHero(page: Page): Promise<void> {
 test.beforeAll(async () => {
   const mock = await startMockServer()
   const sandbox = createSandbox('bots-screen-stale')
-  writeMockProviderConfig(sandbox.hermesHome, mock.url)
-  writeEnvFile(sandbox.hermesHome)
-  await seedBot(sandbox.hermesHome, mock.url, 'alpha')
+  writeMockProviderConfig(sandbox.kovaHome, mock.url)
+  writeEnvFile(sandbox.kovaHome)
+  await seedBot(sandbox.kovaHome, mock.url, 'alpha')
 
   const { app, page } = await launchDesktop(buildAppEnv(sandbox))
   page.on('pageerror', error => pageErrors.push(String(error)))
@@ -281,7 +281,7 @@ test('pushed display.status / display.lease events keep updating the shipped lis
 
   // An event for another screen (different profile_key) is ignored by every listener.
   await pushEvent(page, 'display.lease', {
-    profile_key: '/e2e/other/.hermes',
+    profile_key: '/e2e/other/.kova',
     lease: { holder: 'human', viewer_id: null, viewer_hash: 'someone-else', since: 2, epoch: 2, reason: '' }
   })
   await page.waitForTimeout(500)

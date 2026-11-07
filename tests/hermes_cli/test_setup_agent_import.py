@@ -2,7 +2,7 @@
 the agent-importers plugin through the catalog install only after a yes, then runs that plugin's
 import for each pick.
 
-Real step code, a temp HERMES_HOME and a fake HOME; the terminal prompts, the catalog install (network)
+Real step code, a temp KOVA_HOME and a fake HOME; the terminal prompts, the catalog install (network)
 and the child `hermes import-agent` process are stand-ins that record what the step asked for.
 """
 
@@ -18,12 +18,12 @@ from kova_cli.setup import prompt_yes_no as real_prompt_yes_no
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    user_home, hermes_home = tmp_path / "user", tmp_path / "user" / ".hermes"
-    hermes_home.mkdir(parents=True)
+    user_home, kova_home = tmp_path / "user", tmp_path / "user" / ".kova"
+    kova_home.mkdir(parents=True)
     for var in ("HOME", "USERPROFILE"):
         monkeypatch.setenv(var, str(user_home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.delenv("HERMES_NONINTERACTIVE", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.delenv("KOVA_NONINTERACTIVE", raising=False)
     calls: list = []
     answers = {"yes": True, "unpick": set()}
 
@@ -37,26 +37,26 @@ def homes(tmp_path, monkeypatch):
 
     def install(name, enable=None, brief=False, **_):
         calls.append(("install", name, enable, brief))
-        (hermes_home / "plugins" / name).mkdir(parents=True)
+        (kova_home / "plugins" / name).mkdir(parents=True)
 
     def run(argv, env, check=False):
         hermes_args = argv[argv.index("kova_cli.main") + 1:]
-        calls.append(("import", hermes_args, env["HERMES_HOME"]))
-        (hermes_home / "config.yaml").write_text(f"imported: {hermes_args[-1]}\n", encoding="utf-8")
+        calls.append(("import", hermes_args, env["KOVA_HOME"]))
+        (kova_home / "config.yaml").write_text(f"imported: {hermes_args[-1]}\n", encoding="utf-8")
         return subprocess.CompletedProcess(argv, 0)
 
     monkeypatch.setattr("kova_cli.setup.prompt_yes_no", ask)
     monkeypatch.setattr("kova_cli.setup.prompt_checklist", checklist)
     monkeypatch.setattr("kova_cli.plugins_cmd_install.cmd_install", install)
     monkeypatch.setattr(step.subprocess, "run", run)
-    return user_home, hermes_home, calls, answers
+    return user_home, kova_home, calls, answers
 
 
 def test_found_agent_is_offered_then_installed_from_the_catalog_and_imported(homes):
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     (user_home / ".openclaw").mkdir()
 
-    assert step.offer_agent_import(hermes_home) == "OpenClaw"
+    assert step.offer_agent_import(kova_home) == "OpenClaw"
 
     assert calls == [
         ("ask", "Import your setup from OpenClaw?", True),
@@ -65,62 +65,62 @@ def test_found_agent_is_offered_then_installed_from_the_catalog_and_imported(hom
         # The root home is named explicitly, so a sticky active_profile cannot redirect the child.
         # --from-setup: the plugin words its preview and result as a step of this setup.
         ("import", ["--profile", "default", "import-agent", "openclaw", "--migrate-secrets", "--from-setup"],
-         str(hermes_home)),
+         str(kova_home)),
     ]
 
 
 def test_several_found_are_offered_as_a_checklist_and_only_the_picks_import(homes):
-    user_home, hermes_home, calls, answers = homes
+    user_home, kova_home, calls, answers = homes
     for d in (".claude", ".cursor"):
         (user_home / d).mkdir()
     answers["unpick"] = {"Cursor"}
 
-    assert step.offer_agent_import(hermes_home) == "Claude Code"
+    assert step.offer_agent_import(kova_home) == "Claude Code"
 
     assert calls[1] == ("pick", ["Claude Code", "Cursor"], [0, 1])  # never an agent that is absent
     assert calls[2:] == [("install", "agent-importers", True, True),
                          ("import", ["--profile", "default", "import-agent", "claude-code", "--from-setup"],
-                          str(hermes_home))]
+                          str(kova_home))]
 
 
 def test_declining_installs_nothing(homes):
-    user_home, hermes_home, calls, answers = homes
+    user_home, kova_home, calls, answers = homes
     (user_home / ".codex").mkdir()
     answers["yes"] = False
 
-    assert step.offer_agent_import(hermes_home) == ""
+    assert step.offer_agent_import(kova_home) == ""
 
     assert calls == [("ask", "Import your setup from Codex CLI?", True)]
-    assert not (hermes_home / "plugins").exists()
+    assert not (kova_home / "plugins").exists()
 
 
 @pytest.mark.parametrize("headless", [True, False])
 def test_headless_or_nothing_found_asks_nothing(headless, homes, monkeypatch):
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     if headless:  # dashboard/Desktop-spawned setup: no one can answer
         (user_home / ".claude").mkdir()
-        monkeypatch.setenv("HERMES_NONINTERACTIVE", "1")
+        monkeypatch.setenv("KOVA_NONINTERACTIVE", "1")
 
-    assert step.offer_agent_import(hermes_home) == ""
+    assert step.offer_agent_import(kova_home) == ""
 
     assert calls == []
-    assert not (hermes_home / "plugins").exists()
+    assert not (kova_home / "plugins").exists()
 
 
 def test_a_refused_enable_skips_the_import_and_setup_goes_on(homes, monkeypatch):
     """Installed but disabled, and PM cannot admit the enable: the error is printed, nothing is
     imported, and the step returns so the rest of setup still runs."""
     from kova_cli.plugins_admission import AdmissionRefused
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     (user_home / ".cursor").mkdir()
-    (hermes_home / "plugins" / "agent-importers").mkdir(parents=True)
+    (kova_home / "plugins" / "agent-importers").mkdir(parents=True)
 
     def refuse(name, **_):
         calls.append(("enable", name))
         raise AdmissionRefused("dependency conflict")
     monkeypatch.setattr("kova_cli.plugins_cmd.cmd_enable", refuse)
 
-    assert step.offer_agent_import(hermes_home) == ""
+    assert step.offer_agent_import(kova_home) == ""
 
     assert calls == [("ask", "Import your setup from Cursor?", True), ("enable", "agent-importers")]
 
@@ -129,7 +129,7 @@ def test_setup_menu_shows_what_was_found_with_the_question(homes, monkeypatch):
     """Setup's yes/no is a full-screen menu that hides what was printed before it, so the detection
     lines travel with the question: "any of them" must point at text the user can see."""
     from kova_cli import setup
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     for d in (".openclaw", ".claude", ".codex"):
         (user_home / d).mkdir()
     menus = []
@@ -141,25 +141,25 @@ def test_setup_menu_shows_what_was_found_with_the_question(homes, monkeypatch):
     monkeypatch.setattr("kova_cli.curses_ui.curses_radiolist", radiolist)
 
     with setup._setup_navigation_scope():
-        assert step.offer_agent_import(hermes_home) == ""
+        assert step.offer_agent_import(kova_home) == ""
 
     [(title, items, description)] = menus
     assert (title, items) == ("Import your setup from any of them?", ["Yes", "No"])
     assert ("Found on this computer: OpenClaw (~/.openclaw), Claude Code (~/.claude), Codex CLI (~/.codex)."
             in " ".join(description.split()))
-    assert calls == [] and not (hermes_home / "plugins").exists()
+    assert calls == [] and not (kova_home / "plugins").exists()
 
 
 def test_grok_bot_export_in_downloads_is_offered_like_the_other_agents(homes):
     """Grok Bot keeps its setup in the cloud: an export the Bot wrote, saved to Downloads, is enough
     for setup to offer the import."""
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     (user_home / "Downloads").mkdir()
     (user_home / "Downloads" / "grok-bot-export.json").write_text("{}", encoding="utf-8")
 
-    assert step.offer_agent_import(hermes_home) == "Grok Bot"
+    assert step.offer_agent_import(kova_home) == "Grok Bot"
     assert calls[-1] == ("import", ["--profile", "default", "import-agent", "grok-bot", "--from-setup"],
-                         str(hermes_home))
+                         str(kova_home))
 
 
 def test_hermes_migrate_names_an_agent_installs_the_plugin_and_forwards_its_flags(homes, monkeypatch):
@@ -168,7 +168,7 @@ def test_hermes_migrate_names_an_agent_installs_the_plugin_and_forwards_its_flag
     import argparse
 
     from kova_cli.subcommands.migrate import build_migrate_parser
-    user_home, hermes_home, calls, _answers = homes
+    user_home, kova_home, calls, _answers = homes
     parser = argparse.ArgumentParser()
     build_migrate_parser(parser.add_subparsers(dest="command"))
     args = parser.parse_args(["migrate", "grok-bot", "--source", "~/export.json", "--activate-routines",
@@ -178,7 +178,7 @@ def test_hermes_migrate_names_an_agent_installs_the_plugin_and_forwards_its_flag
     assert calls == [
         ("install", "agent-importers", True, True),
         ("import", ["--profile", "default", "import-agent", "grok-bot", "--yes", "--activate-routines",
-                    "--source", str(user_home / "export.json"), "--bot", "Scout"], str(hermes_home)),
+                    "--source", str(user_home / "export.json"), "--bot", "Scout"], str(kova_home)),
     ]
     # Setup imports OpenClaw's secrets (its old step did); `hermes migrate openclaw` only on request.
     calls.clear()

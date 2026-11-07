@@ -35,13 +35,13 @@ def _emit(payload, code) -> None:
 
 
 def cmd_gateway_ensure(args) -> None:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.gateway_runtime import ensure_gateway_runtime
 
     try:
         # Legacy imported utilities can print; protocol stdout belongs only to us.
         with redirect_stdout(sys.stderr):
-            result = ensure_gateway_runtime(get_hermes_home(), timeout=float(args.timeout))
+            result = ensure_gateway_runtime(get_kova_home(), timeout=float(args.timeout))
         payload, code = _verdict_payload(result), ensure_exit_code(result)
     except (ValueError, TypeError):
         payload, code = INVALID_INVOCATION, 2
@@ -52,7 +52,7 @@ def cmd_gateway_attach(args) -> None:
     """``ensure``'s verdict plus, once attachable, the owner's WebSocket ``url``, its ``protocol``,
     the dial ``protocols`` and one single-use ``ticket`` for this profile. A refusal adds the
     ``message`` Ink's bootstrap shows (``gateway <state>: <reason>`` lines) and exits like ensure."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.gateway_client import GATEWAY_WS_PROTOCOL, gateway_ws_target
     from kova_cli.gateway_runtime import GatewayDiscovery
     from kova_cli.gateway_runtime_attach import (GatewayAttach, TicketUnavailable, attach_gateway,
@@ -67,7 +67,7 @@ def cmd_gateway_attach(args) -> None:
     scrub_client_launch_env()
     with redirect_stdout(sys.stderr):
         try:
-            attached = attach_gateway(get_hermes_home(), start=args.start, recover=args.recover, timeout=timeout)
+            attached = attach_gateway(get_kova_home(), start=args.start, recover=args.recover, timeout=timeout)
         except TicketUnavailable as exc:
             # Attachable at discovery, then no ticket (the owner went away or refused the grant).
             attached = GatewayAttach(GatewayDiscovery("inaccessible", reason_code="ticket_unavailable",

@@ -168,7 +168,7 @@ def test_residency_cap_prices_a_split_against_the_card(tmp_path, monkeypatch):
     from kova_cli.local_runtime import presets
     from kova_cli.local_runtime.estimator import HardwareBudget
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     mdir = tmp_path / "models"
     mdir.mkdir()
     # A 48 GiB split laid out the reported way: part 1 a metadata stub, the weights in part 2.
@@ -191,7 +191,7 @@ def test_a_truncated_header_skips_the_model_instead_of_raising(tmp_path, monkeyp
     from kova_cli.local_runtime import presets
     from kova_cli.local_runtime.estimator import HardwareBudget
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     parts = _split(tmp_path, "cut-head", [
         {"tensors": []},
         {"tensors": [("blk.0.attn_q.weight", 16 << 20)]},

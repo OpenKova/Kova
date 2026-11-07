@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 from tui_gateway import server
 
 
@@ -180,7 +180,7 @@ def test_scan_time_is_not_treated_as_session_activity(tmp_path):
     ``discovered_repos.last_seen`` records when the disk scan last saw the
     directory. Folding it into ``last_active`` stamped every scanned checkout
     with the scan time — i.e. "just now" — so repos the user has never opened
-    in Hermes outranked the ones they actually work in.
+    in Kova outranked the ones they actually work in.
     """
     worked_in = tmp_path / "worked-in"
     worked_in.mkdir()
@@ -543,13 +543,13 @@ def _bind_profiles(monkeypatch, tmp_path: Path, homes: dict[str, Path]) -> None:
 
 def _create_project(home: Path, name: str, folder: Path, *, use: bool = False) -> dict:
     """Create a project in ``home``'s projects.db via the real RPC."""
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return _call(
             "projects.create", {"name": name, "folders": [str(folder)], "use": use}
         )["project"]
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _create_session(home: Path, session_id: str, cwd: Path) -> None:
@@ -568,22 +568,22 @@ def _create_session(home: Path, session_id: str, cwd: Path) -> None:
 def _serving_launch_profile(launch_home: Path):
     """Run the handlers as a backend launched under ``launch_home``.
 
-    Both the ambient override AND ``server._hermes_home`` point at it: once the process
+    Both the ambient override AND ``server._kova_home`` point at it: once the process
     multiplexes, a launch-profile RPC binds the server's own launch home (#118538), so an
     override alone no longer stands in for "this backend was launched here"."""
     from kova_state import SessionDB
 
-    token = set_hermes_home_override(launch_home)
-    prev_db, prev_error, prev_home = server._db, server._db_error, server._hermes_home
-    server._hermes_home = launch_home
+    token = set_kova_home_override(launch_home)
+    prev_db, prev_error, prev_home = server._db, server._db_error, server._kova_home
+    server._kova_home = launch_home
     server._db = SessionDB(db_path=launch_home / "state.db")
     server._db_error = None
     try:
         yield
     finally:
         server._db.close()
-        server._db, server._db_error, server._hermes_home = prev_db, prev_error, prev_home
-        reset_hermes_home_override(token)
+        server._db, server._db_error, server._kova_home = prev_db, prev_error, prev_home
+        reset_kova_home_override(token)
 
 
 def _cached_repo_labels(home: Path) -> list[str]:
@@ -756,6 +756,6 @@ def test_projects_without_a_profile_stay_on_the_launch_home(monkeypatch, tmp_pat
 
     assert _cached_repo_labels(launch_home) == ["only"]
     assert not (coder_home / "projects.db").exists()
-    assert not (Path(os.environ["HERMES_HOME"]) / "projects.db").exists()
+    assert not (Path(os.environ["KOVA_HOME"]) / "projects.db").exists()
 
 

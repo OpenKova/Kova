@@ -742,7 +742,7 @@ export interface SharedMetricsSlashCommandParams {
 export interface SharedMetricsSlashCommandResult {
   ok: boolean
 }
-/** ``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready (TUI gateway ready / Desktop backend attached), measured once per launch by the client. The client names its surface because a Desktop may attach to a URL/cloud backend where ``HERMES_DESKTOP`` is unset; without it the backend falls back to its own client detection. ``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a reconnect re-sending the same launch counts once while a new launch counts again. */
+/** ``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready (TUI gateway ready / Desktop backend attached), measured once per launch by the client. The client names its surface because a Desktop may attach to a URL/cloud backend where ``KOVA_DESKTOP`` is unset; without it the backend falls back to its own client detection. ``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a reconnect re-sending the same launch counts once while a new launch counts again. */
 export interface SharedMetricsStartupLatencyParams {
   profile?: string | null
   elapsed_ms: number
@@ -2269,11 +2269,11 @@ export interface ProfilesGetAssetResult {
   size?: number | null
   data?: string | null
 }
-/** ``assume_fresh``: the unpackaged desktop's ``--fresh-install`` launch; the backend treats this machine as one that never used Hermes. Packaged builds never send it. */
+/** ``assume_fresh``: the unpackaged desktop's ``--fresh-install`` launch; the backend treats this machine as one that never used Kova. Packaged builds never send it. */
 export interface OnboardingStateParams {
   assume_fresh?: boolean
 }
-/** ``run``: onboarding opens on this launch (root config ``onboarding.run``, else a machine that never used Hermes). ``eligible``: this is the desktop's local backend and the welcome trial or a configured provider can carry the first chat. ``session_id``: the stored id of the onboarding chat still in progress, so a relaunch reopens it; ``run_id``: that run's id, which ``onboarding.ended`` names. */
+/** ``run``: onboarding opens on this launch (root config ``onboarding.run``, else a machine that never used Kova). ``eligible``: this is the desktop's local backend and the welcome trial or a configured provider can carry the first chat. ``session_id``: the stored id of the onboarding chat still in progress, so a relaunch reopens it; ``run_id``: that run's id, which ``onboarding.ended`` names. */
 export interface OnboardingRunStateResult {
   run: boolean
   eligible: boolean
@@ -4959,7 +4959,7 @@ export interface SessionCreateDescriptor {
   sources: string[]
   parameters: string[]
 }
-/** ``tui_gateway/change_watcher.py::resolve_skin`` — the resolved active skin (``HermesSkin``). ``{}`` when the skin engine failed to load. Colour maps are token → colour string. */
+/** ``tui_gateway/change_watcher.py::resolve_skin`` — the resolved active skin (``KovaSkin``). ``{}`` when the skin engine failed to load. Colour maps are token → colour string. */
 export interface SkinPayload {
   name?: string
   description?: string
@@ -5207,7 +5207,7 @@ export interface CanonicalSnapshotInfo {
   tool_availability_warnings?: string[] | null
   unknown_toolsets?: string[] | null
   usage?: Usage | null
-  desktop_protocol: 'hermes-gateway-v1'
+  desktop_protocol: 'kova-gateway-v1'
   source?: string | null
   model?: string | null
   lazy?: boolean | null
@@ -6609,7 +6609,7 @@ export interface RpcMethods {
   'prompt.btw': { params: SideAgentParams; result: TaskIdResult }
   /** Send a user turn to a live session; busy sessions queue / steer / redirect instead of refusing. */
   'prompt.submit': { params: PromptSubmitParams; result: PromptSubmitResult }
-  /** Re-read ~/.hermes/.env (CLI /reload parity); built agents keep their pool until /new. */
+  /** Re-read ~/.kova/.env (CLI /reload parity); built agents keep their pool until /new. */
   'reload.env': { params: ReloadEnvParams; result: ReloadEnvResult }
   /** Tear down and rediscover MCP servers for every live session (prompt cache is invalidated). */
   'reload.mcp': { params: ReloadMcpParams; result: ReloadMcpResult }
@@ -6671,7 +6671,7 @@ export interface RpcMethods {
   'session.redirect': { params: SessionCorrectionParams; result: SessionCorrectionResult }
   /** Attach to a stored session: reuse it if live here, else lazy / deferred / cold / eager rebuild. */
   'session.resume': { params: SessionResumeParams; result: SessionResumeResult }
-  /** Export the transcript to ~/.hermes/sessions/saved (classic /save). */
+  /** Export the transcript to ~/.kova/sessions/saved (classic /save). */
   'session.save': { params: SessionSaveParams; result: SessionSaveResult }
   /** Set/clear hidden (out of the default list, still resumable by its owner) on a session + lineage. */
   'session.set_hidden': { params: SessionSetHiddenParams; result: SessionSetHiddenResult }
@@ -7062,7 +7062,7 @@ export const RPC_METHODS = [
   'wake.stop'
 ] as const satisfies readonly RpcMethod[]
 
-// ── Canonical (hermes-gateway-v1) methods only the session authority serves ──
+// ── Canonical (kova-gateway-v1) methods only the session authority serves ──
 export interface CanonicalRpcMethods {
   /** Forward one A2A input into the conversation its identity tuple names. */
   'a2a.forward': { params: A2aForwardParams; result: A2aForwardResult }

@@ -142,10 +142,10 @@ def step_state_db_guard() -> dict:
     surfaced loudly in the log instead of the user silently losing session
     search. Read-only, idempotent.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.backup import verify_sqlite_integrity
 
-    state_path = get_hermes_home() / "state.db"
+    state_path = get_kova_home() / "state.db"
     if not state_path.exists():
         return {"ok": True, "skipped": "no-state-db"}
     result = verify_sqlite_integrity(state_path, check_header=True, run_pragma=True)
@@ -167,10 +167,10 @@ def step_drop_live_plugin_catalog() -> dict:
     so without this a pre-update snapshot out-votes the newer in-tree catalog
     for the rest of its TTL (#119340). Per home, like the boot record.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.plugin_catalog import invalidate_live_cache_for_home
 
-    invalidate_live_cache_for_home(get_hermes_home())
+    invalidate_live_cache_for_home(get_kova_home())
     return {"ok": True}
 
 
@@ -199,14 +199,14 @@ def step_adopt_blessed_checkout(project_root: Path | None = None) -> dict:
     import json
     import tempfile
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     root = install_root() if project_root is None else Path(project_root)
 
     # The blessed roots: the canonical locations installers create.
     blessed = (
-        get_hermes_home() / "hermes-agent",
-        Path("/usr/local/lib/hermes-agent"),
+        get_kova_home() / "kova-agent",
+        Path("/usr/local/lib/kova-agent"),
     )
 
     if not (root / ".git").exists():

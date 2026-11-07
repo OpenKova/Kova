@@ -1,6 +1,6 @@
 """Auto-installation of LSP server binaries.
 
-Installs go to a Hermes-owned staging dir, ``<HERMES_HOME>/lsp/bin/``, so the
+Installs go to a Kova-owned staging dir, ``<KOVA_HOME>/lsp/bin/``, so the
 user's global toolchain stays untouched.  Strategies: ``auto`` (install with
 the best available package manager), ``manual`` / ``off`` (probe only; a
 missing binary skips the server and ``hermes lsp status`` reports it).
@@ -41,7 +41,7 @@ def _manual(bin_name: str) -> dict[str, Any]:
 TYPESCRIPT_SDK_PKG = "typescript@6"
 
 # Recipe key → {strategy, pkg, bin[, extra_pkgs]}.  After install we look for
-# ``bin`` in ``<HERMES_HOME>/lsp/bin/`` first, then on PATH.  ``extra_pkgs``
+# ``bin`` in ``<KOVA_HOME>/lsp/bin/`` first, then on PATH.  ``extra_pkgs``
 # are sibling npm packages a server needs in the same node_modules tree.
 INSTALL_RECIPES: dict[str, dict[str, Any]] = {
     "pyright": _npm("pyright", "pyright-langserver"),
@@ -83,10 +83,10 @@ def _is_windows() -> bool:
 
 
 def hermes_lsp_bin_dir() -> Path:
-    """Return the Hermes-owned bin staging dir for LSP servers."""
-    from kova_constants import get_hermes_home
+    """Return the Kova-owned bin staging dir for LSP servers."""
+    from kova_constants import get_kova_home
 
-    p = get_hermes_home() / "lsp" / "bin"
+    p = get_kova_home() / "lsp" / "bin"
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -242,7 +242,7 @@ def _install_npm(pkg: str, bin_name: str, extra_pkgs: Optional[list] = None) -> 
     pm = _node_package_manager()
     if pm is None:
         return None
-    # npm is Hermes's own PM-managed copy, never the user's; pnpm/yarn are an explicit user choice.
+    # npm is Kova's own PM-managed copy, never the user's; pnpm/yarn are an explicit user choice.
     pm_bin = find_node_executable(pm)
     if pm_bin is None and pm == "npm":
         try:
@@ -258,12 +258,12 @@ def _install_npm(pkg: str, bin_name: str, extra_pkgs: Optional[list] = None) -> 
         logger.warning("[install] cannot install %s: lsp.package_manager is %r but no usable %s was found "
                        "(install it, or set lsp.package_manager: npm)", pkg, pm, pm)
         return None
-    staging = hermes_lsp_bin_dir().parent  # <HERMES_HOME>/lsp/
+    staging = hermes_lsp_bin_dir().parent  # <KOVA_HOME>/lsp/
     install_targets = [pkg] + list(extra_pkgs or [])
     cmd = [pm_bin, *_NODE_PM_ARGV[pm](str(staging)), *install_targets]
     logger.info("[install] %s %s", pm, " ".join(cmd[1:]))
     from tools.environments.local import hermes_subprocess_env
-    # Package install scripts are third-party code: scrubbed env, never Hermes' credentials.
+    # Package install scripts are third-party code: scrubbed env, never Kova' credentials.
     if not _run_installer(pm, pkg, cmd, timeout=300, env=with_hermes_node_path(hermes_subprocess_env())):
         return None
     found = _first_existing(staging / "node_modules" / ".bin" / bin_name)

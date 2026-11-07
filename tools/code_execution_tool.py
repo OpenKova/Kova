@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Code Execution Tool -- Programmatic Tool Calling (PTC).
 
-The LLM writes a Python script that calls Hermes tools via RPC, collapsing
+The LLM writes a Python script that calls Kova tools via RPC, collapsing
 multi-step tool chains into one inference turn; only the script's stdout returns
 to the LLM. Local backend: a persistent per-conversation session kernel
 (tools/code_kernel.py) over a Unix socket (loopback TCP on Windows). Remote
@@ -36,7 +36,7 @@ from tools.tool_output_truncate import head_tail_split, truncation_notice
 
 logger = logging.getLogger(__name__)
 
-# Loopback TCP replaces AF_UNIX on Windows, so execute_code runs on every platform Hermes does.
+# Loopback TCP replaces AF_UNIX on Windows, so execute_code runs on every platform Kova does.
 SANDBOX_AVAILABLE = True
 
 # Tools allowed inside the sandbox; ∩ the session's enabled tools decides which stubs are generated.
@@ -248,7 +248,7 @@ def retry(fn, max_attempts=3, delay=2):
 # ---- UDS transport (local backend) ---------------------------------------
 
 _UDS_TRANSPORT_HEADER = '''\
-"""Auto-generated Hermes tools RPC stubs."""
+"""Auto-generated Kova tools RPC stubs."""
 import json, os, socket, shlex, threading, time
 
 _sock = None
@@ -262,7 +262,7 @@ _call_lock = threading.Lock()
 def _connect():
     """Connect to the parent's RPC server via the transport it picked.
 
-    HERMES_RPC_SOCKET can be either:
+    KOVA_RPC_SOCKET can be either:
       - a filesystem path (POSIX Unix domain socket — the default on
         Linux and macOS)
       - a string of the form ``tcp://127.0.0.1:<port>`` (Windows, where
@@ -270,7 +270,7 @@ def _connect():
     """
     global _sock
     if _sock is None:
-        endpoint = os.environ["HERMES_RPC_SOCKET"]
+        endpoint = os.environ["KOVA_RPC_SOCKET"]
         if endpoint.startswith("tcp://"):
             # tcp://host:port  (host is always 127.0.0.1 in practice — we
             # only bind loopback server-side)
@@ -289,12 +289,12 @@ def _call(tool_name, args):
     request = json.dumps({
         "tool": tool_name,
         "args": args,
-        "token": os.environ.get("HERMES_RPC_TOKEN", ""),
+        "token": os.environ.get("KOVA_RPC_TOKEN", ""),
     }) + "\\n"
     # Session kernels outlive the RPC server's 300s idle window, so their
     # connection can be legitimately gone by the next cell. The server
-    # re-accepts (HERMES_RPC_PERSISTENT=1); retry once on a fresh socket.
-    _attempts = 2 if os.environ.get("HERMES_RPC_PERSISTENT") == "1" else 1
+    # re-accepts (KOVA_RPC_PERSISTENT=1); retry once on a fresh socket.
+    _attempts = 2 if os.environ.get("KOVA_RPC_PERSISTENT") == "1" else 1
     with _call_lock:
         for _attempt in range(_attempts):
             try:
@@ -333,10 +333,10 @@ def _call(tool_name, args):
 # ---- File-based transport (remote backends) -------------------------------
 
 _FILE_TRANSPORT_HEADER = '''\
-"""Auto-generated Hermes tools RPC stubs (file-based transport)."""
+"""Auto-generated Kova tools RPC stubs (file-based transport)."""
 import json, os, shlex, tempfile, threading, time
 
-_RPC_DIR = os.environ.get("HERMES_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
+_RPC_DIR = os.environ.get("KOVA_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
 _seq = 0
 # `_seq += 1` is not atomic (read-modify-write), so concurrent _call()
 # invocations from multiple threads could allocate the same sequence number
@@ -367,7 +367,7 @@ def _call(tool_name, args):
             "tool": tool_name,
             "args": args,
             "seq": seq,
-            "token": os.environ.get("HERMES_RPC_TOKEN", ""),
+            "token": os.environ.get("KOVA_RPC_TOKEN", ""),
         }, f)
     os.rename(tmp, req_file)
 
@@ -474,11 +474,11 @@ def _ship_env_file_and_launch(env, remote_dir: str, env_name: str, launch: str, 
     The subshell is load-bearing: every env.execute() runs inside the backend's
     session wrapper, which re-dumps ``export -p`` into the shared session
     snapshot after each command. A plain ``set -a; . file`` in the outer shell
-    would export HERMES_RPC_TOKEN/PYTHONPATH/TZ into that snapshot and re-export
+    would export KOVA_RPC_TOKEN/PYTHONPATH/TZ into that snapshot and re-export
     them into every later command on the backend (the #71296 snapshot-leak
     class). The token also stays off the remote shell's argv, which co-tenant
     users can read via ps for the command's lifetime."""
-    env_map = {"HERMES_RPC_DIR": rpc_dir, "HERMES_RPC_TOKEN": rpc_token,
+    env_map = {"KOVA_RPC_DIR": rpc_dir, "KOVA_RPC_TOKEN": rpc_token,
                "PYTHONDONTWRITEBYTECODE": "1", **extra_env}
     tz = get_timezone_name()  # routed profile's timezone, not the bridged default's
     if tz:
@@ -619,7 +619,7 @@ def _run_remote_per_call(env, env_type: str, code: str, effective_task_id: str,
                   max_tool_calls, sandbox_tools, stop_event, rpc_token))
         rpc_thread.start()
         # The token travels in a sourced env file, never in argv. No umask on
-        # the launch command: the 700 dirs + explicit 0600 writes cover Hermes'
+        # the launch command: the 700 dirs + explicit 0600 writes cover Kova'
         # files, and user code keeps the remote's default file modes.
         launch_cmd = _ship_env_file_and_launch(
             env, sandbox_dir, "sandbox.env", "exec python3 script.py",
@@ -679,7 +679,7 @@ def _execute_remote(code: str, task_id: Optional[str], enabled_tools: Optional[l
             # run-to-completion transport. Spawn failure falls OPEN to the per-call
             # path below so a degraded remote host never blocks execution.
             try:
-                # --- Session-kernel path (hermes-agent#96873) ------------------- Same always-on model as
+                # --- Session-kernel path (kova-agent#96873) ------------------- Same always-on model as
                 # local: one persistent kernel per owner, rebuilt on the run-to-completion transport (detached
                 # runner + file cell protocol).
                 from tools.code_kernel_remote import execute_in_remote_kernel
@@ -711,7 +711,7 @@ def execute_code(
     reset: bool = False,
 ) -> str:
     """Run Python in the session's persistent kernel (local) or on the remote terminal backend,
-    with RPC access to a subset of Hermes tools; returns the JSON result string. "Sandbox" means
+    with RPC access to a subset of Kova tools; returns the JSON result string. "Sandbox" means
     the security envelope (env scrubbing, tool whitelist + call budget, output redaction), not an
     isolation jail: default `project` mode runs in the session's cwd with the project venv.
     ``enabled_tools`` ∩ SANDBOX_ALLOWED_TOOLS; ``reset`` kills the existing kernel first."""
@@ -734,7 +734,7 @@ def execute_code(
     # `os.system("launchctl bootout ...")` here bypasses it and SIGTERMs the gateway mid-task).
     # Gated on PID-file ownership, not the inherited env marker.
     # Hard-block gateway-lifecycle commands, mirroring the terminal_tool guard (#68289): without this,
-    # execute_code is a straight bypass — the terminal() path refuses `launchctl bootout ai.hermes.gateway`,
+    # execute_code is a straight bypass — the terminal() path refuses `launchctl bootout ai.kova.gateway`,
     # but the identical command inside `os.system(...)` / `subprocess.run([...])` here sailed through and
     # SIGTERM'd the gateway mid-task.
     # The identity probe ends in a kernel process query that has wedged on macOS
@@ -901,7 +901,7 @@ def build_execute_code_schema(enabled_sandbox_tools: set | None = None,
             "Scripts run in the session's working directory. Interpreter: "
             "the project's activated venv/conda python when one is active "
             "(VIRTUAL_ENV/CONDA_PREFIX — matches terminal()); otherwise "
-            "Hermes's own python (the common case — stdlib plus Hermes's "
+            "Kova's own python (the common case — stdlib plus Kova's "
             "deps; check `import x` before relying on project packages)."
         )
     # Remote hosts that fail open to per-call are not worth schema words; the result's
@@ -909,7 +909,7 @@ def build_execute_code_schema(enabled_sandbox_tools: set | None = None,
     # Session kernels are always on (kernel_mode retired in #96787): persistence is part of the tool's one
     # description, not a bolt-on paragraph behind a dead conditional.
     description = (
-        "Run Python that calls Hermes tools programmatically. Use when you "
+        "Run Python that calls Kova tools programmatically. Use when you "
         "need 3+ tool calls with logic between them: filtering/reducing "
         "large outputs before they enter context, branching, or loops "
         "(N pages/files, retry on failure). Use normal tool calls for "

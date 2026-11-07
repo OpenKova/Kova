@@ -1,12 +1,12 @@
 """Derive ACP session-provenance metadata from the existing compression chain.
 
-Additive Hermes extension under ACP ``_meta.hermes`` (unknown to other clients,
+Additive Kova extension under ACP ``_meta.kova`` (unknown to other clients,
 so ignored). No new persisted state: everything is derived from the ``sessions``
 table (``parent_session_id`` / ``end_reason``), which already models
 compression-continuation chains.
 
 The ACP/editor ``session_id`` stays the stable public handle; when compression
-rotates the internal Hermes head, ``build_session_provenance`` exposes the
+rotates the internal Kova head, ``build_session_provenance`` exposes the
 previous/current internal ids and lineage root without parsing status text.
 """
 
@@ -32,7 +32,7 @@ def _is_compression_end(row: Any) -> bool:
 def build_session_provenance(
     db: Any, acp_session_id: str, current_hermes_session_id: str, *, previous_hermes_session_id: Optional[str] = None,
 ) -> Optional[dict[str, Any]]:
-    """Build ``_meta.hermes.sessionProvenance`` for an ACP session.
+    """Build ``_meta.kova.sessionProvenance`` for an ACP session.
 
     ``db`` must expose ``get_session``. ``current_hermes_session_id`` is the live
     internal id (``state.agent.session_id``); ``previous_hermes_session_id`` is
@@ -63,12 +63,12 @@ def build_session_provenance(
     is_continuation = bool(parent_id) and _is_compression_end(_get_row(db, parent_id))
 
     provenance: dict[str, Any] = {
-        "acpSessionId": acp_session_id, "currentHermesSessionId": current_hermes_session_id,
-        "rootHermesSessionId": root_id, "parentHermesSessionId": parent_id,
+        "acpSessionId": acp_session_id, "currentKovaSessionId": current_hermes_session_id,
+        "rootKovaSessionId": root_id, "parentKovaSessionId": parent_id,
         "sessionKind": "continuation" if is_continuation else "root", "compressionDepth": compression_depth,
     }
     if previous_hermes_session_id:
-        provenance["previousHermesSessionId"] = previous_hermes_session_id
+        provenance["previousKovaSessionId"] = previous_hermes_session_id
         if previous_hermes_session_id != current_hermes_session_id:
             # The only mechanism that rotates the internal id mid-turn is
             # compression-driven session splitting.

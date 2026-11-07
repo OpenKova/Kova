@@ -36,7 +36,7 @@ def fleet(monkeypatch, tmp_path):
             raise TimeoutError("catalog pin refused")  # not a typed refusal: the batch must still go on
         return True
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(plugins_updates, "run_checks", lambda plugins_dir, **kw: rows)
     monkeypatch.setattr(plugins_cmd, "_user_installed_plugin_dir", lambda name: tmp_path / name)
     monkeypatch.setattr(plugins_cmd_update, "update_one", fake_update)

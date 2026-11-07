@@ -46,7 +46,7 @@ class HomeScopedRegistry(dict):
     One process serves many profile homes (multiplex gateway, Desktop ``serve``) and each home
     installs its own provider plugins, so no read returns a row another home rewrote: a mirrored row
     is hidden from a home without that provider and built from the home's own profile when only the
-    home declares it; a ``$HERMES_HOME`` plugin's declared fields (:func:`override_registry_row`) land
+    home declares it; a ``$KOVA_HOME`` plugin's declared fields (:func:`override_registry_row`) land
     on a per-home copy; an alias key follows the bound home's plugin that claims it. Built-in rows a
     home does not override are returned as stored; writes are plain dict writes.
     """
@@ -215,7 +215,7 @@ def _insert_row(registry: dict, pconfig: Any, after: str) -> None:
 
 
 def _user_owns_alias(pp: Any, alias: str) -> bool:
-    """True when *alias* resolves to the ``$HERMES_HOME`` plugin *pp* in the ``providers`` layer."""
+    """True when *alias* resolves to the ``$KOVA_HOME`` plugin *pp* in the ``providers`` layer."""
     try:
         from providers import get_provider_profile, provider_source
     except Exception:
@@ -227,7 +227,7 @@ def _user_owns_alias(pp: Any, alias: str) -> bool:
 def mirror_aliases(pconfig: Any, pp: Any) -> None:
     """Point ``pp.aliases`` at *pconfig* so ``resolve_provider()`` resolves them too.
 
-    A bundled plugin never steals an alias another row already holds; a ``$HERMES_HOME`` plugin
+    A bundled plugin never steals an alias another row already holds; a ``$KOVA_HOME`` plugin
     whose alias the ``providers`` layer already resolves to it does — the same ownership rule as
     :func:`override_registry_row`, otherwise the alias kept resolving to the built-in row while
     ``providers.get_provider_profile`` followed the user's profile (#116668).
@@ -240,10 +240,10 @@ def mirror_aliases(pconfig: Any, pp: Any) -> None:
 
 
 def override_registry_row(pconfig: Any, pp: Any) -> None:
-    """A ``$HERMES_HOME`` plugin re-registering a name that already has a row wins for the fields
+    """A ``$KOVA_HOME`` plugin re-registering a name that already has a row wins for the fields
     it declares — ``display_name``, ``base_url`` and, on api-key rows, ``env_vars`` (#48450, #116668). ``register_provider()``
     is last-writer-wins for the profile; without this the runtime kept reading the built-in
-    endpoint. A ``$HERMES_HOME`` layer plugin's fields land on that home's own copy of the row
+    endpoint. A ``$KOVA_HOME`` layer plugin's fields land on that home's own copy of the row
     (:class:`HomeScopedRegistry`), so another served home keeps the built-in endpoint; a process-wide
     registration (every home reads it) rewrites the stored row in place.
     """

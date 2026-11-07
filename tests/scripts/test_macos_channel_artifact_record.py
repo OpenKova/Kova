@@ -20,7 +20,7 @@ def test_macos_record_binds_filename_version_and_provenance(tmp_path, monkeypatc
     request = channel_request(commit, sequence=6) if channel else None
     tag = None if channel else "v1.2.3"
     version = request["version"] if request else "1.2.3"
-    identity = request["identity"]["appId"] if request else "ai.hermes.test"
+    identity = request["identity"]["appId"] if request else "ai.kova.test"
     stamp = ({"source": "channel-build", "channelBuild": request, "commit": commit, "tag": None}
              if request else {"commit": commit, "tag": tag, "baseVersion": version})
     root = tmp_path / "release"
@@ -86,7 +86,7 @@ def record_mac_update(tmp_path, monkeypatch, extra=()):
     (root / "mac" / "Product.app").mkdir(parents=True)
     with zipfile.ZipFile(root / "Product-1.2.3-mac-arm64.zip", "w") as archive:
         archive.writestr("Product.app/Contents/Info.plist", plistlib.dumps({
-            "CFBundleIdentifier": "ai.hermes.test", "CFBundleShortVersionString": "1.2.3",
+            "CFBundleIdentifier": "ai.kova.test", "CFBundleShortVersionString": "1.2.3",
         }))
         archive.writestr("Product.app/Contents/Resources/install-stamp.json",
                          json.dumps({"commit": commit, "tag": "v1.2.3", "baseVersion": "1.2.3"}))

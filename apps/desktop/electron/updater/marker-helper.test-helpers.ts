@@ -23,8 +23,8 @@ export function scratchRoot(tag: string): string {
 
 /**
  * Text of a REAL fake hand-off script: it records its argv to
- * `$HERMES_HOME/helper-calls.log`, prints the verdict staged in
- * `$HERMES_HOME/helper-verdict`, exits with `$HERMES_HOME/helper-exit`
+ * `$KOVA_HOME/helper-calls.log`, prints the verdict staged in
+ * `$KOVA_HOME/helper-verdict`, exits with `$KOVA_HOME/helper-exit`
  * (default 0), and — like the real helper — removes the marker when it
  * answers `reclaimed`/`withdrawn`.
  */
@@ -32,13 +32,13 @@ export function fakeHelperScript(protocolLine = '# hermes-handoff-protocol: 2'):
   return [
     '#!/usr/bin/env bash',
     protocolLine,
-    'printf "%s\\n" "$*" >> "$HERMES_HOME/helper-calls.log"',
+    'printf "%s\\n" "$*" >> "$KOVA_HOME/helper-calls.log"',
     'if [ "$1" != "--marker-op" ]; then exit 3; fi',
-    '[ -f "$HERMES_HOME/helper-sleep" ] && sleep "$(cat "$HERMES_HOME/helper-sleep")"',
-    'verdict="$(cat "$HERMES_HOME/helper-verdict" 2>/dev/null)"',
-    'case "$verdict" in reclaimed|withdrawn) rm -f "$HERMES_HOME/.hermes-update-in-progress" ;; esac',
+    '[ -f "$KOVA_HOME/helper-sleep" ] && sleep "$(cat "$KOVA_HOME/helper-sleep")"',
+    'verdict="$(cat "$KOVA_HOME/helper-verdict" 2>/dev/null)"',
+    'case "$verdict" in reclaimed|withdrawn) rm -f "$KOVA_HOME/.kova-update-in-progress" ;; esac',
     'printf "%s\\n" "$verdict"',
-    'exit "$(cat "$HERMES_HOME/helper-exit" 2>/dev/null || echo 0)"',
+    'exit "$(cat "$KOVA_HOME/helper-exit" 2>/dev/null || echo 0)"',
     ''
   ].join('\n')
 }

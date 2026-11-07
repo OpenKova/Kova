@@ -25,8 +25,8 @@ def _future(seconds: int) -> str:
     return auth_mod.datetime.fromtimestamp(time.time() + seconds, tz=auth_mod.timezone.utc).isoformat()
 
 
-def _seed(hermes_home, token: str, refresh_token: str) -> None:
-    _setup_nous_auth(hermes_home, access_token=token, refresh_token=refresh_token,
+def _seed(kova_home, token: str, refresh_token: str) -> None:
+    _setup_nous_auth(kova_home, access_token=token, refresh_token=refresh_token,
                      scope=auth_mod.DEFAULT_NOUS_SCOPE, expires_at=_future(3000), expires_in=3000)
 
 
@@ -44,16 +44,16 @@ def _count_refresh_posts(monkeypatch) -> list[str]:
 
 
 def test_forced_refresh_never_adopts_the_bearer_that_just_failed(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
-    _seed(hermes_home, _invoke_jwt(seconds=2000), "rt-old")
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))
+    _seed(kova_home, _invoke_jwt(seconds=2000), "rt-old")
     pool = load_pool("nous")  # this process's pool row: the older key
     (entry,) = pool.entries()
     # Another agent in the process adopted the rotated key from the store; the request sent it
     # and Nous rejected it.
     failing = _invoke_jwt(seconds=3000)
-    _seed(hermes_home, failing, "rt-current")
+    _seed(kova_home, failing, "rt-current")
     posts = _count_refresh_posts(monkeypatch)
 
     refreshed = pool.try_refresh_matching(api_key_hint=failing, credential_id=entry.id)
@@ -89,11 +89,11 @@ class _Agent:
 
 
 def test_one_refresh_per_episode_then_bounded_backoff(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
+    monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     key = _invoke_jwt(seconds=3000)
-    _seed(hermes_home, key, "rt-seed")
+    _seed(kova_home, key, "rt-seed")
     pool = load_pool("nous")
     (entry,) = pool.entries()
     posts = _count_refresh_posts(monkeypatch)

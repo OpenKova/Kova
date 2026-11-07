@@ -19,7 +19,7 @@ beforeEach(() => {
   bridge.mockImplementation(() => BRIDGED)
 })
 
-// Regression for hermes-agent 123823: the media protocol handler decodes the
+// Regression for kova-agent 123823: the media protocol handler decodes the
 // request pathname itself (parseMediaProtocolTarget in media-protocol.ts), so
 // the resolveLocalFile boundary must NOT decode or strip leading slashes again.
 // The pre-fix wiring ran decodeURIComponent + strip on the already-decoded

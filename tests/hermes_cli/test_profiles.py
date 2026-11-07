@@ -37,7 +37,7 @@ from kova_cli.profiles import (
     remove_wrapper_script,
     rename_profile,
     export_profile,
-    _get_default_hermes_home,
+    _get_default_kova_home,
     NO_BUNDLED_SKILLS_MARKER,
     backfill_profile_envs,
     profiles_to_serve,
@@ -46,21 +46,21 @@ from kova_cli.config import DEFAULT_CONFIG
 
 
 # ---------------------------------------------------------------------------
-# Shared fixture: redirect Path.home() and HERMES_HOME for profile tests
+# Shared fixture: redirect Path.home() and KOVA_HOME for profile tests
 # ---------------------------------------------------------------------------
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
     """Set up an isolated environment for profile tests.
 
-    * Path.home() -> tmp_path  (so _get_profiles_root() = tmp_path/.hermes/profiles)
-    * HERMES_HOME  -> tmp_path/.hermes  (so get_hermes_home() agrees)
-    * Creates the bare-minimum ~/.hermes directory.
+    * Path.home() -> tmp_path  (so _get_profiles_root() = tmp_path/.kova/profiles)
+    * KOVA_HOME  -> tmp_path/.kova  (so get_kova_home() agrees)
+    * Creates the bare-minimum ~/.kova directory.
     """
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return tmp_path
 
 
@@ -113,10 +113,10 @@ class TestValidateProfileName:
 class TestGetProfileDir:
     """Tests for get_profile_dir()."""
 
-    def test_default_returns_hermes_home(self, profile_env):
+    def test_default_returns_kova_home(self, profile_env):
         tmp_path = profile_env
         result = get_profile_dir("default")
-        assert result == tmp_path / ".hermes"
+        assert result == tmp_path / ".kova"
 
     @pytest.mark.parametrize("name", ["..", "../outside", "../../tmp", "a/b", "a\\b", ".hidden", "has space"])
     def test_traversal_and_invalid_names_rejected(self, name, profile_env):
@@ -163,7 +163,7 @@ class TestCreateProfile:
         with "No LLM provider configured" — created, but unable to run. Fresh
         means fresh skills and SOUL, not unreachable.
         """
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text(
             "model:\n  provider: nous\n  default: some/model\n", encoding="utf-8"
         )
@@ -181,7 +181,7 @@ class TestCreateProfile:
         "Unknown provider 'my-gateway'" on its first turn (#101885 / #94071 class); the provider
         definition must travel with the model it backs, and nothing else from `providers:` does.
         """
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text(
             "model:\n  provider: my-gateway\n  default: my-finetune\n"
             "providers:\n  my-gateway:\n    api: https://llm.internal.example.com/v1\n    key_env: GW_KEY\n"
@@ -200,7 +200,7 @@ class TestCreateProfile:
         The model block is copied at creation, so later edits to the source
         profile never reach one already created from it.
         """
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text(
             "model:\n  provider: nous\n  default: some/model\n", encoding="utf-8"
         )
@@ -219,7 +219,7 @@ class TestCreateProfile:
 
     def test_clone_config_copies_files(self, profile_env):
         tmp_path = profile_env
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".kova"
         # Create source config files in default profile
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         (default_home / ".env").write_text("KEY=val", encoding="utf-8")
@@ -238,7 +238,7 @@ class TestCreateProfile:
         so the clone booted with memory silently unavailable. Only the ACTIVE provider's
         ``<provider>/`` dir / ``<provider>.json`` travels; another provider's leftovers stay behind."""
         tmp_path = profile_env
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".kova"
         (default_home / "config.yaml").write_text("memory:\n  provider: hindsight\n")
         (default_home / "hindsight").mkdir()
         payload = '{"mode": "local_embedded", "bank_id": "hermes", "apiKey": "hs-secret"}'
@@ -255,7 +255,7 @@ class TestCreateProfile:
 
     def test_clone_config_copies_source_plugins(self, profile_env):
         tmp_path = profile_env
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".kova"
         plugin_dir = default_home / "plugins" / "example-plugin"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "plugin.yaml").write_text("name: example-plugin\n")
@@ -272,14 +272,14 @@ class TestCreateProfile:
     def test_clone_config_keeps_plugin_provenance_and_skips_install_staging(self, profile_env):
         """A catalog-installed memory provider keeps its install record in the clone, so the clone
         runs (and updates) the source's exact revision; an in-flight install staging dir stays behind."""
-        plugins = profile_env / ".hermes" / "plugins"
+        plugins = profile_env / ".kova" / "plugins"
         (plugins / "acme-memory").mkdir(parents=True)
         (plugins / "acme-memory" / "plugin.yaml").write_text("name: acme-memory\nkind: memory\n")
         (plugins / "acme-memory" / "__pycache__").mkdir()
         (plugins / ".install-abc123" / "plugin").mkdir(parents=True)
         record = '{"acme-memory": {"pinned": true, "revision": "%s", "source": "https://example.invalid/a.git"}}' % ("a" * 40)
         (plugins / ".install-metadata.json").write_text(record)
-        (profile_env / ".hermes" / "config.yaml").write_text("memory:\n  provider: acme-memory\n")
+        (profile_env / ".kova" / "config.yaml").write_text("memory:\n  provider: acme-memory\n")
 
         cloned = create_profile("coder", clone_config=True, no_alias=True) / "plugins"
 
@@ -292,7 +292,7 @@ class TestCreateProfile:
     def test_clone_config_ignores_unsafe_memory_provider_names(self, profile_env, provider):
         """A hand-edited ``memory.provider`` must never aim the copy outside the source profile."""
         tmp_path = profile_env
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".kova"
         (default_home / "config.yaml").write_text(f"memory:\n  provider: {provider!r}\n")
         (tmp_path / "outside").mkdir()
         (tmp_path / "outside" / "config.json").write_text("{}")
@@ -309,7 +309,7 @@ class TestCreateProfile:
     def test_clone_sync_imports_carries_manifest_but_never_links_profiles(self, profile_env):
         """--sync-imports copies import-sync.json (a pointer at EXTERNAL agent trees) and nothing
         else changes: the clone still gets its own config/skills copies, never a live link."""
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         manifest = {"version": 1, "agents": {"claude-code": {
             "source": str(profile_env / ".claude"), "digest": "d", "overwrite": False,
@@ -328,7 +328,7 @@ class TestCreateProfile:
     @staticmethod
     def _home_with_linked_skill(profile_env):
         """Source home: ``skills/foo`` links into an ``external_dirs`` root, ``skills/local`` is physical."""
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         external = profile_env / "agents-skills"
         (external / "foo").mkdir(parents=True)
         (external / "foo" / "SKILL.md").write_text("# external foo\n", encoding="utf-8")
@@ -386,7 +386,7 @@ class TestCreateProfile:
     def test_clone_all_does_not_copy_cron_jobs(self, profile_env):
         # Cron jobs are scheduled work bound to the source profile + origin channel; a clone
         # that inherits jobs.json fires every job twice (two gateways, same job ids).
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         (default_home / "cron").mkdir()
         (default_home / "cron" / "jobs.json").write_text(json.dumps({"jobs": [{"id": "abc123def456"}]}), encoding="utf-8")
@@ -400,7 +400,7 @@ class TestCreateProfile:
 
     def test_clone_all_does_not_inherit_the_source_screen_or_browser_process_artifacts(self, profile_env):
         """A clone keeps browser data, never the source's screen or Chromium runtime files."""
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         bd = default_home / "bot-desktop"
         browser_profile = bd / "browser-profile"
@@ -429,7 +429,7 @@ class TestCreateProfile:
         import threading
         from tools.browser_launcher import running_instance
 
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         browser_profile = default_home / "bot-desktop" / "browser-profile"
         browser_profile.mkdir(parents=True)
@@ -466,7 +466,7 @@ class TestCreateProfile:
     def test_clone_all_skips_special_files(self, profile_env):
         # A live source profile holds special files copytree cannot copy (e.g. a suffixless
         # browser control socket); one of them must not abort the whole clone.
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         (default_home / "config.yaml").write_text("model: test", encoding="utf-8")
         browser_dir = default_home / "home" / ".agent-browser"
         browser_dir.mkdir(parents=True)
@@ -519,7 +519,7 @@ class TestBackfillProfileEnvs:
     def test_seeds_placeholder_never_the_default_env(self, profile_env):
         import stat
         tmp_path = profile_env
-        (tmp_path / ".hermes" / ".env").write_text("OPENROUTER_API_KEY=root-key\n", encoding="utf-8")
+        (tmp_path / ".kova" / ".env").write_text("OPENROUTER_API_KEY=root-key\n", encoding="utf-8")
         p1 = create_profile("old1", no_alias=True)
         p2 = create_profile("old2", no_alias=True)
         # Simulate pre-#44792 profiles: no .env
@@ -586,8 +586,8 @@ class TestDeleteProfile:
         tmp_path = profile_env
         create_profile("gone", no_alias=True)
         create_profile("keepme", no_alias=True)
-        scope = str(tmp_path / ".hermes" / "sessions")
-        db = SessionDB(tmp_path / ".hermes" / "state.db")
+        scope = str(tmp_path / ".kova" / "sessions")
+        db = SessionDB(tmp_path / ".kova" / "state.db")
         db.save_gateway_routing_entry(
             "agent:gone:feishu:dm:chatA",
             json.dumps({"session_key": "agent:gone:feishu:dm:chatA",
@@ -611,7 +611,7 @@ class TestDeleteProfile:
              patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
             delete_profile("gone", yes=True)
 
-        check = SessionDB(tmp_path / ".hermes" / "state.db")
+        check = SessionDB(tmp_path / ".kova" / "state.db")
         try:
             assert set(check.load_gateway_routing_entries(scope=scope)) == {
                 "agent:keepme:feishu:dm:chatB"}
@@ -636,8 +636,8 @@ class TestDeleteProfile:
 
         tmp_path = profile_env
         create_profile("gone", no_alias=True)
-        scope = str(tmp_path / ".hermes" / "sessions")
-        db = SessionDB(tmp_path / ".hermes" / "state.db")
+        scope = str(tmp_path / ".kova" / "sessions")
+        db = SessionDB(tmp_path / ".kova" / "state.db")
         db.save_gateway_routing_entry(
             "agent:gone:feishu:dm:chatA",
             json.dumps({"session_key": "agent:gone:feishu:dm:chatA"}),
@@ -658,7 +658,7 @@ class TestDeleteProfile:
         assert isinstance(ei.value, RuntimeError)  # the CLI handler catches RuntimeError
 
         assert "hermes profile purge-identity gone" in capsys.readouterr().err
-        check = SessionDB(tmp_path / ".hermes" / "state.db")
+        check = SessionDB(tmp_path / ".kova" / "state.db")
         try:
             # The CLI left the identity alone rather than racing the live owner.
             assert set(check.load_gateway_routing_entries(scope=scope)) == {
@@ -763,7 +763,7 @@ class TestDeleteProfile:
         hermes-notes.py, hermes-unrelated-tool) must NOT be misidentified as
         the console-script shim just because argv[0] is a python interpreter
         and argv[1]'s basename starts with "hermes" -- only the actual known
-        console-script entry points (hermes, hermes-agent, hermes-acp) count.
+        console-script entry points (hermes, kova-agent, hermes-acp) count.
         """
         create_profile("coder", no_alias=True)
         profile_dir = get_profile_dir("coder")
@@ -805,7 +805,7 @@ class TestDeleteProfile:
         assert pids == []
 
     def test_backend_scan_matches_all_known_console_script_shims(self, profile_env, monkeypatch):
-        """The other two real console-script entry points (hermes-agent,
+        """The other two real console-script entry points (kova-agent,
         hermes-acp -- see pyproject.toml [project.scripts]) must also be
         recognized via the shebang-exec path, not just the primary "hermes"
         shim.
@@ -829,7 +829,7 @@ class TestDeleteProfile:
 
         self_pid = os.getpid()
         procs = [
-            FakeProc(401, ["/usr/bin/python3", "/Users/x/.local/bin/hermes-agent",
+            FakeProc(401, ["/usr/bin/python3", "/Users/x/.local/bin/kova-agent",
                             "--profile", "coder", "serve"]),
             FakeProc(402, ["/usr/bin/python3", "/Users/x/.local/bin/hermes-acp",
                             "--profile", "coder", "serve"]),
@@ -876,7 +876,7 @@ class TestListProfiles:
         import threading
         import tui_gateway.server as srv
 
-        skills = profile_env / ".hermes" / "skills" / "cat"
+        skills = profile_env / ".kova" / "skills" / "cat"
         for i in range(3):
             (skills / f"s{i}").mkdir(parents=True)
             (skills / f"s{i}" / "SKILL.md").write_text("# s\n", encoding="utf-8")
@@ -931,7 +931,7 @@ class TestListProfiles:
     def test_skill_count_survives_subtree_vanishing_mid_walk(self, profile_env, monkeypatch):
         """A skill removed while the tree is being counted (concurrent install/update) must
         degrade the count, not abort profile enumeration with ``FileNotFoundError``."""
-        skills = profile_env / ".hermes" / "skills" / "cat"
+        skills = profile_env / ".kova" / "skills" / "cat"
         for i in range(4):
             (skills / f"s{i}" / "references").mkdir(parents=True)
             (skills / f"s{i}" / "SKILL.md").write_text("# s\n", encoding="utf-8")
@@ -967,7 +967,7 @@ class TestListProfiles:
             return _Listing(entries)
 
         monkeypatch.setattr(os, "scandir", vanishing_scandir)
-        assert profiles._count_skills(profile_env / ".hermes") == 3
+        assert profiles._count_skills(profile_env / ".kova") == 3
         assert [p.name for p in list_profiles()] == ["default"]
 
 
@@ -983,7 +983,7 @@ class TestActiveProfile:
         tmp_path = profile_env
         create_profile("coder", no_alias=True)
         set_active_profile("coder")
-        active_path = tmp_path / ".hermes" / "active_profile"
+        active_path = tmp_path / ".kova" / "active_profile"
         assert active_path.exists()
 
         set_active_profile("default")
@@ -1001,17 +1001,17 @@ class TestGetActiveProfileName:
     def test_profile_path_returns_profile_name(self, profile_env, monkeypatch):
         tmp_path = profile_env
         create_profile("coder", no_alias=True)
-        profile_dir = tmp_path / ".hermes" / "profiles" / "coder"
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        profile_dir = tmp_path / ".kova" / "profiles" / "coder"
+        monkeypatch.setenv("KOVA_HOME", str(profile_dir))
         assert get_active_profile_name() == "coder"
 
     def test_custom_path_returns_default(self, profile_env, monkeypatch):
-        """A custom HERMES_HOME (Docker, etc.) IS the default root."""
+        """A custom KOVA_HOME (Docker, etc.) IS the default root."""
         tmp_path = profile_env
         custom = tmp_path / "some" / "other" / "path"
         custom.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(custom))
-        # With Docker-aware roots, a custom HERMES_HOME is the default —
+        monkeypatch.setenv("KOVA_HOME", str(custom))
+        # With Docker-aware roots, a custom KOVA_HOME is the default —
         # not "custom".  The user is on the default profile of their
         # custom deployment.
         assert get_active_profile_name() == "default"
@@ -1161,7 +1161,7 @@ class TestRenameProfile:
     def test_renames_directory(self, profile_env):
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
-        old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
+        old_dir = tmp_path / ".kova" / "profiles" / "oldname"
         assert old_dir.is_dir()
 
         # Mock alias collision to avoid subprocess calls
@@ -1170,12 +1170,12 @@ class TestRenameProfile:
 
         assert not old_dir.is_dir()
         assert new_dir.is_dir()
-        assert new_dir == tmp_path / ".hermes" / "profiles" / "newname"
+        assert new_dir == tmp_path / ".kova" / "profiles" / "newname"
 
     def test_renames_root_honcho_host_without_changing_ai_peer(self, profile_env):
         tmp_path = profile_env
         create_profile("ssi_health", no_alias=True)
-        honcho_path = tmp_path / ".hermes" / "honcho.json"
+        honcho_path = tmp_path / ".kova" / "honcho.json"
         honcho_path.write_text(json.dumps({
             "hosts": {
                 "hermes.ssi_health": {
@@ -1203,11 +1203,11 @@ class TestRenameProfile:
         """Under a live multiplexer the old name is tombstoned + unrouted BEFORE the directory
         moves and the new name is hot-served after, so a stale runtime mkdir of the old home is
         refused instead of resurrecting a ghost served profile (#109267)."""
-        from kova_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_kova_home
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
-        old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
-        new_dir = tmp_path / ".hermes" / "profiles" / "newname"
+        old_dir = tmp_path / ".kova" / "profiles" / "oldname"
+        new_dir = tmp_path / ".kova" / "profiles" / "newname"
 
         calls = []
 
@@ -1217,7 +1217,7 @@ class TestRenameProfile:
             if name == "oldname" and old_dir.exists():
                 # A still-live component of the multiplexer writing into the old home mid-teardown.
                 with pytest.raises(FileNotFoundError):
-                    mkdir_under_hermes_home(old_dir / "logs")
+                    mkdir_under_kova_home(old_dir / "logs")
 
         with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
              patch("kova_cli.profiles._live_default_multiplexer", return_value=True), \
@@ -1234,7 +1234,7 @@ class TestRenameProfile:
         """No live multiplexer → rename must neither tombstone nor ping (single-profile installs)."""
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
-        old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
+        old_dir = tmp_path / ".kova" / "profiles" / "oldname"
 
         with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
              patch("kova_cli.profiles._live_default_multiplexer", return_value=False), \
@@ -1242,7 +1242,7 @@ class TestRenameProfile:
             new_dir = rename_profile("oldname", "newname")
 
         notify.assert_not_called()
-        assert not (tmp_path / ".hermes" / "profiles" / ".deleted").exists()
+        assert not (tmp_path / ".kova" / "profiles" / ".deleted").exists()
         assert not old_dir.exists() and new_dir.is_dir()
 
     def test_rename_migrates_session_identity_without_live_gateway(self, profile_env):
@@ -1252,35 +1252,35 @@ class TestRenameProfile:
         from kova_state import SessionDB
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
-        old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
+        old_dir = tmp_path / ".kova" / "profiles" / "oldname"
         # Seed a session owned by the old profile in the profile's own store + the root routing index.
         pdb = SessionDB(old_dir / "state.db")
         pdb.create_session(
             "sess1", "feishu", session_key="agent:oldname:feishu:dm:chatA",
             profile_name="oldname", chat_id="chatA", chat_type="dm")
         pdb.close()
-        root_db = SessionDB(tmp_path / ".hermes" / "state.db")
+        root_db = SessionDB(tmp_path / ".kova" / "state.db")
         root_db.save_gateway_routing_entry(
             "agent:oldname:feishu:dm:chatA",
             json.dumps({"session_key": "agent:oldname:feishu:dm:chatA", "session_id": "sess1",
                         "origin": {"platform": "feishu", "chat_id": "chatA", "profile": "oldname"}}),
-            scope=str(tmp_path / ".hermes" / "sessions"))
+            scope=str(tmp_path / ".kova" / "sessions"))
         root_db.close()
 
         with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
              patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
             rename_profile("oldname", "newname")
 
-        new_dir = tmp_path / ".hermes" / "profiles" / "newname"
+        new_dir = tmp_path / ".kova" / "profiles" / "newname"
         moved_db = SessionDB(new_dir / "state.db")
         row = moved_db._read_one(
             "SELECT session_key, profile_name FROM sessions WHERE id = ?", ("sess1",))
         assert row["session_key"] == "agent:newname:feishu:dm:chatA"
         assert row["profile_name"] == "newname"
         moved_db.close()
-        root_db2 = SessionDB(tmp_path / ".hermes" / "state.db")
+        root_db2 = SessionDB(tmp_path / ".kova" / "state.db")
         routing = root_db2.load_gateway_routing_entries(
-            scope=str(tmp_path / ".hermes" / "sessions"))
+            scope=str(tmp_path / ".kova" / "sessions"))
         assert "agent:oldname:feishu:dm:chatA" not in routing
         assert "agent:newname:feishu:dm:chatA" in routing
         root_db2.close()
@@ -1314,18 +1314,18 @@ class TestRenameProfile:
         from argparse import Namespace
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
-        old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
+        old_dir = tmp_path / ".kova" / "profiles" / "oldname"
         pdb = SessionDB(old_dir / "state.db")
         pdb.create_session(
             "sess1", "feishu", session_key="agent:oldname:feishu:dm:chatA",
             profile_name="oldname", chat_id="chatA", chat_type="dm")
         pdb.close()
-        root_db = SessionDB(tmp_path / ".hermes" / "state.db")
+        root_db = SessionDB(tmp_path / ".kova" / "state.db")
         root_db.save_gateway_routing_entry(
             "agent:oldname:feishu:dm:chatA",
             json.dumps({"session_key": "agent:oldname:feishu:dm:chatA", "session_id": "sess1",
                         "origin": {"platform": "feishu", "chat_id": "chatA", "profile": "oldname"}}),
-            scope=str(tmp_path / ".hermes" / "sessions"))
+            scope=str(tmp_path / ".kova" / "sessions"))
         root_db.close()
 
         # Rename under a live multiplexer whose control verb answers nothing: the CLI warns and
@@ -1346,16 +1346,16 @@ class TestRenameProfile:
             cmd_profile(Namespace(profile_action="migrate-identity",
                                   old_name="oldname", new_name="newname"))
 
-        moved_db = SessionDB(tmp_path / ".hermes" / "profiles" / "newname" / "state.db")
+        moved_db = SessionDB(tmp_path / ".kova" / "profiles" / "newname" / "state.db")
         row = moved_db._read_one(
             "SELECT session_key, profile_name FROM sessions WHERE id = ?", ("sess1",))
         assert row is not None
         assert row["session_key"] == "agent:newname:feishu:dm:chatA"
         assert row["profile_name"] == "newname"
         moved_db.close()
-        root_db2 = SessionDB(tmp_path / ".hermes" / "state.db")
+        root_db2 = SessionDB(tmp_path / ".kova" / "state.db")
         routing = root_db2.load_gateway_routing_entries(
-            scope=str(tmp_path / ".hermes" / "sessions"))
+            scope=str(tmp_path / ".kova" / "sessions"))
         assert "agent:oldname:feishu:dm:chatA" not in routing
         assert "agent:newname:feishu:dm:chatA" in routing
         root_db2.close()
@@ -1399,10 +1399,10 @@ class TestExportImport:
 
     def test_export_default_includes_profile_data(self, profile_env, tmp_path):
         """Profile data files end up in the archive (credentials excluded)."""
-        # Write through HERMES_HOME, not get_profile_dir("default"): the latter resolves to the
+        # Write through KOVA_HOME, not get_profile_dir("default"): the latter resolves to the
         # OPERATOR's real install whenever basetest sits inside it, so this test used to
         # overwrite the live config.yaml / .env / MEMORY.md with its fixtures.
-        default_dir = profile_env / ".hermes"
+        default_dir = profile_env / ".kova"
         (default_dir / "config.yaml").write_text("model: test", encoding="utf-8")
         (default_dir / ".env").write_text("KEY=val", encoding="utf-8")
         (default_dir / "SOUL.md").write_text("Be nice.", encoding="utf-8")
@@ -1432,7 +1432,7 @@ class TestExportImport:
         symlinks; the link and its target are both retained.
         """
         # Same reason as above: never resolve the operator's real default home from a test.
-        default_dir = profile_env / ".hermes"
+        default_dir = profile_env / ".kova"
         (default_dir / "config.yaml").write_text("ok", encoding="utf-8")
         # Place broken symlink *inside* the allowed ``skills/`` tree so the
         # root-level allow-list passes the directory through; the
@@ -1477,11 +1477,11 @@ class TestExportImport:
 
 
 # ===================================================================
-# TestGetProfilesRoot / TestGetDefaultHermesHome (internal helpers)
+# TestGetProfilesRoot / TestGetDefaultKovaHome (internal helpers)
 # ===================================================================
 
 class TestInternalHelpers:
-    """Tests for _get_profiles_root() and _get_default_hermes_home()."""
+    """Tests for _get_profiles_root() and _get_default_kova_home()."""
 
 
 
@@ -1489,11 +1489,11 @@ class TestInternalHelpers:
 
 
     def test_create_profile_docker(self, tmp_path, monkeypatch):
-        """Profile created in Docker lands under HERMES_HOME/profiles/."""
+        """Profile created in Docker lands under KOVA_HOME/profiles/."""
         docker_home = tmp_path / "opt" / "data"
         docker_home.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(docker_home))
+        monkeypatch.setenv("KOVA_HOME", str(docker_home))
         result = create_profile("orchestrator", no_alias=True)
         expected = docker_home / "profiles" / "orchestrator"
         assert result == expected
@@ -1630,7 +1630,7 @@ class TestEdgeCases:
         from kova_cli.profiles import _check_gateway_running
 
         tmp_path = profile_env
-        default_home = tmp_path / ".hermes"
+        default_home = tmp_path / ".kova"
         default_home.mkdir(parents=True, exist_ok=True)
 
         # Write a realistic gateway_state.json pointing at THIS live process with
@@ -1640,7 +1640,7 @@ class TestEdgeCases:
             json.dumps(
                 {
                     "pid": live_pid,
-                    "kind": "hermes-gateway",
+                    "kind": "kova-gateway",
                     "argv": ["hermes", "gateway", "run"],
                     "start_time": gw_status._get_process_start_time(live_pid),
                     "gateway_state": "running",
@@ -1691,10 +1691,10 @@ class TestProfilesToServe:
 
 
     def test_off_returns_only_active_named(self, profile_env, monkeypatch):
-        # A named profile's gateway runs with HERMES_HOME pointing at the
+        # A named profile's gateway runs with KOVA_HOME pointing at the
         # profile dir; get_active_profile_name() infers the name from there.
         create_profile("coder", no_alias=True)
-        monkeypatch.setenv("HERMES_HOME", str(get_profile_dir("coder")))
+        monkeypatch.setenv("KOVA_HOME", str(get_profile_dir("coder")))
         serve = profiles_to_serve(multiplex=False)
         assert len(serve) == 1
         assert serve[0][0] == "coder"
@@ -1705,7 +1705,7 @@ class TestProfilesToServe:
         create_profile("writer", no_alias=True)
         serve = dict(profiles_to_serve(multiplex=True))
         assert set(serve) == {"default", "coder", "writer"}
-        assert serve["default"] == _get_default_hermes_home()
+        assert serve["default"] == _get_default_kova_home()
         assert serve["coder"] == get_profile_dir("coder")
 
     # ------------------------------------------------------------------
@@ -1727,7 +1727,7 @@ class TestProfilesToServe:
         """The default profile IS the host: the key is ignored (still served, never
         standalone) with exactly one warning per process."""
         profiles._STANDALONE_WARNED = False
-        default_home = _get_default_hermes_home()
+        default_home = _get_default_kova_home()
         (default_home / "config.yaml").write_text("gateway:\n  standalone: true\n", encoding="utf-8")
         caplog.clear()
         with caplog.at_level("WARNING", logger="kova_cli.profiles"):
@@ -1804,7 +1804,7 @@ class TestProfilesToServe:
 
 
 class TestResolveProfileEnvSpelling:
-    """resolve_profile_env() keeps the configured HERMES_HOME spelling as
+    """resolve_profile_env() keeps the configured KOVA_HOME spelling as
 
     the launch root (junction installs) while preserving the pre-existing
     profile-path handling and existence/validation semantics.
@@ -1828,19 +1828,19 @@ class TestResolveProfileEnvSpelling:
             (custom, "beta", custom / "profiles" / "beta"),
         ]
         for env_home, profile, expected in cases:
-            monkeypatch.setenv("HERMES_HOME", str(env_home))
+            monkeypatch.setenv("KOVA_HOME", str(env_home))
             assert Path(resolve_profile_env(profile)) == expected
 
     def test_missing_named_profile_still_raises(self, monkeypatch, tmp_path):
         root = tmp_path / "configured-root"
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("KOVA_HOME", str(root))
         with pytest.raises(FileNotFoundError):
             resolve_profile_env("nope")
 
     def test_unset_env_falls_back_to_default_root(self, monkeypatch):
-        # No HERMES_HOME: the platform default root applies (existing contract).
-        monkeypatch.delenv("HERMES_HOME", raising=False)
-        assert Path(resolve_profile_env("default")) == _get_default_hermes_home()
+        # No KOVA_HOME: the platform default root applies (existing contract).
+        monkeypatch.delenv("KOVA_HOME", raising=False)
+        assert Path(resolve_profile_env("default")) == _get_default_kova_home()
 
 
 
@@ -1917,7 +1917,7 @@ def test_export_leaves_the_bot_desktop_browser_profile_out(profile_env, tmp_path
 
 class TestCloneAllExcludesRuntimeTrees:
     """``--clone-all`` from the default profile must not copy the machine-scoped
-    runtime trees the local-models flow puts under ``~/.hermes``: ``models/``
+    runtime trees the local-models flow puts under ``~/.kova``: ``models/``
     (GGUF weights, tens of GB), ``runtimes/`` (llama.cpp binaries) and ``node/``
     (managed Node). ``backup.py`` already excludes exactly these; the clone-all
     ignore list had not followed.
@@ -1936,7 +1936,7 @@ class TestCloneAllExcludesRuntimeTrees:
         (home / "config.yaml").write_text("model: test\n", encoding="utf-8")
 
     def test_ignore_drops_runtime_trees_only_at_the_default_root(self, profile_env):
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         self._seed(default_home)
         # a skill that happens to carry a nested models/ dir is user data
         (default_home / "skills" / "greet" / "models").mkdir()
@@ -1957,7 +1957,7 @@ class TestCloneAllExcludesRuntimeTrees:
 
 
     def test_clone_all_from_default_skips_runtime_trees_but_keeps_the_rest(self, profile_env):
-        default_home = profile_env / ".hermes"
+        default_home = profile_env / ".kova"
         self._seed(default_home)
 
         clone = create_profile("clone", clone_all=True, no_alias=True)

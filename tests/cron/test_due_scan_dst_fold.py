@@ -14,8 +14,8 @@ NEW_YORK = ZoneInfo("America/New_York")
 
 @pytest.fixture
 def dst_cron_store(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_TIMEZONE", "America/New_York")
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_TIMEZONE", "America/New_York")
     kova_time.reset_cache()
     monkeypatch.setattr(jobs, "CRON_DIR", tmp_path / "cron")
     monkeypatch.setattr(jobs, "JOBS_FILE", tmp_path / "cron" / "jobs.json")

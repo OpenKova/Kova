@@ -10,134 +10,134 @@ import pytest
 import kova_constants
 from kova_platform.host import runtime as host_runtime
 from kova_constants import (
-    get_default_hermes_root,
+    get_default_kova_root,
     get_hermes_dir,
-    get_hermes_home,
-    get_process_hermes_home,
+    get_kova_home,
+    get_process_kova_home,
     is_container,
     node_tool_runnable,
     parse_reasoning_effort,
-    reset_hermes_home_override,
+    reset_kova_home_override,
     secure_parent_dir,
-    set_hermes_home_override,
+    set_kova_home_override,
 )
 
 
-class TestGetDefaultHermesRoot:
-    """Tests for get_default_hermes_root() — Docker/custom deployment awareness."""
+class TestGetDefaultKovaRoot:
+    """Tests for get_default_kova_root() — Docker/custom deployment awareness."""
 
     @pytest.mark.platforms("linux")
-    def test_no_hermes_home_returns_native(self, tmp_path, monkeypatch):
-        """When HERMES_HOME is not set, returns ~/.hermes."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+    def test_no_kova_home_returns_native(self, tmp_path, monkeypatch):
+        """When KOVA_HOME is not set, returns ~/.kova."""
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-        assert get_default_hermes_root() == tmp_path / ".hermes"
+        assert get_default_kova_root() == tmp_path / ".kova"
 
 
 
 
 
     def test_docker_profile_active(self, tmp_path, monkeypatch):
-        """When a Docker profile is active (HERMES_HOME=<root>/profiles/<name>),
+        """When a Docker profile is active (KOVA_HOME=<root>/profiles/<name>),
         returns the Docker root, not the profile dir."""
         docker_root = tmp_path / "opt" / "data"
         profile = docker_root / "profiles" / "coder"
         profile.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
-        assert get_default_hermes_root() == docker_root
+        monkeypatch.setenv("KOVA_HOME", str(profile))
+        assert get_default_kova_root() == docker_root
 
     def test_expanded_custom_profile_returns_custom_root(self, tmp_path, monkeypatch):
         custom_root = tmp_path / "deployment"
         home_token = "$" + "HOME"
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv(
-            "HERMES_HOME", f"{home_token}/deployment/profiles/research"
+            "KOVA_HOME", f"{home_token}/deployment/profiles/research"
         )
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "native-home")
 
-        assert get_default_hermes_root() == custom_root
+        assert get_default_kova_root() == custom_root
 
     @pytest.mark.platforms("windows")
-    def test_no_hermes_home_returns_localappdata_root_on_windows(self, tmp_path, monkeypatch):
-        """Native Windows falls back to %LOCALAPPDATA%\\hermes, not ~/.hermes."""
+    def test_no_kova_home_returns_localappdata_root_on_windows(self, tmp_path, monkeypatch):
+        """Native Windows falls back to %LOCALAPPDATA%\\hermes, not ~/.kova."""
         local_appdata = tmp_path / "LocalAppData"
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
 
-        assert get_default_hermes_root() == local_appdata / "hermes"
+        assert get_default_kova_root() == local_appdata / "hermes"
 
     @pytest.mark.platforms("windows")
     def test_root_for_another_environment_ignores_this_process(self, tmp_path, monkeypatch):
-        """hermes_root_for_environment applies the root rules to the mapping it gets."""
+        """kova_root_for_environment applies the root rules to the mapping it gets."""
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "sandbox-local"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "sandbox-home"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "sandbox-home"))
         local = tmp_path / "local"
         user = tmp_path / "user"
         custom = tmp_path / "data"
         cases = [
             ({"LOCALAPPDATA": str(local)}, local / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": str(local / "hermes" / "profiles" / "work")},
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": str(local / "hermes" / "profiles" / "work")},
              local / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": str(custom / "profiles" / "work")}, custom),
-            ({"LOCALAPPDATA": str(local), "HERMES_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
-            ({"localappdata": str(local), "HERMES_HOME": "%LocalAppData%\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "HERMES_HOME": "~\\data"}, user / "data"),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": str(custom / "profiles" / "work")}, custom),
+            ({"LOCALAPPDATA": str(local), "KOVA_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
+            ({"localappdata": str(local), "KOVA_HOME": "%LocalAppData%\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "KOVA_HOME": "~\\data"}, user / "data"),
             ({"USERPROFILE": str(user)}, user / "AppData" / "Local" / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "relative\\data"}, None),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "%UNDEFINED%\\data"}, None),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "~\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": "relative\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": "%UNDEFINED%\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": "~\\data"}, None),
             ({}, None),
         ]
         for environ, root in cases:
-            assert kova_constants.hermes_root_for_environment(environ) == root, environ
+            assert kova_constants.kova_root_for_environment(environ) == root, environ
 
 
 
 
 
 
-class TestGetHermesHome:
-    """Tests for get_hermes_home() platform-aware fallback."""
+class TestGetKovaHome:
+    """Tests for get_kova_home() platform-aware fallback."""
 
     def test_warn_once_latch_engages_on_first_check_even_without_warning(self, tmp_path, monkeypatch):
         """Regression for #90065: the latch must engage on the first check even when there is
-        nothing to warn about, otherwise every get_hermes_home() call re-stats active_profile."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        nothing to warn about, otherwise every get_kova_home() call re-stats active_profile."""
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setattr(kova_constants, "_profile_fallback_warned", False)
-        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_kova_home", lambda: tmp_path)
 
-        get_hermes_home()
+        get_kova_home()
         assert kova_constants._profile_fallback_warned is True
 
     @pytest.mark.platforms("windows")
     def test_windows_fallback_uses_localappdata(self, tmp_path, monkeypatch):
-        """When HERMES_HOME is unset on Windows, use %LOCALAPPDATA%\\hermes."""
+        """When KOVA_HOME is unset on Windows, use %LOCALAPPDATA%\\hermes."""
         local_appdata = tmp_path / "LocalAppData"
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
         monkeypatch.setattr(kova_constants, "_profile_fallback_warned", False)
 
-        assert get_hermes_home() == local_appdata / "hermes"
+        assert get_kova_home() == local_appdata / "hermes"
 
 
-class TestGetProcessHermesHome:
-    """Tests for get_process_hermes_home() — process launch scope.
+class TestGetProcessKovaHome:
+    """Tests for get_process_kova_home() — process launch scope.
 
     Contract: resolve only the process env / platform default, and never
     follow the context-local override that per-task profile scoping installs
-    via set_hermes_home_override().
+    via set_kova_home_override().
     """
 
     def test_env_set_returns_that_path(self, tmp_path, monkeypatch):
         home = tmp_path / "launch-home"
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        assert get_process_hermes_home() == home
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        assert get_process_kova_home() == home
 
     def test_process_and_context_homes_expand_environment_and_user_syntax(
         self, tmp_path, monkeypatch
@@ -148,16 +148,16 @@ class TestGetProcessHermesHome:
 
         for syntax in (home_token, "~"):
             process_home = tmp_path / "process-home"
-            monkeypatch.setenv("HERMES_HOME", f"{syntax}/process-home")
-            assert get_process_hermes_home() == process_home
+            monkeypatch.setenv("KOVA_HOME", f"{syntax}/process-home")
+            assert get_process_kova_home() == process_home
 
             override_home = tmp_path / "override-home"
-            token = set_hermes_home_override(f"{syntax}/override-home")
+            token = set_kova_home_override(f"{syntax}/override-home")
             try:
-                assert get_hermes_home() == override_home
-                assert get_process_hermes_home() == process_home
+                assert get_kova_home() == override_home
+                assert get_process_kova_home() == process_home
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
 
 
@@ -404,7 +404,7 @@ class TestSecureParentDir:
 
     def test_safe_path_calls_chmod(self, tmp_path, monkeypatch):
         """Normal nested path (depth >= 3) should call os.chmod."""
-        safe_dir = tmp_path / "home" / "user" / ".hermes"
+        safe_dir = tmp_path / "home" / "user" / ".kova"
         safe_dir.mkdir(parents=True)
         target = safe_dir / "auth.json"
         target.touch()
@@ -504,7 +504,7 @@ class TestSecureParentDir:
         assert called_with[0] == (str(real_dir), 0o700)
 
 
-class TestGetHermesDir:
+class TestGetKovaDir:
     """Tests for ``get_hermes_dir(new_subpath, old_name)``.
 
     Contract: prefer the legacy ``<old_name>/`` location, but only when
@@ -514,7 +514,7 @@ class TestGetHermesDir:
     """
 
     def _set_home(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     def test_neither_exists_returns_new(self, tmp_path, monkeypatch):
         self._set_home(tmp_path, monkeypatch)
@@ -598,7 +598,7 @@ class TestWslPathTranslation:
 
 
 class TestProjectVenvDirOutOfTree:
-    """#116148: a checkout with no in-tree venv whose interpreter lives in ``$HERMES_HOME/venvs/<name>``
+    """#116148: a checkout with no in-tree venv whose interpreter lives in ``$KOVA_HOME/venvs/<name>``
     (the layout the shipped Windows launchers pin) must resolve to the running interpreter's venv,
     never ``None`` — every updater call site turns ``None`` into a fabricated ``<checkout>/venv`` that
     uv cannot inspect, so tool dependencies are never refreshed."""
@@ -616,12 +616,12 @@ class TestProjectVenvDirOutOfTree:
         kova_constants.venv_python_path(venv).write_text("", encoding="utf-8")
         dist_info = site_packages(venv) / "kova_agent-0.0.0.dist-info"
         dist_info.mkdir(parents=True)
-        (dist_info / "METADATA").write_text("Name: hermes-agent\nVersion: 0.0.0\n", encoding="utf-8")
+        (dist_info / "METADATA").write_text("Name: kova-agent\nVersion: 0.0.0\n", encoding="utf-8")
         (dist_info / "direct_url.json").write_text(
             json.dumps({"url": source.resolve().as_uri(), "dir_info": {"editable": True}}), encoding="utf-8")
 
     def test_out_of_tree_install_resolves_the_running_interpreter_venv(self, monkeypatch, tmp_path):
-        checkout = tmp_path / "hermes-agent"
+        checkout = tmp_path / "kova-agent"
         checkout.mkdir()
         venv = tmp_path / "venvs" / "hermes"
         self._venv_installed_from(venv, checkout)
@@ -633,9 +633,9 @@ class TestProjectVenvDirOutOfTree:
         """``PYTHONPATH=<dev checkout> <app venv>/bin/python``: the code comes from the dev checkout,
         but the venv belongs to the app install. Claiming it pointed the dev checkout's update sync at
         the app's venv, which became an editable install of the dev tree."""
-        dev = tmp_path / "dev" / "hermes-agent"
+        dev = tmp_path / "dev" / "kova-agent"
         dev.mkdir(parents=True)
-        app = tmp_path / "app" / "hermes-agent"
+        app = tmp_path / "app" / "kova-agent"
         app.mkdir(parents=True)
         venv = tmp_path / "app" / "venv"
         self._venv_installed_from(venv, app)
@@ -645,7 +645,7 @@ class TestProjectVenvDirOutOfTree:
 
     def test_foreign_root_and_in_tree_venv_are_unchanged(self, monkeypatch, tmp_path):
         """A temp dir / another clone never claims the running venv; an in-tree venv still wins."""
-        checkout = tmp_path / "hermes-agent"
+        checkout = tmp_path / "kova-agent"
         checkout.mkdir()
         venv = tmp_path / "venvs" / "hermes"
         self._venv_installed_from(venv, checkout)

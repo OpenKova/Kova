@@ -5,7 +5,7 @@
  * so a remote/SSH/Cloud connection (another machine) never imports. Main decides "local" from the route's
  * resolved connection, never from a renderer flag.
  *
- * No cookie decryption here or in the backend: the user's real browser, running on the Hermes-owned profile
+ * No cookie decryption here or in the backend: the user's real browser, running on the Kova-owned profile
  * snapshot, decrypts its own store, and `hermes browser export-signins --json` (a local child of the owning
  * profile, which re-checks consent itself) reads it over CDP and writes the list to its stdout pipe. Values
  * go from that pipe straight into the partition's cookie jar; the renderer gets counts only. The identities
@@ -87,12 +87,12 @@ export function runSigninExport(
 ): Promise<ExportVerdict> {
   return new Promise(resolve => {
     if (!backend.command) {
-      resolve({ status: 'error', error: 'Hermes runtime is not available' })
+      resolve({ status: 'error', error: 'Kova runtime is not available' })
 
       return
     }
 
-    const env = { ...parentEnv, HERMES_HOME: home, ...backend.env }
+    const env = { ...parentEnv, KOVA_HOME: home, ...backend.env }
     const child = spawn(windowsShellCommand(backend.command, Boolean(backend.shell)), backend.args, hiddenWindowsChildOptions({ cwd, env, shell: backend.shell, stdio: ['ignore', 'pipe', 'pipe'] }))
     const chunks: Buffer[] = []
     let size = 0
@@ -121,7 +121,7 @@ export function runSigninExport(
     })
     child.on('error', () => {
       clearTimeout(timer)
-      resolve({ status: 'error', error: 'could not run the Hermes sign-in export' })
+      resolve({ status: 'error', error: 'could not run the Kova sign-in export' })
     })
     child.on('close', code => {
       clearTimeout(timer)

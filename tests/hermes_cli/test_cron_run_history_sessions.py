@@ -26,9 +26,9 @@ def owner(tmp_path, monkeypatch):
     (without running an agent turn) into the state.db the dashboard routes read."""
     from kova_cli import profiles
 
-    home = tmp_path / '.hermes'
+    home = tmp_path / '.kova'
     (home / 'cron').mkdir(parents=True)
-    monkeypatch.setattr(profiles, '_get_default_hermes_home', lambda: home)
+    monkeypatch.setattr(profiles, '_get_default_kova_home', lambda: home)
     monkeypatch.setattr(profiles, '_get_profiles_root', lambda: home / 'profiles')
     authority = cron_owner(home, monkeypatch)
     # Pin the configured zone so the output writer and the run-history reader resolve the same

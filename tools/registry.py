@@ -1,4 +1,4 @@
-"""Central registry for all hermes-agent tools: each tool file calls ``registry.register()``
+"""Central registry for all kova-agent tools: each tool file calls ``registry.register()``
 at import to declare schema, handler, toolset membership and availability check;
 ``model_tools.py`` queries the registry instead of keeping parallel data structures.
 Cycle-safe import chain: this module imports nothing from model_tools or tool files;
@@ -20,7 +20,7 @@ from contextvars import ContextVar
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set
 
-from kova_constants import hermes_home_key, normalize_scope
+from kova_constants import kova_home_key, normalize_scope
 
 logger = logging.getLogger(__name__)
 
@@ -179,8 +179,8 @@ def _discovery_cache_path() -> Optional[Path]:
     """Path of the tool-discovery verdict cache, or None if unresolvable."""
     try:
         # Deferred import keeps tools/registry.py a no-deps leaf at import time.
-        from kova_constants import get_hermes_home
-        return Path(get_hermes_home()) / "cache" / "tool_discovery_cache.json"
+        from kova_constants import get_kova_home
+        return Path(get_kova_home()) / "cache" / "tool_discovery_cache.json"
     except Exception:
         return None
 
@@ -205,8 +205,8 @@ def _save_discovery_cache(cache: dict[str, list]) -> None:
         return
     try:
         from utils import atomic_json_write  # stdlib+yaml only; no cycle
-        from kova_constants import mkdir_under_hermes_home
-        mkdir_under_hermes_home(path.parent)
+        from kova_constants import mkdir_under_kova_home
+        mkdir_under_kova_home(path.parent)
         atomic_json_write(path, cache, indent=0)
     except Exception as e:
         logger.debug("Could not write tool discovery cache %s: %s", path, e)
@@ -328,14 +328,14 @@ def _prune_check_fn_caches(now: float) -> None:
 
 def check_fn_cache_scope() -> Optional[str]:
     """Return the active profile key when availability is profile-scoped. Single-profile
-    processes keep the process-wide cache; a multiplex gateway installs a Hermes-home override
+    processes keep the process-wide cache; a multiplex gateway installs a Kova-home override
     per profile turn, so the canonical profile key is the boundary."""
     try:
         from agent.secret_scope import serves_routed_profile
-        from kova_constants import get_hermes_home_override
+        from kova_constants import get_kova_home_override
         if not serves_routed_profile():
             return None
-        override = get_hermes_home_override()
+        override = get_kova_home_override()
         return str(Path(override).expanduser().resolve()) if override else CHECK_FN_CACHE_BYPASS
     except Exception:
         # Fail closed: bypass both cache layers rather than aliasing requests
@@ -445,10 +445,10 @@ def _check_fn_cached(fn: Callable) -> bool:
 
 
 def _core_tools_gated_by(fn: Callable) -> set[str]:
-    """Names of ``_HERMES_CORE_TOOLS`` members whose registered ``check_fn`` is *fn*."""
+    """Names of ``_KOVA_CORE_TOOLS`` members whose registered ``check_fn`` is *fn*."""
     try:
-        from toolsets import _HERMES_CORE_TOOLS
-        core = frozenset(_HERMES_CORE_TOOLS)
+        from toolsets import _KOVA_CORE_TOOLS
+        core = frozenset(_KOVA_CORE_TOOLS)
     except Exception:
         return set()
     return {e.name for e in registry._snapshot_entries() if e.check_fn is fn and e.name in core}
@@ -490,7 +490,7 @@ class ToolRegistry:
 
     def __init__(self):
         self._tools: dict[str, ToolEntry] = {}  # built-in / process-global registrations
-        # Plugin overlays keyed by resolved HERMES_HOME; a profile sees its overlay first.
+        # Plugin overlays keyed by resolved KOVA_HOME; a profile sees its overlay first.
         self._scoped_tools: dict[str, dict[str, ToolEntry]] = {}
         # Plugin namespace -> operator opt-in for built-in override (lifecycle-managed);
         # scope attribution stays durable after policy removal so delayed callbacks
@@ -506,7 +506,7 @@ class ToolRegistry:
 
     @staticmethod
     def current_scope_key() -> str:
-        return hermes_home_key()
+        return kova_home_key()
 
     @staticmethod
     def _grouped(entries: list[ToolEntry]) -> dict[str, list[ToolEntry]]:
@@ -531,7 +531,7 @@ class ToolRegistry:
 
     def _merged_tools(self, scope: Optional[str] = None) -> dict[str, ToolEntry]:
         """Return global tools overlaid with one profile's plugin tools."""
-        entries = {**self._tools, **self._scoped_tools.get(hermes_home_key(scope), {})}
+        entries = {**self._tools, **self._scoped_tools.get(kova_home_key(scope), {})}
         if scope is None:
             entries.update(self._scoped_tools.get(_session_slot_key(), {}))
         return entries

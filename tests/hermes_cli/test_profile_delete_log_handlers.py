@@ -16,22 +16,22 @@ import pytest
 
 import kova_logging
 from kova_cli import profiles
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 
 @pytest.fixture
 def routed_profile(tmp_path, monkeypatch):
     """A default home logging in-process plus a created profile; host services are not touched."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(profiles, "_cleanup_gateway_service", lambda *_: None)
     monkeypatch.setattr(profiles, "_maybe_unregister_gateway_service", lambda *_: None)
     monkeypatch.setattr(profiles, "_stop_profile_backends", lambda *_: None)
     monkeypatch.setattr(profiles, "_notify_multiplexer", lambda *_: None)
     profile = profiles.create_profile("routed-log-delete", no_alias=True)
-    kova_logging.setup_logging(hermes_home=home, force=True)
+    kova_logging.setup_logging(kova_home=home, force=True)
     try:
         yield home, profile
     finally:
@@ -42,17 +42,17 @@ def routed_profile(tmp_path, monkeypatch):
 
 def _log_into(profile: Path, *, adopt: bool) -> None:
     """Route one record to *profile*: explicitly (Desktop cron startup) or through the
-    ``setup_logging(hermes_home=<profile>)`` adoption path ``agent_init`` takes."""
+    ``setup_logging(kova_home=<profile>)`` adoption path ``agent_init`` takes."""
     logger = logging.getLogger("agent.tests.profile-delete")
-    token = set_hermes_home_override(profile)
+    token = set_kova_home_override(profile)
     try:
         if adopt:
-            kova_logging.setup_logging(hermes_home=profile)
+            kova_logging.setup_logging(kova_home=profile)
         else:
             assert kova_logging.enable_profile_log_routing([Path(profile).parent.parent, profile]) is True
         logger.error("routed record before deletion")
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     kova_logging.flush_log_queue()
     assert "routed record before deletion" in (profile / "logs" / "agent.log").read_text(encoding="utf-8")
 

@@ -25,7 +25,7 @@ def register_cli(parser: argparse.ArgumentParser) -> None:
     """Wire up `hermes photon ...` subcommands."""
     subs = parser.add_subparsers(dest="photon_command", required=False)
     p_setup = subs.add_parser("setup", help="First-time setup (device login + project + user + sidecar)")
-    p_setup.add_argument("--project-name", default=None, help="Project name (default: 'Hermes Agent')")
+    p_setup.add_argument("--project-name", default=None, help="Project name (default: 'Kova Agent')")
     p_setup.add_argument("--phone", default=None, help="Your E.164 phone number (e.g. +15551234567)")
     p_setup.add_argument("--first-name", default=None)
     p_setup.add_argument("--last-name", default=None)
@@ -328,7 +328,7 @@ def _cmd_status(_args: argparse.Namespace) -> int:
 
 
 def _telemetry_enabled() -> bool:
-    """PHOTON_TELEMETRY from env / ~/.hermes/.env; truthy set mirrors the sidecar's."""
+    """PHOTON_TELEMETRY from env / ~/.kova/.env; truthy set mirrors the sidecar's."""
     try:
         from kova_cli.config import get_env_value
         raw = get_env_value("PHOTON_TELEMETRY")
@@ -349,7 +349,7 @@ def _cmd_telemetry(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"could not save PHOTON_TELEMETRY: {e}", file=sys.stderr)
         return 1
-    print(f"✓ Spectrum telemetry turned {state} (PHOTON_TELEMETRY in ~/.hermes/.env)")
+    print(f"✓ Spectrum telemetry turned {state} (PHOTON_TELEMETRY in ~/.kova/.env)")
     print("  Restart the gateway for the sidecar to pick it up:  hermes gateway restart")
     return 0
 

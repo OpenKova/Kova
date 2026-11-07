@@ -1,4 +1,4 @@
-"""Login shells in the image keep Hermes' own dirs on PATH.
+"""Login shells in the image keep Kova' own dirs on PATH.
 
 Debian's ``/etc/profile`` resets PATH for every login shell, so without
 ``/etc/profile.d/hermes.sh`` a ``bash -l`` (``docker exec <c> bash -l``, ssh, the

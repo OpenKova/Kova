@@ -11,7 +11,7 @@ from kova_cli import update_cmd_fleet_verify as fleet_verify
 from kova_cli import update_receipt
 from kova_cli.update_inventory import RuntimeRecord, UpdatePlan
 from kova_cli.update_serve_obligations import defer_manual_serve, retain_receipt_manual_serves
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.mark.parametrize("kind", ["serve", "dashboard"])
@@ -33,7 +33,7 @@ def test_manual_deferral_survives_receipt_rotation(monkeypatch, capsys, kind, co
     if condition == "unknown":
         monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: None)
     elif condition == "write-error":
-        (get_hermes_home() / "serve_restart_pending").write_text("not a directory")
+        (get_kova_home() / "serve_restart_pending").write_text("not a directory")
     elif condition == "missing-identity":
         runtime.detail.clear()
     elif condition == "failed-unit":
@@ -84,7 +84,7 @@ def test_historical_manual_obligation_does_not_block_healthy_gateway(monkeypatch
     if not gateway_present:
         receipt["plan"]["runtimes"] = [asdict(runtime)]
         receipt["fleet"] = []
-    root = get_hermes_home() / "logs" / "update_receipts"
+    root = get_kova_home() / "logs" / "update_receipts"
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(fleet, "_current_checkout_sha", lambda: "new")
@@ -109,7 +109,7 @@ def test_historical_manual_obligation_does_not_block_healthy_gateway(monkeypatch
 def test_stamped_manual_only_history_has_no_gateway_obligation(monkeypatch, capsys, marker):
     runtime = asdict(RuntimeRecord(kind="serve", profile="work", pid=900, code_sha="old", supervisor="manual-serve", restart_via="respawn-argv", detail={"create_time": 1000.0}))
     receipt = {"outcome": "partial", "plan": {"runtimes": [runtime]}, "fleet": []}
-    root = get_hermes_home() / "logs" / "update_receipts"
+    root = get_kova_home() / "logs" / "update_receipts"
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
@@ -134,7 +134,7 @@ def test_historical_retention_is_independent_of_plan_order(monkeypatch, capsys, 
     manual = asdict(RuntimeRecord(kind="serve", profile="work", pid=900, supervisor="manual-serve", restart_via="respawn-argv", detail={"create_time": 1000.0}))
     rows = [manual, unsupported] if manual_first else [unsupported, manual]
     receipt = {"outcome": "partial", "plan": {"runtimes": [{"kind": "gateway", "profile": "default"}, *rows]}, "fleet": [{"profile": "default", "state": "current", "code_sha": "new"}]}
-    root = get_hermes_home() / "logs" / "update_receipts"
+    root = get_kova_home() / "logs" / "update_receipts"
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
@@ -142,7 +142,7 @@ def test_historical_retention_is_independent_of_plan_order(monkeypatch, capsys, 
     from kova_cli.update_serve_obligations import retain_receipt_manual_serves
     pending_manual = retain_receipt_manual_serves(receipt)
     assert fleet._receipt_owed_gateways(receipt, pending_manual) is None
-    assert list((get_hermes_home() / "serve_restart_pending").glob("*.json"))
+    assert list((get_kova_home() / "serve_restart_pending").glob("*.json"))
     update_receipt.begin_update_receipt()
     update_receipt.finalize_update_receipt("success", fleet=[])
     fleet._warn_pending_fleet_restart_on_startup()
@@ -157,13 +157,13 @@ def test_historical_retention_failure_warns_and_survives_rotation(monkeypatch, c
 
     manual = asdict(RuntimeRecord(kind="serve", profile="work", pid=900, supervisor="manual-serve", restart_via="respawn-argv", detail={"create_time": 1000.0}))
     receipt = {"outcome": "partial", "plan": {"runtimes": [manual]}, "fleet": [{"profile": "default", "state": gateway_state, "code_sha": "new"}]}
-    root = get_hermes_home() / "logs" / "update_receipts"
+    root = get_kova_home() / "logs" / "update_receipts"
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps(receipt))
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
     monkeypatch.setattr("kova_cli.update_cmd._current_checkout_sha", lambda: "new")
     monkeypatch.setattr(update_receipt, "collect_fleet_versions", lambda **k: [{"profile": "default", "state": "current", "code_sha": "new"}])
-    directory = get_hermes_home() / "serve_restart_pending"
+    directory = get_kova_home() / "serve_restart_pending"
 
     def fail(*args, **kwargs):
         raise OSError("injected persistence failure")
@@ -216,10 +216,10 @@ def test_unsaved_manual_restart_warning_survives_a_running_and_a_killed_update(m
     yet): the startup warning must read them while an update runs, after one is killed before its
     ``plan`` stage, and the next run must carry them forward again."""
     manual = asdict(RuntimeRecord(kind="serve", profile="work", pid=900, supervisor="manual-serve", restart_via="respawn-argv", detail={"create_time": 1000.0}))
-    root = get_hermes_home() / "logs" / "update_receipts"
+    root = get_kova_home() / "logs" / "update_receipts"
     root.mkdir(parents=True, exist_ok=True)
     (root / "latest.json").write_text(json.dumps({"outcome": "partial", "plan": {"runtimes": [manual]}}))
-    (get_hermes_home() / "serve_restart_pending").write_text("not a directory")  # the reminder can't be filed
+    (get_kova_home() / "serve_restart_pending").write_text("not a directory")  # the reminder can't be filed
     monkeypatch.setattr(process_identity, "_pid_alive_matches", lambda *a: True)
 
     update_receipt.begin_update_receipt()  # running record replaces latest.json

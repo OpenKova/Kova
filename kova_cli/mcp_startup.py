@@ -8,10 +8,10 @@ from contextlib import contextmanager, nullcontext
 from contextvars import copy_context
 from typing import Dict, Iterator, Optional, Set
 
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 
 _mcp_discovery_lock = threading.Lock()
-# Discovery slot per profile home (``hermes_home_key()`` follows the context-local HERMES_HOME
+# Discovery slot per profile home (``kova_home_key()`` follows the context-local KOVA_HOME
 # override): a shared Desktop/dashboard backend serving several profiles runs one discovery per
 # profile instead of the first profile to build an agent claiming the slot for everybody (#67605).
 # A single-profile process has exactly one key, so behaviour is the old single-slot form.
@@ -99,7 +99,7 @@ def start_background_mcp_discovery(*, logger, thread_name: str) -> None:
     Desktop backend) is connected by the next call, which every agent build makes, so a new session
     gets its tools without a reload (#76954). Discovery is additive: live servers are untouched.
     """
-    home_key = hermes_home_key()
+    home_key = kova_home_key()
     with _mcp_discovery_lock:
         if home_key in _mcp_discovery_started:
             thread = _mcp_discovery_thread.get(home_key)
@@ -127,7 +127,7 @@ def start_background_mcp_discovery(*, logger, thread_name: str) -> None:
             return
 
         # Bare threads start from an empty context: run discovery under a copy of the caller's, so
-        # the context-local HERMES_HOME override (multi-profile dashboard/desktop backends, #67605)
+        # the context-local KOVA_HOME override (multi-profile dashboard/desktop backends, #67605)
         # AND the profile's secret scope reach it. Without the scope a session switched to profile
         # X would discover the LAUNCH profile's mcp_servers, and ``${TOKEN}`` interpolation / the
         # stdio child env would fail closed (multiplex) or resolve the launch profile's value.
@@ -227,7 +227,7 @@ def defer_background_mcp_discovery(*, logger, thread_name: str, delay: float | N
     """
     global _mcp_discovery_deferred
     with _mcp_discovery_lock:
-        if hermes_home_key() in _mcp_discovery_started or _mcp_discovery_deferred is not None:
+        if kova_home_key() in _mcp_discovery_started or _mcp_discovery_deferred is not None:
             return
 
         def _fire() -> None:
@@ -273,7 +273,7 @@ def wait_for_mcp_discovery(timeout: float | None = None, *, single_query: bool =
 
 def _current_home_thread() -> Optional[threading.Thread]:
     """Discovery thread for the profile home the caller is scoped to, if any."""
-    return _mcp_discovery_thread.get(hermes_home_key())
+    return _mcp_discovery_thread.get(kova_home_key())
 
 
 def mcp_discovery_in_flight() -> bool:

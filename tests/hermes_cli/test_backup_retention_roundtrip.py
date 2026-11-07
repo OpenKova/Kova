@@ -25,10 +25,10 @@ def test_run_backup_prunes_older_default_named_zips_but_not_others(tmp_path, mon
     from argparse import Namespace
     from kova_cli import backup as backup_mod
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "config.yaml").write_text("model: x\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     for i in range(4):
         (tmp_path / f"hermes-backup-2026-01-0{i + 1}-000000.zip").write_bytes(b"old")
@@ -46,10 +46,10 @@ def test_import_restores_the_session_store_with_its_message_uids(tmp_path, monke
     message ids come back with the rows."""
     from kova_state import SessionDB
 
-    hermes_home = tmp_path / ".hermes"
-    hermes_home.mkdir()
-    _make_hermes_tree(hermes_home)
-    db = SessionDB(db_path=hermes_home / "state.db")
+    kova_home = tmp_path / ".kova"
+    kova_home.mkdir()
+    _make_hermes_tree(kova_home)
+    db = SessionDB(db_path=kova_home / "state.db")
     try:
         db.create_session("s", "cli", model="m")
         db.append_message(session_id="s", role="user", content="q")
@@ -59,17 +59,17 @@ def test_import_restores_the_session_store_with_its_message_uids(tmp_path, monke
         db.close()
     assert len(uids) == 2 and all(len(u) == 32 for u in uids)
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     from kova_cli.backup import run_backup, run_import
 
     out_zip = tmp_path / "backup.zip"
     run_backup(Namespace(output=str(out_zip)))
     for name in ("state.db", "state.db-wal", "state.db-shm"):
-        (hermes_home / name).unlink(missing_ok=True)
+        (kova_home / name).unlink(missing_ok=True)
     assert run_import(Namespace(zipfile=str(out_zip), force=True)) is None
 
-    restored = SessionDB(db_path=hermes_home / "state.db")
+    restored = SessionDB(db_path=kova_home / "state.db")
     try:
         assert [m["message_uid"] for m in restored.get_messages_as_conversation("s")] == uids
     finally:

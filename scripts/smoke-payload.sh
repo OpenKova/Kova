@@ -18,7 +18,7 @@ try {
   renameSync(original, moved)
   relocated = true
   const manifest = JSON.parse(readFileSync(join(moved, 'manifest.json'), 'utf8'))
-  const command = manifest.runtime.commands.hermes
+  const command = manifest.runtime.commands.kova
   if (!command) throw new Error('manifest has no hermes command')
   const executable = realpathSync(resolve(moved, command))
   const inside = relative(realpathSync(moved), executable)
@@ -27,8 +27,8 @@ try {
   }
   const home = join(scratch, 'home')
   mkdirSync(home)
-  const env = { HOME: home, USERPROFILE: home, HERMES_HOME: join(home, '.hermes'),
-    PYTHONUTF8: '1', PYTHONDONTWRITEBYTECODE: '1', HERMES_DISABLE_LAZY_INSTALLS: '1',
+  const env = { HOME: home, USERPROFILE: home, KOVA_HOME: join(home, '.kova'),
+    PYTHONUTF8: '1', PYTHONDONTWRITEBYTECODE: '1', KOVA_DISABLE_LAZY_INSTALLS: '1',
     UV_OFFLINE: '1', npm_config_offline: 'true' }
   // Keep OS process necessities only; no checkout, Python, PM, or Node overrides.
   for (const [key, value] of Object.entries(process.env)) {

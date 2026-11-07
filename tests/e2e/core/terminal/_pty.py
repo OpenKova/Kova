@@ -1,6 +1,6 @@
 """Drive a real ``hermes`` CLI / Ink TUI process under a real PTY, rendered through :mod:`._vt`.
 
-The child runs with an isolated HOME/HERMES_HOME (only the fake LLM provider configured, no
+The child runs with an isolated HOME/KOVA_HOME (only the fake LLM provider configured, no
 inherited credentials) as the session leader of its own PTY, so SIGWINCH from a resize reaches the
 foreground process group exactly as in a terminal emulator, and every process it spawns can be
 found afterwards by session id (orphans keep the sid even after being reparented to init).
@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Callable
 
 from tests.e2e.core.terminal._vt import Screen
-from tests.fakes.fake_llm_provider import FakeLLMServer, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, write_kova_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
@@ -113,20 +113,20 @@ def cmdline(pid: int) -> str:
         return "?"
 
 
-class PtyHermes:
+class PtyKova:
     """One interactive ``hermes`` process on a PTY with an emulated screen."""
 
     def __init__(self, root: Path, argv_tail: list[str], llm: FakeLLMServer | None, *, rows: int, cols: int,
                  extra_config: str = "") -> None:
-        """``llm=None``: the caller already wrote ``root/home/.hermes`` (e.g. a native-runtime home)."""
+        """``llm=None``: the caller already wrote ``root/home/.kova`` (e.g. a native-runtime home)."""
         self.root = root
         self.home = root / "home"
-        self.hermes_home = self.home / ".hermes"
-        operator = (_operator_home() / ".hermes").resolve()
-        assert operator not in (self.hermes_home.resolve(), *self.hermes_home.resolve().parents), (
-            f"sandbox {self.hermes_home} sits inside the operator's Hermes home")
+        self.kova_home = self.home / ".kova"
+        operator = (_operator_home() / ".kova").resolve()
+        assert operator not in (self.kova_home.resolve(), *self.kova_home.resolve().parents), (
+            f"sandbox {self.kova_home} sits inside the operator's Kova home")
         if llm is not None:
-            write_hermes_home(self.hermes_home, llm.base_url, extra_config=extra_config)
+            write_kova_home(self.kova_home, llm.base_url, extra_config=extra_config)
         self.llm = llm
         self.screen = Screen(rows, cols)
         self.raw = bytearray()
@@ -135,9 +135,9 @@ class PtyHermes:
         (root / "work").mkdir(parents=True, exist_ok=True)
         env = {k: os.environ[k] for k in ("PATH", "LANG", "LC_ALL") if k in os.environ}
         env.update(
-            HOME=str(self.home), HERMES_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
+            HOME=str(self.home), KOVA_HOME=str(self.kova_home), PYTHONPATH=str(REPO_ROOT),
             TMPDIR=str(root / "tmp"), TERM="xterm-256color", COLORTERM="truecolor",
-            PYTHONUNBUFFERED="1", HERMES_STATE_DB_GUARD_BYPASS="1",
+            PYTHONUNBUFFERED="1", KOVA_STATE_DB_GUARD_BYPASS="1",
         )
         master, slave = os.openpty()
         self._set_winsize(master, rows, cols)
@@ -368,7 +368,7 @@ class PtyHermes:
 
     def persisted_messages(self) -> list[tuple[str, str, str]]:
         """(session_id, role, content) for every user/assistant row in the sandbox state.db."""
-        db = self.hermes_home / "state.db"
+        db = self.kova_home / "state.db"
         if not db.exists():
             return []
         conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)

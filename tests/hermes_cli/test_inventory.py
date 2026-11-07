@@ -237,7 +237,7 @@ def test_explicit_only_filters_ambient_credentials_but_keeps_current_and_custom_
 def test_explicit_only_keeps_anthropic_row_with_oauth_credentials():
     """Anthropic OAuth logins are deliberate sign-ins, not ambient credentials.
 
-    Claude Code (~/.claude/.credentials.json) and Hermes' own device flow
+    Claude Code (~/.claude/.credentials.json) and Kova' own device flow
     leave no trace in active_provider / model.provider / API-key env vars,
     so is_provider_explicitly_configured() returns False even though
     list_authenticated_providers just accepted those same credentials when
@@ -696,7 +696,7 @@ def test_picker_metadata_uses_one_config_read_for_real_models_dev_lookups(tmp_pa
         "model_overrides: {}\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     config_module._LOAD_CONFIG_CACHE.clear()
     config_module._RAW_CONFIG_CACHE.clear()
 

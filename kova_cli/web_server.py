@@ -1,4 +1,4 @@
-"""Hermes Agent — Web UI server: FastAPI app assembly, auth/host middleware, ``start_server``.
+"""Kova Agent — Web UI server: FastAPI app assembly, auth/host middleware, ``start_server``.
 
 Route handlers live in ``web_routers/``; their helpers live in the sibling
 ``web_server_<concern>`` modules and are re-imported here so ``web_server.<name>``
@@ -60,10 +60,10 @@ except ImportError:
     except Exception:
         raise SystemExit(
             "Web UI requires fastapi and uvicorn.\n"
-            "Run hermes pm repair, then restart Hermes."
+            "Run kova pm repair, then restart Kova."
         )
 
-WEB_DIST = Path(os.environ["HERMES_WEB_DIST"]) if "HERMES_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
+WEB_DIST = Path(os.environ["KOVA_WEB_DIST"]) if "KOVA_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
 _log = logging.getLogger(__name__)
 
 
@@ -110,10 +110,10 @@ def _start_desktop_cron_ticker(stop_event: threading.Event, interval: int = 60) 
     ("tasks on the sleeping profile could be idle" — community report, Aug 2026).
     """
     from cron.scheduler_provider import InProcessCronScheduler, resolve_cron_scheduler
-    from kova_constants import get_hermes_home, profile_name_for_home
+    from kova_constants import get_kova_home, profile_name_for_home
 
     provider = resolve_cron_scheduler()
-    own_home = Path(get_hermes_home())
+    own_home = Path(get_kova_home())
     own_name = profile_name_for_home(own_home) or "default"
     # Ownership is re-checked every tick, not once at startup, so Desktop takes over when the
     # gateway stops (#126822).
@@ -164,7 +164,7 @@ def _start_desktop_cron_ticker(stop_event: threading.Event, interval: int = 60) 
 
         if _owned():
             _log.info(
-                "Desktop cron scheduler waiting: live gateway owns cron on this HERMES_HOME; "
+                "Desktop cron scheduler waiting: live gateway owns cron on this KOVA_HOME; "
                 "the gateway ticks with live adapters (re-probing every %ds)", interval,
             )
             while True:
@@ -207,7 +207,7 @@ def _get_pty_active_session_files(app: FastAPI) -> dict[str, Path]:
     return _app_state_default(app, "pty_active_session_files", dict)
 
 
-app = FastAPI(title="Hermes Agent", version=get_version_info().base_version, lifespan=app_lifespan)
+app = FastAPI(title="Kova Agent", version=get_version_info().base_version, lifespan=app_lifespan)
 
 from kova_cli.dashboard_auth.body_limit import AuthBodyLimitMiddleware
 
@@ -224,7 +224,7 @@ app.include_router(_memory_oauth_router)
 # web_server_session_token sibling; it dies with the process and is injected
 # into the SPA HTML so only the web UI can use it.
 _SESSION_TOKEN = resolve_session_token()
-_SESSION_HEADER_NAME = "X-Hermes-Session-Token"
+_SESSION_HEADER_NAME = "X-Kova-Session-Token"
 _SSH_OWNER_NONCE: Optional[str] = None
 _SSH_RUNTIME_PURELIB: Optional[tuple[str, int, int]] = None
 _SSH_RUNTIME_MARKER: Optional[str] = None
@@ -251,7 +251,7 @@ def _apply_ssh_owner_nonce(nonce: Optional[str]) -> None:
         # snapshot alone is NOT enough: ext4 reuses directory inodes at once,
         # so `rm -rf venv && uv venv` can land on the same inode undetected.
         try:
-            marker = os.path.join(purelib, f".hermes-ssh-runtime-{nonce}")
+            marker = os.path.join(purelib, f".kova-ssh-runtime-{nonce}")
             with open(marker, "w", encoding="utf-8") as fh:
                 fh.write(f"pid={os.getpid()}\n")
             _SSH_RUNTIME_MARKER = marker
@@ -665,7 +665,7 @@ _FS_DATA_URL_MAX_BYTES = WEBAPP_ATTACHMENT_MAX_BYTES
 _UPLOAD_CHUNK_BYTES = 1024 * 1024
 
 # Stable install identity for /api/status: one uuid4 hex per physical install,
-# persisted under the ROOT Hermes home (not the profile HERMES_HOME) so every
+# persisted under the ROOT Kova home (not the profile KOVA_HOME) so every
 # profile reports the same id and the desktop can collapse duplicate roster rows
 # for one backend. Must never change across restarts, so cached per process.
 _INSTALL_ID_CACHE: dict[str, Optional[str]] = {"root": None, "value": None}
@@ -906,7 +906,7 @@ def _no_auth_provider_message(host: str) -> str:
         fix_hint = (
             "If this dashboard should be LOCAL-ONLY (no reverse "
             f"proxy), remove {setting} from config.yaml "
-            + ("(and unset HERMES_DASHBOARD_PUBLIC_URL) " if own_url is None else "")
+            + ("(and unset KOVA_DASHBOARD_PUBLIC_URL) " if own_url is None else "")
             + "to restore the unauthenticated loopback mode.\n"
         )
     else:
@@ -922,7 +922,7 @@ def _no_auth_provider_message(host: str) -> str:
         "print(hash_password('your-password'))\")\n"
         "  • OAuth: run `hermes dashboard register` (Nous Portal) or "
         "install a DashboardAuthProvider plugin.\n"
-        "  • Deployment token: provision HERMES_DASHBOARD_SESSION_TOKEN "
+        "  • Deployment token: provision KOVA_DASHBOARD_SESSION_TOKEN "
         "(a literal token, or 'file:<path>' naming a secret-manager-decrypted "
         "token file) — the bundled session-token provider then authorizes "
         "bearer REST + /api/ws ?token= for token-mode clients such as the "
@@ -1226,7 +1226,7 @@ def _on_server_started(
     # ledger + spawner provably dead); anything alive or unprovable is untouched.
     _best_effort("orphan MCP helper reap", _reap_mcp_helpers)
 
-    # No-op for standalone `hermes serve` (no HERMES_PARENT_PID).
+    # No-op for standalone `hermes serve` (no KOVA_PARENT_PID).
     _start_parent_death_watchdog()
     # SSH-isolated backends are detached from any parent on purpose (#91668); their liveness signal
     # is "does a client still hold a WebSocket" (#101626).
@@ -1285,23 +1285,23 @@ def _on_server_started(
     # Port-discovery sentinel parsed by the Desktop spawn. Written to fd 1:
     # tui_gateway.server redirects sys.stdout to stderr at import, and the
     # Desktop watches child.stdout (#96282). A headless `serve` announces the
-    # neutral token FIRST and the legacy HERMES_DASHBOARD_READY one after it:
+    # neutral token FIRST and the legacy KOVA_DASHBOARD_READY one after it:
     # a packaged Desktop artifact whose parser predates the neutral token
     # (#60772) still matches the legacy sentinel, while current parsers match
     # either. The legacy `dashboard` backend keeps its own single token.
     if headless:
-        _write_machine_sentinel_line(f"HERMES_BACKEND_READY port={actual_port}")
-        _write_machine_sentinel_line(f"HERMES_DASHBOARD_READY port={actual_port}")
+        _write_machine_sentinel_line(f"KOVA_BACKEND_READY port={actual_port}")
+        _write_machine_sentinel_line(f"KOVA_DASHBOARD_READY port={actual_port}")
     else:
-        _write_machine_sentinel_line(f"HERMES_DASHBOARD_READY port={actual_port}")
+        _write_machine_sentinel_line(f"KOVA_DASHBOARD_READY port={actual_port}")
     if headless:
         # Auth-gated JSON-RPC/WS only — announce the bind, not a URL. flush:
         # a piped stdout otherwise surfaces this minutes after the sentinel.
-        print(f"  Hermes backend listening on {host}:{actual_port}", flush=True)
+        print(f"  Kova backend listening on {host}:{actual_port}", flush=True)
     else:
         from kova_cli.url_utils import format_url_host
 
-        print(f"  Hermes Web UI → http://{format_url_host(host)}:{actual_port}")
+        print(f"  Kova Web UI → http://{format_url_host(host)}:{actual_port}")
     _maybe_open_browser(host, actual_port, open_browser, initial_profile)
 
     if start_mcp_discovery_after_bind:
@@ -1422,7 +1422,7 @@ def start_server(
 
     ``initial_profile`` is appended to the auto-opened URL as ``?profile=<name>``
     (profile alias ``<profile> dashboard``). ``headless`` is the ``serve`` path:
-    JSON-RPC/WS backend, no UI build, no SPA mount (``HERMES_SERVE_HEADLESS``).
+    JSON-RPC/WS backend, no UI build, no SPA mount (``KOVA_SERVE_HEADLESS``).
     ``isolated`` (``--isolated``) is recorded in the spawn ledger so attach-first
     discovery never adopts this process.
     ``ssh_session_token``/``ssh_owner_nonce`` are process-local Desktop SSH

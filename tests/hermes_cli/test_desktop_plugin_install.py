@@ -1,7 +1,7 @@
 """``kova_cli.desktop_plugin_install``: cloning a desktop plugin onto the host that serves the Webapp.
 
 Real local Git repositories behind an https identifier (only the clone's network leg is pointed at the
-local repository), a throwaway ``HERMES_HOME``: the folder lands where the Webapp's read routes serve
+local repository), a throwaway ``KOVA_HOME``: the folder lands where the Webapp's read routes serve
 it, at exactly the commit the dialog reviewed; a package's half carries the marker that pairs it to its
 agent row, a standalone plugin carries none, and nothing installs twice without ``force``.
 """
@@ -38,12 +38,12 @@ def _commit(path: Path, files: dict[str, str]) -> str:
 
 @pytest.fixture()
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "home"
-    hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "home"
+    kova_home.mkdir()
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     import kova_constants
-    kova_constants._default_hermes_root_memo = None
-    return hermes_home
+    kova_constants._default_kova_root_memo = None
+    return kova_home
 
 
 @pytest.fixture()
@@ -66,7 +66,7 @@ def _root(home: Path) -> Path:
 def test_desktop_only_repo_lands_under_its_own_name_without_a_marker(home, repo):
     # The repository ships its own package marker naming another package: only an installer writes one.
     sha = _commit(repo, {"plugin.js": "export default { id: 'gizmo' }\n", "panel.js": "export const x = 1\n",
-                         ".hermes-package.json": json.dumps({"package": "victim", "source": "/x"})})
+                         ".kova-package.json": json.dumps({"package": "victim", "source": "/x"})})
 
     result = install.install_desktop_plugin(URL, ref=sha)
 
@@ -75,7 +75,7 @@ def test_desktop_only_repo_lands_under_its_own_name_without_a_marker(home, repo)
     folder = _root(home) / "gizmo"
     assert (folder / "plugin.js").read_text(encoding="utf-8").startswith("export default")
     assert (folder / "panel.js").is_file()
-    assert not (folder / ".hermes-package.json").exists()
+    assert not (folder / ".kova-package.json").exists()
 
 
 def test_package_lands_its_desktop_half_under_the_agent_name_with_a_marker(home, repo):
@@ -90,7 +90,7 @@ def test_package_lands_its_desktop_half_under_the_agent_name_with_a_marker(home,
     assert (folder / "plugin.js").is_file()
     # Only the desktop half is copied: the agent payload stays in the repository.
     assert not (folder / "plugin.yaml").exists()
-    marker = json.loads((folder / ".hermes-package.json").read_text(encoding="utf-8"))
+    marker = json.loads((folder / ".kova-package.json").read_text(encoding="utf-8"))
     assert (marker["package"], marker["repo"], marker["source"]) == ("pkg", URL, str(folder))
     assert marker["sourceMtimeMs"] > 0
 

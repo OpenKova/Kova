@@ -27,14 +27,14 @@ def _get_mcp_stderr_log() -> Any:
     """Shared append-mode handle for MCP subprocess stderr, cached until shutdown PER PROFILE HOME (a
     multiplexed gateway's secondary profile must log under ITS ``logs/``, not the launch profile's). Must
     expose a real fd (asyncio wires the child's stderr to it); falls back to ``/dev/null``, then real stderr."""
-    from kova_constants import get_hermes_home, hermes_home_key, mkdir_under_hermes_home
-    home_key = hermes_home_key()
+    from kova_constants import get_kova_home, kova_home_key, mkdir_under_kova_home
+    home_key = kova_home_key()
     with _mcp_stderr_log_lock:
         fh = _mcp_stderr_log_fh.get(home_key)
         if fh is None or fh.closed:
             try:
-                log_dir = get_hermes_home() / "logs"
-                mkdir_under_hermes_home(log_dir)
+                log_dir = get_kova_home() / "logs"
+                mkdir_under_kova_home(log_dir)
                 # Line-buffered so output lands promptly; errors="replace" tolerates garbled binary.
                 fh = open(log_dir / "mcp-stderr.log", "a", encoding="utf-8", errors="replace", buffering=1)
                 fh.fileno()  # confirm a real fd before committing
@@ -212,19 +212,19 @@ def _build_safe_env(user_env: Optional[dict]) -> dict:
         value = get_secret(key)
         if value is not None:
             env[key] = value
-    for key in ("HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+    for key in ("KOVA_KANBAN_DB", "KOVA_KANBAN_BOARD"):
         if key in os.environ:
             env[key] = os.environ[key]
     # Pin the ACTIVE (served) profile's home so a stdio child never falls back to the
     # platform-default home (issue #18594). Without it a child spawned by a multiplexed host
-    # or a dashboard/desktop backend serving ``--open-profile`` resolves HERMES_HOME to the
+    # or a dashboard/desktop backend serving ``--open-profile`` resolves KOVA_HOME to the
     # LAUNCH profile's home (or the platform default) and writes to the wrong profile — and a
     # Python child that imports kova_constants trips the ``_warn_profile_fallback_once``
-    # guard. Resolve at call time: ``get_hermes_home()`` honours the served-profile
+    # guard. Resolve at call time: ``get_kova_home()`` honours the served-profile
     # contextvar, which does not cross the process boundary, while ``os.environ`` holds only
-    # the launch profile's home. An explicit server ``env.HERMES_HOME`` still wins below.
-    from kova_constants import get_hermes_home
-    env["HERMES_HOME"] = str(get_hermes_home())
+    # the launch profile's home. An explicit server ``env.KOVA_HOME`` still wins below.
+    from kova_constants import get_kova_home
+    env["KOVA_HOME"] = str(get_kova_home())
     if user_env:
         # An entry rendered from one whole ``${VAR}`` that is unset (or empty) counts as absent, so
         # a plugin can forward an optional var without the child seeing the literal placeholder.
@@ -266,7 +266,7 @@ def _which_with_config_pathext(command: str, path_arg, env: dict):
     return None
 
 
-# Bare MCP launchers Hermes ships through PM, keyed to the package that provides them.
+# Bare MCP launchers Kova ships through PM, keyed to the package that provides them.
 _MANAGED_LAUNCHERS = {"npx": "npm", "npm": "npm", "node": "npm", "uv": "uv", "uvx": "uv"}
 
 
@@ -290,12 +290,12 @@ def _managed_launcher(command: str) -> Optional[tuple[str, list[str]]]:
         dirs = [d for d in with_hermes_node_path({"PATH": ""})["PATH"].split(os.pathsep) if d]
     executable = shutil.which(command, path=os.pathsep.join(dirs)) if dirs else None
     if executable is None:
-        raise RuntimeError(f"Hermes-managed {command} is not installed; run `hermes pm install {package}`")
+        raise RuntimeError(f"Kova-managed {command} is not installed; run `hermes pm install {package}`")
     return executable, dirs
 
 
 def _outside_package(launcher: str, managed: str, dirs: list[str]) -> tuple[str, list[str]]:
-    """Hermes's npm/node *launcher* and toolchain *dirs*, swapped for PM's copies outside a
+    """Kova's npm/node *launcher* and toolchain *dirs*, swapped for PM's copies outside a
     sealed Windows payload (``pm.user_facing.copies``). npm starts each package bin through
     cmd.exe, and cmd.exe cannot start the packaged ``node.exe``."""
     from pm.user_facing import copies
@@ -303,13 +303,13 @@ def _outside_package(launcher: str, managed: str, dirs: list[str]) -> tuple[str,
     moved = copies(dirs)
     if moved == dirs:
         return managed, dirs
-    # Plain which(): Hermes's own copy dirs hold one real node.exe/npx.cmd, so the parent's
+    # Plain which(): Kova's own copy dirs hold one real node.exe/npx.cmd, so the parent's
     # PATHEXT is the right question (unlike a user server's config env, see _which_with_config_pathext).
     return shutil.which(launcher, path=os.pathsep.join(moved)) or managed, moved
 
 
 def _is_hermes_managed_bin_dir(directory: str) -> bool:
-    """True for the bin dirs Hermes' bootstrap prepends to this process's PATH: anything
+    """True for the bin dirs Kova' bootstrap prepends to this process's PATH: anything
     under the active hermes home (the sealed payload's venv, ``<home>/bin``, PM store
     runtimes) plus the running interpreter's own bin dir (a repo checkout's venv)."""
     try:
@@ -318,9 +318,9 @@ def _is_hermes_managed_bin_dir(directory: str) -> bool:
         return False
     if resolved == Path(sys.executable).resolve().parent:
         return True
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     try:
-        home = Path(get_hermes_home()).resolve()
+        home = Path(get_kova_home()).resolve()
     except Exception:
         return False
     return resolved == home / "bin" or home in resolved.parents
@@ -350,7 +350,7 @@ def _pathext_suffixes(env: Optional[dict] = None, *, windows: Optional[bool] = N
 
 def _first_user_which_hit(command: str, path_arg: Optional[str],
                           env: Optional[dict] = None, *, windows: Optional[bool] = None) -> Optional[str]:
-    """First PATH hit for *command* OUTSIDE Hermes-managed bin dirs, or ``None``.
+    """First PATH hit for *command* OUTSIDE Kova-managed bin dirs, or ``None``.
 
     ``shutil.which`` stops at the first hit, and bootstrap prepends the managed runtime's
     bin dir, so a bare ``python3`` resolves to the bundled interpreter — which lacks the
@@ -376,7 +376,7 @@ def _first_user_which_hit(command: str, path_arg: Optional[str],
 def _resolve_stdio_command(command: str, env: dict) -> tuple[str, dict]:
     """Resolve a stdio command against the exact subprocess env (bare launchers under a filtered PATH).
 
-    Bare ``npx``/``npm``/``node``/``uv``/``uvx`` resolve to Hermes's PM-managed copies with their
+    Bare ``npx``/``npm``/``node``/``uv``/``uvx`` resolve to Kova's PM-managed copies with their
     toolchain dirs first on the child PATH, never the user's (an absolute ``command:`` stays the
     user's choice). Anything else resolves on the child env's PATH only: ``shutil.which`` with
     ``path=None`` silently falls back to the PARENT's ``os.environ["PATH"]``, letting a command
@@ -403,7 +403,7 @@ def _resolve_stdio_command(command: str, env: dict) -> tuple[str, dict]:
             which_hit = _which_with_config_pathext(resolved_command, path_arg, resolved_env)
         # A bare command keeps the USER's PATH semantics: bootstrap prepends the managed
         # runtime's bin dir to this process's PATH, so the first hit for a bare ``python3``
-        # is Hermes' bundled interpreter, which lacks the user's packages and dies on import
+        # is Kova' bundled interpreter, which lacks the user's packages and dies on import
         # (#125300). Step past managed dirs to the user's own hit; the explicit launcher
         # family keeps the managed-first resolution (that is the point of
         # ``_launcher_fallback``), and a managed-only PATH keeps the managed hit.
@@ -433,7 +433,7 @@ def _npx_cached_bin(args: list) -> Optional[tuple]:
     """Resolve ``npx -y <pkg>`` to the already-installed binary, or None.
 
     ``npx`` resolves the package and then FORKS, staying resident as the real server's parent
-    for nothing (~48 MB private memory per MCP server, measured); Hermes already supervises the
+    for nothing (~48 MB private memory per MCP server, measured); Kova already supervises the
     child (shared death supervisor). When the package is in npx's cache we spawn its binary
     directly. Deliberately conservative — None (caller keeps plain ``npx``, so a cold machine
     still installs) for a cache miss, a version pin (``pkg@1.2.3``), extra npx flags, a manifest
@@ -499,7 +499,7 @@ def _packaged_npx_entry(command: str, args: list) -> Optional[tuple]:
     Windows payload's own npx, else None.
 
     That npx starts the package bin through cmd.exe, and cmd.exe cannot start the packaged
-    ``node.exe`` (``pm.user_facing``). Hermes gets here only without a host Node and without
+    ``node.exe`` (``pm.user_facing``). Kova gets here only without a host Node and without
     a copy that PM may make. The payload's Python CAN start the packaged ``node.exe``, so the
     package is installed with npm's own script and the bin's script runs on that node.
     Install scripts stay off, because npm runs them through cmd.exe too. None keeps plain
@@ -531,9 +531,9 @@ def _packaged_npx_entry(command: str, args: list) -> Optional[tuple]:
     scope, _, bare = spec.rpartition("/") if spec.startswith("@") else ("", "", spec)
     base, _, version = bare.partition("@")
     name = (f"{scope}/" if scope else "") + base
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    prefix = Path(get_hermes_home()) / "cache" / "mcp-npx" / hashlib.sha256(spec.encode()).hexdigest()[:16]
+    prefix = Path(get_kova_home()) / "cache" / "mcp-npx" / hashlib.sha256(spec.encode()).hexdigest()[:16]
     manifest = prefix / "node_modules" / name / "package.json"
     exact = re.fullmatch(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]+)?", version) is not None
     if not (exact and manifest.is_file()):
@@ -714,7 +714,7 @@ def _load_mcp_config() -> dict[str, dict]:
     try:
         from kova_cli.config import load_config
         from utils import env_var_enabled as _env_enabled
-        if _env_enabled("HERMES_SAFE_MODE"):
+        if _env_enabled("KOVA_SAFE_MODE"):
             return {}
         servers = load_config().get("mcp_servers")
         try:  # ensure .env vars are available for interpolation

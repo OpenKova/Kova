@@ -2,7 +2,7 @@
 
 ``run_tool_calls`` drives the REAL agent tool path: one ``hermes chat -q`` process whose model (the
 loopback fake) issues the given tool calls in order, then answers ``done``. Each tool result is read
-back from the wire: the final request Hermes sent to the model carries every ``role: tool`` message,
+back from the wire: the final request Kova sent to the model carries every ``role: tool`` message,
 keyed by the fake's sequential ``call_fake_<n>`` ids.
 """
 
@@ -35,12 +35,12 @@ def run_tool_calls(home: Path, calls: list[tuple[str, dict[str, Any]]], *, cwd: 
                    prepare: Callable[[], None] | None = None) -> list[str]:
     """Run one ``hermes chat -q`` turn whose model issues ``calls`` sequentially; return each tool
     result text, in call order. ``prepare`` runs after the home (config.yaml + .env) is written and
-    before Hermes starts (snapshot pre-run state there). Harness failures (non-zero exit, a lost tool
+    before Kova starts (snapshot pre-run state there). Harness failures (non-zero exit, a lost tool
     result) are plain ``AssertionError`` so a KNOWN ``known_gate`` (``raises=BoundaryBreach``) never masks them."""
     key = H.canary("sk-traversal")
     script: list[Any] = [ToolCall(name, args) for name, args in calls] + [Text("done")]
     with FakeLLMServer(script, api_key=key) as srv:
-        H.write_home(home / ".hermes", srv.base_url, api_key=key, config=config, env=env_lines)
+        H.write_home(home / ".kova", srv.base_url, api_key=key, config=config, env=env_lines)
         if prepare is not None:
             prepare()
         proc = H.run_hermes(["chat", "-q", "run the scripted tools", "-Q"], home, cwd=cwd,

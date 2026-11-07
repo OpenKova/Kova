@@ -45,7 +45,7 @@ def _read_line(proc: subprocess.Popen, timeout: float = 60) -> str:
 
 
 def _checkout(tmp_path: Path) -> Path:
-    root = tmp_path / "hermes-agent"
+    root = tmp_path / "kova-agent"
     desktop_dir = root / "apps" / "desktop"
     desktop_dir.mkdir(parents=True)
     (desktop_dir / "package.json").write_text("{}", encoding="utf-8")
@@ -120,7 +120,7 @@ def test_desktop_build_lock_releases_after_exception(tmp_path):
 
 def test_desktop_build_lock_is_keyed_by_checkout(tmp_path):
     """Two different checkouts must not share one lock: node_modules and release/ are checkout-scoped."""
-    other = tmp_path / "hermes-agent-2"
+    other = tmp_path / "kova-agent-2"
     other.mkdir()
     first = DesktopBuildLock(tmp_path)
     probe = ("import sys\nfrom pathlib import Path\nfrom kova_cli.desktop_build_lock import DesktopBuildLock\n"
@@ -136,7 +136,7 @@ def test_desktop_build_lock_is_keyed_by_checkout(tmp_path):
 
 
 def test_gui_reports_missing_source_before_constructing_build_lock(tmp_path, monkeypatch, capsys):
-    root = tmp_path / "broken-hermes-agent"
+    root = tmp_path / "broken-kova-agent"
     monkeypatch.setattr("kova_cli.main.PROJECT_ROOT", root, raising=False)
 
     args = argparse.Namespace()
@@ -175,18 +175,18 @@ def test_gui_releases_lock_before_packaged_electron_handoff(tmp_path, monkeypatc
     desktop_dir = root / "apps" / "desktop"
 
     if sys.platform == "darwin":
-        executable = desktop_dir / "release" / "mac-arm64" / "Hermes.app" / "Contents" / "MacOS" / "Hermes"
+        executable = desktop_dir / "release" / "mac-arm64" / "Kova.app" / "Contents" / "MacOS" / "Kova"
     elif sys.platform == "win32":
-        executable = desktop_dir / "release" / "win-unpacked" / "Hermes.exe"
+        executable = desktop_dir / "release" / "win-unpacked" / "Kova.exe"
     else:
         executable = desktop_dir / "release" / "linux-unpacked" / "hermes"
     executable.parent.mkdir(parents=True)
     executable.write_text("", encoding="utf-8")
 
     monkeypatch.setattr("kova_cli.main.PROJECT_ROOT", root, raising=False)
-    # The lock is checkout-keyed via the profile-common Hermes root; pin it so
+    # The lock is checkout-keyed via the profile-common Kova root; pin it so
     # the holder and the handoff probe agree regardless of the runner's home.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
     # The fake executable has no Electron sandbox helper; the platform launch
     # fixups are environment-dependent (sudo tty, userns policy), not the test's
     # subject — a Linux CI runner exits 1 in _packaged_desktop_launch_command.

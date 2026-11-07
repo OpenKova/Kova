@@ -16,7 +16,7 @@ from agent import secret_scope
 
 
 def _named_profile(tmp_path, monkeypatch, *, key_env: bool, dotenv: str = "", model_extra=None):
-    home = tmp_path / ".hermes" / "profiles" / "beta"
+    home = tmp_path / ".kova" / "profiles" / "beta"
     home.mkdir(parents=True)
     model = {"default": "fake-model", "provider": "custom", "base_url": "http://127.0.0.1:18991/v1", **(model_extra or {})}
     entry = {"name": "FakeUp", "base_url": "http://127.0.0.1:18991/v1"}
@@ -25,7 +25,7 @@ def _named_profile(tmp_path, monkeypatch, *, key_env: bool, dotenv: str = "", mo
     (home / "config.yaml").write_text(json.dumps({"model": model, "custom_providers": [entry]}))
     (home / ".env").write_text(dotenv)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     # The key lives only in the server's process environment: invisible to a routed profile.
     monkeypatch.setenv("CANARY_KEY", "canary-process-env")
     return home

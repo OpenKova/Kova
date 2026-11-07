@@ -8,7 +8,7 @@ Two fixes under test:
    (a) route the respawned gateway's stray stdout/stderr to
        ``logs/gateway-stdio.log`` (it was ``DEVNULL`` — a gateway killed by
        parent Job Object teardown left ZERO trace anywhere), and
-   (b) stamp ``_HERMES_GATEWAY_BREAKAWAY`` =1/0 on the respawn env exactly
+   (b) stamp ``_KOVA_GATEWAY_BREAKAWAY`` =1/0 on the respawn env exactly
        like the canonical ``gateway_windows._spawn_detached``, so the
        lifecycle/exit-diag records show whether the gateway escaped the
        parent's Job Object.

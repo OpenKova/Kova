@@ -50,7 +50,7 @@ def _packaged_resources_dir(desktop_dir: Path) -> Optional[Path]:
     executable = _desktop_packaged_executable(desktop_dir)
     if executable is None:
         return None
-    # macOS: …/Hermes.app/Contents/MacOS/Hermes → …/Contents/Resources
+    # macOS: …/Kova.app/Contents/MacOS/Kova → …/Contents/Resources
     return executable.parent.parent / "Resources" if sys.platform == "darwin" else executable.parent / "resources"
 
 
@@ -163,14 +163,14 @@ def _desktop_packaged_executable_in(release_dir: Path) -> Optional[Path]:
     stage-and-swap staging dir (#86443).
     """
     if sys.platform == "darwin":
-        candidates = list(release_dir.glob("mac*/Hermes.app/Contents/MacOS/Hermes"))
+        candidates = list(release_dir.glob("mac*/Kova.app/Contents/MacOS/Kova"))
     elif sys.platform == "win32":
         candidates = [
-            release_dir / d / "Hermes.exe" for d in ("win-unpacked", "win-ia32-unpacked", "win-arm64-unpacked")
+            release_dir / d / "Kova.exe" for d in ("win-unpacked", "win-ia32-unpacked", "win-arm64-unpacked")
         ]
     else:
         candidates = [
-            release_dir / d / n for d in ("linux-unpacked", "linux-arm64-unpacked") for n in ("hermes", "Hermes")
+            release_dir / d / n for d in ("linux-unpacked", "linux-arm64-unpacked") for n in ("hermes", "Kova")
         ]
 
     existing = [p for p in candidates if p.exists()]
@@ -178,11 +178,11 @@ def _desktop_packaged_executable_in(release_dir: Path) -> Optional[Path]:
         return None
     if sys.platform == "win32" and len(existing) > 1:
         # A stale win-arm64-unpacked next to the real win-unpacked: picking by
-        # mtime can hand a wrong-architecture Hermes.exe to the launcher. Prefer
+        # mtime can hand a wrong-architecture Kova.exe to the launcher. Prefer
         # candidates whose PE machine matches the host; mtime when none parse.
         # Multiple unpacked trees can coexist (e.g. a stale win-arm64-unpacked left behind by a cross-arch
         # experiment next to the real win-unpacked). Picking purely by mtime can then hand a
-        # wrong-architecture Hermes.exe to the launcher, which Windows rejects with "This app can't run on
+        # wrong-architecture Kova.exe to the launcher, which Windows rejects with "This app can't run on
         # your computer" (#69179).
         expected = _expected_windows_pe_machines()
         matching = [p for p in existing if _pe_machine_or_none(p) in expected]
@@ -192,7 +192,7 @@ def _desktop_packaged_executable_in(release_dir: Path) -> Optional[Path]:
 
 
 # ─── Desktop stage-and-swap pack (#86443) ─────────────────────────────────── electron-builder packs IN
-# PLACE: before-pack.mjs wipes ``release/<platform>- unpacked`` (or the mac ``Hermes.app``) and the Electron
+# PLACE: before-pack.mjs wipes ``release/<platform>- unpacked`` (or the mac ``Kova.app``) and the Electron
 # unpack + asar + rename then rebuild it. Any failure after that wipe — corrupt cached zip, blocked
 # download, missing dep, disk full — leaves the user with NO app, and ``hermes update`` used to report
 # "partially complete" over an empty release/. Fix the class, not the predicate: build into a STAGING output
@@ -337,12 +337,12 @@ def _discard_desktop_staging(staging_dir: Path) -> None:
 
 # ─── Desktop exe integrity gate (#69179) ──────────────────────────────────── The desktop self-update chain
 # (Desktop → hermes-setup --update → `hermes update` → `hermes desktop --build-only` → relaunch) rebuilds
-# Hermes.exe on the end user's machine and used to verify only that the file EXISTS before declaring
+# Kova.exe on the end user's machine and used to verify only that the file EXISTS before declaring
 # success. A corrupt cached Electron zip whose extraction produced a truncated electron.exe, an interrupted
 # rcedit resource rewrite, a disk-full pack, or a wrong-arch unpacked tree therefore shipped a broken binary
 # that Windows refuses to load ("This app can't run on your computer" / 此应用无法在你的电脑上运行). These helpers parse
 # the PE header — no signature infrastructure required — so a structurally broken or wrong-architecture
-# Hermes.exe is caught BEFORE the updater replaces the working app, and the previous build can be restored
+# Kova.exe is caught BEFORE the updater replaces the working app, and the previous build can be restored
 # from the .bak tree that apps/desktop/scripts/before-pack.mjs now preserves.
 _PE_MACHINE_I386 = 0x014C
 _PE_MACHINE_AMD64 = 0x8664
@@ -759,7 +759,7 @@ def _desktop_macos_local_codesign(app: Path, *, desktop_dir: Path, identity: str
 
     # 1) Standalone Mach-O files (native modules, dylibs, crashpad handler),
     #    compared relative to the app root — the absolute path always contains
-    #    the outer Hermes.app component.
+    #    the outer Kova.app component.
     contents = app / "Contents"
     standalone: list[Path] = []
     for root, _dirs, files in os.walk(contents):
@@ -826,7 +826,7 @@ def _desktop_macos_relaunchable_fixup(
     """Re-sign a locally-built macOS app so in-place self-update doesn't reset TCC grants.
 
     A rebuilt ad-hoc bundle (new cdhash, no stable Designated Requirement) reports
-    "Hermes is damaged" and loses every grant. Clear quarantine xattrs, then sign
+    "Kova is damaged" and loses every grant. Clear quarantine xattrs, then sign
     with ``desktop.macos_signing_identity`` or identifier-pinned ad-hoc, keeping
     entitlements. When a configured identity fails (#121857): over a locally-signed
     install, retry identifier-pinned ad-hoc before the cdhash-only legacy sign;
@@ -849,7 +849,7 @@ def _desktop_macos_relaunchable_fixup(
     exe = _desktop_packaged_executable_in(release_dir or (desktop_dir / "release"))
     if exe is None:
         return True
-    # exe = .../Hermes.app/Contents/MacOS/Hermes  ->  app bundle = .../Hermes.app
+    # exe = .../Kova.app/Contents/MacOS/Kova  ->  app bundle = .../Kova.app
     app = exe.parents[2]
     if not str(app).endswith(".app") or not app.is_dir():
         return True
@@ -966,14 +966,14 @@ def _swap_in_new_macos_bundle(tmp: Path, target: Path, old: Path) -> None:
 
 
 def _running_macos_app_bundles() -> set[Path]:
-    """``.app`` bundles of every live Hermes Desktop process. A running bundle is never swapped
+    """``.app`` bundles of every live Kova Desktop process. A running bundle is never swapped
     under: Electron loads ``app.asar`` chunks and helper apps lazily, so renaming its bundle away
     and deleting the old tree crashes the live app (the detached updater waits for it to exit)."""
     import psutil
     bundles: set[Path] = set()
     for proc in psutil.process_iter(["exe"]):
         exe = proc.info.get("exe") or ""
-        if exe.endswith("/Contents/MacOS/Hermes"):
+        if exe.endswith("/Contents/MacOS/Kova"):
             bundles.add(Path(exe).resolve().parents[2])
     return bundles
 
@@ -985,7 +985,7 @@ def _stage_macos_bundle_copy(src: Path, dst: Path) -> None:
 
 
 def _install_rebuilt_desktop_app(desktop_dir: Path, candidates: list[Path]) -> tuple[list[Path], list[str]]:
-    """Copy the rebuilt macOS bundle into every stale or missing installed ``Hermes.app`` in
+    """Copy the rebuilt macOS bundle into every stale or missing installed ``Kova.app`` in
     *candidates* (``_installed_desktop_apps()``) (#52339).
 
     ``hermes desktop --build-only`` (what ``hermes update`` runs) packages into
@@ -1004,7 +1004,7 @@ def _install_rebuilt_desktop_app(desktop_dir: Path, candidates: list[Path]) -> t
     rebuilt_exe = _desktop_packaged_executable(desktop_dir)
     if rebuilt_exe is None:
         return [], []
-    # .../Hermes.app/Contents/MacOS/Hermes -> .../Hermes.app
+    # .../Kova.app/Contents/MacOS/Kova -> .../Kova.app
     return _install_rebuilt_macos_bundles(
         rebuilt_exe.parents[2], candidates, running=_running_macos_app_bundles())
 
@@ -1020,7 +1020,7 @@ def _refresh_installed_desktop_apps(desktop_dir: Path) -> None:
     for app in installed:
         if app in missing:
             print(f"  ✓ Reinstalled the Desktop app at {app}: it had been removed, so Finder, "
-                  "the Dock and Spotlight could not find Hermes")
+                  "the Dock and Spotlight could not find Kova")
         else:
             print(f"  ✓ Installed the rebuilt Desktop app at {app}")
     for problem in problems:
@@ -1058,23 +1058,23 @@ def _update_owned_macos_bundles(candidates: list[Path]) -> list[Path]:
 
 
 def _owns_installed_desktop_apps() -> bool:
-    """A packaged app runs the checkout under the default Hermes home, so only that checkout (on
+    """A packaged app runs the checkout under the default Kova home, so only that checkout (on
     macOS) may build for it: a bundle from any other tree (a dev worktree) would split shell from
     backend."""
     if sys.platform != "darwin":
         return False
     from kova_cli.main import PROJECT_ROOT
-    from kova_constants import get_default_hermes_root
-    return Path(PROJECT_ROOT).resolve() == (get_default_hermes_root() / "hermes-agent").resolve()
+    from kova_constants import get_default_kova_root
+    return Path(PROJECT_ROOT).resolve() == (get_default_kova_root() / "kova-agent").resolve()
 
 
 def _installed_desktop_apps() -> list[Path]:
-    """Installed macOS ``Hermes.app`` bundles this checkout's update owns.
+    """Installed macOS ``Kova.app`` bundles this checkout's update owns.
 
     When no owned copy is left, a recorded one that has gone missing still counts: its ownership
     stamp left with the bundle, and without the record nothing would ever put it back (Finder, the
-    Dock and Spotlight lose Hermes for good). A copy moved to the other Applications folder keeps
-    its stamp, so it is found instead of doubled. Hermes' GUI uninstall deletes the record.
+    Dock and Spotlight lose Kova for good). A copy moved to the other Applications folder keeps
+    its stamp, so it is found instead of doubled. Kova' GUI uninstall deletes the record.
     """
     if not _owns_installed_desktop_apps():
         return []
@@ -1092,7 +1092,7 @@ def _installed_desktop_apps() -> list[Path]:
 def _installed_desktop_launch_target(desktop_dir: Path, packaged_executable: Path) -> Path:
     """The executable ``hermes desktop`` launches: the installed app once it IS the checkout build.
 
-    Finder, the Dock and Spotlight open the installed ``Hermes.app``; launching the ``release/``
+    Finder, the Dock and Spotlight open the installed ``Kova.app``; launching the ``release/``
     bundle beside it ran the same app from a second path while the installed copy went stale
     (#52339). Refresh the installed copies, then launch the first one that matches the checkout
     build. The checkout bundle stays the fallback: nothing installed, or a copy that is running
@@ -1104,7 +1104,7 @@ def _installed_desktop_launch_target(desktop_dir: Path, packaged_executable: Pat
     rebuilt_hash = _app_asar_hash(packaged_executable.parents[2])
     for app in _installed_desktop_apps():
         if rebuilt_hash is not None and _app_asar_hash(app) == rebuilt_hash:
-            return app / "Contents" / "MacOS" / "Hermes"
+            return app / "Contents" / "MacOS" / "Kova"
     return packaged_executable
 
 
@@ -1126,13 +1126,13 @@ def _install_rebuilt_macos_bundles(
     for app in candidates:
         # Either swapper (this one or the Desktop hand-off's posix.sh ``.old``) may have died
         # between its renames; recover before judging what is installed.
-        _recover_interrupted_swap(app, app.parent / f"{app.name}.hermes-update-old")
+        _recover_interrupted_swap(app, app.parent / f"{app.name}.kova-update-old")
         _recover_interrupted_swap(app, app.parent / f"{app.name}.old")
         if app.is_dir() and _app_asar_hash(app) == rebuilt_hash:
             continue
         if app.resolve() in running:
             problems.append(
-                f"{app} is running and was not refreshed; quit Hermes Desktop and run "
+                f"{app} is running and was not refreshed; quit Kova Desktop and run "
                 "`hermes update` again (or update from inside the app)")
             continue
         if codesign:
@@ -1142,8 +1142,8 @@ def _install_rebuilt_macos_bundles(
                 if downgrade:
                     problems.append(f"{app} not refreshed: {downgrade}")
                     continue
-        tmp = app.parent / f"{app.name}.hermes-update-new"
-        old = app.parent / f"{app.name}.hermes-update-old"
+        tmp = app.parent / f"{app.name}.kova-update-new"
+        old = app.parent / f"{app.name}.kova-update-old"
         shutil.rmtree(tmp, ignore_errors=True)
         try:
             _stage_macos_bundle_copy(rebuilt_app, tmp)
@@ -1234,7 +1234,7 @@ def _desktop_linux_sandbox_fixup(packaged_executable: Path) -> bool:
 
     sandbox, st = _sandbox_helper_lstat(packaged_executable)
     if not sandbox.exists():
-        print(f"✗ Hermes Desktop is missing Electron's Linux sandbox helper: {sandbox}")
+        print(f"✗ Kova Desktop is missing Electron's Linux sandbox helper: {sandbox}")
         return False
     # Reject symlinks — chown/chmod must not follow an attacker-controlled link.
     if st is None:
@@ -1256,7 +1256,7 @@ def _desktop_linux_sandbox_fixup(packaged_executable: Path) -> bool:
 
     sudo = shutil.which("sudo")
     if not sudo:
-        print("✗ Hermes Desktop requires sudo to configure Electron's Linux sandbox helper.")
+        print("✗ Kova Desktop requires sudo to configure Electron's Linux sandbox helper.")
         return False
 
     print("→ Configuring Electron Linux sandbox helper (sudo required)...")
@@ -1378,7 +1378,7 @@ def _desktop_launch_options() -> tuple[list[str], str, str, str, bool]:
 
 
 def _register_linux_desktop_entry(defer: bool = False):
-    """Install the XDG desktop entry for Hermes Desktop (Linux only, best-effort).
+    """Install the XDG desktop entry for Kova Desktop (Linux only, best-effort).
 
     ``Exec`` and ``Icon`` are absolute so the entry works outside a login shell.
     ``hermes uninstall --gui`` removes it.
@@ -1479,7 +1479,7 @@ def build_prepared_desktop(desktop_dir: Path, *, source_mode: bool, pnpm: str, e
         # stamp stays stale, so `hermes desktop` run outside the app rebuilds it
         # (_desktop_build_needed), and the in-app update completes with desktop=True.
         print(f"  ⚠ Skipped rebuilding the desktop app: this update is running inside it (pid {ancestor}),")
-        print("    and Windows locks a running app's files. Quit Hermes Desktop and run `hermes desktop`")
+        print("    and Windows locks a running app's files. Quit Kova Desktop and run `hermes desktop`")
         print("    from a terminal, or use Update now in Settings → About, to rebuild and reopen it.")
         return None
     build_label = "source build" if source_mode else "packaged app"
@@ -1549,7 +1549,7 @@ def _prefer_wsl_d3d12(env: dict) -> None:
 # Chromium's ProcessSingleton binds $TMPDIR/scoped_dirXXXXXX/SingletonSocket (33 bytes after
 # TMPDIR, measured on Electron 40); sun_path holds 107 bytes plus the NUL.
 _ELECTRON_TMPDIR_MAX_BYTES = 107 - len("/scoped_dirXXXXXX/SingletonSocket")
-_DESKTOP_TMPDIR_ENV = "HERMES_DESKTOP_TMPDIR"
+_DESKTOP_TMPDIR_ENV = "KOVA_DESKTOP_TMPDIR"
 
 
 def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
@@ -1566,35 +1566,35 @@ def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
         env["TMPDIR"] = socket_safe_tmpdir()
     _prefer_wsl_d3d12(env)
     for attr, key in (
-        ("fake_boot", "HERMES_DESKTOP_BOOT_FAKE"), ("ignore_existing", "HERMES_DESKTOP_IGNORE_EXISTING")):
+        ("fake_boot", "KOVA_DESKTOP_BOOT_FAKE"), ("ignore_existing", "KOVA_DESKTOP_IGNORE_EXISTING")):
         if getattr(args, attr, False):
             env[key] = "1"
     if getattr(args, "hermes_root", None):
-        env["HERMES_DESKTOP_HERMES_ROOT"] = str(Path(args.hermes_root).expanduser().resolve())
+        env["KOVA_DESKTOP_KOVA_ROOT"] = str(Path(args.kova_root).expanduser().resolve())
     cwd = getattr(args, "cwd", None)
-    env["HERMES_DESKTOP_CWD"] = str(Path(cwd).expanduser().resolve()) if cwd else os.getcwd()
+    env["KOVA_DESKTOP_CWD"] = str(Path(cwd).expanduser().resolve()) if cwd else os.getcwd()
 
     config_electron_flags, config_disable_gpu, config_password_store, config_ozone_hint, config_renderer_a11y = (
         _desktop_launch_options())
-    if config_disable_gpu != "auto" and "HERMES_DESKTOP_DISABLE_GPU" not in os.environ:
-        env["HERMES_DESKTOP_DISABLE_GPU"] = config_disable_gpu
+    if config_disable_gpu != "auto" and "KOVA_DESKTOP_DISABLE_GPU" not in os.environ:
+        env["KOVA_DESKTOP_DISABLE_GPU"] = config_disable_gpu
     if config_ozone_hint != "auto" and "ELECTRON_OZONE_PLATFORM_HINT" not in os.environ:
         env["ELECTRON_OZONE_PLATFORM_HINT"] = config_ozone_hint
 
     # Renderer accessibility tree (composer exposure to OS dictation/IME
     # tools, #118271/#92607) defaults to ON inside the app; bridge only the
     # explicit opt-out so the default never depends on the launcher path.
-    if not config_renderer_a11y and "HERMES_DESKTOP_RENDERER_ACCESSIBILITY" not in os.environ:
-        env["HERMES_DESKTOP_RENDERER_ACCESSIBILITY"] = "0"
+    if not config_renderer_a11y and "KOVA_DESKTOP_RENDERER_ACCESSIBILITY" not in os.environ:
+        env["KOVA_DESKTOP_RENDERER_ACCESSIBILITY"] = "0"
 
     # Without --password-store safeStorage.isEncryptionAvailable() is often
     # false and the desktop app refuses to persist remote gateway tokens.
-    if sys.platform == "linux" and "HERMES_DESKTOP_PASSWORD_STORE" not in os.environ:
+    if sys.platform == "linux" and "KOVA_DESKTOP_PASSWORD_STORE" not in os.environ:
         password_store = (
             config_password_store if config_password_store != "auto" else _detect_linux_password_store()
         )
         if password_store:
-            env["HERMES_DESKTOP_PASSWORD_STORE"] = password_store
+            env["KOVA_DESKTOP_PASSWORD_STORE"] = password_store
     return env, config_electron_flags
 
 
@@ -1656,20 +1656,20 @@ def _site_packages_install_kind(project_root: Path) -> Optional[str]:
 
 
 def _launch_installed_macos_desktop_app() -> bool:
-    """Launch a separately installed ``/Applications/Hermes.app``, if present.
+    """Launch a separately installed ``/Applications/Kova.app``, if present.
 
     Returns True only when the app bundle exists and a detached launch was
     started — the caller then exits without touching the build ladder.
     """
     if sys.platform != "darwin":
         return False
-    executable = Path("/Applications/Hermes.app/Contents/MacOS/Hermes")
+    executable = Path("/Applications/Kova.app/Contents/MacOS/Kova")
     if not executable.is_file():
         return False
     from kova_cli.bundled_app import launch_detached
 
     pid = launch_detached([str(executable)], cwd=executable.parent)
-    print(f"→ Launched the installed Hermes Desktop app: {executable} (pid {pid})")
+    print(f"→ Launched the installed Kova Desktop app: {executable} (pid {pid})")
     return True
 
 
@@ -1678,7 +1678,7 @@ def _run_desktop_one_shot(args: argparse.Namespace, desktop_dir: Path, *, bundle
     # macOS: a self-signed code-signing identity so TCC grants survive rebuilds.
     if getattr(args, "setup_tcc_identity", False):
         from kova_cli.main_desktop_tcc import _desktop_macos_setup_tcc_identity
-        identity = getattr(args, "identity", None) or "Hermes Local Signing"
+        identity = getattr(args, "identity", None) or "Kova Local Signing"
         sys.exit(0 if _desktop_macos_setup_tcc_identity(identity) else 1)
     # Linux: the per-binary AppArmor profile for Chromium's namespace sandbox (#130177).
     if getattr(args, "install_apparmor_profile", False):
@@ -1690,7 +1690,7 @@ def _run_desktop_one_shot(args: argparse.Namespace, desktop_dir: Path, *, bundle
             with contextlib.suppress(NotBundledApp):
                 exe = resolve_bundle_layout(PROJECT_ROOT).launcher
         if exe is None:
-            print(f"✗ No packaged Hermes Desktop found under {desktop_dir / 'release'}; run `hermes desktop` first.")
+            print(f"✗ No packaged Kova Desktop found under {desktop_dir / 'release'}; run `hermes desktop` first.")
         sys.exit(0 if exe is not None and install_profile(exe) else 1)
 
 
@@ -1717,9 +1717,9 @@ def cmd_gui(args: argparse.Namespace):
         print(f"Desktop GUI source not found at: {desktop_dir}")
         if install_kind == "homebrew":
             print(
-                "  This Hermes came from Homebrew, which does not ship the desktop app's\n"
+                "  This Kova came from Homebrew, which does not ship the desktop app's\n"
                 "  source tree, so it cannot be built from this install.\n"
-                "  Install the desktop app from https://hermes-agent.nousresearch.com,\n"
+                "  Install the desktop app from https://kova-agent.nousresearch.com,\n"
                 "  or run `hermes desktop` from a source checkout."
             )
         sys.exit(1)
@@ -1758,7 +1758,7 @@ def cmd_gui(args: argparse.Namespace):
             print("  Refusing to run pnpm without serialization; check the checkout permissions and retry.")
             sys.exit(1)
         if not acquired:
-            print("✗ A Hermes update or another desktop dependency install or build is already running.")
+            print("✗ A Kova update or another desktop dependency install or build is already running.")
             print("  Wait for it to finish, then retry.")
             sys.exit(2)
 
@@ -1821,7 +1821,7 @@ def cmd_gui(args: argparse.Namespace):
         return
 
     if source_mode:
-        print("→ Launching Hermes Desktop from source build...")
+        print("→ Launching Kova Desktop from source build...")
         # Launch only the prepared runtime, never through a package manager,
         # including when --skip-build was requested.
         electron = _electron_dir(PROJECT_ROOT)
@@ -1852,7 +1852,7 @@ def cmd_gui(args: argparse.Namespace):
         launch_command.append("--close-preview")
     launch_command.extend(_explicit_profile_args())
     if not source_mode:
-        desktop_launch_notice(f"→ Launching packaged Hermes Desktop: {' '.join(launch_command)}")
+        desktop_launch_notice(f"→ Launching packaged Kova Desktop: {' '.join(launch_command)}")
     # The launch target is ready; the fixups above finished mutating the
     # packaged tree. Electron is the long-lived handoff, so release the build
     # lock now — an open Desktop window must never block a future rebuild.
@@ -1902,7 +1902,7 @@ def cmd_gui(args: argparse.Namespace):
             )
         if deferred_entry is not None:
             deferred_entry.finish()
-        desktop_launch_notice("✓ Hermes Desktop launched in a detached window; you can close this shell.")
+        desktop_launch_notice("✓ Kova Desktop launched in a detached window; you can close this shell.")
         sys.exit(0)
     with desktop_console_output(source_mode=source_mode) as streams:
         try:
@@ -1914,7 +1914,7 @@ def cmd_gui(args: argparse.Namespace):
             # closing the Desktop, not a launcher crash. Exit cleanly instead
             # of dumping a KeyboardInterrupt traceback from subprocess.run
             # (#59848).
-            print("\n✓ Hermes Desktop closed.")
+            print("\n✓ Kova Desktop closed.")
             sys.exit(0)
     if deferred_entry is not None:
         deferred_entry.finish()
@@ -1960,7 +1960,7 @@ def _launch_bundled_desktop(
         if getattr(args, name, False)
     ]
     if refused:
-        print(f"✗ {', '.join(refused)} cannot apply to a bundled Hermes install.")
+        print(f"✗ {', '.join(refused)} cannot apply to a bundled Kova install.")
         print("  This app ships prebuilt and has no desktop source tree to build.")
         sys.exit(2)
 
@@ -1970,20 +1970,20 @@ def _launch_bundled_desktop(
         # The stamp says bundled, so a tree that is not one is a damaged or
         # mispackaged install. Report it — degrading to the build ladder
         # would run pnpm inside the app's own resources.
-        print(f"✗ This Hermes is stamped as a bundled desktop install, but {exc}.")
-        print("  The install is damaged — reinstall Hermes from the website.")
+        print(f"✗ This Kova is stamped as a bundled desktop install, but {exc}.")
+        print("  The install is damaged — reinstall Kova from the website.")
         sys.exit(1)
 
     if layout.launcher is None:
-        print(f"✗ Found no Hermes Desktop launcher in {layout.app_root}.")
-        print("  The install is damaged — reinstall Hermes from the website.")
+        print(f"✗ Found no Kova Desktop launcher in {layout.app_root}.")
+        print("  The install is damaged — reinstall Kova from the website.")
         sys.exit(1)
 
     launch_command = _packaged_desktop_launch_command(layout.launcher)
     launch_command.extend(electron_flags)
     launch_command.extend(_explicit_profile_args())
     pid = launch_detached(launch_command, env=env, cwd=layout.app_root)
-    print(f"→ Launched Hermes Desktop: {' '.join(launch_command)} (pid {pid})")
+    print(f"→ Launched Kova Desktop: {' '.join(launch_command)} (pid {pid})")
     sys.exit(0)
 
 

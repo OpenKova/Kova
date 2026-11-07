@@ -38,7 +38,7 @@ _DEFAULT_PORT = 9900
 _MIN_ORPHAN_TIMEOUT, _MAX_ORPHAN_TIMEOUT, _WATCHDOG_INTERVAL = 300, 86400, 60
 _MAX_BODY = 1_048_576  # 1MB max request body — prevents DoS via memory exhaustion
 _SSE_KEEPALIVE = 5  # seconds between SSE keepalive comments
-_DEFAULT_DESCRIPTION = "Hermes Agent — a general-purpose agent reachable over A2A."
+_DEFAULT_DESCRIPTION = "Kova Agent — a general-purpose agent reachable over A2A."
 
 _ok = protocol.jsonrpc_result
 _err = protocol.jsonrpc_error
@@ -85,7 +85,7 @@ def _default_agent_name() -> str:
         import socket
         return f"hermes-{socket.gethostname()}"
     except Exception:
-        return "hermes-agent"
+        return "kova-agent"
 
 
 def _clean_slug(value: str) -> str:
@@ -106,7 +106,7 @@ def _active_profile_name() -> str:
         from kova_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
-        return os.getenv("HERMES_PROFILE", "default") or "default"
+        return os.getenv("KOVA_PROFILE", "default") or "default"
 
 
 def _profile_home(profile: str) -> Optional[str]:
@@ -114,10 +114,10 @@ def _profile_home(profile: str) -> Optional[str]:
         from kova_cli.profiles import get_profile_dir
         return str(get_profile_dir(profile))
     if profile and profile != "default":
-        return os.path.expanduser(f"~/.hermes/profiles/{profile}")
+        return os.path.expanduser(f"~/.kova/profiles/{profile}")
     with contextlib.suppress(Exception):
-        from kova_cli.config import get_hermes_home
-        return str(get_hermes_home())
+        from kova_cli.config import get_kova_home
+        return str(get_kova_home())
     return None
 
 
@@ -432,8 +432,8 @@ class A2AAdapter(BasePlatformAdapter):
             agents[slug] = {
                 "slug": slug, "path": "/" + path_segment, "tenant": tenant, "profile": profile or slug,
                 "local": bool(val.get("local")) or profile in ("", "default", self._active_profile),
-                "name": str(val.get("name") or f"Hermes {slug}"),
-                "description": str(val.get("description") or f"Hermes profile '{profile or slug}' exposed over A2A."),
+                "name": str(val.get("name") or f"Kova {slug}"),
+                "description": str(val.get("description") or f"Kova profile '{profile or slug}' exposed over A2A."),
                 "advertised_toolsets": list(toolsets or []),
                 "timeout": int(val.get("timeout") or _reply_timeout()),
             }

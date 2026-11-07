@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 from kova_dir_acl import make_user_dir
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ _warned: set[Path] = set()
 def defer(key: str, job: dict, content: str, home: Path, *, for_failure: bool) -> None:
     """Park one never-admitted output under its delivery id; a later tick hands it to the owner."""
     import time
-    root = get_hermes_home().resolve() / "cron" / "bot_chat_pending"
+    root = get_kova_home().resolve() / "cron" / "bot_chat_pending"
     make_user_dir(root, parents=True, exist_ok=True, mode=0o700)
     path = root / f"{key}.json"
     if not path.exists():  # an existing record (queued or already transferred) keeps its status
@@ -107,7 +107,7 @@ def drain_legacy_pending() -> None:
     Each record is isolated: a malformed one is kept as ``ambiguous`` evidence and an
     unexpected failure leaves only that record queued, so one bad file never stops cron.
     """
-    root = get_hermes_home().resolve() / "cron" / "bot_chat_pending"
+    root = get_kova_home().resolve() / "cron" / "bot_chat_pending"
     if not root.is_dir():
         return
     for path, record in _queued(root):

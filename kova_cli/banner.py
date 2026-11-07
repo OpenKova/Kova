@@ -10,7 +10,7 @@ from pathlib import Path
 from kova_cli import source_check
 # Historical updater import (tests/compat/old_updater_surface.json). In-tree callers use the owner.
 from kova_cli.source_check import _github_compare_behind
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # rich and prompt_toolkit are imported lazily: this module sits on the TUI gateway's critical
@@ -70,14 +70,14 @@ def _skin_color(key: str, fallback: str) -> str:
 from kova_cli import __release_date__ as RELEASE_DATE
 from kova_cli.version_info import get_version_info
 
-HERMES_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+KOVA_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
 [bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
 [#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
 [#FFBF00]██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
 [#CD7F32]██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
 [#CD7F32]╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-HERMES_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
+KOVA_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
 [#CD7F32]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
 [#FFBF00]⠀⢀⣠⣴⣶⠿⠋⣩⡿⣿⡿⠻⣿⡇⢠⡄⢸⣿⠟⢿⣿⢿⣍⠙⠿⣶⣦⣄⡀⠀[/]
 [#FFBF00]⠀⠀⠉⠉⠁⠶⠟⠋⠀⠉⠀⢀⣈⣁⡈⢁⣈⣁⡀⠀⠉⠀⠙⠻⠶⠈⠉⠉⠀⠀[/]
@@ -107,10 +107,10 @@ _UNCACHED = object()  # compute() result that must not be memoized
 def _memo(cache_name: str, compute):
     """Return the cached value under module global ``cache_name``, computing (and storing) it once.
 
-    Not consulted under a routed profile (HERMES_HOME override): every memo here is derived from the
+    Not consulted under a routed profile (KOVA_HOME override): every memo here is derived from the
     launch home (its skills tree, its checkout), and the TUI gateway calls these per profile."""
-    from kova_constants import get_hermes_home_override
-    if get_hermes_home_override() is not None:
+    from kova_constants import get_kova_home_override
+    if get_kova_home_override() is not None:
         return compute()
     cached = globals()[cache_name]
     if cached is not None:
@@ -144,14 +144,14 @@ def get_available_skills() -> dict[str, list[str]]:
 
 
 def _resolve_repo_dir() -> Optional[Path]:
-    """The active Hermes git checkout, or None if this isn't a git install.
+    """The active Kova git checkout, or None if this isn't a git install.
 
-    Prefers the running code's location: ``$HERMES_HOME/hermes-agent/`` may be a stale copy
+    Prefers the running code's location: ``$KOVA_HOME/kova-agent/`` may be a stale copy
     carried over by ``--clone-all``.
     """
     repo_dir = Path(__file__).parent.parent.resolve()
     if not (repo_dir / ".git").exists():
-        repo_dir = get_hermes_home() / "hermes-agent"
+        repo_dir = get_kova_home() / "kova-agent"
     return repo_dir if (repo_dir / ".git").exists() else None
 
 
@@ -187,13 +187,13 @@ def _compute_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]
     return {"upstream": upstream, "local": local, "ahead": max(ahead, 0)}
 
 
-_RELEASE_URL_BASE = "https://github.com/NousResearch/hermes-agent/releases/tag"
+_RELEASE_URL_BASE = "https://github.com/NousResearch/kova-agent/releases/tag"
 
 
 def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
     """Return ``(tag, release_url)`` for the latest local git tag, or None (a miss is cached too).
 
-    Release URL always points at the canonical NousResearch/hermes-agent repo (forks get no link).
+    Release URL always points at the canonical NousResearch/kova-agent repo (forks get no link).
     """
     def _compute():
         rd = repo_dir or _resolve_repo_dir()
@@ -210,7 +210,7 @@ def format_banner_version_label() -> str:
 
     stamp = read_install_stamp(get_project_root())
     if stamp.get("distribution") == "desktop-app":
-        label = f"Hermes Agent v{get_version_info().derived_version}"
+        label = f"Kova Agent v{get_version_info().derived_version}"
         if stamp.get("source") == "commit-build":
             return f"{label} · commit-build · {str(stamp.get('commit') or '')[:12]}"
         if stamp.get("tag"):
@@ -223,7 +223,7 @@ def format_banner_version_label() -> str:
             return f"{label} · installer"
         return label
 
-    base = f"Hermes Agent v{get_version_info().derived_version} ({RELEASE_DATE})"
+    base = f"Kova Agent v{get_version_info().derived_version} ({RELEASE_DATE})"
     from kova_cli.config import load_config
     from kova_cli.update_channel import resolve_update_channel
 
@@ -403,7 +403,7 @@ _BANNER_SNAPSHOT_VERSION = 1
 
 
 def _banner_snapshot_path() -> Path:
-    return get_hermes_home() / "cache" / "banner_snapshot.json"
+    return get_kova_home() / "cache" / "banner_snapshot.json"
 
 
 def banner_snapshot_fingerprint() -> Optional[str]:
@@ -411,7 +411,7 @@ def banner_snapshot_fingerprint() -> Optional[str]:
     import hashlib
     def _inputs():
         from kova_cli.config import get_config_path
-        return (get_config_path(), get_hermes_home() / ".env")
+        return (get_config_path(), get_kova_home() / ".env")
     paths = _quiet(_inputs)
     if paths is None:
         return None
@@ -619,7 +619,7 @@ def _banner_left_lines(model: str, cwd: str, session_id, context_length, provide
     else:
         model_short = model.split("/")[-1].removesuffix(".gguf")
         lines.append(f"[{accent}]{_short_label(model_short)}[/]{ctx_str}{nous_str}")
-    if os.getenv("HERMES_YOLO_MODE"):
+    if os.getenv("KOVA_YOLO_MODE"):
         lines.append(f"[bold red]⚠ YOLO mode[/] [dim {dim}]— all approval prompts bypassed[/]")
     lines.append(f"[dim {dim}]{cwd}[/]")
     if session_id:
@@ -699,7 +699,7 @@ def build_welcome_banner(
     text = _skin_color("banner_text", "#FFF8DC")
     # Use skin's custom caduceus art if provided
     _bskin = _quiet(_active_skin)
-    left_lines = ["", getattr(_bskin, "banner_hero", None) or HERMES_CADUCEUS, ""]
+    left_lines = ["", getattr(_bskin, "banner_hero", None) or KOVA_CADUCEUS, ""]
     left_lines += _banner_left_lines(model, cwd, session_id, context_length, provider, accent=accent, dim=dim,
                                      context_pinned=context_pinned, context_marker=context_marker)
     right_lines = _banner_tool_lines(
@@ -761,6 +761,6 @@ def build_welcome_banner(
         border_style=_skin_color("banner_border", "#CD7F32"), padding=(0, 2))
     console.print()
     if shutil.get_terminal_size().columns >= 95:
-        console.print(getattr(_bskin, "banner_logo", None) or HERMES_AGENT_LOGO)
+        console.print(getattr(_bskin, "banner_logo", None) or KOVA_AGENT_LOGO)
         console.print()
     console.print(outer_panel)

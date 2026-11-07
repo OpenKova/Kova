@@ -17,13 +17,13 @@ def _migrate_profile_config_if_outdated(profile_dir: Path) -> None:
     # Creation must not fail over an unmigratable old config; `hermes doctor --fix` surfaces
     # the detailed error in the target profile.
     with contextlib.suppress(Exception):
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         from kova_cli.config import check_config_version, migrate_config
-        token = set_hermes_home_override(str(profile_dir))
+        token = set_kova_home_override(str(profile_dir))
         try:
             current_ver, latest_ver = check_config_version()
             if current_ver < latest_ver:
                 migrate_config(interactive=False, quiet=True)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 

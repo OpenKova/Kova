@@ -30,7 +30,7 @@ def _descriptor(*homes: Path, instance="instance-a", state="ready", **extra) -> 
 
 @pytest.fixture()
 def layout(tmp_path):
-    root = tmp_path / "r" / ".hermes"
+    root = tmp_path / "r" / ".kova"
     secondary = root / "profiles" / "work"
     secondary.mkdir(parents=True, mode=0o700)
     (root / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
@@ -165,7 +165,7 @@ def test_update_fenced_is_exactly_when_ensure_does_not_return_discovery(layout):
     """``attachable and not update_fenced`` is the case where ``ensure`` hands back the discovery
     verdict unchanged, which is what lets a client skip the start command."""
     solo, _root, _secondary = layout
-    marker = solo / ".hermes-update-in-progress"
+    marker = solo / ".kova-update-in-progress"
     for fenced in (False, True):
         if fenced:
             marker.touch()  # an update still writing its marker fences for its grace period
@@ -347,7 +347,7 @@ def test_the_gateway_bootstrap_installs_the_verb_over_its_identify_descriptor(tm
     home = tmp_path / "boot"
     home.mkdir(mode=0o700)
     home = home.resolve()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     descriptor = _descriptor(home, instance="instance-boot")
     runner = SimpleNamespace(session_runtime_descriptor=descriptor, _draining=False,
                              session_ticket_store=TicketStore("instance-boot", frozenset({str(home)})),

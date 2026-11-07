@@ -39,16 +39,16 @@ def _parse_env_var(name: str, default: str, converter: Any = int, type_label: st
     except (ValueError, json.JSONDecodeError):
         raise ValueError(
             f"Invalid value for {name}: {raw!r} (expected {type_label}). "
-            f"Check ~/.hermes/.env or environment variables."
+            f"Check ~/.kova/.env or environment variables."
         )
 
 
-# (current home, Hermes root) -> profile name; only homes that exist are stored (see home_profile_name).
+# (current home, Kova root) -> profile name; only homes that exist are stored (see home_profile_name).
 _HOME_PROFILE_NAMES: dict[tuple[str, str], str] = {}
 
 
 def home_profile_name() -> str:
-    """Profile name of the current Hermes home (the process home, or a routed turn's bound home);
+    """Profile name of the current Kova home (the process home, or a routed turn's bound home);
     ``"default"`` when it cannot be resolved. One lookup for every reader that must agree: the
     persistent-Docker container key, the container's profile label, the name the TUI stamps on its
     sessions (``get_active_profile_name``, so ``custom`` for a home inside the root that is not a
@@ -58,10 +58,10 @@ def home_profile_name() -> str:
     container-key resolution, several times per tool call."""
     try:
         from kova_cli.profiles import get_active_profile_name
-        from kova_constants import get_default_hermes_root, get_hermes_home
+        from kova_constants import get_default_kova_root, get_kova_home
 
-        home = get_hermes_home()
-        key = (str(home), str(get_default_hermes_root()))
+        home = get_kova_home()
+        key = (str(home), str(get_default_kova_root()))
         if (cached := _HOME_PROFILE_NAMES.get(key)) is not None:
             return cached
         name = get_active_profile_name() or "default"
@@ -210,9 +210,9 @@ def coerce_ssh_remote_cwd(cwd: str | None, env_type: str | None) -> str | None:
     """Cwd to send to an SSH backend.
 
     ``~``-prefixed paths stay literal so the remote shell expands them to the
-    SSH user's home. The Hermes process's subprocess home (``/opt/data/home``
+    SSH user's home. The Kova process's subprocess home (``/opt/data/home``
     in the official Docker image) is a directory on the machine running
-    Hermes: it and anything under it are rewritten onto the remote ``~``, since
+    Kova: it and anything under it are rewritten onto the remote ``~``, since
     ``cd`` into the host path exits 126 on the target. A subprocess home that is
     the OS user's real home is left alone: a remote path may legitimately match
     it. Other backends are unchanged.

@@ -120,8 +120,8 @@ def _subscribe_params(route_name: str, route: dict, url_base: str, state: dict) 
 # refused if the route changed, so per-event cursor writes on the route would strand in-flight runs.
 
 def _state_path():
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / _STATE_FILENAME
+    from kova_constants import get_kova_home
+    return get_kova_home() / _STATE_FILENAME
 
 
 def _load_state() -> dict[str, dict]:

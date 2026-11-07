@@ -18,9 +18,9 @@ def _owners(db):
     return dict(db._conn.execute('SELECT id, profile_name FROM sessions ORDER BY id').fetchall())
 
 
-def test_default_store_stamps_only_unowned_rows(_isolate_hermes_home):
-    from kova_constants import get_default_hermes_root
-    with SessionDB(db_path=get_default_hermes_root() / 'state.db') as db:
+def test_default_store_stamps_only_unowned_rows(_isolate_kova_home):
+    from kova_constants import get_default_kova_root
+    with SessionDB(db_path=get_default_kova_root() / 'state.db') as db:
         _legacy(db, 'null-row')
         _legacy(db, 'blank-row', '  ')
         _legacy(db, 'owned-row', 'work')
@@ -30,9 +30,9 @@ def test_default_store_stamps_only_unowned_rows(_isolate_hermes_home):
         assert backfill_legacy_session_owners(db) == 0
 
 
-def test_named_profile_store_stamps_its_own_name(_isolate_hermes_home):
-    from kova_constants import get_default_hermes_root
-    home = get_default_hermes_root() / 'profiles' / 'work'
+def test_named_profile_store_stamps_its_own_name(_isolate_kova_home):
+    from kova_constants import get_default_kova_root
+    home = get_default_kova_root() / 'profiles' / 'work'
     home.mkdir(parents=True)
     with SessionDB(db_path=home / 'state.db') as db:
         _legacy(db, 'null-row')
@@ -41,7 +41,7 @@ def test_named_profile_store_stamps_its_own_name(_isolate_hermes_home):
         assert _owners(db) == {'null-row': 'work'}
 
 
-def test_store_outside_the_profile_tree_keeps_null(tmp_path, _isolate_hermes_home):
+def test_store_outside_the_profile_tree_keeps_null(tmp_path, _isolate_kova_home):
     with SessionDB(db_path=tmp_path / 'elsewhere' / 'state.db') as db:
         _legacy(db, 'null-row')
 

@@ -53,8 +53,8 @@ def _play(conn, client, frames):
 
 
 def _idle_cli(conn):
-    from cli import HermesCLI
-    cli = HermesCLI.__new__(HermesCLI)
+    from cli import KovaCLI
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id = SID
     cli._pending_input = queue.Queue()
     cli._session_db = GatewaySessionStore(connection=conn)

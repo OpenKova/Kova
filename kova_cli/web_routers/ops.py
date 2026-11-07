@@ -45,7 +45,7 @@ _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profi
 _resolve_profile_dir = late("_resolve_profile_dir", "kova_cli.web_server_profiles")
 _spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
 _write_platform_enabled = late("_write_platform_enabled", "kova_cli.web_server_messaging")
-get_hermes_home = late("get_hermes_home", "kova_cli.config")
+get_kova_home = late("get_kova_home", "kova_cli.config")
 load_config = late("load_config", "kova_cli.config")
 save_config = late("save_config", "kova_cli.config")
 
@@ -501,7 +501,7 @@ async def get_memory_status(profile: Optional[str] = None):
         cfg = load_config()
         mem = cfg.get("memory")
         active = _normalize_memory_provider_name(mem.get("provider")) if isinstance(mem, dict) else ""
-        mem_dir = get_hermes_home() / "memories"
+        mem_dir = get_kova_home() / "memories"
         files = {}  # sizes so the UI can show what a reset would erase
         for fname, key in _MEMORY_FILES:
             path = mem_dir / fname
@@ -540,7 +540,7 @@ async def reset_memory(body: MemoryReset, profile: Optional[str] = None):
     profile = destructive_profile(profile, "POST /api/memory/reset")
 
     def _run():
-        mem_dir = get_hermes_home() / "memories"
+        mem_dir = get_kova_home() / "memories"
         deleted = []
         for fname, key in _MEMORY_FILES:
             path = mem_dir / fname
@@ -577,7 +577,7 @@ async def run_security_audit(profile: Optional[str] = None):
 def _dashboard_backup_dir(profile: Optional[str] = None) -> Path:
     """``<profile home>/backups`` — the archive belongs to the profile it backs up."""
     with _config_profile_scope(profile):
-        return get_hermes_home() / "backups"
+        return get_kova_home() / "backups"
 
 
 @router.post("/api/ops/backup")
@@ -811,7 +811,7 @@ async def list_checkpoints(profile: Optional[str] = None):
     so the UI can show what a prune reclaims; pruning itself is a spawned CLI
     action so the confirmation logic stays in one place."""
     def _run():
-        cp_dir = get_hermes_home() / "checkpoints"
+        cp_dir = get_kova_home() / "checkpoints"
         sessions = []
         total_bytes = 0
         if cp_dir.is_dir():

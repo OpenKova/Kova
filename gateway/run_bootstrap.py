@@ -28,16 +28,16 @@ def _start_deferred_state_db_integrity_check(evidence: dict) -> None:
 logger = logging.getLogger("gateway.run")
 
 async def _start_gateway_replace_existing_instance(existing_pid: int, replace: bool) -> bool:
-    """Handle a live gateway PID under this HERMES_HOME: replace it (``--replace``) or refuse.
+    """Handle a live gateway PID under this KOVA_HOME: replace it (``--replace``) or refuse.
     Returns False when startup must abort (refused, permission denied, target still alive)."""
-    from gateway.run import (_clear_takeover_marker_quiet, _replace_target_belongs_to_other_profile, _wait_for_pid_exit, get_hermes_home, suppress)
+    from gateway.run import (_clear_takeover_marker_quiet, _replace_target_belongs_to_other_profile, _wait_for_pid_exit, get_kova_home, suppress)
     from gateway.status import get_process_start_time, remove_pid_file, terminate_pid
     if not replace:
-        hermes_home = str(get_hermes_home())
+        kova_home = str(get_kova_home())
         logger.error(
-            "Another gateway instance is already running (PID %d, HERMES_HOME=%s) and did not "
+            "Another gateway instance is already running (PID %d, KOVA_HOME=%s) and did not "
             "publish a host record this process could attach to.",
-            existing_pid, hermes_home)
+            existing_pid, kova_home)
         print(
             f"\n❌ A gateway already owns this host (PID {existing_pid}).\n"
             f"   One gateway per host serves every profile, so there is nothing to start here.\n"
@@ -49,12 +49,12 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
 
     # Never signal a process not provably ours (a poisoned PID record → cross-profile restart loop).
     if _replace_target_belongs_to_other_profile(existing_pid):
-        from gateway.status import _get_process_hermes_home, write_runtime_status
+        from gateway.status import _get_process_kova_home, write_runtime_status
         logger.error(
             "Refusing --replace: PID %d cannot be proven to belong "
-            "to this profile's gateway (HERMES_HOME %s). Remove the "
+            "to this profile's gateway (KOVA_HOME %s). Remove the "
             "stale PID record or stop the owning profile explicitly.",
-            existing_pid, _get_process_hermes_home())
+            existing_pid, _get_process_kova_home())
         # The stamp must be ON DISK before this process exits: every CLI exit path funnels
         # through _exit_after_graceful_shutdown(), whose os._exit() never flushes the queued
         # runtime-status writer. A fire-and-forget stamp can die in the queue, the supervisor
@@ -120,7 +120,7 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
     remove_pid_file()
     # remove_pid_file() is a no-op when the PID doesn't match; force-unlink covers a crashed old process.
     with suppress(Exception):
-        (get_hermes_home() / "gateway.pid").unlink(missing_ok=True)
+        (get_kova_home() / "gateway.pid").unlink(missing_ok=True)
     # The old process may not have consumed the marker (SIGKILL'd before its handler read it).
     _clear_takeover_marker_quiet()
     # Stopped (Ctrl+Z) processes don't release scoped locks on exit; stale lock files block the new gateway.
@@ -136,7 +136,7 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
 
 def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
     """Sync bundled skills, set up file logging + startup security audit, and the -v/-q stderr handler."""
-    from gateway.run import (_best_effort, _gateway_stderr_formatter, _hermes_home, logging)
+    from gateway.run import (_best_effort, _gateway_stderr_formatter, _kova_home, logging)
     def _sync_skills() -> None:
         from tools.skills_sync import sync_skills
         sync_skills(quiet=True)
@@ -145,7 +145,7 @@ def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
 
     # Centralized logging (agent.log INFO+, errors.log WARNING+, gateway.log gateway-only); idempotent.
     from kova_logging import setup_logging, _safe_stderr
-    setup_logging(hermes_home=_hermes_home, mode="gateway")
+    setup_logging(kova_home=_kova_home, mode="gateway")
 
     def _security_audit() -> None:
         # Warn-on-load, never blocks: surfaces root / weak-SSH / unauthenticated-listener exposure.
@@ -155,7 +155,7 @@ def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
             from kova_cli.config import read_raw_config
             return read_raw_config()
 
-        log_startup_security_warnings(hermes_home=_hermes_home, config=_best_effort(_raw_cfg))
+        log_startup_security_warnings(kova_home=_kova_home, config=_best_effort(_raw_cfg))
 
     _best_effort(_security_audit, "Startup security audit failed (non-fatal): %s")
 
@@ -173,7 +173,7 @@ def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
 
 def _start_gateway_make_shutdown_signal_handler(runner, _signal_initiated_shutdown: list):
     """Build the SIGINT/SIGTERM handler; ``_signal_initiated_shutdown[0]`` records an unplanned signal."""
-    from gateway.run import (_best_effort, _hermes_home, asyncio, logger, signal)
+    from gateway.run import (_best_effort, _kova_home, asyncio, logger, signal)
     planned_stop_seen = [False]
 
     def shutdown_signal_handler(received_signal=None):
@@ -225,7 +225,7 @@ def _start_gateway_make_shutdown_signal_handler(runner, _signal_initiated_shutdo
                 # down; bounded by an internal timeout, never blocks.
                 from gateway.shutdown_forensics import spawn_async_diagnostic
                 spawn_async_diagnostic(
-                    _hermes_home / "logs" / "gateway-shutdown-diag.log", _shutdown_ctx["signal"], timeout_seconds=5.0)
+                    _kova_home / "logs" / "gateway-shutdown-diag.log", _shutdown_ctx["signal"], timeout_seconds=5.0)
 
             _best_effort(_log_context, "format_context_for_log failed: %s")
             _best_effort(_diagnostic, "spawn_async_diagnostic failed: %s")
@@ -276,7 +276,7 @@ async def _start_gateway_start_control_socket(runner):
     _control_server = None
     try:
         # Started immediately after the PID-file claim: winning that O_EXCL race is the moment this process
-        # becomes the authoritative gateway for its HERMES_HOME, so from here on "does a socket answer?" is
+        # becomes the authoritative gateway for its KOVA_HOME, so from here on "does a socket answer?" is
         # a truthful liveness/identity query for updater and fleet consumers. Returns None on failure and
         # start_gateway aborts startup: the listener mints every local client's attach ticket, so a
         # gateway without it can serve no local session. See #92091.
@@ -374,8 +374,8 @@ async def _start_gateway_start_control_socket(runner):
         # The Webapp's verbs answer from the socket's first moment ("starting" until the listener
         # settles): a client polling a restarting gateway must never read "unknown verb" as a failure.
         from gateway.webapp_listener import register_control_verbs
-        from kova_constants import get_hermes_home
-        register_control_verbs(runner, get_hermes_home(), server=_control_server)
+        from kova_constants import get_kova_home
+        register_control_verbs(runner, get_kova_home(), server=_control_server)
         if not await _control_server.start():
             _control_server = None
         else:
@@ -534,12 +534,12 @@ def _launch_home_may_multiplex(config=None) -> bool:
     this process comes up standalone, says why, and *config* is flipped in place so the boot below
     reserves and serves only the launch profile."""
     from kova_constants import profile_name_for_home
-    from gateway.run import get_hermes_home, logger
-    name = profile_name_for_home(get_hermes_home())
+    from gateway.run import get_kova_home, logger
+    name = profile_name_for_home(get_kova_home())
     if name in (None, "default"):
         return True
     from kova_cli.gateway_multiplex_mode import explicit_multiplex_flag
-    if config is not None and not explicit_multiplex_flag(get_hermes_home()):
+    if config is not None and not explicit_multiplex_flag(get_kova_home()):
         from kova_cli.gateway_multiplex_mode import MultiplexDecision, log_multiplex_decision
         decision = MultiplexDecision(
             False, "guard",
@@ -571,8 +571,8 @@ def _reload_config_keeping_multiplex_verdict(first: GatewayConfig) -> GatewayCon
     from gateway.config import load_gateway_config
     if getattr(first, "multiplex_profiles", False):
         from gateway.run import _profile_runtime_scope
-        from kova_constants import get_default_hermes_root
-        with _profile_runtime_scope(Path(get_default_hermes_root())):
+        from kova_constants import get_default_kova_root
+        with _profile_runtime_scope(Path(get_default_kova_root())):
             reloaded = load_gateway_config()
     else:
         reloaded = load_gateway_config()
@@ -624,9 +624,9 @@ def _reserve_waiting_out_browse_reconcile(ownership, homes, *, wait_s: float | N
 
 def _start_gateway_reserve_profiles(profile_homes) -> bool:
     """Reserve the launch home plus every served profile home; False when startup must abort."""
-    from gateway.run import get_hermes_home
+    from gateway.run import get_kova_home
     from gateway.runtime_ownership import process_ownership, OwnershipConflict
-    homes = [get_hermes_home(), *(home for _, home in profile_homes)]
+    homes = [get_kova_home(), *(home for _, home in profile_homes)]
     try:
         _reserve_waiting_out_browse_reconcile(process_ownership, homes)
     except OwnershipConflict as exc:
@@ -752,7 +752,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         threading,
     )
     # Set here (not at import) so incidental gateway.run imports from CLI code don't poison it.
-    os.environ["HERMES_EXEC_ASK"] = "1"
+    os.environ["KOVA_EXEC_ASK"] = "1"
     from kova_cli.update_proxy_env import restore_user_proxy_env
     restore_user_proxy_env()  # a gateway an update restarted keeps the user's proxy env, not the update's
     _start_gateway_resolve_terminal_cwd()
@@ -785,7 +785,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     if _host_decision is not None:
         return _host_decision
 
-    # Duplicate-instance guard scoped to HERMES_HOME (the host record is absent or unusable here).
+    # Duplicate-instance guard scoped to KOVA_HOME (the host record is absent or unusable here).
     from gateway.status import get_running_pid
     existing_pid = get_running_pid()
     if (existing_pid is not None and existing_pid != os.getpid()

@@ -200,7 +200,7 @@ def test_concurrent_commands_keep_acknowledged_enables(plugin_world, sibling_pro
     import subprocess
     import sys
     import kova_yaml as yaml
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
     from tests.kova_cli.plugin_worker_support import worker_command
 
     world = plugin_world
@@ -212,11 +212,11 @@ def test_concurrent_commands_keep_acknowledged_enables(plugin_world, sibling_pro
             (home / "config.yaml").write_text("plugins:\n  enabled: []\n  disabled: []\n", encoding="utf-8")
     for name, home in zip(("race-left", "race-right"), homes):
         origin, revision = world.origin(name=name, dependency="plugin-proof-dep" if name == "race-left" else "plugin-proof-other")
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             world.command("install", identifier=origin.as_uri(), ref=revision, no_enable=True, allow_removed=True)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
     untouched = (world.home / "config.yaml").read_bytes()
     checkout = Path(__file__).resolve().parents[2]
     command = worker_command(checkout / "pm/worker.py", shutil.which("uv"), sys.executable,
@@ -244,7 +244,7 @@ def test_concurrent_commands_keep_acknowledged_enables(plugin_world, sibling_pro
             )
             processes.append(subprocess.Popen([sys.executable, "-I", "-B", "-c", script],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                env={**os.environ, "HERMES_HOME": str(home)}))
+                env={**os.environ, "KOVA_HOME": str(home)}))
         # Both commands have reached the worker launch (after the old stale
         # read). Release one all the way through publication, then the other.
         ready = queue.Queue()

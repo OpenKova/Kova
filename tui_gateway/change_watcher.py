@@ -42,8 +42,8 @@ _last_skin_sig: tuple[str, float | None] | None = None
 
 def _watcher_home() -> Path:
     """Active profile home for the change watcher's signature probes."""
-    override = get_hermes_home_override()
-    return Path(override if isinstance(override, str) and override else _hermes_home)
+    override = get_kova_home_override()
+    return Path(override if isinstance(override, str) and override else _kova_home)
 
 
 def _watcher_mtime_ns(path: Path):
@@ -97,24 +97,24 @@ def _skin_home_for(profile_id) -> str | None:
     """The profile home a peer's skin follows, or None for the launch home (the ambient scope)."""
     with contextlib.suppress(Exception):
         home = Path(str(profile_id))
-        if home.is_absolute() and home.is_dir() and home.resolve() != Path(_hermes_home).resolve():
+        if home.is_absolute() and home.is_dir() and home.resolve() != Path(_kova_home).resolve():
             return str(home)
     return None
 
 
 def _under_home(home: str, fn):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return fn()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _note_skin_broadcast() -> None:
     """Sync the baseline after the /skin RPC emits so the watcher doesn't re-broadcast it."""
     global _last_skin_sig
     with contextlib.suppress(Exception):
-        if home := _skin_home_for(get_hermes_home_override()):
+        if home := _skin_home_for(get_kova_home_override()):
             _skin_sig_by_home[home] = _skin_sig()
         else:
             _last_skin_sig = _skin_sig()

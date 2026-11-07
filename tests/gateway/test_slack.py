@@ -214,7 +214,7 @@ def adapter():
 
 @pytest.fixture(autouse=True)
 def _redirect_cache(tmp_path, monkeypatch):
-    """Point document cache to tmp_path so tests don't touch ~/.hermes."""
+    """Point document cache to tmp_path so tests don't touch ~/.kova."""
     monkeypatch.setattr(
         "gateway.platforms.base.DOCUMENT_CACHE_DIR", tmp_path / "doc_cache"
     )
@@ -1194,12 +1194,12 @@ class TestStandaloneSendUserDmResolution:
             result = await _slack_mod._standalone_send(
                 config,
                 "C123",
-                "[Hermes](https://example.com/hermes)",
+                "[Kova](https://example.com/hermes)",
             )
 
         assert result["success"] is True
         payload = session.post.call_args.kwargs["json"]
-        assert payload["text"] == "<https://example.com/hermes|Hermes>"
+        assert payload["text"] == "<https://example.com/hermes|Kova>"
         assert payload["unfurl_links"] is False
         assert payload["unfurl_media"] is False
 

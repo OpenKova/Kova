@@ -23,17 +23,17 @@ async def test_authenticated_token_can_create_without_identityless_permissions(t
     from gateway.run_runtime import initialize_gateway_runtime, start_gateway_runtime_api, publish_gateway_runtime_ready
     from gateway.runtime_ownership import process_ownership
     from gateway.session_controls import AuthorityConnection
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli import web_server as web
 
     # Session creation persists a restorable model policy, even without a turn.
-    (get_hermes_home() / 'config.yaml').write_text(json.dumps({
+    (get_kova_home() / 'config.yaml').write_text(json.dumps({
         'model': {'provider': 'custom', 'default': 'local-wire-stub',
                   'base_url': 'http://127.0.0.1:1/v1'},
         'platform_toolsets': {'cli': []},
         'auxiliary': {'title_generation': {'enabled': False}},
     }))
-    process_ownership.reserve([get_hermes_home()])
+    process_ownership.reserve([get_kova_home()])
     runner = GatewayRunner(GatewayConfig())
     try:
         await initialize_gateway_runtime(runner)
@@ -112,8 +112,8 @@ def test_ordinary_daemon_keeps_control_auth_and_loop_witness(tmp_path, layout):
         root = Path(__file__).resolve().parents[2]
         token = secrets.token_urlsafe(32)
         env = {key: os.environ[key] for key in ('PATH', 'LANG', 'TZ') if key in os.environ}
-        env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
-                   PYTHONPATH=str(root), PYTHONUNBUFFERED='1', HERMES_DASHBOARD_SESSION_TOKEN=token)
+        env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home),
+                   PYTHONPATH=str(root), PYTHONUNBUFFERED='1', KOVA_DASHBOARD_SESSION_TOKEN=token)
         if layout == 'long-temp':
             temp = tmp_path / ('t' * 120)
             temp.mkdir()

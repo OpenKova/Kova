@@ -1,8 +1,8 @@
 """Centralized Nous Portal request tags.
 
-Every Hermes request to the Nous Portal (main loop, auxiliary client, fallback
+Every Kova request to the Nous Portal (main loop, auxiliary client, fallback
 paths) must carry the same product-attribution tags, sent in OpenAI-compatible
-``extra_body['tags']``: ``["product=hermes-agent", "client=hermes-client-v<base_version>"]``.
+``extra_body['tags']``: ``["product=kova-agent", "client=hermes-client-v<base_version>"]``.
 The value comes from the canonical runtime identity's base version so build
 provenance never leaks into this compatibility tag.
 """
@@ -88,7 +88,7 @@ def nous_portal_tags(session_id: str | None = None) -> list[str]:
     The ambient conversation context (lineage ROOT id) wins over the explicit
     ``session_id``, a fallback for callers outside any agent turn.
     """
-    tags = ["product=hermes-agent", kova_client_tag()]
+    tags = ["product=kova-agent", kova_client_tag()]
     effective = get_conversation_context() or session_id
     if effective:
         tags.append(conversation_tag(effective))

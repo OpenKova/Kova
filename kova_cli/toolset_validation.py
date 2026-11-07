@@ -44,7 +44,7 @@ def _bundled_platform_names() -> frozenset:
 
 
 def is_known_platform_bundle(platform: object, name: str) -> bool:
-    """True when ``name`` is the ``hermes-<platform>`` bundle of a platform Hermes knows: builtin, shipped
+    """True when ``name`` is the ``hermes-<platform>`` bundle of a platform Kova knows: builtin, shipped
     under ``plugins/platforms``, a platform that left core for a catalog plugin, or one a loaded plugin
     registered. Installs seeded from cli-config.yaml.example carry such rows for platforms nobody set up
     (teams, google_chat, homeassistant), inert until the plugin loads. A misspelt platform key naming its

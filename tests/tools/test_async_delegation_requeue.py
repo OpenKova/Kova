@@ -4,7 +4,7 @@ import queue
 
 import pytest
 
-from kova_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_kova_home, kova_home_key
 from tools import async_delegation as ad
 
 
@@ -47,7 +47,7 @@ def test_requeue_returns_an_acknowledged_completion_to_pending_and_offers_it():
     assert _column("requeue-ok", "delivered_at") is None
     evt = offered.get_nowait()
     assert evt["delegation_id"] == "requeue-ok" and evt["restored"] is True
-    assert (hermes_home_key(get_hermes_home()), "requeue-ok") in ad._offered
+    assert (kova_home_key(get_kova_home()), "requeue-ok") in ad._offered
 
 
 def test_requeue_past_the_delivery_budget_drops_the_completion():

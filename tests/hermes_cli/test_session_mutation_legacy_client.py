@@ -25,7 +25,7 @@ def _app(tmp_path, monkeypatch):
     from kova_cli import web_server
     monkeypatch.setattr(web_server, '_SESSION_TOKEN', 'legacy-token')
     monkeypatch.setattr('kova_state._default_db_path', lambda: tmp_path / 'state.db')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     app = FastAPI()
     app.include_router(manage_router)
     return app

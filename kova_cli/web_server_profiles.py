@@ -12,7 +12,7 @@ from contextlib import contextmanager, nullcontext
 from fastapi import HTTPException
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
-from kova_cli.config import DEFAULT_CONFIG, get_process_hermes_home
+from kova_cli.config import DEFAULT_CONFIG, get_process_kova_home
 from kova_cli.web_models import MCPServerCreate
 from kova_cli.web_server_gateway import _ACTION_LOG_FILES
 from kova_cli.web_server_mcp import _normalize_mcp_server_create
@@ -35,15 +35,15 @@ def _is_current_profile(profile: Optional[str]) -> bool:
 
 
 @contextmanager
-def _hermes_home_scope(path) -> Any:
-    """Scope ``load_config``/``save_config`` (anything resolving ``get_hermes_home()`` at call
-    time) to ``path`` for the block via the context-local HERMES_HOME override."""
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
-    token = set_hermes_home_override(str(path))
+def _kova_home_scope(path) -> Any:
+    """Scope ``load_config``/``save_config`` (anything resolving ``get_kova_home()`` at call
+    time) to ``path`` for the block via the context-local KOVA_HOME override."""
+    from kova_constants import set_kova_home_override, reset_kova_home_override
+    token = set_kova_home_override(str(path))
     try:
         yield
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def serving_profile_name() -> str:
@@ -54,7 +54,7 @@ def serving_profile_name() -> str:
     switcher has resolved: a destructive route now 400s on an unnamed profile as soon as
     the host serves more than one, and "" would otherwise mean "whichever home this
     process launched with" anyway. Naming it is only safe if the name cannot resolve
-    ELSEWHERE, so a custom HERMES_HOME outside ``profiles/`` (``get_active_profile_name()``
+    ELSEWHERE, so a custom KOVA_HOME outside ``profiles/`` (``get_active_profile_name()``
     answers ``"custom"``) returns "" and keeps the old unnamed behaviour rather than
     risking a wrong-profile write.
     """
@@ -63,7 +63,7 @@ def serving_profile_name() -> str:
         name = (profiles_mod.get_active_profile_name() or "").strip()
         if not name or name == "custom":
             return ""
-        return name if profiles_mod.profile_matches_home(name, get_process_hermes_home()) else ""
+        return name if profiles_mod.profile_matches_home(name, get_process_kova_home()) else ""
     except Exception:
         return ""
 
@@ -76,7 +76,7 @@ def _is_other_profile(profile: Optional[str]) -> bool:
         target = _resolve_profile_dir(profile.strip())
     except HTTPException:
         return True
-    return target.resolve() != get_process_hermes_home().resolve()
+    return target.resolve() != get_process_kova_home().resolve()
 
 
 def _approval_mode_of(config: dict[str, Any]) -> str:
@@ -160,7 +160,7 @@ def _fallback_profile_entry(profiles_mod, name: str, home: Path, *, is_default: 
 
 def _fallback_profile_dicts(profiles_mod) -> list[dict[str, Any]]:
     profiles: list[dict[str, Any]] = []
-    default_home = profiles_mod._get_default_hermes_home()
+    default_home = profiles_mod._get_default_kova_home()
     if default_home.is_dir():
         profiles.append(_fallback_profile_entry(
             profiles_mod, "default", default_home, is_default=True,
@@ -200,7 +200,7 @@ def _resolve_profile_dir(name: str) -> Path:
 
 
 def _write_profile_mcp_servers(profile_dir: Path, servers: list[MCPServerCreate]) -> int:
-    """Write MCP server entries into ``profile_dir``'s config.yaml (HERMES_HOME-scoped).
+    """Write MCP server entries into ``profile_dir``'s config.yaml (KOVA_HOME-scoped).
 
     Mirrors the per-server shape ``POST /api/mcp/servers`` builds, batched so the whole
     profile-create write is one config save. Returns the number of servers written.
@@ -208,7 +208,7 @@ def _write_profile_mcp_servers(profile_dir: Path, servers: list[MCPServerCreate]
     from kova_cli.config import load_config, save_config
     from kova_cli.mcp_config import _save_bearer_auth_token
     written = 0
-    with _hermes_home_scope(profile_dir):
+    with _kova_home_scope(profile_dir):
         cfg = load_config()
         mcp = cfg.setdefault("mcp_servers", {})
         for server in servers:
@@ -243,39 +243,39 @@ _SKILLS_PROFILE_LOCK = threading.RLock()
 def _profile_scope(profile: Optional[str]):
     """Scope config + skill-directory resolution to ``profile`` for one request.
 
-    Two seams: (1) ``load_config``/``save_config`` resolve ``get_hermes_home()`` at call
+    Two seams: (1) ``load_config``/``save_config`` resolve ``get_kova_home()`` at call
     time, so the contextvar override reaches them; (2) ``tools.skills_tool`` /
     ``tools.skill_manager_tool`` bind ``SKILLS_DIR`` at import time, so both are retargeted
     under a lock and restored after. For the dashboard's own profile config resolution is
     untouched, but the skill-module globals are still retargeted to the *current*
-    ``get_hermes_home()`` so writes land in the live home even when the import-time binding
-    is stale (test isolation, late HERMES_HOME override). Yields the profile dir for a named
+    ``get_kova_home()`` so writes land in the live home even when the import-time binding
+    is stale (test isolation, late KOVA_HOME override). Yields the profile dir for a named
     profile, None for the current one.
 
     ``tools.skills_sync`` (reset/diff/list-modified/opt-in/opt-out/ repair-official) needs NO retargeting:
     since #65828 its directory lookups resolve at call time through the same contextvar override set in step
     1.
     """
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tools import skills_tool as _skills_tool
     from tools import skill_manager_tool as _skill_mgr
     with _config_profile_scope(profile) as scoped:
-        profile_dir = get_hermes_home() if scoped is None else scoped
+        profile_dir = get_kova_home() if scoped is None else scoped
         modules = (_skills_tool, _skill_mgr)
         with _SKILLS_PROFILE_LOCK:
-            saved = [(m.HERMES_HOME, m.SKILLS_DIR) for m in modules]
+            saved = [(m.KOVA_HOME, m.SKILLS_DIR) for m in modules]
             for m in modules:
-                m.HERMES_HOME, m.SKILLS_DIR = profile_dir, profile_dir / "skills"
+                m.KOVA_HOME, m.SKILLS_DIR = profile_dir, profile_dir / "skills"
             try:
                 yield scoped
             finally:
                 for m, (home, skills_dir) in zip(modules, saved):
-                    m.HERMES_HOME, m.SKILLS_DIR = home, skills_dir
+                    m.KOVA_HOME, m.SKILLS_DIR = home, skills_dir
 
 
 @contextmanager
 def _config_profile_scope(profile: Optional[str]):
-    """Await-safe profile scope: the task-local HERMES_HOME contextvar PLUS the profile's secret
+    """Await-safe profile scope: the task-local KOVA_HOME contextvar PLUS the profile's secret
     scope, never the process-global skills-module attributes ``_profile_scope`` swaps (holding
     those across an ``await`` lets a concurrent request restore THIS request's dir on its
     ``finally``). None/""/"current" = no override.
@@ -296,12 +296,12 @@ def _config_profile_scope(profile: Optional[str]):
     """
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
     from kova_cli.env_loader import hydrate_profile_secret_sources
-    from kova_constants import get_hermes_home, get_hermes_home_override
+    from kova_constants import get_kova_home, get_kova_home_override
     from tui_gateway.launch_profile_policy import activate_multi_profile_hosting, launch_secret_scope
 
-    process_home = get_process_hermes_home()
+    process_home = get_process_kova_home()
     if _is_current_profile(profile):
-        profile_dir = get_hermes_home() if get_hermes_home_override() else None
+        profile_dir = get_kova_home() if get_kova_home_override() else None
     else:
         profile_dir = _resolve_profile_dir(profile.strip())
     scoped = None if profile_dir is None or profile_dir.resolve() == process_home.resolve() else profile_dir
@@ -316,7 +316,7 @@ def _config_profile_scope(profile: Optional[str]):
         # concurrent first ``?profile=B`` request flips ``get_secret`` to fail closed mid-request,
         # and an unscoped launch request would then raise ``UnscopedSecretError`` on its next read.
         secrets = launch_secret_scope(process_home)
-    with (_hermes_home_scope(profile_dir) if profile_dir is not None else nullcontext()):
+    with (_kova_home_scope(profile_dir) if profile_dir is not None else nullcontext()):
         token = set_secret_scope(secrets, profile_home=str(profile_dir or process_home))
         try:
             yield scoped
@@ -442,7 +442,7 @@ def _profile_cli_args(profile: Optional[str]) -> list[str]:
     a fresh ``hermes`` subprocess whose ``_apply_profile_override()`` reads ``-p`` from argv —
     the only mechanism that reaches import-time-bound globals like ``skills_hub.SKILLS_DIR``.
     ``default`` is a real named target, not an alias for the dashboard's own profile:
-    selector-less argv would make the child resolve the ambient ``HERMES_HOME`` (the launch
+    selector-less argv would make the child resolve the ambient ``KOVA_HOME`` (the launch
     profile under a pooled ``-p X serve``), not the default home."""
     requested = (profile or "").strip()
     if not requested or requested.lower() == "current":

@@ -5,7 +5,7 @@ Every child-process env in the codebase must be built through
 ``hermes_subprocess_env`` / ``_sanitize_subprocess_env``, which the factory
 wraps) so profile-home propagation and secret-scrubbing have a single owner.
 History: ~11 commits over 6 months each fixed one more spawn site that missed
-``HERMES_HOME`` or secret-scrub propagation.
+``KOVA_HOME`` or secret-scrub propagation.
 
 This test greps the source tree for ``os.environ.copy()`` or a ``{**os.environ, ...}``
 spread appearing within ``PROXIMITY_LINES`` lines of a spawn call (``Popen`` / ``subprocess.run`` /
@@ -50,7 +50,7 @@ ALLOWED_RAW_SPAWN_ENV_FILES = {
     # only raw copy is the except-fallback for when the tools package itself
     # cannot be imported, so the user's typed command still runs.
     "kova_cli/bang_shell.py",
-    # These children are Hermes itself and need its full environment: the gateway respawn
+    # These children are Kova itself and need its full environment: the gateway respawn
     # watcher (generated script source), the launchd stderr-timestamp wrapper around the
     # gateway command, and the skills sync that seeds a new profile.
     "kova_cli/gateway.py",
@@ -59,9 +59,9 @@ ALLOWED_RAW_SPAWN_ENV_FILES = {
     # The compute host runs agent turns for the dashboard: Home Assistant tools, Modal/Daytona
     # backends and platform sends read keys that exist only in the process env (#65895).
     "tui_gateway/host_supervisor.py",
-    # apt/dnf/pacman run as root, through sudo (which resets the environment) or because Hermes
+    # apt/dnf/pacman run as root, through sudo (which resets the environment) or because Kova
     # already is root. A root child can read every process's environment anyway, and the scrub
-    # helpers would point TMPDIR into HERMES_HOME's scratch dir, leaving root-owned files there.
+    # helpers would point TMPDIR into KOVA_HOME's scratch dir, leaving root-owned files there.
     "tools/bot_desktop/install.py",
     # The docker/ssh CLIENT process: the user's own backend binary, never code the agent runs,
     # needing their real HOME for ~/.ssh and ~/.docker. Same as inheriting (``None``) plus the

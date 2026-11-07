@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Optional
 
-from kova_constants import get_default_hermes_root, get_hermes_home, named_profile_is_live
+from kova_constants import get_default_kova_root, get_kova_home, named_profile_is_live
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def active_session_limit_message(
     held = summarize_holders(entries or [])
     detail = f" Held by: {held}." if held else ""
     return (
-        f"Hermes is at the active session limit ({active_count}/{max_sessions})."
+        f"Kova is at the active session limit ({active_count}/{max_sessions})."
         f"{detail} Try again when another session finishes."
     )
 
@@ -170,13 +170,13 @@ def session_already_owned_message(session_id: str, entry: dict[str, Any]) -> str
     (no lease/pid/owner jargon); the second line is ``Details: ...`` for logs and bug reports.
     """
     return (
-        "This chat is open in another Hermes window/terminal. Use it there, or start a new chat here.\n"
+        "This chat is open in another Kova window/terminal. Use it there, or start a new chat here.\n"
         + session_owner_details(session_id, entry)
     )
 
 
 def _registry_home(registry_home: str | Path | None = None) -> Path:
-    return Path(registry_home) if registry_home is not None else Path(get_hermes_home())
+    return Path(registry_home) if registry_home is not None else Path(get_kova_home())
 
 
 def _state_path(registry_home: str | Path | None = None) -> Path:
@@ -459,7 +459,7 @@ class ActiveSessionLease:
     surface: str
     enabled: bool = True
     released: bool = False
-    # Pinned at acquisition: a lease taken under the root HERMES_HOME must release
+    # Pinned at acquisition: a lease taken under the root KOVA_HOME must release
     # against the same registry even inside a profile-home override, or phantom
     # leases fill the session cap.
     # See #85431.
@@ -582,7 +582,7 @@ def try_acquire_active_session(
         )
         if loaded is None:
             return None, ActiveSessionRefusal(
-                "Hermes could not read the active-session registry at "
+                "Kova could not read the active-session registry at "
                 f"{state_path}, so it cannot prove this session has no other "
                 "live owner. Fix or remove that file and try again.",
                 SESSION_COORDINATION_UNAVAILABLE,
@@ -634,7 +634,7 @@ def try_acquire_active_session(
 
 def release_active_session(lease: ActiveSessionLease) -> None:
     # Prefer the registry the lease was acquired against: the caller may be
-    # running under a profile HERMES_HOME override.
+    # running under a profile KOVA_HOME override.
     # See #85431.
     state_path, lock_path = _lease_paths(lease)
     with _FileLock(lock_path):
@@ -751,7 +751,7 @@ def release_orphaned_leases(live_lease_ids: set[str]) -> int:
     only authority on its own leases — exact, no heartbeat on the turn path, no threshold.
     Sweeps the root home and every profile home (a multiplexed server leases across them).
     """
-    root = get_default_hermes_root()
+    root = get_default_kova_root()
     homes = [root]
     try:
         homes.extend(p for p in (root / "profiles").iterdir() if named_profile_is_live(p))

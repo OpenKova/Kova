@@ -84,18 +84,18 @@ _SLOW_DEPS = f"""    {_DEPS_MARK}
 
 @pytest.fixture(scope="module")
 def w() -> Iterator[G.World]:
-    """A SHORT root: the gateway's AF_UNIX control socket lives under ``$HERMES_HOME``."""
+    """A SHORT root: the gateway's AF_UNIX control socket lives under ``$KOVA_HOME``."""
     base = os.environ.get("TMPDIR") or tempfile.gettempdir()
     root = Path(tempfile.mkdtemp(prefix="hz", dir=base))
     try:
         with G.world(root, base=I.head_sha()) as world:
-            cfg_path = world.sb.hermes_home / "config.yaml"
+            cfg_path = world.sb.kova_home / "config.yaml"
             cfg = (yaml.safe_load(cfg_path.read_text(encoding="utf-8-sig")) if cfg_path.is_file() else None) or {}
             cfg["updates"] = {**(cfg.get("updates") or {}), "check": False}
             cfg_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
             yield world
     finally:
-        if not os.environ.get("HERMES_E2E_KEEP_ROOT"):
+        if not os.environ.get("KOVA_E2E_KEEP_ROOT"):
             shutil.rmtree(root, ignore_errors=True)
 
 
@@ -126,7 +126,7 @@ def _identify(w: G.World) -> dict | None:
     from gateway.control_socket import identify_gateway
 
     with contextlib.suppress(Exception):
-        return identify_gateway(w.sb.hermes_home, timeout=5.0)
+        return identify_gateway(w.sb.kova_home, timeout=5.0)
     return None
 
 
@@ -146,7 +146,7 @@ def _gateways(host: NamespaceHost) -> list[dict]:
 def _record(w: G.World) -> list[dict]:
     """Every paused-gateway record (live, orphaned, claimed) in the root hermes home."""
     found = []
-    for p in sorted(w.sb.hermes_home.glob(".hermes-update-paused-gateways*.json")):
+    for p in sorted(w.sb.kova_home.glob(".kova-update-paused-gateways*.json")):
         with contextlib.suppress(OSError, ValueError):
             found.append({"path": p.name, **json.loads(p.read_text(encoding="utf-8-sig"))})
     return found
@@ -159,19 +159,19 @@ def _namespace(w: G.World) -> Iterator[NamespaceHost]:
         yield host
     finally:
         leaked = host.close()
-        (w.sb.hermes_home / "gateway.pid").unlink(missing_ok=True)  # names a pid of the dead namespace
+        (w.sb.kova_home / "gateway.pid").unlink(missing_ok=True)  # names a pid of the dead namespace
         assert not leaked, f"processes outlived the sandbox: {leaked}"
 
 
 def _ns_cli(host: NamespaceHost, w: G.World, *args: str, timeout: float = 600):
-    cp = host.run([w.sb.hermes, *args], timeout=timeout)
+    cp = host.run([w.sb.kova, *args], timeout=timeout)
     w.transcripts.append(f"$ hermes {' '.join(args)} -> rc={cp.returncode}\n{(cp.stdout or '')[-6000:]}\n"
                          f"{(cp.stderr or '')[-3000:]}")
     return cp
 
 
 def _start_gateway(host: NamespaceHost, w: G.World, tag: str) -> dict:
-    host.spawn([w.sb.hermes, "gateway", "run"], log=w.sb.root / f"gateway-{tag}.log")
+    host.spawn([w.sb.kova, "gateway", "run"], log=w.sb.root / f"gateway-{tag}.log")
     sha = w.head()
     try:
         return H.wait_for(lambda: _serving(w, sha), timeout=240, interval=1.0, what="the gateway's identify")
@@ -368,7 +368,7 @@ def test_sigkill_mid_stop_next_launch_restores_exactly_the_set(w):
         host.kill(gw_pid, signal.SIGSTOP)  # the socket pause request queues; the updater waits on it
         killed: list[int] = []
         try:
-            upd = host.spawn([w.sb.hermes, "update", "--yes", "--branch", "main"], log=w.sb.root / "update-e.log")
+            upd = host.spawn([w.sb.kova, "update", "--yes", "--branch", "main"], log=w.sb.root / "update-e.log")
 
             def _request_on_disk():
                 # The pause records its request before sending it (no planned-stop marker on the drain path).
@@ -420,7 +420,7 @@ def test_sigkill_after_commit_before_restart_next_launch_restarts_on_new_code(w)
         toggle.write_text("on\n", encoding="utf-8")
         killed: list[int] = []
         try:
-            upd = host.spawn([w.sb.hermes, "update", "--yes", "--branch", "main"], log=w.sb.root / "update-f.log")
+            upd = host.spawn([w.sb.kova, "update", "--yes", "--branch", "main"], log=w.sb.root / "update-f.log")
 
             def _held_after_commit():
                 if not host.alive(upd):
@@ -453,14 +453,14 @@ def test_sigkill_after_commit_before_restart_next_launch_restarts_on_new_code(w)
 def test_deps_failure_after_commit_holds_the_paused_set_until_a_launch_syncs(w):
     w.reset_clean()
     toggle = w.sb.home / BREAK_DEPS
-    # As users run: the suite-wide HERMES_DISABLE_LAZY_INSTALLS also turns off each launch's
+    # As users run: the suite-wide KOVA_DISABLE_LAZY_INSTALLS also turns off each launch's
     # dependency sync (venv_sync.prepare_launch), and with it the tree gate's dependency hold.
-    lazy = w.sb.env.pop("HERMES_DISABLE_LAZY_INSTALLS", None)
+    lazy = w.sb.env.pop("KOVA_DISABLE_LAZY_INSTALLS", None)
     try:
         _deps_failure_cell(w, toggle)
     finally:
         if lazy is not None:
-            w.sb.env["HERMES_DISABLE_LAZY_INSTALLS"] = lazy
+            w.sb.env["KOVA_DISABLE_LAZY_INSTALLS"] = lazy
 
 
 def _deps_failure_cell(w: G.World, toggle: Path) -> None:
@@ -487,7 +487,7 @@ def _deps_failure_cell(w: G.World, toggle: Path) -> None:
 
         # The replayed argv's own launch: does it sync the owed dependencies before importing?
         log = w.sb.root / "gateway-g2.log"
-        host.spawn([w.sb.hermes, "gateway", "run"], log=log)
+        host.spawn([w.sb.kova, "gateway", "run"], log=log)
         served = None
         with contextlib.suppress(AssertionError):
             served = H.wait_for(lambda: _serving(w, target), timeout=600, interval=1.0, what="a gateway on the release")
@@ -497,8 +497,8 @@ def _deps_failure_cell(w: G.World, toggle: Path) -> None:
         gws = _gateways(host)
         diag = _diag(w, host, None, served=served, gateways=gws, launch_log=launch_log[-4000:],
                      status=G.output(status)[-3000:], launch_log_after=_read(log)[len(launch_log):][-4000:],
-                     resume_log=_read(w.sb.hermes_home / "logs" / "gateway-update-resume.log")[-4000:],
-                     gateway_log=_read(w.sb.hermes_home / "logs" / "gateway.log")[-6000:])
+                     resume_log=_read(w.sb.kova_home / "logs" / "gateway-update-resume.log")[-4000:],
+                     gateway_log=_read(w.sb.kova_home / "logs" / "gateway.log")[-6000:])
         assert served and int(served["pid"]) != gw_pid, f"the gateway's own launch did not come up on the release:\n{diag}"
         assert len(gws) == 1, f"the next launch started a twin beside the running gateway:\n{diag}"
         assert not [r for r in _record(w) if (r.get("token") or {}).get("resume_needed")], \
@@ -511,11 +511,11 @@ def test_desktop_handoff_update_pauses_and_restarts_through_the_same_path(w):
         before = _start_gateway(host, w, "h")
         old_pid = int(before["pid"])
         target = _publish_release(w, "h")
-        result = w.sb.hermes_home / ".hermes-update-result.json"
+        result = w.sb.kova_home / ".kova-update-result.json"
         result.unlink(missing_ok=True)
-        log = w.sb.hermes_home / "logs" / "desktop-update-handoff.log"
+        log = w.sb.kova_home / "logs" / "desktop-update-handoff.log"
         log0 = len(_read(log))
-        ulog = w.sb.hermes_home / "logs" / "update.log"
+        ulog = w.sb.kova_home / "logs" / "update.log"
         ulog0 = len(_read(ulog))
         with _Timeline(host, w, old_pid) as tl:
             cp = host.run(["bash", str(w.checkout / "scripts" / "desktop-update" / "posix.sh"),
@@ -579,7 +579,7 @@ def test_failed_move_restarts_exactly_the_paused_set_on_the_old_code(w):
         rc_with = cp.returncode
         host.kill(int(after["pid"]), signal.SIGTERM)
         H.wait_for(lambda: not _gateways(host), timeout=120, interval=0.5, what="the gateway to exit")
-        (w.sb.hermes_home / "gateway.pid").unlink(missing_ok=True)
+        (w.sb.kova_home / "gateway.pid").unlink(missing_ok=True)
         ctrl = failing_update(host)
         ctrl_receipt = w.receipt()
         diag = _diag(w, host, ctrl, with_gateway_rc=rc_with, with_gateway_receipt=receipt)

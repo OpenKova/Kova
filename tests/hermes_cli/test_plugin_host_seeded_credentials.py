@@ -28,14 +28,14 @@ register_provider(Seeds(name="seedhost", base_url="https://seedhost.example/v1",
 
 
 def _install(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     plugin_dir = home / "plugins" / "model-providers" / "seedhost"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text("name: seedhost\nkind: model-provider\n", encoding="utf-8")
     (plugin_dir / "__init__.py").write_text(SEEDING_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("GH_TOKEN", "shell-only")  # exported in the shell, absent from .env
 
 
@@ -80,14 +80,14 @@ def test_a_routed_home_host_never_inherits_the_launch_shell_token(tmp_path, monk
     import providers
     from kova_cli.plugin_host import _hosted_ambient_credentials
     from kova_cli.plugin_host_profiles import _profile_proxy
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from providers.base import ProviderProfile
 
     launch, coder, writer = tmp_path / "launch", tmp_path / "coder", tmp_path / "writer"
     for home in (launch, coder, writer):
         home.mkdir()
     (writer / ".env").write_text("GH_TOKEN=writer-own\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv("GH_TOKEN", "launch-shell")
     hosted = _profile_proxy(ProviderProfile, str(tmp_path), "m", {
         "name": "amb", "fields": {"env_vars": ["GH_TOKEN"], "ambient_credentials": True}})
@@ -96,11 +96,11 @@ def test_a_routed_home_host_never_inherits_the_launch_shell_token(tmp_path, monk
     monkeypatch.setenv("GITHUB_TOKEN", "never-for-an-in-process-profile")
 
     def env_for(home):
-        token = set_hermes_home_override(home)
+        token = set_kova_home_override(home)
         try:
             return _hosted_ambient_credentials(home)
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     assert env_for(launch) == {"GH_TOKEN": "launch-shell"}
     assert env_for(coder) == {}

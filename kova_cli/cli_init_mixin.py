@@ -1,6 +1,6 @@
-"""HermesCLI constructor phases: display options, model/provider routing, turn limits, toolsets, checkpoints, prompt/reasoning, runtime state, session store and UI state.
+"""KovaCLI constructor phases: display options, model/provider routing, turn limits, toolsets, checkpoints, prompt/reasoning, runtime state, session store and UI state.
 
-Mixin split out of ``cli.py``; bound onto ``HermesCLI`` via the MRO.
+Mixin split out of ``cli.py``; bound onto ``KovaCLI`` via the MRO.
 """
 
 from __future__ import annotations
@@ -73,12 +73,12 @@ def _explicit_launch_skills(cli):
 def _record_shell_hook_consent():
     """Main's first-use shell-hook prompt, on this terminal. The gateway that registers the hooks
     has no TTY; it reads the allowlist this writes when the session opens (create or resume).
-    ``--accept-hooks`` / ``HERMES_ACCEPT_HOOKS`` / ``hooks_auto_accept`` approve without asking.
+    ``--accept-hooks`` / ``KOVA_ACCEPT_HOOKS`` / ``hooks_auto_accept`` approve without asking.
     A remote gateway has its own home and allowlist, and a bypass launch reads no profile hooks,
     so nothing is asked for either."""
     from kova_cli.gateway_chat import env_launch_flags
     flags = env_launch_flags()
-    if os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip() or flags.get("safe_mode") or flags.get("ignore_user_config"):
+    if os.environ.get("KOVA_TUI_GATEWAY_URL", "").strip() or flags.get("safe_mode") or flags.get("ignore_user_config"):
         return
     try:
         from agent.shell_hooks import record_consent_from_config
@@ -111,7 +111,7 @@ def lease_handed_over(cli, held):
 
 
 class CLIInitMixin:
-    """HermesCLI constructor phases: display options, model/provider routing, turn limits, toolsets, checkpoints, prompt/reasoning, runtime state, session store and UI state."""
+    """KovaCLI constructor phases: display options, model/provider routing, turn limits, toolsets, checkpoints, prompt/reasoning, runtime state, session store and UI state."""
 
     def _init_display_options(self, verbose, compact):
         """Display-related config: compact/tool-progress/focus view, bells, streaming, previews, stream buffers."""
@@ -212,7 +212,7 @@ class CLIInitMixin:
         # resume must not clobber an explicit -m with the session's stored model.
         self._explicit_model_override = bool(model)
         self.model = model or _config_model or ""
-        _cfg_provider = _model_config.get("provider") or os.getenv("HERMES_INFERENCE_PROVIDER")
+        _cfg_provider = _model_config.get("provider") or os.getenv("KOVA_INFERENCE_PROVIDER")
         _startup_provider_override = _startup_base_url_override = _startup_api_key_override = ""
         if self.model:
             from kova_cli.model_switch import resolve_startup_model_route
@@ -304,7 +304,7 @@ class CLIInitMixin:
         from kova_cli.config import resolve_turn_limit as _resolve_turn_limit
         self.max_turns = _resolve_turn_limit(next(
             (v for v in (max_turns, CLI_CONFIG["agent"].get("max_turns"), CLI_CONFIG.get("max_turns")) if v is not None),
-            os.getenv("HERMES_MAX_ITERATIONS"),
+            os.getenv("KOVA_MAX_ITERATIONS"),
         ))
         self.run_budget_seconds = run_budget if run_budget is not None else CLI_CONFIG["agent"].get("run_budget_seconds")
         self._explicit_run_budget = run_budget  # `--run-budget`: session.create policy (the gateway runs the turn)
@@ -336,7 +336,7 @@ class CLIInitMixin:
         self.checkpoint_max_file_size_mb = cp_cfg.get("max_file_size_mb", 10)
         self.pass_session_id = pass_session_id
         # --ignore-rules: AIAgent skips context files (AGENTS.md/SOUL.md/...) and memory.
-        self.ignore_rules = ignore_rules or is_truthy_value(os.environ.get("HERMES_IGNORE_RULES"))
+        self.ignore_rules = ignore_rules or is_truthy_value(os.environ.get("KOVA_IGNORE_RULES"))
         # The env opt-in is creation policy only: a resume checks just a typed --ignore-rules (the thin client's rule).
         self._explicit_ignore_rules = bool(ignore_rules)
 
@@ -346,7 +346,7 @@ class CLIInitMixin:
         # Env var wins, then kova_cli.personality (single owner of overlay resolution).
         from kova_cli.personality import available_personalities, resolve_ephemeral_system_prompt
 
-        self.system_prompt = os.getenv("HERMES_EPHEMERAL_SYSTEM_PROMPT", "") or resolve_ephemeral_system_prompt(CLI_CONFIG)
+        self.system_prompt = os.getenv("KOVA_EPHEMERAL_SYSTEM_PROMPT", "") or resolve_ephemeral_system_prompt(CLI_CONFIG)
         self.personalities = available_personalities(CLI_CONFIG)
 
         self.prefill_messages = _load_prefill_messages(_resolve_prefill_messages_file(CLI_CONFIG))
@@ -392,7 +392,7 @@ class CLIInitMixin:
 
     def _init_runtime_state(self, resume):
         """Session store + all per-run mutable state (queues, overlays, pet/voice/status-bar fields)."""
-        from cli import _hermes_home
+        from cli import _kova_home
         from kova_cli.left_core_migration import serve_notices_on_stderr
         serve_notices_on_stderr()
         # A signature change across turns (/model, credential rotation) rebuilds the agent.
@@ -413,7 +413,7 @@ class CLIInitMixin:
         self.session_id = resume or new_session_id(self.session_start)
         getattr(self, "_write_terminal_breadcrumb", lambda: None)()
 
-        self._history_file = _hermes_home / ".hermes_history"
+        self._history_file = _kova_home / ".kova_history"
         self._last_invalidate: float | None = None  # throttles UI repaints (None = never; monotonic epoch is arbitrary)
         self._init_ui_state()
 

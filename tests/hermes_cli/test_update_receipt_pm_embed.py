@@ -20,7 +20,7 @@ import kova_cli.update_receipt as ur
 def homed(tmp_path, monkeypatch):
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
     import pm.receipt as pm_receipt_mod
 
     monkeypatch.setattr(pm_receipt_mod, "_receipt_dir", lambda: tmp_path / "logs" / "update_receipts")

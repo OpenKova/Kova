@@ -31,7 +31,7 @@ import {
 } from '@/store/local-runtime-jobs'
 import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
 
-import type { HermesGateway } from '../hermes'
+import type { KovaGateway } from '../hermes'
 import { startManualOnboarding } from '../store/onboarding'
 
 import { InlineNotice } from './notifications'
@@ -46,7 +46,7 @@ import { Skeleton } from './ui/skeleton'
 interface ModelPickerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  gw?: HermesGateway
+  gw?: KovaGateway
   sessionId?: string | null
   currentModel: string
   currentProvider: string

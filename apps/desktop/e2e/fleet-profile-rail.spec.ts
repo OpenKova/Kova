@@ -3,7 +3,7 @@
  *
  * "This device" is the Electron-managed local backend (mock inference). The
  * second gateway, "Homelab", is a REAL second `hermes serve` this spec spawns
- * with its own HERMES_HOME, profiles and session token, registered in the v2
+ * with its own KOVA_HOME, profiles and session token, registered in the v2
  * connections.json as a remote URL connection. A click on an at-rest square
  * therefore performs the same dial → commit → re-home the statusbar switcher
  * does, against a real backend — not a stub.
@@ -43,7 +43,7 @@ interface RemoteGateway {
   close: () => Promise<void>
 }
 
-function findHermesBinary(): string {
+function findKovaBinary(): string {
   const venv = path.join(REPO_ROOT, '.venv', 'bin', 'hermes')
 
   if (fs.existsSync(venv)) {
@@ -82,7 +82,7 @@ function seedProfiles(home: string, names: string[]): void {
 
 /**
  * Spawn a second, fully real `hermes serve` as the remote gateway. Its
- * session token is pinned through HERMES_DASHBOARD_SESSION_TOKEN so the
+ * session token is pinned through KOVA_DASHBOARD_SESSION_TOKEN so the
  * registry entry can carry a plaintext token envelope.
  */
 async function startRemoteGateway(root: string, mockUrl: string, profiles: string[]): Promise<RemoteGateway> {
@@ -96,15 +96,15 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
   const url = `http://127.0.0.1:${port}`
 
   const child: ChildProcess = spawn(
-    findHermesBinary(),
+    findKovaBinary(),
     ['serve', '--host', '127.0.0.1', '--port', String(port), '--skip-build'],
     {
       cwd: REPO_ROOT,
       detached: true,
       env: {
         ...process.env,
-        HERMES_HOME: home,
-        HERMES_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN,
+        KOVA_HOME: home,
+        KOVA_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     },
@@ -127,7 +127,7 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
 
     try {
       const response = await fetch(`${url}/api/status`, {
-        headers: { 'X-Hermes-Session-Token': REMOTE_TOKEN },
+        headers: { 'X-Kova-Session-Token': REMOTE_TOKEN },
       })
 
       if (response.ok) {
@@ -225,12 +225,12 @@ test.describe('fleet profile rail — two registered gateways', () => {
     test.setTimeout(240_000)
     mock = await startMockServer()
     sandbox = createSandbox('fleet')
-    writeMockProviderConfig(sandbox.hermesHome, mock.url)
-    writeEnvFile(sandbox.hermesHome)
+    writeMockProviderConfig(sandbox.kovaHome, mock.url)
+    writeEnvFile(sandbox.kovaHome)
     // A named profile on This device too, so the active group has a square
     // beside its home pill. "research" exists on BOTH gateways on purpose: the
     // rail must keep the two apart by gateway, never by name alone.
-    seedProfiles(sandbox.hermesHome, ['research'])
+    seedProfiles(sandbox.kovaHome, ['research'])
 
     remote = await startRemoteGateway(sandbox.root, mock.url, ['inbox', 'research'])
     writeConnectionsRegistry(sandbox, remote.url)

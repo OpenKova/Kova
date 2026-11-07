@@ -1,7 +1,7 @@
 """Tests for real-profile browsing: resolvers, snapshot, launch routing, consent.
 
 The consent path never drives the live default profile: it snapshots into
-``~/.hermes/browser-profile/<browser>/`` and launches the user's real binary
+``~/.kova/browser-profile/<browser>/`` and launches the user's real binary
 on the copy with a devtools port (see kova_cli.browser_connect). These tests
 exercise the real functions with real file I/O wherever possible — the mocks
 are limited to OS detection and process launch.
@@ -90,7 +90,7 @@ class TestSnapshotRealProfile:
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
         home = tmp_path / "hermes-home"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
 
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
@@ -110,7 +110,7 @@ class TestSnapshotRealProfile:
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
         home = tmp_path / "hermes-home"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
 
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
@@ -127,7 +127,7 @@ class TestSnapshotRealProfile:
 
     def test_missing_source_fails_closed(self, tmp_path, monkeypatch):
         import kova_cli.browser_connect as bc
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: tmp_path / "hh")
+        monkeypatch.setattr(bc, "get_kova_home", lambda: tmp_path / "hh")
         dst, err = bc.snapshot_real_profile("chrome", src=str(tmp_path / "nope"))
         assert dst is None
         assert err
@@ -144,7 +144,7 @@ class TestSnapshotRealProfile:
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
         home = tmp_path / "hermes-home"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         old_umask = os.umask(0o022)  # the common default that produced 0644
         try:
             dst, err = bc.snapshot_real_profile("chrome", src=str(src))
@@ -170,7 +170,7 @@ class TestSnapshotRealProfile:
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
         home = tmp_path / "hermes-home"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None and dst
         cookies = os.path.join(dst, "Default", "Cookies")
@@ -211,26 +211,26 @@ class TestRealProfileCdpLaunch:
 
     @staticmethod
     def _resolve_in(home, result: dict):
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
-        token = set_hermes_home_override(str(home))
+        from kova_constants import reset_kova_home_override, set_kova_home_override
+        token = set_kova_home_override(str(home))
         try:
             result[str(home)] = rp.real_profile_cdp()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
     @pytest.mark.parametrize("second", ["same-profile", "other-profile"])
     def test_a_held_launch_only_makes_its_own_profile_wait(self, tmp_path, monkeypatch, second):
         """A launch stuck in an expensive step (an abandoned worker) fails its own profile's next call fast
         with a clear error, and never holds up another profile's launch."""
         import threading
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         monkeypatch.setattr(rp, "_LOCK_TIMEOUT_S", 0.5)
         home_a, home_b = tmp_path / "a", tmp_path / "b"
         inside_a, release_a = threading.Event(), threading.Event()
 
         def detect_default_chromium():  # returns None (no Chromium default): answers right after the lock
-            if get_hermes_home() == home_a and not inside_a.is_set():
+            if get_kova_home() == home_a and not inside_a.is_set():
                 inside_a.set()
                 release_a.wait(timeout=10)
 
@@ -314,7 +314,7 @@ class TestRealProfileCdpLaunch:
     @pytest.mark.platforms("posix")
     @pytest.mark.parametrize("live_browser_id", ["/devtools/browser/x", "/devtools/browser/other"])
     def test_reattaches_to_surviving_chrome_instead_of_overlaying_its_profile(self, tmp_path, live_browser_id):
-        """A Chrome from an earlier Hermes process can survive holding the copy dir: attach to it (never
+        """A Chrome from an earlier Kova process can survive holding the copy dir: attach to it (never
         owned, so never killed), never re-run the snapshot over its open databases. A DevToolsActivePort left
         by a crash whose port was recycled by ANOTHER CDP server (browser id mismatch) must not be attached
         to; the normal launch path runs."""
@@ -627,7 +627,7 @@ class TestChannelIdentity:
 
 
 class TestSnapshotIsCredentialStore:
-    """The copied Cookies/Login Data must live inside Hermes' secret lifecycle."""
+    """The copied Cookies/Login Data must live inside Kova' secret lifecycle."""
 
     def test_excluded_from_backup(self):
         import kova_cli.backup as bk
@@ -643,19 +643,19 @@ class TestSnapshotIsCredentialStore:
 
     def test_read_guard_blocks_snapshot(self, tmp_path, monkeypatch):
         import agent.file_safety as fs
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         (home / "browser-profile" / "chrome" / "Default").mkdir(parents=True)
         cookies = home / "browser-profile" / "chrome" / "Default" / "Cookies"
         cookies.write_text("secret-cookie-db", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         err = fs.get_read_block_error(str(cookies))
         assert err
 
     def test_read_guard_allows_normal_file(self, tmp_path, monkeypatch):
         import agent.file_safety as fs
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("KOVA_HOME", str(home))
         normal = tmp_path / "notes.txt"
         normal.write_text("hello", encoding="utf-8")
         assert fs.get_read_block_error(str(normal)) is None
@@ -684,7 +684,7 @@ class TestReviewBugFixes:
         import kova_cli.browser_connect as bc
         src = self._multi_profile(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         _dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
         # The copy's Default must carry PROFILE 6's session, not Default's.
@@ -704,7 +704,7 @@ class TestReviewBugFixes:
         import kova_cli.browser_connect as bc
         src = self._multi_profile(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         bc.snapshot_real_profile("chrome", src=str(src))          # fresh
         _auth_db((src / "Profile 6" / "Cookies"), "PROFILE6-REFRESHED")
         _dst, err = bc.snapshot_real_profile("chrome", src=str(src))  # refresh
@@ -768,7 +768,7 @@ class TestReviewRound3:
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         dst = bc.real_profile_copy_dir("chrome")
         # Simulate a torn first copy: Default exists but NO done marker.
         os.makedirs(os.path.join(dst, "Default"))
@@ -787,7 +787,7 @@ class TestReviewRound3:
         (src / "Profile 3").mkdir()
         _auth_db((src / "Profile 3" / "Cookies"), "PROFILE3-SHOULD-NOT-COPY")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         _dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
         copy = home / "browser-profile" / "chrome"
@@ -800,7 +800,7 @@ class TestReviewRound3:
     def test_cleanup_removes_store(self, tmp_path, monkeypatch):
         import kova_cli.browser_connect as bc
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         store = home / "browser-profile" / "chrome" / "Default"
         store.mkdir(parents=True)
         (store / "Cookies").write_text("secret", encoding="utf-8")
@@ -809,7 +809,7 @@ class TestReviewRound3:
 
     def test_cleanup_idempotent_when_absent(self, tmp_path, monkeypatch):
         import kova_cli.browser_connect as bc
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: tmp_path / "hh")
+        monkeypatch.setattr(bc, "get_kova_home", lambda: tmp_path / "hh")
         bc.cleanup_real_profile_snapshots()  # no raise
 
     # ── Windows lock probe (unit; the live share-lock is proven in the
@@ -846,7 +846,7 @@ class TestReviewRound3:
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_profile_is_locked", lambda s, p: True)
         monkeypatch.setattr(bc, "_real_profile_autoclose", lambda: False)
         called = {"copytree": 0}
@@ -862,11 +862,11 @@ class TestReviewRound3:
     def test_snapshot_blocks_when_locked_even_with_autoclose(self, tmp_path, monkeypatch):
         """Even with autoclose armed, snapshot_real_profile does NOT kill — it
         blocks and defers the close to the explicit, user-approved step. The
-        message offers the close (mentions Hermes can close it)."""
+        message offers the close (mentions Kova can close it)."""
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_profile_is_locked", lambda s, p: True)
         monkeypatch.setattr(bc, "_real_profile_autoclose", lambda: True)
         killed = {"n": 0}
@@ -883,7 +883,7 @@ class TestReviewRound3:
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         first, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
         _auth_db((src / "Profile 6" / "Cookies"), "NEWER-SESSION")
@@ -902,7 +902,7 @@ class TestReviewRound3:
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         first, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None
         with open(os.path.join(first, bc._SNAPSHOT_DONE_MARKER), "w", encoding="utf-8") as fh:  # windows-footgun: ok — write mode, not a read
@@ -919,14 +919,14 @@ class TestReviewRound3:
         import kova_cli.browser_connect as bc
         src = self._multi(tmp_path / "real")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         _first, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None  # completed copy of Profile 6
         monkeypatch.setattr(bc, "_resolve_source_profile", lambda s: ("Default", None))
         monkeypatch.setattr(bc, "_mirror_profile_auth", lambda *a: (_ for _ in ()).throw(OSError("killed")))
         assert bc.snapshot_real_profile("chrome", src=str(src))[0] is None  # interrupted switch
         monkeypatch.undo()
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_profile_is_locked", lambda s, p: True)
         monkeypatch.setattr(bc, "_real_profile_autoclose", lambda: False)
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
@@ -1014,7 +1014,7 @@ class TestWindowsLockedProfileCopy:
         src, con = self._locked_src(tmp_path / "real")
         con.execute("BEGIN"); con.execute("insert into cookies values('u','uncommitted')")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         try:
             _dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         finally:
@@ -1135,7 +1135,7 @@ class TestWindowsLockedProfileCopy:
         (root / "Default" / "Cookies").write_text("not-a-db", encoding="utf-8")
         (root / "Default" / "Preferences").write_text("{}", encoding="utf-8")
         home = tmp_path / "hh"
-        monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
+        monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         # Force both sqlite-backup and raw copy to fail for the DB.
         monkeypatch.setattr(bc, "_copy_auth_file",
                             lambda s, d, **_kw: "file is not a database" if os.path.basename(s) in bc._SQLITE_AUTH_DBS else None)

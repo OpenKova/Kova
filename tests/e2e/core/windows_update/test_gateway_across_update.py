@@ -65,16 +65,16 @@ def journey(tmp_path_factory):
                 with machine.gateway_phase():
                     j.step("spawn", machine.spawn_gateway)
                     before = j.step("state_before", machine.wait_gateway_running)
-                    j.step("status_before", lambda: machine.hermes("gateway", "status", label="status-before"))
+                    j.step("status_before", lambda: machine.kova("gateway", "status", label="status-before"))
                     machine.advance()
                     j.step("update", machine.update)
                     old_pid = int(before.get("pid") or 0) if isinstance(before, dict) else None
                     j.step("state_after", lambda: machine.wait_gateway_running(not_pid=old_pid))
-                    j.step("status_after", lambda: machine.hermes("gateway", "status", label="status-after"))
-                    j.step("pidfile_after", lambda: (machine.hermes_home / "gateway.pid").exists())
+                    j.step("status_after", lambda: machine.kova("gateway", "status", label="status-after"))
+                    j.step("pidfile_after", lambda: (machine.kova_home / "gateway.pid").exists())
                     j.step("update_again", lambda: machine.update(label="update-again"))
                     last = j.step("state_before_stop", machine.gateway_state)
-                    j.step("stop", lambda: machine.hermes("gateway", "stop", label="stop"))
+                    j.step("stop", lambda: machine.kova("gateway", "stop", label="stop"))
                     last_pid = int(last.get("pid") or 0) if isinstance(last, dict) else 0
                     j.step("stopped", lambda: _exits(last_pid, 90))
                     machine.kill_owned()  # nothing of this machine outlives its gateway phase

@@ -188,7 +188,7 @@ class _KanbanDispatcher:
             # No explicit init_db(): connect() runs the migration once per
             # process (see the matching note in the notifier collector).
             # Pin-first: the tick is machine flow — on a box whose env pins
-            # HERMES_KANBAN_DB every enumerated slug must resolve to the pinned
+            # KOVA_KANBAN_DB every enumerated slug must resolve to the pinned
             # file, or the dispatcher reads per-slug DBs nobody writes.
             from kova_cli import kanban_db as _kb
             with _kb.pin_first_board_resolution():
@@ -264,9 +264,9 @@ class _KanbanDispatcher:
                     break
                 # Pin the board via env for the call: the decomposer connects
                 # with no board kwarg (same pattern as the dashboard specify endpoint).
-                prev_env = os.environ.get("HERMES_KANBAN_BOARD")
+                prev_env = os.environ.get("KOVA_KANBAN_BOARD")
                 try:
-                    os.environ["HERMES_KANBAN_BOARD"] = slug
+                    os.environ["KOVA_KANBAN_BOARD"] = slug
                     try:
                         triage_ids = _decomp.list_triage_ids()
                     except Exception as exc:
@@ -279,9 +279,9 @@ class _KanbanDispatcher:
                         successes += self._decompose_one(_decomp, slug, tid)
                 finally:
                     if prev_env is None:
-                        os.environ.pop("HERMES_KANBAN_BOARD", None)
+                        os.environ.pop("KOVA_KANBAN_BOARD", None)
                     else:
-                        os.environ["HERMES_KANBAN_BOARD"] = prev_env
+                        os.environ["KOVA_KANBAN_BOARD"] = prev_env
         return successes
 
     @staticmethod
@@ -309,17 +309,17 @@ def _default_profile_secret_scope():
 
     The tick runs via ``_to_thread_process_service`` in a fresh context, so no
     per-turn scope exists and ``get_secret`` fails closed. The decomposer's aux
-    LLM reads ``auxiliary.*`` from ``get_hermes_home()``, so its credentials come
+    LLM reads ``auxiliary.*`` from ``get_kova_home()``, so its credentials come
     from that same home. No-op for single-profile gateways.
     """
     from agent.secret_scope import is_multiplex_active, reset_secret_scope, set_secret_scope
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from tui_gateway.launch_profile_policy import owner_secret_scope
 
     if not is_multiplex_active():
         yield
         return
-    token = set_secret_scope(owner_secret_scope(Path(get_hermes_home())), profile_home=str(get_hermes_home()))
+    token = set_secret_scope(owner_secret_scope(Path(get_kova_home())), profile_home=str(get_kova_home()))
     try:
         yield
     finally:

@@ -1,13 +1,13 @@
 """Classic CLI commands whose state lives in the gateway session are answered there (tracker #134889
 CLI-8, CLI-17, CLI-21): ``/diff session`` (the gateway tools' checkpoint baseline), ``/reload``
 (the gateway's ``.env``) and ``/handoff`` (no gateway verb yet: refused, never silent). Driven
-through ``HermesCLI.process_command`` with a scripted gateway connection."""
+through ``KovaCLI.process_command`` with a scripted gateway connection."""
 from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
 
-from cli import HermesCLI
+from cli import KovaCLI
 
 
 class _Conn:
@@ -35,7 +35,7 @@ def gateway_cli(monkeypatch):
     def make(**replies):
         conn = _Conn(replies)
         monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
-        cli = HermesCLI.__new__(HermesCLI)
+        cli = KovaCLI.__new__(KovaCLI)
         cli.session_id = "local-s"
         # The gateway-backed agent has no checkpoint manager of its own (GatewayAgent._checkpoint_mgr).
         cli.agent = SimpleNamespace(_checkpoint_mgr=None)
@@ -108,7 +108,7 @@ def test_handoff_is_refused_with_a_message_on_the_gateway(gateway_cli, capsys):
 def _save_cli(conn, tmp_path, monkeypatch):
     """A gateway-backed CLI with one said line in its mirror, run from ``tmp_path/work``."""
     from kova_cli.gateway_session_store import GatewaySessionStore
-    cli = HermesCLI.__new__(HermesCLI)
+    cli = KovaCLI.__new__(KovaCLI)
     cli.session_id, cli.conversation_history = "local-s", [{"role": "user", "content": "in-memory only"}]
     cli.model, cli.session_start = "fake-model", datetime(2026, 10, 18)
     cli._session_db = GatewaySessionStore(conn)
@@ -121,7 +121,7 @@ def test_save_writes_the_gateway_owners_export_on_this_machine(tmp_path, monkeyp
     """CLI-19: ``/save`` asks the owner (``session.export``) for its canonical export, never writes the
     in-memory fallback (no title, no metadata, no archived rows) that ``import_sessions`` can't restore.
     The CLI writes the content itself, so a remote owner's disk is never taken for this one."""
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     conn = _Conn({"session.export": {"format": "md", "filename": "hermes_session_s.md", "content": "# owner export"}})
     cli = _save_cli(conn, tmp_path, monkeypatch)
     work = tmp_path / "work"
@@ -130,7 +130,7 @@ def test_save_writes_the_gateway_owners_export_on_this_machine(tmp_path, monkeyp
     assert (work / "notes.md").read_text(encoding="utf-8") == "# owner export"
     assert str(work / "notes.md") in capsys.readouterr().out
     cli.save_conversation("/save md")  # no name: main's local folder and name, under this CLI's home
-    [default] = (get_hermes_home() / "sessions" / "saved").glob("hermes_conversation_*.md")
+    [default] = (get_kova_home() / "sessions" / "saved").glob("hermes_conversation_*.md")
     assert default.read_text(encoding="utf-8") == "# owner export" and str(default) in capsys.readouterr().out
     conn.replies["session.export"] = {}  # an owner answer without content is reported, nothing written
     cli.save_conversation("/save json x.json")

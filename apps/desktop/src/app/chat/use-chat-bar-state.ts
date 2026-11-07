@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type * as React from 'react'
 import { useMemo } from 'react'
 
-import type { HermesGateway } from '@/hermes'
+import type { KovaGateway } from '@/hermes'
 import { quickModelOptions } from '@/lib/chat-runtime'
 import { currentModelCapabilities, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 
@@ -15,7 +15,7 @@ interface ChatBarStateOptions {
   contextSuggestions: ChatBarState['tools']['suggestions']
   currentModel: string
   currentProvider: string
-  gateway: HermesGateway | null
+  gateway: KovaGateway | null
   gatewayOpen: boolean
   modelMenuContent?: React.ReactNode
   modelOptionsOwnerConnectionId?: string

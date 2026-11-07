@@ -197,9 +197,9 @@ def test_fork_keeps_builtin_memory_out_of_its_prompt():
     """The fork loads the provider for the checkpoint only: MEMORY.md and USER.md stay out of its
     system prompt, as with ``skip_memory=True``. The same config without the fork label loads them."""
     from agent.system_prompt import build_system_prompt
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    memories = get_hermes_home() / "memories"
+    memories = get_kova_home() / "memories"
     memories.mkdir(parents=True, exist_ok=True)
     (memories / "MEMORY.md").write_text("parent-only agent note\n")
     (memories / "USER.md").write_text("parent-only user profile\n")

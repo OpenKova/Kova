@@ -30,7 +30,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from kova_cli.session_listing import subagent_listing_scope
 from kova_cli.web_deps import late
-from kova_cli.config import get_process_hermes_home
+from kova_cli.config import get_process_kova_home
 from kova_cli.profiles import ProfileIdentitySettlementPending
 from kova_cli.web_server_config import (
     _apply_main_model_assignment, _normalize_main_model_assignment, _validated_main_model_selection,
@@ -47,7 +47,7 @@ from kova_cli.web_models import (
     ProfileCreate, ProfileActiveUpdate, ProfileExport, ProfileImport, ProfileRename,
     ProfileSoulUpdate, ProfileDescriptionUpdate, ProfileModelUpdate, ProfileDescribeAuto,
     SessionPrScanBody)
-from kova_cli.web_server_profiles import _config_profile_scope, _hermes_home_scope
+from kova_cli.web_server_profiles import _config_profile_scope, _kova_home_scope
 
 # Same logger the handlers used before extraction (identical logger object).
 _log = logging.getLogger("kova_cli.web_server")
@@ -109,21 +109,21 @@ def _profile_setup_command(name: str) -> str:
 def _scope_profile_name(path: Path) -> Optional[str]:
     """Map a profile directory onto the query name ``_config_profile_scope`` expects: None for
     the process home (current-profile semantics: launch secret scope, no home override),
-    ``"default"`` for the default root (its basename -- ``.hermes`` or a custom root -- is not a
+    ``"default"`` for the default root (its basename -- ``.kova`` or a custom root -- is not a
     profile name; launched from ``profiles/<name>`` the root is a *different* profile), the
     directory name for ``profiles/<name>``."""
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
     resolved = path.resolve()
-    if resolved == get_process_hermes_home().resolve():
+    if resolved == get_process_kova_home().resolve():
         return None
-    if resolved == get_default_hermes_root().resolve():
+    if resolved == get_default_kova_root().resolve():
         return "default"
     return path.name
 
 
 def _write_profile_model(profile_dir: Path, provider: str, model: str, validate_in: Optional[Path] = None,
                          base_url: str = "") -> None:
-    """Write the main model assignment into ``profile_dir``'s config.yaml (HERMES_HOME-scoped)
+    """Write the main model assignment into ``profile_dir``'s config.yaml (KOVA_HOME-scoped)
     through the same validated /model shape as ``POST /api/model/set``.
 
     ``validate_in`` is the home whose ``providers:``/``.env``/catalog vouch for the pick (default:
@@ -158,7 +158,7 @@ def _disable_unselected_skills(profile_dir: Path, keep: list[str]) -> int:
     from kova_cli.config import load_config
     from kova_cli.skills_config import get_disabled_skills, save_disabled_skills
     keep_set = {s.strip() for s in keep if s and s.strip()}
-    with _hermes_home_scope(profile_dir), _CONFIG_MUTATION_LOCK:  # RMW span
+    with _kova_home_scope(profile_dir), _CONFIG_MUTATION_LOCK:  # RMW span
         skills_root = profile_dir / "skills"
         installed = ([md.parent.name for md in skills_root.rglob("SKILL.md")]
                      if skills_root.is_dir() else [])
@@ -737,7 +737,7 @@ def get_profiles_projects_tree(preview_limit: int = 3, session_limit: int = 2000
 
     for name, home in _scoped_profile_targets("GET /api/profiles/projects/tree", profile):
         def _read(db, name=name, home=home):
-            with _hermes_home_scope(home):
+            with _kova_home_scope(home):
                 tree, _active_id = gateway_server._build_project_tree(
                     db, preview_limit=preview_limit, hydrate=False,
                     session_limit=session_limit, include_discovered=False)
@@ -854,7 +854,7 @@ async def create_profile_endpoint(body: ProfileCreate):
     def _set_model() -> bool:
         nonlocal model_error
         try:
-            _write_profile_model(path, provider, model, validate_in=get_process_hermes_home())
+            _write_profile_model(path, provider, model, validate_in=get_process_kova_home())
         except HTTPException as exc:
             model_error = str(exc.detail)
             return False
@@ -1056,7 +1056,7 @@ async def update_profile_description_endpoint(name: str, body: ProfileDescriptio
 @router.put("/api/profiles/{name}/model")
 async def update_profile_model_endpoint(name: str, body: ProfileModelUpdate):
     """Set the main model for a specific profile's config.yaml without touching the dashboard's
-    own profile — ``POST /api/model/set`` (main scope) via the HERMES_HOME override."""
+    own profile — ``POST /api/model/set`` (main scope) via the KOVA_HOME override."""
     profile_dir = _resolve_profile_dir(name)
     provider = (body.provider or "").strip()
     model = (body.model or "").strip()

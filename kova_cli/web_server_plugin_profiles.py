@@ -5,7 +5,7 @@ request scoped to another served profile (its native grant, a ``?profile=`` sele
 profile's own plugins: discovered under its own home and the root, gated by its own ``plugins.enabled`` /
 ``plugins.disabled``, and run in its own plugin host (bound to its home and secret scope) whatever
 its ``plugins.isolation`` says, so another profile's plugin code never enters this process. Bundled
-plugins are Hermes code and stay in-process. The host protocol is request/response, so a secondary
+plugins are Kova code and stay in-process. The host protocol is request/response, so a secondary
 profile's plugin websockets are refused by name until it carries them.
 """
 
@@ -27,13 +27,13 @@ from starlette import status
 from starlette._utils import get_route_path
 from starlette.websockets import WebSocket
 
-from kova_cli.config import get_process_hermes_home
+from kova_cli.config import get_process_kova_home
 
 _log = logging.getLogger("kova_cli.web_server")
 
 # Valid for every served profile, so a profile's plugin code must never receive them.
 _GATEWAY_CREDENTIAL_HEADERS = frozenset({
-    "authorization", "cookie", "host", "x-hermes-gateway-ticket", "x-hermes-session-token"})
+    "authorization", "cookie", "host", "x-kova-gateway-ticket", "x-hermes-session-token"})
 # Every query credential the gateway accepts (``web_server_chat._ws_auth_ok``, ``_has_valid_query_token``,
 # the display bridge, the PTY reattach key) and the profile selector; compared after URL-decoding.
 _GATEWAY_QUERY_KEYS = frozenset({"token", "ticket", "internal", "display_ticket", "attach", "profile"})
@@ -60,9 +60,9 @@ _unknown_plugins: dict[tuple[str, str], float] = {}
 
 def secondary_profile_home() -> Optional[Path]:
     """The active scope's home when it is a profile other than the launch profile, else None."""
-    from kova_constants import get_hermes_home, hermes_home_key
-    home = get_hermes_home()
-    return None if hermes_home_key(home) == hermes_home_key(get_process_hermes_home()) else Path(home)
+    from kova_constants import get_kova_home, kova_home_key
+    home = get_kova_home()
+    return None if kova_home_key(home) == kova_home_key(get_process_kova_home()) else Path(home)
 
 
 def _scan_profile_plugins(home: Path) -> list:
@@ -70,10 +70,10 @@ def _scan_profile_plugins(home: Path) -> list:
     root's (as a standalone ``hermes --profile <name> serve`` scanned them; the profile's own copy
     wins a same-name conflict), then the bundled ones."""
     from kova_cli.plugins import get_bundled_plugins_dir
-    from kova_cli.profiles import _get_default_hermes_home
+    from kova_cli.profiles import _get_default_kova_home
     from kova_cli.web_server_dashboard import _discover_dashboard_plugins
     bundled, own = get_bundled_plugins_dir(), Path(home) / "plugins"
-    dirs = [own] + [r for r in [_get_default_hermes_home() / "plugins"]
+    dirs = [own] + [r for r in [_get_default_kova_home() / "plugins"]
                     if r.resolve(strict=False) != own.resolve(strict=False)]
     return _discover_dashboard_plugins(
         [(d, "user") for d in dirs] + [(bundled / "memory", "bundled"), (bundled, "bundled")])
@@ -90,8 +90,8 @@ def _published(key: str, rescans: int, plugins: list) -> list:
 def profile_dashboard_plugins(home: Path, force_rescan: bool = False) -> list:
     """Dashboard plugins of the profile at ``home`` (:func:`_scan_profile_plugins`), cached per home
     like the launch profile's list. An explicit rescan also forgets the profile's cached misses."""
-    from kova_constants import hermes_home_key
-    key = hermes_home_key(home)
+    from kova_constants import kova_home_key
+    key = kova_home_key(home)
     with _profile_plugins_lock:
         if force_rescan:
             _profile_rescans[key] = _profile_rescans.get(key, 0) + 1
@@ -111,8 +111,8 @@ def rescanned_plugin(home: Path, name: str) -> Optional[dict]:
     """The profile at ``home``'s entry for ``name`` after a rescan, or None; a name found missing
     within the last :data:`_UNKNOWN_PLUGIN_RESCAN_SECS` is answered without one. Blocking: the
     request gate runs it on a worker thread."""
-    from kova_constants import hermes_home_key
-    home_key, now = hermes_home_key(home), time.monotonic()
+    from kova_constants import kova_home_key
+    home_key, now = kova_home_key(home), time.monotonic()
     key = (home_key, name)
     with _profile_plugins_lock:
         if _unknown_plugins.get(key, now) > now:
@@ -206,8 +206,8 @@ def hosted_response(result: dict[str, Any]) -> Response:
 
 
 def _hosted_executor(home: Path) -> ThreadPoolExecutor:
-    from kova_constants import hermes_home_key
-    key = hermes_home_key(home)
+    from kova_constants import kova_home_key
+    key = kova_home_key(home)
     with _profile_plugins_lock:
         executor = _hosted_executors.get(key)
         if executor is None:

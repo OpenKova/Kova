@@ -20,7 +20,7 @@ def homes(tmp_path, monkeypatch):
     """Temp home/checkout/userData; every step that reaches outside tmp_path is stubbed.
 
     The full wipe otherwise boots out real launchd jobs, rmtrees real
-    ~/Library/Caches dirs and /Applications/Hermes.app, and (on Windows) edits
+    ~/Library/Caches dirs and /Applications/Kova.app, and (on Windows) edits
     the registry — so stub those helpers and refuse any stray rmtree or
     subprocess instead of silently touching the developer's machine. Refusals
     are recorded in ``violations`` because the uninstall steps catch and log
@@ -66,7 +66,7 @@ def test_uninstall_desktop_userdata_kept_unless_full(homes, full_uninstall):
     """Keep-data preserves Electron userData; only the full wipe removes it."""
     home, project_root, userdata, violations = homes
     uninstall._perform_uninstall(
-        project_root=project_root, hermes_home=home, full_uninstall=full_uninstall,
+        project_root=project_root, kova_home=home, full_uninstall=full_uninstall,
         remove_profiles=False, named_profiles=[])
     assert violations == []
     assert (userdata / "connections.json").exists() is not full_uninstall

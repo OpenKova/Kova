@@ -25,9 +25,9 @@ import { $canonicalRoomLive, canonicalRoomLiveKey } from './canonical-group-deta
 import { prepareCanonicalGroupSend, readCanonicalGroupSend } from './canonical-group-send'
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
-afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.hermesDesktop = originalDesktop; vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop; vi.unstubAllGlobals() })
 
 const members = [{ member_id: 'ops', profile: 'ops', handle: 'ops', display_name: 'Ops' }]
 

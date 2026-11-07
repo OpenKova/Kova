@@ -59,7 +59,7 @@ def detect_import_sources() -> list[tuple[ImportSource, Path]]:
     return found
 
 
-def offer_agent_import(hermes_home: Path, from_setup: bool = True) -> str:
+def offer_agent_import(kova_home: Path, from_setup: bool = True) -> str:
     """When another agent's setup is on this computer, offer to import it: pick which (when several),
     install the plugin if it is missing and run its import for each pick. Returns the labels whose
     import changed this home's config.yaml or .env (``""`` when none did). Asks nothing, and so never
@@ -72,7 +72,7 @@ def offer_agent_import(hermes_home: Path, from_setup: bool = True) -> str:
     print_header("Coming from another agent?", gap=True)
     context = ("Found on this computer: " + ", ".join(
         f"{s.label} ({str(p).replace(user_home, '~', 1)})" for s, p in found) + ".",
-        "Hermes can bring over its settings, memories, skills and MCP servers.",
+        "Kova can bring over its settings, memories, skills and MCP servers.",
         "You'll see a preview and confirm before anything changes.")
     _info(*context)
     names = " or ".join(s.label for s, _ in found) if len(found) <= 2 else "any of them"
@@ -82,9 +82,9 @@ def offer_agent_import(hermes_home: Path, from_setup: bool = True) -> str:
         print_info(f"Skipped. Import later with: hermes plugins install {PLUGIN}, then hermes import-agent")
         return ""
     picked = _pick_sources(found)
-    if not picked or not _ensure_plugin(hermes_home):
+    if not picked or not _ensure_plugin(kova_home):
         return ""
-    return ", ".join(s.label for s in picked if _run_import(s, hermes_home, from_setup))
+    return ", ".join(s.label for s in picked if _run_import(s, kova_home, from_setup))
 
 
 def _pick_sources(found: list[tuple[ImportSource, Path]]) -> list[ImportSource]:
@@ -92,24 +92,24 @@ def _pick_sources(found: list[tuple[ImportSource, Path]]) -> list[ImportSource]:
     from kova_cli.setup import print_info, prompt_checklist
     if len(found) == 1:
         return [found[0][0]]
-    picked = prompt_checklist("Which agents should Hermes import from?", [s.label for s, _ in found],
+    picked = prompt_checklist("Which agents should Kova import from?", [s.label for s, _ in found],
                               list(range(len(found))))
     if not picked:
         print_info("Nothing selected, so nothing was imported.")
     return [found[i][0] for i in picked]
 
 
-def _ensure_plugin(hermes_home: Path) -> bool:
-    """The plugin installed and enabled in *hermes_home*: the catalog install (reviewed pin, the
+def _ensure_plugin(kova_home: Path) -> bool:
+    """The plugin installed and enabled in *kova_home*: the catalog install (reviewed pin, the
     usual install checks) when it is missing, else just an enable."""
     from kova_cli.left_core_migration import plugin_present
     from kova_cli.plugins_admission import AdmissionRefused
     from kova_cli.plugins_cmd import cmd_enable
     from kova_cli.plugins_cmd_install import cmd_install
     from kova_cli.setup import _info, print_warning
-    present = plugin_present(PLUGIN, hermes_home)
+    present = plugin_present(PLUGIN, kova_home)
     if not present:
-        _info(None, f"Importing is done by the '{PLUGIN}' plugin from the Hermes plugin catalog. "
+        _info(None, f"Importing is done by the '{PLUGIN}' plugin from the Kova plugin catalog. "
                     "Installing it now...")
     try:
         if present:
@@ -121,7 +121,7 @@ def _ensure_plugin(hermes_home: Path) -> bool:
     except (SystemExit, AdmissionRefused):
         pass
     else:
-        if plugin_present(PLUGIN, hermes_home):
+        if plugin_present(PLUGIN, kova_home):
             return True
     verb = "enabled" if present else "installed"
     print_warning(f"The '{PLUGIN}' plugin could not be {verb}, so nothing was imported. "
@@ -129,21 +129,21 @@ def _ensure_plugin(hermes_home: Path) -> bool:
     return False
 
 
-def _snapshot(hermes_home: Path) -> tuple[Optional[bytes], ...]:
+def _snapshot(kova_home: Path) -> tuple[Optional[bytes], ...]:
     return tuple(p.read_bytes() if p.is_file() else None  # config-reader: ok — child-run change snapshot
-                 for p in (hermes_home / "config.yaml", hermes_home / ".env"))
+                 for p in (kova_home / "config.yaml", kova_home / ".env"))
 
 
-def _run_import(source: ImportSource, hermes_home: Path, from_setup: bool = True) -> bool:
+def _run_import(source: ImportSource, kova_home: Path, from_setup: bool = True) -> bool:
     """The offer's import: :func:`_import_child` for *source*; True when the run changed config.yaml
     or .env, which the setup sections after it read. Bare ``hermes migrate`` runs it as its own
     command (``from_setup`` False: no setup-only flags such as OpenClaw's ``--migrate-secrets``)."""
-    before = _snapshot(hermes_home)
-    _import_child(source, hermes_home, from_setup=from_setup)
-    return _snapshot(hermes_home) != before
+    before = _snapshot(kova_home)
+    _import_child(source, kova_home, from_setup=from_setup)
+    return _snapshot(kova_home) != before
 
 
-def _import_child(source: ImportSource, hermes_home: Path, extra_args: tuple[str, ...] = (),
+def _import_child(source: ImportSource, kova_home: Path, extra_args: tuple[str, ...] = (),
                   from_setup: bool = True) -> int:
     """``hermes import-agent <source>`` in a child process, so the freshly installed plugin's command
     is wired; it previews and asks before changing anything (and exits 0 on a no too). Returns its
@@ -154,15 +154,15 @@ def _import_child(source: ImportSource, hermes_home: Path, extra_args: tuple[str
     print_header(f"Importing from {source.label}", gap=True)
     # A home that is not <root>/profiles/<name> is the root: without a selector the child's
     # _apply_profile_override would follow the sticky active_profile into another profile.
-    selector = [] if hermes_home.resolve().parent.name == "profiles" else ["--profile", "default"]
+    selector = [] if kova_home.resolve().parent.name == "profiles" else ["--profile", "default"]
     # --from-setup: the plugin's import speaks as a step of this setup (no "run hermes setup" pointers,
     # OpenClaw's skipped items folded into one line).
     # source.extra_args are setup's own choices (OpenClaw's --migrate-secrets, what core's old setup
     # step did); `hermes migrate` passes only what the user typed.
     argv = [sys.executable, "-P", "-m", "kova_cli.main", *selector, "import-agent", source.name,
             *(source.extra_args if from_setup else ()), *extra_args, *(["--from-setup"] if from_setup else [])]
-    env = served_profile_child_env(target_home=hermes_home)
-    if os.environ.get("PYTHONPATH"):  # this same interpreter running Hermes: keep the source tree
+    env = served_profile_child_env(target_home=kova_home)
+    if os.environ.get("PYTHONPATH"):  # this same interpreter running Kova: keep the source tree
         env["PYTHONPATH"] = os.environ["PYTHONPATH"]  # a checkout launched by path, which it strips
     # health: allow HX006 -- interactive child: the user reads its preview and answers its prompts
     returncode = subprocess.run(argv, env=env, check=False).returncode
@@ -190,7 +190,7 @@ def _update_plugin(source: ImportSource) -> bool:
     return True
 
 
-def migrate_from_agents(hermes_home: Path, source_name: str = "", extra_args: tuple[str, ...] = ()) -> int:
+def migrate_from_agents(kova_home: Path, source_name: str = "", extra_args: tuple[str, ...] = ()) -> int:
     """``hermes migrate [<agent>]``: the same import as setup's step, on demand. Named: install the
     plugin when missing and run that agent's import with ``extra_args``. Bare: offer the agents found
     on this computer, as setup does."""
@@ -198,13 +198,13 @@ def migrate_from_agents(hermes_home: Path, source_name: str = "", extra_args: tu
     if not source_name:
         found = detect_import_sources()
         if found and not is_noninteractive():
-            offer_agent_import(hermes_home, from_setup=False)
+            offer_agent_import(kova_home, from_setup=False)
             return 0
         print_info(("Found: " + ", ".join(s.label for s, _ in found) + ". " if found else
                     "No other agent setup found on this computer. ")
                    + "Import one with: " + ", ".join(f"hermes migrate {s.name}" for s in IMPORT_SOURCES))
         return 0
     source = next(s for s in IMPORT_SOURCES if s.name == source_name)
-    if not _ensure_plugin(hermes_home):
+    if not _ensure_plugin(kova_home):
         return 1
-    return 1 if _import_child(source, hermes_home, extra_args, from_setup=False) else 0
+    return 1 if _import_child(source, kova_home, extra_args, from_setup=False) else 0

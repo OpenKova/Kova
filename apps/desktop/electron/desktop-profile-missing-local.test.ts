@@ -8,8 +8,8 @@ import { afterEach, beforeEach, test } from 'vitest'
 import { createDesktopProfilePreferences, type MissingLocalProfileCheck } from './desktop-profile'
 import { localProfileIsLive } from './local-profile-liveness'
 
-// The preference file lives in Electron userData, which a Hermes reinstall
-// does not touch; the profiles live under HERMES_HOME, which it can wipe.
+// The preference file lives in Electron userData, which a Kova reinstall
+// does not touch; the profiles live under KOVA_HOME, which it can wipe.
 let root = ''
 let target = ''
 let profilesRoot = ''
@@ -38,7 +38,7 @@ function check(overrides: Partial<MissingLocalProfileCheck> = {}): MissingLocalP
   }
 }
 
-test('a remembered local profile missing from the Hermes home falls back to default on disk', () => {
+test('a remembered local profile missing from the Kova home falls back to default on disk', () => {
   createDesktopProfilePreferences(target).remember('hermes-contributor')
 
   const preferences = createDesktopProfilePreferences(target)
@@ -64,7 +64,7 @@ test('existing, default and explicitly launched profiles are kept', () => {
   assert.deepEqual(preferences.forgetMissingLocalProfiles(check()), [])
   assert.equal(preferences.readActive(), 'default')
 
-  // `Hermes --profile typo` must still surface the backend's refusal.
+  // `Kova --profile typo` must still surface the backend's refusal.
   preferences.remember('typo')
   assert.deepEqual(preferences.forgetMissingLocalProfiles(check({ launchProfile: 'typo' })), [])
   assert.equal(preferences.readActive(), 'typo')

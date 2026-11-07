@@ -1,7 +1,7 @@
-"""The machine's UI preferences store (#145213): one file beside the ROOT Hermes home, shared by
+"""The machine's UI preferences store (#145213): one file beside the ROOT Kova home, shared by
 native Desktop and every browser that opens this machine's Webapp.
 
-Contracts: a profile's HERMES_HOME resolves the same file as the root; the one-time localStorage
+Contracts: a profile's KOVA_HOME resolves the same file as the root; the one-time localStorage
 import never overwrites an existing store; writes merge per key (concurrent writers keep each
 other's keys); only Desktop-prefixed string keys are stored; the route exists only on the Webapp
 and only past the session-token gate.
@@ -22,21 +22,21 @@ def test_a_profile_home_and_the_root_home_resolve_the_same_store(monkeypatch, tm
     root = tmp_path / "custom-root"
     (root / "profiles" / "coder").mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     from_root = ui_preferences.store_path()
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "coder"))
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "coder"))
     from_profile = ui_preferences.store_path()
 
     assert from_root == from_profile == root / "ui-preferences.json"
 
 
 def test_a_custom_home_under_the_native_home_is_its_own_root(monkeypatch, tmp_path):
-    """Native Desktop keeps an explicit ``HERMES_HOME`` that is not a profile as the root; the
+    """Native Desktop keeps an explicit ``KOVA_HOME`` that is not a profile as the root; the
     Webapp's server must resolve the same file, not collapse it to the native home."""
-    sandbox = tmp_path / ".hermes" / "sandbox"
+    sandbox = tmp_path / ".kova" / "sandbox"
     sandbox.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(sandbox))
+    monkeypatch.setenv("KOVA_HOME", str(sandbox))
 
     assert ui_preferences.store_path() == sandbox.resolve() / "ui-preferences.json"
 
@@ -137,9 +137,9 @@ def _client(token: bool) -> TestClient:
 
 
 def test_the_webapp_reads_and_writes_the_machine_store_behind_the_session_gate(webapp_state):
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
-    store = get_default_hermes_root() / "ui-preferences.json"
+    store = get_default_kova_root() / "ui-preferences.json"
     anonymous = _client(token=False)
 
     assert anonymous.get("/api/ui-preferences").status_code == 401

@@ -1,10 +1,10 @@
 import { randomUuid } from '@kova/shared'
 
-import type { HermesApiRequest } from '@/global'
+import type { KovaApiRequest } from '@/global'
 import { dismissNotification } from '@/store/notifications'
 
 interface BrowserWindowOptions {
-  api: <T>(request: HermesApiRequest) => Promise<T>
+  api: <T>(request: KovaApiRequest) => Promise<T>
   basePath: string
   privateSession: boolean
 }

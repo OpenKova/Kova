@@ -11,22 +11,22 @@ from pathlib import Path
 import pytest
 
 from kova_cli import process_identity
-from kova_constants import hermes_home_key
+from kova_constants import kova_home_key
 
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
     root = tmp_path / "home"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     return root
 
 
 @contextmanager
 def running_install(home: Path, install: Path):
-    env = dict(os.environ, HERMES_HOME=str(home))
-    for key in ("HERMES_SPAWN", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER"):
+    env = dict(os.environ, KOVA_HOME=str(home))
+    for key in ("KOVA_SPAWN", "KOVA_PARENT_PID", "KOVA_PARENT_START_MARKER"):
         env.pop(key, None)
     script = """
 import sys
@@ -60,7 +60,7 @@ def test_warning_tracks_live_other_install_in_same_home(homes, tmp_path):
         assert warning and "profile" in warning.lower()
         assert shared_profile_warning(project_root=other) == ""
         entry = next(e for e in process_identity.ledger_entries(project_root=other) if e["pid"] == child.pid)
-        assert entry["hermes_home"] == hermes_home_key(homes)
+        assert entry["kova_home"] == kova_home_key(homes)
         assert shared_profile_warning(home=homes / "profiles" / "work", project_root=current) == ""
     # A stale file is not proof of concurrent use.
     assert process_identity._ledger_path().exists()
@@ -75,8 +75,8 @@ def test_warning_tracks_live_other_install_in_same_home(homes, tmp_path):
 @contextmanager
 def running_cli(home: Path, install: Path):
     """Run the real CLI constructor and entrypoint; stop at terminal interaction."""
-    env = dict(os.environ, HERMES_HOME=str(home), HOME=str(home.parent), USERPROFILE=str(home.parent))
-    for key in ("HERMES_SPAWN", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER"):
+    env = dict(os.environ, KOVA_HOME=str(home), HOME=str(home.parent), USERPROFILE=str(home.parent))
+    for key in ("KOVA_SPAWN", "KOVA_PARENT_PID", "KOVA_PARENT_START_MARKER"):
         env.pop(key, None)
     script = """
 import sys
@@ -90,7 +90,7 @@ def terminal_boundary(self):
     print('cli-ready', flush=True)
     sys.stdin.readline()
 
-cli.HermesCLI.run = terminal_boundary
+cli.KovaCLI.run = terminal_boundary
 cli.main(model='test-model', provider='openai', api_key='test-only',
          base_url='http://127.0.0.1:1/v1', toolsets='none', ignore_rules=True)
 """
@@ -126,7 +126,7 @@ def test_cli_entrypoint_registers_and_warns_once_for_live_shared_home(homes, tmp
             own = [entry for entry in entries if entry["pid"] == child.pid]
             assert len(own) == 1
             assert own[0]["purpose"] == "cli"
-            assert own[0]["hermes_home"] == hermes_home_key(homes)
+            assert own[0]["kova_home"] == kova_home_key(homes)
             assert shared_profile_warning(project_root=stable)
             # A CLI record must not make a terminal process an update-owned backend.
             from kova_cli import _startup_fast
@@ -140,14 +140,14 @@ def test_cli_entrypoint_registers_and_warns_once_for_live_shared_home(homes, tmp
                 _collect_ledger_runtimes(plan, set())
                 assert plan.runtimes == []
                 assert child.poll() is None
-        assert output["stderr"].count("Another Hermes installation") == 1
+        assert output["stderr"].count("Another Kova installation") == 1
         assert shared_profile_warning(project_root=stable) == ""
 
     work = homes / "profiles" / "work"
     work.mkdir(parents=True)
     with running_install(homes, stable), running_cli(work, canary) as (_, output):
         assert shared_profile_warning(project_root=stable) == ""
-    assert "Another Hermes installation" not in output["stderr"]
+    assert "Another Kova installation" not in output["stderr"]
 
 
 @pytest.mark.parametrize("corrupt", [b"{broken", b"\xff"])
@@ -159,7 +159,7 @@ def test_cli_startup_quarantines_corrupt_ledger(homes, tmp_path, corrupt):
         assert ledger.with_suffix(".json.corrupt").read_bytes() == corrupt
         entries = process_identity.ledger_entries(project_root=install, verified_only=True)
         assert [entry["pid"] for entry in entries] == [child.pid]
-        assert entries[0]["hermes_home"] == hermes_home_key(homes)
+        assert entries[0]["kova_home"] == kova_home_key(homes)
 
 
 def test_status_surfaces_live_warning_without_host_details(homes, tmp_path, monkeypatch):
@@ -198,13 +198,13 @@ def test_warning_rejects_reused_or_unverifiable_process_identity(homes, tmp_path
             ledger.write_text(json.dumps(entries))
             assert shared_profile_warning(project_root=current) == ""
         entries[0]["create_time"] = original
-        entries[0].pop("hermes_home", None)
+        entries[0].pop("kova_home", None)
         ledger.write_text(json.dumps(entries))
         assert shared_profile_warning(project_root=current) == ""
-        entries[0]["hermes_home"] = hermes_home_key(homes / "profiles" / "other")
+        entries[0]["kova_home"] = kova_home_key(homes / "profiles" / "other")
         ledger.write_text(json.dumps(entries))
         assert shared_profile_warning(project_root=current) == ""
-        entries[0]["hermes_home"] = hermes_home_key(homes)
+        entries[0]["kova_home"] = kova_home_key(homes)
         ledger.write_text(json.dumps(entries))
         assert shared_profile_warning(project_root=current)
 

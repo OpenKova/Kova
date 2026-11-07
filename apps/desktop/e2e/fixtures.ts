@@ -1,5 +1,5 @@
 /**
- * Shared E2E fixtures for the Hermes desktop Playwright suite.
+ * Shared E2E fixtures for the Kova desktop Playwright suite.
  *
  * Two fixture modes:
  *
@@ -74,14 +74,14 @@ function isCredentialEnvVar(name: string): boolean {
   return CREDENTIAL_SUFFIXES.some((suffix) => name.endsWith(suffix))
 }
 
-// Runtime state of whatever Hermes launched this run. A spec driven from inside
-// an agent's terminal inherits HERMES_YOLO_MODE, HERMES_INTERACTIVE,
-// HERMES_SESSION_ID…, and the sandboxed backend then skips approvals or binds
+// Runtime state of whatever Kova launched this run. A spec driven from inside
+// an agent's terminal inherits KOVA_YOLO_MODE, KOVA_INTERACTIVE,
+// KOVA_SESSION_ID…, and the sandboxed backend then skips approvals or binds
 // the caller's session — the approval spec failed locally on the leaked yolo
 // flag while CI (which never has these) stayed green. The fixtures set every
-// HERMES_* the app needs themselves; only the harness's own knobs pass.
-function isInheritedHermesRuntimeVar(name: string): boolean {
-  return name.startsWith('HERMES_') && !name.startsWith('HERMES_DESKTOP_') && !name.startsWith('HERMES_E2E_')
+// KOVA_* the app needs themselves; only the harness's own knobs pass.
+function isInheritedKovaRuntimeVar(name: string): boolean {
+  return name.startsWith('KOVA_') && !name.startsWith('KOVA_DESKTOP_') && !name.startsWith('KOVA_E2E_')
 }
 
 function stripCredentials(env: Record<string, string | undefined>): Record<string, string> {
@@ -92,7 +92,7 @@ function stripCredentials(env: Record<string, string | undefined>): Record<strin
       continue
     }
 
-    if (isCredentialEnvVar(key) || isInheritedHermesRuntimeVar(key)) {
+    if (isCredentialEnvVar(key) || isInheritedKovaRuntimeVar(key)) {
       continue
     }
 
@@ -112,8 +112,8 @@ export interface Sandbox {
 }
 
 export function createSandbox(prefix: string): Sandbox {
-  // Canonical path: the backend resolves HERMES_HOME, so a symlinked tmpdir (macOS /var, a
-  // symlinked scratch dir) would otherwise make every HERMES_HOME match against the sandbox miss.
+  // Canonical path: the backend resolves KOVA_HOME, so a symlinked tmpdir (macOS /var, a
+  // symlinked scratch dir) would otherwise make every KOVA_HOME match against the sandbox miss.
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `hermes-e2e-${prefix}-${Math.random()}`)))
   const hermesHome = path.join(root, 'hermes-home')
   const userDataDir = path.join(root, 'electron-user-data')
@@ -182,12 +182,12 @@ function writeEmptyConfig(hermesHome: string): void {
  * Build the environment for the Electron app process.
  *
  * Key env vars:
- *  - HERMES_HOME → sandbox hermes-home (isolated config/sessions)
- *  - HERMES_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
- *  - HERMES_DESKTOP_IGNORE_EXISTING=1 → skip the installed runtime
+ *  - KOVA_HOME → sandbox hermes-home (isolated config/sessions)
+ *  - KOVA_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
+ *  - KOVA_DESKTOP_IGNORE_EXISTING=1 → skip the installed runtime
  *    (we want the dev checkout at REPO_ROOT)
- *  - HERMES_DESKTOP_HERMES_ROOT → REPO_ROOT (dev checkout resolution)
- *  - HERMES_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
+ *  - KOVA_DESKTOP_KOVA_ROOT → REPO_ROOT (dev checkout resolution)
+ *  - KOVA_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
  *  - XDG_RUNTIME_DIR → ensure Electron has a writable runtime dir on Linux
  */
 export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}): Record<string, string> {
@@ -206,25 +206,25 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
 
   return {
     ...clean,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
+    KOVA_HOME: sandbox.kovaHome,
+    KOVA_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    KOVA_DESKTOP_IGNORE_EXISTING: '1',
     // One `hermes serve` per host, and profile roots are HOME-anchored
-    // (`~/.hermes/profiles`, the default profile's own home): without both of
+    // (`~/.kova/profiles`, the default profile's own home): without both of
     // these a local e2e run attaches to the developer's running backend or
     // lists and writes their real profiles, and chats through their real
     // model and state.db instead of the sandbox + mock provider. CI never has
     // either, so only local runs ever took that path.
-    HERMES_DESKTOP_ISOLATED_BACKEND: '1',
+    KOVA_DESKTOP_ISOLATED_BACKEND: '1',
     HOME: sandbox.root,
-    HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
-    HERMES_DESKTOP_APP_NAME: `HermesE2E-${Date.now()}`,
+    KOVA_DESKTOP_KOVA_ROOT: REPO_ROOT,
+    KOVA_DESKTOP_APP_NAME: `KovaE2E-${Date.now()}`,
     // `app.close()` in teardown must exit even when a spec leaves a turn
     // mid-flight — otherwise the quit confirmation waits on a click that no
     // one is there to make, and the worker dies on a teardown timeout.
-    HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1',
     // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
-    HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
+    KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
     // Clear dev-server override — we want the built dist/, not a vite server.
     // The dev-server check in main.ts looks for this env var; if it's set,
     // it loads from the vite URL instead of the local file.
@@ -277,8 +277,8 @@ export function findElectron(): string {
 /**
  * Launch the desktop app in dev mode.
  *
- * @param sandbox  - isolated HERMES_HOME + userData
- * @param env      - the process environment (already has HERMES_HOME etc.)
+ * @param sandbox  - isolated KOVA_HOME + userData
+ * @param env      - the process environment (already has KOVA_HOME etc.)
  * @returns the ElectronApplication + first Page
  */
 export async function launchDesktop(
@@ -353,13 +353,13 @@ export async function setupMockBackend(options: MockBackendOptions = {}): Promis
   // 2. Create sandbox + write config
   const sandbox = createSandbox('mock')
   writeMockProviderConfig(
-    sandbox.hermesHome,
+    sandbox.kovaHome,
     mock.url,
     options.extraDisplayConfig,
     options.extraConfig,
     options.modelContextLength,
   )
-  writeEnvFile(sandbox.hermesHome)
+  writeEnvFile(sandbox.kovaHome)
 
   // 3. Build env + launch
   const env = buildAppEnv(sandbox)
@@ -392,7 +392,7 @@ export interface NoProviderFixture {
  */
 export async function setupNoProvider(): Promise<NoProviderFixture> {
   const sandbox = createSandbox('noprovider')
-  writeEmptyConfig(sandbox.hermesHome)
+  writeEmptyConfig(sandbox.kovaHome)
 
   const env = buildAppEnv(sandbox)
   const { app, page } = await launchDesktop(env)
@@ -417,7 +417,7 @@ export interface DeadBackendFixture {
 
 export interface DeadBackendOptions {
   /**
-   * When true, inject a fake boot error via HERMES_DESKTOP_BOOT_FAKE_ERROR
+   * When true, inject a fake boot error via KOVA_DESKTOP_BOOT_FAKE_ERROR
    * so the backend resolution itself "fails" with a controlled error message.
    * This is the only reliable way to trigger BootFailureOverlay in dev mode
    * (the real backend always resolves via SOURCE_REPO_ROOT).
@@ -437,10 +437,10 @@ export async function setupDeadBackend(options: DeadBackendOptions = {}): Promis
   // Same writer the install-e2e harness uses, pointed at a dead endpoint: one
   // shape for "an external OpenAI-compatible provider", never a named 'mock'.
   const deadUrl = 'http://127.0.0.1:1'
-  writeMockProviderConfig(sandbox.hermesHome, deadUrl)
-  writeEnvFile(sandbox.hermesHome, 'e2e-mock-key', deadUrl)
+  writeMockProviderConfig(sandbox.kovaHome, deadUrl)
+  writeEnvFile(sandbox.kovaHome, 'e2e-mock-key', deadUrl)
 
-  const env = buildAppEnv(sandbox, options.fakeError ? { HERMES_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to Hermes backend: connection refused' } : {})
+  const env = buildAppEnv(sandbox, options.fakeError ? { KOVA_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to Kova backend: connection refused' } : {})
   const { app, page } = await launchDesktop(env)
 
   return {
@@ -462,13 +462,13 @@ export async function setupDeadBackend(options: DeadBackendOptions = {}): Promis
  */
 function resolvePackagedBinaryPath(): string {
   if (process.platform === 'win32') {
-    return path.join(RELEASE_ROOT, 'win-unpacked', 'Hermes.exe')
+    return path.join(RELEASE_ROOT, 'win-unpacked', 'Kova.exe')
   }
 
   if (process.platform === 'darwin') {
     const arch = process.arch === 'arm64' ? 'arm64' : 'x64'
 
-    return path.join(RELEASE_ROOT, `mac-${arch}`, 'Hermes.app', 'Contents', 'MacOS', 'Hermes')
+    return path.join(RELEASE_ROOT, `mac-${arch}`, 'Kova.app', 'Contents', 'MacOS', 'Kova')
   }
 
   return path.join(RELEASE_ROOT, 'linux-unpacked', 'hermes')
@@ -490,10 +490,10 @@ export interface PackagedAppFixture {
 /**
  * Launch the *packaged* Electron binary (from `pnpm run pack` →
  * `electron-builder --dir`) with `BOOT_FAKE=1` so it simulates boot
- * progress without spawning a real Hermes backend.
+ * progress without spawning a real Kova backend.
  *
  * Uses the same sandbox isolation (credential stripping, isolated
- * HERMES_HOME + userData, unique app name) as the dev-mode fixtures.
+ * KOVA_HOME + userData, unique app name) as the dev-mode fixtures.
  *
  * Skips if the packaged binary doesn't exist — run `pnpm run pack` first.
  */
@@ -510,15 +510,15 @@ export async function setupPackagedApp(): Promise<PackagedAppFixture> {
   // packaged-binary-specific overrides.
   const env = buildAppEnv(sandbox, {
     // Fake boot: simulates progress steps without spawning the real backend.
-    HERMES_DESKTOP_BOOT_FAKE: '1',
-    HERMES_DESKTOP_BOOT_FAKE_STEP_MS: '120',
+    KOVA_DESKTOP_BOOT_FAKE: '1',
+    KOVA_DESKTOP_BOOT_FAKE_STEP_MS: '120',
   })
 
   // Clear dev-server + hermes-root overrides — the packaged binary
   // should use its own bundled renderer, not the dev checkout.
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_DEV_SERVER
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES_ROOT
+  delete (env as Record<string, string | undefined>).KOVA_DESKTOP_DEV_SERVER
+  delete (env as Record<string, string | undefined>).KOVA_DESKTOP_HERMES
+  delete (env as Record<string, string | undefined>).KOVA_DESKTOP_KOVA_ROOT
 
   const app = await _electron.launch({
     executablePath: PACKAGED_BINARY_PATH,

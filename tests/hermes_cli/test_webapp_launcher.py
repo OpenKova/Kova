@@ -62,13 +62,13 @@ def world(monkeypatch, tmp_path):
                         raising=False)
     monkeypatch.setattr("time.sleep", lambda seconds: calls.setdefault("slept", []).append(seconds))
     root = _home(tmp_path / "root", "webapp:\n  enabled: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     return {"calls": calls, "answers": answers, "root": root, "tmp": tmp_path, "monkeypatch": monkeypatch,
             "states": states}
 
 
 def _use_home(world, home):
-    world["monkeypatch"].setenv("HERMES_HOME", str(home))
+    world["monkeypatch"].setenv("KOVA_HOME", str(home))
 
 
 def test_the_webapp_opens_from_a_one_use_link_its_gateway_mints(world, capsys):
@@ -283,7 +283,7 @@ def test_sign_out_on_a_gateway_not_serving_the_webapp_says_no_browser_was_connec
 
 
 def test_sign_out_on_a_gateway_that_does_not_report_what_it_closed_asks_for_a_restart(world, capsys):
-    # A gateway started before this Hermes signs out loopback tabs only.
+    # A gateway started before this Kova signs out loopback tabs only.
     world["answers"]["webapp-sign-out"]["result"] = {"signed_out": True}
     assert launcher.cmd_webapp(_args(sign_out=True)) == 0
     out = capsys.readouterr().out
@@ -382,8 +382,8 @@ def test_a_home_whose_gateway_never_ran_reads_as_having_none(tmp_path):
 
 @pytest.mark.parametrize("deleted", ["removed", "tombstoned"])
 @pytest.mark.parametrize("action", [{"sign_out": True}, {"status": True}, {}])
-def test_a_hermes_home_at_a_deleted_profile_is_refused_like_its_profile_flag(world, capsys, deleted, action):
-    """``HERMES_HOME`` naming a deleted profile is refused exactly as ``-p <name>`` is, so signing
+def test_a_kova_home_at_a_deleted_profile_is_refused_like_its_profile_flag(world, capsys, deleted, action):
+    """``KOVA_HOME`` naming a deleted profile is refused exactly as ``-p <name>`` is, so signing
     out never replaces the default gateway's credential instead."""
     from gateway.webapp_listener import TOKEN_PATH, browser_session_token
     from kova_constants import mark_named_profile_deleted

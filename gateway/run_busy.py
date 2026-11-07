@@ -836,7 +836,7 @@ class GatewayBusySessionMixin:
         # Some mobile chat setups want silent steering — keep the behavior, drop the bubble.
         from gateway.run import _load_gateway_config, _platform_config_key
         from gateway.display_config import resolve_display_setting
-        steer_ack_env = os.environ.get("HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED")
+        steer_ack_env = os.environ.get("KOVA_GATEWAY_BUSY_STEER_ACK_ENABLED")
         if steer_ack_env is not None:
             steer_ack_enabled = steer_ack_env.strip().lower() in {"1", "true", "yes", "on"}
         else:
@@ -860,7 +860,7 @@ class GatewayBusySessionMixin:
         demoted_for_subagents: bool, demoted_for_compression: bool,
     ) -> str:
         from gateway.run import (
-            _AGENT_PENDING_SENTINEL, _hermes_home, _load_gateway_config, _platform_config_key
+            _AGENT_PENDING_SENTINEL, _kova_home, _load_gateway_config, _platform_config_key
         )
         from gateway.display_config import resolve_display_setting
 
@@ -921,7 +921,7 @@ class GatewayBusySessionMixin:
                     else "interrupt"
                 )
                 message = f"{message}\n\n{busy_input_hint_gateway(_hint_mode)}"
-                mark_seen(_hermes_home / "config.yaml", BUSY_INPUT_FLAG)
+                mark_seen(_kova_home / "config.yaml", BUSY_INPUT_FLAG)
         except Exception as _onb_err:
             logger.debug("Failed to apply busy-input onboarding hint: %s", _onb_err)
         return message
@@ -1021,7 +1021,7 @@ class GatewayBusySessionMixin:
 
         # Disabled ack: still process input. Checked before debounce so an undelivered ack never
         # stamps the "last ack" timestamp.
-        if os.environ.get("HERMES_GATEWAY_BUSY_ACK_ENABLED", "true").lower() != "true":
+        if os.environ.get("KOVA_GATEWAY_BUSY_ACK_ENABLED", "true").lower() != "true":
             logger.debug("Busy ack suppressed for session %s", session_key)
             return  # input still processed, just no ack sent
 
@@ -1478,7 +1478,7 @@ class GatewayBusySessionMixin:
         /restart with update_id <= that value is a redelivery when this process booted from that
         restart; otherwise the marker must be < 5 minutes old. Telegram only (numeric ordering).
         """
-        from gateway.run import _hermes_home
+        from gateway.run import _kova_home
         if event is None or event.source is None or event.platform_update_id is None:
             return False
         try:
@@ -1488,7 +1488,7 @@ class GatewayBusySessionMixin:
             return False
 
         try:
-            marker_path = _hermes_home / ".restart_last_processed.json"
+            marker_path = _kova_home / ".restart_last_processed.json"
             if not marker_path.exists():
                 # Missing marker: a redelivered /restart would otherwise re-restart forever. Suppress
                 # ONLY when this process booted from a chat /restart AND is within a short post-boot

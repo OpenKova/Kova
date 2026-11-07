@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urlsplit
 
 import httpx
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from kova_cli.active_sessions import active_session_registry_snapshot, session_owner_details
 
 
@@ -36,7 +36,7 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
     must advertise ``metadata.shared_runtime_url`` and implement the local
     ``/api/session-attach`` handshake. Unsupported owners keep their lease.
     """
-    home = Path(registry_home if registry_home is not None else get_hermes_home()).resolve()
+    home = Path(registry_home if registry_home is not None else get_kova_home()).resolve()
     owners = [entry for entry in active_session_registry_snapshot(home, strict=True)
               if entry.get("session_id") == session_id]
     if not owners:
@@ -46,7 +46,7 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
     owner = owners[0]
     endpoint = (owner.get("metadata") or {}).get("shared_runtime_url")
     if not isinstance(endpoint, str) or not endpoint:
-        raise ValueError("This chat is open in another Hermes window/terminal, and attaching "
+        raise ValueError("This chat is open in another Kova window/terminal, and attaching "
                          "this terminal to it is not available in this build. Close the chat "
                          "there and run hermes --resume " + session_id + " here to take it over.\n"
                          + session_owner_details(session_id, owner))
@@ -70,7 +70,7 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
                 reply = json.loads(body)
     except (httpx.HTTPError, json.JSONDecodeError) as exc:
         # Never include a remote body or authenticated URL in diagnostics.
-        raise ValueError("This chat is open in another Hermes window/terminal, and attaching "
+        raise ValueError("This chat is open in another Kova window/terminal, and attaching "
                          "this terminal to it just failed. Use the chat where it is open, or "
                          "close it there and run hermes --resume " + session_id + " here.\n"
                          + session_owner_details(session_id, owner)) from exc
@@ -88,8 +88,8 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
 def configure_tui_attachment(env: dict[str, str], session_id: str | None, *,
                              registry_home: str | Path | None = None) -> None:
     """Retain an explicit transport, otherwise attach a resumed owner's runtime."""
-    if not session_id or env.get("HERMES_TUI_GATEWAY_URL", "").strip():
+    if not session_id or env.get("KOVA_TUI_GATEWAY_URL", "").strip():
         return
     url = discover_attach_url(session_id, registry_home=registry_home)
     if url is not None:
-        env["HERMES_TUI_GATEWAY_URL"] = url
+        env["KOVA_TUI_GATEWAY_URL"] = url

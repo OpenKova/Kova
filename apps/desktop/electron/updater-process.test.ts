@@ -27,9 +27,9 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 test('stagedUpdaterSupportsPrewrittenMarker rejects installers predating the self-adopt fix', () => {
   // The real-world trap: an installer staged at first install months ago, never
-  // refreshed because copy_self_to_hermes_home no-ops during --update.
+  // refreshed because copy_self_to_kova_home no-ops during --update.
   assert.equal(
-    stagedUpdaterSupportsPrewrittenMarker('C:\\Hermes\\hermes-setup.exe', {
+    stagedUpdaterSupportsPrewrittenMarker('C:\\Kova\\hermes-setup.exe', {
       stagedMtimeMs: () => MARKER_SELF_ADOPT_EPOCH_MS - 60 * DAY_MS
     }),
     false
@@ -38,13 +38,13 @@ test('stagedUpdaterSupportsPrewrittenMarker rejects installers predating the sel
 
 test('stagedUpdaterSupportsPrewrittenMarker accepts installers from the fix onward', () => {
   assert.equal(
-    stagedUpdaterSupportsPrewrittenMarker('C:\\Hermes\\hermes-setup.exe', {
+    stagedUpdaterSupportsPrewrittenMarker('C:\\Kova\\hermes-setup.exe', {
       stagedMtimeMs: () => MARKER_SELF_ADOPT_EPOCH_MS
     }),
     true
   )
   assert.equal(
-    stagedUpdaterSupportsPrewrittenMarker('C:\\Hermes\\hermes-setup.exe', {
+    stagedUpdaterSupportsPrewrittenMarker('C:\\Kova\\hermes-setup.exe', {
       stagedMtimeMs: () => MARKER_SELF_ADOPT_EPOCH_MS + 30 * DAY_MS
     }),
     true
@@ -55,7 +55,7 @@ test('stagedUpdaterSupportsPrewrittenMarker treats an unreadable mtime as unsupp
   // Bias toward the path that can always make progress: a skipped pre-write
   // loses anti-respawn hardening, a wedged updater can never update again.
   assert.equal(
-    stagedUpdaterSupportsPrewrittenMarker('C:\\Hermes\\hermes-setup.exe', {
+    stagedUpdaterSupportsPrewrittenMarker('C:\\Kova\\hermes-setup.exe', {
       stagedMtimeMs: () => null
     }),
     false
@@ -67,12 +67,12 @@ test('resolveStagedUpdaterBinary still returns a stale staged updater on Windows
   // the stale binary is the only updater these users have, and it works fine
   // once it is allowed to write its own claim.
   assert.equal(
-    resolveStagedUpdaterBinary('C:\\Hermes', {
+    resolveStagedUpdaterBinary('C:\\Kova', {
       fileExists: () => true,
       isWindows: true,
       stagedMtimeMs: () => MARKER_SELF_ADOPT_EPOCH_MS - 60 * DAY_MS
     }),
-    path.join('C:\\Hermes', 'hermes-setup.exe')
+    path.join('C:\\Kova', 'hermes-setup.exe')
   )
 })
 
@@ -90,7 +90,7 @@ test('spawnUpdaterProcess hides the updater console and detaches the child on Wi
   const result = spawnUpdaterProcess(
     'hermes-setup.exe',
     ['--update', '--branch', 'main'],
-    { cwd: 'C:\\Hermes', detached: true, stdio: 'ignore' },
+    { cwd: 'C:\\Kova', detached: true, stdio: 'ignore' },
     {
       isWindows: true,
       spawnProcess: (command, args, options) => {
@@ -107,7 +107,7 @@ test('spawnUpdaterProcess hides the updater console and detaches the child on Wi
     {
       args: ['--update', '--branch', 'main'],
       command: 'hermes-setup.exe',
-      options: { cwd: 'C:\\Hermes', detached: true, stdio: 'ignore', windowsHide: true }
+      options: { cwd: 'C:\\Kova', detached: true, stdio: 'ignore', windowsHide: true }
     }
   ])
 })
@@ -151,7 +151,7 @@ test('resolveStagedUpdaterBinary hands Windows the staged installer it finds', (
 })
 
 test('resolveStagedUpdaterBinary returns null off Windows even when hermes-setup is staged (#74836)', () => {
-  const home = '/Users/hermes/.hermes'
+  const home = '/Users/hermes/.kova'
   let probes = 0
 
   const resolved = resolveStagedUpdaterBinary(home, {
@@ -179,7 +179,7 @@ test('resolveStagedUpdaterBinary returns null on Windows when nothing is staged'
 })
 
 test('resolveUpdateScriptHandoff prefers the repo script on Windows when present', () => {
-  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\hermes-agent`
+  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\kova-agent`
   const expected = path.join(root, 'scripts', 'desktop-update', 'windows.ps1')
 
   const handoff = resolveUpdateScriptHandoff(root, {
@@ -194,7 +194,7 @@ test('resolveUpdateScriptHandoff prefers the repo script on Windows when present
 })
 
 test('resolveUpdateScriptHandoff falls back to the pre-reorg flat path', () => {
-  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\hermes-agent`
+  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\kova-agent`
   const legacy = path.join(root, 'scripts', 'desktop-update.ps1')
 
   const handoff = resolveUpdateScriptHandoff(root, {
@@ -207,7 +207,7 @@ test('resolveUpdateScriptHandoff falls back to the pre-reorg flat path', () => {
 })
 
 test('resolveUpdateScriptHandoff returns null when the checkout predates the script', () => {
-  const handoff = resolveUpdateScriptHandoff(String.raw`C:\Users\hermes\AppData\Local\hermes\hermes-agent`, {
+  const handoff = resolveUpdateScriptHandoff(String.raw`C:\Users\hermes\AppData\Local\hermes\kova-agent`, {
     isWindows: true,
     fileExists: () => false
   })
@@ -216,7 +216,7 @@ test('resolveUpdateScriptHandoff returns null when the checkout predates the scr
 })
 
 test('resolveUpdateScriptHandoff is Windows-only (POSIX updates in place)', () => {
-  const handoff = resolveUpdateScriptHandoff('/home/hermes/.hermes/hermes-agent', {
+  const handoff = resolveUpdateScriptHandoff('/home/hermes/.kova/kova-agent', {
     isWindows: false,
     fileExists: () => true
   })
@@ -228,7 +228,7 @@ test('wrapHandoffForDetachedConsole runs the script inside a non-detached hidden
   // #116161: `start /min` allocated a NEW (minimized, visible) console for
   // powershell on every hand-off; `detached: true` (DETACHED_PROCESS) would
   // leave the wrapper console-less, forcing the same allocation under `/b`.
-  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\hermes-agent`
+  const root = String.raw`C:\Users\hermes\AppData\Local\hermes\kova-agent`
   const expected = path.join(root, 'scripts', 'desktop-update', 'windows.ps1')
 
   const handoff = resolveUpdateScriptHandoff(root, {
@@ -262,7 +262,7 @@ test('wrapHandoffForDetachedConsole runs the script inside a non-detached hidden
 })
 
 test('resolvePosixScriptHandoff returns the bash recipe when the script exists', () => {
-  const root = '/home/hermes/.hermes/hermes-agent'
+  const root = '/home/hermes/.kova/kova-agent'
   const expected = path.join(root, 'scripts', 'desktop-update', 'posix.sh')
 
   const handoff = resolvePosixScriptHandoff(root, {
@@ -276,7 +276,7 @@ test('resolvePosixScriptHandoff returns the bash recipe when the script exists',
 })
 
 test('resolvePosixScriptHandoff is null when the checkout predates the script', () => {
-  const handoff = resolvePosixScriptHandoff('/home/hermes/.hermes/hermes-agent', {
+  const handoff = resolvePosixScriptHandoff('/home/hermes/.kova/kova-agent', {
     isWindows: false,
     fileExists: () => false
   })
@@ -285,7 +285,7 @@ test('resolvePosixScriptHandoff is null when the checkout predates the script', 
 })
 
 test('resolvePosixScriptHandoff is null on Windows', () => {
-  const handoff = resolvePosixScriptHandoff(String.raw`C:\Users\hermes\AppData\Local\hermes\hermes-agent`, {
+  const handoff = resolvePosixScriptHandoff(String.raw`C:\Users\hermes\AppData\Local\hermes\kova-agent`, {
     isWindows: true,
     fileExists: () => true
   })
@@ -485,8 +485,8 @@ test('observeUpdaterHandoff settles ok for children without an event interface',
 
 test.skipIf(process.platform === 'win32')('launcherInstallDirectory returns the root the launcher reports', async () => {
   const dir = await realpathMkdtemp('launcher-install-')
-  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'hermes-agent')).then(() => path.join(dir, 'hermes-agent')))
-  const launcher = await writeLauncher(dir, `printf 'Hermes Agent v0.22.1\\nInstall directory: ${reported}\\n'`)
+  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'kova-agent')).then(() => path.join(dir, 'kova-agent')))
+  const launcher = await writeLauncher(dir, `printf 'Kova Agent v0.22.1\\nInstall directory: ${reported}\\n'`)
 
   assert.equal(launcherInstallDirectory(launcher), reported)
 })
@@ -494,7 +494,7 @@ test.skipIf(process.platform === 'win32')('launcherInstallDirectory returns the 
 test.skipIf(process.platform === 'win32')('launcherInstallDirectory stays null when the launcher reports nothing', async () => {
   const dir = await realpathMkdtemp('launcher-install-')
 
-  for (const body of ["printf 'Hermes Agent v0.22.1\\n'", 'exit 3']) {
+  for (const body of ["printf 'Kova Agent v0.22.1\\n'", 'exit 3']) {
     const launcher = await writeLauncher(dir, body)
 
     assert.equal(launcherInstallDirectory(launcher), null)
@@ -506,7 +506,7 @@ test.skipIf(process.platform === 'win32')('launcherInstallDirectory stays null w
 // names its root must not pay a fresh spawn on each resolve.
 test.skipIf(process.platform === 'win32')('launcherInstallRoot probes off the main thread, once for concurrent callers', async () => {
   const dir = await realpathMkdtemp('launcher-root-')
-  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'hermes-agent')).then(() => path.join(dir, 'hermes-agent')))
+  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'kova-agent')).then(() => path.join(dir, 'kova-agent')))
   const calls = path.join(dir, 'calls')
   const launcher = await writeLauncher(dir, `echo x >> ${calls}; sleep 0.4; printf 'Install directory: ${reported}\\n'`)
   let ticked = false
@@ -526,9 +526,9 @@ test.skipIf(process.platform === 'win32')('launcherInstallRoot probes off the ma
 // permanent miss would keep the override rootless until Desktop restarts.
 test.skipIf(process.platform === 'win32')('launcherInstallRoot caches a miss for a short window, then retries and keeps the root', async () => {
   const dir = await realpathMkdtemp('launcher-root-')
-  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'hermes-agent')).then(() => path.join(dir, 'hermes-agent')))
+  const reported = await fs.realpath(await fs.mkdir(path.join(dir, 'kova-agent')).then(() => path.join(dir, 'kova-agent')))
   const calls = path.join(dir, 'calls')
-  const launcher = await writeLauncher(dir, `echo x >> ${calls}; printf 'Hermes Agent v0.22.1\\n'`)
+  const launcher = await writeLauncher(dir, `echo x >> ${calls}; printf 'Kova Agent v0.22.1\\n'`)
   const count = async () => (await fs.readFile(calls, 'utf8')).trim().split('\n').length
   const now = vi.spyOn(Date, 'now')
 

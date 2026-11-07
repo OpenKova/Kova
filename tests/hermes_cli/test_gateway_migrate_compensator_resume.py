@@ -20,10 +20,10 @@ from kova_cli import gateway_migrate as gm
 
 
 def _write_live_gateway(home: Path, served: list[str] | None = None) -> None:
-    record = {"pid": os.getpid(), "hermes_home": str(home), "gateway_state": "running"}
+    record = {"pid": os.getpid(), "kova_home": str(home), "gateway_state": "running"}
     if served is not None:
         record["served_profiles"] = served
-    (home / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(home)}))
+    (home / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(home)}))
     (home / "gateway_state.json").write_text(json.dumps(record))
 
 
@@ -31,20 +31,20 @@ def _write_live_gateway(home: Path, served: list[str] | None = None) -> None:
 def stranded(tmp_path, monkeypatch):
     """A host mid-migration: manifest on disk, both secondaries' units already uninstalled,
     nothing serving. Exactly what an apply that died in ``_wait_for_served`` leaves behind."""
-    root = tmp_path / "home" / ".hermes"
+    root = tmp_path / "home" / ".kova"
     for sub in ("profiles/coder", "profiles/ops"):
         (root / sub).mkdir(parents=True)
         (root / sub / "SOUL.md").write_text("x\n", encoding="utf-8")
     (root / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\n", encoding="utf-8")
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:shared\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "GATEWAY_MULTIPLEX_PROFILES"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
-    assert str(kova_constants.get_default_hermes_root()).startswith(str(tmp_path))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
+    assert str(kova_constants.get_default_kova_root()).startswith(str(tmp_path))
 
     (root / gm.MANIFEST_NAME).write_text(json.dumps({
         "version": 1, "flag_was": False,

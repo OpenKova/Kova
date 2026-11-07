@@ -51,7 +51,7 @@ def test_detached_restart_without_service_never_runs_the_gateway_in_the_caller(m
 
     assert exited.value.code == 0
     assert not foreground, "--detach must not turn the restarting client into the gateway"
-    assert detached == [gw.get_hermes_home()]
+    assert detached == [gw.get_kova_home()]
 
 
 @pytest.mark.platforms("linux")
@@ -119,8 +119,8 @@ def test_detached_restart_all_never_runs_the_host_gateway_in_the_caller(monkeypa
 
     (tmp_path / "profiles" / "work").mkdir(parents=True)
     (tmp_path / "active_profile").write_text("work\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    kova_constants._default_hermes_root_memo = None
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
+    kova_constants._default_kova_root_memo = None
     monkeypatch.setattr(gw, "_refuse_from_inside_gateway", lambda *a, **k: None)
     monkeypatch.setattr(gw, "_dispatch_all_via_service_manager_if_s6", lambda verb: False)
     monkeypatch.setattr(gw, "_host_multiplexer_for_all_verb", lambda: None)

@@ -44,7 +44,7 @@ _PLATFORMS = [
              "help": "Your user ID from step 4 above (26 characters, not your @username)."},
             {"name": "MATTERMOST_HOME_CHANNEL",
              "prompt": "Home channel ID (for cron/notification delivery, or empty to set later with /set-home)",
-             "password": False, "help": "Channel ID where Hermes delivers cron results and notifications."},
+             "password": False, "help": "Channel ID where Kova delivers cron results and notifications."},
             {"name": "MATTERMOST_REPLY_MODE",
              "prompt": "Reply mode — 'off' for flat messages, 'thread' for threaded replies (default: off)",
              "password": False,
@@ -348,7 +348,7 @@ def _configure_platform(platform: dict) -> None:
     print_setup_header(f"{platform.get('emoji', '🔌')} {label}")
     required = entry.required_env if entry else []
     if required:
-        _gw().print_info(f"  Set these env vars in ~/.hermes/.env: {', '.join(required)}")
+        _gw().print_info(f"  Set these env vars in ~/.kova/.env: {', '.join(required)}")
     else:
         _gw().print_info(f"  Configure {label} in config.yaml under gateway.platforms.{platform['key']}")
     if platform.get("install_hint"):
@@ -521,7 +521,7 @@ def _wizard_post_setup() -> None:
         if _gw().is_wsl():
             reason, home = "wsl", ""
         elif _gw().is_termux():
-            from kova_constants import display_hermes_home as _dhh
+            from kova_constants import display_kova_home as _dhh
             reason, home = "termux", _dhh()
         else:
             reason, home = "unsupported", ""

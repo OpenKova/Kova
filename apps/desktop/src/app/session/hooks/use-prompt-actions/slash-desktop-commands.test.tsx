@@ -9,7 +9,7 @@ import { resolveDesktopCommand } from '@/lib/desktop-slash-commands'
 import { $connection } from '@/store/session'
 import { dropSessionState } from '@/store/session-states'
 
-import { useHermesConfig } from '../use-hermes-config'
+import { useKovaConfig } from '../use-hermes-config'
 
 import { actRender, Harness, type HarnessHandle, RUNTIME_SESSION_ID } from './index-test-utils'
 import { clearSingleFlightSessionResumeState } from './single-flight-resume'
@@ -21,8 +21,8 @@ import { formatHistory } from './slash-desktop-commands'
 vi.mock('@/hermes', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'session' })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
-  getHermesConfig: vi.fn(async () => ({ display: { timestamps: false } })),
-  getHermesConfigDefaults: vi.fn(async () => ({})),
+  getKovaConfig: vi.fn(async () => ({ display: { timestamps: false } })),
+  getKovaConfigDefaults: vi.fn(async () => ({})),
   getSession: vi.fn(),
   PROMPT_SUBMIT_REQUEST_TIMEOUT_MS: 1_800_000,
   setApiRequestProfile: vi.fn(),
@@ -374,7 +374,7 @@ describe('/history', () => {
     expect(callsOf(requestGateway, 'slash.exec')).toEqual([])
     const text = renderedText(handle)
     expect(text).toContain('You: first question')
-    expect(text).toContain('Hermes: first answer')
+    expect(text).toContain('Kova: first answer')
     expect(text).not.toContain('tool noise')
   })
 
@@ -388,9 +388,9 @@ describe('/history', () => {
     ] as never)
 
     expect(history).toContain('You: ARCHIVED QUESTION')
-    expect(history).toContain('Hermes: ARCHIVED ANSWER')
+    expect(history).toContain('Kova: ARCHIVED ANSWER')
     expect(history).toContain('You: /skill question')
-    expect(history).toContain('Hermes: VISIBLE ANSWER')
+    expect(history).toContain('Kova: VISIBLE ANSWER')
     expect(history).not.toContain('MODEL ONLY')
   })
 })
@@ -399,7 +399,7 @@ describe('/save writes on the Electron side', () => {
   it('asks the owner for the rendered file (session.export) and saves it through the main process', async () => {
     const saveTextFileAs = vi.fn(async () => ({ saved: true, path: '/home/u/Documents/notes.md' }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { saveTextFileAs }
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { saveTextFileAs }
 
     const requestGateway = gateway(method =>
       method === 'session.export'
@@ -424,7 +424,7 @@ describe('/save writes on the Electron side', () => {
   it('defaults to json and the owner filename, and reports a cancelled dialog', async () => {
     const saveTextFileAs = vi.fn(async () => ({ saved: false, canceled: true }))
 
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { saveTextFileAs }
+    ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = { saveTextFileAs }
 
     const requestGateway = gateway(method =>
       method === 'session.export' ? { format: 'json', filename: 'hermes_session_s1.json', content: '{}' } : undefined
@@ -496,12 +496,12 @@ describe('/timestamps, /palette, /worktree, /snapshot', () => {
   it('/timestamps is a window override that survives an ordinary config refresh', async () => {
     const { $displayTimestamps } = await import('@/store/display-timestamps')
     $displayTimestamps.set(false)
-    const config = renderHook(() => useHermesConfig({ activeSessionIdRef: { current: RUNTIME_SESSION_ID } }))
+    const config = renderHook(() => useKovaConfig({ activeSessionIdRef: { current: RUNTIME_SESSION_ID } }))
     const handle = await mount(gateway(() => undefined))
 
     await handle.submitText('/timestamps on')
     await act(async () => {
-      await config.result.current.refreshHermesConfig()
+      await config.result.current.refreshKovaConfig()
     })
 
     expect($displayTimestamps.get()).toBe(true)

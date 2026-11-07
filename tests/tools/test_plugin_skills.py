@@ -173,7 +173,7 @@ class TestSkillViewQualifiedName:
         empty = tmp_path / "empty-skills"
         empty.mkdir()
         monkeypatch.setattr("tools.skills_tool.SKILLS_DIR", empty)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
 
     def _register_skill(self, tmp_path, plugin="superpowers", name="writing-plans", content=None):
         skill_dir = tmp_path / "plugins" / plugin / "skills" / name
@@ -316,7 +316,7 @@ class TestSkillViewQualifiedName:
         assert "not found" in result["error"].lower()
 
     def _make_memory_provider_with_skill(self, tmp_path, name, body="Provider skill body."):
-        plugin_dir = tmp_path / ".hermes" / "plugins" / name
+        plugin_dir = tmp_path / ".kova" / "plugins" / name
         skill_dir = plugin_dir / "skills" / "maintenance"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
@@ -345,7 +345,7 @@ class TestSkillViewQualifiedName:
         self._make_memory_provider_with_skill(tmp_path, "memtest")
         monkeypatch.setattr(
             "plugins.memory._get_user_plugins_dir",
-            lambda: tmp_path / ".hermes" / "plugins",
+            lambda: tmp_path / ".kova" / "plugins",
         )
         monkeypatch.setattr(
             "plugins.memory._get_active_memory_provider",
@@ -368,7 +368,7 @@ class TestSkillViewQualifiedName:
         self._make_memory_provider_with_skill(tmp_path, "meminactive", "Inactive body.")
         monkeypatch.setattr(
             "plugins.memory._get_user_plugins_dir",
-            lambda: tmp_path / ".hermes" / "plugins",
+            lambda: tmp_path / ".kova" / "plugins",
         )
         monkeypatch.setattr(
             "plugins.memory._get_active_memory_provider",
@@ -410,7 +410,7 @@ class TestSkillViewPluginGuards:
         empty = tmp_path / "empty"
         empty.mkdir()
         monkeypatch.setattr("tools.skills_tool.SKILLS_DIR", empty)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
         self._platform = sys.platform
 
     def _reg(self, tmp_path, content, plugin="myplugin", name="foo"):
@@ -465,7 +465,7 @@ class TestBundleContextBanner:
         empty = tmp_path / "empty"
         empty.mkdir()
         monkeypatch.setattr("tools.skills_tool.SKILLS_DIR", empty)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
 
     def _setup_bundle(self, tmp_path, skills=("foo", "bar", "baz")):
         for name in skills:

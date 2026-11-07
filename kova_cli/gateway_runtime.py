@@ -341,7 +341,7 @@ def discover_gateway_endpoint(profile_home: str | Path, *, timeout: float = 2.0)
 
 def _update_fenced(homes) -> bool:
     """True while an update owns the install, judged the way main's launchers and the Desktop
-    judge ``.hermes-update-in-progress``: a live (or still being written) marker, or a dead or
+    judge ``.kova-update-in-progress``: a live (or still being written) marker, or a dead or
     malformed one while the checkout lock is held (a killed update's tree still runs). A dead
     marker over a free lock is a killed update: it never blocks a launch.
 
@@ -380,14 +380,14 @@ def _fenced_verdict(home: Path, timeout: float) -> GatewayDiscovery:
     return GatewayDiscovery("draining", reason_code="update_paused")
 
 
-_REPLACE_FAILED_DETAIL = "an older Hermes gateway still owns this profile after a stop; run: hermes gateway stop"
+_REPLACE_FAILED_DETAIL = "an older Kova gateway still owns this profile after a stop; run: hermes gateway stop"
 # ``draining`` reasons after which the owner is going away by itself: its own idle exit, or the
-# older-Hermes owner this call just stopped. Ensure waits it out and starts the current owner.
+# older-Kova owner this call just stopped. Ensure waits it out and starts the current owner.
 _RETIRING = frozenset({"idle_exit", "replaced"})
 
 
 def _observe_replacing_stale(home: Path, deadline: float, replaced: set[Path]) -> GatewayDiscovery:
-    """Discovery, except that a gateway an older Hermes left on this home is stopped once (like
+    """Discovery, except that a gateway an older Kova left on this home is stopped once (like
     ``hermes gateway stop``) and reported as retiring; a refusal keeps ``incompatible`` + its remedy."""
     from kova_cli.gateway_runtime_service import remaining
     observed = discover_gateway_endpoint(home, timeout=remaining(deadline))
@@ -408,10 +408,10 @@ def ensure_gateway_runtime(profile_home: str | Path, *, timeout: float = DEFAULT
                            idle_exit: bool = False) -> GatewayDiscovery:
     """Ensure once; pending remains pending at deadline.
 
-    Never installs anything. The one owner it replaces is a gateway an older Hermes left running on
+    Never installs anything. The one owner it replaces is a gateway an older Kova left running on
     this install's own home (``incompatible``/``runtime_protocol``, the upgrade case): it is stopped
     the way ``hermes gateway stop`` stops it, once, and the current one started like any absent
-    owner. Another install's or a newer Hermes's gateway stays refused, with the reason in ``detail``
+    owner. Another install's or a newer Kova's gateway stays refused, with the reason in ``detail``
     (``kova_cli.gateway_runtime_replace``).
 
     A successful service command or Popen is not session readiness. After an
@@ -425,7 +425,7 @@ def ensure_gateway_runtime(profile_home: str | Path, *, timeout: float = DEFAULT
         RuntimeStartError, discover_existing_gateway_service, remaining,
         start_existing_gateway_service,
     )
-    from kova_constants import get_default_hermes_root, get_process_hermes_home
+    from kova_constants import get_default_kova_root, get_process_kova_home
 
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("timeout must be finite and positive")
@@ -443,7 +443,7 @@ def ensure_gateway_runtime(profile_home: str | Path, *, timeout: float = DEFAULT
     try:
         while True:
             # The install-root marker also covers profiles.
-            if _update_fenced({home, get_process_hermes_home(), get_default_hermes_root()}):
+            if _update_fenced({home, get_process_kova_home(), get_default_kova_root()}):
                 return _fenced_verdict(home, remaining(deadline))
             # Poll BEFORE discovering: an exit observed first, then "absent", cannot be a child that
             # published its owner a moment later. A winning racer shows up as starting/ready instead.

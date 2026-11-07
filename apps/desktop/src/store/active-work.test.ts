@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ClientSessionState } from '@/app/types'
-import type { HermesActiveWork } from '@/global'
+import type { KovaActiveWork } from '@/global'
 
 import { createStreamThrottle } from '../../electron/stream-throttle'
 
@@ -19,7 +19,7 @@ const busy = (storedSessionId: string, isBusy: boolean) =>
 const session = (id: string, title: null | string) => ({ id, title }) as (typeof $sessions.value)[number]
 
 beforeAll(async () => {
-  desktopWindow.hermesDesktop = { setActiveWork } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { setActiveWork } as unknown as Window['hermesDesktop']
   // Subscribes at import time, so the bridge has to exist first.
   await import('./active-work')
 })
@@ -69,7 +69,7 @@ describe('active work bridge', () => {
     throttle.register(owner)
     throttle.register(peer)
     // Exercise the real renderer summary and main-process policy, not a mocked summary.
-    setActiveWork.mockImplementation((work: HermesActiveWork) => {
+    setActiveWork.mockImplementation((work: KovaActiveWork) => {
       throttle.setVoiceActive(owner, work.voiceActive === true)
       throttle.update(work.count > 0)
     })

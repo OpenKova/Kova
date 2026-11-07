@@ -10,7 +10,7 @@ def _steps(path):
     return [f["step"] for f in json.loads(path.read_text(encoding="utf-8")).get("followups") or []]
 
 
-def test_follow_up_on_an_open_run_is_recorded_once_not_amended_again(_isolate_hermes_home):
+def test_follow_up_on_an_open_run_is_recorded_once_not_amended_again(_isolate_kova_home):
     update_receipt.begin_update_receipt()
     run = update_receipt._current.get().data
     archive = update_receipt._run_file(update_receipt._receipt_dir(), run)
@@ -24,7 +24,7 @@ def test_follow_up_on_an_open_run_is_recorded_once_not_amended_again(_isolate_he
     assert _steps(archive) == ["channel_adoption"]
 
 
-def test_follow_up_after_the_run_closed_amends_its_terminal_receipt(_isolate_hermes_home):
+def test_follow_up_after_the_run_closed_amends_its_terminal_receipt(_isolate_kova_home):
     update_receipt.begin_update_receipt()
     run = dict(update_receipt._current.get().data)
     update_receipt.finalize_update_receipt("success")

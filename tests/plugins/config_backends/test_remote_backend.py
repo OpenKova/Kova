@@ -28,7 +28,7 @@ from .stub_plane import INSTANCE, TOKEN, StubPlane, remote_env
 def plane(tmp_path, monkeypatch):
     home = Path(tmp_path) / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as p:
         for k, v in remote_env(p).items():
             monkeypatch.setenv(k, v)
@@ -83,9 +83,9 @@ def test_reads_come_from_plane_not_local_file(plane):
 
 def test_boot_fetch_runs_inside_load_hermes_dotenv(plane):
     from kova_cli.env_loader import load_hermes_dotenv
-    load_hermes_dotenv(hermes_home=plane.home)
+    load_hermes_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 1
-    load_hermes_dotenv(hermes_home=plane.home)  # idempotent: one fetch per process per profile
+    load_hermes_dotenv(kova_home=plane.home)  # idempotent: one fetch per process per profile
     assert len(_gets(plane)) == 1
 
 
@@ -95,7 +95,7 @@ def test_boot_retries_then_exits_on_outage(plane):
     from kova_cli.env_loader import load_hermes_dotenv
     plane.fail_status = 503
     with pytest.raises(ConfigBackendUnavailable) as exc:
-        load_hermes_dotenv(hermes_home=plane.home)
+        load_hermes_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 3  # attempts at t=0, ~10 s, ~30 s (delays patched to 0)
     assert "does not start" in str(exc.value.code)
     assert isinstance(exc.value, SystemExit)
@@ -103,17 +103,17 @@ def test_boot_retries_then_exits_on_outage(plane):
 
 def test_boot_does_not_retry_a_refusal(plane, monkeypatch):
     from kova_cli.env_loader import load_hermes_dotenv
-    monkeypatch.setenv("HERMES_CONFIG_INSTANCE_ID", "someone-else")
+    monkeypatch.setenv("KOVA_CONFIG_INSTANCE_ID", "someone-else")
     with pytest.raises(ConfigBackendUnavailable) as exc:
-        load_hermes_dotenv(hermes_home=plane.home)
+        load_hermes_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 1
     assert "config_agent_unknown" in str(exc.value.code)
 
 
 def test_boot_requires_instance_id(plane, monkeypatch):
     from kova_cli.config import load_config
-    monkeypatch.delenv("HERMES_CONFIG_INSTANCE_ID")
-    with pytest.raises(ConfigBackendUnavailable, match="HERMES_CONFIG_INSTANCE_ID"):
+    monkeypatch.delenv("KOVA_CONFIG_INSTANCE_ID")
+    with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_INSTANCE_ID"):
         load_config()
     assert plane.requests == []
 
@@ -139,11 +139,11 @@ def test_secret_source_supplying_plane_credential_refuses_start(plane):
 
     from kova_cli.env_loader import _refuse_protected_env_from_sources
     report = SimpleNamespace(provenance={"GATEWAY_RELAY_IDP_CLIENT_SECRET": object()},
-                             sources=[SimpleNamespace(skipped_existing=["HERMES_CONFIG_REMOTE_URL"])])
+                             sources=[SimpleNamespace(skipped_existing=["KOVA_CONFIG_REMOTE_URL"])])
     with pytest.raises(ConfigBackendUnavailable) as exc:
         _refuse_protected_env_from_sources(report)
     assert "GATEWAY_RELAY_IDP_CLIENT_SECRET" in str(exc.value.code)
-    assert "HERMES_CONFIG_REMOTE_URL" in str(exc.value.code)
+    assert "KOVA_CONFIG_REMOTE_URL" in str(exc.value.code)
     ok = SimpleNamespace(provenance={"OPENROUTER_API_KEY": object()}, sources=[])
     _refuse_protected_env_from_sources(ok)  # unrelated names pass
 
@@ -160,12 +160,12 @@ def test_boot_refuses_remote_secrets_source_that_maps_plane_credential(plane, mo
     def fake_apply_all(cfg, home_path, environ=None):
         seen["cfg"] = cfg
         return SimpleNamespace(sources=[SimpleNamespace(skipped_existing=[])], applied_any=True,
-                               provenance={"HERMES_CONFIG_REMOTE_URL": SimpleNamespace(source="command")})
+                               provenance={"KOVA_CONFIG_REMOTE_URL": SimpleNamespace(source="command")})
 
     monkeypatch.setattr(registry, "apply_all", fake_apply_all)
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
-    with pytest.raises(ConfigBackendUnavailable, match="HERMES_CONFIG_REMOTE_URL"):
-        env_loader.load_hermes_dotenv(hermes_home=plane.home)
+    with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_REMOTE_URL"):
+        env_loader.load_hermes_dotenv(kova_home=plane.home)
     assert seen["cfg"] == {"command": {"enabled": True}}
 
 
@@ -173,7 +173,7 @@ def test_file_backend_has_no_protected_names(monkeypatch):
     from types import SimpleNamespace
 
     from kova_cli.env_loader import _refuse_protected_env_from_sources
-    monkeypatch.delenv("HERMES_CONFIG_BACKEND", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_BACKEND", raising=False)
     _refuse_protected_env_from_sources(
         SimpleNamespace(provenance={"GATEWAY_RELAY_IDP_CLIENT_SECRET": object()}, sources=[]))
 
@@ -365,9 +365,9 @@ def test_forked_child_rearms_its_poller(plane):
 
 
 def test_poll_interval_is_a_constant_no_env_tunes(monkeypatch):
-    # teknium1 P2-2: no non-secret HERMES_* env var for the interval; 300 s, clamped at 30 s.
+    # teknium1 P2-2: no non-secret KOVA_* env var for the interval; 300 s, clamped at 30 s.
     for value in ("1", "600"):
-        monkeypatch.setenv("HERMES_CONFIG_REMOTE_POLL_SECONDS", value)
+        monkeypatch.setenv("KOVA_CONFIG_REMOTE_POLL_SECONDS", value)
         assert backend_mod.poll_interval() == 300.0
     assert backend_mod.MIN_POLL_SECONDS == 30.0
     backend = backend_mod.RemoteBackend()
@@ -387,17 +387,17 @@ def test_backend_edits_paths_with_the_diff_helpers():
 
 
 def test_named_profile_fetches_its_own_layer(plane):
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     from kova_cli.config import load_config
     work = plane.home / "profiles" / "work"
     work.mkdir(parents=True)
     plane.profile("work")["values"] = {"display": {"personality": "formal"}}
-    token = set_hermes_home_override(work)
+    token = set_kova_home_override(work)
     try:
         assert load_config()["display"]["personality"] == "formal"
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert {r["profile"] for r in _gets(plane)} == {"work"}
 
 
@@ -452,11 +452,11 @@ def test_managed_config_yaml_is_ignored_and_flagged(plane, tmp_path, monkeypatch
     managed = tmp_path / "etc-hermes"
     managed.mkdir()
     (managed / "config.yaml").write_text(json.dumps({"display": {"personality": "managed"}}))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope._CONFIG_CACHE.clear()
     plane.upper = {"display": {"personality": "remote"}}
 
-    load_hermes_dotenv(hermes_home=plane.home)
+    load_hermes_dotenv(kova_home=plane.home)
 
     assert "IGNORED" in capsys.readouterr().err
     assert managed_scope.load_managed_config() == {}
@@ -486,7 +486,7 @@ def test_doctor_reports_backend_status(plane, capsys):
 
 def test_general_plugin_manager_never_loads_config_backends(plane, monkeypatch):
     from kova_cli.plugins import PluginManager
-    monkeypatch.setenv("HERMES_CONFIG_BACKEND", "file")
+    monkeypatch.setenv("KOVA_CONFIG_BACKEND", "file")
     mgr = PluginManager()
     mgr.discover_and_load()
     assert not any("config_backends" in key or key == "remote" for key in mgr._plugins)
@@ -495,23 +495,23 @@ def test_general_plugin_manager_never_loads_config_backends(plane, monkeypatch):
 # --- review round 1 regressions -----------------------------------------------------------
 
 _BACKEND_FLIP_SOURCE = {"command": {"enabled": True, "override_existing": True,
-                                    "command": "printf 'HERMES_CONFIG_BACKEND=file\\n'"}}
+                                    "command": "printf 'KOVA_CONFIG_BACKEND=file\\n'"}}
 
 
 def test_secret_source_cannot_switch_remote_mode_off_at_boot(plane, monkeypatch):
     """D32 through the REAL startup path and a real command source: a source that writes
-    HERMES_CONFIG_BACKEND=file must not disarm remote mode (and with it the protected-name check)
+    KOVA_CONFIG_BACKEND=file must not disarm remote mode (and with it the protected-name check)
     and let the next read fall back to the local config.yaml."""
     from kova_cli import env_loader
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
     (plane.home / "config.yaml").write_text(json.dumps({"display": {"personality": "local"}}))
     plane.upper = {"display": {"personality": "remote"}, "secrets": _BACKEND_FLIP_SOURCE}
 
-    with pytest.raises(ConfigBackendUnavailable, match="HERMES_CONFIG_BACKEND"):
-        env_loader.load_hermes_dotenv(hermes_home=plane.home)
+    with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_BACKEND"):
+        env_loader.load_hermes_dotenv(kova_home=plane.home)
 
     import os
-    assert os.environ["HERMES_CONFIG_BACKEND"] == "remote"  # the source's write was reverted
+    assert os.environ["KOVA_CONFIG_BACKEND"] == "remote"  # the source's write was reverted
     assert get_config_backend().name == "remote"
 
 
@@ -523,19 +523,19 @@ def test_file_mode_ignores_a_source_that_selects_the_backend(monkeypatch, capsys
 
     from kova_cli.config_backend import get_config_backend as gcb
     from kova_cli.env_loader import _refuse_protected_env_from_sources
-    monkeypatch.delenv("HERMES_CONFIG_BACKEND", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_BACKEND", raising=False)
     before = dict(os.environ)
     file_backend = gcb()
-    src = SimpleNamespace(applied=["HERMES_CONFIG_BACKEND", "OPENROUTER_API_KEY"], skipped_existing=[])
-    report = SimpleNamespace(provenance={"HERMES_CONFIG_BACKEND": object(), "OPENROUTER_API_KEY": object()},
+    src = SimpleNamespace(applied=["KOVA_CONFIG_BACKEND", "OPENROUTER_API_KEY"], skipped_existing=[])
+    report = SimpleNamespace(provenance={"KOVA_CONFIG_BACKEND": object(), "OPENROUTER_API_KEY": object()},
                              sources=[src])
-    monkeypatch.setenv("HERMES_CONFIG_BACKEND", "remote")  # what the source wrote
+    monkeypatch.setenv("KOVA_CONFIG_BACKEND", "remote")  # what the source wrote
 
     _refuse_protected_env_from_sources(report, file_backend, before)
 
-    assert "HERMES_CONFIG_BACKEND" not in os.environ
+    assert "KOVA_CONFIG_BACKEND" not in os.environ
     assert set(report.provenance) == {"OPENROUTER_API_KEY"} and src.applied == ["OPENROUTER_API_KEY"]
-    assert "ignored HERMES_CONFIG_BACKEND" in capsys.readouterr().err
+    assert "ignored KOVA_CONFIG_BACKEND" in capsys.readouterr().err
 
 
 def _hold_gets(monkeypatch):
@@ -743,7 +743,7 @@ def test_dashboard_unexpected_config_failure_stays_opaque(plane):
 # --- review round 2 regressions -----------------------------------------------------------
 
 def test_refused_source_plane_url_is_never_visible_to_a_concurrent_request(plane, monkeypatch):
-    """D32 credential boundary: a real command source supplies HERMES_CONFIG_REMOTE_URL pointing
+    """D32 credential boundary: a real command source supplies KOVA_CONFIG_REMOTE_URL pointing
     at another plane. A poll scheduled right after the sources ran (before the refusal) must still
     go to the configured plane: the forbidden URL is never published, so the bearer and instance id
     never reach the other server."""
@@ -756,7 +756,7 @@ def test_refused_source_plane_url_is_never_visible_to_a_concurrent_request(plane
     with StubPlane() as other:
         plane.upper = {"secrets": {"command": {
             "enabled": True, "override_existing": True,
-            "command": f"printf 'HERMES_CONFIG_REMOTE_URL={other.url}\\n'"}}}
+            "command": f"printf 'KOVA_CONFIG_REMOTE_URL={other.url}\\n'"}}}
         backend = get_config_backend()
         st = backend._state(plane.home)
         real_apply_all = registry.apply_all
@@ -764,7 +764,7 @@ def test_refused_source_plane_url_is_never_visible_to_a_concurrent_request(plane
 
         def apply_then_poll(*args, **kwargs):
             report = real_apply_all(*args, **kwargs)
-            seen["url_after_sources"] = os.environ.get("HERMES_CONFIG_REMOTE_URL")
+            seen["url_after_sources"] = os.environ.get("KOVA_CONFIG_REMOTE_URL")
             poll = threading.Thread(target=backend.poll_one, args=(st,))
             poll.start()
             poll.join(10)
@@ -773,14 +773,14 @@ def test_refused_source_plane_url_is_never_visible_to_a_concurrent_request(plane
 
         monkeypatch.setattr(registry, "apply_all", apply_then_poll)
         gets_before = len(_gets(plane))
-        with pytest.raises(ConfigBackendUnavailable, match="HERMES_CONFIG_REMOTE_URL"):
-            env_loader.load_hermes_dotenv(hermes_home=plane.home)
+        with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_REMOTE_URL"):
+            env_loader.load_hermes_dotenv(kova_home=plane.home)
 
         assert "url_after_sources" in seen, "precondition: the source ran"
         assert other.requests == []  # nothing — least of all the bearer — reached the other plane
         assert seen["url_after_sources"] == plane.url
         assert len(_gets(plane)) > gets_before  # the gap poll went to the configured plane
-        assert os.environ["HERMES_CONFIG_REMOTE_URL"] == plane.url
+        assert os.environ["KOVA_CONFIG_REMOTE_URL"] == plane.url
 
 
 def test_file_mode_publishes_permitted_source_values(monkeypatch, tmp_path):
@@ -788,7 +788,7 @@ def test_file_mode_publishes_permitted_source_values(monkeypatch, tmp_path):
     import os
 
     from kova_cli import env_loader
-    monkeypatch.delenv("HERMES_CONFIG_BACKEND", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_BACKEND", raising=False)
     monkeypatch.setenv("CC_STAGED_SECRET", "x")
     monkeypatch.delenv("CC_STAGED_SECRET")
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
@@ -796,7 +796,7 @@ def test_file_mode_publishes_permitted_source_values(monkeypatch, tmp_path):
     home.mkdir()
     (home / "config.yaml").write_text(
         "secrets:\n  command:\n    enabled: true\n    command: \"printf 'CC_STAGED_SECRET=from-source\\\\n'\"\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     env_loader._apply_external_secret_sources(home)
 
@@ -964,7 +964,7 @@ def _drop_process_deployment(plane, monkeypatch, tmp_path):
         monkeypatch.delenv(name, raising=False)
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     monkeypatch.setattr(config_backend, "_BOOTSTRAPPED", True)  # this process is past its first read
     return managed
 
@@ -1108,19 +1108,19 @@ def test_instance_id_from_the_managed_dotenv_boots(plane, monkeypatch, tmp_path)
     from kova_cli.env_loader import load_hermes_dotenv
     managed = _drop_process_deployment(plane, monkeypatch, tmp_path)
     env = remote_env(plane)
-    (managed / ".env").write_text(f"HERMES_CONFIG_INSTANCE_ID={env.pop('HERMES_CONFIG_INSTANCE_ID')}\n")
+    (managed / ".env").write_text(f"KOVA_CONFIG_INSTANCE_ID={env.pop('KOVA_CONFIG_INSTANCE_ID')}\n")
     (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items()))
     plane.upper = {"display": {"personality": "managed"}}
 
-    load_hermes_dotenv(hermes_home=plane.home)
+    load_hermes_dotenv(kova_home=plane.home)
 
     gets = _gets(plane)
     assert gets and gets[0]["instance"] == INSTANCE
-    assert os.environ["HERMES_CONFIG_INSTANCE_ID"] == INSTANCE
+    assert os.environ["KOVA_CONFIG_INSTANCE_ID"] == INSTANCE
 
 
 def test_child_for_another_profile_keeps_the_remote_deployment(plane, monkeypatch, tmp_path):
-    """F5: the deployment came from the launch profile's .env. A Hermes child built for another
+    """F5: the deployment came from the launch profile's .env. A Kova child built for another
     profile must still read that profile's config remotely, never fall back to its local file."""
     import os
     import subprocess
@@ -1131,7 +1131,7 @@ def test_child_for_another_profile_keeps_the_remote_deployment(plane, monkeypatc
     _drop_process_deployment(plane, monkeypatch, tmp_path)
     env = remote_env(plane)
     (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items()))
-    load_hermes_dotenv(hermes_home=plane.home)
+    load_hermes_dotenv(kova_home=plane.home)
     beta = plane.home / "profiles" / "beta"
     beta.mkdir(parents=True)
     (beta / "config.yaml").write_text("display:\n  personality: local-child\n")
@@ -1154,7 +1154,7 @@ def test_child_for_another_profile_keeps_the_remote_deployment(plane, monkeypatc
     assert json.loads(line[len("RESULT="):]) == ["remote", "remote-child"]
     assert "beta" in {r["profile"] for r in _gets(plane)}
     assert not any(k.startswith("GATEWAY_RELAY_IDP_") and v != env[k] for k, v in child_env.items())
-    assert os.environ["HERMES_CONFIG_BACKEND"] == "remote"
+    assert os.environ["KOVA_CONFIG_BACKEND"] == "remote"
 
 
 def test_setting_a_value_that_old_schema_migration_rewrites_is_refused(plane, capsys):
@@ -1184,11 +1184,11 @@ def test_setting_a_value_that_old_schema_migration_rewrites_is_refused(plane, ca
 
 @pytest.fixture
 def profile_plane(tmp_path, monkeypatch):
-    """``plane`` with a real profiles root (``Path.home()/.hermes``)."""
-    home = tmp_path / ".hermes"
+    """``plane`` with a real profiles root (``Path.home()/.kova``)."""
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as p:
         for k, v in remote_env(p).items():
             monkeypatch.setenv(k, v)
@@ -1255,7 +1255,7 @@ def _tui_server(monkeypatch, home):
     from kova_cli import banner
     monkeypatch.setattr(banner, "prefetch_update_check", lambda: None)
     from tui_gateway import server
-    monkeypatch.setattr(server, "_hermes_home", home)
+    monkeypatch.setattr(server, "_kova_home", home)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     return server
 
@@ -1389,7 +1389,7 @@ def _routed_profile(profile_plane, source_env_line):
 
 
 def test_routed_hydration_refuses_a_source_that_supplies_a_protected_name(profile_plane, monkeypatch):
-    """Round 4 #2: a routed profile's remote secrets: source supplies HERMES_PORTAL_BASE_URL (where
+    """Round 4 #2: a routed profile's remote secrets: source supplies KOVA_PORTAL_BASE_URL (where
     auth.json's refresh token is sent). Refused before any snapshot, ownership or scope publication;
     every retry refuses again; the profile hydrates once the mapping is gone."""
     import os
@@ -1398,17 +1398,17 @@ def test_routed_hydration_refuses_a_source_that_supplies_a_protected_name(profil
     from kova_cli.web_server_profiles import _config_profile_scope
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
     monkeypatch.setattr(env_loader, "_SOURCE_SUPPLIED_NAMES", set())
-    monkeypatch.delenv("HERMES_PORTAL_BASE_URL", raising=False)
-    named = _routed_profile(profile_plane, "HERMES_PORTAL_BASE_URL=http://127.0.0.1:1")
+    monkeypatch.delenv("KOVA_PORTAL_BASE_URL", raising=False)
+    named = _routed_profile(profile_plane, "KOVA_PORTAL_BASE_URL=http://127.0.0.1:1")
 
     for _attempt in range(2):  # nothing is cached by a refusal: a retry refuses again
-        with pytest.raises(ConfigBackendUnavailable, match="HERMES_PORTAL_BASE_URL"):
+        with pytest.raises(ConfigBackendUnavailable, match="KOVA_PORTAL_BASE_URL"):
             with _config_profile_scope("routed"):
                 pass
         assert env_loader.get_secret_source_values(named) == {}
         assert str(named.resolve()) not in env_loader._APPLIED_HOMES
-        assert "HERMES_PORTAL_BASE_URL" not in env_loader._SOURCE_SUPPLIED_NAMES
-        assert "HERMES_PORTAL_BASE_URL" not in os.environ
+        assert "KOVA_PORTAL_BASE_URL" not in env_loader._SOURCE_SUPPLIED_NAMES
+        assert "KOVA_PORTAL_BASE_URL" not in os.environ
 
     profile_plane.profile("routed").update(values={"secrets": {"command": {
         "enabled": True, "override_existing": True, "command": "printf 'SYNTHETIC_KEY=routed-ok\\n'"}}}, version=2)
@@ -1421,7 +1421,7 @@ def test_file_mode_routed_hydration_drops_only_the_selector(monkeypatch, tmp_pat
     """Control: under the file backend a routed source may not switch the backend either, but its
     other values (a Portal URL included: file mode has no plane credential) still hydrate."""
     from kova_cli import env_loader
-    for name in ("HERMES_CONFIG_BACKEND", "HERMES_CONFIG_REMOTE_URL", "HERMES_CONFIG_INSTANCE_ID"):
+    for name in ("KOVA_CONFIG_BACKEND", "KOVA_CONFIG_REMOTE_URL", "KOVA_CONFIG_INSTANCE_ID"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
     home = tmp_path / "routed"
@@ -1429,12 +1429,12 @@ def test_file_mode_routed_hydration_drops_only_the_selector(monkeypatch, tmp_pat
     (home / ".env").write_text("# synthetic\n")
     (home / "config.yaml").write_text(
         "secrets:\n  command:\n    enabled: true\n    override_existing: true\n"
-        "    command: \"printf 'HERMES_CONFIG_BACKEND=remote\\\\nHERMES_PORTAL_BASE_URL=http://portal.test\\\\n'\"\n")
+        "    command: \"printf 'KOVA_CONFIG_BACKEND=remote\\\\nKOVA_PORTAL_BASE_URL=http://portal.test\\\\n'\"\n")
 
     values = env_loader.hydrate_profile_secret_sources(home)
 
-    assert values == {"HERMES_PORTAL_BASE_URL": "http://portal.test"}
-    assert "ignored HERMES_CONFIG_BACKEND" in capsys.readouterr().err
+    assert values == {"KOVA_PORTAL_BASE_URL": "http://portal.test"}
+    assert "ignored KOVA_CONFIG_BACKEND" in capsys.readouterr().err
 
 
 _LEGACY_SOUL = "# Beta identity\n\n## Messaging other agents\nKEEP THIS PROFILE SECTION\n"
@@ -1491,8 +1491,8 @@ def test_config_only_migration_ladder_touches_no_file(tmp_path, monkeypatch, con
     from kova_cli import config_migrations
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    for name in ("HERMES_CONFIG_BACKEND", "LLM_MODEL", "OPENAI_MODEL", "TERMINAL_VERCEL_RUNTIME"):
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    for name in ("KOVA_CONFIG_BACKEND", "LLM_MODEL", "OPENAI_MODEL", "TERMINAL_VERCEL_RUNTIME"):
         monkeypatch.delenv(name, raising=False)
     from kova_cli.config_defaults import LEGACY_VERCEL_RUNTIME
     (home / ".env").write_text(f"LLM_MODEL=old-model\nTERMINAL_VERCEL_RUNTIME={LEGACY_VERCEL_RUNTIME}\n")
@@ -1562,7 +1562,7 @@ def test_same_thread_reentry_during_the_bootstrap_does_not_deadlock(monkeypatch)
         seen.append(config_backend.get_config_backend().name)  # would block on a plain Lock
 
     monkeypatch.setattr(env_loader, "apply_config_bootstrap_env", reentrant)
-    monkeypatch.delenv("HERMES_CONFIG_BACKEND", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_BACKEND", raising=False)
     assert config_backend.get_config_backend().name == "file"
     assert seen == ["file"] and config_backend._BOOTSTRAPPED
 
@@ -1588,13 +1588,13 @@ def test_plane_credential_from_the_project_dotenv_boots(plane, tmp_path):
     supported load_hermes_dotenv layer) holds the IdP credential. A fresh process boots and fetches:
     the early bootstrap sees the project layer before the sanitizer's config import reads config."""
     env = remote_env(plane)
-    (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items() if k.startswith("HERMES_CONFIG_")))
+    (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items() if k.startswith("KOVA_CONFIG_")))
     project = tmp_path / "project.env"
     project.write_text("".join(f"{k}={v}\n" for k, v in env.items() if k.startswith("GATEWAY_RELAY_IDP_")))
     (plane.home / "config.yaml").write_text("display:\n  personality: forbidden-local\n")
     plane.profile("default").update(values={"display": {"personality": "remote"}}, version=1)
 
-    proc = _fresh_interpreter_boot(tmp_path, {"HERMES_HOME": str(plane.home), "HOME": str(tmp_path)}, project)
+    proc = _fresh_interpreter_boot(tmp_path, {"KOVA_HOME": str(plane.home), "HOME": str(tmp_path)}, project)
 
     assert proc.returncode == 0, proc.stderr[-3000:]
     line = [ln for ln in proc.stdout.splitlines() if ln.startswith("RESULT=")][-1]
@@ -1610,7 +1610,7 @@ def test_bootstrap_keeps_the_dotenv_precedence(tmp_path, monkeypatch):
     home.mkdir()
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     monkeypatch.setenv("CC_A", "process")
     monkeypatch.setenv("CC_D", "process")
     monkeypatch.delenv("OP_SERVICE_ACCOUNT_TOKEN", raising=False)

@@ -33,7 +33,7 @@ def test_restore_refuses_live_authority_without_changing_data(tmp_path):
         'platform_toolsets': {'cli': []},
     }))
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
 
     def rows():
@@ -47,7 +47,7 @@ def test_restore_refuses_live_authority_without_changing_data(tmp_path):
             await rpc(ws, 'prompt.submit', session_id=session, input_id='warm', text='WARM')
             await async_wait_until(lambda: dict(rows()).get('warm') == 'terminal', timeout=30, interval=.05,
                                    what='the warm turn to settle')
-            snapshot = create_quick_snapshot(hermes_home=home)
+            snapshot = create_quick_snapshot(kova_home=home)
             assert snapshot, snapshot
             await rpc(ws, 'prompt.submit', session_id=session, input_id='started', text='BLOCK_STARTED')
             assert await asyncio.to_thread(peer.blocked.wait, 25)
@@ -102,11 +102,11 @@ def test_corrupt_epoch_refuses_profile_sweep_with_separate_recovery(tmp_path, mo
         with SessionDB(db_path=home / 'state.db') as db:
             db.create_session('retained', 'cli')
             db.append_message('retained', 'user', 'snapshot transcript')
-        snapshot = backup.create_quick_snapshot(hermes_home=home)
+        snapshot = backup.create_quick_snapshot(kova_home=home)
         snapshots[home] = home / 'state-snapshots' / snapshot / 'state.db'
         (home / 'state.db').write_bytes(b'unreadable canonical runtime epoch')
         originals[home] = (home / 'state.db').read_bytes(), snapshots[home].read_bytes()
-    monkeypatch.setattr(update_cmd, 'get_hermes_home', lambda: homes[0])
+    monkeypatch.setattr(update_cmd, 'get_kova_home', lambda: homes[0])
     monkeypatch.setattr(backup, '_sibling_profile_homes', lambda home: [('work', homes[1])])
     update_cmd._verify_and_restore_state_dbs_post_update()
     output = capsys.readouterr().out
@@ -164,7 +164,7 @@ def test_update_restore_excludes_startup_until_publication(tmp_path, monkeypatch
         assert arrived.wait(20)
         root = Path(__file__).resolve().parents[2]
         env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-        env.update(HOME=str(tmp_path / 'user'), HERMES_HOME=str(home), PYTHONPATH=str(root))
+        env.update(HOME=str(tmp_path / 'user'), KOVA_HOME=str(home), PYTHONPATH=str(root))
         contender = subprocess.run([sys.executable, '-c',
             "import logging, runpy; logging.basicConfig(level=logging.INFO); runpy.run_module('gateway.run', run_name='__main__')"],
             cwd=root, env=env, stdin=subprocess.DEVNULL, capture_output=True,

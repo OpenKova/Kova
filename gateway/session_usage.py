@@ -1,6 +1,6 @@
 """Session-cumulative usage for a local viewer (wave A2 / CALLMAP W3).
 
-Main's HermesCLI read its status bar (context, ``◷`` latency, ``t/s``, the spinner's ``↓ N tok``),
+Main's KovaCLI read its status bar (context, ``◷`` latency, ``t/s``, the spinner's ``↓ N tok``),
 ``/usage`` and the exit summary straight off the in-process agent's ``session_*`` counters,
 ``context_compressor`` and ``get_rate_limit_state()``. On the session authority the agent lives in
 the gateway, so the same numbers are projected here: published as ``session.usage`` after every API
@@ -173,7 +173,7 @@ def usage_frame(stats: dict) -> dict:
     viewer from one frame, and leaves the counters untouched for every existing consumer.
 
     ``usage`` is the standard status-bar projection of the embedded ticker's ``server._get_usage``
-    view, with two exceptions: ``dev_credits_spent_micros`` (``HERMES_DEV_CREDITS`` only) is not
+    view, with two exceptions: ``dev_credits_spent_micros`` (``KOVA_DEV_CREDITS`` only) is not
     carried, and ``avg_latency_s`` / ``avg_tps`` are rounded from the counters' two decimals rather
     than the raw values, so they can differ by 0.1 at a rounding boundary. A Desktop bundle that
     reads only ``payload.usage`` fills its meters here too. The

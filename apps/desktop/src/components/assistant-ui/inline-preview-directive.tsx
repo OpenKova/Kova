@@ -34,7 +34,7 @@ import { localPreviewTarget } from '@/lib/local-preview'
  * content reads as part of the app. The page's own styles override all of
  * it, so a full page keeps its own design.
  *
- * WIDGETS TALK BACK OFF-SCREEN. `window.hermes.send(prompt)` (or declarative
+ * WIDGETS TALK BACK OFF-SCREEN. `window.kova.send(prompt)` (or declarative
  * `data-hermes-send` on any clickable element) routes the prompt through the
  * composer's send path as a user turn typed `display_kind=hidden`: the agent
  * wakes and the durable row exists (context, resume, audit via the DB), but
@@ -119,7 +119,7 @@ export function intentScript(token: string): string {
     'parent.postMessage({type:' +
     JSON.stringify(INTENT_MESSAGE_TYPE) +
     ',token:t,id:id,prompt:p},"*")})}' +
-    'window.hermes={send:send,maxLength:' +
+    'window.kova={send:send,maxLength:' +
     String(MAX_INTENT_LENGTH) +
     '};' +
     'addEventListener("click",function(e){var el=e.target&&e.target.closest?' +
@@ -202,7 +202,7 @@ function resolvedColorScheme(): 'light' | 'dark' {
     return 'light'
   }
 
-  const mode = document.documentElement.dataset.hermesMode
+  const mode = document.documentElement.dataset.kovaMode
 
   if (mode === 'light' || mode === 'dark') {
     return mode

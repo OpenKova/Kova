@@ -46,11 +46,11 @@ _SOURCE_CONFIG = {
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY", "WHATSAPP_ENABLED",
                  "GATEWAY_MULTIPLEX_PROFILES", "TELEGRAM_ALLOWED_USERS"):
         monkeypatch.delenv(name, raising=False)

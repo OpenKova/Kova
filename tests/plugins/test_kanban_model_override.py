@@ -31,9 +31,9 @@ from kova_cli import kanban_db_dispatch as kbd
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -156,7 +156,7 @@ def test_spawn_resolves_claimed_task_policy(
     monkeypatch.setattr(subprocess, "Popen", fake_popen)
     kbd._default_spawn(task, str(workspace))
     assert captured["cmd"] == [sys.executable, "-m", "kova_cli.kanban_worker_client"]
-    assert captured["env"]["HERMES_HOME"] == str(profile)
+    assert captured["env"]["KOVA_HOME"] == str(profile)
     actor = SessionActor("owner", str(profile), frozenset({"session:create"}), "transport")
     connection = SimpleNamespace(
         authority=SimpleNamespace(profile_id=str(profile)), actor=actor, native_owner=True)

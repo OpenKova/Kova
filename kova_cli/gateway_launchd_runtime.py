@@ -21,9 +21,9 @@ import time
 import uuid
 from pathlib import Path
 
-# Never ``ai.hermes.*``: that prefix is what the gateway's restart route, its control-socket
+# Never ``ai.kova.*``: that prefix is what the gateway's restart route, its control-socket
 # supervisor declaration and every fleet scan read as "an installed, KeepAlive service".
-LABEL_PREFIX = "com.nousresearch.hermes.runtime."
+LABEL_PREFIX = "com.nousresearch.kova.runtime."
 _POLL_INTERVAL_S = 0.5
 
 

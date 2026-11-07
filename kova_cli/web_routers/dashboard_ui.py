@@ -54,7 +54,7 @@ def _set_dashboard_key(key: str, value, profile: Optional[str] = None) -> None:
 async def get_dashboard_themes(profile: Optional[str] = None):
     """Available themes + the active one. Built-ins ship name/label/description only
     (the frontend owns their definitions in `web/src/themes/presets.ts`); user themes
-    from `~/.hermes/dashboard-themes/*.yaml` ship their normalised `definition`."""
+    from `~/.kova/dashboard-themes/*.yaml` ship their normalised `definition`."""
     def _run():
         config = load_config()
         active = cfg_get(config, "dashboard", "theme", default="default")
@@ -316,16 +316,16 @@ async def post_agent_plugin_activate(request: Request):
     except Exception:
         body = {}
     name = _validate_plugin_name(str((body or {}).get("name") or ""))
-    from kova_constants import get_hermes_home, hermes_home_key, profile_name_for_home
+    from kova_constants import get_kova_home, kova_home_key, profile_name_for_home
     home = Path(str((body or {}).get("home") or "")).expanduser()
     profile = profile_name_for_home(home) if str(home) not in ("", ".") else None
     if profile is None:
-        raise HTTPException(status_code=400, detail="Not a Hermes profile home.")
+        raise HTTPException(status_code=400, detail="Not a Kova profile home.")
     from kova_cli.plugins_activation import load_and_go_live
 
     def _run():
         with _config_profile_scope(None if profile == "default" else profile):
-            if hermes_home_key(get_hermes_home()) != hermes_home_key(home):
+            if kova_home_key(get_kova_home()) != kova_home_key(home):
                 raise HTTPException(status_code=400, detail="Home is not served by this backend.")
             return {"ok": True, "activation": load_and_go_live(name)}
 

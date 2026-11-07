@@ -6,7 +6,7 @@ from pm.environments import install_key
 
 
 def test_pm_generation_venv_is_owned_by_the_checkout_its_install_key_names(tmp_path, monkeypatch):
-    checkout = tmp_path / "hermes-agent"
+    checkout = tmp_path / "kova-agent"
     (checkout / "kova_cli").mkdir(parents=True)
     (checkout / "kova_cli" / "main.py").write_text("", encoding="utf-8")
     state = tmp_path / "installs" / install_key(checkout)

@@ -26,11 +26,11 @@ def store():
 
 
 def _launch(monkeypatch, db, toolsets=None, coding=None):
-    """``_build_cli_from_args`` then the session's gateway create; HermesCLI is the real toolset init on a
+    """``_build_cli_from_args`` then the session's gateway create; KovaCLI is the real toolset init on a
     bare host. Returns the CLI and the lines its startup printed."""
     import cli as cli_mod
     from kova_cli.cli_init_mixin import CLIInitMixin
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     monkeypatch.setattr(cli_mod, "CLI_CONFIG", CONFIG)
     monkeypatch.setattr("agent.coding_context.coding_selection", lambda **_: coding)
     monkeypatch.setattr("kova_cli.plugins.get_plugin_toolset_keys_nowait", lambda: set())
@@ -42,7 +42,7 @@ def _launch(monkeypatch, db, toolsets=None, coding=None):
             self.session_id, self._session_db, self.ignore_rules = "20261012_000000_abcdef", db, False
             self._console_print = printed.append
             self._init_toolsets(toolsets)
-    monkeypatch.setattr(cli_mod, "HermesCLI", Host)
+    monkeypatch.setattr(cli_mod, "KovaCLI", Host)
     host = cli_mod._build_cli_from_args(None, toolsets, None, None, None, None, None, None, None, False, None,
                                         False, False, False, None)
     host._ensure_gateway_session()

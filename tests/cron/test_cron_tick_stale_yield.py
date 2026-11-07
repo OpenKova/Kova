@@ -238,9 +238,9 @@ class TestYieldedTickIsAFailedTick:
         prov = InProcessCronScheduler()
 
         def _tick(*args, **kwargs):
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            home = str(get_hermes_home())
+            home = str(get_kova_home())
             ticked.append(home)
             if home == home_a:
                 # Profile A: stale process, fresh foreign gateway → yield.
@@ -249,14 +249,14 @@ class TestYieldedTickIsAFailedTick:
             return 0
 
         def _beat(success=False):
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            per_home_beats[str(get_hermes_home())].append(success)
+            per_home_beats[str(get_kova_home())].append(success)
 
         def _err(msg):
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
 
-            per_home_errors[str(get_hermes_home())].append(msg)
+            per_home_errors[str(get_kova_home())].append(msg)
 
         with patch("cron.scheduler.tick", side_effect=_tick), patch(
             "cron.jobs.record_ticker_heartbeat", side_effect=_beat
@@ -298,7 +298,7 @@ class TestGatewayLockOwnershipProbe:
     def test_ownership_follows_acquire_and_release(self, tmp_path, monkeypatch):
         from gateway import status as gateway_status
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         assert gateway_status.owns_gateway_runtime_lock() is False
         assert gateway_status.acquire_gateway_runtime_lock() is True
         try:
@@ -318,14 +318,14 @@ class TestGatewayLockOwnershipProbe:
         launch home's lock, not the overridden profile's."""
         from gateway import status as gateway_status
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         other_profile = tmp_path / "profiles" / "other"
         other_profile.mkdir(parents=True)
-        token = set_hermes_home_override(str(other_profile))
+        token = set_kova_home_override(str(other_profile))
         try:
             assert gateway_status.acquire_gateway_runtime_lock() is True
             try:
@@ -336,4 +336,4 @@ class TestGatewayLockOwnershipProbe:
             finally:
                 gateway_status.release_gateway_runtime_lock()
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)

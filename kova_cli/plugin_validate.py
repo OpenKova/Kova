@@ -5,7 +5,7 @@ This is the command the plugin-catalog admission CI (and the
 candidate plugin. It performs static manifest checks plus a
 subprocess-isolated capability probe: the plugin is imported and its
 ``register(ctx)`` called against a minimal recording stub context in a
-scratch child process (with a throwaway ``HERMES_HOME``), so a crashing or
+scratch child process (with a throwaway ``KOVA_HOME``), so a crashing or
 malicious plugin cannot take down the CLI, and the *actually registered*
 tools/hooks/middleware are compared against the manifest's declared
 ``provides_*`` lists.
@@ -34,7 +34,7 @@ _UPPER_SNAKE_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 # Desktop settings renderer keys its field table on) — a private copy drifted and rejected ``secret``.
 _CONFIG_TYPES = frozenset(_CONFIG_SCHEMA_TYPES)
 _PROBE_TIMEOUT = 30
-_PROBE_SENTINEL = "HERMES_VALIDATE_JSON:"
+_PROBE_SENTINEL = "KOVA_VALIDATE_JSON:"
 
 
 @dataclass
@@ -353,7 +353,7 @@ def _run_capability_probe(
     """
     with tempfile.TemporaryDirectory(prefix="hermes-validate-") as scratch:
         env = dict(probe[1] if probe else os.environ)
-        env["HERMES_HOME"] = scratch
+        env["KOVA_HOME"] = scratch
         # The probe imports this tree's ``providers``; name the tree instead of relying on the cwd.
         repo_root = str(Path(__file__).resolve().parents[1])
         env["PYTHONPATH"] = os.pathsep.join(p for p in (repo_root, env.get("PYTHONPATH", "")) if p)
@@ -361,7 +361,7 @@ def _run_capability_probe(
         try:
             result = subprocess.run(
                 [
-                    # -P: ``-c`` would put the user's cwd ahead of Hermes and the plugin's imports.
+                    # -P: ``-c`` would put the user's cwd ahead of Kova and the plugin's imports.
                     python, "-P", *options,
                     "-c",
                     _PROBE_SCRIPT,
@@ -579,7 +579,7 @@ _LOADABLE_ENTRYPOINTS = ("__init__.py", "desktop/plugin.js", "plugin.json")
 
 
 def _check_loadable(report: ValidationReport, plugin_dir: Path, manifest: Optional[dict] = None) -> None:
-    """A plugin.yaml with nothing beside it that Hermes can load (no ``register()`` module, no
+    """A plugin.yaml with nothing beside it that Kova can load (no ``register()`` module, no
     desktop bundle, no portable manifest, no declared language pack) installs "successfully" and does
     nothing — a pip-layout repo whose code lives under ``src/`` behind an entry point is the usual shape."""
     present = [rel for rel in _LOADABLE_ENTRYPOINTS if (plugin_dir / rel).is_file()]
@@ -671,7 +671,7 @@ def _validate_portable_plugin(report: ValidationReport, plugin_dir: Path) -> Val
     for server_name, config in package.mcp_servers.items():
         if config.get("trust") == "untrusted":
             report.add(f"server trust: {server_name}", True,
-                       "untrusted (Hermes asks before every write-capable tool call)")
+                       "untrusted (Kova asks before every write-capable tool call)")
         if config.get("tool_costs"):
             limit = config.get("spend_limit") or 0
             report.add(f"server costs: {server_name}", True,

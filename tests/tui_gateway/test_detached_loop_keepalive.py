@@ -17,11 +17,11 @@ import pytest
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+def kova_home(tmp_path, monkeypatch):
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     from kova_cli import goals
 
     goals._DB_CACHE.clear()
@@ -30,7 +30,7 @@ def hermes_home(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def server(hermes_home):
+def server(kova_home):
     with patch.dict("sys.modules", {"kova_cli.env_loader": MagicMock(), "kova_cli.banner": MagicMock()}):
         mod = importlib.import_module("tui_gateway.server")
         yield mod

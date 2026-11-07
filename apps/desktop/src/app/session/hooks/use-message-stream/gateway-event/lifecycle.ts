@@ -1,5 +1,5 @@
 import type { GatewayEvent } from '@kova/shared'
-import type { HermesSkin } from '@kova/shared/skin'
+import type { KovaSkin } from '@kova/shared/skin'
 
 import { invalidateContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
 import { eventSourceMatchesOwner, gatewayEventSource } from '@/lib/replay-gap-owner'
@@ -65,10 +65,10 @@ export function handleLifecycleEvent(ctx: GatewayEventContext): boolean {
   }
 
   if (event.type === 'skin.changed') {
-    // A runtime skin switch (Hermes activating an authored skin, or `/skin`
+    // A runtime skin switch (Kova activating an authored skin, or `/skin`
     // on another surface). Only the active source+profile's change repaints.
     if (fromActiveSource()) {
-      ingestBackendSkin(payload as HermesSkin | undefined, { apply: true })
+      ingestBackendSkin(payload as KovaSkin | undefined, { apply: true })
     }
 
     return true

@@ -21,7 +21,7 @@ install -m 600 -o hermes -g hermes /keys/authorized_keys /home/hermes/.ssh/autho
 cat > /etc/ssh/sshd_config.d/hermes-test.conf <<'EOF'
 HostKey /etc/ssh/ssh_host_ed25519_key
 PasswordAuthentication no
-AcceptEnv HERMES_RB_*
+AcceptEnv KOVA_RB_*
 EOF
 
 mkdir -p /run/sshd

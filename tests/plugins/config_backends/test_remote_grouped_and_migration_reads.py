@@ -26,7 +26,7 @@ from .stub_plane import StubPlane, remote_env
 def plane(tmp_path, monkeypatch):
     home = Path(tmp_path) / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with StubPlane() as p:
         for k, v in remote_env(p).items():
             monkeypatch.setenv(k, v)
@@ -43,7 +43,7 @@ def _tui_server(monkeypatch, home):
     from kova_cli import banner
     monkeypatch.setattr(banner, "prefetch_update_check", lambda: None)
     from tui_gateway import server
-    monkeypatch.setattr(server, "_hermes_home", home)
+    monkeypatch.setattr(server, "_kova_home", home)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     return server
 
@@ -90,12 +90,12 @@ def test_file_backend_model_switch_still_writes_every_key(tmp_path, monkeypatch)
     """Control: the file backend keeps its key-by-key round-trip (comments, siblings intact)."""
     import kova_yaml as yaml
     from kova_cli.model_switch import persist_model_selection
-    monkeypatch.delenv("HERMES_CONFIG_BACKEND", raising=False)
+    monkeypatch.delenv("KOVA_CONFIG_BACKEND", raising=False)
     remote_pkg._reset_for_tests()
     cfg = tmp_path / "config.yaml"
     cfg.write_text("# keep me\nmodel:\n  default: old\n  provider: old-p\n  api_mode: x\n  model_slots:\n"
                    "    fast: mini\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     persist_model_selection(_switch(), cfg)
 
@@ -110,7 +110,7 @@ def test_tui_focus_on_under_a_partial_lock_changes_nothing(plane, monkeypatch):
     focus_view alone refuses all three (no stash or mode left behind), and the session is unchanged."""
     plane.upper = {"display": {"tool_progress": "verbose", "focus_view": False}}
     plane.upper_locks = [{"path": "display.focus_view", "level": "tenant"}]
-    monkeypatch.delenv("HERMES_TUI_TOOL_PROGRESS", raising=False)
+    monkeypatch.delenv("KOVA_TUI_TOOL_PROGRESS", raising=False)
     server = _tui_server(monkeypatch, plane.home)
     session = {"session_key": "k", "tool_progress_mode": "verbose", "focus_view": False}
     server._sessions["s1"] = session

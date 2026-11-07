@@ -162,7 +162,7 @@ def _write_named_provider(tmp_path, monkeypatch):
         "providers:\n  jetson-vllm:\n    base_url: http://127.0.0.1:8000/v1\n"
         "    api_key: EMPTY\n    api_mode: chat_completions\n    models: [nemotron-nano-30b]\n"
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(model_switch, "DIRECT_ALIASES", {})
     from kova_cli.config import load_config
     return load_config()
@@ -190,14 +190,14 @@ def test_tui_qualified_model_never_reaches_default_provider(tmp_path, monkeypatc
     """``hermes --tui -m custom:<name>:<model>`` routes through the startup owner, so provider
     auto-detection never hands the qualified string to the configured default (#73943)."""
     _write_named_provider(tmp_path, monkeypatch)
-    from tui_gateway import server as tui_server  # binds the config path at import: after HERMES_HOME
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
+    from tui_gateway import server as tui_server  # binds the config path at import: after KOVA_HOME
+    monkeypatch.delenv("KOVA_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.delenv("KOVA_TUI_PROVIDER", raising=False)
     monkeypatch.setattr(
         "kova_cli.models.detect_provider_for_model",
         lambda *_a, **_k: pytest.fail("auto-detection ran on a provider-qualified model"))
     monkeypatch.setattr(
         "kova_cli.models.detect_static_provider_for_model",
         lambda *_a, **_k: pytest.fail("auto-detection ran on a provider-qualified model"))
-    monkeypatch.setenv("HERMES_INFERENCE_MODEL", "custom:jetson-vllm:nemotron-nano-30b")
+    monkeypatch.setenv("KOVA_INFERENCE_MODEL", "custom:jetson-vllm:nemotron-nano-30b")
     assert tui_server._resolve_startup_runtime() == ("nemotron-nano-30b", "custom:jetson-vllm")

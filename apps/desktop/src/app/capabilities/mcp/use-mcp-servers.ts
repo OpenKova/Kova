@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   getMcpCatalog,
-  type HermesGateway,
+  type KovaGateway,
   type McpCatalogEntry,
   type McpCatalogResponse,
   type McpTestResult,
@@ -21,9 +21,9 @@ import { setDisabledTools, toggleToolInServer } from '@/lib/mcp-tool-filter'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 import { $activeSessionId } from '@/store/session'
-import type { HermesConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/hermes'
 
-import { hermesConfigCacheWriter, useHermesConfigRecord } from '../../hooks/use-config-record'
+import { hermesConfigCacheWriter, useKovaConfigRecord } from '../../hooks/use-config-record'
 import { useOnProfileSwitch } from '../../hooks/use-on-profile-switch'
 import { useProfileSwitchLatch } from '../../hooks/use-profile-switch-latch'
 import { seedOptions } from '../connectors/data/persist'
@@ -42,7 +42,7 @@ export interface McpServersController extends McpDraft, PublishedProbes {
   availableCatalog: McpCatalogEntry[]
   catalog: McpCatalogEntry[]
   catalogLoading: boolean
-  config: HermesConfigRecord | null
+  config: KovaConfigRecord | null
   configError: unknown
   configFailed: boolean
   configLoading: boolean
@@ -62,7 +62,7 @@ export interface McpServersController extends McpDraft, PublishedProbes {
 }
 
 export interface UseMcpServersOptions {
-  gateway: HermesGateway | null
+  gateway: KovaGateway | null
   profile?: ProfileScope
 }
 
@@ -82,7 +82,7 @@ export function useMcpServers({ gateway, profile }: UseMcpServersOptions): McpSe
     refetch: refetchConfigQuery,
     dataUpdatedAt: configUpdatedAt,
     errorUpdatedAt: configErroredAt
-  } = useHermesConfigRecord(profile)
+  } = useKovaConfigRecord(profile)
 
   const setConfig = hermesConfigCacheWriter(profile)
 

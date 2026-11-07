@@ -6,16 +6,16 @@ from pathlib import Path
 import pytest
 
 from kova_cli import gui_uninstall, main
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 
 @pytest.fixture(params=("complete", "record_only"))
 def installation(request, tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    home = get_hermes_home()
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    home = get_kova_home()
     assert home.resolve().is_relative_to(tmp_path.resolve())
-    root = home / "hermes-agent"
+    root = home / "kova-agent"
     protected = {
         root / "kova_cli" / "__init__.py": b"# agent source\n",
         root / "venv" / "runtime": b"agent runtime",
@@ -25,7 +25,7 @@ def installation(request, tmp_path, monkeypatch):
         home / "sessions" / "saved.json": b'{"saved": true}',
     }
     record = tmp_path / "desktop-installed-apps.json"
-    bundle = tmp_path / "apps" / "Hermes.app"
+    bundle = tmp_path / "apps" / "Kova.app"
     userdata = tmp_path / "desktop-data"
     gui_files = {
         root / "apps" / "desktop" / "dist" / "index.html": b"renderer",

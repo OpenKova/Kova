@@ -95,7 +95,7 @@ class _Viewer:
         grant = _control(home, "session-ticket", {"profile_id": str(home.resolve()),
                                                   "instance_id": desc["instance_id"], "purpose": "interactive"})
         url = desc["api_origin"].replace("http:", "ws:") + "/api/ws"
-        self._ws = connect(url, subprotocols=["hermes-gateway-v1", "hermes-gateway-ticket." + grant["ticket"]],
+        self._ws = connect(url, subprotocols=["kova-gateway-v1", "kova-gateway-ticket." + grant["ticket"]],
                            open_timeout=60, max_size=None, ping_interval=None, close_timeout=2)
         self.frames: list[dict] = []
         self._cond = threading.Condition()
@@ -239,27 +239,27 @@ def _follow_up(viewer: _Viewer, db: Path, sid: str, phase: str, log: Path) -> di
 def scenario(tmp_path_factory: pytest.TempPathFactory):
     root, tag, model = tmp_path_factory.mktemp("netdrop"), new_tag(), _Model()
     model.start()
-    home, hermes_home = write_chaos_home(
+    home, kova_home = write_chaos_home(
         root, model.base_url, stale_timeout=600, request_timeout=600,
         extra=("auxiliary:\n  title_generation:\n    enabled: false\n"
                "sessions:\n  orphan_end_grace_s: 1\n"))
-    db, log = hermes_home / "state.db", root / "gateway.log"
-    env = hermetic_env(home, hermes_home, tag)
+    db, log = kova_home / "state.db", root / "gateway.log"
+    env = hermetic_env(home, kova_home, tag)
     for key in ("NOTIFY_SOCKET", "INVOCATION_ID", "XDG_STATE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
                 "XDG_CACHE_HOME", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(key, None)
     # Host rendezvous stays inside the tmp root: the developer's live gateway is never seen.
-    env.update(HERMES_GATEWAY_LOCK_DIR=str(root / "locks"), HERMES_GATEWAY_MAX_STARTS="0")
+    env.update(KOVA_GATEWAY_LOCK_DIR=str(root / "locks"), KOVA_GATEWAY_MAX_STARTS="0")
     out, viewers, facts = open(log, "wb"), [], {}
     gateway = subprocess.Popen([python_exe(), "-m", "kova_cli.main", "gateway", "run", "--quiet"],
                                cwd=str(home), env=env, stdin=subprocess.DEVNULL, stdout=out,
                                stderr=subprocess.STDOUT)
 
     def viewer() -> _Viewer:
-        viewers.append(_Viewer(hermes_home, desc))
+        viewers.append(_Viewer(kova_home, desc))
         return viewers[-1]
     try:
-        desc = _poll(lambda: _identify(hermes_home) or (gateway.poll() is not None and {"exited": True}),
+        desc = _poll(lambda: _identify(kova_home) or (gateway.poll() is not None and {"exited": True}),
                      BOOT_S, "gateway identify ready", log)
         assert "exited" not in desc, f"gateway exited rc={gateway.returncode}\n{log.read_text(errors='replace')}"
 

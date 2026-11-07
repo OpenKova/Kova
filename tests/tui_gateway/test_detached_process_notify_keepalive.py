@@ -21,10 +21,10 @@ import pytest
 
 @pytest.fixture()
 def server(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     with patch.dict("sys.modules", {"kova_cli.env_loader": MagicMock(), "kova_cli.banner": MagicMock()}):
         mod = importlib.import_module("tui_gateway.server")
         yield mod

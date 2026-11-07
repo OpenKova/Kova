@@ -266,13 +266,13 @@ def test_a_browser_download_reads_the_ssh_workspace_file_it_listed(client, monke
 
     # The Webapp: the browser's file routes (download tickets) exist only there.
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "remote-dev"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_DASHBOARD_FILES_ROOT", raising=False)
     same_path = tmp_path / "srv" / "report.txt"
     same_path.parent.mkdir()
     same_path.write_bytes(b"gateway copy")
@@ -380,9 +380,9 @@ def test_fs_media_shell_paths_deliver_files_and_preserve_access_checks(client, t
         assert response.status_code == expected, response.text
         assert "must-not-be-delivered" not in response.text
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
-    SessionDB(db_path=get_hermes_home() / "state.db").close()  # read-only lookups need an initialized store
+    SessionDB(db_path=get_kova_home() / "state.db").close()  # read-only lookups need an initialized store
     invalid_session = client.get(endpoint, params={
         "path": shell_path(target), "profile": "default", "session_id": "missing-session",
     })
@@ -474,8 +474,8 @@ def test_fs_default_cwd_answers_each_profile_with_its_own_start_folder(client, m
     (work_home / "config.yaml").write_text(
         f"terminal:\n  cwd: {work_project.as_posix()}\n", encoding="utf-8")
     (plain_home / "config.yaml").write_text("terminal:\n  cwd: .\n", encoding="utf-8")
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     # What the gateway's startup leaves in its own environment for its own profile.
     monkeypatch.setenv("TERMINAL_CWD", str(default_project))
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
@@ -713,7 +713,7 @@ def test_a_down_ssh_host_is_unavailable_on_workspace_file_routes(client, monkeyp
 
         def execute(self, command, **_options):
             code, rc = ("EACCES", 46) if "/srv/secret" in command else ("ENOENT", 44)
-            return {"returncode": rc, "output": f"__HERMES_FS_ERROR__:{code}\n"}
+            return {"returncode": rc, "output": f"__KOVA_FS_ERROR__:{code}\n"}
 
         def cleanup(self):
             pass
@@ -771,13 +771,13 @@ class _NotOnTheSshMachine:
 
 def _ssh_profiles(tmp_path, monkeypatch):
     """A default home and a named profile ``remote-dev``, both with an SSH machine as workspace."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     profile = home / "profiles" / "remote-dev"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_DASHBOARD_FILES_ROOT", raising=False)
     workspace = _NotOnTheSshMachine()
     monkeypatch.setattr(file_routes, "_fs_backend", lambda profile=None: workspace)
     return profile, workspace
@@ -907,7 +907,7 @@ def test_a_staged_text_preview_reads_back_under_a_locked_files_root(client, monk
         path.write_bytes(b"not staged")
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(managed))
+    monkeypatch.setenv("KOVA_DASHBOARD_FILES_ROOT", str(managed))
 
     def read_text(path, query):
         return client.get("/api/fs/read-text", params={"path": str(path), **query})
@@ -1268,8 +1268,8 @@ def test_fs_download_profile_uses_that_profiles_sandbox(client, monkeypatch, tmp
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text(
             "terminal:\n  backend: docker\n  container_persistent: true\n", encoding="utf-8")
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     monkeypatch.delenv("TERMINAL_SANDBOX_DIR", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_VOLUMES", raising=False)
     monkeypatch.setenv("TERMINAL_ENV", "docker")
@@ -1312,8 +1312,8 @@ def _two_profile_homes(monkeypatch, tmp_path, *, active_backend, work_backend):
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text(
             f"terminal:\n  backend: {backend}\n  container_persistent: false\n", encoding="utf-8")
-    monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setattr(profiles, "_get_default_kova_home", lambda: default_home)
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     monkeypatch.setenv("TERMINAL_ENV", active_backend)
     monkeypatch.delenv("TERMINAL_DOCKER_VOLUMES", raising=False)
     return default_home, work_home
@@ -1342,7 +1342,7 @@ def test_native_home_override_translates_with_that_profiles_volumes(monkeypatch,
     """A native ticket binds the profile's home before the route runs; translation must
     install that profile's terminal policy, not read the launch env's volumes."""
     from kova_cli import web_server_files
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     _default, work_home = _two_profile_homes(
         monkeypatch, tmp_path, active_backend="docker", work_backend="docker")
@@ -1356,11 +1356,11 @@ def test_native_home_override_translates_with_that_profiles_volumes(monkeypatch,
         "terminal:\n  backend: docker\n  container_persistent: false\n"
         f"  docker_volumes:\n    - {work_mount}:/workspace\n", encoding="utf-8")
 
-    token = set_hermes_home_override(str(work_home))
+    token = set_kova_home_override(str(work_home))
     try:
         translated = web_server_files._agent_container_path("/workspace/native.txt")
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
     assert translated == (work_mount / "native.txt").resolve()
     assert web_server_files._agent_container_path("/workspace/native.txt") == (

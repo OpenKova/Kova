@@ -21,7 +21,7 @@ BOOT_FILES = (
     "kova_cli/_early_recovery.py", "kova_cli/_parser.py",
     "kova_cli/venv_sync.py", "kova_cli/steward.py",
     "kova_cli/stderr_timestamp.py",
-    "scripts/hermes-gateway",
+    "scripts/kova-gateway",
 )
 
 
@@ -38,7 +38,7 @@ def fixture_tree(tmp_path, monkeypatch):
         "def main():\n"
         "    import selected_probe\n"
         "    print(json.dumps({'value': selected_probe.VALUE, 'argv': sys.argv[1:], "
-        "'home': os.environ.get('HERMES_HOME'), 'exe': sys.executable}))\n"
+        "'home': os.environ.get('KOVA_HOME'), 'exe': sys.executable}))\n"
         "    return 7\n"
         "if __name__ == '__main__':\n    sys.exit(main())\n"
     )
@@ -47,10 +47,10 @@ def fixture_tree(tmp_path, monkeypatch):
     # Windows resolves its default under LOCALAPPDATA, not HOME.
     if os.name == "nt":
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
-    home = tmp_path / ("hermes" if os.name == "nt" else ".hermes")
+    home = tmp_path / ("hermes" if os.name == "nt" else ".kova")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_RUNTIME_DIR", raising=False)
     store = home / "tools"
     store.mkdir(parents=True)
     interpreter = Path(sys._base_executable).resolve()
@@ -98,8 +98,8 @@ def test_source_launchers_boot_selected_generation_from_custom_home(tmp_path, mo
     for number in (1, 2):
         select_generation(repo, number, number)
         env = dict(os.environ)
-        env.pop("HERMES_HOME", None)
-        env.pop("HERMES_RUNTIME_DIR", None)
+        env.pop("KOVA_HOME", None)
+        env.pop("KOVA_RUNTIME_DIR", None)
         env["PYTHONHOME"] = str(tmp_path / "foreign-python")
         env["PYTHONPATH"] = str(tmp_path / "foreign-deps")
         for launcher in launchers:
@@ -124,16 +124,16 @@ def test_launcher_resolves_default_home_at_use_not_publication(tmp_path, monkeyp
     new_user_home = tmp_path / "second-user"
     new_user_home.mkdir()
     monkeypatch.setenv("HOME", str(new_user_home))
-    monkeypatch.setenv("HERMES_HOME", str(new_user_home / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(new_user_home / ".kova"))
     select_generation(repo, "second", "from-second-user")
     env = dict(os.environ)
-    env.pop("HERMES_HOME")
+    env.pop("KOVA_HOME")
     result = subprocess.run([str(launcher)], cwd=tmp_path, env=env,
                             capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
     assert result.returncode == 7, result.stdout + result.stderr
-    assert json.loads(result.stdout)["home"] == str(new_user_home / ".hermes")
+    assert json.loads(result.stdout)["home"] == str(new_user_home / ".kova")
     assert json.loads(result.stdout)["value"] == "from-second-user"
-    assert published_home != new_user_home / ".hermes"
+    assert published_home != new_user_home / ".kova"
 
 
 @pytest.mark.parametrize("publisher", [
@@ -147,7 +147,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(repo))
+    monkeypatch.setenv("KOVA_INSTALL_ROOT", str(repo))
     profile = home / "profiles" / "coder"
     profile.mkdir(parents=True)
     (home / "active_profile").write_text("default\n", encoding="utf-8")
@@ -165,9 +165,9 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
 
     def assert_home(override, expected):
         env = dict(os.environ)
-        env.pop("HERMES_HOME", None)
+        env.pop("KOVA_HOME", None)
         if override is not None:
-            env["HERMES_HOME"] = str(override)
+            env["KOVA_HOME"] = str(override)
         for launcher in launchers:
             result = subprocess.run([str(launcher)], cwd=tmp_path, env=env,
                                     capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
@@ -178,7 +178,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
             assert Path(receipt["exe"]).samefile(interpreter)
 
     assert_home(None, home)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("KOVA_HOME", str(profile))
     if publisher == "boot":
         # Keep the real per-profile boot gate and exposure step, not unrelated
         # migrations. A named profile's first boot republishes the shared files.
@@ -198,7 +198,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
     other_home = tmp_path / "explicit custom home"
     other_home.mkdir()
     # A custom home is its own dependency root: it sees only generations committed there.
-    monkeypatch.setenv("HERMES_HOME", str(other_home))
+    monkeypatch.setenv("KOVA_HOME", str(other_home))
     select_generation(repo, "shared", "ready")
     assert_home(other_home, other_home)
 
@@ -213,7 +213,7 @@ def test_posix_materializer_publishes_only_executable_shell_launchers(tmp_path, 
     assert {p.name for p in launchers} == set(_launchers.ENTRY_POINTS)
     assert all(os.access(p, os.X_OK) for p in launchers)
     assert set(out.iterdir()) == set(launchers)
-    local = repo / ".hermes" / "bin"
+    local = repo / ".kova" / "bin"
     assert {p.name for p in local.iterdir()} == set(_launchers.ENTRY_POINTS)
     launcher = local / "hermes"
     expected = launcher.read_bytes()
@@ -250,7 +250,7 @@ def test_materializer_cli_refuses_missing_store_without_publishing(tmp_path, mon
 def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeypatch, legacy_hermes):
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: home)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(repo))
+    monkeypatch.setenv("KOVA_INSTALL_ROOT", str(repo))
     select_generation(repo, 'current', 'migrated')
     out = home / ".local" / "bin"
     out.mkdir(parents=True)
@@ -261,11 +261,11 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
                    f'exec "{repo}/venv/bin/hermes" "$@"\n')
     (out / "hermes").write_text(old_wrapper, encoding="utf-8")
     (out / "hermes-acp").write_text(
-        '#!/usr/bin/env bash\n# Hermes Agent — ACP launcher (written by `hermes update`).\n'
+        '#!/usr/bin/env bash\n# Kova Agent — ACP launcher (written by `hermes update`).\n'
         f'exec "{out}/hermes" acp "$@"\n', encoding="utf-8")
     # Mentions this install only in a comment and runs another checkout's venv.
     foreign = f'#!/bin/sh\n# user note about {repo}/venv/bin/hermes\nexec "{tmp_path}/other/venv/bin/hermes" "$@"\n'
-    (out / "hermes-agent").write_text(foreign, encoding="utf-8")
+    (out / "kova-agent").write_text(foreign, encoding="utf-8")
 
     result = _launchers.expose_cli()
     assert result["ok"], result
@@ -278,7 +278,7 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
         assert receipt["value"] == "migrated"
         assert receipt["argv"] == ["quoted argument"]
         assert Path(receipt["exe"]).samefile(interpreter)
-    assert (out / "hermes-agent").read_text(encoding="utf-8-sig") == foreign
+    assert (out / "kova-agent").read_text(encoding="utf-8-sig") == foreign
     before = {p: p.stat().st_mtime_ns for p in out.iterdir()}
     assert _launchers.expose_cli()["written"] == []
     assert before == {p: p.stat().st_mtime_ns for p in out.iterdir()}
@@ -299,7 +299,7 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
         (selected.parent / ".lease-managed").touch()
         if value == "old":
             if surface == "legacy":
-                command = [sys.executable, "-I", str(repo / "scripts/hermes-gateway"), "--help"]
+                command = [sys.executable, "-I", str(repo / "scripts/kova-gateway"), "--help"]
                 args = ["gateway", "--help"]
             elif surface == "ssh":
                 from kova_cli.windows_ssh_runtime import _resolve_direct_command
@@ -367,12 +367,12 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
         "from kova_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
         "def main():\n"
         "    root = Path(__file__).resolve().parents[1]\n"
-        "    written = ensure_install_launchers(root, root / '.hermes/bin')\n"
+        "    written = ensure_install_launchers(root, root / '.kova/bin')\n"
         "    print('published', len(written), len(ENTRY_POINTS), flush=True)\n"
         "    return 0 if len(written) == len(ENTRY_POINTS) else 1\n",
         encoding="utf-8",
     )
-    out = repo / ".hermes/bin"
+    out = repo / ".kova/bin"
     if launcher_form == "cmd":
         without_distlib(monkeypatch)
     launchers = _launchers.ensure_install_launchers(repo, out)
@@ -396,7 +396,7 @@ def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypat
     (repo / "kova_cli/main.py").write_text(
         "import sys\ndef main():\n    print('ready', flush=True)\n    sys.stdin.read()\n    return 0\n",
         encoding="utf-8")
-    local = repo / ".hermes/bin"
+    local = repo / ".kova/bin"
     original = Path(_launchers.ensure_install_launchers(repo, local)[0])
     assert original.suffix == ".exe"
     new_python = home / "tools" / "repinned" / "python.exe"
@@ -451,14 +451,14 @@ def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, mon
     from kova_cli._install_repair import ensure_windows_bin_launchers
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
-    managed = home / "hermes-agent"
+    managed = home / "kova-agent"
     shutil.move(repo, managed)
     external = home / "bin"
     external.mkdir()
     for name in _launchers.ENTRY_POINTS:
         (external / f"{name}.exe").write_bytes(b"old PM launcher without a venv binding")
     assert ensure_windows_bin_launchers(managed, user_path_entries=[])
-    local = managed / ".hermes" / "bin"
+    local = managed / ".kova" / "bin"
     launcher = local / "hermes.exe"
     if not launcher.exists():
         launcher = local / "hermes.cmd"
@@ -506,8 +506,8 @@ def test_pre_pm_base_dependencies_activate_only_at_boot(tmp_path, monkeypatch):
 
 
 def test_external_interpreter_keeps_its_owned_dependencies(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "empty-store"))
     command = _launchers.runtime_command(ROOT, code="import ruamel.yaml; print('external-runtime-ready')")
     result = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30, encoding="utf-8", check=False)
     assert result.returncode == 0, result.stderr
@@ -629,8 +629,8 @@ def test_a_merge_killed_writing_kova_constants_is_repaired_by_the_next_launch(tm
     checkout module, so a torn ``kova_constants.py`` is put back instead of killing every launch."""
     repo, home, interpreter, pre, original, marker = _torn_by_a_killed_merge(tmp_path, monkeypatch)
     env = dict(os.environ)
-    env.pop("HERMES_HOME", None)  # the default-home pin itself needs kova_constants
-    env.pop("HERMES_RUNTIME_DIR", None)
+    env.pop("KOVA_HOME", None)  # the default-home pin itself needs kova_constants
+    env.pop("KOVA_RUNTIME_DIR", None)
     env.pop("PYTEST_CURRENT_TEST", None)  # the repair stands down in a checkout pytest itself runs from
     no_git = tmp_path / "path-without-git"
     no_git.mkdir()
@@ -676,7 +676,7 @@ def test_update_import_probe_uses_selected_dependencies(tmp_path, monkeypatch):
 @pytest.mark.platforms("posix")
 def test_stage_launcher_ignores_an_inherited_runtime_directory(tmp_path, monkeypatch):
     # #131745: a persisted launcher must boot the install's own store python.
-    # An inherited HERMES_RUNTIME_DIR (e2e fixture, desktop toolchain, PM
+    # An inherited KOVA_RUNTIME_DIR (e2e fixture, desktop toolchain, PM
     # subprocess env) names a runtime directory for the RUNNING process, never
     # for the artifacts the process publishes — that store can be a scratch
     # tree a later cleanup deletes, leaving the launcher dead (exit 127).
@@ -694,11 +694,11 @@ def test_stage_launcher_ignores_an_inherited_runtime_directory(tmp_path, monkeyp
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(foreign_store))
 
     # Publication callers create the bin dir before staging (see
     # ensure_install_launchers); the launcher writer does not invent it.
-    out = repo / ".hermes" / "bin"
+    out = repo / ".kova" / "bin"
     out.mkdir(parents=True, exist_ok=True)
     published = _launchers.stage_launcher("hermes", repo, out)
 
@@ -727,11 +727,11 @@ def test_service_launcher_binds_the_tree_store_despite_inherited_runtime_overrid
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(foreign_store))
 
     gateway._prepare_service_launcher()
 
-    wrapper = (repo / ".hermes" / "bin" / "hermes").read_text(encoding="utf-8-sig")
+    wrapper = (repo / ".kova" / "bin" / "hermes").read_text(encoding="utf-8-sig")
     assert "python-A" in wrapper
     assert "python-foreign" not in wrapper
 
@@ -739,7 +739,7 @@ def test_service_launcher_binds_the_tree_store_despite_inherited_runtime_overrid
 @pytest.mark.platforms("posix")
 def test_runtime_override_still_selects_the_runtime_python(tmp_path, monkeypatch):
     # The publication split must not mute the override for execution paths:
-    # resolving a python to RUN still honors HERMES_RUNTIME_DIR by default.
+    # resolving a python to RUN still honors KOVA_RUNTIME_DIR by default.
     repo, _home, interpreter = fixture_tree(tmp_path, monkeypatch)
     foreign_store = tmp_path / "foreign" / "tools"
     foreign_store.mkdir(parents=True)
@@ -748,7 +748,7 @@ def test_runtime_override_still_selects_the_runtime_python(tmp_path, monkeypatch
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(foreign_store))
 
     selected = _launchers.resolve_store_python(repo)
 
@@ -773,9 +773,9 @@ def test_install_launchers_never_bind_a_fixture_store_under_scratch(tmp_path, mo
     own = _launchers.resolve_store_python(repo)
     fixture = home / "cache" / "scratch" / "hermes-e2e-media-overlap-run" / "hermes-home" / "tools"
     _record_store_python(fixture, interpreter)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(fixture))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(fixture))
 
-    written = _launchers.ensure_install_launchers(repo, repo / ".hermes" / "bin")
+    written = _launchers.ensure_install_launchers(repo, repo / ".kova" / "bin")
 
     assert len(written) == len(_launchers.WINDOWS_BIN_LAUNCHERS)
     for path in written:
@@ -786,16 +786,16 @@ def test_install_launchers_never_bind_a_fixture_store_under_scratch(tmp_path, mo
 
 @pytest.mark.platforms("posix")
 def test_publication_uses_the_runtime_store_when_the_tree_records_none(tmp_path, monkeypatch):
-    # The desktop source-backend contract keeps its store beside HERMES_HOME
-    # and names it through HERMES_RUNTIME_DIR. A tree with no store of its own
+    # The desktop source-backend contract keeps its store beside KOVA_HOME
+    # and names it through KOVA_RUNTIME_DIR. A tree with no store of its own
     # still publishes from that one.
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     (home / "tools" / "facts.json").unlink()
     runtime = tmp_path / "runtime-tools"
     python = _record_store_python(runtime, interpreter)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(runtime))
 
-    written = _launchers.ensure_install_launchers(repo, repo / ".hermes" / "bin")
+    written = _launchers.ensure_install_launchers(repo, repo / ".kova" / "bin")
 
     assert len(written) == len(_launchers.WINDOWS_BIN_LAUNCHERS)
     for path in written:

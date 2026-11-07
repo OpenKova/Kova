@@ -61,8 +61,8 @@ def clock(monkeypatch):
 
 
 def _shell():
-    from cli import HermesCLI
-    shell = object.__new__(HermesCLI)
+    from cli import KovaCLI
+    shell = object.__new__(KovaCLI)
     shell._tui_enter_overlay = lambda event: False
     shell._tui_multiline_shortcuts = False
     shell._attached_images = []

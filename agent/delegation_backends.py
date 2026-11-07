@@ -1,4 +1,4 @@
-"""Which delegation backend Hermes uses: the public API behind a ``/delegation`` command.
+"""Which delegation backend Kova uses: the public API behind a ``/delegation`` command.
 
 ``delegation.backend`` in config.yaml is the saved choice. A session routes on the backend its ``delegate_task``
 schema was built from (``agent._delegation_backend``, captured with its tools and pinned with them to the session
@@ -120,7 +120,7 @@ def set_global_backend(name: str, *, session_key: str = "", apply_now: bool = Fa
 
 def _current_session_key(agent: Any) -> str:
     from gateway.session_context import get_session_env
-    return get_session_env("HERMES_SESSION_KEY", "") or str(getattr(agent, "session_id", "") or "")
+    return get_session_env("KOVA_SESSION_KEY", "") or str(getattr(agent, "session_id", "") or "")
 
 
 def apply_requested_tool_rebuild(agent: Any) -> bool:

@@ -35,16 +35,16 @@ SESSION_KEY = "tui-profile-1"
 
 
 @pytest.fixture()
-def hermes_home(tmp_path, monkeypatch):
-    home = tmp_path / ".hermes"
+def kova_home(tmp_path, monkeypatch):
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     yield home
 
 
 @pytest.fixture()
-def server(hermes_home):
+def server(kova_home):
     # Mocks are scoped to the initial import only (see
     # tests/tui_gateway/test_protocol.py for the rationale).
     with patch.dict(
@@ -69,9 +69,9 @@ def server(hermes_home):
 
 
 @pytest.fixture()
-def launch_db(server, hermes_home):
+def launch_db(server, kova_home):
     """The launch profile's state.db, wired in as the ``_get_db()`` handle."""
-    db = SessionDB(db_path=hermes_home / "state.db")
+    db = SessionDB(db_path=kova_home / "state.db")
     server._db = db
     return db
 

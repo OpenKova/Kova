@@ -322,7 +322,7 @@ def test_real_temp_repo_and_home_install_e2e(served_repo, monkeypatch, tmp_path)
 
     _repo, url = served_repo
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("tools.skills_hub.is_safe_url", lambda _url: True)
     monkeypatch.setattr("tools.skills_hub.check_website_access", lambda _url: None)
     monkeypatch.setattr("tools.skills_hub_search.create_source_router", lambda auth=None: [UrlSource()])
@@ -384,7 +384,7 @@ def test_install_with_junctioned_skills_dir(served_repo, monkeypatch, tmp_path):
     if not _make_skills_redirect(skills_link, real_skills):
         pytest.skip("Cannot create a junction/symlink in this environment")
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("tools.skills_hub.is_safe_url", lambda _url: True)
     monkeypatch.setattr("tools.skills_hub.check_website_access", lambda _url: None)
     monkeypatch.setattr("tools.skills_hub_search.create_source_router", lambda auth=None: [UrlSource()])
@@ -458,7 +458,7 @@ def test_install_skips_unreachable_support_file_e2e(served_repo_missing_support,
 
     _repo, url = served_repo_missing_support
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("tools.skills_hub.is_safe_url", lambda _url: True)
     monkeypatch.setattr("tools.skills_hub.check_website_access", lambda _url: None)
     monkeypatch.setattr("tools.skills_hub_search.create_source_router", lambda auth=None: [UrlSource()])
@@ -502,14 +502,14 @@ metadata:
   hermes:
     upstream:
       repo: acme/design-skill
-      path: .hermes/skills/design
+      path: .kova/skills/design
 ---
 # Stub
 """
 
 
 def test_optional_source_upstream_stub_fetches_from_external_repo(tmp_path, monkeypatch):
-    """A catalog stub with metadata.hermes.upstream installs the upstream repo's
+    """A catalog stub with metadata.kova.upstream installs the upstream repo's
     content (relabelled official/trusted), not the stub itself."""
     from tools.skills_hub_official import OptionalSkillSource
 
@@ -540,7 +540,7 @@ def test_optional_source_upstream_stub_fetches_from_external_repo(tmp_path, monk
 
     bundle = source.fetch("official/creative/upstream-demo")
 
-    assert fetched_ids == ["acme/design-skill/.hermes/skills/design"]
+    assert fetched_ids == ["acme/design-skill/.kova/skills/design"]
     assert bundle is not None
     assert bundle.source == "official"
     assert bundle.identifier == "official/creative/upstream-demo"

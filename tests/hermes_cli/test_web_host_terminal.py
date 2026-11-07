@@ -73,10 +73,10 @@ def test_host_terminal_policy_rejects_dashboard_and_unauthenticated_public_bind(
 
 def _assert_host_terminal_resolver_uses_real_host(tmp_path):
     from kova_cli import web_host_terminal
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     argv, cwd, env, shell_name = web_host_terminal.resolve_argv(
-        home=get_hermes_home(), requested_cwd=str(tmp_path)
+        home=get_kova_home(), requested_cwd=str(tmp_path)
     )
 
     assert argv
@@ -85,7 +85,7 @@ def _assert_host_terminal_resolver_uses_real_host(tmp_path):
     assert shell_name
     assert env["TERM"] == "xterm-256color"
     assert env["COLORTERM"] == "truecolor"
-    assert env["HERMES_DESKTOP_TERMINAL"] == "1"
+    assert env["KOVA_DESKTOP_TERMINAL"] == "1"
 
 
 def test_host_terminal_resolver_applies_selected_profile_home_and_config(
@@ -103,14 +103,14 @@ def test_host_terminal_resolver_applies_selected_profile_home_and_config(
         encoding="utf-8",
     )
     monkeypatch.setenv("HOME", str(current / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(current))
-    monkeypatch.setenv("HERMES_REAL_HOME", str(real_home))
+    monkeypatch.setenv("KOVA_HOME", str(current))
+    monkeypatch.setenv("KOVA_REAL_HOME", str(real_home))
     monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
     monkeypatch.setenv("OPENAI_API_KEY", "current-profile-secret")
 
     _argv, _cwd, env, _shell_name = web_host_terminal.resolve_argv(home=target)
 
-    assert env["HERMES_HOME"] == str(target)
+    assert env["KOVA_HOME"] == str(target)
     assert env["HOME"] == str(target / "home")
     assert env["TERMINAL_HOME_MODE"] == "profile"
     assert "OPENAI_API_KEY" not in env
@@ -120,15 +120,15 @@ def test_host_terminal_resolver_applies_selected_profile_home_and_config(
 def test_host_terminal_shell_inherits_no_package_manager_settings(tmp_path, monkeypatch):
     """`pnpm run` injects lowercase npm_*/pnpm_config_* names; a user's own NPM_CONFIG_* stays."""
     from kova_cli import web_host_terminal
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     leaked = {"pnpm_config_store_dir": str(tmp_path / "store"), "npm_config_cache": str(tmp_path / "cache"),
-              "npm_config_prefix": str(tmp_path / "prefix"), "npm_package_name": "hermes-agent"}
+              "npm_config_prefix": str(tmp_path / "prefix"), "npm_package_name": "kova-agent"}
     for name, value in leaked.items():
         monkeypatch.setenv(name, value)
     monkeypatch.setenv("NPM_CONFIG_REGISTRY", "https://mirror.invalid/")
 
-    _argv, _cwd, env, _shell_name = web_host_terminal.resolve_argv(home=get_hermes_home(), requested_cwd=str(tmp_path))
+    _argv, _cwd, env, _shell_name = web_host_terminal.resolve_argv(home=get_kova_home(), requested_cwd=str(tmp_path))
 
     assert not set(leaked) & set(env)
     assert env["NPM_CONFIG_REGISTRY"] == "https://mirror.invalid/"
@@ -145,7 +145,7 @@ def test_host_terminal_resolver_uses_real_linux_shell(tmp_path, monkeypatch):
 def test_host_terminal_relative_shell_never_reaches_argv(tmp_path, monkeypatch):
     """The PTY chdirs into the workspace before exec, so the shell it runs is the one checked only if argv[0] is absolute."""
     from kova_cli import web_host_terminal
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     server_cwd = tmp_path / "server"
     workspace = tmp_path / "workspace"
@@ -158,7 +158,7 @@ def test_host_terminal_relative_shell_never_reaches_argv(tmp_path, monkeypatch):
     monkeypatch.setenv("SHELL", "bin/sh")
 
     argv, cwd, _env, _shell_name = web_host_terminal.resolve_argv(
-        home=get_hermes_home(), requested_cwd=str(workspace)
+        home=get_kova_home(), requested_cwd=str(workspace)
     )
 
     assert cwd == str(workspace.resolve())

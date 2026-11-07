@@ -98,7 +98,7 @@ async def test_model_switch_does_not_show_a_discarded_pin(tmp_path, monkeypatch)
     from kova_cli.model_switch import ModelSwitchResult
     from tests.gateway.test_model_command_context_offload import _event, _runner_with_store
     runner = _runner_with_store(tmp_path, monkeypatch)
-    (tmp_path / ".hermes" / "config.yaml").write_text(yaml.safe_dump(
+    (tmp_path / ".kova" / "config.yaml").write_text(yaml.safe_dump(
         {"model": {"default": "old-model", "provider": "openrouter", "context_length": 128_000}}), encoding="utf-8")
     monkeypatch.setattr("kova_cli.model_switch.switch_model", lambda **kw: ModelSwitchResult(
         success=True, new_model=UNKNOWN, target_provider="bedrock", provider_changed=True, api_key="aws-sdk",

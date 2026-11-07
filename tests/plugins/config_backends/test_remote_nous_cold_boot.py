@@ -33,7 +33,7 @@ assert "kova_cli.auth" not in sys.modules and "kova_cli.config" not in sys.modul
 from pm.workspace import enabled_member_dirs
 enabled_member_dirs()  # refresh_dependencies -> venv_is_current -> expected_stamp reads this first
 import providers
-if os.environ.get("PROBE_PROVIDER"):  # a $HERMES_HOME provider plugin loads once config is loaded
+if os.environ.get("PROBE_PROVIDER"):  # a $KOVA_HOME provider plugin loads once config is loaded
     assert providers.get_provider_profile("probe-provider") is not None
 from kova_cli.config import load_config
 print("RESULT=" + json.dumps(load_config()["display"]["skin"]))
@@ -74,7 +74,7 @@ PROBE_INIT = (
 
 
 def _install_probe_provider(home: Path, layout: str) -> None:
-    """A $HERMES_HOME provider plugin: importing one reads ``plugins.isolation`` from config."""
+    """A $KOVA_HOME provider plugin: importing one reads ``plugins.isolation`` from config."""
     plugin = home / "plugins" / ("model-providers/probe" if layout == "model-providers" else "probe")
     plugin.mkdir(parents=True)
     (plugin / "plugin.yaml").write_text("name: probe\nkind: model-provider\nversion: 0.0.1\n")
@@ -92,9 +92,9 @@ def test_cloud_agent_first_remote_read_completes_cold(tmp_path, expired, layout)
         plane.upper = {"display": {"skin": "ares"}}
         (home / "auth.json").write_text(json.dumps(_auth_json(plane, expired=expired)))
         env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "TMPDIR", "PYTHONHASHSEED"}}
-        env.update(HOME=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1",
-                   HERMES_CONFIG_BACKEND="remote", HERMES_CONFIG_REMOTE_URL=plane.url,
-                   HERMES_CONFIG_INSTANCE_ID=INSTANCE, PROBE_PROVIDER="1" if layout else "")
+        env.update(HOME=str(tmp_path), KOVA_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1",
+                   KOVA_CONFIG_BACKEND="remote", KOVA_CONFIG_REMOTE_URL=plane.url,
+                   KOVA_CONFIG_INSTANCE_ID=INSTANCE, PROBE_PROVIDER="1" if layout else "")
         assert not any(k.startswith("GATEWAY_RELAY_IDP_") for k in env)  # Cloud: the Nous credential
 
         assert _value(_run([sys.executable, "-c", STAGE2_SNIPPET], env)) == "ares"
@@ -129,11 +129,11 @@ def test_importing_auth_and_resolving_the_nous_token_read_no_config(tmp_path):
     config it is used to fetch: under a backend whose every read raises, both succeed cold."""
     home = tmp_path / "home"
     home.mkdir()
-    _install_probe_provider(home, "model-providers")  # a $HERMES_HOME provider plugin is not read either
+    _install_probe_provider(home, "model-providers")  # a $KOVA_HOME provider plugin is not read either
     with StubPlane() as plane:
         (home / "auth.json").write_text(json.dumps(_auth_json(plane, expired=False)))
         env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "TMPDIR", "PYTHONHASHSEED"}}
-        env.update(HOME=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1")
+        env.update(HOME=str(tmp_path), KOVA_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1")
         assert _value(_run([sys.executable, "-c", AUTH_IMPORT_READS_NO_CONFIG, NOUS_TOKEN], env)) == "ok"
 
 
@@ -142,7 +142,7 @@ import json, os, sys, threading
 from pathlib import Path
 from plugins.config_backends.remote import client
 from plugins.config_backends.remote import get_remote_backend
-home = Path(os.environ["HERMES_HOME"])
+home = Path(os.environ["KOVA_HOME"])
 in_fetch, imported = threading.Event(), threading.Event()
 real_request = client.request
 waited = {}
@@ -176,7 +176,7 @@ def test_cold_auth_import_on_another_thread_never_waits_for_the_fetch(tmp_path):
     with StubPlane() as plane:
         plane.upper = {"display": {"skin": "ares"}}
         env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "TMPDIR", "PYTHONHASHSEED"}}
-        env.update(remote_env(plane), HOME=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(REPO),
+        env.update(remote_env(plane), HOME=str(tmp_path), KOVA_HOME=str(home), PYTHONPATH=str(REPO),
                    PYTHONDONTWRITEBYTECODE="1")
         assert _value(_run([sys.executable, "-c", CONCURRENT_AUTH_IMPORT], env)) == "ares"
 
@@ -211,9 +211,9 @@ def test_multiplexed_token_resolution_binds_its_scope_without_reading_config(tmp
     home.mkdir()
     with StubPlane() as plane:
         (home / "auth.json").write_text(json.dumps(_auth_json(plane, expired=True)))
-        (home / ".env").write_text(f"HERMES_PORTAL_BASE_URL={plane.url}\n")
+        (home / ".env").write_text(f"KOVA_PORTAL_BASE_URL={plane.url}\n")
         env = {k: v for k, v in os.environ.items() if k in {"PATH", "LANG", "TZ", "TMPDIR", "PYTHONHASHSEED"}}
-        env.update(HOME=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1",
-                   HERMES_SHARED_AUTH_DIR=str(tmp_path / "shared"))
+        env.update(HOME=str(tmp_path), KOVA_HOME=str(home), PYTHONPATH=str(REPO), PYTHONDONTWRITEBYTECODE="1",
+                   KOVA_SHARED_AUTH_DIR=str(tmp_path / "shared"))
         assert _value(_run([sys.executable, "-c", MULTIPLEX_TOKEN_READS_NO_CONFIG, NOUS_TOKEN, str(home)], env)) == "ok"
         assert plane.nous_refreshes == 1

@@ -1,7 +1,7 @@
 """The fake NAS anonymous surface shared by the free-tier tests.
 
 One ``FakePortal`` and one ``install_portal`` behind every ``portal`` fixture: the wire contract is
-exercised through Hermes' real client code, never mocked away. Scenarios flip its behaviour
+exercised through Kova' real client code, never mocked away. Scenarios flip its behaviour
 (``gate_closed``, ``dead_tokens``, a canned ``create_response`` / ``token_response``, or a
 ``raise_transport`` that makes the wire itself fail).
 """
@@ -121,9 +121,9 @@ def install_portal(monkeypatch, tmp_path, fake: FakePortal | None = None) -> Fak
     from kova_cli import auth as auth_mod
 
     fake = fake or FakePortal()
-    monkeypatch.setenv("HERMES_PORTAL_BASE_URL", PORTAL)
-    monkeypatch.setenv("HERMES_ANON_API_SECRET", "test-secret")
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
+    monkeypatch.setenv("KOVA_PORTAL_BASE_URL", PORTAL)
+    monkeypatch.setenv("KOVA_ANON_API_SECRET", "test-secret")
+    monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
     for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "NOUS_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     real_client = httpx.Client
@@ -140,7 +140,7 @@ def install_portal(monkeypatch, tmp_path, fake: FakePortal | None = None) -> Fak
     from kova_cli import anon_challenge
     anon_challenge.reset_for_tests()
     monkeypatch.setattr(anon_challenge, "_sleep", lambda _seconds: None)
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
+    monkeypatch.delenv("KOVA_DESKTOP", raising=False)
     # resolve_nous_access_token memoises the last token for 5 s per profile home (dict); a token minted
     # by an earlier test must not be served to this one.
     monkeypatch.setattr(auth_mod, "_RESOLVE_TOKEN_CACHE", {})

@@ -25,9 +25,9 @@ def repair_windows_home_acl(*, elevated: bool | None = None) -> None:
         # Only an elevated update leaves Administrators-only entries, and only an elevated token
         # can rewrite them; a recursive grant over the whole home on every update costs minutes.
         return
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = get_hermes_home()
+    home = get_kova_home()
     # The home itself is the operator's choice and may be a link: pin its real directory and walk
     # below it (links beneath are still never followed).
     granted, skipped, failed = grant_tree_user_access(home, pin_root=True, elevated=True)

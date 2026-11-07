@@ -62,7 +62,7 @@ type QuickEntryBridge = NonNullable<Window['hermesDesktop']['quickEntry']>
 /** The shell's Quick Entry settings call, or undefined where there is none
  *  (outside Electron, the Webapp's bridge). */
 function quickEntrySettingsCall<K extends 'getSettings' | 'setSettings'>(name: K): QuickEntryBridge[K] | undefined {
-  const call = typeof window === 'undefined' ? undefined : window.hermesDesktop?.quickEntry?.[name]
+  const call = typeof window === 'undefined' ? undefined : window.kovaDesktop?.quickEntry?.[name]
 
   return typeof call === 'function' ? call : undefined
 }
@@ -211,7 +211,7 @@ export function quickEntryResultEvent(result: QuickEntrySubmitResult, submitId: 
 
   if (result.code === 'timeout') {
     return {
-      message: result.message || 'Hermes has not confirmed the prompt yet — it may still be delivered.',
+      message: result.message || 'Kova has not confirmed the prompt yet — it may still be delivered.',
       submitId,
       type: 'submit-unknown'
     }
@@ -527,7 +527,7 @@ function normalizeSubmitPayload(raw: unknown): null | QuickEntrySubmitPayload {
  * disposer. Idempotent — a second call while wired is a no-op.
  */
 export function initQuickEntryBridge(): () => void {
-  const api = typeof window === 'undefined' ? undefined : window.hermesDesktop?.quickEntry
+  const api = typeof window === 'undefined' ? undefined : window.kovaDesktop?.quickEntry
 
   if (!api?.onSubmit || unsubscribeSubmit) {
     return () => {}

@@ -1,6 +1,6 @@
 import { LOCAL_CONNECTION_ID } from '@kova/shared'
 
-import type { HermesApiRequest, HermesConnection } from '@/global'
+import type { KovaApiRequest, KovaConnection } from '@/global'
 import { webappSignInRequired } from '@/lib/browser-launch-session'
 import { createServedProfiles, SERVED_SET_READ_TIMEOUT_MS, UnservedProfileError } from '@/lib/browser-served-profiles'
 import {
@@ -33,7 +33,7 @@ function ridesWithProfile(profile?: null | string): boolean {
   return Boolean(name) && name !== browserLaunchProfileOrDefault()
 }
 
-function connectionFor(bootstrap: BrowserBootstrap, profile: null | string | undefined, servedHere: boolean): HermesConnection {
+function connectionFor(bootstrap: BrowserBootstrap, profile: null | string | undefined, servedHere: boolean): KovaConnection {
   if (!bootstrap.authRequired && !bootstrap.token) {throw webappSignInRequired()}
 
   const baseUrl = `${window.location.origin}${bootstrap.basePath}`
@@ -74,14 +74,14 @@ function browserConnectionConfig(bootstrap: BrowserBootstrap, profile?: null | s
     sshHost: '',
     sshKeyPath: '',
     sshPort: null,
-    sshRemoteHermesPath: '',
+    sshRemoteKovaPath: '',
     sshRemoteProfile: '',
     sshUser: ''
   }
 }
 
 interface BrowserConnectionOptions {
-  api: <T>(request: HermesApiRequest) => Promise<T>
+  api: <T>(request: KovaApiRequest) => Promise<T>
   bootstrap: BrowserBootstrap
 }
 

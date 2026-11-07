@@ -509,11 +509,11 @@ def test_hardline_blocks_line_continuation(command, desc_substr):
 @pytest.fixture
 def clean_session(monkeypatch):
     """Reset session-scoped approval state around each test."""
-    monkeypatch.delenv("HERMES_YOLO_MODE", raising=False)
-    monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
-    monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-    monkeypatch.delenv("HERMES_CRON_SESSION", raising=False)
-    monkeypatch.delenv("HERMES_EXEC_ASK", raising=False)
+    monkeypatch.delenv("KOVA_YOLO_MODE", raising=False)
+    monkeypatch.delenv("KOVA_INTERACTIVE", raising=False)
+    monkeypatch.delenv("KOVA_GATEWAY_SESSION", raising=False)
+    monkeypatch.delenv("KOVA_CRON_SESSION", raising=False)
+    monkeypatch.delenv("KOVA_EXEC_ASK", raising=False)
     token = set_current_session_key("hardline_test")
     try:
         disable_session_yolo("hardline_test")
@@ -530,8 +530,8 @@ def test_check_all_command_guards_blocks_hardline(clean_session):
 
 
 def test_yolo_env_var_cannot_bypass_hardline(clean_session, monkeypatch):
-    """HERMES_YOLO_MODE=1 must not bypass the hardline floor."""
-    monkeypatch.setenv("HERMES_YOLO_MODE", "1")
+    """KOVA_YOLO_MODE=1 must not bypass the hardline floor."""
+    monkeypatch.setenv("KOVA_YOLO_MODE", "1")
 
     for cmd in ['rm -rf /', 'rm -rf "/"', 'rm -rf "$HOME"', "rm -rf ${HOME}",
                 "shutdown -h now", "mkfs.ext4 /dev/sda", "reboot"]:
@@ -566,7 +566,7 @@ def test_quoted_paren_brace_prose_not_blocked_under_yolo(clean_session, monkeypa
     `gh pr create --title "…(reboot)…"` workflow. The quote-aware tokenizer
     must leave quoted text untouched, so these stay runnable.
     """
-    monkeypatch.setenv("HERMES_YOLO_MODE", "1")
+    monkeypatch.setenv("KOVA_YOLO_MODE", "1")
 
     for cmd in ['gh pr create --title "block (reboot) spellings"',
                 'git commit -m "(rm -rf /) note"',
@@ -603,7 +603,7 @@ def test_approvals_mode_off_cannot_bypass_hardline(clean_session, monkeypatch, t
 
 def test_cron_approve_mode_cannot_bypass_hardline(clean_session, monkeypatch):
     """Cron sessions with cron_mode=approve must not bypass hardline."""
-    monkeypatch.setenv("HERMES_CRON_SESSION", "1")
+    monkeypatch.setenv("KOVA_CRON_SESSION", "1")
     monkeypatch.setattr(approval_context, "_get_cron_approval_mode", lambda: "approve")
 
     result = check_all_command_guards("rm -rf /", "local")
@@ -638,7 +638,7 @@ def test_recoverable_dangerous_commands_still_pass_yolo(clean_session, monkeypat
 
     This confirms we haven't broken the yolo escape hatch — only narrowed it.
     """
-    monkeypatch.setenv("HERMES_YOLO_MODE", "1")
+    monkeypatch.setenv("KOVA_YOLO_MODE", "1")
 
     # These are dangerous but NOT hardline — yolo should still pass them.
     for cmd in ["rm -rf /tmp/x", "chmod -R 777 .", "git reset --hard", "git push --force"]:

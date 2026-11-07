@@ -1,4 +1,4 @@
-"""Tests for acp_adapter.server — HermesACPAgent ACP server."""
+"""Tests for acp_adapter.server — KovaACPAgent ACP server."""
 
 import asyncio
 from pathlib import Path
@@ -26,7 +26,7 @@ from acp.schema import (
 )
 from acp_adapter.auth import TERMINAL_SETUP_AUTH_METHOD_ID
 from acp_adapter.server import (
-    HermesACPAgent,
+    KovaACPAgent,
 )
 from acp_adapter.session import SessionManager
 
@@ -39,8 +39,8 @@ def mock_manager():
 
 @pytest.fixture()
 def agent(mock_manager):
-    """HermesACPAgent backed by a mock session manager."""
-    return HermesACPAgent(session_manager=mock_manager)
+    """KovaACPAgent backed by a mock session manager."""
+    return KovaACPAgent(session_manager=mock_manager)
 
 
 @pytest.mark.asyncio
@@ -171,7 +171,7 @@ class TestSessionOps:
                 base_url="https://api.openai.com/v1",
             )
         )
-        acp_agent = HermesACPAgent(session_manager=manager)
+        acp_agent = KovaACPAgent(session_manager=manager)
         picker_context = MagicMock()
         picker_context.with_overrides.return_value = picker_context
         payload = {
@@ -369,10 +369,10 @@ class TestPrompt:
         """The ACP prompt path must bridge the session id into child subprocesses.
 
         Regression: ``set_session_vars`` was called with ``session_key`` only,
-        leaving the ``HERMES_SESSION_ID`` ContextVar bound to the explicit ""
+        leaving the ``KOVA_SESSION_ID`` ContextVar bound to the explicit ""
         default. Once the session-context machinery is engaged, that empty value
         is authoritative — so ``_make_run_env`` handed child subprocesses an
-        empty ``HERMES_SESSION_ID`` instead of the session's own id.
+        empty ``KOVA_SESSION_ID`` instead of the session's own id.
         """
         from tools.environments.local import _make_run_env
 
@@ -383,7 +383,7 @@ class TestPrompt:
 
         def _run(*args, **kwargs):
             # Runs inside the session context copy set up by prompt().
-            captured["child"] = _make_run_env({}).get("HERMES_SESSION_ID")
+            captured["child"] = _make_run_env({}).get("KOVA_SESSION_ID")
             return {"final_response": "ok", "messages": []}
 
         state.agent.run_conversation = _run
@@ -467,7 +467,7 @@ class TestPrompt:
                 raise RuntimeError("executor blew up")
             return {"final_response": "ok", "messages": []}
 
-        with patch.object(HermesACPAgent, "_run_agent_turn", side_effect=_turn):
+        with patch.object(KovaACPAgent, "_run_agent_turn", side_effect=_turn):
             started = asyncio.get_running_loop().time()
             response = await asyncio.wait_for(
                 agent.prompt(prompt=[TextContentBlock(type="text", text="hi")], session_id=resp.session_id),

@@ -17,7 +17,7 @@ test.beforeAll(async () => {
   const sandbox = createSandbox('dm-delivery')
   const mock = await startMockServer({ holdFirstCompletionContaining: 'CLI_OWNER_HOLD' })
   for (const name of ['default', 'alpha', 'beta']) {
-    const home = name === 'default' ? sandbox.hermesHome : path.join(sandbox.hermesHome, 'profiles', name)
+    const home = name === 'default' ? sandbox.kovaHome : path.join(sandbox.kovaHome, 'profiles', name)
     fs.mkdirSync(home, { recursive: true })
     writeMockProviderConfig(home, mock.url)
     writeEnvFile(home)
@@ -27,9 +27,9 @@ test.beforeAll(async () => {
   const bin = path.join(sandbox.root, 'bin')
   fs.mkdirSync(bin)
   fs.writeFileSync(path.join(bin, 'hermes'), `#!/bin/sh\ncd ${repo}\nexec ${python} -m kova_cli.main "$@"\n`, { mode: 0o755 })
-  env = buildAppEnv(sandbox, { HOME: sandbox.root, HERMES_DESKTOP_PYTHON: python,
-    HERMES_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
-    PYTHONPATH: repo, HERMES_SINGLE_QUERY_LINGER_SECONDS: '30' })
+  env = buildAppEnv(sandbox, { HOME: sandbox.root, KOVA_DESKTOP_PYTHON: python,
+    KOVA_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
+    PYTHONPATH: repo, KOVA_SINGLE_QUERY_LINGER_SECONDS: '30' })
   const { app, page } = await launchDesktop(env)
   fixture = { app, page, sandbox, mock, mockUrl: mock.url, cleanup: async () => {
     await app.close().catch(() => undefined)
@@ -46,7 +46,7 @@ test('cron output waits for a CLI-only owner and arrives after owner release', a
   test.setTimeout(240_000)
   const output = fs.openSync(path.join(evidence, 'cli-owner.log'), 'w')
   const child = spawn(python, ['-m', 'kova_cli.main', '-p', 'beta', 'chat', '--in', '~', '-c', 'Bot Chat', '--create-if-missing', '-Q', '-q', 'CLI_OWNER_HOLD'], { cwd: repo, env, stdio: ['ignore', output, output] })
-  const cronEnv = { ...env, HERMES_HOME: fixture.sandbox.hermesHome }
+  const cronEnv = { ...env, KOVA_HOME: fixture.sandbox.kovaHome }
   try {
     await fixture.mock.waitForHeldCompletion()
     const script = 'import json; from cron.scheduler_delivery import _deliver_to_bot_chat; j={"id":"cli-residual","name":"CLI residual","execution_id":"fixed-execution"}; result=_deliver_to_bot_chat(j,"CLI_OWNER_CRON_SENTINEL","beta"); print(json.dumps({"result":result,"job":j}))'
@@ -81,7 +81,7 @@ async function openBot(name: string) {
 }
 
 function dbMessages(name: string) {
-  const home = name === 'default' ? fixture.sandbox.hermesHome : path.join(fixture.sandbox.hermesHome, 'profiles', name)
+  const home = name === 'default' ? fixture.sandbox.kovaHome : path.join(fixture.sandbox.kovaHome, 'profiles', name)
   return JSON.parse(execFileSync(python, ['-c', 'import sqlite3,json,sys; c=sqlite3.connect(sys.argv[1]); print(json.dumps(c.execute("select role,content from messages").fetchall()))', path.join(home, 'state.db')], { env, cwd: repo, encoding: 'utf8' })) as string[][]
 }
 

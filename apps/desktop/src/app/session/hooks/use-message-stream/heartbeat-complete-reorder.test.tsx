@@ -48,7 +48,7 @@ function mount() {
       updateSessionState: cache.updateSessionState,
       queryClient,
       hydrateFromStoredSession: hydrate,
-      refreshHermesConfig: noop,
+      refreshKovaConfig: noop,
       refreshSessions: noop
     })
 

@@ -109,7 +109,7 @@ def test_delegation_pause_toggles_the_spawn_gate_and_status_reports_it(tmp_path)
 
 
 async def _git_rpc(ws, method, **params):
-    """``rpc`` with room for checkpoint git calls: each one resolves Hermes' managed git first, which
+    """``rpc`` with room for checkpoint git calls: each one resolves Kova' managed git first, which
     can take a second per call on a cold test home (the shared helper waits 20 s)."""
     await ws.send(json.dumps({'jsonrpc': '2.0', 'id': method, 'method': method, 'params': params}))
     async with asyncio.timeout(120):
@@ -163,13 +163,13 @@ def test_session_export_json_restores_with_its_title_through_import_sessions(tmp
 
 def _checkpoint(home, cwd, reason):
     """A checkpoint in the owner profile's shared store (what the agent takes before a write)."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.checkpoint_manager import CheckpointManager
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         assert CheckpointManager(enabled=True).ensure_checkpoint(str(cwd), reason)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.mark.platforms("linux")
@@ -236,15 +236,15 @@ def test_rollback_lists_diffs_and_restores_the_session_cwd_and_rewinds_the_last_
 
 
 def _agent_write(home, path, text):
-    """A file write Hermes made (and recorded in the agent-write ledger that safe restore reads)."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    """A file write Kova made (and recorded in the agent-write ledger that safe restore reads)."""
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     from tools.checkpoint_manager import CheckpointManager
     path.write_text(text)
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         CheckpointManager(enabled=True).record_agent_write(str(path))
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 @pytest.mark.platforms("linux")
@@ -309,7 +309,7 @@ def test_rollback_restore_reads_a_null_all_as_omitted(tmp_path):
 @pytest.mark.platforms("linux")
 def test_config_get_voice_reports_the_sessions_own_voice_mode(tmp_path):
     """T9: Ink's /voice runs the owner's per-session handler (slash.exec) and reads the mode back
-    with ``config.get key=voice``; the sidecar's process-global HERMES_VOICE is never consulted."""
+    with ``config.get key=voice``; the sidecar's process-global KOVA_VOICE is never consulted."""
     with owner(tmp_path) as (home, _peer, desc):
         async def probe():
             async with websocket(home, desc) as ws:
@@ -329,7 +329,7 @@ def test_config_get_voice_reports_the_sessions_own_voice_mode(tmp_path):
 @pytest.mark.platforms("linux")
 def test_voice_record_follows_the_sessions_gateway_voice_mode(tmp_path):
     """T9: push-to-talk (``voice.record``) gates on the session's gateway voice mode, the state
-    Ink's ``/voice on`` sets through slash.exec, not the sidecar's process-global HERMES_VOICE."""
+    Ink's ``/voice on`` sets through slash.exec, not the sidecar's process-global KOVA_VOICE."""
     with owner(tmp_path) as (home, _peer, desc):
         async def probe():
             async with websocket(home, desc) as ws:

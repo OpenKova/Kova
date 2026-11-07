@@ -434,14 +434,14 @@ def _requires_python_spec(pyproject: bytes | str | None) -> str | None:
     return spec if isinstance(spec, str) else None
 
 
-MISSING_STARTUP_FILE = "the tree lists this startup file in [tool.hermes] update-startup-files but it is missing or could not be read"
-INVALID_STARTUP_FILES = "pyproject.toml must be valid TOML whose [tool.hermes] update-startup-files is a list of file paths"
+MISSING_STARTUP_FILE = "the tree lists this startup file in [tool.kova] update-startup-files but it is missing or could not be read"
+INVALID_STARTUP_FILES = "pyproject.toml must be valid TOML whose [tool.kova] update-startup-files is a list of file paths"
 
 
 def startup_files(pyproject: bytes | str | None, undeclared) -> tuple[tuple[str, ...], bool] | None:
     """``(files, required)``: the startup files to compile in a tree, and whether each must exist.
 
-    A tree that declares ``[tool.hermes] update-startup-files`` is judged by its own list, so a move
+    A tree that declares ``[tool.kova] update-startup-files`` is judged by its own list, so a move
     that relocates a startup file edits that list and an update to it is judged by the new paths. A
     declared file the tree lacks refuses the update. A tree that declares none (a release before the
     declaration) is judged by ``undeclared`` with absent files skipped, so a rollback to it still works.
@@ -503,7 +503,7 @@ def _run_python(argv: list[str], *, stdin: str = "", timeout: float = 60) -> str
 
 def _admitted_python(spec: str) -> str | None:
     """An installed ``python3.N`` the target's ``requires-python`` admits (newest first), or None
-    when this machine has none. No uv tier: Hermes never resolves the user's uv
+    when this machine has none. No uv tier: Kova never resolves the user's uv
     (tests/test_managed_runtime_resolution.py), and a missing interpreter only means this one judges."""
     from kova_platform.resolver import locate_command
 

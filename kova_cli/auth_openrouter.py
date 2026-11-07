@@ -76,7 +76,7 @@ def _openrouter_loopback_code(auth_url_params: dict[str, str], *, open_browser: 
     redirect_uri = f"http://127.0.0.1:{server.server_address[1]}{path}"
     auth_url = f"{OPENROUTER_AUTH_URL}?{urlencode({'callback_url': redirect_uri, **auth_url_params})}"
 
-    print(f"Open this URL to authorize Hermes with OpenRouter:\n  {auth_url}\n\nDocs: {OPENROUTER_OAUTH_DOCS_URL}")
+    print(f"Open this URL to authorize Kova with OpenRouter:\n  {auth_url}\n\nDocs: {OPENROUTER_OAUTH_DOCS_URL}")
     if open_browser and _can_open_graphical_browser():
         try:
             opened = webbrowser.open(auth_url)
@@ -103,7 +103,7 @@ def _openrouter_pkce_login(*, open_browser: bool = True, timeout_seconds: float 
     code_verifier = _pkce_code_verifier()
     params = {"code_challenge": _pkce_code_challenge(code_verifier), "code_challenge_method": "S256"}
     if _is_remote_session():
-        code = _openrouter_headless_code(f"{OPENROUTER_AUTH_URL}?{urlencode({**params, 'key_label': 'hermes-agent'})}")
+        code = _openrouter_headless_code(f"{OPENROUTER_AUTH_URL}?{urlencode({**params, 'key_label': 'kova-agent'})}")
     else:
         code = _openrouter_loopback_code(params, open_browser=open_browser, timeout_seconds=timeout_seconds)
     print("Exchanging the authorization code for an OpenRouter API key...")

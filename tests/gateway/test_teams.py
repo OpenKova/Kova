@@ -294,8 +294,8 @@ class TestTeamsInteractiveSetup:
         from kova_cli.cli_output (not kova_cli.config) and persist
         credentials to .env without crashing.
         """
-        hermes_home = tmp_path / "hermes"
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        kova_home = tmp_path / "hermes"
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
         import kova_cli.cli_output as cli_output_mod
 
@@ -308,7 +308,7 @@ class TestTeamsInteractiveSetup:
 
         _teams_mod.interactive_setup()
 
-        env_text = (hermes_home / ".env").read_text(encoding="utf-8")
+        env_text = (kova_home / ".env").read_text(encoding="utf-8")
         assert "TEAMS_CLIENT_ID=client-id" in env_text
         assert "TEAMS_TENANT_ID=tenant-id" in env_text
 
@@ -1110,8 +1110,8 @@ class TestTeamsRequireMention:
         ("channel", {}, False),
         ("groupChat", {}, False),
         ("channel", {"text": "<at>Alice</at> hi", "mentioned_id": "29:alice"}, False),  # someone else
-        ("channel", {"text": "<at>Hermes</at> hi", "mentioned_id": "28:bot-id"}, True),  # wire form of the bot id
-        ("groupChat", {"text": "<at>Hermes</at> hi", "mentioned_id": "bot-id"}, True),
+        ("channel", {"text": "<at>Kova</at> hi", "mentioned_id": "28:bot-id"}, True),  # wire form of the bot id
+        ("groupChat", {"text": "<at>Kova</at> hi", "mentioned_id": "bot-id"}, True),
         ("channel", {"reply_to_id": "bot-msg-1"}, True),
         ("personal", {}, True),
     ])

@@ -20,7 +20,7 @@ async def _owner(tmp_path, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import initialize_session_authority
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('KOVA_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     finalized = []
@@ -365,10 +365,10 @@ async def test_a_sibling_torn_down_with_the_shared_socket_reads_its_own_grace(tm
     """A shared socket's close tears its sibling connections down under the primary profile's scope;
     each still detaches as its own owner, so the sibling's grace expands against its own ``.env``."""
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     armed = _capture_timers(monkeypatch)
-    home, primary = get_hermes_home(), tmp_path / 'primary'
+    home, primary = get_kova_home(), tmp_path / 'primary'
     primary.mkdir()
     (home / 'config.yaml').write_text('sessions:\n  orphan_end_grace_s: ${ORPHAN_GRACE}\n')
     (home / '.env').write_text('ORPHAN_GRACE=900\n')

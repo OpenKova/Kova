@@ -22,12 +22,12 @@ def _make_skill(skills_dir: Path, name: str) -> Path:
 
 @pytest.fixture
 def lock_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with freshly reloaded modules (same shape as test_curator_pin_visibility)."""
-    home = tmp_path / ".hermes"
+    """Isolated KOVA_HOME with freshly reloaded modules (same shape as test_curator_pin_visibility)."""
+    home = tmp_path / ".kova"
     skills = home / "skills"
     skills.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     import kova_constants
     importlib.reload(kova_constants)

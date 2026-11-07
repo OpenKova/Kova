@@ -28,13 +28,13 @@ def _info_lines(*lines: str) -> None:
 
 def _ensure_browser_use_cli() -> None:
     """Confirm browser_exec's engine is runnable. It is browser-harness, a core dependency of
-    Hermes's own venv, so there is nothing to download; a miss means the venv needs a re-sync."""
+    Kova's own venv, so there is nothing to download; a miss means the venv needs a re-sync."""
     from tools.browser_use_cli import _find_cli
 
     if _find_cli() is not None:
-        _print_success("    browser_exec ready (browser-harness, bundled with Hermes)")
+        _print_success("    browser_exec ready (browser-harness, bundled with Kova)")
     else:
-        _print_warning("    browser-harness is missing from Hermes's Python environment")
+        _print_warning("    browser-harness is missing from Kova's Python environment")
         _print_info("    Re-sync it with: hermes update")
 
 
@@ -50,11 +50,11 @@ def _post_setup_lightpanda() -> None:
         _print_warning("    lightpanda binary not found on PATH, ~/.lightpanda or ~/.local/bin")
         _print_info(f"    {LIGHTPANDA_INSTALL_HINT}")
         if os.name == "nt":
-            _print_info("    Lightpanda has no native Windows build; run Hermes under WSL2.")
+            _print_info("    Lightpanda has no native Windows build; run Kova under WSL2.")
 
 
 def _post_setup_chromium() -> None:
-    """Local Browser row: browser_exec launches pm's Chromium. Termux (system Chromium) and the Hermes
+    """Local Browser row: browser_exec launches pm's Chromium. Termux (system Chromium) and the Kova
     Docker image (its baked build) own their payloads, so a miss there is a hint, never a download."""
     import pm
     from kova_cli.browser_runtime import BAKED_EXECUTABLE_FILE, chromium_executable, chromium_missing_hint
@@ -123,7 +123,7 @@ def _post_setup_python(spec: dict) -> None:
         _print_warning(f"    {label} install failed: {exc}")
         _info_lines("Retry with: hermes tools")
         return
-    _print_success(f"    {label} dependencies ready. Restart Hermes to use them.")
+    _print_success(f"    {label} dependencies ready. Restart Kova to use them.")
     _info_lines(*spec["on_install"], *spec["always"])
 
 

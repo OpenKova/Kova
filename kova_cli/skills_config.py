@@ -1,4 +1,4 @@
-"""Skills configuration for Hermes Agent. `hermes skills` enters this module."""
+"""Skills configuration for Kova Agent. `hermes skills` enters this module."""
 from typing import List, Optional, Set
 
 from kova_cli.config import cfg_get, load_config, save_config
@@ -41,7 +41,7 @@ def get_disabled_skills(config: dict, platform: Optional[str] = None) -> set[str
 
 
 def save_disabled_skills(config: dict, disabled: set[str], platform: Optional[str] = None):
-    """Persist disabled skill names to config; essential skills (e.g. ``hermes-agent``) are
+    """Persist disabled skill names to config; essential skills (e.g. ``kova-agent``) are
     silently dropped — they cannot be disabled from any surface."""
     from agent.skill_utils import ESSENTIAL_SKILLS
     disabled = set(disabled) - ESSENTIAL_SKILLS

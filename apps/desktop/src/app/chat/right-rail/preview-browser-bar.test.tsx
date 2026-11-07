@@ -26,13 +26,13 @@ function address(rendered: ReturnType<typeof render>) {
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
 
 function installBridge(writeClipboard: ReturnType<typeof vi.fn>) {
-  desktopWindow.hermesDesktop = { writeClipboard } as unknown as Window['hermesDesktop']
+  desktopWindow.kovaDesktop = { writeClipboard } as unknown as Window['hermesDesktop']
 }
 
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
-  delete desktopWindow.hermesDesktop
+  delete desktopWindow.kovaDesktop
 })
 
 describe('normalizePreviewAddress', () => {

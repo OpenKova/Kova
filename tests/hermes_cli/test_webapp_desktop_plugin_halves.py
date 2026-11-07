@@ -15,7 +15,7 @@ from kova_cli import web_server
 def hermes_root(monkeypatch, tmp_path):
     root = tmp_path / "hermes"
     (root / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "work"))
     return root
 
 
@@ -43,7 +43,7 @@ def _loaded(webapp):
     for folder in webapp.get("/api/desktop-plugins/list", params={"path": root}).json()["entries"]:
         files = {e["name"]: e["path"] for e in webapp.get("/api/desktop-plugins/list", params={"path": folder["path"]}).json()["entries"]}
         read = lambda name: webapp.get("/api/desktop-plugins/read", params={"path": files[name]}).json()["text"]
-        marker = json.loads(read(".hermes-package.json")) if ".hermes-package.json" in files else None
+        marker = json.loads(read(".kova-package.json")) if ".kova-package.json" in files else None
         seen[folder["name"]] = (read("plugin.js"), marker)
     return seen
 
@@ -60,7 +60,7 @@ def test_an_installed_package_brings_its_desktop_half_until_it_is_uninstalled(we
     assert (marker["package"], marker["source"]) == ("radar", str(source))
 
     # A corrupt timestamp in one marker is stale metadata, never an error that hides every plugin.
-    marker_path = hermes_root / "desktop-plugins" / "radar" / ".hermes-package.json"
+    marker_path = hermes_root / "desktop-plugins" / "radar" / ".kova-package.json"
     marker_path.write_text(json.dumps({**marker, "sourceMtimeMs": None}), encoding="utf-8")
     loaded = _loaded(webapp)
     assert loaded["notes"] == ("mine", None)

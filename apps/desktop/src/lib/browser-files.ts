@@ -1,6 +1,6 @@
 import { fileUrlToNativePath } from '@kova/shared'
 
-import type { HermesApiRequest } from '@/global'
+import type { KovaApiRequest } from '@/global'
 import { translateNow } from '@/i18n'
 import { requireBrowserConnection } from '@/lib/browser-connection'
 import { fetchBrowserImage } from '@/lib/browser-image-download'
@@ -19,7 +19,7 @@ function queryPath(route: string, values: Record<string, boolean | null | string
 }
 
 interface BrowserFilesOptions {
-  api: <T>(request: HermesApiRequest) => Promise<T>
+  api: <T>(request: KovaApiRequest) => Promise<T>
   bootstrap: BrowserBootstrap
   currentProfile: () => string | null
 }
@@ -48,7 +48,7 @@ export function createBrowserFilesBridge({
     const target = new URL(url, window.location.href)
 
     // Cross-origin anchors ignore download and navigate the current tab.
-    // Fetch without Hermes credentials; CORS denial must not fall back to navigation.
+    // Fetch without Kova credentials; CORS denial must not fall back to navigation.
     if (target.origin !== window.location.origin && !['blob:', 'data:'].includes(target.protocol)) {
       const image = await fetchBrowserImage(target)
 

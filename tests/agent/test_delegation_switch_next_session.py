@@ -2,7 +2,7 @@
 
 A session routes on the backend its ``delegate_task`` schema was built from, so routing and schema switch
 together. Real AIAgent turns against a recording fake provider, a real delegation backend plugin discovered from
-a temp HERMES_HOME and the real session DB: each test reads the schema Hermes actually sent and the backend a
+a temp KOVA_HOME and the real session DB: each test reads the schema Kova actually sent and the backend a
 task with no choice routes on.
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 from tests.e2e.core.history._helpers import NO_BACKGROUND_REVIEW, OFFLINE_CONFIG
-from tests.fakes.fake_llm_provider import FakeLLMServer, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, write_kova_home
 from tests.tools.test_delegation_backends import OPTIONS, PROBE_PLUGIN, REPO_PLUGINS
 
 
@@ -25,7 +25,7 @@ def options_backend(monkeypatch):
     from kova_cli import plugins as plugins_mod
     from kova_cli.plugins import PluginManager
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     plugin_dir = home / "plugins" / "probe-options"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "probe-options", "version": "1.0"}))
@@ -37,7 +37,7 @@ def options_backend(monkeypatch):
     srv = FakeLLMServer([]).__enter__()
     extra = yaml.safe_dump({"plugins": {"enabled": ["probe-options"]}, "delegation": {
         "backend": "probe-options", "backends": {"probe-options": {"options": OPTIONS}}}})
-    write_hermes_home(home, srv.base_url, extra_config=OFFLINE_CONFIG + NO_BACKGROUND_REVIEW + extra)
+    write_kova_home(home, srv.base_url, extra_config=OFFLINE_CONFIG + NO_BACKGROUND_REVIEW + extra)
     manager = PluginManager()
     manager.discover_and_load()
     yield srv, home

@@ -17,7 +17,7 @@ test.beforeAll(async () => {
   const sandbox = createSandbox('dm-delivery')
   const mock = await startMockServer({ holdFirstCompletionContaining: 'Message from 🤖 beta (@beta): matrix-unowned-sentinel' })
   for (const name of ['default', 'alpha', 'beta', 'gamma']) {
-    const home = name === 'default' ? sandbox.hermesHome : path.join(sandbox.hermesHome, 'profiles', name)
+    const home = name === 'default' ? sandbox.kovaHome : path.join(sandbox.kovaHome, 'profiles', name)
     fs.mkdirSync(home, { recursive: true })
     writeMockProviderConfig(home, mock.url)
     writeEnvFile(home)
@@ -40,11 +40,11 @@ test.beforeAll(async () => {
   if (process.env.BOT_DM_SERVICE_PATH === '1') {
     fs.writeFileSync(path.join(bin, 'hermes'), `#!/bin/sh\nprintf 'WRONG_PATH_HERMES invoked: %s\\n' "$*" >> ${path.join(evidence, 'wrong-path.log')}\nprintf 'old launcher rejects --query-file\\n' >&2\nexit 2\n`, { mode: 0o755 })
   }
-  env = buildAppEnv(sandbox, { HOME: sandbox.root, HERMES_DESKTOP_PYTHON: python,
-    HERMES_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
-    PYTHONPATH: repo, HERMES_SINGLE_QUERY_LINGER_SECONDS: '30' })
+  env = buildAppEnv(sandbox, { HOME: sandbox.root, KOVA_DESKTOP_PYTHON: python,
+    KOVA_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
+    PYTHONPATH: repo, KOVA_SINGLE_QUERY_LINGER_SECONDS: '30' })
   for (const name of ['alpha', 'beta', 'gamma']) {
-    const h = path.join(sandbox.hermesHome, 'profiles', name)
+    const h = path.join(sandbox.kovaHome, 'profiles', name)
     execFileSync(python, ['-c', 'import sys; from pathlib import Path; from kova_state import SessionDB; d=SessionDB(db_path=Path(sys.argv[1])/"state.db"); d.create_session("matrix-"+sys.argv[2],"cli",cwd=sys.argv[3]); d.set_session_title("matrix-"+sys.argv[2],"Bot Chat"); d.close()', h, name, sandbox.root], { env, cwd: repo })
   }
   const { app, page } = await launchDesktop(env)
@@ -71,7 +71,7 @@ async function openBot(name: string) {
 }
 
 function dbMessages(name: string) {
-  const home = name === 'default' ? fixture.sandbox.hermesHome : path.join(fixture.sandbox.hermesHome, 'profiles', name)
+  const home = name === 'default' ? fixture.sandbox.kovaHome : path.join(fixture.sandbox.kovaHome, 'profiles', name)
   return JSON.parse(execFileSync(python, ['-c', 'import sqlite3,json,sys; c=sqlite3.connect(sys.argv[1]); print(json.dumps(c.execute("select role,content from messages").fetchall()))', path.join(home, 'state.db')], { env, cwd: repo, encoding: 'utf8' })) as string[][]
 }
 
@@ -83,7 +83,7 @@ function owner(name: string) {
   return py('import json,sys; from tools.bot_live_delivery import find_canonical_live_owner; print(json.dumps(find_canonical_live_owner(sys.argv[1])))', [home(name)])
 }
 function home(name: string) {
-  return name === 'default' ? fixture.sandbox.hermesHome : path.join(fixture.sandbox.hermesHome, 'profiles', name)
+  return name === 'default' ? fixture.sandbox.kovaHome : path.join(fixture.sandbox.kovaHome, 'profiles', name)
 }
 function snapshot(name: string) {
   return py('import json,sqlite3,sys; from kova_cli.active_sessions import active_session_registry_snapshot; c=sqlite3.connect(sys.argv[1]+"/state.db"); c.row_factory=sqlite3.Row; print(json.dumps(dict(sessions=[dict(x) for x in c.execute("select * from sessions")],messages=[dict(x) for x in c.execute("select * from messages")],owners=active_session_registry_snapshot(registry_home=sys.argv[1])),default=str))', [home(name)])

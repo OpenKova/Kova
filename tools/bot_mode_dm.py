@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 # Top-level imports stay stdlib-only: this module also runs directly as the background
-# delivery runner (``python bot_mode_dm.py --run-delivery …``); Hermes helpers import lazily.
+# delivery runner (``python bot_mode_dm.py --run-delivery …``); Kova helpers import lazily.
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,8 @@ FAN_OUT_MAX = 8
 
 
 def _default_home() -> str:
-    from kova_constants import get_process_hermes_home
-    return str(get_process_hermes_home())
+    from kova_constants import get_process_kova_home
+    return str(get_process_kova_home())
 
 
 def message_agent_tool_schema() -> dict:
@@ -257,7 +257,7 @@ def message_agent_tool(target: str = "", message: str = "", task_id: Optional[st
     except Exception as exc:  # pragma: no cover — defensive
         return _err(f"Bot Mode gate check failed: {exc}")
     from kova_cli.observability.shared_metrics_signals import record_feature_used
-    record_feature_used("bot_mode", hermes_home=home)
+    record_feature_used("bot_mode", kova_home=home)
 
     root, me = _hermes_root(Path(home)), _self_profile_name(Path(home))
     roster_homes = dict(_roster(root))
@@ -687,7 +687,7 @@ def _live_outcome_unknown(dm_file: str, cause: object) -> str:
 def _runner_argv(args: list[str]) -> tuple[Optional[str], str, str, list[str]] | None:
     """Split ``--run-delivery [--author <json>] <mode> <dm_file> <argv…>`` into
     ``(author_json, mode, dm_file, argv)``; None when malformed. Stdlib only: the boot-failure
-    report runs it when no Hermes import is available."""
+    report runs it when no Kova import is available."""
     if args[:1] != ["--run-delivery"]:
         return None
     rest, author = args[1:], None
@@ -1028,10 +1028,10 @@ def _session_title(agent: Any) -> str:
 if __name__ == "__main__":  # pragma: no cover - exercised as a background process
     # Spawned as a script with the sender's sys.executable, which under PM is the bare store
     # interpreter (dependencies are activated in-process, never inherited), so boot like every
-    # entry point before the lazy Hermes imports. Run as a path, sys.path[0] is tools/.
+    # entry point before the lazy Kova imports. Run as a path, sys.path[0] is tools/.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     # Only the delivery lane boots: the reply waiter is stdlib only and its stdout is the
-    # sender's wake-up, and any other argv exits 2 before a Hermes import.
+    # sender's wake-up, and any other argv exits 2 before a Kova import.
     if sys.argv[1:2] == ["--run-delivery"]:
         try:
             import kova_bootstrap
@@ -1044,6 +1044,6 @@ if __name__ == "__main__":  # pragma: no cover - exercised as a background proce
             parsed = _runner_argv(sys.argv[1:])
             if not booted and parsed and os.path.exists(_live_intent_file(parsed[2])):
                 print(_live_outcome_unknown(parsed[2], "the delivery runner could not activate "
-                                                       "Hermes dependencies (see stderr)"))
+                                                       "Kova dependencies (see stderr)"))
             raise
     raise SystemExit(_delivery_main(sys.argv[1:]))

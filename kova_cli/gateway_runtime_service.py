@@ -40,11 +40,11 @@ def service_suffix(home: Path) -> str:
     Same rule as ``kova_cli.gateway._profile_suffix``: only the platform-native
     default home owns the bare unit name; ``<root>/profiles/<name>`` yields the
     profile name; any other root (Docker, a temp harness) yields a path hash so a
-    custom root can never resolve to the production ``hermes-gateway`` unit.
+    custom root can never resolve to the production ``kova-gateway`` unit.
     """
-    from kova_constants import account_default_hermes_home
+    from kova_constants import account_default_kova_home
     from kova_cli.gateway import _profile_name_from_home
-    default = account_default_hermes_home().resolve()
+    default = account_default_kova_home().resolve()
     home = home.resolve()
     if home == default:
         return ""
@@ -96,11 +96,11 @@ def _systemd(home: Path, deadline: float) -> ExistingService | None:
     if _s6_running():
         raise RuntimeStartError("external_supervisor")
     suffix = service_suffix(home)
-    unit = f"hermes-gateway{'-' + suffix if suffix else ''}.service"
+    unit = f"kova-gateway{'-' + suffix if suffix else ''}.service"
     paths = (Path.home() / ".config/systemd/user" / unit, Path("/etc/systemd/system") / unit)
     # On non-systemd hosts there is no manager to own transient units. Installed
     # definitions still count: a broken manager is not permission to bypass one.
-    # Every Hermes entrypoint ensures the gateway, so a host with no installed unit must not
+    # Every Kova entrypoint ensures the gateway, so a host with no installed unit must not
     # touch the service manager at all (a headless runner has no user bus to answer it).
     # With a unit installed anywhere, both scopes are asked: two claiming the name is a conflict.
     installed = (*paths, Path("/usr/lib/systemd/system") / unit, Path("/lib/systemd/system") / unit)
@@ -162,7 +162,7 @@ def _s6(home: Path, deadline: float) -> ExistingService | None:
     # with-contenv is also the service run script's authority. The initiating
     # client may have selected a named profile or a different install root.
     try:
-        container_home = Path("/run/s6/container_environment/HERMES_HOME").read_text(encoding="utf-8-sig").strip()
+        container_home = Path("/run/s6/container_environment/KOVA_HOME").read_text(encoding="utf-8-sig").strip()
     except (OSError, UnicodeError):
         raise RuntimeStartError("service_identity_unverified") from None
     if not container_home:
@@ -186,7 +186,7 @@ def _s6(home: Path, deadline: float) -> ExistingService | None:
 def _launchd(home: Path, deadline: float) -> ExistingService | None:
     import pwd
     suffix = service_suffix(home)
-    label = f"ai.hermes.gateway{'-' + suffix if suffix else ''}"
+    label = f"ai.kova.gateway{'-' + suffix if suffix else ''}"
     account = pwd.getpwuid(os.getuid())  # windows-footgun: ok — native launchd only
     account_home = Path(account.pw_dir)
     plist = account_home / "Library/LaunchAgents" / f"{label}.plist"
@@ -221,7 +221,7 @@ def _launchd(home: Path, deadline: float) -> ExistingService | None:
 def _windows(home: Path, deadline: float) -> ExistingService | None:
     from kova_cli.gateway_windows import _decode_schtasks_output
     suffix = service_suffix(home)
-    name = f"Hermes_Gateway{'_' + suffix if suffix else ''}"
+    name = f"Kova_Gateway{'_' + suffix if suffix else ''}"
 
     def query(refusal: str, *argv: str) -> str:
         # schtasks/whoami write the console code page, and /XML declares UTF-16 over those bytes:

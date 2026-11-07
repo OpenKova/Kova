@@ -97,7 +97,7 @@ afterEach(() => {
 describe('terminal drop in the browser-hosted Desktop', () => {
   function browserBridge(stage: (file: File) => Promise<string>) {
     const stageFileForAttach = vi.fn(stage)
-    desktopWindow.hermesDesktop = { getPathForFile: () => '', stageFileForAttach }
+    desktopWindow.kovaDesktop = { getPathForFile: () => '', stageFileForAttach }
 
     return stageFileForAttach
   }
@@ -116,12 +116,12 @@ describe('terminal drop in the browser-hosted Desktop', () => {
   })
 
   it("quotes staged paths for the terminal's own shell", async () => {
-    browserBridge(async () => 'C:\\Users\\me\\.hermes\\uploads\\it\'s.txt')
+    browserBridge(async () => 'C:\\Users\\me\\.kova\\uploads\\it\'s.txt')
     const { host, unbind, write } = bind('powershell.exe')
 
     drop(host, transfer([file("it's.txt")]))
 
-    await vi.waitFor(() => expect(write).toHaveBeenCalledWith('term-1', "'C:\\Users\\me\\.hermes\\uploads\\it''s.txt' "))
+    await vi.waitFor(() => expect(write).toHaveBeenCalledWith('term-1', "'C:\\Users\\me\\.kova\\uploads\\it''s.txt' "))
     unbind()
   })
 
@@ -175,7 +175,7 @@ describe('terminal drop in the browser-hosted Desktop', () => {
 describe('terminal drop in Electron Desktop', () => {
   it('types the native path of each dropped file without uploading it', async () => {
     const getPathForFile = vi.fn((entry: File) => `/home/me/${entry.name}`)
-    desktopWindow.hermesDesktop = { getPathForFile }
+    desktopWindow.kovaDesktop = { getPathForFile }
     const { focus, host, unbind, write } = bind('bash')
 
     drop(host, transfer([file('a.txt'), file('b c.txt')]))
@@ -186,7 +186,7 @@ describe('terminal drop in Electron Desktop', () => {
   })
 
   it('ignores a dropped file Electron cannot resolve to a path', async () => {
-    desktopWindow.hermesDesktop = { getPathForFile: () => '' }
+    desktopWindow.kovaDesktop = { getPathForFile: () => '' }
     const { host, unbind, write } = bind('bash')
 
     drop(host, transfer([file('from-a-web-page.png')]))
@@ -219,7 +219,7 @@ describe('terminal drop never types keystrokes', () => {
   })
 
   it('types nothing for an OS file whose native path holds a control character', () => {
-    desktopWindow.hermesDesktop = { getPathForFile: (entry: File) => `/home/me/${entry.name}` }
+    desktopWindow.kovaDesktop = { getPathForFile: (entry: File) => `/home/me/${entry.name}` }
     const { focus, host, unbind, write } = bind('zsh')
 
     drop(host, transfer([file('report\n.txt')]))

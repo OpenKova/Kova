@@ -15,7 +15,7 @@ def _build_full_manifest(
     messaging_experience: str | None = None, long_description: str | None = None) -> dict:
     """Build a full Slack manifest: display info + slash list from ``COMMAND_REGISTRY``.
 
-    Other sections (OAuth scopes, socket mode) are sensible Hermes defaults, tweakable in the Slack
+    Other sections (OAuth scopes, socket mode) are sensible Kova defaults, tweakable in the Slack
     UI after pasting.
     """
     from kova_cli.commands_platforms import slack_app_manifest
@@ -43,11 +43,11 @@ def _build_full_manifest(
 
     if messaging_experience == "assistant":
         features["assistant_view"] = {
-            "assistant_description": "Chat with Hermes in threads and DMs."}
+            "assistant_description": "Chat with Kova in threads and DMs."}
         bot_scopes.append("assistant:write")
         bot_events.extend(["assistant_thread_context_changed", "assistant_thread_started"])
     elif messaging_experience == "agent":
-        features["agent_view"] = {"agent_description": "Chat with Hermes in Slack Messages."}
+        features["agent_view"] = {"agent_description": "Chat with Kova in Slack Messages."}
         bot_scopes.append("assistant:write")
         # Slack includes current viewing context in Agent DM events only after this subscription
         # is enabled; the adapter uses it to preserve the referred channel across the agent turn.
@@ -58,7 +58,7 @@ def _build_full_manifest(
 
     display_information = {
         "name": bot_name[:35],
-        "description": (bot_description or "Your Hermes agent on Slack")[:140],
+        "description": (bot_description or "Your Kova agent on Slack")[:140],
         "background_color": "#1a1a2e"}
     if long_description is not None:
         display_information["long_description"] = long_description
@@ -78,8 +78,8 @@ def _build_full_manifest(
 
 def slack_manifest_command(args) -> int:
     """Print or write a Slack app manifest JSON (flags documented in ``kova_cli/main.py``)."""
-    name = getattr(args, "name", None) or "Hermes"
-    description = getattr(args, "description", None) or "Your Hermes agent on Slack"
+    name = getattr(args, "name", None) or "Kova"
+    description = getattr(args, "description", None) or "Your Kova agent on Slack"
     long_description = getattr(args, "long_description", None)
     long_description_file = getattr(args, "long_description_file", None)
     slashes_only = getattr(args, "slashes_only", False)
@@ -127,8 +127,8 @@ def slack_manifest_command(args) -> int:
         sys.stdout.write(payload)
         return 0
     if isinstance(write_target, bool) and write_target:  # bare --write → default location
-        from kova_constants import get_hermes_home
-        target = Path(get_hermes_home()) / "slack-manifest.json"
+        from kova_constants import get_kova_home
+        target = Path(get_kova_home()) / "slack-manifest.json"
     else:
         target = Path(write_target).expanduser()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -136,7 +136,7 @@ def slack_manifest_command(args) -> int:
     print(f"Slack manifest written to: {target}", file=sys.stderr)
     print(
         "\nNext steps:\n"
-        "  1. Open https://api.slack.com/apps and pick your Hermes app\n"
+        "  1. Open https://api.slack.com/apps and pick your Kova app\n"
         "     (or create a new one: Create New App → From an app manifest).\n"
         f"  2. Features → App Manifest → paste the contents of\n"
         f"     {target}\n"

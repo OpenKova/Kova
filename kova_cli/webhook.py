@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable, Dict
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 from utils import atomic_json_write
 from kova_cli.config import cfg_get
 
@@ -29,8 +29,8 @@ class SubscriptionMutationConflict(RuntimeError):
 
 
 def _subscriptions_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / _SUBSCRIPTIONS_FILENAME
+    from kova_constants import get_kova_home
+    return get_kova_home() / _SUBSCRIPTIONS_FILENAME
 
 
 def _subscriptions_lock_path() -> Path:
@@ -136,7 +136,7 @@ def _route_url(name: str, route: dict) -> str:
 
 
 def _setup_hint() -> str:
-    _dhh = display_hermes_home()
+    _dhh = display_kova_home()
     return f"""
   Webhook platform is not enabled. To set it up:
 

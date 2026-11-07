@@ -12,9 +12,9 @@ import pytest
 
 
 def test_code_scoped_stamp_wins_over_home_stamp(tmp_path):
-    """The stamp next to the running code is authoritative over $HERMES_HOME.
+    """The stamp next to the running code is authoritative over $KOVA_HOME.
 
-    Models a host git install whose $HERMES_HOME is shared with (and stamped
+    Models a host git install whose $KOVA_HOME is shared with (and stamped
     'docker' by) a co-located container. The code-scoped stamp must win so the
     host install is correctly identified as 'git' and 'hermes update' works.
     """
@@ -25,7 +25,7 @@ def test_code_scoped_stamp_wins_over_home_stamp(tmp_path):
     (code / ".install_method").write_text("git\n")
     (home / ".install_method").write_text("docker\n")  # container contamination
     with patch("kova_cli.config.get_managed_system", return_value=None), \
-         patch("kova_cli.config.get_hermes_home", return_value=home):
+         patch("kova_cli.config.get_kova_home", return_value=home):
         from kova_cli.config import detect_install_method
         assert detect_install_method(project_root=code) == "git"
 
@@ -43,7 +43,7 @@ def test_container_without_stamp_is_not_docker(tmp_path):
     """
     (tmp_path / ".git").mkdir()
     with patch("kova_cli.config.get_managed_system", return_value=None), \
-         patch("kova_cli.config.get_hermes_home", return_value=tmp_path), \
+         patch("kova_cli.config.get_kova_home", return_value=tmp_path), \
          patch("kova_constants.is_container", return_value=True):
         from kova_cli.config import detect_install_method
         assert detect_install_method(project_root=tmp_path) == "git"

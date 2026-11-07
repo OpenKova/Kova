@@ -95,10 +95,10 @@ def _existing_profile_homes(profile_homes: list) -> list:
 def routed_profile_fire(home=None) -> bool:
     """True when a fire runs for a profile OTHER than the process's own.
 
-    Derived from the fire's home itself (``home``, else the task's active ``get_hermes_home()``), never from
+    Derived from the fire's home itself (``home``, else the task's active ``get_kova_home()``), never from
     a marker one entry point sets: the desktop ticker (``_profile_cron_scope``), the dashboard's
     manual Run now (``kova_cli.web_server_cron._cron_store_scope``) and any other caller that
-    binds a HERMES_HOME override for a sibling profile all reach ``run_one_job`` the same way, and a
+    binds a KOVA_HOME override for a sibling profile all reach ``run_one_job`` the same way, and a
     marker set only in the ticker left the manual path with the original cross-profile leak.
 
     The desktop backend fires every local profile from one process without setting the
@@ -107,30 +107,30 @@ def routed_profile_fire(home=None) -> bool:
     ``override=True`` and a scope miss read the launch profile's credentials (#107692).
     ``cron.scheduler._install_fire_secret_scope`` turns this into multiplex semantics for exactly
     the span the profile's secret scope covers, and the restart-safe handoff marks the worker
-    payload with it. The launch identity is ``get_routing_process_hermes_home()`` (gateway/AGENTS.md
+    payload with it. The launch identity is ``get_routing_process_kova_home()`` (gateway/AGENTS.md
     "One launch-home identity")."""
-    from kova_constants import get_hermes_home, get_routing_process_hermes_home, hermes_home_key
+    from kova_constants import get_kova_home, get_routing_process_kova_home, kova_home_key
 
-    target = home if home is not None else get_hermes_home()
-    return hermes_home_key(target) != hermes_home_key(get_routing_process_hermes_home())
+    target = home if home is not None else get_kova_home()
+    return kova_home_key(target) != kova_home_key(get_routing_process_kova_home())
 
 
 @contextlib.contextmanager
 def _profile_cron_scope(home):
     """Scope the calling thread to one profile's home + cron store for the block."""
     from cron.jobs import use_cron_store
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
 
     # Record per-profile heartbeat after each tick cycle. Distinguish a COMPLETED cycle (``_tick_error``
     # unset) — where each profile's beat reflects its own outcome, so a yielding profile does not darken
     # healthy siblings — from an aborted one (exception), where no profile completed and all beats are
     # unsuccessful (#32612).
-    home_token = set_hermes_home_override(str(home))
+    home_token = set_kova_home_override(str(home))
     try:
         with use_cron_store(home):
             yield
     finally:
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
 
 class CronScheduler(ABC):
@@ -444,7 +444,7 @@ class InProcessCronScheduler(CronScheduler):
         from cron.scheduler import tick as cron_tick
         from cron.jobs import clear_ticker_error, record_ticker_error, record_ticker_heartbeat
         from cron.scheduler_ownership import register_ticked_homes
-        from kova_constants import get_process_hermes_home
+        from kova_constants import get_process_kova_home
         from cron.dispatch_hold import note_dispatching, note_held
 
         logger.info("In-process cron scheduler started (interval=%ds)", interval)
@@ -453,7 +453,7 @@ class InProcessCronScheduler(CronScheduler):
         # ── Multiplex profiles ──────────────────────────────────────────── When profile_homes is set
         # (multiplex_profiles on), tick EACH profile's cron store on every tick cycle so secondary-profile
         # jobs actually fire instead of languishing in a store no ticker owns (#69377). Without this, only
-        # the process-global HERMES_HOME (the default profile) is ticked. Heartbeats and recovery are also
+        # the process-global KOVA_HOME (the default profile) is ticked. Heartbeats and recovery are also
         # scoped per profile so `hermes cron status` reflects liveness for every profile independently.
         if profile_homes is not None and (callable(profile_homes) or profile_homes):
             self._start_multiplex(
@@ -465,7 +465,7 @@ class InProcessCronScheduler(CronScheduler):
             return
 
         # Single-profile ticker: the launch home is the only home this process owns cron for.
-        register_ticked_homes([get_process_hermes_home()])
+        register_ticked_homes([get_process_kova_home()])
 
         # Startup recovery and the initial heartbeat run before the guarded loop; a broken
         # store here must not take the whole ticker thread down (#111010) — the loop's own

@@ -51,8 +51,8 @@ def prepare(tmp_path, monkeypatch):
     lock.save()
     monkeypatch.setattr(paths, "lockfile_path", lambda: lock.path)
     monkeypatch.setattr(paths, "repo_root", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
 
     real_pin_artifacts = cli._pin_artifacts
 

@@ -33,9 +33,9 @@ from kova_cli.proxy.adapters.xai import XAIGrokAdapter
 # ---------------------------------------------------------------------------
 
 
-def _write_auth_store(hermes_home: Path, nous_state: dict[str, Any]) -> Path:
-    """Write an auth.json with the given nous state into a hermetic HERMES_HOME."""
-    auth_path = hermes_home / "auth.json"
+def _write_auth_store(kova_home: Path, nous_state: dict[str, Any]) -> Path:
+    """Write an auth.json with the given nous state into a hermetic KOVA_HOME."""
+    auth_path = kova_home / "auth.json"
     auth_path.write_text(json.dumps({
         "version": 1,
         "providers": {"nous": nous_state},
@@ -47,7 +47,7 @@ def test_nous_adapter_never_waits_on_a_free_tier_challenge_under_its_lock(tmp_pa
     """Every proxied request queues on the adapter lock, so the credential read inside it is a
     background caller: a browser challenge is announced and raised, never waited on."""
     from kova_cli import anon_challenge
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _write_auth_store(tmp_path, {"access_token": "a", "refresh_token": "r"})
     seen = []
 
@@ -63,7 +63,7 @@ def test_nous_adapter_never_waits_on_a_free_tier_challenge_under_its_lock(tmp_pa
 
 def test_nous_adapter_concurrent_refresh_serialized(tmp_path, monkeypatch):
     """Two parallel get_credential() calls must serialize through the lock."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     _write_auth_store(tmp_path, {
         "access_token": "a", "refresh_token": "r",
     })
@@ -128,15 +128,15 @@ def test_nous_adapter_concurrent_refresh_serialized(tmp_path, monkeypatch):
 
 
 def _write_xai_pool_entry(
-    hermes_home: Path,
+    kova_home: Path,
     *,
     access_token: str = "xai-access-token",
     refresh_token: str = "xai-refresh-token",
     base_url: str = "https://api.x.ai/v1",
     source: str = "manual:xai_pkce",
 ) -> Path:
-    """Write an xai-oauth pool entry into a hermetic HERMES_HOME."""
-    auth_path = hermes_home / "auth.json"
+    """Write an xai-oauth pool entry into a hermetic KOVA_HOME."""
+    auth_path = kova_home / "auth.json"
     auth_path.write_text(json.dumps({
         "version": 1,
         "providers": {},
@@ -159,7 +159,7 @@ def _write_xai_pool_entry(
 
 
 def test_xai_adapter_not_authenticated_when_no_pool_entry(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {},
@@ -181,7 +181,7 @@ def test_xai_adapter_retry_rotates_pool_entry_on_429(tmp_path, monkeypatch):
     via ``EXHAUSTED_TTL_429_SECONDS`` on the offending key, and
     returns the next available credential.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     # Two pool entries so rotation has somewhere to go.
     auth_path = tmp_path / "auth.json"

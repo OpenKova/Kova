@@ -15,7 +15,7 @@ from pathlib import Path
 
 from agent.onboarding import PROFILE_BUILD_FLAG, is_seen
 from kova_cli.config_effective import load_user_config_effective
-from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_kova_home
 
 ROOT = Path(__file__).parents[2]
 PROMPT = "work kanban task t_1"
@@ -24,13 +24,13 @@ PROMPT = "work kanban task t_1"
 def test_first_cli_message_in_a_fresh_home_reaches_the_model_unchanged(tmp_path):
     home = tmp_path / "hermes"
     with FakeLLMServer([Text("done")]) as srv:
-        write_hermes_home(
+        write_kova_home(
             home, srv.base_url,
             extra_config="updates:\n  check: false\nmodels_dev:\n  url: http://127.0.0.1:9/api.json\n",
         )
-        env = {**os.environ, "HERMES_HOME": str(home), "PYTHONUTF8": "1"}
+        env = {**os.environ, "KOVA_HOME": str(home), "PYTHONUTF8": "1"}
         env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
-        for name in ("HERMES_DESKTOP", "HERMES_DASHBOARD_SESSION_TOKEN"):
+        for name in ("KOVA_DESKTOP", "KOVA_DASHBOARD_SESSION_TOKEN"):
             env.pop(name, None)
         proc = subprocess.run(
             [sys.executable, "-m", "kova_cli.main", "chat", "-q", PROMPT],

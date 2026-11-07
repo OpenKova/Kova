@@ -53,8 +53,8 @@ def test_pm_handoff_reports_update_and_gateway_results(
         command.append('-NoGateway')
     result = subprocess.run(
         command,
-        cwd=tmp_path, env={**os.environ, 'HERMES_HOME': str(home),
-                          'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        cwd=tmp_path, env={**os.environ, 'KOVA_HOME': str(home),
+                          'KOVA_RUNTIME_DIR': str(tmp_path / 'empty-store'),
                           'HANDOFF_CALLS': str(calls), 'HANDOFF_EXIT': str(code),
                           'GATEWAY_EXIT': str(gateway_code)},
         capture_output=True, text=True, timeout=120,
@@ -66,16 +66,16 @@ def test_pm_handoff_reports_update_and_gateway_results(
     if code == 0 and not no_gateway:
         expected.append({'argv': ['gateway', 'start', '--all'], 'cwd': str(install)})
     assert [json.loads(line) for line in calls.read_text(encoding='utf-8-sig').splitlines()] == expected
-    receipt = json.loads((home / '.hermes-update-result.json').read_text(encoding='utf-8-sig'))
+    receipt = json.loads((home / '.kova-update-result.json').read_text(encoding='utf-8-sig'))
     assert receipt['ok'] == (code == 0)
     assert receipt.get('manual', False) == (code == 0 and not no_gateway and gateway_code != 0)
-    assert not (home / '.hermes-update-in-progress').exists()
+    assert not (home / '.kova-update-in-progress').exists()
 
 
 @pytest.mark.platforms('windows')
 @pytest.mark.parametrize(('output', 'code'), [
     ('✓ Update complete! (v1.0.0)', 0),
-    ('✓ Update complete! (v1.0.0)|  ✗ hermes-gateway failed to come back after restart.', 124),
+    ('✓ Update complete! (v1.0.0)|  ✗ kova-gateway failed to come back after restart.', 124),
     ('✓ Update complete! (v1.0.0)|Update incomplete — some units were not restarted', 124),
     ('Cloning into the checkout...', 124),
 ])
@@ -92,17 +92,17 @@ def test_update_killed_by_idle_watchdog_after_completing_is_a_success(
     result = subprocess.run(
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
          str(ROOT / 'scripts/desktop-update/windows.ps1'), '-InstallRoot', str(install), '-NoUi'],
-        cwd=tmp_path, env={**os.environ, 'HERMES_HOME': str(home),
-                          'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        cwd=tmp_path, env={**os.environ, 'KOVA_HOME': str(home),
+                          'KOVA_RUNTIME_DIR': str(tmp_path / 'empty-store'),
                           'HANDOFF_CALLS': str(calls), 'HANDOFF_EXIT': '0', 'HANDOFF_HANG': output,
-                          'HERMES_UPDATE_STEP_IDLE_SECONDS': '3', 'PYTHONIOENCODING': 'utf-8'},
+                          'KOVA_UPDATE_STEP_IDLE_SECONDS': '3', 'PYTHONIOENCODING': 'utf-8'},
         capture_output=True, text=True, timeout=180,
         check=False,
     )
     assert result.returncode == code, result.stdout + result.stderr
     argv = [json.loads(line)['argv'][:2] for line in calls.read_text(encoding='utf-8-sig').splitlines()]
     assert argv == ([['update', '--yes'], ['gateway', 'start']] if code == 0 else [['update', '--yes']])
-    receipt = json.loads((home / '.hermes-update-result.json').read_text(encoding='utf-8-sig'))
+    receipt = json.loads((home / '.kova-update-result.json').read_text(encoding='utf-8-sig'))
     assert receipt['ok'] == (code == 0)
 
 
@@ -120,9 +120,9 @@ def test_earlier_pm_userbin_launcher_is_identity_checked(tmp_path: Path) -> None
     (wrong / 'kova_cli/_launchers.py').touch()
     helper = str(ROOT / 'scripts/desktop-update/runtime.ps1').replace("'", "''")
     for target, expected_code in [(root, 0), (wrong, 1)]:
-        script = f". '{helper}'; try {{ @(Get-HermesRuntimeCommand -InstallRoot '{target}') | ConvertTo-Json -Compress }} catch {{ exit 1 }}"
+        script = f". '{helper}'; try {{ @(Get-KovaRuntimeCommand -InstallRoot '{target}') | ConvertTo-Json -Compress }} catch {{ exit 1 }}"
         result = subprocess.run(['powershell', '-NoProfile', '-Command', script],
-                                env={**os.environ, 'HERMES_HOME': str(home)},
+                                env={**os.environ, 'KOVA_HOME': str(home)},
                                 capture_output=True, text=True, timeout=45, check=False)
         assert result.returncode == expected_code, result.stdout + result.stderr
         if expected_code == 0:
@@ -140,7 +140,7 @@ def test_command_file_launcher_probe_runs_through_cmd_exe_explicitly(tmp_path: P
     target = str(launcher).replace("'", "''")
 
     def probe(argument: str) -> subprocess.CompletedProcess:
-        script = (f". '{helper}'; try {{ $r = Invoke-HermesProbe '{target}' @('--version', '{argument}'); "
+        script = (f". '{helper}'; try {{ $r = Invoke-KovaProbe '{target}' @('--version', '{argument}'); "
                   "[Console]::Out.Write(\"code=$($r.Code)`n$($r.Output)\") } catch { [Console]::Out.Write('refused'); exit 3 }")
         return subprocess.run(['powershell', '-NoProfile', '-Command', script],
                               capture_output=True, text=True, timeout=60, check=False)

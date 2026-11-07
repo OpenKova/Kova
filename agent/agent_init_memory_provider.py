@@ -8,7 +8,7 @@ from contextlib import suppress
 from typing import Any
 
 from agent.agent_init_params import _GATEWAY_IDENTITY_PARAMS
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 logger = logging.getLogger("run_agent")
 
@@ -21,8 +21,8 @@ def _unavailable_warning_key(name: str, kind: str = "unavailable") -> tuple[str,
     """Once per profile home, provider and kind of trouble: one multiplexed gateway/Desktop backend
     serves several profiles, each one running without its memory must be told, and a provider the
     user turns back on that is then unavailable is news even after the "turned off" notice."""
-    from kova_constants import get_hermes_home, hermes_home_key
-    return hermes_home_key(get_hermes_home()), name, kind
+    from kova_constants import get_kova_home, kova_home_key
+    return kova_home_key(get_kova_home()), name, kind
 
 
 def _warn_once(name: str, message: str, say=None, kind: str = "unavailable") -> None:
@@ -48,7 +48,7 @@ def _warn_memory_provider_unavailable(name: str, reason: str = "", say=None) -> 
         f"⚠ Memory provider {name!r} is selected but reports unavailable — external memory "
         "is disabled for this session (built-in memory still works). Check the "
         "provider's credentials/config with 'hermes memory status'. Note: "
-        "systemd/gateway services do not inherit ~/.hermes/.env automatically; set "
+        "systemd/gateway services do not inherit ~/.kova/.env automatically; set "
         f"any required variables in the service environment.{f' {reason}' if reason else ''}"
     ), say=say)
 
@@ -108,7 +108,7 @@ def _memory_provider_init_kwargs(agent, platform) -> dict[str, Any]:
     kwargs = {
         "session_id": agent.session_id,
         "platform": platform or "cli",
-        "hermes_home": str(get_hermes_home()),
+        "kova_home": str(get_kova_home()),
         # platform="cron" (scheduler) / "subagent" (delegate_task) → providers skip writes (MemoryProvider.initialize);
         # a fork that loads a provider only for the checkpoint gate names its scope (memory_agent_context).
         "agent_context": getattr(agent, "memory_agent_context", None)

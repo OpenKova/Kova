@@ -311,9 +311,9 @@ marker_ancestor() { # pid -> 0 iff it is one of our ancestors
 # it spawned (be3fd671d70 checkout.ts) instead of itself. It is adopted iff it
 # does not name the Desktop and
 #   the named pid is alive: it is our parent AND (its parent is the Desktop OR
-#                           line 2 == HERMES_UPDATE_STARTED_AT -- a Desktop
+#                           line 2 == KOVA_UPDATE_STARTED_AT -- a Desktop
 #                           that already quit leaves its launcher re-parented);
-#   the named pid is gone:  line 2 == HERMES_UPDATE_STARTED_AT (the old Desktop
+#   the named pid is gone:  line 2 == KOVA_UPDATE_STARTED_AT (the old Desktop
 #                           hands the launcher the same value it writes).
 # 1/0 facts: v1 names_desktop named_alive named_is_our_parent
 # named_parent_is_desktop env_started_matches -> 0 adopt
@@ -326,9 +326,9 @@ marker_launcher_rule() {
   fi
 }
 
-marker_env_started_matches() { # line-2 digits -> 0 iff HERMES_UPDATE_STARTED_AT is plain ASCII
+marker_env_started_matches() { # line-2 digits -> 0 iff KOVA_UPDATE_STARTED_AT is plain ASCII
   # digits (no sign, no spaces) of the same value
-  local env="${HERMES_UPDATE_STARTED_AT:-}" want="${1#"${1%%[!0]*}"}"
+  local env="${KOVA_UPDATE_STARTED_AT:-}" want="${1#"${1%%[!0]*}"}"
   case "$env" in ''|*[!0-9]*) return 1 ;; esac
   env="${env#"${env%%[!0]*}"}"
   [ "${env:-0}" = "${want:-0}" ]
@@ -523,13 +523,13 @@ checkout_lock_path() {
   if [ -d "$dot" ]; then
     gitdir="$dot"
   elif [ -f "$dot" ]; then
-    IFS= read -r line < "$dot" || [ -n "$line" ] || { printf '%s\n' "$root/.hermes-update.lock"; return; }
+    IFS= read -r line < "$dot" || [ -n "$line" ] || { printf '%s\n' "$root/.kova-update.lock"; return; }
     line="${line#$'\357\273\277'}"; marker_line "$line"; line="$LINE"
-    case "$line" in gitdir:*) ;; *) printf '%s\n' "$root/.hermes-update.lock"; return ;; esac
+    case "$line" in gitdir:*) ;; *) printf '%s\n' "$root/.kova-update.lock"; return ;; esac
     marker_line "${line#gitdir:}"; gitdir="$LINE"
     case "$gitdir" in /*) ;; *) gitdir="$root/$gitdir" ;; esac
   else
-    printf '%s\n' "$root/.hermes-update.lock"; return
+    printf '%s\n' "$root/.kova-update.lock"; return
   fi
   if [ -f "$gitdir/commondir" ]; then
     IFS= read -r common < "$gitdir/commondir" || [ -n "$common" ]

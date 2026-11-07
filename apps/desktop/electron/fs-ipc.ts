@@ -1,14 +1,14 @@
 // IPC surface for local filesystem operations the renderer's project/file
 // surfaces use: directory reads, reveal/open in the OS file manager, plugin
 // roots + git installs, rename/write/trash, and the plugin SDK's folder-scoped
-// file door. Extracted from main.ts; path hardening, HERMES_HOME resolution,
+// file door. Extracted from main.ts; path hardening, KOVA_HOME resolution,
 // and the git binary stay injected.
 import fs from 'node:fs'
 import path from 'node:path'
 
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 
-import { platformDefaultHermesHome } from './data-paths'
+import { platformDefaultKovaHome } from './data-paths'
 import { installDesktopPluginFromGit, probePluginRepo } from './desktop-plugin-install'
 import { removeDesktopPlugin } from './desktop-plugin-remove'
 import {
@@ -43,7 +43,7 @@ export function registerFsIpc({
   ipcMain.handle('hermes:fs:readDir', async (_event, dirPath) => readDirForIpc(dirPath))
 
   // `ctx.files`: a plugin's own data folder plus folders the user grants it.
-  // The legacy `~/.hermes` stays protected beside the resolved and default homes.
+  // The legacy `~/.kova` stays protected beside the resolved and default homes.
   registerPluginFilesIpc({
     ipcMain,
     dialog,
@@ -57,8 +57,8 @@ export function registerFsIpc({
     userDataDir: () => app.getPath('userData'),
     hermesHomes: () => [
       hermesHome,
-      platformDefaultHermesHome(app.getPath('home')),
-      path.join(app.getPath('home'), '.hermes')
+      platformDefaultKovaHome(app.getPath('home')),
+      path.join(app.getPath('home'), '.kova')
     ],
     trashItem: target => shell.trashItem(target)
   })
@@ -115,9 +115,9 @@ export function registerFsIpc({
     }
   })
 
-  // The LOCAL Desktop runtime-plugin root: `<HERMES_HOME>/desktop-plugins`,
-  // resolved from the main-process HERMES_HOME (see resolveHermesHome) — NOT from
-  // the connected backend. A remote backend reports its own `hermes_home` over
+  // The LOCAL Desktop runtime-plugin root: `<KOVA_HOME>/desktop-plugins`,
+  // resolved from the main-process KOVA_HOME (see resolveKovaHome) — NOT from
+  // the connected backend. A remote backend reports its own `kova_home` over
   // the gateway, which is a path on the REMOTE box; deriving the plugin dir from
   // it yields `undefined/desktop-plugins` (or a non-existent remote path) and the
   // on-disk plugin door silently breaks (#66899). Electron owns this resolution
@@ -163,9 +163,9 @@ export function registerFsIpc({
     return reconcileDesktopHalvesReport(hermesHome, root)
   })
 
-  // The LOCAL logs root (`<HERMES_HOME>/logs`, profile-aware) — the error
+  // The LOCAL logs root (`<KOVA_HOME>/logs`, profile-aware) — the error
   // card's "Open Logs" action reveals agent.log/gateway.log without the user
-  // knowing where HERMES_HOME lives. Same Electron-local resolution as the
+  // knowing where KOVA_HOME lives. Same Electron-local resolution as the
   // plugin roots: valid in every connection mode, created on demand. The
   // caller names the profile that OWNS the failing session: a pooled backend
   // serves many profile homes, and the active Desktop profile is the launch

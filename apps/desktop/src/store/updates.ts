@@ -15,9 +15,9 @@ import type {
   DesktopUpdateStage,
   DesktopUpdateStatus,
   DesktopVersionInfo,
-  HermesConnection
+  KovaConnection
 } from '@/global'
-import { checkHermesUpdate, getActionStatus, updateHermes } from '@/hermes'
+import { checkKovaUpdate, getActionStatus, updateKova } from '@/hermes'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
 import { cloudOwnsUpdates, updateTargetFor } from '@/store/cloud-updates'
@@ -212,11 +212,11 @@ export function reportBackendContract(contract: number | undefined, protocol?: s
     }
 
     notify({
-      // Hermes Cloud updates its agents itself: name the skew, offer no update.
+      // Kova Cloud updates its agents itself: name the skew, offer no update.
       action: cloudOwnsUpdates('backend')
         ? undefined
         : {
-            label: translateNow('notifications.updateHermes'),
+            label: translateNow('notifications.updateKova'),
             onClick: () => {
               snoozeSkewToast()
               void applyBackendUpdate()
@@ -239,7 +239,7 @@ export function reportBackendContract(contract: number | undefined, protocol?: s
     }
 
     notify({
-      // A Webapp served by Hermes Cloud: Cloud replaced the image under this tab, and a reload loads it.
+      // A Webapp served by Kova Cloud: Cloud replaced the image under this tab, and a reload loads it.
       action: cloudOwnsUpdates('client')
         ? { label: translateNow('commandCenter.reloadWindow'), onClick: () => window.location.reload() }
         : {
@@ -507,7 +507,7 @@ export async function refreshDesktopVersion(): Promise<DesktopVersionInfo | null
   try {
     const seq = ++versionRequestSeq
     const scope = versionScopeKey()
-    const next = await window.hermesDesktop?.getVersion?.({ ...connectionScoped(), ...profileScoped() })
+    const next = await window.kovaDesktop?.getVersion?.({ ...connectionScoped(), ...profileScoped() })
 
     // Superseded, or the scope moved while in flight: the scope listener has
     // already asked again for the new target.
@@ -603,7 +603,7 @@ export async function checkBackendUpdates({
   $backendUpdateChecking.set(true)
 
   try {
-    const status = mapBackendCheck(await checkHermesUpdate(force))
+    const status = mapBackendCheck(await checkKovaUpdate(force))
 
     if (connectionKey($connection.get()) === requestKey) {
       $backendUpdateStatus.set(status)
@@ -641,7 +641,7 @@ export async function checkBackendUpdates({
 }
 
 export async function checkUpdates({ force = false }: UpdateCheckOptions = {}): Promise<DesktopUpdateStatus | null> {
-  const bridge = window.hermesDesktop?.updates
+  const bridge = window.kovaDesktop?.updates
 
   if (!bridge || $updateChecking.get() || cloudOwnsUpdates('client')) {
     return $updateStatus.get()
@@ -725,7 +725,7 @@ export function sourceUpdateChannel(status: DesktopUpdateStatus | null): SourceU
  * An unreachable release still returns a status naming the saved channel.
  */
 export async function setUpdateChannel(channel: SourceUpdateChannel): Promise<DesktopUpdateStatus> {
-  const setChannel = window.hermesDesktop?.updates?.setChannel
+  const setChannel = window.kovaDesktop?.updates?.setChannel
 
   if (!setChannel) {
     throw new Error('This installation cannot change its update channel.')
@@ -757,7 +757,7 @@ export async function applyUpdates(opts: DesktopUpdateApplyOptions = {}): Promis
     return { ok: false, error: 'retirement-blocked' }
   }
 
-  const bridge = window.hermesDesktop?.updates
+  const bridge = window.kovaDesktop?.updates
 
   if (!bridge) {
     return { ok: false, error: 'unavailable', message: 'Desktop bridge unavailable.' }
@@ -1044,7 +1044,7 @@ async function runBackendUpdate(): Promise<DesktopUpdateApplyResult> {
       ? previousStatus.targetSha.slice('backend:'.length)
       : undefined
 
-    const started = await updateHermes()
+    const started = await updateKova()
     const applyStartedAtMs = Date.now()
 
     if (!started.ok) {
@@ -1122,7 +1122,7 @@ async function runBackendUpdate(): Promise<DesktopUpdateApplyResult> {
 
       if (!started.action_id && last.exit_code === null) {
         try {
-          const status = await checkHermesUpdate(true)
+          const status = await checkKovaUpdate(true)
 
           if (legacyBackendReachedTarget(status, requestedTargetSha, previousVersion)) {
             return finishBackendApply(true)
@@ -1247,7 +1247,7 @@ export function applyEverythingUpdate(): Promise<void> {
   return updateEverythingInFlight
 }
 
-/** The everything-flow's backend leg: a remote backend, unless Hermes Cloud updates it itself. */
+/** The everything-flow's backend leg: a remote backend, unless Kova Cloud updates it itself. */
 function backendLegApplies(): boolean {
   return isRemoteMode() && !cloudOwnsUpdates('backend')
 }
@@ -1275,7 +1275,7 @@ async function runEverythingUpdate(): Promise<void> {
     // 2. Fan out to every OTHER eligible registered connection. The active
     //    backend was just updated (excluded), and the local runtime updates
     //    with the client in step 3 (excluded). No registry/bridge → skip.
-    const bridge = window.hermesDesktop?.connections
+    const bridge = window.kovaDesktop?.connections
     const registry = $connectionsRegistry.get() ?? (await refreshConnectionsRegistry().catch(() => null))
     const excludeIds = ['local']
     const activeConnectionId = $connection.get()?.connectionId
@@ -1374,7 +1374,7 @@ let lastVersionScopeKey: string | undefined
 // the mode doesn't. Pooled profiles share a baseUrl, so the profile joins
 // the key: the update check is profile-scoped (per-profile overrides can
 // pin a different channel/branch).
-function connectionKey(conn: HermesConnection | null): string {
+function connectionKey(conn: KovaConnection | null): string {
   if (conn?.mode !== 'remote') {
     return String(conn?.mode)
   }
@@ -1403,7 +1403,7 @@ export function startUpdatePoller(): void {
     return
   }
 
-  const bridge = window.hermesDesktop?.updates
+  const bridge = window.kovaDesktop?.updates
 
   if (!bridge) {
     return
@@ -1419,7 +1419,7 @@ export function startUpdatePoller(): void {
   // backend check above sees mode≠remote and no-ops. Re-check once the
   // connection resolves to remote, and again whenever the remote target
   // itself changes (switching between two remote profiles).
-  connectionUnsub = $connection.subscribe((conn: HermesConnection | null): void => {
+  connectionUnsub = $connection.subscribe((conn: KovaConnection | null): void => {
     const key = connectionKey(conn)
 
     if (key === lastConnectionKey) {

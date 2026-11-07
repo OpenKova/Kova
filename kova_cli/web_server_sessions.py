@@ -35,7 +35,7 @@ _DESCENDANTS_SQL = f"""
 # Desktop 0.22.2's ``readableError`` keeps the HTTP ``detail`` and shows its "app and backend are
 # on different versions" toast (with an Update action) for "out of sync (different versions)".
 CLIENT_UPGRADE_REQUIRED = ('client_upgrade_required: this app is out of sync (different versions) '
-                           'with the Hermes backend; update the app to edit sessions')
+                           'with the Kova backend; update the app to edit sessions')
 
 
 def _session_latest_descendant(session_id: str, db):
@@ -460,18 +460,18 @@ def _maybe_auto_archive_for_profile(profile: Optional[str]) -> None:
         _last_auto_archive_check[key] = now
 
         from kova_cli.config import load_config as _load_full_config
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
 
         # The config that governs a store is the one in that store's OWN home. A zero-arg
-        # load_config() resolves through the PROCESS HERMES_HOME, so the dashboard swept every
+        # load_config() resolves through the PROCESS KOVA_HOME, so the dashboard swept every
         # profile's sessions with the launch profile's sessions.auto_archive/auto_archive_days —
         # one profile's retention silently decided another's.
         profile_home = _session_db_path_for_profile(profile).parent
-        _home_token = set_hermes_home_override(str(profile_home))
+        _home_token = set_kova_home_override(str(profile_home))
         try:
             cfg = (_load_full_config().get("sessions") or {})
         finally:
-            reset_hermes_home_override(_home_token)
+            reset_kova_home_override(_home_token)
         if not cfg.get("auto_archive", False):
             return
         from kova_cli.profiles import _check_gateway_running
@@ -501,9 +501,9 @@ def _skill_maintenance_idle_for(started_at: float) -> Optional[float]:
     """Measure chat inactivity, not socket inactivity (Desktop stays connected)."""
     import tui_gateway.server as gateway
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    home = get_hermes_home().resolve()
+    home = get_kova_home().resolve()
     with gateway._sessions_lock:
         sessions = [session for session in gateway._sessions.values()
                     if Path(session.get("profile_home") or home).resolve() == home]
@@ -516,11 +516,11 @@ def _skill_maintenance_idle_for(started_at: float) -> Optional[float]:
 
 
 def _maybe_run_skill_maintenance(started_at: float) -> None:
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_cli.profiles import _check_gateway_running
 
     # A live messaging gateway already owns these chores for this profile.
-    if _check_gateway_running(get_hermes_home()):
+    if _check_gateway_running(get_kova_home()):
         return
 
     from agent.curator import maybe_run_curator

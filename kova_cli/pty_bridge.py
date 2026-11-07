@@ -33,7 +33,7 @@ __all__ = ["PTY_HOST_DASHBOARD", "PTY_HOST_ENV", "PtyBridge", "PtyUnavailableErr
 
 # Set on the spawned TUI so Ink knows which emulator is hosting it. Mirrored in
 # ui-tui/packages/hermes-ink/src/ink/termio/host.ts — keep the two in sync.
-PTY_HOST_ENV = "HERMES_PTY_HOST"
+PTY_HOST_ENV = "KOVA_PTY_HOST"
 PTY_HOST_DASHBOARD = "dashboard"
 
 
@@ -71,12 +71,12 @@ _MAX_HELPER_SHUTDOWN_GRACE_S = 2.0
 
 
 def _helper_shutdown_grace() -> float:
-    # The gateway's grace is 1.0 s unless HERMES_TUI_GATEWAY_SHUTDOWN_GRACE_S raises it
+    # The gateway's grace is 1.0 s unless KOVA_TUI_GATEWAY_SHUTDOWN_GRACE_S raises it
     # (tui_gateway/entry.py); the PTY child inherits that env. Read it here rather than import
     # tui_gateway.entry, which installs signal handlers.
     from utils import env_float
 
-    gateway = env_float("HERMES_TUI_GATEWAY_SHUTDOWN_GRACE_S", 1.0)
+    gateway = env_float("KOVA_TUI_GATEWAY_SHUTDOWN_GRACE_S", 1.0)
     if not math.isfinite(gateway) or gateway <= 0:
         gateway = 1.0
     return min(max(_HELPER_SHUTDOWN_GRACE_S, gateway + 0.5), _MAX_HELPER_SHUTDOWN_GRACE_S)
@@ -143,9 +143,9 @@ class PtyBridge:
         if not _PTY_AVAILABLE:
             if sys.platform.startswith("win"):
                 raise PtyUnavailableError("Pseudo-terminals are unavailable on this platform. "
-                                          "Hermes Agent supports Windows only via WSL.")
+                                          "Kova Agent supports Windows only via WSL.")
             raise PtyUnavailableError("The `ptyprocess` package is missing. "  # only other way _PTY_AVAILABLE is False
-                                      "Run hermes pm repair, then restart Hermes.")
+                                      "Run kova pm repair, then restart Kova.")
         # env=None: callers own env policy (process_registry already sanitizes), so inherit via the
         # factory with exact preservation. Backfill TERM when missing/blank — CI often lacks it and
         # probes like `tput cols` then fail before winsize reads; explicit overrides are kept.

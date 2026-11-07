@@ -20,8 +20,8 @@ def homes(tmp_path, monkeypatch):
     launch, worker = tmp_path / "launch", tmp_path / "profiles" / "code"
     launch.mkdir(parents=True)
     worker.mkdir(parents=True)
-    monkeypatch.setattr(server, "_hermes_home", launch)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setattr(server, "_kova_home", launch)
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setattr(server, "_profile_home", lambda name: worker if (name or "").strip() == "code" else None)
     server._cfg_cache = server._cfg_sig = server._cfg_path = None
     yield launch, worker

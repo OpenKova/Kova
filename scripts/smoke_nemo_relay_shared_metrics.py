@@ -1,4 +1,4 @@
-"""Run a real Hermes CLI turn and validate the Relay shared-metrics output."""
+"""Run a real Kova CLI turn and validate the Relay shared-metrics output."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def _resolve_hermes_executable(hermes_repo: Path) -> Path:
     if discovered:
         return Path(discovered)
     raise SystemExit(
-        "Hermes executable not found in the repository virtual environment "
+        "Kova executable not found in the repository virtual environment "
         "or on PATH"
     )
 
@@ -239,7 +239,7 @@ def _arguments() -> argparse.Namespace:
         "--hermes-repo",
         type=Path,
         default=Path.cwd(),
-        help="Hermes source checkout containing .venv/bin/hermes",
+        help="Kova source checkout containing .venv/bin/hermes",
     )
     parser.add_argument(
         "--relay-python",
@@ -251,7 +251,7 @@ def _arguments() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=None,
-        help="Directory for the isolated HERMES_HOME and captured output",
+        help="Directory for the isolated KOVA_HOME and captured output",
     )
     return parser.parse_args()
 
@@ -354,7 +354,7 @@ def _validate_failure_rows(rows: dict[str, list[dict[str, Any]]]) -> None:
 
 # One interactive turn (2 model calls, 1 read_file) on the canary custom model: the v5 per-turn,
 # per-conversation rows it must produce, identical in SQLite and in the export. The agent-created
-# skill is Hermes' own work, so it records no feature_adoption row (the exact name sets assert that).
+# skill is Kova' own work, so it records no feature_adoption row (the exact name sets assert that).
 V5_EXPECTED_DIMENSIONS = {
     "hermes.task_cost.count": {
         "api_calls_bucket": "2", "model": "custom", "outcome": "completed", "provider": "custom",
@@ -653,7 +653,7 @@ def _validate_packages(
         import jsonschema
     except ImportError as exc:
         raise RuntimeError(
-            "The Hermes development environment requires jsonschema"
+            "The Kova development environment requires jsonschema"
         ) from exc
     schema = json.loads(schema_path.read_text(encoding="utf-8-sig"))
     packages = [
@@ -765,7 +765,7 @@ def _validate_packages(
 
 def main() -> int:
     args = _arguments()
-    hermes_repo = args.hermes_repo.resolve()
+    hermes_repo = args.kova_repo.resolve()
     # The gateway identity check must come from the tree under test, not whatever tree the venv's
     # editable install points at.
     sys.path.insert(0, str(hermes_repo))
@@ -823,7 +823,7 @@ def main() -> int:
     try:
         _write_config(home, server.server_port)
         env = os.environ.copy()
-        env["HERMES_HOME"] = str(home)
+        env["KOVA_HOME"] = str(home)
         python_paths = [str(hermes_repo)]
         if relay_python is not None:
             python_paths.append(str(relay_python))
@@ -866,7 +866,7 @@ def main() -> int:
     (root / "hermes.stderr.txt").write_text(result.stderr, encoding="utf-8")
     if result.returncode != 0:
         raise AssertionError(
-            f"Hermes exited with {result.returncode}\n"
+            f"Kova exited with {result.returncode}\n"
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
     if len(_ModelHandler.requests) != 2:
@@ -877,12 +877,12 @@ def main() -> int:
     if request.get("model") != MODEL_CANARY:
         raise AssertionError(f"Unexpected model request: {request.get('model')!r}")
     if PROMPT_CANARY not in json.dumps(request.get("messages", [])):
-        raise AssertionError("Hermes model request did not contain the prompt canary")
+        raise AssertionError("Kova model request did not contain the prompt canary")
     follow_up = json.dumps(_ModelHandler.requests[1].get("messages", []))
     if TOOL_CALL_CANARY not in follow_up or TOOL_RESULT_CANARY not in follow_up:
-        raise AssertionError("Hermes did not return the tool result to the model")
+        raise AssertionError("Kova did not return the tool result to the model")
     if RESPONSE_CANARY not in result.stdout:
-        raise AssertionError("Hermes did not print the mock model response")
+        raise AssertionError("Kova did not print the mock model response")
 
     skill_result = subprocess.run(
         [
@@ -961,7 +961,7 @@ def main() -> int:
         / "hermes.shared_metrics.v4.schema.json",
     )
 
-    print("Hermes -> NeMo Relay shared-metrics smoke test passed")
+    print("Kova -> NeMo Relay shared-metrics smoke test passed")
     print(f"Artifact directory: {root}")
     print(f"Model requests: {len(_ModelHandler.requests)}")
     print(f"SQLite counters: {json.dumps(counters, indent=2)}")

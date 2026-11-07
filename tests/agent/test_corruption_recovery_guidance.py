@@ -19,11 +19,11 @@ The fix adds:
 
 
 
-def test_gateway_corruption_banner_backups_dir_follows_hermes_home(monkeypatch, tmp_path):
-    """The gateway broadcast's step 3 must name the live backups dir, not ~/.hermes (#104250).
+def test_gateway_corruption_banner_backups_dir_follows_kova_home(monkeypatch, tmp_path):
+    """The gateway broadcast's step 3 must name the live backups dir, not ~/.kova (#104250).
 
     Pre-update backups live at ``<hermes_root>/backups`` (``kova_cli/backup.py``); a
-    custom-HERMES_HOME gateway must not be told to restore from a directory that never
+    custom-KOVA_HOME gateway must not be told to restore from a directory that never
     held its backups.
     """
     import asyncio
@@ -31,7 +31,7 @@ def test_gateway_corruption_banner_backups_dir_follows_hermes_home(monkeypatch, 
     import gateway.run as gateway_run
 
     custom_home = tmp_path / "custom-hermes-home"
-    monkeypatch.setenv("HERMES_HOME", str(custom_home / "profiles" / "research"))
+    monkeypatch.setenv("KOVA_HOME", str(custom_home / "profiles" / "research"))
 
     runner = object.__new__(gateway_run.GatewayRunner)
     runner._session_db_init_error = "database disk image is malformed"
@@ -48,7 +48,7 @@ def test_gateway_corruption_banner_backups_dir_follows_hermes_home(monkeypatch, 
 
     assert sent, "warning must be broadcast to home channels"
     assert f"{custom_home / 'backups'}" in sent[0]
-    assert "~/.hermes/backups" not in sent[0]
+    assert "~/.kova/backups" not in sent[0]
 
 
 def test_format_turn_completion_corrupt_names_the_sessions_own_store(monkeypatch, tmp_path):
@@ -61,7 +61,7 @@ def test_format_turn_completion_corrupt_names_the_sessions_own_store(monkeypatch
     from run_agent import AIAgent
 
     root = tmp_path / "root"
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     failing = root / "profiles" / "research" / "state.db"
 
     explanation = AIAgent._format_turn_completion_explanation(
@@ -87,7 +87,7 @@ def test_format_turn_completion_corrupt_never_names_the_live_db():
         "session_persistence_failed", "corrupt"
     )
     assert "sessions recover" in explanation
-    assert 'sqlite3 ~/.hermes/state.db ".recover"' not in explanation
+    assert 'sqlite3 ~/.kova/state.db ".recover"' not in explanation
     # The replacement guidance names the safe command.
     assert "hermes sessions recover --source" in explanation
 
@@ -113,7 +113,7 @@ def test_corrupt_guidance_pins_the_failing_profile(tmp_path, monkeypatch):
     home.mkdir(parents=True)
     (root / "config.yaml").write_text("")
     (root / "active_profile").write_text("other\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     explanation = AIAgent._format_turn_completion_explanation("session_persistence_failed", "corrupt")
     commands = [line.strip() for line in explanation.splitlines() if "hermes " in line]

@@ -69,7 +69,7 @@ class AudioBridge:
         try:
             sink_out = _pactl(
                 "load-module", "module-null-sink", f"sink_name={sink_name}",
-                "sink_properties=device.description=HermesMeetSink", check=True)
+                "sink_properties=device.description=KovaMeetSink", check=True)
         except FileNotFoundError as exc:
             raise RuntimeError("pactl not found — install PulseAudio/pipewire-pulse") from exc
         except subprocess.CalledProcessError as exc:

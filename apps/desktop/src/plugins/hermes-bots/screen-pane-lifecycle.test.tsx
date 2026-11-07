@@ -108,7 +108,7 @@ const bot: RosterRow = { name: 'default' }
 
 const status: DisplayStatus = {
   profile: 'default',
-  profile_key: '/home/hermes/.hermes',
+  profile_key: '/home/hermes/.kova',
   supported: true,
   installed: true,
   missing: [],

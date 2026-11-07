@@ -251,9 +251,9 @@ def test_the_launcher_runs_its_idle_check_through_the_installs_stable_command(tm
     root = runtime._LAUNCHER.resolve().parents[2]
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda repo_root, **_: tmp_path / "store/bin/python3")
 
-    command = shlex.split(_spawn(monkeypatch, tmp_path)["HERMES_BD_IDLE_CMD"])
+    command = shlex.split(_spawn(monkeypatch, tmp_path)["KOVA_BD_IDLE_CMD"])
     assert command == _launchers.installation_command(root, module="tools.bot_desktop.idle_watch")
-    assert command == [str(root / ".hermes/bin/hermes"), "--run-module", "tools.bot_desktop.idle_watch"]
+    assert command == [str(root / ".kova/bin/hermes"), "--run-module", "tools.bot_desktop.idle_watch"]
 
 
 @pytest.mark.platforms("posix")

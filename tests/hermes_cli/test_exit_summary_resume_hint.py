@@ -3,14 +3,14 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from cli import HermesCLI
+from cli import KovaCLI
 from kova_cli.main_tui_launch import _print_tui_exit_summary
 
 import kova_cli.main
 
 
 def _make_cli(session_id="20260524_000001_abc123"):
-    cli_obj = HermesCLI.__new__(HermesCLI)
+    cli_obj = KovaCLI.__new__(KovaCLI)
     cli_obj.session_id = session_id
     # _print_exit_summary requires a populated conversation history (msg_count > 0)
     # to print the resume hint at all. One synthetic user turn is enough.
@@ -24,7 +24,7 @@ def _make_cli(session_id="20260524_000001_abc123"):
 class TestExitSummaryResumeHint:
     """The exit-line ``Resume this session with:`` hint must include the
     active profile (`-p <name>`) so session IDs round-trip across
-    profile boundaries — sessions live under `~/.hermes-profiles/<profile>/`,
+    profile boundaries — sessions live under `~/.kova-profiles/<profile>/`,
     so a hint copied without `-p` from a non-default profile won't find
     the session.
     """
@@ -43,7 +43,7 @@ class TestExitSummaryResumeHint:
         with patch("kova_cli.profiles.get_active_profile_name", return_value="custom"):
             cli_obj._print_exit_summary()
         out = capsys.readouterr().out
-        # "custom" is the standard HERMES_HOME indicator — no -p needed.
+        # "custom" is the standard KOVA_HOME indicator — no -p needed.
         assert "hermes --resume 20260524_000001_abc123" in out
         assert " -p " not in out
 

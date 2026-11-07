@@ -15,7 +15,7 @@ real git failure, and then judges the next real launch from the files the update
   first switches it to ``main`` (CP0); the updater dies while git is rewriting files. The next
   launch must put the parked tree back.
 * ``kill_mid_zip_swap``: the ZIP swap is SIGKILLed between renames. The next launch must finish or
-  roll back the swap, leaving no ``*.hermes-update-staging``/``-old`` sibling to wedge a retry.
+  roll back the swap, leaving no ``*.kova-update-staging``/``-old`` sibling to wedge a retry.
 * ``kill_mid_zip_swap_with_kova_cli_moved_aside``: the swap renamed ``kova_cli/`` (the recovery
   code itself) aside and died before its replacement landed. The next launch must still restore.
 * ``syntax_error_target``: a release whose startup module does not compile is refused BEFORE
@@ -24,7 +24,7 @@ real git failure, and then judges the next real launch from the files the update
   tree, then the upstream fast-forward fails (read-only directory) and the updater is killed. The
   tail owed for the moved tree must survive the failed second move.
 * ``kill_mid_zip_swap_over_leftover_backup``: the only copy of an entry is a leftover
-  ``*.hermes-update-old`` the swap heals before swapping; a kill mid-swap must never delete both.
+  ``*.kova-update-old`` the swap heals before swapping; a kill mid-swap must never delete both.
 * ``kill_during_branch_switch_without_local_branch``: the parked checkout has no local ``main``
   (only ``origin/main``); git's checkout guess would create it and rewrite the tree unmarked.
 * ``kill_during_syntax_rollback``: a broken release past the preflight is rolled back and the
@@ -59,7 +59,7 @@ pytestmark = [
 ]
 
 REAL_GIT = shutil.which("git") or "git"
-ARTIFACT_SUFFIXES = (".hermes-update-staging", ".hermes-update-old")
+ARTIFACT_SUFFIXES = (".kova-update-staging", ".kova-update-old")
 
 
 @pytest.fixture(scope="module")
@@ -109,11 +109,11 @@ def _stamp_commit(sb) -> str:
 
 def _launch(sb, marker: str) -> subprocess.CompletedProcess:
     """A later real launch by the user (fresh pid, lazy installs on: the real launch path)."""
-    return P.run_env(sb, [*_RETRY_PREFIX, sb.hermes, "-z", marker], P.lazy_env(sb), timeout=P.UPDATE_TIMEOUT)
+    return P.run_env(sb, [*_RETRY_PREFIX, sb.kova, "-z", marker], P.lazy_env(sb), timeout=P.UPDATE_TIMEOUT)
 
 
 def _update(sb) -> subprocess.CompletedProcess:
-    return P.run_env(sb, [*_RETRY_PREFIX, sb.hermes, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
+    return P.run_env(sb, [*_RETRY_PREFIX, sb.kova, "update", "--yes", "--branch", "main", "--no-gateway-restart"],
                      sb.env, timeout=P.UPDATE_TIMEOUT)
 
 
@@ -207,12 +207,12 @@ def killing(real):
     def move(src, dst):
         real(src, dst)
         if kill_at.startswith("after:"):  # right after the named entry's replacement landed
-            if os.path.basename(str(src)) == kill_at[6:] + ".hermes-update-staging":
+            if os.path.basename(str(src)) == kill_at[6:] + ".kova-update-staging":
                 os.kill(os.getpid(), signal.SIGKILL)
         elif kill_at == "kova_cli-moved-aside":  # the live package renamed away, its replacement not yet in
-            if os.path.basename(str(src)) == "kova_cli" and str(dst).endswith(".hermes-update-old"):
+            if os.path.basename(str(src)) == "kova_cli" and str(dst).endswith(".kova-update-old"):
                 os.kill(os.getpid(), signal.SIGKILL)
-        elif str(src).endswith(".hermes-update-staging"):  # one entry swapped in
+        elif str(src).endswith(".kova-update-staging"):  # one entry swapped in
             swaps[0] += 1
             if swaps[0] >= int(kill_at):
                 os.kill(os.getpid(), signal.SIGKILL)
@@ -228,7 +228,7 @@ def _zip_killed_at(world, kill_at: str, files: dict[str, str] | None = None):
     target = _release(world, {"e2e_zip_release.py": f"Z = {world['n']}\n", "kova_cli/e2e_zip_marker.py": "M = 1\n",
                               **(files or {})})
     archive = world["root"] / f"release-{world['n']}.zip"
-    I.git("archive", "--format=zip", "--prefix=hermes-agent-main/", "-o", str(archive), target, cwd=world["origin"])
+    I.git("archive", "--format=zip", "--prefix=kova-agent-main/", "-o", str(archive), target, cwd=world["origin"])
     driver = world["root"] / "zip_driver.py"
     driver.write_text(_ZIP_DRIVER, encoding="utf-8")
     return P.run_env(sb, [sb.python, str(driver), archive.as_uri(), kill_at, str(sb.checkout)], sb.env,
@@ -262,7 +262,7 @@ def test_kill_mid_zip_swap_with_kova_cli_moved_aside_reaches_recovery(world):
     sb = world["sb"]
     pre = _head(sb)
     killed = _zip_killed_at(world, "kova_cli-moved-aside")
-    assert not (sb.checkout / "kova_cli").exists() and (sb.checkout / "kova_cli.hermes-update-old").is_dir(), (
+    assert not (sb.checkout / "kova_cli").exists() and (sb.checkout / "kova_cli.kova-update-old").is_dir(), (
         "harness: the ZIP swap was not killed with kova_cli/ moved aside\n" + I.describe(killed))
     launch = _launch(sb, "first launch after a kill with kova_cli moved aside")
     assert launch.returncode == 0 and (sb.checkout / "kova_cli" / "main.py").is_file(), (
@@ -288,7 +288,7 @@ def test_failed_upstream_sync_after_origin_pull_keeps_the_tail_owed(world):
     flag = sb.checkout / ".git" / "e2e-upstream-ff-failed"
     # origin reads as a fork (the sandbox shim otherwise reports the official URL). Kill the updater at
     # its next branch check once the upstream merge has failed (and been settled).
-    _hostile_git(world, 'case " $* " in *" remote get-url origin "*) echo https://github.com/e2e-fork/hermes-agent.git; '
+    _hostile_git(world, 'case " $* " in *" remote get-url origin "*) echo https://github.com/e2e-fork/kova-agent.git; '
                         'exit 0;; esac\n'
                         # The sync fast-forwards to the upstream commit it resolved (one SHA, m2).
                         f'case " $* " in *" merge --ff-only "*"{up} "*) "$REAL" "$@"; rc=$?; '
@@ -313,16 +313,16 @@ def test_failed_upstream_sync_after_origin_pull_keeps_the_tail_owed(world):
 
 
 def test_kill_mid_zip_swap_over_leftover_backup_keeps_the_entry(world):
-    """A pre-journal crash left ``e2e_zip_lost.hermes-update-old`` as the ONLY copy of a tracked dir.
+    """A pre-journal crash left ``e2e_zip_lost.kova-update-old`` as the ONLY copy of a tracked dir.
     The next swap heals it, swaps it, and is killed right after its replacement landed: recovery
     must put the old dir back, never drop both copies."""
     sb = world["sb"]
     pre = _release(world, {"e2e_zip_lost/m.py": "OLD = 1\n"})
     P.ok(_update(sb), "harness: plain update failed")
     lost = sb.checkout / "e2e_zip_lost"
-    lost.rename(sb.checkout / "e2e_zip_lost.hermes-update-old")
+    lost.rename(sb.checkout / "e2e_zip_lost.kova-update-old")
     killed = _zip_killed_at(world, "after:e2e_zip_lost", {"e2e_zip_lost/m.py": "NEW = 1\n"})
-    assert (lost / "m.py").read_text(encoding="utf-8-sig") == "NEW = 1\n" and (sb.checkout / "e2e_zip_lost.hermes-update-old").is_dir(), (
+    assert (lost / "m.py").read_text(encoding="utf-8-sig") == "NEW = 1\n" and (sb.checkout / "e2e_zip_lost.kova-update-old").is_dir(), (
         "harness: the swap was not killed right after e2e_zip_lost landed\n" + I.describe(killed))
     launch = _launch(sb, "first launch after a kill over a leftover backup")
     assert (lost / "m.py").is_file() and (lost / "m.py").read_text(encoding="utf-8-sig") == "OLD = 1\n", (

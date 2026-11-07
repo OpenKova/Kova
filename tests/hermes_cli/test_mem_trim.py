@@ -17,23 +17,23 @@ def _reset_trim_state(monkeypatch):
 
 
 def test_config_kill_switch_overrides_force_from_config_file(monkeypatch, tmp_path):
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir()
-    (hermes_home / "config.yaml").write_text(
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir()
+    (kova_home / "config.yaml").write_text(
         "context:\n  memory_trim:\n    enabled: false\n",
         encoding="utf-8",
     )
     trim = Mock(return_value=1)
     monkeypatch.setattr(mem_trim, "_malloc_trim", trim)
-    token = set_hermes_home_override(hermes_home)
+    token = set_kova_home_override(kova_home)
 
     try:
         assert mem_trim.trim_memory(force=True) is False
         trim.assert_not_called()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 

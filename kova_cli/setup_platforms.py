@@ -17,21 +17,21 @@ def _is_valid_telegram_bot_token(token: str) -> bool:
     return bool(_TELEGRAM_BOT_TOKEN_RE.match(token))
 
 
-def _profile_name_from_hermes_home(hermes_home) -> str | None:
-    """Return the active profile name when HERMES_HOME is a profile dir."""
-    return hermes_home.name if hermes_home.parent.name == "profiles" else None
+def _profile_name_from_kova_home(kova_home) -> str | None:
+    """Return the active profile name when KOVA_HOME is a profile dir."""
+    return kova_home.name if kova_home.parent.name == "profiles" else None
 
 
 def _setup_telegram_auto_result():
     """Attempt automatic Telegram bot creation via managed QR onboarding."""
-    from kova_cli.setup import get_hermes_home
+    from kova_cli.setup import get_kova_home
     try:
         from kova_cli.telegram_managed_bot import auto_setup_telegram_bot_result
     except ImportError:
         return None
     profile_name: str | None = None
     with contextlib.suppress(Exception):
-        profile_name = _profile_name_from_hermes_home(Path(get_hermes_home()))
+        profile_name = _profile_name_from_kova_home(Path(get_kova_home()))
     return auto_setup_telegram_bot_result(profile_name=profile_name)
 
 
@@ -170,7 +170,7 @@ def _setup_telegram():
         "TELEGRAM_ALLOWED_USERS", "Allowed user IDs (comma-separated, leave empty for open access)",
         "Telegram allowlist configured - only listed users can use the bot",
         "⚠️  No allowlist set - anyone who finds your bot can use it!", preset=allowed_users)
-    _info(None, "📬 Home Channel: where Hermes delivers cron job results,",
+    _info(None, "📬 Home Channel: where Kova delivers cron job results,",
           "   cross-platform messages, and notifications.",
           "   For Telegram DMs, this is your user ID (same as above).")
     first_user_id = allowed_users.split(",")[0].strip() if allowed_users else ""
@@ -201,7 +201,7 @@ def _setup_webhooks():
     print_warning("   internet. For security, run the gateway in a sandboxed environment")
     print_warning("   (Docker, VM, etc.) to limit blast radius from prompt injection.")
     print()
-    _info("   Full guide: https://hermes-agent.nousresearch.com/docs/user-guide/messaging/webhooks/", None)
+    _info("   Full guide: https://kova-agent.nousresearch.com/docs/user-guide/messaging/webhooks/", None)
     _save_port("WEBHOOK_PORT", prompt("Webhook port (default 8644)"), "8644")
     save_prompted("WEBHOOK_SECRET", "Global HMAC secret (shared across all routes)", password=True,
                    success_msg="Webhook secret saved",
@@ -209,12 +209,12 @@ def _setup_webhooks():
     save_env_value("WEBHOOK_ENABLED", "true")
     print()
     print_success("Webhooks enabled! Next steps:")
-    from kova_constants import display_hermes_home as _dhh
+    from kova_constants import display_kova_home as _dhh
     _info(f"   1. Define webhook routes in {_dhh()}/config.yaml",
           "   2. Point your service (GitHub, GitLab, etc.) at:",
           "      http://your-server:8644/webhooks/<route-name>", None,
           "   Route configuration guide:",
-          "   https://hermes-agent.nousresearch.com/docs/user-guide/messaging/webhooks/#configuring-routes",
+          "   https://kova-agent.nousresearch.com/docs/user-guide/messaging/webhooks/#configuring-routes",
           None,
           # Printed twice upstream; kept verbatim for output parity.
           "   Open config in your editor:  hermes config edit",
@@ -291,7 +291,7 @@ def setup_gateway(config: dict):
     from kova_cli.setup import _info, print_header, print_info, print_success, prompt_checklist
     from kova_cli.gateway import _all_platforms, _platform_status, _configure_platform
     print_header("Messaging Platforms")
-    _info("Connect to messaging platforms to chat with Hermes from anywhere.",
+    _info("Connect to messaging platforms to chat with Kova from anywhere.",
           "Toggle with Space, confirm with Enter.", None)
     platforms = _all_platforms()
 

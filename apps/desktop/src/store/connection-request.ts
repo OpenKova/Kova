@@ -60,8 +60,8 @@ export interface CatalogEntry {
   sha: string | null
   subdir: string | null
   scan: CatalogScan | null
-  /** The Hermes version range the plugin needs; its env vars are the target's `requiredEnv`. */
-  requiresHermes: string | null
+  /** The Kova version range the plugin needs; its env vars are the target's `requiredEnv`. */
+  requiresKova: string | null
   hasDesktopHalf: boolean
   /** The profile the row installs into; null when the chat's home is no named profile. */
   targetProfile: string | null
@@ -232,7 +232,7 @@ function catalogEntry(entry: ConnectionOperationTarget, name: string): CatalogEn
     phase: entry.phase ?? null,
     platforms: entry.platforms ?? [],
     repo: entry.repo ?? null,
-    requiresHermes: entry.requires_hermes ?? null,
+    requiresKova: entry.requires_hermes ?? null,
     resolved: entry.resolved ?? false,
     scan: entry.scan ?? null,
     sha: entry.sha ?? null,

@@ -5,7 +5,7 @@ On the Webapp listener it engages sign-in even on a loopback bind, it is the one
 listener accepts, and sign-in and MCP OAuth callbacks are built on it. ``dashboard.public_url``
 describes ``hermes dashboard``: the gateway's Webapp ignores it, and the standalone dashboard keeps
 reading it as before. The live cases run a real gateway listener in a child process
-(``fixtures/webapp_fallback_peer.py``) with its own ``HERMES_HOME``.
+(``fixtures/webapp_fallback_peer.py``) with its own ``KOVA_HOME``.
 """
 from types import SimpleNamespace
 
@@ -59,7 +59,7 @@ def test_a_malformed_webapp_public_url_keeps_the_webapp_off(tmp_path, value):
 def test_a_listener_that_declares_its_public_url_never_reads_the_dashboards(monkeypatch):
     from kova_cli.dashboard_auth.prefix import resolve_public_url
 
-    monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
+    monkeypatch.setenv("KOVA_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
     assert resolve_public_url(SimpleNamespace(listener_public_url=WEBAPP_URL)) == WEBAPP_URL
     assert resolve_public_url(SimpleNamespace(listener_public_url="")) == ""
     # The standalone dashboard declares nothing and reads dashboard.public_url as before.
@@ -79,7 +79,7 @@ def _request(state, headers):
 def test_the_webapps_mcp_oauth_callback_is_built_on_its_own_public_url(monkeypatch):
     from kova_cli.web_routers.mcp import _mcp_oauth_callback_url
 
-    monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
+    monkeypatch.setenv("KOVA_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
     state = SimpleNamespace(listener_public_url=WEBAPP_URL)
     request = _request(state, {"host": "webapp.example.net"})
     assert _mcp_oauth_callback_url(request, "srv") == f"{WEBAPP_URL}/api/mcp/oauth/callback/srv"
@@ -89,7 +89,7 @@ def test_a_browser_without_fetch_metadata_writes_from_the_webapps_public_origin(
     # Without Sec-Fetch-Site the Origin is compared with this listener's own public URL.
     from kova_cli.dashboard_auth.request_utils import cookie_origin_is_allowed
 
-    monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
+    monkeypatch.setenv("KOVA_DASHBOARD_PUBLIC_URL", DASHBOARD_URL)
     state = SimpleNamespace(listener_public_url=WEBAPP_URL, bound_host="127.0.0.1",
                             trusted_public_hosts=frozenset({"webapp.example.net"}))
     own = _request(state, {"host": "webapp.example.net", "origin": WEBAPP_URL})

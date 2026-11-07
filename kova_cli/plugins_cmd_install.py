@@ -148,7 +148,7 @@ def _consent_python_deps(
             "Run `hermes plugins enable` when ready to prepare them.[/dim]\n"
         )
         return False, _ConsentRefusal("dependency install skipped (non-interactive)", "non_interactive")
-    if not _ask_yes_no(("python", plugin_name, deps), "  Prepare these with Hermes through PM now? [y/N]: ", console):
+    if not _ask_yes_no(("python", plugin_name, deps), "  Prepare these with Kova through PM now? [y/N]: ", console):
         console.print(
             "[dim]Skipped — run `hermes plugins enable` when ready "
             "to prepare them.[/dim]\n"
@@ -178,7 +178,7 @@ def _prompt_plugin_env_vars(manifest: dict, console) -> None:
     if not missing:
         return
     from kova_cli.config import save_env_value
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     plugin_name = manifest.get("name", "this plugin")
     console.print(f"\n[bold]{plugin_name}[/bold] requires the following environment variables:\n")
     for spec in missing:
@@ -191,15 +191,15 @@ def _prompt_plugin_env_vars(manifest: dict, console) -> None:
         try:
             value = (_pc().masked_secret_prompt if spec.get("secret", False) else line_input)(f"  {name}: ").strip()
         except (EOFError, KeyboardInterrupt):
-            console.print(f"\n[dim]  Skipped (you can set these later in {display_hermes_home()}/.env)[/dim]")
+            console.print(f"\n[dim]  Skipped (you can set these later in {display_kova_home()}/.env)[/dim]")
             return
 
         if value:
             save_env_value(name, value)
             os.environ[name] = value
-            console.print(f"  [green]✓[/green] Saved to {display_hermes_home()}/.env")
+            console.print(f"  [green]✓[/green] Saved to {display_kova_home()}/.env")
         else:
-            console.print(f"  [dim]  Skipped (set {name} in {display_hermes_home()}/.env later)[/dim]")
+            console.print(f"  [dim]  Skipped (set {name} in {display_kova_home()}/.env later)[/dim]")
 
     console.print()
 
@@ -229,7 +229,7 @@ def _check_manifest_version(manifest: dict, plugin_name: str) -> None:
     reason = manifest_version_error(manifest, plugin_name)
     if reason:
         from kova_cli.config import recommended_update_command
-        raise _pc().PluginOperationError(f"{reason} Run {recommended_update_command()} to update Hermes.",
+        raise _pc().PluginOperationError(f"{reason} Run {recommended_update_command()} to update Kova.",
                                          failure_class="incompatible")
 
 
@@ -269,7 +269,7 @@ def _probe_readable(path: Path) -> None:
 
 
 def _ensure_tree_readable(root: Path, plugins_dir: Path) -> None:
-    """Refuse to ship a tree Hermes cannot read back. A clone can land unreadable (Windows ACL
+    """Refuse to ship a tree Kova cannot read back. A clone can land unreadable (Windows ACL
     inheritance -> WinError 5, a mode-000 file) and discovery would then skip the plugin forever
     (#111804); repair ``u+rX`` where the OS supports it, otherwise fail before anything moves."""
     paths = [root]
@@ -308,7 +308,7 @@ def _refuse_unavailable_portable_plugin(plugin_name: str, tree: Path, app_title:
     from tools.mcp_liveness import availability_problem, describe
 
     try:
-        package = load_agent_plugin(tree, tree.parent / ".hermes-install-data")
+        package = load_agent_plugin(tree, tree.parent / ".kova-install-data")
     except ValueError as exc:
         raise _pc().PluginOperationError(f"Plugin '{plugin_name}' is unavailable: {exc}.",
                                          failure_class="manifest_invalid") from exc
@@ -604,7 +604,7 @@ def _announce_source(identifier: str, console, *, brief: bool) -> tuple[Optional
     catalog pin (plus the entry's description unless *brief*) or the custom-source warning."""
     from kova_cli import plugins_cmd_catalog as catalog
     if not catalog.looks_like_catalog_name(identifier):
-        console.print("[yellow]Warning:[/yellow] custom (unreviewed) source — not from the Hermes catalog.")
+        console.print("[yellow]Warning:[/yellow] custom (unreviewed) source — not from the Kova catalog.")
         return None, identifier
     entry = catalog.resolve_catalog_name(identifier, console)
     console.print(f"[bold]{entry.name}[/bold] [cyan]\\[{entry.tier}][/cyan] [dim]pinned @ {entry.sha[:8]}[/dim]")
@@ -678,7 +678,7 @@ def cmd_install(
     if not _pc()._looks_like_plugin_dir(target):
         console.print(
             f"[yellow]Warning:[/yellow] {installed_name} doesn't contain plugin.yaml, "
-            f"plugin.json, or __init__.py. It may not be a valid Hermes plugin.")
+            f"plugin.json, or __init__.py. It may not be a valid Kova plugin.")
     _prompt_plugin_env_vars(installed_manifest, console)
 
     from pm.workspace import enabled_plugin_dirs
@@ -840,11 +840,11 @@ def _resolve_source(identifier: str, catalog_name: Optional[str]) -> tuple:
     if catalog_name:
         entry = catalog.get_live_catalog_entry(catalog_name)
         if entry is None:
-            return None, identifier, warnings, {"ok": False, "error": f"'{catalog_name}' is not in the Hermes plugin catalog."}
+            return None, identifier, warnings, {"ok": False, "error": f"'{catalog_name}' is not in the Kova plugin catalog."}
         warnings.extend(_known_issue_warnings(entry))
         identifier = entry.install_identifier
     else:
-        warnings.append("Custom (unreviewed) source — not from the Hermes catalog.")
+        warnings.append("Custom (unreviewed) source — not from the Kova catalog.")
     try:
         git_url = _pc()._resolve_git_url(identifier)[0]
         if git_url.startswith(("http://", "file://")):

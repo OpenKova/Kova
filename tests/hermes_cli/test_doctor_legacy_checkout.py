@@ -32,8 +32,8 @@ def embedded_context(tmp_path, monkeypatch):
 
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", bundle)
 
-    home = tmp_path / ".hermes"
-    checkout = home / "hermes-agent"
+    home = tmp_path / ".kova"
+    checkout = home / "kova-agent"
     checkout.mkdir(parents=True)
     _git(checkout, "init", "-b", "main")
     _git(checkout, "config", "user.email", "test@example.com")
@@ -41,7 +41,7 @@ def embedded_context(tmp_path, monkeypatch):
     (checkout / "f.txt").write_text("x\n")
     _git(checkout, "add", ".")
     _git(checkout, "commit", "-m", "initial")
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "KOVA_HOME", home)
     return checkout
 
 

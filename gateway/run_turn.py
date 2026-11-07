@@ -38,7 +38,7 @@ from gateway.session import (
 from gateway.session_transcript import TranscriptReadError
 from gateway.turn_context import TurnContext
 from gateway.turn_lease import DEFAULT_LEASE_WAIT, TurnLeaseTimeoutError
-from kova_constants import get_hermes_home_override
+from kova_constants import get_kova_home_override
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from utils import base_url_hostname
@@ -63,9 +63,9 @@ def _tool_call_logger() -> logging.Logger:
         if not tool_logger.handlers:
             from logging.handlers import RotatingFileHandler
             from agent.redact import RedactingFormatter
-            from gateway.run import _hermes_home
+            from gateway.run import _kova_home
 
-            log_dir = _hermes_home / "logs"
+            log_dir = _kova_home / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
             handler = RotatingFileHandler(
                 log_dir / "tool_calls.log", maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8",
@@ -489,7 +489,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         """
         from gateway.run import _profile_runtime_scope
         multiplex = bool(getattr(self.config, "multiplex_profiles", False))
-        if multiplex and not get_hermes_home_override():
+        if multiplex and not get_kova_home_override():
             profile_home = self._resolve_profile_home_for_source(event.source)
             with _profile_runtime_scope(Path(profile_home)):
                 return await self._execute_mcp_reload(event)
@@ -665,7 +665,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         run_generation: Optional[int] = None, event_message_id: Optional[str] = None,
         scheduled_heartbeat: bool = False,
     ) -> dict[str, Any]:
-        """Forward the message to a remote Hermes API server instead of running a local AIAgent.
+        """Forward the message to a remote Kova API server instead of running a local AIAgent.
 
         Lets a Docker container handle Matrix E2EE while the agent runs on the host with full
         access to local files, memory, skills, and a unified session store."""
@@ -700,7 +700,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
                 "history_offset": len(history), "session_id": session_id, "response_previewed": False,
             }
 
-        # OpenAI chat format. The remote keeps continuity via X-Hermes-Session-Id; send the current
+        # OpenAI chat format. The remote keeps continuity via X-Kova-Session-Id; send the current
         # message plus a compact text-only history for a remote that has none yet.
         api_messages: list[dict[str, str]] = [{"role": "system", "content": context_prompt}] if context_prompt else []
         api_messages += [
@@ -713,8 +713,8 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         if proxy_key:
             headers["Authorization"] = f"Bearer {proxy_key}"
         if session_id:
-            headers["X-Hermes-Session-Id"] = session_id
-        body = {"model": "hermes-agent", "messages": api_messages, "stream": True}
+            headers["X-Kova-Session-Id"] = session_id
+        body = {"model": "kova-agent", "messages": api_messages, "stream": True}
 
         _thread_metadata: Optional[dict[str, Any]] = self._thread_metadata_for_source(source, event_message_id)
         _stream_consumer = (
@@ -873,7 +873,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         # A raw os.getenv here reads whichever profile's env loaded last under multiplexing
         # (#116898); get_secret resolves through the active profile's scope instead.
         progress_mode, _tool_progress_explicit = resolve_tool_progress(
-            user_config, platform_key, get_secret("HERMES_TOOL_PROGRESS_MODE"),
+            user_config, platform_key, get_secret("KOVA_TOOL_PROGRESS_MODE"),
         )
         # "accumulate" (edit one bubble) or "separate" (one msg per tool)
         progress_grouping = resolve_display_setting(user_config, platform_key, "tool_progress_grouping") or "accumulate"
@@ -918,7 +918,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         _live_status_adapter = (
             adapter if getattr(adapter, "supports_status_text", False) and _live_status_mode != "off" else None
         )
-        # "log" mode: tool calls go to ~/.hermes/logs/tool_calls.log instead of the chat. Gateway-only.
+        # "log" mode: tool calls go to ~/.kova/logs/tool_calls.log instead of the chat. Gateway-only.
         log_mode_enabled = progress_mode == "log" and not is_webhook
         # Interim assistant messages and thinking_progress are independent of tool progress (same
         # queue). Mattermost requires a per-platform opt-in: scratch text leaks into public threads.
@@ -1319,7 +1319,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
     def _run_agent_start_turn_worker(self, turn_ctx: TurnContext, run_sync: Callable[[], Any]) -> GatewayRunner._RunAgentWorker:
         """Schedule ``run_sync`` on the executor plus the inactivity watchdog thread.
 
-        *Inactivity* timeout (agent.gateway_timeout / HERMES_AGENT_TIMEOUT, env wins; 0 = unlimited),
+        *Inactivity* timeout (agent.gateway_timeout / KOVA_AGENT_TIMEOUT, env wins; 0 = unlimited),
         not wall-clock. The daemon watchdog is independent of asyncio: cgroup memory reclaim can
         starve the loop that runs the normal timeout poll."""
         from gateway.run import _float_env, _watch_gateway_turn_inactivity
@@ -1327,7 +1327,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         agent_holder, session_key, run_generation = turn_ctx.agent_holder, turn_ctx.session_key, turn_ctx.run_generation
         _agent_timeout, _agent_warning = (
             v if v > 0 else None
-            for v in (_float_env("HERMES_AGENT_TIMEOUT", 1800), _float_env("HERMES_AGENT_TIMEOUT_WARNING", 900))
+            for v in (_float_env("KOVA_AGENT_TIMEOUT", 1800), _float_env("KOVA_AGENT_TIMEOUT_WARNING", 900))
         )
 
         # background=true processes survive a turn: reap only children created by THIS turn on timeout.
@@ -2061,11 +2061,11 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         no longer owns the session slot or the executor finished. ``_executor_task_holder[0]`` is
         bound just after this task is scheduled (reads as None until then).
 
-        Interval: agent.gateway_notify_interval / HERMES_AGENT_NOTIFY_INTERVAL (default 180s; 0 or
+        Interval: agent.gateway_notify_interval / KOVA_AGENT_NOTIFY_INTERVAL (default 180s; 0 or
         long_running_notifications=off disables)."""
         from gateway.run import _float_env, _interim_metadata, _non_conversational_metadata
         _notify_start = time.time()
-        _NOTIFY_INTERVAL = _float_env("HERMES_AGENT_NOTIFY_INTERVAL", 180)
+        _NOTIFY_INTERVAL = _float_env("KOVA_AGENT_NOTIFY_INTERVAL", 180)
         _long_running_mode = disp._display_surface_mode("long_running_notifications", default=True, allow_generic=True)
         if _NOTIFY_INTERVAL <= 0 or _long_running_mode == "off":
             return

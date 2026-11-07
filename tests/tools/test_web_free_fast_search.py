@@ -78,7 +78,7 @@ def _write_home(home, monkeypatch, *, nous_state=None, config=None):
     from kova_cli.nous_account import reset_nous_portal_account_info_cache
 
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     as_local_desktop_backend(monkeypatch)
     monkeypatch.delenv("PERPLEXITY_API_KEY", raising=False)
     monkeypatch.delenv("TOOL_GATEWAY_USER_TOKEN", raising=False)
@@ -166,11 +166,11 @@ def test_free_fast_search_eligibility_follows_the_served_profile(monkeypatch, tm
     from gateway.run import _profile_runtime_scope
     from tools import web_tools
 
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     profile_a, profile_b = root / "profiles" / "a", root / "profiles" / "b"
     _write_home(profile_a, monkeypatch, nous_state=_nous_state(EXHAUSTED, "oauth"), config={"web": {"keyless_fallback": False}})
     _write_home(profile_b, monkeypatch, config={"web": {"keyless_fallback": False}})
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     (root / "config.yaml").write_text("")
     set_multiplex_active(True)
     try:

@@ -53,7 +53,7 @@ def inject_plugin_message(
         logger.warning("inject_message: no live gateway is available")
         return False
     # The manager's immutable home is the plugin's profile: the gateway creates an origin's session
-    # there or nowhere, and a keyed local session must belong to it (never the ambient HERMES_HOME
+    # there or nowhere, and a keyed local session must belong to it (never the ambient KOVA_HOME
     # of whatever thread called us).
     if keyless:
         from gateway.session_context import bound_session_key

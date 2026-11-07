@@ -58,8 +58,8 @@ def moved_repo(tmp_path, monkeypatch):
     real = plugins_cmd._clone_plugin_repo
     monkeypatch.setattr(plugins_cmd, "_clone_plugin_repo",
                         lambda dest, _url, revision, subdir=None: real(dest, repo.as_uri(), revision, subdir))
-    from kova_constants import get_hermes_home
-    return get_hermes_home(), reviewed, tip, repo
+    from kova_constants import get_kova_home
+    return get_kova_home(), reviewed, tip, repo
 
 
 def test_install_refuses_a_branch_that_moved_since_the_dialog_inspected_it(moved_repo):

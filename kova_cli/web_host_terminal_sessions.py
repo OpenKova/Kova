@@ -25,7 +25,7 @@ from kova_cli.pty_session import (
     WS_CLOSE_VIEWER_STALLED_REASON, PtySession, PtySessionRegistry, RegistryFull, _close_ws, run_reaper,
 )
 from kova_cli.web_host_terminal import META_PREFIX
-from kova_constants import assert_named_profile_home_live, get_hermes_home
+from kova_constants import assert_named_profile_home_live, get_kova_home
 
 # No survival across backend restart. Disconnects retain a bounded ANSI tail.
 RETENTION_SECONDS = 15 * 60
@@ -104,7 +104,7 @@ def _request_home(profile: str | None) -> Path:
     requested = (profile or "").strip()
     return (
         _resolve_profile_dir(requested)
-        if requested and requested.lower() != "current" else get_hermes_home()
+        if requested and requested.lower() != "current" else get_kova_home()
     ).resolve()
 
 
@@ -461,7 +461,7 @@ async def _resize(session: PtySession, ws: WebSocket, size: tuple[int, int], und
     """Apply ``size``; return what the next resize needs to tell whether it undoes this one.
 
     A program can read the size well after its SIGWINCH (Node, behind its event loop, and reports a
-    'resize', which Hermes' TUI redraws on, only when the size it reads has changed). A step undone
+    'resize', which Kova' TUI redraws on, only when the size it reads has changed). A step undone
     before it looks is never seen: both signals find the size it already had. So a resize back to
     the size before the previous one first waits until the program has written output since that
     one, as a program that redraws on a resize does, or ``_RESIZE_ANSWER_SECONDS`` for one that

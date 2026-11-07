@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
-  hermes-update-rehearsal.ps1 -- for an EXISTING Hermes install (Windows).
+  hermes-update-rehearsal.ps1 -- for an EXISTING Kova install (Windows).
 
 .DESCRIPTION
   Two steps:
 
     pre   take a `hermes backup` of your data, snapshot the disk that holds
-          HERMES_HOME and the desktop app's Electron userData (Volume Shadow Copy),
+          KOVA_HOME and the desktop app's Electron userData (Volume Shadow Copy),
           then point the install's update source at a fork so `hermes update`
           pulls that fork's main. Prints what to do next.
     post  put both trees back exactly as they were at the snapshot.
@@ -16,7 +16,7 @@
 
   The snapshot is copy-on-write, so pre copies nothing and takes seconds. post
   mirrors the snapshot back over both trees: only files the update changed are
-  copied, and files it added are deleted. HERMES_HOME\cache is left as it is.
+  copied, and files it added are deleted. KOVA_HOME\cache is left as it is.
 
   If Windows drops the snapshot (it can when the disk's shadow storage fills),
   your files are untouched but post cannot roll back; the `hermes backup` zip
@@ -41,7 +41,7 @@
 
 .EXAMPLE
   ./hermes-update-rehearsal.ps1 pre -Source <git-url>
-  # ... run `hermes update`, use Hermes, test ...
+  # ... run `hermes update`, use Kova, test ...
   ./hermes-update-rehearsal.ps1 post
 
 .NOTES
@@ -53,7 +53,7 @@ param(
   [ValidateSet('pre', 'post', 'status', 'help')]
   [string]$Command = 'help',
 
-  [string]$Source = 'https://github.com/ethernet8023/hermes-agent.git',
+  [string]$Source = 'https://github.com/ethernet8023/kova-agent.git',
   [string]$BackupRoot,
   [switch]$Yes
 )
@@ -61,8 +61,8 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
 
-$OfficialHttps = 'https://github.com/NousResearch/hermes-agent.git'
-$OfficialSsh = 'git@github.com:NousResearch/hermes-agent.git'
+$OfficialHttps = 'https://github.com/NousResearch/kova-agent.git'
+$OfficialSsh = 'git@github.com:NousResearch/kova-agent.git'
 # Diff-area cap pre sets while the snapshot is alive (post restores the original).
 $ShadowStorageMax = [UInt64]128GB
 
@@ -86,10 +86,10 @@ function Assert-Elevated {
 # paths
 # ---------------------------------------------------------------------------
 function Get-ResolvedPaths {
-  $suffix = if ($env:HERMES_DATA_DIR_SUFFIX) { $env:HERMES_DATA_DIR_SUFFIX } else { '' }
+  $suffix = if ($env:KOVA_DATA_DIR_SUFFIX) { $env:KOVA_DATA_DIR_SUFFIX } else { '' }
   $userProfile = $env:USERPROFILE
-  if ($env:HERMES_HOME) {
-    $home_ = $env:HERMES_HOME
+  if ($env:KOVA_HOME) {
+    $home_ = $env:KOVA_HOME
     try { $home_ = (Resolve-Path -LiteralPath $home_ -ErrorAction Stop).Path }
     catch { $home_ = [IO.Path]::GetFullPath($home_) }
   }
@@ -97,9 +97,9 @@ function Get-ResolvedPaths {
     $base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { Join-Path $userProfile 'AppData\Local' }
     $home_ = "$(Join-Path $base 'hermes')$suffix"
   }
-  $install = Join-Path $home_ 'hermes-agent'
-  if ($env:HERMES_DESKTOP_USER_DATA_DIR) {
-    $ud = $env:HERMES_DESKTOP_USER_DATA_DIR
+  $install = Join-Path $home_ 'kova-agent'
+  if ($env:KOVA_DESKTOP_USER_DATA_DIR) {
+    $ud = $env:KOVA_DESKTOP_USER_DATA_DIR
     try { $ud = (Resolve-Path -LiteralPath $ud -ErrorAction Stop).Path }
     catch { $ud = [IO.Path]::GetFullPath($ud) }
     $userData = $ud
@@ -107,7 +107,7 @@ function Get-ResolvedPaths {
   }
   else {
     $appData = if ($env:APPDATA) { $env:APPDATA } else { Join-Path $userProfile 'AppData\Roaming' }
-    $userData = Join-Path $appData "Hermes$suffix"
+    $userData = Join-Path $appData "Kova$suffix"
     $userDataSource = 'default'
   }
   return [pscustomobject]@{
@@ -133,7 +133,7 @@ function Load-Snapshot {
   $P = Get-ResolvedPaths
   $recorded = ((Get-Content -LiteralPath $recordedPath -Raw) -replace "`r", '').Trim()
   if ($recorded -ne $P.Home) {
-    Fail "that backup belongs to HERMES_HOME=$recorded, not $($P.Home); pass -BackupRoot to pick the right one"
+    Fail "that backup belongs to KOVA_HOME=$recorded, not $($P.Home); pass -BackupRoot to pick the right one"
   }
 }
 
@@ -280,7 +280,7 @@ function Invoke-Mirror {
 # pre
 # ---------------------------------------------------------------------------
 
-function Resolve-HermesExe {
+function Resolve-KovaExe {
   param($P)
   foreach ($c in @(
       (Join-Path $P.Install 'venv\Scripts\hermes.exe'),
@@ -294,14 +294,14 @@ function Resolve-HermesExe {
 function Invoke-Pre {
   $P = Get-ResolvedPaths
   Step 'your install'
-  Say "HERMES_HOME   $($P.Home)"
+  Say "KOVA_HOME   $($P.Home)"
   Say "install       $($P.Install)"
   Say "desktop data  $($P.UserData) ($($P.UserDataOrigin))"
   Say "backup to     $BackupRoot"
-  if (-not (Test-Path -LiteralPath $P.Home)) { Fail "no HERMES_HOME at $($P.Home)" }
+  if (-not (Test-Path -LiteralPath $P.Home)) { Fail "no KOVA_HOME at $($P.Home)" }
   if (-not (Test-Path -LiteralPath (Join-Path $P.Install '.git'))) { Fail "no git checkout at $($P.Install) -- this tool covers source installs" }
   Assert-Elevated
-  $hermesExe = Resolve-HermesExe $P
+  $hermesExe = Resolve-KovaExe $P
   if (-not $hermesExe) { Fail "no hermes executable found under $($P.Install)\venv\Scripts or $($P.Home)\bin" }
 
   $volumes = @(Get-VolumeRoot $P.Home)
@@ -310,13 +310,13 @@ function Invoke-Pre {
   $volumes = @($volumes | Select-Object -Unique)
 
   Step 'before we start (nothing here is pass/fail, just read it)'
-  $procs = @(Get-Process -Name 'Hermes', 'hermes' -ErrorAction SilentlyContinue)
+  $procs = @(Get-Process -Name 'Kova', 'hermes' -ErrorAction SilentlyContinue)
   if ($procs.Count) {
-    Warn 'Hermes looks like it is running -- close the desktop app and the gateway'
+    Warn 'Kova looks like it is running -- close the desktop app and the gateway'
     Warn "before you run 'hermes update', or the dependency sync may fail:"
     $procs | ForEach-Object { Write-Host "    $($_.ProcessName) (pid $($_.Id))" }
   }
-  else { Ok 'no Hermes processes running' }
+  else { Ok 'no Kova processes running' }
   $n = @(Invoke-GitCmd @('config', '--global', '--get-regexp', '^url\.')).Count + @(Invoke-GitCmd @('-C', $P.Install, 'config', '--local', '--get-regexp', '^url\.')).Count
   if ($n -eq 0) { Ok 'global git config has no URL rewrites' }
   else { Warn "$n existing url.* insteadOf entr(y/ies) in your git config; we add more and remove only ours" }
@@ -338,12 +338,12 @@ function Invoke-Pre {
   # models are left out -- those are what a reinstall brings back.
   $zip = Join-Path $script:Snap 'hermes-backup.zip'
   $started = Get-Date
-  $prevHome = $env:HERMES_HOME
-  $env:HERMES_HOME = $P.Home
+  $prevHome = $env:KOVA_HOME
+  $env:KOVA_HOME = $P.Home
   $prev = $ErrorActionPreference
   $ErrorActionPreference = 'Continue'
   try { $out = & $hermesExe backup -o $zip 2>&1; $code = $LASTEXITCODE }
-  finally { $ErrorActionPreference = $prev; $env:HERMES_HOME = $prevHome }
+  finally { $ErrorActionPreference = $prev; $env:KOVA_HOME = $prevHome }
   $elapsed = [int]((Get-Date) - $started).TotalSeconds
   if ($code -eq 1 -and (Test-Path -LiteralPath $zip)) {
     $out | ForEach-Object { Write-Host "    $_" }
@@ -392,7 +392,7 @@ function Invoke-Pre {
   $manifest = [ordered]@{
     schema              = 4
     created             = (Get-Date).ToUniversalTime().ToString('o')
-    hermes_home         = $P.Home
+    kova_home         = $P.Home
     install_dir         = $P.Install
     userdata_dir        = $P.UserData
     userdata_dir_source = $P.UserDataOrigin
@@ -434,7 +434,7 @@ function Invoke-Pre {
 function Invoke-Status {
   $P = Get-ResolvedPaths
   Step 'your install'
-  Say "HERMES_HOME   $($P.Home)"
+  Say "KOVA_HOME   $($P.Home)"
   Say "install       $($P.Install)"
   Say "desktop data  $($P.UserData) ($($P.UserDataOrigin))"
   Say "backup root   $BackupRoot"
@@ -503,7 +503,7 @@ function Invoke-Post {
     Say "  hermes import `"$zip`""
     Say 'or, if hermes itself no longer starts, extract the zip over your home:'
     Say "  tar -xf `"$zip`" -C `"$($P.Home)`""
-    Say 'then reinstall Hermes to get the program back.'
+    Say 'then reinstall Kova to get the program back.'
     Restore-ShadowStorage
     Fail 'the disk snapshot is gone'
   }
@@ -514,16 +514,16 @@ function Invoke-Post {
   Say "  to how they were at $($script:Snap)"
   Confirm-Action "Put everything back from $($script:Snap)?"
 
-  Step 'stopping Hermes'
-  foreach ($name in @('Hermes', 'hermes')) {
+  Step 'stopping Kova'
+  foreach ($name in @('Kova', 'hermes')) {
     Get-Process -Name $name -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
   }
-  Ok 'asked Hermes to stop (if anything was running)'
+  Ok 'asked Kova to stop (if anything was running)'
 
   $mounts = @{}
   try {
     foreach ($s in $shadows) { $mounts[$s.Volume] = Mount-Shadow $s }
-    $trees = @([pscustomobject]@{ Label = 'HERMES_HOME'; Live = $P.Home; IsHome = $true })
+    $trees = @([pscustomobject]@{ Label = 'KOVA_HOME'; Live = $P.Home; IsHome = $true })
     $trees += [pscustomobject]@{ Label = "the desktop app's data"; Live = $P.UserData; IsHome = $false }
     foreach ($t in $trees) {
       Step "restoring $($t.Label)"
@@ -554,7 +554,7 @@ function Invoke-Post {
   Restore-ShadowStorage
 
   Step 'done'
-  Say "Your HERMES_HOME and the desktop app's data are back exactly as they were."
+  Say "Your KOVA_HOME and the desktop app's data are back exactly as they were."
   Say "Open the desktop app once and run 'hermes doctor' to confirm."
   Say "Nothing was judged or changed by this script; the backup at $($script:Snap)"
   Say 'is yours to keep or delete.'
@@ -575,7 +575,7 @@ switch ($Command) {
       Get-Help $PSCommandPath -Detailed | Out-String | Write-Host
     }
     else {
-      Write-Host 'hermes-update-rehearsal.ps1 -- run against an EXISTING Hermes install.'
+      Write-Host 'hermes-update-rehearsal.ps1 -- run against an EXISTING Kova install.'
       Write-Host ''
       Write-Host '  pre     back up your data, snapshot the disk, point the update source at a fork'
       Write-Host '  post    restore both trees exactly as they were at the snapshot'

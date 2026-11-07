@@ -32,7 +32,7 @@ def quiet_host(tmp_path, monkeypatch):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     monkeypatch.setattr(gw, "supports_systemd_services", lambda: True)
     monkeypatch.setattr(gw, "_service_backend", lambda: "systemd")
     monkeypatch.setattr(gw, "refuses_container_user_scope_install", lambda system: False)
@@ -45,8 +45,8 @@ def quiet_host(tmp_path, monkeypatch):
 
     def use(profile: str | None) -> None:
         home = root if profile is None else root / "profiles" / profile
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        kova_constants._default_hermes_root_memo = None
+        monkeypatch.setenv("KOVA_HOME", str(home))
+        kova_constants._default_kova_root_memo = None
 
     return root, calls, use
 
@@ -88,9 +88,9 @@ def test_named_profile_install_and_start_refuse_without_force_when_no_multiplexe
 
     # Control: a live multiplexer serving the profile still prints the served-by form.
     use("coder")
-    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}))
+    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}))
     (root / "gateway_state.json").write_text(json.dumps(
-        {"pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running",
+        {"pid": os.getpid(), "kova_home": str(root), "gateway_state": "running",
          "served_profiles": ["default", "coder"]}))
     from gateway import status
     real_cmdline = status._read_process_cmdline

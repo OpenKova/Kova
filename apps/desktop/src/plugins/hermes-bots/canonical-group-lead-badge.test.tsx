@@ -23,9 +23,9 @@ vi.mock('@hermes/plugin-sdk', async () => {
 
 import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 
-const originalDesktop = window.hermesDesktop
+const originalDesktop = window.kovaDesktop
 beforeEach(() => { Object.defineProperty(window, 'hermesDesktop', { configurable: true, writable: true, value: undefined }) })
-afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.hermesDesktop = originalDesktop })
+afterEach(() => { cleanup(); request.mockReset(); localStorage.clear(); window.kovaDesktop = originalDesktop })
 
 it('badges the room lead on its header chip when the room routes through a lead', async () => {
   const binding = { connectionId: 'local', profile: 'team', roomId: 'lead-room' }

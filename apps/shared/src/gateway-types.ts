@@ -9,7 +9,7 @@ import type {
   TranscriptMessage,
   Usage
 } from './gateway-events.js'
-import type { HermesSkin } from './skin.js'
+import type { KovaSkin } from './skin.js'
 
 /** The gateway's `session.info` / resume `info` block — generated from `tui_gateway/contracts`,
  *  plus the canonical-authority fields the legacy contract does not carry yet
@@ -37,7 +37,7 @@ export interface SlashCategory {
 
 /** The cross-surface skin contract (canonical shape in `@kova/shared`).
  *  Includes the paired light_colors/dark_colors overlays from #20379. */
-export type GatewaySkin = HermesSkin
+export type GatewaySkin = KovaSkin
 
 /** Generation-bound shared control published by a canonical gateway
  *  (`gateway/session_pending_controls.py::register` / `register_clarify`). Answered through

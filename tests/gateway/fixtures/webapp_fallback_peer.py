@@ -1,6 +1,6 @@
 """Start the gateway's listener the way the runtime does and report what native clients and a browser get.
 
-Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``HERMES_HOME``. The spec:
+Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``KOVA_HOME``. The spec:
 
 - ``webapp``: the ``webapp:`` block written to config.yaml, or null for none;
 - ``dashboard_public_url``: ``dashboard.public_url``, or null;
@@ -22,7 +22,7 @@ Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``HERME
   ``webapp/session-token`` goes), ``"not-utf8"`` (the token saved as UTF-16), or null for a
   readable token an earlier gateway stored.
 
-Writes ``receipt.json`` into ``HERMES_HOME`` (the gateway redirects stdout). No inference: the model points
+Writes ``receipt.json`` into ``KOVA_HOME`` (the gateway redirects stdout). No inference: the model points
 at a closed port and no turn is submitted. Tests start it with :func:`run`.
 """
 import asyncio
@@ -54,7 +54,7 @@ def run(tmp_path, spec) -> dict:
     for path in (home, user):
         path.mkdir()
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1")
     result = subprocess.run([sys.executable, __file__, json.dumps(spec)], cwd=root, env=env,
                             capture_output=True, text=True, timeout=120, check=False)
@@ -168,7 +168,7 @@ async def _native_session_list(runner, origin) -> bool:
     ticket = runner.session_ticket_store.mint(
         profile_id=authority.profile_id, subject="fixture-same-user", purpose="interactive")
     url = origin.replace("http:", "ws:") + "/api/ws"
-    async with connect(url, subprotocols=["hermes-gateway-v1", f"hermes-gateway-ticket.{ticket}"]) as ws:
+    async with connect(url, subprotocols=["kova-gateway-v1", f"kova-gateway-ticket.{ticket}"]) as ws:
         return "result" in await rpc(ws, "session.list")
 
 
@@ -212,7 +212,7 @@ async def probe(spec):
     from gateway.session_authority import initialize_session_authority
     import kova_cli.webapp
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     (home / "config.yaml").write_text(_config(spec), encoding="utf-8")
     # A file where the folder belongs (``credential_unusable``) is the ``folder-is-a-file`` case.
     _seed_credential(home, "folder-is-a-file" if spec.get("credential_unusable") else spec.get("credential"))
@@ -315,7 +315,7 @@ async def probe(spec):
 
 
 def main():
-    receipt = Path(os.environ["HERMES_HOME"]) / "receipt.json"
+    receipt = Path(os.environ["KOVA_HOME"]) / "receipt.json"
     try:
         receipt.write_text(json.dumps(asyncio.run(probe(json.loads(sys.argv[1])))))
     except BaseException:

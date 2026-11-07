@@ -396,8 +396,8 @@ async def _exec_buzz(
 ) -> tuple[int, str, str]:
     """Run the buzz CLI (argv, never a shell) -> ``(rc, stdout, stderr)``. Key travels via env only."""
     from tools.environments.local import hermes_subprocess_env
-    env = hermes_subprocess_env()  # a third-party CLI: its own key only, never Hermes' credentials
-    env["HOME"] = env["HERMES_REAL_HOME"]  # its own config and credentials file live under the user's HOME
+    env = hermes_subprocess_env()  # a third-party CLI: its own key only, never Kova' credentials
+    env["HOME"] = env["KOVA_REAL_HOME"]  # its own config and credentials file live under the user's HOME
     env["BUZZ_RELAY_URL"] = relay_url
     env["BUZZ_PRIVATE_KEY"] = private_key
     env.pop("BUZZ_AUTH_TAG", None)
@@ -1768,9 +1768,9 @@ def _profile_buzz_extra() -> dict:
         return {}
     try:
         from gateway.config_loader import platform_section
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from kova_cli.config import read_user_config_raw
-        cfg = read_user_config_raw(Path(get_hermes_home()) / "config.yaml")
+        cfg = read_user_config_raw(Path(get_kova_home()) / "config.yaml")
     except Exception:
         return {}
     if not isinstance(cfg, dict):
@@ -1909,7 +1909,7 @@ def interactive_setup() -> None:
     existing_relay = get_env_value("BUZZ_RELAY_URL")
     if declines_reconfigure("Buzz", "Reconfigure Buzz?", "BUZZ_RELAY_URL"):
         return
-    print_info("Connect Hermes to a Buzz community (Block's Nostr-based human+agent platform).")
+    print_info("Connect Kova to a Buzz community (Block's Nostr-based human+agent platform).")
     print_info("   Requires the buzz CLI binary and a Nostr key that is a community member.")
     print()
     relay = prompt("Relay URL (e.g. https://mycommunity.communities.buzz.xyz)", default=existing_relay or "")
@@ -1939,12 +1939,12 @@ def interactive_setup() -> None:
         allowed = ask("Allowed users (comma-separated npubs or hex pubkeys, empty to deny everyone)", "BUZZ_ALLOWED_USERS")
         save_env_value("BUZZ_ALLOWED_USERS", allowed.replace(" ", "") if allowed else "")
     print()
-    print_success("Buzz configuration saved to ~/.hermes/.env")
+    print_success("Buzz configuration saved to ~/.kova/.env")
     print_info("Restart the gateway for changes to take effect: hermes gateway restart")
 
 
 def register(ctx):
-    """Plugin entry point: called by the Hermes plugin system."""
+    """Plugin entry point: called by the Kova plugin system."""
     ctx.register_platform(
         **_load_sibling("send_targets").SEND_ENTRY_KWARGS,  # send_message target syntax + routing
         name="buzz", label="Buzz", adapter_factory=lambda cfg: BuzzAdapter(cfg), check_fn=check_requirements,

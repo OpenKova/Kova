@@ -8,7 +8,7 @@ host carried 402 such orphans (80 GB) after a fortnight of worktree campaigns.
 
 The state dir records the checkout it belongs to in ``inputs/.project-root`` (written by
 :func:`pm.environments.record_activation_inputs`). A missing path alone does not prove the
-checkout is gone: a data root shared with a container (``-v ~/.hermes:/opt/data``) or an
+checkout is gone: a data root shared with a container (``-v ~/.kova:/opt/data``) or an
 unmounted volume records paths this process cannot see. So a dir is an orphan only when its
 checkout sat where this process can see that it was deleted -- under the data root that owns
 ``installs/`` (scratch clones, the runtime checkout) or directly in a ``.worktrees/`` dir that
@@ -20,7 +20,7 @@ be proved deleted, so its missing checkout alone would keep the state forever. I
 once the state has also gone unused for ``worktrees.install_state_retention_days``: every sync
 recreates ``inputs/`` and every launch takes a generation lease (moving its
 ``.leases`` dir), so a checkout that still exists behind a mount boundary and is used at all keeps
-its state. One unused for longer is rebuilt by ``hermes pm repair`` / the next activation.
+its state. One unused for longer is rebuilt by ``kova pm repair`` / the next activation.
 """
 
 from __future__ import annotations
@@ -62,13 +62,13 @@ def _retention_seconds(data_root: Path) -> float | None:
     for the others: a named profile without the key would apply the default to a state the root
     opted out of reclaiming."""
     from kova_cli.config import cfg_get, load_config_readonly
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    token = set_hermes_home_override(data_root)
+    token = set_kova_home_override(data_root)
     try:
         days = cfg_get(load_config_readonly(), "worktrees", "install_state_retention_days", default=14)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     return days * 86400 if isinstance(days, (int, float)) and days > 0 else None
 
 

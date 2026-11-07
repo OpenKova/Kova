@@ -199,7 +199,7 @@ def test_post_update_guard_covers_sibling_profiles(tmp_path, monkeypatch, capsys
         stream.seek((page - 1) * page_size)
         stream.write(b"\x00")
 
-    monkeypatch.setattr(update_cmd, "get_hermes_home", lambda: root_home)
+    monkeypatch.setattr(update_cmd, "get_kova_home", lambda: root_home)
     monkeypatch.setattr(
         "kova_cli.backup._sibling_profile_homes",
         lambda invoking_home: [("work", sibling_home)],
@@ -231,7 +231,7 @@ def test_post_update_guard_leaves_valid_sibling_dbs_alone(tmp_path, monkeypatch,
     _make_valid_db(sibling_home / "state.db", 7)
     sibling_before = (sibling_home / "state.db").read_bytes()
 
-    monkeypatch.setattr(update_cmd, "get_hermes_home", lambda: root_home)
+    monkeypatch.setattr(update_cmd, "get_kova_home", lambda: root_home)
     monkeypatch.setattr(
         "kova_cli.backup._sibling_profile_homes",
         lambda invoking_home: [("work", sibling_home)],
@@ -257,7 +257,7 @@ def test_post_update_guard_survives_missing_sibling_snapshot(tmp_path, monkeypat
     _make_valid_db(root_home / "state.db", 10)
     (sibling_home / "state.db").write_bytes(b"\x00" * 4096)
 
-    monkeypatch.setattr(update_cmd, "get_hermes_home", lambda: root_home)
+    monkeypatch.setattr(update_cmd, "get_kova_home", lambda: root_home)
     monkeypatch.setattr(
         "kova_cli.backup._sibling_profile_homes",
         lambda invoking_home: [("work", sibling_home)],

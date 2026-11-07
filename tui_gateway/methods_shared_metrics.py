@@ -38,7 +38,7 @@ def _tui_model_friction(signal, session, turns=1):
     from kova_cli.observability.shared_metrics_model import record_model_friction
     record_model_friction(
         signal, session_id=session.get("session_key"), agent=session.get("agent"),
-        hermes_home=session.get("profile_home"), turns=turns)
+        kova_home=session.get("profile_home"), turns=turns)
 
 
 @method("shared_metrics.status")
@@ -85,10 +85,10 @@ def _(rid, params: dict) -> dict:
     if not enabled:
         from kova_cli.observability.shared_metrics_desktop import purge_onboarding_latches
         from kova_cli.observability.shared_metrics_process import purge_pending_receipts
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
 
         purge_onboarding_latches()
-        purge_pending_receipts(get_hermes_home())
+        purge_pending_receipts(get_kova_home())
     if params.get("first_run") is True:
         _shared_metrics_record_setup_completed(cfg)
     return _ok(rid, _shared_metrics_consent(cfg))
@@ -111,7 +111,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     """The Ink TUI (gateway ready) and Desktop (backend attached) each report their own launch ->
     ready time once per launch; ``launch_id`` latches it here too, so a reconnect to this backend
-    never re-counts. A Desktop on a URL/cloud backend has no ``HERMES_DESKTOP`` here, so the
+    never re-counts. A Desktop on a URL/cloud backend has no ``KOVA_DESKTOP`` here, so the
     client's declared surface wins over env detection. Always ``{ok: true}``."""
     from kova_cli.observability.shared_metrics_startup import record_rpc_startup_latency
 

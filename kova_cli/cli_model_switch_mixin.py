@@ -1,11 +1,11 @@
 """Model picker, /model switch application, runtime snapshot/restore, and codex runtime handling for the interactive CLI
 
-Mixin split out of ``cli.py``; bound onto ``HermesCLI`` via the MRO. cli.py-internal
+Mixin split out of ``cli.py``; bound onto ``KovaCLI`` via the MRO. cli.py-internal
 symbols are imported LAZILY inside each method (``from cli import ...``) — the mixin
 never imports ``cli`` at module load time (import cycle).
 
 Tests drive the switch paths with bare stubs lacking most mixin methods, so shared steps are
-module-level functions taking ``cli`` and siblings are called as ``HermesCLI.<name>(self, ...)``.
+module-level functions taking ``cli`` and siblings are called as ``KovaCLI.<name>(self, ...)``.
 """
 
 from __future__ import annotations
@@ -338,7 +338,7 @@ def _commit_model_switch(
     ``picker``: tolerate context-resolution errors and label the config write "(--global)"; the
     typed path additionally records the one-turn restore snapshot. ``reasoning_effort`` (from
     ``--reasoning`` or the picker's effort step) is applied after the swap."""
-    from cli import HermesCLI, _cprint
+    from cli import KovaCLI, _cprint
     old_model, old_provider = cli.model, getattr(cli, "provider", None)
     # A second ``--once`` before the turn restores to the route before the first one.
     snapshot = (getattr(cli, "_pending_one_turn_model_restore", None)
@@ -381,7 +381,7 @@ def _commit_model_switch(
     # The row records what THIS session runs even on --global (else a later resume restores the
     # stale creation-time model); --once is restored after one turn and never touches the row.
     if not one_turn:
-        HermesCLI._persist_model_switch_to_session(cli, result)
+        KovaCLI._persist_model_switch_to_session(cli, result)
 
 
 def _show_model_picker(cli, ctx, force_refresh: bool) -> None:
@@ -1066,7 +1066,7 @@ class CLIModelSwitchMixin:
 
         Usage:
             /codex-runtime                       — show current state
-            /codex-runtime auto                  — Hermes default (chat_completions)
+            /codex-runtime auto                  — Kova default (chat_completions)
             /codex-runtime codex_app_server      — hand turns to codex subprocess
             /codex-runtime on / off              — synonyms for the above
         """

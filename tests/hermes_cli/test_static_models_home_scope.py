@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 SLUG = "acme-static"
 
@@ -43,7 +43,7 @@ def homes(tmp_path, monkeypatch):
             plugin = home / "plugins" / "model-providers" / SLUG
             plugin.mkdir(parents=True)
             (plugin / "__init__.py").write_text(_plugin(models), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(found["a"]))
+    monkeypatch.setenv("KOVA_HOME", str(found["a"]))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -58,11 +58,11 @@ def homes(tmp_path, monkeypatch):
 
 
 def _bound(home: Path, fn):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return fn()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _view():

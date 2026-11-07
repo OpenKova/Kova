@@ -112,7 +112,7 @@ def _mark_qwen_oauth_active(creds: dict[str, Any]) -> None:
 
 
 def _qwen_base_url() -> str:
-    return os.getenv("HERMES_QWEN_BASE_URL", "").strip().rstrip("/") or DEFAULT_QWEN_BASE_URL
+    return os.getenv("KOVA_QWEN_BASE_URL", "").strip().rstrip("/") or DEFAULT_QWEN_BASE_URL
 
 
 def resolve_qwen_runtime_credentials(

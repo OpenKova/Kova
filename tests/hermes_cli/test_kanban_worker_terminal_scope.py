@@ -22,14 +22,14 @@ class _StopSpawn(Exception):
 
 @pytest.fixture
 def profile_b(tmp_path, monkeypatch):
-    """A fake HOME so ``profiles/`` never resolves to the live install (see hermes-agent-dev)."""
-    launch = tmp_path / "fakehome" / ".hermes"
+    """A fake HOME so ``profiles/`` never resolves to the live install (see kova-agent-dev)."""
+    launch = tmp_path / "fakehome" / ".kova"
     served = launch / "profiles" / "b"
     served.mkdir(parents=True)
     (served / "config.yaml").write_text(
         "terminal:\n  backend: docker\n  docker_image: b-image\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv("TERMINAL_ENV", "local")  # ambient launch-profile policy
     monkeypatch.setenv("TERMINAL_DOCKER_IMAGE", "launch-image")
     return served
@@ -79,10 +79,10 @@ def test_worker_for_another_profile_never_inherits_the_dispatchers_credentials(
 
 def test_launch_profiles_own_worker_keeps_its_credentials(tmp_path, monkeypatch):
     """Control: a worker for the LAUNCH profile is not acting for another tenant."""
-    launch = tmp_path / "fakehome" / ".hermes"
+    launch = tmp_path / "fakehome" / ".kova"
     (launch / "profiles").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("KOVA_HOME", str(launch))
     monkeypatch.setenv("OPENAI_API_KEY", "dispatcher-launch-key")
 
     from kova_cli.kanban_db import Task
@@ -107,7 +107,7 @@ def test_launch_profiles_own_worker_keeps_its_credentials(tmp_path, monkeypatch)
 
 
 def test_worker_for_another_profile_can_still_import_hermes(profile_b, tmp_path, monkeypatch):
-    """The routed-profile scrub strips Hermes-owned PYTHONPATH entries, but the worker IS Hermes
+    """The routed-profile scrub strips Kova-owned PYTHONPATH entries, but the worker IS Kova
     (`-m kova_cli.kanban_worker_client`): a PYTHONPATH-launched dispatcher must hand it a tree
     it can import, or it dies on `No module named 'kova_cli'` before reaching the owner."""
     repo_root = Path(kanban_db_dispatch.__file__).resolve().parent.parent

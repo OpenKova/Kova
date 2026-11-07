@@ -102,7 +102,7 @@ def test_codex_pool_honors_hermes_codex_base_url(monkeypatch):
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "openai-codex")
     monkeypatch.setattr(rp, "load_pool", lambda provider: _Pool())
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
+    monkeypatch.setenv("KOVA_CODEX_BASE_URL", "http://127.0.0.1:8787/v1")
 
     resolved = rp.resolve_runtime_provider(requested="openai-codex")
 
@@ -127,7 +127,7 @@ def test_codex_pool_honors_model_base_url(monkeypatch):
 
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "openai-codex")
     monkeypatch.setattr(rp, "load_pool", lambda provider: _Pool())
-    monkeypatch.delenv("HERMES_CODEX_BASE_URL", raising=False)
+    monkeypatch.delenv("KOVA_CODEX_BASE_URL", raising=False)
     monkeypatch.setattr(rp, "_get_model_config", lambda: {
         "provider": "openai-codex", "default": "gpt-5.3-codex", "base_url": "http://127.0.0.1:8400/backend-api/codex/"})
 
@@ -701,7 +701,7 @@ def test_openai_key_bound_to_another_host_never_reaches_openrouter(monkeypatch, 
 
 
 def test_openrouter_env_file_key_survives_exhausted_pool(monkeypatch):
-    """A key living only in ~/.hermes/.env must survive an exhausted pool entry.
+    """A key living only in ~/.kova/.env must survive an exhausted pool entry.
 
     Regression test for #117667: with the pool's OPENROUTER_API_KEY entry benched
     (select() -> None), the terminal resolver read os.environ only, so the documented
@@ -762,7 +762,7 @@ def test_openai_env_file_key_used_as_fallback_without_openrouter_key(monkeypatch
 
     Covers the second candidate (runtime_provider_backends reads both keys through
     get_env_value_prefer_dotenv): with no OpenRouter key anywhere, a key living only
-    in ~/.hermes/.env still resolves the rung-8 fallback."""
+    in ~/.kova/.env still resolves the rung-8 fallback."""
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "openrouter")
     monkeypatch.setattr(rp, "_get_model_config", dict)
     monkeypatch.setattr(
@@ -873,7 +873,7 @@ def test_codex_app_server_opt_in_routes_only_named_custom_providers(monkeypatch)
     resolved = rp.resolve_runtime_provider(requested="custom:my-gateway")
     assert (resolved["provider"], resolved["requested_provider"], resolved["api_mode"]) == (
         "custom", "custom:my-gateway", "codex_app_server")
-    assert resolved["api_key"] == "test-key"  # Hermes' own aux/fallback client keeps the credential
+    assert resolved["api_key"] == "test-key"  # Kova' own aux/fallback client keeps the credential
 
     anonymous = rp.resolve_runtime_provider(requested="custom", explicit_base_url="https://gateway.example.com/v1",
                                             explicit_api_key="k")

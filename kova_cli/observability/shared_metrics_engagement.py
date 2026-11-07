@@ -46,7 +46,7 @@ _ACTIVE_THRESHOLDS = (
     (360 * _MINUTE_MS, "2h_to_6h"),
 )
 _SWITCH_THRESHOLDS = ((2, "1"), (4, "2_to_3"), (11, "4_to_10"), (31, "11_to_30"))
-# Task entrypoints that are a person using Hermes. Unattended cron runs (counted by hermes.cron.run),
+# Task entrypoints that are a person using Kova. Unattended cron runs (counted by hermes.cron.run),
 # delegated children, background review forks, batch and API/python embedding are not engagement.
 # ``one_shot`` keeps the treatment it had while it read ``interactive``: a person typing ``hermes -z`` and a
 # script looping it look the same from inside the process; the label lets the rollup split them instead.
@@ -128,10 +128,10 @@ def _now_ms() -> int:
 
 
 def _root_home(profile_home: Path) -> Path:
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     try:
-        return get_default_hermes_root(home=profile_home).resolve()
+        return get_default_kova_root(home=profile_home).resolve()
     except Exception:
         return profile_home.resolve()
 
@@ -142,9 +142,9 @@ def _profile_hash(profile_home: Path) -> str:
 
 def _collects(home: Path) -> bool:
     """The root profile's own collection consent (read-only; never touches its runtime)."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    token = set_hermes_home_override(str(home))
+    token = set_kova_home_override(str(home))
     try:
         from kova_cli.config import read_raw_config_readonly
 
@@ -152,7 +152,7 @@ def _collects(home: Path) -> bool:
     except Exception:
         return False
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     for key in ("telemetry", "shared_metrics"):
         config = config.get(key) if isinstance(config, dict) else None
     return isinstance(config, dict) and config.get("enabled") is True

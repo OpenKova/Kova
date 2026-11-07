@@ -1072,7 +1072,7 @@ describe('workspaceCwdForNewSession', () => {
     window.localStorage.removeItem('hermes.desktop.workspace-cwd.profile.profile-b')
     window.localStorage.removeItem('hermes.desktop.workspace-cwd.remote.http%3A%2F%2Fbackend-a.default')
     window.localStorage.removeItem('hermes.desktop.workspace-cwd.remote.http%3A%2F%2Fbackend-b.default')
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { hermesDesktop?: unknown }).kovaDesktop
   })
 
   it('does not publish a delayed configured default after ownership is lost', async () => {
@@ -1084,7 +1084,7 @@ describe('workspaceCwdForNewSession', () => {
 
     const sanitizeWorkspaceCwd = vi.fn(async (cwd: string) => ({ cwd }))
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = {
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
       sanitizeWorkspaceCwd,
       settings: { getDefaultProjectDir: vi.fn(() => settingsResult.promise) }
     }
@@ -1104,7 +1104,7 @@ describe('workspaceCwdForNewSession', () => {
   it('does not publish a delayed sanitized cwd after ownership is lost', async () => {
     const sanitized = deferred<{ cwd: string }>()
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = {
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
       sanitizeWorkspaceCwd: vi.fn(() => sanitized.promise),
       settings: {
         getDefaultProjectDir: vi.fn(async () => ({
@@ -1198,7 +1198,7 @@ describe('workspaceCwdForNewSession', () => {
     // that gateway's own default.
     const sanitizeWorkspaceCwd = vi.fn(async (cwd: string) => ({ cwd }))
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = {
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
       sanitizeWorkspaceCwd,
       settings: { getDefaultProjectDir: vi.fn(async () => ({ defaultLabel: '', dir: '', resolvedCwd: '' })) }
     }
@@ -1235,7 +1235,7 @@ describe('workspaceCwdForNewSession', () => {
   })
 
   it('switching to a local profile with no memory clears the outgoing profile folder (#96834)', async () => {
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = {
+    ;(window as { hermesDesktop?: unknown }).kovaDesktop = {
       sanitizeWorkspaceCwd: vi.fn(async (cwd: string) => ({ cwd })),
       settings: { getDefaultProjectDir: vi.fn(async () => ({ defaultLabel: '', dir: '', resolvedCwd: '' })) }
     }

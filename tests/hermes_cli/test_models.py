@@ -35,7 +35,7 @@ class TestFetchOpenRouterModels:
     def test_filters_out_models_without_tool_support(self, monkeypatch):
         """Models whose supported_parameters omits 'tools' must not appear in the picker.
 
-        hermes-agent is tool-calling-first — surfacing a non-tool model leads to
+        kova-agent is tool-calling-first — surfacing a non-tool model leads to
         immediate runtime failures when the user selects it. Ported from
         Kilo-Org/kilocode#9068.
         """
@@ -313,13 +313,13 @@ class TestCheckNousFreeTierCache:
     @patch("kova_cli.nous_account.get_nous_portal_account_info")
     def test_entitlement_cache_is_profile_scoped(self, mock_account, tmp_path):
         from kova_constants import (
-            hermes_home_key,
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            kova_home_key,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
 
         def account_for_active_profile(*, force_fresh=False):
-            is_free = hermes_home_key() == hermes_home_key(tmp_path / "free")
+            is_free = kova_home_key() == kova_home_key(tmp_path / "free")
             return NousPortalAccountInfo(
                 logged_in=True,
                 source="jwt",
@@ -330,11 +330,11 @@ class TestCheckNousFreeTierCache:
         mock_account.side_effect = account_for_active_profile
 
         def check_in(home):
-            token = set_hermes_home_override(str(home))
+            token = set_kova_home_override(str(home))
             try:
                 return check_nous_free_tier()
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
 
         assert check_in(tmp_path / "free") is True
         assert check_in(tmp_path / "paid") is False

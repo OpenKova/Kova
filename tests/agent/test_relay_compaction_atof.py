@@ -118,10 +118,10 @@ def _run_turn_with_compaction(tmp_path, monkeypatch, summary):
     from agent.context_compressor import ContextCompressor
     from agent.conversation_compression import compress_context
 
-    hermes_home, atof_dir = tmp_path / "hermes-home", tmp_path / "atof"
-    hermes_home.mkdir()
+    kova_home, atof_dir = tmp_path / "hermes-home", tmp_path / "atof"
+    kova_home.mkdir()
     atof_dir.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv(relay_runtime.RELAY_PLUGINS_CONFIG_ENV, str(_write_plugins_toml(tmp_path, atof_dir)))
     relay_runtime._reset_for_tests()
 

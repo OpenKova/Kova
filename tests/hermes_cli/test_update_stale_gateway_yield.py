@@ -15,13 +15,13 @@ import pytest
 @pytest.fixture
 def cron_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    (home / ".hermes").mkdir(parents=True)
+    (home / ".kova").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(home / ".kova"))
     for name in list(sys.modules):
         if name.split(".")[0] in ("cron", "gateway", "kova_cli", "kova_constants"):
             monkeypatch.delitem(sys.modules, name, raising=False)
-    return home / ".hermes"
+    return home / ".kova"
 
 
 def _status_block(pids):

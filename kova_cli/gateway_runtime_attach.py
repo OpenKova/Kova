@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 # otherwise resolve every later chat's, Desktop window's and cron job's board to this terminal's
 # launch-time board instead of the profile's `kanban/current`.
 CLIENT_LAUNCH_ENV = (
-    "HERMES_MODEL", "HERMES_INFERENCE_MODEL", "HERMES_TUI_PROVIDER", "HERMES_INFERENCE_PROVIDER",
-    "HERMES_TUI_TOOLSETS", "HERMES_TUI_SKILLS", "HERMES_CWD", "TERMINAL_CWD", "HERMES_YOLO",
-    "HERMES_ACCEPT_HOOKS", "HERMES_TUI_CHECKPOINTS", "HERMES_TUI_PASS_SESSION_ID", "HERMES_KANBAN_BOARD",
-    "HERMES_TUI_CLIENT_ENV",
+    "KOVA_MODEL", "KOVA_INFERENCE_MODEL", "KOVA_TUI_PROVIDER", "KOVA_INFERENCE_PROVIDER",
+    "KOVA_TUI_TOOLSETS", "KOVA_TUI_SKILLS", "KOVA_CWD", "TERMINAL_CWD", "KOVA_YOLO",
+    "KOVA_ACCEPT_HOOKS", "KOVA_TUI_CHECKPOINTS", "KOVA_TUI_PASS_SESSION_ID", "KOVA_KANBAN_BOARD",
+    "KOVA_TUI_CLIENT_ENV",
 )
 # A plain attach only asks the control socket; it never waits for a start.
 DISCOVER_TIMEOUT = 5.0
@@ -70,7 +70,7 @@ def attach_gateway(home: str | Path, *, start: bool, recover: bool = False, time
 
     ``start`` ensures the owner (a client's first launch); otherwise this only discovers it, except
     ``recover``, which re-ensures whenever the owner is not ready: crashed, ended by its idle exit,
-    stopped with ``hermes gateway stop``, or an older Hermes's gateway (ensure replaces that one). A
+    stopped with ``hermes gateway stop``, or an older Kova's gateway (ensure replaces that one). A
     restart's after-turn wait is attachable as it is (#139041). ``timeout`` bounds an ensure; a
     discovery waits at most ``DISCOVER_TIMEOUT`` of it. A daemon this starts ends itself once idle.
     A failed mint (control socket I/O, a refused or changed grant) raises ``TicketUnavailable``.

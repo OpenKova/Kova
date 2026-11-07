@@ -11,7 +11,7 @@ provider fails ``test_snapshot_covers_every_provider`` until its wire is reviewe
 
 Intentional wire changes: regenerate and review the JSON diff in the same PR::
 
-    HERMES_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot.py
+    KOVA_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot.py
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from unittest.mock import patch
 import pytest
 
 SNAPSHOT = Path(__file__).resolve().parents[2] / "fixtures" / "provider_wire_snapshot.json"
-UPDATE = os.environ.get("HERMES_UPDATE_WIRE_SNAPSHOT") == "1"
+UPDATE = os.environ.get("KOVA_UPDATE_WIRE_SNAPSHOT") == "1"
 
 REASONING = {
     "unset": None,

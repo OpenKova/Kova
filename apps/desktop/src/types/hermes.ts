@@ -97,7 +97,7 @@ export interface OAuthProviderStatus {
 export interface OAuthProvider {
   cli_command: string
   /** Shell command that clears an external provider's credentials, run in the
-   *  embedded terminal. Null when Hermes doesn't know how to remove it. */
+   *  embedded terminal. Null when Kova doesn't know how to remove it. */
   disconnect_command?: null | string
   disconnect_hint?: null | string
   disconnectable?: boolean
@@ -530,7 +530,7 @@ export interface WebhookEnableResponse {
   restart_started?: boolean
 }
 
-export interface HermesConfig {
+export interface KovaConfig {
   agent?: {
     reasoning_effort?: string
     personalities?: Record<string, unknown>
@@ -571,7 +571,7 @@ export interface HermesConfig {
   }
 }
 
-export type HermesConfigRecord = Record<string, unknown>
+export type KovaConfigRecord = Record<string, unknown>
 
 export interface ModelInfoResponse {
   auto_context_length?: number
@@ -1230,7 +1230,7 @@ export interface ProfileSetupCommand {
 
 // The desktop appearance/interface overlay bundled into a profile export as
 // `desktop.json`. Everything optional — an archive exported by an older (or
-// non-desktop) Hermes simply carries none of it. See store/profile-share.ts.
+// non-desktop) Kova simply carries none of it. See store/profile-share.ts.
 export interface ProfileDesktopOverlay {
   /** Overlay schema version (1). */
   version?: number
@@ -1293,7 +1293,7 @@ export interface SkillInfo {
   name: string
   /** Total observed activity (use + view + patch). Absent on older backends. */
   usage?: number
-  /** 'agent' = learned/local (editable), 'bundled' = ships with Hermes, 'hub' = installed,
+  /** 'agent' = learned/local (editable), 'bundled' = ships with Kova, 'hub' = installed,
    * 'external' = mounted from skills.external_dirs (externally authored, still editable). */
   provenance?: 'agent' | 'bundled' | 'external' | 'hub'
   /** User lock: the AGENT may not change this skill (the user still can). Absent on older backends. */
@@ -1301,7 +1301,7 @@ export interface SkillInfo {
 }
 
 /** One entry of the built-in optional-skills catalog (optional-skills/ in the
- *  repo) — official skills that ship with Hermes but install on demand. */
+ *  repo) — official skills that ship with Kova but install on demand. */
 export interface OfficialSkillInfo {
   category: string
   description: string
@@ -1431,7 +1431,7 @@ export interface ToolsetModelsResponse {
  *  cua-driver runs on macOS, Windows, and Linux. `ready` is the single OS-aware
  *  readiness signal: on macOS both TCC grants (Accessibility + Screen
  *  Recording, which attach to cua-driver's own `com.trycua.driver` identity,
- *  not Hermes); elsewhere, driver health from `cua-driver doctor`. `null`
+ *  not Kova); elsewhere, driver health from `cua-driver doctor`. `null`
  *  means unknown (binary missing / probe failed). */
 export interface ComputerUsePermissionSource {
   attribution?: string
@@ -1528,7 +1528,7 @@ export interface StatusResponse {
   gateway_shared_with?: string[] | null
   gateway_state: string | null
   gateway_updated_at: string | null
-  hermes_home: string
+  kova_home: string
   latest_config_version: number
   release_date: string
   version: string

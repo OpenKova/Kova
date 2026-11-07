@@ -11,7 +11,7 @@ from gateway.session import SessionSource, SessionStore
 
 
 def _runner(tmp_path, monkeypatch):
-    monkeypatch.setattr("gateway.run._hermes_home", tmp_path)
+    monkeypatch.setattr("gateway.run._kova_home", tmp_path)
     monkeypatch.setenv("TELEGRAM_HOME_CHANNEL", "home")
     runner = GatewayRunner.__new__(GatewayRunner)
     runner.config = GatewayConfig()

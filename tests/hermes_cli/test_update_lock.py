@@ -51,7 +51,7 @@ DEAD_PID = 4294967294
 
 @pytest.fixture
 def marker(tmp_path):
-    return tmp_path / ".hermes-update-in-progress"
+    return tmp_path / ".kova-update-in-progress"
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def other_pid():
 
 @pytest.fixture(autouse=True)
 def _no_runtime_host_above_the_runner(monkeypatch):
-    """Judge hand-offs as if no Hermes gateway/serve/dashboard ran this test process.
+    """Judge hand-offs as if no Kova gateway/serve/dashboard ran this test process.
 
     A hand-off is refused when such a host sits above us (cli §7 V9), and that walk reads the real
     process ancestry: run from a terminal that a ``hermes gateway run`` agent opened, every hand-off
@@ -86,14 +86,14 @@ def _claim_v2(marker, pid, started_at=None, ct_offset=0.0):
 def test_marker_path_is_the_profile_tree_root(tmp_path, monkeypatch):
     """The lock must land where the Rust updater, Electron gate and hand-off scripts look.
 
-    They all read the ROOT home; a sticky/`-p` profile re-homes HERMES_HOME to
+    They all read the ROOT home; a sticky/`-p` profile re-homes KOVA_HOME to
     ``<root>/profiles/<p>``, and a marker there is invisible to every other owner (V9c).
     """
     root = tmp_path / "root"
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
-    assert update_marker_path() == root / ".hermes-update-in-progress"
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    assert update_marker_path() == root / ".hermes-update-in-progress"
+    monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "work"))
+    assert update_marker_path() == root / ".kova-update-in-progress"
+    monkeypatch.setenv("KOVA_HOME", str(root))
+    assert update_marker_path() == root / ".kova-update-in-progress"
 
 
 def test_acquire_writes_pid_and_start_time(marker):
@@ -591,7 +591,7 @@ def test_checkout_lock_outlives_its_owner_while_an_inheriting_child_runs(tmp_pat
         child.kill()
         child.wait()
     assert not update_in_progress(install)
-    assert checkout_lock_path(install).name == ".hermes-update.lock"  # no .git: a ZIP install
+    assert checkout_lock_path(install).name == ".kova-update.lock"  # no .git: a ZIP install
 
 
 def test_git_checkout_lock_lives_in_the_common_git_dir_and_never_dirties_the_tree(tmp_path):
@@ -636,7 +636,7 @@ class TestHandoffFromOrchestratingUpdater:
     """The Tauri updater holds the marker, then spawns ``hermes update``.
 
     The regression: the child saw its own parent's live marker and exited 2,
-    so every GUI update failed with "Hermes is still running" and retrying
+    so every GUI update failed with "Kova is still running" and retrying
     just re-ran the same self-deadlock. The parent names its pid in
     HANDOFF_PID_ENV; a live holder matching it is our own orchestrator.
     """
@@ -702,7 +702,7 @@ class TestHandoffFromOrchestratingUpdater:
 class TestAncestryHandoff:
     """Staged updaters older than the HANDOFF_PID_ENV export never send it.
 
-    ``hermes-setup`` under ``~/.hermes`` is only refreshed by a full installer
+    ``hermes-setup`` under ``~/.kova`` is only refreshed by a full installer
     run, so an updated checkout (new lock) driven by a pre-handoff staged
     updater (old parent) deadlocks on exit 2 forever unless the child also
     recognizes a live holder that is its own process ancestor.
@@ -736,7 +736,7 @@ class TestAncestryHandoff:
         ``_update_takeover.py`` as ``python -I -S -B``, where psutil cannot import
         (-S skips site-packages). The psutil-only ancestry walk returned False for
         the two-hops-up shim, and the takeover child refused with exit 2 —
-        "Another Hermes update is already running (PID <the shim itself>)" —
+        "Another Kova update is already running (PID <the shim itself>)" —
         observed live on a macOS rehearsal install, then again on Windows, where
         the stdlib walk had no /proc and no ps. Marked for every lane: the Windows
         lane only imports files carrying a platforms marker, which is how the
@@ -956,13 +956,13 @@ def test_unwritable_lock_file_still_locks_the_checkout(tmp_path):
     lock_file.write_text("0\n0\n")
     lock_file.chmod(0o444)
 
-    first = UpdateLock(path=tmp_path / "a" / ".hermes-update-in-progress", install_root=root)
+    first = UpdateLock(path=tmp_path / "a" / ".kova-update-in-progress", install_root=root)
     assert first.acquire() is True, first.holder
     second = subprocess.run(
         [sys.executable, "-c",
          "import sys; from kova_cli.update_lock import UpdateLock; "
          "sys.exit(0 if UpdateLock(path=__import__('pathlib').Path(sys.argv[1]), install_root=sys.argv[2]).acquire() else 3)",
-         str(tmp_path / "b" / ".hermes-update-in-progress"), str(root)],
+         str(tmp_path / "b" / ".kova-update-in-progress"), str(root)],
         cwd=REPO_ROOT, env={**os.environ, "PYTHONPATH": str(REPO_ROOT)}, stdin=subprocess.DEVNULL, timeout=60,
         check=False,
     )
@@ -980,7 +980,7 @@ def test_read_only_lock_file_is_refused_on_windows(tmp_path):
     lock_file = checkout_lock_path(root)
     lock_file.write_bytes(b"0\n0\n")
     lock_file.chmod(0o444)  # FILE_ATTRIBUTE_READONLY: O_RDWR is denied, the read-only open works
-    marker = tmp_path / "home" / ".hermes-update-in-progress"
+    marker = tmp_path / "home" / ".kova-update-in-progress"
     try:
         lock = UpdateLock(path=marker, install_root=root)
         assert lock.acquire() is False
@@ -1000,7 +1000,7 @@ def test_checkout_lock_never_writes_through_a_link_to_a_file_outside_the_install
     outside.write_bytes(b"PRECIOUS USER DATA")
     getattr(os, link)(outside, checkout_lock_path(root))
 
-    lock = UpdateLock(path=tmp_path / "home" / ".hermes-update-in-progress", install_root=root)
+    lock = UpdateLock(path=tmp_path / "home" / ".kova-update-in-progress", install_root=root)
     assert lock.acquire() is False
     assert lock.holder is not None and lock.holder.reason
     assert outside.read_bytes() == b"PRECIOUS USER DATA"

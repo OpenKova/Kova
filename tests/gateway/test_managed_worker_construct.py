@@ -91,7 +91,7 @@ def run_pair(tmp_path, extra_config, turn, *, before_create=None, **create_param
                                       'api_key': 'loopback-only'}], **extra_config(home)}
     (home / 'config.yaml').write_text(json.dumps(config))
     env = {**child_env(), **{k: os.environ[k] for k in ('TIRITH_ENABLED',) if k in os.environ}}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=purl)
 
     def query(sql, args=()):

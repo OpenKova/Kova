@@ -79,7 +79,7 @@ def test_multi_profile_homes_passed_to_builtin(monkeypatch, _providers, tmp_path
 def test_single_profile_ticks_only_without_gateway(monkeypatch, tmp_path, gateway_running):
     """Exercise Desktop startup through the real built-in scheduler loop."""
     from cron.scheduler_provider import InProcessCronScheduler
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     import kova_cli.profiles as profiles_mod
 
     home = tmp_path / "root"
@@ -91,7 +91,7 @@ def test_single_profile_ticks_only_without_gateway(monkeypatch, tmp_path, gatewa
     )
     ticked = []
     monkeypatch.setattr(
-        "cron.scheduler.tick", lambda **_kw: ticked.append(get_hermes_home())
+        "cron.scheduler.tick", lambda **_kw: ticked.append(get_kova_home())
     )
     stop = threading.Event()
     # One real scheduler cycle, with no wall-clock wait or job dispatch.
@@ -114,13 +114,13 @@ def test_enumeration_failure_fails_open(monkeypatch, _providers):
 
     ws._start_desktop_cron_ticker(threading.Event(), interval=11)
 
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     # This backend's own store only, behind the per-tick gateway gate (see the stand-down tests).
     assert set(builtin.start_kwargs) == {"interval", "profile_homes", "profile_gate"}
     assert builtin.start_kwargs["interval"] == 11
     [(_name, home)] = builtin.start_kwargs["profile_homes"]()
-    assert home == Path(get_hermes_home())
+    assert home == Path(get_kova_home())
 
 
 def test_external_provider_never_gets_profile_homes(monkeypatch, tmp_path):
@@ -153,13 +153,13 @@ def test_desktop_ticker_serves_every_profile_and_yields_to_owning_gateway(monkey
     import kova_yaml as yaml
 
     _sp, builtin = _providers
-    root = tmp_path / ".hermes"
+    root = tmp_path / ".kova"
     for name in ("worker", "guest", "solo"):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / "config.yaml").write_text("{}\n")  # identity marker: served
     (root / "config.yaml").write_text(yaml.safe_dump({"gateway": {"multiplex_profiles": True}}))
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
-    monkeypatch.setattr(profiles_mod, "_get_default_hermes_home", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
+    monkeypatch.setattr(profiles_mod, "_get_default_kova_home", lambda: root)
     monkeypatch.setattr(profiles_mod, "_get_profiles_root", lambda: root / "profiles")
     monkeypatch.setattr(
         profiles_mod, "_check_gateway_running", lambda home: home == root / "profiles" / "solo")

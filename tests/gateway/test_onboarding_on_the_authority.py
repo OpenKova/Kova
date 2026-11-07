@@ -34,11 +34,11 @@ async def _desktop(tmp_path, monkeypatch, turns):
     from gateway.session_controls import AuthorityConnection
     from tui_gateway import server
 
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: FACTS)
     (home / ".env").write_text("OPENROUTER_API_KEY=sk-or-test\n", encoding="utf-8")
@@ -130,8 +130,8 @@ async def test_a_rerun_with_no_model_opens_no_chat(tmp_path, monkeypatch):
     """Nothing can run the chat: error 5080 and no row, never a session whose launch policy cannot be
     restored (every later resume of it would answer storage_unavailable)."""
     desktop = await _desktop(tmp_path, monkeypatch, [])
-    (tmp_path / ".hermes" / "config.yaml").write_text("{}\n", encoding="utf-8")
-    (tmp_path / ".hermes" / ".env").write_text("", encoding="utf-8")
+    (tmp_path / ".kova" / "config.yaml").write_text("{}\n", encoding="utf-8")
+    (tmp_path / ".kova" / ".env").write_text("", encoding="utf-8")
     monkeypatch.setattr("gateway.run._resolve_gateway_model", lambda config=None: None)
     try:
         before = {row["id"] for row in desktop.db.search_sessions(limit=100)}
@@ -207,17 +207,17 @@ async def test_start_from_a_secondary_profile_claims_in_the_default_home(tmp_pat
     from gateway.session_authorities import SessionAuthorities
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state import SessionDB
     desktop = await _desktop(tmp_path, monkeypatch, [])
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     work = home / "profiles" / "work"
     work.mkdir(parents=True)
     (work / "config.yaml").write_text("{}\n", encoding="utf-8")  # nothing to run on in the asking profile
     claims = []
 
     def claim(*, assume_fresh):
-        claims.append(Path(get_hermes_home()))
+        claims.append(Path(get_kova_home()))
     monkeypatch.setattr("kova_cli.welcome_trial.claim_desktop_free_tier", claim)
     runner = desktop.authority.runner
     runner.config = SimpleNamespace(multiplex_profiles=True)

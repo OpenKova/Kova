@@ -17,7 +17,7 @@ from tools.skills_hub_install import (
 from tools.skills_hub_models import SkillBundle, SkillMeta, SkillSource, _referenced_support_paths
 from tools.skills_hub_official import OptionalSkillSource
 from tools.skills_hub_search import (
-    HERMES_INDEX_TTL, _load_hermes_index, create_source_router, parallel_search_sources, unified_search,
+    KOVA_INDEX_TTL, _load_hermes_index, create_source_router, parallel_search_sources, unified_search,
 )
 from tools.skills_hub_skillssh import SkillsShSource
 from tools.skills_hub_sources import LobeHubSource, UrlSource, WellKnownSkillSource
@@ -949,14 +949,14 @@ class TestGithubProviderLabeling:
         assert meta.extra.get("provider") == "NVIDIA"
 
 def _make_index_source(skills):
-    """Build a HermesIndexSource pre-loaded with a fixed skill list."""
-    from tools.skills_hub_official import HermesIndexSource
-    src = HermesIndexSource(auth=GitHubAuth())
+    """Build a KovaIndexSource pre-loaded with a fixed skill list."""
+    from tools.skills_hub_official import KovaIndexSource
+    src = KovaIndexSource(auth=GitHubAuth())
     src._index = {"skills": skills}
     src._loaded = True
     return src
 
-class TestHermesIndexSearch:
+class TestKovaIndexSearch:
     def test_search_matches_identifier_and_provider(self):
         # NVIDIA skill whose name/description does NOT contain "nvidia" — only
         # the identifier and the provider label do. The old substring-only
@@ -1049,7 +1049,7 @@ class TestOptionalSkillSourceMetadata:
         meta = src.inspect("official/finance/3-statement-model")
 
         assert meta is not None
-        assert meta.repo == "NousResearch/hermes-agent"
+        assert meta.repo == "NousResearch/kova-agent"
         assert meta.path == "optional-skills/finance/3-statement-model"
 
     def test_scan_all_accepts_install_prefix_but_rejects_nested_support_skills(self, tmp_path):
@@ -1228,7 +1228,7 @@ class TestOptionalSkillSourceLiveRepoFallback:
         meta = src.inspect("official/software-development/ast-grep")
 
         assert meta is not None
-        assert meta.repo == "NousResearch/hermes-agent"
+        assert meta.repo == "NousResearch/kova-agent"
         assert meta.path == "optional-skills/software-development/ast-grep"
 
     def test_offline_degrades_to_local_only(self, tmp_path):
@@ -2069,7 +2069,7 @@ class TestIndexMissFallback:
 # _load_hermes_index — centralized index fetch (Browse-hub landing / search)
 # ---------------------------------------------------------------------------
 
-class TestLoadHermesIndex:
+class TestLoadKovaIndex:
     """Regression coverage for the Skills-Hub index fetch.
 
     The centralized index is a large body served with Content-Encoding: br.
@@ -2121,7 +2121,7 @@ class TestLoadHermesIndex:
         cache_file = self._isolate_cache(monkeypatch, tmp_path)
         cache_file.write_text(json.dumps({"skills": [{"name": "stale"}]}))
         # Force the cache to look expired so the network path runs.
-        old = time.time() - (HERMES_INDEX_TTL + 100)
+        old = time.time() - (KOVA_INDEX_TTL + 100)
         import os
 
         os.utime(cache_file, (old, old))

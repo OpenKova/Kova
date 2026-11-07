@@ -88,7 +88,7 @@ class TestDoctorPlatformHints:
 
         hint = doctor_platform._sqlite_upgrade_hint()
 
-        assert "docker pull nousresearch/hermes-agent:latest" in hint
+        assert "docker pull nousresearch/kova-agent:latest" in hint
         assert "hermes update" not in hint
 
 
@@ -99,7 +99,7 @@ class TestDoctorPlatformHints:
         # out-of-place method through the in-place `hermes update` path.
         hint = doctor_platform._sqlite_upgrade_hint("apt")
 
-        assert "run `pkg upgrade hermes-agent`" in hint
+        assert "run `pkg upgrade kova-agent`" in hint
         assert "hermes update" not in hint
 
     def test_sqlite_upgrade_hint_preserves_nix_guidance_as_prose(self):
@@ -214,19 +214,19 @@ class TestDoctorEnvFileEncoding:
     ):
         import pathlib
 
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
         # Write a UTF-8 .env containing an em dash (U+2014 = e2 80 94). The
         # 0x94 byte is exactly the one the issue reporter hit: it's invalid
         # as a GBK trailing byte in this position, so locale-default reads
         # raise UnicodeDecodeError on Chinese Windows.
-        env_path = hermes_home / ".env"
+        env_path = kova_home / ".env"
         env_path.write_text(
             "OPENAI_API_KEY=sk-test  # em-dash here — should not crash\n",
             encoding="utf-8",
         )
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", kova_home)
 
         orig_read_text = pathlib.Path.read_text
 
@@ -261,14 +261,14 @@ class TestDoctorEnvFileEncoding:
         self, monkeypatch, tmp_path
     ):
         """cp1252/latin-1 .env with ASCII provider hints must not abort doctor."""
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir()
-        env_path = hermes_home / ".env"
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir()
+        env_path = kova_home / ".env"
         # 0xff is invalid UTF-8; latin-1 decodes it. Keep an ASCII provider key
         # so the scan still reports a configured endpoint/key.
         env_path.write_bytes(b"OPENAI_API_KEY=sk-test\xff\n")
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", kova_home)
 
         fake_model_tools = types.SimpleNamespace(
             check_tool_availability=lambda *a, **kw: (_ for _ in ()).throw(SystemExit(0)),
@@ -284,7 +284,7 @@ class TestDoctorToolAvailabilityOverrides:
 
 
     def test_marks_kanban_available_only_when_missing_worker_env_gate(self, monkeypatch):
-        monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+        monkeypatch.delenv("KOVA_KANBAN_TASK", raising=False)
 
         available, unavailable = doctor_tools._apply_doctor_tool_availability_overrides(
             [],
@@ -295,7 +295,7 @@ class TestDoctorToolAvailabilityOverrides:
         assert unavailable == []
 
     def test_leaves_kanban_unavailable_when_worker_env_is_set(self, monkeypatch):
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "probe")
+        monkeypatch.setenv("KOVA_KANBAN_TASK", "probe")
         kanban_entry = {"name": "kanban", "env_vars": [], "tools": ["kanban_show"]}
 
         available, unavailable = doctor_tools._apply_doctor_tool_availability_overrides(
@@ -339,9 +339,9 @@ def test_doctor_reports_vercel_backend_diagnostics(monkeypatch, tmp_path):
 class TestDoctorMemoryProviderSection:
     """The ◆ Memory Provider section should respect memory.provider config."""
 
-    def _make_hermes_home(self, tmp_path, provider="", memory_config=None):
-        """Create a minimal HERMES_HOME with config.yaml."""
-        home = tmp_path / ".hermes"
+    def _make_kova_home(self, tmp_path, provider="", memory_config=None):
+        """Create a minimal KOVA_HOME with config.yaml."""
+        home = tmp_path / ".kova"
         home.mkdir(parents=True, exist_ok=True)
         import kova_yaml as yaml
         config = dict(memory_config or {})
@@ -361,13 +361,13 @@ class TestDoctorMemoryProviderSection:
         stale_builtin_files=False,
     ):
         """Run doctor and capture stdout."""
-        home = self._make_hermes_home(tmp_path, provider, memory_config)
+        home = self._make_kova_home(tmp_path, provider, memory_config)
         if stale_builtin_files:
             memories = home / "memories"
             memories.mkdir()
             (memories / "MEMORY.md").write_text("stale memory", encoding="utf-8")
             (memories / "USER.md").write_text("stale user", encoding="utf-8")
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         (tmp_path / "project").mkdir(exist_ok=True)
@@ -448,7 +448,7 @@ class TestDoctorMemoryProviderSection:
 
 
 def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
 
     import kova_yaml as yaml
@@ -472,7 +472,7 @@ def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, t
         )
     , encoding="utf-8")
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -502,7 +502,7 @@ def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, t
 def test_run_doctor_accepts_stable_key_when_provider_name_differs(
     monkeypatch, tmp_path
 ):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -516,7 +516,7 @@ def test_run_doctor_accepts_stable_key_when_provider_name_differs(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -548,7 +548,7 @@ def test_run_doctor_accepts_stable_key_when_provider_name_differs(
 
 
 def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -558,7 +558,7 @@ def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -586,7 +586,7 @@ def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
 
 
 def test_run_doctor_flags_missing_credentials_for_active_openrouter_provider(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -595,7 +595,7 @@ def test_run_doctor_flags_missing_credentials_for_active_openrouter_provider(mon
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -640,7 +640,7 @@ def test_run_doctor_flags_missing_credentials_for_active_openrouter_provider(mon
 def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
     monkeypatch, tmp_path, provider, default_model
 ):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -649,7 +649,7 @@ def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -683,7 +683,7 @@ def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
 
 
 def test_run_doctor_accepts_vendor_slugs_for_named_custom_provider(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -696,7 +696,7 @@ def test_run_doctor_accepts_vendor_slugs_for_named_custom_provider(monkeypatch, 
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -742,7 +742,7 @@ def test_run_doctor_vendor_slug_policy_for_openai_api_endpoint(
 ):
     """openai-api behind a custom router owns a vendor/model namespace (#69912); the real
     OpenAI endpoint keeps the warning."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -752,7 +752,7 @@ def test_run_doctor_vendor_slug_policy_for_openai_api_endpoint(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -785,7 +785,7 @@ def test_run_doctor_vendor_slug_policy_for_openai_api_endpoint(
 
 
 def test_run_doctor_accepts_kimi_coding_cn_provider(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / ".env").write_text("KIMI_CN_API_KEY=***\n", encoding="utf-8")
     (home / "config.yaml").write_text(
@@ -795,7 +795,7 @@ def test_run_doctor_accepts_kimi_coding_cn_provider(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -825,14 +825,14 @@ def test_run_doctor_accepts_kimi_coding_cn_provider(monkeypatch, tmp_path):
 
 def _doctor_env_for_browser(monkeypatch, tmp_path):
     """Shared fixture setup for the Node + Chromium rows of run_doctor."""
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
     monkeypatch.setenv("PREFIX", "/usr")
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setattr(
@@ -917,9 +917,9 @@ def test_doctor_fix_reports_pm_install_failure(monkeypatch, tmp_path):
 def test_missing_chromium_is_info_when_config_needs_none(monkeypatch, tmp_path, browser_yaml, reason):
     """A CDP override, Lightpanda or a cloud provider runs no local Chromium: no warning row."""
     from kova_cli import doctor_tools
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
-    (get_hermes_home() / "config.yaml").write_text(browser_yaml, encoding="utf-8")
+    (get_kova_home() / "config.yaml").write_text(browser_yaml, encoding="utf-8")
     monkeypatch.delenv("BROWSER_CDP_URL", raising=False)
     monkeypatch.setattr("kova_cli.browser_runtime.chromium_executable", lambda **_kw: None)
 
@@ -933,14 +933,14 @@ def test_missing_chromium_is_info_when_config_needs_none(monkeypatch, tmp_path, 
 
 
 def test_run_doctor_kimi_cn_env_is_detected_and_probe_is_null_safe(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     (home / ".env").write_text("KIMI_CN_API_KEY=sk-test\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv("KIMI_CN_API_KEY", "sk-test")
@@ -981,14 +981,14 @@ def test_run_doctor_kimi_cn_env_is_detected_and_probe_is_null_safe(monkeypatch, 
 
 
 def test_run_doctor_dashscope_retries_china_endpoint_after_intl_unauthorized(monkeypatch, tmp_path):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     (home / ".env").write_text("DASHSCOPE_API_KEY=sk-test\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv("DASHSCOPE_API_KEY", "sk-test")
@@ -1037,14 +1037,14 @@ def test_run_doctor_dashscope_retries_china_endpoint_after_intl_unauthorized(mon
 
 @pytest.mark.parametrize("base_url", [None, "https://opencode.ai/zen/go/v1"])
 def test_run_doctor_opencode_go_skips_invalid_models_probe(monkeypatch, tmp_path, base_url):
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
     (home / ".env").write_text("OPENCODE_GO_API_KEY=***\n", encoding="utf-8")
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv("OPENCODE_GO_API_KEY", "sk-test")
@@ -1124,7 +1124,7 @@ def _run_doctor_with_healthy_oauth_fallback(
     minimax_oauth_status: dict,
     xai_oauth_status: dict | None = None,
 ) -> str:
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
         "model:\n"
@@ -1135,7 +1135,7 @@ def _run_doctor_with_healthy_oauth_fallback(
     project = tmp_path / "project"
     project.mkdir(exist_ok=True)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setenv(env_key, bad_key)
@@ -1239,13 +1239,13 @@ class TestDoctorXaiOAuthStatus:
 
     def _run(self, monkeypatch, tmp_path, *, xai_auth_fn) -> str:
         """Run doctor with a controlled xAI auth callable; return stdout."""
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -1281,13 +1281,13 @@ class TestDoctorXaiOAuthStatus:
 
     def test_import_failure_does_not_affect_other_providers(self, monkeypatch, tmp_path):
         """Nous / Codex / Gemini / MiniMax rows must survive an xAI import failure."""
-        home = tmp_path / ".hermes"
+        home = tmp_path / ".kova"
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -1327,7 +1327,7 @@ class TestDoctorXaiOAuthStatus:
 
 
 class TestDoctorStaleMaxIterationsDrift:
-    """Regression for #17534: a stale HERMES_MAX_ITERATIONS in .env shadows
+    """Regression for #17534: a stale KOVA_MAX_ITERATIONS in .env shadows
     agent.max_turns in config.yaml. The repro symptom is config.yaml saying
     400 while the gateway activity line reads N/90. Doctor must detect the
     drift, and `--fix` must remove the .env ghost (config.yaml wins).
@@ -1343,25 +1343,25 @@ class TestDoctorStaleMaxIterationsDrift:
         import io
         from argparse import Namespace
 
-        hermes_home = tmp_path / ".hermes"
-        hermes_home.mkdir(parents=True)
-        (hermes_home / "config.yaml").write_text(
+        kova_home = tmp_path / ".kova"
+        kova_home.mkdir(parents=True)
+        (kova_home / "config.yaml").write_text(
             f"agent:\n  max_turns: {cfg_turns}\n", encoding="utf-8"
         )
         env_lines = ["OPENAI_API_KEY=sk-test\n"]
         if ghost is not None:
-            env_lines.append(f"HERMES_MAX_ITERATIONS={ghost}\n")
-        (hermes_home / ".env").write_text("".join(env_lines), encoding="utf-8")
+            env_lines.append(f"KOVA_MAX_ITERATIONS={ghost}\n")
+        (kova_home / ".env").write_text("".join(env_lines), encoding="utf-8")
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
-        monkeypatch.setattr(doctor_mod, "get_hermes_home", lambda: hermes_home)
+        monkeypatch.setattr(doctor_mod, "KOVA_HOME", kova_home)
+        monkeypatch.setattr(doctor_mod, "get_kova_home", lambda: kova_home)
         # Point the config helpers at the temp home.
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("KOVA_HOME", str(kova_home))
         if os_environ_value is not None:
             # Simulate the gateway bridge having already overridden os.environ.
-            monkeypatch.setenv("HERMES_MAX_ITERATIONS", str(os_environ_value))
+            monkeypatch.setenv("KOVA_MAX_ITERATIONS", str(os_environ_value))
         else:
-            monkeypatch.delenv("HERMES_MAX_ITERATIONS", raising=False)
+            monkeypatch.delenv("KOVA_MAX_ITERATIONS", raising=False)
 
         # Short-circuit at the Tool Availability stage — the drift check runs
         # well before it in the Configuration Files section.
@@ -1374,26 +1374,26 @@ class TestDoctorStaleMaxIterationsDrift:
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), pytest.raises(SystemExit):
             doctor_mod.run_doctor(Namespace(fix=fix))
-        return buf.getvalue(), hermes_home
+        return buf.getvalue(), kova_home
 
     def test_detects_drift_warn_only(self, monkeypatch, tmp_path):
-        out, hermes_home = self._run_config_section(
+        out, kova_home = self._run_config_section(
             monkeypatch, tmp_path, fix=False, ghost=90, cfg_turns=400,
             os_environ_value=400,  # bridge contaminated os.environ
         )
-        assert "HERMES_MAX_ITERATIONS=90" in out
+        assert "KOVA_MAX_ITERATIONS=90" in out
         assert "shadows" in out
         # Warn-only must NOT mutate .env.
-        assert "HERMES_MAX_ITERATIONS=90" in (hermes_home / ".env").read_text(encoding="utf-8")
+        assert "KOVA_MAX_ITERATIONS=90" in (kova_home / ".env").read_text(encoding="utf-8")
 
     def test_fix_removes_ghost(self, monkeypatch, tmp_path):
-        out, hermes_home = self._run_config_section(
+        out, kova_home = self._run_config_section(
             monkeypatch, tmp_path, fix=True, ghost=90, cfg_turns=400,
             os_environ_value=400,
         )
-        assert "Removed stale HERMES_MAX_ITERATIONS" in out
-        env_after = (hermes_home / ".env").read_text(encoding="utf-8")
-        assert "HERMES_MAX_ITERATIONS" not in env_after
+        assert "Removed stale KOVA_MAX_ITERATIONS" in out
+        env_after = (kova_home / ".env").read_text(encoding="utf-8")
+        assert "KOVA_MAX_ITERATIONS" not in env_after
         assert "OPENAI_API_KEY=sk-test" in env_after  # other keys preserved
 
 
@@ -1519,7 +1519,7 @@ def test_run_doctor_warns_when_lightpanda_binary_missing(monkeypatch, tmp_path):
 
     monkeypatch.setattr("tools.browser_lightpanda.using_lightpanda_engine", lambda: True, raising=False)
     monkeypatch.setattr("tools.browser_lightpanda.lightpanda_engine_status",
-                        lambda: (True, "Hermes spawns `lightpanda serve`"), raising=False)
+                        lambda: (True, "Kova spawns `lightpanda serve`"), raising=False)
     monkeypatch.setattr("tools.browser_lightpanda.find_lightpanda_binary", lambda: None)
     out = helper._run_doctor_and_capture(monkeypatch, tmp_path)
     assert "Lightpanda selected but binary not found" in out
@@ -1566,7 +1566,7 @@ class TestMacOSTCCGrants:
 
     @staticmethod
     def _darwin_bundle(monkeypatch, tmp_path, dr):
-        monkeypatch.setattr(doctor_platform, "_desktop_app_bundle", lambda: tmp_path / "Hermes.app")
+        monkeypatch.setattr(doctor_platform, "_desktop_app_bundle", lambda: tmp_path / "Kova.app")
         if dr is not ...:
             monkeypatch.setattr(doctor_platform, "_macos_desktop_dr", lambda app: dr)
 
@@ -1578,7 +1578,7 @@ class TestMacOSTCCGrants:
     def test_warns_on_cdhash_pinned_dr(self, monkeypatch, capsys, tmp_path):
         self._darwin_bundle(
             monkeypatch, tmp_path,
-            'designated => identifier "com.nousresearch.hermes" and cdhash H"97e692f3890f781fa0ad5ad6cb9d769cfaf42628"',
+            'designated => identifier "com.nousresearch.kova" and cdhash H"97e692f3890f781fa0ad5ad6cb9d769cfaf42628"',
         )
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
@@ -1587,23 +1587,23 @@ class TestMacOSTCCGrants:
         assert "signing identity is stable" not in out
 
     def test_identifier_dr_is_stable_with_upgrade_hint_and_repair_info(self, monkeypatch, capsys, tmp_path):
-        self._darwin_bundle(monkeypatch, tmp_path, 'designated => identifier "com.nousresearch.hermes"')
+        self._darwin_bundle(monkeypatch, tmp_path, 'designated => identifier "com.nousresearch.kova"')
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
         assert "TCC signing identity is stable" in out
         assert "--setup-tcc-identity" in out
-        assert "tccutil reset ScreenCapture com.nousresearch.hermes" in out
+        assert "tccutil reset ScreenCapture com.nousresearch.kova" in out
 
     def test_certificate_anchored_dr_is_stable_without_upgrade_hint(self, monkeypatch, capsys, tmp_path):
         self._darwin_bundle(
             monkeypatch, tmp_path,
-            'designated => identifier "com.nousresearch.hermes" and certificate root = H"aabbcc"',
+            'designated => identifier "com.nousresearch.kova" and certificate root = H"aabbcc"',
         )
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
         assert "TCC signing identity is stable" in out
         assert "--setup-tcc-identity" not in out
-        assert "tccutil reset ScreenCapture com.nousresearch.hermes" in out
+        assert "tccutil reset ScreenCapture com.nousresearch.kova" in out
 
     @pytest.mark.parametrize("failure", ["none", "empty", "timeout", "no_codesign"])
     def test_unreadable_dr_warns_and_never_claims_stable(self, monkeypatch, capsys, tmp_path, failure):
@@ -1641,7 +1641,7 @@ def test_cron_store_check_reports_writability_and_low_space(
     from cron import store_health
 
     (tmp_path / "cron").mkdir()
-    monkeypatch.setattr(doctor, "HERMES_HOME", tmp_path)
+    monkeypatch.setattr(doctor, "KOVA_HOME", tmp_path)
     monkeypatch.setattr(store_health, "probe_store", lambda _d: probe_error)
     monkeypatch.setattr(store_health.shutil, "disk_usage", lambda _d: SimpleNamespace(free=free))
     if hasattr(os, "geteuid"):  # rows run as the user they name, whoever runs the suite
@@ -1660,16 +1660,16 @@ def test_profile_alias_status_follows_the_wrapper_the_profile_really_has(monkeyp
     from kova_cli import profiles
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     monkeypatch.setattr(gm, "duplicate_credential_findings", list)
     for name in ("dev", "ops", "work", "old"):
-        (tmp_path / ".hermes" / "profiles" / name).mkdir(parents=True)
-        (tmp_path / ".hermes" / "profiles" / name / "config.yaml").write_text("model: m\n", encoding="utf-8")
+        (tmp_path / ".kova" / "profiles" / name).mkdir(parents=True)
+        (tmp_path / ".kova" / "profiles" / name / "config.yaml").write_text("model: m\n", encoding="utf-8")
     profiles.create_wrapper_script("dev")
     profiles.create_wrapper_script("w", target="work")
     (tmp_path / ".local" / "bin" / "old").write_text('#!/bin/sh\nexec hermes -p old "$@"\n', encoding="utf-8")
-    for foreign in ("ops.bat", "old.bat"):  # same-named non-Hermes commands
+    for foreign in ("ops.bat", "old.bat"):  # same-named non-Kova commands
         (tmp_path / ".local" / "bin" / foreign).write_text("@echo off\r\nnotepad %*\r\n", encoding="utf-8")
 
     out = io.StringIO()

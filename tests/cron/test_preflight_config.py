@@ -71,7 +71,7 @@ def _run_job_patched(job, tmp_path, *, resolve=None, skill_view=None):
     Returns (success, output, final_response, error, agent_constructed).
     """
     patches = [
-        patch("cron.scheduler._hermes_home", tmp_path),
+        patch("cron.scheduler._kova_home", tmp_path),
         patch("cron.scheduler_delivery._resolve_origin", return_value=None),
         patch("kova_cli.env_loader.load_hermes_dotenv"),
         patch("kova_cli.env_loader.reset_secret_source_cache"),
@@ -138,7 +138,7 @@ class TestMissingProviderKeyBlocks:
             cron_jobs.save_jobs([job])
             for _tick in range(2):
                 fresh = next(j for j in cron_jobs.load_jobs() if j["id"] == job["id"])
-                with patch("cron.scheduler._hermes_home", tmp_path), \
+                with patch("cron.scheduler._kova_home", tmp_path), \
                      patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
                      patch("kova_cli.env_loader.load_hermes_dotenv"), \
                      patch("kova_cli.env_loader.reset_secret_source_cache"), \
@@ -270,7 +270,7 @@ class TestOptOut:
             cron_jobs.save_jobs([job])
             for _tick in range(2):
                 fresh = next(j for j in cron_jobs.load_jobs() if j["id"] == job["id"])
-                with patch("cron.scheduler._hermes_home", tmp_path), \
+                with patch("cron.scheduler._kova_home", tmp_path), \
                      patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
                      patch("kova_cli.env_loader.load_hermes_dotenv"), \
                      patch("kova_cli.env_loader.reset_secret_source_cache"), \

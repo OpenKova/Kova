@@ -22,7 +22,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 from tools.environments.base import BaseEnvironment, EnvironmentConnectionError, _SHELL_ENV_NAME_RE, get_sandbox_dir
 from tools.terminal_tool_config import (
     _host_path_key, _is_windows_drive_path, cwd_follows_host_mount, home_profile_name,
@@ -115,7 +115,7 @@ _sandbox_dir_name = sanitize_task_id_for_path
 
 
 def _get_active_profile_name() -> str:
-    """Active Hermes profile name (the container key's own lookup), or ``"default"`` on error. Resolved
+    """Active Kova profile name (the container key's own lookup), or ``"default"`` on error. Resolved
     at container-create time so a container stays tagged with its creator even if the process switches
     profiles."""
     return home_profile_name()
@@ -156,7 +156,7 @@ def _is_volatile_mount_spec(spec: str) -> bool:
         return False
 
 
-def _reuse_environment_fingerprint(*, image: str, mount_args: list[str], hermes_home: str) -> str:
+def _reuse_environment_fingerprint(*, image: str, mount_args: list[str], kova_home: str) -> str:
     """Hash immutable configuration so reuse cannot silently attach to stale mounts.
 
     Hash requested values rather than exposing profile paths and volume sources in labels.
@@ -167,13 +167,13 @@ def _reuse_environment_fingerprint(*, image: str, mount_args: list[str], hermes_
     matched for users with any symlink under ``skills/``. The container path stays in the
     hash, so moving where that mount lands still forces a fresh container.
     """
-    normalized_home = os.path.normcase(os.path.abspath(os.path.expanduser(hermes_home)))
+    normalized_home = os.path.normcase(os.path.abspath(os.path.expanduser(kova_home)))
     canonical_mounts = [
         (f"<volatile-tempdir-mount>:{spec.split(':', 1)[1]}"
          if _is_volatile_mount_spec(spec) else spec)
         for spec in mount_args]
     payload = json.dumps(
-        {"image": image, "mount_args": canonical_mounts, "hermes_home": normalized_home},
+        {"image": image, "mount_args": canonical_mounts, "kova_home": normalized_home},
         sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
 
@@ -188,7 +188,7 @@ def reap_orphan_containers(
     Best-effort and idempotent: failures log at debug and the count removed so far is returned.
     """
     docker = docker_exe or find_docker() or "docker"
-    filters = ["--filter", "label=hermes-agent=1", "--filter", "status=exited"]
+    filters = ["--filter", "label=kova-agent=1", "--filter", "status=exited"]
     if profile_filter:
         filters.extend(["--filter", f"label=hermes-profile={_sanitize_label_value(profile_filter)}"])
 
@@ -283,15 +283,15 @@ def _docker_query(
 
 
 def find_docker() -> Optional[str]:
-    """Locate the docker/podman CLI (cached): ``HERMES_DOCKER_BINARY`` override, ``docker``
+    """Locate the docker/podman CLI (cached): ``KOVA_DOCKER_BINARY`` override, ``docker``
     on PATH, ``podman`` on PATH, then macOS Docker Desktop locations; ``None`` if absent."""
     global _docker_executable
     if _docker_executable is not None:
         return _docker_executable
 
-    override = os.getenv("HERMES_DOCKER_BINARY")
+    override = os.getenv("KOVA_DOCKER_BINARY")
     if override and _is_executable(override):
-        logger.info("Using HERMES_DOCKER_BINARY override: %s", override)
+        logger.info("Using KOVA_DOCKER_BINARY override: %s", override)
         found = override
     elif found := shutil.which("docker"):
         pass
@@ -692,7 +692,7 @@ class DockerEnvironment(BaseEnvironment):
         self._init_env_values: dict[str, str] = {}
         self._workspace_dir: Optional[str] = None
         self._home_dir: Optional[str] = None
-        # (host_dir, container_path) of the Hermes-created sandbox bind mounts; owner handback targets.
+        # (host_dir, container_path) of the Kova-created sandbox bind mounts; owner handback targets.
         self._sandbox_mounts: list[tuple[str, str]] = []
         logger.info("DockerEnvironment volumes: %s", volumes)
         if volumes is not None and not isinstance(volumes, list):
@@ -719,7 +719,7 @@ class DockerEnvironment(BaseEnvironment):
         # Resolved once so it works when /usr/local/bin is not in PATH (macOS services).
         self._docker_exe = find_docker() or "docker"
 
-        # s6-overlay images (e.g. hermes-agent:latest) already use /init as PID 1 and exec
+        # s6-overlay images (e.g. kova-agent:latest) already use /init as PID 1 and exec
         # /run/s6/basedir/bin/init during startup. For those images we must (a) skip Docker's --init (two
         # competing PID-1 inits) and (b) mount /run with exec instead of noexec, or s6 stage0 dies with exit
         # 126 "Permission denied". Detected once here; defaults are kept on any inspection failure. See
@@ -744,7 +744,7 @@ class DockerEnvironment(BaseEnvironment):
             + egress_host_args + volume_args + env_args + validated_extra)
         logger.info("Docker run_args: %s", all_run_args)
 
-        # Labels identify hermes containers to the orphan reaper (hermes-agent=1),
+        # Labels identify hermes containers to the orphan reaper (kova-agent=1),
         # cross-process reuse (task-id/profile) and operators. The reuse identity
         # is captured at start and never changes for the container's lifetime.
         # Egress posture gets its own label: env/CA mounts are immutable after
@@ -752,7 +752,7 @@ class DockerEnvironment(BaseEnvironment):
         profile_name = _container_identity(shared_container_key)
         task_label = _sanitize_label_value(task_id)
         self._labels = {
-            "hermes-agent": "1",
+            "kova-agent": "1",
             "hermes-task-id": task_label,
             "hermes-profile": profile_name,
             _EGRESS_LABEL_KEY: egress_label}
@@ -763,7 +763,7 @@ class DockerEnvironment(BaseEnvironment):
         if not shared_container_key:
             self._labels[_ENVIRONMENT_LABEL_KEY] = _reuse_environment_fingerprint(
                 image=image, mount_args=[*writable_args, *volume_args],
-                hermes_home=str(get_hermes_home()))
+                kova_home=str(get_kova_home()))
         # Saved for container recreation on "No such container" recovery.
         self._image = image
         self._image_pinned = image_pinned
@@ -850,7 +850,7 @@ class DockerEnvironment(BaseEnvironment):
     def _mount_args(self, volumes, host_cwd, auto_mount_cwd, task_id) -> tuple[list[str], list[str]]:
         """``(volume_args, writable_args)`` for user volumes, host cwd and /workspace,/root.
 
-        Persistent mode bind-mounts from TERMINAL_SANDBOX_DIR (default ~/.hermes/sandboxes/).
+        Persistent mode bind-mounts from TERMINAL_SANDBOX_DIR (default ~/.kova/sandboxes/).
         A configured host working directory is bound even when another volume already
         claims ``/workspace``: at ``/workspace`` when that path is free, otherwise at
         a second mount. ``host_cwd`` / ``host_cwd_mount`` tell tools which container
@@ -1250,7 +1250,7 @@ class DockerEnvironment(BaseEnvironment):
         container this class creates carries the label. The ``{{.Label "key"}}`` template
         function is Docker-only — podman ps exits 125 on it — so the probe never uses it (#99213)."""
         filters = [
-            "--filter", "label=hermes-agent=1",
+            "--filter", "label=kova-agent=1",
             "--filter", f"label=hermes-task-id={task_label}",
             "--filter", f"label=hermes-profile={profile_label}",
             "--filter", f"label={_EGRESS_LABEL_KEY}={egress_label}"]

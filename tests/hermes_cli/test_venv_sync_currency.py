@@ -26,7 +26,7 @@ def test_check_uses_real_pm_selection_and_keeps_invalid_evidence(admission_env, 
     pins.save()
     monkeypatch.setattr(paths, 'lockfile_path', lambda: pin_path)
     # A historical foreign-root stamp must not certify a PM environment.
-    old_stamp = core / ".hermes-runtime" / "cache" / "venv-sync.json"
+    old_stamp = core / ".kova-runtime" / "cache" / "venv-sync.json"
     old_stamp.parent.mkdir(parents=True)
     old_stamp.write_text('{"lockDigest": "old-bootstrap-stamp"}')
     cached = old_stamp.read_bytes()
@@ -119,11 +119,11 @@ def test_own_tree_sync_reuses_pm_without_writing_an_extra_stamp(admission_env, m
     monkeypatch.setattr("pm.client.is_runtime", lambda: True)
     root, home = admission_env
     core = root / 'core'
-    assert not (core / ".hermes-runtime" / "cache" / "venv-sync.json").exists()
+    assert not (core / ".kova-runtime" / "cache" / "venv-sync.json").exists()
     assert venv_sync.sync(core) == {'state': 'synced', 'ok': True}
     environment = selected_venv(core)
     saved = paths.runtime_facts_path().read_bytes()
-    assert not (core / ".hermes-runtime" / "cache" / "venv-sync.json").exists()
+    assert not (core / ".kova-runtime" / "cache" / "venv-sync.json").exists()
     assert venv_sync.sync(core) == {'state': 'current', 'ok': True}
     assert paths.runtime_facts_path().read_bytes() == saved
     python = environment / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
@@ -138,4 +138,4 @@ def test_own_tree_sync_reuses_pm_without_writing_an_extra_stamp(admission_env, m
     assert 'dependency environment is missing' in failure['detail']
     marker.write_bytes(marker_bytes)
     assert venv_sync.sync(core) == {'state': 'current', 'ok': True}
-    assert not (core / ".hermes-runtime" / "cache" / "venv-sync.json").exists()
+    assert not (core / ".kova-runtime" / "cache" / "venv-sync.json").exists()

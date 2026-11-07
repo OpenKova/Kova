@@ -14,7 +14,7 @@ from pm import client
 from pm import extras
 
 
-# ---- per-extra platform gates ([tool.hermes.extras-platforms]) ----
+# ---- per-extra platform gates ([tool.kova.extras-platforms]) ----
 
 
 def test_extra_supported_ungated_extra_is_true():

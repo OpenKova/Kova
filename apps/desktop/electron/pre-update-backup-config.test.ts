@@ -38,7 +38,7 @@ describe('readPreUpdateBackupEnabled', () => {
       runtime.args,
       expect.objectContaining({
         env: expect.objectContaining({
-          HERMES_HOME: '/profiles/active',
+          KOVA_HOME: '/profiles/active',
           PYTHONPATH: '/runtime/hermes'
         })
       })

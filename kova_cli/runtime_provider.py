@@ -468,11 +468,11 @@ def _nous_entry_key_usable(entry: Any, min_ttl: int) -> bool:
 
 
 def _nous_min_key_ttl() -> int:
-    return max(60, env_int("HERMES_NOUS_MIN_KEY_TTL_SECONDS", 1800))
+    return max(60, env_int("KOVA_NOUS_MIN_KEY_TTL_SECONDS", 1800))
 
 
 def _resolve_nous_creds() -> dict[str, Any]:
-    return resolve_nous_runtime_credentials(timeout_seconds=float(get_secret_str("HERMES_NOUS_TIMEOUT_SECONDS", "15")))
+    return resolve_nous_runtime_credentials(timeout_seconds=float(get_secret_str("KOVA_NOUS_TIMEOUT_SECONDS", "15")))
 
 
 def _finalize_base_url(provider: str, api_mode: str, base_url: str) -> str:
@@ -537,7 +537,7 @@ def _get_model_config() -> dict[str, Any]:
 
 
 def resolve_requested_provider(requested: Optional[str] = None) -> str:
-    """Provider request from explicit arg, then config, then ``HERMES_INFERENCE_PROVIDER``, else
+    """Provider request from explicit arg, then config, then ``KOVA_INFERENCE_PROVIDER``, else
     "auto". Config beats the env so chat uses the endpoint the user last saved, not a stale
     shell/.env override."""
     if requested and requested.strip():
@@ -547,7 +547,7 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
         return cfg_provider.strip().lower()
     from agent.session_client_env import bound_client_env
     client = bound_client_env()  # a local session's turn: its client's export, never the daemon's
-    requested = client.get("HERMES_INFERENCE_PROVIDER", "") if client is not None else get_secret_str("HERMES_INFERENCE_PROVIDER", "")
+    requested = client.get("KOVA_INFERENCE_PROVIDER", "") if client is not None else get_secret_str("KOVA_INFERENCE_PROVIDER", "")
     return requested.strip().lower() or "auto"
 
 
@@ -589,9 +589,9 @@ def _pool_entry_mode_and_url(provider, entry, model_cfg, effective_model, base_u
         api_mode, default_url = _POOL_ENTRY_SIMPLE_MODES[provider]
         if provider == "openai-codex":
             # Pool entries retain the canonical ChatGPT URL, but the profile-wide
-            # HERMES_CODEX_BASE_URL override must apply consistently to every
+            # KOVA_CODEX_BASE_URL override must apply consistently to every
             # credential source, including pooled OAuth credentials.
-            override_url = get_secret_str("HERMES_CODEX_BASE_URL", "").strip().rstrip("/")
+            override_url = get_secret_str("KOVA_CODEX_BASE_URL", "").strip().rstrip("/")
             if override_url:
                 return api_mode, override_url
             # model.base_url is the secondary proxy override (same rule as the generic tail below:
@@ -975,7 +975,7 @@ def _resolve_vertex_runtime(requested_provider: str) -> dict[str, Any]:
         token, base_url = get_vertex_config()
     if not token or not base_url:
         raise AuthError("Vertex AI credentials could not be resolved. Vertex uses OAuth2 (not a static API key): provide a "
-                        "service-account JSON via GOOGLE_APPLICATION_CREDENTIALS (or VERTEX_CREDENTIALS_PATH) in ~/.hermes/.env, "
+                        "service-account JSON via GOOGLE_APPLICATION_CREDENTIALS (or VERTEX_CREDENTIALS_PATH) in ~/.kova/.env, "
                         "or run 'gcloud auth application-default login' for ADC. Set the GCP project/region under vertex: in "
                         "config.yaml if they aren't embedded in the credentials. Run `hermes setup` to install Vertex support.")
     return _runtime("vertex", "chat_completions", base_url.rstrip("/"), token, source="vertex-oauth", requested_provider=requested_provider)

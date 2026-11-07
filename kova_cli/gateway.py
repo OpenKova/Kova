@@ -49,7 +49,7 @@ from gateway.restart import (
 )
 from kova_cli.config import (
     get_env_value,
-    get_hermes_home,
+    get_kova_home,
     is_managed,
     managed_error,
     read_raw_config,
@@ -57,7 +57,7 @@ from kova_cli.config import (
     write_platform_config_field,
 )
 
-# display_hermes_home is imported lazily: kova_constants may be a cached pre-update version.
+# display_kova_home is imported lazily: kova_constants may be a cached pre-update version.
 from kova_cli.setup import (
     print_header,
     print_info,
@@ -123,26 +123,26 @@ def _get_service_pids(all_profiles: bool = False) -> set:
     """PIDs managed by systemd/launchd gateway services (excluded from stale-process sweeps).
 
     Relies on the service manager committing the new PID before the restart command returns.
-    ``all_profiles`` widens the current profile's unit/label to the whole ``hermes-gateway*`` /
-    ``ai.hermes.gateway*`` fleet so update/reaper never kill a sibling's service gateway as "manual".
+    ``all_profiles`` widens the current profile's unit/label to the whole ``kova-gateway*`` /
+    ``ai.kova.gateway*`` fleet so update/reaper never kill a sibling's service gateway as "manual".
 
-    ``all_profiles`` widens the launchd branch to every installed ``ai.hermes.gateway*`` LaunchAgent — the
+    ``all_profiles`` widens the launchd branch to every installed ``ai.kova.gateway*`` LaunchAgent — the
     update path needs the whole fleet excluded from its sweep (#41403, #73626): sibling-profile launchd
     gateways found by the (BSD-fixed) ps scan must not be misclassified as manual processes and killed.
     Default-scope callers (``gateway status``, cron checks) keep seeing only the current profile's service;
     the orphan reaper passes all_profiles=True for the same friendly-fire reason. The systemd branch mirrors
     this: default scope filters to the current profile's exact unit name; ``all_profiles=True`` widens to
-    the ``hermes-gateway*`` fleet glob.
+    the ``kova-gateway*`` fleet glob.
     """
     pids: set = set()
 
     # --- systemd (Linux): user and system scopes ---
     if supports_systemd_services():
-        pattern = "hermes-gateway*" if all_profiles else get_service_name()
+        pattern = "kova-gateway*" if all_profiles else get_service_name()
         for scope_args in [["systemctl", "--user"], ["systemctl"]]:
             try:
                 # Belt-and-suspenders for the EXCLUDE use case (#74075): a bare ``launchctl list`` prefix
-                # scan also catches ai.hermes.gateway* agents the label derivation can't map (renamed
+                # scan also catches ai.kova.gateway* agents the label derivation can't map (renamed
                 # profiles, other installs sharing this user). Over-inclusion is safe here — these PIDs are
                 # only ever protected from the kill sweep, never targeted. Restart paths use the
                 # label-derived set only.
@@ -177,9 +177,9 @@ def _get_service_pids(all_profiles: bool = False) -> set:
     if is_macos():
         labels = {get_launchd_label()}
         if all_profiles:
-            # Whole fleet, mirroring the systemd ``hermes-gateway*`` glob above.
+            # Whole fleet, mirroring the systemd ``kova-gateway*`` glob above.
             # Every gateway LaunchAgent, not just the invoking profile's — mirrors the systemd branch's
-            # ``hermes-gateway*`` pattern above. The update path restarts the whole fleet, and its
+            # ``kova-gateway*`` pattern above. The update path restarts the whole fleet, and its
             # stale-process sweep must not mistake a sibling service's fresh PID for a manual gateway it
             # should kill (#41403).
             labels.update(launchd_gateway_labels_for_install())
@@ -191,14 +191,14 @@ def _get_service_pids(all_profiles: bool = False) -> set:
             if pid is not None and pid > 0:
                 pids.add(pid)
         if all_profiles:
-            # Prefix scan also catches ai.hermes.gateway* agents the label derivation can't map
+            # Prefix scan also catches ai.kova.gateway* agents the label derivation can't map
             # (renamed profiles, other installs). Over-inclusion is safe: PIDs are only protected.
             try:
                 result = subprocess.run(["launchctl", "list"], timeout=5, **_CAPTURE_TEXT, check=False)
                 if result.returncode == 0:
                     for line in result.stdout.strip().splitlines():
                         parts = line.split()
-                        if len(parts) >= 3 and parts[-1].startswith("ai.hermes.gateway"):
+                        if len(parts) >= 3 and parts[-1].startswith("ai.kova.gateway"):
                             try:
                                 pid = int(parts[0])
                                 if pid > 0:
@@ -580,22 +580,22 @@ def _scan_gateway_pids(
         looks_like_gateway_command_line,
         looks_like_gateway_runtime_command_line,
         profile_flag_value,
-        hermes_home_assignments,
-        command_line_names_hermes_home,
+        kova_home_assignments,
+        command_line_names_kova_home,
     )
-    from kova_cli.dashboard_procs import _hermes_home_for_pid, _normalized_home_for_compare
+    from kova_cli.dashboard_procs import _kova_home_for_pid, _normalized_home_for_compare
     from kova_cli.gateway_migrate_guards import pid_is_other_users
-    current_home_path = get_hermes_home().resolve()
+    current_home_path = get_kova_home().resolve()
     current_home = str(current_home_path)
-    # Forward slashes on both sides of the HERMES_HOME= match (mirrors gateway.status), and no
+    # Forward slashes on both sides of the KOVA_HOME= match (mirrors gateway.status), and no
     # trailing separator: the assignments parser strips one, so the systemd ``Environment=``
-    # spelling (``HERMES_HOME=/root/.hermes/``) compares equal to the resolved home.
+    # spelling (``KOVA_HOME=/root/.kova/``) compares equal to the resolved home.
     current_home_lc = current_home.lower().replace("\\", "/").rstrip("/")
     current_profile_arg = _profile_arg(current_home)
     current_profile_name = current_profile_arg.split()[-1] if current_profile_arg else ""
     current_profile_name_lc = current_profile_name.lower()
-    # ``_profile_arg`` is "" for ANY root, and get_default_hermes_root() calls a temp or Docker
-    # HERMES_HOME "the root itself", so only the home owning the bare service name is the default one.
+    # ``_profile_arg`` is "" for ANY root, and get_default_kova_root() calls a temp or Docker
+    # KOVA_HOME "the root itself", so only the home owning the bare service name is the default one.
     current_home_is_native = not current_profile_name and _home_owns_bare_service_name(current_home_path)
 
     def _matches_current_profile(pid: int, command: str) -> bool:
@@ -604,20 +604,20 @@ def _scan_gateway_pids(
             # Token equality, not substring: `-p ops` must not claim (or SIGTERM) an `-p ops-2` gateway.
             if profile_flag_value(command) == current_profile_name_lc:
                 return True
-            return command_line_names_hermes_home(command_lc, current_home_lc)
+            return command_line_names_kova_home(command_lc, current_home_lc)
 
         # Root home: reject argv that advertises another profile in any spelling the CLI pre-parser
         # accepts (``--profile=ops`` slipped past a substring test, so a default-profile fallback stop
-        # could SIGTERM the named gateway) or a HERMES_HOME= naming another home. An explicit
+        # could SIGTERM the named gateway) or a KOVA_HOME= naming another home. An explicit
         # ``--profile default`` names this home (#100817).
         if profile_flag_value(command) not in (None, "default"):
             return False
-        if hermes_home_assignments(command_lc):
-            return command_line_names_hermes_home(command_lc, current_home_lc)
+        if kova_home_assignments(command_lc):
+            return command_line_names_kova_home(command_lc, current_home_lc)
         # No home on argv: it came through the environment (launchd plist, systemd unit, a test's
         # child), so argv proves nothing. Treating that as "ours" let a temp-home web server's orphan
         # reaper SIGTERM the operator's launchd gateway. The process's own environment decides.
-        owner_home = _hermes_home_for_pid(pid)
+        owner_home = _kova_home_for_pid(pid)
         if owner_home is not None:
             return _normalized_home_for_compare(owner_home) == _normalized_home_for_compare(current_home)
         # Unreadable environment (another user, hardened /proc, an elevated process behind the
@@ -773,7 +773,7 @@ def find_gateway_pids(exclude_pids: set | None = None, all_profiles: bool = Fals
 
 
 def find_profile_gateway_processes(exclude_pids: set | None = None, *, strict: bool = False) -> list[ProfileGatewayProcess]:
-    """Return running gateway PIDs mapped to Hermes profiles via PID files."""
+    """Return running gateway PIDs mapped to Kova profiles via PID files."""
     _exclude = set(exclude_pids or set())
     processes: list[ProfileGatewayProcess] = []
     try:
@@ -820,9 +820,9 @@ def _scm_service_field(service, field: str):
 def find_windows_gateway_services(
     *, psutil_module=None, profile_processes: list[ProfileGatewayProcess] | None = None
 ) -> list[WindowsGatewayService]:
-    """Profile gateways supervised by real, Hermes-owned Windows services. Service-logon processes may
-    hide their command lines, so identity = Hermes's own PID file + a parent chain ending at a running
-    SCM service PID whose name or binary path is Hermes's (``gateway_windows.hermes_owns_windows_service``).
+    """Profile gateways supervised by real, Kova-owned Windows services. Service-logon processes may
+    hide their command lines, so identity = Kova's own PID file + a parent chain ending at a running
+    SCM service PID whose name or binary path is Kova's (``gateway_windows.kova_owns_windows_service``).
     The whole service subtree is returned so the Desktop preflight exempts exactly what the updater stops
     through the SCM; a gateway under any other service (a Scheduled Task's svchost) is a plain process."""
     if sys.platform != "win32":
@@ -844,10 +844,10 @@ def find_windows_gateway_services(
                     raise RuntimeError("SCM service has an empty name")
                 # Ownership before state: an OS service above the gateway (Task Scheduler's svchost for a
                 # task-launched gateway, BITS mid-transition) is never its supervisor, so neither its
-                # PID nor its status may steer the pause. Only Hermes-owned services reach the guards below.
-                # The name alone settles Hermes-named services; binpath (QueryServiceConfig) is asked only
+                # PID nor its status may steer the pause. Only Kova-owned services reach the guards below.
+                # The name alone settles Kova-named services; binpath (QueryServiceConfig) is asked only
                 # for the rest, and a service that refuses even that to this user is one this user could
-                # not `sc stop` either — never Hermes's, never a reason to abort the enumeration.
+                # not `sc stop` either — never Kova's, never a reason to abort the enumeration.
                 owned = hermes_owns_windows_service(service_name, "", hermes_roots)
                 if not owned:
                     try:
@@ -1045,8 +1045,8 @@ def _restart_argv_is_host_gateway(argv: list[str]) -> bool:
     except Exception:
         pass
     try:
-        from kova_constants import get_default_hermes_root, get_hermes_home
-        return get_hermes_home().resolve() == get_default_hermes_root().resolve()
+        from kova_constants import get_default_kova_root, get_kova_home
+        return get_kova_home().resolve() == get_default_kova_root().resolve()
     except Exception:
         return False
 
@@ -1055,7 +1055,7 @@ def _host_gateway_watcher_env() -> dict[str, str]:
     """Scrubbed default-profile env for a detached host-gateway respawn watcher."""
     from tools.environments.local import host_gateway_child_env
     env = host_gateway_child_env()
-    env.pop("_HERMES_GATEWAY", None)
+    env.pop("_KOVA_GATEWAY", None)
     return env
 
 
@@ -1070,7 +1070,7 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str], *, host: b
     # Windows: ``run_argv`` leads with the venv's console ``python.exe`` — the interpreter we want:
     # the watcher respawns it under CREATE_NO_WINDOW detach flags so the gateway owns one hidden
     # console all descendants inherit and nothing flashes (#54220/#56747). The spec helper
-    # normalizes the interpreter and captures a stable cwd + env overlay (HERMES_HOME,
+    # normalizes the interpreter and captures a stable cwd + env overlay (KOVA_HOME,
     # VIRTUAL_ENV, PYTHONPATH) so the respawn doesn't depend on the watcher's cwd. No-op on POSIX.
     respawn_cwd = ""
     # See gateway_windows.windowless_gateway_restart_spec. See #54220, #56747.
@@ -1117,9 +1117,9 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str], *, host: b
         _stdio_target = subprocess.DEVNULL
         _stdio_fh = None
         try:
-            from kova_constants import get_hermes_home
+            from kova_constants import get_kova_home
             from pathlib import Path
-            _log_dir = Path(get_hermes_home()) / "logs"
+            _log_dir = Path(get_kova_home()) / "logs"
             _log_dir.mkdir(parents=True, exist_ok=True)
             _stdio_fh = open(_log_dir / "gateway-stdio.log", "ab", buffering=0)
             _stdio_target = _stdio_fh
@@ -1129,7 +1129,7 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str], *, host: b
         # Detach the respawn: POSIX setsid; Windows needs CREATE_BREAKAWAY_FROM_JOB, since the watcher may sit in a job
         # object (Electron/Tauri parent) whose teardown would otherwise kill it (_subprocess_compat.windows_detach_flags).
         _popen_kwargs = {{"stdout": _stdio_target, "stderr": _stdio_target}}
-        # Stable cwd + env overlay (VIRTUAL_ENV/PYTHONPATH/HERMES_HOME) the windowless interpreter needs; empty on POSIX.
+        # Stable cwd + env overlay (VIRTUAL_ENV/PYTHONPATH/KOVA_HOME) the windowless interpreter needs; empty on POSIX.
         if _respawn_cwd:
             _popen_kwargs["cwd"] = _respawn_cwd
         _base_env = {{**os.environ, **_respawn_env_overlay}}
@@ -1244,28 +1244,28 @@ def _unit_environment_value(unit_path: Path, name: str) -> str | None:
     return None
 
 
-def _hermes_home_pinned_by_unit(unit_path: Path) -> str | None:
-    """``HERMES_HOME`` pinned by the unit file at *unit_path*, or None when absent/unreadable."""
-    return _unit_environment_value(unit_path, "HERMES_HOME")
+def _kova_home_pinned_by_unit(unit_path: Path) -> str | None:
+    """``KOVA_HOME`` pinned by the unit file at *unit_path*, or None when absent/unreadable."""
+    return _unit_environment_value(unit_path, "KOVA_HOME")
 
 
-def _hermes_home_from_systemd_unit_file(system: bool = False) -> str | None:
-    """``HERMES_HOME`` from the on-disk unit file - what refresh/compare already read, and reliable under ``sudo``."""
-    return _hermes_home_pinned_by_unit(get_systemd_unit_path(system=system))
+def _kova_home_from_systemd_unit_file(system: bool = False) -> str | None:
+    """``KOVA_HOME`` from the on-disk unit file - what refresh/compare already read, and reliable under ``sudo``."""
+    return _kova_home_pinned_by_unit(get_systemd_unit_path(system=system))
 
 
-def _sync_hermes_home_from_systemd_unit(system: bool) -> None:
-    """Adopt a system-scope unit's ``HERMES_HOME``: under ``sudo`` it is stripped and HOME=/root, so
-    get_hermes_home() would pick the wrong profile for runtime-status/PID reads."""
+def _sync_kova_home_from_systemd_unit(system: bool) -> None:
+    """Adopt a system-scope unit's ``KOVA_HOME``: under ``sudo`` it is stripped and HOME=/root, so
+    get_kova_home() would pick the wrong profile for runtime-status/PID reads."""
     if not system:
         return
     # On-disk unit first; ``systemctl show`` for units that only exist in the manager.
-    unit_home = (_hermes_home_from_systemd_unit_file(system=True) or "").strip()
+    unit_home = (_kova_home_from_systemd_unit_file(system=True) or "").strip()
     if not unit_home:
         env_line = _systemctl_show(("Environment",), system=True).get("Environment", "")
-        unit_home = _parse_kv_pairs(env_line.split()).get("HERMES_HOME", "").strip()
-    if unit_home and os.environ.get("HERMES_HOME", "").strip() != unit_home:
-        os.environ["HERMES_HOME"] = unit_home
+        unit_home = _parse_kv_pairs(env_line.split()).get("KOVA_HOME", "").strip()
+    if unit_home and os.environ.get("KOVA_HOME", "").strip() != unit_home:
+        os.environ["KOVA_HOME"] = unit_home
 
 
 def _read_systemd_unit_properties(
@@ -1733,7 +1733,7 @@ def kill_gateway_processes(force: bool = False, exclude_pids: set | None = None,
         from kova_cli.update_fleet_scope import partition_gateway_pids_by_scope
         pids, foreign = partition_gateway_pids_by_scope(pids)
         for pid, home in foreign:
-            print(f"↷ PID {pid}: gateway of {'another Hermes home (' + home + ')' if home else 'an unreadable home'} — left alone")
+            print(f"↷ PID {pid}: gateway of {'another Kova home (' + home + ')' if home else 'an unreadable home'} — left alone")
     for pid in pids:
         try:
             expected_start_time = None
@@ -1825,7 +1825,7 @@ def _reap_unsupervised_gateway_orphans(
             from kova_cli.gateway_windows import get_task_name  # profile-aware task name
             _task_name = get_task_name()
         except Exception:
-            _task_name = "Hermes_Gateway"
+            _task_name = "Kova_Gateway"
         if _windows_scheduled_task_supervises(_task_name):
             return False
 
@@ -1903,7 +1903,7 @@ def _reaper_exclusion_pids(extra_exclude: set | None) -> set[int]:
         # that got past the gate above (#83683, #85344).
         # all_profiles=True: the reaper's process scan sees every profile's gateway (and on macOS the
         # now-working ps fallback surfaces sibling launchd gateways, #73626), so the service exclusion must
-        # cover the whole ai.hermes.gateway* fleet — not just the current profile's label — or a sibling
+        # cover the whole ai.kova.gateway* fleet — not just the current profile's label — or a sibling
         # profile's launchd gateway is misclassified as an unsupervised orphan and reaped. Same class as the
         # update-sweep fix in #74075.
         own |= _get_service_pids(all_profiles=True)
@@ -2151,7 +2151,7 @@ def _windows_scheduled_task_supervises(task_name: str) -> bool:
 
 
 def _gateway_detached_env() -> bool:
-    return _truthy_env(os.getenv("HERMES_GATEWAY_DETACHED"))
+    return _truthy_env(os.getenv("KOVA_GATEWAY_DETACHED"))
 
 
 def _stdin_is_tty() -> bool | None:
@@ -2163,7 +2163,7 @@ def _stdin_is_tty() -> bool | None:
 
 
 def _windows_gateway_should_absorb_console_controls() -> bool:
-    """True for detached Windows gateway runs that should ignore Ctrl+C (``HERMES_GATEWAY_DETACHED=1``
+    """True for detached Windows gateway runs that should ignore Ctrl+C (``KOVA_GATEWAY_DETACHED=1``
     or no interactive stdin); foreground runs stay interruptible."""
     if not is_windows():
         return False
@@ -2195,8 +2195,8 @@ def _windows_gateway_breakaway_state() -> bool | None:
 # Service Configuration
 # =============================================================================
 
-_SERVICE_BASE = "hermes-gateway"
-SERVICE_DESCRIPTION = "Hermes Agent Gateway - Messaging Platform Integration"
+_SERVICE_BASE = "kova-gateway"
+SERVICE_DESCRIPTION = "Kova Agent Gateway - Messaging Platform Integration"
 
 _SYSTEM_UNIT_DIR = Path("/etc/systemd/system")
 
@@ -2217,10 +2217,10 @@ def _native_service_homes() -> set[Path]:
     """The account's native default home plus, when root under sudo, the invoking user's (see
     ``_profile_suffix`` for why sudo matters). The ACCOUNT home, not the process HOME: the unit dir
     follows the account (``user_systemd_unit_dir``), so a scratch ``HOME`` that called its own
-    ``.hermes`` native resolved the bare name onto the account's real unit."""
-    from kova_constants import account_default_hermes_home, sudo_invoker_default_home
+    ``.kova`` native resolved the bare name onto the account's real unit."""
+    from kova_constants import account_default_kova_home, sudo_invoker_default_home
 
-    homes = {account_default_hermes_home().resolve()}
+    homes = {account_default_kova_home().resolve()}
     sudo_home = sudo_invoker_default_home()
     if sudo_home is not None:
         homes.add(sudo_home.resolve())
@@ -2228,13 +2228,13 @@ def _native_service_homes() -> set[Path]:
 
 
 def _bare_unit_pinned_home() -> Path | None:
-    """Resolved ``HERMES_HOME`` pinned by an installed ``hermes-gateway.service``, or None. The unit is the
+    """Resolved ``KOVA_HOME`` pinned by an installed ``kova-gateway.service``, or None. The unit is the
     one naming basis that holds still across the sudo mid-command switch (see ``_profile_suffix``) and it
     covers every elevated identity — ``sudo -i`` and cron included, where SUDO_USER is absent.
 
     Root reads the system unit; an unprivileged process reads only its own user unit, never the system
     one — a bare system unit pinning ``profiles/<name>`` would otherwise alias that profile onto the
-    user's default unit. The user unit matters for a custom root: the ``hermes-gateway-<hash>`` naming
+    user's default unit. The user unit matters for a custom root: the ``kova-gateway-<hash>`` naming
     (#105525) left a bare user unit installed before it pinning that same root, so lifecycle commands
     saw "no unit", ``gateway restart`` fell through to a foreground run, and the still-enabled legacy
     unit's ``Restart=always`` looped on the instance lock (#109476). A unit pinning THIS home is this
@@ -2248,7 +2248,7 @@ def _bare_unit_pinned_home() -> Path | None:
     if not is_linux():
         return None
     unit_dir = _SYSTEM_UNIT_DIR if os.geteuid() == 0 else user_systemd_unit_dir()  # windows-footgun: ok — behind is_linux()
-    pinned = _hermes_home_pinned_by_unit(unit_dir / f"{_SERVICE_BASE}.service")
+    pinned = _kova_home_pinned_by_unit(unit_dir / f"{_SERVICE_BASE}.service")
     if not pinned:
         return None
     try:
@@ -2263,30 +2263,30 @@ def _home_owns_bare_service_name(home: Path) -> bool:
 
 
 def _profile_suffix() -> str:
-    """Service-name suffix for HERMES_HOME: "" for a home that owns the bare name, the profile name for
+    """Service-name suffix for KOVA_HOME: "" for a home that owns the bare name, the profile name for
     ``<root>/profiles/<name>``, else a short hash of the path.
 
-    Bare-name owners: this process's platform-native default (``~/.hermes``), under sudo the invoking
-    user's native default, and the home pinned by an installed ``hermes-gateway.service``. Under sudo the
-    naming basis moves MID-COMMAND — sudo strips HERMES_HOME and sets HOME=/root, then
-    ``_sync_hermes_home_from_systemd_unit()`` adopts the unit's own HERMES_HOME into ``os.environ`` — so a
+    Bare-name owners: this process's platform-native default (``~/.kova``), under sudo the invoking
+    user's native default, and the home pinned by an installed ``kova-gateway.service``. Under sudo the
+    naming basis moves MID-COMMAND — sudo strips KOVA_HOME and sets HOME=/root, then
+    ``_sync_kova_home_from_systemd_unit()`` adopts the unit's own KOVA_HOME into ``os.environ`` — so a
     basis derived from the process alone names one unit before the adoption and another after it. The
     unit-pinned check must precede the profile branch: ``sudo hermes gateway install --system`` resolves
     the BARE name from root's default, then pins the invoking user's remapped home, so the bare unit
     legitimately carries a ``<root>/profiles/<name>`` home.
 
-    The bare name is deliberately NOT tied to ``get_default_hermes_root()``: that helper treats any
-    HERMES_HOME outside ``~/.hermes`` (Docker ``/opt/data``, a temp dir) as "the root itself", which let a
-    temp-home harness resolve to the default profile's ``hermes-gateway`` unit and uninstall the
+    The bare name is deliberately NOT tied to ``get_default_kova_root()``: that helper treats any
+    KOVA_HOME outside ``~/.kova`` (Docker ``/opt/data``, a temp dir) as "the root itself", which let a
+    temp-home harness resolve to the default profile's ``kova-gateway`` unit and uninstall the
     production gateway. Service names are host-wide identities; a home with no installed bare unit and
     no native default keeps its own suffix.
     """
     import hashlib
-    from kova_constants import get_default_hermes_root
-    home = get_hermes_home().resolve()
+    from kova_constants import get_default_kova_root
+    home = get_kova_home().resolve()
     if _home_owns_bare_service_name(home):
         return ""
-    name = _profile_name_from_home(home, get_default_hermes_root().resolve())
+    name = _profile_name_from_home(home, get_default_kova_root().resolve())
     return name or hashlib.sha256(str(home).encode()).hexdigest()[:8]
 
 
@@ -2295,15 +2295,15 @@ def _current_profile_name() -> str:
     included), ``<name>`` for ``<root>/profiles/<name>``, else the service hash. s6 slots and the
     multiplexer ask which PROFILE this is; ``_profile_suffix()`` answers which HOST SERVICE this is."""
     from kova_constants import profile_name_for_home
-    return profile_name_for_home(get_hermes_home()) or _profile_suffix()
+    return profile_name_for_home(get_kova_home()) or _profile_suffix()
 
 
-def _profile_arg(hermes_home: str | None = None, default_root: str | Path | None = None) -> str:
-    """``--profile <name>`` for ``<root>/profiles/<name>``, else "". *hermes_home*/*default_root* let a
+def _profile_arg(kova_home: str | None = None, default_root: str | Path | None = None) -> str:
+    """``--profile <name>`` for ``<root>/profiles/<name>``, else "". *kova_home*/*default_root* let a
     sudo/root process generate a unit for another user (the defaults would refer to root)."""
-    from kova_constants import get_default_hermes_root
-    home = Path(hermes_home or str(get_hermes_home())).resolve()
-    default = Path(default_root).resolve() if default_root else get_default_hermes_root().resolve()
+    from kova_constants import get_default_kova_root
+    home = Path(kova_home or str(get_kova_home())).resolve()
+    default = Path(default_root).resolve() if default_root else get_default_kova_root().resolve()
     if home == default:
         return ""
     name = _profile_name_from_home(home, default)
@@ -2311,7 +2311,7 @@ def _profile_arg(hermes_home: str | None = None, default_root: str | Path | None
 
 
 def get_service_name() -> str:
-    """Systemd service name: ``hermes-gateway`` for default HERMES_HOME, ``hermes-gateway-<profile>``
+    """Systemd service name: ``kova-gateway`` for default KOVA_HOME, ``kova-gateway-<profile>``
     or ``-<hash>`` otherwise."""
     suffix = _profile_suffix()
     return f"{_SERVICE_BASE}-{suffix}" if suffix else _SERVICE_BASE
@@ -2323,9 +2323,9 @@ def user_systemd_unit_dir() -> Path:
 
     Hardcoding ``~/.config`` made every unit probe silently false-negative on a host that moves
     XDG_CONFIG_HOME — doctor then reported no gateway unit while systemd was running ours. And
-    ``Path.home()`` trusts a process HOME that profile isolation may point at ``{HERMES_HOME}/home`` — the
+    ``Path.home()`` trusts a process HOME that profile isolation may point at ``{KOVA_HOME}/home`` — the
     ACTIVE profile's, not even the one selected with ``-p`` — so ``gateway install`` wrote the unit under
-    ``~/.hermes/profiles/<active>/home/.config/systemd/user/`` where ``systemctl --user`` never looks and
+    ``~/.kova/profiles/<active>/home/.config/systemd/user/`` where ``systemctl --user`` never looks and
     ``enable`` failed with "Unit ... does not exist" (#98699). ``systemctl --user`` targets the login
     user's session, so the unit dir follows the account home like ``get_launchd_plist_path()`` does.
     """
@@ -2579,8 +2579,8 @@ def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
     fight the current unit for the bot token (SIGTERM flap loop). Explicit name allowlist + ExecStart
     marker check so profile/third-party units never match; no mutation.
 
-    Detects unit files installed by older Hermes versions that used a different service name (e.g. When both
-    a legacy unit and the current ``hermes-gateway.service`` are active, they fight over the same bot token
+    Detects unit files installed by older Kova versions that used a different service name (e.g. When both
+    a legacy unit and the current ``kova-gateway.service`` are active, they fight over the same bot token
     — the PR #5646 signal-recovery change turns this into a 30-second SIGTERM flap loop.
     """
     results: list[tuple[str, Path, bool]] = []
@@ -2599,7 +2599,7 @@ def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
 
 
 def has_legacy_hermes_units() -> bool:
-    """Return True when any legacy Hermes gateway unit files exist."""
+    """Return True when any legacy Kova gateway unit files exist."""
     return bool(_find_legacy_hermes_units())
 
 
@@ -2608,10 +2608,10 @@ def print_legacy_unit_warning() -> None:
     legacy = _find_legacy_hermes_units()
     if not legacy:
         return
-    print_warning("Legacy Hermes gateway unit(s) detected from an older install:")
+    print_warning("Legacy Kova gateway unit(s) detected from an older install:")
     for name, path, is_system in legacy:
         print_info(f"    {path}  ({_service_scope_label(is_system)} scope)")
-    print_info("  These run alongside the current hermes-gateway service and")
+    print_info("  These run alongside the current kova-gateway service and")
     print_info("  cause SIGTERM flap loops — both try to use the same bot token.")
     print_info("  Remove them with:")
     print_info("    hermes gateway migrate-legacy")
@@ -2622,11 +2622,11 @@ def remove_legacy_hermes_units(interactive: bool = True, dry_run: bool = False) 
     only lists. Returns ``(removed_count, remaining_paths)`` (remaining: e.g. system-scope when not root)."""
     legacy = _find_legacy_hermes_units()
     if not legacy:
-        print("No legacy Hermes gateway units found.")
+        print("No legacy Kova gateway units found.")
         return 0, []
 
     print()
-    print("Legacy Hermes gateway unit(s) found:")
+    print("Legacy Kova gateway unit(s) found:")
     for name, path, is_system in legacy:
         print(f"  {path}  ({_service_scope_label(is_system)} scope)")
     print()
@@ -2855,13 +2855,13 @@ def get_systemd_linger_status(username: str | None = None) -> tuple[bool | None,
 
 
 def get_launchd_plist_path() -> Path:
-    """``~/Library/LaunchAgents/ai.hermes.gateway[-<profile>].plist`` under the real account home."""
+    """``~/Library/LaunchAgents/ai.kova.gateway[-<profile>].plist`` under the real account home."""
     import pwd
     suffix = _profile_suffix()
-    name = f"ai.hermes.gateway-{suffix}" if suffix else "ai.hermes.gateway"
+    name = f"ai.kova.gateway-{suffix}" if suffix else "ai.kova.gateway"
     # Real account home: profile mode may point HOME at a profile dir. Sandboxed/app-hosted
     # shells can expose a UID that pwd cannot resolve (#57292); fall back to the shared
-    # real-home resolver (HERMES_REAL_HOME → HOME → pwd → ~, profile home skipped) instead
+    # real-home resolver (KOVA_REAL_HOME → HOME → pwd → ~, profile home skipped) instead
     # of crashing launchd commands.
     try:
         home = Path(pwd.getpwuid(os.getuid()).pw_dir)  # windows-footgun: ok — POSIX launchd (macOS) helper, never invoked on Windows
@@ -2874,7 +2874,7 @@ def get_launchd_plist_path() -> Path:
 
 def launchd_gateway_labels_for_install() -> list[str]:
     """Launchd labels for every profile of THIS install (root first, then profiles by name). Derived from
-    the profile layout, NOT by globbing ``~/Library/LaunchAgents``, so a sandboxed HERMES_HOME never
+    the profile layout, NOT by globbing ``~/Library/LaunchAgents``, so a sandboxed KOVA_HOME never
     restarts another install's fleet. Names that can't map to a suffix are skipped."""
     import re as _re
     from kova_cli.profiles import list_profiles
@@ -2882,31 +2882,31 @@ def launchd_gateway_labels_for_install() -> list[str]:
     profile_labels: list[str] = []
     for profile in list_profiles():
         if profile.is_default:
-            root_label.append("ai.hermes.gateway")
+            root_label.append("ai.kova.gateway")
         elif _re.match(r"^[a-z0-9][a-z0-9_-]{0,63}$", profile.name):
-            profile_labels.append(f"ai.hermes.gateway-{profile.name}")
+            profile_labels.append(f"ai.kova.gateway-{profile.name}")
     return root_label + sorted(profile_labels)
 
 
 def legacy_launchd_labels_for_install(exclude=()) -> list[str]:
     """Launchd labels of THIS install that the profile-layout derivation can't map (#115254).
 
-    A unit whose label predates the profile-name suffix scheme (``ai.hermes.gateway-<8hex>`` from the
+    A unit whose label predates the profile-name suffix scheme (``ai.kova.gateway-<8hex>`` from the
     historical hash suffix) is invisible to ``launchd_gateway_labels_for_install()`` and therefore to
     the update restart pass. This reads the account's LaunchAgents and credits a plist only when its
-    pinned ``HERMES_HOME`` is this install's root or one of its ``profiles/<name>`` homes — ownership
+    pinned ``KOVA_HOME`` is this install's root or one of its ``profiles/<name>`` homes — ownership
     judged from the plist's content, never from label shape or directory membership — so the
-    derivation's boundary holds: a sandboxed HERMES_HOME (tests, side-by-side installs) never
+    derivation's boundary holds: a sandboxed KOVA_HOME (tests, side-by-side installs) never
     enumerates, let alone restarts, another install's fleet (#41403).
     """
     import plistlib
     import pwd
 
-    from kova_constants import get_default_hermes_root
+    from kova_constants import get_default_kova_root
 
     try:
         home = Path(pwd.getpwuid(os.getuid()).pw_dir)  # windows-footgun: ok — POSIX launchd (macOS) helper, never invoked on Windows
-        root = get_default_hermes_root().resolve()
+        root = get_default_kova_root().resolve()
     except Exception:
         return []
     agents_dir = home / "Library" / "LaunchAgents"
@@ -2914,15 +2914,15 @@ def legacy_launchd_labels_for_install(exclude=()) -> list[str]:
         return []
     excluded = set(exclude)
     labels: set[str] = set()
-    for plist_path in sorted(agents_dir.glob("ai.hermes.gateway*.plist")):
+    for plist_path in sorted(agents_dir.glob("ai.kova.gateway*.plist")):
         try:
             data = plistlib.loads(plist_path.read_bytes())
             label = data["Label"]
-            pinned = Path(str(data["EnvironmentVariables"]["HERMES_HOME"])).expanduser().resolve()
+            pinned = Path(str(data["EnvironmentVariables"]["KOVA_HOME"])).expanduser().resolve()
             rel = pinned.relative_to(root).parts
         except Exception:
             continue  # unreadable plist, no pinned home, or a home outside this root: not ours — fail closed
-        if not isinstance(label, str) or label in excluded or not label.startswith("ai.hermes.gateway"):
+        if not isinstance(label, str) or label in excluded or not label.startswith("ai.kova.gateway"):
             continue
         if not rel or (len(rel) == 2 and rel[0] == "profiles"):
             labels.add(label)
@@ -3017,7 +3017,7 @@ def _installed_unit_ld_library_path(system: bool) -> str:
 
 def _ld_library_path_line(system: bool, target_home_dir: str | None = None) -> str:
     """Carry the installer's LD_LIBRARY_PATH into the unit (glibc reads it only at process start, so
-    ~/.hermes/.env is too late for CUDA libs — #14613); system units remap caller-home components.
+    ~/.kova/.env is too late for CUDA libs — #14613); system units remap caller-home components.
 
     The installed unit is the fallback source: the unit is regenerated and compared on every
     start/restart/status, and a shell without the export (ssh, cron, ``sudo`` strips ``LD_*``)
@@ -3029,19 +3029,19 @@ def _ld_library_path_line(system: bool, target_home_dir: str | None = None) -> s
     return _systemd_env_line("LD_LIBRARY_PATH", ":".join(components)) if components else ""
 
 
-def _hermes_home_for_target_user(target_home_dir: str) -> str:
-    """Remap the current HERMES_HOME (root's, under sudo) to the target user's equivalent:
-    ``/root/.hermes[/profiles/x]`` → ``/home/alice/.hermes[/profiles/x]``; custom paths kept as-is."""
-    current_hermes_raw = os.environ.get("HERMES_HOME", "").strip()
-    current_hermes = Path(current_hermes_raw).expanduser() if current_hermes_raw else get_hermes_home()
-    # Keep paths lexical: resolving a non-existent path can bake a different HERMES_HOME into the unit.
-    current_default = Path.home() / ".hermes"
-    target_default = Path(target_home_dir) / ".hermes"
+def _kova_home_for_target_user(target_home_dir: str) -> str:
+    """Remap the current KOVA_HOME (root's, under sudo) to the target user's equivalent:
+    ``/root/.kova[/profiles/x]`` → ``/home/alice/.kova[/profiles/x]``; custom paths kept as-is."""
+    current_hermes_raw = os.environ.get("KOVA_HOME", "").strip()
+    current_hermes = Path(current_hermes_raw).expanduser() if current_hermes_raw else get_kova_home()
+    # Keep paths lexical: resolving a non-existent path can bake a different KOVA_HOME into the unit.
+    current_default = Path.home() / ".kova"
+    target_default = Path(target_home_dir) / ".kova"
     try:
-        # Default ~/.hermes or a profile/subdir of it → preserve the relative structure under the target.
+        # Default ~/.kova or a profile/subdir of it → preserve the relative structure under the target.
         return str(target_default / current_hermes.relative_to(current_default))
     except ValueError:
-        return str(current_hermes)  # Completely custom path (not under ~/.hermes) — keep as-is
+        return str(current_hermes)  # Completely custom path (not under ~/.kova) — keep as-is
 
 
 def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
@@ -3058,8 +3058,8 @@ def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
     candidates = []
     # Python and dependency executable paths are selected at boot, not persisted.
 
-    hermes_home = get_hermes_home()
-    extras = (project_root / "node_modules" / ".bin", hermes_home / "node" / "bin", hermes_home / "node_modules" / ".bin")
+    kova_home = get_kova_home()
+    extras = (project_root / "node_modules" / ".bin", kova_home / "node" / "bin", kova_home / "node_modules" / ".bin")
     for extra in extras:
         if _is_dir(extra):
             candidates.append(str(extra))
@@ -3067,11 +3067,11 @@ def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
 
 
 def _stable_service_working_dir() -> str:
-    """WorkingDirectory that won't disappear under systemd (HERMES_HOME, else PROJECT_ROOT). cwd is
+    """WorkingDirectory that won't disappear under systemd (KOVA_HOME, else PROJECT_ROOT). cwd is
     irrelevant to ``-m`` resolution, and a pinned transient checkout rots: systemd fails at CHDIR
     (status=200) before Python loads, so the unit self-heal never runs and Restart=always crash-loops."""
     try:
-        home = get_hermes_home()
+        home = get_kova_home()
         if home and Path(home).is_dir():
             return str(Path(home).resolve())
     except Exception:
@@ -3079,13 +3079,13 @@ def _stable_service_working_dir() -> str:
     return str(PROJECT_ROOT)
 
 
-def _systemd_watchdog_seconds(hermes_home: str | Path | None = None) -> int:
+def _systemd_watchdog_seconds(kova_home: str | Path | None = None) -> int:
     """Resolve the managed-overlay-aware watchdog setting for a service home."""
     override_token = reset_home_override = None
-    if hermes_home is not None:
-        from kova_constants import (reset_hermes_home_override, set_hermes_home_override)
-        override_token = set_hermes_home_override(hermes_home)
-        reset_home_override = reset_hermes_home_override
+    if kova_home is not None:
+        from kova_constants import (reset_kova_home_override, set_kova_home_override)
+        override_token = set_kova_home_override(kova_home)
+        reset_home_override = reset_kova_home_override
     try:
         config = load_gateway_config()
         return coerce_systemd_watchdog_seconds(getattr(config, "systemd_watchdog_seconds", 0))
@@ -3125,7 +3125,7 @@ def _append_node_dir_for_service(path_entries: list[str], hermes_root: Path | No
     lookup stops there. The legacy ``<hermes>/node`` tree is the only fallback,
     for installs pm never recorded; the invoker's PATH node never is.
     """
-    home = Path(hermes_root) if hermes_root is not None else Path(get_hermes_home())
+    home = Path(hermes_root) if hermes_root is not None else Path(get_kova_home())
     try:
         managed_dirs = _pm_managed_node_dirs(home)
     except Exception:
@@ -3157,22 +3157,22 @@ def _systemd_command(argv: list[str]) -> str:
 def _prepare_service_launcher(*, system: bool = False, run_as_user: str | None = None) -> None:
     """Publish the source command before a service definition references it."""
     from kova_cli._launchers import ENTRY_POINTS, ensure_install_launchers, resolve_store_python
-    from kova_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_kova_home_override, reset_kova_home_override
 
-    root, home = PROJECT_ROOT, get_hermes_home()
+    root, home = PROJECT_ROOT, get_kova_home()
     owner = None
     if system:
         username, _group, home_dir, uid = _system_service_identity(run_as_user)
         root = Path(_remap_path_for_user(str(root), home_dir))
-        home = Path(_hermes_home_for_target_user(home_dir))
+        home = Path(_kova_home_for_target_user(home_dir))
         owner = (uid, username)
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         # Publication gate: ask what stage_launcher will bind, so an inherited
-        # HERMES_RUNTIME_DIR cannot stand in for this install's store (#131745).
+        # KOVA_RUNTIME_DIR cannot stand in for this install's store (#131745).
         if resolve_store_python(root, publication=True) is None:
             return  # Externally owned Nix/developer runtime.
-        local = root / ".hermes" / "bin"
+        local = root / ".kova" / "bin"
         paths = ensure_install_launchers(root, local)
         if len(paths) != len(ENTRY_POINTS):
             raise RuntimeError("Could not publish the gateway installation launcher")
@@ -3183,7 +3183,7 @@ def _prepare_service_launcher(*, system: bool = False, run_as_user: str | None =
             for path in (local.parent, local, *map(Path, paths)):
                 os.chown(path, uid, gid)
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) -> str:
@@ -3203,22 +3203,22 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
 
     if system:
         username, group_name, home_dir, uid = _system_service_identity(run_as_user)
-        hermes_home = _hermes_home_for_target_user(home_dir)
-        # Profile arg relative to the TARGET user's ~/.hermes when hermes_home lives under it.
-        target_root = Path(home_dir) / ".hermes"
+        kova_home = _kova_home_for_target_user(home_dir)
+        # Profile arg relative to the TARGET user's ~/.kova when kova_home lives under it.
+        target_root = Path(home_dir) / ".kova"
         try:
-            Path(hermes_home).resolve().relative_to(target_root.resolve())
-            profile_arg = _profile_arg(hermes_home, default_root=target_root)
+            Path(kova_home).resolve().relative_to(target_root.resolve())
+            profile_arg = _profile_arg(kova_home, default_root=target_root)
         except ValueError:
-            profile_arg = _profile_arg(hermes_home)
+            profile_arg = _profile_arg(kova_home)
         # Remap paths under the calling user's home (/root/) to the target user's so the service can read them.
         python_path = _remap_path_for_user(python_path, home_dir)
-        working_dir = str(hermes_home) if hermes_home else _remap_path_for_user(working_dir, home_dir)
+        working_dir = str(kova_home) if kova_home else _remap_path_for_user(working_dir, home_dir)
         project_root = Path(_remap_path_for_user(str(project_root), home_dir))
         path_entries = [_remap_path_for_user(p, home_dir) for p in path_entries]
         # Managed Node for the TARGET user's tree, prepended so it outranks remapped shell-PATH entries.
         _target_node_entries: list[str] = []
-        _append_node_dir_for_service(_target_node_entries, Path(hermes_home) if hermes_home else None)
+        _append_node_dir_for_service(_target_node_entries, Path(kova_home) if kova_home else None)
         path_entries = [e for e in _target_node_entries if e not in path_entries] + path_entries
         user_home = Path(home_dir)
         identity_lines = f"User={username}\nGroup={group_name}\n"
@@ -3233,14 +3233,14 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
         ) + _ld_library_path_line(system=True, target_home_dir=home_dir)
         wanted_by = "multi-user.target"
     else:
-        hermes_home = str(get_hermes_home().resolve())
-        profile_arg = _profile_arg(hermes_home)
+        kova_home = str(get_kova_home().resolve())
+        profile_arg = _profile_arg(kova_home)
         user_home = Path.home()
         identity_lines = ordering_lines = ""
         env_lines = _ld_library_path_line(system=False)
         wanted_by = "default.target"
 
-    watchdog_seconds = _systemd_watchdog_seconds(hermes_home)
+    watchdog_seconds = _systemd_watchdog_seconds(kova_home)
     systemd_type, systemd_watchdog_directives = "simple", ""
     if watchdog_seconds > 0:
         systemd_type, systemd_watchdog_directives = "notify", f"NotifyAccess=main\nWatchdogSec={watchdog_seconds}s\n"
@@ -3249,11 +3249,11 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
     path_entries.extend(["/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"])
     sane_path = ":".join(path_entries)
     start = installation_command(project_root, [*shlex.split(profile_arg), "gateway", "run"],
-                            python=python_path, home=hermes_home)
+                            python=python_path, home=kova_home)
     cleanup = installation_command(project_root, module="gateway.cgroup_cleanup",
-                              python=python_path, home=hermes_home)
+                              python=python_path, home=kova_home)
     stop_mark = installation_command(project_root, module="gateway.systemd_stop_mark",
-                                python=python_path, home=hermes_home)
+                                python=python_path, home=kova_home)
     return f"""[Unit]
 Description={SERVICE_DESCRIPTION}
 After=network-online.target
@@ -3266,8 +3266,8 @@ Type={systemd_type}
 WorkingDirectory={working_dir}
 {env_lines}Environment="PATH={sane_path}"
 
-Environment="HERMES_HOME={hermes_home}"
-Environment="HERMES_SUPERVISED_CHILD=1"
+Environment="KOVA_HOME={kova_home}"
+Environment="KOVA_SUPERVISED_CHILD=1"
 Restart=always
 RestartSec=5
 RestartForceExitStatus={GATEWAY_SERVICE_RESTART_EXIT_CODE}
@@ -3311,16 +3311,16 @@ def _normalize_launchd_plist_for_comparison(text: str) -> str:
     captured from the invoking shell and varies across shells."""
     import re
     return re.sub(
-        r"(<key>PATH</key>\s*<string>)(.*?)(</string>)", r"\1__HERMES_PATH__\3",
+        r"(<key>PATH</key>\s*<string>)(.*?)(</string>)", r"\1__KOVA_PATH__\3",
         _normalize_service_definition(text), flags=re.DOTALL,
     )
 
 
 def systemd_unit_is_current(system: bool = False) -> bool:
-    # HERMES_HOME sync chokepoint for every compare/regenerate path: under `sudo … --system` it is often
-    # stripped to /root/.hermes, so refresh would rewrite a correct unit and status warn forever.
+    # KOVA_HOME sync chokepoint for every compare/regenerate path: under `sudo … --system` it is often
+    # stripped to /root/.kova, so refresh would rewrite a correct unit and status warn forever.
     # Idempotent; the os.environ mutation persists for later runtime reads (restart's PID/drain).
-    _sync_hermes_home_from_systemd_unit(system=system)
+    _sync_kova_home_from_systemd_unit(system=system)
 
     unit_path = get_systemd_unit_path(system=system)
     if not unit_path.exists():
@@ -3335,7 +3335,7 @@ def systemd_unit_is_current(system: bool = False) -> bool:
 
 
 def _retire_hermes_replace_dropin(system: bool = False) -> bool:
-    """Remove only the legacy ``--replace`` drop-in written by Hermes."""
+    """Remove only the legacy ``--replace`` drop-in written by Kova."""
     unit_path = get_systemd_unit_path(system=system)
     dropin = unit_path.parent / f"{unit_path.name}.d" / "20-replace.conf"
     try:
@@ -3359,11 +3359,11 @@ def refresh_systemd_unit_if_needed(system: bool = False) -> bool:
     from kova_cli.gateway_service_owner import unit_belongs_to_caller
     if not unit_belongs_to_caller(unit_path, system, "rewrite"):
         return False
-    # systemd_unit_is_current is the HERMES_HOME-sync chokepoint; its env mutation persists for the regenerate below.
+    # systemd_unit_is_current is the KOVA_HOME-sync chokepoint; its env mutation persists for the regenerate below.
     current = systemd_unit_is_current(system=system)
     if _retire_hermes_replace_dropin(system=system):
         _run_systemctl(["daemon-reload"], system=system, check=True, timeout=30)
-        print(f"↻ Removed the stale Hermes --replace drop-in from the gateway {_service_scope_label(system)} service")
+        print(f"↻ Removed the stale Kova --replace drop-in from the gateway {_service_scope_label(system)} service")
         if current:
             return True
     elif current:
@@ -3373,18 +3373,18 @@ def refresh_systemd_unit_if_needed(system: bool = False) -> bool:
     new_unit = generate_systemd_unit(system=system, run_as_user=expected_user)
 
     # Test safety belt: the user unit path is under Path.home(), which conftest does NOT sandbox, and a
-    # pytest-tmp HERMES_HOME baked into the developer's real unit breaks their gateway on next reboot.
+    # pytest-tmp KOVA_HOME baked into the developer's real unit breaks their gateway on next reboot.
     if not system and any(m in new_unit for m in ("/pytest-of-", '/hermes_test"', "/hermes_test/")):
         return False
 
-    # Structural variant: refuse ANY temp-dir HERMES_HOME (manual E2E homes lack the pytest markers).
+    # Structural variant: refuse ANY temp-dir KOVA_HOME (manual E2E homes lack the pytest markers).
     if gateway_service_owner.refuse_temp_home_service_write(new_unit, "systemd unit"):
         return False
 
     _prepare_service_launcher(system=system, run_as_user=expected_user)
     unit_path.write_text(new_unit, encoding="utf-8")
     _run_systemctl(["daemon-reload"], system=system, check=True, timeout=30)
-    print(f"↻ Updated gateway {_service_scope_label(system)} service definition to match the current Hermes install")
+    print(f"↻ Updated gateway {_service_scope_label(system)} service definition to match the current Kova install")
     return True
 
 
@@ -3502,7 +3502,7 @@ def _print_system_scope_remediation(action: str) -> None:
 
 def _get_restart_drain_timeout() -> float:
     """Return the configured gateway restart drain timeout in seconds."""
-    raw = os.getenv("HERMES_RESTART_DRAIN_TIMEOUT", "").strip()
+    raw = os.getenv("KOVA_RESTART_DRAIN_TIMEOUT", "").strip()
     if not raw:
         cfg = read_raw_config()
         agent_cfg = cfg.get("agent", {}) if isinstance(cfg, dict) else {}
@@ -3527,7 +3527,7 @@ def _get_cron_drain_timeout() -> float:
 
     See #82161.
     """
-    return _agent_timeout_setting("HERMES_CRON_DRAIN_TIMEOUT", "cron_drain_timeout", parse_cron_drain_timeout)
+    return _agent_timeout_setting("KOVA_CRON_DRAIN_TIMEOUT", "cron_drain_timeout", parse_cron_drain_timeout)
 
 
 def _get_restart_exit_wait_budget() -> float:
@@ -3535,7 +3535,7 @@ def _get_restart_exit_wait_budget() -> float:
     return resolve_restart_exit_wait_budget(
         _get_restart_drain_timeout(),
         _agent_timeout_setting(
-            "HERMES_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout", parse_restart_after_turn_timeout
+            "KOVA_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout", parse_restart_after_turn_timeout
         ),
         _get_cron_drain_timeout(),
     )
@@ -3570,10 +3570,10 @@ def systemd_install(
     scope_label = _service_scope_label(system)
     sudo, scope_flag, user_flag = _systemd_cli_bits(system)
 
-    # Existing system units already pin HERMES_HOME; adopt it before any regenerate. A repoint keeps the
+    # Existing system units already pin KOVA_HOME; adopt it before any regenerate. A repoint keeps the
     # caller's home (adopting the old one would regenerate the unit unchanged).
     if unit_path.exists() and not force_unit_path:
-        _sync_hermes_home_from_systemd_unit(system=system)
+        _sync_kova_home_from_systemd_unit(system=system)
 
     if unit_path.exists() and not (force or force_unit_path):
         if not systemd_unit_is_current(system=system):
@@ -3653,22 +3653,22 @@ def _systemd_scope_preamble(
 
 
 def _systemd_unit_belongs_to_current_home(system: bool = False) -> bool:
-    """False (with a warning) when the installed unit pins a HERMES_HOME other than this process's: the
+    """False (with a warning) when the installed unit pins a KOVA_HOME other than this process's: the
     service name then resolved to ANOTHER install's gateway, and stop/disable/unlink would take it down."""
     foreign = gateway_service_owner.foreign_systemd_unit_home(system)  # before the sync below rewrites this process's home
     if foreign is not None:
         print_warning(
-            f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs HERMES_HOME={foreign}, "
-            f"but this process has HERMES_HOME={get_hermes_home()}"
+            f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs KOVA_HOME={foreign}, "
+            f"but this process has KOVA_HOME={get_kova_home()}"
         )
         return False
-    _sync_hermes_home_from_systemd_unit(system=system)  # sudo strips HERMES_HOME; adopt the unit's first
-    unit_home = _hermes_home_from_systemd_unit_file(system=system)
-    if unit_home is None or Path(unit_home).expanduser().resolve() == get_hermes_home().resolve():
+    _sync_kova_home_from_systemd_unit(system=system)  # sudo strips KOVA_HOME; adopt the unit's first
+    unit_home = _kova_home_from_systemd_unit_file(system=system)
+    if unit_home is None or Path(unit_home).expanduser().resolve() == get_kova_home().resolve():
         return True
     print_warning(
-        f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs HERMES_HOME={unit_home}, "
-        f"but this process has HERMES_HOME={get_hermes_home()}"
+        f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs KOVA_HOME={unit_home}, "
+        f"but this process has KOVA_HOME={get_kova_home()}"
     )
     return False
 
@@ -3704,7 +3704,7 @@ def _require_service_installed(action: str, system: bool = False) -> None:
 def systemd_start(system: bool = False):
     system = _systemd_scope_preamble("start", system, preflight_user=True)
     gateway_service_owner.refuse_foreign_systemd_unit("start", system)
-    # HERMES_HOME sync happens in refresh's systemd_unit_is_current gate; the unit is guaranteed to exist here.
+    # KOVA_HOME sync happens in refresh's systemd_unit_is_current gate; the unit is guaranteed to exist here.
     refresh_systemd_unit_if_needed(system=system)
     _run_systemctl(["start", get_service_name()], system=system, check=True, timeout=30)
     print(f"✓ {_service_scope_label(system).capitalize()} service started")
@@ -3713,7 +3713,7 @@ def systemd_start(system: bool = False):
 def systemd_stop(system: bool = False):
     system = _systemd_scope_preamble("stop", system)
     gateway_service_owner.refuse_foreign_systemd_unit("stop", system)
-    _sync_hermes_home_from_systemd_unit(system=system)
+    _sync_kova_home_from_systemd_unit(system=system)
     _mark_planned_stop()
     try:
         _run_systemctl(["stop", get_service_name()], system=system, check=True, timeout=90)
@@ -3729,7 +3729,7 @@ def systemd_stop(system: bool = False):
 def systemd_restart(system: bool = False):
     system = _systemd_scope_preamble("restart", system, preflight_user=True)
     gateway_service_owner.refuse_foreign_systemd_unit("restart", system)
-    # HERMES_HOME sync happens in refresh's systemd_unit_is_current gate; its os.environ mutation
+    # KOVA_HOME sync happens in refresh's systemd_unit_is_current gate; its os.environ mutation
     # persists for the get_running_pid / drain-timeout reads below.
     refresh_systemd_unit_if_needed(system=system)
     from gateway.status import get_running_pid
@@ -3971,7 +3971,7 @@ _resolved_launchd_domain: str | None = None
 
 def _wait_for_gateway_exit(timeout: float = 10.0, force_after: float | None = 5.0) -> bool:
     """Wait up to ``timeout`` s for the gateway (by gateway.pid, not launchd labels, so multiple
-    HERMES_HOMEs work) to exit; SIGKILL it after ``force_after`` s of graceful waiting."""
+    KOVA_HOMEs work) to exit; SIGKILL it after ``force_after`` s of graceful waiting."""
     from gateway.status import get_process_start_time, get_running_pid
     deadline = time.monotonic() + timeout
     force_deadline = (time.monotonic() + force_after) if force_after is not None else None
@@ -4059,7 +4059,7 @@ def _is_official_docker_checkout() -> bool:
 def _running_under_gateway_supervisor() -> bool:
     """True when this process IS the supervisor-launched gateway, so the conflict guard never wedges
     the service into a respawn/refuse loop. Markers: systemd INVOCATION_ID, launchd XPC_SERVICE_NAME
-    (shells inherit "0"), s6 HERMES_S6_SUPERVISED_CHILD, or ``--external-supervisor``."""
+    (shells inherit "0"), s6 KOVA_S6_SUPERVISED_CHILD, or ``--external-supervisor``."""
     return is_gateway_supervisor_process()
 
 
@@ -4081,8 +4081,8 @@ def host_multiplexer_serving(profile_name: str | None = None):
         # Same predicate as decide() / _claim_host_gateway_role: another tenant's multiplexer
         # "serving default" is a name collision, and the CLI guards refused on it with exit 78 (#121352).
         from gateway.host_attach import launched_by_other_tenant
-        if launched_by_other_tenant(gateway.home, get_hermes_home()):
-            logger.debug("Host gateway %s belongs to another Hermes home; not ours", gateway.describe())
+        if launched_by_other_tenant(gateway.home, get_kova_home()):
+            logger.debug("Host gateway %s belongs to another Kova home; not ours", gateway.describe())
             return None
         return gateway
     except Exception:
@@ -4101,8 +4101,8 @@ def _served_by_another_host_gateway(profile_name: str | None = None):
     if gateway is None:
         return None
     try:
-        from gateway.status import _get_process_hermes_home, _same_hermes_home
-        if _same_hermes_home(gateway.home, _get_process_hermes_home()):
+        from gateway.status import _get_process_kova_home, _same_kova_home
+        if _same_kova_home(gateway.home, _get_process_kova_home()):
             return None
     except Exception:
         logger.debug("Host multiplexer home comparison failed", exc_info=True)
@@ -4134,8 +4134,8 @@ def named_profile_served_by_running_multiplexer(profile_name: str | None = None)
             return True
 
     try:
-        from kova_constants import get_default_hermes_root
-        default_root = get_default_hermes_root()
+        from kova_constants import get_default_kova_root
+        default_root = get_default_kova_root()
     except Exception:
         return False
 
@@ -4171,7 +4171,7 @@ def _served_profile_needs_no_service() -> bool:
         # as `gateway install`, so `hermes -p X setup` cannot grow a fleet member the verb refuses.
         return _named_profile_refused_under_multiplexer()
     from kova_cli.profiles import profile_is_standalone
-    if profile_is_standalone(get_hermes_home()):
+    if profile_is_standalone(get_kova_home()):
         from gateway.host_attach import standalone_rescan_message
         print_info(standalone_rescan_message(_current_profile_name()))
         return True
@@ -4191,7 +4191,7 @@ def _named_profile_refused_under_multiplexer(force: bool = False) -> bool:
     double-bind its platforms: two pollers on one token, port fights) or no host gateway runs yet and
     the DEFAULT profile is where it is installed. Refusing only the served case let a host with no
     multiplexer running (or one that had not rescanned yet) grow a brand-new per-profile fleet member.
-    ``--force`` is the one escape (a fleet split across UNIX users or a ``HERMES_HOME`` outside
+    ``--force`` is the one escape (a fleet split across UNIX users or a ``KOVA_HOME`` outside
     ``profiles/``); a service it already installed stays startable without it. Shared by ``run`` and the service verbs (``start``/``install``/``restart``): a
     refusal only inside ``gateway run`` leaves the service manager to discover it — systemd parks the
     unit on exit 78 while the CLI prints "started"; launchd (KeepAlive, no exit-status gating)
@@ -4205,11 +4205,11 @@ def _named_profile_refused_under_multiplexer(force: bool = False) -> bool:
         # A profile that authored gateway.standalone: true opted out of the host multiplexer: it is
         # allowed a gateway of its own without --force. Only a RUNNING host record that still lists
         # it (the host has not rescanned since the key was set) is refused with the rescan remedy.
-        standalone = (profile_name_for_home(get_hermes_home()) not in (None, "default")
-                      and profile_is_standalone(get_hermes_home()))
+        standalone = (profile_name_for_home(get_kova_home()) not in (None, "default")
+                      and profile_is_standalone(get_kova_home()))
         # A unit/plist/task already registered for this home was installed with --force: that fleet
         # member (and the supervisor relaunching it, whose ExecStart carries no --force) is not NEW.
-        new_standalone = (profile_name_for_home(get_hermes_home()) not in (None, "default")
+        new_standalone = (profile_name_for_home(get_kova_home()) not in (None, "default")
                           and not _is_service_installed())
     except Exception:
         return False
@@ -4250,12 +4250,12 @@ def _named_profile_refused_under_multiplexer(force: bool = False) -> bool:
         print("    hermes gateway migrate --multiplex")
     print()
     print("  A separate per-profile gateway (for a fleet split across UNIX users or a")
-    print(f"  HERMES_HOME outside profiles/) needs --force:  hermes -p {suffix} gateway install --force")
+    print(f"  KOVA_HOME outside profiles/) needs --force:  hermes -p {suffix} gateway install --force")
     print()
-    from kova_constants import display_hermes_home
+    from kova_constants import display_kova_home
     from kova_cli.gateway_multiplex_mode import STANDALONE_DEPRECATION_NOTICE
     print("  Temporary compatibility path while multiplexing gaps are closed: set")
-    print(f"  gateway.standalone: true in {display_hermes_home(get_hermes_home())}/config.yaml,")
+    print(f"  gateway.standalone: true in {display_kova_home(get_kova_home())}/config.yaml,")
     print("  then wait for the host gateway to rescan (<=30s) or send its rescan-profiles control verb.")
     print(f"  ({STANDALONE_DEPRECATION_NOTICE})")
     return True
@@ -4312,7 +4312,7 @@ def _attach_to_host_gateway_or_guard(force: bool = False, replace: bool = False)
         return
     try:
         from gateway.host_attach import ATTACH, REFUSE, REPLACE_HOST, decide
-        decision = decide(get_hermes_home(), replace=replace)
+        decision = decide(get_kova_home(), replace=replace)
     except Exception:
         logger.debug("Host gateway attach probe failed", exc_info=True)
         decision = None
@@ -4376,7 +4376,7 @@ def _guard_supervised_gateway_conflict(force: bool = False) -> None:
 def _guard_existing_gateway_process_conflict(replace: bool = False) -> None:
     """Cheap PID-file preflight before the expensive ``gateway.run`` import (the authoritative lock check):
     supervisor loops re-running bare ``gateway run`` burned memory on plugin discovery just to fail
-    "already running". Same user-facing contract; never scans other HERMES_HOME roots."""
+    "already running". Same user-facing contract; never scans other KOVA_HOME roots."""
     if replace or _running_under_gateway_supervisor():
         return
     try:
@@ -4386,16 +4386,16 @@ def _guard_existing_gateway_process_conflict(replace: bool = False) -> None:
         logger.debug("Existing-gateway process probe failed", exc_info=True)
         return
     if pid is None:
-        # get_running_pid() filters by the current profile's HERMES_HOME; warn if the PID file
+        # get_running_pid() filters by the current profile's KOVA_HOME; warn if the PID file
         # belongs to another profile (user switched profiles while the old gateway still runs).
         try:
             from gateway.status import _read_pid_record, _pid_record_belongs_to_current_profile
             stale = _read_pid_record()
             if stale is not None and not _pid_record_belongs_to_current_profile(stale):
                 logger.warning(
-                    "PID file belongs to another profile (hermes_home=%s). "
+                    "PID file belongs to another profile (kova_home=%s). "
                     "The old gateway may still be running under that profile.",
-                    stale.get("hermes_home", "<unknown>"),
+                    stale.get("kova_home", "<unknown>"),
                 )
         except Exception:
             pass
@@ -4410,22 +4410,22 @@ def _guard_existing_gateway_process_conflict(replace: bool = False) -> None:
 
 def _guard_official_docker_root_gateway() -> None:
     """Refuse gateway startup when the official Docker privilege drop was bypassed."""
-    if not hasattr(os, "geteuid") or os.geteuid() != 0 or _truthy_env(os.getenv("HERMES_ALLOW_ROOT_GATEWAY")):
+    if not hasattr(os, "geteuid") or os.geteuid() != 0 or _truthy_env(os.getenv("KOVA_ALLOW_ROOT_GATEWAY")):
         return
     if not _is_official_docker_checkout():
         return
 
-    print_error("Refusing to run the Hermes gateway as root inside the official Docker image.")
+    print_error("Refusing to run the Kova gateway as root inside the official Docker image.")
     print(
         "  The image entrypoint normally drops privileges to the 'hermes' user. "
         "If you override entrypoint in Docker Compose, include "
-        "/opt/hermes/docker/entrypoint.sh before the Hermes command."
+        "/opt/hermes/docker/entrypoint.sh before the Kova command."
     )
     print(
         "  Running the gateway as root can leave root-owned files in "
-        "$HERMES_HOME and break later non-root dashboard/gateway runs."
+        "$KOVA_HOME and break later non-root dashboard/gateway runs."
     )
-    print("  Set HERMES_ALLOW_ROOT_GATEWAY=1 only if you intentionally accept this risk.")
+    print("  Set KOVA_ALLOW_ROOT_GATEWAY=1 only if you intentionally accept this risk.")
     sys.exit(1)
 
 
@@ -4480,14 +4480,14 @@ def _absorb_windows_console_controls() -> None:
 
 def _make_exit_diag():
     """``_exit_diag(tag, **extra)`` recorder writing ``logs/gateway-exit-diag.log`` — captures every way
-    ``asyncio.run()`` can return, for chasing silent Windows gateway deaths. HERMES_GATEWAY_EXIT_DIAG=0 opts out."""
+    ``asyncio.run()`` can return, for chasing silent Windows gateway deaths. KOVA_GATEWAY_EXIT_DIAG=0 opts out."""
     from datetime import datetime as _dt, timezone as _tz
 
     def _exit_diag(tag: str, **extra: object) -> None:
-        if os.environ.get("HERMES_GATEWAY_EXIT_DIAG", "1") != "1":
+        if os.environ.get("KOVA_GATEWAY_EXIT_DIAG", "1") != "1":
             return
         try:
-            from kova_constants import get_hermes_home as _ghh
+            from kova_constants import get_kova_home as _ghh
             log_dir = _ghh() / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
             line = {
@@ -4504,7 +4504,7 @@ def _make_exit_diag():
 
 def _respawn_storm_backoff() -> None:
     """Portable app-level respawn-storm breaker (for supervisors without a floor). Defaults mirror
-    DEFAULT_CONFIG ``gateway.respawn_storm``; HERMES_GATEWAY_MAX_STARTS / HERMES_GATEWAY_START_WINDOW_S
+    DEFAULT_CONFIG ``gateway.respawn_storm``; KOVA_GATEWAY_MAX_STARTS / KOVA_GATEWAY_START_WINDOW_S
     override; max_starts <= 0 disables. Never blocks startup."""
     try:
         from gateway.status import record_start_and_check_storm
@@ -4523,11 +4523,11 @@ def _respawn_storm_backoff() -> None:
         except Exception:
             pass
         try:
-            _max_starts = int(os.environ["HERMES_GATEWAY_MAX_STARTS"])
+            _max_starts = int(os.environ["KOVA_GATEWAY_MAX_STARTS"])
         except (KeyError, ValueError):
             pass
         try:
-            _win = float(os.environ["HERMES_GATEWAY_START_WINDOW_S"])
+            _win = float(os.environ["KOVA_GATEWAY_START_WINDOW_S"])
         except (KeyError, ValueError):
             pass
         _storm = record_start_and_check_storm(max_starts=_max_starts, window_s=_win) if _max_starts > 0 else None
@@ -4562,7 +4562,7 @@ def run_gateway(verbose: int = 0, quiet: bool = False, replace: bool = False, fo
     from kova_cli.observability.shared_metrics_process import begin_process
     begin_process("gateway")
 
-    # Detached Windows runs (HERMES_GATEWAY_DETACHED=1, or non-TTY for older wrappers) ignore
+    # Detached Windows runs (KOVA_GATEWAY_DETACHED=1, or non-TTY for older wrappers) ignore
     # console-control broadcasts from sibling CLIs; foreground runs keep Ctrl+C-to-stop.
     stdin_is_tty = bool(_stdin_is_tty())
     _console_window_attached = _windows_console_window_attached()
@@ -4589,7 +4589,7 @@ def run_gateway(verbose: int = 0, quiet: bool = False, replace: bool = False, fo
         redact_detached_stdio()
     from gateway.run import start_gateway
     print("┌─────────────────────────────────────────────────────────┐")
-    print("│           ☤ Hermes Gateway Starting...                 │")
+    print("│           ☤ Kova Gateway Starting...                 │")
     print("├─────────────────────────────────────────────────────────┤")
     print("│  Messaging platforms + cron scheduler                    │")
     print("│  Press Ctrl+C to stop                                   │")
@@ -4809,7 +4809,7 @@ def _service_backend(*, windows: bool = True) -> str | None:
 def _service_call(backend: str, verb: str, system: bool | None = False) -> None:
     """Run ``verb`` (start/stop/restart/uninstall) on ``backend``. Names resolve at call time so tests
     can monkeypatch them; only systemd takes a scope, and ``system=None`` omits it (wizard restart).
-    Each systemd/launchd verb refuses a definition pinning another HERMES_HOME itself."""
+    Each systemd/launchd verb refuses a definition pinning another KOVA_HOME itself."""
     if backend == "windows":
         return getattr(_gw_windows(), verb)()
     if backend == "launchd":
@@ -4910,13 +4910,13 @@ def gateway_command(args):
 
 def _maybe_redirect_run_to_s6_supervision(args) -> bool:
     """Inside an s6 container, upgrade bare ``gateway run`` to the supervised s6 longrun; True iff dispatched.
-    ``HERMES_S6_SUPERVISED_CHILD`` (set by ``S6ServiceManager._render_run_script``) marks the supervised
+    ``KOVA_S6_SUPERVISED_CHILD`` (set by ``S6ServiceManager._render_run_script``) marks the supervised
     child, which must run in foreground or we'd recurse run → start → run; ``--no-supervise`` /
-    HERMES_GATEWAY_NO_SUPERVISE=1 opts out (CI smoke, debugging)."""
+    KOVA_GATEWAY_NO_SUPERVISE=1 opts out (CI smoke, debugging)."""
     no_supervise = getattr(args, "no_supervise", False) or \
-        os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes")
-    # HERMES_S6_SUPERVISED_CHILD: we ARE the supervised child; fall through so the gateway starts.
-    if no_supervise or os.environ.get("HERMES_S6_SUPERVISED_CHILD"):
+        os.environ.get("KOVA_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes")
+    # KOVA_S6_SUPERVISED_CHILD: we ARE the supervised child; fall through so the gateway starts.
+    if no_supervise or os.environ.get("KOVA_S6_SUPERVISED_CHILD"):
         return False
     if not _dispatch_via_service_manager_if_s6("start"):
         return False
@@ -4929,10 +4929,10 @@ def _maybe_redirect_run_to_s6_supervision(args) -> bool:
     # Breadcrumb on stderr (keep stdout clean for scripts); gateway logs follow via s6-log.
     print(
         "→ gateway is now running under s6 supervision (auto-restart on crash,\n"
-        "  dashboard supervised alongside if HERMES_DASHBOARD is set).\n"
+        "  dashboard supervised alongside if KOVA_DASHBOARD is set).\n"
         "  This is the recommended setup for the s6 container image — the\n"
         "  gateway will keep running even if it crashes.\n"
-        "  Use `--no-supervise` (or HERMES_GATEWAY_NO_SUPERVISE=1) to opt out\n"
+        "  Use `--no-supervise` (or KOVA_GATEWAY_NO_SUPERVISE=1) to opt out\n"
         "  and get the pre-s6 foreground behavior instead.",
         file=sys.stderr,
         flush=True,
@@ -5057,7 +5057,7 @@ def _cmd_setup(args):
 _WSL_FOREGROUND_HINT = (
     "", "  hermes gateway run                              # direct foreground",
     "  tmux new -s hermes 'hermes gateway run'         # persistent via tmux",
-    "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background",
+    "  nohup hermes gateway run > ~/.kova/logs/gateway.log 2>&1 &  # background",
 )
 # ``(exit_code, *lines)`` when a subcommand has no service backend, keyed by (subcommand, reason).
 # Reasons in check order: "termux", "wsl" (no operational systemd), "s6" / "container", "unsupported".
@@ -5256,8 +5256,8 @@ def _host_multiplexer_for_all_verb():
 
 def _host_multiplexer_is_ours(owner) -> bool:
     try:
-        from gateway.status import _get_process_hermes_home, _same_hermes_home
-        return bool(_same_hermes_home(owner.home, _get_process_hermes_home()))
+        from gateway.status import _get_process_kova_home, _same_kova_home
+        return bool(_same_kova_home(owner.home, _get_process_kova_home()))
     except Exception:
         return False
 
@@ -5292,7 +5292,7 @@ def _cmd_start(args):
             _print_unfolded_gateway_note(owner)
             return
         # `--all` names the ONE host gateway, regardless of which profile invoked the CLI: stale-owner
-        # cleanup, Windows task names/launchers, systemd/launchd identity files and raw HERMES_HOME
+        # cleanup, Windows task names/launchers, systemd/launchd identity files and raw KOVA_HOME
         # readers all target the default root (see host_scope_for_all_verb).
         start_scope = host_scope_for_all_verb(owner)
     else:
@@ -5427,8 +5427,8 @@ def _restart_all_as_host(owner, system: bool, detach: bool = False, owe_online_n
     if kind is not None:
         _service_call(kind, "start", system)
         return
-    from kova_constants import get_routing_process_hermes_home, named_profile_home
-    if detach or named_profile_home(get_routing_process_hermes_home()) is not None:
+    from kova_constants import get_routing_process_kova_home, named_profile_home
+    if detach or named_profile_home(get_routing_process_kova_home()) is not None:
         # Never run the root IN this process for `--detach` (the bounded caller would become the host
         # gateway its timeout kills) or a named profile's CLI (os.environ holds that profile's .env,
         # which the root's dotenv load does not clear: the host served default with its credentials).
@@ -5546,11 +5546,11 @@ _STATUS_RUNNING_HINTS = {
 }
 _STATUS_STOPPED_HINTS = {
     "termux": (
-        "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # Best-effort background start",
+        "  nohup hermes gateway run > ~/.kova/logs/gateway.log 2>&1 &  # Best-effort background start",
     ),
     "wsl": (
         "  tmux new -s hermes 'hermes gateway run'         # persistent via tmux",
-        "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background",
+        "  nohup hermes gateway run > ~/.kova/logs/gateway.log 2>&1 &  # background",
     ),
     "windows": ("  hermes gateway install  # Install as Windows Scheduled Task (auto-start on login)",),
     "other": (
@@ -5582,7 +5582,7 @@ def _cmd_status(args):
     from kova_cli.profiles import get_active_profile_name, profile_is_standalone
 
     active_standalone = ((get_active_profile_name() or "default") != "default"
-                         and profile_is_standalone(get_hermes_home()))
+                         and profile_is_standalone(get_kova_home()))
     if active_standalone:
         from kova_cli.gateway_multiplex_mode import STANDALONE_DEPRECATION_NOTICE
         print("standalone by config (gateway.standalone: true) — temporary compatibility shim")
@@ -5608,7 +5608,7 @@ def _cmd_status(args):
     else:
         pids = list(snapshot.gateway_pids)
         if pids and report_incompatible_owner(pids):
-            pass  # an older Hermes's gateway: alive, but every client of this version refuses it
+            pass  # an older Kova's gateway: alive, but every client of this version refuses it
         elif pids:
             print(f"✓ Gateway is running (PID: {', '.join(map(str, pids))})")
             print("  (Running manually, not as a system service)")
@@ -5642,7 +5642,7 @@ def _cmd_list(args):
 
 
 def _cmd_migrate_legacy(args):
-    """Stop, disable, and remove legacy Hermes gateway unit files (e.g. hermes.service)."""
+    """Stop, disable, and remove legacy Kova gateway unit files (e.g. hermes.service)."""
     dry_run = getattr(args, "dry_run", False)
     yes = getattr(args, "yes", False)
     if not supports_systemd_services() and not is_macos():

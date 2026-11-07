@@ -1,8 +1,8 @@
 """The side-environment setup blocks shipped in the document skills, run as written.
 
-Each block picks ``$PY`` for the helper scripts: Hermes's PM environment when ``hermes`` is on
+Each block picks ``$PY`` for the helper scripts: Kova's PM environment when ``hermes`` is on
 PATH, otherwise a venv it builds and publishes under ``$HOME/.cache`` (a Docker sandbox has no
-Hermes). Every block is executed by bash against stub interpreters, so these tests need no
+Kova). Every block is executed by bash against stub interpreters, so these tests need no
 network and no real pip.
 """
 from pathlib import Path

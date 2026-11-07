@@ -12,17 +12,17 @@ import kova_yaml as yaml
 
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "auth.json").write_text(json.dumps(payload, indent=2))
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "auth.json").write_text(json.dumps(payload, indent=2))
 
 
 def _write_groq_provider_config(
     tmp_path, *, provider_key="groq", name="Groq", base_url=None
 ) -> None:
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    (hermes_home / "config.yaml").write_text(
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    (kova_home / "config.yaml").write_text(
         yaml.safe_dump(
             {
                 "providers": {
@@ -91,7 +91,7 @@ def _clear_provider_env(monkeypatch):
 
 
 def test_auth_add_api_key_persists_manual_entry(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
@@ -118,8 +118,8 @@ def test_auth_add_api_key_persists_manual_entry(tmp_path, monkeypatch):
 def test_auth_add_migrates_legacy_prefixed_key_for_configured_provider(
     tmp_path, monkeypatch
 ):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
     _write_auth_store(
         tmp_path,
@@ -152,7 +152,7 @@ def test_auth_add_migrates_legacy_prefixed_key_for_configured_provider(
 
     auth_add_command(_Args())
 
-    payload = json.loads((hermes_home / "auth.json").read_text(encoding="utf-8"))
+    payload = json.loads((kova_home / "auth.json").read_text(encoding="utf-8"))
     assert "custom:groq" not in payload["credential_pool"]
     assert {
         entry["access_token"] for entry in payload["credential_pool"]["groq"]
@@ -162,8 +162,8 @@ def test_auth_add_migrates_legacy_prefixed_key_for_configured_provider(
 def test_auth_add_migrates_display_name_derived_legacy_pool_key(
     tmp_path, monkeypatch
 ):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
     _write_auth_store(
         tmp_path,
@@ -197,7 +197,7 @@ def test_auth_add_migrates_display_name_derived_legacy_pool_key(
     with patch("kova_cli.models.clear_provider_models_cache"):
         auth_add_command(_Args())
 
-    payload = json.loads((hermes_home / "auth.json").read_text(encoding="utf-8"))
+    payload = json.loads((kova_home / "auth.json").read_text(encoding="utf-8"))
     assert "custom:groq" not in payload["credential_pool"]
     assert {
         entry["access_token"]
@@ -208,8 +208,8 @@ def test_auth_add_migrates_display_name_derived_legacy_pool_key(
 def test_auth_add_non_registry_configured_provider_preserves_endpoint(
     tmp_path, monkeypatch
 ):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     _write_groq_provider_config(
         tmp_path,
@@ -232,7 +232,7 @@ def test_auth_add_non_registry_configured_provider_preserves_endpoint(
         )()
     )
 
-    payload = json.loads((hermes_home / "auth.json").read_text(encoding="utf-8"))
+    payload = json.loads((kova_home / "auth.json").read_text(encoding="utf-8"))
     entry = payload["credential_pool"]["private-groq"][0]
     assert entry["base_url"] == "https://private.example/v1"
 
@@ -240,7 +240,7 @@ def test_auth_add_non_registry_configured_provider_preserves_endpoint(
 def test_auth_list_includes_non_registry_configured_provider(
     tmp_path, monkeypatch, capsys
 ):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_groq_provider_config(tmp_path, provider_key="private-groq")
     _write_auth_store(
         tmp_path,
@@ -272,8 +272,8 @@ def test_auth_list_includes_non_registry_configured_provider(
 def test_interactive_auth_add_normalizes_display_name_to_provider_key(
     tmp_path, monkeypatch
 ):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     _write_groq_provider_config(
         tmp_path, provider_key="groq-cloud", name="Groq Enterprise"
@@ -287,7 +287,7 @@ def test_interactive_auth_add_normalizes_display_name_to_provider_key(
 
     auth_commands._interactive_add()
 
-    payload = json.loads((hermes_home / "auth.json").read_text(encoding="utf-8"))
+    payload = json.loads((kova_home / "auth.json").read_text(encoding="utf-8"))
     assert "custom:groq-enterprise" not in payload["credential_pool"]
     assert payload["credential_pool"]["groq-cloud"][0]["access_token"] == "gsk-test"
 
@@ -295,8 +295,8 @@ def test_interactive_auth_add_normalizes_display_name_to_provider_key(
 def test_auth_add_explicit_custom_provider_keeps_prefixed_pool_key(
     tmp_path, monkeypatch
 ):
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     _write_groq_provider_config(
         tmp_path,
@@ -314,13 +314,13 @@ def test_auth_add_explicit_custom_provider_keeps_prefixed_pool_key(
 
     auth_add_command(_Args())
 
-    payload = json.loads((hermes_home / "auth.json").read_text(encoding="utf-8"))
+    payload = json.loads((kova_home / "auth.json").read_text(encoding="utf-8"))
     assert "custom:groq" in payload["credential_pool"]
     assert "groq" not in payload["credential_pool"]
 
 
 def test_auth_add_nous_oauth_persists_pool_entry(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     token = _jwt_with_email("nous@example.com")
     monkeypatch.setattr(
@@ -383,7 +383,7 @@ def test_auth_add_nous_oauth_persists_pool_entry(tmp_path, monkeypatch):
     # `hermes auth add nous` must also populate providers.nous so the
     # 401-recovery path (resolve_nous_runtime_credentials) can refresh an
     # invoke JWT when the token expires. If this mirror is missing, recovery
-    # raises "Hermes is not logged into Nous Portal" and the agent dies.
+    # raises "Kova is not logged into Nous Portal" and the agent dies.
     singleton = payload["providers"]["nous"]
     assert singleton["access_token"] == token
     assert singleton["refresh_token"] == "refresh-token"
@@ -397,7 +397,7 @@ def test_auth_add_nous_oauth_honors_custom_label(tmp_path, monkeypatch):
     custom label end-to-end — it was silently dropped in the first cut of the
     persist_nous_credentials helper because `--label` wasn't threaded through.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     token = _jwt_with_email("nous@example.com")
     monkeypatch.setattr(
@@ -463,7 +463,7 @@ def test_auth_add_codex_oauth_keeps_distinct_pool_accounts(tmp_path, monkeypatch
     second independent one. ``hermes auth list`` showed two labels sharing
     one token pair, and rotation silently always used the latest account.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     first_token = _jwt_with_email("first-codex@example.com")
     second_token = _jwt_with_email("second-codex@example.com")
@@ -533,7 +533,7 @@ def _codex_jwt(email: str, account_id: str, subject: str) -> str:
 
 
 def _add_codex_twice(tmp_path, monkeypatch, capsys, second_token: str) -> str:
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     codex_login = {"base_url": "https://chatgpt.com/backend-api/codex", "last_refresh": "2026-09-01T00:00:00Z"}
     logins = iter([
@@ -570,7 +570,7 @@ def test_auth_add_codex_warns_when_login_is_same_account_as_pooled_entry(tmp_pat
 
 
 def test_codex_auth_status_reports_pool_only_credential(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, _codex_pool_only_store())
 
     from kova_cli.auth import get_codex_auth_status
@@ -582,7 +582,7 @@ def test_codex_auth_status_reports_pool_only_credential(tmp_path, monkeypatch):
 
 
 def test_codex_runtime_pool_only_rate_limit_is_not_missing_auth(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, _codex_pool_only_store(exhausted=True))
 
     from kova_cli.auth import AuthError, CODEX_RATE_LIMITED_CODE, resolve_codex_runtime_credentials
@@ -602,7 +602,7 @@ def test_auth_add_xai_oauth_keeps_distinct_pool_accounts(tmp_path, monkeypatch):
     save, so the second login overwrote the first account's singleton-mirrored
     ``device_code`` entry instead of adding a second independent one.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})
     first_token = "xai-access-token-account-a"
     second_token = "xai-access-token-account-b"
@@ -684,7 +684,7 @@ def test_auth_add_xai_oauth_keeps_distinct_pool_accounts(tmp_path, monkeypatch):
 
 
 def test_auth_remove_reindexes_priorities(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     # Prevent pool auto-seeding from host env vars and file-backed sources
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_TOKEN", raising=False)
@@ -737,7 +737,7 @@ def test_auth_remove_reindexes_priorities(tmp_path, monkeypatch):
 
 def test_auth_remove_codex_migrates_legacy_dict_suppression(tmp_path, monkeypatch):
     """Removing a Codex credential must tolerate legacy dict suppression data."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     store = _codex_pool_only_store()
     primary = store["credential_pool"]["openai-codex"][0]
     primary.update({"id": "codex-qb", "label": "qb"})
@@ -766,7 +766,7 @@ def test_auth_remove_codex_migrates_legacy_dict_suppression(tmp_path, monkeypatc
 
 
 def test_clear_provider_auth_removes_provider_pool_entries(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(
         tmp_path,
         {
@@ -818,10 +818,10 @@ def test_logout_resets_codex_config_when_auth_state_already_cleared(tmp_path, mo
     openai-codex.  Previously logout reported no auth state and left the agent
     pinned to the Codex provider.
     """
-    hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
     _write_auth_store(tmp_path, {"version": 1, "providers": {}, "credential_pool": {}})
-    (hermes_home / "config.yaml").write_text(
+    (kova_home / "config.yaml").write_text(
         "model:\n"
         "  default: gpt-5.3-codex\n"
         "  provider: openai-codex\n"
@@ -833,14 +833,14 @@ def test_logout_resets_codex_config_when_auth_state_already_cleared(tmp_path, mo
 
     logout_command(SimpleNamespace(provider="openai-codex"))
 
-    config_text = (hermes_home / "config.yaml").read_text()
+    config_text = (kova_home / "config.yaml").read_text()
     assert "provider: auto" in config_text
     assert "base_url: https://openrouter.ai/api/v1" in config_text
 
 
 def test_unsuppress_credential_source_clears_marker(tmp_path, monkeypatch):
     """unsuppress_credential_source() removes a previously-set marker."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1})
 
     from kova_cli.auth import suppress_credential_source, unsuppress_credential_source, is_source_suppressed
@@ -859,7 +859,7 @@ def test_unsuppress_credential_source_clears_marker(tmp_path, monkeypatch):
 
 def test_unsuppress_credential_source_preserves_other_markers(tmp_path, monkeypatch):
     """Clearing one marker must not affect unrelated markers."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path, {"version": 1})
 
     from kova_cli.auth import (
@@ -876,7 +876,7 @@ def test_unsuppress_credential_source_preserves_other_markers(tmp_path, monkeypa
 
 
 # =============================================================================
-# Unified credential-source stickiness — every source Hermes reads from has a
+# Unified credential-source stickiness — every source Kova reads from has a
 # registered RemovalStep in agent.credential_sources, and every seeding path
 # gates on is_source_suppressed.  Below: one test per source proving remove
 # sticks across a fresh load_pool() call.
@@ -884,14 +884,14 @@ def test_unsuppress_credential_source_preserves_other_markers(tmp_path, monkeypa
 
 
 def test_seed_from_singletons_respects_hermes_pkce_suppression(tmp_path, monkeypatch):
-    """anthropic hermes_pkce must not re-seed from ~/.hermes/.anthropic_oauth.json when suppressed."""
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    """anthropic hermes_pkce must not re-seed from ~/.kova/.anthropic_oauth.json when suppressed."""
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     import kova_yaml as yaml
-    (hermes_home / "config.yaml").write_text(yaml.safe_dump({"model": {"provider": "anthropic", "model": "claude"}}))
-    (hermes_home / "auth.json").write_text(json.dumps({
+    (kova_home / "config.yaml").write_text(yaml.safe_dump({"model": {"provider": "anthropic", "model": "claude"}}))
+    (kova_home / "auth.json").write_text(json.dumps({
         "version": 1,
         "providers": {},
         "suppressed_sources": {"anthropic": ["hermes_pkce"]},
@@ -918,13 +918,13 @@ def test_auth_remove_env_seeded_dotenv_with_bom_no_shell_hint(tmp_path, monkeypa
     warn about a phantom shell export). Regression for the reader that
     dropped encoding='utf-8-sig' and misread the BOM'd first line.
     """
-    hermes_home = tmp_path / "hermes"
-    hermes_home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    kova_home = tmp_path / "hermes"
+    kova_home.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     # BOM prefix (utf-8-sig) + the target var as the FIRST line.
-    (hermes_home / ".env").write_bytes(
+    (kova_home / ".env").write_bytes(
         b"\xef\xbb\xbfDEEPSEEK_API_KEY=sk-ds-only\n"
     )
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-ds-only")
@@ -951,7 +951,7 @@ def test_auth_remove_env_seeded_dotenv_with_bom_no_shell_hint(tmp_path, monkeypa
     auth_remove_command(SimpleNamespace(provider="deepseek", target="1"))
 
     out = capsys.readouterr().out
-    assert "DEEPSEEK_API_KEY" not in (hermes_home / ".env").read_text(encoding="utf-8-sig")
+    assert "DEEPSEEK_API_KEY" not in (kova_home / ".env").read_text(encoding="utf-8-sig")
     assert "still set in your shell environment" not in out
 
 
@@ -959,7 +959,7 @@ def test_auth_add_openrouter_oauth_persists_pkce_key_without_touching_api_key_de
     """`hermes auth add openrouter --type oauth` stores the PKCE-minted key as an ``api_key`` pool row
     (OpenRouter returns a plain key, no refresh pair) that ``resolve_provider("auto")`` picks up with no
     env var — same as a pasted key; the bare `--api-key` path keeps its API-key default."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     _write_auth_store(tmp_path, {"version": 1, "providers": {}})

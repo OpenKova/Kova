@@ -699,7 +699,7 @@ class GatewayStatusCommandsMixin:
                     from kova_state_registry import release_or_close
                     release_or_close(db)
 
-            # Not a bare hop: ``SessionDB()`` resolves ``get_hermes_home()`` at call time, a
+            # Not a bare hop: ``SessionDB()`` resolves ``get_kova_home()`` at call time, a
             # contextvar set by ``_profile_runtime_scope``; a default-executor hop starts with an
             # EMPTY context and would read the DEFAULT profile's state.db.
             return await self._run_in_executor_with_context(_run_insights)

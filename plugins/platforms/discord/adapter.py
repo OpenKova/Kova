@@ -237,7 +237,7 @@ _DISCORD_NONCONVERSATIONAL_HISTORY_MESSAGE_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(
-        r"^\s*(?:✅|❌)\s+Hermes update\s+"
+        r"^\s*(?:✅|❌)\s+Kova update\s+"
         r"(?:finished|failed|timed out)[\s\S]*$",
         re.IGNORECASE,
     ),
@@ -418,7 +418,7 @@ def _format_privileged_intents_guidance(*, needs_members: bool) -> str:
     lines = [
         "Discord rejected the connection because privileged Gateway Intents "
         "are not enabled for this bot in the Developer Portal.",
-        "Hermes is requesting:",
+        "Kova is requesting:",
         "  - Message Content Intent (required to read message text)",
     ]
     if needs_members:
@@ -431,7 +431,7 @@ def _format_privileged_intents_guidance(*, needs_members: bool) -> str:
             "Fix: https://discord.com/developers/applications → your application "
             "→ Bot → Privileged Gateway Intents → enable the intent(s) listed "
             "above → Save Changes, then restart the gateway.",
-            "Docs: https://hermes-agent.nousresearch.com/docs/user-guide/messaging/discord",
+            "Docs: https://kova-agent.nousresearch.com/docs/user-guide/messaging/discord",
         ]
     )
     return "\n".join(lines)
@@ -451,9 +451,9 @@ class _DiscordNonConversationalMessageTracker:
         self._persist_lock = asyncio.Lock()
 
     def _state_path(self) -> _Path:
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         return (
-            get_hermes_home()
+            get_kova_home()
             / _DISCORD_COMMAND_SYNC_STATE_SUBDIR
             / _DISCORD_NONCONVERSATIONAL_STATE_FILENAME
         )
@@ -646,12 +646,12 @@ def _build_allowed_mentions(extra: Optional[dict] = None):
 
 def _discord_ready_timeout_seconds() -> float:
     """Return the Discord ready wait timeout during gateway startup."""
-    raw = os.getenv("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()
+    raw = os.getenv("KOVA_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()
     if raw:
         try:
             return max(0.0, float(raw))
         except ValueError:
-            logger.warning("Ignoring invalid HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT=%r", raw)
+            logger.warning("Ignoring invalid KOVA_GATEWAY_PLATFORM_CONNECT_TIMEOUT=%r", raw)
     return 30.0
 
 
@@ -1217,8 +1217,8 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         self._voice_clients: dict[int, Any] = {}  # guild_id -> VoiceClient
         self._voice_locks: dict[int, asyncio.Lock] = {}  # guild_id -> serialize join/leave
         # Text batching: merge rapid successive messages (Telegram-style)
-        self._text_batch_delay_seconds = env_float("HERMES_DISCORD_TEXT_BATCH_DELAY_SECONDS", 0.6)
-        self._text_batch_split_delay_seconds = env_float("HERMES_DISCORD_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0)
+        self._text_batch_delay_seconds = env_float("KOVA_DISCORD_TEXT_BATCH_DELAY_SECONDS", 0.6)
+        self._text_batch_split_delay_seconds = env_float("KOVA_DISCORD_TEXT_BATCH_SPLIT_DELAY_SECONDS", 2.0)
         # A tagged bot may emit one logical response as several Discord
         # messages. Keep its unmentioned continuation chunks eligible for the
         # existing text batcher during this short, sender-scoped window.
@@ -1253,11 +1253,11 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         # ready/open/ACK + heartbeat latency; consecutive failures -> retryable-fatal. 0 disables.
         self._liveness_interval_seconds = self._finite_positive_config_float(
             "websocket_liveness_interval_seconds", 15.0,
-            env_key="HERMES_DISCORD_LIVENESS_INTERVAL_SECONDS",
+            env_key="KOVA_DISCORD_LIVENESS_INTERVAL_SECONDS",
         )
         self._liveness_failure_threshold = self._config_int(
             "websocket_liveness_failure_threshold", 2,
-            env_key="HERMES_DISCORD_LIVENESS_FAILURE_THRESHOLD",
+            env_key="KOVA_DISCORD_LIVENESS_FAILURE_THRESHOLD",
         )
         self._heartbeat_ack_max_age_seconds = self._finite_positive_config_float(
             "websocket_heartbeat_ack_max_age_seconds", 60.0,
@@ -1282,9 +1282,9 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         # connection, which is not silence.
         self._last_dispatched_event_monotonic: Optional[float] = None
         self._missed_message_backfill_task: Optional[asyncio.Task] = None
-        from kova_constants import get_hermes_home
+        from kova_constants import get_kova_home
         from plugins.platforms.discord.recovery import DiscordRecoveryStore
-        self._discord_recovery_store = DiscordRecoveryStore(get_hermes_home())
+        self._discord_recovery_store = DiscordRecoveryStore(get_kova_home())
         # Dedup cache: Discord RESUME replays events after reconnects.
         self._dedup = MessageDeduplicator()
         # Reply threading mode: "off", "first" (default; first chunk only), "all" (every chunk).
@@ -2095,7 +2095,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         """Deadline for flushing pending text batches during shutdown: strictly below the gateway's
         per-adapter disconnect budget so its outer ``wait_for`` can't cancel the flush first."""
         budget = 5.0  # mirrors gateway _ADAPTER_DISCONNECT_TIMEOUT_SECS_DEFAULT
-        raw = os.getenv("HERMES_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "").strip()
+        raw = os.getenv("KOVA_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "").strip()
         if raw:
             try:
                 parsed = float(raw)
@@ -2145,8 +2145,8 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         logger.info("[%s] Disconnected", self.name)
 
     def _command_sync_state_path(self) -> _Path:
-        from kova_constants import get_hermes_home
-        directory = get_hermes_home() / _DISCORD_COMMAND_SYNC_STATE_SUBDIR
+        from kova_constants import get_kova_home
+        directory = get_kova_home() / _DISCORD_COMMAND_SYNC_STATE_SUBDIR
         try:
             directory.mkdir(parents=True, exist_ok=True)
         except Exception:
@@ -2660,7 +2660,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         self._with_discord_recovery_db(_op)
 
     async def _should_backfill_discord_message(self, message: Any) -> bool:
-        """Return True when a recent Discord message still needs Hermes work."""
+        """Return True when a recent Discord message still needs Kova work."""
         if not self._client or not getattr(self._client, "user", None):
             return False
         if getattr(getattr(message, "author", None), "id", None) == getattr(self._client.user, "id", None):
@@ -2675,7 +2675,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         return not await self._message_has_non_down_bot_response(message)
 
     def _is_down_notice_content(self, content: str) -> bool:
-        """Recognize only explicit Hermes/gateway outage notices."""
+        """Recognize only explicit Kova/gateway outage notices."""
         text = (content or "").lower()
         subject = r"(?:hermes|the agent|agent|the gateway|gateway|bmo)"
         state = r"(?:is|was|appears to be|is currently|was currently)"
@@ -2966,7 +2966,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         return "safe"
 
     def _canonicalize_app_command_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Reduce command payloads to the semantic fields Hermes manages."""
+        """Reduce command payloads to the semantic fields Kova manages."""
         contexts = payload.get("contexts")
         integration_types = payload.get("integration_types")
         return {
@@ -4052,7 +4052,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         return bool(channel_ids & allowed)
 
     def _is_pairing_approved_user(self, user_id: str) -> bool:
-        """True when the Discord user has an explicit Hermes pairing grant."""
+        """True when the Discord user has an explicit Kova pairing grant."""
         user_id = str(user_id or "").strip()
         if not user_id:
             return False
@@ -5409,7 +5409,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
 
         Strip Discord mention syntax (users / roles / channels) so thread titles don't show raw <@id>,
         <@&id>, or <#id> markers — the ID isn't meaningful to humans glancing at the thread list (#6336).
-        Real semantic naming is done after the first agent turn, when Hermes has an LLM-generated session
+        Real semantic naming is done after the first agent turn, when Kova has an LLM-generated session
         title and can safely rename only this newly-created thread.
         """
         content = (content or "").strip()
@@ -5501,14 +5501,14 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         edit = getattr(thread, "edit", None)
         if edit is None:
             return False
-        # Only the title lane's guarded rename is Hermes's own title (see adapter_thread_titles).
+        # Only the title lane's guarded rename is Kova's own title (see adapter_thread_titles).
         attempt = (
             self._semantic_thread_renames.attempt(str(thread_id_int), only_if_current_name, cleaned)
             if only_if_current_name is not None else nullcontext()
         )
         try:
             with attempt:
-                await edit(name=cleaned, reason="Hermes semantic session title")
+                await edit(name=cleaned, reason="Kova semantic session title")
             logger.info(
                 "[%s] Renamed Discord thread %s from %r to %r",
                 self.name, thread_id, current_name, cleaned,
@@ -5544,7 +5544,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
             )
             return None
         thread_name = (name or "handoff").strip()[:80] or "handoff"
-        reason = "Hermes session handoff"
+        reason = "Kova session handoff"
         try:
             create = getattr(parent, "create_thread", None)
             if create is not None:
@@ -6316,8 +6316,8 @@ def _define_discord_view_classes() -> None:
     Called at module load and after a lazy install so the classes exist whenever DISCORD_AVAILABLE."""
     global ExecApprovalView, SlashConfirmView, UpdatePromptView, ModelPickerView, ClarifyChoiceView, ChoicePickerView
 
-    class _HermesView(discord.ui.View):
-        """Shared plumbing for Hermes component views: allowlist auth, single-use
+    class _KovaView(discord.ui.View):
+        """Shared plumbing for Kova component views: allowlist auth, single-use
         ``resolved`` flag, ``_message`` handle for timeout edits."""
 
         def __init__(self, allowed_user_ids: set, allowed_role_ids: Optional[set], *, timeout):
@@ -6405,9 +6405,9 @@ def _define_discord_view_classes() -> None:
             self._disable_all()
             await self._expire_embed(t("platform.discord.prompt.expired_footer"))
 
-    ExecApprovalView = build_exec_approval_view(discord, _HermesView, unauthorized=_unauthorized)
+    ExecApprovalView = build_exec_approval_view(discord, _KovaView, unauthorized=_unauthorized)
 
-    class SlashConfirmView(_HermesView):
+    class SlashConfirmView(_KovaView):
         """Approve Once / Always Approve / Cancel for slash-command confirmations (``/reload-mcp``,
         ``GatewayRunner._request_slash_confirm``); clicks call ``tools.slash_confirm.resolve(...)``."""
 
@@ -6455,7 +6455,7 @@ def _define_discord_view_classes() -> None:
         async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
             await self._resolve(interaction, "cancel", discord.Color.greyple(), "platform.discord.slash_confirm.resolved_cancel")
 
-    class UpdatePromptView(_HermesView):
+    class UpdatePromptView(_KovaView):
         """Yes/No buttons for ``hermes update`` prompts; the answer is written to
         ``.update_response`` for the detached update process to pick up."""
 
@@ -6471,8 +6471,8 @@ def _define_discord_view_classes() -> None:
                 interaction, color,
                 t("platform.discord.approval.by_user", label=t(label_key), user=interaction.user.display_name))
             try:
-                from kova_constants import get_hermes_home
-                response_path = get_hermes_home() / ".update_response"
+                from kova_constants import get_kova_home
+                response_path = get_kova_home() / ".update_response"
                 tmp = response_path.with_suffix(".tmp")
                 tmp.write_text(answer, encoding="utf-8")
                 tmp.replace(response_path)
@@ -6488,7 +6488,7 @@ def _define_discord_view_classes() -> None:
         async def no_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
             await self._respond(interaction, "n", discord.Color.red(), "platform.discord.prompt.negate")
 
-    class ModelPickerView(_HermesView):
+    class ModelPickerView(_KovaView):
         """Two-step select-menu model picker: provider dropdown → model dropdown,
         editing the original message in place. Times out after 2 minutes."""
 
@@ -6687,7 +6687,7 @@ def _define_discord_view_classes() -> None:
                 except Exception:
                     pass
 
-    class ChoicePickerView(_HermesView):
+    class ChoicePickerView(_KovaView):
         """Flat single-select picker for finite-choice commands (/reasoning, /fast); 2-minute timeout."""
 
         def __init__(self, choices: list, on_choice_selected, allowed_user_ids: set, allowed_role_ids: Optional[set] = None):
@@ -6740,7 +6740,7 @@ def _define_discord_view_classes() -> None:
                 except Exception:
                     pass
 
-    class ClarifyChoiceView(_HermesView):
+    class ClarifyChoiceView(_KovaView):
         """One button per clarify choice (max 24) plus ``✏️ Other``. A numeric click resolves the
         gateway clarify entry immediately; ``Other`` flips to text-capture (next message answers).
         Single-use: after the first valid click all buttons disable."""
@@ -7157,8 +7157,8 @@ _YAML_BOOL_ENV_KEYS = (
 )
 # (public websocket_* key, legacy liveness_* alias, env bridge var)
 _YAML_WEBSOCKET_LIVENESS_KEYS = (
-    ("websocket_liveness_interval_seconds", "liveness_interval_seconds", "HERMES_DISCORD_LIVENESS_INTERVAL_SECONDS"),
-    ("websocket_liveness_failure_threshold", "liveness_failure_threshold", "HERMES_DISCORD_LIVENESS_FAILURE_THRESHOLD"),
+    ("websocket_liveness_interval_seconds", "liveness_interval_seconds", "KOVA_DISCORD_LIVENESS_INTERVAL_SECONDS"),
+    ("websocket_liveness_failure_threshold", "liveness_failure_threshold", "KOVA_DISCORD_LIVENESS_FAILURE_THRESHOLD"),
     ("websocket_heartbeat_ack_max_age_seconds", None, None),
     ("websocket_max_latency_seconds", None, None),
     ("websocket_event_max_silence_seconds", None, None),
@@ -7267,7 +7267,7 @@ _is_connected = _env_is_connected("DISCORD_BOT_TOKEN")
 
 
 def register(ctx) -> None:
-    """Plugin entry point — called by the Hermes plugin system."""
+    """Plugin entry point — called by the Kova plugin system."""
     from .adapter_hint import PLATFORM_HINT
     from .send_targets import SEND_ENTRY_KWARGS
     from plugins.platforms.discord.onboarding import interactive_setup

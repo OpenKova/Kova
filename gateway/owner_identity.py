@@ -1,6 +1,6 @@
 """The Webapp is the machine owner: one identity for every signed-in surface of this host.
 
-Hermes is single-user. Native Desktop, the TUI and the CLI reach the gateway as the owner's own OS
+Kova is single-user. Native Desktop, the TUI and the CLI reach the gateway as the owner's own OS
 user (``uid:<n>`` / ``sid:<sid>``, minted only for a same-user peer by the control channel). A Webapp
 tab, a standalone dashboard's forwarded login or a phone signed in through the dashboard login is
 that same person: sign-in only decides whether a browser may open the Webapp at all, it never names a
@@ -37,7 +37,7 @@ def principal_subject(identity: dict) -> str:
     return host_owner_subject() if _login_provider(provider) else subject
 
 
-# The interactive sign-ins Hermes bundles; a plugin-registered dashboard provider counts too
+# The interactive sign-ins Kova bundles; a plugin-registered dashboard provider counts too
 # (:func:`_login_provider`). ``session-token`` is the loopback Webapp's own credential and
 # ``server-internal`` the PTY child a signed-in dashboard spawns: both act for whoever opened that page,
 # the owner. ``local`` (a native grant) is not a sign-in: its stamp names an OS user (:func:`_owner_login`).

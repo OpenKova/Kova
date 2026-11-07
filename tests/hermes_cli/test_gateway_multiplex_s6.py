@@ -47,10 +47,10 @@ def s6_host(tmp_path, monkeypatch):
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:default-token\n", encoding="utf-8")
     (root / "profiles/alpha/.env").write_text("TELEGRAM_BOT_TOKEN=222222:alpha-token\n", encoding="utf-8")
     (root / "profiles/beta/.env").write_text("DISCORD_BOT_TOKEN=beta-discord-333333\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     for name in ("GATEWAY_MULTIPLEX_PROFILES", "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     scandir = tmp_path / "run-service"
     fake = _FakeS6(scandir, up=set())
     monkeypatch.setattr(gw, "_running_under_s6", lambda: True)
@@ -91,7 +91,7 @@ def test_migrate_folds_an_up_named_slot_in_process_and_boot_shares_the_rule(s6_h
     assert fold == s6.FoldDecision(folded=("alpha",), root_should_start=True)
     (root / "profiles/alpha/gateway_state.json").write_text('{"desired_state": "running"}', encoding="utf-8")
     actions = {a.profile: a for a in reconcile_profile_gateways(
-        hermes_home=root, scandir=tmp_path / "boot-svc", dry_run=True, container_argv=())}
+        kova_home=root, scandir=tmp_path / "boot-svc", dry_run=True, container_argv=())}
     assert actions["default"].action == "started" and actions["alpha"].folded_into_root
 
 

@@ -22,11 +22,11 @@ def _env_config(cwd):
 
 def test_trailing_amp_runs_as_tracked_background_through_the_same_guards(tmp_path, monkeypatch):
     """Real local backend + registry: one tracked session, the payload runs once, the approval
-    guard sees the command that actually runs, and the result says what Hermes did."""
+    guard sees the command that actually runs, and the result says what Kova did."""
     from tools.process_registry import process_registry
     from tools.terminal_tool import terminal_tool
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hh"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hh"))
     marker = tmp_path / "ran"
     seen = []
 
@@ -76,7 +76,7 @@ def test_converted_command_never_gets_relaunch_hint_even_with_another_hint(tmp_p
     from tools.terminal_tool import terminal_tool
     from tools.terminal_tool_background import _HOMEBREW_CI_POLLER_HINT, _SILENT_BACKGROUND_HINT
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hh"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hh"))
     with patch("tools.terminal_tool._get_env_config", return_value=_env_config(tmp_path)), \
          patch("tools.terminal_tool._start_cleanup_thread"), \
          patch("tools.terminal_tool._check_all_guards", return_value={"approved": True}):

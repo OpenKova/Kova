@@ -1,4 +1,4 @@
-"""Building a listener's ``uvicorn.Config`` must leave Hermes's own file logging alone.
+"""Building a listener's ``uvicorn.Config`` must leave Kova's own file logging alone.
 
 uvicorn's default ``log_config`` runs ``logging.config.dictConfig``, which calls
 ``logging.shutdown()`` on every live handler. A multiplexed gateway installs its profile log
@@ -14,7 +14,7 @@ import pytest
 import kova_cli.web_server as ws_mod
 import kova_logging
 from kova_cli.web_server_lifecycle import build_listener_server
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 _UVICORN_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access", "uvicorn.asgi")
 
@@ -56,17 +56,17 @@ def test_listener_config_keeps_every_profile_log_file_writing(tmp_path, monkeypa
     beta = root / "profiles" / "beta"
     beta.mkdir(parents=True)
     (beta / "config.yaml").write_text("{}", encoding="utf-8")
-    kova_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
+    kova_logging.setup_logging(kova_home=root, mode="gateway", force=True)
     assert kova_logging.enable_profile_log_routing([root, beta])
     logger = logging.getLogger("gateway.listener_logging")
 
     def log_in_every_home(marker):
         for home in (root, beta):
-            token = set_hermes_home_override(str(home))
+            token = set_kova_home_override(str(home))
             try:
                 logger.warning(marker)
             finally:
-                reset_hermes_home_override(token)
+                reset_kova_home_override(token)
         kova_logging.flush_log_queue()
 
     log_in_every_home("before-listener")
@@ -83,7 +83,7 @@ def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs
     """Without uvicorn's ``dictConfig`` its loggers still print where they did: ``uvicorn.error``
     to stderr, access lines nowhere at ``log_level="warning"``, neither into agent.log."""
     root = tmp_path / "root"
-    kova_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
+    kova_logging.setup_logging(kova_home=root, mode="gateway", force=True)
     _gateway_listener(monkeypatch)
     _dashboard_listener(monkeypatch)  # a second listener in the process adds no second console handler
 

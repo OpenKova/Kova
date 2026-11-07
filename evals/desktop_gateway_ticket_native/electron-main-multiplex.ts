@@ -25,7 +25,7 @@ async function attach(connection: any) {
   const ticket = await mintLocalGatewayTicket(connection.gatewayEndpoint)
 
   return new Promise<{ ws: WebSocket; call: (method: string, params: any) => Promise<any> }>((resolve, reject) => {
-    const ws = new WebSocket(connection.baseUrl.replace(/^http/, 'ws') + '/api/ws', ['hermes-gateway-v1', 'hermes-gateway-ticket.' + ticket], { handshakeTimeout: 10_000 })
+    const ws = new WebSocket(connection.baseUrl.replace(/^http/, 'ws') + '/api/ws', ['kova-gateway-v1', 'kova-gateway-ticket.' + ticket], { handshakeTimeout: 10_000 })
     let next = 1
     const pending = new Map<number, (frame: any) => void>()
     ws.on('unexpected-response', (_r, response) => reject(new Error(`WS ${response.statusCode} for ${connection.profile}`)))

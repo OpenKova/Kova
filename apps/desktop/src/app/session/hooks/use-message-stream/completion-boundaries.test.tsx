@@ -57,7 +57,7 @@ function mount(rpc = requestGateway) {
       updateSessionState: cache.updateSessionState,
       queryClient,
       hydrateFromStoredSession: hydrate,
-      refreshHermesConfig: noop,
+      refreshKovaConfig: noop,
       refreshSessions: noop
     })
 

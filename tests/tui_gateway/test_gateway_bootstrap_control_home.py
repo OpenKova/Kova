@@ -39,7 +39,7 @@ def test_served_secondary_uses_multiplexer_control_home(monkeypatch, tmp_path):
     )
     receipt = SimpleNamespace(state="ready", endpoint=endpoint, reason_code=None)
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: secondary)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: secondary)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint", lambda home, timeout=5: receipt)
 
     seen = {}
@@ -113,7 +113,7 @@ def _bootstrap_failure(monkeypatch, root, error):
     def connect_private(home, timeout):
         raise error
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: root)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: root)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint",
                         lambda home, timeout=5: SimpleNamespace(state="ready", endpoint=endpoint, reason_code=None))
     monkeypatch.setattr(discovery, "connect_private", connect_private)

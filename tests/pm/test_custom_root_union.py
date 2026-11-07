@@ -37,17 +37,17 @@ def test_home_layout_joins_sibling_union(tmp_path, monkeypatch, layout):
     import kova_constants
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    root = tmp_path / (".hermes" if layout == "default" else "data-root")
+    root = tmp_path / (".kova" if layout == "default" else "data-root")
     active = root / "profiles/active" if layout == "profile" else root
     if layout == "default":
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("KOVA_HOME", raising=False)
     else:
-        monkeypatch.setenv("HERMES_HOME", str(active))
+        monkeypatch.setenv("KOVA_HOME", str(active))
     active.mkdir(parents=True, exist_ok=True)
     sibling = root / "profiles/sibling"
     _write_enabled(sibling, ["dep-plug"])
     member = _make_dep_plugin(sibling / "plugins", "dep-plug")
     (root / "profiles/README.txt").write_text("not a profile")
-    assert kova_constants.get_default_hermes_root() == root
+    assert kova_constants.get_default_kova_root() == root
     assert ws.enabled_member_dirs() == [member]
     assert pstate.enabled_plugins_ordered() == {sibling / "plugins": ["dep-plug"]}

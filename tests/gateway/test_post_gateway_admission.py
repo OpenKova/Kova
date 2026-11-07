@@ -13,7 +13,7 @@ from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.platforms.event import MessageEvent
 from gateway.run import _profile_runtime_scope
 from gateway.session import SessionSource
-from kova_constants import get_hermes_home
+from kova_constants import get_kova_home
 
 HOOK = "post_gateway_admission"
 
@@ -109,16 +109,16 @@ async def test_consumer_fires_in_the_routed_profile_scope_only(tmp_path):
     fired = []
 
     with _profile_runtime_scope(launch):
-        _register(lambda **_k: fired.append(("launch", get_hermes_home())))
+        _register(lambda **_k: fired.append(("launch", get_kova_home())))
     with _profile_runtime_scope(routed):
-        _register(lambda **_k: fired.append(("beta", get_hermes_home())) or {"action": "handled"})
+        _register(lambda **_k: fired.append(("beta", get_kova_home())) or {"action": "handled"})
 
     runner = _runner(multiplex=True)
     runner._resolve_profile_home_for_source = lambda _source: routed
     # The receiving bot's handler binds ITS home (auth reads its .env); this chat routes to beta.
     with _profile_runtime_scope(launch):
         assert await runner._handle_message(_event(profile="beta")) is None
-        assert get_hermes_home() == launch  # scope restored after the hook
+        assert get_kova_home() == launch  # scope restored after the hook
 
     assert fired == [("beta", routed)]
     runner._handle_message_with_agent.assert_not_awaited()

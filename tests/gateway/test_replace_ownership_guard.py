@@ -1,10 +1,10 @@
 """Tests for issue #89315 — ``--replace`` must never signal a gateway it
-cannot prove belongs to this HERMES_HOME.
+cannot prove belongs to this KOVA_HOME.
 
 Design contract (v3, after andrexibiza's second review): ownership is decided
-by the persisted identity record ALONE — exact ``_same_hermes_home`` equality
+by the persisted identity record ALONE — exact ``_same_kova_home`` equality
 bound to the live target by exact PID + start-time. A readable live argv
-carries no HERMES_HOME, so it can never prove home ownership; it only feeds a
+carries no KOVA_HOME, so it can never prove home ownership; it only feeds a
 token-exact CONSISTENCY check that refuses explicit contradictions.
 
 Pinned surfaces:
@@ -38,21 +38,21 @@ import pytest
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME mirroring tests/kova_cli/test_profiles.py."""
+    """Isolated KOVA_HOME mirroring tests/kova_cli/test_profiles.py."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    default_home = tmp_path / ".hermes"
+    default_home = tmp_path / ".kova"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("KOVA_HOME", str(default_home))
     return tmp_home if (tmp_home := default_home) else default_home
 
 
 def _record(pid=424242, start=111222333, home=None, argv=None):
     return {
         "pid": pid,
-        "kind": "hermes-gateway",
+        "kind": "kova-gateway",
         "argv": argv or ["python", "-m", "kova_cli.main", "gateway", "run"],
         "start_time": start,
-        "hermes_home": home,
+        "kova_home": home,
     }
 
 
@@ -63,11 +63,11 @@ class TestRecordAuthority:
         with (
             patch(
                 "gateway.status._read_pid_record",
-                return_value=_record(home=str(profile_env / ".hermes")),
+                return_value=_record(home=str(profile_env / ".kova")),
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
@@ -75,8 +75,8 @@ class TestRecordAuthority:
             ),
             patch("gateway.status._read_process_cmdline", return_value=None),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is False
@@ -90,12 +90,12 @@ class TestRecordAuthority:
             patch(
                 "gateway.status._read_pid_record",
                 return_value=_record(
-                    home="/home/other/.hermes/profiles/timothy"
+                    home="/home/other/.kova/profiles/timothy"
                 ),
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
@@ -103,8 +103,8 @@ class TestRecordAuthority:
             ),
             patch("gateway.status._read_process_cmdline", return_value=None),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes" / "profiles" / "tim",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova" / "profiles" / "tim",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
@@ -117,21 +117,21 @@ class TestRecordAuthority:
             patch("gateway.status._read_pid_record", return_value=None),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
 
     def test_legacy_record_without_home_refuses(self, profile_env):
-        """A pre-hermes_home-stamping record cannot prove ownership."""
+        """A pre-kova_home-stamping record cannot prove ownership."""
         from gateway.run import _replace_target_belongs_to_other_profile
 
         legacy = _record(home=None)
-        legacy.pop("hermes_home")
+        legacy.pop("kova_home")
 
         with (
             patch(
@@ -140,15 +140,15 @@ class TestRecordAuthority:
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
                 return_value=111222333,
             ),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
@@ -160,19 +160,19 @@ class TestRecordAuthority:
         with (
             patch(
                 "gateway.status._read_pid_record",
-                return_value=_record(pid=999999, home=str(profile_env / ".hermes")),
+                return_value=_record(pid=999999, home=str(profile_env / ".kova")),
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
                 return_value=111222333,
             ),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
@@ -185,19 +185,19 @@ class TestRecordAuthority:
         with (
             patch(
                 "gateway.status._read_pid_record",
-                return_value=_record(start=1, home=str(profile_env / ".hermes")),
+                return_value=_record(start=1, home=str(profile_env / ".kova")),
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
                 return_value=42,
             ),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
@@ -222,7 +222,7 @@ class TestArgvConsistencyCheck:
             _looks_like_profile_conflict_from_cmdline as conflict,
         )
 
-        tim_home = Path("/home/x/.hermes/profiles/tim")
+        tim_home = Path("/home/x/.kova/profiles/tim")
         # Foreign target advertising timothy — NOT ours.
         assert (
             conflict("python -m kova_cli.main --profile timothy gateway run", tim_home)
@@ -239,22 +239,22 @@ class TestArgvConsistencyCheck:
         )
 
     def test_explicit_home_flag_exact_compare(self, profile_env):
-        """HERMES_HOME= on the argv compares path-exactly, not by prefix."""
+        """KOVA_HOME= on the argv compares path-exactly, not by prefix."""
         from gateway.run import (
             _looks_like_profile_conflict_from_cmdline as conflict,
         )
 
-        tim_home = Path("/home/x/.hermes/profiles/tim")
+        tim_home = Path("/home/x/.kova/profiles/tim")
         assert (
             conflict(
-                "python -m kova_cli.main HERMES_HOME=/home/x/.hermes/profiles/timothy gateway run",
+                "python -m kova_cli.main KOVA_HOME=/home/x/.kova/profiles/timothy gateway run",
                 tim_home,
             )
             is True
         )
         assert (
             conflict(
-                "python -m kova_cli.main --hermes-home /home/x/.hermes/profiles/tim/ gateway run",
+                "python -m kova_cli.main --hermes-home /home/x/.kova/profiles/tim/ gateway run",
                 tim_home,
             )
             is False  # trailing slash normalizes away
@@ -265,7 +265,7 @@ class TestArgvConsistencyCheck:
             _looks_like_profile_conflict_from_cmdline as conflict,
         )
 
-        root = Path("/home/x/.hermes")
+        root = Path("/home/x/.kova")
         assert conflict("python -m x --profile sam run", root) is True
         assert conflict("python -m x -p sam run", root) is True
         assert conflict("python -m x run", root) is False
@@ -280,11 +280,11 @@ class TestArgvConsistencyCheck:
         with (
             patch(
                 "gateway.status._read_pid_record",
-                return_value=_record(home=str(profile_env / ".hermes")),
+                return_value=_record(home=str(profile_env / ".kova")),
             ),
             patch(
                 "gateway.status._get_pid_path",
-                return_value=profile_env / ".hermes" / "gateway.pid",
+                return_value=profile_env / ".kova" / "gateway.pid",
             ),
             patch(
                 "gateway.status._get_process_start_time",
@@ -295,8 +295,8 @@ class TestArgvConsistencyCheck:
                 return_value="python -m kova_cli.main --profile other-profile gateway run",
             ),
             patch(
-                "gateway.status._get_process_hermes_home",
-                return_value=profile_env / ".hermes",
+                "gateway.status._get_process_kova_home",
+                return_value=profile_env / ".kova",
             ),
         ):
             assert _replace_target_belongs_to_other_profile(424242) is True
@@ -474,7 +474,7 @@ class TestStampDurability:
         repo_root = str(Path(__file__).resolve().parents[2])
         child = tmp_path / "refusal_child.py"
         child.write_text(_CHILD_SCRIPT.replace("@@REPO@@", repo_root), encoding="utf-8")
-        env = {**os.environ, "HERMES_HOME": str(home)}
+        env = {**os.environ, "KOVA_HOME": str(home)}
 
         proc = subprocess.run(
             [sys.executable, str(child)],

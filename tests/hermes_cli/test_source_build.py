@@ -60,8 +60,8 @@ def test_source_build_uses_selected_python_for_isolated_icon_child(tmp_path, mon
     monkeypatch.syspath_prepend(str(selected))
 
     env = source_build_env()
-    assert env["HERMES_PYTHON"] == str(venv_python(venv))
-    subprocess.run([env["HERMES_PYTHON"], "-I", "-c",
+    assert env["KOVA_PYTHON"] == str(venv_python(venv))
+    subprocess.run([env["KOVA_PYTHON"], "-I", "-c",
                     "import icon_dependency; assert icon_dependency.ready"], check=True)
 
 
@@ -82,7 +82,7 @@ def test_installed_pnpm_does_not_authorize_missing_workspace_dependencies(source
 
     root, _ = source_checkout
     env = source_build_env()
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")
     with pytest.raises(subprocess.CalledProcessError):
         prepare_source_dependencies(root, ("ui-tui", "web"), env=env)
     assert _events(root) == []
@@ -98,11 +98,11 @@ def source_checkout(tmp_path, monkeypatch):
     assert node and pnpm, "source-build integration requires node and pnpm"
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "0")
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "0")
     monkeypatch.setenv("ESBUILD_BINARY_PATH", "/wrong/esbuild")
-    monkeypatch.setenv("HERMES_PYTHON", "/wrong/python")
+    monkeypatch.setenv("KOVA_PYTHON", "/wrong/python")
     (home / "npmrc").write_text(
         "fund=false\nnode-get-windows-binary-host-mirror=https://mirror.invalid/get-windows/\n"
         "//registry.invalid/:_authToken=npmrc-secret\nelectron-mirror=${MIRROR_BASE}/electron/\n"
@@ -150,7 +150,7 @@ def source_checkout(tmp_path, monkeypatch):
     (root / "log.mjs").write_text(
         "import { appendFileSync } from 'node:fs';\n"
         "appendFileSync('events.jsonl', JSON.stringify({step: process.argv[2], "
-        "python: process.env.HERMES_PYTHON, ci: process.env.CI, "
+        "python: process.env.KOVA_PYTHON, ci: process.env.CI, "
         "esbuild: process.env.ESBUILD_BINARY_PATH, "
         "npmrc: process.env.NPM_CONFIG_USERCONFIG, store: process.env.pnpm_config_store_dir, "
         "mirror: process.env.npm_config_node_get_windows_binary_host_mirror, "
@@ -243,18 +243,18 @@ def test_preparation_reuses_only_the_exact_completed_workspace_union(source_chec
     prepare_source_dependencies(root, ("ui-tui", "web"), env=env)
     first = _events(root)
     assert [event["step"] for event in first] == ["deps"]
-    assert first[0]["python"] == env["HERMES_PYTHON"]
+    assert first[0]["python"] == env["KOVA_PYTHON"]
     assert first[0]["ci"] == "1"
     assert "esbuild" not in first[0]
-    assert first[0]["npmrc"] == str(Path(os.environ["HERMES_HOME"]) / "npmrc")
+    assert first[0]["npmrc"] == str(Path(os.environ["KOVA_HOME"]) / "npmrc")
     # npmrc settings reach install scripts as npm did it (node-pre-gyp mirrors); credentials never do.
     assert first[0]["mirror"] == "https://mirror.invalid/get-windows/"
     assert first[0]["electron"] == "https://mirror.invalid/electron/"
     assert first[0]["skipped"] == []
     assert first[0]["leaked"] is False
-    # pnpm's store lives under the Hermes root, never the user's XDG data dir.
-    assert first[0]["store"] == str(Path(os.environ["HERMES_HOME"]) / "cache/pnpm/store")
-    assert (Path(os.environ["HERMES_HOME"]) / "cache/pnpm/store").is_dir()
+    # pnpm's store lives under the Kova root, never the user's XDG data dir.
+    assert first[0]["store"] == str(Path(os.environ["KOVA_HOME"]) / "cache/pnpm/store")
+    assert (Path(os.environ["KOVA_HOME"]) / "cache/pnpm/store").is_dir()
     assert (root / "ui-tui/node_modules/fixture-dep").exists()
     assert (root / "web/node_modules/fixture-dep").exists()
     assert not (root / "apps/desktop/node_modules").exists()
@@ -351,7 +351,7 @@ def test_update_failure_raises_without_retries_or_replacing_live_app(source_prod
     if step == "desktop":
         # A failed desktop build never replaces the live app nor stamps it.
         assert app.read_text() == "previous app"
-        assert not (Path(os.environ["HERMES_HOME"]) / "desktop-build-stamp.json").exists()
+        assert not (Path(os.environ["KOVA_HOME"]) / "desktop-build-stamp.json").exists()
 
 
 @pytest.mark.platforms("linux")
@@ -430,7 +430,7 @@ def test_packaged_desktop_is_reused_only_while_it_names_head(tmp_path, monkeypat
     subprocess.run([*git[:3], "init", "-q"], check=True)
     subprocess.run([*git, "commit", "-q", "--allow-empty", "-m", "one"], check=True)
     desktop_dir = root / "apps/desktop"
-    exe = desktop_dir / "release/app/Hermes"
+    exe = desktop_dir / "release/app/Kova"
     monkeypatch.setattr(main_desktop, "_desktop_packaged_executable", lambda _d: exe)
     resources = main_desktop._packaged_resources_dir(desktop_dir)
     (resources / "app.asar.unpacked/dist").mkdir(parents=True)

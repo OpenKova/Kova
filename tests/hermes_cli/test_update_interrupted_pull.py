@@ -185,7 +185,7 @@ def test_restore_runs_the_installers_store_git_when_path_has_none(checkout, monk
     _pull(root)  # the next `hermes update` is not refused on the lock
     assert _git(root, "rev-parse", "HEAD") == b
 
-    # Every console script (`hermes`, `hermes-agent`, `hermes-acp`) repairs before its entry module imports
+    # Every console script (`hermes`, `kova-agent`, `hermes-acp`) repairs before its entry module imports
     # any other checkout module past kova_bootstrap: any of them may be a half-written file.
     repo = os.path.realpath(Path(er.__file__).parent.parent)
     for entry in ("kova_cli.main", "agent.legacy_cli", "run_agent", "acp_adapter.entry"):
@@ -788,8 +788,8 @@ def test_a_users_file_at_a_path_the_update_adds_is_kept_aside_never_deleted(tmp_
     assert er.restore_interrupted_pull(root) is True
     assert _git(root, "rev-parse", "HEAD") == pre and not er.interrupted_pull_marker(root).exists()
     assert not (root / "full.py").exists()
-    assert (root / "started.py.hermes-update-kept").read_bytes() == b"started"
-    assert (root / "touched.py.hermes-update-kept").read_bytes() == b""
+    assert (root / "started.py.kova-update-kept").read_bytes() == b"started"
+    assert (root / "touched.py.kova-update-kept").read_bytes() == b""
     assert not (root / "started.py").exists() and not (root / "touched.py").exists()
 
 

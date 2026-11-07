@@ -12,11 +12,11 @@ os.environ.clear()
 os.environ.update(keep)
 os.environ.update(
     HOME=str(HOME),
-    HERMES_HOME=str(HOME),
-    HERMES_DISABLE_PLUGINS="1",
+    KOVA_HOME=str(HOME),
+    KOVA_DISABLE_PLUGINS="1",
     # The scrub above drops the test harness's hermetic switch; keep lazy PM installs off so no
     # background download's buffers land in the tracemalloc window the archive case measures.
-    HERMES_DISABLE_LAZY_INSTALLS="1",
+    KOVA_DISABLE_LAZY_INSTALLS="1",
     NO_PROXY="127.0.0.1,localhost",
 )
 sys.path.insert(0, str(ROOT))

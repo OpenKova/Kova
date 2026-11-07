@@ -34,7 +34,7 @@ def home(request):
 
 
 def _attach(home, *flags):
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(REPO)}
+    env = {**os.environ, "KOVA_HOME": str(home), "PYTHONPATH": str(REPO)}
     return subprocess.run([sys.executable, "-m", "kova_cli.main", "gateway", "attach", "--json", *flags],
                           cwd=REPO, env=env, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL,
                           check=False)
@@ -75,7 +75,7 @@ def _check_attached(run, home, tickets):
     assert result["state"] == "ready" and result["endpoint"]["profile_id"] == str(home)
     assert result["url"] == "ws://127.0.0.1:8765/api/ws"
     assert result["protocol"] == CANONICAL_GATEWAY_PROTOCOL
-    assert result["protocols"] == [CANONICAL_GATEWAY_PROTOCOL, f"hermes-gateway-ticket.{ticket}"]
+    assert result["protocols"] == [CANONICAL_GATEWAY_PROTOCOL, f"kova-gateway-ticket.{ticket}"]
     # Only the calling process's stdout carries the credential.
     assert ticket not in run.stderr
     assert not [p for p in home.rglob("*") if p.is_file() and ticket in p.read_text(errors="ignore")]

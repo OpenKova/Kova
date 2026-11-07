@@ -60,7 +60,7 @@ async def run(params, board_db):
     from agent.retry_utils import jittered_backoff
     from kova_cli.gateway_client import connect_gateway, GatewayClientError, outside_restart_wait
     from websockets.exceptions import WebSocketException
-    if os.environ.get('HERMES_TUI_GATEWAY_URL'):
+    if os.environ.get('KOVA_TUI_GATEWAY_URL'):
         raise GatewayClientError('Kanban requires the assigned local profile owner')
     # A lost socket is not a lost attempt, and exiting here would let ``_watch_submitter`` end the
     # owner's in-flight turn, so the next connection resumes whatever the last one reached. The
@@ -174,15 +174,15 @@ def main():
 
 def _submit():
     try:
-        params = {'board': os.environ['HERMES_KANBAN_BOARD'], 'task_id': os.environ['HERMES_KANBAN_TASK'],
-            'run_id': int(os.environ['HERMES_KANBAN_RUN_ID']), 'claim_lock': os.environ['HERMES_KANBAN_CLAIM_LOCK']}
-        board_db = os.environ['HERMES_KANBAN_DB']
+        params = {'board': os.environ['KOVA_KANBAN_BOARD'], 'task_id': os.environ['KOVA_KANBAN_TASK'],
+            'run_id': int(os.environ['KOVA_KANBAN_RUN_ID']), 'claim_lock': os.environ['KOVA_KANBAN_CLAIM_LOCK']}
+        board_db = os.environ['KOVA_KANBAN_DB']
         # Owner startup must never inherit this worker's task/tool/goal identity.
         for key in list(os.environ):
             # The busy timeout is a host tuning knob, not task identity: the answer budget reads it.
-            if key.startswith('HERMES_KANBAN_') and key not in ('HERMES_KANBAN_HOME', 'HERMES_KANBAN_BUSY_TIMEOUT_MS'):
+            if key.startswith('KOVA_KANBAN_') and key not in ('KOVA_KANBAN_HOME', 'KOVA_KANBAN_BUSY_TIMEOUT_MS'):
                 os.environ.pop(key)
-        for key in ('HERMES_SESSION_SOURCE', 'HERMES_TENANT', 'TERMINAL_CWD'):
+        for key in ('KOVA_SESSION_SOURCE', 'KOVA_TENANT', 'TERMINAL_CWD'):
             os.environ.pop(key, None)
         return asyncio.run(run(params, board_db))
     except (KeyError, ValueError, OSError) as exc:

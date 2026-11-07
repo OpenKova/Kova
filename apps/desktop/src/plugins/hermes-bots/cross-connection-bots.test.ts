@@ -15,7 +15,7 @@
  * plugin.js bundle under `vm`.
  */
 
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as KovaSdk from '@hermes/plugin-sdk'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { GroupMember, ProfileRoute, RosterRow } from './types'
@@ -27,7 +27,7 @@ const { overrides, request, requestProfile } = vi.hoisted(() => ({
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+  const sdk = await importOriginal<typeof KovaSdk>()
 
   overrides.request = request
   overrides.requestProfile = requestProfile

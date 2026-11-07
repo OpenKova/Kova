@@ -24,14 +24,14 @@ class _Stub(CLICommandsMixin):
         return None
 
 def _seed_config(tmp_path, monkeypatch):
-    hh = tmp_path / ".hermes"
+    hh = tmp_path / ".kova"
     hh.mkdir()
     (hh / "config.yaml").write_text("display:\n  show_reasoning: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(hh))
-    # cli captures _hermes_home at import; force it to the temp home.
+    monkeypatch.setenv("KOVA_HOME", str(hh))
+    # cli captures _kova_home at import; force it to the temp home.
     import cli
 
-    monkeypatch.setattr(cli, "_hermes_home", hh, raising=False)
+    monkeypatch.setattr(cli, "_kova_home", hh, raising=False)
     return hh
 
 def test_reasoning_full_sets_and_persists(tmp_path, monkeypatch):

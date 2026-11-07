@@ -1,4 +1,4 @@
-"""Desktop cron ticker yields to a live gateway that owns cron on the same HERMES_HOME (#52202).
+"""Desktop cron ticker yields to a live gateway that owns cron on the same KOVA_HOME (#52202).
 
 Every built-in path (multiplex, and the fail-open single-profile fallback) gates each tick
 through ``profile_gate``; an external provider defers its start until the gateway is gone.
@@ -15,10 +15,10 @@ import pytest
 
 @pytest.fixture()
 def ticker_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME plus a seam recording whether the provider started."""
+    """Isolated KOVA_HOME plus a seam recording whether the provider started."""
     import kova_constants
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
     started = {}
 
     class _Provider:
@@ -185,8 +185,8 @@ def test_fail_open_ticker_yields_to_the_multiplexer_serving_this_profile(tmp_pat
 
     satellite = tmp_path / "profiles" / "worker"
     satellite.mkdir(parents=True)
-    monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: tmp_path)
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: satellite)
+    monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: satellite)
     started = {}
 
     class _InProcess(sp.InProcessCronScheduler):
@@ -220,7 +220,7 @@ def test_gated_out_fail_open_tick_leaves_the_gateway_store_status_alone(tmp_path
     from cron.scheduler_provider import InProcessCronScheduler
     from kova_cli import web_server
 
-    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)
     monkeypatch.setattr(profiles, "profiles_to_serve", _enumeration_fails)
     monkeypatch.setattr(profiles, "_check_gateway_running", lambda _home: True)
     monkeypatch.setattr("cron.scheduler_provider.resolve_cron_scheduler", InProcessCronScheduler)

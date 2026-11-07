@@ -14,16 +14,16 @@ import { requestForBot } from './routing'
 import type { RosterRow } from './types'
 
 // ── skills hub section: the REAL hub page (docs) embedded as a picker ──────
-// https://hermes-agent.nousresearch.com/docs/skills?embed=picker hides the
+// https://kova-agent.nousresearch.com/docs/skills?embed=picker hides the
 // docs chrome and adds "+ Add to this Agent" per card, posting
-// {type: 'hermes-skill-pick', ...} to us (hermes-agent#86243). We validate
+// {type: 'hermes-skill-pick', ...} to us (kova-agent#86243). We validate
 // the origin, install via skills.manage, and bubble onInstalled so the
 // checklist above gains the row. Search-box fallback kept for offline use.
 
-const HUB_ORIGIN = 'https://hermes-agent.nousresearch.com'
+const HUB_ORIGIN = 'https://kova-agent.nousresearch.com'
 const FALLBACK_HUB_ORIGIN = 'https://nousresearch.github.io'
 const HUB_PICKER_URL = HUB_ORIGIN + '/docs/skills?embed=picker'
-const FALLBACK_HUB_PICKER_URL = FALLBACK_HUB_ORIGIN + '/hermes-agent/docs/skills?embed=picker'
+const FALLBACK_HUB_PICKER_URL = FALLBACK_HUB_ORIGIN + '/kova-agent/docs/skills?embed=picker'
 // A WAF-blocked or unreachable docs host must not delay the fallback longer
 // than this — the probe only decides which origin to embed, never blocks it.
 const HUB_PROBE_TIMEOUT_MS = 8_000

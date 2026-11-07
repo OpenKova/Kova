@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
-from tools.mcp_oauth_provider import HermesProviderMixin
+from tools.mcp_oauth_provider import KovaProviderMixin
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +42,11 @@ class _ProviderEntry:
     pending_401: dict[str, asyncio.Future[bool]] = field(default_factory=dict)
 
 
-class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
+class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
     """OAuthClientProvider with pre-flow disk-mtime reload (external refreshes become visible to
     a running session), expiry seeding on cold load, pre-flight metadata discovery, dead-client
     registration detection and the bidirectional ``async_auth_flow`` bridge. Token-endpoint
-    fixes come from ``HermesProviderMixin``. Only usable when the SDK's OAuth module imported.
+    fixes come from ``KovaProviderMixin``. Only usable when the SDK's OAuth module imported.
 
     Reference: Claude Code's ``invalidateOAuthCacheIfDiskChanged`` (``src/utils/auth.ts:1320``, CC-1096 /
     GH#24317).
@@ -61,14 +61,14 @@ class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
         import anyio
         self.context.lock = anyio.Semaphore(1, max_value=1)
         self._hermes_server_name = server_name
-        self._hermes_home = ""
+        self._kova_home = ""
         # A config-supplied client_id rejected as invalid_client means the *config* is wrong — only DCR clients auto-heal.
         self._hermes_preregistered = preregistered
 
     def _hermes_storage(self):
-        """The context storage when it is a ``HermesTokenStorage``, else None."""
-        from tools.mcp_oauth import HermesTokenStorage
-        return self.context.storage if isinstance(self.context.storage, HermesTokenStorage) else None
+        """The context storage when it is a ``KovaTokenStorage``, else None."""
+        from tools.mcp_oauth import KovaTokenStorage
+        return self.context.storage if isinstance(self.context.storage, KovaTokenStorage) else None
 
     def _log_nonfatal(self, what: str, exc: BaseException) -> None:
         logger.debug("MCP OAuth '%s': %s failed (non-fatal): %s", self._hermes_server_name, what, exc)
@@ -76,11 +76,11 @@ class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
     async def _initialize(self) -> None:
         """Load stored state, seed ``token_expiry_time``, restore/prefetch metadata. The SDK's
         ``_initialize`` never calls ``update_token_expiry``, so a restarted process would ship stale
-        Bearer tokens as "valid"; seeding the expiry (``HermesTokenStorage`` persists absolute
+        Bearer tokens as "valid"; seeding the expiry (``KovaTokenStorage`` persists absolute
         ``expires_at``) makes the SDK refresh first. Metadata is restored from disk, else discovered
         pre-flight when we hold tokens but no metadata: otherwise ``_refresh_token`` guesses
         ``{server_url}/token`` (wrong for split-origin providers), 404s, and we fall to browser reauth."""
-        await super()._initialize()  # HermesProviderMixin: restores metadata from disk, enforces issuer binding
+        await super()._initialize()  # KovaProviderMixin: restores metadata from disk, enforces issuer binding
         tokens = self.context.current_tokens
         if tokens is not None and tokens.expires_in is not None:
             # The SDK maps a zero TTL to ``time.time()`` and accepts equality
@@ -102,7 +102,7 @@ class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
     async def _prefetch_oauth_metadata(self) -> None:
         """Fetch PRM + ASM from the well-known endpoints before the first request, via the SDK's own URL
         builders/response handlers so we track whatever the pinned SDK expects."""
-        # The SDK's httpx flavour, not Hermes': `create_oauth_metadata_request` returns *its* (httpx2) Request objects.
+        # The SDK's httpx flavour, not Kova': `create_oauth_metadata_request` returns *its* (httpx2) Request objects.
         from tools.mcp_tool import sdk_httpx
         httpx = sdk_httpx()
         if httpx is None:  # pragma: no cover — SDK import would have failed
@@ -241,7 +241,7 @@ class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
 
     async def async_auth_flow(self, request):  # type: ignore[override]
         try:  # pre-flow hook: reload from disk if it changed (non-fatal on error)
-            await get_manager().invalidate_if_disk_changed(self._hermes_server_name, hermes_home=self._hermes_home)
+            await get_manager().invalidate_if_disk_changed(self._hermes_server_name, kova_home=self._kova_home)
         except Exception as exc:  # pragma: no cover — defensive
             self._log_nonfatal("pre-flow disk-watch", exc)
         # Bridge the bidirectional generator by hand: a naive ``async for item in inner: yield
@@ -305,7 +305,7 @@ class HermesMCPOAuthProvider(HermesProviderMixin, *_SDK_BASES):
 
 
 # Cached at import time; None when the SDK's OAuth module is unavailable.
-_HERMES_PROVIDER_CLS: Optional[type] = HermesMCPOAuthProvider if _SDK_BASES else None
+_KOVA_PROVIDER_CLS: Optional[type] = KovaMCPOAuthProvider if _SDK_BASES else None
 
 
 class MCPOAuthManager:
@@ -332,18 +332,18 @@ class MCPOAuthManager:
             if entry.provider is None:
                 entry.provider = self._build_provider(server_name, entry)
                 if entry.provider is not None:
-                    entry.provider._hermes_home = key[0]
+                    entry.provider._kova_home = key[0]
             return entry.provider
 
     @staticmethod
-    def _key(server_name: str, hermes_home: str | Path | None = None) -> tuple[str, str]:
-        from kova_constants import get_hermes_home
-        home = Path(hermes_home) if hermes_home is not None else get_hermes_home()
+    def _key(server_name: str, kova_home: str | Path | None = None) -> tuple[str, str]:
+        from kova_constants import get_kova_home
+        home = Path(kova_home) if kova_home is not None else get_kova_home()
         return (str(home.expanduser().resolve(strict=False)), server_name)
 
     def _build_provider(self, server_name: str, entry: _ProviderEntry) -> Optional[Any]:
-        """Build a ``HermesMCPOAuthProvider``; None if the SDK's OAuth support is unavailable."""
-        if _HERMES_PROVIDER_CLS is None:
+        """Build a ``KovaMCPOAuthProvider``; None if the SDK's OAuth support is unavailable."""
+        if _KOVA_PROVIDER_CLS is None:
             logger.warning("MCP OAuth '%s': SDK auth module unavailable", server_name)
             return None
         from tools.mcp_dashboard_oauth import get_dashboard_oauth_flow  # lazy: circular at import time
@@ -356,42 +356,42 @@ class MCPOAuthManager:
             raise OAuthNonInteractiveError(
                 f"MCP OAuth for '{server_name}': non-interactive environment and no cached tokens found. "
                 f"Run `hermes mcp login {server_name}` interactively first to complete initial authorization.")
-        return _HERMES_PROVIDER_CLS(
+        return _KOVA_PROVIDER_CLS(
             server_name=server_name, preregistered=bool(cfg.get("client_id")), server_url=entry.server_url,
             **build_provider_kwargs(cfg, storage, ssh_proxy_hint=False))
 
-    def remove(self, server_name: str, *, hermes_home: str | Path | None = None) -> _ProviderEntry | None:
+    def remove(self, server_name: str, *, kova_home: str | Path | None = None) -> _ProviderEntry | None:
         """Evict the provider from cache AND delete tokens from disk (``hermes mcp remove`` / forced re-auth)."""
-        entry = self.evict(server_name, hermes_home=hermes_home)
+        entry = self.evict(server_name, kova_home=kova_home)
         from tools.mcp_oauth import remove_oauth_tokens
-        remove_oauth_tokens(server_name, hermes_home=hermes_home)
+        remove_oauth_tokens(server_name, kova_home=kova_home)
         logger.info("MCP OAuth '%s': evicted from cache and removed from disk", server_name)
         return entry
 
-    def restore_entry(self, server_name: str, entry: _ProviderEntry | None, *, hermes_home: str | Path | None = None) -> None:
+    def restore_entry(self, server_name: str, entry: _ProviderEntry | None, *, kova_home: str | Path | None = None) -> None:
         """Restore a provider entry removed for a failed reauthorization."""
         if entry is None:
             return
         with self._entries_lock:
-            self._entries.setdefault(self._key(server_name, hermes_home), entry)
+            self._entries.setdefault(self._key(server_name, kova_home), entry)
 
-    def evict(self, server_name: str, *, hermes_home: str | Path | None = None) -> _ProviderEntry | None:
+    def evict(self, server_name: str, *, kova_home: str | Path | None = None) -> _ProviderEntry | None:
         """Drop only the in-process provider, preserving persisted OAuth state."""
         with self._entries_lock:
-            return self._entries.pop(self._key(server_name, hermes_home), None)
+            return self._entries.pop(self._key(server_name, kova_home), None)
 
-    async def invalidate_if_disk_changed(self, server_name: str, *, hermes_home: str | Path | None = None) -> bool:
+    async def invalidate_if_disk_changed(self, server_name: str, *, kova_home: str | Path | None = None) -> bool:
         """Force the SDK provider to reload when the tokens file mtime changed (e.g. a cron refresh); True if so."""
         from tools.mcp_oauth import _get_token_dir, _safe_filename
         from utils import file_cache_version
-        entry = self._entries.get(self._key(server_name, hermes_home))
+        entry = self._entries.get(self._key(server_name, kova_home))
         if entry is None or entry.provider is None:
             return False
         async with entry.lock:
             try:
                 # Hashed every time: a refresh atomically replaced in the same tick keeps the mtime,
                 # and a racy digest going empty later would read as a change and tear the session down.
-                version = file_cache_version(_get_token_dir(hermes_home) / f"{_safe_filename(server_name)}.json",
+                version = file_cache_version(_get_token_dir(kova_home) / f"{_safe_filename(server_name)}.json",
                                              always_digest=True)
             except OSError:
                 return False

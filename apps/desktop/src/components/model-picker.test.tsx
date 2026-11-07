@@ -45,7 +45,7 @@ const OPTIONS: ModelOptionsResult = {
     {
       slug: 'nous',
       name: 'Nous',
-      models: ['Hermes-4.5'],
+      models: ['Kova-4.5'],
       authenticated: true
     }
   ]
@@ -133,7 +133,7 @@ describe('ModelPickerDialog download rows', () => {
     })
     renderPicker()
 
-    expect(await screen.findByText('Hermes-4.5')).toBeTruthy()
+    expect(await screen.findByText('Kova-4.5')).toBeTruthy()
     expect(screen.getByText('Qwen3.8 Flash Next (UD-Q4_K_XL)')).toBeTruthy()
     expect(screen.getByText('41%')).toBeTruthy()
   })
@@ -177,7 +177,7 @@ const WINDOW_USAGE = {
   top_tier_model_ids: ['example/model-b']
 }
 
-// The gateway's per-plan words, passed through by the backend (Hermes never computes them).
+// The gateway's per-plan words, passed through by the backend (Kova never computes them).
 const WINDOW_LEVELS = {
   'example/model-d': 'medium',
   'example/model-b': 'top_tier',

@@ -5,7 +5,7 @@ import subprocess
 
 
 def test_show_status_all_does_not_print_keenable_key_value(monkeypatch, capsys, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     sentinel = "NONSECRET_SENTINEL_VALUE_DO_NOT_PRINT_123456"
     monkeypatch.setenv("KEENABLE_API_KEY", sentinel)
 
@@ -17,7 +17,7 @@ def test_show_status_all_does_not_print_keenable_key_value(monkeypatch, capsys, 
 
 
 def test_show_status_all_does_not_print_tavily_key_value(monkeypatch, capsys, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     sentinel = "NONSECRET_SENTINEL_VALUE_DO_NOT_PRINT_TAVILY_123456"
     monkeypatch.setenv("TAVILY_API_KEY", sentinel)
 
@@ -36,7 +36,7 @@ def test_show_status_termux_gateway_section_skips_systemctl(monkeypatch, capsys,
     monkeypatch.setenv("TERMUX_VERSION", "0.118.3")
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
-    monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(status_mod, "get_kova_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(status_mod, "load_config", lambda: {"model": "gpt-5.4"}, raising=False)
     monkeypatch.setattr(status_mod, "resolve_requested_provider", lambda requested=None: "openai-codex", raising=False)
     monkeypatch.setattr(status_mod, "resolve_provider", lambda requested=None, **kwargs: "openai-codex", raising=False)
@@ -62,7 +62,7 @@ def test_show_status_reports_vercel_backend_contract(monkeypatch, capsys, tmp_pa
     import kova_cli.auth as auth_mod
     import kova_cli.gateway as gateway_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setenv("TERMINAL_ENV", "vercel_sandbox")
     monkeypatch.setenv("TERMINAL_VERCEL_RUNTIME", "python3.13")
     monkeypatch.setenv("TERMINAL_CONTAINER_PERSISTENT", "true")
@@ -95,7 +95,7 @@ def _base_xai_mocks(monkeypatch, tmp_path):
     import kova_cli.gateway as gateway_mod
 
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
-    monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(status_mod, "get_kova_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(status_mod, "load_config", lambda: {"model": "gpt-5.4"}, raising=False)
     monkeypatch.setattr(status_mod, "resolve_requested_provider", lambda requested=None: "openai-codex", raising=False)
     monkeypatch.setattr(status_mod, "resolve_provider", lambda requested=None, **kwargs: "openai-codex", raising=False)
@@ -120,13 +120,13 @@ class TestShowStatusXaiOAuth:
         import kova_cli.auth as auth_mod
         status_mod = _base_xai_mocks(monkeypatch, tmp_path)
         monkeypatch.setattr(auth_mod, "get_xai_oauth_auth_status",
-                            lambda: {"logged_in": True, "auth_store": "/home/u/.hermes/auth.json"},
+                            lambda: {"logged_in": True, "auth_store": "/home/u/.kova/auth.json"},
                             raising=False)
 
         status_mod.show_status(SimpleNamespace(full=True, deep=False))
         out = capsys.readouterr().out
 
-        assert "Auth file:  /home/u/.hermes/auth.json" in out
+        assert "Auth file:  /home/u/.kova/auth.json" in out
 
 
 
@@ -192,9 +192,9 @@ def test_show_status_reports_gateway_session_last_activity(monkeypatch, capsys, 
     import kova_state
     import time
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
-    monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
+    monkeypatch.setattr(status_mod, "get_kova_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(status_mod, "load_config", lambda: {"model": "gpt-5.4"}, raising=False)
     monkeypatch.setattr(status_mod, "resolve_requested_provider", lambda requested=None: "openai-codex", raising=False)
     monkeypatch.setattr(status_mod, "resolve_provider", lambda requested=None, **kwargs: "openai-codex", raising=False)
@@ -240,7 +240,7 @@ def _status_args(*argv):
 def test_status_defaults_to_summary_and_full_or_all_prints_every_section(monkeypatch, capsys, tmp_path):
     from kova_cli import model_switch
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(model_switch, "list_authenticated_providers", lambda **_: [{"name": "Acme AI"}])
 
     show_status(_status_args())
@@ -257,7 +257,7 @@ def test_platform_rows_follow_the_gateway_verdict_not_check_fn(monkeypatch, caps
     import gateway.config as gateway_config
     from gateway.platform_registry import platform_registry
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     entries = [SimpleNamespace(name=n, label=n.title(), check_fn=lambda: True) for n in ("telegram", "discord")]
     monkeypatch.setattr(platform_registry, "plugin_entries", lambda: entries)
     monkeypatch.setattr(gateway_config, "load_gateway_config", lambda: SimpleNamespace(

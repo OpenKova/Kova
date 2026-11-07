@@ -1,4 +1,4 @@
-"""Audit log for dashboard-auth events: ``$HERMES_HOME/logs/dashboard-auth.log``, one JSON object
+"""Audit log for dashboard-auth events: ``$KOVA_HOME/logs/dashboard-auth.log``, one JSON object
 per line. Token-like fields are stripped before serialisation so refresh tokens / JWTs never
 reach disk. Minimal import surface (no ``kova_constants`` at import time) so early-loading
 middleware can import it."""
@@ -57,8 +57,8 @@ class AuditEvent(enum.Enum):
 
 def _resolve_log_path() -> Path:
     """Lazy leaf import: honours profile overrides + the native-Windows ``%LOCALAPPDATA%`` fallback."""
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "logs" / "dashboard-auth.log"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "logs" / "dashboard-auth.log"
 
 
 def _bounded_value(value: Any) -> Any:

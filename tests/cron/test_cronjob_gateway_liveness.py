@@ -24,11 +24,11 @@ import pytest
 
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME for each test so jobs don't leak."""
-    home = tmp_path / ".hermes"
+    """Isolate KOVA_HOME for each test so jobs don't leak."""
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "cron").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     import importlib
 

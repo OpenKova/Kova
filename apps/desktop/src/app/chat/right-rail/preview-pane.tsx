@@ -218,7 +218,7 @@ function isModuleMimeError(message: string): boolean {
  */
 const PREVIEW_PRINT_GUARD_SCRIPT =
   '(function(){if(window.__hermesPrintGuard)return;window.__hermesPrintGuard=true;' +
-  'window.print=function(){console.warn("[Hermes] Printing is disabled in the in-app preview. ' +
+  'window.print=function(){console.warn("[Kova] Printing is disabled in the in-app preview. ' +
   'Open the page in your browser to print.");};})()'
 
 function PreviewLoadError({
@@ -246,7 +246,7 @@ function PreviewLoadError({
             href={error.url}
             onClick={event => {
               event.preventDefault()
-              void window.hermesDesktop?.openExternal(error.url)
+              void window.kovaDesktop?.openExternal(error.url)
             }}
           >
             {compactUrl(error.url)}
@@ -717,7 +717,7 @@ export function PreviewPane({
 
     // Auto-open the preview console so the user can see progress events
     // streaming back from the background agent. Without this, clicking
-    // "Ask Hermes to restart the server" looked like it did nothing —
+    // "Ask Kova to restart the server" looked like it did nothing —
     // the work was happening, but in a collapsed pane.
     consoleState.setOpen(true)
 
@@ -984,8 +984,8 @@ export function PreviewPane({
     if (
       target.kind !== 'file' ||
       isDesktopFsRemoteMode() ||
-      !window.hermesDesktop?.watchPreviewFile ||
-      !window.hermesDesktop?.onPreviewFileChanged
+      !window.kovaDesktop?.watchPreviewFile ||
+      !window.kovaDesktop?.onPreviewFileChanged
     ) {
       return
     }
@@ -1018,7 +1018,7 @@ export function PreviewPane({
       reloadPreview()
     }
 
-    const unsubscribe = window.hermesDesktop.onPreviewFileChanged(payload => {
+    const unsubscribe = window.kovaDesktop.onPreviewFileChanged(payload => {
       if (!active || payload.id !== watchId) {
         return
       }
@@ -1036,7 +1036,7 @@ export function PreviewPane({
       }, FILE_RELOAD_DEBOUNCE_MS)
     })
 
-    void window.hermesDesktop
+    void window.kovaDesktop
       .watchPreviewFile(target.url)
       .then(watch => {
         // The file was already gone when the watch was requested (a restored
@@ -1047,7 +1047,7 @@ export function PreviewPane({
         }
 
         if (!active) {
-          void window.hermesDesktop?.stopPreviewFileWatch?.(watch.id)
+          void window.kovaDesktop?.stopPreviewFileWatch?.(watch.id)
 
           return
         }
@@ -1070,7 +1070,7 @@ export function PreviewPane({
       }
 
       if (watchId) {
-        void window.hermesDesktop?.stopPreviewFileWatch?.(watchId)
+        void window.kovaDesktop?.stopPreviewFileWatch?.(watchId)
       }
     }
   }, [appendConsoleEntry, copy, reloadPreview, target.kind, target.url])
@@ -1141,7 +1141,7 @@ export function PreviewPane({
       const url = String(detail.args?.[0] ?? '')
 
       if (admitPreviewExternalUrl(url)) {
-        void window.hermesDesktop?.openExternal?.(url)
+        void window.kovaDesktop?.openExternal?.(url)
       }
     }
 
@@ -1290,7 +1290,7 @@ export function PreviewPane({
         return
       }
 
-      const zoom = window.hermesDesktop?.zoom?.factor?.() || 1
+      const zoom = window.kovaDesktop?.zoom?.factor?.() || 1
       // Window CSS point of the click (the menu anchors here).
       const windowX = params.x / zoom
       const windowY = params.y / zoom
@@ -1326,10 +1326,10 @@ export function PreviewPane({
             const webContentsId = webview.getWebContentsId?.()
 
             if (typeof webContentsId === 'number') {
-              void window.hermesDesktop?.contextMenuGuestAddWord?.({ webContentsId, word })
+              void window.kovaDesktop?.contextMenuGuestAddWord?.({ webContentsId, word })
             }
           },
-          copyImage: () => void window.hermesDesktop?.contextMenuCopyImage?.(),
+          copyImage: () => void window.kovaDesktop?.contextMenuCopyImage?.(),
           // The tag's edit commands act on the focused webContents, and the
           // menu click just parked focus on the HOST body — measured live:
           // selectAll() with host focus selected the address bar + chat

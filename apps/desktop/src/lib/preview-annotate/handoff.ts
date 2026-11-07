@@ -311,7 +311,7 @@ export function subscribePreviewAnnotateHandoff(
     request: PreviewAnnotateHandoffRequest
   ) => PreviewAnnotateHandoffResult | null | Promise<PreviewAnnotateHandoffResult | null>
 ): () => void {
-  const desktopBridge = typeof window !== 'undefined' ? window.hermesDesktop?.windowRelay : undefined
+  const desktopBridge = typeof window !== 'undefined' ? window.kovaDesktop?.windowRelay : undefined
 
   if (desktopBridge?.onMessage && desktopBridge.send) {
     return desktopBridge.onMessage(payload => {
@@ -442,7 +442,7 @@ export async function handoffPreviewAnnotateStack(
     type: 'preview-annotate-handoff'
   }
 
-  const desktopBridge = typeof window !== 'undefined' ? window.hermesDesktop?.windowRelay : undefined
+  const desktopBridge = typeof window !== 'undefined' ? window.kovaDesktop?.windowRelay : undefined
 
   if (desktopBridge?.onMessage && desktopBridge.send) {
     return new Promise(resolve => {

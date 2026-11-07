@@ -62,7 +62,7 @@ from tests.compat.old_updater_support import (
         ("_insert_python_pin", (["uv", "pip", "install", "-e", "."],), {}),
         ("_interpreter_scripts_dir", (), {}),
         ("_load_installable_optional_extras", (), {"group": "termux-all"}),
-        ("_parse_pe_machine", (Path("Hermes.exe"),), {}),
+        ("_parse_pe_machine", (Path("Kova.exe"),), {}),
         ("_quarantine_running_hermes_exe", (Path("venv"),), {"max_attempts": 1, "failed_out": []}),
         ("_repair_broken_lazy_refresh_imports", (["uv", "pip"], ["certifi"]), {"env": {"VIRTUAL_ENV": "venv"}}),
         ("_run_install_with_heartbeat", (["uv", "pip", "install", "-e", "."],),
@@ -95,7 +95,7 @@ from tests.compat.old_updater_support import (
         ("kova_cli.main_web_build", "_run_npm_install_deterministic", ("npm", Path("web")), {}, None),
         ("kova_cli.main_web_build", "_nixos_build_env", (), {}, None),
         ("kova_cli.main", "_reexec_dependency_sync_off_windows_shim", (), {}, None),
-        ("kova_cli.update_cmd", "get_default_hermes_root", (), {}, None),
+        ("kova_cli.update_cmd", "get_default_kova_root", (), {}, None),
         ("kova_cli.tools_config", "_pip_install", (["--quiet", "honcho-ai"],), {}, None),
         ("kova_cli.tools_config", "_pip_install", (["--quiet", "honcho-ai"],), {"timeout": 120, "capture_output": False}, None),
     ],
@@ -154,7 +154,7 @@ def test_current_updater_entrypoints_declare_the_handoff_sentinel():
     # `hermes update` frame hand off to the takeover child mid-run. Assert
     # against the shipped entrypoints in a fresh interpreter: importing
     # kova_cli.main probes the checkout's payload manifest, which the
-    # in-process home-I/O guard refuses for worktrees under ~/.hermes.
+    # in-process home-I/O guard refuses for worktrees under ~/.kova.
     code = (
         "from kova_cli import main as hermes_main\n"
         "from kova_cli import update_cmd\n"

@@ -29,7 +29,7 @@ def clean_layers():
 
 @pytest.fixture
 def home(tmp_path, monkeypatch, clean_layers):
-    """A temp HERMES_HOME with no plugins and an empty bundled plugin dir."""
+    """A temp KOVA_HOME with no plugins and an empty bundled plugin dir."""
     from kova_cli import plugins as plugins_mod
 
     home = tmp_path / "home"
@@ -37,8 +37,8 @@ def home(tmp_path, monkeypatch, clean_layers):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_LANGUAGE", raising=False)
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.delenv("KOVA_LANGUAGE", raising=False)
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     i18n.reset_language_cache()
     return home
@@ -94,23 +94,23 @@ def test_overlay_only_language_is_supported_and_falls_back_to_english(home):
 
 def test_overlay_is_profile_scoped_across_two_homes(tmp_path, monkeypatch, clean_layers):
     """Home A overlays de; home B does not. A → B → A must never serve A's overlay to B or B's miss to A."""
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     home_a, home_b = tmp_path / "a", tmp_path / "b"
     (home_a / "locales").mkdir(parents=True)
     home_b.mkdir()
     (home_a / "locales" / "de.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Nur A"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("KOVA_HOME", str(home_a))
     i18n.reset_language_cache()
     bundled_de = i18n_layers.parse_locale_file(i18n._locales_dir() / "de.yaml")[_KEY]
 
     assert i18n.t(_KEY, lang="de") == "Nur A"
-    token = set_hermes_home_override(home_b)
+    token = set_kova_home_override(home_b)
     try:
         assert i18n.t(_KEY, lang="de") == bundled_de
         assert "eo" not in i18n.supported_languages()
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
     assert i18n.t(_KEY, lang="de") == "Nur A"
 
 

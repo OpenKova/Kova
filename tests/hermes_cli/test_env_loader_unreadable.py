@@ -36,7 +36,7 @@ def _deny_reads(monkeypatch, path: Path) -> None:
 def managed_dir(tmp_path, monkeypatch):
     md = tmp_path / "managed"
     md.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(md))
+    monkeypatch.setenv("KOVA_MANAGED_DIR", str(md))
     managed_scope.invalidate_managed_cache()
     yield md
     managed_scope.invalidate_managed_cache()
@@ -64,15 +64,15 @@ def _profile(tmp_path: Path) -> tuple[Path, Path]:
 def test_unreadable_user_env_loads_as_absent_under_a_pinned_backend(tmp_path, monkeypatch, caplog, pinned):
     home, env_file = _profile(tmp_path)
     monkeypatch.setenv("OPENAI_API_KEY", "from-launcher")
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "from-launcher")  # a readable .env clears it when unset there
+    monkeypatch.setenv("KOVA_ACP_AUTH_METHOD", "from-launcher")  # a readable .env clears it when unset there
     _deny_reads(monkeypatch, env_file)
 
     with caplog.at_level(logging.WARNING, logger="kova_cli.env_loader"):
         for _ in range(3):  # gateways reload the .env every turn
-            assert load_hermes_dotenv(hermes_home=home) == []
+            assert load_hermes_dotenv(kova_home=home) == []
 
     assert os.environ["OPENAI_API_KEY"] == "from-launcher"
-    assert os.environ["HERMES_ACP_AUTH_METHOD"] == "from-launcher"
+    assert os.environ["KOVA_ACP_AUTH_METHOD"] == "from-launcher"
     warnings = [r for r in caplog.records if str(env_file) in r.getMessage()]
     assert len(warnings) == 1
 
@@ -92,7 +92,7 @@ def test_unreadable_user_env_raises_without_a_pinned_backend(tmp_path, monkeypat
     _deny_reads(monkeypatch, env_file)
 
     with pytest.raises(PermissionError):
-        load_hermes_dotenv(hermes_home=home)
+        load_hermes_dotenv(kova_home=home)
 
 
 def test_project_env_does_not_replace_launcher_keys(tmp_path, monkeypatch, pinned):
@@ -104,7 +104,7 @@ def test_project_env_does_not_replace_launcher_keys(tmp_path, monkeypatch, pinne
     monkeypatch.delenv("LAB_PROJECT_ONLY")
     _deny_reads(monkeypatch, env_file)
 
-    assert load_hermes_dotenv(hermes_home=home, project_env=project_env) == [project_env]
+    assert load_hermes_dotenv(kova_home=home, project_env=project_env) == [project_env]
 
     assert os.environ["OPENAI_API_KEY"] == "from-launcher"
     assert os.environ["LAB_PROJECT_ONLY"] == "from-project"

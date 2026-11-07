@@ -1,12 +1,12 @@
 """``hermes peer`` — bot-to-bot DMs across machines/gateways.
 
-A *peer* is another Hermes gateway running the ``api_server`` platform; its stock
+A *peer* is another Kova gateway running the ``api_server`` platform; its stock
 API is the transport (no new server surface). ``dm`` resolves the remote canonical
 "Bot Chat" session (creating it when missing) and runs ONE synchronous turn — the
 cross-machine twin of ``hermes -p <bot> chat --in ~ -c "Bot Chat"``. ``run``/``status``
 /``stop`` do the same turn through the async Runs API. Peer labels/URLs live in
-config.yaml (``bot_peers``); the key lives in ``~/.hermes/.env`` as
-``HERMES_PEER_<NAME>_KEY``. ``<peer>/<profile>`` targets the ``/p/<profile>/`` mirror.
+config.yaml (``bot_peers``); the key lives in ``~/.kova/.env`` as
+``KOVA_PEER_<NAME>_KEY``. ``<peer>/<profile>`` targets the ``/p/<profile>/`` mirror.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ LIST_TIMEOUT_S = 30
 
 
 def _peer_key_env(name: str) -> str:
-    return f"HERMES_PEER_{name.upper().replace('-', '_')}_KEY"
+    return f"KOVA_PEER_{name.upper().replace('-', '_')}_KEY"
 
 
 def _load_peers() -> dict:
@@ -175,7 +175,7 @@ def _ensure_bot_chat(base: str, key: str) -> str:
             raise RuntimeError(
                 f"Peer already has a '{BOT_CHAT_TITLE}' session but it is hidden and the "
                 f"peer's gateway is too old to expose hidden sessions to this lookup "
-                f"(HTTP 400: {detail}). Update the peer's hermes-agent, or unhide the "
+                f"(HTTP 400: {detail}). Update the peer's kova-agent, or unhide the "
                 f"session there: PATCH /api/sessions/<id> {{\"hidden\": false}}.") from exc
         raise
     # Real api_server wraps the row: {"object": "hermes.session", "session": {...}}.
@@ -197,7 +197,7 @@ def _parse_target(target: str) -> tuple[str, str | None]:
     if profile and not _PROFILE_RE.match(profile):
         raise ValueError(f"Invalid agent/profile name: {profile!r}")
     if profile:
-        # Profile ids are lowercase (normalize_profile_name); 'box/Hermes' must address the
+        # Profile ids are lowercase (normalize_profile_name); 'box/Kova' must address the
         # peer's real 'hermes' profile on every peer, including those that compare prefixes exactly.
         from kova_cli.profiles import normalize_profile_name
         profile = normalize_profile_name(profile)
@@ -224,7 +224,7 @@ def _resolve_peer_target(target: str) -> tuple[str, str | None, dict, str]:
     if not key:
         raise PermissionError(
             f"No API key for peer '{peer_name}'. Set it: hermes peer add {peer_name} "
-            f"--url <url> --key <key> (or add {_peer_key_env(peer_name)}=<key> to ~/.hermes/.env)")
+            f"--url <url> --key <key> (or add {_peer_key_env(peer_name)}=<key> to ~/.kova/.env)")
     return peer_name, profile, peer, key
 
 
@@ -287,12 +287,12 @@ def _peer_add(args) -> int:
         from kova_cli.config import save_env_value
 
         save_env_value(_peer_key_env(name), key)
-        print(f"Peer '{name}' saved ({url}) — key stored as {_peer_key_env(name)} in ~/.hermes/.env")
+        print(f"Peer '{name}' saved ({url}) — key stored as {_peer_key_env(name)} in ~/.kova/.env")
     else:
         print(
             f"Peer '{name}' saved ({url}). No key given — set the peer's API_SERVER_KEY with:\n"
             f"  hermes peer add {name} --url {url} --key <key>\n"
-            f"  (or add {_peer_key_env(name)}=<key> to ~/.hermes/.env)")
+            f"  (or add {_peer_key_env(name)}=<key> to ~/.kova/.env)")
     return 0
 
 
@@ -347,7 +347,7 @@ def _peer_run_ctl(args, action: str, peer_name: str, profile: str | None, base: 
 
 
 def _turn_body(message: str, *, message_key: str, **extra) -> dict:
-    """Request body for one turn. ``author`` is added only when a dispatcher set HERMES_TURN_AUTHOR."""
+    """Request body for one turn. ``author`` is added only when a dispatcher set KOVA_TURN_AUTHOR."""
     from agent.turn_author import turn_author_from_env
 
     body = {message_key: message, **extra}
@@ -474,13 +474,13 @@ def cmd_peer(args) -> int:
 def build_peer_parser(subparsers) -> None:
     """Attach the ``peer`` subcommand to ``subparsers``."""
     parser = subparsers.add_parser(
-        "peer", help="Bot-to-bot DMs across machines (peer Hermes gateways)",
-        description="Register other Hermes gateways as peers and message their agents. "
+        "peer", help="Bot-to-bot DMs across machines (peer Kova gateways)",
+        description="Register other Kova gateways as peers and message their agents. "
             "'hermes peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
             "agent's canonical Bot Chat over the peer's API server and prints "
             "the reply — the cross-machine twin of 'hermes -p <bot> chat'. "
             "The peer must run the api_server platform; its API_SERVER_KEY is "
-            "stored locally as a credential in ~/.hermes/.env.",
+            "stored locally as a credential in ~/.kova/.env.",
         epilog=(
             "Examples:\n"
             "  hermes peer add spark --url http://spark.lan:8377 --key <API_SERVER_KEY>\n"
@@ -499,7 +499,7 @@ def build_peer_parser(subparsers) -> None:
     add_p = peer_sub.add_parser("add", aliases=["set"], help="Register (or update) a peer gateway")
     add_p.add_argument("name", help="Peer name (lowercase slug, e.g. spark, homelab)")
     add_p.add_argument("--url", required=True, help="Peer gateway base URL, e.g. http://spark.lan:8377")
-    add_p.add_argument("--key", default="", help="The peer's API_SERVER_KEY (stored in ~/.hermes/.env)")
+    add_p.add_argument("--key", default="", help="The peer's API_SERVER_KEY (stored in ~/.kova/.env)")
     add_p.add_argument("--note", default="", help="Optional description")
 
     peer_sub.add_parser("list", aliases=["ls"], help="List registered peers")

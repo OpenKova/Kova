@@ -1,7 +1,7 @@
 """Core makes Codex-signed requests for plugins; the token never reaches plugin code.
 
 Real loopback HTTP servers stand in for the provider; a real plugin directory under the test
-HERMES_HOME makes the call, and a fake Codex sign-in is seeded in that home's auth store.
+KOVA_HOME makes the call, and a fake Codex sign-in is seeded in that home's auth store.
 """
 
 import base64
@@ -74,7 +74,7 @@ def stubs(monkeypatch):
 
 
 def _home() -> Path:
-    return Path(os.environ["HERMES_HOME"])
+    return Path(os.environ["KOVA_HOME"])
 
 
 def _sign_in():

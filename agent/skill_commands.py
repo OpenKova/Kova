@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 from agent.prompt_cache_boundary import register_stable_prefix
 from agent.skill_preprocessing import load_skills_config as _load_skills_config, preprocess_skill_content
 from agent.skill_utils import AMBIGUOUS_SKILL_PREFIX
@@ -221,24 +221,24 @@ def _resolve_skill_commands_platform() -> Optional[str]:
     """
     try:
         from gateway.session_context import get_session_env
-        resolved_platform = os.getenv("HERMES_PLATFORM") or get_session_env("HERMES_SESSION_PLATFORM")
+        resolved_platform = os.getenv("KOVA_PLATFORM") or get_session_env("KOVA_SESSION_PLATFORM")
     except Exception:
-        resolved_platform = os.getenv("HERMES_PLATFORM")
+        resolved_platform = os.getenv("KOVA_PLATFORM")
     return resolved_platform or None
 
 
 def _resolve_skill_commands_home() -> str:
-    """Effective Hermes home the scan is scoped to (profiles carry their own
+    """Effective Kova home the scan is scoped to (profiles carry their own
     ``skills.external_dirs``, so a profile switch must invalidate the cache).
 
     A gateway session can switch between profiles that each carry their own ``skills.external_dirs`` (via
-    ``set_hermes_home_override``), but the module-level scan only tracked
+    ``set_kova_home_override``), but the module-level scan only tracked
     ``_resolve_skill_commands_platform()``. Switching profiles without a platform change left the previous
     profile's skill list cached, so ``get_skill_commands()`` reported a cache miss for skills that only
     exist under the new profile (#88023).
     """
-    from kova_constants import get_hermes_home
-    return str(get_hermes_home())
+    from kova_constants import get_kova_home
+    return str(get_kova_home())
 
 
 def _resolve_skill_commands_project() -> Optional[str]:
@@ -309,7 +309,7 @@ def format_missing_skills(missing: list[str]) -> str:
 
 
 def _inject_skill_config(loaded_skill: dict[str, Any], parts: list[str]) -> None:
-    """Append a ``[Skill config: ...]`` block with resolved ``metadata.hermes.config``
+    """Append a ``[Skill config: ...]`` block with resolved ``metadata.kova.config``
     values so the agent needn't read config.yaml. Any failure leaves the message without it."""
     try:
         from agent.skill_utils import extract_skill_config_vars, parse_frontmatter, resolve_skill_config_values
@@ -319,7 +319,7 @@ def _inject_skill_config(loaded_skill: dict[str, Any], parts: list[str]) -> None
         if not resolved:
             return
         parts.append("")
-        parts.append(f"[Skill config (from {display_hermes_home()}/config.yaml):")
+        parts.append(f"[Skill config (from {display_kova_home()}/config.yaml):")
         parts.extend(f"  {key} = {str(value) if value else '(not set)'}" for key, value in resolved.items())
         parts.append("]")
     except Exception:
@@ -499,7 +499,7 @@ def _scan_skill_md(skill_md: Path, disabled: set, seen_names: set, commands: dic
     # A collision with a core command (name or alias) skips auto-registration; the skill stays
     # loadable via /skill <name>. The same predicate feeds the /skills + palette notes.
     if skill_command_collision_note(name) is not None:
-        logger.warning("Skill %r generates slash command '/%s' which collides with a core Hermes command; "
+        logger.warning("Skill %r generates slash command '/%s' which collides with a core Kova command; "
                        "skipping auto-registration. Use '/skill %s' instead.", name, cmd_name, name)
         return
     # Dedup on the slug too: "git_helper" and "git-helper" normalize the same.
@@ -594,20 +594,20 @@ def published_scopes_signature() -> tuple:
     Only command maps/catalogs refetch; a conversation's stored system prompt is never rebuilt.
     """
     from agent.runtime_cwd import reset_session_cwd, set_session_cwd
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
     with _publish_lock:
         keys = list(_skill_commands_by_key)
     scopes = sorted({(home, project) for _platform, home, project in keys if home})[:_MAX_WATCHED_SCOPES]
     rows = [("", None, _skill_dirs_signature())]
     for home, project in scopes:
-        home_token = set_hermes_home_override(home)
+        home_token = set_kova_home_override(home)
         # No project: an empty session cwd would fall back to the process cwd; "/" resolves no repo.
         cwd_token = set_session_cwd(project or os.path.sep)
         try:
             rows.append((home, project, _skill_dirs_signature()))
         finally:
             reset_session_cwd(cwd_token)
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)
     return tuple(rows)
 
 
@@ -657,7 +657,7 @@ def get_skill_commands() -> dict[str, dict[str, Any]]:
 
 # Plugin projection cache. The projection re-parses every plugin SKILL.md and sits on the
 # per-keystroke completion path (94 ms per Tab measured with 60 plugin skills), so it is reused
-# while its tag holds: the resolved Hermes home (plugin managers are home-keyed, so profiles never
+# while its tag holds: the resolved Kova home (plugin managers are home-keyed, so profiles never
 # share a registry) plus the registered qualified names (a plugin enable/disable/install changes
 # them). ``reload_skills()`` drops it explicitly to pick up edited SKILL.md files.
 _plugin_skill_commands: dict[str, dict[str, Any]] = {}
@@ -682,12 +682,12 @@ def get_plugin_skill_commands() -> dict[str, dict[str, Any]]:
     from kova_cli.plugins import discover_plugins, get_plugin_manager
     from kova_cli.plugins_content import plugin_skill_owners
     from kova_cli.plugins_discovery import _get_disabled_plugins
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     discover_plugins()  # no-op once this home is discovered
     manager = get_plugin_manager()
     metadata = manager.list_plugin_skill_metadata()
-    tag = (str(get_hermes_home()), tuple(str(m.get("name") or "") for m in metadata))
+    tag = (str(get_kova_home()), tuple(str(m.get("name") or "") for m in metadata))
     with _publish_lock:
         cached, is_fresh = _plugin_skill_commands, _plugin_skill_commands_tag == tag
     if not is_fresh:
@@ -1006,10 +1006,10 @@ def build_auto_load_prompt(
 
     *home_override* makes home resolution EXPLICIT (same seam as ``build_skills_system_prompt``): the config,
     the disabled list and the ``<home>/skills`` lookup all resolve under that home, so a gateway build thread
-    that lost the HERMES_HOME ContextVar cannot pin the launch profile's skills into another profile's prompt.
+    that lost the KOVA_HOME ContextVar cannot pin the launch profile's skills into another profile's prompt.
     """
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
-    home_token = set_hermes_home_override(str(home_override)) if home_override is not None else None
+    from kova_constants import reset_kova_home_override, set_kova_home_override
+    home_token = set_kova_home_override(str(home_override)) if home_override is not None else None
     try:
         auto_skills = resolve_auto_load_skills(user_config)
         if not auto_skills:
@@ -1025,4 +1025,4 @@ def build_auto_load_prompt(
         return "\n\n".join(prompt_parts), loaded_names, missing
     finally:
         if home_token is not None:
-            reset_hermes_home_override(home_token)
+            reset_kova_home_override(home_token)

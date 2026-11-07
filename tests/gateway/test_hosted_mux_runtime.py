@@ -180,13 +180,13 @@ def test_room_coordinator_submits_once_to_destination_authority(mux, monkeypatch
     from gateway.session_authorities import owner_scope
     from gateway.session_authority import SessionAuthority
     from gateway.session_hosted_service import ensure_hosted_service
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     from kova_state_runtime import list_session_admissions
 
     runner, homes, _, call = mux
     executed = []
     async def execute(authority, ref, row):
-        executed.append((authority.profile_id, ref.profile_id, str(get_hermes_home()), row['admission_id']))
+        executed.append((authority.profile_id, ref.profile_id, str(get_kova_home()), row['admission_id']))
         return 'member reply'
     monkeypatch.setattr(session_finite, 'execute_finite_admission', execute)
     for authority in runner.session_authorities:

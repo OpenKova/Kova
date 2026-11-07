@@ -50,8 +50,8 @@ def _doctor_fix(tmp_path, monkeypatch, cfg):
     root = tmp_path / "checkout"  # only the template, so a stray cli-config.yaml cannot short-circuit the seed
     root.mkdir()
     shutil.copy2(cfg.get_project_root() / "cli-config.yaml.example", root / "cli-config.yaml.example")
-    home = cfg.get_hermes_home()
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    home = cfg.get_kova_home()
+    monkeypatch.setattr(doctor, "KOVA_HOME", home)
     monkeypatch.setattr(doctor, "PROJECT_ROOT", root)
     assert _check_config_file(True).fixed == 1
     if os.name == "posix":
@@ -75,7 +75,7 @@ def test_every_seeder_keeps_every_platform_display_default(tmp_path, monkeypatch
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
     SEEDERS[seeder](tmp_path, monkeypatch, cfg)
 
@@ -89,7 +89,7 @@ def test_config_edit_refusal_without_a_config_file_exits_nonzero(tmp_path, monke
     cannot read the refusal as a successful edit (teknium1 P3 on #122509)."""
     import kova_cli.config as cfg
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     monkeypatch.setattr(cfg, "is_managed", lambda: False)
     monkeypatch.setattr(cfg, "supports_file_tooling", lambda: False)
     monkeypatch.setattr(cfg.subprocess, "run", lambda *a, **k: pytest.fail("no editor may open"))
@@ -108,7 +108,7 @@ def test_template_seeded_config_keeps_the_update_backup_default(tmp_path, monkey
     from kova_cli.update_cmd_maint import _resolve_pre_update_backup_mode
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     assert cfg.seed_config_file(home / "config.yaml")
 
     assert _resolve_pre_update_backup_mode(Namespace(no_backup=False, backup=False)) == \

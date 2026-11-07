@@ -17,7 +17,7 @@ def _plugin_server_rows(
     if not portable or plugin_dir is None:
         return []
     package = _tools_mod("kova_cli.agent_plugins").load_agent_plugin(plugin_dir, plugin_dir)
-    namespace = package.manifest.get("extensions", {}).get("com.nousresearch.hermes", {})
+    namespace = package.manifest.get("extensions", {}).get("com.nousresearch.kova", {})
     declared = namespace.get("servers", {})
     if not isinstance(declared, dict):
         return []
@@ -103,7 +103,7 @@ def _plugin_tool_ownership() -> dict[str, list[str]]:
     plugins_mod.discover_plugins()
     manager = plugins_mod.get_plugin_manager()
     native = _tools_mod("kova_cli.config").load_config().get("mcp_servers")
-    builtin = set(toolsets._HERMES_CORE_TOOLS)
+    builtin = set(toolsets._KOVA_CORE_TOOLS)
     for entry in toolsets.TOOLSETS.values():
         builtin.update(entry.get("tools", ()))
     listed = {key: set(loaded.tools_registered) - builtin for key, loaded in manager._plugins.items()}

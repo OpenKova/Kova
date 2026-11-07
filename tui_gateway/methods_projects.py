@@ -141,27 +141,27 @@ def _non_workspace_dirs() -> set[str]:
 
 def _is_repo_junk(root: str) -> bool:
     """A git root never auto-surfaced as a project: a non-workspace dir or anything under
-    HERMES_HOME. User-created projects pointing there are still honored."""
+    KOVA_HOME. User-created projects pointing there are still honored."""
     if not root:
         return True
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     real = os.path.realpath(root)
-    hermes_home = os.path.realpath(str(get_hermes_home()))
+    kova_home = os.path.realpath(str(get_kova_home()))
     return (
         os.path.normcase(real) in _non_workspace_dirs()
-        or real == hermes_home
-        or real.startswith(hermes_home + os.sep))
+        or real == kova_home
+        or real.startswith(kova_home + os.sep))
 
 
 def _is_session_cwd_junk(cwd: str) -> bool:
-    """A non-git cwd that stays in flat Recents. A DESCENDANT of HERMES_HOME may be an
-    intentional prose/data workspace, so only HERMES_HOME itself is excluded here."""
+    """A non-git cwd that stays in flat Recents. A DESCENDANT of KOVA_HOME may be an
+    intentional prose/data workspace, so only KOVA_HOME itself is excluded here."""
     if not cwd:
         return True
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     real = os.path.normcase(os.path.realpath(cwd))
-    hermes_home = os.path.normcase(os.path.realpath(str(get_hermes_home())))
-    return real in _non_workspace_dirs() or real == hermes_home
+    kova_home = os.path.normcase(os.path.realpath(str(get_kova_home())))
+    return real in _non_workspace_dirs() or real == kova_home
 
 
 def _repo_discovery_policy(raw: dict | None = None) -> dict:
@@ -212,7 +212,7 @@ def _scan_discovered_repos_remote(conn, policy: dict) -> bool:
     ``replace=True``; a partial/errored scan must MERGE, or a failed refresh blanks the sidebar.
 
     The desktop's native repo scan only runs on the local filesystem. On a remote gateway connection the
-    host must scan its own disk so repos with zero Hermes sessions still appear in the sidebar (#81723).
+    host must scan its own disk so repos with zero Kova sessions still appear in the sidebar (#81723).
     Mirrors the desktop's behavior: walk each root (bounded depth), find `.git` directories, record (root,
     label) pairs into the discovery cache.
     See #81723.

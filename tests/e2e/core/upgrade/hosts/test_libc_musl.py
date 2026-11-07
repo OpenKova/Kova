@@ -1,6 +1,6 @@
 """Install on a musl libc host (Alpine) through the real ``scripts/install.sh``.
 
-Failure class: libc. Hermes's PM store pins glibc (``-linux-gnu``) builds of uv, CPython and
+Failure class: libc. Kova's PM store pins glibc (``-linux-gnu``) builds of uv, CPython and
 Node. On a musl host those binaries either fail to exec or, with the ``gcompat`` shim, load and
 segfault, so an install or update that publishes them leaves every later ``hermes`` command dead
 (#123682). The acceptable outcomes are: musl-compatible tools that run, or a refusal that tells
@@ -55,12 +55,12 @@ SCRIPT = r"""
 set -u
 apk add --no-cache -q bash git curl >/dev/null 2>&1 || { echo "HARNESS: apk add failed"; exit 90; }
 git config --global safe.directory '*'
-git config --global url."file://$ORIGIN".insteadOf https://github.com/NousResearch/hermes-agent.git
+git config --global url."file://$ORIGIN".insteadOf https://github.com/NousResearch/kova-agent.git
 echo "=== libc: $(ldd --version 2>&1 | head -n1)"
 bash /work/install.sh --non-interactive </dev/null
 echo "=== install rc=$?"
 echo "=== probes"
-for exe in "$HOME"/.hermes/tools/*/uv "$HOME"/.hermes/tools/*/bin/python3 "$HOME"/.hermes/tools/*/bin/node \
+for exe in "$HOME"/.kova/tools/*/uv "$HOME"/.kova/tools/*/bin/python3 "$HOME"/.kova/tools/*/bin/node \
            "$HOME"/.local/bin/hermes; do
     [ -e "$exe" ] || continue
     timeout 60 "$exe" --version >/dev/null 2>&1
@@ -80,7 +80,7 @@ def alpine_install(tmp_path_factory):
     objects = Path(I.git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=H.WORKTREE)) / "objects"
     pull = subprocess.run(["docker", "pull", "-q", IMAGE], capture_output=True, text=True, timeout=600, check=False)
     assert pull.returncode == 0, f"docker pull {IMAGE} failed (network?):\n{pull.stderr[-2000:]}"
-    argv = ["docker", "run", "--rm", "-e", f"ORIGIN={origin}", "-e", "HERMES_INSTALL_CHANNEL=main",
+    argv = ["docker", "run", "--rm", "-e", f"ORIGIN={origin}", "-e", "KOVA_INSTALL_CHANNEL=main",
             "-v", f"{origin}:{origin}:ro", "-v", f"{objects}:{objects}:ro", "-v", f"{work}:/work:ro",
             IMAGE, "sh", "-c", SCRIPT]
     cp = subprocess.run(argv, capture_output=True, text=True, timeout=1800, check=False)

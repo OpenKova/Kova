@@ -301,14 +301,14 @@ def test_seven_physical_else_if_levels_block(tmp_path, capsys):
 # --- HX001 / HX003 / HX012 precision ---
 
 @pytest.mark.parametrize("expr, flagged", [
-    ('Path.home() / ".hermes"', True),
-    ('Path.home() / ".hermes/profiles"', True),
-    ('Path.home() / ".hermes" / "x"', True),
-    ('Path.home() / ".hermes-profile-exports"', False),
-    ('Path.home() / ".hermes_backup"', False),
-    ('os.path.expanduser("~/.hermes")', True),
-    ('os.path.expanduser("~/.hermes/config.yaml")', True),
-    ('os.path.expanduser("~/.hermes-profile-exports")', False),
+    ('Path.home() / ".kova"', True),
+    ('Path.home() / ".kova/profiles"', True),
+    ('Path.home() / ".kova" / "x"', True),
+    ('Path.home() / ".kova-profile-exports"', False),
+    ('Path.home() / ".kova_backup"', False),
+    ('os.path.expanduser("~/.kova")', True),
+    ('os.path.expanduser("~/.kova/config.yaml")', True),
+    ('os.path.expanduser("~/.kova-profile-exports")', False),
 ])
 def test_hardcoded_home_matches_the_exact_component(expr, flagged):
     src = f"import os\nfrom pathlib import Path\n\n\ndef f():\n    return {expr}\n"

@@ -230,7 +230,7 @@ class TestMigrate:
 
     def test_preserves_user_mcp_server_outside_managed_block(self, tmp_path):
         """Quirk #6: when a user adds their own MCP server entry directly
-        to ~/.codex/config.toml outside Hermes' managed block, re-running
+        to ~/.codex/config.toml outside Kova' managed block, re-running
         migration must preserve it. Tested both above and below the
         managed block."""
         target = tmp_path / "config.toml"
@@ -259,7 +259,7 @@ class TestMigrate:
         assert "user-above" in final
         assert "user-below" in final
         # And our managed block is still there with the new content
-        assert "[mcp_servers.hermes-mcp]" in final
+        assert "[mcp_servers.kova-mcp]" in final
 
 
 
@@ -367,13 +367,13 @@ class TestStripUnmanagedPluginTables:
         tomllib.loads(new_text)
 
 
-# ---- Bug C: HERMES_HOME tempdir leak into ~/.codex/config.toml ----
+# ---- Bug C: KOVA_HOME tempdir leak into ~/.codex/config.toml ----
 
 
-class TestHermesHomeLeakGuard:
+class TestKovaHomeLeakGuard:
     """Regression tests for issue #26250 Bug C.
 
-    Previously ``_build_hermes_tools_mcp_entry()`` read ``HERMES_HOME``
+    Previously ``_build_hermes_tools_mcp_entry()`` read ``KOVA_HOME``
     directly from ``os.environ``, so a pytest ``monkeypatch.setenv`` would
     leak a transient tempdir path into the user's real ``~/.codex/config.toml``
     once codex spawned the hermes-tools MCP subprocess.
@@ -382,31 +382,31 @@ class TestHermesHomeLeakGuard:
 
 
 
-    def test_real_hermes_home_propagates(self, monkeypatch, tmp_path):
-        """A legitimate HERMES_HOME (not a tempdir path) DOES propagate so the
+    def test_real_kova_home_propagates(self, monkeypatch, tmp_path):
+        """A legitimate KOVA_HOME (not a tempdir path) DOES propagate so the
         MCP subprocess sees the same config as the parent CLI."""
         # Use a path that looks real — under /Users or /home, not /var/folders.
         # We can't easily create one in the test, so just use a stable path
         # outside any tempdir-detector needle. The detector checks for tempdir
         # markers, not for path existence.
-        real_path = "/Users/alice/.hermes"
-        monkeypatch.setenv("HERMES_HOME", real_path)
+        real_path = "/Users/alice/.kova"
+        monkeypatch.setenv("KOVA_HOME", real_path)
         entry = _build_hermes_tools_mcp_entry()
         env = entry.get("env", {})
-        assert env.get("HERMES_HOME") == real_path
+        assert env.get("KOVA_HOME") == real_path
 
-    def test_unset_hermes_home_omits_env_key(self, monkeypatch):
-        """When HERMES_HOME is unset in the environment, the MCP entry MUST
+    def test_unset_kova_home_omits_env_key(self, monkeypatch):
+        """When KOVA_HOME is unset in the environment, the MCP entry MUST
         NOT bake in a resolved-default path. The codex subprocess should
-        inherit whatever HERMES_HOME its launcher (systemd, gateway, shell)
+        inherit whatever KOVA_HOME its launcher (systemd, gateway, shell)
         sets at runtime, rather than being pinned to migrate-time defaults.
         Regression guard for issue #26250 follow-up review."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("KOVA_HOME", raising=False)
         entry = _build_hermes_tools_mcp_entry()
         env = entry.get("env", {})
-        assert "HERMES_HOME" not in env, (
-            f"HERMES_HOME should not be set when env var is unset, got: "
-            f"{env.get('HERMES_HOME')!r}"
+        assert "KOVA_HOME" not in env, (
+            f"KOVA_HOME should not be set when env var is unset, got: "
+            f"{env.get('KOVA_HOME')!r}"
         )
 
 
@@ -414,7 +414,7 @@ class TestHermesHomeLeakGuard:
 
 
 class TestSameNameUserMcpTable:
-    """Issue #79023: a Hermes server whose name the user already declares outside the managed
+    """Issue #79023: a Kova server whose name the user already declares outside the managed
     block must not be emitted twice (duplicate table header = TOML codex refuses to load)."""
 
     def test_user_table_wins_and_output_stays_valid_toml(self, tmp_path):

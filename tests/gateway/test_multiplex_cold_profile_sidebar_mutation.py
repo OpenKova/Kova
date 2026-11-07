@@ -50,7 +50,7 @@ def multiplex_daemon(tmp_path, profiles=('warm', 'cold')):
     }))
     root = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED='1')
     with (tmp_path / 'gateway.log').open('w+') as log:
         process = subprocess.Popen([sys.executable, '-m', 'gateway.run'], cwd=root, env=env,
@@ -92,7 +92,7 @@ def desktop_ensure(env, root, profile):
 def native_headers(endpoint):
     from kova_cli.gateway_client import _session_ticket
     ticket = _session_ticket(Path(endpoint['profile_id']), SimpleNamespace(**endpoint), purpose='native-http')
-    return {'X-Hermes-Gateway-Ticket': ticket}
+    return {'X-Kova-Gateway-Ticket': ticket}
 
 
 async def create_via_ws(endpoint, request_id, hold=None):
@@ -101,7 +101,7 @@ async def create_via_ws(endpoint, request_id, hold=None):
     from kova_cli.gateway_client import _session_ticket
     ticket = _session_ticket(Path(endpoint['profile_id']), SimpleNamespace(**endpoint), purpose='interactive')
     async with connect(endpoint['api_origin'].replace('http:', 'ws:') + '/api/ws',
-                       subprotocols=['hermes-gateway-v1', 'hermes-gateway-ticket.' + ticket]) as ws:
+                       subprotocols=['kova-gateway-v1', 'kova-gateway-ticket.' + ticket]) as ws:
         await ws.send(json.dumps({'id': 1, 'method': 'session.create',
                                   'params': {'request_id': request_id, 'source': 'gui'}}))
         while True:

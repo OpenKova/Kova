@@ -65,9 +65,9 @@ def _config_document(home: Path) -> dict:
     home, which is always the case in the gateway; otherwise that home's file as written, which only
     ``hermes webapp`` reads, about the gateway it targets, before asking that gateway itself."""
     from kova_cli.config import load_config_readonly, read_user_config_raw
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     try:
-        own = home.resolve() == Path(get_hermes_home()).resolve()
+        own = home.resolve() == Path(get_kova_home()).resolve()
     except OSError:
         own = False
     return load_config_readonly() if own else read_user_config_raw(home / "config.yaml")
@@ -212,7 +212,7 @@ def listener_plan(home) -> tuple[str, int, WebappMount | None, str | None]:
 def use_own_sign_in(webapp: WebappMount):
     """Sign the Webapp's browsers in to Nous with the Portal client Web Access registered for it
     (``kova_cli.webapp_access.sign_in_client``), never the dashboard's
-    ``HERMES_DASHBOARD_OAUTH_CLIENT_ID``, until the returned undo runs. None, changing nothing, when
+    ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``, until the returned undo runs. None, changing nothing, when
     Web Access registered no client of its own (Nous sign-in set up by hand keeps the configured
     client) or the Nous sign-in plugin is not enabled."""
     from kova_cli.dashboard_auth import listener_client
@@ -296,7 +296,7 @@ def _one_use_links_work(platform: str = sys.platform) -> bool:
 #: How every missing-bundle reason starts; ``hermes webapp --status`` asks for no restart after it.
 NOT_BUILT = "The Webapp is not built"
 #: Why a bundle ``hermes update`` could not rebuild is not served (``kova_cli.webapp.mark_webapp_stale``).
-NOT_REBUILT = (f"{NOT_BUILT} for this version of Hermes: hermes update could not rebuild it. "
+NOT_REBUILT = (f"{NOT_BUILT} for this version of Kova: hermes update could not rebuild it. "
                "Run hermes webapp to rebuild it.")
 
 

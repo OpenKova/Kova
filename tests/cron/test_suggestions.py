@@ -2,7 +2,7 @@
 
 Covers the store (add/dedup/cap/accept/dismiss/latch), catalog seeding, the
 blueprint->suggestion bridge, and the shared command handler. Uses an isolated
-HERMES_HOME so the real suggestions.json is never touched.
+KOVA_HOME so the real suggestions.json is never touched.
 """
 
 import importlib
@@ -12,10 +12,10 @@ import pytest
 
 @pytest.fixture
 def store(tmp_path, monkeypatch):
-    """A cron.suggestions module bound to an isolated HERMES_HOME."""
-    home = tmp_path / ".hermes"
+    """A cron.suggestions module bound to an isolated KOVA_HOME."""
+    home = tmp_path / ".kova"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
     import kova_constants
     importlib.reload(kova_constants)
     import cron.suggestions as s
@@ -34,8 +34,8 @@ def _add(store, key="k1", title="Test", source="catalog", schedule="0 9 * * *"):
 class TestStore:
     def test_explicit_file_override_wins_over_profile_home(self, tmp_path, monkeypatch):
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
         import cron.suggestions as suggestions_mod
 
@@ -43,36 +43,36 @@ class TestStore:
         profile_home = tmp_path / "profile"
         monkeypatch.setattr(suggestions_mod, "SUGGESTIONS_FILE", explicit_file)
 
-        token = set_hermes_home_override(profile_home)
+        token = set_kova_home_override(profile_home)
         try:
             _add(suggestions_mod, key="explicit-file")
         finally:
-            reset_hermes_home_override(token)
+            reset_kova_home_override(token)
 
         assert explicit_file.exists()
         assert not (profile_home / "cron" / "suggestions.json").exists()
 
     def test_profile_override_routes_writes_to_current_home(self, tmp_path):
         from kova_constants import (
-            reset_hermes_home_override,
-            set_hermes_home_override,
+            reset_kova_home_override,
+            set_kova_home_override,
         )
         import cron.suggestions as suggestions_mod
 
         profile_a = tmp_path / "profile-a"
         profile_b = tmp_path / "profile-b"
 
-        import_token = set_hermes_home_override(profile_a)
+        import_token = set_kova_home_override(profile_a)
         try:
             importlib.reload(suggestions_mod)
         finally:
-            reset_hermes_home_override(import_token)
+            reset_kova_home_override(import_token)
 
-        runtime_token = set_hermes_home_override(profile_b)
+        runtime_token = set_kova_home_override(profile_b)
         try:
             _add(suggestions_mod, key="profile-b")
         finally:
-            reset_hermes_home_override(runtime_token)
+            reset_kova_home_override(runtime_token)
 
         assert (profile_b / "cron" / "suggestions.json").exists()
         assert not (profile_a / "cron" / "suggestions.json").exists()

@@ -75,7 +75,7 @@ export function useGatewayScopeRefresh(
   activeConnectionId: null | string,
   activeGatewayProfile: string,
   refreshCurrentModel: (force: boolean) => Promise<unknown>,
-  refreshHermesConfig: (force: boolean) => Promise<unknown>
+  refreshKovaConfig: (force: boolean) => Promise<unknown>
 ) {
   const gatewayScope = `${activeConnectionId ?? ''}\0${activeGatewayProfile}`
   const lastGatewayScopeRef = useRef(gatewayScope)
@@ -92,8 +92,8 @@ export function useGatewayScopeRefresh(
     // backend. These refreshes carry intent tokens so an in-flight picker
     // click still wins.
     void refreshCurrentModel(true)
-    void refreshHermesConfig(true)
+    void refreshKovaConfig(true)
     void refreshActiveProfile()
     resetProjectTreeState()
-  }, [gatewayScope, refreshCurrentModel, refreshHermesConfig])
+  }, [gatewayScope, refreshCurrentModel, refreshKovaConfig])
 }

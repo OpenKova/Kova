@@ -152,21 +152,21 @@ def test_explanation_persistence_corrupt_cause_never_says_free_space():
     assert "full disk" not in lower
 
 
-def test_explanation_persistence_corrupt_backups_dir_follows_hermes_home(monkeypatch, tmp_path):
-    """Step 3 must name the backups dir under the ACTIVE home, not ~/.hermes (#104250).
+def test_explanation_persistence_corrupt_backups_dir_follows_kova_home(monkeypatch, tmp_path):
+    """Step 3 must name the backups dir under the ACTIVE home, not ~/.kova (#104250).
 
     Pre-update backups live at ``<hermes_root>/backups`` (``kova_cli/backup.py``), so a
-    custom-HERMES_HOME deployment told to restore from ``~/.hermes/backups/`` is misdirected
+    custom-KOVA_HOME deployment told to restore from ``~/.kova/backups/`` is misdirected
     mid data-loss incident: that directory may not exist at all, or may hold an unrelated
     install's backups.
     """
     custom_home = tmp_path / "custom-hermes-home"
-    monkeypatch.setenv("HERMES_HOME", str(custom_home / "profiles" / "research"))
+    monkeypatch.setenv("KOVA_HOME", str(custom_home / "profiles" / "research"))
     out = AIAgent._format_turn_completion_explanation(
         "session_persistence_failed", "corrupt"
     )
     assert f"{custom_home / 'backups'}" in out
-    assert "~/.hermes/backups" not in out
+    assert "~/.kova/backups" not in out
     assert "{backups_dir}" not in out
 
 
@@ -211,7 +211,7 @@ def test_deleted_wal_cause_is_plain_first_steps_not_a_forensic_runbook():
     assert "hermes gateway stop" in out and "hermes doctor" in out
     for jargon in ("manifest", "state.db-wal", "sidecar", "header_only", "--inspect-only", "generation"):
         assert jargon not in out, jargon
-    assert "~/.hermes" not in out  # display_hermes_home(), never a hardcoded path
+    assert "~/.kova" not in out  # display_kova_home(), never a hardcoded path
 
 
 @pytest.mark.parametrize("cause", ["replaced", "deleted_wal", "unknown"])
@@ -222,7 +222,7 @@ def test_persistence_commands_are_pinned_to_the_failing_profile(monkeypatch, tmp
     corrupt/fts_index causes already did this; replaced/deleted_wal/default did not."""
     from kova_constants import profile_cli_selector
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes" / "profiles" / "research"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova" / "profiles" / "research"))
     selector = profile_cli_selector()
     assert selector.strip(), "fixture must resolve to a named profile"
     out = AIAgent._format_turn_completion_explanation("session_persistence_failed", cause)
@@ -456,7 +456,7 @@ def test_classify_persistence_error_fts_provenance_order():
 def test_explainer_enabled_by_default():
     agent = _make_agent()
     with patch.dict(os.environ, {}, clear=False):
-        os.environ.pop("HERMES_TURN_COMPLETION_EXPLAINER", None)
+        os.environ.pop("KOVA_TURN_COMPLETION_EXPLAINER", None)
         with patch("kova_cli.config.load_config", return_value={}):
             assert agent._turn_completion_explainer_enabled() is True
 
@@ -464,7 +464,7 @@ def test_explainer_enabled_by_default():
 def test_explainer_disabled_via_env():
     agent = _make_agent()
     with patch.dict(
-        os.environ, {"HERMES_TURN_COMPLETION_EXPLAINER": "0"}, clear=False
+        os.environ, {"KOVA_TURN_COMPLETION_EXPLAINER": "0"}, clear=False
     ):
         assert agent._turn_completion_explainer_enabled() is False
 

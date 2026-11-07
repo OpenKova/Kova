@@ -32,22 +32,22 @@ vi.mock('@/store/starmap', () => ({ reloadOpenStarmapGraph: vi.fn(), resetStarma
 const { $activeGatewayProfile, selectProfile } = await import('./profile')
 const { installBrowserDesktopBridge } = await import('@/lib/browser-desktop-bridge')
 
-const bootstrap = window as Window & { __HERMES_BASE_PATH__?: string; }
+const bootstrap = window as Window & { __KOVA_BASE_PATH__?: string; }
 const savedDefault = { connectionId: 'local', profile: 'research' }
 const urlProfile = () => new URLSearchParams(window.location.search).get('profile')
 
 beforeEach(async () => {
-  bootstrap.__HERMES_BASE_PATH__ = '/hermes'
+  bootstrap.__KOVA_BASE_PATH__ = '/hermes'
   seedWebappSession('served-token')
   window.history.replaceState(null, '', '/hermes?profile=arrived#/')
   expect(installBrowserDesktopBridge()).toBe(true)
-  await window.hermesDesktop.profile.setDefault(savedDefault)
+  await window.kovaDesktop.profile.setDefault(savedDefault)
   $activeGatewayProfile.set('arrived')
 })
 
 afterEach(() => {
   Reflect.deleteProperty(window, 'hermesDesktop')
-  delete bootstrap.__HERMES_BASE_PATH__
+  delete bootstrap.__KOVA_BASE_PATH__
   clearWebappSession()
   document.documentElement.removeAttribute('data-hermes-desktop-host')
   window.localStorage.clear()
@@ -63,7 +63,7 @@ it.each([
 ])('records a live switch in the tab that booted on $boot, and only there', async ({ source }) => {
   activeGatewayConnectionId.mockReturnValue(source)
   const defaultChanged = vi.fn()
-  const unsubscribe = window.hermesDesktop.profile.onDefaultChanged(defaultChanged)
+  const unsubscribe = window.kovaDesktop.profile.onDefaultChanged(defaultChanged)
 
   selectProfile('ops')
   await vi.waitFor(() => expect(urlProfile()).toBe('ops'))
@@ -74,9 +74,9 @@ it.each([
 
   expect(window.location.pathname).toBe('/hermes')
   expect(window.location.hash).toBe('#/')
-  await expect(window.hermesDesktop.profile.getDefault()).resolves.toEqual(savedDefault)
+  await expect(window.kovaDesktop.profile.getDefault()).resolves.toEqual(savedDefault)
   expect(defaultChanged).not.toHaveBeenCalled()
-  const own = await window.hermesDesktop.getConnection()
+  const own = await window.kovaDesktop.getConnection()
   expect(own.profile).toBeUndefined()
   expect(own.sharedPrimary).toBe(false)
   unsubscribe()

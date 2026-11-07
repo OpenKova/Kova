@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 from tests.e2e.core.cli_tmux._classic import require_tmux
-from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_hermes_home
+from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_kova_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WORDS = {1: 60, 2: 260, 3: 130}
@@ -58,7 +58,7 @@ def test_resizes_keep_each_transcript_line_once_in_tmux_scrollback(tmp_path: Pat
         kinds = Counter(r["kind"] for r in llm.requests)
         out = [f"fake provider requests: main={kinds['main']} aux={kinds['aux']}"]
         for name in ("agent.log", "errors.log"):
-            log = home / ".hermes" / "logs" / name
+            log = home / ".kova" / "logs" / name
             tail = log.read_text(encoding="utf-8", errors="replace").splitlines()[-40:] if log.exists() else ["<missing>"]
             out += [f"--- {name} (tail) ---", *tail]
         pid = tmux("display-message", "-p", "-t", "p", "#{pane_pid}").strip()
@@ -97,17 +97,17 @@ def test_resizes_keep_each_transcript_line_once_in_tmux_scrollback(tmp_path: Pat
         time.sleep(2.0)
 
     with llm:
-        write_hermes_home(home / ".hermes", llm.base_url)
-        env = {k: v for k, v in os.environ.items() if not k.startswith(("HERMES_", "TMUX"))}
-        env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), PYTHONPATH=str(REPO_ROOT),
-                   TERM="xterm-256color", HERMES_STATE_DB_GUARD_BYPASS="1", PYTHONFAULTHANDLER="1")
+        write_kova_home(home / ".kova", llm.base_url)
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("KOVA_", "TMUX"))}
+        env.update(HOME=str(home), KOVA_HOME=str(home / ".kova"), PYTHONPATH=str(REPO_ROOT),
+                   TERM="xterm-256color", KOVA_STATE_DB_GUARD_BYPASS="1", PYTHONFAULTHANDLER="1")
         argv = [sys.executable, "-m", "kova_cli.main", "chat", "--cli", "--yolo"]
         subprocess.run(["tmux", "-L", sock, "-f", os.devnull, "new-session", "-d", "-s", "p", "-x", "120",
                         "-y", "24", "-c", str(tmp_path / "work"), *argv], env=env, check=True, timeout=30)
         try:
             tmux("set", "-g", "window-size", "manual")
             tmux("set", "-g", "remain-on-exit", "on")  # keeps a crash or the diagnostics' dump readable
-            wait_for("Welcome to Hermes", timeout=120)
+            wait_for("Welcome to Kova", timeout=120)
             # The welcome line is printed before the input loop exists. Keys typed then land in the
             # still-cooked tty: the kernel echoes them (a plain transcript row) and hands the app
             # text + Enter in one read, which it takes for a pasted newline — the question sits

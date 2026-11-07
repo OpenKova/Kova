@@ -9,7 +9,7 @@ Four owners supply them:
 * Core-owned unseeded keys outside that table, each listed with its reader (:data:`CORE_RUNTIME_KEYS`).
 * MoA preset fields under any preset name (:func:`kova_cli.moa_config.is_preset_field_path`). Only a
   preset's own fields and its aggregator slot fields qualify, not arbitrary descendants of ``moa.presets``.
-* ACTIVE plugins: a ``config_keys`` list in ``plugin.yaml`` (or ``extensions.com.nousresearch.hermes``
+* ACTIVE plugins: a ``config_keys`` list in ``plugin.yaml`` (or ``extensions.com.nousresearch.kova``
   in a portable ``plugin.json``) names core-section paths the plugin's code reads, e.g.
   ``memory.retaindb``. Plugins are found and gated by the loader's own discovery
   (``plugins_discovery``), plus the memory provider ``memory.provider`` selects. A declared path is

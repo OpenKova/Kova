@@ -1,7 +1,7 @@
 """Remote model catalog fetcher.
 
 ``get_catalog()`` returns the parsed manifest: in-process cache (TTL) → disk cache at
-``~/.hermes/cache/model_catalog.json`` → master URL fetch; any fetch failure keeps the stale copy
+``~/.kova/cache/model_catalog.json`` → master URL fetch; any fetch failure keeps the stale copy
 (or ``{}``, and the URL is not retried for ``FETCH_RETRY_DELAY_SECONDS``). ``get_curated_openrouter_models()`` / ``get_curated_nous_models()`` are thin accessors
 whose callers fall back to the in-repo lists on ``None``.
 """
@@ -24,11 +24,11 @@ from utils import atomic_json_write
 logger = logging.getLogger(__name__)
 
 DEFAULT_CATALOG_URL = (
-    "https://hermes-agent.nousresearch.com/docs/api/model-catalog.json")
+    "https://kova-agent.nousresearch.com/docs/api/model-catalog.json")
 # The Docusaurus site sits behind Vercel, which occasionally 403s non-browser clients (bot
 # challenge); the raw GitHub copy is the same manifest and is not bot-gated.
 DEFAULT_CATALOG_FALLBACK_URLS: tuple[str, ...] = (
-    "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/website/static/api/model-catalog.json",
+    "https://raw.githubusercontent.com/NousResearch/kova-agent/main/website/static/api/model-catalog.json",
 )
 DEFAULT_TTL_MINUTES = 20
 # Legacy key, honoured only when the user set it explicitly; ``ttl_minutes`` is the shipped default.
@@ -55,8 +55,8 @@ _fetch_retry_lock = threading.Lock()
 
 
 def _backoff_key(kind: str, url: str) -> tuple[str, str, str]:
-    from kova_constants import hermes_home_key
-    return (hermes_home_key(), kind, url)
+    from kova_constants import kova_home_key
+    return (kova_home_key(), kind, url)
 
 
 def _backing_off(kind: str, url: str) -> bool:
@@ -76,8 +76,8 @@ def _note_fetch_result(kind: str, url: str, ok: bool) -> None:
 
 def clear_fetch_backoff() -> None:
     """Forget the active profile's fetch failures so an explicit refresh retries every URL."""
-    from kova_constants import hermes_home_key
-    home = hermes_home_key()
+    from kova_constants import kova_home_key
+    home = kova_home_key()
     with _fetch_retry_lock:
         for key in [k for k in _fetch_retry_after if k[0] == home]:
             del _fetch_retry_after[key]
@@ -118,8 +118,8 @@ def _load_catalog_config() -> dict[str, Any]:
 
 def _cache_path() -> Path:
     """Disk cache path; imported lazily so tests can monkeypatch home."""
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "cache" / "model_catalog.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "cache" / "model_catalog.json"
 
 
 def _fetch_manifest(url: str, timeout: float) -> dict[str, Any] | None:
@@ -227,7 +227,7 @@ def _spawn_catalog_swr_refresh(url: str) -> None:
             with _catalog_swr_lock:
                 _catalog_swr_inflight.discard(inflight_key)
 
-    # copy_context: the picker may be serving a profile scoped by the HERMES_HOME ContextVar
+    # copy_context: the picker may be serving a profile scoped by the KOVA_HOME ContextVar
     # (tui_gateway ``_profile_scoped``), so the worker must write THAT profile's cache file.
     context = contextvars.copy_context()
     threading.Thread(target=lambda: context.run(_refresh), daemon=True, name="model-catalog-swr").start()
@@ -366,7 +366,7 @@ def _default_model_from_block(block: dict[str, Any] | None) -> str | None:
 
 
 def get_default_model_from_cache(provider: str) -> str | None:
-    """The manifest's labeled default for ``provider`` (the model Hermes silently lands on when the
+    """The manifest's labeled default for ``provider`` (the model Kova silently lands on when the
     user never picked one) — in-process then disk cache only, never a fetch."""
     cached = _in_process_catalog()
     found = _default_model_from_block(_block_of(cached, provider)) if cached is not None else None

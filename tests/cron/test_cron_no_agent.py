@@ -17,15 +17,15 @@ import pytest
 
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME for each test so jobs/scripts don't leak."""
-    home = tmp_path / ".hermes"
+    """Isolate KOVA_HOME for each test so jobs/scripts don't leak."""
+    home = tmp_path / ".kova"
     home.mkdir()
     (home / "scripts").mkdir()
     (home / "cron").mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
 
-    # Reload modules that cache get_hermes_home() at import time.
+    # Reload modules that cache get_kova_home() at import time.
     import importlib
     import kova_constants
     importlib.reload(kova_constants)
@@ -50,7 +50,7 @@ def test_create_job_no_agent_requires_script(hermes_env):
 
 
 def test_script_must_be_a_file_under_scripts_dir_not_a_shell_command(hermes_env):
-    """``script`` names a file under HERMES_HOME/scripts/. A command line (``echo hi``) is
+    """``script`` names a file under KOVA_HOME/scripts/. A command line (``echo hi``) is
     refused at creation instead of firing every tick as "Script not found" delivered as the
     payload; a real file whose name contains a space is still a path."""
     from cron.jobs import create_job, update_job
@@ -121,8 +121,8 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
 
     loaded_homes: list = []
 
-    def fake_load(*, hermes_home=None, project_env=None):
-        loaded_homes.append(hermes_home)
+    def fake_load(*, kova_home=None, project_env=None):
+        loaded_homes.append(kova_home)
         return []
 
     monkeypatch.setattr(env_loader, "load_hermes_dotenv", fake_load)
@@ -155,7 +155,7 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     from agent.secret_scope import (
         build_profile_secret_scope, reset_secret_scope, set_multiplex_active, set_secret_scope)
     from cron.scheduler_script import _run_job_script
-    from kova_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_kova_home_override, set_kova_home_override
 
     (hermes_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
     monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")  # what load_hermes_dotenv() did at startup
@@ -167,13 +167,13 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     (routed / "scripts" / "probe.sh").write_text(_PRESENCE_PROBE, encoding="utf-8")
 
     set_multiplex_active(True)
-    home_token = set_hermes_home_override(str(routed))
+    home_token = set_kova_home_override(str(routed))
     scope_token = set_secret_scope(build_profile_secret_scope(routed))
     try:
         ok, output = _run_job_script("probe.sh")
     finally:
         reset_secret_scope(scope_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
         set_multiplex_active(False)
 
     assert ok is True
@@ -252,7 +252,7 @@ def test_run_job_script_nul_path_fails_cleanly(hermes_env):
 @pytest.mark.parametrize(
     "error",
     [
-        "Script timed out after 900s: /home/u/.hermes/scripts/nightly.sh",
+        "Script timed out after 900s: /home/u/.kova/scripts/nightly.sh",
         "Script failed: curl returned 429 from api.example.com",
         "Script failed: gpg authentication failed for key",
         "Script failed: ReadTimeout contacting localhost",
@@ -351,9 +351,9 @@ def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, m
     from agent.secret_sources.registry import ApplyReport, SourceReport
     from cron.scheduler_script import _run_job_script
     from kova_cli import env_loader
-    from kova_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_process_kova_home, reset_kova_home_override, set_kova_home_override
 
-    launch = get_process_hermes_home()
+    launch = get_process_kova_home()
     (launch / ".env").write_text("LAUNCH_ONLY_VALUE=launch-only\nCUSTOM_CRON_VALUE=launch\n", encoding="utf-8")
     (launch / "config.yaml").write_text("secrets:\n  test-source:\n    enabled: true\n", encoding="utf-8")
     for name, value in (("LAUNCH_ONLY_VALUE", "launch-only"), ("CUSTOM_CRON_VALUE", "launch"),
@@ -379,7 +379,7 @@ def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, m
         '|${LAUNCH_VAULT_ONLY:-<unset>}|${LAUNCH_SKIPPED_SECRET:-<unset>}"\n'
     )
 
-    home_token = set_hermes_home_override(str(routed))
+    home_token = set_kova_home_override(str(routed))
     context_token = secret_scope.set_multiplex_context(True)
     scope_token = secret_scope.set_secret_scope(
         {"CUSTOM_CRON_VALUE": "routed", "ROUTED_VAULT_ONLY": "routed-vault-value"})
@@ -388,7 +388,7 @@ def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, m
     finally:
         secret_scope.reset_secret_scope(scope_token)
         secret_scope.reset_multiplex_context(context_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
     assert ok, output
     assert output.strip() == "routed|routed-vault-value|<unset>|<unset>|<unset>"
@@ -405,9 +405,9 @@ def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own
     from agent import secret_scope
     from cron.scheduler_script import _run_job_script
     from kova_cli import env_loader, managed_scope
-    from kova_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_process_kova_home, reset_kova_home_override, set_kova_home_override
 
-    launch = get_process_hermes_home()
+    launch = get_process_kova_home()
     managed = launch / "managed"
     managed.mkdir()
     (managed / ".env").write_text("ORG_POLICY_FLAG=managed-value\n", encoding="utf-8")
@@ -423,7 +423,7 @@ def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own
     script = routed / "scripts" / "probe_policy.sh"
     script.write_text('#!/usr/bin/env bash\necho "${ORG_POLICY_FLAG:-<unset>}"\n')
 
-    home_token = set_hermes_home_override(str(routed))
+    home_token = set_kova_home_override(str(routed))
     context_token = secret_scope.set_multiplex_context(True)
     # The routed user's own .env carries a competing value for the managed key.
     scope_token = secret_scope.set_secret_scope({"ORG_POLICY_FLAG": "user-value"})
@@ -432,7 +432,7 @@ def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own
     finally:
         secret_scope.reset_secret_scope(scope_token)
         secret_scope.reset_multiplex_context(context_token)
-        reset_hermes_home_override(home_token)
+        reset_kova_home_override(home_token)
 
     assert ok, output
     assert output.strip() == "managed-value"

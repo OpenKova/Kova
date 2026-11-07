@@ -1,19 +1,19 @@
 """Harness: `docker run <image> gateway run` redirects to supervised mode.
 
-Before the s6 migration, ``docker run nousresearch/hermes-agent gateway
+Before the s6 migration, ``docker run nousresearch/kova-agent gateway
 run`` was the standard pattern — the gateway ran as the container's
 main process, container exit code matched gateway exit code, no
 supervision. With s6 as PID 1, the same invocation now auto-redirects
 to the supervised path (`gateway start`) so users get auto-restart on
-crash and a supervised dashboard alongside (when ``HERMES_DASHBOARD=1``).
+crash and a supervised dashboard alongside (when ``KOVA_DASHBOARD=1``).
 
 These tests verify the three load-bearing properties of that redirect:
 
   1. The default invocation **does** redirect (container stays up via
      ``sleep infinity`` while s6 supervises ``gateway-default``).
-  2. ``--no-supervise`` / ``HERMES_GATEWAY_NO_SUPERVISE=1`` opts out.
+  2. ``--no-supervise`` / ``KOVA_GATEWAY_NO_SUPERVISE=1`` opts out.
   3. The supervised process itself does NOT recurse — the
-     ``HERMES_S6_SUPERVISED_CHILD`` sentinel breaks the loop.
+     ``KOVA_S6_SUPERVISED_CHILD`` sentinel breaks the loop.
 
 Every ``docker exec`` runs as ``hermes`` per the conftest module
 docstring; see ``tests/docker/conftest.py`` for rationale.
@@ -178,7 +178,7 @@ def test_gateway_run_redirects_to_supervised(
 def test_supervised_gateway_does_not_recurse(
     built_image: str, container_name: str,
 ) -> None:
-    """The HERMES_S6_SUPERVISED_CHILD sentinel must prevent the
+    """The KOVA_S6_SUPERVISED_CHILD sentinel must prevent the
     supervised ``hermes gateway run`` from re-entering the redirect.
 
     If recursion happened, every supervised gateway start would itself
@@ -245,7 +245,7 @@ def test_supervised_gateway_does_not_recurse(
 def test_dashboard_supervised_when_env_set(
     built_image: str, container_name: str,
 ) -> None:
-    """When ``HERMES_DASHBOARD=1`` is set, ``docker run <image> gateway
+    """When ``KOVA_DASHBOARD=1`` is set, ``docker run <image> gateway
     run`` should result in BOTH the gateway and the dashboard being
     supervised by s6 — the dashboard slot was always there but only
     activates with the env var. This is the headline benefit of the
@@ -254,7 +254,7 @@ def test_dashboard_supervised_when_env_set(
     """
     start_container(
         built_image, container_name,
-        "HERMES_DASHBOARD=1",
+        "KOVA_DASHBOARD=1",
         cmd="gateway run",
     )
 

@@ -87,18 +87,18 @@ def _write_provider_dir(root: Path, name: str) -> Path:
 
 def test_project_dir_is_ignored_without_opt_in(tmp_path, monkeypatch):
     """A repo you merely cd into must not be able to offer a memory backend."""
-    _write_provider_dir(tmp_path / ".hermes" / "plugins", "projectmem")
+    _write_provider_dir(tmp_path / ".kova" / "plugins", "projectmem")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HERMES_ENABLE_PROJECT_PLUGINS", raising=False)
+    monkeypatch.delenv("KOVA_ENABLE_PROJECT_PLUGINS", raising=False)
 
     assert "projectmem" not in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("projectmem") is None
 
 
 def test_project_dir_is_discovered_when_opted_in(tmp_path, monkeypatch):
-    provider = _write_provider_dir(tmp_path / ".hermes" / "plugins", "projectmem")
+    provider = _write_provider_dir(tmp_path / ".kova" / "plugins", "projectmem")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "1")
+    monkeypatch.setenv("KOVA_ENABLE_PROJECT_PLUGINS", "1")
 
     assert "projectmem" in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("projectmem") == provider
@@ -109,9 +109,9 @@ def test_bundled_still_wins_over_project(tmp_path, monkeypatch):
     PluginManager's later-wins order. A provider is activated by name, so a
     directory dropped into the working tree must not be able to shadow a
     shipped one and silently redirect the agent's memory."""
-    _write_provider_dir(tmp_path / ".hermes" / "plugins", "byterover")
+    _write_provider_dir(tmp_path / ".kova" / "plugins", "byterover")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "1")
+    monkeypatch.setenv("KOVA_ENABLE_PROJECT_PLUGINS", "1")
 
     resolved = memory_plugins.find_provider_dir("byterover")
     assert resolved == Path(memory_plugins.__file__).parent / "byterover"
@@ -201,7 +201,7 @@ def test_a_secondary_registration_cannot_cost_the_provider(tmp_path, monkeypatch
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     loaded = memory_plugins.load_memory_provider("auxmem")
     assert loaded is not None
@@ -216,7 +216,7 @@ def test_activation_is_not_gated_on_plugins_enabled(tmp_path, monkeypatch):
     requiring the plugin in plugins.enabled — that would break every existing
     user-installed provider."""
     _write_provider_dir(tmp_path / "plugins", "gatedmem")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     assert memory_plugins.load_memory_provider("gatedmem") is not None
 
@@ -227,21 +227,21 @@ def test_provider_registered_past_the_first_8kb_is_discovered(tmp_path, monkeypa
     provider.mkdir(parents=True)
     docstring = '"""' + "Plain prose about storage.\n" * 400 + '"""\n'  # ~10.8 KB, no contract tokens
     (provider / "__init__.py").write_text(docstring + PROVIDER_SOURCE.format(name="longdoc"), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
 
     assert "longdoc" in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("longdoc") == provider
 
 
 def test_unreadable_user_plugin_does_not_abort_memory_discovery(tmp_path, monkeypatch):
-    """One mode-000 / ACL-denied ``$HERMES_HOME/plugins/<x>`` must not hide the bundled
+    """One mode-000 / ACL-denied ``$KOVA_HOME/plugins/<x>`` must not hide the bundled
     providers or its readable siblings from the dashboard / ``hermes memory`` pickers (#111804)."""
     plugins_root = tmp_path / "plugins"
     _write_provider_dir(plugins_root, "goodmem")
     denied = plugins_root / "denied"
     denied.mkdir()
     (denied / "__init__.py").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     real_stat = Path.stat  # chmod 000 does not bite as root; fail the child's stat instead
 
     def stat(self, *args, **kwargs):

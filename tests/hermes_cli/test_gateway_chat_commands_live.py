@@ -1,6 +1,6 @@
 """Classic `hermes --cli chat` session commands on the shared gateway, driven in a real PTY.
 
-The classic CLI is main's HermesCLI again (gateway-backed agent and session store), so each
+The classic CLI is main's KovaCLI again (gateway-backed agent and session store), so each
 expectation is main's own output for the same keystrokes (lanes/pushready/probe_cmds.py, main =
 git archive 3b63f7b0a4c). Keys go in as the A/B harness types them: the text, then Enter apart
 (main's prompt_toolkit drops an Enter that arrives in the same burst as the text).
@@ -42,11 +42,11 @@ def classic_session(tmp_path):
         "gateway": {"multiplex_profiles": False},
         "model": {"provider": "custom", "default": "view-model", "base_url": url},
         "auxiliary": {"title_generation": {"enabled": False}},
-        # Answered at the current offer version, as tests/fakes/fake_llm_provider.write_hermes_home
+        # Answered at the current offer version, as tests/fakes/fake_llm_provider.write_kova_home
         # does: main's interactive chat asks it first on a home that never answered.
         "telemetry": {"shared_metrics": {"enabled": False, "send": False, "offer_version": OFFER_VERSION}}}))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
     tmux_name = "hermes-cli-cmds-" + uuid.uuid4().hex
 
@@ -110,7 +110,7 @@ def classic_session(tmp_path):
             # The banner prints before prompt_toolkit owns the tty: keys typed then are echoed raw and
             # reach the app in one burst with their Enter (a newline, not a submit). The drawn
             # composer row means the app is reading keys.
-            while not ("Welcome to Hermes Agent" in screen() and composer_shows("")):
+            while not ("Welcome to Kova Agent" in screen() and composer_shows("")):
                 assert time.monotonic() < deadline, (screen(), (home / "gw.log").read_text())
                 time.sleep(.1)
             yield send, screen, db, session_id

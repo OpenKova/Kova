@@ -9,7 +9,7 @@ window keeps moving.
 
 Two discovery paths, because the status file's name embeds the shim's pid:
 
-- ``HERMES_UPDATE_STATUS_FILE``: exported by the current posix.sh — covers
+- ``KOVA_UPDATE_STATUS_FILE``: exported by the current posix.sh — covers
   new-shim → new-children directly.
 - Marker fallback: an OLD shim (pre-env-var checkout, i.e. every old→new
   update) never exports the path, but it writes the marker whose first line
@@ -28,17 +28,17 @@ import os
 import tempfile
 from pathlib import Path
 
-STATUS_FILE_ENV = "HERMES_UPDATE_STATUS_FILE"
-UI_SPAWNED_ENV = "HERMES_UPDATE_UI_ACTIVE"
-MARKER_NAME = ".hermes-update-in-progress"
+STATUS_FILE_ENV = "KOVA_UPDATE_STATUS_FILE"
+UI_SPAWNED_ENV = "KOVA_UPDATE_UI_ACTIVE"
+MARKER_NAME = ".kova-update-in-progress"
 
 
 def _process_home() -> Path:
     """The marker and the shim's log live in the PROCESS home (update_lock.update_marker_path):
-    the shim resolved ``$HERMES_HOME`` or the platform default, never a profile override, and
-    the platform default (sudo invoker, data-dir suffix) is not ``~/.hermes`` everywhere."""
-    from kova_constants import get_process_hermes_home
-    return get_process_hermes_home()
+    the shim resolved ``$KOVA_HOME`` or the platform default, never a profile override, and
+    the platform default (sudo invoker, data-dir suffix) is not ``~/.kova`` everywhere."""
+    from kova_constants import get_process_kova_home
+    return get_process_kova_home()
 
 
 def status_file() -> Path | None:

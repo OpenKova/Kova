@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from kova_cli.plugin_install_phase import InstallPhase
-from kova_constants import get_hermes_home, profile_name_for_home
+from kova_constants import get_kova_home, profile_name_for_home
 from tools.connectors.contract import Actor, SettleReason, TargetState
 from tools.connectors.mcp import _fail, _move
 from tools.connectors.operation import ConnectionOperation, IllegalTransition, Target
@@ -60,8 +60,8 @@ def target_scope(home: Path):
     from tui_gateway import server
     from tui_gateway.launch_profile_policy import launch_profile_runtime_scope
 
-    launch = home.resolve() == Path(server._hermes_home).resolve()
-    scope = (launch_profile_runtime_scope(server._hermes_home) if launch
+    launch = home.resolve() == Path(server._kova_home).resolve()
+    scope = (launch_profile_runtime_scope(server._kova_home) if launch
              else server._session_profile_runtime_scope({"profile_home": str(home)}))
     with scope:
         yield
@@ -71,7 +71,7 @@ def _named_home(name: str) -> Path:
     """The home of the profile the Advanced modal named; raises for one that does not exist."""
     from tui_gateway import server
 
-    return server._profile_home(name) or Path(server._hermes_home)
+    return server._profile_home(name) or Path(server._kova_home)
 
 
 class HostInstaller:
@@ -162,7 +162,7 @@ class _Runner:
         self.approved_env: dict[str, dict[str, str]] = {}
         # Built on the tool call's thread: the calling chat's own home is the default install
         # target, and its profile name labels the row (None for a home that is no named profile).
-        self.home: Path = get_hermes_home()
+        self.home: Path = get_kova_home()
         self.label: Optional[str] = profile_name_for_home(self.home)
 
     # -- prepare: resolve each id and draw its row ------------------------------------------------
@@ -181,7 +181,7 @@ class _Runner:
         if target.kind == "plugin":
             entry = self.installer.plugin_entry(target.name)
             if entry is None:
-                raise LookupError(f"'{target.name}' is not in the Hermes plugin catalog")
+                raise LookupError(f"'{target.name}' is not in the Kova plugin catalog")
             self.facts[target.name] = entry
             target.extra = _plugin_row(entry, self.label)
             target.required_env = [{"name": name, "required": False, "secret": True, "default": ""}

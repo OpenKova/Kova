@@ -2,7 +2,7 @@
 
 Graceful shutdowns leave forensics (``gateway-exit-diag.log``); an unclean
 death (SIGKILL, kernel OOM, VM death) runs no handler.  A sentinel at
-``<HERMES_HOME>/state/gateway.lifecycle.json`` closes the gap:
+``<KOVA_HOME>/state/gateway.lifecycle.json`` closes the gap:
 :func:`record_startup` finds ``phase == "running"`` from the previous life →
 unclean death, appended to the exit-diag log as ``gateway.previous_unclean_exit``
 and logged at WARNING; :func:`mark_exited` rewrites ``phase=exited`` on every
@@ -24,20 +24,20 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 
-def _process_hermes_home() -> Path:
-    """HERMES_HOME for process-level identity files (ignore task overrides)."""
-    from kova_constants import get_hermes_home, get_process_hermes_home
+def _process_kova_home() -> Path:
+    """KOVA_HOME for process-level identity files (ignore task overrides)."""
+    from kova_constants import get_kova_home, get_process_kova_home
 
-    # get_process_hermes_home expands ``~``/``$VAR`` (python -m gateway.run skips the CLI normalizer).
-    return get_process_hermes_home() if os.environ.get("HERMES_HOME", "").strip() else get_hermes_home()
+    # get_process_kova_home expands ``~``/``$VAR`` (python -m gateway.run skips the CLI normalizer).
+    return get_process_kova_home() if os.environ.get("KOVA_HOME", "").strip() else get_kova_home()
 
 
 def _home_path(home: Optional[Path], *relative: str) -> Path:
-    return (_process_hermes_home() if home is None else home).joinpath(*relative)
+    return (_process_kova_home() if home is None else home).joinpath(*relative)
 
 
 def get_lifecycle_sentinel_path(home: Optional[Path] = None) -> Path:
-    """Return ``<HERMES_HOME>/state/gateway.lifecycle.json``."""
+    """Return ``<KOVA_HOME>/state/gateway.lifecycle.json``."""
     return _home_path(home, "state", "gateway.lifecycle.json")
 
 
@@ -87,9 +87,9 @@ def _write_sentinel(payload: dict[str, Any], home: Optional[Path]) -> None:
         from utils import atomic_json_write
 
         path = get_lifecycle_sentinel_path(home)
-        from kova_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_kova_home
 
-        mkdir_under_hermes_home(path.parent)
+        mkdir_under_kova_home(path.parent)
         atomic_json_write(path, payload, indent=None)
     except Exception:
         logger.debug("Failed to write lifecycle sentinel", exc_info=True)
@@ -99,9 +99,9 @@ def _append_exit_diag(record: dict[str, Any], home: Optional[Path]) -> None:
     """Append a JSON line to gateway-exit-diag.log (same format as the CLI's ``_exit_diag``)."""
     try:
         path = _home_path(home, "logs", "gateway-exit-diag.log")
-        from kova_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_kova_home
 
-        mkdir_under_hermes_home(path.parent)
+        mkdir_under_kova_home(path.parent)
         with path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(record, default=str) + "\n")
     except OSError:

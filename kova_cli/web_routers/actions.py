@@ -1,4 +1,4 @@
-"""Gateway restart/drain, Hermes update and background-action status dashboard routes.
+"""Gateway restart/drain, Kova update and background-action status dashboard routes.
 
 Extracted from ``kova_cli.web_server``; helpers/state that tests monkeypatch on
 ``web_server`` stay there and are late-bound (cycle-safe).
@@ -32,7 +32,7 @@ _dashboard_local_update_managed_externally = late("_dashboard_local_update_manag
 _spawn_gateway_restart = late("_spawn_gateway_restart")
 _spawn_hermes_action = late("_spawn_hermes_action", "kova_cli.web_server_gateway")
 detect_install_method = late("detect_install_method", "kova_cli.config")
-get_hermes_home = late("get_hermes_home", "kova_cli.config")
+get_kova_home = late("get_kova_home", "kova_cli.config")
 _config_profile_scope = late("_config_profile_scope", "kova_cli.web_server_profiles")
 _ACTION_COMMANDS = LateState("_ACTION_COMMANDS", "kova_cli.web_server_gateway")
 _ACTION_IDS = LateState("_ACTION_IDS", "kova_cli.web_server_gateway")
@@ -55,7 +55,7 @@ _ACTION_LOG_TAIL_MAX_CHUNK_BYTES = 64 * 1024
 _UPDATE_ACTION_COMPLETED_RE = re.compile(r"^=== hermes-update completed ([0-9a-f]{32}) ===$")
 _UPDATE_ACTION_STARTED_RE = re.compile(r"^=== hermes-update started .* ([0-9a-f]{32}) ===$")
 
-_MANAGED_EXTERNALLY_MESSAGE = "Hermes updates are managed outside this dashboard in containerized environments."
+_MANAGED_EXTERNALLY_MESSAGE = "Kova updates are managed outside this dashboard in containerized environments."
 
 # Per-kind dashboard error codes the UI keys on, by admission-refusal code.
 _UPDATE_REFUSAL_ERROR_CODES = {
@@ -271,13 +271,13 @@ async def update_hermes():
 
     action_id = secrets.token_hex(16)
     with http_failure("Failed to spawn hermes update", 500, "Failed to start update"):
-        proc = _spawn_hermes_action(["update"], "hermes-update", env_overrides={"HERMES_ACTION_ID": action_id})
+        proc = _spawn_hermes_action(["update"], "hermes-update", env_overrides={"KOVA_ACTION_ID": action_id})
     return {"ok": True, "pid": proc.pid, "name": "hermes-update", "action_id": action_id}
 
 
 _NON_APPLYABLE_MESSAGES = {
     "docker": format_docker_update_message,
-    "apt": lambda: "Hermes is managed by Termux APT; run `pkg upgrade hermes-agent`.",
+    "apt": lambda: "Kova is managed by Termux APT; run `pkg upgrade kova-agent`.",
 }
 
 
@@ -288,7 +288,7 @@ def _source_release_label(status: dict[str, Any]) -> str:
 
 @router.get("/api/hermes/update/check")
 async def check_hermes_update(force: bool = False, profile: Optional[str] = None):
-    """Report whether a Hermes update is available, without applying it.
+    """Report whether a Kova update is available, without applying it.
 
     Returns install_method ('apt'|'git'|'docker'|'nix'|'nixos'|'unknown'),
     current_version, behind (commits behind, 0 = up to date, -1 = unknown count,

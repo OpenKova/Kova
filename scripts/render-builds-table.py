@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
-"""Render the release download tables into <!-- HERMES_BUILDS_TABLE -->, and
+"""Render the release download tables into <!-- KOVA_BUILDS_TABLE -->, and
 the same rows as standalone pages in the bucket.
 
 Runs after the build jobs of desktop-bundled-release.yml finish, including
@@ -20,7 +20,7 @@ so a build can be read straight from the download origin:
   releases/commit/<sha>/index.html  commit mode: every expected binary of
                                     one commit build, built or not
 
-Tables: Hermes Desktop (bundled) and Hermes Light, one row per (OS,
+Tables: Kova Desktop (bundled) and Kova Light, one row per (OS,
 arch). Feed manifests (latest*/light*/canary*.yml), blockmaps and mac .zip
 (an electron-updater delta target, not a user download) stay out of the
 tables on purpose; they still live in the bucket for the updater to
@@ -56,16 +56,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.releases import handoff, r2, semver, stable, versioning
 from scripts.releases.desktop_targets import TARGETS as DESKTOP_TARGETS
 
-MARKER = "<!-- HERMES_BUILDS_TABLE -->"
-END_MARKER = "<!-- /HERMES_BUILDS_TABLE -->"
-DEFAULT_REPO = "NousResearch/hermes-agent"
+MARKER = "<!-- KOVA_BUILDS_TABLE -->"
+END_MARKER = "<!-- /KOVA_BUILDS_TABLE -->"
+DEFAULT_REPO = "NousResearch/kova-agent"
 
 # Asset name shapes (electron-builder artifactName in
 # apps/desktop/electron-builder.config.cjs):
-#   Hermes-0.28.0-mac-arm64.dmg        (bundled)
-#   HermesBundled-0.28.0-win-x64.msix  (bundled)
+#   Kova-0.28.0-mac-arm64.dmg        (bundled)
+#   KovaBundled-0.28.0-win-x64.msix  (bundled)
 _ASSET_RE = re.compile(
-    r"^(?P<app>HermesBundled|HermesLight)-(?P<version>[^-]+)"
+    r"^(?P<app>KovaBundled|KovaLight)-(?P<version>[^-]+)"
     r"-(?P<os>mac|win|linux)-(?P<arch>x64|arm64)\.(?P<ext>dmg|msix|AppImage)$"
 )
 
@@ -89,7 +89,7 @@ def parse_assets(names: list[str]) -> dict[str, dict[tuple[str, str], tuple[str,
     the basename, but the stored name keeps the full key so the download
     link points at the object's real location.
     """
-    out: dict[str, dict[tuple[str, str], tuple[str, str]]] = {"HermesBundled": {}, "HermesLight": {}}
+    out: dict[str, dict[tuple[str, str], tuple[str, str]]] = {"KovaBundled": {}, "KovaLight": {}}
     for name in names:
         base = name.rsplit("/", 1)[-1]
         m = _ASSET_RE.match(base)
@@ -105,7 +105,7 @@ def table_rows(assets_by_app: dict) -> list[tuple[str, list[tuple[str, str, str,
     a row exists only for an object that is actually in the bucket.
     """
     sections: list[tuple[str, list[tuple[str, str, str, str]]]] = []
-    for app, title in (("HermesBundled", "Hermes Desktop"), ("HermesLight", "Hermes Light (remote-only client)")):
+    for app, title in (("KovaBundled", "Kova Desktop"), ("KovaLight", "Kova Light (remote-only client)")):
         rows = []
         for key in _ROW_ORDER:
             entry = assets_by_app.get(app, {}).get(key)
@@ -176,15 +176,15 @@ def filter_names_for_version(names: list[str], version: str) -> list[str]:
 # A row needs a unique receipt-listed artifact and its uploaded object.
 _COMMIT_EXPECTED = [
     ("Windows x64 (MSIX)", "win32-x64",
-     r"^HermesBundled-[^-]+-win-x64\.msix$"),
+     r"^KovaBundled-[^-]+-win-x64\.msix$"),
     ("Windows ARM64 (MSIX)", "win32-arm64",
-     r"^HermesBundled-[^-]+-win-arm64\.msix$"),
+     r"^KovaBundled-[^-]+-win-arm64\.msix$"),
     ("Windows universal bundle (MSIXBUNDLE)", "windows-universal",
-     r"^HermesBundled-[^-]+-win\.msixbundle$"),
+     r"^KovaBundled-[^-]+-win\.msixbundle$"),
     ("macOS Apple Silicon (DMG)", "darwin-arm64",
-     r"^HermesBundled-[^-]+-mac-arm64\.dmg$"),
+     r"^KovaBundled-[^-]+-mac-arm64\.dmg$"),
     ("macOS Apple Silicon (ZIP)", "darwin-arm64",
-     r"^HermesBundled-[^-]+-mac-arm64\.zip$"),
+     r"^KovaBundled-[^-]+-mac-arm64\.zip$"),
     ("Termux aarch64 (.deb)", "termux", r"^.*\.deb$"),
 ]
 
@@ -401,7 +401,7 @@ def render_page(tag: str, assets_by_app: dict, base_url: str,
     channel = r2.channel_for_tag(tag)
     tag_url = f"https://github.com/{quote(repo, safe='/')}/releases/tag/{quote(tag, safe='')}"
     body = [
-        f"<h1>Hermes Desktop {channel} builds</h1>",
+        f"<h1>Kova Desktop {channel} builds</h1>",
         f"<p>Release {_link(tag_url)}<code>{html.escape(tag)}</code></a>. Only objects this release "
         "actually staged in the bucket are listed.</p>",
     ]
@@ -434,7 +434,7 @@ def render_page(tag: str, assets_by_app: dict, base_url: str,
             [[html.escape(job), f"{_link(run_url)}View build run</a>"] for job in incomplete_jobs],
         ))
     body.extend(smoke_html(smoke_results))
-    return _page(f"Hermes Desktop {channel} builds", tag, body)
+    return _page(f"Kova Desktop {channel} builds", tag, body)
 
 
 def render_commit_page(commit: str, names: list[str], base_url: str,
@@ -451,7 +451,7 @@ def render_commit_page(commit: str, names: list[str], base_url: str,
         cell = (f"{_link(url)}{html.escape(link_text)}</a>" if url and link_text else "—")
         rows.append([html.escape(label), html.escape(status), cell])
     body = [
-        f"<h1>Hermes commit build <code>{html.escape(commit[:12])}</code></h1>",
+        f"<h1>Kova commit build <code>{html.escape(commit[:12])}</code></h1>",
         f"<p>Commit {_link(commit_url)}<code>{html.escape(commit)}</code></a>. Every expected binary is listed; "
         "built rows link to downloads; incomplete rows link to the build run when available.</p>",
         *_table(("Binary", "Status", "Download / diagnostics"), rows),
@@ -470,7 +470,7 @@ def render_commit_page(commit: str, names: list[str], base_url: str,
             ]),
         ])
     body.extend(smoke_html(smoke_results))
-    return _page(f"Hermes commit build {commit[:12]}", commit, body)
+    return _page(f"Kova commit build {commit[:12]}", commit, body)
 
 
 def recorded_build(page: str | None) -> str | None:
@@ -607,7 +607,7 @@ def main() -> int:
                         help="With --summary-commit: comma-separated failed job names, "
                              "blamed on the Not built rows")
     parser.add_argument("--repo", default=DEFAULT_REPO)
-    parser.add_argument("--bundle-env-json", default=os.environ.get("HERMES_BUNDLE_ENV_JSON", ""),
+    parser.add_argument("--bundle-env-json", default=os.environ.get("KOVA_BUNDLE_ENV_JSON", ""),
                         help="Explicit non-secret commit desktop bundle overrides, not the CI environment")
     parser.add_argument("--run-url", default=None,
                         help="Actual workflow run URL for incomplete-build diagnostics")
@@ -733,7 +733,7 @@ def main() -> int:
     if not args.pending_run_url and not args.dry_run and not incomplete and names and not args.no_channel_page:
         write_channel_page(args.tag, assets, args.r2_base_url, repo=args.repo, smoke_results=smoke_results)
     if MARKER not in body:
-        print("::warning::release body has no HERMES_BUILDS_TABLE marker; leaving it unchanged")
+        print("::warning::release body has no KOVA_BUILDS_TABLE marker; leaving it unchanged")
         return 0
 
     new_body = splice(body, block)

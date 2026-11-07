@@ -1,6 +1,6 @@
 """Voice mode (recording, STT, TTS, full-duplex barge-in) and wake-word listener handlers for the interactive CLI
 
-Mixin split out of ``cli.py``; bound onto ``HermesCLI`` via the MRO. cli.py-internal
+Mixin split out of ``cli.py``; bound onto ``KovaCLI`` via the MRO. cli.py-internal
 symbols are imported LAZILY inside each method (``from cli import ...``) — the mixin
 never imports ``cli`` at module load time (import cycle).
 """
@@ -447,7 +447,7 @@ class CLIVoiceMixin:
                     self._disable_voice_mode()
                     return
                 # Fail-closed echo guard: playback-phase capture has no echo cancellation, so
-                # a close match for what Hermes just spoke is speaker bleed, not a user turn.
+                # a close match for what Kova just spoke is speaker bleed, not a user turn.
                 if getattr(self, "_voice_barge_phase", None) == "playback":
                     from tools.voice_mode_transcript import is_tts_echo
                     if is_tts_echo(transcript, getattr(self, "_voice_last_tts_text", "")):

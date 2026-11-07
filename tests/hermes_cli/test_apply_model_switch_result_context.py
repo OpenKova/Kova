@@ -1,7 +1,7 @@
 """Regression test for the `/model` picker confirmation display.
 
 Bug (April 2026): after choosing a model from the interactive `/model` picker,
-``HermesCLI._apply_model_switch_result()`` printed ``ModelInfo.context_window``
+``KovaCLI._apply_model_switch_result()`` printed ``ModelInfo.context_window``
 straight from models.dev, which always reports the vendor-wide value (e.g.
 gpt-5.5 = 1,050,000 on ``openai``). That ignored provider-specific caps — in
 particular, ChatGPT Codex OAuth enforces 272K on the same slug. The sibling
@@ -34,7 +34,7 @@ class _StubCLI:
     def _stage_and_swap_model(self, result, old_model):
         # Staging + in-place swap lives in a helper; run the real one on this stub.
         import cli as _cli_mod
-        return _cli_mod.HermesCLI._stage_and_swap_model(self, result, old_model)
+        return _cli_mod.KovaCLI._stage_and_swap_model(self, result, old_model)
 
     agent = None
     model = ""
@@ -53,9 +53,9 @@ def _run_display(monkeypatch, result):
 
     captured: list[str] = []
     monkeypatch.setattr(cli_mod, "_cprint", lambda s, *a, **k: captured.append(str(s)))
-    # Avoid writing to ~/.hermes/config.yaml during the test.
+    # Avoid writing to ~/.kova/config.yaml during the test.
     monkeypatch.setattr(cli_mod, "save_config_value", lambda *a, **k: None)
-    cli_mod.HermesCLI._apply_model_switch_result(_StubCLI(), result, False)
+    cli_mod.KovaCLI._apply_model_switch_result(_StubCLI(), result, False)
     return captured
 
 
@@ -163,7 +163,7 @@ def test_global_switch_clears_context_pin_owned_by_previous_route(monkeypatch):
     config_path = get_config_path()
     config_path.write_text(yaml.safe_dump(configured), encoding="utf-8")
     with patch("agent.model_metadata.get_model_context_length", return_value=256_000):
-        cli_mod.HermesCLI._apply_model_switch_result(cli, result, True)
+        cli_mod.KovaCLI._apply_model_switch_result(cli, result, True)
 
     model = read_user_config_raw(config_path)["model"]
     assert "context_length" not in model

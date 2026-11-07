@@ -627,8 +627,8 @@ def _strip_ollama_cloud_suffix(model_id: str) -> str:
 
 
 def _ollama_cloud_cache_path() -> Path:
-    from kova_constants import get_hermes_home
-    return get_hermes_home() / "ollama_cloud_models_cache.json"
+    from kova_constants import get_kova_home
+    return get_kova_home() / "ollama_cloud_models_cache.json"
 
 
 def _load_ollama_cloud_cache(*, ignore_ttl: bool = False) -> Optional[dict]:

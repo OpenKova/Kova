@@ -5,7 +5,7 @@ bypass a rule the create door enforces.
 """
 from typing import Optional
 
-from kova_constants import display_hermes_home
+from kova_constants import display_kova_home
 
 NO_AGENT_WITHOUT_SCRIPT_ERROR = (
     "no_agent=True requires a script — with no agent and no script "
@@ -39,7 +39,7 @@ def _validate_job_mode_invariants(
         raise ValueError(NO_AGENT_WITHOUT_SCRIPT_ERROR)
     if script and _script_is_command_line(script):
         raise ValueError(SCRIPT_IS_COMMAND_LINE_ERROR.format(
-            scripts_dir=display_hermes_home() + "/scripts/", script=script))
+            scripts_dir=display_kova_home() + "/scripts/", script=script))
 
 
 def validate_schedule_knobs(

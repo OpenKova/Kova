@@ -160,16 +160,16 @@ def bind_worker_context(frame):
         return
     if frame['policy']['source'] != 'kanban':
         raise ValueError('invalid_kanban_policy')
-    env = {'HERMES_KANBAN_TASK': context['task_id'], 'HERMES_KANBAN_BOARD': context['board'],
-        'HERMES_KANBAN_DB': context['db'], 'HERMES_KANBAN_RUN_ID': str(context['run_id']),
-        'HERMES_KANBAN_CLAIM_LOCK': context['claim_lock'], 'HERMES_KANBAN_WORKSPACE': context['workspace'],
-        'HERMES_KANBAN_WORKSPACES_ROOT': context['workspaces_root'], 'HERMES_PROFILE': context['profile'],
-        'HERMES_SESSION_SOURCE': 'kanban'}
-    for key, value in (('HERMES_KANBAN_BRANCH', context['branch']), ('HERMES_TENANT', context['tenant'])):
+    env = {'KOVA_KANBAN_TASK': context['task_id'], 'KOVA_KANBAN_BOARD': context['board'],
+        'KOVA_KANBAN_DB': context['db'], 'KOVA_KANBAN_RUN_ID': str(context['run_id']),
+        'KOVA_KANBAN_CLAIM_LOCK': context['claim_lock'], 'KOVA_KANBAN_WORKSPACE': context['workspace'],
+        'KOVA_KANBAN_WORKSPACES_ROOT': context['workspaces_root'], 'KOVA_PROFILE': context['profile'],
+        'KOVA_SESSION_SOURCE': 'kanban'}
+    for key, value in (('KOVA_KANBAN_BRANCH', context['branch']), ('KOVA_TENANT', context['tenant'])):
         if value:
             env[key] = value
     if context['goal_mode']:
-        env['HERMES_KANBAN_GOAL_MODE'] = '1'
+        env['KOVA_KANBAN_GOAL_MODE'] = '1'
     from kova_cli.kanban_db_dispatch import _worker_terminal_timeout_env
     for key in ('TERMINAL_TIMEOUT', 'TERMINAL_MAX_FOREGROUND_TIMEOUT'):
         value = _worker_terminal_timeout_env(context['max_runtime_seconds'], os.environ.get(key))
@@ -196,7 +196,7 @@ def bind_worker_context(frame):
     # inherited it from the dispatcher's environment); this daemon's own default is not that.
     expires = json.loads(claimed[0]).get('expires') if claimed else None
     if isinstance(expires, int) and claimed[1]:
-        env['HERMES_KANBAN_CLAIM_TTL_SECONDS'] = str(max(1, expires - int(claimed[1])))
+        env['KOVA_KANBAN_CLAIM_TTL_SECONDS'] = str(max(1, expires - int(claimed[1])))
     _watch_submitter(Path(context['db']), context['run_id'])
     os.environ.update(env)
     os.chdir(context['workspace'])

@@ -30,7 +30,7 @@ _WILDCARDS = {
 
 
 def _layout(tmp_path: Path) -> dict[str, str]:
-    root = tmp_path / "mux" / ".hermes"
+    root = tmp_path / "mux" / ".kova"
     (root / "profiles" / "work").mkdir(parents=True)
     (root / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
     solo = tmp_path / "solo"
@@ -74,7 +74,7 @@ def _server(spec: dict) -> GatewayControlServer:
         server.resolve_handler = resolve_profile_handler(lambda: dict(spec["identify"]))
     if spec.get("update_marker"):
         # A marker still being written fences for its grace period (update_lock.EMPTY_MARKER_GRACE_SECONDS).
-        (Path(spec["home"]) / ".hermes-update-in-progress").touch()
+        (Path(spec["home"]) / ".kova-update-in-progress").touch()
     return server
 
 

@@ -204,7 +204,7 @@ def bundled_sibling(directory: str, stem: str = "gateway_env") -> Any:
 def bundled_env_rows(name: str) -> Optional[tuple]:
     """``(env_overrides, env_enable_credentials)`` a BUNDLED platform plugin declares, read without
     the plugin. For when its registry entry is absent: discovery suppressed (a parked profile's
-    config read, ``HERMES_SAFE_MODE``) or the plugin disabled. These rows were core's own table, and
+    config read, ``KOVA_SAFE_MODE``) or the plugin disabled. These rows were core's own table, and
     the duplicate-credential guard and the explicit-disable warning still need them then."""
     directory, prefix = _BUNDLED_ENV_SIBLINGS.get(name, (name, ""))
     module = bundled_sibling(directory)

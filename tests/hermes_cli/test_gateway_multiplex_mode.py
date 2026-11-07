@@ -33,11 +33,11 @@ def fleet(tmp_path, monkeypatch):
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:default-token\n", encoding="utf-8")
     (root / "profiles/coder/.env").write_text("TELEGRAM_BOT_TOKEN=222222:coder-token\n", encoding="utf-8")
     (root / "profiles/ops/.env").write_text("DISCORD_BOT_TOKEN=ops-discord-333333\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY", "WEBHOOK_ENABLED"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None)
     services: dict[str, list] = {}
     pids: dict[str, int] = {}
     monkeypatch.setattr(gm, "_installed_services", lambda home: services.get(_name(home), []))
@@ -167,8 +167,8 @@ def test_live_record_outranks_the_raw_flag_for_other_processes(fleet, monkeypatc
     root, _services, _pids = fleet
     from gateway import status
     monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
-    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "hermes_home": str(root)}))
-    record = {"pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running", "served_profiles": []}
+    (root / "gateway.pid").write_text(json.dumps({"pid": os.getpid(), "kova_home": str(root)}))
+    record = {"pid": os.getpid(), "kova_home": str(root), "gateway_state": "running", "served_profiles": []}
     (root / "gateway_state.json").write_text(json.dumps(record))
     assert mode.default_gateway_multiplexes(root) is False
     record["served_profiles"] = ["default", "coder", "ops"]
@@ -217,7 +217,7 @@ def test_pre_lock_decision_never_publishes_a_rival_gateway_owner(tmp_path):
         print("claimed", os.getpid(), flush=True)  # the lock owner (Popen.pid is the venv launcher on Windows)
         sys.stdin.readline()
     """), encoding="utf-8")
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(Path(__file__).resolve().parents[2])}
+    env = {**os.environ, "KOVA_HOME": str(home), "PYTHONPATH": str(Path(__file__).resolve().parents[2])}
     child = subprocess.Popen([sys.executable, str(entry), "gateway", "run"], env=env, text=True,
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     probe = textwrap.dedent("""

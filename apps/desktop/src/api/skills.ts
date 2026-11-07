@@ -12,7 +12,7 @@ import type { ActionResponse } from '@/types/hermes'
 import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
 
 export function getSkills(profile?: ProfileScope): Promise<SkillInfo[]> {
-  return window.hermesDesktop.api<SkillInfo[]>({
+  return window.kovaDesktop.api<SkillInfo[]>({
     ...capabilityScoped(profile),
     path: '/api/skills'
   })
@@ -24,7 +24,7 @@ export function getSkillContent(
   name: string,
   profile?: ProfileScope
 ): Promise<{ content: string; name: string; path: string }> {
-  return window.hermesDesktop.api<{ content: string; name: string; path: string }>({
+  return window.kovaDesktop.api<{ content: string; name: string; path: string }>({
     ...capabilityScoped(profile),
     path: `/api/skills/content?name=${encodeURIComponent(name)}`
   })
@@ -35,7 +35,7 @@ export function setSkillEnabled(
   enabled: boolean,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; enabled: boolean }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
+  return window.kovaDesktop.api<{ ok: boolean; name: string; enabled: boolean }>({
     ...capabilityScoped(profile),
     path: '/api/skills/toggle',
     method: 'PUT',
@@ -49,7 +49,7 @@ export function setSkillLocked(
   locked: boolean,
   profile?: ProfileScope
 ): Promise<{ ok: boolean; name: string; locked: boolean }> {
-  return window.hermesDesktop.api<{ ok: boolean; name: string; locked: boolean }>({
+  return window.kovaDesktop.api<{ ok: boolean; name: string; locked: boolean }>({
     ...capabilityScoped(profile),
     path: '/api/skills/lock',
     method: 'PUT',
@@ -74,14 +74,14 @@ export interface LearningNodeDetail {
 }
 
 export function getLearningNode(id: string, profile?: ProfileScope): Promise<LearningNodeDetail> {
-  return window.hermesDesktop.api<LearningNodeDetail>({
+  return window.kovaDesktop.api<LearningNodeDetail>({
     ...capabilityScoped(profile),
     path: `/api/learning/node?id=${encodeURIComponent(id)}`
   })
 }
 
 export function deleteLearningNode(id: string, profile?: ProfileScope): Promise<{ message: string; ok: boolean }> {
-  return window.hermesDesktop.api<{ message: string; ok: boolean }>({
+  return window.kovaDesktop.api<{ message: string; ok: boolean }>({
     ...capabilityScoped(profile),
     path: '/api/learning/node',
     method: 'DELETE',
@@ -94,7 +94,7 @@ export function editLearningNode(
   content: string,
   profile?: ProfileScope
 ): Promise<{ message: string; ok: boolean }> {
-  return window.hermesDesktop.api<{ message: string; ok: boolean }>({
+  return window.kovaDesktop.api<{ message: string; ok: boolean }>({
     ...capabilityScoped(profile),
     path: '/api/learning/node',
     method: 'PUT',
@@ -114,7 +114,7 @@ const HUB_REQUEST_TIMEOUT_MS = 45_000
  *  with per-profile installed flags. Feeds the Capabilities Skills list's
  *  "available to install" rows. */
 export function getOfficialSkills(profile?: ProfileScope): Promise<{ skills: OfficialSkillInfo[] }> {
-  return window.hermesDesktop.api<{ skills: OfficialSkillInfo[] }>({
+  return window.kovaDesktop.api<{ skills: OfficialSkillInfo[] }>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/official'
   })
@@ -144,7 +144,7 @@ export function searchSkillsHub(
 }
 
 export function previewSkillHub(identifier: string, profile?: ProfileScope): Promise<SkillHubPreview> {
-  return window.hermesDesktop.api<SkillHubPreview>({
+  return window.kovaDesktop.api<SkillHubPreview>({
     ...capabilityScoped(profile),
     path: `/api/skills/hub/preview?identifier=${encodeURIComponent(identifier)}`,
     timeoutMs: HUB_REQUEST_TIMEOUT_MS
@@ -160,7 +160,7 @@ export function scanSkillHub(identifier: string, profile?: null | string): Promi
 }
 
 export function installSkillFromHub(identifier: string, profile?: ProfileScope): Promise<ActionResponse> {
-  return window.hermesDesktop.api<ActionResponse>({
+  return window.kovaDesktop.api<ActionResponse>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/install',
     method: 'POST',
@@ -169,7 +169,7 @@ export function installSkillFromHub(identifier: string, profile?: ProfileScope):
 }
 
 export function uninstallSkillFromHub(name: string, profile?: ProfileScope): Promise<ActionResponse> {
-  return window.hermesDesktop.api<ActionResponse>({
+  return window.kovaDesktop.api<ActionResponse>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/uninstall',
     method: 'POST',
@@ -178,7 +178,7 @@ export function uninstallSkillFromHub(name: string, profile?: ProfileScope): Pro
 }
 
 export function updateSkillsFromHub(profile?: ProfileScope): Promise<ActionResponse> {
-  return window.hermesDesktop.api<ActionResponse>({
+  return window.kovaDesktop.api<ActionResponse>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/update',
     method: 'POST',

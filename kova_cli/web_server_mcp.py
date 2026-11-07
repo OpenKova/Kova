@@ -111,7 +111,7 @@ _mcp_oauth_transactions_lock = threading.Lock()
 
 
 def _mcp_oauth_transaction(flow) -> threading.Lock:
-    key = (flow.hermes_home, flow.server_name)
+    key = (flow.kova_home, flow.server_name)
     with _mcp_oauth_transactions_lock:
         return _mcp_oauth_transactions.setdefault(key, threading.Lock())
 
@@ -121,24 +121,24 @@ def _run_dashboard_mcp_oauth(flow, cfg: dict) -> None:
     from kova_cli.mcp_config import _oauth_tokens_present, _probe_single_server, _save_mcp_server
     try:
         from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-        from kova_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_kova_home_override, set_kova_home_override
         from tools.mcp_dashboard_oauth import dashboard_oauth_flow
-        from tools.mcp_oauth import HermesTokenStorage, force_interactive_oauth, login_connect_timeout
+        from tools.mcp_oauth import KovaTokenStorage, force_interactive_oauth, login_connect_timeout
         from tools.mcp_oauth_manager import get_manager
 
         home_token = secret_token = None
         try:
-            home_token = set_hermes_home_override(flow.hermes_home)
+            home_token = set_kova_home_override(flow.kova_home)
             secret_token = set_secret_scope(
-                build_profile_secret_scope(Path(flow.hermes_home)), profile_home=flow.hermes_home)
+                build_profile_secret_scope(Path(flow.kova_home)), profile_home=flow.kova_home)
             transaction = _mcp_oauth_transaction(flow)
             with transaction, force_interactive_oauth(), dashboard_oauth_flow(flow):
                 manager = get_manager()
-                storage = HermesTokenStorage(flow.server_name)
+                storage = KovaTokenStorage(flow.server_name)
                 backup = storage.snapshot()
                 previous_entry = None
                 try:
-                    previous_entry = manager.remove(flow.server_name, hermes_home=flow.hermes_home)
+                    previous_entry = manager.remove(flow.server_name, kova_home=flow.kova_home)
                     tools = _probe_single_server(
                         flow.server_name, cfg, connect_timeout=login_connect_timeout(cfg)
                     )
@@ -156,13 +156,13 @@ def _run_dashboard_mcp_oauth(flow, cfg: dict) -> None:
                         reconnect_mcp_server(flow.server_name)
                 except Exception:
                     storage.restore(backup, only_if_absent=True)
-                    manager.restore_entry(flow.server_name, previous_entry, hermes_home=flow.hermes_home)
+                    manager.restore_entry(flow.server_name, previous_entry, kova_home=flow.kova_home)
                     raise
         finally:
             if secret_token is not None:
                 reset_secret_scope(secret_token)
             if home_token is not None:
-                reset_hermes_home_override(home_token)
+                reset_kova_home_override(home_token)
     except Exception as exc:
         from tools.mcp_dashboard_oauth import exception_message
 

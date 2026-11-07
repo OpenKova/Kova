@@ -14,13 +14,13 @@ from unittest.mock import MagicMock
 import pytest
 
 import cli as cli_mod
-from cli import HermesCLI
+from cli import KovaCLI
 
 
 @pytest.fixture
 def bare_cli():
-    """A HermesCLI with no __init__ — we only exercise the redraw helper."""
-    cli = object.__new__(HermesCLI)
+    """A KovaCLI with no __init__ — we only exercise the redraw helper."""
+    cli = object.__new__(KovaCLI)
     return cli
 
 

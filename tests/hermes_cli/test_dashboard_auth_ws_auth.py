@@ -136,7 +136,7 @@ class TestWsTicketEndpoint:
             encoding="utf-8",
         )
         monkeypatch.setattr(web_server, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("KOVA_SERVE_HEADLESS", raising=False)
         monkeypatch.setattr(web_server.app.state, "auth_required", True, raising=False)
         application = FastAPI()
         application.state.auth_required = True
@@ -145,8 +145,8 @@ class TestWsTicketEndpoint:
         response = TestClient(application).get("/")
 
         assert response.status_code == 200
-        assert "window.__HERMES_AUTH_REQUIRED__=true" in response.text
-        assert "__HERMES_SESSION_TOKEN__" not in response.text
+        assert "window.__KOVA_AUTH_REQUIRED__=true" in response.text
+        assert "__KOVA_SESSION_TOKEN__" not in response.text
 
     def test_unauthenticated_returns_401_or_redirect(self, gated_app):
         r = gated_app.post("/api/auth/ws-ticket", follow_redirects=False)
@@ -250,7 +250,7 @@ class TestWsAuthOkLoopback:
         assert ws_one._hermes_auth_identity == {"user_id": "legacy-token-owner", "provider": "session-token"}
         assert ws_one._hermes_ws_subprotocol == _web_server_chat._GATEWAY_WS_PROTOCOL
         assert _web_server_chat._ws_auth_ok(_fake_ws(query={}, path="/api/ws", protocols=protocols)) is False
-        screen = mint_ticket(user_id="display:v", provider="bot-desktop", extra={"hermes_home": "/srv/hermes"})
+        screen = mint_ticket(user_id="display:v", provider="bot-desktop", extra={"kova_home": "/srv/hermes"})
         assert _web_server_chat._ws_auth_ok(_fake_ws(query={"ticket": screen}, path="/api/ws")) is False
 
 
@@ -311,7 +311,7 @@ class TestWsAuthOkGated:
         missing_public = _fake_ws(
             query={},
             path="/api/ws",
-            protocols=(f"hermes-gateway-ticket.{first}",),
+            protocols=(f"kova-gateway-ticket.{first}",),
         )
         assert _web_server_chat._ws_auth_ok(missing_public) is False
 
@@ -320,9 +320,9 @@ class TestWsAuthOkGated:
             query={},
             path="/api/ws",
             protocols=(
-                "hermes-gateway-v1",
-                f"hermes-gateway-ticket.{first}",
-                f"hermes-gateway-ticket.{second}",
+                "kova-gateway-v1",
+                f"kova-gateway-ticket.{first}",
+                f"kova-gateway-ticket.{second}",
             ),
         )
         assert _web_server_chat._ws_auth_ok(ambiguous) is False
@@ -419,7 +419,7 @@ class TestWsAuthOkGated:
 
     def test_session_token_audit_logs(self, gated_app, tmp_path, monkeypatch):
         """Accept and reject of a session token both audit."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         from kova_cli.dashboard_auth import audit as audit_mod
 
         if hasattr(audit_mod, "_LOGGER"):
@@ -446,7 +446,7 @@ class TestWsAuthOkGated:
 
     def test_rejection_audit_logs(self, gated_app, tmp_path, monkeypatch):
         # Point the audit log at a tmp dir so we can read what got written.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path))
         from kova_cli.dashboard_auth import audit as audit_mod
 
         # The log path is resolved lazily on the first audit_log() call;
@@ -578,7 +578,7 @@ class TestWsHostOriginGuardOrigins:
 
 
     def test_explicit_non_loopback_file_origin_allowed(self, insecure_explicit_host_app):
-        """Packaged Hermes Desktop also uses file:// when connecting to a
+        """Packaged Kova Desktop also uses file:// when connecting to a
         Tailscale/LAN dashboard bind.
 
         The WebSocket route calls _ws_auth_ok before this guard, so in

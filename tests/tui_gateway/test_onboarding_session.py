@@ -21,11 +21,11 @@ FACTS = Facts(os="macos", arch="arm64", machine_kind="Mac", plugins=("blender",)
 
 @pytest.fixture
 def root(tmp_path, monkeypatch) -> Path:
-    home = tmp_path / ".hermes"
+    home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(server, "_hermes_home", str(home))
+    monkeypatch.setenv("KOVA_HOME", str(home))
+    monkeypatch.setattr(server, "_kova_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: FACTS)
     (home / ".env").write_text("OPENROUTER_API_KEY=sk-or-test\n", encoding="utf-8")  # a model to run on
@@ -112,7 +112,7 @@ def test_only_a_chat_with_a_run_in_progress_gets_the_onboarding_toolset(root):
 
 
 def test_an_unrestricted_chat_with_a_run_keeps_every_tool_and_gets_setup_beat(root):
-    """HERMES_TUI_TOOLSETS=all loads None, which selects no session-gated toolset (onboarding is one)."""
+    """KOVA_TUI_TOOLSETS=all loads None, which selects no session-gated toolset (onboarding is one)."""
     from model_tools import _select_tool_names
     db = server._get_db()
     db.create_session("onb", "desktop")
@@ -149,9 +149,9 @@ def test_the_opening_plays_the_greeting_and_name_card_until_the_name_card_was_sh
 
 
 @pytest.mark.parametrize("locale, opens_with, asks", [
-    ("de", "Hallo, ich bin Hermes.", "Wie darf ich Sie nennen?"),
-    ("zh_TW", "你好，我是 Hermes。我們", "我該怎麼稱呼你？"),
-    ("ja-JP", "こんにちは、Hermes です。", "なんとお呼びすればいいですか？"),
+    ("de", "Hallo, ich bin Kova.", "Wie darf ich Sie nennen?"),
+    ("zh_TW", "你好，我是 Kova。我們", "我該怎麼稱呼你？"),
+    ("ja-JP", "こんにちは、Kova です。", "なんとお呼びすればいいですか？"),
     ("tlh", GREETING, "What should I call you?"),
     (None, GREETING, "What should I call you?"),
 ])
@@ -381,15 +381,15 @@ def test_deleting_the_onboarding_chat_ends_its_run_and_closes_the_flag(root):
 
 
 def test_the_onboarding_facts_are_read_in_the_default_profile(root, client, monkeypatch):
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
     work = root / "profiles" / "work"
     (work / "skills").mkdir(parents=True)
     (work / "config.yaml").write_text("model: {}\n", encoding="utf-8")
-    monkeypatch.setattr(server, "_hermes_home", str(work))
-    monkeypatch.setenv("HERMES_HOME", str(work))  # a backend launched with -p work
+    monkeypatch.setattr(server, "_kova_home", str(work))
+    monkeypatch.setenv("KOVA_HOME", str(work))  # a backend launched with -p work
     monkeypatch.setitem(server._methods, "prompt.submit", lambda rid, params: {"result": {}})  # launch db is work's
     homes = []
-    monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: (homes.append(get_hermes_home()), FACTS)[1])
+    monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: (homes.append(get_kova_home()), FACTS)[1])
 
     _call("onboarding.start")
     assert homes == [root]

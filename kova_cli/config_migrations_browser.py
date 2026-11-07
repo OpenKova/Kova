@@ -1,5 +1,5 @@
 """Config step 51 -> 52 (registered in ``kova_cli.config_migrations.MIGRATIONS``): agent-browser and the
-built-in browser_* tools left Hermes, so ``browser.backend`` / ``browser.extension_control`` go and the
+built-in browser_* tools left Kova, so ``browser.backend`` / ``browser.extension_control`` go and the
 AGENT_BROWSER_* settings a home's .env gave agent-browser move to the ``browser.*`` keys the launcher reads."""
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ import re
 from typing import Any
 
 
-# AGENT_BROWSER_* (read by agent-browser, which left Hermes) -> the browser.* key Hermes reads now.
+# AGENT_BROWSER_* (read by agent-browser, which left Kova) -> the browser.* key Kova reads now.
 _AGENT_BROWSER_ENV_KEYS = (
     ("AGENT_BROWSER_EXECUTABLE_PATH", "executable_path"),
     ("AGENT_BROWSER_PROFILE", "user_data_dir"),
@@ -23,10 +23,10 @@ def _agent_browser_env(home) -> dict[str, str]:
     """AGENT_BROWSER_* as *home* set them: its dotenv layers, then the process env for the launch home
     only (a served profile's env is the launch profile's, not its own)."""
     from kova_cli.env_loader import resolve_home_dotenv
-    from kova_constants import get_routing_process_hermes_home, hermes_home_key
+    from kova_constants import get_routing_process_kova_home, kova_home_key
 
     dotenv = resolve_home_dotenv(home)
-    launch = hermes_home_key(home) == hermes_home_key(get_routing_process_hermes_home())
+    launch = kova_home_key(home) == kova_home_key(get_routing_process_kova_home())
     found = {}
     for name, _key in _AGENT_BROWSER_ENV_KEYS:
         value = (dotenv.get(name) or (os.environ.get(name) if launch else None) or "").strip()
@@ -61,8 +61,8 @@ def _browser_value_from_env(key: str, value: str) -> Any:
     if key == "executable_path" and _inside_pm_store(value):
         return None
     if key == "user_data_dir" and not os.path.isabs(os.path.expanduser(value)):
-        # agent-browser inherited Hermes's cwd and resolved a relative profile there; browser.user_data_dir
-        # anchors relative paths at HERMES_HOME, so pin the directory the logins are in now.
+        # agent-browser inherited Kova's cwd and resolved a relative profile there; browser.user_data_dir
+        # anchors relative paths at KOVA_HOME, so pin the directory the logins are in now.
         return os.path.abspath(os.path.expanduser(value))
     return value
 
@@ -82,9 +82,9 @@ def _config_decided(key: str, current: Any) -> bool:
 # ``browser-use`` meant the built-in tools, on whatever browser the value named.
 _BACKEND_REASONS = {
     "browser-use": "browser_exec (Browser Use mode) is the only browser now",
-    "agent-browser": "agent-browser left Hermes; browser_exec is the browser now",
+    "agent-browser": "agent-browser left Kova; browser_exec is the browser now",
     "camofox": "Camofox is now the camofox plugin (`hermes plugins install camofox`)",
-    "local": "browser_exec launches Hermes's packaged Chromium itself (browser.cloud_provider: local)",
+    "local": "browser_exec launches Kova's packaged Chromium itself (browser.cloud_provider: local)",
     **dict.fromkeys(("browserbase", "firecrawl", "nous"),
                     "a cloud browser is chosen with browser.cloud_provider (`hermes tools` → Browser Automation)"),
 }
@@ -113,9 +113,9 @@ def move_agent_browser_env(home, browser: dict) -> tuple[list[str], list[str]]:
         browser[key] = new
         moved.append(f"{name} → browser.{key}")
         if key == "user_data_dir" and new != value:
-            # Resolved against this process's cwd, which need not be where Hermes ran before.
+            # Resolved against this process's cwd, which need not be where Kova ran before.
             pinned.append(f"pinned browser.user_data_dir to {new}: {name}={value} was relative to the directory "
-                          f"Hermes ran in; check that the browser logins are there")
+                          f"Kova ran in; check that the browser logins are there")
     return moved, pinned
 
 
@@ -124,11 +124,11 @@ def agent_browser_env_pending() -> bool:
     from pathlib import Path
 
     from kova_cli.config import read_raw_config
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     config = read_raw_config()
     browser = config.get("browser") if isinstance(config.get("browser"), dict) else {}
-    return bool(move_agent_browser_env(Path(get_hermes_home()), dict(browser))[0])
+    return bool(move_agent_browser_env(Path(get_kova_home()), dict(browser))[0])
 
 
 def adopt_agent_browser_env(home, config: dict) -> list[str]:
@@ -147,7 +147,7 @@ def adopt_agent_browser_env(home, config: dict) -> list[str]:
 
 
 def migrate_to_52(results: dict[str, Any], quiet: bool) -> None:
-    # 51 -> 52: agent-browser and the built-in browser_* tools left Hermes; browser_exec is the only
+    # 51 -> 52: agent-browser and the built-in browser_* tools left Kova; browser_exec is the only
     # browser. `browser.backend` chose between the two, so it is dropped (an `off`, the opt-out of
     # browser_exec, gets a notice saying how to turn browsing off now). The AGENT_BROWSER_* settings
     # this home's .env gave agent-browser move to the browser.* keys the launcher reads, never over
@@ -159,7 +159,7 @@ def migrate_to_52(results: dict[str, Any], quiet: bool) -> None:
 
     from kova_cli.config_migrations import _persist_migration, read_raw_config
     from kova_cli.left_core_migration import record_core_use
-    from kova_constants import get_hermes_home
+    from kova_constants import get_kova_home
 
     config = read_raw_config()
     browser = config.get("browser") if isinstance(config.get("browser"), dict) else {}
@@ -180,7 +180,7 @@ def migrate_to_52(results: dict[str, Any], quiet: bool) -> None:
     if "extension_control" in browser:
         browser.pop("extension_control")
         added.append("removed browser.extension_control")
-    moved, pinned = move_agent_browser_env(Path(get_hermes_home()), browser)
+    moved, pinned = move_agent_browser_env(Path(get_kova_home()), browser)
     for note in pinned:
         added.append(note)
         messages.append(f"  ✓ {note[0].upper()}{note[1:]}.")
@@ -188,7 +188,7 @@ def migrate_to_52(results: dict[str, Any], quiet: bool) -> None:
     if moved:
         added.append(f"browser: {', '.join(moved)}")
         messages.append(f"  ✓ Moved agent-browser settings from .env to config.yaml: {', '.join(moved)}")
-    used = record_core_use(Path(get_hermes_home()), config, 52)
+    used = record_core_use(Path(get_kova_home()), config, 52)
     if not added and not used:
         return
     if added:

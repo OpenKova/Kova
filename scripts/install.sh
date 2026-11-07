@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Hermes Agent bootstrap: clone, acquire uv/Python, then hand the checkout to
+# Kova Agent bootstrap: clone, acquire uv/Python, then hand the checkout to
 # the same completion an update runs -- command publication, product builds and
 # post-build maintenance -- so a fresh install and a finished update land in one
 # state. Heavy dependencies (tool binaries, browsers, node) are pm's job:
 # `hermes pm install`.
 #
-# Stage protocol kept for Hermes-Setup:
+# Stage protocol kept for Kova-Setup:
 #   --manifest            print the stage list as JSON
 #   --stage NAME [--json] run one stage
 #   --non-interactive     skip stages that need input
@@ -20,14 +20,14 @@ set -u
 # hygiene can't break the locked sync the way it used to before pm owned it.
 export UV_NO_CONFIG=1
 
-REPO_URL="${HERMES_REPO_URL:-https://github.com/NousResearch/hermes-agent.git}"
+REPO_URL="${KOVA_REPO_URL:-https://github.com/NousResearch/kova-agent.git}"
 BRANCH="main"
 INSTALL_COMMIT=""
 # The update channel to install: stable (the latest published release, the default for the
 # official repository's main line) or main (every commit). An explicit choice is persisted.
-CHANNEL="${HERMES_INSTALL_CHANNEL:-}"
-INSTALL_DIR="${HERMES_INSTALL_DIR:-}"
-HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+CHANNEL="${KOVA_INSTALL_CHANNEL:-}"
+INSTALL_DIR="${KOVA_INSTALL_DIR:-}"
+KOVA_HOME="${KOVA_HOME:-$HOME/.kova}"
 STAGE=""
 WANT_MANIFEST=false
 JSON=false
@@ -45,7 +45,7 @@ INSTALL_IN_STAGE=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --branch|-Branch|--commit|-Commit|--channel|-Channel|--dir|--hermes-home|-HermesHome|--stage|-Stage)
+        --branch|-Branch|--commit|-Commit|--channel|-Channel|--dir|--hermes-home|-KovaHome|--stage|-Stage)
             option="$1"
             if [ $# -lt 2 ] || [ -z "$2" ] || [[ "$2" == -* ]]; then
                 printf '%s needs a value\n' "$option" >&2
@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
                 --commit|-Commit) INSTALL_COMMIT="$2" ;;
                 --channel|-Channel) CHANNEL="$2" ;;
                 --dir) INSTALL_DIR="$2" ;;
-                --hermes-home|-HermesHome) HERMES_HOME="$2" ;;
+                --hermes-home|-KovaHome) KOVA_HOME="$2" ;;
                 --stage|-Stage) STAGE="$2" ;;
             esac
             shift 2 ;;
@@ -76,7 +76,7 @@ while [ $# -gt 0 ]; do
             echo "                  [--skip-browser] [--skip-computer-use]"
             echo
             echo "  --channel       stable (default): the latest published release, then release"
-            echo "                  to release. main: every commit. Also HERMES_INSTALL_CHANNEL;"
+            echo "                  to release. main: every commit. Also KOVA_INSTALL_CHANNEL;"
             echo "                  an explicit choice is saved like 'hermes update --set-channel'."
             echo "  --skip-browser  Do not install the browser (Chromium). Alias: --no-playwright."
             echo "                  Remembered by later installs and 'hermes update';"
@@ -94,13 +94,13 @@ case "$CHANNEL" in
     *) printf -- '--channel must be stable or main, not %s\n' "$CHANNEL" >&2; exit 2 ;;
 esac
 
-INSTALL_DIR="${INSTALL_DIR:-$HERMES_HOME/hermes-agent}"
-export HERMES_HOME
+INSTALL_DIR="${INSTALL_DIR:-$KOVA_HOME/kova-agent}"
+export KOVA_HOME
 
-INSTALL_LOG="$HERMES_HOME/logs/install.log"
+INSTALL_LOG="$KOVA_HOME/logs/install.log"
 
 # Same glyphs as the pre-pm installer. Colour only on a terminal, so CI
-# transcripts and the Hermes-Setup driver read plain text.
+# transcripts and the Kova-Setup driver read plain text.
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     C_RED=$'\033[0;31m' C_GREEN=$'\033[0;32m' C_YELLOW=$'\033[0;33m'
     C_CYAN=$'\033[0;36m' C_MAGENTA=$'\033[0;35m' C_BOLD=$'\033[1m'
@@ -116,7 +116,7 @@ log_error() { printf '%s✗%s %s\n' "$C_RED" "$C_NC" "$1" >&2; }
 # $2: closed failure class for the local install receipt (write_install_receipt).
 fail() { STAGE_REASON="$1"; FAILURE_CLASS="${2:-other}"; log_error "$1"; exit 1; }
 # The last failed run_logged command's own error line (git's "fatal: ..."), so a
-# failure reason -- which Hermes-Setup shows as-is -- names the cause, not just the step.
+# failure reason -- which Kova-Setup shows as-is -- names the cause, not just the step.
 RUN_LOGGED_ERROR=""
 native_detail() { [ -z "$RUN_LOGGED_ERROR" ] || printf ': %s' "$RUN_LOGGED_ERROR"; }
 # Pick the error line from a command's output on stdin: the first fatal:/error:
@@ -135,14 +135,14 @@ error_line() {
 
 # One local receipt per full-ladder run, under the profile's shared-metrics dir.
 # Only closed tokens and two timestamps (never STAGE_REASON, paths or URLs); the
-# installer never sends anything. Hermes reports it as hermes.install.run on a
+# installer never sends anything. Kova reports it as hermes.install.run on a
 # later start only while shared metrics collection is on, and deletes it
 # unreported when collection is off. Best effort: never fails the install.
 write_install_receipt() {
     # $1 outcome, $2 failed stage, $3 failure class. One file per run: the first writer wins.
     # A failed write (full disk) removes its partial temp file: the reader never sees dotfiles.
     {
-        local dir="$HERMES_HOME/telemetry/shared_metrics/pending_installs" id="$INSTALL_RUN_ID"
+        local dir="$KOVA_HOME/telemetry/shared_metrics/pending_installs" id="$INSTALL_RUN_ID"
         [ -n "$id" ] && [ ! -e "$dir/$id.json" ] && mkdir -p "$dir" && {
             printf '{"id":"%s","installer":"install_sh","outcome":"%s","failed_stage":"%s","failure_class":"%s","started_at":%s,"finished_at":%s}\n' \
                 "$id" "$1" "$2" "$3" "$INSTALL_STARTED" "$(date +%s)" > "$dir/.$id.tmp" \
@@ -191,7 +191,7 @@ stage_signal() {
 print_banner() {
     printf '\n%s%s' "$C_MAGENTA" "$C_BOLD"
     printf '%s\n' "┌─────────────────────────────────────────────────────────┐"
-    printf '%s\n' "│             ☤ Hermes Agent Installer                    │"
+    printf '%s\n' "│             ☤ Kova Agent Installer                    │"
     printf '%s\n' "├─────────────────────────────────────────────────────────┤"
     printf '%s\n' "│  An open source AI agent by Nous Research.              │"
     printf '%s\n' "└─────────────────────────────────────────────────────────┘"
@@ -200,11 +200,11 @@ print_banner() {
 
 # Interactive runs collapse child-process output (git, uv, pm, the builds)
 # into one status line. CI, --verbose and a non-terminal stdout -- the
-# Hermes-Setup --json driver, E2E transcripts -- keep the full stream those
+# Kova-Setup --json driver, E2E transcripts -- keep the full stream those
 # readers parse.
 quiet_output() {
     [ "$VERBOSE" = true ] && return 1
-    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${HERMES_INSTALL_VERBOSE:-}" ]; then
+    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${KOVA_INSTALL_VERBOSE:-}" ]; then
         return 1
     fi
     [ -t 1 ]
@@ -230,7 +230,7 @@ run_logged() {
         log "$label"
         local err rc
         err="$(mktemp 2>/dev/null)" || { "$@"; return; }
-        # stderr still streams (Hermes-Setup logs it); a copy names the failure.
+        # stderr still streams (Kova-Setup logs it); a copy names the failure.
         { "$@" 2>&1 1>&3 | tee "$err" >&2; } 3>&1
         rc=${PIPESTATUS[0]}
         [ "$rc" -eq 0 ] || RUN_LOGGED_ERROR="$(error_line < "$err")"
@@ -362,16 +362,16 @@ uv_bootstrap_target() {
 UV_CMD=""
 ensure_uv() {
     [ -n "$UV_CMD" ] && return 0
-    # Always the pinned artifact, never a uv already on PATH: Hermes runs only
+    # Always the pinned artifact, never a uv already on PATH: Kova runs only
     # its own packaged toolchain.
     local _target
     if ! _target="$(uv_bootstrap_target)"; then
-        fail "no pinned uv build for this platform ($(uname -s) $(uname -m)); Hermes does not support this host" unsupported_platform
+        fail "no pinned uv build for this platform ($(uname -s) $(uname -m)); Kova does not support this host" unsupported_platform
     fi
     if ! uv_bootstrap_pin "$_target"; then
-        fail "no pinned uv artifact for $_target; Hermes does not support this host" unsupported_platform
+        fail "no pinned uv artifact for $_target; Kova does not support this host" unsupported_platform
     fi
-    local _store="${HERMES_RUNTIME_DIR:-$HERMES_HOME/tools}"
+    local _store="${KOVA_RUNTIME_DIR:-$KOVA_HOME/tools}"
     local _entry="$_store/uv-$UV_PIN_VERSION-$_target"
     UV_CMD="$_entry/uv"
     if [ ! -x "$UV_CMD" ]; then
@@ -436,7 +436,7 @@ check_platform() {
     # install the phone cannot run (no Android wheels in the lock). The
     # signed APT package is the only supported shape there.
     if [ -n "${TERMUX_VERSION:-}" ] || case "${PREFIX:-}" in *com.termux/files/usr*) true ;; *) false ;; esac; then
-        fail "Termux is installed from its APT repository, not install.sh: pkg install hermes-agent (setup: https://hermes-agent.nousresearch.com/docs/getting-started/termux)" unsupported_platform
+        fail "Termux is installed from its APT repository, not install.sh: pkg install kova-agent (setup: https://kova-agent.nousresearch.com/docs/getting-started/termux)" unsupported_platform
     fi
     case "$(uname -s 2>/dev/null)" in
         Linux*) : ;;
@@ -510,7 +510,7 @@ products_record() {
 stage_record() {
     case "$1" in
         prerequisites) echo "System prerequisites|runtime|false" ;;
-        repository)    echo "Download Hermes Agent|runtime|false" ;;
+        repository)    echo "Download Kova Agent|runtime|false" ;;
         venv)          echo "Create Python environment|runtime|false" ;;
         python-deps)   echo "Install Python dependencies|runtime|false" ;;
         config)        echo "Prepare config and skills|configuration|false" ;;
@@ -565,7 +565,7 @@ install_macos_git() {
         log_warn "xcode-select --install: $(printf '%s\n' "$_xs" | error_line)"
     fi
     local _remedy="Install Apple's Command Line Tools (run: xcode-select --install), then re-run this installer."
-    # Hermes-Setup drives stages with --json: no stage timeout, a Cancel
+    # Kova-Setup drives stages with --json: no stage timeout, a Cancel
     # button, and these log lines show as progress, so it waits too.
     if [ "$JSON" != true ] && { [ "$NON_INTERACTIVE" = true ] || ! has_terminal; }; then
         fail "git needs Apple's Command Line Tools. $_remedy" git_missing
@@ -617,10 +617,10 @@ stage_prerequisites() {
 
 # The update channel this install chose (config.yaml update.installs.<id>.channel,
 # id = sha16 of the canonical install path, as kova_cli.update_channel keys it).
-# Pre-Python reader of the block YAML Hermes writes; anything it cannot read prints
+# Pre-Python reader of the block YAML Kova writes; anything it cannot read prints
 # nothing, which keeps the plain branch behaviour.
 chosen_channel() {
-    local config="$HERMES_HOME/config.yaml" root id
+    local config="$KOVA_HOME/config.yaml" root id
     [ -f "$config" ] || return 0
     root="$(cd "$INSTALL_DIR" 2>/dev/null && pwd -P)" || return 0
     if command -v sha256sum >/dev/null 2>&1; then id="$(printf '%s' "$root" | sha256sum)"
@@ -648,7 +648,7 @@ chosen_channel() {
 # kova_cli.update_channel.default_channel decides.
 is_official_repo() {
     printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
-        | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/hermes-agent(\.git)?/?$'
+        | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/kova-agent(\.git)?/?$'
 }
 
 # The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
@@ -658,11 +658,11 @@ is_official_repo() {
 latest_stable_release() {
     local tag
     tag="$(curl -fsSL --connect-timeout 5 --max-time 20 -H 'Accept: application/vnd.github+json' \
-        https://api.github.com/repos/NousResearch/hermes-agent/releases/latest 2>/dev/null \
+        https://api.github.com/repos/NousResearch/kova-agent/releases/latest 2>/dev/null \
         | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
     if ! valid_stable_tag "$tag"; then
         tag="$(curl -fsSI --connect-timeout 5 --max-time 20 \
-            https://github.com/NousResearch/hermes-agent/releases/latest 2>/dev/null \
+            https://github.com/NousResearch/kova-agent/releases/latest 2>/dev/null \
             | tr -d '\r' | sed -n 's#^[Ll]ocation:.*/releases/tag/\([^/]*\)$#\1#p' | tail -n 1)"
     fi
     if ! valid_stable_tag "$tag"; then
@@ -728,9 +728,9 @@ stage_repository() {
         # Only an explicit --commit pin outranks the choice.
         # An explicit --channel is a new choice and replaces the recorded one.
         [ -n "$INSTALL_COMMIT" ] || [ -n "$CHANNEL" ] || channel="$(chosen_channel)"
-        # An explicit HERMES_REPO_URL names the source for reruns too, not
+        # An explicit KOVA_REPO_URL names the source for reruns too, not
         # just the first clone.
-        if [ -n "${HERMES_REPO_URL:-}" ]; then
+        if [ -n "${KOVA_REPO_URL:-}" ]; then
             git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" || fail "cannot point origin at $REPO_URL" git_fetch_failed
         fi
         # No recorded choice: an official checkout tracks stable, as `hermes update` does.
@@ -881,7 +881,7 @@ stage_repository() {
             if [ -d "$INSTALL_DIR" ] && [ ! -L "$INSTALL_DIR" ] && [ -z "$(ls -A "$INSTALL_DIR")" ]; then
                 rmdir "$INSTALL_DIR" || fail "cannot replace empty $INSTALL_DIR" filesystem_error
             else
-                fail "$INSTALL_DIR exists and is not a Hermes git checkout. Move it aside, or install elsewhere with --dir <path>." dir_not_checkout
+                fail "$INSTALL_DIR exists and is not a Kova git checkout. Move it aside, or install elsewhere with --dir <path>." dir_not_checkout
             fi
         fi
         mkdir -p "$(dirname "$INSTALL_DIR")"
@@ -893,7 +893,7 @@ stage_repository() {
         # Phase lines ("Receiving objects: 42%") feed the status line; git
         # prints none to a pipe unless asked.
         if quiet_output; then progress=(--progress); fi
-        staged="$(mktemp -d "$(dirname "$INSTALL_DIR")/.hermes-clone-XXXXXX")" || fail "cannot stage clone" filesystem_error
+        staged="$(mktemp -d "$(dirname "$INSTALL_DIR")/.kova-clone-XXXXXX")" || fail "cannot stage clone" filesystem_error
         for attempt in 1 2 3; do
             # Blobless: every commit, tree and release tag (runtime identity is
             # the nearest reachable release; --commit pins and branch switches
@@ -969,7 +969,7 @@ stage_repository() {
             || log_warn "could not disable gc.writeCommitGraph in $INSTALL_DIR"
         git -C "$INSTALL_DIR" config fetch.writeCommitGraph false \
             || log_warn "could not disable fetch.writeCommitGraph in $INSTALL_DIR"
-        log_success "Hermes Agent cloned"
+        log_success "Kova Agent cloned"
     fi
     if [ -n "$INSTALL_COMMIT" ] && [ "$pinned" = false ]; then
         # A rerun over an existing checkout pins here (a fresh clone pinned
@@ -1071,7 +1071,7 @@ append_shell_path() {
         return 0
     fi
     mkdir -p "$(dirname "$rc")"
-    printf '\n# Hermes Agent command\n%s\n' "$line" >> "$rc" || fail "cannot update PATH in $rc" filesystem_error
+    printf '\n# Kova Agent command\n%s\n' "$line" >> "$rc" || fail "cannot update PATH in $rc" filesystem_error
     log_success "added ~/.local/bin to PATH in $rc"
 }
 
@@ -1132,17 +1132,17 @@ stage_desktop() {
 }
 
 stage_config() {
-    mkdir -p "$HERMES_HOME"/cron "$HERMES_HOME"/sessions "$HERMES_HOME"/logs \
-        "$HERMES_HOME"/pairing "$HERMES_HOME"/hooks "$HERMES_HOME"/image_cache \
-        "$HERMES_HOME"/audio_cache "$HERMES_HOME"/memories "$HERMES_HOME"/skills
-    if [ ! -f "$HERMES_HOME/.env" ]; then
-        cp "$INSTALL_DIR/.env.example" "$HERMES_HOME/.env" 2>/dev/null || touch "$HERMES_HOME/.env"
+    mkdir -p "$KOVA_HOME"/cron "$KOVA_HOME"/sessions "$KOVA_HOME"/logs \
+        "$KOVA_HOME"/pairing "$KOVA_HOME"/hooks "$KOVA_HOME"/image_cache \
+        "$KOVA_HOME"/audio_cache "$KOVA_HOME"/memories "$KOVA_HOME"/skills
+    if [ ! -f "$KOVA_HOME/.env" ]; then
+        cp "$INSTALL_DIR/.env.example" "$KOVA_HOME/.env" 2>/dev/null || touch "$KOVA_HOME/.env"
     fi
-    chmod 600 "$HERMES_HOME/.env"
-    if [ ! -f "$HERMES_HOME/config.yaml" ] && [ -f "$INSTALL_DIR/cli-config.yaml.example" ]; then
-        cp "$INSTALL_DIR/cli-config.yaml.example" "$HERMES_HOME/config.yaml"
+    chmod 600 "$KOVA_HOME/.env"
+    if [ ! -f "$KOVA_HOME/config.yaml" ] && [ -f "$INSTALL_DIR/cli-config.yaml.example" ]; then
+        cp "$INSTALL_DIR/cli-config.yaml.example" "$KOVA_HOME/config.yaml"
     fi
-    log_success "config prepared in $HERMES_HOME"
+    log_success "config prepared in $KOVA_HOME"
 }
 
 # Interactive stages read the terminal, not stdin: under `curl | bash` stdin
@@ -1156,7 +1156,7 @@ stage_setup() {
         log "setup skipped (no terminal); run 'hermes setup' after install"
         return 0
     fi
-    "$INSTALL_DIR/.hermes/bin/hermes" setup </dev/tty || fail "setup failed" setup_failed
+    "$INSTALL_DIR/.kova/bin/hermes" setup </dev/tty || fail "setup failed" setup_failed
 }
 
 stage_gateway() {
@@ -1166,7 +1166,7 @@ stage_gateway() {
         return 0
     fi
     # Setup installs the service when it handles the gateway; ask only if it did not.
-    "$INSTALL_DIR/.hermes/bin/hermes" gateway install --if-missing </dev/tty || fail "gateway installation failed" gateway_failed
+    "$INSTALL_DIR/.kova/bin/hermes" gateway install --if-missing </dev/tty || fail "gateway installation failed" gateway_failed
 }
 
 stage_complete() {
@@ -1175,14 +1175,14 @@ stage_complete() {
     [ -n "$commit" ] || commit=$(git -C "$INSTALL_DIR" rev-parse HEAD 2>/dev/null) || commit=""
     if [ -n "$commit" ]; then
         printf '{\n  "schemaVersion": 1,\n  "pinnedCommit": "%s",\n  "pinnedBranch": "%s",\n  "completedAt": "%s"\n}\n' \
-            "$commit" "$BRANCH" "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" > "$INSTALL_DIR/.hermes-bootstrap-complete.tmp"
-        mv -f "$INSTALL_DIR/.hermes-bootstrap-complete.tmp" "$INSTALL_DIR/.hermes-bootstrap-complete"
+            "$commit" "$BRANCH" "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" > "$INSTALL_DIR/.kova-bootstrap-complete.tmp"
+        mv -f "$INSTALL_DIR/.kova-bootstrap-complete.tmp" "$INSTALL_DIR/.kova-bootstrap-complete"
     fi
     if [ -n "$CHANNEL" ]; then
-        "$INSTALL_DIR/.hermes/bin/hermes" update --set-channel "$CHANNEL" \
+        "$INSTALL_DIR/.kova/bin/hermes" update --set-channel "$CHANNEL" \
             || fail "could not save the $CHANNEL update channel" other
     fi
-    log_success "Hermes Agent install complete. Run: hermes"
+    log_success "Kova Agent install complete. Run: hermes"
 }
 
 print_path_reload_hint() {

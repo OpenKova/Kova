@@ -27,7 +27,7 @@ from typing import Callable, Mapping, Optional
 # verbatim (Wayland app_id, CHROME_DESKTOP). GNOME links a window to a launcher by StartupWMClass
 # or by a `<app_id>.desktop` file name, so the entry has to carry the same id — under the old
 # "hermes.desktop" name a packaged launch matches neither rung and lands on the placeholder icon.
-APP_ID = "com.nousresearch.hermes"
+APP_ID = "com.nousresearch.kova"
 DESKTOP_ENTRY_NAME = f"{APP_ID}.desktop"
 
 # Entry name written before the app-id rename; a successful install converts it into a hidden
@@ -38,7 +38,7 @@ LEGACY_DESKTOP_ENTRY_NAME = "hermes.desktop"
 # (updater relaunch) launches. See launched_from_shell().
 SHELL_LAUNCH_ENV_VAR = "DESKTOP_STARTUP_ID"
 # Write end of the reveal pipe handed to Electron; one byte means "main window is on screen".
-READY_FD_ENV_VAR = "HERMES_DESKTOP_READY_FD"
+READY_FD_ENV_VAR = "KOVA_DESKTOP_READY_FD"
 REVEAL_BYTE = b"r"  # what linux-launcher-ready.ts writes; anything else is finish()'s wake-up
 
 _SHELL_NAMES = ("bash", "sh", "dash", "zsh", "ksh")
@@ -160,7 +160,7 @@ def _desktop_argv_tail(project_root: Optional[Path]) -> list[str]:
     packaged = any(
         (release / dist / name).exists()
         for dist in ("linux-unpacked", "linux-arm64-unpacked")
-        for name in ("hermes", "Hermes")
+        for name in ("hermes", "Kova")
     )
     return ["desktop", "--skip-build"] if packaged else ["desktop"]
 
@@ -407,7 +407,7 @@ def _wrapper_targets_checkout(wrapper: Path, checkout_root: Path) -> bool:
     )
 
 
-_HERMES_CODE_MARKERS = ("kova_cli", "workspace/kova_cli")
+_KOVA_CODE_MARKERS = ("kova_cli", "workspace/kova_cli")
 _DESKTOP_APP_ENTRIES = ("apps/desktop/package.json", "workspace/apps/desktop/package.json")
 
 
@@ -434,7 +434,7 @@ def _tree_desktop_state(tree: Path) -> Optional[bool]:
 
     if is_bundled_payload(tree):
         return True
-    if any((tree / marker).is_dir() for marker in _HERMES_CODE_MARKERS):
+    if any((tree / marker).is_dir() for marker in _KOVA_CODE_MARKERS):
         return False
     return None
 
@@ -582,9 +582,9 @@ def render_desktop_entry(exec_command: str, icon: str) -> str:
     return (
         "[Desktop Entry]\n"
         "Type=Application\n"
-        "Name=Hermes\n"
-        "GenericName=Hermes Desktop\n"
-        "Comment=Launch Hermes Desktop\n"
+        "Name=Kova\n"
+        "GenericName=Kova Desktop\n"
+        "Comment=Launch Kova Desktop\n"
         f"Exec={exec_command}\n"
         f"Icon={icon}\n"
         "Terminal=false\n"
@@ -772,7 +772,7 @@ def _alias_legacy_desktop_entry(applications_dir: Path, exec_command: str, icon:
 
     Shells resolve a taskbar pin by the entry file name it was pinned against: deleting the
     file makes GNOME drop the favourite and Plasma leave an inert item, and nothing can
-    re-pin for the user. The alias stays launchable for old pins without listing Hermes
+    re-pin for the user. The alias stays launchable for old pins without listing Kova
     twice. Only a file that still names this app is converted; anything else at that path
     is left alone. True when the legacy file was (re)written.
     """
@@ -781,7 +781,7 @@ def _alias_legacy_desktop_entry(applications_dir: Path, exec_command: str, icon:
         text = legacy.read_text(encoding="utf-8-sig")
     except OSError:
         return False
-    if not any(line.strip() == "Name=Hermes" for line in text.splitlines()):
+    if not any(line.strip() == "Name=Kova" for line in text.splitlines()):
         return False
     alias_contents = _render_legacy_alias_entry(exec_command, icon)
     if text == alias_contents:
@@ -875,7 +875,7 @@ class DeferredDesktopEntryInstall:
     """Install the entry once the desktop window is on screen — never while the shell's
     ShellApp is STARTING.
 
-    The launcher hands Electron the write end of a pipe (``HERMES_DESKTOP_READY_FD``); Electron
+    The launcher hands Electron the write end of a pipe (``KOVA_DESKTOP_READY_FD``); Electron
     writes one byte when the main window is revealed and a worker thread then installs the entry.
     An exit without a reveal (boot crash, early quit) does NOT heal: gnome-shell keeps the ShellApp
     in STARTING until the startup-notification sequence completes or times out (mutter, ~15 s),

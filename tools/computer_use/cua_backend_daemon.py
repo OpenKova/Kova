@@ -94,10 +94,10 @@ def _wait_or_kill(process: Any) -> None:
 
 class _EmbeddedCuaDaemon:
     """Private daemon for a non-standard permission mode. cua-driver's permission mode is immutable after daemon
-    startup, so reusing the machine-wide daemon would let one Hermes session's YOLO choice affect another. A
+    startup, so reusing the machine-wide daemon would let one Kova session's YOLO choice affect another. A
     private daemon gives the session its own socket, runtime and launch-time authorization; on macOS it is
     launched through CuaDriver.app so TCC stays attached to ``com.trycua.driver``. ``unrestricted`` = explicit
-    Hermes YOLO (``--dangerously-bypass-approvals``); ``bounded`` = a user-reviewed capability manifest approved
+    Kova YOLO (``--dangerously-bypass-approvals``); ``bounded`` = a user-reviewed capability manifest approved
     at launch is the authorization boundary, not a runtime prompt. The manifest is a ceiling, not a mode: it "can
     narrow a profile but never widen it", so a configured v3 manifest is forwarded even for ``unrestricted``
     (bounding an approval-bypassed run). Mandatory for ``bounded``, optional everywhere else."""
@@ -177,7 +177,7 @@ class _EmbeddedCuaDaemon:
             self._process = subprocess.Popen(command, **popen_kwargs)
         else:
             # Owned: the daemon dies with this process however it dies. It used to be stopped only by stop()
-            # (session release / atexit), so a SIGKILLed or OOM-killed Hermes left a YOLO-mode daemon running.
+            # (session release / atexit), so a SIGKILLed or OOM-killed Kova left a YOLO-mode daemon running.
             self._process = spawn_owned(command, purpose="cua-driver-embedded", **popen_kwargs)
         self._owns_runtime = True
         threading.Thread(target=self._drain_stderr, args=(self._process,), name="hermes-cua-daemon-stderr", daemon=True).start()

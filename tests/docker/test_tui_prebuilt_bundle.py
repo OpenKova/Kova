@@ -4,10 +4,10 @@ Regression guard for the hosted-chat failure where the embedded dashboard
 Chat tab died with a 502 / "[session ended]". Root cause: the runtime image
 carries no workspace node_modules (frontend dependencies stay in the build
 stage), so source dependency preparation can never converge there. Without
-HERMES_TUI_DIR set, ``_make_tui_argv`` falls through to that preparation,
+KOVA_TUI_DIR set, ``_make_tui_argv`` falls through to that preparation,
 racing itself across concurrent /api/pty connections → ENOTEMPTY.
 
-The fix is ``ENV HERMES_TUI_DIR=/opt/hermes/ui-tui`` in the Dockerfile, which
+The fix is ``ENV KOVA_TUI_DIR=/opt/hermes/ui-tui`` in the Dockerfile, which
 makes the launcher take the prebuilt-bundle fast path (``node --expose-gc
 .../dist/entry.js``) and skip the install check entirely. These tests assert
 that invariant holds in the built image.
@@ -75,7 +75,7 @@ def test_prebuilt_bundle_present_and_no_runtime_install(built_image: str) -> Non
     )
     out = json.loads(_exec_py(built_image, py))
     assert out["dist_entry_exists"], "prebuilt ui-tui/dist/entry.js missing from image"
-    # With HERMES_TUI_DIR set, _make_tui_argv returns the prebuilt path BEFORE
+    # With KOVA_TUI_DIR set, _make_tui_argv returns the prebuilt path BEFORE
     # ever reaching the install check — so the resolved argv is what matters.
     assert out["uses_prebuilt"], f"launcher did not take prebuilt path: argv={out['argv']!r}"
     assert "npm" not in out["argv"][0].lower(), (
@@ -95,7 +95,7 @@ from kova_cli.main_tui_launch import _apply_tui_python_env
 env = dict(os.environ)
 _apply_tui_python_env(env)
 child = subprocess.run(
-    [env["HERMES_PYTHON"], "-c",
+    [env["KOVA_PYTHON"], "-c",
      "import os, sys; print(os.path.realpath(sys.executable), flush=True); import tui_gateway.entry"],
     cwd="/opt/hermes", env=env, capture_output=True, text=True, timeout=30,
 )
@@ -107,7 +107,7 @@ print(json.dumps({
 }))
 '''
     # Run as the image user without `su`, which would erase Docker's
-    # HERMES_PYTHON and hide the broken runtime environment.
+    # KOVA_PYTHON and hide the broken runtime environment.
     inner = (
         "source /opt/hermes/.venv/bin/activate && "
         "cd /opt/hermes && "

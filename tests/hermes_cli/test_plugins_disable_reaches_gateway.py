@@ -17,13 +17,13 @@ from kova_cli.config import load_config, save_config
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    hermes_home = tmp_path / "hermes-home"
-    plugin_dir = hermes_home / "plugins" / "probe"
+    kova_home = tmp_path / "hermes-home"
+    plugin_dir = kova_home / "plugins" / "probe"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text("name: probe\nversion: '1.0'\n", encoding="utf-8")
     (plugin_dir / "__init__.py").write_text("def register(ctx):\n    pass\n", encoding="utf-8")
-    (hermes_home / "config.yaml").write_text("plugins:\n  enabled: [probe]\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    (kova_home / "config.yaml").write_text("plugins:\n  enabled: [probe]\n  disabled: []\n", encoding="utf-8")
+    monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     def admit(enabled, disabled, **_kwargs):
         cfg = load_config()
@@ -31,7 +31,7 @@ def home(tmp_path, monkeypatch):
         save_config(cfg)
 
     monkeypatch.setattr("kova_cli.plugins_admission.admit_plugin_set_change", admit)
-    return hermes_home
+    return kova_home
 
 
 def _gateway(monkeypatch, answer, *, shared=None):
@@ -98,7 +98,7 @@ def test_an_explicit_refusal_is_reported_not_called_silence(home, monkeypatch, c
 def shared_root(tmp_path, monkeypatch):
     root = tmp_path / "shared-root"
     root.mkdir()
-    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_kova_root", lambda: root)
     return root
 
 

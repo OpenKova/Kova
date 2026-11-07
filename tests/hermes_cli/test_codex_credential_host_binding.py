@@ -3,7 +3,7 @@
 Adversarial regressions for the catalog picker, the context probe, the auxiliary Codex client and
 the image plugin behind a custom Codex gateway. Every case records each outbound request and
 asserts that no ``Authorization`` header reaches a host other than the credential's own route —
-including the ``model.base_url``-only gateway shape (``HERMES_CODEX_BASE_URL`` unset), an env/route
+including the ``model.base_url``-only gateway shape (``KOVA_CODEX_BASE_URL`` unset), an env/route
 mismatch, opaque and JWT-shaped gateway keys, a pool-selected credential, and the direct-ChatGPT
 positive control.
 """
@@ -41,9 +41,9 @@ _REPO = Path(__file__).resolve().parents[2]
 
 def _home(monkeypatch) -> Path:
     import os
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["KOVA_HOME"])
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.delenv("HERMES_CODEX_BASE_URL", raising=False)
+    monkeypatch.delenv("KOVA_CODEX_BASE_URL", raising=False)
     return home
 
 
@@ -126,7 +126,7 @@ def test_picker_pool_row_with_its_own_gateway_url(monkeypatch, picker_http):
 def test_picker_uses_the_route_base_not_a_mismatched_env(monkeypatch, picker_http):
     """env/route mismatch: the caller's resolved route wins over a stale process env — the
     credential is composed with the base it was resolved with, not an ambient re-read."""
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", OTHER_GW)
+    monkeypatch.setenv("KOVA_CODEX_BASE_URL", OTHER_GW)
     from kova_cli.codex_models import get_codex_model_ids
 
     get_codex_model_ids(access_token=JWT, base_url=GW)
@@ -182,7 +182,7 @@ def test_cli_default_model_swap_asks_the_session_route(monkeypatch, picker_http)
 
     from kova_cli.cli_model_switch_mixin import CLIModelSwitchMixin
 
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", OTHER_GW)
+    monkeypatch.setenv("KOVA_CODEX_BASE_URL", OTHER_GW)
     cli = SimpleNamespace(model="", api_key=JWT, base_url=GW, _model_is_default=True,
                           _console_print=lambda *a, **kw: None)
     cli._normalize_model_for_provider = MethodType(CLIModelSwitchMixin._normalize_model_for_provider, cli)
@@ -496,7 +496,7 @@ def test_usage_forced_refresh_keeps_the_refreshed_pool_key_on_the_gateway(monkey
 
 def test_route_fallback_reads_the_profile_scoped_override_not_a_sibling_process_env(monkeypatch):
     """If route resolution itself fails, the fallback still honours only the routed profile's
-    ``HERMES_CODEX_BASE_URL`` — never a multiplexed sibling's process env."""
+    ``KOVA_CODEX_BASE_URL`` — never a multiplexed sibling's process env."""
     from agent import secret_scope
     from agent.secret_scope import reset_secret_scope, set_secret_scope
     from kova_cli import runtime_provider
@@ -507,8 +507,8 @@ def test_route_fallback_reads_the_profile_scoped_override_not_a_sibling_process_
 
     monkeypatch.setattr(runtime_provider, "_pool_entry_mode_and_url", _boom)
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", True)
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", OTHER_GW)
-    for scope, expected in [({}, GW), ({"HERMES_CODEX_BASE_URL": OTHER_GW + "/"}, OTHER_GW)]:
+    monkeypatch.setenv("KOVA_CODEX_BASE_URL", OTHER_GW)
+    for scope, expected in [({}, GW), ({"KOVA_CODEX_BASE_URL": OTHER_GW + "/"}, OTHER_GW)]:
         token = set_secret_scope(scope)
         try:
             assert _codex_pool_route_base_url(GW) == expected

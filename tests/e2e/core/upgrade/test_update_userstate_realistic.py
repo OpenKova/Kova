@@ -9,7 +9,7 @@ local bare origin), then a home built the way users build it, mostly through the
   config sits at the oldest ``_config_version`` HEAD still migrates and ``work``'s one version
   behind, so the update's config migration (active profile + siblings) runs; ``research`` is
   current and must come through byte-for-byte;
-* a custom skill, a user plugin under ``~/.hermes/plugins/``, a cron job made by ``hermes cron``;
+* a custom skill, a user plugin under ``~/.kova/plugins/``, a cron job made by ``hermes cron``;
 * two broken profiles next to them (a dangling symlink, a profile whose config.yaml is not YAML);
 * local files the user dropped inside the checkout (an untracked notes file and an extension dir).
 
@@ -51,7 +51,7 @@ _VERSIONS_PY = ("from kova_cli.config_defaults import DEFAULT_CONFIG as D; "
 
 
 def _profile_home(sb: I.Sandbox, name: str):
-    return sb.hermes_home if name == "default" else sb.hermes_home / "profiles" / name
+    return sb.kova_home if name == "default" else sb.kova_home / "profiles" / name
 
 
 def _pargs(name: str) -> list[str]:
@@ -97,7 +97,7 @@ def _snapshot(sb: I.Sandbox) -> dict:
             "MEMORY.md": (home / "memories" / "MEMORY.md").read_bytes(),
             "db": I.db_state(home / "state.db"),
         }
-    hh = sb.hermes_home
+    hh = sb.kova_home
     snap["custom_skill"] = I.tree_digest(hh / "skills" / "my-own-skill")
     snap["plugin"] = I.tree_digest(hh / "plugins" / "my-plugin")
     snap["cron"] = sorted((j.get("id"), j.get("name"), j.get("prompt"), j.get("schedule_display") or str(j.get("schedule")))
@@ -132,7 +132,7 @@ def _seed_home(sb: I.Sandbox, provider: FakeLLMServer) -> tuple[dict[str, str], 
         # hand-edited config as the state immediately before the update, not before
         # the turns that seed the sessions.
         (home / "config.yaml").write_text(I.provider_config(provider.base_url, versions[name], extra), encoding="utf-8")
-    hh = sb.hermes_home
+    hh = sb.kova_home
     skill = hh / "skills" / "my-own-skill"
     skill.mkdir(parents=True, exist_ok=True)
     (skill / "SKILL.md").write_text("---\nname: my-own-skill\ndescription: mine\n---\nDo my thing.\n", encoding="utf-8")
@@ -246,10 +246,10 @@ def test_every_profile_session_resumes_after_update(world, provider):
 def test_broken_profiles_warn_but_do_not_fail_the_update(world):
     sb, up = world["sb"], world["update"]
     out = up.stdout + up.stderr
-    assert up.returncode == 0, "a broken profile under ~/.hermes/profiles/ failed the whole update:\n" + I.describe(up)
-    bad = str(sb.hermes_home / "profiles" / "badyaml" / "config.yaml")
+    assert up.returncode == 0, "a broken profile under ~/.kova/profiles/ failed the whole update:\n" + I.describe(up)
+    bad = str(sb.kova_home / "profiles" / "badyaml" / "config.yaml")
     assert bad in out, "the update did not warn about the profile whose config.yaml is broken:\n" + I.describe(up)
-    assert (sb.hermes_home / "profiles" / "badyaml" / "config.yaml").read_bytes() == world["snap"]["badyaml"], (
+    assert (sb.kova_home / "profiles" / "badyaml" / "config.yaml").read_bytes() == world["snap"]["badyaml"], (
         "the update rewrote the user's broken config instead of leaving it for them to fix")
 
 

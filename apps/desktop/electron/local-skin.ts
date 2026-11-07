@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import type { HermesSkin, SkinColors } from '@kova/shared/skin'
+import type { KovaSkin, SkinColors } from '@kova/shared/skin'
 import { parse } from 'yaml'
 
 const PROFILE_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/
@@ -119,7 +119,7 @@ export function localSkinHome(hermesHome: string, profile: null | string): strin
   return name === 'default' ? hermesHome : path.join(hermesHome, 'profiles', name)
 }
 
-function skinFromFile(filePath: string, configuredName: string): HermesSkin | null {
+function skinFromFile(filePath: string, configuredName: string): KovaSkin | null {
   const parsed = parseRecord(readText(filePath, MAX_SKIN_BYTES))
 
   if (!parsed) {
@@ -148,7 +148,7 @@ function skinFromFile(filePath: string, configuredName: string): HermesSkin | nu
  * renderer never gets arbitrary file paths or config contents, and a broken
  * local config simply leaves the normal desktop theme in place.
  */
-export function readLocalDisplaySkin(hermesHome: string, profile: null | string): HermesSkin | null {
+export function readLocalDisplaySkin(hermesHome: string, profile: null | string): KovaSkin | null {
   const home = localSkinHome(hermesHome, profile)
   const config = parseRecord(readText(path.join(home, 'config.yaml'), MAX_CONFIG_BYTES))
   const display = config && isRecord(config.display) ? config.display : null
@@ -184,7 +184,7 @@ export function readLocalSkinPayload(
   hermesHome: string,
   routedProfile: null | string | undefined,
   fallbackProfile: null | string | undefined
-): { profile: string; skin: HermesSkin } | null {
+): { profile: string; skin: KovaSkin } | null {
   const profile = localSkinProfileKey(routedProfile ?? fallbackProfile)
   const skin = readLocalDisplaySkin(hermesHome, profile)
 

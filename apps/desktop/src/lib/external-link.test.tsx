@@ -19,10 +19,10 @@ import {
 } from './external-link'
 
 const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const initialKovaDesktop = desktopWindow.kovaDesktop
 
 function installDesktopBridge(partial: Partial<Window['hermesDesktop']> = {}) {
-  desktopWindow.hermesDesktop = {
+  desktopWindow.kovaDesktop = {
     fetchLinkTitle: vi.fn().mockResolvedValue(''),
     openExternal: vi.fn().mockResolvedValue(undefined),
     ...partial
@@ -47,10 +47,10 @@ afterEach(() => {
   vi.restoreAllMocks()
   cleanup()
 
-  if (initialHermesDesktop) {
-    desktopWindow.hermesDesktop = initialHermesDesktop
+  if (initialKovaDesktop) {
+    desktopWindow.kovaDesktop = initialKovaDesktop
   } else {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.kovaDesktop
   }
 })
 
@@ -139,7 +139,7 @@ describe('external link helpers', () => {
   it.each([false, true])(
     'opens a Webapp web link synchronously without adding a preview when always external is %s',
     alwaysExternal => {
-      globalThis.document.documentElement.dataset.hermesDesktopHost = 'browser'
+      globalThis.document.documentElement.dataset.kovaDesktopHost = 'browser'
       setAlwaysExternalLinks(alwaysExternal)
       const openExternal = vi.fn().mockResolvedValue(undefined)
       installDesktopBridge({ openExternal })

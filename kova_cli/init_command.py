@@ -36,7 +36,7 @@ def build_init_prompt(cwd: str, existing_file: str | None = None, extra: str = "
         "[/init] The user wants you to "
         + ("UPDATE the existing" if update else "generate an")
         + f" AGENTS.md project-instructions file for the project at: {cwd}\n",
-        "AGENTS.md is the instruction file coding agents (Hermes included) "
+        "AGENTS.md is the instruction file coding agents (Kova included) "
         "load as project context every session. It should teach an agent how "
         "to work in THIS repo: what the project is, how to set up, the exact "
         "build/test/lint commands, the conventions the code actually follows, "
@@ -92,13 +92,13 @@ def _resolve_session_cwd(session_key: str | None) -> str:
 
     ``session_key`` is the surface's own key (multi-session hosts must pass it); an empty
     string reads the single-session CLI's ``"default"`` record, and ``None`` falls back to
-    the ambient ``HERMES_SESSION_KEY``.
+    the ambient ``KOVA_SESSION_KEY``.
     """
     try:
         from gateway.session_context import get_session_env
         from tools.terminal_tool import get_session_cwd
 
-        key = session_key if session_key is not None else get_session_env("HERMES_SESSION_KEY", "")
+        key = session_key if session_key is not None else get_session_env("KOVA_SESSION_KEY", "")
         recorded = get_session_cwd(key)
         if recorded and os.path.isdir(recorded):
             return recorded

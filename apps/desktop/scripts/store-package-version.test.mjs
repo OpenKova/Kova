@@ -28,7 +28,7 @@ function fixture() {
   const app = path.join(root, 'apps', 'desktop')
   fs.mkdirSync(path.join(app, 'assets'), { recursive: true })
   fs.copyFileSync(path.join(desktop, 'assets/msix-manifest.xml'), path.join(app, 'assets/msix-manifest.xml'))
-  fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'HermesBundled'}\n")
+  fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'KovaBundled'}\n")
   fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'hermes', version: '0.27.1' }))
   const env = { ...process.env, ...gitIdentityEnv,
     GIT_AUTHOR_DATE: '2026-09-07T00:18:00Z', GIT_COMMITTER_DATE: '2026-09-07T00:18:00Z' }
@@ -114,9 +114,9 @@ test('stable candidate identity uses the admitted claim epoch before the final t
 test('commit builds cannot stage a Store manifest', () => {
   const { root, app } = fixture()
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
-  vi.stubEnv('HERMES_PAYLOAD_TAG', '')
-  vi.stubEnv('HERMES_BUILD_COMMIT', commit)
-  vi.stubEnv('HERMES_PAYLOAD_VERSION', '0.21.1')
+  vi.stubEnv('KOVA_PAYLOAD_TAG', '')
+  vi.stubEnv('KOVA_BUILD_COMMIT', commit)
+  vi.stubEnv('KOVA_PAYLOAD_VERSION', '0.21.1')
   try {
     expect(() => appIdentity(app)).toThrow('Store packaging requires a stable release tag')
     expect(() => stageStoreManifest(app, '')).toThrow('Store packaging requires a stable release tag')

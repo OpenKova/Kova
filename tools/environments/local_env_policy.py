@@ -1,5 +1,5 @@
-"""Secret-scrub policy for Hermes child processes: pure data + predicates for which env
-names are Hermes-managed credentials. The env *builders* applying it (``_make_run_env``,
+"""Secret-scrub policy for Kova child processes: pure data + predicates for which env
+names are Kova-managed credentials. The env *builders* applying it (``_make_run_env``,
 ``_sanitize_subprocess_env``, ``hermes_subprocess_env``) live in ``tools.environments.local``."""
 
 import functools
@@ -7,9 +7,9 @@ import os
 from typing import Optional
 
 # Prefix a caller uses in ``extra_env`` to force a blocklisted var through.
-_HERMES_PROVIDER_ENV_FORCE_PREFIX = "_HERMES_FORCE_"
+_KOVA_PROVIDER_ENV_FORCE_PREFIX = "_KOVA_FORCE_"
 
-# Hermes-managed AWS *inference* credentials for ``auth_type="aws_sdk"`` (Bedrock):
+# Kova-managed AWS *inference* credentials for ``auth_type="aws_sdk"`` (Bedrock):
 # only the Bedrock bearer token, which no aws/terraform/boto3 toolchain uses. The
 # general AWS chain stays inheritable on purpose — the local terminal is the user's
 # trusted operator shell (SECURITY.md §3.2) and env_passthrough can never re-allow a
@@ -34,7 +34,7 @@ _STATIC_PROVIDER_ENV_BLOCKLIST = frozenset({
     "SIGNAL_ALLOWED_USERS", "SIGNAL_GROUP_ALLOWED_USERS", "SIGNAL_HOME_CHANNEL",
     "SIGNAL_HOME_CHANNEL_NAME", "SIGNAL_IGNORE_STORIES",
     "EMAIL_ADDRESS", "EMAIL_PASSWORD", "EMAIL_IMAP_HOST", "EMAIL_SMTP_HOST",
-    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "KOVA_DASHBOARD_SESSION_TOKEN",
     "GATEWAY_ALLOWED_USERS", "GH_TOKEN", "GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY_PATH",
     "GITHUB_APP_INSTALLATION_ID", "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET",
     "DAYTONA_API_KEY", "GATEWAY_RELAY_ID", "GATEWAY_RELAY_SECRET",
@@ -44,11 +44,11 @@ _STATIC_PROVIDER_ENV_BLOCKLIST = frozenset({
     # registry mirrors env_vars only for api_key profiles, and discovering the provider plugins
     # from here, at import, would re-mirror them over a plugin's own registry entry.
     "NOUS_API_KEY", "QWEN_API_KEY",
-    # Hermes' own secrets read in code: the anonymous-inference secret, dashboard auth
+    # Kova' own secrets read in code: the anonymous-inference secret, dashboard auth
     # (basic, OIDC, drain) and the Google Meet realtime key.
-    "HERMES_ANON_API_SECRET", "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD",
-    "HERMES_DASHBOARD_BASIC_AUTH_SECRET", "HERMES_DASHBOARD_DRAIN_SECRET",
-    "HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "HERMES_MEET_REALTIME_KEY",
+    "KOVA_ANON_API_SECRET", "KOVA_DASHBOARD_BASIC_AUTH_PASSWORD",
+    "KOVA_DASHBOARD_BASIC_AUTH_SECRET", "KOVA_DASHBOARD_DRAIN_SECRET",
+    "KOVA_DASHBOARD_OIDC_CLIENT_SECRET", "KOVA_MEET_REALTIME_KEY",
 })
 
 
@@ -83,14 +83,14 @@ def _build_provider_env_blocklist() -> frozenset:
     except ImportError:
         pass
     # CLAUDE_CODE_OAUTH_TOKEN (via the anthropic registry entry) belongs to the user's
-    # Claude Code install, not Hermes: stripping it made agent-spawned ``claude`` CLIs
+    # Claude Code install, not Kova: stripping it made agent-spawned ``claude`` CLIs
     # fall through to the shared Keychain / ~/.claude store and, on auth failure, wipe
     # it — logging the user out. BUZZ_* is deliberately NOT discarded: this list feeds
     # every scrub surface, so an import-time discard would leak BUZZ_PRIVATE_KEY into
     # non-terminal children; the Buzz carve-out is terminal-only and context-gated
     # (``_is_terminal_first_party_env``).
-    # It is set and owned by the user's Claude Code install (subscription OAuth), not a Hermes-managed
-    # inference credential — Claude subscription auth is not a working Hermes provider path. It arrives via
+    # It is set and owned by the user's Claude Code install (subscription OAuth), not a Kova-managed
+    # inference credential — Claude subscription auth is not a working Kova provider path. It arrives via
     # the registry loop above (anthropic api_key_env_vars), so remove it explicitly. See #55878.
     blocked.discard("CLAUDE_CODE_OAUTH_TOKEN")
     # BUZZ_* is deliberately NOT discarded here, even for Buzz-managed agents (BUZZ_MANAGED_AGENT set by the
@@ -102,7 +102,7 @@ def _build_adapter_secret_env() -> frozenset:
     """Secrets the messaging adapters declare, process-wide: core ``password`` messaging entries
     of OPTIONAL_ENV_VARS, the bundled platform plugin manifests' secret entries, and the
     secret-named keys the gateway env-override table reads (WEIXIN_TOKEN, FEISHU_ENCRYPT_KEY, ...).
-    Declared names only: a user's own ``SLACK_USER_TOKEN`` or ``LOCAL_LLM_API_KEY`` is not Hermes's.
+    Declared names only: a user's own ``SLACK_USER_TOKEN`` or ``LOCAL_LLM_API_KEY`` is not Kova's.
     A profile's user-installed platform plugins are per home: :func:`_home_adapter_secret_env`.
     Nothing here fails soft: an unreadable bundled manifest or env table fails the import rather
     than dropping its secrets from the policy."""
@@ -128,7 +128,7 @@ def _build_adapter_secret_env() -> frozenset:
 # discovers provider plugins that expect a fully initialized auth registry.
 _PROVIDER_ENV_BLOCKLIST = _build_provider_env_blocklist()
 _ADAPTER_SECRET_ENV = _build_adapter_secret_env()
-_HERMES_PROVIDER_ENV_BLOCKLIST = _PROVIDER_ENV_BLOCKLIST | _ADAPTER_SECRET_ENV
+_KOVA_PROVIDER_ENV_BLOCKLIST = _PROVIDER_ENV_BLOCKLIST | _ADAPTER_SECRET_ENV
 
 _HOME_ADAPTER_SECRET_CACHE: dict[str, tuple] = {}
 
@@ -142,9 +142,9 @@ def _home_adapter_secret_env() -> frozenset:
     or flat manifest unreadable or unparsable) keeps the names this home already had and is not
     cached, so a failed discovery never releases a known denial and recovery is seen at once."""
     from kova_cli.config import platform_manifest_secret_scan, platform_manifest_stamp
-    from kova_constants import get_hermes_home, hermes_home_key
-    home = get_hermes_home()
-    key, stamp = hermes_home_key(home), platform_manifest_stamp(home)
+    from kova_constants import get_kova_home, kova_home_key
+    home = get_kova_home()
+    key, stamp = kova_home_key(home), platform_manifest_stamp(home)
     cached = _HOME_ADAPTER_SECRET_CACHE.get(key)
     if cached is None or cached[0] is None or cached[0] != stamp:
         names, complete = platform_manifest_secret_scan(home)
@@ -181,7 +181,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
     ``_is_hermes_internal_secret``, which already folds (``key.upper()``). Loops pass
     ``_registered`` so the registry is read once per env, not once per key."""
     upper = name.upper()
-    if name in _HERMES_PROVIDER_ENV_BLOCKLIST or upper in _HERMES_PROVIDER_ENV_BLOCKLIST:
+    if name in _KOVA_PROVIDER_ENV_BLOCKLIST or upper in _KOVA_PROVIDER_ENV_BLOCKLIST:
         return True
     return upper in (_registered_adapter_secret_env() if _registered is None else _registered)
 
@@ -201,7 +201,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
 # the terminal scrub. CONTEXT-GATED: the carve-out applies ONLY when this process/session is actually
 # operating as a Buzz agent — either the process is a Buzz-ACP managed agent (``BUZZ_MANAGED_AGENT`` is set,
 # only by Buzz Desktop's buzz-acp harness; see #76243 / #78511) or the current session's platform is
-# ``buzz`` (the gateway's ``HERMES_SESSION_PLATFORM`` ContextVar; concurrency safe under a multi-session
+# ``buzz`` (the gateway's ``KOVA_SESSION_PLATFORM`` ContextVar; concurrency safe under a multi-session
 # host). A Telegram/CLI/cron session on a host that also runs a Buzz gateway does NOT get BUZZ_PRIVATE_KEY
 # in its terminal children — blanket passthrough of a signing key to every terminal child on the host would
 # be wrong (maintainer triage note on #76243: don't expose the key to unrelated shell commands).
@@ -218,7 +218,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
 # treats these names like profile-scoped passthrough names (see
 # ``LocalEnvironment._additional_profile_scoped_passthrough_names``) so they never persist in the shared
 # terminal snapshot across profiles. Contrast with CLAUDE_CODE_OAUTH_TOKEN above, which is discarded from
-# the blocklist entirely because it is NOT a Hermes credential; these ARE Hermes-managed first-party
+# the blocklist entirely because it is NOT a Kova credential; these ARE Kova-managed first-party
 # platform credentials, so they stay IN the blocklist for every non-terminal surface. See issue #78026 (Buzz
 # agents could not use ``buzz`` from the terminal tool) and #76243 (Buzz Desktop managed agent wakes but
 # cannot reply).
@@ -247,7 +247,7 @@ def _buzz_terminal_context_active() -> bool:
     try:
         from gateway.session_context import get_session_env
 
-        return get_session_env("HERMES_SESSION_PLATFORM", "").strip().lower() == "buzz"
+        return get_session_env("KOVA_SESSION_PLATFORM", "").strip().lower() == "buzz"
     except Exception:
         return False
 
@@ -259,48 +259,48 @@ def _is_terminal_first_party_env(name: str) -> bool:
 
 
 # Active-venv markers that must NOT leak: VIRTUAL_ENV/CONDA_PREFIX make uv/poetry sync
-# ANOTHER project's deps into the Hermes venv (still reachable via PATH, so stripping
-# is safe); PYTHONHOME redirects a child interpreter's stdlib to the Hermes venv
-# (version-mismatch crashes). PYTHONPATH is handled separately (Hermes-owned entries only).
+# ANOTHER project's deps into the Kova venv (still reachable via PATH, so stripping
+# is safe); PYTHONHOME redirects a child interpreter's stdlib to the Kova venv
+# (version-mismatch crashes). PYTHONPATH is handled separately (Kova-owned entries only).
 # The gateway runs inside its own venv, so its process environment carries VIRTUAL_ENV (and possibly
 # CONDA_PREFIX). If those leak into commands the agent runs against OTHER Python projects, tools like
 # ``uv``/``poetry`` treat the inherited value as the active environment and build/sync that other project's
-# dependencies into the Hermes venv path instead of the project's own ``.venv`` — silently clobbering the
-# Hermes environment (e.g. a project pinned to a different Python version overwrites it and breaks the
+# dependencies into the Kova venv path instead of the project's own ``.venv`` — silently clobbering the
+# Kova environment (e.g. a project pinned to a different Python version overwrites it and breaks the
 # gateway). PYTHONHOME is included because a gateway-inherited value redirects the standard-library search
-# of ANY child interpreter — including unrelated system/venv Pythons — to the Hermes venv's stdlib, which
-# crashes with version-mismatch errors before a child script even imports a package (#75018). Hermes itself
+# of ANY child interpreter — including unrelated system/venv Pythons — to the Kova venv's stdlib, which
+# crashes with version-mismatch errors before a child script even imports a package (#75018). Kova itself
 # treats PYTHONHOME as contamination in its own child processes (managed_uv.py, sqlite_runtime.py), so
 # stripping it from subprocess envs is consistent. Users who need PYTHONHOME for a specific child can set it
 # explicitly in the command. PYTHONPATH is NOT included here — it's handled by
-# _strip_hermes_owned_pythonpath() which removes only Hermes-owned entries, preserving user-set paths.
+# _strip_hermes_owned_pythonpath() which removes only Kova-owned entries, preserving user-set paths.
 _ACTIVE_VENV_MARKER_VARS = ("VIRTUAL_ENV", "CONDA_PREFIX", "PYTHONHOME")
 
 # Identity a supervisor hands to the ONE process it started, which no child of that process owns.
-# HERMES_LAUNCHD_LABEL is the stderr-timestamp wrapper's re-export of its launchd job label for the
-# gateway it starts (#120087); HERMES_GATEWAY_EXTERNAL_SUPERVISOR is stamped into the gateway's own
+# KOVA_LAUNCHD_LABEL is the stderr-timestamp wrapper's re-export of its launchd job label for the
+# gateway it starts (#120087); KOVA_GATEWAY_EXTERNAL_SUPERVISOR is stamped into the gateway's own
 # environ by ``gateway run --external-supervisor``. Inherited, a gateway an agent starts from its
 # terminal answers ``launchd``/supervised and takes the exit-75 restart route no supervisor answers.
 # NOTIFY_SOCKET/WATCHDOG_* name the systemd unit's main process (sd_notify's unset_environment).
 # Kept on purpose: XPC_SERVICE_NAME (launchd's own per-process stamp, "0" below the wrapper, which
 # ``hermes update`` compares to tell it runs inside a job), INVOCATION_ID/JOURNAL_STREAM (systemd
 # sets them for every process of the unit, and the gateway-child dispatch reads them there), and the
-# launch markers HERMES_SUPERVISED_CHILD / HERMES_S6_SUPERVISED_CHILD (profile pinning, s6 redirect).
+# launch markers KOVA_SUPERVISED_CHILD / KOVA_S6_SUPERVISED_CHILD (profile pinning, s6 redirect).
 _SUPERVISED_PROCESS_IDENTITY_VARS = (
-    "HERMES_LAUNCHD_LABEL", "HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
+    "KOVA_LAUNCHD_LABEL", "KOVA_GATEWAY_EXTERNAL_SUPERVISOR", "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
 )
 # The supervisor markers are also profile pins: a CLI under them skips the sticky active_profile
-# (``kova_cli.main._under_gateway_supervisor``, #74872), and HERMES_GATEWAY_EXTERNAL_SUPERVISOR is an
+# (``kova_cli.main._under_gateway_supervisor``, #74872), and KOVA_GATEWAY_EXTERNAL_SUPERVISOR is an
 # --external-supervisor gateway's ONLY one. A child that loses a marker keeps the pin under a name the
 # restart-route and launch-identity probes never read, so it stays on the gateway's profile without
 # claiming the supervisor.
-GATEWAY_PROFILE_PIN_ENV = "HERMES_GATEWAY_PROFILE_PIN"
+GATEWAY_PROFILE_PIN_ENV = "KOVA_GATEWAY_PROFILE_PIN"
 
 
 def carry_gateway_profile_pin(env: dict) -> dict:
     """Mark *env* with :data:`GATEWAY_PROFILE_PIN_ENV` while it still holds a pinning supervisor marker."""
-    if env.get("HERMES_SUPERVISED_CHILD") or str(
-            env.get("HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "")).strip().lower() in {"1", "true", "yes", "on"}:
+    if env.get("KOVA_SUPERVISED_CHILD") or str(
+            env.get("KOVA_GATEWAY_EXTERNAL_SUPERVISOR", "")).strip().lower() in {"1", "true", "yes", "on"}:
         env[GATEWAY_PROFILE_PIN_ENV] = "1"
     return env
 
@@ -315,7 +315,7 @@ def strip_supervised_process_identity(env: dict) -> dict:
 
 
 def _is_hermes_internal_secret(key: str) -> bool:
-    """True for Hermes-internal secrets injected under *dynamic* names the static
+    """True for Kova-internal secrets injected under *dynamic* names the static
     blocklist cannot enumerate: ``AUXILIARY_<TASK>_API_KEY``/``_BASE_URL`` (per-task
     side-LLM credentials) and ``GATEWAY_RELAY_*_SECRET``/``_KEY``/``_TOKEN`` (relay
     auth; non-secret routing hints stay visible). Stripped on every spawn path
@@ -334,9 +334,9 @@ def _is_hermes_internal_secret(key: str) -> bool:
 # A's channel/user/role list as its own (#113270). The suffix is matched by shape so a gate
 # added to any adapter is covered without a second edit, but ONLY under a platform prefix
 # (``DISCORD_``, ``GATEWAY_``, a plugin adapter's name): an operator's own ``DEMO_ALLOWED_SENDER``
-# is script data, not a Hermes gate, and deleting it by name shape broke routed ``no_agent``
-# cron scripts (#119539). ``HERMES_*`` never counts (``HERMES_MEDIA_ALLOW_DIRS``,
-# ``HERMES_ALLOW_PRIVATE_URLS`` are process settings, not adapter gates).
+# is script data, not a Kova gate, and deleting it by name shape broke routed ``no_agent``
+# cron scripts (#119539). ``KOVA_*`` never counts (``KOVA_MEDIA_ALLOW_DIRS``,
+# ``KOVA_ALLOW_PRIVATE_URLS`` are process settings, not adapter gates).
 _PROFILE_GATE_ENV_MARKERS = (
     "_ALLOWED_", "_ALLOW_ALL_", "_ALLOW_FROM", "_ALLOW_BOTS", "_ALLOW_PUBLIC_", "_IGNORED_CHANNELS",
     "_NO_THREAD_CHANNELS", "_FREE_RESPONSE_CHANNELS", "_BACKFILL_CHANNELS", "_GROUP_ALLOWED",
@@ -381,7 +381,7 @@ def is_profile_gate_env(name: str, _prefixes: Optional[frozenset] = None) -> boo
     for ANOTHER profile must never inherit. A gate is a platform prefix AND a gate-shaped suffix;
     an operator variable that merely contains ``_ALLOWED_`` is not one."""
     upper = name.upper()
-    if upper.startswith("HERMES_") or upper.startswith("_"):
+    if upper.startswith("KOVA_") or upper.startswith("_"):
         return False
     if not any(marker in upper for marker in _PROFILE_GATE_ENV_MARKERS):
         return False
@@ -423,12 +423,12 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     # _is_hermes_internal_secret, but _ID has no secret suffix, so it must be
     # enumerated here to stay stripped on the inherit_credentials=True path.
     "GATEWAY_RELAY_ID", "GATEWAY_RELAY_SECRET", "GATEWAY_RELAY_DELIVERY_KEY",
-    "EMAIL_PASSWORD", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "EMAIL_PASSWORD", "KOVA_DASHBOARD_SESSION_TOKEN",
     # Dashboard auth: the basic-auth password and session-signing secret, the OIDC client
     # secret and the drain bearer. They let a holder mint or forge dashboard sessions, and no
     # child (credentialed CLIs included) consumes them.
-    "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD", "HERMES_DASHBOARD_BASIC_AUTH_SECRET",
-    "HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "HERMES_DASHBOARD_DRAIN_SECRET",
+    "KOVA_DASHBOARD_BASIC_AUTH_PASSWORD", "KOVA_DASHBOARD_BASIC_AUTH_SECRET",
+    "KOVA_DASHBOARD_OIDC_CLIENT_SECRET", "KOVA_DASHBOARD_DRAIN_SECRET",
     # Remote-compute / infrastructure secrets
     "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "DAYTONA_API_KEY",
 }) | _ADAPTER_SECRET_ENV | _left_core_env(secrets_only=True)  # every declared adapter secret is Tier 1

@@ -1,6 +1,6 @@
 // Unit tests for the pure Windows `hermes` resolution helpers extracted from
 // main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
-// unwrapWindowsVenvHermesCommand(). These pin the two Windows resolution bugs
+// unwrapWindowsVenvKovaCommand(). These pin the two Windows resolution bugs
 // that caused desktop reinstall loops:
 //   1. buildPathExtCandidates() — PATHEXT extensions must be tried BEFORE the
 //      empty extension, or an extensionless Git-Bash `hermes` shim shadows
@@ -8,15 +8,15 @@
 //   2. chooseUpdaterArgs() — must distinguish a runnable updater from stale
 //      install provenance. The bootstrap marker can outlive the venv, and a
 //      partial venv cannot run the updater; those states require --repair.
-//   3. resolveVenvHermesCommand() — must probe the venv python via
-//      canImportHermesCli() before trusting it, or a broken venv gets
+//   3. resolveVenvKovaCommand() — must probe the venv python via
+//      canImportKovaCli() before trusting it, or a broken venv gets
 //      re-selected forever instead of falling through to bootstrap.
 
 import assert from 'node:assert/strict'
 
 import { test } from 'vitest'
 
-import { buildPathExtCandidates, chooseUpdaterArgs, resolveVenvHermesCommand } from './windows-hermes-path'
+import { buildPathExtCandidates, chooseUpdaterArgs, resolveVenvKovaCommand } from './windows-hermes-path'
 
 test('buildPathExtCandidates: Windows tries PATHEXT extensions before the empty extension', () => {
   const extensions = buildPathExtCandidates('.COM;.EXE;.BAT;.CMD', true)
@@ -44,13 +44,13 @@ test('chooseUpdaterArgs preserves the target and requires a usable runtime, not 
   assert.deepEqual(chooseUpdaterArgs({ runtimeUsable: false }, 'release/1.2'), ['--repair', '--branch', 'release/1.2'])
 })
 
-function makeDeps(overrides: Partial<Parameters<typeof resolveVenvHermesCommand>[2]> = {}) {
+function makeDeps(overrides: Partial<Parameters<typeof resolveVenvKovaCommand>[2]> = {}) {
   return {
     isWindows: true,
     isCommandScript: () => false,
     fileExists: () => true,
     directoryExists: () => false,
-    canImportHermesCli: async () => true,
+    canImportKovaCli: async () => true,
     getVenvPython: (venvRoot: string) => `${venvRoot}/Scripts/python.exe`,
     buildDesktopBackendEnv: () => ({ FAKE_ENV: '1' }),
     resolvePath: (...segments: string[]) => segments.join('/').replace(/\/+/g, '/'),
@@ -61,41 +61,41 @@ function makeDeps(overrides: Partial<Parameters<typeof resolveVenvHermesCommand>
   }
 }
 
-test('resolveVenvHermesCommand: returns null off Windows', async () => {
+test('resolveVenvKovaCommand: returns null off Windows', async () => {
   const deps = makeDeps({ isWindows: false })
 
-  assert.equal(await resolveVenvHermesCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
+  assert.equal(await resolveVenvKovaCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
 })
 
-test('resolveVenvHermesCommand: returns null for a .cmd/.bat script command', async () => {
+test('resolveVenvKovaCommand: returns null for a .cmd/.bat script command', async () => {
   const deps = makeDeps({ isCommandScript: () => true })
 
-  assert.equal(await resolveVenvHermesCommand('/root/venv/Scripts/hermes.cmd', [], deps), null)
+  assert.equal(await resolveVenvKovaCommand('/root/venv/Scripts/hermes.cmd', [], deps), null)
 })
 
-test('resolveVenvHermesCommand: returns null when the basename is not hermes/hermes.exe', async () => {
+test('resolveVenvKovaCommand: returns null when the basename is not hermes/hermes.exe', async () => {
   const deps = makeDeps()
 
-  assert.equal(await resolveVenvHermesCommand('/root/venv/Scripts/python.exe', [], deps), null)
+  assert.equal(await resolveVenvKovaCommand('/root/venv/Scripts/python.exe', [], deps), null)
 })
 
-test('resolveVenvHermesCommand: returns null when the parent dir is not Scripts', async () => {
+test('resolveVenvKovaCommand: returns null when the parent dir is not Scripts', async () => {
   const deps = makeDeps()
 
-  assert.equal(await resolveVenvHermesCommand('/root/venv/bin/hermes.exe', [], deps), null)
+  assert.equal(await resolveVenvKovaCommand('/root/venv/bin/hermes.exe', [], deps), null)
 })
 
-test('resolveVenvHermesCommand: returns null when the venv python does not exist on disk', async () => {
+test('resolveVenvKovaCommand: returns null when the venv python does not exist on disk', async () => {
   const deps = makeDeps({ fileExists: () => false })
 
-  assert.equal(await resolveVenvHermesCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
+  assert.equal(await resolveVenvKovaCommand('/root/venv/Scripts/hermes.exe', [], deps), null)
 })
 
-test('resolveVenvHermesCommand: probes the venv python before trusting it (returns null on failed probe)', async () => {
+test('resolveVenvKovaCommand: probes the venv python before trusting it (returns null on failed probe)', async () => {
   let probed = false
 
   const deps = makeDeps({
-    canImportHermesCli: async (python: string) => {
+    canImportKovaCli: async (python: string) => {
       probed = true
       assert.equal(python, '/root/venv/Scripts/python.exe')
 
@@ -103,15 +103,15 @@ test('resolveVenvHermesCommand: probes the venv python before trusting it (retur
     }
   })
 
-  const result = await resolveVenvHermesCommand('/root/venv/Scripts/hermes.exe', ['serve'], deps)
+  const result = await resolveVenvKovaCommand('/root/venv/Scripts/hermes.exe', ['serve'], deps)
 
   assert.equal(probed, true, 'must probe the venv interpreter; a broken venv must not be re-selected forever')
   assert.equal(result, null, 'a failed probe must fall through (return null) so the resolver reaches bootstrap')
 })
 
-test('resolveVenvHermesCommand: returns the resolved python backend descriptor when the probe passes', async () => {
+test('resolveVenvKovaCommand: returns the resolved python backend descriptor when the probe passes', async () => {
   const deps = makeDeps()
-  const result = await resolveVenvHermesCommand('/root/venv/Scripts/hermes.exe', ['serve', '--port', '0'], deps)
+  const result = await resolveVenvKovaCommand('/root/venv/Scripts/hermes.exe', ['serve', '--port', '0'], deps)
 
   assert.ok(result, 'a passing probe must return a backend descriptor, not null')
   assert.equal(result.command, '/root/venv/Scripts/python.exe')
@@ -122,9 +122,9 @@ test('resolveVenvHermesCommand: returns the resolved python backend descriptor w
   assert.deepEqual(result.env, { FAKE_ENV: '1' })
 })
 
-test('resolveVenvHermesCommand: is case-insensitive on hermes.exe and the Scripts dir name', async () => {
+test('resolveVenvKovaCommand: is case-insensitive on hermes.exe and the Scripts dir name', async () => {
   const deps = makeDeps()
 
-  assert.ok(await resolveVenvHermesCommand('/root/venv/Scripts/HERMES.EXE', [], deps))
-  assert.ok(await resolveVenvHermesCommand('/root/venv/SCRIPTS/hermes.exe', [], deps))
+  assert.ok(await resolveVenvKovaCommand('/root/venv/Scripts/HERMES.EXE', [], deps))
+  assert.ok(await resolveVenvKovaCommand('/root/venv/SCRIPTS/hermes.exe', [], deps))
 })

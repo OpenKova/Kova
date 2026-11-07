@@ -1,6 +1,6 @@
-"""Regression tests: `hermes dashboard` validates HERMES_WEB_DIST before serving.
+"""Regression tests: `hermes dashboard` validates KOVA_WEB_DIST before serving.
 
-A custom HERMES_WEB_DIST without --skip-build previously skipped BOTH the
+A custom KOVA_WEB_DIST without --skip-build previously skipped BOTH the
 build and any validation, so the server started and served 404s with no
 obvious cause (same failure mode as issue #23817, reached via the env-var
 path instead of --skip-build). The env-var branch must now fail fast when
@@ -60,12 +60,12 @@ def _wire_common(main_mod, monkeypatch):
 
 
 def test_env_dist_without_index_exits(main_mod, monkeypatch, tmp_path, capsys):
-    """HERMES_WEB_DIST pointing at a dist with no index.html must exit 1,
+    """KOVA_WEB_DIST pointing at a dist with no index.html must exit 1,
     not start a server that 404s."""
     _wire_common(main_mod, monkeypatch)
     empty_dist = tmp_path / "empty_dist"
     empty_dist.mkdir()
-    monkeypatch.setenv("HERMES_WEB_DIST", str(empty_dist))
+    monkeypatch.setenv("KOVA_WEB_DIST", str(empty_dist))
 
     started = []
     monkeypatch.setitem(
@@ -85,7 +85,7 @@ def test_env_dist_without_index_exits(main_mod, monkeypatch, tmp_path, capsys):
     assert started == []
     assert builds == []  # env var set -> build skipped, validation is the gate
     out = capsys.readouterr().out
-    assert "HERMES_WEB_DIST" in out and str(empty_dist) in out
+    assert "KOVA_WEB_DIST" in out and str(empty_dist) in out
 
 
 
@@ -103,7 +103,7 @@ def test_skip_build_missing_dist_attempts_one_recovery_build(
     """--skip-build + missing index.html triggers exactly one recovery build;
     when the build produces a dist, the server starts."""
     _wire_common(main_mod, monkeypatch)
-    monkeypatch.delenv("HERMES_WEB_DIST", raising=False)
+    monkeypatch.delenv("KOVA_WEB_DIST", raising=False)
     project_root = tmp_path / "proj"
     dist = project_root / "kova_cli" / "web_dist"
     dist.mkdir(parents=True)
@@ -142,40 +142,40 @@ def test_skip_build_missing_dist_attempts_one_recovery_build(
 
 
 def test_desktop_child_dashboard_drops_packaged_renderer(main_mod, monkeypatch):
-    """#116107: every desktop-spawned process inherits HERMES_DESKTOP=1 with the
+    """#116107: every desktop-spawned process inherits KOVA_DESKTOP=1 with the
     packaged dist; a browser `hermes dashboard` from it must not keep serving the
     IPC-only desktop renderer."""
-    packaged = "/Applications/Hermes.app/Contents/Resources/app.asar.unpacked/dist"
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_WEB_DIST", packaged)
-    monkeypatch.setenv("HERMES_SERVE_HEADLESS", "1")
+    packaged = "/Applications/Kova.app/Contents/Resources/app.asar.unpacked/dist"
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_WEB_DIST", packaged)
+    monkeypatch.setenv("KOVA_SERVE_HEADLESS", "1")
 
     main_mod._dashboard_sanitize_desktop_env(headless_backend=False)
 
-    assert "HERMES_WEB_DIST" not in os.environ
-    assert "HERMES_SERVE_HEADLESS" not in os.environ
+    assert "KOVA_WEB_DIST" not in os.environ
+    assert "KOVA_SERVE_HEADLESS" not in os.environ
 
 
 def test_desktop_headless_serve_keeps_packaged_renderer(main_mod, monkeypatch):
     """The real Desktop backend remains distinguished by the `serve` entry path."""
-    packaged = "/Applications/Hermes.app/Contents/Resources/app.asar.unpacked/dist"
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_WEB_DIST", packaged)
+    packaged = "/Applications/Kova.app/Contents/Resources/app.asar.unpacked/dist"
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_WEB_DIST", packaged)
 
     main_mod._dashboard_sanitize_desktop_env(headless_backend=True)
 
-    assert os.environ["HERMES_WEB_DIST"] == packaged
+    assert os.environ["KOVA_WEB_DIST"] == packaged
 
 
 def test_desktop_owned_fallback_dashboard_keeps_packaged_renderer(main_mod, monkeypatch):
     """The Desktop's own legacy `dashboard --no-open` fallback spawn (serve probe
     timed out) is not headless but carries the per-spawn session token; stripping
     its dist would send a packaged install into `_build_web_ui(fatal=True)`."""
-    packaged = "/Applications/Hermes.app/Contents/Resources/app.asar.unpacked/dist"
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
-    monkeypatch.setenv("HERMES_WEB_DIST", packaged)
+    packaged = "/Applications/Kova.app/Contents/Resources/app.asar.unpacked/dist"
+    monkeypatch.setenv("KOVA_DESKTOP", "1")
+    monkeypatch.setenv("KOVA_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+    monkeypatch.setenv("KOVA_WEB_DIST", packaged)
 
     main_mod._dashboard_sanitize_desktop_env(headless_backend=False)
 
-    assert os.environ["HERMES_WEB_DIST"] == packaged
+    assert os.environ["KOVA_WEB_DIST"] == packaged

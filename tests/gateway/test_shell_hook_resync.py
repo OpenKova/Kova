@@ -18,8 +18,8 @@ from agent import shell_hooks
 def home(tmp_path, monkeypatch):
     h = tmp_path / "home"
     h.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(h))
-    for name in ("HERMES_ACCEPT_HOOKS", "HERMES_TUI_GATEWAY_URL", "HERMES_SAFE_MODE", "HERMES_IGNORE_USER_CONFIG"):
+    monkeypatch.setenv("KOVA_HOME", str(h))
+    for name in ("KOVA_ACCEPT_HOOKS", "KOVA_TUI_GATEWAY_URL", "KOVA_SAFE_MODE", "KOVA_IGNORE_USER_CONFIG"):
         monkeypatch.delenv(name, raising=False)
     from kova_cli import plugins
     monkeypatch.setattr(plugins.get_plugin_manager(), "_hooks", {})
@@ -234,18 +234,18 @@ def test_classic_cli_asks_on_its_terminal_before_opening_the_session(home, tmp_p
         cli_init_mixin.CLIInitMixin._ensure_gateway_session(cli)
     assert opened == [False, True]  # "n" records nothing, "y" lands before the second open
 
-    # --accept-hooks / HERMES_ACCEPT_HOOKS approves without asking; a remote gateway is not asked for.
+    # --accept-hooks / KOVA_ACCEPT_HOOKS approves without asking; a remote gateway is not asked for.
     other = _script(tmp_path, "other.sh")
     monkeypatch.setattr(config_mod, "load_config", lambda: _cfg(other))
     monkeypatch.setattr("builtins.input", lambda *_: pytest.fail("prompted"))
-    monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", "ws://remote.example/api/ws")
+    monkeypatch.setenv("KOVA_TUI_GATEWAY_URL", "ws://remote.example/api/ws")
     cli_init_mixin._record_shell_hook_consent()
     assert shell_hooks.allowlist_entry_for("pre_tool_call", other) is None
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL")
-    monkeypatch.setenv("HERMES_IGNORE_USER_CONFIG", "1")
+    monkeypatch.delenv("KOVA_TUI_GATEWAY_URL")
+    monkeypatch.setenv("KOVA_IGNORE_USER_CONFIG", "1")
     cli_init_mixin._record_shell_hook_consent()
     assert shell_hooks.allowlist_entry_for("pre_tool_call", other) is None
-    monkeypatch.delenv("HERMES_IGNORE_USER_CONFIG")
-    monkeypatch.setenv("HERMES_ACCEPT_HOOKS", "1")
+    monkeypatch.delenv("KOVA_IGNORE_USER_CONFIG")
+    monkeypatch.setenv("KOVA_ACCEPT_HOOKS", "1")
     cli_init_mixin._record_shell_hook_consent()
     assert json.loads((home / shell_hooks.ALLOWLIST_FILENAME).read_text())["approvals"][-1]["command"] == other

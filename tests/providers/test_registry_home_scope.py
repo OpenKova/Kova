@@ -1,6 +1,6 @@
 """Plugin-mirrored ``PROVIDER_REGISTRY`` rows are per profile home.
 
-One process serves many profiles (multiplex gateway, Desktop ``serve``). A ``$HERMES_HOME`` plugin
+One process serves many profiles (multiplex gateway, Desktop ``serve``). A ``$KOVA_HOME`` plugin
 mirrors its profile into the process-wide auth registry, so after profile A served a turn, profile B
 (no such plugin) auto-detected that provider from a stray env token and handed the raw token to the
 plugin's endpoint through the generic env ladder. A home with no profile for a slug must see the slug
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_kova_home_override, set_kova_home_override
 
 SLUG = "ambient-fake"
 TOKEN = "fake-ambient-token-0123456789abcdef"
@@ -44,7 +44,7 @@ def homes(tmp_path, monkeypatch):
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text(_PLUGIN, encoding="utf-8")
     bare_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(bare_home))
+    monkeypatch.setenv("KOVA_HOME", str(bare_home))
     monkeypatch.setenv("FAKE_AMBIENT_GH_TOKEN", TOKEN)
     monkeypatch.setenv("GEMINI_API_KEY", "AIza" + "x" * 35)
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
@@ -61,13 +61,13 @@ def homes(tmp_path, monkeypatch):
 
 
 def _bound(home: Path, fn):
-    token = set_hermes_home_override(home)
+    token = set_kova_home_override(home)
     try:
         return fn()
     except Exception as exc:  # the outcome under test may be a refusal
         return exc
     finally:
-        reset_hermes_home_override(token)
+        reset_kova_home_override(token)
 
 
 def _view(home: Path) -> dict:
