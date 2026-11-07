@@ -27,7 +27,7 @@
  * these into the IPC layer and owns file I/O + secret encryption.
  */
 
-// Relative, not `@hermes/shared`: esbuild bundles electron/ without tsconfig paths.
+// Relative, not `@kova/shared`: esbuild bundles electron/ without tsconfig paths.
 import { HERMES_CLOUD_MANAGED, isHermesCloudUrl } from '../../shared/src/hermes-cloud'
 
 import {
@@ -178,7 +178,7 @@ export function agentHandle(profile: string, connectionLabel: string, duplicated
  * profile names).
  *
  * NOTE: the renderer's socket registry uses the twin implementation in
- * apps/shared/src/backend-scope.ts (`@hermes/shared`) — tsconfig project
+ * apps/shared/src/backend-scope.ts (`@kova/shared`) — tsconfig project
  * boundaries prevent a single physical module here. The two are pinned
  * byte-identical by the cross-copy contract test in
  * connection-registry.test.ts; change BOTH or that test fails.

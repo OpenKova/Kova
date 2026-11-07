@@ -1,5 +1,5 @@
-import { sharedControlParams } from '@hermes/shared/gateway-canonical'
-import type { SharedControlRespondResponse } from '@hermes/shared/gateway-types'
+import { sharedControlParams } from '@kova/shared/gateway-canonical'
+import type { SharedControlRespondResponse } from '@kova/shared/gateway-types'
 import { useMemo } from 'react'
 
 import { t } from '../i18n/runtime.js'

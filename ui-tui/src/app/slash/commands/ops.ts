@@ -12,7 +12,7 @@ import type {
   SpawnTreeListResponse,
   SpawnTreeLoadResponse,
   ToolsConfigureResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 
 import { t } from '../../../i18n/runtime.js'
 import { appendTranscriptMessage } from '../../../lib/messages.js'

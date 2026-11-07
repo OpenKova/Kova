@@ -1,4 +1,4 @@
-import { backendScopeKey } from '@hermes/shared'
+import { backendScopeKey } from '@kova/shared'
 import { atom, computed } from 'nanostores'
 
 import { $apiRequestScope } from '@/api/client'

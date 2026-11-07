@@ -1,4 +1,4 @@
-// Relative, not `@hermes/shared`: esbuild bundles electron/ without tsconfig paths.
+// Relative, not `@kova/shared`: esbuild bundles electron/ without tsconfig paths.
 import { isHermesCloudUrl } from '../../shared/src/hermes-cloud'
 
 // A cold backend boot (plugin discovery + route mounting at web_server import

@@ -1,4 +1,4 @@
-import { sortCatalogPlugins } from '@hermes/shared'
+import { sortCatalogPlugins } from '@kova/shared'
 
 import { PLUGIN_TIER_ORDER, pluginTier } from './catalog-curation'
 import type { CatalogEntry, CatalogKind } from './catalog-data'

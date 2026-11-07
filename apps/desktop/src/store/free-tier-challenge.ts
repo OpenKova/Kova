@@ -1,4 +1,4 @@
-import type { FreeTierChallengePayload, FreeTierChallengeResultParams } from '@hermes/shared'
+import type { FreeTierChallengePayload, FreeTierChallengeResultParams } from '@kova/shared'
 
 /**
  * The free tier's browser challenge, renderer half: a relay. The backend

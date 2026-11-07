@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { Box, Text, useInput } from '@hermes/ink'
-import type { BillingStateResponse } from '@hermes/shared/gateway-types'
+import type { BillingStateResponse } from '@kova/shared/gateway-types'
 import { useRef, useState } from 'react'
 
 import type { BillingOverlayState } from '../app/interfaces.js'

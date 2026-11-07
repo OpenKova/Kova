@@ -1,4 +1,4 @@
-import type { ConnectionAnswer, ConnectorAccountsResult, ConnectorPolicyGetResult } from '@hermes/shared'
+import type { ConnectionAnswer, ConnectorAccountsResult, ConnectorPolicyGetResult } from '@kova/shared'
 import { useCallback, useRef, useState } from 'react'
 
 import type { ProfileScope } from '@/hermes'

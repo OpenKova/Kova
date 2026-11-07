@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@kova/shared'
 import { act, cleanup, render } from '@testing-library/react'
 import type { MutableRefObject } from 'react'
 import { useEffect } from 'react'

@@ -1,4 +1,4 @@
-import type { ConnectionUpdatePayload, ConnectorAccountRow } from '@hermes/shared/gateway-events'
+import type { ConnectionUpdatePayload, ConnectorAccountRow } from '@kova/shared/gateway-events'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import {

@@ -1,5 +1,5 @@
-import { JsonRpcGatewayError } from '@hermes/shared/json-rpc-channel'
-import { TUI_SESSION_MODEL_FLAG } from '@hermes/shared/slash-input'
+import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
+import { TUI_SESSION_MODEL_FLAG } from '@kova/shared/slash-input'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createSlashHandler } from '../app/createSlashHandler.js'

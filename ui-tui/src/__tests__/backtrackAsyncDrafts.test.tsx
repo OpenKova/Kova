@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { renderSync, Text } from '@hermes/ink'
-import { JsonRpcGatewayError } from '@hermes/shared/json-rpc-channel'
+import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

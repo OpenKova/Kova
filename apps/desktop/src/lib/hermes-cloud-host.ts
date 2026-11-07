@@ -5,7 +5,7 @@
  * settings manifest) can ask it without an import cycle.
  */
 
-import { isHermesCloudUrl } from '@hermes/shared'
+import { isHermesCloudUrl } from '@kova/shared'
 
 import { isBrowserHostedDesktop } from '@/lib/platform'
 

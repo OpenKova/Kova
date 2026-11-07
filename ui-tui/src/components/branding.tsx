@@ -1,6 +1,6 @@
 import { Box, Text, useStdout } from '@hermes/ink'
-import { mix } from '@hermes/shared/color'
-import type { SessionInfo } from '@hermes/shared/gateway-types'
+import { mix } from '@kova/shared/color'
+import type { SessionInfo } from '@kova/shared/gateway-types'
 import { useEffect, useState } from 'react'
 import unicodeSpinners from 'unicode-animations'
 

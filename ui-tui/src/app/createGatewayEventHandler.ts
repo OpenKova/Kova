@@ -1,9 +1,9 @@
 import { execFile } from 'child_process'
 
 import { forceRedraw, onTerminalBackground, onTerminalForeground } from '@hermes/ink'
-import { stripAnsi } from '@hermes/shared/ansi'
-import { relativeLuminance } from '@hermes/shared/color'
-import type { MessageDeltaPayload, SubagentStatus, Usage } from '@hermes/shared/gateway-events'
+import { stripAnsi } from '@kova/shared/ansi'
+import { relativeLuminance } from '@kova/shared/color'
+import type { MessageDeltaPayload, SubagentStatus, Usage } from '@kova/shared/gateway-events'
 import type {
   AnyGatewayEvent,
   ConfigFullResponse,
@@ -11,8 +11,8 @@ import type {
   GatewaySkin,
   SessionInfo,
   SessionMostRecentResponse
-} from '@hermes/shared/gateway-types'
-import type { UsageLimit } from '@hermes/shared/plan-usage'
+} from '@kova/shared/gateway-types'
+import type { UsageLimit } from '@kova/shared/plan-usage'
 
 import { STARTUP_IMAGE, STARTUP_QUERY } from '../config/env.js'
 import { STREAM_BATCH_MS } from '../config/timing.js'

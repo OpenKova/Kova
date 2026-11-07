@@ -1,4 +1,4 @@
-import { isReasoningEffort } from '@hermes/shared'
+import { isReasoningEffort } from '@kova/shared'
 import { useCallback, useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'

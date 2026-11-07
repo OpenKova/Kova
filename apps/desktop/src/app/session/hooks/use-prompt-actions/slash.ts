@@ -1,5 +1,5 @@
-import { skillInvocationText } from '@hermes/shared'
-import { mergeUsage, parseCommandDispatch, parseSlashCommand, randomUuid } from '@hermes/shared'
+import { skillInvocationText } from '@kova/shared'
+import { mergeUsage, parseCommandDispatch, parseSlashCommand, randomUuid } from '@kova/shared'
 import { type MutableRefObject, useCallback, useRef } from 'react'
 
 import { mergeOlderTranscriptPage } from '@/app/chat/transcript-backfill'

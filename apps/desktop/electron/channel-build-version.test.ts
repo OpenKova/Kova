@@ -28,13 +28,13 @@ function request(sequence: number = 65536, token: string = 'ab12cd34ef56ab78'): 
     windowsVersion: `0.${Math.floor(sequence / 65536)}.${sequence % 65536}.0`,
     identity: {
       token,
-      displayName: 'Hermes no-registry-needed',
-      appId: `com.nousresearch.hermes-channel-${token}`,
-      appNamePascal: `HermesChannel${token}`,
-      artifactNamePascal: `HermesChannel${token}`,
-      cliName: 'hermes-no-registry-needed',
-      windowsExecutableName: 'hermes-no-registry-needed',
-      msixAppIdWithOrg: `NousResearch.HermesChannel${token}`
+      displayName: 'Kova no-registry-needed',
+      appId: `com.openkova.kova-channel-${token}`,
+      appNamePascal: `KovaChannel${token}`,
+      artifactNamePascal: `KovaChannel${token}`,
+      cliName: 'kova-no-registry-needed',
+      windowsExecutableName: 'kova-no-registry-needed',
+      msixAppIdWithOrg: `OpenKova.KovaChannel${token}`
     },
     bundleEnv: { HERMES_PREVIEW_FULL_CONNECTORS: '1' },
     publicBase: 'https://builds.example.test'

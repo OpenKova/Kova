@@ -10,7 +10,7 @@ vi.mock('@hermes/plugin-sdk', async () => {
 
   return {
     ...await (await import('./group-test-utils')).pluginSdkMock({}),
-    randomUuid: (await import('@hermes/shared')).randomUuid,
+    randomUuid: (await import('@kova/shared')).randomUuid,
     host: { requestProfile: captureGroupRequests(request).request },
     Button: (props: ComponentProps<'button'>) => <button {...props} />
   }

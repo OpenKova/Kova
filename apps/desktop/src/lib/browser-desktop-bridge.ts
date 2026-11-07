@@ -1,4 +1,4 @@
-import { externalUrlTarget, LOCAL_CONNECTION_ID } from '@hermes/shared'
+import { externalUrlTarget, LOCAL_CONNECTION_ID } from '@kova/shared'
 
 import type { HermesApiRequest } from '@/global'
 import { BROWSER_BRIDGE_STUBS } from '@/lib/browser-bridge-stubs'

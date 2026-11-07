@@ -6,8 +6,8 @@ import type {
   ConnectorAccountsResult,
   ConnectorsConnectResult,
   ConnectorsListResult
-} from '@hermes/shared/gateway-events'
-import { JsonRpcGatewayError } from '@hermes/shared/json-rpc-channel'
+} from '@kova/shared/gateway-events'
+import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
 import { useStore } from '@nanostores/react'
 import { type ReactNode, useEffect, useState } from 'react'
 

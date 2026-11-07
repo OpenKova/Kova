@@ -26,7 +26,7 @@ export default [
         {
           patterns: [
             {
-              group: ['@/*', '../*', '@hermes/shared'],
+              group: ['@/*', '../*', '@kova/shared'],
               message: 'Plugins import only @hermes/plugin-sdk (and react). Missing something? Add it to the SDK.'
             }
           ]
@@ -50,7 +50,7 @@ export default [
         'error',
         {
           property: 'randomUUID',
-          message: 'Use randomUuid from @hermes/shared (plugins: @hermes/plugin-sdk); it works on insecure origins.'
+          message: 'Use randomUuid from @kova/shared (plugins: @hermes/plugin-sdk); it works on insecure origins.'
         }
       ]
     }

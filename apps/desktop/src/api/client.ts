@@ -5,7 +5,7 @@ import {
   JsonRpcGatewayClient,
   type ServerRequest,
   type ServerRequestHandler
-} from '@hermes/shared'
+} from '@kova/shared'
 import { map, type MapStore } from 'nanostores'
 
 import type { HermesApiRequest } from '@/global'

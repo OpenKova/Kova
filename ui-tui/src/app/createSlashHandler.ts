@@ -1,6 +1,6 @@
-import type { SlashExecResponse } from '@hermes/shared/gateway-types'
-import { parseCommandDispatch, parseSlashCommand } from '@hermes/shared/slash'
-import { scoreSlashMenuItem } from '@hermes/shared/slash-score'
+import type { SlashExecResponse } from '@kova/shared/gateway-types'
+import { parseCommandDispatch, parseSlashCommand } from '@kova/shared/slash'
+import { scoreSlashMenuItem } from '@kova/shared/slash-score'
 
 import type { GatewayClient } from '../gatewayClient.js'
 import { rpcErrorMessage } from '../lib/rpc.js'

@@ -3,7 +3,7 @@
 // existing protocol; wire negotiation never changes the transport's auth credentials.
 // Unsupported explicit semantics fail before network admission.
 
-import { randomUuid } from '@hermes/shared'
+import { randomUuid } from '@kova/shared'
 
 export const CANONICAL_GATEWAY_PROTOCOL = 'hermes-gateway-v1'
 

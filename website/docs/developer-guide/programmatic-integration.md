@@ -38,9 +38,9 @@ hermes acp --setup          # interactive provider/model setup for ACP terminal 
 
 `tui_gateway/server.py` is the method and event catalog behind the Ink TUI (`hermes --tui`), the Desktop app and the embedded dashboard PTY bridge. The Ink TUI reaches it on the profile's shared gateway over WebSocket (`/api/ws`, protocol `hermes-gateway-v1`, a single-use ticket per connection); any external host can speak the same frames over stdio (`tui_gateway/entry.py`) or a WebSocket (`tui_gateway/ws.py`).
 
-### A Node client: `@hermes/shared/gateway-client`
+### A Node client: `@kova/shared/gateway-client`
 
-The Ink TUI's gateway client lives in `apps/shared` (`@hermes/shared`), so another Node frontend can use it without compiling Ink's source. It dials the owner with a ticket, reads `runtime.describe` before `session.create`, translates requests and results for `hermes-gateway-v1` (`@hermes/shared/gateway-canonical`), reconnects with backoff, re-ensures a gone owner a bounded number of times per minute, and emits typed events (`@hermes/shared/gateway-types`).
+The Ink TUI's gateway client lives in `apps/shared` (`@kova/shared`), so another Node frontend can use it without compiling Ink's source. It dials the owner with a ticket, reads `runtime.describe` before `session.create`, translates requests and results for `hermes-gateway-v1` (`@kova/shared/gateway-canonical`), reconnects with backoff, re-ensures a gone owner a bounded number of times per minute, and emits typed events (`@kova/shared/gateway-types`).
 
 The client does not know where its connection comes from. The caller passes `connect(start, recover)`, which returns `{url, protocols, profile_id, instance_id}` and runs again for every reconnect (tickets are single-use). Ink passes its `gateway_bootstrap.py` helper; any other local client can run [`hermes gateway attach --json`](./gateway-internals.md#hermes-gateway-attach), with `--start` on the first call and `--recover` when asked to recover, and pass its `url` and `protocols`:
 
@@ -48,8 +48,8 @@ The client does not know where its connection comes from. The caller passes `con
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import { GatewayClient } from '@hermes/shared/gateway-client'
-import type { AnyGatewayEvent } from '@hermes/shared/gateway-types'
+import { GatewayClient } from '@kova/shared/gateway-client'
+import type { AnyGatewayEvent } from '@kova/shared/gateway-types'
 
 const gw = new GatewayClient({
   connect: async (start, recover) => {

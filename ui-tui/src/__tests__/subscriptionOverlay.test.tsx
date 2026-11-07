@@ -1,7 +1,7 @@
 import { PassThrough } from 'stream'
 
 import { renderSync } from '@hermes/ink'
-import { stripAnsi } from '@hermes/shared/ansi'
+import { stripAnsi } from '@kova/shared/ansi'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -22,7 +22,7 @@ vi.mock('@hermes/ink', async importOriginal => {
   }
 })
 
-import type { SubscriptionStateResponse } from '@hermes/shared/gateway-types'
+import type { SubscriptionStateResponse } from '@kova/shared/gateway-types'
 
 import type { SubscriptionOverlayState } from '../app/interfaces.js'
 import { SubscriptionOverlay } from '../components/subscriptionOverlay.js'

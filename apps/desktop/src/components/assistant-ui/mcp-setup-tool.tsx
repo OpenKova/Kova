@@ -1,7 +1,7 @@
 'use client'
 
 import { type ToolCallMessagePartProps, useAuiState } from '@assistant-ui/react'
-import type { ConnectionTargetLaunchKind } from '@hermes/shared'
+import type { ConnectionTargetLaunchKind } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 

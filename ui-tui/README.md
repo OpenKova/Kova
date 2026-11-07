@@ -357,7 +357,7 @@ ui-tui/
   src/
     entry.tsx            TTY gate + render()
     app.tsx              top-level Ink tree, composes src/app/*
-    gatewayClient.ts     Ink's wiring of @hermes/shared/gateway-client (bootstrap, env, i18n)
+    gatewayClient.ts     Ink's wiring of @kova/shared/gateway-client (bootstrap, env, i18n)
     launchOptions.ts     `hermes --tui` launch env as session.create options
     localGatewayBootstrap.ts  runs scripts/gateway_bootstrap.py for the URL + ticket
     theme.ts             theme colors and skin merge

@@ -1,4 +1,4 @@
-import { canonicalRequest, canonicalResult, sharedControlParams } from '@hermes/shared/gateway-canonical'
+import { canonicalRequest, canonicalResult, sharedControlParams } from '@kova/shared/gateway-canonical'
 import { expect, it } from 'vitest'
 
 import { localCreationOptions } from '../launchOptions.js'

@@ -10,7 +10,7 @@ vi.mock('@hermes/plugin-sdk', async () => {
   const { Textarea } = await import('@/components/ui/textarea')
   const { captureGroupRequests } = await import('./canonical-group-contract-test-utils')
 
-  return { ...await (await import('./group-test-utils')).pluginSdkMock({}), Textarea, atom: (await import('nanostores')).atom, host: { requestProfile: captureGroupRequests(request).request }, randomUuid: (await import('@hermes/shared')).randomUuid,
+  return { ...await (await import('./group-test-utils')).pluginSdkMock({}), Textarea, atom: (await import('nanostores')).atom, host: { requestProfile: captureGroupRequests(request).request }, randomUuid: (await import('@kova/shared')).randomUuid,
     useI18n: () => ({ locale: 'en', t: en }),
     Button: (props: ComponentProps<'button'>) => <button {...props} />,
     MessageTextContent: ({ text }: { text: string }) => <div data-testid="markdown">{text}</div>,

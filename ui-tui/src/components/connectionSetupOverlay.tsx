@@ -7,7 +7,7 @@ import type {
   ConnectionTargetEnvField,
   ConnectionTargetState,
   ConnectorsConnectResult
-} from '@hermes/shared/gateway-events'
+} from '@kova/shared/gateway-events'
 import { useStore } from '@nanostores/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 

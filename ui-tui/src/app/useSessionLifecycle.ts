@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs'
 
 import type { ScrollBoxHandle } from '@hermes/ink'
 import { evictInkCaches } from '@hermes/ink'
-import type { InflightTurn, SessionResumeResult, Usage } from '@hermes/shared/gateway-events'
+import type { InflightTurn, SessionResumeResult, Usage } from '@kova/shared/gateway-events'
 import type {
   SessionActivateResponse,
   SessionCloseResponse,
@@ -12,7 +12,7 @@ import type {
   SessionInfo,
   SessionTitleResponse,
   SetupStatusResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { STARTUP_WORKSPACE_CWD } from '../config/env.js'

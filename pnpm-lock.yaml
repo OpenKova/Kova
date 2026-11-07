@@ -190,7 +190,7 @@ importers:
       '@dnd-kit/utilities':
         specifier: 3.2.2
         version: 3.2.2(react@19.3.0)
-      '@hermes/shared':
+      '@kova/shared':
         specifier: workspace:*
         version: link:../shared
       '@icons-pack/react-simple-icons':
@@ -588,7 +588,7 @@ importers:
       '@hermes/ink':
         specifier: workspace:*
         version: link:packages/hermes-ink
-      '@hermes/shared':
+      '@kova/shared':
         specifier: workspace:*
         version: link:../apps/shared
       '@nanostores/react':
@@ -719,7 +719,7 @@ importers:
 
   web:
     dependencies:
-      '@hermes/shared':
+      '@kova/shared':
         specifier: workspace:*
         version: link:../apps/shared
       '@nous-research/ui':

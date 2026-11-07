@@ -19,7 +19,7 @@
  * Their state stays visible on the MCP page.
  */
 
-import type { McpServersStatusResult } from '@hermes/shared'
+import type { McpServersStatusResult } from '@kova/shared'
 
 import { $apiRequestScope } from '@/api/client'
 import { getHermesConfigRecord, setMcpServerEnabled } from '@/hermes'

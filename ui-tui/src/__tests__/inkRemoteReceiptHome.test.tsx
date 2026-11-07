@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { renderSync, Text } from '@hermes/ink'
-import { canonicalEvent } from '@hermes/shared/gateway-canonical'
+import { canonicalEvent } from '@kova/shared/gateway-canonical'
 import { useStore } from '@nanostores/react'
 import React from 'react'
 import { expect, it, vi } from 'vitest'

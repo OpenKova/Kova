@@ -2,7 +2,7 @@
 // ready at once; a public dial is ready at the first `gateway.ready` its own socket delivers. The
 // gate owns each dial's settle, its timeout, the `open` it holds back from state subscribers, and
 // a request's cancellable wait; HermesGateway connects it to its transport events.
-import type { ConnectionState } from '@hermes/shared'
+import type { ConnectionState } from '@kova/shared'
 
 import { TimeoutError } from '@/lib/with-timeout'
 

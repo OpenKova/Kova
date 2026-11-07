@@ -1,4 +1,4 @@
-import { fileUrlToNativePath } from '@hermes/shared'
+import { fileUrlToNativePath } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
 import type {

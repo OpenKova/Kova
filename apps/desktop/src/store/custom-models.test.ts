@@ -1,4 +1,4 @@
-import type { ModelOptionProvider } from '@hermes/shared'
+import type { ModelOptionProvider } from '@kova/shared'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {

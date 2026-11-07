@@ -8,7 +8,7 @@ import type {
   ClipboardPasteResponse,
   ImageAttachResponse,
   InputDetectDropResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 import { useStore } from '@nanostores/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 

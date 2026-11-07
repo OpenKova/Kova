@@ -1865,7 +1865,7 @@ export { PROFILE_SWATCHES, profileColor, profileColorSoft } from '@/lib/profile-
  *  `useQueryClient`. */
 export { queryClient } from '@/lib/query-client'
 
-/** Compact labels for the reasoning levels exported from @hermes/shared, so a
+/** Compact labels for the reasoning levels exported from @kova/shared, so a
  *  plugin surfacing a thinking depth uses the same spelling as the app. */
 export { reasoningEffortLabel } from '@/lib/reasoning-effort'
 
@@ -1948,21 +1948,21 @@ export type { DesktopTheme, DesktopThemeColors } from '@/themes/types'
 export { THEMES_AREA } from '@/themes/user-themes'
 export type { StatusResponse } from '@/types/hermes'
 /** Public SDK name for the shared gateway wire event; kept stable for plugins. */
-export type { GatewayEvent as RpcEvent } from '@hermes/shared'
+export type { GatewayEvent as RpcEvent } from '@kova/shared'
 /** Bot Screen wire shapes, generated from `tui_gateway/contracts/display.py`. */
-export type { DisplayLease, DisplayObserveResult, DisplayStatus, DisplayThumbnailResult } from '@hermes/shared'
+export type { DisplayLease, DisplayObserveResult, DisplayStatus, DisplayThumbnailResult } from '@kova/shared'
 /** `session.list` / `profiles.list` session rows, generated from `tui_gateway/contracts`. */
-export type { ProfileSessionPreview, SessionListRow } from '@hermes/shared'
+export type { ProfileSessionPreview, SessionListRow } from '@kova/shared'
 /** THE compact-number formatter — every user-facing count/token figure goes
  *  through here (1230 → "1.2k", 1_500_000 → "1.5M"). Don't hand-roll `/1000`. */
-export { compactNumber } from '@hermes/shared'
+export { compactNumber } from '@kova/shared'
 /** Client deadline for `approval.respond`: matches the backend's
  *  `approvals.timeout` (300s) so a plugin answering an approval never rejects
  *  its own RPC while the backend still applies the decision (#60654). */
-export { APPROVAL_RESPOND_TIMEOUT_MS } from '@hermes/shared'
+export { APPROVAL_RESPOND_TIMEOUT_MS } from '@kova/shared'
 /** THE id minter: a v4 UUID on every origin. `crypto.randomUUID` exists only in secure contexts,
  *  so a Webapp opened over plain HTTP from another machine has none. */
-export { randomUuid } from '@hermes/shared'
+export { randomUuid } from '@kova/shared'
 /** Hermes' reasoning levels, so a plugin surfacing a thinking depth uses the
  *  same scale as the rest of the app (labels: `reasoningEffortLabel`). */
 export {
@@ -1970,10 +1970,10 @@ export {
   REASONING_EFFORT_VALUES,
   REASONING_EFFORTS,
   type ReasoningEffort
-} from '@hermes/shared'
+} from '@kova/shared'
 /** WCAG contrast, from the sRGB primitives shared with the TUI (`null` for
  *  an unparseable colour, never a fake 0). */
-export { contrastRatio } from '@hermes/shared/color'
+export { contrastRatio } from '@kova/shared/color'
 /** Subscribe a component to a `host.state` atom. */
 export { useStore as useValue } from '@nanostores/react'
 /** The app's data-fetching layer. Plugins share the ONE QueryClient mounted at

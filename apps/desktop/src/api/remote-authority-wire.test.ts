@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { JsonRpcGatewayClient } from '@hermes/shared'
+import { JsonRpcGatewayClient } from '@kova/shared'
 import { expect, test, vi } from 'vitest'
 
 import {

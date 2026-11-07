@@ -1,5 +1,5 @@
 import { Box, useStdout } from '@hermes/ink'
-import type { ImageRenderResult } from '@hermes/shared/gateway-events'
+import type { ImageRenderResult } from '@kova/shared/gateway-events'
 import { useStore } from '@nanostores/react'
 import { memo, useEffect, useState } from 'react'
 

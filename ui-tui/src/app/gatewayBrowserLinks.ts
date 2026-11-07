@@ -1,4 +1,4 @@
-import type { BillingStepUpVerificationPayload, FreeTierChallengePayload } from '@hermes/shared/gateway-events'
+import type { BillingStepUpVerificationPayload, FreeTierChallengePayload } from '@kova/shared/gateway-events'
 
 import { t } from '../i18n/runtime.js'
 

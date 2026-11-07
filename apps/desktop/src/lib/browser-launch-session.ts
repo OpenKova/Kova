@@ -1,4 +1,4 @@
-import { GatewayReauthRequiredError } from '@hermes/shared'
+import { GatewayReauthRequiredError } from '@kova/shared'
 
 export const WEBAPP_LAUNCH_REQUIRED = 'Run hermes webapp on this computer to sign this browser in.'
 

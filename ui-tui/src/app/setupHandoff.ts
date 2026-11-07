@@ -1,5 +1,5 @@
 import type { RunExternalProcess } from '@hermes/ink'
-import type { SetupStatusResponse } from '@hermes/shared/gateway-types'
+import type { SetupStatusResponse } from '@kova/shared/gateway-types'
 
 import { t } from '../i18n/runtime.js'
 import type { LaunchResult } from '../lib/externalCli.js'

@@ -6,8 +6,8 @@
 
 import { accessSync, constants } from 'node:fs'
 
-import type { SessionInfo } from '@hermes/shared/gateway-types'
-import { JsonRpcGatewayError } from '@hermes/shared/json-rpc-channel'
+import type { SessionInfo } from '@kova/shared/gateway-types'
+import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
 
 import { introMsg, toTranscriptMessages } from '../../domain/messages.js'
 import { t } from '../../i18n/runtime.js'

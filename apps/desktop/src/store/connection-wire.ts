@@ -1,4 +1,4 @@
-import { LOCAL_CONNECTION_ID } from '@hermes/shared'
+import { LOCAL_CONNECTION_ID } from '@kova/shared'
 import { map } from 'nanostores'
 
 import type { GatewaySessionWire } from '@/api/client'

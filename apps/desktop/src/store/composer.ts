@@ -1,4 +1,4 @@
-import { randomUuid } from '@hermes/shared'
+import { randomUuid } from '@kova/shared'
 import { atom } from 'nanostores'
 
 import type { HermesStagedUpload } from '@/global'

@@ -1,5 +1,5 @@
-import { stripAnsi } from '@hermes/shared/ansi'
-import { compactNumber } from '@hermes/shared/format'
+import { stripAnsi } from '@kova/shared/ansi'
+import { compactNumber } from '@kova/shared/format'
 import type {
   BackgroundStartResponse,
   ConfigGetValueResponse,
@@ -9,8 +9,8 @@ import type {
   SessionUsageResponse,
   SlashExecResponse,
   VoiceToggleResponse
-} from '@hermes/shared/gateway-types'
-import { sessionScopedModelArg, TUI_SESSION_MODEL_FLAG } from '@hermes/shared/slash-input'
+} from '@kova/shared/gateway-types'
+import { sessionScopedModelArg, TUI_SESSION_MODEL_FLAG } from '@kova/shared/slash-input'
 
 import { usageBarsText } from '../../../components/overlayPrimitives.js'
 import { introMsg, toTranscriptMessages } from '../../../domain/messages.js'

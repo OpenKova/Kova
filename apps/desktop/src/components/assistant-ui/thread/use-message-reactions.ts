@@ -1,5 +1,5 @@
 import { useAuiState, useMessageRuntime } from '@assistant-ui/react'
-import { registryBackendScopeKey } from '@hermes/shared'
+import { registryBackendScopeKey } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { type MouseEvent, useCallback } from 'react'
 

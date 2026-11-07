@@ -1,4 +1,4 @@
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@kova/shared'
 
 import type { HermesConnection } from '@/global'
 import type { ScopedServerRequest } from '@/store/gateway'

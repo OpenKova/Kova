@@ -1,5 +1,5 @@
 import type { MouseTrackingMode, ScrollBoxHandle } from '@hermes/ink'
-import type { Usage } from '@hermes/shared/gateway-events'
+import type { Usage } from '@kova/shared/gateway-events'
 import type {
   BillingCardInfo,
   BillingMutationResponse,
@@ -9,7 +9,7 @@ import type {
   SubscriptionPreviewResponse,
   SubscriptionStateResponse,
   SubscriptionUpgradeResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 import type { MutableRefObject, ReactNode, RefObject, SetStateAction } from 'react'
 
 import type { PasteEvent } from '../components/textInput.js'

@@ -19,7 +19,7 @@
  * their own useInput); Esc/Enter behave as in production. Ctrl-C to exit.
  */
 import { render } from '@hermes/ink'
-import type { BillingStateResponse, SubscriptionStateResponse, SubscriptionTierOption } from '@hermes/shared/gateway-types'
+import type { BillingStateResponse, SubscriptionStateResponse, SubscriptionTierOption } from '@kova/shared/gateway-types'
 import React from 'react'
 
 import type { BillingOverlayState, SubscriptionOverlayState, SubscriptionScreen } from '../src/app/interfaces.js'

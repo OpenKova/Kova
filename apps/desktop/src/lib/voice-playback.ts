@@ -1,4 +1,4 @@
-import { resolveGatewayWsUrl } from '@hermes/shared'
+import { resolveGatewayWsUrl } from '@kova/shared'
 
 import { openGatewaySocket } from '@/api/canonical-protocol'
 import type { OwnerScope } from '@/api/client'

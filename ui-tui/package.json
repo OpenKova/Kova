@@ -1,5 +1,5 @@
 {
-  "name": "hermes-tui",
+  "name": "kova-tui",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@hermes/ink": "workspace:*",
-    "@hermes/shared": "workspace:*",
+    "@kova/shared": "workspace:*",
     "@nanostores/react": "1.1.0",
     "ink-text-input": "6.0.0",
     "nanostores": "1.4.2",

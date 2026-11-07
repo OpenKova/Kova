@@ -1,6 +1,6 @@
-/** Ink's gateway client: `@hermes/shared/gateway-client` wired to the `hermes --tui` launcher (its
+/** Ink's gateway client: `@kova/shared/gateway-client` wired to the `hermes --tui` launcher (its
  *  bootstrap, `HERMES_TUI_*` overrides, launch tool-progress pin, i18n and crash-log breadcrumbs). */
-import { type ConnectGateway, GatewayClient as SharedGatewayClient } from '@hermes/shared/gateway-client'
+import { type ConnectGateway, GatewayClient as SharedGatewayClient } from '@kova/shared/gateway-client'
 import { WebSocket as UndiciWebSocket } from 'undici'
 
 import { t } from './i18n/runtime.js'

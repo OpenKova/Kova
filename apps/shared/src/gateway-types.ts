@@ -35,7 +35,7 @@ export interface SlashCategory {
   pairs: [string, string][]
 }
 
-/** The cross-surface skin contract (canonical shape in `@hermes/shared`).
+/** The cross-surface skin contract (canonical shape in `@kova/shared`).
  *  Includes the paired light_colors/dark_colors overlays from #20379. */
 export type GatewaySkin = HermesSkin
 
@@ -116,7 +116,7 @@ export interface SlashExecResponse {
 
 // ── Remote Spending (Phase 2b) ───────────────────────────────────────
 
-// Wire shapes now live in @hermes/shared for reuse by TypeScript clients.
+// Wire shapes now live in @kova/shared for reuse by TypeScript clients.
 export type {
   BillingAutoReload,
   BillingBlock,

@@ -8,7 +8,7 @@
  *   the Desktop app on this machine still updates itself.
  */
 
-import { isHermesCloudUrl } from '@hermes/shared'
+import { isHermesCloudUrl } from '@kova/shared'
 import { computed } from 'nanostores'
 
 import type { HermesConnection } from '@/global'

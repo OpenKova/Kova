@@ -1,4 +1,4 @@
-import { backendScopeKey } from '@hermes/shared'
+import { backendScopeKey } from '@kova/shared'
 import { atom } from 'nanostores'
 
 import { fetchVoiceLiveStatus, type VoiceLiveStatus } from '@/lib/voice-live'

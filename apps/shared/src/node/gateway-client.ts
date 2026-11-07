@@ -31,7 +31,7 @@ const WS_CLOSING = 2
 const WS_CLOSED = 3
 
 // Keepalive + dead-connection detection (issue #32997) lives in
-// @hermes/shared's JsonRpcRequestChannel; these re-exports keep the TUI's
+// @kova/shared's JsonRpcRequestChannel; these re-exports keep the TUI's
 // timing constants readable at their call sites and in tests.
 export const WS_HEARTBEAT_INTERVAL_MS = DEFAULT_HEARTBEAT_INTERVAL_MS
 export const WS_HEARTBEAT_DEAD_MS = DEFAULT_HEARTBEAT_DEADLINE_MS

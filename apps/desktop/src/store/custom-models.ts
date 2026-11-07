@@ -1,4 +1,4 @@
-import type { ModelOptionProvider } from '@hermes/shared'
+import type { ModelOptionProvider } from '@kova/shared'
 import { atom } from 'nanostores'
 
 import { persistString, storedString } from '@/lib/storage'

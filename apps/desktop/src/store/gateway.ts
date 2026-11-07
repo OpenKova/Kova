@@ -7,7 +7,7 @@ import {
   registryBackendScopeKey,
   resolveGatewayWsUrl,
   type ServerRequest
-} from '@hermes/shared'
+} from '@kova/shared'
 import { atom, batch } from 'nanostores'
 
 import { canonicalOwnerProfile } from '@/api/canonical-protocol'

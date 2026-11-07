@@ -1,5 +1,5 @@
 import type { MouseTrackingMode } from '@hermes/ink'
-import type { ConfigFullResponse, ConfigMtimeResponse, ReloadMcpResponse } from '@hermes/shared/gateway-types'
+import type { ConfigFullResponse, ConfigMtimeResponse, ReloadMcpResponse } from '@kova/shared/gateway-types'
 import { useEffect, useRef } from 'react'
 
 import { resolveDetailsMode, resolveSections } from '../domain/details.js'

@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 

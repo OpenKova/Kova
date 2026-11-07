@@ -1,4 +1,4 @@
-import { isGatewayReauthRequired } from '@hermes/shared'
+import { isGatewayReauthRequired } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { useEffect, useRef, useState } from 'react'
 

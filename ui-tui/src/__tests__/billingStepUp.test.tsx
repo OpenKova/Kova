@@ -1,7 +1,7 @@
 import { PassThrough } from 'stream'
 
 import { renderSync } from '@hermes/ink'
-import { stripAnsi } from '@hermes/shared/ansi'
+import { stripAnsi } from '@kova/shared/ansi'
 import React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -12,7 +12,7 @@ vi.mock('@hermes/ink', async importOriginal => {
   return { ...mod, useInput: () => {} }
 })
 
-import type { BillingStateResponse } from '@hermes/shared/gateway-types'
+import type { BillingStateResponse } from '@kova/shared/gateway-types'
 
 import type { BillingOverlayState } from '../app/interfaces.js'
 import { BillingOverlay } from '../components/billingOverlay.js'

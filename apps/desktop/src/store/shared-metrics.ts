@@ -1,4 +1,4 @@
-import type { SharedMetricsConsentResult } from '@hermes/shared'
+import type { SharedMetricsConsentResult } from '@kova/shared'
 import { atom } from 'nanostores'
 
 import { recordOnboarding, setDesktopMetricsGate } from './desktop-metrics'

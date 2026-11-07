@@ -14,7 +14,7 @@ import { join } from 'path'
 import { PassThrough } from 'stream'
 
 import { Box, renderSync, Text } from '@hermes/ink'
-import type { SessionInfo } from '@hermes/shared/gateway-types'
+import type { SessionInfo } from '@kova/shared/gateway-types'
 import React, { type ReactElement } from 'react'
 
 import { GatewayProvider } from '../../src/app/gatewayContext.js'

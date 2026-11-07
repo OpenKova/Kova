@@ -1,4 +1,4 @@
-import { randomUuid } from '@hermes/shared'
+import { randomUuid } from '@kova/shared'
 
 import type { HermesApiRequest } from '@/global'
 import { dismissNotification } from '@/store/notifications'

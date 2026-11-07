@@ -1,11 +1,11 @@
-import { driveChargeSettlement, type SettlementOutcome } from '@hermes/shared/charge-settlement'
+import { driveChargeSettlement, type SettlementOutcome } from '@kova/shared/charge-settlement'
 import type {
   BillingChargeResponse,
   BillingChargeStatusResponse,
   BillingErrorPayload,
   BillingMutationResponse,
   BillingStateResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 
 import { t } from '../../../i18n/runtime.js'
 import { openExternalUrl } from '../../../lib/openExternalUrl.js'

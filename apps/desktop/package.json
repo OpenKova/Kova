@@ -1,13 +1,13 @@
 {
-  "name": "hermes",
-  "productName": "Hermes",
+  "name": "kova",
+  "productName": "Kova",
   "private": true,
   "version": "0.0.0",
-  "description": "Native desktop shell for Hermes Agent.",
-  "author": "Nous Research",
+  "description": "Native desktop shell for Kova Agent.",
+  "author": "OpenKova",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NousResearch/hermes-agent.git"
+    "url": "git+https://github.com/OpenKova/Kova.git"
   },
   "type": "module",
   "main": "dist/electron-main.mjs",
@@ -94,7 +94,7 @@
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
-    "@hermes/shared": "workspace:*",
+    "@kova/shared": "workspace:*",
     "@icons-pack/react-simple-icons": "13.15.1",
     "@lezer/highlight": "1.2.5",
     "@nanostores/react": "1.1.0",

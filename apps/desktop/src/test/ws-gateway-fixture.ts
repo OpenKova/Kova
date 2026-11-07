@@ -1,5 +1,5 @@
 // A real `ws` server for HermesGateway dial tests (node environment only).
-import { type ConnectionState, JsonRpcGatewayClient } from '@hermes/shared'
+import { type ConnectionState, JsonRpcGatewayClient } from '@kova/shared'
 
 import type { HermesGateway } from '@/api/client'
 

@@ -1,5 +1,5 @@
-import type { InputDetectDropResponse, PromptSubmitResponse, SessionActivateResponse } from '@hermes/shared/gateway-types'
-import { isUndeliveredCorrectionRefusal } from '@hermes/shared/json-rpc-channel'
+import type { InputDetectDropResponse, PromptSubmitResponse, SessionActivateResponse } from '@kova/shared/gateway-types'
+import { isUndeliveredCorrectionRefusal } from '@kova/shared/json-rpc-channel'
 
 import type { GatewayClient } from '../gatewayClient.js'
 import type { QueueItem } from '../hooks/useQueue.js'

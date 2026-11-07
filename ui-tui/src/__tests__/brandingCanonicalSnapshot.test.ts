@@ -1,8 +1,8 @@
 import { PassThrough } from 'stream'
 
 import { renderSync } from '@hermes/ink'
-import { canonicalResult } from '@hermes/shared/gateway-canonical'
-import type { SessionInfo } from '@hermes/shared/gateway-types'
+import { canonicalResult } from '@kova/shared/gateway-canonical'
+import type { SessionInfo } from '@kova/shared/gateway-types'
 import React from 'react'
 import { describe, expect, it } from 'vitest'
 

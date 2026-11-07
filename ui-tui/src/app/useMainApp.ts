@@ -8,8 +8,8 @@ import {
   useStdout,
   useTerminalTitle
 } from '@hermes/ink'
-import { sharedControlParams } from '@hermes/shared/gateway-canonical'
-import type { SessionControlSnapshot } from '@hermes/shared/gateway-events'
+import { sharedControlParams } from '@kova/shared/gateway-canonical'
+import type { SessionControlSnapshot } from '@kova/shared/gateway-events'
 import type {
   AnyGatewayEvent,
   ClarifyLockResponse,
@@ -19,8 +19,8 @@ import type {
   SharedControlRespondResponse,
   SubagentListResponse,
   TerminalResizeResponse
-} from '@hermes/shared/gateway-types'
-import { JSON_RPC_METHOD_NOT_FOUND, type ServerRequest } from '@hermes/shared/json-rpc-channel'
+} from '@kova/shared/gateway-types'
+import { JSON_RPC_METHOD_NOT_FOUND, type ServerRequest } from '@kova/shared/json-rpc-channel'
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 

@@ -1,4 +1,4 @@
-import type { WakeStartResponse, WakeStatusResponse, WakeStopResponse } from '@hermes/shared/gateway-types'
+import type { WakeStartResponse, WakeStatusResponse, WakeStopResponse } from '@kova/shared/gateway-types'
 
 import { t } from '../../../i18n/runtime.js'
 import type { TranslationKey } from '../../../i18n/types.js'

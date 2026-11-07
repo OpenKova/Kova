@@ -3,10 +3,10 @@
 // `session.mutate` rename / rewind (`gateway/session_mutations.py`), the committed admission
 // result (`prompt.receipt include_result`) and the frozen launch policy (`session.info`).
 
-import type { SessionStats } from '@hermes/shared/gateway-events'
-import type { BillingStateResponse, RollbackListResponse } from '@hermes/shared/gateway-types'
-import { JsonRpcGatewayError } from '@hermes/shared/json-rpc-channel'
-import { CANONICAL_REASONING_EFFORTS } from '@hermes/shared/slash-input'
+import type { SessionStats } from '@kova/shared/gateway-events'
+import type { BillingStateResponse, RollbackListResponse } from '@kova/shared/gateway-types'
+import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
+import { CANONICAL_REASONING_EFFORTS } from '@kova/shared/slash-input'
 
 import { usageFromTick } from '../../domain/usage.js'
 import { t } from '../../i18n/runtime.js'

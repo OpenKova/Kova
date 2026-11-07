@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process'
 import { resolve } from 'node:path'
 import { promisify } from 'node:util'
 
-import type { GatewayConnection } from '@hermes/shared/gateway-client'
+import type { GatewayConnection } from '@kova/shared/gateway-client'
 
 import { pythonHelperPath } from './lib/pythonHelpers.js'
 

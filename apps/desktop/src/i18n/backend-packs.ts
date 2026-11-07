@@ -11,8 +11,8 @@
  * leaves whatever the registry already holds (never blank the UI over i18n).
  */
 
-import type { LocaleSurface } from '@hermes/shared'
-import { isRecord } from '@hermes/shared/i18n'
+import type { LocaleSurface } from '@kova/shared'
+import { isRecord } from '@kova/shared/i18n'
 
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 

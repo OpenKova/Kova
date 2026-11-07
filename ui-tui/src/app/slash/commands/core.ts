@@ -11,7 +11,7 @@ import type {
   SessionUndoResponse,
   SlashExecResponse,
   SystemBatteryResponse
-} from '@hermes/shared/gateway-types'
+} from '@kova/shared/gateway-types'
 
 import { DASHBOARD_TUI_MODE, NO_CONFIRM_DESTRUCTIVE } from '../../../config/env.js'
 import { dailyFortune, randomFortune } from '../../../content/fortunes.js'

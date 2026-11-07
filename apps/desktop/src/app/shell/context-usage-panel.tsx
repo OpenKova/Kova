@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@kova/shared'
 import { useContext, useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'

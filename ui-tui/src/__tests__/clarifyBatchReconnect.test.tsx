@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
 import { renderSync, Text } from '@hermes/ink'
-import { RECONNECT_BASE_MS } from '@hermes/shared/gateway-client'
+import { RECONNECT_BASE_MS } from '@kova/shared/gateway-client'
 import React from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 

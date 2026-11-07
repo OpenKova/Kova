@@ -1,4 +1,4 @@
-import { mergeUsage, usageFromTick } from '@hermes/shared'
+import { mergeUsage, usageFromTick } from '@kova/shared'
 
 import { finalizeInterruptedMessages } from '@/lib/chat-messages'
 import { normalizePersonalityValue } from '@/lib/chat-runtime'

@@ -1,4 +1,4 @@
-import { fileUrlToNativePath, LOCAL_CONNECTION_ID } from '@hermes/shared'
+import { fileUrlToNativePath, LOCAL_CONNECTION_ID } from '@kova/shared'
 
 import { capabilityScoped, hermesApi, type OwnerScope, sessionFileOwnerScope } from '@/api/client'
 import type { HermesConnection } from '@/global'

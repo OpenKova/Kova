@@ -2,11 +2,11 @@
 // Owned namespace: `libText`.
 // Function leaves take positional args; packs use `{0}`, `{1}` (argument order documented per leaf).
 
-import { gatewayTextEn } from '@hermes/shared/gateway-text'
+import { gatewayTextEn } from '@kova/shared/gateway-text'
 
 export const libTextEn = {
   libText: {
-    // @hermes/shared/gateway-client (given Ink's `t`) — transport-drop reasons that reject in-flight RPCs and
+    // @kova/shared/gateway-client (given Ink's `t`) — transport-drop reasons that reject in-flight RPCs and
     // therefore surface in the transcript. `gateway not connected` /
     // `gateway not running` are deliberately NOT here: app/userMessages.ts
     // parses them (NOT_CONNECTED_RE) and rewrites them into plain words.

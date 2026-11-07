@@ -1,4 +1,4 @@
-import { isGatewayReauthRequired, isStableOpen, reconnectBackoffDelayMs } from '@hermes/shared'
+import { isGatewayReauthRequired, isStableOpen, reconnectBackoffDelayMs } from '@kova/shared'
 
 import type { HermesTerminalExit, HermesTerminalSession, HermesTerminalState } from '@/global'
 

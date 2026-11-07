@@ -1,4 +1,4 @@
-import { randomUuid } from '@hermes/shared'
+import { randomUuid } from '@kova/shared'
 
 import type { ComposerAttachment } from '@/store/composer'
 import type { SessionOwnerScope } from '@/store/session-request-router'

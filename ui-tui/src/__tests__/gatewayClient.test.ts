@@ -106,7 +106,7 @@ import {
   RECONNECT_MAX_MS,
   WS_HEARTBEAT_DEAD_MS,
   WS_HEARTBEAT_INTERVAL_MS
-} from '@hermes/shared/gateway-client'
+} from '@kova/shared/gateway-client'
 
 import { GatewayClient } from '../gatewayClient.js'
 import { applyLocale, resetLocale, t } from '../i18n/runtime.js'

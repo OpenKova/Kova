@@ -2,7 +2,7 @@
 the attach ``hermes gateway attach`` runs. The child is a client, never an agent owner.
 
 ``--start`` ensures the owner (first launch). A reconnect discovers only, except ``--recover``
-(a bounded slot, ``@hermes/shared/gateway-client`` ``OWNER_RECOVERY_LIMIT`` per window) re-ensures whenever the
+(a bounded slot, ``@kova/shared/gateway-client`` ``OWNER_RECOVERY_LIMIT`` per window) re-ensures whenever the
 owner is not ready: it crashed, ended by its idle exit, was stopped with ``hermes gateway stop``
 while this TUI was open, or an older Hermes's gateway answers (ensure replaces that one). Main's TUI
 ran its own sidecar and never depended on an external daemon, so an open TUI comes back on its own.
