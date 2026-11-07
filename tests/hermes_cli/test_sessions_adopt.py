@@ -26,7 +26,7 @@ _OLD_CHATS = (('old-desktop', 'desktop', None), ('old-desktop-nous', 'desktop', 
 
 
 def _seed(home):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     db = SessionDB(db_path=home / 'state.db')
     try:
         for sid, source, user_id in _OLD_CHATS:
@@ -38,8 +38,8 @@ def _seed(home):
 
 
 def _run_adopt(capsys, *argv):
-    from hermes_cli import sessions_cmd
-    from hermes_cli.subcommands.sessions import build_sessions_parser
+    from kova_cli import sessions_cmd
+    from kova_cli.subcommands.sessions import build_sessions_parser
     parser = argparse.ArgumentParser()
     build_sessions_parser(parser.add_subparsers(dest='command'), cmd_sessions=sessions_cmd.cmd_sessions)
     args = parser.parse_args(['sessions', 'adopt', *argv])
@@ -65,7 +65,7 @@ async def _browser_resume(home, descriptor, sid):
     """What a browser opens on the gateway's own listener: ``/api/ws`` on its dashboard mount
     (``chat_ws.gateway_ws``), with an Origin, as the loopback session-token login; never a native grant."""
     from websockets.asyncio.client import connect
-    from hermes_cli.web_server_boundary import _DESKTOP_ATTACHMENT_WS_MAX_BYTES
+    from kova_cli.web_server_boundary import _DESKTOP_ATTACHMENT_WS_MAX_BYTES
     origin = descriptor['api_origin']
     url = origin.replace('http:', 'ws:') + '/api/ws?token=' + _BROWSER_TOKEN
     async with connect(url, origin=origin, proxy=None, max_size=_DESKTOP_ATTACHMENT_WS_MAX_BYTES) as socket:
@@ -98,7 +98,7 @@ def test_adopting_old_chats_lets_the_browser_login_continue_them(tmp_path, model
 
 
 def _seed_long_and_moved(home):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     db = SessionDB(db_path=home / 'state.db')
     try:
         # The owner's resume reply always carries the whole history: this one is over the 8 MiB a
@@ -139,7 +139,7 @@ def _store_files(home):
 
 def _refused_adopt(capsys, monkeypatch, home, *argv):
     """Runs adopt where no gateway is reachable: the store has to answer before any connection."""
-    from hermes_cli import gateway_client
+    from kova_cli import gateway_client
 
     def no_gateway(**_kwargs):
         raise AssertionError('adopt connected to the gateway')
@@ -172,12 +172,12 @@ def test_adopt_names_the_upgrade_for_a_store_no_newer_hermes_has_opened(tmp_path
 def test_adopt_says_to_close_the_holder_of_a_locked_store(tmp_path, monkeypatch, capsys, argv):
     """Another process's exclusive lock on a rollback-journal store blocks the read. Adopt says the
     store is locked and to retry once what holds it is closed, and changes nothing."""
-    import hermes_state
+    import kova_state
 
     home = tmp_path / 'home'
     db = _rollback_journal_store(home)
     before = _store_files(home)
-    monkeypatch.setattr(hermes_state, '_READ_BUSY_TIMEOUT_S', 0.1)
+    monkeypatch.setattr(kova_state, '_READ_BUSY_TIMEOUT_S', 0.1)
     with closing(sqlite3.connect(db, isolation_level=None)) as holder:
         holder.execute('BEGIN EXCLUSIVE')
         status, out, err = _refused_adopt(capsys, monkeypatch, home, *argv)

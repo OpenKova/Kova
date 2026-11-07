@@ -108,7 +108,7 @@ def test_provider_switch_reshapes_the_schema_at_once(monkeypatch):
     import os
 
     import model_tools
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     monkeypatch.setenv("ELEVENLABS_API_KEY", "el-test-key")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")

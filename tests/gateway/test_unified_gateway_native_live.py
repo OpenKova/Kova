@@ -483,7 +483,7 @@ def test_native_safe_mode_cli_executes_in_managed_worker(harness):
     def safe_mode_cli_worker(owner, desc, harness):
         # Popen.pid is the venv launcher on Windows; the daemon's own pid comes from identify.
         gateway_pid = desc['pid']
-        command = [sys.executable, '-m', 'hermes_cli.main', 'chat', '--safe-mode', '--provider', 'custom',
+        command = [sys.executable, '-m', 'kova_cli.main', 'chat', '--safe-mode', '--provider', 'custom',
                    '--base-url', url, '--model', 'safe-fixture', '--api-key', 'fixture', '-Q', '-q', 'SAFE_PROBE_NATIVE']
         proc = subprocess.Popen(command, cwd=harness['work'], env=env, stdin=subprocess.DEVNULL,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)

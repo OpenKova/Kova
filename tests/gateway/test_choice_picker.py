@@ -81,7 +81,7 @@ class TestReasoningChoicePicker:
         call = adapter.calls[0]
         values = [c["value"] for c in call["choices"]]
         # Full canonical ladder + none + subcommands, in order
-        from hermes_constants import VALID_REASONING_EFFORTS
+        from kova_constants import VALID_REASONING_EFFORTS
         assert values[0] == "none"
         assert values[1:1 + len(VALID_REASONING_EFFORTS)] == list(VALID_REASONING_EFFORTS)
         assert values[-3:] == ["reset", "show", "hide"]
@@ -116,7 +116,7 @@ class TestFastChoicePicker:
         # ``_resolve_session_agent_runtime``; with no session override that path
         # calls runtime provider resolution, so stub it (no real credentials in CI).
         monkeypatch.setattr(gateway_run, "_resolve_runtime_agent_kwargs", dict)
-        import hermes_cli.models as models_mod
+        import kova_cli.models as models_mod
         monkeypatch.setattr(models_mod, "model_supports_fast_mode", lambda m: True)
 
     @pytest.mark.asyncio

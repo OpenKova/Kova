@@ -4,7 +4,7 @@ A Multica task home is a private real directory mirroring a served profile throu
 ``gateway.lock`` among them. The symlinked lock names the owner that serves the mirrored profile:
 the editor attaches to that owner (no second owner on the shared ``state.db``), over the real ACP
 stdio wire and a real gateway. (A home others can write never selects an owner: covered in
-tests/hermes_cli/test_gateway_runtime_discovery.py; ``hermes acp`` startup narrows its own home to
+tests/kova_cli/test_gateway_runtime_discovery.py; ``hermes acp`` startup narrows its own home to
 0700 first, so that case is not reachable through the entry.)
 """
 import json

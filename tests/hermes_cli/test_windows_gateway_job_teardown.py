@@ -20,7 +20,7 @@ Two fixes under test:
    updater's Job Object teardown.
 """
 
-from hermes_cli import gateway
+from kova_cli import gateway
 
 # ---------------------------------------------------------------------------
 # 1. Watcher template contract
@@ -41,7 +41,7 @@ def _captured_watcher_source(monkeypatch) -> str:
 
     monkeypatch.setattr(gateway.subprocess, "Popen", fake_popen)
     assert gateway._spawn_gateway_restart_watcher(
-        999999, ["python", "-m", "hermes_cli.main", "gateway", "run"]
+        999999, ["python", "-m", "kova_cli.main", "gateway", "run"]
     )
     argv = captured["argv"]
     assert argv[1] == "-c"

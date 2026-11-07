@@ -1,7 +1,7 @@
 /**
  * The update marker `HERMES_HOME/.hermes-update-in-progress` (#50238), format v2.
  *
- * One file, shared by every updater (Python `hermes_cli/update_lock.py`, the Rust
+ * One file, shared by every updater (Python `kova_cli/update_lock.py`, the Rust
  * `UpdateMarkerGuard`, `scripts/desktop-update/{windows.ps1,posix.sh}`) and this
  * Desktop. While it names a LIVE owner, a Desktop reopened mid-update must not
  * spawn a backend on the runtime being replaced, and no second update may start.

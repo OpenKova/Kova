@@ -10,10 +10,10 @@ import queue
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from hermes_cli.gateway_agent import GatewayAgent
-from hermes_cli.gateway_connection import GatewayConnection
-from hermes_cli.gateway_session_store import GatewaySessionStore
-from tests.hermes_cli.test_gateway_agent import SID, FakeClient, connect_with, frame
+from kova_cli.gateway_agent import GatewayAgent
+from kova_cli.gateway_connection import GatewayConnection
+from kova_cli.gateway_session_store import GatewaySessionStore
+from tests.kova_cli.test_gateway_agent import SID, FakeClient, connect_with, frame
 from tests.waiting import wait_until
 
 DISPLAY = "Background Process Finished: sleep 6; echo BGDONE"

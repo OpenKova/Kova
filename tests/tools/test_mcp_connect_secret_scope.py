@@ -10,8 +10,8 @@ from contextlib import contextmanager
 import pytest
 
 from agent.secret_scope import current_secret_scope, set_multiplex_active
-from hermes_cli import env_loader
-from hermes_constants import (
+from kova_cli import env_loader
+from kova_constants import (
     get_hermes_home,
     reset_hermes_home_override,
     set_hermes_home_override,

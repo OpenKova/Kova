@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 from typing import Any, Optional
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 
 
 _DB_LOCK = threading.Lock()
@@ -133,13 +133,13 @@ def _ledger_enabled() -> bool:
 
 
 def _connect() -> sqlite3.Connection:
-    from hermes_cli.sqlite_util import open_db
+    from kova_cli.sqlite_util import open_db
 
     return open_db(_db_path(), db_label="verification_evidence.db", initialize=_ensure_schema)
 
 
 def _transaction():
-    from hermes_cli.sqlite_util import transaction
+    from kova_cli.sqlite_util import transaction
 
     return transaction(_connect())
 

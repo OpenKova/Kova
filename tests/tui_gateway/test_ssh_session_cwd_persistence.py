@@ -12,7 +12,7 @@ import contextlib
 import pytest
 
 from tui_gateway import server
-from hermes_state import SessionDB
+from kova_state import SessionDB
 
 
 class _ImmediateThread:

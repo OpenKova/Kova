@@ -13,7 +13,7 @@ import threading
 from typing import Any, Callable, Optional
 
 from agent.browser_provider import BrowserProvider
-from hermes_constants import get_hermes_home_override, hermes_home_key
+from kova_constants import get_hermes_home_override, hermes_home_key
 from tools.tool_backend_helpers import normalize_browser_cloud_provider
 from utils import is_truthy_value
 
@@ -35,7 +35,7 @@ _provider_lock = threading.RLock()
 def browser_section() -> dict:
     """The active profile's ``browser:`` section as every runtime reader sees it: the user file, the managed
     overlay winning, ``${VAR}`` expanded, no defaults (``load_user_config_effective``); ``{}`` when absent."""
-    from hermes_cli.config_effective import load_user_config_effective
+    from kova_cli.config_effective import load_user_config_effective
     section = load_user_config_effective().get("browser")
     return section if isinstance(section, dict) else {}
 
@@ -119,7 +119,7 @@ def user_data_dir() -> str:
     raw = os.path.expanduser(raw)
     if os.path.isabs(raw):
         return raw
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return str(get_hermes_home() / raw)
 
 
@@ -171,7 +171,7 @@ def _registry_generation(scope: str):
 def _ensure_browser_plugins_loaded() -> None:
     """Idempotent plugin discovery (standalone scripts/tests may never import ``model_tools``)."""
     try:
-        from hermes_cli.plugins import _ensure_plugins_discovered
+        from kova_cli.plugins import _ensure_plugins_discovered
         _ensure_plugins_discovered()
     except Exception as exc:  # health: allow BLE001 -- plugin discovery failure must never break browsing
         logger.debug("Browser plugin discovery failed (non-fatal): %s", exc)

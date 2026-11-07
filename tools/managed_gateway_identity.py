@@ -63,23 +63,23 @@ def _platform_name() -> str:
 
 
 def request_surface() -> str:
-    from hermes_cli.observability.shared_metrics_contract import execution_surface
+    from kova_cli.observability.shared_metrics_contract import execution_surface
 
     surface = execution_surface({"execution_surface": _platform_name()})
     return "other" if surface == "unknown" else surface
 
 
 def user_agent() -> str:
-    from hermes_cli.version_info import get_version_info
-    from hermes_platform.host.facts import os_family
+    from kova_cli.version_info import get_version_info
+    from kova_platform.host.facts import os_family
 
     os_name = _OS_FAMILY.get(os_family(), "unknown")
     return f"hermes-agent/{get_version_info().base_version} ({request_surface()}; {os_name})"
 
 
 def _send_consented() -> bool:
-    from hermes_cli.config import read_raw_config_readonly
-    from hermes_cli.observability.shared_metrics_send_config import resolve_send_config
+    from kova_cli.config import read_raw_config_readonly
+    from kova_cli.observability.shared_metrics_send_config import resolve_send_config
 
     return resolve_send_config(read_raw_config_readonly() or {}).send is True
 

@@ -81,11 +81,11 @@ def client(monkeypatch, _isolate_hermes_home):
         from starlette.testclient import TestClient
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
+    import kova_state
+    from kova_constants import get_hermes_home
+    from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
     plugin_dir = get_hermes_home() / "plugins" / "ownprov"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(_INIT, encoding="utf-8")
@@ -96,12 +96,12 @@ def client(monkeypatch, _isolate_hermes_home):
 
 
 def _config_path():
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return get_hermes_home() / "ownprov.json"
 
 
 def test_put_writes_through_the_provider_with_natives_and_saves_the_secret(client):
-    from hermes_cli.config import load_config, load_env
+    from kova_cli.config import load_config, load_env
 
     resp = client.put(_URL, json={"values": {
         "apiKey": "own-test-key", "baseUrl": "https://own.example.dev", "workspace": "myws", "saveMessages": "false",
@@ -145,7 +145,7 @@ def test_a_config_the_provider_cannot_read_is_a_400(client):
 
 
 def test_a_refused_write_is_a_400_with_no_secret_saved_and_no_switch(client):
-    from hermes_cli.config import load_config, load_env
+    from kova_cli.config import load_config, load_env
 
     _config_path().write_text("{not json", encoding="utf-8")
 
@@ -158,7 +158,7 @@ def test_a_refused_write_is_a_400_with_no_secret_saved_and_no_switch(client):
 
 
 def _install(name, init, schema):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     plugin_dir = get_hermes_home() / "plugins" / name
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(init, encoding="utf-8")
@@ -166,7 +166,7 @@ def _install(name, init, schema):
 
 
 def test_storage_provider_without_a_writer_is_a_501_with_no_secret_saved(client):
-    from hermes_cli.config import load_env
+    from kova_cli.config import load_env
 
     init = _INIT.replace("class OwnProv", "class _Unused").replace("def write_config_fields", "def _unused_write")
     init = init.replace("ctx.register_memory_provider(OwnProv())", "ctx.register_memory_provider(_Unused())")
@@ -187,7 +187,7 @@ def test_a_provider_that_fails_to_load_is_a_503_not_unknown(client):
 
 
 def test_an_unknown_storage_kind_shows_no_panel_and_writes_no_stray_file(client):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     _install("oddstore", _INIT.replace('name = "ownprov"', 'name = "oddstore"'),
              _SCHEMA.replace('name="ownprov"', 'name="oddstore"').replace("storage=STORAGE_PROVIDER", 'storage="retired_kind"'))

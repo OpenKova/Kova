@@ -225,7 +225,7 @@ it('/rollback restore names the hand-edits it kept, oversize skips and failed de
   slash('/rollback 1')
   await flush()
 
-  // The gateway-backed classic CLI's lines (hermes_cli/gateway_rollback.py), with its --all hint.
+  // The gateway-backed classic CLI's lines (kova_cli/gateway_rollback.py), with its --all hint.
   expect(notices(sys)).toEqual([
     'rollback restored workspace: before write_file',
     '↷ Kept your hand-edits: a.md, b.md, c.md, d.md, e.md (+2 more)\nUse /rollback <N> --all to restore those too.',

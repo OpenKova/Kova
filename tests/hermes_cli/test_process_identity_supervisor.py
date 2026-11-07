@@ -22,7 +22,7 @@ import pytest
 
 from tests.waiting import wait_until
 
-from hermes_cli import process_identity
+from kova_cli import process_identity
 from tools import mcp_tool
 from tools import mcp_tool_lifecycle as _mcp_lifecycle
 
@@ -646,7 +646,7 @@ def _stdio_connection(child_pid, fake_supervisor):
         ),
         patch("tools.mcp_tool_config._write_stderr_log_header"),
         patch(
-            "hermes_cli.process_identity._spawn_supervisor",
+            "kova_cli.process_identity._spawn_supervisor",
             return_value=fake_supervisor,
         ),
     ):

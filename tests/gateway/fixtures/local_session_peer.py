@@ -19,7 +19,7 @@ async def probe(peer, target, kind):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_contract import SessionRef
     from gateway.run_api import start_gateway_api, stop_gateway_api
-    from hermes_cli import web_server
+    from kova_cli import web_server
     from run_agent import AIAgent
     from tools.approval import resolve_gateway_approval
 
@@ -28,7 +28,7 @@ async def probe(peer, target, kind):
     api = await start_gateway_api(runner)
     port = api.socket.getsockname()[1]
     web_server.app.state.auth_required = True
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     sid = None
     sockets = []
 
@@ -83,7 +83,7 @@ async def probe(peer, target, kind):
             os.environ.pop('GATEWAY_ALLOW_ALL_USERS')
         from gateway.session_local import create_local_session
         from gateway.session_contract import SessionActor
-        from hermes_state_runtime import RuntimeStoreError
+        from kova_state_runtime import RuntimeStoreError
         for actor, reason in ((SessionActor('read-only', 'fixture', frozenset({'session:read'}), 'readonly'),
                                'permission_denied'),
                               (SessionActor('creator', 'foreign', frozenset({'session:create'}), 'foreign'),

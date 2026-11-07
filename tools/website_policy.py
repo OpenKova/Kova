@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from tools.url_safety import _normalize_hostname as _normalize_host
 
 logger = logging.getLogger(__name__)
@@ -78,11 +78,11 @@ def _require_mapping(value: Any, label: str) -> dict[str, Any]:
 
 
 def _load_policy_config(config_path: Path) -> dict[str, Any]:
-    from hermes_cli.config_backend import config_exists, read_config_doc
+    from kova_cli.config_backend import config_exists, read_config_doc
     if not config_exists(config_path):
         return dict(_DEFAULT_WEBSITE_BLOCKLIST)
     try:
-        import hermes_yaml as yaml
+        import kova_yaml as yaml
     except ImportError:
         logger.debug("ruamel.yaml not installed — website blocklist disabled")
         return dict(_DEFAULT_WEBSITE_BLOCKLIST)

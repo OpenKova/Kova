@@ -36,7 +36,7 @@ from gateway.platforms.base import (
     cache_audio_from_bytes_async, cache_document_from_bytes_async, cache_image_from_bytes_async,
 )
 from gateway.platforms.event import MessageEvent, MessageType
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from utils import atomic_json_write
 from gateway.platforms._shared import env_is_connected, extra_or_secret as _extra_or_env, get_scoped_secret as _wx_secret
 from gateway.platforms.send_targets import StandaloneSendPolicy, regex_groups_parser
@@ -1253,7 +1253,7 @@ async def send_weixin_direct(
 
 # ---------------------------------------------------------------------------
 # Plugin wiring (formerly core: gateway/run.py _BUILTIN_ADAPTERS row, tools/send_message_senders.py
-# ``_send_weixin``, hermes_cli/gateway_setup_wizard.py ``_setup_weixin``).
+# ``_send_weixin``, kova_cli/gateway_setup_wizard.py ``_setup_weixin``).
 # ---------------------------------------------------------------------------
 
 _INSTALL_HINT = "Weixin: aiohttp/cryptography not installed"
@@ -1311,10 +1311,10 @@ _WEIXIN_GROUP_NOTE = (
 
 def interactive_setup() -> None:
     """``hermes gateway setup`` flow for Weixin / WeChat personal accounts (QR login via :func:`qr_login`).
-    Helpers resolve through the ``hermes_cli.gateway`` facade so the prompts/output match every other
+    Helpers resolve through the ``kova_cli.gateway`` facade so the prompts/output match every other
     wizard and the facade seams tests patch keep intercepting."""
-    from hermes_cli import gateway as gw
-    from hermes_cli.gateway_setup_wizard import (
+    from kova_cli import gateway as gw
+    from kova_cli.gateway_setup_wizard import (
         confirm_reconfigure, offer_home_channel, print_setup_header, prompt_csv, save_env_values)
 
     print_setup_header("💬 Weixin / WeChat")

@@ -10,7 +10,7 @@ class CronExecutionUnknown(RuntimeError):
 
 
 def journal_path(job_id, request_id):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     key = hashlib.sha256(json.dumps([job_id, request_id]).encode()).hexdigest()
     return get_hermes_home() / 'cron' / 'admissions' / (key + '.json')
 
@@ -54,8 +54,8 @@ def _lift_pause(job_id, pause):
 
 def run_canonical_job(job, *, extra_prompt=None, cancel_event=None, execution_id=None):
     from gateway.session_cron import owner_for_home, operation
-    from hermes_cli.gateway_client import connect_gateway
-    from hermes_constants import get_hermes_home
+    from kova_cli.gateway_client import connect_gateway
+    from kova_constants import get_hermes_home
     from utils import atomic_json_write
 
     request_id = execution_id or job.get('execution_id')
@@ -84,7 +84,7 @@ def run_canonical_job(job, *, extra_prompt=None, cancel_event=None, execution_id
         try:
             receipt = await call('submit', params)
         except Exception as exc:
-            from hermes_cli.gateway_client import GatewayRPCError
+            from kova_cli.gateway_client import GatewayRPCError
             # A returned owner exception is definite; a transport disconnect is not. Even an
             # owner error after commit must retain the admitted identity, so verify its absence.
             if owner is not None or isinstance(exc, GatewayRPCError):
@@ -153,8 +153,8 @@ def reconcile_pending(*, allow_connect=True):
     live owner instead of ensuring or spawning a gateway.
     """
     from gateway.session_cron import owner_for_home, operation
-    from hermes_constants import get_hermes_home
-    from hermes_cli.gateway_client import connect_gateway
+    from kova_constants import get_hermes_home
+    from kova_cli.gateway_client import connect_gateway
     from cron.executions import FIRER_FINISHED_STATES, execution_owner_live, get_execution
     from cron.jobs import get_job, pause_job
     from cron.scheduler import (_RunDelivery, _FireOwnership, _apply_agent_failure_marker,

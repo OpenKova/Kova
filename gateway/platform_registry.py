@@ -14,7 +14,7 @@ import threading
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Optional
 
-from hermes_constants import hermes_home_key
+from kova_constants import hermes_home_key
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class PlatformEntry:
     # ``gateway.platforms.send_targets.StandaloneSendPolicy`` or None (generic send routing).
     standalone_send: Optional[Any] = None
     # --- dashboard ---
-    # Channels-page card metadata (hermes_cli/web_server_messaging.py, Desktop + web dashboard).
+    # Channels-page card metadata (kova_cli/web_server_messaging.py, Desktop + web dashboard).
     # Every field defaults to "not declared": the card then falls back to ``label`` / ``install_hint``
     # / ``required_env`` + prefix-discovered env vars.
     dashboard_label: str = ""  # card title when it differs from ``label`` (status/CLI keep ``label``)
@@ -173,7 +173,7 @@ class PlatformEntry:
     # importable and may set token / home channel / reply mode or force-disable.
     env_overrides: tuple = ()
     # Env names whose presence drives that enable, cited by the explicit-disable WARNING and used by
-    # ``hermes_cli.profile_channels`` as the platform's credential set; () = none declared.
+    # ``kova_cli.profile_channels`` as the platform's credential set; () = none declared.
     env_enable_credentials: tuple = ()
 
 
@@ -310,7 +310,7 @@ class PlatformRegistry:
             event = self._inflight.get(scoped_key)
             load_key = scoped_key
             if event is None and name not in entries and self._loading.get():
-                from hermes_cli.plugins_loader import in_plugin_load_worker
+                from kova_cli.plugins_loader import in_plugin_load_worker
                 if in_plugin_load_worker():
                     return  # on a deadline worker: never block on a sibling load the parent may hold the lock for; caller sees it unloaded
             if event is None and name not in entries:

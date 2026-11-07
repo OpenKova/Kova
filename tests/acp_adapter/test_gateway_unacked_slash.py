@@ -10,8 +10,8 @@ from gateway.config import GatewayConfig
 from gateway.session import SessionStore
 from gateway.session_authority import initialize_session_authority
 from gateway.session_controls import AuthorityConnection
-from hermes_cli.gateway_client import GatewayClientError
-from hermes_state_runtime import list_session_admissions
+from kova_cli.gateway_client import GatewayClientError
+from kova_state_runtime import list_session_admissions
 from tests.acp_adapter.test_gateway_submit_retry import Wire
 from tests.waiting import async_wait_until
 

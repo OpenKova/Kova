@@ -4,8 +4,8 @@ import asyncio
 import pytest
 from gateway.session_authority import LiveSession, SessionAuthority
 from gateway.session_controls import AuthorityConnection
-from hermes_state import SessionDB
-import hermes_state_runtime as rt
+from kova_state import SessionDB
+import kova_state_runtime as rt
 
 
 @pytest.mark.asyncio

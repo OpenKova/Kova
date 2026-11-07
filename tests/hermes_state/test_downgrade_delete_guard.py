@@ -9,9 +9,9 @@ from contextlib import closing
 
 import pytest
 
-import hermes_state_runtime as rt
-from hermes_state import SessionDB
-from hermes_state_errors import classify_persistence_error
+import kova_state_runtime as rt
+from kova_state import SessionDB
+from kova_state_errors import classify_persistence_error
 
 
 def _settled(db, epoch, sid):

@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Union
 from urllib.parse import urlparse
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 logger = logging.getLogger(__name__)
 
@@ -395,7 +395,7 @@ def _atomic_write(path: Path, write, *, prefix: str, encoding: str = "utf-8", mo
     # A profile delete leaves a tombstone beside its removed home.  Background
     # writers may retain that home in a context variable, so a plain mkdir here
     # would resurrect the profile before the write can fail.
-    from hermes_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_hermes_home
 
     mkdir_under_hermes_home(path.parent)
     if mode is None and not path.exists():
@@ -560,10 +560,10 @@ def atomic_roundtrip_yaml_update(path: str | Path, key_path: str, value: Any) ->
     # blind splitting — same navigation as ``hermes config set``'s ``_set_nested``; otherwise
     # /model + TUI persistence wrote ``glm-5: {'3': ...}`` phantom siblings.
     # See #91607.
-    from hermes_cli.config import _greedy_literal_match, _split_key_path
+    from kova_cli.config import _greedy_literal_match, _split_key_path
 
     path = Path(path)
-    from hermes_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_hermes_home
 
     mkdir_under_hermes_home(path.parent)
     yaml_rt, config = _roundtrip_load(path)
@@ -620,7 +620,7 @@ def atomic_roundtrip_yaml_save(path: str | Path, new_state: dict, *,
     """Persist a full config-state dict while preserving comments and ordering.
 
     THE on-disk primitive for ``config.yaml`` (production callers reach it through
-    ``hermes_cli.config.atomic_config_write`` or ``atomic_config_replace``): the document is
+    ``kova_cli.config.atomic_config_write`` or ``atomic_config_replace``): the document is
     loaded through ruamel round-trip mode and *new_state* is merged onto it, so comments, key order, quotes, blank
     lines and readable Unicode survive. Only nodes whose value actually changed are reassigned;
     an untouched scalar or list keeps its inline comments and formatting. Keys absent from
@@ -630,10 +630,10 @@ def atomic_roundtrip_yaml_save(path: str | Path, new_state: dict, *,
     users' own comments (#92554).
     """
     from ruamel.yaml.comments import CommentedMap, CommentedSeq
-    from hermes_cli.config import require_readable_config_before_write
+    from kova_cli.config import require_readable_config_before_write
 
     path = Path(path)
-    from hermes_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_hermes_home
 
     mkdir_under_hermes_home(path.parent)
     require_readable_config_before_write(path)

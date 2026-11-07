@@ -13,7 +13,7 @@
 # The scandir is created hermes-owned by cont-init.d/02-reconcile-profiles,
 # which also publishes the slots restored from the data volume, before
 # s6-rc starts this service. Keep the path in sync with
-# hermes_cli/service_manager.py::S6_DYNAMIC_SCANDIR.
+# kova_cli/service_manager.py::S6_DYNAMIC_SCANDIR.
 
 scandir=/run/hermes-service
 

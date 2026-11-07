@@ -11,9 +11,9 @@ import pytest
 from gateway.session_authority import SessionAuthority
 from gateway.session_controls import AuthorityConnection
 from gateway.session_local import create_local_session
-from hermes_cli.gateway_client import GatewayClientError
-from hermes_cli.gateway_mutations import slash_mutation
-import hermes_state_runtime as rt
+from kova_cli.gateway_client import GatewayClientError
+from kova_cli.gateway_mutations import slash_mutation
+import kova_state_runtime as rt
 
 
 def test_slash_mutation_parses_compress_through_the_shared_parser():

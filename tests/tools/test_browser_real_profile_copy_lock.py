@@ -28,7 +28,7 @@ _REPO = Path(__file__).resolve().parents[2]
 _SESSION = textwrap.dedent("""\
     import json, os, sys, time
     from unittest.mock import patch
-    import hermes_cli.browser_connect as bc
+    import kova_cli.browser_connect as bc
     from tools import browser_lightpanda, browser_session, browser_session_cloud
     from tools import browser_session_real_profile as rp
     chrome, src, log, gate = sys.argv[1:5]

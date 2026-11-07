@@ -16,8 +16,8 @@ import subprocess
 
 import pytest
 
-import hermes_cli.main as cli_main
-from hermes_cli import source_check, update_cmd
+import kova_cli.main as cli_main
+from kova_cli import source_check, update_cmd
 
 
 def _git(cwd, *args):

@@ -19,8 +19,8 @@ import pytest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 
-from hermes_cli import cli_enter_burst
-from hermes_cli.cli_enter_burst import BURST_END_QUIET_S, RAPID_INPUT_ENTER_WINDOW_S
+from kova_cli import cli_enter_burst
+from kova_cli.cli_enter_burst import BURST_END_QUIET_S, RAPID_INPUT_ENTER_WINDOW_S
 
 
 class _Clock:

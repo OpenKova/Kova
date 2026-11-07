@@ -57,8 +57,8 @@ async def probe():
     from gateway.platforms.event import MessageEvent
     from gateway.run import GatewayRunner
     from gateway.session import SessionSource
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     from tui_gateway import server
     from run_agent import AIAgent
     from shared_authority_recovery import prepare_crash, recover_probe, verify_envelope_guards
@@ -176,7 +176,7 @@ async def probe():
                         receipt["same_agent"] = server._sessions[sid].get("agent") is warm_agent
             receipt["messaging_outputs"] = adapter.sent
             if getattr(runner, 'session_authority', None) is not None:
-                from hermes_state_runtime import list_session_admissions
+                from kova_state_runtime import list_session_admissions
                 await adapter.handle_message(MessageEvent(text='BLOCK_FIFO', source=source, message_id='fifo-1'))
                 assert await asyncio.to_thread(peer.blocked.wait, 5)
                 queued_event = MessageEvent(text='FIFO_SECOND', source=source, message_id='fifo-2')

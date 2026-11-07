@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from hermes_cli import _launchers, doctor, doctor_platform
+from kova_cli import _launchers, doctor, doctor_platform
 from pm.environments import install_state_dir, site_packages
 
 
@@ -45,15 +45,15 @@ def _generation(project):
 def _pm_source(project, home):
     root = Path(__file__).resolve().parents[2]
     for relative in (
-        "hermes", "hermes_bootstrap.py", "hermes_constants.py", "hermes_cli/__init__.py",
-        "pm/environments.py", "pm/filesystem.py", "hermes_cli/runtime_state.py",
-        "hermes_cli/_early_recovery.py", "hermes_cli/_parser.py",
-        "hermes_cli/venv_sync.py", "hermes_cli/steward.py", "hermes_cli/stderr_timestamp.py",
+        "hermes", "kova_bootstrap.py", "kova_constants.py", "kova_cli/__init__.py",
+        "pm/environments.py", "pm/filesystem.py", "kova_cli/runtime_state.py",
+        "kova_cli/_early_recovery.py", "kova_cli/_parser.py",
+        "kova_cli/venv_sync.py", "kova_cli/steward.py", "kova_cli/stderr_timestamp.py",
     ):
         target = project / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(root / relative, target)
-    (project / "hermes_cli/main.py").write_text(
+    (project / "kova_cli/main.py").write_text(
         "def main():\n    import selected_probe\n    print(selected_probe.VALUE)\n    return 0\n",
         encoding="utf-8",
     )

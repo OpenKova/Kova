@@ -1,7 +1,7 @@
 """plugins.isolation: host: a hosted system prompt section reads its session info as plain data."""
 import pytest
 
-from tests.hermes_cli.test_plugin_host import _home_with_plugins
+from tests.kova_cli.test_plugin_host import _home_with_plugins
 
 SECTION_PLUGIN = '''
 def register(ctx):
@@ -13,7 +13,7 @@ def register(ctx):
 @pytest.mark.platforms('any')  # the host is a child process
 @pytest.mark.parametrize('isolation', ['host', 'in_process'])
 def test_a_prompt_section_reads_session_info_in_either_isolation_mode(tmp_path, monkeypatch, isolation):
-    from hermes_cli.plugins import PluginManager
+    from kova_cli.plugins import PluginManager
     _home_with_plugins(tmp_path, monkeypatch, {'infoprobe': SECTION_PLUGIN}, isolation=isolation)
     manager = PluginManager()
     manager.discover_and_load()

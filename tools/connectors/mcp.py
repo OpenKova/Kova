@@ -9,7 +9,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from hermes_constants import hermes_home_key
+from kova_constants import hermes_home_key
 from tools.connectors.contract import Actor, SettleReason, TargetState
 from tools.connectors.gateway.config import operation_session_key
 from tools.connectors.operation import ConnectionOperation, DetachedOperation, IllegalTransition, Target
@@ -44,13 +44,13 @@ NO_CARD_NOTE = (
 
 
 def _catalog_names() -> list[str]:
-    from hermes_cli.mcp_catalog import list_catalog
+    from kova_cli.mcp_catalog import list_catalog
 
     return sorted(e.name for e in list_catalog())
 
 
 def _configured_names() -> list[str]:
-    from hermes_cli.mcp_catalog import installed_servers
+    from kova_cli.mcp_catalog import installed_servers
 
     return sorted(installed_servers())
 
@@ -90,7 +90,7 @@ def validate_mcp_names(action: str, names: list[str]) -> Optional[str]:
 
 
 def _catalog_entry(name: str):
-    from hermes_cli.mcp_catalog import get_entry
+    from kova_cli.mcp_catalog import get_entry
 
     entry = get_entry(name)
     if entry is None:
@@ -105,7 +105,7 @@ class _CatalogBackend:
 
     def required_env(self, name: str) -> list[dict[str, Any]]:
         """The credentials the catalog entry declares that have no value yet."""
-        from hermes_cli.config import get_env_value
+        from kova_cli.config import get_env_value
 
         return [{"name": spec.name, "prompt": spec.prompt, "required": spec.required,
                  "secret": spec.secret, "default": "" if spec.secret else spec.default}
@@ -126,7 +126,7 @@ class _CatalogBackend:
     def start_install_oauth(self, name: str, env: dict[str, str]) -> Any:
         """Install an OAuth entry through the card's flow. The configuration is built in memory and
         lands, together with the setup values, only when ``initialize`` accepts the token."""
-        from hermes_cli.mcp_catalog import card_install_config, is_installed, record_mcp_install
+        from kova_cli.mcp_catalog import card_install_config, is_installed, record_mcp_install
         from tools.connectors import mcp_oauth
 
         fresh = not is_installed(name)
@@ -151,7 +151,7 @@ class _CatalogBackend:
         """Probe the entry's in-memory configuration with ephemeral credentials; save both only
         after the server answered. A failure writes nothing, so a failed reinstall keeps the
         previous configuration. A first install is recorded once as an extension install."""
-        from hermes_cli.mcp_catalog import recorded_catalog_install
+        from kova_cli.mcp_catalog import recorded_catalog_install
 
         with recorded_catalog_install(name):
             return self._install(name, env)
@@ -159,8 +159,8 @@ class _CatalogBackend:
     def _install(self, name: str, env: dict[str, str]) -> list[str]:
         from agent.secret_scope import (
             current_secret_scope, current_secret_scope_home, reset_secret_scope, set_secret_scope)
-        from hermes_cli.mcp_catalog import _inline_non_secret_value, card_install_config
-        from hermes_cli.mcp_config import _probe_single_server, _save_mcp_server
+        from kova_cli.mcp_catalog import _inline_non_secret_value, card_install_config
+        from kova_cli.mcp_config import _probe_single_server, _save_mcp_server
 
         entry = _catalog_entry(name)
         _check_declared(name, entry, env)
@@ -191,8 +191,8 @@ class _CatalogBackend:
         """Flip ``enabled`` under the scope and lock the dashboard's toggle route uses
         (``PUT /api/mcp/servers/{name}/enabled``): the two read-modify-write paths run in one
         process, so an unserialised write here drops whichever landed first."""
-        from hermes_cli.config import load_config, save_config
-        from hermes_cli.web_routers._common import config_write_scope
+        from kova_cli.config import load_config, save_config
+        from kova_cli.web_routers._common import config_write_scope
 
         with config_write_scope(None):
             config = load_config()
@@ -206,7 +206,7 @@ class _CatalogBackend:
 def _check_declared(name: str, entry: Any, env: dict[str, str]) -> None:
     """Configuring one MCP is not a general env-writing primitive: refuse the whole map before the
     first write if any key is undeclared or unwritable."""
-    from hermes_cli.config import validate_env_var_name_for_write
+    from kova_cli.config import validate_env_var_name_for_write
 
     declared = {spec.name for spec in (entry.auth.env or [])}
     for key in env:
@@ -218,7 +218,7 @@ def _check_declared(name: str, entry: Any, env: dict[str, str]) -> None:
 
 
 def _save_env(env: dict[str, str]) -> None:
-    from hermes_cli.config import save_env_value
+    from kova_cli.config import save_env_value
 
     for key, value in env.items():
         if value:
@@ -432,7 +432,7 @@ def _detail(exc: Any, runner: _Runner, target: Target) -> str:
 
 def _catalog_instructions(name: str) -> str:
     """The manifest's ``post_install`` text for a catalog name; a custom configured server has none."""
-    from hermes_cli.mcp_catalog import get_entry
+    from kova_cli.mcp_catalog import get_entry
 
     entry = get_entry(name)
     return str(entry.post_install or "") if entry is not None else ""
@@ -635,7 +635,7 @@ def _install_now(runner: _Runner, operation: ConnectionOperation, target: Target
         _fail(operation, target, _detail(exc, runner, target))
         return
     if missing:
-        from hermes_constants import display_hermes_home
+        from kova_constants import display_hermes_home
 
         _fail(operation, target, f"set {', '.join(missing)} in the environment or "
                                  f"{display_hermes_home()}/.env, then install again")

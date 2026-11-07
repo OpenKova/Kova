@@ -12,9 +12,9 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from hermes_cli import anon_auth, guest_handoff
-from hermes_cli.web_server import _SESSION_TOKEN, app
-from tests.hermes_cli.test_anon_upgrade import EMAIL, free_account, portal
+from kova_cli import anon_auth, guest_handoff
+from kova_cli.web_server import _SESSION_TOKEN, app
+from tests.kova_cli.test_anon_upgrade import EMAIL, free_account, portal
 
 client = TestClient(app)
 HEADERS = {"X-Hermes-Session-Token": _SESSION_TOKEN}

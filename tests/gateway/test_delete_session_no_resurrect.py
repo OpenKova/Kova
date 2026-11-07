@@ -25,8 +25,8 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 
-import hermes_constants
-import hermes_state
+import kova_constants
+import kova_state
 from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.platforms.api_server import APIServerAdapter
 from gateway.session import SessionEntry, SessionSource, SessionStore
@@ -45,8 +45,8 @@ def _source(user_id: str = "user-1") -> SessionSource:
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     """Isolated HERMES_HOME so the store, its DB and the mirror all land in tmp."""
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
     return tmp_path
 
 

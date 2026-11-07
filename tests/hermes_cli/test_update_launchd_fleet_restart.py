@@ -25,14 +25,14 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.gateway as gw
-import hermes_cli.profiles
-from hermes_cli.gateway import (
+import kova_cli.gateway as gw
+import kova_cli.profiles
+from kova_cli.gateway import (
     _locate_launchd_gateway_service,
     _probe_launchd_domain_for_label,
     launchd_gateway_labels_for_install,
 )
-from hermes_cli.update_cmd import (
+from kova_cli.update_cmd import (
     _restart_macos_launchd_gateways,
     _warn_incomplete_gateway_fleet_restart,
 )
@@ -84,7 +84,7 @@ class TestLaunchdGatewayLabelsForInstall:
         install's services, and the hermetic test suite must not see the dev
         machine's real fleet."""
         monkeypatch.setattr(
-            hermes_cli.profiles,
+            kova_cli.profiles,
             "list_profiles",
             lambda: [
                 _Profile("tfl-wiki"),
@@ -100,7 +100,7 @@ class TestLaunchdGatewayLabelsForInstall:
         ]
 
     def test_no_profiles_means_no_fleet(self, monkeypatch):
-        monkeypatch.setattr(hermes_cli.profiles, "list_profiles", list)
+        monkeypatch.setattr(kova_cli.profiles, "list_profiles", list)
         assert launchd_gateway_labels_for_install() == []
 
 
@@ -226,7 +226,7 @@ def _fleet(monkeypatch, tmp_path, *, current, labels, located,
            registered=None, plist_exists=True,
            drain_results=None, kick_errors=None, wait_results=None,
            current_supervised=True, legacy_labels=()):
-    """Wire a fake launchd fleet through hermes_cli.gateway seams.
+    """Wire a fake launchd fleet through kova_cli.gateway seams.
 
     ``located`` maps label -> (domain, pid) as ``_locate_launchd_gateway_service``
     would return it (values may also be exceptions to raise). ``registered``
@@ -631,8 +631,8 @@ class TestLegacyLaunchdLabelsForInstall:
     def test_only_units_pinned_to_this_installs_homes_are_credited(self, monkeypatch, tmp_path):
         agents = _fake_launchd_account(monkeypatch, tmp_path)
         root = tmp_path / "hermes-root"
-        import hermes_constants
-        monkeypatch.setattr(hermes_constants, "get_default_hermes_root", lambda: root)
+        import kova_constants
+        monkeypatch.setattr(kova_constants, "get_default_hermes_root", lambda: root)
         venv_python = str(root.parent / "install" / ".venv" / "bin" / "python")
         _write_launchd_plist(agents, "ai.hermes.gateway-398559f7", argv=[venv_python], hermes_home=root / "profiles" / "gopod")
         _write_launchd_plist(agents, "ai.hermes.gateway-1a2b3c4d", argv=[venv_python], hermes_home=root)

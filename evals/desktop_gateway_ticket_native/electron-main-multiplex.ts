@@ -19,7 +19,7 @@ const watchdog = setTimeout(() => { console.error('Native probe deadline'); app.
 app.setPath('userData', input.userData)
 app.disableHardwareAcceleration()
 
-const backend = (profile: string) => ({ command: input.python, args: ['-m', 'hermes_cli.main', '--profile', profile, 'gateway', 'ensure', '--json', '--timeout', '30'], env: { PYTHONPATH: input.repo, HOME: input.home, USERPROFILE: input.home }, shell: false })
+const backend = (profile: string) => ({ command: input.python, args: ['-m', 'kova_cli.main', '--profile', profile, 'gateway', 'ensure', '--json', '--timeout', '30'], env: { PYTHONPATH: input.repo, HOME: input.home, USERPROFILE: input.home }, shell: false })
 
 async function attach(connection: any) {
   const ticket = await mintLocalGatewayTicket(connection.gatewayEndpoint)

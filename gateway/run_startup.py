@@ -27,7 +27,7 @@ from gateway.restart import (
     DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT, GATEWAY_FATAL_CONFIG_EXIT_CODE, is_global_startup_conflict
 )
 from gateway.run_shutdown import _log_suppressed, _send_error
-from hermes_cli.observability.shared_metrics_busy import note_running_chat_owner
+from kova_cli.observability.shared_metrics_busy import note_running_chat_owner
 from gateway.shutdown_watchdog import (
     DEFAULT_HEARTBEAT_INTERVAL_S, DEFAULT_LOOP_WATCHDOG_INTERVAL_S,
     DEFAULT_LOOP_WATCHDOG_MAX_STRIKES, DEFAULT_LOOP_WATCHDOG_TIMEOUT_S, loop_heartbeat_forever,
@@ -43,7 +43,7 @@ def recover_left_core_in(home: Path, *, hydrate_secrets: bool = True) -> list[st
     *home*'s runtime scope (its config, secrets and allow_lazy_installs); once per process per home.
     Returns the installed plugin names. Blocking: call it off the event loop."""
     from gateway.run import _profile_runtime_scope
-    from hermes_cli.left_core_migration import recover_at_startup
+    from kova_cli.left_core_migration import recover_at_startup
     with _profile_runtime_scope(Path(home), hydrate_secrets=hydrate_secrets):
         return recover_at_startup(gateway_start=True)
 
@@ -54,8 +54,8 @@ def recover_left_core_at_gateway_start() -> bool:
     secondary). Every secondary runs :func:`recover_left_core_in` before its plugins are discovered,
     so a platform plugin it gets starts its adapter in the same gateway start. True when a plugin
     that ships a gateway platform was installed: platform config loaded before it lacks the platform."""
-    from hermes_cli.left_core_migration import LEFT_CORE
-    from hermes_constants import get_default_hermes_root, get_hermes_home
+    from kova_cli.left_core_migration import LEFT_CORE
+    from kova_constants import get_default_hermes_root, get_hermes_home
     # The launch home too runs in its own scope: a multiplexing config load already armed fail-closed
     # secret reads, so an unscoped install read of its own .env raised. Its sources were hydrated at boot.
     launch = Path(get_hermes_home())
@@ -90,7 +90,7 @@ class GatewayStartupMixin:
         ``HERMES_MAX_ITERATIONS`` before this runs, so the env slot already carries the config value;
         resolve it the same way the turn loop does (``none``/``unlimited`` spellings included) instead of
         ``int()`` on the raw string with an invented ``500`` default (#116888)."""
-        from hermes_cli.config import TURN_LIMIT_UNLIMITED, resolve_turn_limit
+        from kova_cli.config import TURN_LIMIT_UNLIMITED, resolve_turn_limit
         limit = resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
         logger.info("Agent budget: max_iterations=%s (agent.max_turns from config.yaml, else the HERMES_MAX_ITERATIONS bridge)",
                     "unlimited" if limit == TURN_LIMIT_UNLIMITED else limit)
@@ -198,7 +198,7 @@ class GatewayStartupMixin:
         loop = asyncio.get_running_loop()
         if getattr(self.config, "multiplex_profiles", False):
             from gateway.run import _async_profile_runtime_scope
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             try:
                 async with _async_profile_runtime_scope(get_hermes_home()):
                     return await loop.run_in_executor(None, copy_context().run, fn)
@@ -834,7 +834,7 @@ class GatewayStartupMixin:
         from gateway.run import _sanitize_gateway_final_response
         from gateway.run_turn import _unexpected_silence_reply
         from gateway.warning_notifications import diagnostic_turn_muted
-        from hermes_cli.timefmt import coerce_epoch
+        from kova_cli.timefmt import coerce_epoch
         visible = [m for m in history if m.get("role") not in ("session_meta", "system")]
         last = visible[-1] if visible else {}
         if (last.get("role") != "assistant" or last.get("tool_calls") or not isinstance(last.get("content"), str)
@@ -958,7 +958,7 @@ class GatewayStartupMixin:
             # Loop live: the loop-liveness watchdog takes over from the startup watchdog. Disarm even
             # when loop guards are config-disabled; only inside this branch (no live loop = stay armed).
             with _log_suppressed(logging.DEBUG, "Startup watchdog disarm failed", exc_info=True):
-                from hermes_startup_watchdog import disarm_startup_watchdog
+                from kova_startup_watchdog import disarm_startup_watchdog
                 disarm_startup_watchdog()
         logger.info("Session storage: %s", self.config.sessions_dir)
         self._start_log_systemd_timing_alignment()
@@ -981,7 +981,7 @@ class GatewayStartupMixin:
                     "in config.yaml to re-enable.", _redact_raw,
                 )
         with suppress(Exception):
-            from hermes_cli.profiles import get_active_profile_name
+            from kova_cli.profiles import get_active_profile_name
             _profile = get_active_profile_name()  # launch profile, pre-identity (boot log)
             if _profile and _profile != "default":
                 logger.info("Active profile: %s", _profile)
@@ -1000,14 +1000,14 @@ class GatewayStartupMixin:
         except Exception:
             logger.debug("Initial gateway runtime-status write failed", exc_info=True)
         with _log_suppressed(logging.DEBUG, "gateway health OTLP export startup failed", exc_info=True):
-            from hermes_cli.config import load_config
+            from kova_cli.config import load_config
             from agent.monitoring.gateway_health_export import start_gateway_health_export
             self._gateway_health_export_runtime = start_gateway_health_export(load_config())
             if getattr(self._gateway_health_export_runtime, "enabled", False):
                 logger.info("Gateway health OTLP export: enabled")
         # Supply-chain advisories: log only (never block startup or surface to users; only the operator can act).
         with _log_suppressed(logging.DEBUG, "security advisory check failed at gateway startup", exc_info=True):
-            from hermes_cli.security_advisories import detect_compromised, gateway_log_message
+            from kova_cli.security_advisories import detect_compromised, gateway_log_message
             _adv_msg = gateway_log_message(detect_compromised())
             if _adv_msg:
                 logger.warning("%s", _adv_msg)
@@ -1018,8 +1018,8 @@ class GatewayStartupMixin:
         unless the plugin that honours it is enabled. Never raises."""
         with _log_suppressed(logging.DEBUG, "retired session_reset check failed", exc_info=True):
             from gateway.config_loader import read_yaml_layers
-            from hermes_cli.profiles import profiles_to_serve
-            from hermes_cli.session_reset_retirement import format_notice, reset_plugin_enabled, retired_reset_policy
+            from kova_cli.profiles import profiles_to_serve
+            from kova_cli.session_reset_retirement import format_notice, reset_plugin_enabled, retired_reset_policy
             hits = [(name, found) for name, home in profiles_to_serve(bool(self.config.multiplex_profiles))
                     if (found := retired_reset_policy(read_yaml_layers(home)))]
             if hits and not reset_plugin_enabled():
@@ -1112,8 +1112,8 @@ class GatewayStartupMixin:
         # Discover plugins before shell hooks (plugin block decisions win ties). Explicit: the gateway
         # lazily imports run_agent, so model_tools' discover_plugins() side-effect may not have run.
         with _log_suppressed(logging.WARNING, "plugin discovery failed at gateway startup", exc_info=True):
-            from hermes_cli.plugins import discover_plugins
-            from hermes_cli.plugins_cmd_remove import sweep_pending_plugin_deletes
+            from kova_cli.plugins import discover_plugins
+            from kova_cli.plugins_cmd_remove import sweep_pending_plugin_deletes
             sweep_pending_plugin_deletes()  # trees a previous life still held when they were uninstalled
             discover_plugins()
         # Relay entrypoints share the effective profile opt-out, including when a
@@ -1166,7 +1166,7 @@ class GatewayStartupMixin:
                 "shell-hook/webhook registration failed at gateway startup", level=logging.WARNING)
             return
         from gateway.run import _profile_runtime_scope
-        from hermes_constants import get_process_hermes_home
+        from kova_constants import get_process_hermes_home
         with _profile_runtime_scope(get_process_hermes_home()):
             GatewayStartupMixin._register_config_hooks(
                 "shell-hook/webhook registration failed at gateway startup", level=logging.WARNING)
@@ -1182,7 +1182,7 @@ class GatewayStartupMixin:
         Never raises (logged at ``level``).
         """
         try:
-            from hermes_cli.config import load_config
+            from kova_cli.config import load_config
             from agent.shell_hooks import register_from_config
             from agent.outbound_webhooks import register_from_config as register_outbound_webhooks
             _hooks_cfg = load_config()
@@ -1197,7 +1197,7 @@ class GatewayStartupMixin:
         if not getattr(self.config, "multiplex_profiles", False):
             return 0
         from gateway.run import _multiplex_profile_homes, _profile_runtime_scope
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         launch_home = get_hermes_home().resolve()
         recovered = 0
         for profile_name, profile_home in _multiplex_profile_homes(self.config):
@@ -1217,7 +1217,7 @@ class GatewayStartupMixin:
         self._start_relay_provision_retry()
         # Plugins that load later (force re-discovery, install/enable nudge) re-wire live adapters (#87770).
         with _log_suppressed(logging.WARNING, "plugin re-wire subscription failed", exc_info=True):
-            from hermes_cli.plugins import get_plugin_manager
+            from kova_cli.plugins import get_plugin_manager
             self._subscribe_plugin_rewire(get_plugin_manager())
         self.hooks.discover_and_load()
         # Recover background processes from checkpoint (crash recovery). ``_checkpoint_path`` is
@@ -1765,7 +1765,7 @@ class GatewayStartupMixin:
         self._update_runtime_status(self._serving_state())
         await self._start_finish_wiring(connected_count)
         self._start_spawn_background_watchers()
-        from hermes_cli.observability.shared_metrics_startup import record_process_ready
+        from kova_cli.observability.shared_metrics_startup import record_process_ready
         record_process_ready("gateway_boot", background=True)
         logger.info("Press Ctrl+C to stop")
         return True

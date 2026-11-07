@@ -71,7 +71,7 @@ test('existing, default and explicitly launched profiles are kept', () => {
   assert.deepEqual(logs, [])
 })
 
-// hermes_constants.named_profile_is_live refuses both shapes, so `--profile`
+// kova_constants.named_profile_is_live refuses both shapes, so `--profile`
 // would fail every launch while the preference survived.
 test.each([
   ['tombstoned by `hermes profile delete`', (home: string) => {

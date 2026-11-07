@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.profiles import backfill_profile_envs, create_profile
+from kova_cli.profiles import backfill_profile_envs, create_profile
 
 
 @pytest.fixture()

@@ -1,4 +1,4 @@
-"""Unit tests for hermes_cli.security_audit — parsers + OSV plumbing.
+"""Unit tests for kova_cli.security_audit — parsers + OSV plumbing.
 
 These never hit the live OSV API; HTTP is monkeypatched. The live-call path
 is exercised in the E2E test embedded in PR validation, not here.
@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 
-from hermes_cli import security_audit as sa
+from kova_cli import security_audit as sa
 
 
 # ─── Parsers ──────────────────────────────────────────────────────────────────
@@ -103,9 +103,9 @@ class TestVenvDiscovery:
     """Regression: source/PM installs carry hermes-agent 0.0.0, which matches every advisory."""
 
     def _versions(self, monkeypatch, base_version):
-        from hermes_cli import version_info
+        from kova_cli import version_info
 
-        dists = [SimpleNamespace(metadata={"Name": n}, version="0.0.0") for n in ("hermes_agent", "requests")]
+        dists = [SimpleNamespace(metadata={"Name": n}, version="0.0.0") for n in ("kova_agent", "requests")]
         monkeypatch.setattr("importlib.metadata.distributions", lambda: dists)
         info = version_info.VersionInfo(
             base_version=base_version, derived_version=base_version, distance=None, commit="abc", branch=None, source="build"
@@ -115,7 +115,7 @@ class TestVenvDiscovery:
 
     def test_placeholder_agent_version_resolves_to_running_release(self, monkeypatch):
         versions = self._versions(monkeypatch, "0.21.5")
-        assert versions["hermes_agent"] == "0.21.5"
+        assert versions["kova_agent"] == "0.21.5"
         assert versions["requests"] == "0.0.0"  # only the agent's own placeholder is rewritten
 
     def test_unknown_release_skips_placeholder(self, monkeypatch):

@@ -72,7 +72,7 @@ async function startGatewayFirst(sandbox: CoreSandbox): Promise<{ pid: number; l
   const log = path.join(sandbox.root, 'gateway-run.log')
   const out = fs.openSync(log, 'a')
 
-  const child = spawn(PYTHON, ['-m', 'hermes_cli.main', 'gateway', 'run'], {
+  const child = spawn(PYTHON, ['-m', 'kova_cli.main', 'gateway', 'run'], {
     cwd: REPO_ROOT,
     env: coreAppEnv(sandbox),
     detached: true,

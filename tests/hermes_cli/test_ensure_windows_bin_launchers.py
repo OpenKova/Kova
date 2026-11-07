@@ -18,7 +18,7 @@ venv trampolines (detected by their embedded interpreter path) are replaced.
 ``migrate_windows_bin_path`` moves an existing install's PATH to the
 canonical layout from the ``hermes update`` tail. Platform verdict, PATH
 values, and registry I/O are injected parameters (same pattern as
-``hermes_constants.venv_bin_dir``), so these tests are host-independent
+``kova_constants.venv_bin_dir``), so these tests are host-independent
 input→output checks, not host fakes.
 """
 
@@ -31,8 +31,8 @@ import pytest
 # Real launcher serialization is host-dependent, despite injectable registry I/O.
 pytestmark = pytest.mark.platforms("windows")
 
-from hermes_cli import _launchers
-from hermes_cli._install_repair import (
+from kova_cli import _launchers
+from kova_cli._install_repair import (
     _WINDOWS_BIN_LAUNCHERS,
     _normalize_windows_path,
     ensure_windows_bin_launchers,

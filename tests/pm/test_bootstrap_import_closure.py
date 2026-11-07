@@ -13,10 +13,10 @@ def test_minimal_bootstrap_closure_reaches_pm_paths_and_locks(tmp_path):
     repo = Path(__file__).resolve().parents[2]
     stage = tmp_path / "stage"
     shutil.copytree(repo / "pm", stage / "pm", ignore=shutil.ignore_patterns("__pycache__"))
-    shutil.copy2(repo / "hermes_constants.py", stage / "hermes_constants.py")
-    (stage / "hermes_cli").mkdir()
+    shutil.copy2(repo / "kova_constants.py", stage / "kova_constants.py")
+    (stage / "kova_cli").mkdir()
     for name in ("__init__.py", "runtime_state.py"):
-        shutil.copy2(repo / "hermes_cli" / name, stage / "hermes_cli" / name)
+        shutil.copy2(repo / "kova_cli" / name, stage / "kova_cli" / name)
     store = stage / "tools"
     env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"),
                HERMES_RUNTIME_DIR=str(store), PYTHONPATH=str(stage))
@@ -43,22 +43,22 @@ def _constants_stage(tmp_path, *, with_acl: bool) -> Path:
     repo = Path(__file__).resolve().parents[2]
     stage = tmp_path / "stage"
     stage.mkdir()
-    names = ["hermes_constants.py", "hermes_dir_acl.py"] if with_acl else ["hermes_constants.py"]
+    names = ["kova_constants.py", "kova_dir_acl.py"] if with_acl else ["kova_constants.py"]
     for name in names:
         shutil.copy2(repo / name, stage / name)
     return stage
 
 
 def _mkdir_in_stage(stage: Path, home: Path) -> subprocess.CompletedProcess:
-    script = "import hermes_constants, sys; print(hermes_constants.mkdir_under_hermes_home(sys.argv[1]))"
+    script = "import kova_constants, sys; print(kova_constants.mkdir_under_hermes_home(sys.argv[1]))"
     return subprocess.run([sys.executable, "-S", "-c", script, str(home / "logs")], cwd=stage,
                           env=dict(os.environ, HERMES_HOME=str(home), PYTHONPATH=str(stage)),
                           capture_output=True, text=True, timeout=15, check=False)
 
 
 def test_home_mkdir_carries_the_acl_module_in_the_closure(tmp_path):
-    """hermes_dir_acl is stdlib-only and ships beside hermes_constants: the two together create a
-    home dir, and hermes_constants still imports alone (the import is lazy)."""
+    """kova_dir_acl is stdlib-only and ships beside kova_constants: the two together create a
+    home dir, and kova_constants still imports alone (the import is lazy)."""
     home = tmp_path / "home"
     home.mkdir()
     result = _mkdir_in_stage(_constants_stage(tmp_path, with_acl=True), home)
@@ -72,12 +72,12 @@ def test_home_mkdir_never_silently_skips_the_elevated_grant(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
     stage = _constants_stage(tmp_path, with_acl=False)
-    alone = subprocess.run([sys.executable, "-S", "-c", "import hermes_constants"], cwd=stage,
+    alone = subprocess.run([sys.executable, "-S", "-c", "import kova_constants"], cwd=stage,
                            env=dict(os.environ, PYTHONPATH=str(stage)), capture_output=True, text=True,
                            timeout=15, check=False)
     assert alone.returncode == 0, alone.stderr
     result = _mkdir_in_stage(stage, home)
-    assert result.returncode != 0 and "hermes_dir_acl" in result.stderr, result.stdout + result.stderr
+    assert result.returncode != 0 and "kova_dir_acl" in result.stderr, result.stdout + result.stderr
 
 
 def test_managed_python_signing_import_needs_no_pm_or_application(tmp_path):
@@ -89,7 +89,7 @@ class NoApplication:
         if fullname == 'pm' or fullname == 'utils' or fullname.startswith(('pm.', 'agent.')):
             raise AssertionError('signing imported ' + fullname)
 sys.meta_path.insert(0, NoApplication())
-from hermes_cli.macos_signing import sign_managed_python
+from kova_cli.macos_signing import sign_managed_python
 assert callable(sign_managed_python)
 """
     result = subprocess.run([sys.executable, "-S", "-c", script], cwd=repo,

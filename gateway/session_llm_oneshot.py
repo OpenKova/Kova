@@ -20,7 +20,7 @@ import logging
 import threading
 
 from gateway.session_busy_controls import authorize
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +243,7 @@ async def oneshot(connection, ref, params):
             raise RuntimeStoreError('permission_denied')
         if params.get('profile'):
             from pathlib import Path
-            from hermes_cli.profiles import profile_matches_home
+            from kova_cli.profiles import profile_matches_home
             if not profile_matches_home(params['profile'], Path(authority.profile_id)):
                 raise RuntimeStoreError('profile_mismatch')
         runtime = lambda: None  # the task backend

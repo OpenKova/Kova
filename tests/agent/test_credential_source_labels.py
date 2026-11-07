@@ -68,7 +68,7 @@ def _key_cmd_provider(monkeypatch):
 
 
 def _minimax_provider(monkeypatch):
-    import hermes_cli.auth_minimax as mm
+    import kova_cli.auth_minimax as mm
 
     monkeypatch.setattr(mm, "_minimax_fresh_state", lambda: _never_called())
     return mm.build_minimax_oauth_token_provider()

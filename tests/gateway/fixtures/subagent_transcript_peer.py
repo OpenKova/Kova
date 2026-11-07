@@ -66,8 +66,8 @@ async def probe():
     from gateway.session_authority import initialize_session_authority
     from gateway.run_api import start_gateway_api, stop_gateway_api
     from gateway.session_contract import SessionRef
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     from tests.gateway.fixtures.local_recovery_probe import rpc
     from tools.delegate_tool_child_run import _register_child
     from tools.delegate_tool_registry import _unregister_subagent

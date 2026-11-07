@@ -10,11 +10,11 @@ These tests use REAL config files on disk and the REAL migration pipeline —
 only the profile-root location is pointed at tmp_path.
 """
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 from pathlib import Path
 
-from hermes_cli import update_cmd
-from hermes_cli import update_cmd_config
+from kova_cli import update_cmd
+from kova_cli import update_cmd_config
 
 
 def _write_profile(root: Path, name: str, version: int) -> Path:
@@ -28,13 +28,13 @@ def _write_profile(root: Path, name: str, version: int) -> Path:
 
 
 def _latest_version() -> int:
-    from hermes_cli.config import DEFAULT_CONFIG
+    from kova_cli.config import DEFAULT_CONFIG
 
     return int(DEFAULT_CONFIG["_config_version"])
 
 
 def _setup(monkeypatch, tmp_path, active_home: Path, *, default_home: Path | None = None):
-    import hermes_cli.profiles as profiles_mod
+    import kova_cli.profiles as profiles_mod
 
     monkeypatch.setattr(profiles_mod, "_get_profiles_root", lambda: tmp_path / "profiles")
     # Default lives at the install root, not under profiles/; absent unless a test passes it,
@@ -45,10 +45,10 @@ def _setup(monkeypatch, tmp_path, active_home: Path, *, default_home: Path | Non
         "_get_default_hermes_home",
         lambda: default_home if default_home is not None else missing,
     )
-    import hermes_constants
+    import kova_constants
 
     monkeypatch.setattr(
-        hermes_constants, "get_process_hermes_home", lambda: active_home
+        kova_constants, "get_process_hermes_home", lambda: active_home
     )
 
 
@@ -119,7 +119,7 @@ def test_one_broken_profile_does_not_block_others(monkeypatch, tmp_path):
 
 def test_override_is_reset_after_run(monkeypatch, tmp_path):
     """The ContextVar override must not leak past the sweep."""
-    from hermes_constants import get_hermes_home_override
+    from kova_constants import get_hermes_home_override
 
     active = _write_profile(tmp_path / "profiles", "active", _latest_version())
     _write_profile(tmp_path / "profiles", "research", 12)
@@ -178,8 +178,8 @@ def test_sibling_step_notices_reach_the_update_output(monkeypatch, tmp_path, cap
     _setup(monkeypatch, tmp_path, active)
     monkeypatch.setenv("HERMES_HOME", str(active))
     monkeypatch.setattr(update_cmd_config, "_restore_snapshot_safety_nets", lambda _sid: None)
-    monkeypatch.setattr("hermes_cli.config.get_missing_env_vars", lambda **_: [])
-    monkeypatch.setattr("hermes_cli.config.get_missing_config_fields", lambda: [{"key": "display.new_option"}])
+    monkeypatch.setattr("kova_cli.config.get_missing_env_vars", lambda **_: [])
+    monkeypatch.setattr("kova_cli.config.get_missing_config_fields", lambda: [{"key": "display.new_option"}])
 
     update_cmd_config._check_and_apply_config_migration()
 

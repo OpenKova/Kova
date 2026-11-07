@@ -7,14 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import prune_advisor
+from kova_cli import prune_advisor
 
 _Usage = namedtuple("_Usage", "total used free")
 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     h = tmp_path / "home"
     h.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(h))
@@ -71,7 +71,7 @@ def test_prompt_says_pruning_will_not_help_when_nothing_is_old_enough(home, monk
 def test_admin_managed_setting_is_never_asked_nor_overwritten(home, monkeypatch, tmp_path):
     """An administrator-pinned auto_prune is already decided: no prompt, and /autoprune off must
     not claim to have turned pruning off while the managed true still applies."""
-    from hermes_cli import managed_scope
+    from kova_cli import managed_scope
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text("sessions:\n  auto_prune: true\n", encoding="utf-8")
@@ -143,7 +143,7 @@ def test_estimate_weights_by_stored_bytes_not_message_count(tmp_path, monkeypatc
     overstates what pruning frees (and flips "will not fix this disk"). The estimate must track
     the bytes a real prune + VACUUM gives back."""
     import sqlite3
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     h = tmp_path / "skewed"
     h.mkdir()
     db = SessionDB(db_path=h / "state.db")

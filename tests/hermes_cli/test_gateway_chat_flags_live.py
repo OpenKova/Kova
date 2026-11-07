@@ -39,7 +39,7 @@ def test_continue_latest_footer_and_tool_listing(tmp_path):
     env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
-    def hermes(*args, cwd, module="hermes_cli.main"):
+    def hermes(*args, cwd, module="kova_cli.main"):
         result = subprocess.run([sys.executable, "-m", module, *args], cwd=cwd, env=env,
                                 stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120, check=False)
         # Main's channels: -Q prints `session_id: <id>` on stderr, -q its exit summary's `Session:` row.

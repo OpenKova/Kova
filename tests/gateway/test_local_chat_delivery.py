@@ -14,7 +14,7 @@ from tests.gateway.test_session_end_delegations import _local
 
 
 def _admissions(authority, ref, needle):
-    from hermes_state_runtime import list_session_admissions
+    from kova_state_runtime import list_session_admissions
     rows = list_session_admissions(authority.db, session_id=ref.session_id, pending_only=False)
     return [row for row in rows if needle in str(row['payload'])]
 
@@ -30,14 +30,14 @@ async def test_kanban_wake_is_admitted_into_a_local_chat(tmp_path, monkeypatch):
 
 
 def _overdue_heartbeat(session_id):
-    from hermes_cli.heartbeat import HeartbeatManager, save_heartbeat
+    from kova_cli.heartbeat import HeartbeatManager, save_heartbeat
     state = HeartbeatManager(session_id).set('status tick', 60)
     state.created_at = time.time() - 120  # one interval overdue
     save_heartbeat(session_id, state)
 
 
 def _heartbeat_admissions(authority, ref):
-    from hermes_state_runtime import list_session_admissions
+    from kova_state_runtime import list_session_admissions
     rows = list_session_admissions(authority.db, session_id=ref.session_id, pending_only=False)
     return [row for row in rows if row['payload'].get('local_automation_v1', {}).get('heartbeat')]
 
@@ -56,7 +56,7 @@ async def test_due_heartbeat_is_admitted_into_a_local_chat(tmp_path, monkeypatch
 async def test_overdue_heartbeat_fires_once_with_a_classic_cli_also_polling(tmp_path, monkeypatch):
     from gateway.run_heartbeat_restore import restore_heartbeat_watches
     from gateway.session_viewer_automation import invoke
-    from hermes_cli.heartbeat import HeartbeatManager
+    from kova_cli.heartbeat import HeartbeatManager
     runner, authority, ref, _ = await _local(tmp_path, monkeypatch)
     _overdue_heartbeat(ref.session_id)
     await restore_heartbeat_watches(runner)
@@ -78,7 +78,7 @@ async def test_overdue_heartbeat_fires_once_with_a_classic_cli_also_polling(tmp_
 async def _attached_cli(tmp_path, monkeypatch):
     from gateway.session_controls import AuthorityConnection
     from gateway.session_local import create_local_session
-    from hermes_cli import goals
+    from kova_cli import goals
     runner, authority, _, _ = await _local(tmp_path, monkeypatch)
     # The RPC runs under the owner's profile scope, ``Path('default')`` here: keep it in tmp_path, on its db.
     monkeypatch.chdir(tmp_path)

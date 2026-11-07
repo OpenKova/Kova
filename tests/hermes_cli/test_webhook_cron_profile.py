@@ -5,8 +5,8 @@ from argparse import Namespace
 
 import pytest
 
-from hermes_cli import webhook
-from hermes_constants import get_hermes_home
+from kova_cli import webhook
+from kova_constants import get_hermes_home
 
 
 @pytest.fixture
@@ -99,7 +99,7 @@ def test_bare_route_preserves_custom_caller_home(homes, monkeypatch):
 def _hermes(monkeypatch, *argv):
     """Run the real ``hermes`` entry point; return the process exit code."""
     import sys
-    from hermes_cli import main as hermes_main
+    from kova_cli import main as hermes_main
     monkeypatch.setattr(sys, "argv", ["hermes", *argv])
     try:
         hermes_main.main()

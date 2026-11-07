@@ -24,7 +24,7 @@ import psutil
 import pytest
 
 from tests.waiting import wait_until
-from hermes_cli import process_identity
+from kova_cli import process_identity
 from tui_gateway import server, slash_worker
 
 _REPO = Path(__file__).resolve().parents[2]

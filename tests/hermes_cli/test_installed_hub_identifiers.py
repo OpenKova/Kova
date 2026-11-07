@@ -7,8 +7,8 @@ and the hermes-index / hub search list the bare slug."""
 
 import asyncio
 
-from hermes_cli.web_routers.skills import search_skills_hub
-from hermes_cli.web_server_profiles import _installed_hub_identifiers
+from kova_cli.web_routers.skills import search_skills_hub
+from kova_cli.web_server_profiles import _installed_hub_identifiers
 from tools.skills_hub import HubLockFile
 from tools.skills_hub_models import SkillMeta
 

@@ -1,7 +1,7 @@
-"""Tests for pip entry-point provider discovery (hermes_agent.plugins group).
+"""Tests for pip entry-point provider discovery (kova_agent.plugins group).
 
 Verifies that ``providers/__init__.py`` imports provider plugins exposed via a
-distribution's ``hermes_agent.plugins`` entry point, supporting both a
+distribution's ``kova_agent.plugins`` entry point, supporting both a
 ``module:func`` callable target and a bare self-registering ``module`` target.
 """
 
@@ -53,7 +53,7 @@ def _restore_real_discovery():
 class _FakeEP:
     def __init__(self, name, loader):
         self.name = name
-        self.group = "hermes_agent.plugins"
+        self.group = "kova_agent.plugins"
         self._loader = loader
 
     def load(self):
@@ -67,7 +67,7 @@ def _enable(monkeypatch, *names, disabled=()):
     ``plugins.enabled`` opt-in allow-list, so tests must enable their fake
     entry points explicitly.
     """
-    import hermes_cli.plugins as hp
+    import kova_cli.plugins as hp
 
     monkeypatch.setattr(hp, "_get_enabled_plugins", lambda: set(names))
     monkeypatch.setattr(hp, "_get_disabled_plugins", lambda: set(disabled))

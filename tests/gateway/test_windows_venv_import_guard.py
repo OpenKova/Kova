@@ -17,7 +17,7 @@ def _venv(path, version):
 def test_committed_generation_blocks_the_legacy_venv_overlay(tmp_path, monkeypatch):
     """A PM-managed Windows gateway never overlays the leftover pre-PM venv.
 
-    hermes_bootstrap already activated the store Python onto the committed
+    kova_bootstrap already activated the store Python onto the committed
     generation; the late ``_ensure_windows_gateway_venv_imports`` overlay used
     to prepend ``<root>/venv`` (or ``VIRTUAL_ENV``) regardless, loading a cp311
     ``pydantic_core`` into 3.14.

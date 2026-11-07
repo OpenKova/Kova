@@ -9,8 +9,8 @@ from tools import bot_relay
 
 def _delivery_argv(profile, query_file):
     # Bot-chat delivery runs over the gateway here; the DM path (tools/bot_mode_dm.py) still spawns
-    # ``_hermes_cli() -p <profile> ...``, so the launcher it picks is the invariant under test.
-    return [bot_relay._hermes_cli(), "-p", profile, "--query-file", query_file]
+    # ``_kova_cli() -p <profile> ...``, so the launcher it picks is the invariant under test.
+    return [bot_relay._kova_cli(), "-p", profile, "--query-file", query_file]
 
 
 @pytest.fixture
@@ -55,9 +55,9 @@ def test_path_then_bare_fallback_remain_available(launchers, monkeypatch):
     _, sibling = launchers
     sibling.unlink()
     monkeypatch.setattr(bot_relay.shutil, "which", lambda name: "external-hermes")
-    assert bot_relay._hermes_cli() == "external-hermes"
+    assert bot_relay._kova_cli() == "external-hermes"
     monkeypatch.setattr(bot_relay.shutil, "which", lambda name: None)
-    assert bot_relay._hermes_cli() == "hermes"
+    assert bot_relay._kova_cli() == "hermes"
 
 
 @pytest.mark.platforms("windows")
@@ -65,20 +65,20 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
     import json
     import os
     import subprocess
-    from hermes_cli import _launchers
+    from kova_cli import _launchers
     from pm.environments import runtime_facts_path, site_packages
 
     real_python = Path(sys.executable)
     real_root = Path(bot_relay.__file__).resolve().parents[1]
     root = tmp_path / "install with spaces"
-    package = root / "hermes_cli"
+    package = root / "kova_cli"
     package.mkdir(parents=True)
     # Load the checkout's constants before the launcher's bootstrap import;
     # an editable test interpreter may also expose an older installed checkout.
     import shutil
-    shutil.copyfile(real_root / "hermes_constants.py", root / "hermes_constants.py")
+    shutil.copyfile(real_root / "kova_constants.py", root / "kova_constants.py")
     (package / "__init__.py").write_text(
-        f"__path__.append({str(real_root / 'hermes_cli')!r})\n", encoding="utf-8")
+        f"__path__.append({str(real_root / 'kova_cli')!r})\n", encoding="utf-8")
     (package / "main.py").write_text(
         "import json, sys\n"
         "def main():\n"
@@ -86,7 +86,7 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
         "    print(json.dumps([plugin_generation_probe.VALUE, sys.argv[1:]]))\n"
         "    return 0\n", encoding="utf-8")
     # Keep the entry point local and non-networked, but run real PM selection.
-    (root / "hermes_bootstrap.py").write_text(
+    (root / "kova_bootstrap.py").write_text(
         f"import sys\nsys.path.append({str(real_root)!r})\n"
         "from pathlib import Path\nfrom pm.environments import activate_dependencies\n"
         "activate_dependencies(Path(__file__).resolve().parent)\n", encoding="utf-8")
@@ -101,12 +101,12 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
     old_bin = tmp_path / "old" / "Scripts"
     old_bin.mkdir(parents=True)
     # Both choices are executable: the old console script reports missing deps.
-    old_package = tmp_path / "old source" / "hermes_cli"
+    old_package = tmp_path / "old source" / "kova_cli"
     old_package.mkdir(parents=True)
     (old_package / "__init__.py").write_text("", encoding="utf-8")
     (old_package / "main.py").write_text(
         "def main():\n    print('old-generation')\n    return 0\n", encoding="utf-8")
-    (old_package.parent / "hermes_bootstrap.py").write_text("", encoding="utf-8")
+    (old_package.parent / "kova_bootstrap.py").write_text("", encoding="utf-8")
     assert _launchers.mint_launcher("hermes", old_package.parent, old_bin, real_python, None)
     monkeypatch.setattr(bot_relay, "__file__", str(root / "tools" / "bot_relay.py"))
     monkeypatch.setattr(sys, "executable", str(old_bin / "python.exe"))

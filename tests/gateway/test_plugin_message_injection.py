@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from gateway.config import GatewayConfig, Platform
 from gateway.platforms.base import (
@@ -16,7 +16,7 @@ from gateway.platforms.base import (
 from gateway.platforms.event import MessageEvent, MessageType
 from gateway.run import GatewayRunner
 from gateway.session import SessionEntry, SessionSource, SessionStore, build_session_key
-from hermes_cli.plugins import PluginContext, PluginManager, PluginManifest
+from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
 
 
 def _entry(*, origin=True) -> SessionEntry:
@@ -122,7 +122,7 @@ async def test_plugin_context_routes_through_live_gateway_to_existing_session(
 
     # The runner publishes process-wide; expose this standalone manager through the legacy slot so
     # the real publisher stamps it while this integration test still exercises the scheduler.
-    with patch("hermes_cli.plugins._plugin_manager", manager):
+    with patch("kova_cli.plugins._plugin_manager", manager):
         runner._install_plugin_message_injector()
         assert (
             context.inject_message(
@@ -438,7 +438,7 @@ def test_install_and_clear_gateway_injector_preserves_newer_owner():
     manager = PluginManager()
 
     # The runner publishes process-wide; expose this standalone manager through the legacy slot.
-    with patch("hermes_cli.plugins._plugin_manager", manager):
+    with patch("kova_cli.plugins._plugin_manager", manager):
         runner._install_plugin_message_injector()
         assert manager.has_gateway_message_injector is True
 
@@ -463,7 +463,7 @@ async def test_under_a_session_authority_injection_enters_the_durable_fifo(monke
     admission into the session's FIFO; it never runs on the in-process adapter lane, and a
     refused admission is reported as not routed instead of falling back to that lane."""
     import gateway.session_authorities as authorities
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
 
     adapter = SimpleNamespace(handle_message=AsyncMock())
     entry = _entry()

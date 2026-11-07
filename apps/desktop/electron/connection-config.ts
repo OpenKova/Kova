@@ -21,7 +21,7 @@
 // Bare + prefixed variants of the session cookies the gateway may set,
 // depending on its deploy shape (HTTPS direct → __Host-, behind a path prefix
 // → __Secure-, loopback HTTP → bare). Mirrors
-// hermes_cli/dashboard_auth/cookies.py.
+// kova_cli/dashboard_auth/cookies.py.
 //
 // Two cookies are in play (see that module):
 //   - hermes_session_at: the OAuth access token. Short-lived (~15 min); its
@@ -48,7 +48,7 @@ function isCookieVariant(name: unknown, variants: string[]): boolean {
   return typeof name === 'string' && (variants.includes(name) || variants.includes(name.replace(GATEWAY_COOKIE_SUFFIX, '')))
 }
 
-// Keep this aligned with hermes_cli.profiles.validate_profile_name(). `default`
+// Keep this aligned with kova_cli.profiles.validate_profile_name(). `default`
 // is the built-in root alias; these names cannot be created as profiles.
 const RESERVED_REMOTE_PROFILES = new Set(['hermes', 'test', 'tmp', 'root', 'sudo'])
 

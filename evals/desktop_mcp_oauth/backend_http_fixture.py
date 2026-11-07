@@ -182,7 +182,7 @@ def run_probe(repo, receipt):
     sys.path.insert(0, str(repo))
     logging.disable(logging.CRITICAL)
     import httpx
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_hermes_home_override, reset_hermes_home_override
     from tui_gateway import mcp_oauth_sessions as sessions
     from tools.mcp_oauth import HermesTokenStorage
 
@@ -305,7 +305,7 @@ def main():
     if args.cold_probe:
         sys.path.insert(0, str(repo))
         logging.disable(logging.CRITICAL)
-        from hermes_cli.mcp_config import _get_mcp_servers, _probe_single_server
+        from kova_cli.mcp_config import _get_mcp_servers, _probe_single_server
         from tools.mcp_oauth import suppress_interactive_oauth
         with suppress_interactive_oauth():
             tools = _probe_single_server("positive", _get_mcp_servers()["positive"])

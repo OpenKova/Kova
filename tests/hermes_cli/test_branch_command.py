@@ -22,7 +22,7 @@ def session_db(tmp_path):
     """Create a real SessionDB for testing."""
     os.environ["HERMES_HOME"] = str(tmp_path / ".hermes")
     os.makedirs(tmp_path / ".hermes", exist_ok=True)
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     db = SessionDB(db_path=tmp_path / ".hermes" / "test_sessions.db")
     yield db
     db.close()
@@ -36,7 +36,7 @@ def cli_instance(tmp_path, session_db):
 
     cli = MagicMock()
     cli._agent_running = False  # a bare MagicMock attribute is truthy and would trip the mid-turn guard
-    from hermes_cli.cli_init_mixin import CLIInitMixin
+    from kova_cli.cli_init_mixin import CLIInitMixin
     # The id seam: a plain SessionDB (no gateway facade) keeps main's local mint.
     cli._new_session_id = lambda now, **kw: CLIInitMixin._new_session_id(cli, now, **kw)
     cli._session_db = session_db
@@ -88,7 +88,7 @@ class TestBranchCommandCLI:
         """A gateway /branch step that fails (e.g. the child's YOLO could not be set, CLI-20) prints
         main's branch error and keeps the user on the original session, never a traceback."""
         from cli import HermesCLI
-        from hermes_cli.gateway_client import GatewayClientError
+        from kova_cli.gateway_client import GatewayClientError
 
         def refused(now, **kw):
             raise GatewayClientError("Gateway did not answer config.set")

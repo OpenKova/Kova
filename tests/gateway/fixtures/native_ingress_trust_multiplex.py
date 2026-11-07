@@ -7,7 +7,7 @@ from tests.waiting import async_wait_until
 
 async def multiplex_probe(runner, authority, primary, state, mode, peer):
     from agent.secret_scope import set_multiplex_active, get_secret
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     from run_agent import AIAgent
 
     # Observe the actual worker entry without replacing its implementation or auth.
@@ -22,7 +22,7 @@ async def multiplex_probe(runner, authority, primary, state, mode, peer):
     from gateway.config import Platform
     from gateway.platforms.event import MessageEvent
     from gateway.profile_routing import ProfileRoute
-    from hermes_state_runtime import admit_session_input, list_session_admissions
+    from kova_state_runtime import admit_session_input, list_session_admissions
 
     transport = state / 'profiles' / 'transport'
     transport.mkdir(parents=True, exist_ok=True)

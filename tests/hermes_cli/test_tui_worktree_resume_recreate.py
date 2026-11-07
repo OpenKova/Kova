@@ -30,10 +30,10 @@ def _branches(repo):
 
 def _quit_clean_session_with_history(tmp_path, monkeypatch):
     """``hermes --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
-    from hermes_cli import main_tui_launch
-    from hermes_cli.worktree_ops import _setup_worktree
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_cli import main_tui_launch
+    from kova_cli.worktree_ops import _setup_worktree
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
@@ -62,7 +62,7 @@ def _quit_clean_session_with_history(tmp_path, monkeypatch):
 
 
 def _resume(session_id, **extra):
-    from hermes_cli import main as m
+    from kova_cli import main as m
     args = SimpleNamespace(resume=session_id, continue_last=None, in_dir=None, worktree=False,
                            no_restore_cwd=False, create_if_missing=False, **extra)
     m._resolve_chat_session_args(args, use_tui=True)
@@ -72,7 +72,7 @@ def _resume(session_id, **extra):
 def _turn_runs_in(cwd):
     """The owner's readiness gate a resumed turn passes through (``policy_scope``)."""
     from gateway.session_policy import policy_scope
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     try:
         with policy_scope(SimpleNamespace(cwd=str(cwd))):
             pass
@@ -87,7 +87,7 @@ def _turn_runs_in(cwd):
 def test_resume_recreates_the_removed_tui_worktree_so_turns_run(tmp_path, monkeypatch, no_restore_cwd):
     repo, tree, wt_info = _quit_clean_session_with_history(tmp_path, monkeypatch)
     monkeypatch.chdir(tmp_path)
-    from hermes_cli import main as m
+    from kova_cli import main as m
     args = SimpleNamespace(resume='tui-wt', continue_last=None, in_dir=None, worktree=False,
                            no_restore_cwd=no_restore_cwd, create_if_missing=False)
     m._resolve_chat_session_args(args, use_tui=True)
@@ -104,9 +104,9 @@ def test_resume_recreates_the_removed_tui_worktree_so_turns_run(tmp_path, monkey
 
 def test_resume_reuses_the_surviving_branch(tmp_path, monkeypatch):
     """A tree removed while its branch survived comes back on that branch, at its commit."""
-    from hermes_cli.worktree_ops import _setup_worktree
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_cli.worktree_ops import _setup_worktree
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
@@ -131,8 +131,8 @@ def test_resume_reuses_the_surviving_branch(tmp_path, monkeypatch):
 
 
 def test_resume_never_creates_a_missing_dir_the_launcher_did_not_make(tmp_path, monkeypatch):
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     foreign = repo / '.worktrees' / 'hermes-deadbeef'  # looks like ours; no launcher record
@@ -154,10 +154,10 @@ def test_a_store_error_reading_the_policy_falls_back_to_the_row_cwd(tmp_path, mo
     the tree from the row's cwd instead of skipping the resume step."""
     import sqlite3
 
-    import hermes_state_local
-    from hermes_cli.worktree_ops import _setup_worktree
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    import kova_state_local
+    from kova_cli.worktree_ops import _setup_worktree
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
@@ -171,7 +171,7 @@ def test_a_store_error_reading_the_policy_falls_back_to_the_row_cwd(tmp_path, mo
     def broken(*_a, **_k):
         raise sqlite3.OperationalError('no such table: state_meta')
 
-    monkeypatch.setattr(hermes_state_local, 'local_receipt', broken)
+    monkeypatch.setattr(kova_state_local, 'local_receipt', broken)
     monkeypatch.chdir(tmp_path)
     _resume('tui-wt')
     assert tree.is_dir()
@@ -188,7 +188,7 @@ async def test_resume_recreates_the_removed_classic_worktree(tmp_path, monkeypat
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
     from gateway.session_local import create_local_session
-    from hermes_cli import main as m
+    from kova_cli import main as m
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)

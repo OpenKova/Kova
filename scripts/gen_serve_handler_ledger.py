@@ -1,8 +1,8 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
-"""Regenerate tests/hermes_cli/serve_handler_ledger.json from the code.
+"""Regenerate tests/kova_cli/serve_handler_ledger.json from the code.
 
 One row per handler ``hermes serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app
-(``hermes_cli.web_server.app``, imported the way ``serve`` imports it, ``HERMES_SERVE_HEADLESS=1``)
+(``kova_cli.web_server.app``, imported the way ``serve`` imports it, ``HERMES_SERVE_HEADLESS=1``)
 and every JSON-RPC method a ``/api/ws`` client can call (the legacy ``tui_gateway.server._methods``
 table plus the verbs the session authority serves). ``gateway.ping``, the ``/api/ws`` heartbeat, is
 answered by the transport before dispatch and has no row. Dashboard-plugin API routes depend on which
@@ -18,12 +18,12 @@ Columns are derived from code, never judged:
   back for an account-owned one. Without an authority (standalone ``serve``/``dashboard``) every
   legacy method runs in-process on ``server.dispatch``.
 * HTTP ``current_path`` is the endpoint plus any ``route_on`` surface gate
-  (``hermes_cli/web_server_surface.py``). Whether an endpoint reaches the authority is not derived.
+  (``kova_cli/web_server_surface.py``). Whether an endpoint reaches the authority is not derived.
 * ``decision`` is ``authority`` for a verb the authority serves; everything else is ``undecided``
   until a reviewed entry lands in ``DECISIONS`` below. ``ref`` names the open #145171 decision a
   row waits on.
 
-``--check`` writes nothing and exits 1 on drift (``tests/hermes_cli/test_serve_handler_ledger.py``).
+``--check`` writes nothing and exits 1 on drift (``tests/kova_cli/test_serve_handler_ledger.py``).
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "tests" / "hermes_cli" / "serve_handler_ledger.json"
+OUT = ROOT / "tests" / "kova_cli" / "serve_handler_ledger.json"
 DECISION_VALUES = ("authority", "keep-host-wide", "delete", "undecided")
 # Reviewed owner decisions, keyed by row ``handler``: ``(decision, ref)``. A row not listed here
 # keeps its mechanical default.
@@ -51,7 +51,7 @@ _PLUGIN_MODULE_PREFIX = "hermes_dashboard_plugin_"
 
 def _surface_gates(route) -> list[str]:
     """``route_on(field)`` dependencies: the route 404s on surfaces whose policy leaves *field* off."""
-    from hermes_cli.web_server_surface import route_on
+    from kova_cli.web_server_surface import route_on
 
     gate_code = route_on("_").__code__
     gates = []
@@ -75,7 +75,7 @@ def _collect() -> dict:
     from gateway.session_connections import METHODS as CONNECTION_METHODS
     from gateway.session_controls import AuthorityConnection
     from gateway.session_group_controls import GROUP_METHODS
-    from hermes_cli.web_server import app
+    from kova_cli.web_server import app
     from tui_gateway import server
     from tui_gateway.contracts.registry import CANONICAL_NAMESPACES
     from tui_gateway.ws_legacy_fallback import legacy_fallback_allowed

@@ -47,7 +47,7 @@ _BUNDLED_LOGINS = frozenset({'basic', 'nous', 'self-hosted', 'session-token', 's
 def _login_provider(provider: str) -> bool:
     if provider in _BUNDLED_LOGINS:
         return True
-    from hermes_cli.dashboard_auth.registry import list_session_providers
+    from kova_cli.dashboard_auth.registry import list_session_providers
     return any(p.name == provider for p in list_session_providers())
 
 
@@ -86,7 +86,7 @@ def same_owner(stored, subject) -> bool:
         return True
     if not isinstance(stored, str) or not stored or not subject:
         return False
-    from hermes_state_mutation_binding import _login_label as label_of
+    from kova_state_mutation_binding import _login_label as label_of
     if stored == label_of(subject):
         return True
     return subject == host_owner_subject() and (_login_subject(stored) or _login_label(stored))

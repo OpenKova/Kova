@@ -15,7 +15,7 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-from hermes_cli import ui_preferences, web_server
+from kova_cli import ui_preferences, web_server
 
 
 def test_a_profile_home_and_the_root_home_resolve_the_same_store(monkeypatch, tmp_path):
@@ -137,7 +137,7 @@ def _client(token: bool) -> TestClient:
 
 
 def test_the_webapp_reads_and_writes_the_machine_store_behind_the_session_gate(webapp_state):
-    from hermes_constants import get_default_hermes_root
+    from kova_constants import get_default_hermes_root
 
     store = get_default_hermes_root() / "ui-preferences.json"
     anonymous = _client(token=False)

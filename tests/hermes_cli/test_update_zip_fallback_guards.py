@@ -17,9 +17,9 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as hermes_main
-from hermes_cli import main_install_repair
-from hermes_cli import update_cmd
+from kova_cli import main as hermes_main
+from kova_cli import main_install_repair
+from kova_cli import update_cmd
 
 
 def _cpe(cmd, returncode=2, stderr="", stdout="") -> subprocess.CalledProcessError:
@@ -98,7 +98,7 @@ def _porcelain_run(stdout: str, returncode: int = 0):
         if "status" in joined and "--porcelain" in joined:
             return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr="")
         if "ls-tree" in joined:  # tracked root entries = what the ZIP ships
-            return subprocess.CompletedProcess(cmd, 0, stdout="hermes_cli\nscratch\n", stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout="kova_cli\nscratch\n", stderr="")
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     return fake_run
@@ -111,7 +111,7 @@ def test_zip_overlay_allowed_without_git(tmp_path):
 def test_zip_overlay_blocked_on_modified_file(tmp_path, monkeypatch):
     (tmp_path / ".git").mkdir()
     monkeypatch.setattr(
-        update_cmd.subprocess, "run", _porcelain_run(" M hermes_cli/update_cmd.py\n")
+        update_cmd.subprocess, "run", _porcelain_run(" M kova_cli/update_cmd.py\n")
     )
     reason = update_cmd._zip_overlay_block_reason(tmp_path)
     assert reason is not None
@@ -204,7 +204,7 @@ def test_staging_artifact_lines_are_recognized():
     # Nested user files under a staging-lookalike directory don't match the
     # top-level test only when the TOP level itself is not an artifact.
     assert not is_artifact("?? agent/scratch/wip.py")
-    assert not is_artifact(" M hermes_cli/update_cmd.py")
+    assert not is_artifact(" M kova_cli/update_cmd.py")
     assert not is_artifact("?? notes.hermes-update-staging.txt")
 
 
@@ -334,7 +334,7 @@ def test_zip_gate_refuses_on_a_user_file_at_the_old_fixed_journal_temp_name(tmp_
 
 def test_zip_gate_admits_the_retry_after_an_interrupted_swap(tmp_path, monkeypatch):
     """The siblings an interrupted swap's journal owns never refuse the retry: they are settled first."""
-    from hermes_cli._early_recovery_zip import ZIP_SWAP_JOURNAL, write_zip_swap_journal, zip_entry_identity
+    from kova_cli._early_recovery_zip import ZIP_SWAP_JOURNAL, write_zip_swap_journal, zip_entry_identity
 
     _git_install(tmp_path)
     leftover = tmp_path / "alpha.hermes-update-staging"

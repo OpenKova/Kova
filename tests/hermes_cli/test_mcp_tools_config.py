@@ -1,13 +1,13 @@
-"""Tests for MCP tools interactive configuration in hermes_cli.tools_config."""
+"""Tests for MCP tools interactive configuration in kova_cli.tools_config."""
 
 from unittest.mock import patch
 
-from hermes_cli.tools_config import _configure_mcp_tools_interactive
+from kova_cli.tools_config import _configure_mcp_tools_interactive
 
 # Patch targets: imports happen inside the function body, so patch at source
 _PROBE = "tools.mcp_tool_discovery.probe_mcp_server_tools"
-_CHECKLIST = "hermes_cli.curses_ui.curses_checklist"
-_SAVE = "hermes_cli.tools_config.save_config"
+_CHECKLIST = "kova_cli.curses_ui.curses_checklist"
+_SAVE = "kova_cli.tools_config.save_config"
 
 
 

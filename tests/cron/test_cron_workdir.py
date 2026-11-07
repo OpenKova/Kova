@@ -24,7 +24,7 @@ def _run_owned_job(job, tmp_path):
     """Exercise the production owner bridge with an isolated canonical store."""
     from gateway.session_contract import SessionRef
     from gateway.session_cron import current_execution, execute
-    from hermes_state_registry import acquire, release
+    from kova_state_registry import acquire, release
 
     ref = SessionRef("test-profile", "cron-owner-session")
     admission_id = "cron-owner-admission"
@@ -260,7 +260,7 @@ class TestRunJobTerminalCwd:
         monkeypatch.setitem(sys.modules, "run_agent", fake_mod)
 
         # Bypass the real provider resolver — it reads ~/.hermes and credentials.
-        from hermes_cli import runtime_provider as _rtp
+        from kova_cli import runtime_provider as _rtp
         monkeypatch.setattr(
             _rtp,
             "resolve_runtime_provider",

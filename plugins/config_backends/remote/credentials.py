@@ -60,10 +60,10 @@ def plane_token(home: Path) -> str:
 
 
 def _nous_token(home: Path) -> str:
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     try:
-        from hermes_cli.auth import resolve_nous_access_token
+        from kova_cli.auth import resolve_nous_access_token
     except Exception as exc:
         raise PlaneCredentialError(f"cannot load the Nous auth module: {exc}", retryable=False) from exc
     token = set_hermes_home_override(home)  # auth.json is per profile home

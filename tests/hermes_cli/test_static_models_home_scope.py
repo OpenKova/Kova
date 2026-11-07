@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 SLUG = "acme-static"
 
@@ -32,8 +32,8 @@ def _plugin(models: tuple) -> str:
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
     import providers
-    from hermes_cli import auth_plugin_providers as app
-    from hermes_cli.auth import PROVIDER_REGISTRY
+    from kova_cli import auth_plugin_providers as app
+    from kova_cli.auth import PROVIDER_REGISTRY
 
     found = {}
     for name, models in (("f", ("acme-f-only",)), ("g", ("acme-g-small", "acme-g-large")), ("a", None)):
@@ -66,8 +66,8 @@ def _bound(home: Path, fn):
 
 
 def _view():
-    from hermes_cli import models
-    from hermes_cli.models_catalog_static import sync_plugin_provider_catalog
+    from kova_cli import models
+    from kova_cli.models_catalog_static import sync_plugin_provider_catalog
 
     sync_plugin_provider_catalog()  # what every registration in this home runs
     return (models.get_default_model_for_provider(SLUG), models.static_catalog(SLUG),

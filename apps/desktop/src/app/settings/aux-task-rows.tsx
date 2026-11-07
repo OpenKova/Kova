@@ -7,7 +7,7 @@ import type { AuxiliaryTaskAssignment, ModelAssignmentRequest } from '@/types/he
 
 import { useDeepLinkHighlight } from './use-deep-link-highlight'
 
-// Built-in auxiliary tasks, in the order `_AUX_TASK_SLOTS` (hermes_cli/web_server_config.py)
+// Built-in auxiliary tasks, in the order `_AUX_TASK_SLOTS` (kova_cli/web_server_config.py)
 // serves them. Friendly labels and hints come from i18n `m.tasks`; raw task keys (vision,
 // mcp, …) are opaque to most users. Plugin-registered tasks are not listed here: the backend
 // appends them to `/api/model/auxiliary` with their own `label`/`hint` (see `auxTaskRows`).

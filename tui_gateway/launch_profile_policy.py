@@ -59,8 +59,8 @@ def _servable_profile_homes() -> set:
     ``hermes profile create`` leaves behind — counting it would flip a single-profile host
     fail-closed at its next boot.
     """
-    from hermes_constants import named_profile_has_servable_identity
-    from hermes_cli.profiles import profiles_to_serve
+    from kova_constants import named_profile_has_servable_identity
+    from kova_cli.profiles import profiles_to_serve
 
     homes = {Path(home).resolve() for name, home in profiles_to_serve(multiplex=True, include_standalone=True, include_parked=True)
              if name == "default" or named_profile_has_servable_identity(home)}
@@ -109,7 +109,7 @@ def activate_multi_profile_hosting_eagerly() -> bool:
     # Route each home's records to its own logs/ now: the Desktop cron ticker used to be the only
     # caller, and it stands down when a live gateway owns cron, leaving every secondary profile's
     # model/cwd lines in the launch profile's agent.log.
-    from hermes_logging import enable_profile_log_routing
+    from kova_logging import enable_profile_log_routing
     enable_profile_log_routing(sorted(homes))
     return True
 
@@ -174,7 +174,7 @@ def launch_body() -> Iterator[None]:
     profile switches the gateway to fail-closed mid-body, an unscoped read resolves from
     ``launch_secret_scope`` (frozen env + ``.env``) instead of raising ``UnscopedSecretError``."""
     from agent.secret_scope import reset_launch_body_scope, set_launch_body_scope
-    from hermes_constants import get_process_hermes_home
+    from kova_constants import get_process_hermes_home
     home = get_process_hermes_home()
     token = set_launch_body_scope(lambda: launch_secret_scope(home))
     try:
@@ -197,7 +197,7 @@ def launch_profile_runtime_scope(launch_home: str | Path) -> Iterator[None]:
     every plugin hook it fired saw an unscoped process (#118538). Routed turns already bind theirs
     (``gateway/run.py::_profile_runtime_scope``); the launch profile is a tenant like any other."""
     from agent.secret_scope import reset_secret_scope, set_secret_scope
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     from tools.terminal_scope import install_profile_terminal_scope, reset_terminal_scope
 
     home = Path(launch_home)
@@ -231,7 +231,7 @@ def launch_profile_scope_if_multiplexed():
     from agent.secret_scope import is_multiplex_active
     if not is_multiplex_active():
         return contextlib.nullcontext()
-    from hermes_constants import get_process_hermes_home
+    from kova_constants import get_process_hermes_home
     return launch_profile_runtime_scope(get_process_hermes_home())
 
 

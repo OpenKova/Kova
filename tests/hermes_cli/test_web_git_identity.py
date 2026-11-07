@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from hermes_cli import web_git
+from kova_cli import web_git
 
 
 def git(repo, *args):

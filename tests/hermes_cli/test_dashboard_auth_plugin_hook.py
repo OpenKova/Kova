@@ -9,13 +9,13 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.dashboard_auth import clear_providers, get_provider
-from hermes_cli.dashboard_auth.base import (
+from kova_cli.dashboard_auth import clear_providers, get_provider
+from kova_cli.dashboard_auth.base import (
     DashboardAuthProvider, LoginStart, Session,
 )
-from hermes_cli.plugins import PluginContext, PluginManager, PluginManifest
-from hermes_cli.dashboard_auth import registry as _auth_registry
-from hermes_constants import get_process_hermes_home, hermes_home_key
+from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
+from kova_cli.dashboard_auth import registry as _auth_registry
+from kova_constants import get_process_hermes_home, hermes_home_key
 
 
 class _Stub(DashboardAuthProvider):

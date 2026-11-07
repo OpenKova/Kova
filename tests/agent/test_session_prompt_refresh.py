@@ -60,7 +60,7 @@ def profile(monkeypatch, tmp_path):
 
 
 def _agent(srv, home, session_id):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     from run_agent import AIAgent
 
     db = SessionDB(db_path=home / "state.db")
@@ -103,7 +103,7 @@ def _turn(srv, home, session_id, text, history, agent=None):
 
 def _refresh_prompts(monkeypatch, home: Path, *extra: str) -> None:
     """Run the real CLI entrypoint against ``home`` (what an operator's update script calls)."""
-    import hermes_cli.main as main_mod
+    import kova_cli.main as main_mod
 
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", *extra])
@@ -161,7 +161,7 @@ def test_the_verb_makes_the_next_turn_adopt_soul_skills_and_project_files_once(p
     assert after == refreshed and builds == []
     assert len(_user_texts(srv.main_requests()[-1])) == 4
 
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     with SessionDB(db_path=home / "state.db") as db:
         assert db.get_session("chat-a")["system_prompt"] == refreshed  # persisted for the next restore
 
@@ -306,7 +306,7 @@ def test_refresh_keeps_the_sessions_tools_pin(profile, monkeypatch):
 
 
 def test_refresh_prompts_unknown_session_fails(profile, monkeypatch, capsys):
-    import hermes_cli.main as main_mod
+    import kova_cli.main as main_mod
 
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", "--session", "nope"])
     with pytest.raises(SystemExit) as exc:

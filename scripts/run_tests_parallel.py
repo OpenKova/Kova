@@ -72,7 +72,7 @@ def _sweep_killed_run_roots(root: str) -> None:
     there and leaks one root per in-flight worker; nothing else looks at this directory, so
     983 of them (3.4 GB) accumulated on one host in three days. Idle for a day = dead."""
     try:
-        from hermes_constants_scratch import prune_idle_entries
+        from kova_constants_scratch import prune_idle_entries
     except ImportError:  # runner invoked from outside the repo root
         return
     prune_idle_entries(Path(root), 24, frozenset())
@@ -509,7 +509,7 @@ def _effective_file_timeout(
     approaches the flat cap.
 
     The flat ``file_timeout`` (default 300s) is sized for the typical file,
-    but a handful of large-collection files (e.g. ``tests/test_hermes_state.py``,
+    but a handful of large-collection files (e.g. ``tests/test_kova_state.py``,
     239 tests × subprocess-per-test overhead) legitimately run 200s+ on a
     quiet runner. Under CI load that dilates past the cap, the file is
     SIGKILL'd mid-run, and the automatic retry then passes — a manufactured

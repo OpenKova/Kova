@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import pytest
 
-from hermes_cli import providers as _providers
-from hermes_cli import runtime_provider as rp
+from kova_cli import providers as _providers
+from kova_cli import runtime_provider as rp
 
 PORTAL = "https://inference-api.nousresearch.com/v1"
 

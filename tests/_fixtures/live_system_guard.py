@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 # environment and finds the developer's live ``hermes-gateway`` process
 # via ``psutil`` — sending it SIGTERM mid-test. The shutdown forensics in
 # PR #23285 caught this happening 5+ times in 3 days, every time
-# correlated with a ``tests/hermes_cli/`` pytest run starting up.
+# correlated with a ``tests/kova_cli/`` pytest run starting up.
 #
 # This fixture makes the leak impossible by intercepting the two
 # primitives that actually do damage:
@@ -187,8 +187,8 @@ def _live_system_guard(request, monkeypatch):
     _HERMES_TOKENS = (
         "hermes-gateway",
         "hermes.service",
-        "hermes_cli.main gateway",
-        "hermes_cli/main.py gateway",
+        "kova_cli.main gateway",
+        "kova_cli/main.py gateway",
         "gateway/run.py",
         "hermes gateway",
     )
@@ -298,7 +298,7 @@ def _live_system_guard(request, monkeypatch):
                 low = cmd_str.lower()
                 # pkill -f pattern: catch hermes-themed patterns + a
                 # plain "python" -f which would catch the live gateway
-                # whose cmdline contains "python -m hermes_cli.main".
+                # whose cmdline contains "python -m kova_cli.main".
                 if (
                     "hermes" in low
                     or "gateway" in low
@@ -336,7 +336,7 @@ def _live_system_guard(request, monkeypatch):
             real_home = Path.home().resolve()
         # The child must not resolve the REAL Hermes root. Comparing HERMES_HOME against the whole
         # account home refused every Windows sandbox: %TEMP% lives under %USERPROFILE%.
-        from hermes_state_guard import _real_platform_state_root
+        from kova_state_guard import _real_platform_state_root
         real_root = _real_platform_state_root() or real_home / ".hermes"
         try:
             return (Path(home).resolve() != real_home
@@ -371,7 +371,7 @@ def _live_system_guard(request, monkeypatch):
                 "intentional."
             )
         # Block any subprocess that would run `hermes update` (or the
-        # equivalent `python -m hermes_cli.main update`).  These commands
+        # equivalent `python -m kova_cli.main update`).  These commands
         # run `git fetch origin + git pull` against the REAL checkout,
         # overwriting files like pyproject.toml mid-test-run and corrupting
         # every subsequent subprocess that reads them.  The corruption is
@@ -386,8 +386,8 @@ def _live_system_guard(request, monkeypatch):
             # hermes update / hermes update --gateway / setsid bash -c ... hermes update
             ("hermes" in low and "update" in low.split())
             or
-            # python -m hermes_cli.main update --gateway
-            ("hermes_cli" in low and "update" in low.split())
+            # python -m kova_cli.main update --gateway
+            ("kova_cli" in low and "update" in low.split())
             or
             # venv/bin/hermes update  (absolute path variant used in tests)
             (".venv/bin/hermes" in low and "update" in low)
@@ -405,7 +405,7 @@ def _live_system_guard(request, monkeypatch):
                 "needed (e.g. an integration test testing the update "
                 "flow against a dedicated throwaway repo)."
             )
-        # Block spawning a REAL gateway runtime (``python -m hermes_cli.main
+        # Block spawning a REAL gateway runtime (``python -m kova_cli.main
         # gateway run|start|restart``). ``_spawn_hermes_action`` launches it
         # with start_new_session=True, so it outlives the pytest worker; the
         # child inherits the pytest-tmp HERMES_HOME, resolves the DEVELOPER's
@@ -430,7 +430,7 @@ def _live_system_guard(request, monkeypatch):
                 "hermes gateway runtime that outlives the test (it is "
                 "detached), restarts the developer's live gateway, and "
                 "holds the webhook port. Patch the spawn seam where "
-                "production reads it (hermes_cli.web_server_gateway."
+                "production reads it (kova_cli.web_server_gateway."
                 "_spawn_hermes_action), or mark with "
                 "@pytest.mark.spawns_gateway_lookalike a test that spawns "
                 "and reaps its own stub child."

@@ -40,7 +40,7 @@ from gateway.config import Platform, PlatformConfig
 from gateway.platforms.base import BasePlatformAdapter, SendResult, merge_pending_message_event
 from gateway.platforms.event import MessageEvent, MessageType
 from gateway.platforms._shared import coerce_port, profile_scoped as _profile_scoped
-from hermes_cli.process_identity import release_process_group_once_empty, spawn_owned
+from kova_cli.process_identity import release_process_group_once_empty, spawn_owned
 
 logger = logging.getLogger(__name__)
 
@@ -535,9 +535,9 @@ def _env_enablement() -> Optional[dict]:
 def interactive_setup() -> None:
     """``hermes gateway setup`` flow: persists ``RAFT_PROFILE`` to the Hermes env file.
     CLI helpers are lazy-imported so the plugin stays importable in gateway runtime and tests."""
-    from hermes_cli.cli_output import print_header, print_info, print_success, print_warning, prompt
-    from hermes_cli.config import get_env_value, save_env_value
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from kova_cli.cli_output import print_header, print_info, print_success, print_warning, prompt
+    from kova_cli.config import get_env_value, save_env_value
+    from kova_cli.setup_platforms import declines_reconfigure
     print_header("Raft")
     existing_profile = get_env_value("RAFT_PROFILE")
     if declines_reconfigure("Raft", "Reconfigure Raft?", "RAFT_PROFILE"):

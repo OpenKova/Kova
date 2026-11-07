@@ -50,7 +50,7 @@ def test_finalize_single_query_runs_cleanup_when_finalize_hook_fails(monkeypatch
         calls.append("finalize")
         raise RuntimeError("hook failed")
 
-    monkeypatch.setattr("hermes_cli.plugins.invoke_hook", invoke_hook)
+    monkeypatch.setattr("kova_cli.plugins.invoke_hook", invoke_hook)
     monkeypatch.setattr(cli, "_run_cleanup", lambda **kwargs: calls.append("cleanup"))
 
     cli._finalize_single_query(fake_cli)
@@ -70,8 +70,8 @@ def test_finalize_settles_session_before_a_successor_can_take_over(tmp_path, mon
     predecessor's whole finalize. On the unsafe order (release → linger → flush)
     the flush's unconditional ``end_session`` stamps the successor's interval and
     this test fails."""
-    from hermes_cli import active_sessions
-    from hermes_state import SessionDB
+    from kova_cli import active_sessions
+    from kova_state import SessionDB
 
     home = tmp_path / ".hermes"
     monkeypatch.setenv("HERMES_HOME", str(home))
@@ -126,7 +126,7 @@ def test_notify_single_query_session_finalize_uses_agent_session(monkeypatch):
     def invoke_hook(name, **kwargs):
         calls.append((name, kwargs))
 
-    monkeypatch.setattr("hermes_cli.plugins.invoke_hook", invoke_hook)
+    monkeypatch.setattr("kova_cli.plugins.invoke_hook", invoke_hook)
 
     cli._notify_single_query_session_finalize(fake_cli)
 

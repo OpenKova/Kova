@@ -1,15 +1,15 @@
 """``free_tier.status`` / ``free_tier.ack_notice`` (pull) and the free-tier branch of ``billing.state``,
 driven through the registered RPC handlers against a claimed welcome trial on the desktop's local
-backend (the fake account service in ``tests.hermes_cli.anon_portal``)."""
+backend (the fake account service in ``tests.kova_cli.anon_portal``)."""
 
 from __future__ import annotations
 
 import pytest
 
 import tui_gateway.server as srv
-from hermes_cli import anon_auth, free_tier_offer
-from hermes_cli.auth import _auth_store_lock, _load_auth_store, _save_auth_store
-from tests.hermes_cli.anon_portal import as_local_desktop_backend, claimed_trial, install_portal
+from kova_cli import anon_auth, free_tier_offer
+from kova_cli.auth import _auth_store_lock, _load_auth_store, _save_auth_store
+from tests.kova_cli.anon_portal import as_local_desktop_backend, claimed_trial, install_portal
 
 
 def _call(method: str, params: dict | None = None) -> dict:
@@ -31,7 +31,7 @@ def guest(nas, monkeypatch):
 
 
 def _set_guest_off():
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     (get_hermes_home() / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")
 
 
@@ -54,7 +54,7 @@ def test_status_is_pull_from_local_state_and_ack_persists_on_the_identity(guest,
 def test_status_carries_the_pending_browser_challenge_and_drops_it_once_cleared(guest):
     """A client that connects after the ``free_tier.challenge`` event still learns there is a
     window to open; once the challenge is worked, the field is gone."""
-    from hermes_cli import anon_challenge
+    from kova_cli import anon_challenge
     assert "challenge" not in _call("free_tier.status")
 
     challenge = anon_challenge.BrowserChallenge(
@@ -68,8 +68,8 @@ def test_status_carries_the_pending_browser_challenge_and_drops_it_once_cleared(
 
 
 def test_window_outcomes_are_scoped_and_do_not_grant_auth(guest, tmp_path):
-    from hermes_cli import anon_challenge
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_cli import anon_challenge
+    from kova_constants import set_hermes_home_override, reset_hermes_home_override
     a = anon_challenge.BrowserChallenge("https://portal.example.test/challenge?code=a", True, 600, 2, "check")
     b = anon_challenge.BrowserChallenge("https://portal.example.test/challenge?code=b", False, 600, 2, "check")
     anon_challenge._record(a, new_attempt=False)

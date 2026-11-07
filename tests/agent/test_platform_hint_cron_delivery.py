@@ -14,7 +14,7 @@ from agent.prompt_builder import PLATFORM_HINTS
 from agent.system_prompt import platform_hint
 from gateway.platform_registry import platform_registry
 from gateway.session_context import _VAR_MAP
-from hermes_cli.plugins import discover_plugins
+from kova_cli.plugins import discover_plugins
 
 EXTRA = "Always attach the report as a .pdf."
 

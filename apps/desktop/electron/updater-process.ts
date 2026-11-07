@@ -90,7 +90,7 @@ function stagedInstallationLauncher(updateRoot: string, isWindows: boolean): str
 // Earlier PM installers published only to user-bin. Trust that historical
 // launcher only after its existing version surface proves exact source identity.
 function historicalLauncherCandidates(updateRoot: string, isWindows: boolean, hermesHome: string): string[] {
-  if (!stagedFileExists(path.join(updateRoot, 'hermes_cli', '_launchers.py'))) {
+  if (!stagedFileExists(path.join(updateRoot, 'kova_cli', '_launchers.py'))) {
     return []
   }
 
@@ -147,7 +147,7 @@ export function userLauncherInstallRoot(
   for (const launcher of userBinLaunchers(isWindows, hermesHome)) {
     const root: string | null = launcherInstallDirectory(launcher)
 
-    if (root && existsSync(path.join(root, 'hermes_cli', 'main.py'))) {
+    if (root && existsSync(path.join(root, 'kova_cli', 'main.py'))) {
       return { launcher, root }
     }
   }

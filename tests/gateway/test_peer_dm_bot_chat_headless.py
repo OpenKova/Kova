@@ -30,7 +30,7 @@ async def headless(tmp_path, monkeypatch):
     # A following Bot Chat reads the profile config by path.
     monkeypatch.setattr(run, '_load_gateway_config',
                         lambda *_path: {'platform_toolsets': {'cli': []}, 'model': {'default': 'fixture'}})
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     store._db = SessionDB(db_path=tmp_path / 'state.db')
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,
@@ -70,7 +70,7 @@ def _api_admissions(authority):
 
 @pytest.mark.asyncio
 async def test_headless_peer_dm_creates_the_bot_chat_through_its_owner(headless):
-    # The peer client's own creation path (hermes_cli/subcommands/peer.py::_ensure_bot_chat).
+    # The peer client's own creation path (kova_cli/subcommands/peer.py::_ensure_bot_chat).
     created = await headless.cli.post("/api/sessions", json={"title": "Bot Chat", "source": "bot_peer_dm"})
     assert created.status == 201, await created.text()
     session_id = (await created.json())["session"]["id"]
@@ -212,7 +212,7 @@ async def test_a_submit_only_delivery_never_moves_the_api_bot_chat(headless):
     from gateway.session_authorities import served_profile_name
     from gateway.session_bot import deliver
     from gateway.session_contract import SessionActor
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     db = headless.authority.db
     old = _api_bot_chat(db)
     actor = SessionActor('uid:1000', headless.authority.profile_id,

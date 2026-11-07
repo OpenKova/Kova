@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from hermes_cli.observability.shared_metrics_consent import OFFER_VERSION
+from kova_cli.observability.shared_metrics_consent import OFFER_VERSION
 
 from tests.gateway.test_normal_runtime_boot import control
 
@@ -61,7 +61,7 @@ def trace(frame, event, arg):
             owners.append(name)
 sys.setprofile(trace)
 try:
-    module = 'hermes_cli.main'
+    module = 'kova_cli.main'
     if sys.argv[1:2] == ['--fixture-direct']:
         sys.argv.pop(1)
         module = 'cli'

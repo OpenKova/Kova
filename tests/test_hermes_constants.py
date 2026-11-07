@@ -1,4 +1,4 @@
-"""Tests for hermes_constants module."""
+"""Tests for kova_constants module."""
 
 import json
 import os
@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-import hermes_constants
-from hermes_platform.host import runtime as host_runtime
-from hermes_constants import (
+import kova_constants
+from kova_platform.host import runtime as host_runtime
+from kova_constants import (
     get_default_hermes_root,
     get_hermes_dir,
     get_hermes_home,
@@ -94,7 +94,7 @@ class TestGetDefaultHermesRoot:
             ({}, None),
         ]
         for environ, root in cases:
-            assert hermes_constants.hermes_root_for_environment(environ) == root, environ
+            assert kova_constants.hermes_root_for_environment(environ) == root, environ
 
 
 
@@ -108,11 +108,11 @@ class TestGetHermesHome:
         """Regression for #90065: the latch must engage on the first check even when there is
         nothing to warn about, otherwise every get_hermes_home() call re-stats active_profile."""
         monkeypatch.delenv("HERMES_HOME", raising=False)
-        monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
-        monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: tmp_path)
+        monkeypatch.setattr(kova_constants, "_profile_fallback_warned", False)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: tmp_path)
 
         get_hermes_home()
-        assert hermes_constants._profile_fallback_warned is True
+        assert kova_constants._profile_fallback_warned is True
 
     @pytest.mark.platforms("windows")
     def test_windows_fallback_uses_localappdata(self, tmp_path, monkeypatch):
@@ -121,7 +121,7 @@ class TestGetHermesHome:
         monkeypatch.delenv("HERMES_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
-        monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
+        monkeypatch.setattr(kova_constants, "_profile_fallback_warned", False)
 
         assert get_hermes_home() == local_appdata / "hermes"
 
@@ -256,7 +256,7 @@ class TestResolvePerModelReasoningEffort:
 
     def test_exact_match(self):
         """Exact model string match returns the parsed override."""
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         overrides = {"claude-opus-4.5": "xhigh"}
         result = resolve_per_model_reasoning_effort("claude-opus-4.5", overrides)
         assert result == {"enabled": True, "effort": "xhigh"}
@@ -267,7 +267,7 @@ class TestResolvePerModelReasoningEffort:
 
     def test_empty_model_returns_none(self):
         """Empty model string returns None."""
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         assert resolve_per_model_reasoning_effort("", {"gpt-5": "low"}) is None
 
     # --- Spelling tolerance layer ---
@@ -283,7 +283,7 @@ class TestResolvePerModelReasoningEffort:
         If both 'claude-opus-4.5' (exact) and 'claude-opus-4-5' (dashes
         variant) are keys, the exact input matches the exact key first.
         """
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         overrides = {"claude-opus-4.5": "high", "claude-opus-4-5": "xhigh"}
         result = resolve_per_model_reasoning_effort("claude-opus-4.5", overrides)
         assert result == {"enabled": True, "effort": "high"}
@@ -295,14 +295,14 @@ class TestResolvePerModelReasoningEffort:
         prefix while the documented key spelling keeps ``provider/model``; a key for a different
         model must still miss.
         """
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         overrides = {"ollama-local/qwen3.6:27b-q4_k_m": "low"}
         assert resolve_per_model_reasoning_effort("qwen3.6:27b-q4_k_m", overrides) == {"enabled": True, "effort": "low"}
         assert resolve_per_model_reasoning_effort("llama3.2:3b", overrides) is None
 
     def test_direct_match_wins_over_reverse_lookup(self):
         """A direct/variant key match keeps priority over a prefixed reverse match."""
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         overrides = {"qwen3.6:27b": "medium", "ollama-local/qwen3.6:27b": "low"}
         assert resolve_per_model_reasoning_effort("qwen3.6:27b", overrides) == {"enabled": True, "effort": "medium"}
 
@@ -326,7 +326,7 @@ class TestResolveReasoningConfig:
         }
 
     def test_per_model_override_wins(self):
-        from hermes_constants import resolve_reasoning_config
+        from kova_constants import resolve_reasoning_config
         cfg = self._cfg(overrides={"claude-opus-4.5": "xhigh"})
         result = resolve_reasoning_config(cfg, "claude-opus-4.5")
         assert result == {"enabled": True, "effort": "xhigh"}
@@ -334,7 +334,7 @@ class TestResolveReasoningConfig:
 
 
     def test_empty_model_derives_from_config_default(self):
-        from hermes_constants import resolve_reasoning_config
+        from kova_constants import resolve_reasoning_config
         cfg = self._cfg(overrides={"gpt-5": "high"}, default_model="gpt-5")
         assert resolve_reasoning_config(cfg) == {"enabled": True, "effort": "high"}
 
@@ -347,21 +347,21 @@ class TestResolveReasoningConfig:
 
     def test_malformed_sections_tolerated(self):
         """Non-dict agent/model sections must not raise."""
-        from hermes_constants import resolve_reasoning_config
+        from kova_constants import resolve_reasoning_config
         assert resolve_reasoning_config({"agent": "oops", "model": 42}) is None
         assert resolve_reasoning_config({"agent": None, "model": None}) is None
         assert resolve_reasoning_config({"agent": {"reasoning_overrides": "bad"}}) is None
 
     def test_invalid_override_value_falls_back_to_global(self):
         """A junk override value for the matching model falls through to global."""
-        from hermes_constants import resolve_reasoning_config
+        from kova_constants import resolve_reasoning_config
         cfg = self._cfg(effort="medium", overrides={"gpt-5": "turbo-max"})
         assert resolve_reasoning_config(cfg, "gpt-5") == {"enabled": True, "effort": "medium"}
 
     def test_dict_form_passes_bespoke_tier_verbatim_globally_and_per_model(self):
         """#93238: providers with custom tiers (fast/thinking) need the dict form to send their
         real level; a bare non-ladder string stays rejected so typos never reach the wire."""
-        from hermes_constants import parse_reasoning_effort, resolve_reasoning_config
+        from kova_constants import parse_reasoning_effort, resolve_reasoning_config
         cfg = self._cfg(effort={"enabled": True, "effort": "thinking"},
                         overrides={"lumo-max": {"enabled": True, "effort": "fast"}})
         assert resolve_reasoning_config(cfg, "gpt-5") == {"enabled": True, "effort": "thinking"}
@@ -370,7 +370,7 @@ class TestResolveReasoningConfig:
 
     def test_dict_form_disabled_or_empty_effort(self):
         """enabled:false disables regardless of level; a dict without a level is 'unset'."""
-        from hermes_constants import parse_reasoning_effort
+        from kova_constants import parse_reasoning_effort
         assert parse_reasoning_effort({"enabled": False, "effort": "low"}) == {"enabled": False}
         assert parse_reasoning_effort({"enabled": True}) is None
         assert parse_reasoning_effort({"effort": 0}) is None
@@ -383,7 +383,7 @@ class TestReasoningOverridesDefaultConfig:
 
     def test_spelling_tolerant_lookup_works_with_user_config(self):
         """resolve_per_model_reasoning_effort works with user-added overrides."""
-        from hermes_constants import resolve_per_model_reasoning_effort
+        from kova_constants import resolve_per_model_reasoning_effort
         # User config with one override, query uses different spelling
         overrides = {
             "anthropic/claude-opus-4.5": "xhigh",  # user wrote with dots
@@ -432,7 +432,7 @@ class TestSecureParentDir:
         0700 because it has 3 path parts and passed the ``< 3`` guard, locking
         out UID 10000 (hermes user) from traversing the install dir.
         """
-        install_root = Path(hermes_constants.__file__).resolve().parent
+        install_root = Path(kova_constants.__file__).resolve().parent
 
         # Directly under the install root (e.g. /opt/hermes/auth.json)
         target = install_root / "auth.json"
@@ -458,7 +458,7 @@ class TestSecureParentDir:
         still receive parent-dir hardening. Pins that the exclusion cannot
         silently widen into a string-prefix match.
         """
-        install_root = Path(hermes_constants.__file__).resolve().parent
+        install_root = Path(kova_constants.__file__).resolve().parent
 
         # Prefix-named sibling of the install root (/opt/hermes-data/...).
         prefix_sibling = Path(str(install_root) + "-data")
@@ -576,23 +576,23 @@ class TestWslPathTranslation:
     """Cross-boundary path translation for a Windows-host UI + WSL backend."""
 
     def test_windows_drive_to_wsl_mount(self):
-        assert hermes_constants.windows_path_to_wsl(r"C:\Users\alex") == "/mnt/c/Users/alex"
-        assert hermes_constants.windows_path_to_wsl("C:/Users/alex") == "/mnt/c/Users/alex"
-        assert hermes_constants.windows_path_to_wsl("D:\\") == "/mnt/d/"
+        assert kova_constants.windows_path_to_wsl(r"C:\Users\alex") == "/mnt/c/Users/alex"
+        assert kova_constants.windows_path_to_wsl("C:/Users/alex") == "/mnt/c/Users/alex"
+        assert kova_constants.windows_path_to_wsl("D:\\") == "/mnt/d/"
 
     def test_windows_drive_ignores_non_drive_paths(self):
-        assert hermes_constants.windows_path_to_wsl("/home/alex") is None
-        assert hermes_constants.windows_path_to_wsl("relative\\dir") is None
+        assert kova_constants.windows_path_to_wsl("/home/alex") is None
+        assert kova_constants.windows_path_to_wsl("relative\\dir") is None
 
 
 
 
     def test_translate_maps_windows_and_unc_on_wsl(self, monkeypatch):
-        monkeypatch.setattr(hermes_constants, "is_wsl", lambda: True)
-        assert hermes_constants.translate_cwd_for_wsl_backend(r"C:\Users\alex") == "/mnt/c/Users/alex"
-        assert hermes_constants.translate_cwd_for_wsl_backend(r"\\wsl.localhost\Ubuntu\home\alex") == "/home/alex"
+        monkeypatch.setattr(kova_constants, "is_wsl", lambda: True)
+        assert kova_constants.translate_cwd_for_wsl_backend(r"C:\Users\alex") == "/mnt/c/Users/alex"
+        assert kova_constants.translate_cwd_for_wsl_backend(r"\\wsl.localhost\Ubuntu\home\alex") == "/home/alex"
         # Already-POSIX paths pass through untouched.
-        assert hermes_constants.translate_cwd_for_wsl_backend("/home/alex") == "/home/alex"
+        assert kova_constants.translate_cwd_for_wsl_backend("/home/alex") == "/home/alex"
 
 
 
@@ -605,16 +605,16 @@ class TestProjectVenvDirOutOfTree:
 
     @staticmethod
     def _running_from(monkeypatch, checkout, venv):
-        monkeypatch.setattr(hermes_constants, "__file__", str(checkout / "hermes_constants.py"))
+        monkeypatch.setattr(kova_constants, "__file__", str(checkout / "kova_constants.py"))
         monkeypatch.setattr(sys, "prefix", str(venv))
         monkeypatch.setattr(sys, "base_prefix", str(checkout / "no-such-base"))
 
     @staticmethod
     def _venv_installed_from(venv, source):
         from pm.environments import site_packages
-        hermes_constants.venv_python_path(venv).parent.mkdir(parents=True)
-        hermes_constants.venv_python_path(venv).write_text("", encoding="utf-8")
-        dist_info = site_packages(venv) / "hermes_agent-0.0.0.dist-info"
+        kova_constants.venv_python_path(venv).parent.mkdir(parents=True)
+        kova_constants.venv_python_path(venv).write_text("", encoding="utf-8")
+        dist_info = site_packages(venv) / "kova_agent-0.0.0.dist-info"
         dist_info.mkdir(parents=True)
         (dist_info / "METADATA").write_text("Name: hermes-agent\nVersion: 0.0.0\n", encoding="utf-8")
         (dist_info / "direct_url.json").write_text(
@@ -627,7 +627,7 @@ class TestProjectVenvDirOutOfTree:
         self._venv_installed_from(venv, checkout)
         self._running_from(monkeypatch, checkout, venv)
 
-        assert hermes_constants.project_venv_dir(checkout) == venv
+        assert kova_constants.project_venv_dir(checkout) == venv
 
     def test_another_installs_interpreter_is_never_claimed(self, monkeypatch, tmp_path):
         """``PYTHONPATH=<dev checkout> <app venv>/bin/python``: the code comes from the dev checkout,
@@ -641,7 +641,7 @@ class TestProjectVenvDirOutOfTree:
         self._venv_installed_from(venv, app)
         self._running_from(monkeypatch, dev, venv)
 
-        assert hermes_constants.project_venv_dir(dev) is None
+        assert kova_constants.project_venv_dir(dev) is None
 
     def test_foreign_root_and_in_tree_venv_are_unchanged(self, monkeypatch, tmp_path):
         """A temp dir / another clone never claims the running venv; an in-tree venv still wins."""
@@ -653,6 +653,6 @@ class TestProjectVenvDirOutOfTree:
         other = tmp_path / "not-our-checkout"
         other.mkdir()
 
-        assert hermes_constants.project_venv_dir(other) is None
+        assert kova_constants.project_venv_dir(other) is None
         (checkout / ".venv").mkdir()
-        assert hermes_constants.project_venv_dir(checkout) == checkout / ".venv"
+        assert kova_constants.project_venv_dir(checkout) == checkout / ".venv"

@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import profiles
-from hermes_cli.profiles import create_profile, create_wrapper_script, delete_profile
+from kova_cli import profiles
+from kova_cli.profiles import create_profile, create_wrapper_script, delete_profile
 
 
 @pytest.fixture

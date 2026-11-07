@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import update_pause_record as pause_record
+from kova_cli import update_pause_record as pause_record
 from datetime import UTC
 
 REPO = Path(__file__).resolve().parents[2]
@@ -27,7 +27,7 @@ pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals; 
 _PRIVATE_CHECKOUT_LOCK = """
 import os
 from pathlib import Path
-from hermes_cli import update_lock as _lock
+from kova_cli import update_lock as _lock
 _repo, _real = Path(_lock.__file__).resolve().parents[1], _lock.checkout_lock_path
 def checkout_lock_path(install_root=None):
     root = Path(install_root) if install_root else _repo
@@ -67,7 +67,7 @@ def _orphaned_profiles(home: Path) -> dict | None:
     """The first orphan's profiles, read by a fresh process (the liveness probe reads the checkout's git dir)."""
     probe = _child("""
         import json
-        from hermes_cli import update_pause_record as r
+        from kova_cli import update_pause_record as r
         found = r.orphans()
         print(json.dumps(found[0][1]["token"]["profiles"] if found else None))
     """, env={"HERMES_HOME": str(home)})
@@ -79,7 +79,7 @@ def test_record_written_by_a_killed_updater_is_orphaned_only_after_its_death(tmp
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     owner = _child("""
         import sys, time
-        from hermes_cli import update_pause_record as r
+        from kova_cli import update_pause_record as r
         r.write(r.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}), owner=r.identity())
         print("written", flush=True)
         time.sleep(120)
@@ -201,7 +201,7 @@ def _orphan(tmp_path: Path, profiles: dict) -> None:
     """A record whose owner — a real ``hermes update`` stand-in — was SIGKILLed after writing it."""
     owner = _child(f"""
         import time
-        from hermes_cli import update_pause_record as r
+        from kova_cli import update_pause_record as r
         r.write(r.stamp_tree({{"resume_needed": True, "profiles": {profiles!r}}}), owner=r.identity())
         print("written", flush=True)
         time.sleep(120)
@@ -216,14 +216,14 @@ def _orphan(tmp_path: Path, profiles: dict) -> None:
 # relaunch verification.
 _RECOVER = """
     import sys, time
-    import hermes_cli.update_cmd_windows as w
+    import kova_cli.update_cmd_windows as w
     def resume(token):
         print("resume", sorted(token.get("profiles") or {}), file=sys.__stdout__, flush=True)  # recovery sends stdout to stderr
         if sys.argv[1] == "hang":
             time.sleep(120)
         token["resume_needed"] = False
     w._resume_windows_gateways_after_update = resume
-    from hermes_cli import update_pause_record as r
+    from kova_cli import update_pause_record as r
     r.recover(["status"])
     print("done", flush=True)
 """
@@ -250,8 +250,8 @@ def test_a_launch_killed_mid_recovery_leaves_the_set_to_the_next_launch(tmp_path
 # An update takes the checkout right after this launch claimed the set (the race window).
 _UPDATE_AFTER_CLAIM = """
     import subprocess, sys
-    from hermes_cli import update_pause_record as r
-    hold = ("import time; from hermes_cli import update_lock as l; from hermes_cli.update_pause_record import install_root;"
+    from kova_cli import update_pause_record as r
+    hold = ("import time; from kova_cli import update_lock as l; from kova_cli.update_pause_record import install_root;"
             "print(l.UpdateLock().acquire_checkout(install_root()), flush=True); time.sleep(120)")
     real_claim, updates = r.claim, []
     def claim(src):
@@ -286,7 +286,7 @@ def test_startup_recovery_follows_the_parsed_command_not_raw_argv(tmp_path, argv
     _orphan(tmp_path, {})  # nothing to start: a recovering launch just retires it
     cli = _child("""
         import sys
-        from hermes_cli.main import main
+        from kova_cli.main import main
         sys.argv = ["hermes", *sys.argv[1:]]
         try:
             main()
@@ -299,7 +299,7 @@ def test_startup_recovery_follows_the_parsed_command_not_raw_argv(tmp_path, argv
 
 _HOLDER = """
     import subprocess, sys, time
-    from hermes_cli.update_lock import UpdateLock
+    from kova_cli.update_lock import UpdateLock
     lock = UpdateLock()
     assert lock.acquire() and lock.acquired
     host = subprocess.Popen([sys.executable, *sys.argv[1:]], stdout=subprocess.PIPE, text=True)
@@ -310,7 +310,7 @@ _HOLDER = """
 # ``hermes update`` its agent starts is its child.
 _HOST = """
 import subprocess, sys
-probe = "from hermes_cli.update_lock import UpdateLock; l = UpdateLock(); print(l.acquire(), l.holder is not None)"
+probe = "from kova_cli.update_lock import UpdateLock; l = UpdateLock(); print(l.acquire(), l.holder is not None)"
 print(subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True).stdout.strip())
 """
 
@@ -318,11 +318,11 @@ print(subprocess.run([sys.executable, "-c", probe], capture_output=True, text=Tr
 # The intermediate is a stand-in script, not a real gateway/update: nothing touches the checkout.
 @pytest.mark.live_system_guard_bypass
 @pytest.mark.parametrize("host_argv, adopts", [
-    (("hermes_cli.main", "gateway", "run"), False),
-    (("hermes_cli.main", "--profile", "work", "gateway", "run"), False),
-    (("/opt/hermes/hermes_cli/main.py", "-p", "work", "gateway", "run"), False),
-    (("-m", "hermes_cli.main", "--profile", "work", "dashboard"), False),
-    (("hermes_cli.main", "status"), True),
+    (("kova_cli.main", "gateway", "run"), False),
+    (("kova_cli.main", "--profile", "work", "gateway", "run"), False),
+    (("/opt/hermes/kova_cli/main.py", "-p", "work", "gateway", "run"), False),
+    (("-m", "kova_cli.main", "--profile", "work", "dashboard"), False),
+    (("kova_cli.main", "status"), True),
 ])
 def test_update_started_from_a_relaunched_gateway_does_not_share_the_claim(tmp_path, host_argv, adopts):
     script = tmp_path / "host.py"
@@ -339,7 +339,7 @@ def test_update_started_from_a_relaunched_gateway_does_not_share_the_claim(tmp_p
 _AT_LINE = """
     import inspect, json, os, sys, time
     from pathlib import Path
-    from hermes_cli import update_pause_record as r
+    from kova_cli import update_pause_record as r
     def stop_at(fn, text, action, flag=None):
         lines, start = inspect.getsourcelines(fn)
         line = start + next(i for i, t in enumerate(lines) if text in t)
@@ -356,7 +356,7 @@ _AT_LINE = """
         sys.settrace(trace)
 """
 _RESUMES = """
-    import hermes_cli.update_cmd_windows as w
+    import kova_cli.update_cmd_windows as w
     def resume(token):
         print("resume", sorted(token.get("profiles") or {}), file=sys.__stdout__, flush=True)  # recovery sends stdout to stderr
         token["resume_needed"] = False
@@ -539,7 +539,7 @@ def test_a_request_on_disk_is_owed_even_before_it_is_recorded_sent(tmp_path):
     token = r.record_pause({"resume_needed": True, "profiles": {"default": pid},
                             "identities": {str(pid): r.identity(pid)["ct"]}}, None, [])
     r.mark_stop_requested(token, [pid], markers={pid: marker})
-    from hermes_cli.update_cmd_windows import _write_update_planned_stop_marker
+    from kova_cli.update_cmd_windows import _write_update_planned_stop_marker
     assert _write_update_planned_stop_marker(marker.parent, pid)
     print("requested", flush=True)
     time.sleep(120)
@@ -560,8 +560,8 @@ def test_a_request_on_disk_is_owed_even_before_it_is_recorded_sent(tmp_path):
 # --- R13: a checkout sharing the home never takes another checkout's paused set --------------
 def _checkout_copy(root: Path) -> Path:
     """A second checkout: the real module file under another install root."""
-    (root / "hermes_cli").mkdir(parents=True)
-    (root / "hermes_cli" / "update_pause_record.py").write_bytes(Path(pause_record.__file__).read_bytes())
+    (root / "kova_cli").mkdir(parents=True)
+    (root / "kova_cli" / "update_pause_record.py").write_bytes(Path(pause_record.__file__).read_bytes())
     _git(root, "init", "-q")
     _git(root, "add", ".")
     _git(root, "commit", "-qm", "b")
@@ -579,7 +579,7 @@ def test_another_checkouts_writer_never_imports_or_relabels_this_checkouts_debt(
         b = importlib.util.module_from_spec(spec); spec.loader.exec_module(b)
         b.write(b.stamp_tree({"resume_needed": True, "profiles": {"beta": 1}}), owner=b.UNOWNED)
         print(json.dumps([len(b.orphans()), b.read()]), flush=True)
-    """, str(other / "hermes_cli" / "update_pause_record.py"), env={"HERMES_HOME": str(tmp_path)})
+    """, str(other / "kova_cli" / "update_pause_record.py"), env={"HERMES_HOME": str(tmp_path)})
     out, _ = writer.communicate(timeout=60)
     seen, theirs = json.loads(out.strip().splitlines()[-1])
     assert seen == 1 and sorted(theirs["token"]["profiles"]) == ["beta"], f"imported this checkout's set: {theirs}"
@@ -795,7 +795,7 @@ def test_a_malformed_retired_list_is_set_aside_only_when_nothing_refers_to_it(tm
 def test_a_host_without_psutil_records_an_identity_the_liveness_rule_can_prove(monkeypatch):
     """Review 5411136378 fix 2: the record's creation time comes from the same probe the reader
     judges with, so a psutil-less host never writes ``ct=None`` (unprovable, so never orphaned)."""
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
     monkeypatch.setitem(sys.modules, "psutil", None)  # `import psutil` raises ImportError
     # Our own creation time is cached per process; one an earlier test read with psutil differs
     # from the stdlib probe by its resolution (macOS `ps -o lstart`: 1 s). Judge with one probe.
@@ -812,7 +812,7 @@ def test_the_tree_gate_finds_pm_git_and_runs_it_in_the_updaters_custody(tmp_path
     from types import SimpleNamespace
 
     import pm
-    from hermes_cli import update_custody
+    from kova_cli import update_custody
     root = tmp_path / "checkout"
     root.mkdir()
     _git(root, "init", "-q")
@@ -841,7 +841,7 @@ def test_a_moved_head_holds_gateways_for_dependencies_only_where_a_launch_syncs_
     """Review 5411136378 decision (moved HEAD): stale dependencies defer the resume only where the
     next launch makes them current; an unknown currency never strands a committed update's set."""
     import pm
-    from hermes_cli import steward
+    from kova_cli import steward
     root = tmp_path / "checkout"
     root.mkdir()
     _git(root, "init", "-q")

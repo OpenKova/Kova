@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import gateway, profiles
+from kova_cli import gateway, profiles
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def test_cleanup_handles_the_system_scope_unit(victim, tmp_path, monkeypatch, ca
     monkeypatch.setattr(gateway, "_SYSTEM_UNIT_DIR", system_dir)
     monkeypatch.setattr(profiles.os, "geteuid", lambda: euid)
     calls: list[list[str]] = []
-    import hermes_cli.profiles_service_cleanup as psc
+    import kova_cli.profiles_service_cleanup as psc
     monkeypatch.setattr(psc.subprocess, "run", lambda cmd, **kw: calls.append(list(cmd)))
     monkeypatch.setattr(profiles.subprocess, "run", lambda cmd, **kw: calls.append(list(cmd)))
 
@@ -62,11 +62,11 @@ def test_cleanup_deletes_the_windows_scheduled_task(victim, tmp_path, monkeypatc
         get_startup_entry_path=lambda: startup,
         _legacy_startup_entry_path=lambda: tmp_path / "Startup" / "legacy.vbs",
     )
-    monkeypatch.setitem(sys.modules, "hermes_cli.gateway_windows", fake)
-    # `from hermes_cli import gateway_windows` reads the package attribute first when an earlier
+    monkeypatch.setitem(sys.modules, "kova_cli.gateway_windows", fake)
+    # `from kova_cli import gateway_windows` reads the package attribute first when an earlier
     # test already imported the real module, so the fake must be bound there too.
-    import hermes_cli
-    monkeypatch.setattr(hermes_cli, "gateway_windows", fake, raising=False)
+    import kova_cli
+    monkeypatch.setattr(kova_cli, "gateway_windows", fake, raising=False)
     import platform
     monkeypatch.setattr(platform, "system", lambda: "Windows")
 

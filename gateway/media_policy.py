@@ -28,11 +28,11 @@ def _routed_gateway_cfg() -> Optional[dict[str, Any]]:
     """``gateway`` section of the ROUTED profile's config when a HERMES_HOME override is active
     (multiplexed turn), else None. The env bridge is one process-wide copy of the launch profile's
     policy, so a secondary's deliveries must read their own config instead of ``os.environ``."""
-    from hermes_constants import get_hermes_home_override
+    from kova_constants import get_hermes_home_override
     if not get_hermes_home_override():
         return None
     try:
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         gateway_cfg = load_config_readonly().get("gateway")
     except Exception:
         return {}
@@ -74,7 +74,7 @@ def media_delivery_trust_recent_seconds() -> str:
 def _load_gateway_cfg(config: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     if config is None:
         try:
-            from hermes_cli.config import load_config
+            from kova_cli.config import load_config
 
             config = load_config() or {}
         except Exception:
@@ -103,7 +103,7 @@ def apply_media_policy_env(config: Optional[dict[str, Any]] = None) -> None:
     profile's own config (``_routed_gateway_cfg``), and ``os.environ`` is shared — a routed cron
     fire would hand its allowlist and strictness to the launch profile and its children."""
     try:
-        from hermes_constants import get_hermes_home_override
+        from kova_constants import get_hermes_home_override
         if get_hermes_home_override():
             return
         gateway_cfg = _load_gateway_cfg(config)

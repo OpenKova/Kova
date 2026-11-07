@@ -55,7 +55,7 @@ dependencies = [
   "ruamel.yaml==0.18.16; python_version >= '3.14'",
   # 0.18.16 only pulls in its C parser below 3.14, so every 3.14 install parsed YAML
   # (plugin manifests, config) in pure Python: ~5 s of gateway startup on 1 vCPU.
-  # Declared where clib ships a cp314 wheel; elsewhere hermes_yaml falls back to pure.
+  # Declared where clib ships a cp314 wheel; elsewhere kova_yaml falls back to pure.
   "ruamel.yaml.clib==0.2.15; python_version >= '3.14' and platform_python_implementation == 'CPython' and (sys_platform == 'darwin' or (sys_platform == 'linux' and platform_machine in 'x86_64 aarch64 i686') or (sys_platform == 'win32' and platform_machine in 'AMD64 x86'))",
   "requests==2.34.2; python_version >= '3.14'",  # CVE-2026-25645
   "jinja2==3.1.6; python_version >= '3.14'",
@@ -158,7 +158,7 @@ dependencies = [
   # Python 3.14 requires pywinpty 3.x. Version 3.0.5 includes the native
   # binaries missing from 3.0.4 wheels on both Windows architectures.
   "pywinpty>=3.0.5,<4; sys_platform == 'win32' and python_version >= '3.14'",
-  # Desktop SSH's Windows remote runtime (hermes_cli/windows_ssh_runtime.py)
+  # Desktop SSH's Windows remote runtime (kova_cli/windows_ssh_runtime.py)
   # imports win32security/win32file/etc. directly — declare pywin32 rather than
   # relying on the concurrent-log-handler → portalocker transitive chain.
   "pywin32>=306,<312; sys_platform == 'win32' and python_version >= '3.14'",
@@ -199,7 +199,7 @@ dependencies = [
   # processes), pinning ``agent.log`` at the 5 MiB threshold and spamming
   # stderr on every emit (see #44873). ``concurrent-log-handler`` wraps the
   # rename in a cross-process file lock (via ``portalocker``: pywin32 on
-  # Windows) so only one process rotates at a time. ``hermes_logging.py``
+  # Windows) so only one process rotates at a time. ``kova_logging.py``
   # aliases it ONLY on Windows — POSIX renames an open file fine, so stdlib
   # already works there and managed-mode perms depend on its exact lifecycle.
   # Hence the ``sys_platform == 'win32'`` marker: the dep (and its portalocker
@@ -583,7 +583,7 @@ requires = ["setuptools==84.1.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-kova = "hermes_cli.main:main"
+kova = "kova_cli.main:main"
 kova-agent = "agent.legacy_cli:main"
 kova-acp = "acp_adapter.entry:main"
 
@@ -595,16 +595,16 @@ kova-acp = "acp_adapter.entry:main"
 opt-in-extras = ["kittentts"]
 
 # What `hermes update` compiles before it moves the checkout to this tree, and again after: the
-# launcher and `hermes_bootstrap` import closure plus the CLI entry modules. Every file listed here
+# launcher and `kova_bootstrap` import closure plus the CLI entry modules. Every file listed here
 # must exist; an update to a tree that lacks one is refused. A change that moves one of these
 # files updates its path here.
 update-startup-files = [
-  "hermes_bootstrap.py", "hermes_cli/_parser.py", "hermes_cli/_launchers.py",
-  "hermes_cli/_early_recovery.py", "hermes_cli/update_lock.py", "hermes_cli/update_custody.py",
-  "hermes_cli/update_handoff.py", "hermes_cli/venv_sync.py", "pm/__init__.py", "pm/environments.py",
-  "hermes_cli/main.py", "hermes_cli/config.py", "hermes_cli/__init__.py",
-  "hermes_cli/web_server.py", "cli.py", "run_agent.py", "model_tools.py", "toolsets.py",
-  "hermes_constants.py",
+  "kova_bootstrap.py", "kova_cli/_parser.py", "kova_cli/_launchers.py",
+  "kova_cli/_early_recovery.py", "kova_cli/update_lock.py", "kova_cli/update_custody.py",
+  "kova_cli/update_handoff.py", "kova_cli/venv_sync.py", "pm/__init__.py", "pm/environments.py",
+  "kova_cli/main.py", "kova_cli/config.py", "kova_cli/__init__.py",
+  "kova_cli/web_server.py", "cli.py", "run_agent.py", "model_tools.py", "toolsets.py",
+  "kova_constants.py",
 ]
 
 # Per-extra platform gates (settled 2026-09-02): an extra listed here is
@@ -703,8 +703,8 @@ include = [
   "agent.*",
   "tools",
   "tools.*",
-  "hermes_cli",
-  "hermes_cli.*",
+  "kova_cli",
+  "kova_cli.*",
   "gateway",
   "gateway.*",
   "tui_gateway",
@@ -716,10 +716,10 @@ include = [
   "plugins.*",
   "providers",
   "providers.*",
-  "hermes_platform",
-  "hermes_platform.*",
-  "hermes_agent",
-  "hermes_agent.*",
+  "kova_platform",
+  "kova_platform.*",
+  "kova_agent",
+  "kova_agent.*",
   "pm",
   "pm.*",
   "tools",
@@ -727,7 +727,7 @@ include = [
 ]
 
 [tool.setuptools.package-data]
-hermes_cli = [
+kova_cli = [
   "observability/schemas/*.json",
   "data/*.json",
   "local_runtime/*.json",
@@ -843,7 +843,7 @@ select = ["PLW1514", "ASYNC210", "ASYNC220", "ASYNC221", "ASYNC251", "TID251"]
 "gateway/run_shutdown.py" = ["ASYNC220"]
 "gateway/slash_commands.py" = ["ASYNC220"]
 # Off-loop sweep for these routers is in flight (PR #84376).
-"hermes_cli/web_routers/profiles.py" = ["ASYNC220", "ASYNC221"]
+"kova_cli/web_routers/profiles.py" = ["ASYNC220", "ASYNC221"]
 # Legacy blocking spawn sites in platform adapters, pending their own fixes.
 "plugins/platforms/whatsapp/adapter.py" = ["ASYNC220", "ASYNC221"]
 "plugins/platforms/photon/adapter.py" = ["ASYNC220"]

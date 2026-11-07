@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from hermes_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_hermes_dotenv
 
 BASE_PATH = "/usr/bin:/bin"
 

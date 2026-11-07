@@ -5,7 +5,7 @@ import { profileCollectionRoute, profileRouteSuffix } from './profile-routes'
 import { hiddenWindowsChildOptions, windowsShellCommand } from './windows-child-options'
 
 // `hermes gateway ensure` answers with a protocol verdict (ready, or `starting: deadline`) within
-// its own startup deadline: `--timeout` defaults to 60 s (hermes_cli/gateway_runtime.py
+// its own startup deadline: `--timeout` defaults to 60 s (kova_cli/gateway_runtime.py
 // DEFAULT_ENSURE_TIMEOUT). The client is killed only after that deadline plus interpreter start
 // and verdict output, so a slow-but-valid cold start is never reported as "produced no result".
 const GATEWAY_ENSURE_PROTOCOL_DEADLINE_MS = 60_000
@@ -632,7 +632,7 @@ export async function mintLocalGatewayTicket(endpoint: GatewayEndpoint, purpose:
   const home = endpoint.profile_id
   // A served secondary has no socket of its own: the default multiplexer's control socket
   // mints its tickets (bound to the secondary's profile_id). Same rule as
-  // hermes_cli.gateway_runtime.control_home_for.
+  // kova_cli.gateway_runtime.control_home_for.
   const controlHome = endpoint.control_home || home
 
   const groupWritable: string[] = []

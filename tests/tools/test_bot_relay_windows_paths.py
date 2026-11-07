@@ -11,7 +11,7 @@ Two failures on a Windows desktop install talking to a remote gateway:
 
 2. the delivery runner argv hardcoded ``"hermes"``, relying on PATH —
    which service contexts (systemd units, desktop launchers, non-login
-   SSH shells) do not provide, so delivery died with ENOENT. ``_hermes_cli``
+   SSH shells) do not provide, so delivery died with ENOENT. ``_kova_cli``
    resolves the CLI next to this gateway's own interpreter (the venv
    bin/Scripts sibling), falling back to the bare name.
 """
@@ -50,7 +50,7 @@ def test_local_delivery_resolves_sibling_hermes(tmp_path, monkeypatch):
     # step) outranks the sibling by design (#124868): keep it out of this probe.
     monkeypatch.setattr(bot_relay, "__file__", str(tmp_path / "checkout" / "tools" / "bot_relay.py"))
 
-    assert bot_relay._hermes_cli() == str(sibling)
+    assert bot_relay._kova_cli() == str(sibling)
 
 
 def test_local_delivery_uses_shutil_which_when_no_sibling(tmp_path, monkeypatch):
@@ -67,7 +67,7 @@ def test_local_delivery_uses_shutil_which_when_no_sibling(tmp_path, monkeypatch)
         bot_relay.shutil, "which", lambda name: which_hit if name == "hermes" else None
     )
 
-    assert bot_relay._hermes_cli() == which_hit
+    assert bot_relay._kova_cli() == which_hit
 
 
 def test_local_delivery_falls_back_to_bare_name(tmp_path, monkeypatch):
@@ -77,4 +77,4 @@ def test_local_delivery_falls_back_to_bare_name(tmp_path, monkeypatch):
     monkeypatch.setattr(bot_relay.shutil, "which", lambda name: None)
     monkeypatch.setattr(bot_relay, "__file__", str(empty / "bot_relay.py"))
 
-    assert bot_relay._hermes_cli() == "hermes"
+    assert bot_relay._kova_cli() == "hermes"

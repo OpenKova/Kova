@@ -69,7 +69,7 @@ def test_isolated_serve_ledger_row_is_marked_and_ordinary_serve_is_not(tmp_path)
             log = tmp_path / f"{name}.log"
             with log.open("w", encoding="utf-8") as out:
                 procs[name] = subprocess.Popen(
-                    [sys.executable, "-m", "hermes_cli.main", "serve", *extra,
+                    [sys.executable, "-m", "kova_cli.main", "serve", *extra,
                      "--host", "127.0.0.1", "--port", str(_free_port())],
                     env=env, stdout=out, stderr=subprocess.STDOUT,
                 )

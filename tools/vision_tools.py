@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, NamedTuple, Optional
 from urllib.parse import urlparse
 import httpx
-from hermes_dir_acl import make_user_dir
+from kova_dir_acl import make_user_dir
 
 # ``agent.auxiliary_client`` costs ~50 ms cold; only the handlers need it. Both names stay
 # module attributes so tests can patch ``tools.vision_tools.async_call_llm`` (truthy-skip: mocks win).
@@ -34,7 +34,7 @@ def _load_auxiliary_client() -> None:
         extract_content_or_reasoning = extract_content_or_reasoning or _aux.extract_content_or_reasoning
 
 
-from hermes_constants import get_hermes_dir
+from kova_constants import get_hermes_dir
 from tools.debug_helpers import DebugSession
 from tools.website_policy import check_website_access
 from tools.vision_tools_history_budget import (
@@ -62,7 +62,7 @@ _debug = DebugSession("vision_tools", env_var="VISION_TOOLS_DEBUG")
 def _cfg_auxiliary(*keys: str, default=None):
     """``auxiliary.<keys...>`` from config.yaml; ``default`` when config is unavailable."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from kova_cli.config import cfg_get, load_config
         return cfg_get(load_config(), "auxiliary", *keys, default=default)
     except Exception:
         return default
@@ -153,13 +153,13 @@ _DOWNLOAD_USER_AGENT = (
 def _managed_install() -> bool:
     """True when a package manager (NixOS) owns this install's modes.
 
-    Mirrors the check ``hermes_cli.config._secure_dir`` makes internally, read
+    Mirrors the check ``kova_cli.config._secure_dir`` makes internally, read
     here so the *creation* mode honours the same carve-out as reconciliation.
     Import is local and failure means "not managed": an unimportable config
     module is the single-user source-install case, where 0700 is correct.
     """
     try:
-        from hermes_cli.config import is_managed
+        from kova_cli.config import is_managed
 
         return bool(is_managed())
     except Exception:  # pragma: no cover - defensive
@@ -180,7 +180,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
 
     The mode is passed to ``mkdir`` so it is set *at creation*, leaving no
     window where the directory sits world-readable before a follow-up chmod.
-    Policy is then reconciled through ``hermes_cli.config._secure_dir`` — the
+    Policy is then reconciled through ``kova_cli.config._secure_dir`` — the
     house helper — rather than a hand-rolled chmod, which is what keeps this
     correct off a single-user desktop: managed/NixOS installs are skipped,
     ``HERMES_HOME_MODE`` stays honoured, and ``HERMES_UID``/``HERMES_GID``
@@ -218,7 +218,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     # for the bits we care about; _secure_dir reconciles anything unusual.
     make_user_dir(cache_dir, parents=True, exist_ok=True, mode=0o700)
     try:
-        from hermes_cli.config import _secure_dir
+        from kova_cli.config import _secure_dir
 
         _secure_dir(cache_dir)
     except Exception as exc:  # pragma: no cover - defensive
@@ -584,7 +584,7 @@ def _should_use_native_vision_fast_path() -> bool:
     """:func:`_native_tool_result_images` for the active main model; any failure → False."""
     try:
         from agent.auxiliary_client import _read_main_provider, _read_main_model
-        from hermes_cli.config import load_config
+        from kova_cli.config import load_config
         return _native_tool_result_images(_read_main_provider(), _read_main_model(), load_config())
     except Exception as exc:
         logger.debug("Native vision fast-path check failed: %s", exc)

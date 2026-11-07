@@ -6,8 +6,8 @@ from types import SimpleNamespace
 import pytest
 
 from gateway.session_controls import AuthorityConnection
-from hermes_state import SessionDB
-from hermes_state_runtime import RuntimeStoreError
+from kova_state import SessionDB
+from kova_state_runtime import RuntimeStoreError
 
 
 class RoomService:

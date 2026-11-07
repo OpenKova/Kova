@@ -12,7 +12,7 @@ import pytest
 import run_agent
 from agent.chat_completion_helpers import interruptible_streaming_api_call
 from agent.stream_max_lifetime import StreamLifetimeExceeded, resolve_stream_max_lifetime
-from hermes_cli.config_defaults import DEFAULT_CONFIG
+from kova_cli.config_defaults import DEFAULT_CONFIG
 
 
 class _DripWire:

@@ -2,7 +2,7 @@
 
 ``sys.executable -m cron.scheduler --external-worker-file ...``
 (``cron/scheduler.py::_launch_external_cron_worker``) is a full Hermes entry point that
-reaches ``hermes_bootstrap`` only from its ``__main__``, and it imports Hermes packages the moment it
+reaches ``kova_bootstrap`` only from its ``__main__``, and it imports Hermes packages the moment it
 starts. ``cron/scheduler_worker_env.py`` restores the committed generation's
 ``site-packages`` on its ``PYTHONPATH`` so those imports resolve, but a pinned path is not a
 boot: the worker holds no lease on the generation, so the PM collector may remove it
@@ -10,12 +10,12 @@ between the gateway's exit and the worker's next import (#122290 review), and it
 ``sys.path`` never ran the generation's ``.pth`` files.
 
 ``pm.environments.activate_dependencies`` is exactly that boot -- the same call
-``hermes_bootstrap`` makes for every other entry point -- and it leases the generation it
+``kova_bootstrap`` makes for every other entry point -- and it leases the generation it
 selects for the life of the process. ``worker_bootstrap()`` runs it at the top of
 ``cron/__init__.py`` -- ``-m cron.scheduler`` executes the package before the module, and the
-package's first import (``cron.jobs`` -> ``hermes_yaml`` -> ``ruamel``) is already a
+package's first import (``cron.jobs`` -> ``kova_yaml`` -> ``ruamel``) is already a
 dependency -- and does nothing unless ``_launch_external_cron_worker`` marked this child: the
-gateway already booted through ``hermes_bootstrap``, and every other importer of
+gateway already booted through ``kova_bootstrap``, and every other importer of
 ``cron.scheduler`` is an interpreter that owns its own dependencies.
 
 A genuine activation failure propagates: continuing on the inherited, unleased path lets the
@@ -24,13 +24,13 @@ acknowledgement, which ``_launch_external_cron_worker`` already reports as a fai
 the worker's stderr. PM's legitimate no-ops (no committed generation under a venv, wheel, Nix)
 return normally.
 
-That boot covers dependencies only. ``hermes_bootstrap`` also finishes a pending source update
-and may relaunch the process into a fresh one (``hermes_cli/venv_sync.py::relaunch_command``, an
+That boot covers dependencies only. ``kova_bootstrap`` also finishes a pending source update
+and may relaunch the process into a fresh one (``kova_cli/venv_sync.py::relaunch_command``, an
 ``-I`` interpreter that ignores the pinned ``PYTHONPATH``), and re-executes it after restoring a
 tree a killed ``hermes update`` half-wrote. ``finish_worker_boot()`` runs it from
 the worker's ``__main__`` before the payload is read, so a relaunch replays the whole worker: the
 payload is still on disk and the marker still set, and the new process boots its dependencies
-again. ``hermes_bootstrap`` re-runs the (idempotent) dependency boot; the package-init call above
+again. ``kova_bootstrap`` re-runs the (idempotent) dependency boot; the package-init call above
 must stay, because ``cron.jobs`` needs dependencies before ``__main__`` can run.
 """
 
@@ -56,12 +56,12 @@ def worker_bootstrap() -> None:
 
 
 def finish_worker_boot() -> None:
-    """Run ``hermes_bootstrap`` before the worker reads its payload; may relaunch the worker.
+    """Run ``kova_bootstrap`` before the worker reads its payload; may relaunch the worker.
 
     Not from ``worker_bootstrap()``: while ``-m cron.scheduler`` executes ``cron/__init__.py``,
     ``sys.argv[0]`` is still ``-m`` and ``__main__`` has no spec, so the relaunch command could
     not name the module to re-run. In ``__main__`` both are set.
     """
-    import hermes_bootstrap
+    import kova_bootstrap
 
     os.environ.pop(WORKER_MARKER, None)

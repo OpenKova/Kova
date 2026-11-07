@@ -16,7 +16,7 @@ from agent.i18n import t
 from gateway.config import Platform
 from gateway.platforms.event import MessageEvent
 from gateway.session_transcript import TranscriptReadError
-from hermes_cli.status_report import build_status_fields
+from kova_cli.status_report import build_status_fields
 
 # Log-record parity with gateway/run.py and the origin module.
 logger = logging.getLogger("gateway.run")
@@ -687,7 +687,7 @@ class GatewayStatusCommandsMixin:
                 days = int(flag) if flag.isdigit() else days
                 i += 1
         try:
-            from hermes_state_registry import acquire
+            from kova_state_registry import acquire
             from agent.insights import InsightsEngine
 
             def _run_insights():
@@ -696,7 +696,7 @@ class GatewayStatusCommandsMixin:
                     engine = InsightsEngine(db)
                     return engine.format_gateway(engine.generate(days=days, source=source))
                 finally:
-                    from hermes_state_registry import release_or_close
+                    from kova_state_registry import release_or_close
                     release_or_close(db)
 
             # Not a bare hop: ``SessionDB()`` resolves ``get_hermes_home()`` at call time, a

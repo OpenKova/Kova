@@ -17,7 +17,7 @@ from datetime import datetime, timezone, UTC
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -376,7 +376,7 @@ def _git_tracks(path: Path) -> bool:
     ``:(literal)`` stops git globbing the name (``test_[1].py`` must not match ``test_1.py``).
     Git missing / not a repo / file untracked all mean "not tracked".
     """
-    from hermes_cli.source_check import _git_ok
+    from kova_cli.source_check import _git_ok
 
     return _git_ok(["-C", str(path.parent), "ls-files", "--error-unmatch", "--",
                     ":(literal)" + path.name], timeout=5)

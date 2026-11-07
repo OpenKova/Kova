@@ -687,7 +687,7 @@ export function spliceRegistrySessionRows(
 }
 
 /** Which backend each side of a unified session list read, for counting each backend once.
- *  Identities are the gateway `install_id` (`hermes_cli/install_identity.py`), never a row tag:
+ *  Identities are the gateway `install_id` (`kova_cli/install_identity.py`), never a row tag:
  *  production primary rows carry no `connection_id`, so a row can't say which backend served it. */
 export interface RegistryBackendIdentity {
   /** install_id of the backend the primary aggregate read; absent when unknown. */

@@ -356,22 +356,22 @@ class TestRunJobScript:
         (deps / "probe_pkg.py").write_text("VALUE = 42\n", encoding="utf-8")
         snapshot = tmp_path / "workspace-snapshot"
         snapshot.mkdir()
-        (snapshot / "hermes_constants.py").write_text("STALE = True\n", encoding="utf-8")
+        (snapshot / "kova_constants.py").write_text("STALE = True\n", encoding="utf-8")
         (deps / "snapshot.pth").write_text(f"{snapshot}\n", encoding="utf-8")
 
         monkeypatch.setattr(
-            "hermes_cli._launchers.resolve_store_python", lambda repo: Path(sys.executable)
+            "kova_cli._launchers.resolve_store_python", lambda repo: Path(sys.executable)
         )
         monkeypatch.setattr("pm.environments.selected_venv", lambda repo: venv)
         monkeypatch.delenv("PYTHONPATH", raising=False)
 
         script = cron_env / "scripts" / "probe.py"
         script.write_text(
-            "import atexit, os, pickle, sys, probe_pkg, hermes_constants\n"
+            "import atexit, os, pickle, sys, probe_pkg, kova_constants\n"
             "class Probe: pass\n"
             "atexit.register(lambda: print('pickled', bool(pickle.dumps(Probe()))))\n"
             "print(probe_pkg.VALUE)\n"
-            "print(hermes_constants.__file__)\n"
+            "print(kova_constants.__file__)\n"
             "print(sys.path[0])\n"
             "print('PYTHONPATH=' + (os.environ.get('PYTHONPATH') or ''))\n",
             encoding="utf-8",
@@ -382,7 +382,7 @@ class TestRunJobScript:
         value, constants_file, path0, pythonpath, pickled = output.splitlines()
         assert value == "42"
         repo = Path(scheduler_script.__file__).resolve().parents[1]
-        assert Path(constants_file).resolve() == repo / "hermes_constants.py"
+        assert Path(constants_file).resolve() == repo / "kova_constants.py"
         assert Path(path0).resolve() == script.parent.resolve()
         assert pythonpath == "PYTHONPATH="
         assert pickled == "pickled True"  # __main__ outlives the body, as in a plain run
@@ -401,7 +401,7 @@ class TestRunJobScript:
             raise RuntimeError("dependency environment is missing or outside this install")
 
         monkeypatch.setattr(
-            "hermes_cli._launchers.resolve_store_python", lambda repo: Path(sys.executable)
+            "kova_cli._launchers.resolve_store_python", lambda repo: Path(sys.executable)
         )
         monkeypatch.setattr(
             "pm.environments.selected_venv",

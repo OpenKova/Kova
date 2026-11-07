@@ -21,9 +21,9 @@ from tests.tools.test_delegation_backends import OPTIONS, PROBE_PLUGIN, REPO_PLU
 @pytest.fixture
 def options_backend(monkeypatch):
     """``delegation.backend: probe-options`` (adds a per-task ``option``) on a fake provider."""
-    import hermes_yaml as yaml
-    from hermes_cli import plugins as plugins_mod
-    from hermes_cli.plugins import PluginManager
+    import kova_yaml as yaml
+    from kova_cli import plugins as plugins_mod
+    from kova_cli.plugins import PluginManager
 
     home = Path(os.environ["HERMES_HOME"])
     plugin_dir = home / "plugins" / "probe-options"
@@ -46,7 +46,7 @@ def options_backend(monkeypatch):
 
 
 def _agent(srv, home, session_id):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     from run_agent import AIAgent
 
     db = SessionDB(db_path=home / "state.db")
@@ -99,7 +99,7 @@ def test_a_now_switch_rebuilds_this_sessions_delegate_task_and_routing_for_the_n
 
 
 def test_a_plain_switch_changes_nothing_in_this_session_and_new_sessions_take_the_saved_backend(options_backend):
-    import hermes_yaml as yaml
+    import kova_yaml as yaml
     from agent.delegation_backends import set_global_backend
 
     srv, home = options_backend

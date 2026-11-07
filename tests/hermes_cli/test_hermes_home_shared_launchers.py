@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pm
 import pytest
-from hermes_cli import _launchers
-from hermes_cli import venv_sync
+from kova_cli import _launchers
+from kova_cli import venv_sync
 
 
 def _make_home(base: Path, name: str) -> tuple[Path, Path]:

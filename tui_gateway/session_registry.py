@@ -371,8 +371,8 @@ def _maybe_notify_auto_prune(sid: str, profile_home: str | None) -> None:
     """Low disk + auto-prune never decided: a sticky notice (TUI status line / Desktop toast) per
     profile per snooze window, on session create and cold resume. The cheap gate runs inline;
     the DB estimate runs off-thread."""
-    from hermes_cli import prune_advisor
-    from hermes_constants import get_hermes_home
+    from kova_cli import prune_advisor
+    from kova_constants import get_hermes_home
     home = Path(profile_home) if profile_home else get_hermes_home()
     if not prune_advisor.notice_due(home, _AUTO_PRUNE_NOTIFIED):
         return
@@ -548,7 +548,7 @@ def _schedule_agent_build(sid: str, delay: float = 0.05) -> None:
 def _load_resume_transcript(db, stored_id: str, *, model_history_only: bool = False) -> tuple[list, list, list]:
     """(raw_history, display_history, ancestor_prefix) for a cold resume. The full lineage is materialized
     only while it fits sessions.max_resume_messages (the transcript is REST-paginated), else the tip alone."""
-    from hermes_state import SessionResumeTooLargeError
+    from kova_state import SessionResumeTooLargeError
     if model_history_only:
         raw_history = db.get_messages_as_conversation(
             stored_id, repair_alternation=True, include_row_ids=True)

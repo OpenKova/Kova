@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Callable, Iterable
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from tools.interrupt import consume_yield, is_interrupted, is_thread_interrupted
 from tools.environments.base_output import (
     ProcessHandle, _finalize_wait_result, _new_output_collector, _start_drain_thread,
@@ -220,7 +220,7 @@ def _update_json_store(path: Path, update: Callable[[dict], None]) -> None:
     update: a sandbox lifecycle step (modal's restore fallback included) must not abort on it."""
     from contextlib import ExitStack
 
-    from hermes_cli.auth import _file_lock
+    from kova_cli.auth import _file_lock
 
     lock_path = path.with_name(f"{path.name}.lock")
     with ExitStack() as stack:
@@ -573,7 +573,7 @@ class BaseEnvironment(ABC):
                     if output.total_chars == 0:
                         rendered = rendered.lstrip()
                     # The flag tells Hermes' own deadline apart from a command's own ``exit 124``.
-                    return {**self._finalize_wait_result(output, rendered, 124), "hermes_timed_out": True}
+                    return {**self._finalize_wait_result(output, rendered, 124), "kova_timed_out": True}
                 touch_activity_if_due(_activity_state, "terminal command running")
                 trace.heartbeat()
                 time.sleep(_poll_sleep)
@@ -773,7 +773,7 @@ class BaseEnvironment(ABC):
                 result = self._finalize_wait_result(collector, collector.render(suffix=suffix).lstrip("\n"), 124)
             else:
                 result = {"output": suffix.lstrip(), "returncode": 124}
-            result["hermes_timed_out"] = True
+            result["kova_timed_out"] = True
         else:
             result = bounded.value
         self._update_cwd(result)

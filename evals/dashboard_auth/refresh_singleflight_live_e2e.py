@@ -22,10 +22,10 @@ for m in [k for k in sys.modules if k.startswith(("hermes", "tools", "plugins"))
 
 import uvicorn
 
-from hermes_cli import web_server
-from hermes_cli.dashboard_auth import register_provider
-from hermes_cli.dashboard_auth.base import RefreshExpiredError, Session
-from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+from kova_cli import web_server
+from kova_cli.dashboard_auth import register_provider
+from kova_cli.dashboard_auth.base import RefreshExpiredError, Session
+from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
 
 class SlowRotatingIdP(StubAuthProvider):

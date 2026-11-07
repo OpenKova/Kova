@@ -6,26 +6,26 @@ import subprocess
 import sys
 
 
-def test_platform_modules_only_import_stdlib_and_hermes_platform() -> None:
+def test_platform_modules_only_import_stdlib_and_kova_platform() -> None:
     root = Path(__file__).resolve().parents[2]
     code = """
 import sys
 before = set(sys.modules)
-import hermes_platform.host.facts
-import hermes_platform.host.gpu_adapters
-import hermes_platform.host.runtime
-import hermes_platform.host.products
-import hermes_platform.host.summary
-import hermes_platform.declaration
-import hermes_platform.resolver
-import hermes_platform.resolver.app
-import hermes_platform.resolver.availability
-import hermes_platform.resolver.known_dirs
+import kova_platform.host.facts
+import kova_platform.host.gpu_adapters
+import kova_platform.host.runtime
+import kova_platform.host.products
+import kova_platform.host.summary
+import kova_platform.declaration
+import kova_platform.resolver
+import kova_platform.resolver.app
+import kova_platform.resolver.availability
+import kova_platform.resolver.known_dirs
 new_top_levels = {name.partition('.')[0] for name in set(sys.modules) - before}
 unexpected = sorted(
     name
     for name in new_top_levels
-    if name not in sys.stdlib_module_names and not name.startswith('hermes_platform')
+    if name not in sys.stdlib_module_names and not name.startswith('kova_platform')
 )
 assert not unexpected, unexpected
 """

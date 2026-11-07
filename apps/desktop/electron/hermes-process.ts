@@ -52,7 +52,7 @@ function tokensNameGatewaySubcommand(tokens: string[]): boolean {
  *  Python matcher `gateway.status.looks_like_gateway_command_line`:
  *    1. a token whose basename is the Hermes executable (`hermes`, launched directly or by
  *       an interpreter such as `python …/hermes gateway run`); or
- *    2. a `hermes_cli.main` / `hermes_cli/main.py` module entry (`python -m hermes_cli.main
+ *    2. a `kova_cli.main` / `kova_cli/main.py` module entry (`python -m kova_cli.main
  *       … gateway run`, the real unmanaged-gateway launch) carrying the `gateway` subcommand.
  *  Shape 2 was missing, so `findRunningGatewayProfiles` could not see a module-launched
  *  gateway at first launch / profile repair. Exported for unit tests. */
@@ -66,7 +66,7 @@ export function commandLineIsHermesRuntime(raw: string): boolean {
   const hasModuleEntry = tokens.some(token => {
     const lower = token.toLowerCase()
 
-    return lower === 'hermes_cli.main' || lower === 'hermes_cli/main.py' || lower.endsWith('/hermes_cli/main.py')
+    return lower === 'kova_cli.main' || lower === 'kova_cli/main.py' || lower.endsWith('/kova_cli/main.py')
   })
 
   return hasModuleEntry && tokensNameGatewaySubcommand(tokens)

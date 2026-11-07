@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 from gateway.config import Platform, PlatformConfig, StreamingConfig
 from gateway.platforms.base import BasePlatformAdapter, SendResult
 from gateway.platforms.event import MessageEvent, MessageType
@@ -290,7 +290,7 @@ def test_each_profile_resolves_its_own_mode_under_the_multiplexer(monkeypatch, t
     (root / "config.yaml").write_text(yaml.safe_dump(_interim(False)))
     (beta / "config.yaml").write_text(yaml.safe_dump(_interim(True)))
     monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
     prev = secret_scope.is_multiplex_active()
     secret_scope.set_multiplex_active(True)
     try:
@@ -317,7 +317,7 @@ async def _two_turns(monkeypatch, config: dict, *, first_heartbeat: bool, restar
     import json
 
     import gateway.run as gateway_run
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     from tools import async_delegation
 
     home = Path(os.environ["HERMES_HOME"])

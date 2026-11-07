@@ -10,8 +10,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gw
-from hermes_cli import gateway_service_owner
+import kova_cli.gateway as gw
+from kova_cli import gateway_service_owner
 
 UNIT = (
     "[Service]\n"

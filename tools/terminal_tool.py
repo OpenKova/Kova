@@ -126,7 +126,7 @@ def _container_profile() -> str:
     from a routed profile's chat), else the session's. A session with no profile name (a gateway launched as a
     named profile stamps none on its own chats) is the launch profile's, so it keys that profile by name, like
     the profile's Desktop sessions and its session-less work (:func:`_sessionless_container_key`)."""
-    from hermes_constants import get_hermes_home_override, profile_name_for_home
+    from kova_constants import get_hermes_home_override, profile_name_for_home
     from tools.environments.local import _is_routed_home
 
     override = get_hermes_home_override()
@@ -468,7 +468,7 @@ def _routed_home_task_key(profile_scoped: bool) -> Optional[str]:
     Persistent Docker keys the profile name exactly like B's session-bound work, so B keeps ONE
     container instead of a second one per home path.
     """
-    from hermes_constants import get_hermes_home_override, profile_name_for_home
+    from kova_constants import get_hermes_home_override, profile_name_for_home
     from tools.environments.local import _is_routed_home
 
     override = get_hermes_home_override()
@@ -729,7 +729,7 @@ def _ensure_terminal_env_bridged() -> None:
     if get_terminal_scope() is not None:
         return
     # Never write a secondary profile's terminal.* into process-global env.
-    from hermes_constants import get_hermes_home_override
+    from kova_constants import get_hermes_home_override
 
     if get_hermes_home_override() is not None:
         return
@@ -739,7 +739,7 @@ def _ensure_terminal_env_bridged() -> None:
     _terminal_config_bridge_attempted = True
     # Never let a config problem take the terminal tool down.
     with _quiet("terminal config → env fallback bridge failed"):
-        from hermes_cli.config import apply_terminal_config_to_env, read_raw_config
+        from kova_cli.config import apply_terminal_config_to_env, read_raw_config
 
         raw_config = read_raw_config()
         if isinstance(raw_config.get("terminal"), dict):
@@ -774,7 +774,7 @@ def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:
     """
     default_cwd = _backend_default_cwd(env_type)
     cwd = _tenv("TERMINAL_CWD", default_cwd)
-    from hermes_cli.config import _is_ssh_remote_tilde_cwd
+    from kova_cli.config import _is_ssh_remote_tilde_cwd
     # The backend's own default is an in-sandbox path: its ``~`` is the sandbox home, not ours.
     if cwd and cwd != default_cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
@@ -812,7 +812,7 @@ def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:
 
 def _get_env_config() -> dict[str, Any]:
     """Resolve the terminal configuration dict from TERMINAL_* env vars."""
-    from hermes_cli.config_defaults import DEFAULT_SANDBOX_IMAGE as default_image
+    from kova_cli.config_defaults import DEFAULT_SANDBOX_IMAGE as default_image
     _ensure_terminal_env_bridged()
     env_type = _tenv("TERMINAL_ENV", "local")
     mount_docker_cwd = _tenv_bool("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
@@ -1347,7 +1347,7 @@ def _run_foreground(
 ) -> str:
     """Execute in the foreground with retry on transient errors, then finalize. ``metered``
     is False for Hermes' own control-plane commands (``_host_local``)."""
-    from hermes_cli.observability.shared_metrics_harness import record_terminal_outcome
+    from kova_cli.observability.shared_metrics_harness import record_terminal_outcome
     max_retries = 3
     env_type, eff, effective_timeout = plan.env_type, plan.effective_task_id, plan.effective_timeout
 
@@ -1378,7 +1378,7 @@ def _run_foreground(
             break
         except Exception as e:
             # A backend exception (e.g. an SSH connect timeout) never reached an exit status, so it
-            # is not a terminal outcome; Hermes' own deadline arrives as ``hermes_timed_out``.
+            # is not a terminal outcome; Hermes' own deadline arrives as ``kova_timed_out``.
             if "timeout" in str(e).lower():
                 return _error_json(f"Command timed out after {effective_timeout} seconds", exit_code=124)
             # Retry on transient errors
@@ -1506,7 +1506,7 @@ def terminal_tool(
     ``_host_local`` forces the local backend for Hermes-owned control-plane
     children (kept in a separate env cache from the configured backend).
     """
-    from hermes_cli.observability.shared_metrics_loop import record_terminal_backend as _metered
+    from kova_cli.observability.shared_metrics_loop import record_terminal_backend as _metered
     plan = None
     try:
         plan = _plan_execution(

@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_cli import setup_tts
+from kova_cli import setup_tts
 
 
 @pytest.fixture

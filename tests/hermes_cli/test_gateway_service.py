@@ -12,13 +12,13 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import hermes_constants
+import kova_constants
 
 pwd = pytest.importorskip("pwd")
 grp = pytest.importorskip("grp")
 
-import hermes_cli.gateway as gateway_cli
-from hermes_cli.gateway_launchd import launchd_program_arguments
+import kova_cli.gateway as gateway_cli
+from kova_cli.gateway_launchd import launchd_program_arguments
 from gateway import status
 from gateway.restart import (
     DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT,
@@ -187,7 +187,7 @@ class TestServiceIdentityForForeignHome:
         home = tmp_path / "home"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: home)
-        monkeypatch.setattr(hermes_constants, "_account_home", lambda: home)  # names services
+        monkeypatch.setattr(kova_constants, "_account_home", lambda: home)  # names services
         monkeypatch.setenv("HOME", str(home))  # the user unit dir follows it (#98699)
         monkeypatch.delenv("HERMES_REAL_HOME", raising=False)
         monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
@@ -350,7 +350,7 @@ class TestGeneratedSystemdUnits:
         """The generated plist must carry SoftResourceLimits/NumberOfFiles so a
         plist rewrite by `hermes gateway start` cannot strip the FD floor and
         reintroduce EMFILE crashes (launchd default soft limit is 256)."""
-        from hermes_cli import resource_limits
+        from kova_cli import resource_limits
 
         monkeypatch.setattr(
             resource_limits, "configured_nofile_soft_limit", lambda config=None: 65536
@@ -365,7 +365,7 @@ class TestGeneratedSystemdUnits:
     def test_launchd_plist_omits_nofile_block_when_disabled(self, monkeypatch):
         """runtime.nofile_soft_limit: 0/false/null disables the adjustment; the
         plist must then not contain a SoftResourceLimits block at all."""
-        from hermes_cli import resource_limits
+        from kova_cli import resource_limits
 
         monkeypatch.setattr(
             resource_limits, "configured_nofile_soft_limit", lambda config=None: None
@@ -1813,7 +1813,7 @@ class TestProfileArg:
         stdout_log = tmp_path / "gateway.log"
         stderr_log = tmp_path / "gateway.error.log"
         command = [
-            sys.executable, "-m", "hermes_cli.stderr_timestamp", "--error-log", str(stderr_log), "--",
+            sys.executable, "-m", "kova_cli.stderr_timestamp", "--error-log", str(stderr_log), "--",
             sys.executable, "-c", "print('[whatsapp] Bridge started on port 3000')",
         ]
 
@@ -1999,7 +1999,7 @@ class TestDockerAwareGateway:
 
         monkeypatch.setattr(gateway_cli.subprocess, "run", fake_run)
 
-        from hermes_cli.gateway_command_errors import SystemctlUnavailableError
+        from kova_cli.gateway_command_errors import SystemctlUnavailableError
 
         with pytest.raises(SystemctlUnavailableError):
             gateway_cli._run_systemctl(["start", "hermes-gateway"])
@@ -2094,7 +2094,7 @@ class TestLegacyHermesUnitDetection:
     # Minimal ExecStart that looks like our gateway
     _OUR_UNIT_TEXT = (
         "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
-        "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
+        "ExecStart=/usr/bin/python -m kova_cli.main gateway run --replace\n"
     )
 
     @staticmethod
@@ -2127,15 +2127,15 @@ class TestLegacyHermesUnitDetection:
         """Older installs may have used different python invocations.
 
         ExecStart variants we've seen in the wild:
-          - python -m hermes_cli.main gateway run
-          - python path/to/hermes_cli/main.py gateway run
+          - python -m kova_cli.main gateway run
+          - python path/to/kova_cli/main.py gateway run
           - hermes gateway run   (direct binary)
           - python path/to/gateway/run.py
         """
         user_dir, _ = self._setup_search_paths(tmp_path, monkeypatch)
         variants = [
-            "ExecStart=/venv/bin/python -m hermes_cli.main gateway run --replace",
-            "ExecStart=/venv/bin/python /opt/hermes/hermes_cli/main.py gateway run",
+            "ExecStart=/venv/bin/python -m kova_cli.main gateway run --replace",
+            "ExecStart=/venv/bin/python /opt/hermes/kova_cli/main.py gateway run",
             "ExecStart=/usr/local/bin/hermes gateway run --replace",
             "ExecStart=/venv/bin/python /opt/hermes/gateway/run.py",
         ]
@@ -2155,7 +2155,7 @@ class TestRemoveLegacyHermesUnits:
 
     _OUR_UNIT_TEXT = (
         "[Unit]\nDescription=Hermes Gateway\n[Service]\n"
-        "ExecStart=/usr/bin/python -m hermes_cli.main gateway run --replace\n"
+        "ExecStart=/usr/bin/python -m kova_cli.main gateway run --replace\n"
     )
 
     @staticmethod
@@ -2856,7 +2856,7 @@ class TestUnitAnchoredServiceIdentity:
             f'[Service]\nEnvironment="HERMES_HOME={alice_home}"\n', encoding="utf-8"
         )
         monkeypatch.setattr(gateway_cli, "_SYSTEM_UNIT_DIR", unit_dir)
-        monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root_home)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: root_home)
         monkeypatch.setenv("HERMES_HOME", str(bob_home))
         name = gateway_cli.get_service_name()
         assert name != gateway_cli._SERVICE_BASE
@@ -2895,7 +2895,7 @@ class TestUnitAnchoredServiceIdentity:
         unit_path.write_text(f'[Service]\nEnvironment="HERMES_HOME={profile_home}"\n', encoding="utf-8")
         monkeypatch.setattr(gateway_cli, "_SYSTEM_UNIT_DIR", unit_dir)
         monkeypatch.setattr(os, "geteuid", lambda: 0)
-        monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root_home)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: root_home)
         monkeypatch.setenv("HERMES_HOME", str(profile_home))
         assert gateway_cli.get_service_name() == gateway_cli._SERVICE_BASE
         # The profile branch, consulted against the home that owns the profile, would have answered
@@ -2917,7 +2917,7 @@ class TestUnitAnchoredServiceIdentity:
         )
         monkeypatch.setattr(gateway_cli, "_SYSTEM_UNIT_DIR", unit_dir)
         monkeypatch.setattr(os, "geteuid", lambda: 0)
-        monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root_home)
+        monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: root_home)
         monkeypatch.delenv("HERMES_HOME", raising=False)
 
         pre_sync_name = gateway_cli.get_service_name()

@@ -18,8 +18,8 @@ import sys
 import threading
 from pathlib import Path
 
-from hermes_cli.process_identity import release_process_group_once_empty, spawn_owned
-from hermes_constants import get_hermes_home
+from kova_cli.process_identity import release_process_group_once_empty, spawn_owned
+from kova_constants import get_hermes_home
 
 from .method_ctx import bind_module
 
@@ -57,7 +57,7 @@ class _SlashWorker:
             + (["--model", model] if model else []) \
             + (["--provider", provider] if provider else [])
         self._closed = False
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from kova_cli._subprocess_compat import windows_hide_flags
         # slash_worker runs the Hermes agent → needs provider credentials. Tier-1 secrets
         # (gateway/GitHub/infra) are still stripped (#29157). Global-remote / multi-profile sessions: the
         # worker must resolve config/skills/state against the session's profile home, not the gateway's

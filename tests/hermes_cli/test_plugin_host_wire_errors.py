@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from hermes_cli.plugin_host_wire import PluginHostError, error_payload, raise_remote
+from kova_cli.plugin_host_wire import PluginHostError, error_payload, raise_remote
 
 
 def _roundtrip(exc: BaseException):

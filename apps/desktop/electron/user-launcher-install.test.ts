@@ -13,10 +13,10 @@ afterEach((): void => {
 })
 
 function sourceTree(root: string): void {
-  fs.mkdirSync(path.join(root, 'hermes_cli'), { recursive: true })
+  fs.mkdirSync(path.join(root, 'kova_cli'), { recursive: true })
   fs.mkdirSync(path.join(root, 'pm'))
-  fs.writeFileSync(path.join(root, 'hermes_cli', 'main.py'), '')
-  fs.writeFileSync(path.join(root, 'hermes_cli', '_launchers.py'), '')
+  fs.writeFileSync(path.join(root, 'kova_cli', 'main.py'), '')
+  fs.writeFileSync(path.join(root, 'kova_cli', '_launchers.py'), '')
 }
 
 function publishLauncher(dir: string, reported: string): string {

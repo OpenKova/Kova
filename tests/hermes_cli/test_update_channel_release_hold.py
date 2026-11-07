@@ -12,11 +12,11 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state_runtime as rt
-from hermes_cli import main, source_releases, update_cmd
-from hermes_cli.subcommands.update import build_update_parser
-from hermes_cli.update_channel import set_install_channel
-from hermes_state import SessionDB
+import kova_state_runtime as rt
+from kova_cli import main, source_releases, update_cmd
+from kova_cli.subcommands.update import build_update_parser
+from kova_cli.update_channel import set_install_channel
+from kova_state import SessionDB
 
 pytestmark = pytest.mark.real_release_channels
 
@@ -42,7 +42,7 @@ def source(tmp_path, monkeypatch):
     git(origin, "config", "user.name", "Channel Fixture")
     git(origin, "config", "user.email", "fixture@example.invalid")
     git(origin, "config", "commit.gpgsign", "false")
-    (origin / "hermes_state_common.py").write_text(_PRE_RUNTIME)
+    (origin / "kova_state_common.py").write_text(_PRE_RUNTIME)
     git(origin, "add", ".")
     git(origin, "commit", "-m", "before the cutover")
     git(origin, "checkout", "-q", "-b", "release")
@@ -51,15 +51,15 @@ def source(tmp_path, monkeypatch):
     git(origin, "commit", "-m", "stable release cut beside main")
     release = git(origin, "rev-parse", "HEAD")
     git(origin, "checkout", "-q", "main")
-    (origin / "hermes_state_common.py").write_text(_RUNTIME)
+    (origin / "kova_state_common.py").write_text(_RUNTIME)
     git(origin, "commit", "-am", "gateway runtime")
     installed = git(origin, "rev-parse", "HEAD")
     git(tmp_path, "clone", "-q", str(origin), str(checkout))
     git(checkout, "fetch", "-q", "origin", "release")
     git(checkout, "checkout", "-q", "--detach", installed)
     monkeypatch.setattr(main, "PROJECT_ROOT", checkout)
-    monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: checkout)
-    monkeypatch.setattr("hermes_cli.backup._sibling_profile_homes", lambda h: [])
+    monkeypatch.setattr("kova_cli.config.get_project_root", lambda: checkout)
+    monkeypatch.setattr("kova_cli.backup._sibling_profile_homes", lambda h: [])
     monkeypatch.setattr(update_cmd._commit, "preflight_refusal", lambda *a, **k: None)
     parser = argparse.ArgumentParser()
     build_update_parser(parser.add_subparsers(), cmd_update=main.cmd_update)
@@ -163,7 +163,7 @@ def test_an_unconfigured_stable_install_on_a_main_commit_beside_the_release_is_h
         source, monkeypatch, capsys, argv):
     """#140729 as reported: no recorded channel, an official checkout's default (stable), a main
     commit past the cutover that neither contains nor is contained by the release."""
-    monkeypatch.setattr("hermes_cli.update_channel.default_channel", lambda *_a, **_k: "stable")
+    monkeypatch.setattr("kova_cli.update_channel.default_channel", lambda *_a, **_k: "stable")
     _stable_publishes(monkeypatch, source.release)
     _ledgered(source.home)
 

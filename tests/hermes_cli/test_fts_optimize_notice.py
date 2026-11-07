@@ -8,9 +8,9 @@ import pytest
 
 def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatch, capsys):
     """A deployed v1 trigram projection still receives the opt-in notice."""
-    from hermes_cli import update_cmd
-    import hermes_constants
-    import hermes_state
+    from kova_cli import update_cmd
+    import kova_constants
+    import kova_state
 
     db_path = tmp_path / "state.db"
     db_path.touch()
@@ -31,12 +31,12 @@ def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatc
             pass
 
         _db_needs_fts_storage_upgrade = staticmethod(
-            hermes_state.SessionDB._db_needs_fts_storage_upgrade
+            kova_state.SessionDB._db_needs_fts_storage_upgrade
         )
-        _db_has_legacy_inline_fts = staticmethod(hermes_state.SessionDB._db_has_legacy_inline_fts)
+        _db_has_legacy_inline_fts = staticmethod(kova_state.SessionDB._db_has_legacy_inline_fts)
 
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
-    monkeypatch.setattr(hermes_state, "SessionDB", FakeSessionDB)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_state, "SessionDB", FakeSessionDB)
     # Report a large state.db without patching Path.stat globally: a
     # 1-arg lambda on the class breaks pathlib.exists(follow_symlinks=...)
     # for every caller in the process (pytest's own teardown included).
@@ -63,10 +63,10 @@ def test_doctor_collects_structural_fts_upgrade_status(
     tmp_path, monkeypatch, base_layout, trigram_layout, marker, large,
 ):
     """Real read-only collection must ignore forged or lagging version markers."""
-    from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
-    from hermes_state_fts import _expected_vtable_sql
-    from hermes_state_common import FTS_SQL, FTS_TRIGRAM_SQL
+    from kova_cli import doctor_state
+    from kova_state_dbfile import collect_state_db_stats
+    from kova_state_fts import _expected_vtable_sql
+    from kova_state_common import FTS_SQL, FTS_TRIGRAM_SQL
 
     db_path = tmp_path / "state.db"
     with sqlite3.connect(db_path) as conn:
@@ -103,10 +103,10 @@ def test_doctor_collects_structural_fts_upgrade_status(
 
 @pytest.mark.parametrize("progress, pending", [(0, True), (10, False)])
 def test_doctor_collects_pending_rebuild_with_settled_layout(tmp_path, monkeypatch, progress, pending):
-    from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
-    from hermes_state_fts import _expected_vtable_sql
-    from hermes_state_common import FTS_SQL, FTS_TRIGRAM_SQL
+    from kova_cli import doctor_state
+    from kova_state_dbfile import collect_state_db_stats
+    from kova_state_fts import _expected_vtable_sql
+    from kova_state_common import FTS_SQL, FTS_TRIGRAM_SQL
 
     db_path = tmp_path / "state.db"
     with sqlite3.connect(db_path) as conn:

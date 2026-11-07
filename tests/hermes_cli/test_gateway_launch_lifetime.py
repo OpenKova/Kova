@@ -38,10 +38,10 @@ def test_retained_tui_worktree_survives_stale_prune_while_its_session_resumes(tm
     import os
     import time
 
-    from hermes_cli import main_tui_launch
-    from hermes_cli.worktree_ops import _prune_stale_worktrees, _setup_worktree
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_cli import main_tui_launch
+    from kova_cli.worktree_ops import _prune_stale_worktrees, _setup_worktree
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     repo = tmp_path / 'repo'
     git = ['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid']
@@ -93,9 +93,9 @@ def test_retained_tui_worktree_kept_while_any_session_in_it_resumes(tmp_path, mo
     import re
     import time
 
-    from hermes_cli import main_tui_launch, worktree_ops
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_cli import main_tui_launch, worktree_ops
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
 
     home = tmp_path / ('Zoë "q" \\ home' if case == 'quoted_home' else 'home')
     home.mkdir()

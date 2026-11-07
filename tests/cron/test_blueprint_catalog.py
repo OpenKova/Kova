@@ -1,7 +1,7 @@
 """Tests for Automation Blueprints — the parameterized automation blueprint system.
 
 Covers the core catalog/slot schema/renderers/fill (cron/blueprint_catalog.py),
-the shared /blueprint command handler (hermes_cli/blueprint_cmd.py), and
+the shared /blueprint command handler (kova_cli/blueprint_cmd.py), and
 the docs generator. Uses an isolated HERMES_HOME for anything that touches the
 cron job store.
 """
@@ -121,8 +121,8 @@ def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import kova_constants
+    importlib.reload(kova_constants)
     from cron import jobs
     importlib.reload(jobs)
     return jobs
@@ -133,7 +133,7 @@ class TestCommandHandler:
 
 
     def test_fill_creates_job(self, isolated_home):
-        from hermes_cli.blueprint_cmd import handle_blueprint_command
+        from kova_cli.blueprint_cmd import handle_blueprint_command
 
         res = handle_blueprint_command("morning-brief time=07:30 deliver=telegram")
         assert "Scheduled" in res.text

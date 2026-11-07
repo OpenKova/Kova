@@ -12,9 +12,9 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from hermes_dir_acl import make_user_dir
+from kova_dir_acl import make_user_dir
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def _dispose(path: Path, record: dict) -> bool:
     """Decide one queued record in place; False leaves it queued for a later tick."""
     from cron.scheduler_delivery import BOT_CHAT_POLICY_PLATFORM, bot_chat_message
     from gateway.warning_notifications import warning_notifications_enabled
-    from hermes_cli.config_effective import load_user_config_effective
+    from kova_cli.config_effective import load_user_config_effective
     from tools.bot_live_delivery import deliver_to_live_owner, find_canonical_live_owner
 
     if reason := _malformed(record):

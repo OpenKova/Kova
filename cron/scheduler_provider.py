@@ -97,7 +97,7 @@ def routed_profile_fire(home=None) -> bool:
 
     Derived from the fire's home itself (``home``, else the task's active ``get_hermes_home()``), never from
     a marker one entry point sets: the desktop ticker (``_profile_cron_scope``), the dashboard's
-    manual Run now (``hermes_cli.web_server_cron._cron_store_scope``) and any other caller that
+    manual Run now (``kova_cli.web_server_cron._cron_store_scope``) and any other caller that
     binds a HERMES_HOME override for a sibling profile all reach ``run_one_job`` the same way, and a
     marker set only in the ticker left the manual path with the original cross-profile leak.
 
@@ -109,7 +109,7 @@ def routed_profile_fire(home=None) -> bool:
     the span the profile's secret scope covers, and the restart-safe handoff marks the worker
     payload with it. The launch identity is ``get_routing_process_hermes_home()`` (gateway/AGENTS.md
     "One launch-home identity")."""
-    from hermes_constants import get_hermes_home, get_routing_process_hermes_home, hermes_home_key
+    from kova_constants import get_hermes_home, get_routing_process_hermes_home, hermes_home_key
 
     target = home if home is not None else get_hermes_home()
     return hermes_home_key(target) != hermes_home_key(get_routing_process_hermes_home())
@@ -119,7 +119,7 @@ def routed_profile_fire(home=None) -> bool:
 def _profile_cron_scope(home):
     """Scope the calling thread to one profile's home + cron store for the block."""
     from cron.jobs import use_cron_store
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_hermes_home_override, reset_hermes_home_override
 
     # Record per-profile heartbeat after each tick cycle. Distinguish a COMPLETED cycle (``_tick_error``
     # unset) — where each profile's beat reflects its own outcome, so a yielding profile does not darken
@@ -280,7 +280,7 @@ def provider_supports_split_fire(provider: Any) -> bool:
 def _misfire_grace_minutes() -> float:
     """``cron.misfire_grace_minutes`` from config; non-positive disables the catch-up sweep."""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from kova_cli.config import cfg_get, load_config
 
         config = load_config()
         return float(
@@ -389,7 +389,7 @@ def resolve_cron_scheduler() -> CronScheduler:
     with a warning — cron must never be left without a trigger."""
     name = ""
     try:
-        from hermes_cli.config import cfg_get, load_config
+        from kova_cli.config import cfg_get, load_config
         name = (cfg_get(load_config(), "cron", "provider", default="") or "").strip()
     except Exception:
         pass
@@ -444,7 +444,7 @@ class InProcessCronScheduler(CronScheduler):
         from cron.scheduler import tick as cron_tick
         from cron.jobs import clear_ticker_error, record_ticker_error, record_ticker_heartbeat
         from cron.scheduler_ownership import register_ticked_homes
-        from hermes_constants import get_process_hermes_home
+        from kova_constants import get_process_hermes_home
         from cron.dispatch_hold import note_dispatching, note_held
 
         logger.info("In-process cron scheduler started (interval=%ds)", interval)

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from agent import model_metadata_http
 from agent.model_metadata_cache import _write_context_cache, locked_context_cache
@@ -25,7 +25,7 @@ from agent.model_metadata_memo_bounds import MEMO_LOCK, bound_codex_caches, reme
 
 from utils import atomic_json_write, base_url_host_matches, base_url_hostname
 
-from hermes_constants import OPENROUTER_MODELS_URL, openrouter_variant_base
+from kova_constants import OPENROUTER_MODELS_URL, openrouter_variant_base
 from agent.message_metadata import PERSISTENCE_ONLY_MESSAGE_FIELDS, unpriced_replay_fields, without_persistence_fields
 from agent.model_metadata_token_memo import (  # _MSG_TOKENS_CACHE: tests and benches read it here
     _MSG_TOKENS_CACHE, MemoPins, lookup_message_tokens, remember_message_tokens,
@@ -152,7 +152,7 @@ _LOCAL_PROBE_DISK_TTL_SECONDS = 300.0
 
 
 def _cache_file(name: str) -> Path:
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return get_hermes_home() / "cache" / name
 
 
@@ -497,7 +497,7 @@ def _strip_openrouter_routing_variant(
 
     Only the id used for LOOKUP is rewritten. The suffixed id the caller holds
     stays on the wire, so the routing opt-in is preserved — the same rule
-    :func:`hermes_cli.models.validate_requested_model` applies. Sharing the
+    :func:`kova_cli.models.validate_requested_model` applies. Sharing the
     base's cache key is intentional: the window is identical, so a variant and
     its base must never disagree.
 
@@ -632,7 +632,7 @@ def _is_codex_route(provider: str, base_url: str, custom_providers: list | None)
     if not base_url:
         return False
     with contextlib.suppress(Exception):  # config unreadable → not a known Codex route
-        from hermes_cli.config import get_custom_provider_api_mode
+        from kova_cli.config import get_custom_provider_api_mode
         return get_custom_provider_api_mode(base_url, custom_providers) == "codex_responses"
     return False
 
@@ -1096,7 +1096,7 @@ def _resolve_endpoint_context_length(model: str, base_url: str, api_key: str = "
 
 def _get_context_cache_path() -> Path:
     """Path to the persistent context length cache file."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return get_hermes_home() / "context_length_cache.yaml"
 
 
@@ -1202,7 +1202,7 @@ def _invalidate_cached_context_length(model: str, base_url: str) -> None:
     _LOCAL_CTX_PROBE_CACHE.pop(("ollama_show", bare, stripped), None)
     # Same for a memoised Bedrock probe failure (keyed by region, which the caller does not know):
     # the entry being dropped is the reason to ask the probe again, not to wait out its TTL.
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     for memo_key in list(_BEDROCK_PROBE_FAILURE_CACHE):  # snapshot: another thread may be memoising
         if memo_key[:2] == (hermes_home_key(), stripped) and memo_key[2] in (model, bare):
             _BEDROCK_PROBE_FAILURE_CACHE.pop(memo_key, None)
@@ -1792,7 +1792,7 @@ def _codex_catalog_probe_allowed(access_token: str, base_url: str = "") -> bool:
     base = (base_url or "").strip() or CODEX_MODELS_CATALOG_ENDPOINT
     if not base_url_host_matches(base, "chatgpt.com"):
         return True
-    from hermes_cli.auth_constants import _decode_jwt_claims
+    from kova_cli.auth_constants import _decode_jwt_claims
     return bool(_decode_jwt_claims(access_token))
 
 
@@ -2033,7 +2033,7 @@ def _resolve_bedrock_context_length(model: str, base_url: str) -> Optional[int]:
     if not region:
         with contextlib.suppress(Exception):
             region = resolve_bedrock_region()
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     memo_key = (hermes_home_key(), cache_key_url.rstrip('/'), model, region)
     if region and not _bedrock_probe_failed_recently(memo_key):
         probed = probe_bedrock_context_length(model, region)
@@ -2106,9 +2106,9 @@ def _resolve_moa_context_length(model: str, custom_providers: list | None) -> Op
     """Step 0a: MoA virtual provider — ``model`` is a preset name, so every probe would miss. Resolve
     the aggregator's real provider+model (references are advisory). None on any failure."""
     try:
-        from hermes_cli.config import get_compatible_custom_providers, load_config
-        from hermes_cli.moa_config import resolve_moa_preset
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from kova_cli.config import get_compatible_custom_providers, load_config
+        from kova_cli.moa_config import resolve_moa_preset
+        from kova_cli.runtime_provider import resolve_runtime_provider
         config = load_config()
         if custom_providers is None:
             custom_providers = get_compatible_custom_providers(config)
@@ -2145,7 +2145,7 @@ def _config_override_context_length(model: str, base_url: str, provider: str, cu
     # helper self-resolves it from config (#69807).
     if base_url and model:
         with contextlib.suppress(Exception):  # fall through to probing
-            from hermes_cli.config import get_custom_provider_context_length
+            from kova_cli.config import get_custom_provider_context_length
             cp_ctx = get_custom_provider_context_length(model=model, base_url=base_url, custom_providers=custom_providers)
             if cp_ctx:
                 return cp_ctx
@@ -2247,7 +2247,7 @@ def get_model_context_length(
     # a user who pinned the fully-suffixed id keeps winning, and BEFORE every
     # cache/catalog lookup below so the base's real window is found instead of
     # a generic family default. Mirrors the validation path's base/suffix split
-    # in hermes_cli.models.validate_requested_model.
+    # in kova_cli.models.validate_requested_model.
     model = _strip_openrouter_routing_variant(model, base_url=base_url, provider=provider)
     # Endpoint-scoped metadata goes AHEAD of the persistent cache so a value learned on a
     # multiplexed provider's other endpoint cannot override it.

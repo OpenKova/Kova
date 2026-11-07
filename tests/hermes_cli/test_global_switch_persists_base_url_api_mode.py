@@ -9,7 +9,7 @@ Both ``_handle_model_switch`` (typed ``/model <name>``) and
 persistence block wrote ``model.default``/``model.provider`` but never
 touched ``base_url``/``api_mode`` at all. Fix: sync both on every global
 switch, clearing to ``None`` when the resolved result doesn't need them — now the
-canonical ``hermes_cli.model_switch.persist_model_selection`` shape shared by every
+canonical ``kova_cli.model_switch.persist_model_selection`` shape shared by every
 surface.
 """
 
@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.model_switch import ModelSwitchResult
+from kova_cli.model_switch import ModelSwitchResult
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +33,7 @@ def model_config(tmp_path, monkeypatch):
 
 
 def _saved_model():
-    from hermes_cli.config import read_user_config_raw
+    from kova_cli.config import read_user_config_raw
     return {f"model.{key}": value for key, value in read_user_config_raw()["model"].items()}
 
 
@@ -95,9 +95,9 @@ def _run_switch(monkeypatch, result, cmd="/model MiniMax-M3 --global"):
     import cli as cli_mod
 
     monkeypatch.setattr(cli_mod, "_cprint", lambda *a, **k: None)
-    monkeypatch.setattr("hermes_cli.model_switch.switch_model", lambda **kw: result)
+    monkeypatch.setattr("kova_cli.model_switch.switch_model", lambda **kw: result)
     monkeypatch.setattr(
-        "hermes_cli.inventory.load_picker_context",
+        "kova_cli.inventory.load_picker_context",
         lambda: (_ for _ in ()).throw(RuntimeError("no picker context in test")),
     )
     cli_mod.HermesCLI._handle_model_switch(_StubCLI(), cmd)
@@ -122,9 +122,9 @@ def test_session_only_switch_does_not_touch_config(monkeypatch, model_config):
 
     monkeypatch.setattr(cli_mod, "_cprint", lambda *a, **k: None)
     original = model_config.read_bytes()
-    monkeypatch.setattr("hermes_cli.model_switch.switch_model", lambda **kw: _make_result())
+    monkeypatch.setattr("kova_cli.model_switch.switch_model", lambda **kw: _make_result())
     monkeypatch.setattr(
-        "hermes_cli.inventory.load_picker_context",
+        "kova_cli.inventory.load_picker_context",
         lambda: (_ for _ in ()).throw(RuntimeError("no picker context in test")),
     )
 

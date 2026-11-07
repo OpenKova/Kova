@@ -85,7 +85,7 @@ def sleeper():
 def _install(tmp_path: Path, *, legacy: bool = False) -> tuple[Path, Path]:
     home = tmp_path / "home"
     install = home / "hermes-agent"
-    package = install / "hermes_cli"
+    package = install / "kova_cli"
     package.mkdir(parents=True)
     (package / "__init__.py").touch()
     (package / "main.py").write_text(FAKE_CLI, encoding="utf-8")
@@ -94,7 +94,7 @@ def _install(tmp_path: Path, *, legacy: bool = False) -> tuple[Path, Path]:
         bin_dir.mkdir(parents=True)
         (bin_dir / "python3").symlink_to(sys.executable)
         hermes = bin_dir / "hermes"
-        hermes.write_text(f'#!/usr/bin/env bash\nexec {shlex.quote(sys.executable)} -m hermes_cli.main "$@"\n', encoding="utf-8")
+        hermes.write_text(f'#!/usr/bin/env bash\nexec {shlex.quote(sys.executable)} -m kova_cli.main "$@"\n', encoding="utf-8")
         hermes.chmod(0o755)
     else:
         (install / "pm").mkdir()

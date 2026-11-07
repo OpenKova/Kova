@@ -6,7 +6,7 @@ import { parseArgs } from 'node:util'
 import { isMain } from './frontend-common.mjs'
 
 const receiptName = 'hermes-build.json'
-// What `hermes update` leaves in a product it could not rebuild (STALE_MARKER in hermes_cli/webapp.py).
+// What `hermes update` leaves in a product it could not rebuild (STALE_MARKER in kova_cli/webapp.py).
 const staleMarker = '.hermes-stale'
 const workspaces = { tui: 'ui-tui', web: 'web', desktop: 'apps/desktop' }
 // Another product's output under a workspace is never this product's input.
@@ -204,7 +204,7 @@ export function recordProduct({ source, product, out, inputs, stampClock }) {
 }
 
 /** Validate output bytes against their receipt, independently of current inputs or host, and of
- *  the marker ``hermes update`` leaves in a product it could not rebuild (hermes_cli/webapp.py),
+ *  the marker ``hermes update`` leaves in a product it could not rebuild (kova_cli/webapp.py),
  *  which still fails productCurrent. */
 export function outputIntact(out, product) {
   try {

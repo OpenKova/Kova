@@ -11,7 +11,7 @@ import time
 
 import pytest
 
-from hermes_cli.observability import relay_shared_metrics as mod
+from kova_cli.observability import relay_shared_metrics as mod
 
 
 class FakeStore:
@@ -33,7 +33,7 @@ class RealBackedStore:
     """
 
     def __init__(self, tmp_path):
-        from hermes_cli.observability.shared_metrics import SharedMetricsStore
+        from kova_cli.observability.shared_metrics import SharedMetricsStore
 
         self._real = SharedMetricsStore(
             database_path=tmp_path / "m.db", outbox_directory=tmp_path / "o"
@@ -90,7 +90,7 @@ def capture_sender(monkeypatch):
             record["passes"].append(time.time())
 
     monkeypatch.setattr(
-        "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+        "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
         FakeSender,
     )
     return record
@@ -98,7 +98,7 @@ def capture_sender(monkeypatch):
 
 def _set_config(monkeypatch, config):
     monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly", lambda: config, raising=False
+        "kova_cli.config.read_raw_config_readonly", lambda: config, raising=False
     )
 
 
@@ -148,7 +148,7 @@ class TestInteractivePathIsNotBlocked:
                 release.wait(5)
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+            "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
             SlowSender,
         )
         _set_config(monkeypatch, _config(enabled=True, send=True))
@@ -184,7 +184,7 @@ class TestInteractivePathIsNotBlocked:
                 release.wait(5)
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+            "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
             SlowSender,
         )
         _set_config(monkeypatch, _config(enabled=True, send=True))
@@ -297,11 +297,11 @@ class TestConsentWindows:
         regardless of handles_hook(). Drives the real observe_lifecycle gate
         path: handles_hook is False throughout.
         """
-        from hermes_cli.observability.shared_metrics import SharedMetricsStore
-        from hermes_cli.observability.shared_metrics_sender import (
+        from kova_cli.observability.shared_metrics import SharedMetricsStore
+        from kova_cli.observability.shared_metrics_sender import (
             reconcile_send_consent,
         )
-        from hermes_cli.sqlite_util import write_txn
+        from kova_cli.sqlite_util import write_txn
 
         # Lay the store out exactly as production does, under a redirected
         # HERMES_HOME: the boot reconciler probes the default path (without
@@ -309,7 +309,7 @@ class TestConsentWindows:
         # the probe and the store must agree the way they do in production.
         home = tmp_path / "home"
         monkeypatch.setattr(
-            "hermes_constants.get_hermes_home", lambda: home
+            "kova_constants.get_hermes_home", lambda: home
         )
         root = home / "telemetry" / "shared_metrics"
         store = SharedMetricsStore(
@@ -322,7 +322,7 @@ class TestConsentWindows:
                 reconcile_send_consent(connection, True)
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics.SharedMetricsStore",
+            "kova_cli.observability.shared_metrics.SharedMetricsStore",
             lambda *a, **k: store,
         )
         _set_config(monkeypatch, _config(enabled=False, send=False))
@@ -351,7 +351,7 @@ class TestFailureIsolation:
                 raise RuntimeError("boom")
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+            "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
             Exploding,
         )
         _set_config(monkeypatch, _config(enabled=True, send=True))
@@ -363,7 +363,7 @@ class TestFailureIsolation:
             raise OSError("config unreadable")
 
         monkeypatch.setattr(
-            "hermes_cli.config.read_raw_config_readonly", explode, raising=False
+            "kova_cli.config.read_raw_config_readonly", explode, raising=False
         )
         runtime._export()
         assert runtime.subscriber.store.exported == 1
@@ -391,7 +391,7 @@ class TestFailureIsolation:
                 finished.append(True)
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+            "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
             SlowSender,
         )
         _set_config(monkeypatch, _config(enabled=True, send=True))
@@ -421,7 +421,7 @@ class TestFailureIsolation:
                 finished.append(True)
 
         monkeypatch.setattr(
-            "hermes_cli.observability.shared_metrics_sender.SharedMetricsSender",
+            "kova_cli.observability.shared_metrics_sender.SharedMetricsSender",
             SlowSender,
         )
         _set_config(monkeypatch, _config(enabled=True, send=True))

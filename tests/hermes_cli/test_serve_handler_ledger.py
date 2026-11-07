@@ -27,7 +27,7 @@ def test_committed_ledger_lists_every_live_handler():
     assert sorted(set(listed) - live) == [], "ledger rows for removed handlers: run scripts/gen_serve_handler_ledger.py"
     assert sorted(set(gen.DECISIONS) - live) == [], "DECISIONS names a handler that no longer exists"
     assert {decision for decision, _ in gen.DECISIONS.values()} <= set(gen.DECISION_VALUES)
-    assert committed == gen.render(facts), "tests/hermes_cli/serve_handler_ledger.json is stale: run scripts/gen_serve_handler_ledger.py"
+    assert committed == gen.render(facts), "tests/kova_cli/serve_handler_ledger.json is stale: run scripts/gen_serve_handler_ledger.py"
 
 
 def test_rpc_rows_follow_the_ws_dispatch_tables():

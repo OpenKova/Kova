@@ -44,7 +44,7 @@ def homes(tmp_path, monkeypatch):
     yield launch, profile
     from agent import outbound_webhooks
     from agent import shell_hooks
-    from hermes_cli.plugins import _reset_plugin_managers_for_tests
+    from kova_cli.plugins import _reset_plugin_managers_for_tests
 
     shell_hooks.reset_for_tests()
     outbound_webhooks.reset_for_tests()
@@ -56,7 +56,7 @@ def test_worker_registers_owning_profile_config_hooks(homes, tmp_path, monkeypat
     from agent import outbound_webhooks
     from agent import shell_hooks
     from cron import scheduler
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
 
     payload = tmp_path / "payload.json"
     payload.write_text(

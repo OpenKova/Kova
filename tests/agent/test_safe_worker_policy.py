@@ -44,8 +44,8 @@ def test_worker_config_is_frozen_before_any_profile_read(tmp_path, mode):
             if event == "open" and str(args[0]).endswith("config.yaml") and args[1] != "w":
                 reads.append(str(args[0]))
         sys.addaudithook(audit)
-        from hermes_cli.config import load_config, load_config_readonly, read_raw_config, read_raw_config_readonly, DEFAULT_CONFIG
-        from hermes_cli import env_loader
+        from kova_cli.config import load_config, load_config_readonly, read_raw_config, read_raw_config_readonly, DEFAULT_CONFIG
+        from kova_cli import env_loader
         callbacks = []
         env_loader._apply_managed_env = lambda **kw: callbacks.append("managed")
         env_loader._apply_external_secret_sources = lambda home: callbacks.append("secrets")
@@ -136,7 +136,7 @@ def test_safe_worker_never_discovers_or_invokes_customizations(tmp_path, mode):
                 reads.append(str(args[0]))
         sys.addaudithook(audit)
         import providers
-        from hermes_cli import plugins, lifecycle
+        from kova_cli import plugins, lifecycle
         plugins.discover_plugins()
         providers.list_providers()
         from providers.base import ProviderProfile
@@ -279,7 +279,7 @@ def test_direct_secret_hydration_cannot_read_bypassed_yaml(tmp_path, mode):
             if event == "open" and str(args[0]).endswith("config.yaml") and args[1] != "w":
                 reads.append(str(args[0]))
         sys.addaudithook(audit)
-        from hermes_cli.env_loader import hydrate_profile_secret_sources
+        from kova_cli.env_loader import hydrate_profile_secret_sources
         assert hydrate_profile_secret_sources(home) == {}
         other = home / "other"; other.mkdir()
         (other / "config.yaml").write_text("agent: {}")
@@ -293,7 +293,7 @@ def test_direct_secret_hydration_cannot_read_bypassed_yaml(tmp_path, mode):
 def test_private_policy_refuses_late_binding_and_fork_inheritance(tmp_path):
     late = run_worker(tmp_path, r"""
         import json
-        import hermes_cli.config
+        import kova_cli.config
         from agent.safe_worker_policy import _bind_safe_worker_policy
         try:
             _bind_safe_worker_policy(safe_mode=True, ignore_user_config=True, config={})

@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
-from hermes_cli.config import DEFAULT_CONFIG, atomic_config_write, read_user_config_raw
+from kova_cli.config import DEFAULT_CONFIG, atomic_config_write, read_user_config_raw
 import tui_gateway.server as srv
 
 
@@ -106,7 +106,7 @@ def test_inherit_launch_model_pins_a_bare_custom_endpoint(monkeypatch, tmp_path,
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("LAB_URL", "http://127.0.0.1:11434/v1")
     # Hermetic: the pin probes the endpoint's /models.
-    monkeypatch.setattr("hermes_cli.models.probe_api_models", lambda *a, **k: {"models": ["llama3"]})
+    monkeypatch.setattr("kova_cli.models.probe_api_models", lambda *a, **k: {"models": ["llama3"]})
     atomic_config_write(
         home / "config.yaml",
         {

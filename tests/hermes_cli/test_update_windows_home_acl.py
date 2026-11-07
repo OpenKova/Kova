@@ -1,12 +1,12 @@
-"""Windows update ACL repair contracts (the Windows ACL effect: ``tests/test_hermes_dir_acl_windows.py``)."""
+"""Windows update ACL repair contracts (the Windows ACL effect: ``tests/test_kova_dir_acl_windows.py``)."""
 
 import os
 import subprocess
 
 import pytest
 
-import hermes_dir_acl
-from hermes_cli import update_windows_acl as maint
+import kova_dir_acl
+from kova_cli import update_windows_acl as maint
 
 
 def _fake_elevated(monkeypatch, tmp_path, elevated=True):
@@ -19,8 +19,8 @@ def _fake_elevated(monkeypatch, tmp_path, elevated=True):
         return subprocess.CompletedProcess(argv, 0, sid_row if argv[0] == "whoami" else "", "")
 
     monkeypatch.setattr(subprocess, "run", run)
-    monkeypatch.setattr(hermes_dir_acl, "process_is_elevated", lambda: elevated)
-    monkeypatch.setattr(hermes_dir_acl, "_grant_with_pywin32",
+    monkeypatch.setattr(kova_dir_acl, "process_is_elevated", lambda: elevated)
+    monkeypatch.setattr(kova_dir_acl, "_grant_with_pywin32",
                         lambda path, *_a, **_k: granted.append(os.path.realpath(path)))
     return granted, runs
 
@@ -58,7 +58,7 @@ def test_repair_stays_owed_when_nothing_could_be_granted(monkeypatch, tmp_path):
     def denied(path, *_a, **_k):
         raise OSError("access denied")
 
-    monkeypatch.setattr(hermes_dir_acl, "_grant_with_pywin32", denied)
+    monkeypatch.setattr(kova_dir_acl, "_grant_with_pywin32", denied)
     with pytest.raises(RuntimeError, match="could not restore user access"):
         maint.repair_windows_home_acl()
 

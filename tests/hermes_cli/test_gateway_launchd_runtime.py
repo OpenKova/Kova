@@ -14,7 +14,7 @@ import sys
 
 import pytest
 
-from hermes_cli.gateway_launchd_runtime import start_gateway_job
+from kova_cli.gateway_launchd_runtime import start_gateway_job
 from tests.waiting import wait_until
 
 

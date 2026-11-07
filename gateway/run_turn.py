@@ -38,7 +38,7 @@ from gateway.session import (
 from gateway.session_transcript import TranscriptReadError
 from gateway.turn_context import TurnContext
 from gateway.turn_lease import DEFAULT_LEASE_WAIT, TurnLeaseTimeoutError
-from hermes_constants import get_hermes_home_override
+from kova_constants import get_hermes_home_override
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from utils import base_url_hostname
@@ -421,8 +421,8 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         ]
         if (resolved.provider or "") == "moa":
             # The preset name hides who pays: the aggregator runs every tool-loop step (#112359).
-            from hermes_cli.config import load_config
-            from hermes_cli.moa_config import normalize_moa_config
+            from kova_cli.config import load_config
+            from kova_cli.moa_config import normalize_moa_config
             agg = normalize_moa_config(load_config().get("moa"))["presets"].get(resolved.model, {}).get("aggregator") or {}
             if agg:
                 lines.append(t("gateway.session.info_acting_model", provider=agg.get("provider"), model=agg.get("model")))
@@ -437,7 +437,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
         """Enabled toolsets for an agent run, honoring an adapter ``toolsets_for_source()`` override
         validated through the SAME ``_get_platform_tools`` path (unknown / platform-restricted
         toolsets dropped, not trusted)."""
-        from hermes_cli.tools_config import _get_platform_tools
+        from kova_cli.tools_config import _get_platform_tools
         try:
             adapter = self._delivery_adapter_for(source)
             override = adapter.toolsets_for_source(source) if adapter is not None else None
@@ -1581,7 +1581,7 @@ class GatewayTurnMixin(GatewayBackgroundMixin, GatewayTurnPrepareMixin, GatewayT
             _pending_cmd_word = pending.strip().split(None, 1)[0][1:].lower()
             if _pending_cmd_word:
                 with suppress(Exception):
-                    from hermes_cli.commands import resolve_command as _rc_pending
+                    from kova_cli.commands import resolve_command as _rc_pending
                     if _rc_pending(_pending_cmd_word):
                         logger.info(
                             "Discarding command '/%s' from pending queue — "

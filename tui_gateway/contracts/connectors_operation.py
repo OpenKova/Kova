@@ -13,7 +13,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from hermes_cli.plugin_install_phase import InstallPhase
+from kova_cli.plugin_install_phase import InstallPhase
 
 from .base import Params, Payload, Result, WireEnum
 from .common import ConnectorOwner, ProfileParams
@@ -83,7 +83,7 @@ class CatalogTier(WireEnum):
 
 
 class CatalogAppState(WireEnum):
-    """The desktop app a catalog plugin drives, from its ``hermes_platform`` declaration."""
+    """The desktop app a catalog plugin drives, from its ``kova_platform`` declaration."""
 
     present = "present"
     missing_app = "missing_app"

@@ -22,7 +22,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway_cli
+import kova_cli.gateway as gateway_cli
 
 
 @pytest.fixture

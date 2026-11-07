@@ -9,8 +9,8 @@ from types import SimpleNamespace
 import pytest
 from starlette.testclient import TestClient
 
-from hermes_cli import web_server, web_server_files
-import hermes_cli.web_routers.files as _rt_files
+from kova_cli import web_server, web_server_files
+import kova_cli.web_routers.files as _rt_files
 
 
 def _client_with_app_state():
@@ -161,7 +161,7 @@ def test_download_resolves_paths_in_the_originating_profile_session(
     local_files_client, monkeypatch, route,
 ):
     from pathlib import Path
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     client, home = local_files_client
     monkeypatch.setattr(Path, "home", lambda: home)
@@ -248,7 +248,7 @@ def test_browser_file_urls_authenticate_only_with_route_and_path_bound_tickets(
 ):
     """A ticket admits exactly the URL it was minted for: reusable for media
     Range requests, a few retries of that same download, useless for any other file."""
-    from hermes_cli import web_server_file_tickets
+    from kova_cli import web_server_file_tickets
 
     client, root = forced_files_client
     # The Webapp mints file tickets: the browser's file routes exist only there.

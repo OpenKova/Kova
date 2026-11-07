@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 from starlette.testclient import TestClient
 
 _TOKEN = "a" * 43
@@ -30,12 +30,12 @@ def voice_config(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("HERMES_HOME", str(home))
-    for name in ("hermes_cli.config", "tools.transcription_tools", "tools.tts_tool",
+    for name in ("kova_cli.config", "tools.transcription_tools", "tools.tts_tool",
                  "tools.voice_client_config"):
         if name in sys.modules:
             importlib.reload(sys.modules[name])
 
-    from hermes_cli import web_server
+    from kova_cli import web_server
 
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)

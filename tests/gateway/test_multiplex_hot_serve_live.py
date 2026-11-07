@@ -89,7 +89,7 @@ def start_daemon(mux, timeout=90, *, extra_args=()):
     matcher (``gateway.status.looks_like_gateway_command_line``) is what the CLI's liveness probes
     apply to the recorded PID, so the fixture must spawn a recognisable launcher."""
     log = mux['log'].open('a+', encoding='utf-8', errors='replace')
-    proc = subprocess.Popen([sys.executable, '-m', 'hermes_cli.main', 'gateway', 'run', '--quiet', *extra_args], cwd=ROOT,
+    proc = subprocess.Popen([sys.executable, '-m', 'kova_cli.main', 'gateway', 'run', '--quiet', *extra_args], cwd=ROOT,
                             env=mux['env'], stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
     desc = {}
     deadline = time.monotonic() + timeout
@@ -163,7 +163,7 @@ def test_profile_created_under_live_multiplexer_is_served_and_owned(mux):
     try:
         assert served_homes(desc) == {root.resolve(), mux['boot'].resolve()}
         # ``hermes profile create`` under the multiplexer's root: the CLI signals the control socket.
-        created = subprocess.run([sys.executable, '-m', 'hermes_cli.main', 'profile', 'create', 'fresh'],
+        created = subprocess.run([sys.executable, '-m', 'kova_cli.main', 'profile', 'create', 'fresh'],
                                  cwd=ROOT, env=env, capture_output=True, text=True, timeout=120, check=False)
         assert created.returncode == 0, (created.stdout, created.stderr)
         fresh = root / 'profiles' / 'fresh'
@@ -181,7 +181,7 @@ def test_profile_created_under_live_multiplexer_is_served_and_owned(mux):
             assert db.execute('SELECT instance_id FROM runtime_epoch').fetchone() == (desc['instance_id'],)
             assert db.execute('SELECT 1 FROM sessions WHERE id=?', (sid,)).fetchone()
         # ``hermes -p fresh`` resolves to the multiplexer instead of spawning a daemon of its own.
-        ensured = subprocess.run([sys.executable, '-m', 'hermes_cli.main', '-p', 'fresh', 'gateway', 'ensure',
+        ensured = subprocess.run([sys.executable, '-m', 'kova_cli.main', '-p', 'fresh', 'gateway', 'ensure',
                                   '--timeout', '15'], cwd=ROOT, env=env, capture_output=True, text=True, timeout=60, check=False)
         payload = json.loads(ensured.stdout.strip().splitlines()[-1])
         assert payload['state'] == 'ready' and payload['endpoint']['instance_id'] == desc['instance_id'], (payload, ensured.stderr)
@@ -224,7 +224,7 @@ def test_named_profile_ensure_during_multiplexer_downtime_starts_the_multiplexer
     stop(proc)
     assert recorded_served(root) == ['default', 'boot']
     try:
-        ensured = subprocess.run([sys.executable, '-m', 'hermes_cli.main', '-p', 'boot', 'gateway', 'ensure',
+        ensured = subprocess.run([sys.executable, '-m', 'kova_cli.main', '-p', 'boot', 'gateway', 'ensure',
                                   '--json', '--timeout', '90'], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120, check=False)
         payload = json.loads(ensured.stdout.strip().splitlines()[-1])
         assert payload['state'] == 'ready', (payload, ensured.stderr)
@@ -262,7 +262,7 @@ def test_broken_secondary_state_db_parks_only_that_profile(mux):
         recorded = json.loads((root / 'gateway_state.json').read_text(encoding='utf-8'))
         assert 'broken' in recorded.get('parked_profiles', {}), recorded
         started = time.monotonic()
-        ensured = subprocess.run([sys.executable, '-m', 'hermes_cli.main', '-p', 'broken', 'gateway', 'ensure',
+        ensured = subprocess.run([sys.executable, '-m', 'kova_cli.main', '-p', 'broken', 'gateway', 'ensure',
                                   '--json', '--timeout', '30'], cwd=ROOT, env=mux['env'], capture_output=True,
                                  text=True, timeout=60, check=False)
         payload = json.loads(ensured.stdout.strip().splitlines()[-1])
@@ -356,7 +356,7 @@ def test_stop_secondary_keeps_host_and_survives_host_restart(mux, peer):
         assert await asyncio.to_thread(peer.blocked.wait, 10), 'primary turn never reached model'
         try:
             stopped = await asyncio.to_thread(subprocess.run,
-                [sys.executable, '-m', 'hermes_cli.main', '-p', 'boot', 'gateway', 'stop'],
+                [sys.executable, '-m', 'kova_cli.main', '-p', 'boot', 'gateway', 'stop'],
                 cwd=ROOT, env=mux['env'], capture_output=True, text=True, timeout=45, check=False)
             assert stopped.returncode == 0, (stopped.stdout, stopped.stderr)
             assert (boot / 'gateway.parked').exists(), (stopped.stdout, stopped.stderr)
@@ -374,7 +374,7 @@ def test_stop_secondary_keeps_host_and_survives_host_restart(mux, peer):
         proc, desc = start_daemon(mux)
         assert served_homes(desc) == {root.resolve()}
         started = subprocess.run(
-            [sys.executable, '-m', 'hermes_cli.main', '-p', 'boot', 'gateway', 'start'],
+            [sys.executable, '-m', 'kova_cli.main', '-p', 'boot', 'gateway', 'start'],
             cwd=ROOT, env=mux['env'], capture_output=True, text=True, timeout=45, check=False,
         )
         assert started.returncode == 0, (started.stdout, started.stderr)
@@ -401,7 +401,7 @@ def test_standalone_secondary_stops_without_stopping_host(mux):
                       'log': mux['log'].with_name('standalone.log')}
         child, _ = start_daemon(standalone)
         stopped = subprocess.run(
-            [sys.executable, '-m', 'hermes_cli.main', '-p', 'boot', 'gateway', 'stop'],
+            [sys.executable, '-m', 'kova_cli.main', '-p', 'boot', 'gateway', 'stop'],
             cwd=ROOT, env=mux['env'], capture_output=True, text=True, timeout=45, check=False)
         assert stopped.returncode == 0, (stopped.stdout, stopped.stderr)
         child.wait(timeout=30)
@@ -418,7 +418,7 @@ def test_unsupervised_host_without_profile_flag_can_stop(mux):
     proc, _ = start_daemon(mux, extra_args=('--no-supervise',))
     try:
         result = subprocess.run(
-            [sys.executable, '-m', 'hermes_cli.main', 'gateway', 'stop'],
+            [sys.executable, '-m', 'kova_cli.main', 'gateway', 'stop'],
             cwd=ROOT, env=mux['env'], capture_output=True, text=True, timeout=45, check=False)
         assert result.returncode == 0, (result.stdout, result.stderr)
         assert 'Stopped gateway for this profile' in result.stdout, (result.stdout, result.stderr)

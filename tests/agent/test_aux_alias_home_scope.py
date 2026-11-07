@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 _PLUGIN = textwrap.dedent(
     """
@@ -35,8 +35,8 @@ def _install(home: Path) -> None:
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
     import providers
-    from hermes_cli import auth_plugin_providers as app
-    from hermes_cli.auth import PROVIDER_REGISTRY
+    from kova_cli import auth_plugin_providers as app
+    from kova_cli.auth import PROVIDER_REGISTRY
 
     plugin_home, bare_home = tmp_path / "with_plugin", tmp_path / "bare"
     plugin_home.mkdir()

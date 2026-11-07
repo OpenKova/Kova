@@ -27,7 +27,7 @@ def server():
     # The sys.modules mocks only need to cover the *initial* import — once
     # tui_gateway.server is cached, they are inert. Keeping them active for
     # the whole test poisons any module first imported inside a test body:
-    # e.g. hermes_cli.active_sessions would bind the mocked get_hermes_home
+    # e.g. kova_cli.active_sessions would bind the mocked get_hermes_home
     # (a fixed shared path) forever, leaking active-session registry entries
     # across every later test in the process. Scope the patch to the import.
     #
@@ -39,13 +39,13 @@ def server():
     # server's ``current_transport()`` never reads (first-in-process test sees ``_stdio_transport`` as caller).
     import tui_gateway.server_requests
     import tui_gateway.transport
-    import hermes_constants  # real get_process_hermes_home: a mocked one put state.db under the cwd (repo)
+    import kova_constants  # real get_process_hermes_home: a mocked one put state.db under the cwd (repo)
     with patch.dict("sys.modules", {
-        "hermes_constants": MagicMock(get_hermes_home=MagicMock(return_value="/tmp/hermes_test"),
-                                      get_process_hermes_home=hermes_constants.get_process_hermes_home),
-        "hermes_cli.env_loader": MagicMock(),
-        "hermes_cli.banner": MagicMock(),
-        "hermes_state": MagicMock(),
+        "kova_constants": MagicMock(get_hermes_home=MagicMock(return_value="/tmp/hermes_test"),
+                                      get_process_hermes_home=kova_constants.get_process_hermes_home),
+        "kova_cli.env_loader": MagicMock(),
+        "kova_cli.banner": MagicMock(),
+        "kova_state": MagicMock(),
     }):
         import importlib
         mod = importlib.import_module("tui_gateway.server")
@@ -845,7 +845,7 @@ def test_session_resume_deferred_and_omitted_paths_guard_the_tip_only(server, mo
         def assert_resume_safe(self, sid, max_messages=None, *, tip_only=False):
             calls.append(tip_only)
             if not tip_only:
-                from hermes_state import SessionResumeTooLargeError
+                from kova_state import SessionResumeTooLargeError
 
                 raise SessionResumeTooLargeError(20_001, 20_000)
             return 666
@@ -887,7 +887,7 @@ def test_deferred_hydration_falls_back_to_tip_when_lineage_exceeds_limit(server,
     """The hydration worker never loads a lineage the guard would refuse."""
     import threading
 
-    from hermes_state import SessionResumeTooLargeError
+    from kova_state import SessionResumeTooLargeError
 
     tip = [{"role": "user", "content": "tip"}]
     reads = []
@@ -1089,7 +1089,7 @@ def test_enforce_session_cap_evicts_oldest_detached_only(server, monkeypatch):
 @pytest.mark.parametrize("closed_transport", [False, True])
 def test_idle_reaper_rearms_missing_ws_orphan_timer(server, monkeypatch, tmp_path, closed_transport):
     """A detached lane cannot keep its lease forever if initial timer setup was lost."""
-    from hermes_cli.active_sessions import (
+    from kova_cli.active_sessions import (
         active_session_registry_snapshot,
         try_acquire_active_session,
     )
@@ -1163,7 +1163,7 @@ def test_idle_reaper_rearms_missing_ws_orphan_timer(server, monkeypatch, tmp_pat
             sys.executable,
             "-c",
             (
-                "from hermes_cli.active_sessions import try_acquire_active_session; "
+                "from kova_cli.active_sessions import try_acquire_active_session; "
                 f"lease, refusal = try_acquire_active_session(session_id={sid!r}, surface='desktop', "
                 "config={}, track_liveness=True); "
                 "assert lease is not None and refusal is None, refusal; lease.release()"
@@ -1187,7 +1187,7 @@ def test_sync_session_key_after_compress_reanchors_active_session_lease(
     home = tmp_path / ".hermes"
     monkeypatch.setenv("HERMES_HOME", str(home))
 
-    from hermes_cli.active_sessions import (
+    from kova_cli.active_sessions import (
         active_session_registry_snapshot,
         try_acquire_active_session,
     )
@@ -1236,7 +1236,7 @@ def test_make_agent_accepts_list_system_prompt(server, monkeypatch):
     monkeypatch.setitem(sys.modules, "run_agent", types.SimpleNamespace(AIAgent=_Agent))
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.runtime_provider",
+        "kova_cli.runtime_provider",
         types.SimpleNamespace(
             resolve_runtime_provider=lambda **_kwargs: {
                 "provider": "test",
@@ -1832,7 +1832,7 @@ def test_skin_live_switch_end_to_end(server, tmp_path, monkeypatch):
     """Real config + skin files: activating a skin (as `hermes config set` does)
     makes the per-tool reconcile broadcast skin.changed with the resolved palette.
     Exercises _load_cfg → _skin_sig → resolve_skin → _emit with no mocks in between."""
-    from hermes_cli import skin_engine
+    from kova_cli import skin_engine
 
     (tmp_path / "skins").mkdir()
     (tmp_path / "skins" / "midnight.yaml").write_text(

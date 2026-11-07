@@ -6,8 +6,8 @@ import pytest
 @pytest.fixture()
 def isolated_profiles(tmp_path, monkeypatch, _isolate_hermes_home):
     """Route dashboard cron storage to an isolated default profile."""
-    from hermes_constants import get_hermes_home
-    from hermes_cli import profiles
+    from kova_constants import get_hermes_home
+    from kova_cli import profiles
 
     default_home = get_hermes_home()
     (default_home / "cron").mkdir(parents=True, exist_ok=True)
@@ -28,12 +28,12 @@ def client(monkeypatch, isolated_profiles):
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
 
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    import kova_state
+    from kova_constants import get_hermes_home
+    from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     monkeypatch.setattr(
-        hermes_state,
+        kova_state,
         "DEFAULT_DB_PATH",
         get_hermes_home() / "state.db",
     )

@@ -1,4 +1,4 @@
-"""Comprehensive tests for hermes_cli.profiles module.
+"""Comprehensive tests for kova_cli.profiles module.
 
 Tests cover: validation, directory resolution, CRUD operations, active profile
 management, export/import, renaming, alias collision checks, profile isolation,
@@ -16,11 +16,11 @@ import types
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
-from hermes_cli import profiles
-from hermes_cli.profiles import (
+from kova_cli import profiles
+from kova_cli.profiles import (
     _clone_all_copytree_ignore,
     normalize_profile_name,
     validate_profile_name,
@@ -42,7 +42,7 @@ from hermes_cli.profiles import (
     backfill_profile_envs,
     profiles_to_serve,
 )
-from hermes_cli.config import DEFAULT_CONFIG
+from kova_cli.config import DEFAULT_CONFIG
 
 
 # ---------------------------------------------------------------------------
@@ -563,9 +563,9 @@ class TestDeleteProfile:
         profile_dir = create_profile("coder", no_alias=True)
         set_active_profile("coder")
 
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), \
-             patch("hermes_cli.profiles.time.sleep"), \
-             patch("hermes_cli.profiles.shutil.rmtree", side_effect=PermissionError("locked")):
+        with patch("kova_cli.profiles._cleanup_gateway_service"), \
+             patch("kova_cli.profiles.time.sleep"), \
+             patch("kova_cli.profiles.shutil.rmtree", side_effect=PermissionError("locked")):
             with pytest.raises(RuntimeError, match="Could not remove profile directory"):
                 delete_profile("coder", yes=True)
 
@@ -580,7 +580,7 @@ class TestDeleteProfile:
         enters the routing index, resolves a profile whose directory is gone, and logs
         ``Profile '<name>' does not exist`` on every subsequent event.
         """
-        from hermes_state import SessionDB
+        from kova_state import SessionDB
         import time
 
         tmp_path = profile_env
@@ -607,8 +607,8 @@ class TestDeleteProfile:
         db.close()
 
         # No live multiplexer: nothing else owns the store, so this process purges the durable rows.
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=False):
+        with patch("kova_cli.profiles._cleanup_gateway_service"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
             delete_profile("gone", yes=True)
 
         check = SessionDB(tmp_path / ".hermes" / "state.db")
@@ -631,8 +631,8 @@ class TestDeleteProfile:
         would be undone by its next save. When it cannot be reached the delete is NOT a clean
         success: the identity settlement is reported as pending, with the retry named.
         """
-        from hermes_state import SessionDB
-        from hermes_cli.profiles import ProfileIdentitySettlementPending
+        from kova_state import SessionDB
+        from kova_cli.profiles import ProfileIdentitySettlementPending
 
         tmp_path = profile_env
         create_profile("gone", no_alias=True)
@@ -644,8 +644,8 @@ class TestDeleteProfile:
             scope=scope)
         db.close()
 
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=True):
+        with patch("kova_cli.profiles._cleanup_gateway_service"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=True):
             with pytest.raises(ProfileIdentitySettlementPending,
                                match="identity settlement is still pending") as ei:
                 delete_profile("gone", yes=True)
@@ -688,13 +688,13 @@ class TestDeleteProfile:
         self_pid = os.getpid()
         procs = [
             # Backend bound to coder → matched.
-            FakeProc(101, ["python", "-m", "hermes_cli.main", "--profile", "coder", "serve"]),
+            FakeProc(101, ["python", "-m", "kova_cli.main", "--profile", "coder", "serve"]),
             # Interactive chat for coder → NOT a backend subcommand, skipped.
-            FakeProc(102, ["python", "-m", "hermes_cli.main", "--profile", "coder", "chat"]),
+            FakeProc(102, ["python", "-m", "kova_cli.main", "--profile", "coder", "chat"]),
             # Backend for a different profile → skipped.
-            FakeProc(103, ["python", "-m", "hermes_cli.main", "--profile", "other", "serve"]),
+            FakeProc(103, ["python", "-m", "kova_cli.main", "--profile", "other", "serve"]),
             # This very process → skipped even if it matched.
-            FakeProc(self_pid, ["python", "-m", "hermes_cli.main", "--profile", "coder", "serve"]),
+            FakeProc(self_pid, ["python", "-m", "kova_cli.main", "--profile", "coder", "serve"]),
         ]
 
         fake_psutil = types.SimpleNamespace(
@@ -910,7 +910,7 @@ class TestListProfiles:
         # ``@<profile>`` completion must be just as walk-free: same spy, still one background walk.
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
-        from hermes_cli.web_routers import profiles as profiles_router
+        from kova_cli.web_routers import profiles as profiles_router
         from tui_gateway import methods_complete
         app = FastAPI()
         app.include_router(profiles_router.router)
@@ -1064,8 +1064,8 @@ class TestWrapperScript:
     """Tests for create_wrapper_script() and remove_wrapper_script()."""
 
     def test_creates_sh_on_posix(self, profile_env, monkeypatch):
-        monkeypatch.setattr("hermes_cli.profiles.shutil.which", lambda name: "/opt/hermes/bin/hermes")
-        from hermes_cli.profiles import create_wrapper_script
+        monkeypatch.setattr("kova_cli.profiles.shutil.which", lambda name: "/opt/hermes/bin/hermes")
+        from kova_cli.profiles import create_wrapper_script
         wrapper = create_wrapper_script("mybot")
         assert wrapper is not None
         assert wrapper.name == "mybot"
@@ -1076,7 +1076,7 @@ class TestWrapperScript:
 
     @pytest.mark.platforms("windows")
     def test_remove_finds_bat_on_windows(self, profile_env):
-        from hermes_cli.profiles import create_wrapper_script
+        from kova_cli.profiles import create_wrapper_script
         wrapper = create_wrapper_script("mybot")
         assert wrapper is not None
         assert wrapper.exists()
@@ -1123,14 +1123,14 @@ class TestFindAliasForProfile:
     """Tests for find_alias_for_profile() and alias display in list/show."""
 
     def test_profile_named_alias(self, profile_env):
-        from hermes_cli.profiles import create_wrapper_script, find_alias_for_profile
+        from kova_cli.profiles import create_wrapper_script, find_alias_for_profile
         create_wrapper_script("steve")
         assert find_alias_for_profile("steve") == "steve"
 
 
     def test_ignores_unrelated_files(self, profile_env):
         # ~/.local/bin commonly holds unrelated binaries; they must not match.
-        from hermes_cli.profiles import _get_wrapper_dir, find_alias_for_profile
+        from kova_cli.profiles import _get_wrapper_dir, find_alias_for_profile
         wrapper_dir = _get_wrapper_dir()
         wrapper_dir.mkdir(parents=True, exist_ok=True)
         (wrapper_dir / "pip").write_text("#!/bin/sh\nexec python -m pip \"$@\"\n", encoding="utf-8")
@@ -1138,7 +1138,7 @@ class TestFindAliasForProfile:
 
 
     def test_list_profiles_surfaces_custom_alias(self, profile_env):
-        from hermes_cli.profiles import (
+        from kova_cli.profiles import (
             create_profile,
             create_wrapper_script,
             list_profiles,
@@ -1165,7 +1165,7 @@ class TestRenameProfile:
         assert old_dir.is_dir()
 
         # Mock alias collision to avoid subprocess calls
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"):
             new_dir = rename_profile("oldname", "newname")
 
         assert not old_dir.is_dir()
@@ -1191,7 +1191,7 @@ class TestRenameProfile:
             }
         }), encoding="utf-8")
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"):
             rename_profile("ssi_health", "heimdall")
 
         cfg = json.loads(honcho_path.read_text(encoding="utf-8-sig"))
@@ -1203,7 +1203,7 @@ class TestRenameProfile:
         """Under a live multiplexer the old name is tombstoned + unrouted BEFORE the directory
         moves and the new name is hot-served after, so a stale runtime mkdir of the old home is
         refused instead of resurrecting a ghost served profile (#109267)."""
-        from hermes_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_hermes_home
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
         old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
@@ -1219,9 +1219,9 @@ class TestRenameProfile:
                 with pytest.raises(FileNotFoundError):
                     mkdir_under_hermes_home(old_dir / "logs")
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=True), \
-             patch("hermes_cli.profiles._notify_multiplexer", side_effect=_record_notify):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=True), \
+             patch("kova_cli.profiles._notify_multiplexer", side_effect=_record_notify):
             rename_profile("oldname", "newname")
 
         # (name, old_exists, new_exists, old_tombstoned): unroute first, hot-serve last.
@@ -1236,9 +1236,9 @@ class TestRenameProfile:
         create_profile("oldname", no_alias=True)
         old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=False), \
-             patch("hermes_cli.profiles._notify_multiplexer") as notify:
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=False), \
+             patch("kova_cli.profiles._notify_multiplexer") as notify:
             new_dir = rename_profile("oldname", "newname")
 
         notify.assert_not_called()
@@ -1249,7 +1249,7 @@ class TestRenameProfile:
         """No live gateway → the CLI performs the durable rekey itself so a renamed profile's session
         keys / profile_name / routing rows follow the new name (else inbound events on the old name's
         chats resolve to a nonexistent profile and flood errors.log)."""
-        from hermes_state import SessionDB
+        from kova_state import SessionDB
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
         old_dir = tmp_path / ".hermes" / "profiles" / "oldname"
@@ -1267,8 +1267,8 @@ class TestRenameProfile:
             scope=str(tmp_path / ".hermes" / "sessions"))
         root_db.close()
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=False):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
             rename_profile("oldname", "newname")
 
         new_dir = tmp_path / ".hermes" / "profiles" / "newname"
@@ -1290,12 +1290,12 @@ class TestRenameProfile:
         it in memory and would clobber the write); it delegates to the control verb instead."""
         create_profile("oldname", no_alias=True)
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=True), \
-             patch("hermes_cli.profiles._notify_multiplexer"), \
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=True), \
+             patch("kova_cli.profiles._notify_multiplexer"), \
              patch("gateway.control_socket.migrate_gateway_profile_identity",
                    return_value={"ok": True, "rekeyed": 1, "db": {}}) as verb, \
-             patch("hermes_state_registry.acquire") as acquire:
+             patch("kova_state_registry.acquire") as acquire:
             rename_profile("oldname", "newname")
 
         # Delegated to the gateway; the CLI's own durable-rewrite branch never ran.
@@ -1309,8 +1309,8 @@ class TestRenameProfile:
         """The failed-live-migration end state must be recoverable: `hermes profile
         migrate-identity <old> <new>` rekeys the durable rows once no gateway holds the store, and
         is idempotent (a second run has nothing left to rekey but still succeeds)."""
-        from hermes_cli.profile_cmd import cmd_profile
-        from hermes_state import SessionDB
+        from kova_cli.profile_cmd import cmd_profile
+        from kova_state import SessionDB
         from argparse import Namespace
         tmp_path = profile_env
         create_profile("oldname", no_alias=True)
@@ -1330,15 +1330,15 @@ class TestRenameProfile:
 
         # Rename under a live multiplexer whose control verb answers nothing: the CLI warns and
         # leaves the (in-memory-owned) store alone, so the rows still name the old profile.
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles._live_default_multiplexer", return_value=True), \
-             patch("hermes_cli.profiles._notify_multiplexer"), \
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles._live_default_multiplexer", return_value=True), \
+             patch("kova_cli.profiles._notify_multiplexer"), \
              patch("gateway.control_socket.migrate_gateway_profile_identity", return_value=None):
             rename_profile("oldname", "newname")
         assert "hermes profile migrate-identity oldname newname" in capsys.readouterr().err
 
         # Gateway restarted/stopped → the retry command repairs both stores.
-        with patch("hermes_cli.profiles._live_default_multiplexer", return_value=False):
+        with patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
             cmd_profile(Namespace(profile_action="migrate-identity",
                                   old_name="oldname", new_name="newname"))
             assert "✓ Session/routing identity migrated" in capsys.readouterr().out
@@ -1364,7 +1364,7 @@ class TestRenameProfile:
     def test_rename_accumulates_previous_names(self, profile_env):
         create_profile("firstname", no_alias=True)
 
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"):
             rename_profile("firstname", "secondname")
             rename_profile("secondname", "thirdname")
 
@@ -1375,8 +1375,8 @@ class TestRenameProfile:
         create_profile("oldname", no_alias=True)
 
         # The history write is best-effort: it must never fail the rename.
-        with patch("hermes_cli.profiles.check_alias_collision", return_value="skip"), \
-             patch("hermes_cli.profiles.write_profile_meta", side_effect=OSError("disk full")):
+        with patch("kova_cli.profiles.check_alias_collision", return_value="skip"), \
+             patch("kova_cli.profiles.write_profile_meta", side_effect=OSError("disk full")):
             new_dir = rename_profile("oldname", "newname")
 
         assert new_dir.is_dir()
@@ -1529,7 +1529,7 @@ class TestWriteProfileMetaDurability:
     def _interrupted_write(profile_dir):
         """Run a ``write_profile_meta`` whose serialization fails mid-call.
 
-        ``utils.atomic_yaml_write`` serializes through ``hermes_yaml.safe_dump``.
+        ``utils.atomic_yaml_write`` serializes through ``kova_yaml.safe_dump``.
         Breaking that seam measures durability rather than the choice of writer. A
         scoped ``MonkeyPatch.context`` is used instead of the fixture so the
         patch is reverted immediately, without touching the session-wide env
@@ -1627,7 +1627,7 @@ class TestEdgeCases:
         """
         import os
         import gateway.status as gw_status
-        from hermes_cli.profiles import _check_gateway_running
+        from kova_cli.profiles import _check_gateway_running
 
         tmp_path = profile_env
         default_home = tmp_path / ".hermes"
@@ -1730,7 +1730,7 @@ class TestProfilesToServe:
         default_home = _get_default_hermes_home()
         (default_home / "config.yaml").write_text("gateway:\n  standalone: true\n", encoding="utf-8")
         caplog.clear()
-        with caplog.at_level("WARNING", logger="hermes_cli.profiles"):
+        with caplog.at_level("WARNING", logger="kova_cli.profiles"):
             serve = dict(profiles_to_serve(multiplex=True))
             assert profiles.profile_is_standalone(default_home) is False
             assert profiles.profile_is_standalone(default_home) is False
@@ -1751,7 +1751,7 @@ class TestProfilesToServe:
 
     @pytest.mark.parametrize("failure_at", ["stat", "read", "decode"])
     def test_standalone_io_failure_is_bounded_and_recovers(self, profile_env, monkeypatch, caplog, failure_at):
-        from hermes_cli import config
+        from kova_cli import config
 
         create_profile("solo", no_alias=True)
         home = get_profile_dir("solo")
@@ -1875,8 +1875,8 @@ def test_profile_delete_and_rename_stop_the_profiles_bot_desktop(profile_env, op
     (profile_dir / "bot-desktop" / "lease.json").write_text(
         json.dumps({"holder": "human", "viewer_id": "gone", "since": 1.0, "epoch": 3, "reason": ""}), encoding="utf-8")
     try:
-        with patch("hermes_cli.profiles._cleanup_gateway_service"), \
-             patch("hermes_cli.profiles.check_alias_collision", return_value="skip"):
+        with patch("kova_cli.profiles._cleanup_gateway_service"), \
+             patch("kova_cli.profiles.check_alias_collision", return_value="skip"):
             if op == "delete":
                 delete_profile("coder", yes=True)
             else:
@@ -1971,7 +1971,7 @@ class TestCloneAllExcludesRuntimeTrees:
 def test_count_skills_publishes_timestamp_after_the_walk(tmp_path, monkeypatch):
     """A scan longer than the TTL must not publish an already-expired cache entry (#107151):
     the cached timestamp is taken after _walk_skill_count returns, not before it starts."""
-    from hermes_cli import profiles as mod
+    from kova_cli import profiles as mod
 
     skills_dir = tmp_path / "skills"
     skills_dir.mkdir()

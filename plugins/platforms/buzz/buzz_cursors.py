@@ -15,7 +15,7 @@ _CURSOR_STATE_FILENAME = "channel-cursors.json"
 class BuzzCursorMixin:
     @staticmethod
     def _cursor_path() -> Path:
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         return get_hermes_home() / _CURSOR_STATE_SUBDIR / _CURSOR_STATE_FILENAME
 
     def _load_cursors(self) -> None:

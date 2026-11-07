@@ -363,7 +363,7 @@ def _permanent_set() -> set:
     launch profile's "always" approvals must not pre-approve commands for a secondary, nor may a
     secondary's "always" choice be written back into the launch profile's config. Callers hold ``_lock``.
     """
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_hermes_home_override, hermes_home_key
     if get_hermes_home_override() is None:
         approved, key = _permanent_approved, ""
     else:
@@ -453,13 +453,13 @@ def _persist_choice(session_key: str, choice: str, keys: list[str]) -> None:
 
 def _read_permanent_allowlist() -> set:
     """``command_allowlist`` of the active profile's config as a set (empty on malformed input)."""
-    from hermes_cli.config import load_config_readonly
+    from kova_cli.config import load_config_readonly
     config = load_config_readonly()
     raw = config.get("command_allowlist")
     legacy = isinstance(raw, str)
     if legacy:
         # Old config-set versions serialized list values as scalar strings.
-        import hermes_yaml as yaml
+        import kova_yaml as yaml
         try:
             raw = yaml.safe_load(raw)
         except yaml.YAMLError:
@@ -484,7 +484,7 @@ _permanent_baseline_by_home: dict[str, set] = {}
 
 
 def _baseline_key() -> str:
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_hermes_home_override, hermes_home_key
     return "" if get_hermes_home_override() is None else hermes_home_key()
 
 
@@ -519,7 +519,7 @@ def save_permanent_allowlist(patterns: set):
     entries by editing ``command_allowlist`` in config.yaml.
     """
     try:
-        from hermes_cli.config import load_config, save_config
+        from kova_cli.config import load_config, save_config
         config = load_config()
         on_disk = set(config.get("command_allowlist", []) or [])
         with _lock:

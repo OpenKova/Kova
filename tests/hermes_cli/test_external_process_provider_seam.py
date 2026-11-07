@@ -3,7 +3,7 @@
 The known-provider gate, the binary, the argv and the env var names used to be
 spelled out for one vendor, so a profile registered from a plugin died with
 "Unknown provider" before any client was built. This registers a provider the
-way a standalone package does — before importing ``hermes_cli`` — and walks the
+way a standalone package does — before importing ``kova_cli`` — and walks the
 real resolution path.
 """
 
@@ -55,8 +55,8 @@ def fake_cli(tmp_path, monkeypatch):
 
 
 def test_an_out_of_tree_external_process_provider_resolves_end_to_end(fake_cli, monkeypatch):
-    from hermes_cli.auth import PROVIDER_REGISTRY, resolve_external_process_provider_credentials, resolve_provider
-    from hermes_cli.runtime_provider import resolve_runtime_provider
+    from kova_cli.auth import PROVIDER_REGISTRY, resolve_external_process_provider_credentials, resolve_provider
+    from kova_cli.runtime_provider import resolve_runtime_provider
 
     assert PROVIDER_REGISTRY["acme"] is PROVIDER_REGISTRY["acme-acp"]
     assert PROVIDER_REGISTRY["acme-acp"].auth_type == "external_process"

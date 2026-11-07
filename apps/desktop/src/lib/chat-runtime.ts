@@ -286,7 +286,7 @@ export function personalityNamesFromConfig(config: unknown): string[] {
   const root = config && typeof config === 'object' ? (config as Record<string, unknown>) : {}
   const agent = root.agent && typeof root.agent === 'object' ? (root.agent as Record<string, unknown>) : {}
 
-  // The Python runtime (`hermes_cli.personality.available_personalities`) overlays
+  // The Python runtime (`kova_cli.personality.available_personalities`) overlays
   // built-ins with the root-level `personalities` block, then `agent.personalities`
   // (agent wins on a name clash). Read both here so a root-registered persona the
   // CLI/gateway honour also reaches the GUI (#123297).

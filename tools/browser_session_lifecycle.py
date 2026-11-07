@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ def _session_owner_scope(cache_key: str):
         yield
         return
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from kova_cli.env_loader import hydrate_profile_secret_sources
     home_token = set_hermes_home_override(owner_home)
     try:
         hydrate_profile_secret_sources(Path(owner_home))

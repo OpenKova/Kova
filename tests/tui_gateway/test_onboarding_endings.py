@@ -8,7 +8,7 @@ import pytest
 
 from agent import onboarding_record
 from agent.onboarding_flow import End, Facts
-from hermes_cli.config import read_user_config_raw
+from kova_cli.config import read_user_config_raw
 from tui_gateway import server
 
 FACTS = Facts(os="macos", arch="arm64", machine_kind="Mac", plugins=())
@@ -59,7 +59,7 @@ def test_deleting_the_newest_copy_ends_the_run_on_every_copy(db, ended):
 
 
 def _failing_flag_write(monkeypatch):
-    from hermes_cli import onboarding_run
+    from kova_cli import onboarding_run
 
     def disk_full(value, **kw):
         raise OSError("disk full")
@@ -79,7 +79,7 @@ def test_a_delete_whose_flag_write_fails_keeps_the_chat_for_a_retry(db, ended, m
 
 
 def test_a_delete_refused_by_the_write_guard_leaves_the_flag_set(db, ended):
-    from hermes_state_errors import SessionActiveWriteGuardError
+    from kova_state_errors import SessionActiveWriteGuardError
 
     def guarded():
         raise SessionActiveWriteGuardError("active turn lease")

@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-from hermes_cli import gateway as gw
+from kova_cli import gateway as gw
 
 
 def _unit(path, home) -> None:
@@ -25,8 +25,8 @@ def test_profile_delete_from_scratch_home_leaves_the_accounts_profile_unit(tmp_p
     """``hermes profile delete|rename coder`` with HOME=<scratch>: the name resolves the ACCOUNT's real
     ``hermes-gateway-coder`` unit (account-anchored unit dir). It pins another home, so cleanup never
     disables, stops or unlinks it."""
-    import hermes_constants
-    from hermes_cli import profiles
+    import kova_constants
+    from kova_cli import profiles
     account, scratch = tmp_path / "account", tmp_path / "scratch"
     profile_dir = scratch / ".hermes" / "profiles" / "coder"
     profile_dir.mkdir(parents=True)
@@ -37,7 +37,7 @@ def test_profile_delete_from_scratch_home_leaves_the_accounts_profile_unit(tmp_p
     monkeypatch.setenv("HOME", str(scratch))
     monkeypatch.setenv("HERMES_REAL_HOME", str(account))
     monkeypatch.setattr(os, "geteuid", lambda: 1000)
-    monkeypatch.setattr(hermes_constants, "_account_home", lambda: account)
+    monkeypatch.setattr(kova_constants, "_account_home", lambda: account)
     monkeypatch.setattr(gw, "_SYSTEM_UNIT_DIR", tmp_path / "no-system-units")
     calls: list = []
     monkeypatch.setattr(profiles.subprocess, "run", lambda argv, *a, **k: calls.append(list(argv)))

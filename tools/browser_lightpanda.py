@@ -53,7 +53,7 @@ def _home_candidates() -> list:
     home = Path.home()
     candidates = [home / ".lightpanda" / "lightpanda", home / ".local" / "bin" / "lightpanda"]
     try:
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         candidates.append(Path(get_hermes_home()) / "bin" / "lightpanda")
     except Exception as e:  # pragma: no cover - defensive
         logger.debug("hermes home unavailable for lightpanda lookup: %s", e)
@@ -89,7 +89,7 @@ def _pick_free_loopback_port() -> int:
 
 
 def _state_dir() -> Path:
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     path = Path(get_hermes_home()) / "cache" / "browser-use" / "lightpanda"
     path.mkdir(parents=True, exist_ok=True)
     return path
@@ -144,7 +144,7 @@ def _browser_env() -> dict:
 
 def _cdp_ready(url: str, timeout: float = 0.2) -> bool:
     try:
-        from hermes_cli.browser_connect import is_browser_debug_ready
+        from kova_cli.browser_connect import is_browser_debug_ready
         return is_browser_debug_ready(url, timeout=timeout)
     except Exception as e:
         logger.debug("CDP readiness probe failed for %s: %s", url, e)

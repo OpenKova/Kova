@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
 from tui_gateway import server

@@ -1,4 +1,4 @@
-"""Which port Web Access serves a gateway's Webapp on (``hermes_cli.webapp_access._port_to_serve``).
+"""Which port Web Access serves a gateway's Webapp on (``kova_cli.webapp_access._port_to_serve``).
 
 The default profile's gateway serves the documented address, 9120 unless ``webapp.port`` says otherwise.
 A standalone profile has a gateway of its own; turning Web Access on there without a ``webapp.port`` used
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import webapp_access
+from kova_cli import webapp_access
 
 
 def _write(path: Path, text: str) -> Path:
@@ -46,7 +46,7 @@ def machine(monkeypatch, tmp_path):
 
 
 def _webapp_block(home: Path) -> dict:
-    from hermes_cli.config import read_user_config_raw
+    from kova_cli.config import read_user_config_raw
 
     return read_user_config_raw(home / "config.yaml").get("webapp") or {}
 
@@ -115,7 +115,7 @@ def test_a_port_the_managed_scope_sets_is_the_one_the_callback_names(machine, tm
     """An administrator's ``webapp.port`` wins over the profile's config when the gateway loads it, and
     saving never writes over it: Start registers the callback on that port and writes none."""
     from gateway.webapp_listener import listener_plan
-    from hermes_cli import managed_scope
+    from kova_cli import managed_scope
 
     managed = _write(tmp_path / "managed", "webapp:\n  port: 9555\n")
     machine["monkeypatch"].setenv("HERMES_MANAGED_DIR", str(managed))
@@ -172,8 +172,8 @@ def _start_in_a_process_of_its_own(home: str, first: bool, first_holds, second_s
     once the first holds it. Reports the port *home* saved, or the traceback."""
     import traceback
 
-    from hermes_cli import auth
-    from hermes_constants import set_hermes_home_override
+    from kova_cli import auth
+    from kova_constants import set_hermes_home_override
 
     os.environ["HERMES_HOME"] = home
     set_hermes_home_override(Path(home))

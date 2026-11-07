@@ -15,7 +15,7 @@ import subprocess
 
 import pytest
 
-from hermes_cli import update_cmd
+from kova_cli import update_cmd
 
 
 GIT = ["git"]

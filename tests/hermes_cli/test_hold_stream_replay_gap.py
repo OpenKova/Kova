@@ -7,13 +7,13 @@ import pytest
 
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text
 from tests.fakes.redactor_plugin import RAW, REWRITE, redactor_home
-from tests.hermes_cli.test_gateway_agent import SID, FakeClient, connect_with, frame
+from tests.kova_cli.test_gateway_agent import SID, FakeClient, connect_with, frame
 
 
 def _held_receipt(home: Path) -> dict:
     """The settled CLI receipt of a real held turn (``take_cli_result_fields`` over its result)."""
     from gateway.session_cli_turn import take_cli_result_fields
-    from hermes_cli import plugins
+    from kova_cli import plugins
     from run_agent import AIAgent
 
     with FakeLLMServer([Text(RAW)]) as server:
@@ -33,8 +33,8 @@ def _held_receipt(home: Path) -> dict:
 
 @pytest.mark.parametrize("gap", [False, True], ids=["streamed", "replay_gap"])
 def test_held_reply_stays_rewritten_across_cli_replay_gap(gap):
-    from hermes_cli.gateway_agent import GatewayAgent
-    from hermes_cli.gateway_connection import GatewayConnection
+    from kova_cli.gateway_agent import GatewayAgent
+    from kova_cli.gateway_connection import GatewayConnection
 
     receipt = _held_receipt(Path(os.environ["HERMES_HOME"]))
     terminal = frame("message.complete", {"text": REWRITE, "outcome": "completed", "status": "complete"})

@@ -11,14 +11,14 @@ import textwrap
 import pytest
 
 import plugins.config_backends
-from hermes_cli import config_backend as cb
+from kova_cli import config_backend as cb
 
 FAKE = "fakekind_p21"
 
 _FAKE_PACKAGE = '''
 import contextlib
 
-from hermes_cli.config_backend import FileBackend
+from kova_cli.config_backend import FileBackend
 
 EVENTS = []
 
@@ -69,8 +69,8 @@ def fake_kind(tmp_path, monkeypatch):
 
 
 def test_unknown_kind_is_served_through_protocol_methods_only(fake_kind):
-    from hermes_cli.doctor_config import _check_config_backend
-    from hermes_cli.doctor_report import Finding
+    from kova_cli.doctor_config import _check_config_backend
+    from kova_cli.doctor_report import Finding
 
     home = fake_kind
     (home / ".env").write_text(f"HERMES_CONFIG_BACKEND={FAKE}\nFAKE_P21_PLANE=https://plane.test\n", encoding="utf-8")

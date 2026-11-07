@@ -12,9 +12,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_constants
-from hermes_cli import doctor_state, gateway_migrate, profile_cmd
-from hermes_cli.profiles import create_wrapper_script
+import kova_constants
+from kova_cli import doctor_state, gateway_migrate, profile_cmd
+from kova_cli.profiles import create_wrapper_script
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def isolated_home(tmp_path, monkeypatch):
     (tmp_path / ".hermes").mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gateway_migrate, "duplicate_credential_findings", list)
     return tmp_path
 

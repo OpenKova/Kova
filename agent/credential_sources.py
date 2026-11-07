@@ -38,7 +38,7 @@ def adopt_external_logins_enabled() -> bool:
     process (INFO) the first time it would have."""
     global _notice_logged
     try:
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         auth_cfg = (load_config_readonly() or {}).get("auth")
     except Exception:
         return True
@@ -105,7 +105,7 @@ def _profile_removal_step(provider: str, source: str) -> Optional[RemovalStep]:
     sources, hints = claimed
 
     def remove_fn(provider: str, removed) -> RemovalResult:
-        from hermes_cli.auth import suppress_credential_source
+        from kova_cli.auth import suppress_credential_source
         for variant in sources:
             suppress_credential_source(provider, variant)
         return RemovalResult(hints=list(hints))
@@ -115,7 +115,7 @@ def _profile_removal_step(provider: str, source: str) -> Optional[RemovalStep]:
 
 def _remove_env_source(provider: str, removed) -> RemovalResult:
     """env:<VAR> — clear from ~/.hermes/.env; hint when the shell exports it."""
-    from hermes_cli.config import get_env_path, remove_env_value
+    from kova_cli.config import get_env_path, remove_env_value
 
     result = RemovalResult()
     env_var = removed.source[len("env:"):]
@@ -123,7 +123,7 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
         return result
 
     # Detect shell vs .env BEFORE remove_env_value pops os.environ. Read the
-    # .env as utf-8-sig like hermes_cli/config.py: a BOM-sensitive read would
+    # .env as utf-8-sig like kova_cli/config.py: a BOM-sensitive read would
     # misreport a Notepad-edited .env var as a shell export.
     env_in_process = bool(os.getenv(env_var))
     env_in_dotenv = False
@@ -159,7 +159,7 @@ def _remove_env_source(provider: str, removed) -> RemovalResult:
 
 def _remove_hermes_pkce(provider: str, removed) -> RemovalResult:
     """~/.hermes/.anthropic_oauth.json is ours — delete it outright."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     result = RemovalResult()
     oauth_file = get_hermes_home() / ".anthropic_oauth.json"
@@ -178,7 +178,7 @@ def _remove_auth_store_oauth(provider: str, removed) -> RemovalResult:
     Suppression by the dispatcher is still required — otherwise
     ``_seed_from_singletons`` re-seeds from any path that rewrites the block.
     """
-    from hermes_cli.auth import _auth_store_lock, _load_auth_store, _save_auth_store
+    from kova_cli.auth import _auth_store_lock, _load_auth_store, _save_auth_store
 
     result = RemovalResult()
     with _auth_store_lock():
@@ -205,7 +205,7 @@ def _remove_codex_device_code(provider: str, removed) -> RemovalResult:
     Suppress the canonical ``device_code`` key — not just ``removed.source`` —
     so a ``manual:device_code`` removal still blocks the re-seed path.
     """
-    from hermes_cli.auth import suppress_credential_source
+    from kova_cli.auth import suppress_credential_source
 
     result = _remove_auth_store_oauth(provider, removed)
     suppress_credential_source(provider, "device_code")

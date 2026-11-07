@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_state import SessionDB
-from hermes_state_runtime import begin_runtime_epoch, RuntimeStoreError
+from kova_state import SessionDB
+from kova_state_runtime import begin_runtime_epoch, RuntimeStoreError
 
 
 @pytest.mark.asyncio

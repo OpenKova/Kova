@@ -21,7 +21,7 @@ def two_profile_host(tmp_path, monkeypatch):
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", False)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    from hermes_cli.profiles import _get_profiles_root
+    from kova_cli.profiles import _get_profiles_root
     assert str(_get_profiles_root()).startswith(str(tmp_path))
     return home / "profiles" / "b"
 
@@ -36,10 +36,10 @@ def test_activation_routes_logs_per_profile_home(two_profile_host, monkeypatch):
     """The secondary's records must reach its own logs/ even when no cron ticker starts (a live
     gateway owns cron), else its model/cwd lines land in the launch profile's agent.log."""
     (two_profile_host / "config.yaml").write_text("{}\n", encoding="utf-8")
-    import hermes_logging
+    import kova_logging
 
     routed = []
-    monkeypatch.setattr(hermes_logging, "enable_profile_log_routing", lambda homes: routed.append(set(homes)))
+    monkeypatch.setattr(kova_logging, "enable_profile_log_routing", lambda homes: routed.append(set(homes)))
     assert launch_profile_policy.activate_multi_profile_hosting_eagerly() is True
     assert routed and two_profile_host.resolve() in routed[0] and len(routed[0]) == 2
 
@@ -50,7 +50,7 @@ def test_the_retired_opt_out_no_longer_disarms_the_credential_guard(two_profile_
     would serve the second profile with the LAUNCH profile's credentials -- the exact fail-open
     the guard exists to prevent. The host is multi-profile; that is the whole question."""
     (two_profile_host / "config.yaml").write_text("{}\n", encoding="utf-8")
-    from hermes_cli import config as cfg_mod
+    from kova_cli import config as cfg_mod
 
     monkeypatch.setattr(cfg_mod, "load_config", lambda *a, **k: {"gateway": {"multiplex_profiles": False}})
 
@@ -67,7 +67,7 @@ def test_a_crashed_profile_create_shell_is_not_a_second_tenant(two_profile_host)
 
 def test_unreadable_profiles_dir_fails_closed_and_says_so(two_profile_host, monkeypatch):
     """Silently returning False left the guard off for the process lifetime with zero log lines."""
-    from hermes_cli import profiles as profiles_mod
+    from kova_cli import profiles as profiles_mod
 
     def _boom(multiplex):
         raise PermissionError("profiles/ is unreadable")

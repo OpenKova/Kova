@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.resource_limits import glibc_malloc
+from kova_cli.resource_limits import glibc_malloc
 
 _REPO = Path(__file__).resolve().parents[2]
 
@@ -52,18 +52,18 @@ _WORKERS = textwrap.dedent("""
         return xml.count("<heap nr=")
 """)
 
-# The real CLI entry point: importing hermes_cli.main runs its startup (profile, .env, config) for
+# The real CLI entry point: importing kova_cli.main runs its startup (profile, .env, config) for
 # the given argv; only then do worker threads start.
 _ENTRY_CHILD = _WORKERS + textwrap.dedent("""
     import json, sys
     sys.argv = ["hermes", *json.loads(sys.argv[1])]
-    import hermes_cli.main  # noqa: F401
+    import kova_cli.main  # noqa: F401
     print(json.dumps({"heaps": arenas_under_load()}))
 """)
 
 _HELPER_CHILD = _WORKERS + textwrap.dedent("""
     import json, sys
-    from hermes_cli.resource_limits import apply_malloc_arena_max
+    from kova_cli.resource_limits import apply_malloc_arena_max
     applied = apply_malloc_arena_max({"runtime": {"malloc_arena_max": int(sys.argv[1])}})
     print(json.dumps({"applied": applied, "heaps": arenas_under_load()}))
 """)

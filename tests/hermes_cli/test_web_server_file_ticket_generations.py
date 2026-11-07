@@ -2,7 +2,7 @@
 
 A ticket captures the resolved file and the named profile homes it belongs to (the target's and the
 session/profile owner's); once one of them is deleted (main's tombstone rule,
-``hermes_constants.assert_named_profile_home_live``) the ticket is refused, and a new one cannot be
+``kova_constants.assert_named_profile_home_live``) the ticket is refused, and a new one cannot be
 minted.
 """
 import asyncio
@@ -19,9 +19,9 @@ import pytest
 import uvicorn
 from starlette.responses import FileResponse
 
-from hermes_cli import web_server, web_server_file_tickets
-from hermes_cli.web_routers import files
-from hermes_constants import mark_named_profile_deleted
+from kova_cli import web_server, web_server_file_tickets
+from kova_cli.web_routers import files
+from kova_constants import mark_named_profile_deleted
 
 
 @pytest.fixture
@@ -84,7 +84,7 @@ def _ticket(client, route, query):
 def _session_owned_file(home, profile, content):
     """Write the file outside the session owner's home: binding only the file's path
     would miss the owner's deletion."""
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     (home / "clip.mp4").write_bytes(content)
     db = SessionDB(db_path=profile / "state.db")

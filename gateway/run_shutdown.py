@@ -72,7 +72,7 @@ def _resolve_gateway_exit_verdict(runner, signal_initiated_shutdown: bool) -> bo
 # exit (bounded), then spawns ``hermes gateway restart``.
 _WINDOWS_RESTART_WATCHER = """
 import os, subprocess, sys, time
-from hermes_cli._subprocess_compat import windows_detach_flags_without_breakaway
+from kova_cli._subprocess_compat import windows_detach_flags_without_breakaway
 pid = int(sys.argv[1])
 restart_after_s = float(sys.argv[2])
 cmd = sys.argv[3:]
@@ -1363,7 +1363,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         already on the default root, is the host.
         """
         from gateway.config_loader import drop_bridged_env
-        from hermes_constants import get_default_hermes_root, get_hermes_home
+        from kova_constants import get_default_hermes_root, get_hermes_home
         from tools.environments.local import host_gateway_child_env, served_profile_child_env
 
         home = get_hermes_home()
@@ -1409,7 +1409,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
     def _spawn_windows_restart_watcher(hermes_cmd: list, current_pid: int, restart_after_s: float) -> None:
         """Spawn the detached Windows watcher (``python -c``), retrying once without job breakaway."""
         import subprocess
-        from hermes_cli._subprocess_compat import (
+        from kova_cli._subprocess_compat import (
             windows_detach_flags_without_breakaway, windows_detach_popen_kwargs
         )
         watcher_env = GatewayShutdownMixin._restart_watcher_env()
@@ -1426,7 +1426,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
         # The watcher runs sys.executable (console python) under the CREATE_NO_WINDOW detach kwargs below:
         # it owns one hidden console, inherited by the `hermes gateway restart` child, so nothing flashes.
         # See #54220, #56747.
-        from hermes_cli._launchers import runtime_command
+        from kova_cli._launchers import runtime_command
         watcher_argv = runtime_command(project_root,
             [str(current_pid), str(restart_after_s), *hermes_cmd, "gateway", "restart"],
             code=_WINDOWS_RESTART_WATCHER)
@@ -2098,7 +2098,7 @@ class GatewayShutdownMixin(GatewaySessionEndMixin):
             # Shared SessionDB instances still held by the process-wide registry (tools, cron, mirror).
             # This is the safety net that guarantees no WAL write lock survives past gateway shutdown
             # (#90837).
-            from hermes_state_registry import close_all
+            from kova_state_registry import close_all
             closed = close_all()
             if closed:
                 logger.debug("Closed %d shared SessionDB instance(s) at shutdown", closed)

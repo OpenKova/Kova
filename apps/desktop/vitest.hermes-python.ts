@@ -1,5 +1,5 @@
 /**
- * HERMES_PYTHON for the electron contracts that drive real hermes_cli / pm code
+ * HERMES_PYTHON for the electron contracts that drive real kova_cli / pm code
  * (mac-sign, source-backend, checkout-source). CI exports the PM test
  * environment's interpreter; a developer's plain `pnpm exec vitest` does not, and the
  * PATH python3 lacks the application dependencies. Resolve the checkout's test

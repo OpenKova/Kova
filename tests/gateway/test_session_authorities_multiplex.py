@@ -12,10 +12,10 @@ def _reserve_homes(tmp_path, monkeypatch, names=('alpha', 'beta')):
     root.mkdir(mode=0o700)
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
     monkeypatch.setenv('HERMES_HOME', str(root))
-    # The autouse isolation fixture pins hermes_state.DEFAULT_DB_PATH to its own fake home once
-    # hermes_state is imported; per-home stores must follow the scoped HERMES_HOME here.
-    import hermes_state
-    monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
+    # The autouse isolation fixture pins kova_state.DEFAULT_DB_PATH to its own fake home once
+    # kova_state is imported; per-home stores must follow the scoped HERMES_HOME here.
+    import kova_state
+    monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
     homes = [('default', root)]
     for name in names:
         home = root / 'profiles' / name
@@ -39,7 +39,7 @@ def _runner(root, homes):
 async def test_multiplex_builds_one_authority_per_reserved_home(tmp_path, monkeypatch):
     from gateway.run_runtime import initialize_gateway_runtime
     from gateway.runtime_ownership import process_ownership
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     root, homes = _reserve_homes(tmp_path, monkeypatch)
     process_ownership.reserve([home for _, home in homes])
     try:

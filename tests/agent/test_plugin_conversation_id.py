@@ -9,8 +9,8 @@ import pytest
 
 from agent.prompt_cache_scope import conversation_id
 from agent.runtime_session_store import RuntimeSessionStore
-from hermes_state import SessionDB
-from hermes_state_runtime import begin_runtime_epoch, mutate_worker_execution, register_worker_execution
+from kova_state import SessionDB
+from kova_state_runtime import begin_runtime_epoch, mutate_worker_execution, register_worker_execution
 from run_agent import AIAgent
 
 PLUGIN = '''
@@ -40,7 +40,7 @@ _GETS_CONVERSATION_ID = {"handler", "pre_tool_call", "post_tool_call"}  # the na
 
 @pytest.fixture
 def probe(tmp_path, monkeypatch):
-    from hermes_cli import plugins
+    from kova_cli import plugins
     from tools.registry import registry
 
     home = tmp_path / "home"

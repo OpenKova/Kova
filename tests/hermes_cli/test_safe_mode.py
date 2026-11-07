@@ -185,7 +185,7 @@ def test_canonical_safe_launch_is_frozen_policy_executed_in_isolated_worker(tmp_
             return sid
 
     def safe_cli(request_tag, *flags):
-        code, output = _pty_cli([sys.executable, '-m', 'hermes_cli.main', 'chat', *flags, '--provider', 'custom',
+        code, output = _pty_cli([sys.executable, '-m', 'kova_cli.main', 'chat', *flags, '--provider', 'custom',
                                  '--base-url', url, '--model', 'safe-fixture', '--api-key', 'fixture',
                                  '-Q', '-q', 'SAFE_PROBE_' + request_tag], cwd=work, env=env)
         assert code == 0, output

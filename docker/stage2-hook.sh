@@ -331,12 +331,12 @@ fi
 # sweep so host-owned files in a bind-mounted $HERMES_HOME are never
 # touched — same targeted-ownership contract as the subdir chown above
 # (issue #19788, PR #19795). The list mirrors the top-level *file*
-# entries of hermes_cli.profile_distribution.USER_OWNED_EXCLUDE plus the
+# entries of kova_cli.profile_distribution.USER_OWNED_EXCLUDE plus the
 # runtime lock files; keep them in sync if that set changes.
 for f in \
     auth.json auth.lock .env \
     state.db state.db-shm state.db-wal \
-    hermes_state.db \
+    kova_state.db \
     response_store.db response_store.db-shm response_store.db-wal \
     gateway.pid gateway.lock gateway_state.json processes.json \
     active_profile; do
@@ -529,7 +529,7 @@ elif ! grep -q '^API_SERVER_KEY=..*' "$HERMES_HOME/.env" 2>/dev/null; then
 fi
 
 # --- Sync deploy-injected Nous routing overrides into every profile .env ---
-# Under multiplex, hermes_cli.auth_nous reads HERMES_PORTAL_BASE_URL (or its
+# Under multiplex, kova_cli.auth_nous reads HERMES_PORTAL_BASE_URL (or its
 # NOUS_PORTAL_BASE_URL alias) and NOUS_INFERENCE_BASE_URL through the profile
 # secret scope (agent.secret_scope.get_secret, #108319 / #111809), built from
 # <profile>/.env with no os.environ fallback — a value that lives only in the
@@ -649,7 +649,7 @@ fi
 _config_backend=$(s6-setuidgid hermes "$INSTALL_DIR/.venv/bin/python" -c '
 import sys
 from pathlib import Path
-from hermes_cli.env_loader import selected_config_backend_name
+from kova_cli.env_loader import selected_config_backend_name
 print(selected_config_backend_name(Path(sys.argv[1])))
 ' "$HERMES_HOME" 2>/dev/null) || _config_backend=""
 if [ "$_config_backend" = "remote" ]; then
@@ -672,7 +672,7 @@ fi
 # collect_generations keeps anything younger than a day.
 s6-setuidgid hermes "$INSTALL_DIR/.venv/bin/python" -c '
 from pathlib import Path
-from hermes_cli.runtime_state import collect_generations
+from kova_cli.runtime_state import collect_generations
 from pm.environments import install_state_dir
 from pm.recovery import refresh_dependencies
 from pm.runtime import collect_runtime_generations
@@ -773,7 +773,7 @@ fi
 # $HERMES_RUNTIME_DIR (/opt/hermes/tools) at BUILD time and bakes the
 # resolved binary path into /etc/hermes/chromium-executable-path (the layout
 # differs per arch, so it is resolved at build time, not hard-coded). Hermes
-# reads that file itself (hermes_cli/browser_runtime.py) when pm's facts are
+# reads that file itself (kova_cli/browser_runtime.py) when pm's facts are
 # hidden, so nothing is exported here: the hook only says, once per boot,
 # when the baked path no longer names a runnable binary (a custom build that
 # stripped the tool store), instead of leaving the first browser_exec call to

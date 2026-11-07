@@ -15,10 +15,10 @@ from gateway import control_socket
 from gateway import host_attach
 from gateway import host_rendezvous as hr
 from gateway import status as gateway_status
-from hermes_cli import gateway as gw
-from hermes_constants import get_hermes_home
+from kova_cli import gateway as gw
+from kova_constants import get_hermes_home
 
-PLAIN_ARGV = ["/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run"]
+PLAIN_ARGV = ["/usr/bin/python", "-m", "kova_cli.main", "gateway", "run"]
 
 
 class _ReachedStart(Exception):
@@ -87,7 +87,7 @@ def test_restart_with_a_warm_probe_does_not_attach_to_the_stopped_gateway(manual
     monkeypatch.setattr(gw, "_installed_service_kind_for", lambda windows: None)
     monkeypatch.setattr(gateway_status, "get_running_pid", lambda *a, **k: child.pid)
     monkeypatch.setattr(gw, "_capture_gateway_argv", lambda pid: PLAIN_ARGV)
-    monkeypatch.setattr("hermes_cli.main_dashboard._get_systemd_service_for_pid", lambda pid: None)
+    monkeypatch.setattr("kova_cli.main_dashboard._get_systemd_service_for_pid", lambda pid: None)
     monkeypatch.setattr(gw, "stop_profile_gateway", stop)
     monkeypatch.setattr(gw, "_wait_for_gateway_exit", lambda **k: None)
     monkeypatch.setattr(gw, "_wait_for_api_server_port_free", lambda *a, **k: None)

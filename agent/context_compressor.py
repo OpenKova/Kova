@@ -320,7 +320,7 @@ MODEL_ONLY_DISPLAY_METADATA_KEY = "model_only"
 # agent/chat_completion_helpers.py) strip every top-level ``_``-prefixed key before the request leaves the
 # process, so this never reaches a strict OpenAI-compatible gateway. CONTRACT (#92231): the marker asserts
 # "this dict's CONTENT is durable as written". Loaded rows are stamped at materialization time
-# (hermes_state._rows_to_conversation), so any code that mutates a loaded or flushed dict's content in place
+# (kova_state._rows_to_conversation), so any code that mutates a loaded or flushed dict's content in place
 # and needs the change persisted MUST pop the marker (and invalidate _db_flush_scan_prefix if the dict may
 # sit inside the bounded-scan prefix) — see agent/turn_finalizer.py (fill-empty-tail) and
 # agent/context_compressor.py (micro-compaction defrag) for the two canonical pop sites. Mutating without
@@ -5408,7 +5408,7 @@ Write only the summary body. Do not include any preamble or prefix."""
             # compressed-away message dicts), which makes this the natural point to hand allocator pages
             # back to the OS. #76905's trim lifecycle covers the gateway/TUI housekeeping loops but not the
             # CLI compression path, so RSS keeps the pre-compaction high-water mark until exit. (#70782)
-            from hermes_cli.mem_trim import trim_memory
+            from kova_cli.mem_trim import trim_memory
             trim_memory(reason="post-compression", collect=False)  # a full GC freezes every thread (#146375)
         except Exception as exc:
             logger.debug("post-compression memory trim failed: %s: %s", type(exc).__name__, exc)

@@ -17,7 +17,7 @@
  * app session; a known "no" drops them.
  *
  * Every value is a code-defined id from the closed sets below (mirrored by
- * hermes_cli/observability/shared_metrics_contract.py, which collapses any
+ * kova_cli/observability/shared_metrics_contract.py, which collapses any
  * stranger to `other`). Never a session id, path, message, bot name or setting
  * value.
  *

@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from hermes_cli import update_cmd, update_cmd_fleet, update_cmd_fleet_verify as fleet_verify, update_cmd_maint, update_receipt
-from hermes_constants import get_hermes_home
+from kova_cli import update_cmd, update_cmd_fleet, update_cmd_fleet_verify as fleet_verify, update_cmd_maint, update_receipt
+from kova_constants import get_hermes_home
 
 
 @pytest.mark.parametrize(
@@ -30,7 +30,7 @@ def test_fleet_completion_preserves_runtime_verdict_and_restart_obligation(
     )
     monkeypatch.setattr(update_receipt, "_code_identity", lambda **kwargs: {})
     monkeypatch.setattr(
-        "hermes_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: migrated.append(True),
+        "kova_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: migrated.append(True),
     )
 
     def collect(outcome, rows_expected):

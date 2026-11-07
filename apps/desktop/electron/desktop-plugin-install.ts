@@ -237,7 +237,7 @@ const AGENT_PAYLOAD_FILES = ['__init__.py', path.join('dashboard', 'manifest.jso
 
 /** Whether a `plugin.yaml` folder has something for the agent side to load. A manifest alone is not
  *  enough: desktop-only plugins ship one beside `desktop/plugin.js` for metadata. Same rule as the
- *  gateway's `_yaml_ships_agent_payload` (hermes_cli/plugins_cmd_inspect.py); the shared cases live in
+ *  gateway's `_yaml_ships_agent_payload` (kova_cli/plugins_cmd_inspect.py); the shared cases live in
  *  tests/fixtures/plugin_component_detection.json. */
 async function yamlShipsAgentPayload(pluginRoot: string, yamlPath: string): Promise<boolean> {
   if (AGENT_PAYLOAD_FILES.some(rel => pathExistsSync(path.join(pluginRoot, rel)))) {

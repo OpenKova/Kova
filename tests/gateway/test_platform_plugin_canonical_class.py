@@ -14,7 +14,7 @@ import pytest
 @pytest.mark.parametrize("platform, cls", [("signal", "SignalAdapter")])
 def test_registry_factory_is_the_canonical_adapter_class(platform, cls):
     from gateway.platform_registry import platform_registry
-    from hermes_cli.plugins import discover_plugins
+    from kova_cli.plugins import discover_plugins
 
     discover_plugins()
     entry = platform_registry.get(platform)

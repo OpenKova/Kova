@@ -5,9 +5,9 @@ import gc
 import sqlite3
 from pathlib import Path
 
-import hermes_state_repair as repair
-from tests.hermes_state import test_fts_cjk_index_retirement as retirement
-from tests.hermes_state.test_state_db_malformed_repair import _corrupt_duplicate_fts
+import kova_state_repair as repair
+from tests.kova_state import test_fts_cjk_index_retirement as retirement
+from tests.kova_state.test_state_db_malformed_repair import _corrupt_duplicate_fts
 
 cjk_db = retirement.cjk_db
 

@@ -33,7 +33,7 @@ from gateway.run_adapters_recovery import (
 )
 from gateway.run_shutdown import _log_suppressed
 from gateway.session import SessionSource
-from hermes_cli.observability.shared_metrics_gateway import record_platform_connect, record_platform_disconnect
+from kova_cli.observability.shared_metrics_gateway import record_platform_connect, record_platform_disconnect
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, Optional
 
@@ -972,7 +972,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
                 publish_runtime_status(served_profiles=[])
             return 0
         try:
-            from hermes_cli.profiles import get_active_profile_name, profiles_to_serve, profile_is_parked
+            from kova_cli.profiles import get_active_profile_name, profiles_to_serve, profile_is_parked
         except Exception:
             return 0
         if self._multiplex_on():
@@ -1053,7 +1053,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
             # its served set in step with the live one (it is republished, never re-claimed).
             from gateway.host_rendezvous import ROLE_GATEWAY, owns_host_lock, publish_record
             if owns_host_lock(ROLE_GATEWAY):
-                from hermes_constants import get_hermes_home
+                from kova_constants import get_hermes_home
                 publish_record(ROLE_GATEWAY, profiles=tuple(served), home=str(get_hermes_home()))
 
     async def _load_secondary_profile_config(self, profile_name: str, profile_home: Path):
@@ -1066,7 +1066,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
             _own_policy_open_startup_violation, _profile_runtime_scope,
         )
         from gateway.config import load_gateway_config
-        from hermes_cli.env_loader import hydrate_profile_secret_sources
+        from kova_cli.env_loader import hydrate_profile_secret_sources
         # Hydrate external secret sources off-loop ONCE: sync hydration would stall every heartbeat.
         await asyncio.to_thread(hydrate_profile_secret_sources, profile_home)
         # A platform that left core for a catalog plugin is installed before discovery below.
@@ -1074,7 +1074,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         await asyncio.to_thread(recover_left_core_in, profile_home, hydrate_secrets=False)
         with _profile_runtime_scope(profile_home, hydrate_secrets=False):
             profile_runtime_cfg = _load_gateway_config()
-            from hermes_cli.plugins import discover_plugins, get_plugin_manager
+            from kova_cli.plugins import discover_plugins, get_plugin_manager
             discover_plugins()
             self._subscribe_plugin_rewire(get_plugin_manager(), profile_name, profile_home)
             # This profile's `hooks:` block: start() registered before any profile scope existed.
@@ -1139,13 +1139,13 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         owner_home = None
         if owner == "default":
             try:
-                from hermes_constants import get_default_hermes_root
+                from kova_constants import get_default_hermes_root
                 owner_home = get_default_hermes_root()
             except Exception:
                 owner_home = None
         else:
             try:
-                from hermes_cli.profiles import get_profile_dir
+                from kova_cli.profiles import get_profile_dir
                 owner_home = get_profile_dir(owner)
             except Exception:
                 owner_home = None
@@ -1473,7 +1473,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         answering it for an unresolvable NAMED profile is what made a secondary's inbound message
         run on the launch profile's credentials.
         """
-        from hermes_cli.profiles import get_profile_dir
+        from kova_cli.profiles import get_profile_dir
         try:
             return get_profile_dir(profile_name)
         except Exception:
@@ -1661,7 +1661,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         """Authorize and publish one normalized adapter event to plugin hooks."""
         # Observer failures must never break the adapter's update loop.
         with _log_suppressed(logging.DEBUG, "gateway_platform_event hook dispatch failed", exc_info=True):
-            from hermes_cli.lifecycle import has_hook, invoke_hook
+            from kova_cli.lifecycle import has_hook, invoke_hook
             if has_hook("gateway_platform_event") and self._is_user_authorized_for_source(source):
                 invoke_hook("gateway_platform_event", **event)
 

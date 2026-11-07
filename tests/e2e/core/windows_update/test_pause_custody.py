@@ -44,14 +44,14 @@ _RESTARTING = "Restarting gateway(s) paused by an interrupted"
 _MISSING_SERVICE = "hermes-e2e-no-such-gateway-service"
 
 # Every driver: the installed module behind the same bootstrap a launch runs (a resume imports
-# hermes_cli.main, whose bootstrap would otherwise re-enter this script mid-resume), and a hook that
+# kova_cli.main, whose bootstrap would otherwise re-enter this script mid-resume), and a hook that
 # stops on one line of it (kill or park).
 _DRIVER = """
 import inspect, json, os, sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-import hermes_bootstrap  # as every launch does: re-enters the managed interpreter with its dependencies
-from hermes_cli import update_pause_record as r
+import kova_bootstrap  # as every launch does: re-enters the managed interpreter with its dependencies
+from kova_cli import update_pause_record as r
 
 def stop_at(fn, texts, action, flag=None):
     lines, start = inspect.getsourcelines(fn)
@@ -279,7 +279,7 @@ def _gone(pid: int, timeout: float) -> bool:
 # The real pause, killed on one line of the installed update_cmd_windows (texts present before and
 # after round 6, so the same cell runs on the red branch).
 _PAUSE = """
-from hermes_cli import update_cmd_windows as w
+from kova_cli import update_cmd_windows as w
 stop_at(getattr(w, sys.argv[2]), (sys.argv[3],), "kill")
 w._pause_windows_gateways_for_update()
 """

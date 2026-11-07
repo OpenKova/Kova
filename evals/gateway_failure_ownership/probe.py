@@ -25,7 +25,7 @@ os.chdir(HOME)
     "model:\n  provider: openai-compat\n  default: fixture-model\n  context_length: 131072\nagent:\n  max_iterations: 2\ncompression:\n  enabled: false\ndatabase:\n  journal_mode: delete\n"
 )
 # Fence all network calls to loopback, including optional discovery/aux paths. Both entry
-# points: hermes_bootstrap's happy-eyeballs socket.create_connection dials with connect_ex.
+# points: kova_bootstrap's happy-eyeballs socket.create_connection dials with connect_ex.
 orig_connect = socket.socket.connect
 orig_connect_ex = socket.socket.connect_ex
 blocked = []
@@ -133,7 +133,7 @@ class Peer(BaseHTTPRequestHandler):
 server = ThreadingHTTPServer(("127.0.0.1", 0), Peer)
 threading.Thread(target=server.serve_forever, daemon=True).start()
 from run_agent import AIAgent
-from hermes_state import SessionDB
+from kova_state import SessionDB
 from gateway.session import SessionStore, AsyncSessionStore, SessionSource
 from gateway.config import GatewayConfig, Platform
 from gateway.platforms.event import MessageEvent

@@ -45,17 +45,17 @@ function webSource(source) {
 test('product outputs exclude the source tree except supported generated destinations', async () => {
   const inputs = ['ui-tui', 'apps/shared', 'node_modules']
   // Only call the read-only validator on real source paths: never publish here.
-  for (const name of ['pm', 'hermes_cli', 'scripts', 'pyproject.toml', '.git', 'tools', '.build', 'apps/desktop/build/products']) {
+  for (const name of ['pm', 'kova_cli', 'scripts', 'pyproject.toml', '.git', 'tools', '.build', 'apps/desktop/build/products']) {
     expect(() => productOutput(repo, path.join(repo, name), inputs), name).toThrow(/output/i)
   }
   const base = fixture()
   const source = path.join(base, 'source')
   mkdirSync(source)
-  for (const name of ['new-source-file', 'pm/generated', 'hermes_cli/web_dist-copy', 'apps/desktop/dist-copy', 'apps/desktop/build/native-deps-copy', 'hermes_cli/web_dist/assets',
+  for (const name of ['new-source-file', 'pm/generated', 'kova_cli/web_dist-copy', 'apps/desktop/dist-copy', 'apps/desktop/build/native-deps-copy', 'kova_cli/web_dist/assets',
     'apps/desktop/build/native-deps-win32-x64/nested', 'apps/desktop/build/native-deps-freebsd-x64', 'apps/desktop/build/native-deps-win32-ia32']) {
     expect(() => productOutput(source, path.join(source, name), inputs), name).toThrow(/output/i)
   }
-  for (const name of ['hermes_cli/web_dist', 'apps/desktop/dist', 'apps/desktop/build/native-deps', 'apps/desktop/build/native-deps-win32-x64',
+  for (const name of ['kova_cli/web_dist', 'apps/desktop/dist', 'apps/desktop/build/native-deps', 'apps/desktop/build/native-deps-win32-x64',
     'apps/desktop/build/native-deps-darwin-arm64', 'apps/desktop/build/products/tui', 'apps/desktop/build/products/web', '.build/web', '.build/termux/tui']) {
     const out = path.join(source, name)
     expect(productOutput(source, out, inputs).out).toBe(out)
@@ -120,7 +120,7 @@ test('publication replaces only builder-owned directories and rechecks ownership
 
 test('existing npm build directories can be rebuilt without adopting arbitrary outputs', async () => {
   const source = fixture()
-  for (const name of ['ui-tui/dist', 'hermes_cli/web_dist', 'apps/desktop/dist', 'apps/desktop/build/native-deps']) {
+  for (const name of ['ui-tui/dist', 'kova_cli/web_dist', 'apps/desktop/dist', 'apps/desktop/build/native-deps']) {
     const out = path.join(source, name)
     put(out, 'old-output', 'previous compiler output')
     await withProduct(out, product => put(product, 'new-output', 'rebuilt'), { source })
@@ -464,7 +464,7 @@ test('a Webapp rebuild keeps the previous generation for tabs that booted it, ne
     await buildWebapp({ source, workspace, out })
     expect(productCurrent({ source, product: 'webapp', out }), generation).toBe(true)
     if (generation === 'gen-two') {
-      // An update that could not rebuild gen-two marks it (hermes_cli/webapp.py mark_webapp_stale):
+      // An update that could not rebuild gen-two marks it (kova_cli/webapp.py mark_webapp_stale):
       // the marker still forces the rebuild, and must not cost gen-two's tabs their chunks.
       writeFileSync(path.join(out, '.hermes-stale'), 'hermes update could not rebuild this bundle\n')
       expect(productCurrent({ source, product: 'webapp', out })).toBe(false)

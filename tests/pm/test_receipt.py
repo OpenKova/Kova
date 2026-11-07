@@ -15,7 +15,7 @@ from pm import receipt
 
 @pytest.fixture(autouse=True)
 def _isolated_receipt_context():
-    from hermes_cli import update_receipt
+    from kova_cli import update_receipt
     variables = (receipt._current, receipt._completed_by_update, update_receipt._current)
     tokens = [variable.set(None) for variable in variables]
     yield
@@ -26,9 +26,9 @@ def _isolated_receipt_context():
 @pytest.fixture
 def homed(tmp_path, monkeypatch):
     """Receipt dir inside a temp hermes home."""
-    import hermes_constants
+    import kova_constants
 
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: tmp_path)
     return tmp_path
 
 
@@ -264,7 +264,7 @@ def test_nested_begin_with_token_restores_outer():
 def test_sync_begin_after_update_finalized_has_no_update_id(homed, monkeypatch):
     """The correlation id comes from the OPEN update receipt: after its
     finalize pops it, a sync begun is standalone."""
-    import hermes_cli.update_receipt as ur
+    import kova_cli.update_receipt as ur
 
     monkeypatch.setattr(ur, "_receipt_dir", lambda: homed / "logs" / "update_receipts")
     ur.begin_update_receipt()
@@ -275,7 +275,7 @@ def test_sync_begin_after_update_finalized_has_no_update_id(homed, monkeypatch):
 
 
 def test_last_for_update_returns_a_copy(homed):
-    import hermes_cli.update_receipt as ur
+    import kova_cli.update_receipt as ur
 
     ur.begin_update_receipt()
     my_id = ur.current_correlation_id()

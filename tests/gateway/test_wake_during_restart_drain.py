@@ -13,9 +13,9 @@ from gateway.config import Platform
 from gateway.kanban_watchers_notifier import _KanbanNotification, _notifier_collect
 from gateway.platforms.event import MessageEvent
 from gateway.wake import WakeNotAccepted, deliver_wake
-from hermes_cli import kanban_db as kb
-from hermes_cli import kanban_db_connect as kbc
-from hermes_cli import kanban_db_notify as kbn
+from kova_cli import kanban_db as kb
+from kova_cli import kanban_db_connect as kbc
+from kova_cli import kanban_db_notify as kbn
 from tests.gateway.restart_test_helpers import make_restart_runner, make_restart_source
 
 

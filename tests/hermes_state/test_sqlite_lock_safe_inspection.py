@@ -26,7 +26,7 @@ import threading
 
 import pytest
 
-from hermes_cli.sqlite_safe_read import (
+from kova_cli.sqlite_safe_read import (
     file_length_matches_header,
     has_live_connection,
     page_count_bytes,
@@ -79,7 +79,7 @@ def _make_db(path, journal_mode: str) -> None:
 def clean_registry():
     yield
     # Keep the module-level registry from leaking across tests.
-    import hermes_cli.sqlite_safe_read as mod
+    import kova_cli.sqlite_safe_read as mod
 
     with mod._live_lock:
         mod._live_connections.clear()
@@ -121,7 +121,7 @@ def test_tracking_registry_does_not_leak_across_close_paths(tmp_path, clean_regi
     """
     import contextlib
 
-    from hermes_cli.sqlite_safe_read import connect_tracked
+    from kova_cli.sqlite_safe_read import connect_tracked
 
     db = tmp_path / "state.db"
     boot = connect_tracked(db, isolation_level=None)
@@ -173,7 +173,7 @@ def test_failed_close_keeps_connection_tracked(tmp_path, clean_registry):
     ``has_live_connection`` reports false, so the byte-probe guard permits
     ``open``/``close`` on a live database — cancelling POSIX advisory locks.
     """
-    from hermes_cli.sqlite_safe_read import connect_tracked
+    from kova_cli.sqlite_safe_read import connect_tracked
 
     class ControllableConnection(sqlite3.Connection):
         def close(self):
@@ -217,7 +217,7 @@ def test_probe_and_connect_do_not_race(tmp_path, clean_registry, monkeypatch):
     interleaving is possible. If the lock is only held across the check, that
     thread slips in and the probe's ``close()`` cancels its POSIX locks.
     """
-    import hermes_cli.sqlite_safe_read as ssr
+    import kova_cli.sqlite_safe_read as ssr
 
     db = tmp_path / "state.db"
     _make_db(db, "DELETE")
@@ -273,7 +273,7 @@ def test_probe_and_connect_do_not_race(tmp_path, clean_registry, monkeypatch):
 def test_session_db_read_only_is_tracked(tmp_path, clean_registry, monkeypatch):
     """End-to-end: a real read-only SessionDB blocks byte-probes."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     db_path = tmp_path / "state.db"
     seed = SessionDB(db_path=db_path)
@@ -304,8 +304,8 @@ def test_repair_connections_are_tracked_for_byte_probe_safety(tmp_path, clean_re
     the repair still believed it owned.
     """
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    from hermes_state import SessionDB
-    from hermes_state_repair import _connect_repair_durable, _repair_conn
+    from kova_state import SessionDB
+    from kova_state_repair import _connect_repair_durable, _repair_conn
 
     db_path = tmp_path / "state.db"
     seed = SessionDB(db_path=db_path)
@@ -336,7 +336,7 @@ def test_byte_probe_never_cancels_the_repair_exclusion(tmp_path, clean_registry)
     the exclusion keeps holding; if the probe were allowed through, its ``close()``
     would cancel the lock and the intruder would commit into the file mid-repair.
     """
-    import hermes_state_repair as repair
+    import kova_state_repair as repair
 
     db_path = tmp_path / "state.db"
     _make_db(db_path, "DELETE")

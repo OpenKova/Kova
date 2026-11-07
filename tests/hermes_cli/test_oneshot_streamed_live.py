@@ -42,7 +42,7 @@ def test_streamed_oneshot_prints_the_reply(tmp_path):
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
     def hermes(*args):
-        return subprocess.run([sys.executable, "-m", "hermes_cli.main", *args], cwd=work, env=env,
+        return subprocess.run([sys.executable, "-m", "kova_cli.main", *args], cwd=work, env=env,
                               stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120, check=False)
 
     with (home / "gw.log").open("w") as log:

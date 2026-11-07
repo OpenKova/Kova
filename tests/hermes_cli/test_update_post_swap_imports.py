@@ -28,9 +28,9 @@ from pathlib import Path
 
 REPO, ROOT, CASE, LABEL, CLONE = sys.argv[1:6]
 sys.path.insert(0, REPO)
-import hermes_cli.main
-from hermes_cli import update_cmd, update_cmd_commit, update_cmd_posix_pause, update_receipt
-import hermes_cli.update_lock  # main.py imports it before the update runs
+import kova_cli.main
+from kova_cli import update_cmd, update_cmd_commit, update_cmd_posix_pause, update_receipt
+import kova_cli.update_lock  # main.py imports it before the update runs
 
 home = os.environ["HERMES_HOME"]
 GONE = 2 ** 22 + 7  # a PID no process holds
@@ -49,14 +49,14 @@ def posix_token(*entries, bare=()):
 
 if CASE == "systemd_resume":
     os.geteuid = lambda: 0  # root: a legacy system unit is rewritten, not just named
-    from hermes_cli import gateway  # loaded by the pause that stopped the unit
+    from kova_cli import gateway  # loaded by the pause that stopped the unit
     gateway._SYSTEM_UNIT_DIR = Path(ROOT) / "system-units"
     gateway._SYSTEM_UNIT_DIR.mkdir()
     unit_name = gateway.get_service_name()
     (gateway._SYSTEM_UNIT_DIR / f"{unit_name}.service").write_text(
         f"[Service]\nUser={os.environ.get('USER') or 'nobody'}\nExecStart=/bin/false\n")
 if CASE == "launchd_resume":
-    from hermes_cli import gateway  # loaded by the pause that stopped the job
+    from kova_cli import gateway  # loaded by the pause that stopped the job
     plist = Path(ROOT) / "job.plist"
     plist.write_text("<plist/>")
     gateway.get_launchd_plist_path = lambda: plist
@@ -93,10 +93,10 @@ if CASE == "shallow_count":
     def offline(*args, **kwargs):
         raise urllib.error.URLError("offline")
     urllib.request.urlopen = offline
-    hermes_cli.main.PROJECT_ROOT = Path(CLONE)
+    kova_cli.main.PROJECT_ROOT = Path(CLONE)
 
 # The run's own steps before its first tree move, then the commit point (``arm_commit_point``'s order).
-from hermes_cli.update_stage import publish_stage
+from kova_cli.update_stage import publish_stage
 publish_stage("Downloading updates")
 update_receipt.begin_update_receipt()
 update_receipt._current.get().data["pre_update"]["sha"] = "1" * 40  # the code this process started on
@@ -214,7 +214,7 @@ def _run_case(case, tmp_path, monkeypatch):
     label = clone = ""
     if case == "launchd_resume":
         monkeypatch.setenv("HERMES_HOME", env["HERMES_HOME"])
-        from hermes_cli.gateway_launchd import get_launchd_label
+        from kova_cli.gateway_launchd import get_launchd_label
 
         label = get_launchd_label()
     if case == "shallow_count":

@@ -131,18 +131,18 @@ def needs_chromium_sandbox_bypass() -> bool:
 
 
 def _chromium_missing_hint() -> str:
-    from hermes_cli.browser_runtime import chromium_missing_hint
+    from kova_cli.browser_runtime import chromium_missing_hint
     return chromium_missing_hint()
 
 
 def _resolve_executable() -> Optional[str]:
-    from hermes_cli.browser_runtime import chromium_executable
+    from kova_cli.browser_runtime import chromium_executable
     exe = chromium_executable()
     if not exe:
         return None
     if os.path.isfile(exe):
         return exe
-    from hermes_platform.resolver import locate_command
+    from kova_platform.resolver import locate_command
     found = locate_command(exe).command  # a bare command name pinned in browser.executable_path
     return found[0] if found else None
 
@@ -159,8 +159,8 @@ def _maybe_autoinstall_chromium() -> bool:
     if _autoinstall_attempted:
         return False
     _autoinstall_attempted = True
-    from hermes_cli.browser_runtime import chromium_executable
-    from hermes_constants import is_termux
+    from kova_cli.browser_runtime import chromium_executable
+    from kova_constants import is_termux
     if running_in_docker() or is_termux() or _explicit_executable_configured(chromium_executable):
         return False
     from pm import InstallError, ensure, lazy_installs_allowed
@@ -252,7 +252,7 @@ def build_chromium_argv(executable: str, user_data_dir: str, *, packaged: bool, 
 
 def _spawn_kwargs() -> dict[str, Any]:
     if os.name == "nt":
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from kova_cli._subprocess_compat import windows_hide_flags
         return {"creationflags": windows_hide_flags() | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)}
     # detached-spawn: ok — a shared-profile Chromium outlives its launcher for its other holders (browser_launcher_holders); a crashed owner's throwaway one is reaped from its launch record by the next Hermes
     return {"start_new_session": True}
@@ -569,7 +569,7 @@ def launch_chromium(key: str, *, executable: Optional[str] = None, user_data_dir
     right before a fresh launch, inside the same cross-process step, never when attaching: a profile copy
     written there can neither race another process's copy nor land under a browser that just came up; a
     message it returns is the launch's error, as is."""
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     # Loaded now, not first at teardown: stopping the browser from an atexit hook must not be this module's
     # first import (Python refuses new atexit registrations during shutdown, orphaning the browser). An
     # attacher needs it too: it is the one that stops a shared browser when it is the last holder.
@@ -1126,7 +1126,7 @@ def _reclaim_throwaway_dirs(home: str) -> None:
 
 def _served_home_keys(homes) -> set[str]:
     """The launch profile, every profile this process launched a browser for, and ``homes``."""
-    from hermes_constants import get_process_hermes_home, hermes_home_key
+    from kova_constants import get_process_hermes_home, hermes_home_key
     with _lock:
         keys = set(_served_homes)
     keys.add(hermes_home_key(get_process_hermes_home()))

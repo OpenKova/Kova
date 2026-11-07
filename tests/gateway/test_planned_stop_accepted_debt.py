@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from gateway import status
-from hermes_cli import update_pause_record as pause_record
+from kova_cli import update_pause_record as pause_record
 
 pytestmark = [
     pytest.mark.skipif(sys.platform == "win32", reason="POSIX modes stand in for Windows refusals"),

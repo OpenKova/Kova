@@ -4,8 +4,8 @@ import subprocess
 
 import pytest
 
-from hermes_cli import main, main_desktop
-from tests.hermes_cli.test_source_build import source_checkout, source_products, _events
+from kova_cli import main, main_desktop
+from tests.kova_cli.test_source_build import source_checkout, source_products, _events
 
 
 @pytest.fixture

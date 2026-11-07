@@ -1205,11 +1205,11 @@ def test_codex_preflight_defangs_harmony_tokens_before_and_after_middleware(monk
         return _codex_message_response("OK")
 
     monkeypatch.setattr(
-        "hermes_cli.middleware.apply_llm_request_middleware",
+        "kova_cli.middleware.apply_llm_request_middleware",
         _request_middleware,
     )
     monkeypatch.setattr(
-        "hermes_cli.middleware.run_llm_execution_middleware",
+        "kova_cli.middleware.run_llm_execution_middleware",
         _execution_middleware,
     )
     monkeypatch.setattr(agent, "_interruptible_api_call", _capture_api_call)
@@ -1309,11 +1309,11 @@ def test_id_binding_relay_final_preflight_sanitizes_both_middleware_layers(monke
         return _codex_message_response("OK")
 
     monkeypatch.setattr(
-        "hermes_cli.middleware.apply_llm_request_middleware",
+        "kova_cli.middleware.apply_llm_request_middleware",
         _request_middleware,
     )
     monkeypatch.setattr(
-        "hermes_cli.middleware.run_llm_execution_middleware",
+        "kova_cli.middleware.run_llm_execution_middleware",
         _execution_middleware,
     )
     monkeypatch.setattr(agent, "_interruptible_api_call", _capture_api_call)
@@ -1347,7 +1347,7 @@ def test_codex_final_preflight_bounds_middleware_cache_key(monkeypatch):
         return _codex_message_response("OK")
 
     monkeypatch.setattr(
-        "hermes_cli.middleware.run_llm_execution_middleware",
+        "kova_cli.middleware.run_llm_execution_middleware",
         _execution_middleware,
     )
     monkeypatch.setattr(agent, "_interruptible_api_call", _capture_api_call)
@@ -1469,7 +1469,7 @@ def test_try_refresh_codex_client_credentials_handles_xai_oauth(monkeypatch):
         }
 
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_xai_oauth_runtime_credentials",
+        "kova_cli.auth.resolve_xai_oauth_runtime_credentials",
         _fake_resolve,
     )
     monkeypatch.setattr("agent.process_bootstrap.OpenAI", _fake_openai)
@@ -1527,7 +1527,7 @@ def test_try_refresh_codex_client_credentials_skips_xai_oauth_when_singleton_dif
         }
 
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_xai_oauth_runtime_credentials",
+        "kova_cli.auth.resolve_xai_oauth_runtime_credentials",
         _fake_resolve,
     )
 
@@ -1700,7 +1700,7 @@ def test_mid_turn_compaction_does_not_double_persist_in_place_rows(monkeypatch, 
     context and retriggering compression. This guards that regression with a
     REAL SessionDB and the REAL archive_and_compact path (no persist stubs).
     """
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     agent = _build_agent(monkeypatch)

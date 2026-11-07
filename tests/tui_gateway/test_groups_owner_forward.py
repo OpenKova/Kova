@@ -28,7 +28,7 @@ ENDPOINT = object()
 
 def _discovery(monkeypatch, *states):
     """Gateway discovery answers the given states in turn (the last one repeats)."""
-    from hermes_cli import gateway_runtime
+    from kova_cli import gateway_runtime
     seen = list(states)
 
     def discover(home, *, timeout=2.0):
@@ -73,7 +73,7 @@ def test_capabilities_advertise_only_what_this_wire_carries(home, owner):
 
 
 def test_owner_refusal_is_returned_not_run_locally(home, monkeypatch):
-    from hermes_cli.gateway_client import GatewayRPCError
+    from kova_cli.gateway_client import GatewayRPCError
     _discovery(monkeypatch, "ready")
 
     def refuse(*_args):
@@ -98,7 +98,7 @@ def test_owner_refusal_is_returned_not_run_locally(home, monkeypatch):
     ("profile", "groups.stop", 4000, None),
 ])
 def test_only_sends_refused_before_forwarding_are_marked_unsent(home, monkeypatch, failure, method, code, data):
-    from hermes_cli.gateway_client import GatewayRPCError
+    from kova_cli.gateway_client import GatewayRPCError
     from tui_gateway import methods_groups_forward
 
     monkeypatch.setattr(methods_groups_forward, "_standalone_holder", lambda _: "gateway")

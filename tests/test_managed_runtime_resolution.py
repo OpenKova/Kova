@@ -78,21 +78,21 @@ _ALLOWED: dict[tuple[str, str], str] = {
         "can only run what is on that subshell's PATH, which local.py populates "
         "with the managed dirs — so PATH is the correct question to ask here."
     ),
-    ("hermes_cli/main_tui_launch.py", "node"): (
+    ("kova_cli/main_tui_launch.py", "node"): (
         "PM-composed launch context: `which(node)` runs against the PATH "
         "pm.ensure('node'|'pnpm') just composed (store dirs first), not the ambient one."
     ),
-    ("hermes_cli/main_tui_launch.py", "pnpm"): (
+    ("kova_cli/main_tui_launch.py", "pnpm"): (
         "Same PM-composed launch context as the node lookup above."
     ),
-    ("hermes_cli/source_build.py", "node"): (
+    ("kova_cli/source_build.py", "node"): (
         "PM-composed build context: `which(node)` runs against the PATH pm's "
         "ensure('pnpm')/env_for('node') just composed, not the ambient one."
     ),
-    ("hermes_cli/source_build.py", "pnpm"): (
+    ("kova_cli/source_build.py", "pnpm"): (
         "Same PM-composed build context as the node lookup above."
     ),
-    ("hermes_cli/main_desktop.py", "pnpm"): (
+    ("kova_cli/main_desktop.py", "pnpm"): (
         "Desktop build resolves pnpm inside the PM-prepared build_env PATH."
     ),
     ("pm/workspace.py", "npm"): (
@@ -213,7 +213,7 @@ def _source_files() -> list[Path]:
     files: list[Path] = []
     # os.walk instead of Path.rglob: rglob raises FileNotFoundError when a
     # directory vanishes mid-scan — a sibling CI job's sdist extraction
-    # (hermes_agent-<version>/) gets created and deleted concurrently, and
+    # (kova_agent-<version>/) gets created and deleted concurrently, and
     # that TOCTOU failed this guard on runs 33531869442/33455779041-era
     # workspaces. os.walk tolerates vanishing dirs (onerror=None), and
     # pruning exempt/packaging dirs at the top level also skips their
@@ -267,7 +267,7 @@ def _resolution_sites() -> set[tuple[str, str, str]]:
     sites: set[tuple[str, str, str]] = set()
     for path in _source_files():
         rel = path.relative_to(REPO_ROOT).as_posix()
-        if rel == "hermes_platform" or rel.startswith("hermes_platform/"):
+        if rel == "kova_platform" or rel.startswith("kova_platform/"):
             continue
         try:
             source = path.read_text(encoding="utf-8")
@@ -300,12 +300,12 @@ def test_bare_which_and_known_path_tables_are_allowlisted():
     assert not unlisted, (
         "Unreviewed command resolution sites:\n"
         + _format_resolution_sites(unlisted)
-        + "\nuse a hermes_platform resolver or add a justified allowlist row"
+        + "\nuse a kova_platform resolver or add a justified allowlist row"
     )
 
 
 def test_resolution_allowlist_has_no_stale_rows():
-    """Remove bootstrap rows as their call sites move to hermes_platform."""
+    """Remove bootstrap rows as their call sites move to kova_platform."""
     stale = _resolution_allowlist() - _resolution_sites()
 
     assert not stale, (
@@ -330,8 +330,8 @@ def test_no_unreviewed_bare_managed_runtime_lookups():
         "— on an install that has a managed one.\n"
         "Use instead:\n"
         "  uv       -> managed_uv.resolve_uv() (lookup) or ensure_uv() (may install)\n"
-        "  node/npm -> hermes_constants.find_node_executable()\n"
-        "  PATH env -> hermes_constants.iter_hermes_node_dirs()\n"
+        "  node/npm -> kova_constants.find_node_executable()\n"
+        "  PATH env -> kova_constants.iter_hermes_node_dirs()\n"
         "If PATH really is the right question, add the site to _ALLOWED with a "
         "reason."
     )
@@ -359,9 +359,9 @@ def test_allowlist_has_no_stale_entries():
 )
 def test_managed_node_helpers_exist(helper):
     """The alternatives this guard points contributors at must be importable."""
-    import hermes_constants
+    import kova_constants
 
-    assert callable(getattr(hermes_constants, helper))
+    assert callable(getattr(kova_constants, helper))
 
 
 def test_managed_uv_helpers_exist():
@@ -369,7 +369,7 @@ def test_managed_uv_helpers_exist():
     exists only so the frozen historical updater fixture can import it, and
     its entry points route to relaunch instead of doing venv work. PM owns
     real uv resolution now; the module itself must keep the names live."""
-    from hermes_cli import managed_uv
+    from kova_cli import managed_uv
 
     assert callable(managed_uv.resolve_uv)
     assert callable(managed_uv.ensure_uv)

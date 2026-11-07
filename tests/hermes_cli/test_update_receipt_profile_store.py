@@ -14,7 +14,7 @@ _PROBE = textwrap.dedent("""
     import json, sys, time
     from pathlib import Path
     sys.path.insert(0, sys.argv[1])
-    from hermes_cli import update_receipt as receipts
+    from kova_cli import update_receipt as receipts
     from pm import receipt as pm_receipt
 
     old = Path(sys.argv[2]) / 'logs' / 'update_receipts'

@@ -53,9 +53,9 @@ def gateway(tmp_path, monkeypatch):
     from gateway.config import GatewayConfig
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
-    from hermes_cli import auth, nous_account, nous_billing
-    from hermes_state import SessionDB
-    from hermes_state_runtime import begin_runtime_epoch
+    from kova_cli import auth, nous_account, nous_billing
+    from kova_state import SessionDB
+    from kova_state_runtime import begin_runtime_epoch
     from tui_gateway import launch_profile_policy, server
 
     launch, b = tmp_path / "launch", tmp_path / "launch" / "profiles" / "b"
@@ -105,8 +105,8 @@ def gateway(tmp_path, monkeypatch):
         return response
     monkeypatch.setattr("urllib.request.urlopen", urlopen)
 
-    from hermes_cli import mcp_startup
-    from hermes_cli.web_routers import chat_ws
+    from kova_cli import mcp_startup
+    from kova_cli.web_routers import chat_ws
 
     async def allowed(*_a, **_k):
         return True
@@ -154,7 +154,7 @@ class _Socket:
 
 
 def _billing_state_over_socket(gateway, ticket_home):
-    from hermes_cli.web_routers import chat_ws
+    from kova_cli.web_routers import chat_ws
     ws = _Socket(gateway.authority, [{"jsonrpc": "2.0", "id": "bill", "method": "billing.state", "params": {}}],
                  ticket_home)
     gateway.portal_hits.clear()
@@ -174,7 +174,7 @@ def test_billing_state_on_a_webapp_socket_reaches_its_tickets_profile_portal(gat
 
 
 def test_a_profile_ticket_with_no_authority_bound_is_refused_not_served_as_the_launch_profile(gateway):
-    from hermes_cli.web_routers import chat_ws
+    from kova_cli.web_routers import chat_ws
     ws = _Socket(None, [{"jsonrpc": "2.0", "id": "bill", "method": "billing.state", "params": {}}], gateway.b)
 
     asyncio.run(chat_ws.gateway_ws(ws))

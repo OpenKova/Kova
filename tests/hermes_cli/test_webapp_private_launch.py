@@ -16,9 +16,9 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from hermes_cli import main as cli_main
-from hermes_cli import webapp_launcher as launcher
-from tests.hermes_cli import test_webapp_launcher as launcher_tests
+from kova_cli import main as cli_main
+from kova_cli import webapp_launcher as launcher
+from tests.kova_cli import test_webapp_launcher as launcher_tests
 
 LINK, _args = launcher_tests.LINK, launcher_tests._args
 world = launcher_tests.world  # the launcher's recorded side effects, as those tests use them
@@ -112,7 +112,7 @@ def test_where_no_user_only_page_can_carry_it_the_link_is_printed_and_no_page_is
     if case == "no browser":
         monkeypatch.setattr(launcher, "_open", lambda url: private["calls"]["opened"].append(url) and False)
     if case == "wsl":
-        monkeypatch.setattr("hermes_constants.is_wsl", lambda: True)
+        monkeypatch.setattr("kova_constants.is_wsl", lambda: True)
     if case == "folder others can read":
         monkeypatch.setattr("gateway.webapp_listener._readable_by_other_users", lambda path: True)
     assert launcher.cmd_webapp(_args(no_open=case == "no-open")) == 0

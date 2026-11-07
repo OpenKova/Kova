@@ -119,7 +119,7 @@ def env_reply_mode(config: GatewayConfig, platform: Platform, env: str) -> None:
         config.platforms.setdefault(platform, PlatformConfig()).reply_to_mode = mode
 
 
-# ``partial`` (not a closure) so ``hermes_cli.profile_channels`` can read the env names a step owns
+# ``partial`` (not a closure) so ``kova_cli.profile_channels`` can read the env names a step owns
 # from ``step.keywords`` (``env`` / ``env_base``).
 def home_step(platform: Platform, env_base: str, *, strip: bool = False):
     return partial(env_home_channel, platform=platform, env_base=env_base, strip=strip)

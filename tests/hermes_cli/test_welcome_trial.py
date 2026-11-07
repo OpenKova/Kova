@@ -1,12 +1,12 @@
-"""The desktop's welcome trial (``hermes_cli.welcome_trial``): who may claim it, what a claim leaves
+"""The desktop's welcome trial (``kova_cli.welcome_trial``): who may claim it, what a claim leaves
 behind, which guests keep the free model, and that a connector guest never asks for inference."""
 
 import contextlib
 
 import pytest
 
-from hermes_cli import anon_auth, install_state, welcome_trial
-from tests.hermes_cli.anon_portal import as_local_desktop_backend, claimed_trial, install_portal, off_local_desktop
+from kova_cli import anon_auth, install_state, welcome_trial
+from tests.kova_cli.anon_portal import as_local_desktop_backend, claimed_trial, install_portal, off_local_desktop
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ BLOCKED = {
 
 @pytest.mark.parametrize("case", list(BLOCKED))
 def test_the_trial_is_never_claimed_outside_a_first_desktop_install(portal, monkeypatch, case):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     BLOCKED[case](monkeypatch, get_hermes_home())
 
@@ -63,7 +63,7 @@ def test_a_connector_guest_neither_claims_nor_carries_inference(portal, monkeypa
 
     assert welcome_trial.claim_desktop_free_tier() is None
     assert not anon_auth.free_inference_active()
-    from hermes_cli.auth import resolve_nous_access_token
+    from kova_cli.auth import resolve_nous_access_token
     resolve_nous_access_token()
     assert [r["body"]["purpose"] for r in portal.token_requests] == ["connectors"]
 
@@ -77,7 +77,7 @@ def test_a_claimed_trial_carries_inference_outside_the_desktop_too(portal, monke
 
 
 def _chat(db_path, model: str) -> None:
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     db = SessionDB(db_path)
     db.create_session("s1", "desktop", model=model)
@@ -94,7 +94,7 @@ def test_a_lost_claim_is_not_replaced(portal, monkeypatch):
 
 
 def test_a_connector_guest_adopted_from_the_shared_store_carries_no_trial(portal, monkeypatch):
-    from hermes_cli.auth import _load_auth_store, _save_auth_store
+    from kova_cli.auth import _load_auth_store, _save_auth_store
 
     as_local_desktop_backend(monkeypatch)
     anon_auth.ensure_portal_identity(explicit=True)  # connector mint: welcome_claim False, mirrored
@@ -118,10 +118,10 @@ LOSSES = {
 
 @pytest.mark.parametrize("loss", list(LOSSES))
 def test_a_lost_trial_is_never_claimed_again_after_a_relaunch(portal, monkeypatch, loss):
-    from hermes_cli import free_tier_bootstrap
-    from hermes_cli.auth import resolve_provider
-    from hermes_cli.auth_constants import AuthError
-    from hermes_constants import get_hermes_home
+    from kova_cli import free_tier_bootstrap
+    from kova_cli.auth import resolve_provider
+    from kova_cli.auth_constants import AuthError
+    from kova_constants import get_hermes_home
 
     lose, creates = LOSSES[loss]
     claimed_trial(monkeypatch)
@@ -142,8 +142,8 @@ def test_a_lost_trial_is_never_claimed_again_after_a_relaunch(portal, monkeypatc
 
 
 def test_a_leftover_guest_pool_row_is_not_reported_as_a_nous_login(portal, monkeypatch):
-    from hermes_cli.auth import _load_auth_store, _save_auth_store, resolve_nous_runtime_credentials
-    from hermes_cli.auth_nous import get_nous_auth_status_local
+    from kova_cli.auth import _load_auth_store, _save_auth_store, resolve_nous_runtime_credentials
+    from kova_cli.auth_nous import get_nous_auth_status_local
 
     claimed_trial(monkeypatch)
     resolve_nous_runtime_credentials()  # the trial ran, so the pool holds the guest's exchanged token
@@ -157,9 +157,9 @@ def test_a_leftover_guest_pool_row_is_not_reported_as_a_nous_login(portal, monke
 
 @pytest.mark.parametrize("desktop", [True, False], ids=["local_desktop_backend", "elsewhere"])
 def test_a_connector_guest_pinned_to_nous_gets_no_inference_token(portal, monkeypatch, desktop):
-    from hermes_cli.auth_constants import AuthError
-    from hermes_cli.runtime_provider import resolve_runtime_provider
-    from hermes_constants import get_hermes_home
+    from kova_cli.auth_constants import AuthError
+    from kova_cli.runtime_provider import resolve_runtime_provider
+    from kova_constants import get_hermes_home
 
     if desktop:
         as_local_desktop_backend(monkeypatch)
@@ -175,7 +175,7 @@ def test_a_connector_guest_pinned_to_nous_gets_no_inference_token(portal, monkey
 def test_the_token_seam_refuses_an_inference_token_to_a_guest_without_the_trial(portal, monkeypatch):
     import httpx
 
-    from hermes_cli.auth_constants import AuthError
+    from kova_cli.auth_constants import AuthError
 
     as_local_desktop_backend(monkeypatch)
     state = dict(anon_auth.ensure_portal_identity(explicit=True))  # a connector guest
@@ -186,15 +186,15 @@ def test_the_token_seam_refuses_an_inference_token_to_a_guest_without_the_trial(
 
 
 def _root_run():
-    from hermes_cli.config_effective import load_user_config_effective
-    from hermes_constants import get_default_hermes_root
+    from kova_cli.config_effective import load_user_config_effective
+    from kova_constants import get_default_hermes_root
 
     section = load_user_config_effective(get_default_hermes_root() / "config.yaml").get("onboarding") or {}
     return section.get("run")
 
 
 def _relaunch():
-    from hermes_cli import free_tier_bootstrap
+    from kova_cli import free_tier_bootstrap
 
     install_state.probe.cache_clear()
     free_tier_bootstrap.reset_for_tests()
@@ -203,7 +203,7 @@ def _relaunch():
 
 @pytest.mark.parametrize("used", [False, True], ids=["fresh", "used"])
 def test_the_first_desktop_boot_records_that_onboarding_is_due(portal, monkeypatch, used):
-    from hermes_cli.onboarding_run import set_run
+    from kova_cli.onboarding_run import set_run
 
     as_local_desktop_backend(monkeypatch)
     if used:
@@ -218,8 +218,8 @@ def test_the_first_desktop_boot_records_that_onboarding_is_due(portal, monkeypat
 
 
 def test_a_missed_first_launch_stays_due_and_keeps_the_trial(portal, monkeypatch):
-    from hermes_cli.onboarding_run import should_run
-    from hermes_constants import get_hermes_home
+    from kova_cli.onboarding_run import should_run
+    from kova_constants import get_hermes_home
 
     as_local_desktop_backend(monkeypatch)
     _relaunch()                                         # first boot; the app never opened onboarding
@@ -256,8 +256,8 @@ def test_two_installs_claiming_at_once_mint_one_trial(portal, monkeypatch, tmp_p
     their auth locks never meet), one OS user, one marker. The canary claims while stable mints."""
     import threading
 
-    from hermes_cli import auth_nous
-    from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_cli import auth_nous
+    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     as_local_desktop_backend(monkeypatch)
     _relaunch()                                          # the trial is reserved for this OS user
@@ -292,7 +292,7 @@ def test_two_installs_claiming_at_once_mint_one_trial(portal, monkeypatch, tmp_p
 
 
 def test_one_due_answer_walks_the_provider_ladder_once(portal, monkeypatch):
-    from hermes_cli import auth
+    from kova_cli import auth
 
     as_local_desktop_backend(monkeypatch)
     real, calls = auth.resolve_provider, []
@@ -312,10 +312,10 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
     from dataclasses import asdict
     from types import SimpleNamespace
     from contextlib import closing
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.config import load_config
-    from hermes_cli.kanban_db_connect import connect
-    from hermes_constants import get_hermes_home
+    from kova_cli import kanban_db as kb
+    from kova_cli.config import load_config
+    from kova_cli.kanban_db_connect import connect
+    from kova_constants import get_hermes_home
     from gateway.session_contract import SessionActor
     from gateway.session_kanban import build_kanban_policy
     from gateway.session_policy import restore_policy
@@ -323,7 +323,7 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
     home = str(get_hermes_home())
     monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path / "kanban"))
     monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
-    monkeypatch.setattr("hermes_cli.profiles.resolve_profile_env", lambda name: home)
+    monkeypatch.setattr("kova_cli.profiles.resolve_profile_env", lambda name: home)
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     kb.create_board("trial")
@@ -346,7 +346,7 @@ def unconfigured_trial(portal, monkeypatch):
     claimed_trial(monkeypatch)
     off_local_desktop(monkeypatch)
     yield
-    from hermes_cli.config import load_config
+    from kova_cli.config import load_config
     assert not (load_config().get("model") or {}).get("default")  # never persisted: a later provider wins
 
 
@@ -359,7 +359,7 @@ def test_a_claimed_trial_runs_a_kanban_worker_when_no_model_is_configured(unconf
 
 
 def test_a_configured_model_beats_the_trial_for_cron_jobs_and_kanban_workers(portal, monkeypatch, tmp_path):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     monkeypatch.delenv("HERMES_MODEL", raising=False)
     claimed_trial(monkeypatch)

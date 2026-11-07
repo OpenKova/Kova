@@ -145,7 +145,7 @@ def read_marker():
     except FileNotFoundError:return None
 
 def checkout_lock(root):
-    # hermes_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock, else <root>/.hermes-update.lock.
+    # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock, else <root>/.hermes-update.lock.
     plain=os.path.join(root,'.hermes-update.lock');dot=os.path.join(root,'.git')
     try:
         if os.path.isdir(dot):gitdir=dot

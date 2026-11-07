@@ -407,7 +407,7 @@ function Test-HermesRuns([string]$Label) {
         # A pre-handoff release cannot complete inside `hermes update`: its
         # update path reaches no retired-hook seam, so the update ends with the
         # tree at HEAD and no published launcher. The NEXT ordinary startup
-        # completes it (hermes_bootstrap -> prepare_launch -> sync PM, publish
+        # completes it (kova_bootstrap -> prepare_launch -> sync PM, publish
         # launchers, re-exec). Drive that startup here, WITHOUT the lazy-install
         # ban, and only when the launcher is missing -- so a healthy update is
         # still judged by the strict checks below, and `--version` probes keep
@@ -1695,7 +1695,7 @@ function Invoke-PhaseVerifyStamp {
     # (epoch seconds) instead of "completedAt", and a null pinnedCommit when git
     # is not on PATH. #125053 fixed the writer, but the installer .exe is not
     # rebuilt, so every Desktop-installer machine carries this receipt until the
-    # next `hermes update` rewrites it (hermes_cli/source_stamp.py). No reader
+    # next `hermes update` rewrites it (kova_cli/source_stamp.py). No reader
     # depends on those two fields: Desktop's launch gate is runtime usability,
     # and the receipt's other readers check only that it exists. So the contract
     # for that shape is: exactly those two FAIL lines, an integer

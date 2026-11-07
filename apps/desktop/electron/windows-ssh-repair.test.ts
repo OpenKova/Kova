@@ -73,7 +73,7 @@ test('Windows inventory rejects malformed helper output instead of fabricating d
 })
 
 test('a bin launcher does not require a nonexistent sibling Python and resolves after the update gate', async () => {
-  const bootstrap = "import os, sys, runpy; runpy.run_module('hermes_cli.main', run_name='__main__', alter_sys=True)"
+  const bootstrap = "import os, sys, runpy; runpy.run_module('kova_cli.main', run_name='__main__', alter_sys=True)"
 
   const ssh = { exec: async (command: string) => {
     const script = decodePowerShellCommand(command)

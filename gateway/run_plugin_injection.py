@@ -26,13 +26,13 @@ logger = logging.getLogger("gateway.run")
 class GatewayPluginInjectionMixin:
     def _install_plugin_message_injector(self) -> None:
         """Publish this live gateway's plugin message scheduler process-wide."""
-        from hermes_cli.plugins import publish_gateway_message_host
+        from kova_cli.plugins import publish_gateway_message_host
 
         publish_gateway_message_host(self, self._schedule_plugin_message_injection)
 
     def _clear_plugin_message_injector(self) -> None:
         """Remove this runner's scheduler without clobbering a newer owner."""
-        from hermes_cli.plugins import clear_published_gateway_message_host
+        from kova_cli.plugins import clear_published_gateway_message_host
 
         clear_published_gateway_message_host(self)
 
@@ -161,7 +161,7 @@ class GatewayPluginInjectionMixin:
         profile = self._served_profile_for_home(plugin_home)
         owner = profile
         if profile is not None and getattr(getattr(self, "config", None), "multiplex_profiles", False) is True:
-            from hermes_state_keys import profile_from_session_key
+            from kova_state_keys import profile_from_session_key
             owner = profile_from_session_key(session_key)
         if profile is not None and owner == profile:
             return True
@@ -249,7 +249,7 @@ class GatewayPluginInjectionMixin:
         ``None`` when this gateway does not serve it."""
         if home is None:
             return None
-        from hermes_constants import get_routing_process_hermes_home, hermes_home_key
+        from kova_constants import get_routing_process_hermes_home, hermes_home_key
         key = hermes_home_key(home)
         if getattr(getattr(self, "config", None), "multiplex_profiles", False):
             from gateway.run import _multiplex_profile_homes
@@ -374,7 +374,7 @@ class GatewayPluginInjectionMixin:
             return None
         import json
         import uuid
-        from hermes_state_runtime import RuntimeStoreError
+        from kova_state_runtime import RuntimeStoreError
         identity = json.dumps(["plugin", plugin_id, session_key, uuid.uuid4().hex], separators=(",", ":"))
         event = MessageEvent(
             text=content, message_type=MessageType.TEXT, source=source, internal=True,

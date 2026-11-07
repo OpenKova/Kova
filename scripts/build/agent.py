@@ -33,11 +33,11 @@ def plant_surfaces(repo: Path, frontends: dict[str, Path]) -> None:
     validate_frontends(frontends)
     if "tui" in frontends:
         tui = frontends["tui"]
-        destination = repo / "hermes_cli/tui_dist"
+        destination = repo / "kova_cli/tui_dist"
         _copy(tui / "dist", destination, replace=True)
         _copy(tui / "package.json", destination / "package.json")
     if "web" in frontends:
-        _copy(frontends["web"], repo / "hermes_cli/web_dist", replace=True)
+        _copy(frontends["web"], repo / "kova_cli/web_dist", replace=True)
     if "webapp" in frontends:
         _copy(frontends["webapp"], repo / "apps/desktop/dist-webapp", replace=True)
 

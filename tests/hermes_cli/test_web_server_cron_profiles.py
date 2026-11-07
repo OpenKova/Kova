@@ -8,15 +8,15 @@ from pathlib import Path
 
 import pytest
 from fastapi import HTTPException
-import hermes_cli.web_models as _web_models
-import hermes_cli.web_routers.cron as _rt_cron
-import hermes_cli.web_server_cron as _web_server_cron
+import kova_cli.web_models as _web_models
+import kova_cli.web_routers.cron as _rt_cron
+import kova_cli.web_server_cron as _web_server_cron
 
 
 @pytest.fixture()
 def isolated_profiles(tmp_path, monkeypatch):
     """Give profile discovery an isolated default home with one named profile."""
-    from hermes_cli import profiles
+    from kova_cli import profiles
 
     default_home = tmp_path / ".hermes"
     profiles_root = default_home / "profiles"
@@ -52,7 +52,7 @@ def test_fire_cron_job_scopes_store_and_runtime_home_together(
     from cron import jobs as cron_jobs
     from cron import scheduler
 
-    from hermes_constants import (
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -94,7 +94,7 @@ def test_create_registers_scheduler_inside_target_profile(
     """Dashboard create must resolve and register under the selected profile."""
     from cron import jobs as cron_jobs
     from cron.scheduler_provider import CronScheduler
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     worker_home = isolated_profiles["worker_alpha"]
     captured = {}
@@ -178,7 +178,7 @@ def test_notify_cron_provider_scopes_store_and_runtime_home_together(
     from cron import jobs as cron_jobs
     from cron import scheduler
 
-    from hermes_constants import (
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -1295,12 +1295,12 @@ class TestCronRunHistoryFallback:
     def test_output_doc_timestamps_honor_configured_timezone(
         self, isolated_profiles, monkeypatch, no_session_rows
     ):
-        """The filename stem is written by save_job_output via hermes_time.now()
+        """The filename stem is written by save_job_output via kova_time.now()
         — the configured zone. Reading it back must use that zone, not the
         server's (review of #61403: a fixed-offset snapshot was off by hours
         when HERMES_TIMEZONE differs from the server zone)."""
         from zoneinfo import ZoneInfo
-        from hermes_time import _tz_cache
+        from kova_time import _tz_cache
 
         job_id = "job-tz"
         home = isolated_profiles["default"]
@@ -1472,7 +1472,7 @@ class TestCronRunHistoryFallback:
         (both profiles configure config.yaml timezones, so a shared env var
         cannot mask the mix-up)."""
         from zoneinfo import ZoneInfo
-        from hermes_time import _tz_cache
+        from kova_time import _tz_cache
 
         job_id = "job-owner-tz"
         worker_home = isolated_profiles["worker_alpha"]

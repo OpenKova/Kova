@@ -70,7 +70,7 @@ const SYNTHETIC_NEXT_MARKER = '.hermes-e2e-next'
 /** The commit a reused packaged app may still report for an installed source checkout.
  *
  * `hermes update` keeps the packaged app when no desktop build input changed, and that app keeps
- * naming the commit it was built from (hermes_cli/desktop_build_reuse.py). The harness can prove
+ * naming the commit it was built from (kova_cli/desktop_build_reuse.py). The harness can prove
  * that case only for the synthetic NEXT commit, whose sole change is one marker file: there the
  * parent is the commit the app may report. Any other installed commit, and any bundled install,
  * returns undefined. */
@@ -406,7 +406,7 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
 
   // A Python -m entry has no source path in argv. Its live import root is
   // either the captured editable root (Nix) or the process's working directory.
-  const moduleLaunch = /(?:^|\s)"?-m"?\s+"?hermes_cli\.main"?(?:\s|$)/.test(command)
+  const moduleLaunch = /(?:^|\s)"?-m"?\s+"?kova_cli\.main"?(?:\s|$)/.test(command)
     && /^python(?:w|\d+(?:\.\d+)*)?(?:\.exe)?$/i.test(path.basename(backend.executable))
 
   if (moduleLaunch) {
@@ -424,10 +424,10 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
     // the app hands the backend ITS OWN directory (the smoke's home), so a
     // cwd-only inference calls a backend running the installation's own venv
     // interpreter "a different source tree". Accept the launcher cd'ing into the
-    // tree, or a command that names it (`<root>/venv/bin/python -m hermes_cli.main`).
+    // tree, or a command that names it (`<root>/venv/bin/python -m kova_cli.main`).
     // The app binds the backend to the tree by environment as well as argv:
     // `main.ts` puts the installation root first on the backend's PYTHONPATH and
-    // VIRTUAL_ENV names its venv, which is how `import hermes_cli` resolves from
+    // VIRTUAL_ENV names its venv, which is how `import kova_cli` resolves from
     // the installation. A platform that can read that environment needs no
     // spelling in argv (macOS resolves the venv symlink before spawning); a
     // platform that cannot (Windows) stays strict.

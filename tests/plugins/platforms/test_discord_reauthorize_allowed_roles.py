@@ -14,7 +14,7 @@ import os
 import sys
 from types import ModuleType, SimpleNamespace
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
 from gateway.config import Platform, PlatformConfig

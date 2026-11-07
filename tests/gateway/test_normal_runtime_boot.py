@@ -190,8 +190,8 @@ async def test_api_bind_failure_unwinds_control_db_and_reservation(tmp_path, mon
     from gateway.run import start_gateway
     from gateway.config import GatewayConfig
     from gateway.runtime_ownership import process_ownership
-    from hermes_cli import web_server as web
-    from hermes_constants import get_hermes_home
+    from kova_cli import web_server as web
+    from kova_constants import get_hermes_home
 
     home = get_hermes_home()
     with socket.socket() as blocker:

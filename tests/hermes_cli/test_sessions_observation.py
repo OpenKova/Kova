@@ -18,8 +18,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from contextlib import redirect_stdout
 import io, os
-from hermes_state import SessionDB
-from hermes_cli.sessions_cmd import cmd_sessions
+from kova_state import SessionDB
+from kova_cli.sessions_cmd import cmd_sessions
 path = Path(os.environ['HERMES_HOME']) / 'state.db'
 if POPULATED:
     with SessionDB(db_path=path) as db:

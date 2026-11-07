@@ -30,7 +30,7 @@ class Installation(tuple):
 
 @pytest.fixture
 def installation(tmp_path, monkeypatch):
-    from hermes_cli import source_releases
+    from kova_cli import source_releases
 
     root = tmp_path / "checkout"
     root.mkdir()
@@ -100,7 +100,7 @@ def installation(tmp_path, monkeypatch):
     # The credential ladder must not read this machine's gh login or env.
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GH_TOKEN", raising=False)
-    from hermes_cli import github_api
+    from kova_cli import github_api
     monkeypatch.setattr(github_api, "_gh_cli_token", lambda: None)
     fixture = Installation((root, linked, home, base, head, responses, requests, git))
     fixture.authorizations = authorizations
@@ -112,7 +112,7 @@ def installation(tmp_path, monkeypatch):
 
 
 def test_target_worktree_owns_admission_and_fork_comparison(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
 
     root, linked, home, _base, head, responses, requests, git = installation
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "external"}))
@@ -148,8 +148,8 @@ def test_bare_git_off_path_reads_through_the_updaters_git(installation, monkeypa
     store copy, off PATH outside ``hermes update``. The check must read HEAD through that git."""
     import shutil
 
-    from hermes_cli import update_pause_record
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli import update_pause_record
+    from kova_cli.source_check import check_for_updates
 
     root, _linked, home, _base, head, responses, _requests, _git = installation
     responses["/repos/fixture/fork/commits/main"] = (200, head)
@@ -170,7 +170,7 @@ def test_bare_git_off_path_reads_through_the_updaters_git(installation, monkeypa
     ("unknown", None, -1), ("unknown", {"ahead_by": True}, -1),
 ])
 def test_counts_are_honest_without_fetch(installation, tip_kind, compare, expected):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, base, head, responses, requests, _git = installation
     target = {"head": head, "base": base, "unknown": "a" * 40}[tip_kind]
     responses["/repos/fixture/fork/commits/main"] = (200, "\ufeff" + target)
@@ -184,7 +184,7 @@ def test_counts_are_honest_without_fetch(installation, tip_kind, compare, expect
 
 
 def test_cache_force_expiry_and_passive_opt_out(installation, monkeypatch):
-    from hermes_cli import source_check
+    from kova_cli import source_check
     root, _linked, home, _base, head, responses, requests, git = installation
     clock = [1000000.0]
     monkeypatch.setattr(source_check.time, "time", lambda: clock[0])
@@ -222,7 +222,7 @@ def test_cache_force_expiry_and_passive_opt_out(installation, monkeypatch):
 
 
 def test_explicit_and_current_branch_heal_only_after_confirmed_absence(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, linked, home, _base, _head, _responses, requests, git = installation
     git("remote", "set-url", "origin", str(root))
     # Use the same real linked worktree with a local origin. No GitHub fallback is involved.
@@ -239,7 +239,7 @@ def test_explicit_and_current_branch_heal_only_after_confirmed_absence(installat
 
 @pytest.mark.parametrize("selection", ["explicit", "configured", "current", "detached"])
 def test_dynamic_source_channel_preserves_branch_precedence(installation, selection):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
 
     _root, linked, home, _base, head, responses, requests, git = installation
     name = "branch-" + uuid4().hex[:12]
@@ -272,7 +272,7 @@ def test_dynamic_source_channel_preserves_branch_precedence(installation, select
     (None, "missing"), (None, "malformed"), (None, "foreign"), (None, "unpublished"),
 ])
 def test_channel_failure_never_probes_or_heals_a_branch(installation, name, failure):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
 
     _root, linked, home, _base, head, responses, requests, _git = installation
     name = name or "preview-" + uuid4().hex[:12]
@@ -310,7 +310,7 @@ def test_channel_failure_never_probes_or_heals_a_branch(installation, name, fail
 def test_main_follows_the_branch_without_reading_a_channel_record(installation):
     """main IS the git branch: no R2 record is requested (a regional WAF can answer
     it 403), the configured branch is probed, and the Desktop branch setting is left alone."""
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
 
     _root, linked, home, _base, head, responses, requests, _git = installation
     # Even a record that would answer is never read.
@@ -330,21 +330,21 @@ def test_main_follows_the_branch_without_reading_a_channel_record(installation):
 
 
 def test_running_revision_is_not_applied_to_an_explicit_target(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, linked, home, _base, head, responses, _requests, _git = installation
     monkeypatch.setenv("HERMES_REVISION", "e" * 40)
     monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
     responses["/repos/fixture/fork/commits/feature%2Fgui"] = (200, head)
     assert check_for_updates(install_root=linked, home=home)["currentSha"] == head
     # Default invocation retains the Nix revision probe even without a Git checkout.
-    monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: home)
+    monkeypatch.setattr("kova_cli.config.get_project_root", lambda: home)
     responses[MAIN_CHANNEL] = (200, source_channel("main", "NousResearch/hermes-agent"))
     responses["/repos/NousResearch/hermes-agent/commits/main"] = (200, "e" * 40)
     assert check_for_updates(home=home)["behind"] == 0
 
 
 def test_deleted_desktop_branch_is_persisted_only_after_definitive_probe(installation):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, linked, home, _base, _head, _responses, _requests, git = installation
     branch_file = home / "desktop-update.json"
     branch_file.write_text(json.dumps({"branch": "deleted", "other": "café"}, ensure_ascii=False),
@@ -381,7 +381,7 @@ def _commit_on(git, branch, message):
 @pytest.mark.parametrize("pinned_by", ["desktop", "current"])
 def test_never_pushed_branch_keeps_its_pin(installation, pinned_by):
     """#105042: an empty advertisement for a branch that was never pushed is not a deletion."""
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, _base, _head, _responses, requests, git = installation
     _bare_origin(installation)
     git("branch", "local-work")
@@ -406,7 +406,7 @@ def test_never_pushed_branch_keeps_its_pin(installation, pinned_by):
 
 @pytest.mark.parametrize("merge", ["fast-forward", "rebase", "unmerged"])
 def test_deleted_remote_branch_heals_only_when_its_commits_are_in_main(installation, merge):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, _base, _head, _responses, _requests, git = installation
     _bare_origin(installation)
     git("branch", "pushed")
@@ -439,7 +439,7 @@ def test_deleted_remote_branch_heals_only_when_its_commits_are_in_main(installat
 
 
 def test_inherited_git_target_cannot_redirect_an_explicit_install(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, linked, home, _base, head, responses, _requests, _git = installation
     responses["/repos/fixture/fork/commits/feature%2Fgui"] = (200, head)
     monkeypatch.setenv("GIT_DIR", str(root / ".git"))
@@ -451,7 +451,7 @@ def test_inherited_git_target_cannot_redirect_an_explicit_install(installation, 
 
 @pytest.mark.parametrize("mechanism", ["external", "electron-updater", "app-installer", "microsoft-store", "self", None])
 def test_source_admission_is_stamp_owned_not_path_owned(installation, mechanism):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     _root, linked, home, _base, head, responses, requests, _git = installation
     if mechanism:
         (linked / "install-stamp.json").write_text(json.dumps({"updateMechanism": mechanism, "distribution": "nix" if mechanism == "external" else "source"}))
@@ -467,11 +467,11 @@ def test_source_admission_is_stamp_owned_not_path_owned(installation, mechanism)
 
 
 def test_embedded_revision_keeps_https_ref_advertisement_recovery(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     _root, _linked, home, _base, head, responses, _requests, _git = installation
     monkeypatch.setenv("HERMES_REVISION", head)
-    monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: home)
-    monkeypatch.setattr("hermes_cli.config.detect_install_method", lambda root: "nix")
+    monkeypatch.setattr("kova_cli.config.get_project_root", lambda: home)
+    monkeypatch.setattr("kova_cli.config.detect_install_method", lambda root: "nix")
     responses[MAIN_CHANNEL] = (200, source_channel("main", "NousResearch/hermes-agent"))
     original = subprocess.run
     probes = []
@@ -491,7 +491,7 @@ def test_embedded_revision_keeps_https_ref_advertisement_recovery(installation, 
 
 
 def test_malformed_optional_changelog_and_cache_do_not_hide_the_update(installation):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, _base, head, responses, requests, _git = installation
     cache = home / "cache.json"
     responses["/repos/fixture/fork/commits/main"] = (200, "a" * 40)
@@ -511,8 +511,8 @@ def test_malformed_optional_changelog_and_cache_do_not_hide_the_update(installat
 
 @pytest.mark.parametrize("repository,heals", [("NousResearch/hermes-agent", True), ("fixture/fork", False)])
 def test_official_ssh_healing_uses_public_https_without_retargeting_forks(installation, monkeypatch, repository, heals):
-    from hermes_cli.source_check import check_for_updates
-    from hermes_cli.update_channel import set_install_channel
+    from kova_cli.source_check import check_for_updates
+    from kova_cli.update_channel import set_install_channel
     root, linked, home, _base, head, responses, _requests, git = installation
     git("remote", "set-url", "origin", f"git@github.com:{repository}.git")
     git("config", f"url.{root.as_uri()}.insteadOf", "https://github.com/NousResearch/hermes-agent.git")
@@ -537,7 +537,7 @@ def github_authorizations(installation, path):
 
 
 def test_github_calls_carry_the_configured_token_and_retry_anonymously_on_401(installation, monkeypatch):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, _base, head, responses, _requests, _git = installation
     url = "/repos/fixture/fork/commits/main"
     responses[url] = (200, head)
@@ -552,7 +552,7 @@ def test_github_calls_carry_the_configured_token_and_retry_anonymously_on_401(in
 
 
 def test_branch_tip_failure_names_the_cause(installation):
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
     root, _linked, home, _base, _head, responses, _requests, _git = installation
     url = "/repos/fixture/fork/commits/main"
     responses[url] = (403, {})
@@ -572,7 +572,7 @@ def test_branch_tip_failure_names_the_cause(installation):
 @pytest.mark.parametrize("on,release,rollback", [("head", "base", True), ("base", "head", False)])
 def test_stable_release_the_checkout_already_contains_is_a_rollback(installation, tmp_path, on, release, rollback):
     """A release HEAD contains is a move back (#137714); an older checkout is a real update."""
-    from hermes_cli.source_check import check_for_updates
+    from kova_cli.source_check import check_for_updates
 
     root, _linked, home, base, head, responses, _requests, git = installation
     shas = {"base": base, "head": head}
@@ -598,23 +598,23 @@ def test_stable_release_the_updater_refuses_is_held_not_offered(
         installation, tmp_path, monkeypatch, capsys, ledgered, divergent):
     """A pre-runtime release is held while a store has runtime history (#139099), even when the
     checkout already contains it: neither an update offer nor a rollback promise is valid."""
-    from hermes_cli import _startup_fast
-    from hermes_cli.source_check import check_for_updates
-    from tests.hermes_cli.test_update_downgrade_guard import _ledgered_store
+    from kova_cli import _startup_fast
+    from kova_cli.source_check import check_for_updates
+    from tests.kova_cli.test_update_downgrade_guard import _ledgered_store
 
     root, _linked, home, base, _head, responses, requests, git = installation
     sibling = tmp_path / "sibling"
-    monkeypatch.setattr("hermes_cli.backup._sibling_profile_homes", lambda h: [("sibling", sibling)])
+    monkeypatch.setattr("kova_cli.backup._sibling_profile_homes", lambda h: [("sibling", sibling)])
     git("checkout", "-q", "-b", "release-line", base)
-    (root / "hermes_state_common.py").write_text("SCHEMA_SQL = 'CREATE TABLE IF NOT EXISTS sessions (id)'\n")
-    git("add", "hermes_state_common.py")
+    (root / "kova_state_common.py").write_text("SCHEMA_SQL = 'CREATE TABLE IF NOT EXISTS sessions (id)'\n")
+    git("add", "kova_state_common.py")
     git("commit", "-q", "-m", "release from the older line")
     release = git("rev-parse", "HEAD")
     git("checkout", "-q", "main")
     if not divergent:
         git("merge", "--no-ff", "-qm", "release on main's history", "release-line")
-    (root / "hermes_state_common.py").write_text("SCHEMA_SQL = 'CREATE TABLE IF NOT EXISTS session_admissions (seq)'\n")
-    git("add", "hermes_state_common.py")
+    (root / "kova_state_common.py").write_text("SCHEMA_SQL = 'CREATE TABLE IF NOT EXISTS session_admissions (seq)'\n")
+    git("add", "kova_state_common.py")
     git("commit", "-q", "-m", "gateway runtime")
     bare = tmp_path / "origin.git"
     git("clone", "-q", "--bare", str(root), str(bare), cwd=tmp_path)
@@ -642,7 +642,7 @@ def test_stable_release_the_updater_refuses_is_held_not_offered(
 
     # --version consumes this status too, and checks rollback before the behind count.
     with monkeypatch.context() as version:
-        version.setattr("hermes_cli.source_check.check_for_updates", lambda **kw: held_status)
+        version.setattr("kova_cli.source_check.check_for_updates", lambda **kw: held_status)
         _startup_fast.print_fast_version_info()
     assert "moves back to it" not in capsys.readouterr().out
     assert held_status["rollback"] is False
@@ -662,11 +662,11 @@ def test_an_unfetched_release_is_judged_from_github(installation, tmp_path, monk
     """The usual install tracks only ``main``, so a release cut beside it is absent until `hermes
     update` fetches it, and a local probe proves nothing. The check reads the release's state modules
     from GitHub instead, so it still holds what the update would refuse (#140215 review)."""
-    from hermes_cli.source_check import check_for_updates
-    from tests.hermes_cli.test_update_downgrade_guard import _ledgered_store
+    from kova_cli.source_check import check_for_updates
+    from tests.kova_cli.test_update_downgrade_guard import _ledgered_store
 
     root, _linked, home, base, _head, responses, requests, git = installation
-    monkeypatch.setattr("hermes_cli.backup._sibling_profile_homes", lambda h: [])
+    monkeypatch.setattr("kova_cli.backup._sibling_profile_homes", lambda h: [])
     # The release lives on origin only: cut in a scratch clone, pushed there, never fetched here.
     bare, cut = tmp_path / "origin.git", tmp_path / "cut"
     git("clone", "-q", "--bare", str(root), str(bare), cwd=tmp_path)
@@ -684,10 +684,10 @@ def test_an_unfetched_release_is_judged_from_github(installation, tmp_path, monk
     responses[f"{api}/commits/v1.2.3"] = (200, {"sha": release})
     responses[f"{api}/compare/{git('rev-parse', 'HEAD')}...{release}"] = (200, {"status": "diverged"})
     responses[f"{api}/git/trees/{release}"] = (200, {"truncated": False, "tree": [
-        {"path": "hermes_state.py", "type": "blob"}, {"path": "hermes_state_common.py", "type": "blob"},
+        {"path": "kova_state.py", "type": "blob"}, {"path": "kova_state_common.py", "type": "blob"},
         {"path": "run_agent.py", "type": "blob"}]})
-    responses[f"/NousResearch/hermes-agent/{release}/hermes_state.py"] = (200, "from hermes_state_common import *\n")
-    responses[f"/NousResearch/hermes-agent/{release}/hermes_state_common.py"] = (
+    responses[f"/NousResearch/hermes-agent/{release}/kova_state.py"] = (200, "from kova_state_common import *\n")
+    responses[f"/NousResearch/hermes-agent/{release}/kova_state_common.py"] = (
         200, "SCHEMA_SQL = 'CREATE TABLE IF NOT EXISTS sessions (id)'\n")
     if ledgered:
         _ledgered_store(home)
@@ -707,11 +707,11 @@ def test_an_unfetched_release_is_judged_from_github(installation, tmp_path, monk
 
 @pytest.mark.parametrize("blocked", ["tree", "modules"])
 def test_runtime_lookup_has_one_deadline_with_bounded_parallel_reads(installation, monkeypatch, blocked):
-    from hermes_cli import source_check
+    from kova_cli import source_check
 
     _root, _linked, home, _base, sha, responses, _requests, _git = installation
     tree = f"/repos/fixture/fork/git/trees/{sha}"
-    paths = [f"hermes_state_{i}.py" for i in range(12)]
+    paths = [f"kova_state_{i}.py" for i in range(12)]
     responses[tree] = (200, {"tree": [{"path": path, "type": "blob"} for path in paths]})
     release = threading.Event()
     overlapped = threading.Event()
@@ -763,23 +763,23 @@ def test_runtime_lookup_has_one_deadline_with_bounded_parallel_reads(installatio
 @pytest.mark.parametrize("runtime", [True, False])
 def test_a_release_with_the_state_store_inside_the_package_is_judged_by_its_package_modules(
         installation, runtime):
-    """After the state store moves under ``src/hermes_agent/`` a root compat shell stays behind. The
+    """After the state store moves under ``src/kova_agent/`` a root compat shell stays behind. The
     verdict must come from the package's modules, which a top-level tree listing does not show."""
-    from hermes_cli import source_check
-    from hermes_state_common import SCHEMA_SQL
+    from kova_cli import source_check
+    from kova_state_common import SCHEMA_SQL
 
     _root, _linked, home, _base, sha, responses, requests, _git = installation
-    shell, store = "hermes_state.py", "src/hermes_agent/hermes_state/common.py"
+    shell, store = "kova_state.py", "src/kova_agent/kova_state/common.py"
     trees = "/repos/fixture/fork/git/trees"
     # A tree listing is one directory, as GitHub answers without ``recursive``; a release's full
     # recursive listing is several MiB, beyond what the reader takes in one response.
     responses[f"{trees}/{sha}"] = (200, {"truncated": False, "tree": [
         {"path": shell, "type": "blob"}, {"path": "src", "type": "tree", "sha": "t-src"},
         {"path": "pad", "type": "blob", "size": 3 * 1024 * 1024}]})
-    responses[f"{trees}/t-src"] = (200, {"tree": [{"path": "hermes_agent", "type": "tree", "sha": "t-pkg"}]})
-    responses[f"{trees}/t-pkg"] = (200, {"tree": [{"path": "hermes_state", "type": "tree", "sha": "t-state"}]})
+    responses[f"{trees}/t-src"] = (200, {"tree": [{"path": "kova_agent", "type": "tree", "sha": "t-pkg"}]})
+    responses[f"{trees}/t-pkg"] = (200, {"tree": [{"path": "kova_state", "type": "tree", "sha": "t-state"}]})
     responses[f"{trees}/t-state"] = (200, {"tree": [{"path": "common.py", "type": "blob"}]})
-    responses[f"/fixture/fork/{sha}/{shell}"] = (200, "from hermes_agent.compat import finder\n")
+    responses[f"/fixture/fork/{sha}/{shell}"] = (200, "from kova_agent.compat import finder\n")
     responses[f"/fixture/fork/{sha}/{store}"] = (200, SCHEMA_SQL if runtime else "SCHEMA_SQL = 'old schema'")
 
     assert source_check._github_predates_runtime("fixture/fork", sha, home / "runtime.json") is (not runtime)
@@ -789,15 +789,15 @@ def test_a_release_with_the_state_store_inside_the_package_is_judged_by_its_pack
 @pytest.mark.parametrize("failure", ["tree", "module"])
 @pytest.mark.parametrize("runtime", [True, False])
 def test_unknown_runtime_verdict_expires_but_definite_verdict_does_not(installation, monkeypatch, failure, runtime):
-    from hermes_cli import source_check
+    from kova_cli import source_check
 
     _root, _linked, home, _base, sha, responses, requests, _git = installation
     clock = [1000000.0]
     monkeypatch.setattr(source_check.time, "time", lambda: clock[0])
     tree = f"/repos/fixture/fork/git/trees/{sha}"
-    module = f"/fixture/fork/{sha}/hermes_state_common.py"
-    responses[tree] = (200, {"tree": [{"path": "hermes_state_common.py", "type": "blob"}]})
-    from hermes_state_common import SCHEMA_SQL
+    module = f"/fixture/fork/{sha}/kova_state_common.py"
+    responses[tree] = (200, {"tree": [{"path": "kova_state_common.py", "type": "blob"}]})
+    from kova_state_common import SCHEMA_SQL
     responses[module] = (200, SCHEMA_SQL if runtime else "SCHEMA_SQL = 'old schema'")
     failed_path = tree if failure == "tree" else module
     good = responses[failed_path]

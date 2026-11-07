@@ -170,7 +170,7 @@ _CHECKOUT_HOLDER = """
 import msvcrt, os, sys, time
 from pathlib import Path
 fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT | os.O_BINARY, 0o644)
-# offset 1 MiB: exactly hermes_cli/update_lock.py::_try_lock; 1 MiB + 1..16: one R5b lease byte
+# offset 1 MiB: exactly kova_cli/update_lock.py::_try_lock; 1 MiB + 1..16: one R5b lease byte
 os.lseek(fd, (1 << 20) + (int(sys.argv[3]) if len(sys.argv) > 3 else 0), os.SEEK_SET)
 msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
 Path(sys.argv[2] + '.ready').write_text('1', encoding='utf-8')
@@ -275,7 +275,7 @@ def test_marker_op_reclaim_reports_held_while_a_leased_child_outlives_its_owner(
 
 def test_checkout_lock_probe_covers_the_owner_byte_and_every_lease_byte() -> None:
     """Runs everywhere (the live cells above need Windows): Test-CheckoutLockHeld must lock
-    and unlock the same range hermes_cli/update_lock.py::_try_lock judges -- the owner byte at
+    and unlock the same range kova_cli/update_lock.py::_try_lock judges -- the owner byte at
     1 MiB plus the 16 R5b lease bytes after it -- or a leased survivor reads as a free checkout."""
     import re
 

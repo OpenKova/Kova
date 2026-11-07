@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import gui_uninstall
-from hermes_cli import uninstall
+from kova_cli import gui_uninstall
+from kova_cli import uninstall
 
 
 @pytest.fixture

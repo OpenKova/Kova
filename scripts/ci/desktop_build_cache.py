@@ -47,10 +47,10 @@ _INPUT_FILES = (
     # inside functions. A new late import of such a module must be added here by hand.
     "scripts/releases/versioning.py", "scripts/releases/semver.py",
     "scripts/releases/bundle_env.py", "scripts/releases/commit_build.py", "scripts/termux/deb_version.py",
-    "hermes_cli/__init__.py", "hermes_cli/release_channels.py", "hermes_cli/update_channel.py",
-    "hermes_cli/runtime_state.py", "hermes_constants.py", "hermes_platform/__init__.py",
-    "hermes_platform/resolver/__init__.py", "hermes_platform/resolver/base.py",
-    "hermes_platform/resolver/core.py", "hermes_platform/resolver/known_dirs.py",
+    "kova_cli/__init__.py", "kova_cli/release_channels.py", "kova_cli/update_channel.py",
+    "kova_cli/runtime_state.py", "kova_constants.py", "kova_platform/__init__.py",
+    "kova_platform/resolver/__init__.py", "kova_platform/resolver/base.py",
+    "kova_platform/resolver/core.py", "kova_platform/resolver/known_dirs.py",
 )
 # Python packages preparation owns (or, for pm/, depends on throughout): keyed whole, so a new
 # module or a new late import inside them needs no list edit.

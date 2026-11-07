@@ -55,7 +55,7 @@ export const canonicalOwnerProfile = (value: object): string | undefined => cano
 
 export const recordCanonicalOwner = (value: object, profile: string): void => { canonicalOwners.set(value, profile) }
 
-// Mirrors hermes_cli/gateway_mutations.slash_mutation: the typed directives
+// Mirrors kova_cli/gateway_mutations.slash_mutation: the typed directives
 // that are canonical mutations, not gateway-executed slash commands. `--provider`
 // (and `--session`) map onto the model mutation like the picker's value; other
 // model flags (--global/--once/--refresh) have no canonical mutation and stay on
@@ -228,7 +228,7 @@ function canonicalProducerFrame(method: string, params: Record<string, unknown>)
   return method === 'bot_relay.deliver' ? canonicalBotDelivery(params) : params
 }
 
-// The levels `hermes_constants.parse_reasoning_effort` accepts: a session `/reasoning <level>` is the
+// The levels `kova_constants.parse_reasoning_effort` accepts: a session `/reasoning <level>` is the
 // owner's `reasoning` mutation; the display words (show/hide/full/clamp) are config.yaml writes.
 const REASONING_EFFORTS = new Set(['none', 'false', 'disabled', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'])
 

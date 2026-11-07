@@ -90,7 +90,7 @@ def relay_root(root: Path | str) -> Path:
 def _ensure_dirs(root: Path | str) -> Path:
     base = relay_root(root)
     for sub in (OUTBOX_DIR, CLAIMED_DIR, REPLIES_DIR):
-        from hermes_constants import mkdir_under_hermes_home
+        from kova_constants import mkdir_under_hermes_home
         mkdir_under_hermes_home(base / sub)
     return base
 
@@ -103,7 +103,7 @@ def _bot_mode_cfg(key: str, *, loader: str) -> Any:
     """``bot_mode.<key>`` from config, read lazily (tools/ must not import CLI
     config at import time); None when absent or the config is unreadable."""
     try:
-        import hermes_cli.config as cfgmod
+        import kova_cli.config as cfgmod
 
         cfg = getattr(cfgmod, loader)() or {}
         return (cfg.get("bot_mode") or {}).get(key)
@@ -480,7 +480,7 @@ def waiter_command(root: Path | str, envelope: dict) -> str:
     return shlex.join(argv)
 
 
-def _hermes_cli() -> str:
+def _kova_cli() -> str:
     """Prefer this install's published launcher, then interpreter/PATH fallbacks.
 
     A long-lived caller can still run in an older dependency generation. Its
@@ -566,7 +566,7 @@ def delivery_env(author: Optional[dict], profile_home: str | Path | None = None)
     home."""
     from agent.secret_scope import current_secret_scope, is_multiplex_active
     from agent.turn_author import TURN_AUTHOR_ENV, turn_author_env
-    from hermes_constants import get_hermes_home_override, get_routing_process_hermes_home
+    from kova_constants import get_hermes_home_override, get_routing_process_hermes_home
     from tools.environments.local import served_profile_child_env
 
     # ``_profile_home`` answers None for the launch profile by design and a relay RPC binds no scope,

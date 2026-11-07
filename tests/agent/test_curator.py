@@ -79,12 +79,12 @@ def test_bundled_skills_are_off_limits_unless_opted_in(curator_env, monkeypatch)
     the same reader flips with the key. Both loaders see the same answer (DEFAULT_CONFIG agrees)."""
     import importlib
     import tools.skill_usage as usage
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
+    from kova_cli.config_defaults import DEFAULT_CONFIG
     importlib.reload(usage)  # the fixture pins _prune_builtins_enabled; reload restores the real reader
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"curator": {}})
+    monkeypatch.setattr("kova_cli.config.load_config", lambda: {"curator": {}})
     assert usage._prune_builtins_enabled() is False
     assert DEFAULT_CONFIG["curator"]["prune_builtins"] is False
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"curator": {"prune_builtins": True}})
+    monkeypatch.setattr("kova_cli.config.load_config", lambda: {"curator": {"prune_builtins": True}})
     assert usage._prune_builtins_enabled() is True
 
 
@@ -690,7 +690,7 @@ def test_state_atomic_write_no_tmp_leftovers(curator_env):
 
 
 def test_cli_pin_refuses_bundled_skill(curator_env):
-    from hermes_cli import curator as cli
+    from kova_cli import curator as cli
     skills_dir = curator_env["home"] / "skills"
     _write_skill(skills_dir, "ship-skill")
     (skills_dir / ".bundled_manifest").write_text(
@@ -864,15 +864,15 @@ def test_review_fork_forwards_runtime_pool_and_overrides(curator_env, monkeypatc
             pass
 
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "kova_cli.config.load_config",
         lambda: {"model": {"provider": "custom:hyper-charm", "default": "glm-5.2"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "kova_cli.config.load_config_readonly",
         lambda: {"model": {"provider": "custom:hyper-charm", "default": "glm-5.2"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "kova_cli.runtime_provider.resolve_runtime_provider",
         _fake_resolve_runtime_provider,
     )
     monkeypatch.setattr("run_agent.AIAgent", _StubAgent)
@@ -907,10 +907,10 @@ def test_review_fork_receives_configured_reasoning(curator_env, monkeypatch):
         def close(self):
             pass
 
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: cfg)
-    monkeypatch.setattr("hermes_cli.config.load_config_readonly", lambda: cfg)
+    monkeypatch.setattr("kova_cli.config.load_config", lambda: cfg)
+    monkeypatch.setattr("kova_cli.config.load_config_readonly", lambda: cfg)
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "kova_cli.runtime_provider.resolve_runtime_provider",
         lambda **kwargs: {"provider": "openai-api", "api_key": "k", "base_url": "https://api.openai.com/v1",
                           "api_mode": "codex_responses"},
     )
@@ -929,15 +929,15 @@ def test_review_fork_uses_runtime_model_and_output_cap(curator_env, monkeypatch)
     captured = {}
 
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "kova_cli.config.load_config",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "kova_cli.config.load_config_readonly",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "kova_cli.runtime_provider.resolve_runtime_provider",
         lambda **_kwargs: {
             "provider": "custom",
             "model": "real-model-id",
@@ -1079,15 +1079,15 @@ def test_review_fork_seeds_shared_read_marks(curator_env, monkeypatch):
     from tools.skill_manager_guards import _background_review_read_paths
 
     monkeypatch.setattr(
-        "hermes_cli.config.load_config",
+        "kova_cli.config.load_config",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "kova_cli.config.load_config_readonly",
         lambda: {"model": {"provider": "custom:gateway", "default": "gateway"}},
     )
     monkeypatch.setattr(
-        "hermes_cli.runtime_provider.resolve_runtime_provider",
+        "kova_cli.runtime_provider.resolve_runtime_provider",
         lambda **_kwargs: {
             "provider": "custom",
             "model": "m",
@@ -1128,7 +1128,7 @@ def test_threaded_llm_pass_keeps_callers_profile_scope(curator_env, tmp_path, mo
     """#125032: the daemon ``curator-review`` thread must inherit the caller's contextvars (home
     override + secret scope), else on a multiplexed gateway it runs unscoped against the ROOT home."""
     from agent import secret_scope as ss
-    from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     c, root = curator_env["curator"], curator_env["home"]
     profile = tmp_path / "profiles" / "served"

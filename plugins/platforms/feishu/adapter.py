@@ -95,7 +95,7 @@ from gateway.platforms.event import MessageEvent, MessageType, ProcessingOutcome
 from plugins.platforms.feishu.adapter_choice_cards import FeishuChoiceCardsMixin
 from gateway.status import acquire_scoped_lock
 from gateway.status_scoped_locks import release_scoped_lock
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from utils import atomic_json_write, env_float, env_int
 
 from gateway.platforms._shared import (
@@ -3614,7 +3614,7 @@ class FeishuAdapter(FeishuChoiceCardsMixin, BasePlatformAdapter):
 
     def _persist_seen_message_ids(self) -> None:
         try:
-            from hermes_constants import mkdir_under_hermes_home
+            from kova_constants import mkdir_under_hermes_home
             mkdir_under_hermes_home(self._dedup_state_path.parent)
             with self._dedup_lock:
                 recent = self._seen_message_order[-self._dedup_cache_size:]
@@ -4338,7 +4338,7 @@ def _qr_register_inner(*, initial_domain: str, timeout_seconds: int) -> Optional
 # migrations: a register(ctx) entry point plus hook implementations that replace the per-platform core
 # touchpoints (the Platform.FEISHU elif in gateway/run.py, the feishu_cfg YAML→env block +
 # _PLATFORM_CONNECTED_CHECKERS entry in gateway/config.py, the _setup_feishu wizard + _PLATFORMS["feishu"]
-# static dict in hermes_cli/gateway.py, and the _send_feishu dispatch in tools/send_message_tool.py).
+# static dict in kova_cli/gateway.py, and the _send_feishu dispatch in tools/send_message_tool.py).
 # ──────────────────────────────────────────────────────────────────────────
 _MIGRATION_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 _MIGRATION_VIDEO_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".3gp"}
@@ -4382,10 +4382,10 @@ async def _standalone_send(pconfig, chat_id, message, *, thread_id=None, media_f
 
 def interactive_setup() -> None:
     """Interactive setup for Feishu / Lark — scan-to-create or manual creds (CLI helpers lazy-imported)."""
-    from hermes_cli.config import remove_env_value, save_env_value
-    from hermes_cli.setup import prompt_choice
-    from hermes_cli.cli_output import prompt, print_header, print_info, print_success, print_warning
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from kova_cli.config import remove_env_value, save_env_value
+    from kova_cli.setup import prompt_choice
+    from kova_cli.cli_output import prompt, print_header, print_info, print_success, print_warning
+    from kova_cli.setup_platforms import declines_reconfigure
 
     print_header("Feishu / Lark")
     if declines_reconfigure("Feishu / Lark", "Reconfigure Feishu / Lark?", "FEISHU_APP_ID"):

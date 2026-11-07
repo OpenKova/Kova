@@ -19,8 +19,8 @@ def model_override_conflict(params: dict, build_scope) -> dict | None:
     model = str(params.get("model") or "").strip()
     if not model:
         return None
-    from hermes_cli.models_validate import static_model_provider_conflict
-    from hermes_cli.runtime_provider import resolve_requested_provider
+    from kova_cli.models_validate import static_model_provider_conflict
+    from kova_cli.runtime_provider import resolve_requested_provider
 
     provider = str(params.get("provider") or "").strip()
     if not provider:
@@ -40,7 +40,7 @@ def create_overrides(params: dict) -> tuple:
     reasoning_override = None
     if effort := str(params.get("reasoning_effort") or "").strip():
         with contextlib.suppress(Exception):
-            from hermes_constants import parse_reasoning_effort
+            from kova_constants import parse_reasoning_effort
             reasoning_override = parse_reasoning_effort(effort)
     service_tier_override = None
     if params.get("service_tier") is not None:

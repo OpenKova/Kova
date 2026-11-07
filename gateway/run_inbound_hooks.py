@@ -78,7 +78,7 @@ class GatewayInboundHooksMixin:
         if executing_admission.get():
             return event
         try:
-            from hermes_cli.lifecycle import ainvoke_hook as _ainvoke_hook
+            from kova_cli.lifecycle import ainvoke_hook as _ainvoke_hook
             _hook_results = await _ainvoke_hook(
                 "pre_gateway_dispatch", event=event, gateway=self,
                 # getattr: bare-runner tests build GatewayRunner via object.__new__ without __init__.
@@ -138,7 +138,7 @@ class GatewayInboundHooksMixin:
         raw_args = event.get_command_args().strip()
         platform = source.platform.value if source.platform else ""
         try:
-            from hermes_cli.plugins import fire_pre_command_hook
+            from kova_cli.plugins import fire_pre_command_hook
             fire_pre_command_hook(
                 surface="gateway", command=str(canonical), alias_used=str(command),
                 args_raw=raw_args, session_key=_quick_key, platform=platform,
@@ -251,7 +251,7 @@ class GatewayInboundHooksMixin:
         # plugin commands registered with hyphens.
         if command:
             try:
-                from hermes_cli.plugins import get_plugin_command_handler
+                from kova_cli.plugins import get_plugin_command_handler
                 plugin_handler = get_plugin_command_handler(command.replace("_", "-"))
                 if plugin_handler:
                     return True, await self._hm_run_plugin_handler(plugin_handler, event, source), command
@@ -282,7 +282,7 @@ class GatewayInboundHooksMixin:
         if session_entry is None:
             _plugin_context.session_key = self._session_key_for_source(source)
         user_args = event.get_command_args().strip() if args is None else args
-        from hermes_cli.plugin_command_dispatch import invoke_plugin_command
+        from kova_cli.plugin_command_dispatch import invoke_plugin_command
         from gateway.plugin_messages import bind_live_source
         from gateway.plugin_command_choice import chat_choices
         call = functools.partial(

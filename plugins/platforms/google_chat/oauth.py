@@ -25,7 +25,7 @@ from typing import Any, List, NoReturn, Optional, Tuple
 
 from packaging.requirements import Requirement
 
-from hermes_constants import display_hermes_home, get_hermes_home
+from kova_constants import display_hermes_home, get_hermes_home
 from utils import atomic_write_text
 
 # Pinned legacy logger name so operator log filters keep matching (see adapter.py).
@@ -197,7 +197,7 @@ def _chmod_quiet(path: Path, mode: int) -> None:
 
 def _write_private_json(path: Path, data: Any) -> None:
     """Atomically write JSON with 0o600 permissions (0o700 parent) where supported."""
-    from hermes_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_hermes_home
     mkdir_under_hermes_home(path.parent)
     _chmod_quiet(path.parent, 0o700)
     # mkstemp's 0o600 temp + atomic rename never exposes the token at process umask.

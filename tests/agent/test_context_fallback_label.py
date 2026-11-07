@@ -85,7 +85,7 @@ class TestFallbackMarker:
     def test_profiles_keep_their_own_label(self, tmp_path, defaulted_first):
         """Greptile: a multiplexed gateway resolves for several profiles; one profile's answer is not another's."""
         from agent.context_pin import context_window_marker
-        from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+        from kova_constants import reset_hermes_home_override, set_hermes_home_override
         homes = {"defaulted": tmp_path / "a", "confirmed": tmp_path / "b"}
         for home in homes.values():
             home.mkdir()
@@ -190,7 +190,7 @@ class TestFallbackIsLabelledOnSurfaces:
         assert "/128K fallback" in text
 
     def test_banner_marks_the_fallback_window(self):
-        from hermes_cli.banner import _banner_left_lines
+        from kova_cli.banner import _banner_left_lines
         lines = _banner_left_lines("acme.unknown-model-v1", "/tmp", None, 128_000, "bedrock", accent="#fff",
                                    dim="#888", context_marker="fallback")
         assert any("128K context (fallback)" in str(x) for x in lines)
@@ -210,7 +210,7 @@ class TestFallbackIsLabelledOnSurfaces:
 
     def test_cli_model_switch_marks_the_fallback_window(self, monkeypatch):
         import cli as cli_mod
-        from hermes_cli.model_switch import ModelSwitchResult
+        from kova_cli.model_switch import ModelSwitchResult
         captured: list[str] = []
         monkeypatch.setattr(cli_mod, "_cprint", lambda s, *a, **k: captured.append(str(s)))
         stub = SimpleNamespace(agent=None, base_url="", api_key="", config={}, _pending_model_switch_note="")
@@ -220,7 +220,7 @@ class TestFallbackIsLabelledOnSurfaces:
             provider_label="AWS Bedrock", resolved_via_alias=False, capabilities=None, model_info=None,
             is_global=False,
         )
-        from hermes_cli.cli_model_switch_mixin import _print_switch_summary
+        from kova_cli.cli_model_switch_mixin import _print_switch_summary
         _print_switch_summary(stub, result, "us.openai.gpt-6-sol", one_turn=False, strict_context=True)
         line = next(x for x in captured if "128,000" in x)
         assert "(fallback)" in line

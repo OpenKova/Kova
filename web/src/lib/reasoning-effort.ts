@@ -10,7 +10,7 @@ import {
  * Kept DOM-free so the node-environment vitest harness can cover the
  * resolution logic without loading React or the UI kit.
  *
- * Values come from @kova/shared (hermes_constants.VALID_REASONING_EFFORTS
+ * Values come from @kova/shared (kova_constants.VALID_REASONING_EFFORTS
  * plus `none`, thinking-off). An empty/unset config value means the Hermes
  * default.
  */

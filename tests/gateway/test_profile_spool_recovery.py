@@ -18,13 +18,13 @@ from gateway.config import GatewayConfig
 from gateway.platforms.base import Platform, SessionSource
 from gateway.session import SessionEntry, SessionStore
 from gateway.shutdown_flush import recover_gateway_pending, spool_dropped_transcript_message
-from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
 
 @pytest.fixture
 def multiplex_homes(tmp_path, monkeypatch):
     """A launch home plus a named ``work`` profile, as in test_multiplex_session_db_profile_scope."""
-    import hermes_state
+    import kova_state
 
     root = tmp_path / "hermes"
     profile = root / "profiles" / "work"
@@ -32,7 +32,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker
     monkeypatch.setenv("HERMES_HOME", str(root))
     # Resolve state.db through get_hermes_home(), as production does (see the sibling suite).
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)
     ss.set_multiplex_active(True)
     yield root, profile
     ss.set_multiplex_active(False)

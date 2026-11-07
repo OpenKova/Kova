@@ -77,7 +77,7 @@ if __name__ == '__main__':
 def _handoff(tmp_path: Path, *args: str, verify: str = 'pass\n', timeout: int = 150, prepare=None, **env: str):
     install = tmp_path / 'checkout'
     publish_fixture_launcher(install, CLI)
-    (install / 'hermes_cli/desktop_update_verify.py').write_text(verify, encoding='utf-8')
+    (install / 'kova_cli/desktop_update_verify.py').write_text(verify, encoding='utf-8')
     home = tmp_path / 'home'; home.mkdir()
     if prepare is not None:
         prepare(home, install)
@@ -156,7 +156,7 @@ _TIMED_CHECKOUT_HOLDER = """
 import msvcrt, os, sys, time
 fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT | os.O_BINARY, 0o644)
 os.lseek(fd, 1 << 20, os.SEEK_SET)
-msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)   # hermes_cli/update_lock.py::_try_lock's byte
+msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)   # kova_cli/update_lock.py::_try_lock's byte
 time.sleep(float(sys.argv[2]))
 """
 

@@ -526,7 +526,7 @@ def test_legacy_fallback_requires_the_interactive_grant(monkeypatch):
 def test_legacy_fallback_keeps_the_ticket_profile_for_sessionless_scoped_handlers(monkeypatch, tmp_path):
     """A secondary-profile ticket's sessionless ``@_profile_scoped`` legacy call runs in THAT profile's
     home, not the launch profile's."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     secondary = tmp_path / "profiles" / "l106742sec"
     secondary.mkdir(parents=True)
@@ -547,8 +547,8 @@ def test_legacy_fallback_never_writes_an_authority_owned_session(monkeypatch, tm
     the authority holding a live session whose row is gone)."""
     from types import SimpleNamespace
     from gateway.session_authority import LiveSession, SessionAuthority
-    from hermes_state import SessionDB
-    from hermes_state_runtime import begin_runtime_epoch
+    from kova_state import SessionDB
+    from kova_state_runtime import begin_runtime_epoch
 
     monkeypatch.setattr(server, "_WS_ORPHAN_REAP_GRACE_S", 0)
     with SessionDB(db_path=tmp_path / "state.db") as db:

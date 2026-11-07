@@ -52,12 +52,12 @@ _real_hermes_home_loaded = False
 
 
 def _config_path_resolved() -> str:
-    from hermes_cli.config import get_config_path
+    from kova_cli.config import get_config_path
     return str(get_config_path().resolve())
 
 
 def _hermes_home_real() -> str:
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return os.path.realpath(str(get_hermes_home()))
 
 
@@ -80,7 +80,7 @@ def _get_hermes_config_resolved() -> str | None:
         # ``get_hermes_home()`` key the happy path uses, and substitute no
         # unrelated home if even that is gone (#107327 follow-up; PR #107335).
         try:
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             return str((Path(str(get_hermes_home())) / "config.yaml").resolve())
         except Exception:
             return None
@@ -106,7 +106,7 @@ def _get_real_hermes_home() -> str | None:
         # path cannot be established (PR #107335). A ``None`` here fails closed at
         # the consumer: the ``~/.hermes`` exemption is skipped, so the gate runs.
         try:
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             return os.path.realpath(str(get_hermes_home()))
         except Exception:
             return None
@@ -126,7 +126,7 @@ def _hermes_exempt_homes() -> tuple[str, ...]:
     if not home:
         return ()
     try:
-        from hermes_constants import named_profile_home
+        from kova_constants import named_profile_home
         profile_home = named_profile_home(home)
     except Exception:
         profile_home = None
@@ -198,7 +198,7 @@ def _protected_instruction_config() -> tuple[bool, list[str]]:
     ``security.protected_instruction_extra_patterns`` (fnmatch on basename). Config read
     failures keep the gate ON — fail-safe for a security boundary."""
     try:
-        from hermes_cli.config import load_config, cfg_get
+        from kova_cli.config import load_config, cfg_get
         cfg = load_config()
         enabled = cfg_get(cfg, "security", "protected_instruction_files", default=True)
         extra = cfg_get(cfg, "security", "protected_instruction_extra_patterns", default=[])

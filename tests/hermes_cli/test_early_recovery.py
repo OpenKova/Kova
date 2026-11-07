@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import _early_recovery as er
-from hermes_cli import _early_recovery_zip as erz
+from kova_cli import _early_recovery as er
+from kova_cli import _early_recovery_zip as erz
 from pm import recovery
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def test_bootstrap_and_pm_cli_work_without_site_packages(tmp_path, prefix):
     env = {**os.environ, "HERMES_HOME": str(tmp_path / "home"), "PYTHONPATH": str(REPO_ROOT)}
     result = subprocess.run(
-        [sys.executable, "-S", "-m", "hermes_cli.main", *prefix, "pm", "repair", "--help"],
+        [sys.executable, "-S", "-m", "kova_cli.main", *prefix, "pm", "repair", "--help"],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=60,
         check=False,
     )

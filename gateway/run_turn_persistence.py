@@ -32,7 +32,7 @@ from gateway.session_transcript import TranscriptReadError
 from gateway.turn_context import TurnContext
 from gateway.warning_notifications import diagnostic_wake_muted
 from gateway.turn_lease import DEFAULT_LEASE_WAIT, TurnLeaseTimeoutError
-from hermes_constants import get_hermes_home_override
+from kova_constants import get_hermes_home_override
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from utils import base_url_hostname
@@ -48,7 +48,7 @@ logger = logging.getLogger("gateway.run")
 def _acp_launch(runner, source) -> bool:
     """An editor session: ACP shows no reasoning event yet, so its reply keeps the projected block."""
     from gateway.session_setting_commands import local_policy
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     try:
         return getattr(local_policy(runner, source), "source", None) == "acp"
     except RuntimeStoreError:  # a local route with no restored policy is not an editor launch

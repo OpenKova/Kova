@@ -32,7 +32,7 @@ def tui_read(policy, name: str, arg: str):
 
 def _stored_id(authority, ref) -> str:
     with contextlib.suppress(Exception):
-        from hermes_state_local import local_receipt
+        from kova_state_local import local_receipt
         return local_receipt(authority.db, ref.session_id)['entry']['session_id'] or ref.session_id
     return ref.session_id
 
@@ -52,7 +52,7 @@ def _model_history(db, tip) -> list:
 
 def _status(authority, ref, live, policy, agent, arg) -> str:
     """``tui_gateway/methods_session.py`` ``session.status`` on main, for the owner's session."""
-    from hermes_cli.status_report import build_status_fields, status_lines
+    from kova_cli.status_report import build_status_fields, status_lines
     from tui_gateway import server
     stored = _stored_id(authority, ref)
     row = {}
@@ -66,7 +66,7 @@ def _status(authority, ref, live, policy, agent, arg) -> str:
         agent_running=running, home=authority.profile_id)
     if fields['provider'] == 'custom':  # the adapter's billing class: show the entry the session runs on
         from gateway.run import _profile_runtime_scope
-        from hermes_cli.runtime_provider_custom import session_provider_identity
+        from kova_cli.runtime_provider_custom import session_provider_identity
         with _profile_runtime_scope(Path(authority.profile_id)):
             fields['provider'] = session_provider_identity('custom', getattr(agent, 'requested_provider', None),
                 getattr(agent, 'base_url', None) or policy.base_url, fields['model'])
@@ -137,7 +137,7 @@ async def context_breakdown(connection, ref, params) -> dict:
     started, or reaped): the same categories from what the session froze (``_stored_breakdown``) beside
     its stored usage."""
     from gateway.session_busy_controls import authorize
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     if set(params) - {'session_id', 'profile'} or not isinstance(ref.session_id, str) or not ref.session_id:
         raise RuntimeStoreError('invalid_params')
     authorize(connection, ref, params, 'session:read')

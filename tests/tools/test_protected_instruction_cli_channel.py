@@ -3,7 +3,7 @@
 ``hermes chat -q`` (how kanban spawns every worker), cron and unattended platforms can have the CLI approval
 callback registered on the agent thread. The gate used to ask it, block for the full approvals timeout, then
 report "timed out" — which reads as a human ignoring a prompt nobody saw. The interactive approve/deny paths
-are covered in test_file_write_safety.py; the real CLI modal in tests/hermes_cli/test_cli_approval_ui.py.
+are covered in test_file_write_safety.py; the real CLI modal in tests/kova_cli/test_cli_approval_ui.py.
 """
 
 import json

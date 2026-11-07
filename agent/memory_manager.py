@@ -21,13 +21,13 @@ from agent.redact import redact_for_egress
 
 from agent.memory_caller_scope import bound_scope, caller_scope, claim_instance, in_owner_home, refused_tool_message
 # Moved to agent.memory_context / agent.memory_manager_tools; still importable here because agent.memory_manager is a public
-# module for plugins (hermes_cli/data/plugin_api.json).
+# module for plugins (kova_cli/data/plugin_api.json).
 from agent.memory_context import StreamingContextScrubber, build_memory_context_block, sanitize_context
 from agent.memory_manager_tools import (inject_memory_provider_tools, memory_provider_tools_enabled,
                                         memory_provider_tools_exposed, normalize_tool_schema)
 from agent.memory_provider import MemoryProvider, PRE_COMPRESS_CHECKPOINT_API_VERSION, ctx_bound, spawn_context_thread
 from agent.skill_commands import extract_user_instruction_from_skill_message
-from hermes_constants import hermes_home_key
+from kova_constants import hermes_home_key
 from tools.hook_output_spill import get_spill_config, spill_if_oversized
 from tools.registry import tool_error
 
@@ -298,7 +298,7 @@ class MemoryManager:
         schemas = list(provider.get_tool_schemas())
 
         if provider.name != "builtin":
-            from hermes_cli.config import load_config
+            from kova_cli.config import load_config
 
             # Recall is provider-ranked: keep it whole unless this profile opts in.
             # Snapshot both gates at registration, never re-read them mid-conversation.
@@ -620,7 +620,7 @@ class MemoryManager:
         if accepted is not None:
             kwargs = {k: v for k, v in kwargs.items() if k in accepted}
         args = _redact_for_provider(args)
-        from hermes_cli.observability.shared_metrics_loop import record_provider_memory_call
+        from kova_cli.observability.shared_metrics_loop import record_provider_memory_call
         try:
             result = provider.handle_tool_call(tool_name, args, **kwargs)
         except Exception as e:
@@ -949,7 +949,7 @@ class MemoryManager:
     def initialize_all(self, session_id: str, **kwargs) -> None:
         """Initialize all providers, injecting ``hermes_home`` so they resolve profile-scoped paths."""
         if "hermes_home" not in kwargs:
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             kwargs["hermes_home"] = str(get_hermes_home())
         self._bound_scope = bound_scope(kwargs["hermes_home"], kwargs.get("agent_identity"))
         _context = kwargs.get("agent_context")

@@ -9,18 +9,18 @@ import sys
 import psutil
 import pytest
 
-from hermes_cli.windows_ssh_runtime import process_state
+from kova_cli.windows_ssh_runtime import process_state
 
 
 @pytest.mark.platforms("posix")
 def test_isolated_bootstrap_is_owned_without_accepting_foreign_source(tmp_path):
-    package = tmp_path / "hermes_cli"
+    package = tmp_path / "kova_cli"
     package.mkdir()
     (package / "__init__.py").write_text("")
     (package / "main.py").write_text("import time; time.sleep(30)\n")
     source = ("import os, sys, runpy; "
               f"sys.path.insert(0, {str(tmp_path)!r}); "
-              "runpy.run_module('hermes_cli.main', run_name='__main__', alter_sys=True)")
+              "runpy.run_module('kova_cli.main', run_name='__main__', alter_sys=True)")
     nonce = "a" * 16
     env = {"PATH": os.defpath, "HOME": str(tmp_path)}
     child = subprocess.Popen([sys.executable, "-I", "-c", source, "serve", "--isolated", "--ssh-owner-nonce", nonce], env=env)
@@ -37,7 +37,7 @@ def test_isolated_bootstrap_is_owned_without_accepting_foreign_source(tmp_path):
 
 
 def test_foreign_inline_source_carrying_a_module_name_is_not_ownership(monkeypatch, tmp_path):
-    argv = [sys.executable, "-c", "print('hermes_cli.main')", "serve", "--isolated", "--ssh-owner-nonce", "a" * 16]
+    argv = [sys.executable, "-c", "print('kova_cli.main')", "serve", "--isolated", "--ssh-owner-nonce", "a" * 16]
 
     class Process:
         def create_time(self):

@@ -1768,8 +1768,8 @@ def _profile_buzz_extra() -> dict:
         return {}
     try:
         from gateway.config_loader import platform_section
-        from hermes_constants import get_hermes_home
-        from hermes_cli.config import read_user_config_raw
+        from kova_constants import get_hermes_home
+        from kova_cli.config import read_user_config_raw
         cfg = read_user_config_raw(Path(get_hermes_home()) / "config.yaml")
     except Exception:
         return {}
@@ -1898,10 +1898,10 @@ async def _standalone_send(
 
 def interactive_setup() -> None:
     """Interactive ``hermes gateway setup`` flow (lazy CLI imports keep the plugin importable elsewhere)."""
-    from hermes_cli.setup import (
+    from kova_cli.setup import (
         prompt, prompt_yes_no, save_env_value, get_env_value, print_header, print_info, print_warning, print_success,
     )
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from kova_cli.setup_platforms import declines_reconfigure
     def ask(label: str, env: str) -> str:
         return prompt(label, default=get_env_value(env) or "")
 

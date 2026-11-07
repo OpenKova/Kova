@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.update_lock import UpdateLock, marker_mutex_path, process_create_time
+from kova_cli.update_lock import UpdateLock, marker_mutex_path, process_create_time
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 posix_only = pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals / fd inheritance")
@@ -56,7 +56,7 @@ def _wait_for_pid(path: Path, proc: subprocess.Popen | None = None, timeout: flo
 
 
 def _alive(pid: int) -> bool:
-    from hermes_cli.update_lock import _pid_alive
+    from kova_cli.update_lock import _pid_alive
 
     return _pid_alive(pid)
 
@@ -65,7 +65,7 @@ _STALE_READER = """
 import linecache, os, signal, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli import update_lock
+from kova_cli import update_lock
 src = update_lock.__file__
 def trace(frame, event, arg):
     if event == "line" and frame.f_code.co_filename == src \\
@@ -81,7 +81,7 @@ _CLAIMANT = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 assert UpdateLock(path=Path(sys.argv[2])).acquire()
 Path(sys.argv[3]).touch()
 time.sleep(60)
@@ -123,7 +123,7 @@ _RECLAIM_PAUSED_READER = """
 import os, signal, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli import update_lock
+from kova_cli import update_lock
 def trace(frame, event, arg):
     if event == "call" and frame.f_code.co_name == "_reclaim_dead":
         sys.settrace(None)
@@ -137,7 +137,7 @@ _MARKER_ONLY_CLAIMANT = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 assert UpdateLock(path=Path(sys.argv[2]), install_root=Path(sys.argv[3]), checkout_first=False).acquire()
 Path(sys.argv[4]).touch()
 time.sleep(60)
@@ -168,7 +168,7 @@ def test_a_reader_reports_the_live_claim_that_replaced_its_stale_snapshot(tmp_pa
         assert reader.returncode == 0
         assert out.strip() == "True", "the reader reported a live replacement claim as no update"
         assert marker.read_bytes() == claim, "the live replacement claim was not preserved byte-for-byte"
-        from hermes_cli.update_lock import checkout_lock_held
+        from kova_cli.update_lock import checkout_lock_held
         # update_in_progress() is this answer OR the checkout lease, which a marker-only claim lacks.
         assert checkout_lock_held(install) is False, "the claim is marker-only: no checkout lease answers for it"
     finally:
@@ -185,7 +185,7 @@ _MUTEX_HOLDER = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import marker_mutex
+from kova_cli.update_lock import marker_mutex
 with marker_mutex(Path(sys.argv[2])):
     Path(sys.argv[3]).touch()
     time.sleep(1.5)
@@ -214,7 +214,7 @@ _ORPHAN_UPDATE = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 base = Path(sys.argv[2])
 while not (base / "delegate-written").exists(): time.sleep(0.02)
 lock = UpdateLock(path=base / "marker")
@@ -228,7 +228,7 @@ _HANDOFF_OWNER = """
 import os, subprocess, sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import process_create_time
+from kova_cli.update_lock import process_create_time
 base = Path(sys.argv[2])
 marker = base / "marker"
 marker.write_text(f"{os.getpid()}\\n{int(time.time())}\\nct:{process_create_time():.3f}\\n")
@@ -286,8 +286,8 @@ _GIT_OWNER = """
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
-from hermes_cli.update_cmd import _git_run
+from kova_cli.update_lock import UpdateLock
+from kova_cli.update_cmd import _git_run
 root = Path(sys.argv[2])
 assert UpdateLock(path=root / "owner-marker", install_root=root).acquire()
 _git_run(["git"], ["add", "tracked"], cwd=root, check=True)
@@ -345,8 +345,8 @@ _BUILD_OWNER = """
 import os, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
-from hermes_cli.source_build import run_source_script
+from kova_cli.update_lock import UpdateLock
+from kova_cli.source_build import run_source_script
 root = Path(sys.argv[2])
 assert UpdateLock(path=root / "owner-marker", install_root=root).acquire()
 run_source_script(root, "build.mjs", env={**os.environ, "PATH": sys.argv[3]}, label="probe build")
@@ -385,7 +385,7 @@ _HOLDER = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 assert UpdateLock(path=Path(sys.argv[3]), install_root=sys.argv[2]).acquire()
 print("held", flush=True)
 time.sleep(120)
@@ -395,7 +395,7 @@ time.sleep(120)
 def test_a_completion_from_another_home_never_builds_an_owned_checkout(tmp_path, monkeypatch):
     """R2 admission: `complete_source_checkout` ACQUIRES the checkout lock. Pre-fix it claimed
     only its own home's marker and entered the build body beside the owning update."""
-    from hermes_cli import source_completion
+    from kova_cli import source_completion
 
     root = tmp_path / "checkout"
     (root / ".git").mkdir(parents=True)
@@ -445,7 +445,7 @@ _LOCK_HOLDER = """
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli import update_lock
+from kova_cli import update_lock
 # A killed updater's completion child: holds the checkout lock, never wrote the marker.
 assert update_lock._acquire_checkout(Path(sys.argv[2])) is None
 Path(sys.argv[3]).write_text("held", encoding="utf-8")
@@ -454,7 +454,7 @@ time.sleep(120)
 
 
 def test_dead_marker_is_kept_and_reported_held_while_the_checkout_lock_is_held(tmp_path):
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     install = tmp_path / "install"
     install.mkdir()
@@ -485,7 +485,7 @@ def test_a_claimer_never_reclaims_a_dead_marker_while_the_checkout_lock_is_held(
     """M1 (round 7): the launch path claims the marker before it takes the checkout lock
     (venv_sync). Its claim step deleted the dead marker over a held lock, then dropped its own
     claim when the checkout refused: the marker was gone while the killed update's tree ran."""
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     install = tmp_path / "install"
     install.mkdir()
@@ -517,7 +517,7 @@ _ORPHANING_HOLDER = """
 import subprocess, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli import update_lock
+from kova_cli import update_lock
 root = Path(sys.argv[2])
 assert update_lock._acquire_checkout(root) is None   # the record names this (soon dead) updater
 release = Path(sys.argv[3]).with_name("release")
@@ -533,7 +533,7 @@ def test_a_refusal_over_a_dead_updaters_lock_uses_the_held_wording(tmp_path):
     """m6: `hermes update`, launch repair and source completion refuse through the lock's
     holder record. Its updater is dead and a child it started holds the lock: say so, never
     name the dead process."""
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     install = tmp_path / "install"
     install.mkdir()
@@ -578,7 +578,7 @@ print(n)
 
 @posix_only
 def test_held_probe_never_fails_a_concurrent_acquire(tmp_path):
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     install = tmp_path / "install"
     install.mkdir()
@@ -604,7 +604,7 @@ def test_held_probe_never_fails_a_concurrent_acquire(tmp_path):
 # --- oversized numeric marker fields never raise ---------------------------------------------
 
 def test_oversized_marker_numbers_never_raise_and_are_reclaimed(tmp_path):
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     install = tmp_path / "install"
     install.mkdir()

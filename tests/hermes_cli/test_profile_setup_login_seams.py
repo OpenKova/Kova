@@ -18,7 +18,7 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from hermes_cli.web_server import _SESSION_TOKEN, app
+from kova_cli.web_server import _SESSION_TOKEN, app
 from tests.waiting import wait_until
 
 client = TestClient(app)
@@ -40,7 +40,7 @@ def start():
             "expires_in": 60, "interval": 1, "state": {"polls": 0}}
 
 def poll(state):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     polls = state["polls"] + 1
     _log("poll", polls=polls, home=str(get_hermes_home()))
     if polls < int(os.environ.get("ACME_APPROVE_AT", "2")):
@@ -50,7 +50,7 @@ def poll(state):
     return {"status": "approved", "credential": "acme-secret"}
 
 def save(credential):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     _log("save", home=str(get_hermes_home()), credential=credential)
 
 def flow(config, current_model, args):
@@ -175,8 +175,8 @@ def test_hermes_model_dispatch_and_effort_picker_consult_the_profile(acme, monke
     coder, events = acme
     monkeypatch.setenv("HERMES_HOME", str(coder))
     _rediscover()
-    from hermes_cli.main_provider_setup import _main_model_reasoning_efforts
-    from hermes_cli.model_setup_flows import _profile_model_setup_flow
+    from kova_cli.main_provider_setup import _main_model_reasoning_efforts
+    from kova_cli.model_setup_flows import _profile_model_setup_flow
 
     flow = _profile_model_setup_flow(NAME)
     assert flow is not None

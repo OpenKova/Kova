@@ -195,7 +195,7 @@ _ACCOUNT_CREATES_GUEST = {"status": False, "connect": True}
 
 
 def _account_connector_list(rid):
-    from hermes_cli.free_tier_offer import note_connected_apps_seen
+    from kova_cli.free_tier_offer import note_connected_apps_seen
     from tools.connectors.managed import managed_client
     from tools.managed_tool_gateway import read_nous_access_token
 
@@ -400,7 +400,7 @@ def _operation_view(operation):
 
 
 def _connection_update(operation, change, snapshot):
-    from hermes_constants import get_process_hermes_home, hermes_home_key
+    from kova_constants import get_process_hermes_home, hermes_home_key
     from tui_gateway import server
     from tui_gateway.connector_payload import connector_ui_payload
 

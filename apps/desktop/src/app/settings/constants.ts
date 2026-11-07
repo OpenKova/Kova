@@ -17,7 +17,7 @@ import {
 import type { ThemeMode } from '@/themes/context'
 
 // Single source of truth for built-in personality names lives in
-// lib/personalities (mirrors hermes_cli/personality.py BUILTIN_PERSONALITIES).
+// lib/personalities (mirrors kova_cli/personality.py BUILTIN_PERSONALITIES).
 export { BUILTIN_PERSONALITIES } from '@/lib/personalities'
 
 import { defineFieldCopy } from './field-copy'

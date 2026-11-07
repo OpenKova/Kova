@@ -16,7 +16,7 @@ import sys
 
 import pytest
 
-from hermes_cli._launchers import runtime_command
+from kova_cli._launchers import runtime_command
 
 pytestmark = pytest.mark.platforms("windows")
 INSTALLER = Path(__file__).resolve().parents[3] / "scripts" / "install.ps1"
@@ -52,7 +52,7 @@ def test_installer_runs_runtime_command_from_apostrophe_account_path(tmp_path):
     install_root = tmp_path / "O'Brien" / "hermes-agent"
     helper = install_root / "scripts" / "desktop-update" / "runtime.ps1"
     helper.parent.mkdir(parents=True)
-    (install_root / "hermes_bootstrap.py").write_text("", encoding="utf-8")
+    (install_root / "kova_bootstrap.py").write_text("", encoding="utf-8")
     helper.write_text(
         "function Get-HermesRuntimeCommand([string]$InstallRoot) {\n"
         "    $items = $env:HERMES_TEST_RUNTIME_COMMAND | ConvertFrom-Json\n"

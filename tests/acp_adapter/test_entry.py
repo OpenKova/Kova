@@ -55,7 +55,7 @@ def test_main_skips_configured_mcp_discovery_when_requested(monkeypatch):
 def test_main_setup_offers_browser_install_when_tty(monkeypatch):
     """When stdin is a TTY and the user answers yes, model setup is followed
     by a browser-tools bootstrap call."""
-    monkeypatch.setattr("hermes_cli.main.main", lambda: None)
+    monkeypatch.setattr("kova_cli.main.main", lambda: None)
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     monkeypatch.setattr("builtins.input", lambda *_args, **_kwargs: "y")
 
@@ -108,7 +108,7 @@ def test_setup_browser_is_one_explicit_package_request(monkeypatch):
 @pytest.mark.parametrize("flags, profile", [([], "work"), (["-p", "other"], "other"), (["-p", "default"], None)],
                          ids=["sticky", "flag", "flag-default"])
 def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
-    """`hermes-acp` starts in entry.main() without hermes_cli.main, and must still serve the profile
+    """`hermes-acp` starts in entry.main() without kova_cli.main, and must still serve the profile
     `hermes acp` would pick: the sticky `hermes profile use` choice, or `-p`."""
     import os
     import subprocess
@@ -122,7 +122,7 @@ def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
     driver = (
         "import sys, acp\n"
         "async def fake_run_agent(agent, **kw):\n"
-        "    from hermes_constants import get_hermes_home\n"
+        "    from kova_constants import get_hermes_home\n"
         "    print('SERVED', get_hermes_home())\n"
         "acp.run_agent = fake_run_agent\n"
         f"sys.argv = ['hermes-acp', *{flags!r}]\n"

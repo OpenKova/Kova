@@ -30,7 +30,7 @@ def _put(root, name, content):
 
 @pytest.fixture
 def completion(tmp_path, monkeypatch):
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
+    from kova_cli.config_defaults import DEFAULT_CONFIG
     from pm.environments import install_state_dir, runtime_facts_path, site_packages
 
     home = tmp_path / "home"
@@ -44,7 +44,7 @@ def completion(tmp_path, monkeypatch):
     # in the working checkout is modified, even by import-time self-heals.
     for path in ROOT.glob("*.py"):
         shutil.copy2(path, source / path.name)
-    for name in ("hermes_cli", "hermes_platform", "pm", "agent", "gateway", "tools", "cron"):
+    for name in ("kova_cli", "kova_platform", "pm", "agent", "gateway", "tools", "cron"):
         shutil.copytree(ROOT / name, source / name,
                         ignore=shutil.ignore_patterns("__pycache__", "web_dist", "tui_dist"))
     shutil.copytree(ROOT / "scripts/build", source / "scripts/build",
@@ -139,7 +139,7 @@ def completion(tmp_path, monkeypatch):
                     spec.loader.exec_module = execute
                     return spec
 
-                if fullname != 'hermes_cli.main':
+                if fullname != 'kova_cli.main':
                     return None
                 import selected_dependency
                 assert selected_dependency.VALUE == 'selected generation'
@@ -151,14 +151,14 @@ def completion(tmp_path, monkeypatch):
                     original(module)
                     # Install only service/machine boundaries after REAL CLI
                     # startup; all dependencies must be available by now.
-                    from hermes_cli import update_cmd as update
-                    from hermes_cli import update_cmd_maint as maint
-                    from hermes_cli import update_cmd_fleet as fleet
-                    from hermes_cli import update_cmd_fleet_verify as fleet_verify
-                    from hermes_cli import gateway_migrate
-                    from hermes_cli import macos_tcc_anchor
-                    from hermes_cli import source_build
-                    from hermes_cli.update_inventory import UpdatePlan, RuntimeRecord
+                    from kova_cli import update_cmd as update
+                    from kova_cli import update_cmd_maint as maint
+                    from kova_cli import update_cmd_fleet as fleet
+                    from kova_cli import update_cmd_fleet_verify as fleet_verify
+                    from kova_cli import gateway_migrate
+                    from kova_cli import macos_tcc_anchor
+                    from kova_cli import source_build
+                    from kova_cli.update_inventory import UpdatePlan, RuntimeRecord
                     from pm.package import Runner
                     import pm
                     import os
@@ -197,7 +197,7 @@ def completion(tmp_path, monkeypatch):
                     maint._print_post_update_notices_and_self_heals = lambda: None
                     maint._sync_profiles_after_update = lambda: None
                     # A detached git writer would outlive the test in its deleted tmp checkout.
-                    from hermes_cli import git_commit_graph
+                    from kova_cli import git_commit_graph
                     git_commit_graph.spawn_commit_graph_refresh = lambda root: False
                     maint._print_bundled_skills_sync_report = lambda: None
                     fleet_verify._print_legacy_units_warning = lambda: None
@@ -232,7 +232,7 @@ def completion(tmp_path, monkeypatch):
                     update._resume_windows_gateways_and_merge_outcome = resume
                     if fault == 'scm':
                         # The Windows service manager refuses the paused gateway's restart.
-                        from hermes_cli import update_cmd_windows
+                        from kova_cli import update_cmd_windows
                         def scm(token):
                             if token and token.get('resume_needed'):
                                 raise RuntimeError('Could not restart Windows gateway service(s): HermesGatewayProbe')
@@ -241,7 +241,7 @@ def completion(tmp_path, monkeypatch):
                 spec.loader.exec_module = execute
                 return spec
         sys.meta_path.insert(0, CompletionImports())
-        sys.argv = [str(root / 'hermes_cli/update_finish.py'), context, result]
+        sys.argv = [str(root / 'kova_cli/update_finish.py'), context, result]
         runpy.run_path(sys.argv[0], run_name='__main__')
     '''))
     def run(fault=""):
@@ -435,9 +435,9 @@ def _pnpm_graph(source):
 
 @pytest.mark.platforms("posix")
 def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
-    from hermes_cli.update_lock import UpdateLock
-    import hermes_yaml
+    from kova_cli.config_defaults import DEFAULT_CONFIG
+    from kova_cli.update_lock import UpdateLock
+    import kova_yaml
 
     source, home, request, context, result, run = completion
     node = _pnpm_graph(source)
@@ -451,8 +451,8 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     built = subprocess.run([node, str(source / "ui-tui/dist/entry.js")],
                            capture_output=True, text=True, check=True)
     assert built.stdout.strip() == "compiled local graph"
-    assert (source / "hermes_cli/web_dist/index.html").is_file()
-    assert any("compiled local graph" in p.read_text() for p in (source / "hermes_cli/web_dist/assets").glob("*.js"))
+    assert (source / "kova_cli/web_dist/index.html").is_file()
+    assert any("compiled local graph" in p.read_text() for p in (source / "kova_cli/web_dist/assets").glob("*.js"))
     assert (source / "node_modules/.hermes-node-deps").is_file()
     environment = json.loads((source / "build-environment.json").read_text())
     assert "repairing the recorded dependency environment" not in child.stderr
@@ -464,7 +464,7 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     assert context.read_bytes() == before
     assert json.loads((source / "restarted-plan.json").read_text())["expected_sha"] == "old-sha"
     assert json.loads((source / "resumed-token.json").read_text()) == request["windows_resume"]
-    config = hermes_yaml.safe_load((home / "config.yaml").read_text())
+    config = kova_yaml.safe_load((home / "config.yaml").read_text())
     assert config["_config_version"] == DEFAULT_CONFIG["_config_version"], child.stdout + child.stderr
     assert config["model"]["default"] == "retained-model"
     receipt = json.loads((home / "logs/update_receipts/latest.json").read_text())
@@ -483,9 +483,9 @@ def test_real_compiler_failure_is_owed_build_and_completion_continues(completion
     """Contract C3 for the historical takeover child: the code is committed, so a failed product
     build is an owed ``build`` follow-up, never a failed update. Maintenance (config migration)
     and the fleet restart still run, the exit is 0, and the tail stays pending until it builds."""
-    from hermes_cli.config_defaults import DEFAULT_CONFIG
-    from hermes_cli.venv_sync import completion_pending_path
-    import hermes_yaml
+    from kova_cli.config_defaults import DEFAULT_CONFIG
+    from kova_cli.venv_sync import completion_pending_path
+    import kova_yaml
 
     source, home, request, context, result, run = completion
     _pnpm_graph(source)
@@ -497,9 +497,9 @@ def test_real_compiler_failure_is_owed_build_and_completion_continues(completion
     assert "TypeScript build failed" in child.stdout + child.stderr
     assert (source / "lifecycle-python.json").is_file()
     assert (source / "ui-tui/dist/entry.js").is_file()
-    assert not (source / "hermes_cli/web_dist/index.html").exists()
+    assert not (source / "kova_cli/web_dist/index.html").exists()
     # Maintenance and the fleet restart were not skipped by the build failure.
-    config = hermes_yaml.safe_load((home / "config.yaml").read_text())
+    config = kova_yaml.safe_load((home / "config.yaml").read_text())
     assert config["_config_version"] == DEFAULT_CONFIG["_config_version"]
     assert config["model"]["default"] == "retained-model"
     assert (source / "restarted-plan.json").is_file()

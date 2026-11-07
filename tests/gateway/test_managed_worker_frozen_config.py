@@ -139,9 +139,9 @@ def test_ordinary_worker_binding_freezes_readers_but_keeps_customizations(tmp_pa
         bind_worker_policy({{'safe_mode': False, 'ignore_user_config': False,
                              'policy': {{'config_json': json.dumps({frozen!r})}}}})
         from agent.safe_worker_policy import safe_worker_enabled
-        from hermes_cli.config import load_config, read_raw_config
-        from hermes_cli.config_effective import load_user_config_effective
-        from hermes_cli.plugins import discover_plugins
+        from kova_cli.config import load_config, read_raw_config
+        from kova_cli.config_effective import load_user_config_effective
+        from kova_cli.plugins import discover_plugins
         from tools.mcp_tool_config import _load_mcp_config
         discover_plugins()
         from tools import approval
@@ -158,7 +158,7 @@ def test_ordinary_worker_binding_freezes_readers_but_keeps_customizations(tmp_pa
     assert result.returncode == 0, result.stdout + result.stderr
     receipt = json.loads(result.stdout.strip().splitlines()[-1])
     assert receipt == {'safe': False, 'turns': [7, 7, 7], 'mcp': 'FROZEN_A', 'plugin': True}, receipt
-    from hermes_cli.config import fast_safe_load
+    from kova_cli.config import fast_safe_load
     saved = fast_safe_load((home / 'config.yaml').read_text(encoding='utf-8'))
     assert saved['command_allowlist'] == ['echo *', 'ls *']
     assert saved['agent']['max_turns'] == 99 and saved['mcp_servers']['x']['command'] == 'LIVE_B', saved

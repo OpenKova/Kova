@@ -23,13 +23,13 @@ IMAGE_CONTENT = [
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / ".hermes"
     home.mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
+    monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", home / "state.db")
 
     db = SessionDB(home / "state.db")
     try:
@@ -41,7 +41,7 @@ def client(tmp_path, monkeypatch):
     finally:
         db.close()
 
-    from hermes_cli.web_routers.sessions import manage_router
+    from kova_cli.web_routers.sessions import manage_router
 
     app = FastAPI()
     app.include_router(manage_router)

@@ -8,13 +8,13 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import lifecycle
-from hermes_cli.observability import shared_metrics_contract as contract
-from hermes_cli.observability.shared_metrics import SharedMetricsStore
-from hermes_cli.observability.shared_metrics_connectors import tool_batch_fields
+from kova_cli import lifecycle
+from kova_cli.observability import shared_metrics_contract as contract
+from kova_cli.observability.shared_metrics import SharedMetricsStore
+from kova_cli.observability.shared_metrics_connectors import tool_batch_fields
 
-from tests.hermes_cli.test_relay_shared_metrics import _schema_validator
-from tests.hermes_cli import test_relay_shared_metrics_runtime as runtime_tests
+from tests.kova_cli.test_relay_shared_metrics import _schema_validator
+from tests.kova_cli import test_relay_shared_metrics_runtime as runtime_tests
 
 _RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
 _ROUTE = {"model": "m", "provider": "openrouter"}
@@ -193,7 +193,7 @@ def test_a_plugin_approval_on_a_connector_entry_is_attributed_to_that_entry(fake
 
 
 def test_the_chain_survives_a_compression_rotation(fake_relay):
-    from hermes_cli.observability import relay_shared_metrics
+    from kova_cli.observability import relay_shared_metrics
 
     lifecycle.invoke_hook("pre_llm_call", **_BASE)
     for n, (name, args) in enumerate([
@@ -218,7 +218,7 @@ def test_entries_report_their_own_post_even_under_the_executor_suppression(monke
     """The sequential executor suppresses the inner post_tool_call for the call it owns; connector
     entries are their own calls and must still report, or each entry's lifecycle never closes."""
     import model_tools
-    from hermes_cli import lifecycle as lc
+    from kova_cli import lifecycle as lc
     from tools.connectors.gateway import bridge, config
     from tools.registry import invalidate_check_fn_cache
 

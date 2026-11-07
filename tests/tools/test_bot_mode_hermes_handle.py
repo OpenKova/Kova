@@ -22,7 +22,7 @@ def _fresh_probe_cache():
 @pytest.mark.parametrize("real_hermes", [False, True])
 def test_local_hermes_dm_lands_once_in_the_profile_that_owns_the_handle(tmp_path, monkeypatch, real_hermes):
     _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_hermes_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
     monkeypatch.setattr(bot_mode_dm, "_dm_dir", lambda: tmp_path)
     root = _managed_home(tmp_path, teammates=("researcher", "hermes") if real_hermes else ("researcher",))
     owner = root / "profiles" / "hermes" if real_hermes else root
@@ -53,7 +53,7 @@ def test_remote_default_is_never_offered_as_a_bare_form_a_local_profile_answers_
     admitted locally instead of relayed. Collision forms come from the install root, not the
     sender's own profile home."""
     _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_hermes_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
     monkeypatch.setattr(bot_mode_dm, "_dm_dir", lambda: tmp_path)
     root = _managed_home(tmp_path, teammates=("researcher",))
     sender = root / "profiles" / "researcher"

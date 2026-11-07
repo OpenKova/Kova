@@ -1,6 +1,6 @@
 """Pool-aware model-picker usage: per-account rows, cache isolation, honest failures.
 
-Real-path regression tests for ``hermes_cli/inventory.py::_apply_usage`` and
+Real-path regression tests for ``kova_cli/inventory.py::_apply_usage`` and
 ``agent/account_usage_cache`` against actual auth stores on disk (no pool mocks): a
 multi-entry pool must report per-account windows/state, one profile's snapshot must
 never leak into another's picker, a failed/401 fetch must not hide or mutate its
@@ -19,7 +19,7 @@ import pytest
 from agent import account_usage
 from agent.account_usage import AccountUsageSnapshot, AccountUsageWindow
 from agent.account_usage_cache import _snapshots, remember_account_usage
-from hermes_cli.inventory import _apply_usage
+from kova_cli.inventory import _apply_usage
 
 pytestmark = pytest.mark.usefixtures("_join_refresh_workers_autouse")
 
@@ -105,7 +105,7 @@ def _openrouter_row(usage_rows: list[dict]) -> dict:
 def test_multi_entry_pool_reports_per_account_rows(monkeypatch, tmp_path):
     """>=2 pool entries → ``usage.accounts`` (never a provider-wide ``windows`` gauge), one row
     per credential with its own cached windows, plus a background refresh per account."""
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "a"))
     _write_pool(tmp_path / "a", "openrouter", [
@@ -251,7 +251,7 @@ def test_failed_fetch_keeps_sibling_visible_and_does_not_repair(monkeypatch, tmp
     """A per-credential 401 (read-only path: never retried via rotation/refresh) renders that
     account unknown, and the sibling with cached data stays ready; the failed token is never
     re-resolved through the pool (no rotation)."""
-    from hermes_cli import auth as auth_mod
+    from kova_cli import auth as auth_mod
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "a"))
     _write_pool(tmp_path / "a", "openai-codex", [

@@ -60,9 +60,9 @@ describe('local client version source', (): void => {
       try {
         const root: string = path.join(base, 'checkout')
         const home: string = path.join(base, 'home')
-        fs.mkdirSync(path.join(root, 'hermes_cli'), { recursive: true })
+        fs.mkdirSync(path.join(root, 'kova_cli'), { recursive: true })
         fs.mkdirSync(path.join(root, 'pm'))
-        fs.writeFileSync(path.join(root, 'hermes_cli', '_launchers.py'), '')
+        fs.writeFileSync(path.join(root, 'kova_cli', '_launchers.py'), '')
         fs.mkdirSync(path.join(home, 'bin'), { recursive: true })
         fs.writeFileSync(
           path.join(home, 'bin', 'hermes'),

@@ -19,8 +19,8 @@ import os
 
 import pytest
 
-from hermes_cli import env_loader
-from hermes_constants import (
+from kova_cli import env_loader
+from kova_constants import (
     set_hermes_home_override,
     reset_hermes_home_override,
 )

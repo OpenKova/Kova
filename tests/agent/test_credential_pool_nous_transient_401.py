@@ -13,12 +13,12 @@ unexpired agent keys. Two invariants pinned here:
 
 import time
 
-import hermes_cli.auth as auth_mod
-from hermes_cli import auth_nous
+import kova_cli.auth as auth_mod
+from kova_cli import auth_nous
 from agent.agent_runtime_helpers import _recover_auth_failure
 from agent.credential_pool import load_pool
 
-from tests.hermes_cli.test_auth_nous_provider import _invoke_jwt, _setup_nous_auth
+from tests.kova_cli.test_auth_nous_provider import _invoke_jwt, _setup_nous_auth
 
 
 def _future(seconds: int) -> str:

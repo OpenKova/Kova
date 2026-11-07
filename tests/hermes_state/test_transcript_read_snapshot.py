@@ -4,9 +4,9 @@ write from the same thread cannot wait on its own lock; there ``consistent()`` t
 lands, this process's or another connection's."""
 import threading
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
-from hermes_state import SessionDB
+from kova_state import SessionDB
 
 
 def _count(db):

@@ -889,7 +889,7 @@ def main() -> int:
             sys.executable,
             "-c",
             "\n".join([
-                "from hermes_cli.observability import relay_shared_metrics",
+                "from kova_cli.observability import relay_shared_metrics",
                 "from tools.skill_usage import (",
                 "    STATE_ACTIVE, STATE_ARCHIVED, STATE_STALE, bump_patch,",
                 "    bump_use, record_created, record_installed, set_state,",
@@ -910,8 +910,8 @@ def main() -> int:
                 # A real failing plugin install (offline: a file:// repo that does not exist) and a
                 # final update receipt whose fetch failed: each emits one row with a failure_class.
                 "from pathlib import Path",
-                "from hermes_cli.plugins_cmd import PluginOperationError, _install_plugin_core",
-                "from hermes_cli.plugins_cmd_install import recorded_install",
+                "from kova_cli.plugins_cmd import PluginOperationError, _install_plugin_core",
+                "from kova_cli.plugins_cmd_install import recorded_install",
                 "missing = (Path.cwd() / 'no-such-plugin-repo').as_uri()",
                 "try:",
                 "    recorded_install(lambda: _install_plugin_core(missing, force=False),",
@@ -919,7 +919,7 @@ def main() -> int:
                 "    raise SystemExit('bogus plugin install succeeded')",
                 "except PluginOperationError:",
                 "    pass",
-                "from hermes_cli.observability.shared_metrics_update import record_update_receipt",
+                "from kova_cli.observability.shared_metrics_update import record_update_receipt",
                 f"record_update_receipt({UPDATE_RECEIPT!r})",
                 "runtime = relay_shared_metrics._get_runtime()",
                 "assert runtime is not None",
@@ -955,7 +955,7 @@ def main() -> int:
     package_paths, packages = _validate_packages(
         telemetry / "outbox",
         hermes_repo
-        / "hermes_cli"
+        / "kova_cli"
         / "observability"
         / "schemas"
         / "hermes.shared_metrics.v4.schema.json",

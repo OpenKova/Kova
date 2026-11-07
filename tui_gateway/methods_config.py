@@ -9,8 +9,8 @@ import threading
 from .method_ctx import HandlerRegistry, bind_module
 from ._env import env_int
 
-from hermes_constants import DEFAULT_INDICATOR_STYLE, INDICATOR_STYLES
-from hermes_constants import display_hermes_home as _display_hermes_home
+from kova_constants import DEFAULT_INDICATOR_STYLE, INDICATOR_STYLES
+from kova_constants import display_hermes_home as _display_hermes_home
 
 _registry = HandlerRegistry()
 method = _registry.method
@@ -87,7 +87,7 @@ def _(rid, params: dict) -> dict:
     """Repos for the desktop overview: scanned-from-disk (cached) ∪ session-derived. A profile whose
     session store was never initialized still answers from its scan cache (``db`` is None then)."""
     with _profile_db(params) as db:
-        from hermes_cli import projects_db as pdb
+        from kova_cli import projects_db as pdb
         policy = _repo_discovery_policy()
         with pdb.connect_closing() as conn:
             _reconcile_repo_discovery(pdb, conn, policy, _repo_discovery_policy_key(policy))
@@ -103,7 +103,7 @@ def _(rid, params: dict) -> dict:
 @_projects_handler("projects.record_repos")
 def _(rid, params: dict) -> dict:
     """Persist repo roots found by the client's (desktop-side) scan; return the merged list."""
-    from hermes_cli import projects_db as pdb
+    from kova_cli import projects_db as pdb
     policy = _repo_discovery_policy()
     policy_key = _repo_discovery_policy_key(policy)
     incoming = params.get("discovery_policy")
@@ -181,7 +181,7 @@ _THINKING_MODES = frozenset({"collapsed", "truncated", "full"})
 
 
 def _cfg_get_provider(params):
-    from hermes_cli.models import list_available_providers, normalize_provider
+    from kova_cli.models import list_available_providers, normalize_provider
     model = _resolve_model()
     parts = model.split("/", 1)
     return {"model": model, "provider": normalize_provider(parts[0]) if len(parts) > 1 else "unknown",
@@ -198,7 +198,7 @@ def _cfg_get_project(params):
 
 def _cfg_get_personality(params):
     # EFFECTIVE personality via the single owner — a stale/unknown name must not show as active.
-    from hermes_cli.personality import active_personality_name
+    from kova_cli.personality import active_personality_name
     return {"value": active_personality_name(_load_cfg()) or "none"}
 
 
@@ -215,7 +215,7 @@ def _cfg_get_reasoning(params):
     else:
         raw_effort = (cfg.get("agent") or {}).get("reasoning_effort", "")
         if isinstance(raw_effort, dict):  # {enabled, effort} form: render the tier, never str(dict)
-            from hermes_constants import parse_reasoning_effort
+            from kova_constants import parse_reasoning_effort
             parsed = parse_reasoning_effort(raw_effort) or {}
             raw_effort = False if parsed.get("enabled") is False else parsed.get("effort")
         # YAML `reasoning_effort: false` means thinking disabled, not "unset".
@@ -244,7 +244,7 @@ def _cfg_get_thinking_mode(params):
 
 
 def _cfg_get_mtime(params):
-    from hermes_cli.config_backend import config_version_or_none, version_token
+    from kova_cli.config_backend import config_version_or_none, version_token
     try:
         mtime = version_token(config_version_or_none(_hermes_home / "config.yaml"))
     except Exception:
@@ -361,7 +361,7 @@ def _readiness_check(rid, params, probe, *, probe_key, wait_seconds):
     profile = str(params.get("profile") or "").strip() if isinstance(params, dict) else ""
     home = None
     if profile:
-        from hermes_cli import profiles as profiles_mod
+        from kova_cli import profiles as profiles_mod
         if not profiles_mod.profile_exists(profile):
             return _ok(rid, {"ok": False, "profile": params.get("profile"),
                              "error": f"Profile '{profile}' does not exist on this backend."})
@@ -394,9 +394,9 @@ def _(rid, params: dict) -> dict:
     The record's fields ride along additively (``ready``, ``free_tier_account``, ``free_tier_route``,
     ``other_providers``)."""
     try:
-        from hermes_cli.anon_auth import free_tier_route
-        from hermes_cli.main import _has_any_provider_configured
-        from hermes_cli.free_tier_bootstrap import wait_for_record
+        from kova_cli.anon_auth import free_tier_route
+        from kova_cli.main import _has_any_provider_configured
+        from kova_cli.free_tier_bootstrap import wait_for_record
 
         def probe(profile, scoped):
             record = None if profile else wait_for_record()
@@ -434,9 +434,9 @@ def _(rid, params: dict) -> dict:
     fallback masking a failed connection. ``profile`` answers for THAT profile's pin and ``.env``;
     unknown -> ``ok=False``."""
     try:
-        from hermes_cli.runtime_provider import resolve_runtime_provider
-        from hermes_cli.auth import has_usable_secret
-        from hermes_cli.main import _has_any_provider_configured
+        from kova_cli.runtime_provider import resolve_runtime_provider
+        from kova_cli.auth import has_usable_secret
+        from kova_cli.main import _has_any_provider_configured
         requested = str(params.get("provider") or "").strip() or None
 
         def probe(profile, scoped):
@@ -468,10 +468,10 @@ def _(rid, params: dict) -> dict:
             api_key_text = "" if callable(api_key) else str(api_key or "").strip()
             if not (callable(api_key) or api_key_text in {"aws-sdk", "no-key-required"}
                     or has_usable_secret(api_key_text) or bool(runtime.get("command"))):
-                from hermes_cli.runtime_readiness import missing_credentials_suffix
+                from kova_cli.runtime_readiness import missing_credentials_suffix
                 return fail(f"No usable credentials found for {blamed}.{missing_credentials_suffix(blamed)}",
                             runtime.get("source"))
-            from hermes_cli.anon_auth import route_is_welcome_host
+            from kova_cli.anon_auth import route_is_welcome_host
             # free_tier_route is keyed on the SELECTED route (the welcome host serves only nous/welcome), not
             # on profile state: a paid Nous key beside a free-tier identity must not read as free.
             return {"ok": True, "provider": runtime.get("provider"), "model": model,
@@ -481,7 +481,7 @@ def _(rid, params: dict) -> dict:
         return _readiness_check(rid, params, probe, probe_key=f"runtime:{requested or ''}",
                                 wait_seconds=_READINESS_SHARE_WAIT_SECONDS)
     except Exception as e:
-        from hermes_cli.runtime_readiness import readiness_failure
+        from kova_cli.runtime_readiness import readiness_failure
         return _ok(rid, readiness_failure(e))
 
 
@@ -490,7 +490,7 @@ def _redact_client_text(text: str, cap: int) -> str:
     first line end in [2x, 3x) cap, else a hard 2x-cap cut, so a key cut by the cap
     still gets redacted but an unbounded (even single-line) RPC param cannot make
     the superlinear scrub run on megabytes."""
-    from hermes_cli.debug_redaction import redact_debug_support_text
+    from kova_cli.debug_redaction import redact_debug_support_text
 
     cut = text.find("\n", 2 * cap, 3 * cap)
     window = text[: cut + 1] if cut >= 0 else text[: 2 * cap]
@@ -513,11 +513,11 @@ def _(rid, params: dict) -> dict:
     upload failures render inline. Optional: ``error_context`` (-> ``error-context.txt``),
     ``extra_files`` ({label -> text}), ``log_lines`` (default 200); all force-redacted."""
     # Outside the try: the except path needs it, and agent.redact is a hard dependency.
-    from hermes_cli.debug_redaction import redact_debug_support_text
+    from kova_cli.debug_redaction import redact_debug_support_text
 
     try:
-        from hermes_cli.debug import build_nous_bundle, collect_share_bundle
-        from hermes_cli.diagnostics_upload import share_to_nous
+        from kova_cli.debug import build_nous_bundle, collect_share_bundle
+        from kova_cli.diagnostics_upload import share_to_nous
         log_lines = params.get("log_lines")
         if not isinstance(log_lines, int) or not (10 <= log_lines <= 2000):
             log_lines = 200

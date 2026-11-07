@@ -2,9 +2,9 @@
 
 import pytest
 
-from hermes_cli import plugins
-from hermes_cli.middleware import apply_llm_request_middleware, apply_tool_request_middleware
-from hermes_cli.plugins import PluginManager
+from kova_cli import plugins
+from kova_cli.middleware import apply_llm_request_middleware, apply_tool_request_middleware
+from kova_cli.plugins import PluginManager
 
 _REQUEST_KINDS = [
     ("llm_request", apply_llm_request_middleware),

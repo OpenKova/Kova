@@ -11,10 +11,10 @@ import logging
 
 import pytest
 
-import hermes_cli.web_server as ws_mod
-import hermes_logging
-from hermes_cli.web_server_lifecycle import build_listener_server
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+import kova_cli.web_server as ws_mod
+import kova_logging
+from kova_cli.web_server_lifecycle import build_listener_server
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 _UVICORN_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access", "uvicorn.asgi")
 
@@ -26,10 +26,10 @@ def _isolated_logging():
     saved_root_level = root.level
     saved = {name: (lg.level, lg.propagate, list(lg.handlers))
              for name in _UVICORN_LOGGERS for lg in (logging.getLogger(name),)}
-    hermes_logging._reset_queued_handlers()
+    kova_logging._reset_queued_handlers()
     yield
-    hermes_logging._reset_queued_handlers()
-    hermes_logging._logging_initialized = False
+    kova_logging._reset_queued_handlers()
+    kova_logging._logging_initialized = False
     root.setLevel(saved_root_level)
     for name, (level, propagate, handlers) in saved.items():
         logger = logging.getLogger(name)
@@ -56,8 +56,8 @@ def test_listener_config_keeps_every_profile_log_file_writing(tmp_path, monkeypa
     beta = root / "profiles" / "beta"
     beta.mkdir(parents=True)
     (beta / "config.yaml").write_text("{}", encoding="utf-8")
-    hermes_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
-    assert hermes_logging.enable_profile_log_routing([root, beta])
+    kova_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
+    assert kova_logging.enable_profile_log_routing([root, beta])
     logger = logging.getLogger("gateway.listener_logging")
 
     def log_in_every_home(marker):
@@ -67,7 +67,7 @@ def test_listener_config_keeps_every_profile_log_file_writing(tmp_path, monkeypa
                 logger.warning(marker)
             finally:
                 reset_hermes_home_override(token)
-        hermes_logging.flush_log_queue()
+        kova_logging.flush_log_queue()
 
     log_in_every_home("before-listener")
     build(monkeypatch)
@@ -83,7 +83,7 @@ def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs
     """Without uvicorn's ``dictConfig`` its loggers still print where they did: ``uvicorn.error``
     to stderr, access lines nowhere at ``log_level="warning"``, neither into agent.log."""
     root = tmp_path / "root"
-    hermes_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
+    kova_logging.setup_logging(hermes_home=root, mode="gateway", force=True)
     _gateway_listener(monkeypatch)
     _dashboard_listener(monkeypatch)  # a second listener in the process adds no second console handler
 
@@ -91,7 +91,7 @@ def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs
     logging.getLogger("uvicorn.access").info(
         '%s - "%s %s HTTP/%s" %d', "127.0.0.1:50000", "GET", "/access-line", "1.1", 200)
     logging.getLogger("gateway.listener_logging").warning("hermes-file-warning")
-    hermes_logging.flush_log_queue()
+    kova_logging.flush_log_queue()
 
     out, err = capsys.readouterr()
     assert logging.getLogger("uvicorn").level == logging.INFO  # LOGGING_CONFIG's, not the root's

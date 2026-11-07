@@ -10,8 +10,8 @@ import os
 import threading
 from pathlib import Path
 
-import hermes_state as hs
-import hermes_state_repair
+import kova_state as hs
+import kova_state_repair
 
 
 def test_preflight_cannot_observe_db_mid_quarantine(tmp_path, monkeypatch):
@@ -58,7 +58,7 @@ def test_preflight_cannot_observe_db_mid_quarantine(tmp_path, monkeypatch):
         finally:
             quarantined.set()
 
-    monkeypatch.setattr(hermes_state_repair.os, "access", gated_access)
+    monkeypatch.setattr(kova_state_repair.os, "access", gated_access)
     monkeypatch.setattr(hs, "quarantine_cross_process_lock", signalling_lock)
     monkeypatch.setattr(hs, "quarantine_invalid_state_db", quarantine_then_release)
 

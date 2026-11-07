@@ -17,7 +17,7 @@ from pathlib import Path
 import psutil
 import pytest
 
-from hermes_cli import process_identity
+from kova_cli import process_identity
 
 from tests.waiting import wait_until
 
@@ -72,11 +72,11 @@ _OWNERS = {
         "bridge = out / 'bridge'; bridge.mkdir()\n"
         "(bridge / 'bridge.js').write_text('import os, sys\\nos.execv(sys.executable, ' + repr(child) + ')\\n',\n"
         "                                  encoding='utf-8')\n"
-        "import hermes_constants\n"
+        "import kova_constants\n"
         "from gateway.platforms import whatsapp_common\n"
-        "from hermes_cli.web_routers import messaging\n"
+        "from kova_cli.web_routers import messaging\n"
         "whatsapp_common.resolve_whatsapp_bridge_dir = lambda: bridge\n"
-        "hermes_constants.find_node_executable = lambda name: sys.executable\n"
+        "kova_constants.find_node_executable = lambda name: sys.executable\n"
         "messaging._ensure_whatsapp_bridge_dependencies = lambda bridge_dir: None\n"
         "messaging._spawn_whatsapp_pairing_process(out / 'session', 'bot')\n"
     ),
@@ -87,7 +87,7 @@ _OWNERS = {
         "(bindir / 'git').write_text('#!/bin/sh\\nexec ' + child_cmd + '\\n', encoding='utf-8')\n"
         "(bindir / 'git').chmod(0o755)\n"
         "os.environ['PATH'] = str(bindir) + os.pathsep + os.environ['PATH']\n"
-        "from hermes_cli.git_commit_graph import run_bounded_git\n"
+        "from kova_cli.git_commit_graph import run_bounded_git\n"
         "threading.Thread(target=run_bounded_git, args=(str(out), ['repack', '-d'], 120.0), daemon=True).start()\n"
     ),
     # A command provider that stalls: the owner dies inside its 120 s idle timeout.
@@ -177,7 +177,7 @@ def _sleeper() -> subprocess.Popen:
 @pytest.fixture
 def owned(monkeypatch):
     """In-process cases: record registrations instead of starting a real supervisor in pytest."""
-    from hermes_cli import process_identity
+    from kova_cli import process_identity
 
     groups: list = []
     monkeypatch.setattr(process_identity, "own_process_groups", lambda pgids: groups.extend(pgids))
@@ -248,7 +248,7 @@ def test_tts_command_owns_then_releases_its_group_after_success_and_idle_kill(mo
 
 
 def test_whatsapp_pairing_terminate_releases_the_process_it_stopped(monkeypatch):
-    from hermes_cli.web_routers import messaging
+    from kova_cli.web_routers import messaging
 
     released = []
     monkeypatch.setattr(process_identity, "release_process_groups", lambda pgids: released.append(list(pgids)))

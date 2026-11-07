@@ -6,7 +6,7 @@ const STAGED_UPLOAD_CACHE_LIMIT = 256
 
 /** The largest file the browser stages on the host, and the largest image it can send: sending reads
  *  a staged image back through /api/fs/read-data-url. Mirrors WEBAPP_ATTACHMENT_MAX_BYTES
- *  (hermes_constants.py), the cap on both. */
+ *  (kova_constants.py), the cap on both. */
 export const BROWSER_UPLOAD_MAX_BYTES = 16 * 1024 * 1024
 
 const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {

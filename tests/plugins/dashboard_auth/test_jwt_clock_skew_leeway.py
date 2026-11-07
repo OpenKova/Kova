@@ -32,7 +32,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 import plugins.dashboard_auth._shared as shared
 import plugins.dashboard_auth.nous as nous_plugin
 import plugins.dashboard_auth.self_hosted as oidc_plugin
-from hermes_cli.dashboard_auth import InvalidCodeError, ProviderError
+from kova_cli.dashboard_auth import InvalidCodeError, ProviderError
 
 _ISSUER = "https://auth.example.com/application/o/hermes"
 _CLIENT_ID = "hermes-dashboard"
@@ -200,7 +200,7 @@ class TestParseLeeway:
 
 def _patch_oauth_config(monkeypatch, oauth_block):
     cfg = {} if oauth_block is None else {"dashboard": {"oauth": oauth_block}}
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: cfg)
+    monkeypatch.setattr("kova_cli.config.load_config", lambda: cfg)
 
 
 class TestSelfHostedConfig:

@@ -235,7 +235,7 @@ function scriptLine(text: string, isWindows: boolean): string {
 
 /**
  * The checkout lock exactly as marker.sh `checkout_lock_path` / marker.ps1
- * `Get-CheckoutLockPath` resolve it (hermes_cli/update_lock.py::checkout_lock_path):
+ * `Get-CheckoutLockPath` resolve it (kova_cli/update_lock.py::checkout_lock_path):
  * `<git common dir>/hermes-update.lock`, else `<root>/.hermes-update.lock`.
  * Throws when `.git` or `commondir` exists but cannot be read.
  */

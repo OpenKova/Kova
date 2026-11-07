@@ -14,12 +14,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import plugin_catalog as pc
-from hermes_cli import plugins_cmd
-from hermes_cli import web_server
-import hermes_cli.config as _cfg_mod
-import hermes_cli.web_server_dashboard as _web_server_dashboard
-import hermes_cli.web_server_memory as _web_server_memory
+from kova_cli import plugin_catalog as pc
+from kova_cli import plugins_cmd
+from kova_cli import web_server
+import kova_cli.config as _cfg_mod
+import kova_cli.web_server_dashboard as _web_server_dashboard
+import kova_cli.web_server_memory as _web_server_memory
 from tools import registry as tools_registry
 
 
@@ -129,9 +129,9 @@ def test_update_invalidates_the_live_catalog_cache_for_every_profile(tmp_path, m
     """Post-update maintenance drops the cached live catalog under the active home AND every
     sibling profile's — the checkout is shared, so one profile's update changes every
     profile's catalog truth at once (#119340)."""
-    from hermes_cli import update_cmd
-    from hermes_cli import update_cmd_maint
-    from hermes_cli import backup as _backup
+    from kova_cli import update_cmd
+    from kova_cli import update_cmd_maint
+    from kova_cli import backup as _backup
 
     root = tmp_path / "home"
     alpha = root / "profiles" / "alpha"

@@ -1,6 +1,6 @@
 """The plugin docs' Python code blocks import only names on the published plugin API.
 
-``hermes_cli/data/plugin_api.json`` is the list ``hermes plugins validate`` enforces; a docs example
+``kova_cli/data/plugin_api.json`` is the list ``hermes plugins validate`` enforces; a docs example
 that imports anything else teaches plugin authors an import validate warns on. Blocks that still need
 a seam are named in ``plugin_docs_import_seams.json``, which may only shrink.
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from markdown_it import MarkdownIt
 
-from hermes_cli.plugin_validate_private_imports import (
+from kova_cli.plugin_validate_private_imports import (
     _core_module_exists,
     _hermes_packages,
     _imported,
@@ -221,6 +221,6 @@ def test_plugin_docs_import_only_the_published_plugin_api():
         "these plugin-docs Python blocks import something but do not parse, so their imports cannot be "
         f"checked; make the block valid Python (placeholders like `...` are fine): {unparsable}")
     assert not found - seams, (
-        "plugin docs import Hermes names outside hermes_cli/data/plugin_api.json; rewrite the example "
+        "plugin docs import Hermes names outside kova_cli/data/plugin_api.json; rewrite the example "
         f"onto ctx.* or a listed name: {sorted(found - seams)}")
     assert not seams - found, f"no longer in the docs, delete from {_SEAMS.name}: {sorted(seams - found)}"

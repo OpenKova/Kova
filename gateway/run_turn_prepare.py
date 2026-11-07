@@ -26,7 +26,7 @@ from gateway.session import (
 from gateway.session_transcript import TranscriptReadError
 from gateway.turn_context import TurnContext
 from gateway.turn_lease import DEFAULT_LEASE_WAIT, TurnLeaseTimeoutError
-from hermes_constants import get_hermes_home_override
+from kova_constants import get_hermes_home_override
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from utils import base_url_hostname
@@ -57,7 +57,7 @@ def _resolve_policy_agent_runtime(runner, policy, *, fallback=True) -> tuple[str
     runtime, fallback_entry = route_runtime(policy, frozen, model, route_launch_key(authority, policy, frozen),
                                             fallback=fallback)
     if fallback_entry is not None:
-        from hermes_cli.fallback_config import pre_agent_fallback_notice
+        from kova_cli.fallback_config import pre_agent_fallback_notice
         runner._pre_agent_fallback_notice = pre_agent_fallback_notice(
             provider or '', model or '',
             runtime.get('provider') or fallback_entry.get('provider') or 'unknown',
@@ -175,7 +175,7 @@ class GatewayTurnPrepareMixin:
             logger.info("Runtime provider supplied explicit model override: %s -> %s", model, runtime_model)
             model = runtime_model
         if unavailable_override and not self._pre_agent_fallback_notice:
-            from hermes_cli.fallback_config import pre_agent_fallback_notice
+            from kova_cli.fallback_config import pre_agent_fallback_notice
             self._pre_agent_fallback_notice = pre_agent_fallback_notice(
                 unavailable_override["provider"], unavailable_override.get("model"), runtime_kwargs.get("provider"), model)
 
@@ -203,7 +203,7 @@ class GatewayTurnPrepareMixin:
         # provider's first catalog model.
         if not model and runtime_kwargs.get("provider"):
             with suppress(Exception):
-                from hermes_cli.models import get_default_model_for_provider
+                from kova_cli.models import get_default_model_for_provider
                 model = get_default_model_for_provider(runtime_kwargs["provider"])
                 if model:
                     logger.info(
@@ -220,7 +220,7 @@ class GatewayTurnPrepareMixin:
         ``/review``) passes the session's own instead of writing that shared slot."""
         from gateway.run import _deep_merge_request_overrides
         from agent.fast_mode import STATIC_TIERS
-        from hermes_cli.models import resolve_fast_mode_overrides
+        from kova_cli.models import resolve_fast_mode_overrides
         # Tests bind this method onto bare namespaces, so no class-level tables here.
         runtime = {
             k: runtime_kwargs.get(k) for k in (
@@ -264,7 +264,7 @@ class GatewayTurnPrepareMixin:
         model = getattr(agent, "model", None)
         if not model:
             return
-        from hermes_cli.runtime_provider_custom import session_provider_identity
+        from kova_cli.runtime_provider_custom import session_provider_identity
         runtime = {
             "provider": session_provider_identity(getattr(agent, "provider", None),
                                                   getattr(agent, "requested_provider", None),
@@ -608,7 +608,7 @@ class GatewayTurnPrepareMixin:
         persist_user_message = None
         persist_user_timestamp = None
         try:
-            from hermes_time import get_timezone as _get_evt_tz
+            from kova_time import get_timezone as _get_evt_tz
             from gateway.message_timestamps import (
                 coerce_message_timestamp as _coerce_msg_ts,
                 render_user_content_with_timestamp as _render_msg_ts,

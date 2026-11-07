@@ -14,7 +14,7 @@ async def test_forwarded_identity_survives_reconnect_without_policy_override(tmp
     from gateway.session_authority import initialize_session_authority
     from gateway import run
     from gateway.session_policy import build_policy
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
@@ -122,7 +122,7 @@ async def test_forwarded_turns_are_authored_by_the_peer_for_memory_attribution(t
     from gateway.session_a2a import forward_author
     from gateway.session_ingress import row_turn_author
     from agent.turn_author import a2a_key
-    from hermes_state_runtime import list_session_admissions
+    from kova_state_runtime import list_session_admissions
     from gateway import run
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
@@ -166,8 +166,8 @@ async def test_forward_wakes_on_the_completion_frame_instead_of_a_fixed_100ms_po
     import asyncio
     import time
     from websockets.asyncio.server import serve
-    from hermes_cli import gateway_client
-    from hermes_cli import gateway_runtime
+    from kova_cli import gateway_client
+    from kova_cli import gateway_runtime
     from gateway.session_a2a import forward_to_owner
 
     calls = []

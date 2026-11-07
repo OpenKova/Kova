@@ -94,8 +94,8 @@ def _member_activity(task: Mapping[str, Any]) -> dict[str, Any]:
 def _discussion_limits(root: Path) -> discussion.DiscussionLimits:
     """Read the room owner's config, never the current member's profile scope. A malformed value
     keeps today's defaults (logged) rather than taking every room on this store offline."""
-    from hermes_cli.config_effective import load_user_config_effective
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_cli.config_effective import load_user_config_effective
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     token = set_hermes_home_override(str(root))
     try:
@@ -256,7 +256,7 @@ class HostedRoomService:
         return self.db_path.parent
 
     def local_profiles(self) -> tuple[str, ...]:
-        from hermes_constants import named_profile_has_identity, named_profile_is_deleted
+        from kova_constants import named_profile_has_identity, named_profile_is_deleted
 
         profiles, profiles_dir = {"default"}, self.root / "profiles"
         if profiles_dir.is_dir():
@@ -613,7 +613,7 @@ class HostedRoomService:
     def route_authority(self, room_id: str) -> tuple[str, int]:
         """Check publication authority under peer_route_lock, including an in-progress Disband."""
         if room_id in self._disbanding_rooms:
-            from hermes_state_runtime import RuntimeStoreError
+            from kova_state_runtime import RuntimeStoreError
             # Stop can still fail: this temporary refusal must not owe a surviving route's revoke.
             raise RuntimeStoreError("room_disbanding_retry")
         return self._owned_authority(room_id)

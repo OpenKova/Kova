@@ -55,7 +55,7 @@ def test_installed_cli_help_drives_explicit_staged_branch(tmp_path):
     # The fake executable only replaces the destructive update action.
     env = dict(os.environ, HERMES_DISABLE_LAZY_INSTALLS="1", PYTHONDONTWRITEBYTECODE="1")
     help_result = subprocess.run(
-        [sys.executable, "-m", "hermes_cli.main", "update", "--help"],
+        [sys.executable, "-m", "kova_cli.main", "update", "--help"],
         cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=60,
         check=False,
     )

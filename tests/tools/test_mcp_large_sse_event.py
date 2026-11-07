@@ -15,8 +15,8 @@ import sys
 
 import pytest
 
-import hermes_yaml as yaml
-from hermes_constants import get_hermes_home
+import kova_yaml as yaml
+from kova_constants import get_hermes_home
 from tests.waiting import wait_until
 
 _SERVER = """
@@ -76,7 +76,7 @@ def catalog_server(tmp_path):
 
 def _mcp_test(capsys, entry: dict) -> tuple[int, str]:
     """``hermes mcp test catalog`` against *entry*; returns (exit code, printed output)."""
-    from hermes_cli.mcp_config import cmd_mcp_test
+    from kova_cli.mcp_config import cmd_mcp_test
 
     (get_hermes_home() / "config.yaml").write_text(yaml.safe_dump({"mcp_servers": {"catalog": entry}}),
                                                    encoding="utf-8")

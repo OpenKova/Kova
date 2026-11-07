@@ -339,7 +339,7 @@ export const nousAltTheme: DesktopTheme = {
   }
 }
 
-// The converter's input: the keys it reads from `hermes_cli/skin_engine.py`'s
+// The converter's input: the keys it reads from `kova_cli/skin_engine.py`'s
 // `default` skin. Light is that skin's `light_colors` overlay (its goldenrod
 // ladder for white backgrounds; `banner_border` is not overridden there) with
 // one change: the ink. The CLI's `#5C4718` is a single-weight terminal color,

@@ -1,7 +1,7 @@
 """Dependency-environment layout: where a project's venv generations live, which one
 is selected, and the interpreter inside any venv. Shared by PM and pre-import launchers.
 
-Only stdlib and hermes_constants: environment selection must work before
+Only stdlib and kova_constants: environment selection must work before
 any dependency from that environment has been imported.
 """
 from __future__ import annotations
@@ -14,7 +14,7 @@ import re
 import shlex
 from pathlib import Path
 
-from hermes_constants import get_default_hermes_root, project_venv_dir
+from kova_constants import get_default_hermes_root, project_venv_dir
 
 
 def install_key(project_root: Path) -> str:
@@ -24,7 +24,7 @@ def install_key(project_root: Path) -> str:
 
 def dependency_home_root() -> Path:
     """Scope dependency state like a process launched in the active home."""
-    from hermes_constants import get_default_hermes_root, get_hermes_home_override
+    from kova_constants import get_default_hermes_root, get_hermes_home_override
 
     override = get_hermes_home_override()
     return get_default_hermes_root(home=override) if override else get_default_hermes_root()
@@ -55,7 +55,7 @@ def owning_home_root(project_root: Path) -> Path | None:
     and it execs the owner's store Python. With no live launcher to ask, the root the checkout
     sits in outranks the platform default.
     """
-    from hermes_constants import _get_platform_default_hermes_home
+    from kova_constants import _get_platform_default_hermes_home
 
     root = Path(project_root).resolve()
     key = install_key(root)
@@ -74,7 +74,7 @@ def owning_home_root(project_root: Path) -> Path | None:
 
 def _launcher_bound_root(project_root: Path, candidates: list[Path]) -> Path | None:
     """The candidate whose ``tools/`` holds the live interpreter the checkout's launcher execs."""
-    from hermes_cli._launchers import _launcher_python
+    from kova_cli._launchers import _launcher_python
 
     local = project_root / ".hermes" / "bin"
     for name in (("hermes.exe", "hermes.cmd") if os.name == "nt" else ("hermes",)):
@@ -471,7 +471,7 @@ def activate_dependencies(project_root: Path) -> None:
 
     state = install_state_dir(project_root)
     if state.is_dir():
-        from hermes_cli.runtime_state import runtime_lock, recover_publication, lease_generation
+        from kova_cli.runtime_state import runtime_lock, recover_publication, lease_generation
         # The lock's holder may be another profile's backend running a full dependency rebuild;
         # this process only reads the committed selection, so it proceeds without waiting rather
         # than leaving the backend unbound (see runtime_lock).
@@ -536,7 +536,7 @@ def activation_environment(project_root: Path) -> dict[str, str]:
     environment = committed_venv(project_root)
     env.pop("PYTHONHOME", None)
     env.pop("VIRTUAL_ENV", None)
-    # Nothing committed: the child's own hermes_bootstrap decides (a bare store Python refuses),
+    # Nothing committed: the child's own kova_bootstrap decides (a bare store Python refuses),
     # rather than inheriting the pre-PM in-tree venv from here.
     env["PYTHONPATH"] = os.pathsep.join([str(project_root.resolve()),
                                          *([str(site_packages(environment))] if environment else [])])

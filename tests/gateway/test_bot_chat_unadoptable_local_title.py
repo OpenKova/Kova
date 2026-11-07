@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 from tests.gateway import test_peer_dm_bot_chat_headless as _headless_gateway
 

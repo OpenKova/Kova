@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import memory_provider_migration as mig
+from kova_cli import memory_provider_migration as mig
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def test_provider_unknown_to_catalog_is_reported_not_installed(home, monkeypatch
 
 def test_startup_recovery_attempts_each_profile_home(tmp_path, monkeypatch):
     """One multiplexed process can start agents for two homes missing the same provider."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     from pm import install as pm_install
 
     homes = [tmp_path / "a", tmp_path / "b"]
@@ -108,7 +108,7 @@ def test_unattended_migration_install_carries_lazy_install_consent(tmp_path, mon
     (the whole point of the agent-start hook) can ever publish one."""
     import io
 
-    from hermes_cli import plugins_cmd
+    from kova_cli import plugins_cmd
     from pm import install as pm_install
 
     class _Stream(io.StringIO):
@@ -132,7 +132,7 @@ def test_startup_recovery_never_asks_a_dependency_question(tmp_path, monkeypatch
     with its built-in's consent even on a terminal; any other one is not attempted and names the command."""
     import io
 
-    from hermes_cli import plugins_cmd
+    from kova_cli import plugins_cmd
     from pm import install as pm_install
 
     class _Tty(io.StringIO):
@@ -158,7 +158,7 @@ def test_startup_recovery_never_asks_a_dependency_question(tmp_path, monkeypatch
 def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
     """Profiles sharing one environment face one dependency question for a migrating provider
     (#125794); every line names its profile, and a decline names the rest once with their commands."""
-    from hermes_cli import plugins_cmd_install
+    from kova_cli import plugins_cmd_install
 
     root = tmp_path / ".hermes"
     homes = [root, root / "profiles" / "work-a", root / "profiles" / "work-b"]
@@ -166,7 +166,7 @@ def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr("pm.plugins_state.dependency_homes", lambda: homes)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
@@ -209,7 +209,7 @@ def _profile_homes(tmp_path, monkeypatch, *names):
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
     monkeypatch.setattr(mig, "_LEFT_CORE", frozenset({"twin"}))  # stands in for a formerly bundled provider
@@ -221,8 +221,8 @@ def test_unattended_update_refusal_in_one_profile_does_not_skip_the_others(tmp_p
     nothing about a profile that allows it, which must still migrate (not be reported as failed)."""
     import io
 
-    from hermes_cli import plugins_cmd
-    from hermes_constants import get_hermes_home
+    from kova_cli import plugins_cmd
+    from kova_constants import get_hermes_home
     from pm import install as pm_install
 
     default, work = _profile_homes(tmp_path, monkeypatch, "work")
@@ -264,8 +264,8 @@ def test_missing_catalog_provider_recovery_names_the_profile_install_command(tmp
     ``memory status``, ``memory setup honcho``, ``hermes honcho``) names the one command that installs
     the catalog plugin into THIS profile. Real in-tree catalog, nothing installed."""
     from types import SimpleNamespace
-    from hermes_cli import doctor_state, memory_setup
-    from hermes_cli._parser import build_top_level_parser
+    from kova_cli import doctor_state, memory_setup
+    from kova_cli._parser import build_top_level_parser
 
     home = tmp_path / "profiles" / "work"
     home.mkdir(parents=True)
@@ -284,7 +284,7 @@ def test_missing_catalog_provider_recovery_names_the_profile_install_command(tmp
 
 
 def test_recovery_copy_without_a_catalog_memory_entry_keeps_the_generic_hint(tmp_path, monkeypatch, capsys):
-    from hermes_cli import doctor_state
+    from kova_cli import doctor_state
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))  # not a profile home: no -p to add
     assert mig.catalog_install_hint("honcho", category="memory") == "hermes plugins install honcho"

@@ -10,9 +10,9 @@ import logging
 import re
 import sqlite3
 import time
-from hermes_dir_acl import make_user_dir
+from kova_dir_acl import make_user_dir
 
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from utils import atomic_json_write
 
 logger = logging.getLogger("tools.process_registry")
@@ -58,7 +58,7 @@ def save_completed_result(session) -> None:
     record["command"] = redact_sensitive_text(record["command"], code_file=True, force=True)
     directory = get_hermes_home() / "logs" / "process-results"
     try:
-        from hermes_constants import assert_named_profile_home_live
+        from kova_constants import assert_named_profile_home_live
         assert_named_profile_home_live(directory)
         make_user_dir(directory, mode=0o700, parents=True, exist_ok=True)
         atomic_json_write(directory / f"{session.id}.json", record, mode=0o600)
@@ -73,7 +73,7 @@ def _owns_result(owner: str, parent: str | None) -> bool:
         return False
     if owner == parent:
         return True
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     # Pure lineage read on the hot path of every retained-result load; a writable open here
     # was one more writer handle per call inside the gateway (#100896).

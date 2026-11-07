@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import gui_uninstall, main
-from hermes_constants import get_hermes_home
+from kova_cli import gui_uninstall, main
+from kova_constants import get_hermes_home
 
 
 @pytest.fixture(params=("complete", "record_only"))
@@ -17,7 +17,7 @@ def installation(request, tmp_path, monkeypatch):
     assert home.resolve().is_relative_to(tmp_path.resolve())
     root = home / "hermes-agent"
     protected = {
-        root / "hermes_cli" / "__init__.py": b"# agent source\n",
+        root / "kova_cli" / "__init__.py": b"# agent source\n",
         root / "venv" / "runtime": b"agent runtime",
         root / "node_modules" / "shared-package" / "index.js": b"shared workspace dependency",
         home / "config.yaml": b"model: fixture-model\n",

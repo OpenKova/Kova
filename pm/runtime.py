@@ -21,7 +21,7 @@ from pm.package import InstallError
 
 def runtime_environment() -> dict[str, str]:
     """Do not let an activated application or a uv caller select PM's imports."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     from pm.paths import store_root
 
     from pm.environment import _base_environment
@@ -120,7 +120,7 @@ _HELD: dict[Path, Callable[[], None]] = {}
 
 
 def _hold_for_children(environment: Path) -> None:
-    from hermes_cli.runtime_state import lease_directory
+    from kova_cli.runtime_state import lease_directory
 
     if environment not in _HELD:
         _HELD[environment] = lease_directory(environment)
@@ -177,7 +177,7 @@ def prepare_runtime(uv: Path, python: Path, root: Path, *, offline: bool = False
 def lease_current_runtime() -> None:
     """Pin the PM runtime this process runs from so the collector leaves it alone."""
     if (Path(sys.prefix) / "pm-runtime.json").is_file():
-        from hermes_cli.runtime_state import lease_directory
+        from kova_cli.runtime_state import lease_directory
 
         lease_directory(Path(sys.prefix))
 
@@ -191,7 +191,7 @@ def collect_runtime_generations(root: Path) -> list[Path]:
     existed stay, as the application collector keeps its own.
     """
     from pm.filesystem import lock_fd
-    from hermes_cli.runtime_state import leases_held
+    from kova_cli.runtime_state import leases_held
 
     generations = root / "generations"
     removed: list[Path] = []

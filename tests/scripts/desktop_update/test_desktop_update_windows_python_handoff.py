@@ -44,7 +44,7 @@ def test_pm_handoff_reports_update_and_gateway_results(
 ) -> None:
     install = tmp_path / 'checkout with spaces'
     publish_fixture_launcher(install, CLI)
-    (install / 'hermes_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
+    (install / 'kova_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
     home = tmp_path / 'profile'; home.mkdir()
     calls = tmp_path / 'calls.jsonl'
     command = ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
@@ -86,7 +86,7 @@ def test_update_killed_by_idle_watchdog_after_completing_is_a_success(
     unless anything after its banner already reported a failure."""
     install = tmp_path / 'checkout'
     publish_fixture_launcher(install, CLI)
-    (install / 'hermes_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
+    (install / 'kova_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
     home = tmp_path / 'profile'; home.mkdir()
     calls = tmp_path / 'calls.jsonl'
     result = subprocess.run(
@@ -116,8 +116,8 @@ def test_earlier_pm_userbin_launcher_is_identity_checked(tmp_path: Path) -> None
     launcher.rename(external)
     wrong = tmp_path / 'other'
     (wrong / 'pm').mkdir(parents=True)
-    (wrong / 'hermes_cli').mkdir()
-    (wrong / 'hermes_cli/_launchers.py').touch()
+    (wrong / 'kova_cli').mkdir()
+    (wrong / 'kova_cli/_launchers.py').touch()
     helper = str(ROOT / 'scripts/desktop-update/runtime.ps1').replace("'", "''")
     for target, expected_code in [(root, 0), (wrong, 1)]:
         script = f". '{helper}'; try {{ @(Get-HermesRuntimeCommand -InstallRoot '{target}') | ConvertTo-Json -Compress }} catch {{ exit 1 }}"

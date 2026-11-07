@@ -13,7 +13,7 @@ import pytest
 
 pytest.importorskip("httpx")
 
-from hermes_cli import doctor_connectivity as dc
+from kova_cli import doctor_connectivity as dc
 
 # The exact environment Clash Verge / mihomo exports (issue #118159).
 _CLASH_NO_PROXY = "127.0.0.1,localhost,::1,[::1]"

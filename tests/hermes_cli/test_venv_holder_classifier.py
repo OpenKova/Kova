@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_cli.update_cmd import (
+from kova_cli.update_cmd import (
     _hermes_holder_subcommand,
 )
 
@@ -10,29 +10,29 @@ class TestHolderSubcommand:
     @pytest.mark.parametrize(
         ("cmdline", "expected"),
         [
-            (r"C:\x\venv\Scripts\python.exe -m hermes_cli.main serve --host 127.0.0.1", "serve"),
-            (r"C:\x\venv\Scripts\python.exe -m hermes_cli.main dashboard", "dashboard"),
-            (r"python.exe -m hermes_cli.main gateway run", "gateway"),
+            (r"C:\x\venv\Scripts\python.exe -m kova_cli.main serve --host 127.0.0.1", "serve"),
+            (r"C:\x\venv\Scripts\python.exe -m kova_cli.main dashboard", "dashboard"),
+            (r"python.exe -m kova_cli.main gateway run", "gateway"),
             # profile selector skipped; its VALUE must not become the subcommand
-            (r"python -m hermes_cli.main --profile serve gateway run", "gateway"),
-            (r"python -m hermes_cli.main -p work serve", "serve"),
+            (r"python -m kova_cli.main --profile serve gateway run", "gateway"),
+            (r"python -m kova_cli.main -p work serve", "serve"),
             # 90778: flags containing subcommand words are not subcommands
-            (r"python -m hermes_cli.main kanban --preserve-cache", "kanban"),
+            (r"python -m kova_cli.main kanban --preserve-cache", "kanban"),
             # 91869 review: EVERY top-level value flag must be skipped —
             # a flag VALUE equal to a subcommand must not become the label
-            (r"python -m hermes_cli.main --reasoning high serve", "serve"),
-            (r"python -m hermes_cli.main -m dashboard serve", "serve"),
-            (r"python -m hermes_cli.main -t browser,files gateway run", "gateway"),
-            (r"python -m hermes_cli.main --model=dashboard serve", "serve"),
+            (r"python -m kova_cli.main --reasoning high serve", "serve"),
+            (r"python -m kova_cli.main -m dashboard serve", "serve"),
+            (r"python -m kova_cli.main -t browser,files gateway run", "gateway"),
+            (r"python -m kova_cli.main --model=dashboard serve", "serve"),
             # -c consumes ONE value token; later bare tokens are (harmless,
             # unhinted) subcommand candidates — pin that shape honestly
-            (r"python -m hermes_cli.main -c mysession serve", "serve"),
+            (r"python -m kova_cli.main -c mysession serve", "serve"),
             (r"C:\bin\hermes.exe dashboard", "dashboard"),
             (r"/usr/local/bin/hermes serve", "serve"),
             # no hermes entry at all
             (r"python -c import time; time.sleep(3)", None),
             # entry but no subcommand
-            (r"python -m hermes_cli.main", None),
+            (r"python -m kova_cli.main", None),
         ],
     )
     def test_parses_subcommand(self, cmdline, expected):
@@ -44,7 +44,7 @@ class TestHolderSubcommand:
         import shlex
         from pathlib import Path
 
-        from hermes_cli._launchers import runtime_command
+        from kova_cli._launchers import runtime_command
 
         cmdline = shlex.join(runtime_command(Path("/opt/hermes-agent"), ["dashboard"], python="/opt/store/python"))
         assert _hermes_holder_subcommand(cmdline) == "dashboard"

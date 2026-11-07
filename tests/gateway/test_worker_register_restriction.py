@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import psutil
 import pytest
 
-from hermes_cli.process_identity import worker_birth
+from kova_cli.process_identity import worker_birth
 
 
 @pytest.mark.asyncio
@@ -18,8 +18,8 @@ async def test_worker_register_requires_the_owners_launched_worker(tmp_path, mon
     from gateway.session_authority import LiveSession, SessionAuthority
     from gateway.session_contract import SessionActor, SessionRef
     from gateway.session_worker import worker_request
-    from hermes_state import SessionDB
-    from hermes_state_runtime import RuntimeStoreError, begin_runtime_epoch
+    from kova_state import SessionDB
+    from kova_state_runtime import RuntimeStoreError, begin_runtime_epoch
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')

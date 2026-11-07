@@ -144,7 +144,7 @@ class PtyHermes:
         self.master = master
         self.pts = os.ttyname(slave)
         self.proc = subprocess.Popen(
-            [sys.executable, "-c", _SESSION_LEADER, sys.executable, "-m", "hermes_cli.main", *argv_tail],
+            [sys.executable, "-c", _SESSION_LEADER, sys.executable, "-m", "kova_cli.main", *argv_tail],
             stdin=slave, stdout=slave, stderr=slave, cwd=str(root / "work"), env=env,
             start_new_session=True, close_fds=True)
         os.close(slave)
@@ -305,7 +305,7 @@ class PtyHermes:
         supervisor while the gateway lives: it belongs to the gateway, and after the gateway's last
         owned command it stays for an idle grace on purpose (``_SUPERVISOR_IDLE_EXIT_S``)."""
         from gateway.status import looks_like_gateway_command_line
-        from hermes_cli.process_identity import is_owner_death_supervisor
+        from kova_cli.process_identity import is_owner_death_supervisor
 
         def alive() -> list[int]:
             pids = set(session_members(self.sid))

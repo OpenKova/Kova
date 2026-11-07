@@ -26,7 +26,7 @@ import pytest
 
 from gateway import host_attach
 from gateway import host_rendezvous as hr
-from hermes_cli import gateway as gw
+from kova_cli import gateway as gw
 
 
 def _reset_probe_memo() -> None:
@@ -107,7 +107,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     Skipping the generic named-profile guard alone is insufficient on Windows: the Windows backend
     derives its Scheduled Task name, launcher HERMES_HOME and detached child from the active home.
     """
-    import hermes_constants
+    import kova_constants
 
     root = tmp_path / "hermes"
     named = root / "profiles" / "leinad"
@@ -117,7 +117,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     (named / "config.yaml").write_text("{}\n", encoding="utf-8")
 
     monkeypatch.setenv("HERMES_HOME", str(named))
-    hermes_constants._default_hermes_root_memo = None
+    kova_constants._default_hermes_root_memo = None
     monkeypatch.setattr(
         gw, "_guard_named_profile_under_multiplexer",
         lambda **k: pytest.fail("the generic profile guard pre-empted start --all"),
@@ -131,7 +131,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     def _observe(step):
         calls.append((
             step,
-            Path(hermes_constants.get_hermes_home()),
+            Path(kova_constants.get_hermes_home()),
             os.environ.get("HERMES_HOME"),
         ))
 
@@ -161,7 +161,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
         ("start", root, str(root)),
     ]
     # The CLI's named-profile scope is restored after the host-scoped operation.
-    assert hermes_constants.get_hermes_home() == named
+    assert kova_constants.get_hermes_home() == named
     assert os.environ["HERMES_HOME"] == str(named)
 
 
@@ -175,7 +175,7 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     CLI already loaded X's ``.env`` into ``os.environ``, and an in-process ``run_gateway`` served the
     default profile with X's credentials.
     """
-    import hermes_constants
+    import kova_constants
 
     root = tmp_path / "hermes"
     named = root / "profiles" / "leinad"
@@ -190,7 +190,7 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     monkeypatch.setenv("OPENAI_API_KEY", "leinad-openai")
 
     monkeypatch.setenv("HERMES_HOME", str(named))
-    hermes_constants._default_hermes_root_memo = None
+    kova_constants._default_hermes_root_memo = None
     monkeypatch.setattr(gw, "_host_multiplexer_for_all_verb", lambda: None)
     monkeypatch.setattr(gw, "_stop_installed_service", lambda system: False)
     monkeypatch.setattr(gw, "kill_gateway_processes", lambda **k: 0)
@@ -217,8 +217,8 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     assert env.get("DISCORD_BOT_TOKEN") == "root-discord"
     assert "TELEGRAM_BOT_TOKEN" not in env and "OPENAI_API_KEY" not in env, \
         "the host child inherited the named profile's credentials"
-    assert hermes_constants.get_hermes_home() == named
-    assert not hermes_constants.process_hermes_home_is_pinned()
+    assert kova_constants.get_hermes_home() == named
+    assert not kova_constants.process_hermes_home_is_pinned()
 
 
 def test_restart_all_refuses_to_sweep_a_host_multiplexer_owned_by_another_profile(
@@ -306,7 +306,7 @@ def test_a_refusal_lands_in_the_profile_logs_not_only_on_stdout(monkeypatch, cap
         lambda home, replace=False: host_attach.HostAttachDecision(
             host_attach.REFUSE, host_attach._refuse_message(owner, "nous"), owner))
 
-    with caplog.at_level("WARNING", logger="hermes_cli.gateway"), pytest.raises(SystemExit) as exc:
+    with caplog.at_level("WARNING", logger="kova_cli.gateway"), pytest.raises(SystemExit) as exc:
         gw._attach_to_host_gateway_or_guard(force=False)
 
     assert exc.value.code == gw.GATEWAY_FATAL_CONFIG_EXIT_CODE

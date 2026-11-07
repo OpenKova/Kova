@@ -3,9 +3,9 @@
 from pathlib import Path
 import shutil
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
-from hermes_cli.plugins import PluginManager
+from kova_cli.plugins import PluginManager
 
 
 LEGACY_PLUGIN = Path(__file__).parent / "fixtures" / "plugin_compat_legacy"

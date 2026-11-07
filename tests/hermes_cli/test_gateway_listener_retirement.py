@@ -9,11 +9,11 @@ routes now refuse and the fence stays open; a standalone serve keeps its permit 
 
 from fastapi.testclient import TestClient
 
-from tests.hermes_cli.native_gateway_client import native_desktop_client
+from tests.kova_cli.native_gateway_client import native_desktop_client
 
 
 def _fresh_fence(monkeypatch):
-    from hermes_cli import backend_retirement
+    from kova_cli import backend_retirement
     from tui_gateway import server
 
     fence = backend_retirement.RetirementFence()
@@ -48,7 +48,7 @@ def test_gateway_listener_is_never_idle_and_refuses_retirement(monkeypatch):
 
 def test_standalone_serve_keeps_the_permit_protocol(monkeypatch):
     fence, server = _fresh_fence(monkeypatch)
-    from hermes_cli import web_server
+    from kova_cli import web_server
 
     monkeypatch.setattr(web_server.app.state, "gateway_runner", None, raising=False)
     monkeypatch.setattr(web_server, "_SESSION_TOKEN", "standalone-retirement-token")

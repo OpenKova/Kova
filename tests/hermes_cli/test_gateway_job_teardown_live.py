@@ -10,7 +10,7 @@ Three live proofs (no mocks of the code under test):
    by it. This is exactly the reporter's suspected kill path.
 
 2. ``TestWatcherRespawnLive`` — drives the REAL
-   ``hermes_cli.gateway._spawn_gateway_restart_watcher`` end to end with a
+   ``kova_cli.gateway._spawn_gateway_restart_watcher`` end to end with a
    real stub gateway process, against a temp HERMES_HOME:
    - the respawned process's stderr must land in ``logs/gateway-stdio.log``
      (on unfixed main it went to DEVNULL: a job-teardown kill left ZERO trace);
@@ -148,7 +148,7 @@ def _start_driver_in_job(k, job: int, argv: list[str]) -> subprocess.Popen:
     grandchild, so the grandchild escaped the job and survived the teardown
     (~6% of CI runs before this).
     """
-    from hermes_cli.update_lock import resume_suspended_child
+    from kova_cli.update_lock import resume_suspended_child
 
     driver = subprocess.Popen(argv, cwd=str(_REPO_ROOT), creationflags=CREATE_SUSPENDED)
     if not k.AssignProcessToJobObject(job, int(driver._handle)):
@@ -191,7 +191,7 @@ class TestJobObjectMechanismLive:
         return (
             "import os, subprocess, sys, pathlib\n"
             f"sys.path.insert(0, r'{_REPO_ROOT!s}')\n"
-            "from hermes_cli._subprocess_compat import (\n"
+            "from kova_cli._subprocess_compat import (\n"
             "    windows_detach_flags, windows_detach_flags_without_breakaway)\n"
             f"flags = {flags_helper}()\n"
             f"p = subprocess.Popen([sys.executable, '-c', {_SLEEPER!r}],\n"
@@ -304,7 +304,7 @@ class TestWatcherRespawnLive:
         old = subprocess.Popen([sys.executable, "-c", "pass"])
         old.wait(timeout=30)
 
-        from hermes_cli import gateway
+        from kova_cli import gateway
 
         assert gateway._spawn_gateway_restart_watcher(
             old.pid, [sys.executable, "-c", stub]
@@ -345,9 +345,9 @@ class TestResumeVerificationLive:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir(parents=True, exist_ok=True)
 
-        from hermes_cli import gateway
-        import hermes_cli.main as hm
-        from hermes_cli.update_cmd import _resume_windows_gateways_after_update
+        from kova_cli import gateway
+        import kova_cli.main as hm
+        from kova_cli.update_cmd import _resume_windows_gateways_after_update
 
         # Peripheral only: don't regenerate launcher scripts into the temp home.
         monkeypatch.setattr(hm, "_refresh_windows_gateway_launchers", lambda: None)

@@ -15,7 +15,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from hermes_cli.timeouts import get_provider_request_timeout
+from kova_cli.timeouts import get_provider_request_timeout
 from agent.message_sanitization import (
     _FULL_ARGS_LOG_BOUND, coalesce_tool_call_id, coerce_tool_name, tool_call_id_variants, tool_result_id_variants
 )
@@ -663,7 +663,7 @@ def _merge_consecutive_users(messages: list[dict]) -> tuple[list[dict], int]:
     """Pass 3: merge consecutive plain-text user messages (no user input lost)."""
     from agent.context_compressor import _DB_PERSISTED_MARKER, split_user_originated_turn
     from agent.conversation_compression_archive import MERGED_DURABLE_ROWS
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     def _plain_text(content: Any) -> bool:
         # never rewrite the persisted row around undecodable content
@@ -749,7 +749,7 @@ def _normalize_sentinel_encoded_content(messages: list[dict]) -> None:
     image-bearing turn is never merged as text (#125299). A multimodal turn can re-enter the working set
     as its ``\\x00json:[…]`` string (e.g. after a proactive prune re-inserts history, #124102). A body
     that no longer parses stays a sentinel string; ``_merge_consecutive_users`` refuses to weld it."""
-    from hermes_state import SessionDB  # lazy: the persistence layer owns the sentinel codec
+    from kova_state import SessionDB  # lazy: the persistence layer owns the sentinel codec
 
     for msg in messages:
         if not isinstance(msg, dict):
@@ -1101,7 +1101,7 @@ def _apply_primary_runtime_fields(agent, rt: dict[str, Any]) -> None:
     agent.provider = rt["provider"]
     agent.requested_provider = rt.get("requested_provider", agent.provider)
     agent.base_url = rt["base_url"]           # setter updates _base_url_lower
-    from hermes_cli.providers import is_actual_route
+    from kova_cli.providers import is_actual_route
     agent.api_mode = "chat_completions" if is_actual_route(agent.provider, agent.base_url) else rt["api_mode"]
     if hasattr(agent, "_transport_cache"):
         agent._transport_cache.clear()
@@ -1364,7 +1364,7 @@ def _primary_quota_reopened_early(agent, primary_provider, primary_model, matche
     """
     if primary_provider != "openai-codex":
         return False
-    from hermes_cli.auth_codex import CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS
+    from kova_cli.auth_codex import CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS
     now = time.monotonic()
     if now - getattr(agent, "_codex_reopen_checked_at", float("-inf")) < CODEX_QUOTA_PROBE_MIN_INTERVAL_SECONDS:
         return False
@@ -1398,7 +1398,7 @@ def restore_primary_runtime(agent) -> bool:
     primary_provider = str((rt or {}).get("provider") or "").strip().lower()
     primary_model = str((rt or {}).get("model") or "").strip()
     from agent.fallback_cooldown import _is_entitlement_rejected
-    from hermes_cli.chat_catalog import is_known_non_chat_model
+    from kova_cli.chat_catalog import is_known_non_chat_model
     if primary_model and (
         _is_entitlement_rejected(agent, primary_provider, primary_model)
         or is_known_non_chat_model(primary_model)
@@ -1592,7 +1592,7 @@ def cache_ttl_means_disabled(ttl: Any) -> bool:
 def _raw_cache_ttl_from_config(default: Any) -> Any:
     """Raw ``prompt_caching.cache_ttl`` config value, or ``default`` when config cannot be read."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         return (load_config_readonly().get("prompt_caching", {}) or {}).get("cache_ttl", "5m")
     except Exception:
         return default
@@ -1683,9 +1683,9 @@ def _moa_aggregator_cache_policy(agent, eff_model: str) -> tuple[bool, bool]:
     """MoA virtual provider: resolve the policy from the preset's real aggregator slot (the
     virtual provider matches no caching branch and would silently lose caching)."""
     try:
-        from hermes_cli.config import load_config as _load_moa_cfg
-        from hermes_cli.moa_config import resolve_moa_preset
-        from hermes_cli.runtime_provider import resolve_runtime_provider
+        from kova_cli.config import load_config as _load_moa_cfg
+        from kova_cli.moa_config import resolve_moa_preset
+        from kova_cli.runtime_provider import resolve_runtime_provider
         agg = resolve_moa_preset(_load_moa_cfg().get("moa") or {}, eff_model or None).get("aggregator") or {}
         agg_provider = str(agg.get("provider") or "").strip()
         agg_model = str(agg.get("model") or "").strip()
@@ -1709,8 +1709,8 @@ def _route_may_be_custom(agent, eff_provider: str, provider_lower: str, eff_base
     if custom_providers:
         # Same semantics as the capability helper (normalize_route_base_url +
         # custom_provider_aliases) so spelling differences don't drop declarations.
-        from hermes_cli.providers import custom_provider_aliases
-        from hermes_cli.route_identity import normalize_route_base_url
+        from kova_cli.providers import custom_provider_aliases
+        from kova_cli.route_identity import normalize_route_base_url
         provider_ids = {provider_lower, provider_lower.removeprefix("custom:")}
         eff_url_normalized = normalize_route_base_url(eff_base_url)
         return any(
@@ -1723,7 +1723,7 @@ def _route_may_be_custom(agent, eff_provider: str, provider_lower: str, eff_base
     # None = list not attached yet (early init or blank stub). Avoid rebuilding the list for
     # ordinary built-in routes.
     try:
-        from hermes_cli.providers import get_provider
+        from kova_cli.providers import get_provider
         # allow_network=False: never trigger a registry fetch from the send path; a catalog miss
         # degrades to the conservative capability lookup.
         provider_def = get_provider(eff_provider, allow_network=False)
@@ -1792,7 +1792,7 @@ def anthropic_prompt_cache_policy(
         or _route_may_be_custom(agent, eff_provider, provider_lower, eff_base_url)
     ):
         try:
-            from hermes_cli.config import get_custom_provider_model_capability
+            from kova_cli.config import get_custom_provider_model_capability
             custom_prompt_caching = get_custom_provider_model_capability(
                 model=eff_model, base_url=eff_base_url, capability="prompt_caching",
                 custom_providers=getattr(agent, "_custom_providers", None),
@@ -2066,7 +2066,7 @@ def _apply_switched_provider_request_overrides(agent, new_provider):
     custom_providers = getattr(agent, "_custom_providers", None)
     if custom_providers is None:
         try:
-            from hermes_cli.config import load_config, get_compatible_custom_providers
+            from kova_cli.config import load_config, get_compatible_custom_providers
             custom_providers = get_compatible_custom_providers(load_config())
         except Exception:
             custom_providers = []
@@ -2112,9 +2112,9 @@ def _restore_switch_snapshot(agent, snapshot: dict[str, Any]) -> None:
 
 def _resolve_switch_destination(agent, new_model, new_provider, base_url, api_mode, capabilities, old_norm, new_norm):
     """Resolve ``(api_mode, base_url, destination_capabilities)`` for the switch target."""
-    from hermes_cli.providers import determine_api_mode, is_actual_route
+    from kova_cli.providers import determine_api_mode, is_actual_route
     from agent.native_compaction import resolve_native_compaction_capabilities
-    from hermes_cli.models import opencode_provider_family
+    from kova_cli.models import opencode_provider_family
     # Pass model so dual-wire providers (Nous Portal anthropic/* -> Messages) resolve correctly.
     if not api_mode:
         api_mode = determine_api_mode(new_provider, base_url, model=new_model)
@@ -2129,7 +2129,7 @@ def _resolve_switch_destination(agent, new_model, new_provider, base_url, api_mo
     if is_actual_route(new_provider, effective_base_url):
         api_mode = "chat_completions"
         if effective_base_url:
-            from hermes_cli.auth import normalize_actual_base_url
+            from kova_cli.auth import normalize_actual_base_url
             base_url = normalize_actual_base_url(effective_base_url)
     destination_capabilities = (
         dict(capabilities)
@@ -2179,7 +2179,7 @@ def _build_switched_client(agent, new_provider, api_key, base_url, api_mode, new
         # agent_init.py).
         if new_provider == "minimax-oauth" and isinstance(effective_key, str) and effective_key:
             try:
-                from hermes_cli.auth import build_minimax_oauth_token_provider
+                from kova_cli.auth import build_minimax_oauth_token_provider
                 effective_key = build_minimax_oauth_token_provider()
             except Exception as _mm_exc:
                 logger.warning(
@@ -2199,7 +2199,7 @@ def _build_switched_client(agent, new_provider, api_key, base_url, api_mode, new
     effective_base = base_url or agent.base_url
     agent._client_kwargs = {"api_key": api_key or agent.api_key, "base_url": effective_base}
     try:
-        from hermes_cli.config import (
+        from kova_cli.config import (
             apply_custom_provider_tls_to_client_kwargs, get_compatible_custom_providers,
             load_config_readonly,
         )
@@ -2272,7 +2272,7 @@ def _resolve_switch_context_length(agent, snapshot):
     """Resolve the destination context length (LM Studio preload first); returns ``(custom_providers, effective_len)``."""
     custom_providers = None
     try:
-        from hermes_cli.config import (
+        from kova_cli.config import (
             get_compatible_custom_providers, get_custom_provider_context_length, load_config
         )
         from agent.agent_init import config_context_length_for_runtime
@@ -2315,7 +2315,7 @@ def _update_switch_compressor(agent, custom_providers, effective_context_length,
     from agent.model_metadata import get_model_context_length
     if custom_providers is None:
         try:
-            from hermes_cli.config import get_compatible_custom_providers, load_config
+            from kova_cli.config import get_compatible_custom_providers, load_config
             custom_providers = get_compatible_custom_providers(load_config())
         except Exception:
             custom_providers = None
@@ -2425,8 +2425,8 @@ def switch_model(
     # Re-read the per-model reasoning_effort override so it applies immediately (per-model > global;
     # YAML False = disabled).
     try:
-        from hermes_constants import resolve_reasoning_config
-        from hermes_cli.config import load_config as _sm_load_config
+        from kova_constants import resolve_reasoning_config
+        from kova_cli.config import load_config as _sm_load_config
         agent.reasoning_config = resolve_reasoning_config(_sm_load_config() or {}, agent.model)
         logger.info(
             "switch_model: reasoning_config resolved for %s: %s", agent.model, agent.reasoning_config
@@ -2454,7 +2454,7 @@ def switch_model(
 def _pre_tool_block_message(agent, function_name, function_args, effective_task_id, tool_call_id, middleware_trace):
     """Plugin pre-tool-call hook verdict: ``(block_message, function_args)``; failures never block."""
     try:
-        from hermes_cli.plugins import _dispatch_pre_tool_call_hooks
+        from kova_cli.plugins import _dispatch_pre_tool_call_hooks
         block_message, modified_args = _dispatch_pre_tool_call_hooks(
             function_name, function_args, task_id=effective_task_id or "",
             session_id=getattr(agent, "session_id", "") or "", tool_call_id=tool_call_id or "",
@@ -2485,7 +2485,7 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
     hook_ids = tool_hook_ids(agent, effective_task_id, tool_call_id)
     _tool_middleware_trace = list(tool_request_middleware_trace or [])
     try:
-        from hermes_cli.middleware import apply_tool_request_middleware
+        from kova_cli.middleware import apply_tool_request_middleware
         if not skip_tool_request_middleware:
             _tool_request_mw = apply_tool_request_middleware(function_name, function_args, **hook_ids)
             function_args = _tool_request_mw.payload
@@ -2544,7 +2544,7 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
             return model_tools.handle_function_call(function_name, next_args, effective_task_id, **dispatch_kwargs)
     if skip_tool_execution_middleware:
         return _execute(function_args)
-    from hermes_cli.middleware import run_tool_execution_middleware
+    from kova_cli.middleware import run_tool_execution_middleware
     return run_tool_execution_middleware(
         function_name, function_args,
         lambda next_args: _execute(next_args if isinstance(next_args, dict) else function_args),
@@ -2662,7 +2662,7 @@ def fill_empty_non_final_wire_payload(msg: dict[str, Any], *, is_final: bool) ->
 
 def _session_id_for_heal_log() -> str:
     try:
-        from hermes_logging import _session_context
+        from kova_logging import _session_context
         return str(getattr(_session_context, "session_id", None) or "")
     except Exception:
         return ""
@@ -2671,7 +2671,7 @@ def _session_id_for_heal_log() -> str:
 def _heal_escalation_threshold() -> int:
     """Escalation threshold from ``agent.sanitizer_heal_escalation_threshold``, else the module default (fail-safe on any read error)."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         raw = (load_config_readonly().get("agent", {}) or {}).get("sanitizer_heal_escalation_threshold")
         if raw is not None:
             return int(raw)

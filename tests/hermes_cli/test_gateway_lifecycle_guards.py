@@ -20,7 +20,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import gateway as gw
+from kova_cli import gateway as gw
 
 
 def _unit(path, home) -> None:
@@ -160,7 +160,7 @@ def test_restart_refuses_on_the_published_active_agents_of_an_older_gateway(monk
 def test_stop_all_leaves_another_homes_gateway_process_alone(monkeypatch, recorded, tmp_path):
     """``kill_gateway_processes(all_profiles=True)`` scans every gateway of this account; a scratch-home
     ``stop --all`` must not SIGTERM a gateway running on another Hermes home."""
-    from hermes_cli import dashboard_procs
+    from kova_cli import dashboard_procs
     own, other = str(gw.get_hermes_home()), str(tmp_path / "account" / ".hermes")
     monkeypatch.setattr(gw, "find_gateway_pids", lambda *a, **k: [111, 222])
     monkeypatch.setattr(dashboard_procs, "_hermes_home_for_pid", {111: own, 222: other}.get)
@@ -173,7 +173,7 @@ def test_dashboard_stop_refuses_while_sessions_are_live(monkeypatch):
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
     from gateway import host_attach
-    from hermes_cli import web_server, web_server_gateway
+    from kova_cli import web_server, web_server_gateway
 
     _live_gateway(monkeypatch, _WORK)
     monkeypatch.setattr(host_attach, "host_gateway", lambda **kw: None)
@@ -197,7 +197,7 @@ def test_dashboard_stop_refuses_while_sessions_are_live(monkeypatch):
 def test_sudo_system_stop_checks_the_units_home_not_roots(tmp_path, monkeypatch, recorded, capsys):
     """``sudo hermes gateway stop --system``: HOME=/root and HERMES_HOME stripped, while the system unit
     runs the invoking user's home. The live-work check must ask the unit's home, without adopting it."""
-    import hermes_constants
+    import kova_constants
     root_home, user_home = tmp_path / "root", tmp_path / "user" / ".hermes"
     (root_home / ".hermes").mkdir(parents=True)
     user_home.mkdir(parents=True)
@@ -207,7 +207,7 @@ def test_sudo_system_stop_checks_the_units_home_not_roots(tmp_path, monkeypatch,
     monkeypatch.delenv("SUDO_USER", raising=False)
     monkeypatch.setenv("HOME", str(root_home))
     monkeypatch.delenv("HERMES_HOME", raising=False)
-    monkeypatch.setattr(hermes_constants, "_account_home", lambda: root_home)
+    monkeypatch.setattr(kova_constants, "_account_home", lambda: root_home)
     _live_gateway(monkeypatch, None)
     from gateway import control_socket
     monkeypatch.setattr(control_socket, "query_gateway_control", lambda home, verb, **kw: (
@@ -230,7 +230,7 @@ def test_host_served_profile_refuses_before_unserving_its_live_turns(tmp_path, m
     """``hermes -p coder gateway stop|restart`` on a profile the host serves unserves it in the host,
     which Stops its executing turns: the live-work policy applies first, scoped to that profile."""
     from gateway import control_socket
-    from hermes_cli import gateway_profile_lifecycle as gpl
+    from kova_cli import gateway_profile_lifecycle as gpl
     profile_home, host_home = tmp_path / "profiles" / "coder", tmp_path / "root"
     profile_home.mkdir(parents=True)
     monkeypatch.setattr(gw, "_current_profile_name", lambda: "coder")
@@ -309,7 +309,7 @@ def test_active_work_verb_counts_a_profiles_side_agent_and_reads_it_on_the_loop(
 @pytest.mark.parametrize("answer", [True, False])
 def test_live_sessions_ask_yes_no_on_a_terminal(monkeypatch, capsys, answer):
     """On a terminal the verb names the live work and asks; yes proceeds, no (the default) cancels."""
-    from hermes_cli import cli_output, gateway_lifecycle_guards as guards
+    from kova_cli import cli_output, gateway_lifecycle_guards as guards
     monkeypatch.setattr(guards, "live_work", lambda home, profile=None: {
         "active_agents": 1, "active_work": [{"kind": "cron", "job_id": "nightly", "pid": 1}]})
     monkeypatch.setattr(guards.sys.stdin, "isatty", lambda: True, raising=False)

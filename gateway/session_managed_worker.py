@@ -16,7 +16,7 @@ import time
 
 from agent.managed_worker import accept_result, encode_frame, read_frame
 from gateway.session_worker_reservation import owner_worker_subject, reserve_admission_worker
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 # The interpreter only imports psutil before it introduces itself; a child silent this long
 # is wedged (loader/stdio stall), not slow.
@@ -297,7 +297,7 @@ class ManagedWorker:
             return
         try:
             proc = psutil.Process(self.worker[0])
-            from hermes_cli.process_identity import worker_birth
+            from kova_cli.process_identity import worker_birth
             if worker_birth(proc) == self.worker[1]:
                 (proc.kill if kill else proc.terminate)()
         except psutil.Error:
@@ -429,7 +429,7 @@ def _worker_env(authority):
         secrets = {**_launch_env_only_credentials(home, env), **secrets}
     env.update({k: v for k, v in secrets.items() if v is not None})
     env['HERMES_HOME'] = str(home)
-    from hermes_constants import apply_subprocess_home_env
+    from kova_constants import apply_subprocess_home_env
     apply_subprocess_home_env(env)
     return env
 

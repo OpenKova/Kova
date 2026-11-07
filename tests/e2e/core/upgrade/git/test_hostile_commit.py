@@ -16,7 +16,7 @@ real git failure, and then judges the next real launch from the files the update
   launch must put the parked tree back.
 * ``kill_mid_zip_swap``: the ZIP swap is SIGKILLed between renames. The next launch must finish or
   roll back the swap, leaving no ``*.hermes-update-staging``/``-old`` sibling to wedge a retry.
-* ``kill_mid_zip_swap_with_hermes_cli_moved_aside``: the swap renamed ``hermes_cli/`` (the recovery
+* ``kill_mid_zip_swap_with_kova_cli_moved_aside``: the swap renamed ``kova_cli/`` (the recovery
   code itself) aside and died before its replacement landed. The next launch must still restore.
 * ``syntax_error_target``: a release whose startup module does not compile is refused BEFORE
   HEAD moves (no fast-forward in the reflog), not merely rolled back afterwards.
@@ -185,8 +185,8 @@ def test_kill_during_branch_switch_is_restored(world):
 def test_syntax_error_target_is_refused_before_head_moves(world):
     sb = world["sb"]
     pre = _head(sb)
-    constants = I.git("show", "main:hermes_constants.py", cwd=world["origin"])
-    _release(world, {"hermes_constants.py": constants + "\ndef broken(:\n"})
+    constants = I.git("show", "main:kova_constants.py", cwd=world["origin"])
+    _release(world, {"kova_constants.py": constants + "\ndef broken(:\n"})
     reflog_before = I.git("reflog", "-n", "20", "--format=%H %gs", cwd=sb.checkout)
     refused = _update(sb)
     reflog_after = I.git("reflog", "-n", "20", "--format=%H %gs", cwd=sb.checkout)
@@ -199,8 +199,8 @@ def test_syntax_error_target_is_refused_before_head_moves(world):
 _ZIP_DRIVER = r"""
 import os, signal, sys
 sys.path.insert(0, sys.argv[3])  # the install's checkout (the venv's own path points at its workspace)
-from hermes_cli import update_cmd_zip as z
-import hermes_cli.main as m
+from kova_cli import update_cmd_zip as z
+import kova_cli.main as m
 assert str(m.PROJECT_ROOT) == sys.argv[3], m.PROJECT_ROOT
 swaps, kill_at = [0], sys.argv[2]
 def killing(real):
@@ -209,8 +209,8 @@ def killing(real):
         if kill_at.startswith("after:"):  # right after the named entry's replacement landed
             if os.path.basename(str(src)) == kill_at[6:] + ".hermes-update-staging":
                 os.kill(os.getpid(), signal.SIGKILL)
-        elif kill_at == "hermes_cli-moved-aside":  # the live package renamed away, its replacement not yet in
-            if os.path.basename(str(src)) == "hermes_cli" and str(dst).endswith(".hermes-update-old"):
+        elif kill_at == "kova_cli-moved-aside":  # the live package renamed away, its replacement not yet in
+            if os.path.basename(str(src)) == "kova_cli" and str(dst).endswith(".hermes-update-old"):
                 os.kill(os.getpid(), signal.SIGKILL)
         elif str(src).endswith(".hermes-update-staging"):  # one entry swapped in
             swaps[0] += 1
@@ -225,7 +225,7 @@ z._download_and_swap_zip("main", sys.argv[1])
 def _zip_killed_at(world, kill_at: str, files: dict[str, str] | None = None):
     """A ZIP update of a fresh release, SIGKILLed at ``kill_at`` (N-th entry swapped in, or a named point)."""
     sb = world["sb"]
-    target = _release(world, {"e2e_zip_release.py": f"Z = {world['n']}\n", "hermes_cli/e2e_zip_marker.py": "M = 1\n",
+    target = _release(world, {"e2e_zip_release.py": f"Z = {world['n']}\n", "kova_cli/e2e_zip_marker.py": "M = 1\n",
                               **(files or {})})
     archive = world["root"] / f"release-{world['n']}.zip"
     I.git("archive", "--format=zip", "--prefix=hermes-agent-main/", "-o", str(archive), target, cwd=world["origin"])
@@ -255,18 +255,18 @@ def test_kill_mid_zip_swap_is_settled_by_the_next_launch(world):
         "the interrupted ZIP swap left a mixed tree:\n" + _tracked_dirty(sb) + "\n" + I.describe(launch))
 
 
-def test_kill_mid_zip_swap_with_hermes_cli_moved_aside_reaches_recovery(world):
-    """The one window where the recovery code itself is gone: the swap renamed ``hermes_cli/`` aside
+def test_kill_mid_zip_swap_with_kova_cli_moved_aside_reaches_recovery(world):
+    """The one window where the recovery code itself is gone: the swap renamed ``kova_cli/`` aside
     and died before the replacement landed. The next launch must still reach the journal-driven
-    restore (from the moved-aside copy) and run, not die on ``No module named 'hermes_cli'``."""
+    restore (from the moved-aside copy) and run, not die on ``No module named 'kova_cli'``."""
     sb = world["sb"]
     pre = _head(sb)
-    killed = _zip_killed_at(world, "hermes_cli-moved-aside")
-    assert not (sb.checkout / "hermes_cli").exists() and (sb.checkout / "hermes_cli.hermes-update-old").is_dir(), (
-        "harness: the ZIP swap was not killed with hermes_cli/ moved aside\n" + I.describe(killed))
-    launch = _launch(sb, "first launch after a kill with hermes_cli moved aside")
-    assert launch.returncode == 0 and (sb.checkout / "hermes_cli" / "main.py").is_file(), (
-        "the launch after a kill with hermes_cli/ moved aside could not reach recovery\n" + I.describe(launch))
+    killed = _zip_killed_at(world, "kova_cli-moved-aside")
+    assert not (sb.checkout / "kova_cli").exists() and (sb.checkout / "kova_cli.hermes-update-old").is_dir(), (
+        "harness: the ZIP swap was not killed with kova_cli/ moved aside\n" + I.describe(killed))
+    launch = _launch(sb, "first launch after a kill with kova_cli moved aside")
+    assert launch.returncode == 0 and (sb.checkout / "kova_cli" / "main.py").is_file(), (
+        "the launch after a kill with kova_cli/ moved aside could not reach recovery\n" + I.describe(launch))
     assert not _artifacts(sb) and _head(sb) == pre and not _tracked_dirty(sb), (
         f"left {_artifacts(sb)[:5]} / tracked changes {_tracked_dirty(sb)!r}\n" + I.describe(launch))
     P.ok(_update(sb), "the update after the restored swap failed")
@@ -368,13 +368,13 @@ def test_kill_during_syntax_rollback_lands_on_the_pre_update_commit(world):
     files back. The next launch must finish on the pre-update commit, not restore the broken one."""
     sb = world["sb"]
     pre = _head(sb)
-    constants = I.git("show", "main:hermes_constants.py", cwd=world["origin"])
-    broken = _release(world, {"hermes_constants.py": constants + "\ndef broken(:\n",
+    constants = I.git("show", "main:kova_constants.py", cwd=world["origin"])
+    broken = _release(world, {"kova_constants.py": constants + "\ndef broken(:\n",
                               "e2e_rollback_extra.py": "X = 1\n"})
-    _hostile_git(world, 'case " $* " in *" show "*":hermes_constants.py "*) "$REAL" show HEAD:hermes_constants.py; '
+    _hostile_git(world, 'case " $* " in *" show "*":kova_constants.py "*) "$REAL" show HEAD:kova_constants.py; '
                         'exit $?;; '
-                        '*" cat-file --batch "*) sed "s#^[^ ]*:hermes_constants.py\\$#HEAD:hermes_constants.py#" | "$REAL" "$@"; exit $?;; '
-                        '*" reset --hard "*) "$REAL" show "${@: -1}:hermes_constants.py" > hermes_constants.py; '
+                        '*" cat-file --batch "*) sed "s#^[^ ]*:kova_constants.py\\$#HEAD:kova_constants.py#" | "$REAL" "$@"; exit $?;; '
+                        '*" reset --hard "*) "$REAL" show "${@: -1}:kova_constants.py" > kova_constants.py; '
                         'kill -KILL $PPID; exit 137;; esac')
     killed = _update(sb)
     _hostile_git(world, "")
@@ -414,7 +414,7 @@ def test_git_killed_inside_the_rollback_reset_is_finished_by_the_next_launch(wor
     sb = world["sb"]
     pre = _head(sb)
     # A critical module the launcher imports only after the launch-time repair ran (the launcher's own
-    # first import, hermes_constants, is a documented limit: a broken copy dies before any repair).
+    # first import, kova_constants, is a documented limit: a broken copy dies before any repair).
     tools = I.git("show", "main:model_tools.py", cwd=world["origin"])
     broken = _release(world, {"model_tools.py": tools + "\ndef broken(:\n",
                               "e2e_rollback_reset_extra.py": "X = 1\n"})

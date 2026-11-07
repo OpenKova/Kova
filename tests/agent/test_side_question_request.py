@@ -20,7 +20,7 @@ import pytest
 
 from agent import side_question_lease
 from agent.side_question_lease import redeem_side_question
-from hermes_state import SessionDB
+from kova_state import SessionDB
 from run_agent import AIAgent
 
 SIDE_PROMPT = "Suggest the user's next prompt in one line."
@@ -256,7 +256,7 @@ def _usage_rows(db: SessionDB, session_id: str) -> list[dict]:
 
 
 def test_side_call_writes_only_one_usage_row(provider, issued, tmp_path):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     memories = Path(get_hermes_home()) / "memories"
     memories.mkdir(parents=True, exist_ok=True)
@@ -321,7 +321,7 @@ def test_side_call_runs_under_the_turns_profile_and_secret_scope(provider, issue
     """The plugin (of the turn's profile) redeems from its own thread, where no profile is bound;
     the request still resolves the parent turn's HERMES_HOME and secret scope."""
     from agent.secret_scope import current_secret_scope_home, reset_secret_scope, set_secret_scope
-    from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     profile_home = tmp_path / "profiles" / "work"
     profile_home.mkdir(parents=True)
@@ -358,15 +358,15 @@ def test_side_call_fires_no_post_llm_call(provider, issued):
     parent = _make_parent()
     _run_parent_turn(parent, provider, tool_round=False)
     fired: list = []
-    real_invoke = __import__("hermes_cli.plugins", fromlist=["invoke_hook"]).invoke_hook
+    real_invoke = __import__("kova_cli.plugins", fromlist=["invoke_hook"]).invoke_hook
 
     def _spy(name, **kwargs):
         fired.append(name)
         return real_invoke(name, **kwargs)
 
     provider.replies.append(_response("Ask: why 42?", usage=_usage()))
-    with patch("hermes_cli.plugins.invoke_hook", side_effect=_spy), \
-            patch("hermes_cli.lifecycle.invoke_hook", side_effect=_spy, create=True):
+    with patch("kova_cli.plugins.invoke_hook", side_effect=_spy), \
+            patch("kova_cli.lifecycle.invoke_hook", side_effect=_spy, create=True):
         assert redeem_side_question(issued[-1], SIDE_PROMPT, plugin_id="next-prompt") == "Ask: why 42?"
     assert "post_llm_call" not in fired and "transform_llm_output" not in fired
 

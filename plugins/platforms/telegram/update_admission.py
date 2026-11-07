@@ -76,7 +76,7 @@ def _record_receipt(adapter, key: str) -> None:
 
 
 async def _flush_receipts(adapter) -> None:
-    from hermes_constants import mkdir_under_hermes_home
+    from kova_constants import mkdir_under_hermes_home
 
     while adapter._update_receipts_dirty:
         bot_id = adapter._update_receipts_dirty.pop()

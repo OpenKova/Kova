@@ -10,8 +10,8 @@ import sys
 
 import pytest
 
-from hermes_cli import worktree_ops
-from tests.hermes_cli import test_worktree
+from kova_cli import worktree_ops
+from tests.kova_cli import test_worktree
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX git shim")

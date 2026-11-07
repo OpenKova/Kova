@@ -55,7 +55,7 @@ def _read_cache() -> dict[str, int]:
 def _table() -> dict[str, int]:
     """The active profile's learned table, loaded lazily from its cache file."""
     global _LOADED
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_hermes_home_override, hermes_home_key
 
     if get_hermes_home_override() is None:
         if not _LOADED:

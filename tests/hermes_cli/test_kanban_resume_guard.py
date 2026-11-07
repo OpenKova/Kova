@@ -1,6 +1,6 @@
 """Kanban worker transcripts must not resume as ordinary write-capable sessions (#68779).
 
-Behaviour tests for the centralized guard (`hermes_cli/kanban_resume_guard.py`) and the two
+Behaviour tests for the centralized guard (`kova_cli/kanban_resume_guard.py`) and the two
 CLI resume surfaces it protects: startup `--resume` (`_preload_resumed_session`) and mid-chat
 `/resume`. The gateway surface is covered in `tests/tui_gateway/test_kanban_resume_guard.py`.
 """
@@ -8,7 +8,7 @@ CLI resume surfaces it protects: startup `--resume` (`_preload_resumed_session`)
 from io import StringIO
 from unittest.mock import patch
 
-from hermes_state import SessionDB
+from kova_state import SessionDB
 
 
 def _db(tmp_path, *, source="cli", flip_source_to=None, parent=None, end_reason=None,
@@ -65,7 +65,7 @@ def test_branch_child_of_kanban_worker_is_not_owned(tmp_path):
 # ── the centralized guard ────────────────────────────────────────────
 
 def _refusal(db, sid):
-    from hermes_cli.kanban_resume_guard import kanban_resume_refusal
+    from kova_cli.kanban_resume_guard import kanban_resume_refusal
     return kanban_resume_refusal(db, sid)
 
 

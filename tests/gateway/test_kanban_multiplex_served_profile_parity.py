@@ -14,11 +14,11 @@ import pytest
 from agent.secret_scope import set_multiplex_active
 from gateway.config import Platform
 from gateway.run import GatewayRunner
-from hermes_cli import kanban_db as kb
-from hermes_cli import kanban_db_connect as kbc
-from hermes_cli import kanban_db_dispatch as kbd
-from hermes_cli import kanban_db_notify as kbn
-from hermes_constants import get_hermes_home
+from kova_cli import kanban_db as kb
+from kova_cli import kanban_db_connect as kbc
+from kova_cli import kanban_db_dispatch as kbd
+from kova_cli import kanban_db_notify as kbn
+from kova_constants import get_hermes_home
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def served(tmp_path, monkeypatch):
     monkeypatch.setenv("TERMINAL_ENV", "docker")
     monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "board.db"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
     set_multiplex_active(True)
     try:
         yield SimpleNamespace(root=root, alpha=alpha)
@@ -68,7 +68,7 @@ def test_worker_for_served_profile_gets_its_own_env_and_toolset_pin(served, monk
     env = spawned["env"]
     assert env["HERMES_HOME"] == str(served.alpha)
     assert "HERMES_MODEL" not in env and "TERMINAL_ENV" not in env
-    assert spawned["argv"][-2:] == ["-m", "hermes_cli.kanban_worker_client"]
+    assert spawned["argv"][-2:] == ["-m", "kova_cli.kanban_worker_client"]
 
 
 class RecordingAdapter:

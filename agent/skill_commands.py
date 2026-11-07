@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional
 
-from hermes_constants import display_hermes_home
+from kova_constants import display_hermes_home
 from agent.prompt_cache_boundary import register_stable_prefix
 from agent.skill_preprocessing import load_skills_config as _load_skills_config, preprocess_skill_content
 from agent.skill_utils import AMBIGUOUS_SKILL_PREFIX
@@ -36,7 +36,7 @@ _skill_commands_sig_by_key: dict[tuple, tuple] = {}
 _publish_lock = threading.Lock()
 # ``\w`` keeps Unicode letters (CJK, Cyrillic) so a ``name: 小说拆条`` skill registers ``/小说拆条``
 # instead of slugging to "" and being dropped (#12351); Telegram's ``[a-z0-9_]`` menu limit is
-# applied by hermes_cli/commands_platforms.py, not here.
+# applied by kova_cli/commands_platforms.py, not here.
 _SKILL_INVALID_CHARS = re.compile(r"[^\w-]")
 _SKILL_MULTI_HYPHEN = re.compile(r"-{2,}")
 
@@ -237,7 +237,7 @@ def _resolve_skill_commands_home() -> str:
     profile's skill list cached, so ``get_skill_commands()`` reported a cache miss for skills that only
     exist under the new profile (#88023).
     """
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return str(get_hermes_home())
 
 
@@ -469,7 +469,7 @@ def skill_command_collision_note(name: str) -> Optional[str]:
     built-in handlers), and the ``/skills`` listing plus the command palette render the note so
     the skipped skill is explained where the user looks, not only in the log.
     """
-    from hermes_cli.commands import resolve_command
+    from kova_cli.commands import resolve_command
     cmd_name = slugify_skill_name(name)
     if not cmd_name or resolve_command(cmd_name) is None:
         return None
@@ -594,7 +594,7 @@ def published_scopes_signature() -> tuple:
     Only command maps/catalogs refetch; a conversation's stored system prompt is never rebuilt.
     """
     from agent.runtime_cwd import reset_session_cwd, set_session_cwd
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     with _publish_lock:
         keys = list(_skill_commands_by_key)
     scopes = sorted({(home, project) for _platform, home, project in keys if home})[:_MAX_WATCHED_SCOPES]
@@ -679,10 +679,10 @@ def get_plugin_skill_commands() -> dict[str, dict[str, Any]]:
     config-only disable takes effect without a rescan.
     """
     from agent.skill_utils import get_disabled_skill_names
-    from hermes_cli.plugins import discover_plugins, get_plugin_manager
-    from hermes_cli.plugins_content import plugin_skill_owners
-    from hermes_cli.plugins_discovery import _get_disabled_plugins
-    from hermes_constants import get_hermes_home
+    from kova_cli.plugins import discover_plugins, get_plugin_manager
+    from kova_cli.plugins_content import plugin_skill_owners
+    from kova_cli.plugins_discovery import _get_disabled_plugins
+    from kova_constants import get_hermes_home
 
     discover_plugins()  # no-op once this home is discovered
     manager = get_plugin_manager()
@@ -985,7 +985,7 @@ def resolve_auto_load_skills(user_config: dict | None = None) -> list[str]:
     empty when unset, malformed, or the config is unreadable."""
     if user_config is None:
         try:
-            from hermes_cli.config import load_config_readonly
+            from kova_cli.config import load_config_readonly
             user_config = load_config_readonly()
         except Exception:
             return []
@@ -1008,7 +1008,7 @@ def build_auto_load_prompt(
     the disabled list and the ``<home>/skills`` lookup all resolve under that home, so a gateway build thread
     that lost the HERMES_HOME ContextVar cannot pin the launch profile's skills into another profile's prompt.
     """
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     home_token = set_hermes_home_override(str(home_override)) if home_override is not None else None
     try:
         auto_skills = resolve_auto_load_skills(user_config)

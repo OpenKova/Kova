@@ -37,7 +37,7 @@ async def _legacy_ws_snapshot(root, home, env, requests):
     legacy_env = {**env, 'HERMES_HOME': str(legacy_home),
                   'HERMES_DASHBOARD_SESSION_TOKEN': 'disposable-discovery-token'}
     with (home.parent / 'legacy-serve.log').open('w+') as log:
-        process = subprocess.Popen([sys.executable, '-m', 'hermes_cli.main', 'serve',  # noqa: ASYNC220 -- Popen returns immediately; the test drives the child through its handle
+        process = subprocess.Popen([sys.executable, '-m', 'kova_cli.main', 'serve',  # noqa: ASYNC220 -- Popen returns immediately; the test drives the child through its handle
                                     '--host', '127.0.0.1', '--port', '0', '--skip-build', '--isolated'],
                                    cwd=root, env=legacy_env, stdin=subprocess.DEVNULL,
                                    stdout=log, stderr=subprocess.STDOUT)
@@ -185,7 +185,7 @@ sys.__stdout__.write(json.dumps(results) + '\\n')
 @pytest.mark.asyncio
 async def test_discovery_authorizes_before_scanning(tmp_path, monkeypatch):
     from agent import skill_commands
-    from hermes_cli import plugins
+    from kova_cli import plugins
     from gateway.session_controls import AuthorityConnection
 
     def forbidden(*args, **kwargs):

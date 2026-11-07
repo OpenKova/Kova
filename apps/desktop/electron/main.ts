@@ -1338,11 +1338,11 @@ const DESKTOP_MANAGED_SSH_RECOVERY_PATH = path.join(app.getPath('userData'), 'ma
 // active-profile.json records which Hermes profile the desktop launches its
 // local backend as. When set, startHermes() passes `hermes --profile <name>
 // dashboard …`, which deterministically pins HERMES_HOME (see
-// _apply_profile_override in hermes_cli/main.py) and bypasses the sticky
+// _apply_profile_override in kova_cli/main.py) and bypasses the sticky
 // ~/.hermes/active_profile file. Unset (null) preserves the legacy behavior:
 // no --profile flag, so the backend honors active_profile / default.
 
-// Mirrors hermes_cli.profiles._PROFILE_ID_RE so we never hand the backend a
+// Mirrors kova_cli.profiles._PROFILE_ID_RE so we never hand the backend a
 // value its profile resolver would reject and exit on.
 const PROFILE_NAME_RE = DESKTOP_PROFILE_NAME_RE
 // Branch we track for self-update. The GUI work has merged to main, so this
@@ -1350,7 +1350,7 @@ const PROFILE_NAME_RE = DESKTOP_PROFILE_NAME_RE
 // hermesDesktop.updates.setBranch().
 const DEFAULT_UPDATE_BRANCH = 'main'
 // desktop.log lives under HERMES_HOME/logs/ so it sits next to agent.log,
-// errors.log, gateway.log produced by hermes_logging.setup_logging — one log
+// errors.log, gateway.log produced by kova_logging.setup_logging — one log
 // directory per user, regardless of which UI surface produced the line.
 const DESKTOP_LOG_PATH = path.join(HERMES_HOME, 'logs', 'desktop.log')
 const DESKTOP_LOG_FLUSH_MS = 120
@@ -2971,7 +2971,7 @@ function looksLikeDesktopAppBinary(commandPath) {
 }
 
 function isHermesSourceRoot(root) {
-  return directoryExists(root) && fileExists(path.join(root, 'hermes_cli', 'main.py'))
+  return directoryExists(root) && fileExists(path.join(root, 'kova_cli', 'main.py'))
 }
 
 async function findPythonForRoot(root: string): Promise<string | null> {
@@ -3499,7 +3499,7 @@ function createNativePackagedStrategy(
     const deps: ConstructorParameters<typeof AppInstallerStrategy>[0] = {
       python: payload.storePython,
       // The checker is bundled core code, run with the payload python.
-      module: 'hermes_cli.windows_appinstaller_update',
+      module: 'kova_cli.windows_appinstaller_update',
       run: (python, module) =>
         runAppInstallerChecker(python, module, {
           env: { ...process.env, PYTHONPATH: payloadPythonPath(payload) },
@@ -3542,7 +3542,7 @@ function createNativePackagedStrategy(
 
     return createStoreStrategy({
       python: payload.storePython,
-      module: 'hermes_cli.windows_store_update',
+      module: 'kova_cli.windows_store_update',
       pythonPath: payloadPythonPath(payload),
       env: process.env,
       windowHandle: () => (BrowserWindow.getFocusedWindow() ?? mainWindow)?.getNativeWindowHandle() ?? null,
@@ -3639,7 +3639,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
       await preflightStateDb({
         python: managed ? null : await findPythonForRoot(root),
         launcher,
-        script: path.join(root, 'hermes_cli', 'backup_sqlite.py'),
+        script: path.join(root, 'kova_cli', 'backup_sqlite.py'),
         home,
         log
       })
@@ -4229,7 +4229,7 @@ async function releaseBackendLock(updateRoot: string, tag: string): Promise<{ un
   // supervised primary backend, when one exists). The gate waits for these to
   // actually LEAVE the process table, not just for the shim to unlock — the
   // shim probe only covers venv\Scripts\hermes.exe, but the backend is
-  // `python.exe -m hermes_cli.main serve`, which need not hold the shim at all
+  // `python.exe -m kova_cli.main serve`, which need not hold the shim at all
   // (#74805 first-attempt race).
   const initialPids = []
 
@@ -4573,7 +4573,7 @@ function writeBootstrapMarker(payload) {
   writeFileAtomic(BOOTSTRAP_COMPLETE_MARKER, JSON.stringify(merged, null, 2) + '\n', 'utf8')
 
   // The checkout's own install stamp is written by the Python completion tail
-  // (hermes_cli/source_completion.py) during the products stage, from the
+  // (kova_cli/source_completion.py) during the products stage, from the
   // checkout itself. The desktop never synthesizes it: the checkout is the
   // authority for its runtime identity, and a desktop-written copy would
   // clobber the completion tail's richer provenance.
@@ -7319,7 +7319,7 @@ function fetchJsonViaOauthSession(url, options: any = {}) {
 // involved. Tokens are persisted encrypted at rest via Electron ``safeStorage``
 // (OS keychain) keyed by gateway base URL, and refreshed via
 // ``/auth/native/refresh`` before expiry. This is the desktop half of the
-// feature; the server half lives in hermes_cli/dashboard_auth/native_flow.py.
+// feature; the server half lives in kova_cli/dashboard_auth/native_flow.py.
 // ---------------------------------------------------------------------------
 
 // In-memory cache of decrypted native tokens, keyed by normalized base URL.
@@ -14203,7 +14203,7 @@ ipcMain.on('hermes:window:relay', (event, payload) => {
 // to continue the chat in the terminal they already live in.
 //
 // The desktop's runtime is usually a venv Python invoked as
-// `python -m hermes_cli.main`, so we resolve the SAME backend the app itself
+// `python -m kova_cli.main`, so we resolve the SAME backend the app itself
 // launches and carry its argv + PYTHONPATH into a launcher script rather than
 // hoping a `hermes` exists on the user's interactive PATH. Resolution only —
 // never ensureRuntime(), which would kick off a first-run install from a menu
@@ -17241,7 +17241,7 @@ function resolveHermesRuntime() {
 // CLI exactly: GUI only, Lite (keep user data), Full. We ask the agent to do
 // the actual removal via `hermes uninstall …` so the cross-platform PATH /
 // registry / service / node-symlink cleanup all lives in one place
-// (hermes_cli/uninstall.py + hermes_cli/gui_uninstall.py).
+// (kova_cli/uninstall.py + kova_cli/gui_uninstall.py).
 //
 // The IPC boundary applies the baked install policy before either callback.
 // Only self-managed installs use the Python summary or the cleanup script.
@@ -17288,7 +17288,7 @@ async function probeUninstallSummary(): Promise<UninstallSummaryDetails> {
     try {
       const child: ChildProcess = spawn(
         py,
-        ['-m', 'hermes_cli.main', 'uninstall', '--gui-summary'],
+        ['-m', 'kova_cli.main', 'uninstall', '--gui-summary'],
         hiddenWindowsChildOptions({
           cwd: agentRoot,
           env: { ...process.env, HERMES_HOME, NO_COLOR: '1' },
@@ -17346,7 +17346,7 @@ async function runDesktopUninstall(mode: string): Promise<DesktopUninstallResult
   // Interpreter choice (Finding 3): lite/full rmtree the venv that holds the
   // running python.exe. On Windows a running .exe is mandatory-locked, so the
   // rmtree must NOT be driven by the venv's own interpreter — use a system
-  // Python with PYTHONPATH=<agentRoot> so `import hermes_cli` resolves from
+  // Python with PYTHONPATH=<agentRoot> so `import kova_cli` resolves from
   // source while the venv is torn down. gui-only doesn't touch the venv, so the
   // venv python is fine there. If no system Python exists (the Windows edge
   // case), fall back to the venv python — gui-only is unaffected; lite/full may

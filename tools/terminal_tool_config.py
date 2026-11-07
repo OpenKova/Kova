@@ -57,8 +57,8 @@ def home_profile_name() -> str:
     Memoized per (home, root) path pair: the lookup resolves three paths and runs on every
     container-key resolution, several times per tool call."""
     try:
-        from hermes_cli.profiles import get_active_profile_name
-        from hermes_constants import get_default_hermes_root, get_hermes_home
+        from kova_cli.profiles import get_active_profile_name
+        from kova_constants import get_default_hermes_root, get_hermes_home
 
         home = get_hermes_home()
         key = (str(home), str(get_default_hermes_root()))
@@ -222,7 +222,7 @@ def coerce_ssh_remote_cwd(cwd: str | None, env_type: str | None) -> str | None:
     text = cwd.strip()
     if not text or text.startswith("~"):
         return text or "~"
-    from hermes_constants import get_real_home, get_subprocess_home
+    from kova_constants import get_real_home, get_subprocess_home
 
     home = get_subprocess_home()
     if not home or not posixpath.isabs(text) or posixpath.normpath(home) == posixpath.normpath(get_real_home()):

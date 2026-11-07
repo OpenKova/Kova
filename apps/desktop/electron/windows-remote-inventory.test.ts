@@ -12,7 +12,7 @@ import { WINDOWS_NO_REPARSE_PS } from './windows-runtime-command'
 
 const python = process.env.HERMES_TEST_PYTHON || process.env.HERMES_PYTHON || 'python'
 const runtime = { os: 'Windows', arch: 'AMD64', hermesHome: 'C:\\hermes', hermesPath: 'C:\\hermes\\bin\\hermes.exe', python: 'C:\\runtime\\python.exe' }
-const bootstrap = "import os, sys, runpy; runpy.run_module('hermes_cli.main', run_name='__main__', alter_sys=True)"
+const bootstrap = "import os, sys, runpy; runpy.run_module('kova_cli.main', run_name='__main__', alter_sys=True)"
 
 function streamed(command: string) {
   return decodePowerShellCommand(command)
@@ -134,7 +134,7 @@ test('inventory reads profiles and install identity through the runtime helper a
     calls.push(script)
 
     if (script.includes('.hermes-update-in-progress')) {return 'CLEAR'}
-    assert.match(script, /'--run-module' 'hermes_cli\.windows_ssh_runtime' 'inventory'/)
+    assert.match(script, /'--run-module' 'kova_cli\.windows_ssh_runtime' 'inventory'/)
 
     return JSON.stringify({ profiles: ['default', 'bob'], installId: 'A'.repeat(32) })
   } }

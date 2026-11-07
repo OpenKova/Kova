@@ -38,8 +38,8 @@ PROJECT_ROOT = Path(__file__).parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from hermes_agent.compat.finder import Finder as _CompatFinder
-from hermes_agent.compat.moves import MOVES as _COMPAT_MOVES
+from kova_agent.compat.finder import Finder as _CompatFinder
+from kova_agent.compat.moves import MOVES as _COMPAT_MOVES
 
 # In-repo code must use current module names; an old name fails here instead of being aliased.
 sys.meta_path.insert(0, _CompatFinder(_COMPAT_MOVES, strict=True))
@@ -48,14 +48,14 @@ sys.meta_path.insert(0, _CompatFinder(_COMPAT_MOVES, strict=True))
 # get_version_info() shells out to git 7 times (~0.55 s per process in a large local
 # clone; a whole local suite run spent ~48 CPU-minutes there). Seed the shape a shallow
 # CI checkout resolves to; tests of version resolution call _reset_version_info_cache().
-from hermes_cli import version_info as _version_info
+from kova_cli import version_info as _version_info
 
 _version_info._cached_version_info = _version_info.VersionInfo(
     "unknown", "git.0000000", None, "0" * 40, "main", "git")
 
 
 # ── Sandbox HERMES_HOME before ANY test module is imported ──────────────────
-# `hermes_cli/main.py` calls `setup_logging()` at MODULE level, which resolves
+# `kova_cli/main.py` calls `setup_logging()` at MODULE level, which resolves
 # `get_hermes_home()` and attaches rotating file handlers to the ROOT logger.
 # So merely importing it - which many test modules do, directly or
 # transitively - points the whole pytest session's logging at the operator's
@@ -78,7 +78,7 @@ _PRE_SANDBOX_KANBAN_OVERRIDE = os.environ.get("HERMES_KANBAN_HOME", "").strip()
 _PRE_SANDBOX_HERMES_HOME = os.environ.get("HERMES_HOME", "")
 
 # Capture before any test fixture can override Path.home()/LOCALAPPDATA.
-from hermes_constants import _get_platform_default_hermes_home
+from kova_constants import _get_platform_default_hermes_home
 
 _NATIVE_HERMES_PARENT = _get_platform_default_hermes_home().parent
 
@@ -89,7 +89,7 @@ def _hermes_home_points_at_production(value: str) -> bool:
     Gateway-launched shells (and developer shells that ``export
     HERMES_HOME=~/.hermes``) hand pytest the PRODUCTION home. Historically
     the session sandbox below honored any pre-set value, so collection-time
-    imports (logging handlers, ``hermes_state.DEFAULT_DB_PATH``) froze paths
+    imports (logging handlers, ``kova_state.DEFAULT_DB_PATH``) froze paths
     inside the real ``~/.hermes`` — the escape vector that landed pytest
     fixture rows (chat-1 / wx-chat sessions, /tmp/pytest-of-* routing
     scopes) in the live state.db and flipped its journal mode under the
@@ -103,7 +103,7 @@ def _hermes_home_points_at_production(value: str) -> bool:
         # ``%LOCALAPPDATA%\hermes``, and a dev shell exporting that path used to be honored as
         # "custom", pinning import-time paths (``tui_gateway.server._hermes_home``) to the live
         # install so the state.db guard tripped on every store-touching test (#112692).
-        from hermes_state_guard import _real_platform_state_root
+        from kova_state_guard import _real_platform_state_root
 
         resolved = Path(value).expanduser().resolve()
         real_root = _real_platform_state_root() or (Path.home() / ".hermes").resolve()
@@ -115,7 +115,7 @@ def _hermes_home_points_at_production(value: str) -> bool:
     return resolved.parent.name == "profiles" and resolved.parent.parent == real_root
 
 
-# ``import hermes_bootstrap`` (transitively: any entry-point module) runs
+# ``import kova_bootstrap`` (transitively: any entry-point module) runs
 # ``export_scratch_tmp_env()``, which points TMPDIR/TMP/TEMP at
 # ``<HERMES_HOME>/cache/scratch`` unless a temp var is already set — and a
 # Hermes-launched shell (agent terminal, ``hermes`` child) arrives with that
@@ -127,13 +127,13 @@ def _hermes_home_points_at_production(value: str) -> bool:
 # relocate even user-set temp directories inside a guarded home. Pin the
 # system default so the import-time hook stays a no-op. The parallel runner
 # exports its own disk-backed TMPDIR anyway.
-from hermes_constants import SCRATCH_DIR_MARKER_ENV, SCRATCH_TMP_ENV_VARS
-import hermes_constants
+from kova_constants import SCRATCH_DIR_MARKER_ENV, SCRATCH_TMP_ENV_VARS
+import kova_constants
 
 # The hourly scratch prune runs in a detached child process. An import-time boot hook during
 # collection must not start one: mark this process's once-per-process prune done. Tests that
-# reload hermes_constants reset that flag, so the per-test fixture below stubs the spawn itself.
-hermes_constants._scratch_pruned_once = True
+# reload kova_constants reset that flag, so the per-test fixture below stubs the spawn itself.
+kova_constants._scratch_pruned_once = True
 
 _HERMES_EXPORTED_TMP = os.environ.get(SCRATCH_DIR_MARKER_ENV, "")
 if _HERMES_EXPORTED_TMP:
@@ -142,7 +142,7 @@ if _HERMES_EXPORTED_TMP:
             del os.environ[_key]
     del os.environ[SCRATCH_DIR_MARKER_ENV]
 
-from hermes_state_guard import _real_platform_state_root
+from kova_state_guard import _real_platform_state_root
 
 _real_test_root = _real_platform_state_root() or (Path.home() / ".hermes").resolve()
 _guarded_tmp_roots = [_real_test_root]
@@ -183,11 +183,11 @@ except AttributeError:
 # Subprocess-surviving isolation marker (#82770). PYTEST_CURRENT_TEST /
 # PYTEST_VERSION are pytest's own vars, and tests that spawn children
 # routinely rebuild the child env and strip them ("the subprocess must look
-# like a real CLI") — which used to disarm hermes_state's live-DB guard in
+# like a real CLI") — which used to disarm kova_state's live-DB guard in
 # the child at the same moment the child lost the HERMES_HOME redirect.
 # HERMES_TEST_ISOLATION is OUR marker: exported here (before any test module
 # imports), inherited by every child by default, and honored by
-# hermes_state_guard._running_under_pytest() as a test-context signal. A child
+# kova_state_guard._running_under_pytest() as a test-context signal. A child
 # that carries it and still resolves the production state.db fails hard.
 # Tests that legitimately need a child to look like a non-test process AND
 # open a real DB must export HERMES_STATE_DB_GUARD_BYPASS=1 in that child's
@@ -298,9 +298,9 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     #    too, to distinguish standard profiles from custom deployments.
     #    Patch only the Hermes default, not HOME/Path.home(). Subprocesses need
     #    a stable HOME. Hardcoded real-home I/O must still trip the guard.
-    import hermes_constants
+    import kova_constants
 
-    platform_default = hermes_constants._get_platform_default_hermes_home
+    platform_default = kova_constants._get_platform_default_hermes_home
 
     def isolated_platform_default() -> Path:
         root = platform_default()
@@ -309,7 +309,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
         return tmp_path / root.name if root.parent == _NATIVE_HERMES_PARENT else root
 
     monkeypatch.setattr(
-        hermes_constants, "_get_platform_default_hermes_home", isolated_platform_default
+        kova_constants, "_get_platform_default_hermes_home", isolated_platform_default
     )
     fake_hermes_home = tmp_path / "hermes_test"
     fake_hermes_home.mkdir()
@@ -318,22 +318,22 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     (fake_hermes_home / "memories").mkdir()
     (fake_hermes_home / "skills").mkdir()
     monkeypatch.setenv("HERMES_HOME", str(fake_hermes_home))
-    # A test that pins the process home (hermes_constants.pin_process_hermes_home) must not
+    # A test that pins the process home (kova_constants.pin_process_hermes_home) must not
     # leak that module-global into the next test's routed-profile decisions.
     try:
-        import hermes_constants as _hc
+        import kova_constants as _hc
         monkeypatch.setattr(_hc, "_PINNED_PROCESS_HERMES_HOME", None, raising=False)
     except Exception:
         pass
     # The install probe looks past HERMES_HOME (other roots, gateway services, the launcher on
     # PATH) and writes a marker at a fixed per-user path: confine it to this test's directory.
-    from hermes_cli import install_state
+    from kova_cli import install_state
 
     isolated_places = install_state.Places(markers=(tmp_path / "machine-marker",),
                                            sources=(install_state._active_root,))
     monkeypatch.setattr(install_state, "machine_places", lambda: isolated_places)
     install_state.probe.cache_clear()
-    from hermes_cli import onboarding_due
+    from kova_cli import onboarding_due
 
     onboarding_due.reset_for_tests()
     # Per-TEST host-rendezvous dir (see the session-level block at the top): the
@@ -360,16 +360,16 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     monkeypatch.setenv("HERMES_NEMO_RELAY_PLUGINS_TOML", str(relay_plugins))
     # Keep the subprocess-surviving isolation marker pointed at THIS test's
     # home (#82770): children spawned by the test inherit it by default, so
-    # hermes_state's live-DB guard stays armed in them even when the test
+    # kova_state's live-DB guard stays armed in them even when the test
     # strips pytest's own PYTEST_* vars from the child env.
     monkeypatch.setenv("HERMES_TEST_ISOLATION", str(fake_hermes_home))
     # And never let a developer-shell (or leaked child) bypass disarm the
     # guard for in-process code under test.
     monkeypatch.delenv("HERMES_STATE_DB_GUARD_BYPASS", raising=False)
 
-    # 3b. hermes_state computes ``DEFAULT_DB_PATH = get_hermes_home() / "state.db"``
+    # 3b. kova_state computes ``DEFAULT_DB_PATH = get_hermes_home() / "state.db"``
     #     at import time. When the module is first imported at collection (any
-    #     test file with a top-level ``from hermes_state import ...``) that
+    #     test file with a top-level ``from kova_state import ...``) that
     #     happens BEFORE this fixture ever runs, so every argless
     #     ``SessionDB()`` in every test opens the developer's REAL state.db —
     #     reading real sessions into assertions and writing test rows into the
@@ -391,14 +391,14 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     if tui_server_mod is not None and hasattr(tui_server_mod, "_served_profile_homes"):
         monkeypatch.setattr(tui_server_mod, "_served_profile_homes", set())
     # A classic CLI's gateway-session toolset reader is process-global too (``_ensure_gateway_session``).
-    tools_config_mod = sys.modules.get("hermes_cli.tools_config")
+    tools_config_mod = sys.modules.get("kova_cli.tools_config")
     if tools_config_mod is not None and hasattr(tools_config_mod, "_gateway_plugin_toolsets"):
         monkeypatch.setattr(tools_config_mod, "_gateway_plugin_toolsets", None)
 
-    hermes_state_mod = sys.modules.get("hermes_state")
-    if hermes_state_mod is not None and hasattr(hermes_state_mod, "DEFAULT_DB_PATH"):
+    kova_state_mod = sys.modules.get("kova_state")
+    if kova_state_mod is not None and hasattr(kova_state_mod, "DEFAULT_DB_PATH"):
         monkeypatch.setattr(
-            hermes_state_mod, "DEFAULT_DB_PATH", fake_hermes_home / "state.db"
+            kova_state_mod, "DEFAULT_DB_PATH", fake_hermes_home / "state.db"
         )
 
     # 4. Deterministic locale / timezone / hashseed. CI runs in UTC with
@@ -430,7 +430,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     #    ~/.hermes/plugins/ (which, per step 3, is now empty — but the
     #    singleton might still be cached from a previous test).
     try:
-        import hermes_cli.plugins as _plugins_mod
+        import kova_cli.plugins as _plugins_mod
         monkeypatch.setattr(_plugins_mod, "_plugin_manager", None)
         # Also clear the keyed per-home manager cache (and any plugin
         # submodules it left in sys.modules) so a manager built for a
@@ -479,7 +479,7 @@ def _neutralize_kanban_memory_guard(request, monkeypatch):
     if request.node.get_closest_marker("real_memory_guard"):
         return
     try:
-        from hermes_cli import kanban_db_dispatch as _kbd_mod
+        from kova_cli import kanban_db_dispatch as _kbd_mod
     except Exception:
         return
     monkeypatch.setattr(_kbd_mod, "_system_memory_sample", dict, raising=False)
@@ -496,7 +496,7 @@ def _neutralize_git_safe_directory_read(request, monkeypatch):
     if request.node.get_closest_marker("real_safe_directory"):
         return
     try:
-        from hermes_cli import _subprocess_compat
+        from kova_cli import _subprocess_compat
     except Exception:
         return
     monkeypatch.setattr(_subprocess_compat, "_user_safe_directories", lambda base_env: [], raising=False)
@@ -506,18 +506,18 @@ def _neutralize_git_safe_directory_read(request, monkeypatch):
 def _close_leaked_session_dbs():
     """Close every SessionDB a test constructed but forgot to close.
 
-    Root cause of OOM incident 20260816: ~40 files under tests/hermes_cli/
+    Root cause of OOM incident 20260816: ~40 files under tests/kova_cli/
     build ``SessionDB(...)`` directly and never call ``close()``. Each open
     instance holds the writer connection (state.db + -wal fds), up to
     ``_READ_POOL_MAX`` pooled read connections, per-connection SQLite page
     caches, and — once token accounting has run — an ``atexit`` registration
     that pins the instance alive until interpreter exit. Under the sanctioned
     per-file-process runner this is invisible, but a raw single-process
-    ``pytest tests/hermes_cli/`` accumulated 16-25 GB RSS and had to be
+    ``pytest tests/kova_cli/`` accumulated 16-25 GB RSS and had to be
     OOM-killed three times in one day.
 
     Rather than editing every test file, ``SessionDB.__init__`` registers each
-    instance in ``hermes_state_guard._test_instance_registry`` (a WeakSet,
+    instance in ``kova_state_guard._test_instance_registry`` (a WeakSet,
     populated only when the ``HERMES_TEST_ISOLATION`` marker is set — i.e.
     only under this suite). This teardown closes whatever the test left open.
     ``close()`` is idempotent (``self._conn`` is None afterwards) and also
@@ -528,7 +528,7 @@ def _close_leaked_session_dbs():
     were leaked by an earlier test in the same process) and the simpler
     close-everything sweep is what actually bounds the process.
 
-    Instances opened through ``hermes_state_registry.acquire()`` are skipped:
+    Instances opened through ``kova_state_registry.acquire()`` are skipped:
     on those ``close()`` releases a refcount rather than closing, so a sweep
     would silently retire a shared generation that a wider-scoped fixture
     still holds. The registry owns that lifecycle (``close_all()``).
@@ -548,7 +548,7 @@ def _close_leaked_session_dbs():
     if wait is not None:
         wait()
     try:
-        from hermes_state_guard import _test_instance_registry as registry
+        from kova_state_guard import _test_instance_registry as registry
     except Exception:
         return
     if not registry:
@@ -653,7 +653,7 @@ def _capture_real_kanban_root() -> Path:
         # the env still holds the tempdir and the resolver would be wrong) —
         # honor it via the normal resolver (it may be a profile dir whose
         # root matters).
-        from hermes_constants import get_default_hermes_root
+        from kova_constants import get_default_hermes_root
         return get_default_hermes_root().resolve()
     # No pre-existing HERMES_HOME: the real root is the platform default,
     # NOT the sandbox tempdir now sitting in the env.
@@ -672,20 +672,20 @@ def _kanban_write_guard(_hermetic_environment, monkeypatch):
     ``~/.hermes`` captured at import time. Hermetic tests that legitimately
     move HERMES_HOME to sibling tempdirs are unaffected.
 
-    Only patches when ``hermes_cli.kanban_db_connect`` is *already imported*
+    Only patches when ``kova_cli.kanban_db_connect`` is *already imported*
     — a ``sys.modules`` probe, not an import — so the guard never drags the
     kanban module into unrelated test processes.
 
     Uses ``monkeypatch.setattr`` so pytest restores ``connect`` automatically
     after each test (no stacked wrappers or state leakage across tests).
     """
-    _kdb = sys.modules.get("hermes_cli.kanban_db")
-    _kdbc = sys.modules.get("hermes_cli.kanban_db_connect")
+    _kdb = sys.modules.get("kova_cli.kanban_db")
+    _kdbc = sys.modules.get("kova_cli.kanban_db_connect")
     if _kdb is None or _kdbc is None:
         return
 
     # The sys.modules probe can observe the module MID-IMPORT: a fixture
-    # boundary firing while another test's lazy `import hermes_cli.kanban_db`
+    # boundary firing while another test's lazy `import kova_cli.kanban_db`
     # is still executing sees a partially initialized module whose `connect`
     # doesn't exist yet (AttributeError flake, caught in a full-suite run).
     # A half-imported module has no callers yet either — nothing to guard
@@ -723,16 +723,16 @@ def scratch_prune_spawns(monkeypatch):
     """No test starts a real detached scratch prune (one would outlive the test, and get any
     Popen mock the test installed): ``spawn_prune`` only records the scratch dir it was given.
     A test that needs the real child runs a launcher in a subprocess."""
-    import hermes_constants_scratch_detach
+    import kova_constants_scratch_detach
 
     spawned: list = []
-    monkeypatch.setattr(hermes_constants_scratch_detach, "spawn_prune", spawned.append)
+    monkeypatch.setattr(kova_constants_scratch_detach, "spawn_prune", spawned.append)
     return spawned
 
 
 # ── Live state.db write guard ───────────────────────────────────────────────
 # Companion to the kanban guard above, for the MAIN state database.
-# ``hermes_state._ensure_test_isolation`` (the single choke point every
+# ``kova_state._ensure_test_isolation`` (the single choke point every
 # ``SessionDB()`` construction goes through) refuses, under pytest, any DB
 # path that resolves inside the REAL Hermes root. This fixture wires the
 # test-side knobs:
@@ -742,13 +742,13 @@ def scratch_prune_spawns(monkeypatch):
 #     installs where HERMES_HOME is not ~/.hermes) into the guard's
 #     deny-list, mirroring the kanban deny-list capture above.
 # The guard itself is env-activated (PYTEST_CURRENT_TEST / PYTEST_VERSION),
-# so subprocess children that import hermes_state directly are covered even
+# so subprocess children that import kova_state directly are covered even
 # without this fixture.
 
 
 @pytest.fixture(autouse=True)
 def _state_db_write_guard(request, monkeypatch):
-    _hs = sys.modules.get("hermes_state")
+    _hs = sys.modules.get("kova_state")
     if _hs is None or not hasattr(_hs, "_STATE_DB_GUARD_BYPASS"):
         yield
         return
@@ -881,7 +881,7 @@ def _reset_tui_gateway_server_state():
     # to a stale per-test tmpdir. Force the main-thread ContextVar back
     # to its default.
     try:
-        from hermes_constants import get_hermes_home_override, set_hermes_home_override
+        from kova_constants import get_hermes_home_override, set_hermes_home_override
 
         if get_hermes_home_override() is not None:
             set_hermes_home_override(None)
@@ -982,13 +982,13 @@ def _wal_is_usable() -> bool:
     3.50.4 (vulnerable → DELETE) alongside a Hermes managed runtime on 3.53.1
     (fixed → WAL). The same test then passes in one and fails in the other.
 
-    IMPORTANT: this must NOT import ``hermes_state``. That module computes
+    IMPORTANT: this must NOT import ``kova_state``. That module computes
     ``DEFAULT_DB_PATH`` from ``get_hermes_home()`` at import time, so importing
     it during collection — before the per-test ``_isolate_hermes_home`` fixture
     redirects ``HERMES_HOME`` — permanently caches the DEVELOPER'S REAL
     ``~/.hermes/state.db`` for the whole session. Tests then read live
     production sessions instead of a tempdir. The version predicate is
-    duplicated from ``hermes_state._is_sqlite_wal_reset_vulnerable`` (upstream
+    duplicated from ``kova_state._is_sqlite_wal_reset_vulnerable`` (upstream
     fixed ranges, stable) rather than imported, and
     ``test_conftest_wal_gate.py`` pins the two implementations in agreement.
     """
@@ -1023,7 +1023,7 @@ def _wal_is_usable() -> bool:
 #   2. Any later test in that process that drives a turn to completion hits
 #      the TTS dispatch in ``prompt.submit``, which checks
 #      ``_voice_tts_enabled()`` — now true — and fires
-#      ``hermes_cli.voice.speak_text(final_response)`` on a daemon thread.
+#      ``kova_cli.voice.speak_text(final_response)`` on a daemon thread.
 #   3. ``speak_text`` needs no API key to be audible: ``tools/tts_tool.py``
 #      defaults to the ``edge`` provider, which is keyless.
 #
@@ -1034,12 +1034,12 @@ def _wal_is_usable() -> bool:
 # live-system guard intercepts ``os.kill`` rather than trusting every caller
 # to mock it:
 #
-#  • ``hermes_cli.voice.speak_text`` — the synth+playback entry point both
+#  • ``kova_cli.voice.speak_text`` — the synth+playback entry point both
 #    gateway call sites late-import, so patching the module attribute catches
 #    them wherever they import it from.
-#  • ``hermes_cli.voice.play_audio_file`` — the module-level binding
+#  • ``kova_cli.voice.play_audio_file`` — the module-level binding
 #    ``speak_text`` actually plays through. Patching the binding inside
-#    ``hermes_cli.voice`` (not ``tools.voice_mode``) keeps the real function
+#    ``kova_cli.voice`` (not ``tools.voice_mode``) keeps the real function
 #    available to the tests that legitimately exercise it with a mocked
 #    audio backend (``tests/tools/test_voice_mode.py``).
 #
@@ -1060,7 +1060,7 @@ def _relocate_basetemp_outside_operator_home(config) -> None:
     Windows) turns the sandbox back into the live install and ``get_profile_dir("default")``
     writes fixtures over the operator's config.yaml / .env / MEMORY.md (#111101).
     """
-    from hermes_constants import _get_platform_default_hermes_home
+    from kova_constants import _get_platform_default_hermes_home
 
     native = _get_platform_default_hermes_home().resolve()
     factory = config._tmp_path_factory
@@ -1092,7 +1092,7 @@ def _pytest_disk_temp_root(native: Path) -> Path:
     one (``scripts/run_tests_parallel.py::_runner_scratch_root``), else a plain (not
     dot-prefixed — hidden-dir search tests would see every fixture as hidden) sibling of
     the native home. Entries idle for a day are swept on the way in."""
-    from hermes_constants_scratch import prune_idle_entries
+    from kova_constants_scratch import prune_idle_entries
 
     if os.name != "nt" and os.path.isdir("/var/tmp"):  # no-tmp: ok — disk-backed FHS root
         root = Path("/var/tmp/hermes-pytest")  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs
@@ -1395,7 +1395,7 @@ def _audio_playback_guard(request, monkeypatch):
         return
 
     try:
-        import hermes_cli.voice as _voice
+        import kova_cli.voice as _voice
     except Exception:
         # Optional audio deps missing — nothing importable to speak with.
         yield
@@ -1428,7 +1428,7 @@ def _audio_playback_guard(request, monkeypatch):
 # verdicts followed whatever those services (or a filtering DNS resolver) answered that day.
 #
 # Serve what a test needs from a fixture instead: a server on 127.0.0.1, a stubbed
-# transport (tests/hermes_cli/anon_portal.py routes httpx at a fake Portal), a seeded
+# transport (tests/kova_cli/anon_portal.py routes httpx at a fake Portal), a seeded
 # cache, or a patched resolver seam (``tools.url_safety._getaddrinfo`` for the SSRF
 # guards). Address literals resolve without a lookup and stay allowed. Live canaries opt
 # in with ``@pytest.mark.live``, the PM tests that download real toolchains and wheels on
@@ -1631,7 +1631,7 @@ _REAL_HERMES_ROOT_CANDIDATES = _capture_real_hermes_root()
 # Captured before any test can patch sys.platform, HOME or XDG_*: a test that runs the real
 # GUI uninstall or update swap would otherwise delete the developer's own Hermes app. Only the
 # ones present (none on CI runners, so the guard costs nothing there), each literal and resolved.
-from hermes_cli.gui_uninstall import packaged_gui_app_paths
+from kova_cli.gui_uninstall import packaged_gui_app_paths
 
 _REAL_INSTALLED_GUI_APPS = sorted({
     os.path.normcase(form) for app in packaged_gui_app_paths() if os.path.lexists(app)
@@ -1652,8 +1652,8 @@ def _forbid_real_user_path_writes(monkeypatch):
     def refuse(*_args, **_kwargs):
         raise AssertionError("TEST BUG: write to the real Windows User PATH (HKCU\\Environment)")
 
-    monkeypatch.setattr("hermes_cli._launchers._register_windows_user_path", refuse)
-    monkeypatch.setattr("hermes_cli._install_repair._write_user_path_raw", refuse)
+    monkeypatch.setattr("kova_cli._launchers._register_windows_user_path", refuse)
+    monkeypatch.setattr("kova_cli._install_repair._write_user_path_raw", refuse)
 
 
 @pytest.fixture(autouse=True)

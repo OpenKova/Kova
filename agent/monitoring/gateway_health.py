@@ -16,7 +16,7 @@ from typing import Any, Callable, Dict, List, Optional
 from agent.monitoring import emitter
 from agent.monitoring.events import GatewayDiagnosticEvent, GatewayHealthEvent
 from agent.monitoring.redaction import redact_bounded
-from hermes_logging import canonical_logger_name
+from kova_logging import canonical_logger_name
 
 logger = logging.getLogger(__name__)
 
@@ -223,7 +223,7 @@ def build_gateway_health_snapshot(
 
 def _safe_profile() -> str:
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from kova_cli.profiles import get_active_profile_name
         return str(get_active_profile_name() or "default")
     except Exception:
         return "default"
@@ -231,7 +231,7 @@ def _safe_profile() -> str:
 
 def _safe_version() -> str:
     try:
-        from hermes_cli.version_info import get_version_info
+        from kova_cli.version_info import get_version_info
         return get_version_info().base_version
     except Exception:
         return "unknown"

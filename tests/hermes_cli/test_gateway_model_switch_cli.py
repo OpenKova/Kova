@@ -10,10 +10,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.gateway_agent import GatewayAgent
-from hermes_cli.gateway_connection import GatewayConnection
-from hermes_cli.model_switch import ModelSwitchResult
-from tests.hermes_cli.test_gateway_agent import SID, FakeClient, connect_with
+from kova_cli.gateway_agent import GatewayAgent
+from kova_cli.gateway_connection import GatewayConnection
+from kova_cli.model_switch import ModelSwitchResult
+from tests.kova_cli.test_gateway_agent import SID, FakeClient, connect_with
 
 REFUSAL = {"status": "confirmation_required", "confirm": "tok-1",
            "confirm_message": "This session holds ~150,000 tokens of context.",
@@ -60,8 +60,8 @@ def test_new_after_a_model_switch_leaves_the_ended_session_alone(gateway):
     rebound, so ``session.mutate model`` rewrote the session just ended (a later /resume of it came back
     on the default). The new session is created on the profile's default and runs it."""
     from cli import CLI_CONFIG, HermesCLI
-    from hermes_cli.cli_init_mixin import CLIInitMixin
-    from hermes_cli.gateway_session_store import GatewaySessionStore
+    from kova_cli.cli_init_mixin import CLIInitMixin
+    from kova_cli.gateway_session_store import GatewaySessionStore
     conn, client = gateway
     rpc = client.rpc
 
@@ -82,7 +82,7 @@ def test_new_after_a_model_switch_leaves_the_ended_session_alone(gateway):
     default = ModelSwitchResult(success=True, new_model="config-default-model", target_provider="openrouter",
                                 api_key="k", base_url="", api_mode="chat_completions")
     with patch.dict(CLI_CONFIG, {"model": {"default": "config-default-model", "provider": "openrouter"}}), \
-            patch("hermes_cli.model_switch.switch_model", return_value=default):
+            patch("kova_cli.model_switch.switch_model", return_value=default):
         HermesCLI.new_session(cli, silent=True)
     assert _mutations(client) == []
     assert "model" not in dict(client.calls)["session.create"]  # the profile's default

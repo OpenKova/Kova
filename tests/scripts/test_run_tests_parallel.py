@@ -858,7 +858,7 @@ _FORK_PROBE = textwrap.dedent("""
             "path0": sys.path[0],
             "sys_path": sys.path,
             "argv0": sys.argv[0],
-            "product_preloaded": sorted(m for m in ("hermes_cli", "agent", "gateway", "tools") if m in sys.modules),
+            "product_preloaded": sorted(m for m in ("kova_cli", "agent", "gateway", "tools") if m in sys.modules),
             "forkserver_env": os.environ.get("HERMES_TEST_FORKSERVER"),
             "mp_process": multiprocessing.current_process().name,
             "mp_parent": multiprocessing.parent_process(),

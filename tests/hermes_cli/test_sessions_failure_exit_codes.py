@@ -9,7 +9,7 @@ import pytest
 
 
 def _run_cli(monkeypatch, argv_tail):
-    import hermes_cli.main as main_mod
+    import kova_cli.main as main_mod
 
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", *argv_tail])
     try:
@@ -20,7 +20,7 @@ def _run_cli(monkeypatch, argv_tail):
 
 
 def _old_ended_session(db_path):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     with SessionDB(db_path=db_path) as db:
         db.create_session("s-old", "cli")
@@ -39,7 +39,7 @@ def _garbage_store(db_path):
 
 
 def _legacy_inline_fts_store(db_path):
-    from hermes_state_common import LEGACY_FTS_SQL, LEGACY_FTS_TRIGRAM_SQL, SCHEMA_SQL
+    from kova_state_common import LEGACY_FTS_SQL, LEGACY_FTS_TRIGRAM_SQL, SCHEMA_SQL
 
     raw = sqlite3.connect(str(db_path))
     with raw:
@@ -51,7 +51,7 @@ def _legacy_inline_fts_store(db_path):
 
 
 def _vacuum_fails(monkeypatch):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     def vacuum(self):
         raise sqlite3.OperationalError("database is locked")
@@ -59,12 +59,12 @@ def _vacuum_fails(monkeypatch):
 
 
 def _store(monkeypatch, tmp_path, build):
-    import hermes_state
-    from hermes_constants import get_hermes_home
+    import kova_state
+    from kova_constants import get_hermes_home
 
     db_path = get_hermes_home() / "state.db"
     build(db_path)
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", db_path)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", db_path)
     monkeypatch.chdir(tmp_path)
     return db_path
 
@@ -139,7 +139,7 @@ def test_redirected_null_stdin_is_unattended_on_every_os(tmp_path):
     _old_ended_session(home / "state.db")
     root = str(Path(__file__).resolve().parents[2])
     env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": root}
-    proc = subprocess.run([sys.executable, "-m", "hermes_cli.main", "sessions", "delete", "s-old"], cwd=root,
+    proc = subprocess.run([sys.executable, "-m", "kova_cli.main", "sessions", "delete", "s-old"], cwd=root,
                           env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", timeout=120, check=False)
     assert proc.returncode == 1, proc.stdout + proc.stderr

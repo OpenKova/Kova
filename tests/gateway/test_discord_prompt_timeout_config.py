@@ -52,9 +52,9 @@ from plugins.platforms.discord.adapter import (
 )
 
 def _patch_config(monkeypatch, cfg):
-    """Stub ``hermes_cli.config.read_raw_config`` to return ``cfg``."""
-    import hermes_cli.config
-    monkeypatch.setattr(hermes_cli.config, "read_raw_config", lambda: cfg)
+    """Stub ``kova_cli.config.read_raw_config`` to return ``cfg``."""
+    import kova_cli.config
+    monkeypatch.setattr(kova_cli.config, "read_raw_config", lambda: cfg)
 
 def test_explicit_int_value(monkeypatch):
     _patch_config(monkeypatch, {"approvals": {"discord_prompt_timeout": 600}})
@@ -89,7 +89,7 @@ def test_hour_long_timeout_and_safe_upper_bound(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_all_prompt_types_use_owning_profile_discord_timeout(tmp_path):
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_hermes_home_override, reset_hermes_home_override
     from plugins.platforms.discord.adapter import (
         ExecApprovalView, SlashConfirmView, UpdatePromptView, ClarifyChoiceView,
     )
@@ -118,7 +118,7 @@ async def test_all_prompt_types_use_owning_profile_discord_timeout(tmp_path):
 
 def test_configured_through_the_profiles_config_yaml(monkeypatch, tmp_path):
     """The key is registered with its default and reaches the views from a real config.yaml."""
-    from hermes_cli.config import load_config
+    from kova_cli.config import load_config
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     assert load_config()["approvals"]["discord_prompt_timeout"] == _DISCORD_PROMPT_TIMEOUT_DEFAULT

@@ -290,7 +290,7 @@ export function desktopMainProcesses(facts: InstallFacts): ProcInfo[] {
 /** The `hermes serve` backend(s) of this install (children of the backend excluded). */
 export function backendServeProcesses(facts: InstallFacts): ProcInfo[] {
   // The local backend is the gateway `hermes gateway ensure` attached to or started
-  // (`hermes_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
+  // (`kova_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
   const serve = installProcesses(facts).filter(
     proc =>
       (/ serve( |$)/.test(proc.cmdline) || / gateway run( |$)/.test(proc.cmdline)) &&

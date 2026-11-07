@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from tools.computer_use import cua_backend_driver as _driver
 from tools.computer_use.permissions import CUA_DRIVER_BUNDLE_ID
-from hermes_cli.process_identity import release_process_group_once_empty, spawn_owned
+from kova_cli.process_identity import release_process_group_once_empty, spawn_owned
 
 logger = logging.getLogger("tools.computer_use.cua_backend")
 

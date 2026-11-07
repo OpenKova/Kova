@@ -133,7 +133,7 @@ export const RECOVERY_ACTIONS = {
 }
 
 /** Structured storage failure codes the backend puts in RPC/HTTP error data
- *  (`hermes_state_errors.classify_persistence_error`). */
+ *  (`kova_state_errors.classify_persistence_error`). */
 const STORAGE_CODE_RE = /['"]code['"]\s*:\s*['"](storage_[a-z_]+|disk_full)['"]/i
 
 interface ErrorSummaryRule {
@@ -235,7 +235,7 @@ function summarizeErrorMessage(message: string, fallback: string) {
 }
 
 // The owner's refusal of an edit, restore or regenerate whose target is not a live user turn
-// (hermes_state_mutations._rewind): invalid_params on target_message_id. Its detail starts with
+// (kova_state_mutations._rewind): invalid_params on target_message_id. Its detail starts with
 // `compacted:` only when compaction summarized the turn; a turn another window already undid, an
 // assistant row or an unknown id is stale for another reason. Every other invalid_params keeps the
 // generic toast.

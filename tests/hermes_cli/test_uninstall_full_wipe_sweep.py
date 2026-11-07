@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import uninstall
+from kova_cli import uninstall
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="macOS-only sweep")
@@ -33,12 +33,12 @@ def test_remove_dashboard_launchd_jobs_boots_out_and_deletes_matching_plists(
                     agents_dir)
     serve = job("com.user.hermes-serve", ["hermes", "serve"], agents_dir)
     unrelated = job("com.user.keep", ["/usr/bin/say", "hello"], agents_dir)
-    daemon = job("io.nousresearch.hermes-agent.dashboard", ["hermes_cli.main", "dashboard"],
+    daemon = job("io.nousresearch.hermes-agent.dashboard", ["kova_cli.main", "dashboard"],
                  daemons_dir)
 
     booted = []
     monkeypatch.setattr(uninstall.subprocess, "run", lambda cmd, **kw: booted.append(cmd))
-    monkeypatch.setattr("hermes_cli.main_dashboard._launchd_plist_dirs",
+    monkeypatch.setattr("kova_cli.main_dashboard._launchd_plist_dirs",
                         lambda: [("agent", agents_dir), ("daemon", daemons_dir)])
 
     removed = uninstall.remove_dashboard_launchd_jobs()
@@ -59,7 +59,7 @@ def test_remove_dashboard_launchd_jobs_skips_malformed_plists(monkeypatch, tmp_p
     agents_dir.mkdir()
     (agents_dir / "broken.plist").write_text("<plist><dict>&", encoding="utf-8")
     (agents_dir / "not-a-dict.plist").write_bytes(plistlib.dumps(["nope"]))
-    monkeypatch.setattr("hermes_cli.main_dashboard._launchd_plist_dirs",
+    monkeypatch.setattr("kova_cli.main_dashboard._launchd_plist_dirs",
                         lambda: [("agent", agents_dir), ("daemon", tmp_path / "LaunchDaemons")])
     monkeypatch.setattr(uninstall.subprocess, "run", lambda cmd, **kw: None)
     assert uninstall.remove_dashboard_launchd_jobs() == []
@@ -97,7 +97,7 @@ def test_full_uninstall_sweeps_macos_caches_and_dashboard_launchd(monkeypatch, t
     monkeypatch.setattr(uninstall, "_rmtree_step",
                         lambda path, **kw: None if path in (project_root, hermes_home)
                         else (_ for _ in ()).throw(AssertionError(f"unexpected rmtree {path}")))
-    monkeypatch.setattr("hermes_cli.gui_uninstall.uninstall_gui", lambda home, **kw: True)
+    monkeypatch.setattr("kova_cli.gui_uninstall.uninstall_gui", lambda home, **kw: True)
     monkeypatch.setattr(uninstall, "_macos_cache_leftover_dirs", lambda: cache_dirs)
     monkeypatch.setattr(uninstall, "_rmtree_if_exists",
                         lambda p: removed_caches.append(p) or True)
@@ -117,13 +117,13 @@ def test_full_uninstall_sweeps_macos_caches_and_dashboard_launchd(monkeypatch, t
 
 def _args(hermes_home, project_root, *, full, yes):
     from types import SimpleNamespace
-    import hermes_constants
+    import kova_constants
     monkey = {"HERMES_HOME": str(hermes_home)}
-    real_get = hermes_constants.get_hermes_home
-    hermes_constants.get_hermes_home = (lambda: Path(monkey["HERMES_HOME"]))
+    real_get = kova_constants.get_hermes_home
+    kova_constants.get_hermes_home = (lambda: Path(monkey["HERMES_HOME"]))
     try:
         # run_uninstall reads HERMES_HOME via the module-level import in uninstall.py
         uninstall.get_hermes_home = lambda: Path(monkey["HERMES_HOME"])
         return SimpleNamespace(dry_run=False, yes=yes, full=full, data=False, gui=False)
     finally:
-        hermes_constants.get_hermes_home = real_get
+        kova_constants.get_hermes_home = real_get

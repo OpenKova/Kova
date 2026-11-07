@@ -1,5 +1,5 @@
 """``gateway.multiplex_profiles`` defaults to ON, but an UNSET flag is settled at boot by
-``hermes_cli.gateway_multiplex_mode.resolve_multiplex_mode`` — the same preflight
+``kova_cli.gateway_multiplex_mode.resolve_multiplex_mode`` — the same preflight
 ``hermes gateway migrate --multiplex`` runs — so flipping the default can never make a default
 gateway double-bind a fleet that still runs per-profile gateways.
 
@@ -16,10 +16,10 @@ from pathlib import Path
 
 import pytest
 
-import hermes_constants
+import kova_constants
 from gateway.config import GatewayConfig, load_gateway_config
-from hermes_cli import gateway_migrate as gm
-from hermes_cli import gateway_multiplex_mode as mode
+from kova_cli import gateway_migrate as gm
+from kova_cli import gateway_multiplex_mode as mode
 from datetime import UTC
 
 
@@ -37,7 +37,7 @@ def fleet(tmp_path, monkeypatch):
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY", "WEBHOOK_ENABLED"):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
     services: dict[str, list] = {}
     pids: dict[str, int] = {}
     monkeypatch.setattr(gm, "_installed_services", lambda home: services.get(_name(home), []))
@@ -47,7 +47,7 @@ def fleet(tmp_path, monkeypatch):
 
 
 def _name(home: Path) -> str:
-    return hermes_constants.profile_name_for_home(home) or "default"
+    return kova_constants.profile_name_for_home(home) or "default"
 
 
 def test_default_config_is_on_but_the_loader_leaves_an_unset_flag_undecided():
@@ -71,7 +71,7 @@ def test_unset_flag_multiplexes_a_quiet_fleet_and_stays_standalone_beside_a_live
     assert "'coder'" in decision.reason and gm.MIGRATE_COMMAND in decision.reason
     assert cfg.multiplex_profiles is False
     # The CLI side agrees: no live multiplexer record and no explicit opt-in means coder is NOT served.
-    from hermes_cli.gateway import named_profile_served_by_running_multiplexer
+    from kova_cli.gateway import named_profile_served_by_running_multiplexer
     assert named_profile_served_by_running_multiplexer("coder") is False
     assert mode.default_gateway_multiplexes(root) is False
 
@@ -180,7 +180,7 @@ def test_guard_refusal_is_recorded_in_runtime_status_and_cleared_on_default(tmp_
     """A guard refusal must be visible to `hermes gateway status`, not only in the boot log; a later
     boot that multiplexes clears it (a stale reason would misdescribe the live gateway)."""
     from gateway import status as gw_status
-    from hermes_cli.gateway_multiplex_mode import MultiplexDecision, record_multiplex_decision
+    from kova_cli.gateway_multiplex_mode import MultiplexDecision, record_multiplex_decision
     monkeypatch.setattr(gw_status, "_get_runtime_status_path", lambda: tmp_path / "gateway_state.json")
     monkeypatch.setattr(gw_status, "owns_gateway_runtime_lock", lambda: True)  # the serving gateway records
     record_multiplex_decision(MultiplexDecision(False, "guard", "profile(s) 'coder' still run their own gateway"))
@@ -207,12 +207,12 @@ def test_pre_lock_decision_never_publishes_a_rival_gateway_owner(tmp_path):
     entry.write_text(textwrap.dedent("""
         import os, sys
         from gateway import status
-        from hermes_cli.gateway_multiplex_mode import MultiplexDecision, record_multiplex_decision
+        from kova_cli.gateway_multiplex_mode import MultiplexDecision, record_multiplex_decision
         record_multiplex_decision(MultiplexDecision(False, "guard", "profile 'coder' runs its own gateway"))
         print("decided", flush=True)
         sys.stdin.readline()
         assert status.acquire_gateway_runtime_lock()
-        from hermes_cli.gateway_multiplex_mode import publish_pending_multiplex_decision
+        from kova_cli.gateway_multiplex_mode import publish_pending_multiplex_decision
         publish_pending_multiplex_decision()
         print("claimed", os.getpid(), flush=True)  # the lock owner (Popen.pid is the venv launcher on Windows)
         sys.stdin.readline()

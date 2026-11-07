@@ -529,7 +529,7 @@ def _labels_in_run_args(run_args):
     }
 
 
-def test_run_command_tags_hermes_agent_label(monkeypatch):
+def test_run_command_tags_kova_agent_label(monkeypatch):
     """Every container hermes-agent starts must carry the hermes-agent=1 label
     so the orphan reaper (and external operators) can identify them with a
     single ``docker ps --filter label=hermes-agent=1`` call. Regression test

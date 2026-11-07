@@ -144,15 +144,15 @@ def _start_gateway_configure_logging(verbosity: Optional[int]) -> None:
     _best_effort(_sync_skills)
 
     # Centralized logging (agent.log INFO+, errors.log WARNING+, gateway.log gateway-only); idempotent.
-    from hermes_logging import setup_logging, _safe_stderr
+    from kova_logging import setup_logging, _safe_stderr
     setup_logging(hermes_home=_hermes_home, mode="gateway")
 
     def _security_audit() -> None:
         # Warn-on-load, never blocks: surfaces root / weak-SSH / unauthenticated-listener exposure.
-        from hermes_cli.security_audit_startup import log_startup_security_warnings
+        from kova_cli.security_audit_startup import log_startup_security_warnings
 
         def _raw_cfg():
-            from hermes_cli.config import read_raw_config
+            from kova_cli.config import read_raw_config
             return read_raw_config()
 
         log_startup_security_warnings(hermes_home=_hermes_home, config=_best_effort(_raw_cfg))
@@ -262,7 +262,7 @@ def _start_gateway_claim_pid_file(force: bool = False) -> bool:
         return False
     atexit.register(remove_pid_file)
     atexit.register(release_gateway_runtime_lock)
-    from hermes_cli.gateway_multiplex_mode import publish_pending_multiplex_decision
+    from kova_cli.gateway_multiplex_mode import publish_pending_multiplex_decision
     publish_pending_multiplex_decision()
     _claim_host_gateway_role(force=force)
     return True
@@ -317,7 +317,7 @@ async def _start_gateway_start_control_socket(runner):
 
         def _pause_for_update_handler() -> dict:
             try:
-                from hermes_cli.gateway import _get_restart_drain_timeout
+                from kova_cli.gateway import _get_restart_drain_timeout
                 _drain = float(_get_restart_drain_timeout())
             except Exception:
                 _drain = 30.0
@@ -374,7 +374,7 @@ async def _start_gateway_start_control_socket(runner):
         # The Webapp's verbs answer from the socket's first moment ("starting" until the listener
         # settles): a client polling a restarting gateway must never read "unknown verb" as a failure.
         from gateway.webapp_listener import register_control_verbs
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         register_control_verbs(runner, get_hermes_home(), server=_control_server)
         if not await _control_server.start():
             _control_server = None
@@ -486,7 +486,7 @@ async def _start_gateway_shutdown_tail(
             logger.debug("Control socket stop failed (non-fatal)", exc_info=True)
 
     def _stop_keepalive() -> None:
-        from hermes_cli.nous_auth_keepalive import stop_nous_auth_keepalive
+        from kova_cli.nous_auth_keepalive import stop_nous_auth_keepalive
         stop_nous_auth_keepalive()
 
     _best_effort(_stop_keepalive)
@@ -533,14 +533,14 @@ def _launch_home_may_multiplex(config=None) -> bool:
     the operator's choice, so it is downgraded the way every other implicit-multiplex blocker is:
     this process comes up standalone, says why, and *config* is flipped in place so the boot below
     reserves and serves only the launch profile."""
-    from hermes_constants import profile_name_for_home
+    from kova_constants import profile_name_for_home
     from gateway.run import get_hermes_home, logger
     name = profile_name_for_home(get_hermes_home())
     if name in (None, "default"):
         return True
-    from hermes_cli.gateway_multiplex_mode import explicit_multiplex_flag
+    from kova_cli.gateway_multiplex_mode import explicit_multiplex_flag
     if config is not None and not explicit_multiplex_flag(get_hermes_home()):
-        from hermes_cli.gateway_multiplex_mode import MultiplexDecision, log_multiplex_decision
+        from kova_cli.gateway_multiplex_mode import MultiplexDecision, log_multiplex_decision
         decision = MultiplexDecision(
             False, "guard",
             f"profile {name!r} launched the gateway, and only the default profile runs the multiplexer "
@@ -571,7 +571,7 @@ def _reload_config_keeping_multiplex_verdict(first: GatewayConfig) -> GatewayCon
     from gateway.config import load_gateway_config
     if getattr(first, "multiplex_profiles", False):
         from gateway.run import _profile_runtime_scope
-        from hermes_constants import get_default_hermes_root
+        from kova_constants import get_default_hermes_root
         with _profile_runtime_scope(Path(get_default_hermes_root())):
             reloaded = load_gateway_config()
     else:
@@ -604,12 +604,12 @@ def _start_gateway_resolve_terminal_cwd() -> None:
 
 
 # A browse that catches a lagging state.db up holds the profile's gateway.lock only for the drift
-# re-check and the additive DDL, cut off at hermes_state_reconcile.BROWSE_RECONCILE_BUDGET_S by a
+# re-check and the additive DDL, cut off at kova_state_reconcile.BROWSE_RECONCILE_BUDGET_S by a
 # sqlite progress handler. Its integrity scan (which scales with file size) runs BEFORE the lock, so
 # a large store never extends this window. A gateway booting in it waits it out, with margin for lock
 # publication and the drift probes, instead of exiting as if another gateway owned the profile.
 def _browse_reconcile_reserve_wait_s() -> float:
-    from hermes_state_reconcile import BROWSE_RECONCILE_BUDGET_S
+    from kova_state_reconcile import BROWSE_RECONCILE_BUDGET_S
     return BROWSE_RECONCILE_BUDGET_S + 2.0
 
 
@@ -635,7 +635,7 @@ def _start_gateway_reserve_profiles(profile_homes) -> bool:
         # verdict (gateway.multiplex_profiles), not a transient fault: exit EX_CONFIG so systemd's
         # RestartPreventExitStatus=78 parks the unit instead of restart-looping (#51228, #97120).
         # Any other same-user contender keeps the ordinary "already running" exit 1.
-        from hermes_cli.gateway import named_profile_served_by_running_multiplexer
+        from kova_cli.gateway import named_profile_served_by_running_multiplexer
         if named_profile_served_by_running_multiplexer():
             from gateway.restart import GATEWAY_FATAL_CONFIG_EXIT_CODE
             from gateway.run import _write_runtime_status_quiet
@@ -718,7 +718,7 @@ def _start_gateway_early_environment_probe() -> None:
     """Background-start the host toolchain probe the warm-up and first prompt read (idempotent;
     honours ``agent.environment_probe: false``). Never raises: the warm-up still runs it lazily."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         agent_cfg = load_config_readonly().get("agent")
         if isinstance(agent_cfg, dict) and not agent_cfg.get("environment_probe", True):
             return
@@ -753,11 +753,11 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     )
     # Set here (not at import) so incidental gateway.run imports from CLI code don't poison it.
     os.environ["HERMES_EXEC_ASK"] = "1"
-    from hermes_cli.update_proxy_env import restore_user_proxy_env
+    from kova_cli.update_proxy_env import restore_user_proxy_env
     restore_user_proxy_env()  # a gateway an update restarted keeps the user's proxy env, not the update's
     _start_gateway_resolve_terminal_cwd()
 
-    from hermes_cli.resource_limits import apply_nofile_soft_limit
+    from kova_cli.resource_limits import apply_nofile_soft_limit
     apply_nofile_soft_limit()
 
     # Snapshot the revision while sys.modules matches disk so a later `git pull` is detected safely.
@@ -888,7 +888,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
             return record_startup()
 
         def _start_keepalive() -> None:
-            from hermes_cli.nous_auth_keepalive import start_nous_auth_keepalive
+            from kova_cli.nous_auth_keepalive import start_nous_auth_keepalive
             start_nous_auth_keepalive()
 
         _unclean_exit = _best_effort(_lifecycle_record_startup, "Lifecycle ledger startup record failed: %s")

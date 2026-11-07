@@ -27,8 +27,8 @@ async def probe(mode):
     from gateway.session_authority import initialize_session_authority
     from gateway.run_api import start_gateway_api, stop_gateway_api
     from gateway.session_controls import AuthorityConnection
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     from tests.gateway.fixtures.local_recovery_probe import rpc
     from websockets.asyncio.client import connect
 
@@ -151,7 +151,7 @@ async def _control(authority, ws, reader, sid, marker, receipt):
 
 async def _commands(authority, ws, reader, sid, marker, receipt):
     from tests.gateway.fixtures.local_recovery_probe import rpc
-    from hermes_cli.plugins import _ensure_plugins_discovered
+    from kova_cli.plugins import _ensure_plugins_discovered
     calls = []
 
     def plugin(args):

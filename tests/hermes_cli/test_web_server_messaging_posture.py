@@ -39,15 +39,15 @@ def _gateway_state(home: Path) -> None:
 def client(monkeypatch, _isolate_hermes_home):
     from starlette.testclient import TestClient
 
-    import hermes_state
-    import hermes_constants
+    import kova_state
+    import kova_constants
     import gateway.status as _gw_status
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    from kova_constants import get_hermes_home
+    from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     home = get_hermes_home()
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", home / "state.db")
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
+    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
     # Liveness is a verified identity: this pytest process passes as the gateway
     # only while its probed command line matches the home being asked about
     # (``_command_line_belongs_to_profile``). The worker test below re-points the
@@ -87,7 +87,7 @@ def test_connected_deny_all_reports_posture(client):
 
 
 def test_connected_with_allowlist_reports_allowlist(client, monkeypatch):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "42, 43")
     payload = _test(client)
@@ -154,8 +154,8 @@ def test_profile_scoped_posture_ignores_root_env_and_reports_profile_grants(
     Test must neither borrow the root's allowlist nor miss the profile's own.
     Regression for the false deny-all/false green in the #66055 review."""
     import gateway.status as _gw_status
-    from hermes_cli import profiles as profiles_mod
-    from hermes_constants import get_hermes_home
+    from kova_cli import profiles as profiles_mod
+    from kova_constants import get_hermes_home
 
     default_home = get_hermes_home()
     profiles_root = default_home / "profiles"

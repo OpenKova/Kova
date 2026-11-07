@@ -4,8 +4,8 @@ from types import SimpleNamespace
 import pytest
 
 import cli
-from hermes_cli.auth import AuthError, CODEX_RATE_LIMITED_CODE
-from hermes_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
+from kova_cli.auth import AuthError, CODEX_RATE_LIMITED_CODE
+from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
 
 @pytest.mark.parametrize("quiet", [False, True])
@@ -23,7 +23,7 @@ def test_credential_resolution_exit(monkeypatch, quiet, worker, kind, worker_exi
     }
     def resolve(**kwargs):
         raise errors[kind]
-    monkeypatch.setattr("hermes_cli.runtime_provider.resolve_runtime_provider", resolve)
+    monkeypatch.setattr("kova_cli.runtime_provider.resolve_runtime_provider", resolve)
     shell = CLIAgentSetupMixin.__new__(CLIAgentSetupMixin)
     shell.model = "fixture"
     shell.requested_provider = "openai-codex"
@@ -36,7 +36,7 @@ def test_credential_resolution_exit(monkeypatch, quiet, worker, kind, worker_exi
     shell._show_security_advisories = lambda: None
     shell._print_exit_summary = lambda **k: None
     shell.console = SimpleNamespace(print=lambda *a, **k: None)
-    from hermes_cli.cli_chat_turn_mixin import CLIChatTurnMixin
+    from kova_cli.cli_chat_turn_mixin import CLIChatTurnMixin
     shell._secret_capture_callback = lambda *a, **k: None
     shell.chat = CLIChatTurnMixin.chat.__get__(shell)
     monkeypatch.setattr(cli, "_should_seed_interactive", lambda *a, **k: False)

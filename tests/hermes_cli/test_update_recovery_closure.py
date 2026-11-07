@@ -1,6 +1,6 @@
 """A killed tree move that tears the launch repair's own code is still repaired at the next launch.
 
-The repair (``hermes_bootstrap`` -> ``_early_recovery`` under the checkout lock) lives in the tree git
+The repair (``kova_bootstrap`` -> ``_early_recovery`` under the checkout lock) lives in the tree git
 rewrites. ``arm_tree_move`` publishes that closure beside the marker before git writes; the minted
 launcher runs it (or the same files read from git's objects) when the checkout's copy cannot import. Real git, really killed mid-write (a
 smudge-filter barrier), the production marker writer in a child that exits, the production launcher;
@@ -22,17 +22,17 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import _launchers
+from kova_cli import _launchers
 
 SOURCE = Path(__file__).resolve().parents[2]
 # What a minted launcher imports before the application entry.
-BOOT = ("hermes_bootstrap.py", "hermes_constants.py", "hermes_cli/__init__.py", "hermes_cli/_launchers.py",
-        "hermes_cli/_early_recovery.py", "hermes_cli/_parser.py", "hermes_cli/runtime_state.py",
-        "hermes_cli/venv_sync.py", "hermes_cli/steward.py", "hermes_cli/stderr_timestamp.py",
-        "hermes_cli/update_lock.py", "hermes_cli/update_custody.py", "pm/environments.py",
+BOOT = ("kova_bootstrap.py", "kova_constants.py", "kova_cli/__init__.py", "kova_cli/_launchers.py",
+        "kova_cli/_early_recovery.py", "kova_cli/_parser.py", "kova_cli/runtime_state.py",
+        "kova_cli/venv_sync.py", "kova_cli/steward.py", "kova_cli/stderr_timestamp.py",
+        "kova_cli/update_lock.py", "kova_cli/update_custody.py", "pm/environments.py",
         "pm/filesystem.py", "pm/paths.py")
 _HOLDER = ("import sys, time\nfrom pathlib import Path\nsys.path.insert(0, sys.argv[1])\n"
-           "from hermes_cli.update_lock import UpdateLock\n"
+           "from kova_cli.update_lock import UpdateLock\n"
            "lock = UpdateLock(path=Path(sys.argv[2]) / 'owner', install_root=Path(sys.argv[2]))\n"
            "assert lock.acquire()\nprint('HELD', flush=True)\ntime.sleep(120)\n")
 
@@ -47,7 +47,7 @@ def _killed_mid_write(tmp_path: Path, rel: str, committed: dict[str, str] | None
             shutil.copy2(SOURCE / f, root / f)
     for f, text in (committed or {}).items():
         (root / f).write_text(text, encoding="utf-8")
-    (root / "hermes_cli/main.py").write_text("def main():\n    print('APP_REACHED')\n    return 0\n", encoding="utf-8")
+    (root / "kova_cli/main.py").write_text("def main():\n    print('APP_REACHED')\n    return 0\n", encoding="utf-8")
     env = {"HOME": str(home), "HERMES_HOME": str(home / ".hermes"), "PATH": os.environ.get("PATH", ""),
            "LANG": "C.UTF-8", "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull}
     git_exe = shutil.which("git") or "git"
@@ -69,7 +69,7 @@ def _killed_mid_write(tmp_path: Path, rel: str, committed: dict[str, str] | None
     armed = subprocess.run(
         [sys.executable, "-I", "-c",
          "import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path; "
-         "from hermes_cli.update_cmd_commit import arm_tree_move; "
+         "from kova_cli.update_cmd_commit import arm_tree_move; "
          "arm_tree_move([sys.argv[2]], Path(sys.argv[3]), pre=sys.argv[4], target=sys.argv[5], stash=None)",
          str(SOURCE), git_exe, str(root), pre, target], env=env, capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=60, check=False)
@@ -106,12 +106,12 @@ def _killed_mid_write(tmp_path: Path, rel: str, committed: dict[str, str] | None
 
 @pytest.mark.platforms("posix")
 @pytest.mark.parametrize(("rel", "torn", "published"), [
-    ("hermes_bootstrap.py", False, True),
-    ("hermes_cli/_early_recovery.py", True, True),
-    ("hermes_cli/__init__.py", True, True),
-    ("hermes_cli/update_lock.py", True, True),
+    ("kova_bootstrap.py", False, True),
+    ("kova_cli/_early_recovery.py", True, True),
+    ("kova_cli/__init__.py", True, True),
+    ("kova_cli/update_lock.py", True, True),
     # An updater that predates publication: the launcher reads the same files from git's objects.
-    ("hermes_bootstrap.py", True, False),
+    ("kova_bootstrap.py", True, False),
 ])
 def test_a_launch_repairs_a_move_killed_while_writing_the_repairs_own_code(tmp_path, rel, torn, published):
     root, env, original, launcher = _killed_mid_write(tmp_path, rel)
@@ -129,7 +129,7 @@ def test_a_launch_repairs_a_move_killed_while_writing_the_repairs_own_code(tmp_p
 @pytest.mark.platforms("posix")
 @pytest.mark.parametrize("published", [True, False])
 def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_checkout(tmp_path, published):
-    root, env, original, launcher = _killed_mid_write(tmp_path, "hermes_bootstrap.py")
+    root, env, original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py")
     if not published:
         # The closure comes from git's objects, and no git was recorded: the launcher's git is an
         # absolute PATH entry's, never a ``git`` in the current directory an empty entry names (m4).
@@ -149,7 +149,7 @@ def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_check
         assert launch.returncode != 0 and "Not repairing the checkout now" in launch.stderr, launch.stderr
         # One reason, not a "repairing it" banner followed by the import's traceback (m3).
         assert "Traceback" not in launch.stderr and "repairing it" not in launch.stderr, launch.stderr
-        assert not (root / "hermes_bootstrap.py").exists(), "repaired under a live writer"
+        assert not (root / "kova_bootstrap.py").exists(), "repaired under a live writer"
         assert (root / ".git/hermes-update-pull").exists()
         assert not (tmp_path / "CWD_GIT_RAN").exists()
         assert (root / ".git/hermes-update-recovery").is_dir(), "closure not rebuilt from git's objects"
@@ -159,7 +159,7 @@ def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_check
     launch = subprocess.run([str(launcher)], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=60, check=False)
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
-    assert (root / "hermes_bootstrap.py").read_bytes() == original
+    assert (root / "kova_bootstrap.py").read_bytes() == original
 
 
 
@@ -168,16 +168,16 @@ def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_check
 def test_a_damaged_published_closure_is_rebuilt_from_git_objects_not_trusted(tmp_path, damage):
     """A power loss can leave the published closure with bytes git never had: they never run, and the
     launch rebuilds the closure from ``pre``'s objects before repairing (M1)."""
-    root, env, original, launcher = _killed_mid_write(tmp_path, "hermes_bootstrap.py")
+    root, env, original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py")
     (closure,) = (root / ".git/hermes-update-recovery").iterdir()
-    module = closure / "hermes_cli/_early_recovery.py"
+    module = closure / "kova_cli/_early_recovery.py"
     module.write_bytes(b"" if damage == "truncated" else
                        module.read_bytes() + b"\nprint('NOT_PRE_CODE_RAN', file=__import__('sys').stderr)\n")
     launch = subprocess.run([str(launcher)], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=60, check=False)
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
     assert "NOT_PRE_CODE_RAN" not in launch.stderr, launch.stderr
-    assert (root / "hermes_bootstrap.py").read_bytes() == original
+    assert (root / "kova_bootstrap.py").read_bytes() == original
     assert not (root / ".git/hermes-update-pull").exists()
 
 
@@ -187,11 +187,11 @@ def test_git_object_bytes_that_do_not_hash_to_pres_blob_never_run(tmp_path, corr
     """No published closure, and ``pre``'s loose object of the repair inflates to other bytes: they
     never run and nothing is published; the marker stays for a later launch or update (N02)."""
     ran = tmp_path / "FOREIGN_RAN"
-    root, env, _original, launcher = _killed_mid_write(tmp_path, "hermes_bootstrap.py")
+    root, env, _original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py")
     (closure,) = (root / ".git/hermes-update-recovery").iterdir()  # named for ``pre``
     shutil.rmtree(closure.parent)
     if corrupt:
-        oid = subprocess.check_output(["git", "-C", str(root), "rev-parse", f"{closure.name}:hermes_cli/_early_recovery.py"],
+        oid = subprocess.check_output(["git", "-C", str(root), "rev-parse", f"{closure.name}:kova_cli/_early_recovery.py"],
                                       env=env, text=True).strip()
         obj = root / ".git/objects" / oid[:2] / oid[2:]
         foreign = f"open({str(ran)!r}, 'w').close()\n".encode()
@@ -201,7 +201,7 @@ def test_git_object_bytes_that_do_not_hash_to_pres_blob_never_run(tmp_path, corr
                             errors="replace", timeout=60, check=False)
     assert not ran.exists(), launch.stderr
     assert (launch.returncode == 0) is not corrupt, launch.stderr
-    assert (root / "hermes_bootstrap.py").exists() is not corrupt
+    assert (root / "kova_bootstrap.py").exists() is not corrupt
     assert (root / ".git/hermes-update-pull").exists() is corrupt
     assert not (corrupt and (root / ".git/hermes-update-recovery").exists()), "published foreign bytes"
 
@@ -213,20 +213,20 @@ def test_a_stdlib_named_file_in_the_tree_never_runs_before_the_repair(tmp_path, 
     imported in its place, and the torn tree is still repaired (N03)."""
     ran = tmp_path / "SHADOW_RAN"
     shadow = {"shutil.py": f"open({str(ran)!r}, 'w').close()\nraise ImportError('shadow')\n"} if shadowed else {}
-    root, env, original, launcher = _killed_mid_write(tmp_path, "hermes_bootstrap.py", shadow)
+    root, env, original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py", shadow)
     launch = subprocess.run([str(launcher)], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=60, check=False)
     assert not ran.exists(), launch.stderr
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
-    assert (root / "hermes_bootstrap.py").read_bytes() == original
+    assert (root / "kova_bootstrap.py").read_bytes() == original
     assert not (root / ".git/hermes-update-pull").exists()
 
 
 def test_the_closure_is_pres_committed_bytes_read_in_one_cat_file_spawn(tmp_path, monkeypatch):
     """The published repair is ``pre``'s committed bytes, not the working tree's, read with one
     ``git cat-file --batch`` (the preflight's batched reader), not a ``cat-file`` per file."""
-    from hermes_cli import update_cmd_commit as commit
-    from hermes_cli._early_recovery import RECOVERY_CLOSURE
+    from kova_cli import update_cmd_commit as commit
+    from kova_cli._early_recovery import RECOVERY_CLOSURE
 
     root = tmp_path / "checkout"
     for rel in RECOVERY_CLOSURE:

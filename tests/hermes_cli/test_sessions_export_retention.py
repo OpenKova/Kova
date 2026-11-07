@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import main
-from hermes_state import SessionDB
+from kova_cli import main
+from kova_state import SessionDB
 
 
 @pytest.fixture
@@ -17,9 +17,9 @@ def store(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # `hermes sessions` opens the ACTIVE home's store by explicit path (a served-profile process has
-    # no single default store); the hermetic conftest re-pins hermes_state's argless default to its
+    # no single default store); the hermetic conftest re-pins kova_state's argless default to its
     # own home, so point that default here too or the seeded rows land in a store the CLI never reads.
-    monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
+    monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", home / "state.db")
     with SessionDB() as db:
         for session_id in ("normal", "pinned", "archived"):
             db.create_session(session_id, "cli")

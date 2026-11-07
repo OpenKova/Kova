@@ -24,8 +24,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-from hermes_constants import is_termux as _is_termux_environment
-from hermes_platform.host.runtime import is_wsl
+from kova_constants import is_termux as _is_termux_environment
+from kova_platform.host.runtime import is_wsl
 from tools.voice_mode_transcript import _voice_config, is_voice_stop_phrase, is_whisper_hallucination
 
 # ── Recording parameters ──
@@ -315,7 +315,7 @@ def detect_audio_environment() -> dict:
     # Docker/Podman container detection — honor host audio forwarding. When the user mounts a
     # PulseAudio/PipeWire socket into the container and points PULSE_SERVER / PIPEWIRE_REMOTE at it, audio
     # works fine (issue #21203). Only block when no forwarding is configured.
-    from hermes_constants import is_container
+    from kova_constants import is_container
     if is_container():
         report("Running inside container (Docker/Podman/LXC) with host audio forwarding",
                "Running inside container (Docker/Podman/LXC) -- no audio devices.\n"
@@ -1464,7 +1464,7 @@ def _check_plugin_stt_provider(provider: str) -> bool:
         return False
     try:
         from agent.transcription_registry import get_provider
-        from hermes_cli.plugins import _ensure_plugins_discovered
+        from kova_cli.plugins import _ensure_plugins_discovered
         _ensure_plugins_discovered()
         plugin_provider = get_provider(key)
         if plugin_provider is None:

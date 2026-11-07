@@ -67,7 +67,7 @@ def test_dmg_driver_requires_complete_pm_source_install(tmp_path, missing, expec
         logs.mkdir(parents=True)
         logged_root = tmp_path / "other-install" if missing == "wrong-root-log" else root
         (logs / "bootstrap-installer.log").write_text(
-            f"INFO hermes_bootstrap_lib::bootstrap: bootstrap complete install_root={logged_root}\n",
+            f"INFO kova_bootstrap_lib::bootstrap: bootstrap complete install_root={logged_root}\n",
             encoding="utf-8",
         )
     result = subprocess.run(

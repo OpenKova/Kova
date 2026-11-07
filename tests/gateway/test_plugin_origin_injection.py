@@ -10,14 +10,14 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 import gateway.run as gateway_run
 from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.platforms.base import BasePlatformAdapter, MessageEvent, MessageType, SendResult
 from gateway.profile_routing import parse_profile_routes
 from gateway.run import GatewayRunner
-from hermes_cli.plugins import PluginContext, PluginManager, PluginManifest
+from kova_cli.plugins import PluginContext, PluginManager, PluginManifest
 
 PLUGIN = "desk"
 
@@ -38,7 +38,7 @@ class _RecordingAdapter(BasePlatformAdapter):
 
     async def send(self, chat_id, content, reply_to=None, metadata=None):
         from agent.secret_scope import get_secret
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         self.sent.append((str(chat_id), content))
         self.send_scopes.append((get_hermes_home(), get_secret("PROBE_MARKER")))
         return SendResult(success=True, message_id=str(len(self.sent)))
@@ -99,7 +99,7 @@ def gateway(tmp_path, monkeypatch):
 
     async def _fake_turn(message, context_prompt, history, source, session_id, **_kwargs):
         from agent.secret_scope import get_secret
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
         turns.append(SimpleNamespace(message=message, history=list(history), session_id=session_id,
                                      home=get_hermes_home(), marker=get_secret("PROBE_MARKER")))
         return {"final_response": f"reply-{len(turns)}", "messages": [], "tools": [],
@@ -107,9 +107,9 @@ def gateway(tmp_path, monkeypatch):
 
     runner._run_agent_inner = _fake_turn
     served = list(homes.items())
-    with patch("hermes_cli.profiles.profiles_to_serve", return_value=served), \
-            patch("hermes_cli.profiles.get_profile_dir", side_effect=lambda n: homes[n]), \
-            patch("hermes_cli.profiles.profile_exists", side_effect=lambda n: n in homes):
+    with patch("kova_cli.profiles.profiles_to_serve", return_value=served), \
+            patch("kova_cli.profiles.get_profile_dir", side_effect=lambda n: homes[n]), \
+            patch("kova_cli.profiles.profile_exists", side_effect=lambda n: n in homes):
         yield SimpleNamespace(runner=runner, homes=homes, adapters=adapters, turns=turns)
 
 
@@ -134,7 +134,7 @@ async def test_origin_creates_session_in_own_profile_and_replies_to_origin(gatew
     runner, alpha, beta = gateway.runner, gateway.adapters["alpha"], gateway.adapters["beta"]
     ctx_alpha, mgr_alpha = _context(gateway.homes["alpha"])
     ctx_beta, mgr_beta = _context(gateway.homes["beta"])
-    with patch("hermes_cli.plugins._known_plugin_managers", return_value=[mgr_alpha, mgr_beta]):
+    with patch("kova_cli.plugins._known_plugin_managers", return_value=[mgr_alpha, mgr_beta]):
         await _publish(runner)
         assert ctx_alpha.inject_message("Kick off the review", origin=_origin("100")) is True
         await _settle(runner, alpha)
@@ -176,7 +176,7 @@ async def test_origin_cannot_reach_another_profile(gateway):
     through a chat the gateway routes to ``beta``. Refusal is synchronous and nothing is created."""
     runner, alpha = gateway.runner, gateway.adapters["alpha"]
     ctx_alpha, mgr_alpha = _context(gateway.homes["alpha"])
-    with patch("hermes_cli.plugins._known_plugin_managers", return_value=[mgr_alpha]):
+    with patch("kova_cli.plugins._known_plugin_managers", return_value=[mgr_alpha]):
         await _publish(runner)
         assert ctx_alpha.inject_message("x", origin=_origin("100", profile="beta")) is False
         assert ctx_alpha.inject_message("x", origin=_origin("999")) is False  # routed to beta
@@ -192,7 +192,7 @@ async def test_origin_without_connected_adapter_returns_false(gateway):
     runner = gateway.runner
     ctx_alpha, mgr_alpha = _context(gateway.homes["alpha"])
     runner._profile_adapters["alpha"] = {}  # alpha's bot is down; never borrow default's
-    with patch("hermes_cli.plugins._known_plugin_managers", return_value=[mgr_alpha]):
+    with patch("kova_cli.plugins._known_plugin_managers", return_value=[mgr_alpha]):
         await _publish(runner)
         assert ctx_alpha.inject_message("x", origin=_origin("100")) is False
         assert ctx_alpha.inject_message("x", origin={**_origin("100"), "platform": "discord"}) is False

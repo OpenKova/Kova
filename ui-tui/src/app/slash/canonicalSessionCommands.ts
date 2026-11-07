@@ -277,7 +277,7 @@ interface ToolsShowResult {
   total?: number
 }
 
-/** Main's `/tools` text (hermes_cli/cli_info_mixin.py show_tools): kawaii header box, one
+/** Main's `/tools` text (kova_cli/cli_info_mixin.py show_tools): kawaii header box, one
  *  `[toolset]` block per section with the first description sentence, then the total. */
 export function renderToolsListing(result: ToolsShowResult): string {
   const sections = result.sections ?? []

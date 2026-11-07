@@ -17,8 +17,8 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hermes_constants import get_hermes_home
-from hermes_time import now as _hermes_now
+from kova_constants import get_hermes_home
+from kova_time import now as _hermes_now
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)

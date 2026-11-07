@@ -17,7 +17,7 @@ interface BrowserDesktopPluginsOptions {
 }
 
 /** The runtime loader's disk door, answered by the server that serves this page: its app-level
- *  desktop-plugins folder (hermes_cli/web_routers/desktop_plugins.py). /api/fs is the wrong
+ *  desktop-plugins folder (kova_cli/web_routers/desktop_plugins.py). /api/fs is the wrong
  *  reader there: it follows the profile's SSH workspace and truncates at the preview cap. */
 export function createBrowserDesktopPluginsBridge({ api, files }: BrowserDesktopPluginsOptions): DesktopPluginsBridge {
   let root: null | string = null

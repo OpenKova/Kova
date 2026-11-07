@@ -10,7 +10,7 @@ import pytest
 
 from tools.memory_tool import memory_tool
 from tools.memory_tool_store import MemoryStore
-from hermes_cli.write_approval_commands import _changed_entries
+from kova_cli.write_approval_commands import _changed_entries
 
 PACKED = "todo: item A; item B; item C"
 

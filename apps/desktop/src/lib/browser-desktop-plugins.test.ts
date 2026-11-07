@@ -7,8 +7,8 @@ import { clearWebappSession, seedWebappSession } from '@/test/webapp-session'
 import { installBrowserDesktopBridge } from './browser-desktop-bridge'
 import { createBrowserDesktopPluginsBridge } from './browser-desktop-plugins'
 
-// The server half (hermes_cli/web_routers/desktop_plugins.py) is pinned in
-// tests/hermes_cli/test_webapp_desktop_plugins.py; this is the server's answer for one plugin.
+// The server half (kova_cli/web_routers/desktop_plugins.py) is pinned in
+// tests/kova_cli/test_webapp_desktop_plugins.py; this is the server's answer for one plugin.
 const ROOT = 'C:\\Users\\me\\.hermes\\desktop-plugins'
 const FOLDER = `${ROOT}\\notes`
 

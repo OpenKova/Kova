@@ -21,8 +21,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_state import SessionDB, StateDbCorruptError
-from hermes_state_health import mark_storage_corrupt, reset_storage_state
+from kova_state import SessionDB, StateDbCorruptError
+from kova_state_health import mark_storage_corrupt, reset_storage_state
 from run_agent import AIAgent
 
 

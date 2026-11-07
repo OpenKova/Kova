@@ -58,7 +58,7 @@ def test_an_update_killed_holding_its_fetchs_ref_lock_does_not_block_the_next(tm
     hold.touch()
     # Rig.update's process is not a group leader, so H.kill_tree could not reach it.
     first = subprocess.Popen(
-        H.sandbox_argv([sys.executable, "-m", "hermes_cli.main", "update", "--yes", "--branch", "main",
+        H.sandbox_argv([sys.executable, "-m", "kova_cli.main", "update", "--yes", "--branch", "main",
                         "--no-gateway-restart"], writable=[tmp_path]),
         env=rig.env("home-a"), cwd=rig.checkout, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, text=True, start_new_session=True)

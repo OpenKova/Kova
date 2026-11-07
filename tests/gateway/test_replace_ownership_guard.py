@@ -38,7 +38,7 @@ import pytest
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME mirroring tests/hermes_cli/test_profiles.py."""
+    """Isolated HERMES_HOME mirroring tests/kova_cli/test_profiles.py."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir(exist_ok=True)
@@ -50,7 +50,7 @@ def _record(pid=424242, start=111222333, home=None, argv=None):
     return {
         "pid": pid,
         "kind": "hermes-gateway",
-        "argv": argv or ["python", "-m", "hermes_cli.main", "gateway", "run"],
+        "argv": argv or ["python", "-m", "kova_cli.main", "gateway", "run"],
         "start_time": start,
         "hermes_home": home,
     }
@@ -225,16 +225,16 @@ class TestArgvConsistencyCheck:
         tim_home = Path("/home/x/.hermes/profiles/tim")
         # Foreign target advertising timothy — NOT ours.
         assert (
-            conflict("python -m hermes_cli.main --profile timothy gateway run", tim_home)
+            conflict("python -m kova_cli.main --profile timothy gateway run", tim_home)
             is True
         )
         # Our own exact name stays consistent.
         assert (
-            conflict("python -m hermes_cli.main --profile tim gateway run", tim_home)
+            conflict("python -m kova_cli.main --profile tim gateway run", tim_home)
             is False
         )
         assert (
-            conflict("python -m hermes_cli.main -p tim gateway run", tim_home)
+            conflict("python -m kova_cli.main -p tim gateway run", tim_home)
             is False
         )
 
@@ -247,14 +247,14 @@ class TestArgvConsistencyCheck:
         tim_home = Path("/home/x/.hermes/profiles/tim")
         assert (
             conflict(
-                "python -m hermes_cli.main HERMES_HOME=/home/x/.hermes/profiles/timothy gateway run",
+                "python -m kova_cli.main HERMES_HOME=/home/x/.hermes/profiles/timothy gateway run",
                 tim_home,
             )
             is True
         )
         assert (
             conflict(
-                "python -m hermes_cli.main --hermes-home /home/x/.hermes/profiles/tim/ gateway run",
+                "python -m kova_cli.main --hermes-home /home/x/.hermes/profiles/tim/ gateway run",
                 tim_home,
             )
             is False  # trailing slash normalizes away
@@ -292,7 +292,7 @@ class TestArgvConsistencyCheck:
             ),
             patch(
                 "gateway.status._read_process_cmdline",
-                return_value="python -m hermes_cli.main --profile other-profile gateway run",
+                return_value="python -m kova_cli.main --profile other-profile gateway run",
             ),
             patch(
                 "gateway.status._get_process_hermes_home",

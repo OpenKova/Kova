@@ -22,7 +22,7 @@ async def _owner(home, monkeypatch):
     owner = await initialize_session_authority(runner, profile_id=str(home), instance_id='fixture')
     # This fixture's runner has no adapter table: hand session.info the session's frozen policy.
     from gateway import session_policy
-    from hermes_state_local import local_receipt
+    from kova_state_local import local_receipt
     monkeypatch.setattr(session_policy, 'policy_for_source', lambda runner, source: session_policy.restore_policy(
         local_receipt(owner.db, source.chat_id)['policy']))
     return owner, AuthorityConnection(owner, object(), {'user_id': 'owner'})
@@ -124,7 +124,7 @@ async def test_an_unlistable_plugins_folder_never_blocks_the_session(tmp_path, m
 
 
 def test_classic_cli_prints_the_sessions_config_warning(capsys):
-    from hermes_cli.gateway_session_store import GatewaySessionStore
+    from kova_cli.gateway_session_store import GatewaySessionStore
 
     class Connection:
         final = False

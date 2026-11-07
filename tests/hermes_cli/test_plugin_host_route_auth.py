@@ -4,15 +4,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli.plugin_host import PluginHost
-from tests.hermes_cli import test_plugin_secondary_profile_host as secondary
+from kova_cli.plugin_host import PluginHost
+from tests.kova_cli import test_plugin_secondary_profile_host as secondary
 
 daemon = secondary.daemon
 
 _API = '''
 import os
 from fastapi import APIRouter, Request
-from hermes_cli.web_deps import late
+from kova_cli.web_deps import late
 
 router = APIRouter()
 
@@ -81,8 +81,8 @@ def test_launch_host_preserves_native_admission(daemon, monkeypatch):
 def test_admission_matches_normal_guard_and_preserves_unguarded_routes():
     from fastapi import FastAPI, HTTPException
     from starlette.requests import Request
-    from hermes_cli.plugin_host_http_auth import admitted_for_sensitive_route
-    from hermes_cli import web_server
+    from kova_cli.plugin_host_http_auth import admitted_for_sensitive_route
+    from kova_cli import web_server
 
     app = FastAPI()
     scope = {"type": "http", "method": "PUT", "path": "/config", "headers": [], "app": app}

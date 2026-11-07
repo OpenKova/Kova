@@ -7,7 +7,7 @@ import pytest
 
 from gateway.platform_registry import PlatformRegistry, PlatformEntry
 from gateway.config import Platform, GatewayConfig
-from hermes_cli import plugins_loader
+from kova_cli import plugins_loader
 
 
 # ── Platform enum dynamic members ─────────────────────────────────────────
@@ -291,7 +291,7 @@ class TestPlatformsMerge:
 
 
     def test_get_all_platforms_includes_plugin(self):
-        from hermes_cli.platforms import get_all_platforms
+        from kova_cli.platforms import get_all_platforms
         from gateway.platform_registry import platform_registry as _reg
 
         _reg.register(PlatformEntry(
@@ -659,7 +659,7 @@ class TestMigratedPlatformWiring:
     )
 
     def test_lazy_installable_platforms_have_split_wiring(self):
-        from hermes_cli.plugins import discover_plugins
+        from kova_cli.plugins import discover_plugins
 
         discover_plugins()
         from gateway.platform_registry import platform_registry

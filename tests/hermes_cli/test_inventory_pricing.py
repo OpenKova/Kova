@@ -11,9 +11,9 @@ from time import monotonic
 
 import pytest
 
-import hermes_cli.inventory as inv
-import hermes_cli.models as models_mod
-from hermes_cli import models_pricing
+import kova_cli.inventory as inv
+import kova_cli.models as models_mod
+from kova_cli import models_pricing
 
 
 def _patch_pricing(monkeypatch, *, free_tier, pricing, unavailable=None):
@@ -114,8 +114,8 @@ def test_apply_pricing_window_plan_drops_prices_and_stamps_plan_usage(monkeypatc
         pricing={"nous": {"a/m": {"prompt": "0.000001", "completion": "0.000005", "usage_level": "medium"}}},
     )
     monkeypatch.setattr(
-        "hermes_cli.model_picker_usage.nous_picker_usage",
-        lambda **_kw: __import__("hermes_cli.model_picker_usage", fromlist=["picker_usage_from_account"]).picker_usage_from_account(
+        "kova_cli.model_picker_usage.nous_picker_usage",
+        lambda **_kw: __import__("kova_cli.model_picker_usage", fromlist=["picker_usage_from_account"]).picker_usage_from_account(
             {"logged_in": True, "subscription": {"plan": "Window Plan"},
              "usage_window": usage_window(day_used_bp=1000, week_used_bp=500, top_tier_used_bp=0,
                                           day_resets_at_ms=1, week_resets_at_ms=2)}
@@ -137,8 +137,8 @@ def test_apply_pricing_credit_grant_keeps_prices_and_stamps_plan_usage(monkeypat
         pricing={"nous": {"a/m": {"prompt": "0.000001", "completion": "0.000005"}}},
     )
     monkeypatch.setattr(
-        "hermes_cli.model_picker_usage.nous_picker_usage",
-        lambda **_kw: __import__("hermes_cli.model_picker_usage", fromlist=["picker_usage_from_account"]).picker_usage_from_account(
+        "kova_cli.model_picker_usage.nous_picker_usage",
+        lambda **_kw: __import__("kova_cli.model_picker_usage", fromlist=["picker_usage_from_account"]).picker_usage_from_account(
             {"logged_in": True,
              "subscription": {"plan": "Credit Plan", "monthly_credits": 20, "credits_remaining": 8},
              "paid_service_access_info": {"subscription_credits_remaining": 8}}
@@ -174,7 +174,7 @@ def test_model_options_cold_pricing_fetch_runs_off_the_request_path(monkeypatch)
     }
     monkeypatch.setattr(models_pricing, "get_pricing_for_provider", fake_pricing)
     monkeypatch.setattr(
-        "hermes_cli.model_switch.list_authenticated_providers",
+        "kova_cli.model_switch.list_authenticated_providers",
         lambda **_kwargs: [row],
     )
     monkeypatch.setattr(inv, "_moa_provider_row", lambda *_args, **_kwargs: None)
@@ -235,7 +235,7 @@ def test_prewarm_preserves_context_and_runs_once_per_profile(tmp_path, monkeypat
         reset_secret_scope,
         set_secret_scope,
     )
-    from hermes_constants import (
+    from kova_constants import (
         hermes_home_key,
         reset_hermes_home_override,
         set_hermes_home_override,
@@ -322,7 +322,7 @@ def test_prewarm_deduplicates_inflight_scope_and_cleans_up(monkeypatch):
 
 def test_prewarm_endpoint_rotation_starts_a_new_worker(tmp_path, monkeypatch):
     """A live endpoint-A worker must not suppress endpoint B for its profile."""
-    from hermes_constants import (
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -395,7 +395,7 @@ def test_prewarm_endpoint_rotation_starts_a_new_worker(tmp_path, monkeypatch):
 
 def test_prewarm_nous_rotation_when_another_provider_is_current(tmp_path, monkeypatch):
     """Nous endpoint identity must not depend on Nous being selected."""
-    from hermes_constants import (
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -617,7 +617,7 @@ def test_prewarm_cache_scope_uses_custom_row_endpoint_identity(monkeypatch):
 
 def test_cached_only_dynamic_pricing_is_profile_scoped(tmp_path, monkeypatch):
     """Alternating profiles read the endpoint each profile warmed."""
-    from hermes_constants import (
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )

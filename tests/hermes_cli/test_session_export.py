@@ -1,8 +1,8 @@
 import json
 import sys
 
-from hermes_cli.session_export import export_record_count, render_sessions_export
-from hermes_cli.session_export_html import (
+from kova_cli.session_export import export_record_count, render_sessions_export
+from kova_cli.session_export_html import (
     _generate_messages_html,
     generate_multi_session_html_export,
 )
@@ -96,12 +96,12 @@ def test_export_record_count_switches_unit_for_prompt_only_exports():
 
 
 def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys, tmp_path):
-    import hermes_cli.main as main_mod
-    import hermes_state
+    import kova_cli.main as main_mod
+    import kova_state
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     path = tmp_path / "state.db"
-    db = hermes_state.SessionDB(db_path=path)
+    db = kova_state.SessionDB(db_path=path)
     db.create_session("sess-123", "cli")
     for message in _sample_session()["messages"]:
         db.append_message("sess-123", message["role"], message["content"])

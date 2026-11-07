@@ -1,7 +1,7 @@
 """#101789 on the real Windows hand-off script: a Desktop swap blocked by a program outside Hermes.
 
 A real ``windows.ps1`` drives a published launcher whose ``hermes update`` is a scripted stand-in
-printing exactly what ``hermes_cli.desktop_release_holders`` prints when Windows refused the
+printing exactly what ``kova_cli.desktop_release_holders`` prints when Windows refused the
 promotion rename. The result the relaunched Desktop reads must name that program (message and a
 structured ``release_holders`` list), so the Desktop can offer to close exactly it, and the retry
 that click starts must run under the run id its consent is bound to.
@@ -18,7 +18,7 @@ import time
 import psutil
 import pytest
 
-from hermes_cli.desktop_release_holders import ReleaseHolder, take_consent
+from kova_cli.desktop_release_holders import ReleaseHolder, take_consent
 from tests.installation_launcher_fixture import publish_fixture_launcher
 from tests.scripts.desktop_update.windows_handoff_support import MARKER, POWERSHELL, _creation_time
 from tests.waiting import wait_until
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 def test_blocked_swap_result_names_the_holder_for_the_desktop(tmp_path: Path) -> None:
     install = tmp_path / 'checkout'
     publish_fixture_launcher(install, CLI)
-    (install / 'hermes_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
+    (install / 'kova_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
     home = tmp_path / 'home'
     home.mkdir()
     # The consent the Desktop recorded for this retry; its swap is never reached (the build failed).
@@ -140,7 +140,7 @@ def test_close_and_retry_runs_under_its_own_run_even_from_a_relaunched_desktop(t
     # this hand-off's id must not reach the Desktop it relaunches in turn.
     install = tmp_path / 'checkout'
     publish_fixture_launcher(install, CLI)
-    (install / 'hermes_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
+    (install / 'kova_cli/desktop_update_verify.py').write_text('pass\n', encoding='utf-8')
     home = tmp_path / 'home'
     home.mkdir()
     source = tmp_path / 'desktop.cs'

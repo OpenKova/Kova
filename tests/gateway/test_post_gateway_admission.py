@@ -13,14 +13,14 @@ from gateway.config import GatewayConfig, Platform, PlatformConfig
 from gateway.platforms.event import MessageEvent
 from gateway.run import _profile_runtime_scope
 from gateway.session import SessionSource
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 
 HOOK = "post_gateway_admission"
 
 
 def _register(callback) -> None:
     """Register *callback* on the ACTIVE home's plugin manager (what a loaded plugin does)."""
-    from hermes_cli.plugins import get_plugin_manager
+    from kova_cli.plugins import get_plugin_manager
 
     manager = get_plugin_manager()
     manager._discovered = True  # no on-disk plugins in the test home; skip discovery

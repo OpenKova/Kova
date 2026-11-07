@@ -12,8 +12,8 @@ import time
 
 import pytest
 
-from hermes_cli.web_routers import analytics as web_server
-from hermes_state import SessionDB
+from kova_cli.web_routers import analytics as web_server
+from kova_state import SessionDB
 
 
 @pytest.fixture

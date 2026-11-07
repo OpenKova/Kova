@@ -1,4 +1,4 @@
-"""Tests for ``hermes plugins validate`` (hermes_cli/plugin_validate.py).
+"""Tests for ``hermes plugins validate`` (kova_cli/plugin_validate.py).
 
 Static manifest checks + subprocess-isolated capability probing against a
 recording stub context.
@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
-from hermes_cli.plugin_validate import validate_plugin_dir
-from hermes_cli.plugin_validate_desktop import desktop_surface_hits, is_desktop_surface
+from kova_cli.plugin_validate import validate_plugin_dir
+from kova_cli.plugin_validate_desktop import desktop_surface_hits, is_desktop_surface
 
 
 def _make_plugin(
@@ -31,7 +31,7 @@ def _make_plugin(
 
 
 def _portable_plugin(root: Path, servers: dict, declarations: dict) -> Path:
-    from hermes_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
+    from kova_cli.agent_plugins import MCP_SCHEMA_V1, PLUGIN_SCHEMA_V1
 
     root.mkdir()
     (root / "plugin.json").write_text(json.dumps({
@@ -94,8 +94,8 @@ def test_config_schema_admits_every_type_the_loader_and_renderer_accept(tmp_path
     """A ``type:`` the Desktop settings renderer/loader accept (``secret`` + ``env:``, ``object``) must
     pass admission — the catalog validator rejecting a documented type blocks pins of plugins that
     declare a secret setting."""
-    from hermes_cli.plugins_manifest import _CONFIG_SCHEMA_TYPES
-    from hermes_cli.plugins_settings import _FIELD_TYPES
+    from kova_cli.plugins_manifest import _CONFIG_SCHEMA_TYPES
+    from kova_cli.plugins_settings import _FIELD_TYPES
 
     assert set(_FIELD_TYPES) == set(_CONFIG_SCHEMA_TYPES)
     schema = {f"k_{t}": {"type": t} for t in _FIELD_TYPES}
@@ -467,14 +467,14 @@ def test_runtime_rebind_of_hermes_core_fails_admission(tmp_path):
         "    _wrap(run_agent.AIAgent, '_replace_primary_openai_client', print)\n"
         "    srv = gateway_server()\n"
         "    setattr(srv, 'handle_request', print)\n"
-        "    import hermes_cli.models_catalog_static as m\n"
+        "    import kova_cli.models_catalog_static as m\n"
         "    m._PROVIDER_MODELS['x'] = ['y']\n"
     ))
     (bad / "compat.py").write_text(
         "from importlib import import_module\ndef server():\n    return import_module('tui_gateway.server')\n",
         encoding="utf-8")
     good = _make_plugin(tmp_path, manifest=dict(BASE_MANIFEST, name="good"), init_py=(
-        "from hermes_cli.config import load_config\n"
+        "from kova_cli.config import load_config\n"
         "from .tools import helper\n"
         "class Box:\n"
         "    def set(self, v):\n"
@@ -492,7 +492,7 @@ def test_runtime_rebind_of_hermes_core_fails_admission(tmp_path):
         "from unittest import mock\nimport run_agent\nrun_agent.AIAgent.x = 1\nmock.patch('run_agent.AIAgent.y')\n",
         encoding="utf-8")
 
-    from hermes_cli.plugin_validate_core_override import core_override_findings
+    from kova_cli.plugin_validate_core_override import core_override_findings
 
     assert core_override_findings(bad) == [
         "run_agent.AIAgent.run_conversation (__init__.py:6)",
@@ -514,7 +514,7 @@ def test_core_override_through_a_method_patch_helper(tmp_path):
         "    Patches().bind(auxiliary_client, '_relay_sync_stream', print)\n"
     ))
 
-    from hermes_cli.plugin_validate_core_override import core_override_findings
+    from kova_cli.plugin_validate_core_override import core_override_findings
 
     assert core_override_findings(bad) == ["bind(auxiliary_client, ...) (__init__.py:6)"]
 
@@ -527,7 +527,7 @@ def test_install_deps_probe_imports_from_the_synced_environment(tmp_path: Path, 
 
     import pm
     from pm import environments
-    from hermes_cli.plugins_cmd_catalog import cmd_validate
+    from kova_cli.plugins_cmd_catalog import cmd_validate
 
     deps = tmp_path / "synced-site-packages"
     deps.mkdir()

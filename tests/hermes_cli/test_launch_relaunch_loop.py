@@ -26,7 +26,7 @@ import json
 command_args = json.loads(os.environ["LAUNCH_COMMAND"])  # an argv naming `update` alarms the test guard
 sys.path.insert(0, repo)
 import pm, pm.client
-from hermes_cli import _launchers, venv_sync
+from kova_cli import _launchers, venv_sync
 
 generations = Path(scratch, f"generations-{launch}")
 with generations.open("a") as fh:
@@ -54,7 +54,7 @@ if sync_mode == "restore" and getattr(sys, "_hermes_relaunched", False) and not 
     # The relaunched child restores a torn update: the restored tree's dependencies are stale again.
     Path(scratch, "restored").write_text("1")
     state.write_text("stale")
-    from hermes_cli import _early_recovery
+    from kova_cli import _early_recovery
     _early_recovery.relaunch_after_restore()
 
 try:
@@ -94,7 +94,7 @@ def test_backed_off_failed_sync_boots_on_the_previous_dependencies(tmp_path, mon
     (or past the cap) has run no repair, so relaunching it would re-enter the same decision and
     exec again forever; it must boot on the previous dependencies, and `hermes update` (the
     remedy every backed-off launch names) still tries the repair; its report-only `--check` does not."""
-    from hermes_cli import venv_sync
+    from kova_cli import venv_sync
 
     root = tmp_path / "checkout"
     root.mkdir()
@@ -122,7 +122,7 @@ def test_backed_off_failed_sync_boots_on_the_previous_dependencies(tmp_path, mon
 
 
 def _committed_checkout(tmp_path: Path) -> Path:
-    from hermes_cli.source_stamp import write_source_stamp
+    from kova_cli.source_stamp import write_source_stamp
 
     root = tmp_path / "checkout"
     root.mkdir()

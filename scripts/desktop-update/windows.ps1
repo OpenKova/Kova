@@ -288,7 +288,7 @@ $script:UiState = [hashtable]::Synchronized(@{
     acknowledged_receipt = $null
 })
 $script:UiServer = $null     # @{ Listener; Runspace; PowerShell; Port; BrowserProc; Profile }
-# `hermes update` publishes its own stages (hermes_cli/update_stage.py: downloading, dependencies,
+# `hermes update` publishes its own stages (kova_cli/update_stage.py: downloading, dependencies,
 # each app build, packaging) into this file, as it does under posix.sh. The step loop relays them
 # to the window, which otherwise read "Updating code and dependencies" for a whole 20-60 minute
 # run (#139952, #135363), and to the hand-off log, whose timestamps then name the slow stage.
@@ -1008,7 +1008,7 @@ function Start-DesktopRelaunch {
 # every descendant that is spawned without its own redirection gets a
 # duplicate -- and the read side does not see EOF until the last of them
 # closes it. `hermes update` deliberately runs its build steps with stdout
-# inherited (hermes_cli/main.py, the tee-stderr runner), so the tree under a
+# inherited (kova_cli/main.py, the tee-stderr runner), so the tree under a
 # step is arbitrarily deep and not something this script can enumerate. When
 # one of those descendants is a resident gateway, the pipe stays open for the
 # life of the gateway, i.e. forever.
@@ -1051,7 +1051,7 @@ if ($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS) {
 
 # Silence on the pipes is NOT silence in the update. `hermes update` captures
 # the (very loud) Electron/vite build into logs/update.log instead of its own
-# stdout (hermes_cli/update_cmd.py, the update-log tee), so a real update is
+# stdout (kova_cli/update_cmd.py, the update-log tee), so a real update is
 # routinely stdout-silent for 40+ minutes while demonstrably progressing. An
 # idle ceiling that watched only stdout/stderr would cancel every healthy
 # large update at StepIdleTimeoutSeconds. The drain therefore also counts
@@ -1343,7 +1343,7 @@ function Resolve-HermesUpdateOutcome($StepResult) {
 # record keeps finished_at null, so it never matches.
 function Get-CommittedReceiptOutcome {
     $root = $HermesHome
-    # hermes_constants.get_default_hermes_root: a <root>\profiles\<name> home files under <root>
+    # kova_constants.get_default_hermes_root: a <root>\profiles\<name> home files under <root>
     $parent = Split-Path -Parent $root
     if ($parent -and (Split-Path -Leaf $parent) -eq 'profiles') { $root = Split-Path -Parent $parent }
     $path = Join-Path $root 'logs\update_receipts\latest.json'
@@ -1893,7 +1893,7 @@ try {
     if (-not $desktopBuildFailed -and $res.Output -match '(?m)^\s*Desktop app build owed: ') {
         # #101789: a program that is not part of Hermes (an IME cloud helper, an AV
         # component) has its working folder inside release\ and Windows refuses the swap.
-        # hermes_cli/desktop_release_holders.py names each one on its own line; the
+        # kova_cli/desktop_release_holders.py names each one on its own line; the
         # relaunched Desktop offers to close exactly those and retry, never silently.
         # pid + start time identify the exact process the user is asked about; the start time
         # stays the CLI's invariant text (no locale-dependent number parsing here). An exe of
@@ -1914,12 +1914,12 @@ try {
 
     # Every other owed follow-up of the committed update (a gateway still on the old code, a
     # Windows resume, a lost completion...) prints one whole "Update follow-up '<step>' did not
-    # finish:" line (hermes_cli/update_receipt.record_followup): never a plain success either.
+    # finish:" line (kova_cli/update_receipt.record_followup): never a plain success either.
     $owedSteps = @([regex]::Matches(($res.Output -join "`n"), "Update follow-up '([A-Za-z0-9_]+)' did not finish: ") |
         ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique)
     if ($owedSteps.Count -gt 0) {
         # A gateway_restart owed only for serve/dashboard units (the reason then starts with
-        # "serve/dashboard ", hermes_cli/update_cmd_fleet_verify.SERVE_ONLY_REASON_PREFIX) names their own
+        # "serve/dashboard ", kova_cli/update_cmd_fleet_verify.SERVE_ONLY_REASON_PREFIX) names their own
         # command in the log. The hint drops only when EVERY gateway_restart line is serve-only; any other
         # reason, including a raw restart-phase error, keeps it (#141071).
         $gwReasons = @((($res.Output -join "`n") -split "`r?`n") | Where-Object { $_ -cmatch "Update follow-up 'gateway_restart' did not finish: " })
@@ -1932,7 +1932,7 @@ try {
     if (-not $desktopBuildFailed) {
         $verifyFailure = $null
         try {
-            $verifyCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot -Module 'hermes_cli.desktop_update_verify')
+            $verifyCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallRoot -Module 'kova_cli.desktop_update_verify')
             $verifyArgs = @($verifyCommand | Select-Object -Skip 1)
             $verify = Invoke-HermesStep $verifyCommand[0] $verifyArgs 'verify'
             if ($verify.Code -ne 0) { $verifyFailure = "exit $($verify.Code)" }

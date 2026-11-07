@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import ssh_workspace_fs, web_server
-from hermes_cli.web_routers import files as file_routes
+from kova_cli import ssh_workspace_fs, web_server
+from kova_cli.web_routers import files as file_routes
 
 pytest.importorskip("starlette.testclient")
 from starlette.testclient import TestClient
@@ -198,7 +198,7 @@ def test_ssh_stream_refuses_a_file_download_or_media_rules_refuse(client, ssh, p
 
 
 def test_an_ssh_stream_ticket_plays_ranges_and_only_its_own_profile_and_path(client, ssh):
-    from hermes_constants import mark_named_profile_deleted
+    from kova_constants import mark_named_profile_deleted
 
     profile, workspace = ssh
     query = {"path": CLIP, "profile": "remote-dev"}
@@ -356,7 +356,7 @@ def sessions(monkeypatch):
             raise HTTPException(status_code=404, detail="Session not found")
         return {"cwd": "/srv", "id": session_id}
 
-    monkeypatch.setattr("hermes_cli.web_routers.sessions.get_session_detail", detail)
+    monkeypatch.setattr("kova_cli.web_routers.sessions.get_session_detail", detail)
     return rows
 
 

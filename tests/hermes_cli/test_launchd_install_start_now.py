@@ -10,9 +10,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway_cli
-from hermes_cli import gateway_service_owner
-from hermes_cli.subcommands.gateway import build_gateway_parser
+import kova_cli.gateway as gateway_cli
+from kova_cli import gateway_service_owner
+from kova_cli.subcommands.gateway import build_gateway_parser
 
 LABEL = "ai.hermes.gateway"
 DOMAIN = "gui/501"

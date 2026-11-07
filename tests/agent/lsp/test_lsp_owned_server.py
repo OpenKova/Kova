@@ -21,7 +21,7 @@ import pytest
 
 from agent.lsp import client as lsp_client
 from agent.lsp.client import LSPClient
-from hermes_cli import process_identity
+from kova_cli import process_identity
 from tests.waiting import wait_until
 
 pytestmark = pytest.mark.platforms("posix")

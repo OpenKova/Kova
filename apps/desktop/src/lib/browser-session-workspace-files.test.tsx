@@ -27,7 +27,7 @@ vi.mock('@/components/chat/shiki-highlighter', () => ({
 }))
 
 // WA-5: a Docker agent's /workspace is its own session's sandbox, so a Webapp file request names
-// the session it belongs to. The gateway half is tests/hermes_cli/test_web_server_fs_session_workspace.py.
+// the session it belongs to. The gateway half is tests/kova_cli/test_web_server_fs_session_workspace.py.
 const OWNER = { connectionId: LOCAL_CONNECTION_ID, profile: 'default' }
 const CLIP = '/workspace/clip.mp4'
 const win = window

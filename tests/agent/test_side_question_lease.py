@@ -14,13 +14,13 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
-import hermes_cli.plugins as plugins_mod
+import kova_cli.plugins as plugins_mod
 from agent import side_question_lease
 from agent.side_question_lease import issue_side_question_token, redeem_side_question
-from hermes_cli.plugins import PluginContext
+from kova_cli.plugins import PluginContext
 
 CAP = "llm.side_question"
 

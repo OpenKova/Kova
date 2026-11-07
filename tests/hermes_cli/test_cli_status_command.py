@@ -35,7 +35,7 @@ def _make_cli():
 def test_process_command_egress_prints_proxy_status(monkeypatch):
     cli_obj = _make_cli()
     monkeypatch.setattr(
-        "hermes_cli.proxy_cli.format_status_text",
+        "kova_cli.proxy_cli.format_status_text",
         lambda: "Egress proxy status\nEnabled: no",
     )
 
@@ -69,7 +69,7 @@ def test_show_session_status_prints_gateway_style_summary():
         "started_at": 1775791440,
     }
 
-    with patch("hermes_constants.display_hermes_home", return_value="~/.hermes"):
+    with patch("kova_constants.display_hermes_home", return_value="~/.hermes"):
         cli_obj._show_session_status()
 
     printed = "\n".join(str(call.args[0]) for call in cli_obj.console.print.call_args_list)

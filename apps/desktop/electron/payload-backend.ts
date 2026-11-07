@@ -77,7 +77,7 @@ export function requireBundledPayload(mechanism: string, resourcesPath = process
 //
 // The CLI owns the channel records; Electron only reads the install id for
 // `update.installs.<sha16>/` bookkeeping. Channel resolution itself lives in
-// hermes_cli/update_channel.py — main.ts keys canary/stable off the baked
+// kova_cli/update_channel.py — main.ts keys canary/stable off the baked
 // install stamp tag directly.
 
 export type UpdateChannel = 'stable' | 'main' | 'canary'

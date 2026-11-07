@@ -10,7 +10,7 @@ import urllib.error
 
 import pytest
 
-from hermes_cli import source_check
+from kova_cli import source_check
 
 
 class _Api(http.server.BaseHTTPRequestHandler):

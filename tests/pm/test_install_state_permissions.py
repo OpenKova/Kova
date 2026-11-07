@@ -25,7 +25,7 @@ import errno
 import sys
 import pm.environments as environments
 target, phase = sys.argv[1:3]
-from hermes_cli import _early_recovery, venv_sync
+from kova_cli import _early_recovery, venv_sync
 
 def denied(*args, **kwargs):
     raise PermissionError(errno.EACCES, "Permission denied", target)
@@ -34,7 +34,7 @@ venv_sync.prepare_launch = denied if phase == "preparation" else lambda *_: None
 _early_recovery.recover_if_needed = lambda *_: False
 environments.activate_dependencies = denied if phase == "activation" else lambda *_: None
 sys.argv = ["hermes", "-z", "hi"]
-import hermes_bootstrap
+import kova_bootstrap
 """
     result = subprocess.run(
         [sys.executable, "-S", "-c", code, str(target), phase],
@@ -84,7 +84,7 @@ raise SystemExit(main(["repair"]))
     exc = PermissionError(13, "Permission denied", str(outside))
     assert install_state_permission_message(root, exc) is None
 
-    from hermes_cli import _early_recovery
+    from kova_cli import _early_recovery
 
     project = tmp_path / "source"
     project.mkdir()

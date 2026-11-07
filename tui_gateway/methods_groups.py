@@ -344,7 +344,7 @@ def _(rid, params: dict, service) -> dict:
 
     @contextlib.contextmanager
     def publication():
-        from hermes_state_runtime import RuntimeStoreError
+        from kova_state_runtime import RuntimeStoreError
         try:
             with route_publication_lock(service):
                 yield

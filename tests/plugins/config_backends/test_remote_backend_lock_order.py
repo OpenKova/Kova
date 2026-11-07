@@ -1,7 +1,7 @@
 """Remote backend lock order: same-thread re-entry, logging outside backend locks, the formatter."""
 from __future__ import annotations
 
-from hermes_cli.config_backend import ConfigBackendUnavailable, write_config_key
+from kova_cli.config_backend import ConfigBackendUnavailable, write_config_key
 from plugins.config_backends import remote as remote_pkg
 from plugins.config_backends.remote import backend as backend_mod
 
@@ -112,7 +112,7 @@ def test_boot_retry_warning_through_the_real_redacting_formatter(plane, monkeypa
     import logging
 
     from agent.redact import RedactingFormatter
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     backend = remote_pkg.get_remote_backend()
     formatted: list = []
@@ -149,10 +149,10 @@ def test_the_formatter_never_reads_config(tmp_path, monkeypatch):
     (its policy is not recorded yet: the secure default), and no config read is attempted."""
     import logging
 
-    import hermes_cli.config_backend as cb
+    import kova_cli.config_backend as cb
     from agent import redact
     from agent.redact import RedactingFormatter
-    from hermes_constants import hermes_home_key, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import hermes_home_key, reset_hermes_home_override, set_hermes_home_override
 
     reads: list = []
 

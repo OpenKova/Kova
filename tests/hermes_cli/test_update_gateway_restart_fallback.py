@@ -16,10 +16,10 @@ Windows post-update path already uses for exactly this case.
 
 import pytest
 
-from hermes_cli import gateway
+from kova_cli import gateway
 
 
-_ARGV = ["python", "-m", "hermes_cli.main", "gateway", "run"]
+_ARGV = ["python", "-m", "kova_cli.main", "gateway", "run"]
 
 
 def _stub_argv(monkeypatch, argv):

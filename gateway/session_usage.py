@@ -165,7 +165,7 @@ def usage_frame(stats: dict) -> dict:
     ``SessionUsagePayload`` (``tui_gateway/contracts/events.py``) allows either view — the TUI
     ``usage`` object (``server._start_usage_ticker``) or the session-cumulative counters at the top
     level — and the readers on the far end want different halves. The classic CLI
-    (``hermes_cli.gateway_connection.SessionState.apply_event``) keeps the top-level counters
+    (``kova_cli.gateway_connection.SessionState.apply_event``) keeps the top-level counters
     whenever they are present and ignores the nested view; ACP (``acp_adapter.gateway_server``)
     reads only the top level; a Desktop bundle older than ``usageFromTick`` reads only
     ``payload.usage``, so its context / cache-hit / tokens-per-second meters render their empty
@@ -229,7 +229,7 @@ def snapshot_usage(authority, ref, agent) -> dict | None:
 
 async def stats(connection, ref, params):
     """``session.stats {session_id}``: the same dict ``session.usage`` carries."""
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     if set(params) - {"session_id", "profile"}:
         raise RuntimeStoreError("invalid_params")
     await connection.authority.resolve(connection.actor, ref)

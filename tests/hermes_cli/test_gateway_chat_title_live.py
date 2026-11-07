@@ -53,7 +53,7 @@ def connect(database, *a, **k):
     return conn
 sqlite3.connect = connect
 try:
-    runpy.run_module('hermes_cli.main', run_name='__main__')
+    runpy.run_module('kova_cli.main', run_name='__main__')
 finally:
     sys.setprofile(None)
     open({str(witness)!r}, 'w', encoding='utf-8').write(json.dumps(owners))

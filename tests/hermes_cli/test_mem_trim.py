@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from hermes_cli import mem_trim
+from kova_cli import mem_trim
 
 
 @pytest.fixture(autouse=True)
@@ -17,7 +17,7 @@ def _reset_trim_state(monkeypatch):
 
 
 def test_config_kill_switch_overrides_force_from_config_file(monkeypatch, tmp_path):
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir()
@@ -129,7 +129,7 @@ def test_config_cooldown_controls_rate_limit(monkeypatch):
     monkeypatch.setattr(mem_trim, "_last_trim_monotonic", 1.0)
     monkeypatch.setattr(mem_trim.time, "monotonic", lambda: 100.0)
     monkeypatch.setattr(
-        "hermes_cli.config.load_config_readonly",
+        "kova_cli.config.load_config_readonly",
         lambda: {
             "context": {
                 "memory_trim": {"enabled": True, "cooldown_seconds": 120.0}

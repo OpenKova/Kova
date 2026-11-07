@@ -394,7 +394,7 @@ def _cron_job_origin_log_suffix(job: dict) -> str:
 def _plugin_cron_env_var(platform_name: str) -> str:
     """Cron home-channel env var registered by a plugin ``PlatformEntry.cron_deliver_env_var``."""
     with contextlib.suppress(Exception):
-        from hermes_cli.plugins import discover_plugins
+        from kova_cli.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         entry = platform_registry.get(platform_name.lower())
@@ -502,7 +502,7 @@ def _get_home_target_thread_id(platform_name: str) -> Optional[str]:
 def _iter_home_target_platforms():
     """Iterate plugin platform names that expose a home channel, ``_HOME_TARGET_PRIORITY`` first."""
     with contextlib.suppress(Exception):
-        from hermes_cli.plugins import discover_plugins
+        from kova_cli.plugins import discover_plugins
         discover_plugins()  # idempotent
         from gateway.platform_registry import platform_registry
         named = [e.name for e in platform_registry.plugin_entries() if e.cron_deliver_env_var]
@@ -549,7 +549,7 @@ def cron_delivery_targets() -> list[dict]:
 
     # Bot Chat targets: one per local profile (machine-local; no gateway config or home channel).
     try:
-        from hermes_cli.profiles import list_profile_names
+        from kova_cli.profiles import list_profile_names
         for profile_name in list_profile_names():
             targets.append({
                 "id": f"{BOT_CHAT_PLATFORM}:{profile_name}",
@@ -725,8 +725,8 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *,
     import hashlib
     import json
     import uuid
-    from hermes_constants import get_hermes_home
-    from hermes_cli.profiles import get_profile_dir
+    from kova_constants import get_hermes_home
+    from kova_cli.profiles import get_profile_dir
     from tools.bot_live_delivery import (
         deliver_to_live_owner, find_canonical_live_owner, read_delivery_result,
     )
@@ -738,7 +738,7 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str, *,
         source_home = get_hermes_home().resolve()
         home = (get_profile_dir(profile) if profile else source_home).resolve()
         from gateway.warning_notifications import warning_notifications_enabled
-        from hermes_cli.config_effective import load_user_config_effective
+        from kova_cli.config_effective import load_user_config_effective
         suppress_notification = for_failure and not warning_notifications_enabled(
             BOT_CHAT_POLICY_PLATFORM, load_user_config_effective(home / "config.yaml"))
         # run_one_job/claim_fire attach the durable execution id before delivery. The
@@ -835,7 +835,7 @@ def _resolve_bot_chat_target(job: dict, profile_arg: str) -> Optional[dict]:
     if not profile_arg:
         return {"platform": BOT_CHAT_PLATFORM, "chat_id": "", "thread_id": None}
     try:
-        from hermes_cli.profiles import normalize_profile_name, profile_exists
+        from kova_cli.profiles import normalize_profile_name, profile_exists
         canon = normalize_profile_name(profile_arg)
         if not profile_exists(canon):
             logger.warning(
@@ -1910,7 +1910,7 @@ def _deliver_result(
             continue
         if target["platform"] == "local":
             from gateway.session_cron import deliver_to_local_chat
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             local_error = deliver_to_local_chat(get_hermes_home(), target["chat_id"],
                                                 cleaned_delivery_content, diagnostic=for_failure)
             if local_error:

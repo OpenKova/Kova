@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-/** The closed token set `hermes_cli.update_receipt.record_stop_reason` records. */
+/** The closed token set `kova_cli.update_receipt.record_stop_reason` records. */
 const STOP_CLASS_TOKEN = /^[a-z][a-z0-9_]{0,39}$/
 
 const UPDATES_GUIDE = 'https://hermes-agent.nousresearch.com/docs/getting-started/updating'
@@ -81,7 +81,7 @@ export function readStoppedRun(hermesHome: string, correlationId: string | null)
  * to say it. Kept to the stops whose remedy the CLI already owns: a token with
  * no entry keeps the generic failure dialog rather than a guessed explanation.
  *
- * `downgrade_refused` is the refusal `hermes_cli/update_downgrade_guard.py`
+ * `downgrade_refused` is the refusal `kova_cli/update_downgrade_guard.py`
  * prints before anything moves (the receipt records the exit, not that text), so
  * the remedy here is the one the guide names: follow the checkout's channel.
  */

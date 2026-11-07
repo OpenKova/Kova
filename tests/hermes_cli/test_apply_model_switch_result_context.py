@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from hermes_cli.model_switch import ModelSwitchResult
+from kova_cli.model_switch import ModelSwitchResult
 
 
 class _FakeModelInfo:
@@ -127,8 +127,8 @@ def test_picker_path_falls_back_to_model_info_when_resolver_empty(monkeypatch):
 
 def test_global_switch_clears_context_pin_owned_by_previous_route(monkeypatch):
     import cli as cli_mod
-    import hermes_yaml as yaml
-    from hermes_cli.config import get_config_path, read_user_config_raw
+    import kova_yaml as yaml
+    from kova_cli.config import get_config_path, read_user_config_raw
 
     monkeypatch.setattr(cli_mod, "_cprint", lambda *_a, **_k: None)
     cli = _StubCLI()

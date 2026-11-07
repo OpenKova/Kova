@@ -82,7 +82,7 @@ def _drive(fake: FakeVertex, tmp_path: Path):
 
     # `-t file` like the sibling Vertex suites: the default toolset trips #109115 (terminal.notify's
     # anyOf schema), tracked in test_native_vertex_tools.py, which is not what this test is about.
-    argv = [sys.executable, "-m", "hermes_cli.main", "chat", "--cli", "--yolo", "-t", "file"]
+    argv = [sys.executable, "-m", "kova_cli.main", "chat", "--cli", "--yolo", "-t", "file"]
     try:
         subprocess.run(["tmux", "-L", sock, "-f", os.devnull, "new-session", "-d", "-s", "p", "-x", "160", "-y", "48",
                         "-c", str(nh.project), *argv], env=env, check=True, timeout=30)
@@ -108,7 +108,7 @@ def _drive(fake: FakeVertex, tmp_path: Path):
             tmux("kill-server")
         finally:
             kill_home_processes(nh.hermes_home, lambda: subprocess.run(
-                [sys.executable, "-m", "hermes_cli.main", "gateway", "stop"], cwd=nh.project, env=env,
+                [sys.executable, "-m", "kova_cli.main", "gateway", "stop"], cwd=nh.project, env=env,
                 capture_output=True, text=True, timeout=60, check=False))
     return nh
 

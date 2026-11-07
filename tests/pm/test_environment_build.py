@@ -42,8 +42,8 @@ def test_prune_site_pth_keeps_only_load_bearing_pth(tmp_path):
     for site in (win_site, posix_site):
         (site / "pywin32.pth").write_text("win32\nwin32\\lib\nimport pywin32_bootstrap\n", encoding="utf-8")
         (site / "_virtualenv.pth").write_text("import _virtualenv\n", encoding="utf-8")
-        (site / "__editable__.hermes_agent-0.21.1.pth").write_text(
-            "import __editable___hermes_agent_0_21_1_finder\n", encoding="utf-8"
+        (site / "__editable__.kova_agent-0.21.1.pth").write_text(
+            "import __editable___kova_agent_0_21_1_finder\n", encoding="utf-8"
         )
 
     prune_site_pth(win_venv)

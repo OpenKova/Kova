@@ -29,15 +29,15 @@ def lock_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(home))
 
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import kova_constants
+    importlib.reload(kova_constants)
     from tools import skill_usage
     importlib.reload(skill_usage)
     from agent import curator
     importlib.reload(curator)
     monkeypatch.setattr(curator, "_load_config", dict)
     monkeypatch.setattr(skill_usage, "_prune_builtins_enabled", lambda: False)
-    from hermes_cli import curator as curator_cli
+    from kova_cli import curator as curator_cli
     importlib.reload(curator_cli)
     # `lock` resolves the name through skill_manage's finder; pin its search roots to this profile.
     monkeypatch.setattr("agent.skill_utils.get_all_skills_dirs", lambda: [skills])

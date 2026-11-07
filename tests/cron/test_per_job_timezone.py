@@ -21,7 +21,7 @@ import pytest
 
 pytest.importorskip("croniter")
 
-import hermes_time
+import kova_time
 from cron import jobs
 
 LA = ZoneInfo("America/Los_Angeles")
@@ -36,9 +36,9 @@ DAILY_9AM = "0 9 * * *"
 def la_profile(monkeypatch):
     """Configure the profile zone the way production does: ``HERMES_TIMEZONE`` + cache reset."""
     monkeypatch.setenv("HERMES_TIMEZONE", "America/Los_Angeles")
-    hermes_time.reset_cache()
+    kova_time.reset_cache()
     yield LA
-    hermes_time.reset_cache()
+    kova_time.reset_cache()
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def cron_store(tmp_path, monkeypatch):
 
         def now(self):
             # Production shape: _hermes_now() is aware in the PROFILE zone.
-            return self.instant.astimezone(hermes_time.get_timezone() or LA)
+            return self.instant.astimezone(kova_time.get_timezone() or LA)
 
     clock = Clock()
     monkeypatch.setattr(jobs, "_hermes_now", clock.now)

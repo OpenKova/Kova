@@ -23,9 +23,9 @@ import subprocess
 
 import pytest
 
-from hermes_cli import _early_recovery as er
-from hermes_cli import update_cmd
-from hermes_cli import update_pause_record as pause_record
+from kova_cli import _early_recovery as er
+from kova_cli import update_cmd
+from kova_cli import update_pause_record as pause_record
 
 pytestmark = [
     pytest.mark.platforms("posix"),

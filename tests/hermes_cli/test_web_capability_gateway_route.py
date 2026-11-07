@@ -14,11 +14,11 @@ import pytest
 @pytest.fixture()
 def client(monkeypatch, _isolate_hermes_home):
     starlette = pytest.importorskip("starlette.testclient")
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
+    import kova_state
+    from kova_constants import get_hermes_home
+    from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
     test_client = starlette.TestClient(app)
     test_client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return test_client
@@ -27,7 +27,7 @@ def client(monkeypatch, _isolate_hermes_home):
 def test_web_capability_picks_choose_own_key_or_nous_gateway(client, monkeypatch):
     import plugins.web.firecrawl.provider as fc
     import tools.web_tools as wt
-    from hermes_cli.config import load_config
+    from kova_cli.config import load_config
 
     monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-own-key")
     monkeypatch.setattr(fc._gateway, "resolve_managed_tool_gateway", lambda *a, **k: types.SimpleNamespace(

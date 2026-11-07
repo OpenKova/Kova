@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
-from hermes_cli.plugin_validate import validate_plugin_dir
+from kova_cli.plugin_validate import validate_plugin_dir
 
 
 def _plugin(root: Path, files: dict[str, str]) -> Path:
@@ -29,7 +29,7 @@ def test_private_core_import_warns_with_file_and_line_but_validate_passes(tmp_pa
         "import json\n"
         "def run():\n"
         "    from tools.tirith_security import ensure_installed\n"
-        "    from hermes_cli.config import _private_helper\n"
+        "    from kova_cli.config import _private_helper\n"
         "    return ensure_installed, _private_helper\n"
     )})
 
@@ -38,7 +38,7 @@ def test_private_core_import_warns_with_file_and_line_but_validate_passes(tmp_pa
     assert report.ok, report.failures
     [warning] = _private_warnings(report)
     assert "lib/agent_runner.py:3 tools.tirith_security.ensure_installed" in warning
-    assert "lib/agent_runner.py:4 hermes_cli.config._private_helper" in warning
+    assert "lib/agent_runner.py:4 kova_cli.config._private_helper" in warning
     assert "catalog rule 9" in warning
 
 
@@ -50,13 +50,13 @@ def test_documented_public_stdlib_and_own_package_imports_are_not_flagged(tmp_pa
             "import requests\n"
             "from agent.memory_provider import MemoryProvider\n"  # documented provider base class
             "from gateway.platforms import base\n"  # documented module, imported from its package
-            "from hermes_cli.plugins import PluginContext\n"  # what register() receives
+            "from kova_cli.plugins import PluginContext\n"  # what register() receives
             "from clean_lib.helpers import local_helper\n"  # the plugin's own package
             "from .client import Client\n"
             "if TYPE_CHECKING:\n"
             "    from run_agent import AIAgent\n"
             "def register(ctx):\n"
-            "    from hermes_cli.plugins import get_plugin_manager\n"  # same module, undocumented name
+            "    from kova_cli.plugins import get_plugin_manager\n"  # same module, undocumented name
             "    return get_plugin_manager\n"
         ),
         "clean_lib/__init__.py": "",
@@ -67,7 +67,7 @@ def test_documented_public_stdlib_and_own_package_imports_are_not_flagged(tmp_pa
     [warning] = _private_warnings(validate_plugin_dir(plugin))
 
     sites = warning.split("release): ", 1)[1].split(". Use ctx.*")[0].split("; ")
-    assert sites == ["__init__.py:12 hermes_cli.plugins.get_plugin_manager"], sites
+    assert sites == ["__init__.py:12 kova_cli.plugins.get_plugin_manager"], sites
 
 
 _PLATFORM_PLUGIN_SEAMS = (
@@ -81,11 +81,11 @@ _PLATFORM_PLUGIN_SEAMS = (
     ("tools.url_safety", "create_ssrf_safe_async_client"),
     ("tools.url_safety", "is_safe_url"),
     ("gateway.platforms._http_client_limits", "platform_httpx_limits"),
-    ("hermes_cli.gateway_setup_wizard", "print_setup_header"),
-    ("hermes_cli.gateway_setup_wizard", "confirm_reconfigure"),
-    ("hermes_cli.gateway_setup_wizard", "offer_home_channel"),
-    ("hermes_cli.gateway_setup_wizard", "save_env_values"),
-    ("hermes_cli.gateway_setup_wizard", "prompt_csv"),
+    ("kova_cli.gateway_setup_wizard", "print_setup_header"),
+    ("kova_cli.gateway_setup_wizard", "confirm_reconfigure"),
+    ("kova_cli.gateway_setup_wizard", "offer_home_channel"),
+    ("kova_cli.gateway_setup_wizard", "save_env_values"),
+    ("kova_cli.gateway_setup_wizard", "prompt_csv"),
 )
 
 
@@ -141,7 +141,7 @@ def test_documented_session_helper_and_own_install_path_fallback_are_not_flagged
             "    except ImportError:\n"
             "        import plugins.memory.openltm._db as _db\n"
             "        from plugins.memory.openltm import _db\n"
-            "    from hermes_cli.gateway_client import _session_ticket\n"
+            "    from kova_cli.gateway_client import _session_ticket\n"
             "    return get_session_env, _db, _session_ticket\n"
         ),
         "_db.py": "",
@@ -150,7 +150,7 @@ def test_documented_session_helper_and_own_install_path_fallback_are_not_flagged
     [warning] = _private_warnings(validate_plugin_dir(plugin))
 
     sites = warning.split("release): ", 1)[1].split(". Use ctx.*")[0].split("; ")
-    assert sites == ["__init__.py:8 hermes_cli.gateway_client._session_ticket"], sites
+    assert sites == ["__init__.py:8 kova_cli.gateway_client._session_ticket"], sites
 
 
 def test_plugin_guide_session_identity_example_validates_clean(tmp_path):
@@ -200,22 +200,22 @@ _ROOT = Path(__file__).resolve().parents[2]
 def _published_entries() -> list[str]:
     import json
 
-    data = json.loads((_ROOT / "hermes_cli" / "data" / "plugin_api.json").read_text(encoding="utf-8-sig"))
+    data = json.loads((_ROOT / "kova_cli" / "data" / "plugin_api.json").read_text(encoding="utf-8-sig"))
     return [entry for group in data["groups"] for entry in group["entries"]]
 
 
 def test_every_published_plugin_api_entry_passes_validate(tmp_path):
-    """hermes_cli/data/plugin_api.json is the list validate enforces: every entry imports without a
+    """kova_cli/data/plugin_api.json is the list validate enforces: every entry imports without a
     warning, while an unlisted name of a listed name-only module still warns."""
     imports = [f"from {m} import {n}" if n else f"import {m}"
                for m, _, n in (entry.partition(":") for entry in _published_entries())]
-    imports.append("from hermes_cli.plugins import get_plugin_manager")
+    imports.append("from kova_cli.plugins import get_plugin_manager")
     plugin = _plugin(tmp_path / "api", {"uses_api.py": "\n".join(imports) + "\n"})
 
     [warning] = _private_warnings(validate_plugin_dir(plugin))
 
     sites = warning.split("release): ", 1)[1].split(". Use ctx.*")[0].split("; ")
-    assert sites == [f"uses_api.py:{len(imports)} hermes_cli.plugins.get_plugin_manager"], sites
+    assert sites == [f"uses_api.py:{len(imports)} kova_cli.plugins.get_plugin_manager"], sites
 
 
 def test_public_api_docs_page_is_generated_from_the_data_file():

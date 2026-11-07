@@ -18,7 +18,7 @@ import time
 import uuid
 import weakref
 from abc import ABC, abstractmethod
-from hermes_dir_acl import make_user_dir, unusable_dir_remedy
+from kova_dir_acl import make_user_dir, unusable_dir_remedy
 from gateway.platforms.base_log_safety import safe_url_for_log
 
 from utils import normalize_proxy_url, unlink_files_older_than
@@ -387,7 +387,7 @@ def proxy_kwargs_for_bot(proxy_url: str | None) -> dict:
 def _config_section(name: str) -> dict:
     """Read-only ``config.yaml`` section ``name``; ``{}`` when unreadable/missing/not a dict."""
     try:
-        from hermes_cli.config import load_config_readonly as _load_config
+        from kova_cli.config import load_config_readonly as _load_config
         cfg = _load_config()  # read-only: .get() only, never mutated
     except Exception:
         return {}
@@ -440,11 +440,11 @@ from gateway.platforms.base_streaming_tts import (
     AudioFormat, StreamingTTSHandle, streaming_tts_should_skip_whole_file, streaming_tts_turn_key)
 from gateway.platforms.event import MessageEvent, MessageType, ProcessingOutcome
 from gateway.warning_notifications import diagnostic_wake_muted
-from hermes_cli.observability.shared_metrics_gateway import records_delivery, stop_reply_clock
-from hermes_cli.home_data_layout import SECRET_CACHE_STORES
+from kova_cli.observability.shared_metrics_gateway import records_delivery, stop_reply_clock
+from kova_cli.home_data_layout import SECRET_CACHE_STORES
 from gateway.session import SessionSource, build_session_key
 from gateway.session_transcript import TranscriptReadError
-from hermes_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_hermes_root, get_hermes_dir, get_hermes_home
+from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_default_hermes_root, get_hermes_dir, get_hermes_home
 from agent.provider_media import GENERATED_SUBDIR, MEDIA_CACHE_MAX_AGE_HOURS
 
 if TYPE_CHECKING:
@@ -457,7 +457,7 @@ GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
 
 # One sentence for every "you may not press/run this" refusal on every platform (slash commands,
 # approval buttons, pickers, prompts). ``{platform}`` is the ``Platform.value`` for the
-# ``hermes pairing approve`` command (hermes_cli/subcommands/pairing.py) that lets the owner fix it.
+# ``hermes pairing approve`` command (kova_cli/subcommands/pairing.py) that lets the owner fix it.
 # Kept under 200 chars: Telegram's answerCallbackQuery truncates longer text.
 UNAUTHORIZED_ACTION_NOTICE = (
     "This bot is private and you're not on its allowed list. If you own it, run "
@@ -577,7 +577,7 @@ def _secure_media_cache_dir(cache_dir: Path) -> None:
     local account whenever ``HERMES_HOME`` is traversable — the documented
     ``HERMES_HOME_MODE=0701`` web-server hatch. The mode is passed to ``mkdir``
     so it is set at creation, then reconciled by the house policy helper
-    ``hermes_cli.config._secure_dir`` (managed/NixOS installs keep their
+    ``kova_cli.config._secure_dir`` (managed/NixOS installs keep their
     group-share design: these lazily-created dirs are not covered by the
     module's ``systemd.tmpfiles`` rules, so the mode is left to the
     configured umask/setgid). Best-effort: never fails a media write.
@@ -585,7 +585,7 @@ def _secure_media_cache_dir(cache_dir: Path) -> None:
     try:
         managed = False
         try:
-            from hermes_cli.config import is_managed
+            from kova_cli.config import is_managed
 
             managed = bool(is_managed())
         except Exception:  # pragma: no cover - defensive
@@ -595,7 +595,7 @@ def _secure_media_cache_dir(cache_dir: Path) -> None:
             return
         make_user_dir(cache_dir, parents=True, exist_ok=True, mode=0o700)
         try:
-            from hermes_cli.config import _secure_dir
+            from kova_cli.config import _secure_dir
 
             _secure_dir(cache_dir)
         except Exception as exc:  # pragma: no cover - defensive
@@ -2217,7 +2217,7 @@ class BasePlatformAdapter(ABC):
         plugin, so identity alone would double-register). Each factory is isolated so a bad plugin
         can't block connecting."""
         try:
-            from hermes_cli.plugins import get_plugin_manager
+            from kova_cli.plugins import get_plugin_manager
             factories = get_plugin_manager().get_platform_handler_factories(
                 getattr(self.platform, "value", str(self.platform)))
         except Exception as e:  # pragma: no cover - defensive
@@ -4004,7 +4004,7 @@ class BasePlatformAdapter(ABC):
         # runner. Without this, they are queued as pending messages and either: See #4926.
         self._canonicalize(event.source)  # identity FIRST (direct callers may skip handle_message)
         cmd = event.get_command()
-        from hermes_cli.commands import (is_interrupt_then_dispatch, should_bypass_active_session)
+        from kova_cli.commands import (is_interrupt_then_dispatch, should_bypass_active_session)
         if should_bypass_active_session(cmd):
             try:
                 # /stop, /new, /reset: cancel + response + drain; other bypasses don't cancel.
@@ -4569,7 +4569,7 @@ class BasePlatformAdapter(ABC):
             await self._run_processing_hook("on_processing_complete", event, ProcessingOutcome.FAILURE)
             logger.error("[%s] Error handling message: %s", self.name, e, exc_info=True)
             await self._notify_turn_error(event, e)
-            from hermes_cli.config_backend import ConfigBackendUnavailable as _outage  # this turn only
+            from kova_cli.config_backend import ConfigBackendUnavailable as _outage  # this turn only
             if isinstance(e, (SystemExit, KeyboardInterrupt)) and not isinstance(e, _outage):  # rest contained
                 raise
         finally:

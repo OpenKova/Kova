@@ -7,7 +7,7 @@ import sys
 
 import pytest
 
-from hermes_cli import main_desktop, source_build
+from kova_cli import main_desktop, source_build
 
 
 @pytest.fixture

@@ -44,8 +44,8 @@ _CHILD = textwrap.dedent('''
     if mode.startswith("sqlite"):
         # The selected interpreter is the shim: its SQLite probe is the runtime-safety fact.
         sys.executable = os.environ["PROBE_SHIM"]
-    import hermes_yaml as yaml
-    from hermes_cli.config import DEFAULT_CONFIG, ensure_hermes_home
+    import kova_yaml as yaml
+    from kova_cli.config import DEFAULT_CONFIG, ensure_hermes_home
     home = Path(os.environ["HERMES_HOME"])
     home.mkdir(parents=True, exist_ok=True)
     # The process's first config read secures the home (0700) once. Do it now, as a real process
@@ -56,8 +56,8 @@ _CHILD = textwrap.dedent('''
         "telemetry": {"shared_metrics": {"enabled": False}},
         "updates": {"refresh_cua_driver": False}}))
     # Service boundaries: record instead of touching the host's gateways/dashboards.
-    from hermes_cli import gateway_migrate, update_cmd, update_cmd_fleet as fleet
-    from hermes_cli import update_cmd_fleet_verify as verify, update_cmd_maint as maint
+    from kova_cli import gateway_migrate, update_cmd, update_cmd_fleet as fleet
+    from kova_cli import update_cmd_fleet_verify as verify, update_cmd_maint as maint
     entered = cell / "migration-entered"
     gateway_migrate.maybe_auto_migrate_after_update = lambda: entered.write_text("entered")
     real_restart = update_cmd._restart_gateway_fleet_after_update
@@ -68,7 +68,7 @@ _CHILD = textwrap.dedent('''
     update_cmd._surviving_pre_update_serve_runtimes = lambda plan: []
     maint._refresh_dashboard_after_update = lambda **kwargs: None
     # A detached git writer would outlive the test in its deleted tmp checkout.
-    from hermes_cli import git_commit_graph
+    from kova_cli import git_commit_graph
     git_commit_graph.spawn_commit_graph_refresh = lambda root: False
     verify._print_legacy_units_warning = lambda: None
     verify._collect_fleet_snapshot = lambda *args: []
@@ -81,7 +81,7 @@ _CHILD = textwrap.dedent('''
             marker.read_text() if marker.exists() else "absent")
     if mode in ("ipc-failed-unit", "ipc-abort"):
         # The real restart phase; only the host's service manager and process table are replaced.
-        from hermes_cli import gateway as gateway_module
+        from kova_cli import gateway as gateway_module
         update_cmd._restart_gateway_fleet_after_update = real_restart
         fleet._restart_manual_gateways = lambda out, budget: None
         fleet._force_kill_stuck_gateways = lambda pids: None
@@ -97,7 +97,7 @@ _CHILD = textwrap.dedent('''
             update_cmd._recover_gateway_restart_after_abort = lambda plan, **kwargs: {}
     if mode == "ipc-windows":
         # The Windows service manager refuses the paused gateway's restart.
-        from hermes_cli import main as hermes_main
+        from kova_cli import main as hermes_main
         def scm(token):
             if token and token.get("resume_needed"):
                 raise RuntimeError("Could not restart Windows gateway service(s): HermesGatewayProbe")
@@ -109,8 +109,8 @@ _CHILD = textwrap.dedent('''
         def profile_sync():
             raise SystemExit("profile skill sync exited 3")
         maint._sync_profiles_after_update = profile_sync
-    from hermes_cli import update_receipt
-    from hermes_cli.venv_sync import arm_completion, completion_pending_path
+    from kova_cli import update_receipt
+    from kova_cli.venv_sync import arm_completion, completion_pending_path
     arm_completion(source)
     update_receipt.begin_update_receipt()
     receipt = copy.deepcopy(update_receipt._current.get().data)
@@ -128,7 +128,7 @@ _CHILD = textwrap.dedent('''
         import shutil
         shutil.rmtree(update_receipt._receipt_dir())
         update_receipt._receipt_dir().write_text("not a directory")
-    from hermes_cli.update_completion import _finish, _settle_after_commit
+    from kova_cli.update_completion import _finish, _settle_after_commit
     try:
         if mode == "receipts-blocked-settle":
             code = _settle_after_commit(request, cell / "result.json", "dependencies", "dependency sync refused")
@@ -289,7 +289,7 @@ _ZIP_PARENT = textwrap.dedent('''
     sys.path.insert(0, root_checkout)
     cell = Path(cell)
     calls = cell / "parent-resume-calls.jsonl"
-    from hermes_cli import main as hermes_main, update_cmd, update_inventory, update_receipt
+    from kova_cli import main as hermes_main, update_cmd, update_inventory, update_receipt
     hermes_main.PROJECT_ROOT = cell / "source"
     receipts = update_receipt._receipt_dir()
     receipts.mkdir(parents=True, exist_ok=True)
@@ -332,7 +332,7 @@ def test_zip_update_never_replays_a_refused_resume_after_the_commit_point(tmp_pa
     cell = tmp_path / "cell"
     home = cell / "home" / ".hermes"
     (home / "logs/update_receipts").mkdir(parents=True)
-    completion = cell / "source" / "hermes_cli" / "update_completion.py"
+    completion = cell / "source" / "kova_cli" / "update_completion.py"
     completion.parent.mkdir(parents=True)
     completion.write_text(_REFUSED_RESUME_COMPLETION, encoding="utf-8")
     env = _child_env(HOME=str(cell / "home"), HERMES_HOME=str(home), HERMES_DISABLE_LAZY_INSTALLS="1",
@@ -357,7 +357,7 @@ _RECEIPT_CHILD = textwrap.dedent('''
     import json, sys
     root_checkout, action = sys.argv[1:3]
     sys.path.insert(0, root_checkout)
-    from hermes_cli import update_receipt as ur
+    from kova_cli import update_receipt as ur
     if action == "seed":
         ur.begin_update_receipt()
         ur.record_fact("plan", {"runtimes": [json.loads(sys.argv[3])]})
@@ -372,7 +372,7 @@ _RECEIPT_CHILD = textwrap.dedent('''
 
 @pytest.mark.platforms("posix")
 def test_old_schema_handoff_receipt_keeps_the_previous_runs_manual_serve_debt(tmp_path):
-    from hermes_cli.process_identity import _process_create_time
+    from kova_cli.process_identity import _process_create_time
 
     home = tmp_path / "home" / ".hermes"
     home.mkdir(parents=True)

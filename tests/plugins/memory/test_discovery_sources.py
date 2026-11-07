@@ -46,7 +46,7 @@ def register(ctx):
 class FakeEntryPoint:
     """Mirrors the importlib.metadata EntryPoint surface discovery uses."""
 
-    group = "hermes_agent.memory_providers"
+    group = "kova_agent.memory_providers"
 
     def __init__(self, name, value):
         self.name = name

@@ -9,9 +9,9 @@ import pytest
 
 from tui_gateway import server
 from agent.onboarding import PROFILE_BUILD_FLAG
-from hermes_cli import profiles
-from hermes_cli.config import read_user_config_raw
-from tests.hermes_cli.anon_portal import as_local_desktop_backend
+from kova_cli import profiles
+from kova_cli.config import read_user_config_raw
+from tests.kova_cli.anon_portal import as_local_desktop_backend
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ def test_skip_leaves_the_first_chat_offer_alone(launched_under_work):
 
 def test_a_failed_write_fails_the_call_and_writes_nothing(launched_under_work, monkeypatch):
     # The offer flag and run land in one write: if it fails the caller sees an error and neither is applied.
-    from hermes_cli import config as config_mod
+    from kova_cli import config as config_mod
 
     root, _work = launched_under_work
     real_write = config_mod.atomic_config_write

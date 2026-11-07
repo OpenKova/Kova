@@ -9,7 +9,7 @@ import time
 
 import pm.environments
 import pytest
-from hermes_cli.worktree_ops import _prune_stale_worktrees
+from kova_cli.worktree_ops import _prune_stale_worktrees
 from pm.filesystem import lock_fd
 from pm.install_states import collect_orphan_install_states, orphan_install_states
 
@@ -136,7 +136,7 @@ def _age(state, days):
 def test_retention_comes_from_the_store_owner_not_the_active_profile(tmp_path, root_days, profile_days, reclaimed):
     """Every profile of a root shares ``<root>/installs``: the root's setting decides for all of
     them, whichever profile runs the collection."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     root = tmp_path / ".hermes"
     named = root / "profiles" / "work"
@@ -176,7 +176,7 @@ def test_state_used_while_another_orphan_is_removed_is_kept(tmp_path, monkeypatc
     """Candidates are listed before any removal starts; a state launched (lease taken and
     released) while an earlier, large orphan is still being removed is back in use."""
     import pm.install_states
-    from hermes_cli.runtime_state import lease_directory
+    from kova_cli.runtime_state import lease_directory
 
     installs = tmp_path / "home" / "installs"
     deleted = _state(installs, "aaaa", tmp_path / "home" / "cache" / "scratch" / "gone")

@@ -102,11 +102,11 @@ RULES: tuple[Rule, ...] = (
          " `gather(return_exceptions=True)` also returns CancelledError", "ast"),
     # Profile scope (one process serves many profiles).
     Rule("HX001", "hardcoded Hermes home", "`get_hermes_home()` for paths,"
-         " `display_hermes_home()` for user-facing text (`hermes_constants`); a path that"
+         " `display_hermes_home()` for user-facing text (`kova_constants`); a path that"
          " deliberately lives under the user's home, not the profile (e.g. the profiles root),"
          " takes `# health: allow HX001 -- <why>`", "ast",
          blocking=WARN_UNTIL_REPLAYED,
-         exclude=SINGLE_PROFILE + ("hermes_constants.py",)),
+         exclude=SINGLE_PROFILE + ("kova_constants.py",)),
     Rule("HX002", "new HERMES_* environment variable", "behavioural settings go in"
          " config.yaml, secrets through the secret scope; `.env` is for credentials only",
          "ast", exclude=SINGLE_PROFILE),
@@ -130,7 +130,7 @@ RULES: tuple[Rule, ...] = (
     # Process identity.
     Rule("HX003", "process identity from argv substrings", "use"
          " `gateway.status.looks_like_gateway_command_line` /"
-         " `hermes_cli.update_cmd._hermes_holder_subcommand` and match full cmdlines", "ast",
+         " `kova_cli.update_cmd._hermes_holder_subcommand` and match full cmdlines", "ast",
          blocking=WARN_UNTIL_REPLAYED),
     # Config truthiness.
     Rule("HX010", "bool() of a config/env string", "`bool(\"false\")` is True. Is it set?"

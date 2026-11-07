@@ -13,12 +13,12 @@ from gateway.platforms.base import BasePlatformAdapter
 from gateway.platforms.event import MessageEvent
 from gateway.session import SessionSource
 from gateway.session_ingress_burst import discard_busy_burst, dispatch_busy_burst
-from hermes_cli.observability import relay_shared_metrics as rsm
-from hermes_cli.observability import shared_metrics_busy as busy
-from hermes_cli.observability import shared_metrics_contract as contract
-from hermes_cli.observability import shared_metrics_engagement as engagement
-from hermes_cli.observability import shared_metrics_gateway as smg
-from hermes_cli.observability.shared_metrics import SharedMetricsStore
+from kova_cli.observability import relay_shared_metrics as rsm
+from kova_cli.observability import shared_metrics_busy as busy
+from kova_cli.observability import shared_metrics_contract as contract
+from kova_cli.observability import shared_metrics_engagement as engagement
+from kova_cli.observability import shared_metrics_gateway as smg
+from kova_cli.observability.shared_metrics import SharedMetricsStore
 
 KEY = "agent:main:telegram:dm:42"
 RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
@@ -150,7 +150,7 @@ def test_day_row_reports_each_profiles_peak_of_chats_running_at_once(tmp_path, m
     carries its own peak (claimed in the owning profile's scope, not the launch profile's), and a
     row recorded before the field existed still packages."""
     from gateway.run_agent_cache import GatewayAgentCacheMixin
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     monkeypatch.setattr("gateway.run._write_runtime_status_quiet", lambda **_: None)
     monkeypatch.setattr(busy, "_running", {})
@@ -209,11 +209,11 @@ def test_a_busy_message_saved_behind_a_pause_is_not_dropped(rows, monkeypatch, r
     row. When this process later runs that row (a ``session_busy`` pause lifting), it counts as
     ``queued`` with its wait; after a restart the next process runs it and nothing is counted."""
     import gateway.session_authority  # binds the real reader before the patch below
-    import hermes_state_runtime
+    import kova_state_runtime
     from gateway.session_ingress import admit_message
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
 
-    monkeypatch.setattr(hermes_state_runtime, "get_session_admission",
+    monkeypatch.setattr(kova_state_runtime, "get_session_admission",
                         lambda db, admission_id: {"status": "queued"})
     authority, replies = _PausingAuthority(), []
 
@@ -273,7 +273,7 @@ def test_a_held_burst_dropped_by_stop_counts_under_its_own_profile_not_the_chats
     chat's latest turn. A burst held for this profile's bot and dropped by /stop is recorded under
     the profile its routing identity names, so that profile's collection setting decides."""
     from gateway.session_identity import RoutingIdentity
-    from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     homes = []
     monkeypatch.setattr(rsm, "record_process_mark", lambda mark, data: homes.append(str(get_hermes_home())))
@@ -303,7 +303,7 @@ def test_a_held_burst_dropped_by_stop_counts_under_its_own_profile_not_the_chats
 def test_a_closing_day_keeps_a_peak_reached_just_before_midnight(tmp_path, monkeypatch):
     """A third chat starts at 23:59:30; its first engagement event lands after midnight, and a turn
     boundary after midnight already started the new day. The closed day still reports 3."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     monkeypatch.setattr(busy, "_running", {})
     monkeypatch.setattr(busy, "_peaks", {})
@@ -377,7 +377,7 @@ async def test_a_message_the_adapter_saw_idle_counts_when_it_waits_behind_a_runn
     from gateway.session_contract import SessionRef
     from gateway.session_authority import SessionAuthority
     from gateway.session_ingress_context import native_callback
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     runner, authority, source, key = await _real_runner(monkeypatch)
     monkeypatch.setattr(runner, "_effective_busy_input_mode", lambda source: "queue")
@@ -407,7 +407,7 @@ async def test_a_busy_message_cancelled_before_admission_reads_its_row_counts_as
     finds it terminal ``cancelled``. It never reached the agent: ``dropped`` / ``never``."""
     from gateway.session_ingress import admit_message
     from gateway.session_ingress_context import native_callback
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     runner, authority, source, _key = await _real_runner(monkeypatch)
     follow_up = MessageEvent(text="B", source=source, message_id="B")

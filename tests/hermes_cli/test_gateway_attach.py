@@ -35,7 +35,7 @@ def home(request):
 
 def _attach(home, *flags):
     env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(REPO)}
-    return subprocess.run([sys.executable, "-m", "hermes_cli.main", "gateway", "attach", "--json", *flags],
+    return subprocess.run([sys.executable, "-m", "kova_cli.main", "gateway", "attach", "--json", *flags],
                           cwd=REPO, env=env, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL,
                           check=False)
 

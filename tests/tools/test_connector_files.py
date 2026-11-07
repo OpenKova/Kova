@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_hermes_home
+from kova_constants import CONNECTOR_DOWNLOADS_SUBDIR, get_hermes_home
 from tools.connectors.gateway import files
 from tools.connectors.gateway.bridge import connector_describe, run_remote
 from tools.connectors.gateway.client import ConnectorClient

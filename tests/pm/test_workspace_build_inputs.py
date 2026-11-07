@@ -335,21 +335,21 @@ def test_a_facts_file_without_published_entries_hides_nothing(tmp_path):
 
 def test_a_package_root_named_in_where_travels_into_the_snapshot(tmp_path):
     """With packages under ``src/`` (``where = [".", "src"]``), the snapshot dropped ``src/`` because
-    no include pattern names it, and the generation's editable install had no ``hermes_agent``."""
+    no include pattern names it, and the generation's editable install had no ``kova_agent``."""
     core = tmp_path / "core"
-    (core / "src" / "hermes_agent").mkdir(parents=True)
-    (core / "src" / "hermes_agent" / "__init__.py").write_text("MOVED = 1\n", encoding="utf-8")
+    (core / "src" / "kova_agent").mkdir(parents=True)
+    (core / "src" / "kova_agent" / "__init__.py").write_text("MOVED = 1\n", encoding="utf-8")
     (core / "agent").mkdir()
     (core / "pyproject.toml").write_text(
         '[project]\nname="core"\nversion="1"\nrequires-python=">=3.11"\n'
-        '[tool.setuptools.packages.find]\nwhere=[".", "src"]\ninclude=["agent", "hermes_agent*"]\n',
+        '[tool.setuptools.packages.find]\nwhere=[".", "src"]\ninclude=["agent", "kova_agent*"]\n',
         encoding="utf-8",
     )
 
     destination = tmp_path / "stage"
     workspace._copy_core_inputs(core, destination)
 
-    assert (destination / "src/hermes_agent/__init__.py").read_text(encoding="utf-8") == "MOVED = 1\n"
+    assert (destination / "src/kova_agent/__init__.py").read_text(encoding="utf-8") == "MOVED = 1\n"
     assert (destination / "agent").is_dir()
 
 
@@ -369,7 +369,7 @@ def test_a_packaging_change_without_a_lock_change_needs_a_new_environment(tmp_pa
     before = Venv(root).expected_stamp([], plugin_dirs=[])
     assert Venv(root).expected_stamp([], plugin_dirs=[]) == before
     pyproject.write_text('[project]\nname="core"\n[tool.setuptools.packages.find]\nwhere=[".", "src"]\n'
-                         'include=["agent", "hermes_agent*"]\n', encoding="utf-8")
+                         'include=["agent", "kova_agent*"]\n', encoding="utf-8")
     assert Venv(root).expected_stamp([], plugin_dirs=[]) != before
 
 

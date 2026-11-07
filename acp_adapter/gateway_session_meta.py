@@ -76,7 +76,7 @@ SERVICE_TIER_LABELS = {"normal": "Normal", "fast": "Fast", "auto": "Auto", "cold
 
 def reasoning_choices() -> tuple[str, ...]:
     """The owner's ``reasoning`` levels; ``default`` hands the level back to the profile."""
-    from hermes_constants import VALID_REASONING_EFFORTS
+    from kova_constants import VALID_REASONING_EFFORTS
     return ("default", "none", *VALID_REASONING_EFFORTS)
 
 
@@ -102,8 +102,8 @@ def config_options(models: SessionModelState | None, info: dict, mode_id: str) -
 
 async def session_config_options(client, session_id, models, info, mode_id):
     """Project the owner's eligible speed choices alongside the existing ACP pickers."""
-    from hermes_cli.gateway_client import GatewayRPCError
-    from hermes_cli.models import model_supports_fast_mode
+    from kova_cli.gateway_client import GatewayRPCError
+    from kova_cli.models import model_supports_fast_mode
     options = config_options(models, info, mode_id)
     if not model_supports_fast_mode(info.get('model')):
         return options
@@ -149,7 +149,7 @@ def provenance_meta(db_path: Path, acp_session_id: str, session_id: str) -> dict
     """``_meta.hermes.sessionProvenance`` for the editor's id, the logical session's current
     compression tip and its lineage (``acp_adapter/provenance.py``). Blocking."""
     from acp_adapter.provenance import session_provenance_meta
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     if not Path(db_path).exists():
         return None
     try:

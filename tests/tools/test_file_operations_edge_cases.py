@@ -117,7 +117,7 @@ class TestCheckLintBracePaths:
 def test_local_js_lint_runs_pm_node_never_the_users(tmp_path, monkeypatch):
     """Hermes's own post-write lint uses PM's Node even when the user's node sorts first on
     PATH, and skips (never falls back to the user's) when PM has no Node."""
-    import hermes_constants
+    import kova_constants
     from tools.environments.local import LocalEnvironment
 
     def node_stand_in(directory, label):
@@ -130,7 +130,7 @@ def test_local_js_lint_runs_pm_node_never_the_users(tmp_path, monkeypatch):
     user_bin = node_stand_in(tmp_path / "user-bin", "user-node")
     store_dirs = [node_stand_in(tmp_path / "store-node", "pm-node")]
     monkeypatch.setenv("PATH", os.pathsep.join([user_bin, os.environ.get("PATH", "")]))
-    monkeypatch.setattr(hermes_constants, "with_hermes_node_path", lambda env: {
+    monkeypatch.setattr(kova_constants, "with_hermes_node_path", lambda env: {
         **env, "PATH": os.pathsep.join([*store_dirs, env.get("PATH", "")]).strip(os.pathsep)})
     target = tmp_path / "a.js"
     target.write_text("x\n", encoding="utf-8")

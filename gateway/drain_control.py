@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from gateway.memory_status import _parse_iso
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from utils import atomic_json_write
 
 _log = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ def restart_wait_socket_ticket(runner, method, path, query) -> bool:
 
     Exempts the request from the drain's refusal only: it does not authenticate it."""
     from urllib.parse import parse_qs
-    from hermes_cli.web_session_sockets import GATEWAY_SOCKET
+    from kova_cli.web_session_sockets import GATEWAY_SOCKET
     return (method == "POST" and path == "/api/webapp/socket-ticket"
             and parse_qs(query or "").get("socket") == [GATEWAY_SOCKET] and restart_wait_open(runner))
 

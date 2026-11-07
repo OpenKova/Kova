@@ -113,7 +113,7 @@ async def test_a_desktop_chat_runs_its_turns_as_work_for_the_local_desktop(tmp_p
     from contextlib import nullcontext
     from gateway.session_local_recovery import local_source
     from gateway.session_policy import local_desktop_turn
-    from hermes_cli.anon_auth import on_local_desktop_backend
+    from kova_cli.anon_auth import on_local_desktop_backend
 
     conn = await _connect(tmp_path, monkeypatch,
                           config="model:\n  provider: openrouter\n  default: anthropic/claude-sonnet-4\n")
@@ -140,7 +140,7 @@ async def test_a_desktop_chat_runs_its_turns_as_work_for_the_local_desktop(tmp_p
 async def test_a_trial_users_desktop_chat_runs_on_the_free_model(tmp_path, monkeypatch):
     """A claimed welcome trial and no configured model: the chat freezes the free model instead of
     no model at all (a launch policy with no model can never be restored)."""
-    from hermes_cli import anon_auth
+    from kova_cli import anon_auth
     guest = {"auth_method": anon_auth.ANON_AUTH_METHOD, anon_auth.WELCOME_CLAIM_FLAG: True}
     monkeypatch.setattr(anon_auth, "current_nous_state", lambda *a, **k: guest)
     conn = await _connect(tmp_path, monkeypatch)
@@ -148,7 +148,7 @@ async def test_a_trial_users_desktop_chat_runs_on_the_free_model(tmp_path, monke
         await _request(conn, 1, "client.capabilities", {"desktop_local": True})
         created = await _request(conn, 2, "session.create", {"source": "gui", "request_id": "a"})
         assert "result" in created, created
-        from hermes_state_local import local_receipt
+        from kova_state_local import local_receipt
         receipt = local_receipt(conn.authority.db, created["result"]["stored_session_id"])
         assert receipt["policy"]["model"] == anon_auth.GUEST_MODEL
 
@@ -163,7 +163,7 @@ async def test_a_trial_users_desktop_chat_runs_on_the_free_model(tmp_path, monke
 @pytest.mark.asyncio
 async def test_a_fresh_launch_claims_the_trial_and_opens_onboarding_on_it(tmp_path, monkeypatch):
     """The whole first launch: the claim mints the guest, and the chat it opens runs on the free model."""
-    from hermes_cli import anon_auth, welcome_trial
+    from kova_cli import anon_auth, welcome_trial
     state = {}
     guest = {"auth_method": anon_auth.ANON_AUTH_METHOD, anon_auth.WELCOME_CLAIM_FLAG: True}
 
@@ -190,7 +190,7 @@ async def test_a_fresh_launch_claims_the_trial_and_opens_onboarding_on_it(tmp_pa
 
 @pytest.mark.asyncio
 async def test_the_first_local_desktop_connection_runs_the_desktop_boot_work(tmp_path, monkeypatch):
-    from hermes_cli import anon_auth, free_tier_bootstrap, onboarding_run
+    from kova_cli import anon_auth, free_tier_bootstrap, onboarding_run
     from tui_gateway import server
     seen = []
     monkeypatch.setattr(onboarding_run, "latch_first_install", lambda: seen.append(anon_auth.on_local_desktop_backend()))
@@ -212,8 +212,8 @@ def test_the_desktop_boot_work_runs_for_the_launch_profile_whichever_profile_con
     gateway a Desktop connection runs in its own profile's scope, so a first connection for another
     profile must not build the launch record from that profile's home."""
     from agent import secret_scope
-    from hermes_cli import free_tier_bootstrap, onboarding_run
-    from hermes_constants import get_hermes_home, get_process_hermes_home, set_hermes_home_override
+    from kova_cli import free_tier_bootstrap, onboarding_run
+    from kova_constants import get_hermes_home, get_process_hermes_home, set_hermes_home_override
     from tui_gateway import server
     launch = get_process_hermes_home()
     secondary = tmp_path / "profiles" / "work"
@@ -228,7 +228,7 @@ def test_the_desktop_boot_work_runs_for_the_launch_profile_whichever_profile_con
         server.begin_local_desktop_boot()
         assert free_tier_bootstrap.wait_for_record(timeout=20) is not None
     finally:
-        from hermes_constants import reset_hermes_home_override
+        from kova_constants import reset_hermes_home_override
         reset_hermes_home_override(token)
         free_tier_bootstrap.reset_for_tests()
     assert seen == [launch]
@@ -242,7 +242,7 @@ async def test_an_exact_create_retry_from_a_socket_not_yet_declared_local_resume
     from contextlib import nullcontext
     from gateway.session_local_recovery import local_source
     from gateway.session_policy import local_desktop_turn
-    from hermes_cli.anon_auth import on_local_desktop_backend
+    from kova_cli.anon_auth import on_local_desktop_backend
 
     conn = await _connect(tmp_path, monkeypatch,
                           config="model:\n  provider: openrouter\n  default: anthropic/claude-sonnet-4\n")
@@ -271,8 +271,8 @@ async def test_an_exact_create_retry_from_a_socket_not_yet_declared_local_resume
 async def test_a_chat_opened_on_the_trial_moves_to_the_provider_the_user_connects(tmp_path, monkeypatch):
     """A trial-only chat runs on the free model; once the user connects a real provider, the same
     chat's next turn runs on that provider's model instead of asking a paid route for nous/welcome."""
-    from hermes_cli import anon_auth
-    from hermes_state_local import local_receipt
+    from kova_cli import anon_auth
+    from kova_state_local import local_receipt
     from gateway.session_policy import restore_policy
     guest = {"auth_method": anon_auth.ANON_AUTH_METHOD, anon_auth.WELCOME_CLAIM_FLAG: True}
     monkeypatch.setattr(anon_auth, "current_nous_state", lambda *a, **k: guest)
@@ -298,7 +298,7 @@ async def test_a_desktop_boot_that_could_not_record_the_install_tries_again_on_t
         tmp_path, monkeypatch):
     """The gateway outlives app launches. A first boot whose install record failed (a locked
     config.yaml) is retried when the Desktop next connects, as the per-launch ``hermes serve`` did."""
-    from hermes_cli import free_tier_bootstrap, onboarding_run
+    from kova_cli import free_tier_bootstrap, onboarding_run
     from tui_gateway import server
     attempts = []
 
@@ -333,8 +333,8 @@ async def test_a_desktop_chat_saved_before_the_mark_moved_still_resumes_and_runs
     from gateway.session_local import publish_local_policy
     from gateway.session_local_recovery import local_source
     from gateway.session_policy import local_desktop_turn
-    from hermes_cli.anon_auth import on_local_desktop_backend
-    from hermes_state_local import POLICY_PREFIX
+    from kova_cli.anon_auth import on_local_desktop_backend
+    from kova_state_local import POLICY_PREFIX
 
     conn = await _connect(tmp_path, monkeypatch,
                           config="model:\n  provider: openrouter\n  default: anthropic/claude-sonnet-4\n")

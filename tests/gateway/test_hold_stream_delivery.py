@@ -98,7 +98,7 @@ CHATS = {
 
 async def _deliver(chat, *, hold, monkeypatch):
     import gateway.run as gateway_run
-    from hermes_cli import plugins
+    from kova_cli import plugins
 
     home = Path(os.environ["HERMES_HOME"])
     platform = Platform.SLACK if chat.platform == Platform.RELAY else Platform.TELEGRAM

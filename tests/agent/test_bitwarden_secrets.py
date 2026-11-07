@@ -40,9 +40,9 @@ def hermes_home(tmp_path, monkeypatch):
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
     # Some modules cache get_hermes_home; clear if needed.
-    import hermes_constants
-    if hasattr(hermes_constants, "_HERMES_HOME_CACHE"):
-        hermes_constants._HERMES_HOME_CACHE = None  # type: ignore[attr-defined]
+    import kova_constants
+    if hasattr(kova_constants, "_HERMES_HOME_CACHE"):
+        kova_constants._HERMES_HOME_CACHE = None  # type: ignore[attr-defined]
     return home
 
 
@@ -159,7 +159,7 @@ def test_env_loader_calls_bsm_when_enabled(tmp_path, monkeypatch):
 
     reg_module._reset_registry_for_tests()
 
-    from hermes_cli.env_loader import _apply_external_secret_sources
+    from kova_cli.env_loader import _apply_external_secret_sources
     _apply_external_secret_sources(home)
 
     assert called["n"] == 1

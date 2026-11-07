@@ -36,7 +36,7 @@ import pytest
 from websockets.sync.client import connect
 
 from gateway.control_socket import resolve_client_socket_path
-from hermes_state_mutation_retirement import VIEWER_CLOSE_PREFIX
+from kova_state_mutation_retirement import VIEWER_CLOSE_PREFIX
 from tests.e2e.core.chaos._helpers import (
     hermetic_env, kill_tagged, new_tag, persisted_messages, python_exe, write_chaos_home)
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text
@@ -251,7 +251,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
     # Host rendezvous stays inside the tmp root: the developer's live gateway is never seen.
     env.update(HERMES_GATEWAY_LOCK_DIR=str(root / "locks"), HERMES_GATEWAY_MAX_STARTS="0")
     out, viewers, facts = open(log, "wb"), [], {}
-    gateway = subprocess.Popen([python_exe(), "-m", "hermes_cli.main", "gateway", "run", "--quiet"],
+    gateway = subprocess.Popen([python_exe(), "-m", "kova_cli.main", "gateway", "run", "--quiet"],
                                cwd=str(home), env=env, stdin=subprocess.DEVNULL, stdout=out,
                                stderr=subprocess.STDOUT)
 

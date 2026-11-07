@@ -148,7 +148,7 @@ def install(items: list[dict[str, str]], *, session_id: Optional[str], tool_call
 def search(query: str, kind: Optional[str], *, installer: Any = None) -> dict[str, Any]:
     """Runs on the tool call's thread, in this chat's profile scope, so ``installed`` is this
     chat's profile's."""
-    from hermes_constants import get_hermes_home, profile_name_for_home
+    from kova_constants import get_hermes_home, profile_name_for_home
 
     rows: list[dict[str, Any]] = []
     if kind in (None, "plugin"):
@@ -159,8 +159,8 @@ def search(query: str, kind: Optional[str], *, installer: Any = None) -> dict[st
 
 
 def _plugin_rows(query: str) -> list[dict[str, Any]]:
-    from hermes_cli.plugin_catalog import filter_entries, load_catalog_live
-    from hermes_cli.plugins_cmd import PluginOperationError, _read_install_metadata
+    from kova_cli.plugin_catalog import filter_entries, load_catalog_live
+    from kova_cli.plugins_cmd import PluginOperationError, _read_install_metadata
     from tools.connectors.catalog import _display
 
     try:

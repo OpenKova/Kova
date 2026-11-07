@@ -14,8 +14,8 @@ async def test_legacy_history_adoption_is_native_owned_atomic_and_retryable(tmp_
     from gateway.session_authority import initialize_session_authority
     from gateway.session_contract import SessionActor
     from gateway.session_local_title import resolve_titled_session
-    from hermes_state_local import local_receipt
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_local import local_receipt
+    from kova_state_runtime import RuntimeStoreError
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     # A code folder under focus: the row's saved cwd must not adopt it into the coding posture.
@@ -100,8 +100,8 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
     from gateway.session_authority import initialize_session_authority
     from gateway.session_contract import SessionActor
     from gateway.session_local_title import resolve_titled_session
-    from hermes_cli.active_sessions import try_acquire_active_session, release_active_session
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_cli.active_sessions import try_acquire_active_session, release_active_session
+    from kova_state_runtime import RuntimeStoreError
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
@@ -115,7 +115,7 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
     authority._native_legacy_transports = {native.transport_id: native}
     lease, refusal = try_acquire_active_session(session_id='old-live', surface='cli', registry_home=Path(db.db_path).parent, config={})
     assert lease is not None, refusal
-    from hermes_cli.active_sessions import active_session_liveness_guard
+    from kova_cli.active_sessions import active_session_liveness_guard
     with active_session_liveness_guard('old-live', registry_home=Path(db.db_path).parent) as active:
         assert active
     try:
@@ -129,8 +129,8 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
         release_active_session(lease)
     ref = resolve_titled_session(authority, native, 'old-live')
     db.set_session_title(ref.session_id, 'Bot Chat')
-    from hermes_state_local_lineage import reset_local_target
-    from hermes_state_local import local_receipt
+    from kova_state_local_lineage import reset_local_target
+    from kova_state_local import local_receipt
     receipt = local_receipt(db, ref.session_id)
     entry = dict(receipt['entry'], session_id='reset-tip')
     reset_local_target(db, epoch=authority.epoch, parent_session_id=ref.session_id, entry=entry)

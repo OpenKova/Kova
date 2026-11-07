@@ -7,8 +7,8 @@ import threading
 
 import pytest
 
-from hermes_cli.gateway_client import GatewayClientError
-from hermes_cli.gateway_connection import CallStopped, GatewayConnection
+from kova_cli.gateway_client import GatewayClientError
+from kova_cli.gateway_connection import CallStopped, GatewayConnection
 
 
 class _Client:

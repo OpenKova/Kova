@@ -13,10 +13,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import main as hermes_main
-from hermes_cli import main_web_build
-from hermes_cli import main_install_repair
-from hermes_cli import update_cmd
+from kova_cli import main as hermes_main
+from kova_cli import main_web_build
+from kova_cli import main_install_repair
+from kova_cli import update_cmd
 
 def _make_head_pinned_side_effect(sha="abc123"):
     """Simulate a detached checkout pinned to ``sha``: HEAD never moves."""
@@ -38,11 +38,11 @@ def _make_head_pinned_side_effect(sha="abc123"):
     return side_effect
 
 def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
-    """Patch the hermes_cli.main helpers ``_cmd_update_impl`` touches.
+    """Patch the kova_cli.main helpers ``_cmd_update_impl`` touches.
 
-    ``_m()`` in update_cmd.py lazily returns hermes_cli.main, so patching
+    ``_m()`` in update_cmd.py lazily returns kova_cli.main, so patching
     attributes on that module is the canonical test surface (matches
-    tests/hermes_cli/test_cmd_update.py).
+    tests/kova_cli/test_cmd_update.py).
     """
     monkeypatch.setattr(hermes_main.subprocess, "run", run_side_effect)
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
@@ -85,7 +85,7 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
     # Keep the (now surfaced — #78574) gateway auto-restart phase away from
     # this machine's real gateways: discovery returns nothing, systemd is
     # unsupported, so the phase is a clean no-op for both snapshots.
-    import hermes_cli.gateway as hermes_gateway
+    import kova_cli.gateway as hermes_gateway
 
     monkeypatch.setattr(
         hermes_gateway, "find_gateway_pids", lambda all_profiles=False: []

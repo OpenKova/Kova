@@ -15,12 +15,12 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state_runtime as rt
+import kova_state_runtime as rt
 from gateway.session_authority import LiveSession, SessionAuthority
 from gateway.session_controls import AuthorityConnection
-from hermes_cli import sessions_cmd
-from hermes_state import SessionDB
-from tests.hermes_state.test_target_advance_fence import _local_session, _mutate
+from kova_cli import sessions_cmd
+from kova_state import SessionDB
+from tests.kova_state.test_target_advance_fence import _local_session, _mutate
 
 pytestmark = pytest.mark.platforms("posix")  # the holder scan the old path refused on is POSIX-only
 
@@ -68,16 +68,16 @@ def owned_store(monkeypatch, tmp_path):
 
 
 def test_prune_under_the_live_owner_is_applied_by_the_owner_not_refused(owned_store, monkeypatch, capsys):
-    from hermes_cli import gateway_client
-    from hermes_cli import gateway_runtime
-    import hermes_state
-    from hermes_cli.gateway_client import rpc_error
+    from kova_cli import gateway_client
+    from kova_cli import gateway_runtime
+    import kova_state
+    from kova_cli.gateway_client import rpc_error
     store = owned_store
     holder = subprocess.Popen([sys.executable, '-c', _HOLDER, str(store.path)],
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     assert holder.stdout.readline().strip() == 'ready'
     opened = []
-    real_db = hermes_state.SessionDB
+    real_db = kova_state.SessionDB
 
     def recording_db(*args, **kwargs):
         opened.append(kwargs.get('read_only', False))
@@ -100,7 +100,7 @@ def test_prune_under_the_live_owner_is_applied_by_the_owner_not_refused(owned_st
     monkeypatch.setattr(gateway_runtime, 'discover_gateway_endpoint',
                         lambda home, **_: gateway_runtime.GatewayDiscovery('ready', endpoint=object()))
     monkeypatch.setattr(gateway_client, 'connect_gateway', owner_socket)
-    monkeypatch.setattr(hermes_state, 'SessionDB', recording_db)
+    monkeypatch.setattr(kova_state, 'SessionDB', recording_db)
     args = Namespace(sessions_action='prune', dry_run=False, yes=True, force=False, never_active=False,
                      include_archived=False, include_pinned=False,
                      **{name: None for name in sessions_cmd._FILTER_ARGS})

@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.update_lock import UpdateLock, update_in_progress
+from kova_cli.update_lock import UpdateLock, update_in_progress
 
 pytestmark = pytest.mark.platforms("windows")
 
@@ -26,7 +26,7 @@ _OWNER = r"""
 import subprocess, sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock, bind_child_to_update_tree
+from kova_cli.update_lock import UpdateLock, bind_child_to_update_tree
 lock = UpdateLock(path=Path(sys.argv[3]), install_root=sys.argv[2])
 assert lock.acquire()
 child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(300)"],
@@ -77,7 +77,7 @@ _JOINING_CHILD = r"""
 import sys, time
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 assert UpdateLock(path=Path(sys.argv[3]), install_root=sys.argv[2], checkout_first=False).acquire_checkout(sys.argv[2])
 print("joined", flush=True)
 time.sleep(300)
@@ -87,7 +87,7 @@ _UNBOUND_OWNER = r"""
 import subprocess, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 assert UpdateLock(path=Path(sys.argv[3]), install_root=sys.argv[2]).acquire()
 # The job refused it: a plain child, outside any kill-on-close job (a refused bind still runs).
 child = subprocess.Popen([sys.executable, "-c", sys.argv[4], *sys.argv[1:4]], stdout=subprocess.PIPE,
@@ -133,8 +133,8 @@ _GIT_OWNER = r"""
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
-from hermes_cli.update_cmd import _git_run
+from kova_cli.update_lock import UpdateLock
+from kova_cli.update_cmd import _git_run
 root = Path(sys.argv[2])
 assert UpdateLock(path=Path(sys.argv[3]), install_root=root).acquire()
 _git_run(["git"], ["stash", "push", "-m", "custody"], cwd=root)
@@ -144,9 +144,9 @@ _BUILD_OWNER = r"""
 import os, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.update_lock import UpdateLock
-from hermes_cli.source_build import run_source_script
-from hermes_cli.update_custody import run_git
+from kova_cli.update_lock import UpdateLock
+from kova_cli.source_build import run_source_script
+from kova_cli.update_custody import run_git
 root = Path(sys.argv[2])
 assert UpdateLock(path=Path(sys.argv[3]), install_root=root).acquire()
 # A git child first, as in every install/update: the job then already holds a process when the
@@ -256,7 +256,7 @@ def test_killed_owner_takes_its_node_build_down(tmp_path):
 # with a clear message. Never a live writer behind a free lock.
 _REFUSE_JOBS = (
     "import ctypes\n"
-    "from hermes_cli import update_lock as _ul\n"
+    "from kova_cli import update_lock as _ul\n"
     "_k = ctypes.WinDLL('kernel32', use_last_error=True)\n"
     "_k.CreateEventW.restype = ctypes.c_void_p\n"
     "_ul._JOBS[:] = [_k.CreateEventW(None, True, False, None)]\n"
@@ -329,7 +329,7 @@ def test_a_node_build_the_job_refuses_never_runs_unfenced(tmp_path):
 
 def test_a_refused_job_join_never_runs_the_command(tmp_path):
     """D2: a launcher whose join is refused exits without running its command (m1: and says so)."""
-    from hermes_cli.update_custody import _CUSTODY_UNAVAILABLE, _JOIN_JOB, _REFUSED_EXIT
+    from kova_cli.update_custody import _CUSTODY_UNAVAILABLE, _JOIN_JOB, _REFUSED_EXIT
 
     child = "import sys; print('built'); sys.exit(3)"
     launcher = tmp_path / "join_job.py"  # a file, not -c: the guard reads argv text as a command line
@@ -353,7 +353,7 @@ def _escaping_job_launch(tmp_path: Path, *, process_limit: int = 0):
     Returns the launcher's result and the number of processes the job ever held."""
     import ctypes
 
-    from hermes_cli.update_custody import _JOIN_JOB
+    from kova_cli.update_custody import _JOIN_JOB
 
     class _Basic(ctypes.Structure):  # JOBOBJECT_BASIC_LIMIT_INFORMATION
         _fields_ = [("user_limits", ctypes.c_int64 * 2), ("LimitFlags", ctypes.c_uint32),
@@ -404,7 +404,7 @@ def test_a_command_that_starts_outside_the_job_is_put_in_it_and_runs(tmp_path):
 def test_a_command_the_job_will_not_take_never_runs(tmp_path):
     """F54 kept: a command that starts outside the job and that Windows will not add to it (here
     the job's one-process limit, held by the launcher) is never run."""
-    from hermes_cli.update_custody import _CUSTODY_UNAVAILABLE, _REFUSED_EXIT
+    from kova_cli.update_custody import _CUSTODY_UNAVAILABLE, _REFUSED_EXIT
 
     out, _total = _escaping_job_launch(tmp_path, process_limit=1)
     assert out.returncode == _REFUSED_EXIT, out
@@ -433,11 +433,11 @@ def test_a_completion_child_runs_only_after_its_bind_and_a_refusal_is_receipted(
     import ctypes
     import copy
 
-    from hermes_cli import update_completion, update_lock, update_receipt
+    from kova_cli import update_completion, update_lock, update_receipt
 
     root = tmp_path / "checkout"
-    (root / "hermes_cli").mkdir(parents=True)
-    (root / "hermes_cli" / "update_completion.py").write_text(_COMPLETION_CHILD, encoding="utf-8")
+    (root / "kova_cli").mkdir(parents=True)
+    (root / "kova_cli" / "update_completion.py").write_text(_COMPLETION_CHILD, encoding="utf-8")
     started = tmp_path / "started"
     monkeypatch.setenv("HERMES_PROBE_STARTED", str(started))
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
@@ -470,8 +470,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 sys.path.insert(0, sys.argv[1])
-from hermes_cli import main, update_cmd, update_owning_install
-from hermes_cli.update_cmd_git import _git_stdout
+from kova_cli import main, update_cmd, update_owning_install
+from kova_cli.update_cmd_git import _git_stdout
 root = Path(sys.argv[2])
 main.PROJECT_ROOT = root
 update_owning_install.retarget_to_owning_install = lambda project_root: None
@@ -480,7 +480,7 @@ main._install_hangup_protection = lambda **kw: None
 main._finalize_update_output = lambda state: None
 
 def impl(args, gateway_mode):
-    from hermes_cli.update_receipt import begin_update_receipt
+    from kova_cli.update_receipt import begin_update_receipt
     begin_update_receipt()
     REFUSE_JOBS
     # The real readers swallow the refusal: HEAD reads as unknown.
@@ -514,7 +514,7 @@ def test_a_refusal_the_readers_swallow_is_what_the_update_reports(tmp_path):
 def _refusing_job(monkeypatch):
     import ctypes
 
-    from hermes_cli import update_lock
+    from kova_cli import update_lock
 
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateEventW.restype = ctypes.c_void_p
@@ -527,12 +527,12 @@ def test_the_takeover_finish_child_is_never_silently_outside_the_job(tmp_path, m
     a refused bind still runs it (the update committed) but is receipted."""
     import json
 
-    from hermes_cli import _update_takeover, update_receipt
+    from kova_cli import _update_takeover, update_receipt
 
     root = tmp_path / "checkout"
-    (root / "hermes_cli").mkdir(parents=True)
+    (root / "kova_cli").mkdir(parents=True)
     started = tmp_path / "started"
-    (root / "hermes_cli" / "update_finish.py").write_text(
+    (root / "kova_cli" / "update_finish.py").write_text(
         f"import sys\nopen({str(started)!r}, 'w').close()\nopen(sys.argv[2], 'w').write('{{}}')\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(sys, "path", list(sys.path))
@@ -551,7 +551,7 @@ def test_the_takeover_finish_child_is_never_silently_outside_the_job(tmp_path, m
 def test_the_old_updater_runs_its_takeover_in_the_job(tmp_path, monkeypatch, capsys):
     """N11: the old updater's takeover child syncs and builds the checkout. With this updater
     holding the checkout lock it is bound before it runs; a refused bind is said out loud."""
-    from hermes_cli import _old_updater
+    from kova_cli import _old_updater
 
     started = tmp_path / "started"
     lock = UpdateLock(path=tmp_path / "m", install_root=tmp_path)
@@ -576,7 +576,7 @@ def test_a_build_descendant_left_by_its_leader_never_writes_after_a_normal_relea
     """C3: npm exits while a builder grandchild it started keeps running. The launcher returns
     only once that grandchild is gone, so after the owner's ordinary release a contender
     admitted to the checkout sees no late write. Control: the leader's exit status passes through."""
-    from hermes_cli.update_custody import contained_command
+    from kova_cli.update_custody import contained_command
 
     install = tmp_path / "checkout"
     install.mkdir()

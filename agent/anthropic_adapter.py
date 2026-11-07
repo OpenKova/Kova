@@ -28,7 +28,7 @@ from agent.anthropic_message_convert import (
 )
 from agent.errors import EmptyStreamError
 
-from hermes_cli.version_info import get_version_info
+from kova_cli.version_info import get_version_info
 
 
 # ``import anthropic`` is deliberately NOT at module top: the SDK costs ~220 ms of imports and
@@ -285,7 +285,7 @@ def find_claude_code_cli(command: str) -> Optional[str]:
     agree with version detection about whether the CLI is installed under a GUI/service PATH."""
     if command not in _CLAUDE_CODE_NAMES:
         return None
-    from hermes_platform.resolver import locate_command
+    from kova_platform.resolver import locate_command
 
     found = locate_command(command, known_dirs=_CLAUDE_CODE_PREFIXES).command
     return found[0] if found else None
@@ -462,7 +462,7 @@ def _custom_provider_extra_headers(base_url) -> dict[str, str]:
     if not base_url:
         return {}
     try:
-        from hermes_cli.config import get_custom_provider_extra_headers
+        from kova_cli.config import get_custom_provider_extra_headers
         return get_custom_provider_extra_headers(str(base_url))
     except Exception:
         logger.debug("custom-provider extra_headers skipped for Anthropic client", exc_info=True)

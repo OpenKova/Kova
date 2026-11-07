@@ -33,7 +33,7 @@ function pythonEnv(home: string, hermesHome: string): NodeJS.ProcessEnv {
   return { HERMES_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
 }
 
-const PY_PATH = 'from hermes_cli.ui_preferences import store_path; print(store_path())'
+const PY_PATH = 'from kova_cli.ui_preferences import store_path; print(store_path())'
 
 /** The file main's IPC registers for this HERMES_HOME (registerUiPreferencesIpc). */
 const electronStorePath = (home: string, hermesHome: string) =>
@@ -103,7 +103,7 @@ test('concurrent native and Webapp writers keep every key the other wrote', asyn
   const file = uiPreferencesPath(root)
 
   const pyWrites = `
-from hermes_cli.ui_preferences import write_preferences
+from kova_cli.ui_preferences import write_preferences
 for n in range(25):
     write_preferences({f"hermes.desktop.py{n}": "web"})
 `
@@ -160,7 +160,7 @@ test.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
 
       const pythonWrite = promisify(execFile)(
         python,
-        ['-c', 'from hermes_cli.ui_preferences import write_preferences as w; w({"hermes-desktop-mode-v1": "dark"})'],
+        ['-c', 'from kova_cli.ui_preferences import write_preferences as w; w({"hermes-desktop-mode-v1": "dark"})'],
         { cwd: repo, env: pythonEnv(home, home) }
       )
 

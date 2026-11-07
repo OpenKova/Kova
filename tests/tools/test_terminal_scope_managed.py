@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import managed_scope
+from kova_cli import managed_scope
 from tools.terminal_scope import TerminalPolicyUnavailable, build_profile_terminal_scope
 
 

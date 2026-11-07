@@ -517,7 +517,7 @@ marker_release_locked() { # A7 rule 5 / corpus "release"
   log "leaving update marker: no longer ours"
 }
 
-# ── the checkout lock (hermes_cli/update_lock.py::checkout_lock_path) ────────
+# ── the checkout lock (kova_cli/update_lock.py::checkout_lock_path) ────────
 checkout_lock_path() {
   local root="$INSTALL_ROOT" dot="$INSTALL_ROOT/.git" gitdir line common
   if [ -d "$dot" ]; then

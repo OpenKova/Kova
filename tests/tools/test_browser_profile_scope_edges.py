@@ -10,7 +10,7 @@ import pytest
 
 from agent import secret_scope
 from gateway.run import _profile_runtime_scope
-from hermes_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_hermes_home, hermes_home_key
 from tools import browser_session_cdp as bs_cdp
 from tools import browser_harness_dirs as harness_dirs
 from tools.browser_harness_dirs import claim_private_dir as _REAL_CLAIM  # conftest stubs it per test
@@ -453,7 +453,7 @@ def real_profile_launches(tmp_path, monkeypatch):
     from tools import browser_launcher as launcher, browser_lightpanda, browser_session as bs
     from tools import browser_session_lifecycle as lifecycle
     from tools.bot_desktop import placement, runtime
-    import hermes_cli.browser_connect as bc
+    import kova_cli.browser_connect as bc
     for name in ("_active_sessions", "_session_last_activity", "_session_owner_homes", "_cleanup_failures"):
         monkeypatch.setattr(bs, name, {})
     monkeypatch.setattr(lifecycle, "start_cleanup_thread", lambda: None)

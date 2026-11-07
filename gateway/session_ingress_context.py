@@ -8,7 +8,7 @@ import hashlib
 import hmac
 import json
 
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 _callback: ContextVar[tuple | None] = ContextVar('native_ingress_callback', default=None)
 _relay_callback: ContextVar[tuple | None] = ContextVar('relay_ingress_callback', default=None)
@@ -159,7 +159,7 @@ def _binding(runner, source, profile):
             homes[name] = canonical
         # The primary is the reserved entry whose home IS the launch home (identity, not the
         # display name: a custom HERMES_HOME reports 'custom' while its reservation says 'default').
-        from hermes_constants import get_process_hermes_home
+        from kova_constants import get_process_hermes_home
         launch = get_process_hermes_home().resolve()
         primary = next((name for name, path in homes.items() if path == launch), None)
         if primary is None:

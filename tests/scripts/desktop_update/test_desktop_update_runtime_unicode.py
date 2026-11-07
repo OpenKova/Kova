@@ -5,7 +5,7 @@ Hermes launchers: ``--print-runtime-command`` (a JSON array whose first element
 is the interpreter path) and ``--version`` (whose ``Install directory:`` line
 names the source root). Both can sit under a non-ASCII profile
 (``C:\\Users\\Balázs``). The launchers print UTF-8 — the real CLI's
-``hermes_bootstrap`` reconfigures stdio on import — while Windows PowerShell 5.1
+``kova_bootstrap`` reconfigures stdio on import — while Windows PowerShell 5.1
 decodes captured native stdout with the console OEM code page, mojibaking the
 path (``á`` → ``├í``, ``ł`` → ``┼é``) so the returned command cannot run and the
 legacy identity check never matches.
@@ -33,7 +33,7 @@ from tests.installation_launcher_fixture import publish_fixture_launcher
 ROOT = Path(__file__).resolve().parents[3]
 HELPER = str(ROOT / 'scripts/desktop-update/runtime.ps1').replace("'", "''")
 
-# Mirrors the production launchers: hermes_bootstrap reconfigures stdio to
+# Mirrors the production launchers: kova_bootstrap reconfigures stdio to
 # UTF-8 on import before the entry module runs, so both outputs carry raw
 # UTF-8 bytes on a pipe. sys.reconfigure replicates that for the fixture's
 # plain interpreter (the embedded bootstrap imports the real one).
@@ -79,7 +79,7 @@ def test_runtime_command_survives_a_non_ascii_profile_path(tmp_path: Path, code_
     """Get-HermesRuntimeCommand returns the launcher's exact interpreter path.
 
     The launcher JSON is ASCII-escaped today, so this is the round-trip
-    contract for the boundary every other consumer (hermes_cli.windows_ssh_
+    contract for the boundary every other consumer (kova_cli.windows_ssh_
     runtime, the Electron updater, the Rust bootstrap) already decodes as
     UTF-8: the capture must return the path byte-exact and leave the caller's
     console encoding unchanged, whatever code page the console carries.

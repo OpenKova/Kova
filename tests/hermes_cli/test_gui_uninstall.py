@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.gui_uninstall — GUI-only uninstall + install discovery.
+"""Tests for kova_cli.gui_uninstall — GUI-only uninstall + install discovery.
 
 Covers the cross-platform artifact discovery, the agent/GUI detection the
 desktop UI gates options on, and that ``uninstall_gui`` removes only GUI
@@ -11,14 +11,14 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.gui_uninstall as gu
+import kova_cli.gui_uninstall as gu
 
 
 def _make_agent(hermes_home: Path) -> Path:
     """Create a fake agent install: source package + venv."""
     agent_root = hermes_home / "hermes-agent"
-    (agent_root / "hermes_cli").mkdir(parents=True)
-    (agent_root / "hermes_cli" / "__init__.py").write_text("")
+    (agent_root / "kova_cli").mkdir(parents=True)
+    (agent_root / "kova_cli" / "__init__.py").write_text("")
     (agent_root / "venv" / "bin").mkdir(parents=True)
     return agent_root
 
@@ -55,7 +55,7 @@ def test_gui_install_summary_shape(tmp_path, monkeypatch):
 def test_uninstall_removes_launcher_entry_and_refreshes_cache(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
 
-    from hermes_cli import linux_desktop_entry as lde
+    from kova_cli import linux_desktop_entry as lde
 
     entry = lde.desktop_entry_path()
     entry.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +85,7 @@ def test_uninstall_removes_launcher_entry_and_refreshes_cache(tmp_path, monkeypa
     # The icon lives in the checkout. A GUI uninstall must not delete it.
     assert lde.icon_path(hermes_home / "hermes-agent").exists()
     # The agent itself survives a GUI uninstall.
-    assert (hermes_home / "hermes-agent" / "hermes_cli").is_dir()
+    assert (hermes_home / "hermes-agent" / "kova_cli").is_dir()
 
 
 @pytest.mark.platforms("posix")  # POSIX symlink semantics
@@ -102,7 +102,7 @@ def test_remove_path_handles_symlink(tmp_path):
 
 def test_uninstall_args_namespace_mode_mapping():
     """_UninstallArgs maps mode → the gui/full flags run_uninstall reads."""
-    from hermes_cli import uninstall
+    from kova_cli import uninstall
 
     gui = uninstall._UninstallArgs(mode="gui")
     assert gui.gui is True and gui.full is False and gui.yes is True

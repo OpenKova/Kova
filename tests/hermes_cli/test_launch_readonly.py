@@ -17,9 +17,9 @@ def test_resume_and_exit_read_without_writing(tmp_path, populated):
     env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(repo))
     code = '''
 from pathlib import Path
-from hermes_state import SessionDB
-from hermes_cli.main import _resolve_last_session, _resolve_session_by_name_or_id
-from hermes_cli.main_tui_launch import _print_tui_exit_summary
+from kova_state import SessionDB
+from kova_cli.main import _resolve_last_session, _resolve_session_by_name_or_id
+from kova_cli.main_tui_launch import _print_tui_exit_summary
 import os
 path = Path(os.environ['HERMES_HOME']) / 'state.db'
 populated = POPULATED
@@ -29,17 +29,17 @@ if populated:
         db.append_message('reader-fixture', role='user', content='hello')
         db.set_session_title('reader-fixture', 'Reader fixture')
 before = path.read_bytes() if path.exists() else None
-from hermes_cli.terminal_breadcrumbs import write_breadcrumb, resolve_breadcrumb_session
+from kova_cli.terminal_breadcrumbs import write_breadcrumb, resolve_breadcrumb_session
 os.environ['TMUX_PANE'] = 'reader-fixture'
 write_breadcrumb('reader-fixture')
 assert resolve_breadcrumb_session() == ('reader-fixture' if populated else None)
 assert _resolve_last_session(source='tui') == ('reader-fixture' if populated else None)
 assert _resolve_session_by_name_or_id('reader-fixture') == ('reader-fixture' if populated else None)
 _print_tui_exit_summary('reader-fixture')
-from hermes_cli.main_agent_cmds import cmd_insights
+from kova_cli.main_agent_cmds import cmd_insights
 from types import SimpleNamespace
 cmd_insights(SimpleNamespace(days=30, source='tui'))
-from hermes_cli.cli_info_mixin import CLIInfoMixin
+from kova_cli.cli_info_mixin import CLIInfoMixin
 CLIInfoMixin._show_insights(object(), '/insights --days 30 --source tui')
 after = path.read_bytes() if path.exists() else None
 assert after == before, 'launch reader created or mutated state.db'

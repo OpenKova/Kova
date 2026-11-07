@@ -12,11 +12,11 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-import hermes_cli.web_routers.cron as cron_routes
-import hermes_cli.web_routers.sessions as session_routes
-import hermes_time
+import kova_cli.web_routers.cron as cron_routes
+import kova_cli.web_routers.sessions as session_routes
+import kova_time
 from cron import executions, jobs
-from hermes_state_runtime import claim_session_input, settle_session_input
+from kova_state_runtime import claim_session_input, settle_session_input
 from tests.fakes.cron_owner import admit_fire, cron_owner
 
 
@@ -24,7 +24,7 @@ from tests.fakes.cron_owner import admit_fire, cron_owner
 def owner(tmp_path, monkeypatch):
     """The default profile's gateway authority: admits cron fires through the real producer
     (without running an agent turn) into the state.db the dashboard routes read."""
-    from hermes_cli import profiles
+    from kova_cli import profiles
 
     home = tmp_path / '.hermes'
     (home / 'cron').mkdir(parents=True)
@@ -34,7 +34,7 @@ def owner(tmp_path, monkeypatch):
     # Pin the configured zone so the output writer and the run-history reader resolve the same
     # one, whatever the process's C-level zone (conftest sets TZ=UTC in the env without tzset).
     utc = ZoneInfo('UTC')
-    monkeypatch.setattr(hermes_time, 'get_timezone', lambda: utc)
+    monkeypatch.setattr(kova_time, 'get_timezone', lambda: utc)
     monkeypatch.setattr(cron_routes, '_get_timezone', lambda: utc)
     yield authority
     authority.db.close()
@@ -46,7 +46,7 @@ def clock(monkeypatch):
     offset = {'seconds': 0.0}
 
     def shifted():
-        return hermes_time.now() + timedelta(seconds=offset['seconds'])
+        return kova_time.now() + timedelta(seconds=offset['seconds'])
 
     monkeypatch.setattr(executions, '_hermes_now', shifted)
     monkeypatch.setattr(jobs, '_hermes_now', shifted)
@@ -155,7 +155,7 @@ async def test_a_same_second_output_doc_is_not_pinned_on_the_earlier_execution(
     while an earlier script-only fire that failed within the grace also spans that second. The
     guess must not decide the doc is that neighbour's: one row per execution, and the neighbour's
     failure keeps its own row."""
-    start = hermes_time.now().replace(microsecond=0) - timedelta(hours=1)
+    start = kova_time.now().replace(microsecond=0) - timedelta(hours=1)
     wall = {'at': start}
     monkeypatch.setattr(executions, '_hermes_now', lambda: wall['at'])
     monkeypatch.setattr(jobs, '_hermes_now', lambda: wall['at'])

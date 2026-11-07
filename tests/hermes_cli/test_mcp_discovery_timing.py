@@ -23,8 +23,8 @@ import types
 
 import pytest
 
-from hermes_cli import mcp_startup
-from hermes_constants import hermes_home_key
+from kova_cli import mcp_startup
+from kova_constants import hermes_home_key
 
 @pytest.fixture(autouse=True)
 def _reset_mcp_startup_state():
@@ -45,7 +45,7 @@ def _reset_mcp_startup_state():
 
 def test_resolve_discovery_timeout_single_query_uses_larger_bound(monkeypatch):
     """Single-query mode reads the larger mcp_single_query_discovery_timeout."""
-    import hermes_cli.config as cfg
+    import kova_cli.config as cfg
 
     monkeypatch.setattr(
         cfg,
@@ -60,7 +60,7 @@ def test_resolve_discovery_timeout_single_query_uses_larger_bound(monkeypatch):
 
 def test_resolve_discovery_timeout_single_query_falls_back(monkeypatch):
     """Bad/absent single-query value falls back to DEFAULT_CONFIG, never hangs."""
-    import hermes_cli.config as cfg
+    import kova_cli.config as cfg
 
     default = float(cfg.DEFAULT_CONFIG.get("mcp_single_query_discovery_timeout", 15.0))
     monkeypatch.setattr(
@@ -86,7 +86,7 @@ def _stub_mcp_modules(monkeypatch):
     """Stub MCP-related modules for helper tests."""
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "kova_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: {"mcp_servers": {"demo": {"transport": "stdio"}}},
             load_config=dict,
@@ -141,7 +141,7 @@ def test_ensure_helper_swallows_errors(monkeypatch):
     """A broken MCP config never aborts agent construction."""
     monkeypatch.setitem(
         sys.modules,
-        "hermes_cli.config",
+        "kova_cli.config",
         types.SimpleNamespace(
             read_raw_config=lambda: (_ for _ in ()).throw(RuntimeError("boom")),
             load_config=dict,
@@ -154,13 +154,13 @@ def test_ensure_helper_swallows_errors(monkeypatch):
     mcp_startup.ensure_mcp_discovery_before_agent_build(logger=logger)
 
 # The classic CLI's _init_agent no longer waits on MCP discovery: the gateway session owns MCP
-# (tests/hermes_cli/test_cli_startup_trim.py).
+# (tests/kova_cli/test_cli_startup_trim.py).
 
 # ── bounded wait: slow server doesn't freeze startup ────────────────────────
 
 def test_wait_stays_bounded_when_discovery_is_slow(monkeypatch):
     """A slow/dead MCP server must not freeze startup: the wait is capped."""
-    import hermes_cli.config as cfg
+    import kova_cli.config as cfg
 
     monkeypatch.setattr(cfg, "load_config", lambda: {"mcp_single_query_discovery_timeout": 0.1})
 

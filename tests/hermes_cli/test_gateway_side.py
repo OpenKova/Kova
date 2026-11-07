@@ -5,8 +5,8 @@ from contextlib import asynccontextmanager
 
 import pytest
 
-from hermes_cli import gateway_side
-from hermes_cli.gateway_connection import GatewayConnection
+from kova_cli import gateway_side
+from kova_cli.gateway_connection import GatewayConnection
 
 SID = "local-side"
 

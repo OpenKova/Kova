@@ -57,7 +57,7 @@ export async function preflightStateDb({
       throw new Error('Python not found')
     }
 
-    const args: string[] = launcher ? ['--run-module', 'hermes_cli.backup_sqlite', home] : ['-I', '-S', script, home]
+    const args: string[] = launcher ? ['--run-module', 'kova_cli.backup_sqlite', home] : ['-I', '-S', script, home]
 
     // Node refuses direct .cmd execFile; an older published launcher can still
     // be one. Same fail-closed guard as the update check: shell:true would

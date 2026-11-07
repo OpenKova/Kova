@@ -135,7 +135,7 @@ def _install_compression_failure_agent(monkeypatch, agent_cls=_CompressionThenFa
     monkeypatch.setattr(gateway_run, "_load_gateway_config", dict)
     monkeypatch.setattr("gateway.stream_consumer.GatewayStreamConsumer", _StreamConsumer)
 
-    from hermes_cli import tools_config
+    from kova_cli import tools_config
 
     monkeypatch.setattr(tools_config, "_get_platform_tools", lambda *_args, **_kwargs: {"core"})
 

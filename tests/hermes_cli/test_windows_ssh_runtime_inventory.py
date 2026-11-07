@@ -5,8 +5,8 @@ import os
 
 import pytest
 
-import hermes_constants
-from hermes_cli.windows_ssh_runtime import dispatch
+import kova_constants
+from kova_cli.windows_ssh_runtime import dispatch
 
 
 def _roster(root):
@@ -47,7 +47,7 @@ def test_a_nested_home_reads_the_identity_of_its_install_root(monkeypatch, tmp_p
     native = tmp_path / "native"
     (native / "work").mkdir(parents=True)
     (native / "install_id").write_text("A" * 32 + "\n")
-    monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: native)
+    monkeypatch.setattr(kova_constants, "_get_platform_default_hermes_home", lambda: native)
     monkeypatch.setenv("HERMES_HOME", str(native / "work"))
 
     assert dispatch(["inventory"])["installId"] == "a" * 32

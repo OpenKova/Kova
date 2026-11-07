@@ -21,7 +21,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Dict, List, Optional
 
-from hermes_constants import get_hermes_home, hermes_home_key
+from kova_constants import get_hermes_home, hermes_home_key
 from tools.daemon_pool import DaemonThreadPoolExecutor
 from tools.thread_context import propagate_context_to_thread
 from tools.async_delegation_worker import worker_ledger, require_ledger_owner
@@ -121,12 +121,12 @@ def _connect() -> sqlite3.Connection:
     from agent.runtime_session_store import WorkerPersistenceError, is_worker_process
     if is_worker_process():
         raise WorkerPersistenceError('worker_delegation_ledger_unavailable')
-    from hermes_cli.sqlite_util import open_db
-    # Same state.db as hermes_state.SessionDB -- reuse its owner-only (0600)
+    from kova_cli.sqlite_util import open_db
+    # Same state.db as kova_state.SessionDB -- reuse its owner-only (0600)
     # hardening so this writer doesn't create/leave the file (and its WAL
-    # sidecars) at the process umask. See hermes_state._secure_state_db_files.
-    from hermes_constants import mkdir_under_hermes_home
-    from hermes_state import _secure_state_db_files
+    # sidecars) at the process umask. See kova_state._secure_state_db_files.
+    from kova_constants import mkdir_under_hermes_home
+    from kova_state import _secure_state_db_files
 
     path = _db_path()
     # A late replay or writer must not resurrect a removed named profile (#123265).
@@ -140,8 +140,8 @@ def _connect() -> sqlite3.Connection:
 
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
-    from hermes_state_repair import apply_durability_barriers
-    from hermes_state_schema import reconcile_state_schema
+    from kova_state_repair import apply_durability_barriers
+    from kova_state_schema import reconcile_state_schema
     # Preserve the journal mode SessionDB configured on state.db: forcing WAL from
     # every short-lived connection collides with live transcript/FTS writers.
     apply_durability_barriers(conn)
@@ -156,7 +156,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 
 def _transaction():
-    from hermes_cli.sqlite_util import transaction
+    from kova_cli.sqlite_util import transaction
 
     return transaction(_connect())
 
@@ -907,7 +907,7 @@ def _batch_status(combined: dict[str, Any]) -> str:
 
 
 def _dispatch(**kwargs) -> dict[str, Any]:
-    from hermes_cli.backend_retirement import retirement
+    from kova_cli.backend_retirement import retirement
 
     with retirement.work() as admitted:
         if not admitted:
@@ -983,7 +983,7 @@ def _dispatch_admitted(
         finally:
             _finalize(delegation_id, result, status)
 
-    from hermes_cli.backend_retirement import retirement
+    from kova_cli.backend_retirement import retirement
 
     # The outer dispatch reservation prevents a freeze during this handoff. Retain a worker
     # reservation too: the stall monitor may finalize its registry record before it really exits.

@@ -81,8 +81,8 @@ def _pin_environment() -> None:
     socket.getaddrinfo = refuse  # type: ignore[assignment]
     sys.platform = "linux"  # skills index ``platforms:`` gate
 
-    import hermes_time
-    hermes_time.now = lambda: FIXED_NOW  # type: ignore[assignment]
+    import kova_time
+    kova_time.now = lambda: FIXED_NOW  # type: ignore[assignment]
     # Every registered tool counts as available, as on a fully configured install: check_fns
     # read credentials, binaries and the tool store, which vary by host and would hide schemas.
     import tools.registry as registry_module
@@ -120,13 +120,13 @@ def _enabled_toolsets(platform: str) -> list[str]:
     if platform in TUI_GATEWAY_PLATFORMS:
         from tui_gateway.server import _load_enabled_toolsets
         return list(_load_enabled_toolsets(platform) or [])
-    from hermes_cli.config import load_config
-    from hermes_cli.tools_config import _get_platform_tools
+    from kova_cli.config import load_config
+    from kova_cli.tools_config import _get_platform_tools
     return sorted(_get_platform_tools(load_config(), platform))
 
 
 def _render_surface(home: Path, platform: str, model: str, code: bool) -> tuple[dict[str, str], dict]:
-    from hermes_cli.config import load_config, save_config
+    from kova_cli.config import load_config, save_config
     from agent.system_prompt import build_system_prompt_parts
     from run_agent import AIAgent
 

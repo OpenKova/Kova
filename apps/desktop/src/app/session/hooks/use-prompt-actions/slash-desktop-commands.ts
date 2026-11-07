@@ -217,7 +217,7 @@ const CONFIG_ALLOWED: Record<string, true | readonly string[]> = {
   voice: ['record_key', 'submit_mode']
 }
 
-// Leaf rule of hermes_cli/config.py::_is_secret_config_key (+ auth/cookie), applied inside
+// Leaf rule of kova_cli/config.py::_is_secret_config_key (+ auth/cookie), applied inside
 // allowlisted sections (the owner masks these; a legacy server sends them raw).
 const CONFIG_SECRET_KEY =
   /^(api_?key|key|auth|cookie|token|access_token|refresh_token|id_token|secret|client_secret|password|passwd|authorization|private_key|bearer|jwt)$|_(api_key|token|secret|password|key|access_key)$/

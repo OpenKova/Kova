@@ -21,8 +21,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional
 
 from cron import executions as _executions
-from hermes_constants import get_hermes_home
-from hermes_time import now as _hermes_now
+from kova_constants import get_hermes_home
+from kova_time import now as _hermes_now
 
 # Optional test override (mirrors ``cron.executions.EXECUTIONS_FILE``).
 EXECUTIONS_FILE: Optional[Path] = None
@@ -62,10 +62,10 @@ def _db_path() -> Path:
 
 def _connect() -> sqlite3.Connection:
     # Late imports: a scheduler daemon that outlives an on-disk upgrade already has the OLD
-    # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
+    # ``kova_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from cron.jobs import _ensure_cron_dir
-    from hermes_cli.sqlite_util import open_db
+    from kova_cli.sqlite_util import open_db
 
     path = _db_path()
     _ensure_cron_dir(path.parent)
@@ -73,7 +73,7 @@ def _connect() -> sqlite3.Connection:
 
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
-    from hermes_cli.sqlite_util import add_column_if_missing
+    from kova_cli.sqlite_util import add_column_if_missing
 
     conn.execute(
         """CREATE TABLE IF NOT EXISTS cron_incidents (
@@ -105,7 +105,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 @contextmanager
 def _transaction() -> Iterator[sqlite3.Connection]:
-    from hermes_cli.sqlite_util import transaction
+    from kova_cli.sqlite_util import transaction
 
     with _lock, transaction(_connect()) as conn:
         yield conn

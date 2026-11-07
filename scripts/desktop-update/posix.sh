@@ -125,7 +125,7 @@ log() {
 }
 
 owed_followup_steps() { # $OUT -> the distinct owed steps, space-separated, in print order
-  # hermes_cli/update_receipt.record_followup prints each as one whole line.
+  # kova_cli/update_receipt.record_followup prints each as one whole line.
   printf '%s\n' "$OUT" | sed -n "s/^.*Update follow-up '\([A-Za-z0-9_]*\)' did not finish: .*$/\1/p" \
     | awk '!seen[$0]++' | tr '\n' ' ' | sed 's/ *$//'
 }
@@ -291,7 +291,7 @@ receipt_json_field() { # file key -> the top-level string value (json.dumps inde
 }
 update_committed_after_exit() { # -> 0 iff this run's receipt shows the commit point passed
   local root="$HERMES_HOME" f outcome
-  # hermes_constants.get_default_hermes_root: a <root>/profiles/<name> home files under <root>
+  # kova_constants.get_default_hermes_root: a <root>/profiles/<name> home files under <root>
   [ "$(basename "$(dirname "$root")")" != profiles ] || root="$(dirname "$(dirname "$root")")"
   f="$root/logs/update_receipts/latest.json"
   [ -f "$f" ] && [ -n "$UPDATE_CORRELATION" ] || return 1
@@ -572,7 +572,7 @@ linux_gate() {
   if [ -u "$sb" ] && [ "$(stat -c %u "$sb" 2>/dev/null)" = "0" ]; then GATE=relaunch; return; fi
   # Namespace sandbox usable => Electron never consults the setuid helper,
   # so a non-root chrome-sandbox does not block relaunch (mirrors the
-  # _desktop_linux_userns_sandbox_available() probe in hermes_cli/main.py).
+  # _desktop_linux_userns_sandbox_available() probe in kova_cli/main.py).
   if unshare --user --map-root-user true 2>/dev/null; then GATE=relaunch; return; fi
 
   case "${ELECTRON_DISABLE_SANDBOX:-}" in 1|true|TRUE|True) GATE=relaunch; return ;; esac
@@ -821,7 +821,7 @@ trap finish EXIT
 # #96231; heal-point observation by @ahrazzle / @tokenfires on #95759).
 #
 # Ping-pong coherence with the re-landed forward anchor
-# (hermes_cli/macos_tcc_anchor.ensure_tcc_anchor, which re-anchors whenever
+# (kova_cli/macos_tcc_anchor.ensure_tcc_anchor, which re-anchors whenever
 # `venv/bin/python` is a uv-managed symlink): this heal is gated on the
 # interpreter FAILING its boot probe, so a healthy anchored install is never
 # touched; and when it does restore symlinks, the very `hermes update` run it
@@ -935,12 +935,12 @@ EOF_ALIASES
 
 tcc_pick_update_invoke() { # sets UPDATE_INVOKE; safety net past a failed heal
   # Last-resort class: aliases still dead but the anchored copy boots. The
-  # launchd gateway proves `venv/bin/python -m hermes_cli.main` works when
+  # launchd gateway proves `venv/bin/python -m kova_cli.main` works when
   # every alias entrypoint is bricked — drive the update the same way.
   local bin="$1"
   UPDATE_INVOKE=("$bin/hermes")
   if ! tcc_probe_python "$bin/python3" && tcc_probe_python "$bin/python"; then
-    UPDATE_INVOKE=("$bin/python" -m hermes_cli.main)
+    UPDATE_INVOKE=("$bin/python" -m kova_cli.main)
   fi
 }
 
@@ -1143,7 +1143,7 @@ select_update_invoke() {
     UPDATE_INVOKE=("$HERMES_BIN")
     return 0
   fi
-  if [ -f "$INSTALL_ROOT/hermes_cli/_launchers.py" ]; then
+  if [ -f "$INSTALL_ROOT/kova_cli/_launchers.py" ]; then
     local candidate version reported expected
     expected="$(cd "$INSTALL_ROOT" && pwd -P)" || return 1
     for candidate in "$HOME/.local/bin/hermes" "$HERMES_HOME/bin/hermes"; do
@@ -1307,7 +1307,7 @@ if [ "$CODE" -eq 0 ]; then FINAL_CODE=0 FINAL_MSG="Update complete." UPDATE_COMM
   OWED_STEPS="$(owed_followup_steps)"
   if [ -n "$OWED_STEPS" ]; then
     # A gateway_restart owed only for serve/dashboard units (the reason then starts with
-    # "serve/dashboard ", hermes_cli/update_cmd_fleet_verify.SERVE_ONLY_REASON_PREFIX) names their own
+    # "serve/dashboard ", kova_cli/update_cmd_fleet_verify.SERVE_ONLY_REASON_PREFIX) names their own
     # command in the log. The hint drops only when EVERY gateway_restart line is serve-only; any other
     # reason, including a raw restart-phase error, keeps it (#141071).
     case " $OWED_STEPS " in *" gateway_restart "*) OWED_HINT=" Run hermes gateway restart to move the messaging gateway onto the new code now." ;; *) OWED_HINT="" ;; esac

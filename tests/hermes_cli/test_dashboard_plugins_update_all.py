@@ -8,17 +8,17 @@ import pytest
 @pytest.fixture
 def client(monkeypatch, _isolate_hermes_home):
     starlette = pytest.importorskip("starlette.testclient")
-    import hermes_state
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
-    from hermes_constants import get_hermes_home
+    import kova_state
+    from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    from kova_constants import get_hermes_home
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", get_hermes_home() / "state.db")
     return starlette.TestClient(app, raise_server_exceptions=False,
                                 headers={_SESSION_HEADER_NAME: _SESSION_TOKEN})
 
 
 def test_auto_update_switch_round_trips_through_the_profile_config(client):
-    from hermes_cli.config import load_config
+    from kova_cli.config import load_config
 
     assert client.get("/api/dashboard/plugins/auto-update").json()["auto_apply"] is False
     on = client.put("/api/dashboard/plugins/auto-update", json={"enabled": True})
@@ -28,7 +28,7 @@ def test_auto_update_switch_round_trips_through_the_profile_config(client):
 
 
 def test_auto_update_refused_on_a_managed_install_is_a_400_with_the_reason(client, monkeypatch):
-    from hermes_cli import config
+    from kova_cli import config
 
     monkeypatch.setattr(config, "is_managed", lambda: True)
     resp = client.put("/api/dashboard/plugins/auto-update", json={"enabled": True})

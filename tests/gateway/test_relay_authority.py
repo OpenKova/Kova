@@ -33,8 +33,8 @@ async def probe(peer):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_contract import SessionRef
     from gateway.session_envelope import prepare_native, restore_native
-    from hermes_cli import web_server
-    from hermes_state_runtime import RuntimeStoreError, list_session_admissions
+    from kova_cli import web_server
+    from kova_state_runtime import RuntimeStoreError, list_session_admissions
     from tests.waiting import async_wait_until
 
     sockets, outgoing, frames = [], [], []

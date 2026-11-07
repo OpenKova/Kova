@@ -1,7 +1,7 @@
 """Hostile-concurrency cells for the update lock, with real ``hermes update`` processes.
 
 A real git checkout (a clone of the commit under test, served by a local bare origin) is updated
-by real ``python -m hermes_cli.main update`` processes inside the bwrap sandbox. A ``git`` shim
+by real ``python -m kova_cli.main update`` processes inside the bwrap sandbox. A ``git`` shim
 parks every ``fetch`` while a hold file exists and logs which home reached it, so "an update got
 past the lock" is observed directly: the fetch is the first step after the lock.
 
@@ -43,12 +43,12 @@ from pathlib import Path
 
 root, checkout, mode = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
 envs = json.loads((root / "envs.json").read_text(encoding="utf-8"))
-ARGV = [sys.executable, "-m", "hermes_cli.main", "update", "--yes", "--branch", "main", "--no-gateway-restart"]
+ARGV = [sys.executable, "-m", "kova_cli.main", "update", "--yes", "--branch", "main", "--no-gateway-restart"]
 # A running server's "is an update in flight" probe, in a fresh process of another home.
 READER = """
 import json, sys
 sys.path.insert(0, sys.argv[1])
-from hermes_cli.web_server_skew_exit import _update_in_progress
+from kova_cli.web_server_skew_exit import _update_in_progress
 print(json.dumps({"skew_reader": _update_in_progress()}))
 """
 
@@ -175,7 +175,7 @@ class Rig:
 
     def update(self, name: str) -> subprocess.Popen:
         env = self.env(name)
-        argv = H.sandbox_argv([sys.executable, "-m", "hermes_cli.main", "update", "--yes", "--branch", "main",
+        argv = H.sandbox_argv([sys.executable, "-m", "kova_cli.main", "update", "--yes", "--branch", "main",
                                "--no-gateway-restart"], writable=[self.root])
         return subprocess.Popen(argv, env=env, cwd=self.checkout, stdin=subprocess.DEVNULL,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

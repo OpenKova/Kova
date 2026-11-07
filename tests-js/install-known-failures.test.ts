@@ -52,7 +52,7 @@ describe('known install failures', () => {
 
   it('matches the June dmg updater refusal only on macOS from v2026.7.30 with fresh evidence', () => {
     const refusal = '2026-11-02T11:30:17.477693Z  INFO bootstrap.log: ✗ Another Hermes update is already running (PID 22416, started 6s ago). stage=update'
-    const failed = '2026-11-02T11:30:17.520111Z  INFO hermes_bootstrap_lib::update: update stage stage=update state=Failed duration_ms=Some(1016) error=Some("Hermes is still running. Close all Hermes windows and try the update again.")'
+    const failed = '2026-11-02T11:30:17.520111Z  INFO kova_bootstrap_lib::update: update stage stage=update state=Failed duration_ms=Some(1016) error=Some("Hermes is still running. Close all Hermes windows and try the update again.")'
 
     const sample = {
       platform: 'macos', phase: 'update', commit: 'cc4cab2f592e60a197e796506de9168f74baf3ea',

@@ -616,7 +616,7 @@ stage_prerequisites() {
 }
 
 # The update channel this install chose (config.yaml update.installs.<id>.channel,
-# id = sha16 of the canonical install path, as hermes_cli.update_channel keys it).
+# id = sha16 of the canonical install path, as kova_cli.update_channel keys it).
 # Pre-Python reader of the block YAML Hermes writes; anything it cannot read prints
 # nothing, which keeps the plain branch behaviour.
 chosen_channel() {
@@ -645,7 +645,7 @@ chosen_channel() {
 }
 
 # Forks and mirrors publish no official releases; they keep following their branch, as
-# hermes_cli.update_channel.default_channel decides.
+# kova_cli.update_channel.default_channel decides.
 is_official_repo() {
     printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
         | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/hermes-agent(\.git)?/?$'
@@ -671,7 +671,7 @@ latest_stable_release() {
     fi
     if valid_stable_tag "$tag"; then printf '%s' "$tag"; fi
 }
-# Same shape as hermes_cli.update_channel.STABLE_TAG_RE.
+# Same shape as kova_cli.update_channel.STABLE_TAG_RE.
 valid_stable_tag() {
     printf '%s' "$1" | grep -Eq '^v(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
 }
@@ -735,7 +735,7 @@ stage_repository() {
         fi
         # No recorded choice: an official checkout tracks stable, as `hermes update` does.
         if [ -z "$channel" ]; then
-            # The configured URL, as hermes_cli.update_channel reads it (`remote get-url`
+            # The configured URL, as kova_cli.update_channel reads it (`remote get-url`
             # applies insteadOf rewrites).
             origin="$(git -C "$INSTALL_DIR" config --get remote.origin.url 2>/dev/null)" || origin=""
             release="$(stable_target "$origin")"
@@ -1117,7 +1117,7 @@ stage_products() {
         args+=(--desktop)
     fi
     (cd "$INSTALL_DIR" && run_logged "Building the hermes command and apps" \
-        "$boot_py" -I -B -X utf8 hermes_cli/source_completion.py "${args[@]}") \
+        "$boot_py" -I -B -X utf8 kova_cli/source_completion.py "${args[@]}") \
         || fail "app products or command publication failed" products_build_failed
     wire_shell_path
     log_success "app products and hermes command ready"

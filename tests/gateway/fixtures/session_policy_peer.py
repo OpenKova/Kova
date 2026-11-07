@@ -64,8 +64,8 @@ async def probe(peer):
     from gateway.session_authority import initialize_session_authority
     from gateway.run_api import start_gateway_api, stop_gateway_api
     from gateway.session_contract import SessionRef
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     runner = GatewayRunner()
     authority = await initialize_session_authority(runner, profile_id='fixture', instance_id='policy')
     api = await start_gateway_api(runner)
@@ -100,7 +100,7 @@ async def probe(peer):
             sessions.append(sid)
             created_ids[sid] = created['result']['stored_session_id']
             from gateway.session_policy import policy_for_source
-            from hermes_state_runtime import RuntimeStoreError
+            from kova_state_runtime import RuntimeStoreError
             live_source = authority.sessions[sid].source
             adapter = runner._adapter_for_source(live_source)
             saved_policy = adapter.policies.pop(live_source.chat_id)

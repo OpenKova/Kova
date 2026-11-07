@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Callable, Dict, Optional
 
 from agent.deadline import poll_until
-from hermes_constants import get_hermes_home
+from kova_constants import get_hermes_home
 from tools.bot_desktop import placement
 
 logger = logging.getLogger(__name__)
@@ -413,7 +413,7 @@ def _should_auto_start(env: dict[str, str]) -> bool:
         return False
     if missing_binaries():
         return False
-    from hermes_cli.config import load_config_readonly
+    from kova_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return bool(cfg.get("auto_start", False))
 
@@ -457,7 +457,7 @@ def idle_seconds() -> Optional[float]:
 
 
 def idle_stop_seconds() -> float:
-    from hermes_cli.config import load_config_readonly
+    from kova_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     try:
         minutes = float(cfg.get("idle_stop_minutes", DEFAULT_IDLE_STOP_MINUTES))
@@ -612,7 +612,7 @@ def open_rfb_stream() -> subprocess.Popen:
 
 
 def geometry() -> str:
-    from hermes_cli.config import load_config_readonly
+    from kova_cli.config import load_config_readonly
     cfg = load_config_readonly().get("bot_desktop") or {}
     return str(cfg.get("geometry") or "1440x900")
 
@@ -671,7 +671,7 @@ def _sandbox_status(profile: Optional[str], where) -> DesktopStatus:
         if where.backend == "docker":
             # The usual reason on an upgraded install: the persisted container predates the default
             # flip and was kept on purpose. The pane offers the switch instead of a config hint.
-            from hermes_cli.sandbox_image_switch import pending
+            from kova_cli.sandbox_image_switch import pending
             sw = pending()
             if sw is not None:
                 image_switch = {"current_image": sw.current_image, "target_image": sw.target_image,
@@ -701,7 +701,7 @@ def _sandbox_status(profile: Optional[str], where) -> DesktopStatus:
 
 def _profile_name() -> str:
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from kova_cli.profiles import get_active_profile_name
         return get_active_profile_name() or "default"
     except Exception:
         return "default"
@@ -790,7 +790,7 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
         child_env["HOME"] = child_env["HERMES_REAL_HOME"]
         for key in ("DISPLAY", "XAUTHORITY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "SESSION_MANAGER"):
             child_env.pop(key, None)
-        from hermes_cli._launchers import installation_command
+        from kova_cli._launchers import installation_command
         from tools.bot_desktop.idle_watch import next_check_in
         child_env.update({
             "HERMES_BD_PROFILE": _profile_name(),

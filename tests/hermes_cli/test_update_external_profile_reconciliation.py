@@ -13,10 +13,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import update_cmd_fleet as fleet
-from hermes_cli import update_cmd_fleet_verify as fleet_verify
-from hermes_cli import update_receipt
-from hermes_cli.update_inventory import (
+from kova_cli import update_cmd_fleet as fleet
+from kova_cli import update_cmd_fleet_verify as fleet_verify
+from kova_cli import update_receipt
+from kova_cli.update_inventory import (
     RuntimeRecord,
     UpdatePlan,
     match_runtime_outcomes,
@@ -27,8 +27,8 @@ SHA = "a" * 40
 
 
 def _checkout(root: Path) -> Path:
-    (root / "hermes_cli").mkdir(parents=True)
-    (root / "hermes_cli" / "main.py").write_text("", encoding="utf-8")
+    (root / "kova_cli").mkdir(parents=True)
+    (root / "kova_cli" / "main.py").write_text("", encoding="utf-8")
     return root
 
 
@@ -48,12 +48,12 @@ def _gateway(profile: str, pid: int) -> RuntimeRecord:
 def external_profile_host(tmp_path, monkeypatch):
     """Root install with its own gateway plus ``profiles/work`` symlinked to a separate install."""
     root = tmp_path / "root_home"
-    updater_main = update_receipt._updater_code_root() / "hermes_cli" / "main.py"
+    updater_main = update_receipt._updater_code_root() / "kova_cli" / "main.py"
     _gateway_state(root, 1111, updater_main, SHA)
 
     other_checkout = _checkout(tmp_path / "other_install" / "hermes-agent")
     other_home = tmp_path / "other_install" / "home"
-    _gateway_state(other_home, 4242, other_checkout / "hermes_cli" / "main.py", "f" * 40)
+    _gateway_state(other_home, 4242, other_checkout / "kova_cli" / "main.py", "f" * 40)
     (root / "profiles").mkdir()
     (root / "profiles" / "work").symlink_to(other_home, target_is_directory=True)
 
@@ -64,10 +64,10 @@ def external_profile_host(tmp_path, monkeypatch):
     monkeypatch.setattr("gateway.status.live_gateway_pid_for_home", lambda home: live.get(Path(home).resolve()))
     monkeypatch.setattr(fleet_verify, "_time", SimpleNamespace(sleep=lambda _s: None, monotonic=time.monotonic))
     monkeypatch.setattr(fleet_verify, "_print_legacy_units_warning", lambda: None)
-    monkeypatch.setattr("hermes_cli.update_cmd._finish_dashboard_update_cleanup", lambda *a, **k: None)
+    monkeypatch.setattr("kova_cli.update_cmd._finish_dashboard_update_cleanup", lambda *a, **k: None)
     # The live post-update dashboard pass restarts a managed hermes-dashboard unit.
-    monkeypatch.setattr("hermes_cli.update_cmd_maint._refresh_dashboard_after_update", lambda **k: set())
-    monkeypatch.setattr("hermes_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
+    monkeypatch.setattr("kova_cli.update_cmd_maint._refresh_dashboard_after_update", lambda **k: set())
+    monkeypatch.setattr("kova_cli.gateway_migrate.maybe_auto_migrate_after_update", lambda: None)
     return SimpleNamespace(other_checkout=other_checkout)
 
 

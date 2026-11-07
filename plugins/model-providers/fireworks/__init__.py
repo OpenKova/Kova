@@ -3,7 +3,7 @@
 
 from typing import Any
 
-from hermes_cli.version_info import hermes_user_agent
+from kova_cli.version_info import hermes_user_agent
 from providers import register_provider
 from providers.base import LazyHeaders, ProviderProfile
 

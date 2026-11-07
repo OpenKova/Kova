@@ -13,7 +13,7 @@ import json
 import os
 import subprocess
 
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 TIMEOUT_SECONDS = 30
 _LOCAL_BACKENDS = frozenset({'', 'local'})
@@ -56,7 +56,7 @@ async def shell_exec(connection, ref, params):
 
 def _run(command, cwd):
     from agent.redact import redact_sensitive_text
-    from hermes_cli._subprocess_compat import windows_hide_flags
+    from kova_cli._subprocess_compat import windows_hide_flags
     from tools.environments.local import build_subprocess_env
     # shell=True keeps the user-facing !cmd grammar (pipes, redirects); the child never inherits
     # credentials the long-lived owner holds, nor a launch profile's .env residue in a routed one.

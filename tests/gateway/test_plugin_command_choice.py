@@ -77,8 +77,8 @@ def _runner(adapter):
 
 @pytest.mark.asyncio
 async def test_a_chat_answers_the_plugin_command_choice_with_a_typed_number(monkeypatch):
-    from hermes_cli import plugins as plugins_mod
-    from hermes_cli.plugin_choices import ask_choice
+    from kova_cli import plugins as plugins_mod
+    from kova_cli.plugin_choices import ask_choice
     from tools import clarify_gateway
 
     adapter = _TextAdapter()

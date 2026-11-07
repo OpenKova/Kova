@@ -91,7 +91,7 @@ class TestHandleUpdateCommand:
 
     @pytest.mark.asyncio
     async def test_resolve_hermes_bin_module_argv(self):
-        """_resolve_hermes_bin uses the running interpreter's module argv when hermes_cli is
+        """_resolve_hermes_bin uses the running interpreter's module argv when kova_cli is
         importable, even when PATH also offers a ``hermes`` binary (#111569: a PATH-first
         lookup would re-exec an attacker-planted executable on /update and /restart)."""
         import sys
@@ -102,11 +102,11 @@ class TestHandleUpdateCommand:
              patch("importlib.util.find_spec", return_value=fake_spec):
             result = _resolve_hermes_bin()
 
-        assert result == [sys.executable, "-m", "hermes_cli.main"]
+        assert result == [sys.executable, "-m", "kova_cli.main"]
 
     @pytest.mark.asyncio
     async def test_resolve_hermes_bin_falls_back_to_path_then_none(self):
-        """Without an importable hermes_cli the argv degrades to PATH, then to None — never a
+        """Without an importable kova_cli the argv degrades to PATH, then to None — never a
         bare ``hermes`` string that a hostile PATH entry could shadow."""
         from gateway.run import _resolve_hermes_bin
 
@@ -137,7 +137,7 @@ class TestHandleUpdateCommand:
 
         with patch("gateway.run._hermes_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
-             patch("hermes_cli.config.detect_install_method", return_value="git"), \
+             patch("kova_cli.config.detect_install_method", return_value="git"), \
              patch("shutil.which", side_effect=lambda x: "/usr/bin/hermes" if x == "hermes" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
             await runner._handle_update_command(event)
@@ -180,7 +180,7 @@ class TestHandleUpdateCommand:
 
         with patch("gateway.run._hermes_home", hermes_home), \
              patch("gateway.run.__file__", fake_file), \
-             patch("hermes_cli.config.detect_install_method", return_value="git"), \
+             patch("kova_cli.config.detect_install_method", return_value="git"), \
              patch("shutil.which", side_effect=which_no_setsid), \
              patch("subprocess.Popen", mock_popen):
             await runner._handle_update_command(event)
@@ -222,7 +222,7 @@ class TestUpdateCommandPlatformGate:
         """
 
         # Make sure the plugin registry is populated so the fallback fires.
-        from hermes_cli.plugins import PluginManager
+        from kova_cli.plugins import PluginManager
         PluginManager().discover_and_load(force=True)
         from gateway.platform_registry import platform_registry
         discord_entry = platform_registry.get("discord")
@@ -618,9 +618,9 @@ class TestUpdateCommandInstallMethodRefusal:
         mock_popen = MagicMock()
 
         with patch("gateway.run._hermes_home", hermes_home), \
-             patch("hermes_cli.config.detect_install_method",
+             patch("kova_cli.config.detect_install_method",
                    return_value=method), \
-             patch("hermes_cli.config.recommended_update_command_for_method",
+             patch("kova_cli.config.recommended_update_command_for_method",
                    return_value=f"steward-update --{method}"), \
              patch("subprocess.Popen", mock_popen):
             result = await runner._handle_update_command(event)

@@ -19,7 +19,7 @@ def test_bypass_policy_routes_to_managed_worker_and_bootstrap_carries_flags(tmp_
     from gateway import session_managed_worker as smw
     from gateway.session_policy import build_policy
     from agent.managed_worker import validate_bootstrap
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
 
     safe = _policy(tmp_path, safe_mode=True)
     config_only = _policy(tmp_path, ignore_user_config=True)
@@ -74,8 +74,8 @@ frame = {{'safe_mode': {mode == 'safe'!r}, 'ignore_user_config': True,
 opened = []
 sys.addaudithook(lambda event, args: opened.append(str(args[0])) if event == 'open' and home in str(args[0]) else None)
 bind_worker_policy(frame)
-from hermes_cli.config import load_config, read_raw_config
-from hermes_cli.plugins import discover_plugins, get_plugin_manager
+from kova_cli.config import load_config, read_raw_config
+from kova_cli.plugins import discover_plugins, get_plugin_manager
 discover_plugins()
 cfg = load_config()
 raw = read_raw_config()

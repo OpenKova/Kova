@@ -24,8 +24,8 @@ async def probe():
     from gateway.run import GatewayRunner
     from gateway.session_authority import initialize_session_authority
     from gateway.run_api import start_gateway_api, stop_gateway_api
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth.ws_tickets import mint_ticket
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth.ws_tickets import mint_ticket
     from tests.gateway.fixtures.local_recovery_probe import rpc
     import tools.browser_session_lifecycle as lifecycle
     from websockets.asyncio.client import connect
@@ -44,7 +44,7 @@ async def probe():
     bee.mkdir(parents=True)
     (bee / 'config.yaml').write_text('browser:\n  cdp_url: ws://bee.invalid/devtools/browser/PROFILE-B\n')
     from gateway.run import _profile_runtime_scope
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     from tools import browser_session_cdp
 
     def resolved(profile):

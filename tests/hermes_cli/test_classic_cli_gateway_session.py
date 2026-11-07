@@ -7,9 +7,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli.gateway_agent import GatewayAgent
-from hermes_cli.gateway_client import GatewayClientError
-from hermes_cli.gateway_connection import GatewayConnection
+from kova_cli.gateway_agent import GatewayAgent
+from kova_cli.gateway_client import GatewayClientError
+from kova_cli.gateway_connection import GatewayConnection
 
 SID = "local-abc"
 LOST = {"admission_id": "adm-lost", "status": "unknown", "execution_generation": 4, "text": "first ask"}
@@ -106,7 +106,7 @@ def test_a_prompt_behind_a_lost_turn_shows_the_discard_banner_and_discard_lets_i
     assert "prompt.submit" not in client.methods()  # never queued behind the lost turn
 
     from cli import HermesCLI
-    monkeypatch.setattr("hermes_cli.gateway_side.connection_for", lambda cli: conn)
+    monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
     method, _ = HermesCLI._slash_handler("discard") or (None, None)
     assert method is not None
     getattr(HermesCLI, method)(SimpleNamespace(session_id=SID), "/discard adm-lost")
@@ -120,7 +120,7 @@ def test_a_bare_discard_prints_usage_and_calls_nothing(gateway, monkeypatch):
     from cli import HermesCLI
     printed = []
     monkeypatch.setattr("cli._cprint", printed.append)
-    monkeypatch.setattr("hermes_cli.gateway_side.connection_for", lambda cli: conn)
+    monkeypatch.setattr("kova_cli.gateway_side.connection_for", lambda cli: conn)
     calls = len(client.calls)
     entry = HermesCLI._slash_handler("discard")
     assert entry is not None

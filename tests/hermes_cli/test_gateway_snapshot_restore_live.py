@@ -12,13 +12,13 @@ import uuid
 
 import pytest
 
-from hermes_cli.backup import create_quick_snapshot, restore_quick_snapshot
-from hermes_cli.cli_commands_mixin import CLICommandsMixin
-from hermes_cli.cli_init_mixin import CLIInitMixin
-from hermes_cli.gateway_connection import GatewayConnection
-from hermes_cli.gateway_runtime import discover_gateway_endpoint
-from hermes_cli.gateway_session_store import GatewaySessionStore
-from hermes_cli.profiles import parked_marker_path
+from kova_cli.backup import create_quick_snapshot, restore_quick_snapshot
+from kova_cli.cli_commands_mixin import CLICommandsMixin
+from kova_cli.cli_init_mixin import CLIInitMixin
+from kova_cli.gateway_connection import GatewayConnection
+from kova_cli.gateway_runtime import discover_gateway_endpoint
+from kova_cli.gateway_session_store import GatewaySessionStore
+from kova_cli.profiles import parked_marker_path
 from tests.gateway.fixtures.local_recovery_probe import Model, child_env
 from tests.waiting import wait_until
 
@@ -54,7 +54,7 @@ def local_gateway(tmp_path, monkeypatch):
         children.append(process)
         return process
 
-    monkeypatch.setattr("hermes_cli.gateway_runtime_start.spawn_unmanaged_gateway", spawn)
+    monkeypatch.setattr("kova_cli.gateway_runtime_start.spawn_unmanaged_gateway", spawn)
     monkeypatch.setattr(GatewayConnection, "_shared", None)
 
     def configure(multiplex):
@@ -122,7 +122,7 @@ def _default_profile_state(home):
 
 def _legacy_row(home):
     """A pre-authority CLI row the gateway has not imported yet, as the old in-process CLI wrote it."""
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     db = SessionDB(home / "state.db")
     try:
         db.create_session("legacy-cli", source="cli", model="fixture")
@@ -161,7 +161,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
     assert store.get_messages_as_conversation(sid) == history_before
     old_reader = store._reader
     assert old_reader is not None
-    from hermes_state_registry import acquire
+    from kova_state_registry import acquire
     shared_reader = acquire(home / "state.db")
     before = discover_gateway_endpoint(home).endpoint
     assert before is not None
@@ -178,7 +178,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
     rescans = []
     if multiplex:
         from gateway.control_socket import rescan_gateway_profiles
-        from hermes_cli import profiles_remove
+        from kova_cli import profiles_remove
         unowned = profiles_remove.wait_profile_unowned
 
         def rescan_mid_handoff(target):
@@ -199,7 +199,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
     assert store.connection is not connection and not store.connection.final
     assert old_reader._wrapped._conn is None and shared_reader._conn is None
     assert cli.agent is None
-    from hermes_cli import gateway_tools
+    from kova_cli import gateway_tools
     assert gateway_tools._view.connection is store.connection  # /agents, /stop and the status bar
     assert (cli.session_id == sid) is retained
     history = json.dumps(cli.conversation_history)

@@ -29,7 +29,7 @@ from gateway.platforms._shared import (
     platform_gate_env as _platform_gate_env, seed_extra_from_env as _seed_extra_from_env, send_error
 )
 from gateway.config import Platform, PlatformConfig
-from hermes_constants import hermes_home_key
+from kova_constants import hermes_home_key
 from gateway.platforms.base import BasePlatformAdapter, SendResult, cache_image_from_url
 from gateway.platforms.helpers import cancel_task
 from gateway.platforms.event import MessageEvent, MessageType
@@ -678,9 +678,9 @@ _SETUP_PROMPTS = (
 
 def interactive_setup() -> None:
     """``hermes setup gateway`` → SimpleX wizard (writes ``~/.hermes/.env``); CLI helpers are lazy-imported."""
-    from hermes_cli.config import get_env_value, save_env_value
-    from hermes_cli.cli_output import print_header, print_info, prompt
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from kova_cli.config import get_env_value, save_env_value
+    from kova_cli.cli_output import print_header, print_info, prompt
+    from kova_cli.setup_platforms import declines_reconfigure
     print_header("SimpleX Chat")
     if declines_reconfigure("SimpleX", "Reconfigure SimpleX?", "SIMPLEX_WS_URL"):
         return

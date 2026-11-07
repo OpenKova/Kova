@@ -18,7 +18,7 @@ for key in list(os.environ):
         os.environ.pop(key, None)
 os.environ.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), SESSION_IDLE_MINUTES="1", SESSION_RESET_HOUR="0")
 sys.path.insert(0, str(repo))
-import hermes_yaml as yaml
+import kova_yaml as yaml
 from gateway.config import load_gateway_config, GatewayConfig, Platform
 from gateway.session import SessionStore, SessionSource
 from gateway.run import GatewayRunner
@@ -99,7 +99,7 @@ store._db.close()
 
 from contextlib import redirect_stdout
 from io import StringIO
-from hermes_cli.cli_info_mixin import CLIInfoMixin
+from kova_cli.cli_info_mixin import CLIInfoMixin
 status_output = StringIO()
 with redirect_stdout(status_output):
     CLIInfoMixin._show_gateway_status(object.__new__(CLIInfoMixin))

@@ -16,9 +16,9 @@ import json
 
 import pytest
 
-import hermes_cli.models as models_mod
-from hermes_cli import models_pricing
-from hermes_cli import models_reasoning_caps
+import kova_cli.models as models_mod
+from kova_cli import models_pricing
+from kova_cli import models_reasoning_caps
 
 
 _CATALOG = json.dumps({

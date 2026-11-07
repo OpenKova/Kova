@@ -7,8 +7,8 @@ from __future__ import annotations
 import pytest
 
 import providers
-from hermes_cli import models
-from hermes_cli import models_catalog_static as static
+from kova_cli import models
+from kova_cli import models_catalog_static as static
 from providers.base import ProviderProfile
 
 

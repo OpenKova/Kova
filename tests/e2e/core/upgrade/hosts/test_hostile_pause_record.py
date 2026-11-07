@@ -25,7 +25,7 @@ pytestmark = [pytest.mark.platforms("linux"), pytest.mark.live_system_guard_bypa
 
 _ORPHAN = """
 import time
-from hermes_cli import update_pause_record as r
+from kova_cli import update_pause_record as r
 r.write(r.stamp_tree({"resume_needed": True, "profiles": {"orphan": 4242}}), owner=r.identity())
 print("written", flush=True)
 time.sleep(120)
@@ -33,15 +33,15 @@ time.sleep(120)
 # The orchestrator (Tauri ``hermes-setup --update``) claims the marker, then runs the update child.
 _ORCHESTRATOR = """
 import subprocess, sys
-from hermes_cli.update_lock import UpdateLock
+from kova_cli.update_lock import UpdateLock
 lock = UpdateLock()
 assert lock.acquire() and lock.acquired
 sys.exit(subprocess.call([sys.executable, "-c", sys.argv[1], sys.argv[2]]))
 """
 _UPDATE_CHILD = """
 import json, sys
-from hermes_cli import update_pause_record as r
-from hermes_cli.update_lock import UpdateLock
+from kova_cli import update_pause_record as r
+from kova_cli.update_lock import UpdateLock
 lock = UpdateLock(install_root=sys.argv[1])
 adopted_claim = lock.acquire() and not lock.acquired
 saw_orphan = bool(r.orphans())

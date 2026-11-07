@@ -1,7 +1,7 @@
 """Plugin-registered skills in the TUI/Desktop slash menu (``/plugin:skill``).
 
 ``tui_gateway.server`` is imported at module level, not through a mocked import window: the
-profile scope must bind the real ``hermes_constants`` home override for A->B->A to mean anything.
+profile scope must bind the real ``kova_constants`` home override for A->B->A to mean anything.
 """
 
 from tui_gateway import server
@@ -12,7 +12,7 @@ def test_plugin_skills_reach_tui_slash_menu_and_stack_per_profile(tmp_path, monk
     TUI/Desktop slash menu, scoped to the session's profile, and a stacked
     ``/plugin:a /plugin:b`` loads both bodies. Native skill menus stay filesystem-only."""
     from agent import skill_commands
-    from hermes_cli import plugins
+    from kova_cli import plugins
 
     homes = {"alpha": tmp_path / "profile-a", "beta": tmp_path / "profile-b"}
     for label, home in homes.items():

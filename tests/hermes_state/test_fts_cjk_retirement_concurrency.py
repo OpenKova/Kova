@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-import hermes_state_repair as repair
-from hermes_state import SessionDB
-from hermes_state_fts import drop_retired_cjk_index
-from tests.hermes_state import test_fts_cjk_index_retirement as retirement
-from tests.hermes_state.test_fts_cjk_index_retirement import (
+import kova_state_repair as repair
+from kova_state import SessionDB
+from kova_state_fts import drop_retired_cjk_index
+from tests.kova_state import test_fts_cjk_index_retirement as retirement
+from tests.kova_state.test_fts_cjk_index_retirement import (
     _cjk_residue,
     _store_snapshot,
 )
@@ -127,8 +127,8 @@ def test_a_full_temporary_volume_is_neither_healthy_nor_damage(cjk_db, monkeypat
     """The probe judges a copy of the store; a copy that does not fit says nothing either way about the store."""
     import argparse
 
-    import hermes_state
-    from hermes_cli import sessions_cmd
+    import kova_state
+    from kova_cli import sessions_cmd
 
     before = _store_snapshot(cjk_db)
 
@@ -138,7 +138,7 @@ def test_a_full_temporary_volume_is_neither_healthy_nor_damage(cjk_db, monkeypat
     monkeypatch.setattr(repair, "_copy_database_snapshot", full_volume)
     assert isinstance(repair._db_opens_cleanly(cjk_db), repair.HealthCheckUnavailable)
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", cjk_db)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", cjk_db)
     for check_only in (True, False):
         assert sessions_cmd._cmd_repair(argparse.Namespace(check_only=check_only, no_backup=True)) == 1
         assert "Could not check" in capsys.readouterr().out
@@ -265,9 +265,9 @@ def test_retirement_succeeds_beside_an_index_whose_tokenizer_is_missing(cjk_db):
 @pytest.mark.parametrize("mode", [0o400, 0o000], ids=["read-only", "unopenable"])
 def test_a_copy_failing_its_final_scan_is_not_reported_as_damage(cjk_db, monkeypatch, mode):
     """Copy and retirement succeed; the copy then turns read-only or unopenable, so only its own scan fails."""
-    import hermes_state_fts
+    import kova_state_fts
 
-    retire = hermes_state_fts.drop_retired_cjk_index
+    retire = kova_state_fts.drop_retired_cjk_index
     frozen = []
 
     def retire_then_freeze(cursor):
@@ -280,7 +280,7 @@ def test_a_copy_failing_its_final_scan_is_not_reported_as_damage(cjk_db, monkeyp
             frozen.append(path.parent)
         return removed
 
-    monkeypatch.setattr(hermes_state_fts, "drop_retired_cjk_index", retire_then_freeze)
+    monkeypatch.setattr(kova_state_fts, "drop_retired_cjk_index", retire_then_freeze)
     try:
         reason = repair._db_opens_cleanly(cjk_db)
     finally:

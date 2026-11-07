@@ -1,4 +1,4 @@
-"""Guard: every text-mode subprocess call in hermes_cli pins utf-8 decoding (#55658).
+"""Guard: every text-mode subprocess call in kova_cli pins utf-8 decoding (#55658).
 
 On Windows, ``text=True`` without ``encoding`` decodes child output with the ANSI
 code page (e.g. 'gbk'), and non-ASCII bytes raise UnicodeDecodeError inside
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-HERMES_CLI = Path(__file__).resolve().parents[2] / "hermes_cli"
+HERMES_CLI = Path(__file__).resolve().parents[2] / "kova_cli"
 
 
 def _iter_call_text_nodes(tree: ast.AST) -> list[ast.Call]:

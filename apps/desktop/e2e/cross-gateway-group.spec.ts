@@ -61,7 +61,7 @@ async function startRemoteGateway(root: string, mockUrl: string) {
   const url = `http://127.0.0.1:${port}`
   const python = process.env.CROSS_GATEWAY_PYTHON || path.join(REPO_ROOT, '.venv', 'bin', 'python')
 
-  const child: ChildProcess = spawn(python, ['-m', 'hermes_cli.main', 'serve', '--host', '127.0.0.1', '--port', String(port), '--skip-build'], {
+  const child: ChildProcess = spawn(python, ['-m', 'kova_cli.main', 'serve', '--host', '127.0.0.1', '--port', String(port), '--skip-build'], {
     cwd: REPO_ROOT,
     detached: true,
     env: { ...process.env, HOME: fakeHome, HERMES_HOME: home, PYTHONPATH: REPO_ROOT, HERMES_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN },

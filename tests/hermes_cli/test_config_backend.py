@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import config_backend as cb
+from kova_cli import config_backend as cb
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -187,7 +187,7 @@ class _RecordingBackend(cb.FileBackend):
 @pytest.fixture
 def recording(monkeypatch, tmp_path):
     """A fresh HERMES_HOME with a config.yaml and every config read/write recorded."""
-    from hermes_cli import config as config_mod
+    from kova_cli import config as config_mod
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text(
@@ -204,27 +204,27 @@ class TestPipelinesConsultTheBackend:
     """Every read pipeline and writer reaches the selected backend, keyed by the hermes home."""
 
     def test_load_config(self, recording):
-        from hermes_cli.config import load_config
+        from kova_cli.config import load_config
         home, backend = recording
         assert load_config()["model"]["default"] == "my-model"
         assert {"version", "read"} <= backend.ops(home)
 
     def test_raw_primitives(self, recording):
-        from hermes_cli.config import read_raw_config, read_user_config_raw
+        from kova_cli.config import read_raw_config, read_user_config_raw
         home, backend = recording
         assert read_raw_config()["model"]["default"] == "my-model"
         assert read_user_config_raw()["model"]["default"] == "my-model"
         assert {"version", "read"} <= backend.ops(home)
 
     def test_effective_loader(self, recording):
-        from hermes_cli import config_effective
+        from kova_cli import config_effective
         home, backend = recording
         config_effective._EFFECTIVE_CACHE.clear()
         assert config_effective.load_user_config_effective()["model"]["default"] == "my-model"
         assert {"version", "read"} <= backend.ops(home)
 
     def test_cli_loader(self, recording):
-        from hermes_cli.cli_config_load import load_cli_config
+        from kova_cli.cli_config_load import load_cli_config
         home, backend = recording
         load_cli_config()
         assert {"exists", "read"} <= backend.ops(home)
@@ -236,14 +236,14 @@ class TestPipelinesConsultTheBackend:
         assert "read" in backend.ops(home)
 
     def test_dotenv_secrets_read(self, recording):
-        from hermes_cli.env_loader import _load_secrets_config
+        from kova_cli.env_loader import _load_secrets_config
         home, backend = recording
         _load_secrets_config(home)
         assert "read" in backend.ops(home)
 
     def test_writers(self, recording):
-        from hermes_cli.config import load_config, save_config
-        from hermes_cli.personality import persist_personality
+        from kova_cli.config import load_config, save_config
+        from kova_cli.personality import persist_personality
         home, backend = recording
         cfg = load_config()
         cfg["model"]["default"] = "other-model"
@@ -266,11 +266,11 @@ class TestFileTooling:
             def supports_file_tooling(self):
                 return False
         monkeypatch.setattr(cb, "get_config_backend", NoFile)
-        from hermes_cli.config_backups import backup_config
+        from kova_cli.config_backups import backup_config
         (home / "config.yaml").write_text("a: 1\n", encoding="utf-8")
         assert backup_config(home / "config.yaml", "test") is None
         with pytest.raises(cb.ConfigBackendUnavailable, match="Profile clone"):
-            from hermes_cli.profiles import _resolve_clone_source
+            from kova_cli.profiles import _resolve_clone_source
             _resolve_clone_source(None)
 
 
@@ -286,7 +286,7 @@ class TestReaderGate:
 
     def test_flags_direct_readers(self, tmp_path):
         guard = self._guard()
-        bad = tmp_path / "hermes_cli" / "bad_reader.py"
+        bad = tmp_path / "kova_cli" / "bad_reader.py"
         bad.parent.mkdir()
         bad.write_text(
             "import yaml\n"
@@ -308,7 +308,7 @@ class TestReaderGate:
     ])
     def test_every_read_form_is_flagged(self, tmp_path, call):
         guard = self._guard()
-        bad = tmp_path / "hermes_cli" / "bad_reader.py"
+        bad = tmp_path / "kova_cli" / "bad_reader.py"
         bad.parent.mkdir()
         bad.write_text(f"import os, yaml\ndef a(config_path):\n    return {call}\n", encoding="utf-8")
         with patch.object(guard, "ROOT", tmp_path):
@@ -338,10 +338,10 @@ class TestReaderGate:
     def test_scopes_follow_python(self, tmp_path):
         # An attribute bound in __init__ is seen by every method; a comprehension's name stays inside it.
         guard = self._guard()
-        src = tmp_path / "hermes_cli" / "scoped.py"
+        src = tmp_path / "kova_cli" / "scoped.py"
         src.parent.mkdir()
         src.write_text(
-            "from hermes_cli.config_backend import read_config_doc\n"
+            "from kova_cli.config_backend import read_config_doc\n"
             "class A:\n    def __init__(self, home):\n        self.cfg = home / 'config.yaml'\n"
             "    def read(self):\n        return self.cfg.read_text()\n"
             "def b(home, p):\n    docs = [read_config_doc(p) for p in (home / 'config.yaml',)]\n"
@@ -353,10 +353,10 @@ class TestReaderGate:
 
     def test_backend_calls_are_clean(self, tmp_path):
         guard = self._guard()
-        good = tmp_path / "hermes_cli" / "good_reader.py"
+        good = tmp_path / "kova_cli" / "good_reader.py"
         good.parent.mkdir()
         good.write_text(
-            "from hermes_cli.config_backend import config_exists, read_config_doc\n"
+            "from kova_cli.config_backend import config_exists, read_config_doc\n"
             "def a(home):\n    p = home / 'config.yaml'\n"
             "    return read_config_doc(p) if config_exists(p) else {}\n",
             encoding="utf-8")

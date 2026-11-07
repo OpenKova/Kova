@@ -180,7 +180,7 @@ export function freePort(): Promise<number> {
 
 /** `hermes <args>` in the sandbox, as an operator runs it. */
 export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
-  const result = spawnSync(process.env.HERMES_E2E_PYTHON || 'python3', ['-m', 'hermes_cli.main', ...args], {
+  const result = spawnSync(process.env.HERMES_E2E_PYTHON || 'python3', ['-m', 'kova_cli.main', ...args], {
     cwd: REPO_ROOT,
     env: coreAppEnv(sandbox),
     encoding: 'utf8',
@@ -259,7 +259,7 @@ export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
  */
 export function backendProcesses(sandbox: CoreSandbox): ProcInfo[] {
   // The local backend is the gateway `hermes gateway ensure` attached to or started
-  // (`hermes_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
+  // (`kova_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
   const serve = sandboxProcesses(sandbox).filter(
     proc => (/ serve( |$)/.test(proc.cmdline) || / gateway run( |$)/.test(proc.cmdline))
       && !/electron/i.test(proc.cmdline.split(' ')[0])
@@ -286,7 +286,7 @@ export function stopSandboxGateway(
   // argv[0], unquoted (a Windows command line quotes a path with spaces).
   const python = /^"([^"]+)"|^(\S+)/.exec(backend?.cmdline ?? '')?.slice(1).find(Boolean) || 'python3'
 
-  const args = ['-m', 'hermes_cli.main', 'gateway', 'stop', ...(interrupt ? ['--yes'] : [])]
+  const args = ['-m', 'kova_cli.main', 'gateway', 'stop', ...(interrupt ? ['--yes'] : [])]
 
   const result = spawnSync(python, args, {
     cwd: REPO_ROOT,

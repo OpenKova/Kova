@@ -17,9 +17,9 @@ from typing import Awaitable, Callable
 
 from agent.file_safety import HOME_CREDENTIAL_DIRS
 from agent.model_metadata import CHARS_PER_TOKEN, estimate_tokens_rough
-from hermes_cli._subprocess_compat import IS_WINDOWS, harden_git_argv, noninteractive_git_env, windows_hide_flags
-from hermes_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
-from hermes_cli.sizefmt import format_bytes
+from kova_cli._subprocess_compat import IS_WINDOWS, harden_git_argv, noninteractive_git_env, windows_hide_flags
+from kova_cli.sqlite_safe_read import LiveConnectionError, offline_file_access
+from kova_cli.sizefmt import format_bytes
 
 # ── Plugin context-reference provider API ────────────────────────────────────
 
@@ -546,7 +546,7 @@ def _resolve_path(cwd: Path, target: str, *, allowed_root: Path | None = None) -
 
 def _ensure_reference_path_allowed(path: Path) -> None:
     """Refuse credential/internal paths. Fails CLOSED: the gateway feeds untrusted remote text here."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     home, hermes_home = Path(os.path.expanduser("~")).resolve(), get_hermes_home().resolve()
     blocked_exact = {home / rel for rel in _SENSITIVE_HOME_FILES} | {hermes_home / ".env"}
     blocked_dirs = [home / rel for rel in HOME_CREDENTIAL_DIRS] + [hermes_home / rel for rel in _SENSITIVE_HERMES_DIRS]

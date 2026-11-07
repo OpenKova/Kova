@@ -244,7 +244,7 @@ class TestAdapterInit:
             staticmethod(lambda model="": {"enabled": True, "effort": "xhigh"}),
         )
         monkeypatch.setattr("gateway.run.GatewayRunner._load_fallback_model", staticmethod(lambda: None))
-        monkeypatch.setattr("hermes_cli.tools_config._get_platform_tools", lambda *_: set())
+        monkeypatch.setattr("kova_cli.tools_config._get_platform_tools", lambda *_: set())
 
         adapter = APIServerAdapter(PlatformConfig(enabled=True))
         monkeypatch.setattr(adapter, "_ensure_session_db", lambda: None)
@@ -814,7 +814,7 @@ class TestHealthEndpoint:
             data = await resp.json()
             assert "version" in data
             assert isinstance(data["version"], str)
-            from hermes_cli.version_info import get_version_info
+            from kova_cli.version_info import get_version_info
             assert data["version"] == get_version_info().base_version
 
 
@@ -900,7 +900,7 @@ class TestHealthDetailedEndpoint:
 
 class TestModelsEndpoint:
     @pytest.mark.asyncio
-    async def test_models_returns_hermes_agent(self, adapter):
+    async def test_models_returns_kova_agent(self, adapter):
         app = _create_app(adapter)
         async with TestClient(TestServer(app)) as cli:
             resp = await cli.get("/v1/models")
@@ -1009,16 +1009,16 @@ class TestToolsetsEndpoint:
         ]
         feature_snapshot = object()
         with patch(
-            "hermes_cli.tools_config._get_effective_configurable_toolsets",
+            "kova_cli.tools_config._get_effective_configurable_toolsets",
             return_value=fake_toolsets,
         ), patch(
-            "hermes_cli.tools_config._get_platform_tools",
+            "kova_cli.tools_config._get_platform_tools",
             return_value={"default"},
         ), patch(
-            "hermes_cli.tools_config.get_nous_subscription_features",
+            "kova_cli.tools_config.get_nous_subscription_features",
             return_value=feature_snapshot,
         ) as resolve_features, patch(
-            "hermes_cli.tools_config._toolset_has_keys",
+            "kova_cli.tools_config._toolset_has_keys",
             return_value=True,
         ) as has_keys, patch(
             "toolsets.resolve_toolset",
@@ -1418,12 +1418,12 @@ class TestDeriveChatSessionId:
     def test_launch_profile_prefix_keeps_the_unprefixed_id(self, monkeypatch, tmp_path):
         """A gateway launched as ``work`` serves ``/p/work/`` and the bare route as ONE profile:
         both must derive one id, or the same conversation forks by URL."""
-        import hermes_constants
-        from hermes_cli import profiles
+        import kova_constants
+        from kova_cli import profiles
 
         work = tmp_path / "profiles" / "work"
         work.mkdir(parents=True)
-        monkeypatch.setattr(hermes_constants, "get_routing_process_hermes_home", lambda: work)
+        monkeypatch.setattr(kova_constants, "get_routing_process_hermes_home", lambda: work)
         monkeypatch.setattr(profiles, "get_profile_dir", lambda name: tmp_path / "profiles" / name)
         assert _derive_chat_session_id("sys", "hello", "work") == _derive_chat_session_id("sys", "hello")
         assert _derive_chat_session_id("sys", "hello", "research") != _derive_chat_session_id("sys", "hello")
@@ -2587,7 +2587,7 @@ def _patch_create_agent_runtime(monkeypatch, captured: dict, fake_agent_cls):
         "gateway.run.GatewayRunner._load_fallback_model", staticmethod(lambda: None)
     )
     monkeypatch.setattr("gateway.run._current_max_iterations", lambda: 90)
-    monkeypatch.setattr("hermes_cli.tools_config._get_platform_tools", lambda *_: set())
+    monkeypatch.setattr("kova_cli.tools_config._get_platform_tools", lambda *_: set())
 
 
 class TestModelRoutesParsing:
@@ -2874,8 +2874,8 @@ class TestApiKeyStartupGuardFailsClosed:
         real_import = __import__
 
         def _blocked(name, *args, **kwargs):
-            if name == "hermes_cli.auth":
-                raise ImportError("simulated: hermes_cli.auth unavailable")
+            if name == "kova_cli.auth":
+                raise ImportError("simulated: kova_cli.auth unavailable")
             return real_import(name, *args, **kwargs)
 
         return patch("builtins.__import__", _blocked)
@@ -3027,7 +3027,7 @@ class TestCreateAgentModelRecovery:
         )
         monkeypatch.setattr("gateway.run._resolve_gateway_model", lambda: "")
         monkeypatch.setattr(
-            "hermes_cli.models.get_default_model_for_provider",
+            "kova_cli.models.get_default_model_for_provider",
             lambda provider: "gpt-5.5-codex" if provider == "openai-codex" else None,
         )
 

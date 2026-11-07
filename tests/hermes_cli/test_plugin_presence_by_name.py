@@ -11,8 +11,8 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from hermes_cli import plugin_catalog as pc
-from hermes_cli import plugin_catalog_presence as presence_mod
+from kova_cli import plugin_catalog as pc
+from kova_cli import plugin_catalog_presence as presence_mod
 
 SHA = "0" * 40
 NEEDS_APP = {"extensions": {"com.nousresearch.hermes": {"servers": {"srv": {
@@ -31,7 +31,7 @@ def _entry(name, *, platforms=(), title="", description=""):
 
 @pytest.fixture
 def catalog(monkeypatch):
-    from hermes_platform.host import facts
+    from kova_platform.host import facts
 
     here = {"darwin": "macos", "win32": "windows"}.get(facts.os_family(), "linux")
     other = "windows" if here != "windows" else "macos"

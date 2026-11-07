@@ -6,7 +6,7 @@ Owns everything that must be uniform across backends: registration
 order, else registration order; first claim wins), ``override_existing``
 semantics (may beat .env/shell, never another source, never a protected var),
 cross-source conflict warnings, and provenance. Startup entry point:
-:func:`apply_all` via ``hermes_cli.env_loader``; plugins register through
+:func:`apply_all` via ``kova_cli.env_loader``; plugins register through
 ``PluginContext.register_secret_source()`` → :func:`register_source`.
 """
 
@@ -25,7 +25,7 @@ from agent.secret_sources.base import (
     SECRET_SOURCE_API_VERSION, ErrorKind, FetchResult, SecretSource, is_valid_env_name,
     reset_source_environment, set_source_environment,
 )
-from hermes_constants import hermes_home_key, normalize_scope
+from kova_constants import hermes_home_key, normalize_scope
 
 logger = logging.getLogger(__name__)
 

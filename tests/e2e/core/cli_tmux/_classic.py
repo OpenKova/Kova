@@ -1,6 +1,6 @@
 """Shared harness for the classic-CLI tmux suites (``display.interface: cli``).
 
-A real ``python -m hermes_cli.main`` runs in a private tmux server (own ``-L`` socket) with a
+A real ``python -m kova_cli.main`` runs in a private tmux server (own ``-L`` socket) with a
 hermetic fake HOME / HERMES_HOME and a config that routes the model to a loopback
 ``FakeLLMServer``. The CLI is a thin client of the profile's gateway daemon, which it spawns on
 first connect; cleanup stops that daemon and then kills anything left whose environ carries this
@@ -183,7 +183,7 @@ class ClassicHome:
         return env
 
     def argv(self, *args: str) -> list[str]:
-        return [sys.executable, "-m", "hermes_cli.main", *args]
+        return [sys.executable, "-m", "kova_cli.main", *args]
 
     def run(self, *args: str, timeout: float = 180.0) -> subprocess.CompletedProcess:
         """A non-TTY run (stdout piped): ``chat -q`` one-shots, ``gateway stop``."""

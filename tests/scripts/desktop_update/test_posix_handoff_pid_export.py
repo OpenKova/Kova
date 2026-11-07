@@ -34,7 +34,7 @@ if sys.argv[1:2] == ['update'] and '--help' not in sys.argv:  # not the --keep-s
     out = Path(os.environ['GEN2_OUT'])
     probe = (
         "import json, os, sys; from pathlib import Path\\n"
-        "from hermes_cli.update_lock import UpdateLock, update_marker_path\\n"
+        "from kova_cli.update_lock import UpdateLock, update_marker_path\\n"
         "lock = UpdateLock(path=update_marker_path())\\n"
         "ok = lock.acquire()\\n"
         "Path(sys.argv[1]).write_text(json.dumps({'adopted': ok, 'pid': os.getpid(), "
@@ -56,7 +56,7 @@ if sys.argv[1:2] == ['update'] and '--help' not in sys.argv:  # not the --keep-s
 
 def test_a_later_update_generation_adopts_the_handoffs_claim(tmp_path):
     home, install = _install(tmp_path)
-    (install / "hermes_cli" / "main.py").write_text(SECOND_GENERATION + FAKE_CLI, encoding="utf-8")
+    (install / "kova_cli" / "main.py").write_text(SECOND_GENERATION + FAKE_CLI, encoding="utf-8")
     out = tmp_path / "gen2.json"
 
     result = _run(tmp_path, home, install, GEN2_OUT=str(out), GEN2_REPO=str(REPOSITORY))

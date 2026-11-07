@@ -17,7 +17,7 @@ import time
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 from evals.desktop_gateway_ticket_native.run import stop_owned
-from hermes_cli.gateway_runtime_discovery import query_identify
+from kova_cli.gateway_runtime_discovery import query_identify
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     python = os.path.abspath(args.python)
-    from hermes_constants import find_node_executable
+    from kova_constants import find_node_executable
     node = find_node_executable('node')
     if not node:
         parser.error('node is required')

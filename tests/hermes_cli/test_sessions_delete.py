@@ -3,8 +3,8 @@ import sys
 import pytest
 
 def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
-    import hermes_cli.main as main_mod
-    import hermes_state
+    import kova_cli.main as main_mod
+    import kova_state
 
     captured = {}
 
@@ -23,7 +23,7 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: FakeDB())
+    monkeypatch.setattr(kova_state, "SessionDB", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
@@ -44,10 +44,10 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
 def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkeypatch, capsys, status):
     """P3: the ledger's session_busy / unknown_execution refusal is a user-facing answer (exit 1
     with what to do), not an uncaught RuntimeStoreError traceback."""
-    import hermes_cli.main as main_mod
-    import hermes_state
-    import hermes_state_runtime as rt
-    from hermes_state import SessionDB
+    import kova_cli.main as main_mod
+    import kova_state
+    import kova_state_runtime as rt
+    from kova_state import SessionDB
 
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s1', source='cli')
@@ -56,7 +56,7 @@ def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkey
     if status == 'unknown':
         rt.claim_session_input(db, epoch=epoch, session_id='s1')
         rt.recover_session_inputs(db, epoch=rt.begin_runtime_epoch(db, instance_id='b'))
-    monkeypatch.setattr(hermes_state, 'SessionDB', lambda *args, **kwargs: db)
+    monkeypatch.setattr(kova_state, 'SessionDB', lambda *args, **kwargs: db)
     monkeypatch.setattr(sys, 'argv', ['hermes', 'sessions', 'delete', 's1', '--yes'])
     with pytest.raises(SystemExit) as exited:
         main_mod.main()
@@ -72,8 +72,8 @@ def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkey
 def _run_prune(monkeypatch, capsys, argv_tail, candidates=None, skipped_open=0, sub="prune"):
     """Run `hermes sessions <sub> <argv_tail>` (prune/archive) against a FakeDB, capturing
     the filter kwargs passed to list_prune_candidates. Auto-confirms."""
-    import hermes_cli.main as main_mod
-    import hermes_state
+    import kova_cli.main as main_mod
+    import kova_state
 
     seen = {}
     rows = candidates if candidates is not None else [
@@ -122,7 +122,7 @@ def _run_prune(monkeypatch, capsys, argv_tail, candidates=None, skipped_open=0, 
         def close(self):
             pass
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: FakeDB())
+    monkeypatch.setattr(kova_state, "SessionDB", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
         sys, "argv", ["hermes", "sessions", sub, *argv_tail]
     )

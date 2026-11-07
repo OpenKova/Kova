@@ -121,8 +121,8 @@ class TestResumeQuietStderr:
         """`--resume X --max-turns 1 -q ...` printed the agent-init failure copy ("couldn't start the model
         connection ... hermes doctor") and exited 1; it is interactive startup's `Error:` line on stderr
         with exit 2. Any other failed open keeps the agent-init copy."""
-        from hermes_cli.gateway_chat import _RESUME_POLICY_MISMATCH
-        from hermes_cli.gateway_client import GatewayClientError
+        from kova_cli.gateway_chat import _RESUME_POLICY_MISMATCH
+        from kova_cli.gateway_client import GatewayClientError
         cli = _make_cli(quiet=True, db=MagicMock())
         refusal = f"{_RESUME_POLICY_MISMATCH} --max-turns differs from this session's launch."
 

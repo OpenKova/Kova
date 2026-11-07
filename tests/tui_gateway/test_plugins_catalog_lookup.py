@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_cli import plugin_catalog as pc
+from kova_cli import plugin_catalog as pc
 from tui_gateway import server
 
 SHA = "a" * 40

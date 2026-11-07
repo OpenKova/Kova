@@ -21,7 +21,7 @@ import psutil
 import pytest
 
 from gateway.status import get_process_start_time
-from hermes_cli.update_cmd_windows import _unmapped_ready_filter
+from kova_cli.update_cmd_windows import _unmapped_ready_filter
 from tests.waiting import wait_until
 
 
@@ -70,10 +70,10 @@ def test_an_equal_argv_gateway_of_another_home_never_retires_the_unmapped_debt(s
 
 @pytest.mark.platforms("windows")  # the spec overlays the environment only on Windows
 def test_an_unmapped_replay_runs_on_the_home_its_runtime_ran_on(tmp_path):
-    from hermes_cli.gateway_windows import windowless_gateway_restart_spec
+    from kova_cli.gateway_windows import windowless_gateway_restart_spec
 
     paused_home = tmp_path / "profiles" / "a"
     paused_home.mkdir(parents=True)
     _argv, _cwd, env = windowless_gateway_restart_spec(
-        [sys.executable, "-m", "hermes_cli.main", "gateway", "run"], home=str(paused_home))
+        [sys.executable, "-m", "kova_cli.main", "gateway", "run"], home=str(paused_home))
     assert env["HERMES_HOME"] == str(paused_home.resolve()), "the replay ran on the updater's home"

@@ -12,7 +12,7 @@ import gateway.run as run_mod
 from gateway.active_lease_io import release_soon
 from gateway.config import Platform
 from gateway.session import SessionSource
-from hermes_cli import active_sessions
+from kova_cli import active_sessions
 
 
 class _ReleaseStuckOnTheRegistry:

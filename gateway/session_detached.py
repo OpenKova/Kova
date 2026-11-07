@@ -127,7 +127,7 @@ def session_env_source(runner, source):
 def _route_authority(runner, store, route):
     """The authority owning *route*: its key names the profile, whatever scope the writer runs in."""
     from gateway.session_authorities import authority_for_home
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     registry = getattr(runner, 'session_authorities', None)
     if store._named_profile_for_key(route) is None:  # the launch profile's own key
         if registry is None:
@@ -176,7 +176,7 @@ def recover_detached_sessions(authority, pending):
     from gateway.session_contract import SessionRef
     from gateway.session_route_recovery import restore_routed_session
     scheduled = []
-    from hermes_state_runtime import list_session_admissions
+    from kova_state_runtime import list_session_admissions
     for session_id in sorted(pending):
         if session_id in authority.sessions or not any(  # a lost (unknown) turn waits for /discard
                 row['status'] == 'queued' for row in list_session_admissions(authority.db, session_id=session_id)):
@@ -255,7 +255,7 @@ def _mounted(authority, session_id):
     if session_id not in authority.sessions:
         from gateway.session_authorities import owner_scope
         from gateway.session_route_recovery import restore_routed_session
-        from hermes_state_runtime import RuntimeStoreError
+        from kova_state_runtime import RuntimeStoreError
         try:
             with owner_scope(authority):
                 restore_routed_session(authority, session_id)

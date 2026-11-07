@@ -17,7 +17,7 @@ import time
 
 import pytest
 
-from tests.hermes_cli.test_update_pause_record import _child, _reap_children
+from tests.kova_cli.test_update_pause_record import _child, _reap_children
 
 _UNIT = {"kind": "systemd", "scope": "user", "unit": "hermes-gateway-p2probe.service", "pid": 4242}
 
@@ -29,7 +29,7 @@ def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_p
     restarting that unit (the record's only debt), never drop it."""
     owner = _child(f"""
         import time
-        from hermes_cli import update_pause_record as r
+        from kova_cli import update_pause_record as r
         r.write(r.stamp_tree({{"platform": "posix", "resume_needed": True, "posix_units": [{_UNIT!r}]}}),
                 owner=r.identity())
         print("written", flush=True)
@@ -41,7 +41,7 @@ def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_p
 
     nxt = _child("""
         import json
-        from hermes_cli import update_pause_record as r
+        from kova_cli import update_pause_record as r
         adopted, claims = r.adopt_orphans()
         token = r.record_pause({"platform": "posix", "resume_needed": True, "unmapped": []}, adopted, claims)
         print(json.dumps({"units": token.get("posix_units"), "platform": token.get("platform")}))
@@ -55,7 +55,7 @@ def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_p
 def test_a_prompt_while_the_gateways_are_paused_takes_its_default_at_once(tmp_path, monkeypatch):
     """``/update`` relays prompts through the gateway; while this update holds it stopped nobody can
     answer, so the prompt must not park the update (and the downtime) for its 300 s timeout."""
-    from hermes_cli import update_cmd, update_cmd_posix_pause
+    from kova_cli import update_cmd, update_cmd_posix_pause
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(update_cmd_posix_pause, "_RUN", {"platform": "posix", "posix_stopped": True, "resume_needed": True})
@@ -70,7 +70,7 @@ def test_a_prompt_while_the_gateways_are_paused_takes_its_default_at_once(tmp_pa
 
 _KILLED_AFTER_RECORDING = """
     import os, signal, sys
-    from hermes_cli import update_cmd_posix_pause as m, update_pause_record as r
+    from kova_cli import update_cmd_posix_pause as m, update_pause_record as r
     pid, kind, asked, home = int(sys.argv[1]), sys.argv[2], sys.argv[3] == "1", sys.argv[4]
     entry = {"pid": pid, "home": home}
     if kind == "systemd":
@@ -109,7 +109,7 @@ def test_a_killed_updates_record_owes_only_what_it_stopped(tmp_path, kind, asked
         assert owner.returncode == -signal.SIGKILL, "premise: the update was not killed mid-stop"  # windows-footgun: ok — POSIX-only test
         probe = _child("""
             import json
-            from hermes_cli import update_pause_record as r
+            from kova_cli import update_pause_record as r
             found = r.orphans()
             token = r.drop_never_stopped(dict(found[0][1]["token"])) if found else {}
             draining = r.split_draining(token) if found else {}
@@ -133,7 +133,7 @@ def test_a_record_that_cannot_be_written_leaves_the_update_unpaused_and_ungated(
     """No durable record, no stop. This attempt must leave nothing that arms the checkout's tree
     gate (its required record write would then refuse the update), and an adopted obligation must
     survive exactly as it was."""
-    from hermes_cli import update_cmd_posix_pause as m
+    from kova_cli import update_cmd_posix_pause as m
     gateway = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"], stdin=subprocess.DEVNULL)
     home = tmp_path / "home"
     home.mkdir()
@@ -165,7 +165,7 @@ def test_a_replayed_gateway_keeps_its_own_exported_token_and_no_one_elses(tmp_pa
         (root / "profiles" / name).mkdir(parents=True)
     probe = _child("""
         import json, sys
-        from hermes_cli.update_cmd_posix_pause import _replay_env
+        from kova_cli.update_cmd_posix_pause import _replay_env
         root = sys.argv[1]
         print(json.dumps({who: _replay_env(home).get("TELEGRAM_BOT_TOKEN") for who, home in (
             ("alpha", root + "/profiles/alpha"), ("beta", root + "/profiles/beta"), ("root", root))}))
@@ -180,7 +180,7 @@ def test_a_replayed_gateway_keeps_its_own_exported_token_and_no_one_elses(tmp_pa
 def test_unknown_cgroup_membership_never_authorizes_stopping_the_unit():
     """A unit whose stop could kill this update stays running unless the update is PROVEN outside
     its cgroup; unreadable membership is unknown, never outside."""
-    from hermes_cli.update_cmd_posix_pause import _escape_cgroup
+    from kova_cli.update_cmd_posix_pause import _escape_cgroup
     assert _escape_cgroup({"unit": "hermes-gateway-p2probe.service", "pid": 4242, "cgroup": None}) is False
 
 
@@ -189,8 +189,8 @@ def test_unknown_cgroup_membership_never_authorizes_stopping_the_unit():
 def test_a_launchd_job_is_paused_through_launchd_and_restarted_through_it(tmp_path):
     """A KeepAlive job merely killed is respawned by launchd on the old code mid-update; the pause
     boots it out (no respawn) and the restart bootstraps the same plist (a fresh PID)."""
-    from hermes_cli.gateway import _launchd_print_service_pid
-    from hermes_cli.update_cmd_posix_pause import _alive, _start_job, _stop_job
+    from kova_cli.gateway import _launchd_print_service_pid
+    from kova_cli.update_cmd_posix_pause import _alive, _start_job, _stop_job
     label = f"ai.hermes.p2probe-{os.getpid()}"
     plist = tmp_path / f"{label}.plist"
     plist.write_bytes(plistlib.dumps({"Label": label, "ProgramArguments": ["/bin/sleep", "600"],

@@ -9,7 +9,7 @@ from websockets.asyncio.client import connect
 from websockets.exceptions import InvalidStatus
 
 from gateway.session_controls import AuthorityConnection
-from hermes_state import SessionDB
+from kova_state import SessionDB
 from tests.gateway.fixtures.local_recovery_probe import child_env, daemon, rpc, websocket
 
 
@@ -118,7 +118,7 @@ def test_groups_list_pages_the_actor_visible_rooms(tmp_path):
     before the authorization filter (which returned empty/short pages ahead of visible rooms)."""
     from gateway import hosted_rooms as rooms
     from gateway.session_group_controls import _group
-    from hermes_state_runtime import RuntimeStoreError
+    from kova_state_runtime import RuntimeStoreError
     db_path = tmp_path / 'state.db'
     with SessionDB(db_path) as db:
         for index, name in enumerate(['f1', 'f2', 'm1', 'f3', 'm2', 'm3']):
@@ -168,7 +168,7 @@ def test_profiles_list_names_every_profile_on_disk_and_its_install(tmp_path, mon
             connection = AuthorityConnection(authority, object(), {'user_id': 'reader'})
             return await connection.dispatch({'id': 'r', 'method': 'profiles.list', 'params': {}})
         result = asyncio.run(probe())['result']
-    from hermes_cli.install_identity import get_install_id
+    from kova_cli.install_identity import get_install_id
     assert result['install_id'] and result['install_id'] == get_install_id()
     rows = {row['name']: row for row in result['profiles']}
     assert list(rows) == ['default', 'helper', 'writer'], rows
@@ -271,14 +271,14 @@ def test_profiles_list_reuses_its_disk_scan_until_a_profile_changes(tmp_path, mo
     cache; a new profile or an edited profile.yaml is picked up on the next call."""
     import os
 
-    from hermes_cli import profiles
-    import hermes_yaml
+    from kova_cli import profiles
+    import kova_yaml
     home = _roster_home(tmp_path, monkeypatch)
     scans, parses = [], []
-    real_iter, real_load = profiles._iter_named_profile_dirs, hermes_yaml.safe_load
+    real_iter, real_load = profiles._iter_named_profile_dirs, kova_yaml.safe_load
     monkeypatch.setattr(profiles, '_iter_named_profile_dirs',
                         lambda *a, **k: scans.append(1) or real_iter(*a, **k))
-    monkeypatch.setattr(hermes_yaml, 'safe_load', lambda text: parses.append(text) or real_load(text))
+    monkeypatch.setattr(kova_yaml, 'safe_load', lambda text: parses.append(text) or real_load(text))
 
     def sibling_parses():
         return sum('Writer' in str(text) for text in parses)

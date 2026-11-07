@@ -175,7 +175,7 @@ def test_served_profile_projects_db_move_broadcasts_projects_changed(watcher_hom
     coder_home = home / "profiles" / "coder"
     coder_home.mkdir(parents=True)
     monkeypatch.setattr(server, "_served_profile_homes", set())
-    monkeypatch.setattr("hermes_cli.profiles.get_profile_dir", lambda name: home / "profiles" / name)
+    monkeypatch.setattr("kova_cli.profiles.get_profile_dir", lambda name: home / "profiles" / name)
     assert server._profile_home("coder") == coder_home
     server._broadcast_watched_changes(now=0.0)
 
@@ -204,7 +204,7 @@ def test_served_profile_store_move_broadcasts_sessions_changed(watcher_home, mon
     bot_home = home / "profiles" / "bot"
     bot_home.mkdir(parents=True)
     monkeypatch.setattr(server, "_served_profile_homes", set())
-    monkeypatch.setattr("hermes_cli.profiles.get_profile_dir", lambda name: home / "profiles" / name)
+    monkeypatch.setattr("kova_cli.profiles.get_profile_dir", lambda name: home / "profiles" / name)
     assert server._profile_home("bot") == bot_home
     server._broadcast_watched_changes(now=0.0)
 
@@ -262,12 +262,12 @@ def test_pairing_probe_reuses_live_profile_roots_until_the_profile_set_moves(wat
     """The per-profile liveness probe (~14 stats each) runs once per profiles/ mtime + TTL, not
     on every 2 s tick (#114041 §2); ledger writes under known roots are still seen each tick,
     and a newly created profile is picked up because creating it bumps the parent's mtime."""
-    import hermes_constants
+    import kova_constants
 
     home, events = watcher_home
     live_calls = []
-    real_live = hermes_constants.named_profile_is_live
-    monkeypatch.setattr(hermes_constants, "named_profile_is_live",
+    real_live = kova_constants.named_profile_is_live
+    monkeypatch.setattr(kova_constants, "named_profile_is_live",
                         lambda p: live_calls.append(p.name) or real_live(p))
 
     def _profile(name):

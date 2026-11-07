@@ -10,9 +10,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state
-from hermes_state import SessionDB
-from hermes_state_errors import SessionTurnLeaseLostError
+import kova_state
+from kova_state import SessionDB
+from kova_state_errors import SessionTurnLeaseLostError
 
 
 def test_turn_lease_serializes_separate_session_db_instances(tmp_path):
@@ -442,11 +442,11 @@ def test_non_expired_turn_lease_from_dead_pid_is_reclaimed(
 
     Stamped with this process's own PID namespace: same-namespace kernel proof
     is still proof (a foreign or unstamped holder would defer to TTL instead —
-    see tests/hermes_state/test_lease_pid_namespace.py)."""
+    see tests/kova_state/test_lease_pid_namespace.py)."""
     db = SessionDB(tmp_path / "state.db")
     db.create_session("shared", source="test")
 
-    from hermes_state_pidns import holder_namespace_token
+    from kova_state_pidns import holder_namespace_token
     dead_holder = f"pid=424242{holder_namespace_token()}:turn=dead:platform=test"
     assert db.try_acquire_session_turn_lease(
         "shared", dead_holder, ttl_seconds=300
@@ -459,7 +459,7 @@ def test_non_expired_turn_lease_from_dead_pid_is_reclaimed(
         return False
 
     monkeypatch.setattr(
-        hermes_state, "psutil", SimpleNamespace(pid_exists=pid_exists)
+        kova_state, "psutil", SimpleNamespace(pid_exists=pid_exists)
     )
 
     fresh_holder = "pid=525252:turn=fresh:platform=test"

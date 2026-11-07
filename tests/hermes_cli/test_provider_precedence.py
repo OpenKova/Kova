@@ -8,19 +8,19 @@ OPENAI_API_KEY exported (or model.provider set) got routed to Anthropic.
 """
 import pytest
 
-from hermes_cli.auth import resolve_provider, AuthError
+from kova_cli.auth import resolve_provider, AuthError
 
 
 def _login(monkeypatch, provider_id):
     """Simulate a logged-in OAuth active_provider in auth.json."""
-    monkeypatch.setattr("hermes_cli.auth._load_auth_store",
+    monkeypatch.setattr("kova_cli.auth._load_auth_store",
                         lambda: {"active_provider": provider_id})
-    monkeypatch.setattr("hermes_cli.auth.get_auth_status",
+    monkeypatch.setattr("kova_cli.auth.get_auth_status",
                         lambda p: {"logged_in": p == provider_id})
 
 
 def _config(monkeypatch, model_cfg):
-    monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": model_cfg})
+    monkeypatch.setattr("kova_cli.config.load_config", lambda: {"model": model_cfg})
 
 
 def _no_aws(monkeypatch):
@@ -83,19 +83,19 @@ class TestProviderPrecedence:
 
 @pytest.fixture
 def portal(monkeypatch, tmp_path):
-    from tests.hermes_cli.anon_portal import install_portal
+    from tests.kova_cli.anon_portal import install_portal
     return install_portal(monkeypatch, tmp_path)
 
 
 def _never_mint(monkeypatch):
     """The resolver is a READ: any call into the creator from inside it is a bug."""
-    monkeypatch.setattr("hermes_cli.anon_auth.ensure_portal_identity",
+    monkeypatch.setattr("kova_cli.anon_auth.ensure_portal_identity",
                         lambda **kw: (_ for _ in ()).throw(AssertionError("resolve_provider must not mint")))
 
 
 def _claimed_trial_with_aws(monkeypatch):
     """A claimed welcome trial on the desktop's local backend, then a leftover ~/.aws profile."""
-    from tests.hermes_cli.anon_portal import claimed_trial
+    from tests.kova_cli.anon_portal import claimed_trial
     _clear_provider_env(monkeypatch)
     claimed_trial(monkeypatch)
     _never_mint(monkeypatch)
@@ -127,7 +127,7 @@ class TestFreeTierBeatsImplicitHostCredentials:
         assert resolve_provider("auto") == expected
 
     def test_on_the_cli_surface_a_claimed_guest_still_beats_host_credentials(self, portal, monkeypatch):
-        from tests.hermes_cli.anon_portal import off_local_desktop
+        from tests.kova_cli.anon_portal import off_local_desktop
         _claimed_trial_with_aws(monkeypatch)
         off_local_desktop(monkeypatch)
         assert resolve_provider("auto") == "nous"

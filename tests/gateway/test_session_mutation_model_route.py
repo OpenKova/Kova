@@ -46,7 +46,7 @@ def endpoints():
 def home(monkeypatch):
     from agent import models_dev
     from gateway import run
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     home = get_hermes_home()
     home.mkdir(parents=True, exist_ok=True)
     # gateway.run binds its home at first import; the loader itself is real.
@@ -201,7 +201,7 @@ async def test_a_route_that_cannot_authenticate_does_not_block_switching_away(ho
     try:
         live = await _create(owner, authority, home, 'bare')
         sid = next(sid for sid, value in authority.sessions.items() if value is live)
-        from hermes_cli.auth_constants import AuthError
+        from kova_cli.auth_constants import AuthError
         with pytest.raises(AuthError):
             _route(runner, live)
 

@@ -6,12 +6,12 @@ from unittest.mock import patch
 
 import pytest
 
-import hermes_logging
+import kova_logging
 
 
 @pytest.fixture
 def make_agent(monkeypatch):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     import run_agent
 
     home = get_hermes_home()
@@ -61,8 +61,8 @@ def make_agent(monkeypatch):
 def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
     make_agent, monkeypatch, caplog, failure_at, reader,
 ):
-    from hermes_cli import config
-    from hermes_constants import get_hermes_home
+    from kova_cli import config
+    from kova_constants import get_hermes_home
     import sys
 
     home = get_hermes_home()
@@ -93,7 +93,7 @@ def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
             def import_with_failure(name, globals=None, locals=None, fromlist=(), level=0):
                 caller = sys._getframe(1).f_code.co_name
                 if (
-                    name == "hermes_cli.config"
+                    name == "kova_cli.config"
                     and "load_config_readonly" in fromlist
                     and (globals or {}).get("__name__")
                     in {"agent.agent_init", "agent.reasoning_params"}
@@ -137,7 +137,7 @@ def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
     }
     messages = [record.getMessage() for record in warnings]
     # errors.log is written by the logging QueueListener thread: drain it before reading the file.
-    hermes_logging.flush_log_queue()
+    kova_logging.flush_log_queue()
     persisted = (home / "logs" / "errors.log").read_text(encoding="utf-8-sig")
     for scope in affected:
         assert any(expected_sections[scope] in message for message in messages)
@@ -185,7 +185,7 @@ def test_config_failure_warns_without_exposing_values_and_preserves_defaults(
 
 
 def test_empty_config_initializes_memory_without_a_load_warning(make_agent, caplog):
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     with caplog.at_level(logging.WARNING, logger="run_agent"):
         agent = make_agent()

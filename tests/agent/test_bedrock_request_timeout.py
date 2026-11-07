@@ -49,7 +49,7 @@ def aws_env(monkeypatch):
 def config(monkeypatch):
     """Install ``cfg`` as the loaded config (the operator report's offline technique)."""
     def install(cfg):
-        monkeypatch.setattr("hermes_cli.config.load_config_readonly", lambda: cfg)
+        monkeypatch.setattr("kova_cli.config.load_config_readonly", lambda: cfg)
     install({})
     return install
 
@@ -127,7 +127,7 @@ def test_models_with_different_overrides_never_share_a_client_in_one_region(conf
 def test_profile_scoped_clients_carry_their_own_profile_timeouts(tmp_path, monkeypatch):
     """A routed profile's clients come from its own config.yaml and own cache slot, per timeout."""
     from agent import secret_scope
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     home = tmp_path / "profile-home"
     home.mkdir()

@@ -52,7 +52,7 @@ from .auth import load_project_credentials
 # mirror files. Tests monkeypatch sidecar_paths._SIDECAR_DIR.
 from .sidecar_paths import _NPM_ERROR_LOG_MAX_CHARS, _lock_newer_than_install, _npm_error_log, _sidecar_dir
 from .sidecar_paths import dir_writable as _dir_writable
-from hermes_constants import find_node_executable, with_hermes_node_path
+from kova_constants import find_node_executable, with_hermes_node_path
 import contextlib
 
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ async def _aiter_ndjson_lines(response: Any) -> AsyncIterator[str]:
 # -- Sidecar runtime record ----------------------------------------------------
 
 def _runtime_record_path() -> Path:
-    from hermes_constants import get_hermes_home  # honors profile overrides
+    from kova_constants import get_hermes_home  # honors profile overrides
     return get_hermes_home() / _RUNTIME_RECORD_NAME
 
 
@@ -308,7 +308,7 @@ def _reinstall_sidecar_deps() -> None:
     except pm.InstallError as exc:
         logger.warning("[photon] cannot prepare sidecar dependencies: %s", exc)
         return
-    from hermes_cli._subprocess_compat import windows_hide_flags  # no console flash on Windows
+    from kova_cli._subprocess_compat import windows_hide_flags  # no console flash on Windows
 
     def _run(verb: str) -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -1065,7 +1065,7 @@ class PhotonAdapter(BasePlatformAdapter):
             "PHOTON_SIDECAR_TOKEN": self._sidecar_token,
             # Exit on stdin EOF so ANY gateway death (incl. SIGKILL) can't orphan it on the port.
             "PHOTON_SIDECAR_WATCH_STDIN": "1"})
-        from hermes_cli._subprocess_compat import windows_hide_flags  # hide child console on Windows
+        from kova_cli._subprocess_compat import windows_hide_flags  # hide child console on Windows
         await self._apply_spectrum_patch(windows_hide_flags())
         try:
             self._sidecar_proc = subprocess.Popen(  # noqa: ASYNC220 -- persistent sidecar; callers use the Popen pipes and poll()

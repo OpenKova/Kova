@@ -256,7 +256,7 @@ class Python(_BionicDebArm, BinaryPackage, DebPackage):
         super().stage(store, staged, version, target)
         binary = self.binary(staged, target)
         if binary is not None and sys.platform == "darwin":
-            from hermes_cli.macos_signing import sign_managed_python
+            from kova_cli.macos_signing import sign_managed_python
 
             sign_managed_python(binary)
         # python-build-standalone ships the x64 VC runtime (vcruntime140_1.dll)
@@ -406,7 +406,7 @@ def _seed_tree(src: Path, dst: Path) -> None:
 
 def uv_cache_path() -> Path:
     """Where the hermes-owned uv cache lives; unlike uv_cache_dir(), never seeds or writes."""
-    from hermes_constants import get_default_hermes_root
+    from kova_constants import get_default_hermes_root
 
     return get_default_hermes_root() / "cache" / "uv"
 
@@ -684,7 +684,7 @@ def npm_env(cache_dir: Path, base_env: Optional[dict] = None) -> dict[str, str]:
 def pnpm_env(base_env: Optional[dict] = None) -> dict[str, str]:
     """pnpm's store, metadata cache and state default to the user's XDG dirs. Keep them
     Hermes-owned beside the uv cache: shared by every profile, gone with the Hermes root."""
-    from hermes_constants import get_default_hermes_root
+    from kova_constants import get_default_hermes_root
 
     env = dict(os.environ if base_env is None else base_env)
     root = get_default_hermes_root() / "cache" / "pnpm"
@@ -1193,7 +1193,7 @@ class Chromium(Package):
         # Playwright launches without an executable_path (e.g. the
         # har-derived-api-client skill's `chromium.launch(channel="chromium")`)
         # find this build through the root; Hermes's own launcher asks
-        # hermes_cli.browser_runtime.chromium_executable() instead.
+        # kova_cli.browser_runtime.chromium_executable() instead.
         return {"PLAYWRIGHT_BROWSERS_PATH": str(entry.parent)}
 
 

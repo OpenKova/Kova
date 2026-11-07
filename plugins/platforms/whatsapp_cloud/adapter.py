@@ -50,7 +50,7 @@ from gateway.platforms.whatsapp_common import WhatsAppBehaviorMixin, _get_wsecre
 from gateway.platforms.access_policy_mixin import OPTIN_TRUTHY as _OPTIN_TRUTHY
 from gateway.platforms.media_cache import ext_for_mime
 from gateway import rich_sent_store
-from hermes_constants import get_hermes_dir
+from kova_constants import get_hermes_dir
 
 logger = logging.getLogger(__name__)
 
@@ -1085,11 +1085,11 @@ class WhatsAppCloudAdapter(WhatsAppBehaviorMixin, BasePlatformAdapter):
 
 def _is_connected(config) -> bool:
     """Phone-number id + access token, from ``PlatformConfig.extra`` (YAML / env seeding) or the
-    scope-aware env reader (``hermes_cli.gateway.get_env_value`` so setup-status patches see it)."""
+    scope-aware env reader (``kova_cli.gateway.get_env_value`` so setup-status patches see it)."""
     extra = (getattr(config, "extra", None) or {}) if config is not None else {}
     if extra.get("phone_number_id") and extra.get("access_token"):
         return True
-    import hermes_cli.gateway as gateway_mod
+    import kova_cli.gateway as gateway_mod
     return all((gateway_mod.get_env_value(name) or "").strip()
                for name in ("WHATSAPP_CLOUD_PHONE_NUMBER_ID", "WHATSAPP_CLOUD_ACCESS_TOKEN"))
 

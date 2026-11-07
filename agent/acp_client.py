@@ -105,9 +105,9 @@ def _resolve_home_dir() -> str:
 
 
 def _build_subprocess_env() -> dict[str, str]:
-    # Lazy: the env policy imports hermes_cli.config, and provider plugins import this module
-    # while hermes_cli.config is still initializing (discovery runs from it).
-    from hermes_constants import apply_subprocess_home_env
+    # Lazy: the env policy imports kova_cli.config, and provider plugins import this module
+    # while kova_cli.config is still initializing (discovery runs from it).
+    from kova_constants import apply_subprocess_home_env
     from tools.environments.local import hermes_subprocess_env
 
     # An ACP agent drives a model and needs LLM provider credentials; the central helper still
@@ -401,7 +401,7 @@ class ACPClient:
                 + self.unsupported_transport_hint
             )
         try:
-            from hermes_cli._subprocess_compat import windows_hide_flags  # hide the Windows console flash (#56747); pipes intact for the ACP wire
+            from kova_cli._subprocess_compat import windows_hide_flags  # hide the Windows console flash (#56747); pipes intact for the ACP wire
 
             # Hide the console the CLI child would otherwise flash on Windows (#56747). Hide-only — stdio
             # pipes stay intact for the ACP wire.

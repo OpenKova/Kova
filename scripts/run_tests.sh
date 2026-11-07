@@ -86,7 +86,7 @@ _account_tool_store() {
 # (scripts/tool_store_pins.py says why and what counts); prints the Python minor.
 _store_has_pins() {
   local python
-  python="$(HERMES_RUNTIME_DIR="$1" hermes_bootstrap_python "$REPO_ROOT")" || return 1
+  python="$(HERMES_RUNTIME_DIR="$1" kova_bootstrap_python "$REPO_ROOT")" || return 1
   PYTHONHOME= "$python" -I -B "$REPO_ROOT/scripts/tool_store_pins.py" "$REPO_ROOT" "$1" 2>/dev/null
 }
 if _shared="$(_account_tool_store)"; then

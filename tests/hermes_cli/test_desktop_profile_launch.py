@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import main as cli_main
-from hermes_cli import main_desktop
+from kova_cli import main as cli_main
+from kova_cli import main_desktop
 
 
 def _ns(**kwargs):

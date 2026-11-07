@@ -105,7 +105,7 @@ function canonicalJson(value: FixtureManifest): string {
   return JSON.stringify(value)
 }
 
-/** R2 channel record per hermes_cli.release_channels.validate_record. */
+/** R2 channel record per kova_cli.release_channels.validate_record. */
 function channelRecord(channel: 'stable' | 'canary', sequence: number): FixtureRecord {
   return {
     schema: 1,
@@ -134,7 +134,7 @@ function channelRecord(channel: 'stable' | 'canary', sequence: number): FixtureR
   }
 }
 
-/** Build manifest per hermes_cli.release_channels.validate_manifest. */
+/** Build manifest per kova_cli.release_channels.validate_manifest. */
 function buildManifest(
   channel: 'stable' | 'canary',
   sha: string,
@@ -282,7 +282,7 @@ it('carries each install channel from Python publication checks into the source 
     })
     const address: AddressInfo = server.address() as AddressInfo
     // Redirect only network transport. Selection, config, tag validation and Git are real.
-    fs.cpSync(path.join(repository, 'hermes_cli'), path.join(root, 'hermes_cli'), { recursive: true })
+    fs.cpSync(path.join(repository, 'kova_cli'), path.join(root, 'kova_cli'), { recursive: true })
     fs.writeFileSync(
       path.join(root, 'transport.py'),
       `import sys, os
@@ -338,7 +338,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
         python,
         [
           '-c',
-          'import sys; from pathlib import Path; from hermes_cli.update_channel import set_install_channel; set_install_channel(sys.argv[1], Path(sys.argv[2]))',
+          'import sys; from pathlib import Path; from kova_cli.update_channel import set_install_channel; set_install_channel(sys.argv[1], Path(sys.argv[2]))',
           channel,
           install
         ],
@@ -346,7 +346,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
       )
     }
 
-    const checkerPath: string = path.join(root, 'hermes_cli', 'source_check.py')
+    const checkerPath: string = path.join(root, 'kova_cli', 'source_check.py')
     fs.writeFileSync(
       checkerPath,
       fs

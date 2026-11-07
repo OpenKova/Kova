@@ -916,7 +916,7 @@ function ConvertFrom-YamlScalar([string]$Text) {
 }
 
 # The update channel this install chose (config.yaml update.installs.<id>.channel, id = sha16 of
-# the canonical install path, as hermes_cli.update_channel keys it; a record naming this path also
+# the canonical install path, as kova_cli.update_channel keys it; a record naming this path also
 # counts, since Windows paths can differ only in case). Pre-Python reader of the block YAML Hermes
 # writes; anything it cannot read returns '', which keeps the plain branch behaviour.
 function Get-ChosenChannel {
@@ -989,7 +989,7 @@ function Get-LatestStableRelease([string]$Origin) {
 
 # The stable release this run installs, '' to follow the branch, or '-' when stable applies but no
 # release could be looked up: an explicit -Channel, else stable for the official repository's main line (forks and mirrors publish no official
-# releases; hermes_cli.update_channel.default_channel decides the same way).
+# releases; kova_cli.update_channel.default_channel decides the same way).
 function Get-StableTarget([string]$Origin) {
     if ($Commit -or $Channel -ceq 'main') { return '' }
     if ($Channel -cne 'stable') {
@@ -1066,7 +1066,7 @@ function Stage-Repository {
         }
         # No recorded choice: an official checkout tracks stable, as `hermes update` does.
         if (-not $chosen) {
-            # The configured URL, as hermes_cli.update_channel reads it (`remote get-url`
+            # The configured URL, as kova_cli.update_channel reads it (`remote get-url`
             # applies insteadOf rewrites).
             $origin = "$(Invoke-Native { git -C $InstallDir config --get remote.origin.url 2>$null })".Trim()
             $release = Get-StableTarget $origin
@@ -1369,7 +1369,7 @@ function Invoke-SourceCompletion([bool]$Desktop) {
     # arrive through pm as the build asks for them; the bootstrap interpreter
     # itself only re-enters the tree on PM's selected Python.
     $bootPy = Get-BootstrapPython
-    $completionArgs = @('-I', '-B', '-X', 'utf8', 'hermes_cli/source_completion.py', '--source', $InstallDir)
+    $completionArgs = @('-I', '-B', '-X', 'utf8', 'kova_cli/source_completion.py', '--source', $InstallDir)
     if ($Desktop) { $completionArgs += '--desktop' }
     Push-Location $InstallDir
     try {
@@ -1390,7 +1390,7 @@ function Publish-UserCommand {
     $bootPy = Get-BootstrapPython
     Push-Location $InstallDir
     try {
-        Invoke-Logged "Publishing the hermes command" { & $bootPy -I -X utf8 hermes_cli/_launchers.py $binDir }
+        Invoke-Logged "Publishing the hermes command" { & $bootPy -I -X utf8 kova_cli/_launchers.py $binDir }
         $code = $LASTEXITCODE
     } finally {
         Pop-Location
@@ -1506,7 +1506,7 @@ function Stage-Desktop {
 
 function Confirm-DesktopArtifact {
     # Probe the packaged artifact the completion just built -- the same
-    # candidates hermes_cli/main_desktop._desktop_packaged_executable resolves.
+    # candidates kova_cli/main_desktop._desktop_packaged_executable resolves.
     Push-Location $InstallDir
     try {
         $desktopDir = Join-Path $InstallDir "apps\desktop"

@@ -208,8 +208,8 @@ def reprobe_tool_availability() -> None:
 def tool_pin_version() -> str:
     """The code identity a tools[] pin was built by (checkout/build sha, else the release version).
     Cached per process: an updated checkout only reaches a process through a restart."""
-    from hermes_cli import __version__
-    from hermes_cli.build_info import get_code_identity
+    from kova_cli import __version__
+    from kova_cli.build_info import get_code_identity
     identity = get_code_identity()
     return identity.get("sha") or identity.get("version") or __version__
 
@@ -233,7 +233,7 @@ def persist_agent_tool_names(agent) -> None:
 
 
 def _pinned_snapshot_key(session_id) -> tuple:
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     return hermes_home_key(), str(session_id)
 
 

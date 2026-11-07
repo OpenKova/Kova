@@ -7,11 +7,11 @@ return value that crosses the wire as a generic placeholder fails here the way i
 import os
 import sys
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
-from hermes_cli import plugins as plugins_mod
-from hermes_cli.plugins import PluginManager
+from kova_cli import plugins as plugins_mod
+from kova_cli.plugins import PluginManager
 
 
 def _home_with_plugin(tmp_path, monkeypatch, name: str, body: str):

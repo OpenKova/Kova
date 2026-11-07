@@ -36,7 +36,7 @@ class _StubCompressor(ContextCompressor):
     """Records every summariser call; ``gate`` holds background passes only (shared with the worker copy)."""
 
     def _generate_summary(self, turns_to_summarize, focus_topic=None, memory_context="", bypass_cooldown=False):
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
 
         worker = threading.current_thread().name == "compaction-prepare"
         if worker and self.read_seconds:
@@ -128,7 +128,7 @@ def test_flag_off_leaves_compression_inline_and_stateless():
 
 def test_config_flag_reaches_the_compressor_through_the_loader(tmp_path, monkeypatch):
     from agent.agent_init import _parse_compression_config
-    from hermes_cli.config import DEFAULT_CONFIG, load_config_readonly
+    from kova_cli.config import DEFAULT_CONFIG, load_config_readonly
 
     agent = SimpleNamespace(model="m", provider="openrouter", api_mode="chat_completions", quiet_mode=True)
     assert DEFAULT_CONFIG["compression"]["prepare_ahead"] is False
@@ -196,7 +196,7 @@ def test_turn_end_pass_skipped_where_the_session_ends_with_the_turn(agent_attrs)
 
 
 def test_pass_runs_under_the_callers_profile_scope(tmp_path):
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     homes = [tmp_path / "a", tmp_path / "b", tmp_path / "a"]
     compressors = []
@@ -395,7 +395,7 @@ def test_prune_and_blank_echo_drop_do_not_invalidate_the_candidate():
 
 
 def test_identity_survives_a_session_db_round_trip_and_catches_a_rewind(tmp_path):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     msgs = _messages(20)
     db = SessionDB(db_path=tmp_path / "state.db")
@@ -573,7 +573,7 @@ def test_a_held_candidate_starts_no_further_pass_however_far_the_prompt_grows(mo
 
 
 def test_failed_pass_backs_off_without_touching_live_failure_state(tmp_path, monkeypatch):
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     import agent.context_compressor as module
 
     db = SessionDB(db_path=tmp_path / "state.db")

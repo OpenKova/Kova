@@ -19,8 +19,8 @@ import io
 
 import pytest
 
-from hermes_state import SessionDB
-from hermes_cli import model_switch_providers
+from kova_state import SessionDB
+from kova_cli import model_switch_providers
 
 
 IDLE_S = 6 * 3600

@@ -20,8 +20,8 @@ def _reserve_homes(tmp_path, monkeypatch, names=('beta',)):
     root.mkdir(mode=0o700)
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
     monkeypatch.setenv('HERMES_HOME', str(root))
-    import hermes_state
-    monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
+    import kova_state
+    monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
     homes = [('default', root)]
     for name in names:
         home = root / 'profiles' / name
@@ -38,7 +38,7 @@ async def test_secondary_pick_reaches_next_turn_after_primary_local_session(tmp_
     from gateway.session_controls import AuthorityConnection
     from gateway.session_policy import policy_for_source
     from gateway.session_local import LocalSessionAdapter, create_local_session
-    from hermes_cli import model_switch
+    from kova_cli import model_switch
 
     monkeypatch.setattr(run, '_load_gateway_config', lambda *a: {
         'platform_toolsets': {'cli': [], 'tui': []},

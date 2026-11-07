@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from hermes_cli import update_receipt
+from kova_cli import update_receipt
 
 
 def _steps(path):

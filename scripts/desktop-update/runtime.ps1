@@ -43,7 +43,7 @@ function Invoke-HermesProbe {
 function Get-HermesRuntimeCommand {
     param(
         [Parameter(Mandatory = $true)][string]$InstallRoot,
-        [string]$Module = 'hermes_cli.main'
+        [string]$Module = 'kova_cli.main'
     )
 
     # The launcher owns interpreter/ABI and generation selection. Never infer
@@ -64,7 +64,7 @@ function Get-HermesRuntimeCommand {
 
     # Earlier PM installers published only to user-bin. The established
     # --version surface reports the bound source root; never trust PATH alone.
-    if (Test-Path -LiteralPath (Join-Path $InstallRoot 'hermes_cli/_launchers.py') -PathType Leaf) {
+    if (Test-Path -LiteralPath (Join-Path $InstallRoot 'kova_cli/_launchers.py') -PathType Leaf) {
         $directories = @(
             (Join-Path $env:HERMES_HOME 'bin'),
             (Join-Path (Split-Path -Parent $InstallRoot) 'bin')
@@ -80,7 +80,7 @@ function Get-HermesRuntimeCommand {
                 $reported = [IO.Path]::GetFullPath($Matches[1].Trim()).TrimEnd('\', '/')
                 $expected = [IO.Path]::GetFullPath($InstallRoot).TrimEnd('\', '/')
                 if (-not [string]::Equals($reported, $expected, [StringComparison]::OrdinalIgnoreCase)) { continue }
-                if ($Module -ne 'hermes_cli.main') {
+                if ($Module -ne 'kova_cli.main') {
                     throw "This older installation needs its launcher refreshed before running $Module. Run the update through $legacy."
                 }
                 return @($legacy)

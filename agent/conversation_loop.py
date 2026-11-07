@@ -36,8 +36,8 @@ from agent.surface_switch import (
     identity_line_value, note_inert_pinned_tools, runtime_host_value, stage_surface_switch_note,
 )
 from agent.turn_context import PRE_LLM_BLOCK_EXIT_REASON, PreflightCompressionTimedOut, build_turn_context
-from hermes_cli.observability.shared_metrics_efficiency import record_cache_break, record_prompt_rebuild
-from hermes_cli.plugins_dispatch import held_stream_transforms
+from kova_cli.observability.shared_metrics_efficiency import record_cache_break, record_prompt_rebuild
+from kova_cli.plugins_dispatch import held_stream_transforms
 from agent.turn_retry_state import TurnRetryState
 from agent.turn_scripted_prelude import Prelude, play_prelude
 # Phase helpers of the turn loop, bound at import so a source-tree swap cannot load a
@@ -60,14 +60,14 @@ from agent.turn_request_assembly import assemble_api_request
 from agent.turn_response_check import check_api_response
 from agent.turn_response_intake import normalize_model_response
 from agent.turn_tool_round import run_tool_round
-from hermes_logging import set_session_context
+from kova_logging import set_session_context
 from tools.skill_provenance import set_current_write_origin
 from utils import base_url_host_matches
 
 logger = logging.getLogger(__name__)
 
-# Must mirror _STALE_TOOL_CALL_MARKER_RE in hermes_state.py; kept local so importing
-# hermes_state (module-level DEFAULT_DB_PATH) is not forced at load time.
+# Must mirror _STALE_TOOL_CALL_MARKER_RE in kova_state.py; kept local so importing
+# kova_state (module-level DEFAULT_DB_PATH) is not forced at load time.
 _STALE_MARKER_RE = re.compile(r"^\[[A-Za-z_][A-Za-z0-9_.-]*\]$")
 
 # Shared by _apply_active_turn_redirect and the api_messages ghost-row filter so both sites cannot drift.
@@ -445,7 +445,7 @@ def _maybe_grow_local_window(agent: Any, compressor: Any,
     ):
         return None
     try:
-        from hermes_cli.local_runtime.growth import maybe_grow_window
+        from kova_cli.local_runtime.growth import maybe_grow_window
         current_window = int(getattr(compressor, "context_length", 0) or 0)
         if current_window <= 0:
             return None
@@ -468,7 +468,7 @@ def _nous_entitlement_message(capability: str, *, billing: bool = False) -> str:
     """``billing``: the request hit a billing wall. A usage-window account then gets its own next
     step (top-up link); its plan is still live, so the entitlement copy alone would say nothing."""
     try:
-        from hermes_cli.nous_account import (
+        from kova_cli.nous_account import (
             format_nous_portal_entitlement_message,
             format_usage_window_block_guidance,
             get_nous_portal_account_info,
@@ -929,7 +929,7 @@ def _restore_or_build_system_prompt(agent, system_message, conversation_history)
     # Persistence-disabled forks share their parent's session ID and are not real sessions.
     if not getattr(agent, "_persist_disabled", False):
         try:
-            from hermes_cli.lifecycle import invoke_hook as _invoke_hook
+            from kova_cli.lifecycle import invoke_hook as _invoke_hook
             _invoke_hook(
                 "on_session_start", session_id=agent.session_id, model=agent.model,
                 platform=getattr(agent, "platform", None) or "",
@@ -1427,7 +1427,7 @@ def _decode_inline_moa_turn(user_message, persist_user_message):
     """Decode a MoA preset encoded into ``user_message``; returns ``(user_message,
     moa_config, persist_user_message)``, unchanged with ``moa_config=None`` otherwise."""
     try:
-        from hermes_cli.moa_config import decode_moa_turn
+        from kova_cli.moa_config import decode_moa_turn
         _decoded_message, _decoded_moa_config = decode_moa_turn(user_message)
         if _decoded_moa_config is not None:
             if persist_user_message is None:

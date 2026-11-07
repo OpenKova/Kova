@@ -6,7 +6,7 @@ import shutil
 
 import pytest
 
-from tests.hermes_cli import test_web_server as web_server_tests
+from tests.kova_cli import test_web_server as web_server_tests
 
 _EXAMPLE_PLUGIN_FIXTURE = web_server_tests._EXAMPLE_PLUGIN_FIXTURE
 _install_example_plugin = web_server_tests._install_example_plugin  # the fixture
@@ -33,13 +33,13 @@ class TestPluginAPISecretScopeProductionMount:
         except ImportError:
             pytest.skip("fastapi/starlette not installed")
 
-        import hermes_state
-        from hermes_constants import get_hermes_home
-        from hermes_cli import profiles
-        from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+        import kova_state
+        from kova_constants import get_hermes_home
+        from kova_cli import profiles
+        from kova_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
         default_home = get_hermes_home()
-        monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", default_home / "state.db")
+        monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", default_home / "state.db")
 
         # Anchor the named-profiles root to the isolated home so ``?profile=workerb``
         # resolves inside the test sandbox (mirrors test_web_server_skills_profiles).
@@ -71,7 +71,7 @@ class TestPluginAPISecretScopeProductionMount:
             yield
         finally:
             set_multiplex_active(self._previous_multiplex)
-            from hermes_cli import plugins as plugins_mod
+            from kova_cli import plugins as plugins_mod
             for manager in list(plugins_mod._plugin_managers_by_home.values()):
                 host = getattr(manager, "_plugin_host_instance", None)
                 if host is not None:

@@ -11,9 +11,9 @@ import threading
 
 import pytest
 
-import hermes_cli.web_models as _web_models
-import hermes_cli.web_routers.sessions as _rt_sessions
-import hermes_cli.web_server_sessions as _web_server_sessions
+import kova_cli.web_models as _web_models
+import kova_cli.web_routers.sessions as _rt_sessions
+import kova_cli.web_server_sessions as _web_server_sessions
 
 
 def test_bulk_delete_sessiondb_work_runs_off_event_loop(monkeypatch):
@@ -123,8 +123,8 @@ def test_session_rename_runs_writer_open_and_update_off_event_loop(monkeypatch, 
     import gateway.session_mutations as _mutations
     from gateway.session_authority import LiveSession, SessionAuthority
     from gateway.session_contract import SessionActor
-    from hermes_state import SessionDB
-    from hermes_state_runtime import begin_runtime_epoch
+    from kova_state import SessionDB
+    from kova_state_runtime import begin_runtime_epoch
 
     def _open_db(*_args, **_kwargs):
         raise AssertionError("rename must not open its own SessionDB writer")

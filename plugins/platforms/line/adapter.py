@@ -804,7 +804,7 @@ class LineAdapter(BasePlatformAdapter):
         if not path.is_file():
             return web.Response(status=404, text="not found")
         try:
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
             hermes_home = Path(get_hermes_home()).resolve()
         except Exception:
             hermes_home = Path.home().joinpath(".hermes").resolve()
@@ -960,9 +960,9 @@ _SETUP_PROMPTS = (  # (env var, prompt, masked)
 
 def interactive_setup() -> None:
     """``hermes setup line`` wizard (writes ``~/.hermes/.env``); CLI helpers are lazy-imported."""
-    from hermes_cli.config import get_env_value, save_env_value
-    from hermes_cli.cli_output import print_header, print_info, prompt
-    from hermes_cli.setup_platforms import declines_reconfigure
+    from kova_cli.config import get_env_value, save_env_value
+    from kova_cli.cli_output import print_header, print_info, prompt
+    from kova_cli.setup_platforms import declines_reconfigure
     print_header("LINE Messaging API")
     if declines_reconfigure("LINE", "Reconfigure LINE?", "LINE_CHANNEL_ACCESS_TOKEN"):
         return

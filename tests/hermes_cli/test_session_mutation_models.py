@@ -2,7 +2,7 @@
 import pytest
 from pydantic import ValidationError
 
-from hermes_cli.web_models import SessionImport, SessionRename
+from kova_cli.web_models import SessionImport, SessionRename
 
 
 def test_mutation_counters_reject_coercion():

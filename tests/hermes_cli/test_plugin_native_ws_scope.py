@@ -23,11 +23,11 @@ from starlette.status import WS_1008_POLICY_VIOLATION
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from hermes_cli import plugins as plugins_mod
-from hermes_cli import web_server
-from hermes_cli.web_server_dashboard import PluginApiWebSocketGate
-from hermes_cli.web_server_profiles import _config_profile_scope
-from tests.hermes_cli import test_plugin_api_consent_gate as consent_gate
+from kova_cli import plugins as plugins_mod
+from kova_cli import web_server
+from kova_cli.web_server_dashboard import PluginApiWebSocketGate
+from kova_cli.web_server_profiles import _config_profile_scope
+from tests.kova_cli import test_plugin_api_consent_gate as consent_gate
 
 daemon = consent_gate.daemon  # the multiplexed daemon stand-in fixture
 _plugins = consent_gate._plugins
@@ -49,13 +49,13 @@ async def ping():
 async def events(ws: WebSocket):
     with Path(__file__).with_name("ENTERED").open("a") as entered:
         entered.write("x")
-    from hermes_cli.web_server_chat import _ws_auth_ok
+    from kova_cli.web_server_chat import _ws_auth_ok
     if not _ws_auth_ok(ws):
         await ws.close(code=1008)
         return
     await ws.accept()
     from agent.secret_scope import get_secret
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     while True:
         await ws.send_json({"home": str(get_hermes_home()), "secret": get_secret("PLG_WS_SENTINEL")})
         if await ws.receive_text() == "bye":
@@ -206,7 +206,7 @@ def test_concurrent_sockets_keep_their_own_profiles(daemon):
 
 def _ambient():
     from agent.secret_scope import get_secret
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return str(get_hermes_home()), get_secret("PLG_WS_SENTINEL")
 
 

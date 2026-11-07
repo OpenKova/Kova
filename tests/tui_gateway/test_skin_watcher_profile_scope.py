@@ -11,7 +11,7 @@ import os
 
 import pytest
 
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 class _Peer:

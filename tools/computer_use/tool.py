@@ -20,7 +20,7 @@ from collections import namedtuple
 from functools import partial
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
-from hermes_dir_acl import make_user_dir
+from kova_dir_acl import make_user_dir
 
 from agent.image_eviction_policy import image_dimensions_from_bytes
 from tools.computer_use.backend import ActionResult, CaptureResult, ComputerUseBackend, UIElement
@@ -196,7 +196,7 @@ def _scoped_sid(session_id: str) -> str:
     (legacy keys byte-identical); under a multiplexed turn the routed profile's home key is appended
     so two profiles that share a session id (or a DISPLAY) never share one cua-driver (#110032).
     Every cache path — lookup, install, release — goes through this, so release finds what lookup made."""
-    from hermes_constants import get_hermes_home_override, hermes_home_key
+    from kova_constants import get_hermes_home_override, hermes_home_key
     sid = str(session_id or "")
     return sid if get_hermes_home_override() is None else f"{sid}@{hermes_home_key()}"
 
@@ -772,7 +772,7 @@ def _secure_dir_policy(cache_dir) -> None:
     frames whenever ``HERMES_HOME`` itself is traversable, which is exactly
     what the documented ``HERMES_HOME_MODE=0701`` web-server escape hatch
     arranges. Delegates to the same house policy as every Hermes secret dir —
-    ``hermes_cli.config._secure_dir`` — with the mode passed to ``mkdir`` so
+    ``kova_cli.config._secure_dir`` — with the mode passed to ``mkdir`` so
     there is no window between mkdir and chmod; managed/NixOS installs keep
     their group-share design (the mode is left to the configured umask/setgid
     because these lazily-created dirs are not covered by the module's
@@ -781,7 +781,7 @@ def _secure_dir_policy(cache_dir) -> None:
     try:
         managed = False
         try:
-            from hermes_cli.config import is_managed
+            from kova_cli.config import is_managed
 
             managed = bool(is_managed())
         except Exception:  # pragma: no cover - defensive
@@ -791,7 +791,7 @@ def _secure_dir_policy(cache_dir) -> None:
             return
         make_user_dir(cache_dir, parents=True, exist_ok=True, mode=0o700)
         try:
-            from hermes_cli.config import _secure_dir
+            from kova_cli.config import _secure_dir
 
             _secure_dir(cache_dir)
         except Exception as exc:  # pragma: no cover - defensive
@@ -825,7 +825,7 @@ def _cache_file(subdir: str, legacy: str, name: str, pattern: str = "", cap: int
     """Path for a new file under ``$HERMES_HOME/<subdir>`` (dir created owner-only, per #77579).
     With ``pattern``/``cap``, first unlinks the oldest matching files so at most ``cap - 1`` remain
     (best-effort)."""
-    from hermes_constants import get_hermes_dir  # lazy so tests can patch get_hermes_dir
+    from kova_constants import get_hermes_dir  # lazy so tests can patch get_hermes_dir
     cache_dir = get_hermes_dir(subdir, legacy)
     _secure_dir_policy(cache_dir)
     with contextlib.suppress(Exception):
@@ -896,7 +896,7 @@ def _should_route_through_aux_vision() -> bool:
     stage = "import"
     try:
         from agent.auxiliary_client import _read_main_model, _read_main_provider
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         from tools.vision_tools import _native_tool_result_images
         stage = "decision"
         provider, model = _read_main_provider() or "", _read_main_model() or ""
@@ -910,7 +910,7 @@ def _should_route_through_aux_vision() -> bool:
 def _capture_after_mode() -> str:
     """Mode for ``capture_after`` follow-ups. Default ``som`` (screenshot)."""
     with contextlib.suppress(Exception):
-        from hermes_cli.config import load_config
+        from kova_cli.config import load_config
         mode = str(((load_config() or {}).get("computer_use") or {}).get("capture_after_mode", "som") or "som")
         return mode if (mode := mode.strip().lower()) in {"som", "vision", "ax"} else "som"
     return "som"

@@ -264,7 +264,7 @@ def _native(authority, tmp_path, user):
 async def test_an_old_compressed_transcript_reads_across_its_lineage_without_adoption(tmp_path, monkeypatch):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
-    import hermes_state
+    import kova_state
 
     store, db, runner = _legacy_owner(tmp_path, monkeypatch)
     authority = await initialize_session_authority(runner, profile_id=str(tmp_path), instance_id='owner')
@@ -280,7 +280,7 @@ async def test_an_old_compressed_transcript_reads_across_its_lineage_without_ado
         assert db._conn.total_changes == before  # nothing adopted, nothing written
         assert authority.sessions == {}
         # Past the resume's guard a rotated lineage pages its current segment only.
-        monkeypatch.setattr(hermes_state, 'resolved_max_resume_messages', lambda: 2)
+        monkeypatch.setattr(kova_state, 'resolved_max_resume_messages', lambda: 2)
         assert _flat(await _pages(native, row['session_id'], 3)) == ['after compression', 'new answer']
         refused = await _call(remote, 'session.transcript', session_id=row['session_id'])
         assert refused['error']['data']['reason'] == 'not_found', refused

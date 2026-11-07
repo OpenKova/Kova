@@ -60,7 +60,7 @@ def _home(server, params: dict):
         if home is None:
             raise ValueError(f"profile '{profile}' is unavailable")
         return Path(home)
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return Path(get_hermes_home())
 
 
@@ -71,7 +71,7 @@ def _root_home():
 
 
 def _discover(home):
-    from hermes_cli.gateway_runtime import discover_gateway_endpoint
+    from kova_cli.gateway_runtime import discover_gateway_endpoint
     return discover_gateway_endpoint(home, timeout=5)
 
 
@@ -122,7 +122,7 @@ def _standalone_rooms(params: dict | None = None) -> list[dict]:
 
 
 def _call(server, rid, home, endpoint, method: str, params: dict) -> dict:
-    from hermes_cli.gateway_client import GatewayRPCError
+    from kova_cli.gateway_client import GatewayRPCError
     from tui_gateway import owner_forward
     try:
         result = owner_forward.forward_rpc(home, endpoint, method, params)

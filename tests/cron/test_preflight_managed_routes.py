@@ -6,7 +6,7 @@ satellite-side helper shared by preflight rescue and delivery-time ``SharedRoute
 the raw user file alone, false-blocking every routed job and failing delivery closed.
 """
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
 from cron.scheduler_preflight import (
@@ -14,8 +14,8 @@ from cron.scheduler_preflight import (
     _delivery_platform_routed_from_primary_gateway,
     _primary_profile_routes_for_current_home,
 )
-from hermes_cli import managed_scope
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_cli import managed_scope
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 def _routes(*entries):
@@ -34,7 +34,7 @@ def satellite_home(tmp_path, monkeypatch):
     sat_home.mkdir(parents=True)
     managed_dir = tmp_path / "managed"
     managed_dir.mkdir()
-    monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
+    monkeypatch.setattr("kova_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed_dir))
     managed_scope.invalidate_managed_cache()
     token = set_hermes_home_override(str(sat_home))

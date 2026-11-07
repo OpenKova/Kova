@@ -31,9 +31,9 @@ test.skipIf(process.platform === 'win32')('Python ticket bridge pins profile, ow
   await fs.chmod(path.join(home, 'gateway.sock'), 0o600)
   const backend = { command: python, env: { PYTHONPATH: root, HERMES_HOME: '/must-not-win' } }
   const cwd = path.join(home, 'project')
-  await fs.mkdir(path.join(cwd, 'hermes_cli'), { recursive: true })
-  await fs.writeFile(path.join(cwd, 'hermes_cli', '__init__.py'), '')
-  await fs.writeFile(path.join(cwd, 'hermes_cli', 'gateway_client.py'), 'def _session_ticket(*args, **kwargs):\n    return "untrusted-project-ticket"\n')
+  await fs.mkdir(path.join(cwd, 'kova_cli'), { recursive: true })
+  await fs.writeFile(path.join(cwd, 'kova_cli', '__init__.py'), '')
+  await fs.writeFile(path.join(cwd, 'kova_cli', 'gateway_client.py'), 'def _session_ticket(*args, **kwargs):\n    return "untrusted-project-ticket"\n')
 
   try {
     for (const purpose of ['interactive', 'native-http', 'native-profile-create'] as const) {
@@ -55,7 +55,7 @@ test.skipIf(process.platform === 'win32')('Python ticket bridge pins profile, ow
     const { execFileSync } = await import('node:child_process')
 
     const unsafe = () => execFileSync(python, ['-c', 'import sys; from pathlib import Path; '
-      + 'from hermes_cli.gateway_runtime_discovery import home_mode_unsafe as u; p = Path(sys.argv[1]); '
+      + 'from kova_cli.gateway_runtime_discovery import home_mode_unsafe as u; p = Path(sys.argv[1]); '
       + 'print(int(u(p.lstat(), p)))', home], { env: { ...process.env, PYTHONPATH: root }, encoding: 'utf8' }).trim() === '1'
 
     const expectVerdict = async () => {

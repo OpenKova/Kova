@@ -42,7 +42,7 @@ _spillover_pruned_homes: set = set()  # profile home keys already swept this pro
 
 def get_spillover_dir():
     """Return $HERMES_HOME/cache/spillover as a Path (not created)."""
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     return get_hermes_home() / SPILLOVER_SUBDIR
 
 
@@ -52,7 +52,7 @@ def _spillover_retention_hours() -> int:
     days later must still find what the ``<persisted-output>`` pointer promises (#126351).
     Falls back to the legacy 24h cache age when the config is unreadable."""
     try:
-        from hermes_cli.config import load_config_readonly
+        from kova_cli.config import load_config_readonly
         days = float((load_config_readonly().get("sessions") or {}).get("retention_days", 90))
         if not math.isfinite(days):  # YAML ``.inf`` / ``.nan`` parse as floats; int() would raise
             return SPILLOVER_MAX_AGE_HOURS
@@ -167,7 +167,7 @@ def _prune_spillover_once() -> None:
     """Best-effort prune, at most once per process PER PROFILE HOME (CLI-only installs never run
     housekeeping; a multiplexed gateway must sweep every profile's ``cache/spillover``, not just the
     first one that spilled)."""
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     home_key = hermes_home_key()
     with _spillover_prune_lock:
         if home_key in _spillover_pruned_homes:

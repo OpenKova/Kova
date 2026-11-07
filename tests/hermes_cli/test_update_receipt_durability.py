@@ -20,8 +20,8 @@ def _run(tmp_path: Path, body: str) -> dict:
         import json, os, subprocess, sys
         from pathlib import Path
         sys.path.insert(0, sys.argv[1])
-        from hermes_cli import update_receipt as receipts
-        from hermes_cli.process_identity import _process_create_time
+        from kova_cli import update_receipt as receipts
+        from kova_cli.process_identity import _process_create_time
     """) + textwrap.dedent(body), encoding="utf-8")
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(("HERMES_", "PYTEST_"))}
@@ -94,8 +94,8 @@ def test_parent_followup_does_not_replace_child_terminal_with_running(tmp_path):
         Path('request.json').write_text(json.dumps(frozen))
         child = subprocess.run([sys.executable, '-c',
             'import json,sys; from pathlib import Path; '
-            'from hermes_cli.update_completion import _resume_receipt; '
-            'from hermes_cli.update_receipt import finalize_pending_update_receipt; '
+            'from kova_cli.update_completion import _resume_receipt; '
+            'from kova_cli.update_receipt import finalize_pending_update_receipt; '
             '_resume_receipt(json.loads(Path("request.json").read_text())); '
             'finalize_pending_update_receipt(0)'], check=True)
         before = receipts.read_latest_receipt()

@@ -5,15 +5,15 @@ kept winning on every read. A managed scope that pins something else must not bl
 from types import SimpleNamespace
 
 import pytest
-import hermes_yaml as yaml
-from hermes_state_runtime import RuntimeStoreError
+import kova_yaml as yaml
+from kova_state_runtime import RuntimeStoreError
 
 from gateway.session_tui_config import _set_display, _write_profile_config
 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    from hermes_cli import managed_scope
+    from kova_cli import managed_scope
     home, managed = tmp_path / "home", tmp_path / "managed"
     home.mkdir()
     managed.mkdir()
@@ -56,7 +56,7 @@ def test_owner_config_set_still_writes_a_key_the_scope_does_not_pin(home):
     ("focus", "status", {"value": "off", "tool_progress": "all"}),  # read-only: sets no leaf, even a pinned one
 ])
 def test_owner_config_set_runs_its_edit_once(home, monkeypatch, managed, key, value, expected):
-    from hermes_cli import managed_scope
+    from kova_cli import managed_scope
     if managed:
         (home.parent / "managed" / "config.yaml").write_text("display:\n  focus_view: true\n")
     else:
@@ -73,7 +73,7 @@ def test_owner_global_reasoning_level_is_refused_before_anything_changes(home, m
     before the session's level is committed or config.yaml is written. A session level writes no config key."""
     import asyncio
     from gateway import session_setting_commands, session_tui_config
-    from hermes_cli import managed_scope
+    from kova_cli import managed_scope
     if pins_effort:
         (home.parent / "managed" / "config.yaml").write_text("agent:\n  reasoning_effort: low\n")
         managed_scope.invalidate_managed_cache()
@@ -107,7 +107,7 @@ def test_owner_approval_mode_refusal_names_a_pinned_key(home, monkeypatch, pins_
     """A refused ``approvals.mode`` write reports ``permission_denied`` naming the key when the managed
     scope pins it; any other refusal keeps ``storage_unavailable``. Nothing is written either way."""
     from gateway import session_tui_config
-    from hermes_cli import approval_mode, managed_scope
+    from kova_cli import approval_mode, managed_scope
     if pins_mode:
         (home.parent / "managed" / "config.yaml").write_text("approvals:\n  mode: manual\n")
         managed_scope.invalidate_managed_cache()

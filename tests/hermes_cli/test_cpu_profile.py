@@ -22,7 +22,7 @@ def test_relative_cpu_profile_path_lands_in_the_profile_logs(tmp_path: Path):
     hermes_home = tmp_path / "home"
     hermes_home.mkdir()
 
-    result = _run(["-m", "hermes_cli.main", "--cpu-profile", "run.prof", "completion", "bash"], hermes_home)
+    result = _run(["-m", "kova_cli.main", "--cpu-profile", "run.prof", "completion", "bash"], hermes_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     target = hermes_home / "logs" / "profiles" / "run.prof"
@@ -37,9 +37,9 @@ def test_oneshot_hard_exit_still_writes_the_profile(tmp_path: Path):
     hermes_home.mkdir()
     target = tmp_path / "oneshot.prof"
     code = (
-        "from hermes_cli.cpu_profile import enable_cpu_profile\n"
+        "from kova_cli.cpu_profile import enable_cpu_profile\n"
         f"enable_cpu_profile({str(target)!r})\n"
-        "from hermes_cli.main import _exit_after_oneshot\n"
+        "from kova_cli.main import _exit_after_oneshot\n"
         "_exit_after_oneshot(0)\n"
     )
 
@@ -55,7 +55,7 @@ def test_gateway_graceful_hard_exit_still_writes_the_profile(tmp_path: Path):
     hermes_home.mkdir()
     target = tmp_path / "gateway.prof"
     code = (
-        "from hermes_cli.cpu_profile import enable_cpu_profile\n"
+        "from kova_cli.cpu_profile import enable_cpu_profile\n"
         f"enable_cpu_profile({str(target)!r})\n"
         "from gateway.run import _exit_after_graceful_shutdown\n"
         "_exit_after_graceful_shutdown(0)\n"
@@ -73,7 +73,7 @@ def test_version_writes_the_profile(tmp_path: Path):
     hermes_home.mkdir()
     target = tmp_path / "version.prof"
 
-    result = _run(["-m", "hermes_cli.main", "--cpu-profile", str(target), "--version"], hermes_home)
+    result = _run(["-m", "kova_cli.main", "--cpu-profile", str(target), "--version"], hermes_home)
 
     assert result.returncode == 0, result.stderr[-1000:]
     assert pstats.Stats(str(target)).total_calls > 0
@@ -86,7 +86,7 @@ def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path)
     target = tmp_path / "termux.prof"
     code = (
         "import os, sys\n"
-        "import hermes_cli.main as main\n"
+        "import kova_cli.main as main\n"
         "main.cmd_chat = lambda args: None  # the interactive REPL needs a TTY\n"
         f"sys.argv = ['hermes', '--cpu-profile', {str(target)!r}]\n"
         "assert main._try_termux_fast_cli_launch()\n"
@@ -106,9 +106,9 @@ def test_in_place_relaunch_still_writes_the_profile(tmp_path: Path):
     target = tmp_path / "relaunch.prof"
     code = (
         "import sys\n"
-        "from hermes_cli.cpu_profile import enable_cpu_profile\n"
+        "from kova_cli.cpu_profile import enable_cpu_profile\n"
         f"enable_cpu_profile({str(target)!r})\n"
-        "import hermes_cli.relaunch as relaunch\n"
+        "import kova_cli.relaunch as relaunch\n"
         "relaunch.build_relaunch_argv = lambda *a, **k: [sys.executable, '-c', 'pass']  # exec a no-op\n"
         "relaunch.relaunch(['--resume', 'x'])\n"
     )
@@ -128,9 +128,9 @@ def test_named_profile_dashboard_reroute_still_writes_the_profile(tmp_path: Path
     target = tmp_path / "dashboard.prof"
     code = (
         "import argparse, os, sys\n"
-        "from hermes_cli.cpu_profile import enable_cpu_profile\n"
+        "from kova_cli.cpu_profile import enable_cpu_profile\n"
         f"enable_cpu_profile({str(target)!r})\n"
-        "import hermes_cli.main_dashboard as md\n"
+        "import kova_cli.main_dashboard as md\n"
         "real_exec = os.execvpe\n"
         "os.execvpe = lambda file, argv, env: real_exec(sys.executable, [sys.executable, '-c', 'pass'], env)\n"
         "args = argparse.Namespace(port=9119, host='127.0.0.1', no_open=True, isolated=False, open_profile='')\n"

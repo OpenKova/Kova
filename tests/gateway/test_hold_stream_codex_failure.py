@@ -15,7 +15,7 @@ from tests.gateway.test_run_progress_topics import _make_runner
 @pytest.mark.parametrize('error', [None, 'codex app-server subprocess exited unexpectedly'], ids=['completed', 'failed_after_text'])
 async def test_codex_held_partial_final_reaches_chat_only_rewritten(error, monkeypatch):
     import gateway.run as gateway_run
-    from hermes_cli import plugins
+    from kova_cli import plugins
     from agent.transports.codex_app_server_session import CodexAppServerSession, TurnResult
     from gateway.config import Platform, StreamingConfig
     from gateway.session import SessionSource

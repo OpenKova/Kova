@@ -10,7 +10,7 @@ member naming it is refused, so one bad entry never takes the rest of the roster
 import logging
 from pathlib import Path
 
-from hermes_state_runtime import RuntimeStoreError
+from kova_state_runtime import RuntimeStoreError
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def member_roster(authority, *, siblings=True):
     new member may not take to ``(reason, field, detail)``. An alias stays in ``homes`` too, so a
     room that already seats it keeps running its other members (its own turns fail, as before).
     """
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     own, served, refused = _served(authority)
     blocked = set(refused)
     homes = dict(served)
@@ -116,7 +116,7 @@ def _config_entry(name, value, served, seated):
     """``(home, reason, detail)`` for one entry: ``reason`` None seats ``home``; otherwise the entry
     is refused, and a ``home`` it still carries is an alias that existing rooms keep."""
     from gateway.hosted_rooms_common import IDENTIFIER_RE
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     if not isinstance(name, str) or not IDENTIFIER_RE.fullmatch(name) or not isinstance(value, str):
         return None, 'invalid_params', 'must map a profile name to a home'
     target = Path(value)

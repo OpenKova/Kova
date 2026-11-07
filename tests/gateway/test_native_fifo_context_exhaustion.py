@@ -15,8 +15,8 @@ from gateway.run import GatewayRunner
 from gateway.session_authority import SessionAuthority, initialize_session_authority
 from gateway.session_contract import SessionRef
 from gateway.session_ingress_context import native_callback
-from hermes_constants import get_hermes_home
-from hermes_state_runtime import list_session_admissions
+from kova_constants import get_hermes_home
+from kova_state_runtime import list_session_admissions
 from plugins.platforms.discord.adapter import DiscordAdapter
 
 _REAL_SCHEDULE = SessionAuthority._schedule  # the fixture parks scheduling; races restore it

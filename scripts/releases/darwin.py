@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 from . import r2 as r2_module
 from .semver import compare, is_release_version
-from hermes_cli.update_channel import canary_timestamp, is_canary_tag
+from kova_cli.update_channel import canary_timestamp, is_canary_tag
 
 ARCHES = ("arm64",)  # Apple Silicon only: no Intel macOS build ships
 _HASH_PATTERN = re.compile(r"^[A-Za-z0-9+/]{86}==$")
@@ -25,7 +25,7 @@ def _darwin_feed(channel: str, light: bool = False) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 def parse_mac_feed(text: str) -> dict[str, Any]:
-    import hermes_yaml as yaml  # lazy: YAML support loads only on the feed path
+    import kova_yaml as yaml  # lazy: YAML support loads only on the feed path
 
     feed = yaml.safe_load(text)
     if (
@@ -83,7 +83,7 @@ def merge_mac_feeds(legs: dict[str, str], tag: str, light: bool = False,
     artifact URLs into the immutable per-release tag namespace. `archive` keys
     that namespace (the attempt ref for stable attempts); `tag` stays the
     version identity."""
-    import hermes_yaml as yaml  # lazy
+    import kova_yaml as yaml  # lazy
 
     version = tag[1:] if isinstance(tag, str) and tag.startswith("v") else ""
     if not is_release_version(version):

@@ -34,7 +34,7 @@ _INTERPRETER_PREFIXES = tuple({
     # scripts/run_tests.sh runs a PM generation venv (<installs>/<key>/{environments,test-environment}
     # /<gen>/venv) that sits under the home whenever HOME is the run's fake home. The generation dir
     # around the venv is that interpreter's installation too: `hermes update` probes
-    # <venv>/../hermes_cli/main.py to find the checkout owning its venv (update_owning_install).
+    # <venv>/../kova_cli/main.py to find the checkout owning its venv (update_owning_install).
     *_pm_generation_dirs((sys.prefix, sys.exec_prefix)),
 } | {
     # The default install checks the repo out INSIDE the home (install.sh:
@@ -152,7 +152,7 @@ class HomeIOGuard:
                 # pytest.fail, not AssertionError: removal helpers catch Exception and would log
                 # the refusal as a warning while the test passed.
                 pytest.fail(f"TEST BUG: changing the REAL installed Hermes desktop app: {value}\n"
-                            "Stub hermes_cli.gui_uninstall.packaged_gui_app_paths to a temporary path.")
+                            "Stub kova_cli.gui_uninstall.packaged_gui_app_paths to a temporary path.")
         return resolved
 
     @staticmethod

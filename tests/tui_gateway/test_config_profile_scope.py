@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from tui_gateway import server
-from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
 
 LAUNCH_CWD = "/workspace/default"

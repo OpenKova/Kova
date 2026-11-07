@@ -2,10 +2,10 @@
 from types import SimpleNamespace
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from agent.status_output import StatusOutputMixin
-from hermes_cli.cli_stream_mixin import CLIStreamMixin
+from kova_cli.cli_stream_mixin import CLIStreamMixin
 
 
 class Agent(StatusOutputMixin):

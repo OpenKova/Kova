@@ -150,7 +150,7 @@ interface DetectionCase {
   expect: { agent: boolean; desktop: boolean; agent_name: null | string }
 }
 
-// Shared with the gateway's detector (tests/hermes_cli/test_plugins_cmd_inspect.py).
+// Shared with the gateway's detector (tests/kova_cli/test_plugins_cmd_inspect.py).
 const DETECTION_CASES = (
   JSON.parse(
     fs.readFileSync(

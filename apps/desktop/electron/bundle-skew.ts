@@ -20,7 +20,7 @@
  *
  * The count is evidence and the endpoint content is the verdict: a change and its revert
  * inside one update range leave the runtime byte-identical, which is exactly when
- * `hermes update` reuses the packaged app (hermes_cli/desktop_build_reuse.py).
+ * `hermes update` reuses the packaged app (kova_cli/desktop_build_reuse.py).
  *
  * Ancestry has to come first, because `A..HEAD` only means "how far HEAD is
  * ahead of A" when A is an ancestor of HEAD. When it is not, the range

@@ -15,8 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli.gateway_session_store import SurfaceLabelReader
-from hermes_state import SessionDB
+from kova_cli.gateway_session_store import SurfaceLabelReader
+from kova_state import SessionDB
 
 
 def _populate(db: SessionDB, rows: list[tuple[str, str, str, float]]) -> None:
@@ -40,17 +40,17 @@ def _newer_locals(count: int, *, start: float, prefix: str) -> list[tuple[str, s
 
 def _resolve_cli(monkeypatch, home) -> str | None:
     monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr("hermes_cli.main._resolve_workspace_key", lambda: None)
-    from hermes_cli.main import _resolve_last_session
+    monkeypatch.setattr("kova_cli.main._resolve_workspace_key", lambda: None)
+    from kova_cli.main import _resolve_last_session
 
     return _resolve_last_session("cli")
 
 
 def _recent_cli_ids(db: SessionDB) -> tuple[list[str], list[str]]:
     """Ids from the shared listing helper and from ``/sessions`` / ``/resume`` (limit 10)."""
-    from hermes_cli.cli_session_mixin import CLISessionMixin
-    from hermes_cli.session_listing import query_session_listing
-    from hermes_state_sessions import INTERNAL_LISTING_SOURCES
+    from kova_cli.cli_session_mixin import CLISessionMixin
+    from kova_cli.session_listing import query_session_listing
+    from kova_state_sessions import INTERNAL_LISTING_SOURCES
 
     reader = SurfaceLabelReader(db)
     listed = query_session_listing(

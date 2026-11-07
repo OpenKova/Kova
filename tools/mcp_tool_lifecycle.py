@@ -6,7 +6,7 @@ import asyncio
 import os
 import time
 from typing import Dict, Optional
-from hermes_cli.process_identity import is_owner_death_supervisor, release_process_groups
+from kova_cli.process_identity import is_owner_death_supervisor, release_process_groups
 from tools.mcp_tool_common import _core
 from tools import mcp_tool_loop as _loop
 
@@ -136,7 +136,7 @@ def _reregister_orphaned_adopters() -> None:
         return
     from pathlib import Path
     from agent.secret_scope import build_profile_secret_scope, reset_secret_scope, set_secret_scope
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     from tools import mcp_tool_discovery as _discovery
     from tools.mcp_tool_config import _load_mcp_config
     for adopter, names in pending.items():

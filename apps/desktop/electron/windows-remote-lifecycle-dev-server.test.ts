@@ -49,7 +49,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
     async exec(command: string, options: { stdinData?: string } = {}): Promise<string> {
       const script = decodePowerShellCommand(command)
       execs.push({ script, stdinData: String(options.stdinData ?? '') })
-      const op = (name: string) => script.includes(`'hermes_cli.windows_ssh_runtime' '${name}'`)
+      const op = (name: string) => script.includes(`'kova_cli.windows_ssh_runtime' '${name}'`)
 
       if (op('spawn')) {
         return JSON.stringify({ pid: 890, creationTimeNs: '1784219690452757600' })
@@ -101,11 +101,11 @@ function connectAs(ssh: ReturnType<typeof ownedWindowsSsh>, devServer: string) {
 }
 
 const spawnOf = (ssh: ReturnType<typeof ownedWindowsSsh>) =>
-  ssh.execs.find(({ script }) => script.includes("'hermes_cli.windows_ssh_runtime' 'spawn'"))?.script
+  ssh.execs.find(({ script }) => script.includes("'kova_cli.windows_ssh_runtime' 'spawn'"))?.script
 
 const writtenLocks = (ssh: ReturnType<typeof ownedWindowsSsh>) =>
   ssh.execs
-    .filter(({ script }) => script.includes("'hermes_cli.windows_ssh_runtime' 'write-lock'") && !script.includes("'spawn'"))
+    .filter(({ script }) => script.includes("'kova_cli.windows_ssh_runtime' 'write-lock'") && !script.includes("'spawn'"))
     .map(({ stdinData }) => JSON.parse(stdinData))
 
 for (const [label, devServer, expected] of [

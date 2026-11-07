@@ -4,15 +4,15 @@ and a plugin language pack found through real discovery — and refuses unknown 
 from __future__ import annotations
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from agent import i18n, i18n_layers
-from hermes_cli.config import set_config_value
+from kova_cli.config import set_config_value
 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    from hermes_cli import plugins as plugins_mod
+    from kova_cli import plugins as plugins_mod
 
     home = tmp_path / "home"
     home.mkdir()

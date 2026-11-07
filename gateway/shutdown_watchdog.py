@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE
-from hermes_constants import get_hermes_home, get_process_hermes_home
+from kova_constants import get_hermes_home, get_process_hermes_home
 from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ def _mark_exited_quietly(exit_code: int, reason: str) -> None:
         from gateway.lifecycle_ledger import mark_exited
         mark_exited(exit_code, reason=reason)
     with contextlib.suppress(Exception):  # os._exit skips atexit: stamp the exit-metrics marker now
-        from hermes_cli.observability.shared_metrics_process import stamp_exit
+        from kova_cli.observability.shared_metrics_process import stamp_exit
         stamp_exit("watchdog")
     with contextlib.suppress(Exception):
         from gateway.status import write_runtime_status
@@ -302,7 +302,7 @@ def arm_shutdown_watchdog(
             remove_pid_file()
             release_gateway_runtime_lock()
         with contextlib.suppress(Exception):
-            from hermes_logging import drain_log_queue
+            from kova_logging import drain_log_queue
             drain_log_queue(timeout=1.0)
         _mark_exited_quietly(exit_code, "shutdown_watchdog")
         _hard_exit(exit_code)

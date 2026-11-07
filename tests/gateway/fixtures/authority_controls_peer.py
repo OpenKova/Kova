@@ -54,10 +54,10 @@ async def probe(peer, target):
     from gateway.run import GatewayRunner
     from gateway.session import SessionSource
     from gateway.session_authority import initialize_session_authority
-    from hermes_cli import web_server
+    from kova_cli import web_server
     from gateway.run_api import start_gateway_api, stop_gateway_api
     from tools.approval import list_gateway_approvals, resolve_gateway_approval
-    from hermes_state_runtime import list_session_admissions
+    from kova_state_runtime import list_session_admissions
     from run_agent import AIAgent
 
     class NativeAdapter(BasePlatformAdapter):

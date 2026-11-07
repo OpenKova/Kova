@@ -11,7 +11,7 @@ import pytest
 from agent import onboarding_record
 from agent.inline_tool_executors import INLINE_TOOL_EXECUTORS, InlineToolContext
 from agent.onboarding_flow import End, Facts
-from hermes_state import SessionDB
+from kova_state import SessionDB
 from tools.registry import registry
 
 SID = "onb-session"
@@ -21,7 +21,7 @@ FACTS = Facts(os="macos", arch="arm64", machine_kind="Mac", plugins=("blender",)
 @pytest.fixture
 def db(tmp_path, monkeypatch):
     # The run's start and end write the install flag in the root config; that is not under test here.
-    monkeypatch.setattr("hermes_cli.onboarding_run.set_run", lambda *a, **k: None)
+    monkeypatch.setattr("kova_cli.onboarding_run.set_run", lambda *a, **k: None)
     store = SessionDB(db_path=tmp_path / "state.db")
     store.create_session(SID, "desktop")
     yield store

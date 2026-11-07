@@ -1,4 +1,4 @@
-"""Inline images in the classic CLI scrollback (hermes_cli/cli_inline_images.py)."""
+"""Inline images in the classic CLI scrollback (kova_cli/cli_inline_images.py)."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from prompt_toolkit.styles import Style
 
 from agent.terminal_image import render_inline_image
 import cli as cli_mod
-from hermes_cli.cli_inline_images import image_rows, print_inline_images
-from hermes_cli.cli_render import _output_tail_fitting
+from kova_cli.cli_inline_images import image_rows, print_inline_images
+from kova_cli.cli_render import _output_tail_fitting
 
 PIL = pytest.importorskip("PIL.Image")
 

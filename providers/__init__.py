@@ -4,7 +4,7 @@ Provider profiles can live in three places:
 
 1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with hermes-agent)
 2. User plugins: ``$HERMES_HOME/plugins/model-providers/<name>/``
-3. Pip-installed plugins: distributions exposing a ``hermes_agent.plugins``
+3. Pip-installed plugins: distributions exposing a ``kova_agent.plugins``
    entry point (``module:func`` callable or a self-registering ``module``)
 
 Each plugin directory contains:
@@ -97,7 +97,7 @@ _HOME_LAYERS: dict[str, _HomeLayer] = {}
 _HOME_LAYERS_LOCK = threading.Lock()
 # The layer a ``$HERMES_HOME`` plugin import registers into. A ContextVar, not a module global:
 # two turn threads scanning two profile homes at once must not cross-register. Never a lock held
-# across the import itself — a thread mid-``import hermes_cli.auth`` (whose import calls
+# across the import itself — a thread mid-``import kova_cli.auth`` (whose import calls
 # ``list_providers()``) would block on it while the scanning thread waits on that module's import lock.
 _REGISTRATION_TARGET: ContextVar[_HomeLayer | None] = ContextVar("_provider_registration_target", default=None)
 # Set by :func:`bundled_profiles`: registrations made in this context are collected, nothing else.
@@ -113,20 +113,20 @@ _BUNDLED_PLUGINS_DIR = (
 
 
 def _sync_auth_registry() -> None:
-    """Mirror profiles into the ``hermes_cli`` snapshots (auth registry, picker catalog) that are loaded.
+    """Mirror profiles into the ``kova_cli`` snapshots (auth registry, picker catalog) that are loaded.
 
-    ``hermes_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
+    ``kova_cli.auth`` takes its own snapshot of ``list_providers()`` when it is imported. If a
     plugin's imports pull that module in while :func:`_discover_providers` is still running, the
     snapshot is partial and later plugins never reach the auth registry ("Unknown provider",
     #102123). Calling back into auth once discovery is complete closes that window. Looked up via
-    ``sys.modules`` on purpose: this layer must never import ``hermes_cli`` (that would run auth's
+    ``sys.modules`` on purpose: this layer must never import ``kova_cli`` (that would run auth's
     top-level code mid-scan and risk a circular import). Never raises: registration must not fail
     because of the auth mirror.
     """
     for module, attr in (
-        ("hermes_cli.auth", "sync_plugin_provider_registry"),
-        ("hermes_cli.models_catalog_static", "sync_plugin_provider_catalog"),
-        ("hermes_cli.config_provider_env", "sync_registered_providers"),
+        ("kova_cli.auth", "sync_plugin_provider_registry"),
+        ("kova_cli.models_catalog_static", "sync_plugin_provider_catalog"),
+        ("kova_cli.config_provider_env", "sync_registered_providers"),
     ):
         sync = getattr(sys.modules.get(module), attr, None)
         if sync is None:
@@ -173,7 +173,7 @@ def provider_source(name: str) -> str | None:
     """Discovery source of the profile currently registered under *name* (see ``_SOURCES``), or None.
 
     ``"user"`` is what lets a ``$HERMES_HOME`` plugin re-registering a bundled name win in
-    ``hermes_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
+    ``kova_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
     """
     layer = _home_layer()
     canonical = layer.aliases.get(name) or _ALIASES.get(name, name)
@@ -196,7 +196,7 @@ _NAMED_CUSTOM_MEMO_NO_SIG = object()
 
 def _has_named_custom_provider(name: str, home: Path | None, hkey: str) -> bool:
     """``has_named_custom_provider`` memoized on the home's config cache version."""
-    from hermes_cli.config_backend import config_cache_version
+    from kova_cli.config_backend import config_cache_version
 
     try:
         sig = config_cache_version(home / "config.yaml") if home is not None else None
@@ -209,7 +209,7 @@ def _has_named_custom_provider(name: str, home: Path | None, hkey: str) -> bool:
         _NAMED_CUSTOM_MEMO_SIG[hkey] = sig
     if name in memo:
         return memo[name]
-    from hermes_cli.runtime_provider_custom import has_named_custom_provider
+    from kova_cli.runtime_provider_custom import has_named_custom_provider
 
     memo[name] = has_named_custom_provider(name)
     return memo[name]
@@ -289,7 +289,7 @@ def routed_model_rejects_vision_tool_messages(provider: str, model: str) -> bool
     # Routing aggregators accept a ``vendor/model`` identifier while the request is sent
     # to the aggregator; the target provider can have stricter message-shape support than
     # the aggregator's generic OpenAI-compatible transport profile.
-    from hermes_cli.providers import is_routing_aggregator
+    from kova_cli.providers import is_routing_aggregator
     if not is_routing_aggregator(provider_name):
         return False
 
@@ -405,7 +405,7 @@ def unlisted_provider_names() -> set[str]:
 def bound_profile_resolver():
     """``resolve(name) -> (home plugin profile, process-wide profile)`` for the home bound now.
 
-    *name* may be an alias. For process-wide mirrors read per home (``hermes_cli.auth``'s
+    *name* may be an alias. For process-wide mirrors read per home (``kova_cli.auth``'s
     ``PROVIDER_REGISTRY``), so cheap enough per lookup: no discovery, no miss re-scan; only the
     periodic plugin-dir stamp check, skipped mid-scan so a plugin reading the mirror while it imports
     cannot re-enter its own scan.
@@ -433,7 +433,7 @@ def refresh_bound_home() -> None:
 
 def _bound_home_layer() -> tuple[_HomeLayer, Path | None, str]:
     try:
-        from hermes_constants import get_hermes_home, hermes_home_key
+        from kova_constants import get_hermes_home, hermes_home_key
 
         home = Path(get_hermes_home())
         key = hermes_home_key(home)
@@ -503,7 +503,7 @@ def _plugin_dir_stamps_settled(stamps: tuple) -> bool:
 def _user_plugins_dir() -> Path | None:
     """Return ``$HERMES_HOME/plugins/model-providers/`` if it exists."""
     try:
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
 
         d = get_hermes_home() / "plugins" / "model-providers"
         return d if d.is_dir() else None
@@ -519,7 +519,7 @@ def _installed_plugins_dir() -> Path | None:
     :func:`_discover_installed_provider_plugins`.
     """
     try:
-        from hermes_constants import get_hermes_home
+        from kova_constants import get_hermes_home
 
         d = get_hermes_home() / "plugins"
         return d if d.is_dir() else None
@@ -604,7 +604,7 @@ def _import_plugin_dir(plugin_dir: Path, source: str, *, home_key: str = "") -> 
     if not (plugin_dir / "__init__.py").exists():
         return
     if source != "bundled":
-        from hermes_cli.plugin_isolation import ISOLATION_HOST, isolation_mode
+        from kova_cli.plugin_isolation import ISOLATION_HOST, isolation_mode
         if isolation_mode() == ISOLATION_HOST:  # the plugin's code runs in the plugin host
             _import_hosted_plugin_dir(plugin_dir, source, _user_module_name(plugin_dir, home_key))
             return
@@ -625,7 +625,7 @@ def _import_hosted_plugin_dir(plugin_dir: Path, source: str, module_name: str) -
     boundary (e.g. it overrides ``create_client``) is imported in-process ALONE, with a warning,
     so it never takes its hosted siblings down with it."""
     global _current_source
-    from hermes_cli.plugin_host_profiles import load_hosted_profiles
+    from kova_cli.plugin_host_profiles import load_hosted_profiles
     layer = _REGISTRATION_TARGET.get()
     if layer is not None and module_name in layer.hosted:
         return  # already imported into this home's layer
@@ -700,12 +700,12 @@ def plugin_load_error(plugin: str) -> str:
 
 
 def _discover_entry_point_providers() -> None:
-    """Import pip-installed provider plugins via the ``hermes_agent.plugins``
+    """Import pip-installed provider plugins via the ``kova_agent.plugins``
     entry-point group so they self-register.
 
     A distribution ships::
 
-        [project.entry-points."hermes_agent.plugins"]
+        [project.entry-points."kova_agent.plugins"]
         acme-inference = "acme_hermes_plugin:register"
 
     The target may be either a **callable** (``module:func`` — invoked with no
@@ -720,7 +720,7 @@ def _discover_entry_point_providers() -> None:
       general PluginManager enforces — a pip package is never imported just
       because it is installed. An entry point whose name is not enabled is
       skipped without loading.
-    * **Provider targets only.** The ``hermes_agent.plugins`` group is shared
+    * **Provider targets only.** The ``kova_agent.plugins`` group is shared
       with general plugins whose target is ``register(ctx)``. Callables that
       require arguments are skipped here (the PluginManager owns them);
       provider registration hooks take no arguments by contract.
@@ -740,7 +740,7 @@ def _discover_entry_point_providers() -> None:
     # Same opt-in gate as the general PluginManager: only entry points named
     # in ``plugins.enabled`` load, and ``plugins.disabled`` always wins.
     try:
-        from hermes_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
+        from kova_cli.plugins import _get_disabled_plugins, _get_enabled_plugins
 
         enabled = _get_enabled_plugins()  # None = nothing enabled yet (opt-in default)
         disabled = _get_disabled_plugins()
@@ -749,7 +749,7 @@ def _discover_entry_point_providers() -> None:
     if not enabled:
         return
 
-    group = "hermes_agent.plugins"
+    group = "kova_agent.plugins"
     try:
         eps = _md.entry_points()
         # Python 3.10+ exposes .select(); older returns a dict-like mapping.
@@ -767,7 +767,7 @@ def _discover_entry_point_providers() -> None:
                 "entry-point provider %r skipped: not enabled in config", ep.name
             )
             continue
-        from hermes_cli.plugin_isolation import in_process_import_refusal
+        from kova_cli.plugin_isolation import in_process_import_refusal
         refusal = in_process_import_refusal(f"pip-installed model-provider plugin {ep.name!r}")
         if refusal:
             logger.warning("%s", refusal)
@@ -881,14 +881,14 @@ def _discover_providers() -> None:
         _run_discovery_steps()
     finally:
         _discovering = False
-        # hermes_cli.auth may have been imported by a plugin during discovery and snapshotted a
+        # kova_cli.auth may have been imported by a plugin during discovery and snapshotted a
         # partial profile list — hand it the complete one (no-op unless auth is already loaded).
         _sync_auth_registry()
 
 
 def _run_discovery_steps() -> None:
     """The discovery passes, in precedence order (see :func:`_discover_providers`)."""
-    # 0. Pip-installed plugins — entry points in the ``hermes_agent.plugins``
+    # 0. Pip-installed plugins — entry points in the ``kova_agent.plugins``
     #    group (the same group the general PluginManager uses). The manager
     #    records model-provider manifests for introspection but deliberately
     #    does NOT import them — provider lifecycle is owned here — so without

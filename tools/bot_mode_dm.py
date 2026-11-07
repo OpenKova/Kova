@@ -63,7 +63,7 @@ FAN_OUT_MAX = 8
 
 
 def _default_home() -> str:
-    from hermes_constants import get_process_hermes_home
+    from kova_constants import get_process_hermes_home
     return str(get_process_hermes_home())
 
 
@@ -256,7 +256,7 @@ def message_agent_tool(target: str = "", message: str = "", task_id: Optional[st
                         "message_agent is unavailable. Do not retry.")
     except Exception as exc:  # pragma: no cover — defensive
         return _err(f"Bot Mode gate check failed: {exc}")
-    from hermes_cli.observability.shared_metrics_signals import record_feature_used
+    from kova_cli.observability.shared_metrics_signals import record_feature_used
     record_feature_used("bot_mode", hermes_home=home)
 
     root, me = _hermes_root(Path(home)), _self_profile_name(Path(home))
@@ -298,7 +298,7 @@ def _dispatch(raw_target: str, content: str, sender: Sender, *, wake: Any) -> st
     back: ``"notify"`` (a tracked runner whose completion wakes the sender), ``"none"`` (notify-only:
     nothing waits), or a list collecting the runner commands one fan-out runner joins."""
     from tools.bot_mode_probe import _handle, _profile_name as _self_profile_name
-    from tools.bot_relay import _hermes_cli
+    from tools.bot_relay import _kova_cli
 
     root, me, roster_homes, peers = sender.root, sender.me, sender.roster_homes, sender.peers
     roster = list(roster_homes)
@@ -321,10 +321,10 @@ def _dispatch(raw_target: str, content: str, sender: Sender, *, wake: Any) -> st
         # in that same profile or a secondary-profile bot sees an empty registry.
         # The delivery runs in a background service context whose PATH lacks the gateway's
         # venv bin dir, so a bare "hermes" resolves to a system install and dies on import
-        # under the wrong interpreter (#108628). _hermes_cli pins the entrypoint beside
+        # under the wrong interpreter (#108628). _kova_cli pins the entrypoint beside
         # this interpreter; _local_delivery_home matches argv[0] by basename,
         # so the absolute path stays compatible.
-        return _start_delivery([_hermes_cli(), "-p", _self_profile_name(root), "peer", "dm", dm_target], content,
+        return _start_delivery([_kova_cli(), "-p", _self_profile_name(root), "peer", "dm", dm_target], content,
                                f"@{peer_profile or peer_name} on peer '{peer_name}'", stdin_file=True,
                                author=peer_author, **delivery)
 
@@ -360,7 +360,7 @@ def _dispatch(raw_target: str, content: str, sender: Sender, *, wake: Any) -> st
                     "to them: put your reply in it instead of messaging them. Do not retry.")
     # Local teammates are admitted through the profile authority; the argv only names the
     # profile for the runner's home lookup and is never executed.
-    return _start_delivery([_hermes_cli(), "-p", resolved], content, f"@{_handle(resolved, roster)}",
+    return _start_delivery([_kova_cli(), "-p", resolved], content, f"@{_handle(resolved, roster)}",
                            stdin_file=False, profile_home=roster_homes[resolved], author=author, **delivery)
 
 
@@ -573,7 +573,7 @@ def _admit_live_dm(profile_home: Path | None, dm_file: str, author: Optional[dic
     home = intent["owner"]["profile_home"]
     record = read_delivery_result(home, intent["delivery_id"])
     if record is None or intent["owner"].get("canonical"):
-        from hermes_cli.gateway_client import GatewayRPCError
+        from kova_cli.gateway_client import GatewayRPCError
         from tools.bot_failure_reasons import HELD_NOT_SENT
         from tools.bot_live_delivery import settle_held_delivery
 
@@ -1034,7 +1034,7 @@ if __name__ == "__main__":  # pragma: no cover - exercised as a background proce
     # sender's wake-up, and any other argv exits 2 before a Hermes import.
     if sys.argv[1:2] == ["--run-delivery"]:
         try:
-            import hermes_bootstrap
+            import kova_bootstrap
         except (Exception, SystemExit) as exc:
             # A pinned live intent means the sender may already have admitted this DM and was
             # told not to resend; a bare repair hint would read as "NOT delivered". Without an

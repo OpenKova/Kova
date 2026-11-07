@@ -6,12 +6,12 @@ import logging
 from dataclasses import dataclass, replace
 from typing import Any, Literal
 
-from hermes_platform import declaration
-from hermes_platform.host import facts
-from hermes_platform.resolver.app import AppDef, AppResolver
-from hermes_platform.resolver.availability import Availability, availability
-from hermes_platform.resolver.base import Effort
-from hermes_platform.resolver.core import CheckState
+from kova_platform import declaration
+from kova_platform.host import facts
+from kova_platform.resolver.app import AppDef, AppResolver
+from kova_platform.resolver.availability import Availability, availability
+from kova_platform.resolver.base import Effort
+from kova_platform.resolver.core import CheckState
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def parse_liveness(raw: Any) -> Liveness:
 def liveness_for(server_name: str) -> Liveness:
     """Return a server's registered liveness declaration, defaulting to static."""
     try:
-        from hermes_cli.agent_plugins import liveness_for as registered_liveness
+        from kova_cli.agent_plugins import liveness_for as registered_liveness
     except ImportError:
         return Liveness("static")
     raw = registered_liveness(server_name)

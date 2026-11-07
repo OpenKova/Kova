@@ -4,7 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from cli import HermesCLI
-from hermes_cli.gateway_connection import GatewayConnection
+from kova_cli.gateway_connection import GatewayConnection
 
 
 class _Client:

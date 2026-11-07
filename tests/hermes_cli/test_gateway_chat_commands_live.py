@@ -21,7 +21,7 @@ import uuid
 
 import pytest
 
-from hermes_cli.observability.shared_metrics_consent import OFFER_VERSION
+from kova_cli.observability.shared_metrics_consent import OFFER_VERSION
 from tests.gateway.fixtures.local_recovery_probe import Model
 from tests.gateway.test_normal_runtime_boot import control
 
@@ -103,7 +103,7 @@ def classic_session(tmp_path):
                 except (OSError, ValueError):
                     time.sleep(.1)
             assert desc.get("state") == "ready", (home / "gw.log").read_text()
-            command = shlex.join([sys.executable, "-m", "hermes_cli.main", "--cli", "chat"])
+            command = shlex.join([sys.executable, "-m", "kova_cli.main", "--cli", "chat"])
             tmux("new-session", "-d", "-s", "chat", "-x", "200", "-y", "50", "-c", str(cwd),
                  command + '; printf "\\nCLI_RC=%s\\n" "$?"; sleep 120')
             deadline = time.monotonic() + 60

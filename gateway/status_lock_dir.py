@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from hermes_dir_acl import unusable_dir_remedy
+from kova_dir_acl import unusable_dir_remedy
 
 log = logging.getLogger("gateway.status")
 

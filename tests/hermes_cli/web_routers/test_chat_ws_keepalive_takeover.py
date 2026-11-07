@@ -12,8 +12,8 @@ import logging
 
 import pytest
 
-from hermes_cli.pty_session import PtySession, WS_CLOSE_SUPERSEDED
-from hermes_cli.web_routers.chat_ws import _pump_keepalive_input
+from kova_cli.pty_session import PtySession, WS_CLOSE_SUPERSEDED
+from kova_cli.web_routers.chat_ws import _pump_keepalive_input
 
 
 class BackpressuredBridge:

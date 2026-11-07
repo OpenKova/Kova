@@ -21,8 +21,8 @@ import pytest
     ("dropin_home", "profile_mismatch"), ("manager_home", "profile_mismatch"),
 ])
 def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypatch, case, reason):
-    from hermes_cli import gateway_runtime as runtime
-    from hermes_cli.gateway_runtime_service import service_suffix
+    from kova_cli import gateway_runtime as runtime
+    from kova_cli.gateway_runtime_service import service_suffix
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / (".hermes" if case == "default" else "custom root")
@@ -33,7 +33,7 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
     suffix = service_suffix(home)
     unit = tmp_path / ".config/systemd/user" / f"hermes-gateway{'-' + suffix if suffix else ''}.service"
     unit.parent.mkdir(parents=True)
-    unit.write_text(f'[Service]\nExecStart={sys.executable} -m hermes_cli.main gateway run\nEnvironment="HERMES_HOME={home}"\n', encoding="utf-8")
+    unit.write_text(f'[Service]\nExecStart={sys.executable} -m kova_cli.main gateway run\nEnvironment="HERMES_HOME={home}"\n', encoding="utf-8")
     original = unit.read_bytes()
     configured = home
     if case in {"wrong_home", "dropin_home"}:
@@ -48,13 +48,13 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
     if case == "alias":
         configured = tmp_path / "alias"
         configured.symlink_to(home, target_is_directory=True)
-    command = f'{sys.executable} -m hermes_cli.main gateway run'
+    command = f'{sys.executable} -m kova_cli.main gateway run'
     if case == "named":
         command += " --profile worker"
     if case == "command_profile":
         command += " --profile stranger"
     if case == "wrong_command":
-        command = '/bin/echo hermes_cli.main gateway run'
+        command = '/bin/echo kova_cli.main gateway run'
     props = dict(LoadState="loaded", ActiveState="inactive", SubState="dead", UnitFileState="enabled",
                  User=str(os.getuid()), DynamicUser="no", Environment=f'"HERMES_HOME={configured}" "HERMES_SUPERVISED_CHILD=1"',
                  EnvironmentFiles="", PassEnvironment="", UnsetEnvironment="", PAMName="",
@@ -98,7 +98,7 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
         + 'elif "start" not in sys.argv: sys.exit(91)\n', encoding='utf-8')
     executable.chmod(0o700)
     monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
-    from hermes_cli import gateway as gw
+    from kova_cli import gateway as gw
     monkeypatch.setattr(gw, "_systemctl_cmd", lambda system=False: [str(executable)] + ([] if system else ["--user"]))
     result = runtime.ensure_gateway_runtime(home, timeout=3.0)
     assert result.reason_code == reason
@@ -118,11 +118,11 @@ def test_ensure_checks_effective_service_binding_before_start(tmp_path, monkeypa
     ("requested", "wrong_account", "service_account_mismatch"),
 ])
 def test_loaded_launchd_identity_is_independent_of_disk(configured, command, reason, tmp_path):
-    from hermes_cli.gateway_runtime_service_identity import verify_launchd_loaded
+    from kova_cli.gateway_runtime_service_identity import verify_launchd_loaded
     home = tmp_path / "requested"
-    argv = [sys.executable, "-m", "hermes_cli.main", "gateway", "run"]
+    argv = [sys.executable, "-m", "kova_cli.main", "gateway", "run"]
     if command == "echo":
-        argv = ["/bin/echo", "hermes_cli.main", "gateway", "run"]
+        argv = ["/bin/echo", "kova_cli.main", "gateway", "run"]
     environment = f"HERMES_HOME => {tmp_path / configured}" if configured else ""
     output = "gui/123/ai.hermes.gateway = {\n\tstate = not running\n\tprogram = " + argv[0] + "\n\targuments = {\n" + "\n".join("\t\t" + a for a in argv) + "\n\t}\n\tenvironment = {\n\t\t" + environment + "\n\t}\n}"
     if command != "unsupervised":
@@ -138,8 +138,8 @@ def test_loaded_launchd_identity_is_independent_of_disk(configured, command, rea
 
 def _launchd_gateway_command(tmp_path, monkeypatch, *, store, profile=""):
     """The gateway command generate_launchd_plist persists, from a store Python or an external one."""
-    from hermes_cli import _launchers, gateway as gw
-    from hermes_cli.gateway_launchd import _timestamped_stderr_gateway_command
+    from kova_cli import _launchers, gateway as gw
+    from kova_cli.gateway_launchd import _timestamped_stderr_gateway_command
     monkeypatch.setattr(gw, "PROJECT_ROOT", tmp_path / "hermes-agent")
     monkeypatch.setattr(gw, "get_python_path", lambda: sys.executable)
     monkeypatch.setattr(gw, "_profile_arg", lambda *a, **k: profile)
@@ -164,15 +164,15 @@ def test_launchd_verifies_the_osascript_wrapped_command_the_installer_writes(cas
     """The Local Network wrapper (#71206) is unwrapped only as its exact template, and the command inside
     is held to the same gateway identity as a bare ProgramArguments, on disk and as launchd loaded it."""
     import plistlib
-    from hermes_cli.gateway_launchd import launchd_program_arguments
-    from hermes_cli.gateway_runtime_service_identity import verify_launchd_loaded, verify_launchd_plist
+    from kova_cli.gateway_launchd import launchd_program_arguments
+    from kova_cli.gateway_runtime_service_identity import verify_launchd_loaded, verify_launchd_plist
     home = tmp_path / ".hermes"
-    from hermes_cli import gateway as gw
+    from kova_cli import gateway as gw
     command = _launchd_gateway_command(tmp_path, monkeypatch,
                                        store=case not in {"inline", "tampered_bootstrap", "foreign_root_inline"},
                                        profile="--profile stranger" if case == "store_profile" else "")
     if case.startswith("foreign_root"):  # the installer's own output, written for another checkout
-        from hermes_cli.gateway_launchd import _timestamped_stderr_gateway_command
+        from kova_cli.gateway_launchd import _timestamped_stderr_gateway_command
         root = gw.PROJECT_ROOT
         monkeypatch.setattr(gw, "PROJECT_ROOT", tmp_path / "other-checkout")
         command = _timestamped_stderr_gateway_command(tmp_path / "logs" / "gateway.error.log", external_supervisor=True)
@@ -180,22 +180,22 @@ def test_launchd_verifies_the_osascript_wrapped_command_the_installer_writes(cas
     if case in {"own_wrapper_foreign_inner", "osascript_foreign_bare"}:
         # The installer's own gateway command for ANOTHER checkout: inside OUR stderr wrapper, or bare
         # inside the Local Network wrapper. Neither is a launcher this install root writes.
-        from hermes_cli._launchers import installation_command
+        from kova_cli._launchers import installation_command
         foreign = installation_command(tmp_path / "other-checkout", ["gateway", "run", "--external-supervisor"],
                                        python=sys.executable)
         assert Path(foreign[0]).name == "hermes"
         command = foreign if case == "osascript_foreign_bare" else installation_command(
             gw.PROJECT_ROOT, ["--error-log", str(tmp_path / "logs" / "gateway.error.log"), "--", *foreign],
-            module="hermes_cli.stderr_timestamp", python=sys.executable)
+            module="kova_cli.stderr_timestamp", python=sys.executable)
     if case == "osascript_legacy_module":
         # The legacy ``python -m`` form from any interpreter: accepted unwrapped, never written inside osascript.
-        command = [sys.executable, "-m", "hermes_cli.stderr_timestamp", "--error-log",
+        command = [sys.executable, "-m", "kova_cli.stderr_timestamp", "--error-log",
                    str(tmp_path / "logs" / "gateway.error.log"), "--",
-                   sys.executable, "-m", "hermes_cli.main", "gateway", "run", "--external-supervisor"]
+                   sys.executable, "-m", "kova_cli.main", "gateway", "run", "--external-supervisor"]
     if case == "osascript_non_gateway":
         command = ["/bin/sh", "-c", "id"]
     if case == "tampered_bootstrap":
-        tampered = command[3].replace("import hermes_bootstrap; ", "import hermes_bootstrap; print('injected'); ")
+        tampered = command[3].replace("import kova_bootstrap; ", "import kova_bootstrap; print('injected'); ")
         assert tampered != command[3]
         command[3] = tampered
     if case == "arbitrary_inline":
@@ -240,7 +240,7 @@ def _installed_vbs(home, configured):
         '  env.Item("PYTHONPATH") = "C:\\Hermes;" & existing_pp', 'Else',
         '  env.Item("PYTHONPATH") = "C:\\Hermes"', 'End If',
         f'sh.CurrentDirectory = "{home}"',
-        f'sh.Run "{sys.executable} -m hermes_cli.main gateway run", 0, False',
+        f'sh.Run "{sys.executable} -m kova_cli.main gateway run", 0, False',
     ]) + "\n", encoding='utf-8')
     return script
 
@@ -259,8 +259,8 @@ def _as_schtasks_exports(xml):
     ("empty_run_level", "service_identity_unverified"), ("empty_enabled", "service_disabled"),
 ])
 def test_task_xml_binds_actual_action_and_principal(case, reason, tmp_path):
-    from hermes_cli.gateway_runtime_service_identity import verify_windows_task
-    from hermes_cli.gateway_windows import _build_scheduled_task_xml
+    from kova_cli.gateway_runtime_service_identity import verify_windows_task
+    from kova_cli.gateway_windows import _build_scheduled_task_xml
     home = tmp_path / 'requested'
     home.mkdir()
     script = _installed_vbs(home, str(home if case != 'wrong_home' else tmp_path / 'other'))
@@ -300,8 +300,8 @@ def test_task_launcher_for_a_non_ascii_home_is_utf16_and_still_verifies(tmp_path
     accented Windows username) reached python garbled and the gateway died before logging. The installed
     launcher is UTF-16 with a BOM; ensure must verify it, and a UTF-8 one an older version wrote."""
     import codecs
-    from hermes_cli import gateway_windows
-    from hermes_cli.gateway_runtime_service_identity import verify_windows_task
+    from kova_cli import gateway_windows
+    from kova_cli.gateway_runtime_service_identity import verify_windows_task
 
     home = tmp_path / 'Usuário 方舟'
     script = home / 'gateway-service' / 'Hermes_Gateway.cmd'
@@ -325,8 +325,8 @@ def test_task_discovery_skips_listing_lines_that_are_not_task_rows(tmp_path, mon
     one-field diagnostic among the rows (#142140). That refused every cold start with
     service_state_unknown, task or not. Such lines are skipped; one naming our task still never counts."""
     from types import SimpleNamespace
-    from hermes_cli import gateway_runtime_service as service
-    from hermes_cli.gateway_windows import _build_scheduled_task_xml
+    from kova_cli import gateway_runtime_service as service
+    from kova_cli.gateway_windows import _build_scheduled_task_xml
 
     home = tmp_path / "profile"
     home.mkdir()
@@ -361,7 +361,7 @@ def test_native_launchd_checks_loaded_job_before_disk(case, reason, tmp_path, mo
     import plistlib
     import pwd
     from types import SimpleNamespace
-    from hermes_cli import gateway_runtime_service as service
+    from kova_cli import gateway_runtime_service as service
     home = tmp_path / 'profile'
     home.mkdir(mode=0o700)
     monkeypatch.setenv('HERMES_HOME', str(home))
@@ -369,7 +369,7 @@ def test_native_launchd_checks_loaded_job_before_disk(case, reason, tmp_path, mo
     label = 'ai.hermes.gateway' + ('-' + service.service_suffix(home) if service.service_suffix(home) else '')
     plist = tmp_path / 'Library/LaunchAgents' / (label + '.plist')
     plist.parent.mkdir(parents=True)
-    argv = [sys.executable, '-m', 'hermes_cli.main', 'gateway', 'run']
+    argv = [sys.executable, '-m', 'kova_cli.main', 'gateway', 'run']
     disk_home = tmp_path / 'wrong' if case == 'loaded_good_disk_wrong' else home
     plist.write_bytes(plistlib.dumps(dict(Label=label, ProgramArguments=argv,
         EnvironmentVariables=dict(HERMES_HOME=str(disk_home), HERMES_SUPERVISED_CHILD='1'))))
@@ -401,8 +401,8 @@ def test_native_launchd_checks_loaded_job_before_disk(case, reason, tmp_path, mo
 @pytest.mark.platforms("windows")
 @pytest.mark.parametrize("wrong", [False, True])
 def test_native_task_query_uses_installed_xml_and_vendor_launcher(wrong, tmp_path, monkeypatch):
-    from hermes_cli import gateway_runtime_service as service
-    from hermes_cli.gateway_windows import _build_gateway_vbs_script, _build_scheduled_task_xml
+    from kova_cli import gateway_runtime_service as service
+    from kova_cli.gateway_windows import _build_gateway_vbs_script, _build_scheduled_task_xml
     home = tmp_path / 'profile'
     home.mkdir()
     monkeypatch.setenv('HERMES_HOME', str(home))
@@ -413,7 +413,7 @@ def test_native_task_query_uses_installed_xml_and_vendor_launcher(wrong, tmp_pat
     original = script.read_bytes()
     # whoami is read-only native account evidence; no task-manager mutation.
     identity = subprocess.run(['whoami.exe', '/USER', '/FO', 'CSV', '/NH'], stdin=subprocess.DEVNULL, capture_output=True, timeout=5, check=False)
-    from hermes_cli.gateway_windows import _schtasks_encoding
+    from kova_cli.gateway_windows import _schtasks_encoding
     import csv
     _account, sid = next(csv.reader(identity.stdout.decode(_schtasks_encoding()).splitlines()))
     suffix = service.service_suffix(home)
@@ -447,7 +447,7 @@ def test_native_task_query_uses_installed_xml_and_vendor_launcher(wrong, tmp_pat
 
 @pytest.mark.platforms("linux")
 def test_service_definition_reads_reject_fifo_without_waiting(tmp_path):
-    from hermes_cli.gateway_runtime_service_identity import read_definition
+    from kova_cli.gateway_runtime_service_identity import read_definition
     regular = tmp_path / 'regular'
     regular.write_bytes(b'installed definition')
     assert read_definition(regular) == regular.read_bytes()
@@ -459,8 +459,8 @@ def test_service_definition_reads_reject_fifo_without_waiting(tmp_path):
 
 @pytest.mark.parametrize("outer", ["python", "echo"])
 def test_gateway_wrapper_requires_actual_python_entrypoint(outer, tmp_path):
-    from hermes_cli.gateway_runtime_service_identity import verify_gateway_argv
-    argv = [sys.executable if outer == 'python' else '/bin/echo', '-m', 'hermes_cli.stderr_timestamp', '--error-log', str(tmp_path / 'error.log'), '--', sys.executable, '-m', 'hermes_cli.main', 'gateway', 'run']
+    from kova_cli.gateway_runtime_service_identity import verify_gateway_argv
+    argv = [sys.executable if outer == 'python' else '/bin/echo', '-m', 'kova_cli.stderr_timestamp', '--error-log', str(tmp_path / 'error.log'), '--', sys.executable, '-m', 'kova_cli.main', 'gateway', 'run']
     if outer == 'echo':
         with pytest.raises(ValueError, match='service_identity_unverified'):
             verify_gateway_argv(argv, tmp_path)
@@ -471,7 +471,7 @@ def test_gateway_wrapper_requires_actual_python_entrypoint(outer, tmp_path):
 def test_android_python_reaches_the_unmanaged_start(tmp_path, monkeypatch):
     """Termux is supported and has no service manager; Python 3.13+ there reports
     sys.platform == "android". Ensure must start the gateway unmanaged, not refuse the platform."""
-    from hermes_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
+    from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
 
     home = tmp_path / "profile"
     home.mkdir(mode=0o700)
@@ -487,8 +487,8 @@ def test_android_python_reaches_the_unmanaged_start(tmp_path, monkeypatch):
 
 def test_s6_runtime_ensure_starts_the_registered_gateway_slot(tmp_path, monkeypatch):
     """A Docker TUI client starts its s6 gateway instead of probing systemd."""
-    from hermes_cli import gateway_runtime_service as service
-    from hermes_cli import service_manager
+    from kova_cli import gateway_runtime_service as service
+    from kova_cli import service_manager
 
     home = tmp_path / "data"
     home.mkdir()
@@ -524,8 +524,8 @@ def test_s6_runtime_ensure_starts_the_registered_gateway_slot(tmp_path, monkeypa
 
 def test_s6_command_timeout_ends_at_the_runtime_deadline(tmp_path, monkeypatch):
     """A hung s6-svstat or s6-svc reaches ensure as its deadline, not an uncaught TimeoutExpired."""
-    from hermes_cli import gateway_runtime_service as service
-    from hermes_cli import service_manager
+    from kova_cli import gateway_runtime_service as service
+    from kova_cli import service_manager
 
     home = tmp_path / "data"
     home.mkdir()
@@ -556,8 +556,8 @@ def test_windows_startup_folder_entry_still_restarts_a_stopped_owner(tmp_path, m
     present and no Scheduled Task registered, ensure takes the same detached direct spawn manual
     `hermes gateway start` uses instead of refusing until the next login."""
     from types import SimpleNamespace
-    from hermes_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
-    from hermes_cli import gateway_windows
+    from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
+    from kova_cli import gateway_windows
 
     home = tmp_path / "profile"
     home.mkdir(mode=0o700)
@@ -582,8 +582,8 @@ def test_task_discovery_reads_localized_schtasks_output(tmp_path, monkeypatch):
     cp936 bytes, and /XML declares UTF-16 over them with the defaults elided (#139083, #139013).
     The installed task must still be verified, not refused as service_identity_unverified."""
     from types import SimpleNamespace
-    from hermes_cli import gateway_runtime_service as service, gateway_windows
-    from hermes_cli.gateway_windows import _build_scheduled_task_xml
+    from kova_cli import gateway_runtime_service as service, gateway_windows
+    from kova_cli.gateway_windows import _build_scheduled_task_xml
 
     home = tmp_path / "profile"
     home.mkdir()

@@ -9,7 +9,7 @@ from unittest import mock
 
 import pytest
 
-from hermes_agent.compat.finder import Finder
+from kova_agent.compat.finder import Finder
 
 # Phase 1 moved compat_probe_old under compat_probe_tree; phase 2 then renamed it to cli. The
 # real package compat_probe_tree is not a key, only its child compat_probe_tree.old is.

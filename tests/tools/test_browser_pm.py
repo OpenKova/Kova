@@ -106,7 +106,7 @@ def test_doctor_fix_publishes_and_reads_the_pm_browser(browser_store, monkeypatc
     """Plain ``hermes doctor`` never acquires Chromium; ``--fix`` acquires it explicitly through PM and reports
     the published binary. Only the worker/download boundary is replaced: selection, admission, facts and
     environment composition are the actual PM implementation."""
-    from hermes_cli import doctor_tools
+    from kova_cli import doctor_tools
     import pm.client
 
     _, _, publish = browser_store
@@ -127,7 +127,7 @@ def test_doctor_fix_publishes_and_reads_the_pm_browser(browser_store, monkeypatc
 
 def test_termux_ownership_policy_never_provisions(browser_store, monkeypatch):
     # Exercise the real environment policy, not an emulated Android binary.
-    from hermes_cli import doctor_tools
+    from kova_cli import doctor_tools
 
     monkeypatch.setenv("TERMUX_VERSION", "test")
     monkeypatch.setenv("PATH", "")
@@ -158,7 +158,7 @@ def test_cdp_override_does_not_require_pm_browser(browser_store, monkeypatch):
 def _pin_executable(path) -> None:
     """``browser.executable_path`` in this profile's config.yaml (the operator's browser pin)."""
     import json
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     (get_hermes_home() / "config.yaml").write_text(json.dumps({"browser": {"executable_path": str(path)}}))
 
 

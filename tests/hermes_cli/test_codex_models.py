@@ -2,7 +2,7 @@ import base64
 import json
 from unittest.mock import patch
 
-from hermes_cli.codex_models import (
+from kova_cli.codex_models import (
     _FORWARD_COMPAT_TEMPLATE_MODELS,
     DEFAULT_CODEX_MODELS,
     get_codex_model_ids,
@@ -39,7 +39,7 @@ def test_codex_catalog_never_offers_chatgpt_rejected_pro_slugs(monkeypatch, tmp_
     # synthesis rule; none of what it adds may be -pro.
     templates = list(dict.fromkeys(t for _, ts in _FORWARD_COMPAT_TEMPLATE_MODELS for t in ts))
     monkeypatch.setattr(
-        "hermes_cli.codex_models._fetch_models_from_api", lambda access_token, **_kw: templates
+        "kova_cli.codex_models._fetch_models_from_api", lambda access_token, **_kw: templates
     )
     live = get_codex_model_ids(access_token="codex-access-token")
     assert {synthetic for synthetic, _ in _FORWARD_COMPAT_TEMPLATE_MODELS} <= set(live)
@@ -69,7 +69,7 @@ def test_picker_never_synthesizes_900k_for_pro_or_unknown_slugs():
     ``-pro`` slugs are not routable on Codex OAuth (backend 400s them) and
     unknown future descendants were never probed — neither may gain a
     synthetic ``-900k`` entry (#92797 review)."""
-    from hermes_cli.codex_models import _finalize_codex_models
+    from kova_cli.codex_models import _finalize_codex_models
 
     out = _finalize_codex_models(["gpt-5.6-sol-pro", "gpt-5.6-nova"])
     assert "gpt-5.6-sol-pro-900k" not in out
@@ -77,7 +77,7 @@ def test_picker_never_synthesizes_900k_for_pro_or_unknown_slugs():
 
 
 def test_catalog_identity_stays_stable_for_rotation_but_changes_with_route(monkeypatch):
-    from hermes_cli import auth, codex_models
+    from kova_cli import auth, codex_models
     import agent.credential_pool as pool
 
     credentials = {"api_key": "first-token", "base_url": "https://first.example/codex/"}
@@ -108,7 +108,7 @@ def test_fetch_from_api_keeps_supported_in_api_false_models(monkeypatch):
     the separate signal that *should* still filter entries out.
     """
     import sys
-    from hermes_cli import codex_models
+    from kova_cli import codex_models
 
     class _FakeResp:
         status_code = 200
@@ -138,7 +138,7 @@ def test_fetch_from_api_keeps_supported_in_api_false_models(monkeypatch):
 
 def test_astra_requires_live_codex_account_discovery(monkeypatch, tmp_path):
     """Cached/configured Astra names must not manufacture current OAuth entitlement."""
-    from hermes_cli import codex_models
+    from kova_cli import codex_models
 
     (tmp_path / "config.toml").write_text('model = "gpt-6-astra"\n', encoding="utf-8")
     (tmp_path / "models_cache.json").write_text(
@@ -172,18 +172,18 @@ def test_astra_requires_live_codex_account_discovery(monkeypatch, tmp_path):
 
 
 def test_model_command_prompts_to_reuse_or_reauthenticate_codex_session(monkeypatch, capsys):
-    from hermes_cli.model_setup_flows import _model_flow_openai_codex
+    from kova_cli.model_setup_flows import _model_flow_openai_codex
 
     captured = {"login_calls": 0}
     choices = iter(["2"])
 
     monkeypatch.setattr("builtins.input", lambda prompt="": next(choices))
     monkeypatch.setattr(
-        "hermes_cli.auth.get_codex_auth_status",
+        "kova_cli.auth.get_codex_auth_status",
         lambda: {"logged_in": True, "source": "hermes-auth-store"},
     )
     monkeypatch.setattr(
-        "hermes_cli.auth.resolve_codex_runtime_credentials",
+        "kova_cli.auth.resolve_codex_runtime_credentials",
         lambda *args, **kwargs: {"api_key": "fresh-codex-token"},
     )
 
@@ -191,13 +191,13 @@ def test_model_command_prompts_to_reuse_or_reauthenticate_codex_session(monkeypa
         captured["login_calls"] += 1
         captured["force_new_login"] = force_new_login
 
-    monkeypatch.setattr("hermes_cli.auth._login_openai_codex", _fake_login)
+    monkeypatch.setattr("kova_cli.auth._login_openai_codex", _fake_login)
     monkeypatch.setattr(
-        "hermes_cli.codex_models.get_codex_model_ids",
+        "kova_cli.codex_models.get_codex_model_ids",
         lambda access_token=None, **_kw: ["gpt-5.4", "gpt-5.5"],
     )
     monkeypatch.setattr(
-        "hermes_cli.auth._prompt_model_selection",
+        "kova_cli.auth._prompt_model_selection",
         lambda model_ids, current_model="", **_kwargs: None,
     )
 
@@ -283,7 +283,7 @@ class TestNormalizeModelForProvider:
 
         assert cli._model_is_default is True
         with patch(
-            "hermes_cli.codex_models.get_codex_model_ids",
+            "kova_cli.codex_models.get_codex_model_ids",
             return_value=["gpt-5.5", "gpt-5.4"],
         ):
             changed = cli._normalize_model_for_provider("openai-codex")
@@ -324,7 +324,7 @@ def test_catalog_requests_ask_as_the_newest_client(monkeypatch):
     from urllib.parse import parse_qs, urlparse
 
     from agent import model_metadata
-    from hermes_cli import codex_models
+    from kova_cli import codex_models
 
     seen_urls = []
     get = _gated_codex_catalog(seen_urls)
@@ -347,7 +347,7 @@ def test_gateway_key_is_never_sent_to_the_direct_catalog(monkeypatch):
     send it to chatgpt.com (a service it does not belong to, #121486). Discovery declines
     and falls back to the offline sources instead of firing a doomed request."""
     import sys
-    from hermes_cli import codex_models
+    from kova_cli import codex_models
 
     calls = {"n": 0}
 
@@ -366,7 +366,7 @@ def test_picker_catalog_honours_the_custom_codex_base(monkeypatch):
     import sys
     from urllib.parse import urlparse
 
-    from hermes_cli import codex_models
+    from kova_cli import codex_models
 
     seen_urls = []
     get = _gated_codex_catalog(seen_urls)

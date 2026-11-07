@@ -65,7 +65,7 @@ class TestCronRunJobGuard:
 
         from gateway.session_contract import SessionRef
         from gateway.session_cron import current_execution, execute
-        from hermes_state_registry import acquire, release
+        from kova_state_registry import acquire, release
 
         _write_corrupt_config(tmp_path)
         # Agent-backed run_job is now a client. Exercise the scheduler's guard
@@ -110,7 +110,7 @@ class TestServeGuard:
         """The `hermes serve` headless path fails closed before startup."""
         from argparse import Namespace
 
-        from hermes_cli import main as main_mod
+        from kova_cli import main as main_mod
 
         _write_corrupt_config(tmp_path)
         args = Namespace(

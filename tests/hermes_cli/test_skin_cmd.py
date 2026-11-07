@@ -7,10 +7,10 @@ The whole point is that changing one token never disturbs the rest of the look
 import os
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
-from hermes_cli import skin_cmd
-from hermes_constants import get_hermes_home
+from kova_cli import skin_cmd
+from kova_constants import get_hermes_home
 
 
 def _skins():

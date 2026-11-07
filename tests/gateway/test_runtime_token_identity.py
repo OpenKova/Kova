@@ -23,8 +23,8 @@ async def test_authenticated_token_can_create_without_identityless_permissions(t
     from gateway.run_runtime import initialize_gateway_runtime, start_gateway_runtime_api, publish_gateway_runtime_ready
     from gateway.runtime_ownership import process_ownership
     from gateway.session_controls import AuthorityConnection
-    from hermes_constants import get_hermes_home
-    from hermes_cli import web_server as web
+    from kova_constants import get_hermes_home
+    from kova_cli import web_server as web
 
     # Session creation persists a restorable model policy, even without a turn.
     (get_hermes_home() / 'config.yaml').write_text(json.dumps({
@@ -72,7 +72,7 @@ async def test_authenticated_token_can_create_without_identityless_permissions(t
 def test_ordinary_daemon_keeps_control_auth_and_loop_witness(tmp_path, layout):
     from gateway.control_socket import identify_gateway, resolve_client_socket_path
     from gateway.shutdown_watchdog import get_loop_tick_socket_path
-    from hermes_cli.gateway import probe_gateway_loop_liveness
+    from kova_cli.gateway import probe_gateway_loop_liveness
 
     async def create(origin, token):
         url = origin.replace('http:', 'ws:') + '/api/ws'

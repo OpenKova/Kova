@@ -12,7 +12,7 @@ from websockets.exceptions import InvalidStatus
 
 @pytest.mark.asyncio
 async def test_http_lifespan_does_not_start_or_stop_runtime_services(monkeypatch):
-    from hermes_cli import web_server as web
+    from kova_cli import web_server as web
     from tui_gateway import methods_groups
 
     calls = []
@@ -34,7 +34,7 @@ async def test_http_lifespan_does_not_start_or_stop_runtime_services(monkeypatch
 @pytest.mark.parametrize('shared', [False, True])
 async def test_owner_serves_existing_routes_and_ws_without_signal_ownership(monkeypatch, tmp_path, shared):
     from gateway.run_api import start_gateway_api, stop_gateway_api
-    from hermes_cli import web_server as web
+    from kova_cli import web_server as web
 
     from gateway.run import GatewayRunner
     from gateway.config import GatewayConfig

@@ -57,8 +57,8 @@ _RELEASE_TAG_EXCLUDES = ("*+*", "rc.*", "abandoned-*")
 # The updater generation a release ships, by the first file of that generation present in its tree;
 # newest first. A start version of each is the set an update has to survive from.
 UPDATER_GENERATIONS = (
-    ("by-path", "hermes_cli/update_completion.py"),
-    ("handoff", "hermes_cli/update_handoff.py"),
+    ("by-path", "kova_cli/update_completion.py"),
+    ("handoff", "kova_cli/update_handoff.py"),
     ("pre-handoff", None),
 )
 
@@ -252,7 +252,7 @@ def pin_main_channel(sb: Sandbox) -> None:
     An official-origin source checkout defaults to the stable channel (the latest published GitHub
     release). These sandboxes publish commits on main and no releases, and their subject is moving
     between commits; channel resolution has its own suites (test_release_channel_records,
-    tests/hermes_cli/test_source_release_channels.py)."""
+    tests/kova_cli/test_source_release_channels.py)."""
     cp = sb.cli("update", "--set-channel", "main", timeout=120)
     assert cp.returncode == 0 and "Update channel for" in cp.stdout, "could not pin the main channel:\n" + describe(cp)
 

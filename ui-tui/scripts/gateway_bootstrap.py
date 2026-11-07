@@ -1,4 +1,4 @@
-"""Ink's gateway bootstrap: a thin wrapper over ``hermes_cli.gateway_runtime_attach.attach_gateway``,
+"""Ink's gateway bootstrap: a thin wrapper over ``kova_cli.gateway_runtime_attach.attach_gateway``,
 the attach ``hermes gateway attach`` runs. The child is a client, never an agent owner.
 
 ``--start`` ensures the owner (first launch). A reconnect discovers only, except ``--recover``
@@ -32,8 +32,8 @@ def bootstrap(start: bool, recover: bool = False) -> dict:
 
     # Ink runs this on HERMES_PYTHON with PYTHONPATH=<root> only. On a source install that is PM's
     # store Python, which owns no packages, and the no-owner discovery fallback already imports one
-    # (gateway.status -> utils -> hermes_yaml -> ruamel): boot the committed generation first, as
-    # hermes_bootstrap does for every other entry point.
+    # (gateway.status -> utils -> kova_yaml -> ruamel): boot the committed generation first, as
+    # kova_bootstrap does for every other entry point.
     try:
         activate_dependencies(python_root())
     except NoCommittedEnvironment as exc:
@@ -41,10 +41,10 @@ def bootstrap(start: bool, recover: bool = False) -> dict:
         # or a damaged record (RuntimeError) reaches the ordinary failure path below, which the
         # client retries: a one-off read error must not end the TUI's gateway for its lifetime.
         raise ImportError(f"dependency environment unavailable: {exc}") from exc
-    from hermes_constants import get_hermes_home
-    from hermes_cli.gateway_client import gateway_ws_target
-    from hermes_cli.gateway_runtime import GatewayDiscovery
-    from hermes_cli.gateway_runtime_attach import (GatewayAttach, TicketUnavailable, attach_gateway,
+    from kova_constants import get_hermes_home
+    from kova_cli.gateway_client import gateway_ws_target
+    from kova_cli.gateway_runtime import GatewayDiscovery
+    from kova_cli.gateway_runtime_attach import (GatewayAttach, TicketUnavailable, attach_gateway,
                                                    failure_message, scrub_client_launch_env)
 
     scrub_client_launch_env()

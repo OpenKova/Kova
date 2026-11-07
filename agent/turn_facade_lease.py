@@ -15,7 +15,7 @@ from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from hermes_state_pidns import holder_namespace_token
+from kova_state_pidns import holder_namespace_token
 
 # Same logger name as the origin module so log records / caplog filters are unchanged.
 logger = logging.getLogger("run_agent")
@@ -63,7 +63,7 @@ class DurableTurnLease:
         """Create (not schedule) the liveness watchdog when configured: lease renewal is NOT
         evidence of progress; a silently stalled turn would renew forever."""
         try:
-            from hermes_cli.config import load_config_readonly
+            from kova_cli.config import load_config_readonly
 
             liveness_config = load_config_readonly() or {}
         except Exception:
@@ -86,7 +86,7 @@ class DurableTurnLease:
         # Stamp the activity clock at turn entry: `_last_activity_ts` persists across turns, so
         # without this the watchdog would measure idle from the PREVIOUS turn and abort a fresh one.
         self.agent._touch_activity("starting new turn")
-        from hermes_cli.observability.shared_metrics_process import arm_turn
+        from kova_cli.observability.shared_metrics_process import arm_turn
         arm_turn(self.agent)
         from agent.periodic_scheduler import schedule
 
@@ -237,7 +237,7 @@ class DurableTurnLease:
         except Exception as exc:
             if self.stop.is_set():
                 return False
-            from hermes_state_errors import is_sqlite_lock_error
+            from kova_state_errors import is_sqlite_lock_error
 
             if is_sqlite_lock_error(exc):
                 # The scheduler will not try again until one interval from now. If that attempt
@@ -319,7 +319,7 @@ def admit_durable_turn_lease(
     # X-Hermes-Session-Id, /v1/runs session_id, fingerprint-derived chat ids) are not
     # process-unique, and the first turn creates the row mid-turn, so a second writer would
     # otherwise find the row, take an unheld lease and interleave its turn into this one.
-    # pidns stamp: see hermes_state_pidns.
+    # pidns stamp: see kova_state_pidns.
     holder = (
         f"pid={os.getpid()}{holder_namespace_token()}:turn={relay_turn_id}"
         f":platform={task_context['platform'] or 'unknown'}"

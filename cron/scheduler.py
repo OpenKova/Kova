@@ -33,19 +33,19 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 # Must precede repo-level imports: standalone invocations (e.g. module reload after
-# `hermes update`) otherwise fail with ModuleNotFoundError for hermes_time et al.
+# `hermes update`) otherwise fail with ModuleNotFoundError for kova_time et al.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from cron.worker_bootstrap import WORKER_MARKER, finish_worker_boot
-from hermes_constants import get_hermes_home, hermes_home_key
-from hermes_cli.observability.shared_metrics_gateway import note_cron_execution, note_cron_skipped
+from kova_constants import get_hermes_home, hermes_home_key
+from kova_cli.observability.shared_metrics_gateway import note_cron_execution, note_cron_skipped
 from cron.env_settings import cron_env_setting
-from hermes_cli._subprocess_compat import windows_hide_flags
-from hermes_cli.config import (
+from kova_cli._subprocess_compat import windows_hide_flags
+from kova_cli.config import (
     load_config, load_config_readonly)
-from hermes_cli.config_backend import ConfigBackendUnavailable
-from hermes_cli.fallback_config import get_fallback_chain, scoped_fallback_chain
-from hermes_time import now as _hermes_now, safe_strftime
+from kova_cli.config_backend import ConfigBackendUnavailable
+from kova_cli.fallback_config import get_fallback_chain, scoped_fallback_chain
+from kova_time import now as _hermes_now, safe_strftime
 from agent.interrupt_compat import request_hard_interrupt
 from agent.delegation_context import (
     enter_non_dispatcher_owned_context, exit_non_dispatcher_owned_context)
@@ -443,15 +443,15 @@ def _merge_mcp_into_per_job_toolsets(per_job: list[str], cfg: dict) -> list[str]
     result = [t for t in per_job if t != "no_mcp"]
     if "no_mcp" in per_job:
         return result
-    # lazy: avoid heavy hermes_cli import at module load; shares MCP-membership with gateway/CLI
-    from hermes_cli.tools_config import enabled_mcp_server_names
+    # lazy: avoid heavy kova_cli import at module load; shares MCP-membership with gateway/CLI
+    from kova_cli.tools_config import enabled_mcp_server_names
     enabled_mcp = enabled_mcp_server_names(cfg)
     # A job names an MCP server by its TOOLSET name (``mcp-<server>``) or by the bare alias the
     # registry registers for it; compare against BOTH, or a job that named one server never matched
     # and the fallback below unioned EVERY enabled server into its allowlist (#141468).
     # A server that is CONFIGURED but disabled still counts as named: it is the user's selection, it
     # stays off, and it must not fall through to every enabled server either - the same rule the
-    # interactive resolver follows (hermes_cli.tools_config._merge_mcp_servers).
+    # interactive resolver follows (kova_cli.tools_config._merge_mcp_servers).
     configured = cfg.get("mcp_servers") if isinstance(cfg.get("mcp_servers"), dict) else {}
     known = enabled_mcp | {str(name) for name in configured}
     if set(result) & (known | {f"mcp-{name}" for name in known}):
@@ -487,7 +487,7 @@ def _resolve_cron_enabled_toolsets(job: dict, cfg: dict) -> list[str]:
             return []
         return _merge_mcp_into_per_job_toolsets(list(per_job), cfg or {})
     try:
-        from hermes_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
+        from kova_cli.tools_config import _get_platform_tools  # lazy: avoid heavy import at cron module load
         return sorted(_get_platform_tools(cfg or {}, "cron"))
     except Exception as exc:
         raise RuntimeError(
@@ -500,7 +500,7 @@ def _resolve_job_reasoning_config(job: dict, cfg: dict, model: str) -> dict | No
     """Effective reasoning config for a cron run. A per-job ``reasoning_effort`` pin beats global
     and per-model config and is model-independent by design (also governs an auth-fallback swap);
     clamping stays with provider transports. An unparseable pin warns and falls back to config."""
-    from hermes_constants import parse_reasoning_effort, resolve_reasoning_config
+    from kova_constants import parse_reasoning_effort, resolve_reasoning_config
 
     pinned = job.get("reasoning_effort")
     if pinned is not None:
@@ -808,7 +808,7 @@ def try_register_running_job(job_id: str, *, owner=None, future=_FUTURE_PENDING)
     and ``mark_running_jobs_interrupted``. Dedupe is per PROFILE: the key carries the active cron
     scope's home, so one multiplexing process never treats two profiles' same-named jobs as one.
     """
-    from hermes_cli.backend_retirement import retirement
+    from kova_cli.backend_retirement import retirement
 
     key = _inflight_key(job_id, _remember_inflight_home(_get_hermes_home()))
     with retirement.work() as admitted, _running_lock:
@@ -1348,7 +1348,7 @@ def _reclaim_fds_best_effort() -> None:
 
         gc.collect()
     with contextlib.suppress(Exception):
-        from hermes_cli.resource_limits import apply_nofile_soft_limit
+        from kova_cli.resource_limits import apply_nofile_soft_limit
 
         apply_nofile_soft_limit(None)
 
@@ -1390,7 +1390,7 @@ def _cron_cleanup_timeout_seconds() -> float:
     """Return the wall-clock bound for cron post-run cleanup."""
     default = 10.0
     try:
-        from hermes_cli.config import load_config
+        from kova_cli.config import load_config
 
         cfg = load_config() or {}
         cron_cfg = cfg.get("cron", {}) if isinstance(cfg, dict) else {}
@@ -1507,7 +1507,7 @@ def _run_no_agent_job(
     # Load .env first so auto-delivery can resolve *_HOME_CHANNEL: the agent path's per-run dotenv
     # reload never runs for no_agent jobs. Does not override existing values.
     try:
-        from hermes_cli.env_loader import load_hermes_dotenv
+        from kova_cli.env_loader import load_hermes_dotenv
 
         load_hermes_dotenv(hermes_home=_get_hermes_home())
     except Exception:
@@ -1605,14 +1605,14 @@ def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConf
     """Load config.yaml and resolve the run's model: per-job pin > cron.model (fleet default) >
     the main agent model (config ``model:``, then HERMES_MODEL) > the claimed welcome trial's. Re-read
     every tick (no cache) so ``hermes cron edit --model`` and ``hermes model`` both apply next tick."""
-    from hermes_cli.anon_auth import trial_model
+    from kova_cli.anon_auth import trial_model
     model = job.get("model") or cron_env_setting("HERMES_MODEL") or ""
     _cron_default_provider = ""
     _cfg: dict = {}
     _model_cfg: Any = {}
     try:
-        from hermes_cli.config_backend import config_exists
-        from hermes_cli.config_effective import load_user_config_effective
+        from kova_cli.config_backend import config_exists
+        from kova_cli.config_effective import load_user_config_effective
         _cfg_path = str(_get_hermes_home() / "config.yaml")
         if config_exists(_cfg_path):
             _cfg = load_user_config_effective(Path(_cfg_path))
@@ -1648,7 +1648,7 @@ def _load_cron_job_config(job: dict, job_id: str, job_name: str) -> _CronJobConf
         )
 
     with contextlib.suppress(Exception):
-        from hermes_constants import apply_ipv4_preference
+        from kova_constants import apply_ipv4_preference
         _net_cfg = _cfg.get("network", {})
         if isinstance(_net_cfg, dict) and _net_cfg.get("force_ipv4"):
             apply_ipv4_preference(force=True)
@@ -1743,9 +1743,9 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
     a paid primary model). Provider precedence: per-job pin > cron.model_provider > persisted
     global config (None lets resolve_runtime_provider read it). A pinned job has no chain here
     (``_job_fallback_chain``): its resolve failure is the job's failure."""
-    from hermes_cli.runtime_provider import (
+    from kova_cli.runtime_provider import (
         resolve_runtime_provider, format_runtime_provider_error)
-    from hermes_cli.auth import AuthError
+    from kova_cli.auth import AuthError
 
     model = jc.model
     requested = job.get("provider") or jc.cron_default_provider or None
@@ -1782,7 +1782,7 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
             if not fb_provider or not fb_model:
                 continue
             try:
-                from hermes_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
+                from kova_cli.fallback_config import effective_runtime_provider, resolve_entry_api_key
 
                 fb_kwargs = {"requested": fb_provider, "target_model": fb_model}
                 if entry.get("base_url"):
@@ -1799,7 +1799,7 @@ def _resolve_job_runtime(job: dict, job_id: str, jc: _CronJobConfig) -> tuple[di
                     job_id, runtime.get("provider"), fb_model)
                 # Delivered with the job output (#74349): a cron agent has no status rail, so the
                 # switch would otherwise stay in the scheduler log only. run_job pops it.
-                from hermes_cli.fallback_config import pre_agent_fallback_notice
+                from kova_cli.fallback_config import pre_agent_fallback_notice
                 runtime["_fallback_notice"] = pre_agent_fallback_notice(
                     requested or (jc.model_cfg.get("provider") if isinstance(jc.model_cfg, dict) else ""),
                     model, runtime.get("provider"), fb_model)
@@ -1866,14 +1866,14 @@ def _open_cron_session_db(job: dict):
         raise WorkerPersistenceError('worker_cron_registration_required')
     _session_db_timeout = _get_session_db_timeout()
     try:
-        from hermes_state_registry import acquire
+        from kova_state_registry import acquire
 
         def acquire_store():
             if owner is None:
                 return acquire()
             db = acquire(Path(owner[0].db.db_path))
             if db is not owner[0].db:
-                from hermes_state_registry import release_or_close
+                from kova_state_registry import release_or_close
                 release_or_close(db)
                 raise RuntimeError('cron requires the canonical owner store')
             return db
@@ -2087,7 +2087,7 @@ def _final_response_from_result(result: dict, job_id: str, job_name: str, AIAgen
         # Render every persistence-cause variant or cause-refined text slips through.
         _explainer_variants = []
         try:
-            from hermes_state_errors import PERSISTENCE_ERROR_CAUSES as _causes
+            from kova_state_errors import PERSISTENCE_ERROR_CAUSES as _causes
         except Exception:
             _causes = ("locked", "disk", "unknown")
         # The finalizer fills the model name into the explainer; render with the same name (and
@@ -2169,7 +2169,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
     # mid-API-wait, or without any assistant text leaves the last row as a tool result / pending call / user
     # prompt and must not surface as a healthy run. session_lifecycle_statuses is the existing cost-bounded
     # classifier for exactly this shape. Only a POSITIVELY recognized pathological status (see the status
-    # vocabulary in hermes_state's session_lifecycle_statuses docstring — keep the tuple below in sync when
+    # vocabulary in kova_state's session_lifecycle_statuses docstring — keep the tuple below in sync when
     # it grows) downgrades the booking: an unknown value (newer classifier shape, test doubles) keeps the
     # historical reason, and so does a failed probe — the booking itself is FAIL-OPEN on probe errors,
     # because classification is best-effort metadata and must not mislabel a healthy run.
@@ -2205,7 +2205,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to end session: %s", job_id, e)
     try:
-        from hermes_state_registry import release_or_close
+        from kova_state_registry import release_or_close
         release_or_close(_session_db)
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to close SQLite session store: %s", job_id, e)
@@ -2239,7 +2239,7 @@ def _prepare_job_prompt(
     # Fail closed on a corrupt config.yaml: defaults would let auto-detection bill a provider the
     # user never chose. no_agent jobs are exempt. Escape hatch: HERMES_IGNORE_USER_CONFIG=1.
     if not job.get("no_agent"):
-        from hermes_cli.config import InvalidUserConfigError, require_parseable_user_config
+        from kova_cli.config import InvalidUserConfigError, require_parseable_user_config
 
         try:
             require_parseable_user_config()
@@ -2407,7 +2407,7 @@ def _reload_dotenv_and_publish_delivery_target(job: dict) -> None:
     """Re-read .env for this run and publish the auto-deliver target into the session ContextVars."""
     # Reset the secret-source cache FIRST or a Bitwarden/BSM-backed secret is never re-resolved
     # (only the placeholder reloads -> 401s).
-    from hermes_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
+    from kova_cli.env_loader import load_hermes_dotenv, reset_secret_source_cache
     from gateway.session_context import _VAR_MAP
 
     reset_secret_source_cache(_get_hermes_home())
@@ -2444,7 +2444,7 @@ def _resolve_cron_agent_setup(job: dict, job_id: str, job_name: str, jc) -> _Cro
     setup.prefill_messages = _load_prefill_messages(_cfg, job_id)
 
     # resolve_turn_limit() honors none/unlimited (sys.maxsize) and explicit 0 / null.
-    from hermes_cli.config import resolve_turn_limit as _resolve_turn_limit
+    from kova_cli.config import resolve_turn_limit as _resolve_turn_limit
     _mt = _cfg.get("agent", {}).get("max_turns")
     if _mt is None:
         _mt = _cfg.get("max_turns")
@@ -3216,7 +3216,7 @@ def _install_fire_secret_scope() -> tuple[contextvars.Token, Optional[contextvar
     """
     from agent.secret_scope import set_multiplex_context, set_secret_scope
     from cron.scheduler_provider import routed_profile_fire
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
+    from kova_cli.env_loader import hydrate_profile_secret_sources
     from tui_gateway.launch_profile_policy import owner_secret_scope
 
     home = Path(_get_hermes_home())
@@ -3708,7 +3708,7 @@ def _launch_external_cron_worker(job: dict) -> bool:
         "HERMES_EXEC_ASK",
     ):
         worker_env.pop(_presence_var, None)
-    # `-m cron.scheduler` has no hermes_cli.main bootstrap; pin this checkout explicitly
+    # `-m cron.scheduler` has no kova_cli.main bootstrap; pin this checkout explicitly
     # (PYTHONSAFEPATH / stale editable mapping, #112729), hand the child the committed
     # dependency generation (#122222), and mark it so its own entry runs the PM dependency
     # boot. See cron/scheduler_worker_env.py and cron/worker_bootstrap.py.
@@ -3870,8 +3870,8 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
         set_secret_scope,
     )
     from cron.executions import adopt_claimed_execution
-    from hermes_cli.env_loader import hydrate_profile_secret_sources
-    from hermes_constants import (
+    from kova_cli.env_loader import hydrate_profile_secret_sources
+    from kova_constants import (
         reset_hermes_home_override,
         set_hermes_home_override,
     )
@@ -3886,7 +3886,7 @@ def _run_external_worker_payload(payload_path: Path, ack_path: Path) -> bool:
         # discovery; this process starts with the builtin registry alone, so hydrating without it
         # silently dropped every plugin-sourced credential (#121929). Runs under the home override
         # so a multiplexed worker loads the OWNING profile's plugins, not the launch profile's.
-        from hermes_cli.plugins import discover_plugins
+        from kova_cli.plugins import discover_plugins
 
         discover_plugins()
         hydrate_profile_secret_sources(profile_home)
@@ -4034,7 +4034,7 @@ def _worktree_maintenance_repos() -> list[str]:
     repos: set = set()
 
     with contextlib.suppress(Exception):
-        from hermes_cli.worktree_registry import registered_repos
+        from kova_cli.worktree_registry import registered_repos
         repos.update(registered_repos())
 
     # Hermes source checkout (git installs only; wheel installs have no .git).
@@ -4072,7 +4072,7 @@ def _maybe_run_worktree_maintenance() -> None:
     global _last_worktree_maintenance_at
     import contextvars
 
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
 
     home = str(get_hermes_home())
     now = time.monotonic()
@@ -4405,7 +4405,7 @@ if __name__ == "__main__":
         # log handler every adoption/ack failure below would otherwise be
         # invisible to the persistent log.
         try:
-            from hermes_logging import setup_logging
+            from kova_logging import setup_logging
 
             setup_logging(hermes_home=_get_hermes_home(), mode="cron")
         except Exception:

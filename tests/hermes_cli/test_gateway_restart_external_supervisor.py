@@ -12,11 +12,11 @@ from types import SimpleNamespace
 import pytest
 
 from gateway import status as gateway_status
-from hermes_cli import gateway as gw
-from hermes_cli import gateway_supervised_restart as supervised
+from kova_cli import gateway as gw
+from kova_cli import gateway_supervised_restart as supervised
 
 SUPERVISED_ARGV = [
-    "/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run", "--external-supervisor",
+    "/usr/bin/python", "-m", "kova_cli.main", "gateway", "run", "--external-supervisor",
 ]
 
 
@@ -50,7 +50,7 @@ def restart_calls(monkeypatch):
     monkeypatch.setattr(gw, "_wait_for_gateway_exit", lambda **k: None)
     monkeypatch.setattr(gw, "run_gateway", lambda **k: calls.__setitem__("started", True))
     # Hermetic on Linux CI: the runner's own /proc + systemd must not make the gateway look service-owned.
-    monkeypatch.setattr("hermes_cli.main_dashboard._get_systemd_service_for_pid", lambda pid: None)
+    monkeypatch.setattr("kova_cli.main_dashboard._get_systemd_service_for_pid", lambda pid: None)
     return calls
 
 
@@ -95,7 +95,7 @@ def test_handback_failure_never_takes_ownership(restart_calls, sigusr1_returns, 
 
 
 def test_plain_manual_gateway_still_uses_stop_and_run(restart_calls, monkeypatch):
-    monkeypatch.setattr(gw, "_capture_gateway_argv", lambda pid: ["/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run"])
+    monkeypatch.setattr(gw, "_capture_gateway_argv", lambda pid: ["/usr/bin/python", "-m", "kova_cli.main", "gateway", "run"])
     _run_restart()
     assert restart_calls["sigusr1"] is None, "no supervisor marker: the detached fallback is the restart"
     assert restart_calls["started"], "a plain manually-run gateway must still be restarted in-process"
@@ -117,10 +117,10 @@ def test_service_managed_gateway_refuses_fallback_takeover(restart_calls, monkey
     scope; an unknown scope prints both forms.
     """
     monkeypatch.setattr(gw, "_capture_gateway_argv",
-                        lambda pid: ["/usr/bin/python", "-m", "hermes_cli.main", "gateway", "run"])
-    monkeypatch.setattr("hermes_cli.main_dashboard._get_systemd_service_for_pid",
+                        lambda pid: ["/usr/bin/python", "-m", "kova_cli.main", "gateway", "run"])
+    monkeypatch.setattr("kova_cli.main_dashboard._get_systemd_service_for_pid",
                         lambda pid: "hermes.service" if pid == 4321 else None)
-    monkeypatch.setattr("hermes_cli.main_dashboard._get_pid_cgroup_path",
+    monkeypatch.setattr("kova_cli.main_dashboard._get_pid_cgroup_path",
                         lambda pid: cgroup if pid == 4321 else None)
     with pytest.raises(SystemExit) as exc:
         _run_restart()

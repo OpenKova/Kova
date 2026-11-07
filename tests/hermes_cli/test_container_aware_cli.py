@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hermes_cli.config import (
+from kova_cli.config import (
     get_container_exec_info,
 )
 
@@ -40,7 +40,7 @@ def container_env(tmp_path, monkeypatch):
 
 def test_get_container_exec_info_returns_metadata(container_env):
     """Reads .container-mode and returns all fields including exec_user."""
-    with patch("hermes_constants.is_container", return_value=False):
+    with patch("kova_constants.is_container", return_value=False):
         info = get_container_exec_info()
 
     assert info is not None
@@ -51,7 +51,7 @@ def test_get_container_exec_info_returns_metadata(container_env):
 
 
 # =============================================================================
-# exec_in_container (hermes_cli/main_container.py)
+# exec_in_container (kova_cli/main_container.py)
 # =============================================================================
 
 
@@ -68,7 +68,7 @@ def docker_container_info():
 def test_exec_in_container_calls_execvp(docker_container_info):
     """Verifies os.execvp is called with correct args: runtime, tty flags,
     user, env vars, container name, binary, and CLI args."""
-    from hermes_cli.main_container import exec_in_container
+    from kova_cli.main_container import exec_in_container
 
     with patch("shutil.which", return_value="/usr/bin/docker"), \
          patch("subprocess.run") as mock_run, \

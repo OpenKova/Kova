@@ -254,7 +254,7 @@ class TmuxTui:
                    HERMES_TUI_DIR=str(tui_dir or private_tui_dir(root)))
         env.update(env_extra or {})
         self._gateway_home = env["HERMES_HOME"]  # env_extra may point several TUIs at one home
-        argv = [sys.executable, "-m", "hermes_cli.main", "--tui", *args]
+        argv = [sys.executable, "-m", "kova_cli.main", "--tui", *args]
         subprocess.run(["tmux", "-S", self.sock, "-f", str(conf), "new-session", "-d", "-s", "p",
                         "-x", str(cols), "-y", str(rows), "-c", str(root / "work"), *argv],
                        env=env, check=True, timeout=30)

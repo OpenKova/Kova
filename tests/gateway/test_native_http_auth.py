@@ -146,7 +146,7 @@ def test_native_http_grants_are_single_use_and_bound_to_daemon(tmp_path):
             'display': {'skin': 'ares'}}}, headers=headers(ticket(home, descriptor)))
         assert updated.status_code == 200, updated.text
         assert client.get('/api/config', headers=headers(ticket(home, descriptor))).json()['display']['skin'] == 'ares'
-        import hermes_yaml as yaml
+        import kova_yaml as yaml
         assert yaml.safe_load((home / 'config.yaml').read_text())['display']['skin'] == 'ares'
         query_ticket = ticket(home, descriptor)
         assert client.get('/api/config', params={'ticket': query_ticket}).status_code == 401
@@ -174,11 +174,11 @@ async def test_native_http_preserves_gated_auth_and_actual_socket_boundary(tmp_p
     from gateway.run_api import start_gateway_api
     from gateway.run_runtime import initialize_gateway_runtime, publish_gateway_runtime_ready
     from gateway.runtime_ownership import process_ownership
-    from hermes_cli import web_server as web
-    from hermes_cli.dashboard_auth import register_provider, clear_providers
-    from hermes_cli.dashboard_auth.cookies import SESSION_AT_COOKIE
-    from hermes_constants import get_hermes_home
-    from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+    from kova_cli import web_server as web
+    from kova_cli.dashboard_auth import register_provider, clear_providers
+    from kova_cli.dashboard_auth.cookies import SESSION_AT_COOKIE
+    from kova_constants import get_hermes_home
+    from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
     home = get_hermes_home()
     (home / 'config.yaml').write_text('dashboard:\n  public_url: https://gateway.example.test\n')

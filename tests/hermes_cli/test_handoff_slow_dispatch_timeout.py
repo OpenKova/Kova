@@ -28,7 +28,7 @@ import pytest
 
 from agent.i18n import t
 
-from hermes_state import SessionDB
+from kova_state import SessionDB
 
 
 @pytest.fixture()
@@ -90,7 +90,7 @@ def _run_handoff(db, session_id, monkeypatch, time_budget=30.0):
     compressed so a simulated 60s pending deadline elapses in well under a
     second of wall clock.
     """
-    from hermes_cli.cli_commands_mixin import CLICommandsMixin
+    from kova_cli.cli_commands_mixin import CLICommandsMixin
 
     printed: list[str] = []
 

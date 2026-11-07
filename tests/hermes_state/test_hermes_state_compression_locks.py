@@ -20,8 +20,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import hermes_state
-from hermes_state import SessionDB
+import kova_state
+from kova_state import SessionDB
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ def test_non_expired_lock_from_dead_pid_is_reclaimed(
     # bought nothing.  The holder is stamped with this process's own PID
     # namespace (same-namespace kernel proof is still proof; foreign and
     # unstamped holders defer to TTL — see test_lease_pid_namespace.py).
-    from hermes_state_pidns import holder_namespace_token
+    from kova_state_pidns import holder_namespace_token
     dead_holder = f"pid=424242{holder_namespace_token()}:tid=1:agent=abc:nonce=deadbeef"
     assert db.try_acquire_compression_lock(
         "sess1", dead_holder, ttl_seconds=300
@@ -110,7 +110,7 @@ def test_non_expired_lock_from_dead_pid_is_reclaimed(
         return False
 
     monkeypatch.setattr(
-        hermes_state, "psutil", SimpleNamespace(pid_exists=process_is_gone)
+        kova_state, "psutil", SimpleNamespace(pid_exists=process_is_gone)
     )
 
     assert db.try_acquire_compression_lock(
@@ -128,7 +128,7 @@ def test_probe_doubt_keeps_lease_until_ttl(
     # Stamped with this process's own namespace so the probe path is actually
     # reached (unstamped holders are gated before the probe — see
     # test_lease_pid_namespace.py).
-    from hermes_state_pidns import holder_namespace_token
+    from kova_state_pidns import holder_namespace_token
     holder = f"pid=424242{holder_namespace_token()}:tid=1:agent=abc:nonce=doubt"
     assert db.try_acquire_compression_lock(
         "sess1", holder, ttl_seconds=300
@@ -138,7 +138,7 @@ def test_probe_doubt_keeps_lease_until_ttl(
         raise RuntimeError("transient probe failure")
 
     monkeypatch.setattr(
-        hermes_state, "psutil", SimpleNamespace(pid_exists=probe_blows_up)
+        kova_state, "psutil", SimpleNamespace(pid_exists=probe_blows_up)
     )
 
     assert db.try_acquire_compression_lock(
@@ -166,7 +166,7 @@ def test_unstructured_holder_waits_for_ttl(
         "sess1", "legacy_holder", ttl_seconds=300
     ) is True
     monkeypatch.setattr(
-        hermes_state,
+        kova_state,
         "psutil",
         SimpleNamespace(
             pid_exists=lambda _pid: pytest.fail(
@@ -175,7 +175,7 @@ def test_unstructured_holder_waits_for_ttl(
         ),
     )
     monkeypatch.setattr(
-        hermes_state.os,
+        kova_state.os,
         "kill",
         lambda *_args: pytest.fail("unstructured holder must not probe a PID"),
     )

@@ -11,16 +11,16 @@ import threading
 
 import pytest
 
-from hermes_cli import _launchers
+from kova_cli import _launchers
 from pm.environments import install_state_dir, site_packages
 
 ROOT = Path(__file__).resolve().parents[2]
 BOOT_FILES = (
-    "hermes_bootstrap.py", "hermes_constants.py", "hermes_cli/__init__.py", "hermes_cli/_launchers.py",
-    "pm/environments.py", "pm/filesystem.py", "pm/paths.py", "hermes_cli/runtime_state.py",
-    "hermes_cli/_early_recovery.py", "hermes_cli/_parser.py",
-    "hermes_cli/venv_sync.py", "hermes_cli/steward.py",
-    "hermes_cli/stderr_timestamp.py",
+    "kova_bootstrap.py", "kova_constants.py", "kova_cli/__init__.py", "kova_cli/_launchers.py",
+    "pm/environments.py", "pm/filesystem.py", "pm/paths.py", "kova_cli/runtime_state.py",
+    "kova_cli/_early_recovery.py", "kova_cli/_parser.py",
+    "kova_cli/venv_sync.py", "kova_cli/steward.py",
+    "kova_cli/stderr_timestamp.py",
     "scripts/hermes-gateway",
 )
 
@@ -42,7 +42,7 @@ def fixture_tree(tmp_path, monkeypatch):
         "    return 7\n"
         "if __name__ == '__main__':\n    sys.exit(main())\n"
     )
-    for path in (repo / "hermes_cli/main.py", repo / "acp_adapter/entry.py"):
+    for path in (repo / "kova_cli/main.py", repo / "acp_adapter/entry.py"):
         path.write_text(entry, encoding="utf-8")
     # Windows resolves its default under LOCALAPPDATA, not HOME.
     if os.name == "nt":
@@ -143,7 +143,7 @@ def test_launcher_resolves_default_home_at_use_not_publication(tmp_path, monkeyp
     pytest.param("cmd", marks=pytest.mark.platforms("windows")),
 ])
 def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, monkeypatch, publisher):
-    from hermes_cli import boot_bootstrap, post_update
+    from kova_cli import boot_bootstrap, post_update
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -238,7 +238,7 @@ def test_materializer_cli_refuses_missing_store_without_publishing(tmp_path, mon
     orphan.parent.mkdir(parents=True)
     orphan.touch()  # uncommitted tool bytes are not an installed interpreter
     out = tmp_path / "bin"
-    result = subprocess.run([sys.executable, "-I", str(repo / "hermes_cli/_launchers.py"), str(out)],
+    result = subprocess.run([sys.executable, "-I", str(repo / "kova_cli/_launchers.py"), str(out)],
                             cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
     assert result.returncode == 1, result.stdout + result.stderr
     assert "store interpreter" in result.stderr
@@ -285,7 +285,7 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
 
 
 def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
-    from hermes_cli.runtime_state import collect_generations
+    from kova_cli.runtime_state import collect_generations
 
     repo, _home, interpreter = fixture_tree(tmp_path, monkeypatch)
     out = tmp_path / "bin"
@@ -302,7 +302,7 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
                 command = [sys.executable, "-I", str(repo / "scripts/hermes-gateway"), "--help"]
                 args = ["gateway", "--help"]
             elif surface == "ssh":
-                from hermes_cli.windows_ssh_runtime import _resolve_direct_command
+                from kova_cli.windows_ssh_runtime import _resolve_direct_command
                 command = [*_resolve_direct_command(str(launcher)), *args]
             elif surface == "published":
                 result = subprocess.run([str(launcher), "--print-runtime-command", "--", *args],
@@ -310,11 +310,11 @@ def _command_survives_generation_collection(tmp_path, monkeypatch, surface):
                 assert result.returncode == 0, result.stderr
                 command = json.loads(result.stdout)
             else:
-                from hermes_cli import gateway
+                from kova_cli import gateway
                 monkeypatch.setattr(gateway, "PROJECT_ROOT", repo)
                 if surface == "launchd":
                     import plistlib
-                    from tests.hermes_cli.test_gateway_service import _osascript_exec_argv
+                    from tests.kova_cli.test_gateway_service import _osascript_exec_argv
                     unit = gateway.generate_launchd_plist()
                     # The job runs through osascript (#71206); exec the child it would spawn, minus the
                     # `>> log 2>> log` tail that only means something to the shell.
@@ -361,10 +361,10 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
         import distlib
 
         shutil.copytree(Path(distlib.__file__).parent, site_packages(selected) / "distlib")
-    entry = repo / "hermes_cli/main.py"
+    entry = repo / "kova_cli/main.py"
     entry.write_text(
         "from pathlib import Path\n"
-        "from hermes_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
+        "from kova_cli._launchers import ensure_install_launchers, ENTRY_POINTS\n"
         "def main():\n"
         "    root = Path(__file__).resolve().parents[1]\n"
         "    written = ensure_install_launchers(root, root / '.hermes/bin')\n"
@@ -393,7 +393,7 @@ def test_running_source_launcher_can_republish_itself(tmp_path, monkeypatch, lau
                          ids=["idle", "running", "running-store-pip"])
 def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypatch, running, store_pip):
     repo, home, _interpreter = fixture_tree(tmp_path, monkeypatch)
-    (repo / "hermes_cli/main.py").write_text(
+    (repo / "kova_cli/main.py").write_text(
         "import sys\ndef main():\n    print('ready', flush=True)\n    sys.stdin.read()\n    return 0\n",
         encoding="utf-8")
     local = repo / ".hermes/bin"
@@ -448,7 +448,7 @@ def test_repin_without_distlib_retires_stale_native_launcher(tmp_path, monkeypat
 
 @pytest.mark.platforms("windows")
 def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, monkeypatch):
-    from hermes_cli._install_repair import ensure_windows_bin_launchers
+    from kova_cli._install_repair import ensure_windows_bin_launchers
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     managed = home / "hermes-agent"
@@ -469,7 +469,7 @@ def test_windows_repair_upgrades_healthy_old_pm_external_launchers(tmp_path, mon
 
 
 def test_dashboard_action_boots_selected_dependencies(tmp_path, monkeypatch):
-    from hermes_cli import web_server, web_server_gateway
+    from kova_cli import web_server, web_server_gateway
 
     repo, home, _ = fixture_tree(tmp_path, monkeypatch)
     select_generation(repo, 'current', 'selected')
@@ -517,7 +517,7 @@ def test_external_interpreter_keeps_its_owned_dependencies(tmp_path, monkeypatch
 @pytest.mark.platforms("posix")
 @pytest.mark.spawns_gateway_lookalike
 def test_service_survives_python_tool_replacement(tmp_path, monkeypatch):
-    from hermes_cli import gateway
+    from kova_cli import gateway
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(gateway, "PROJECT_ROOT", repo)
@@ -544,7 +544,7 @@ def test_service_survives_python_tool_replacement(tmp_path, monkeypatch):
 def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monkeypatch, create):
     import builtins
 
-    from hermes_cli.venv_sync import publish_launchers
+    from kova_cli.venv_sync import publish_launchers
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: home)
@@ -555,7 +555,7 @@ def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monk
         original_import = builtins.__import__
 
         def without_config(name, *args, **kwargs):
-            assert name != "hermes_cli.config", "bootstrap publication imported application config"
+            assert name != "kova_cli.config", "bootstrap publication imported application config"
             return original_import(name, *args, **kwargs)
 
         monkeypatch.setattr(builtins, "__import__", without_config)
@@ -584,13 +584,13 @@ def test_sync_migrates_old_store_wrapper_before_python_collection(tmp_path, monk
     assert Path(json.loads(result.stdout)["exe"]) == store / "python-B/bin/python3"
 
 def _torn_by_a_killed_merge(tmp_path, monkeypatch):
-    """A git install whose update was killed mid-merge while git rewrote ``hermes_constants.py``.
+    """A git install whose update was killed mid-merge while git rewrote ``kova_constants.py``.
 
     Git rewrites a file as unlink, create, write: the kill left HEAD at the old commit, the
-    interrupted-pull marker of a dead updater, ``.git/index.lock`` and no ``hermes_constants.py``.
+    interrupted-pull marker of a dead updater, ``.git/index.lock`` and no ``kova_constants.py``.
     """
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
-    for relative in ("hermes_cli/update_lock.py", "hermes_cli/update_custody.py"):
+    for relative in ("kova_cli/update_lock.py", "kova_cli/update_custody.py"):
         shutil.copy2(ROOT / relative, repo / relative)
 
     def git(*args):
@@ -603,17 +603,17 @@ def _torn_by_a_killed_merge(tmp_path, monkeypatch):
     git("add", "-A")
     git("commit", "-qm", "pre")
     pre = git("rev-parse", "HEAD")
-    constants = repo / "hermes_constants.py"
+    constants = repo / "kova_constants.py"
     original = constants.read_bytes()
     constants.write_bytes(original + b"\nTARGET_ONLY = 1\n")
     git("commit", "-qam", "target")
     target = git("rev-parse", "HEAD")
     git("reset", "-q", "--hard", pre)
-    from hermes_cli import _early_recovery
+    from kova_cli import _early_recovery
 
     marker = _early_recovery.interrupted_pull_marker(repo)
     # The updater records the git it moved the tree with: a Windows install's only git is PM's
-    # store copy, which the repair cannot look up through ``pm`` (it imports hermes_constants).
+    # store copy, which the repair cannot look up through ``pm`` (it imports kova_constants).
     marker.write_text(f"pid=0\npre={pre}\ntarget={target}\nstash=\ngit={shutil.which('git')}\n",
                       encoding="utf-8", newline="")
     constants.unlink()
@@ -624,12 +624,12 @@ def _torn_by_a_killed_merge(tmp_path, monkeypatch):
 
 @pytest.mark.platforms("posix")
 @pytest.mark.parametrize("surface", ["launcher", "runtime-command"])
-def test_a_merge_killed_writing_hermes_constants_is_repaired_by_the_next_launch(tmp_path, monkeypatch, surface):
+def test_a_merge_killed_writing_kova_constants_is_repaired_by_the_next_launch(tmp_path, monkeypatch, surface):
     """C1 recovery reachability: the launcher reaches the repair before importing any other
-    checkout module, so a torn ``hermes_constants.py`` is put back instead of killing every launch."""
+    checkout module, so a torn ``kova_constants.py`` is put back instead of killing every launch."""
     repo, home, interpreter, pre, original, marker = _torn_by_a_killed_merge(tmp_path, monkeypatch)
     env = dict(os.environ)
-    env.pop("HERMES_HOME", None)  # the default-home pin itself needs hermes_constants
+    env.pop("HERMES_HOME", None)  # the default-home pin itself needs kova_constants
     env.pop("HERMES_RUNTIME_DIR", None)
     env.pop("PYTEST_CURRENT_TEST", None)  # the repair stands down in a checkout pytest itself runs from
     no_git = tmp_path / "path-without-git"
@@ -644,12 +644,12 @@ def test_a_merge_killed_writing_hermes_constants_is_repaired_by_the_next_launch(
         command = _launchers.runtime_command(repo, python=interpreter)
     result = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True,
                             text=True, encoding="utf-8", errors="replace", timeout=60, check=False)
-    assert "No module named 'hermes_constants'" not in result.stderr, result.stderr
+    assert "No module named 'kova_constants'" not in result.stderr, result.stderr
     assert result.returncode == 7, result.stdout + result.stderr
     receipt = json.loads(result.stdout.strip().splitlines()[-1])
     assert receipt["value"] == "repaired"
     assert Path(receipt["home"]) == home, "the default home is still pinned, after the repair"
-    assert (repo / "hermes_constants.py").read_bytes() == original
+    assert (repo / "kova_constants.py").read_bytes() == original
     assert not marker.exists() and not (repo / ".git" / "index.lock").exists()
     head = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True,
                           text=True, encoding="utf-8", check=True).stdout.strip()
@@ -658,7 +658,7 @@ def test_a_merge_killed_writing_hermes_constants_is_repaired_by_the_next_launch(
 
 
 def test_update_import_probe_uses_selected_dependencies(tmp_path, monkeypatch):
-    from hermes_cli import update_cmd, update_cmd_validation
+    from kova_cli import update_cmd, update_cmd_validation
 
     repo, _, _ = fixture_tree(tmp_path, monkeypatch)
     selected = install_state_dir(repo) / "environments" / "current" / "venv"
@@ -710,7 +710,7 @@ def test_stage_launcher_ignores_an_inherited_runtime_directory(tmp_path, monkeyp
 
 @pytest.mark.platforms("posix")
 def test_service_launcher_binds_the_tree_store_despite_inherited_runtime_override(tmp_path, monkeypatch):
-    from hermes_cli import gateway
+    from kova_cli import gateway
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(gateway, "PROJECT_ROOT", repo)

@@ -36,7 +36,7 @@ from gateway.config import GatewayConfig
 from gateway.platforms.base import Platform, SessionSource
 from gateway.platforms.event import MessageEvent
 from gateway.session import SessionEntry, SessionStore
-from hermes_constants import (
+from kova_constants import (
     get_hermes_home,
     reset_hermes_home_override,
     set_hermes_home_override,
@@ -51,7 +51,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     home, serving a ``fitness`` profile whose store lives under
     ``profiles/fitness``.
     """
-    import hermes_state
+    import kova_state
 
     root = tmp_path / "hermes"
     profile = root / "profiles" / "fitness"
@@ -60,7 +60,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker: a bare dir is not a profile
     monkeypatch.setenv("HERMES_HOME", str(root))
 
-    # The suite-wide fixture in conftest re-points ``hermes_state.DEFAULT_DB_PATH``
+    # The suite-wide fixture in conftest re-points ``kova_state.DEFAULT_DB_PATH``
     # at a fake home, which trips the deliberate escape hatch in
     # ``_default_db_path()``: a re-pointed constant wins over everything,
     # including the context-local override.  That is correct for tests that
@@ -70,7 +70,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     # which is what production does.  ``HERMES_HOME`` above still keeps that
     # resolution inside ``tmp_path``, so no real store is ever opened.
     monkeypatch.setattr(
-        hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH
+        kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH
     )
     return root, profile
 
@@ -247,7 +247,7 @@ def test_two_primary_routed_turns_reload_profile_transcript(multiplex_homes):
     """A second routed turn sees the first turn in the profile database."""
     from gateway.profile_routing import ProfileRoute
     from gateway.run import GatewayRunner
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
 
     root, profile = multiplex_homes
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")
@@ -718,7 +718,7 @@ def test_profile_resolution_failure_fails_closed(multiplex_homes, monkeypatch):
     ownership check the failure would be indistinguishable from "no named
     owner" and silently route the row to root.
     """
-    import hermes_cli.profiles as profiles_mod
+    import kova_cli.profiles as profiles_mod
 
     root, _profile = multiplex_homes
     store = _multiplex_store(root)
@@ -889,7 +889,7 @@ def test_a_conversation_its_chat_moved_past_keeps_its_profile_history(multiplex_
     that profile's store, so its turn loads its history and writes its transcript there."""
     from gateway.session_detached import detached_key
     from gateway.session_identity import replace_source
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
     root, profile = multiplex_homes
     store = _multiplex_store(root)
     token = set_hermes_home_override(str(profile))

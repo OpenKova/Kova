@@ -22,7 +22,7 @@ import pytest_asyncio
 
 from gateway.config import GatewayConfig
 from gateway.run import GatewayRunner
-from hermes_state_runtime import list_session_admissions
+from kova_state_runtime import list_session_admissions
 from tests.waiting import async_wait_until
 
 AUTHOR = {'id': 'bot:alpha', 'name': 'alpha', 'is_bot': True}
@@ -43,8 +43,8 @@ class _Gateway:
                 'api_key': 'loopback-only'}}))
         monkeypatch.setattr(Path, 'home', lambda: tmp_path)
         monkeypatch.setenv('HERMES_HOME', str(root))
-        import hermes_state
-        monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
+        import kova_state
+        monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
         self.turns, self.gate = [], None
         self.runner, self.connections = None, []
 
@@ -155,7 +155,7 @@ def _tick_output(text):
 @pytest.mark.asyncio
 async def test_a_liveness_tick_is_admitted_into_the_session_that_started_the_process(gateway):
     from gateway.session_automation import admission_display
-    from hermes_cli.gateway_tools_notify import _card
+    from kova_cli.gateway_tools_notify import _card
     sid = gateway.launch.session_id
 
     assert await gateway.drain(gateway.tick(gateway.primary, sid, 1)) == [], 'the tick was refused and requeued'
@@ -216,7 +216,7 @@ async def messaging(tmp_path, monkeypatch):
     from gateway.platforms.event import MessageEvent
     from gateway.session_authority import SessionAuthority, initialize_session_authority
     from gateway.session_ingress_context import native_callback, register_transport_home
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     from plugins.platforms.discord.adapter import DiscordAdapter
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
     monkeypatch.setenv('DISCORD_ALLOWED_USERS', '42')

@@ -64,12 +64,12 @@ def test_background_notification_history_replay_is_not_new_delivery():
 
 
 def test_retained_result_lookup_does_not_initialize_session_store(tmp_path, monkeypatch):
-    import hermes_state
+    import kova_state
     from gateway.session_context import scoped_current_session_id
     from tools import process_registry_results as receipts
 
     db_path = tmp_path / "state.db"
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", db_path)
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", db_path)
     monkeypatch.setattr(receipts, "get_hermes_home", lambda: tmp_path)
     directory = tmp_path / "logs" / "process-results"
     directory.mkdir(parents=True)
@@ -280,7 +280,7 @@ def test_receipts_are_bounded_redacted_and_session_scoped(tmp_path, monkeypatch)
         registry._running[session.id] = session
         registry._move_to_finished(session)
         sessions.append(session)
-    from hermes_constants import get_hermes_home
+    from kova_constants import get_hermes_home
     paths = list((get_hermes_home() / "logs" / "process-results").glob("*.json"))
     assert len(paths) == 2
     assert all(secret not in path.read_text(encoding="utf-8") for path in paths)
@@ -304,7 +304,7 @@ def test_receipts_are_bounded_redacted_and_session_scoped(tmp_path, monkeypatch)
     with scoped_current_session_id("unrelated-session"):
         assert load_completed_results(recovered.id) == {}
         assert fresh.get(recovered.id) is None
-    from hermes_state import SessionDB
+    from kova_state import SessionDB
     db = SessionDB()
     try:
         db.create_session("owner-session", "cli")
@@ -324,7 +324,7 @@ def test_receipts_are_bounded_redacted_and_session_scoped(tmp_path, monkeypatch)
     assert fresh.get(recovered.id) is None
 
     # Multiplex readers must keep the producer's profile on native threads.
-    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from kova_constants import set_hermes_home_override, reset_hermes_home_override
     profile = tmp_path / "thread-profile"
     token = set_hermes_home_override(profile)
     try:

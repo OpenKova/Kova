@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.web_routers import files
+from kova_cli.web_routers import files
 
 
 @pytest.mark.asyncio

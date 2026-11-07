@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import logging
 
-from hermes_cli.auth import (
+from kova_cli.auth import (
     DEFAULT_NOUS_INFERENCE_URL,
     _validate_nous_inference_url_from_network,
 )
@@ -31,7 +31,7 @@ from hermes_cli.auth import (
 class TestValidatorRules:
 
     def test_attacker_host_rejected(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="hermes_cli.auth"):
+        with caplog.at_level(logging.WARNING, logger="kova_cli.auth"):
             assert (
                 _validate_nous_inference_url_from_network("https://attacker.com/v1")
                 is None
@@ -71,8 +71,8 @@ class TestCallSiteWiring:
     def _read_auth_source(self):
         # The Nous refresh sites live in auth_nous.py (split out of auth.py);
         # read both so the guard tolerates relocation but still fires on deletion.
-        import hermes_cli.auth as _auth_mod
-        import hermes_cli.auth_nous as _nous_mod
+        import kova_cli.auth as _auth_mod
+        import kova_cli.auth_nous as _nous_mod
         from pathlib import Path
         return "".join(
             Path(m.__file__).read_text(encoding="utf-8") for m in (_auth_mod, _nous_mod)
@@ -104,8 +104,8 @@ class TestHealsPoisonedStoredValue:
     """
 
     def test_refresh_resets_rejected_url_to_default(self, monkeypatch):
-        from hermes_cli import auth
-        import hermes_cli.auth_nous as hermes_cli_auth_nous
+        from kova_cli import auth
+        import kova_cli.auth_nous as kova_cli_auth_nous
 
         poisoned = "https://stg-inference-api.nousresearch.com/v1"
         state = {
@@ -119,7 +119,7 @@ class TestHealsPoisonedStoredValue:
         # Force the refresh branch and return another rejected (staging) URL,
         # exercising the validator-returns-None heal path.
         monkeypatch.setattr(auth, "_nous_invoke_jwt_status", lambda *a, **k: "needs_refresh")
-        monkeypatch.setattr(hermes_cli_auth_nous, "_nous_invoke_jwt_status", lambda *a, **k: "needs_refresh")
+        monkeypatch.setattr(kova_cli_auth_nous, "_nous_invoke_jwt_status", lambda *a, **k: "needs_refresh")
         monkeypatch.setattr(
             auth,
             "_refresh_access_token",
@@ -131,7 +131,7 @@ class TestHealsPoisonedStoredValue:
             },
         )
         monkeypatch.setattr(
-            hermes_cli_auth_nous,
+            kova_cli_auth_nous,
             "_refresh_access_token",
             lambda **k: {
                 "access_token": "newtok",
@@ -142,9 +142,9 @@ class TestHealsPoisonedStoredValue:
         )
         # Skip the JWT usability assertions (orthogonal to URL healing).
         monkeypatch.setattr(auth, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_select_nous_invoke_jwt", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_select_nous_invoke_jwt", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_select_nous_invoke_jwt", lambda *a, **k: None)
 
         result = auth.refresh_nous_oauth_from_state(state, force_refresh=True)
 
@@ -171,12 +171,12 @@ class TestEnvOverrideWins:
     STAGING = "https://stg-inference-api.nousresearch.com/v1"
 
     def _patch_no_refresh(self, monkeypatch, auth, state):
-        import hermes_cli.auth_nous as hermes_cli_auth_nous
+        import kova_cli.auth_nous as kova_cli_auth_nous
         import contextlib
 
         # No refresh fires: the stored access token is a usable invoke JWT.
         monkeypatch.setattr(auth, "_nous_invoke_jwt_status", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_nous_invoke_jwt_status", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_nous_invoke_jwt_status", lambda *a, **k: None)
         monkeypatch.setattr(
             auth, "_auth_store_lock", lambda *a, **k: contextlib.nullcontext()
         )
@@ -191,14 +191,14 @@ class TestEnvOverrideWins:
         monkeypatch.setattr(auth, "_save_provider_state_to_source", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_save_auth_store", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_write_shared_nous_state", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_write_shared_nous_state", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_write_shared_nous_state", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_sync_nous_pool_from_auth_store", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_sync_nous_pool_from_auth_store", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_sync_nous_pool_from_auth_store", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_resolve_verify", lambda *a, **k: True)
         monkeypatch.setattr(auth, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_assert_nous_inference_jwt_usable", lambda *a, **k: None)
         monkeypatch.setattr(auth, "_select_nous_invoke_jwt", lambda *a, **k: None)
-        monkeypatch.setattr(hermes_cli_auth_nous, "_select_nous_invoke_jwt", lambda *a, **k: None)
+        monkeypatch.setattr(kova_cli_auth_nous, "_select_nous_invoke_jwt", lambda *a, **k: None)
 
     def _base_state(self, auth, stored):
         return {
@@ -213,7 +213,7 @@ class TestEnvOverrideWins:
     def test_no_refresh_env_override_not_persisted(self, monkeypatch):
         """The env override is a runtime overlay: it must never be written
         back into the stored state (auth.json)."""
-        from hermes_cli import auth
+        from kova_cli import auth
 
         state = self._base_state(auth, auth.DEFAULT_NOUS_INFERENCE_URL)
         self._patch_no_refresh(monkeypatch, auth, state)
@@ -230,7 +230,7 @@ class TestEnvOverrideWins:
         """A poisoned stored staging host (persisted before the allowlist)
         still heals to the default when no env override is present — the
         #50265 no-refresh-read-path heal, folded in here."""
-        from hermes_cli import auth
+        from kova_cli import auth
 
         state = self._base_state(auth, self.STAGING)
         self._patch_no_refresh(monkeypatch, auth, state)

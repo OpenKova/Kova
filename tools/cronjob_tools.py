@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import copy
 
-from hermes_constants import display_hermes_home
+from kova_constants import display_hermes_home
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ def _api_server_base_url() -> str:
     except ValueError:
         port = 8642
     try:
-        from hermes_cli.config import cfg_get, load_config_readonly
+        from kova_cli.config import cfg_get, load_config_readonly
         host = str(cfg_get(load_config_readonly(), "platforms", "api_server", "extra", "host", default="") or "").strip()
     except Exception:
         host = ""
@@ -186,7 +186,7 @@ def _hand_off_primary_routed_run(job: dict[str, Any], extra_prompt: Optional[str
     routed = _primary_routed_delivery_platforms(job)
     if not routed:
         return None
-    from hermes_cli.cron import _builtin_gateway_liveness
+    from kova_cli.cron import _builtin_gateway_liveness
     alive = _builtin_gateway_liveness()
     if alive is not True:
         # None = the probe could not tell; a run queued for a ticker that may not exist is worse
@@ -363,7 +363,7 @@ def _run_claimed_job(job: dict[str, Any], extra_prompt: Optional[str] = None) ->
         # ticker (``tick_adapters_for``) does — fail closed, never the default bot (#124248). A
         # resolution error propagates to the ``except`` below and marks the run failed.
         if runner is not None and hasattr(runner, "_adapters_for_profile"):
-            from hermes_constants import get_hermes_home, profile_name_for_home
+            from kova_constants import get_hermes_home, profile_name_for_home
 
             profile = profile_name_for_home(get_hermes_home())
             adapters = runner._adapters_for_profile(profile)
@@ -510,8 +510,8 @@ def _run_session_usage(job_id: str, execution_id: Optional[str]) -> dict[str, An
         return {}
     import sqlite3
 
-    from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from kova_constants import get_hermes_home
+    from kova_state import SessionDB
     # A missing or locked state.db costs the notice its usage line, never the completion.
     try:
         db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)

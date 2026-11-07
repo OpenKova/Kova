@@ -16,8 +16,8 @@ from contextvars import ContextVar
 from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional, Tuple
 
-from hermes_cli.config import cfg_get
-from hermes_constants import get_hermes_dir, get_hermes_home
+from kova_cli.config import cfg_get
+from kova_constants import get_hermes_dir, get_hermes_home
 
 from agent.provider_media import GENERATED_SUBDIR, MEDIA_CACHE_MAX_AGE_HOURS
 from agent.skill_utils import EXCLUDED_SKILL_DIRS
@@ -124,7 +124,7 @@ def _load_config_files() -> list[dict[str, str]]:
     """Load ``terminal.credential_files`` from config.yaml (cached per profile home: the
     multiplexed gateway must never mount the launch profile's credential files into a
     secondary profile's sandbox)."""
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     home_key = hermes_home_key()
     cached = _config_files.get(home_key)
     if cached is not None:
@@ -132,7 +132,7 @@ def _load_config_files() -> list[dict[str, str]]:
 
     result: list[dict[str, str]] = []
     try:
-        from hermes_cli.config import read_raw_config
+        from kova_cli.config import read_raw_config
         hermes_home = get_hermes_home()
         cred_files = cfg_get(read_raw_config(), "terminal", "credential_files")
         for item in cred_files if isinstance(cred_files, list) else []:
@@ -243,7 +243,7 @@ def iter_skills_files(container_base: str = "/root/.hermes") -> list[dict[str, s
 
 # --- Cache directory mounts (documents, images, audio, videos, screenshots) ---
 
-# (new_subpath, old_name) pairs matching hermes_constants.get_hermes_dir().
+# (new_subpath, old_name) pairs matching kova_constants.get_hermes_dir().
 _GENERATED_CACHE = f"cache/{GENERATED_SUBDIR}"
 _CACHE_DIRS: list[tuple[str, str]] = [
     ("cache/documents", "document_cache"),

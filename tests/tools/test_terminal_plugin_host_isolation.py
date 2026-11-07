@@ -6,11 +6,11 @@ or clean up. Real plugin, real host process, real loader against a temp HERMES_H
 
 from __future__ import annotations
 
-import hermes_yaml as yaml
+import kova_yaml as yaml
 import pytest
 
-from hermes_cli import plugins as plugins_mod
-from hermes_cli.plugins import PluginManager
+from kova_cli import plugins as plugins_mod
+from kova_cli.plugins import PluginManager
 
 BACKEND_PLUGIN = '''
 from pathlib import Path

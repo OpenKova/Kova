@@ -95,7 +95,7 @@ class TestMultiprofileRawConfigCache:
     @staticmethod
     def _load_under(home) -> list:
         from agent import skill_utils
-        from hermes_constants import (
+        from kova_constants import (
             reset_hermes_home_override,
             set_hermes_home_override,
         )

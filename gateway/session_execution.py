@@ -20,7 +20,7 @@ from gateway.media_repair import repair_explicit_computer_use_media_paths
 from gateway.platforms.base import BasePlatformAdapter
 from gateway.session_api_turn import api_runtime_locked
 from gateway.turn_context import TurnContext
-from hermes_cli.config import cfg_get
+from kova_cli.config import cfg_get
 from utils import is_truthy_value
 
 if TYPE_CHECKING:  # string annotations only; never imported at runtime (cycle)

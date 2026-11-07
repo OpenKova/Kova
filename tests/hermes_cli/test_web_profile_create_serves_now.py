@@ -14,24 +14,24 @@ import pytest
 def client(monkeypatch, _isolate_hermes_home):
     from starlette.testclient import TestClient
 
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli import profiles
-    from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
+    import kova_state
+    from kova_constants import get_hermes_home
+    from kova_cli import profiles
+    from kova_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
     home = get_hermes_home()
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: home / "profiles")
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", home / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", home / "state.db")
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
     return c
 
 
 def test_a_created_profile_is_served_without_waiting_for_the_rescan(client, monkeypatch):
-    from hermes_cli import gateway_multiplex_served
+    from kova_cli import gateway_multiplex_served
 
     served = []
 

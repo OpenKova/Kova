@@ -20,11 +20,11 @@ async def probe(peer, creator):
     from gateway.run_runtime import (initialize_gateway_runtime, start_gateway_runtime_api,
                                      publish_gateway_runtime_ready)
     from gateway.runtime_ownership import process_ownership
-    from hermes_cli import web_server
-    from hermes_cli.dashboard_auth import register_provider, clear_providers
-    from hermes_state_local import local_receipt
-    from hermes_state_runtime import list_session_admissions
-    from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
+    from kova_cli import web_server
+    from kova_cli.dashboard_auth import register_provider, clear_providers
+    from kova_state_local import local_receipt
+    from kova_state_runtime import list_session_admissions
+    from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
     from tests.gateway.test_normal_runtime_boot import control
 
     home = Path(os.environ['HERMES_HOME'])

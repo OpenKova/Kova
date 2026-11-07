@@ -12,14 +12,14 @@ from threading import Event, Thread
 
 import pytest
 
-from hermes_cli import config
-from hermes_state_wal import apply_wal_with_fallback
+from kova_cli import config
+from kova_state_wal import apply_wal_with_fallback
 from utils import atomic_yaml_write
-import hermes_state_wal as wal
+import kova_state_wal as wal
 
 
 def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):
-    """Importing hermes_cli.config and building the provider part of OPTIONAL_ENV_VARS list no
+    """Importing kova_cli.config and building the provider part of OPTIONAL_ENV_VARS list no
     providers through discovery (which reads config), so neither can take part in a config/WAL
     lock-order cycle with a thread opening a database."""
     script = textwrap.dedent(
@@ -29,7 +29,7 @@ def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):
         import os, sqlite3
 
         import providers
-        import hermes_state_wal as wal
+        import kova_state_wal as wal
 
         listed = []
         providers.list_providers = lambda: listed.append(1) or []
@@ -43,9 +43,9 @@ def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):
         outcomes = []
 
         def importer():
-            import hermes_cli.config
+            import kova_cli.config
             outcomes.append("import-returned")
-            assert "ANTHROPIC_API_KEY" in hermes_cli.config.OPTIONAL_ENV_VARS
+            assert "ANTHROPIC_API_KEY" in kova_cli.config.OPTIONAL_ENV_VARS
             outcomes.append("fill-returned")
 
         def opener():

@@ -21,8 +21,8 @@ from gateway.session_prompt_pin import SessionPromptPinMixin, sanitize_prompt_pi
 from gateway.session_recovery import SessionRecoveryMixin
 from gateway.session_lifecycle import SessionLifecycleMixin, _iso, _new_session_id, _now, _parse_iso
 from gateway.session_transcript import SessionTranscriptMixin
-# Inverse of _session_key_namespace, defined storage-side (hermes_state must not import gateway).
-from hermes_state_keys import profile_from_session_key_namespace
+# Inverse of _session_key_namespace, defined storage-side (kova_state must not import gateway).
+from kova_state_keys import profile_from_session_key_namespace
 
 logger = logging.getLogger(__name__)
 
@@ -242,8 +242,8 @@ def _slack_tools_loaded() -> bool:
     try:
         # Read-only loader: this runs per turn via _ephemeral_change_key, and _get_platform_tools
         # only reads the config. load_config()'s defensive deepcopy is ~half this probe's cost.
-        from hermes_cli.config import load_config_readonly
-        from hermes_cli.tools_config import _get_platform_tools
+        from kova_cli.config import load_config_readonly
+        from kova_cli.tools_config import _get_platform_tools
         # include_default_mcp_servers defaults True so a default-enabled Slack MCP counts too.
         return "slack" in _get_platform_tools(load_config_readonly(), "slack")
     except Exception:
@@ -257,8 +257,8 @@ def _discord_tools_loaded() -> bool:
         from agent.secret_scope import get_secret
         # Read-only loader: this runs per turn via _ephemeral_change_key, and _get_platform_tools
         # only reads the config. load_config()'s defensive deepcopy is ~half this probe's cost.
-        from hermes_cli.config import load_config_readonly
-        from hermes_cli.tools_config import _get_platform_tools
+        from kova_cli.config import load_config_readonly
+        from kova_cli.tools_config import _get_platform_tools
 
         if not (get_secret("DISCORD_BOT_TOKEN", "") or "").strip():
             return False
@@ -449,7 +449,7 @@ def build_session_context_prompt(context: SessionContext, *, redact_pii: bool = 
             lines.append(f"  - {platform.value}: {safe_name} (ID: {safe_id})")
 
     lines += ["", "**Delivery options for scheduled tasks:**"]
-    from hermes_constants import display_hermes_home
+    from kova_constants import display_hermes_home
     if src.platform == Platform.LOCAL:
         lines.append("- `\"origin\"` → Local output (saved to files)")
     else:
@@ -857,7 +857,7 @@ class SessionStore(
         # The routing index needs exactly one home for its lifetime: the gateway's own, captured
         # before any profile scope exists (see ``_routing_db``).
         try:
-            from hermes_constants import get_hermes_home
+            from kova_constants import get_hermes_home
 
             self._routing_home: Optional[Path] = Path(get_hermes_home())
         except Exception:

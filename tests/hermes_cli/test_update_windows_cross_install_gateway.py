@@ -13,12 +13,12 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli import main_install_repair
-from hermes_cli import gateway as gateway_mod
-from hermes_cli import gateway_windows
-from hermes_cli import main as cli_main
-from hermes_cli import update_cmd
-from hermes_cli import update_cmd_windows
+from kova_cli import main_install_repair
+from kova_cli import gateway as gateway_mod
+from kova_cli import gateway_windows
+from kova_cli import main as cli_main
+from kova_cli import update_cmd
+from kova_cli import update_cmd_windows
 
 
 @pytest.fixture

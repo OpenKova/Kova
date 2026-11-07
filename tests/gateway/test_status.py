@@ -74,7 +74,7 @@ class TestGatewayPidState:
             record = {
                 "pid": pid,
                 "kind": "hermes-gateway",
-                "argv": ["python", "-m", "hermes_cli.main", "gateway"],
+                "argv": ["python", "-m", "kova_cli.main", "gateway"],
                 "start_time": start_time,
             }
             pid_path.write_text(json.dumps(record))
@@ -107,7 +107,7 @@ class TestGatewayPidState:
         pid_path.write_text(json.dumps({
             "pid": 99999,
             "kind": "hermes-gateway",
-            "argv": ["python", "-m", "hermes_cli.main", "gateway"],
+            "argv": ["python", "-m", "kova_cli.main", "gateway"],
             "start_time": 123,
         }))
 
@@ -119,7 +119,7 @@ class TestGatewayPidState:
             lambda: {
                 "pid": os.getpid(),
                 "kind": "hermes-gateway",
-                "argv": ["python", "-m", "hermes_cli.main", "gateway"],
+                "argv": ["python", "-m", "kova_cli.main", "gateway"],
                 "start_time": 123,
             },
         )
@@ -145,7 +145,7 @@ class TestGatewayPidState:
         for a named profile), gateway identity files should still be written to
         the process-level HERMES_HOME, not the profile's directory.  See #56986.
         """
-        from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+        from kova_constants import set_hermes_home_override, reset_hermes_home_override
 
         process_home = tmp_path / "default"
         process_home.mkdir()
@@ -180,7 +180,7 @@ class TestGatewayPidState:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         record = {
             "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
-            "argv": ["python", "-m", "hermes_cli.main", "gateway", "run"],
+            "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
             "hermes_home": str(tmp_path.resolve()),
         }
         pid_path = tmp_path / "gateway.pid"
@@ -190,7 +190,7 @@ class TestGatewayPidState:
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda _path=None: True)
         monkeypatch.setattr(status, "_pid_exists", lambda _pid: True)
         monkeypatch.setattr(status, "_get_process_start_time", lambda _pid: 123)
-        monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m hermes_cli.main chat")
+        monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m kova_cli.main chat")
         monkeypatch.setattr(status, "get_runtime_status_running_pid", lambda: None)
 
         assert status.get_running_pid() is None
@@ -204,7 +204,7 @@ class TestGatewayPidState:
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         record = {
             "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
-            "argv": ["python", "-m", "hermes_cli.main", "gateway", "run"],
+            "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
             "hermes_home": str((tmp_path / "other-home").resolve()),
         }
         pid_path = tmp_path / "gateway.pid"
@@ -214,7 +214,7 @@ class TestGatewayPidState:
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda _path=None: True)
         monkeypatch.setattr(status, "_pid_exists", lambda _pid: True)
         monkeypatch.setattr(status, "_get_process_start_time", lambda _pid: 123)
-        monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m hermes_cli.main gateway run")
+        monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m kova_cli.main gateway run")
         monkeypatch.setattr(status, "get_runtime_status_running_pid", lambda: None)
 
         assert status.get_running_pid() is None
@@ -234,7 +234,7 @@ class TestScopedGatewayPidQuery:
         record = {
             "pid": 4242,
             "kind": "hermes-gateway",
-            "argv": ["python", "-m", "hermes_cli.main", "gateway", "--profile", "wiki"],
+            "argv": ["python", "-m", "kova_cli.main", "gateway", "--profile", "wiki"],
             "start_time": 123,
             "hermes_home": str(profile_dir.resolve()),
         }
@@ -252,7 +252,7 @@ class TestScopedGatewayPidQuery:
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 123)
         monkeypatch.setattr(
             status, "_read_process_cmdline",
-            lambda pid: "python -m hermes_cli.main gateway --profile wiki",
+            lambda pid: "python -m kova_cli.main gateway --profile wiki",
         )
         assert status.get_running_pid(pid_path) == 4242
         assert pid_path.exists()
@@ -688,7 +688,7 @@ class TestTerminatePid:
 
         # taskkill is spawned with the no-window flag so the windowless
         # pythonw.exe backend doesn't flash a conhost window on force-kill.
-        from hermes_cli._subprocess_compat import windows_hide_flags
+        from kova_cli._subprocess_compat import windows_hide_flags
 
         assert calls == [
             (["taskkill", "/PID", "123", "/T", "/F"], True, True, 10, windows_hide_flags())
@@ -839,7 +839,7 @@ class TestScopedLocks:
             "pid": 873,
             "start_time": None,
             "kind": "hermes-gateway",
-            "argv": ["/Users/user/.hermes/hermes-agent/hermes_cli/main.py", "gateway", "run", "--replace"],
+            "argv": ["/Users/user/.hermes/hermes-agent/kova_cli/main.py", "gateway", "run", "--replace"],
         }))
 
         # Post-#21561 the liveness probe routes through
@@ -876,7 +876,7 @@ class TestScopedLocks:
             "pid": os.getpid(),
             "start_time": None,
             "kind": "hermes-gateway",
-            "argv": ["hermes_cli/main.py", "--profile", "milena", "gateway", "run", "--replace"],
+            "argv": ["kova_cli/main.py", "--profile", "milena", "gateway", "run", "--replace"],
             "scope": "discord-bot-token",
         }))
 
@@ -931,7 +931,7 @@ class TestScopedLocks:
             "pid": os.getpid(),
             "start_time": 111,
             "kind": "hermes-gateway",
-            "argv": ["hermes_cli/main.py", "gateway", "run", "--replace"],
+            "argv": ["kova_cli/main.py", "gateway", "run", "--replace"],
             "scope": "discord-bot-token",
         }))
 
@@ -1249,7 +1249,7 @@ class TestScopedLockTakeover:
         record = {
             "pid": pid,
             "kind": "hermes-gateway",
-            "argv": ["python", "-m", "hermes_cli.main", "gateway", "run"],
+            "argv": ["python", "-m", "kova_cli.main", "gateway", "run"],
             "start_time": start_time,
             "hermes_home": str(target_home),
         }
@@ -1271,7 +1271,7 @@ class TestScopedLockTakeover:
         monkeypatch.setattr(
             status,
             "_read_process_cmdline",
-            lambda _pid: "python -m hermes_cli.main gateway run",
+            lambda _pid: "python -m kova_cli.main gateway run",
         )
         # Fake PID 4242 can be a live ancestor of this worker on CI; a real
         # psutil snapshot of its descendants would include pytest itself and
@@ -1311,7 +1311,7 @@ class TestScopedLockTakeover:
         monkeypatch.setattr(
             status,
             "_read_process_cmdline",
-            lambda _pid: "python -m hermes_cli.main gateway run",
+            lambda _pid: "python -m kova_cli.main gateway run",
         )
         calls = []
         monkeypatch.setattr(
@@ -1418,11 +1418,11 @@ class TestReadProcessCmdlinePsFallback:
 
         def fake_read_bytes(self):
             calls.append("proc")
-            return b"python\x00hermes_cli/main.py\x00gateway\x00"
+            return b"python\x00kova_cli/main.py\x00gateway\x00"
 
         monkeypatch.setattr(status.Path, "read_bytes", fake_read_bytes)
         result = status._read_process_cmdline(12345)
-        assert "hermes_cli/main.py" in result
+        assert "kova_cli/main.py" in result
         assert calls == ["proc"]
 
 
@@ -1517,7 +1517,7 @@ class TestRespawnStormBreaker:
 class TestLaunchdPlistRespawnGovernance:
     def test_plist_has_throttle_interval(self, tmp_path, monkeypatch):
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-        from hermes_cli.gateway import generate_launchd_plist
+        from kova_cli.gateway import generate_launchd_plist
 
         plist = generate_launchd_plist()
         assert "<key>ThrottleInterval</key>" in plist
@@ -1533,7 +1533,7 @@ class TestLaunchdPlistRespawnGovernance:
         import re
 
         from gateway.restart import LAUNCHD_GUI_EXIT_TIMEOUT_CLAMP_S, LAUNCHD_STOP_CLEANUP_RESERVE_S
-        from hermes_cli.gateway import generate_launchd_plist
+        from kova_cli.gateway import generate_launchd_plist
 
         monkeypatch.setenv("HERMES_HOME", str(tmp_path))
         plist = generate_launchd_plist()
@@ -1790,13 +1790,13 @@ def test_strict_gateway_identity_adopts_held_lock_when_pid_file_is_gone(tmp_path
     pid_path = tmp_path / "gateway.pid"
     lock_path = tmp_path / "gateway.lock"
     record = {"pid": 123, "start_time": 10.0, "kind": "hermes-gateway",
-              "argv": ["python", "-m", "hermes_cli.main", "gateway", "run", "--replace"]}
+              "argv": ["python", "-m", "kova_cli.main", "gateway", "run", "--replace"]}
     lock_path.write_text(json.dumps(record), encoding="utf-8")
     monkeypatch.setattr(status, "_get_gateway_lock_path", lambda _path=None: lock_path)
     monkeypatch.setattr(status, "_is_gateway_runtime_lock_active_strict", lambda _path=None: True)
     monkeypatch.setattr(status, "_pid_exists", lambda _pid: True)
     monkeypatch.setattr(status, "_get_process_start_time", lambda _pid: 10.0)
-    monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m hermes_cli.main gateway run --replace")
+    monkeypatch.setattr(status, "_read_process_cmdline", lambda _pid: "python -m kova_cli.main gateway run --replace")
     monkeypatch.setattr(status, "_IS_WINDOWS", False)
 
     assert status.get_running_pid_identity_strict(pid_path) == (123, 10.0)
@@ -1812,8 +1812,8 @@ def test_pid_record_names_the_entry_point_under_an_inline_launcher(tmp_path, mon
     (#124029, #123151)."""
     import types
 
-    entry = types.SimpleNamespace(__file__="/opt/Hermes Agent/hermes-agent/hermes_cli/main.py")
-    monkeypatch.setitem(status.sys.modules, "hermes_cli.main", entry)
+    entry = types.SimpleNamespace(__file__="/opt/Hermes Agent/hermes-agent/kova_cli/main.py")
+    monkeypatch.setitem(status.sys.modules, "kova_cli.main", entry)
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(status.sys, "argv", ["-c", "gateway", "run"])
     record = status._build_pid_record()

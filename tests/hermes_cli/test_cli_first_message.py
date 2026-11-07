@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from agent.onboarding import PROFILE_BUILD_FLAG, is_seen
-from hermes_cli.config_effective import load_user_config_effective
+from kova_cli.config_effective import load_user_config_effective
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text, write_hermes_home
 
 ROOT = Path(__file__).parents[2]
@@ -33,7 +33,7 @@ def test_first_cli_message_in_a_fresh_home_reaches_the_model_unchanged(tmp_path)
         for name in ("HERMES_DESKTOP", "HERMES_DASHBOARD_SESSION_TOKEN"):
             env.pop(name, None)
         proc = subprocess.run(
-            [sys.executable, "-m", "hermes_cli.main", "chat", "-q", PROMPT],
+            [sys.executable, "-m", "kova_cli.main", "chat", "-q", PROMPT],
             cwd=ROOT, env=env, stdin=subprocess.DEVNULL, capture_output=True,
             text=True, encoding="utf-8", timeout=240, check=False,
         )

@@ -202,7 +202,7 @@ def test_resolving_a_path_entry_under_the_home_is_command_lookup(protected_home,
         guard.check(entry.parent, metadata=False)
 
 
-def test_checkout_inside_a_guarded_root_is_not_hermes_state():
+def test_checkout_inside_a_guarded_root_is_not_kova_state():
     """The default install checks the repo out INSIDE the home (install.sh:
     INSTALL_DIR=$HERMES_HOME/hermes-agent): the checkout, its .venv and test
     data are exempt even when the guarded root contains them; siblings under
@@ -220,7 +220,7 @@ def test_checkout_inside_a_guarded_root_is_not_hermes_state():
 def test_pm_generation_dir_around_the_running_venv_is_the_interpreter(tmp_path, kind):
     """scripts/run_tests.sh runs ``<home>/installs/<key>/<kind>/<gen>/venv`` with HOME pointed at the
     run's fake home, so that venv sits under the guarded root. `hermes update` probes
-    ``<venv>/../hermes_cli/main.py`` (update_owning_install) and must not trip the guard."""
+    ``<venv>/../kova_cli/main.py`` (update_owning_install) and must not trip the guard."""
     from tests.home_io_guard import _pm_generation_dirs
 
     generation = tmp_path / ".hermes" / "installs" / "0123456789abcdef" / kind / "gen-1"

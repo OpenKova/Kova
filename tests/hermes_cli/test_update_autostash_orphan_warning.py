@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone, UTC
 
 import pytest
 
-from hermes_cli import update_cmd
+from kova_cli import update_cmd
 
 
 def _git(cwd, *args, check=True):

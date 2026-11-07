@@ -27,8 +27,8 @@ def hermes_env(tmp_path, monkeypatch):
 
     # Reload modules that cache get_hermes_home() at import time.
     import importlib
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import kova_constants
+    importlib.reload(kova_constants)
     import cron.jobs
     importlib.reload(cron.jobs)
     import cron.scheduler
@@ -115,7 +115,7 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
     vars in its environment, and the agent path's per-run dotenv reload never
     executes for no_agent jobs — delivery home channels stayed unresolved.
     run_job must load .env at the top of the no_agent branch."""
-    from hermes_cli import env_loader
+    from kova_cli import env_loader
     from cron.jobs import create_job
     from cron.scheduler import run_job
 
@@ -155,7 +155,7 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     from agent.secret_scope import (
         build_profile_secret_scope, reset_secret_scope, set_multiplex_active, set_secret_scope)
     from cron.scheduler_script import _run_job_script
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from kova_constants import reset_hermes_home_override, set_hermes_home_override
 
     (hermes_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
     monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")  # what load_hermes_dotenv() did at startup
@@ -350,8 +350,8 @@ def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, m
     from agent.secret_sources.base import FetchResult
     from agent.secret_sources.registry import ApplyReport, SourceReport
     from cron.scheduler_script import _run_job_script
-    from hermes_cli import env_loader
-    from hermes_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_cli import env_loader
+    from kova_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     launch = get_process_hermes_home()
     (launch / ".env").write_text("LAUNCH_ONLY_VALUE=launch-only\nCUSTOM_CRON_VALUE=launch\n", encoding="utf-8")
@@ -404,8 +404,8 @@ def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own
 
     from agent import secret_scope
     from cron.scheduler_script import _run_job_script
-    from hermes_cli import env_loader, managed_scope
-    from hermes_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
+    from kova_cli import env_loader, managed_scope
+    from kova_constants import get_process_hermes_home, reset_hermes_home_override, set_hermes_home_override
 
     launch = get_process_hermes_home()
     managed = launch / "managed"

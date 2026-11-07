@@ -27,11 +27,11 @@ def curator_env(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
-    import hermes_constants
-    importlib.reload(hermes_constants)
+    import kova_constants
+    importlib.reload(kova_constants)
     from agent import curator
     importlib.reload(curator)
-    from hermes_cli import update_cmd_maint
+    from kova_cli import update_cmd_maint
     importlib.reload(update_cmd_maint)
 
     yield {

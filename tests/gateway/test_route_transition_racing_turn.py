@@ -37,8 +37,8 @@ def served(tmp_path, monkeypatch):
     root.mkdir(mode=0o700)
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
     monkeypatch.setenv('HERMES_HOME', str(root))
-    import hermes_state
-    monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
+    import kova_state
+    monkeypatch.setattr(kova_state, 'DEFAULT_DB_PATH', kova_state._IMPORT_DEFAULT_DB_PATH)
     config = GatewayConfig()
     config._runtime_profile_homes = (('default', root),)
     runner = GatewayRunner(config)

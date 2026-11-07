@@ -210,7 +210,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
     out, sinks, facts = open(log, "wb"), [], {}
 
     def spawn(*argv: str, **extra: str) -> subprocess.Popen:
-        return subprocess.Popen([python_exe(), "-m", "hermes_cli.main", *argv], cwd=str(home),
+        return subprocess.Popen([python_exe(), "-m", "kova_cli.main", *argv], cwd=str(home),
                                 env={**env, **extra}, stdin=subprocess.DEVNULL, stdout=out,
                                 stderr=subprocess.STDOUT)
     try:

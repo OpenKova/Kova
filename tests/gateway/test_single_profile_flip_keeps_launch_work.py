@@ -7,12 +7,12 @@ import types
 
 import pytest
 
-import hermes_constants
+import kova_constants
 from gateway.config import GatewayConfig
 from gateway.run import GatewayRunner
 from gateway.status import flush_runtime_status, write_runtime_status
-from hermes_cli import gateway_migrate as gm
-from hermes_cli.gateway_multiplex_mode import SINGLE_PROFILE_REASON
+from kova_cli import gateway_migrate as gm
+from kova_cli.gateway_multiplex_mode import SINGLE_PROFILE_REASON
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def standalone_host(tmp_path, monkeypatch):
     (home / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
-    monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
+    monkeypatch.setattr(kova_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gm, "_installed_services", lambda _home: [])
     monkeypatch.setattr(gm, "_live_gateway_pid", lambda _home: None)
     monkeypatch.setattr(gm, "_host_supports_migration", lambda: None)
@@ -117,7 +117,7 @@ async def test_default_profiles_mcp_connections_survive_the_flip(standalone_host
         with _profile_runtime_scope(home):           # the re-wired primary handler's scope
             assert check(), "default profile's live MCP server vanished after the flip"
     finally:
-        for stale in (key, (hermes_constants.hermes_home_key(home), key)):
+        for stale in (key, (kova_constants.hermes_home_key(home), key)):
             core._servers.pop(stale, None)
             core._server_scope_keys.pop(stale, None)
             core._server_tool_scopes.pop(stale, None)
@@ -261,7 +261,7 @@ async def test_default_profiles_mcp_server_is_still_owned_after_the_flip(standal
     from tools.mcp_tool_registration import _register_server_tools
     from tools.registry import registry
     from gateway.run import _profile_runtime_scope
-    from hermes_constants import hermes_home_key
+    from kova_constants import hermes_home_key
     runner, home = standalone_host
     cfg = {"url": "https://mcp.example/gh"}
     closed = []

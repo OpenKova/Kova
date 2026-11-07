@@ -12,7 +12,7 @@ from types import SimpleNamespace
 import pytest
 
 import cli
-from hermes_cli.plugins import get_plugin_manager
+from kova_cli.plugins import get_plugin_manager
 
 
 @pytest.fixture(autouse=True)

@@ -16,7 +16,7 @@ import sys
 
 
 import pytest
-import hermes_yaml as yaml
+import kova_yaml as yaml
 
 from tests.pm._fixtures import _wheel, isolated_python as isolated_python  # noqa: PLC0414 -- the self-alias is load-bearing: it suppresses F811 for the pytest fixture parameter shadowing this import
 
@@ -76,8 +76,8 @@ class PluginWorld:
         return repo, version(repo, **kwargs)
 
     def command(self, action: str, **kwargs) -> None:
-        from hermes_cli.plugins_cmd import plugins_command
-        from hermes_cli.subcommands.plugins import build_plugins_parser
+        from kova_cli.plugins_cmd import plugins_command
+        from kova_cli.subcommands.plugins import build_plugins_parser
 
         parser = argparse.ArgumentParser()
         build_plugins_parser(parser.add_subparsers(), cmd_plugins=plugins_command)

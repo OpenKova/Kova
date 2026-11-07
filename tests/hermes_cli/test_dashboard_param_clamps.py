@@ -21,12 +21,12 @@ from fastapi.testclient import TestClient
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "clamp-test-token")
-    from hermes_cli import web_server
-    import hermes_state
+    from kova_cli import web_server
+    import kova_state
 
-    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
+    monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
     # The owner initializes storage, not GET requests or an unrelated lifespan.
-    with closing(hermes_state.SessionDB()) as db:
+    with closing(kova_state.SessionDB()) as db:
         db.create_session("clamp-session", source="cli")
 
     with closing(TestClient(web_server.app, raise_server_exceptions=False)) as c:

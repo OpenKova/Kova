@@ -30,7 +30,7 @@ def _make_cli(questions, answers, choices, active):
 
 def _rendered(cli, columns, lines):
     size = shutil.os.terminal_size((columns, lines))
-    with patch("hermes_cli.cli_tui_mixin.shutil.get_terminal_size", return_value=size):
+    with patch("kova_cli.cli_tui_mixin.shutil.get_terminal_size", return_value=size):
         fragments = cli._get_clarify_display_fragments()
     return "".join(text for _style, text in fragments)
 

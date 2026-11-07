@@ -14,8 +14,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from hermes_cli import gateway_runtime
-import hermes_constants
+from kova_cli import gateway_runtime
+import kova_constants
 
 
 _SCRIPT = Path(__file__).resolve().parents[2] / "ui-tui" / "scripts" / "gateway_bootstrap.py"
@@ -45,7 +45,7 @@ def test_recover_reensures_an_owner_that_is_gone(monkeypatch, tmp_path, record):
     home.mkdir()
     if record is not None:
         (home / "gateway_state.json").write_text(json.dumps(record))
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint",
                         lambda h, timeout=5: SimpleNamespace(state="absent", endpoint=None, reason_code=None, detail=None))
     calls = []
@@ -76,7 +76,7 @@ def test_recover_reensures_any_unready_owner(monkeypatch, tmp_path, observed):
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint", lambda h, timeout=5: observed)
     calls = []
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", lambda h, timeout=30, idle_exit=False: (
@@ -91,7 +91,7 @@ def test_failure_names_the_reason_and_its_remedy(monkeypatch, tmp_path):
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", lambda h, timeout=30, idle_exit=False:
                         SimpleNamespace(state="incompatible", endpoint=None, reason_code="runtime_protocol",
                                         detail="the gateway belongs to another Hermes install; stop it there"))
@@ -108,7 +108,7 @@ def test_started_daemon_does_not_inherit_the_launch_time_kanban_board(monkeypatc
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
     monkeypatch.setenv("HERMES_KANBAN_BOARD", "launch-board")
     seen = []
 
@@ -135,7 +135,7 @@ def test_restart_wait_owner_is_attachable_on_start_and_recover(monkeypatch, tmp_
     endpoint = SimpleNamespace(profile_id=str(home), instance_id="draining-owner", api_origin="http://127.0.0.1:1",
                                runtime_protocol=1, control_home=str(home))
     receipt = SimpleNamespace(state="draining", endpoint=endpoint, reason_code="restart_wait", detail=None)
-    monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
+    monkeypatch.setattr(kova_constants, "get_hermes_home", lambda: home)
     monkeypatch.setattr(gateway_runtime, "discover_gateway_endpoint", lambda h, timeout=5: receipt)
     ensured = []
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime",
@@ -147,7 +147,7 @@ def test_restart_wait_owner_is_attachable_on_start_and_recover(monkeypatch, tmp_
         import gateway.runtime_bootstrap_windows as windows_bootstrap
         monkeypatch.setattr(windows_bootstrap, "query_runtime_control", lambda h, req, timeout: reply)
     else:
-        import hermes_cli.gateway_runtime_discovery as discovery
+        import kova_cli.gateway_runtime_discovery as discovery
         stream = io.BytesIO(reply)
 
         class Peer:

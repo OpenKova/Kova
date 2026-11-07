@@ -30,9 +30,9 @@ hermes_sync() {
     ) >&2
 }
 
-# hermes_bootstrap_python REPO: print the interpreter that can run pm before
+# kova_bootstrap_python REPO: print the interpreter that can run pm before
 # any dependency is importable. It only emits the environment; it installs nothing.
-hermes_bootstrap_python() {
+kova_bootstrap_python() {
     local repo="$1" store candidate
     for candidate in "$repo/.venv/bin/python" "$repo/.venv/Scripts/python.exe" \
                      "$repo/venv/bin/python" "$repo/venv/Scripts/python.exe"; do
@@ -52,7 +52,7 @@ hermes_bootstrap_python() {
 # as a script for a shell of DIALECT (`sh` or `fish`).
 hermes_compose_env() {
     local repo="$1" dialect="$2" python script
-    python="$(hermes_bootstrap_python "$repo")" || {
+    python="$(kova_bootstrap_python "$repo")" || {
         echo "no bootstrap Python found; run setup-hermes.sh" >&2
         return 1
     }
