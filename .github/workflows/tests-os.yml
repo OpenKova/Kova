@@ -226,18 +226,6 @@ jobs:
         # (a half-extracted download, a worktree its later cleanup never removed).
         uses: ./.github/actions/check-clean-worktree
 
-  install-update-e2e:
-    # The real scripts/install.ps1 -> `hermes update` HEAD -> NEXT journey on a real Windows
-    # host (tests/e2e/core/windows_update): fresh install, gateway across the update,
-    # interpreter selection, non-ASCII profile paths and tool ACLs, partial-clone fetch and
-    # venv holders. Its own workflow so wine2e-install/** pushes can run it alone.
-    name: Windows install + update E2E
-    if: inputs.e2e_upgrade
-    uses: ./.github/workflows/windows-install-update-e2e.yml
-    with:
-      commit: ${{ inputs.commit }}
-      strict_acceptance: ${{ inputs.strict_acceptance }}
-
   e2e-windows:
     # Real Hermes processes on a real Windows host (tests/e2e/core/windows): hermes.exe,
     # `hermes serve`, `hermes gateway run/stop`, the tui_gateway stdio process, cron script
