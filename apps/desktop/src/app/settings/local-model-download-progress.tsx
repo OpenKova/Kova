@@ -12,7 +12,7 @@ import {
   watchLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
 import { notifyError } from '@/store/notifications'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 import { Pill } from './primitives'
 

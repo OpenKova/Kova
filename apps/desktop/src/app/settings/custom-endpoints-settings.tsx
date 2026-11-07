@@ -24,7 +24,7 @@ import type {
   CustomEndpointApiMode,
   CustomEndpointModelDetail,
   CustomEndpointUpdate
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import { ComboboxInput } from './combobox-input'
 import { EmptyState, Pill, SectionHeading, SettingsContent, SettingsSkeleton } from './primitives'

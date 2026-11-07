@@ -94,7 +94,7 @@ import {
   refreshProfileRemoteOverrides
 } from '@/store/profile-remote-override'
 import { runExportProfileFlow, runImportProfileFlow } from '@/store/profile-share'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 import { CreateProfileDialog } from '../../profiles/create-profile-dialog'
 import { DeleteProfileDialog } from '../../profiles/delete-profile-dialog'

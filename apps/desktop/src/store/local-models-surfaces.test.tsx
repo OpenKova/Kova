@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { KovaApiRequest, KovaConnection } from '@/global'
-import type { LocalCatalogModel, LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus, LocalRuntimeJob } from '@/types/kova'
 
 vi.mock('@/kova', async (): Promise<object> => ({
   ...(await import('@/api/local-models')),

@@ -44,7 +44,7 @@ import { onSessionsChanged } from '@/store/session-sync'
 import { requestSkillInstallFromDeepLink } from '@/store/skill-deeplink-install'
 import { openUpdatesWindow, startUpdatePoller, stopUpdatePoller } from '@/store/updates'
 import { isBrowserWindow, isHudWindow, isPeerInstanceWindow, isSecondaryWindow } from '@/store/windows'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { requestComposerFocus, requestComposerInsert } from '../../chat/composer/focus'
 import { appViewForPath, isOverlayView, NEW_CHAT_ROUTE, routeSessionId, sessionRoute } from '../../routes'

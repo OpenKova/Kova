@@ -12,7 +12,7 @@ import { type ChatMessage, chatMessageText, toChatMessages } from '@/lib/chat-me
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { $activeSessionId, $selectedStoredSessionId } from '@/store/session'
 import { $sessionStates, clearAllSessionStates, publishSessionState } from '@/store/session-states'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/kova'
 
 import { reconcileActiveTranscript } from './use-background-sync'
 

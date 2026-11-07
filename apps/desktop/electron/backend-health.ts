@@ -1,5 +1,5 @@
 // Relative, not `@kova/shared`: esbuild bundles electron/ without tsconfig paths.
-import { isKovaCloudUrl } from '../../shared/src/hermes-cloud'
+import { isKovaCloudUrl } from '../../shared/src/kova-cloud'
 
 // A cold backend boot (plugin discovery + route mounting at web_server import
 // time) can take 45-60s on slower hardware. A 45s deadline makes first-boot

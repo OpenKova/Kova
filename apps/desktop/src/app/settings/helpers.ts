@@ -1,7 +1,7 @@
 import { foldPersonalityName } from '@/lib/personalities'
 import { asText, normalize } from '@/lib/text'
 import { localShowReasoning } from '@/store/reasoning-disclosure'
-import type { ConfigFieldSchema, KovaConfig, KovaConfigRecord, ToolsetInfo } from '@/types/hermes'
+import type { ConfigFieldSchema, KovaConfig, KovaConfigRecord, ToolsetInfo } from '@/types/kova'
 
 import { BUILTIN_PERSONALITIES, ENUM_OPTIONS, PROVIDER_GROUPS, SECTIONS } from './constants'
 

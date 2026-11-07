@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { notifyError } from '@/store/notifications'
 import { runGatewayRestart } from '@/store/system-actions'
-import type { StatusResponse } from '@/types/hermes'
+import type { StatusResponse } from '@/types/kova'
 
 interface GatewayMenuPanelProps {
   gatewayState: string

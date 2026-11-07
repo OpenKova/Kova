@@ -28,7 +28,7 @@
  */
 
 // Relative, not `@kova/shared`: esbuild bundles electron/ without tsconfig paths.
-import { KOVA_CLOUD_MANAGED, isKovaCloudUrl } from '../../shared/src/hermes-cloud'
+import { KOVA_CLOUD_MANAGED, isKovaCloudUrl } from '../../shared/src/kova-cloud'
 
 import {
   hostLabelFromBaseUrl,

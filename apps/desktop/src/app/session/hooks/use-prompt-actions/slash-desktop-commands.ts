@@ -5,7 +5,7 @@ import { openCommandPalette } from '@/store/command-palette'
 import { $displayTimestamps, setDisplayTimestampsWindowOverride } from '@/store/display-timestamps'
 import { runExportProfileFlow, runImportProfileFlow } from '@/store/profile-share'
 import { $connection } from '@/store/session'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/kova'
 
 import type { ClientSessionState } from '../../../types'
 

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
 import { $confirmRequest } from '@/store/confirm'
-import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
+import type { EnvVarInfo, OAuthProvider } from '@/types/kova'
 
 const listOAuthProviders = vi.fn()
 const disconnectOAuthProvider = vi.fn()

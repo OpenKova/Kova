@@ -8,7 +8,7 @@ import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { type ChatMessage, type ChatMessagePart, chatMessageText, textPart } from '@/lib/chat-messages'
 import { foldPersonalityName } from '@/lib/personalities'
 import type { ComposerAttachment } from '@/store/composer'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 export { BUILTIN_PERSONALITIES } from '@/lib/personalities'
 

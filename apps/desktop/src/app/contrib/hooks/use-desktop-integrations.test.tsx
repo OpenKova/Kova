@@ -19,7 +19,7 @@ import {
 } from '@/store/session'
 import { dropSessionState, publishSessionState } from '@/store/session-states'
 import type * as WindowsStore from '@/store/windows'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { makeSessionInfo } from '../../../test/session-info'
 import { sessionRoute } from '../../routes'

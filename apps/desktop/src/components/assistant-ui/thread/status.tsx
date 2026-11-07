@@ -22,7 +22,7 @@ import { parseModelLoadWait, sessionProviderWait } from '@/store/provider-wait'
 import { $showReasoning } from '@/store/reasoning-disclosure'
 import { $currentModel, $currentProvider } from '@/store/session'
 import { type DraftingTool, sessionDraftingTool } from '@/store/tool-drafting'
-import type { LocalModelLoadProgress } from '@/types/hermes'
+import type { LocalModelLoadProgress } from '@/types/kova'
 
 // A status line is scaffolding like any other — "Editing" while the model
 // drafts a call is the same kind of line as "Explored 3 files" once it has run,

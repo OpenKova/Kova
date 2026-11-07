@@ -74,7 +74,6 @@ def _all_names():
 def test_at_least_the_expected_population():
     # sanity: the globs actually find the trees (not a count snapshot)
     paths = _skill_paths()
-    assert any("optional-skills" in str(p) for p in paths)
     assert any(str(p.parent).startswith(str(REPO / "skills")) for p in paths)
 
 @pytest.mark.parametrize("p", _params())
@@ -87,7 +86,7 @@ def test_required_frontmatter_fields(p):
     ]
     if missing and not _grandfathered(p, "fields"):
         pytest.fail(f"{_rel(p)}: missing frontmatter fields: {missing}")
-    hermes = (fm.get("metadata") or {}).get("hermes") or {}
+    hermes = (fm.get("metadata") or {}).get("kova") or {}
     if not (hermes.get("tags") or fm.get("tags")) and not _grandfathered(p, "tags"):
         pytest.fail(f"{_rel(p)}: no tags (metadata.kova.tags or top-level tags)")
 
@@ -115,7 +114,7 @@ def test_description_hardline(p):
 @pytest.mark.parametrize("p", _params())
 def test_related_skills_resolve(p):
     fm, _ = _frontmatter(p)
-    hermes = (fm.get("metadata") or {}).get("hermes") or {}
+    hermes = (fm.get("metadata") or {}).get("kova") or {}
     dangling = [
         rs for rs in (hermes.get("related_skills") or []) if rs not in _all_names()
     ]

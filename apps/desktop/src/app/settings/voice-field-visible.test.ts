@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { voiceFieldVisible } from './helpers'
 

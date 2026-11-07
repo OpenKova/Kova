@@ -1,6 +1,6 @@
 import { hasCronRunVerdict, isCronRunReadOnly, recordCronRunVerdict } from '@/store/read-only-transcript'
 import { ownerLookupSessionRows, sessionMatchesStoredId } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 type CronRunLiveness = Pick<SessionInfo, 'ended_at' | 'last_active' | 'scheduler_owned'> &
   Partial<Pick<SessionInfo, 'is_active'>>

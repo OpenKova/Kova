@@ -19,7 +19,7 @@ import {
   setLocalReaction
 } from '@/store/reactions-local'
 import { sessionEventScopeFor } from '@/store/session-states'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/kova'
 
 // Stable empty identity — a fresh [] per render would re-run every consumer.
 const EMPTY_REACTIONS: MessageReaction[] = []

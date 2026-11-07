@@ -29,7 +29,7 @@ import {
   type TranscriptProfileScope,
   transcriptTailState
 } from '@/store/transcript-tail'
-import type { SessionMessage, SessionMessagesResponse } from '@/types/hermes'
+import type { SessionMessage, SessionMessagesResponse } from '@/types/kova'
 
 /**
  * Compaction projection can stamp the session's opening USER row

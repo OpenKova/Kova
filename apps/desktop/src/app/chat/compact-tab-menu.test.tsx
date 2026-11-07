@@ -10,7 +10,7 @@ import { registry } from '@/contrib/registry'
 import { $selectedStoredSessionId, $sessions } from '@/store/session'
 import { $sessionTiles, type SessionTileDelegate, setSessionTileDelegate } from '@/store/session-states'
 import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { watchSessionTiles, workspaceTabActions } from './session-tile'
 

@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { ToolsetConfig, WebCapability } from '@/types/hermes'
+import type { ToolsetConfig, WebCapability } from '@/types/kova'
 
 // Collect the component graph before the behavioral test deadline starts.
 import { ToolsetConfigPanel } from './toolset-config-panel'

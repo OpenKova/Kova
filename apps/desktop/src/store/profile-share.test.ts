@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopTheme } from '@/themes/types'
-import type { ProfileDesktopOverlay } from '@/types/hermes'
+import type { ProfileDesktopOverlay } from '@/types/kova'
 
 // Keep side-effecting transitive imports inert (gateway sockets, REST).
 vi.mock('@/store/gateway', async () => {

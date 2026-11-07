@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { deleteProfile, getProfileSoul, updateProfileSoul } from '@/kova'
 import { retireLocalProfileGateways } from '@/store/gateway'
 import { refreshProfiles, selectProfile, setActiveProfile } from '@/store/profile'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 import { ProfilesView } from './index'
 

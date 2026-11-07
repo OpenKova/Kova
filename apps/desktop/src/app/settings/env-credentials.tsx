@@ -6,7 +6,7 @@ import { type IconComponent } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import type { EnvVarInfo } from '@/types/hermes'
+import type { EnvVarInfo } from '@/types/kova'
 
 import { asText, includesQuery, redactedValue, withoutKey } from './helpers'
 import { Pill } from './primitives'

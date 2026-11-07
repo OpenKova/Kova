@@ -140,7 +140,7 @@ import type {
   SessionMessagesResponse,
   SessionResumeResult,
   UsageStats
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import { navigateToWorkspacePage, NEW_CHAT_ROUTE, sessionRoute, SETTINGS_ROUTE } from '../../../routes'
 import type { ClientSessionState, SidebarNavItem } from '../../../types'

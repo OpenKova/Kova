@@ -10,7 +10,7 @@ import { Lock } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { notify, notifyError } from '@/store/notifications'
-import type { SkillInfo } from '@/types/hermes'
+import type { SkillInfo } from '@/types/kova'
 
 import { DetailPane, ListStripMenu, type ListStripMenuToggle } from '../../master-detail'
 import { CatalogAlert } from '../catalog/catalog-alert'

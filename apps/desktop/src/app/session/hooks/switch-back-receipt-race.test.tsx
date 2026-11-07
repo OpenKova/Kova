@@ -18,7 +18,7 @@ import {
   setSessions
 } from '@/store/session'
 import { clearAllSessionStates } from '@/store/session-states'
-import type { SessionMessage, SessionResumeResult } from '@/types/hermes'
+import type { SessionMessage, SessionResumeResult } from '@/types/kova'
 
 import { useMessageStream } from './use-message-stream'
 import { useSessionActions } from './use-session-actions'

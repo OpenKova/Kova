@@ -8,7 +8,7 @@ import { isDesktopToolsetVisible } from '@/lib/desktop-toolsets'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { notify, notifyError } from '@/store/notifications'
-import type { ToolsetInfo } from '@/types/hermes'
+import type { ToolsetInfo } from '@/types/kova'
 
 import { asText, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
 import { CatalogSwitch } from '../catalog/catalog-switch'

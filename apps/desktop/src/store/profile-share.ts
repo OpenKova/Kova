@@ -22,7 +22,7 @@ import { modePref, skinPref, type ThemeMode } from '@/themes/context'
 import { BUILTIN_THEMES } from '@/themes/presets'
 import type { DesktopTheme } from '@/themes/types'
 import { $userThemes, installUserTheme, resolveTheme } from '@/themes/user-themes'
-import type { ProfileDesktopOverlay } from '@/types/hermes'
+import type { ProfileDesktopOverlay } from '@/types/kova'
 
 import { notify, notifyError } from './notifications'
 import {

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { type ProfileScope, profileScopeKey } from '@/kova'
 import { useI18n } from '@/i18n'
-import type { ToolsetInfo } from '@/types/hermes'
+import type { ToolsetInfo } from '@/types/kova'
 
 import { ToolChip } from '../../master-detail'
 import { PanelPill } from '../../overlays/panel'

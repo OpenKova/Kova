@@ -10,7 +10,7 @@ import {
   $settingsScopeProfile,
   setSettingsScope
 } from '@/store/settings-scope'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 // Settings-chip label: the Bot Mode title the Bots roster shows when set
 // (ui_meta['kova-bots'].title), else the app-wide profileLabel

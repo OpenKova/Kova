@@ -4,7 +4,7 @@ import { TOOL_LABELS_ARG } from '@/lib/connector-tools'
 import { firstStringField, normalize } from '@/lib/text'
 import { isTodoToolName, parseTodos } from '@/lib/todos'
 import type { ToolResultMetadata } from '@/lib/tool-result-metadata'
-import type { SessionMessage, StoredToolCallLabels } from '@/types/hermes'
+import type { SessionMessage, StoredToolCallLabels } from '@/types/kova'
 
 import type { ChatMessage, ChatMessagePart, GatewayEventPayload } from './types'
 

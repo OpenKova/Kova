@@ -5,7 +5,7 @@ import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/kova'
 import { Check, ExternalLink, Loader2 } from '@/lib/icons'
 import { refreshMemoryStatus } from '@/store/memory-status'
 import { notifyError } from '@/store/notifications'
-import type { MemoryProviderOAuthStatus } from '@/types/hermes'
+import type { MemoryProviderOAuthStatus } from '@/types/kova'
 
 const POLL_MS = 1500
 const POLL_TIMEOUT_MS = 120_000

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type * as KovaApi from '@/kova'
 import { getMemoryProviderConfig, getMemoryStatus, saveMemoryProviderConfig } from '@/kova'
-import type { MemoryProviderConfig, MemoryProviderStatus, MemoryStatusResponse } from '@/types/hermes'
+import type { MemoryProviderConfig, MemoryProviderStatus, MemoryStatusResponse } from '@/types/kova'
 
 vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),

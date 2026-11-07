@@ -7,7 +7,7 @@ import { $clarifyRequests } from '@/store/clarify'
 import { $gateway } from '@/store/gateway'
 import { answerParkedCard } from '@/store/parked-card-answers'
 import { resetServerRequestsForTests } from '@/store/server-requests'
-import type { SessionResumeResult } from '@/types/hermes'
+import type { SessionResumeResult } from '@/types/kova'
 
 import { CanonicalDesktopProtocol } from './canonical-protocol'
 import { KovaGateway } from './client'

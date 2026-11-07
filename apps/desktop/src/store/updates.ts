@@ -25,7 +25,7 @@ import { $connectionsRegistry, refreshConnectionsRegistry } from '@/store/connec
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { dismissNotification, notify } from '@/store/notifications'
 import { $connection } from '@/store/session'
-import type { BackendUpdateCheckResponse, UpdateReceiptSummary } from '@/types/hermes'
+import type { BackendUpdateCheckResponse, UpdateReceiptSummary } from '@/types/kova'
 
 /** Keyed per retired-channel revision: a new retirement (or a revision bump on
  *  the same channel) re-shows the notice, a plain re-check never does. */

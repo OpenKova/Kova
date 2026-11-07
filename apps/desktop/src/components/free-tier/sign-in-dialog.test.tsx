@@ -6,7 +6,7 @@ import type * as KovaApi from '@/kova'
 import { $freeTierStatus } from '@/store/free-tier'
 import { $freeTierSignIn, noteFreeTierTurnComplete, openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { markOnboardingDecided, setOnboardingSurfaceActive } from '@/store/onboarding-presence'
-import type { AppHandoffStatus, FreeTierStatus } from '@/types/hermes'
+import type { AppHandoffStatus, FreeTierStatus } from '@/types/kova'
 
 const pollOAuthSession = vi.fn()
 // The two answers the dialog reads: `free_tier.status` and `free_tier.claim_nudge`.

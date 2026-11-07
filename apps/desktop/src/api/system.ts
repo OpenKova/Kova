@@ -12,7 +12,7 @@ import type {
   MemoryProviderConfig,
   MemoryProviderOAuthStatus,
   MemoryStatusResponse
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import {
   capabilityScoped,

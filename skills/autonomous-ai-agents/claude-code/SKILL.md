@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   kova:
     tags: [Coding-Agent, Claude, Anthropic, Code-Review, Refactoring, PTY, Automation]
-    related_skills: [codex, kova-agent, opencode]
+    related_skills: [codex, kova-agent]
 ---
 
 # Claude Code — Kova Orchestration Guide

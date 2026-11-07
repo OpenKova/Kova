@@ -44,7 +44,7 @@ import { flushStreamDeltas } from '@/store/stream-delta-flush'
 import { clearSessionSubagents } from '@/store/subagents'
 import { clearSessionTodos } from '@/store/todos'
 import { setSessionDraftingTool } from '@/store/tool-drafting'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import type { GatewayRequester } from '../contrib/types'
 import { uploadComposerAttachment } from '../session/hooks/use-prompt-actions'

@@ -29,7 +29,7 @@ import { $connection, applyConfiguredDefaultProjectDir, ensureDefaultWorkspaceCw
 import { untombstoneSessions } from '@/store/session-removal'
 import { forgetSessionUnread } from '@/store/session-unread'
 import { listEveryArchivedSession } from '@/store/sidebar-archive'
-import type { KovaConfigRecord, SessionInfo } from '@/types/hermes'
+import type { KovaConfigRecord, SessionInfo } from '@/types/kova'
 
 import { EmptyState, ListRow, SectionHeading, SettingsContent, SettingsSkeleton, ToggleRow } from './primitives'
 import { SETTING_IDS, settingElementId } from './settings-manifest'

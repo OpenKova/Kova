@@ -7,7 +7,7 @@ import { getOfficialSkills, type ProfileScope, profileScopeKey } from '@/kova'
 import { useI18n } from '@/i18n'
 import { HUB_SOURCES_KEY, installHubSkill, notifyHubActionFailed, OFFICIAL_SKILLS_KEY } from '@/store/hub-actions'
 import { notify } from '@/store/notifications'
-import type { SkillHubSourcesResponse, SkillInfo } from '@/types/hermes'
+import type { SkillHubSourcesResponse, SkillInfo } from '@/types/kova'
 
 import { skillSearchTerms } from '../skills/skills-data'
 

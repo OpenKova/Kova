@@ -10,7 +10,7 @@ import {
   preserveLocalSystemNotices,
   toChatMessages
 } from '@/lib/chat-messages'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/kova'
 
 /**
  * Rows the renderer draws and never stores (a /btw echo and its answer, a

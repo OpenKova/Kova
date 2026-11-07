@@ -7,7 +7,7 @@ import { createBrowserFilesBridge } from '@/lib/browser-files'
 import type { BrowserBootstrap } from '@/lib/browser-transport'
 import { $notifications } from '@/store/notifications'
 import { $activeSessionId, $connection, $selectedStoredSessionId, $sessions } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { GeneratedImage } from './generated-image-result'
 

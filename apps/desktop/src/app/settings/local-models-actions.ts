@@ -19,7 +19,7 @@ import {
   watchLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
 import { notify, notifyError } from '@/store/notifications'
-import type { LocalCatalogModel, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalCatalogModel, LocalRuntimeJob } from '@/types/kova'
 
 import { useScopedLocalModelsOwner } from './local-models-owner'
 

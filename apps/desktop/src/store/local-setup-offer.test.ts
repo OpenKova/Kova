@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { KovaConnection } from '@/global'
 import type * as Kova from '@/kova'
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/kova'
 
 const backend = vi.hoisted(() => ({ catalog: vi.fn(), status: vi.fn() }))
 

@@ -10,7 +10,7 @@ import {
   resolveChatFontFamily,
   setChatFontFamilyFromConfig
 } from '@/themes/chat-font'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { setKovaConfigCache, useKovaConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'

@@ -24,7 +24,7 @@ import {
   storedString,
   writeJson
 } from '@/lib/storage'
-import type { SessionInfo, UsageStats } from '@/types/hermes'
+import type { SessionInfo, UsageStats } from '@/types/kova'
 
 import { $removedSessionIds, isSessionRemovalPending, tombstoneRowIds } from './session-removal'
 import type { SessionOwnerRoute, SessionOwnerScope } from './session-request-router'

@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils'
 import { upsertDesktopActionTask } from '@/store/activity'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import type { ActionStatusResponse } from '@/types/hermes'
+import type { ActionStatusResponse } from '@/types/kova'
 
 import { MemoryLayersSummary } from '../settings/memory/memory-layers'
 

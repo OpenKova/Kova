@@ -10,7 +10,7 @@
 import { atom, computed } from 'nanostores'
 
 import { getLocalCatalog, getLocalModelsStatus } from '@/kova'
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/kova'
 
 import { $localModelsEnabled } from './local-models-flag'
 import { $connection } from './session'

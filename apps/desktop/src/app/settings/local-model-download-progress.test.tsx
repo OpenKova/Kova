@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import type * as Notifications from '@/store/notifications'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 vi.mock('@/kova', () => ({
   pauseLocalDownload: vi.fn(),

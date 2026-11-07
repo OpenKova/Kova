@@ -5,7 +5,7 @@ import { useI18n } from '@/i18n'
 import { hostHas } from '@/lib/host-capabilities'
 import { cn } from '@/lib/utils'
 import { normalizeProfileKey } from '@/store/profile'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 const NONE: ReadonlySet<string> = new Set()
 

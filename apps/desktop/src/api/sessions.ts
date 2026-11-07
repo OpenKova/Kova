@@ -8,7 +8,7 @@ import type {
   SessionMessage,
   SessionMessagesResponse,
   SessionSearchResponse
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import { createSessionMutationClient, type SessionMutationIdentity, type SessionMutationSnapshot } from '../../../shared/src/session-http-mutations'
 

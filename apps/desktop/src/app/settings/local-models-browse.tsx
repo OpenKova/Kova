@@ -25,7 +25,7 @@ import {
   watchLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
 import { notify, notifyError } from '@/store/notifications'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 import { downloadStatusText, gbLabel, LocalModelDownloadActions, ProgressBar } from './local-model-download-progress'
 import { useScopedLocalModelsOwner } from './local-models-owner'

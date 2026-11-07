@@ -8,7 +8,7 @@ import { AlertTriangle, Check, Loader2, RefreshCw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import type { TerminalBackendInfo, TerminalBackendsResponse } from '@/types/hermes'
+import type { TerminalBackendInfo, TerminalBackendsResponse } from '@/types/kova'
 
 import { Pill } from './primitives'
 

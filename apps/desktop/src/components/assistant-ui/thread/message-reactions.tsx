@@ -7,7 +7,7 @@ import { triggerHaptic } from '@/lib/haptics'
 import { Plus } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { QUICK_REACTIONS } from '@/store/reactions'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/kova'
 
 // Served from the app's own origin (vite.config.ts `kova:emojibase-assets`
 // plugin bundles emojibase-data): Electron must work offline, and the app

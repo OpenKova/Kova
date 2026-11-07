@@ -32,7 +32,7 @@ import { notify, notifyError } from '@/store/notifications'
 import { normalizeProfileKey } from '@/store/profile'
 import { repoDiscoveryPolicyFromConfig, repoDiscoveryPolicySignature, scanAndRecordRepos } from '@/store/projects'
 import { $settingsRequestProfile } from '@/store/settings-scope'
-import type { ConfigFieldSchema, KovaConfigRecord } from '@/types/hermes'
+import type { ConfigFieldSchema, KovaConfigRecord } from '@/types/kova'
 
 import { hermesConfigCacheWriter, useKovaConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'

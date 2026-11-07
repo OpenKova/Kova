@@ -6,7 +6,7 @@ import { CountSkeleton } from '@/components/ui/skeleton'
 import { previewSkillHub, type ProfileScope, profileScopeKey } from '@/kova'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
-import type { OfficialSkillInfo } from '@/types/hermes'
+import type { OfficialSkillInfo } from '@/types/kova'
 
 import { PanelPill } from '../../overlays/panel'
 import { asText, prettyName } from '../../settings/helpers'

@@ -34,7 +34,7 @@ import { exitProjectScope } from '@/store/project-scope'
 import { $connection, clearComposerSelectionOwner, setComposerSelectionOwner, setConnection } from '@/store/session'
 import type { SessionOwnerRoute } from '@/store/session-request-router'
 import { reloadOpenStarmapGraph, resetStarmapGraph } from '@/store/starmap'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 // Canonical key for a profile: trimmed, empty → "default". Used everywhere we
 // compare a session's owning profile against the live gateway's profile.

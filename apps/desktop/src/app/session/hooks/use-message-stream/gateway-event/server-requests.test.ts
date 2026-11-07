@@ -11,7 +11,7 @@ import { hasOpenServerRequest, resetServerRequestsForTests } from '@/store/serve
 import { setActiveSessionId, setSelectedStoredSessionId, setSessions } from '@/store/session'
 import { $sessionStates, $sessionTiles, dropSessionState, publishSessionState } from '@/store/session-states'
 import { $toursEnabled } from '@/store/tours'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { handleServerRequest, previewSessionRoute, requestNamesActiveSession } from './server-requests'
 import type { ServerRequestContext } from './server-requests'

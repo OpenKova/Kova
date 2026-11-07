@@ -45,7 +45,7 @@ import { $localModelOfferPending } from '@/store/local-model-offer'
 import { refreshOnboardingProviders } from '@/store/onboarding'
 import { $onboardingSurfaceClear } from '@/store/onboarding-presence'
 import { $currentModel, setModelPickerOpen } from '@/store/session'
-import type { AppHandoffStatus } from '@/types/hermes'
+import type { AppHandoffStatus } from '@/types/kova'
 
 interface FreeTierSignInDialogProps {
   /** The app's model-assignment path. Used only to re-home a live session that

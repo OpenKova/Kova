@@ -55,7 +55,7 @@ import {
   type SessionTombstoneGenerationSnapshot,
   tombstoneRowIds
 } from '@/store/session-removal'
-import type { ProjectInfo, ProjectsPayload } from '@/types/hermes'
+import type { ProjectInfo, ProjectsPayload } from '@/types/kova'
 
 import { recordFeatureUse } from './desktop-metrics'
 

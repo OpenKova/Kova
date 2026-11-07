@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as KovaApi from '@/kova'
 import type { FreeTierRequester } from '@/store/free-tier'
-import type { AppHandoffStatus } from '@/types/hermes'
+import type { AppHandoffStatus } from '@/types/kova'
 
 const startOAuthLogin = vi.fn()
 const pollOAuthSession = vi.fn()

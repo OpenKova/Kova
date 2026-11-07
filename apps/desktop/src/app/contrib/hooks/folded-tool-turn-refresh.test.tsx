@@ -18,7 +18,7 @@ import {
 } from '@/store/session'
 import { $sessionStates, clearAllSessionStates } from '@/store/session-states'
 import { clearSessionTodos } from '@/store/todos'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/kova'
 
 import { reconcileActiveTranscript } from './use-background-sync'
 

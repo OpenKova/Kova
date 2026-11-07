@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { Settings2, Wrench } from '@/lib/icons'
-import type { ConfigFieldSchema, KovaConfigRecord } from '@/types/hermes'
+import type { ConfigFieldSchema, KovaConfigRecord } from '@/types/kova'
 
 import {
   buildConfigSearchEntries,

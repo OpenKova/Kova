@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { KovaConnection } from '@/global'
 import { createClientSessionState } from '@/lib/chat-runtime'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { $queuedPromptsBySession } from './composer-queue'
 import { requestGatewayForProfile } from './gateway'

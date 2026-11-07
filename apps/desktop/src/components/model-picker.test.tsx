@@ -9,7 +9,7 @@ import { I18nProvider } from '@/i18n'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { localModelsKey, localModelsOwner } from '@/store/local-runtime-jobs'
 import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 import { ModelPickerDialog } from './model-picker'
 

@@ -103,7 +103,7 @@ import {
   sessionTileDelegate
 } from '@/store/session-states'
 import { runGatewayRestart } from '@/store/system-actions'
-import type { PaginatedSessions, UsageStats } from '@/types/hermes'
+import type { PaginatedSessions, UsageStats } from '@/types/kova'
 
 import type { SessionMutationSnapshot } from '../../../shared/src/session-http-mutations'
 
@@ -1946,7 +1946,7 @@ export { requestTheme } from '@/themes/request'
 export { retintTheme, themeHue } from '@/themes/retint'
 export type { DesktopTheme, DesktopThemeColors } from '@/themes/types'
 export { THEMES_AREA } from '@/themes/user-themes'
-export type { StatusResponse } from '@/types/hermes'
+export type { StatusResponse } from '@/types/kova'
 /** Public SDK name for the shared gateway wire event; kept stable for plugins. */
 export type { GatewayEvent as RpcEvent } from '@kova/shared'
 /** Bot Screen wire shapes, generated from `tui_gateway/contracts/display.py`. */

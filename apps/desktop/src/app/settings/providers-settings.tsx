@@ -27,7 +27,7 @@ import { $localModelsEnabled } from '@/store/local-models-flag'
 import { notify, notifyError } from '@/store/notifications'
 import { $desktopOnboarding, startManualLocalEndpoint, startManualProviderOAuth } from '@/store/onboarding'
 import { $settingsRequestProfile } from '@/store/settings-scope'
-import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
+import type { EnvVarInfo, OAuthProvider } from '@/types/kova'
 
 import { isKeyVar, ProviderKeyRows } from './credential-key-ui'
 import { CustomEndpointsSettings } from './custom-endpoints-settings'

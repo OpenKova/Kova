@@ -7,7 +7,7 @@ import { getMemoryProviderConfig, saveMemoryProviderConfig } from '@/kova'
 import { SlidersHorizontal } from '@/lib/icons'
 import { refreshMemoryStatus } from '@/store/memory-status'
 import { notifyError } from '@/store/notifications'
-import type { MemoryProviderConfig, MemoryProviderField } from '@/types/hermes'
+import type { MemoryProviderConfig, MemoryProviderField } from '@/types/kova'
 
 import { ListRow, Pill } from '../primitives'
 

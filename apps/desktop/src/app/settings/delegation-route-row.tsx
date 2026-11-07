@@ -1,6 +1,6 @@
 import type { ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { FIELD_DESCRIPTIONS } from './constants'
 import { DelegationModelProviderField, type DelegationModelProviderValue } from './delegation-model-provider-field'

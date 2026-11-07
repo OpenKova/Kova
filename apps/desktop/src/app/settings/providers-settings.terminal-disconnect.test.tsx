@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
 import { $confirmRequest } from '@/store/confirm'
-import type { OAuthProvider } from '@/types/hermes'
+import type { OAuthProvider } from '@/types/kova'
 
 import { ProvidersSettings } from './providers-settings'
 

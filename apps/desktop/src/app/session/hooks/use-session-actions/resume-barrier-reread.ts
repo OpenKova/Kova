@@ -12,7 +12,7 @@ import {
   ownerPendingTurns,
   runningAdmission
 } from '@/lib/inflight-turn-journal'
-import type { SessionMessage, SessionMessagesResponse, SessionResumeResult } from '@/types/hermes'
+import type { SessionMessage, SessionMessagesResponse, SessionResumeResult } from '@/types/kova'
 
 import type { ClientSessionState } from '../../../types'
 

@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { getSession } from '@/kova'
 import { parseSessionRefValue, sessionRefCacheKey, sessionRefFallbackLabel } from '@/lib/session-refs'
 import { $sessions, sessionMatchesStoredId } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 const titleCache = new Map<string, string>()
 const titleInflight = new Map<string, Promise<string>>()

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as KovaApi from '@/kova'
 import { queryClient } from '@/lib/query-client'
-import type { SkillInfo } from '@/types/hermes'
+import type { SkillInfo } from '@/types/kova'
 
 import { SkillDetail } from './skill-detail'
 import { skillsQueryKey } from './skills-data'

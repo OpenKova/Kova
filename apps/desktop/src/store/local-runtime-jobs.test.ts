@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { queryClient } from '@/lib/query-client'
 import { deferred } from '@/test/deferred'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 import type { LocalModelsOwner } from './local-runtime-jobs'
 

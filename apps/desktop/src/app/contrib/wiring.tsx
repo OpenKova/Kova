@@ -95,7 +95,7 @@ import { $titlebarAppActionsSide, titlebarAppActionsClusterCounts } from '@/stor
 import { armWakeWord, stopClientCapture } from '@/store/wake-word'
 import { isAuxiliaryWindow, isBrowserWindow, isHudWindow, isMainWindow } from '@/store/windows'
 import { useSkinCommand } from '@/themes/use-skin-command'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { closeWorkspaceTab } from '../chat/close-tab'
 import { requestComposerInsert } from '../chat/composer/focus'

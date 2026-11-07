@@ -37,7 +37,7 @@ import {
   startProviderOAuth
 } from '@/store/onboarding'
 import { $onboardingSurfaces, onboardingSurfaceActive } from '@/store/onboarding-presence'
-import type { OAuthProvider } from '@/types/hermes'
+import type { OAuthProvider } from '@/types/kova'
 
 import { DocsLink, FlowPanel, Status } from './flow'
 import { FreeTierSetupNotice } from './free-tier-setup-notice'

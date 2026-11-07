@@ -36,7 +36,7 @@ import {
   sessionTileOwnerRoute,
   setSessionTileDelegate
 } from '@/store/session-states'
-import type { SessionResumeResult } from '@/types/hermes'
+import type { SessionResumeResult } from '@/types/kova'
 
 import { refreshCronRunWriteGate } from '../../cron/open-cron-run'
 import type { usePromptActions } from '../../session/hooks/use-prompt-actions'

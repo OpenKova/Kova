@@ -4,7 +4,7 @@ import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { type I18nContextValue, I18nProvider, useI18n } from '@/i18n'
-import type { CustomEndpointsResponse } from '@/types/hermes'
+import type { CustomEndpointsResponse } from '@/types/kova'
 
 const getCustomEndpoints = vi.fn()
 const saveCustomEndpoint = vi.fn()

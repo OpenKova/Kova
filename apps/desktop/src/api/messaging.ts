@@ -14,7 +14,7 @@ import type {
   WebhookCreateResponse,
   WebhookEnableResponse,
   WebhooksResponse
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import { hermesApi, profileScoped } from './client'
 

@@ -1,4 +1,4 @@
-import type { McpCatalogResponse, McpServerSummary } from '@/types/hermes'
+import type { McpCatalogResponse, McpServerSummary } from '@/types/kova'
 
 import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
 

@@ -73,7 +73,7 @@ import {
 } from '@/store/model-visibility'
 import { $collapsedProviders, toggleCollapsedProvider } from '@/store/provider-collapse'
 import { $defaultReasoningEffort } from '@/store/session'
-import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/kova'
 
 import { type DaybreakControl, type FastControl, ModelEditSubmenu, resolveFastControl } from './model-edit-submenu'
 import { ModelMenuRowIcon, useModelMenuRowDecoration } from './model-menu-row-decorations'

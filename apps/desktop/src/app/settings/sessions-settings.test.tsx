@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setSessionArchived } from '@/kova'
 import { en } from '@/i18n/en'
 import { $messagingSessions, $sessions, setMessagingSessions, setSessions } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { SessionsSettings } from './sessions-settings'
 

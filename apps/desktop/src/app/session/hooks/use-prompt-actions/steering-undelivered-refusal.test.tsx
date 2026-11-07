@@ -19,7 +19,7 @@ import {
   setSessions
 } from '@/store/session'
 import { clearAllSessionStates } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { useSessionStateCache } from '../use-session-state-cache'
 

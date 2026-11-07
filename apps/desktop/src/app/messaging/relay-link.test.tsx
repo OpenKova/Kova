@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 
-import type { MessagingPlatformInfo } from '@/types/hermes'
+import type { MessagingPlatformInfo } from '@/types/kova'
 
 import { RelayLinkSetup } from './relay-link'
 

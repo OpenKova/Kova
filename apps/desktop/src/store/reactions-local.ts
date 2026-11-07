@@ -3,7 +3,7 @@ import { atom } from 'nanostores'
 
 import { $activeGatewayProfile } from '@/store/profile'
 import { applyReaction } from '@/store/reactions'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/kova'
 
 /**
  * Reactions the user has set in THIS window, keyed by renderer message id.

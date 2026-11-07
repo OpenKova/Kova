@@ -9,7 +9,7 @@ import { Lock, LockOpen } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { cn } from '@/lib/utils'
 import { notifyError } from '@/store/notifications'
-import type { SkillInfo } from '@/types/hermes'
+import type { SkillInfo } from '@/types/kova'
 
 import { parseFrontmatter } from './frontmatter'
 import { isEditableProvenance } from './skill-provenance'

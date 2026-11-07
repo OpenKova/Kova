@@ -8,7 +8,7 @@ import { $localSetupEligibility } from '@/store/local-setup-offer'
 import { markOnboardingDecided } from '@/store/onboarding-presence'
 import { $onboardingSettleFrom } from '@/store/onboarding-run'
 import { $connection } from '@/store/session'
-import type { LocalCatalogModel } from '@/types/hermes'
+import type { LocalCatalogModel } from '@/types/kova'
 
 import { OnboardingEnd } from './onboarding-end'
 

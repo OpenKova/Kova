@@ -136,4 +136,4 @@ export type {
   WebhookEnableResponse,
   WebhookRoute,
   WebhooksResponse
-} from '@/types/hermes'
+} from '@/types/kova'

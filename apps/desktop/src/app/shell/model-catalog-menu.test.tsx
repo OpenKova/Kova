@@ -29,7 +29,7 @@ import {
   setVisibleModels
 } from '@/store/model-visibility'
 import { $defaultReasoningEffort } from '@/store/session'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/kova'
 
 import { ModelCatalogMenu, ModelMenuCloseContext, type ModelMenuController } from './model-catalog-menu'
 import { MODEL_MENU_ROW_AREA, type ModelMenuRowContribution } from './model-menu-row-decorations'

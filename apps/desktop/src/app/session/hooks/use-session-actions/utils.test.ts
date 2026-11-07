@@ -19,7 +19,7 @@ import {
   setSelectedStoredSessionId,
   workspaceCwdBelongsToSelectedSession
 } from '@/store/session'
-import type { SessionInfo, SessionResumeResult } from '@/types/hermes'
+import type { SessionInfo, SessionResumeResult } from '@/types/kova'
 
 import {
   appendLiveSessionProjection,

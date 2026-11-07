@@ -14,7 +14,7 @@ import {
   setLocalReaction
 } from '@/store/reactions-local'
 import { $messages } from '@/store/session'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/kova'
 
 vi.mock('@/store/profile', async () => {
   const { atom: nanoAtom } = await import('nanostores')

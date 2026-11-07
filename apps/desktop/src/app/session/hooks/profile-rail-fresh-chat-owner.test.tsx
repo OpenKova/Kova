@@ -47,7 +47,7 @@ import {
 } from '@/store/session'
 import { foregroundSessionScopes } from '@/store/session-states'
 import { deferred } from '@/test/deferred'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import type { ClientSessionState } from '../../types'
 

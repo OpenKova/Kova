@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { deriveUpdateStatus } from '@/components/update-status'
 import { en } from '@/i18n/en'
-import type { BackendUpdateCheckResponse } from '@/types/hermes'
+import type { BackendUpdateCheckResponse } from '@/types/kova'
 
 import { mapBackendCheck } from './updates'
 

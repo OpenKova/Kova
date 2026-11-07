@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as KovaModule from '@/kova'
-import type { ProfileInfo, SessionInfo } from '@/types/hermes'
+import type { ProfileInfo, SessionInfo } from '@/types/kova'
 
 const getSessionMock = vi.fn<(id: string, profile?: null | string) => Promise<SessionInfo>>()
 

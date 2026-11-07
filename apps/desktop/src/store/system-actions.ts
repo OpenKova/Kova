@@ -7,7 +7,7 @@ import { isSignedOutStatus } from '@/lib/signed-out-status'
 import { confirm } from '@/store/confirm'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { notify, notifyError } from '@/store/notifications'
-import type { ActionResponse } from '@/types/hermes'
+import type { ActionResponse } from '@/types/kova'
 
 const POLL_ATTEMPTS = 18
 const POLL_INTERVAL_MS = 1200

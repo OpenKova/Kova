@@ -38,7 +38,7 @@ import { finalizeInterruptedMessages, sealOpenToolParts } from '@/lib/chat-messa
 import { tileFocusStampOnFocusChange } from '@/lib/session-timer-since'
 import { stableArray } from '@/lib/stable-array'
 import { readJson, writeJson } from '@/lib/storage'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { dropStatusDrawersForProfile, migrateStatusDrawersForProfile } from './composer-status-drawer'
 import { registryConnectionKind } from './connection-registry-state'

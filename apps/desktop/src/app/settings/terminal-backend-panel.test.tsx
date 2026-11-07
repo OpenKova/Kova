@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ProfileScope } from '@/api/client'
 import { deferred } from '@/test/deferred'
-import type { TerminalBackendsResponse } from '@/types/hermes'
+import type { TerminalBackendsResponse } from '@/types/kova'
 
 const getTerminalBackends = vi.fn()
 const selectTerminalBackend = vi.fn()

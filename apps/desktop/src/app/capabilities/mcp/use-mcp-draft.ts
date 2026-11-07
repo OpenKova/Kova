@@ -3,7 +3,7 @@ import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { type CodeEditorApi } from '@/components/chat/code-editor'
 import { type McpImportEntry } from '@/lib/mcp-import'
 import { getServers, type McpServers } from '@/lib/mcp-servers'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { parseServersDoc, scanServerBlocks, type ServerBlock, STARTER_ENTRY, uniqueServerKey, wrapDoc } from './mcp-doc'
 

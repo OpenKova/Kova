@@ -11,7 +11,7 @@ import { $notifications } from '@/store/notifications'
 import { $cronRunReadOnlyVerdicts, recordCronRunVerdict } from '@/store/read-only-transcript'
 import { $activeSessionId, setSessionOwnerHint, setSessions } from '@/store/session'
 import { $sessionTiles, sessionTileDelegate } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import {
   clearSingleFlightSessionResumeState,

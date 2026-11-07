@@ -13,7 +13,7 @@ import {
 } from '@/kova'
 import { LONG_POLL_MIN_GAP_MS, pause, restOfLongPollGap } from '@/lib/long-poll'
 import { gatewayActivationEpoch } from '@/store/gateway'
-import type { AppHandoffStatus, FreeTierStatus, OAuthPollResponse } from '@/types/hermes'
+import type { AppHandoffStatus, FreeTierStatus, OAuthPollResponse } from '@/types/kova'
 
 import { type FreeTierRequester, NOUS_PROVIDER_ID, refreshFreeTierStatus } from './free-tier'
 import { $localModelOfferPending } from './local-model-offer'

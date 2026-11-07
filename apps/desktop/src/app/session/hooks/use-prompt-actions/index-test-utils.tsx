@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 
 import type { ClientSessionState } from '@/app/types'
 import { createClientSessionState } from '@/lib/chat-runtime'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { useMessageStream } from '../use-message-stream'
 

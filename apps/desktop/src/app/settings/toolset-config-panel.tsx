@@ -31,7 +31,7 @@ import type {
   ToolProviderStatus,
   ToolsetConfig,
   ToolsetModelsResponse
-} from '@/types/hermes'
+} from '@/types/kova'
 
 import { EnvVarActionsMenu, EnvVarActionsTrigger, EnvVarContextMenu } from './env-var-actions-menu'
 import { prettyName } from './helpers'

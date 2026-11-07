@@ -1,5 +1,5 @@
 import { setCurrentBranch, setCurrentUsage, setSessionStartedAt } from '@/store/session'
-import type { UsageStats } from '@/types/hermes'
+import type { UsageStats } from '@/types/kova'
 
 import type { ClientSessionState } from '../../../types'
 

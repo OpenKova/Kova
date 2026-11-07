@@ -29,7 +29,7 @@ import {
   useLocalModelsStatus,
   useLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
-import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/kova'
 
 import type { KovaGateway } from '../kova'
 import { startManualOnboarding } from '../store/onboarding'

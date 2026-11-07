@@ -192,7 +192,7 @@ def _check_s6_supervision(issues: list[str]) -> None:
         return
     _section("s6 Supervision")
     mgr = S6ServiceManager()
-    for static in ("main-hermes", "dashboard"):  # s6-rc symlinks in the root scandir, not the gateway one
+    for static in ("main-kova", "dashboard"):  # s6-rc symlinks in the root scandir, not the gateway one
         up = s6_service_up(S6_STATIC_SCANDIR / static)
         (check_ok if up else check_info)(f"{static}: up" if up else f"{static}: down (expected if not enabled via env)")
     _report_host_gateway_slot(mgr, issues)

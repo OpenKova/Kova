@@ -5,7 +5,7 @@ import { handleSessionInfoEvent } from '@/app/session/hooks/use-message-stream/g
 import type { GatewayEventContext } from '@/app/session/hooks/use-message-stream/gateway-event/types'
 import { applyRuntimeInfo } from '@/app/session/hooks/use-session-actions/utils'
 import { isSteerableEntry } from '@/store/composer-queue'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { $queuedPromptsBySession, enqueueQueuedPrompt, getQueuedPrompts, migrateQueuedPrompts } from './composer-queue'
 import { readPendingSubmissions, reconcilePendingSubmissions, trackPendingSubmission } from './pending-submissions'

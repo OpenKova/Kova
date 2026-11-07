@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { saveKovaConfig } from '@/kova'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { setKovaConfigCache, useKovaConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'

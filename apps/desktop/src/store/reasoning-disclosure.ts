@@ -3,7 +3,7 @@ import { atom } from 'nanostores'
 import { persistStore } from '@/lib/persist-store'
 import { persistBoolean, storedBoolean } from '@/lib/storage'
 import { modeBound } from '@/store/interface-mode'
-import type { KovaConfig } from '@/types/hermes'
+import type { KovaConfig } from '@/types/kova'
 
 const REASONING_COLLAPSED_BY_DEFAULT_STORAGE_KEY = 'hermes.desktop.reasoning.collapsedByDefault'
 

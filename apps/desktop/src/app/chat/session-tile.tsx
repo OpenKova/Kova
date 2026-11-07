@@ -72,7 +72,7 @@ import {
   type SessionTile,
   sessionTileDelegate
 } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import type { SessionDragPayload } from './composer/inline-refs'
 import { type ComposerScope, ComposerScopeProvider } from './composer/scope'

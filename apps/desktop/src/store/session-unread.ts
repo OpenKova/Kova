@@ -4,7 +4,7 @@ import { isMessagingSource } from '@/lib/session-source'
 import { stableArray } from '@/lib/stable-array'
 import { readKey } from '@/lib/storage'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { $projectTree } from './project-tree'
 import {

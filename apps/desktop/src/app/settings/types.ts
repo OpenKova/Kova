@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 
 import type { KovaGateway } from '@/kova'
 import type { IconComponent } from '@/lib/icons'
-import type { EnvVarInfo } from '@/types/hermes'
+import type { EnvVarInfo } from '@/types/kova'
 
 export type SettingsView =
   | 'about'

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as notifications from '@/store/notifications'
 import { markOnboardingDecided } from '@/store/onboarding-presence'
 import { makeOAuthProvider } from '@/test/oauth-provider'
-import type { AppHandoffStatus, OAuthProvider } from '@/types/hermes'
+import type { AppHandoffStatus, OAuthProvider } from '@/types/kova'
 
 import {
   $desktopOnboarding,

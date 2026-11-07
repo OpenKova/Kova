@@ -9,7 +9,7 @@ import { setApiRequestConnection, setApiRequestProfile } from '@/api/client'
 import type { KovaApiRequest } from '@/global'
 import { $activeConnectionId } from '@/store/connections'
 import { $settingsRequestProfile } from '@/store/settings-scope'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import type { ConfigSettings as ConfigSettingsType } from './config-settings'
 

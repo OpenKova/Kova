@@ -34,9 +34,9 @@ def test_static_services_and_gateway_slots_use_distinct_scandirs(
 
     doctor_platform._check_s6_supervision([])
 
-    assert ROOT_SCANDIR / "main-hermes" in svstat_targets
+    assert ROOT_SCANDIR / "main-kova" in svstat_targets
     assert ROOT_SCANDIR / "dashboard" in svstat_targets
-    assert "main-hermes: up" in capsys.readouterr().out
+    assert "main-kova: up" in capsys.readouterr().out
     # Gateway slots are hermes-registered, so they must not live in the root-supervised scandir.
     assert len(listed) == 1 and listed[0] != ROOT_SCANDIR
     assert ROOT_SCANDIR not in listed[0].parents

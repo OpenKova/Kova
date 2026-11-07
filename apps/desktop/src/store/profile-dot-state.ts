@@ -40,7 +40,7 @@ import { backendScopeKey, LOCAL_CONNECTION_ID } from '@kova/shared'
 import { computed } from 'nanostores'
 
 import { stableRecord } from '@/lib/stable-array'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { $activeConnectionId } from './connections'
 import { $fleetRoster } from './fleet-roster'

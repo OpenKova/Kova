@@ -27,7 +27,7 @@ import { $focusedTreePaneId as $focusedTreePaneIdMock } from '@/store/session-fo
 import { $sessionStates, $sessionTiles } from '@/store/session-states'
 import { $statusbarVisible, setStatusbarItemVisible } from '@/store/statusbar-prefs'
 import { $desktopVersion, $updateStatus } from '@/store/updates'
-import type { ContextBreakdown, FreeTierStatus, UsageStats } from '@/types/hermes'
+import type { ContextBreakdown, FreeTierStatus, UsageStats } from '@/types/kova'
 
 import { useStatusbarItems } from './use-statusbar-items'
 

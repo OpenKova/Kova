@@ -37,7 +37,7 @@ import { afterOnboardingSurfaceClear, onboardingSurfaceOpen } from '@/store/onbo
 import { captureOnboardingScope, type OnboardingScope } from '@/store/onboarding-scope'
 import { requestRoute } from '@/store/recovery-requests'
 import { setModelPickerOpen } from '@/store/session'
-import type { AppHandoffStatus, OAuthPollResponse, OAuthProvider, OAuthStartResponse } from '@/types/hermes'
+import type { AppHandoffStatus, OAuthPollResponse, OAuthProvider, OAuthStartResponse } from '@/types/kova'
 
 type PkceStart = Extract<OAuthStartResponse, { flow: 'pkce' }>
 type DeviceStart = Extract<OAuthStartResponse, { flow: 'device_code' }>

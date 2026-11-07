@@ -21,7 +21,7 @@ import { setDisabledTools, toggleToolInServer } from '@/lib/mcp-tool-filter'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 import { $activeSessionId } from '@/store/session'
-import type { KovaConfigRecord } from '@/types/hermes'
+import type { KovaConfigRecord } from '@/types/kova'
 
 import { hermesConfigCacheWriter, useKovaConfigRecord } from '../../hooks/use-config-record'
 import { useOnProfileSwitch } from '../../hooks/use-on-profile-switch'

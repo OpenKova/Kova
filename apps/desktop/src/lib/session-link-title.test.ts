@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { getSession } from '@/kova'
 import { $sessions } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/kova'
 
 import { __resetSessionLinkTitleCache, fetchSessionLinkTitle, lookupLocalSessionTitle } from './session-link-title'
 import { sessionRefCacheKey } from './session-refs'

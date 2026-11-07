@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { MemoryProviderConfig, MemoryProviderField } from '@/types/hermes'
+import type { MemoryProviderConfig, MemoryProviderField } from '@/types/kova'
 
 const saveMemoryProviderConfig = vi.fn()
 

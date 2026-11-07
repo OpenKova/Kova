@@ -1,6 +1,6 @@
 import type { IconComponent } from '@/lib/icons'
 import { normalize } from '@/lib/text'
-import type { ConfigFieldSchema, EnvVarInfo, KovaConfigRecord } from '@/types/hermes'
+import type { ConfigFieldSchema, EnvVarInfo, KovaConfigRecord } from '@/types/kova'
 
 import { FIELD_LABELS, SECTIONS } from './constants'
 import { credentialRowLabel } from './credential-key-ui'

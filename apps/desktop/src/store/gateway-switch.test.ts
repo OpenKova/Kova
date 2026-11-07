@@ -34,7 +34,7 @@ import {
   recordTranscriptTail,
   transcriptTailState
 } from '@/store/transcript-tail'
-import type { StarmapGraph } from '@/types/hermes'
+import type { StarmapGraph } from '@/types/kova'
 
 import {
   $gatewaySwitching,

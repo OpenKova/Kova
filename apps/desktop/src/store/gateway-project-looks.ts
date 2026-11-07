@@ -3,7 +3,7 @@ import { map } from 'nanostores'
 import type { KovaGateway } from '@/kova'
 import { gatewayRouteState, requestGatewayForAgent } from '@/store/gateway'
 import type { AgentProfileRoute } from '@/store/profile'
-import type { ProjectInfo, ProjectsPayload } from '@/types/hermes'
+import type { ProjectInfo, ProjectsPayload } from '@/types/kova'
 
 // A project another gateway owns is drawn from that gateway's session rows; its
 // look (color / icon) lives in THAT gateway profile's projects.db, the same

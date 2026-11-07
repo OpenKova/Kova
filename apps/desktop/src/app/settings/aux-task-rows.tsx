@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
-import type { AuxiliaryTaskAssignment, ModelAssignmentRequest } from '@/types/hermes'
+import type { AuxiliaryTaskAssignment, ModelAssignmentRequest } from '@/types/kova'
 
 import { useDeepLinkHighlight } from './use-deep-link-highlight'
 

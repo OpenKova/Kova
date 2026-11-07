@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { setApiRequestConnection } from '@/api/client'
 import type { DesktopAgentRoster, KovaConnection } from '@/global'
 import { $fleetRoster, _resetFleetRosterForTests } from '@/store/fleet-roster'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/kova'
 
 vi.mock('@/store/gateway', () => ({ $gateway: atom(null) }))
 vi.mock('@/lib/query-client', () => ({ invalidateProfileScopedQueries: vi.fn() }))

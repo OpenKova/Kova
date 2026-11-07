@@ -6,7 +6,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
-import type { ContextBreakdown, ContextUsageCategory, UsageStats } from '@/types/hermes'
+import type { ContextBreakdown, ContextUsageCategory, UsageStats } from '@/types/kova'
 
 import type { CompactConversationAction } from './hooks/use-compact-conversation'
 import { StatusbarMenuCloseContext } from './statusbar-controls'

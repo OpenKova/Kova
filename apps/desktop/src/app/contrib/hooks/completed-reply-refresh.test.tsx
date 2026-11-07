@@ -31,7 +31,7 @@ import {
   restoreSessionTodosFromSnapshot,
   setSessionTodos
 } from '@/store/todos'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/kova'
 
 import {
   hydrateStoredSessionTranscript,
