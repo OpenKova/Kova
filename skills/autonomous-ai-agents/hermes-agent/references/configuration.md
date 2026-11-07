@@ -1,7 +1,7 @@
 # Configuration, Toolsets & Voice
 
-Edit with `hermes config edit` or `hermes config set section.key value`.
-Full reference: https://hermes-agent.nousresearch.com/docs/user-guide/configuration
+Edit with `kova config edit` or `kova config set section.key value`.
+Full reference: https://github.com/OpenKova/Kova/docs/user-guide/configuration
 
 ### Config Sections (most-used keys)
 
@@ -22,12 +22,12 @@ Full reference: https://hermes-agent.nousresearch.com/docs/user-guide/configurat
 | `checkpoints` | `enabled`, `max_snapshots` (50) |
 | `curator` | `enabled`, `consolidate` (false, opt-in aux-model consolidation), `interval_hours`, `stale_after_days` |
 
-`hermes config check` reports sections missing from an older config.
+`kova config check` reports sections missing from an older config.
 
 ### Toolsets
 
-Enable/disable via `hermes tools` (interactive) or `hermes tools enable/disable NAME`.
-Full enumeration: `TOOLSETS` dict in `toolsets.py` (`_HERMES_CORE_TOOLS` is the default bundle most platforms inherit).
+Enable/disable via `kova tools` (interactive) or `kova tools enable/disable NAME`.
+Full enumeration: `TOOLSETS` dict in `toolsets.py` (`_KOVA_CORE_TOOLS` is the default bundle most platforms inherit).
 
 | Toolset | What it provides |
 |---------|-----------------|
@@ -55,9 +55,9 @@ Full enumeration: `TOOLSETS` dict in `toolsets.py` (`_HERMES_CORE_TOOLS` is the 
 | `kanban` | Multi-agent work-queue tools (gated to workers) |
 | `debugging` | Extra introspection tools (off by default) |
 | `safe` | Minimal low-risk toolset for locked-down sessions |
-| `discord`, `discord_admin`, `feishu_doc`, `feishu_drive` | Service integrations (gated on their credentials). `homeassistant` (`ha_*` tools), `spotify` (`spotify_*` tools) and `yuanbao` (`yb_*` tools) are not built in: they come from the `homeassistant` / `spotify` / `yuanbao` catalog plugins (`hermes plugins install <name>`) |
+| `discord`, `discord_admin`, `feishu_doc`, `feishu_drive` | Service integrations (gated on their credentials). `homeassistant` (`ha_*` tools), `spotify` (`spotify_*` tools) and `yuanbao` (`yb_*` tools) are not built in: they come from the `homeassistant` / `spotify` / `yuanbao` catalog plugins (`kova plugins install <name>`) |
 
-Camofox is no longer built in: `hermes plugins install camofox` adds it as the `camofox` toolset with its own browser tools. Existing Camofox setups are migrated automatically on `hermes update`.
+Camofox is no longer built in: `kova plugins install camofox` adds it as the `camofox` toolset with its own browser tools. Existing Camofox setups are migrated automatically on `kova update`.
 
 Tool changes take effect on `/reset` (new session) — never mid-conversation, to preserve prompt caching.
 

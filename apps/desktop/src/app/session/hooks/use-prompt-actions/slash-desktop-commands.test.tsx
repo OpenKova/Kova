@@ -9,7 +9,7 @@ import { resolveDesktopCommand } from '@/lib/desktop-slash-commands'
 import { $connection } from '@/store/session'
 import { dropSessionState } from '@/store/session-states'
 
-import { useKovaConfig } from '../use-hermes-config'
+import { useKovaConfig } from '../use-kova-config'
 
 import { actRender, Harness, type HarnessHandle, RUNTIME_SESSION_ID } from './index-test-utils'
 import { clearSingleFlightSessionResumeState } from './single-flight-resume'
@@ -18,7 +18,7 @@ import { formatHistory } from './slash-desktop-commands'
 // T11 (#134889): Desktop commands the shared gateway refused as `slash.exec`, or that Desktop never
 // offered, run on the owner's existing verbs instead.
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'session' })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getKovaConfig: vi.fn(async () => ({ display: { timestamps: false } })),

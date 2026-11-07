@@ -2,7 +2,7 @@ import { isGatewayReauthRequired } from '@kova/shared'
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useRef } from 'react'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { resolveDesktopGatewayWsUrl } from '@/lib/gateway-ws-url'
 import { RECONNECT_ATTEMPT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
 import {

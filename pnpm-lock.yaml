@@ -190,12 +190,12 @@ importers:
       '@dnd-kit/utilities':
         specifier: 3.2.2
         version: 3.2.2(react@19.3.0)
-      '@kova/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@icons-pack/react-simple-icons':
         specifier: 13.15.1
         version: 13.15.1(react@19.3.0)
+      '@kova/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@lezer/highlight':
         specifier: 1.2.5
         version: 1.2.5
@@ -585,9 +585,9 @@ importers:
 
   ui-tui:
     dependencies:
-      '@hermes/ink':
+      '@kova/ink':
         specifier: workspace:*
-        version: link:packages/hermes-ink
+        version: link:packages/kova-ink
       '@kova/shared':
         specifier: workspace:*
         version: link:../apps/shared
@@ -638,7 +638,7 @@ importers:
         specifier: 4.1.12
         version: 4.1.12(@types/node@22.20.5)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  ui-tui/packages/hermes-ink:
+  ui-tui/packages/kova-ink:
     dependencies:
       '@alcalzone/ansi-tokenize':
         specifier: 0.1.3

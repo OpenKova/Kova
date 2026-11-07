@@ -11,7 +11,7 @@ import {
   type RelayLinkedAccount,
   requestRelayLink,
   unlinkRelayAccount
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { Copy, ExternalLink, QrCode } from '@/lib/icons'

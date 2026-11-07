@@ -1,4 +1,4 @@
-import { Box, Text, useInput, useStdout } from '@hermes/ink'
+import { Box, Text, useInput, useStdout } from '@kova/ink'
 import type { SessionListResult, SessionListRow } from '@kova/shared/gateway-events'
 import type { SessionActiveItem, SessionActiveListResponse, SessionCloseResponse } from '@kova/shared/gateway-types'
 import { sessionScopedModelArg } from '@kova/shared/slash-input'

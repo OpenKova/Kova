@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 
 import { refChipLabel } from '@/components/assistant-ui/directive-text'
 import { useContributions } from '@/contrib/react/use-contributions'
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { cachedPathCompletion, hasCachedPathCompletion } from '@/lib/slash-completion-cache'
 import { normalize } from '@/lib/text'
 

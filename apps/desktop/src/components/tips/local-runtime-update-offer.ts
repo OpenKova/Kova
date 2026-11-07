@@ -1,4 +1,4 @@
-import { getLocalModelsJobs, getLocalModelsStatus } from '@/hermes'
+import { getLocalModelsJobs, getLocalModelsStatus } from '@/kova'
 import type { Translations } from '@/i18n/types'
 import { queryClient } from '@/lib/query-client'
 import { localTipDue } from '@/lib/tips/local-cta'

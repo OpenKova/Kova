@@ -2,7 +2,7 @@ import type { Unstable_TriggerAdapter, Unstable_TriggerItem } from '@assistant-u
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo } from 'react'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import {

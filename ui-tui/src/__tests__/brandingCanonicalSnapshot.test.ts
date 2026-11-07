@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream'
 
-import { renderSync } from '@hermes/ink'
+import { renderSync } from '@kova/ink'
 import { canonicalResult } from '@kova/shared/gateway-canonical'
 import type { SessionInfo } from '@kova/shared/gateway-types'
 import React from 'react'

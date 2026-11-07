@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 

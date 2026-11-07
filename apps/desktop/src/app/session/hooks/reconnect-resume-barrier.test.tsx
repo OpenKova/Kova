@@ -3,7 +3,7 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { getLatestSessionMessages } from '@/hermes'
+import { getLatestSessionMessages } from '@/kova'
 import { type ChatMessage, chatMessageText, toChatMessages } from '@/lib/chat-messages'
 import { resetInFlightTurnJournalStateForTests } from '@/lib/inflight-turn-journal'
 import { $activeGatewayProfile } from '@/store/profile'
@@ -25,7 +25,7 @@ import type { GatewayEventContext } from './use-message-stream/gateway-event/typ
 import { useSessionActions } from './use-session-actions'
 import { useSessionStateCache } from './use-session-state-cache'
 
-vi.mock('@/hermes', async original => ({
+vi.mock('@/kova', async original => ({
   ...(await original<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn()
 }))

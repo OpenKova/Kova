@@ -19,7 +19,7 @@ import { truncateRewoundMessages } from './slash-session-commands'
 // /undo, /retry, /steer and /queue run against the session owner's canonical verbs (the Ink TUI's
 // behaviour on the same gateway), never as `slash.exec`, which the shared gateway refuses.
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'session' })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getSession: vi.fn(),

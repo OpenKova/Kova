@@ -2,14 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext } from '@/store/onboarding'
 
 import { FlowPanel } from './flow'
 
 // Only the catalog fetch is replaced; the model assignment keeps its real path
 // down to window.kovaDesktop.api so the test observes the wire body.
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getGlobalModelOptions: async () => ({
     providers: [

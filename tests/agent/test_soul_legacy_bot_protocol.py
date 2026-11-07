@@ -22,7 +22,7 @@ def test_load_soul_md_drops_legacy_protocol_section(tmp_path, monkeypatch):
     # Bot Chat itself keeps the live section: SOUL no longer suppresses the probe.
     bot_mode_probe._reset_cache_for_tests()
     (home / "profiles" / "bot").mkdir(parents=True)
-    (home / "profiles" / "bot" / "profile.yaml").write_text("ui_meta:\n  hermes-bots: {}\n", encoding="utf-8")
+    (home / "profiles" / "bot" / "profile.yaml").write_text("ui_meta:\n  kova-bots: {}\n", encoding="utf-8")
     assert "`@bot`" in bot_mode_probe.get_bot_mode_protocol_section(home)
 
 

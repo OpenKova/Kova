@@ -9,7 +9,7 @@
     "build": "node ../scripts/build/tui.mjs",
     "i18n:keys": "tsx scripts/i18n-keys.ts",
     "i18n:keys:check": "tsx scripts/i18n-keys.ts --check",
-    "build:ink": "pnpm --dir packages/hermes-ink run build",
+    "build:ink": "pnpm --dir packages/kova-ink run build",
     "visual": "node scripts/visual/run.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "eslint src/ packages/",
@@ -21,7 +21,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@hermes/ink": "workspace:*",
+    "@kova/ink": "workspace:*",
     "@kova/shared": "workspace:*",
     "@nanostores/react": "1.1.0",
     "ink-text-input": "6.0.0",

@@ -75,7 +75,7 @@ def packaged_gui_app_paths() -> list[Path]:
     return [desktop_entry_path(),
             data_base / "applications" / LEGACY_DESKTOP_ENTRY_NAME,
             data_base / "applications" / "Kova.desktop"] + [
-        icons / size / "apps" / "hermes.png"
+        icons / size / "apps" / "kova.png"
         for size in ("scalable", "24x24", "32x32", "48x48", "256x256", "512x512", "1024x1024")]
 
 

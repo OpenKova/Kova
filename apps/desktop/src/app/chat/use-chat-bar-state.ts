@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import type * as React from 'react'
 import { useMemo } from 'react'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { quickModelOptions } from '@/lib/chat-runtime'
 import { currentModelCapabilities, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 

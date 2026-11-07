@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 import { registerGatewayReconnect } from '@/store/gateway-reconnect'
 
 // The REST layer is the only seam these flows own; the confirm dialog and
@@ -9,7 +9,7 @@ import { registerGatewayReconnect } from '@/store/gateway-reconnect'
 const getActionStatus = vi.fn()
 const restartGateway = vi.fn()
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getActionStatus: (name: string, timeout?: number) => getActionStatus(name, timeout),
   getStatus: async () => ({}),

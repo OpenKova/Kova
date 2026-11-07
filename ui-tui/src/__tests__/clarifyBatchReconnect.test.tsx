@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
-import { renderSync, Text } from '@hermes/ink'
+import { renderSync, Text } from '@kova/ink'
 import { RECONNECT_BASE_MS } from '@kova/shared/gateway-client'
 import React from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'

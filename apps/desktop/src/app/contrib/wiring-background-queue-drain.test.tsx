@@ -109,7 +109,7 @@ vi.mock('./surfaces', () => ({
 vi.mock('../gateway/hooks/use-gateway-boot', () => ({ useGatewayBoot: () => ({}) }))
 vi.mock('../session/hooks/use-context-suggestions', () => ({ useContextSuggestions: () => ({}) }))
 vi.mock('../session/hooks/use-cwd-actions', () => ({ useCwdActions: () => ({}) }))
-vi.mock('../session/hooks/use-hermes-config', () => ({ useKovaConfig: () => ({}) }))
+vi.mock('../session/hooks/use-kova-config', () => ({ useKovaConfig: () => ({}) }))
 vi.mock('../session/hooks/use-message-stream', () => ({ useMessageStream: () => ({}) }))
 vi.mock('../session/hooks/use-model-controls', () => ({ useModelControls: () => ({}) }))
 vi.mock('../session/hooks/use-preview-routing', () => ({ usePreviewRouting: () => ({}) }))

@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   saveKovaConfig: (config: Record<string, unknown>) => mocks.save(config)
 }))
 

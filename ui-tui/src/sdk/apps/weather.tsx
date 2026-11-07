@@ -1,4 +1,4 @@
-import { Box, Text } from '@hermes/ink'
+import { Box, Text } from '@kova/ink'
 import { mix } from '@kova/shared/color'
 
 import { ShimmerRows } from '../../components/loaders.js'

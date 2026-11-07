@@ -71,7 +71,7 @@ def test_profile_discovery_and_group_controls_enforce_actor_scope(tmp_path, monk
     monkeypatch.setenv('KOVA_HOME', str(home))
     monkeypatch.setenv('HOME', str(tmp_path / 'user'))
     (home / 'config.yaml').write_text('model:\n  default: fixture-model\n  provider: custom\n')
-    (home / 'profile.yaml').write_text('display_name: Fixture\nui_meta:\n  hermes-bots:\n    color: blue\n')
+    (home / 'profile.yaml').write_text('display_name: Fixture\nui_meta:\n  kova-bots:\n    color: blue\n')
     with SessionDB(home / 'state.db') as db:
         db.create_session('private', source='cli', user_id='another')
         db.set_session_title('private', 'Bot Chat')
@@ -92,7 +92,7 @@ def test_profile_discovery_and_group_controls_enforce_actor_scope(tmp_path, monk
             row, = result['result']['profiles']
             assert row['model'] == 'fixture-model'
             assert row['display_name'] == 'Fixture'
-            assert row['ui_meta']['hermes-bots']['color'] == 'blue'
+            assert row['ui_meta']['kova-bots']['color'] == 'blue'
             assert row['canonical_session'] is None
             assert row['last_session'] is None
             assert db.get_session('private')['title'] == 'Bot Chat'
@@ -191,8 +191,8 @@ def test_profiles_list_discovered_rows_keep_the_profiles_own_metadata(tmp_path, 
     (writer / 'profile.yaml').write_text(
         'description: Writes the release notes\n'
         'display_name: Writer Bot\n'
-        'ui_meta:\n  hermes-bots:\n    title: Writer\n'
-        '_ui_meta_revisions:\n  hermes-bots: 3\n')
+        'ui_meta:\n  kova-bots:\n    title: Writer\n'
+        '_ui_meta_revisions:\n  kova-bots: 3\n')
     (writer / 'assets').mkdir()
     (writer / 'assets' / 'avatar.png').write_bytes(b'\x89PNG\r\n\x1a\n')
     monkeypatch.setenv('KOVA_HOME', str(home))
@@ -202,7 +202,7 @@ def test_profiles_list_discovered_rows_keep_the_profiles_own_metadata(tmp_path, 
     assert rows['writer']['description'] == 'Writes the release notes'
     assert rows['writer']['display_name'] == 'Writer Bot'
     assert rows['writer']['has_avatar'] is True
-    assert rows['writer']['ui_meta_revisions'] == {'hermes-bots': 3}
+    assert rows['writer']['ui_meta_revisions'] == {'kova-bots': 3}
     # No ``display_name`` in profile.yaml means no override at all: Desktop title-cases the
     # handle itself only while the field is empty.
     assert rows['helper']['display_name'] == ''

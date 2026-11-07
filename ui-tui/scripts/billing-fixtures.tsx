@@ -18,7 +18,7 @@
  * The selection cursor can be moved with ↑/↓ once it's live (the components own
  * their own useInput); Esc/Enter behave as in production. Ctrl-C to exit.
  */
-import { render } from '@hermes/ink'
+import { render } from '@kova/ink'
 import type { BillingStateResponse, SubscriptionStateResponse, SubscriptionTierOption } from '@kova/shared/gateway-types'
 import React from 'react'
 

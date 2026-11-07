@@ -1,5 +1,5 @@
-import type { Key } from '@hermes/ink'
-import { Text, useInput } from '@hermes/ink'
+import type { Key } from '@kova/ink'
+import { Text, useInput } from '@kova/ink'
 import { mix } from '@kova/shared/color'
 import type { UsageModelData } from '@kova/shared/gateway-types'
 import { type ReactNode, useState } from 'react'

@@ -14,7 +14,7 @@
 
 import type { ReadableAtom } from 'nanostores'
 
-import { pluginRest, type PluginRestOptions, pluginSocket } from '@/hermes'
+import { pluginRest, type PluginRestOptions, pluginSocket } from '@/kova'
 import { createPluginI18n, type PluginI18n } from '@/i18n'
 import {
   listPluginAppActions,
@@ -40,8 +40,8 @@ export type { PluginPreview } from './plugin-preview'
 import type { Contribution } from './types'
 
 export type { PluginSettingsPage, PluginSettingsSubpage } from './settings-pages'
-export type { PluginRestOptions } from '@/hermes'
-export type { KovaOpenTarget } from '@/lib/hermes-open-target'
+export type { PluginRestOptions } from '@/kova'
+export type { KovaOpenTarget } from '@/lib/kova-open-target'
 export type { PluginAppActionId, PluginAppActionInfo, PluginRunActionResult } from '@/lib/keybinds/plugin-actions'
 export type { PluginNativeNotificationInput, PluginNotificationAction } from '@/store/native-notifications'
 export type { PetMessageTone, PetSayOptions } from '@/store/pet-plugin-messages'

@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { expect, it, vi } from 'vitest'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { $daybreakByProfile, daybreakKey } from '@/store/daybreak'
 import { $notifications } from '@/store/notifications'
 import { $activeSessionId, $currentModel, $currentProvider } from '@/store/session'

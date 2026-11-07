@@ -322,7 +322,7 @@ RUN python3 -c 'from pathlib import Path; from pm import ensure, installed_packa
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY web/package.json web/
 COPY ui-tui/package.json ui-tui/
-COPY ui-tui/packages/hermes-ink/ ui-tui/packages/hermes-ink/
+COPY ui-tui/packages/kova-ink/ ui-tui/packages/kova-ink/
 COPY apps/shared/ apps/shared/
 COPY scripts/build/node-deps.mjs scripts/build/electron-runtime.mjs scripts/build/pnpm-lock.mjs scripts/build/
 # Root node_modules/typescript is a link into pnpm's virtual store, which never

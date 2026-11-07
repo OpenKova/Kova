@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import type { Translations } from '@/i18n'
 import { useStoresSelector } from '@/lib/use-session-slice'
 import { type QueuedPromptEntry, removeQueuedPrompt, unparkQueuedPrompts } from '@/store/composer-queue'

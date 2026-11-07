@@ -1,7 +1,7 @@
 import { RECONNECT_STABLE_OPEN_MS } from '@kova/shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { setApiRequestConnection, setApiRequestProfile } from '@/hermes'
+import { setApiRequestConnection, setApiRequestProfile } from '@/kova'
 import { RECONNECT_ATTEMPT_TIMEOUT_MS } from '@/lib/with-timeout'
 
 import { activeConnection, pluginSocket } from './plugins'

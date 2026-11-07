@@ -2,10 +2,10 @@
 sidebar_position: 5
 ---
 
-# Connecting Desktop to Many Hermes Instances
+# Connecting Desktop to Many Kova Instances
 
-Register every Hermes backend you own — the local runtime, remote gateways on
-your LAN or VPS, SSH hosts, and Hermes Cloud instances — in one desktop app,
+Register every Kova backend you own — the local runtime, remote gateways on
+your LAN or VPS, SSH hosts, and Kova Cloud instances — in one desktop app,
 and use the agents on all of them side by side. Every registered gateway is
 connected all the time: Desktop dials each one when it starts, keeps its
 connection open, and redials it if it drops, so there is no switching cost and
@@ -26,7 +26,7 @@ redirect there). Three doors lead to it:
   **Gateways** in the settings nav). The connections registry is a section
   of that page, below the machine-level connection-mode controls.
 - **The sidebar profile rail** — the plug button at the right end of the rail
-  (tooltip: **"Connect another Hermes gateway…"**) deep-links straight to
+  (tooltip: **"Connect another Kova gateway…"**) deep-links straight to
   the Gateways page. It is always visible, even before you have created
   a second profile or a second connection.
 - **The command palette** — **Cmd/Ctrl+K**, then type *Gateways* (also
@@ -35,16 +35,16 @@ redirect there). Three doors lead to it:
 ## The gateway registry
 
 The **Registered gateways** section of **Settings → Gateways** manages a named
-list of Hermes gateways. Its intro says it plainly: *"Manage this device and
-every Hermes gateway it can reach through remote, SSH, or Cloud connections."*
+list of Kova gateways. Its intro says it plainly: *"Manage this device and
+every Kova gateway it can reach through remote, SSH, or Cloud connections."*
 Each entry is a *connection*:
 
 | Kind | What it is | Auth |
 |---|---|---|
-| **Local** | "The Hermes runtime managed by this app." | automatic |
-| **Remote gateway** | "A Hermes gateway reachable over HTTP(S) — LAN, Tailscale, or the internet." | session token or OAuth |
-| **SSH** | "A Hermes install reached over SSH." The app opens the tunnel and starts the dashboard for you | SSH key + adopted token |
-| **Hermes Cloud** | "A hosted instance discovered through your Hermes Cloud account." | portal sign-in |
+| **Local** | "The Kova runtime managed by this app." | automatic |
+| **Remote gateway** | "A Kova gateway reachable over HTTP(S) — LAN, Tailscale, or the internet." | session token or OAuth |
+| **SSH** | "A Kova install reached over SSH." The app opens the tunnel and starts the dashboard for you | SSH key + adopted token |
+| **Kova Cloud** | "A hosted instance discovered through your Kova Cloud account." | portal sign-in |
 
 Rules worth knowing:
 
@@ -73,8 +73,8 @@ Rules worth knowing:
   kinds, so a cloud entry and a remote entry can't point at the same URL);
   **SSH** entries are deduplicated on the normalized `user@host:port` plus
   remote profile.
-- Cloud entries normally come from the Hermes Cloud sign-in/discovery flow at
-  the top of the Gateways page — the **Hermes Cloud** kind in the add-connection
+- Cloud entries normally come from the Kova Cloud sign-in/discovery flow at
+  the top of the Gateways page — the **Kova Cloud** kind in the add-connection
   editor points you there.
 
 Every registered gateway stays connected, and the **Sessions** sidebar can
@@ -101,7 +101,7 @@ are remembered on this desktop. Collapsing a gateway preserves its profiles'
 individual collapse states. Each profile's new-session action targets that
 profile on its owning gateway.
 
-The Hermes Cloud panel also lists **Saved Cloud gateways** when portal discovery
+The Kova Cloud panel also lists **Saved Cloud gateways** when portal discovery
 is signed out. **Use gateway** selects an existing saved connection without
 changing the default gateway; **Active in this window** identifies the current
 one. Adding a new instance uses its friendly Cloud name, while existing custom
@@ -113,15 +113,15 @@ authentication; manage sign-in from the registered connection controls.
 1. Open **Settings → Gateways** and scroll to the connections registry (or
    click the plug in the profile rail).
 2. Click **Add connection**.
-3. Pick the kind: **Local**, **Hermes Cloud**, **Remote gateway**, or **SSH**.
+3. Pick the kind: **Local**, **Kova Cloud**, **Remote gateway**, or **SSH**.
    (**Local** is disabled while the app-managed local entry exists — which is
-   almost always; **Hermes Cloud** directs you to the cloud sign-in/discovery
+   almost always; **Kova Cloud** directs you to the cloud sign-in/discovery
    flow above.)
 4. Fill the fields:
    - **Name** — required, unique; the "device name" shown everywhere this
      instance appears (placeholder: `Homelab`). Max 64 characters.
    - *Remote gateway only:*
-     - **Gateway URL** — the base URL of a running `hermes serve` backend,
+     - **Gateway URL** — the base URL of a running `kova serve` backend,
        e.g. `http://homelab.lan:9119`. Reverse-proxy path prefixes work.
      - **Authentication** — choose **Session token** or **OAuth**:
        - **Session token** — paste the dashboard session token from the
@@ -136,10 +136,10 @@ authentication; manage sign-in from the registered connection controls.
        shell; on a `zsh` login shell the probe watchdog cannot kill the whole
        process group, so a hung probe's grandchildren may linger on the remote
        (bash/sh remotes reap them).
-     - **Hermes path (optional)** — full path to the `hermes` executable on
+     - **Kova path (optional)** — full path to the `kova` executable on
        the remote (for example `/opt/hermes/bin/hermes`). Leave blank to
        auto-detect. Set it when the remote's non-interactive shell does not
-       have `hermes` on its `PATH` and **Test** reports *"Hermes is not
+       have `kova` on its `PATH` and **Test** reports *"Kova is not
        installed on the remote host"*; clearing the field restores
        auto-detection.
 5. Click **Save connection** (or **Cancel**).
@@ -149,7 +149,7 @@ Edit any non-local entry later with the pencil button, or remove it with the
 trash button — removal asks for confirmation and reminds you that *"The
 instance itself is not touched — you can add it again any time."*
 
-:::info The remote backend is a running `hermes serve` process
+:::info The remote backend is a running `kova serve` process
 Nothing here works unless the backend is actually up and reachable on the
 other machine. The desktop app attaches to it; it does not start it for you
 (except for SSH connections, where the app opens the tunnel and starts the
@@ -185,7 +185,7 @@ The union roster is what multi-gateway surfaces (and the built-in
   stays connected: its default profile holds one open connection for the life
   of the window and is redialed every 30 seconds while it is down. An
   unreachable gateway reports per-row instead of breaking the roster. With a
-  remote primary, **This device** is kept connected too when Hermes is
+  remote primary, **This device** is kept connected too when Kova is
   installed here, so its local gateway starts with Desktop. Terminals and
   running work on a gateway keep going when you pick another one.
 - Opening an agent dials **its own gateway** — chats, sessions, and memory
@@ -196,11 +196,11 @@ Each `(connection, profile)` pair gets its own socket, and Desktop caches the
 gateway descriptor it dialed so the next open joins the same connection —
 background agents keep streaming while you look at another gateway. Desktop
 never spawns or reaps a *remote* gateway; each one owns its own lifetime. For a
-**local** profile, the first open runs `hermes gateway ensure`, which attaches
+**local** profile, the first open runs `kova gateway ensure`, which attaches
 to that profile's running gateway or, when there is none, installs and starts a
 persistent per-profile gateway (a systemd/launchd service where one exists,
 otherwise a detached daemon). That gateway keeps running after you close the
-app — it has no idle shutdown — until you stop it with `hermes gateway stop`.
+app — it has no idle shutdown — until you stop it with `kova gateway stop`.
 
 Approval buttons route back to the session's owning backend, not whichever
 profile is currently selected. For a local secondary profile, Desktop can use
@@ -212,7 +212,7 @@ an obsolete backend.
 ### Gateways, profiles and scope
 
 The sidebar foot follows one hierarchy: **gateway → profile → sessions**.
-Gateways are machines or hosted backends; profiles are isolated Hermes agents
+Gateways are machines or hosted backends; profiles are isolated Kova agents
 that live on one gateway.
 
 - With one registered gateway, no gateway control is added. Local-only Desktop
@@ -244,7 +244,7 @@ that live on one gateway.
   square offers **Open**, **Color**, **Rename**, **Edit SOUL.md** and
   **Delete**, all executed on the square's own gateway; the delete
   confirmation names the machine. Picking **This device** asks for
-  confirmation only when Hermes is not installed on this computer yet.
+  confirmation only when Kova is not installed on this computer yet.
 - A gateway the last enumeration could not reach keeps its squares, marked
   with an amber dot on its glyph — a sleeping box is still yours. Two
   registrations of one backend collapse to a single group. Past thirteen
@@ -306,14 +306,14 @@ side effect of sharing one Desktop window.
 ## Updating every instance at once
 
 **Settings → Gateways → Update all instances** (shown once more than one
-connection is registered) dispatches `hermes update` to every eligible
+connection is registered) dispatches `kova update` to every eligible
 connection in parallel:
 
 - **Local** updates through the app's own update pipeline (the same flow as
   Settings → Updates).
 - **Remote and SSH** connections are told to update themselves via their own
   backend — the update runs on *that* machine.
-- **Hermes Cloud** instances are skipped with a *"Managed by Hermes Cloud"*
+- **Kova Cloud** instances are skipped with a *"Managed by Kova Cloud"*
   note: the platform manages their versions.
 
 Each instance reports independently, so one unreachable box never wedges the
@@ -322,7 +322,7 @@ with their own message, per row.
 
 You rarely need the Settings button, though: once more than one update target
 exists, the app's regular update affordances (**Update now** on the About
-panel, ⌘K **Update Hermes**, the update-ready toast) run the same fan-out
+panel, ⌘K **Update Kova**, the update-ready toast) run the same fan-out
 automatically — active backend first, then every other eligible gateway, then
 the desktop app itself last. See
 [Updating](./desktop.md#updating) in the desktop guide.
@@ -368,7 +368,7 @@ multi-gateway roster is the reference consumer.
 ## Troubleshooting
 
 - **"Connection test failed"** — the backend isn't reachable at that URL from
-  this machine. Check that `hermes serve` is running on the remote host, the
+  this machine. Check that `kova serve` is running on the remote host, the
   port is open, and (for token auth) the token is current. Re-run **Test**
   after fixing.
 - **An agent shows but won't open** — run **Test** on its connection. The
@@ -377,7 +377,7 @@ multi-gateway roster is the reference consumer.
 - **A remote gateway is missing from the roster** — its backend is down or
   unreachable; the roster lists it under gateways with the error, and Desktop
   keeps redialing it in the background.
-- **"Update Hermes Desktop to chat with agents on other connections"** — the
+- **"Update Kova Desktop to chat with agents on other connections"** — the
   app predates the multi-connection stack; update the desktop app itself.
 - **Duplicate device names** — not possible; names are enforced unique at
   save time. If a migrated name collided, it was suffixed (`Homelab 2`).

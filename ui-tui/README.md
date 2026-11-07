@@ -1,9 +1,9 @@
-# Hermes TUI
+# Kova TUI
 
-React + Ink terminal UI for Hermes. TypeScript owns the screen. Python owns sessions, tools, model calls, and most command logic.
+React + Ink terminal UI for Kova. TypeScript owns the screen. Python owns sessions, tools, model calls, and most command logic.
 
 ```bash
-hermes --tui
+kova --tui
 ```
 
 ## What runs
@@ -16,7 +16,7 @@ The client entrypoint is `src/entry.tsx`. It exits early if `stdin` is not a TTY
 python -m tui_gateway.entry
 ```
 
-Interpreter resolution uses `HERMES_PYTHON`, supplied by the CLI launcher or
+Interpreter resolution uses `KOVA_PYTHON`, supplied by the CLI launcher or
 Nix wrapper. Direct development runs without that value use `python3` on PATH,
 or `python` on Windows. The TUI does not search `PYTHON`, `VIRTUAL_ENV`, or
 checkout venv directories for a different interpreter.
@@ -41,7 +41,7 @@ Malformed stdout lines are treated as protocol noise and surfaced as `gateway.pr
 From the repo root, the normal path is:
 
 ```bash
-hermes --tui
+kova --tui
 ```
 
 The CLI expects `ui-tui/dist/entry.js` to exist, or the whole source code available in which to run `pnpm install` and `pnpm run dev`.
@@ -110,7 +110,7 @@ No model tool schema or prompt-caching behavior changes.
 - `src/app/inputSelectionStore.ts` — nanostore exposing the active text-input selection handle
 - `src/app/gatewayContext.tsx` — React context for the gateway client
 - `src/app/gatewayRecovery.ts` — pure function that decides whether to respawn and resume after a gateway crash, with a 3-attempt / 60 s budget
-- `src/app/setupHandoff.ts` — launches external `hermes setup`, suspends Ink while it runs, opens a new session on success
+- `src/app/setupHandoff.ts` — launches external `kova setup`, suspends Ink while it runs, opens a new session on success
 - `src/app/scroll.ts` — scrolls the viewport while keeping the text selection anchor in sync
 - `src/app/interfaces.ts` — internal interfaces (ComposerActions, GatewayRpc, etc.)
 
@@ -219,7 +219,7 @@ Notes:
 - Completion requests are debounced by 60 ms. Input starting with `/` uses `complete.slash`. A trailing token that starts with `./`, `../`, `~/`, `/`, or `@` uses `complete.path`.
 - Text pastes are inserted inline directly into the draft. Nothing is newline-flattened.
 - `Cmd/Ctrl+G` (or `Alt+G` in VSCode/Cursor, which intercept the primary keystroke for Find Next) writes the current draft, including any multiline buffer, to a temp file, suspends Ink, launches `$EDITOR`, then restores the TUI and submits the saved text if the editor exits cleanly.
-- Input history is stored in `~/.hermes/.hermes_history` or under `HERMES_HOME`.
+- Input history is stored in `~/.kova/.kova_history` or under `KOVA_HOME`.
 
 ## Rendering
 
@@ -277,7 +277,7 @@ The following commands are handled directly by the TUI client. Unrecognized comm
 `/credits` — Nous credit balance and browser top-up
 
 ### Setup (`setup.ts`)
-`/setup` — launches external `hermes setup` wizard, suspends Ink while it runs
+`/setup` — launches external `kova setup` wizard, suspends Ink while it runs
 
 ### Debug (`debug.ts`)
 `/heapdump`, `/mem` — V8 memory diagnostics
@@ -353,12 +353,12 @@ Current color overrides:
 
 ```text
 ui-tui/
-  packages/hermes-ink/   forked Ink renderer (local dep)
+  packages/kova-ink/   forked Ink renderer (local dep)
   src/
     entry.tsx            TTY gate + render()
     app.tsx              top-level Ink tree, composes src/app/*
     gatewayClient.ts     Ink's wiring of @kova/shared/gateway-client (bootstrap, env, i18n)
-    launchOptions.ts     `hermes --tui` launch env as session.create options
+    launchOptions.ts     `kova --tui` launch env as session.create options
     localGatewayBootstrap.ts  runs scripts/gateway_bootstrap.py for the URL + ticket
     theme.ts             theme colors and skin merge
     banner.ts            ASCII art renderer (parses Rich color tags)
@@ -374,7 +374,7 @@ ui-tui/
       interfaces.ts                 internal interfaces (ComposerActions, GatewayRpc, etc.)
       overlayStore.ts               nanostores for overlay state
       scroll.ts                     viewport scroll with text-selection anchor sync
-      setupHandoff.ts               launches external hermes setup, suspends Ink while it runs
+      setupHandoff.ts               launches external kova setup, suspends Ink while it runs
       spawnHistoryStore.ts          ring buffer of finished subagent fan-out snapshots
       turnController.ts             stateful turn lifecycle driver (streaming, tools, reasoning)
       turnStore.ts                  nanostore for turn state (streaming, tools, reasoning, subagents)
@@ -473,7 +473,7 @@ ui-tui/
       messages.ts                transcript message append helpers
       openExternalUrl.ts         platform-aware URL opener (macOS/Linux/Windows)
       osc52.ts                   OSC 52 terminal clipboard copy sequence
-      parentLog.ts               append-only log to ~/.hermes/tui-parent.log
+      parentLog.ts               append-only log to ~/.kova/tui-parent.log
       perfPane.tsx               FPS / render perf overlay pane
       platform.ts                platform-aware keybinding and SSH detection helpers
       precisionWheel.ts          high-precision scroll wheel with sticky-frame budget
@@ -495,7 +495,7 @@ ui-tui/
       paste.ts                   bracketed paste snippet token regex
 
     types/
-      hermes-ink.d.ts            type declarations for @hermes/ink
+      kova-ink.d.ts            type declarations for @hermes/ink
 
     __tests__/                   vitest suite
 ```
@@ -507,5 +507,5 @@ tui_gateway/
   entry.py               stdio entrypoint
   server.py              RPC handlers and session logic
   render.py              optional rich/ANSI bridge
-  slash_worker.py        persistent HermesCLI subprocess for slash commands
+  slash_worker.py        persistent KovaCLI subprocess for slash commands
 ```

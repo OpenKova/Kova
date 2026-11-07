@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 
-import type { ScrollBoxHandle } from '@hermes/ink'
-import { evictInkCaches } from '@hermes/ink'
+import type { ScrollBoxHandle } from '@kova/ink'
+import { evictInkCaches } from '@kova/ink'
 import type { InflightTurn, SessionResumeResult, Usage } from '@kova/shared/gateway-events'
 import type {
   SessionActivateResponse,

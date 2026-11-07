@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
-import type { KovaGateway, ProfileScope } from '@/hermes'
+import type { KovaGateway, ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
 import { $freeTierStatus } from '@/store/free-tier'
 import { $freeTierSignIn, $openAppWindows } from '@/store/free-tier-sign-in'

@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
   sync: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   saveKovaConfigRecord: async (config: Record<string, unknown>) => {
     mocks.order.push(`save:${JSON.stringify(config)}`)
 

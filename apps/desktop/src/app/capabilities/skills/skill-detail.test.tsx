@@ -3,7 +3,7 @@ import { QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 import { queryClient } from '@/lib/query-client'
 import type { SkillInfo } from '@/types/hermes'
 
@@ -13,7 +13,7 @@ import { skillsQueryKey } from './skills-data'
 const setSkillLocked = vi.fn()
 const notifyError = vi.fn()
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getSkillContent: async (name: string) => ({ content: `---\nname: ${name}\n---\n\n# body\n`, name, path: '' }),
   setSkillLocked: (name: string, locked: boolean, profile?: unknown) => setSkillLocked(name, locked, profile)

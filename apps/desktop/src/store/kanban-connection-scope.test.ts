@@ -11,7 +11,7 @@ import type { KovaConnection } from '@/global'
 // the KovaGateway socket class stubbed — same harness as
 // plugin-socket-scope.test.ts.
 
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = await importOriginal<Record<string, unknown>>()
 
   return {

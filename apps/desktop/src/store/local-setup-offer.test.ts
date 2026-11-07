@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { KovaConnection } from '@/global'
-import type * as Kova from '@/hermes'
+import type * as Kova from '@/kova'
 import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
 
 const backend = vi.hoisted(() => ({ catalog: vi.fn(), status: vi.fn() }))
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof Kova>()),
   getLocalCatalog: () => backend.catalog(),
   getLocalModelsStatus: () => backend.status()

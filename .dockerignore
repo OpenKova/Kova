@@ -34,9 +34,9 @@ node_modules
 
 # Built artifacts that are regenerated inside the image.  Excluded so local
 # rebuilds on the developer's machine don't invalidate the dependency-install layer
-# that now depends on the full ui-tui/packages/hermes-ink/ tree being present.
+# that now depends on the full ui-tui/packages/kova-ink/ tree being present.
 ui-tui/dist/
-ui-tui/packages/hermes-ink/dist/
+ui-tui/packages/kova-ink/dist/
 
 # CI/CD
 .github

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 import type { FreeTierRequester } from '@/store/free-tier'
 import type { AppHandoffStatus } from '@/types/hermes'
 
@@ -9,7 +9,7 @@ const pollOAuthSession = vi.fn()
 const cancelOAuthSession = vi.fn(async (_id: string) => ({ ok: true }))
 const getNousHandoffStatus = vi.fn()
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   cancelOAuthSession: (id: string) => cancelOAuthSession(id),
   getNousHandoffStatus: (since: null | string) => getNousHandoffStatus(since),

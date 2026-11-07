@@ -312,7 +312,7 @@ import {
   tightenSecretFileMode,
   writeSecretFileAtomic
 } from './hardening'
-import { isKovaProcess } from './hermes-process'
+import { isKovaProcess } from './kova-process'
 import { assertNotPassiveSpawn } from './host-backend-singleton'
 import { KOVA_HUB_FALLBACK_ORIGIN, KOVA_HUB_ORIGIN, isKovaHubClipboardWrite } from './hub-iframe-policy'
 import { requestHudClose } from './hud-close'
@@ -689,7 +689,7 @@ import {
   windowSize
 } from './window-state'
 import { hiddenWindowsChildOptions } from './windows-child-options'
-import { buildPathExtCandidates, chooseUpdaterArgs, resolveVenvKovaCommand } from './windows-hermes-path'
+import { buildPathExtCandidates, chooseUpdaterArgs, resolveVenvKovaCommand } from './windows-kova-path'
 import {
   connectWindowsRemote,
   detectRemotePlatform,

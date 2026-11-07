@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getSkills, type ProfileScope, profileScopeKey } from '@/hermes'
+import { getSkills, type ProfileScope, profileScopeKey } from '@/kova'
 import { normalize } from '@/lib/text'
 import type { OfficialSkillInfo, SkillInfo } from '@/types/hermes'
 

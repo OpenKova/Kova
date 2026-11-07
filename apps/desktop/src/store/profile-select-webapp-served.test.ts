@@ -10,7 +10,7 @@ import { clearWebappSession, seedWebappSession } from '@/test/webapp-session'
 // Every socket the store builds besides the tab's own (the primary each test installs).
 const sockets: Array<{ connect: ReturnType<typeof vi.fn> }> = []
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   KovaGateway: class {
     connectionState = 'closed'

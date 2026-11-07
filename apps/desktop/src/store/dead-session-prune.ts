@@ -20,7 +20,7 @@
  * the id is deferred to a later pass instead of being dropped.
  */
 
-import { getSession } from '@/hermes'
+import { getSession } from '@/kova'
 import { mapPool } from '@/lib/pool'
 import { clearSessionDraft, isFreshDraftScope, stashedDraftScopes } from '@/store/composer'
 import { dropInterruptedSends, interruptedSendScopes } from '@/store/composer-outbox'

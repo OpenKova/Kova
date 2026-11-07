@@ -2,7 +2,7 @@ import { compactNumber } from '@kova/shared'
 import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
-import { type ProfileScope, profileScopeKey } from '@/hermes'
+import { type ProfileScope, profileScopeKey } from '@/kova'
 import { useI18n } from '@/i18n'
 import type { ToolsetInfo } from '@/types/hermes'
 

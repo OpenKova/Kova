@@ -13,7 +13,7 @@ vi.mock('@/store/profile', async (): Promise<object> => {
     normalizeProfileKey: (profile: string | null): string => profile || 'default'
   }
 })
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getWebAccessStatus: vi.fn(),
   restartWebAccess: vi.fn(),
@@ -27,7 +27,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { WebAccessStatus } from '@/api/webapp-access'
-import * as hermes from '@/hermes'
+import * as hermes from '@/kova'
 import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { $notifications, clearNotifications } from '@/store/notifications'

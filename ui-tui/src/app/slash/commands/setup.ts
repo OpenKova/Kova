@@ -1,4 +1,4 @@
-import { withInkSuspended } from '@hermes/ink'
+import { withInkSuspended } from '@kova/ink'
 
 import { t } from '../../../i18n/runtime.js'
 import { launchKovaCommand } from '../../../lib/externalCli.js'

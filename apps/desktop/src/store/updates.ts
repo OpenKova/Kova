@@ -17,7 +17,7 @@ import type {
   DesktopVersionInfo,
   KovaConnection
 } from '@/global'
-import { checkKovaUpdate, getActionStatus, updateKova } from '@/hermes'
+import { checkKovaUpdate, getActionStatus, updateKova } from '@/kova'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
 import { cloudOwnsUpdates, updateTargetFor } from '@/store/cloud-updates'

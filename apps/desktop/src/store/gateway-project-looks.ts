@@ -1,6 +1,6 @@
 import { map } from 'nanostores'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { gatewayRouteState, requestGatewayForAgent } from '@/store/gateway'
 import type { AgentProfileRoute } from '@/store/profile'
 import type { ProjectInfo, ProjectsPayload } from '@/types/hermes'

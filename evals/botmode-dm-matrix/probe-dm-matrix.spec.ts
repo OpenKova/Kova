@@ -22,7 +22,7 @@ test.beforeAll(async () => {
     writeMockProviderConfig(home, mock.url)
     writeEnvFile(home)
     fs.writeFileSync(path.join(home, 'SOUL.md'), `# ${name}\nA Bot Mode teammate.\n`)
-    fs.writeFileSync(path.join(home, 'profile.yaml'), 'name: ' + name + '\nui_meta:\n  hermes-bots: {}\n')
+    fs.writeFileSync(path.join(home, 'profile.yaml'), 'name: ' + name + '\nui_meta:\n  kova-bots: {}\n')
   }
   if (process.env.BOT_DM_SERVICE_PATH === '1') {
     const sourceVenv = path.dirname(path.dirname(python))

@@ -14,7 +14,7 @@ const gatewayMocks = vi.hoisted(() => ({
   closed: [] as string[]
 }))
 
-vi.mock('@/hermes', async importActual => ({
+vi.mock('@/kova', async importActual => ({
   ...(await importActual<Record<string, unknown>>()),
   setApiRequestConnection: vi.fn(),
   KovaGateway: class {

@@ -13,7 +13,7 @@ import { SidebarCronJobsSection } from './cron-jobs-section'
 // in-flight execution).
 const getCronJobRuns = vi.fn<() => Promise<SessionInfo[]>>()
 
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>
 
   return {

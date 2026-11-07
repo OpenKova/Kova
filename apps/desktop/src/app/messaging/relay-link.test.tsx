@@ -12,7 +12,7 @@ const notify = vi.fn()
 const noAccounts = { platforms: [{ platform: 'telegram', accounts: [], bot_url: null }] }
 const getRelayLinks = vi.fn(async (): Promise<unknown> => noAccounts)
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getRelayLinks: () => getRelayLinks(),
   getRelayLinkState: (code: string) => getRelayLinkState(code),
   requestRelayLink: (platform: string) => requestRelayLink(platform),

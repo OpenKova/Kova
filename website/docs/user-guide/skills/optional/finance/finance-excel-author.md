@@ -14,10 +14,10 @@ Build auditable financial workbooks headless via openpyxl.
 
 | | |
 |---|---|
-| Source | Optional — install with `hermes skills install official/finance/excel-author` |
+| Source | Optional — install with `kova skills install official/finance/excel-author` |
 | Path | `optional-skills/finance/excel-author` |
 | Version | `1.0.0` |
-| Author | Anthropic (adapted by Nous Research) |
+| Author | Anthropic (adapted by OpenKova) |
 | License | Apache-2.0 |
 | Platforms | linux, macos, windows |
 | Tags | `excel`, `openpyxl`, `finance`, `spreadsheet`, `modeling` |
@@ -26,7 +26,7 @@ Build auditable financial workbooks headless via openpyxl.
 ## Reference: full SKILL.md
 
 :::info
-The following is the complete skill definition that Hermes loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
+The following is the complete skill definition that Kova loads when this skill is triggered. This is what the agent sees as instructions when the skill is active.
 :::
 
 # excel-author
@@ -43,17 +43,17 @@ Adapted from Anthropic's `xlsx-author` and `audit-xls` skills in the [anthropics
 
 ## Setup
 
-Use `python` when it already imports `openpyxl` (the Hermes Docker image ships
-it). Otherwise, when `hermes` is on PATH, let Hermes build its shared, pinned
-documents environment under the Hermes home (safe to run from several agents
-at once); in a Docker sandbox without Hermes the block builds a venv in the
+Use `python` when it already imports `openpyxl` (the Kova Docker image ships
+it). Otherwise, when `kova` is on PATH, let Kova build its shared, pinned
+documents environment under the Kova home (safe to run from several agents
+at once); in a Docker sandbox without Kova the block builds a venv in the
 sandbox home with the same pinned versions. It is the same block as the
 microsoft-office/pdf skills. Never `pip install` into the interpreter that
-runs Hermes:
+runs Kova:
 
 ```bash
-python -c "import openpyxl" 2>/dev/null && PY=python || if command -v hermes >/dev/null 2>&1; then
-  PY="$(hermes pm environment documents --extra documents --extra documents-pdf)"
+python -c "import openpyxl" 2>/dev/null && PY=python || if command -v kova >/dev/null 2>&1; then
+  PY="$(kova pm environment documents --extra documents --extra documents-pdf)"
 else
   PY="$HOME/.cache/hermes-docs-venv/bin/python"
   "$PY" -c "import docx, openpyxl, pptx, reportlab, pypdf, pdfplumber, pypdfium2" 2>/dev/null || (

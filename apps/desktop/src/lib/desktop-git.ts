@@ -8,7 +8,7 @@ import type {
   KovaReviewList,
   KovaReviewShipInfo
 } from '@/global'
-import { hermesApi } from '@/hermes'
+import { hermesApi } from '@/kova'
 
 import { desktopFsProfile, isDesktopFsRemoteMode } from './desktop-fs'
 

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // a different backend, and keying it under the new primary would merge two
 // owners into one roster source and skip a backend.
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   setApiRequestConnection: vi.fn(),
   KovaGateway: class {
     connectionState = 'closed'

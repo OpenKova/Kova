@@ -27,7 +27,7 @@ import { LocalModelsSettings } from './local-models-settings'
 
 // Mock the API layer — the pane's contract is what it RENDERS from these
 // payloads, not transport.
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   activateLocalModel: vi.fn(),
   deleteLocalModel: vi.fn(),
   downloadBrowsedModel: vi.fn(),
@@ -51,7 +51,7 @@ vi.mock('@/hermes', () => ({
   sideloadLocalModel: vi.fn()
 }))
 
-import * as hermes from '@/hermes'
+import * as hermes from '@/kova'
 
 const mocked = vi.mocked(hermes)
 

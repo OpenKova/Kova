@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vite
 
 import { createSessionRpcDispatcher } from '@/app/contrib/session-rpc-dispatcher'
 import { prepareDefaultNewSession } from '@/app/session/new-session-route'
-import { getSession } from '@/hermes'
+import { getSession } from '@/kova'
 import { $defaultProfileRoute } from '@/store/default-profile'
 import {
   activeGateway,
@@ -156,7 +156,7 @@ function answer(socket: MockGateway, method: string, params: Record<string, unkn
   return {}
 }
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   KovaGateway: class {
     connectUrl: null | string = null

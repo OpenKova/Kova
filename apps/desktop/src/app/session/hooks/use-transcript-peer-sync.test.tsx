@@ -2,12 +2,12 @@ import { act, cleanup, render } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaModule from '@/hermes'
+import type * as KovaModule from '@/kova'
 import { textPart } from '@/lib/chat-messages'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { $sessionTiles, publishSessionState } from '@/store/session-states'
 
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = await importOriginal<typeof KovaModule>()
 
   return {
@@ -84,7 +84,7 @@ describe('useTranscriptPeerSync (#65047)', () => {
 
     publishSessionState(RUNTIME, local)
 
-    const { getLatestSessionMessages } = await import('@/hermes')
+    const { getLatestSessionMessages } = await import('@/kova')
     vi.mocked(getLatestSessionMessages).mockResolvedValue({
       session_id: STORED,
       messages: [
@@ -139,7 +139,7 @@ describe('useTranscriptPeerSync (#65047)', () => {
   })
 
   it('ignores a peer ping for a session this window is not viewing', async () => {
-    const { getLatestSessionMessages } = await import('@/hermes')
+    const { getLatestSessionMessages } = await import('@/kova')
     vi.mocked(getLatestSessionMessages).mockClear()
     const { useTranscriptPeerSync } = await import('./use-transcript-peer-sync')
 

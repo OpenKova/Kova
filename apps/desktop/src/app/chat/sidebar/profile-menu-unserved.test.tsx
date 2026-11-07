@@ -93,7 +93,7 @@ vi.mock('@/store/profile-share', () => ({ runExportProfileFlow: vi.fn(), runImpo
 vi.mock('./use-profile-prewarm', () => ({
   useProfilePrewarm: () => ({ cancelPrewarm: vi.fn(), notePointerMove: vi.fn(), startPrewarm: vi.fn() })
 }))
-vi.mock('@/hermes', () => ({ getProfileSoul: vi.fn().mockResolvedValue({ content: '' }), updateProfileSoul: vi.fn() }))
+vi.mock('@/kova', () => ({ getProfileSoul: vi.fn().mockResolvedValue({ content: '' }), updateProfileSoul: vi.fn() }))
 vi.mock('@/components/chat/code-editor', () => ({ CodeEditor: () => null }))
 vi.mock('../../profiles/create-profile-dialog', () => ({ CreateProfileDialog: () => null }))
 vi.mock('../../profiles/delete-profile-dialog', () => ({ DeleteProfileDialog: () => null }))

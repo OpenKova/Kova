@@ -10,7 +10,7 @@ import {
   listHFRepoFiles,
   searchHFModels,
   sideloadLocalModel
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { Cpu, Download, FolderOpen, Loader2, Search } from '@/lib/icons'
 import { cn } from '@/lib/utils'

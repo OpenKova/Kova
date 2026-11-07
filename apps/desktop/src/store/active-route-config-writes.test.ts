@@ -1,7 +1,7 @@
 import { atom } from 'nanostores'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaModule from '@/hermes'
+import type * as KovaModule from '@/kova'
 import { $activeGatewayProfile } from '@/store/profile'
 
 // Voice mode and the Appearance display toggles write `config.set` for the
@@ -12,7 +12,7 @@ import { $activeGatewayProfile } from '@/store/profile'
 
 const sockets = vi.hoisted(() => [] as Array<{ requests: Array<[string, unknown]>; wsUrl: string }>)
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaModule>()),
   KovaGateway: class {
     connectionState = 'closed'

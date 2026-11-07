@@ -8,7 +8,7 @@ import type { KovaConnection } from '@/global'
 const checkKovaUpdateSpy = vi.fn()
 const updateKovaSpy = vi.fn()
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   checkKovaUpdate: (...args: unknown[]) => checkKovaUpdateSpy(...args),
   getActionStatus: vi.fn(),

@@ -1,5 +1,5 @@
 import type { KovaConnection } from '@/global'
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 
 /** One secondary (pool) socket the gateway registry (store/gateway.ts) keeps. */
 export interface Secondary {

@@ -1,4 +1,4 @@
-import { useStdout } from '@hermes/ink'
+import { useStdout } from '@kova/ink'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { CellGrid } from '../components/cellImage.js'

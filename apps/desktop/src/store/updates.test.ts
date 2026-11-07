@@ -65,7 +65,7 @@ const checkKovaUpdateSpy = vi.fn()
 const updateKovaSpy = vi.fn()
 const getActionStatusSpy = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   checkKovaUpdate: (...args: unknown[]) => checkKovaUpdateSpy(...args),
   updateKova: (...args: unknown[]) => updateKovaSpy(...args),
   getActionStatus: (...args: unknown[]) => getActionStatusSpy(...args)

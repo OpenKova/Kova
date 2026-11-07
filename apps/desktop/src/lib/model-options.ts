@@ -1,6 +1,6 @@
 import type { ModelCapabilities, ModelOptionProvider, ModelOptionsResult } from '@kova/shared'
 
-import { getGlobalModelOptions, type KovaGateway } from '@/hermes'
+import { getGlobalModelOptions, type KovaGateway } from '@/kova'
 
 type CatalogProviderIdentity = Partial<Pick<ModelOptionProvider, 'aliases' | 'name'>> &
   Pick<ModelOptionProvider, 'slug'>

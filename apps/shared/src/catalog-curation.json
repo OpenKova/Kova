@@ -7,7 +7,7 @@
     },
     "plugins": {
       "desktop:kanban": "official-art.jpg",
-      "desktop:hermes-bots": "official-art-card-two.jpg",
+      "desktop:kova-bots": "official-art-card-two.jpg",
       "desktop:hermes-radio": "official-art-card-one.jpg"
     }
   },

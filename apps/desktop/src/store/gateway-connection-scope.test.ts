@@ -16,7 +16,7 @@ const gatewayMocks = vi.hoisted(() => ({
   setConnection: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   setApiRequestConnection: vi.fn(),
   KovaGateway: class {
     connectionState = 'closed'
@@ -54,7 +54,7 @@ const {
   SECONDARY_MIN_LIFETIME_MS
 } = await import('./gateway')
 
-const { setApiRequestConnection } = await import('@/hermes')
+const { setApiRequestConnection } = await import('@/kova')
 
 function installDesktop(): void {
   ;(window as unknown as { hermesDesktop: unknown }).kovaDesktop = {

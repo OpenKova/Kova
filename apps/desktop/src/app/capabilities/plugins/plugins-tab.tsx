@@ -12,7 +12,7 @@ import { $pluginRecords, enablePackageDesktopHalf, type PluginRecord, setPluginE
 import { useContributions } from '@/contrib/react/use-contributions'
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
 import { pluginSettingsRouteHref, SETTINGS_PLUGINS_AREA } from '@/contrib/settings-pages'
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
 import { DESKTOP_PLUGIN_TOOLSETS } from '@/lib/desktop-toolsets'
 import { triggerHaptic } from '@/lib/haptics'

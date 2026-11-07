@@ -18,7 +18,7 @@
     "noEmit": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@hermes/plugin-sdk": ["./src/sdk/index.ts"],
+      "@kova/plugin-sdk": ["./src/sdk/index.ts"],
       "@kova/shared/ansi": ["../shared/src/ansi.ts"],
       "@kova/shared/billing": ["../shared/src/billing-types.ts"],
       "@kova/shared/color": ["../shared/src/color.ts"],

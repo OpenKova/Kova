@@ -22,7 +22,7 @@ import {
   getLocalModelsJobs,
   getLocalModelsStatus,
   installLocalRuntime
-} from '@/hermes'
+} from '@/kova'
 import { translateNow } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useStoresSelector } from '@/lib/use-session-slice'

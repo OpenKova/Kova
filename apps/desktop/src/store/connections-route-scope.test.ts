@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { DesktopConnectionsRegistry, KovaConnection } from '@/global'
-import type * as Kova from '@/hermes'
+import type * as Kova from '@/kova'
 
 vi.mock('@/app/contrib/hooks/use-background-sync', () => ({ resetLiveRuntimeTracking: vi.fn() }))
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = await importOriginal<typeof Kova>()
 
   return {

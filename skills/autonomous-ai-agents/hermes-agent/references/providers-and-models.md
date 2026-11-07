@@ -1,8 +1,8 @@
 # Providers & Model Aliases
 
-Set via `hermes model` (picker) or `hermes setup`. 35+ provider profiles ship as
+Set via `kova model` (picker) or `kova setup`. 35+ provider profiles ship as
 plugins under `plugins/model-providers/`; user plugins of the same name override.
-Full docs: https://hermes-agent.nousresearch.com/docs/integrations/providers
+Full docs: https://github.com/OpenKova/Kova/docs/integrations/providers
 
 ### Providers
 
@@ -10,10 +10,10 @@ Full docs: https://hermes-agent.nousresearch.com/docs/integrations/providers
 |----------|------|----------------|
 | openrouter | API key | `OPENROUTER_API_KEY` |
 | anthropic | API key | `ANTHROPIC_API_KEY` (also `CLAUDE_CODE_OAUTH_TOKEN`) |
-| nous | OAuth device code | `hermes auth add nous` (or `NOUS_API_KEY`) |
-| openai-codex | OAuth | `hermes auth add openai-codex` |
-| qwen-oauth | OAuth | `hermes auth add qwen-oauth` |
-| minimax-oauth | OAuth | `hermes auth add minimax-oauth` |
+| nous | OAuth device code | `kova auth add nous` (or `NOUS_API_KEY`) |
+| openai-codex | OAuth | `kova auth add openai-codex` |
+| qwen-oauth | OAuth | `kova auth add qwen-oauth` |
+| minimax-oauth | OAuth | `kova auth add minimax-oauth` |
 | gemini | API key | `GOOGLE_API_KEY` or `GEMINI_API_KEY` |
 | xai | API key | `XAI_API_KEY` (SuperGrok OAuth also supported) |
 | deepseek | API key | `DEEPSEEK_API_KEY` |
@@ -27,10 +27,10 @@ Full docs: https://hermes-agent.nousresearch.com/docs/integrations/providers
 | bedrock / vertex / azure-foundry | Cloud SDK / key | AWS SDK creds / Vertex ADC / `AZURE_FOUNDRY_API_KEY` |
 | custom | Config | `model.base_url` + `model.api_key` in config.yaml |
 
-GitHub Copilot (`copilot`, `copilot-acp`) is a labs plugin, not core: `hermes plugins install github-copilot`, then `hermes auth add copilot` (https://github.com/NousResearch/hermes-labs-plugins/tree/main/github-copilot).
+GitHub Copilot (`copilot`, `copilot-acp`) is a labs plugin, not core: `kova plugins install github-copilot`, then `kova auth add copilot` (https://github.com/OpenKova/hermes-labs-plugins/tree/main/github-copilot).
 
-Multiple credentials per provider pool and rotate automatically (`hermes auth`).
-Fallback chain when the primary fails: `hermes fallback add|remove|list`.
+Multiple credentials per provider pool and rotate automatically (`kova auth`).
+Fallback chain when the primary fails: `kova fallback add|remove|list`.
 
 ### User-defined model aliases
 
@@ -55,7 +55,7 @@ model_aliases:
     key_env: THETA_API_KEY        # or: api_key: "${THETA_API_KEY}"
 
 # Short form ("provider/model"), also via CLI:
-#   hermes config set model.aliases.fav openrouter/anthropic/claude-sonnet-4.6
+#   kova config set model.aliases.fav openrouter/anthropic/claude-sonnet-4.6
 model:
   aliases:
     fav: openrouter/anthropic/claude-sonnet-4.6

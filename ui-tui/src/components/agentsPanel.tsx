@@ -1,4 +1,4 @@
-import { Box, stringWidth, Text, useStdout } from '@hermes/ink'
+import { Box, stringWidth, Text, useStdout } from '@kova/ink'
 import { mix } from '@kova/shared/color'
 import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'

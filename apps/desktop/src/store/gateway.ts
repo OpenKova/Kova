@@ -12,7 +12,7 @@ import { atom, batch } from 'nanostores'
 
 import { canonicalOwnerProfile } from '@/api/canonical-protocol'
 import type { KovaConnection } from '@/global'
-import { KovaGateway } from '@/hermes'
+import { KovaGateway } from '@/kova'
 import { translateNow } from '@/i18n'
 import { UnservedProfileError } from '@/lib/browser-served-profiles'
 import {

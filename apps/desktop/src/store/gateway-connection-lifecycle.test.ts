@@ -35,7 +35,7 @@ const reconnectStateMocks = vi.hoisted(() => ({
   resetTileRuntimeBindings: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   setApiRequestConnection: vi.fn(),
   KovaGateway: class {
     connectionState = 'closed'

@@ -90,7 +90,7 @@ const MUTATIONS: Record<string, Record<string, unknown>> = {
 // [label, Desktop method, exact producer params, expected: wire methods sent (after attach) or a named refusal]
 const SITES: Array<[string, string, Record<string, unknown>, string[] | RegExp]> = [
   [
-    'hermes-bots/relay.ts relayDeliverParams',
+    'kova-bots/relay.ts relayDeliverParams',
     'bot_relay.deliver',
     {
       id: 'e',

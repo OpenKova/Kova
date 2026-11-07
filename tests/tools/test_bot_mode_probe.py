@@ -22,7 +22,7 @@ def _make_bot_profile(root, name, *, managed=True, soul=None):
             textwrap.dedent(
                 """\
                 ui_meta:
-                  hermes-bots:
+                  kova-bots:
                     shape: cloud
                     color: '#8b5cf6'
                 """
@@ -139,7 +139,7 @@ def test_roster_lines_carry_roles(tmp_path):
             """\
             description: Deep research and literature review
             ui_meta:
-              hermes-bots:
+              kova-bots:
                 title: Research Buddy
             """
         ),

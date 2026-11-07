@@ -24,7 +24,7 @@ import {
   revokePairing,
   type TelegramOnboardingApplyResponse,
   updateMessagingPlatform
-} from '@/hermes'
+} from '@/kova'
 import { type Translations, useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { AlertTriangle, ExternalLink, RefreshCw, Save, Trash2 } from '@/lib/icons'

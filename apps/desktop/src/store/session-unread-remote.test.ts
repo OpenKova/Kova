@@ -6,7 +6,7 @@ const patch = vi.fn<(id: string, unread: boolean, profile?: null | string) => Pr
   Promise.resolve({ ok: true })
 )
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   // The store only needs the REST mutation; keep the mock minimal.
   setApiRequestProfile: () => {},
   setSessionUnreadRemote: (id: string, unread: boolean, profile?: null | string) => patch(id, unread, profile)

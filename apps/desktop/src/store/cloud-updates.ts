@@ -12,7 +12,7 @@ import { isKovaCloudUrl } from '@kova/shared'
 import { computed } from 'nanostores'
 
 import type { KovaConnection } from '@/global'
-import { servedByKovaCloud } from '@/lib/hermes-cloud-host'
+import { servedByKovaCloud } from '@/lib/kova-cloud-host'
 import type { UpdateTarget } from '@/lib/update-copy'
 import { $connection } from '@/store/session'
 

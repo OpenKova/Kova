@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
-import { getSkillContent, type ProfileScope, profileScopeKey, setSkillLocked } from '@/hermes'
+import { getSkillContent, type ProfileScope, profileScopeKey, setSkillLocked } from '@/kova'
 import { useI18n } from '@/i18n'
 import { Lock, LockOpen } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'

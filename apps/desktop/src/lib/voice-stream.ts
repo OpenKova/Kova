@@ -1,5 +1,5 @@
 import { openGatewaySocket } from '@/api/canonical-protocol'
-import type { ResolvedOwner } from '@/hermes'
+import type { ResolvedOwner } from '@/kova'
 import { resolveSiblingWsUrl } from '@/lib/sibling-ws-url'
 
 /**

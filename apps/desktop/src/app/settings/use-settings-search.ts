@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react'
 
 import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { $pluginRecords } from '@/contrib/plugins-store'
-import { getEnvVars, getKovaConfigSchema } from '@/hermes'
+import { getEnvVars, getKovaConfigSchema } from '@/kova'
 import { useI18n } from '@/i18n'
 import { type IconComponent, Monitor, Package, Settings2, Wrench } from '@/lib/icons'
 import { $agentPlugins, isDesktopRelevantPlugin, loadAgentPlugins } from '@/store/agent-plugins'

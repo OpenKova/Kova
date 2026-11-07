@@ -6,7 +6,7 @@ author: Shunit Haviv Hakimi (shunithaviv)
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  kova:
     tags: [video, launch-video, marketing, hyperframes, motion-graphics, share-copy]
     category: creative
     related_skills: [brag-slim, hyperframes]
@@ -43,7 +43,7 @@ invocation asks for `--full` or `--voice`.
 - The Hyperframes path (`--full`, `--voice`, or any model other than Opus 5.5)
   loads HeyGen's domain skills by name: `hyperframes-core`,
   `hyperframes-animation`, `hyperframes-creative`, `hyperframes-keyframes` and
-  `hyperframes-cli`, installed with `hermes skills install
+  `hyperframes-cli`, installed with `kova skills install
   heygen-com/hyperframes/skills/<name>`. The skills guard currently blocks four
   of the five on HTML comments and credential docs in their examples
   (`hyperframes-creative` scores dangerous, which `--force` cannot override),

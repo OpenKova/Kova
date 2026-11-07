@@ -2,7 +2,7 @@ import { LOCAL_CONNECTION_ID, registryBackendScopeKey } from '@kova/shared'
 import { atom, batch, computed } from 'nanostores'
 
 import type { KovaConnection } from '@/global'
-import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
+import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/kova'
 import { hostHas } from '@/lib/host-capabilities'
 import { persistStore } from '@/lib/persist-store'
 import { initialGatewayProfile } from '@/lib/platform'

@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { getActionStatus, getStatus, hermesApi, restartGateway } from '@/hermes'
+import { getActionStatus, getStatus, hermesApi, restartGateway } from '@/kova'
 import { translateNow } from '@/i18n'
 import { sharedGatewayProfiles } from '@/lib/shared-gateway-restart'
 import { isSignedOutStatus } from '@/lib/signed-out-status'

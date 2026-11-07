@@ -66,7 +66,7 @@ def main():
         (p / '.env').write_text('OPENAI_API_KEY=local-fixture\n')
         (p / 'SOUL.md').write_text('You are a deterministic test assistant.\n')
         (p / '.no-bundled-skills').touch()
-    (profile / 'profile.yaml').write_text('name: worker\nui_meta:\n  hermes-bots:\n    title: Worker\n')
+    (profile / 'profile.yaml').write_text('name: worker\nui_meta:\n  kova-bots:\n    title: Worker\n')
     env = {k: v for k, v in os.environ.items() if not (k.startswith('KOVA_') or 'API_KEY' in k or 'TOKEN' in k or k in ('PYTHONPATH', 'PYTEST_PLUGINS'))}
     env.update(KOVA_HOME=str(home), HOME=str(home / 'os-home'), KOVA_DASHBOARD_SESSION_TOKEN='persistence-fixture-token', KOVA_IGNORE_RULES='1', PYTHONPATH=str(args.repo), OPENAI_API_KEY='local-fixture')
     log = (args.out / 'serve.log').open('w')

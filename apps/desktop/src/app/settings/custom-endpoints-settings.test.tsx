@@ -21,7 +21,7 @@ vi.mock('@/store/profile', () => ({
   profileLabel: (p: { display_name?: string; name: string }) => p.display_name || p.name
 }))
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   activateCustomEndpoint: vi.fn(),
   deleteCustomEndpoint: vi.fn(),

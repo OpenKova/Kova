@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getActionStatus: vi.fn(),
   installSkillFromHub: vi.fn(),
   scanSkillHub: vi.fn(),

@@ -8,7 +8,7 @@ import type {
 } from '@kova/shared'
 import { JsonRpcGatewayError } from '@kova/shared'
 
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/kova'
 import { requestGatewayForAgent } from '@/store/gateway'
 
 export type { ConnectorErrorReason }

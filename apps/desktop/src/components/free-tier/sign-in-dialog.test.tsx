@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 import { $freeTierStatus } from '@/store/free-tier'
 import { $freeTierSignIn, noteFreeTierTurnComplete, openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { markOnboardingDecided, setOnboardingSurfaceActive } from '@/store/onboarding-presence'
@@ -17,7 +17,7 @@ const requestGateway = vi.fn(async (_method?: string): Promise<GatewayAnswer> =>
 // Only the two calls this flow makes are replaced; everything else keeps its
 // real implementation so the modules the dialog pulls in (the onboarding
 // DeviceCode cell, the model picker) still resolve their imports.
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   pollOAuthSession: (providerId: string, sessionId: string) => pollOAuthSession(providerId, sessionId),
   getGlobalModelOptions: async () => ({ providers: [] }),

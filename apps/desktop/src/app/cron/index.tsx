@@ -43,7 +43,7 @@ import {
   resumeCronJob,
   type SessionInfo,
   updateCronJob
-} from '@/hermes'
+} from '@/kova'
 import { type Translations, useI18n } from '@/i18n'
 import { AlertTriangle } from '@/lib/icons'
 import { requestModelOptions } from '@/lib/model-options'

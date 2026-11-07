@@ -14,7 +14,7 @@ import {
   startOAuthLogin,
   submitOAuthCode,
   validateProviderCredential
-} from '@/hermes'
+} from '@/kova'
 import { translateNow } from '@/i18n'
 import { writeClipboardText } from '@/lib/clipboard'
 import { restOfLongPollGap } from '@/lib/long-poll'

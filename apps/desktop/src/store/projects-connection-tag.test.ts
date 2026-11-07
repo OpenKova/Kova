@@ -2,7 +2,7 @@ import { atom } from 'nanostores'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { SidebarProjectTree } from '@/app/chat/sidebar/projects/workspace-groups'
-import { hermesApi } from '@/hermes'
+import { hermesApi } from '@/kova'
 import { $gateway, activeGateway, activeGatewayConnectionId, isActivePrimary } from '@/store/gateway'
 import { $activeGatewayProfile, $profiles, setShowAllProfiles } from '@/store/profile'
 import { $sessions } from '@/store/session'
@@ -19,7 +19,7 @@ vi.mock('@/store/gateway', () => ({
   ensureActiveGatewayOpen: vi.fn()
 }))
 vi.mock('@/i18n', () => ({ translateNow: (key: string) => key }))
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
   hermesApi: vi.fn(),

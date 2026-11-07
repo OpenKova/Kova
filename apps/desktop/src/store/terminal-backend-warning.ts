@@ -1,4 +1,4 @@
-import { getTerminalBackends, selectTerminalBackend } from '@/hermes'
+import { getTerminalBackends, selectTerminalBackend } from '@/kova'
 import { translateNow } from '@/i18n'
 import { notify, notifyError } from '@/store/notifications'
 import { requestRoute } from '@/store/recovery-requests'

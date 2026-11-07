@@ -22,7 +22,7 @@
 import type { McpServersStatusResult } from '@kova/shared'
 
 import { $apiRequestScope } from '@/api/client'
-import { getKovaConfigRecord, setMcpServerEnabled } from '@/hermes'
+import { getKovaConfigRecord, setMcpServerEnabled } from '@/kova'
 import { translateNow } from '@/i18n'
 import { isLoopbackPreviewUrl } from '@/lib/local-preview'
 import { getServers, type McpServerEntry, serverEnabled } from '@/lib/mcp-servers'

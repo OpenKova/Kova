@@ -12,7 +12,7 @@ import {
   retainConfigReadOrigin,
   saveKovaConfig,
   setSessionArchived
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import { selectDesktopPaths } from '@/lib/desktop-fs'

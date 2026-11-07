@@ -13,7 +13,7 @@ import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { PassThrough } from 'stream'
 
-import { Box, renderSync, Text } from '@hermes/ink'
+import { Box, renderSync, Text } from '@kova/ink'
 import type { SessionInfo } from '@kova/shared/gateway-types'
 import React, { type ReactElement } from 'react'
 

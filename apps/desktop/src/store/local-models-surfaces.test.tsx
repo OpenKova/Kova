@@ -7,7 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import type { KovaApiRequest, KovaConnection } from '@/global'
 import type { LocalCatalogModel, LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
 
-vi.mock('@/hermes', async (): Promise<object> => ({
+vi.mock('@/kova', async (): Promise<object> => ({
   ...(await import('@/api/local-models')),
   getKovaConfigRecord: async (): Promise<object> => ({}),
   getGlobalModelOptions: async (): Promise<ModelOptionsResult> => ({ providers: [] })

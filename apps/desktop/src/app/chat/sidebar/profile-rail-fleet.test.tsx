@@ -126,7 +126,7 @@ vi.mock('@/components/remote-setup/first-run', () => ({
   FirstRunRemoteSetup: () => 'Connect to existing Kova'
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getProfileSoul: vi.fn().mockResolvedValue({ content: '' }),
   updateProfileSoul: vi.fn()
 }))

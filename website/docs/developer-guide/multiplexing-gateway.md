@@ -9,7 +9,7 @@ One gateway process can serve every profile in the install. The mode is on by
 default (`gateway.multiplex_profiles`, default `true`), and everything it
 changes reverts the moment the flag is off. An *unset* flag is settled at boot
 by `hermes_cli/gateway_multiplex_mode.py::resolve_multiplex_mode`, which runs
-the `hermes gateway migrate` preflight and keeps the gateway standalone when a
+the `kova gateway migrate` preflight and keeps the gateway standalone when a
 secondary still runs its own gateway, a blocker exists, or the host cannot be
 migrated (see "The mode flag"). This document is the design rationale
 referenced from `agent/secret_scope.py` ("Workstream A"): what is isolated per
@@ -54,7 +54,7 @@ is documented as a known limitation at the end of this document.
   a plain module global, not a contextvar: it describes the deployment mode,
   not a per-task value. Its only job is to arm the fail-closed behavior in
   `get_secret()`.
-- The dashboard / remote-Desktop backend (`hermes serve`) has no such flag, so
+- The dashboard / remote-Desktop backend (`kova serve`) has no such flag, so
   `hermes_cli/web_server.py::start_server` calls
   `tui_gateway.launch_profile_policy.activate_multi_profile_hosting_eagerly()`
   as its LAST boot step: the host arms the guard when the machine has more than
@@ -135,7 +135,7 @@ B's turns and into every subprocess spawned with `env=dict(os.environ)`.
     rather than silently reading the process environment. An un-migrated call
     site fails loud at that exact line instead of leaking another profile's
     value.
-- A small allowlist (`HERMES_HOME`, `HERMES_PROFILE`, proxy settings,
+- A small allowlist (`KOVA_HOME`, `KOVA_PROFILE`, proxy settings,
   `API_SERVER_*` listener settings — but deliberately not `API_SERVER_KEY`)
   stays global because those describe the process, not a profile.
 - Cloud SDK *default credential chains* are ambient by construction
@@ -162,10 +162,10 @@ routed turn can reach: `${VAR}` / `${env:VAR}` references in a profile's
 `/pair` grant mirror) update the installed scope mapping instead of the
 process environment (`#88441`).
 
-## The HERMES_HOME override
+## The KOVA_HOME override
 
 `hermes_constants.py` holds a context-local override consulted by
-`get_hermes_home()` before the `HERMES_HOME` env var. Everything that resolves
+`get_hermes_home()` before the `KOVA_HOME` env var. Everything that resolves
 paths through it — config, `state.db`, skills, memory, SOUL, sessions, kanban,
 goals, plugin discovery, MCP startup — follows the active profile
 automatically. `get_process_hermes_home()` exists for the few machine-level
@@ -195,7 +195,7 @@ still run its own standalone gateway.
 ## Per-profile persistence
 
 `SessionStore` binds no database handle at construction (`#88532`). Session
-DB handles are resolved at call time through the active HERMES_HOME override —
+DB handles are resolved at call time through the active KOVA_HOME override —
 one cached handle per resolved `profiles/<name>/state.db` — so sessions land
 in the owning profile's store even when the store object itself is shared.
 Pairing stores are constructed per served profile.
@@ -280,7 +280,7 @@ profile enumeration and configuration live in
 `tui_gateway/methods_profiles.py`: `profiles.list`, `profiles.create`,
 `profiles.describe`, `profiles.configure`, `profiles.set_asset`,
 `profiles.get_asset`. Reads and writes run under the target profile's
-HERMES_HOME override. Asset writes are atomic, type- and size-capped.
+KOVA_HOME override. Asset writes are atomic, type- and size-capped.
 
 ## Failure modes
 

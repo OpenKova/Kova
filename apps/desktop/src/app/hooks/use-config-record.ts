@@ -7,7 +7,7 @@ import {
   type ProfileScope,
   profileScopeKey,
   retainConfigReadOrigin
-} from '@/hermes'
+} from '@/kova'
 import { queryClient } from '@/lib/query-client'
 import { $activeConnectionId } from '@/store/connections'
 import type { KovaConfigRecord } from '@/types/hermes'
@@ -17,7 +17,7 @@ import type { KovaConfigRecord } from '@/types/hermes'
 // so a save in one shows in the others, and revisiting a tab paints the cache
 // instead of blanking on a fresh fetch.
 //
-// Distinct from session/hooks/use-hermes-config.ts, which is side-effecting —
+// Distinct from session/hooks/use-kova-config.ts, which is side-effecting —
 // it pushes personality/cwd/voice/… into the session stores for live chat.
 export const KOVA_CONFIG_KEY = ['hermes-config-record'] as const
 

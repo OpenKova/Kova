@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 
 import type { PreviewSigninsResult } from '@/global'
-import { type ProfileScope, saveKovaConfigRecord } from '@/hermes'
+import { type ProfileScope, saveKovaConfigRecord } from '@/kova'
 import { useI18n } from '@/i18n'
 import { claimPreviewSigninsSync, syncPreviewSignins } from '@/lib/preview-signins'
 import { notify, notifyError } from '@/store/notifications'

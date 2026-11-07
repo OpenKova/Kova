@@ -1,4 +1,4 @@
-import { forceRedraw, type MouseTrackingMode } from '@hermes/ink'
+import { forceRedraw, type MouseTrackingMode } from '@kova/ink'
 import type {
   ConfigFullResponse,
   ConfigGetValueResponse,

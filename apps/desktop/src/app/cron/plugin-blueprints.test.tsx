@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AutomationBlueprint, CronJob } from '@/hermes'
+import type { AutomationBlueprint, CronJob } from '@/kova'
 
 const hermes = vi.hoisted(() => ({
   getAutomationBlueprints: vi.fn(),
@@ -11,7 +11,7 @@ const hermes = vi.hoisted(() => ({
   instantiateAutomationBlueprint: vi.fn()
 }))
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getAutomationBlueprints: hermes.getAutomationBlueprints,
   getCronDeliveryTargets: vi.fn(async () => ({ targets: [] })),

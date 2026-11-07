@@ -1,11 +1,11 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
-import { getMemoryProviderConfig, getMemoryStatus, saveMemoryProviderConfig } from '@/hermes'
+import type * as KovaApi from '@/kova'
+import { getMemoryProviderConfig, getMemoryStatus, saveMemoryProviderConfig } from '@/kova'
 import type { MemoryProviderConfig, MemoryProviderStatus, MemoryStatusResponse } from '@/types/hermes'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getCuratorStatus: vi.fn(() => new Promise(() => {})),
   getMemoryProviderConfig: vi.fn(),

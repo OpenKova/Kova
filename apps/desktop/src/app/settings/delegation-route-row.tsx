@@ -1,4 +1,4 @@
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
 import type { KovaConfigRecord } from '@/types/hermes'
 

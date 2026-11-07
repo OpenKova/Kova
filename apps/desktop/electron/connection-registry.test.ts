@@ -900,7 +900,7 @@ test('roster: source profile metadata follows the connection-qualified row', () 
 
   const vpsMeta = {
     display_name: 'Emma',
-    ui_meta: { 'hermes-bots': { title: 'Emma', shape: 'blobatar::sun', color: '#8b5cf6' } },
+    ui_meta: { 'kova-bots': { title: 'Emma', shape: 'blobatar::sun', color: '#8b5cf6' } },
     has_avatar: true
   }
 

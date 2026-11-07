@@ -1,4 +1,4 @@
-import { Ansi, Box, NoSelect, Text } from '@hermes/ink'
+import { Ansi, Box, NoSelect, Text } from '@kova/ink'
 import { hasAnsi, sanitizeAnsiForRender, stripAnsi } from '@kova/shared/ansi'
 import { memo, useState } from 'react'
 

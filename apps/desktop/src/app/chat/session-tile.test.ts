@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { KovaConnection } from '@/global'
-import { getSession } from '@/hermes'
+import { getSession } from '@/kova'
 import { clearSessionDraft, stashSessionDraft } from '@/store/composer'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
@@ -17,7 +17,7 @@ import {
   WRONG_BACKEND_TILE_ERROR
 } from './session-tile'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getSession: vi.fn()
 }))

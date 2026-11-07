@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
+import type * as KovaApi from '@/kova'
 
 const getStatus = vi.fn()
 const hermesApi = vi.fn()
 const confirm = vi.fn()
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getStatus: () => getStatus(),
   hermesApi: (request: unknown) => hermesApi(request)

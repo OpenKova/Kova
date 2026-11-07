@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getToolsets, type ProfileScope, profileScopeKey } from '@/hermes'
+import { getToolsets, type ProfileScope, profileScopeKey } from '@/kova'
 import { isDesktopToolsetVisible } from '@/lib/desktop-toolsets'
 import { normalize } from '@/lib/text'
 import type { ToolsetInfo } from '@/types/hermes'

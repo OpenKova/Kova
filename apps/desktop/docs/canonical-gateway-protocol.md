@@ -12,7 +12,7 @@ their existing authentication paths; failure never creates a local replacement.
 private `session-ticket` grants with exactly `profile_id`, `instance_id` and
 `purpose`. WebSocket grants use `interactive`; JSON and file HTTP requests use
 `native-http`. Each HTTP retry mints a fresh grant and sends it only in
-`X-Hermes-Gateway-Ticket`, scoped to the endpoint's exact origin. HTTP credentials
+`X-Kova-Gateway-Ticket`, scoped to the endpoint's exact origin. HTTP credentials
 are not stored in the renderer or attached to URLs/public connection descriptors.
 
 Streaming `/api/fs/download` and its 404-only `/api/fs/read-data-url` fallback

@@ -10,7 +10,7 @@ import {
   scanSkillHub,
   uninstallSkillFromHub,
   updateSkillsFromHub
-} from '@/hermes'
+} from '@/kova'
 import { translateNow } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'

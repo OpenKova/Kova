@@ -1,4 +1,4 @@
-import { forceRedraw, type Key, useInput } from '@hermes/ink'
+import { forceRedraw, type Key, useInput } from '@kova/ink'
 import { sharedControlParams } from '@kova/shared/gateway-canonical'
 import type { ConfigSetResponse, SharedControlRespondResponse, VoiceRecordResponse } from '@kova/shared/gateway-types'
 import { applyCompletion } from '@kova/shared/slash-input'

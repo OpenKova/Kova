@@ -15,7 +15,7 @@
 
 import { isLayoutNode, normalize } from '@/components/pane-shell/tree/model'
 import { $layoutTree, markActivePreset, persistTree } from '@/components/pane-shell/tree/store'
-import { exportProfileArchive, importProfileArchive } from '@/hermes'
+import { exportProfileArchive, importProfileArchive } from '@/kova'
 import { translateNow } from '@/i18n'
 import { dropBrowserProfilePrefs } from '@/lib/browser-profile-prefs'
 import { modePref, skinPref, type ThemeMode } from '@/themes/context'

@@ -7,7 +7,7 @@ import { $apiRequestScope, setApiRequestConnection, setApiRequestProfile } from 
 // request names. Every scope listener (the version poller among them) must only
 // ever observe pairs that exist, never the new gateway with the old profile.
 
-vi.mock(import('@/hermes'), async importOriginal => ({
+vi.mock(import('@/kova'), async importOriginal => ({
   ...(await importOriginal()),
   KovaGateway: class {
     connectionState = 'closed'

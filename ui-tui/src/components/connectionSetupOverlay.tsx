@@ -1,4 +1,4 @@
-import { Box, Text, useInput } from '@hermes/ink'
+import { Box, Text, useInput } from '@kova/ink'
 import type {
   ConnectionOperationTarget,
   ConnectionRespondParams,

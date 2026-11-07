@@ -4,7 +4,7 @@ import { stripAnsi } from '@kova/shared/ansi'
 import { useStore } from '@nanostores/react'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 
-import { type ResolvedOwner, transcribeAudio } from '@/hermes'
+import { type ResolvedOwner, transcribeAudio } from '@/kova'
 import { useI18n } from '@/i18n'
 import { attachmentPathNeedsUpload } from '@/lib/attachment-upload-policy'
 import { type ChatMessage, textPart } from '@/lib/chat-messages'

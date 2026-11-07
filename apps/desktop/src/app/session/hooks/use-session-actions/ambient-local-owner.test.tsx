@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { KovaConnection } from '@/global'
-import { getLatestSessionMessages, type SessionInfo } from '@/hermes'
+import { getLatestSessionMessages, type SessionInfo } from '@/kova'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import * as gateways from '@/store/gateway'
 import { $activeGatewayProfile, $showAllProfiles } from '@/store/profile'
@@ -15,7 +15,7 @@ import type { ClientSessionState } from '../../../types'
 import { useSessionActions } from './index'
 
 vi.mock('@/app/contrib/hooks/use-background-sync', () => ({ resetLiveRuntimeTracking: vi.fn() }))
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'stored' })),
   getProfiles: vi.fn(async () => ({ profiles: [{ name: 'default' }] })),

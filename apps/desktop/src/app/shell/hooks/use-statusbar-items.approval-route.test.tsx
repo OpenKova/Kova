@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaModule from '@/hermes'
+import type * as KovaModule from '@/kova'
 import { $activeGatewayProfile } from '@/store/profile'
 
 import { useStatusbarItems } from './use-statusbar-items'
@@ -16,7 +16,7 @@ import { useStatusbarItems } from './use-statusbar-items'
 
 const sockets = vi.hoisted(() => [] as Array<{ requests: Array<[string, unknown]>; wsUrl: string }>)
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaModule>()),
   KovaGateway: class {
     connectionState = 'closed'

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/hermes'
+import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/kova'
 import { Check, ExternalLink, Loader2 } from '@/lib/icons'
 import { refreshMemoryStatus } from '@/store/memory-status'
 import { notifyError } from '@/store/notifications'

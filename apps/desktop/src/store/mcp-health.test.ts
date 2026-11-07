@@ -39,7 +39,7 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getKovaConfigRecord: mocks.getKovaConfigRecord,
   setMcpServerEnabled: mocks.setMcpServerEnabled
 }))

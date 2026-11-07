@@ -1212,7 +1212,7 @@ export interface ProfileCreatePayload {
 export interface ProfileInfo {
   /** Presentation-only label override (profile.yaml display_name). */
   display_name?: string
-  /** Bot Mode title (profile.yaml ui_meta['hermes-bots'].title) — the name the
+  /** Bot Mode title (profile.yaml ui_meta['kova-bots'].title) — the name the
    *  Bots roster shows for this profile. Presentation-only. */
   bot_title?: string
   has_env: boolean

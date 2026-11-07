@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getKovaConfigRecord: vi.fn(async () => ({})),
   saveKovaConfig: vi.fn(async () => undefined)
 }))
 
-import { saveKovaConfig } from '@/hermes'
+import { saveKovaConfig } from '@/kova'
 import { isVoiceStopCommand } from '@/lib/voice-stop-word'
 
 import {

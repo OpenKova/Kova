@@ -1,7 +1,7 @@
 import { atom } from 'nanostores'
 
 import { translateNow } from '@/i18n'
-import { type KovaOpenTarget, resolveKovaOpenPath } from '@/lib/hermes-open-target'
+import { type KovaOpenTarget, resolveKovaOpenPath } from '@/lib/kova-open-target'
 import { persistString, storedString } from '@/lib/storage'
 
 import { recordFeatureToggle } from './desktop-metrics'

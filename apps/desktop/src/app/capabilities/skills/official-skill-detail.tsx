@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { CountSkeleton } from '@/components/ui/skeleton'
-import { previewSkillHub, type ProfileScope, profileScopeKey } from '@/hermes'
+import { previewSkillHub, type ProfileScope, profileScopeKey } from '@/kova'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
 import type { OfficialSkillInfo } from '@/types/hermes'

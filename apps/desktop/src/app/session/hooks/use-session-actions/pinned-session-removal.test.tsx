@@ -3,7 +3,7 @@ import { act, cleanup, render } from '@testing-library/react'
 import type { MutableRefObject } from 'react'
 import { afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 
-import { deleteSession, type SessionInfo, setSessionArchived, setSessionPinnedRemote } from '@/hermes'
+import { deleteSession, type SessionInfo, setSessionArchived, setSessionPinnedRemote } from '@/kova'
 import { $pinnedSessionIds } from '@/store/layout'
 import { $sessions, setSessions } from '@/store/session'
 import { resetSessionPinMirror, watchSessionPins } from '@/store/session-pin-sync'
@@ -13,7 +13,7 @@ import type { ClientSessionState } from '../../../types'
 
 import { useSessionActions } from './index'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   deleteSession: vi.fn(),
   setSessionArchived: vi.fn(),

@@ -13,7 +13,7 @@ import type { KovaConfigRecord } from '@/types/hermes'
 
 import type { ConfigSettings as ConfigSettingsType } from './config-settings'
 
-vi.mock('@/hermes', async () => ({
+vi.mock('@/kova', async () => ({
   ...(await vi.importActual('@/api/client')),
   ...(await vi.importActual('@/api/config')),
   ...(await vi.importActual('@/api/models')),

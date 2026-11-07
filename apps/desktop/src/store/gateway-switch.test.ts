@@ -48,7 +48,7 @@ import {
 // Each star map fetch records the connection requests route to when it is issued.
 const { starmapFetchScopes } = vi.hoisted(() => ({ starmapFetchScopes: [] as Array<null | string> }))
 
-vi.mock(import('@/hermes'), async importOriginal => ({
+vi.mock(import('@/kova'), async importOriginal => ({
   ...(await importOriginal()),
   getStarmapGraph: () => {
     starmapFetchScopes.push($apiRequestScope.get().connectionId)

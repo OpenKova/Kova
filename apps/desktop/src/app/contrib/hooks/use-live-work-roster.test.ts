@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import type * as GatewayStore from '@/store/gateway'
 import { $liveWorkRoster } from '@/store/live-work-roster'
 import type * as SessionStore from '@/store/session'

@@ -16,7 +16,7 @@ import {
   type WebAccessMode,
   type WebAccessStartProgress,
   type WebAccessStatus
-} from '@/hermes'
+} from '@/kova'
 import { useViewedInterval } from '@/hooks/use-viewed-interval'
 import { useI18n } from '@/i18n'
 import type { WebAccessTranslations } from '@/i18n/types_gateway_host'

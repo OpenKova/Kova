@@ -10,7 +10,7 @@ import {
   type SidebarProjectTree
 } from '@/app/chat/sidebar/projects/workspace-groups'
 import type { KovaGitBaseBranch, KovaGitBranch } from '@/global'
-import { getKovaConfig, hermesApi, type KovaGateway, type SessionInfo } from '@/hermes'
+import { getKovaConfig, hermesApi, type KovaGateway, type SessionInfo } from '@/kova'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd, isDesktopFsRemoteMode, selectDesktopPaths, writeDesktopFileText } from '@/lib/desktop-fs'
 import { desktopGit, desktopGitFor, type GitOwnerRoute } from '@/lib/desktop-git'

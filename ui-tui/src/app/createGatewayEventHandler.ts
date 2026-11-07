@@ -1,6 +1,6 @@
 import { execFile } from 'child_process'
 
-import { forceRedraw, onTerminalBackground, onTerminalForeground } from '@hermes/ink'
+import { forceRedraw, onTerminalBackground, onTerminalForeground } from '@kova/ink'
 import { stripAnsi } from '@kova/shared/ansi'
 import { relativeLuminance } from '@kova/shared/color'
 import type { MessageDeltaPayload, SubagentStatus, Usage } from '@kova/shared/gateway-events'

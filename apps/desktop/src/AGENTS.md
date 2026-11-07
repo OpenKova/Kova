@@ -7,7 +7,7 @@ Root TypeScript style rules apply.
 
 Electron + React + nanostores (`@assistant-ui/react`) talks JSON-RPC over the existing
 `@kova/shared` client. Normal local primary and pooled launches invoke
-`hermes gateway ensure --json`, consume its credential-free endpoint, and authenticate
+`kova gateway ensure --json`, consume its credential-free endpoint, and authenticate
 WebSockets with fresh private control tickets. The app never acquires the gateway PID as
 an owned child. Closing, switching or evicting a Desktop connection disconnects the viewer;
 only explicit gateway lifecycle commands stop the owner.
@@ -18,8 +18,8 @@ an unexpired one-use dial bound to the requesting window. No public dashboard to
 scraped or added to the public connection descriptor. SSH/URL intent retains its existing
 remote resolution and exposure lifecycle; a remote failure must never start a local owner.
 
-The gateway `gateway ensure` attaches to is **one multiplexing owner per home**: `HERMES_DESKTOP=1`
-is not how the app finds it, and no per-profile `hermes serve --port 0` child is spawned. One
+The gateway `gateway ensure` attaches to is **one multiplexing owner per home**: `KOVA_DESKTOP=1`
+is not how the app finds it, and no per-profile `kova serve --port 0` child is spawned. One
 gateway process serves sessions from several homes (`tui_gateway/AGENTS.md` § Profile scope); a
 served secondary answers through the multiplexer's control socket (`GatewayEndpoint.multiplex_home`).
 Remote connections (SSH, URL+token, Cloud) likewise reach a backend that may serve several profiles
@@ -60,9 +60,9 @@ user-activated extensions. If you tighten `desktop-slash-commands.ts`, keep
 `isDesktopSlashExtensionCommand` flowing into both paths. Test: from `apps/desktop`,
 `pnpm exec vitest run src/lib/desktop-slash-commands.test.ts` (workspace deps install at the repo root).
 
-## Bot Mode (`src/plugins/hermes-bots/`) — one bot = ONE canonical forever-chat, identified by NAME
+## Bot Mode (`src/plugins/kova-bots/`) — one bot = ONE canonical forever-chat, identified by NAME
 
-Each bot is a Hermes **profile** with a persistent identity. This invariant regressed repeatedly,
+Each bot is a Kova **profile** with a persistent identity. This invariant regressed repeatedly,
 cost users conversation history each time, and is not open for re-litigation in a routine PR.
 
 The chat's only identity is **(profile, session titled exactly "Bot Chat")**; the state DB's
@@ -75,7 +75,7 @@ UNIQUE(title) index makes that pair a registry of at most one row. Clicking a bo
    never forked (`set_session_title` silently drops conflicting titles — returns 0 rows — which is how
    the 2026-08 infinite fork loop started).
 
-**There is NO session-id pin.** The old design stored a pointer in `ui_meta['hermes-bots'].chat`;
+**There is NO session-id pin.** The old design stored a pointer in `ui_meta['kova-bots'].chat`;
 five hardening waves (#88690, #90732, #90751, the #91791 revert, #92042) each guarded a new way it
 dangled or was stolen (rows[0] steals, `last_session` adoptions, transient clears, a pin re-anchored
 onto a cron session). A name cannot dangle; legacy `chat` keys in ui_meta are ignored and dropped.
@@ -91,7 +91,7 @@ target; such reports are about side-chats and the fix belongs in the Sessions si
 The gateway reports the registry row as `canonical_session` on `profiles.list` (resolved server-side
 by title); roster preview, activity signals, and the `/new`→`/compact` guard all read it, so preview
 identity and click identity are the same row by construction. Contract tests:
-in `src/plugins/hermes-bots/`: `canonical-chat-registry.test.ts` (tripwire: the open path never
+in `src/plugins/kova-bots/`: `canonical-chat-registry.test.ts` (tripwire: the open path never
 reads/writes a stored pointer), `canonical-chat-creation.test.ts`, `canonical-chat-adopt-on-conflict.test.ts`,
 `bot-row-opens-canonical-chat.test.ts`, `hide-bot-chats.test.ts`; plus repo-root
 `tests/tui_gateway/test_profiles_list_canonical_session.py`.

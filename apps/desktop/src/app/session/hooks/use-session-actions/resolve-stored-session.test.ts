@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaModule from '@/hermes'
-import { getSession } from '@/hermes'
+import type * as KovaModule from '@/kova'
+import { getSession } from '@/kova'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
 import { $projectTree } from '@/store/projects'
 import { $cronSessions, $messagingSessions, $sessions, $unlistedSessionOwnerRows } from '@/store/session'
@@ -10,7 +10,7 @@ import type { SessionInfo } from '@/types/hermes'
 
 import { cachedSessionRow, resolveStoredSession } from './utils'
 
-vi.mock('@/hermes', async importActual => ({
+vi.mock('@/kova', async importActual => ({
   ...(await importActual<typeof KovaModule>()),
   getSession: vi.fn()
 }))

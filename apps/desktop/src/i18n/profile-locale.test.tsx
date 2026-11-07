@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import { setApiRequestConnection } from '@/api/client'
 import type { KovaApiRequest } from '@/global'
-import type { KovaConfigRecord } from '@/hermes'
+import type { KovaConfigRecord } from '@/kova'
 import { $gateway } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
 import { $connection, $gatewayState } from '@/store/session'

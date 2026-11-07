@@ -14,7 +14,7 @@ import { createGatewayEventDedupe } from '@/app/gateway/gateway-event-dedupe'
 import { reportStartupLatency } from '@/app/gateway/report-startup-latency'
 import { shouldApplyPostBootProgressError } from '@/components/boot-failure-reauth'
 import type { DesktopBootProgress, KovaConnection, KovaWindowState } from '@/global'
-import { KovaGateway } from '@/hermes'
+import { KovaGateway } from '@/kova'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd } from '@/lib/desktop-fs'
 import {

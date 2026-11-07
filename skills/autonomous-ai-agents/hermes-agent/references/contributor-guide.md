@@ -1,15 +1,15 @@
 # Contributor Quick Reference
 
-For occasional contributors and PR authors. Full developer docs: https://hermes-agent.nousresearch.com/docs/developer-guide/
+For occasional contributors and PR authors. Full developer docs: https://github.com/OpenKova/Kova/docs/developer-guide/
 
 ### Project Layout
 
 ```
-hermes-agent/
+kova-agent/
 ├── run_agent.py          # AIAgent — core conversation loop
 ├── model_tools.py        # Tool discovery and dispatch
 ├── toolsets.py           # Toolset definitions
-├── cli.py                # Interactive CLI (HermesCLI)
+├── cli.py                # Interactive CLI (KovaCLI)
 ├── hermes_state.py       # SQLite session store
 ├── agent/                # Prompt builder, context compression, memory, model routing, credential pooling, skill dispatch
 ├── hermes_cli/           # CLI subcommands, config, setup, commands
@@ -25,7 +25,7 @@ hermes-agent/
 └── website/              # Docusaurus docs site
 ```
 
-Config: `~/.hermes/config.yaml` (settings), `~/.hermes/.env` (API keys) — both under `$HERMES_HOME` when it is set.
+Config: `~/.kova/config.yaml` (settings), `~/.kova/.env` (API keys) — both under `$KOVA_HOME` when it is set.
 
 ### Adding a Tool
 
@@ -56,11 +56,11 @@ registry.register(
 ```
 
 **2. Wire it into a toolset in `toolsets.py`** — add the name to
-`_HERMES_CORE_TOOLS` (every platform) or to a specific toolset.
+`_KOVA_CORE_TOOLS` (every platform) or to a specific toolset.
 
 All handlers must return JSON strings. Use `get_hermes_home()` for paths,
-never hardcode `~/.hermes`. For custom/local-only tools, write a plugin in
-`~/.hermes/plugins/` instead of editing core — see the developer docs.
+never hardcode `~/.kova`. For custom/local-only tools, write a plugin in
+`~/.kova/plugins/` instead of editing core — see the developer docs.
 
 ### Adding a Slash Command
 
@@ -95,17 +95,17 @@ scripts/run_tests.sh tests/tools/test_x.py    # one file
 scripts/run_tests.sh -v --tb=long             # pass-through pytest flags
 ```
 
-- Tests auto-redirect `HERMES_HOME` to temp dirs — never touch real `~/.hermes/`.
+- Tests auto-redirect `KOVA_HOME` to temp dirs — never touch real `~/.kova/`.
 - Prepare Python through the PM developer workflow before building a test environment.
 - Run `python -m pm.build_env --source . --out .venv --group dev --group test`.
   The output must not exist. Stop its processes and intentionally remove only
   that disposable environment before regeneration.
 - The runner probes repository `.venv`, `venv`, and the standard source-install
-  venv before falling back to `HERMES_PYTHON`. Each candidate must contain pytest.
+  venv before falling back to `KOVA_PYTHON`. Each candidate must contain pytest.
 - **Windows:** run the same wrapper through Git Bash. See `references/windows-quirks.md`.
-- After editing `pyproject.toml`, run `hermes pm lock`, re-source `./activate`, and
+- After editing `pyproject.toml`, run `kova pm lock`, re-source `./activate`, and
   commit `pyproject.toml` with `uv.lock`.
-  Do not mutate Hermes environments with raw pip or uv commands.
+  Do not mutate Kova environments with raw pip or uv commands.
 
 Host-specific tests run on the real host. Use one `@pytest.mark.platforms(...)`
 marker per test, such as `@pytest.mark.platforms("windows", arch="arm64")`.

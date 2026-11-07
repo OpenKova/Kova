@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo } from 'react'
 
 import { GATEWAY_NOT_CONNECTED_MESSAGE } from '@/api/client'
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/kova'
 import { translateNow } from '@/i18n'
 import { isMissingRpcMethod, isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { queryClient } from '@/lib/query-client'

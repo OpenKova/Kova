@@ -9,7 +9,7 @@ description: "Agent ↔ NAS wire contract for the Chronos cron provider"
 **Audience:** the NAS-side implementer of the `agent-cron` endpoints
 (`nous-account-service`) and anyone debugging the managed-cron path.
 
-Chronos lets a hosted Hermes gateway **scale to zero** while idle and still
+Chronos lets a hosted Kova gateway **scale to zero** while idle and still
 fire cron jobs. Instead of an in-process 60-second ticker, the agent asks NAS
 to arm exactly **one external one-shot per job at that job's real next-fire
 time**. NAS calls the agent back at fire time over an authenticated webhook;
@@ -192,7 +192,7 @@ There is deliberately no in-dashboard execution fallback. The verifier is
   `get_job` returns `None` after the final fire → the agent does **not** re-arm
   → the schedule stops cleanly with no orphaned one-shot.
 - **Multi-replica agents:** the store CAS makes the fire at-most-once across N
-  gateway replicas sharing one `HERMES_HOME` — exactly one replica runs each
+  gateway replicas sharing one `KOVA_HOME` — exactly one replica runs each
   fire.
 
 ## Reconcile (self-healing)
@@ -229,7 +229,7 @@ maps to a provisioned instance (hop 1 above). When `provision` answers 403
 `invalid_client` — the token in `auth.json` is a plain `hermes-cli` user login
 rather than the `hermes-cli-vps` bootstrap session or an `agent:*` client — the
 rejection is deterministic for the life of that credential: every arm, re-arm
-and `list` would fail the same way, and a `hermes auth` re-login makes it
+and `list` would fail the same way, and a `kova auth` re-login makes it
 permanent (it *replaces* the bootstrap session; only NAS can re-mint one). The
 provider therefore logs ONE warning naming that remedy, stops calling NAS, and
 starts the built-in ticker for the rest of the process so jobs keep firing on

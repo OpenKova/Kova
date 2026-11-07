@@ -70,7 +70,7 @@ vi.mock('@/lib/desktop-git', async importOriginal => ({
   desktopGit: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
   hermesApi: vi.fn(),
@@ -90,7 +90,7 @@ const gatewayAtom = gw.$gateway
 const git = await import('@/lib/desktop-git')
 const desktopGit = vi.mocked(git.desktopGit)
 
-const hermes = await import('@/hermes')
+const hermes = await import('@/kova')
 const getKovaConfig = vi.mocked(hermes.getKovaConfig)
 const notifications = await import('@/store/notifications')
 const notify = vi.mocked(notifications.notify)

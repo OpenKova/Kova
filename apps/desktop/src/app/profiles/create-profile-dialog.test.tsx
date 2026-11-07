@@ -8,7 +8,7 @@ import { browserStartupProfileKey } from '@/lib/browser-startup-profile'
 import { CreateProfileDialog } from './create-profile-dialog'
 
 const api = vi.hoisted(() => ({ createProfile: vi.fn(async () => ({})), updateProfileSoul: vi.fn(async () => ({})) }))
-vi.mock('@/hermes', () => api)
+vi.mock('@/kova', () => api)
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()

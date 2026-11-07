@@ -6,7 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { KovaGateway } from '@/api/client'
 import { reconcileActiveTranscript } from '@/app/contrib/hooks/use-background-sync'
-import { getLatestSessionMessages } from '@/hermes'
+import { getLatestSessionMessages } from '@/kova'
 import { chatMessageText, toChatMessages } from '@/lib/chat-messages'
 import { resetInFlightTurnJournalStateForTests } from '@/lib/inflight-turn-journal'
 import { setPrimaryGateway } from '@/store/gateway'
@@ -29,7 +29,7 @@ import { useMessageStream } from './use-message-stream'
 import { useSessionActions } from './use-session-actions'
 import { useSessionStateCache } from './use-session-state-cache'
 
-vi.mock('@/hermes', async original => ({
+vi.mock('@/kova', async original => ({
   ...(await original<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn()
 }))

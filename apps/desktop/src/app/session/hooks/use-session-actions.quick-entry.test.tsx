@@ -14,7 +14,7 @@ import type { ClientSessionState } from '../../types'
 import { pinnedOwnerCount } from './session-context-drift'
 import { useSessionActions } from './use-session-actions'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   deleteSession: vi.fn(),
   getSession: vi.fn(),

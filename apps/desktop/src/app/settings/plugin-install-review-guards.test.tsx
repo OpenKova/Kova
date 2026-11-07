@@ -23,7 +23,7 @@ vi.mock('@/lib/plugin-catalog', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   lookupPluginCatalogEntry
 }))
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getProfiles: async () => ({ profiles: [] })
 }))

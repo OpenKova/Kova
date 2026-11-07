@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream'
 
-import { renderSync } from '@hermes/ink'
+import { renderSync } from '@kova/ink'
 import type { LoopSnapshot } from '@kova/shared/gateway-events'
 import React from 'react'
 import stripAnsi from 'strip-ansi'

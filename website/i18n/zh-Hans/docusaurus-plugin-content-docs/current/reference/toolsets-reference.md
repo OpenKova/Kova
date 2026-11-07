@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: "工具集参考"
-description: "Hermes 核心、复合、平台及动态工具集参考"
+description: "Kova 核心、复合、平台及动态工具集参考"
 ---
 
 # 工具集参考
@@ -21,9 +21,9 @@ description: "Hermes 核心、复合、平台及动态工具集参考"
 ### 按会话（CLI）
 
 ```bash
-hermes chat --toolsets web,file,terminal
-hermes chat --toolsets debugging        # composite — expands to file + terminal + web
-hermes chat --toolsets all              # everything
+kova chat --toolsets web,file,terminal
+kova chat --toolsets debugging        # composite — expands to file + terminal + web
+kova chat --toolsets all              # everything
 ```
 
 ### 按平台（config.yaml）
@@ -37,7 +37,7 @@ toolsets:
 ### 交互式管理
 
 ```bash
-hermes tools                            # curses UI to enable/disable per platform
+kova tools                            # curses UI to enable/disable per platform
 ```
 
 或在会话中：
@@ -54,7 +54,7 @@ hermes tools                            # curses UI to enable/disable per platfo
 |--------|------|------|
 | `browser` | `browser_cdp`、`browser_dialog`、`browser_exec`、`browser_vault` | 核心浏览器自动化。`browser_exec` 通过运行预导入辅助函数的 Python 驱动浏览器（仅提供给同时拥有 `terminal` 的会话）；`browser_cdp`、`browser_dialog` 和 `browser_vault` 作用于同一个浏览器会话。`browser_vault` 随浏览器一起用于凭据表单，默认延迟到工具搜索后加载。禁用此工具集即可关闭浏览功能。快速查询属于 `web`/`search` 工具集——`web_search` 刻意不是其成员，因此 `disabled_toolsets: [browser]` 不会移除它。 |
 | `clarify` | `clarify` | 当 agent 需要澄清时向用户提问。 |
-| `code_execution` | `execute_code` | 运行以编程方式调用 Hermes 工具的 Python 脚本。 |
+| `code_execution` | `execute_code` | 运行以编程方式调用 Kova 工具的 Python 脚本。 |
 | `cronjob` | `cronjob` | 调度和管理周期性任务。 |
 | `debugging` | 复合（`file` + `terminal` + `web`） | 调试套件——文件、进程/终端、网页提取/搜索。 |
 | `delegation` | `delegate_task` | 生成隔离的子 agent 实例以并行执行工作。 |
@@ -66,7 +66,7 @@ hermes tools                            # curses UI to enable/disable per platfo
 | `computer_use` | `computer_use` | 通过 cua-driver 进行后台 macOS 桌面控制——不抢占光标/焦点。适用于任何支持工具调用的模型。仅限 macOS；需要 `cua-driver` 在 `$PATH` 中。 |
 | `image_gen` | `image_generate` | 通过 FAL.ai 进行文本生成图像（支持可选的 OpenAI / xAI 后端）。 |
 | `video_gen` | `video_generate` | 通过插件注册的后端（xAI Grok-Imagine、FAL.ai Veo 3.1 / Pixverse v6 / Kling O3）进行文本生成视频和图像生成视频。传入 `image_url` 可对图像进行动画化；省略则为文本生成视频。 |
-| `kanban` | `kanban_block`, `kanban_comment`, `kanban_complete`, `kanban_create`, `kanban_heartbeat`, `kanban_link`, `kanban_list`, `kanban_show`, `kanban_unblock` | 多 agent 协调工具。为调度器生成的任务工作者（`HERMES_KANBAN_TASK`）以及显式启用 `kanban` 工具集的 profile 注册。工作者可标记任务完成、阻塞、心跳、评论以及创建/关联后续任务；编排器 profile 还额外获得看板路由工具，如 list/unblock。 |
+| `kanban` | `kanban_block`, `kanban_comment`, `kanban_complete`, `kanban_create`, `kanban_heartbeat`, `kanban_link`, `kanban_list`, `kanban_show`, `kanban_unblock` | 多 agent 协调工具。为调度器生成的任务工作者（`KOVA_KANBAN_TASK`）以及显式启用 `kanban` 工具集的 profile 注册。工作者可标记任务完成、阻塞、心跳、评论以及创建/关联后续任务；编排器 profile 还额外获得看板路由工具，如 list/unblock。 |
 | `memory` | `memory` | 持久化跨会话记忆管理。 |
 | `messaging` | `send_message` | 在会话中向其他平台（Telegram、Discord 等）发送消息。 |
 | `safe` | `image_generate`, `vision_analyze`, `web_extract`, `web_search`（通过 `includes`） | 只读研究 + 媒体生成。无文件写入、无终端、无代码执行。 |
@@ -79,7 +79,7 @@ hermes tools                            # curses UI to enable/disable per platfo
 | `vision` | `vision_analyze` | 通过视觉能力模型进行图像分析。 |
 | `video` | `video_analyze` | 视频分析与理解工具（需手动启用，不在默认工具集中——通过 `--toolsets` 显式添加）。 |
 | `web` | `web_extract`, `web_search` | 网页搜索和页面内容提取。 |
-| `x_search` | `x_search` | 通过 xAI 内置的 `x_search` Responses 工具搜索 X（Twitter）帖子和话题。默认关闭；通过 `hermes tools` 启用。仅在配置了 xAI 凭据（SuperGrok OAuth 或 `XAI_API_KEY`）时注册 schema。 |
+| `x_search` | `x_search` | 通过 xAI 内置的 `x_search` Responses 工具搜索 X（Twitter）帖子和话题。默认关闭；通过 `kova tools` 启用。仅在配置了 xAI 凭据（SuperGrok OAuth 或 `XAI_API_KEY`）时注册 schema。 |
 
 ## 平台工具集
 
@@ -108,9 +108,9 @@ hermes tools                            # curses UI to enable/disable per platfo
 | `hermes-wecom-callback` | 与 `hermes-cli` 相同。 |
 | `hermes-weixin` | 与 `hermes-cli` 相同。 |
 | `hermes-webhook` | 与 `hermes-cli` 相同。 |
-| `hermes-gateway` | 内部 gateway 编排器工具集——所有 `hermes-<platform>` 工具集的并集；当 gateway 需要接受任意消息来源时使用。 |
+| `kova-gateway` | 内部 gateway 编排器工具集——所有 `hermes-<platform>` 工具集的并集；当 gateway 需要接受任意消息来源时使用。 |
 
-由插件提供的平台会获得一个隐式的 `hermes-<platform>` 工具集，且不属于 `hermes-gateway`。例如，安装插件目录中的 `homeassistant` 插件后，`hermes-homeassistant` 仍可解析，但它已不再是内置工具集。
+由插件提供的平台会获得一个隐式的 `hermes-<platform>` 工具集，且不属于 `kova-gateway`。例如，安装插件目录中的 `homeassistant` 插件后，`hermes-homeassistant` 仍可解析，但它已不再是内置工具集。
 
 ## 动态工具集
 
@@ -152,8 +152,8 @@ custom_toolsets:
 
 - `all` 或 `*` — 展开为所有已注册的工具集（内置 + 动态 + 插件）
 
-## 与 `hermes tools` 的关系
+## 与 `kova tools` 的关系
 
-`hermes tools` 命令提供基于 curses 的 UI，用于按平台切换单个工具的启用/禁用状态。该操作在工具级别进行（比工具集更细粒度），并持久化到 `config.yaml`。即使工具集已启用，被禁用的工具也会被过滤掉。
+`kova tools` 命令提供基于 curses 的 UI，用于按平台切换单个工具的启用/禁用状态。该操作在工具级别进行（比工具集更细粒度），并持久化到 `config.yaml`。即使工具集已启用，被禁用的工具也会被过滤掉。
 
 另请参阅：[工具参考](./tools-reference.md)，获取所有单个工具及其参数的完整列表。

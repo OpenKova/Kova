@@ -254,10 +254,10 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool) -> tuple[list[str], Path]:
     env = source_build_env()
     prepare_launch_dependencies(project_root, env=env)
     if tui_dev:
-        # tsx imports @hermes/ink's built exports; the production bundle instead
+        # tsx imports @kova/ink's built exports; the production bundle instead
         # compiles its source directly through scripts/build/tui.mjs.
         pnpm = shutil.which("pnpm", path=env["PATH"])
-        subprocess.run([pnpm, "run", "build"], cwd=tui_dir / "packages/hermes-ink", env=env, check=True, timeout=600)
+        subprocess.run([pnpm, "run", "build"], cwd=tui_dir / "packages/kova-ink", env=env, check=True, timeout=600)
         tsx = tui_dir / "node_modules/.bin/tsx"
         return ([str(tsx), "src/entry.tsx"] if tsx.exists() else [pnpm, "start"]), tui_dir
 

@@ -18,7 +18,7 @@ import {
   runDoctor,
   runSecurityAudit,
   setCuratorPaused
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { AlertCircle } from '@/lib/icons'
 import { cn } from '@/lib/utils'

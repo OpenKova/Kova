@@ -1,4 +1,4 @@
-import type { MouseTrackingMode, ScrollBoxHandle } from '@hermes/ink'
+import type { MouseTrackingMode, ScrollBoxHandle } from '@kova/ink'
 import type { Usage } from '@kova/shared/gateway-events'
 import type {
   BillingCardInfo,

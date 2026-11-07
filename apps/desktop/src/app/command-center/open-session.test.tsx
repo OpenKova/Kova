@@ -2,13 +2,13 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
-import type { SessionInfo } from '@/hermes'
+import type * as KovaApi from '@/kova'
+import type { SessionInfo } from '@/kova'
 import { $sessions } from '@/store/session'
 
 import { CommandCenterView } from './index'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getActionStatus: vi.fn(() => Promise.resolve({ running: false })),
   getLogs: vi.fn(() => Promise.resolve({ lines: [] })),

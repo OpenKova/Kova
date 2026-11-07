@@ -4,7 +4,7 @@
 // import.meta.hot → byte-for-byte unchanged live unmount.
 
 import type { KovaConnection } from '@/global'
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 
 export interface GatewaySurvivor {
   gateway: KovaGateway

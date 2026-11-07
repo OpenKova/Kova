@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream'
 
-import { renderSync } from '@hermes/ink'
+import { renderSync } from '@kova/ink'
 import type { ImageRenderResult } from '@kova/shared/gateway-events'
 import { afterEach, expect, it, vi } from 'vitest'
 

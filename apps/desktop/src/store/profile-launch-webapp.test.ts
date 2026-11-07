@@ -1,6 +1,6 @@
 import { afterAll, expect, it, vi } from 'vitest'
 
-import { getApiRequestProfile } from '@/hermes'
+import { getApiRequestProfile } from '@/kova'
 import { syncApprovalModeForProfile } from '@/store/approval-mode'
 import { activeGatewayProfileKey, requestGatewayForProfile, setPrimaryGateway } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'

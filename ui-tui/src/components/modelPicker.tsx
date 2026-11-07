@@ -1,4 +1,4 @@
-import { Box, Text, useInput, useStdout } from '@hermes/ink'
+import { Box, Text, useInput, useStdout } from '@kova/ink'
 import { fuzzyRank } from '@kova/shared/fuzzy'
 import type { ModelOptionProvider, ModelOptionsResult } from '@kova/shared/gateway-events'
 import { modelSearchText } from '@kova/shared/model-search-text'
@@ -551,7 +551,7 @@ export function ModelPicker({
     }
 
     // Persist-global toggle moved to Ctrl+G so 'g' can be typed into the
-    // filter. With Ctrl held, @hermes/ink reports `ch` as the key name ('g'),
+    // filter. With Ctrl held, @kova/ink reports `ch` as the key name ('g'),
     // not the raw control byte (see input-event.ts: input = ctrl ? name : seq).
     if (allowPersistGlobal && key.ctrl && ch === 'g') {
       setPersistGlobal(v => !v)

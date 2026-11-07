@@ -1,6 +1,6 @@
 """Bot Mode roster probe — canonical Bot Chat system prompt section.
 
-When any profile carries ``ui_meta['hermes-bots']`` in profile.yaml (Bot-Mode-managed),
+When any profile carries ``ui_meta['kova-bots']`` in profile.yaml (Bot-Mode-managed),
 a bot's canonical "Bot Chat" session — ONLY that session (agent/system_prompt.py enforces
 the ``BOT_CHAT_TITLE`` gate) — gets a "Messaging other agents" section. Silent (``""``)
 when no profile is managed or on any error. Older desktop builds appended a frozen copy of
@@ -122,14 +122,14 @@ def _read_yaml_dict(path: Path, needle: str | None = None) -> dict | None:
 
 
 def _bots_meta(data: dict | None) -> dict | None:
-    """The ``ui_meta['hermes-bots']`` block of a parsed profile.yaml, if a dict."""
+    """The ``ui_meta['kova-bots']`` block of a parsed profile.yaml, if a dict."""
     ui_meta = data.get("ui_meta") if data else None
-    bots = ui_meta.get("hermes-bots") if isinstance(ui_meta, dict) else None
+    bots = ui_meta.get("kova-bots") if isinstance(ui_meta, dict) else None
     return bots if isinstance(bots, dict) else None
 
 
 def _is_bot_managed(profile_dir: Path) -> bool:
-    return _bots_meta(_read_yaml_dict(profile_dir / "profile.yaml", "hermes-bots")) is not None
+    return _bots_meta(_read_yaml_dict(profile_dir / "profile.yaml", "kova-bots")) is not None
 
 
 def _any_managed(root: Path) -> bool:

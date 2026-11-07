@@ -4,7 +4,7 @@ const gatewayMocks = vi.hoisted(() => ({
   connect: vi.fn(async (_wsUrl: string): Promise<void> => undefined)
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   setApiRequestConnection: vi.fn(),
   KovaGateway: class {
     connectionState = 'closed'

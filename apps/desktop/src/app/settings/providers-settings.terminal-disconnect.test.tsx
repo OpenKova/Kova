@@ -15,7 +15,7 @@ const runInTerminal = vi.fn()
 const notify = vi.fn()
 const notifyError = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   setApiRequestProfile: vi.fn(),
   getProfiles: async () => ({ profiles: [] }),
   disconnectOAuthProvider: (...args: unknown[]) => disconnectOAuthProvider(...args),

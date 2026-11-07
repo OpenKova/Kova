@@ -3,8 +3,8 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import type * as KovaApi from '@/hermes'
-import { bindConfigReadOrigin, getKovaConfigRecord } from '@/hermes'
+import type * as KovaApi from '@/kova'
+import { bindConfigReadOrigin, getKovaConfigRecord } from '@/kova'
 import { queryClient } from '@/lib/query-client'
 import { $connection } from '@/store/session'
 
@@ -15,7 +15,7 @@ import {
   useKovaConfigRecord
 } from './use-config-record'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<typeof KovaApi>()),
   getKovaConfigRecord: vi.fn()
 }))

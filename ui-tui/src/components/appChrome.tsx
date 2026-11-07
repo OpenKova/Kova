@@ -1,4 +1,4 @@
-import { Box, type ScrollBoxHandle, stringWidth, Text } from '@hermes/ink'
+import { Box, type ScrollBoxHandle, stringWidth, Text } from '@kova/ink'
 import { compactNumber } from '@kova/shared/format'
 import type { Usage } from '@kova/shared/gateway-events'
 import { useStore } from '@nanostores/react'

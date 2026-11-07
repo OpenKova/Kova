@@ -1,8 +1,8 @@
 # Shared bundle builds
 
-Hermes separates dependency preparation, product builds, and distribution
+Kova separates dependency preparation, product builds, and distribution
 packaging. The compiler and agent-assembly interfaces live in
-[`scripts/build/README.md`](https://github.com/NousResearch/hermes-agent/blob/main/scripts/build/README.md). These are current
+[`scripts/build/README.md`](https://github.com/OpenKova/Kova/blob/main/scripts/build/README.md). These are current
 interfaces, not proof that every distribution passed native acceptance.
 
 ## Providers, products, and distributions
@@ -89,7 +89,7 @@ the clean checkout and prepared inputs, then fails on stale or missing inputs
 instead of installing them. Bundled and Store builds may consume the same
 preparation for a stable tag; light and commit builds cannot switch to Store.
 Product builds still run each time. Native staging exposes `prepare_native` and
-`finish_native` to this composition; `hermes pm bundle` remains a complete
+`finish_native` to this composition; `kova pm bundle` remains a complete
 native staging command, not the desktop preparation interface.
 
 Windows and macOS release jobs use **restore → prepare → save → build**. The
@@ -127,7 +127,7 @@ explicit input/output contracts in the builder README.
 a temporary snapshot of that same revision. Explicit frontend products must
 come from the selected revision.
 
-`hermes pm bundle --out /work/agent-payload --ref HEAD` stages native tools,
+`kova pm bundle --out /work/agent-payload --ref HEAD` stages native tools,
 the application environment, and the agent. That PM command does not build
 frontends. `pnpm --dir apps/desktop run payload` uses the stage driver
 that includes them. Neither command creates an Electron installer.
@@ -152,7 +152,7 @@ separate; preparation claims a previously absent work directory. Without
 or path arguments and validates the native receipt before assembly; it never
 bootstraps or repairs dependencies. The receipt and lock are output siblings
 (`agent-payload.prepared.json`, `agent-payload.prepare.lock`), not shipped files.
-Assembly deliberately supplies no frontend products, as with `hermes pm bundle`.
+Assembly deliberately supplies no frontend products, as with `kova pm bundle`.
 
 The `payload-test` producer on the existing cache action selects only `tools`,
 `python/runtime` and `native`. It excludes source `node_modules`, pnpm stores,
@@ -240,13 +240,13 @@ admission, generation selection, and transaction state. Both paths use
 | Docker | Icons, TUI, web, agent | Agent at `/opt/hermes`, dependencies at `.venv`, PM at `pm-runtime`, generated commands at `libexec` |
 | Nix TUI | TUI | `$out/lib/hermes-tui/{dist/entry.js,package.json}` |
 | Nix web | Web | `$out/index.html` and assets |
-| Nix agent | Agent with TUI/web references | `$out/bin`, `$out/share/hermes-agent`, `$out/ui-tui`, `manifest.json`, and `command-map.json` |
+| Nix agent | Agent with TUI/web references | `$out/bin`, `$out/share/kova-agent`, `$out/ui-tui`, `manifest.json`, and `command-map.json` |
 | Nix desktop | Icons and desktop UI, with the Nix agent | `$out/share/hermes-desktop` and `$out/bin/hermes-desktop` |
-| Termux | TUI and agent | `OUT/hermes-agent_<version>_aarch64.deb`, installed at `$PREFIX/lib/hermes-agent/` |
+| Termux | TUI and agent | `OUT/kova-agent_<version>_aarch64.deb`, installed at `$PREFIX/lib/kova-agent/` |
 
-Native payloads contain `hermes-agent`, `tools`, `venv`, `pm-runtime`, `bin`,
+Native payloads contain `kova-agent`, `tools`, `venv`, `pm-runtime`, `bin`,
 `uv-cache`, and their manifests/facts. Copied frontend assets live at
-`hermes-agent/hermes_cli/tui_dist/` and `hermes-agent/hermes_cli/web_dist/`.
+`kova-agent/hermes_cli/tui_dist/` and `kova-agent/hermes_cli/web_dist/`.
 The TUI asset directory contains `entry.js` and module-mode package metadata.
 
 Docker keeps its existing TUI product at `/opt/hermes/ui-tui` and web output
@@ -266,10 +266,10 @@ filters keep frontend, Python, and resource inputs separate. Nix wrappers
 consume the assembler's command map and retain their PATH and extra-Python
 collision policies.
 
-**Nix wheel policy:** `nix/python.nix:128–135` sets `HERMES_NIX_BUILD=1` only
-for the Hermes derivation. `setup.py:34–72` rejects general Hermes wheel/sdist
+**Nix wheel policy:** `nix/python.nix:128–135` sets `KOVA_NIX_BUILD=1` only
+for the Kova derivation. `setup.py:34–72` rejects general Kova wheel/sdist
 builds. The shared assembler uses the installed Nix code without another copy.
-Other providers use source-layout code and metadata, not a public Hermes wheel.
+Other providers use source-layout code and metadata, not a public Kova wheel.
 
 Termux retains bionic wheel compilation, offline installation, native library
 paths, and its fixed prefix. Its installed root contains `app`, `tools`,
@@ -289,7 +289,7 @@ format on a fresh native runner, then runs the same composer/provider/reply
 check as install-e2e. Windows universal assembly stages bytes before the smoke;
 its canary feed is published separately only after both native smoke matrices
 pass. macOS feed publication and stable candidate acceptance are likewise gated.
-See [install and chat acceptance](https://github.com/NousResearch/hermes-agent/blob/main/tests/install/README.md#post-build-artifact-smoke)
+See [install and chat acceptance](https://github.com/OpenKova/Kova/blob/main/tests/install/README.md#post-build-artifact-smoke)
 for covered formats, checkpoint evidence and the Store/Linux/no-upload limits.
 
 `scripts.releases.handoff fetch --public-base URL` downloads a staged artifact

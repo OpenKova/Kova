@@ -5,7 +5,7 @@ import type { MemoryProviderConfig, MemoryProviderField } from '@/types/hermes'
 
 const saveMemoryProviderConfig = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   saveMemoryProviderConfig: (provider: string, values: unknown) => saveMemoryProviderConfig(provider, values)
 }))
 

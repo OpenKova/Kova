@@ -1,5 +1,5 @@
 import type { KovaGitBranch, KovaGitWorktree } from '@/global'
-import type { ProjectInfo, SessionInfo } from '@/hermes'
+import type { ProjectInfo, SessionInfo } from '@/kova'
 import { normalize } from '@/lib/text'
 
 import { rankSessions } from '../order'

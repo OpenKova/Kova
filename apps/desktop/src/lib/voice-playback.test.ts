@@ -30,7 +30,7 @@ vi.mock('@kova/shared', async importOriginal => {
   }
 })
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getApiRequestProfile: () => null,
   getApiRequestConnection: () => null,
   speakText: vi.fn(async () => ({

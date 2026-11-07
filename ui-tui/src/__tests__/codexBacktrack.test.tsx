@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 
-import { renderSync } from '@hermes/ink'
+import { renderSync } from '@kova/ink'
 import chalk from 'chalk'
 import React from 'react'
 import stripAnsi from 'strip-ansi'

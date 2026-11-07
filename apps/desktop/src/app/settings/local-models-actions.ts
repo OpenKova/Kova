@@ -7,7 +7,7 @@ import {
   ejectLocalModel,
   quickstartLocalModels,
   setLocalServer
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import type { Translations } from '@/i18n/types'
 import {

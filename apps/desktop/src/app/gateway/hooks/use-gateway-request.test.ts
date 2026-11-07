@@ -11,7 +11,7 @@ const gatewayMocks = vi.hoisted(() => ({
   }>
 }))
 
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = await importOriginal<typeof KovaModule>()
 
   class FakeKovaGateway {
@@ -55,8 +55,8 @@ vi.mock('@/hermes', async importOriginal => {
 // out on a loaded runner.
 import '@/store/session-states'
 
-import type * as KovaModule from '@/hermes'
-import type { KovaGateway } from '@/hermes'
+import type * as KovaModule from '@/kova'
+import type { KovaGateway } from '@/kova'
 import {
   $gateway,
   closeSecondaryGateways,

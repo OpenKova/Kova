@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream'
 
-import { Box, renderSync } from '@hermes/ink'
+import { Box, renderSync } from '@kova/ink'
 import { stripAnsi } from '@kova/shared/ansi'
 import React from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'

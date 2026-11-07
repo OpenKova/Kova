@@ -1,5 +1,5 @@
 import type { Translations } from '@/i18n'
-import { servedByKovaCloud } from '@/lib/hermes-cloud-host'
+import { servedByKovaCloud } from '@/lib/kova-cloud-host'
 import { hostHas } from '@/lib/host-capabilities'
 import { NATIVE_NOTIFICATION_KINDS } from '@/store/native-notifications'
 import { canUseQuickEntry } from '@/store/quick-entry'

@@ -27,7 +27,7 @@ vi.mock('@/store/gateway', () => ({
   openGatewayForProfile,
   openSecondaryCount
 }))
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   setApiRequestProfile: vi.fn()
 }))
@@ -53,7 +53,7 @@ const { $connectionsRegistry } = await import('@/store/connection-registry-state
 
 const { $connection } = await import('./session')
 const { invalidateProfileScopedQueries } = await import('@/lib/query-client')
-const { getProfiles } = await import('@/hermes')
+const { getProfiles } = await import('@/kova')
 
 const profile = (name: string, isDefault = false): ProfileInfo => ({
   has_env: false,

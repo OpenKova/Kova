@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { KovaReadDirResult } from '@/global'
-import type * as KovaModule from '@/hermes'
+import type * as KovaModule from '@/kova'
 import { $previewScriptGrants, grantPreviewScript } from '@/store/plugin-preview-grants'
 
 import { emitGatewayEvent } from './events'
@@ -18,7 +18,7 @@ import {
 // remote mode. The disk scanner must NOT derive the plugin root from it (#66899).
 const getStatus = vi.fn(async () => ({ kova_home: '/remote/box/.kova' }))
 
-vi.mock('@/hermes', async importActual => ({
+vi.mock('@/kova', async importActual => ({
   ...(await importActual<typeof KovaModule>()),
   getStatus: () => getStatus()
 }))
@@ -366,7 +366,7 @@ describe('plugin source reads (512 KiB preview-cap bug)', () => {
 
     try {
       const source = `
-        import { host } from '@hermes/plugin-sdk'
+        import { host } from '@kova/plugin-sdk'
         export default {
           id: 'runtime-event-reload',
           register() {
@@ -495,7 +495,7 @@ describe('uninstallDiskPlugin (Plugins hub trash button)', () => {
 describe('bundled-shadowed disk copies', () => {
   it('skips a disk copy of a bundled plugin but publishes a visible inventory row', async () => {
     // The bundled twin is already registered (build-time glob).
-    publishPlugin({ id: 'hermes-bots', name: 'Bot Mode', kind: 'bundled', status: 'loaded' })
+    publishPlugin({ id: 'kova-bots', name: 'Bot Mode', kind: 'bundled', status: 'loaded' })
 
     // Same blob→data: URL reroute as the opt-in test above.
     const createObjectURL = vi
@@ -519,21 +519,21 @@ describe('bundled-shadowed disk copies', () => {
 
     try {
       const id = await loadRuntimePlugin(
-        'export default { id: "hermes-bots", name: "Bot Mode", register() {} }',
-        'hermes-bots',
-        { file: '/local/.kova/desktop-plugins/hermes-bots/plugin.js' }
+        'export default { id: "kova-bots", name: "Bot Mode", register() {} }',
+        'kova-bots',
+        { file: '/local/.kova/desktop-plugins/kova-bots/plugin.js' }
       )
 
       // Skipped — the bundled copy stays the only live registration...
       expect(id).toBeNull()
-      expect($pluginRecords.get()['hermes-bots']).toMatchObject({ kind: 'bundled', status: 'loaded' })
+      expect($pluginRecords.get()['kova-bots']).toMatchObject({ kind: 'bundled', status: 'loaded' })
 
       // ...but the stale folder is DISCOVERABLE: an inventory row names it,
       // carries its path (reveal/delete affordance), and can never activate.
-      expect($pluginRecords.get()['hermes-bots:disk-shadowed']).toMatchObject({
+      expect($pluginRecords.get()['kova-bots:disk-shadowed']).toMatchObject({
         kind: 'disk',
         status: 'disabled',
-        file: '/local/.kova/desktop-plugins/hermes-bots/plugin.js'
+        file: '/local/.kova/desktop-plugins/kova-bots/plugin.js'
       })
     } finally {
       createObjectURL.mockRestore()
@@ -640,13 +640,13 @@ describe('specifier scanning is limited to code (strings/comments never load-blo
       ;(globalThis as unknown as { __captured?: string }).__captured = undefined
 
       const id = await loadRuntimePlugin(
-        `const doc = "from '@hermes/plugin-sdk'"
+        `const doc = "from '@kova/plugin-sdk'"
 export default { id: 'quoted-spec', register: () => { globalThis.__captured = doc } }`,
         'quoted-spec'
       )
 
       expect(id).toBe('quoted-spec')
-      expect((globalThis as unknown as { __captured?: string }).__captured).toBe("from '@hermes/plugin-sdk'")
+      expect((globalThis as unknown as { __captured?: string }).__captured).toBe("from '@kova/plugin-sdk'")
     } finally {
       unloadRuntimePlugin('quoted-spec')
       delete (globalThis as unknown as { __captured?: string }).__captured
@@ -680,7 +680,7 @@ export default { id: 'quoted-spec', register: () => { globalThis.__captured = do
 
     try {
       const id = await loadRuntimePlugin(
-        "var htmlReplacer = /[\\t\\n\\f!-,./:-@[-`{-}\\^@-\\uFFFF]/g;\nimport { host } from '@hermes/plugin-sdk'\nconst label = `ok`\nexport default { id: 'entities-re', register() { void host; void label; void htmlReplacer } }",
+        "var htmlReplacer = /[\\t\\n\\f!-,./:-@[-`{-}\\^@-\\uFFFF]/g;\nimport { host } from '@kova/plugin-sdk'\nconst label = `ok`\nexport default { id: 'entities-re', register() { void host; void label; void htmlReplacer } }",
         'entities-re'
       )
 
@@ -699,7 +699,7 @@ export default { id: 'quoted-spec', register: () => { globalThis.__captured = do
 
     try {
       const id = await loadRuntimePlugin(
-        "const total = 10, count = 4, earned = 6\nconst half = total / count + earned / 2\nimport { host } from '@hermes/plugin-sdk'\nconst label = `n=${half}`\nexport default { id: 'division', register() { void host; void label } }",
+        "const total = 10, count = 4, earned = 6\nconst half = total / count + earned / 2\nimport { host } from '@kova/plugin-sdk'\nconst label = `n=${half}`\nexport default { id: 'division', register() { void host; void label } }",
         'division'
       )
 
@@ -739,7 +739,7 @@ export default { id: 'quoted-spec', register: () => { globalThis.__captured = do
 
     try {
       const id = await loadRuntimePlugin(
-        "import { host } from '@hermes/plugin-sdk'\nexport default { id: 'real-mapped', register() { void host } }",
+        "import { host } from '@kova/plugin-sdk'\nexport default { id: 'real-mapped', register() { void host } }",
         'real-mapped'
       )
 
@@ -788,7 +788,7 @@ describe('register() failure isolation', () => {
 
     try {
       const source = `
-        import { host } from '@hermes/plugin-sdk'
+        import { host } from '@kova/plugin-sdk'
         export default {
           id: 'register-throw',
           register() {
@@ -1094,7 +1094,7 @@ describe('loader hardening: hangs, leaks, duplicate ids, stale incarnations', ()
     counters.__staleHits = 0
 
     let source = `
-      import { host } from '@hermes/plugin-sdk'
+      import { host } from '@kova/plugin-sdk'
       export default {
         id: 'stale',
         register() { host.onEvent('bot_relay.outbox.pending', () => { globalThis.__staleHits++ }) }

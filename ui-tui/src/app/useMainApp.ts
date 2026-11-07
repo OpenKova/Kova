@@ -7,7 +7,7 @@ import {
   useSelection,
   useStdout,
   useTerminalTitle
-} from '@hermes/ink'
+} from '@kova/ink'
 import { sharedControlParams } from '@kova/shared/gateway-canonical'
 import type { SessionControlSnapshot } from '@kova/shared/gateway-events'
 import type {

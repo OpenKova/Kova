@@ -3,7 +3,7 @@ import { cleanup, render, waitFor } from '@testing-library/react'
 import type { MutableRefObject } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getLatestSessionMessages, getSession } from '@/hermes'
+import { getLatestSessionMessages, getSession } from '@/kova'
 import { textPart } from '@/lib/chat-messages'
 import { $busy, $messages, $turnStartedAt, setMessages, setSessions } from '@/store/session'
 
@@ -24,7 +24,7 @@ beforeEach(() => {
   vi.mocked(getLatestSessionMessages).mockImplementation(async () => ({ messages: [], session_id: 'session' }))
 })
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'session' })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getSession: vi.fn(),

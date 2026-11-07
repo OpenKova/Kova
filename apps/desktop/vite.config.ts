@@ -98,7 +98,7 @@ const emojibaseDir =
 const EMOJIBASE_PATH = /^[a-z-]+\/(data|messages|shortcodes\/emojibase)\.json$/
 
 const emojibaseAssets = () => ({
-  name: 'hermes:emojibase-assets',
+  name: 'kova:emojibase-assets',
   configureServer(server: {
     middlewares: { use: (route: string, handler: (req: any, res: any, next: () => void) => void) => void }
   }) {
@@ -235,7 +235,7 @@ export default defineConfig(({ command }) => ({
     alias: {
       '@/debug/dev-only': debugEntry(command, process.env as Record<string, string>),
       '@': path.resolve(__dirname, './src'),
-      '@hermes/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
+      '@kova/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
       '@kova/shared/billing': path.resolve(__dirname, '../shared/src/billing-types.ts'),
       '@kova/shared/color': path.resolve(__dirname, '../shared/src/color.ts'),
       '@kova/shared': path.resolve(__dirname, '../shared/src'),

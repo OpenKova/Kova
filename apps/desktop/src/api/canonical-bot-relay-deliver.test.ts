@@ -53,7 +53,7 @@ test('a Bot Relay delivery on a canonical dial carries only keys the owner admit
   try {
     const address = server.address() as { port: number }
     await client.connect(`ws://127.0.0.1:${address.port}/api/ws?native_dial=fixture&ticket=one-use`)
-    // Exactly what hermes-bots/relay.ts::relayDeliverParams sends.
+    // Exactly what kova-bots/relay.ts::relayDeliverParams sends.
     await expect(
       client.request('bot_relay.deliver', {
         id: 'env-1',

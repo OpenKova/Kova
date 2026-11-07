@@ -297,7 +297,7 @@ def _managed_home(tmp_path, *, legacy_soul=False):
             """\
             description: teammate for tests
             ui_meta:
-              hermes-bots:
+              kova-bots:
                 shape: cloud
             """
         ),

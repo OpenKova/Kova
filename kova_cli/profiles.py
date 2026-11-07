@@ -669,7 +669,7 @@ class ProfileInfo:
     description_auto: bool = False
     # Presentation-only display name; resolution/comparison/spawn always use ``name``.
     display_name: str = ""
-    # Bot Mode title (``profile.yaml`` ``ui_meta['hermes-bots'].title``) — the name
+    # Bot Mode title (``profile.yaml`` ``ui_meta['kova-bots'].title``) — the name
     # the Bots roster shows. Presentation-only, like ``display_name``.
     bot_title: str = ""
     # Canonical ids this profile was previously known by (``hermes profile rename``
@@ -872,7 +872,7 @@ def read_profile_meta(profile_dir: Path) -> dict:
         ui_meta = data.get("ui_meta")
         bot_title = ""
         if isinstance(ui_meta, dict):
-            hermes_bots = ui_meta.get("hermes-bots")
+            hermes_bots = ui_meta.get("kova-bots")
             if isinstance(hermes_bots, dict):
                 bot_title = str(hermes_bots.get("title") or "").strip()
         return {

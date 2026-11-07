@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 
-import { renderSync, Text } from '@hermes/ink'
+import { renderSync, Text } from '@kova/ink'
 import { JsonRpcGatewayError } from '@kova/shared/json-rpc-channel'
 import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

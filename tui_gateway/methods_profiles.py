@@ -597,7 +597,7 @@ def _describe_toolsets(cfg):
 
 
 def _bots_title(ui_meta: dict):
-    bots = ui_meta.get("hermes-bots")
+    bots = ui_meta.get("kova-bots")
     return bots.get("title") if isinstance(bots, dict) else None
 
 
@@ -648,9 +648,9 @@ def _configure_ui_meta(profile_dir, params, applied) -> None:
                 # A client writing another machine's bot title lands here; the Desktop's
                 # `[bot-meta win=…]` desktop.log line at the same time names the window.
                 logging.getLogger(__name__).info(
-                    "ui_meta hermes-bots title for profile %s: %r -> %r (revision %s)",
+                    "ui_meta kova-bots title for profile %s: %r -> %r (revision %s)",
                     params.get("name") or profile_dir.name, old_title, _bots_title(current),
-                    revisions.get("hermes-bots"))
+                    revisions.get("kova-bots"))
     except Exception:
         applied["ui_meta"] = False
 

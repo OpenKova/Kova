@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
   writeScope: { connectionId: 'connection-a', profile: 'default' }
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   saveKovaConfig: (config: Record<string, unknown>, scope?: unknown) => mocks.save(config, scope)
 }))
 

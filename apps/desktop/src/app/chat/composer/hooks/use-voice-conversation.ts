@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { type ResolvedOwner, resolveOwnerNow } from '@/hermes'
+import { type ResolvedOwner, resolveOwnerNow } from '@/kova'
 import { useI18n } from '@/i18n'
 import { IncrementalSpeechSentenceBuffer } from '@/lib/speech-text'
 import { syncSttLease, VOICE_INPUT_LEASE } from '@/lib/stt-lease'

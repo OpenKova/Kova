@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { getGlobalModelOptions } from '@/hermes'
+import { getGlobalModelOptions } from '@/kova'
 
 import {
   catalogProviderMatches,
@@ -13,7 +13,7 @@ import {
 
 const globalOptions = { model: 'hermes-4', provider: 'nous', providers: [] }
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getGlobalModelOptions: vi.fn(() => Promise.resolve(globalOptions))
 }))
 

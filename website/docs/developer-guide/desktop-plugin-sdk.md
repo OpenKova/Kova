@@ -1,33 +1,33 @@
 ---
 sidebar_label: "Desktop Plugin SDK"
 title: "Desktop Plugin SDK (@hermes/plugin-sdk)"
-description: "Extend the native Hermes Desktop app — panes, pages, sidebar nav, status bar, palette commands, keybinds, themes, and a scoped backend namespace, with one import and no build step."
+description: "Extend the native Kova Desktop app — panes, pages, sidebar nav, status bar, palette commands, keybinds, themes, and a scoped backend namespace, with one import and no build step."
 ---
 
 # Desktop Plugin SDK
 
-The native [Hermes Desktop](../user-guide/desktop.md) app is contribution-driven: every
+The native [Kova Desktop](../user-guide/desktop.md) app is contribution-driven: every
 surface in the window — panes, routes, sidebar nav, status-bar items, palette
 entries, keybinds, themes — registers into one central registry. Core registers
 its surfaces exactly the way a plugin does, so the plugin story is the real one,
 not a bolted-on afterthought.
 
-A **desktop plugin** is a single ESM file that default-exports a `HermesPlugin`.
+A **desktop plugin** is a single ESM file that default-exports a `KovaPlugin`.
 It imports one module — `@hermes/plugin-sdk` — and gets everything: the app's
 live state, the gateway JSON-RPC door, a scoped REST/socket backend namespace,
 React Query, and the app's own UI kit so plugin UI looks native by default. No
 repo clone, no `pnpm run build`, no patching app source. Drop the file in
-`$HERMES_HOME/desktop-plugins/<id>/plugin.js` and the app loads it within seconds
+`$KOVA_HOME/desktop-plugins/<id>/plugin.js` and the app loads it within seconds
 and hot-reloads every save.
 
 :::warning This is not the web-dashboard plugin SDK
-"Plugin" means several unrelated things across Hermes. This page is the **native
-desktop app** (`hermes desktop`) SDK — the `@hermes/plugin-sdk` module and
-`$HERMES_HOME/desktop-plugins/`. The **web dashboard** (`hermes dashboard`) has
-its own, unrelated plugin system on `window.__HERMES_PLUGIN_SDK__` with a
+"Plugin" means several unrelated things across Kova. This page is the **native
+desktop app** (`kova desktop`) SDK — the `@hermes/plugin-sdk` module and
+`$KOVA_HOME/desktop-plugins/`. The **web dashboard** (`kova dashboard`) has
+its own, unrelated plugin system on `window.__KOVA_PLUGIN_SDK__` with a
 `manifest.json` — documented at
 [Extending the Dashboard](../user-guide/features/extending-the-dashboard.md). Python
-CLI/gateway plugins are documented at [Build a Hermes Plugin](./plugins/index.md).
+CLI/gateway plugins are documented at [Build a Kova Plugin](./plugins/index.md).
 The three do not share code, APIs, or delivery. Only the backend `plugin_api.py`
 namespace (`/api/plugins/<id>`) is shared between the desktop and dashboard SDKs.
 :::
@@ -69,11 +69,11 @@ plugin, and fail to resolve in a disk plugin). Capability comes in tiers:
 
 | Mode | Where | Who | Build step |
 |------|-------|-----|------------|
-| **Disk** (recommended) | `$HERMES_HOME/desktop-plugins/<id>/plugin.js` | users, agents | none — plain ESM, loaded uncompiled |
-| **Unified package** | `$HERMES_HOME/plugins/<id>/desktop/plugin.js` | plugins that also ship agent-side code | none — same disk pipeline |
+| **Disk** (recommended) | `$KOVA_HOME/desktop-plugins/<id>/plugin.js` | users, agents | none — plain ESM, loaded uncompiled |
+| **Unified package** | `$KOVA_HOME/plugins/<id>/desktop/plugin.js` | plugins that also ship agent-side code | none — same disk pipeline |
 | **Bundled** | `apps/desktop/src/plugins/<id>/plugin.tsx` | in-tree, shipped with the app | the app's own Vite build |
 
-All three take the same `HermesPlugin` contract, appear in **Capabilities → Plugins**,
+All three take the same `KovaPlugin` contract, appear in **Capabilities → Plugins**,
 and enable/disable live. A unified package is just the disk door scanning inside
 your agent plugin's folder — see
 [One package, both SDKs](#one-package-both-sdks). Everything on this page is
@@ -83,17 +83,17 @@ differences. Radio ships as a bundled SDK-only plugin, off by default. Enable it
 in **Capabilities → Plugins** for free live streams, station search, and status-bar
 playback controls with an audio-reactive waveform. It uses the existing plugin
 toggle and contributes nothing while disabled. Reference demos live in the companion
-[`hermes-example-plugins`](https://github.com/NousResearch/hermes-example-plugins)
+[`hermes-example-plugins`](https://github.com/OpenKova/hermes-example-plugins)
 repo.
 
 ## Quick start — your first plugin
 
-Create `$HERMES_HOME/desktop-plugins/hello/plugin.js` (that's `~/.hermes/...`
+Create `$KOVA_HOME/desktop-plugins/hello/plugin.js` (that's `~/.kova/...`
 by default). Desktop plugins are app-level — one root for every profile, gateway,
 or remote machine the window connects to. The folder name must equal the plugin `id`.
 
 ```javascript
-// ~/.hermes/desktop-plugins/hello/plugin.js
+// ~/.kova/desktop-plugins/hello/plugin.js
 import { host, haptic, useValue } from '@hermes/plugin-sdk'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
@@ -103,7 +103,7 @@ function HelloPane() {
   return jsxs('div', {
     className: 'flex h-full flex-col gap-2 p-3 text-sm',
     children: [
-      jsx('div', { className: 'font-medium', children: 'Hello, Hermes' }),
+      jsx('div', { className: 'font-medium', children: 'Hello, Kova' }),
       jsx('div', {
         className: 'text-(--ui-text-tertiary)',
         children: `gateway: ${gateway}`
@@ -156,10 +156,10 @@ The only importable specifiers are `@hermes/plugin-sdk`, `react`, and
 
 ## The plugin contract
 
-A plugin default-exports a `HermesPlugin`:
+A plugin default-exports a `KovaPlugin`:
 
 ```ts
-interface HermesPlugin {
+interface KovaPlugin {
   /** Stable slug — becomes the `plugin:<id>` source and the id namespace. */
   id: string
   /** Human name for Settings / about UI. Defaults to `id`. */
@@ -441,7 +441,7 @@ host.onEvent('gateway.ready', () => {
 Both doors persist per profile, so a plugin-driven switch sticks exactly like a
 manual pick. To tint the *active* theme rather than replace it, use
 `setAccentOverride(hex)` and clear it in `ctx.onDispose` — the official
-[Accent Picker](https://github.com/NousResearch/hermes-official-plugins/tree/main/accent-picker)
+[Accent Picker](https://github.com/OpenKova/hermes-official-plugins/tree/main/accent-picker)
 plugin is the worked example (it is also a complete, installable disk plugin).
 
 #### Styling the chat switch — `data-session-switching`
@@ -650,8 +650,8 @@ and its siblings; the pet-wallet row uses the [pet bubble](#pet-bubble) door):
 
 | Plugin | Was | Now |
 |---|---|---|
-| next-prompt (#120660) | `window.dispatchEvent(new CustomEvent('hermes:composer-insert', …))` + a `setTimeout` `hermes:composer-focus`; `[data-composer-target]`/`[data-pane-hidden]` scan for the visible target | `await host.composer.insertText(null, suggestion.text, { mode: 'block' })`, then `host.composer.focus(null)` if the pill lost the caret |
-| prompt-snippets (#116030) | same `hermes:composer-insert` event; `[data-slot="composer-input"]`/ProseMirror `textContent` + synthetic `InputEvent` fallback; `surfaceEditorEl().focus()` | `host.composer.insertText(sid, text, { mode: 'block' })`; `setDraft(sid, (await getDraft(sid) ?? '') + '\n' + text)` replaces the fallback; `host.composer.focus(sid)` — `sid = host.state.focusedSessionId.get()` |
+| next-prompt (#120660) | `window.dispatchEvent(new CustomEvent('kova:composer-insert', …))` + a `setTimeout` `kova:composer-focus`; `[data-composer-target]`/`[data-pane-hidden]` scan for the visible target | `await host.composer.insertText(null, suggestion.text, { mode: 'block' })`, then `host.composer.focus(null)` if the pill lost the caret |
+| prompt-snippets (#116030) | same `kova:composer-insert` event; `[data-slot="composer-input"]`/ProseMirror `textContent` + synthetic `InputEvent` fallback; `surfaceEditorEl().focus()` | `host.composer.insertText(sid, text, { mode: 'block' })`; `setDraft(sid, (await getDraft(sid) ?? '') + '\n' + text)` replaces the fallback; `host.composer.focus(sid)` — `sid = host.state.focusedSessionId.get()` |
 | prompt-enhancer (#116031) | walks the editor's child nodes to serialize, rebuilds chip DOM, `replaceChildren` + synthetic `InputEvent` | `const draft = await host.composer.getDraft(sid)` → transform → `await host.composer.setDraft(sid, enhanced)` (chips hydrate app-side); revert is another `setDraft` |
 | memory-review (#115966) | `host.request('slash.exec', { session_id, command })` for `/memory …` — already SDK-only | optional: `host.composer.insertText(sid, '/memory pending', { mode: 'prefix' })` to seat the command for the user instead of executing it |
 | intelligent-tool-break (#115964) | "Message" button only toasts "type /break" (no composer write) | `host.composer.setDraft(host.state.focusedSessionId.get(), '/break ')` then `host.composer.focus(null)` restores the intended behaviour |
@@ -1164,13 +1164,13 @@ classic preview card. Tell the agent about your directive in a skill (that's
 how it learns to emit it).
 
 Previewed widgets can also **talk back**. Inside the frame,
-`window.hermes.send('get-price eth')` (or a declarative
+`window.kova.send('get-price eth')` (or a declarative
 `<button data-hermes-send="get-price eth">` — no script needed) hands that
 prompt to the agent as a user turn, off-screen: no bubble takes up the
 transcript, the widget updating is the visible response. The turn is still
 real — it wakes the agent, rides the composer's steer/queue rules, and
 persists (typed `hidden`) so resume and the session DB keep the full record.
-Prompts are trimmed, capped at 500 chars (`window.hermes.maxLength`), and
+Prompts are trimmed, capped at 500 chars (`window.kova.maxLength`), and
 throttled to one per second per frame. Nothing is truncated or dropped
 silently: `send()` returns a Promise that resolves `{ ok: true }` once the
 prompt reaches the chat's composer, or `{ ok: false, error }` where `error` is
@@ -1262,7 +1262,7 @@ What the host guarantees:
   backoff while a claimed tool has no owner, and after `reload.mcp` or a
   plugin-list change, so the card appears once the server is up.
 - **Only this app pairs a desktop half with a package.** The
-  `.hermes-package.json` marker is written by the installer and the reconcile
+  `.kova-package.json` marker is written by the installer and the reconcile
   pass; one shipped inside a desktop-only repository is dropped on install.
 - **Other surfaces are unchanged.** Tools keep emitting plain `MEDIA:` lines;
   the CLI, the TUI and messaging platforms deliver the file as before.
@@ -1508,7 +1508,7 @@ is the registry routing identity;
 pair it with `profile` for keys and persistence. Endpoint, token, SSH host/key, and
 other raw connection fields never cross the plugin IPC boundary. `profile` is the
 source-local route used
-for requests; `targetProfile` is the backend Hermes profile served by that route.
+for requests; `targetProfile` is the backend Kova profile served by that route.
 They differ when a route explicitly maps to another backend profile (for example an
 SSH `remoteProfile` override or a legacy per-profile URL alias). This distinction
 preserves backend identity without exposing connection secrets.
@@ -1546,7 +1546,7 @@ rejection your `.catch()` sees, never an error-boundary crash.
 #### Live tool progress — `tool.progress` {#tool-progress-event}
 
 While a tool call runs, an MCP server that sends `notifications/progress` (the
-MCP spec's progress channel; Hermes opts in by sending `_meta.progressToken` on
+MCP spec's progress channel; Kova opts in by sending `_meta.progressToken` on
 every `tools/call`) reaches the renderer as a `tool.progress` event. The native
 tool row shows it as `42% · <message>` next to its timer; a plugin can render
 its own view:
@@ -1575,7 +1575,7 @@ transcript, so a reopened session shows only the finished row.
 `ctx.os` is the curated OS door — every way a plugin reaches outside the app
 window, in one namespace attributed to your plugin. `ctx.os.notify` posts a
 **native OS notification** — the same Electron pipeline the app's own
-approval/turn alerts use. It fires only while the user is away from Hermes
+approval/turn alerts use. It fires only while the user is away from Kova
 (backgrounded / unfocused); use `host.notify` for the in-app toast when
 they're looking at the app. Users can silence it per device under Settings ▸
 Notifications ▸ "Plugin notifications", and repeats from the same plugin are
@@ -1588,21 +1588,21 @@ ctx.os.notify({
   title: 'New match found',
   body: 'Someone matched your signal',
   icon: '/abs/path/to/icon.png', // Electron Notification icon
-  // Body click → focus Hermes + navigate. Same vocabulary as OS deep links:
-  activate: 'hermes://index-network/intent/1',
+  // Body click → focus Kova + navigate. Same vocabulary as OS deep links:
+  activate: 'kova://index-network/intent/1',
   // or: activate: '/index-network/intent/1'
   // or: activate: { path: '/index-network/intent/1' }
   onActivate: () => focusLocalState('1'), // optional renderer callback
   actions: [
-    { id: 'open', label: 'Open', activate: 'hermes://index-network/intent/1' },
+    { id: 'open', label: 'Open', activate: 'kova://index-network/intent/1' },
     { id: 'dismiss', label: 'Dismiss', onAction: () => dismiss('1') },
   ],
 })
 ```
 
-`activate` is deeplink-compatible: `hermes://index-network/intent/1` and the
+`activate` is deeplink-compatible: `kova://index-network/intent/1` and the
 hash path `/index-network/intent/1` resolve to the same in-app route (and the
-same `hermes://…` URL works as an OS deep link). Action buttons only render on
+same `kova://…` URL works as an OS deep link). Action buttons only render on
 signed macOS builds; elsewhere the body click still activates. Navigation only
 happens on user click — never from a background event alone.
 
@@ -1627,9 +1627,9 @@ computer running Desktop. A plugin reaches exactly two kinds of folder:
 Every call names a folder handle and a path **relative to that folder**. The
 app's main process checks each call: `..`, absolute paths, drive letters and
 symlinks that resolve outside the folder are refused, never normalized, and
-nothing inside Hermes' own data (the Hermes home with `config.yaml`, `.env`,
+nothing inside Kova' own data (the Kova home with `config.yaml`, `.env`,
 auth and profiles; the app data folder with every plugin's data and the grants
-record) is reachable. A folder that holds or sits inside Hermes data (however
+record) is reachable. A folder that holds or sits inside Kova data (however
 it is spelled: a bind mount, a macOS firmlink, a WSL share or a
 `\\localhost\C$` share counts), a key folder such as `~/.ssh`, or a kernel
 filesystem such as `/proc` (wherever it is mounted) cannot be granted at all;
@@ -1974,7 +1974,7 @@ scoping. Omit `profile` to act on the app-wide active profile; pass a name or a
 `{ connectionId, profile }` route to configure another profile without swapping
 the foreground one. Nothing new is arbitrated: every call is already reachable
 through `host.request` — the value is typing plus profile scoping, so stop
-calling `window.hermesDesktop.api` raw.
+calling `window.kovaDesktop.api` raw.
 
 `host.pluginDecisions` mirrors the app's plugin enable/disable map (plugin id →
 `true`/`false`; an absent id means the user never chose and the plugin's own
@@ -2051,7 +2051,7 @@ Where English has a **function** entry (``results: n => `${n} results` ``), a pa
 gives a plain string with POSITIONAL placeholders — `{0}`, `{1}` in argument
 order — and the merge wraps it into the same call shape. The full key set is
 published in `locales/_keys.desktop.json` (regenerate with `pnpm run i18n:keys`
-in `apps/desktop` and commit it; CI pins the file to `en.ts`), which is what `hermes plugins
+in `apps/desktop` and commit it; CI pins the file to `en.ts`), which is what `kova plugins
 validate` checks a pack's `<lang>.desktop.yaml` against.
 
 `host.i18n.registerAppLocale` is the same call for code with no `ctx` in reach;
@@ -2133,12 +2133,12 @@ A feature that needs a desktop UI **and** agent-side code (a Python plugin, its
 backend routes, skills) doesn't have to ship as two co-dependent installs. Put a
 `desktop/plugin.js` inside the agent package. When the package lands in any
 local `plugins/` root (default home or a profile), the Electron main process
-copies that half into `$HERMES_HOME/desktop-plugins/<id>/` beside a
-`.hermes-package.json` marker, and the renderer loads it through the exact same
+copies that half into `$KOVA_HOME/desktop-plugins/<id>/` beside a
+`.kova-package.json` marker, and the renderer loads it through the exact same
 pipeline as the standalone disk door (hot reload included):
 
 ```
-~/.hermes/plugins/<id>/           # ONE installable folder
+~/.kova/plugins/<id>/           # ONE installable folder
 ├── plugin.yaml                   # the agent half: tools, hooks, commands
 ├── skills/…
 ├── dashboard/
@@ -2156,7 +2156,7 @@ package folder is copied as the desktop half (without `.git` and
 `__pycache__`). It must hold no symlinks and stay under 64 MB, or nothing is
 copied.
 Installing, sharing, or removing the feature is one folder: the app-root copy
-is refreshed when the source `plugin.js` changes (`hermes plugins update`, or
+is refreshed when the source `plugin.js` changes (`kova plugins update`, or
 **Rescan**) and removed when the package folder disappears. The copy is what
 makes the desktop half **app-level**: it exists once, however many profiles
 carry the package, and it never appears or disappears when the user switches
@@ -2177,11 +2177,11 @@ The app loads the **copy** in `desktop-plugins/<id>/`, not your package. An
 installed package (catalog, Git URL, `file://` path) is refreshed only when its
 source `plugin.js` is newer than the copy and something asks — **Rescan** in
 **Capabilities → Plugins**, an install/update through the app, or a restart —
-so editing `~/.hermes/plugins/<id>/desktop/plugin.js` in place does nothing
+so editing `~/.kova/plugins/<id>/desktop/plugin.js` in place does nothing
 on screen until then. Develop from a checkout linked into `plugins/` instead:
 
 ```bash
-ln -s ~/src/my-plugin ~/.hermes/plugins/my-plugin
+ln -s ~/src/my-plugin ~/.kova/plugins/my-plugin
 ```
 
 A linked package's copy is marked `"linked": true`. The app watches the
@@ -2189,11 +2189,11 @@ checkout's `desktop/plugin.js`; every save re-syncs the copy (by content, not
 mtime, so `git stash pop` counts) and hot-reloads the plugin. Catalog and Git
 installs keep the mtime rule.
 
-`hermes plugins doctor <path-or-id>` warns when the copy differs from your
+`kova plugins doctor <path-or-id>` warns when the copy differs from your
 source and names the copy it found:
 
 ```text
-WARN: Desktop runs a stale copy of desktop/plugin.js (~/.hermes/desktop-plugins/my-plugin);
+WARN: Desktop runs a stale copy of desktop/plugin.js (~/.kova/desktop-plugins/my-plugin);
 your edits are not loaded. Refresh it with Capabilities → Plugins → Rescan …
 ```
 
@@ -2201,13 +2201,13 @@ Two enable switches still apply, on purpose, and both default to **off**: the
 desktop half ships opt-in — it inventories in **Capabilities → Plugins** but stays
 disabled until the user toggles it — matching the Python half's
 `plugins.enabled` gate in `config.yaml` (the security boundary below). Dropping
-a package into `~/.hermes/plugins` is inert on every surface until the user
+a package into `~/.kova/plugins` is inert on every surface until the user
 says otherwise. The desktop half degrades gracefully when the backend half is
 off — `ctx.rest` returns errors, not crashes.
 
 :::note
 The copy is local to the machine the desktop app runs on. Against a remote
-backend, the remote box's `~/.hermes/plugins` is not reachable as a filesystem —
+backend, the remote box's `~/.kova/plugins` is not reachable as a filesystem —
 only locally installed packages contribute a desktop half this way. For a
 remote backend the install dialog clones the desktop half separately into
 `desktop-plugins/`, the same as a desktop-only repo. A package whose agent half
@@ -2219,10 +2219,10 @@ and the tooltip points at **Install from Git** with the Desktop target checked.
 ### Distributing with an install link {#install-link}
 
 Ship your plugin repo (agent half, desktop half, or both) and link to it with
-the `hermes://` scheme — a plain anchor on your website or README:
+the `kova://` scheme — a plain anchor on your website or README:
 
 ```html
-<a href="hermes://plugin/install?repo=owner/repo&enable=1">Install in Hermes</a>
+<a href="kova://plugin/install?repo=owner/repo&enable=1">Install in Kova</a>
 ```
 
 The user gets a confirmation dialog (repo id, source links, a probe of what
@@ -2234,11 +2234,11 @@ never auto-install. `force=1` replaces an existing install; dev builds use
 ### The Python side
 
 Desktop plugins reuse the dashboard plugin backend mount. Put the backend in a
-`dashboard/` subfolder of a regular Hermes plugin and declare it in a
+`dashboard/` subfolder of a regular Kova plugin and declare it in a
 `manifest.json`:
 
 ```
-~/.hermes/plugins/<id>/
+~/.kova/plugins/<id>/
 └── dashboard/
     ├── manifest.json      # { "name": "<id>", "api": "plugin_api.py" }
     └── plugin_api.py      # exports `router = APIRouter()`
@@ -2261,7 +2261,7 @@ async def action(body: dict):
 
 Routes mount under `/api/plugins/<id>/` (`GET /api/plugins/<id>/board`, …).
 Backend code runs inside the gateway process, so it can import from the
-hermes-agent codebase directly (`hermes_state`, `hermes_cli.config`, …). See
+kova-agent codebase directly (`hermes_state`, `hermes_cli.config`, …). See
 [Extending the Dashboard → Backend API routes](../user-guide/features/extending-the-dashboard.md#backend-api-routes)
 for the full backend reference — the mount is identical.
 
@@ -2269,7 +2269,7 @@ for the full backend reference — the mount is identical.
 Enabling a plugin in the desktop **Capabilities → Plugins** panel is a renderer-side
 choice; it does **not** import Python. A user plugin's `plugin_api.py` is
 imported only when the plugin is in the `plugins.enabled` allow-list in
-`config.yaml` (and not in `plugins.disabled`). Project plugins (`./.hermes/`)
+`config.yaml` (and not in `plugins.disabled`). Project plugins (`./.kova/`)
 never auto-import Python. This is a security boundary, not an oversight
 (GHSA-mcfc-hp25-cjv7).
 :::
@@ -2305,16 +2305,16 @@ your handler). Where it lands depends on the process the call runs in:
 
 | Caller runs in | Reaches |
 |---|---|
-| the process Desktop is connected to — the host gateway a local Desktop attaches to, or a remote `hermes serve`: `plugin_api.py` routers, plugin slash commands, tools and hooks in the agent turn | every Desktop window connected to that process |
+| the process Desktop is connected to — the host gateway a local Desktop attaches to, or a remote `kova serve`: `plugin_api.py` routers, plugin slash commands, tools and hooks in the agent turn | every Desktop window connected to that process |
 | the `dashboard.turn_isolation` compute-host child (tools/hooks of an isolated turn) | relayed over the host pipe to its parent process, then every connected window |
-| the stdio TUI (`hermes` in a terminal) | that terminal's client |
-| `hermes chat`, cron, `hermes plugins validate`, or a gateway with no Desktop window connected | nobody — no Desktop client is attached to that process; the call is a logged no-op |
+| the stdio TUI (`kova` in a terminal) | that terminal's client |
+| `kova chat`, cron, `kova plugins validate`, or a gateway with no Desktop window connected | nobody — no Desktop client is attached to that process; the call is a logged no-op |
 
 Use this instead of importing `tui_gateway.server` internals; for plugin-scoped frames
 with a payload tailored per connection, `ctx.socket('/events')` remains the
 richer door.
 
-Migration (rss-reader): drop the `~/.hermes/rss-reader/commands.jsonl` queue,
+Migration (rss-reader): drop the `~/.kova/rss-reader/commands.jsonl` queue,
 `GET /commands` and the 3 s `ctx.rest('/commands')` poll — the Python side
 calls `broadcast_plugin_event('rss-reader', 'feed.updated', payload)` where it
 used to enqueue, and the desktop side replaces the timer with
@@ -2402,7 +2402,7 @@ your own data folder plus folders the user grants you.
 ## Bundled plugins
 
 A plugin can ship in-tree at `apps/desktop/src/plugins/<id>/plugin.tsx` (default
-export a `HermesPlugin`). It's discovered by `discoverBundledPlugins()` at boot —
+export a `KovaPlugin`). It's discovered by `discoverBundledPlugins()` at boot —
 no import, no registry edit — and shares the exact inventory + live
 enable/disable contract as a disk plugin. The two differences:
 
@@ -2413,14 +2413,14 @@ enable/disable contract as a disk plugin. The two differences:
 
 No desktop plugins ship in the core tree today; the shipped app stays uncluttered
 and demos live in the
-[`hermes-example-plugins`](https://github.com/NousResearch/hermes-example-plugins)
+[`hermes-example-plugins`](https://github.com/OpenKova/hermes-example-plugins)
 companion repo.
 
 ## Security model
 
 A loaded plugin is evaluated as ESM in the renderer realm with **full app
 authority** — the React singleton, the whole SDK (`host.request` gateway RPC,
-`ctx.rest`, storage, `navigate`) and the `window.hermesDesktop` native bridge
+`ctx.rest`, storage, `navigate`) and the `window.kovaDesktop` native bridge
 (files, git, terminal, installs). The isolation the loader provides is **error
 isolation only**: a plugin can't crash the app (contributions are error-bounded,
 listeners isolated, a throwing `register()` is rolled back and reported on the
@@ -2439,7 +2439,7 @@ on top of that: `ctx.preview.executeJavaScript` needs a declared capability
 and the user's per-origin consent ([Preview page scripts](#preview-page-scripts)).
 File access follows the same rule: a catalog plugin
 should read and write through [`ctx.files`](#plugin-files), not the raw
-`window.hermesDesktop` file bridge. `ctx.files` is enforced in the main
+`window.kovaDesktop` file bridge. `ctx.files` is enforced in the main
 process, so a plugin that uses it (or untrusted text it handles, such as a
 note name from the model) cannot leave the folders the user granted; the raw
 bridge has no such limit, which is why catalog review asks for `ctx.files`. A future remote-source door will need a real boundary
@@ -2485,7 +2485,7 @@ pipeline as a trust boundary.
 | Category | Exports |
 |----------|---------|
 | Host | `host` (`.state.*`, `.settings`, `.notify`, `.notifyError`, `.navigate`, `.onEvent`, `.logs`, `.status`, `.restartGateway`, `.request`, `.composer`, `.spellcheck`, `.sessions`, `.skills`, `.toolsets`, `.profiles`, `.pluginDecisions`) |
-| Plugin contract | `HermesPlugin`, `PluginContext`, `PluginContribution`, `PluginStorage`, `PluginFiles`, `PluginFolder`, `PluginFileEntry`, `PluginFilesResult`, `PluginOs`, `PluginPet`, `PetSayOptions`, `PetMessageTone`, `PluginAppActionId`, `PluginAppActionInfo`, `PluginRunActionResult`, `PLUGIN_APP_ACTIONS`, `PluginRestOptions`, `PluginNativeNotificationInput`, `PluginNotificationAction`, `HermesOpenTarget`, `Contribution` |
+| Plugin contract | `KovaPlugin`, `PluginContext`, `PluginContribution`, `PluginStorage`, `PluginFiles`, `PluginFolder`, `PluginFileEntry`, `PluginFilesResult`, `PluginOs`, `PluginPet`, `PetSayOptions`, `PetMessageTone`, `PluginAppActionId`, `PluginAppActionInfo`, `PluginRunActionResult`, `PLUGIN_APP_ACTIONS`, `PluginRestOptions`, `PluginNativeNotificationInput`, `PluginNotificationAction`, `KovaOpenTarget`, `Contribution` |
 | Area constants | `PANES_AREA`, `ROUTES_AREA`, `SIDEBAR_NAV_AREA`, `STATUSBAR_AREAS`, `TITLEBAR_AREAS`, `WORKSPACE_PAGE_HEADER_AREA`, `PALETTE_AREA`, `KEYBINDS_AREA`, `THEMES_AREA`, `COMPOSER_AREAS`, `MODEL_MENU_ROW_AREA`, `KANBAN_CARD_AREAS`, `SESSION_ROW_AREAS`, `SIDEBAR_NAV_PREFS_AREA`, `APPEARANCE_AREAS`, `SETTINGS_PLUGINS_AREA` |
 | Area payloads | `PluginSettingsPage`, `PluginSettingsSubpage` (+ `pluginSettingsHref`), `RouteContribution`, `SidebarNavContribution`, `StatusbarItem`, `TitlebarTool`, `PaletteContribution`, `KeybindContribution`, `ComposerMiddleware`, `ComposerAttachmentProvider`, `ComposerContextMenuProvider` (+ `ComposerContextMenuItem`, `ComposerContextMenuContext`, `ComposerContextMenuAction`), `SessionRowSlotContribution`, `KanbanCardBadgeContribution` (+ `KanbanCard`, `KanbanCardBoard`, `KanbanCardBadge`, `KanbanCardBadgeTone`, `KANBAN_CARD_BADGE_HUES`, `KANBAN_CARD_BADGE_LIMITS`), `SidebarNavPrefsContribution` |
 | React / state | `useValue`, `atom`, `computed`, `useQuery`, `useMutation`, `useQueryClient`, `queryClient`, `Contribute`, `WorkspacePageHeaderControl` |
@@ -2505,9 +2505,9 @@ human/developer reference; the skill is the working checklist.
 ## Troubleshooting
 
 **My plugin doesn't appear.** Confirm the file is at
-`$HERMES_HOME/desktop-plugins/<id>/plugin.js` and the folder name matches the
+`$KOVA_HOME/desktop-plugins/<id>/plugin.js` and the folder name matches the
 export `id`. Run ⌘K → **Reload desktop plugins**. Check the app for an error
-toast naming the failure, and tail `hermes logs gui -f`.
+toast naming the failure, and tail `kova logs gui -f`.
 
 **"unsupported import" on load.** A disk plugin may only import
 `@hermes/plugin-sdk`, `react`, and `react/jsx-runtime`. Remove any other import.
@@ -2516,9 +2516,9 @@ toast naming the failure, and tail `hermes logs gui -f`.
 in a `jsx()` call isn't imported. Add it to the import line.
 
 **`ctx.rest` returns 404.** The backend isn't mounted: confirm
-`~/.hermes/plugins/<id>/dashboard/manifest.json` has `"api": "plugin_api.py"`,
+`~/.kova/plugins/<id>/dashboard/manifest.json` has `"api": "plugin_api.py"`,
 that the plugin is in `plugins.enabled` in `config.yaml`, and restart the gateway
-(backend routes mount at startup). Tail `~/.hermes/logs/errors.log` for
+(backend routes mount at startup). Tail `~/.kova/logs/errors.log` for
 `Failed to load plugin <id> API routes`.
 
 **`ctx.socket` never fires.** On an OAuth remote it's a no-op by design — use your

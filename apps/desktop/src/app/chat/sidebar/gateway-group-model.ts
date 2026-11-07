@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 
 import { $apiRequestScope } from '@/api/client'
 import type { DesktopConnectionsRegistry } from '@/global'
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/kova'
 import { isBrowserHostedDesktop } from '@/lib/platform'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $connectionsRegistry } from '@/store/connection-registry-state'

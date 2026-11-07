@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { setSessionArchived } from '@/hermes'
+import { setSessionArchived } from '@/kova'
 import { en } from '@/i18n/en'
 import { $messagingSessions, $sessions, setMessagingSessions, setSessions } from '@/store/session'
 import type { SessionInfo } from '@/types/hermes'
@@ -11,7 +11,7 @@ import { SessionsSettings } from './sessions-settings'
 
 vi.mock('@/i18n', () => ({ useI18n: () => ({ t: en }) }))
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getKovaConfigRecord: vi.fn().mockResolvedValue({ config: {} }),
   setSessionArchived: vi.fn().mockResolvedValue(undefined)

@@ -114,7 +114,7 @@ There are three distinct switch shapes, and conflating them is the classic bug:
 - A **connection/mode apply** (local ↔ remote ↔ cloud) is the soft re-home:
   shell mounted, gateway-bound stores explicitly wiped, then reconnect. Query
   invalidation alone cannot evict live session stores — wipe them.
-- A **runtime home change** (switching the underlying `HERMES_HOME` profile) is
+- A **runtime home change** (switching the underlying `KOVA_HOME` profile) is
   a hard re-home: the window legitimately reloads and state resets by remount.
 - A **live profile swap** in the same window activates another profile's socket
   while background profiles keep streaming; lists merge rather than wipe, and
@@ -186,7 +186,7 @@ button) reach the OS browser through one explicit bridge instead:
   `dispatchEvent(click)` from page script is dropped there; page `window.open`
   stays blocked.
 - `PreviewPane` admits `http:`/`https:` only (`src/lib/preview-external.ts`)
-  and hands the URL to the existing `hermes:openExternal` IPC, which applies
+  and hands the URL to the existing `kova:openExternal` IPC, which applies
   main's URL policy. `file:` is excluded on purpose: a guest must never reach
   `shell.openPath`.
 

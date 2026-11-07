@@ -3,7 +3,7 @@ import {
   graftRefreshedTailOntoBackfill,
   olderPageReader
 } from '@/app/chat/transcript-backfill'
-import { getLatestSessionMessages, type ProfileScope } from '@/hermes'
+import { getLatestSessionMessages, type ProfileScope } from '@/kova'
 import { type ChatMessage, toChatMessages } from '@/lib/chat-messages'
 import {
   type InFlightRecoveryResult,

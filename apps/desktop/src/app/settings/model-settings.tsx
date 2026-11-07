@@ -19,7 +19,7 @@ import {
   saveMoaModels,
   setEnvVar,
   setModelAssignment
-} from '@/hermes'
+} from '@/kova'
 import type {
   AuxiliaryModelsResponse,
   AuxiliaryTaskAssignment,
@@ -27,7 +27,7 @@ import type {
   MoaModelSlot,
   ModelAssignmentRequest,
   StaleAuxAssignment
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { isCodeSkewRestartRequired } from '@/lib/code-skew-error'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'

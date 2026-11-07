@@ -1,4 +1,4 @@
-import { type ProfileScope, setModelAssignment } from '@/hermes'
+import { type ProfileScope, setModelAssignment } from '@/kova'
 import { translateNow } from '@/i18n'
 import { dismissNotification, notify } from '@/store/notifications'
 import type { ModelAssignmentRequest, ModelAssignmentResponse } from '@/types/hermes'

@@ -1,4 +1,4 @@
-import { Box, Text, useStdout } from '@hermes/ink'
+import { Box, Text, useStdout } from '@kova/ink'
 import { mix } from '@kova/shared/color'
 import type { SessionInfo } from '@kova/shared/gateway-types'
 import { useEffect, useState } from 'react'

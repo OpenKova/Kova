@@ -12,7 +12,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import type { KovaConnection } from '@/global'
-import { saveKovaConfigRecord } from '@/hermes'
+import { saveKovaConfigRecord } from '@/kova'
 import { useI18n } from '@/i18n'
 import { Check, Globe } from '@/lib/icons'
 import { claimPreviewSigninsSync, syncPreviewSignins } from '@/lib/preview-signins'

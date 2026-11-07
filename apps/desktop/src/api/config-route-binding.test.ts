@@ -6,7 +6,7 @@ import {
   saveKovaConfig,
   setApiRequestConnection,
   setApiRequestProfile
-} from '@/hermes'
+} from '@/kova'
 
 describe('config read/write route binding', () => {
   let api: ReturnType<typeof vi.fn>

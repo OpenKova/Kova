@@ -1,22 +1,22 @@
 # Desktop App Plugins — UI Panes, Commands, Widgets
 
-Write plugins for the Hermes desktop app: statusbar items, layout panes,
+Write plugins for the Kova desktop app: statusbar items, layout panes,
 command-palette commands, keybinds, routes, and themes. A plugin is a single
 plain-JavaScript ESM file the app loads at runtime — no build step, no repo
 changes. A plugin can also talk to its own Python backend namespace
 (`ctx.rest`/`ctx.socket` → `/api/plugins/<id>`); the general Python plugin
-system (`~/.hermes/plugins/`) is otherwise documented separately.
+system (`~/.kova/plugins/`) is otherwise documented separately.
 
 There are TWO on-disk doors, same contract and hot reload:
 
-- `$HERMES_HOME/desktop-plugins/<id>/plugin.js` — standalone desktop plugin.
+- `$KOVA_HOME/desktop-plugins/<id>/plugin.js` — standalone desktop plugin.
   Loads enabled by default.
-- `$HERMES_HOME/plugins/<id>/desktop/plugin.js` — the desktop HALF of a
+- `$KOVA_HOME/plugins/<id>/desktop/plugin.js` — the desktop HALF of a
   unified agent-plugin package: the same folder that carries the Python
   plugin (`plugin.yaml`) and its `dashboard/plugin_api.py` backend ships its
   desktop UI beside them, so one feature installs/uninstalls as one folder.
   The Electron shell copies that half into `desktop-plugins/<id>/` (with a
-  `.hermes-package.json` marker) — the ONLY root the renderer loads from — so
+  `.kova-package.json` marker) — the ONLY root the renderer loads from — so
   the pane is app-level and does not come and go with the selected profile.
   This half is OPT-IN: it inventories in Capabilities → Plugins but stays off
   until the user toggles it (matching the Python half's `plugins.enabled`
@@ -34,15 +34,15 @@ Full human reference (every export, area payloads, backend, security):
 
 ## Prerequisites
 
-- The Hermes desktop app (it loads plugins; the CLI/gateway alone does not).
-- Write access to `$HERMES_HOME/desktop-plugins/` (usually
-  `~/.hermes/desktop-plugins/`).
+- The Kova desktop app (it loads plugins; the CLI/gateway alone does not).
+- Write access to `$KOVA_HOME/desktop-plugins/` (usually
+  `~/.kova/desktop-plugins/`).
 
 ## How to Run
 
-1. Create `$HERMES_HOME/desktop-plugins/<name>/plugin.js` from
+1. Create `$KOVA_HOME/desktop-plugins/<name>/plugin.js` from
    `templates/plugin.js` (in this skill directory) — that's
-   `~/.hermes/...` by default, or `~/.hermes/profiles/<profile>/...` under a
+   `~/.kova/...` by default, or `~/.kova/profiles/<profile>/...` under a
    named profile. Keep `<name>` equal to the plugin `id`.
 2. The desktop app watches that directory: the plugin loads within a few
    seconds of the file landing, and every later save hot-reloads it in
@@ -127,15 +127,15 @@ The ONLY import surface is `@hermes/plugin-sdk` (plus `react` /
   folder handle plus a RELATIVE path (`list`, `stat`, `readText`,
   `readDataUrl`, `writeText(…, { exclusive })`, `rename`, `trash`) and resolve
   `{ ok, … }` / `{ ok: false, error }`; `..`, absolute paths, escaping
-  symlinks and Hermes' own data are refused by the main process. Never call
-  `window.hermesDesktop` file methods from a plugin.
+  symlinks and Kova' own data are refused by the main process. Never call
+  `window.kovaDesktop` file methods from a plugin.
 - `ctx.os` — the curated OS door, attributed to your plugin:
   `ctx.os.notify({ title, body?, silent?, icon?, activate?, onActivate?, actions? })`
-  posts a native OS notification. Fires only while the user is away from Hermes
+  posts a native OS notification. Fires only while the user is away from Kova
   (use `host.notify` for the in-app toast); gated by Settings ▸ Notifications ▸
   "Plugin notifications" and throttled per plugin — reserve it for genuinely
   notable events. `activate` accepts a plugin deep link
-  (`hermes://index-network/intent/1`), a hash path (`/index-network/intent/1`),
+  (`kova://index-network/intent/1`), a hash path (`/index-network/intent/1`),
   or `{ path, params }` — same resolver as OS deep links. Action buttons may
   set their own `activate` or an `onAction`
   callback (renderer-only; only the action id crosses IPC).
@@ -174,7 +174,7 @@ The ONLY import surface is `@hermes/plugin-sdk` (plus `react` /
   React Query client — cache, dedupe, `refetchInterval`, invalidate like core;
   never hand-roll a poll loop), plus `atom`/`computed` for plugin-local state.
 - Backend: if the plugin ships a Python `plugin_api.py` (under
-  `~/.hermes/plugins/<id>/dashboard/`, manifest `"api": "plugin_api.py"`), reach
+  `~/.kova/plugins/<id>/dashboard/`, manifest `"api": "plugin_api.py"`), reach
   it with `ctx.rest('/path', { method?, body?, timeoutMs? })` and its live twin
   `ctx.socket('/events', onMessage)` — both scoped to `/api/plugins/<id>` by
   construction (traversal rejected). `ctx.socket` is a **no-op on OAuth

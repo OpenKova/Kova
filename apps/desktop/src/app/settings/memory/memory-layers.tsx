@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { getMemoryStatus } from '@/hermes'
+import { getMemoryStatus } from '@/kova'
 import { useI18n } from '@/i18n'
 import type { MemoryLayersTranslations } from '@/i18n/types_memory_layers'
 import { $memoryStatusRevision } from '@/store/memory-status'

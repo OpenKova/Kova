@@ -22,7 +22,7 @@ const secondaryGateways: Array<{
 
 let promptAckStatus: null | string = null
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   KovaGateway: class {
     connectionState = 'closed'
     eventHandler: ((event: { payload?: Record<string, unknown>; session_id?: string; type: string }) => void) | null =

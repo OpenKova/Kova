@@ -520,7 +520,7 @@ def managed_bot_home(tmp_path):
     profile = home / "profiles" / "researcher"
     profile.mkdir(parents=True)
     (profile / "profile.yaml").write_text(
-        "ui_meta:\n  hermes-bots:\n    shape: cloud\n",
+        "ui_meta:\n  kova-bots:\n    shape: cloud\n",
         encoding="utf-8",
     )
     return home

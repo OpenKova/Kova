@@ -48,7 +48,7 @@ const saveKovaConfig = vi.fn()
 const saveKovaConfigRecord = vi.fn()
 const getElevenLabsVoices = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   // useKovaConfigRecord (via VoiceProviderFields) reads these from the barrel.
   peekConfigReadOrigin: () => undefined,
   retainConfigReadOrigin: (next: unknown) => next,

@@ -1,4 +1,4 @@
-import type { KovaGateway } from '@/hermes'
+import type { KovaGateway } from '@/kova'
 import { ambientRequestFor } from '@/store/session-gone-latch'
 import { sessionOwnerIsKnown } from '@/store/session-owner-resolution'
 import { isSessionOwnerRoute, requestForSessionProfile, type SessionOwnerScope } from '@/store/session-request-router'

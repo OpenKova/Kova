@@ -8,7 +8,7 @@ const setUnreadRemote = vi.fn<(id: string, unread: boolean, profile?: null | str
   Promise.resolve({ ok: true })
 )
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   // Opening a session now PATCHes its persisted unread flag (clearUnreadOnOpen
   // -> markSessionUnread); keep the REST mutation minimal for the suite.
   setApiRequestProfile: () => {},

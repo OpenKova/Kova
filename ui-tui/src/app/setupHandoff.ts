@@ -1,4 +1,4 @@
-import type { RunExternalProcess } from '@hermes/ink'
+import type { RunExternalProcess } from '@kova/ink'
 import type { SetupStatusResponse } from '@kova/shared/gateway-types'
 
 import { t } from '../i18n/runtime.js'

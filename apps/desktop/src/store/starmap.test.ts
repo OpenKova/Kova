@@ -6,7 +6,7 @@ const { fetches } = vi.hoisted(() => ({
   fetches: [] as Array<{ reject: (error: unknown) => void; resolve: (graph: StarmapGraph) => void }>
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getStarmapGraph: () =>
     new Promise<StarmapGraph>((resolve, reject) => {
       fetches.push({ reject, resolve })

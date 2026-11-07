@@ -65,7 +65,7 @@ class FakeKovaGateway {
   removeEventListener() {}
 }
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   KovaGateway: FakeKovaGateway,
   setApiRequestConnection: vi.fn()

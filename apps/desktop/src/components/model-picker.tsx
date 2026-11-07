@@ -31,7 +31,7 @@ import {
 } from '@/store/local-runtime-jobs'
 import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
 
-import type { KovaGateway } from '../hermes'
+import type { KovaGateway } from '../kova'
 import { startManualOnboarding } from '../store/onboarding'
 
 import { InlineNotice } from './notifications'

@@ -38,7 +38,7 @@ def _managed_home(tmp_path, *, teammates=("researcher",), peers=()) -> Path:
                 """\
                 description: teammate for tests
                 ui_meta:
-                  hermes-bots:
+                  kova-bots:
                     shape: cloud
                 """
             ),
@@ -422,7 +422,7 @@ def test_named_bot_relays_a_qualified_target_through_its_own_folder(tmp_path, mo
 
 
 def _rename(home: Path, folder: str, *, display_name: str = "", title: str = "") -> None:
-    lines = ["description: teammate for tests", "ui_meta:", "  hermes-bots:", "    shape: cloud"]
+    lines = ["description: teammate for tests", "ui_meta:", "  kova-bots:", "    shape: cloud"]
     if title:
         lines.append(f"    title: {title}")
     if display_name:
@@ -644,7 +644,7 @@ def test_renamed_primary_signs_with_its_friendly_name_and_is_reachable_by_it(tmp
         assert argv[1:3] == ["-p", "default"], (target, argv)
 
     (home / "profile.yaml").write_text(
-        "display_name: Maia\nui_meta:\n  hermes-bots:\n    title: Maia Prime\n", encoding="utf-8"
+        "display_name: Maia\nui_meta:\n  kova-bots:\n    title: Maia Prime\n", encoding="utf-8"
     )
     json.loads(bot_mode_dm.message_agent_tool(target="coder", message="hi", agent=_FakeAgent(home)))
     _mode, dm_file, _argv, _home = _runner_parts(calls[-1]["command"])

@@ -6,7 +6,7 @@ author: Shunit Haviv Hakimi (shunithaviv)
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  kova:
     tags: [video, launch-video, marketing, motion-graphics, share-copy]
     category: creative
     related_skills: [brag, hyperframes]

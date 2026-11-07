@@ -1,23 +1,23 @@
 # tui_gateway/ + ui-tui/ — the TUI and its JSON-RPC backend
 
 Applies on top of the root `AGENTS.md`. The TUI fully replaces the classic prompt_toolkit CLI;
-activate with `hermes --tui` or `HERMES_TUI=1`. `tui_gateway` is ALSO the backend the Desktop app
+activate with `kova --tui` or `KOVA_TUI=1`. `tui_gateway` is ALSO the backend the Desktop app
 and the dashboard `/chat` talk to — changes here have three consumers.
 
 ## Process model
 
 ```
-hermes --tui
-  └─ Node (Ink)  ──WebSocket /api/ws, hermes-gateway-v1──  the profile's gateway owner
+kova --tui
+  └─ Node (Ink)  ──WebSocket /api/ws, kova-gateway-v1──  the profile's gateway owner
        │  (URL + single-use ticket:                              ├─ session authority: sessions, AIAgent, tools
        │   ui-tui/scripts/gateway_bootstrap.py)                  └─ tui_gateway handlers (non-session methods)
        └─ renders transcript, composer, prompts, activity
 ```
 
-Ink attaches to the profile's shared gateway owner (`hermes gateway run`, started on demand with
+Ink attaches to the profile's shared gateway owner (`kova gateway run`, started on demand with
 its idle exit), never to a private child. `ui-tui/scripts/gateway_bootstrap.py` is a thin wrapper
-over `hermes_cli/gateway_runtime_attach.py::attach_gateway`, the attach `hermes gateway attach
---json` gives any other local client. Only `HERMES_TUI_GATEWAY_URL` (the dashboard's `/chat`)
+over `hermes_cli/gateway_runtime_attach.py::attach_gateway`, the attach `kova gateway attach
+--json` gives any other local client. Only `KOVA_TUI_GATEWAY_URL` (the dashboard's `/chat`)
 dials another URL, and then negotiates the wire from that listener's ready frame.
 
 TypeScript owns the screen. Python owns sessions, tools, model calls, and slash-command logic.
@@ -27,7 +27,7 @@ Never move agent behaviour into the renderer.
 
 Newline-delimited JSON-RPC frames over a WebSocket (`/api/ws`, `tui_gateway/ws.py`) or stdio
 (`tui_gateway/entry.py`), peer-to-peer. On the owner's ticketed socket, session methods (the
-`hermes-gateway-v1` `CANONICAL_METHODS` below) go to the session authority; other methods reach these
+`kova-gateway-v1` `CANONICAL_METHODS` below) go to the session authority; other methods reach these
 handlers only with a full interactive grant (`ws_legacy_fallback.py`). Client→server method calls, server→client
 **requests** (the agent asking the user something: `approval`, `clarify`, `sudo`, `secret`, `vault.*`,
 `connection`, the desktop read/act bridges) and server→client `event` notifications. `tui_gateway/server.py`
@@ -47,14 +47,14 @@ in an existing topical sibling, registered in the table — no `if method == ...
 has a `Params` + `Result` model, every server→client request a `Params` + `Result`, every event a
 `Payload` — one Pydantic class each, `extra="forbid"` by default (`OpenModel` for producer-owned dicts).
 `register_method` refuses an undeclared name at import; the dispatcher rejects unknown param keys
-(`4000` + key path) and, under `HERMES_TEST_ISOLATION=1`, raises `ContractViolation` when a handler's
+(`4000` + key path) and, under `KOVA_TEST_ISOLATION=1`, raises `ContractViolation` when a handler's
 result or an emitted payload does not match its model (production only logs). `apps/shared/src/
 gateway-contract.generated.ts` (`RpcMethods`, `ServerRequestMap`, `BackendGatewayEventMap` + every value
 shape) and `gateway-contract.openrpc.json` are rendered by `scripts/gen_gateway_contracts.py`;
 `tests/tui_gateway/contracts/test_generated.py` fails when they are stale, so the loop is: change the model →
 regenerate → `tsc` shows every consumer the field moved. `apps/shared/src/gateway-events.ts` only adds
 the client-local synthetic events and the `GatewayEvent` envelope on top.
-The native `hermes-gateway-v1` transport has a separate `CANONICAL_METHODS` catalog in
+The native `kova-gateway-v1` transport has a separate `CANONICAL_METHODS` catalog in
 `contracts/canonical*.py`, declared with `canonical_method(...)`. `gateway/session_controls.py::
 AuthorityConnection` validates parameters and successful results against it; unknown/missing
 parameter keys return `4001 invalid_params`. Reuse a standalone model only when its wire is
@@ -73,7 +73,7 @@ New event = `event("<type>", Payload)` in `contracts/events.py`; the emitter is 
 
 One `serve` process may host sessions from several profile homes (Desktop pooled backends launch
 under a profile; the dashboard serves several). The launch profile is a profile: "default" means
-the launch home, never `~/.hermes`. The first non-launch home hosted flips
+the launch home, never `~/.kova`. The first non-launch home hosted flips
 `launch_profile_policy.py` → `set_multiplex_active(True)`; without it every fail-closed guard is
 silently off. Every method that reads or writes home-, config- or `.env`-derived state runs under
 `server.py::@_profile_scoped` (resolved from the live session's `profile_home`, or the explicit
@@ -87,7 +87,7 @@ enter `_session_profile_runtime_scope(session)` around `on_session_end`, the mem
 `agent.close()` (their callers are unscoped reapers, Timers, atexit and pool threads); background
 threads start via `agent.memory_provider.spawn_context_thread`, never bare `threading.Thread`;
 children act for the served profile through `tools/environments/local.py::served_profile_child_env`
-(`hermes -p X` workers, `key_cmd` helpers, browser drivers), never `dict(os.environ)`. Grep for
+(`kova -p X` workers, `key_cmd` helpers, browser drivers), never `dict(os.environ)`. Grep for
 unscoped handlers before adding one: `rg -n "^(async )?def " tui_gateway/methods_*.py | rg -v
 _profile_scoped`. Probe with two on-disk homes and a `.env` name present only in the secondary:
 call the method for that session and assert the secondary's value resolves and the launch
@@ -205,9 +205,9 @@ remain session-scoped; composer model changes use `session.mutate`, never global
 ```bash
 cd ui-tui
 pnpm install       # first time
-pnpm run dev       # watch mode (rebuilds hermes-ink + tsx --watch)
+pnpm run dev       # watch mode (rebuilds kova-ink + tsx --watch)
 pnpm start         # production
-pnpm run build     # full build (hermes-ink + tsc)
+pnpm run build     # full build (kova-ink + tsc)
 pnpm run typecheck # tsc --noEmit
 pnpm run lint      # eslint
 pnpm run fmt       # prettier

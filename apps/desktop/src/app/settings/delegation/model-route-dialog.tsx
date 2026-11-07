@@ -14,7 +14,7 @@ import { Field, FieldHint } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import type { DelegationModelRoute, ProfileScope } from '@/hermes'
+import type { DelegationModelRoute, ProfileScope } from '@/kova'
 import { useI18n } from '@/i18n'
 import { findCatalogProvider } from '@/lib/model-options'
 

@@ -663,7 +663,7 @@ def _hicolor_subdir(dimensions: Optional[tuple[int, int]]) -> str:
 
 
 def _hicolor_icon_dest(subdir: str) -> Path:
-    return _xdg_data_home() / "icons" / "hicolor" / subdir / "apps" / "hermes.png"
+    return _xdg_data_home() / "icons" / "hicolor" / subdir / "apps" / "kova.png"
 
 
 def _remove_stale_scalable_icon() -> bool:

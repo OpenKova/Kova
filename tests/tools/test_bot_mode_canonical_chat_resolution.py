@@ -24,7 +24,7 @@ mint on ambiguity. Post-#92129 the contract is name-as-identity:
 What is pinned here is the Python layer the desktop relies on. The desktop
 click/create flow itself (plugin.js), and group ROOM member-session lifecycle
 (#90005's original surface), live in Electron JS and are covered by
-apps/desktop/src/plugins/hermes-bots/canonical-chat-registry.test.ts; here we pin the DB/RPC algebra
+apps/desktop/src/plugins/kova-bots/canonical-chat-registry.test.ts; here we pin the DB/RPC algebra
 those flows depend on, including a Python re-enactment of the #90005 and
 #92692 shapes at the registry layer.
 """

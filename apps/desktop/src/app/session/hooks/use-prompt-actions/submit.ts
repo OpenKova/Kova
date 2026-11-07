@@ -1,7 +1,7 @@
 import { type PromptSubmitResult, randomUuid } from '@kova/shared'
 import { type MutableRefObject, useCallback } from 'react'
 
-import { getSession, PROMPT_SUBMIT_REQUEST_TIMEOUT_MS } from '@/hermes'
+import { getSession, PROMPT_SUBMIT_REQUEST_TIMEOUT_MS } from '@/kova'
 import { translateNow, type Translations } from '@/i18n'
 import { type ChatMessage, finalizeInterruptedMessages, textPart } from '@/lib/chat-messages'
 import { optimisticAttachmentRef } from '@/lib/chat-runtime'

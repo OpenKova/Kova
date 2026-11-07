@@ -10,7 +10,7 @@ const RUNTIME_SESSION_ID = 'rt-abc123'
 // Kept byte-identical to index.test.tsx: both specifiers are alias-based and
 // this file sits in the same directory, so the mocks resolve to the same
 // modules the parent suite mocks.
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getSession: vi.fn(),
   PROMPT_SUBMIT_REQUEST_TIMEOUT_MS: 1_800_000,

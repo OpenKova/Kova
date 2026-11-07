@@ -6,7 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { useMessageStream } from '@/app/session/hooks/use-message-stream'
 import { useSessionStateCache } from '@/app/session/hooks/use-session-state-cache'
-import { getLatestSessionMessages } from '@/hermes'
+import { getLatestSessionMessages } from '@/kova'
 import { chatMessageText, toChatMessages } from '@/lib/chat-messages'
 import { resetLiveSync } from '@/store/live-sync'
 import {
@@ -22,7 +22,7 @@ import type { SessionMessage } from '@/types/hermes'
 
 import { reconcileActiveTranscript } from './use-background-sync'
 
-vi.mock('@/hermes', async original => ({
+vi.mock('@/kova', async original => ({
   ...(await original<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn()
 }))

@@ -17,7 +17,7 @@ interface FixtureSocket {
 vi.mock('@/api/client', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()), hermesApi: vi.fn()
 }))
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: RUNTIME_SESSION_ID })),
   getProfiles: vi.fn(async () => ({ profiles: [] })), getSession: vi.fn(),
   PROMPT_SUBMIT_REQUEST_TIMEOUT_MS: 1_800_000, setApiRequestProfile: vi.fn(), transcribeAudio: vi.fn()

@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 
 import type { GatewayRequest } from '@/app/session/hooks/use-prompt-actions/utils'
-import { KovaGateway } from '@/hermes'
+import { KovaGateway } from '@/kova'
 import { closeSecondaryGateways, requestGatewayForAgent, retainGatewayForAgent } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
 import { $sessions } from '@/store/session'

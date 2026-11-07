@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream'
 
-import { renderSync, Text } from '@hermes/ink'
+import { renderSync, Text } from '@kova/ink'
 import { stripAnsi } from '@kova/shared/ansi'
 import React, { useState } from 'react'
 import { describe, expect, it } from 'vitest'

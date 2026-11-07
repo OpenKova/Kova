@@ -17,7 +17,7 @@ import { watchSessionTiles, workspaceTabActions } from './session-tile'
 // The transport: the REST rename the dialog falls back to with no live runtime.
 const renameSession = vi.hoisted(() => vi.fn())
 
-vi.mock('@/hermes', async importOriginal => ({ ...(await importOriginal<object>()), renameSession }))
+vi.mock('@/kova', async importOriginal => ({ ...(await importOriginal<object>()), renameSession }))
 
 const row = (id: string, title: string): SessionInfo => ({
   cwd: null,

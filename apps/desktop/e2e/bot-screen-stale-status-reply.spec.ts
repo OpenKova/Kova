@@ -35,7 +35,7 @@ import { expect, test } from './test'
 // not reachable in this single-local-source rig: `window.kovaDesktop` is a
 // non-writable contextBridge object, so the union roster cannot be seeded with
 // a connection-less agent. That branch stays covered by
-// `src/plugins/hermes-bots/screen-connection.test.ts`; the second test here
+// `src/plugins/kova-bots/screen-connection.test.ts`; the second test here
 // drives the same shipped `display.lease` / `display.status` listeners with
 // pushed events through the real client and asserts they keep updating without
 // a page error.

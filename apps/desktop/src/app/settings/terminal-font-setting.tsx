@@ -7,7 +7,7 @@ import {
   TERMINAL_FONT_SUGGESTIONS
 } from '@/app/right-sidebar/terminal/terminal-font'
 import { Button } from '@/components/ui/button'
-import { saveKovaConfig } from '@/hermes'
+import { saveKovaConfig } from '@/kova'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 import type { KovaConfigRecord } from '@/types/hermes'

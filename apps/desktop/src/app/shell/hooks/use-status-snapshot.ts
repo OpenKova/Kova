@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { getStatus } from '@/hermes'
+import { getStatus } from '@/kova'
 import { type I18nContextValue, useI18n } from '@/i18n'
 import { evaluateRuntimeReadiness, type RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { isSignedOutStatus } from '@/lib/signed-out-status'

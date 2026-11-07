@@ -11,7 +11,7 @@ import {
   type ProfileScope,
   profileScopeKey,
   saveMcpServers
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
 import { probeCache, probeKey } from '@/lib/mcp-probe-cache'

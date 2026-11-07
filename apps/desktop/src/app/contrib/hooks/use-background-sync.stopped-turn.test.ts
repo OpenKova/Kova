@@ -16,13 +16,13 @@ import type { SessionMessage } from '@/types/hermes'
 
 import { reconcileActiveTranscript } from './use-background-sync'
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/kova', async importOriginal => ({
   ...(await importOriginal()),
   getLatestSessionMessages: vi.fn(),
   getOlderSessionMessages: vi.fn()
 }))
 
-const { getLatestSessionMessages } = await import('@/hermes')
+const { getLatestSessionMessages } = await import('@/kova')
 
 const RUNTIME = 'runtime-stopped'
 const STORED = 'stored-stopped'

@@ -7,7 +7,7 @@ import {
   type ProfileScope,
   profileScopeKey,
   saveKovaConfigRecord
-} from '@/hermes'
+} from '@/kova'
 import { useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 import type { KovaConfigRecord } from '@/types/hermes'

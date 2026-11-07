@@ -6,7 +6,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '@/app/chat/new
 import { Codicon } from '@/components/ui/codicon'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { KovaGitWorktree } from '@/global'
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/kova'
 import { useI18n } from '@/i18n'
 import { displayPath } from '@/lib/display-path'
 import {

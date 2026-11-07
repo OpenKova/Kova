@@ -11,7 +11,7 @@ import type { KovaConnection } from '@/global'
 //  2. A registry-agent activation routes it to the agent's SOURCE connection
 //     (getConnectionFor), not the local pool — the post-#87600 shape.
 
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/kova', async importOriginal => {
   const actual = await importOriginal<Record<string, unknown>>()
 
   return {
@@ -33,7 +33,7 @@ vi.mock('@/hermes', async importOriginal => {
 vi.mock('@/lib/query-client', () => ({ invalidateProfileScopedQueries: vi.fn() }))
 vi.mock('@/store/starmap', () => ({ reloadOpenStarmapGraph: vi.fn(), resetStarmapGraph: vi.fn() }))
 
-const { pluginSocket, setApiRequestConnection, setApiRequestProfile } = await import('@/hermes')
+const { pluginSocket, setApiRequestConnection, setApiRequestProfile } = await import('@/kova')
 const { closeSecondaryGateways, configureGatewayRegistry, setPrimaryGateway } = await import('@/store/gateway')
 const { $activeGatewayProfile, ensureGatewayAgent, ensureGatewayProfile } = await import('@/store/profile')
 

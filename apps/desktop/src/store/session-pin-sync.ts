@@ -24,7 +24,7 @@
 import { atom } from 'nanostores'
 
 import { ambientOwnerConnectionId } from '@/api/client'
-import { setSessionPinnedRemote } from '@/hermes'
+import { setSessionPinnedRemote } from '@/kova'
 import { onConnectionScopeChange } from '@/lib/connection-scoped'
 import { $primaryGatewayRoute } from '@/store/gateway-primary-route'
 import { $pinnedSessionIds, pinSession, unpinSession } from '@/store/layout'

@@ -2,7 +2,7 @@ import { applyDocumentLocale, isRecord } from '@kova/shared/i18n'
 import { useStore } from '@nanostores/react'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
-import { getKovaConfigRecord, type KovaConfigRecord, retainConfigReadOrigin, saveKovaConfig } from '@/hermes'
+import { getKovaConfigRecord, type KovaConfigRecord, retainConfigReadOrigin, saveKovaConfig } from '@/kova'
 
 import { TRANSLATIONS } from './catalog'
 import {

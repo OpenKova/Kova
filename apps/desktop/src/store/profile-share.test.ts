@@ -13,7 +13,7 @@ vi.mock('@/store/gateway', async () => {
     openGatewayForProfile: vi.fn(async () => undefined)
   }
 })
-vi.mock('@/hermes', () => ({
+vi.mock('@/kova', () => ({
   exportProfileArchive: vi.fn(async () => ({ archive: '/tmp/out.tar.gz', ok: true })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   importProfileArchive: vi.fn(async () => ({ desktop: null, name: 'imported', ok: true, path: '/tmp/p' })),
@@ -27,7 +27,7 @@ const { $profileColors, setProfileColor } = await import('./profile')
 const { modePref, skinPref } = await import('@/themes/context')
 const { $userThemes } = await import('@/themes/user-themes')
 const { $layoutTree } = await import('@/components/pane-shell/tree/store')
-const { exportProfileArchive } = await import('@/hermes')
+const { exportProfileArchive } = await import('@/kova')
 
 // isValidTheme only requires background/foreground/primary at runtime; the
 // static type wants the full palette, hence the cast.
@@ -154,7 +154,7 @@ describe('importProfileBundle', () => {
   // An import never lands on a live profile's name, so prefs stored under it were left by a deleted one.
   it('drops what a deleted profile of the same name left, only once the import succeeded', async () => {
     const { importProfileBundle } = await import('./profile-share')
-    const { importProfileArchive } = await import('@/hermes')
+    const { importProfileArchive } = await import('@/kova')
     document.documentElement.dataset.kovaDesktopHost = 'browser'
     Object.assign(window, { __KOVA_BASE_PATH__: '/hermes' })
     seedLeftovers()

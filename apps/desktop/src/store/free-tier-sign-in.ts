@@ -10,7 +10,7 @@ import {
   pollOAuthSession,
   type ProfileScope,
   startOAuthLogin
-} from '@/hermes'
+} from '@/kova'
 import { LONG_POLL_MIN_GAP_MS, pause, restOfLongPollGap } from '@/lib/long-poll'
 import { gatewayActivationEpoch } from '@/store/gateway'
 import type { AppHandoffStatus, FreeTierStatus, OAuthPollResponse } from '@/types/hermes'
