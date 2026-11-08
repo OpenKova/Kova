@@ -76,7 +76,7 @@ def _resolve_xai_credentials() -> tuple[str, str]:
 
 def _xai_headers(api_key: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
-            "User-Agent": _xai_http("hermes_xai_user_agent", "kova-agent/video_gen")}
+            "User-Agent": _xai_http("kova_xai_user_agent", "kova-agent/video_gen")}
 
 
 def _xai_error(error: str, error_type: str, prompt: str, model: str = "", aspect_ratio: str = "") -> dict[str, Any]:

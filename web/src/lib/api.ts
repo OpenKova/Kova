@@ -1927,7 +1927,7 @@ export interface SystemStats {
   hostname: string;
   python_version: string;
   python_impl: string;
-  hermes_version: string;
+  kova_version: string;
   cpu_count: number | null;
   psutil: boolean;
   cpu_percent?: number;

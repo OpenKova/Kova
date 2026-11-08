@@ -13,7 +13,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from plugins.web._common import BaseWebSearchProvider, search_fail as _fail, search_ok, setup_schema, title_hit as _row
-from tools.xai_http import has_xai_credentials, hermes_xai_user_agent, resolve_xai_http_credentials
+from tools.xai_http import has_xai_credentials, kova_xai_user_agent, resolve_xai_http_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +125,7 @@ class XAIWebSearchProvider(BaseWebSearchProvider):
         XAI_API_KEY creds can't be refreshed, so they skip the retry rather than burn quota.
         """
         import httpx
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "User-Agent": hermes_xai_user_agent()}
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "User-Agent": kova_xai_user_agent()}
         def _refreshed_key() -> str:
             """New bearer after a 401, or "" when refresh fails / returns the same token (retry would be pointless)."""
             try:

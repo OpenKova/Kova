@@ -667,10 +667,10 @@ def _build_rename_summary(*, before_names: set[str], after_report: list[dict[str
     lines = [f"archived {total} skill(s):"] + entries[:SHOW]
     if total > SHOW:
         lines.append(f"  … and {total - SHOW} more")
-    lines.append("full report: hermes curator status")
+    lines.append("full report: kova curator status")
     umbrellas = sorted({e.get("into") for e in diff.consolidated if e.get("into")})
     if umbrellas:
-        lines.append(f"keep an umbrella stable: hermes curator pin {umbrellas[0]}")
+        lines.append(f"keep an umbrella stable: kova curator pin {umbrellas[0]}")
     return "\n".join(lines)
 
 

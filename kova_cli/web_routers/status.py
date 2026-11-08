@@ -652,7 +652,7 @@ async def get_status(profile: Optional[str] = None,
 @router.get("/api/system/stats")
 def get_system_stats():  # sync: FastAPI runs it on a worker (psutil.cpu_percent blocks 100 ms)
     """Host + process system stats for the System page (stdlib identity; psutil CPU/memory/
-    disk/uptime when available). Non-sensitive: no env values, no paths beyond hermes home."""
+    disk/uptime when available). Non-sensitive: no env values, no paths beyond kova home."""
     import platform as _platform
 
     info: dict[str, Any] = {
@@ -662,7 +662,7 @@ def get_system_stats():  # sync: FastAPI runs it on a worker (psutil.cpu_percent
         "arch": _platform.machine(), "hostname": _platform.node(),
         "python_version": _platform.python_version(),
         "python_impl": _platform.python_implementation(),
-        "hermes_version": get_version_info().base_version, "cpu_count": os.cpu_count()}
+        "kova_version": get_version_info().base_version, "cpu_count": os.cpu_count()}
 
     def _disk():
         du = psutil.disk_usage(str(get_kova_home()))

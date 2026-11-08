@@ -501,7 +501,7 @@ def _prefetch_for_move(git_cmd: list[str], args: list[str], kwargs: dict) -> Non
 # Only the command's tree: the update job also holds the update's other children. The Windows
 # twin of the POSIX launcher below (_REAP_TREE); the nested job's handle closing (a killed
 # launcher) kills the tree too.
-_CUSTODY_UNAVAILABLE = "hermes: update custody unavailable"
+_CUSTODY_UNAVAILABLE = "kova: update custody unavailable"
 _REFUSED_EXIT = 87
 _JOIN_JOB = (
     "import ctypes, subprocess, sys, time\n"

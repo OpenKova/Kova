@@ -100,8 +100,8 @@ def _print_curator_first_run_notice() -> None:
         f"~{days}d after installation; only agent-created skills are in "
         f"scope and nothing is ever auto-deleted (archive is recoverable)."
     )
-    print("  Preview now:  hermes curator run --dry-run")
-    print("  Pause it:     hermes curator pause")
+    print("  Preview now:  kova curator run --dry-run")
+    print("  Pause it:     kova curator pause")
     print("  Docs:         https://kova-agent.nousresearch.com/docs/user-guide/features/curator")
 
 
@@ -234,7 +234,7 @@ def _print_curator_recent_run_notice() -> None:
         print(f"ℹ Skill curator — last run {_format_time_ago(last_run_at)}")
         for line in summary.splitlines():
             print(f"  {line}")
-        print("  (This message shows once per curator run. View anytime: hermes curator status)")
+        print("  (This message shows once per curator run. View anytime: kova curator status)")
 
     with suppress(Exception):
         state["last_run_summary_shown_at"] = last_run_at

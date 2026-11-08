@@ -17,7 +17,7 @@ from plugins.image_gen._common import (
     StaticImageGenProvider, catalog_rows, collect_source_images, error_factory,
     load_image_gen_config, materialize_image, post_json)
 from tools.xai_http import (
-    build_xai_storage_options, hermes_xai_user_agent, maybe_mark_xai_storage_notice_seen,
+    build_xai_storage_options, kova_xai_user_agent, maybe_mark_xai_storage_notice_seen,
     read_xai_imagine_storage_config, resolve_xai_http_credentials, xai_storage_notice_text)
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ def _fetch_live_models(creds: Optional[dict[str, Any]] = None) -> dict[str, dict
         raise RuntimeError("no xAI credentials")
     response = requests.get(
         f"{_base_url(creds)}/image-generation-models",
-        headers={"Authorization": f"Bearer {api_key}", "User-Agent": hermes_xai_user_agent()},
+        headers={"Authorization": f"Bearer {api_key}", "User-Agent": kova_xai_user_agent()},
         timeout=_LIVE_TIMEOUT)
     response.raise_for_status()
     payload = response.json()
@@ -269,7 +269,7 @@ class XAIImageGenProvider(StaticImageGenProvider):
 
         headers = {
             "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
-            "User-Agent": hermes_xai_user_agent(),
+            "User-Agent": kova_xai_user_agent(),
         }
         base_url = _base_url(creds)
         storage_options = build_xai_storage_options(
