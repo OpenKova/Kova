@@ -334,7 +334,7 @@ def _pool_usable(slug: str, *, for_picker: bool = False) -> bool:
         return False
 
 
-def _overlay_has_env_creds(pid: str, hermes_slug: str, overlay, read_env) -> bool:
+def _overlay_has_env_creds(pid: str, kova_slug: str, overlay, read_env) -> bool:
     """Section-2 env/SDK credential check shared by the picker and the prefetch scan.
 
     Vertex authenticates via OAuth2 (service-account JSON / ADC), not an API key, so it gets its
@@ -350,11 +350,11 @@ def _overlay_has_env_creds(pid: str, hermes_slug: str, overlay, read_env) -> boo
     elif overlay.extra_env_vars:
         has_creds = _any_env(overlay.extra_env_vars, read_env)
     if not has_creds and overlay.auth_type == "api_key":
-        for key in (pid, hermes_slug):
+        for key in (pid, kova_slug):
             pcfg = PROVIDER_REGISTRY.get(key)
             if pcfg and pcfg.api_key_env_vars and _any_env(pcfg.api_key_env_vars, read_env):
                 return True
-    if not has_creds and hermes_slug == "azure-foundry":
+    if not has_creds and kova_slug == "azure-foundry":
         has_creds = _azure_entra_configured(read_env)
     return has_creds
 
@@ -661,7 +661,7 @@ def _collect_authed_provider_slugs(
     from kova_cli.model_switch import _scoped_key_env
     from agent.models_dev import models_dev_provider_map
     from kova_cli.auth import PROVIDER_REGISTRY
-    from kova_cli.providers import hermes_overlays
+    from kova_cli.providers import kova_overlays
     from kova_cli.models import CANONICAL_PROVIDERS
     excluded_set = {str(p).strip().lower() for p in excluded if p}
     slugs: list[str] = []
@@ -676,14 +676,14 @@ def _collect_authed_provider_slugs(
             _emit(hermes_id, hermes_id)
 
     mdev_to_hermes = {v: k for k, v in models_dev_provider_map().items()}
-    for pid, overlay in hermes_overlays().items():
-        hermes_slug = mdev_to_hermes.get(pid, pid)
-        if _skip(seen, excluded_set, pid, hermes_slug) or overlay.auth_type == "aws_sdk":
+    for pid, overlay in kova_overlays().items():
+        kova_slug = mdev_to_hermes.get(pid, pid)
+        if _skip(seen, excluded_set, pid, kova_slug) or overlay.auth_type == "aws_sdk":
             continue
         if (
-            _overlay_has_env_creds(pid, hermes_slug, overlay, _scoped_key_env)
-            or _auth_store_has_provider(pid, hermes_slug) or _pool_usable(hermes_slug)):
-            _emit(hermes_slug, pid, hermes_slug)
+            _overlay_has_env_creds(pid, kova_slug, overlay, _scoped_key_env)
+            or _auth_store_has_provider(pid, kova_slug) or _pool_usable(kova_slug)):
+            _emit(kova_slug, pid, kova_slug)
 
     for cp in CANONICAL_PROVIDERS:
         if _skip(seen, excluded_set, cp.slug):
@@ -863,14 +863,14 @@ def _lap_builtin_rows(b: _PickerBuild, data: dict, user_providers: dict) -> None
             hermes_id, display_name, b.current_provider in (hermes_id, mdev_id), model_ids, "built-in")
 
 
-def _overlay_has_creds(b: _PickerBuild, pid: str, hermes_slug: str, overlay) -> bool:
+def _overlay_has_creds(b: _PickerBuild, pid: str, kova_slug: str, overlay) -> bool:
     """Section-2 credential ladder: env/SDK, external-process executable, auth store, pool,
     anthropic's external credential files."""
     if overlay.auth_type == "aws_sdk":
-        has_creds = _has_aws_sdk_creds_for_listing(hermes_slug, b.current_provider)
+        has_creds = _has_aws_sdk_creds_for_listing(kova_slug, b.current_provider)
     else:
         from kova_cli.model_switch import _scoped_key_env
-        has_creds = _overlay_has_env_creds(pid, hermes_slug, overlay, _scoped_key_env)
+        has_creds = _overlay_has_env_creds(pid, kova_slug, overlay, _scoped_key_env)
     # External-process providers (ACP CLIs) hold no key/token/pool entry by design — the
     # spawned subprocess brings its own auth. "Configured" means the executable resolves.
     # "Configured" means the executable resolves, which is exactly what get_auth_status() reports for them;
@@ -879,29 +879,29 @@ def _overlay_has_creds(b: _PickerBuild, pid: str, hermes_slug: str, overlay) -> 
     if not has_creds and overlay.auth_type == "external_process":
         try:
             from kova_cli.auth import get_auth_status
-            _ext_status = get_auth_status(hermes_slug) or {}
+            _ext_status = get_auth_status(kova_slug) or {}
             has_creds = bool(_ext_status.get("logged_in") or _ext_status.get("configured"))
         except Exception as exc:
             logger.debug("External-process check failed for %s: %s", pid, exc)
     # Auth store / credential pool cover OAuth providers AND api_key providers that also support
     # OAuth (anthropic via Claude Code credential files).
-    has_creds = has_creds or _auth_store_has_provider(pid, hermes_slug)
+    has_creds = has_creds or _auth_store_has_provider(pid, kova_slug)
     if not has_creds:
         # Full auto-seeding pool check catches external stores (Codex CLI ~/.codex/auth.json)
         # not yet in auth.json.
         try:
-            if _credential_pool_is_usable(hermes_slug, for_picker=b.for_picker):
+            if _credential_pool_is_usable(kova_slug, for_picker=b.for_picker):
                 has_creds = True
         except Exception as exc:
-            logger.debug("Credential pool check failed for %s: %s", hermes_slug, exc)
-    if not has_creds and hermes_slug == "anthropic":
+            logger.debug("Credential pool check failed for %s: %s", kova_slug, exc)
+    if not has_creds and kova_slug == "anthropic":
         # The pool gates anthropic behind is_provider_explicitly_configured() (aux tasks must not
         # consume Claude Code tokens); the picker is discovery-oriented, so read the files directly.
         try:
             from agent.anthropic_credentials import read_claude_code_credentials, read_hermes_oauth_credentials
-            hermes_creds = read_hermes_oauth_credentials()
+            kova_creds = read_hermes_oauth_credentials()
             cc_creds = read_claude_code_credentials()
-            if (hermes_creds and hermes_creds.get("accessToken")) or (cc_creds and cc_creds.get("accessToken")):
+            if (kova_creds and kova_creds.get("accessToken")) or (cc_creds and cc_creds.get("accessToken")):
                 has_creds = True
         except Exception as exc:
             logger.debug("Anthropic external creds check failed: %s", exc)
@@ -912,40 +912,40 @@ def _lap_overlay_rows(b: _PickerBuild, data: dict, user_providers: dict) -> None
     """Section 2: Kova-only providers (nous, openai-codex, opencode-go, plugin overlays, ...)."""
     from agent.models_dev import models_dev_provider_map
     from kova_cli.model_switch import _declared_model_ids
-    from kova_cli.providers import hermes_overlays
+    from kova_cli.providers import kova_overlays
 
     # Overlay keys may be models.dev IDs while config.yaml uses Kova IDs.
     mdev_to_hermes = {v: k for k, v in models_dev_provider_map().items()}
-    for pid, overlay in hermes_overlays().items():
-        hermes_slug = mdev_to_hermes.get(pid, pid)
-        if _skip(b.seen_slugs, b.excluded, pid, hermes_slug):
+    for pid, overlay in kova_overlays().items():
+        kova_slug = mdev_to_hermes.get(pid, pid)
+        if _skip(b.seen_slugs, b.excluded, pid, kova_slug):
             continue
-        if not _overlay_has_creds(b, pid, hermes_slug, overlay):
+        if not _overlay_has_creds(b, pid, kova_slug, overlay):
             continue
-        if hermes_slug == "openai-codex":
+        if kova_slug == "openai-codex":
             # Live OAuth-backed discovery so Pro-only Codex slugs not in the static catalog
             # appear; falls back to curated when unreachable (or not yet cached on the read path).
-            model_ids = _live_or_curated_ids(hermes_slug, b.curated, merge_models_dev=False,
+            model_ids = _live_or_curated_ids(kova_slug, b.curated, merge_models_dev=False,
                                              non_blocking=b.non_blocking_catalogs)
         elif overlay.auth_type == "aws_sdk":
-            model_ids = _aws_live_or_curated_ids(hermes_slug, b.curated, hermes_slug, pid,
+            model_ids = _aws_live_or_curated_ids(kova_slug, b.curated, kova_slug, pid,
                                                  non_blocking=b.non_blocking_catalogs)
-        elif hermes_slug == "nous":
+        elif kova_slug == "nous":
             # A guest identity never needs the Portal catalog: add_builtin_row pins nous/welcome
             # (or drops the row when nous.guest is off), so only a real account fetches.
-            tier_row = _free_tier_nous_row({"name": get_label(hermes_slug), "models": []})
+            tier_row = _free_tier_nous_row({"name": get_label(kova_slug), "models": []})
             real_account = tier_row is not None and not tier_row["models"]
             model_ids = _nous_picker_model_ids(b.curated, b.force_fresh_nous_tier) if real_account else []
         else:
-            model_ids = _live_or_curated_ids(hermes_slug, b.curated, hermes_slug, pid,
+            model_ids = _live_or_curated_ids(kova_slug, b.curated, kova_slug, pid,
                                              non_blocking=b.non_blocking_catalogs)
         # A providers.<overlay>.models block extends the row exactly as it does for built-in rows
         # (section 1); section 3 never emits it because this row owns the slug (#27989).
-        configured = user_providers.get(hermes_slug) or user_providers.get(pid) if isinstance(user_providers, dict) else None
+        configured = user_providers.get(kova_slug) or user_providers.get(pid) if isinstance(user_providers, dict) else None
         if isinstance(configured, dict):
             model_ids = list(dict.fromkeys([*_declared_model_ids(configured.get("models")), *model_ids]))
         b.add_builtin_row(
-            hermes_slug, get_label(hermes_slug), b.current_provider in (hermes_slug, pid), model_ids, "hermes")
+            kova_slug, get_label(kova_slug), b.current_provider in (kova_slug, pid), model_ids, "hermes")
         b.seen_slugs.add(pid.lower())
 
 

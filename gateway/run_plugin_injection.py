@@ -219,7 +219,7 @@ class GatewayPluginInjectionMixin:
                 text=content, message_type=MessageType.TEXT, source=source, internal=True,
                 allow_gateway_control=False,
                 metadata={
-                    "hermes_plugin_id": plugin_id, "hermes_plugin_injection": True,
+                    "kova_plugin_id": plugin_id, "kova_plugin_injection": True,
                     "gateway_session_key": session_key, "gateway_session_id": entry.session_id,
                     "gateway_session_strict": True,
                 },
@@ -353,7 +353,7 @@ class GatewayPluginInjectionMixin:
                 allow_gateway_control=False,
                 # Non-strict: the key is pinned against topic recovery, the session may not exist yet.
                 metadata={
-                    "hermes_plugin_id": plugin_id, "hermes_plugin_injection": True,
+                    "kova_plugin_id": plugin_id, "kova_plugin_injection": True,
                     "gateway_session_key": session_key,
                 },
             ))

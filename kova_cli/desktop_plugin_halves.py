@@ -275,14 +275,14 @@ def _source_gone(name: str, entry: Path) -> bool:
     return False
 
 
-def reconcile_desktop_halves(hermes_root: Path, app_root: Path) -> list[str]:
+def reconcile_desktop_halves(kova_root: Path, app_root: Path) -> list[str]:
     """Materialize every local home's desktop halves into *app_root* (first home wins for a name in
     several profiles, the default home first) and drop copies whose package is gone. Returns the
     folders it wrote or removed."""
-    return reconcile_desktop_halves_report(hermes_root, app_root)["touched"]
+    return reconcile_desktop_halves_report(kova_root, app_root)["touched"]
 
 
-def reconcile_desktop_halves_report(hermes_root: Path, app_root: Path) -> dict:
+def reconcile_desktop_halves_report(kova_root: Path, app_root: Path) -> dict:
     """:func:`reconcile_desktop_halves`, also naming each package whose desktop half it refused or could not
     read (``refused``: ``{"name", "reason"}``), as Electron's ``reconcileDesktopPluginsReport`` does. A refused
     half leaves its name to a later home's half, and is not reported once that half is published."""
@@ -290,7 +290,7 @@ def reconcile_desktop_halves_report(hermes_root: Path, app_root: Path) -> dict:
         touched: list[str] = []
         refused: list[dict[str, str]] = []
         seen: set[str] = set()
-        homes = [hermes_root, *(hermes_root / "profiles" / name for name in _list_dirs(hermes_root / "profiles"))]
+        homes = [kova_root, *(kova_root / "profiles" / name for name in _list_dirs(kova_root / "profiles"))]
         for home in homes:
             plugins_root = home / "plugins"
             for name in _list_dirs(plugins_root, follow_links=True):

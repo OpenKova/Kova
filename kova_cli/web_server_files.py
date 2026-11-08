@@ -371,7 +371,7 @@ def _path_text(raw_path: str | None) -> str:
     return text
 
 
-def _default_hermes_root_is_opt_data() -> bool:
+def _default_kova_root_is_opt_data() -> bool:
     raw = os.environ.get("KOVA_HOME", "").strip()
     if not raw:
         return False
@@ -394,7 +394,7 @@ def _dashboard_local_update_managed_externally() -> bool:
     """
     from kova_cli.web_server import PROJECT_ROOT
     from kova_cli.config import detect_install_method
-    if _default_hermes_root_is_opt_data():
+    if _default_kova_root_is_opt_data():
         return True
     try:
         from kova_constants import is_container
@@ -420,7 +420,7 @@ def _managed_files_policy(request: Optional[Request], *, create_root: bool = Tru
     # Remote/OAuth access does not imply a hosted container (a gated macOS launchd
     # install still browses its home). Lock to /opt/data only when the Kova
     # root actually IS /opt/data or KOVA_DASHBOARD_FILES_ROOT is set.
-    if _default_hermes_root_is_opt_data():
+    if _default_kova_root_is_opt_data():
         root = _ensure_managed_root(_HOSTED_MANAGED_FILES_ROOT) if create_root else _HOSTED_MANAGED_FILES_ROOT
         return ManagedFilesPolicy(default_path=root, locked_root=root, can_change_path=False)
 

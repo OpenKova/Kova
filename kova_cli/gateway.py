@@ -834,7 +834,7 @@ def find_windows_gateway_services(
             profile_processes = find_profile_gateway_processes(strict=True)
         from kova_cli.gateway_windows import kova_owns_windows_service, kova_service_roots
 
-        hermes_roots = kova_service_roots()
+        kova_roots = kova_service_roots()
         service_names_by_pid: dict[int, set[str]] = {}
         indeterminate_services_by_pid: dict[int, list[tuple[str, object]]] = {}
         for service in psutil_module.win_service_iter():
@@ -848,13 +848,13 @@ def find_windows_gateway_services(
                 # The name alone settles Kova-named services; binpath (QueryServiceConfig) is asked only
                 # for the rest, and a service that refuses even that to this user is one this user could
                 # not `sc stop` either — never Kova's, never a reason to abort the enumeration.
-                owned = kova_owns_windows_service(service_name, "", hermes_roots)
+                owned = kova_owns_windows_service(service_name, "", kova_roots)
                 if not owned:
                     try:
                         service_binpath = str(_scm_service_field(service, "binpath") or "")
                     except (psutil_module.AccessDenied, OSError):
                         continue
-                    owned = kova_owns_windows_service(service_name, service_binpath, hermes_roots)
+                    owned = kova_owns_windows_service(service_name, service_binpath, kova_roots)
                 if not owned:
                     continue
                 service_status = _scm_service_field(service, "status")
@@ -3115,7 +3115,7 @@ def _pm_managed_node_dirs(home: Path) -> list[str]:
     return dirs
 
 
-def _append_node_dir_for_service(path_entries: list[str], hermes_root: Path | None = None) -> None:
+def _append_node_dir_for_service(path_entries: list[str], kova_root: Path | None = None) -> None:
     """Append the Node dir a service unit should use.
 
     PM's installed-state is the owner: facts.json under the target hermes
@@ -3125,7 +3125,7 @@ def _append_node_dir_for_service(path_entries: list[str], hermes_root: Path | No
     lookup stops there. The legacy ``<hermes>/node`` tree is the only fallback,
     for installs pm never recorded; the invoker's PATH node never is.
     """
-    home = Path(hermes_root) if hermes_root is not None else Path(get_kova_home())
+    home = Path(kova_root) if kova_root is not None else Path(get_kova_home())
     try:
         managed_dirs = _pm_managed_node_dirs(home)
     except Exception:
@@ -3137,8 +3137,8 @@ def _append_node_dir_for_service(path_entries: list[str], hermes_root: Path | No
         return
 
     from kova_constants import (hermes_managed_node_tree_present, iter_hermes_node_dirs)
-    managed_node_present = hermes_managed_node_tree_present(hermes_root)
-    for directory in iter_hermes_node_dirs(hermes_root) if managed_node_present else ():
+    managed_node_present = hermes_managed_node_tree_present(kova_root)
+    for directory in iter_hermes_node_dirs(kova_root) if managed_node_present else ():
         entry = str(directory)
         try:
             present = directory.is_dir()

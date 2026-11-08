@@ -108,12 +108,12 @@ def _build_subprocess_env() -> dict[str, str]:
     # Lazy: the env policy imports kova_cli.config, and provider plugins import this module
     # while kova_cli.config is still initializing (discovery runs from it).
     from kova_constants import apply_subprocess_home_env
-    from tools.environments.local import hermes_subprocess_env
+    from tools.environments.local import kova_subprocess_env
 
     # An ACP agent drives a model and needs LLM provider credentials; the central helper still
     # strips Tier-1 secrets (bot tokens, GitHub auth, infra).
     # See #29157.
-    env = hermes_subprocess_env(inherit_credentials=True)
+    env = kova_subprocess_env(inherit_credentials=True)
     env["HOME"] = _resolve_home_dir()
     apply_subprocess_home_env(env)
     return env

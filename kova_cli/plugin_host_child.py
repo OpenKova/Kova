@@ -511,7 +511,7 @@ def _import_plugin(params: dict[str, Any]) -> Any:
         raise FileNotFoundError(f"No __init__.py in {plugin_dir}")
     module_name = str(params["module_name"])
     parts = module_name.split(".")[:-1]
-    for i in range(1, len(parts) + 1):  # synthetic parent packages (hermes_plugins, _hermes_user_memory)
+    for i in range(1, len(parts) + 1):  # synthetic parent packages (kova_plugins, _hermes_user_memory)
         parent = ".".join(parts[:i])
         if parent not in sys.modules:
             ns_pkg = types.ModuleType(parent)

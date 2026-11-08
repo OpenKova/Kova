@@ -523,7 +523,7 @@ class PluginHost:
         proxy.__qualname__ = str(ref.get("qualname") or proxy.__name__)
         # Tool override policy and hook attribution key on the defining module.
         proxy.__module__ = str(ref.get("module") or __name__)
-        proxy.__hermes_plugin_host_ref__ = ref_id  # type: ignore[attr-defined]
+        proxy.__kova_plugin_host_ref__ = ref_id  # type: ignore[attr-defined]
         return proxy
 
     def _object_proxy(self, ref: dict[str, Any], base: type,
@@ -559,7 +559,7 @@ class PluginHost:
             object.__setattr__(self_, name, value)
 
         namespace.update(__getattribute__=__getattribute__, __getattr__=__getattr__, __setattr__=__setattr__,
-                         __module__=__name__, __hermes_plugin_host_ref__=slot,
+                         __module__=__name__, __kova_plugin_host_ref__=slot,
                          __repr__=lambda self_: f"<plugin-host {ref.get('type')} #{slot.ref}>")
         cls = type(f"Hosted{ref.get('type') or base.__name__}", (base,), namespace)
         cls.__abstractmethods__ = frozenset()
@@ -612,7 +612,7 @@ def is_hosted_object(obj: Any) -> bool:
     """``obj`` is a proxy for a plugin object whose code runs in the plugin host (``plugins.isolation:
     host``): its methods run there and anything they return that is not plain data arrives as an
     :class:`Opaque` placeholder."""
-    return "__hermes_plugin_host_ref__" in vars(type(obj))
+    return "__kova_plugin_host_ref__" in vars(type(obj))
 
 
 def _run_on_gateway_loop(coro: Any) -> Any:

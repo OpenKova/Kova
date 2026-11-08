@@ -165,7 +165,7 @@ def _doctor_runtime(plugin_path: Path):
 
 
 def _is_plugin_module(name: str) -> bool:
-    return name == "hermes_plugins" or name.startswith("hermes_plugins.")
+    return name == "kova_plugins" or name.startswith("kova_plugins.")
 
 
 @contextmanager

@@ -395,8 +395,8 @@ async def _exec_buzz(
     input_text: Optional[str] = None, timeout: float = _CLI_TIMEOUT,
 ) -> tuple[int, str, str]:
     """Run the buzz CLI (argv, never a shell) -> ``(rc, stdout, stderr)``. Key travels via env only."""
-    from tools.environments.local import hermes_subprocess_env
-    env = hermes_subprocess_env()  # a third-party CLI: its own key only, never Kova' credentials
+    from tools.environments.local import kova_subprocess_env
+    env = kova_subprocess_env()  # a third-party CLI: its own key only, never Kova' credentials
     env["HOME"] = env["KOVA_REAL_HOME"]  # its own config and credentials file live under the user's HOME
     env["BUZZ_RELAY_URL"] = relay_url
     env["BUZZ_PRIVATE_KEY"] = private_key

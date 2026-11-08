@@ -504,8 +504,8 @@ COMPOSER_PASTES_DIRNAME = "composer-pastes"
 
 
 def _composer_paste_roots() -> list[Path]:
-    from agent.file_safety import _hermes_dirs
-    return [hermes_dir / COMPOSER_PASTES_DIRNAME for hermes_dir in _hermes_dirs()]
+    from agent.file_safety import _kova_dirs
+    return [hermes_dir / COMPOSER_PASTES_DIRNAME for hermes_dir in _kova_dirs()]
 
 
 def _agent_staged_path(path: Path) -> bool:

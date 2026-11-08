@@ -32,9 +32,9 @@ def _hermes_top_level() -> frozenset:
     root = Path(__file__).resolve().parents[1]
     names = {p.name for p in root.iterdir() if p.is_dir() and (p / "__init__.py").is_file()}
     names |= {p.stem for p in root.glob("*.py")}
-    # ``hermes_plugins.*`` is where the loader imports plugins (bundled platform adapters included):
+    # ``kova_plugins.*`` is where the loader imports plugins (bundled platform adapters included):
     # rebinding another plugin's module is the same collision as rebinding core.
-    return frozenset((names | {"hermes_plugins"}) - {"setup", "conftest"})
+    return frozenset((names | {"kova_plugins"}) - {"setup", "conftest"})
 
 
 def _is_test_file(rel: Path) -> bool:
@@ -160,7 +160,7 @@ class _Analysis:
 
     def _lookup_is_core(self, arg: ast.AST) -> bool:
         """Whether a module-name expression names Kova: a literal, a module-level string
-        constant, or an f-string whose literal head names it (``f"hermes_plugins.{p}.adapter"``).
+        constant, or an f-string whose literal head names it (``f"kova_plugins.{p}.adapter"``).
         A name computed some other way (the plugin locating its own package) is not judged."""
         if isinstance(arg, ast.Name):
             arg = ast.Constant(self.constants.get(arg.id))

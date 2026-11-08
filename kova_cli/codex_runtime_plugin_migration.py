@@ -116,10 +116,10 @@ def _translate_one_server(name: str, kova_cfg: dict) -> tuple[Optional[dict], li
             skipped.append("transport=sse (codex auto-negotiates)")
     else:
         return None, ["no command or url field"]
-    for hermes_key, codex_key, note in _TIMEOUT_KEYS:
-        if hermes_key in kova_cfg:
+    for kova_key, codex_key, note in _TIMEOUT_KEYS:
+        if kova_key in kova_cfg:
             try:
-                out[codex_key] = float(kova_cfg[hermes_key])
+                out[codex_key] = float(kova_cfg[kova_key])
             except (TypeError, ValueError):
                 skipped.append(note)
     if kova_cfg.get("enabled") is False:
@@ -422,7 +422,7 @@ def _write_atomic(target: Path, text: str) -> None:
 
 
 def migrate(
-    hermes_config: dict, *, codex_home: Optional[Path] = None, dry_run: bool = False,
+    kova_config: dict, *, codex_home: Optional[Path] = None, dry_run: bool = False,
     discover_plugins: bool = True, default_permission_profile: Optional[str] = ":workspace",
     expose_hermes_tools: bool = True) -> MigrationReport:
     """Translate Kova mcp_servers config + Codex curated plugins into ~/.codex/config.toml.
@@ -439,12 +439,12 @@ def migrate(
         os.getenv("CODEX_HOME", "").strip() or str(Path.home() / ".codex")).expanduser()
     target = codex_home / "config.toml"
     report.target_path = target
-    hermes_servers = (hermes_config or {}).get("mcp_servers") or {}
-    if not isinstance(hermes_servers, dict):
+    kova_servers = (kova_config or {}).get("mcp_servers") or {}
+    if not isinstance(kova_servers, dict):
         report.errors.append("mcp_servers in Kova config is not a dict; cannot migrate.")
         return report
     translated: dict[str, dict] = {}
-    for raw_name, cfg in hermes_servers.items():
+    for raw_name, cfg in kova_servers.items():
         name = str(raw_name)
         out, skipped = _translate_one_server(name, cfg or {})
         if out is None:
@@ -460,7 +460,7 @@ def migrate(
     if discover_plugins and not dry_run:
         from kova_cli.codex_runtime_switch import get_configured_codex_binary
         plugins, plugin_err = _query_codex_plugins(
-            codex_home=codex_home, codex_bin=get_configured_codex_binary(hermes_config))
+            codex_home=codex_home, codex_bin=get_configured_codex_binary(kova_config))
         if plugin_err:
             report.plugin_query_error = plugin_err
         # An authoritative plugin/list (even an empty one) means we own [plugins.*] for this

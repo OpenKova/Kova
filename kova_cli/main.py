@@ -1032,7 +1032,7 @@ def _has_any_provider_configured(*, strict_profile_scope: bool = False) -> bool:
     _model_name = str(_model_name).strip()
     # "Explicitly configured" = model differs from the hardcoded default; gates
     # Claude Code credentials so they don't skip setup on a fresh install.
-    _has_hermes_config = _model_name and _model_name != DEFAULT_CONFIG.get("model", "")
+    _has_kova_config = _model_name and _model_name != DEFAULT_CONFIG.get("model", "")
 
     # Env vars (.env or shell). OPENAI_BASE_URL alone counts — local models
     # (vLLM, llama.cpp) often need no API key.
@@ -1085,7 +1085,7 @@ def _has_any_provider_configured(*, strict_profile_scope: bool = False) -> bool:
 
     # Claude Code OAuth credentials count only once Kova is explicitly
     # configured — having Claude Code installed isn't consent to use its tokens.
-    if _has_hermes_config and not strict_profile_scope:
+    if _has_kova_config and not strict_profile_scope:
         try:
             from agent.anthropic_credentials import read_claude_code_credentials, is_claude_code_token_valid
 

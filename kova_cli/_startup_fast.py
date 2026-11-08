@@ -122,9 +122,9 @@ def is_container_startup_environment() -> bool:
     return "docker" in cgroup or "podman" in cgroup or "/lxc/" in cgroup
 
 
-def active_profile_may_override_home(hermes_root: str) -> bool:
+def active_profile_may_override_home(kova_root: str) -> bool:
     """Cheap probe: does an active non-default profile redirect KOVA_HOME?"""
-    active = (_read_text(os.path.join(hermes_root, "active_profile")) or "").strip()
+    active = (_read_text(os.path.join(kova_root, "active_profile")) or "").strip()
     return bool(active and active != "default")
 
 

@@ -33,7 +33,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 logger = logging.getLogger("kova_cli.plugins")
 
-_NS_PARENT = "hermes_plugins"
+_NS_PARENT = "kova_plugins"
 _MODULE_NAMESPACE_LOCK = threading.RLock()
 _BARE_MODULE_SCOPE: dict[str, str] = {}  # bare module name -> owning scope_key
 
@@ -793,7 +793,7 @@ class PluginLoaderMixin:
         self._plugins[lookup_key] = loaded
 
     def _directory_module_name(self, manifest: PluginManifest) -> str:
-        """Profile-safe import namespace for a directory plugin: the bare ``hermes_plugins.<slug>`` for the
+        """Profile-safe import namespace for a directory plugin: the bare ``kova_plugins.<slug>`` for the
         first scope that claims it, a ``__home_<digest>`` suffix for any other scope."""
         slug = manifest_key(manifest).replace("/", "__").replace("-", "_")
         bare_name = f"{_NS_PARENT}.{slug}"
@@ -814,7 +814,7 @@ class PluginLoaderMixin:
     def _load_directory_module(
         self, manifest: PluginManifest, *, module_name: Optional[str] = None,
     ) -> types.ModuleType:
-        """Import a directory plugin as ``hermes_plugins.<slug>`` (slug from ``manifest.key`` so
+        """Import a directory plugin as ``kova_plugins.<slug>`` (slug from ``manifest.key`` so
         ``image_gen/openai`` cannot collide with ``tts/openai``)."""
         plugin_dir = Path(manifest.path)  # type: ignore[arg-type]
         init_file = plugin_dir / "__init__.py"

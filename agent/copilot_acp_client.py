@@ -135,10 +135,10 @@ def _former_attribute(name: str) -> Any:
         return _COMPAT[name]
     if name in _FORWARDED:
         return getattr(_acp, name)
-    if name == "hermes_subprocess_env":
-        from tools.environments.local import hermes_subprocess_env  # lazy: kova_cli.config may still be importing
+    if name == "kova_subprocess_env":
+        from tools.environments.local import kova_subprocess_env  # lazy: kova_cli.config may still be importing
 
-        return hermes_subprocess_env
+        return kova_subprocess_env
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -154,4 +154,4 @@ def __getattr__(name: str) -> Any:
 
 
 def __dir__() -> list[str]:
-    return sorted({*globals(), *_COMPAT, *_FORWARDED, "hermes_subprocess_env"})
+    return sorted({*globals(), *_COMPAT, *_FORWARDED, "kova_subprocess_env"})

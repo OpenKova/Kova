@@ -180,7 +180,7 @@ def _profile_overlay_key(prof) -> str:
     return prof.models_dev_id or prof.name
 
 
-def hermes_overlays() -> dict[str, KovaOverlay]:
+def kova_overlays() -> dict[str, KovaOverlay]:
     """``KOVA_OVERLAYS`` plus the overlays registered profiles declare (``provider_overlay``)."""
     merged = dict(KOVA_OVERLAYS)
     for prof in _overlay_profiles():

@@ -327,15 +327,15 @@ def _should_exclude(rel_path: Path) -> bool:
     return name in _EXCLUDED_NAMES or name.startswith(_EXCLUDED_PREFIXES) or name.endswith(_EXCLUDED_SUFFIXES)
 
 
-def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional[set] = None):
+def _iter_backup_files(kova_root: Path, out_path: Path, skipped_dirs: Optional[set] = None):
     """Yield ``(abs_path, rel_path)`` for every file a full backup should hold.
 
     The one owner of the walk policy (directory pruning so os.walk never descends a multi-GB
     excluded tree, the root-only ``kova-agent`` carve-out, root runtime trees, per-file rules),
     shared by ``kova backup`` and the pre-update path so they can never drift.
     """
-    for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
-        rel_dir = Path(dirpath).relative_to(hermes_root)
+    for dirpath, dirnames, filenames in os.walk(kova_root, followlinks=False):
+        rel_dir = Path(dirpath).relative_to(kova_root)
         is_root = rel_dir == Path(".")
         kept = [
             d for d in dirnames
@@ -347,7 +347,7 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
         dirnames[:] = [name for name in kept if not _is_link_path(Path(dirpath) / name)]
         for fname in filenames:
             rel = rel_dir / fname
-            fpath = hermes_root / rel
+            fpath = kova_root / rel
             # zipfile.write() follows file symlinks, so skip links before any archive write can
             # copy data from outside KOVA_HOME; never archive the output zip into itself.
             if _should_exclude(rel):
@@ -600,28 +600,28 @@ def run_backup(args) -> bool:
     archive that is missing state.db. Hard failures keep raising ``SystemExit``.
     """
     require_file_tooling("`kova backup`")
-    hermes_root = get_default_kova_root()
+    kova_root = get_default_kova_root()
 
-    if not hermes_root.is_dir():
-        print(f"Error: Kova home directory not found at {hermes_root}")
+    if not kova_root.is_dir():
+        print(f"Error: Kova home directory not found at {kova_root}")
         sys.exit(1)
 
     try:
-        with _backup_operation_lock(hermes_root):
-            return _run_backup_locked(args, hermes_root)
+        with _backup_operation_lock(kova_root):
+            return _run_backup_locked(args, kova_root)
     except BackupInProgressError as exc:
         print(f"Error: {exc}")
         raise SystemExit(2) from exc
 
 
-def _run_backup_locked(args, hermes_root: Path) -> bool:
+def _run_backup_locked(args, kova_root: Path) -> bool:
     """Write a full backup while the cross-process backup slot is held."""
     out_path = _resolve_backup_output_path(args.output)
     scan_started = time.monotonic()
     logger.info("backup phase=scan status=started")
     print(f"Scanning {display_kova_home()} ...")
     skipped_dirs: set = set()
-    files_to_add: list[tuple[Path, Path]] = list(_iter_backup_files(hermes_root, out_path, skipped_dirs))
+    files_to_add: list[tuple[Path, Path]] = list(_iter_backup_files(kova_root, out_path, skipped_dirs))
     external_to_add, skipped_external = _collect_external_entries()
     if not files_to_add and not external_to_add:
         logger.info("backup phase=scan status=empty duration_ms=%.1f", (time.monotonic() - scan_started) * 1000)
@@ -749,7 +749,7 @@ def run_import(args) -> Optional[int]:
 
     # The home this command operates under (the "Target:" display_kova_home() prints):
     # get_default_kova_root() would map a profile home back to <root> and restore the live root.
-    hermes_root = get_kova_home()
+    kova_root = get_kova_home()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
         # Validate
@@ -768,8 +768,8 @@ def run_import(args) -> Optional[int]:
             print(f"Detected archive prefix: {prefix!r} (will be stripped)")
 
         # Check for existing installation
-        has_config = (hermes_root / "config.yaml").exists()  # config-reader: ok — profile marker for the backup scope (file tooling)
-        has_env = (hermes_root / ".env").exists()
+        has_config = (kova_root / "config.yaml").exists()  # config-reader: ok — profile marker for the backup scope (file tooling)
+        has_env = (kova_root / ".env").exists()
 
         if (has_config or has_env) and not args.force:
             print()
@@ -796,13 +796,13 @@ def run_import(args) -> Optional[int]:
 
         # Extract
         print(f"\nImporting {file_count} files ...")
-        hermes_root.mkdir(parents=True, exist_ok=True)
+        kova_root.mkdir(parents=True, exist_ok=True)
 
         t0 = time.monotonic()
         from gateway.runtime_ownership import OwnershipConflict
         try:
             restored, restored_external, errors, skipped_runtime, db_shrunk = _import_members(
-                zf, members, prefix, hermes_root, file_count)
+                zf, members, prefix, kova_root, file_count)
         except OwnershipConflict as exc:
             print(f"\nImport refused; no files restored: {exc}")
             sys.exit(1)
@@ -852,7 +852,7 @@ def run_import(args) -> Optional[int]:
                 print(f"    ... and {len(skipped_runtime) - 10} more")
 
         # Post-import: restore profile wrapper scripts
-        profiles_dir = hermes_root / "profiles"
+        profiles_dir = kova_root / "profiles"
         restored_profiles = []
         if profiles_dir.is_dir():
             try:
@@ -894,7 +894,7 @@ def run_import(args) -> Optional[int]:
 
         # Guidance
         print()
-        if not (hermes_root / "kova-agent").is_dir():
+        if not (kova_root / "kova-agent").is_dir():
             print("Note: The kova-agent codebase was not included in the backup.")
             print("  If this is a fresh install, run: kova update")
 
@@ -904,7 +904,7 @@ def run_import(args) -> Optional[int]:
             for pname in gw_profiles:
                 print(f"  hermes -p {pname} gateway install")
 
-        _revive_gateway_after_import(hermes_root)
+        _revive_gateway_after_import(kova_root)
 
         if errors:
             print(f"Import incomplete: {len(errors)} file(s) were not restored (see Warnings above). "
@@ -914,26 +914,26 @@ def run_import(args) -> Optional[int]:
 
 
 def _import_members(
-    zf: zipfile.ZipFile, members: list[str], prefix: str, hermes_root: Path, file_count: int
+    zf: zipfile.ZipFile, members: list[str], prefix: str, kova_root: Path, file_count: int
 ) -> tuple[int, int, list[str], list[str], list[tuple[str, tuple[int, int], tuple[int, int]]]]:
     """Reserve all affected profiles before publishing even the first config file."""
     from gateway.runtime_ownership import exclusive_maintenance
-    root_res = hermes_root.resolve()
-    homes = {hermes_root}
+    root_res = kova_root.resolve()
+    homes = {kova_root}
     for member in members:
         if member.startswith(_EXTERNAL_PREFIX):
             continue  # restored under $HOME, outside every runtime authority
         rel = member[len(prefix):] if prefix and member.startswith(prefix) else member
         parts = Path(rel).parts
         if len(parts) >= 3 and parts[0] == "profiles":
-            home = hermes_root / parts[0] / parts[1]
+            home = kova_root / parts[0] / parts[1]
             if home.resolve().is_relative_to(root_res):
                 homes.add(home)
-        target = hermes_root / rel
+        target = kova_root / rel
         if target.suffix == ".db" and target.resolve().is_relative_to(root_res):
             homes.update([target.absolute().parent, target.resolve().parent])
     with exclusive_maintenance(homes):
-        return _import_members_exclusive(zf, members, prefix, hermes_root, file_count)
+        return _import_members_exclusive(zf, members, prefix, kova_root, file_count)
 
 
 def _import_external_member(
@@ -964,7 +964,7 @@ def _import_external_member(
 
 
 def _import_members_exclusive(
-    zf: zipfile.ZipFile, members: list[str], prefix: str, hermes_root: Path, file_count: int
+    zf: zipfile.ZipFile, members: list[str], prefix: str, kova_root: Path, file_count: int
 ) -> tuple[int, int, list[str], list[str], list[tuple[str, tuple[int, int], tuple[int, int]]]]:
     """Publish every member; return ``(restored, restored_external, errors, skipped_runtime, db_shrunk)``.
 
@@ -1036,11 +1036,11 @@ def _import_members_exclusive(
             skipped_runtime.append(rel)
             continue
 
-        target = hermes_root.joinpath(*parts)
+        target = kova_root.joinpath(*parts)
 
         # Security: reject absolute paths and traversals
         try:
-            target.resolve().relative_to(hermes_root.resolve())
+            target.resolve().relative_to(kova_root.resolve())
         except ValueError:
             errors.append(f"  {rel}: path traversal blocked")
             continue
@@ -1069,7 +1069,7 @@ def _import_members_exclusive(
     return restored, restored_external, errors, skipped_runtime, db_shrunk
 
 
-def _revive_gateway_after_import(hermes_root: Path) -> None:
+def _revive_gateway_after_import(kova_root: Path) -> None:
     """Start an installed gateway service after a restore, best-effort and prompt-free.
 
     Bot tokens and cron jobs are inert without a gateway (a platform-less gateway is supported, so
@@ -1078,7 +1078,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
     profile restore must not install a second gateway on the default service name.
     """
     native_default = _get_platform_default_kova_home()
-    if hermes_root != native_default and any(
+    if kova_root != native_default and any(
             (native_default / marker).exists() for marker in ("config.yaml", ".env", "state.db")):
         print("\nRestored into a non-default home; leaving the gateway service alone to avoid clashing "
               f"with the install at {native_default}.\n"
@@ -1190,17 +1190,17 @@ def _create_prefixed_full_backup(
     Returns the path, or ``None`` if nothing to back up, the write failed, or the archive is
     incomplete (kept as ``<prefix><timestamp>.incomplete.zip``, excluded from retention).
     Never raises."""
-    hermes_root = kova_home or get_default_kova_root()
-    if not hermes_root.is_dir():
+    kova_root = kova_home or get_default_kova_root()
+    if not kova_root.is_dir():
         return None
-    backup_dir = hermes_root / _PRE_UPDATE_BACKUPS_DIR
+    backup_dir = kova_root / _PRE_UPDATE_BACKUPS_DIR
     try:
         backup_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         logger.warning("Could not create %s backup dir %s: %s", what, backup_dir, exc)
         return None
     out_path = backup_dir / f"{prefix}{datetime.now().strftime('%Y-%m-%d-%H%M%S')}.zip"
-    if _write_full_zip_backup(out_path, hermes_root) is None:
+    if _write_full_zip_backup(out_path, kova_root) is None:
         # Incomplete runs publish straight to ``*.incomplete.zip`` (all-failed runs are discarded);
         # cap those salvages at one without letting them rotate complete backups out.
         _prune_incomplete_zips(backup_dir, prefix, prune_what)
@@ -2049,21 +2049,21 @@ def run_quick_backup(args) -> None:
 # Shared full-zip backup helper
 # ---------------------------------------------------------------------------
 
-def _write_full_zip_backup(out_path: Path, hermes_root: Path) -> Optional[Path]:
+def _write_full_zip_backup(out_path: Path, kova_root: Path) -> Optional[Path]:
     """Single-flight wrapper for automatic full zip backups."""
     try:
-        with _backup_operation_lock(hermes_root):
-            return _write_full_zip_backup_locked(out_path, hermes_root)
+        with _backup_operation_lock(kova_root):
+            return _write_full_zip_backup_locked(out_path, kova_root)
     except BackupInProgressError as exc:
         logger.warning("Full-zip backup skipped: %s", exc)
         return None
 
 
-def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional[Path]:
+def _write_full_zip_backup_locked(out_path: Path, kova_root: Path) -> Optional[Path]:
     scan_started = time.monotonic()
     logger.info("automatic backup phase=scan status=started")
     try:
-        files_to_add = list(_iter_backup_files(hermes_root, out_path))
+        files_to_add = list(_iter_backup_files(kova_root, out_path))
     except OSError as exc:
         logger.warning("Full-zip backup: walk failed: %s", exc)
         return None

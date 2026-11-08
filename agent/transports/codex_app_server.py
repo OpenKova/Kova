@@ -19,7 +19,7 @@ from typing import Any, Optional
 
 from agent.deadline import kill_process_tree
 from agent.transports.kova_tools_mcp_server import KOVA_TOOLS_MCP_SERVER_NAME
-from tools.environments.local import hermes_subprocess_env
+from tools.environments.local import kova_subprocess_env
 
 MIN_CODEX_VERSION = (0, 125, 0)
 
@@ -102,7 +102,7 @@ class CodexAppServerClient:
         # GATEWAY_RELAY_* auth — none of which a coding subprocess has any use for. Route through the
         # centralized helper so Tier-1 + dynamic-internal secrets are always stripped while provider creds
         # still flow, matching the ACP client (#29157 sibling spawn-site gap).
-        spawn_env = hermes_subprocess_env(inherit_credentials=True)
+        spawn_env = kova_subprocess_env(inherit_credentials=True)
         if env:
             spawn_env.update(env)
         if codex_home:

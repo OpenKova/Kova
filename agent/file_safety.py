@@ -35,7 +35,7 @@ def _kova_root_path() -> Path:
     return _constants_path("get_default_kova_root")
 
 
-def _hermes_dirs() -> list[Path]:
+def _kova_dirs() -> list[Path]:
     """Resolved active KOVA_HOME and global root, deduplicated.
 
     Both are checked so credential stores at <root>/... stay guarded when
@@ -194,14 +194,14 @@ def build_write_denied_paths(home: str) -> set[str]:
     # deliberately NOT here: #45947 freed those control files on purpose
     # ("true containment belongs in Docker/remote backends and OS permissions,
     # not an expanding hardcoded denylist"). They stay read-denied, not write-denied.
-    hermes_files = (
+    kova_files = (
         ".env", ".anthropic_oauth.json",
         os.path.join("auth", "google_oauth.json"),
         *SECRET_CACHE_STORES,
     )
     paths = [
         *(os.path.join(home, *f) for f in home_files),
-        *(str(base / f) for f in hermes_files for base in (_kova_home_path(), _kova_root_path())),
+        *(str(base / f) for f in kova_files for base in (_kova_home_path(), _kova_root_path())),
         "/etc/sudoers", "/etc/passwd", "/etc/shadow",
     ]
     return {os.path.realpath(p) for p in paths}
@@ -294,7 +294,7 @@ def _classify_resolved_write_denial(homes: set[str], resolved: str) -> Optional[
     ):
         return "credential"
 
-    for base in _hermes_dirs():
+    for base in _kova_dirs():
         for sub in _KOVA_PROTECTED_SUBPATHS:
             with suppress(Exception):
                 if _is_under(resolved, os.path.realpath(os.path.join(str(base), sub))):
@@ -393,21 +393,21 @@ def get_read_block_error(path: str) -> Optional[str]:
     if nt_error:
         return nt_error
     resolved = Path(path).expanduser().resolve()
-    hermes_dirs = _hermes_dirs()
+    kova_dirs = _kova_dirs()
     reason = None
-    if any(_is_under(resolved, hd / "skills" / ".hub") for hd in hermes_dirs):
+    if any(_is_under(resolved, hd / "skills" / ".hub") for hd in kova_dirs):
         reason = (
             "is an internal Kova cache file and cannot be read directly to prevent "
             "prompt injection. Use the skills_list or skill_view tools instead."
         )
-    elif any(resolved in _resolve_each(hd / name for hd in hermes_dirs) for name in _CREDENTIAL_FILE_NAMES):
+    elif any(resolved in _resolve_each(hd / name for hd in kova_dirs) for name in _CREDENTIAL_FILE_NAMES):
         reason = (
             "is a Kova credential store and cannot be read directly. Provider tools "
             "consume these credentials through internal channels." + _DID_SUFFIX
         )
     else:
         for subdir, dir_msg, file_msg in _READ_DENIED_DIRS:
-            for blocked_dir in _resolve_each(hd / subdir for hd in hermes_dirs):
+            for blocked_dir in _resolve_each(hd / subdir for hd in kova_dirs):
                 if _is_under(resolved, blocked_dir):
                     reason = (dir_msg if resolved == blocked_dir else file_msg) + _DID_SUFFIX
                     break

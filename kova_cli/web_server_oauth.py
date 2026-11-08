@@ -49,11 +49,11 @@ def _anthropic_oauth_status() -> dict[str, Any]:
     """
     try:
         from agent.anthropic_credentials import read_hermes_oauth_credentials, _get_hermes_oauth_file
-        hermes_creds = read_hermes_oauth_credentials()
+        kova_creds = read_hermes_oauth_credentials()
     except Exception:
-        hermes_creds = None
-    if hermes_creds and hermes_creds.get("accessToken"):
-        return _token_status("hermes_pkce", f"Kova PKCE ({_get_hermes_oauth_file()})", hermes_creds)
+        kova_creds = None
+    if kova_creds and kova_creds.get("accessToken"):
+        return _token_status("hermes_pkce", f"Kova PKCE ({_get_hermes_oauth_file()})", kova_creds)
 
     env_var_order: tuple = ("ANTHROPIC_API_KEY", "ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")
     try:

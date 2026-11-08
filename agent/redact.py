@@ -1655,13 +1655,13 @@ def _is_under_kova_home(path: str) -> bool:
     Compare against the resolved homes instead. Only reached for a ``config.yaml`` basename,
     so the resolve cost stays off the per-token command scan.
     """
-    from agent.file_safety import _hermes_dirs
+    from agent.file_safety import _kova_dirs
 
     try:
         target = os.path.normcase(os.path.realpath(os.path.expanduser(path)))
     except (OSError, ValueError):
         return False
-    for home in _hermes_dirs():
+    for home in _kova_dirs():
         try:
             base = os.path.normcase(os.path.realpath(str(home)))
         except (OSError, ValueError):

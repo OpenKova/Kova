@@ -42,7 +42,7 @@ def _hermes_packages() -> frozenset:
         pyproject = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8-sig"))
         packages = {name.split(".")[0] for name in pyproject["tool"]["setuptools"]["packages"]["find"]["include"]}
     except (OSError, KeyError, ValueError):
-        packages = set(_hermes_top_level()) - {"hermes_plugins", "tests", "evals"}
+        packages = set(_hermes_top_level()) - {"kova_plugins", "tests", "evals"}
     return frozenset((packages | {p.stem for p in root.glob("*.py")}) - {"setup", "conftest"})
 
 

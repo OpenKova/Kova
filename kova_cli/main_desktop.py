@@ -1569,7 +1569,7 @@ def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
         ("fake_boot", "KOVA_DESKTOP_BOOT_FAKE"), ("ignore_existing", "KOVA_DESKTOP_IGNORE_EXISTING")):
         if getattr(args, attr, False):
             env[key] = "1"
-    if getattr(args, "hermes_root", None):
+    if getattr(args, "kova_root", None):
         env["KOVA_DESKTOP_KOVA_ROOT"] = str(Path(args.kova_root).expanduser().resolve())
     cwd = getattr(args, "cwd", None)
     env["KOVA_DESKTOP_CWD"] = str(Path(cwd).expanduser().resolve()) if cwd else os.getcwd()

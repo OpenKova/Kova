@@ -133,7 +133,7 @@ def _normalize_windows_path(value: str) -> str:
     return value.strip().lstrip('"').replace("\\", "/").rstrip("/").casefold()
 
 
-def kova_owns_windows_service(name: str, binpath: str, hermes_roots: tuple[str, ...]) -> bool:
+def kova_owns_windows_service(name: str, binpath: str, kova_roots: tuple[str, ...]) -> bool:
     """Positive ownership of an SCM service: Kova-named (``hermes*``) or its binary path starts under a
     Kova root. Pure so it is testable off-Windows. A Scheduled-Task-launched gateway descends from
     ``svchost.exe`` hosting ``Schedule``; without this gate the updater took Task Scheduler for the
@@ -142,7 +142,7 @@ def kova_owns_windows_service(name: str, binpath: str, hermes_roots: tuple[str, 
     if normalized_name.startswith("kova") or normalized_name.startswith("hermes"):
         return True
     candidate = _normalize_windows_path(binpath)
-    return any(candidate.startswith(_normalize_windows_path(root) + "/") for root in hermes_roots if root)
+    return any(candidate.startswith(_normalize_windows_path(root) + "/") for root in kova_roots if root)
 
 
 def _preserve_kova_home_path(path: str | Path) -> str:

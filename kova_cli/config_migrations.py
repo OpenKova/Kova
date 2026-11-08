@@ -560,10 +560,10 @@ def _migrate_to_41(results: dict[str, Any], quiet: bool) -> None:
     if not _local_files_allowed():
         return  # SOUL.md files only, across the whole roster
     from kova_constants import get_kova_home
-    from tools.bot_mode_probe import _PROTOCOL_HEADING, _hermes_root, _roster, strip_legacy_protocol
+    from tools.bot_mode_probe import _PROTOCOL_HEADING, _kova_root, _roster, strip_legacy_protocol
 
     cleaned: list[str] = []
-    for name, profile_dir in _roster(_hermes_root(get_kova_home())):
+    for name, profile_dir in _roster(_kova_root(get_kova_home())):
         soul = profile_dir / "SOUL.md"
         try:
             text = soul.read_text(encoding="utf-8-sig") if soul.is_file() else ""
