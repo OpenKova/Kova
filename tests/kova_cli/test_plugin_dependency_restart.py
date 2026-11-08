@@ -1,6 +1,6 @@
 """A plugin whose Python dependencies were installed after a process booted needs a restart there.
 
-``hermes plugins enable`` commits a new dependency generation and nudges the running gateway to
+``kova plugins enable`` commits a new dependency generation and nudges the running gateway to
 reload its plugins. Activation is a boot decision, so that gateway (and a running dashboard) keeps
 the generation it booted with and cannot import the new dependencies. Enable used to report
 "Gateway reloaded plugins; nothing of this plugin needs a session or restart", and discovery
@@ -22,7 +22,7 @@ import pytest
 from kova_cli import plugins_activation
 from kova_cli.plugins_loader import installed_in_selected_environment, missing_python_dependencies
 
-DIST = "hermes-depprobe-fixture"
+DIST = "kova-depprobe-fixture"
 REQ = f"{DIST}>=1.0,<2"
 
 
@@ -52,7 +52,7 @@ def _select_generation(home: Path, *, with_dist: bool, version: str = "1.0") -> 
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     plugin = kova_home / "plugins" / "depprobe"
     plugin.mkdir(parents=True)
     (plugin / "plugin.yaml").write_text(
@@ -128,7 +128,7 @@ def test_enable_reports_restart_when_the_running_gateway_cannot_import_the_depen
     assert result["activation"]["missing_dependencies"] == [REQ]
     assert result["activation"]["missing_in"] == ["gateway"]
     assert "nothing of this plugin needs" not in hint
-    assert "installed after the running gateway" in hint and "hermes gateway restart" in hint
+    assert "installed after the running gateway" in hint and "kova gateway restart" in hint
 
 
 def test_restart_names_only_the_process_that_cannot_import(home, monkeypatch):
@@ -143,7 +143,7 @@ def test_restart_names_only_the_process_that_cannot_import(home, monkeypatch):
     hint = plugins_activation.activation_hint(result)
 
     assert result["restart_required"] is True and result["activation"]["missing_in"] == ["backend"]
-    assert "desktop app" in hint and "hermes gateway restart" not in hint
+    assert "desktop app" in hint and "kova gateway restart" not in hint
 
 
 def test_enable_reports_repair_when_the_dependency_was_never_installed(home, monkeypatch):
@@ -191,7 +191,7 @@ def test_a_plugin_importing_its_new_dependency_at_load_still_asks_for_a_restart(
 
     _select_generation(home, with_dist=True)
     (home / "plugins" / "depprobe" / "__init__.py").write_text(
-        "import hermes_depprobe_fixture\n\ndef register(ctx):\n    pass\n", encoding="utf-8")
+        "import kova_depprobe_fixture\n\ndef register(ctx):\n    pass\n", encoding="utf-8")
     loop = asyncio.new_event_loop()
     threading.Thread(target=loop.run_forever, daemon=True).start()
     try:
@@ -231,7 +231,7 @@ def test_restart_follows_what_pm_installs_for_the_plugin(home, shape, restart):
             f'[project]\nname = "depprobe"\nversion = "1.0"\ndependencies = ["{REQ}"]\n', encoding="utf-8")
     if shape != "external":  # an external sidecar's dependency is never importable in-process
         (plugin / "__init__.py").write_text(
-            "import hermes_depprobe_fixture\n\ndef register(ctx):\n    pass\n", encoding="utf-8")
+            "import kova_depprobe_fixture\n\ndef register(ctx):\n    pass\n", encoding="utf-8")
     try:
         plugins.discover_plugins(force=True)
         manager = plugins.get_plugin_manager()

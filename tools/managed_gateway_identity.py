@@ -24,9 +24,9 @@ __all__ = [
     "user_agent",
 ]
 
-SESSION_HEADER = "x-nous-hermes-session"
-TURN_HEADER = "x-nous-hermes-turn"
-TOOL_CALL_HEADER = "x-nous-hermes-tool-call"
+SESSION_HEADER = "x-nous-kova-session"
+TURN_HEADER = "x-nous-kova-turn"
+TOOL_CALL_HEADER = "x-nous-kova-tool-call"
 REQUEST_ID_HEADER = "x-request-id"
 
 # sys.platform -> the shared-metrics OS family.

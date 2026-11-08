@@ -1,6 +1,6 @@
 """Dashboard gateway lifecycle actions must elevate on a system-scope install.
 
-Regression for #110820: the Restart Gateway button spawned ``hermes gateway restart`` as the
+Regression for #110820: the Restart Gateway button spawned ``kova gateway restart`` as the
 dashboard's own user, and the CLI refuses system-scope verbs below root, so the button could
 never work on a systemd *system* install — the refusal only reached the action log while the
 endpoint reported a started action.
@@ -36,7 +36,7 @@ def system_scope_install(monkeypatch, tmp_path):
 
 
 def _spawn(tmp_path, subcommand, *, sudo_ok: bool, targeted_only: bool = False, probes: list | None = None):
-    """Run ``_spawn_hermes_action(subcommand)`` with Popen (and the ``sudo -n`` probes) faked;
+    """Run ``_spawn_kova_action(subcommand)`` with Popen (and the ``sudo -n`` probes) faked;
     the elevation decision runs through the production helpers. Returns the attempted argv.
     ``targeted_only`` models a command-scoped NOPASSWD sudoers entry: the blanket ``sudo -n true``
     is refused but anything else under ``sudo -n`` is allowed."""
@@ -55,7 +55,7 @@ def _spawn(tmp_path, subcommand, *, sudo_ok: bool, targeted_only: bool = False, 
     ), patch.object(web_server_gateway.subprocess, "Popen", return_value=child) as popen, patch(
         "kova_cli.web_server.PROJECT_ROOT", tmp_path
     ):
-        web_server_gateway._spawn_hermes_action(subcommand, "probe")
+        web_server_gateway._spawn_kova_action(subcommand, "probe")
     return popen.call_args.args[0]
 
 
@@ -88,7 +88,7 @@ def test_restart_without_passwordless_sudo_fails_the_request(unprivileged, syste
 
 
 def test_targeted_nopasswd_sudoers_still_elevates(unprivileged, system_scope_install, tmp_path):
-    # Same posture as the ``hermes update`` fleet restart: a refused blanket ``sudo -n true`` is
+    # Same posture as the ``kova update`` fleet restart: a refused blanket ``sudo -n true`` is
     # inconclusive; the exact argv is then checked non-destructively (``sudo -n -l -- <argv>``).
     probes: list = []
     argv = _spawn(tmp_path, ["gateway", "restart"], sudo_ok=True, targeted_only=True, probes=probes)

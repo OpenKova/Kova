@@ -20,7 +20,7 @@ def test_browser_setup_respects_provider_and_native_owner(monkeypatch, capsys, t
                                                           playwright):
     baked = tmp_path / 'chromium-executable-path'
     if docker_image:
-        baked.write_text('/opt/hermes/chromium/chrome', encoding='utf-8')
+        baked.write_text('/opt/kova/chromium/chrome', encoding='utf-8')
     found = iter([None, None if docker_image else '/pm/chromium/chrome'])
     with (
         patch('tools.browser_use_cli._find_cli', return_value=['harness']) as install,
@@ -87,7 +87,7 @@ def test_importable_sdk_does_not_bypass_pm_constraints(monkeypatch, capsys, key,
     output = capsys.readouterr().out
     if refused:
         assert "outside frozen feature set" in output
-        assert "Retry with: hermes tools" in output
+        assert "Retry with: kova tools" in output
         assert "Restart Kova" not in output
     else:
         assert "Restart Kova" in output

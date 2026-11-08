@@ -44,7 +44,7 @@ def test_an_in_place_revocation_in_one_tick_is_not_served_from_the_pairing_cache
 
 def test_a_key_rotated_in_place_in_one_tick_reaches_global_auth_store_readers(coarse_clock, tmp_path, monkeypatch):
     import kova_cli.auth as auth_mod
-    path = tmp_path / "global-hermes" / "auth.json"
+    path = tmp_path / "global-kova" / "auth.json"
     path.parent.mkdir(parents=True)
     monkeypatch.setattr(auth_mod, "_global_auth_file_path", lambda: path)
     monkeypatch.setattr(auth_mod, "_global_auth_store_cache", None)

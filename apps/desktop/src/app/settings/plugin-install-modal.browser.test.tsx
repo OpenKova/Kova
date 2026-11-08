@@ -256,7 +256,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
     const reviewed = 'e404b6816b20237a82f6fbe2749b5a576cf75dba'
     // The browser bridge's door to the host's desktop-plugins folder (browser-desktop-plugins.ts): the
     // host's pass copies the package's half into desktop-plugins/pkg.
-    const reconcileDesktopPlugins = vi.fn(async () => ['/srv/hermes/desktop-plugins/pkg'])
+    const reconcileDesktopPlugins = vi.fn(async () => ['/srv/kova/desktop-plugins/pkg'])
     window.kovaDesktop = { reconcileDesktopPlugins } as unknown as Window['kovaDesktop']
 
     try {
@@ -288,10 +288,10 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
     // The probe saw a desktop half, but the host's pass put nothing down for it (an entry it does not
     // read, a refused tree): the folder the loader scans has no pkg/, so the dialog must not say it does.
     const reconcileDesktopPlugins = vi.fn(async () => [] as string[])
-    const desktopPluginsRoot = vi.fn(async () => '/srv/hermes/desktop-plugins')
+    const desktopPluginsRoot = vi.fn(async () => '/srv/kova/desktop-plugins')
 
     const readDir = vi.fn(async (path: string) => ({
-      entries: path === '/srv/hermes/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
+      entries: path === '/srv/kova/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
     }))
 
     window.kovaDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['kovaDesktop']
@@ -311,7 +311,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
 
       expect(await screen.findByText('Desktop plugin install failed')).toBeTruthy()
       expect(reconcileDesktopPlugins).toHaveBeenCalled()
-      expect(readDir).toHaveBeenCalledWith('/srv/hermes/desktop-plugins')
+      expect(readDir).toHaveBeenCalledWith('/srv/kova/desktop-plugins')
       expect($notifications.get().some(n => n.message === 'Desktop plugin pkg installed')).toBe(false)
       expect($notifications.get().some(n => n.message.startsWith('Agent plugin pkg installed'))).toBe(true)
     } finally {
@@ -322,11 +322,11 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
   it('never reports a desktop half installed when the host pass only pruned the old copy', async () => {
     // A force reinstall whose new tree dropped its desktop entry: the host's pass deletes
     // desktop-plugins/pkg and names it among the folders it touched. Nothing is on disk to load.
-    const reconcileDesktopPlugins = vi.fn(async () => ['/srv/hermes/desktop-plugins/pkg'])
-    const desktopPluginsRoot = vi.fn(async () => '/srv/hermes/desktop-plugins')
+    const reconcileDesktopPlugins = vi.fn(async () => ['/srv/kova/desktop-plugins/pkg'])
+    const desktopPluginsRoot = vi.fn(async () => '/srv/kova/desktop-plugins')
 
     const readDir = vi.fn(async (path: string) => ({
-      entries: path === '/srv/hermes/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
+      entries: path === '/srv/kova/desktop-plugins' ? [{ name: 'other', path: `${path}/other`, isDirectory: true }] : []
     }))
 
     window.kovaDesktop = { desktopPluginsRoot, readDir, reconcileDesktopPlugins } as unknown as Window['kovaDesktop']
@@ -345,7 +345,7 @@ describe('Plugin install in the browser-hosted app with a backend that installs 
       fireEvent.click(installButton()!)
 
       expect(await screen.findByText('Desktop plugin install failed')).toBeTruthy()
-      expect(readDir).toHaveBeenCalledWith('/srv/hermes/desktop-plugins')
+      expect(readDir).toHaveBeenCalledWith('/srv/kova/desktop-plugins')
       expect($notifications.get().some(n => n.message === 'Desktop plugin pkg installed')).toBe(false)
     } finally {
       delete (window as { kovaDesktop?: unknown }).kovaDesktop

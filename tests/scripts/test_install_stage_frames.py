@@ -76,7 +76,7 @@ def test_real_single_stage_cli_reports_admission_or_execution_failure(tmp_path, 
     assert frame["skipped"] is False and frame["reason"]
 
 
-@pytest.mark.parametrize("flag", ["--hermes-home", "-KovaHome"])
+@pytest.mark.parametrize("flag", ["--kova-home", "-KovaHome"])
 def test_manifest_accepts_the_desktop_home_argument(tmp_path, flag):
     home = tmp_path / "custom home"
     result = subprocess.run(["bash", str(SCRIPT), "--manifest", flag, str(home)],

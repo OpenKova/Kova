@@ -1,4 +1,4 @@
-"""`hermes import-agent` and `hermes claw` (OpenClaw migration) left core for the agent-importers
+"""`kova import-agent` and `kova claw` (OpenClaw migration) left core for the agent-importers
 catalog plugin.
 
 Real parser and real config files under a temp KOVA_HOME; the catalog lookup and the install are
@@ -26,7 +26,7 @@ def test_old_spelling_without_the_plugin_names_the_install(argv, tmp_path, monke
     home = tmp_path / ".kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
-    monkeypatch.setattr(sys, "argv", ["hermes", *argv])
+    monkeypatch.setattr(sys, "argv", ["kova", *argv])
     from kova_cli.main import _build_cli_parser
 
     parser, _subparsers = _build_cli_parser()
@@ -34,9 +34,9 @@ def test_old_spelling_without_the_plugin_names_the_install(argv, tmp_path, monke
         parser.parse_args(sys.argv[1:])
     err = capsys.readouterr().err
     assert exc.value.code == 2
-    assert f"`hermes {argv[0]}` moved out of core into the 'agent-importers' plugin, which is not loaded" in err
-    assert "hermes plugins install agent-importers" in err
-    assert lcm.moved_command_hint("hermes auth", argv[0]) == ""  # never a `hermes auth` login spelling
+    assert f"`kova {argv[0]}` moved out of core into the 'agent-importers' plugin, which is not loaded" in err
+    assert "kova plugins install agent-importers" in err
+    assert lcm.moved_command_hint("kova auth", argv[0]) == ""  # never a `kova auth` login spelling
 
 
 def test_only_a_home_with_registered_imports_gets_the_plugin(tmp_path):
@@ -58,12 +58,12 @@ def test_only_a_home_with_registered_imports_gets_the_plugin(tmp_path):
     assert calls == [] and said == []
     assert lcm.migrate_home(synced, install=install, say=said.append) == ["agent-importers"]
     assert calls == ["agent-importers"]
-    assert "✓ `hermes import-agent` moved out of core" in said[0]
+    assert "✓ `kova import-agent` moved out of core" in said[0]
 
 
 def test_a_scheduled_sync_on_a_home_nothing_migrated_installs_the_plugin_and_runs(tmp_path, monkeypatch, capsys):
-    """An upgrade that ran no `hermes update` (a Docker image swap) leaves a home with sync sources and
-    no plugin; when the scheduled `hermes import-agent --sync` is its only Kova process, that run
+    """An upgrade that ran no `kova update` (a Docker image swap) leaves a home with sync sources and
+    no plugin; when the scheduled `kova import-agent --sync` is its only Kova process, that run
     installs the plugin and parses as the plugin's own command."""
     home = tmp_path / ".kova"
     home.mkdir()
@@ -71,7 +71,7 @@ def test_a_scheduled_sync_on_a_home_nothing_migrated_installs_the_plugin_and_run
     (home / "import-sync.json").write_text('{"version": 1, "agents": {}}', encoding="utf-8")
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
-    monkeypatch.setattr(sys, "argv", ["hermes", "import-agent", "--sync"])
+    monkeypatch.setattr(sys, "argv", ["kova", "import-agent", "--sync"])
     installs = []
 
     def install_into(target, consent=None):

@@ -182,7 +182,7 @@ def _save_on_older_gateway(connection, session_id, fmt, filename, redact):
 
 def _write_save(session_id, fmt, filename, render):
     """Write a ``/save`` export on this machine: ``filename`` as typed (relative to the cwd), else
-    ``sessions/saved/hermes_conversation_<ts>.<fmt>`` under this CLI's home."""
+    ``sessions/saved/kova_conversation_<ts>.<fmt>`` under this CLI's home."""
     from cli import datetime
     saved_dir = get_kova_home() / "sessions" / "saved"
     try:
@@ -196,7 +196,7 @@ def _write_save(session_id, fmt, filename, render):
             path = Path.cwd() / path
     else:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        path = saved_dir / f"hermes_conversation_{timestamp}.{fmt}"
+        path = saved_dir / f"kova_conversation_{timestamp}.{fmt}"
 
     try:
         content = render()

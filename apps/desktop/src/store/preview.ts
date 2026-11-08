@@ -507,7 +507,7 @@ export function rekeyPreviewTabsSession(previousId: string, nextId: string): voi
  *  workspace the tab is being rendered in — the `viewKey` bucket the caller
  *  (the preview pane) already shows — never a global first-match-by-id search.
  *  A session-less draft tab in a named profile's workspace must ride that
- *  profile's jar, never default the shared `persist:hermes-preview` jar and
+ *  profile's jar, never default the shared `persist:kova-preview` jar and
  *  expose the default profile's sign-ins to that workspace.
  *
  *  G1 (#150283, security): a draft FILE tab derives its id from the file URL

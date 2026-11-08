@@ -285,9 +285,9 @@ def _managed_launcher(command: str) -> Optional[tuple[str, list[str]]]:
         launcher = pm.uv_launcher(command)
         dirs = [str(launcher.parent)] if launcher is not None else []
     else:
-        from kova_constants import with_hermes_node_path
+        from kova_constants import with_kova_node_path
 
-        dirs = [d for d in with_hermes_node_path({"PATH": ""})["PATH"].split(os.pathsep) if d]
+        dirs = [d for d in with_kova_node_path({"PATH": ""})["PATH"].split(os.pathsep) if d]
     executable = shutil.which(command, path=os.pathsep.join(dirs)) if dirs else None
     if executable is None:
         raise RuntimeError(f"Kova-managed {command} is not installed; run `kova pm install {package}`")
@@ -308,9 +308,9 @@ def _outside_package(launcher: str, managed: str, dirs: list[str]) -> tuple[str,
     return shutil.which(launcher, path=os.pathsep.join(moved)) or managed, moved
 
 
-def _is_hermes_managed_bin_dir(directory: str) -> bool:
+def _is_kova_managed_bin_dir(directory: str) -> bool:
     """True for the bin dirs Kova' bootstrap prepends to this process's PATH: anything
-    under the active hermes home (the sealed payload's venv, ``<home>/bin``, PM store
+    under the active kova home (the sealed payload's venv, ``<home>/bin``, PM store
     runtimes) plus the running interpreter's own bin dir (a repo checkout's venv)."""
     try:
         resolved = Path(directory).resolve()
@@ -321,7 +321,7 @@ def _is_hermes_managed_bin_dir(directory: str) -> bool:
     from kova_constants import get_kova_home
     try:
         home = Path(get_kova_home()).resolve()
-    except Exception:
+    except Exception:  # health: allow BLE001 -- unreadable home means not a Kova-managed bin dir
         return False
     return resolved == home / "bin" or home in resolved.parents
 
@@ -364,7 +364,7 @@ def _first_user_which_hit(command: str, path_arg: Optional[str],
     else:
         names = [command + ext for ext in exts]
     for directory in str(path_arg or "").split(os.pathsep):
-        if not directory or _is_hermes_managed_bin_dir(directory):
+        if not directory or _is_kova_managed_bin_dir(directory):
             continue
         for name in names:
             candidate = os.path.join(directory, name)
@@ -718,8 +718,8 @@ def _load_mcp_config() -> dict[str, dict]:
             return {}
         servers = load_config().get("mcp_servers")
         try:  # ensure .env vars are available for interpolation
-            from kova_cli.env_loader import load_hermes_dotenv
-            load_hermes_dotenv()
+            from kova_cli.env_loader import load_kova_dotenv
+            load_kova_dotenv()
         except Exception:
             pass
         safe_servers: dict[str, dict] = {}

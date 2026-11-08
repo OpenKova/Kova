@@ -257,7 +257,7 @@ class TestStartRun:
                 status = await status_resp.json()
                 assert status["run_id"] == data["run_id"]
                 assert status["status"] in {"queued", "running", "completed"}
-                assert status["object"] == "hermes.run"
+                assert status["object"] == "kova.run"
 
     @pytest.mark.asyncio
     async def test_start_binds_chat_id_for_delegation_wake_target(self, adapter):
@@ -498,7 +498,7 @@ class TestRunStatus:
             scope, "shutdown-test-key", "shutdown-test-fingerprint", "run_live", status)
         adapter._run_idempotency_ids.add("run_live")
         adapter._run_statuses["run_done"] = {
-            "object": "hermes.run", "run_id": "run_done", "status": "completed"}
+            "object": "kova.run", "run_id": "run_done", "status": "completed"}
         _claim_run(adapter, "run_done")
 
         async with TestClient(TestServer(_create_runs_app(adapter))) as client:
@@ -1002,7 +1002,7 @@ class TestSteerRun:
 
         assert resp.status == 200
         assert payload == {
-            "object": "hermes.run.steer",
+            "object": "kova.run.steer",
             "run_id": "run_123",
             "accepted": True,
         }

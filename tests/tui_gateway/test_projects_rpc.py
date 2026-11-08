@@ -166,7 +166,7 @@ def test_record_repos_persists_and_shows_zero_session_repo(tmp_path):
     repo = tmp_path / "fresh-repo"
     repo.mkdir()
 
-    # Repo-first: a scanned repo with no hermes sessions still surfaces.
+    # Repo-first: a scanned repo with no kova sessions still surfaces.
     _call("projects.record_repos", {"repos": [{"root": str(repo), "label": "fresh-repo"}]})
 
     by_label = {r["label"]: r for r in _call("projects.discover_repos")["repos"]}
@@ -342,7 +342,7 @@ def test_remote_scan_full_authoritative_replaces_cache(tmp_path):
 def test_terminal_session_persists_its_launch_cwd():
     """A terminal session's cwd IS its workspace, so the row must record it.
 
-    The user cd'd into that directory before running hermes. Dropping it left
+    The user cd'd into that directory before running kova. Dropping it left
     the row with no cwd and no git_repo_root, so the sidebar could never place
     the session under its project.
     """
@@ -365,7 +365,7 @@ def test_desktop_launch_cwd_is_not_persisted_as_a_workspace():
 
 def test_desktop_launch_cwd_is_marked_as_context_artifact():
     assert server._context_cwd_is_launch_artifact(
-        {"source": "desktop", "cwd": "/opt/hermes"}
+        {"source": "desktop", "cwd": "/opt/kova"}
     ) is True
 
 
@@ -374,7 +374,7 @@ def test_explicit_desktop_and_terminal_cwds_are_context_workspaces():
         {"source": "desktop", "cwd": "/picked/repo", "explicit_cwd": True}
     ) is False
     assert server._context_cwd_is_launch_artifact(
-        {"source": "tui", "cwd": "/opt/hermes"}
+        {"source": "tui", "cwd": "/opt/kova"}
     ) is False
 
 
@@ -389,7 +389,7 @@ def test_desktop_agent_rebuild_preserves_workspace_provenance(
     session = {
         "agent": object(),
         "attached_images": [],
-        "cwd": "/picked/repo" if explicit_cwd else "/opt/hermes",
+        "cwd": "/picked/repo" if explicit_cwd else "/opt/kova",
         "edit_snapshots": {},
         "explicit_cwd": explicit_cwd,
         "history": ["old"],

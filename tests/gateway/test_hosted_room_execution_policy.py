@@ -33,7 +33,7 @@ def _policy(*, approval_mode: str = "manual", max_turns: int = 12) -> dict:
         config={
             "agent": {"max_turns": max_turns},
             "approvals": {"mode": approval_mode},
-            "platform_toolsets": {"api_server": ["hermes-api-server", "web"]},
+            "platform_toolsets": {"api_server": ["kova-api-server", "web"]},
         },
     )
 
@@ -241,7 +241,7 @@ def _two_profile_homes(tmp_path, monkeypatch) -> None:
         home.mkdir(parents=True)
         (home / "config.yaml").write_text(
             f"agent:\n  max_turns: {turns}\napprovals:\n  mode: manual\n"
-            "platform_toolsets:\n  api_server: [hermes-api-server, web]\n")
+            "platform_toolsets:\n  api_server: [kova-api-server, web]\n")
         (home / ".env").write_text("")
     from kova_cli import profiles
     import gateway.run as gateway_run
@@ -268,7 +268,7 @@ def test_catalog_policy_comes_from_the_served_profile_not_the_launch_env(tmp_pat
         execution_policy_mapping(target_profile="ghost")
 
 
-def test_catalog_requires_the_served_profile_and_never_reads_hermes_profile(monkeypatch):
+def test_catalog_requires_the_served_profile_and_never_reads_kova_profile(monkeypatch):
     monkeypatch.setenv("KOVA_PROFILE", "reviewer")
     with pytest.raises(TypeError, match="target_profile"):
         catalog_mapping(installation_id="install-peer", persistent_process=True)  # type: ignore[call-arg]

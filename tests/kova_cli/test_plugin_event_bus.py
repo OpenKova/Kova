@@ -3,14 +3,14 @@
 Covers:
   - Two plugins communicate via emit/subscribe; emit returns listener count
   - Namespace is FORCED to the emitting plugin's own key
-  - Namespace spoofing (hermes:, foreign, already-colon'd) is rejected
+  - Namespace spoofing (kova:, foreign, already-colon'd) is rejected
   - Non-blocking bounded delivery for synchronous subscribers
   - Per-callback isolation and deep-copied payload ownership
   - Async subscribers resolved through the loop-safe host path
   - Owner unload / generation reset cancel zombie callbacks
   - Recursion cap: mutually-emitting plugins terminate + warn
   - Manifest emits/listens parsed as optional advisory fields
-  - `hermes plugins show` output includes emits/listens
+  - `kova plugins show` output includes emits/listens
 """
 
 from __future__ import annotations
@@ -124,7 +124,7 @@ def test_namespace_falls_back_to_name_when_key_empty():
 @pytest.mark.parametrize(
     "bad_event",
     [
-        "hermes:x",   # reserved core prefix
+        "kova:x",   # reserved core prefix
         "a:x",        # foreign namespace
         "b:x",        # even the plugin's own colon'd name — must pass bare only
         "other:evt",
@@ -138,7 +138,7 @@ def test_emit_rejects_namespaced_names(bad_event):
 
     fired = []
     # Subscribe to every plausible delivery target so we can prove no delivery.
-    for name in (bad_event, f"b:{bad_event}", "hermes:x", "a:x", "b:x"):
+    for name in (bad_event, f"b:{bad_event}", "kova:x", "a:x", "b:x"):
         ctx_b.subscribe(name, lambda **p: fired.append(name))
 
     with pytest.raises(ValueError):

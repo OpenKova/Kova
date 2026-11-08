@@ -17,7 +17,7 @@ def test_run_conversation_exports_session_and_turn_cwds(tmp_path, monkeypatch):
     from run_agent import AIAgent
     from tools.terminal_tool import clear_session_cwd, record_session_cwd
 
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     session_cwd = tmp_path / "session"
     turn_cwd = tmp_path / "task"
     atof_dir = tmp_path / "atof"
@@ -95,10 +95,10 @@ mode = "overwrite"
         assert len(matches) == 1
         return matches[0]
 
-    session_start = only_event("hermes.session", "start")
-    turn_start = only_event("hermes.turn", "start")
-    session_end = only_event("hermes.session", "end")
-    turn_end = only_event("hermes.turn", "end")
+    session_start = only_event("kova.session", "start")
+    turn_start = only_event("kova.turn", "start")
+    session_end = only_event("kova.session", "end")
+    turn_end = only_event("kova.turn", "end")
 
     assert session_start["data"] == {"cwd": str(session_cwd)}
     assert turn_start["data"] == {"cwd": str(turn_cwd)}

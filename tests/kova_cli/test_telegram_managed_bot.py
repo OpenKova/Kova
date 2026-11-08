@@ -47,9 +47,9 @@ class TestCreatePairing:
         mock_resp.json.return_value = {
             "pairing_id": "abcdefghijklmnop",
             "poll_token": "secret-token",
-            "suggested_username": "hermes_abcdefghijklmnop_bot",
-            "deep_link": "https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot?name=Kova+Agent",
-            "qr_payload": "https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot?name=Kova+Agent",
+            "suggested_username": "kova_abcdefghijklmnop_bot",
+            "deep_link": "https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot?name=Kova+Agent",
+            "qr_payload": "https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot?name=Kova+Agent",
             "expires_at": "2026-05-18T00:00:00.000Z",
         }
 
@@ -61,9 +61,9 @@ class TestCreatePairing:
         assert pairing == TelegramPairing(
             pairing_id="abcdefghijklmnop",
             poll_token="secret-token",
-            suggested_username="hermes_abcdefghijklmnop_bot",
-            deep_link="https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot?name=Kova+Agent",
-            qr_payload="https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot?name=Kova+Agent",
+            suggested_username="kova_abcdefghijklmnop_bot",
+            deep_link="https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot?name=Kova+Agent",
+            qr_payload="https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot?name=Kova+Agent",
             expires_at="2026-05-18T00:00:00.000Z",
         )
         post.assert_called_once_with(
@@ -97,16 +97,16 @@ class TestPollForToken:
         return TelegramPairing(
             pairing_id="abcdefghijklmnop",
             poll_token="secret-token",
-            suggested_username="hermes_abcdefghijklmnop_bot",
-            deep_link="https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot",
-            qr_payload="https://t.me/newbot/KovaSetupBot/hermes_abcdefghijklmnop_bot",
+            suggested_username="kova_abcdefghijklmnop_bot",
+            deep_link="https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot",
+            qr_payload="https://t.me/newbot/KovaSetupBot/kova_abcdefghijklmnop_bot",
         )
 
     def test_immediate_success(self):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {
-            "bot_username": "hermes_abcdefghijklmnop_bot",
+            "bot_username": "kova_abcdefghijklmnop_bot",
             "owner_user_id": 42,
             "status": "ready",
             "token": VALID_TOKEN,
@@ -184,7 +184,7 @@ class TestSetupTelegramAuto:
 
         assert (
             _profile_name_from_kova_home(
-                PureWindowsPath(r"C:\Users\test\AppData\Local\hermes\profiles\oracle")
+                PureWindowsPath(r"C:\Users\test\AppData\Local\kova\profiles\oracle")
             )
             == "oracle"
         )

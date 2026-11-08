@@ -34,7 +34,7 @@ def test_vertex_registered_in_provider_registry():
     assert cfg.auth_type == "vertex"
 
 
-def test_vertex_registered_in_hermes_overlays():
+def test_vertex_registered_in_kova_overlays():
     """kova_cli.providers.get_provider("vertex") backs
     _preserve_provider_with_base_url() in agent/auxiliary_client.py, which
     decides whether a MoA slot's resolved Vertex (base_url, api_key) pair
@@ -65,7 +65,7 @@ def _vertex_cli_shell(monkeypatch, tmp_path, *, loadable: bool):
     import agent.vertex_adapter as va
     from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     mints: list = []

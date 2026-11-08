@@ -715,7 +715,7 @@ async def test_concurrent_refresh_presents_single_use_token_exactly_once(tmp_pat
     assert presented == ["R1"], presented
     assert (a.context.current_tokens.access_token, a.context.current_tokens.refresh_token) == ("A2", "R2")
     assert (b.context.current_tokens.access_token, b.context.current_tokens.refresh_token) == ("A2", "R2")
-    assert a._hermes_fence is None and b._hermes_fence is None
+    assert a._kova_fence is None and b._kova_fence is None
 
 
 @pytest.mark.asyncio
@@ -745,7 +745,7 @@ async def test_refresh_fails_closed_while_a_peer_holds_the_fence(tmp_path, monke
     assert sent == []
     assert provider.context.current_tokens.refresh_token == "R1"
     assert (await provider.context.storage.get_tokens()).refresh_token == "R1"
-    assert provider._hermes_fence is None
+    assert provider._kova_fence is None
 
 
 @pytest.mark.asyncio
@@ -824,7 +824,7 @@ async def test_refresh_restarts_flow_when_disk_pair_is_from_another_issuer(tmp_p
 
     assert not provider.context.current_tokens.refresh_token, "foreign refresh token must be stripped"
     assert (await storage.get_tokens()).refresh_token is None, "strip must reach disk"
-    assert provider._hermes_fence is None
+    assert provider._kova_fence is None
 
 
 @pytest.mark.asyncio

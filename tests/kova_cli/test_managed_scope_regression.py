@@ -15,7 +15,7 @@ def kova_home(tmp_path, monkeypatch):
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     # No managed dir: point the override at a guaranteed-absent path so a real
-    # /etc/hermes on the dev/CI box can't influence the test.
+    # /etc/kova on the dev/CI box can't influence the test.
     monkeypatch.setenv("KOVA_MANAGED_DIR", str(tmp_path / "no_such_managed_dir"))
     # Clear caches so each test re-reads from disk.
     import kova_cli.config as cfg
@@ -65,13 +65,13 @@ def test_env_expansion_in_user_config(kova_home, monkeypatch):
 
 
 def test_user_env_overrides_shell(tmp_path, monkeypatch):
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
 
     home = tmp_path / "home"
     home.mkdir()
     (home / ".env").write_text("FOO_TOKEN=from_user_env\n", encoding="utf-8")
     monkeypatch.setenv("FOO_TOKEN", "from_shell")
-    load_hermes_dotenv(kova_home=str(home))
+    load_kova_dotenv(kova_home=str(home))
     assert os.environ["FOO_TOKEN"] == "from_user_env"
 
 

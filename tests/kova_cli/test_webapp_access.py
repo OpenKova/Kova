@@ -90,12 +90,12 @@ def test_web_access_keeps_its_url_in_the_webapp_block_and_leaves_the_dashboard_a
     save_env_value("KOVA_DASHBOARD_PUBLIC_URL", "https://dashboard.example.test")
     dashboard = _dashboard_setup()
 
-    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "https://hermes.example.test"})
+    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "https://kova.example.test"})
     assert response.status_code == 200, response.text
-    assert nous == ["https://hermes.example.test/auth/callback"]
+    assert nous == ["https://kova.example.test/auth/callback"]
     assert {key: _config()["webapp"].get(key) for key in ("enabled", "host", "public_url")} == {
-        "enabled": True, "host": "127.0.0.1", "public_url": "https://hermes.example.test"}
-    assert response.json()["public_url"] == "https://hermes.example.test"
+        "enabled": True, "host": "127.0.0.1", "public_url": "https://kova.example.test"}
+    assert response.json()["public_url"] == "https://kova.example.test"
     assert _dashboard_setup() == dashboard
 
     assert client.post("/api/webapp-access/stop").status_code == 200
@@ -125,8 +125,8 @@ def test_start_without_a_nous_account_writes_and_restarts_nothing(client, restar
     ({"enabled": True}, "local"),
     ({"enabled": True, "host": "::1"}, "local"),
     ({"enabled": True, "host": "0.0.0.0"}, "lan"),
-    ({"enabled": True, "public_url": "https://hermes.example.test"}, "public"),
-    ({"enabled": False, "host": "0.0.0.0", "public_url": "https://hermes.example.test"}, None),
+    ({"enabled": True, "public_url": "https://kova.example.test"}, "public"),
+    ({"enabled": False, "host": "0.0.0.0", "public_url": "https://kova.example.test"}, None),
 ])
 def test_status_names_the_mode_the_config_serves(client, webapp, mode):
     """The pane's mode follows the config: the documented loopback setup (``webapp.enabled: true``)
@@ -154,7 +154,7 @@ def test_start_keeps_a_custom_port_and_builds_the_addresses_on_it(client, restar
     assert _config()["webapp"]["port"] == 9333
 
     assert client.post("/api/webapp-access/stop").status_code == 200
-    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "https://hermes.example.test"})
+    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "https://kova.example.test"})
     assert response.status_code == 200, response.text
     assert _config()["webapp"]["port"] == 9333
     assert response.json()["port"] == 9333
@@ -162,10 +162,10 @@ def test_start_keeps_a_custom_port_and_builds_the_addresses_on_it(client, restar
 
 @pytest.mark.parametrize("enabled", [True, False])
 @pytest.mark.parametrize("public_url", [
-    "https://user:secret@hermes.example.test",
-    "https://hermes.example.test/?next=x",
-    "https://hermes.example.test:99999",
-    "hermes.example.test",
+    "https://user:secret@kova.example.test",
+    "https://kova.example.test/?next=x",
+    "https://kova.example.test:99999",
+    "kova.example.test",
 ])
 def test_status_never_shows_a_public_url_the_gateway_refuses(client, public_url, enabled):
     """The pane shows the ``webapp:`` block as the gateway reads it, with the gateway's own reader: a
@@ -180,10 +180,10 @@ def test_status_never_shows_a_public_url_the_gateway_refuses(client, public_url,
 
 
 @pytest.mark.parametrize("public_url", [
-    "https://hermes.example.test:99999",
-    "https://hermes.example.test:0",
-    "https://hermes.example.test/a@b",
-    "https://hermes.example.test/a b",
+    "https://kova.example.test:99999",
+    "https://kova.example.test:0",
+    "https://kova.example.test/a@b",
+    "https://kova.example.test/a b",
 ])
 def test_start_refuses_a_public_url_the_gateway_would_refuse(client, restarts, nous, public_url):
     """Start checks the URL with the gateway's own ``webapp.public_url`` reader (plus https on a host
@@ -198,10 +198,10 @@ def test_start_refuses_a_public_url_the_gateway_would_refuse(client, restarts, n
 
 def test_start_takes_the_public_url_as_typed(client, restarts, nous):
     """Spaces around the URL and a trailing slash are not part of the address."""
-    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "  https://hermes.example.test/ "})
+    response = client.post("/api/webapp-access/start", json={"mode": "public", "public_url": "  https://kova.example.test/ "})
     assert response.status_code == 200, response.text
-    assert nous == ["https://hermes.example.test/auth/callback"]
-    assert _config()["webapp"]["public_url"] == "https://hermes.example.test"
+    assert nous == ["https://kova.example.test/auth/callback"]
+    assert _config()["webapp"]["public_url"] == "https://kova.example.test"
 
 
 @pytest.fixture()
@@ -288,7 +288,7 @@ def test_native_desktop_uses_web_access_on_the_webapps_own_listener(client, monk
 
 def test_start_builds_the_webapp_bundle_before_turning_it_on(client, restarts, nous, builds):
     """Start builds the bundle the gateway serves (``apps/desktop/dist-webapp``) with the function
-    ``hermes webapp`` uses, reusing it when current, so it never reports a Webapp with nothing to
+    ``kova webapp`` uses, reusing it when current, so it never reports a Webapp with nothing to
     serve as running."""
     from kova_cli.config import get_project_root
 
@@ -310,7 +310,7 @@ def test_a_failed_build_turns_nothing_on_and_says_how_to_build(client, restarts,
     response = client.post("/api/webapp-access/start", json={"mode": "lan"})
     assert response.status_code == 400
     assert "npm exited 1" in response.json()["detail"]
-    assert "hermes webapp --build-only" in response.json()["detail"]
+    assert "kova webapp --build-only" in response.json()["detail"]
     assert nous == []
     assert restarts == []
     assert not _config()["webapp"]["enabled"]
@@ -519,7 +519,7 @@ def test_a_home_registered_on_the_dashboards_client_gets_its_own_at_the_next_sta
 
 
 def test_dashboard_register_leaves_web_access_and_its_client_alone(portal):
-    """``hermes dashboard register`` updates the dashboard's own client only: Web Access's client,
+    """``kova dashboard register`` updates the dashboard's own client only: Web Access's client,
     its record and its next Start (which asks the Portal nothing for an unchanged callback) are
     untouched."""
     import argparse
@@ -558,7 +558,7 @@ async def _login_client_id(mount, origin: str) -> str:
 
 def _load_nous_plugin_as_discovery_does():
     """The bundled Nous sign-in plugin imported as plugin discovery imports it: from its folder under
-    a module name of the loader's own (``hermes_plugins.<key>``), not as ``plugins.dashboard_auth.nous``,
+    a module name of the loader's own (``kova_plugins.<key>``), not as ``plugins.dashboard_auth.nous``,
     so its module-level state is not that of any other import of it."""
     import importlib.util
     from pathlib import Path
@@ -567,7 +567,7 @@ def _load_nous_plugin_as_discovery_does():
 
     folder = Path(source.__file__).parent
     spec = importlib.util.spec_from_file_location(
-        "hermes_plugins_test_f5.dashboard_auth__nous", folder / "__init__.py", submodule_search_locations=[str(folder)])
+        "kova_plugins_test_f5.dashboard_auth__nous", folder / "__init__.py", submodule_search_locations=[str(folder)])
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -685,7 +685,7 @@ def test_a_disabled_nous_plugin_keeps_nous_sign_in_off_the_webapp(portal, gatewa
 
 
 def test_a_webapp_without_a_web_access_client_signs_in_with_the_configured_one(portal, gateway_listeners, monkeypatch):
-    """A Webapp whose Nous sign-in was set up by hand (``hermes dashboard register`` for its address,
+    """A Webapp whose Nous sign-in was set up by hand (``kova dashboard register`` for its address,
     no Web Access Start) keeps signing in with ``KOVA_DASHBOARD_OAUTH_CLIENT_ID``."""
     import asyncio
 
@@ -792,7 +792,7 @@ def test_web_access_changes_run_one_at_a_time(client, restarts, nous, monkeypatc
     else:
         monkeypatch.setattr(webapp_access, "_register_nous_sign_in",
                             lambda callback: (hold(), nous.append(callback)))
-    public_url = "https://hermes.example.test"
+    public_url = "https://kova.example.test"
     requests = {"lan": ("/api/webapp-access/start", {"mode": "lan"}),
                 "stop": ("/api/webapp-access/stop", None),
                 "public": ("/api/webapp-access/start", {"mode": "public", "public_url": public_url})}

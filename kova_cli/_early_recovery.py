@@ -211,7 +211,7 @@ def _marker_owner_is_live(marker: Path) -> bool:
 # once git has exited (a kill is the only exit that keeps it). Git rewrites the tree file by file and
 # moves HEAD last, so an update killed in between leaves HEAD on the old commit with a prefix of the
 # files already new; that mixed tree fails at import in every entry point, ``kova update`` included.
-INTERRUPTED_PULL_MARKER = "hermes-update-pull"
+INTERRUPTED_PULL_MARKER = "kova-update-pull"
 # A fast-forward takes seconds; past this a "live" owner pid is a recycled one.
 _INTERRUPTED_PULL_MAX_AGE_SECONDS = 10 * 60
 # The user (or a killed updater) is mid-operation: its own state files own the tree.
@@ -256,7 +256,7 @@ def interrupted_pull_marker(root: Path) -> Path:
 # launcher whose checkout import fails runs the repair from there, reading the same files from git's
 # objects first when no updater published them (``_launchers._CLOSURE_REPAIR``).
 # The modules import only the stdlib and each other; the package initializer is published empty.
-RECOVERY_CLOSURE_DIR = "hermes-update-recovery"
+RECOVERY_CLOSURE_DIR = "kova-update-recovery"
 RECOVERY_CLOSURE = ("kova_cli/_early_recovery.py", "kova_cli/update_lock.py", "kova_cli/update_custody.py")
 
 
@@ -482,7 +482,7 @@ def _paths_git_wrote(git, root: Path, pre: str, target: str) -> tuple[list[str],
 # the user's CLI) restore one at a time: the claim holder owns the git index, the rest wait for it and
 # relaunch from its tree. An OS lock, not a pid file: the kernel drops it with its owner, so a dead
 # launch's claim is broken without a check-then-unlink race.
-_RESTORE_CLAIM = "hermes-update-pull.claim"
+_RESTORE_CLAIM = "kova-update-pull.claim"
 _RESTORE_CLAIM_WAIT_SECONDS = 10.0
 _merge_advice_shown = False
 

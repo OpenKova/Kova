@@ -53,7 +53,7 @@ def test_target_outside_the_checkout_is_still_skew(tmp_path):
     (tmp_path / "link").symlink_to(real)
     foreign = tmp_path / "opt" / "Kova"
     foreign.mkdir(parents=True)
-    (foreign / "hermes").touch()
-    assert _gate(tmp_path / "link", foreign / "hermes") == "skew"
+    (foreign / "kova").touch()
+    assert _gate(tmp_path / "link", foreign / "kova") == "skew"
     # A sibling directory sharing the prefix must not be mistaken for the checkout either.
     assert _gate(tmp_path / "link", Path(str(unpacked) + "-evil") / "Kova") == "skew"

@@ -31,7 +31,7 @@ from kova_cli.profile_distribution import (
     _looks_like_git_url,
     _parse_semver,
     _stage_source,
-    check_hermes_requires,
+    check_kova_requires,
     describe_distribution,
     install_distribution,
     plan_install,
@@ -101,7 +101,7 @@ class TestManifestParsing:
             "name: telem\n"
             "version: 1.2.3\n"
             "description: Telem monitor\n"
-            "hermes_requires: '>=0.12.0'\n"
+            "kova_requires: '>=0.12.0'\n"
             "author: Kyle\n"
             "license: MIT\n"
             "env_requires:\n"
@@ -168,10 +168,10 @@ class TestVersionRequires:
     ])
     def test_check_matrix(self, spec, cur, ok):
         if ok:
-            check_hermes_requires(spec, cur)
+            check_kova_requires(spec, cur)
         else:
             with pytest.raises(DistributionError, match="requires Kova"):
-                check_hermes_requires(spec, cur)
+                check_kova_requires(spec, cur)
 
     def test_parse_semver_handles_prerelease(self):
         assert _parse_semver("0.12.0-rc1") == (0, 12, 0)
@@ -403,7 +403,7 @@ class TestInstall:
             plan_install(str(bogus), tmp_path / "work", override_name="x")
 
 
-    def test_install_enforces_hermes_requires(self, profile_env, monkeypatch):
+    def test_install_enforces_kova_requires(self, profile_env, monkeypatch):
         # Pin current Kova version to something well below the requirement
         monkeypatch.setattr(
             "kova_cli.version_info.get_version_info",
@@ -413,7 +413,7 @@ class TestInstall:
         mf = DistributionManifest(
             name="future",
             version="1.0.0",
-            hermes_requires=">=99.0.0",
+            kova_requires=">=99.0.0",
         )
         staged = _make_staging_dir(profile_env, "future", manifest=mf)
         with pytest.raises(DistributionError, match="requires Kova"):
@@ -477,7 +477,7 @@ class TestUpdate:
 
     def test_an_owned_category_keeps_skills_the_installer_added_to_it(self, profile_env):
         """``distribution_owned: [skills/research/]`` owns the author's research skills, not the
-        category: ``hermes skills install`` and agent-created skills land in ``skills/<category>/``
+        category: ``kova skills install`` and agent-created skills land in ``skills/<category>/``
         too. The category was replaced wholesale, deleting them (the #25120 loss, still live for
         the explicit form the docs show)."""
         staged, plan = self._owned_category(profile_env, "rb")
@@ -691,7 +691,7 @@ class TestDescribe:
 
 
     def test_describe_missing_profile_raises(self, profile_env):
-        with pytest.raises(DistributionError, match="No profile named .*hermes profile list"):
+        with pytest.raises(DistributionError, match="No profile named .*kova profile list"):
             describe_distribution("nonexistent")
 
 

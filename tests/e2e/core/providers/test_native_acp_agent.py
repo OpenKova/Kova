@@ -6,7 +6,7 @@ Here the provider is ``fake-acp``, a user model-provider plugin written into the
 ``KOVA_HOME`` (``tests/fakes/providers/fake_acp_agent.py::install_provider_plugin``) whose
 ``create_client`` returns an ``ACPClient`` subclass, and the agent is that module run as a script: a
 fake that validates every request against the published ACP schema and replays scripted turns.
-Everything on the Kova side is real: the ``hermes chat -q`` process, user plugin discovery, runtime
+Everything on the Kova side is real: the ``kova chat -q`` process, user plugin discovery, runtime
 resolution from ``config.yaml`` + the profile ``.env`` (the profile's ``process_command_env_vars`` /
 ``process_args_env_var``), the ACP client, the agent loop, the ``read_file`` tool and ``state.db``.
 
@@ -204,7 +204,7 @@ def _calls(fake: acp.AcpFake) -> dict[int, list[dict[str, Any]]]:
 # ── tests ──────────────────────────────────────────────────────────────────────────────────────
 
 
-def test_hermes_tool_call_round_trips_through_acp_and_persists(outcomes):
+def test_kova_tool_call_round_trips_through_acp_and_persists(outcomes):
     """A ``<tool_call>`` in the agent's message runs Kova' real read_file; the result reaches the
     NEXT call's prompt; the CLI prints the answer; state.db pairs the call and result by id."""
     sc = _flow_ok(outcomes)

@@ -522,7 +522,7 @@ export interface ClaimResult {
 }
 
 /**
- * Pre-write for the staged Tauri updater (`hermes-setup.exe --update`): the
+ * Pre-write for the staged Tauri updater (`kova-setup.exe --update`): the
  * child IS the updater there, so the marker names its pid AND its creation
  * time. A v2 body takes this path off the v1 20-minute ceiling, lets the
  * updater adopt it as its own claim, and lets the `kova update` it runs add

@@ -243,9 +243,9 @@ def _spawn(monkeypatch, tmp_path) -> dict[str, str]:
 
 @pytest.mark.platforms("posix")
 def test_the_launcher_runs_its_idle_check_through_the_installs_stable_command(tmp_path, monkeypatch):
-    """The screen outlives ``hermes update``: a check pinned to the starter's interpreter and its inherited
+    """The screen outlives ``kova update``: a check pinned to the starter's interpreter and its inherited
     dependency generation fails with ModuleNotFoundError once that generation is collected, forever. On a store
-    install the launcher gets the ``hermes --run-module`` launcher, which loads the current one at every run."""
+    install the launcher gets the ``kova --run-module`` launcher, which loads the current one at every run."""
     from kova_cli import _launchers
 
     root = runtime._LAUNCHER.resolve().parents[2]
@@ -253,7 +253,7 @@ def test_the_launcher_runs_its_idle_check_through_the_installs_stable_command(tm
 
     command = shlex.split(_spawn(monkeypatch, tmp_path)["KOVA_BD_IDLE_CMD"])
     assert command == _launchers.installation_command(root, module="tools.bot_desktop.idle_watch")
-    assert command == [str(root / ".kova/bin/hermes"), "--run-module", "tools.bot_desktop.idle_watch"]
+    assert command == [str(root / ".kova/bin/kova"), "--run-module", "tools.bot_desktop.idle_watch"]
 
 
 @pytest.mark.platforms("posix")

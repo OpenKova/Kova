@@ -44,7 +44,7 @@ function shell(direction: 'down' | 'up') {
     document: { createElement: () => frame },
     parent,
     window: {},
-    location: { href: 'https://hermes.test/assets/webapp-guest.html' },
+    location: { href: 'https://kova.test/assets/webapp-guest.html' },
     addEventListener: (_type: string, listener: typeof receive) => {
       receive = listener
     },
@@ -68,7 +68,7 @@ function shell(direction: 'down' | 'up') {
     send: (data: unknown, transferredPorts: MessagePort[] = []) =>
       receive({
         data,
-        origin: direction === 'down' ? 'https://hermes.test' : 'null',
+        origin: direction === 'down' ? 'https://kova.test' : 'null',
         ports: transferredPorts,
         source: direction === 'down' ? parent : guest
       })

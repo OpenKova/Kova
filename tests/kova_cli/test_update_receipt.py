@@ -150,7 +150,7 @@ class TestCommandBoundaryFinalization:
 
     def test_pending_receipt_persisted_on_exit_2_refusal(self, receipt_home):
         ur.begin_update_receipt()
-        ur.record_step("windows_preflight", False, "another hermes.exe running")
+        ur.record_step("windows_preflight", False, "another kova.exe running")
         path = ur.finalize_pending_update_receipt(2, "sys.exit(2)")
         assert path is not None and path.is_file()
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -190,25 +190,25 @@ class TestCommandBoundaryFinalization:
         singleton."""
         from types import SimpleNamespace
 
-        from kova_cli import main as hermes_main
+        from kova_cli import main as kova_main
 
         def _fake_impl(args, gateway_mode):
             ur.begin_update_receipt()
-            ur.record_step("windows_preflight", False, "hermes.exe holds venv")
+            ur.record_step("windows_preflight", False, "kova.exe holds venv")
             sys.exit(2)
 
         monkeypatch.setattr(update_cmd, "_cmd_update_impl", _fake_impl)
         monkeypatch.setattr(
-            hermes_main, "detect_install_method", lambda *a, **k: "git", raising=False
+            kova_main, "detect_install_method", lambda *a, **k: "git", raising=False
         )
         monkeypatch.setattr(
-            hermes_main,
+            kova_main,
             "_install_hangup_protection",
             lambda gateway_mode: None,
             raising=False,
         )
         monkeypatch.setattr(
-            hermes_main, "_finalize_update_output", lambda state: None, raising=False
+            kova_main, "_finalize_update_output", lambda state: None, raising=False
         )
 
         class _FakeLock:
@@ -232,7 +232,7 @@ class TestCommandBoundaryFinalization:
             force=False, force_venv=False,
         )
         with pytest.raises(SystemExit) as exc_info:
-            hermes_main.cmd_update(args)
+            kova_main.cmd_update(args)
 
         assert exc_info.value.code == 2  # exit code preserved
         latest = ur.read_latest_receipt()
@@ -310,7 +310,7 @@ class TestFleetClassification:
         gateway_record = {
             "gateway_state": "running",
             "kind": "kova-gateway",
-            "argv": ["hermes", "gateway", "run"],
+            "argv": ["kova", "gateway", "run"],
             **record,
         }
         (home / "gateway_state.json").write_text(
@@ -439,7 +439,7 @@ class TestFleetClassification:
             "pid": 4242,
             "gateway_state": "running",
             "kind": "kova-gateway",
-            "argv": ["hermes", "gateway", "run"],
+            "argv": ["kova", "gateway", "run"],
             "code_sha": "a" * 40,
             "code_version": "1.0",
         }

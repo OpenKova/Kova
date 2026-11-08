@@ -41,10 +41,10 @@ def test_no_scrub_is_byte_preserving_except_explicit_extra():
     assert build_subprocess_env(base, scrub_secrets=False, extra={"KOVA_HOME": "/caller"})["KOVA_HOME"] == "/caller"
 
 
-def test_e2e_scrubbed_env_resolves_bare_hermes_under_minimal_parent_path(monkeypatch, tmp_path):
+def test_e2e_scrubbed_env_resolves_bare_kova_under_minimal_parent_path(monkeypatch, tmp_path):
     """Regression for #92998/#93082: a gateway launched by systemd/cron with a
-    minimal PATH (no hermes console-script dir) must still hand cron job
-    children an env whose PATH resolves bare ``hermes``.
+    minimal PATH (no kova console-script dir) must still hand cron job
+    children an env whose PATH resolves bare ``kova``.
 
     Exercises the REAL factory and the REAL bin-dir resolver — no mocks of the
     helpers. cron/scheduler._run_job_script builds its child env via exactly
@@ -54,24 +54,24 @@ def test_e2e_scrubbed_env_resolves_bare_hermes_under_minimal_parent_path(monkeyp
 
     from tools.environments import local as local_mod
 
-    bin_dir = local_mod._resolve_hermes_bin_dir()
+    bin_dir = local_mod._resolve_kova_bin_dir()
     if not bin_dir or not os.path.isfile(
-        os.path.join(bin_dir, "hermes.exe" if os.name == "nt" else "hermes")
+        os.path.join(bin_dir, "kova.exe" if os.name == "nt" else "kova")
     ):
-        pytest.skip("no real hermes console-script install available")
+        pytest.skip("no real kova console-script install available")
 
-    # Simulate the service-manager minimal PATH: hermes dir absent. An empty directory, not
-    # /usr/bin:/bin — a distro-packaged hermes (/usr/bin/hermes) would already be on those.
+    # Simulate the service-manager minimal PATH: kova dir absent. An empty directory, not
+    # /usr/bin:/bin — a distro-packaged kova (/usr/bin/kova) would already be on those.
     minimal_path = str(tmp_path / "service-manager-bin")
     os.mkdir(minimal_path)
     monkeypatch.setenv("PATH", minimal_path)
-    assert shutil.which("hermes", path=minimal_path) is None
+    assert shutil.which("kova", path=minimal_path) is None
 
     env = build_subprocess_env(scrub_secrets=True)  # cron _run_job_script path
 
-    resolved = shutil.which("hermes", path=env.get("PATH", ""))
+    resolved = shutil.which("kova", path=env.get("PATH", ""))
     assert resolved is not None, (
-        f"bare 'hermes' must resolve from the child PATH {env.get('PATH')!r}"
+        f"bare 'kova' must resolve from the child PATH {env.get('PATH')!r}"
     )
     assert os.path.dirname(resolved) == bin_dir
     assert env["PATH"].split(os.pathsep)[0] == bin_dir

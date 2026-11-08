@@ -1,4 +1,4 @@
-"""``hermes config set display.language`` accepts every ``supported_languages()`` id — bundled, alias,
+"""``kova config set display.language`` accepts every ``supported_languages()`` id — bundled, alias,
 and a plugin language pack found through real discovery — and refuses unknown ids naming the options."""
 
 from __future__ import annotations
@@ -51,14 +51,14 @@ def test_unknown_language_is_refused_with_the_available_list(home, capsys):
 
 
 def test_pack_language_is_accepted_once_the_pack_is_installed(home, capsys):
-    plugin = home / "plugins" / "hermes-lang-pl"
+    plugin = home / "plugins" / "kova-lang-pl"
     (plugin / "locales").mkdir(parents=True)
     (plugin / "plugin.yaml").write_text(yaml.safe_dump({
-        "name": "hermes-lang-pl", "version": "1.0.0", "description": "Polish pack", "provides_locales": ["pl"],
+        "name": "kova-lang-pl", "version": "1.0.0", "description": "Polish pack", "provides_locales": ["pl"],
     }), encoding="utf-8")
     (plugin / "locales" / "pl.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Odrzucono"}}), encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"display": {"language": "en"},
-                                                     "plugins": {"enabled": ["hermes-lang-pl"]}}), encoding="utf-8")
+                                                     "plugins": {"enabled": ["kova-lang-pl"]}}), encoding="utf-8")
 
     set_config_value("display.language", "pl")
     assert _saved_language(home) == "pl"

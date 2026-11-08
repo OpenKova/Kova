@@ -46,7 +46,7 @@ class TestMetaAndValidation:
     def test_missing_file_defaults_empty(self, profile_env):
         assert read_profile_meta(profile_env)["display_name"] == ""
 
-    def test_bot_title_read_from_hermes_bots_ui_meta(self, profile_env):
+    def test_bot_title_read_from_kova_bots_ui_meta(self, profile_env):
         (profile_env / "profile.yaml").write_text(
             "ui_meta:\n  kova-bots:\n    title: JordyV\n", encoding="utf-8")
         assert read_profile_meta(profile_env)["bot_title"] == "JordyV"

@@ -93,7 +93,7 @@ def test_managed_worker_trims_checkpoints_to_the_configured_max_snapshots(tmp_pa
         peer.server_close()
     assert workers == 2 and (project / 'turn1.txt').exists() and (project / 'turn2.txt').exists()
     store = home / 'checkpoints' / 'store'
-    refs = subprocess.run(['git', '--git-dir', str(store), 'for-each-ref', '--format=%(refname)', 'refs/hermes'],
+    refs = subprocess.run(['git', '--git-dir', str(store), 'for-each-ref', '--format=%(refname)', 'refs/kova'],
                           capture_output=True, text=True, check=True).stdout.split()
     assert len(refs) == 1, refs
     log = subprocess.run(['git', '--git-dir', str(store), 'log', '--format=%s', refs[0]],

@@ -5,7 +5,7 @@ crash; these prove the guard that turns it into a clear "restart the gateway"
 message before a model switch can hit it.  The dashboard mirror (#86207) lives
 here too: ``web_server_config._dashboard_code_skew_guard`` and the
 ``/api/model/options`` 503 guard, which protect the Models page from the same
-stale-module ImportError after ``hermes update``.
+stale-module ImportError after ``kova update``.
 """
 
 import asyncio
@@ -60,7 +60,7 @@ class TestModelSwitchSkewGuard:
         assert msg is not None
         assert "abc1234567" in msg
         assert "def4567890" in msg
-        assert "hermes gateway restart" in msg
+        assert "kova gateway restart" in msg
 
 
 class TestDashboardCodeSkewGuard:
@@ -87,13 +87,13 @@ class TestDashboardCodeSkewGuard:
         assert msg is not None
         assert "Desktop-owned backend" in msg
         assert "systemctl" not in msg
-        assert "hermes-dashboard" not in msg
+        assert "kova-dashboard" not in msg
 
 
 class TestModelOptionsSkewGuard:
     """/api/model/options must refuse with a clear 503 when the dashboard is stale.
 
-    Regression for #86207: a dashboard kept alive across ``hermes update``
+    Regression for #86207: a dashboard kept alive across ``kova update``
     serves stale modules, so the picker's lazy import of names the update added
     (``agent.model_metadata.is_grok_46_family``) raised ImportError and the
     handler collapsed it into a generic 500.  With the guard, the stale process

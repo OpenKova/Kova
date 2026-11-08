@@ -13,7 +13,7 @@ afterEach(async () => { await fs.rm(dir, { recursive: true, force: true }) })
 
 // A POSIX script stands in for the installation launcher's --print-runtime-command boundary.
 async function launcher(body: string): Promise<string> {
-  const file = path.join(dir, 'hermes')
+  const file = path.join(dir, 'kova')
   await fs.writeFile(file, `#!/bin/sh\nprintf '%s\\n' "$@" > "${dir}/argv"\n${body}\n`, { mode: 0o755 })
 
   return file
@@ -26,7 +26,7 @@ test('a Python backend is the helper interpreter as-is', async () => {
 
 test('a bundled launcher keeps its CLI command but names the payload Python for ticket minting', async () => {
   const backend = {
-    command: '/resources/agent-payload/bin/hermes.exe',
+    command: '/resources/agent-payload/bin/kova.exe',
     kind: 'python',
     shell: false,
     env: { KOVA_RUNTIME_DIR: '/resources/agent-payload/tools' },
@@ -69,7 +69,7 @@ test.skipIf(process.platform === 'win32')('a launcher without a usable runtime c
 
 test('backends with no interpreter to name stay refused', async () => {
   for (const backend of [
-    { command: 'hermes', kind: 'command', shell: false },
+    { command: 'kova', kind: 'command', shell: false },
     { command: '"python.cmd"', kind: 'python', shell: true }
   ]) {
     await expect(ticketRuntimeFor(backend)).rejects.toThrow('requires the installed Kova Python runtime')

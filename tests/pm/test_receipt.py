@@ -25,7 +25,7 @@ def _isolated_receipt_context():
 
 @pytest.fixture
 def homed(tmp_path, monkeypatch):
-    """Receipt dir inside a temp hermes home."""
+    """Receipt dir inside a temp kova home."""
     import kova_constants
 
     monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)

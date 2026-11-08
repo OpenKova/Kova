@@ -326,7 +326,7 @@ def test_donor_must_share_the_orphans_profile(tmp_path, monkeypatch):
     from a stale report. A legacy NULL-stamped row still reads as this store's own."""
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)

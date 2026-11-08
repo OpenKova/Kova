@@ -34,7 +34,7 @@ def write_config(home: Path, port: int) -> None:
         "dashboard": {"basic_auth": {"username": USER, "password_hash": hash_password(PASSWORD),
                                      "secret": secrets.token_hex(32)}},
     }
-    engage_sign_in_gate(config, f"http://hermes-webapp.test:{port}")
+    engage_sign_in_gate(config, f"http://kova-webapp.test:{port}")
     (home / "config.yaml").write_text(json.dumps(config), encoding="utf-8")  # JSON is YAML
 
 
@@ -133,9 +133,9 @@ async def across_sign_out(runner, origin, ask):
         async with httpx.AsyncClient(base_url=origin, timeout=20, cookies=stolen) as replay:
             report["replayed_cookies_after"] = _refusal(await replay.get("/api/sessions"))
         # The provider tokens those cookies held, presented on their own as a native app would.
-        # The Webapp's listener names its cookies for the gateway (``hermes_session_at_<gateway>``).
+        # The Webapp's listener names its cookies for the gateway (``kova_session_at_<gateway>``).
         access, refresh = (next(value for key, value in stolen.items() if key.startswith(f"{name}_")).strip('"')
-                           for name in ("hermes_session_at", "hermes_session_rt"))
+                           for name in ("kova_session_at", "kova_session_rt"))
         async with httpx.AsyncClient(base_url=origin, timeout=20) as thief:
             report["stolen_access_token_after"] = _refusal(
                 await thief.get("/api/sessions", headers={"Authorization": "Bearer " + access}))

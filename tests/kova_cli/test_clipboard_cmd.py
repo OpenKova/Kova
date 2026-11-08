@@ -1,4 +1,4 @@
-"""``hermes clipboard image --json``: the reply shapes and exit codes clients script against.
+"""``kova clipboard image --json``: the reply shapes and exit codes clients script against.
 
 The real clipboard is never read: ``save_clipboard_image`` is replaced by a fake, or the real
 extractor runs against a stub ``xclip`` on PATH; the tool lookup is pointed at an executable that
@@ -69,13 +69,13 @@ def test_no_image_is_a_stable_reason(tmp_path, monkeypatch, capsys):
 
 def test_missing_tool_names_what_to_install(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(clipboard, "save_clipboard_image", _fake_save(None))
-    monkeypatch.setattr(clipboard, "clipboard_image_tools", lambda: ("hermes-no-such-clipboard-tool",))
+    monkeypatch.setattr(clipboard, "clipboard_image_tools", lambda: ("kova-no-such-clipboard-tool",))
 
     code, out, _ = _run(capsys, "--out", str(tmp_path / "paste.png"), "--json")
 
     reply = json.loads(out)
     assert code == 3
-    assert (reply["ok"], reply["reason"], reply["tools"]) == (False, "no_tool", ["hermes-no-such-clipboard-tool"])
+    assert (reply["ok"], reply["reason"], reply["tools"]) == (False, "no_tool", ["kova-no-such-clipboard-tool"])
 
 
 def test_without_json_prints_the_path_only(tmp_path, monkeypatch, capsys):
@@ -86,7 +86,7 @@ def test_without_json_prints_the_path_only(tmp_path, monkeypatch, capsys):
 
 
 def test_runs_without_plugin_discovery(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["hermes", "clipboard", "image", "--out", "paste.png", "--json"])
+    monkeypatch.setattr(sys, "argv", ["kova", "clipboard", "image", "--out", "paste.png", "--json"])
     assert _plugin_cli_discovery_needed() is False
 
 

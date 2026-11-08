@@ -14,7 +14,7 @@ from tools.computer_use import cua_backend_driver
 
 def _invoke(monkeypatch, *args: str) -> int:
     cli_main = import_module("kova_cli.main")
-    monkeypatch.setattr(sys, "argv", ["hermes", "computer-use", *args])
+    monkeypatch.setattr(sys, "argv", ["kova", "computer-use", *args])
     monkeypatch.setattr(cli_main, "_prepare_agent_startup", lambda _args: None)
     try:
         cli_main.main()
@@ -65,7 +65,7 @@ def test_computer_use_status_reports_unusable_driver(monkeypatch, capsys, tmp_pa
         assert "custom binary from KOVA_CUA_DRIVER_CMD" in output
         assert "unset the override" in output
     else:
-        assert "Run: hermes computer-use install" in output
+        assert "Run: kova computer-use install" in output
 
 
 @pytest.mark.parametrize("ready", [False, True])
@@ -97,4 +97,4 @@ def test_permissions_status_names_the_stale_tcc_row_for_the_missing_grant(
     out = capsys.readouterr().out
     assert "tccutil reset Accessibility com.trycua.driver" in out
     assert "ScreenCapture" not in out
-    assert "hermes computer-use permissions grant" in out
+    assert "kova computer-use permissions grant" in out

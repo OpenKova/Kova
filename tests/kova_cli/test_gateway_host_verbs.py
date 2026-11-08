@@ -109,7 +109,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     """
     import kova_constants
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     named = root / "profiles" / "leinad"
     root.mkdir()
     named.mkdir(parents=True)
@@ -177,7 +177,7 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     """
     import kova_constants
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     named = root / "profiles" / "leinad"
     named.mkdir(parents=True)
     (root / "config.yaml").write_text("{}\n", encoding="utf-8")

@@ -136,7 +136,7 @@ test('a late announcement after timeout does not throw (listeners torn down)', a
 // ---------------------------------------------------------------------------
 
 function mkTmpReadyFile() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ready-test-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ready-test-'))
 
   return {
     dir,
@@ -227,7 +227,7 @@ test('exit-before-announcement error carries the buffered output tail (stdout pa
 
 test('exit-before-announcement error carries the buffered output tail (ready-file path)', async () => {
   const child = makeFakeChild()
-  const readyFile = path.join(os.tmpdir(), `hermes-ready-${process.pid}-${Date.now()}.json`)
+  const readyFile = path.join(os.tmpdir(), `kova-ready-${process.pid}-${Date.now()}.json`)
 
   const wait = waitForDashboardPortAnnouncement(child, {
     describeOutputTail: () => '\nRecent backend output:\nTraceback (most recent call last)',

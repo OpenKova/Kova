@@ -1,6 +1,6 @@
-"""``hermes update`` refreshes the installed macOS ``Kova.app`` from the rebuilt bundle (#52339).
+"""``kova update`` refreshes the installed macOS ``Kova.app`` from the rebuilt bundle (#52339).
 
-``hermes desktop --build-only`` only packages into ``apps/desktop/release/``; Finder launches the
+``kova desktop --build-only`` only packages into ``apps/desktop/release/``; Finder launches the
 copy in ``/Applications``. These pin the contract of ``_install_rebuilt_macos_bundles``: a stale
 or missing installed copy is (re)installed, a current one and a running one are never touched, and
 a failed swap leaves the previous bundle launchable. Which paths count as installed is decided by
@@ -178,12 +178,12 @@ def test_failed_swap_keeps_the_previous_bundle_launchable(rebuilt, tmp_path, mon
 @pytest.mark.platforms("macos")
 def test_recorded_app_that_went_missing_comes_back_until_gui_uninstall(rebuilt, tmp_path, monkeypatch):
     from kova_cli import gui_uninstall
-    from kova_cli import main as hermes_main
+    from kova_cli import main as kova_main
 
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     (home / "kova-agent").mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", home / "kova-agent")
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", home / "kova-agent")
     (rebuilt / "Contents" / "Resources" / "install-stamp.json").write_text('{"updateMechanism": "self"}', encoding="utf-8")
     app = tmp_path / "Applications" / "Kova.app"
     shutil.copytree(rebuilt, app)

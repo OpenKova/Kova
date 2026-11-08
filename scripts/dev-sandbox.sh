@@ -169,7 +169,7 @@ else
   SANDBOX_ROOT="$(mktemp -d -t "${TEMP_PREFIX}.XXXXXX")"
 fi
 
-export KOVA_HOME="$SANDBOX_ROOT/hermes-home"
+export KOVA_HOME="$SANDBOX_ROOT/kova-home"
 export KOVA_DESKTOP_USER_DATA_DIR="$SANDBOX_ROOT/user-data"
 export KOVA_DESKTOP_APP_NAME="$SANDBOX_NAME"
 

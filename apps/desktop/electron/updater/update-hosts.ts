@@ -99,12 +99,12 @@ export function configuredUpdateHosts(
 
   // The npmrc the update's npm and pnpm children read (pm.index_config.user_npmrc): an explicit
   // userconfig, else the profile's $KOVA_HOME/npmrc, which replaces ~/.npmrc when it exists.
-  const hermesNpmrc = kovaHome ? path.join(kovaHome, 'npmrc') : ''
+  const kovaNpmrc = kovaHome ? path.join(kovaHome, 'npmrc') : ''
 
   const npmrc =
     env.npm_config_userconfig ||
     env.NPM_CONFIG_USERCONFIG ||
-    (hermesNpmrc && existsSync(hermesNpmrc) ? hermesNpmrc : path.join(home, '.npmrc'))
+    (kovaNpmrc && existsSync(kovaNpmrc) ? kovaNpmrc : path.join(home, '.npmrc'))
 
   values.push(...iniValues(readText(npmrc), '', ['registry']))
 

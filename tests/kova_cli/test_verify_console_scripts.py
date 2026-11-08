@@ -21,9 +21,9 @@ def temp_pyproject(tmp_path, monkeypatch):
         version = "0.0.0"
 
         [project.scripts]
-        hermes = "kova_cli.main:main"
+        kova = "kova_cli.main:main"
         kova-agent = "run_agent:main"
-        hermes-acp = "acp_adapter.entry:main"
+        kova-acp = "acp_adapter.entry:main"
     """
         )
     )
@@ -46,7 +46,7 @@ class TestKovaExeShims:
     def test_shims_include_declared_console_scripts(
         self, temp_pyproject, fake_scripts_dir
     ):
-        names = {path.name for path in main_install_repair._hermes_exe_shims(fake_scripts_dir)}
+        names = {path.name for path in main_install_repair._kova_exe_shims(fake_scripts_dir)}
 
-        assert {"hermes.exe", "kova-agent.exe", "hermes-acp.exe"} <= names
+        assert {"kova.exe", "kova-agent.exe", "kova-acp.exe"} <= names
         assert "kova-gateway.exe" in names

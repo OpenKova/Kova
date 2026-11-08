@@ -61,7 +61,7 @@ def _swallow(fn, default):
         return default
 
 
-def _hermes_root(home: Path) -> Path:
+def _kova_root(home: Path) -> Path:
     """Root ~/.kova for both the default profile and named profiles."""
     return home.parent.parent if home.parent.name == "profiles" else home
 
@@ -72,15 +72,15 @@ def _profile_name(home: Path) -> str:
 
 def _handle(name: str, names: Collection[str]) -> str:
     """The @handle a local profile answers to; ``names`` are the roster's folder ids. The default
-    profile is @hermes only while no real profile holds that name: a pre-reservation
-    ``profiles/hermes`` keeps @hermes, and the default answers to @default."""
-    return "hermes" if name == "default" and "hermes" not in names else name
+    profile is @kova only while no real profile holds that name: a pre-reservation
+    ``profiles/kova`` keeps @kova, and the default answers to @default."""
+    return "kova" if name == "default" and "kova" not in names else name
 
 
 def _profile_for_handle(handle: str, names: Collection[str]) -> str:
-    """The folder id a bare @handle names on this install: @hermes is the default profile's alias
-    only while no real profile holds that name (a pre-reservation ``profiles/hermes`` keeps it)."""
-    return "default" if handle == "hermes" and "hermes" not in names else handle
+    """The folder id a bare @handle names on this install: @kova is the default profile's alias
+    only while no real profile holds that name (a pre-reservation ``profiles/kova`` keeps it)."""
+    return "default" if handle == "kova" and "kova" not in names else handle
 
 
 def _roster(root: Path) -> list[tuple[str, Path]]:
@@ -140,7 +140,7 @@ def is_bot_mode_managed(home: str | os.PathLike | None = None) -> bool:
     """True when ANY profile on this install is Bot-Mode-managed. Never raises. The
     ``message_agent`` injection gate — deliberately independent of the protocol section's
     emptiness: a SOUL.md carrying the legacy protocol gets an empty section but still gets the tool."""
-    return _swallow(lambda: _any_managed(_hermes_root(_resolve_home(home))), False)
+    return _swallow(lambda: _any_managed(_kova_root(_resolve_home(home))), False)
 
 
 def _role_line(*parts: str) -> str:
@@ -184,12 +184,12 @@ def _friendly_names(profile_dir: Path) -> tuple[str, str]:
 def _display_name(name: str, profile_dir: Path, names: Collection[str]) -> str:
     """Human-facing sender name, in the Desktop's ``botFriendlyNames`` order: Bot Mode title,
     then profile.yaml ``display_name`` (``kova profile rename``), else the @handle — the
-    renamed primary signs as ``Maia (@hermes)``, not ``kova (@hermes)`` (#89720)."""
+    renamed primary signs as ``Maia (@kova)``, not ``kova (@kova)`` (#89720)."""
     return next((n for n in _friendly_names(profile_dir) if n), None) or _handle(name, names)
 
 
-# Tokens the Desktop mention parser reserves; a bot titled "Kova" never hijacks @hermes.
-_RESERVED_ALIASES = frozenset({"all", "everyone", "user", "default", "hermes"})
+# Tokens the Desktop mention parser reserves; a bot titled "Kova" never hijacks @kova.
+_RESERVED_ALIASES = frozenset({"all", "everyone", "user", "default", "kova"})
 
 
 def alias_forms(value: str) -> set[str]:
@@ -245,8 +245,8 @@ def local_taken_forms(home: Path) -> set[str]:
     """Bare forms this install's own profiles answer to: folder ids, @handles and friendly-name
     slugs. A remote row must not be offered under any of them, since local resolution wins
     (``_resolve_local_name`` accepts the folder id ``default`` even while the default shows as
-    @hermes). Read from the install root, so a named profile's home sees its siblings too."""
-    root = _hermes_root(home)
+    @kova). Read from the install root, so a named profile's home sees its siblings too."""
+    root = _kova_root(home)
     names = [name for name, _d in _roster(root)]
     return set(names) | {_handle(name, names) for name in names} | set(local_alias_map(root))
 
@@ -286,7 +286,7 @@ def _peer_paragraph(root: Path) -> str:
 
 
 def _build_section(home: Path) -> str:
-    root = _hermes_root(home)
+    root = _kova_root(home)
     me = _profile_name(home)
     if not _any_managed(root):
         return ""
@@ -395,7 +395,7 @@ def capability_fingerprint(home: str | os.PathLike | None = None) -> str:
     import json
 
     resolved = _resolve_home(home)
-    root = _hermes_root(resolved)
+    root = _kova_root(resolved)
     surface: dict = {}
     try:
         # Canonical loader (managed overlay + env expansion + normalization),

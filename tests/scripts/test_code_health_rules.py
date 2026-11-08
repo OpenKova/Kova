@@ -317,9 +317,9 @@ def test_hardcoded_home_matches_the_exact_component(expr, flagged):
 
 @pytest.mark.parametrize("src, flagged", [
     ('"""Unlike `ps aux`, this reads /proc."""\n', False),
-    ('def f():\n    """Never `pgrep -f hermes`: argv substrings lie."""\n    return 1\n', False),
+    ('def f():\n    """Never `pgrep -f kova`: argv substrings lie."""\n    return 1\n', False),
     ('import subprocess\n\n\ndef f():\n    return subprocess.run("ps aux", shell=True, timeout=5)\n', True),
-    ('CMD = "pgrep -f hermes"\n', True),
+    ('CMD = "pgrep -f kova"\n', True),
     ('def f(n):\n    return f"pgrep -f {n}"\n', True),
 ])
 def test_argv_identity_ignores_docstrings(src, flagged):

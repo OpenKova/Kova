@@ -10,8 +10,8 @@ description: >-
   warns on recall and prefetch payloads (flag-and-warn, fail-open by design, not a blocking
   filter). Includes a 34-command CLI, destructive-op gates with automatic backups, and an
   append-only audit log. Disclosure — all memory data (vault markdown, memory.db, index.db, backups) stays local under
-  HERMES_HOME/entropicmem/; a shared publish DB defaults to HERMES_HOME/entropicmem-shared/. The CLI init command appends
-  ENTROPICMEM_* settings to HERMES_HOME/.env (append-only). Vector embeddings are off by default; only with
+  KOVA_HOME/entropicmem/; a shared publish DB defaults to KOVA_HOME/entropicmem-shared/. The CLI init command appends
+  ENTROPICMEM_* settings to KOVA_HOME/.env (append-only). Vector embeddings are off by default; only with
   embeddings_enabled: true (provider) or ENTROPICMEM_EMBEDDINGS=1 / query --semantic (CLI) and the optional
   sentence-transformers extra installed does first use download all-MiniLM-L6-v2 weights from huggingface.co;
   otherwise the provider has no network egress. The CLI ingest command fetches a user-supplied URL; CLI

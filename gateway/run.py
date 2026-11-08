@@ -4775,7 +4775,7 @@ def _looks_like_profile_conflict_from_cmdline(command: str, our_home) -> bool:
         # profile flags). Default/root home: ANY explicit named-profile flag contradicts it.
         if profile_name is None or profile_name == "default" or value != profile_name:
             return True
-    home_value = _flag_value("--hermes-home") or _env_home_value()
+    home_value = _flag_value("--kova-home") or _env_home_value()
     return bool(home_value is not None and _norm(home_value) != _norm(str(our_home)))
 
 

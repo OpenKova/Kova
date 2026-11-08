@@ -1,6 +1,6 @@
 """Hermetic subprocess harness for the OAuth E2E tests (fake HOME, tagged tree).
 
-Every ``hermes`` child runs with an allowlisted environment (no inherited
+Every ``kova`` child runs with an allowlisted environment (no inherited
 credentials or ``KOVA_*``), ``HOME``/``KOVA_HOME`` under ``tmp_path``, and
 a unique ``OAUTH_E2E_TAG`` so cleanup signals only this test's processes.
 """
@@ -83,21 +83,21 @@ def make_home(root: Path) -> FakeHome:
     return fh
 
 
-def hermes_argv(*args: str) -> list[str]:
+def kova_argv(*args: str) -> list[str]:
     return [sys.executable, "-m", "kova_cli.main", *args]
 
 
-def run_hermes(fh: FakeHome, args: list[str], *, extra_env: dict[str, str] | None = None,
+def run_kova(fh: FakeHome, args: list[str], *, extra_env: dict[str, str] | None = None,
                timeout: float = 120.0) -> subprocess.CompletedProcess:
-    return subprocess.run(hermes_argv(*args), env=fh.env(extra_env), cwd=str(fh.root), stdin=subprocess.DEVNULL,
+    return subprocess.run(kova_argv(*args), env=fh.env(extra_env), cwd=str(fh.root), stdin=subprocess.DEVNULL,
                           capture_output=True, text=True, timeout=timeout, check=False)
 
 
-def spawn_hermes(fh: FakeHome, args: list[str], *, extra_env: dict[str, str] | None = None,
+def spawn_kova(fh: FakeHome, args: list[str], *, extra_env: dict[str, str] | None = None,
                  log: Path) -> subprocess.Popen:
     out = open(log, "w", encoding="utf-8")
     try:
-        return subprocess.Popen(hermes_argv(*args), env=fh.env(extra_env), cwd=str(fh.root),
+        return subprocess.Popen(kova_argv(*args), env=fh.env(extra_env), cwd=str(fh.root),
                                 stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT, text=True)
     finally:
         out.close()

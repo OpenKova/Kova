@@ -1,6 +1,6 @@
-"""`hermes gateway stop|restart|start` from a sandbox home must never operate ANOTHER install's systemd unit.
+"""`kova gateway stop|restart|start` from a sandbox home must never operate ANOTHER install's systemd unit.
 
-Real incident: an e2e helper ran `hermes gateway stop` with a throwaway ``HOME`` and
+Real incident: an e2e helper ran `kova gateway stop` with a throwaway ``HOME`` and
 ``KOVA_HOME=$HOME/.kova`` on a host whose production gateway is the system unit
 ``kova-gateway.service`` (``Environment=KOVA_HOME=/root/.kova``). The sandbox home is the
 "default" home relative to its own ``HOME``, so the service name resolved to the bare

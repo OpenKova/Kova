@@ -141,8 +141,8 @@ test('normalizeKovaHomeRoot maps profile homes back to the global Kova root', ()
     '/Users/test/.kova'
   )
   assert.equal(
-    normalizeKovaHomeRoot('C:\\Users\\test\\AppData\\Local\\hermes\\profiles\\oracle', { pathModule: path.win32 }),
-    'C:\\Users\\test\\AppData\\Local\\hermes'
+    normalizeKovaHomeRoot('C:\\Users\\test\\AppData\\Local\\kova\\profiles\\oracle', { pathModule: path.win32 }),
+    'C:\\Users\\test\\AppData\\Local\\kova'
   )
   assert.equal(normalizeKovaHomeRoot('/Users/test/.kova', { pathModule: path.posix }), '/Users/test/.kova')
 })
@@ -161,7 +161,7 @@ test('appendUniquePathEntries flattens, dedupes, and preserves first occurrence'
 // `kova desktop` loads its launch profile's .env/.op.env into os.environ and
 // hands that env to Electron; these cover what a profile backend inherits (#68367).
 function withKovaRoot(files: Record<string, string>, run: (root: string) => void) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-env-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-profile-env-'))
 
   try {
     for (const [rel, contents] of Object.entries(files)) {
@@ -249,7 +249,7 @@ test('Desktop launched from a named profile keeps that profile out of the defaul
 })
 
 test('Windows matches profile homes and dotenv names case-insensitively', () => {
-  const root = 'C:\\Users\\test\\AppData\\Local\\hermes'
+  const root = 'C:\\Users\\test\\AppData\\Local\\kova'
   const files = { [`${root}\\.env`]: 'TELEGRAM_BOT_TOKEN=root-token\r\n' }
 
   const fsModule = {
@@ -263,7 +263,7 @@ test('Windows matches profile homes and dotenv names case-insensitively', () => 
   }
 
   const currentEnv = {
-    KOVA_HOME: 'c:\\users\\test\\appdata\\local\\HERMES',
+    KOVA_HOME: 'c:\\users\\test\\appdata\\local\\KOVA',
     Path: 'C:\\Windows',
     Telegram_Bot_Token: 'root-token'
   }

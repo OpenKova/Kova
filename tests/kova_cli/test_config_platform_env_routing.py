@@ -1,4 +1,4 @@
-"""``hermes config set/get/unset`` route every name Kova registers as an environment variable to
+"""``kova config set/get/unset`` route every name Kova registers as an environment variable to
 ``.env`` — the file the platform setup flows and ``/sethome`` already write (#111848)."""
 
 import pytest

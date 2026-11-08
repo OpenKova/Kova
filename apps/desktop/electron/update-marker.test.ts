@@ -49,7 +49,7 @@ afterEach(() => {
 })
 
 function tmpHome(tag: string) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `hermes-marker-${tag}-`))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `kova-marker-${tag}-`))
   homes.push(dir)
 
   return dir

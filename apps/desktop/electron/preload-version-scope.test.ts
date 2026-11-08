@@ -25,7 +25,7 @@ async function bridge(): Promise<VersionBridge> {
 
 // The renderer scopes the version request to the selected connection/profile;
 // dropping it here makes main answer from the primary route instead.
-it('forwards the connection/profile scope to hermes:version', async (): Promise<void> => {
+it('forwards the connection/profile scope to kova:version', async (): Promise<void> => {
   const exposed = await bridge()
   host.invoke.mockClear()
 

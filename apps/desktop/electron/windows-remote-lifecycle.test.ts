@@ -55,7 +55,7 @@ test('Windows spawn publishes the initial ownership record before releasing the 
       ownershipId,
       spawnNonce: '0123456789abcdef',
       profile: 'default',
-      kovaPath: 'C:\\Kova\\hermes.exe',
+      kovaPath: 'C:\\Kova\\kova.exe',
       kovaHome: 'C:\\Users\\andre\\.kova',
       tokenFingerprint: 'a'.repeat(32),
       startedAt: '2026-07-14T00:00:00.000Z'
@@ -74,7 +74,7 @@ test('Windows spawn publishes the initial ownership record before releasing the 
 test.runIf(process.platform === 'win32')(
   'Windows spawn waits on <marker>.lock and judges v2 claims: live refuses, dead is deleted under the lock',
   async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-win-marker-'))
+    const root = await mkdtemp(path.join(os.tmpdir(), 'kova-win-marker-'))
     const marker = path.join(root, '.kova-update-in-progress')
     const run = (command: string) => promisify(execCallback)(command, { timeout: 30_000 })
     const command = atomicWindowsSpawnCommand({ kovaHome: root, python: path.join(root, 'missing-python.exe') })
@@ -201,12 +201,12 @@ test('Windows relaunch gate refuses live and uncertain markers before executing 
       const script = scriptFromInvocation(command, options)
       scripts.push(script)
 
-      if (script.includes('Get-Command hermes -CommandType Application')) {
+      if (script.includes('Get-Command kova -CommandType Application')) {
         return JSON.stringify({
           os: 'Windows',
           arch: 'AMD64',
           kovaHome: 'C:\\Users\\alice\\.kova',
-          kovaPath: 'C:\\Kova\\hermes.exe',
+          kovaPath: 'C:\\Kova\\kova.exe',
           python: 'C:\\Kova\\python.exe'
         })
       }
@@ -243,7 +243,7 @@ test('Windows gates keep a dead marker while the checkout lock or a lease byte i
   // after the update_lock byte range -- owner byte + 16 R5b lease bytes at
   // 1048576 -- of the installer checkout and the runtime python's checkout is free.
   const decode = (command: string, options: SshExecOptions = {}) => scriptFromInvocation(command, options)
-  const runtime = { kovaHome: 'C:\\Users\\alice\\.kova', python: 'C:\\src\\hermes\\venv\\Scripts\\python.exe' }
+  const runtime = { kovaHome: 'C:\\Users\\alice\\.kova', python: 'C:\\src\\kova\\venv\\Scripts\\python.exe' }
   const spawnScript = decode(atomicWindowsSpawnCommand(runtime))
   let probeScript = ''
 
@@ -262,9 +262,9 @@ test('Windows gates keep a dead marker while the checkout lock or a lease byte i
 
   for (const script of [spawnScript, probeScript]) {
     assert.match(script, /\$lockFile\.Lock\(1048576,17\)/)
-    assert.match(script, /Combine\(\$gitdir,"hermes-update\.lock"\)/)
+    assert.match(script, /Combine\(\$gitdir,"kova-update\.lock"\)/)
     assert.match(script, /\$checkoutRoots=@\(\[IO\.Path\]::Combine\(\$installRoot,"kova-agent"\),/)
-    assert.ok(script.includes("GetDirectoryName('C:\\src\\hermes\\venv\\Scripts\\python.exe')"))
+    assert.ok(script.includes("GetDirectoryName('C:\\src\\kova\\venv\\Scripts\\python.exe')"))
   }
 
   const deleteAt = spawnScript.indexOf('[IO.File]::Delete($marker)')
@@ -308,11 +308,11 @@ test('Windows probe validates Kova and Python topology before selection', async 
         os: 'Windows',
         arch: 'AMD64',
         kovaHome: 'C:\\\\h',
-        kovaPath: 'C:\\\\h\\\\hermes.exe',
+        kovaPath: 'C:\\\\h\\\\kova.exe',
         python: 'C:\\\\h\\\\python.exe'
       })
     }),
-    'C:\\\\h\\\\hermes.exe'
+    'C:\\\\h\\\\kova.exe'
   )
 
   const explicitCheck = script.indexOf('if($explicit){Assert-NoReparse $explicit $false;')
@@ -344,7 +344,7 @@ const CLEAN_PROBE_RESULT = JSON.stringify({
   os: 'Windows',
   arch: 'AMD64',
   kovaHome: 'C:\\h',
-  kovaPath: 'C:\\h\\hermes.exe',
+  kovaPath: 'C:\\h\\kova.exe',
   python: 'C:\\h\\python.exe'
 })
 
@@ -377,7 +377,7 @@ test('Windows probe tolerates CLIXML progress-stream pollution around the probe 
 
     assert.equal(parsed.os, 'Windows')
     assert.equal(parsed.arch, 'AMD64')
-    assert.equal(parsed.kovaPath, 'C:\\h\\hermes.exe')
+    assert.equal(parsed.kovaPath, 'C:\\h\\kova.exe')
     assert.equal(parsed.python, 'C:\\h\\python.exe')
   }
 })
@@ -454,7 +454,7 @@ test('helper parsing ignores CLIXML progress blocks around its JSON line', async
       sshWith(async () => output),
       { python: 'C:\\py\\python.exe' },
       'inspect',
-      ['C:\\h\\hermes.exe']
+      ['C:\\h\\kova.exe']
     )
 
     assert.equal(parsed.supported, true)
@@ -477,7 +477,7 @@ test('Windows platform probe and marker gate send their scripts without stdin', 
         os: 'Windows',
         arch: 'AMD64',
         kovaHome: 'C:\\\\h',
-        kovaPath: 'C:\\\\h\\\\hermes.exe',
+        kovaPath: 'C:\\\\h\\\\kova.exe',
         python: 'C:\\\\h\\\\python.exe'
       })
     }
@@ -518,15 +518,15 @@ test('Windows platform probe preserves Unicode paths in its compressed command',
           os: 'Windows',
           arch: 'AMD64',
           kovaHome: 'C:\\\\h',
-          kovaPath: 'C:\\\\h\\\\hermes.exe',
+          kovaPath: 'C:\\\\h\\\\kova.exe',
           python: 'C:\\\\h\\\\python.exe'
         })
       }
     },
-    'C:\\Users\\한글\\hermes.exe'
+    'C:\\Users\\한글\\kova.exe'
   )
 
-  assert.ok(decodePowerShellCommand(command).includes('C:\\Users\\한글\\hermes.exe'))
+  assert.ok(decodePowerShellCommand(command).includes('C:\\Users\\한글\\kova.exe'))
 })
 
 test('every Windows remote command fits the cmd.exe 8191-char limit (#106716)', async () => {
@@ -550,7 +550,7 @@ test('every Windows remote command fits the cmd.exe 8191-char limit (#106716)', 
       os: 'Windows',
       arch: 'AMD64',
       kovaHome: 'C:\\h',
-      kovaPath: 'C:\\h\\hermes.exe',
+      kovaPath: 'C:\\h\\kova.exe',
       python: 'C:\\h\\python.exe'
     })
   })
@@ -558,7 +558,7 @@ test('every Windows remote command fits the cmd.exe 8191-char limit (#106716)', 
   // Worst-case path lengths: an explicit path and home near the deeper end of
   // what the connection settings allow.
   const longHome = `C:\\Users\\${'u'.repeat(100)}\\.kova\\profiles\\${'p'.repeat(100)}`
-  const longExplicit = `C:\\${'h'.repeat(200)}\\hermes.exe`
+  const longExplicit = `C:\\${'h'.repeat(200)}\\kova.exe`
 
   await probeWindowsRemote(ssh, longExplicit)
   await assertWindowsRemoteInstallUpdateClear(ssh, longHome, `${longHome}\\python.exe`)
@@ -621,8 +621,8 @@ function runLocalWindowsCommand(command, stdinData) {
 }
 
 test.skipIf(process.platform !== 'win32')('Windows platform probe executes in real PowerShell', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-probe-'))
-  const kovaPath = path.join(tempDir, 'hermes.exe')
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-probe-'))
+  const kovaPath = path.join(tempDir, 'kova.exe')
 
   try {
     fs.writeFileSync(kovaPath, '')
@@ -674,7 +674,7 @@ test.skipIf(process.platform !== 'win32')(
         }
       })
 
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-marker-'))
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-marker-'))
 
     try {
       await assertWindowsRemoteInstallUpdateClear(
@@ -704,7 +704,7 @@ test('platform detection preserves POSIX and falls back to Windows PowerShell', 
         os: 'Windows',
         arch: 'ARM64',
         kovaHome: 'C:\\h',
-        kovaPath: 'C:\\h\\hermes.exe',
+        kovaPath: 'C:\\h\\kova.exe',
         python: 'C:\\h\\python.exe'
       })
     })
@@ -796,15 +796,15 @@ test('platform detection preserves typed Windows probe failures', async () => {
 
 test('helper command enters through the launcher module dispatch and quotes path data', () => {
   // The shape update drain and bootstrap rollback rebuild from stored state: no runtime command.
-  const command = helperCommand({ kovaPath: "C:\\Program Files\\Kova's\\bin\\hermes.exe", kovaHome: 'C:\\h', python: '' }, 'inspect', [
-    'C:\\x y\\hermes.exe'
+  const command = helperCommand({ kovaPath: "C:\\Program Files\\Kova's\\bin\\kova.exe", kovaHome: 'C:\\h', python: '' }, 'inspect', [
+    'C:\\x y\\kova.exe'
   ])
 
   const encoded = command.split(' ').pop()!
   const script = Buffer.from(encoded, 'base64').toString('utf16le')
-  assert.match(script, /bin\\hermes\.exe' '--run-module' 'kova_cli\.windows_ssh_runtime' 'inspect'/)
+  assert.match(script, /bin\\kova\.exe' '--run-module' 'kova_cli\.windows_ssh_runtime' 'inspect'/)
   assert.match(script, /Kova''s/)
-  assert.match(script, /C:\\x y\\hermes\.exe/)
+  assert.match(script, /C:\\x y\\kova\.exe/)
 })
 
 test('Windows lock validation is scoped and exact', () => {
@@ -817,7 +817,7 @@ test('Windows lock validation is scoped and exact', () => {
     creationTimeNs: '1784219690452757504',
     port: 1234,
     tokenFingerprint: 'a'.repeat(32),
-    kovaPath: 'C:\\h\\hermes.exe',
+    kovaPath: 'C:\\h\\kova.exe',
     kovaHome: 'C:\\h'
   }
 
@@ -843,7 +843,7 @@ test('Windows SSH reuse requires the requested remote profile to match the lock'
     port: 1234,
     profile: 'default',
     tokenFingerprint: crypto.createHash('sha256').update(token).digest('hex').slice(0, 32),
-    kovaPath: 'C:\\h\\hermes.exe',
+    kovaPath: 'C:\\h\\kova.exe',
     kovaHome: 'C:\\h'
   }
 
@@ -873,7 +873,7 @@ test('managed update drain preserves a Windows owner when creation time does not
     port: 1234,
     profile: 'default',
     tokenFingerprint: 'a'.repeat(32),
-    kovaPath: 'C:\\h\\hermes.exe',
+    kovaPath: 'C:\\h\\kova.exe',
     kovaHome: 'C:\\h'
   }
 
@@ -915,7 +915,7 @@ test('managed update drain rechecks Windows PID/create-time ownership before exa
     port: 1234,
     profile: 'default',
     tokenFingerprint: 'a'.repeat(32),
-    kovaPath: 'C:\\h\\hermes.exe',
+    kovaPath: 'C:\\h\\kova.exe',
     kovaHome: 'C:\\h'
   }
 

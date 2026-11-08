@@ -133,10 +133,10 @@ def test_acp_switch_model_carries_the_live_agent_toolsets_into_the_rebuild(monke
         lambda **_kw: ModelSwitchResult(success=True, target_provider="anthropic", new_model="claude-sonnet-5"))
 
     agent, made = _acp_agent()
-    agent._switch_model(_state(enabled_toolsets=["hermes-acp", "mcp-demo-search"], disabled_toolsets=["browser"]),
+    agent._switch_model(_state(enabled_toolsets=["kova-acp", "mcp-demo-search"], disabled_toolsets=["browser"]),
                         "claude-sonnet-5")
 
-    assert made["enabled_toolsets"] == ["hermes-acp", "mcp-demo-search"]
+    assert made["enabled_toolsets"] == ["kova-acp", "mcp-demo-search"]
     assert made["disabled_toolsets"] == ["browser"]
 
 

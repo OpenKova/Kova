@@ -32,7 +32,7 @@ from agent.proxy_sources import iron_proxy as ip
 def kova_home(tmp_path, monkeypatch):
     """Point KOVA_HOME at a temp dir so install paths don't touch the real $HOME."""
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     # Make sure no stale provider keys influence discovery.
@@ -59,7 +59,7 @@ def test_management_token_path_is_single_authority(kova_home):
     assert not (kova_home / "proxy").exists()
 
     token = ip.ensure_management_token()
-    assert token.startswith("hermes-mgmt-")
+    assert token.startswith("kova-mgmt-")
     p = ip._management_token_path()
     assert p.is_file()
     assert p.read_text(encoding="utf-8-sig").strip() == token
@@ -431,7 +431,7 @@ def test_start_proxy_injects_management_key_env(kova_home, monkeypatch):
 
     ip.start_proxy(binary=fake_bin, config_path=cfg_path, install_if_missing=False)
     assert captured_env.get(ip._MGMT_API_KEY_ENV)
-    assert captured_env[ip._MGMT_API_KEY_ENV].startswith("hermes-mgmt-")
+    assert captured_env[ip._MGMT_API_KEY_ENV].startswith("kova-mgmt-")
 
 
 # ---------------------------------------------------------------------------

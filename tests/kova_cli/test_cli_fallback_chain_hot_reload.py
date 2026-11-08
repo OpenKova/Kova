@@ -1,6 +1,6 @@
 """An open classic-CLI chat adopts a ``fallback_providers`` chain added after it started (#95066).
 
-``KovaCLI`` holds one long-lived agent and read the chain once in ``__init__``; ``hermes fallback
+``KovaCLI`` holds one long-lived agent and read the chain once in ``__init__``; ``kova fallback
 add`` from another terminal never reached the open chat. The turn loop (``KovaCLI.chat``) now
 re-reads the chain fail-closed, so a torn config.yaml keeps the last known-good chain.
 """

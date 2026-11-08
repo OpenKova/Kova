@@ -171,7 +171,7 @@ describe('MarkdownImage stream-ticket renewal', () => {
   beforeEach(() => {
     let minted = 0
 
-    mint.mockReset().mockImplementation(async () => `https://hermes.test/api/files/stream?ticket=t${++minted}`)
+    mint.mockReset().mockImplementation(async () => `https://kova.test/api/files/stream?ticket=t${++minted}`)
     originalDesktop = window.kovaDesktop
     Object.defineProperty(window, 'kovaDesktop', { configurable: true, value: { getGatewayFileStreamUrl: mint } })
   })
@@ -184,13 +184,13 @@ describe('MarkdownImage stream-ticket renewal', () => {
   it('re-mints the source after a loaded element errors and resumes where it stopped', async () => {
     const { container } = render(<MarkdownImage alt="note" src="/srv/media/note.mp3" />)
 
-    await waitFor(() => expect(audioSrc(container)).toBe('https://hermes.test/api/files/stream?ticket=t1'))
+    await waitFor(() => expect(audioSrc(container)).toBe('https://kova.test/api/files/stream?ticket=t1'))
     const audio = container.querySelector('audio')!
     fireEvent.loadedMetadata(audio)
     audio.currentTime = 42
     fireEvent.error(audio)
 
-    await waitFor(() => expect(audioSrc(container)).toBe('https://hermes.test/api/files/stream?ticket=t2'))
+    await waitFor(() => expect(audioSrc(container)).toBe('https://kova.test/api/files/stream?ticket=t2'))
     audio.currentTime = 0
     fireEvent.loadedMetadata(audio)
     expect(audio.currentTime).toBe(42)
@@ -200,7 +200,7 @@ describe('MarkdownImage stream-ticket renewal', () => {
   it('offers the file instead when a source fails before it ever loads', async () => {
     const { container } = render(<MarkdownImage alt="note" src="/srv/media/note.mp3" />)
 
-    await waitFor(() => expect(audioSrc(container)).toBe('https://hermes.test/api/files/stream?ticket=t1'))
+    await waitFor(() => expect(audioSrc(container)).toBe('https://kova.test/api/files/stream?ticket=t1'))
     fireEvent.error(container.querySelector('audio')!)
 
     expect(await screen.findByText('Open audio file')).toBeTruthy()

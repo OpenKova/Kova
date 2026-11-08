@@ -1,4 +1,4 @@
-"""`hermes vault key migrate --to keychain|file` through the real argparse tree: the key moves, the
+"""`kova vault key migrate --to keychain|file` through the real argparse tree: the key moves, the
 vault still opens, and ``vault.key_storage`` follows so a recreated vault lands in the same place."""
 
 from __future__ import annotations
@@ -31,13 +31,13 @@ class _MemoryKeyring(KeyringBackend):
 
 
 @pytest.fixture
-def hermes(tmp_path, monkeypatch):
+def kova(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     backend = _MemoryKeyring()
     keyring.set_keyring(backend)
     from kova_cli.subcommands.vault import build_vault_parser
 
-    parser = argparse.ArgumentParser(prog="hermes")
+    parser = argparse.ArgumentParser(prog="kova")
     build_vault_parser(parser.add_subparsers())
 
     def run(*argv):
@@ -48,8 +48,8 @@ def hermes(tmp_path, monkeypatch):
     keyring.set_keyring(fail.Keyring())
 
 
-def test_vault_key_migrate_moves_the_key_and_records_the_choice(hermes, capsys):
-    run, backend, home = hermes
+def test_vault_key_migrate_moves_the_key_and_records_the_choice(kova, capsys):
+    run, backend, home = kova
     item = VaultStore().add_item("login", "Example", {"identifier_type": "email", "identifier": "jane@example.com",
                                                       "password": "dummy-pw-cli-9"}, origin="https://example.com").id
     from kova_cli.config import load_config
@@ -67,8 +67,8 @@ def test_vault_key_migrate_moves_the_key_and_records_the_choice(hermes, capsys):
 
 
 @pytest.mark.parametrize("target", ["keychain", "file"])
-def test_migrating_an_empty_vault_says_no_key_exists_yet(hermes, capsys, target):
-    run, backend, home = hermes
+def test_migrating_an_empty_vault_says_no_key_exists_yet(kova, capsys, target):
+    run, backend, home = kova
     run("key", "migrate", "--to", target)
     out = capsys.readouterr().out
     assert "No vault key exists yet" in out

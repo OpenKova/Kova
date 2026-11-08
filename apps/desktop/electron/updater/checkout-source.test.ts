@@ -122,8 +122,8 @@ function channelRecord(channel: 'stable' | 'canary', sequence: number): FixtureR
       artifactNamePascal: 'Kova',
       appId: 'chat.nous.kova',
       msixAppIdWithOrg: 'NeuralStudio.Kova',
-      cliName: 'hermes',
-      windowsExecutableName: 'hermes'
+      cliName: 'kova',
+      windowsExecutableName: 'kova'
     },
     head: {
       buildId: 'a'.repeat(32),
@@ -148,8 +148,8 @@ function buildManifest(
     artifactNamePascal: 'Kova',
     appId: 'chat.nous.kova',
     msixAppIdWithOrg: 'NeuralStudio.Kova',
-    cliName: 'hermes',
-    windowsExecutableName: 'hermes'
+    cliName: 'kova',
+    windowsExecutableName: 'kova'
   }
 
   const sequence: number = channel === 'stable' ? 1 : 2
@@ -169,7 +169,7 @@ function buildManifest(
       windowsVersion: `0.0.${sequence}.0`,
       identity,
       bundleEnv: {},
-      publicBase: 'https://hermes-assets.nousresearch.com'
+      publicBase: 'https://kova-assets.nousresearch.com'
     },
     packages: [
       {
@@ -298,7 +298,7 @@ def install():
     passthrough = original_build().open
     def local(request, *args, **kwargs):
         parsed = urlsplit(request.full_url if isinstance(request, urllib.request.Request) else request)
-        assert parsed.hostname in ('hermes-assets.nousresearch.com', 'api.github.com')
+        assert parsed.hostname in ('kova-assets.nousresearch.com', 'api.github.com')
         url = 'http://127.0.0.1:${address.port}' + parsed.path + ('?' + parsed.query if parsed.query else '')
         # ChannelReader compares response.geturl() against the ORIGINAL request url:
         # wrap so the redirect detector still sees the un-rewritten authority.
@@ -313,8 +313,8 @@ def install():
         opener.open = local
         return opener
     urllib.request.build_opener = local_build
-if not getattr(urllib.request, '_hermes_loopback', False):
-    urllib.request._hermes_loopback = True
+if not getattr(urllib.request, '_kova_loopback', False):
+    urllib.request._kova_loopback = True
     install()
 `
     )
@@ -408,7 +408,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     fs.mkdirSync(scriptDirectory, { recursive: true })
     fs.writeFileSync(path.join(scriptDirectory, 'runtime.ps1'), '')
     fs.mkdirSync(path.join(root, '.kova', 'bin'), { recursive: true })
-    fs.writeFileSync(path.join(root, '.kova', 'bin', 'hermes.exe'), '')
+    fs.writeFileSync(path.join(root, '.kova', 'bin', 'kova.exe'), '')
 
     for (const channel of ['stable', 'canary'] as const) {
       await setChannel(channel)

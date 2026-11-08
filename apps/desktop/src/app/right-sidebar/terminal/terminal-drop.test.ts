@@ -42,9 +42,9 @@ function transfer(files: File[], kovaPaths?: string[]): DataTransfer {
   return {
     files: list,
     getData: (type: string) =>
-      type === 'application/x-hermes-paths' && kovaPaths ? JSON.stringify(kovaPaths.map(path => ({ path }))) : '',
+      type === 'application/x-kova-paths' && kovaPaths ? JSON.stringify(kovaPaths.map(path => ({ path }))) : '',
     items: files.map(entry => ({ getAsFile: () => entry, kind: 'file' })),
-    types: [...(kovaPaths ? ['application/x-hermes-paths'] : []), ...(files.length ? ['Files'] : [])]
+    types: [...(kovaPaths ? ['application/x-kova-paths'] : []), ...(files.length ? ['Files'] : [])]
   } as unknown as DataTransfer
 }
 
@@ -103,14 +103,14 @@ describe('terminal drop in the browser-hosted Desktop', () => {
   }
 
   it('stages each dropped file on the host and types its quoted host path', async () => {
-    const stage = browserBridge(async entry => `/srv/hermes/uploads/${entry.name}`)
+    const stage = browserBridge(async entry => `/srv/kova/uploads/${entry.name}`)
     const { host, unbind, write } = bind('bash')
 
     const event = drop(host, transfer([file("it's.txt"), file('b c.log')]))
 
     expect(event.defaultPrevented).toBe(true)
     await vi.waitFor(() => expect(write).toHaveBeenCalledTimes(1))
-    expect(write).toHaveBeenCalledWith('term-1', "'/srv/hermes/uploads/it'\\''s.txt' '/srv/hermes/uploads/b c.log' ")
+    expect(write).toHaveBeenCalledWith('term-1', "'/srv/kova/uploads/it'\\''s.txt' '/srv/kova/uploads/b c.log' ")
     expect(stage).toHaveBeenCalledTimes(2)
     unbind()
   })
@@ -126,24 +126,24 @@ describe('terminal drop in the browser-hosted Desktop', () => {
   })
 
   it('keeps in-app paths and staged files in drop order', async () => {
-    browserBridge(async entry => `/srv/hermes/uploads/${entry.name}`)
+    browserBridge(async entry => `/srv/kova/uploads/${entry.name}`)
     const { host, unbind, write } = bind('zsh')
 
     drop(host, transfer([file('notes.md')], ['/work/project/src']))
 
     await vi.waitFor(() =>
-      expect(write).toHaveBeenCalledWith('term-1', "'/work/project/src' '/srv/hermes/uploads/notes.md' ")
+      expect(write).toHaveBeenCalledWith('term-1', "'/work/project/src' '/srv/kova/uploads/notes.md' ")
     )
     unbind()
   })
 
   it('never uploads a file over 16 MiB and names it in a warning', async () => {
-    const stage = browserBridge(async entry => `/srv/hermes/uploads/${entry.name}`)
+    const stage = browserBridge(async entry => `/srv/kova/uploads/${entry.name}`)
     const { host, unbind, write } = bind('bash')
 
     drop(host, transfer([file('huge.iso', 16 * MIB + 1), file('small.txt', 16 * MIB)]))
 
-    await vi.waitFor(() => expect(write).toHaveBeenCalledWith('term-1', "'/srv/hermes/uploads/small.txt' "))
+    await vi.waitFor(() => expect(write).toHaveBeenCalledWith('term-1', "'/srv/kova/uploads/small.txt' "))
     expect(stage).toHaveBeenCalledTimes(1)
     expect(stage.mock.calls[0][0].name).toBe('small.txt')
     const [warning] = $notifications.get()
@@ -570,10 +570,10 @@ describe("terminal drop types each path as one literal word of the terminal's sh
 
   it('types each % outside the quotes so cmd expands no variable into the path', () => {
     // A variable whose value holds a quote would turn the rest of the name into a command.
-    const env = { HERMESPROBE: 'X"&calc&"Y', PATH: 'C:\\Windows\\system32' }
+    const env = { KOVAPROBE: 'X"&calc&"Y', PATH: 'C:\\Windows\\system32' }
 
     for (const path of [
-      'C:\\work\\a%HERMESPROBE%b.txt',
+      'C:\\work\\a%KOVAPROBE%b.txt',
       'C:\\work\\a%PATH%b.txt',
       'C:\\work\\my%20file%20name.pdf',
       'C:\\work\\100%'
@@ -628,10 +628,10 @@ describe("terminal drop types each path as one literal word of the terminal's sh
 })
 
 describe('terminal drop in cmd with delayed expansion', () => {
-  const env = { HERMESPROBE: 'X"&calc&"Y', PATH: 'C:\\Windows\\system32' }
+  const env = { KOVAPROBE: 'X"&calc&"Y', PATH: 'C:\\Windows\\system32' }
 
   it('types the same words whether delayed expansion is on or off', () => {
-    for (const path of ['C:\\work\\a%HERMESPROBE%b.txt', 'C:\\work\\a^b & c.txt', 'C:\\work\\100%', 'C:\\work\\a b (1).txt']) {
+    for (const path of ['C:\\work\\a%KOVAPROBE%b.txt', 'C:\\work\\a^b & c.txt', 'C:\\work\\100%', 'C:\\work\\a b (1).txt']) {
       const typed = droppedText('cmd.exe', path)
       expect(cmdWords(typed, env)).toEqual([path])
       expect(cmdWords(typed, env, { delayed: true })).toEqual([path])
@@ -639,16 +639,16 @@ describe('terminal drop in cmd with delayed expansion', () => {
   })
 
   // cmd can't be asked whether delayed expansion is on, and no quoting keeps a '!' literal in both
-  // modes: with it on, !HERMESPROBE! is replaced inside the quotes and a lone '!' is dropped.
+  // modes: with it on, !KOVAPROBE! is replaced inside the quotes and a lone '!' is dropped.
   it('never types a path holding "!" and names it in a warning', () => {
     const { host, unbind, write } = bind('cmd.exe')
 
-    drop(host, transfer([], ['C:\\work\\a!HERMESPROBE!b.txt', 'C:\\work\\wow!.txt', 'C:\\work\\ok.txt']))
+    drop(host, transfer([], ['C:\\work\\a!KOVAPROBE!b.txt', 'C:\\work\\wow!.txt', 'C:\\work\\ok.txt']))
 
     expect(typedText(write)).toBe('"C:\\work\\ok.txt" ')
     const [warning] = $notifications.get()
     expect(warning?.kind).toBe('warning')
-    expect(warning?.message).toContain('C:\\work\\a!HERMESPROBE!b.txt')
+    expect(warning?.message).toContain('C:\\work\\a!KOVAPROBE!b.txt')
     expect(warning?.message).toContain('C:\\work\\wow!.txt')
     expect(warning?.message).not.toContain('ok.txt')
     unbind()

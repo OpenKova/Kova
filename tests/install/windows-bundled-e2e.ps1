@@ -9,7 +9,7 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or $env:OS -ne 'Windows_NT') { throw 'Dispos
 $Repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $Assets = Join-Path $PSScriptRoot 'e2e-assets'
 if (-not $ManifestUrl) { throw 'ManifestUrl is required for ordinary package updates' }
-$Work = Join-Path $env:RUNNER_TEMP 'hermes-bundled-update'
+$Work = Join-Path $env:RUNNER_TEMP 'kova-bundled-update'
 if (Test-Path $Work) { throw "Refusing to reuse $Work" }
 $Proof = Join-Path $Work 'proof'
 New-Item -ItemType Directory -Path $Proof -Force | Out-Null

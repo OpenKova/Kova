@@ -38,7 +38,7 @@ export interface InstallFacts {
   home: string
   kovaHome: string
   checkout: string
-  hermes: string
+  kova: string
   origin: string
   env: Record<string, string>
   headSha: string
@@ -148,7 +148,7 @@ export function releaseDir(facts: InstallFacts): string {
 /** The packaged executable `kova desktop` built into the install (electron-builder names it after productName). */
 export function packagedExe(facts: InstallFacts): string {
   const dir = releaseDir(facts)
-  const name = fs.readdirSync(dir).find(entry => /^hermes$/i.test(entry))
+  const name = fs.readdirSync(dir).find(entry => /^kova$/i.test(entry))
 
   if (!name) {
     throw new Error(`no packaged Kova executable in ${dir}: ${fs.readdirSync(dir).join(', ')}`)
@@ -202,7 +202,7 @@ export function appEnv(facts: InstallFacts, extra: Record<string, string> = {}):
     ...displayEnv(),
     KOVA_DESKTOP_USER_DATA_DIR: userDataDir(facts),
     KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1',
-    // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
+    // Never repoint the user's OS kova:// handler (HKCU on Windows) at a test checkout.
     KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
     KOVA_DESKTOP_CDP_PORT: 'off',
     ...extra

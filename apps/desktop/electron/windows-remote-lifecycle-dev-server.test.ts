@@ -8,7 +8,7 @@ import { connectWindowsRemote, decodePowerShellCommand } from './windows-remote-
 const OWNERSHIP_ID = '0123456789abcdef0123456789abcdef'
 const SPAWN_NONCE = '0123456789abcdef'
 const REUSE_TOKEN = 'stored-token'
-const KOVA_PATH = 'C:\\h\\hermes.exe'
+const KOVA_PATH = 'C:\\h\\kova.exe'
 const KOVA_HOME = 'C:\\h'
 
 function fingerprint(token: string): string {
@@ -55,7 +55,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
         return JSON.stringify({ pid: 890, creationTimeNs: '1784219690452757600' })
       }
 
-      if (script.includes('Get-Command hermes')) {
+      if (script.includes('Get-Command kova')) {
         return JSON.stringify({ os: 'Windows', arch: 'AMD64', kovaHome: KOVA_HOME, kovaPath: KOVA_PATH, python: 'C:\\h\\python.exe' })
       }
 

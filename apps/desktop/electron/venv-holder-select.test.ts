@@ -20,7 +20,7 @@ test('matches the hindsight daemon shim (exe under venv Scripts + hindsight cmdl
 test('Windows path prefix match is ordinal case-insensitive', () => {
   assert.equal(
     isKovaOwnedVenvDaemon(
-      'c:\\hermes\\venv\\scripts\\python.exe',
+      'c:\\kova\\venv\\scripts\\python.exe',
       'python.exe -m hindsight_api.main --daemon',
       'C:\\Kova\\venv\\Scripts'
     ),
@@ -29,8 +29,8 @@ test('Windows path prefix match is ordinal case-insensitive', () => {
 })
 
 test('excludes external venv holders that are not the hindsight daemon', () => {
-  // a user terminal running the hermes CLI from the venv — must NOT be killed
-  assert.equal(isKovaOwnedVenvDaemon('C:\\Kova\\venv\\Scripts\\hermes.exe', 'kova chat -q "hi"', SCRIPTS), false)
+  // a user terminal running the kova CLI from the venv — must NOT be killed
+  assert.equal(isKovaOwnedVenvDaemon('C:\\Kova\\venv\\Scripts\\kova.exe', 'kova chat -q "hi"', SCRIPTS), false)
   // an unrelated python script using the venv interpreter
   assert.equal(
     isKovaOwnedVenvDaemon('C:\\Kova\\venv\\Scripts\\python.exe', 'python C:\\tools\\import.py', SCRIPTS),
@@ -58,18 +58,18 @@ test('null/undefined fields never match', () => {
 
 // --- isExternalVenvHolder (#62311) ------------------------------------------
 
-test('matches the autostart gateway shim (hermes.exe under venv Scripts)', () => {
+test('matches the autostart gateway shim (kova.exe under venv Scripts)', () => {
   assert.equal(
     isExternalVenvHolder(
-      'C:\\Kova\\venv\\Scripts\\hermes.exe',
-      '"C:\\Kova\\venv\\Scripts\\hermes.exe" gateway run --external-supervisor',
+      'C:\\Kova\\venv\\Scripts\\kova.exe',
+      '"C:\\Kova\\venv\\Scripts\\kova.exe" gateway run --external-supervisor',
       SCRIPTS
     ),
     true
   )
 })
 
-test('matches the dashboard scheduled task (python -m kova_cli / -m hermes)', () => {
+test('matches the dashboard scheduled task (python -m kova_cli / -m kova)', () => {
   assert.equal(
     isExternalVenvHolder(
       'C:\\Kova\\venv\\Scripts\\python.exe',
@@ -97,17 +97,17 @@ test('never matches an unrelated process that merely borrows the venv interprete
   )
 })
 
-test('never matches a process outside the venv, even with hermes in the cmdline', () => {
+test('never matches a process outside the venv, even with kova in the cmdline', () => {
   // an editor / shell whose command line mentions the install root (#62445 regression guard)
   assert.equal(
     isExternalVenvHolder('C:\\Windows\\System32\\cmd.exe', 'cmd /c cd C:\\Kova\\venv\\Scripts && dir', SCRIPTS),
     false
   )
-  assert.equal(isExternalVenvHolder('C:\\Other\\hermes.exe', 'kova gateway run', SCRIPTS), false)
+  assert.equal(isExternalVenvHolder('C:\\Other\\kova.exe', 'kova gateway run', SCRIPTS), false)
 })
 
 test('sibling-dir and boundary safety for the external selector', () => {
-  assert.equal(isExternalVenvHolder('C:\\Kova\\venv\\ScriptsX\\hermes.exe', 'kova gateway run', SCRIPTS), false)
+  assert.equal(isExternalVenvHolder('C:\\Kova\\venv\\ScriptsX\\kova.exe', 'kova gateway run', SCRIPTS), false)
   assert.equal(isExternalVenvHolder(null, 'kova gateway run', SCRIPTS), false)
-  assert.equal(isExternalVenvHolder('C:\\Kova\\venv\\Scripts\\hermes.exe', null, SCRIPTS), false)
+  assert.equal(isExternalVenvHolder('C:\\Kova\\venv\\Scripts\\kova.exe', null, SCRIPTS), false)
 })

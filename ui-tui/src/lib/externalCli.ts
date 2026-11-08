@@ -5,7 +5,7 @@ export interface LaunchResult {
   error?: string
 }
 
-const resolveKovaBin = () => process.env.KOVA_BIN?.trim() || 'hermes'
+const resolveKovaBin = () => process.env.KOVA_BIN?.trim() || 'kova'
 
 export const launchKovaCommand = (args: string[]): Promise<LaunchResult> =>
   new Promise(resolve => {

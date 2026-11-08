@@ -191,13 +191,13 @@ function expandRemotePath(p) {
   return shq(p)
 }
 
-// Resolve the remote hermes executable. An EXPLICIT path is honored strictly
+// Resolve the remote kova executable. An EXPLICIT path is honored strictly
 // (throws a path-naming error if not executable — never silently falls back to a
 // different install). A BLANK path auto-detects: login-shell `command -v` (a
 // non-login `ssh host cmd` PATH misses user installs), then known install paths.
 async function locateKova(ssh, remoteKovaPath) {
   const resolveLauncher = async (candidate: string) => {
-    // Return the candidate path directly. The hermes binary or wrapper script
+    // Return the candidate path directly. The kova binary or wrapper script
     // is executable and handles argument forwarding (e.g. `exec <python> <script> "$@"`)
     // correctly on its own. Previously, this function followed `exec` wrappers and
     // returned only the python interpreter, which broke:
@@ -226,18 +226,18 @@ async function locateKova(ssh, remoteKovaPath) {
 
     const err: any = new Error(
       `The Kova path you set is not an executable on the remote host: "${remoteKovaPath}". ` +
-        'Check the path (it must be the full path to the `hermes` binary on the remote, e.g. ' +
-        '~/kova-agent/.venv/bin/hermes), or clear it to auto-detect.'
+        'Check the path (it must be the full path to the `kova` binary on the remote, e.g. ' +
+        '~/kova-agent/.venv/bin/kova), or clear it to auto-detect.'
     )
 
-    err.kind = 'hermes-not-found'
+    err.kind = 'kova-not-found'
     throw err
   }
 
   const candidates: string[] = []
 
   try {
-    const found = (await ssh.exec(`bash -lc ${shq('command -v hermes')}`)).trim()
+    const found = (await ssh.exec(`bash -lc ${shq('command -v kova')}`)).trim()
 
     if (found) {
       candidates.push(found.split('\n').pop().trim())
@@ -248,9 +248,9 @@ async function locateKova(ssh, remoteKovaPath) {
 
   // Fallback candidates when the login-shell probe misses: the installer's
   // command locations (scripts/install.sh) — per-user, root/FHS, legacy venv.
-  candidates.push('~/.local/bin/hermes')
-  candidates.push('/usr/local/bin/hermes')
-  candidates.push('~/.kova/kova-agent/venv/bin/hermes')
+  candidates.push('~/.local/bin/kova')
+  candidates.push('/usr/local/bin/kova')
+  candidates.push('~/.kova/kova-agent/venv/bin/kova')
 
   for (const candidate of candidates) {
     if (!candidate) {
@@ -263,17 +263,17 @@ async function locateKova(ssh, remoteKovaPath) {
   }
 
   const err: any = new Error(
-    'Kova is not installed on the remote host (could not find a `hermes` executable). ' +
+    'Kova is not installed on the remote host (could not find a `kova` executable). ' +
       'Install it on the remote with:  curl -fsSL https://kova-agent.nousresearch.com/install.sh | sh  ' +
       '— or set the Kova path explicitly in the SSH connection settings.'
   )
 
-  err.kind = 'hermes-not-found'
+  err.kind = 'kova-not-found'
   throw err
 }
 
-// Probe the resolved binary's version string (first line of `<hermes> --version`,
-// e.g. "Kova Agent v0.18.2 ..."), or '' on failure. Surfaces WHICH hermes a
+// Probe the resolved binary's version string (first line of `<kova> --version`,
+// e.g. "Kova Agent v0.18.2 ..."), or '' on failure. Surfaces WHICH kova a
 // connection uses, so a stale/unexpected install is visible.
 async function probeKovaVersion(ssh, kovaPath) {
   try {
@@ -345,12 +345,12 @@ async function probeRemoteKovaHome(ssh) {
  */
 async function assertRemoteInstallUpdateClear(ssh, kovaHome, kovaPath = '') {
   const marker = expandRemotePath(`${remoteInstallRoot(kovaHome)}/.kova-update-in-progress`)
-  const hermes = kovaPath ? ` '' ${expandRemotePath(kovaPath)}` : ''
+  const kova = kovaPath ? ` '' ${expandRemotePath(kovaPath)}` : ''
   let observation = ''
 
   try {
     observation =
-      String(await ssh.exec(`python3 - ${marker}${hermes}`, { stdinData: REMOTE_MARKER_GATE_PY }))
+      String(await ssh.exec(`python3 - ${marker}${kova}`, { stdinData: REMOTE_MARKER_GATE_PY }))
         .trim()
         .split(/\r?\n/)
         .pop() || ''
@@ -679,13 +679,13 @@ async function pidIsOurDashboard(
     `pid=${Number(pid)}\n` +
     `expected=os.path.expanduser(${shq(kovaPath)})\n` +
     // The installer-facing launcher is intentionally preserved for invocation
-    // (#74411), but it may `exec python <install-dir>/hermes`, leaving neither
+    // (#74411), but it may `exec python <install-dir>/kova`, leaving neither
     // launcher nor KOVA_HOME-derived entrypoint in argv. The ownership-scoped
     // token path + random nonce + exact profile below are the alternative proof.
     `kova_home=os.path.expanduser(${shq(kovaHome)}) if ${shq(kovaHome)} else ""\n` +
     'expected_entries={expected}\n' +
     'if kova_home:\n' +
-    ' expected_entries.add(os.path.join(kova_home,"kova-agent","venv","bin","hermes"))\n' +
+    ' expected_entries.add(os.path.join(kova_home,"kova-agent","venv","bin","kova"))\n' +
     `expected_token=os.path.expanduser(${shq(ownershipId ? spawnTokenPath(ownershipId, spawnNonce) : '')})\n` +
     `expected_profile=${shq(profile)}\n` +
     `nonce=${shq(spawnNonce)}\n` +
@@ -886,7 +886,7 @@ pid=${pid}
 expected_creation=${py(lock.creationTime)}
 expected_path=os.path.expanduser(${py(lock.kovaPath)})
 kova_home=os.path.expanduser(${py(lock.kovaHome)})
-expected_entries={expected_path,os.path.join(kova_home,"kova-agent","venv","bin","hermes")}
+expected_entries={expected_path,os.path.join(kova_home,"kova-agent","venv","bin","kova")}
 expected_token=os.path.expanduser(${py(expectedToken)})
 expected_profile=${py(lock.profile)}
 nonce=${py(lock.spawnNonce)}
@@ -988,16 +988,16 @@ finally:
 
 // Run `command` under the updaters' marker lock: REMOTE_MARKER_GATE_PY holds
 // `<marker>.lock` (the sidecar Python update_lock and marker.sh flock), clears a
-// dead claim while `hermes`'s checkout lock is free, and refuses (exit 75) a
+// dead claim while `kova`'s checkout lock is free, and refuses (exit 75) a
 // live, unreadable, or checkout-held one, then keeps the
 // lock across the spawn and the initial lockfile publication. The descriptor
 // is close-on-exec and passed only to the outer shell; each detached child
 // closes it before execing Kova. markerPath is expandRemotePath() output — a
 // complete shell word ("$HOME"'/…' or '/abs/…') embedded raw so $HOME expands
-// remotely; a second shq() would hand python the quote characters. `hermes`
+// remotely; a second shq() would hand python the quote characters. `kova`
 // is the same kind of word (expandRemotePath of the located executable).
-function withRemoteUpdateMutex(command, markerPath, hermes) {
-  return `python3 -c ${shq(REMOTE_MARKER_GATE_PY)} ${markerPath} ${shq(command)} ${hermes}`
+function withRemoteUpdateMutex(command, markerPath, kova) {
+  return `python3 -c ${shq(REMOTE_MARKER_GATE_PY)} ${markerPath} ${shq(command)} ${kova}`
 }
 
 /**
@@ -1120,7 +1120,7 @@ async function terminateOwnedDashboardForUpdate(ssh, expected) {
 // starts a new session; macOS has no setsid, so fall back to nohup (HUP-immune;
 // fd-detachment is already handled by </dev/null + redirect + &).
 function buildSpawnCommand(kovaPath, profile, opts: any = {}) {
-  const hermes = expandRemotePath(kovaPath)
+  const kova = expandRemotePath(kovaPath)
   // The roster/SSH bridge hands us the profile verbatim: a non-slug value must never
   // cross into the remote spawn argv, where the CLI used to str()-coerce it into a
   // phantom profiles/0/ directory (#88842).
@@ -1158,12 +1158,12 @@ function buildSpawnCommand(kovaPath, profile, opts: any = {}) {
 
   const dashCmd =
     `ulimit -n ${REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; unset KOVA_DESKTOP_DEV_SERVER; ` +
-    `exec env KOVA_DESKTOP=1${devServerEnv} ${hermes} ${profileArgs}${subCmd}`
+    `exec env KOVA_DESKTOP=1${devServerEnv} ${kova} ${profileArgs}${subCmd}`
 
   const detachedShell: string = `eval "exec $1>&-"; ${dashCmd} </dev/null >> ${logPath} 2>&1 & echo $!`
   // The inner shell backgrounds Kova and reports its PID; backgrounding the
   // launcher too adds its unrelated PID to the value published in the lock.
-  const detachedSpawn: string = `child=$("$(command -v setsid || echo nohup)" sh -c ${shq(detachedShell)} hermes-update-child "$1")`
+  const detachedSpawn: string = `child=$("$(command -v setsid || echo nohup)" sh -c ${shq(detachedShell)} kova-update-child "$1")`
 
   if (!opts.ownershipId || !opts.lockMetadata) {
     return withRemoteUpdateMutex(
@@ -1171,7 +1171,7 @@ function buildSpawnCommand(kovaPath, profile, opts: any = {}) {
         `${detachedSpawn}; ` +
         `${markerAbsent} || { kill "$child" 2>/dev/null || true; wait "$child" 2>/dev/null || true; exit 75; }; echo "$child"`,
       marker,
-      hermes
+      kova
     )
   }
 
@@ -1213,18 +1213,18 @@ function buildSpawnCommand(kovaPath, profile, opts: any = {}) {
       `printf '%s' "$lock_json" > "$temporary_lock" && mv -f "$temporary_lock" "$lock" || { kill "$child" 2>/dev/null || true; wait "$child" 2>/dev/null || true; exit 76; }; ` +
       `echo "$child"`,
     marker,
-    hermes
+    kova
   )
 }
 
 async function remoteSupportsSshOwnership(ssh, kovaPath) {
-  const hermes = expandRemotePath(kovaPath)
+  const kova = expandRemotePath(kovaPath)
 
   // The watchdog wraps the inner `serve --help` so the hung CLI is its direct
   // child and dies remotely instead of orphaning (#110478). The `$( (` space
   // is load-bearing: without it the shell parses `$((` as arithmetic expansion.
   const out = await ssh.exec(
-    `help="$( ${withRemoteTimeout(`${hermes} serve --help 2>&1`)} )"; ` +
+    `help="$( ${withRemoteTimeout(`${kova} serve --help 2>&1`)} )"; ` +
       `printf '%s' "$help" | grep -q ssh-session-token-file && ` +
       `printf '%s' "$help" | grep -q ssh-owner-nonce && echo YES || echo NO`
   )
@@ -1564,11 +1564,11 @@ async function connect(deps) {
   const kovaHome = await probeRemoteKovaHome(ssh)
   await assertRemoteInstallUpdateClear(ssh, kovaHome)
   const kovaPath = await locateKova(ssh, remoteKovaPath)
-  log(`located hermes at ${kovaPath}`)
-  const hermesVersion = await probeKovaVersion(ssh, kovaPath)
+  log(`located kova at ${kovaPath}`)
+  const kovaVersion = await probeKovaVersion(ssh, kovaPath)
 
-  if (hermesVersion) {
-    log(`remote hermes version: ${hermesVersion}`)
+  if (kovaVersion) {
+    log(`remote kova version: ${kovaVersion}`)
   }
 
   const reuseToken = deps.reuseToken || ''
@@ -1665,7 +1665,7 @@ async function connect(deps) {
             reused: true,
             platform,
             kovaPath,
-            hermesVersion,
+            kovaVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
             logPath: lock.logPath,
@@ -1787,7 +1787,7 @@ async function connect(deps) {
       reused: false,
       platform,
       kovaPath,
-      hermesVersion,
+      kovaVersion,
       ownershipId,
       spawnNonce,
       logPath,

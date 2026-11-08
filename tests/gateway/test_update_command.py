@@ -90,33 +90,33 @@ class TestHandleUpdateCommand:
 
 
     @pytest.mark.asyncio
-    async def test_resolve_hermes_bin_module_argv(self):
-        """_resolve_hermes_bin uses the running interpreter's module argv when kova_cli is
-        importable, even when PATH also offers a ``hermes`` binary (#111569: a PATH-first
+    async def test_resolve_kova_bin_module_argv(self):
+        """_resolve_kova_bin uses the running interpreter's module argv when kova_cli is
+        importable, even when PATH also offers a ``kova`` binary (#111569: a PATH-first
         lookup would re-exec an attacker-planted executable on /update and /restart)."""
         import sys
-        from gateway.run import _resolve_hermes_bin
+        from gateway.run import _resolve_kova_bin
 
         fake_spec = MagicMock()
-        with patch("shutil.which", return_value="/tmp/attacker/hermes"), \
+        with patch("shutil.which", return_value="/tmp/attacker/kova"), \
              patch("importlib.util.find_spec", return_value=fake_spec):
-            result = _resolve_hermes_bin()
+            result = _resolve_kova_bin()
 
         assert result == [sys.executable, "-m", "kova_cli.main"]
 
     @pytest.mark.asyncio
-    async def test_resolve_hermes_bin_falls_back_to_path_then_none(self):
+    async def test_resolve_kova_bin_falls_back_to_path_then_none(self):
         """Without an importable kova_cli the argv degrades to PATH, then to None — never a
-        bare ``hermes`` string that a hostile PATH entry could shadow."""
-        from gateway.run import _resolve_hermes_bin
+        bare ``kova`` string that a hostile PATH entry could shadow."""
+        from gateway.run import _resolve_kova_bin
 
-        with patch("shutil.which", return_value="/usr/local/bin/hermes"), \
+        with patch("shutil.which", return_value="/usr/local/bin/kova"), \
              patch("importlib.util.find_spec", return_value=None):
-            assert _resolve_hermes_bin() == ["/usr/local/bin/hermes"]
+            assert _resolve_kova_bin() == ["/usr/local/bin/kova"]
 
         with patch("shutil.which", return_value=None), \
              patch("importlib.util.find_spec", side_effect=ImportError):
-            assert _resolve_hermes_bin() is None
+            assert _resolve_kova_bin() is None
 
 
     @pytest.mark.asyncio
@@ -132,13 +132,13 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         with patch("gateway.run._kova_home", kova_home), \
              patch("gateway.run.__file__", fake_file), \
              patch("kova_cli.config.detect_install_method", return_value="git"), \
-             patch("shutil.which", side_effect=lambda x: "/usr/bin/hermes" if x == "hermes" else "/usr/bin/setsid"), \
+             patch("shutil.which", side_effect=lambda x: "/usr/bin/kova" if x == "kova" else "/usr/bin/setsid"), \
              patch("subprocess.Popen"):
             await runner._handle_update_command(event)
 
@@ -166,14 +166,14 @@ class TestHandleUpdateCommand:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         mock_popen = MagicMock()
 
         def which_no_setsid(x):
-            if x == "hermes":
-                return "/usr/bin/hermes"
+            if x == "kova":
+                return "/usr/bin/kova"
             if x == "setsid":
                 return None
             return None
@@ -258,7 +258,7 @@ class TestSendUpdateNotification:
     async def test_defers_notification_while_update_still_running(self, tmp_path):
         """Returns False and keeps marker files when the update has not exited yet."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending_path = kova_home / ".update_pending.json"
@@ -281,7 +281,7 @@ class TestSendUpdateNotification:
     async def test_recovers_from_claimed_pending_file(self, tmp_path):
         """A claimed pending file from a crashed notifier is still deliverable."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         claimed_path = kova_home / ".update_pending.claimed.json"
@@ -305,7 +305,7 @@ class TestSendUpdateNotification:
     async def test_sends_notification_with_output(self, tmp_path):
         """Sends update output to the correct platform and chat."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         # Write pending marker
@@ -346,7 +346,7 @@ class TestSendUpdateNotification:
         notice outlived every restart, in every process.
         """
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending_path = kova_home / ".update_pending.json"
@@ -378,7 +378,7 @@ class TestSendUpdateNotification:
         while, which is the case the defer path exists to cover.
         """
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending_path = kova_home / ".update_pending.json"
@@ -401,7 +401,7 @@ class TestSendUpdateNotification:
     async def test_cleans_up_on_error(self, tmp_path):
         """Files are cleaned up even if notification fails."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending_path = kova_home / ".update_pending.json"
@@ -437,7 +437,7 @@ class TestSendUpdateNotification:
         retry can deliver once the platform is back.
         """
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
@@ -475,7 +475,7 @@ class TestSendUpdateNotification:
         cleans up — exactly once.
         """
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
@@ -514,7 +514,7 @@ class TestSendUpdateNotification:
     async def test_completion_notification_tolerates_invalid_utf8_output(self, tmp_path):
         """Completion-only update notifications must not crash on bad bytes."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {"platform": "discord", "chat_id": "111", "user_id": "222"}
@@ -548,7 +548,7 @@ class TestSendUpdateNotification:
         """A failed update must tell the chat the old version still runs and where to see the
         full error; the raw log is quoted only as a short tail, never the whole 3500-char dump."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / ".update_pending.json").write_text(
             json.dumps({"platform": "discord", "chat_id": "111", "user_id": "222"}))
@@ -575,7 +575,7 @@ class TestWatchUpdateProgress:
     @pytest.mark.asyncio
     async def test_invalid_utf8_update_output_does_not_crash_watcher(self, tmp_path):
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         (kova_home / ".update_pending.json").write_text(json.dumps({
@@ -606,14 +606,14 @@ class TestWatchUpdateProgress:
 
 class TestUpdateCommandInstallMethodRefusal:
     """/update on a non-git install refuses with the steward's own update
-    command instead of attempting a git-based `hermes update`."""
+    command instead of attempting a git-based `kova update`."""
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("method", ["docker", "nix"])
     async def test_refuses_non_git_install(self, tmp_path, method):
         runner = _make_runner()
         event = _make_event()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         mock_popen = MagicMock()
 
@@ -641,7 +641,7 @@ class TestDetachedUpdateExitCodePublication:
     """The detached wrapper never exposes an empty ``.update_exit_code`` to the 2 s watcher poll."""
 
     @pytest.mark.platforms("linux", "macos")
-    @pytest.mark.live_system_guard_bypass  # runs the wrapper around `sh -c 'exit 3'`, never hermes
+    @pytest.mark.live_system_guard_bypass  # runs the wrapper around `sh -c 'exit 3'`, never kova
     def test_bash_wrapper_never_exposes_an_empty_exit_code(self, tmp_path, monkeypatch):
         import subprocess
         from gateway.slash_commands import _spawn_detached_update

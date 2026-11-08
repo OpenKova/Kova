@@ -5,7 +5,7 @@ the claim on the TICKER thread inside that scope, but the pool worker's ``finall
 OUTSIDE ``ctx.run``, where the worker thread resolves the LAUNCH home instead. Releasing without
 the registering home therefore discarded a key nothing holds and leaked every secondary profile's
 claim: the job skipped its next fire window until the force-release backstop swept it, and the
-shutdown drain plus ``hermes.cron.jobs.running`` saw phantom work.
+shutdown drain plus ``kova.cron.jobs.running`` saw phantom work.
 """
 
 from __future__ import annotations

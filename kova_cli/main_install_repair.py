@@ -107,7 +107,7 @@ def _hermes_exe_shims(scripts_dir: Path) -> list[Path]:
     only; POSIX shims are plain scripts replaced atomically."""
     if not _is_windows():
         return []
-    names = set(_load_console_script_names()) or {"hermes", "kova-agent", "hermes-acp"}
+    names = set(_load_console_script_names()) or {"kova", "kova-agent", "kova-acp"}
     # Not a [project.scripts] entry point, but older update/install paths still
     # rewrite and quarantine it.
     names.add("kova-gateway")
@@ -203,10 +203,10 @@ def _recover_update_debts_on_startup() -> None:
 
 
 def _cleanup_quarantined_exes(scripts_dir: Path | None = None) -> None:
-    """Sweep — and where necessary RESCUE — ``hermes.exe.old.*`` from updates.
+    """Sweep - and where necessary RESCUE - ``kova.exe.old.*`` from updates.
 
     Called early on every invocation. Two cases an unconditional ``unlink()`` gets wrong:
-    (1) orphan rescue — ``hermes.exe`` missing while ``hermes.exe.old.*`` exists means the .old
+    (1) orphan rescue - ``kova.exe`` missing while ``kova.exe.old.*`` exists means the .old
     file is the ONLY surviving copy (update died between rename and uv's write); put it back via
     the same retry-and-report helper the update-time restore uses. (2) concurrency — a fresh
     quarantine file may belong to an update in flight in another process; leave anything inside

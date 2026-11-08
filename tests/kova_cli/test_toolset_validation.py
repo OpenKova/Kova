@@ -8,13 +8,13 @@ import pytest
 
 from kova_cli.toolset_validation import validate_platform_toolsets
 
-# A representative set of real toolset names. `hermes` is deliberately absent —
-# that is the corruption #38798 reported (`hermes-cli` rewritten to `hermes`).
+# A representative set of real toolset names. `kova` is deliberately absent —
+# that is the corruption #38798 reported (`kova-cli` rewritten to `kova`).
 _KNOWN = {
-    "hermes-cli",
-    "hermes-telegram",
-    "hermes-discord",
-    "hermes-whatsapp",
+    "kova-cli",
+    "kova-telegram",
+    "kova-discord",
+    "kova-whatsapp",
     "discord",
     "terminal",
     "web",
@@ -28,18 +28,18 @@ def _is_valid(name):
 
 
 def test_38798_corruption_warns_and_suggests_correct_name():
-    # The exact reported shape: cli holds 'hermes' instead of 'hermes-cli'.
-    warnings = validate_platform_toolsets({"cli": ["hermes"]}, _is_valid)
-    unknown = [w for w in warnings if "unknown toolset 'hermes'" in w]
+    # The exact reported shape: cli holds 'kova' instead of 'kova-cli'.
+    warnings = validate_platform_toolsets({"cli": ["kova"]}, _is_valid)
+    unknown = [w for w in warnings if "unknown toolset 'kova'" in w]
     assert len(unknown) == 1
     # Actionable: points at the valid name the entry should have been.
-    assert "did you mean 'hermes-cli'?" in unknown[0]
+    assert "did you mean 'kova-cli'?" in unknown[0]
     # And the zero-valid-toolsets safety net fires.
     assert any("zero valid toolsets" in w for w in warnings)
 
 
 def test_mixed_valid_and_invalid_flags_only_the_invalid():
-    cfg = {"cli": ["hermes-cli"], "discord": ["bogus"]}
+    cfg = {"cli": ["kova-cli"], "discord": ["bogus"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
     # One valid entry exists, so no zero-valid warning.
     assert not any("zero valid toolsets" in w for w in warnings)
@@ -64,8 +64,8 @@ def test_empty_list_on_a_platform_warns_even_when_others_are_valid():
     # produces no warning at all and the agent silently starts with no tools.
     cfg = {
         "cli": [],
-        "telegram": ["hermes-telegram"],
-        "discord": ["hermes-discord"],
+        "telegram": ["kova-telegram"],
+        "discord": ["kova-discord"],
     }
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
@@ -81,7 +81,7 @@ def test_empty_list_on_a_platform_warns_even_when_others_are_valid():
 
 
 def test_empty_list_warns_for_each_affected_platform():
-    cfg = {"cli": [], "discord": [], "telegram": ["hermes-telegram"]}
+    cfg = {"cli": [], "discord": [], "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     empty = [w for w in warnings if "empty toolset list" in w]
@@ -104,46 +104,46 @@ def test_empty_list_does_not_mask_unknown_names_on_other_platforms():
 def test_null_platform_warns_even_when_others_are_valid():
     # YAML's ``cli:`` parses as None. The resolver treats it as absent and uses
     # the platform default, so the warning must not claim that tools disappear.
-    cfg = {"cli": None, "telegram": ["hermes-telegram"]}
+    cfg = {"cli": None, "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     assert any(
         "platform 'cli'" in w
         and "null toolset value" in w
-        and "falling back to 'hermes-cli'" in w
+        and "falling back to 'kova-cli'" in w
         for w in warnings
     )
     assert not any("zero valid toolsets" in w for w in warnings)
 
 
 def test_null_platform_uses_canonical_default_for_alias():
-    cfg = {"whatsapp_cloud": None, "telegram": ["hermes-telegram"]}
+    cfg = {"whatsapp_cloud": None, "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     assert any(
         "platform 'whatsapp_cloud'" in w
-        and "falling back to 'hermes-whatsapp'" in w
+        and "falling back to 'kova-whatsapp'" in w
         for w in warnings
     )
     assert not any("zero valid toolsets" in w for w in warnings)
 
 
 def test_scalar_platform_value_warns_but_uses_platform_default():
-    cfg = {"cli": "bogus", "telegram": ["hermes-telegram"]}
+    cfg = {"cli": "bogus", "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     assert any(
         "platform 'cli'" in w
         and "invalid toolset value 'bogus'" in w
-        and "falling back to 'hermes-cli'" in w
+        and "falling back to 'kova-cli'" in w
         for w in warnings
     )
     assert not any("zero valid toolsets" in w for w in warnings)
 
 
 def test_list_literal_string_is_validated_as_the_list_it_encodes():
-    """A ``'["web", "terminal"]'`` string (older ``hermes config set``) is the user's real selection:
-    the runtime resolves it, so ``hermes doctor`` must validate its names instead of reporting a
+    """A ``'["web", "terminal"]'`` string (older ``kova config set``) is the user's real selection:
+    the runtime resolves it, so ``kova doctor`` must validate its names instead of reporting a
     fallback to the platform default that never happens (follow-up to #115866)."""
     assert validate_platform_toolsets({"cli": '["web", "terminal"]'}, _is_valid) == []
 
@@ -153,7 +153,7 @@ def test_list_literal_string_is_validated_as_the_list_it_encodes():
 
 
 def test_platform_restricted_toolset_warns_when_other_platform_is_valid():
-    cfg = {"telegram": ["discord"], "cli": ["hermes-cli"]}
+    cfg = {"telegram": ["discord"], "cli": ["kova-cli"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     assert any(
@@ -179,13 +179,13 @@ def test_null_plugin_platform_uses_synthetic_default():
         )
     )
     try:
-        cfg = {platform: None, "telegram": ["hermes-telegram"]}
+        cfg = {platform: None, "telegram": ["kova-telegram"]}
         warnings = validate_platform_toolsets(cfg, _is_valid)
 
-        assert resolve_toolset(f"hermes-{platform}")
+        assert resolve_toolset(f"kova-{platform}")
         assert any(
             f"platform '{platform}'" in w
-            and f"falling back to 'hermes-{platform}'" in w
+            and f"falling back to 'kova-{platform}'" in w
             for w in warnings
         )
         assert not any("zero valid toolsets" in w for w in warnings)
@@ -194,7 +194,7 @@ def test_null_plugin_platform_uses_synthetic_default():
 
 
 def test_all_invalid_platform_warns_even_when_others_are_valid():
-    cfg = {"cli": ["bogus"], "telegram": ["hermes-telegram"]}
+    cfg = {"cli": ["bogus"], "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
 
     assert any("unknown toolset 'bogus'" in w for w in warnings)
@@ -205,6 +205,6 @@ def test_all_invalid_platform_warns_even_when_others_are_valid():
 
 
 def test_populated_platforms_produce_no_empty_list_warning():
-    cfg = {"cli": ["hermes-cli"], "telegram": ["hermes-telegram"]}
+    cfg = {"cli": ["kova-cli"], "telegram": ["kova-telegram"]}
     warnings = validate_platform_toolsets(cfg, _is_valid)
     assert warnings == []

@@ -55,7 +55,7 @@ describe('settings subpage routing', () => {
       expect(resolveSettingsSubpage('gateway', new URLSearchParams({ page: 'devices' }))).toBeUndefined()
       expect(settingSearchTargets(TRANSLATIONS.en).filter(target => target.view === 'gateway')).toEqual([])
     } finally {
-      window.document.documentElement.removeAttribute('data-hermes-desktop-host')
+      window.document.documentElement.removeAttribute('data-kova-desktop-host')
     }
 
     expect(settingsSubpages('gateway')).toHaveLength(nativeChildren)

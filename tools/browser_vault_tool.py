@@ -59,7 +59,7 @@ def _check_vault_available() -> bool:
 
 # A secret-bearing script runs inside this wrapper on a page backend, so a page exception is answered
 # in-page and its message (which may quote the script) never reaches the backend's error path or logs.
-_PAGE_FILL_FAILED = {"hermes_vault_eval_failed": True}
+_PAGE_FILL_FAILED = {"kova_vault_eval_failed": True}
 
 
 def _page_backend(task_id: str):

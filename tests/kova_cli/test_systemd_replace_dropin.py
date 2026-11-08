@@ -33,7 +33,7 @@ def _current_unit_with_dropin(tmp_path, monkeypatch, dropin_text: str):
     return unit, dropin, calls
 
 
-def test_refresh_retires_the_hermes_replace_dropin_even_when_the_unit_text_is_current(tmp_path, monkeypatch, capsys):
+def test_refresh_retires_the_kova_replace_dropin_even_when_the_unit_text_is_current(tmp_path, monkeypatch, capsys):
     """The base unit already matches the generator, so the old gate said "nothing to do" and the
     drop-in kept re-arming ``--replace`` on every restart."""
     unit, dropin, calls = _current_unit_with_dropin(tmp_path, monkeypatch, KOVA_DROPIN)
@@ -50,7 +50,7 @@ def test_refresh_retires_the_hermes_replace_dropin_even_when_the_unit_text_is_cu
 def test_refresh_keeps_an_operator_written_dropin_of_the_same_name(tmp_path, monkeypatch):
     """Only the file Kova authored (recognised by its own comment) is retired."""
     _unit, dropin, calls = _current_unit_with_dropin(
-        tmp_path, monkeypatch, "[Service]\nExecStart=\nExecStart=/opt/hermes gateway run --replace\n")
+        tmp_path, monkeypatch, "[Service]\nExecStart=\nExecStart=/opt/kova gateway run --replace\n")
 
     assert gateway_cli.refresh_systemd_unit_if_needed() is False
 

@@ -1,6 +1,6 @@
-"""LIVE Windows E2E: ``hermes plugins uninstall`` while a real gateway has the plugin loaded.
+"""LIVE Windows E2E: ``kova plugins uninstall`` while a real gateway has the plugin loaded.
 
-A real ``hermes gateway run`` child (temp HOME / KOVA_HOME) loads three enabled user plugins:
+A real ``kova gateway run`` child (temp HOME / KOVA_HOME) loads three enabled user plugins:
 pure Python, one that keeps a file in its own directory open, and one that imports a native
 ``.pyd`` shipped inside its directory. Windows refuses to delete a file another process holds
 (WinError 32) or a mapped DLL (WinError 5), so removing those trees under the live gateway is the
@@ -62,7 +62,7 @@ def _child_env(home: Path) -> dict:
     return env
 
 
-def _hermes(home: Path, *argv: str, timeout: float = 180) -> subprocess.CompletedProcess:
+def _kova(home: Path, *argv: str, timeout: float = 180) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, "-m", "kova_cli.main", *argv], cwd=str(home),
                           env=_child_env(home), stdin=subprocess.DEVNULL, capture_output=True,
                           encoding="utf-8", errors="replace", timeout=timeout, check=False)
@@ -120,13 +120,13 @@ def live_gateway(tmp_path_factory):
 @pytest.mark.parametrize("name", list(_HEADS))
 def test_uninstall_while_gateway_has_plugin_loaded(live_gateway, name):
     home, proc = live_gateway
-    result = _hermes(home, "plugins", "uninstall", name)
+    result = _kova(home, "plugins", "uninstall", name)
     print(f"UNINSTALL {name}: rc={result.returncode}\n{result.stdout[-1500:]}\n{result.stderr[-1500:]}")
 
     assert proc.poll() is None, "the gateway died during uninstall"
     assert result.returncode == 0, f"uninstall failed: {result.stdout[-800:]} {result.stderr[-800:]}"
     leftovers = sorted(str(p.relative_to(home / "plugins")) for p in (home / "plugins").rglob("plugin.yaml"))
     assert not any(name in p for p in leftovers), f"a loadable copy stayed under plugins/: {leftovers}"
-    listing = _hermes(home, "plugins", "list")
+    listing = _kova(home, "plugins", "list")
     assert name not in listing.stdout, f"the next process still sees {name}:\n{listing.stdout[-1500:]}"
     assert name not in (home / "config.yaml").read_text(encoding="utf-8")

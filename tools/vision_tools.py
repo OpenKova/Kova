@@ -34,7 +34,7 @@ def _load_auxiliary_client() -> None:
         extract_content_or_reasoning = extract_content_or_reasoning or _aux.extract_content_or_reasoning
 
 
-from kova_constants import get_hermes_dir
+from kova_constants import get_kova_dir
 from tools.debug_helpers import DebugSession
 from tools.website_policy import check_website_access
 from tools.vision_tools_history_budget import (
@@ -193,7 +193,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     they are made lazily at runtime; a hardcoded 0700 here would be the only
     thing setting their mode and would silently override a design that pins
     ``stateDir/.kova`` to ``2770`` and runs the gateway with ``UMask =
-    "0007"`` so "interactive users in the hermes group can read/write"
+    "0007"`` so "interactive users in the kova group can read/write"
     gateway-created state. On such a host the gateway and a hostUsers CLI
     share one ``$KOVA_HOME``, so a 0700 cache created by whichever ran
     first makes vision fail with EACCES for the other. Skipping the explicit
@@ -208,7 +208,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     the mode to the leaf only, so an intermediate ``cache/`` keeps its default
     mode; it is shared with other subsystems and holds only directory names.
     """
-    cache_dir = get_hermes_dir(new_subpath, old_name)
+    cache_dir = get_kova_dir(new_subpath, old_name)
     if _managed_install():
         # Managed mode: the NixOS-configured umask/setgid owns the mode, and
         # _secure_dir would no-op here anyway.

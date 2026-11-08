@@ -88,7 +88,7 @@ export async function stageClipboardImage(
   gw: GatewayClient, destination: SubmissionDestination,
   extract: (path: string) => Promise<boolean> = extractClipboardImage
 ): Promise<StagedImage | null> {
-  const directory = await mkdtemp(join(tmpdir(), 'hermes-clipboard-'))
+  const directory = await mkdtemp(join(tmpdir(), 'kova-clipboard-'))
   const path = join(directory, 'clipboard.png')
 
   try {

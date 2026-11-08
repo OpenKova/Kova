@@ -176,7 +176,7 @@ class TestInstallerSeededConfigThroughGatewayResolver:
         from gateway.config import Platform
         from gateway.run import _load_gateway_config, _resolve_gateway_display_bool
 
-        seeded = _load_gateway_config(self._seed_like_installer(tmp_path / "hermes-home"))
+        seeded = _load_gateway_config(self._seed_like_installer(tmp_path / "kova-home"))
         assert "display" in seeded  # the loader fails open to {}, which would pass vacuously
 
         assert_keeps_platform_display_defaults(seeded)

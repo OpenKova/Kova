@@ -34,8 +34,8 @@ import plugins.dashboard_auth.nous as nous_plugin
 import plugins.dashboard_auth.self_hosted as oidc_plugin
 from kova_cli.dashboard_auth import InvalidCodeError, ProviderError
 
-_ISSUER = "https://auth.example.com/application/o/hermes"
-_CLIENT_ID = "hermes-dashboard"
+_ISSUER = "https://auth.example.com/application/o/kova"
+_CLIENT_ID = "kova-dashboard"
 _PORTAL = "https://portal.example.com"
 _DISCOVERY_DOC = {
     "issuer": _ISSUER,

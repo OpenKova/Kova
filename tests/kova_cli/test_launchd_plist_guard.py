@@ -4,7 +4,7 @@
 malformed plists are skipped, but ``plistlib.load`` propagates
 ``xml.parsers.expat.ExpatError`` (which is NOT a ``ValueError`` subclass) for
 XML that is not well-formed, so one hand-edited LaunchAgent plist aborted the
-whole ``hermes update`` post-pull cleanup instead of being skipped.
+whole ``kova update`` post-pull cleanup instead of being skipped.
 """
 import os
 from unittest import mock
@@ -25,7 +25,7 @@ MALFORMED_PLIST = (
     '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0">\n<dict>\n'
     "  <key>Label</key>\n  <string>com.example.bad</string>\n"
     "  <key>ProgramArguments</key>\n  <array>\n"
-    "    <string>/usr/local/bin/hermes</string>\n    <string>&&</string>\n"
+    "    <string>/usr/local/bin/kova</string>\n    <string>&&</string>\n"
     "  </array>\n</dict>\n</plist>\n"
 )
 
@@ -33,7 +33,7 @@ GOOD_PLIST = (
     '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0">\n<dict>\n'
     "  <key>Label</key>\n  <string>ai.kova.dashboard.test</string>\n"
     "  <key>ProgramArguments</key>\n  <array>\n"
-    "    <string>/usr/local/bin/hermes</string>\n    <string>dashboard</string>\n"
+    "    <string>/usr/local/bin/kova</string>\n    <string>dashboard</string>\n"
     "    <string>--port</string>\n    <string>9119</string>\n"
     "  </array>\n</dict>\n</plist>\n"
 )
@@ -60,7 +60,7 @@ def test_malformed_sibling_does_not_hide_the_good_job(tmp_path):
         (
             f"gui/{os.getuid()}",  # windows-footgun: ok — platforms("macos") file
             "ai.kova.dashboard.test",
-            ["/usr/local/bin/hermes", "dashboard", "--port", "9119"],
+            ["/usr/local/bin/kova", "dashboard", "--port", "9119"],
             4321,
         )
     ]

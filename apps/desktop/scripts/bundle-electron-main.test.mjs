@@ -17,7 +17,7 @@ let preload
 // relaunches through process.execPath; the preload (inherited through
 // NODE_OPTIONS) makes that child print its argv instead of starting the app.
 beforeAll(async () => {
-  root = mkdtempSync(join(tmpdir(), 'hermes-electron-entry-'))
+  root = mkdtempSync(join(tmpdir(), 'kova-electron-entry-'))
   await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true })
   bundle = join(root, 'dist/electron-main.mjs')
   preload = join(root, 'preload.mjs')
@@ -48,9 +48,9 @@ beforeAll(async () => {
     const externals = new Set(['electron', 'node-pty', 'get-windows'])
     registerHooks({
       resolve: (specifier, context, next) => externals.has(specifier)
-        ? { url: 'hermes-stub:' + specifier, shortCircuit: true } : next(specifier, context),
-      load: (url, context, next) => url.startsWith('hermes-stub:')
-        ? { format: 'module', source: stub(url.slice('hermes-stub:'.length)), shortCircuit: true } : next(url, context),
+        ? { url: 'kova-stub:' + specifier, shortCircuit: true } : next(specifier, context),
+      load: (url, context, next) => url.startsWith('kova-stub:')
+        ? { format: 'module', source: stub(url.slice('kova-stub:'.length)), shortCircuit: true } : next(url, context),
     })
     `
   )

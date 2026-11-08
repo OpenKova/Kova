@@ -39,7 +39,7 @@ afterEach(() => {
   $selectedStoredSessionId.set(null)
   $activeSessionId.set(null)
   $notifications.set([])
-  window.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  window.document.documentElement.removeAttribute('data-kova-desktop-host')
   delete (window as unknown as { kovaDesktop?: unknown }).kovaDesktop
 })
 
@@ -62,7 +62,7 @@ function openImageLink(image: string) {
 const SESSION_CWDS: Record<string, string> = { 'work/origin-session': '/srv/project' }
 
 it.each([
-  ['electron', '/srv/hermes/images/cat.png', 'cat.png', '/srv/hermes/images/cat.png'],
+  ['electron', '/srv/kova/images/cat.png', 'cat.png', '/srv/kova/images/cat.png'],
   ['electron', 'renders/out.png', 'out.png', '/srv/project/renders/out.png'],
   ['browser', 'renders/out.png', 'out.png', '/srv/project/renders/out.png']
 ])('saves a gateway image through the %s bridge (%s), never opening its tokened URL', async (host, image, name, saved) => {

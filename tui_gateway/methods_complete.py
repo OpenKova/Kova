@@ -54,7 +54,7 @@ def _(rid, params: dict) -> dict:
 def _profile_mention_items(prefix: str) -> list[dict]:
     """`@<profile>` completions (multi-agent UIs route `@<profile>` text to another
     profile). Bare-word matches only, never `@kind:` directives; the primary profile
-    is also offered as 'hermes' when no real profile claims that name."""
+    is also offered as 'kova' when no real profile claims that name."""
     out: list[dict] = []
     try:
         from kova_cli.profiles import list_profiles
@@ -66,8 +66,8 @@ def _profile_mention_items(prefix: str) -> list[dict]:
             seen.add(name.lower())
             if name.lower().startswith(prefix.lower()):
                 out.append(_item(f"@{name}", (getattr(p, "description", "") or "").strip() or "agent profile"))
-        if "hermes".startswith(prefix.lower()) and "hermes" not in seen:
-            out.append(_item("@hermes", "agent profile (primary)"))
+        if "kova".startswith(prefix.lower()) and "kova" not in seen:
+            out.append(_item("@kova", "agent profile (primary)"))
     except Exception:
         return []
     return out

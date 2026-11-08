@@ -133,7 +133,7 @@ class TestSnapshotEndToEnd:
         try:
             first = env.execute(
                 'export KOVA_STICKY_ENV_PROBE="sticky"; '
-                'export PATH="/tmp/hermes-session-bin:$PATH"; '
+                'export PATH="/tmp/kova-session-bin:$PATH"; '
                 'echo "first=$KOVA_STICKY_ENV_PROBE"'
             )
             second = env.execute(
@@ -147,7 +147,7 @@ class TestSnapshotEndToEnd:
         assert "first=sticky" in first.get("output", "")
         output = second.get("output", "")
         assert "second=sticky" in output
-        assert "/tmp/hermes-session-bin" in output
+        assert "/tmp/kova-session-bin" in output
 
 
     def test_snapshot_picks_up_init_file_exports(self, tmp_path, monkeypatch):

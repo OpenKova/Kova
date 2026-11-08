@@ -122,18 +122,18 @@ test('normalizeRemoteHeaders sanitizes plaintext values at ingest', () => {
 test('remoteRequestMatchesBaseUrl treats HTTPS and WSS as the same gateway origin', () => {
   assert.equal(
     remoteRequestMatchesBaseUrl(
-      'wss://hermes.example.com/gateway/api/ws?ticket=abc',
-      'https://hermes.example.com/gateway'
+      'wss://kova.example.com/gateway/api/ws?ticket=abc',
+      'https://kova.example.com/gateway'
     ),
     true
   )
-  assert.equal(remoteRequestMatchesBaseUrl('ws://hermes.example.com/api/ws', 'http://hermes.example.com'), true)
+  assert.equal(remoteRequestMatchesBaseUrl('ws://kova.example.com/api/ws', 'http://kova.example.com'), true)
   assert.equal(
-    remoteRequestMatchesBaseUrl('wss://hermes.example.com/other/api/ws', 'https://hermes.example.com/gateway'),
+    remoteRequestMatchesBaseUrl('wss://kova.example.com/other/api/ws', 'https://kova.example.com/gateway'),
     false
   )
   assert.equal(
-    remoteRequestMatchesBaseUrl('wss://other.example.com/gateway/api/ws', 'https://hermes.example.com/gateway'),
+    remoteRequestMatchesBaseUrl('wss://other.example.com/gateway/api/ws', 'https://kova.example.com/gateway'),
     false
   )
 })
@@ -174,12 +174,12 @@ test('profileRemoteOverride ignores local or url-less profile entries', () => {
 test('profileRemoteOverride returns the per-profile remote with defaulted auth mode', () => {
   const config = {
     profiles: {
-      coder: { mode: 'remote', url: '  https://coder.example.com/hermes  ', token: { value: 'sek' } }
+      coder: { mode: 'remote', url: '  https://coder.example.com/kova  ', token: { value: 'sek' } }
     }
   }
 
   assert.deepEqual(profileRemoteOverride(config, 'coder'), {
-    url: 'https://coder.example.com/hermes',
+    url: 'https://coder.example.com/kova',
     authMode: 'token',
     token: { value: 'sek' }
   })
@@ -257,11 +257,11 @@ test('SSH remains separate from URL-shaped remote modes and preserves an explici
 
 test('profileRemoteOverride preserves an explicit remote profile mapping on a URL override', () => {
   const config = {
-    profiles: { gris: { mode: 'remote', url: 'https://agent.example.com/hermes', remoteProfile: 'main-gris' } }
+    profiles: { gris: { mode: 'remote', url: 'https://agent.example.com/kova', remoteProfile: 'main-gris' } }
   }
 
   assert.deepEqual(profileRemoteOverride(config, 'gris'), {
-    url: 'https://agent.example.com/hermes',
+    url: 'https://agent.example.com/kova',
     authMode: 'token',
     token: undefined,
     remoteProfile: 'main-gris'
@@ -353,7 +353,7 @@ test('normalizeSshConfig strips a pasted "ssh " command prefix', () => {
 })
 
 test('localProfileEntry preserves inactive SSH drafts but drops Cloud state', () => {
-  const ssh = { mode: 'ssh', host: 'box', user: 'alice', remoteKovaPath: '/hermes' }
+  const ssh = { mode: 'ssh', host: 'box', user: 'alice', remoteKovaPath: '/kova' }
   assert.deepEqual(localProfileEntry(ssh), { mode: 'local', savedSsh: ssh })
   assert.deepEqual(localProfileEntry({ mode: 'local', savedSsh: ssh }), {
     mode: 'local',
@@ -798,7 +798,7 @@ test('pathWithGlobalRemoteProfile preserves cross-profile selectors when transla
   )
 })
 
-// --- translateSelfProfileQuery (registry SSH-scoped hermes:api contract) ---
+// --- translateSelfProfileQuery (registry SSH-scoped kova:api contract) ---
 
 test('translateSelfProfileQuery rewrites the self-profile filter into the backend namespace', () => {
   assert.equal(
@@ -1153,12 +1153,12 @@ test('resolveProfileApiRequest keeps a stored local profile off a remote primary
 
 test('normalizeRemoteBaseUrl strips trailing slashes, hash, and query', () => {
   assert.equal(normalizeRemoteBaseUrl('https://gw.example.com/'), 'https://gw.example.com')
-  assert.equal(normalizeRemoteBaseUrl('https://gw.example.com/hermes/'), 'https://gw.example.com/hermes')
-  assert.equal(normalizeRemoteBaseUrl('https://gw.example.com/hermes?x=1#frag'), 'https://gw.example.com/hermes')
+  assert.equal(normalizeRemoteBaseUrl('https://gw.example.com/kova/'), 'https://gw.example.com/kova')
+  assert.equal(normalizeRemoteBaseUrl('https://gw.example.com/kova?x=1#frag'), 'https://gw.example.com/kova')
 })
 
 test('normalizeRemoteBaseUrl preserves a path prefix', () => {
-  assert.equal(normalizeRemoteBaseUrl('https://host/hermes'), 'https://host/hermes')
+  assert.equal(normalizeRemoteBaseUrl('https://host/kova'), 'https://host/kova')
 })
 
 test('normalizeRemoteBaseUrl rejects empty input', () => {
@@ -1180,7 +1180,7 @@ test('normalizeRemoteBaseUrl auto-prepends http:// for scheme-less host:port inp
   assert.equal(normalizeRemoteBaseUrl('mini.tailnet-1234.ts.net:9119'), 'http://mini.tailnet-1234.ts.net:9119')
   assert.equal(normalizeRemoteBaseUrl('localhost:9119'), 'http://localhost:9119')
   assert.equal(normalizeRemoteBaseUrl('gw.example.com'), 'http://gw.example.com')
-  assert.equal(normalizeRemoteBaseUrl('gw.example.com/hermes/'), 'http://gw.example.com/hermes')
+  assert.equal(normalizeRemoteBaseUrl('gw.example.com/kova/'), 'http://gw.example.com/kova')
 })
 
 test('normalizeRemoteBaseUrl still rejects explicit non-http(s) schemes after scheme-less handling', () => {
@@ -1199,7 +1199,7 @@ test('buildGatewayWsUrl uses ws for http', () => {
 })
 
 test('buildGatewayWsUrl honors a path prefix', () => {
-  assert.equal(buildGatewayWsUrl('https://host/hermes', 't'), 'wss://host/hermes/api/ws?token=t')
+  assert.equal(buildGatewayWsUrl('https://host/kova', 't'), 'wss://host/kova/api/ws?token=t')
 })
 
 test('buildGatewayWsUrl url-encodes the token', () => {
@@ -1209,8 +1209,8 @@ test('buildGatewayWsUrl url-encodes the token', () => {
 // --- buildGatewayWsUrlWithTicket (oauth) ---
 
 test('buildGatewayWsUrlWithTicket uses ?ticket= not ?token=', () => {
-  const url = buildGatewayWsUrlWithTicket('https://gw.example.com/hermes', 'tkt-9')
-  assert.equal(url, 'wss://gw.example.com/hermes/api/ws?ticket=tkt-9')
+  const url = buildGatewayWsUrlWithTicket('https://gw.example.com/kova', 'tkt-9')
+  assert.equal(url, 'wss://gw.example.com/kova/api/ws?ticket=tkt-9')
   assert.ok(!url.includes('token='))
 })
 

@@ -172,7 +172,7 @@ def _complete_stub_login(client) -> None:
     """Walk the stub OAuth round trip so ``client`` carries a valid session.
 
     TestClient persists Set-Cookie across calls, so after this returns the
-    client's cookie jar holds ``hermes_session_at`` / ``hermes_session_rt``
+    client's cookie jar holds ``kova_session_at`` / ``kova_session_rt``
     and subsequent gated requests authenticate.
     """
     r1 = client.get("/auth/login?provider=stub", follow_redirects=False)
@@ -249,7 +249,7 @@ def proxied_gated_webapp(monkeypatch):
 
 @pytest.fixture
 def proxied_gated_dashboard(monkeypatch):
-    """The standalone ``hermes dashboard`` behind the sign-in gate, reached through such a proxy."""
+    """The standalone ``kova dashboard`` behind the sign-in gate, reached through such a proxy."""
     yield _proxied_gate(monkeypatch, None)
     clear_providers()
 
@@ -287,7 +287,7 @@ def test_webapp_sign_out_from_another_origin_is_refused(proxied_gated_webapp):
 
 def test_dashboard_page_writes_behind_a_host_rewriting_http_proxy_are_admitted_as_on_main(
         proxied_gated_dashboard):
-    """With the Webapp off, the gated ``hermes dashboard`` keeps main's rule for cookie writes: the
+    """With the Webapp off, the gated ``kova dashboard`` keeps main's rule for cookie writes: the
     origin check belongs to the Webapp's listener. Behind a plain-HTTP proxy that forwards with the
     upstream's Host and no ``dashboard.public_url``, the browser sends no Fetch Metadata and only
     ``Origin: http://dash.lan``; the dashboard's own page still writes and signs out."""
@@ -406,7 +406,7 @@ def test_bearer_401_audits_client_facing_reason(gated_app, tmp_path):
     body = response.json()
     assert body["reason"] == "invalid_or_expired_session"
 
-    log_path = tmp_path / "hermes_test" / "logs" / "dashboard-auth.log"
+    log_path = tmp_path / "kova_test" / "logs" / "dashboard-auth.log"
     raw = log_path.read_text(encoding="utf-8")
     assert bearer not in raw
     rejected = [
@@ -553,12 +553,12 @@ def _mint_stub_at(stub: StubAuthProvider) -> str:
     ls = stub.start_login(redirect_uri="https://fly-app.fly.dev/auth/callback")
     state = dict(
         seg.split("=", 1)
-        for seg in ls.cookie_payload["hermes_session_pkce"].split(";")
+        for seg in ls.cookie_payload["kova_session_pkce"].split(";")
         if "=" in seg
     )["state"]
     verifier = dict(
         seg.split("=", 1)
-        for seg in ls.cookie_payload["hermes_session_pkce"].split(";")
+        for seg in ls.cookie_payload["kova_session_pkce"].split(";")
         if "=" in seg
     )["verifier"]
     session = stub.complete_login(

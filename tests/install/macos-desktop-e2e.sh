@@ -20,15 +20,15 @@
 #   update   advance served main to HEAD, apply ONE update method:
 #              open-app-update            launch the installed app binary
 #                                         under Playwright, click Update now
-#              hermes-desktop-app-update  capture `hermes desktop`'s spawn,
+#              kova-desktop-app-update  capture `kova desktop`'s spawn,
 #                                         launch the spec under Playwright,
 #                                         click Update now
-#              hermes-update              CLI update from the installed command
+#              kova-update              CLI update from the installed command
 #              installer-script[+desktop] re-run the current install one-liner
 #
 # Usage:
 #   tests/install/macos-desktop-e2e.sh --phase stage|install|update|all
-#     --update-method open-app-update|hermes-desktop-app-update
+#     --update-method open-app-update|kova-desktop-app-update
 #     [--install-ref REF] [--dmg-url URL]
 #     [--update-ref REF]   update target, default HEAD; pass the next
 #                          release tag for a stable-to-stable leg (label the
@@ -72,7 +72,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 case "$UPDATE_METHOD" in
-  open-app-update|hermes-desktop-app-update|hermes-update|installer-script|installer-script+desktop) ;;
+  open-app-update|kova-desktop-app-update|kova-update|installer-script|installer-script+desktop) ;;
   *) echo "error: unsupported --update-method '$UPDATE_METHOD'" >&2; exit 1 ;;
 esac
 [ "$(uname -s)" = "Darwin" ] || { echo "error: this driver runs on macOS only" >&2; exit 1; }
@@ -81,7 +81,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ASSETS="$REPO_ROOT/tests/install/e2e-assets"
 export KOVA_E2E_NODE="${KOVA_E2E_NODE:-$(command -v node)}"
 
-WORK_ROOT="${KOVA_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/hermes-macos-desktop-e2e}"
+WORK_ROOT="${KOVA_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kova-macos-desktop-e2e}"
 LOG_DIR="${KOVA_E2E_LOG_DIR:-$WORK_ROOT/logs}"
 SERVE_REPO="$WORK_ROOT/serve.git"
 STATE="$WORK_ROOT/shas.env"
@@ -245,12 +245,12 @@ phase_install() {
   got="$(git -C "$INSTALL_DIR" rev-parse HEAD)"
   [ "$got" = "$OLD_SHA" ] || fail "installed checkout is $got, expected OLD ($OLD_SHA)"
   ok "checkout is OLD ($OLD_SHA)"
-  local hermes
-  hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed command after install"
-  python3 -B "$ASSETS/source_driver.py" --root "$INSTALL_DIR" --launcher "$hermes" --desktop present \
+  local kova
+  kova="$(source_kova "$INSTALL_DIR")" || fail "no installed command after install"
+  python3 -B "$ASSETS/source_driver.py" --root "$INSTALL_DIR" --launcher "$kova" --desktop present \
     || fail "read-only verification failed after install"
-  KOVA_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$hermes" --version 2>&1 | ts_prefix > "$LOG_DIR/version-old.log" || fail "hermes --version failed after install"
-  ok "hermes --version works: $(head -c 120 "$LOG_DIR/version-old.log" | tr -d '\n')"
+  KOVA_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$kova" --version 2>&1 | ts_prefix > "$LOG_DIR/version-old.log" || fail "kova --version failed after install"
+  ok "kova --version works: $(head -c 120 "$LOG_DIR/version-old.log" | tr -d '\n')"
   find_installed_app >/dev/null || fail "no installed Kova.app after the dmg bootstrap"
   ok "installed app: $(find_installed_app)"
   # The bootstrap can leave its launched app running. Preserve that handoff,
@@ -305,9 +305,9 @@ phase_update() {
   # shellcheck disable=SC1090
   . "$STATE"
   arm_redirect
-  local pin_hermes
-  pin_hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed command to record the update channel"
-  source_build_env pin_source_main_channel "$pin_hermes" || fail "could not record the main update channel"
+  local pin_kova
+  pin_kova="$(source_kova "$INSTALL_DIR")" || fail "no installed command to record the update channel"
+  source_build_env pin_source_main_channel "$pin_kova" || fail "could not record the main update channel"
   # Snapshot every plugin tree BEFORE the upgrade moves anything: fixtures
   # seeded here must survive through the verify after the update lands.
   preserve_before_upgrade
@@ -324,21 +324,21 @@ phase_update() {
   PATH="$(dirname "$KOVA_E2E_NODE"):$PATH" mock_start "$WORK_ROOT"
   trap mock_stop EXIT
   case "$UPDATE_METHOD" in
-    hermes-update)
+    kova-update)
       # The CLI route a dmg user takes from a terminal. Probe the installed
       # help for both flags: this fixture stages unpublished main in serve.git,
       # so newer updaters need explicit --branch main (not the channel object).
-      local hermes help
-      hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed update command"
-      help="$(source_build_env "$hermes" update --help 2>&1)" || fail "installed update --help failed: $help"
-      build_source_update_command "$hermes" "$help"
+      local kova help
+      kova="$(source_kova "$INSTALL_DIR")" || fail "no installed update command"
+      help="$(source_build_env "$kova" update --help 2>&1)" || fail "installed update --help failed: $help"
+      build_source_update_command "$kova" "$help"
       printf '  CLI update invocation:'
       printf ' %q' "${update_cmd[@]}"
       printf '\n'
       local rc=0
       (cd "$INSTALL_DIR" && source_build_env "${update_cmd[@]}" < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/update.log") || rc=$?
-      log_group "hermes update transcript" "$LOG_DIR/update.log"
-      [ "$rc" -eq 0 ] || fail "hermes update exited $rc; transcript above"
+      log_group "kova update transcript" "$LOG_DIR/update.log"
+      [ "$rc" -eq 0 ] || fail "kova update exited $rc; transcript above"
       ;;
     installer-script)
       # A dmg user re-running today's install one-liner.
@@ -359,7 +359,7 @@ phase_update() {
     open-app-update)
       # The installed app IS the user surface here (double-click the .app);
       # hand-build the spec Playwright launches from. Env: the redirect set,
-      # which is exactly what the app's children (git, hermes update) need.
+      # which is exactly what the app's children (git, kova update) need.
       local app app_bin
       app="$(find_installed_app)" || fail "no installed app to launch"
       app_bin="$(find "$app/Contents/MacOS" -type f -perm +111 | head -1)"
@@ -376,26 +376,26 @@ with open(sys.argv[2], "w") as fh:
 PYEOF
       run_playwright_update "$WORK_ROOT/launch-spec.json"
       ;;
-    hermes-desktop-app-update)
+    kova-desktop-app-update)
       # The product's own launch, captured at its spawn site.
-      local hermes
-      hermes="$(source_hermes "$INSTALL_DIR")" || fail "no installed desktop command"
+      local kova
+      kova="$(source_kova "$INSTALL_DIR")" || fail "no installed desktop command"
       local spec="$WORK_ROOT/launch-spec.json"
       local rc=0
-      if [ "$hermes" = "$INSTALL_DIR/.kova/bin/hermes" ]; then
+      if [ "$kova" = "$INSTALL_DIR/.kova/bin/kova" ]; then
         # PM launchers use -I, which ignores PYTHONPATH/sitecustomize. Inject
         # the capture hook into the installed launcher's isolated command.
         (cd "$INSTALL_DIR" && source_build_env python3 -I "$ASSETS/launch-capture/pm-launch.py" \
-          "$hermes" "$spec" < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/desktop-launch-capture.log") || rc=$?
+          "$kova" "$spec" < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/desktop-launch-capture.log") || rc=$?
       else
         (cd "$INSTALL_DIR" && \
           PYTHONPATH="$ASSETS/launch-capture${PYTHONPATH:+:$PYTHONPATH}" \
           KOVA_E2E_CAPTURE_LAUNCH="$spec" \
-          source_build_env "$hermes" desktop < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/desktop-launch-capture.log") || rc=$?
+          source_build_env "$kova" desktop < /dev/null 2>&1 | ts_prefix > "$LOG_DIR/desktop-launch-capture.log") || rc=$?
       fi
-      log_group "hermes desktop (launch capture) transcript" "$LOG_DIR/desktop-launch-capture.log"
-      [ "$rc" -eq 0 ] || fail "hermes desktop exited $rc during launch capture"
-      [ -f "$spec.captured" ] || fail "hermes desktop exited 0 but no launch was captured"
+      log_group "kova desktop (launch capture) transcript" "$LOG_DIR/desktop-launch-capture.log"
+      [ "$rc" -eq 0 ] || fail "kova desktop exited $rc during launch capture"
+      [ -f "$spec.captured" ] || fail "kova desktop exited 0 but no launch was captured"
       ok "captured $(cat "$spec.captured") launch spec"
       run_playwright_update "$spec"
       ;;
@@ -414,11 +414,11 @@ PYEOF
   # evidence must already be on disk when it does.
   local ildest="$LOG_DIR/install-logs"
   mkdir -p "$ildest"
-  cp -R "$HOME_SANDBOX/.kova/logs" "$ildest/hermes-logs" 2>/dev/null || true
+  cp -R "$HOME_SANDBOX/.kova/logs" "$ildest/kova-logs" 2>/dev/null || true
   local ud="$HOME_SANDBOX/Library/Application Support/Kova"
   [ -d "$ud" ] && cp -R "$ud" "$ildest/desktop-userdata" 2>/dev/null || true
   cp "$KOVA_HOME/.kova-update-result.json" "$ildest" 2>/dev/null || true
-  ls -la "$KOVA_HOME" > "$ildest/hermes-home-ls.txt" 2>/dev/null || true
+  ls -la "$KOVA_HOME" > "$ildest/kova-home-ls.txt" 2>/dev/null || true
   ls -la "$INSTALL_DIR/venv/bin" > "$ildest/venv-bin-ls.txt" 2>/dev/null || true
   ls -la "$INSTALL_DIR/venv" > "$ildest/venv-ls.txt" 2>/dev/null || true
   ok "collected install-side logs to $ildest"
@@ -430,20 +430,20 @@ PYEOF
   # renderer target. Always drive the ordinary CLI startup before inspecting or
   # launching the app; launcher presence alone does not prove completion.
   step "next ordinary startup after the update (completes deferred source-update work)"
-  local startup_hermes startup_rc=0
-  startup_hermes="$(source_hermes_for_startup "$INSTALL_DIR")" \
+  local startup_kova startup_rc=0
+  startup_kova="$(source_kova_for_startup "$INSTALL_DIR")" \
     || fail "no installed command to start after the update"
-  source_build_env "$startup_hermes" status > "$LOG_DIR/post-update-startup.log" 2>&1 || startup_rc=$?
+  source_build_env "$startup_kova" status > "$LOG_DIR/post-update-startup.log" 2>&1 || startup_rc=$?
   log_group "post-update startup" "$LOG_DIR/post-update-startup.log"
   ok "post-update startup ran (exit $startup_rc); the read-only checks below assert completion"
 
   local command
-  command="$(source_hermes "$INSTALL_DIR")" || fail "no installed command after update"
+  command="$(source_kova "$INSTALL_DIR")" || fail "no installed command after update"
   python3 -B "$ASSETS/source_driver.py" --root "$INSTALL_DIR" --launcher "$command" --desktop present \
     || fail "read-only verification failed after update; no repair was attempted"
   KOVA_DISABLE_LAZY_INSTALLS=1 PYTHONDONTWRITEBYTECODE=1 source_build_env "$command" --version 2>&1 | ts_prefix > "$LOG_DIR/version-head.log" \
-    || fail "hermes --version failed after update"
-  ok "hermes --version works post-update"
+    || fail "kova --version failed after update"
+  ok "kova --version works post-update"
   preserve_after_upgrade
   desktop_checkpoint new "$TARGET_SHA" "$UPDATE_METHOD"
   step "PASS: $OLD_REF -> $TARGET_LABEL via $UPDATE_METHOD"
@@ -453,11 +453,11 @@ PYEOF
 # known-failures.cjs matches the exact start commit, method pair, assertion
 # and fresh bootstrap-installer.log signatures (tests/install/KNOWN_FAILURES.md).
 phase_checked_update() {
-  local hermes_logs="$HOME_SANDBOX/.kova/logs" rc=0 error receipt
+  local kova_logs="$HOME_SANDBOX/.kova/logs" rc=0 error receipt
   rm -f "$WORK_ROOT/known-failure.json" "$LOG_DIR/known-failure.json" "$WORK_ROOT/update-failure.txt"
   # Only evidence produced by this update attempt can match an exception.
-  if [ -f "$hermes_logs/bootstrap-installer.log" ]; then
-    mv -f "$hermes_logs/bootstrap-installer.log" "$hermes_logs/bootstrap-installer.log.before-update"
+  if [ -f "$kova_logs/bootstrap-installer.log" ]; then
+    mv -f "$kova_logs/bootstrap-installer.log" "$kova_logs/bootstrap-installer.log.before-update"
   fi
   set +e
   (set -e; FAILURE_FILE="$WORK_ROOT/update-failure.txt"; phase_update)
@@ -466,7 +466,7 @@ phase_checked_update() {
   [ "$rc" -ne 0 ] || return 0
   # phase_update snapshots KOVA_HOME/logs only once the checkout lands.
   mkdir -p "$LOG_DIR/install-logs"
-  cp -R "$hermes_logs" "$LOG_DIR/install-logs/hermes-logs" 2>/dev/null || true
+  cp -R "$kova_logs" "$LOG_DIR/install-logs/kova-logs" 2>/dev/null || true
   error="$(cat "$WORK_ROOT/update-failure.txt" 2>/dev/null || true)"
   receipt="$("$KOVA_E2E_NODE" "$ASSETS/known-failures.cjs" "$WORK_ROOT" desktop-installer@latest "$UPDATE_METHOD" "$error" macos)" \
     || exit "$rc"

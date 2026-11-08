@@ -75,7 +75,7 @@ it.skipIf(process.platform === 'win32')(
   async (): Promise<void> => {
     const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'pm-source-check-'))
     const home: string = path.join(root, 'profile')
-    const launcher: string = path.join(root, '.kova', 'bin', 'hermes')
+    const launcher: string = path.join(root, '.kova', 'bin', 'kova')
     fs.mkdirSync(path.dirname(launcher), { recursive: true })
     fs.mkdirSync(path.join(root, 'pm'))
     fs.mkdirSync(home)
@@ -108,7 +108,7 @@ it.skipIf(process.platform !== 'win32')(
   async (): Promise<void> => {
     const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'pm source check '))
     const home: string = path.join(root, 'profile with spaces')
-    const launcher: string = path.join(root, '.kova', 'bin', 'hermes.cmd')
+    const launcher: string = path.join(root, '.kova', 'bin', 'kova.cmd')
     fs.mkdirSync(path.dirname(launcher), { recursive: true })
     fs.mkdirSync(path.join(root, 'pm'))
     fs.mkdirSync(home)

@@ -4,8 +4,8 @@ The installer is HEAD's own copy, run the way the documented one-liner runs it (
 stdin at EOF, setup wizard skipped) inside the bwrap sandbox with an empty fake HOME that has
 only a fresh distro's dotfiles. Its git clone is redirected to a local bare clone of this
 checkout (``_install_helpers``); uv comes from the host's warm cache. After the install the
-user's shell resolves ``hermes`` from ``~/.local/bin`` (the installer wires PATH into the
-shell rc), ``hermes --version`` answers from the installed checkout, and a one-shot turn reaches
+user's shell resolves ``kova`` from ``~/.local/bin`` (the installer wires PATH into the
+shell rc), ``kova --version`` answers from the installed checkout, and a one-shot turn reaches
 the (fake) provider and is persisted.
 
 Re-running the installer on that live install (what users do to "repair" or to update) must be
@@ -52,13 +52,13 @@ def _path_lines(sb: I.Sandbox) -> dict[str, int]:
     return out
 
 
-def _login_shell_hermes(sb: I.Sandbox) -> str:
-    """Resolve `hermes` the way a new login shell would: PATH comes only from the rc files."""
+def _login_shell_kova(sb: I.Sandbox) -> str:
+    """Resolve `kova` the way a new login shell would: PATH comes only from the rc files."""
     env = dict(sb.env)
     env["PATH"] = "/usr/local/bin:/usr/bin:/bin"
     bash = shutil.which("bash")
     assert bash is not None, "bash required for install.sh and the login-shell probe"
-    cp = H.run([bash, "-lic", "command -v hermes"], env=env, cwd=sb.root, writable=[sb.root], timeout=60,
+    cp = H.run([bash, "-lic", "command -v kova"], env=env, cwd=sb.root, writable=[sb.root], timeout=60,
                ro_binds=H.LOGIN_SHELL_RO_BINDS)
     assert cp.returncode == 0, H.describe(cp)
     return cp.stdout.strip()
@@ -137,7 +137,7 @@ def test_fresh_install_serves_head_and_runs_a_turn(installed, provider):
     assert db["integrity"] == [("ok",)] and len(db["sessions"]) == 1 and db["n_messages"] >= 2, db
     # A new login shell finds the command through the rc files the installer edited.
     assert all(n >= 1 for n in _path_lines(sb).values()), f"PATH not wired into the shell rc: {_path_lines(sb)}"
-    assert _login_shell_hermes(sb) == sb.kova, "a new shell does not resolve `hermes` to the installed launcher"
+    assert _login_shell_kova(sb) == sb.kova, "a new shell does not resolve `kova` to the installed launcher"
 
 
 def test_rerunning_the_installer_is_idempotent(installed, provider):
@@ -159,4 +159,4 @@ def test_rerunning_the_installer_is_idempotent(installed, provider):
     db = I.db_state(sb.kova_home / "state.db")
     assert set(before["db"]["sessions"]) < set(db["sessions"]), "earlier session lost or new turn not persisted"
     assert _path_lines(sb) == rc_before, f"PATH line appended again: {rc_before} -> {_path_lines(sb)}"
-    assert _login_shell_hermes(sb) == sb.kova
+    assert _login_shell_kova(sb) == sb.kova

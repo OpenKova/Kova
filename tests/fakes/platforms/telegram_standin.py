@@ -25,7 +25,7 @@ from aiohttp import web
 from tests.fakes.platforms._standin import StandinServer, Visible, decode_value
 
 BOT_ID = 7000000001
-BOT_USERNAME = "hermes_standin_bot"
+BOT_USERNAME = "kova_standin_bot"
 MAX_TEXT = 4096
 # MarkdownV2 (https://core.telegram.org/bots/api#markdownv2-style): these must be escaped outside
 # entities; inside ``code``/```pre``` only ` and \ are special.

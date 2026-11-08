@@ -26,7 +26,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Optional
 
-from tools.bot_mode_probe import _default_home, _hermes_root, alias_forms
+from tools.bot_mode_probe import _default_home, _kova_root, alias_forms
 from utils import atomic_json_write, unlink_files_older_than
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def _normalize_roster_row(row: Any) -> Optional[dict]:
     if not isinstance(row, dict):
         return None
     profile = str(row.get("profile") or "").strip()
-    handle = str(row.get("handle") or "").strip().lstrip("@") or ("hermes" if profile == "default" else profile)
+    handle = str(row.get("handle") or "").strip().lstrip("@") or ("kova" if profile == "default" else profile)
     connection_id = str(row.get("connection_id") or "").strip()
     if not profile or not connection_id or not all(_HANDLE_RE.match(v) for v in (handle, profile, connection_id)):
         return None
@@ -167,7 +167,7 @@ def _target_ids(row: dict) -> set[str]:
 def _target_aliases(row: dict) -> set[str]:
     """Every lower-cased bare form that addresses ``row``: routing ids plus the Bot Mode title's
     mention slugs (``"CoS Bot"`` → ``cos-bot``/``cosbot``, what the Desktop picker inserts). A remote
-    ``default`` is ``@hermes`` on every gateway, so its title is the only bare form that can single it out."""
+    ``default`` is ``@kova`` on every gateway, so its title is the only bare form that can single it out."""
     return _target_ids(row) | alias_forms(row.get("title") or "")
 
 
@@ -199,7 +199,7 @@ def remote_target_forms(roster: list[dict], local_taken: set[str] | frozenset[st
     """One unambiguous target string per row, shortest first: the bare handle when no other remote
     row and no LOCAL profile (``local_taken``: this gateway's handles and friendly-name slugs) answers
     to it; else the title slug under the same test (a remote ``default`` titled "CoS Bot" is
-    ``@cos-bot``, since bare ``@hermes`` is always this gateway's own default); else
+    ``@cos-bot``, since bare ``@kova`` is always this gateway's own default); else
     ``handle@connection``. Mirrors ``resolve_remote_target``."""
     taken = {form.lower() for form in local_taken}
     id_claims: dict[str, int] = {}
@@ -228,7 +228,7 @@ def qualify_sender_stamp(message: str, from_handle: Any, from_connection: Any, r
                          local_taken: set[str] | frozenset[str] = frozenset()) -> str:
     """Rewrite a relayed DM's ``Message from 🤖 <name> (@<handle>):`` stamp so the handle is the
     form THIS gateway can reply to: the sender's row in the local relay roster as
-    ``remote_target_forms`` renders it, else ``handle@connection``. A relayed ``@hermes`` is another
+    ``remote_target_forms`` renders it, else ``handle@connection``. A relayed ``@kova`` is another
     machine's default — left bare, a reply lands on the recipient's own default (#103731)."""
     handle, conn = str(from_handle or "").strip().lstrip("@"), str(from_connection or "").strip()
     match = _SENDER_STAMP_RE.match(str(message or ""))
@@ -450,7 +450,7 @@ def cleanup_bot_relay_artifacts(max_age_hours: float | None = None) -> int:
     only on Desktop drains). ``max_age_hours`` is for ``cleanup_*_cache`` signature parity only."""
     del max_age_hours
     try:
-        base = relay_root(_hermes_root(Path(_default_home())))
+        base = relay_root(_kova_root(Path(_default_home())))
         return _sweep_stale(base) if base.is_dir() else 0
     except Exception:
         logger.debug("bot_relay artifact sweep failed", exc_info=True)
@@ -490,12 +490,12 @@ def _kova_cli() -> str:
     """
     # Do not select batch shims: cmd.exe reinterprets otherwise literal argv
     # (for example an ampersand in a query-file path), even with shell=False.
-    name = "hermes.exe" if sys.platform == "win32" else "hermes"
+    name = "kova.exe" if sys.platform == "win32" else "kova"
     published = Path(__file__).resolve().parents[1] / ".kova" / "bin" / name
     if published.is_file():
         return str(published)
     sibling = Path(sys.executable or "").parent / name
-    return str(sibling) if sibling.is_file() else shutil.which("hermes") or "hermes"
+    return str(sibling) if sibling.is_file() else shutil.which("kova") or "kova"
 
 
 class DeliveryAuthor:
@@ -588,14 +588,14 @@ def delivery_env(author: Optional[dict], profile_home: str | Path | None = None)
 
 
 # Two deliveries into the SAME profile must never run Bot Chat turns concurrently.
-# Deliveries are separate ``hermes`` subprocesses, so the lock is a per-profile
+# Deliveries are separate ``kova`` subprocesses, so the lock is a per-profile
 # lockfile under ``<root>/bot_relay/locks/`` held with ``fcntl.flock`` for exactly
 # the turn window; the kernel releases it on fd close (incl. process death), so a
 # crashed turn can never wedge the profile.
 
 
 # ── per-profile turn lock (#93091) ─────────────────────────────────────────── Two deliveries into the SAME
-# target profile must never run their Bot Chat turns concurrently: deliveries spawn separate ``hermes``
+# target profile must never run their Bot Chat turns concurrently: deliveries spawn separate ``kova``
 # subprocesses, so an in-memory mutex is useless — the lock is a per-profile lockfile under
 # ``<root>/bot_relay/locks/`` held with ``fcntl.flock`` for exactly the turn execution window. flock is
 # released by the kernel when the holder's fd closes (including process death), so a crashed turn can never

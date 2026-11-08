@@ -17,7 +17,7 @@ from kova_cli.model_switch import list_authenticated_providers
 # -- Overlay slug resolution (env var path) ----------------------------------
 
 @patch.dict(os.environ, {"KIMI_API_KEY": "fake-kimi"}, clear=False)
-def test_overlay_provider_uses_hermes_slug():
+def test_overlay_provider_uses_kova_slug():
     """kimi-for-coding overlay should resolve to slug='kimi-coding' with curated models."""
     providers = list_authenticated_providers(current_provider="kimi-coding")
 

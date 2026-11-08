@@ -1,5 +1,5 @@
 /**
- * Sign the in-app Browser tab (`persist:hermes-preview`) in with the user's real browser profile.
+ * Sign the in-app Browser tab (`persist:kova-preview`) in with the user's real browser profile.
  *
  * Gated by `browser.use_real_profile` and by a LOCAL backend: the real profile lives on the backend host,
  * so a remote/SSH/Cloud connection (another machine) never imports. Main decides "local" from the route's

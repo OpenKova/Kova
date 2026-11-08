@@ -20,7 +20,7 @@ describe('performHeapDump auto opt-in gate (#21767)', () => {
       delete process.env[k]
     }
 
-    dir = mkdtempSync(join(tmpdir(), 'hermes-heapdump-test-'))
+    dir = mkdtempSync(join(tmpdir(), 'kova-heapdump-test-'))
     process.env.KOVA_HEAPDUMP_DIR = dir
   })
 
@@ -95,7 +95,7 @@ describe('heapdump retention guard (#21767)', () => {
     savedDir = process.env.KOVA_HEAPDUMP_DIR
     savedMax = process.env.KOVA_HEAPDUMP_MAX_BYTES
     delete process.env.KOVA_AUTO_HEAPDUMP
-    dir = mkdtempSync(join(tmpdir(), 'hermes-heapdump-prune-'))
+    dir = mkdtempSync(join(tmpdir(), 'kova-heapdump-prune-'))
     process.env.KOVA_HEAPDUMP_DIR = dir
   })
 

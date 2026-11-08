@@ -16,7 +16,7 @@ from tools import mcp_tool_events as events
 from tools.mcp_tool_registration import _select_utility_schemas
 from tests.waiting import async_wait_until
 
-PUBLIC_URL = "https://hermes.example.com"
+PUBLIC_URL = "https://kova.example.com"
 ARGS = {"feed_id": "11111111-1111-4111-8111-111111111111"}
 
 
@@ -143,7 +143,7 @@ class TestSubscribe:
         assert list(_routes(home).values()) == [first]  # identical: in-flight runs keep their route digest
 
     def test_a_fresh_subscription_ignores_state_left_by_a_removed_route(self, home):
-        name = events._route_name("ambush", "feed.emission.created", ARGS)  # e.g. after `hermes webhook remove`
+        name = events._route_name("ambush", "feed.emission.created", ARGS)  # e.g. after `kova webhook remove`
         (home / "mcp_event_subscriptions.json").write_text(json.dumps({name: {"cursor": "stale"}}))
         session = FakeSession(_grant())
         _subscribe(session)

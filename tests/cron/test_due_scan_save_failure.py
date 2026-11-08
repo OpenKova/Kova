@@ -41,7 +41,7 @@ def cron_store(tmp_path, monkeypatch):
     monkeypatch.setattr("cron.jobs.CRON_DIR", tmp_path / "cron")
     monkeypatch.setattr("cron.jobs.JOBS_FILE", tmp_path / "cron" / "jobs.json")
     monkeypatch.setattr("cron.jobs.OUTPUT_DIR", tmp_path / "cron" / "output")
-    monkeypatch.setattr("cron.jobs._hermes_now", lambda: FIXED_NOW)
+    monkeypatch.setattr("cron.jobs._kova_now", lambda: FIXED_NOW)
     return tmp_path
 
 
@@ -180,7 +180,7 @@ def test_unwritable_store_degrades_once_throttles_and_catches_up_once(cron_store
     from cron import executions, scheduler
 
     clock = {"now": FIXED_NOW, "mono": 0.0}
-    monkeypatch.setattr(cronjobs, "_hermes_now", lambda: clock["now"])
+    monkeypatch.setattr(cronjobs, "_kova_now", lambda: clock["now"])
     monkeypatch.setattr(store_health.time, "time", lambda: clock["now"].timestamp())
     monkeypatch.setattr(store_health.time, "monotonic", lambda: clock["mono"])
     once = dict(_due_job("once"), schedule={"kind": "once", "run_at": FIXED_NOW.isoformat(), "display": "once"},
@@ -235,7 +235,7 @@ def test_skipped_oneshot_survives_recovery_by_any_save(cron_store, monkeypatch):
     fire once, not be retired as missed. A one-shot due after the store recovered and missed
     later is retired as on main."""
     clock = {"now": FIXED_NOW}
-    monkeypatch.setattr(cronjobs, "_hermes_now", lambda: clock["now"])
+    monkeypatch.setattr(cronjobs, "_kova_now", lambda: clock["now"])
     monkeypatch.setattr(store_health.time, "time", lambda: clock["now"].timestamp())
     once = dict(_due_job("once"), schedule={"kind": "once", "run_at": FIXED_NOW.isoformat(), "display": "once"},
                 repeat={"times": 1, "completed": 0})
@@ -303,7 +303,7 @@ def test_idle_tick_reprobes_a_degraded_store_and_clears_it(cron_store, monkeypat
 @pytest.mark.platforms("posix")  # POSIX mode bits; root ignores them
 @pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root bypasses directory modes")
 def test_unwritable_store_is_shown_in_cron_status_and_announced_once(cron_store, monkeypatch, capsys, caplog):
-    """`hermes cron status` probes the store itself (a real 0500 dir) and leads with the red
+    """`kova cron status` probes the store itself (a real 0500 dir) and leads with the red
     headline + fix; the gateway posts ONE home-channel notice on entry, naming the store, the
     error and since-when, to the served profile owning the store. "recovered" waits out the repeat
     window and is dropped if the store degrades again meanwhile, so the last notice always matches

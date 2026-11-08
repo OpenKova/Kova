@@ -1,6 +1,6 @@
-"""An old `hermes update` must still find every name it loads mid-swap.
+"""An old `kova update` must still find every name it loads mid-swap.
 
-`hermes update` replaces the checkout underneath a RUNNING process. The
+`kova update` replaces the checkout underneath a RUNNING process. The
 old process then lazy-imports from the new tree: whatever it asks for
 must still exist, or the user's update dies half-applied. The names it
 can ask for are the contract of updaters shipped BEFORE the PM migration:
@@ -103,7 +103,7 @@ class TestTheFrozenFileIsSane:
         # pass vacuously.
         bare = set(_load_surface()["bare"])
         for anchor in (
-            "kova_constants::with_hermes_node_path",
+            "kova_constants::with_kova_node_path",
             "kova_constants::venv_python_path",
             "kova_cli.gitlock::clear_stale_git_locks",
             "kova_cli.managed_uv::ensure_uv",

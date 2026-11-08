@@ -281,7 +281,7 @@ def _systemd_run_user_scope_available() -> bool:
                 binary = shutil.which("systemd-run")
                 if binary:
                     # Unique unit avoids collisions; the timeout bounds D-Bus.
-                    probe_unit = f"hermes-probe-scope-{os.getpid()}-{uuid.uuid4().hex[:8]}"
+                    probe_unit = f"kova-probe-scope-{os.getpid()}-{uuid.uuid4().hex[:8]}"
                     for _attempt in range(2):
                         result = subprocess.run(
                             _systemd_scope_argv(binary, probe_unit, "/bin/sh", "-c", "exit 0"),
@@ -341,7 +341,7 @@ def _build_systemd_scope_argv(shell_argv: list[str], unit_suffix: str) -> list[s
     if binary is None:
         # Caller should have probed availability; never pass None into Popen anyway.
         return shell_argv
-    return _systemd_scope_argv(binary, f"hermes-worker-{unit_suffix}", *shell_argv)
+    return _systemd_scope_argv(binary, f"kova-worker-{unit_suffix}", *shell_argv)
 
 
 _scope_degraded_warned = False
@@ -697,7 +697,7 @@ class ProcessRegistry(ProcessTerminationMixin, ProcessCheckpointMixin, ProcessOu
         import queue as _queue_mod
         self.completion_queue: _queue_mod.Queue = _queue_mod.Queue()
         # Durable delegation completions are NOT rehydrated here: this constructor runs at
-        # import time in every process that touches the tools graph (cron clients, `hermes
+        # import time in every process that touches the tools graph (cron clients, `kova
         # sessions list`, workers), and restoring means writing the canonical ledger. The
         # owner replays them explicitly (GatewayRunner._start_recover_previous_run) and the
         # first consumer through restore_completions() (#123265). Importing the module is
@@ -1118,7 +1118,7 @@ class ProcessRegistry(ProcessTerminationMixin, ProcessCheckpointMixin, ProcessOu
         # This applies to both pipe mode and the PTY path above. See #70716.
         in_supervised_gateway = _IS_LINUX and _is_supervised_gateway_process()
         if in_supervised_gateway and _systemd_run_user_scope_available():
-            session.systemd_unit = f"hermes-worker-{unit_suffix}.scope"
+            session.systemd_unit = f"kova-worker-{unit_suffix}.scope"
             return _build_systemd_scope_argv(argv, unit_suffix=unit_suffix)
         if in_supervised_gateway:
             # Under a supervisor but no private cgroup: a worker OOM can still take
@@ -1256,7 +1256,7 @@ class ProcessRegistry(ProcessTerminationMixin, ProcessCheckpointMixin, ProcessOu
         session.pid = proc.pid
         session.host_start_time = self._safe_host_start_time(session.pid)
         session.notify_on_complete = notify_on_complete
-        handed_pgid = getattr(proc, "_hermes_owned_pgid", None)
+        handed_pgid = getattr(proc, "_kova_owned_pgid", None)
         self._take_handoff_group(session, proc)
         if output_so_far:
             session.append_output(output_so_far)
@@ -1279,7 +1279,7 @@ class ProcessRegistry(ProcessTerminationMixin, ProcessCheckpointMixin, ProcessOu
         session = self._new_session(command, task_id, owner_task_id, session_key, cwd, env_ref=env, pid_scope="sandbox",
                                     persist_on_release=persist_on_release)
         temp_dir = self._env_temp_dir(env)
-        log_path, pid_path, exit_path = (f"{temp_dir}/hermes_bg_{session.id}.{ext}" for ext in ("log", "pid", "exit"))
+        log_path, pid_path, exit_path = (f"{temp_dir}/kova_bg_{session.id}.{ext}" for ext in ("log", "pid", "exit"))
         q = shlex.quote
         bg_command = (
             f"mkdir -p {q(temp_dir)} && "

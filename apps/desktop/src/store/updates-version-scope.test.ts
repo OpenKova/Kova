@@ -76,7 +76,7 @@ describe('desktop version follows the request scope', () => {
   let getVersion: ReturnType<typeof vi.fn>
 
   const info = (appVersion: string): DesktopVersionInfo =>
-    ({ appVersion, electronVersion: '40', nodeVersion: '26', platform: 'linux', hermesRoot: '' }) as DesktopVersionInfo
+    ({ appVersion, electronVersion: '40', nodeVersion: '26', platform: 'linux', kovaRoot: '' }) as DesktopVersionInfo
 
   beforeEach(() => {
     setRemote(false)

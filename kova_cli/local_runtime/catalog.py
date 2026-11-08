@@ -379,7 +379,7 @@ def refresh_catalog(force: bool = False) -> bool:
             return False
         _last_refresh_attempt = now
     try:
-        req = urllib.request.Request(_CATALOG_URL, headers={"User-Agent": "hermes-local-runtime"})
+        req = urllib.request.Request(_CATALOG_URL, headers={"User-Agent": "kova-local-runtime"})
         with urllib.request.urlopen(req, timeout=10) as r:
             fetched = _load_catalog(json.load(r))
     except Exception as exc:

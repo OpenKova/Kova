@@ -24,7 +24,7 @@ def _make_agent(kova_home: Path) -> Path:
 
 
 def _make_gui_build(kova_home: Path) -> None:
-    """Create the source-built GUI artifacts a `hermes desktop` run produces."""
+    """Create the source-built GUI artifacts a `kova desktop` run produces."""
     desktop = kova_home / "kova-agent" / "apps" / "desktop"
     (desktop / "dist").mkdir(parents=True)
     (desktop / "dist" / "index.html").write_text("<html>")

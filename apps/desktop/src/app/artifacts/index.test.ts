@@ -232,7 +232,7 @@ describe('collectArtifactsForSession', () => {
     const payload = JSON.stringify({
       images: ['https://cdn.example.com/advertising/banner.gif'],
       page_url: 'https://example.com/article',
-      screenshot_path: '/tmp/hermes-browser/screenshot.png'
+      screenshot_path: '/tmp/kova-browser/screenshot.png'
     })
 
     const artifacts = collectArtifactsForSession(makeSession({ id: 'browser-session' }), [
@@ -251,7 +251,7 @@ ${payload}
     expect(artifacts).toHaveLength(1)
     expect(artifacts[0]).toMatchObject({
       kind: 'image',
-      value: '/tmp/hermes-browser/screenshot.png'
+      value: '/tmp/kova-browser/screenshot.png'
     })
   })
 
@@ -261,7 +261,7 @@ ${payload}
         content: {
           _multimodal: true,
           content: [{ image_url: { url: 'data:image/png;base64,AAAA' }, type: 'image_url' }],
-          meta: { screenshot_path: '/tmp/hermes-browser/native-screenshot.png' },
+          meta: { screenshot_path: '/tmp/kova-browser/native-screenshot.png' },
           text_summary: 'Screenshot attached'
         },
         role: 'tool',
@@ -269,7 +269,7 @@ ${payload}
         tool_name: 'browser_vision'
       },
       {
-        content: 'Image attached. Screenshot path: /tmp/hermes browser/summary screenshot.png',
+        content: 'Image attached. Screenshot path: /tmp/kova browser/summary screenshot.png',
         role: 'tool',
         timestamp: 1_781_774_002,
         tool_name: 'browser_vision'
@@ -283,8 +283,8 @@ ${payload}
     ])
 
     expect(artifacts.map(artifact => artifact.value)).toEqual([
-      '/tmp/hermes-browser/native-screenshot.png',
-      '/tmp/hermes browser/summary screenshot.png',
+      '/tmp/kova-browser/native-screenshot.png',
+      '/tmp/kova browser/summary screenshot.png',
       'C:\\Users\\Example User\\.kova\\screenshot.png'
     ])
   })

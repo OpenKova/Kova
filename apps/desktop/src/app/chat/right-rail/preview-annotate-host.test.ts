@@ -124,8 +124,8 @@ describe('preview annotate host', () => {
     'keeps a hidden crop awake through both real paint waits and cleanup (failure=%s)',
     async fail => {
       const previousDesktop = window.kovaDesktop
-      const guestWindow = window as Window & { __hermesAnnotate?: AnnotateInPage }
-      const previousOverlay = guestWindow.__hermesAnnotate
+      const guestWindow = window as Window & { __kovaAnnotate?: AnnotateInPage }
+      const previousOverlay = guestWindow.__kovaAnnotate
       let awake = false
 
       const begin = vi.fn(async () => {
@@ -152,7 +152,7 @@ describe('preview annotate host', () => {
 
       const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
       const api = annotateInPage(document)
-      guestWindow.__hermesAnnotate = api
+      guestWindow.__kovaAnnotate = api
       const captured = deferred<string>()
       const cleaned = deferred<void>()
 
@@ -201,7 +201,7 @@ describe('preview annotate host', () => {
         api.showPins([{ kind: 'area', number: 1, rect: { height: 20, width: 40, x: 10, y: 10 } }])
 
         const pins = document
-          .querySelector('hermes-annotate')!
+          .querySelector('kova-annotate')!
           .shadowRoot!.querySelector('[data-annotate-pin="1"]')!.parentElement!
 
         const waiting = waitAnnotateEvent(guest)
@@ -239,7 +239,7 @@ describe('preview annotate host', () => {
         raf.mockRestore()
         visibility.mockRestore()
         window.kovaDesktop = previousDesktop
-        guestWindow.__hermesAnnotate = previousOverlay
+        guestWindow.__kovaAnnotate = previousOverlay
       }
     }
   )

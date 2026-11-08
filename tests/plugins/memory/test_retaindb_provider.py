@@ -60,7 +60,7 @@ def test_prefetch_does_not_spawn_when_previous_batch_is_alive(monkeypatch):
     assert not created
 
 
-def test_upload_file_rejects_hermes_credential_store(tmp_path, monkeypatch):
+def test_upload_file_rejects_kova_credential_store(tmp_path, monkeypatch):
     kova_home = tmp_path / "kova_home"
     kova_home.mkdir()
     auth_json = kova_home / "auth.json"

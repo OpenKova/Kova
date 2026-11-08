@@ -5,7 +5,7 @@ import path from 'node:path'
 // core dump alone says "something fatal happened" and nothing about what
 // (#100573: ten Linux reports, one shared trap address, zero fatal messages).
 // The message itself goes to stderr a moment before the trap, and every Linux
-// launcher (.desktop entry, Omarchy's hermes-desktop wrapper) discards stderr.
+// launcher (.desktop entry, Omarchy's kova-desktop wrapper) discards stderr.
 // Route Chromium's own log to a file next to desktop.log and let Crashpad keep
 // local minidumps, so the next crash carries its FATAL line with it.
 

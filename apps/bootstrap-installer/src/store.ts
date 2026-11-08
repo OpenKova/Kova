@@ -352,7 +352,7 @@ export async function launchKovaDesktop(): Promise<void> {
   const installRoot = $bootstrap.get().installRoot
 
   if (!installRoot) {throw new Error('no install root')}
-  await invoke('launch_hermes_desktop', { installRoot })
+  await invoke('launch_kova_desktop', { installRoot })
 }
 
 export async function openLogDir(): Promise<void> {

@@ -44,7 +44,7 @@ def _count_refresh_posts(monkeypatch) -> list[str]:
 
 
 def test_forced_refresh_never_adopts_the_bearer_that_just_failed(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     _seed(kova_home, _invoke_jwt(seconds=2000), "rt-old")
@@ -89,7 +89,7 @@ class _Agent:
 
 
 def test_one_refresh_per_episode_then_bounded_backoff(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     key = _invoke_jwt(seconds=3000)

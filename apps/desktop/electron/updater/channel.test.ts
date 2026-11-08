@@ -69,7 +69,7 @@ async function fixture(): Promise<{
       appId: 'chat.nous.kova.h1234567890abcdef',
       appNamePascal: 'KovaH1234567890abcdef',
       artifactNamePascal: 'KovaH1234567890abcdef',
-      cliName: 'hermes-fresh-preview-29',
+      cliName: 'kova-fresh-preview-29',
       windowsExecutableName: 'KovaH1234567890abcdef.exe',
       msixAppIdWithOrg: 'NeuralStudio.KovaH1234567890abcdef'
     }

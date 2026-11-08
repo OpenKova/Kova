@@ -259,7 +259,7 @@ describe('backend lifecycle copy', () => {
     expect(stderrLooksLikeProblem('Traceback (most recent call last):')).toBe(true)
     expect(stderrLooksLikeProblem('[gateway-turn] ValueError: nope')).toBe(true)
     expect(stderrLooksLikeProblem('ValueError: nope')).toBe(true)
-    expect(stderrLooksLikeProblem('INFO hermes.mcp: discovered 3 servers')).toBe(false)
+    expect(stderrLooksLikeProblem('INFO kova.mcp: discovered 3 servers')).toBe(false)
     // The canonical bootstrap's verdict (and its remedy line) is the reason a TUI cannot connect.
     expect(stderrLooksLikeProblem('gateway incompatible: runtime_protocol')).toBe(true)
     expect(stderrLooksLikeProblem('gateway inaccessible: profile_parked')).toBe(true)

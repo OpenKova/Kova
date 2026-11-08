@@ -60,13 +60,13 @@ const profile = (name: string, isDefault = false): ProfileInfo => ({
   is_default: isDefault,
   model: null,
   name,
-  path: `/tmp/hermes/${name}`,
+  path: `/tmp/kova/${name}`,
   provider: null,
   skill_count: 0
 })
 
 const remoteConn = (over: Partial<KovaConnection> = {}): KovaConnection =>
-  ({ baseUrl: 'https://hermes-roy.tail.ts.net', mode: 'remote', profile: 'vps-remote', ...over }) as KovaConnection
+  ({ baseUrl: 'https://kova-roy.tail.ts.net', mode: 'remote', profile: 'vps-remote', ...over }) as KovaConnection
 
 const localConn = (over: Partial<KovaConnection> = {}): KovaConnection =>
   ({ baseUrl: '', mode: 'local', profile: 'default', ...over }) as KovaConnection

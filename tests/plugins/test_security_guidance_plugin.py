@@ -52,19 +52,19 @@ def _load_patterns():
 def _load_plugin_init():
     """Import the plugin __init__.py with patterns.py as a sibling."""
     plugin_dir = _repo_root() / "plugins" / "security-guidance"
-    if "hermes_plugins" not in sys.modules:
-        ns = types.ModuleType("hermes_plugins")
+    if "kova_plugins" not in sys.modules:
+        ns = types.ModuleType("kova_plugins")
         ns.__path__ = []
-        sys.modules["hermes_plugins"] = ns
+        sys.modules["kova_plugins"] = ns
     spec = importlib.util.spec_from_file_location(
-        "hermes_plugins.security_guidance",
+        "kova_plugins.security_guidance",
         plugin_dir / "__init__.py",
         submodule_search_locations=[str(plugin_dir)],
     )
     mod = importlib.util.module_from_spec(spec)
-    mod.__package__ = "hermes_plugins.security_guidance"
+    mod.__package__ = "kova_plugins.security_guidance"
     mod.__path__ = [str(plugin_dir)]
-    sys.modules["hermes_plugins.security_guidance"] = mod
+    sys.modules["kova_plugins.security_guidance"] = mod
     spec.loader.exec_module(mod)
     return mod
 

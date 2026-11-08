@@ -29,7 +29,7 @@ function buildArtifact(name: string, commit: string): string {
   writeFileSync(
     path.join(artifact, 'package.json'),
     JSON.stringify({
-      name: 'hermes-recovery-fixture',
+      name: 'kova-recovery-fixture',
       version: '0.0.0',
       main: 'main.mjs',
       type: 'module'

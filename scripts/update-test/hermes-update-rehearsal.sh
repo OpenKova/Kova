@@ -131,8 +131,8 @@ latest_backup_root() {
 
 load_snapshot() {
   SNAP="$(latest_backup_root)" || die "no backup found under $BACKUP_ROOT — run 'pre' first"
-  local recorded_path="$SNAP/hermes-home.txt"
-  [ -f "$recorded_path" ] || die "$SNAP is not a rehearsal backup (no hermes-home.txt)"
+  local recorded_path="$SNAP/kova-home.txt"
+  [ -f "$recorded_path" ] || die "$SNAP is not a rehearsal backup (no kova-home.txt)"
   [ -d "$SNAP/home" ] || die "$SNAP has no clone of KOVA_HOME (made by an older version of this script, or already restored)"
   # Plain text, not JSON: this string is compared byte-for-byte to decide whether
   # the backup belongs to the home post is about to restore.
@@ -314,7 +314,7 @@ cmd_pre() {
   fi
 
   step "recording what this backup is"
-  printf '%s\n' "$KOVA_HOME" > "$SNAP/hermes-home.txt"
+  printf '%s\n' "$KOVA_HOME" > "$SNAP/kova-home.txt"
   cat > "$SNAP/manifest.json" <<EOF
 {
   "schema": 4,

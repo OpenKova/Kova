@@ -12,8 +12,8 @@
 # DeepSeek balance call, the Anthropic OAuth refresh path that can rewrite
 # auth.json, and the clone of a private Hermes fetcher). There is therefore no
 # network egress and no credential is read. Left: one route, GET /summary, which
-# opens HERMES_HOME/kanban.db, and each profile's state.db for worker activity,
-# read-only, with a fallback to the root HERMES_HOME/state.db for a
+# opens KOVA_HOME/kanban.db, and each profile's state.db for worker activity,
+# read-only, with a fallback to the root KOVA_HOME/state.db for a
 # default-profile card that has no profile directory. The payload is counts
 # only: board group counts (blocked, waiting, running, queued, scheduled,
 # review, done today) plus the count of active, stalled, and looping workers.

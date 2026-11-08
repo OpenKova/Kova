@@ -33,7 +33,7 @@ _INTERPRETER_PREFIXES = tuple({
 } | {
     # scripts/run_tests.sh runs a PM generation venv (<installs>/<key>/{environments,test-environment}
     # /<gen>/venv) that sits under the home whenever HOME is the run's fake home. The generation dir
-    # around the venv is that interpreter's installation too: `hermes update` probes
+    # around the venv is that interpreter's installation too: `kova update` probes
     # <venv>/../kova_cli/main.py to find the checkout owning its venv (update_owning_install).
     *_pm_generation_dirs((sys.prefix, sys.exec_prefix)),
 } | {
@@ -158,7 +158,7 @@ class HomeIOGuard:
     @staticmethod
     def refuse(value):
         raise AssertionError(
-            f"TEST BUG: file I/O against the REAL hermes home: {value}\n"
+            f"TEST BUG: file I/O against the REAL kova home: {value}\n"
             "Use the isolated KOVA_HOME or a temporary fixture instead."
         )
 

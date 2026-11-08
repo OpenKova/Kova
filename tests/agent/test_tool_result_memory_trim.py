@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 from tests.agent.test_start_order_gate import (
     _FakeAssistantMsg,
     _FakeToolCall,
-    _isolate_hermes,
+    _isolate_kova,
     _make_agent,
 )
 

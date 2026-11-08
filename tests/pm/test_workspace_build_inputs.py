@@ -359,7 +359,7 @@ def test_a_packaging_change_without_a_lock_change_needs_a_new_environment(tmp_pa
     from pm import paths
     from pm.packages import Venv
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     (root / "uv.lock").write_text("version = 1\n", encoding="utf-8")
     pyproject = root / "pyproject.toml"
@@ -378,7 +378,7 @@ def test_each_packaging_file_is_part_of_the_environment_stamp(tmp_path, monkeypa
     from pm import paths
     from pm.packages import Venv
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     (root / "uv.lock").write_text("version = 1\n", encoding="utf-8")
     (root / "pyproject.toml").write_text('[project]\nname="core"\n', encoding="utf-8")

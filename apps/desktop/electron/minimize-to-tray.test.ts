@@ -111,7 +111,7 @@ class Window extends EventEmitter {
 
 let home: string
 beforeEach(() => {
-  home = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-tray-'))
+  home = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-tray-'))
   native.windows = []
   native.trays = []
   native.fail = false

@@ -11,7 +11,7 @@ import kova_constants
 from kova_platform.host import runtime as host_runtime
 from kova_constants import (
     get_default_kova_root,
-    get_hermes_dir,
+    get_kova_dir,
     get_kova_home,
     get_process_kova_home,
     is_container,
@@ -61,13 +61,13 @@ class TestGetDefaultKovaRoot:
 
     @pytest.mark.platforms("windows")
     def test_no_kova_home_returns_localappdata_root_on_windows(self, tmp_path, monkeypatch):
-        """Native Windows falls back to %LOCALAPPDATA%\\hermes, not ~/.kova."""
+        """Native Windows falls back to %LOCALAPPDATA%\\kova, not ~/.kova."""
         local_appdata = tmp_path / "LocalAppData"
         monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
 
-        assert get_default_kova_root() == local_appdata / "hermes"
+        assert get_default_kova_root() == local_appdata / "kova"
 
     @pytest.mark.platforms("windows")
     def test_root_for_another_environment_ignores_this_process(self, tmp_path, monkeypatch):
@@ -78,16 +78,16 @@ class TestGetDefaultKovaRoot:
         user = tmp_path / "user"
         custom = tmp_path / "data"
         cases = [
-            ({"LOCALAPPDATA": str(local)}, local / "hermes"),
-            ({"LOCALAPPDATA": str(local), "KOVA_HOME": str(local / "hermes" / "profiles" / "work")},
-             local / "hermes"),
+            ({"LOCALAPPDATA": str(local)}, local / "kova"),
+            ({"LOCALAPPDATA": str(local), "KOVA_HOME": str(local / "kova" / "profiles" / "work")},
+             local / "kova"),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": str(custom / "profiles" / "work")}, custom),
-            ({"LOCALAPPDATA": str(local), "KOVA_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
+            ({"LOCALAPPDATA": str(local), "KOVA_DATA_DIR_SUFFIX": "-magic"}, local / "kova-magic"),
             ({"localappdata": str(local), "KOVA_HOME": "%LocalAppData%\\data"}, local / "data"),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
             ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "KOVA_HOME": "~\\data"}, user / "data"),
-            ({"USERPROFILE": str(user)}, user / "AppData" / "Local" / "hermes"),
+            ({"USERPROFILE": str(user)}, user / "AppData" / "Local" / "kova"),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": "relative\\data"}, None),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": "%UNDEFINED%\\data"}, None),
             ({"LOCALAPPDATA": str(local), "KOVA_HOME": "~\\data"}, None),
@@ -116,14 +116,14 @@ class TestGetKovaHome:
 
     @pytest.mark.platforms("windows")
     def test_windows_fallback_uses_localappdata(self, tmp_path, monkeypatch):
-        """When KOVA_HOME is unset on Windows, use %LOCALAPPDATA%\\hermes."""
+        """When KOVA_HOME is unset on Windows, use %LOCALAPPDATA%\\kova."""
         local_appdata = tmp_path / "LocalAppData"
         monkeypatch.delenv("KOVA_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
         monkeypatch.setattr(kova_constants, "_profile_fallback_warned", False)
 
-        assert get_kova_home() == local_appdata / "hermes"
+        assert get_kova_home() == local_appdata / "kova"
 
 
 class TestGetProcessKovaHome:
@@ -428,13 +428,13 @@ class TestSecureParentDir:
     def test_install_tree_skipped(self, monkeypatch):
         """Parent dir equal to (or inside) the install tree must NOT be chmod'd.
 
-        Regression test for #93050: secure_parent_dir() chmod'd /opt/hermes to
+        Regression test for #93050: secure_parent_dir() chmod'd /opt/kova to
         0700 because it has 3 path parts and passed the ``< 3`` guard, locking
-        out UID 10000 (hermes user) from traversing the install dir.
+        out UID 10000 (kova user) from traversing the install dir.
         """
         install_root = Path(kova_constants.__file__).resolve().parent
 
-        # Directly under the install root (e.g. /opt/hermes/auth.json)
+        # Directly under the install root (e.g. /opt/kova/auth.json)
         target = install_root / "auth.json"
         called_with = []
         monkeypatch.setattr(os, "chmod", lambda p, m: called_with.append((str(p), m)))
@@ -460,7 +460,7 @@ class TestSecureParentDir:
         """
         install_root = Path(kova_constants.__file__).resolve().parent
 
-        # Prefix-named sibling of the install root (/opt/hermes-data/...).
+        # Prefix-named sibling of the install root (/opt/kova-data/...).
         prefix_sibling = Path(str(install_root) + "-data")
         called_with = []
         monkeypatch.setattr(os, "chmod", lambda p, m: called_with.append((str(p), m)))
@@ -505,7 +505,7 @@ class TestSecureParentDir:
 
 
 class TestGetKovaDir:
-    """Tests for ``get_hermes_dir(new_subpath, old_name)``.
+    """Tests for ``get_kova_dir(new_subpath, old_name)``.
 
     Contract: prefer the legacy ``<old_name>/`` location, but only when
     it has content. An empty legacy stub must fall through to the new
@@ -518,7 +518,7 @@ class TestGetKovaDir:
 
     def test_neither_exists_returns_new(self, tmp_path, monkeypatch):
         self._set_home(tmp_path, monkeypatch)
-        result = get_hermes_dir("platforms/pairing", "pairing")
+        result = get_kova_dir("platforms/pairing", "pairing")
         assert result == tmp_path / "platforms/pairing"
 
 
@@ -534,7 +534,7 @@ class TestGetKovaDir:
         self._set_home(tmp_path, monkeypatch)
         legacy = tmp_path / "image_cache"
         legacy.write_bytes(b"sentinel")
-        result = get_hermes_dir("cache/images", "image_cache")
+        result = get_kova_dir("cache/images", "image_cache")
         assert result == legacy
 
 
@@ -555,7 +555,7 @@ class TestGetKovaDir:
         new = tmp_path / "platforms" / "pairing"
         new.mkdir(parents=True)
         (new / "discord-approved.json").write_text("[]")
-        result = get_hermes_dir("platforms/pairing", "pairing")
+        result = get_kova_dir("platforms/pairing", "pairing")
         assert result == new
 
     @pytest.mark.require_symlinks
@@ -567,7 +567,7 @@ class TestGetKovaDir:
         (real / "cached.png").write_bytes(b"x")
         legacy = tmp_path / "image_cache"
         legacy.symlink_to(real)
-        result = get_hermes_dir("cache/images", "image_cache")
+        result = get_kova_dir("cache/images", "image_cache")
         assert result == legacy
 
 
@@ -623,7 +623,7 @@ class TestProjectVenvDirOutOfTree:
     def test_out_of_tree_install_resolves_the_running_interpreter_venv(self, monkeypatch, tmp_path):
         checkout = tmp_path / "kova-agent"
         checkout.mkdir()
-        venv = tmp_path / "venvs" / "hermes"
+        venv = tmp_path / "venvs" / "kova"
         self._venv_installed_from(venv, checkout)
         self._running_from(monkeypatch, checkout, venv)
 
@@ -647,7 +647,7 @@ class TestProjectVenvDirOutOfTree:
         """A temp dir / another clone never claims the running venv; an in-tree venv still wins."""
         checkout = tmp_path / "kova-agent"
         checkout.mkdir()
-        venv = tmp_path / "venvs" / "hermes"
+        venv = tmp_path / "venvs" / "kova"
         self._venv_installed_from(venv, checkout)
         self._running_from(monkeypatch, checkout, venv)
         other = tmp_path / "not-our-checkout"

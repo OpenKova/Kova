@@ -6,7 +6,7 @@ adding it to the guard, the corresponding test added here will fail too.
 
 The guard exists to protect the developer's live ``kova-gateway`` process
 from being SIGTERMed by tests, and every live Kova systemd unit
-(``kova-gateway*``, ``hermes-dashboard*``, ``hermes-serve*``) from being
+(``kova-gateway*``, ``kova-dashboard*``, ``kova-serve*``) from being
 restarted or stopped by them. See PR #23397 for the original incident
 (5+ live gateway kills in 3 days). Per Teknium 2026-05-10:
 
@@ -156,18 +156,18 @@ def test_subprocess_run_bash_c_systemctl_blocked():
 @pytest.mark.parametrize(
     "cmd",
     [
-        ["systemctl", "--user", "restart", "hermes-dashboard.service"],
-        ["systemctl", "--user", "restart", "hermes-dashboard-work.service"],
-        ["systemctl", "--user", "stop", "hermes-serve"],
-        ["/usr/bin/systemctl", "--user", "--no-ask-password", "restart", "hermes-serve-work.service"],
-        ["bash", "-c", "systemctl --user restart hermes-dashboard.service"],
-        "systemctl --user restart hermes-dashboard-work.service",
-        'bash -c "systemctl --user restart hermes-serve.service"',
+        ["systemctl", "--user", "restart", "kova-dashboard.service"],
+        ["systemctl", "--user", "restart", "kova-dashboard-work.service"],
+        ["systemctl", "--user", "stop", "kova-serve"],
+        ["/usr/bin/systemctl", "--user", "--no-ask-password", "restart", "kova-serve-work.service"],
+        ["bash", "-c", "systemctl --user restart kova-dashboard.service"],
+        "systemctl --user restart kova-dashboard-work.service",
+        'bash -c "systemctl --user restart kova-serve.service"',
     ],
 )
-def test_subprocess_run_systemctl_mutating_any_hermes_unit_blocked(cmd):
+def test_subprocess_run_systemctl_mutating_any_kova_unit_blocked(cmd):
     """Not just the gateway: a test that forgot to stub the runner restarted the developer's
-    real hermes-dashboard / hermes-serve units, which the gateway-only tokens let through."""
+    real kova-dashboard / kova-serve units, which the gateway-only tokens let through."""
     with pytest.raises(RuntimeError, match="live-system guard"):
         subprocess.run(cmd, shell=isinstance(cmd, str), check=False)
 
@@ -175,11 +175,11 @@ def test_subprocess_run_systemctl_mutating_any_hermes_unit_blocked(cmd):
 @pytest.mark.parametrize(
     "cmd",
     [
-        ["systemctl", "--user", "show", "hermes-dashboard.service", "--property=MainPID"],
-        ["systemctl", "--user", "status", "hermes-dashboard"],
-        ["systemctl", "--user", "is-active", "hermes-serve.service"],
+        ["systemctl", "--user", "show", "kova-dashboard.service", "--property=MainPID"],
+        ["systemctl", "--user", "status", "kova-dashboard"],
+        ["systemctl", "--user", "is-active", "kova-serve.service"],
         ["systemctl", "--user", "restart", "nginx.service"],
-        ["systemctl", "--user", "restart", "myhermes-dashboard.service"],
+        ["systemctl", "--user", "restart", "mykova-dashboard.service"],
     ],
 )
 def test_subprocess_run_systemctl_read_only_or_foreign_unit_passes_guard(cmd):
@@ -192,10 +192,10 @@ def test_subprocess_run_systemctl_read_only_or_foreign_unit_passes_guard(cmd):
 @pytest.mark.parametrize(
     "cmd",
     [
-        ["bash", "-c", r"systemctl st\op hermes.service"],
-        ["bash", "-c", r"systemctl --user rest\art hermes-dashboard"],
-        r"systemctl --user re\start hermes-serve.service",
-        ["bash", "-c", "sh -c 'systemctl --user restart hermes-dashboard'"],
+        ["bash", "-c", r"systemctl st\op kova.service"],
+        ["bash", "-c", r"systemctl --user rest\art kova-dashboard"],
+        r"systemctl --user re\start kova-serve.service",
+        ["bash", "-c", "sh -c 'systemctl --user restart kova-dashboard'"],
     ],
 )
 def test_subprocess_run_shell_escaped_or_nested_verb_blocked(cmd):
@@ -206,14 +206,14 @@ def test_subprocess_run_shell_escaped_or_nested_verb_blocked(cmd):
 
 def test_a_test_owned_unit_can_be_cleaned_up_but_no_other(request):
     """A unit the test created under its own name may be stopped; every other Kova unit stays refused."""
-    owned = "hermes-worker-kanban-t_selftest-run-1.scope"
+    owned = "kova-worker-kanban-t_selftest-run-1.scope"
     request.node.live_system_guard_owned_units = {owned}
     with pytest.raises(FileNotFoundError):
         subprocess.run(["systemctl", "--user", "stop", owned], env={"PATH": "/nonexistent"}, check=False)
     with pytest.raises(RuntimeError, match="live-system guard"):
-        subprocess.run(["systemctl", "--user", "stop", owned, "hermes-dashboard.service"], check=False)
+        subprocess.run(["systemctl", "--user", "stop", owned, "kova-dashboard.service"], check=False)
     with pytest.raises(RuntimeError, match="live-system guard"):
-        subprocess.run(["systemctl", "--user", "stop", "hermes-worker-kanban-other-run-1.scope"], check=False)
+        subprocess.run(["systemctl", "--user", "stop", "kova-worker-kanban-other-run-1.scope"], check=False)
 
 
 def test_subprocess_run_setsid_systemctl_blocked():
@@ -222,11 +222,11 @@ def test_subprocess_run_setsid_systemctl_blocked():
 
 
 def test_host_gateway_start_blocked_but_container_exec_allowed():
-    """A host-side ``hermes gateway start`` spawns a real runtime; the same words addressed to
+    """A host-side ``kova gateway start`` spawns a real runtime; the same words addressed to
     a container via ``docker exec`` stay inside it and are the Docker harness's business."""
-    with pytest.raises(RuntimeError, match="REAL hermes gateway runtime"):
-        subprocess.run(["hermes", "-p", "p", "gateway", "start"], check=False)
-    argv = ["docker", "exec", "-u", "hermes", "hermes-test-x", "sh", "-c", "hermes -p p gateway start"]
+    with pytest.raises(RuntimeError, match="REAL kova gateway runtime"):
+        subprocess.run(["kova", "-p", "p", "gateway", "start"], check=False)
+    argv = ["docker", "exec", "-u", "kova", "kova-test-x", "sh", "-c", "kova -p p gateway start"]
     # Past the guard the call reaches the real subprocess.run; a missing binary is fine here.
     with pytest.raises(FileNotFoundError):
         subprocess.run(argv, env={"PATH": "/nonexistent"}, check=False)
@@ -324,9 +324,9 @@ def test_asyncio_create_subprocess_shell_systemctl_blocked():
 # ──────────────────── pkill / killall / taskkill ───────────────
 
 
-def test_subprocess_pkill_hermes_blocked():
+def test_subprocess_pkill_kova_blocked():
     with pytest.raises(RuntimeError, match="live-system guard"):
-        subprocess.run(["pkill", "-f", "hermes"], check=False)
+        subprocess.run(["pkill", "-f", "kova"], check=False)
 
 
 
@@ -337,9 +337,9 @@ def test_subprocess_pkill_python_dash_f_blocked():
         subprocess.run(["pkill", "-f", "python"], check=False)
 
 
-def test_subprocess_killall_hermes_blocked():
+def test_subprocess_killall_kova_blocked():
     with pytest.raises(RuntimeError, match="live-system guard"):
-        subprocess.run(["killall", "hermes"], check=False)
+        subprocess.run(["killall", "kova"], check=False)
 
 
 # ──────────────────── pass-through cases (must NOT raise) ──────

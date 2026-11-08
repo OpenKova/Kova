@@ -574,7 +574,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
 
       const errors = {
         'auth-failed': g.sshErrAuth,
-        'hermes-not-found': g.sshErrNotInstalled,
+        'kova-not-found': g.sshErrNotInstalled,
         'host-key-changed': g.sshErrHostKey,
         'interactive-auth': g.sshErrInteractiveAuth,
         timeout: g.sshErrTimeout,
@@ -983,7 +983,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
       if (!result.reachable) {
         const errors = {
           'auth-failed': g.sshErrAuth,
-          'hermes-not-found': g.sshErrNotInstalled,
+          'kova-not-found': g.sshErrNotInstalled,
           'host-key-changed': g.sshErrHostKey,
           'interactive-auth': g.sshErrInteractiveAuth,
           timeout: g.sshErrTimeout,

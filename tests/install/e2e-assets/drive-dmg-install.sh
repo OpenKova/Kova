@@ -98,7 +98,7 @@ click_install() {
 }
 
 # Use the same source-launcher selection as the later read-only checkpoint:
-# PM installs publish .kova/bin/hermes; older releases use venv/bin/hermes.
+# PM installs publish .kova/bin/kova; older releases use venv/bin/kova.
 # The first packaged app can land before the products stage finishes (and can
 # be rebuilt again). Wait for native bootstrap completion, not install.sh's
 # marker (historical releases predate it, and it precedes the native handoff).
@@ -127,7 +127,7 @@ bootstrap_completed() {
 install_complete() {
   bootstrap_completed \
     && [ -d "$INSTALL_DIR/.git" ] \
-    && source_hermes "$INSTALL_DIR" >/dev/null 2>&1 \
+    && source_kova "$INSTALL_DIR" >/dev/null 2>&1 \
     && installed_app
 }
 # The bootstrap parks on an error screen instead of exiting when a stage

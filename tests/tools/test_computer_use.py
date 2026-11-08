@@ -1183,14 +1183,14 @@ class TestCuaDriverSessionReconnect:
 
         bridge = FakeBridge()
         session = self._make_session(bridge)
-        session._declared_session_id = "hermes-label"
+        session._declared_session_id = "kova-label"
 
         result = session.call_tool("list_apps", {})
 
         assert result["isError"] is False
         assert bridge.calls == [
             ("call", "list_apps", {}),
-            ("call", "start_session", {"session": "hermes-label"}),
+            ("call", "start_session", {"session": "kova-label"}),
             ("call", "list_apps", {}),
         ]
 

@@ -10,7 +10,7 @@ from kova_cli import runtime_provider as rp
 # ── model.openai_runtime: codex_app_server on every ladder rung (#115169) ─────────────────
 
 _CODEX_STORE_CREDS = {"base_url": "https://chatgpt.com/backend-api/codex", "api_key": "tok",
-                      "source": "hermes-auth-store", "last_refresh": 1}
+                      "source": "kova-auth-store", "last_refresh": 1}
 
 
 def _codex_rung(monkeypatch, rung: str) -> dict:

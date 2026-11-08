@@ -127,7 +127,7 @@ class _EmbeddedCuaDaemon:
         self._owns_runtime = self._running = False
         self._stderr_tail: deque[str] = deque(maxlen=20)
         token = uuid.uuid4().hex[:12]
-        self.socket_path = (rf"\\.\pipe\hermes-cua-{token}" if sys.platform == "win32"
+        self.socket_path = (rf"\\.\pipe\kova-cua-{token}" if sys.platform == "win32"
                             else os.path.join(tempfile.gettempdir(), f"hc-{token}.sock"))
 
     def child_env(self) -> dict[str, str]:
@@ -180,7 +180,7 @@ class _EmbeddedCuaDaemon:
             # (session release / atexit), so a SIGKILLed or OOM-killed Kova left a YOLO-mode daemon running.
             self._process = spawn_owned(command, purpose="cua-driver-embedded", **popen_kwargs)
         self._owns_runtime = True
-        threading.Thread(target=self._drain_stderr, args=(self._process,), name="hermes-cua-daemon-stderr", daemon=True).start()
+        threading.Thread(target=self._drain_stderr, args=(self._process,), name="kova-cua-daemon-stderr", daemon=True).start()
         deadline = time.monotonic() + self._START_TIMEOUT_SECONDS
         while time.monotonic() < deadline:
             return_code = self._process.poll()

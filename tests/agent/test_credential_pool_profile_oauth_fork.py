@@ -23,7 +23,7 @@ from kova_cli.auth_oauth_grants import SINGLE_USE_REFRESH_POOL_PROVIDERS
 @pytest.fixture
 def fleet(tmp_path, monkeypatch):
     """Root KOVA_HOME with an expired-but-refreshable Anthropic pool row."""
-    root = tmp_path / "hermes-root"
+    root = tmp_path / "kova-root"
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
     # Keep host ~/.claude and host auth.json out of the picture.
@@ -44,7 +44,7 @@ def fleet(tmp_path, monkeypatch):
         "credential_pool": {
             "anthropic": [{
                 "id": "abc123", "label": "team-grant", "auth_type": "oauth",
-                "priority": 0, "source": "manual:hermes_pkce",
+                "priority": 0, "source": "manual:kova_pkce",
                 "access_token": "sk-ant-oat01-AT0", "refresh_token": "sk-ant-ort-RT0",
                 "expires_at_ms": expired, "base_url": "https://api.anthropic.com",
             }],
@@ -322,7 +322,7 @@ def test_borrowing_profile_load_pool_does_not_materialize_local_copy(fleet):
 
 
 def test_borrower_prune_never_deletes_root_singleton_grant(fleet, tmp_path):
-    """Root's hermes_pkce row is seeded from ROOT's .anthropic_oauth.json; a
+    """Root's kova_pkce row is seeded from ROOT's .anthropic_oauth.json; a
     profile without that file must not prune (and write-through-delete) it."""
     from agent.credential_pool import load_pool
 
@@ -337,13 +337,13 @@ def test_borrower_prune_never_deletes_root_singleton_grant(fleet, tmp_path):
     (root / "auth.json").write_text(json.dumps(store))
     fleet["use"](root)
     root_rows = [e for e in load_pool("anthropic").entries()]
-    assert [e.source for e in root_rows] == ["hermes_pkce"]
+    assert [e.source for e in root_rows] == ["kova_pkce"]
 
     kid = _profile(fleet, "kid")
     fleet["use"](kid)
     pool = load_pool("anthropic")
-    assert [e.source for e in pool.entries()] == ["hermes_pkce"], "borrowed root grant was pruned"
-    assert fleet["rows"](root) and fleet["rows"](root)[0]["source"] == "hermes_pkce"
+    assert [e.source for e in pool.entries()] == ["kova_pkce"], "borrowed root grant was pruned"
+    assert fleet["rows"](root) and fleet["rows"](root)[0]["source"] == "kova_pkce"
     assert fleet["rows"](kid) is None
 
     # Rotating from the profile commits BOTH the pool row and the singleton at ROOT.
@@ -362,7 +362,7 @@ def test_profile_auth_add_owns_only_its_own_rows(fleet):
     pool = load_pool("anthropic")
     pool.add_entry(PooledCredential(
         provider="anthropic", id="own001", label="mine", auth_type=AUTH_TYPE_OAUTH,
-        priority=0, source="manual:hermes_pkce", access_token="sk-ant-oat01-MINE",
+        priority=0, source="manual:kova_pkce", access_token="sk-ant-oat01-MINE",
         refresh_token="rt-mine",
     ))
     assert [e["id"] for e in fleet["rows"](kid)] == ["own001"], "borrowed root row was copied into the profile"
@@ -398,7 +398,7 @@ def test_profile_fresh_add_with_no_login_anywhere_lands_in_the_profile(fleet, pr
     "id": "rootkey", "label": "root-key", "auth_type": "api_key", "priority": 0,
     "source": "manual", "access_token": "root-api-key"}]], ids=["root_pool_empty", "root_api_key_row"])
 def test_anthropic_auth_add_survives_the_next_load_beside_a_root_singleton(fleet: dict, root_rows: list) -> None:
-    """``auth add anthropic`` saves a ``manual:hermes_pkce`` row, which the pool owns. When root's
+    """``auth add anthropic`` saves a ``manual:kova_pkce`` row, which the pool owns. When root's
     login lives only in its ``.anthropic_oauth.json``, the next load must not take that row for a
     copy of root's file: it stays in the profile, and root's file is left as it was."""
     from agent.credential_pool import AUTH_TYPE_OAUTH, PooledCredential, load_pool
@@ -417,7 +417,7 @@ def test_anthropic_auth_add_survives_the_next_load_beside_a_root_singleton(fleet
     fleet["use"](kid)
     load_pool("anthropic").add_entry(PooledCredential(
         provider="anthropic", id="kid001", label="mine", auth_type=AUTH_TYPE_OAUTH, priority=0,
-        source="manual:hermes_pkce", access_token="at-kid", refresh_token="rt-kid",
+        source="manual:kova_pkce", access_token="at-kid", refresh_token="rt-kid",
         expires_at_ms=int((time.time() + 8 * 3600) * 1000),
     ))
     assert [r["id"] for r in fleet["rows"](kid)] == ["kid001"]
@@ -568,7 +568,7 @@ def test_heal_is_idempotent_and_logs_once(fleet, caplog):
 
 
 def test_heal_never_deletes_the_only_surviving_copy(fleet):
-    """Root lost its grant (user ran `hermes auth remove` at root); the profile's
+    """Root lost its grant (user ran `kova auth remove` at root); the profile's
     copy is the only one left — and an independent second account stays put."""
     from agent.credential_pool import load_pool
 
@@ -719,8 +719,8 @@ def test_heal_leaves_a_different_account_alone(fleet):
 
 
 def test_heal_pkce_singleton_shape_commits_live_pair_to_root_singleton(fleet):
-    """`hermes auth` PKCE shape: root + profile each have .anthropic_oauth.json +
-    a hermes_pkce-seeded row; the profile's copy is the rotated (live) one."""
+    """`kova auth` PKCE shape: root + profile each have .anthropic_oauth.json +
+    a kova_pkce-seeded row; the profile's copy is the rotated (live) one."""
     from agent.credential_pool import load_pool
 
     root = fleet["root"]
@@ -733,7 +733,7 @@ def test_heal_pkce_singleton_shape_commits_live_pair_to_root_singleton(fleet):
         "expiresAt": int((time.time() - 3600) * 1000),
     }))
     fleet["use"](root)
-    load_pool("anthropic")  # seeds root's hermes_pkce row from the singleton
+    load_pool("anthropic")  # seeds root's kova_pkce row from the singleton
 
     kid = _profile(fleet, "kid")
     kid.mkdir(parents=True, exist_ok=True)
@@ -882,14 +882,14 @@ def test_heal_leaves_an_aliased_anthropic_singleton_alone(fleet):
 # ── E. the clean mark outlives the process ──────────────────────────────
 #
 # The in-memory mark only silences the heal for one process, so every fresh
-# `hermes` invocation re-paid its two nested EXCLUSIVE auth-store locks to
+# `kova` invocation re-paid its two nested EXCLUSIVE auth-store locks to
 # rediscover a store it had already cleared. Persisting the mark removes that,
 # but a mark that outlives the process must also invalidate on anything the
 # heal reads -- including the ROOT store, which the in-memory fingerprint
 # could safely ignore precisely because it died with the process.
 
 def _new_process(auth_mod):
-    """Simulate a fresh `hermes` invocation: in-memory state gone, disk kept."""
+    """Simulate a fresh `kova` invocation: in-memory state gone, disk kept."""
     auth_mod._oauth_heal_clean_marks.clear()
     auth_mod._global_auth_store_cache = None
 
@@ -928,7 +928,7 @@ def test_persisted_mark_still_re_heals_when_the_root_store_gains_a_grant(fleet):
     kid = _kid_with_api_key_only(fleet, "kid2")
     fork = {
         "id": "abc123", "label": "team-grant", "auth_type": "oauth",
-        "priority": 0, "source": "manual:hermes_pkce",
+        "priority": 0, "source": "manual:kova_pkce",
         "access_token": "sk-ant-oat01-AT0", "refresh_token": "sk-ant-ort-RT0",
         "expires_at_ms": int((time.time() + 3600) * 1000),
         "base_url": "https://api.anthropic.com",

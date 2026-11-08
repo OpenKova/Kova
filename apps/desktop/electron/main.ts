@@ -752,7 +752,7 @@ function acquireSingleInstanceLock(): boolean {
   const stalePid = removeStaleSingletonLock(app.getPath('userData'))
 
   if (stalePid !== null) {
-    console.error(`[hermes] removed stale SingletonLock (owner ${stalePid} dead); retrying launch`)
+    console.error(`[kova] removed stale SingletonLock (owner ${stalePid} dead); retrying launch`)
 
     return app.requestSingleInstanceLock()
   }
@@ -764,7 +764,7 @@ const isPrimaryInstance: boolean = acquireSingleInstanceLock()
 const relauncher = createAppRelauncher(app)
 
 if (!isPrimaryInstance) {
-  console.error('[hermes] another Kova Desktop instance holds the single-instance lock; exiting')
+  console.error('[kova] another Kova Desktop instance holds the single-instance lock; exiting')
   app.exit(0)
 }
 
@@ -826,7 +826,7 @@ if (REMOTE_DISPLAY_REASON) {
   }
 
   console.log(
-    `[hermes] remote display detected (${REMOTE_DISPLAY_REASON}); disabling GPU hardware acceleration to prevent flicker`
+    `[kova] remote display detected (${REMOTE_DISPLAY_REASON}); disabling GPU hardware acceleration to prevent flicker`
   )
 }
 
@@ -864,7 +864,7 @@ if (IS_WINDOWS) {
     app.disableHardwareAcceleration()
     app.commandLine.appendSwitch('disable-gpu-compositing')
     console.log(
-      `[hermes] Windows GPU stack-cookie fallback enabled (${gpuStackCookieDecision.reason}); disabling GPU hardware acceleration (0xC0000409 / #108047)`
+      `[kova] Windows GPU stack-cookie fallback enabled (${gpuStackCookieDecision.reason}); disabling GPU hardware acceleration (0xC0000409 / #108047)`
     )
   }
 }
@@ -881,14 +881,14 @@ if (DEV_CDP.port) {
   // so a future edit can't widen it by omission.
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
   console.log(
-    `[hermes] renderer debugging on http://127.0.0.1:${DEV_CDP.port} — anything that can reach it ` +
+    `[kova] renderer debugging on http://127.0.0.1:${DEV_CDP.port} — anything that can reach it ` +
       'can run code in the renderer. KOVA_DESKTOP_CDP_PORT=off to disable.'
   )
 } else {
   const why = describeDevCdpDecision(DEV_CDP)
 
   if (why) {
-    console.warn(`[hermes] ${why}`)
+    console.warn(`[kova] ${why}`)
   }
 }
 
@@ -905,7 +905,7 @@ if (
   app.commandLine.appendSwitch('ignore-gpu-blocklist')
   app.commandLine.appendSwitch('enable-gpu-rasterization')
   app.commandLine.appendSwitch('enable-zero-copy')
-  console.log('[hermes] WSL GPU passthrough (/dev/dxg) detected; enabling GPU acceleration')
+  console.log('[kova] WSL GPU passthrough (/dev/dxg) detected; enabling GPU acceleration')
 }
 
 // NVIDIA EGL failures use a build-qualified, lock-owned recovery witness.
@@ -938,7 +938,7 @@ const nvidiaEglRecovery = createNvidiaEglRecovery({
   remoteDisplayReason: REMOTE_DISPLAY_REASON,
   primary: isPrimaryInstance,
   log: message => {
-    console.warn(`[hermes] ${message}`)
+    console.warn(`[kova] ${message}`)
     void app.whenReady().then(() => {
       rememberLog(message)
       flushDesktopLogBufferSync()
@@ -955,7 +955,7 @@ const NVIDIA_EGL_FALLBACK = nvidiaEglRecovery.decision
 
 if (NVIDIA_EGL_FALLBACK.enable) {
   app.commandLine.appendSwitch('use-angle', 'swiftshader')
-  console.log(`[hermes] NVIDIA EGL fallback enabled (${NVIDIA_EGL_FALLBACK.reason}); routing ANGLE through SwiftShader`)
+  console.log(`[kova] NVIDIA EGL fallback enabled (${NVIDIA_EGL_FALLBACK.reason}); routing ANGLE through SwiftShader`)
 }
 
 // #124843: on Mesa/Wayland the Chromium GPU child can fail init
@@ -999,7 +999,7 @@ if (process.platform === 'linux') {
     app.disableHardwareAcceleration()
     app.commandLine.appendSwitch('disable-gpu-compositing')
     console.log(
-      `[hermes] Linux GPU software fallback enabled (${linuxGpuDecision.reason}); disabling GPU ` +
+      `[kova] Linux GPU software fallback enabled (${linuxGpuDecision.reason}); disabling GPU ` +
         'hardware acceleration after a GPU-child init failure (#124843). KOVA_DESKTOP_DISABLE_GPU=0 to opt out.'
     )
   }
@@ -1013,12 +1013,12 @@ if (process.platform === 'linux') {
 const PASSWORD_STORE = resolveLinuxPasswordStore()
 
 if (PASSWORD_STORE.warning) {
-  console.warn(`[hermes] ${PASSWORD_STORE.warning}`)
+  console.warn(`[kova] ${PASSWORD_STORE.warning}`)
 }
 
 if (PASSWORD_STORE.store) {
   app.commandLine.appendSwitch('password-store', PASSWORD_STORE.store)
-  console.log(`[hermes] using password-store backend: ${PASSWORD_STORE.store}`)
+  console.log(`[kova] using password-store backend: ${PASSWORD_STORE.store}`)
 }
 
 // Windows sandbox / GPU breakpoint crash recovery (#38216).
@@ -1063,9 +1063,9 @@ if (IS_WINDOWS || process.platform === 'linux') {
     const acl = grantAllApplicationPackagesAcl(exeDir, { execFileSync })
 
     if (acl.ok) {
-      console.log(`[hermes] granted ALL APPLICATION PACKAGES RX on ${exeDir} (#38216)`)
+      console.log(`[kova] granted ALL APPLICATION PACKAGES RX on ${exeDir} (#38216)`)
     } else if (acl.error && acl.error !== 'missing-target-or-exec') {
-      console.warn(`[hermes] AppContainer ACL grant failed on ${exeDir}: ${acl.error}`)
+      console.warn(`[kova] AppContainer ACL grant failed on ${exeDir}: ${acl.error}`)
     }
   }
 
@@ -1087,7 +1087,7 @@ if (IS_WINDOWS || process.platform === 'linux') {
     app.commandLine.appendSwitch('no-sandbox')
     process.env.ELECTRON_DISABLE_SANDBOX = '1'
     console.log(
-      `[hermes] sandbox fallback enabled (${sandboxDecision.reason}); launching with --no-sandbox (#38216, #121954)`
+      `[kova] sandbox fallback enabled (${sandboxDecision.reason}); launching with --no-sandbox (#38216, #121954)`
     )
   }
 
@@ -1123,14 +1123,14 @@ if (IS_WINDOWS || process.platform === 'linux') {
     }
 
     console.warn(
-      `[hermes] GPU child died with the sandbox signature (exit=${details?.exitCode}); relaunching once with --no-sandbox (#38216)`
+      `[kova] GPU child died with the sandbox signature (exit=${details?.exitCode}); relaunching once with --no-sandbox (#38216)`
     )
 
     try {
       relaunchApp(relauncher, { args: buildNoSandboxRelaunchArgs(process.argv.slice(1)) })
       void exitAfterBackendShutdown(0)
     } catch (error) {
-      console.error(`[hermes] --no-sandbox relaunch failed: ${error?.message || error}`)
+      console.error(`[kova] --no-sandbox relaunch failed: ${error?.message || error}`)
     }
   }
 
@@ -1175,14 +1175,14 @@ if (IS_WINDOWS || process.platform === 'linux') {
       }
 
       console.warn(
-        `[hermes] Linux GPU child died with the sandbox signature (exit=${details?.exitCode}); relaunching once with --no-sandbox (#121954)`
+        `[kova] Linux GPU child died with the sandbox signature (exit=${details?.exitCode}); relaunching once with --no-sandbox (#121954)`
       )
 
       try {
         relaunchApp(relauncher, { args: buildNoSandboxRelaunchArgs(process.argv.slice(1)) })
         void exitAfterBackendShutdown(0)
       } catch (error) {
-        console.error(`[hermes] --no-sandbox relaunch failed: ${error?.message || error}`)
+        console.error(`[kova] --no-sandbox relaunch failed: ${error?.message || error}`)
       }
 
       return
@@ -1202,14 +1202,14 @@ if (IS_WINDOWS || process.platform === 'linux') {
       }
 
       console.warn(
-        `[hermes] Linux GPU child gone (reason=${details?.reason}); relaunching once with --disable-gpu (#124843)`
+        `[kova] Linux GPU child gone (reason=${details?.reason}); relaunching once with --disable-gpu (#124843)`
       )
 
       try {
         relaunchApp(relauncher, { args: buildDisableGpuRelaunchArgs(process.argv.slice(1)) })
         void exitAfterBackendShutdown(0)
       } catch (error) {
-        console.error(`[hermes] --disable-gpu relaunch failed: ${error?.message || error}`)
+        console.error(`[kova] --disable-gpu relaunch failed: ${error?.message || error}`)
       }
     }
   })
@@ -1242,13 +1242,13 @@ const SOURCE_REPO_ROOT = path.resolve(APP_ROOT, '../..')
 // Runtime identity comes only from the baked artifact stamp. Dev runs have none.
 if (INSTALL_STAMP) {
   console.log(
-    `[hermes] install stamp: ${INSTALL_STAMP.commit ? INSTALL_STAMP.commit.slice(0, 12) : 'no-commit'}${INSTALL_STAMP.branch ? ` (${INSTALL_STAMP.branch})` : ''}${INSTALL_STAMP.dirty ? ' [DIRTY]' : ''} from ${INSTALL_STAMP.source || 'unknown'}`
+    `[kova] install stamp: ${INSTALL_STAMP.commit ? INSTALL_STAMP.commit.slice(0, 12) : 'no-commit'}${INSTALL_STAMP.branch ? ` (${INSTALL_STAMP.branch})` : ''}${INSTALL_STAMP.dirty ? ' [DIRTY]' : ''} from ${INSTALL_STAMP.source || 'unknown'}`
   )
 } else if (IS_PACKAGED) {
   // Dev builds without a stamp are normal; packaged builds without one
   // mean the bootstrap won't know what to clone. Surface clearly.
   console.error(
-    '[hermes] WARNING: no install-stamp.json found in packaged build. First-launch bootstrap will not have a pinned ref to install.'
+    '[kova] WARNING: no install-stamp.json found in packaged build. First-launch bootstrap will not have a pinned ref to install.'
   )
 }
 
@@ -1635,7 +1635,7 @@ const TITLEBAR_OVERLAY_COLOR = 'rgba(1, 0, 0, 0)'
 // WSLg returns false: the RDP host paints nothing for a frameless window and
 // Electron's own overlay drifts its hit-region under RAIL, so the renderer
 // paints its own min/max/close (wslg-window-controls.tsx) over the
-// hermes:window-control IPC channel. See titleBarOverlayOptions.
+// kova:window-control IPC channel. See titleBarOverlayOptions.
 function getTitleBarOverlayOptions(win?) {
   return titleBarOverlayOptions({
     platform: IS_MAC ? 'mac' : IS_WINDOWS ? 'windows' : IS_WSL ? 'wslg' : 'linux',
@@ -1913,7 +1913,7 @@ const profileDeletionGate = new ProfileDeletionGate()
 // rememberLog() state. Declared before any top-level caller that logs during
 // module evaluation; declaring these later crashed launch with `undefined.push`
 // in the packaged build (esbuild lowers the TDZ to undefined instead of throwing).
-const hermesLog = []
+const kovaLog = []
 let desktopLogBuffer = ''
 let desktopLogFlushTimer = null
 let desktopLogFlushPromise = Promise.resolve()
@@ -2128,10 +2128,10 @@ function rememberLog(chunk) {
   // at the same moment.  Local time, same shape as agent.log/gui.log.
   const stamp = formatLogStamp(new Date())
   const lines = text.split(/\r?\n/).map(line => formatDesktopLogLine(line, stamp))
-  hermesLog.push(...lines)
+  kovaLog.push(...lines)
 
-  if (hermesLog.length > 300) {
-    hermesLog.splice(0, hermesLog.length - 300)
+  if (kovaLog.length > 300) {
+    kovaLog.splice(0, kovaLog.length - 300)
   }
 
   desktopLogBuffer += `${lines.join('\n')}\n`
@@ -2360,7 +2360,7 @@ function ensureWslWindowsFonts() {
 
   try {
     const confDir = path.join(app.getPath('home'), '.config', 'fontconfig', 'conf.d')
-    const confPath = path.join(confDir, '99-hermes-wsl-windows-fonts.conf')
+    const confPath = path.join(confDir, '99-kova-wsl-windows-fonts.conf')
     let existing = ''
 
     try {
@@ -2427,7 +2427,7 @@ function broadcastBootProgress() {
 //   - log:      bounded ring buffer of the last 200 log lines for the
 //               "Show details" affordance in the overlay
 //
-// The snapshot is queryable via the hermes:bootstrap:get IPC handler so a
+// The snapshot is queryable via the kova:bootstrap:get IPC handler so a
 // reloaded renderer (e.g. devtools reload during dev) recovers state.
 // Bootstrap log ring: bounded buffer so a long install (npm + playwright
 // downloads can emit thousands of lines) doesn't grow unbounded in memory
@@ -2693,7 +2693,7 @@ async function advanceBootProgress(phase, message, progress) {
 // relaunches the desktop mid-update — because the window vanished with no
 // progress and looks crashed — a fresh instance must NOT spawn its own local
 // backend: that backend re-locks the venv shim, the updater's straggler cleanup
-// (`force_kill_other_hermes`, taskkill /IM hermes.exe) kills it, the launch
+// (`force_kill_other_kova`, taskkill /IM kova.exe) kills it, the launch
 // fails with the 45s "backend didn't come up" error, and the relaunch/kill
 // cycle loops. Instead the fresh instance parks until the update finishes, then
 // brings the backend up itself (it is the surviving instance — the updater's
@@ -2887,7 +2887,7 @@ function findOnPath(command) {
   // On Windows, try PATHEXT extensions BEFORE the bare (empty-extension) name.
   // A real command must resolve via its .exe/.cmd (Windows command-resolution
   // semantics consult PATHEXT); an extensionless file — e.g. a Git-Bash
-  // shell-script shim named `hermes` — must not shadow `hermes.cmd`/`hermes.exe`.
+  // shell-script shim named `kova` — must not shadow `kova.cmd`/`kova.exe`.
   // The empty entry is kept LAST so callers that already include the extension
   // (py.exe, pwsh.exe, powershell.exe) still resolve.
   const extensions = buildPathExtCandidates(process.env.PATHEXT, IS_WINDOWS)
@@ -3146,7 +3146,7 @@ function getVenvPython(venvRoot) {
 // needed.
 
 // resolveGitBinary — locate git.exe on Windows. A fresh installer-driven
-// install only has PortableGit under %LOCALAPPDATA%\hermes\git (never on
+// install only has PortableGit under %LOCALAPPDATA%\kova\git (never on
 // PATH), so a bare spawn('git') ENOENTs and self-update checks fail with
 // "Couldn't check for updates". PortableGit first, then UGit's bundled copy
 // (see ./git-binary-candidates), then standard Git-for-Windows locations,
@@ -3272,7 +3272,7 @@ function resolveGhBinary() {
   return _ghBinaryCache
 }
 
-// ─── Self-update (git-pull against the running backend's hermes root) ──────
+// ─── Self-update (git-pull against the running backend's kova root) ──────
 
 function readDesktopUpdateConfig(): { branch: string; branchExplicit: boolean } {
   try {
@@ -3730,11 +3730,11 @@ function resolveUpdaterBinary() {
 
 // Path to the venv shim whose lock decides whether `kova update` can write
 // fresh entry points. On Windows this is the file the running backend
-// `hermes.exe` holds open; on POSIX it's never mandatory-locked.
+// `kova.exe` holds open; on POSIX it's never mandatory-locked.
 function venvKovaShimPath(updateRoot) {
   const venvDir = resolveVenvDir(updateRoot)
 
-  return IS_WINDOWS ? path.join(venvDir, 'Scripts', 'hermes.exe') : path.join(venvDir, 'bin', 'hermes')
+  return IS_WINDOWS ? path.join(venvDir, 'Scripts', 'kova.exe') : path.join(venvDir, 'bin', 'kova')
 }
 
 // Best-effort lock probe mirroring the Rust updater's is_locked(): a running
@@ -3770,7 +3770,7 @@ function isShimLocked(shimPath) {
 // Kill only Kova-OWNED venv daemons (the memory plugin's hindsight daemon:
 // exe under venv\Scripts AND cmdline referencing hindsight_api.main). The
 // daemon is spawned DETACHED, so it outlives the backend tree-kill and keeps
-// venv files mapped. External holders (a user terminal running `hermes`,
+// venv files mapped. External holders (a user terminal running `kova`,
 // unrelated scripts) are NOT killed. The uninstall lock probe refuses a
 // held installation. Selection lives in the pure
 // venv-holder-select module (ordinal path-prefix, no PowerShell -like
@@ -3869,8 +3869,8 @@ function killExternalVenvHolders(updateRoot) {
 }
 
 // Force-kill the entire process TREE rooted at each PID. Node's child.kill()
-// only signals the direct child, so on Windows a backend `hermes.exe` that
-// spawned its own grandchildren (a `hermes` REPL, a pty terminal session, the
+// only signals the direct child, so on Windows a backend `kova.exe` that
+// spawned its own grandchildren (a `kova` REPL, a pty terminal session, the
 // gateway) would survive and keep the venv shim locked. taskkill /T /F reaps
 // the whole tree synchronously. The command is not widened: one owned PID,
 // /T /F, nothing else. Failures propagate — close/stop must not discard them.
@@ -4223,18 +4223,18 @@ async function releaseBackendLock(updateRoot: string, tag: string): Promise<{ un
     return { unlocked: true }
   }
 
-  const hermesProcess = backendConnectionState.getProcess()
+  const kovaProcess = backendConnectionState.getProcess()
 
   // Seed the release gate with every PID we are about to signal (the
   // supervised primary backend, when one exists). The gate waits for these to
   // actually LEAVE the process table, not just for the shim to unlock — the
-  // shim probe only covers venv\Scripts\hermes.exe, but the backend is
+  // shim probe only covers venv\Scripts\kova.exe, but the backend is
   // `python.exe -m kova_cli.main serve`, which need not hold the shim at all
   // (#74805 first-attempt race).
   const initialPids = []
 
-  if (hermesProcess && Number.isInteger(hermesProcess.pid)) {
-    initialPids.push(hermesProcess.pid)
+  if (kovaProcess && Number.isInteger(kovaProcess.pid)) {
+    initialPids.push(kovaProcess.pid)
   }
 
   // No backend comes back after an uninstall: stay silent, like a quit.
@@ -4359,7 +4359,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
     return false
   }
 
-  // A bundled install does not own %LOCALAPPDATA%\hermes — the updater
+  // A bundled install does not own %LOCALAPPDATA%\kova — the updater
   // would try to heal a tree the app never created. The payload IS the
   // runtime; recovery means reinstalling the app, not spawning the
   // updater. (ensureRuntime's bundled guard also short-circuits before
@@ -4523,7 +4523,7 @@ async function isSourceRuntimeUsable(root: string): Promise<boolean> {
 
 function activeRuntimeState(backend: SourceBackend | null): ActiveRuntimeState {
   // We DELIBERATELY do NOT verify that the checkout is currently at the
-  // pinned commit -- users update via the in-app update path or `hermes
+  // pinned commit -- users update via the in-app update path or `kova
   // update`, which moves HEAD legitimately. The marker only attests "a
   // desktop-managed bootstrap ran here at least once"; runtime usability is
   // what decides whether we can actually launch.
@@ -4675,7 +4675,7 @@ function resolveRendererIndexWithMissing(): { index: string; missing: string[] }
     rememberLog(
       `[renderer] every renderer bundle is incomplete (${present.join(', ')}). ` +
         `The last update replaced the app while its files were locked. ` +
-        `Repair with: hermes desktop --force-build`
+        `Repair with: kova desktop --force-build`
     )
 
     // present[0]'s own list, captured on the first loop iteration — never the
@@ -4689,7 +4689,7 @@ function resolveRendererIndexWithMissing(): { index: string; missing: string[] }
   rememberLog(
     `[renderer] index.html not found — the desktop app was packaged without a ` +
       `renderer bundle. Tried: ${candidates.join(', ')}. ` +
-      `Rebuild with: hermes desktop --force-build`
+      `Rebuild with: kova desktop --force-build`
   )
 
   return { index: candidates[0], missing: [] }
@@ -4857,7 +4857,7 @@ async function resolveKovaBackend(backendArgs: string[]): Promise<ResolvedKovaBa
 
   // 2. Development source -- when running `pnpm run dev` from a checkout, the
   //    cloned repo at SOURCE_REPO_ROOT takes precedence over ACTIVE and any
-  //    installed `hermes` on PATH so local Python edits are actually exercised.
+  //    installed `kova` on PATH so local Python edits are actually exercised.
   //    (In dev with no checkout, SOURCE_REPO_ROOT won't pass isKovaSourceRoot.)
   if (!IS_PACKAGED && isKovaSourceRoot(SOURCE_REPO_ROOT)) {
     const backend: SourceBackend | null = createSourcePythonBackend(
@@ -4871,62 +4871,62 @@ async function resolveKovaBackend(backendArgs: string[]): Promise<ResolvedKovaBa
     }
   }
 
-  // 3. KOVA_DESKTOP_HERMES — an explicit deployment override (the Nix wrapper), not a PATH
+  // 3. KOVA_DESKTOP_KOVA_CLI — an explicit deployment override (the Nix wrapper), not a PATH
   //    candidate; the pinned backend is the only valid runtime there. Resolve it before any
   //    mutable install (older release, other Python env). It carries the root its launcher reports.
-  const hermesOverride: string | undefined = process.env.KOVA_DESKTOP_HERMES
-  let hermesCommand: string | null = null
+  const kovaCliOverride: string | undefined = process.env.KOVA_DESKTOP_KOVA_CLI
+  let kovaCliCommand: string | null = null
 
-  if (hermesOverride) {
-    const resolvedOverride: string | null = findOnPath(hermesOverride)
+  if (kovaCliOverride) {
+    const resolvedOverride: string | null = findOnPath(kovaCliOverride)
 
     if (resolvedOverride) {
-      hermesCommand = resolvedOverride
-    } else if (!isWindowsBinaryPathInWsl(hermesOverride, { isWsl: IS_WSL })) {
-      hermesCommand = hermesOverride
+      kovaCliCommand = resolvedOverride
+    } else if (!isWindowsBinaryPathInWsl(kovaCliOverride, { isWsl: IS_WSL })) {
+      kovaCliCommand = kovaCliOverride
     } else {
-      rememberLog(`Ignoring Windows Kova override under WSL: ${hermesOverride}`)
+      rememberLog(`Ignoring Windows Kova override under WSL: ${kovaCliOverride}`)
     }
 
-    if (hermesCommand) {
-      if (looksLikeDesktopAppBinary(hermesCommand)) {
-        rememberLog(`Ignoring desktop app executable on PATH while resolving Kova CLI: ${hermesCommand}`)
-        hermesCommand = null
+    if (kovaCliCommand) {
+      if (looksLikeDesktopAppBinary(kovaCliCommand)) {
+        rememberLog(`Ignoring desktop app executable on PATH while resolving Kova CLI: ${kovaCliCommand}`)
+        kovaCliCommand = null
       } else {
         const unwrapped: Awaited<ReturnType<typeof unwrapWindowsVenvKovaCommand>> =
-          await unwrapWindowsVenvKovaCommand(hermesCommand, backendArgs)
+          await unwrapWindowsVenvKovaCommand(kovaCliCommand, backendArgs)
 
         if (unwrapped) {
           return unwrapped
         }
 
-        const shellForProbe: boolean = isCommandScript(hermesCommand)
+        const shellForProbe: boolean = isCommandScript(kovaCliCommand)
 
         if (
-          shouldTrustKovaOverride(hermesOverride) ||
-          (await verifyKovaCli(hermesCommand, { shell: shellForProbe }))
+          shouldTrustKovaOverride(kovaCliOverride) ||
+          (await verifyKovaCli(kovaCliCommand, { shell: shellForProbe }))
         ) {
           return {
-            label: `existing Kova CLI at ${hermesCommand}`,
-            command: hermesCommand,
+            label: `existing Kova CLI at ${kovaCliCommand}`,
+            command: kovaCliCommand,
             args: backendArgs,
             bootstrap: false,
             env: {},
             kind: 'command',
             shell: shellForProbe,
-            local: 'installed', root: await launcherInstallRoot(hermesCommand) // ticket minting needs it (#138774)
+            local: 'installed', root: await launcherInstallRoot(kovaCliCommand) // ticket minting needs it (#138774)
           }
         }
 
         rememberLog(
-          `Ignoring existing Kova CLI at ${hermesCommand}: --version probe failed; falling through to bootstrap.`
+          `Ignoring existing Kova CLI at ${kovaCliCommand}: --version probe failed; falling through to bootstrap.`
         )
       }
     }
   }
 
   // 4. ACTIVE_KOVA_ROOT — the canonical install at
-  //    %LOCALAPPDATA%\\hermes\\kova-agent (Windows) or ~/.kova/kova-agent.
+  //    %LOCALAPPDATA%\\kova\\kova-agent (Windows) or ~/.kova/kova-agent.
   //    A valid bootstrap marker proves Desktop finished the first-run install
   //    flow, but marker provenance is NOT the same thing as runtime usability:
   //    the CLI can publish the same installation launcher, and older desktop
@@ -4954,7 +4954,7 @@ async function resolveKovaBackend(backendArgs: string[]): Promise<ResolvedKovaBa
     rememberLog('[bootstrap] repair requested; bypassing the usable active runtime to re-run the installer')
   } else {
     // 5. A source install outside ACTIVE_KOVA_ROOT (install.sh --dir, a
-    //    setup-hermes.sh clone), found through the launcher it published at a
+    //    setup-kova.sh clone), found through the launcher it published at a
     //    fixed user-bin location: a Finder/Dock launch inherits a PATH without
     //    ~/.local/bin. The reported root is then resolved and probed like any
     //    installed runtime; KOVA_DESKTOP_IGNORE_EXISTING=1 skips it too.
@@ -5147,7 +5147,7 @@ async function ensureRuntime(
       bootstrapError.failedStage = bootstrapResult.failedStage || null
       // Latch the failure so subsequent startKova() calls return this
       // same error without re-running install.ps1.  Cleared by the
-      // hermes:bootstrap:reset IPC (renderer's "Reload and retry").
+      // kova:bootstrap:reset IPC (renderer's "Reload and retry").
       bootstrapFailure = bootstrapError
       throw bootstrapError
     }
@@ -5168,7 +5168,7 @@ async function ensureRuntime(
 // endpoints, e.g. kanban attachments). Hand-rolled because node's http has no
 // FormData and the payload is one file — a dependency would be overkill.
 function multipartBody(upload) {
-  const boundary = `----hermes-${crypto.randomBytes(12).toString('hex')}`
+  const boundary = `----kova-${crypto.randomBytes(12).toString('hex')}`
   const filename = String(upload.filename || 'file').replace(/["\r\n]/g, '_')
 
   const body = Buffer.concat([
@@ -5609,7 +5609,7 @@ async function previewFileTarget(rawTarget, baseDir) {
   })
 
   // Attachment references stored in chat history are frequently HOME-relative
-  // (e.g. "AppData/Local/hermes/attachments/foo.xlsx" on Windows, or
+  // (e.g. "AppData/Local/kova/attachments/foo.xlsx" on Windows, or
   // ".kova/attachments/foo.xlsx" elsewhere) rather than relative to the
   // agent's working directory. The primary resolution above only tries
   // `base` (the working dir), so such a ref never exists there and the
@@ -5778,7 +5778,7 @@ async function watchPreviewFile(owner, rawUrl) {
     },
     onPollChange: emit,
     onTrip: ({ events, windowMs }) =>
-      console.warn(`[hermes] fs.watch storm on ${watchDir} (${events} events within ${windowMs}ms); polling instead`)
+      console.warn(`[kova] fs.watch storm on ${watchDir} (${events} events within ${windowMs}ms); polling instead`)
   })
 
   previewWatchers.set(id, {
@@ -5869,7 +5869,7 @@ function watchDirectory(owner, rawDir) {
     snapshot: () => fs.readdirSync(watchDir).sort().join('\0'),
     onPollChange: emit,
     onTrip: ({ events, windowMs }) =>
-      console.warn(`[hermes] fs.watch storm on ${watchDir} (${events} events within ${windowMs}ms); polling instead`)
+      console.warn(`[kova] fs.watch storm on ${watchDir} (${events} events within ${windowMs}ms); polling instead`)
   })
 
   previewWatchers.set(id, {
@@ -6708,7 +6708,7 @@ function installContextMenuBridge(window: BrowserWindow) {
 // Chromium-initiated downloads (renderer anchor/blob downloads, drag-outs, a
 // media player's ⋮ Download) land here. Without a handler the OS save dialog
 // opens in the process cwd (win-unpacked in packaged installs) with whatever name
-// the URL carried. Route every download to Downloads, name hermes-media:// saves
+// the URL carried. Route every download to Downloads, name kova-media:// saves
 // after the file, and guarantee a MIME-derived extension.
 function installDownloadHandling() {
   session.defaultSession.on('will-download', (_event, item) => {
@@ -6854,7 +6854,7 @@ function safeFrameOrigin(frame: { origin?: string } | null | undefined): string 
 //     ``POST /api/auth/ws-ticket`` (cookie-authed). The legacy ``?token=``
 //     path is unconditionally rejected by gated gateways.
 //   * Neural Studio Portal now issues a 24h ROTATING, reuse-detected refresh token
-//     alongside the ~15-min access token (Portal NAS #293 / hermes #37247).
+//     alongside the ~15-min access token (Portal NAS #293 / kova #37247).
 //     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
 //     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
 //     is still alive, the gateway middleware transparently rotates a fresh AT
@@ -7615,7 +7615,7 @@ async function freshGatewayWsUrl(profile, webContentsId) {
 // The "cloud" connection mode lets a user sign in to the Neural Studio Portal ONCE in
 // the OAuth session partition, then (a) discover their hosted agents and (b)
 // connect to any of them with no second interactive sign-in. Both ride the one
-// portal session cookie living in `persist:hermes-remote-oauth`:
+// portal session cookie living in `persist:kova-remote-oauth`:
 //   - discovery  → GET {portal}/api/agents over the partition-bound net; the
 //     portal session cookie authenticates it (NAS Phase 2.5 accepts the cookie).
 //   - cascade    → opening an agent's own /login in the same partition hits the
@@ -8484,7 +8484,7 @@ function readDesktopConnectionsRegistry() {
     } catch {
       // Write failed (full disk, read-only userData). Keep the migrated
       // registry in memory so list/save keep working this session instead of
-      // hard-failing every hermes:connections:* call.
+      // hard-failing every kova:connections:* call.
       connectionRegistryCache = registry
       connectionRegistryCacheMtime = null
     }
@@ -8731,7 +8731,7 @@ function writeActiveDesktopProfile(name: string | null): string | null {
 // Seed active-profile.json from the best available signal when the file does
 // not yet exist.  Runs exactly once (no-op once the file exists).  Priority:
 //   1. Legacy ~/.kova/active_profile (explicit CLI choice via kova profile use)
-//   2. Running gateway (gateway.pid with verified liveness + hermes identity)
+//   2. Running gateway (gateway.pid with verified liveness + kova identity)
 //   3. state.db heuristics (hybrid recency×size score picks the primary workspace)
 // The stored JSON includes _migrated:true so the renderer can optionally surface
 // a one-time notification that the profile was auto-detected.
@@ -9445,7 +9445,7 @@ async function ensureTerminalBackend(webContentsId: number) {
   }
 
   const profile = windowRoute?.profile ?? primaryProfileKey()
-  // No window route: follow the primary, like a profile-less hermes:connection.
+  // No window route: follow the primary, like a profile-less kova:connection.
   const inheritsPrimary = !windowRoute?.profile
 
   return backendDialClaims.run(primaryDialClaimKey(backendScopeKey(null, profile), inheritsPrimary), () =>
@@ -9783,7 +9783,7 @@ async function bootstrapSshConnectionInner(profile, sshConfig, reuseToken, sourc
         pid: result.pid,
         host: sshConfig.host,
         hostLabel,
-        hermesVersion: result.kovaVersion || '',
+        kovaVersion: result.kovaVersion || '',
         remotePlatform: result.platform?.os || '',
         reused: result.reused,
         spawnNonce: result.spawnNonce,
@@ -10168,18 +10168,18 @@ async function testDesktopConnectionConfig(input: any = {}) {
           await ssh.open()
           const platform: any = await detectRemotePlatform(ssh, sshConfig.remoteKovaPath || '')
           let kovaPath
-          let hermesVersion
+          let kovaVersion
           let supported
 
           if (platform.os === 'Windows') {
             const runtime = platform
             kovaPath = runtime.kovaPath
             const inspection = await inspectWindowsSupport(ssh, runtime)
-            hermesVersion = inspection.version
+            kovaVersion = inspection.version
             supported = inspection.supported
           } else {
             kovaPath = await remoteLifecycle.locateKova(ssh, sshConfig.remoteKovaPath || '')
-            hermesVersion = await remoteLifecycle.probeKovaVersion(ssh, kovaPath)
+            kovaVersion = await remoteLifecycle.probeKovaVersion(ssh, kovaPath)
             supported = await remoteLifecycle.remoteSupportsSshOwnership(ssh, kovaPath)
           }
 
@@ -10197,7 +10197,7 @@ async function testDesktopConnectionConfig(input: any = {}) {
             error: null,
             remotePlatform: `${platform.os}/${platform.arch}`,
             remoteKovaPath: kovaPath,
-            remoteKovaVersion: hermesVersion,
+            remoteKovaVersion: kovaVersion,
             host: sshConfig.user ? `${sshConfig.user}@${sshConfig.host}` : sshConfig.host
           }
         } catch (error: any) {
@@ -10796,10 +10796,10 @@ async function connectRegistryBackend(
       profile: profileKey,
       connectionId: source.id,
       // The remote process runs as this profile; the desktop-side profile key
-      // is only the routing label. hermes:api uses it to translate explicit
+      // is only the routing label. kova:api uses it to translate explicit
       // self-profile query filters into the backend's namespace.
       remoteProfile: sshConfig.remoteProfile || '',
-      logs: hermesLog.slice(-80),
+      logs: kovaLog.slice(-80),
       ...getWindowState()
     }
   }
@@ -10834,7 +10834,7 @@ async function connectRegistryBackend(
     // One host, many profiles: REST paths must carry ?profile= (same contract
     // as the global-remote shared-primary route).
     sharedRemote: true,
-    logs: hermesLog.slice(-80),
+    logs: kovaLog.slice(-80),
     ...getWindowState()
   }
 }
@@ -11380,7 +11380,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
     return {
       ...remote,
       profile,
-      logs: hermesLog.slice(-80),
+      logs: kovaLog.slice(-80),
       ...getWindowState()
     }
   }
@@ -11427,7 +11427,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
 
   assertPoolEntryStillOwned(poolKey, entry)
 
-  return { ...connection, profile, logs: hermesLog.slice(-80), ...getWindowState() }
+  return { ...connection, profile, logs: kovaLog.slice(-80), ...getWindowState() }
 }
 
 // `kova gateway restart` drains in-flight turns before the owner exits; the CLI client is
@@ -11452,7 +11452,7 @@ async function restartLocalGatewayOwner(ownerProfile: string): Promise<void> {
   }, ownerProfile)
 
   const reason = `${result.stdout}\n${result.stderr}`.trim().split(/\r?\n/).filter(Boolean).pop()
-  rememberLog(`[gateway] hermes --profile ${ownerProfile} gateway restart exited ${result.code}${reason ? `: ${reason}` : ''}`)
+  rememberLog(`[gateway] kova --profile ${ownerProfile} gateway restart exited ${result.code}${reason ? `: ${reason}` : ''}`)
 }
 
 // A ready gateway whose boot commit differs from this Kova (it outlived `kova update`) is
@@ -11735,7 +11735,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
 
   // ONE launch-profile decision for this attempt (#108417): routing identity,
   // the --profile argv and the child env all derive from the same read, so a
-  // hermes:profile:remember landing mid-startup becomes the NEXT boot's
+  // kova:profile:remember landing mid-startup becomes the NEXT boot's
   // preference instead of splitting routing identity from the launch
   // argument. An explicit profile-scoped caller names both.
   const launch = requestedProfile
@@ -11774,7 +11774,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
           setActiveGatewayProfile(profile)
         },
         updateBootProgress,
-        logs: () => hermesLog.slice(-80),
+        logs: () => kovaLog.slice(-80),
         windowState: getWindowState
       })
 
@@ -11803,7 +11803,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
     // deterministic (it wins over the sticky ~/.kova/active_profile file) and
     // resolves KOVA_HOME the same way `kova -p <name>` does on the CLI. A
     // launch override is persisted into active-profile.json before startKova,
-    // so Kova.exe --profile <name> and hermes -p <name> desktop both land
+    // so Kova.exe --profile <name> and kova -p <name> desktop both land
     // here. `activeProfile` is the SAME decision that named routing above —
     // never re-read here (#108417). An unset preference keeps the legacy
     // launch so existing installs are unaffected.
@@ -11883,7 +11883,7 @@ async function startKova(requestedProfile?: string, inheritsPrimary = false) {
     // The primary descriptor names its own profile: a profile-less descriptor
     // reads as "default" downstream and breaks per-source profile memory when
     // the primary actually booted as another profile (#825324fd).
-    return { ...connection, profile: primaryProfile, logs: hermesLog.slice(-80), ...getWindowState() }
+    return { ...connection, profile: primaryProfile, logs: kovaLog.slice(-80), ...getWindowState() }
   })().catch(async error => {
     if (!backendConnectionState.clearPromiseForAttempt(connectionAttempt)) {
       throw error
@@ -12131,7 +12131,7 @@ function installPreviewGuestEscapeHatch() {
 /**
  * Give the preview pane's `<webview>` guests a preload — and ONLY those
  * guests. The pane's webview is the one `webview` tag in the app and it
- * always carries the `persist:hermes-preview` partition, so the partition is
+ * always carries the `persist:kova-preview` partition, so the partition is
  * the ownership key: any future webview that does not opt into that partition
  * inherits nothing from this mechanism.
  *
@@ -12522,8 +12522,8 @@ registerMachineProfile()
 // here so it can leave the app's bounds and stay visible while Kova is
 // minimized (Codex-style task-completion glance). It carries no gateway
 // connection of its own — the main renderer is the single source of truth and
-// pushes pet state over IPC (hermes:pet-overlay:state); the overlay just renders
-// it. Control flows back (pop-in, composer submit) via hermes:pet-overlay:control.
+// pushes pet state over IPC (kova:pet-overlay:state); the overlay just renders
+// it. Control flows back (pop-in, composer submit) via kova:pet-overlay:control.
 let petOverlayWindow = null
 // Set once the app is really exiting (before-quit, or the primary window's
 // close on Windows/Linux where closing it IS quitting). Distinct from
@@ -12579,7 +12579,7 @@ function spawnPetOverlayWindow(bounds) {
     // or it (a frameless, taskbar-skipping panel) becomes the app's switcher
     // anchor and the Kova icon drops out of cmd/alt-tab — especially when the
     // main window is minimized. We flip this on only while the composer needs
-    // the keyboard (see hermes:pet-overlay:set-focusable).
+    // the keyboard (see kova:pet-overlay:set-focusable).
     focusable: false,
     show: false,
     // Fully transparent — the renderer paints only the sprite + bubble.
@@ -12605,7 +12605,7 @@ function spawnPetOverlayWindow(bounds) {
 
   // The overlay is a transparent rectangle; only the sprite pixels should be
   // interactive. The renderer toggles click-through as the cursor enters/
-  // leaves the sprite (hermes:pet-overlay:ignore-mouse), but the window MUST
+  // leaves the sprite (kova:pet-overlay:ignore-mouse), but the window MUST
   // start click-through from the main process: if the overlay page is slow to
   // load, blank, or its renderer has died, a mouse-enabled transparent window
   // sits over the desktop eating clicks (the invisible "dead zone" bug). The
@@ -12994,7 +12994,7 @@ function startHudGameOverlayFeed(win: BrowserWindow) {
 
     if (!reported) {
       reported = true
-      console.warn(`[hermes] HUD cannot enumerate windows: ${windows.reason}`)
+      console.warn(`[kova] HUD cannot enumerate windows: ${windows.reason}`)
     }
 
     return null
@@ -13120,7 +13120,7 @@ function spawnHudWindow(sessionId, profile) {
   win.setHiddenInMissionControl?.(true)
 
   // Linux intentionally starts on ONE virtual desktop. During a renderer
-  // grab, hermes:hud:workspace-transfer temporarily makes the X11 window
+  // grab, kova:hud:workspace-transfer temporarily makes the X11 window
   // sticky; releasing it assigns the HUD to KDE's then-current desktop.
 
   // Streaming into a window that is ALWAYS blurred (the user is in another
@@ -13687,7 +13687,7 @@ function createWindow() {
               }
 
               console.warn(
-                '[hermes] Linux: no GPU child after window reveal — GPU init is retrying silently; software fallback engaged for the next launch (#124843)'
+                '[kova] Linux: no GPU child after window reveal — GPU init is retrying silently; software fallback engaged for the next launch (#124843)'
               )
             }
           }
@@ -13987,7 +13987,7 @@ async function connectDesktopProfileRoute(route: DesktopProfileRoute, sender?: E
   // descriptor overwrites the renderer's live fullscreen flag with the
   // mint-time snapshot. Reading the caller's state HERE keeps registry-scoped,
   // primary-resolved and bare replies consistent with the
-  // hermes:window-state-changed live-push path.
+  // kova:window-state-changed live-push path.
   const windowState = liveWindowState(sender, {
     fromWebContents: BrowserWindow.fromWebContents,
     getWindowState,
@@ -14205,7 +14205,7 @@ ipcMain.on('kova:window:relay', (event, payload) => {
 // The desktop's runtime is usually a venv Python invoked as
 // `python -m kova_cli.main`, so we resolve the SAME backend the app itself
 // launches and carry its argv + PYTHONPATH into a launcher script rather than
-// hoping a `hermes` exists on the user's interactive PATH. Resolution only —
+// hoping a `kova` exists on the user's interactive PATH. Resolution only —
 // never ensureRuntime(), which would kick off a first-run install from a menu
 // click; an unresolved runtime is reported instead.
 ipcMain.handle('kova:window:openInTerminal', async (_event, sessionId, opts) => {
@@ -14227,7 +14227,7 @@ ipcMain.handle('kova:window:openInTerminal', async (_event, sessionId, opts) => 
 
     const scriptPath = path.join(
       scriptDir,
-      `hermes-${crypto.randomBytes(6).toString('hex')}${terminalScriptExtension()}`
+      `kova-${crypto.randomBytes(6).toString('hex')}${terminalScriptExtension()}`
     )
 
     fs.writeFileSync(
@@ -14343,7 +14343,7 @@ ipcMain.handle('kova:bootstrap:reset', async () => {
 ipcMain.handle('kova:bootstrap:repair', async (): Promise<{ ok: boolean; bundled?: boolean; error?: string }> => {
   // A bundled install's payload is immutable and sealed at build time —
   // "repair" would re-run the installer against a separate
-  // %LOCALAPPDATA%\hermes tree the app doesn't own. The only repair for a
+  // %LOCALAPPDATA%\kova tree the app doesn't own. The only repair for a
   // damaged bundle is reinstalling the app itself. Refuse without touching
   // bootstrapRepairRequested so a stale renderer can't drive an install.
   if (installShape() === 'bundled') {
@@ -14961,7 +14961,7 @@ ipcMain.handle('kova:agents:roster', async () => {
 })
 
 // Registry-scoped fresh WS URL: the (connectionId, profile) analogue of
-// hermes:gateway:ws-url. Same single-use-ticket discipline for OAuth sources.
+// kova:gateway:ws-url. Same single-use-ticket discipline for OAuth sources.
 const registryGatewayWsUrlHandler = createRegistryGatewayWsUrlHandler({
   ensureBackend: ensureRegistryBackend,
   mintTicket: mintGatewayWsTicket,
@@ -15124,7 +15124,7 @@ async function getJsonForBackend(descriptor, path, opts: any = {}) {
 }
 
 // Any-method REST call against a resolved backend descriptor — the descriptor
-// analogue of the hermes:api handler's own auth split: OAuth backends prefer a
+// analogue of the kova:api handler's own auth split: OAuth backends prefer a
 // native bearer (cookieless RFC 8252 flow) and fall back to the OAuth cookie
 // partition; token/local descriptors use the static session-token header.
 async function fetchJsonForBackend(
@@ -15455,7 +15455,7 @@ registerDesktopProfilePreferenceIpc(ipcMain, desktopProfilePreferences, connecti
   readDesktopConnectionsRegistry().connections.some(connection => connection.id === connectionId)
 )
 ipcMain.handle('kova:profile:get', async () => ({ profile: readActiveDesktopProfile() }))
-// Persistence-only sibling of hermes:profile:set: records the profile the
+// Persistence-only sibling of kova:profile:set: records the profile the
 // Desktop last used WITHOUT tearing down the backend or reloading the window.
 // An explicit default route wins at launch and is never replaced here.
 ipcMain.handle('kova:profile:remember', async (_event, name) => ({
@@ -16062,7 +16062,7 @@ function formatApiRequestFailure(
   const path = String(request?.path ?? '(no path)').slice(0, 500)
   const detail = error instanceof Error ? (error.stack ?? error.message) : String(error)
 
-  return `[hermes:api ${method} ${path}] ${detail}`.slice(0, 6000)
+  return `[kova:api ${method} ${path}] ${detail}`.slice(0, 6000)
 }
 
 ipcMain.handle('kova:api', async (_event, request) => {
@@ -16947,7 +16947,7 @@ ipcMain.handle('kova:logs:reveal', async () => {
   }
 })
 
-ipcMain.handle('kova:logs:recent', async () => ({ path: DESKTOP_LOG_PATH, lines: hermesLog.slice(-200) }))
+ipcMain.handle('kova:logs:recent', async () => ({ path: DESKTOP_LOG_PATH, lines: kovaLog.slice(-200) }))
 
 // Renderer error-boundary catches (#79428 defect B): the component stack only
 // exists in renderer memory, so the boundary posts it here and we persist it
@@ -16997,7 +16997,7 @@ registerGitIpc({ resolveGitBinary, resolveGhBinary })
 // mcp-oauth-callback-ipc.ts.
 registerMcpOauthCallbackIpc()
 
-// Embedded terminal PTY host (hermes:terminal:*) — see terminal-ipc.ts.
+// Embedded terminal PTY host (kova:terminal:*) — see terminal-ipc.ts.
 const terminalIpc = registerTerminalIpc({
   isWindows: IS_WINDOWS,
   findOnPath,
@@ -17100,7 +17100,7 @@ ipcMain.handle('kova:version', async (_event, scope?: { connectionId?: string; p
     electronVersion: process.versions.electron,
     nodeVersion: process.versions.node,
     platform: process.platform,
-    hermesRoot: resolveUpdateRoot(),
+    kovaRoot: resolveUpdateRoot(),
     kovaHome: KOVA_HOME,
     bundleOutOfSync: skew.outOfSync,
     bundleCommitsBehind: skew.desktopCommitsBehind,
@@ -17118,7 +17118,7 @@ ipcMain.handle('kova:version', async (_event, scope?: { connectionId?: string; p
     // Bundled artifacts always run their payload; light artifacts have no
     // runtime and only reach remote backends. External builds classify from
     // the install stamp (git/docker/nix), 'unknown' when it can't be told.
-    hermesRuntime: resolveKovaRuntime(),
+    kovaRuntime: resolveKovaRuntime(),
     // True when the bundle on disk is not the one this process loaded — a
     // plain app restart (no rebuild, no installer) clears the skew above.
     // Packaged only: a dev `--build-only` rewrites build/install-stamp.json
@@ -17149,7 +17149,7 @@ function readLatestSyncReceipt(): Record<string, unknown> | null {
 
   try {
     const text = fs.readFileSync(receiptPath, 'utf8')
-    // tolerate a BOM (hermes writes plain, but editors touch configs)
+    // tolerate a BOM (kova writes plain, but editors touch configs)
     const stripped = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text
 
     return JSON.parse(stripped)
@@ -17400,12 +17400,12 @@ async function runDesktopUninstall(mode: string): Promise<DesktopUninstallResult
 
   try {
     if (IS_WINDOWS) {
-      scriptPath = path.join(app.getPath('temp'), `hermes-uninstall-${Date.now()}.cmd`)
+      scriptPath = path.join(app.getPath('temp'), `kova-uninstall-${Date.now()}.cmd`)
       fs.writeFileSync(scriptPath, buildWindowsCleanupScript(scriptArgs))
       runner = process.env.ComSpec || 'cmd.exe'
       runnerArgs = ['/c', scriptPath]
     } else {
-      scriptPath = path.join(app.getPath('temp'), `hermes-uninstall-${Date.now()}.sh`)
+      scriptPath = path.join(app.getPath('temp'), `kova-uninstall-${Date.now()}.sh`)
       fs.writeFileSync(scriptPath, buildPosixCleanupScript(scriptArgs), { mode: 0o755 })
       runner = '/bin/bash'
       runnerArgs = [scriptPath]
@@ -17460,7 +17460,7 @@ ipcMain.handle('kova:vscode-theme:search', async (_event, query) => searchMarket
 // kova:// deep links (e.g. kova://blueprint/morning-brief?time=08:00,
 // kova://mcp/install?name=NAME&config=B64 — the vendor "Add to Kova"
 // button, or kova://plugin/install?repo=owner/repo). Dev
-// (`KOVA_DESKTOP_DEV_SERVER`) registers hermes-dev:// instead — bare
+// (`KOVA_DESKTOP_DEV_SERVER`) registers kova-dev:// instead — bare
 // Electron or a stale OS handler often owns kova:// on dev machines.
 // Parsing is generic ({kind, name, params}); the renderer routes per kind
 // and anything install-shaped requires explicit user confirmation there.
@@ -17468,9 +17468,9 @@ ipcMain.handle('kova:vscode-theme:search', async (_event, query) => searchMarket
 // running app. Three delivery paths: macOS 'open-url',
 // Win/Linux running-app 'second-instance' (argv), Win/Linux cold-start argv.
 // ---------------------------------------------------------------------------
-const KOVA_PROTOCOL = DEV_SERVER ? 'hermes-dev' : 'hermes'
+const KOVA_PROTOCOL = DEV_SERVER ? 'kova-dev' : 'kova'
 /** Schemes accepted when parsing inbound URLs (dev accepts both). */
-const DEEPLINK_SCHEMES = DEV_SERVER ? ['hermes-dev', 'hermes'] : ['hermes']
+const DEEPLINK_SCHEMES = DEV_SERVER ? ['kova-dev', 'kova'] : ['kova']
 let _pendingDeepLink = null
 let _rendererReadyForDeepLink = false
 // Set by sendOpenUpdatesRequested() when the renderer cannot hear it yet.
@@ -17635,7 +17635,7 @@ if (!isPrimaryInstance) {
       writeActiveDesktopProfile(name)
     })
   } catch (error) {
-    console.error('[hermes] failed to persist --profile launch override:', error)
+    console.error('[kova] failed to persist --profile launch override:', error)
   }
 
   app.on('second-instance', (_event, argv) => {

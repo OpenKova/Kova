@@ -223,7 +223,7 @@ _oauth_interactive_forced = contextvars.ContextVar("_oauth_interactive_forced", 
 # Paste-prompt tokens that exit OAuth without auth; the waiter maps the sentinel to
 # OAuthNonInteractiveError("user_skipped") so MCP setup continues without this server.
 _SKIP_TOKENS = frozenset({"skip", "cancel", "s", "n", "no", "q", "quit"})
-_USER_SKIPPED_SENTINEL = "__hermes_user_skipped__"
+_USER_SKIPPED_SENTINEL = "__kova_user_skipped__"
 
 
 def _get_token_dir(kova_home: str | Path | None = None) -> Path:
@@ -343,7 +343,7 @@ def _is_interactive() -> bool:
 def _raise_if_non_interactive(lead: str) -> None:
     """Raise ``OAuthNonInteractiveError`` unless interactive; *lead* is the boundary-specific first sentence.
 
-    ``lead`` is the boundary-specific first sentence; this helper appends the shared, actionable ``hermes
+    ``lead`` is the boundary-specific first sentence; this helper appends the shared, actionable ``kova
     mcp login`` next-step so the guidance wording lives in one place across every non-interactive OAuth
     boundary (#57836).
     """
@@ -479,8 +479,8 @@ class KovaTokenStorage:
                 data["expires_in"] = int(max(implied_expiry - time.time(), 0))
 
     def _fixup_loaded_tokens(self, data: dict) -> None:
-        # ``hermes_issuer`` is Kova bookkeeping, not an SDK OAuthToken field: pop before validation.
-        self.loaded_issuer = data.pop("hermes_issuer", None)
+        # ``kova_issuer`` is Kova bookkeeping, not an SDK OAuthToken field: pop before validation.
+        self.loaded_issuer = data.pop("kova_issuer", None)
         self._rebase_expires_in(data)
 
     async def get_tokens(self) -> "OAuthToken | None":
@@ -494,7 +494,7 @@ class KovaTokenStorage:
             with contextlib.suppress(TypeError, ValueError):  # mock tokens / odd shapes: skip, don't fail persistence
                 payload["expires_at"] = time.time() + int(payload["expires_in"])
         if self._bound_issuer:  # which authorization server granted these tokens (never sent on the wire)
-            payload["hermes_issuer"] = self._bound_issuer
+            payload["kova_issuer"] = self._bound_issuer
             self.loaded_issuer = self._bound_issuer
         _write_json(self._tokens_path(), payload)
         logger.debug("OAuth tokens saved for %s", self._server_name)
@@ -504,12 +504,12 @@ class KovaTokenStorage:
         self._bound_issuer = str(issuer) if issuer else None
 
     def stamp_issuer(self, issuer: str) -> None:
-        """Backfill ``hermes_issuer`` onto a pre-binding token file: adopt the currently discovered
+        """Backfill ``kova_issuer`` onto a pre-binding token file: adopt the currently discovered
         issuer once instead of forcing a re-login, so the *next* read is protected."""
         data = _read_json(self._tokens_path())
-        if data is None or data.get("hermes_issuer"):
+        if data is None or data.get("kova_issuer"):
             return
-        data["hermes_issuer"] = str(issuer)
+        data["kova_issuer"] = str(issuer)
         try:
             _write_json(self._tokens_path(), data)
         except OSError as exc:  # non-fatal — worst case we stamp next time
@@ -525,7 +525,7 @@ class KovaTokenStorage:
         if data is None or not data.get("refresh_token"):
             return
         data.pop("refresh_token", None)
-        data.pop("hermes_issuer", None)
+        data.pop("kova_issuer", None)
         self.loaded_issuer = None
         try:
             _write_json(self._tokens_path(), data)
@@ -1183,7 +1183,7 @@ def _invalidate_tokens_on_client_change(
     if removed:
         logger.warning(
             "MCP OAuth '%s': configured OAuth client changed (client_id %r -> %r); discarded tokens minted under "
-            "the previous client. Re-authorize with: hermes mcp login %s",
+            "the previous client. Re-authorize with: kova mcp login %s",
             storage._server_name, old_client_id, new_client_id, storage._server_name)
 
 
@@ -1223,7 +1223,7 @@ def humanize_oauth_registration_error(
             f"'{server_name}' does not support automatic client registration — the registration request returned "
             "404 (typical for Google's hosted Gmail/Drive MCP servers and other providers without RFC 7591 dynamic "
             "client registration). Create an OAuth client for this provider and add it under config.yaml as "
-            f"`oauth: {{client_id: ..., client_secret: ...}}`, then re-run:\n  hermes mcp login {server_name}")
+            f"`oauth: {{client_id: ..., client_secret: ...}}`, then re-run:\n  kova mcp login {server_name}")
     looks_like_registration = ("403" in msg or "forbidden" in lowered) and (
         any(k in lowered for k in ("regist", "dcr", "dynamic client"))
         or lowered.strip() in {"forbidden", "403 forbidden", "http 403: forbidden"}
@@ -1235,7 +1235,7 @@ def humanize_oauth_registration_error(
             f"'{server_name}' is Figma's remote MCP — DCR is allowlisted by exact client_name "
             f"(\"{_FIGMA_DCR_CLIENT_NAME}\" and \"Codex\" work; most other names 403). Kova defaults to "
             f"client_name: {_FIGMA_DCR_CLIENT_NAME!r} automatically. If you set oauth.client_name yourself, "
-            f"change it to one of those, or clear it and re-run:\n  hermes mcp login {server_name}")
+            f"change it to one of those, or clear it and re-run:\n  kova mcp login {server_name}")
     return (
         f"'{server_name}' only allows pre-approved OAuth clients — it rejected client registration (403), so no "
         "browser flow can start. Options: set oauth.client_name to a name the provider allowlists, add a "
@@ -1265,5 +1265,5 @@ def build_oauth_auth(server_name: str, server_url: str, oauth_config: dict | Non
 
         KovaOAuthClientProvider = type("KovaOAuthClientProvider", (KovaProviderMixin, _sdk_class("OAuthClientProvider")), {
             "__doc__": "SDK provider plus Kova' token-endpoint fixes (see ``KovaProviderMixin``).",
-            "__module__": __name__, "_hermes_logger": logger})
+            "__module__": __name__, "_kova_logger": logger})
     return KovaOAuthClientProvider(server_url=server_url, **kwargs)

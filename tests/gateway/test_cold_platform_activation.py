@@ -26,7 +26,7 @@ _PROBE = textwrap.dedent("""
     print(json.dumps({
         "enabled": sorted(p.value for p, c in config.platforms.items() if c.enabled),
         "adapters": sorted(m.split("__", 1)[1].split(".")[0] for m in sys.modules
-                           if m.startswith("hermes_plugins.platforms__") and m.endswith(".adapter")),
+                           if m.startswith("kova_plugins.platforms__") and m.endswith(".adapter")),
         "registered": sorted(platform_registry.registered_names()),
     }))
 """)

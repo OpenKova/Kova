@@ -33,7 +33,7 @@ def read_only_db_uri(db_path) -> str:
 logger = logging.getLogger(__name__)
 
 _IS_WINDOWS = sys.platform == "win32"
-_KOVA_EXECUTABLES = frozenset({"hermes", "kova-agent", "hermes-acp"})
+_KOVA_EXECUTABLES = frozenset({"kova", "kova-agent", "kova-acp"})
 _KOVA_PYTHON_MODULES = frozenset({"acp_adapter", "kova_cli.main"})
 _KOVA_PYTHON_SCRIPTS = frozenset({"kova_cli/main.py", "run_agent.py"})
 _PYTHON_SHORT_OPTIONS_WITH_OPERANDS = frozenset({"Q", "W", "X"})
@@ -146,7 +146,7 @@ def canonical_sqlite_path(path: str) -> str:
     return os.path.normcase(os.path.abspath(path.removesuffix(" (deleted)")))
 
 
-_HOME_FLAGS = ("--hermes-home",)
+_HOME_FLAGS = ("--kova-home",)
 _PROFILE_FLAGS = ("--profile", "-p")
 _STATE_DB_NAMES = ("state.db", "state.db-wal", "state.db-shm")
 
@@ -175,7 +175,7 @@ def _argv_flag_value(argv: Sequence[str], flags: Sequence[str]) -> Optional[str]
 
 
 def _argv_env_home(argv: Sequence[str]) -> Optional[str]:
-    """``KOVA_HOME=<path>`` env-style assignment on the argv (``env KOVA_HOME=… hermes …``)."""
+    """``KOVA_HOME=<path>`` env-style assignment on the argv (``env KOVA_HOME=… kova …``)."""
     for token in reversed(list(argv)):
         if isinstance(token, str) and token.startswith("KOVA_HOME="):
             return token[len("KOVA_HOME="):]
@@ -221,7 +221,7 @@ def _argv_home_selection(
     """``"ours"``/``"other"``/``None`` from the process's OWN profile/home selection.
 
     Under one process per host the shared binary path proves nothing about which home a process
-    serves; its ``--hermes-home``/``KOVA_HOME=``/``--profile``/``-p`` selection does. Same
+    serves; its ``--kova-home``/``KOVA_HOME=``/``--profile``/``-p`` selection does. Same
     token-exact parsers ``gateway/run.py::_argv_contradicts_home`` uses.
     """
     home_value = _argv_flag_value(argv, _HOME_FLAGS) or _argv_env_home(argv)
@@ -273,7 +273,7 @@ def _argv_scoped_to_other_home(argv: Sequence[str], db_path: Path) -> bool:
     Evidence is ranked, because one host now runs ONE process for every profile:
 
     1. A token naming our state.db or a sidecar exactly — definitive, ours.
-    2. The process's own ``--hermes-home``/``KOVA_HOME=``/``--profile``/``-p``
+    2. The process's own ``--kova-home``/``KOVA_HOME=``/``--profile``/``-p``
        selection — that is what decides which home a multiplexer serves.
     3. Path tokens. A token under ``<install root>/profiles/<other>`` is another
        profile's store even though it sits under our root; a token that names only

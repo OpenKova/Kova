@@ -69,7 +69,7 @@ class TestReasoningCommand:
 
     @pytest.mark.asyncio
     async def test_reasoning_command_reloads_current_state_from_config(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         config_path = kova_home / "config.yaml"
         config_path.write_text(
@@ -94,7 +94,7 @@ class TestReasoningCommand:
     async def test_handle_reasoning_command_accepts_extended_efforts(
         self, tmp_path, monkeypatch, effort
     ):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text(
             "agent:\n  reasoning_effort: medium\n", encoding="utf-8"
@@ -116,7 +116,7 @@ class TestReasoningCommand:
     async def test_reasoning_status_scope_follows_this_sessions_override(self, tmp_path, monkeypatch):
         from agent.i18n import t
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text("agent:\n  reasoning_effort: low\n", encoding="utf-8")
         monkeypatch.setattr(gateway_run, "_kova_home", kova_home)
@@ -141,7 +141,7 @@ class TestReasoningCommand:
 
 
     def test_resolve_session_reasoning_prefers_session_override(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text("agent:\n  reasoning_effort: low\n", encoding="utf-8")
 
@@ -156,7 +156,7 @@ class TestReasoningCommand:
 
 
     def test_run_agent_includes_enabled_mcp_servers_in_gateway_toolsets(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text(
             "platform_toolsets:\n"
@@ -220,7 +220,7 @@ class TestLoadShowReasoningCoercion:
     """Regression: display.show_reasoning must be coerced, not bool()'d."""
 
     def _load_with_config(self, tmp_path, monkeypatch, yaml_body: str) -> bool:
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text(yaml_body, encoding="utf-8")
         monkeypatch.setattr(gateway_run, "_kova_home", kova_home)

@@ -21,7 +21,7 @@ def test_marked_update_proxy_env_is_undone_and_the_users_own_env_kept():
 
 
 def test_a_proxy_the_users_dotenv_sets_survives_the_restore(tmp_path, monkeypatch):
-    """`hermes update` restarts a gateway/backend with the Desktop's marked env; that process loads the
+    """`kova update` restarts a gateway/backend with the Desktop's marked env; that process loads the
     user's .env (override) at import, then restores. The .env value is the user's own. The .env spells the
     proxy lower-case: on Windows that is the same variable as the inherited upper-case one."""
     from kova_cli import env_loader
@@ -33,11 +33,11 @@ def test_a_proxy_the_users_dotenv_sets_survives_the_restore(tmp_path, monkeypatc
     monkeypatch.setenv("NO_PROXY", "corp.internal,localhost,10.0.0.0/8")
     monkeypatch.setenv("KOVA_UPDATE_SYSTEM_PROXY", "HTTPS_PROXY,https_proxy,HTTP_PROXY,http_proxy")
     monkeypatch.setenv("KOVA_UPDATE_USER_NO_PROXY", "corp.internal")
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     (home / ".env").write_text("https_proxy=http://user:pw@proxy.corp:3128\nNO_PROXY=lan.example\n", encoding="utf-8")
 
-    env_loader.load_hermes_dotenv(kova_home=home, load_external_secrets=False)
+    env_loader.load_kova_dotenv(kova_home=home, load_external_secrets=False)
     restore_user_proxy_env()
 
     proxy_env = {key: os.environ.get(key) for key in ("https_proxy", "HTTP_PROXY", "NO_PROXY", "KOVA_UPDATE_USER_NO_PROXY")}
@@ -47,7 +47,7 @@ def test_a_proxy_the_users_dotenv_sets_survives_the_restore(tmp_path, monkeypatc
 
 
 def _desktop_injected_env(monkeypatch, tmp_path, dotenv: str, own_no_proxy: str | None = None):
-    """The env the Desktop hands `hermes update` (system proxy in both spellings), then the .env load."""
+    """The env the Desktop hands `kova update` (system proxy in both spellings), then the .env load."""
     from kova_cli import env_loader
 
     monkeypatch.setattr(env_loader, "_DOTENV_PUBLISHED", {})
@@ -62,15 +62,15 @@ def _desktop_injected_env(monkeypatch, tmp_path, dotenv: str, own_no_proxy: str 
         else:
             monkeypatch.setenv("KOVA_UPDATE_USER_" + key, own_no_proxy)
     monkeypatch.setenv("KOVA_UPDATE_SYSTEM_PROXY", marked)
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir(exist_ok=True)
     (home / ".env").write_text(dotenv, encoding="utf-8")
-    env_loader.load_hermes_dotenv(kova_home=home, load_external_secrets=False)
+    env_loader.load_kova_dotenv(kova_home=home, load_external_secrets=False)
 
 
-def test_hermes_update_sends_the_update_to_the_users_dotenv_proxy(tmp_path, monkeypatch):
+def test_kova_update_sends_the_update_to_the_users_dotenv_proxy(tmp_path, monkeypatch):
     """S1: the .env load replaces only the spelling the file uses, and urllib (like curl) prefers the
-    lower-case one. Once `hermes update` applied its .env, the .env proxy and NO_PROXY must win."""
+    lower-case one. Once `kova update` applied its .env, the .env proxy and NO_PROXY must win."""
     import urllib.request
 
     from kova_cli.update_proxy_env import prefer_dotenv_proxy_env

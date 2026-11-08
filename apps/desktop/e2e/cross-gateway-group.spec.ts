@@ -228,7 +228,7 @@ test.describe('cross-gateway group chat', () => {
     await composer.press('Enter')
 
     const roomLog = () => page.evaluate(room => {
-      const rooms = JSON.parse(localStorage.getItem('hermes.plugin.kova-bots.group-chats') || '{}')
+      const rooms = JSON.parse(localStorage.getItem('kova.plugin.kova-bots.group-chats') || '{}')
 
       return (rooms[room]?.log || []).map((entry: any) => ({ from: entry.from?.name, connection: entry.from?.connectionId, text: entry.text }))
     }, ROOM)

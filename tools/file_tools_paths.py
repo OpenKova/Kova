@@ -64,7 +64,7 @@ def _terminal_env_type_for_task(task_id: str = "default") -> str:
         if env is not None:
             name = env.__class__.__name__.lower()
             hint = next((h for h in _ENV_CLASS_NAME_HINTS if h in name), None)
-            stamped = getattr(env, "_hermes_backend_name", None)
+            stamped = getattr(env, "_kova_backend_name", None)
             if hint or (isinstance(stamped, str) and stamped):
                 return hint or stamped
         return str(_get_env_config().get("env_type") or os.getenv("TERMINAL_ENV") or "local").lower()

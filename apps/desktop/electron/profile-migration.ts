@@ -97,7 +97,7 @@ export function readLegacyActiveProfile(
 }
 
 /**
- * Return the profile names whose gateway.pid file points to a live hermes process.
+ * Return the profile names whose gateway.pid file points to a live kova process.
  * Tolerates missing/malformed pid files and stale-but-recycled PIDs (the latter is
  * the whole reason we check both liveness AND cmdline identity).
  *

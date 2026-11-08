@@ -223,7 +223,7 @@ def test_resolver_recovers_when_probe_confirms_reset(tmp_path, monkeypatch):
     """The screenshot bug: pool-only cooldown raises `quota exhausted (429);
     retry after Ns` even though the upstream window already reset.  A positive
     probe must clear the cooldown and return the pool credential."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _write_auth_store(kova_home, _pool_only_rate_limited_store())
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
@@ -262,7 +262,7 @@ def test_resolver_selects_entry_with_expired_millisecond_reset(tmp_path, monkeyp
         }
     )
     store["credential_pool"]["openai-codex"].append(reserve)
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _write_auth_store(kova_home, store)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setattr(auth_mod, "_probe_codex_quota_restored", lambda token, **kw: False)
@@ -291,8 +291,8 @@ def test_pool_probe_not_fired_for_non_quota_exhaustion(tmp_path, monkeypatch):
     entry["last_error_code"] = 401
     entry["last_error_reason"] = "token_expired"
     entry["last_error_message"] = "expired"
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
-    _write_auth_store(tmp_path / "hermes", store)
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
+    _write_auth_store(tmp_path / "kova", store)
 
     from agent.credential_pool import load_pool
 
@@ -364,7 +364,7 @@ def test_resolver_refreshes_expired_token_before_probe(tmp_path, monkeypatch):
     expired by the time the probe runs: /usage answers 401 -> None -> cooldown kept forever,
     even after a top-up / plan upgrade. Refresh (keeping the cooldown) and probe live."""
     now = time.time()
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _write_auth_store(kova_home, _expired_jwt_pool_store(now))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     fresh = _jwt({"exp": now + 3600})
@@ -388,7 +388,7 @@ def test_pool_selection_refreshes_expired_token_before_probe(tmp_path, monkeypat
     on BOTH sides (pool row + ``providers.openai-codex`` singleton) so the next selection's
     auth-store sync cannot re-adopt the consumed pair and lift the cooldown with it."""
     now = time.time()
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     store = _expired_jwt_pool_store(now)
     stale = store["credential_pool"]["openai-codex"][0]
     store["providers"]["openai-codex"] = {
@@ -420,7 +420,7 @@ def test_pool_selection_keeps_probe_rotated_tokens_when_quota_restored(tmp_path,
     probe rotated, not on the selection loop's pre-probe copy, or the consumed refresh token
     goes back into the pool and the same select() replays it (``refresh_token_reused``)."""
     now = time.time()
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     store = _expired_jwt_pool_store(now)
     store["credential_pool"]["openai-codex"][0]["source"] = "manual:device_code"  # no singleton re-sync
     _write_auth_store(kova_home, store)
@@ -447,7 +447,7 @@ def test_pool_selection_throttles_failing_pre_probe_refresh(tmp_path, monkeypatc
     down) must not POST to the token endpoint on every selection — at most one attempt per
     probe interval, the same budget the probe itself has (<= 1 network call per 5 min)."""
     now = time.time()
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _write_auth_store(kova_home, _expired_jwt_pool_store(now))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     attempts: list = []

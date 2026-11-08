@@ -1,4 +1,4 @@
-"""Surfacing tests — managed scope shown in `config show` and `hermes doctor`."""
+"""Surfacing tests — managed scope shown in `config show` and `kova doctor`."""
 import pytest
 from kova_cli import doctor_config
 

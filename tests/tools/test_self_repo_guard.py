@@ -412,7 +412,7 @@ class TestBlockMessageGuidance:
     def test_scratch_hint_names_the_pruned_scratch_dir(self, repo, monkeypatch, tmp_path):
         from kova_constants import get_scratch_dir
 
-        home = tmp_path / "custom" / "hermes-home"
+        home = tmp_path / "custom" / "kova-home"
         monkeypatch.setenv("KOVA_HOME", str(home))
         hit, msg = _detect("git rebase origin/main", repo, repo)
         assert hit is True

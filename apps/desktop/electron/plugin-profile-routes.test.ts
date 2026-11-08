@@ -47,7 +47,7 @@ describe('buildOpaqueProfileRoutes', () => {
       ]
     ])
 
-    const resolveSsh = vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'hermes' }))
+    const resolveSsh = vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'kova' }))
 
     const routes = await buildOpaqueProfileRoutes({
       getProfileConfig: profile => configs.get(profile) ?? config(),
@@ -83,12 +83,12 @@ describe('buildOpaqueProfileRoutes', () => {
 
     const before = await buildOpaqueProfileRoutes({
       ...options,
-      resolveSsh: async () => ({ hostname: 'old.example', port: 22, user: 'hermes' })
+      resolveSsh: async () => ({ hostname: 'old.example', port: 22, user: 'kova' })
     })
 
     const after = await buildOpaqueProfileRoutes({
       ...options,
-      resolveSsh: async () => ({ hostname: 'new.example', port: 22, user: 'hermes' })
+      resolveSsh: async () => ({ hostname: 'new.example', port: 22, user: 'kova' })
     })
 
     expect(before[1].connectionId).not.toBe(after[1].connectionId)
@@ -113,7 +113,7 @@ describe('buildOpaqueProfileRoutes', () => {
     const options = {
       getProfileConfig: (profile: string) =>
         profile === 'broken'
-          ? config({ mode: 'ssh', sshHost: 'unreachable', sshPort: 2222, sshUser: 'hermes' })
+          ? config({ mode: 'ssh', sshHost: 'unreachable', sshPort: 2222, sshUser: 'kova' })
           : config(),
       globalConfig: config(),
       installationId: 'install-a-secret',
@@ -177,7 +177,7 @@ describe('buildOpaqueProfileRoutes', () => {
       installationId: 'install-a-secret',
       primaryProfile: 'default',
       profileNames: ['default', 'desktop-alias'],
-      resolveSsh: vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'hermes' }))
+      resolveSsh: vi.fn(async () => ({ hostname: 'gateway.example', port: 22, user: 'kova' }))
     })
 
     expect(routes.map(route => route.targetProfile)).toEqual(['remote-primary', 'remote-primary'])

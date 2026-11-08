@@ -3,8 +3,8 @@
 Re-running ``install.sh`` / ``install.ps1`` over an existing checkout (desktop
 bootstrap and its update retry do this) falls back to
 ``reset --hard origin/<branch>`` when a fast-forward fails. Commits made on that
-branch must survive behind a ``refs/hermes-update-backups/`` rescue ref, the same
-namespace ``hermes update`` uses, and the installer must print the ref.
+branch must survive behind a ``refs/kova-update-backups/`` rescue ref, the same
+namespace ``kova update`` uses, and the installer must print the ref.
 """
 
 from __future__ import annotations
@@ -58,9 +58,9 @@ def _assert_local_commit_parked(repo: Path, local_sha: str, output: str) -> None
     refs = dict(
         line.split()[::-1] for line in _git(
             repo, "for-each-ref", "--format=%(refname) %(objectname)",
-            "refs/hermes-update-backups/").splitlines())
+            "refs/kova-update-backups/").splitlines())
     ref = refs.get(local_sha)
-    assert ref and ref.startswith("refs/hermes-update-backups/diverged-main-"), refs
+    assert ref and ref.startswith("refs/kova-update-backups/diverged-main-"), refs
     assert ref in output, "the installer must print where the commits went"
     assert _git(repo, "log", "--format=%H", f"origin/main..{ref}").split() == [local_sha]
 
@@ -73,7 +73,7 @@ def _assert_local_commit_parked(repo: Path, local_sha: str, output: str) -> None
 def test_install_sh_repository_stage_parks_local_commits_before_reset(tmp_path: Path) -> None:
     managed, local_sha = _diverged_managed_checkout(tmp_path)
     env = os.environ | {
-        "KOVA_HOME": str(tmp_path / "hermes-home"),
+        "KOVA_HOME": str(tmp_path / "kova-home"),
         "KOVA_INSTALL_DIR": str(managed),
     }
 
@@ -116,7 +116,7 @@ def test_install_ps1_repository_stage_parks_local_commits_before_reset(tmp_path:
             POWERSHELL, "-NoProfile", "-File", str(INSTALL_PS1),
             "-Stage", "repository", "-NonInteractive",
             "-InstallDir", str(managed),
-            "-KovaHome", str(tmp_path / "hermes-home"),
+            "-KovaHome", str(tmp_path / "kova-home"),
         ],
         cwd=tmp_path, env=env, capture_output=True, text=True,
         check=False,

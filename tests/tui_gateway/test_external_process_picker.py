@@ -2,7 +2,7 @@
 
 Drives a fake process profile (registered like a ``$KOVA_HOME/plugins/<name>`` model-provider plugin
 would) through ``list_available_providers``, ``provider_model_ids``, the TUI/Desktop ``model.options``
-RPC, the ``hermes model`` setup picker and a session-scoped ``config.set model`` switch.
+RPC, the ``kova model`` setup picker and a session-scoped ``config.set model`` switch.
 """
 import shutil
 import sys
@@ -31,7 +31,7 @@ class _FakeProcessProfile(ProviderProfile):
 def picker_env(monkeypatch, tmp_path):
     # Real registries/config/runtime resolution, isolated from the user's home.
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     profile = _FakeProcessProfile(

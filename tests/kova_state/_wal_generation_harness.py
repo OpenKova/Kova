@@ -63,7 +63,7 @@ def lose_sidecars(db_path: Path, *, rename: bool) -> None:
 
 def write_second_generation(db_path: Path, n_rows: int) -> int:
     """From a process that does NOT already hold this db open, mint a fresh WAL generation through the path
-    (as any non-hermes opener would), write ``n_rows`` messages and checkpoint them into the main file.
+    (as any non-kova opener would), write ``n_rows`` messages and checkpoint them into the main file.
     Returns the message count on the path afterwards. MUST run in a different process from the writer that
     holds the deleted generation — two live handles on one db in one process collide on the -shm."""
     conn = sqlite3.connect(str(db_path), timeout=5.0, isolation_level=None)

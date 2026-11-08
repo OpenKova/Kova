@@ -63,7 +63,7 @@ export function VoiceProviderFields({
   const writeConfigCache = useMemo(() => kovaConfigCacheWriter(profile), [scopeKey])
 
   const { data: schemaResponse } = useQuery({
-    queryKey: ['hermes-config-schema'],
+    queryKey: ['kova-config-schema'],
     queryFn: () => getKovaConfigSchema(),
     staleTime: 5 * 60 * 1000
   })

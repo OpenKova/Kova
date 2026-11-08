@@ -1753,7 +1753,7 @@ export const deOverrides = {
       cloudAgentProvisioning: 'Provisionierung…',
       cloudStatusLabel: status => `Status: ${status}`,
       remoteUrlTitle: 'Remote-URL',
-      remoteUrlDesc: 'Basis-URL für das Remote-Dashboard-Backend. Pfad-Präfixe werden unterstützt, z. B. /hermes.',
+      remoteUrlDesc: 'Basis-URL für das Remote-Dashboard-Backend. Pfad-Präfixe werden unterstützt, z. B. /kova.',
       probing: 'Authentifizierungsmethode dieses Gateways wird geprüft…',
       probeError:
         'Dieses Gateway ist noch nicht erreichbar. Prüfen Sie die URL – die Authentifizierungsmethode erscheint, sobald es antwortet.',
@@ -2470,7 +2470,7 @@ export const deOverrides = {
     unlockedHint: 'Sperren, damit der Agent diesen Skill nicht ändert. Du kannst ihn weiterhin selbst bearbeiten.',
     archive: 'Archivieren',
     skillArchivedTitle: 'Skill archiviert',
-    skillArchivedMessage: 'Wiederherstellbar über „hermes curator restore“.',
+    skillArchivedMessage: 'Wiederherstellbar über „kova curator restore“.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent-Plugins',
@@ -2511,7 +2511,7 @@ export const deOverrides = {
       serverStates: {
         connected: 'verbunden',
         app_not_running: 'App läuft nicht',
-        hermes_not_connected: 'MCP-Verbindung fehlt',
+        kova_not_connected: 'MCP-Verbindung fehlt',
         endpoint_unavailable: 'Endpunkt nicht verfügbar',
         no_interactive_session: 'keine interaktive Session',
         version_too_old: 'Version zu alt',
@@ -2819,7 +2819,7 @@ export const deOverrides = {
     noSessions: 'Noch keine Sessions.',
     gatewayRunning: 'Messaging-Gateway läuft',
     gatewayStopped: 'Messaging-Gateway gestoppt',
-    hermesActiveSessions: (version, count) => `Kova ${version} · Aktive Sessions ${count}`,
+    kovaActiveSessions: (version, count) => `Kova ${version} · Aktive Sessions ${count}`,
     restartGateway: 'Gateway neu starten',
     openBrowser: 'Browser umschalten',
     toggleBrowser: 'Browser umschalten',
@@ -3140,7 +3140,7 @@ export const deOverrides = {
       },
       MATRIX_USER_ID: {
         label: 'Bot-Benutzer-ID',
-        placeholder: '@hermes:example.org'
+        placeholder: '@kova:example.org'
       },
       MATRIX_ALLOWED_USERS: {
         label: 'Erlaubte Matrix-Benutzer-IDs',
@@ -3256,7 +3256,7 @@ export const deOverrides = {
     failedImport: 'Profil konnte nicht importiert werden',
     failedExport: 'Profil konnte nicht exportiert werden',
     exportNeedsHost: name =>
-      `Der Browser kann kein Profilarchiv speichern. Führe auf dem Kova-Host aus: hermes profile export ${name}`,
+      `Der Browser kann kein Profilarchiv speichern. Führe auf dem Kova-Host aus: kova profile export ${name}`,
     allProfiles: 'Alle Profile',
     showAllProfiles: 'Alle Profile anzeigen',
     notServedHere: 'Hier nicht bereitgestellt',
@@ -3293,7 +3293,7 @@ export const deOverrides = {
       description:
         'Sessions in diesem Profil laufen auf dem von Ihnen festgelegten Remote-Kova statt auf diesem Computer.',
       urlLabel: 'Remote-Adresse',
-      urlPlaceholder: 'https://hermes.example.com',
+      urlPlaceholder: 'https://kova.example.com',
       urlInvalid: 'Geben Sie eine vollständige Adresse ein, die mit http:// oder https:// beginnt',
       tokenLabel: 'Access-Token',
       tokenPlaceholder: 'Remote-Session-Token einfügen',
@@ -4171,9 +4171,9 @@ export const deOverrides = {
     versionDetailsDistributionDesktopMsix: 'Desktop-App (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Desktop-App (Installer)',
     versionDetailsDistributionSourceInstaller: 'Quellcode (Installationsskript)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Quellcode (Installationsskript) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Quellcode (Installationsskript) + kova desktop',
     versionDetailsDistributionSource: 'Quellcode',
-    versionDetailsDistributionSourceDesktop: 'Quellcode + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Quellcode + kova desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Laufzeit',
     versionDetailsRuntimeEmbedded: 'Eingebettete Laufzeit',
@@ -4336,7 +4336,7 @@ export const deOverrides = {
       'Geben Sie die URL Ihres Gateways ein. Kova Desktop erkennt, ob ein Token oder eine Browser-Anmeldung nötig ist.',
     remoteUrlTitle: 'Gateway-URL',
     remoteUrlDesc: 'Verwenden Sie die Basis-URL des Kova Gateways, bei Remote-Gateways einschließlich https://.',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
+    remoteUrlPlaceholder: 'https://gateway.example.com/kova',
     probing: 'Gateway-Authentifizierung wird erkannt...',
     probeError: 'Dieses Kova Gateway konnte nicht erreicht werden.',
     probeErrorDetails: 'Details',

@@ -26,7 +26,7 @@ def agent_for(api_key, base_url):
     )
 
 
-@pytest.mark.parametrize("api_key", [make_jwt(account_tier="free", client_id="hermes-cli"), "sk-named"],
+@pytest.mark.parametrize("api_key", [make_jwt(account_tier="free", client_id="kova-cli"), "sk-named"],
                          ids=["named-free", "api-key"])
 @pytest.mark.parametrize("base_url", [NAMED, WELCOME])
 @pytest.mark.parametrize("case", ["rate_limited", "model_not_free", "403"])
@@ -80,7 +80,7 @@ def test_signing_in_does_not_inherit_anonymous_cooldown(tmp_path, monkeypatch):
     assert build_error_surface_from_result(blocked.result)["code"] == "free_tier_rate_limited"
 
     # Keep the old welcome URL deliberately: the changed credential owns the boundary.
-    guest.api_key = make_jwt(account_tier="free", client_id="hermes-cli")
+    guest.api_key = make_jwt(account_tier="free", client_id="kova-cli")
     assert guard_for(guest).action == "fallthrough"
     record_nous_rate_limit(headers={"retry-after": "300"})
     named_blocked = guard_for(guest)
@@ -109,7 +109,7 @@ def test_auxiliary_anonymous_cooldown_does_not_outlive_signing_in(tmp_path, monk
     monkeypatch.setattr(aux, "_aux_probe_active", lambda: True)
     assert aux._try_nous() == (None, None)
     assert unhealthy and all(ttl <= 60 for ttl in unhealthy)
-    runtime[:] = [make_jwt(account_tier="free", client_id="hermes-cli"), NAMED]
+    runtime[:] = [make_jwt(account_tier="free", client_id="kova-cli"), NAMED]
     assert aux._try_nous()[0] is client
 
 
@@ -122,7 +122,7 @@ def test_401_diagnostics_follow_request_identity_on_welcome_host(tier, capsys, m
     _print_nous_401_diagnostics(agent_for(make_jwt(account_tier=tier), WELCOME), Exception("unauthorized"))
     output = capsys.readouterr().out
     assert ("Kova couldn't start a new one" in output) == (tier == "anonymous")
-    assert ("hermes auth add nous" in output) == (tier != "anonymous")
+    assert ("kova auth add nous" in output) == (tier != "anonymous")
 
 
 def test_anonymous_claim_does_not_classify_other_providers_as_nous():
@@ -139,7 +139,7 @@ def test_named_account_on_welcome_host_gets_reconnect_copy_without_signin_card()
     message = "This endpoint serves anonymous Kova Agent accounts only. Use https://inference-api.nousresearch.com with your API key or signed-in account."
     error = Exception(message)
     error.status_code, error.body = 400, {"status": 400, "message": message}
-    agent = agent_for(make_jwt(account_tier="free", client_id="hermes-cli"), WELCOME)
+    agent = agent_for(make_jwt(account_tier="free", client_id="kova-cli"), WELCOME)
     classified = classify_api_error(error, provider="nous", model=agent.model, base_url=WELCOME, api_key=agent.api_key)
     result = nonretryable_client_error_result(
         agent, error, classified, status_code=400, api_kwargs=None, api_messages=[], messages=[],

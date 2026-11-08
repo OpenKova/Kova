@@ -113,7 +113,7 @@ def _iso(delta_s: float) -> str:
 
 def _nous_state(fake: OAuthFake, access: str, refresh: str, ttl_s: int) -> dict[str, Any]:
     return {"access_token": access, "refresh_token": refresh, "token_type": "Bearer",
-            "scope": NOUS_INVOKE_SCOPE, "client_id": "hermes-cli", "portal_base_url": fake.origin,
+            "scope": NOUS_INVOKE_SCOPE, "client_id": "kova-cli", "portal_base_url": fake.origin,
             "inference_base_url": PROD_NOUS_INFERENCE, "obtained_at": _iso(-60), "expires_at": _iso(ttl_s),
             "agent_key": access, "agent_key_expires_at": _iso(ttl_s),
             "tls": {"insecure": False, "ca_bundle": None}}
@@ -179,7 +179,7 @@ DEVICE_INTERVAL = 2
 
 @pytest.fixture(scope="module")
 def device_login(tmp_path_factory):
-    """One real ``hermes auth add nous --type oauth`` device-code login against the fake Portal."""
+    """One real ``kova auth add nous --type oauth`` device-code login against the fake Portal."""
     root = tmp_path_factory.mktemp("nous-device")
     with CatalogFake() as sentinel, OAuthFake(device_interval=DEVICE_INTERVAL, poll_script=DEVICE_SCRIPT) as fake:
         home = Home(root, sentinel, "nous", "oauth-e2e/model")

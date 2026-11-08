@@ -16,7 +16,7 @@ def store(tmp_path, monkeypatch):
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    # `hermes sessions` opens the ACTIVE home's store by explicit path (a served-profile process has
+    # `kova sessions` opens the ACTIVE home's store by explicit path (a served-profile process has
     # no single default store); the hermetic conftest re-pins kova_state's argless default to its
     # own home, so point that default here too or the seeded rows land in a store the CLI never reads.
     monkeypatch.setattr("kova_state.DEFAULT_DB_PATH", home / "state.db")
@@ -33,7 +33,7 @@ def store(tmp_path, monkeypatch):
 
 
 def _run(monkeypatch, *args):
-    monkeypatch.setattr(sys, "argv", ["hermes", "sessions", *args])
+    monkeypatch.setattr(sys, "argv", ["kova", "sessions", *args])
     return main.main()
 
 

@@ -1,4 +1,4 @@
-"""Tests for kova_cli.plugins_cmd — the ``hermes plugins`` CLI subcommand."""
+"""Tests for kova_cli.plugins_cmd — the ``kova plugins`` CLI subcommand."""
 
 from __future__ import annotations
 
@@ -239,7 +239,7 @@ class TestGitPullPluginDirAutostash:
         assert "preserved in git stash" in msg
         # The local edit is recoverable from the kept stash entry.
         stash_list = git(checkout, "stash", "list")
-        assert "hermes-plugin-update-autostash" in stash_list
+        assert "kova-plugin-update-autostash" in stash_list
         stash_diff = git(checkout, "stash", "show", "-p", "stash@{0}")
         assert "VALUE = 99" in stash_diff
 
@@ -909,7 +909,7 @@ def test_portable_manifest_is_visible_to_plugin_cli(tmp_path):
 def test_autostash_dirty_tree_promotes_intent_to_add_entries(tmp_path):
     """A plugin checkout holding `git add -N` entries must still autostash.
 
-    Same class as the `hermes update` autostash: an intent-to-add entry is never "uptodate", so
+    Same class as the `kova update` autostash: an intent-to-add entry is never "uptodate", so
     `git stash push` refuses it. A plugin install is patched in place often enough that this state is
     ordinary rather than exotic, and the failure would abort the plugin update with a confusing error.
     """
@@ -942,22 +942,22 @@ def test_autostash_dirty_tree_promotes_intent_to_add_entries(tmp_path):
 
 
 def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp_path, monkeypatch):
-    """``hermes plugins enable`` must reach a platform whose ``platform_toolsets`` entry is the
-    list-literal string an older ``hermes config set`` stored, and re-save it as a real list —
+    """``kova plugins enable`` must reach a platform whose ``platform_toolsets`` entry is the
+    list-literal string an older ``kova config set`` stored, and re-save it as a real list —
     the runtime already reads that string as the user's selection (follow-up to #115866)."""
 
     from kova_cli import plugins_cmd
 
     monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
-        yaml.safe_dump({"platform_toolsets": {"cli": '["web", "terminal"]', "telegram": ["hermes-telegram"]}}),
+        yaml.safe_dump({"platform_toolsets": {"cli": '["web", "terminal"]', "telegram": ["kova-telegram"]}}),
         encoding="utf-8")
     monkeypatch.setattr(plugins_cmd, "_get_plugin_toolset_key", lambda name: "my-plugin")
 
     plugins_cmd._toggle_plugin_toolset("my-plugin", enable=True)
     saved = yaml.safe_load((tmp_path / "config.yaml").read_text(encoding="utf-8"))["platform_toolsets"]
     assert saved["cli"] == ["web", "terminal", "my-plugin"]
-    assert saved["telegram"] == ["hermes-telegram", "my-plugin"]
+    assert saved["telegram"] == ["kova-telegram", "my-plugin"]
 
     plugins_cmd._toggle_plugin_toolset("my-plugin", enable=False)
     saved = yaml.safe_load((tmp_path / "config.yaml").read_text(encoding="utf-8"))["platform_toolsets"]

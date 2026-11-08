@@ -1,4 +1,4 @@
-"""A second `hermes serve` attaches to the host backend instead of binding a second port.
+"""A second `kova serve` attaches to the host backend instead of binding a second port.
 
 Attach is a PROOF, not a guess: exit 0 means the recorded owner answered on its recorded port and
 serves what the caller asked for. Every other shape falls through to the bind or refuses loudly.
@@ -27,7 +27,7 @@ def _args(**over):
 def host_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.delenv("KOVA_DESKTOP", raising=False)
-    monkeypatch.setattr("sys.argv", ["hermes", "serve"])
+    monkeypatch.setattr("sys.argv", ["kova", "serve"])
     return tmp_path
 
 
@@ -151,8 +151,8 @@ def test_unprovable_liveness_still_has_to_answer(host_dir, monkeypatch):
 
 @pytest.mark.parametrize(
     "argv,over",
-    [(["hermes", "serve", "--port", "8899"], {"port": 8899}),
-     (["hermes", "serve", "--host", "0.0.0.0"], {"host": "0.0.0.0"})],
+    [(["kova", "serve", "--port", "8899"], {"port": 8899}),
+     (["kova", "serve", "--host", "0.0.0.0"], {"host": "0.0.0.0"})],
     ids=["explicit-port", "explicit-host"],
 )
 def test_an_explicit_endpoint_the_owner_cannot_serve_is_refused(host_dir, owner, monkeypatch,
@@ -172,7 +172,7 @@ def test_an_explicit_endpoint_the_owner_cannot_serve_is_refused(host_dir, owner,
 
 
 def test_dashboard_is_never_routed_to_a_headless_backend(host_dir, owner, capsys):
-    """`hermes serve` and `hermes dashboard` publish the same host role; only one mounts the SPA,
+    """`kova serve` and `kova dashboard` publish the same host role; only one mounts the SPA,
     so attaching a dashboard user to a headless backend opens a URL with no UI behind it."""
     owner.serves_spa["value"] = False
     _publish(hr.process_create_time(), port=owner.port)

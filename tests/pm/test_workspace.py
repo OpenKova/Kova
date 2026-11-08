@@ -291,7 +291,7 @@ def test_base_self_reference_gated_on_a_selected_extra_keeps_its_extra(layout):
 
 
 def test_virtual_plugin_self_reference_installs_its_own_extra_after_the_rename(layout):
-    """A virtual member is renamed ``hermes-plugin-<key>``; its ``own-name[extra]`` reference
+    """A virtual member is renamed ``kova-plugin-<key>``; its ``own-name[extra]`` reference
     must follow, or uv resolves the declared name as some other package from the index and
     the extra the plugin asked for is never installed."""
     import tomllib
@@ -328,7 +328,7 @@ def test_virtual_plugin_self_references_follow_the_rename_everywhere(layout):
     member = ws._workspace_member(plugin, tmp / "virtual", identity=plugin)
     document = tomllib.loads((member / "pyproject.toml").read_text())
     name = document["project"]["name"]
-    assert name.startswith("hermes-plugin-member-")
+    assert name.startswith("kova-plugin-member-")
     assert document["project"]["dependencies"] == ["member-dep==1.0", f"{name}[a]"]
     assert document["project"]["optional-dependencies"] == {
         "a": [f"{name}[b] ; python_version >= '3'"], "b": ["chosen-dep==1.0"]}
@@ -343,7 +343,7 @@ def test_classify_network_failure_stays_generic():
 
 
 def test_core_only_generation_carries_no_release_age_cutoff(layout):
-    """A core-only install (hermes update) is a frozen sync: the cutoff there only gates the build
+    """A core-only install (kova update) is a frozen sync: the cutoff there only gates the build
     tools uv fetches, and a mirror without upload times rejects every one of them (#135589)."""
     tmp, core, _, _ = layout
     manifest = core / "pyproject.toml"

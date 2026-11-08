@@ -57,7 +57,7 @@ it('/save renders through session.export and Ink writes the file itself (T10)', 
   process.env.KOVA_HOME = dir
 
   try {
-    const exported = { content: '{"messages": []}', filename: 'hermes_owner.json', format: 'json' }
+    const exported = { content: '{"messages": []}', filename: 'kova_owner.json', format: 'json' }
     const { request, slash, sys } = harness({ 'session.export': exported })
 
     slash('/save')
@@ -67,11 +67,11 @@ it('/save renders through session.export and Ink writes the file itself (T10)', 
     expect(request).toHaveBeenCalledWith('session.export', { format: 'json', redact: false, session_id: 'owner' })
     expect(request.mock.calls.some(([method]) => method === 'session.save')).toBe(false)
     const [file] = readdirSync(join(dir, 'sessions', 'saved'))
-    expect(file).toBe('hermes_owner.json') // the owner's name, so Ink and Desktop agree
+    expect(file).toBe('kova_owner.json') // the owner's name, so Ink and Desktop agree
     expect(readFileSync(join(dir, 'sessions', 'saved', file!), 'utf8')).toBe('{"messages": []}')
     expect(notices(sys)).toContain(`conversation saved to: ${join(dir, 'sessions', 'saved', file!)}`)
 
-    const md = { content: '# t', filename: 'hermes_owner.md', format: 'md' }
+    const md = { content: '# t', filename: 'kova_owner.md', format: 'md' }
     const second = harness({ 'session.export': md })
 
     second.slash(`/save md ${join(dir, 'out.md')} redact`)

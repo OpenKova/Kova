@@ -36,7 +36,7 @@ def _child_env():
     return _build_child_env(
         rpc_endpoint="sock",
         rpc_token="tok",
-        tmpdir="/tmp/hermes-test",
+        tmpdir="/tmp/kova-test",
         child_python=sys.executable,
     )
 

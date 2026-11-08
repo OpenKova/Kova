@@ -44,19 +44,19 @@ interface RemoteGateway {
 }
 
 function findKovaBinary(): string {
-  const venv = path.join(REPO_ROOT, '.venv', 'bin', 'hermes')
+  const venv = path.join(REPO_ROOT, '.venv', 'bin', 'kova')
 
   if (fs.existsSync(venv)) {
     return venv
   }
 
-  const result = spawnSync('which', ['hermes'], { encoding: 'utf8' })
+  const result = spawnSync('which', ['kova'], { encoding: 'utf8' })
 
   if (result.status === 0 && result.stdout.trim()) {
     return result.stdout.trim()
   }
 
-  throw new Error('kova binary not found: create the repo venv (uv sync) or put hermes on PATH')
+  throw new Error('kova binary not found: create the repo venv (uv sync) or put kova on PATH')
 }
 
 async function freePort(): Promise<number> {

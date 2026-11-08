@@ -1,7 +1,7 @@
 """Behavior tests for the Windows desktop-exe integrity gate (#69179).
 
-The desktop self-update chain (Desktop → hermes-setup --update →
-``hermes update`` → ``hermes desktop --build-only`` → relaunch) rebuilds
+The desktop self-update chain (Desktop → kova-setup --update →
+``kova update`` → ``kova desktop --build-only`` → relaunch) rebuilds
 Kova.exe on the end user's machine. Before this gate, "build succeeded" was
 just "the file exists", so a truncated PE (corrupt cached Electron zip), a
 non-PE file, or a wrong-architecture tree shipped as the new app — Windows
@@ -216,20 +216,20 @@ def test_expected_machines_prefers_user_runnable_api_over_arch_name(monkeypatch)
 def test_corrupt_staged_app_keeps_live_bytes_without_backup_recovery(tmp_path, monkeypatch, capsys):
     """Exercise publication and PE parsing, not Windows host/architecture discovery."""
     desktop_dir = tmp_path / "apps" / "desktop"
-    live_exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
+    live_exe = desktop_dir / "release" / "linux-unpacked" / "kova"
     make_pe(live_exe)
     live_bytes = live_exe.read_bytes()
     assert main_desktop._parse_pe_machine(live_exe) == PE_AMD64
     # The host-native layout makes discovery/swap real; PE is just fixture data.
     staging = main_desktop._desktop_staging_dir(desktop_dir)
-    staged_exe = make_pe(staging / "linux-unpacked" / "hermes", truncate_to=0x300)
+    staged_exe = make_pe(staging / "linux-unpacked" / "kova", truncate_to=0x300)
     staged_bytes = staged_exe.read_bytes()
-    backup_exe = make_pe(staging / "linux-unpacked.bak" / "hermes")
+    backup_exe = make_pe(staging / "linux-unpacked.bak" / "kova")
     old_diagnostic = staging / "linux-unpacked.corrupt" / "diagnostic"
     old_diagnostic.parent.mkdir()
     old_diagnostic.write_bytes(b"previous diagnostic")
     # Raw in-place pack recovery material is not owned by this transaction.
-    live_backup = make_pe(live_exe.parent.with_name("linux-unpacked.bak") / "hermes")
+    live_backup = make_pe(live_exe.parent.with_name("linux-unpacked.bak") / "kova")
 
     checked = []
 
@@ -285,7 +285,7 @@ def test_gate_fails_clearly_without_backup(tmp_path, capsys):
     assert "missing MZ header" in out
 
 
-# ─── end-to-end: `hermes desktop --build-only` exits nonzero on corrupt exe ─
+# ─── end-to-end: `kova desktop --build-only` exits nonzero on corrupt exe ─
 
 
 def _ns(**kw):
@@ -296,7 +296,7 @@ def _ns(**kw):
         source=False,
         fake_boot=False,
         ignore_existing=False,
-        hermes_root=None,
+        kova_root=None,
         cwd=None,
     )
     defaults.update(kw)
@@ -306,7 +306,7 @@ def _ns(**kw):
 @pytest.mark.platforms("windows")
 def test_build_only_fails_when_pack_produces_corrupt_exe(tmp_path, monkeypatch, capsys):
     """The updater chain's contract: a rebuild whose Kova.exe cannot launch
-    must exit nonzero (so hermes-setup's retry-once kicks in) and must leave
+    must exit nonzero (so kova-setup's retry-once kicks in) and must leave
     the previous working build in place instead of installing the corrupt one.
 
     Stage-and-swap (#86443): the pack lands in a staging dir; the integrity

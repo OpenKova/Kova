@@ -153,7 +153,7 @@ it('isolates stale reads and failed saves when the same profile moves between co
   await waitFor(() => expect(screen.getByTestId('locale').textContent).toBe('ar'))
 })
 
-// A backend whose hermes-lang-ko pack carries Desktop strings.
+// A backend whose kova-lang-ko pack carries Desktop strings.
 function koPackRequest() {
   return vi.fn(async (method: string) =>
     method === 'i18n.languages'
@@ -163,7 +163,7 @@ function koPackRequest() {
               id: 'ko',
               endonym: '한국어',
               rtl: false,
-              source: 'plugin:hermes-lang-ko',
+              source: 'plugin:kova-lang-ko',
               surfaces: ['core', 'tui', 'desktop']
             }
           ]
@@ -205,7 +205,7 @@ function mountWithOpenSocket() {
 
 // Boot reports the socket `open` before the client is published in `$gateway`.
 // The backend-pack sync must still run once the client arrives, or a language
-// only a pack renders (ko via hermes-lang-ko) never leaves English.
+// only a pack renders (ko via kova-lang-ko) never leaves English.
 it('pulls the backend language pack once the gateway client is published after the socket opened', async () => {
   window.kovaDesktop = { api: vi.fn(async () => ({ display: { language: 'ko' } })) } as never
   const request = koPackRequest()

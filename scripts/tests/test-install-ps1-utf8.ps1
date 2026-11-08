@@ -73,7 +73,7 @@ public static class KovaUtf8Host {
     $profileName = ([string][char]0x5F20) + [char]0x4E09 + ' Ren' + [char]0xE9 + " O'Brien Pawe" + [char]0x142
     $profileDir = Join-Path $testRoot $profileName
     New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
-    $env:KOVA_HOME = Join-Path $profileDir 'hermes-home'
+    $env:KOVA_HOME = Join-Path $profileDir 'kova-home'
     $testInstallDir = Join-Path $profileDir 'kova-agent'
     $packageDir = Join-Path $testInstallDir 'pm'
     New-Item -ItemType Directory -Path $packageDir -Force | Out-Null

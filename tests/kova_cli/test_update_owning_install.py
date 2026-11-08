@@ -1,4 +1,4 @@
-"""``hermes update`` from a PM environment's workspace goes to the checkout that owns it (#122627)."""
+"""``kova update`` from a PM environment's workspace goes to the checkout that owns it (#122627)."""
 import sys
 
 from kova_cli.update_owning_install import owning_install_root

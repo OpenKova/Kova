@@ -18,8 +18,8 @@ ASSETS = Path(__file__).resolve().parents[1] / "install/e2e-assets"
 @pytest.mark.platforms("posix")
 def test_shell_selects_the_installed_command_not_the_phase_or_path(tmp_path):
     root = tmp_path / "installed source"
-    legacy = root / "venv/bin/hermes"
-    published = root / ".kova/bin/hermes"
+    legacy = root / "venv/bin/kova"
+    published = root / ".kova/bin/kova"
     for command, label in ((legacy, "legacy"), (published, "published")):
         command.parent.mkdir(parents=True)
         command.write_text(f'#!/bin/sh\nprintf "{label}:%s\\n" "$*"\n', encoding="utf-8")
@@ -27,21 +27,21 @@ def test_shell_selects_the_installed_command_not_the_phase_or_path(tmp_path):
     env = dict(os.environ, INSTALL_DIR=str(root), ASSETS=str(ASSETS), HOME=str(tmp_path))
     result = subprocess.run(["bash", "-euc", '''
 source "$ASSETS/source-driver.sh"
-command=$(source_hermes "$INSTALL_DIR")
+command=$(source_kova "$INSTALL_DIR")
 "$command" 'literal argument'
-rm "$INSTALL_DIR/venv/bin/hermes"
-test "$(source_hermes "$INSTALL_DIR")" = "$command"
+rm "$INSTALL_DIR/venv/bin/kova"
+test "$(source_kova "$INSTALL_DIR")" = "$command"
 printf '#!/bin/sh\nexit 23\n' > "$command"
 "$command" || test "$?" = 23
 rm "$command"
-if source_hermes "$INSTALL_DIR"; then exit 91; fi
-printf '#!/bin/sh\nprintf legacy\n' > "$INSTALL_DIR/venv/bin/hermes"
-chmod +x "$INSTALL_DIR/venv/bin/hermes"
-"$(source_hermes "$INSTALL_DIR")"
+if source_kova "$INSTALL_DIR"; then exit 91; fi
+printf '#!/bin/sh\nprintf legacy\n' > "$INSTALL_DIR/venv/bin/kova"
+chmod +x "$INSTALL_DIR/venv/bin/kova"
+"$(source_kova "$INSTALL_DIR")"
 # A PM checkout cannot hide missing publication behind its old venv.
 mkdir -p "$INSTALL_DIR/pm"
 printf '{}' > "$INSTALL_DIR/pm/lock.json"
-if source_hermes "$INSTALL_DIR"; then exit 92; fi
+if source_kova "$INSTALL_DIR"; then exit 92; fi
 '''], env=env, cwd=tmp_path, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
     assert result.stdout.splitlines() == ["published:literal argument", "legacy"]
@@ -88,9 +88,9 @@ def test_powershell_selects_exact_exe_or_cmd_and_legacy_fallback(tmp_path):
     harness.write_text('''$ErrorActionPreference = 'Stop'
 . (Join-Path $env:ASSETS 'source-driver.ps1')
 $root = $env:INSTALL_DIR
-$legacy = Join-Path $root 'venv/Scripts/hermes.exe'
-$exe = Join-Path $root '.kova/bin/hermes.exe'
-$cmd = Join-Path $root '.kova/bin/hermes.cmd'
+$legacy = Join-Path $root 'venv/Scripts/kova.exe'
+$exe = Join-Path $root '.kova/bin/kova.exe'
+$cmd = Join-Path $root '.kova/bin/kova.cmd'
 New-Item -ItemType Directory -Path (Split-Path $legacy), (Split-Path $exe) -Force | Out-Null
 Set-Content $legacy 'legacy'
 if ((Get-SourceKova $root) -ne $legacy) { throw 'legacy fallback' }
@@ -129,12 +129,12 @@ def test_observer_preserves_no_desktop_and_refuses_incomplete_app(tmp_path):
         verify(root, "present")
     release = root / "apps/desktop/release/linux-unpacked"
     release.mkdir(parents=True)
-    (release / "hermes").write_bytes(b"incomplete fixture")
+    (release / "kova").write_bytes(b"incomplete fixture")
     with pytest.raises(RuntimeError, match="desktop"):
         verify(root, "absent")
     with pytest.raises(RuntimeError, match="desktop"):
         verify(root, "present")
-    assert (release / "hermes").read_bytes() == b"incomplete fixture"
+    assert (release / "kova").read_bytes() == b"incomplete fixture"
 
 
 def test_observer_judges_only_the_live_app_not_rollback_copies_beside_it(tmp_path):
@@ -227,9 +227,9 @@ for (const [product, out] of [['tui', 'ui-tui/dist'], ['web', 'kova_cli/web_dist
 }
 '''
     subprocess.run([node, "--input-type=module", "-e", record], cwd=root, env=env, check=True, timeout=30)
-    (root / "apps/desktop/release/linux-unpacked/hermes").write_bytes(b"fixture executable")
+    (root / "apps/desktop/release/linux-unpacked/kova").write_bytes(b"fixture executable")
     command = [sys.executable, "-B", str(ASSETS / "source_driver.py"), "--root", str(root),
-               "--launcher", str(root / ".kova/bin/hermes"), "--desktop", "present"]
+               "--launcher", str(root / ".kova/bin/kova"), "--desktop", "present"]
     if fault == "no-desktop":
         shutil.rmtree(root / "apps/desktop")
         command[-1] = "absent"
@@ -248,10 +248,10 @@ for (const [product, out] of [['tui', 'ui-tui/dist'], ['web', 'kova_cli/web_dist
         foreign = tmp_path / "foreign"
         shutil.copytree(root, foreign)
         from kova_cli._launchers import mint_launcher
-        launcher = mint_launcher("hermes", foreign, root / ".kova/bin", Path(sys.executable), None)
+        launcher = mint_launcher("kova", foreign, root / ".kova/bin", Path(sys.executable), None)
         assert launcher is not None
     elif fault == "missing-launcher":
-        (root / ".kova/bin/hermes").unlink()
+        (root / ".kova/bin/kova").unlink()
     elif fault == "incomplete":
         (root / ".update-incomplete").write_text("incomplete", encoding="utf-8")
     else:

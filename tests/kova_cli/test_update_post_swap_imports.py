@@ -1,4 +1,4 @@
-"""After the checkout moves, the running ``hermes update`` process imports nothing from the tree.
+"""After the checkout moves, the running ``kova update`` process imports nothing from the tree.
 
 Once git (or the ZIP swap) writes the new code, every module this interpreter has not loaded yet is
 the REPLACEMENT tree's: importing one mixes generations in one process, and it is also why every
@@ -195,7 +195,7 @@ def test_windows_restart_after_the_move_imports_nothing_from_the_checkout(tmp_pa
 def _run_case(case, tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    (tmp_path / "hermes-home").mkdir()
+    (tmp_path / "kova-home").mkdir()
     root = tmp_path / "install"
     root.mkdir()
     fake_bin = tmp_path / "bin"
@@ -204,7 +204,7 @@ def _run_case(case, tmp_path, monkeypatch):
         (fake_bin / supervisor).write_text(f'#!/bin/sh\necho "{supervisor} $*" >> "{root}/supervisor.log"\nexit 1\n')
         (fake_bin / supervisor).chmod(0o755)
     # A home of its own (not the account default): the unit and job names carry its suffix.
-    env = {**os.environ, "HOME": str(home), "KOVA_HOME": str(tmp_path / "hermes-home"),
+    env = {**os.environ, "HOME": str(home), "KOVA_HOME": str(tmp_path / "kova-home"),
            "USERPROFILE": str(home), "LOCALAPPDATA": str(home / "AppData" / "Local"),
            "APPDATA": str(home / "AppData" / "Roaming"), "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_CONFIG_HOME": str(tmp_path / "config"),
            "PATH": f"{fake_bin}{os.pathsep}{os.environ.get('PATH', '')}", "GITHUB_TOKEN": "offline",

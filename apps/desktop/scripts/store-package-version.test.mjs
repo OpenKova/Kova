@@ -29,7 +29,7 @@ function fixture() {
   fs.mkdirSync(path.join(app, 'assets'), { recursive: true })
   fs.copyFileSync(path.join(desktop, 'assets/msix-manifest.xml'), path.join(app, 'assets/msix-manifest.xml'))
   fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'KovaBundled'}\n")
-  fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'hermes', version: '0.27.1' }))
+  fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'kova', version: '0.27.1' }))
   const env = { ...process.env, ...gitIdentityEnv,
     GIT_AUTHOR_DATE: '2026-09-07T00:18:00Z', GIT_COMMITTER_DATE: '2026-09-07T00:18:00Z' }
   for (const args of [['init', '-q'], ['add', '.'], ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'fixture'], ['tag', 'v0.27.1']]) {
@@ -43,7 +43,7 @@ test('Store manifest and envelope agree while executable app semver and sideload
   const tag = 'v0.27.1'
   const identity = appIdentity(app, tag)
   const staged = fs.readFileSync(stageStoreManifest(app, tag), 'utf8')
-  const appInfo = new AppInfo({ metadata: { name: 'hermes', version: tag.slice(1) }, config: { buildNumber: '32863' } }, undefined, {})
+  const appInfo = new AppInfo({ metadata: { name: 'kova', version: tag.slice(1) }, config: { buildNumber: '32863' } }, undefined, {})
   const xml = substituteManifestMacros(staged, key => key === 'version' ? appInfo.getVersionInWeirdWindowsForm(false) : `test-${key}`)
   const version = /<Identity\b[^>]*Version="([^"]+)"/.exec(xml)[1]
   expect(version).toBe(identity.version)

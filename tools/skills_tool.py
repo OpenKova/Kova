@@ -656,9 +656,9 @@ def skill_view(
                 hint="Use a relative path within the skill directory")
         # tags/related_skills: metadata.kova.* (agentskills.io) first, then top-level.
         metadata = frontmatter.get("metadata")
-        hermes_meta = (metadata.get("hermes", {}) or {}) if isinstance(metadata, dict) else {}
+        kova_meta = (metadata.get("kova", {}) or {}) if isinstance(metadata, dict) else {}
         tags, related_skills = (
-            _parse_tags(hermes_meta.get(k) or frontmatter.get(k, "")) for k in ("tags", "related_skills"))
+            _parse_tags(kova_meta.get(k) or frontmatter.get(k, "")) for k in ("tags", "related_skills"))
         linked_files = _skill_linked_files(skill_dir)
         try:
             rel_path = str(skill_md.relative_to(active_skills_dir))

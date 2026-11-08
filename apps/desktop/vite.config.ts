@@ -23,7 +23,7 @@ async function cachedCompilerPass(command: string) {
   // without node_modules (its dependencies live in the private workspace).
   return withCompilerCache(await babel({ cwd: __dirname, presets: [compilerPreset()] }), {
     command,
-    cacheRoot: path.join(__dirname, 'node_modules/.cache/hermes-react-compiler'),
+    cacheRoot: path.join(__dirname, 'node_modules/.cache/kova-react-compiler'),
     base: __dirname,
     toolchain: [path.resolve(__dirname, '../../pnpm-lock.yaml'), fileURLToPath(import.meta.url)]
   })
@@ -144,7 +144,7 @@ export default defineConfig(({ command }) => ({
     // without this, Vite's `postcss-load-config` walks UP the filesystem
     // looking for a stray `postcss.config.*` / `tailwind.config.*`. The desktop
     // build runs from inside the user's home tree (e.g.
-    // `C:\Users\<name>\AppData\Local\hermes\kova-agent\apps\desktop`), so an
+    // `C:\Users\<name>\AppData\Local\Kova\kova-agent\apps\desktop`), so an
     // unrelated Tailwind v3 config higher up the tree gets picked up and
     // reprocesses our v4 stylesheet, failing the build with
     // "`@layer base` is used but no matching `@tailwind base` directive is

@@ -47,7 +47,7 @@ _PHOTON_ENV = (
 @pytest.fixture
 def tmp_kova_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Isolate from the real ~/.kova/auth.json fallback in load_project_credentials()."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     for key in _PHOTON_ENV:

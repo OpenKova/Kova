@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="hermes-timeline-bench-") as directory:
+    with tempfile.TemporaryDirectory(prefix="kova-timeline-bench-") as directory:
         os.environ["KOVA_HOME"] = directory
         from fastapi import FastAPI
         from fastapi.testclient import TestClient

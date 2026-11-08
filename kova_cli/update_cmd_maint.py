@@ -326,7 +326,7 @@ def _print_update_completion(message: str) -> None:
     print(f"{message}{_branch_head_suffix()}")
     action_id = os.environ.get("KOVA_ACTION_ID", "")
     if len(action_id) == 32 and all(char in "0123456789abcdef" for char in action_id):
-        print(f"=== hermes-update completed {action_id} ===")
+        print(f"=== kova-update completed {action_id} ===")
 
 
 def _read_project_version() -> str | None:

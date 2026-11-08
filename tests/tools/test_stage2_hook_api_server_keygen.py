@@ -39,7 +39,7 @@ def _keygen_block(text: str) -> str:
 
 def _path_guard_functions(text: str) -> str:
     start = text.index("path_has_symlink_component() {")
-    end = text.index("\n\nchown_hermes_tree() {", start)
+    end = text.index("\n\nchown_kova_tree() {", start)
     return text[start:end]
 
 
@@ -61,8 +61,8 @@ def _run_keygen(
         "set -eu\n"
         f"{env_setup}"
         f'KOVA_HOME="{home}"\n'
-        # In tests we run unprivileged; as_hermes is a passthrough then.
-        'as_hermes() { "$@"; }\n'
+        # In tests we run unprivileged; as_kova is a passthrough then.
+        'as_kova() { "$@"; }\n'
         f"{_path_guard_functions(stage2_text)}\n"
         f"{_keygen_block(stage2_text)}\n"
     )
@@ -264,7 +264,7 @@ def test_keygen_weak_env_key_warning_suppressed_when_env_file_key_wins(
 
 
 def test_dockerignore_keeps_env_example_template() -> None:
-    """The first-boot seed copies /opt/hermes/.env.example -> $KOVA_HOME/.env.
+    """The first-boot seed copies /opt/kova/.env.example -> $KOVA_HOME/.env.
 
     ``.env.*`` in .dockerignore matches the template, so an explicit
     ``!.env.example`` re-include must appear AFTER it (last match wins), and

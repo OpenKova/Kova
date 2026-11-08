@@ -2,7 +2,7 @@
 
 Every child-process env in the codebase must be built through
 ``tools.environments.local.build_subprocess_env`` (or its sibling
-``hermes_subprocess_env`` / ``_sanitize_subprocess_env``, which the factory
+``kova_subprocess_env`` / ``_sanitize_subprocess_env``, which the factory
 wraps) so profile-home propagation and secret-scrubbing have a single owner.
 History: ~11 commits over 6 months each fixed one more spawn site that missed
 ``KOVA_HOME`` or secret-scrub propagation.
@@ -42,7 +42,7 @@ COPY_RE = re.compile(r"\bos\.environ\.copy\(\)|\*\*os\.environ\b")
 # Adding to this list is a conscious decision: document WHY inline here.
 # ---------------------------------------------------------------------------
 ALLOWED_RAW_SPAWN_ENV_FILES = {
-    # THE owner module: _sanitize_subprocess_env / hermes_subprocess_env /
+    # THE owner module: _sanitize_subprocess_env / kova_subprocess_env /
     # build_subprocess_env legitimately snapshot os.environ — everything else
     # delegates to them.
     "tools/environments/local.py",
@@ -68,7 +68,7 @@ ALLOWED_RAW_SPAWN_ENV_FILES = {
     # forwarded values; what crosses into the sandbox is the backend's forward/passthrough policy.
     "tools/environments/remote_common.py",
     # Needing provider keys is not a reason to be here: such a child uses
-    # hermes_subprocess_env(inherit_credentials=True), which still drops bot/relay tokens.
+    # kova_subprocess_env(inherit_credentials=True), which still drops bot/relay tokens.
 }
 
 

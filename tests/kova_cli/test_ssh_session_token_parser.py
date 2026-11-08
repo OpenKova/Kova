@@ -115,7 +115,7 @@ def test_token_file_rejects_parent_escape(tmp_path, monkeypatch):
 def test_windows_runtime_root_stays_at_machine_root_for_named_profile(tmp_path, monkeypatch):
     from kova_cli import windows_ssh_runtime
 
-    machine_root = tmp_path / "custom-hermes-root"
+    machine_root = tmp_path / "custom-kova-root"
     monkeypatch.setenv("KOVA_HOME", str(machine_root / "profiles" / "writer_2"))
 
     assert windows_ssh_runtime._root() == machine_root / "desktop-ssh"

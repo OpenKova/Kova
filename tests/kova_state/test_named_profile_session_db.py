@@ -31,7 +31,7 @@ from kova_state import SessionDB
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     profile = root / "profiles" / "worker"
     root.mkdir(parents=True)
     profile.mkdir(parents=True)

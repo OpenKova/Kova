@@ -1,4 +1,4 @@
-"""Regression for #117276: ``hermes doctor``'s exit status must agree with its unresolved findings."""
+"""Regression for #117276: ``kova doctor``'s exit status must agree with its unresolved findings."""
 from types import SimpleNamespace
 
 import pytest
@@ -41,7 +41,7 @@ from kova_cli.doctor_report import Finding
 from kova_cli.main import main
 issues = ['fixture unresolved problem'] if {unresolved!r} else []
 doctor.DOCTOR_CHECKS = ((None, lambda fix: Finding(issues=issues)),)
-sys.argv = ['hermes', 'doctor']
+sys.argv = ['kova', 'doctor']
 main()
 """
     result = subprocess.run(

@@ -2,9 +2,9 @@
 
 Git-only (outside a repo children share the parent's cwd); local terminal backend only (on
 docker/ssh/modal the host worktree is invisible in the sandbox, so isolation is skipped). One
-worktree per child under ``<repo>/.worktrees/subagent-<id>``, branch ``hermes-subagent/<id>``.
+worktree per child under ``<repo>/.worktrees/subagent-<id>``, branch ``kova-subagent/<id>``.
 On finish: zero commits AND clean (both probes ok) -> removed; work left behind -> archived to
-``refs/hermes/archive/<tree>`` then removed (``worktrees.archive_dirty``, branch kept so the parent
+``refs/kova/archive/<tree>`` then removed (``worktrees.archive_dirty``, branch kept so the parent
 can merge it); a failed probe or archive -> kept + flagged.
 """
 
@@ -80,7 +80,7 @@ def create_subagent_worktree(parent_cwd: Optional[str], subagent_id: Optional[st
     if not repo_root:
         return None
     wt_name = f"subagent-{(subagent_id or uuid.uuid4().hex[:8]).replace('/', '-')}"
-    branch = f"hermes-subagent/{wt_name}"
+    branch = f"kova-subagent/{wt_name}"
     wt_path = Path(repo_root) / ".worktrees" / wt_name
     try:
         wt_path.parent.mkdir(parents=True, exist_ok=True)

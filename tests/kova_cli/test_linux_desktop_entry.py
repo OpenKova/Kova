@@ -1,4 +1,4 @@
-"""Tests for the Linux XDG desktop entry installed by ``hermes desktop``."""
+"""Tests for the Linux XDG desktop entry installed by ``kova desktop``."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def xdg_home(tmp_path, monkeypatch) -> Path:
     data_home = tmp_path / "xdg-data"
     monkeypatch.setenv("XDG_DATA_HOME", str(data_home))
     # Isolate the known-wrapper probe too: tests must never see the real
-    # ~/.local/bin/hermes on the dev machine.
+    # ~/.local/bin/kova on the dev machine.
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(lde.sys, "platform", "linux")
     return data_home
@@ -45,11 +45,11 @@ def _png_ihdr(width: int, height: int) -> bytes:
 
 
 def _stub_install(tmp_path, monkeypatch) -> None:
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir(exist_ok=True)
-    hermes_bin.write_text("", encoding="utf-8")
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir(exist_ok=True)
+    kova_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -67,11 +67,11 @@ def test_install_writes_entry_with_absolute_exec_and_icon(
     tmp_path, xdg_home, monkeypatch
 ):
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
     # Keep the icon install out of the way: this test pins the
@@ -84,8 +84,8 @@ def test_install_writes_entry_with_absolute_exec_and_icon(
     values = _parse(entry.read_text(encoding="utf-8"))
 
     # Exec must be the absolute path of the resolved binary. The launcher
-    # runs with a minimal PATH, so a bare `hermes` would not resolve.
-    assert values["Exec"] == f"{hermes_bin} desktop"
+    # runs with a minimal PATH, so a bare `kova` would not resolve.
+    assert values["Exec"] == f"{kova_bin} desktop"
     assert Path(values["Exec"].split(" ")[0]).is_absolute()
 
     # Icon must be an absolute path to the real icon in the checkout.
@@ -102,18 +102,18 @@ def test_install_prefers_themed_icon_from_hicolor(tmp_path, xdg_home, monkeypatc
     fixed for).
     """
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
 
     values = _parse(entry.read_text(encoding="utf-8"))
-    assert values["Icon"] == "hermes"
+    assert values["Icon"] == "kova"
 
     # And the icon really landed in the hicolor tree: the fixture icon is
     # a fake PNG (no valid IHDR), so the size is unknown and the icon
@@ -128,11 +128,11 @@ def test_install_icon_copy_failure_falls_back_to_absolute(
 ):
     """An impossible icon copy keeps the absolute path (never breaks)."""
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -155,7 +155,7 @@ def test_install_icon_copy_failure_falls_back_to_absolute(
 def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "kova_cli.relaunch.resolve_kova_bin", lambda: "/usr/bin/kova"
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -166,7 +166,7 @@ def test_installed_entry_is_executable(tmp_path, xdg_home, monkeypatch):
 
 def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -176,7 +176,7 @@ def test_exec_falls_back_to_interpreter_module(tmp_path, xdg_home, monkeypatch):
     assert Path(exec_line.split(" ")[0]).is_absolute()
 
 
-# #90292: the shell installer's bash wrapper makes argv[0] the repo `hermes`
+# #90292: the shell installer's bash wrapper makes argv[0] the repo `kova`
 # python script whose `#!/usr/bin/env python3` shebang resolves to the SYSTEM
 # interpreter when the DE spawns the .desktop entry → ModuleNotFoundError,
 # silent (Terminal=false). The Exec line must prefix sys.executable for any
@@ -187,14 +187,14 @@ def test_exec_prefixes_interpreter_for_env_shebang_python_script(
     import sys
 
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text(
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
-    hermes_bin.chmod(0o755)
+    kova_bin.chmod(0o755)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -203,20 +203,20 @@ def test_exec_prefixes_interpreter_for_env_shebang_python_script(
 
     interpreter = os.path.abspath(sys.executable)
     assert exec_line.split(" ")[0].strip('"') == interpreter
-    assert str(hermes_bin) in exec_line
+    assert str(kova_bin) in exec_line
     assert exec_line.endswith("desktop")
 
 
 def test_exec_leaves_shell_wrapper_launchers_alone(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text(
-        '#!/usr/bin/env bash\nexec /opt/hermes/venv/bin/python "$@"\n', encoding="utf-8"
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text(
+        '#!/usr/bin/env bash\nexec /opt/kova/venv/bin/python "$@"\n', encoding="utf-8"
     )
-    hermes_bin.chmod(0o755)
+    kova_bin.chmod(0o755)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -224,20 +224,20 @@ def test_exec_leaves_shell_wrapper_launchers_alone(tmp_path, xdg_home, monkeypat
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
 
     # A bash wrapper execs the venv python itself — no interpreter prefix.
-    assert exec_line == f"{hermes_bin} desktop"
+    assert exec_line == f"{kova_bin} desktop"
 
 
 def test_exec_leaves_venv_shebang_scripts_alone(tmp_path, xdg_home, monkeypatch):
     import sys
 
     root = _make_project(tmp_path)
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
     interpreter = os.path.abspath(sys.executable)
-    hermes_bin.write_text(f"#!{interpreter}\nimport kova_cli\n", encoding="utf-8")
-    hermes_bin.chmod(0o755)
+    kova_bin.write_text(f"#!{interpreter}\nimport kova_cli\n", encoding="utf-8")
+    kova_bin.chmod(0o755)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -246,7 +246,7 @@ def test_exec_leaves_venv_shebang_scripts_alone(tmp_path, xdg_home, monkeypatch)
 
     # Console-script with the venv's own interpreter in the shebang: correct
     # as-is, prefixing would only add noise.
-    assert exec_line == f"{hermes_bin} desktop"
+    assert exec_line == f"{kova_bin} desktop"
 
 
 # The persisted entry must be launch-context independent: whatever process
@@ -265,19 +265,19 @@ def test_exec_converges_from_repo_script_argv0_to_installed_wrapper(
 ):
     """A broken interpreter-form entry must self-heal to the wrapper form.
 
-    Launching with argv[0] = <checkout>/hermes (what the broken entry
+    Launching with argv[0] = <checkout>/kova (what the broken entry
     itself spawns) previously re-persisted the same broken form forever —
     the bootstrap loop that kept #90492 from repairing existing installs.
     """
     import sys
 
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"  # checkout-internal launcher candidate
+    repo_script = root / "kova"  # checkout-internal launcher candidate
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
-    wrapper = tmp_path / "installed" / "bin" / "hermes"
+    wrapper = tmp_path / "installed" / "bin" / "kova"
     wrapper.parent.mkdir(parents=True)
     wrapper.write_text(f'#!/usr/bin/env bash\nexec {sys.executable} "$@"\n', encoding="utf-8")
     wrapper.chmod(0o755)
@@ -285,7 +285,7 @@ def test_exec_converges_from_repo_script_argv0_to_installed_wrapper(
     # argv[0] = repo script; PATH lookup finds the installed wrapper.
     _argv0_context(monkeypatch, str(repo_script))
     monkeypatch.setattr(
-        "shutil.which", lambda name: str(wrapper) if name == "hermes" else None
+        "shutil.which", lambda name: str(wrapper) if name == "kova" else None
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -304,7 +304,7 @@ def test_exec_never_persists_a_bare_interpreter_command(
     `Exec=<python> desktop` — a command line no DE can run."""
 
     root = _make_project(tmp_path)
-    wrapper = tmp_path / "installed" / "bin" / "hermes"
+    wrapper = tmp_path / "installed" / "bin" / "kova"
     wrapper.parent.mkdir(parents=True)
     wrapper.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
     wrapper.chmod(0o755)
@@ -317,7 +317,7 @@ def test_exec_never_persists_a_bare_interpreter_command(
     # argv[0] IS the interpreter (python -m context); PATH has the wrapper.
     _argv0_context(monkeypatch, str(interpreter))
     monkeypatch.setattr(
-        "shutil.which", lambda name: str(wrapper) if name == "hermes" else None
+        "shutil.which", lambda name: str(wrapper) if name == "kova" else None
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -347,7 +347,7 @@ def test_exec_keeps_resolver_fallback_when_no_wrapper_on_path(
     import sys
 
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"
+    repo_script = root / "kova"
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
@@ -358,10 +358,10 @@ def test_exec_keeps_resolver_fallback_when_no_wrapper_on_path(
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     def fake_resolve():
-        # Mirror resolve_hermes_bin's chain: argv[0] → relative → PATH → None.
+        # Mirror resolve_kova_bin's chain: argv[0] → relative → PATH → None.
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
 
     entry = lde.install_desktop_entry(root)
     exec_line = _parse(entry.read_text(encoding="utf-8"))["Exec"]
@@ -386,7 +386,7 @@ def test_exec_uses_known_wrapper_when_path_lookup_misses(
     import sys
 
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"
+    repo_script = root / "kova"
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
@@ -394,12 +394,12 @@ def test_exec_uses_known_wrapper_when_path_lookup_misses(
 
     # The wrapper exists at the known location but is NOT on PATH.
     # Realistic installer shim: execs this checkout's venv python on the
-    # checkout's hermes script (the aidiyet check requires it to target
+    # checkout's kova script (the aidiyet check requires it to target
     # the writing checkout).
-    known_wrapper = tmp_path / "known-home" / ".local" / "bin" / "hermes"
+    known_wrapper = tmp_path / "known-home" / ".local" / "bin" / "kova"
     known_wrapper.parent.mkdir(parents=True)
     known_wrapper.write_text(
-        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "hermes"} "$@"\n',
+        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     known_wrapper.chmod(0o755)
@@ -411,7 +411,7 @@ def test_exec_uses_known_wrapper_when_path_lookup_misses(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -438,15 +438,15 @@ def test_exec_never_persists_a_checkout_internal_path_hit(tmp_path, xdg_home, mo
     checkout must fall through to the durable probe.
     """
     root = _make_project(tmp_path)
-    venv_script = root / "venv" / "bin" / "hermes"
+    venv_script = root / "venv" / "bin" / "kova"
     venv_script.parent.mkdir(parents=True)
     venv_script.write_text("#!/usr/bin/env bash\nexec true\n", encoding="utf-8")
     venv_script.chmod(0o755)
 
-    known_wrapper = tmp_path / "path-home" / ".local" / "bin" / "hermes"
+    known_wrapper = tmp_path / "path-home" / ".local" / "bin" / "kova"
     known_wrapper.parent.mkdir(parents=True)
     known_wrapper.write_text(
-        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "hermes"} "$@"\n',
+        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     known_wrapper.chmod(0o755)
@@ -457,7 +457,7 @@ def test_exec_never_persists_a_checkout_internal_path_hit(tmp_path, xdg_home, mo
     def fake_resolve():
         return sys.argv[0] or str(venv_script)
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     _argv0_context(monkeypatch, str(venv_script))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -494,15 +494,15 @@ def test_exec_skips_managed_environment_cli_without_desktop(
     generation = installs / install_key(root) / "environments" / "gen"
     workspace = generation / "workspace"
     workspace.mkdir(parents=True)
-    managed = generation / "venv" / "bin" / "hermes"
+    managed = generation / "venv" / "bin" / "kova"
     managed.parent.mkdir(parents=True)
     managed.write_text("#!/usr/bin/env bash\nexec true\n", encoding="utf-8")
     managed.chmod(0o755)
 
-    known_wrapper = tmp_path / ".local" / "bin" / "hermes"
+    known_wrapper = tmp_path / ".local" / "bin" / "kova"
     known_wrapper.parent.mkdir(parents=True)
     known_wrapper.write_text(
-        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "hermes"} "$@"\n',
+        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     known_wrapper.chmod(0o755)
@@ -510,7 +510,7 @@ def test_exec_skips_managed_environment_cli_without_desktop(
     def fake_resolve():
         return str(managed)
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     _argv0_context(monkeypatch, str(managed))
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -528,7 +528,7 @@ def test_exec_finds_known_wrapper_when_resolver_has_no_candidate(
     """`None` from the resolver must still probe known wrapper locations.
 
     A cold relaunch (argv[0] is not an executable file, e.g. `-c` under
-    `python -m`, and PATH has no `hermes`) makes resolve_hermes_bin return
+    `python -m`, and PATH has no `kova`) makes resolve_kova_bin return
     None outright. The early `return primary` that used to fire here skipped
     the durable-wrapper probe, so the persisted Exec flipped to the bare
     `<python> -m kova_cli.main desktop` module form. Each flip between the
@@ -540,10 +540,10 @@ def test_exec_finds_known_wrapper_when_resolver_has_no_candidate(
     """
     root = _make_project(tmp_path)
 
-    known_wrapper = tmp_path / "cold-home" / ".local" / "bin" / "hermes"
+    known_wrapper = tmp_path / "cold-home" / ".local" / "bin" / "kova"
     known_wrapper.parent.mkdir(parents=True)
     known_wrapper.write_text(
-        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "hermes"} "$@"\n',
+        f'#!/usr/bin/env bash\nexec {root / "venv" / "bin" / "python"} {root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     known_wrapper.chmod(0o755)
@@ -553,7 +553,7 @@ def test_exec_finds_known_wrapper_when_resolver_has_no_candidate(
     # yields None with or without argv[0].
     _argv0_context(monkeypatch, "-c")
     monkeypatch.setattr("shutil.which", lambda name: None)
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -575,7 +575,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
 ):
     """A known-location wrapper that targets a DIFFERENT checkout is skipped.
 
-    On machines with multiple installs over time, ~/.local/bin/hermes may
+    On machines with multiple installs over time, ~/.local/bin/kova may
     belong to another checkout. Persisting it would make the entry stable
     but silently point at that other installation — the failure class the
     aidiyet check exists to prevent. The runnable module fallback must win
@@ -584,7 +584,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
     import sys
 
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"
+    repo_script = root / "kova"
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
@@ -593,11 +593,11 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
     # A shim belonging to a DIFFERENT checkout.
     other_root = tmp_path / "other-install"
     other_root.mkdir()
-    foreign_wrapper = tmp_path / "known-home" / ".local" / "bin" / "hermes"
+    foreign_wrapper = tmp_path / "known-home" / ".local" / "bin" / "kova"
     foreign_wrapper.parent.mkdir(parents=True)
     foreign_wrapper.write_text(
         f"#!/usr/bin/env bash\nexec {other_root / 'venv' / 'bin' / 'python'} "
-        f'{other_root / "hermes"} "$@"\n',
+        f'{other_root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     foreign_wrapper.chmod(0o755)
@@ -609,7 +609,7 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -626,25 +626,25 @@ def test_exec_rejects_known_wrapper_from_another_checkout(
         pytest.param(
             "user",
             {},
-            "HOME-SET-BY-TEST/.local/bin/hermes",
+            "HOME-SET-BY-TEST/.local/bin/kova",
             id="user-layout",
         ),
         pytest.param(
             "termux",
             {"PREFIX": "PREFIX-SET-BY-TEST"},
-            "PREFIX-SET-BY-TEST/bin/hermes",
+            "PREFIX-SET-BY-TEST/bin/kova",
             id="termux-prefix-first",
         ),
         pytest.param(
             "root-fhs",
             {"__EUID0__": "1"},
-            "/usr/local/bin/hermes",
+            "/usr/local/bin/kova",
             id="root-fhs",
         ),
         pytest.param(
             "non-root-no-fhs",
             {"__EUID0__": "0"},
-            "HOME-SET-BY-TEST/.local/bin/hermes",
+            "HOME-SET-BY-TEST/.local/bin/kova",
             id="non-root-excludes-fhs",
         ),
     ],
@@ -677,12 +677,12 @@ def test_known_wrapper_candidates_cover_installer_layouts(
         assert candidates[0] == expected_resolved
     if layout == "root-fhs":
         # Root FHS outranks the user layout.
-        assert candidates.index("/usr/local/bin/hermes") < candidates.index(
-            f"{sentinel_home}/.local/bin/hermes"
+        assert candidates.index("/usr/local/bin/kova") < candidates.index(
+            f"{sentinel_home}/.local/bin/kova"
         )
     if layout == "non-root-no-fhs":
         # Non-root euid: /usr/local/bin must be excluded outright.
-        assert "/usr/local/bin/hermes" not in candidates
+        assert "/usr/local/bin/kova" not in candidates
 
 
 def test_installed_entry_carries_the_window_app_id(tmp_path, xdg_home, monkeypatch):
@@ -702,7 +702,7 @@ def test_installed_entry_carries_the_window_app_id(tmp_path, xdg_home, monkeypat
 def test_install_keeps_the_legacy_entry_as_a_hidden_alias(tmp_path, xdg_home, monkeypatch):
     """A pin resolves by the entry file name it was pinned against (#124492).
 
-    Deleting ``hermes.desktop`` silently kills existing taskbar pins (GNOME drops
+    Deleting ``kova.desktop`` silently kills existing taskbar pins (GNOME drops
     the favourite, Plasma leaves an inert item) and the shell has no mechanism to
     re-point the association for the user. The pre-rename entry must survive as a
     ``NoDisplay=true`` alias of the app-id entry: out of the app grid, still
@@ -714,7 +714,7 @@ def test_install_keeps_the_legacy_entry_as_a_hidden_alias(tmp_path, xdg_home, mo
     legacy = xdg_home / "applications" / lde.LEGACY_DESKTOP_ENTRY_NAME
     legacy.parent.mkdir(parents=True)
     legacy.write_text(
-        "[Desktop Entry]\nType=Application\nName=Kova\nExec=hermes desktop\n",
+        "[Desktop Entry]\nType=Application\nName=Kova\nExec=kova desktop\n",
         encoding="utf-8",
     )
 
@@ -736,7 +736,7 @@ def test_unchanged_entry_still_aliases_a_legacy_entry(tmp_path, xdg_home, monkey
     root = _make_project(tmp_path)
     assert lde.install_desktop_entry(root) is not None
     legacy = xdg_home / "applications" / lde.LEGACY_DESKTOP_ENTRY_NAME
-    legacy.write_text("[Desktop Entry]\nType=Application\nName=Kova\nExec=hermes desktop\n", encoding="utf-8")
+    legacy.write_text("[Desktop Entry]\nType=Application\nName=Kova\nExec=kova desktop\n", encoding="utf-8")
 
     lde.install_desktop_entry(root)
 
@@ -766,7 +766,7 @@ def test_install_opt_out_preserves_the_legacy_entry(tmp_path, xdg_home, monkeypa
     The missing-entry path still creates the app-id entry; the rewrite is
     management too and must not run when the user asked to be left alone.
     """
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     kova_home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     (kova_home / "config.yaml").write_text(
@@ -777,7 +777,7 @@ def test_install_opt_out_preserves_the_legacy_entry(tmp_path, xdg_home, monkeypa
     legacy = xdg_home / "applications" / lde.LEGACY_DESKTOP_ENTRY_NAME
     legacy.parent.mkdir(parents=True)
     legacy.write_text(
-        "[Desktop Entry]\nType=Application\nName=Kova\nExec=hermes desktop\n",
+        "[Desktop Entry]\nType=Application\nName=Kova\nExec=kova desktop\n",
         encoding="utf-8",
     )
 
@@ -785,7 +785,7 @@ def test_install_opt_out_preserves_the_legacy_entry(tmp_path, xdg_home, monkeypa
 
     assert entry == xdg_home / "applications" / lde.DESKTOP_ENTRY_NAME
     assert legacy.read_text(encoding="utf-8") == (
-        "[Desktop Entry]\nType=Application\nName=Kova\nExec=hermes desktop\n"
+        "[Desktop Entry]\nType=Application\nName=Kova\nExec=kova desktop\n"
     ), "the opt-out must leave the legacy entry byte-for-byte untouched"
 
 
@@ -811,7 +811,7 @@ def test_app_id_matches_the_desktop_build_identity():
 def test_install_is_idempotent_and_skips_cache_refresh(tmp_path, xdg_home, monkeypatch):
     root = _make_project(tmp_path)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "kova_cli.relaunch.resolve_kova_bin", lambda: "/usr/bin/kova"
     )
     calls: list[Path] = []
     monkeypatch.setattr(
@@ -830,7 +830,7 @@ def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkey
     root = tmp_path / "kova-agent"
     root.mkdir()
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: "/usr/bin/hermes"
+        "kova_cli.relaunch.resolve_kova_bin", lambda: "/usr/bin/kova"
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -838,7 +838,7 @@ def test_install_without_source_icon_uses_themed_name(tmp_path, xdg_home, monkey
 
     # A broken absolute path renders as no icon. The themed name resolves
     # when Kova is installed some other way.
-    assert _parse(entry.read_text(encoding="utf-8"))["Icon"] == "hermes"
+    assert _parse(entry.read_text(encoding="utf-8"))["Icon"] == "kova"
 
 
 @pytest.mark.platforms("macos")
@@ -967,7 +967,7 @@ def test_exec_falls_back_to_running_interpreter_when_probe_fails(
     def fake_resolve():
         return _s.argv[0] if _s.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     # Force the probe to fail for whatever interpreter gets chosen first.
     monkeypatch.setattr(lde, "_can_import_kova_cli", lambda p: False)
     # And the fallback interpreter must itself pass (it always should).
@@ -1005,7 +1005,7 @@ def test_wrapper_ownership_rejects_sibling_extensions(suffix, tmp_path):
     evil.write_text(
         f"#!/usr/bin/env bash\n"
         f"exec {checkout}{suffix}/venv/bin/python "
-        f'{checkout}{suffix}/hermes "$@"\n',
+        f'{checkout}{suffix}/kova "$@"\n',
         encoding="utf-8",
     )
     assert lde._wrapper_targets_checkout(evil, checkout) is False
@@ -1028,12 +1028,12 @@ def test_wrapper_ownership_accepts_shim_via_symlinked_home(tmp_path, monkeypatch
     lexical_checkout = home_link / "kova-agent"
     (home_real / "kova-agent").mkdir()
 
-    shim = home_link / ".local" / "bin" / "hermes"
+    shim = home_link / ".local" / "bin" / "kova"
     shim.parent.mkdir(parents=True)
     shim.write_text(
         f"#!/usr/bin/env bash\n"
         f"exec {lexical_checkout}/venv/bin/python "
-        f'{lexical_checkout}/hermes "$@"\n',
+        f'{lexical_checkout}/kova "$@"\n',
         encoding="utf-8",
     )
     assert lde._wrapper_targets_checkout(shim, lexical_checkout) is True
@@ -1044,10 +1044,10 @@ def test_wrapper_ownership_accepts_shim_via_symlinked_home(tmp_path, monkeypatch
     shim.chmod(0o755)
     monkeypatch.setenv("HOME", str(home_link))
     monkeypatch.setattr("shutil.which", lambda name: None)
-    repo_script = lexical_checkout / "hermes"
+    repo_script = lexical_checkout / "kova"
     repo_script.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
     monkeypatch.setattr(sys, "argv", [str(repo_script), "desktop"])
-    assert lde._resolve_hermes_bin_for_desktop_entry(
+    assert lde._resolve_kova_bin_for_desktop_entry(
         resolve_fn=lambda: sys.argv[0] if sys.argv[0] else None,
         checkout_root=lexical_checkout,
     ) == str(shim)
@@ -1066,7 +1066,7 @@ def test_needs_interpreter_case_insensitive_match(tmp_path, monkeypatch):
     interpreter = venv_bin / "python"
     interpreter.write_text("", encoding="utf-8")
 
-    console_script = venv_bin / "hermes"
+    console_script = venv_bin / "kova"
     console_script.write_text(f"#!{interpreter}\nimport kova_cli\n", encoding="utf-8")
     monkeypatch.setattr(lde.sys, "executable", str(interpreter))
 
@@ -1144,14 +1144,14 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
     """
 
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"
+    repo_script = root / "kova"
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
     # A wrapper that targets this checkout but cannot run itself.
-    broken_wrapper = xdg_home / ".local" / "bin" / "hermes"
+    broken_wrapper = xdg_home / ".local" / "bin" / "kova"
     broken_wrapper.parent.mkdir(parents=True)
     broken_wrapper.write_text(
         f"#!/usr/bin/env python3\n# launcher for {root}\nimport kova_cli\n",
@@ -1165,7 +1165,7 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -1178,17 +1178,17 @@ def test_probe_skips_wrapper_with_escaping_python_shebang(
 def test_probe_accepts_shell_launcher_wrapper(tmp_path, xdg_home, monkeypatch):
     """A bash launcher is safe by construction and still wins the probe."""
     root = _make_project(tmp_path)
-    repo_script = root / "hermes"
+    repo_script = root / "kova"
     repo_script.write_text(
         "#!/usr/bin/env python3\nimport kova_cli\n", encoding="utf-8"
     )
     repo_script.chmod(0o755)
 
-    good_wrapper = xdg_home / ".local" / "bin" / "hermes"
+    good_wrapper = xdg_home / ".local" / "bin" / "kova"
     good_wrapper.parent.mkdir(parents=True)
     good_wrapper.write_text(
         f"#!/usr/bin/env bash\nexec {root / 'venv' / 'bin' / 'python'} "
-        f'{root / "hermes"} "$@"\n',
+        f'{root / "kova"} "$@"\n',
         encoding="utf-8",
     )
     good_wrapper.chmod(0o755)
@@ -1199,7 +1199,7 @@ def test_probe_accepts_shell_launcher_wrapper(tmp_path, xdg_home, monkeypatch):
     def fake_resolve():
         return sys.argv[0] if sys.argv[0] else None
 
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", fake_resolve)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", fake_resolve)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -1216,18 +1216,18 @@ def test_install_icon_handles_truncated_png_header(tmp_path, xdg_home, monkeypat
     icon.write_bytes(
         b"\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR\x00\x00"  # 22 bytes
     )
-    hermes_bin = tmp_path / "bin" / "hermes"
-    hermes_bin.parent.mkdir()
-    hermes_bin.write_text("", encoding="utf-8")
+    kova_bin = tmp_path / "bin" / "kova"
+    kova_bin.parent.mkdir()
+    kova_bin.write_text("", encoding="utf-8")
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin", lambda: str(hermes_bin)
+        "kova_cli.relaunch.resolve_kova_bin", lambda: str(kova_bin)
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
 
     values = _parse(entry.read_text(encoding="utf-8"))
-    assert values["Icon"] == "hermes"
+    assert values["Icon"] == "kova"
     dest = xdg_home / "icons" / "hicolor" / "256x256" / "apps" / "kova.png"
     assert dest.is_file()
 
@@ -1257,14 +1257,14 @@ def test_install_places_1024_png_in_256x256_not_scalable(
 
     dest = xdg_home / "icons" / "hicolor" / "256x256" / "apps" / "kova.png"
     stale = xdg_home / "icons" / "hicolor" / "scalable" / "apps" / "kova.png"
-    assert values["Icon"] == "hermes"
+    assert values["Icon"] == "kova"
     assert dest.is_file()
     assert dest.read_bytes() == lde.icon_path(root).read_bytes()
     assert not stale.exists()
 
 
 def test_install_removes_stale_scalable_png(tmp_path, xdg_home, monkeypatch):
-    """v2026.8.31 wrote the PNG into scalable/. A later hermes desktop
+    """v2026.8.31 wrote the PNG into scalable/. A later kova desktop
     must delete that leftover so Cinnamon does not keep using it."""
     root = _make_project(tmp_path)
     lde.icon_path(root).write_bytes(_png_ihdr(1024, 1024))
@@ -1356,7 +1356,7 @@ def _env_shaped_tree(tmp_path: Path, name: str = "managed-env") -> Path:
     tree = tmp_path / name
     (tree / "workspace" / "kova_cli").mkdir(parents=True)
     (tree / "workspace" / "kova_cli" / "main.py").write_text("", encoding="utf-8")
-    _write_script(tree / "venv" / "bin" / "hermes", "#!/bin/sh\nexit 0\n")
+    _write_script(tree / "venv" / "bin" / "kova", "#!/bin/sh\nexit 0\n")
     python_bin = tree / "venv" / "bin" / "python"
     python_bin.write_bytes(b"\x7fELF fake")  # real interpreters are binaries, never scripts
     python_bin.chmod(0o755)
@@ -1369,7 +1369,7 @@ def _full_tree(tmp_path: Path, name: str = "install") -> Path:
     (tree / "kova_cli").mkdir(parents=True)
     (tree / "apps" / "desktop" / "assets").mkdir(parents=True)
     (tree / "apps" / "desktop" / "package.json").write_text("{}", encoding="utf-8")
-    _write_script(tree / "venv" / "bin" / "hermes", "#!/bin/sh\nexit 0\n")
+    _write_script(tree / "venv" / "bin" / "kova", "#!/bin/sh\nexit 0\n")
     python_bin = tree / "venv" / "bin" / "python"
     python_bin.write_bytes(b"\x7fELF fake")  # real interpreters are binaries, never scripts
     python_bin.chmod(0o755)
@@ -1379,17 +1379,17 @@ def _full_tree(tmp_path: Path, name: str = "install") -> Path:
 def test_capability_rejects_env_shaped_launcher_and_accepts_full_tree(tmp_path):
     env_tree = _env_shaped_tree(tmp_path)
     full_tree = _full_tree(tmp_path)
-    assert lde._can_serve_desktop(str(env_tree / "venv" / "bin" / "hermes")) is False
-    assert lde._can_serve_desktop(str(full_tree / "venv" / "bin" / "hermes")) is True
+    assert lde._can_serve_desktop(str(env_tree / "venv" / "bin" / "kova")) is False
+    assert lde._can_serve_desktop(str(full_tree / "venv" / "bin" / "kova")) is True
     # Interpreters are not judged: a launcher execing one is followed to its own tree instead.
     assert lde._can_serve_desktop(str(env_tree / "venv" / "bin" / "python")) is None
     assert lde._can_serve_desktop(str(full_tree / "venv" / "bin" / "python")) is None
 
 
 def test_capability_unknown_shapes_pass(tmp_path):
-    missing = tmp_path / "nowhere" / "bin" / "hermes"
+    missing = tmp_path / "nowhere" / "bin" / "kova"
     assert lde._can_serve_desktop(str(missing)) is None
-    native = _write_script(tmp_path / "opt" / "bin" / "hermes", "")
+    native = _write_script(tmp_path / "opt" / "bin" / "kova", "")
     assert lde._can_serve_desktop(str(native)) is None
 
 
@@ -1397,12 +1397,12 @@ def test_capability_follows_wrapper_to_its_target(tmp_path):
     env_tree = _env_shaped_tree(tmp_path)
     full_tree = _full_tree(tmp_path)
     bad_wrapper = _write_script(
-        tmp_path / "shims" / "hermes",
-        f'#!/usr/bin/env bash\nexec "{env_tree}/venv/bin/hermes" "$@"\n',
+        tmp_path / "shims" / "kova",
+        f'#!/usr/bin/env bash\nexec "{env_tree}/venv/bin/kova" "$@"\n',
     )
     good_wrapper = _write_script(
-        tmp_path / "shims" / "hermes-good",
-        f'#!/usr/bin/env bash\nexec "{full_tree}/venv/bin/hermes" "$@"\n',
+        tmp_path / "shims" / "kova-good",
+        f'#!/usr/bin/env bash\nexec "{full_tree}/venv/bin/kova" "$@"\n',
     )
     assert lde._can_serve_desktop(str(bad_wrapper)) is False
     assert lde._can_serve_desktop(str(good_wrapper)) is True
@@ -1413,11 +1413,11 @@ def test_resolver_skips_incapable_primary_for_wrapper(tmp_path, xdg_home):
     env_tree = _env_shaped_tree(tmp_path)
     checkout = _full_tree(tmp_path, "checkout")
     wrapper = _write_script(
-        tmp_path / ".local" / "bin" / "hermes",
-        f'#!/usr/bin/env bash\nexec "{checkout}/venv/bin/hermes" "$@"\n',
+        tmp_path / ".local" / "bin" / "kova",
+        f'#!/usr/bin/env bash\nexec "{checkout}/venv/bin/kova" "$@"\n',
     )
-    resolution = lde._resolve_hermes_bin_for_desktop_entry(
-        resolve_fn=lambda: str(env_tree / "venv" / "bin" / "hermes"),
+    resolution = lde._resolve_kova_bin_for_desktop_entry(
+        resolve_fn=lambda: str(env_tree / "venv" / "bin" / "kova"),
         checkout_root=checkout,
     )
     assert resolution == str(wrapper)
@@ -1431,7 +1431,7 @@ def test_install_skips_write_when_exec_provably_cannot_serve_desktop(tmp_path, x
     monkeypatch.setattr(
         lde,
         "resolve_exec_command",
-        lambda project_root=None: f"{env_tree / 'venv' / 'bin' / 'hermes'} desktop",
+        lambda project_root=None: f"{env_tree / 'venv' / 'bin' / 'kova'} desktop",
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -1450,7 +1450,7 @@ def test_install_leaves_existing_entry_untouched_when_exec_incapable(tmp_path, x
     monkeypatch.setattr(
         lde,
         "resolve_exec_command",
-        lambda project_root=None: f"{env_tree / 'venv' / 'bin' / 'hermes'} desktop",
+        lambda project_root=None: f"{env_tree / 'venv' / 'bin' / 'kova'} desktop",
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -1472,13 +1472,13 @@ def test_install_through_wrapper_when_primary_is_incapable(tmp_path, xdg_home, m
     (root / "apps" / "desktop" / "assets" / "icon.png").write_bytes(b"\x89PNG fake")
     env_tree = _env_shaped_tree(tmp_path)
     wrapper = _write_script(
-        tmp_path / ".local" / "bin" / "hermes",
-        f'#!/usr/bin/env bash\nexec "{root}/venv/bin/hermes" "$@"\n',
+        tmp_path / ".local" / "bin" / "kova",
+        f'#!/usr/bin/env bash\nexec "{root}/venv/bin/kova" "$@"\n',
     )
     monkeypatch.setattr(lde, "_launcher_entry_management_enabled", lambda: True)
     monkeypatch.setattr(
-        "kova_cli.relaunch.resolve_hermes_bin",
-        lambda: str(env_tree / "venv" / "bin" / "hermes"),
+        "kova_cli.relaunch.resolve_kova_bin",
+        lambda: str(env_tree / "venv" / "bin" / "kova"),
     )
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
@@ -1496,8 +1496,8 @@ def test_exec_appends_skip_build_when_packaged_app_exists(tmp_path, xdg_home, mo
     root = _make_project(tmp_path)
     unpacked = root / "apps" / "desktop" / "release" / "linux-unpacked"
     unpacked.mkdir(parents=True)
-    (unpacked / "hermes").write_text("", encoding="utf-8")
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", lambda: None)
+    (unpacked / "kova").write_text("", encoding="utf-8")
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)
@@ -1510,7 +1510,7 @@ def test_exec_keeps_build_then_launch_when_no_packaged_app(tmp_path, xdg_home, m
     # First install (nothing packaged yet): the click must still build and
     # launch — --skip-build would exit with "no packaged desktop app found".
     root = _make_project(tmp_path)
-    monkeypatch.setattr("kova_cli.relaunch.resolve_hermes_bin", lambda: None)
+    monkeypatch.setattr("kova_cli.relaunch.resolve_kova_bin", lambda: None)
     monkeypatch.setattr(lde, "refresh_desktop_databases", lambda _dir: [])
 
     entry = lde.install_desktop_entry(root)

@@ -1,15 +1,15 @@
 """Boot and lifecycle of the real Kova processes on native Windows.
 
-* The source launcher ``hermes.exe`` reports checkout version and runs a
+* The source launcher ``kova.exe`` reports checkout version and runs a
   one-shot chat turn: the reply is
   printed, the prompt reached the wire, and both messages persisted to ``state.db`` under
   the session id the CLI announced.
-* ``hermes serve`` (the Desktop backend) — announces its port on stdout, and after the
+* ``kova serve`` (the Desktop backend) — announces its port on stdout, and after the
   Desktop's Windows quit path (``taskkill /T /F``) leaves no process behind that it
   spawned (found by ownership of the scratch profile, not by parent links, which a
   detached grandchild does not keep) and a fresh backend boots again over the leftover
   host records.
-* ``hermes gateway run`` + ``hermes gateway stop`` — the Windows graceful-stop IPC (stop
+* ``kova gateway run`` + ``kova gateway stop`` — the Windows graceful-stop IPC (stop
   marker, not TerminateProcess) drains the gateway: it exits on its own, records
   ``stopped``, removes its pid file, and nothing it spawned survives.
 """
@@ -31,9 +31,9 @@ from kova_cli.version_info import get_version_info
 from tests.e2e.core.windows._helpers import (
     WinHome,
     db_rows,
-    hermes,
-    hermes_argv,
-    hermes_exe,
+    kova,
+    kova_argv,
+    kova_exe,
     kill_owned,
     last_user,
     make_home,
@@ -55,7 +55,7 @@ READY_TIMEOUT = 120.0
 
 def test_version_reports_checkout_identity(tmp_path: Path) -> None:
     home = make_home(tmp_path, "http://127.0.0.1:9/v1")  # never contacted by --version
-    res = run([str(hermes_exe(home)), "--version"], home, timeout=120)
+    res = run([str(kova_exe(home)), "--version"], home, timeout=120)
     assert res.returncode == 0, res.tail()
     version = get_version_info().derived_version
     assert version != "unknown", "the checkout must have a readable release or commit identity"
@@ -67,7 +67,7 @@ def test_chat_oneshot_turn_persists(tmp_path: Path) -> None:
     prompt_id, reply_id = nonce("PROMPT"), nonce("REPLY")
     with FakeLLMServer([Text(f"The answer is {reply_id}.")]) as srv:
         home = make_home(tmp_path, srv.base_url)
-        res = run([str(hermes_exe(home)), "chat", "-q", f"Say the code {prompt_id}", "-Q"], home)
+        res = run([str(kova_exe(home)), "chat", "-q", f"Say the code {prompt_id}", "-Q"], home)
         assert res.returncode == 0, res.tail()
         assert reply_id in res.stdout, f"reply not printed:\n{res.tail()}"
         mains = srv.main_requests()
@@ -94,7 +94,7 @@ def _spawn_serve(home: WinHome) -> subprocess.Popen:
     env = {"KOVA_DESKTOP": "1", "KOVA_DASHBOARD_SESSION_TOKEN": nonce("tok"),
            "TERMINAL_CWD": str(home.project)}
     return subprocess.Popen(
-        hermes_argv("serve", "--host", "127.0.0.1", "--port", "0"), cwd=home.profile, env=home.env(env),
+        kova_argv("serve", "--host", "127.0.0.1", "--port", "0"), cwd=home.profile, env=home.env(env),
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
     )
 
@@ -168,14 +168,14 @@ def test_gateway_stop_drains_gracefully(tmp_path: Path) -> None:
         log = tmp_path / "gateway.log"
         started = time.time()
         with log.open("wb") as fh:
-            gw = subprocess.Popen(hermes_argv("gateway", "run"), cwd=home.project, env=home.env(),
+            gw = subprocess.Popen(kova_argv("gateway", "run"), cwd=home.project, env=home.env(),
                                   stdin=subprocess.DEVNULL, stdout=fh, stderr=subprocess.STDOUT)
         try:
             wait_until(lambda: _gateway_state(home).get("gateway_state") == "running" or gw.poll() is not None,
                        READY_TIMEOUT, "gateway_state.json to report running")
             assert gw.poll() is None, f"gateway exited {gw.returncode} during boot:\n{log.read_text(errors='replace')}"
 
-            res = hermes(home, "gateway", "stop")
+            res = kova(home, "gateway", "stop")
             assert res.returncode == 0 and "Stopped" in res.stdout, res.tail()
             code = gw.wait(timeout=60)
             state = _gateway_state(home)

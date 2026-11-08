@@ -1,11 +1,11 @@
 """Tests for the Nous-Kova-3/4 non-agentic warning detector.
 
 Prior to this check, the warning fired on any model whose name contained
-``"hermes"`` anywhere (case-insensitive). That false-positived on unrelated
-local Modelfiles such as ``hermes-brain:qwen3-14b-ctx16k`` — a tool-capable
-Qwen3 wrapper that happens to live under the "hermes" tag namespace.
+``"kova"`` anywhere (case-insensitive). That false-positived on unrelated
+local Modelfiles such as ``kova-brain:qwen3-14b-ctx16k`` — a tool-capable
+Qwen3 wrapper that happens to live under the "kova" tag namespace.
 
-``is_nous_hermes_non_agentic`` should only match the actual Neural Studio
+``is_nous_kova_non_agentic`` should only match the actual Neural Studio
 Kova-3 / Kova-4 chat family.
 """
 
@@ -15,8 +15,8 @@ import pytest
 
 from kova_cli.model_switch import (
     _KOVA_MODEL_WARNING,
-    _check_hermes_model_warning,
-    is_nous_hermes_non_agentic,
+    _check_kova_model_warning,
+    is_nous_kova_non_agentic,
 )
 
 
@@ -29,17 +29,17 @@ from kova_cli.model_switch import (
         "Kova-3",
         "hermes-4",
         "hermes-4-405b",
-        "hermes_4_70b",
-        "openrouter/hermes3:70b",
+        "kova_4_70b",
+        "openrouter/kova3:70b",
         "openrouter/nousresearch/hermes-4-405b",
         "NeuralStudio/Kova3",
         "hermes-3.1",
     ],
 )
-def test_matches_real_nous_hermes_chat_models(model_name: str) -> None:
-    assert is_nous_hermes_non_agentic(model_name), (
+def test_matches_real_nous_kova_chat_models(model_name: str) -> None:
+    assert is_nous_kova_non_agentic(model_name), (
         f"expected {model_name!r} to be flagged as Nous Kova 3/4"
     )
-    assert _check_hermes_model_warning(model_name) == _KOVA_MODEL_WARNING
+    assert _check_kova_model_warning(model_name) == _KOVA_MODEL_WARNING
 
 

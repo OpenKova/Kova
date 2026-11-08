@@ -459,13 +459,13 @@ def test_stream_uses_rewritten_request_and_post_intercept_chunks(relay_turn):
         ])
 
     relay.intercepts.register_llm_request(
-        "hermes-test-request",
+        "kova-test-request",
         1,
         False,
         rewrite_request,
     )
     relay.intercepts.register_llm_stream_execution(
-        "hermes-test-stream",
+        "kova-test-stream",
         1,
         rewrite_stream,
     )
@@ -497,8 +497,8 @@ def test_stream_uses_rewritten_request_and_post_intercept_chunks(relay_turn):
         )
         chunks = list(stream)
     finally:
-        relay.intercepts.deregister_llm_stream_execution("hermes-test-stream")
-        relay.intercepts.deregister_llm_request("hermes-test-request")
+        relay.intercepts.deregister_llm_stream_execution("kova-test-stream")
+        relay.intercepts.deregister_llm_request("kova-test-request")
 
     assert captured_requests[0]["temperature"] == 0.25
     headers = captured_requests[0]["extra_headers"]
@@ -1529,7 +1529,7 @@ def test_stream_current_unwraps_completed_response_with_real_interceptor(relay_t
         return await next_call(request)
 
     relay.intercepts.register_llm_stream_execution(
-        "hermes-test-prime-completed",
+        "kova-test-prime-completed",
         1,
         identity_stream,
     )
@@ -1546,7 +1546,7 @@ def test_stream_current_unwraps_completed_response_with_real_interceptor(relay_t
         assert result is completed
     finally:
         relay.intercepts.deregister_llm_stream_execution(
-            "hermes-test-prime-completed"
+            "kova-test-prime-completed"
         )
 
 
@@ -1563,7 +1563,7 @@ def test_stream_current_preserves_real_relay_interceptor_chunks(relay_turn):
         return generate()
 
     relay.intercepts.register_llm_stream_execution(
-        "hermes-test-prime-stream",
+        "kova-test-prime-stream",
         1,
         rewrite_stream,
     )
@@ -1584,7 +1584,7 @@ def test_stream_current_preserves_real_relay_interceptor_chunks(relay_turn):
         assert result.output_modified is True
     finally:
         relay.intercepts.deregister_llm_stream_execution(
-            "hermes-test-prime-stream"
+            "kova-test-prime-stream"
         )
 
 

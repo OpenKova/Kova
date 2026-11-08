@@ -314,7 +314,7 @@ def _transcribe_local_command(
             from tools.transcription_whisper_cpp import ensure_whisper_cpp_models, whisper_cpp_command
             if command_template == whisper_cpp_command():
                 ensure_whisper_cpp_models(normalized_model)
-        with tempfile.TemporaryDirectory(prefix="hermes-local-stt-") as output_dir:
+        with tempfile.TemporaryDirectory(prefix="kova-local-stt-") as output_dir:
             prepared_input, prep_error = _prepare_local_audio(file_path, output_dir)
             if prep_error:
                 return _error_result(prep_error)
@@ -324,8 +324,8 @@ def _transcribe_local_command(
             # Scrub Kova secrets from the child env (same policy as _run_command_stt).
             # Scrub Kova secrets from the child env (sibling path to #56332 / _run_command_stt — this
             # local-whisper path previously inherited the full process environment).
-            from tools.environments.local import hermes_subprocess_env
-            _run_quiet(shlex.split(command), timeout=300, env=hermes_subprocess_env(inherit_credentials=False))
+            from tools.environments.local import kova_subprocess_env
+            _run_quiet(shlex.split(command), timeout=300, env=kova_subprocess_env(inherit_credentials=False))
             txt_files = sorted(Path(output_dir).glob("*.txt"))
             if not txt_files:
                 return _error_result("Local STT command completed but did not produce a .txt transcript")

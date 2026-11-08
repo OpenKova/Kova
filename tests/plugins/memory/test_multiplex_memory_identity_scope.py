@@ -42,5 +42,5 @@ def test_secondary_profile_memory_identity_never_inherits_default_environ(second
 
     provider = retaindb.RetainDBMemoryProvider()
     provider.initialize("s1", kova_home=str(secondary_profile))
-    assert provider._client.project == "hermes-b"
+    assert provider._client.project == "kova-b"
     assert "default" not in provider._client.base_url

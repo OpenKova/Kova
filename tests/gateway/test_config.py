@@ -381,7 +381,7 @@ class TestLoadGatewayConfig:
 
     def test_multiplex_profiles_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """``gateway.multiplex_profiles: true`` (the nested form written by
-        ``hermes config set gateway.multiplex_profiles true``) must enable
+        ``kova config set gateway.multiplex_profiles true``) must enable
         multiplexing when loaded via load_gateway_config().
 
         Regression: load_gateway_config() only surfaced the *top-level*
@@ -536,7 +536,7 @@ class TestLoadGatewayConfig:
             "    port: 8642\n"
             "    host: 0.0.0.0\n"
             "    key: sekrit\n"
-            "    model_name: my-hermes\n",
+            "    model_name: my-kova\n",
             encoding="utf-8",
         )
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -547,7 +547,7 @@ class TestLoadGatewayConfig:
         assert extra["port"] == 8642
         assert extra["host"] == "0.0.0.0"
         assert extra["key"] == "sekrit"
-        assert extra["model_name"] == "my-hermes"
+        assert extra["model_name"] == "my-kova"
 
     def test_room_link_url_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """The supported config path advertises no endpoint until restart."""
@@ -555,16 +555,16 @@ class TestLoadGatewayConfig:
         kova_home.mkdir()
         (kova_home / "config.yaml").write_text(
             "gateway:\n"
-            "  room_link_url: https://peer.example.test/hermes\n",
+            "  room_link_url: https://peer.example.test/kova\n",
             encoding="utf-8",
         )
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
         config = load_gateway_config()
 
-        assert config.room_link_url == "https://peer.example.test/hermes"
+        assert config.room_link_url == "https://peer.example.test/kova"
         assert GatewayConfig.from_dict(config.to_dict()).room_link_url == (
-            "https://peer.example.test/hermes"
+            "https://peer.example.test/kova"
         )
 
 
@@ -769,7 +769,7 @@ class TestLoadGatewayConfig:
         override the shared process stamp — an isolated multiplex scope is
         never consulted for globals. (A single-profile gateway, or the profile
         the process is launched under, still activates via its .env because
-        load_hermes_dotenv exports that file into os.environ at startup.)"""
+        load_kova_dotenv exports that file into os.environ at startup.)"""
         from agent import secret_scope as ss
 
         kova_home = tmp_path / ".kova"
@@ -1326,7 +1326,7 @@ class TestHomeChannelEnvOverrides:
                 PlatformConfig(
                     enabled=True,
                     extra={
-                        "address": "hermes@test.com",
+                        "address": "kova@test.com",
                         "imap_host": "imap.test.com",
                         "smtp_host": "smtp.test.com",
                     },
@@ -1409,7 +1409,7 @@ class TestMultiplexProfilesConfig:
 
 
     def test_multiplex_profiles_nested_under_gateway(self, tmp_path, monkeypatch):
-        """gateway.multiplex_profiles (the form written by `hermes config set
+        """gateway.multiplex_profiles (the form written by `kova config set
         gateway.multiplex_profiles true`) must be honored. Regression test for
         the silent-fallback bug where the loader only forwarded the top-level
         key, so users who wrote it under gateway: got multiplex_profiles=False
@@ -1593,7 +1593,7 @@ class TestOnAllAdaptersDown:
     """gateway.on_all_adapters_down: what the runner does when the last messaging
     adapter goes down (#118080). Default 'exit' preserves the service-restart
     contract; 'stay_alive' is for launchers with no supervising service manager
-    (the desktop app's direct `hermes serve` child)."""
+    (the desktop app's direct `kova serve` child)."""
 
     def test_default_is_exit(self):
         config = GatewayConfig.from_dict({})

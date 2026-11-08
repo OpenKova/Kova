@@ -44,7 +44,7 @@ platform_toolsets:
     - terminal
     - web
 toolsets:
-  - hermes-cli
+  - kova-cli
 agent:
   disabled_toolsets: []
 """.lstrip(),
@@ -56,7 +56,7 @@ agent:
     from kova_cli import kanban_db as kb
     from kova_cli import kanban_db_dispatch as kbd
 
-    monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
+    monkeypatch.setattr(kbd, "_resolve_kova_argv", lambda: ["kova"])
 
     captured = {}
 
@@ -93,7 +93,7 @@ def test_default_spawn_does_not_pass_mutable_launch_overrides(monkeypatch, tmp_p
     from kova_cli import kanban_db as kb
     from kova_cli import kanban_db_dispatch as kbd
 
-    monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
+    monkeypatch.setattr(kbd, "_resolve_kova_argv", lambda: ["kova"])
     captured = {}
 
     class FakeProc:
@@ -134,7 +134,7 @@ def test_default_spawn_resolves_env_passthrough_under_multiplex(monkeypatch, tmp
     from kova_cli import kanban_db as kb
     from kova_cli import kanban_db_dispatch as kbd
 
-    monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda: ["hermes"])
+    monkeypatch.setattr(kbd, "_resolve_kova_argv", lambda: ["kova"])
 
     captured = {}
 
@@ -194,7 +194,7 @@ def test_worker_toolsets_come_from_the_assignee_profile_not_the_parent_config(tm
     params = dict(board="owned", task_id=task.id, run_id=task.current_run_id, claim_lock=task.claim_lock)
 
     assignee_config = {"model": {"default": "m", "provider": "custom"},
-                       "platform_toolsets": {"cli": ["terminal", "web"]}, "toolsets": ["hermes-cli"]}
+                       "platform_toolsets": {"cli": ["terminal", "web"]}, "toolsets": ["kova-cli"]}
     policy, _ = build_kanban_policy(connection, params, assignee_config)
     assert {"terminal", "web", "kanban"} <= set(policy.toolsets)
 

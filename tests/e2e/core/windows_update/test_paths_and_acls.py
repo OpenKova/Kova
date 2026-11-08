@@ -3,9 +3,9 @@
 Failure class: paths and ACLs.
 
 * ``C:\\Users\\Jörg Ñúñez`` is an ordinary Windows account. ``install.ps1`` must get
-  through the uv ``python-deps`` stage there (#124526), and ``hermes`` must then work and
+  through the uv ``python-deps`` stage there (#124526), and ``kova`` must then work and
   update from that profile.
-* After ``hermes update`` the managed toolchain under ``%LOCALAPPDATA%\\hermes\\tools``
+* After ``kova update`` the managed toolchain under ``%LOCALAPPDATA%\\kova\\tools``
   must still be executable by a non-elevated process: a logon Scheduled Task or Startup
   entry runs with a standard-user token even when the updating session was elevated
   (#122935). The runner session is elevated, so each tool's DACL is checked (kernel
@@ -32,7 +32,7 @@ from tests.fakes.fake_llm_provider import FakeLLMServer
 pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
-PERSON = "Jörg Ñúñez"  # the profile is "Jörg Ñúñez hermes-e2e-<id>"
+PERSON = "Jörg Ñúñez"  # the profile is "Jörg Ñúñez kova-e2e-<id>"
 _TOOL_NAMES = {"python.exe", "node.exe", "git.exe", "uv.exe", "rg.exe"}
 
 
@@ -194,16 +194,16 @@ def test_install_from_non_ascii_profile_with_spaces(journey: Journey) -> None:
         m, f"install.ps1 failed for a profile path with non-ASCII characters and spaces: {first_error}", run)
 
 
-def test_hermes_works_and_updates_from_that_profile(journey: Journey) -> None:
+def test_kova_works_and_updates_from_that_profile(journey: Journey) -> None:
     m = journey.machine
     version, turn, update = journey["version"], journey["turn"], journey["update"]
     assert version.returncode == 0 and "Kova Agent v" in version.stdout, fail_with(
-        m, "hermes --version fails from a non-ASCII profile", version)
+        m, "kova --version fails from a non-ASCII profile", version)
     assert turn.ok, fail_with(
         m, f"a turn fails from a non-ASCII profile (reply printed={turn.reply_id in turn.run.stdout}, "
            f"prompt reached provider={turn.reached_wire})", turn.run)
     assert update.returncode == 0 and m.installed_head() == m.next, fail_with(
-        m, f"hermes update from a non-ASCII profile exited {update.returncode}, checkout at {m.installed_head()}",
+        m, f"kova update from a non-ASCII profile exited {update.returncode}, checkout at {m.installed_head()}",
         update)
 
 

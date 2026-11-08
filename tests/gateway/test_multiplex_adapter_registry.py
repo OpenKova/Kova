@@ -33,7 +33,7 @@ class TestCredentialFingerprint:
         import hashlib
 
         valid, odd = _FakeAdapter("tok"), _FakeAdapter("tok\ud800")
-        assert GatewayRunner._adapter_credential_fingerprint(valid) == hashlib.sha256(b"hermes-mux:tok").hexdigest()[:16]
+        assert GatewayRunner._adapter_credential_fingerprint(valid) == hashlib.sha256(b"kova-mux:tok").hexdigest()[:16]
         assert GatewayRunner._adapter_credential_fingerprint(odd)
         photon = types.SimpleNamespace(_sidecar_bind="0.0.0.0", _sidecar_port=float("inf"))
         assert GatewayRunner._adapter_listener_claim(Platform("photon"), photon) is None
@@ -944,7 +944,7 @@ class TestSecondaryProfileConfigHandling:
     @pytest.mark.asyncio
     async def test_single_profile_start_clears_inherited_served_profiles(self, monkeypatch, tmp_path):
         """Runtime-status publication re-stamps the previous writer's record in place, so a multiplexer's
-        ``served_profiles`` survived into a later single-profile run and every `hermes -p X` surface
+        ``served_profiles`` survived into a later single-profile run and every `kova -p X` surface
         kept treating X as served (exit 78 on start, "running via multiplexer" on status)."""
         import json
         from gateway.status import read_runtime_status
@@ -1159,7 +1159,7 @@ class TestSecondaryProfileConfigHandling:
         assert factory_calls == ([Platform.WHATSAPP, Platform.DISCORD] if paired else [Platform.DISCORD])
         if not paired:
             assert statuses[-1][1]["error_code"] == "whatsapp_unpaired"
-            assert "hermes -p clientbot whatsapp" in statuses[-1][1]["error_message"]
+            assert "kova -p clientbot whatsapp" in statuses[-1][1]["error_message"]
 
 
 class TestSecondaryProfileHookRegistration:

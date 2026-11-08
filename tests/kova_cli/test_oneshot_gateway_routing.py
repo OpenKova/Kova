@@ -1,4 +1,4 @@
-"""``hermes -z`` runs on the gateway session authority, never on an agent built in-process.
+"""``kova -z`` runs on the gateway session authority, never on an agent built in-process.
 
 Refs #145171 (EP-11a): the former ``kova_cli.oneshot.run_oneshot`` / ``_run_agent`` path built a
 bare ``AIAgent`` outside the gateway and was reachable only from tests.
@@ -13,7 +13,7 @@ def test_top_level_oneshot_routes_through_the_gateway_launcher(monkeypatch):
     import kova_cli.main as main_mod
 
     seen = []
-    monkeypatch.setattr(sys, "argv", ["hermes", "-z", "hello"])
+    monkeypatch.setattr(sys, "argv", ["kova", "-z", "hello"])
     monkeypatch.setattr(main_mod, "_prepare_agent_startup", lambda _args: None)
     monkeypatch.setattr("kova_cli.gateway_chat_startup.launch_gateway_chat",
                         lambda args: seen.append(args.oneshot) or 0)

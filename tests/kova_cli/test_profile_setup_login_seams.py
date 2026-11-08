@@ -1,11 +1,11 @@
 """Provider-profile setup/sign-in seams (``providers.base`` L6 block) through the real routes.
 
 A model-provider plugin installed in ONE profile's home declares an in-app device-code login, an
-Accounts card and a ``hermes model`` step; core drives them with no provider-specific code:
+Accounts card and a ``kova model`` step; core drives them with no provider-specific code:
   * ``/api/providers/oauth`` lists the card as ``device_code`` for that profile only;
   * ``/start`` + ``/poll`` run the profile's start/poll hooks and save inside that profile's scope;
   * a cancel before approval never saves;
-  * ``hermes model`` dispatch and the effort picker consult the profile.
+  * ``kova model`` dispatch and the effort picker consult the profile.
 """
 
 from __future__ import annotations
@@ -68,14 +68,14 @@ register_provider(ProviderProfile(
 def _rediscover() -> None:
     import providers as _pkg
     _pkg._discovered = False
-    for mod in [m for m in sys.modules if m.startswith("_hermes_user_provider")]:
+    for mod in [m for m in sys.modules if m.startswith("_kova_user_provider")]:
         del sys.modules[mod]
 
 
 @pytest.fixture
 def acme(tmp_path, monkeypatch):
     """Install the fixture plugin into profile ``coder`` only; return (coder home, log reader)."""
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     coder = root / "profiles" / "coder"
     plugin_dir = coder / "plugins" / "model-providers" / NAME
     plugin_dir.mkdir(parents=True)
@@ -171,7 +171,7 @@ def test_provider_without_device_login_cannot_start_one(acme):
     assert client.post("/api/providers/oauth/no-such-provider/start", headers=HEADERS).status_code == 400
 
 
-def test_hermes_model_dispatch_and_effort_picker_consult_the_profile(acme, monkeypatch):
+def test_kova_model_dispatch_and_effort_picker_consult_the_profile(acme, monkeypatch):
     coder, events = acme
     monkeypatch.setenv("KOVA_HOME", str(coder))
     _rediscover()

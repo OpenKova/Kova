@@ -66,7 +66,7 @@ def _make_codex_jwt(
 
 class TestCodexCloudflareHeaders:
 
-    def test_user_agent_advertises_hermes_version(self):
+    def test_user_agent_advertises_kova_version(self):
         from agent.auxiliary_client import _codex_cloudflare_headers
         headers = _codex_cloudflare_headers(_make_codex_jwt())
         assert headers["User-Agent"] == f"KovaAgent/{get_version_info().base_version}"

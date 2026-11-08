@@ -38,7 +38,7 @@ test('the ensure client never hands a dev renderer origin to the long-lived loca
 })
 
 test('a shell-delegated ensure quotes a spaced Windows install path (#74064)', async () => {
-  // cmd.exe cuts an unquoted `C:\Users\John Doe\...\hermes.cmd` at the first space.
+  // cmd.exe cuts an unquoted `C:\Users\John Doe\...\kova.cmd` at the first space.
   const spawned: string[] = []
   vi.resetModules()
   vi.doMock('node:child_process', () => ({
@@ -52,7 +52,7 @@ test('a shell-delegated ensure quotes a spaced Windows install path (#74064)', a
 
   try {
     const { runGatewayEnsure: ensure } = await import('./local-gateway')
-    const command = 'C:\\Users\\John Doe\\AppData\\Local\\hermes\\hermes.cmd'
+    const command = 'C:\\Users\\John Doe\\AppData\\Local\\kova\\kova.cmd'
     await expect(ensure({ command, args: ['gateway', 'ensure'], env: {}, shell: true }, 'C:\\', 'C:\\h')).rejects.toThrow('stop after spawn')
     await expect(ensure({ command, args: [], env: {}, shell: false }, 'C:\\', 'C:\\h')).rejects.toThrow('stop after spawn')
     expect(spawned).toEqual([`"${command}"`, command])
@@ -215,7 +215,7 @@ test('a stale owner this window restarts is attached in its restart wait before 
 })
 
 test('an ensure child that never reached the protocol boundary is diagnosed from stderr, not as a JSON parse error', async () => {
-  // `main`'s hermes has no `gateway ensure` subcommand: argparse usage on stderr, nothing on stdout.
+  // `main`'s kova has no `gateway ensure` subcommand: argparse usage on stderr, nothing on stdout.
   const legacy = { code: 2, stdout: '', stderr: "usage: kova gateway [-h] ...\nkova gateway: 'ensure' is not a `kova gateway` command.\nRun `kova gateway --help` to see all commands.\n" }
   await expect(ensureLocalGateway(async () => legacy)).rejects.toThrow(/produced no result \(exit 2\): Run `kova gateway --help`/)
   // A missing profile: the CLI exits 1 before the ensure command runs.
@@ -393,7 +393,7 @@ test.skipIf(process.platform === 'win32')('a corrupt control pointer is a stale 
   const home = await shortSocketTmpDir('desktop-pointer-')
   const runtime = await shortSocketTmpDir('desktop-gw-')
   const hash = crypto.createHash('sha256').update(home).digest('hex').slice(0, 16)
-  const socketPath = path.join(runtime, `hermes-gw-${hash}`, 'control.sock')
+  const socketPath = path.join(runtime, `kova-gw-${hash}`, 'control.sock')
   const pointer = path.join(home, 'gateway.sock.path')
   const endpoint = { profile_id: home, instance_id: 'owner', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1234', capabilities: ['session-authority-v1'], supervisor: 'none' }
   await fs.mkdir(path.dirname(socketPath), { mode: 0o700 })
@@ -499,30 +499,30 @@ test.skipIf(process.platform === 'win32')('a supported home mode mints its ticke
 })
 
 test('a ?profile= request on the shared host descriptor mints for the sibling profile home', () => {
-  const endpoint = { profile_id: path.resolve('hermes-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/sessions?profile=p2', path.resolve('hermes-home'))).toMatchObject({ profile_id: path.resolve('hermes-home', 'profiles', 'p2'), control_home: path.resolve('hermes-home') })
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/sessions?profile=default', path.resolve('hermes-home'))).toBe(endpoint)
-  expect(routedGatewayEndpoint({ ...endpoint, profile_id: path.resolve('hermes-home', 'profiles', 'p2'), control_home: path.resolve('hermes-home') }, 'http://127.0.0.1:1/x?profile=default', path.resolve('hermes-home'))).toMatchObject({ profile_id: path.resolve('hermes-home') })
-  expect(() => routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/x?profile=../evil', path.resolve('hermes-home'))).toThrow('Invalid profile route')
+  const endpoint = { profile_id: path.resolve('kova-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/sessions?profile=p2', path.resolve('kova-home'))).toMatchObject({ profile_id: path.resolve('kova-home', 'profiles', 'p2'), control_home: path.resolve('kova-home') })
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/sessions?profile=default', path.resolve('kova-home'))).toBe(endpoint)
+  expect(routedGatewayEndpoint({ ...endpoint, profile_id: path.resolve('kova-home', 'profiles', 'p2'), control_home: path.resolve('kova-home') }, 'http://127.0.0.1:1/x?profile=default', path.resolve('kova-home'))).toMatchObject({ profile_id: path.resolve('kova-home') })
+  expect(() => routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/x?profile=../evil', path.resolve('kova-home'))).toThrow('Invalid profile route')
 })
 
 test('a profile SOUL route mints for the profile named in its path', () => {
-  const endpoint = { profile_id: path.resolve('hermes-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
+  const endpoint = { profile_id: path.resolve('kova-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
 
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/p2/soul', path.resolve('hermes-home'))).toMatchObject({
-    profile_id: path.resolve('hermes-home', 'profiles', 'p2'),
-    control_home: path.resolve('hermes-home')
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/p2/soul', path.resolve('kova-home'))).toMatchObject({
+    profile_id: path.resolve('kova-home', 'profiles', 'p2'),
+    control_home: path.resolve('kova-home')
   })
 })
 
 // Every /api/profiles/<name>/* route the Profiles screen calls is checked against the path's
 // profile (native_http._check_profile_scope); collection routes beneath it stay on their selector.
 test('every named Profiles-screen route mints for its profile; collection routes do not', () => {
-  const endpoint = { profile_id: path.resolve('hermes-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
+  const endpoint = { profile_id: path.resolve('kova-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
   const route = (p: string) => routedGatewayEndpoint(endpoint, `http://127.0.0.1:1${p}`, endpoint.profile_id).profile_id
 
   for (const p of ['/api/profiles/p2', '/api/profiles/p2/soul', '/api/profiles/p2/setup-command', '/api/profiles/p2/export']) {
-    expect(route(p)).toBe(path.resolve('hermes-home', 'profiles', 'p2'))
+    expect(route(p)).toBe(path.resolve('kova-home', 'profiles', 'p2'))
   }
 
   expect(route('/api/profiles/default/soul')).toBe(endpoint.profile_id)
@@ -531,31 +531,31 @@ test('every named Profiles-screen route mints for its profile; collection routes
     expect(route(p)).toBe(endpoint.profile_id)
   }
 
-  expect(route('/api/profiles/sessions?profile=p2')).toBe(path.resolve('hermes-home', 'profiles', 'p2'))
+  expect(route('/api/profiles/sessions?profile=p2')).toBe(path.resolve('kova-home', 'profiles', 'p2'))
 })
 
 // A profile may be NAMED like a collection route: only the exact collection paths stay on their
 // selector, so `/api/profiles/projects/soul` still mints for the `projects` profile.
 test('a profile named like a collection route still gets its own ticket', () => {
-  const endpoint = { profile_id: path.resolve('hermes-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
+  const endpoint = { profile_id: path.resolve('kova-home'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: null }
   const route = (p: string) => routedGatewayEndpoint(endpoint, `http://127.0.0.1:1${p}`, endpoint.profile_id).profile_id
 
   for (const name of ['projects', 'sessions', 'active', 'import']) {
-    expect(route(`/api/profiles/${name}/soul`)).toBe(path.resolve('hermes-home', 'profiles', name))
+    expect(route(`/api/profiles/${name}/soul`)).toBe(path.resolve('kova-home', 'profiles', name))
   }
 
-  expect(route('/api/profiles/sessions/sidebar?recents_profile=p2')).toBe(path.resolve('hermes-home', 'profiles', 'p2'))
-  expect(route('/api/profiles/sessions/pull-requests?profile=p2')).toBe(path.resolve('hermes-home', 'profiles', 'p2'))
+  expect(route('/api/profiles/sessions/sidebar?recents_profile=p2')).toBe(path.resolve('kova-home', 'profiles', 'p2'))
+  expect(route('/api/profiles/sessions/pull-requests?profile=p2')).toBe(path.resolve('kova-home', 'profiles', 'p2'))
 })
 
 // The batched sidebar names its owner in `recents_profile`; a grant for the window's own profile
 // is refused there (profile_scope_mismatch) and the sidebar drops that profile's sessions.
 test('a sidebar read mints for the profile its recents_profile names', () => {
-  const endpoint = { profile_id: path.resolve('hermes-home', 'profiles', 'p2'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: path.resolve('hermes-home') }
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?recents_profile=default&recents_limit=40', path.resolve('hermes-home'))).toMatchObject({ profile_id: path.resolve('hermes-home') })
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?recents_profile=p2', path.resolve('hermes-home'))).toBe(endpoint)
+  const endpoint = { profile_id: path.resolve('kova-home', 'profiles', 'p2'), instance_id: 'i', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1', capabilities: [], supervisor: 'none', control_home: path.resolve('kova-home') }
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?recents_profile=default&recents_limit=40', path.resolve('kova-home'))).toMatchObject({ profile_id: path.resolve('kova-home') })
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?recents_profile=p2', path.resolve('kova-home'))).toBe(endpoint)
   // `profile` is not the sidebar's selector.
-  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?profile=default&recents_profile=p2', path.resolve('hermes-home'))).toBe(endpoint)
+  expect(routedGatewayEndpoint(endpoint, 'http://127.0.0.1:1/api/profiles/sessions/sidebar?profile=default&recents_profile=p2', path.resolve('kova-home'))).toBe(endpoint)
 })
 
 // A native gateway grant is minted only by main's shared transport (fetchJsonForBackend), which

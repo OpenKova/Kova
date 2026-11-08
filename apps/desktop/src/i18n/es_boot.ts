@@ -89,7 +89,7 @@ export const esBoot = {
       since: time => `Esperando desde ${time}`,
       lastChecked: time => `Última comprobación ${time}`,
       recoveryHint:
-        'Esto suele resolverse en unos minutos. Si no: cierra Kova, termina los procesos git o hermes que queden (o reinicia el equipo) y vuelve a abrir Kova.',
+        'Esto suele resolverse en unos minutos. Si no: cierra Kova, termina los procesos git o kova que queden (o reinicia el equipo) y vuelve a abrir Kova.',
       checkAgain: 'Comprobar de nuevo',
       quit: 'Salir de Kova',
       openLogs: 'Abrir registros',

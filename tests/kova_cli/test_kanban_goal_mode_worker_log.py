@@ -22,7 +22,7 @@ def _task(**overrides) -> Task:
     return Task(**base)
 
 def test_goal_mode_worker_takes_the_same_stdout_rich_path_as_a_one_shot_worker(monkeypatch):
-    monkeypatch.setattr(dispatch, "_resolve_hermes_argv", lambda: ["hermes"])
+    monkeypatch.setattr(dispatch, "_resolve_kova_argv", lambda: ["kova"])
     monkeypatch.setattr(dispatch, "_resolve_worker_cli_toolsets", lambda home: None)
     plain = dispatch._worker_argv(_task(goal_mode=False), "worker", None)
     goal = dispatch._worker_argv(_task(goal_mode=True), "worker", None)

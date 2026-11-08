@@ -268,7 +268,7 @@ class TestLogout:
         from types import SimpleNamespace
         from kova_cli.auth import logout_command
         from kova_cli.auth_nous import persist_nous_credentials
-        persist_nous_credentials({"access_token": _jwt(client_id="hermes-cli", account_tier="free"),
+        persist_nous_credentials({"access_token": _jwt(client_id="kova-cli", account_tier="free"),
                                   "refresh_token": "rt-1", "expires_at": "2030-01-01T00:00:00+00:00",
                                   "auth_method": "oauth_device_code"})
         assert _shared_store(tmp_path).get("refresh_token") == "rt-1"
@@ -372,7 +372,7 @@ class TestIdentityOfRecordIsTheSharedStore:
         anon_auth.ensure_portal_identity(explicit=True)
         # A sibling profile signed in: the shared store now holds a real account.
         from kova_cli.auth_nous import _write_shared_nous_state
-        _write_shared_nous_state({"access_token": _jwt(client_id="hermes-cli", account_tier="free"),
+        _write_shared_nous_state({"access_token": _jwt(client_id="kova-cli", account_tier="free"),
                                   "refresh_token": "rt-sibling", "expires_at": "2030-01-01T00:00:00+00:00",
                                   "auth_method": "oauth_device_code"}, renewal=False)
         state = anon_auth.ensure_portal_identity(explicit=True)
@@ -394,7 +394,7 @@ class TestIdentityOfRecordIsTheSharedStore:
     def test_clearing_a_dead_guest_leaves_a_sibling_identity_alone(self, portal, tmp_path):
         anon_auth.ensure_portal_identity(explicit=True)
         from kova_cli.auth_nous import _write_shared_nous_state
-        _write_shared_nous_state({"access_token": _jwt(client_id="hermes-cli"), "refresh_token": "rt-sibling",
+        _write_shared_nous_state({"access_token": _jwt(client_id="kova-cli"), "refresh_token": "rt-sibling",
                                   "expires_at": "2030-01-01T00:00:00+00:00", "auth_method": "oauth_device_code"},
                                  renewal=False)
         anon_auth.clear_dead_guest("test")

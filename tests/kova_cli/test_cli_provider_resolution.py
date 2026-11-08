@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from kova_cli.auth import AuthError
-from kova_cli import main as hermes_main
+from kova_cli import main as kova_main
 import kova_cli.main_provider_setup as kova_cli_main_provider_setup
 from kova_cli import model_switch
 
@@ -298,7 +298,7 @@ def test_runtime_resolution_failure_is_not_sticky(monkeypatch):
 
 
 def test_ensure_runtime_credentials_passes_cli_model_as_target_model(monkeypatch):
-    """`hermes -m mimo-v2.5 --provider opencode-go` must resolve credentials for the model the
+    """`kova -m mimo-v2.5 --provider opencode-go` must resolve credentials for the model the
     CLI will send: the Zen/Go rungs key off the effective model, and without target_model a
     `*-free` config default decides the api_mode/base_url for an explicit paid model (#112600)."""
     cli = _import_cli()
@@ -331,7 +331,7 @@ def test_fallback_runtime_resolves_the_fallback_entry_model(monkeypatch, tmp_pat
     from kova_cli.auth import AuthError
     from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     (home / "config.yaml").write_text(
         "model:\n  default: mimo-v2.5-free\n  provider: opencode\n  base_url: https://opencode.ai/zen/v1\n")
@@ -368,7 +368,7 @@ def test_fallback_runtime_labels_quota_outage_and_bad_credentials_distinctly(mon
     credential failure keeps the auth-failed wording."""
     from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     printed = []
@@ -394,7 +394,7 @@ def test_ensure_runtime_credentials_records_quota_vs_bad_key(monkeypatch, tmp_pa
     from kova_cli.auth import AuthError
     from kova_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr("cli._cprint", lambda *a, **k: None, raising=False)
@@ -444,7 +444,7 @@ def test_ensure_runtime_credentials_records_quota_vs_bad_key(monkeypatch, tmp_pa
 def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeypatch):
     import kova_yaml as yaml
 
-    config_home = tmp_path / "hermes"
+    config_home = tmp_path / "kova"
     config_home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(config_home))
 
@@ -500,7 +500,7 @@ def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeyp
         lambda config: None,
     )
 
-    hermes_main._model_flow_nous(stale_config, current_model="glm-5.2")
+    kova_main._model_flow_nous(stale_config, current_model="glm-5.2")
 
     config = yaml.safe_load(config_path.read_text()) or {}
     model = config.get("model")
@@ -514,7 +514,7 @@ def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeyp
 def _seed_stale_custom_model(tmp_path, monkeypatch):
     import kova_yaml as yaml
 
-    config_home = tmp_path / "hermes"
+    config_home = tmp_path / "kova"
     config_home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(config_home))
     config_path = config_home / "config.yaml"
@@ -619,7 +619,7 @@ def test_startup_fallback_re_resolves_reasoning_for_the_fallback_model(monkeypat
 
 
 def test_custom_entry_model_swap_re_resolves_reasoning(monkeypatch):
-    """`hermes chat --model <custom-provider-name>`: the runtime's explicit `model` replaces the
+    """`kova chat --model <custom-provider-name>`: the runtime's explicit `model` replaces the
     slug, so the CLI-level reasoning_config must follow to that model's per-model override."""
     cli = _import_cli()
     monkeypatch.setattr(cli, "_cprint", lambda *a, **k: None)
@@ -677,7 +677,7 @@ def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch):
     monkeypatch.setattr("kova_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": next(answers))
 
     caller_cfg = {}
-    hermes_main._model_flow_custom(caller_cfg)
+    kova_main._model_flow_custom(caller_cfg)
 
     assert caller_cfg["model"]["base_url"] == "http://localhost:8000/v1"
     # OPENAI_BASE_URL is no longer saved to .env — config.yaml is authoritative
@@ -736,7 +736,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
     monkeypatch.setattr("kova_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": "test-key")
 
-    hermes_main._model_flow_custom({"model": {"provider": "custom"}})
+    kova_main._model_flow_custom({"model": {"provider": "custom"}})
 
     assert saved_cfg["model"]["provider"] == "custom"
     assert saved_cfg["model"]["base_url"] == "https://codex.example.com/v1"
@@ -750,7 +750,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
 
 
 def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
-    monkeypatch.setattr(hermes_main, "_require_tty", lambda *a: None)
+    monkeypatch.setattr(kova_main, "_require_tty", lambda *a: None)
     monkeypatch.setattr(
         "kova_cli.config.load_config",
         lambda: {"model": {"default": "gpt-5", "provider": "nous"}},
@@ -760,7 +760,7 @@ def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
     monkeypatch.setattr("kova_cli.config.save_env_value", lambda key, value: None)
     monkeypatch.setattr("kova_cli.auth.resolve_provider", lambda requested, **kwargs: "nous")
     monkeypatch.setattr("kova_cli.auth.get_provider_auth_state", lambda provider_id: None)
-    monkeypatch.setattr(hermes_main, "_prompt_provider_choice", lambda choices, **kwargs: 0)
+    monkeypatch.setattr(kova_main, "_prompt_provider_choice", lambda choices, **kwargs: 0)
     monkeypatch.setattr(kova_cli_main_provider_setup, "_prompt_provider_choice", lambda choices, **kwargs: 0)
 
     captured = {}
@@ -777,11 +777,11 @@ def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
 
     monkeypatch.setattr("kova_cli.auth._login_nous", _fake_login)
 
-    hermes_main.cmd_model(
+    kova_main.cmd_model(
         SimpleNamespace(
             portal_url="https://portal.nousresearch.com",
             inference_url="https://inference.nousresearch.com/v1",
-            client_id="hermes-local",
+            client_id="kova-local",
             scope="openid profile",
             no_browser=True,
             timeout=7.5,
@@ -793,7 +793,7 @@ def test_cmd_model_forwards_nous_login_tls_options(monkeypatch):
     assert captured == {
         "portal_url": "https://portal.nousresearch.com",
         "inference_url": "https://inference.nousresearch.com/v1",
-        "client_id": "hermes-local",
+        "client_id": "kova-local",
         "scope": "openid profile",
         "no_browser": True,
         "timeout": 7.5,

@@ -71,7 +71,7 @@ def _truncate_to_char_budget(content: str, max_chars: int) -> tuple[str, int, bo
     ``next_offset`` instead of rejecting the read. If not even the first line
     fits it is clamped mid-line so the read is never empty and the cursor advances.
 
-    Ported in spirit from nearai/ironclaw#5029 (dual line/byte cap on ``read_file``). Where hermes
+    Ported in spirit from nearai/ironclaw#5029 (dual line/byte cap on ``read_file``). Where kova
     previously hard-rejected an oversized read (forcing the model to guess a smaller ``limit`` and burn a
     round-trip returning nothing), this trims the content to the last *complete line* that fits within
     ``max_chars`` and reports how many lines were kept so the caller can offer a ``next_offset``
@@ -1330,7 +1330,7 @@ def _handle_write_file(args, **kw):
             "write_file: missing required field 'content'. The tool call included a "
             "path but no content argument — this is almost always a dropped-arg bug "
             "under context pressure. Re-emit the tool call with the full content "
-            "payload, or use execute_code with hermes_tools.write_file() for very "
+            "payload, or use execute_code with kova_tools.write_file() for very "
             "large files."
         )
     if not isinstance(args["content"], str):

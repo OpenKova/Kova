@@ -40,7 +40,7 @@ import pytest
 @pytest.fixture
 def isolated_home(monkeypatch):
     """Temp KOVA_HOME with config + clean credential env vars."""
-    test_home = tempfile.mkdtemp(prefix="hermes_test_31179_")
+    test_home = tempfile.mkdtemp(prefix="kova_test_31179_")
     kova_home = os.path.join(test_home, ".kova")
     os.makedirs(kova_home)
     monkeypatch.setenv("KOVA_HOME", kova_home)
@@ -86,7 +86,7 @@ def _module_isolation():
 
 
 def _fresh_modules():
-    """Drop cached hermes modules so each test reloads against current env."""
+    """Drop cached kova modules so each test reloads against current env."""
     _drop_reload_targets()
 
 

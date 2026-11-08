@@ -1194,7 +1194,7 @@ async function runRendererChecks(cdp, label, runDir, mock, appPid, journalContra
 }
 
 async function withTemporarySandbox(label, body) {
-  const sandbox = mkdtempSync(join(tmpdir(), `hermes-short-session-${label}-`))
+  const sandbox = mkdtempSync(join(tmpdir(), `kova-short-session-${label}-`))
 
   try {
     return await body(sandbox)
@@ -1265,7 +1265,7 @@ function promoteAttemptArtifacts(output, label, index, warmup, attempt) {
 
 async function executeRunInSandboxAttempt(target, index, warmup, mock, output, sandbox, attempt) {
   const runDir = runDirForAttempt(output, target.label, index, warmup, attempt)
-  const kovaHome = join(sandbox, 'hermes-home')
+  const kovaHome = join(sandbox, 'kova-home')
   const userData = join(sandbox, 'electron-user-data')
   const desktopLog = join(kovaHome, 'logs', 'desktop.log')
   const stdoutPath = join(runDir, 'electron.stdout.log')
@@ -1627,7 +1627,7 @@ async function main() {
   mkdirSync(options.output, { recursive: true })
   writeFileSync(join(options.output, 'environment.json'), `${JSON.stringify(plan, null, 2)}\n`)
 
-  const ephemeralRoot = mkdtempSync(join(tmpdir(), 'hermes-short-session-ab-'))
+  const ephemeralRoot = mkdtempSync(join(tmpdir(), 'kova-short-session-ab-'))
   const prepared = []
   const mock = await startMockInference()
 

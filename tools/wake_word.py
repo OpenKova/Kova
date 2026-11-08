@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 SAMPLE_RATE = 16000  # 16 kHz mono int16 — Whisper-native and what every engine expects.
 
-# Minimum gap between two wake fires, so one "hey hermes" can't retrigger across
+# Minimum gap between two wake fires, so one "hey kova" can't retrigger across
 # several frames while the caller is still reacting.
 _FIRE_COOLDOWN_SECONDS = 2.0
 _START_TIMEOUT_SECONDS = 5.0
@@ -76,19 +76,19 @@ class WakeWordInUse(RuntimeError):
 # frames via wake.feed), or "auto" (local when a device exists, else client).
 _DEFAULTS: dict[str, Any] = {
     "enabled": False, "surface": "auto", "input_device": None, "capture": "auto",
-    "provider": "auto", "phrase": "hey hermes", "sensitivity": 0.6,
+    "provider": "auto", "phrase": "hey kova", "sensitivity": 0.6,
     # detached-spawn: ok — not a spawn: the wake-word config key (fresh chat session on wake)
     "confirmation_frames": _DEFAULT_CONFIRMATION_FRAMES, "start_new_session": True,
 }
 
-# Bundled "hey hermes" model (tools/wakewords/) — the default; alias names resolve
+# Bundled "hey kova" model (tools/wakewords/) — the default; alias names resolve
 # to it, not to an openWakeWord built-in.
-_BUNDLED_MODEL_NAME = "hey_hermes"
-_BUNDLED_MODEL_ALIASES = frozenset({"", "hey_hermes", "hey hermes", "hermes"})
+_BUNDLED_MODEL_NAME = "hey_kova"
+_BUNDLED_MODEL_ALIASES = frozenset({"", "hey_kova", "hey kova", "kova"})
 
 
 def _bundled_wakeword_path() -> str:
-    """Path to the shipped hey_hermes.tflite — pyopen-wakeword runs TFLite only."""
+    """Path to the shipped hey_kova.tflite — pyopen-wakeword runs TFLite only."""
     return os.path.join(os.path.dirname(__file__), "wakewords", f"{_BUNDLED_MODEL_NAME}.tflite")
 
 
@@ -143,7 +143,7 @@ def _confirmation_frames(cfg: dict[str, Any]) -> int:
 def wake_phrase(cfg: Optional[dict[str, Any]] = None) -> str:
     """Human-facing wake phrase label (purely cosmetic; engine keys detection)."""
     cfg = cfg if cfg is not None else load_wake_word_config()
-    return str(_get(cfg, "phrase")) or "hey hermes"
+    return str(_get(cfg, "phrase")) or "hey kova"
 
 
 def resolve_capture_mode(cfg: Optional[dict[str, Any]] = None, *, prefer_client: bool = False,

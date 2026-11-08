@@ -172,7 +172,7 @@ def resolve_openai_audio_api_key() -> str:
     latter). Must go through the secret scope: a raw ``os.environ`` read could bill another
     profile's account under multiplex.
 
-    Outside a multiplexed turn, ``OPENAI_API_KEY`` additionally falls back to the credential pool (``hermes
+    Outside a multiplexed turn, ``OPENAI_API_KEY`` additionally falls back to the credential pool (``kova
     auth add openai-api``) via ``resolve_provider_secret`` — same #68003 fix as the other voice providers.
     The dedicated voice-tools override remains env/scope-only.
     """
@@ -295,7 +295,7 @@ def removed_backend_note(section: str, name: str) -> Optional[str]:
 def selection_error(section: str, selection_name: str, failure: str) -> str:
     """The uniform honest-error contract for a selected-but-broken provider."""
     failure = removed_backend_note(section, selection_name) or failure
-    return (f"{section} is configured to use {selection_name} (set via hermes "
+    return (f"{section} is configured to use {selection_name} (set via kova "
             f"tools), but {failure}. Run 'kova tools' to change it.")
 
 

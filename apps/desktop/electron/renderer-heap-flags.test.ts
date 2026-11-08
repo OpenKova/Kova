@@ -39,14 +39,14 @@ describe('renderer heap flags', () => {
       'desktop:\n  electron_flags: [--disable-gpu]\n  renderer_max_old_space_mb: 1536\n'
     )
 
-    const planned = planLaunchSwitches(cfg, ['/app/hermes', '--js-flags=--expose-gc', '--disable-gpu'])
+    const planned = planLaunchSwitches(cfg, ['/app/kova', '--js-flags=--expose-gc', '--disable-gpu'])
 
     // --disable-gpu is already on the launcher's argv: not re-applied.
     expect(planned).toEqual([{ name: 'js-flags', value: '--expose-gc --max-old-space-size=1536' }])
 
     // Space-separated is the same switch: the argv value must reach the merge
     // (and win the ceiling) rather than being scanned as a switch of its own.
-    expect(planLaunchSwitches(cfg, ['/app/hermes', '--js-flags', '--max-old-space-size=4096'])).toEqual([
+    expect(planLaunchSwitches(cfg, ['/app/kova', '--js-flags', '--max-old-space-size=4096'])).toEqual([
       { name: 'disable-gpu' },
       { name: 'js-flags', value: '--max-old-space-size=4096' }
     ])

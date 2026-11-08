@@ -34,7 +34,7 @@ def test_boot_notice_only_labels_configured_standalone_profiles(standalone_home,
 
 @pytest.fixture
 def standalone_home(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     home = root / "profiles" / "solo"
     home.mkdir(parents=True)
     (home / "config.yaml").write_text("gateway:\n  standalone: true\n")

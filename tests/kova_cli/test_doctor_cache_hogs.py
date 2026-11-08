@@ -1,4 +1,4 @@
-"""``hermes doctor`` names cache-root dirs that no pruner covers once they are big enough."""
+"""``kova doctor`` names cache-root dirs that no pruner covers once they are big enough."""
 
 from kova_cli.doctor_state import unpruned_cache_hogs
 

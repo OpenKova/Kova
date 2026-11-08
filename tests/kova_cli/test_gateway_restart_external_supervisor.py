@@ -1,4 +1,4 @@
-"""``hermes gateway restart`` must hand an externally-supervised gateway back to its supervisor.
+"""``kova gateway restart`` must hand an externally-supervised gateway back to its supervisor.
 
 A custom launchd agent (a plist/label outside the canonical ``ai.kova.gateway`` path, so
 ``_installed_service_kind_for`` returns None) fell through to the manual stop + foreground
@@ -102,15 +102,15 @@ def test_plain_manual_gateway_still_uses_stop_and_run(restart_calls, monkeypatch
 
 
 @pytest.mark.parametrize("cgroup, hints", [
-    ("/system.slice/hermes.service", ["sudo systemctl restart hermes.service"]),
-    ("/user.slice/user-1000.slice/user@1000.service/app.slice/hermes.service",
-     ["systemctl --user restart hermes.service"]),
-    (None, ["systemctl --user restart hermes.service", "sudo systemctl restart hermes.service"]),
+    ("/system.slice/kova.service", ["sudo systemctl restart kova.service"]),
+    ("/user.slice/user-1000.slice/user@1000.service/app.slice/kova.service",
+     ["systemctl --user restart kova.service"]),
+    (None, ["systemctl --user restart kova.service", "sudo systemctl restart kova.service"]),
 ])
 def test_service_managed_gateway_refuses_fallback_takeover(restart_calls, monkeypatch, capsys, cgroup, hints):
     """A gateway supervised under ANY unit name must not be taken over by the fallback (#126474).
 
-    Pre-convention ``hermes.service`` unit, no ``--external-supervisor`` marker, control socket
+    Pre-convention ``kova.service`` unit, no ``--external-supervisor`` marker, control socket
     unreachable while busy serving webhooks: the identify/argv probe missed it, so the fallback
     SIGKILLed a live gateway and spawned an unsupervised orphan in the caller's cgroup while the
     unit's ``Restart=`` flapped against the stolen lock for hours. The hint follows the unit's
@@ -119,7 +119,7 @@ def test_service_managed_gateway_refuses_fallback_takeover(restart_calls, monkey
     monkeypatch.setattr(gw, "_capture_gateway_argv",
                         lambda pid: ["/usr/bin/python", "-m", "kova_cli.main", "gateway", "run"])
     monkeypatch.setattr("kova_cli.main_dashboard._get_systemd_service_for_pid",
-                        lambda pid: "hermes.service" if pid == 4321 else None)
+                        lambda pid: "kova.service" if pid == 4321 else None)
     monkeypatch.setattr("kova_cli.main_dashboard._get_pid_cgroup_path",
                         lambda pid: cgroup if pid == 4321 else None)
     with pytest.raises(SystemExit) as exc:

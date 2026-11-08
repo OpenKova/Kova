@@ -253,7 +253,7 @@ class TestWhoWaits:
         assert len(presented) == 1                       # the 429 did not skip presenting
 
     def test_an_inherited_desktop_flag_is_not_the_desktop_surface(self, nas, monkeypatch, capsys):
-        """A ``hermes`` run in the desktop's terminal pane inherits KOVA_DESKTOP but not the spawn
+        """A ``kova`` run in the desktop's terminal pane inherits KOVA_DESKTOP but not the spawn
         credential: it reports ``cli`` to the service and prints the link where its user is."""
         import webbrowser
         monkeypatch.setenv("KOVA_DESKTOP", "1")

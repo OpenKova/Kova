@@ -258,7 +258,7 @@ def record_provider_setup_done(surface: str, provider: Any, *, kova_home: Any = 
             finish_provider_setup(begin_provider_setup(surface, provider, kova_home=home), "completed")
 
         if background:
-            threading.Thread(target=run, name="hermes-setup-metrics", daemon=True).start()
+            threading.Thread(target=run, name="kova-setup-metrics", daemon=True).start()
         else:
             run()
     except Exception:

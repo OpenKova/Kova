@@ -56,7 +56,7 @@ def recording(app):
             except Exception:
                 method = None
             with open(log_path, "a", encoding="utf-8") as fh:
-                fh.write(json.dumps([method, headers.get("x-hermes-profile")]) + "\\n")
+                fh.write(json.dumps([method, headers.get("x-kova-profile")]) + "\\n")
             replayed = False
 
             async def replay():

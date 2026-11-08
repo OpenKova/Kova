@@ -815,7 +815,7 @@ class TestSend:
         assert card["cardId"] == "clarify-clarify123"
         buttons = card["card"]["sections"][0]["widgets"][1]["buttonList"]["buttons"]
         assert buttons[0]["text"] == "Simple"
-        assert buttons[0]["onClick"]["action"]["function"] == "hermes_clarify"
+        assert buttons[0]["onClick"]["action"]["function"] == "kova_clarify"
         assert {"key": "choice", "value": "Simple"} in buttons[0]["onClick"]["action"]["parameters"]
         assert buttons[-1]["text"] == t("platform.google_chat.clarify.other_button")
         assert adapter._clarify_state["clarify123"] == "session-key"

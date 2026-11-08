@@ -115,11 +115,11 @@ def make_home(tmp_path: Path, base_url: str, *, extra_config: str = "") -> WinHo
     return home
 
 
-def hermes_argv(*args: str) -> list[str]:
+def kova_argv(*args: str) -> list[str]:
     return [sys.executable, "-m", "kova_cli.main", *args]
 
 
-def hermes_exe(home: WinHome) -> Path:
+def kova_exe(home: WinHome) -> Path:
     """Publish a real source launcher in the isolated user's bin directory.
 
     PM's side test environment has dependencies but no console script. The
@@ -129,11 +129,11 @@ def hermes_exe(home: WinHome) -> Path:
     """
     from kova_cli._launchers import mint_launcher
 
-    bin_dir = home.profile / "AppData" / "Local" / "hermes" / "bin"
+    bin_dir = home.profile / "AppData" / "Local" / "kova" / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
-    launcher = mint_launcher("hermes", REPO_ROOT, bin_dir, Path(sys.executable), None)
+    launcher = mint_launcher("kova", REPO_ROOT, bin_dir, Path(sys.executable), None)
     assert launcher is not None and launcher.suffix.lower() == ".exe" and launcher.is_file(), (
-        f"could not publish source hermes.exe in {bin_dir}: {launcher}")
+        f"could not publish source kova.exe in {bin_dir}: {launcher}")
     return launcher
 
 
@@ -157,8 +157,8 @@ def run(argv: list[str], home: WinHome, *, cwd: Path | None = None, timeout: flo
     return Run(proc.returncode, _decode(proc.stdout), _decode(proc.stderr))
 
 
-def hermes(home: WinHome, *args: str, **kw: Any) -> Run:
-    return run(hermes_argv(*args), home, **kw)
+def kova(home: WinHome, *args: str, **kw: Any) -> Run:
+    return run(kova_argv(*args), home, **kw)
 
 
 def _decode(raw: bytes) -> str:

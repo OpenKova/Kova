@@ -1,9 +1,9 @@
 """Tests for git self-heal: atomic worktree-add failure cleanup + pack maintenance.
 
-Regression for the Aug 2026 `hermes -w` timeout incident: 39 accumulated packs
+Regression for the Aug 2026 `kova -w` timeout incident: 39 accumulated packs
 slowed object lookups until `git worktree add` blew its 30s timeout, and the
 timed-out add left a partially-materialized worktree plus a LOCKED admin entry
-(lock pid = the live hermes process), poisoning every retry.
+(lock pid = the live kova process), poisoning every retry.
 
 Two behaviors:
 1. `_cleanup_failed_worktree_add` — removes the partial dir, the admin entry
@@ -42,10 +42,10 @@ class TestCleanupFailedWorktreeAdd:
         """Reproduce git's post-timeout wreckage: partial dir + LOCKED admin
         entry + branch. Built from a real add then re-locking + damaging it,
         which yields the same on-disk shape as a killed `worktree add`."""
-        wt = repo / ".worktrees" / "hermes-dead00"
-        _git(repo, "worktree", "add", str(wt), "-b", "hermes/hermes-dead00")
-        # Live-pid lock, exactly what `hermes -w` writes before the checkout.
-        _git(repo, "worktree", "lock", str(wt), "--reason", "hermes pid=999999")
+        wt = repo / ".worktrees" / "kova-dead00"
+        _git(repo, "worktree", "add", str(wt), "-b", "kova/kova-dead00")
+        # Live-pid lock, exactly what `kova -w` writes before the checkout.
+        _git(repo, "worktree", "lock", str(wt), "--reason", "kova pid=999999")
         # Partial materialization: gut the checkout but keep the dir + .git file.
         for child in wt.iterdir():
             if child.name != ".git":
@@ -56,14 +56,14 @@ class TestCleanupFailedWorktreeAdd:
         from kova_cli.worktree_ops import _cleanup_failed_worktree_add
 
         wt = self._simulate_timed_out_add(repo)
-        admin = repo / ".git" / "worktrees" / "hermes-dead00"
+        admin = repo / ".git" / "worktrees" / "kova-dead00"
         assert admin.exists() and (admin / "locked").exists()
 
-        _cleanup_failed_worktree_add(str(repo), wt, "hermes/hermes-dead00")
+        _cleanup_failed_worktree_add(str(repo), wt, "kova/kova-dead00")
 
         assert not wt.exists(), "partial worktree dir must be removed"
         assert not admin.exists(), "LOCKED admin entry must be removed"
-        branches = _git(repo, "branch", "--list", "hermes/hermes-dead00").stdout
+        branches = _git(repo, "branch", "--list", "kova/kova-dead00").stdout
         assert branches.strip() == "", "orphaned branch must be deleted"
 
     def test_retry_succeeds_after_cleanup(self, repo):
@@ -71,10 +71,10 @@ class TestCleanupFailedWorktreeAdd:
         from kova_cli.worktree_ops import _cleanup_failed_worktree_add
 
         wt = self._simulate_timed_out_add(repo)
-        _cleanup_failed_worktree_add(str(repo), wt, "hermes/hermes-dead00")
+        _cleanup_failed_worktree_add(str(repo), wt, "kova/kova-dead00")
 
         result = _git(
-            repo, "worktree", "add", str(wt), "-b", "hermes/hermes-dead00", check=False
+            repo, "worktree", "add", str(wt), "-b", "kova/kova-dead00", check=False
         )
         assert result.returncode == 0, f"retry failed: {result.stderr}"
 
@@ -83,7 +83,7 @@ class TestCleanupFailedWorktreeAdd:
         from kova_cli.worktree_ops import _cleanup_failed_worktree_add
 
         _cleanup_failed_worktree_add(
-            str(repo), repo / ".worktrees" / "never-existed", "hermes/never-existed"
+            str(repo), repo / ".worktrees" / "never-existed", "kova/never-existed"
         )  # must not raise
 
 
@@ -185,13 +185,13 @@ class TestMaintainPackHealth:
         worktree_ops._maintain_pack_health(str(linked))
 
         assert (info / "commit-graphs" / "commit-graph-chain").stat().st_mtime > time.time() - 300
-        assert (clone / ".git" / "hermes-commit-graph.fresh").is_file()
+        assert (clone / ".git" / "kova-commit-graph.fresh").is_file()
         assert sorted((clone / ".git" / "objects" / "pack").glob("*.pack")) == packs, "the write lazy-fetched"
         _git(clone, "commit-graph", "verify")
 
 
 class TestRepackStampede:
-    """Regression for the Sep 2026 shared-clone incident: every ``hermes -w`` launch started its
+    """Regression for the Sep 2026 shared-clone incident: every ``kova -w`` launch started its
     own full repack, and a timed-out repack left ``pack-objects`` running for days."""
 
     def test_one_repack_per_clone_per_interval(self, repo, monkeypatch):

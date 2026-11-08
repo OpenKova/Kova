@@ -69,7 +69,7 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
     for name in ("pm", "kova_cli", "kova_platform"):
         shutil.copytree(ROOT / name, source / name, ignore=shutil.ignore_patterns("__pycache__"))
     for name in ("utils.py", "kova_constants.py", "kova_dir_acl.py", "kova_yaml.py", "kova_bootstrap.py",
-                 "setup-hermes.sh"):
+                 "setup-kova.sh"):
         shutil.copy2(ROOT / name, source / name)
     # The CLI's user-facing text resolves through the i18n kernel (agent.i18n + the English catalog),
     # its config/env layer consults the stdlib-only safe-worker policy, and the update path's wait
@@ -135,7 +135,7 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
     assert not manager_called.exists()
     if fault:
         assert not (install / ".kova-bootstrap-complete").exists()
-        assert not (home / ".local/bin/hermes").exists()
+        assert not (home / ".local/bin/kova").exists()
         for facts in (home / ".kova/installs").glob("*/facts.json"):
             assert "venv" not in json.loads(facts.read_text())["packages"]
         assert '"stage":"python-deps"' in result.stdout
@@ -144,14 +144,14 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
     assert json.loads((install / ".kova-bootstrap-complete").read_text())["pinnedCommit"] == commit
     facts = next((home / ".kova/installs").glob("*/facts.json"))
     selection = json.loads(facts.read_text())["packages"]["venv"]
-    launcher = home / ".local/bin/hermes"
+    launcher = home / ".local/bin/kova"
     child = json.loads(run([str(launcher), "from elsewhere"]).stdout)
     assert child["argv"] == ["from elsewhere"]
     assert Path(child["module"]).is_relative_to(Path(selection["environment"]))
     assert not (install / "venv").exists()
     # The developer setup path publishes through the same writer after real PM.
     launcher.unlink()
-    run(["bash", str(install / "setup-hermes.sh")])
+    run(["bash", str(install / "setup-kova.sh")])
     assert json.loads(run([str(launcher), "from setup"]).stdout)["argv"] == ["from setup"]
     # Warm path publication must work with all acquisition inputs unavailable.
     shutil.rmtree(docroot)

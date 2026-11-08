@@ -127,8 +127,8 @@ function Load-Snapshot {
   $snap = Get-LatestSnapshot
   if (-not $snap) { Fail "no backup found under $BackupRoot -- run 'pre' first" }
   $script:Snap = $snap
-  $recordedPath = Join-Path $snap 'hermes-home.txt'
-  if (-not (Test-Path -LiteralPath $recordedPath)) { Fail "$snap is not a rehearsal backup (no hermes-home.txt)" }
+  $recordedPath = Join-Path $snap 'kova-home.txt'
+  if (-not (Test-Path -LiteralPath $recordedPath)) { Fail "$snap is not a rehearsal backup (no kova-home.txt)" }
   if (-not (Test-Path -LiteralPath (Join-Path $snap 'shadows.txt'))) { Fail "$snap has no disk snapshot (made by an older version of this script)" }
   $P = Get-ResolvedPaths
   $recorded = ((Get-Content -LiteralPath $recordedPath -Raw) -replace "`r", '').Trim()
@@ -388,7 +388,7 @@ function Invoke-Pre {
 
   # Plain text, not JSON: post compares this string byte-for-byte to decide
   # whether the backup belongs to the home it is about to restore.
-  Set-Content -LiteralPath (Join-Path $script:Snap 'hermes-home.txt') -Encoding utf8 -Value @($P.Home)
+  Set-Content -LiteralPath (Join-Path $script:Snap 'kova-home.txt') -Encoding utf8 -Value @($P.Home)
   $manifest = [ordered]@{
     schema              = 4
     created             = (Get-Date).ToUniversalTime().ToString('o')

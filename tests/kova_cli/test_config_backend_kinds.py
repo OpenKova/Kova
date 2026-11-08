@@ -121,6 +121,6 @@ def test_absent_kind_fails_closed(monkeypatch):
 def test_broken_backend_package_shows_its_own_import_error(fake_kind):
     pkg = plugins.config_backends.__path__[-1]
     with open(f"{pkg}/{FAKE}/__init__.py", "w", encoding="utf-8") as fh:
-        fh.write("import hermes_missing_dependency_p21\n")
-    with pytest.raises(ModuleNotFoundError, match="hermes_missing_dependency_p21"):
+        fh.write("import kova_missing_dependency_p21\n")
+    with pytest.raises(ModuleNotFoundError, match="kova_missing_dependency_p21"):
         cb._backend_for(FAKE)

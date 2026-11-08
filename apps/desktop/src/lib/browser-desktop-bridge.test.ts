@@ -27,7 +27,7 @@ afterEach(() => {
   delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   Reflect.deleteProperty(navigator, 'clipboard')
   window.history.replaceState(null, '', '/#/')
   $connection.set(null)
@@ -88,7 +88,7 @@ describe('browser-hosted Desktop bridge', () => {
   it('installs behind the authenticated non-loopback server gate without exposing a token', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
 
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ ok: true }), {
@@ -103,7 +103,7 @@ describe('browser-hosted Desktop bridge', () => {
     await win.kovaDesktop!.api({ path: '/api/status' })
 
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
-    expect(requestUrl.pathname).toBe('/hermes/api/status')
+    expect(requestUrl.pathname).toBe('/kova/api/status')
     expect(init.credentials).toBe('same-origin')
     expect(new Headers(init.headers).has('X-Kova-Session-Token')).toBe(false)
 
@@ -115,7 +115,7 @@ describe('browser-hosted Desktop bridge', () => {
     expect(connection.token).toBe('')
     // The serving gateway's canonical socket: no credential in the descriptor.
     const ws = new URL(connection.wsUrl)
-    expect(ws.pathname).toBe('/hermes/api/ws')
+    expect(ws.pathname).toBe('/kova/api/ws')
     expect(ws.searchParams.get('native_dial')).toBe('browser')
     expect(ws.searchParams.has('ticket') || ws.searchParams.has('token')).toBe(false)
   })
@@ -125,7 +125,7 @@ describe('browser-hosted Desktop bridge', () => {
   it('reports the serving host version, unknown when the host cannot say', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
 
     const fetchMock = vi
       .fn()
@@ -136,7 +136,7 @@ describe('browser-hosted Desktop bridge', () => {
     expect(installBrowserDesktopBridge()).toBe(true)
 
     await expect(win.kovaDesktop!.getVersion()).resolves.toMatchObject({ appVersion: '0.21.5+1913' })
-    expect((fetchMock.mock.calls[0] as [URL])[0].pathname).toBe('/hermes/api/health')
+    expect((fetchMock.mock.calls[0] as [URL])[0].pathname).toBe('/kova/api/health')
     // '' is About's "version unavailable" state.
     await expect(win.kovaDesktop!.getVersion()).resolves.toMatchObject({ appVersion: '' })
   })
@@ -144,7 +144,7 @@ describe('browser-hosted Desktop bridge', () => {
   it('mints a fresh gateway ticket for each WebSocket dial', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
 
     const fetchMock = vi
       .fn()
@@ -163,7 +163,7 @@ describe('browser-hosted Desktop bridge', () => {
 
     const firstUrl = new URL(wsUrl(first))
     const secondUrl = new URL(wsUrl(second))
-    expect(firstUrl.pathname).toBe('/hermes/api/ws')
+    expect(firstUrl.pathname).toBe('/kova/api/ws')
     // native_dial: the client speaks the gateway's canonical contract and moves the ticket into
     // the socket's subprotocol.
     expect(firstUrl.searchParams.get('native_dial')).toBe('browser')
@@ -173,7 +173,7 @@ describe('browser-hosted Desktop bridge', () => {
     expect(secondUrl.searchParams.get('ticket')).toBe('ticket-two')
     expect(fetchMock).toHaveBeenCalledTimes(2)
     const minted = fetchMock.mock.calls.map(([url]) => url as URL)
-    expect(minted.every(url => url.pathname === '/hermes/api/webapp/socket-ticket')).toBe(true)
+    expect(minted.every(url => url.pathname === '/kova/api/webapp/socket-ticket')).toBe(true)
     expect(minted.every(url => url.searchParams.get('socket') === 'gateway')).toBe(true)
     expect(minted.every(url => url.searchParams.get('profile') === 'worker-a')).toBe(true)
     expect(fetchMock.mock.calls.every(([, init]) => init?.method === 'POST')).toBe(true)
@@ -183,7 +183,7 @@ describe('browser-hosted Desktop bridge', () => {
   it('returns an actionable reauth result when the gated cookie expires', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     let loginUrl = ''
     window.addEventListener(
       'kova:browser-reauth-required',
@@ -199,7 +199,7 @@ describe('browser-hosted Desktop bridge', () => {
         new Response(
           JSON.stringify({
             error: 'session_expired',
-            login_url: '/hermes/login?next=%2Fapi%2Fauth%2Fws-ticket'
+            login_url: '/kova/login?next=%2Fapi%2Fauth%2Fws-ticket'
           }),
           { status: 401 }
         )
@@ -213,13 +213,13 @@ describe('browser-hosted Desktop bridge', () => {
       needsOauthLogin: true,
       ok: false
     })
-    expect(new URL(loginUrl).pathname).toBe('/hermes/login')
+    expect(new URL(loginUrl).pathname).toBe('/kova/login')
   })
 
   it('signs out through the server before navigating to the gated login page', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     let loginUrl = ''
     window.addEventListener(
       'kova:browser-reauth-required',
@@ -239,10 +239,10 @@ describe('browser-hosted Desktop bridge', () => {
     })
 
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
-    expect(requestUrl.pathname).toBe('/hermes/auth/logout')
+    expect(requestUrl.pathname).toBe('/kova/auth/logout')
     expect(init.method).toBe('POST')
     expect(init.credentials).toBe('same-origin')
-    expect(new URL(loginUrl).pathname).toBe('/hermes/login')
+    expect(new URL(loginUrl).pathname).toBe('/kova/login')
   })
 
   it('does not advertise Electron-only capabilities in browser-host mode', () => {
@@ -304,13 +304,13 @@ describe('browser-hosted Desktop bridge', () => {
   it('remembers the selected browser profile in the launch URL without losing its route', async () => {
     const win = mutableWindow()
     seedWebappSession('served-token')
-    window.history.replaceState(null, '', '/hermes?view=chat#/session-1')
+    window.history.replaceState(null, '', '/kova?view=chat#/session-1')
 
     expect(installBrowserDesktopBridge()).toBe(true)
     await expect(win.kovaDesktop!.profile.remember(' research ')).resolves.toEqual({ profile: 'research' })
 
     let url = new URL(window.location.href)
-    expect(url.pathname).toBe('/hermes')
+    expect(url.pathname).toBe('/kova')
     expect(url.searchParams.get('view')).toBe('chat')
     expect(url.searchParams.get('profile')).toBe('research')
     expect(url.hash).toBe('#/session-1')
@@ -363,7 +363,7 @@ describe('browser-hosted Desktop bridge', () => {
       ' JavaScript:alert(1)',
       'data:text/html,<script>alert(1)</script>',
       'vbscript:msgbox(1)',
-      'hermes-media://stream/%2Fetc%2Fpasswd',
+      'kova-media://stream/%2Fetc%2Fpasswd',
       'file:///etc/passwd',
       'not a url'
     ]) {
@@ -407,7 +407,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('exposes one same-origin registry source for Bot profile routing', async () => {
     const win = mutableWindow()
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     seedWebappSession('served-token')
     vi.stubGlobal(
       'fetch',
@@ -431,7 +431,7 @@ describe('browser-hosted Desktop bridge', () => {
     ])
     await expect(win.kovaDesktop!.getAgentRoster?.()).resolves.toMatchObject({
       agents: [
-        { connectionId: 'local', connectionKind: 'local', handle: 'hermes', profile: 'default' },
+        { connectionId: 'local', connectionKind: 'local', handle: 'kova', profile: 'default' },
         { connectionId: 'local', connectionKind: 'local', handle: 'research', profile: 'research' }
       ],
       primaryConnectionId: 'local',
@@ -457,7 +457,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('maps REST requests to the loopback API with token and profile scoping', async () => {
     const win = mutableWindow()
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     seedWebappSession('served-token')
 
     const fetchMock = vi.fn().mockResolvedValue(
@@ -477,7 +477,7 @@ describe('browser-hosted Desktop bridge', () => {
     })
 
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
-    expect(requestUrl.pathname).toBe('/hermes/api/config')
+    expect(requestUrl.pathname).toBe('/kova/api/config')
     expect(requestUrl.searchParams.get('view')).toBe('desktop')
     expect(requestUrl.searchParams.get('profile')).toBe('worker-a')
     expect(new Headers(init.headers).get('X-Kova-Session-Token')).toBe('served-token')
@@ -485,7 +485,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('routes Git through the browser transport and resolves the profile at call time', async () => {
     const win = mutableWindow()
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     seedWebappSession('served-token')
     $connection.set({ profile: 'launch-profile' } as never)
 
@@ -503,7 +503,7 @@ describe('browser-hosted Desktop bridge', () => {
 
     await expect(git.worktreeList('/srv/my repo')).resolves.toEqual(worktrees)
     const [listUrl, listInit] = fetchMock.mock.calls[0] as [URL, RequestInit]
-    expect(listUrl.pathname).toBe('/hermes/api/git/worktrees')
+    expect(listUrl.pathname).toBe('/kova/api/git/worktrees')
     expect(listUrl.searchParams.get('path')).toBe('/srv/my repo')
     expect(listUrl.searchParams.get('profile')).toBe('launch-profile')
     expect(new Headers(listInit.headers).get('X-Kova-Session-Token')).toBe('served-token')
@@ -520,7 +520,7 @@ describe('browser-hosted Desktop bridge', () => {
 
     await git.review.stage('/srv/my repo', '')
     const [stageUrl, stageInit] = fetchMock.mock.calls[2] as [URL, RequestInit]
-    expect(stageUrl.pathname).toBe('/hermes/api/git/review/stage')
+    expect(stageUrl.pathname).toBe('/kova/api/git/review/stage')
     expect(stageUrl.searchParams.get('profile')).toBe('active-profile')
     expect(stageInit.method).toBe('POST')
     expect(JSON.parse(String(stageInit.body))).toEqual({ file: null, path: '/srv/my repo' })
@@ -585,7 +585,7 @@ describe('browser-hosted Desktop bridge', () => {
   it.each(['token', 'cookie'])('downloads browser files with %s auth on the original profile', async auth => {
     const win = mutableWindow()
     const token = auth === 'token' ? 'served / token' : ''
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
 
     if (auth === 'cookie') {
       win.__KOVA_AUTH_REQUIRED__ = true
@@ -613,7 +613,7 @@ describe('browser-hosted Desktop bridge', () => {
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
     // The workspace download route native Desktop uses: it reads an SSH-backed profile's files on
     // that machine, like the file tree that listed them, not a same-named file on the gateway host.
-    expect(requestUrl.pathname).toBe('/hermes/api/fs/download')
+    expect(requestUrl.pathname).toBe('/kova/api/fs/download')
     expect(requestUrl.searchParams.get('path')).toBe('file:///srv/reports/a%20b.pdf')
     expect(requestUrl.searchParams.get('profile')).toBe('research')
     expect(requestUrl.searchParams.get('session_id')).toBe('origin-session')
@@ -643,7 +643,7 @@ describe('browser-hosted Desktop bridge', () => {
   it.each(['token', 'cookie'])('streams browser audio/video over HTTP with %s auth', async auth => {
     const win = mutableWindow()
     const token = auth === 'token' ? 'served / token' : ''
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
 
     if (auth === 'cookie') {
       win.__KOVA_AUTH_REQUIRED__ = true
@@ -666,7 +666,7 @@ describe('browser-hosted Desktop bridge', () => {
     ]) {
       const url = new URL(await resolveMediaPlaybackSrc(path))
       expect(url.origin).toBe(window.location.origin)
-      expect(url.pathname).toBe('/hermes/api/files/stream')
+      expect(url.pathname).toBe('/kova/api/files/stream')
       expect.soft(url.searchParams.get('path'), path).toBe(path)
       expect(url.searchParams.get('profile')).toBe('research')
       expect(carriesToken(url, token)).toBe(false)
@@ -678,7 +678,7 @@ describe('browser-hosted Desktop bridge', () => {
     )
 
     for (const [input, init] of fetchMock.mock.calls as [URL, RequestInit][]) {
-      expect(input.pathname).toBe('/hermes/api/files/ticket')
+      expect(input.pathname).toBe('/kova/api/files/ticket')
       expect(new Headers(init.headers).get('X-Kova-Session-Token')).toBe(token)
     }
 
@@ -691,7 +691,7 @@ describe('browser-hosted Desktop bridge', () => {
     $connection.set({ profile: 'active-images' } as never)
 
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ path: '/srv/hermes/images/upload.png' }), {
+      new Response(JSON.stringify({ path: '/srv/kova/images/upload.png' }), {
         status: 200
       })
     )
@@ -705,7 +705,7 @@ describe('browser-hosted Desktop bridge', () => {
       '.png'
     )
 
-    expect(path).toBe('/srv/hermes/images/upload.png')
+    expect(path).toBe('/srv/kova/images/upload.png')
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
     expect(requestUrl.pathname).toBe('/api/chat/image-upload')
     expect(requestUrl.searchParams.get('profile')).toBe('active-images')
@@ -720,7 +720,7 @@ describe('browser-hosted Desktop bridge', () => {
     $connection.set({ profile: 'active-profile' } as never)
 
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ path: '/srv/hermes/uploads/notes.txt' }), {
+      new Response(JSON.stringify({ path: '/srv/kova/uploads/notes.txt' }), {
         headers: { 'content-type': 'application/json' },
         status: 200
       })
@@ -743,7 +743,7 @@ describe('browser-hosted Desktop bridge', () => {
       profile: 'explicit-file-profile'
     })
 
-    expect(paths).toEqual(['/srv/hermes/uploads/notes.txt'])
+    expect(paths).toEqual(['/srv/kova/uploads/notes.txt'])
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
     expect(requestUrl.pathname).toBe('/api/chat/file-upload')
     expect(requestUrl.searchParams.get('profile')).toBe('explicit-file-profile')
@@ -760,7 +760,7 @@ describe('browser-hosted Desktop bridge', () => {
     $connection.set({ profile: 'drop-profile' } as never)
 
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ path: '/srv/hermes/uploads/drop.txt' }), { status: 200 })
+      new Response(JSON.stringify({ path: '/srv/kova/uploads/drop.txt' }), { status: 200 })
     )
 
     vi.stubGlobal('fetch', fetchMock)
@@ -768,7 +768,7 @@ describe('browser-hosted Desktop bridge', () => {
     expect(installBrowserDesktopBridge()).toBe(true)
     const file = new File(['dropped'], 'drop.txt', { type: 'text/plain' })
 
-    await expect(win.kovaDesktop!.stageFileForAttach?.(file)).resolves.toBe('/srv/hermes/uploads/drop.txt')
+    await expect(win.kovaDesktop!.stageFileForAttach?.(file)).resolves.toBe('/srv/kova/uploads/drop.txt')
     const [requestUrl, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
     expect(requestUrl.pathname).toBe('/api/chat/file-upload')
     expect(requestUrl.searchParams.get('profile')).toBe('drop-profile')
@@ -948,7 +948,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('rejects API paths that escape the configured base path', async () => {
     const win = mutableWindow()
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     seedWebappSession('served-token')
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -963,7 +963,7 @@ describe('browser-hosted Desktop bridge', () => {
 
   it('maps the browser-hosted terminal rail onto an authenticated host-shell PTY socket', async () => {
     const win = mutableWindow()
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     seedWebappSession('served-token')
     $connection.set({ profile: 'active-terminal' } as never)
 
@@ -1024,10 +1024,10 @@ describe('browser-hosted Desktop bridge', () => {
     expect(session).toMatchObject({ cwd: '/work', shell: 'powershell.exe' })
     await expect(win.kovaDesktop!.terminal.attach(session.id)).resolves.toBe(true)
     await expect(win.kovaDesktop!.terminal.attach('missing-terminal')).resolves.toBe(false)
-    expect(url.pathname).toBe('/hermes/api/host-terminal')
+    expect(url.pathname).toBe('/kova/api/host-terminal')
     expect(url.searchParams.get('ticket')).toBe('shell-ticket')
     expect(socket.url).not.toContain('served-token')
-    expect((fetchMock.mock.calls[0][0] as URL).pathname).toBe('/hermes/api/webapp/socket-ticket')
+    expect((fetchMock.mock.calls[0][0] as URL).pathname).toBe('/kova/api/webapp/socket-ticket')
     expect((fetchMock.mock.calls[0][0] as URL).searchParams.get('socket')).toBe('host-terminal')
     expect(url.searchParams.get('profile')).toBe('active-terminal')
     expect(url.searchParams.get('cwd')).toBe('/work')

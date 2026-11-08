@@ -53,7 +53,7 @@ json.dump({"at_import": at_import, "after_other_row": after_other_row, "copy_xai
 
 
 def test_models_dev_is_parsed_on_first_xai_read_not_at_import(tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     (home / "models_dev_cache.json").write_text(json.dumps(
         {"xai": {"id": "xai", "models": {"grok-disk-only": {}}}, "openai": {"id": "openai", "models": {"gpt-x": {}}}}))

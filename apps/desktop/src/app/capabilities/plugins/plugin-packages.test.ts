@@ -26,29 +26,29 @@ const desktop = (over: Partial<PluginRecord>): PluginRecord => ({
 describe('mergePluginPackages', () => {
   it('shows a unified package as ONE row with both halves, never two rows', () => {
     const rows = mergePluginPackages(
-      [desktop({ id: 'media', name: 'Media Studio', packageName: 'hermes-media-studio' })],
-      [agent({ name: 'hermes-media-studio', has_desktop_half: true, description: 'Generate media.' })]
+      [desktop({ id: 'media', name: 'Media Studio', packageName: 'kova-media-studio' })],
+      [agent({ name: 'kova-media-studio', has_desktop_half: true, description: 'Generate media.' })]
     )
 
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ kind: 'both', agentMissingInProfile: false, desktopMissing: false })
     expect(rows[0].desktop?.id).toBe('media')
-    expect(rows[0].agent?.name).toBe('hermes-media-studio')
+    expect(rows[0].agent?.name).toBe('kova-media-studio')
   })
 
   it('pairs a desktop half with an agent row whose folder differs from its manifest name', () => {
     // Electron names the half after the package FOLDER (plugins/<folder>/desktop);
     // the agent row is named from its manifest. `kova plugins install` lands a
     // package at plugins/<manifest name>, but a self-cloned one (the README's
-    // `git clone … ~/.kova/plugins/hermes-subscription-meter`) keeps the repo
+    // `git clone … ~/.kova/plugins/kova-subscription-meter`) keeps the repo
     // name. The join key has to be the folder or it splits into two rows.
     const rows = mergePluginPackages(
-      [desktop({ id: 'meter-ui', name: 'Meter', packageName: 'hermes-subscription-meter' })],
+      [desktop({ id: 'meter-ui', name: 'Meter', packageName: 'kova-subscription-meter' })],
       [
         agent({
           name: 'subscription-meter',
           has_desktop_half: true,
-          install_dir: '/home/u/.kova/plugins/hermes-subscription-meter'
+          install_dir: '/home/u/.kova/plugins/kova-subscription-meter'
         })
       ]
     )
@@ -59,7 +59,7 @@ describe('mergePluginPackages', () => {
   })
 
   it('a desktop half whose agent half is absent from THIS profile offers the install-here affordance', () => {
-    const rows = mergePluginPackages([desktop({ id: 'media', packageName: 'hermes-media-studio' })], [])
+    const rows = mergePluginPackages([desktop({ id: 'media', packageName: 'kova-media-studio' })], [])
 
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ kind: 'both', agent: null, agentMissingInProfile: true })
@@ -81,43 +81,43 @@ describe('mergePluginPackages', () => {
     const rows = mergePluginPackages(
       [
         desktop({
-          id: 'hermes-talk',
+          id: 'kova-talk',
           name: 'Kova Talk',
           description: 'GPT-Live subscription or explicit API voice, with Kova task delegation.',
-          packageName: 'hermes-talk',
-          file: '/Users/me/.kova/desktop-plugins/hermes-talk/plugin.js'
+          packageName: 'kova-talk',
+          file: '/Users/me/.kova/desktop-plugins/kova-talk/plugin.js'
         })
       ],
-      [agent({ name: 'hermes-talk', has_desktop_half: true, version: '0.21.0' })]
+      [agent({ name: 'kova-talk', has_desktop_half: true, version: '0.21.0' })]
     )
 
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({
-      key: 'hermes-talk',
+      key: 'kova-talk',
       name: 'Kova Talk',
       kind: 'both',
       desktopMissing: false,
       agentMissingInProfile: false
     })
-    expect(rows[0].desktop?.id).toBe('hermes-talk')
-    expect(rows[0].agent?.name).toBe('hermes-talk')
+    expect(rows[0].desktop?.id).toBe('kova-talk')
+    expect(rows[0].agent?.name).toBe('kova-talk')
   })
 
   it('keeps an unmarked app-root copy its own row rather than guessing from the folder name', () => {
     const rows = mergePluginPackages(
       [
         desktop({
-          id: 'hermes-talk',
+          id: 'kova-talk',
           name: 'Kova Talk',
-          file: '/Users/me/.kova/desktop-plugins/hermes-talk/plugin.js'
+          file: '/Users/me/.kova/desktop-plugins/kova-talk/plugin.js'
         })
       ],
-      [agent({ name: 'hermes-talk', has_desktop_half: true })]
+      [agent({ name: 'kova-talk', has_desktop_half: true })]
     )
 
     expect(rows.map(row => [row.key, row.kind])).toEqual([
-      ['hermes-talk', 'both'],
-      ['desktop:hermes-talk', 'desktop']
+      ['kova-talk', 'both'],
+      ['desktop:kova-talk', 'desktop']
     ])
   })
 

@@ -31,7 +31,7 @@ afterEach(async () => {
   root.className = originalClass
   delete root.dataset.kovaMode
   delete root.dataset.kovaTheme
-  window.document.getElementById('hermes-desktop-custom-css')?.remove()
+  window.document.getElementById('kova-desktop-custom-css')?.remove()
   await flush()
 })
 
@@ -123,7 +123,7 @@ describe('theme repaint subscriptions', () => {
 
   it('keeps geometry-driven authored CSS observable without changing its consumers', async () => {
     const style = window.document.createElement('style')
-    style.id = 'hermes-desktop-custom-css'
+    style.id = 'kova-desktop-custom-css'
     style.textContent = ':root { --author-width: var(--workspace-left); }'
     window.document.head.append(style)
     const repaint = vi.fn()
@@ -167,7 +167,7 @@ describe('theme repaint subscriptions', () => {
           mode: root.dataset.kovaMode,
           primary: root.style.getPropertyValue('--theme-primary'),
           font: root.style.getPropertyValue('--dt-font-sans'),
-          css: window.document.getElementById('hermes-desktop-custom-css')?.textContent
+          css: window.document.getElementById('kova-desktop-custom-css')?.textContent
         })
       }, [epoch])
 

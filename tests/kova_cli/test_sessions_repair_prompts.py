@@ -1,4 +1,4 @@
-"""Behavior contracts for hermes sessions repair-prompts (#122822)."""
+"""Behavior contracts for kova sessions repair-prompts (#122822)."""
 
 from __future__ import annotations
 

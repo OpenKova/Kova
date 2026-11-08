@@ -17,7 +17,7 @@ from tui_gateway import server
 
 
 def _container_dir() -> str:
-    path = f"/hermes-test-workspace-{uuid.uuid4().hex[:8]}"
+    path = f"/kova-test-workspace-{uuid.uuid4().hex[:8]}"
     assert not os.path.isdir(path)
     return path
 
@@ -31,7 +31,7 @@ def _write_cfg(home: Path, body: str) -> Path:
 @pytest.fixture
 def launch_home(tmp_path, monkeypatch):
     """A temp launch KOVA_HOME the gateway and the cache-mount mapper both read."""
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(server, "_kova_home", home)

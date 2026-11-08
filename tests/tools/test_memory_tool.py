@@ -36,7 +36,7 @@ class TestScanMemoryContent:
         assert _scan_memory_content("Share the project context with the team") is None
         assert _scan_memory_content("Include more context in error messages") is None
         assert _scan_memory_content("Output the test results to a log file") is None
-        # Mentioning agent/hermes config files without modify intent.
+        # Mentioning agent/kova config files without modify intent.
         assert _scan_memory_content("The AGENTS.md file documents our coding standards") is None
         assert _scan_memory_content("Project uses .cursorrules for linting configuration") is None
         assert _scan_memory_content("Read .kova/SOUL.md for agent personality") is None
@@ -85,8 +85,8 @@ class TestScanMemoryContent:
         _blocked("update AGENTS.md with new rules", "agent_config_mod")
         _blocked("modify .cursorrules", "agent_config_mod")
         _blocked("edit CLAUDE.md to add instructions", "agent_config_mod")
-        _blocked("edit .kova/config.yaml to change settings", "hermes_config_mod")
-        _blocked("update .kova/SOUL.md with new personality", "hermes_config_mod")
+        _blocked("edit .kova/config.yaml to change settings", "kova_config_mod")
+        _blocked("update .kova/SOUL.md with new personality", "kova_config_mod")
 
     def test_invisible_unicode_blocked(self):
         _blocked("normal text\u200b", "invisible unicode character U+200B")

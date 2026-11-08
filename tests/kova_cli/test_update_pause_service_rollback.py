@@ -24,7 +24,7 @@ from kova_cli.update_cmd_windows import ServicePauseFailed, _pause_windows_gatew
 def test_the_pause_record_survives_exactly_when_the_service_rollback_failed(monkeypatch, restore_fails):
     from kova_cli import main
     pid = os.getpid()  # a live identity for the service's gateway; never signalled
-    service = SimpleNamespace(name="hermes-gw", profile="default", gateway_pid=pid, gateway_create_time=1.0,
+    service = SimpleNamespace(name="kova-gw", profile="default", gateway_pid=pid, gateway_create_time=1.0,
                               service_pid=pid, service_create_time=1.0, descendant_identities=())
     monkeypatch.setattr(main, "_is_windows", lambda: True)
     monkeypatch.setattr(gateway, "find_gateway_pids", lambda all_profiles=False: [])

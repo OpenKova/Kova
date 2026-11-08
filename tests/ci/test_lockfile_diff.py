@@ -44,9 +44,9 @@ EXTRA_KEY = (_ROOT / "tests/fixtures/pnpm_lock/extra-key.yaml").read_text(encodi
 def _lock(packages: dict[str, dict]) -> str:
     return json.dumps(
         {
-            "name": "hermes",
+            "name": "kova",
             "lockfileVersion": 3,
-            "packages": {"": {"name": "hermes"}, **packages},
+            "packages": {"": {"name": "kova"}, **packages},
         }
     )
 

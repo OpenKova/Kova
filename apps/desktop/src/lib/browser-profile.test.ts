@@ -13,9 +13,9 @@ const bootstrap = window as Window & {
 
 beforeEach(() => {
   window.localStorage.clear()
-  bootstrap.__KOVA_BASE_PATH__ = '/hermes'
+  bootstrap.__KOVA_BASE_PATH__ = '/kova'
   seedWebappSession('test-session')
-  window.history.replaceState(null, '', '/hermes?profile=active#/session-1')
+  window.history.replaceState(null, '', '/kova?profile=active#/session-1')
 })
 
 afterEach(() => {
@@ -23,7 +23,7 @@ afterEach(() => {
   delete bootstrap.__KOVA_AUTH_REQUIRED__
   delete bootstrap.__KOVA_BASE_PATH__
   clearWebappSession()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   window.localStorage.clear()
   window.history.replaceState(null, '', '/#/')
   $connection.set(null)
@@ -67,7 +67,7 @@ it('persists the default separately from the active chat and synchronizes only t
 
 it('records a live profile pick in the URL without dropping the router entry state', async () => {
   const entry = { idx: 3, key: 'entry', usr: { from: 'sidebar' } }
-  window.history.replaceState(entry, '', '/hermes?profile=active#/session-1')
+  window.history.replaceState(entry, '', '/kova?profile=active#/session-1')
   expect(installBrowserDesktopBridge()).toBe(true)
 
   await window.kovaDesktop.profile.remember('work')
@@ -80,7 +80,7 @@ it('records a live profile pick in the URL without dropping the router entry sta
 it('opens the requested profile on this host without carrying another session or spectator flags', async () => {
   // A gated host opens the window directly; a launch-link tab hands it a session first.
   bootstrap.__KOVA_AUTH_REQUIRED__ = true
-  window.history.replaceState(null, '', '/hermes?profile=active&win=secondary&watch=1#/session-1')
+  window.history.replaceState(null, '', '/kova?profile=active&win=secondary&watch=1#/session-1')
   const { open } = browserOpensWebappWindows()
   expect(installBrowserDesktopBridge()).toBe(true)
 
@@ -97,7 +97,7 @@ it('opens the requested profile on this host without carrying another session or
   await window.kovaDesktop.openWindow({ connectionId: 'local', profile: 'research' })
   const target = new URL(String(open.mock.calls[0][0]))
   expect(target.origin).toBe(window.location.origin)
-  expect(target.pathname).toBe('/hermes')
+  expect(target.pathname).toBe('/kova')
   expect(target.searchParams.get('profile')).toBe('research')
   expect(target.searchParams.has('watch')).toBe(false)
   expect(target.searchParams.has('win')).toBe(false)

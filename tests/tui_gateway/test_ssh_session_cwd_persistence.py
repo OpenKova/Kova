@@ -1,7 +1,7 @@
 """An ssh session's launch directory is a host path: kept in memory, never persisted as its remote workspace.
 
 A resume adopts a stored ssh cwd as the remote workspace, so a persisted launch directory (in the Docker image
-``/opt/hermes``, ``/opt/data`` or ``/opt/data/home``) made every remote terminal and file call ``cd`` into a path that
+``/opt/kova``, ``/opt/data`` or ``/opt/data/home``) made every remote terminal and file call ``cd`` into a path that
 only exists on the Kova host.
 """
 
@@ -102,24 +102,24 @@ def test_host_backends_still_persist_the_launch_dir(backend, tmp_path, name):
     assert server._persisted_session_cwd({"source": "tui", "cwd": str(tmp_path)}) == str(tmp_path)
 
 
-def test_hermes_owned_cwd(tmp_path):
+def test_kova_owned_cwd(tmp_path):
     home = server.get_kova_home()
-    assert server._is_hermes_owned_cwd(str(home), None)
-    assert server._is_hermes_owned_cwd(_kova_home_subdir("home"), None)
-    assert server._is_hermes_owned_cwd(str(server.Path(server.__file__).resolve().parent.parent), None)
-    assert not server._is_hermes_owned_cwd("/home/me/proj", None)
-    assert not server._is_hermes_owned_cwd(str(tmp_path), None)
+    assert server._is_kova_owned_cwd(str(home), None)
+    assert server._is_kova_owned_cwd(_kova_home_subdir("home"), None)
+    assert server._is_kova_owned_cwd(str(server.Path(server.__file__).resolve().parent.parent), None)
+    assert not server._is_kova_owned_cwd("/home/me/proj", None)
+    assert not server._is_kova_owned_cwd(str(tmp_path), None)
 
 
-def test_hermes_owned_cwd_includes_the_root_for_a_named_profile():
+def test_kova_owned_cwd_includes_the_root_for_a_named_profile():
     """A named profile's home sits under the Kova root; the root's launch dirs (``/opt/data``, ``/opt/data/home``)
     are still Kova's own."""
     root = server.get_kova_home()
     profile = str(root / "profiles" / "work")
-    assert server._is_hermes_owned_cwd(_kova_home_subdir("home"), profile)
-    assert server._is_hermes_owned_cwd(str(root), profile)
-    assert server._is_hermes_owned_cwd(profile, profile)
-    assert not server._is_hermes_owned_cwd("/home/me/proj", profile)
+    assert server._is_kova_owned_cwd(_kova_home_subdir("home"), profile)
+    assert server._is_kova_owned_cwd(str(root), profile)
+    assert server._is_kova_owned_cwd(profile, profile)
+    assert not server._is_kova_owned_cwd("/home/me/proj", profile)
 
 
 def test_named_profile_resume_does_not_adopt_a_root_launch_dir(db):
@@ -209,7 +209,7 @@ def test_ssh_branch_seed_skips_the_launch_dir(backend, monkeypatch, explicit, ex
     monkeypatch.setattr(server, "_session_db", lambda _record: contextlib.nullcontext(object()))
     monkeypatch.setattr(server, "_branch_title", lambda *_a: "t")
     monkeypatch.setattr(server, "_persist_branch", lambda *_a, cwd, **_k: seen.setdefault("cwd", cwd))
-    record = {"cwd": "/home/me/proj" if explicit else "/opt/hermes", "explicit_cwd": explicit}
+    record = {"cwd": "/home/me/proj" if explicit else "/opt/kova", "explicit_cwd": explicit}
 
     server._seed_branch_row(record, "child", "parent", [], "desktop", None)
 

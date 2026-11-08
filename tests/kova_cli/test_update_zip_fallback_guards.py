@@ -1,7 +1,7 @@
 """ZIP fallback must not fire on dependency failures or clobber a dirty tree.
 
 Issue #87304: on Windows the update ``try`` spans git pull *and* ``uv pip
-install``. A locked ``hermes.exe`` makes the install exit 2, the handler
+install``. A locked ``kova.exe`` makes the install exit 2, the handler
 prints ``Git update failed``, and ``_update_via_zip`` replaces every
 top-level entry except ``venv`` / ``node_modules`` / ``.git`` / ``.env`` —
 permanently deleting uncommitted edits and untracked files. The git pull
@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import pytest
 
-from kova_cli import main as hermes_main
+from kova_cli import main as kova_main
 from kova_cli import main_install_repair
 from kova_cli import update_cmd
 
@@ -79,7 +79,7 @@ def test_unknown_command_gets_generic_stage():
 
 
 def test_posix_git_failure_does_not_zip(monkeypatch):
-    monkeypatch.setattr(hermes_main, "_is_windows", lambda: False)
+    monkeypatch.setattr(kova_main, "_is_windows", lambda: False)
     monkeypatch.setattr(main_install_repair, "_is_windows", lambda: False)
     exc = _cpe(["git", "pull"], returncode=1)
     assert update_cmd._should_zip_fallback_on_update_error(exc) is False
@@ -157,7 +157,7 @@ def test_update_via_zip_aborts_before_download_when_dirty(
     untracked_dir.mkdir(parents=True)
     (untracked_dir / "wip.py").write_text("print('wip')\n", encoding="utf-8")
 
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", fake_root)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", fake_root)
     monkeypatch.setattr(
         update_cmd.subprocess,
         "run",
@@ -312,7 +312,7 @@ def test_zip_gate_refuses_and_keeps_a_user_file_named_like_an_update_artifact(tm
     journal claims it) is user work the gate must refuse on, leaving it untouched."""
     _git_install(tmp_path)
     (tmp_path / name).write_text("PRECIOUS USER BYTES", encoding="utf-8")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", tmp_path)
     with pytest.raises(SystemExit) as exc_info:
         update_cmd._abort_zip_update_if_dirty_tree()
     assert exc_info.value.code == 1
@@ -325,7 +325,7 @@ def test_zip_gate_refuses_on_a_user_file_at_the_old_fixed_journal_temp_name(tmp_
     _git_install(tmp_path)
     user = tmp_path / ".kova-update-zip-swap.tmp"
     user.write_text("USER NOTES", encoding="utf-8")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", tmp_path)
     with pytest.raises(SystemExit) as exc_info:
         update_cmd._abort_zip_update_if_dirty_tree()
     assert exc_info.value.code == 1 and user.read_text(encoding="utf-8-sig") == "USER NOTES"
@@ -342,7 +342,7 @@ def test_zip_gate_admits_the_retry_after_an_interrupted_swap(tmp_path, monkeypat
     (leftover / "x.py").write_text("x = 2\n", encoding="utf-8")
     write_zip_swap_journal(tmp_path, "staging", [["alpha", True, zip_entry_identity(leftover), ""],
                                                  ["cli.py", True, "", ""]], "0123456789ab")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", tmp_path)
     update_cmd._abort_zip_update_if_dirty_tree()
     assert not leftover.exists() and not (tmp_path / ZIP_SWAP_JOURNAL).exists()
     assert (tmp_path / "alpha" / "x.py").read_text(encoding="utf-8-sig") == "x = 1\n"

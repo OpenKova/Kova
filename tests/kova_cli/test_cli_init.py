@@ -377,7 +377,7 @@ class TestHistoryDisplay:
             {
                 "id": "20260401_201329_d85961",
                 "title": "Checking Running Kova Agent",
-                "preview": "check running gateways for hermes agent",
+                "preview": "check running gateways for kova agent",
                 "last_active": 0,
             },
         ]
@@ -405,7 +405,7 @@ class TestHistoryDisplay:
             {
                 "id": "20260401_201329_d85961",
                 "title": "Checking Running Kova Agent",
-                "preview": "check running gateways for hermes agent",
+                "preview": "check running gateways for kova agent",
                 "last_active": 0,
             },
         ]

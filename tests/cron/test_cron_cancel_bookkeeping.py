@@ -178,7 +178,7 @@ def test_a_cancelled_agent_run_names_its_reason_in_history():
 def test_a_capped_count_says_so_after_a_catch_up(store):
     job = jobs.create_job(prompt="tick", schedule="every 1m", deliver="local", catch_up=True)
     stored = jobs.load_jobs()
-    stored[0]["next_run_at"] = (jobs._hermes_now() - timedelta(minutes=1100)).isoformat()
+    stored[0]["next_run_at"] = (jobs._kova_now() - timedelta(minutes=1100)).isoformat()
     jobs.save_jobs(stored)
 
     jobs.get_due_jobs()

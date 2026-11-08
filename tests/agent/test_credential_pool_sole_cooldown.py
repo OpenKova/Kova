@@ -11,7 +11,7 @@ import json
 import time
 
 def _write_auth_store(tmp_path, payload: dict) -> None:
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -40,7 +40,7 @@ def _entry(
     return entry
 
 def _load(tmp_path, monkeypatch, entries: list[dict]):
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     _write_auth_store(
         tmp_path,

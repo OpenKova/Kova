@@ -127,7 +127,7 @@ def test_prefer_api_key_falls_back_to_oauth_without_explicit_key(monkeypatch):
     assert creds["api_key"] == "oauth-token-x1"
 
 
-def test_prefer_api_key_honors_hermes_xai_base_url_with_validation(monkeypatch):
+def test_prefer_api_key_honors_kova_xai_base_url_with_validation(monkeypatch):
     """The preferred-key path reads the same override pair as the OAuth
     branch (KOVA_XAI_BASE_URL first, then XAI_BASE_URL) behind the same
     origin-pinning validation: an *.x.ai override is honored, a foreign
@@ -187,7 +187,7 @@ def test_prefer_api_key_honors_profile_scope_only_key(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# #116155: `hermes auth remove xai` suppresses env:XAI_API_KEY, but a stale value
+# #116155: `kova auth remove xai` suppresses env:XAI_API_KEY, but a stale value
 # still inherited by the gateway process environment overrode the working
 # xai-oauth grant for x_search (prefer_api_key=True).
 # ---------------------------------------------------------------------------

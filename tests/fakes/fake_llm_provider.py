@@ -16,7 +16,7 @@ Usage::
 
     with FakeLLMServer([ToolCall("terminal", {"command": "echo hi"}), Text("done")]) as srv:
         write_kova_home(home, srv.base_url)
-        ...run hermes...
+        ...run kova...
         assert srv.main_requests()[1]["messages"][-1]["role"] == "tool"
 
 Run standalone for manual probes: ``python -m tests.fakes.fake_llm_provider 8765``.

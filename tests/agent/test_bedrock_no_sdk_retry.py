@@ -100,7 +100,7 @@ def test_hung_converse_fails_after_one_read_timeout_not_five(fake_bedrock, monke
     assert classify_api_error(excinfo.value, provider="bedrock", model=MODEL).retryable
 
 
-def test_throttle_reaches_hermes_retry_loop_on_first_refusal_with_default_timeouts(fake_bedrock, monkeypatch):
+def test_throttle_reaches_kova_retry_loop_on_first_refusal_with_default_timeouts(fake_bedrock, monkeypatch):
     _use_config(monkeypatch, {})
     fake_bedrock["mode"] = "throttle"
     client = _get_bedrock_runtime_client(REGION, MODEL)

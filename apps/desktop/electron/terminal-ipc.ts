@@ -1,5 +1,5 @@
 // The embedded terminal's PTY host: shell resolution, env scrubbing, session
-// registry, and the hermes:terminal:* IPC surface. Extracted from main.ts; the
+// registry, and the kova:terminal:* IPC surface. Extracted from main.ts; the
 // factory owns the session map and returns the dispose helpers main.ts needs
 // for SSH teardown. findOnPath / logging / connection routing stay injected.
 import { execFile } from 'node:child_process'
@@ -195,7 +195,7 @@ export function registerTerminalIpc({
     env.TERM_PROGRAM = 'Kova'
     env.TERM_PROGRAM_VERSION = app.getVersion()
 
-    // Let a hermes/--tui launched in this pane know it's embedded in the desktop
+    // Let a kova/--tui launched in this pane know it's embedded in the desktop
     // GUI (build_environment_hints surfaces this). Distinct from KOVA_DESKTOP,
     // which marks the agent *backend* and gates cron/gateway behavior.
     env.KOVA_DESKTOP_TERMINAL = '1'

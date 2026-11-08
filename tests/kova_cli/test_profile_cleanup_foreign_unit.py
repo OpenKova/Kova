@@ -1,4 +1,4 @@
-"""`hermes profile delete|rename` never removes another install's gateway service.
+"""`kova profile delete|rename` never removes another install's gateway service.
 
 Service names derive from the profile name and the user unit dir is account-anchored, so a scratch-HOME
 delete of `coder` named the ACCOUNT's real `kova-gateway-coder` unit and disabled, stopped and unlinked
@@ -16,13 +16,13 @@ from kova_cli import gateway as gw
 
 def _unit(path, home) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f'[Service]\nEnvironment="KOVA_HOME={home}"\nExecStart=/usr/bin/hermes gateway run\n',
+    path.write_text(f'[Service]\nEnvironment="KOVA_HOME={home}"\nExecStart=/usr/bin/kova gateway run\n',
                     encoding="utf-8")
 
 
 @pytest.mark.platforms("linux")
 def test_profile_delete_from_scratch_home_leaves_the_accounts_profile_unit(tmp_path, monkeypatch, capsys):
-    """``hermes profile delete|rename coder`` with HOME=<scratch>: the name resolves the ACCOUNT's real
+    """``kova profile delete|rename coder`` with HOME=<scratch>: the name resolves the ACCOUNT's real
     ``kova-gateway-coder`` unit (account-anchored unit dir). It pins another home, so cleanup never
     disables, stops or unlinks it."""
     import kova_constants

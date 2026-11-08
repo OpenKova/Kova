@@ -94,7 +94,7 @@ def test_fallback_pointer_uses_owner_location_and_keeps_identity_checks(tmp_path
     home.mkdir(mode=0o700)
     # The owner has a distinct TMPDIR, as a service or native app commonly does.
     with tempfile.TemporaryDirectory(prefix='h-owner-') as root:
-        directory = Path(root) / f'hermes-gw-{_home_hash(home)}'
+        directory = Path(root) / f'kova-gw-{_home_hash(home)}'
         directory.mkdir(mode=0o700)
         target = directory / 'control.sock'
         pointer = home / 'gateway.sock.path'
@@ -123,7 +123,7 @@ def test_fallback_pointer_uses_owner_location_and_keeps_identity_checks(tmp_path
             finally:
                 thread.join(timeout=4)
             assert json.loads(requests[0])['verb'] == 'identify'
-            pointer.write_text(str(directory.with_name('hermes-gw-wrong') / 'control.sock'), encoding='utf-8')
+            pointer.write_text(str(directory.with_name('kova-gw-wrong') / 'control.sock'), encoding='utf-8')
             with pytest.raises(DiscoveryError, match='invalid_control_pointer'):
                 query_identify(home, timeout=2)
             pointer.write_text(str(target), encoding='utf-8')
@@ -178,8 +178,8 @@ def test_the_client_verdict_names_the_unsafe_node_and_its_fix(monkeypatch, reque
 
 
 @pytest.mark.platforms("linux", "macos")
-def test_hermes_chat_prints_the_whole_repair_command(monkeypatch, request):
-    """``hermes chat`` shows a failed attach through ``agent_init_failure_message``, whose 120-character
+def test_kova_chat_prints_the_whole_repair_command(monkeypatch, request):
+    """``kova chat`` shows a failed attach through ``agent_init_failure_message``, whose 120-character
     summary cut the hint mid-path: the whole command must reach the user."""
     import asyncio
     import shutil
@@ -254,7 +254,7 @@ def test_an_open_control_directory_names_its_path_and_mode(tmp_path):
     home = tmp_path / 'profile'
     home.mkdir(mode=0o700)
     with tempfile.TemporaryDirectory(prefix='h-owner-') as root:
-        directory = Path(root) / f'hermes-gw-{_home_hash(home)}'
+        directory = Path(root) / f'kova-gw-{_home_hash(home)}'
         directory.mkdir(mode=0o755)
         pointer = home / 'gateway.sock.path'
         pointer.write_text(str(directory / 'control.sock'), encoding='utf-8')

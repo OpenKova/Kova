@@ -98,8 +98,8 @@ def _killed_mid_write(tmp_path: Path, rel: str, committed: dict[str, str] | None
     (root / ".git/info/attributes").unlink()
 
     (tmp_path / "bin").mkdir()
-    launcher = _launchers._mint_shell_launcher("hermes", tmp_path / "bin", Path(sys.executable),
-                                               _launchers._launcher_script("hermes", root, None))
+    launcher = _launchers._mint_shell_launcher("kova", tmp_path / "bin", Path(sys.executable),
+                                               _launchers._launcher_script("kova", root, None))
     assert launcher is not None
     return root, env, original, launcher
 
@@ -118,12 +118,12 @@ def test_a_launch_repairs_a_move_killed_while_writing_the_repairs_own_code(tmp_p
     if torn:  # git's write cut short: a prefix of the new blob
         (root / rel).write_bytes(original[:12])
     if not published:
-        shutil.rmtree(root / ".git/hermes-update-recovery")
+        shutil.rmtree(root / ".git/kova-update-recovery")
     launch = subprocess.run([str(launcher)], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8",
                             errors="replace", timeout=60, check=False)
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
     assert (root / rel).read_bytes() == original
-    assert not (root / ".git/hermes-update-pull").exists()
+    assert not (root / ".git/kova-update-pull").exists()
 
 
 @pytest.mark.platforms("posix")
@@ -133,8 +133,8 @@ def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_check
     if not published:
         # The closure comes from git's objects, and no git was recorded: the launcher's git is an
         # absolute PATH entry's, never a ``git`` in the current directory an empty entry names (m4).
-        shutil.rmtree(root / ".git/hermes-update-recovery")
-        marker = root / ".git/hermes-update-pull"
+        shutil.rmtree(root / ".git/kova-update-recovery")
+        marker = root / ".git/kova-update-pull"
         lines = marker.read_text(encoding="utf-8-sig").splitlines()
         marker.write_text("".join(line + "\n" for line in lines if not line.startswith("git=")), encoding="utf-8")
         (tmp_path / "git").write_text(f"#!/bin/sh\ntouch {shlex.quote(str(tmp_path / 'CWD_GIT_RAN'))}\nexit 1\n",
@@ -150,9 +150,9 @@ def test_the_published_repair_leaves_the_tree_to_a_live_writer_holding_the_check
         # One reason, not a "repairing it" banner followed by the import's traceback (m3).
         assert "Traceback" not in launch.stderr and "repairing it" not in launch.stderr, launch.stderr
         assert not (root / "kova_bootstrap.py").exists(), "repaired under a live writer"
-        assert (root / ".git/hermes-update-pull").exists()
+        assert (root / ".git/kova-update-pull").exists()
         assert not (tmp_path / "CWD_GIT_RAN").exists()
-        assert (root / ".git/hermes-update-recovery").is_dir(), "closure not rebuilt from git's objects"
+        assert (root / ".git/kova-update-recovery").is_dir(), "closure not rebuilt from git's objects"
     finally:
         holder.kill()
         holder.wait()
@@ -169,7 +169,7 @@ def test_a_damaged_published_closure_is_rebuilt_from_git_objects_not_trusted(tmp
     """A power loss can leave the published closure with bytes git never had: they never run, and the
     launch rebuilds the closure from ``pre``'s objects before repairing (M1)."""
     root, env, original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py")
-    (closure,) = (root / ".git/hermes-update-recovery").iterdir()
+    (closure,) = (root / ".git/kova-update-recovery").iterdir()
     module = closure / "kova_cli/_early_recovery.py"
     module.write_bytes(b"" if damage == "truncated" else
                        module.read_bytes() + b"\nprint('NOT_PRE_CODE_RAN', file=__import__('sys').stderr)\n")
@@ -178,7 +178,7 @@ def test_a_damaged_published_closure_is_rebuilt_from_git_objects_not_trusted(tmp
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
     assert "NOT_PRE_CODE_RAN" not in launch.stderr, launch.stderr
     assert (root / "kova_bootstrap.py").read_bytes() == original
-    assert not (root / ".git/hermes-update-pull").exists()
+    assert not (root / ".git/kova-update-pull").exists()
 
 
 @pytest.mark.platforms("posix")
@@ -188,7 +188,7 @@ def test_git_object_bytes_that_do_not_hash_to_pres_blob_never_run(tmp_path, corr
     never run and nothing is published; the marker stays for a later launch or update (N02)."""
     ran = tmp_path / "FOREIGN_RAN"
     root, env, _original, launcher = _killed_mid_write(tmp_path, "kova_bootstrap.py")
-    (closure,) = (root / ".git/hermes-update-recovery").iterdir()  # named for ``pre``
+    (closure,) = (root / ".git/kova-update-recovery").iterdir()  # named for ``pre``
     shutil.rmtree(closure.parent)
     if corrupt:
         oid = subprocess.check_output(["git", "-C", str(root), "rev-parse", f"{closure.name}:kova_cli/_early_recovery.py"],
@@ -202,8 +202,8 @@ def test_git_object_bytes_that_do_not_hash_to_pres_blob_never_run(tmp_path, corr
     assert not ran.exists(), launch.stderr
     assert (launch.returncode == 0) is not corrupt, launch.stderr
     assert (root / "kova_bootstrap.py").exists() is not corrupt
-    assert (root / ".git/hermes-update-pull").exists() is corrupt
-    assert not (corrupt and (root / ".git/hermes-update-recovery").exists()), "published foreign bytes"
+    assert (root / ".git/kova-update-pull").exists() is corrupt
+    assert not (corrupt and (root / ".git/kova-update-recovery").exists()), "published foreign bytes"
 
 
 @pytest.mark.platforms("posix")
@@ -219,7 +219,7 @@ def test_a_stdlib_named_file_in_the_tree_never_runs_before_the_repair(tmp_path, 
     assert not ran.exists(), launch.stderr
     assert launch.returncode == 0 and "APP_REACHED" in launch.stdout, launch.stderr
     assert (root / "kova_bootstrap.py").read_bytes() == original
-    assert not (root / ".git/hermes-update-pull").exists()
+    assert not (root / ".git/kova-update-pull").exists()
 
 
 def test_the_closure_is_pres_committed_bytes_read_in_one_cat_file_spawn(tmp_path, monkeypatch):

@@ -47,7 +47,7 @@ def test_oauth_stops_at_pm_restart_boundary(command, monkeypatch, tmp_path, caps
 
 
 @pytest.mark.parametrize("command", ["--install-deps", "--auth-url"])
-def test_standalone_without_hermes_reports_setup_not_ambient_installs(command, tmp_path):
+def test_standalone_without_kova_reports_setup_not_ambient_installs(command, tmp_path):
     # -I -S excludes both the checkout and installed site packages, just as a
     # copied skill run with an unrelated interpreter has no Kova PM module.
     (tmp_path / "google_client_secret.json").write_text("{}")
@@ -61,6 +61,6 @@ def test_standalone_without_hermes_reports_setup_not_ambient_installs(command, t
     )
     assert result.returncode == 1
     assert "Kova environment" in result.stdout
-    assert "hermes setup" in result.stdout
+    assert "kova setup" in result.stdout
     assert "pip" not in result.stdout + result.stderr
     assert "Traceback" not in result.stderr

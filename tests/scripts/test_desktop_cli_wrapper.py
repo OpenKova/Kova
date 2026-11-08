@@ -42,7 +42,7 @@ def _load(env=None):
 
 def test_launcher_dir_resolves_from_argv0(tmp_path):
     ns = _load()
-    argv0 = tmp_path / "bin" / "hermes.exe"
+    argv0 = tmp_path / "bin" / "kova.exe"
     assert ns["launcher_dir"](str(argv0)) == str(tmp_path / "bin")
 
 
@@ -135,7 +135,7 @@ def test_configure_defaults_pycache_prefix_to_localappdata(tmp_path, monkeypatch
     original = sys.pycache_prefix
     try:
         ns["configure"](str(tmp_path), environ=environ)
-        expected = os.path.join(str(tmp_path / "lad"), "hermes", "pycache")
+        expected = os.path.join(str(tmp_path / "lad"), "kova", "pycache")
         assert environ["PYTHONPYCACHEPREFIX"] == expected
         # The env var alone cannot retro-activate; sys.pycache_prefix is
         # the live switch (the rust shim set it on the CHILD's environment).
@@ -146,14 +146,14 @@ def test_configure_defaults_pycache_prefix_to_localappdata(tmp_path, monkeypatch
 
 @pytest.mark.platforms("posix")
 def test_configure_defaults_pycache_prefix_to_home_cache(tmp_path, monkeypatch):
-    """POSIX counterpart of the LOCALAPPDATA default: ~/.cache/hermes-pycache
+    """POSIX counterpart of the LOCALAPPDATA default: ~/.cache/kova-pycache
     (same configure() contract, per the wrapper's own platform split)."""
     ns = _load()
     environ = {"HOME": str(tmp_path / "home")}
     original = sys.pycache_prefix
     try:
         ns["configure"](str(tmp_path), environ=environ)
-        expected = os.path.join(str(tmp_path / "home"), ".cache", "hermes-pycache")
+        expected = os.path.join(str(tmp_path / "home"), ".cache", "kova-pycache")
         assert environ["PYTHONPYCACHEPREFIX"] == expected
         assert str(sys.pycache_prefix) == expected
     finally:
@@ -200,7 +200,7 @@ def _render(tmp_path: Path) -> Path:
         text = text.replace(placeholder, value)
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
-    out = bin_dir / "hermes.exe"
+    out = bin_dir / "kova.exe"
     out.write_text(text, encoding="utf-8")
     return out
 
@@ -220,7 +220,7 @@ def test_rendered_wrapper_dispatches_to_the_entry_module(tmp_path):
         "import sys\n"
         "assert sys.modules['kova_bootstrap'].READY\n"
         "def main():\n"
-        "    assert sys.argv[0].endswith('hermes.exe'), sys.argv[0]\n"
+        "    assert sys.argv[0].endswith('kova.exe'), sys.argv[0]\n"
         "    assert sys.argv[1:] == ['--version']\n"
         "    import stubdep  # importable only via the venv site-packages entry\n"
         "    return 7\n"

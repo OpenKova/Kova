@@ -125,7 +125,7 @@ export function canRelaunch(
     const reason = executableError(file)
 
     if (reason) {
-      console.error(`[hermes] cannot start ${file} (${reason}); ${instead}`)
+      console.error(`[kova] cannot start ${file} (${reason}); ${instead}`)
 
       return false
     }
@@ -239,7 +239,7 @@ export function spawnRelaunch(
 
   if (shell.fallback) {
     console.warn(
-      `[hermes] relaunching through /bin/sh (${shell.fallback}); file descriptors above 9 may stay open in the new process`
+      `[kova] relaunching through /bin/sh (${shell.fallback}); file descriptors above 9 may stay open in the new process`
     )
   }
 
@@ -258,7 +258,7 @@ export function spawnRelaunch(
     env: childEnv
   })
 
-  child.on('error', error => console.error(`[hermes] relaunching ${target} failed: ${error.message}`))
+  child.on('error', error => console.error(`[kova] relaunching ${target} failed: ${error.message}`))
   child.unref()
 
   return child

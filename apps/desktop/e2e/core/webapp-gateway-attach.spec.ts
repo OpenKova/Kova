@@ -37,7 +37,7 @@ import {
   currentSessionId,
   DESKTOP_ROOT,
   freePort,
-  hermesCli,
+  kovaCli,
   launchCoreApp,
   recordWebSockets,
   REPO_ROOT,
@@ -73,8 +73,8 @@ function alive(pid: number): boolean {
 }
 
 /** `kova webapp <args>` in the sandbox. */
-function hermesWebapp(sandbox: CoreSandbox, ...args: string[]): { code: number | null; output: string } {
-  return hermesCli(sandbox, ['webapp', ...args])
+function kovaWebapp(sandbox: CoreSandbox, ...args: string[]): { code: number | null; output: string } {
+  return kovaCli(sandbox, ['webapp', ...args])
 }
 
 function admissionPrincipals(sandbox: CoreSandbox, sessionId: string): string[] {
@@ -120,7 +120,7 @@ test('the gateway serves the Webapp and runs every turn its browser sends', asyn
     await page.goto(link)
     await expect(composer(page)).toBeVisible({ timeout: 180_000 })
     expect(page.url()).not.toContain('ticket=')
-    expect(page.url()).not.toContain('hermes-session=')
+    expect(page.url()).not.toContain('kova-session=')
     await installDuplicateSampler(page)
 
     // The browser's socket is the gateway's own, on the Webapp's origin.
@@ -188,7 +188,7 @@ test('the gateway serves the Webapp and runs every turn its browser sends', asyn
     expect(replacement.pid).not.toBe(gateway.pid)
 
     // Signing out replaces the browser credential: the tab loses access.
-    const signedOut = hermesWebapp(sandbox, '--sign-out')
+    const signedOut = kovaWebapp(sandbox, '--sign-out')
     expect(signedOut.code, signedOut.output).toBe(0)
     await page.reload()
     await expect(composer(page)).toBeHidden({ timeout: 60_000 })
@@ -467,12 +467,12 @@ test('signing out of a Webapp behind sign-in signs the browser out', async () =>
   const secret = python(sandbox, 'import secrets; print(secrets.token_hex(32))')
   fs.appendFileSync(
     path.join(sandbox.kovaHome, 'config.yaml'),
-    signInGateYaml(port, `http://hermes-webapp.test:${port}`, 'owner', hash, secret)
+    signInGateYaml(port, `http://kova-webapp.test:${port}`, 'owner', hash, secret)
   )
   let browser: Browser | null = null
 
   try {
-    const started = hermesWebapp(sandbox, '--no-open', '--skip-build')
+    const started = kovaWebapp(sandbox, '--no-open', '--skip-build')
     expect(started.code, started.output).toBe(0)
     expect(started.output).toContain('sign in with your dashboard account')
     browser = await chromium.launch({ executablePath: process.env.KOVA_E2E_CHROMIUM || undefined })
@@ -493,7 +493,7 @@ test('signing out of a Webapp behind sign-in signs the browser out', async () =>
       .toBe(true)
 
     const open = ws.sockets.filter(socket => !socket.closed)
-    const signedOut = hermesWebapp(sandbox, '--sign-out')
+    const signedOut = kovaWebapp(sandbox, '--sign-out')
     expect(signedOut.code, signedOut.output).toBe(0)
     await expect
       .poll(() => open.every(socket => socket.closed), { timeout: 30_000, message: "sign-out closed the tab's socket" })

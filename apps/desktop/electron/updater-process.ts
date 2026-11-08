@@ -82,7 +82,7 @@ export async function resolveInstallationLauncherAsync(
 }
 
 function stagedInstallationLauncher(updateRoot: string, isWindows: boolean): string | null {
-  const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
+  const names: string[] = isWindows ? ['kova.exe', 'kova.cmd'] : ['kova']
 
   return names.map(name => path.join(updateRoot, '.kova', 'bin', name)).find(stagedFileExists) ?? null
 }
@@ -103,7 +103,7 @@ function legacyInstallationLauncher(updateRoot: string, isWindows: boolean): str
     return null
   }
 
-  const legacy: string = path.join(updateRoot, 'venv', isWindows ? 'Scripts' : 'bin', isWindows ? 'hermes.exe' : 'hermes')
+  const legacy: string = path.join(updateRoot, 'venv', isWindows ? 'Scripts' : 'bin', isWindows ? 'kova.exe' : 'kova')
 
   return stagedFileExists(legacy) ? legacy : null
 }
@@ -122,7 +122,7 @@ const CMD_UNSAFE_PATH: RegExp = /["%&|<>^\r\n]/
 
 /** Published user-bin launchers, at fixed locations: a GUI launch's PATH may omit them. */
 function userBinLaunchers(isWindows: boolean, kovaHome: string, extraDirs: string[] = []): string[] {
-  const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
+  const names: string[] = isWindows ? ['kova.exe', 'kova.cmd'] : ['kova']
   const defaultHome: string = platformDefaultKovaHome(os.homedir(), process.env, isWindows ? 'win32' : 'linux')
 
   const dirs: string[] = isWindows
@@ -136,7 +136,7 @@ function userBinLaunchers(isWindows: boolean, kovaHome: string, extraDirs: strin
 
 /**
  * A source install outside the canonical root (install.sh --dir, a
- * setup-hermes.sh clone) is reachable only through the user-bin launcher it
+ * setup-kova.sh clone) is reachable only through the user-bin launcher it
  * published. Return the install directory that launcher reports, when it is a
  * Kova source tree; the caller still resolves and probes it by root.
  */
@@ -167,7 +167,7 @@ export function launcherTargetsInstallation(launcher: string, root: string): boo
 
 // A launcher's install directory cannot move while this process lives, and the
 // backend resolver runs once per surface (startup, TUI resume, pool backends, and
-// every tick of reensureDuringRestart), so the KOVA_DESKTOP_HERMES rung memoizes
+// every tick of reensureDuringRestart), so the KOVA_DESKTOP_KOVA_CLI rung memoizes
 // each launcher's root. The probe is async: `--version` may take seconds (it also
 // runs the passive update check) and must never stall Electron's main thread.
 // Concurrent resolves share one in-flight probe. A miss (no `Install directory:`
@@ -314,7 +314,7 @@ export interface UpdateScriptHandoff {
 /**
  * Repo-owned Windows update hand-off (frozen-binary escape hatch).
  *
- * The staged Tauri `hermes-setup.exe` has no self-update path, so every
+ * The staged Tauri `kova-setup.exe` has no self-update path, so every
  * updater-side fix only reaches users when a new binary is built, signed and
  * published — which historically lags main by months and strands users on
  * long-fixed bugs (cache resolver #67369, marker self-adopt #74782; the
@@ -541,7 +541,7 @@ function stagedFileMtimeMs(candidate: string): number | null {
  * Decide which staged installer binary — if any — may be handed an update.
  *
  * The Tauri installer self-copies into KOVA_HOME on *every* platform
- * (`hermes-setup.exe` on Windows, `hermes-setup` elsewhere — see
+ * (`kova-setup.exe` on Windows, `kova-setup` elsewhere — see
  * apps/bootstrap-installer `paths::installer_dest` and
  * `bootstrap::copy_self_to_kova_home`), so finding that binary on macOS or
  * Linux is expected, not leftover junk.
@@ -571,7 +571,7 @@ export function resolveStagedUpdaterBinary(
   }
 
   const fileExists = deps.fileExists ?? stagedFileExists
-  const candidate = path.join(kovaHome, 'hermes-setup.exe')
+  const candidate = path.join(kovaHome, 'kova-setup.exe')
 
   return fileExists(candidate) ? candidate : null
 }

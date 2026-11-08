@@ -14,7 +14,7 @@ Two discovery paths, because the status file's name embeds the shim's pid:
 - Marker fallback: an OLD shim (pre-env-var checkout, i.e. every old→new
   update) never exports the path, but it writes the marker whose first line
   is its own pid, and its status file is deterministic:
-  ``${TMPDIR:-/tmp}/hermes-update-status.<pid>``.
+  ``${TMPDIR:-/tmp}/kova-update-status.<pid>``.
 
 Stdlib-only (importable under ``-I -S -B``) and never raises: a missing/
 stale/unwritable file means no UI, which is exactly the pre-shim behavior —
@@ -65,7 +65,7 @@ def _status_from_marker() -> Path | None:
     if pid <= 0:
         return None
     # The shim writes beside ${TMPDIR:-/tmp}; gettempdir() resolves the same way.
-    candidate = Path(tempfile.gettempdir()) / f"hermes-update-status.{pid}"
+    candidate = Path(tempfile.gettempdir()) / f"kova-update-status.{pid}"
     return candidate if candidate.is_file() else None
 
 

@@ -47,7 +47,7 @@ def run_env(monkeypatch, tmp_path):
     target resolution are real. Only the outbound platform sender is replaced.
     Tests drain explicitly so queue admission cannot masquerade as delivery.
     """
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     (home / "config.yaml").write_text(
         "platforms:\n  slack:\n    enabled: true\n    token: xoxb-test\n"

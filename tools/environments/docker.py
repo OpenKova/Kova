@@ -37,7 +37,7 @@ from tools.environments.docker_ownership import (
     hand_back_sandbox_files, reclaim_sandbox_files, strip_sandbox_privileges)
 from tools.environments.path_utils import sanitize_task_id_for_path
 from tools.environments.remote_common import (
-    bash_argv, client_env_with, load_hermes_env_vars, prepend_unset, resolve_passthrough_env, run_capture)
+    bash_argv, client_env_with, load_kova_env_vars, prepend_unset, resolve_passthrough_env, run_capture)
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +49,11 @@ _DOCKER_SEARCH_PATHS = [
 
 _docker_executable: Optional[str] = None  # resolved once, cached
 _ENV_VAR_NAME_RE = _SHELL_ENV_NAME_RE
-_ENVIRONMENT_LABEL_KEY = "hermes-environment"
+_ENVIRONMENT_LABEL_KEY = "kova-environment"
 # Stamped at create time on per-workspace persistent containers (task key ``<base>:ws:<digest>``)
 # with the digest as its value. The orphan reaper reads it to spare a container the idle reaper
-# stopped on purpose; ``hermes-task-id`` cannot serve, it is truncated to 63 chars.
-_WORKSPACE_LABEL_KEY = "hermes-workspace"
+# stopped on purpose; ``kova-task-id`` cannot serve, it is truncated to 63 chars.
+_WORKSPACE_LABEL_KEY = "kova-workspace"
 _WORKSPACE_TASK_RE = re.compile(r":ws:([0-9a-f]{16})$")
 
 
@@ -93,8 +93,8 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
     return normalized
 
 
-# Module-level binding: tests patch ``docker._load_hermes_env_vars`` to fake the .env file.
-_load_hermes_env_vars = load_hermes_env_vars
+# Module-level binding: tests patch ``docker._load_kova_env_vars`` to fake the .env file.
+_load_kova_env_vars = load_kova_env_vars
 
 
 # Docker label values must match [a-zA-Z0-9_.-] and stay <=63 chars to round-trip
@@ -181,7 +181,7 @@ def _reuse_environment_fingerprint(*, image: str, mount_args: list[str], kova_ho
 def reap_orphan_containers(
     *, max_age_seconds: int = 600, profile_filter: str | None = None, docker_exe: str | None = None,
 ) -> int:
-    """Remove stale hermes-tagged containers left behind by prior processes (SIGKILL/OOM
+    """Remove stale kova-tagged containers left behind by prior processes (SIGKILL/OOM
     exits that bypass atexit). Only ``status=exited`` containers (running ones may belong
     to a sibling process), only the caller's profile, and only if ``FinishedAt`` is older
     than *max_age_seconds* (a just-exited sibling may be about to reuse its container).
@@ -190,7 +190,7 @@ def reap_orphan_containers(
     docker = docker_exe or find_docker() or "docker"
     filters = ["--filter", "label=kova-agent=1", "--filter", "status=exited"]
     if profile_filter:
-        filters.extend(["--filter", f"label=hermes-profile={_sanitize_label_value(profile_filter)}"])
+        filters.extend(["--filter", f"label=kova-profile={_sanitize_label_value(profile_filter)}"])
 
     listing = _docker_query(
         [docker, "ps", "-a", *filters, "--format", "{{.ID}}"], timeout=15,
@@ -228,9 +228,9 @@ def reap_orphan_containers(
 
 def _is_idle_workspace_container(docker_exe: str, container_id: str) -> bool:
     """A persistent per-workspace container (task key ``<base>:ws:<digest>``, stamped with the
-    ``hermes-workspace=<digest>`` label at create time) that the idle reaper STOPPED on purpose
+    ``kova-workspace=<digest>`` label at create time) that the idle reaper STOPPED on purpose
     (``DockerEnvironment.stop_idle``): it is that workspace's sandbox, restarted on next use, not an
-    orphan. Reads the dedicated label, never the 63-char-truncated ``hermes-task-id``, whose
+    orphan. Reads the dedicated label, never the 63-char-truncated ``kova-task-id``, whose
     ``_ws_<digest>`` suffix a long profile name cuts. Unknown (inspect failed) reads as not one."""
     result = _docker_query(
         [docker_exe, "inspect", "--format", f'{{{{index .Config.Labels "{_WORKSPACE_LABEL_KEY}"}}}}', container_id],
@@ -335,7 +335,7 @@ _BASE_SECURITY_ARGS = [
 
 # Fork-bomb guard, applied only when the pids cgroup controller is available. The pids cgroup counts
 # THREADS, and a sandbox that hosts the Bot Screen runs a desktop in here: measured on
-# hermes-sandbox:desktop, the idle container is 2 tasks, Xvnc + Xfce + dbus 44, one Chromium with one
+# kova-sandbox:desktop, the idle container is 2 tasks, Xvnc + Xfce + dbus 44, one Chromium with one
 # tab 212, plus the agent's own Chromium with two tabs 488. The old 256 was hit in normal
 # use and every further `docker exec` (browser command, cua-driver, thumbnail, CDP forward) died with
 # runc's "procReady not received". 2048 leaves room for a working browser and is still three orders of
@@ -744,7 +744,7 @@ class DockerEnvironment(BaseEnvironment):
             + egress_host_args + volume_args + env_args + validated_extra)
         logger.info("Docker run_args: %s", all_run_args)
 
-        # Labels identify hermes containers to the orphan reaper (kova-agent=1),
+        # Labels identify kova containers to the orphan reaper (kova-agent=1),
         # cross-process reuse (task-id/profile) and operators. The reuse identity
         # is captured at start and never changes for the container's lifetime.
         # Egress posture gets its own label: env/CA mounts are immutable after
@@ -753,8 +753,8 @@ class DockerEnvironment(BaseEnvironment):
         task_label = _sanitize_label_value(task_id)
         self._labels = {
             "kova-agent": "1",
-            "hermes-task-id": task_label,
-            "hermes-profile": profile_name,
+            "kova-task-id": task_label,
+            "kova-profile": profile_name,
             _EGRESS_LABEL_KEY: egress_label}
         if workspace := _WORKSPACE_TASK_RE.search(task_id or ""):
             self._labels[_WORKSPACE_LABEL_KEY] = workspace.group(1)
@@ -938,7 +938,7 @@ class DockerEnvironment(BaseEnvironment):
         # A container built from another image. Explicitly configured image (config.yaml /
         # TERMINAL_DOCKER_IMAGE): the user changed it, so the old container is not their sandbox any
         # more — recreate (the image is immutable after creation). Default image: a default flip
-        # (nikolaik base -> hermes-sandbox:desktop) must not replace a sandbox someone has state in;
+        # (nikolaik base -> kova-sandbox:desktop) must not replace a sandbox someone has state in;
         # keep it and let the CLI / Screen pane ask. Same rule Modal (snapshot wins) and Daytona
         # (labeled sandbox wins) already apply.
         actual_image = self._container_image(container_id)
@@ -1040,7 +1040,7 @@ class DockerEnvironment(BaseEnvironment):
         """Start a fresh container and return its id. A failed ``docker run`` (exit 125, timeout
         mid-pull) can leave a "Created" orphan the exited-only reaper never catches, so it is
         removed by name before re-raising."""
-        container_name = f"hermes-{uuid.uuid4().hex[:8]}"
+        container_name = f"kova-{uuid.uuid4().hex[:8]}"
         run_cmd = self._run_command(container_name, cwd)
         logger.debug("Starting container: %s", ' '.join(run_cmd))
         try:
@@ -1086,7 +1086,7 @@ class DockerEnvironment(BaseEnvironment):
 
     def _resolve_passthrough_env(self) -> tuple[dict[str, str], set[str]]:
         """See ``remote_common.resolve_passthrough_env``; explicit docker_forward_env bypasses the blocklist."""
-        return resolve_passthrough_env(self._forward_env, hermes_env_loader=_load_hermes_env_vars)
+        return resolve_passthrough_env(self._forward_env, kova_env_loader=_load_kova_env_vars)
 
     def _build_runtime_env_args_with_unsets(self) -> tuple[list[str], tuple[str, ...], dict[str, str]]:
         """Runtime name-only forwarding args, names absent from scope, and the values
@@ -1140,8 +1140,8 @@ class DockerEnvironment(BaseEnvironment):
         self._container_id = None
 
         existing = self._find_reusable_container(
-            self._labels.get("hermes-task-id", ""),
-            self._labels.get("hermes-profile", ""),
+            self._labels.get("kova-task-id", ""),
+            self._labels.get("kova-profile", ""),
             self._labels.get(_EGRESS_LABEL_KEY, "off"))
         if existing is not None:
             cid, state = existing
@@ -1159,7 +1159,7 @@ class DockerEnvironment(BaseEnvironment):
                 logger.error("Recovery: no saved image name, cannot recreate container")
                 return False
             try:
-                new_name = f"hermes-{uuid.uuid4().hex[:8]}"
+                new_name = f"kova-{uuid.uuid4().hex[:8]}"
                 result = run_capture(
                     self._run_command(new_name, self.cwd), timeout=120, check=True,
                     env=self._docker_client_env(self._run_env_values))
@@ -1251,8 +1251,8 @@ class DockerEnvironment(BaseEnvironment):
         function is Docker-only — podman ps exits 125 on it — so the probe never uses it (#99213)."""
         filters = [
             "--filter", "label=kova-agent=1",
-            "--filter", f"label=hermes-task-id={task_label}",
-            "--filter", f"label=hermes-profile={profile_label}",
+            "--filter", f"label=kova-task-id={task_label}",
+            "--filter", f"label=kova-profile={profile_label}",
             "--filter", f"label={_EGRESS_LABEL_KEY}={egress_label}"]
         if environment_label := self._labels.get(_ENVIRONMENT_LABEL_KEY):
             filters.extend(["--filter", f"label={_ENVIRONMENT_LABEL_KEY}={environment_label}"])
@@ -1360,7 +1360,7 @@ class DockerEnvironment(BaseEnvironment):
 
     def _start_teardown(self, work, log_id: str) -> None:
         """Run *work* on a daemon thread the atexit drain joins."""
-        t = threading.Thread(target=work, daemon=True, name=f"hermes-cleanup-{log_id}")
+        t = threading.Thread(target=work, daemon=True, name=f"kova-cleanup-{log_id}")
         with _TEARDOWN_LOCK:
             _TEARDOWN_THREADS.add(t)
         t.start()

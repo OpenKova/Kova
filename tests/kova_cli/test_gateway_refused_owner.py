@@ -17,7 +17,7 @@ from gateway import runtime_bootstrap_windows as native
 from kova_cli import gateway_runtime as runtime
 from kova_cli.gateway_runtime_cli import ensure_exit_code
 
-# The owner stand-in is a stub ``hermes gateway run`` child that each test reaps itself.
+# The owner stand-in is a stub ``kova gateway run`` child that each test reaps itself.
 pytestmark = pytest.mark.spawns_gateway_lookalike
 
 
@@ -38,8 +38,8 @@ def test_classify_refused_owner(facts, expected):
 
 
 def _gateway_child(tmp_path: Path):
-    """A real live process whose command line is a gateway's (``.../hermes gateway run``)."""
-    entry = tmp_path / "bin" / "hermes"
+    """A real live process whose command line is a gateway's (``.../kova gateway run``)."""
+    entry = tmp_path / "bin" / "kova"
     entry.parent.mkdir(exist_ok=True)
     entry.write_text("import sys\nsys.stdin.read()\n", encoding="utf-8")
     return subprocess.Popen([sys.executable, str(entry), "gateway", "run"], stdin=subprocess.PIPE)
@@ -47,7 +47,7 @@ def _gateway_child(tmp_path: Path):
 
 def _record(home: Path, pid: int, **extra) -> dict:
     from gateway.status import _get_process_start_time
-    return {"pid": pid, "kind": "kova-gateway", "argv": ["hermes", "gateway", "run"],
+    return {"pid": pid, "kind": "kova-gateway", "argv": ["kova", "gateway", "run"],
             "start_time": _get_process_start_time(pid), "kova_home": str(home), **extra}
 
 
@@ -84,7 +84,7 @@ def test_refusal_names_the_elevated_owner_with_its_remedy(monkeypatch, tmp_path,
     home, _ = _refusing_owner(monkeypatch, tmp_path, named, gateway_owner)
     result = runtime._refused(home, windows=True)
     assert result.reason_code == "gateway_elevated"
-    assert result.detail and "administrator" in result.detail and "hermes gateway stop" in result.detail
+    assert result.detail and "administrator" in result.detail and "kova gateway stop" in result.detail
 
 
 def test_unnamed_or_unprobeable_refusal_keeps_authorization(monkeypatch, tmp_path, gateway_owner):

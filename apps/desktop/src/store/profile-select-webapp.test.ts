@@ -37,9 +37,9 @@ const savedDefault = { connectionId: 'local', profile: 'research' }
 const urlProfile = () => new URLSearchParams(window.location.search).get('profile')
 
 beforeEach(async () => {
-  bootstrap.__KOVA_BASE_PATH__ = '/hermes'
+  bootstrap.__KOVA_BASE_PATH__ = '/kova'
   seedWebappSession('served-token')
-  window.history.replaceState(null, '', '/hermes?profile=arrived#/')
+  window.history.replaceState(null, '', '/kova?profile=arrived#/')
   expect(installBrowserDesktopBridge()).toBe(true)
   await window.kovaDesktop.profile.setDefault(savedDefault)
   $activeGatewayProfile.set('arrived')
@@ -49,7 +49,7 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'kovaDesktop')
   delete bootstrap.__KOVA_BASE_PATH__
   clearWebappSession()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   window.localStorage.clear()
   window.history.replaceState(null, '', '/#/')
   vi.clearAllMocks()
@@ -72,7 +72,7 @@ it.each([
   selectProfile('default')
   await vi.waitFor(() => expect(urlProfile()).toBe('default'))
 
-  expect(window.location.pathname).toBe('/hermes')
+  expect(window.location.pathname).toBe('/kova')
   expect(window.location.hash).toBe('#/')
   await expect(window.kovaDesktop.profile.getDefault()).resolves.toEqual(savedDefault)
   expect(defaultChanged).not.toHaveBeenCalled()

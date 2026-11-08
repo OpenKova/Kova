@@ -444,7 +444,7 @@ def _capture_popen(captured):
 
 
 def test_run_prompt_preserves_real_home_when_profile_home_available(monkeypatch, tmp_path):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     (kova_home / "home").mkdir(parents=True)
     real_home = tmp_path / "real-home"
     real_home.mkdir()

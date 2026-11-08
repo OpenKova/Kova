@@ -498,7 +498,7 @@ def _orphaned_desktop_backend_pids(matches: list[tuple[int, str, str]]) -> list[
     The venv-holder guard refuses on the Desktop app's ``serve`` backend by design: while the Desktop is
     open, killing its backend is futile (the app supervises and respawns it within seconds), so the user
     must close the app. But in the GUI-updater handoff path the Desktop has *already exited* — by contract
-    it tree-kills its backends and waits for the venv shim before spawning hermes-setup, and the
+    it tree-kills its backends and waits for the venv shim before spawning kova-setup, and the
     update-in-progress marker parks any relaunched Desktop from spawning a fresh backend (#50238). A
     ``serve`` backend still holding the venv at that point is a straggler whose supervisor is gone: SIGTERM
     raced its spawn, or it belongs to a crashed window. Nothing will respawn it, and refusing on it
@@ -1209,7 +1209,7 @@ def _refresh_windows_gateway_launchers() -> None:
 def _refresh_bootstrap_cache_scripts(branch: str = "main") -> None:
     """Overwrite ``$KOVA_HOME/bootstrap-cache/install-<ref>.{ps1,sh}`` for *branch* from the fresh checkout.
 
-    Old ``hermes-setup.exe`` builds NEVER re-download a cached branch-ref script, so a stale one runs
+    Old ``kova-setup.exe`` builds NEVER re-download a cached branch-ref script, so a stale one runs
     months-old code forever. Guards mirror ``install_script.rs``: only the sanitized *branch* key is rewritten;
     commit-SHA pins (7-40 hex) are immutable and skipped. Best-effort: never fails the update.
 

@@ -20,7 +20,7 @@ test('a remembered profile missing from a reinstalled Kova home boots the defaul
   writeEnvFile(sandbox.kovaHome)
 
   const preferences = path.join(sandbox.userDataDir, 'active-profile.json')
-  const gone = { connectionId: null, profile: 'hermes-contributor' }
+  const gone = { connectionId: null, profile: 'kova-contributor' }
   fs.writeFileSync(preferences, JSON.stringify({ profile: gone.profile, defaultRoute: gone }))
 
   let app: Awaited<ReturnType<typeof launchDesktop>>['app'] | undefined

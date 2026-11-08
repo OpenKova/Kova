@@ -3,7 +3,7 @@
 A user who reaches the gateway's Webapp through a reverse proxy or tunnel sets ``webapp.public_url``.
 On the Webapp listener it engages sign-in even on a loopback bind, it is the one public Host the
 listener accepts, and sign-in and MCP OAuth callbacks are built on it. ``dashboard.public_url``
-describes ``hermes dashboard``: the gateway's Webapp ignores it, and the standalone dashboard keeps
+describes ``kova dashboard``: the gateway's Webapp ignores it, and the standalone dashboard keeps
 reading it as before. The live cases run a real gateway listener in a child process
 (``fixtures/webapp_fallback_peer.py``) with its own ``KOVA_HOME``.
 """
@@ -32,8 +32,8 @@ def test_the_webapp_has_no_public_url_unless_configured(tmp_path):
 @pytest.mark.parametrize(("value", "url"), [
     ("https://webapp.example.net", "https://webapp.example.net"),
     ("https://webapp.example.net/", "https://webapp.example.net"),
-    ("https://webapp.example.net:8443/hermes/", "https://webapp.example.net:8443/hermes"),
-    ("http://hermes.lan:9120", "http://hermes.lan:9120"),
+    ("https://webapp.example.net:8443/kova/", "https://webapp.example.net:8443/kova"),
+    ("http://kova.lan:9120", "http://kova.lan:9120"),
     ("''", ""),
 ])
 def test_the_webapp_reads_its_public_url(tmp_path, value, url):
@@ -113,7 +113,7 @@ def test_the_webapps_public_url_engages_sign_in_on_a_loopback_bind(own_url):
     assert own_url["launch"]["sign_in"] is True
 
 
-def test_hermes_webapp_opens_the_webapps_public_url_to_sign_in(own_url):
+def test_kova_webapp_opens_the_webapps_public_url_to_sign_in(own_url):
     # The sign-in callback is on the public URL, so the browser starts there too; native clients
     # keep the loopback address.
     assert own_url["launch"]["url"] == f"{WEBAPP_URL}/"
@@ -131,7 +131,7 @@ def test_sign_in_callbacks_are_built_on_the_webapps_public_url(own_url):
 
 @pytest.fixture(scope="module")
 def dashboard_url_only(tmp_path_factory):
-    # dashboard.public_url set for `hermes dashboard`, no sign-in provider, a loopback Webapp.
+    # dashboard.public_url set for `kova dashboard`, no sign-in provider, a loopback Webapp.
     spec = {"webapp": {"enabled": True, "port": free_port()}, "dashboard_public_url": DASHBOARD_URL,
             "probe_host": "dash.example.net"}
     return run(tmp_path_factory.mktemp("dashboard-url"), spec)

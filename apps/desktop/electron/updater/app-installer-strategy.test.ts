@@ -21,7 +21,7 @@ function makeDeps(over: Partial<AppInstallerStrategyDeps> = {}): StrategyFixture
     run: async () => ({ code: 0, stdout: '{"available": true}' }),
     channel: 'stable',
     light: false,
-    feedBaseUrl: 'https://updates.example/hermes-desktop',
+    feedBaseUrl: 'https://updates.example/kova-desktop',
     installer: {
       prepare: async () => {
         calls.push('prepare')
@@ -197,7 +197,7 @@ it.each([
       light,
       installer: {
         prepare: async (url: string): Promise<string> => {
-          expect(url).toBe(`https://updates.example/hermes-desktop/${suffix}`)
+          expect(url).toBe(`https://updates.example/kova-desktop/${suffix}`)
 
           return 'update.appinstaller'
         },

@@ -42,18 +42,18 @@ def install_dialect_plugin(tmp_path, monkeypatch):
 
     def _install(name: str, mode: str, *, register: bool) -> None:
         env = f"{name.upper().replace('-', '_')}_API_KEY"
-        plugin_dir = tmp_path / "hermes" / "plugins" / "model-providers" / name
+        plugin_dir = tmp_path / "kova" / "plugins" / "model-providers" / name
         plugin_dir.mkdir(parents=True, exist_ok=True)
         (plugin_dir / "plugin.yaml").write_text(
             f"name: {name}\nkind: model-provider\nversion: 0.0.1\ndescription: dialect fixture\n", encoding="utf-8")
         source = (_PLUGIN_SOURCE.replace("__ENV__", env).replace("__NAME__", name).replace("__MODE__", mode)
                   .replace("__REGISTER__", "yes" if register else "no"))
         (plugin_dir / "__init__.py").write_text(source, encoding="utf-8")
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         monkeypatch.setenv(env, "sk-fixture")
         import providers as _pkg
         _pkg._discovered = False
-        for mod in [m for m in sys.modules if m.startswith("_hermes_user_provider")]:
+        for mod in [m for m in sys.modules if m.startswith("_kova_user_provider")]:
             del sys.modules[mod]
         installed.append((name, mode))
 

@@ -23,7 +23,7 @@ from kova_cli import update_stage
 
 @pytest.fixture
 def status_file(tmp_path):
-    return tmp_path / "hermes-update-status.80335"
+    return tmp_path / "kova-update-status.80335"
 
 
 @pytest.fixture(autouse=True)
@@ -52,7 +52,7 @@ def test_publishes_through_exported_env_var(status_file, monkeypatch):
 def test_marker_fallback_covers_the_old_shim(status_file, tmp_path, monkeypatch):
     """The old→new transition: no env var, but the marker names the shim pid.
 
-    The shim's status file is ${TMPDIR}/hermes-update-status.<shim pid> and
+    The shim's status file is ${TMPDIR}/kova-update-status.<shim pid> and
     the marker's first line IS that pid (update_lock adopts, never rewrites).
     """
     monkeypatch.setenv("KOVA_HOME", str(tmp_path))

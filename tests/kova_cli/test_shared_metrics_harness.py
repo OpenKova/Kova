@@ -98,10 +98,10 @@ def test_command_kind_comes_from_the_first_program_word(command, kind):
     assert kind in contract.TERMINAL_COMMAND_KINDS
 
 
-def test_terminal_outcome_trusts_hermes_flags_not_exit_124():
+def test_terminal_outcome_trusts_kova_flags_not_exit_124():
     assert harness.terminal_outcome({"returncode": 124}) == "nonzero"  # the command's own `exit 124`
     assert harness.terminal_outcome({"returncode": 124, "kova_timed_out": True}) == "timeout"
-    assert harness.terminal_outcome({"returncode": 130, "hermes_interrupted": True}) == "killed"
+    assert harness.terminal_outcome({"returncode": 130, "kova_interrupted": True}) == "killed"
     assert harness.terminal_outcome({"returncode": 137}) == "killed"
     assert harness.terminal_outcome({"returncode": -9}) == "killed"
     assert harness.terminal_outcome({"returncode": 0}) == "ok"
@@ -252,7 +252,7 @@ def test_everything_is_a_no_op_while_disabled(direct_runtime, tmp_path, monkeypa
 def test_v3_schema_accepts_exactly_the_contract_values():
     from kova_cli import observability
 
-    schema = json.loads((Path(observability.__file__).parent / "schemas/hermes.shared_metrics.v4.schema.json").read_text())
+    schema = json.loads((Path(observability.__file__).parent / "schemas/kova.shared_metrics.v4.schema.json").read_text())
     by_name = {d["properties"]["name"]["const"]: d for d in schema["$defs"].values() if "properties" in d}
     for metric in (contract.FILE_EDIT_METRIC, contract.LOOP_GUARD_METRIC, contract.TOOL_RECOVERY_METRIC,
                    contract.TERMINAL_OUTCOME_METRIC, contract.MODEL_REPLY_ISSUE_METRIC):

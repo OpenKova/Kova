@@ -1,6 +1,6 @@
 """Tests for /update live streaming, prompt forwarding, and gateway IPC.
 
-Tests the new --gateway mode for hermes update, including:
+Tests the new --gateway mode for kova update, including:
 - _gateway_prompt() file-based IPC
 - _watch_update_progress() output streaming and prompt detection
 - Message interception for update prompt responses
@@ -87,7 +87,7 @@ class TestGatewayPrompt:
 # ---------------------------------------------------------------------------
 
 class TestUpdateCommandGatewayFlag:
-    """Verify the gateway spawns hermes update --gateway."""
+    """Verify the gateway spawns kova update --gateway."""
 
     @pytest.mark.asyncio
     @pytest.mark.platforms("linux")
@@ -102,7 +102,7 @@ class TestUpdateCommandGatewayFlag:
         (fake_root / "gateway").mkdir()
         (fake_root / "gateway" / "run.py").touch()
         fake_file = str(fake_root / "gateway" / "run.py")
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         mock_popen = MagicMock()
@@ -131,7 +131,7 @@ class TestWatchUpdateProgress:
     async def test_streams_output_to_adapter(self, tmp_path):
         """New output is sent to the adapter periodically."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -179,7 +179,7 @@ class TestWatchUpdateProgress:
     async def test_detects_and_forwards_prompt(self, tmp_path):
         """Detects .update_prompt.json and sends it to the user."""
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {"platform": "telegram", "chat_id": "111", "user_id": "222",
@@ -221,7 +221,7 @@ class TestWatchUpdateProgress:
     @pytest.mark.asyncio
     async def test_prompt_is_recovered_after_watcher_restart(self, tmp_path):
         """A forwarded prompt stays on disk until answered so a new watcher can recover it."""
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         pending = {
@@ -304,7 +304,7 @@ class TestUpdatePromptInterception:
         empty) before falling through to normal command dispatch.
         """
         runner = _make_runner()
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
 
         event = _make_event(text="/new", chat_id="67890")

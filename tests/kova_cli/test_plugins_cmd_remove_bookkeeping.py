@@ -23,7 +23,7 @@ def _write_plugin(root, rel, name, extra=""):
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     (kova_home / "plugins").mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     return kova_home
@@ -57,7 +57,7 @@ def test_remove_forgets_every_config_trace_and_resets_the_memory_provider(home):
 
 def test_remove_clears_the_toolset_of_a_plugin_without_provides_tools(home):
     """``remove`` drops the plugin's toolset from a saved ``platform_toolsets`` list even when
-    plugin.yaml never declared ``provides_tools``; otherwise ``hermes config check`` warns about an
+    plugin.yaml never declared ``provides_tools``; otherwise ``kova config check`` warns about an
     unknown toolset forever."""
     from tools.registry import registry
 
@@ -70,14 +70,14 @@ def test_remove_clears_the_toolset_of_a_plugin_without_provides_tools(home):
         encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({
         "plugins": {"enabled": ["zznodecl"]},
-        "platform_toolsets": {"cli": ["hermes-cli", "zznodecl_ts"], "telegram": ["hermes-telegram"]},
+        "platform_toolsets": {"cli": ["kova-cli", "zznodecl_ts"], "telegram": ["kova-telegram"]},
     }), encoding="utf-8")
     try:
         assert plugins_cmd.dashboard_remove_user_plugin("zznodecl")["ok"] is True
     finally:
         registry.deregister("zznodecl_tool")
 
-    assert _config(home)["platform_toolsets"] == {"cli": ["hermes-cli"], "telegram": ["hermes-telegram"]}
+    assert _config(home)["platform_toolsets"] == {"cli": ["kova-cli"], "telegram": ["kova-telegram"]}
 
 
 def test_remove_of_a_symlink_inside_the_plugins_dir_unlinks_only_the_link(home):

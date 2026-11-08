@@ -41,7 +41,7 @@ def server():
     import tui_gateway.transport
     import kova_constants  # real get_process_kova_home: a mocked one put state.db under the cwd (repo)
     with patch.dict("sys.modules", {
-        "kova_constants": MagicMock(get_kova_home=MagicMock(return_value="/tmp/hermes_test"),
+        "kova_constants": MagicMock(get_kova_home=MagicMock(return_value="/tmp/kova_test"),
                                       get_process_kova_home=kova_constants.get_process_kova_home),
         "kova_cli.env_loader": MagicMock(),
         "kova_cli.banner": MagicMock(),
@@ -1829,7 +1829,7 @@ def test_slow_handlers_run_off_the_reader_thread(slow_method, server, monkeypatc
 
 
 def test_skin_live_switch_end_to_end(server, tmp_path, monkeypatch):
-    """Real config + skin files: activating a skin (as `hermes config set` does)
+    """Real config + skin files: activating a skin (as `kova config set` does)
     makes the per-tool reconcile broadcast skin.changed with the resolved palette.
     Exercises _load_cfg → _skin_sig → resolve_skin → _emit with no mocks in between."""
     from kova_cli import skin_engine
@@ -1852,7 +1852,7 @@ def test_skin_live_switch_end_to_end(server, tmp_path, monkeypatch):
     server._broadcast_skin_if_changed()
     emitted.clear()
 
-    # Activate midnight, as `hermes config set display.skin midnight` would.
+    # Activate midnight, as `kova config set display.skin midnight` would.
     time.sleep(0.01)  # ensure the config mtime moves
     (tmp_path / "config.yaml").write_text("display:\n  skin: midnight\n", encoding="utf-8")
     server._broadcast_skin_if_changed()
@@ -1973,10 +1973,10 @@ def test_approval_that_ends_before_its_settle_hook_attaches_is_still_withdrawn(s
 
 
 def test_peerless_global_broadcast_never_reaches_stdout_in_ws_backend(capture, monkeypatch):
-    """`hermes serve` / dashboard speak JSON-RPC over WS only; Desktop captures their stdout
+    """`kova serve` / dashboard speak JSON-RPC over WS only; Desktop captures their stdout
     into desktop.log. After the last WS client leaves, the change watcher keeps ticking —
     its sessions.changed / setup.ready / session.reclaimed frames must be dropped, not
-    printed (~1100 `[hermes] {"jsonrpc": ...}` lines in desktop.log)."""
+    printed (~1100 `[kova] {"jsonrpc": ...}` lines in desktop.log)."""
     server, buf = capture
     monkeypatch.setattr(server, "_stdio_is_rpc_channel", False, raising=False)
     a = _RecordingTransport()

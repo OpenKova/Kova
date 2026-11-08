@@ -34,7 +34,7 @@ import kova_state_guard
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Probe run in the child: resolve the REAL platform state root (not a
-# hardcoded ~/.kova — that root is %LOCALAPPDATA%\hermes on Windows) and
+# hardcoded ~/.kova — that root is %LOCALAPPDATA%\kova on Windows) and
 # report whether the guard refuses it.
 _CHILD_PROBE = """
 import sys
@@ -146,14 +146,14 @@ class TestPytestProcessRecognition:
     @pytest.mark.parametrize(
         "cmdline",
         [
-            ["hermes", "gateway", "start"],
+            ["kova", "gateway", "start"],
             ["/usr/bin/python", "-m", "kova_cli.main", "sessions", "list"],
             # A path that merely *contains* "pytest" is not a pytest process:
             # tmp paths like /tmp/pytest-of-dev/... show up in real argv.
-            ["hermes", "run", "--file", "/tmp/pytest-of-dev/test0/input.txt"],
+            ["kova", "run", "--file", "/tmp/pytest-of-dev/test0/input.txt"],
             # Naming the test runner is not running it: only the script a
             # Python interpreter runs counts.
-            ["hermes", "chat", "-q", "fix the timeout in scripts/run_tests_parallel.py"],
+            ["kova", "chat", "-q", "fix the timeout in scripts/run_tests_parallel.py"],
             ["nvim", "scripts/run_tests_parallel.py"],
             ["/usr/bin/python", "-m", "kova_cli.main", "chat", "-q", "scripts/run_tests_parallel.py"],
         ],

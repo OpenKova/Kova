@@ -84,10 +84,10 @@ def test_request_rewrite_reaches_authorized_callback_once(relay_turn):
         )
 
     relay.intercepts.register_tool_request(
-        "hermes-test-tool-request", 1, False, rewrite_request
+        "kova-test-tool-request", 1, False, rewrite_request
     )
     relay.intercepts.register_tool_execution(
-        "hermes-test-tool-execution", 1, wrap_execution
+        "kova-test-tool-execution", 1, wrap_execution
     )
     try:
         result, observed_args = relay_tools.execute(
@@ -98,8 +98,8 @@ def test_request_rewrite_reaches_authorized_callback_once(relay_turn):
             metadata={"tool_call_id": "call-1"},
         )
     finally:
-        relay.intercepts.deregister_tool_execution("hermes-test-tool-execution")
-        relay.intercepts.deregister_tool_request("hermes-test-tool-request")
+        relay.intercepts.deregister_tool_execution("kova-test-tool-execution")
+        relay.intercepts.deregister_tool_request("kova-test-tool-request")
 
     assert callback_args == [{"path": "/approved/path"}]
     assert observed_args == {"path": "/approved/path"}

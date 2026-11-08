@@ -16,7 +16,7 @@ Storage layout (single shared store, git objects deduplicated across projects)
     ~/.kova/checkpoints/
         store/                          — single bare-ish git repo
             HEAD, config, objects/      — standard git internals (shared)
-            refs/hermes/<hash16>        — per-project branch tip
+            refs/kova/<hash16>        — per-project branch tip
             indexes/<hash16>            — per-project git index
             projects/<hash16>.json      — {workdir, created_at, last_touch}
             info/exclude                — default excludes (shared)
@@ -85,7 +85,7 @@ def _resolve_checkpoint_base() -> Path:
 
 # Single shared store directory under CHECKPOINT_BASE.
 _STORE_DIRNAME = "store"
-_REFS_PREFIX = "refs/hermes"
+_REFS_PREFIX = "refs/kova"
 # Commit-body line carrying a snapshot's exact take time (listings read only the subject).
 TAKEN_AT_TRAILER = "Kova-Taken-At"
 _INDEXES_DIRNAME = "indexes"
@@ -649,7 +649,7 @@ def _init_store(store: Path, working_dir: str) -> Optional[str]:
     # Use the base dir as the working_dir for config commands — it always
     # exists since we just created the store inside it.
     cfg_wd = str(base)
-    _run_git(["config", "user.email", "hermes@local"], store, cfg_wd)
+    _run_git(["config", "user.email", "kova@local"], store, cfg_wd)
     _run_git(["config", "user.name", "Kova Checkpoint"], store, cfg_wd)
     _run_git(["config", "commit.gpgsign", "false"], store, cfg_wd)
     _run_git(["config", "tag.gpgSign", "false"], store, cfg_wd)
@@ -1768,7 +1768,7 @@ class CheckpointManager:
     @staticmethod
     def _write_oversize_pathspec(paths: list[str]) -> Path:
         """Write NUL-delimited literal excludes suitable for ``git add``."""
-        fd, raw_path = tempfile.mkstemp(prefix="hermes-checkpoint-", suffix=".pathspec")
+        fd, raw_path = tempfile.mkstemp(prefix="kova-checkpoint-", suffix=".pathspec")
         path = Path(raw_path)
         try:
             with os.fdopen(fd, "wb") as handle:

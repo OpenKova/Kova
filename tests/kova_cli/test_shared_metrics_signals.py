@@ -1,4 +1,4 @@
-"""v5 signals: hermes.tool_unavailable.count, hermes.provider_setup.count, hermes.feature_adoption.count."""
+"""v5 signals: kova.tool_unavailable.count, kova.provider_setup.count, kova.feature_adoption.count."""
 
 from __future__ import annotations
 
@@ -104,7 +104,7 @@ def test_counter_rows_map_to_features():
     assert signals.features_for(contract.FEATURE_USED_MARK, {"feature": "bot_mode"}) == ("bot_mode",)
 
 
-def test_hermes_internal_work_never_latches_adoption():
+def test_kova_internal_work_never_latches_adoption():
     from kova_cli.observability.shared_metrics_fields import milestones_for
 
     curator = {"archived_bucket": "0", "created_bucket": "0", "merged_bucket": "0", "patched_bucket": "0",
@@ -138,7 +138,7 @@ def test_days_since_install_bucket(monkeypatch, tmp_path, age_s, bucket):
 
 
 def test_feature_adoption_latches_once_per_install(tmp_path):
-    resource = {"hermes_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
+    resource = {"kova_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
     store = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
     assert store.record_feature_adoption("memory", "same_day", resource) is True
     again = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
@@ -494,7 +494,7 @@ def _settle_disabled() -> None:
     import threading
 
     for thread in threading.enumerate():
-        if thread.name == "hermes-feature-disabled":
+        if thread.name == "kova-feature-disabled":
             thread.join(10)
 
 
@@ -549,7 +549,7 @@ def test_record_config_saved_needs_a_surface_and_collection(marks, monkeypatch):
 
 
 def test_store_counts_feature_disabled_once_per_day(tmp_path):
-    resource = {"hermes_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
+    resource = {"kova_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
     store = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
     dims = {"event": "disabled", "kind": "toolset", "name": "memory", "surface": "cli_tools"}
     assert store.record_counter_once_per_day(contract.FEATURE_DISABLED_METRIC, dims, resource) is True
@@ -581,7 +581,7 @@ def test_migrations_and_env_templates_are_not_user_disables(marks, monkeypatch):
     monkeypatch.setattr(disabled_metrics, "_process_surface", "cli_config")
     config = load_config()
     config.setdefault("memory", {})["memory_enabled"] = False
-    _persist_migration(config)  # e.g. `hermes config migrate` / profile create in the dashboard
+    _persist_migration(config)  # e.g. `kova config migrate` / profile create in the dashboard
     # A ``${VAR}`` template on the raw side vs its expanded value: nothing moved.
     monkeypatch.setenv("MEM_ON", "false")
     (marks.home / "config.yaml").write_text("compression:\n  enabled: ${MEM_ON}\n")

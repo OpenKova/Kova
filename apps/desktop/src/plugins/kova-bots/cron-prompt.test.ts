@@ -17,11 +17,11 @@ import { describe, expect, it } from 'vitest'
 
 import { isLegacyDelegatedRoutine, normalizedProfileName, routineInputError, routinePrompt } from './cron'
 
-/** Run the delegation command under a `hermes` stub that prints its argv, so
+/** Run the delegation command under a `kova` stub that prints its argv, so
  *  the assertion is what the SHELL passed — not what the string looks like. */
 function argvOf(prompt: string): string[] {
   const command = prompt.slice(prompt.indexOf('kova '), prompt.lastIndexOf('\n\nIf the command'))
-  const result = spawnSync('sh', ['-c', `hermes() { printf '%s\\037' "$@"; }\n${command}`], { encoding: 'utf8' })
+  const result = spawnSync('sh', ['-c', `kova() { printf '%s\\037' "$@"; }\n${command}`], { encoding: 'utf8' })
 
   expect(result.status, result.stderr).toBe(0)
 
@@ -37,7 +37,7 @@ describe('direct vs delegated execution', () => {
   it('keeps the delegation wrapper for a different active profile', () => {
     const prompt = routinePrompt('research', 'Digest', 'Summarize findings', 'default')
 
-    expect(prompt).toMatch(/hermes -p 'research' chat/)
+    expect(prompt).toMatch(/kova -p 'research' chat/)
     expect(prompt).toMatch(/\[Scheduled routine\] Summarize findings/)
   })
 

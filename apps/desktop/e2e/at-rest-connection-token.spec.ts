@@ -85,7 +85,7 @@ import { allowErrorBanners, type ElectronApplication, expect, type Page, test } 
  * the identity function over this alphabet, so the raw-bytes needle also
  * covers the URL-encoded form the WS dialer builds (`?token=…`).
  */
-const SENTINEL_TOKEN = 'hermes-e2e-at-rest-sentinel-Zq7Z4hV9nX2pL8sK3tB6wR1yM5jD0fG'
+const SENTINEL_TOKEN = 'kova-e2e-at-rest-sentinel-Zq7Z4hV9nX2pL8sK3tB6wR1yM5jD0fG'
 
 /** Skip absurdly large files during the leak scan (Chromium caches). */
 const MAX_SCAN_BYTES = 16 * 1024 * 1024

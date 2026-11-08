@@ -228,7 +228,7 @@ class TestNoninteractiveGitEnv:
 class _BasicAuthChallenge(http.server.BaseHTTPRequestHandler):
     def _challenge(self):
         self.send_response(401)
-        self.send_header("WWW-Authenticate", 'Basic realm="hermes-test"')
+        self.send_header("WWW-Authenticate", 'Basic realm="kova-test"')
         self.send_header("Content-Length", "0")
         self.end_headers()
 

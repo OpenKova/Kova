@@ -27,7 +27,7 @@ afterEach(() => {
 // itself: a store that read localStorage first kept a stale value, and its
 // next write replaced the host's favourites (#145536 review, finding 1).
 it('no store module evaluates before the machine store hydrated, so its next write keeps the host’s values', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ui-boot-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ui-boot-'))
   dirs.push(dir)
   const file = path.join(dir, 'ui-preferences.json')
   await writeUiPreferences(file, { values: { [FAVORITES]: '["host::A","host::B"]' } })

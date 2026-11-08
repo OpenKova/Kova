@@ -1,6 +1,6 @@
 """The gateway's ``reload-plugins`` verb connects an enabled plugin's MCP servers before it answers.
 
-``hermes plugins install`` (a "y" at Enable-now, or ``--enable``), ``plugins enable`` and the Desktop
+``kova plugins install`` (a "y" at Enable-now, or ``--enable``), ``plugins enable`` and the Desktop
 ask the running gateway to reload plugins, then tell the user the plugin's MCP servers apply "next
 session". The forced re-discovery only registered the server configs; the servers connected on the
 next housekeeping reconcile tick, up to a minute later, so a session started in between had none of
@@ -38,7 +38,7 @@ for line in sys.stdin:
 
 @pytest.fixture
 def gateway_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     plugin = home / "plugins" / "rpprobe"
     plugin.mkdir(parents=True)
     (plugin / "plugin.json").write_text(json.dumps({

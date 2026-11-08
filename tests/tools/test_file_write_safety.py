@@ -770,14 +770,14 @@ class TestProtectedInstructionFiles:
         res = self._write(deep / "CLAUDE.md")
         assert res.get("error") and "BLOCKED" in res["error"]
 
-    def test_project_local_hermes_dir_is_gated(self, tmp_path, approvals):
+    def test_project_local_kova_dir_is_gated(self, tmp_path, approvals):
         proj = tmp_path / "proj" / ".kova"
         proj.mkdir(parents=True)
         approvals["answer"] = "deny"
         res = self._write(proj / "config.yaml")
         assert res.get("error") and "BLOCKED" in res["error"]
 
-    def test_checkout_nested_under_hermes_dir_not_gated(self, tmp_path, approvals):
+    def test_checkout_nested_under_kova_dir_not_gated(self, tmp_path, approvals):
         """A repo living UNDER a .kova dir (e.g. ~/.kova/kova-agent)
         must not have every write gated — only files directly inside a
         .kova dir count as project config."""
@@ -920,7 +920,7 @@ class TestProtectedInstructionFiles:
 
 
 class TestProfileHomeExemptsKovaRoot:
-    """issue #60: under ``hermes -p <name>`` (``KOVA_HOME=<root>/profiles/<name>``)
+    """issue #60: under ``kova -p <name>`` (``KOVA_HOME=<root>/profiles/<name>``)
     the exemption used to cover ONLY the profile dir, so the ROOT's direct files
     (LEDGER.md / MEMORY.md / SOUL.md ...) fell through to the ``.kova`` component
     rule, were read as project-local ``.kova`` config, and — having no approval
@@ -975,7 +975,7 @@ class TestProfileHomeExemptsKovaRoot:
         monkeypatch.delenv("KOVA_HOME", raising=False)
         token = set_kova_home_override(str(profile))
         try:
-            assert os.path.realpath(str(root)) in ft._hermes_exempt_homes()
+            assert os.path.realpath(str(root)) in ft._kova_exempt_homes()
             for name in ("LEDGER.md", "MEMORY.md", "SOUL.md", "AGENTS.md"):
                 assert ft._protected_instruction_reason(str(root / name)) is None, name
             res = self._write(root / "LEDGER.md", "caliber fixed")
@@ -985,7 +985,7 @@ class TestProfileHomeExemptsKovaRoot:
         assert (root / "LEDGER.md").read_text(encoding="utf-8") == "caliber fixed"
         assert approvals["calls"] == []
 
-    def test_only_a_real_hermes_root_is_exempt(self, tmp_path, monkeypatch, approvals):
+    def test_only_a_real_kova_root_is_exempt(self, tmp_path, monkeypatch, approvals):
         """Negatives hold with a named profile active: a checkout's ``.kova/config.yaml`` and
         protected basenames stay gated (fail-closed, unwritten), and a coincidental
         ``.../profiles/<name>`` tree that is NOT a Kova root never exempts its parent."""
@@ -1008,11 +1008,11 @@ class TestProfileHomeExemptsKovaRoot:
         assert not target.exists()
         assert len(approvals["calls"]) == 1
 
-        fake_profile = tmp_path / "not-a-hermes-root" / "profiles" / "worker"
+        fake_profile = tmp_path / "not-a-kova-root" / "profiles" / "worker"
         fake_profile.mkdir(parents=True)
         token = set_kova_home_override(str(fake_profile))
         try:
-            assert ft._hermes_exempt_homes() == (os.path.realpath(str(fake_profile)),)
+            assert ft._kova_exempt_homes() == (os.path.realpath(str(fake_profile)),)
         finally:
             reset_kova_home_override(token)
 
@@ -1067,7 +1067,7 @@ class TestMultiplexProfileWriteGuardsAreProfileScoped:
         a, b = self._profiles(tmp_path)
         tok = set_kova_home_override(str(a))
         try:
-            ft._get_hermes_config_resolved()  # warm the (formerly poisoning) alpha lookup
+            ft._get_kova_config_resolved()  # warm the (formerly poisoning) alpha lookup
         finally:
             reset_kova_home_override(tok)
 

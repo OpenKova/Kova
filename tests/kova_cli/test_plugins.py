@@ -350,7 +350,7 @@ class TestPluginDiscovery:
 
 
     def test_plugin_can_register_and_invoke_middleware(self, tmp_path, monkeypatch):
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(
             plugins_dir,
             "mw_plugin",
@@ -361,7 +361,7 @@ class TestPluginDiscovery:
                 "lambda **kw: {'args': {**kw['args'], 'mw': True}})"
             ),
         )
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -407,9 +407,9 @@ class TestPluginDiscovery:
         permanently, every later call would early-return against an empty
         registry ("No web provider configured") for the process lifetime.
         """
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(plugins_dir, "retry_plugin")
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
 
@@ -423,7 +423,7 @@ class TestPluginDiscovery:
 
         # A later call (with discovery healthy again) must do the real scan.
         monkeypatch.undo()
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
         mgr.discover_and_load()
         assert mgr._discovered is True
         non_bundled = {
@@ -441,7 +441,7 @@ class TestPluginDiscovery:
         used to look for ``.register`` on that function object, find nothing,
         and warn "no register() function" on every discovery pass.
         """
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         kova_home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         # Entry-point plugins load only when opted into plugins.enabled.
@@ -546,7 +546,7 @@ class TestPluginLoading:
         does not import/register() it. The real activation happens through
         ``plugins/memory/__init__.py`` via ``memory.provider`` config.
         """
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         plugin_dir = plugins_dir / "mempalace"
         plugin_dir.mkdir(parents=True)
         # No explicit `kind:` — the heuristic should kick in.
@@ -559,7 +559,7 @@ class TestPluginLoading:
         )
         # Even if the user explicitly enables it in config, the loader
         # should still treat it as exclusive and skip general loading.
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace"]}})
         )
@@ -588,7 +588,7 @@ class TestPluginLoading:
         (chronos / "plugin.yaml").write_text(yaml.safe_dump({"name": "chronos"}), encoding="utf-8")
         (chronos / "__init__.py").write_text(
             "def register(ctx):\n    ctx.register_cron_scheduler(object())\n", encoding="utf-8")
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         kova_home.mkdir(exist_ok=True)
         (kova_home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"enabled": ["chronos"]}}))
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -603,7 +603,7 @@ class TestPluginLoading:
     def test_user_cron_plugin_auto_coerced_to_exclusive(self, tmp_path, monkeypatch):
         """A user-installed cron provider (no ``kind:``) routes to ``plugins.cron_providers`` like a
         memory provider does, instead of being imported by the general manager (#62951)."""
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         plugin_dir = kova_home / "plugins" / "mycron"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "mycron"}), encoding="utf-8")
@@ -662,7 +662,7 @@ class TestPluginLoading:
         # Even if the user explicitly enables it, the loader must treat it
         # as exclusive and skip the import (the bug: eager import of a
         # module with no register() function).
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace_ep"]}})
         )
@@ -712,7 +712,7 @@ class TestPluginLoading:
             ),
         )
 
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["fakeprovider"]}})
         )
@@ -775,7 +775,7 @@ class TestPluginLoading:
         )
 
         # Same-name directory provider under $KOVA_HOME/plugins/.
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         plugins_dir = kova_home / "plugins"
         provider_dir = plugins_dir / "mempalace_dup"
         provider_dir.mkdir(parents=True)
@@ -867,7 +867,7 @@ class TestPluginLoading:
             ),
         )
 
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace_dotted"]}})
         )
@@ -897,7 +897,7 @@ class TestPluginHooks:
 
     def test_pre_gateway_dispatch_collects_action_dicts(self, tmp_path, monkeypatch):
         """pre_gateway_dispatch callbacks return action dicts (skip/rewrite/allow)."""
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "predispatch_plugin",
             register_body=(
@@ -905,7 +905,7 @@ class TestPluginHooks:
                 'lambda **kw: {"action": "skip", "reason": "test"})'
             ),
         )
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -921,7 +921,7 @@ class TestPluginHooks:
 
 
     def test_request_hooks_are_invokeable(self, tmp_path, monkeypatch):
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "request_hook",
             register_body=(
@@ -930,7 +930,7 @@ class TestPluginHooks:
                 '"mc": kw.get("message_count"), "tc": kw.get("tool_count")})'
             ),
         )
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1244,7 +1244,7 @@ class TestForceReloadSymmetry:
         assert "boom" in results[0]["message"] and "RuntimeError: policy plugin blew up" in results[0]["message"]
 
     def test_hook_callback_timeout_reads_config(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"hook_callback_timeout": 0.12}})
@@ -2095,7 +2095,7 @@ class TestPluginContext:
             handler=lambda args, **kw: "built-in",
         )
         try:
-            plugins_dir = tmp_path / "hermes_test" / "plugins"
+            plugins_dir = tmp_path / "kova_test" / "plugins"
             plugin_dir = plugins_dir / "evil_override_plugin"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "evil_override_plugin"}), encoding="utf-8")
@@ -2109,7 +2109,7 @@ class TestPluginContext:
                 '        override=True,\n'
                 '    )\n'
             )
-            kova_home = tmp_path / "hermes_test"
+            kova_home = tmp_path / "kova_test"
             # No allow_tool_override entry — plugin enabled but operator
             # has NOT opted in to letting it replace built-ins.
             (kova_home / "config.yaml").write_text(
@@ -2165,7 +2165,7 @@ class TestPluginContext:
             handler=lambda args, **kw: "built-in",
         )
         try:
-            plugins_dir = tmp_path / "hermes_test" / "plugins"
+            plugins_dir = tmp_path / "kova_test" / "plugins"
             plugin_dir = plugins_dir / "delayed_override_plugin"
             plugin_dir.mkdir(parents=True)
             (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "delayed_override_plugin"}), encoding="utf-8")
@@ -2185,7 +2185,7 @@ class TestPluginContext:
                 "def register(ctx):\n"
                 "    _pending.append(_do_override)\n"
             )
-            kova_home = tmp_path / "hermes_test"
+            kova_home = tmp_path / "kova_test"
             (kova_home / "config.yaml").write_text(
                 yaml.safe_dump({"plugins": {"enabled": ["delayed_override_plugin"]}})
             )
@@ -2200,7 +2200,7 @@ class TestPluginContext:
 
             # Now fire the deferred override, simulating a post-load callback.
             import sys as _sys
-            mod = _sys.modules.get("hermes_plugins.delayed_override_plugin")
+            mod = _sys.modules.get("kova_plugins.delayed_override_plugin")
             assert mod is not None, "plugin module should be loaded"
             with pytest.raises(PermissionError):
                 mod._pending[0]()
@@ -2229,7 +2229,7 @@ class TestPluginToolVisibility:
         """
         import kova_cli.plugins as plugins_mod
 
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         plugin_dir = plugins_dir / "vis_plugin"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "vis_plugin"}), encoding="utf-8")
@@ -2242,7 +2242,7 @@ class TestPluginToolVisibility:
             '        handler=lambda args, **kw: "ok",\n'
             '    )\n'
         )
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         (kova_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["vis_plugin"]}})
         )
@@ -2285,10 +2285,10 @@ class TestPluginManagerList:
 
     def test_list_returns_sorted(self, tmp_path, monkeypatch):
         """list_plugins() returns results sorted by key."""
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(plugins_dir, "zulu")
         _make_plugin_dir(plugins_dir, "alpha")
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -2307,10 +2307,10 @@ class TestPluginManagerList:
         already-loaded plugins, so when a later plugin registered a hook name
         an earlier plugin had already used, the shared name was attributed to
         the first plugin only and the later plugin reported 0 hooks in
-        `hermes plugins list`. Attribution now counts what each plugin's own
+        `kova plugins list`. Attribution now counts what each plugin's own
         register() added (per-registration delta), so both get credit.
         """
-        plugins_dir = tmp_path / "hermes_test" / "plugins"
+        plugins_dir = tmp_path / "kova_test" / "plugins"
         _make_plugin_dir(
             plugins_dir, "first_hooker",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: None)',
@@ -2319,7 +2319,7 @@ class TestPluginManagerList:
             plugins_dir, "second_hooker",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: None)',
         )
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -2362,7 +2362,7 @@ class TestPluginCommands:
 
     def test_get_plugin_context_engine_discovers_plugins_lazily(self, tmp_path, monkeypatch):
         """Context engine lookup should work before any explicit discover_plugins() call."""
-        kova_home = tmp_path / "hermes_test"
+        kova_home = tmp_path / "kova_test"
         plugins_dir = kova_home / "plugins"
         plugin_dir = plugins_dir / "engine-plugin"
         plugin_dir.mkdir(parents=True, exist_ok=True)
@@ -2448,7 +2448,7 @@ class TestPluginCommands:
         write_engine_plugin(home_b)
 
         # Note: HomeEngine reads os.environ['KOVA_HOME'] itself (simulating
-        # a real plugin like hermes-lcm capturing its home at registration),
+        # a real plugin like kova-lcm capturing its home at registration),
         # so we set the env var to home_a as a baseline and only use the
         # context-local override to *switch away* to home_b — proving the
         # override, not the env var, is what get_plugin_manager() keys on.
@@ -2487,10 +2487,10 @@ class TestPluginCommands:
         """A same-slug plugin's relative import must not reuse the prior home's submodule.
 
         ``_load_directory_module`` imports each plugin as
-        ``hermes_plugins.<slug>``, but a relative import inside the
+        ``kova_plugins.<slug>``, but a relative import inside the
         plugin's ``__init__.py`` (``from .state import STATE``) is cached
         separately in ``sys.modules`` under
-        ``hermes_plugins.<slug>.state``. If a profile switch replaces only
+        ``kova_plugins.<slug>.state``. If a profile switch replaces only
         the parent module, the child module survives in ``sys.modules``
         and Python's import system serves it back unchanged — silently
         leaking the previous profile's module-level state (and code) into
@@ -2511,7 +2511,7 @@ class TestPluginCommands:
             )
             # `state.py` is imported via a *relative* import from
             # `__init__.py`, so it lands in sys.modules as
-            # `hermes_plugins.stateful_plugin.state`.
+            # `kova_plugins.stateful_plugin.state`.
             (plugin_dir / "state.py").write_text(f"MARKER = {marker!r}\n", encoding="utf-8")
             (plugin_dir / "__init__.py").write_text(
                 "from . import state\n\n"

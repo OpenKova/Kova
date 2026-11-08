@@ -1,13 +1,13 @@
 """Interrupted-update fleet-restart obligation (#95294 parts 1+2).
 
-A ``hermes update`` killed after git pull advanced HEAD but before the
+A ``kova update`` killed after git pull advanced HEAD but before the
 fleet restart left running gateways on stale code. The next update said
 "Already up to date" and skipped restart. These tests cover:
 
 - ``fleet_restart_pending`` marker written after HEAD advances, cleared
   after a successful (or no-op) fleet restart
 - interrupt between pull and restart leaves the marker
-- next ``hermes update`` with git already up to date still runs the
+- next ``kova update`` with git already up to date still runs the
   pending restart when the marker OR a skewed unfinished latest.json is
   present
 
@@ -21,7 +21,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from kova_cli import main as hermes_main
+from kova_cli import main as kova_main
 from kova_cli import main_web_build
 from kova_cli import main_install_repair
 from kova_cli import update_cmd
@@ -90,7 +90,7 @@ def _make_head_moved_side_effect(pre_sha=PRE_SHA, post_sha=POST_SHA):
 
 def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
     """Isolate machine maintenance while exercising interrupted fleet updates."""
-    monkeypatch.setattr(hermes_main.subprocess, "run", run_side_effect)
+    monkeypatch.setattr(kova_main.subprocess, "run", run_side_effect)
     # The update's git (the commit point's target resolve, the move itself) goes through the custody
     # runner; off Windows it calls subprocess.run, on Windows a job-bound Popen the fake above
     # would miss. Fake the runner itself so the seam holds on every OS.
@@ -98,11 +98,11 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
 
     monkeypatch.setattr(update_custody, "run",
                         lambda argv, *, inherit_lock=False, **kw: run_side_effect(list(argv), **kw))
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(update_cmd, "_prepare_updated_checkout", lambda *a, **k: None)
     (tmp_path / ".git").mkdir()
-    monkeypatch.setattr(hermes_main, "_resolve_update_branch", lambda args: "main")
-    monkeypatch.setattr(hermes_main, "_is_windows", lambda: False)
+    monkeypatch.setattr(kova_main, "_resolve_update_branch", lambda args: "main")
+    monkeypatch.setattr(kova_main, "_is_windows", lambda: False)
     monkeypatch.setattr(main_install_repair, "_is_windows", lambda: False)
     monkeypatch.setattr(
         update_cmd, "_restart_macos_launchd_gateways", lambda *a, **k: None
@@ -111,39 +111,39 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
         update_cmd_fleet, "_restart_macos_launchd_gateways", lambda *a, **k: None
     )
     monkeypatch.setattr(
-        hermes_main,
+        kova_main,
         "_get_origin_url",
         lambda *a, **k: "https://github.com/NeuralStudio/kova-agent.git",
     )
     monkeypatch.setattr(update_cmd, "_is_fork", lambda *a, **k: False)
     monkeypatch.setattr(
-        hermes_main, "_stash_local_changes_if_needed", lambda *a, **k: None
+        kova_main, "_stash_local_changes_if_needed", lambda *a, **k: None
     )
-    monkeypatch.setattr(hermes_main, "_clear_bytecode_cache", lambda *a, **k: 0)
+    monkeypatch.setattr(kova_main, "_clear_bytecode_cache", lambda *a, **k: 0)
     monkeypatch.setattr(
-        hermes_main, "_record_bytecode_fingerprint", lambda *a, **k: None
+        kova_main, "_record_bytecode_fingerprint", lambda *a, **k: None
     )
     monkeypatch.setattr(
         main_web_build, "_record_bytecode_fingerprint", lambda *a, **k: None
     )
-    monkeypatch.setattr(hermes_main, "_run_pre_update_backup", lambda *a, **k: None)
+    monkeypatch.setattr(kova_main, "_run_pre_update_backup", lambda *a, **k: None)
     monkeypatch.setattr(
-        hermes_main, "_pause_windows_gateways_for_update", lambda: None
+        kova_main, "_pause_windows_gateways_for_update", lambda: None
     )
     monkeypatch.setattr(
-        hermes_main, "_resume_windows_gateways_after_update", lambda *a, **k: None
+        kova_main, "_resume_windows_gateways_after_update", lambda *a, **k: None
     )
     # _install_hangup_protection wraps sys.stdout in a mirror stream that
     # survives the test and breaks later capsys captures — no-op it.
     monkeypatch.setattr(
-        hermes_main,
+        kova_main,
         "_install_hangup_protection",
         lambda gateway_mode=False: {
             "prev_stdout": None, "prev_stderr": None,
             "log_file": None, "installed": False,
         },
     )
-    monkeypatch.setattr(hermes_main, "_finalize_update_output", lambda *a, **k: None)
+    monkeypatch.setattr(kova_main, "_finalize_update_output", lambda *a, **k: None)
     # _check_and_apply_config_migration → _run_migrate_config_fresh →
     # _reload_config_modules() force-reloads kova_cli.config via
     # importlib, replacing the module object pytest's capsys + the config
@@ -164,17 +164,17 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
         "kova_cli.version_info.get_version_info",
         lambda *a, **k: SimpleNamespace(),
     )
-    monkeypatch.setattr(update_cmd, "_purge_stale_hermes_modules", lambda: None)
-    monkeypatch.setattr(hermes_main, "_purge_stale_hermes_modules", lambda: None)
+    monkeypatch.setattr(update_cmd, "_purge_stale_kova_modules", lambda: None)
+    monkeypatch.setattr(kova_main, "_purge_stale_kova_modules", lambda: None)
 
-    import kova_cli.gateway as hermes_gateway
+    import kova_cli.gateway as kova_gateway
 
     monkeypatch.setattr(
-        hermes_gateway, "find_gateway_pids", lambda **_kwargs: []
+        kova_gateway, "find_gateway_pids", lambda **_kwargs: []
     )
-    monkeypatch.setattr(hermes_gateway, "supports_systemd_services", lambda: False)
+    monkeypatch.setattr(kova_gateway, "supports_systemd_services", lambda: False)
     monkeypatch.setattr(
-        hermes_gateway, "find_profile_gateway_processes", lambda *a, **k: []
+        kova_gateway, "find_profile_gateway_processes", lambda *a, **k: []
     )
     monkeypatch.setattr(
         "kova_cli.update_receipt.collect_fleet_versions",
@@ -185,7 +185,7 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
         lambda: SimpleNamespace(runtimes=[], to_dict=dict),
     )
     # The restart phase imports discovery fns fresh after
-    # _purge_stale_hermes_modules (the update reloads code in-place), so
+    # _purge_stale_kova_modules (the update reloads code in-place), so
     # module-attr mocks are lost; stub os.kill so the conftest live-system
     # guard never fires on real pids. No gateways are expected, so the
     # post-restart fleet matrix must not demand rows.
@@ -193,7 +193,7 @@ def _patch_update_deps(monkeypatch, tmp_path, run_side_effect):
 
     monkeypatch.setattr(_os_mod, "kill", lambda *a, **k: None)
     monkeypatch.setattr(
-        hermes_main, "_fleet_probe_expected_runtimes", lambda *a, **k: False
+        kova_main, "_fleet_probe_expected_runtimes", lambda *a, **k: False
     )
 
 
@@ -411,7 +411,7 @@ def test_marker_written_after_pull_cleared_after_successful_restart(
 
     monkeypatch.setattr(update_cmd, "_write_fleet_restart_pending_marker", _spy)
 
-    hermes_main.cmd_update(args)
+    kova_main.cmd_update(args)
 
     assert wrote == [True], "marker must exist immediately after HEAD advances"
     assert not update_cmd_fleet._fleet_restart_obligation_armed()
@@ -476,7 +476,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
     )
 
     # Was SystemExit(1): the committed update no longer fails (contract C3).
-    hermes_main.cmd_update(args)
+    kova_main.cmd_update(args)
 
     out = capsys.readouterr().out
     # (1) still warned, unchanged.
@@ -547,7 +547,7 @@ def test_clean_update_defers_desktop_owned_serve_and_clears_marker(
         lambda **_k: [{"pid": 6161, "purpose": "serve", "create_time": 1000.0}],
     )
 
-    hermes_main.cmd_update(args)  # no SystemExit(1)
+    kova_main.cmd_update(args)  # no SystemExit(1)
 
     out = capsys.readouterr().out
     assert "pid 6161" in out and "pre-update code" in out
@@ -571,11 +571,11 @@ def test_interrupt_between_pull_and_restart_leaves_marker(
     def _interrupt(*_a, **_k):
         raise KeyboardInterrupt()
 
-    monkeypatch.setattr(hermes_main, "_clear_bytecode_cache", _interrupt)
+    monkeypatch.setattr(kova_main, "_clear_bytecode_cache", _interrupt)
 
     # Was KeyboardInterrupt: Ctrl-C after the commit point exits 130 as an interrupt, not a failure.
     with pytest.raises(SystemExit) as exc:
-        hermes_main.cmd_update(args)
+        kova_main.cmd_update(args)
 
     assert exc.value.code == 130
     assert update_cmd_fleet._fleet_restart_obligation_armed()
@@ -588,7 +588,7 @@ def test_startup_warn_prints_when_marker_present(capsys):
     update_cmd._warn_pending_fleet_restart_on_startup()
     err = capsys.readouterr().err
     assert "did not restart running gateways" in err
-    assert "hermes gateway restart" in err
+    assert "kova gateway restart" in err
 
 
 def test_startup_warn_silent_when_nothing_pending(capsys):
@@ -763,7 +763,7 @@ def test_startup_warn_kept_without_positive_evidence(monkeypatch, capsys, disk_s
 #
 # A cherry-picked hotfix on top of the pulled SHA moves HEAD without arming a fresh obligation,
 # so an equality gate on ``expected_sha`` could never discharge the old one: every CLI start
-# warned and every no-op ``hermes update`` exited 1 while the gateway verifiably served HEAD.
+# warned and every no-op ``kova update`` exited 1 while the gateway verifiably served HEAD.
 
 
 def _checkout_with_carried_commit(monkeypatch, tmp_path):
@@ -787,7 +787,7 @@ def _checkout_with_carried_commit(monkeypatch, tmp_path):
     git("add", "b")
     git("commit", "-qm", "carried hotfix")
     head = git("rev-parse", "HEAD")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", repo)
     _patch_marker_sha(monkeypatch, head)
     return expected, head
 
@@ -858,7 +858,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
     """#112604 aftermath: the update pulled ``pulled``, restarted every gateway onto it, then a
     post-restart step crashed (receipt ``failed``, empty ``fleet`` matrix). Later a manual
     ``git pull`` moved the checkout again. The startup hint must not blame that update for a
-    restart it performed; ``hermes update``'s catch-up still owes the fleet the checkout."""
+    restart it performed; ``kova update``'s catch-up still owes the fleet the checkout."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
     receipt_dir = get_kova_home() / "logs" / "update_receipts"
@@ -895,7 +895,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
 
 def test_startup_warn_silent_when_completed_update_fleet_restarted_onto_moved_checkout(monkeypatch, capsys):
     """The remedy the warning names must clear it: after a completed update, a manual ``git pull``
-    plus ``hermes gateway restart`` leaves every owed gateway on today's checkout — newer than the
+    plus ``kova gateway restart`` leaves every owed gateway on today's checkout — newer than the
     update's ``post_update.sha`` — which is nothing that update still owes (#113350 steps 3–4)."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
@@ -1001,7 +1001,7 @@ def test_pending_fleet_restart_cleared_instead_of_exit_1(monkeypatch, tmp_path):
 
     monkeypatch.setattr(update_cmd_fleet, "_current_checkout_sha", lambda: "abc123")
 
-    hermes_main.cmd_update(args)
+    kova_main.cmd_update(args)
 
     assert not marker.exists()
 
@@ -1036,7 +1036,7 @@ def _spy_fleet_restart(monkeypatch):
 
 
 def test_up_to_date_update_leaves_current_fleet_alone(monkeypatch, tmp_path, capsys):
-    """Every live gateway already serves the checkout code: `hermes update` (cron, a second
+    """Every live gateway already serves the checkout code: `kova update` (cron, a second
     profile) must not drain and restart the shared multiplexer again, and must still discharge
     the obligation it armed and finish clean."""
     args = _update_args()
@@ -1046,7 +1046,7 @@ def test_up_to_date_update_leaves_current_fleet_alone(monkeypatch, tmp_path, cap
     monkeypatch.setattr("kova_cli.update_receipt.collect_fleet_versions", lambda **k: _current_row("abc123"))
     restarts = _spy_fleet_restart(monkeypatch)
 
-    hermes_main.cmd_update(args)
+    kova_main.cmd_update(args)
 
     assert restarts == []
     assert not update_cmd_fleet._fleet_restart_obligation_armed()
@@ -1071,7 +1071,7 @@ def test_up_to_date_update_still_restarts_a_stale_gateway(monkeypatch, tmp_path)
     restarts = _spy_fleet_restart(monkeypatch)
 
     with pytest.raises(SystemExit) as error:
-        hermes_main.cmd_update(args)
+        kova_main.cmd_update(args)
 
     assert error.value.code == 3
     assert len(restarts) == 1

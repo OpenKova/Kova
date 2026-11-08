@@ -10,8 +10,8 @@ import { listRemoteKovaProfiles, readRemoteInstallId } from './remote-lifecycle'
 import { assertWindowsRemoteInstallUpdateClear, connectWindowsRemote, decodePowerShellCommand, probeWindowsFiles, probeWindowsRemote, windowsHelperOwnsRuntime } from './windows-remote-lifecycle'
 
 const runtime = {
-  os: 'Windows', arch: 'AMD64', kovaHome: 'C:\\Users\\A\\AppData\\Local\\hermes',
-  kovaPath: 'C:\\Users\\A\\AppData\\Local\\hermes\\bin\\hermes.exe',
+  os: 'Windows', arch: 'AMD64', kovaHome: 'C:\\Users\\A\\AppData\\Local\\kova',
+  kovaPath: 'C:\\Users\\A\\AppData\\Local\\kova\\bin\\kova.exe',
   python: 'C:\\Python\\python.exe'
 }
 
@@ -30,7 +30,7 @@ test('platform and marker scripts survive outer-shell parsing as one compressed 
     return calls.length === 1 ? JSON.stringify(runtime) : 'CLEAR'
   } }
 
-  await probeWindowsRemote(ssh, 'C:\\用户\\Kova\\hermes.exe')
+  await probeWindowsRemote(ssh, 'C:\\用户\\Kova\\kova.exe')
   await assertWindowsRemoteInstallUpdateClear(ssh, runtime.kovaHome, runtime.python)
 
   for (const { command, options } of calls) {
@@ -78,7 +78,7 @@ test('a bin launcher does not require a nonexistent sibling Python and resolves 
   const ssh = { exec: async (command: string) => {
     const script = decodePowerShellCommand(command)
 
-    if (script.includes('Get-Command hermes -CommandType Application')) {return JSON.stringify({ ...runtime, python: '', launcherPath: runtime.kovaPath })}
+    if (script.includes('Get-Command kova -CommandType Application')) {return JSON.stringify({ ...runtime, python: '', launcherPath: runtime.kovaPath })}
 
     if (script.includes('.kova-update-in-progress')) {return 'CLEAR'}
 
@@ -97,7 +97,7 @@ test('the complete connect path keeps atomic spawn off argv and delivers the exp
   const ssh = { exec: async (command: string, options: { stdinData?: string } = {}) => {
     const script = decodePowerShellCommand(command) || ''
 
-    if (script.includes('Get-Command hermes -CommandType Application')) {return JSON.stringify(runtime)}
+    if (script.includes('Get-Command kova -CommandType Application')) {return JSON.stringify(runtime)}
 
     if (script.includes("'spawn'")) {
       assert.ok(command.length < 8191, "Connect's atomic spawn command must fit cmd.exe's limit")
@@ -140,9 +140,9 @@ test('Test and Connect share one verdict on a helper too old for a boot-selected
 })
 
 test.runIf(process.platform === 'win32')('the real Windows probe finds a .cmd-only launcher in the Kova home off PATH', async () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-probe-home-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-probe-home-'))
   fs.mkdirSync(path.join(home, 'bin'))
-  fs.writeFileSync(path.join(home, 'bin', 'hermes.cmd'), '@echo off\r\n')
+  fs.writeFileSync(path.join(home, 'bin', 'kova.cmd'), '@echo off\r\n')
   const system = process.env.SystemRoot || 'C:\\Windows'
   const env = { ...process.env, KOVA_HOME: home, PATH: [path.join(system, 'System32'), system, path.join(system, 'System32', 'WindowsPowerShell', 'v1.0')].join(';') }
 
@@ -159,7 +159,7 @@ test.runIf(process.platform === 'win32')('the real Windows probe finds a .cmd-on
 
   try {
     const parsed = await probeWindowsFiles(ssh, '')
-    assert.equal(parsed.kovaPath.toLowerCase(), path.join(home, 'bin', 'hermes.cmd').toLowerCase())
+    assert.equal(parsed.kovaPath.toLowerCase(), path.join(home, 'bin', 'kova.cmd').toLowerCase())
   } finally {
     fs.rmSync(home, { recursive: true, force: true })
   }

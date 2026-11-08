@@ -1440,7 +1440,7 @@ interface DevSandbox {
 /** Create an isolated KOVA_HOME + Electron user-data dir in the OS temp dir. */
 function createDevSandbox(): DevSandbox {
   const root = fs.mkdtempSync(nodePath.join(os.tmpdir(), `hermes-dev-mock-${Date.now()}`))
-  const kovaHome = nodePath.join(root, 'hermes-home')
+  const kovaHome = nodePath.join(root, 'kova-home')
   const userDataDir = nodePath.join(root, 'electron-user-data')
   fs.mkdirSync(kovaHome, { recursive: true })
   fs.mkdirSync(userDataDir, { recursive: true })

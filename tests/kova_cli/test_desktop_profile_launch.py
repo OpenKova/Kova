@@ -1,6 +1,6 @@
-"""hermes desktop forwards an explicit profile into the packaged Electron launch.
+"""kova desktop forwards an explicit profile into the packaged Electron launch.
 
-Electron boots from active-profile.json. ``hermes -p <name> desktop`` used to
+Electron boots from active-profile.json. ``kova -p <name> desktop`` used to
 set only the CLI KOVA_HOME, so the packaged app still started the stored
 profile. A launch with no ``-p`` / ``--profile`` must not invent a flag.
 """
@@ -27,7 +27,7 @@ def _ns(**kwargs):
         source=False,
         fake_boot=False,
         ignore_existing=False,
-        hermes_root=None,
+        kova_root=None,
         cwd=None,
         setup_tcc_identity=False,
         identity=None,
@@ -55,7 +55,7 @@ def _packaged_exe(root: Path) -> Path:
     elif sys.platform == "win32":
         exe = desktop_dir / "release" / "win-unpacked" / "Kova.exe"
     else:
-        exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
+        exe = desktop_dir / "release" / "linux-unpacked" / "kova"
         exe.parent.mkdir(parents=True, exist_ok=True)
         (exe.parent / "chrome-sandbox").write_text("", encoding="utf-8")
     exe.parent.mkdir(parents=True, exist_ok=True)
@@ -70,13 +70,13 @@ def _live_profile(root: Path, name: str) -> None:
 
 
 def _launch_command(tmp_path, monkeypatch, argv: list[str], *, active_profile: str | None = None) -> list[str]:
-    hermes_root = tmp_path / ".kova"
-    hermes_root.mkdir()
+    kova_root = tmp_path / ".kova"
+    kova_root.mkdir()
     if active_profile and active_profile != "default":
-        _live_profile(hermes_root, active_profile)
-        (hermes_root / "active_profile").write_text(active_profile + "\n", encoding="utf-8")
+        _live_profile(kova_root, active_profile)
+        (kova_root / "active_profile").write_text(active_profile + "\n", encoding="utf-8")
     for name in _named_profiles(argv):
-        _live_profile(hermes_root, name)
+        _live_profile(kova_root, name)
 
     project = tmp_path / "kova-agent"
     (project / "apps" / "desktop").mkdir(parents=True)
@@ -120,20 +120,20 @@ def _launch_command(tmp_path, monkeypatch, argv: list[str], *, active_profile: s
 
 
 def test_dash_p_desktop_appends_profile_to_packaged_launch(tmp_path, monkeypatch):
-    launched = _launch_command(tmp_path, monkeypatch, ["hermes", "-p", "desktop", "desktop"])
+    launched = _launch_command(tmp_path, monkeypatch, ["kova", "-p", "desktop", "desktop"])
 
     assert launched[-2:] == ["--profile", "desktop"]
 
 
 def test_profile_equals_spelling_is_forwarded(tmp_path, monkeypatch):
-    launched = _launch_command(tmp_path, monkeypatch, ["hermes", "desktop", "--profile=work"])
+    launched = _launch_command(tmp_path, monkeypatch, ["kova", "desktop", "--profile=work"])
 
     assert launched[-2:] == ["--profile", "work"]
 
 
 def test_missing_flag_does_not_forward_sticky_profile(tmp_path, monkeypatch):
     launched = _launch_command(
-        tmp_path, monkeypatch, ["hermes", "desktop"], active_profile="coder"
+        tmp_path, monkeypatch, ["kova", "desktop"], active_profile="coder"
     )
 
     assert "--profile" not in launched

@@ -31,7 +31,7 @@ def test_dmg_driver_requires_complete_pm_source_install(tmp_path, missing, expec
         (root / "pm/lock.json").write_text("{}", encoding="utf-8")
     if missing != "checkout":
         (root / ".git").mkdir()
-    launcher = root / ".kova/bin/hermes"
+    launcher = root / ".kova/bin/kova"
     if missing not in {"launcher", "legacy"}:
         launcher.parent.mkdir(parents=True)
         launcher.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
@@ -41,7 +41,7 @@ def test_dmg_driver_requires_complete_pm_source_install(tmp_path, missing, expec
     if missing not in {"completion", "historical", "wrong-root-log"}:
         (root / ".kova-bootstrap-complete").write_text("completed", encoding="utf-8")
     # The legacy file must not mask a missing PM publication.
-    legacy = root / "venv/bin/hermes"
+    legacy = root / "venv/bin/kova"
     legacy.parent.mkdir(parents=True)
     legacy.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     legacy.chmod(0o755)

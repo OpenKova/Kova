@@ -1,6 +1,6 @@
 """The plugin docs' Python code blocks import only names on the published plugin API.
 
-``kova_cli/data/plugin_api.json`` is the list ``hermes plugins validate`` enforces; a docs example
+``kova_cli/data/plugin_api.json`` is the list ``kova plugins validate`` enforces; a docs example
 that imports anything else teaches plugin authors an import validate warns on. Blocks that still need
 a seam are named in ``plugin_docs_import_seams.json``, which may only shrink.
 """
@@ -17,7 +17,7 @@ from markdown_it import MarkdownIt
 
 from kova_cli.plugin_validate_private_imports import (
     _core_module_exists,
-    _hermes_packages,
+    _kova_packages,
     _imported,
     _private_target,
     _type_checking_nodes,
@@ -76,7 +76,7 @@ def scan(markdown: str) -> tuple[set[str], list[int]]:
         skipped = _type_checking_nodes(tree)
         for node in ast.walk(tree):
             for module, name in [] if id(node) in skipped else _imported(node):
-                target = _private_target(module, name, _hermes_packages(), set())
+                target = _private_target(module, name, _kova_packages(), set())
                 if target and _core_module_exists(module):
                     found.add(target)
                 elif target and not module.startswith("plugins."):

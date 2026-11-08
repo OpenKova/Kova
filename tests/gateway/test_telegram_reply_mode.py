@@ -256,7 +256,7 @@ class TestDMTopicSyntheticSendRouting:
     ``message_thread_id`` whenever it resolves.
     """
 
-    def test_no_anchor_prefers_hermes_topic_thread_id(self):
+    def test_no_anchor_prefers_kova_topic_thread_id(self):
         """Synthetic send (no anchor) keeps message_thread_id of the topic."""
         metadata = {
             "thread_id": "42",

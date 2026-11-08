@@ -1,12 +1,12 @@
-"""A fresh Windows machine for the PR-time install.ps1 -> ``hermes update`` suite.
+"""A fresh Windows machine for the PR-time install.ps1 -> ``kova update`` suite.
 
 Every file here drives the REAL user entry points on a real Windows runner:
 
 * ``scripts/install.ps1 -NonInteractive`` (this checkout's script, run as a file from a
   directory that is not a project, like a user who downloaded it);
-* the ``hermes.exe`` it publishes in ``%LOCALAPPDATA%\\hermes\\bin`` for every later
+* the ``kova.exe`` it publishes in ``%LOCALAPPDATA%\\kova\\bin`` for every later
   command (``--version``, one-shot turns, ``gateway run/status/stop``, ``update``);
-* ``hermes update --yes`` from HEAD to NEXT, a synthetic child of HEAD.
+* ``kova update --yes`` from HEAD to NEXT, a synthetic child of HEAD.
 
 Only external edges are replaced (tests/install/README.md, "The isolation trick"):
 
@@ -21,8 +21,8 @@ Tool and dependency downloads (uv, the managed Python, wheels, Node) use the net
 exactly like the real installer.
 
 Each machine is a fake user profile: ``USERPROFILE``/``HOME``/``LOCALAPPDATA``/``APPDATA``
-point inside it and ``KOVA_HOME`` is NOT set, so the installer and every ``hermes``
-command resolve the default ``%LOCALAPPDATA%\\hermes`` the way a real user's do. CI
+point inside it and ``KOVA_HOME`` is NOT set, so the installer and every ``kova``
+command resolve the default ``%LOCALAPPDATA%\\kova`` the way a real user's do. CI
 puts the profiles in ``C:\\Users`` itself (``KOVA_E2E_PROFILES_ROOT``): the checkout
 carries 159-character paths, so a profile any deeper than a real one would hit MAX_PATH
 where no user does. The installer also prepends its bin dir to the user PATH in HKCU;
@@ -173,15 +173,15 @@ class Machine:
 
     @property
     def kova_home(self) -> Path:
-        return self.local / "hermes"
+        return self.local / "kova"
 
     @property
     def install_dir(self) -> Path:
         return self.kova_home / "kova-agent"
 
     @property
-    def hermes_exe(self) -> Path:
-        return self.kova_home / "bin" / "hermes.exe"
+    def kova_exe(self) -> Path:
+        return self.kova_home / "bin" / "kova.exe"
 
     @property
     def serve(self) -> Path:
@@ -255,8 +255,8 @@ class Machine:
         blob = harness_git("-C", str(self.serve), "hash-object", "-w", "--no-filters", str(blob_src))
         index = self.root / "next.index"
         env = {"GIT_INDEX_FILE": str(index),
-               "GIT_AUTHOR_NAME": "Kova E2E", "GIT_AUTHOR_EMAIL": "e2e@hermes.invalid",
-               "GIT_COMMITTER_NAME": "Kova E2E", "GIT_COMMITTER_EMAIL": "e2e@hermes.invalid"}
+               "GIT_AUTHOR_NAME": "Kova E2E", "GIT_AUTHOR_EMAIL": "e2e@kova.invalid",
+               "GIT_COMMITTER_NAME": "Kova E2E", "GIT_COMMITTER_EMAIL": "e2e@kova.invalid"}
         harness_git("-C", str(self.serve), "read-tree", self.head, env=env)
         for path in (NEXT_MARKER, f"tests/e2e/{NEXT_MARKER}"):
             harness_git("-C", str(self.serve), "update-index", "--add", "--cacheinfo",
@@ -281,8 +281,8 @@ class Machine:
         blob = harness_git("-C", str(self.serve), "hash-object", "-w", "--no-filters", str(blob_src))
         index = self.root / f"{tag}.index"
         env = {"GIT_INDEX_FILE": str(index),
-               "GIT_AUTHOR_NAME": "Kova E2E", "GIT_AUTHOR_EMAIL": "e2e@hermes.invalid",
-               "GIT_COMMITTER_NAME": "Kova E2E", "GIT_COMMITTER_EMAIL": "e2e@hermes.invalid"}
+               "GIT_AUTHOR_NAME": "Kova E2E", "GIT_AUTHOR_EMAIL": "e2e@kova.invalid",
+               "GIT_COMMITTER_NAME": "Kova E2E", "GIT_COMMITTER_EMAIL": "e2e@kova.invalid"}
         harness_git("-C", str(self.serve), "read-tree", parent, env=env)
         harness_git("-C", str(self.serve), "update-index", "--add", "--cacheinfo",
                     f"100644,{blob},.kova-e2e-{tag}", env=env)
@@ -414,10 +414,10 @@ class Machine:
             assert pin.returncode == 0, f"could not pin the main channel\n{self.evidence()}"
         return run
 
-    def hermes(self, *args: str, label: str | None = None, timeout: float = CMD_TIMEOUT,
+    def kova(self, *args: str, label: str | None = None, timeout: float = CMD_TIMEOUT,
                env_extra: dict[str, str] | None = None, as_user: bool = False) -> Run:
         assert self.kova_exe.is_file(), f"installer published no {self.kova_exe}\n{self.evidence()}"
-        name = label or "hermes-" + "-".join(a.strip("-") for a in args[:2] if a)
+        name = label or "kova-" + "-".join(a.strip("-") for a in args[:2] if a)
         return self._run_logged([str(self.kova_exe), *args], name, timeout=timeout, env_extra=env_extra,
                                 as_user=as_user)
 
@@ -481,7 +481,7 @@ class Machine:
             return {}
 
     def spawn_gateway(self, env_extra: dict[str, str] | None = None, *, as_user: bool = False) -> subprocess.Popen:
-        """``hermes gateway run`` through the published launcher, windowless and detached from
+        """``kova gateway run`` through the published launcher, windowless and detached from
         this console: the shape the Desktop / login item uses to host a gateway.
 
         ``as_user``: under a standard-user token, as a non-elevated login item / Desktop starts it."""
@@ -622,11 +622,11 @@ def new_machine(tmp_root: Path, base_url: str, *, label: str, person: str = "",
                 system_git: bool = False, base_ref: str = "") -> Machine:
     """A staged machine. Its work dir (serve.git, transcripts) lives under
     ``KOVA_E2E_MACHINE_ROOT`` (else ``tmp_root``); its user profile under
-    ``KOVA_E2E_PROFILES_ROOT`` (CI: ``C:\\Users``), named ``[<person> ]hermes-e2e-<id>``."""
+    ``KOVA_E2E_PROFILES_ROOT`` (CI: ``C:\\Users``), named ``[<person> ]kova-e2e-<id>``."""
     sfx = uuid.uuid4().hex[:4]
     base = Path(os.environ.get("KOVA_E2E_MACHINE_ROOT") or tmp_root)
     profiles = os.environ.get("KOVA_E2E_PROFILES_ROOT")
-    name = f"{person} hermes-e2e-{sfx}" if person else f"hermes-e2e-{sfx}"
+    name = f"{person} kova-e2e-{sfx}" if person else f"kova-e2e-{sfx}"
     machine = Machine(root=base / f"{label}-{sfx}", profile_name=name, base_url=base_url,
                       profiles_root=Path(profiles) if profiles else None, system_git=system_git, base_ref=base_ref)
     machine.stage()
@@ -669,7 +669,7 @@ class Journey:
 
 
 def failure_line(run: Run) -> str:
-    """The first line a ``hermes`` command printed as its failure (``✗ ...``), else ``""``."""
+    """The first line a ``kova`` command printed as its failure (``✗ ...``), else ``""``."""
     for line in run.stdout.splitlines():
         if line.strip().startswith("✗"):
             return line.strip()
@@ -696,7 +696,7 @@ class Turn:
 
 
 def one_shot_turn(machine: Machine, srv: Any, label: str, *, as_user: bool = False) -> Turn:
-    """``hermes chat -q ... -Q`` through the published launcher against the loopback provider."""
+    """``kova chat -q ... -Q`` through the published launcher against the loopback provider."""
     from tests.e2e.core.windows._helpers import last_user
     from tests.fakes.fake_llm_provider import Text
 

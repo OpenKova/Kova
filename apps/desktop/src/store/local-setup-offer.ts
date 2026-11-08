@@ -173,10 +173,10 @@ interface LocalSetupDebug {
 
 declare global {
   interface Window {
-    __hermesTips?: LocalSetupDebug
+    __kovaTips?: LocalSetupDebug
   }
 }
 
-window.__hermesTips = {
+window.__kovaTips = {
   state: () => ({ eligibility: $localSetupEligibility.get(), localModelsEnabled: $localModelsEnabled.get() })
 }

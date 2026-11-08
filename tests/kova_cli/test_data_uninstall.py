@@ -13,12 +13,12 @@ from kova_cli import uninstall
 def layout(tmp_path, monkeypatch):
     user = tmp_path / "user"
     user.mkdir()
-    home = user / "hermes-data"
+    home = user / "kova-data"
     source = home / "workspace" / "custom-source"
     store = home / "machine" / "tool-store"
     userdata = user / "desktop-data"
     witnesses = [source / "kova_cli" / "__init__.py", store / "python" / "python.exe",
-                 home / "installs" / "other-install" / "facts.json", home / "bin" / "hermes.cmd",
+                 home / "installs" / "other-install" / "facts.json", home / "bin" / "kova.cmd",
                  home / "profiles" / "sibling" / "config.yaml",
                  home / "cache" / "partials" / ".locks" / "other-profile-transfer"]
     for path in witnesses:

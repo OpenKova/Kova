@@ -238,8 +238,8 @@ class TestSummarizeToolResultOutcome:
     @pytest.mark.parametrize("tool_name, args, payload, expected", [
         ("read_file", {"path": "gone.py", "offset": 1}, {"error": "File not found: gone.py"},
          "[read_file] read gone.py from line 1 (36 chars) FAILED: File not found: gone.py"),
-        ("web_search", {"query": "hermes"}, {"error": "rate limited"},
-         "[web_search] query='hermes' (25 chars result) FAILED: rate limited"),
+        ("web_search", {"query": "kova"}, {"error": "rate limited"},
+         "[web_search] query='kova' (25 chars result) FAILED: rate limited"),
         ("memory", {"action": "add", "target": "a note"}, {"error": "unknown action"},
          "[memory] add on a note FAILED: unknown action"),
         ("text_to_speech", {}, {"error": "no voice available"},
@@ -264,8 +264,8 @@ class TestSummarizeToolResultOutcome:
         assert self._stub(tool_name, args, payload) == expected
 
     @pytest.mark.parametrize("tool_name, args, payload, expected", [
-        ("web_search", {"query": "hermes"}, {"results": [{"title": "hit"}]},
-         "[web_search] query='hermes' (31 chars result)"),
+        ("web_search", {"query": "kova"}, {"results": [{"title": "hit"}]},
+         "[web_search] query='kova' (31 chars result)"),
         ("write_file", {"path": "a.md", "content": "line 1\nline 2"}, {"bytes_written": 13},
          "[write_file] wrote to a.md (2 lines)"),
         ("text_to_speech", {}, {"success": True, "path": "/tmp/out.wav"}, "[text_to_speech] generated audio (41 chars)"),
@@ -1006,8 +1006,8 @@ class TestAuthFailureAborts:
         # env var (#114405 / #78996) and must classify as permanent, not be retried.
         oauth_err = RuntimeError(
             "Provider 'minimax-oauth' is set in config.yaml but no credentials were found. "
-            "Run `hermes auth add minimax-oauth` to sign in, or switch to a different provider "
-            "with `hermes model`."
+            "Run `kova auth add minimax-oauth` to sign in, or switch to a different provider "
+            "with `kova model`."
         )
         assert _is_summary_access_or_quota_error(oauth_err) is True
 
@@ -1055,7 +1055,7 @@ class TestAuthFailureAborts:
         err = RuntimeError(
             "Provider 'opencode-zen' is set in config.yaml but no API key was "
             "found. Set the OPENCODE-ZEN_API_KEY environment variable, or switch "
-            "to a different provider with hermes model."
+            "to a different provider with kova model."
         )
         with patch(
             "agent.context_compressor.get_model_context_length", return_value=100000

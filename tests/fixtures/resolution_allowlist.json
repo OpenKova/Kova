@@ -86,7 +86,7 @@
   },
   {
     "path": "gateway/run.py",
-    "symbol": "_resolve_hermes_bin",
+    "symbol": "_resolve_kova_bin",
     "kind": "bare_which"
   },
   {
@@ -219,7 +219,7 @@
   },
   {
     "path": "kova_cli/kanban_db_dispatch.py",
-    "symbol": "_resolve_hermes_argv",
+    "symbol": "_resolve_kova_argv",
     "kind": "bare_which"
   },
   {
@@ -324,7 +324,7 @@
   },
   {
     "path": "kova_cli/relaunch.py",
-    "symbol": "resolve_hermes_bin",
+    "symbol": "resolve_kova_bin",
     "kind": "bare_which"
   },
   {
@@ -500,7 +500,7 @@
   },
   {
     "path": "tools/environments/local.py",
-    "symbol": "_resolve_hermes_bin_dir",
+    "symbol": "_resolve_kova_bin_dir",
     "kind": "bare_which"
   },
   {

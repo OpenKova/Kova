@@ -29,7 +29,7 @@ pytestmark = pytest.mark.allow_real_home_io
 
 # Must match the root the guard itself computes.  Hardcoding ``~/.kova``
 # silently disarmed every assertion below on Windows, where the real root is
-# ``%LOCALAPPDATA%\hermes``: the paths under test were then *correctly*
+# ``%LOCALAPPDATA%\kova``: the paths under test were then *correctly*
 # classified as non-production, so the guard never raised and the whole
 # TestProductionPathRefused class failed for the wrong reason (#82770).
 REAL_ROOT = kova_state._real_platform_state_root()

@@ -60,7 +60,7 @@ def test_none_board_falls_back_to_kanban_db_env(monkeypatch, tmp_path):
 def test_none_board_falls_back_to_kanban_board_env(monkeypatch, tmp_path):
     """When no board is passed, KOVA_KANBAN_BOARD should resolve normally
     IF the named board exists on disk."""
-    kanban_home = tmp_path / "hermes_test"
+    kanban_home = tmp_path / "kova_test"
     boards_dir = kanban_home / "kanban" / "boards" / "jarvis-os"
     boards_dir.mkdir(parents=True, exist_ok=True)
     (boards_dir / "board.json").write_text('{"name": "Jarvis OS"}', encoding="utf-8")
@@ -106,7 +106,7 @@ def test_workspaces_root_also_honors_explicit_board_over_env(monkeypatch, tmp_pa
 # ---------------------------------------------------------------------------
 # CLI --board boundary (os-reviewer P1 on PR#107195 / t_11c4afd8): a
 # worker-pinned env (KOVA_KANBAN_DB/KOVA_KANBAN_BOARD) must not outrank
-# an explicit `hermes kanban --board B ...` invocation, which resolves via
+# an explicit `kova kanban --board B ...` invocation, which resolves via
 # scoped_current_board() rather than a direct board= call argument. The
 # original fix only prioritized the direct argument; --board went through
 # _board_path(..., board=None) and so still lost to the env pin.
@@ -127,7 +127,7 @@ def test_scoped_current_board_context_trumps_kanban_db_env(monkeypatch, tmp_path
 def test_cli_board_flag_trumps_worker_env_pin_end_to_end(monkeypatch, tmp_path):
     """Real boundary: a worker shell pinned via KOVA_KANBAN_DB/BOARD (the
     exact env every dispatcher-spawned kanban worker runs with) invokes
-    `hermes kanban --board B create ...` through the actual CLI parser.
+    `kova kanban --board B create ...` through the actual CLI parser.
     Only board B's physical database may receive the write; the pinned
     board's database must not also contain the task."""
     import argparse
@@ -148,7 +148,7 @@ def test_cli_board_flag_trumps_worker_env_pin_end_to_end(monkeypatch, tmp_path):
     monkeypatch.setenv("KOVA_KANBAN_DB", str(worker_pinned_db))
     monkeypatch.setenv("KOVA_KANBAN_BOARD", "worker-own-board")
 
-    parser = argparse.ArgumentParser(prog="hermes", add_help=False)
+    parser = argparse.ArgumentParser(prog="kova", add_help=False)
     sub = parser.add_subparsers(dest="command")
     kc.build_parser(sub)
     args = parser.parse_args(["kanban", "--board", "target-board", "create", "cross-board task"])

@@ -7,7 +7,7 @@ from tui_gateway.hosted_room_service import HostedRoomService
 
 
 def test_local_profiles_skips_delete_tombstones_and_dot_dirs(tmp_path: Path):
-    """`hermes profile delete` leaves ``profiles/.deleted/<name>``; neither the tombstone dir, a
+    """`kova profile delete` leaves ``profiles/.deleted/<name>``; neither the tombstone dir, a
     tombstoned profile, nor a marker-less cron shell is a roster member (#106847: ``.deleted``
     failed validate_roster every cycle; #99392: side-effect dirs listed as bots)."""
     from kova_constants import mark_named_profile_deleted

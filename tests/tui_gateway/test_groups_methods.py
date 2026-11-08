@@ -50,7 +50,7 @@ def _create_room():
                     {
                         "member_id": "default",
                         "profile": "default",
-                        "handle": "hermes",
+                        "handle": "kova",
                     },
                     {"member_id": "ops", "profile": "ops", "handle": "ops"},
                 ],
@@ -153,7 +153,7 @@ def test_app_managed_catalog_and_self_advertised_endpoint_are_consistent(
 ):
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
     monkeypatch.setenv("KOVA_DESKTOP", "1")
-    monkeypatch.setenv("KOVA_ROOM_LINK_URL", "https://peer.example.test/hermes")
+    monkeypatch.setenv("KOVA_ROOM_LINK_URL", "https://peer.example.test/kova")
     capability = _result(srv._methods["groups.capabilities"](1, {}))
     invitation = _result(
         srv._methods["groups.peer.invite"](
@@ -171,7 +171,7 @@ def test_app_managed_catalog_and_self_advertised_endpoint_are_consistent(
     assert capability["room_link"]["catalog"] == invitation["catalog"]
     assert capability["room_link"]["endpoint"] == {
         "available": True,
-        "url": "https://peer.example.test/hermes",
+        "url": "https://peer.example.test/kova",
         "transport_security": "tls",
     }
     assert invitation["endpoint"] == capability["room_link"]["endpoint"]
@@ -458,7 +458,7 @@ def test_groups_list_returns_bounded_pages(home):
                     {
                         "member_id": "default",
                         "profile": "default",
-                        "handle": "hermes",
+                        "handle": "kova",
                     },
                     {"member_id": "ops", "profile": "ops", "handle": "ops"},
                 ],
@@ -667,7 +667,7 @@ def test_send_does_not_trust_client_supplied_actor_identity(home):
 
 def test_create_ignores_client_supplied_authority_identity(home):
     members = [
-        {"member_id": "default", "profile": "default", "handle": "hermes"},
+        {"member_id": "default", "profile": "default", "handle": "kova"},
         {"member_id": "ops", "profile": "ops", "handle": "ops"},
     ]
     created = _result(
@@ -697,7 +697,7 @@ def test_legacy_room_adoption_emits_one_lineage_receipt(home):
     from gateway.hosted_rooms import create_room, default_db_path
 
     members = [
-        {"member_id": "default", "profile": "default", "handle": "hermes"},
+        {"member_id": "default", "profile": "default", "handle": "kova"},
         {"member_id": "ops", "profile": "ops", "handle": "ops"},
     ]
     create_room(
@@ -888,7 +888,7 @@ def test_pruned_room_send_and_log_report_expired_history(home, monkeypatch):
     from gateway import hosted_rooms
 
     members = [
-        {"member_id": "default", "profile": "default", "handle": "hermes"},
+        {"member_id": "default", "profile": "default", "handle": "kova"},
         {"member_id": "ops", "profile": "ops", "handle": "ops"},
     ]
     _create_room()

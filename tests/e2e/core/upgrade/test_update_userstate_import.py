@@ -1,6 +1,6 @@
-"""`hermes import` of a broken backup archive must report failure, never "restored".
+"""`kova import` of a broken backup archive must report failure, never "restored".
 
-The archive is made by the real ``hermes backup`` from a populated home, then damaged the ways
+The archive is made by the real ``kova backup`` from a populated home, then damaged the ways
 archives really break (a download cut off half-way, a file that is not a zip at all, one member
 whose bytes rotted, a target directory the importer cannot write). Each import runs as a fresh
 sandboxed CLI over a home that already holds the user's current config; the contract is the
@@ -117,7 +117,7 @@ def test_import_that_skips_members_reports_incomplete(archive):
     hh = Path(env["KOVA_HOME"])
     locked = hh / "skills" / "demo"
     locked.mkdir(parents=True)
-    locked.chmod(0o555)  # left behind root-owned by an earlier `sudo hermes ...`
+    locked.chmod(0o555)  # left behind root-owned by an earlier `sudo kova ...`
     try:
         cp = _cli(root, env, "import", str(good), "--force")
     finally:

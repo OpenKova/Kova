@@ -134,7 +134,7 @@ def test_target_worktree_owns_admission_and_fork_comparison(installation, monkey
     assert status["supported"] is True
     assert status["branch"] == "feature/gui"
     assert status["behind"] == 3
-    assert status["hermesRoot"] == str(linked)
+    assert status["kovaRoot"] == str(linked)
     assert check_for_updates(install_root=root, home=home, cache_path=cache)["supported"] is False
     assert requests == ["/repos/fixture/fork/commits/feature%2Fgui",
                         f"/repos/fixture/fork/compare/{head}...{target}"]
@@ -145,7 +145,7 @@ def test_target_worktree_owns_admission_and_fork_comparison(installation, monkey
 
 def test_bare_git_off_path_reads_through_the_updaters_git(installation, monkeypatch, tmp_path):
     """Desktop passes a bare ``git`` when it found none; a Windows install's only git is PM's
-    store copy, off PATH outside ``hermes update``. The check must read HEAD through that git."""
+    store copy, off PATH outside ``kova update``. The check must read HEAD through that git."""
     import shutil
 
     from kova_cli import update_pause_record
@@ -659,7 +659,7 @@ def test_stable_release_the_updater_refuses_is_held_not_offered(
 
 @pytest.mark.parametrize("ledgered", [True, False])
 def test_an_unfetched_release_is_judged_from_github(installation, tmp_path, monkeypatch, ledgered):
-    """The usual install tracks only ``main``, so a release cut beside it is absent until `hermes
+    """The usual install tracks only ``main``, so a release cut beside it is absent until `kova
     update` fetches it, and a local probe proves nothing. The check reads the release's state modules
     from GitHub instead, so it still holds what the update would refuse (#140215 review)."""
     from kova_cli.source_check import check_for_updates

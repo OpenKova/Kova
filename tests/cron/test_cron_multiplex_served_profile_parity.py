@@ -3,7 +3,7 @@
 A profile served by the default multiplexer runs its ticks inside the default profile's process:
 ``os.environ`` holds the DEFAULT profile's ``.env`` and the served profile's values exist only
 in its secret scope / home override. Every knob cron reads from ``.env`` and every child env it
-builds must resolve exactly as it would under a standalone ``hermes -p <name> gateway run``.
+builds must resolve exactly as it would under a standalone ``kova -p <name> gateway run``.
 """
 
 from pathlib import Path
@@ -18,7 +18,7 @@ from kova_constants import reset_kova_home_override, set_kova_home_override
 
 @pytest.fixture
 def two_homes(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     alpha = root / "profiles" / "alpha"
     for home in (root, alpha):
         (home / "cron").mkdir(parents=True)

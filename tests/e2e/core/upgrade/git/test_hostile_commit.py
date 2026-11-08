@@ -1,7 +1,7 @@
-"""The source swap of ``hermes update`` is one crash-safe commit point (lane LP-COMMIT).
+"""The source swap of ``kova update`` is one crash-safe commit point (lane LP-COMMIT).
 
 Each cell drives a real install (HEAD's own ``scripts/install.sh`` in a bwrap sandbox) through a
-real ``hermes update`` against a local origin, breaks it at one named point with a real SIGKILL or a
+real ``kova update`` against a local origin, breaks it at one named point with a real SIGKILL or a
 real git failure, and then judges the next real launch from the files the updater itself owns:
 
 * ``kill_after_tree_moved``: git finished the fast-forward of a release with NO dependency change
@@ -437,7 +437,7 @@ def test_git_killed_inside_the_rollback_reset_is_finished_by_the_next_launch(wor
         "harness: the kill did not land while git held index.lock\n" + I.describe(killed))
     assert killed.returncode != 0 and "Rollback complete" not in output, (
         "the updater reported a rollback that never happened\n" + I.describe(killed))
-    assert (sb.checkout / ".git" / "hermes-update-pull").is_file(), (
+    assert (sb.checkout / ".git" / "kova-update-pull").is_file(), (
         "the killed rollback erased its own recovery record while HEAD is still the broken release\n"
         + I.describe(killed))
 
@@ -446,4 +446,4 @@ def test_git_killed_inside_the_rollback_reset_is_finished_by_the_next_launch(wor
         f"the launch did not finish the rollback to {pre[:10]} (HEAD {_head(sb)[:10]}, broken {broken[:10]}, "
         f"lock {lock.exists()}, tracked changes {_tracked_dirty(sb)!r})\n" + P.diagnostics(sb, killed, launch))
     assert not (sb.checkout / "e2e_rollback_reset_extra.py").exists()
-    assert not (sb.checkout / ".git" / "hermes-update-pull").exists()
+    assert not (sb.checkout / ".git" / "kova-update-pull").exists()

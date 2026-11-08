@@ -21,7 +21,7 @@ def controls(request, tmp_path, monkeypatch):
     with SessionDB(tmp_path / "state.db") as db:
         service = _service(db.db_path)
         service.create_room(room_id="room", name="Stop lifetime", members=[
-            {"member_id": "default", "profile": "default", "handle": "hermes"},
+            {"member_id": "default", "profile": "default", "handle": "kova"},
             {"member_id": "ops", "profile": "ops", "handle": "ops"}])
         monkeypatch.setattr(service.runtime, "status", lambda: {"running": True})
         monkeypatch.setattr(srv, "get_hosted_room_service", lambda: service)

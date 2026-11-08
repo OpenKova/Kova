@@ -70,7 +70,7 @@ def test_new_session_is_created_on_the_gateway_and_its_id_adopted(store, monkeyp
 
 def test_a_finite_run_creates_mains_oneshot_session_so_bare_c_finds_it(store, monkeypatch):
     """Main labels a `chat -q` / `-Q` session ``oneshot`` (agent.session_source.session_source_for), which
-    `hermes -c` / `--resume latest` count as CLI history; created as ``cli`` the owner stores the
+    `kova -c` / `--resume latest` count as CLI history; created as ``cli`` the owner stores the
     transport's ``local`` and the next bare `-c` finds nothing."""
     monkeypatch.delenv("KOVA_SESSION_SOURCE", raising=False)
     monkeypatch.delenv("KOVA_SESSION_SOURCE_EXPLICIT", raising=False)
@@ -552,7 +552,7 @@ def test_a_mounting_docker_backend_sends_the_w_worktree_not_the_launch_dir(store
 def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypatch, tmp_path, backend, mount, entry):
     """-w publishes its tree in TERMINAL_CWD without a chdir; once the tree is gone, creating from the
     original checkout would put the agent's edits there. Main sent the path and the gateway refused it.
-    ``hermes -w`` records the tree in the imported ``cli`` module, ``python cli.py -w`` in ``__main__``."""
+    ``kova -w`` records the tree in the imported ``cli`` module, ``python cli.py -w`` in ``__main__``."""
     import sys
     from kova_cli import gateway_session_store as gss
     db, client = store
@@ -578,7 +578,7 @@ def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypat
 
 @pytest.mark.parametrize("backend,mount", [("local", None), ("docker", "true")])
 def test_a_project_resumed_after_w_is_sent_not_the_w_worktree(store, monkeypatch, tmp_path, backend, mount):
-    """``hermes -w`` in A, ``/resume`` of a session from B, then ``/new``: the resume moves cwd and
+    """``kova -w`` in A, ``/resume`` of a session from B, then ``/new``: the resume moves cwd and
     TERMINAL_CWD to B but A stays recorded (its quit cleanup is still due), so A must not win."""
     import sys
     from kova_cli.cli_session_mixin import CLISessionMixin
@@ -810,7 +810,7 @@ def test_branch_never_shows_yolo_the_gateway_refused(store):
 
 
 def test_exported_ignore_rules_never_refuses_a_bare_resume(store, monkeypatch):
-    """CLI-2: an exported KOVA_IGNORE_RULES is creation policy only, so a bare `hermes -c` continues a
+    """CLI-2: an exported KOVA_IGNORE_RULES is creation policy only, so a bare `kova -c` continues a
     session created without it (Desktop, Ink, before the export); a typed --ignore-rules is still refused,
     as the thin client refuses it."""
     from kova_cli.cli_init_mixin import CLIInitMixin, _gateway_launch
@@ -876,7 +876,7 @@ def test_clear_banner_shows_the_new_gateway_sessions_tools_and_short_label(store
     shell = KovaCLI.__new__(KovaCLI)
     shell.__dict__.update(
         _session_db=db, session_id="local-old", compact=False, model="fake-model", provider="custom",
-        enabled_toolsets=["hermes-cli"], disabled_toolsets=[], agent=None,
+        enabled_toolsets=["kova-cli"], disabled_toolsets=[], agent=None,
         _app=types.SimpleNamespace(output=types.SimpleNamespace(
             erase_screen=lambda: None, cursor_goto=lambda *_a: None, flush=lambda: None)))
     shell._confirm_destructive_slash = lambda *_a, **_k: "once"

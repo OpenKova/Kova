@@ -1,7 +1,7 @@
 """Container-boot reconciliation of per-profile gateway s6 services.
 
 Wired into the image as /etc/cont-init.d/02-reconcile-profiles. Runs as root after
-01-hermes-setup (the stage2 hook) has chowned the volume and seeded $KOVA_HOME, but
+01-kova-setup (the stage2 hook) has chowned the volume and seeded $KOVA_HOME, but
 before s6-rc starts user services.
 """
 from __future__ import annotations

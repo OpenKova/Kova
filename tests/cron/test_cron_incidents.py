@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from cron import incidents
 import cron.jobs as cron_jobs
 import cron.scheduler as sched
-from kova_time import now as _hermes_now
+from kova_time import now as _kova_now
 
 
 def _point_db(monkeypatch, tmp_path):
@@ -62,7 +62,7 @@ def _tick_failing(job, tmp_path, deliveries, error="boom unrelated", *, settle=F
     with cron_jobs.use_cron_store(tmp_path), \
          patch("cron.scheduler._kova_home", tmp_path), \
          patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-         patch("kova_cli.env_loader.load_hermes_dotenv"), \
+         patch("kova_cli.env_loader.load_kova_dotenv"), \
          patch("kova_cli.env_loader.reset_secret_source_cache"), \
          patch("tools.mcp_tool_discovery.discover_mcp_tools", return_value=[]), \
          patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -109,11 +109,11 @@ def test_incidents_list_newest_instant_first_across_dst_fall_back(monkeypatch, t
     inc = _point_db(monkeypatch, tmp_path)
     new_york = ZoneInfo("America/New_York")
     monkeypatch.setattr(
-        inc, "_hermes_now", lambda: datetime(2026, 11, 1, 1, 50, tzinfo=new_york, fold=0)
+        inc, "_kova_now", lambda: datetime(2026, 11, 1, 1, 50, tzinfo=new_york, fold=0)
     )
     earlier, _ = inc.upsert_incident("job-1", "first failure")
     monkeypatch.setattr(
-        inc, "_hermes_now", lambda: datetime(2026, 11, 1, 1, 10, tzinfo=new_york, fold=1)
+        inc, "_kova_now", lambda: datetime(2026, 11, 1, 1, 10, tzinfo=new_york, fold=1)
     )
     later, _ = inc.upsert_incident("job-2", "second failure")
 
@@ -269,7 +269,7 @@ def test_repeat_failure_alerts_once_then_reminds_after_cooldown(monkeypatch, tmp
         assert stored["last_status"] == "error", "the withheld run is still recorded"
 
         # Cooldown elapsed: exactly one reminder, then silent again.
-        stale = (_hermes_now() - timedelta(hours=7)).isoformat()
+        stale = (_kova_now() - timedelta(hours=7)).isoformat()
         with inc._transaction() as conn:
             conn.execute("UPDATE cron_incidents SET alerted_at=?", (stale,))
         _tick_failing(job, tmp_path, deliveries, error="repeat boom", settle=True)

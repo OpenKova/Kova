@@ -1,5 +1,5 @@
 // Preload for the preview pane's `<webview>` guests. main.ts installs this
-// file via `will-attach-webview` on the `persist:hermes-preview` partition
+// file via `will-attach-webview` on the `persist:kova-preview` partition
 // only (see `installPreviewGuestPreload`), so no other webview inherits it.
 //
 // The guest runs with contextIsolation, so this preload shares the guest's

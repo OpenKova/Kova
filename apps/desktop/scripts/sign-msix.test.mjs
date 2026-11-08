@@ -55,14 +55,14 @@ test('azureConfigFromEnv composes the Azure signing config from the environment'
     azureConfigFromEnv({
       AZURE_SIGN_ENDPOINT: 'https://cus.codesigning.azure.net',
       AZURE_SIGN_ACCOUNT: 'codesign2',
-      AZURE_SIGN_PROFILE: 'hermesagent',
+      AZURE_SIGN_PROFILE: 'kovaagent',
       AZURE_SIGN_PUBLISHER: 'CN=Neural Studio'
     }),
     {
       type: 'azure',
       endpoint: 'https://cus.codesigning.azure.net',
       codeSigningAccountName: 'codesign2',
-      certificateProfileName: 'hermesagent',
+      certificateProfileName: 'kovaagent',
       publisherName: 'CN=Neural Studio'
     }
   )

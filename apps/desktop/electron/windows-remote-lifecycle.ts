@@ -131,36 +131,36 @@ async function probeWindowsFiles(ssh, explicitKovaPath = '') {
     // value (older install.ps1 persisted one) or a client path leaked over SSH otherwise fails
     // assertSafeRemoteHome as "Unsafe remote Kova home" (#118988).
     '$kovaHome=$env:KOVA_HOME',
-    'if(-not $kovaHome -or -not (Test-Path -LiteralPath $kovaHome -PathType Container)){$kovaHome=Join-Path $env:LOCALAPPDATA "hermes"}',
+    'if(-not $kovaHome -or -not (Test-Path -LiteralPath $kovaHome -PathType Container)){$kovaHome=Join-Path $env:LOCALAPPDATA "kova"}',
     'Assert-NoReparse $kovaHome $true',
-    '$candidate=[IO.Path]::Combine($kovaHome, "kova-agent\\venv\\Scripts\\hermes.exe")',
+    '$candidate=[IO.Path]::Combine($kovaHome, "kova-agent\\venv\\Scripts\\kova.exe")',
     '$candidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($candidate), "python.exe")',
     'Assert-NoReparse $candidate $true',
     'Assert-NoReparse $candidatePython $true',
-    '$profileCandidate=[IO.Path]::Combine($HOME, "kova-agent\\.venv\\Scripts\\hermes.exe")',
+    '$profileCandidate=[IO.Path]::Combine($HOME, "kova-agent\\.venv\\Scripts\\kova.exe")',
     '$profileCandidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($profileCandidate), "python.exe")',
     'Assert-NoReparse $profileCandidate $true',
     'Assert-NoReparse $profileCandidatePython $true',
-    '$fallbackHomeCandidate=Join-Path $kovaHome "kova-agent\\venv\\Scripts\\hermes.exe"',
-    '$fallbackProfileCandidate=Join-Path $HOME "kova-agent\\.venv\\Scripts\\hermes.exe"',
+    '$fallbackHomeCandidate=Join-Path $kovaHome "kova-agent\\venv\\Scripts\\kova.exe"',
+    '$fallbackProfileCandidate=Join-Path $HOME "kova-agent\\.venv\\Scripts\\kova.exe"',
     '$candidates=@()',
     'if($explicit){$candidates+=$explicit}',
-    // A bare `hermes` resolves through PATHEXT, so a published hermes.cmd counts as well as hermes.exe.
-    '$cmd=@(Get-Command hermes -CommandType Application -ErrorAction SilentlyContinue)|Select-Object -First 1',
+    // A bare `kova` resolves through PATHEXT, so a published kova.cmd counts as well as kova.exe.
+    '$cmd=@(Get-Command kova -CommandType Application -ErrorAction SilentlyContinue)|Select-Object -First 1',
     'if($cmd){Assert-NoReparse $cmd.Source $true;$cmdPython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($cmd.Source), "python.exe");Assert-NoReparse $cmdPython $true;$candidates+=$cmd.Source}',
     // The installer's launchers, for an SSH session whose PATH lacks the user PATH entry.
-    '$candidates+=Join-Path $kovaHome "bin\\hermes.exe"',
-    '$candidates+=Join-Path $kovaHome "bin\\hermes.cmd"',
+    '$candidates+=Join-Path $kovaHome "bin\\kova.exe"',
+    '$candidates+=Join-Path $kovaHome "bin\\kova.cmd"',
     '$candidates+=$fallbackHomeCandidate',
     '$candidates+=$fallbackProfileCandidate',
-    '$hermes=$null',
-    'foreach($candidate in $candidates){Assert-NoReparse $candidate $true;$candidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($candidate), "python.exe");Assert-NoReparse $candidatePython $true;try{$item=Get-Item -LiteralPath $candidate -Force -ErrorAction Stop;if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and -not $item.PSIsContainer){$pair=Test-Path -LiteralPath $candidatePython -PathType Leaf;if($pair -or (Split-Path -Leaf (Split-Path -Parent $candidate)) -ieq "bin"){$hermes=$item.FullName;break}}}catch [Management.Automation.ItemNotFoundException]{continue}}',
-    'if(-not $hermes){throw "Kova is not installed on the remote Windows host."}',
-    'Assert-NoReparse $hermes $false',
-    'if($explicit -and $hermes -ne $explicit){throw "The configured Kova path is not an executable file."}',
-    '$python=[IO.Path]::Combine([IO.Path]::GetDirectoryName($hermes), "python.exe")',
+    '$kova=$null',
+    'foreach($candidate in $candidates){Assert-NoReparse $candidate $true;$candidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($candidate), "python.exe");Assert-NoReparse $candidatePython $true;try{$item=Get-Item -LiteralPath $candidate -Force -ErrorAction Stop;if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and -not $item.PSIsContainer){$pair=Test-Path -LiteralPath $candidatePython -PathType Leaf;if($pair -or (Split-Path -Leaf (Split-Path -Parent $candidate)) -ieq "bin"){$kova=$item.FullName;break}}}catch [Management.Automation.ItemNotFoundException]{continue}}',
+    'if(-not $kova){throw "Kova is not installed on the remote Windows host."}',
+    'Assert-NoReparse $kova $false',
+    'if($explicit -and $kova -ne $explicit){throw "The configured Kova path is not an executable file."}',
+    '$python=[IO.Path]::Combine([IO.Path]::GetDirectoryName($kova), "python.exe")',
     'if(Test-Path -LiteralPath $python -PathType Leaf){Assert-NoReparse $python $false}else{$python=""}',
-    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;kovaHome=$kovaHome;kovaPath=$hermes;launcherPath=$hermes;python=$python}|ConvertTo-Json -Compress'
+    '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;kovaHome=$kovaHome;kovaPath=$kova;launcherPath=$kova;python=$python}|ConvertTo-Json -Compress'
   ].join('\r\n')
 
   // Windows OpenSSH may serialize PowerShell's progress stream as
@@ -785,9 +785,9 @@ async function connectWindowsRemote(deps) {
   }
 
   runtime.kovaPath = inspection.path
-  const hermesVersion = inspection.version || ''
+  const kovaVersion = inspection.version || ''
   rememberLog(`[ssh-lifecycle] remote platform Windows/${runtime.arch}`)
-  rememberLog(`[ssh-lifecycle] located hermes at ${runtime.kovaPath}`)
+  rememberLog(`[ssh-lifecycle] located kova at ${runtime.kovaPath}`)
 
   await assertWindowsRemoteInstallUpdateClear(ssh, runtime.kovaHome, runtime.python)
   const lock = await helper(ssh, runtime, 'read-lock', [ownershipId])
@@ -822,7 +822,7 @@ async function connectWindowsRemote(deps) {
             reused: true,
             platform: { os: 'Windows', arch: runtime.arch },
             kovaPath: runtime.kovaPath,
-            hermesVersion,
+            kovaVersion,
             ownershipId,
             spawnNonce: lock.spawnNonce,
             creationTimeNs: lock.creationTimeNs,
@@ -948,7 +948,7 @@ async function connectWindowsRemote(deps) {
       reused: false,
       platform: { os: 'Windows', arch: runtime.arch },
       kovaPath: runtime.kovaPath,
-      hermesVersion,
+      kovaVersion,
       ownershipId,
       spawnNonce,
       creationTimeNs: spawned.creationTimeNs,

@@ -117,14 +117,14 @@ class TestCA:
         if bundle.is_symlink():
             bundle.unlink()
         bundle.write_bytes(system + b"\n" + self.pem)
-        (dest / "hermes-e2e-root.pem").write_bytes(self.pem)
+        (dest / "kova-e2e-root.pem").write_bytes(self.pem)
         openssl = shutil.which("openssl")
         if openssl:
             digest = subprocess.run([openssl, "x509", "-hash", "-noout", "-in", str(self.cert_file)],
                                     capture_output=True, text=True, check=True).stdout.strip()
             link = dest / f"{digest}.0"
             if not link.exists():
-                link.symlink_to("hermes-e2e-root.pem")
+                link.symlink_to("kova-e2e-root.pem")
         return [(dest, certs)]
 
     def server_context(self, host: str) -> ssl.SSLContext:

@@ -88,7 +88,7 @@ def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path)
         "import os, sys\n"
         "import kova_cli.main as main\n"
         "main.cmd_chat = lambda args: None  # the interactive REPL needs a TTY\n"
-        f"sys.argv = ['hermes', '--cpu-profile', {str(target)!r}]\n"
+        f"sys.argv = ['kova', '--cpu-profile', {str(target)!r}]\n"
         "assert main._try_termux_fast_cli_launch()\n"
         "assert os.environ.get('KOVA_DEFER_AGENT_STARTUP') == '1'  # lazy start kept\n"
     )

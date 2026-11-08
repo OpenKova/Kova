@@ -46,10 +46,10 @@ def test_update_via_zip_rejects_symlink_member(tmp_path, monkeypatch):
     fake_root = tmp_path / "install_dir"
     fake_root.mkdir()
 
-    from kova_cli import main as hermes_main
+    from kova_cli import main as kova_main
     from kova_cli.update_cmd import _update_via_zip
 
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", fake_root)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", fake_root)
     monkeypatch.setattr(update_cmd, "_complete_source_update", lambda request: None)
     monkeypatch.setattr("pm.sync_venv", lambda *a, **k: None)
 
@@ -109,9 +109,9 @@ def test_update_via_zip_accepts_normal_member(tmp_path, monkeypatch, capsys):
     fake_root = tmp_path / "install_dir"
     fake_root.mkdir()
 
-    from kova_cli import main as hermes_main
+    from kova_cli import main as kova_main
 
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", fake_root)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", fake_root)
     monkeypatch.setattr(update_cmd, "_complete_source_update", lambda request: None)
     monkeypatch.setattr("pm.sync_venv", lambda *a, **k: None)
 

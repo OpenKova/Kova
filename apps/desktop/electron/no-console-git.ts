@@ -84,8 +84,8 @@ export function resolveNoConsolePython({
     candidates.push(override)
   }
 
-  const hermesRoot = env.KOVA_DESKTOP_KOVA_ROOT
-  const searchRoots = hermesRoot ? [hermesRoot, ...roots] : roots
+  const kovaRoot = env.KOVA_DESKTOP_KOVA_ROOT
+  const searchRoots = kovaRoot ? [kovaRoot, ...roots] : roots
 
   for (const root of searchRoots) {
     if (!root) {
@@ -114,7 +114,7 @@ export function resolveNoConsolePython({
 }
 
 export function ensureNoConsoleGitScript(dir = os.tmpdir()) {
-  const scriptPath = path.join(dir, 'hermes-no-console-git.py')
+  const scriptPath = path.join(dir, 'kova-no-console-git.py')
 
   try {
     if (fs.readFileSync(scriptPath, 'utf8') === NO_CONSOLE_GIT_SCRIPT) {

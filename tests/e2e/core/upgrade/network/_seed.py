@@ -147,7 +147,7 @@ class Installed:
             bridge.close()
         return Result(cp, time.monotonic() - t0, edge)
 
-    def hermes(self, *args: str, edge: Edge | None, **kw) -> Result:
+    def kova(self, *args: str, edge: Edge | None, **kw) -> Result:
         return self.run([self.sb.kova, *args], edge=edge, **kw)
 
     # -- observation -------------------------------------------------------------
@@ -181,7 +181,7 @@ class Installed:
         return "\n".join(out) or "(no logs)"
 
     def version_works(self) -> Result:
-        """The next ``hermes`` invocation, offline: the install must still start."""
+        """The next ``kova`` invocation, offline: the install must still start."""
         return self.kova("--version", edge=None, timeout=120)
 
 
@@ -244,7 +244,7 @@ def canonical(value: object) -> bytes:
 def _identity(name: str, token: str) -> dict:
     pascal = f"KovaChannel{token}"
     return {"token": token, "displayName": f"Kova {name}", "appId": f"ai.kova.channel.h{token}",
-            "appNamePascal": pascal, "artifactNamePascal": pascal, "cliName": f"hermes-{name}",
+            "appNamePascal": pascal, "artifactNamePascal": pascal, "cliName": f"kova-{name}",
             "windowsExecutableName": pascal, "msixAppIdWithOrg": f"NeuralStudio.{pascal}"}
 
 
@@ -349,11 +349,11 @@ SUCCESS_BANNERS = ("Update complete", "Code updated", "Already up to date")
 
 def assert_nothing_changed(inst: Installed, before: dict, r: Result, what: str) -> None:
     """The failure contract: non-zero, says why, nothing reported as success, nothing moved,
-    and the next ``hermes`` still starts."""
+    and the next ``kova`` still starts."""
     assert r.rc != 0, f"{what}: the command reported success\n" + r.report(inst)
     claimed = [b for b in SUCCESS_BANNERS if b in r.out]
     assert not claimed, f"{what}: failed run printed a success banner {claimed}\n" + r.report(inst)
     after = inst.state()
     assert after == before, f"{what}: install state moved {before} -> {after}\n" + r.report(inst)
     v = inst.version_works()
-    assert v.rc == 0 and I.TRACEBACK not in v.out, f"{what}: `hermes --version` broken afterwards\n" + I.describe(v.cp)
+    assert v.rc == 0 and I.TRACEBACK not in v.out, f"{what}: `kova --version` broken afterwards\n" + I.describe(v.cp)

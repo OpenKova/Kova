@@ -85,8 +85,8 @@ def test_emits_for_default_when_any_profile_is_managed(tmp_path):
 
     section = bot_mode_probe.get_bot_mode_protocol_section(home)
     assert section.startswith("## Messaging other agents")
-    # default's callable alias is @hermes, never @default
-    assert "@hermes" in section
+    # default's callable alias is @kova, never @default
+    assert "@kova" in section
     assert "@default" not in section
     assert "@researcher" in section
     assert "message_agent" in section
@@ -99,9 +99,9 @@ def test_emits_for_named_profile_with_own_handle(tmp_path):
 
     section = bot_mode_probe.get_bot_mode_protocol_section(profile_dir)
     assert "@coder" in section
-    # teammate roster excludes self, includes default (as @hermes)
+    # teammate roster excludes self, includes default (as @kova)
     roster_block = section.split("Your teammates")[1]
-    assert "`@hermes`" in roster_block
+    assert "`@kova`" in roster_block
     assert "`@coder`" not in roster_block
 
 
@@ -222,16 +222,16 @@ def test_fingerprint_changes_on_each_capability_axis(tmp_path):
     after_skill = bot_mode_probe.capability_fingerprint(home)
     assert after_skill != base
 
-    # toolset pin changed (the key `hermes tools enable/disable` writes, #124211)
+    # toolset pin changed (the key `kova tools enable/disable` writes, #124211)
     (home / "config.yaml").write_text(
-        "platform_toolsets:\n  desktop: [hermes-desktop, computer_use]\n", encoding="utf-8"
+        "platform_toolsets:\n  desktop: [kova-desktop, computer_use]\n", encoding="utf-8"
     )
     after_tools = bot_mode_probe.capability_fingerprint(home)
     assert after_tools != after_skill
 
     # global suppression changed
     (home / "config.yaml").write_text(
-        "platform_toolsets:\n  desktop: [hermes-desktop, computer_use]\n"
+        "platform_toolsets:\n  desktop: [kova-desktop, computer_use]\n"
         "agent:\n  disabled_toolsets: [computer_use]\n",
         encoding="utf-8",
     )
@@ -240,7 +240,7 @@ def test_fingerprint_changes_on_each_capability_axis(tmp_path):
 
     # MCP server added
     (home / "config.yaml").write_text(
-        "platform_toolsets:\n  desktop: [hermes-desktop, computer_use]\n"
+        "platform_toolsets:\n  desktop: [kova-desktop, computer_use]\n"
         "agent:\n  disabled_toolsets: [computer_use]\n"
         "mcp_servers:\n  github:\n    preset: github\n",
         encoding="utf-8",

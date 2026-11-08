@@ -14,8 +14,8 @@
  * down, and a module whose evaluation never settles times out on its own row.
  *
  * Sources today: the in-repo runtime example (`?raw`, proves the pipeline)
- * and the two on-disk doors — `<hermes home>/desktop-plugins/<name>/plugin.js`
- * and the unified agent-plugin half `<hermes home>/plugins/<name>/desktop/
+ * and the two on-disk doors — `<kova home>/desktop-plugins/<name>/plugin.js`
+ * and the unified agent-plugin half `<kova home>/plugins/<name>/desktop/
  * plugin.js` — the doors the agent writes through.
  *
  * SECURITY — this is NOT a capability boundary. A loaded plugin is evaluated
@@ -551,7 +551,7 @@ export async function loadRuntimePlugin(
 }
 
 // ---------------------------------------------------------------------------
-// The on-disk plugin door — ONE app-level root, `<hermes home>/desktop-plugins/`:
+// The on-disk plugin door — ONE app-level root, `<kova home>/desktop-plugins/`:
 //  - `<id>/plugin.js` — a standalone desktop plugin (agent- or user-written);
 //  - `<package>/plugin.js` + `.kova-package.json` — the desktop HALF of a
 //    unified agent+desktop package, COPIED here by Electron from the package's

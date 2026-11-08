@@ -48,7 +48,7 @@ def _beta_plugin(daemon, *, isolation="in_process"):
 
 
 def _never_imported(imported) -> bool:
-    return not imported.exists() and f"hermes_dashboard_plugin_{NAME}" not in sys.modules
+    return not imported.exists() and f"kova_dashboard_plugin_{NAME}" not in sys.modules
 
 
 @pytest.mark.parametrize("isolation", ["in_process", "host"])
@@ -215,7 +215,7 @@ def test_secondary_plugin_socket_gets_a_named_refusal(daemon):
 
 
 def test_root_plugins_stay_available_to_a_secondary_profile_in_its_own_host(daemon):
-    """As a standalone ``hermes --profile beta serve`` did: beta scans its own ``plugins/``, then
+    """As a standalone ``kova --profile beta serve`` did: beta scans its own ``plugins/``, then
     the root's, then the bundled ones; its own copy wins a same-name conflict; its own lists decide;
     the root copy runs in beta's host, never here. (The launch home is the root in this fixture.)"""
     root_imported = _install(daemon.launch, NAME)
@@ -437,7 +437,7 @@ def _asgi_client():
     import httpx
 
     async def loopback_peer(scope, receive, send):
-        scope["hermes.gateway_socket_peer"] = ("127.0.0.1", 50000)
+        scope["kova.gateway_socket_peer"] = ("127.0.0.1", 50000)
         await web_server.app(scope, receive, send)
 
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=loopback_peer), base_url="http://testserver")

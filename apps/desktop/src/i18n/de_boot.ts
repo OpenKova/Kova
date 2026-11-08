@@ -93,7 +93,7 @@ export const deBoot = {
       since: time => `Wartet seit ${time}`,
       lastChecked: time => `Zuletzt geprüft ${time}`,
       recoveryHint:
-        'Das löst sich meist in wenigen Minuten. Falls nicht: Kova beenden, übrig gebliebene git- oder hermes-Prozesse beenden (oder den Computer neu starten) und Kova erneut öffnen.',
+        'Das löst sich meist in wenigen Minuten. Falls nicht: Kova beenden, übrig gebliebene git- oder kova-Prozesse beenden (oder den Computer neu starten) und Kova erneut öffnen.',
       checkAgain: 'Erneut prüfen',
       quit: 'Kova beenden',
       openLogs: 'Logs öffnen',

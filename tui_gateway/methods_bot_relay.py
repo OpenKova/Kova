@@ -19,8 +19,8 @@ def _relay_root() -> Path:
     """Install root shared by every profile (relay state is install-wide). Same formula as the
     writers (``tools/bot_relay``, ``tools/bot_mode_dm``): both ends of the mailbox must agree for
     every KOVA_HOME, including non-``profiles/`` subdirs of ``~/.kova``."""
-    from tools.bot_mode_probe import _default_home, _hermes_root
-    return _hermes_root(Path(_default_home()))
+    from tools.bot_mode_probe import _default_home, _kova_root
+    return _kova_root(Path(_default_home()))
 
 
 # Desktop deadline mirror; no retry runs here. The owner gateway retries a transiently failed
@@ -101,12 +101,12 @@ def _(rid, params: dict, _root=_relay_root) -> dict:
     # not teammates (#99392), so a DM never targets one.
     from tools.bot_mode_probe import _profile_for_handle, _roster
     roster = dict(_roster(root))
-    resolved = _profile_for_handle('hermes', roster) if profile.lower() == 'hermes' else profile
+    resolved = _profile_for_handle('kova', roster) if profile.lower() == 'kova' else profile
     home = roster.get(resolved)
     if home is None:
         return _err(rid, 4092, f"no profile '{profile}' on this gateway", data={'reason': 'unknown_profile'})
     if isinstance(forwarded.get("message"), str):
-        # The sender stamped itself with its bare @handle; a relayed "@hermes" is ANOTHER machine's
+        # The sender stamped itself with its bare @handle; a relayed "@kova" is ANOTHER machine's
         # default, so re-stamp it with the form this gateway can reply to (#103731).
         from tools.bot_mode_probe import local_taken_forms
         from tools.bot_relay import qualify_sender_stamp, read_remote_roster

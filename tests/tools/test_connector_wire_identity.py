@@ -81,13 +81,13 @@ def test_correlation_ids_go_only_with_send_consent(send):
 
     first, second = (sent["headers"] for sent in transport.sent)
     assert first["User-Agent"].startswith("kova-agent/")
-    correlation = {k for k in first if k.startswith("x-nous-hermes-") or k == "x-request-id"}
+    correlation = {k for k in first if k.startswith("x-nous-kova-") or k == "x-request-id"}
     if not send:
         assert correlation == set()
         return
-    assert first["x-nous-hermes-turn"] == "turn-1" and first["x-nous-hermes-tool-call"] == "call-1"
+    assert first["x-nous-kova-turn"] == "turn-1" and first["x-nous-kova-tool-call"] == "call-1"
     assert first["x-request-id"] != second["x-request-id"]  # one id per HTTP attempt
-    assert not any(k.startswith("x-hermes-") for k in first)  # the gateway strips only x-nous-
+    assert not any(k.startswith("x-kova-") for k in first)  # the gateway strips only x-nous-
 
 
 def test_session_header_is_the_conversation_root(monkeypatch):
@@ -96,7 +96,7 @@ def test_session_header_is_the_conversation_root(monkeypatch):
     _consent(True)
     token = set_conversation_context("root-session")
     try:
-        assert connector_headers()["x-nous-hermes-session"] == "root-session"
+        assert connector_headers()["x-nous-kova-session"] == "root-session"
     finally:
         reset_conversation_context(token)
 
@@ -253,5 +253,5 @@ def test_try_again_keeps_the_opening_calls_ids(monkeypatch, caplog):
     with caplog.at_level(logging.DEBUG, logger="tools.managed_gateway_identity"):
         assert reissue(operation, ["gmail"]) is None
     headers = transport.sent[0]["headers"]
-    assert headers["x-nous-hermes-turn"] == "turn-7" and headers["x-nous-hermes-tool-call"] == "call-7"
+    assert headers["x-nous-kova-turn"] == "turn-7" and headers["x-nous-kova-tool-call"] == "call-7"
     assert _outcomes(caplog)[-1][1].endswith("dispatch=call-7")

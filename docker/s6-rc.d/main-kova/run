@@ -1,6 +1,6 @@
 #!/command/with-contenv sh
 # shellcheck shell=sh
-# Main hermes service.
+# Main kova service.
 #
 # IMPORTANT — this is NOT how the user's CMD runs.
 #
@@ -16,12 +16,12 @@
 # So why does this service exist at all? Two reasons:
 #   1. s6-rc requires at least one user service for the "user" bundle
 #      to be valid. We can't ship an empty bundle.
-#   2. Future work may want to supervise a long-lived hermes process
+#   2. Future work may want to supervise a long-lived kova process
 #      (e.g. for gateway-server containers); having the slot already
 #      wired in keeps that change small.
 #
 # For now this service is a no-op: it sleeps forever, doing nothing.
 # The dashboard runs as a real s6 service alongside it (see
 # ../dashboard/run) and per-profile gateways register dynamically via
-# /run/hermes-service/ at runtime (Phase 4; see ../profile-gateways/run).
+# /run/kova-service/ at runtime (Phase 4; see ../profile-gateways/run).
 exec sleep infinity

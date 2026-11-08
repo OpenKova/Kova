@@ -335,7 +335,7 @@ def test_shell_redirection_does_not_hide_simple_verifier(tmp_path, monkeypatch, 
 def test_masked_ad_hoc_script_is_not_verification_evidence(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     (tmp_path / "package.json").write_text("{}", encoding="utf-8")
-    script = Path(tempfile.gettempdir()) / f"hermes-ad-hoc-{tmp_path.name}.py"
+    script = Path(tempfile.gettempdir()) / f"kova-ad-hoc-{tmp_path.name}.py"
     script.write_text("raise SystemExit(1)\n", encoding="utf-8")
     try:
         evidence = classify_verification_command(
@@ -383,7 +383,7 @@ def test_masked_verifier_does_not_clear_edited_ledger_state(tmp_path, monkeypatc
 def test_temp_script_records_ad_hoc_evidence_without_canonical_suite(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     (tmp_path / "package.json").write_text("{}", encoding="utf-8")
-    script = Path(tempfile.gettempdir()) / f"hermes-ad-hoc-{tmp_path.name}.py"
+    script = Path(tempfile.gettempdir()) / f"kova-ad-hoc-{tmp_path.name}.py"
     script.write_text("print('ok')\n", encoding="utf-8")
     try:
         evidence = classify_verification_command(
@@ -421,7 +421,7 @@ def test_versioned_or_absolute_interpreter_records_ad_hoc_evidence(tmp_path, mon
     """
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     (tmp_path / "package.json").write_text("{}", encoding="utf-8")
-    script = Path(tempfile.gettempdir()) / f"hermes-verify-{tmp_path.name}.py"
+    script = Path(tempfile.gettempdir()) / f"kova-verify-{tmp_path.name}.py"
     script.write_text("print('ok')\n", encoding="utf-8")
     try:
         evidence = classify_verification_command(
@@ -445,7 +445,7 @@ def test_non_interpreter_command_touching_the_temp_script_is_not_evidence(tmp_pa
     """
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     (tmp_path / "package.json").write_text("{}", encoding="utf-8")
-    script = Path(tempfile.gettempdir()) / f"hermes-verify-{tmp_path.name}.py"
+    script = Path(tempfile.gettempdir()) / f"kova-verify-{tmp_path.name}.py"
 
     for command in (f"rm -f {script}", f"/usr/bin/chmod +x {script}", f"/usr/bin/cat {script}"):
         evidence = classify_verification_command(command, cwd=tmp_path, session_id="s1", exit_code=0)
@@ -497,7 +497,7 @@ def test_file_tool_stales_evidence_by_session_id_for_absolute_edit(tmp_path, mon
 
 
 def test_workspace_verify_clears_stale_on_other_session(tmp_path, monkeypatch):
-    """A hermes verify pass is a property of the workspace, not the session
+    """A kova verify pass is a property of the workspace, not the session
     that ran the CLI (#103271)."""
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     _python_project(tmp_path)
@@ -509,7 +509,7 @@ def test_workspace_verify_clears_stale_on_other_session(tmp_path, monkeypatch):
     assert event is not None
     status = verification_status(session_id="s-edit", cwd=tmp_path)
     assert status["status"] == "passed"
-    assert status["evidence"]["canonical_command"] == "hermes verify"
+    assert status["evidence"]["canonical_command"] == "kova verify"
 
 
 def test_targeted_partial_verify_does_not_clear_other_session(tmp_path, monkeypatch):
@@ -592,9 +592,9 @@ def test_windows_exe_interpreter_records_ad_hoc_evidence(tmp_path, monkeypatch, 
 
     monkeypatch.setattr(
         "agent.verification_evidence._is_temp_script_path",
-        lambda token, root: "hermes-verify-" in token and token.endswith(".py"),
+        lambda token, root: "kova-verify-" in token and token.endswith(".py"),
     )
-    win_script = r"C:\Users\me\AppData\Local\Temp\hermes-verify-x.py"
+    win_script = r"C:\Users\me\AppData\Local\Temp\kova-verify-x.py"
     assert _find_ad_hoc_match(f"{interpreter} {win_script}", tmp_path) == []
 
 
@@ -617,14 +617,14 @@ def test_windows_backslash_ad_hoc_script_path_is_matched(tmp_path, monkeypatch):
     # posix=False preserves them. Mock _is_temp_script_path so the test
     # focuses on the splitting fallback without needing a real Windows FS.
     def mock_is_temp_script(token, root):
-        return "hermes-ad-hoc" in token and ".py" in token
+        return "kova-ad-hoc" in token and ".py" in token
 
     monkeypatch.setattr(
         "agent.verification_evidence._is_temp_script_path",
         mock_is_temp_script,
     )
 
-    win_script = r"C:\Users\test\AppData\Local\Temp\hermes-ad-hoc-check.py"
+    win_script = r"C:\Users\test\AppData\Local\Temp\kova-ad-hoc-check.py"
     result = _find_ad_hoc_match(f"python {win_script}", tmp_path)
     assert result is not None, (
         "Windows backslash path should be matched via posix=False fallback"

@@ -7,26 +7,26 @@ from __future__ import annotations
 import pytest
 
 from kova_cli.dashboard_procs import _is_desktop_local_serve_cmdline
-from kova_cli.update_cmd_windows import _hermes_holder_subcommand, _is_backend_argv
+from kova_cli.update_cmd_windows import _kova_holder_subcommand, _is_backend_argv
 
 LOOPBACK = "--host 127.0.0.1 --port 0"
 
 # (cmdline, holder subcommand, desktop-local reap?, Windows updater "Desktop backend"?). Substring
 # scanners get every "trap" row wrong: "serve" appears inside --preserve-cache / observer.py / a flag
 # value. The updater's kill set additionally requires the Desktop's `-m kova_cli.main` spawn shape —
-# a user-launched `hermes serve` / `hermes dashboard` is refused on, never tree-killed.
+# a user-launched `kova serve` / `kova dashboard` is refused on, never tree-killed.
 CMDLINES = [
     ("python -m kova_cli.main serve " + LOOPBACK, "serve", True, True),
     ("python -m kova_cli.main dashboard", "dashboard", False, True),
-    ("/venv/bin/hermes serve --isolated --host=127.0.0.1 --port=0 --ssh-owner-nonce abc", "serve", True, False),
-    (r"C:\hermes\.venv\Scripts\hermes.exe serve --host 100.106.105.2 --port 9119", "serve", False, False),
-    ("hermes.exe dashboard", "dashboard", False, False),
-    ("hermes --profile ops serve " + LOOPBACK, "serve", True, False),
-    ("hermes -m serve kanban --preserve-cache " + LOOPBACK, "kanban", False, False),
+    ("/venv/bin/kova serve --isolated --host=127.0.0.1 --port=0 --ssh-owner-nonce abc", "serve", True, False),
+    (r"C:\kova\.venv\Scripts\kova.exe serve --host 100.106.105.2 --port 9119", "serve", False, False),
+    ("kova.exe dashboard", "dashboard", False, False),
+    ("kova --profile ops serve " + LOOPBACK, "serve", True, False),
+    ("kova -m serve kanban --preserve-cache " + LOOPBACK, "kanban", False, False),
     ("python -m kova_cli.main kanban --preserve-cache " + LOOPBACK, "kanban", False, False),
-    ("hermes --reasoning high dashboard " + LOOPBACK, "dashboard", False, False),
-    ("hermes gateway run --replace", "gateway", False, False),
-    ("hermes chat --model serve", "chat", False, False),
+    ("kova --reasoning high dashboard " + LOOPBACK, "dashboard", False, False),
+    ("kova gateway run --replace", "gateway", False, False),
+    ("kova chat --model serve", "chat", False, False),
     ("python observer.py serve " + LOOPBACK, None, False, False),
 ]
 
@@ -34,7 +34,7 @@ CMDLINES = [
 @pytest.mark.parametrize("cmdline,subcommand,reapable,desktop_backend", CMDLINES)
 def test_kill_and_relaunch_predicates_agree_with_the_canonical_holder_matcher(
         cmdline, subcommand, reapable, desktop_backend):
-    assert _hermes_holder_subcommand(cmdline) == subcommand
+    assert _kova_holder_subcommand(cmdline) == subcommand
     # Desktop-local reap (a KILL path): serve + loopback + ephemeral port, decided by tokens.
     assert _is_desktop_local_serve_cmdline(cmdline) is reapable
     # Windows updater backend classifier (taskkill /T on orphans): canonical subcommand AND Desktop spawn shape.
@@ -42,9 +42,9 @@ def test_kill_and_relaunch_predicates_agree_with_the_canonical_holder_matcher(
 
 
 def test_desktop_local_serve_spares_fixed_port_and_remote_hosts():
-    assert not _is_desktop_local_serve_cmdline("hermes serve --host 100.106.105.2 --port 9119 --skip-build")
-    assert not _is_desktop_local_serve_cmdline("hermes serve --host 127.0.0.1 --port 9119")
-    assert _is_desktop_local_serve_cmdline("hermes serve --host localhost --port 0")
+    assert not _is_desktop_local_serve_cmdline("kova serve --host 100.106.105.2 --port 9119 --skip-build")
+    assert not _is_desktop_local_serve_cmdline("kova serve --host 127.0.0.1 --port 9119")
+    assert _is_desktop_local_serve_cmdline("kova serve --host localhost --port 0")
 
 
 def test_profile_liveness_is_the_shared_ladder(tmp_path, monkeypatch):
@@ -69,12 +69,12 @@ def test_profile_liveness_is_the_shared_ladder(tmp_path, monkeypatch):
     assert calls == [(tmp_path / "gateway.pid", False)]
 
 
-# ``hermes serve`` is a substring of ``hermes server``: a terminal multiplexer started as
-# ``herdr --session hermes server`` was SIGTERMed by ``hermes update`` and its unit restarted (#121156).
-DECOY = "tool --name hermes server 30"
+# ``kova serve`` is a substring of ``kova server``: a terminal multiplexer started as
+# ``herdr --session kova server`` was SIGTERMed by ``kova update`` and its unit restarted (#121156).
+DECOY = "tool --name kova server 30"
 BACKENDS = [
-    "/opt/hermes/venv/bin/python -m kova_cli.main serve --port 0",
-    "/usr/bin/python3 /opt/hermes/kova_cli/main.py dashboard --no-open",
+    "/opt/kova/venv/bin/python -m kova_cli.main serve --port 0",
+    "/usr/bin/python3 /opt/kova/kova_cli/main.py dashboard --no-open",
 ]
 
 
@@ -94,4 +94,4 @@ def test_dashboard_runtime_parse_refuses_the_decoy_and_reads_a_real_backend():
     assert _parse_dashboard_runtime(DECOY) is None
     assert _parse_dashboard_runtime(BACKENDS[0]) == ("serve", "127.0.0.1", 0)
     # launchd ProgramArguments arrive ``shlex.join``ed: a quoted path with spaces is still the entry.
-    assert _parse_dashboard_runtime("'/Users/a b/venv/bin/hermes' dashboard --port 9200") == ("dashboard", "127.0.0.1", 9200)
+    assert _parse_dashboard_runtime("'/Users/a b/venv/bin/kova' dashboard --port 9200") == ("dashboard", "127.0.0.1", 9200)

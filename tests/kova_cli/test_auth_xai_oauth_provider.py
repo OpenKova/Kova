@@ -25,7 +25,7 @@ from kova_cli.auth import (
 # ---------------------------------------------------------------------------
 
 
-def _setup_hermes_auth(
+def _setup_kova_auth(
     kova_home: Path,
     *,
     access_token: str = "access",
@@ -139,7 +139,7 @@ def test_resolve_provider_normalizes_xai_oauth_aliases():
 
 
 def test_save_and_read_xai_oauth_tokens_roundtrip(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -164,9 +164,9 @@ def test_save_and_read_xai_oauth_tokens_roundtrip(tmp_path, monkeypatch):
 
 def test_refresh_xai_oauth_tokens_preserves_active_provider(tmp_path, monkeypatch):
     """Token refresh must not flip active_provider away from the chat provider."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     near = _jwt_with_exp(int(time.time()) + 30)
-    _setup_hermes_auth(kova_home, access_token=near, refresh_token="rt-old")
+    _setup_kova_auth(kova_home, access_token=near, refresh_token="rt-old")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     auth_path = kova_home / "auth.json"
@@ -201,7 +201,7 @@ def test_refresh_xai_oauth_tokens_preserves_active_provider(tmp_path, monkeypatc
 
 
 def test_read_xai_oauth_tokens_missing(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -218,9 +218,9 @@ def test_read_xai_oauth_tokens_missing(tmp_path, monkeypatch):
 
 
 def test_resolve_xai_runtime_credentials_refreshes_expiring_token(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     expiring = _jwt_with_exp(int(time.time()) - 10)
-    _setup_hermes_auth(
+    _setup_kova_auth(
         kova_home,
         access_token=expiring,
         refresh_token="rt-old",
@@ -299,7 +299,7 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
     last_auth_error marker so subsequent calls fail fast without a network retry.
     Mirrors the credential_pool.py quarantine for the singleton/direct resolve path.
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _seed_xai_oauth_state(kova_home, dict(_STALE_XAI_OAUTH_STATE), active_provider="nous")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
@@ -348,7 +348,7 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
 
 
 def test_get_xai_oauth_auth_status_logged_out(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -368,7 +368,7 @@ def test_refresh_xai_oauth_pure_403_marked_tier_denied_not_relogin(monkeypatch):
 
     Regression test for #26847 — xAI's backend has been seen to 403
     standard SuperGrok subscribers despite the in-app subscription
-    being active. Re-running ``hermes model`` won't help in that
+    being active. Re-running ``kova model`` won't help in that
     case, so the AuthError must NOT set ``relogin_required=True``,
     and must carry the dedicated ``xai_oauth_tier_denied`` code so
     ``format_auth_error`` doesn't append the misleading re-auth hint.
@@ -489,17 +489,17 @@ def test_xai_oauth_discovery_validates_endpoints(monkeypatch):
 
 
 def test_credential_pool_seeds_xai_oauth_from_singleton(tmp_path, monkeypatch):
-    """After `hermes model` -> xai-oauth, the singleton holds tokens.  load_pool
-    must surface that as a pool entry so `hermes auth list` reflects truth and
+    """After `kova model` -> xai-oauth, the singleton holds tokens.  load_pool
+    must surface that as a pool entry so `kova auth list` reflects truth and
     refreshes route through the pool consistently with codex.
 
     Device code is the only supported xAI OAuth flow, so the singleton is
     always surfaced as ``device_code``."""
     from agent.credential_pool import load_pool
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=fresh, refresh_token="rt-1")
+    _setup_kova_auth(kova_home, access_token=fresh, refresh_token="rt-1")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     pool = load_pool("xai-oauth")
@@ -517,9 +517,9 @@ def test_credential_pool_device_code_seed_respects_suppression(tmp_path, monkeyp
     from agent.credential_pool import load_pool
     from kova_cli.auth import suppress_credential_source
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(
+    _setup_kova_auth(
         kova_home,
         access_token=fresh,
         auth_mode="oauth_device_code",
@@ -533,7 +533,7 @@ def test_credential_pool_device_code_seed_respects_suppression(tmp_path, monkeyp
 
 
 def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch):
-    """End-to-end regression: ``hermes auth remove xai-oauth 1`` for a
+    """End-to-end regression: ``kova auth remove xai-oauth 1`` for a
     singleton-seeded entry must clear auth.json providers.xai-oauth AND
     suppress further re-seeding — otherwise the next ``load_pool`` call
     silently resurrects the entry from the still-present singleton, making
@@ -550,9 +550,9 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
     from kova_cli.auth_commands import auth_remove_command
     from types import SimpleNamespace
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=fresh, refresh_token="rt-1")
+    _setup_kova_auth(kova_home, access_token=fresh, refresh_token="rt-1")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     # Confirm pre-state: pool sees the seeded entry, auth.json has the singleton.
@@ -561,7 +561,7 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
     raw = json.loads((kova_home / "auth.json").read_text())
     assert "xai-oauth" in raw.get("providers", {})
 
-    # Act: the user runs `hermes auth remove xai-oauth 1`.
+    # Act: the user runs `kova auth remove xai-oauth 1`.
     auth_remove_command(SimpleNamespace(provider="xai-oauth", target="1"))
 
     # Post-state: auth.json singleton must be cleared so a re-seed has
@@ -583,13 +583,13 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
 
 
 def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkeypatch):
-    """remove -> ``hermes model`` re-login (``_login_xai_oauth``) must clear the
+    """remove -> ``kova model`` re-login (``_login_xai_oauth``) must clear the
     ``device_code`` suppression marker so the singleton seed re-creates the
     pool entry.
 
     Pre-fix: ``auth_remove_command`` set ``["device_code"]`` suppression but
-    only ``auth_add_command`` cleared it — the ``hermes model`` re-login path did
-    not. So after remove -> re-login the seed kept skipping and ``hermes auth
+    only ``auth_add_command`` cleared it — the ``kova model`` re-login path did
+    not. So after remove -> re-login the seed kept skipping and ``kova auth
     list`` showed no xAI entry even though the agent still worked via the
     singleton fallback. The fix calls ``unsuppress_credential_source`` on
     explicit interactive login success.
@@ -603,7 +603,7 @@ def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkey
         suppress_credential_source,
     )
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -668,9 +668,9 @@ def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkey
 def test_runtime_provider_uses_pool_entry_for_xai_oauth(tmp_path, monkeypatch):
     from kova_cli.runtime_provider import resolve_runtime_provider
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=fresh)
+    _setup_kova_auth(kova_home, access_token=fresh)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("KOVA_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
@@ -697,9 +697,9 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
     entry exhausted."""
     from agent.credential_pool import load_pool
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     in_memory_at = _jwt_with_exp(int(time.time()) + 30)
-    _setup_hermes_auth(kova_home, access_token=in_memory_at, refresh_token="rt-shared")
+    _setup_kova_auth(kova_home, access_token=in_memory_at, refresh_token="rt-shared")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     pool = load_pool("xai-oauth")
@@ -737,17 +737,17 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
 
 
 def test_pool_manual_entry_does_not_sync_back_to_singleton(tmp_path, monkeypatch):
-    """`hermes auth add xai-oauth` entries (source='manual:xai_pkce') are
+    """`kova auth add xai-oauth` entries (source='manual:xai_pkce') are
     independent credentials and must NOT write to the singleton.  Sync-back
     is restricted to entries seeded from the singleton.  Otherwise adding a
     second pool credential would silently overwrite the user's main login."""
     from agent.credential_pool import load_pool, AUTH_TYPE_OAUTH, PooledCredential
     import uuid
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     # Singleton has its own tokens (separate login).
     singleton_at = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=singleton_at, refresh_token="rt-singleton")
+    _setup_kova_auth(kova_home, access_token=singleton_at, refresh_token="rt-singleton")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     manual_at_old = _jwt_with_exp(int(time.time()) + 30)
@@ -814,9 +814,9 @@ def test_auxiliary_client_routes_xai_oauth_through_responses_api(tmp_path, monke
         resolve_provider_client,
     )
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=fresh)
+    _setup_kova_auth(kova_home, access_token=fresh)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.delenv("KOVA_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
@@ -841,9 +841,9 @@ def test_auxiliary_client_xai_oauth_requires_explicit_model(tmp_path, monkeypatc
     must pass an explicit model (auxiliary.<task>.model in config.yaml)."""
     from agent.auxiliary_client import resolve_provider_client
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
-    _setup_hermes_auth(kova_home, access_token=fresh)
+    _setup_kova_auth(kova_home, access_token=fresh)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     client, model = resolve_provider_client("xai-oauth", model=None)
@@ -861,14 +861,14 @@ def test_pool_sync_back_preserves_active_provider(tmp_path, monkeypatch):
     picking a provider.  ``_save_provider_state`` flips ``active_provider``;
     using it on the sync-back path means every xAI/Codex/Nous refresh in a
     multi-provider setup silently overrides the user's chosen active
-    provider (visible to ``hermes auth status``, ``hermes setup``, and the
-    ``hermes`` no-arg dispatcher).  Pin the ``set_active=False`` contract so
+    provider (visible to ``kova auth status``, ``kova setup``, and the
+    ``kova`` no-arg dispatcher).  Pin the ``set_active=False`` contract so
     no future refactor regresses to the legacy semantic."""
     from agent.credential_pool import load_pool
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     near_expiry = _jwt_with_exp(int(time.time()) + 30)
-    _setup_hermes_auth(kova_home, access_token=near_expiry, refresh_token="rt-xai")
+    _setup_kova_auth(kova_home, access_token=near_expiry, refresh_token="rt-xai")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     # Simulate a multi-provider user whose actual chosen provider is

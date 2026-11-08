@@ -15,7 +15,7 @@ import pytest
 from gateway.hooks import HookRegistry
 from kova_constants import get_kova_home
 
-MODULE = "hermes_hook_isoprobe"
+MODULE = "kova_hook_isoprobe"
 # Module body records whether it ran registered in sys.modules (forward references need that).
 HANDLER = (
     "import sys\n"

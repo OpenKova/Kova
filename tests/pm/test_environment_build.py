@@ -684,7 +684,7 @@ def test_explicit_workspace_preserves_seed_and_replays_copied_members(locked_pro
     expected = tomllib.loads(before_member.decode("utf-8"))
     # A virtual member is renamed to its unique key (uv rejects two members with
     # one [project].name); everything the plugin declared must survive verbatim.
-    assert copied_document["project"]["name"].startswith("hermes-plugin-member-")
+    assert copied_document["project"]["name"].startswith("kova-plugin-member-")
     del copied_document["project"]["name"]
     del expected["project"]["name"]
     assert copied_document == expected

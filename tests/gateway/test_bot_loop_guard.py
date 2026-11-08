@@ -262,13 +262,13 @@ def test_concurrent_admits_respect_the_budget(clock):
 
 
 def test_load_settings_reads_config_yaml(monkeypatch):
-    import kova_cli.config as hermes_config
+    import kova_cli.config as kova_config
 
-    monkeypatch.setattr(hermes_config, "load_config_readonly", lambda: {"gateway": {"bot_loop_guard": {"max_events": 3}}})
+    monkeypatch.setattr(kova_config, "load_config_readonly", lambda: {"gateway": {"bot_loop_guard": {"max_events": 3}}})
     assert load_settings().max_events == 3
 
     def boom():
         raise RuntimeError("no config")
 
-    monkeypatch.setattr(hermes_config, "load_config_readonly", boom)
+    monkeypatch.setattr(kova_config, "load_config_readonly", boom)
     assert load_settings() == BotLoopGuardSettings()

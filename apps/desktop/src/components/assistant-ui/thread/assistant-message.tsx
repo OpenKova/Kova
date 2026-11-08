@@ -1184,7 +1184,7 @@ const ERROR_ACTION_RENDERERS: Record<ErrorActionId, (ctx: ErrorActionContext) =>
   start_new_session: ({ className, copy, link }) =>
     textButton(className, requestFreshSession, link ? copy.errorStartNewChatLink : copy.errorStartNewSession),
   edit_message: ({ className, copy }) => <EditPreviousMessageAction className={className} label={copy.editMessage} />,
-  open_hermes_folder: ({ className, copy, ownerProfile }) =>
+  open_kova_folder: ({ className, copy, ownerProfile }) =>
     window.kovaDesktop?.logsRoot
       ? textButton(
           className,

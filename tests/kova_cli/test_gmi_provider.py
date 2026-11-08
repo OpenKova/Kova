@@ -65,7 +65,7 @@ class TestGmiConfigRegistry:
         assert "GMI_BASE_URL" in OPTIONAL_ENV_VARS
         # ENV_VARS_BY_VERSION entries are not needed for providers added after
         # _config_version 22 (the current baseline) — users discover GMI via
-        # hermes model, not via upgrade prompts.
+        # kova model, not via upgrade prompts.
 
 
 class TestGmiModelCatalog:
@@ -226,7 +226,7 @@ class TestGmiMainFlow:
             "kova_cli.main.cmd_chat",
             lambda args: recorded.setdefault("provider", args.provider),
         )
-        monkeypatch.setattr(sys, "argv", ["hermes", "chat", "--provider", "gmi"])
+        monkeypatch.setattr(sys, "argv", ["kova", "chat", "--provider", "gmi"])
 
         from kova_cli.main import main
 

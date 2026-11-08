@@ -22,7 +22,7 @@ from tools.approval_context import _get_cron_approval_mode
 
 @pytest.fixture
 def config_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     (home / "config.yaml").write_text(
         "model:\n  default: test-model\n"

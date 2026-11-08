@@ -975,7 +975,7 @@ function completedAfterRestart(
   status: Awaited<ReturnType<typeof getActionStatus>>,
   actionId: string | undefined
 ): boolean {
-  return !!actionId && status.lines.some(line => line === `=== hermes-update completed ${actionId} ===`)
+  return !!actionId && status.lines.some(line => line === `=== kova-update completed ${actionId} ===`)
 }
 
 /** Whether the durable update receipt attached to the status proves the
@@ -1383,7 +1383,7 @@ function connectionKey(conn: KovaConnection | null): string {
 }
 
 export const BACKGROUND_UPDATE_CHECK_MS = 24 * 60 * 60 * 1000
-const FOCUS_RECHECK_KEY = 'hermes.updates.last-passive-check'
+const FOCUS_RECHECK_KEY = 'kova.updates.last-passive-check'
 
 function passiveCheckDue(now: number): boolean {
   const last = Number(storedString(FOCUS_RECHECK_KEY) ?? 0)

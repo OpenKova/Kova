@@ -25,7 +25,7 @@ import pytest
 
 
 def _seed_pool(tmp_path, monkeypatch, entries, provider="openrouter"):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(
         json.dumps({"version": 1, "credential_pool": {provider: entries}})

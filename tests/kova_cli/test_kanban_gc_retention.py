@@ -15,7 +15,7 @@ from kova_cli import kanban_ops
 @pytest.fixture
 def board(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
     return tmp_path
 
 def _done_task_with_old_event(conn):

@@ -20,5 +20,5 @@ async def test_canonical_run_poll_keeps_object_model_and_created_at(api, owner, 
         run_id = (await accepted.json())['run_id']
         polled = await (await client.get(f'/v1/runs/{run_id}')).json()
     assert polled['admission_id'] and polled['status'] == 'queued'
-    assert polled['object'] == 'hermes.run' and polled['model'] == 'kova-agent', polled
+    assert polled['object'] == 'kova.run' and polled['model'] == 'kova-agent', polled
     assert isinstance(polled['created_at'], float)

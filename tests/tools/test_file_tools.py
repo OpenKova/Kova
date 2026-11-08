@@ -356,10 +356,10 @@ class TestSearchHints:
 class TestSensitivePathCheck:
     """Verify that _check_sensitive_path blocks writes to protected locations."""
 
-    def test_hermes_config_blocked_for_write_file(self, tmp_path, monkeypatch):
+    def test_kova_config_blocked_for_write_file(self, tmp_path, monkeypatch):
         fake_config = tmp_path / "config.yaml"
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved", str(fake_config))
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved_loaded", True)
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved", str(fake_config))
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved_loaded", True)
 
         from tools.file_tools import write_file_tool
         result = json.loads(write_file_tool(str(fake_config), "approvals:\n  mode: off\n"))
@@ -369,8 +369,8 @@ class TestSensitivePathCheck:
 
 
     def test_system_path_still_blocked(self, monkeypatch):
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved", "/some/other/path")
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved_loaded", True)
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved", "/some/other/path")
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved_loaded", True)
 
         from tools.file_tools import write_file_tool
         result = json.loads(write_file_tool("/etc/passwd", "evil"))
@@ -393,8 +393,8 @@ class TestSensitivePathCheck:
 
     @patch("tools.file_tools._get_file_ops")
     def test_normal_file_not_blocked(self, mock_get, monkeypatch):
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved", "/home/user/.kova/config.yaml")
-        monkeypatch.setattr("tools.file_tools_write_guards._hermes_config_resolved_loaded", True)
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved", "/home/user/.kova/config.yaml")
+        monkeypatch.setattr("tools.file_tools_write_guards._kova_config_resolved_loaded", True)
         mock_ops = MagicMock()
         result_obj = MagicMock()
         result_obj.to_dict.return_value = {"status": "ok", "path": "/tmp/other.txt", "bytes": 5}
@@ -910,7 +910,7 @@ class TestSSHConfigWriteGate:
 
     def test_single_query_session_denies_with_the_q_mode_message(self, ssh_config, monkeypatch):
         monkeypatch.setenv("KOVA_SINGLE_QUERY_SESSION", "1")
-        monkeypatch.setenv("KOVA_INTERACTIVE", "1")  # `hermes chat -q` exports it too
+        monkeypatch.setenv("KOVA_INTERACTIVE", "1")  # `kova chat -q` exports it too
         from tools.file_tools import write_file_tool
 
         result = json.loads(write_file_tool(str(ssh_config), "Host x\n  ProxyCommand evil\n"))
@@ -960,13 +960,13 @@ class TestSecretFileReadRedaction:
 
     @pytest.fixture
     def kova_home(self, tmp_path, monkeypatch):
-        """A Kova home with no ``.kova`` segment, like ``%LOCALAPPDATA%\\hermes``."""
+        """A Kova home with no ``.kova`` segment, like ``%LOCALAPPDATA%\\kova``."""
         from agent import file_safety
 
-        home = tmp_path / "hermes"
+        home = tmp_path / "kova"
         home.mkdir()
         monkeypatch.setattr(file_safety, "_kova_home_path", lambda: home)
-        monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: home)
+        monkeypatch.setattr(file_safety, "_kova_root_path", lambda: home)
         return home
 
     @staticmethod
@@ -979,7 +979,7 @@ class TestSecretFileReadRedaction:
         return ops
 
     @patch("tools.file_tools._get_file_ops")
-    def test_read_file_of_hermes_config_masks_opaque_token(self, mock_get, kova_home):
+    def test_read_file_of_kova_config_masks_opaque_token(self, mock_get, kova_home):
         # read_file renders line-numbered content ("5|      ADS_API_TOKEN: …"); the gutter is
         # part of the text the redactor sees, so the fixture must carry it (a gutter-free
         # fixture would pass even though the real read leaks).

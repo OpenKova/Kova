@@ -92,7 +92,7 @@ export const frBoot = {
       since: time => `En attente depuis ${time}`,
       lastChecked: time => `Dernière vérification ${time}`,
       recoveryHint:
-        "Cela se règle généralement en quelques minutes. Sinon : quittez Kova, arrêtez les processus git ou hermes restants (ou redémarrez l'ordinateur), puis rouvrez Kova.",
+        "Cela se règle généralement en quelques minutes. Sinon : quittez Kova, arrêtez les processus git ou kova restants (ou redémarrez l'ordinateur), puis rouvrez Kova.",
       checkAgain: 'Vérifier à nouveau',
       quit: 'Quitter Kova',
       openLogs: 'Ouvrir les journaux',

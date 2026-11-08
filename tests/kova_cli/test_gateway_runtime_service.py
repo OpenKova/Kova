@@ -183,7 +183,7 @@ def test_launchd_verifies_the_osascript_wrapped_command_the_installer_writes(cas
         from kova_cli._launchers import installation_command
         foreign = installation_command(tmp_path / "other-checkout", ["gateway", "run", "--external-supervisor"],
                                        python=sys.executable)
-        assert Path(foreign[0]).name == "hermes"
+        assert Path(foreign[0]).name == "kova"
         command = foreign if case == "osascript_foreign_bare" else installation_command(
             gw.PROJECT_ROOT, ["--error-log", str(tmp_path / "logs" / "gateway.error.log"), "--", *foreign],
             module="kova_cli.stderr_timestamp", python=sys.executable)
@@ -554,7 +554,7 @@ def test_s6_command_timeout_ends_at_the_runtime_deadline(tmp_path, monkeypatch):
 def test_windows_startup_folder_entry_still_restarts_a_stopped_owner(tmp_path, monkeypatch):
     """The Startup-folder fallback is login persistence only (no start verb, no identity): with it
     present and no Scheduled Task registered, ensure takes the same detached direct spawn manual
-    `hermes gateway start` uses instead of refusing until the next login."""
+    `kova gateway start` uses instead of refusing until the next login."""
     from types import SimpleNamespace
     from kova_cli import gateway_runtime as runtime, gateway_runtime_service as service, gateway_runtime_start as start
     from kova_cli import gateway_windows

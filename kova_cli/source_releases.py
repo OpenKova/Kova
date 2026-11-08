@@ -248,7 +248,7 @@ def _refuse_retirement_downgrade(request: dict, terminal: dict, git_cmd, cwd) ->
 
 def _read(url: str, *, missing_ok: bool = False) -> str | None:
     request = urllib.request.Request(url, headers={
-        "User-Agent": "hermes-update", "Cache-Control": "no-cache",
+        "User-Agent": "kova-update", "Cache-Control": "no-cache",
         "Accept": "application/json, text/html",
     })
     try:

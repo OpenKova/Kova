@@ -13,8 +13,8 @@ import logging
 
 logger = logging.getLogger("tools.environments.docker")
 
-_EGRESS_LABEL_KEY = "hermes-egress"
-_CONTAINER_CA = "/etc/ssl/certs/hermes-egress-ca.crt"
+_EGRESS_LABEL_KEY = "kova-egress"
+_CONTAINER_CA = "/etc/ssl/certs/kova-egress-ca.crt"
 _NODE_OPTIONS_SENTINEL = "_KOVA_EGRESS_NODE_OPTIONS_APPEND"
 _CA_MODE_FLAGS = {"--use-openssl-ca", "--use-bundled-ca"}
 

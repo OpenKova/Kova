@@ -1035,7 +1035,7 @@ describe('ModelSettings code-skew 503', () => {
       expect(screen.getByText(/running old code after an update/i)).toBeTruthy()
     })
     expect(screen.getByRole('button', { name: 'Restart backend' })).toBeTruthy()
-    expect(screen.queryByText(/hermes:api/)).toBeNull()
+    expect(screen.queryByText(/kova:api/)).toBeNull()
     expect(screen.queryByText(/systemctl/)).toBeNull()
   })
 

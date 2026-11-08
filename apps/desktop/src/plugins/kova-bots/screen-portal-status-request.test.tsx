@@ -40,7 +40,7 @@ const bot: RosterRow = { name: 'ops' }
 
 const running: DisplayStatus = {
   profile: 'ops',
-  profile_key: '/home/hermes/.kova',
+  profile_key: '/home/kova/.kova',
   supported: true,
   installed: true,
   missing: [],

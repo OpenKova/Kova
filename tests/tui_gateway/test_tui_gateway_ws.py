@@ -451,7 +451,7 @@ def _drive_authority_fallback(monkeypatch, *, capabilities, profile_id, method):
     sent, inbound = [], [json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": {}})]
 
     class FakeWS:
-        scope = {"hermes.session_authority": object()}
+        scope = {"kova.session_authority": object()}
 
         async def accept(self, **_kw):
             pass
@@ -505,7 +505,7 @@ def test_ready_frame_advertises_a_session_authority_only_when_one_is_bound(monke
         asyncio.run(ws_mod.handle_ws(FakeWS(), auth_identity={"user_id": "u"}))
         return sent[0]["params"]["payload"]
 
-    assert ready({"hermes.session_authority": object()})["session_authority"] is True
+    assert ready({"kova.session_authority": object()})["session_authority"] is True
     assert "session_authority" not in ready({})
 
 
@@ -561,7 +561,7 @@ def test_legacy_fallback_never_writes_an_authority_owned_session(monkeypatch, tm
         sent, inbound = [], [json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params})]
 
         class FakeWS:
-            scope = {"hermes.session_authority": authority}
+            scope = {"kova.session_authority": authority}
 
             async def accept(self, **_kw):
                 pass

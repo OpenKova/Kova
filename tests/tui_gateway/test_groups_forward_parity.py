@@ -16,7 +16,7 @@ import pytest
 import tui_gateway.server as srv
 from tui_gateway import methods_groups, owner_forward
 
-MEMBERS = [{"member_id": "default", "profile": "default", "handle": "hermes"},
+MEMBERS = [{"member_id": "default", "profile": "default", "handle": "kova"},
            {"member_id": "ops", "profile": "ops", "handle": "ops"}]
 ENDPOINT = object()
 

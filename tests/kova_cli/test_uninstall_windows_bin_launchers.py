@@ -1,10 +1,10 @@
-"""Uninstall must not leave a dangling ``hermes`` command on Windows.
+"""Uninstall must not leave a dangling ``kova`` command on Windows.
 
 Every uninstall mode deletes the code checkout, but the launcher copies
 staged onto PATH in the managed binary dir (the default Kova root's
-``bin``) live outside it. A surviving launcher makes ``hermes`` in a new
+``bin``) live outside it. A surviving launcher makes ``kova`` in a new
 terminal resolve and then error on its missing venv target — worse than
-command-not-found. The dir is wholly hermes-owned (pm keeps uv in its own
+command-not-found. The dir is wholly kova-owned (pm keeps uv in its own
 store entry), so the sweep takes everything in it.
 
 Platform verdicts are injected parameters (input→output, not host fakes).
@@ -21,11 +21,11 @@ from kova_cli import uninstall
 @pytest.fixture
 def managed_bin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Default-root ``bin`` holding staged launcher copies."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     bin_dir = home / "bin"
     bin_dir.mkdir(parents=True)
-    (bin_dir / "hermes.exe").write_bytes(b"MZ launcher")
-    (bin_dir / "hermes-acp.cmd").write_text("@echo off\r\n", encoding="ascii")
+    (bin_dir / "kova.exe").write_bytes(b"MZ launcher")
+    (bin_dir / "kova-acp.cmd").write_text("@echo off\r\n", encoding="ascii")
     monkeypatch.setenv("KOVA_HOME", str(home))
     return bin_dir
 
@@ -33,7 +33,7 @@ def managed_bin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 def test_removes_the_whole_managed_bin_dir(managed_bin: Path):
     removed = uninstall.remove_windows_bin_launchers(windows=True)
 
-    assert sorted(p.name for p in removed) == ["hermes-acp.cmd", "hermes.exe"]
+    assert sorted(p.name for p in removed) == ["kova-acp.cmd", "kova.exe"]
     assert not managed_bin.exists()
 
 
@@ -47,17 +47,17 @@ def test_anchors_on_default_root_not_profile_home(
 
     removed = uninstall.remove_windows_bin_launchers(windows=True)
 
-    assert sorted(p.name for p in removed) == ["hermes-acp.cmd", "hermes.exe"]
-    assert not (managed_bin / "hermes.exe").exists()
+    assert sorted(p.name for p in removed) == ["kova-acp.cmd", "kova.exe"]
+    assert not (managed_bin / "kova.exe").exists()
 
 
 def test_noop_on_posix(managed_bin: Path):
     assert uninstall.remove_windows_bin_launchers(windows=False) == []
-    assert (managed_bin / "hermes.exe").exists()
+    assert (managed_bin / "kova.exe").exists()
 
 
 def test_noop_when_no_bin_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
 

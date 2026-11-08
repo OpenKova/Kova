@@ -72,8 +72,8 @@ PAYLOAD = "Product.app/Contents/Resources/payload/"
 UNIX = 16  # a ZIP entry's Unix mode is the high word of external_attr
 OWNER_WRITABLE = [
     (PAYLOAD, (stat.S_IFDIR | 0o755) << UNIX, b""),
-    (PAYLOAD + "hermes/__pycache__/cli.cpython-313.pyc", (stat.S_IFREG | 0o644) << UNIX, b"pyc"),
-    (PAYLOAD + "hermes/cli.py", (stat.S_IFREG | 0o644) << UNIX, b"py"),
+    (PAYLOAD + "kova/__pycache__/cli.cpython-313.pyc", (stat.S_IFREG | 0o644) << UNIX, b"pyc"),
+    (PAYLOAD + "kova/cli.py", (stat.S_IFREG | 0o644) << UNIX, b"py"),
     (PAYLOAD + "bin/python3", (stat.S_IFLNK | 0o755) << UNIX, b"python3.13"),
     # Only an MS-DOS attribute (archive), as a Windows archiver writes it: no Unix mode.
     (PAYLOAD + "no-unix-mode.txt", 0x20, b"dos"),

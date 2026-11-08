@@ -67,7 +67,7 @@ def _idle(path, hours=100):
 
 
 def _archives(repo):
-    out = _git(["for-each-ref", "--format=%(refname)", "refs/hermes/archive/"], repo)
+    out = _git(["for-each-ref", "--format=%(refname)", "refs/kova/archive/"], repo)
     return [line for line in out.splitlines() if line]
 
 
@@ -128,10 +128,10 @@ def test_sweep_archives_idle_work_and_never_touches_live_kanban_or_young_trees(r
     """I1/I2/I3/I4 on one board through the real pruner entry point."""
     clean = _tree(repo, "lane-clean")
     dirty = _tree(repo, "lane-dirty", dirty=True)
-    unpushed = _tree(repo, "hermes-unpushed", unpushed=True)
+    unpushed = _tree(repo, "kova-unpushed", unpushed=True)
     live_cwd = _tree(repo, "lane-live-cwd", dirty=True)
-    live_lock = _tree(repo, "hermes-live-lock", dirty=True)
-    _git(["worktree", "lock", "--reason", f"hermes pid={os.getpid()}", str(live_lock)], repo)
+    live_lock = _tree(repo, "kova-live-lock", dirty=True)
+    _git(["worktree", "lock", "--reason", f"kova pid={os.getpid()}", str(live_lock)], repo)
     kanban = _tree(repo, "t_0abc12", dirty=True)
     young = _tree(repo, "lane-young", dirty=True)
     unarchivable = _tree(repo, "lane-embedded", dirty=True)
@@ -146,7 +146,7 @@ def test_sweep_archives_idle_work_and_never_touches_live_kanban_or_young_trees(r
     _git(["commit", "-qm", "sub"], deleted)
     for tree in (clean, dirty, unpushed, live_cwd, live_lock, kanban, unarchivable, deleted):
         _idle(tree)
-    _idle(subagent, hours=30)                   # past the 24h hermes-made tier, inside 72h
+    _idle(subagent, hours=30)                   # past the 24h kova-made tier, inside 72h
     (deleted / "sub" / "x.py").unlink()         # the newest work: a deletion in a subdir
     sleeper = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"], cwd=str(live_cwd))
     try:
@@ -160,9 +160,9 @@ def test_sweep_archives_idle_work_and_never_touches_live_kanban_or_young_trees(r
         assert not gone.exists(), f"idle {gone.name} should be archived then removed"
     assert not subagent.exists(), "subagent-* trees age on the 24h tier"
     archived = {ref.rsplit("/", 1)[-1] for ref in _archives(repo)}
-    assert archived == {"lane-dirty", "hermes-unpushed", "subagent-done"}
+    assert archived == {"lane-dirty", "kova-unpushed", "subagent-done"}
     assert (deleted / "sub" / "y.py").exists(), "a fresh deletion is activity: the tree is not idle"
-    assert _git(["show", "refs/hermes/archive/lane-dirty:notes.md"], repo) == "uncommitted"
+    assert _git(["show", "refs/kova/archive/lane-dirty:notes.md"], repo) == "uncommitted"
     for kept in (live_cwd, live_lock, kanban, young, unarchivable):
         assert kept.exists() and (kept / "notes.md").read_text(encoding="utf-8-sig") == "uncommitted\n", kept.name
 
@@ -203,8 +203,8 @@ def test_a_tree_resumed_mid_sweep_is_never_removed(repo, monkeypatch, capsys):
     assert second.exists() and (second / "notes.md").read_text(encoding="utf-8-sig") == "uncommitted\n"
     assert staged.exists() and _git(["show", ":b.py"], staged) == "NEW STAGED CONTENT"
     assert sorted(ref.rsplit("/", 1)[-1] for ref in _archives(repo)) == ["lane-a", "lane-staged"]
-    assert sorted(actions) == ["archived, kept (changed 0s ago) → refs/hermes/archive/lane-a",
-                               "archived, kept (staged changes since the snapshot) → refs/hermes/archive/lane-staged"]
+    assert sorted(actions) == ["archived, kept (changed 0s ago) → refs/kova/archive/lane-a",
+                               "archived, kept (staged changes since the snapshot) → refs/kova/archive/lane-staged"]
 
 
 def test_dirty_submodule_work_is_never_archived_away(repo, tmp_path, monkeypatch):
@@ -372,12 +372,12 @@ def test_the_pruner_removes_a_tree_only_when_everything_irreproducible_is_archiv
 
 
 def test_prune_older_than_bounds_what_the_sweep_removes(repo, capsys):
-    """`hermes worktree prune --older-than N` never archives or removes a tree idle < N days."""
+    """`kova worktree prune --older-than N` never archives or removes a tree idle < N days."""
     import argparse
 
     from kova_cli.worktree_cmd import cmd_worktree
 
-    dirty, clean = _tree(repo, "hermes-dirty", dirty=True), _tree(repo, "hermes-clean")
+    dirty, clean = _tree(repo, "kova-dirty", dirty=True), _tree(repo, "kova-clean")
     for tree in (dirty, clean):
         _idle(tree)                                   # ~4 days idle: past every tier
     args = argparse.Namespace(repo=str(repo), worktree_action="prune", dry_run=False, json=True,
@@ -392,7 +392,7 @@ def test_archive_dirty_false_keeps_the_classic_never_delete_dirty_pruner(repo):
     _set_worktrees_config("worktrees:\n  archive_dirty: false\n")
     clean = _tree(repo, "lane-clean")
     dirty = _tree(repo, "lane-dirty", dirty=True)
-    unpushed = _tree(repo, "hermes-unpushed", unpushed=True)
+    unpushed = _tree(repo, "kova-unpushed", unpushed=True)
     for tree in (clean, dirty, unpushed):
         _idle(tree)
     worktree_ops._prune_stale_worktrees(str(repo))
@@ -438,9 +438,9 @@ def test_exit_question_never_prompts_without_a_tty(repo, monkeypatch):
     """I5: a dirty tree at a non-interactive exit is kept without any prompt."""
     from kova_cli import curses_ui, worktree_exit
 
-    wt = _tree(repo, "hermes-exit", dirty=True)
+    wt = _tree(repo, "kova-exit", dirty=True)
     monkeypatch.setattr(curses_ui, "curses_radiolist",
                         lambda *a, **k: pytest.fail("non-interactive exit must never prompt"))
-    info = {"path": str(wt), "repo_root": str(repo), "branch": "wt/hermes-exit"}
+    info = {"path": str(wt), "repo_root": str(repo), "branch": "wt/kova-exit"}
     assert worktree_exit.ask_exit_choice(info) == worktree_exit.KEEP
     assert "exit_choice" not in info and wt.exists()

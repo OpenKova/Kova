@@ -9,7 +9,7 @@ Two failures on a Windows desktop install talking to a remote gateway:
    path as argv, rewritten to forward slashes the way the delivery runner's
    argv is — the tracked local backend runs commands through Git Bash there.
 
-2. the delivery runner argv hardcoded ``"hermes"``, relying on PATH —
+2. the delivery runner argv hardcoded ``"kova"``, relying on PATH —
    which service contexts (systemd units, desktop launchers, non-login
    SSH shells) do not provide, so delivery died with ENOENT. ``_kova_cli``
    resolves the CLI next to this gateway's own interpreter (the venv
@@ -39,10 +39,10 @@ def test_waiter_argv_uses_forward_slashes_on_windows():
 
 
 @pytest.mark.platforms("linux")
-def test_local_delivery_resolves_sibling_hermes(tmp_path, monkeypatch):
+def test_local_delivery_resolves_sibling_kova(tmp_path, monkeypatch):
     bin_dir = tmp_path / "venv" / "bin"
     bin_dir.mkdir(parents=True)
-    sibling = bin_dir / "hermes"
+    sibling = bin_dir / "kova"
     sibling.touch()
     sibling.chmod(0o755)
     monkeypatch.setattr("sys.executable", str(bin_dir / "python"))
@@ -62,9 +62,9 @@ def test_local_delivery_uses_shutil_which_when_no_sibling(tmp_path, monkeypatch)
     # Keep this checkout's own published install launcher out of the resolution
     # when probing the fallback ladder (#124868).
     monkeypatch.setattr(bot_relay, "__file__", str(empty / "bot_relay.py"))
-    which_hit = str(tmp_path / "usr-local-bin" / "hermes")
+    which_hit = str(tmp_path / "usr-local-bin" / "kova")
     monkeypatch.setattr(
-        bot_relay.shutil, "which", lambda name: which_hit if name == "hermes" else None
+        bot_relay.shutil, "which", lambda name: which_hit if name == "kova" else None
     )
 
     assert bot_relay._kova_cli() == which_hit
@@ -77,4 +77,4 @@ def test_local_delivery_falls_back_to_bare_name(tmp_path, monkeypatch):
     monkeypatch.setattr(bot_relay.shutil, "which", lambda name: None)
     monkeypatch.setattr(bot_relay, "__file__", str(empty / "bot_relay.py"))
 
-    assert bot_relay._kova_cli() == "hermes"
+    assert bot_relay._kova_cli() == "kova"

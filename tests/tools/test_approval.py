@@ -110,7 +110,7 @@ class TestDetectDangerousRm:
     @pytest.mark.platforms("linux")
     def test_nonrecursive_verification_artifact_cleanup_is_not_dangerous(self):
         with mock_patch("tempfile.gettempdir", return_value="/tmp"):
-            for prefix in ("hermes-verify-", "hermes-ad-hoc-"):
+            for prefix in ("kova-verify-", "kova-ad-hoc-"):
                 assert detect_dangerous_command(f"rm -f /tmp/{prefix}example.py") == (
                     False,
                     None,
@@ -123,7 +123,7 @@ class TestDetectDangerousRm:
         real_temp.mkdir()
         linked_temp = tmp_path / "linked-temp"
         linked_temp.symlink_to(real_temp, target_is_directory=True)
-        basename = "hermes-verify-example.py"
+        basename = "kova-verify-example.py"
 
         with mock_patch("tempfile.gettempdir", return_value=str(linked_temp)):
             assert detect_dangerous_command(f"rm -f {linked_temp / basename}")[0] is True
@@ -135,15 +135,15 @@ class TestDetectDangerousRm:
 
     def test_verification_cleanup_exemption_rejects_broader_deletions(self):
         commands = (
-            "rm -rf /tmp/hermes-verify-example.py",
-            "rm -f /tmp/hermes-verify-example.py /tmp/other.py",
-            "rm -f /tmp/nested/../hermes-verify-example.py",
-            "rm -f /tmp/a/../../tmp/hermes-verify-example.py",
-            "rm -f /var/tmp/hermes-verify-example.py",
-            "rm -f /tmp/hermes-verify-*",
-            "rm -f /tmp/hermes-verify-$(touch>/tmp/pwned).py",
-            "rm -f /tmp/hermes-ad-hoc-`touch>/tmp/pwned`.py",
-            "rm -f /tmp/hermes-verify-example.py; touch /tmp/pwned",
+            "rm -rf /tmp/kova-verify-example.py",
+            "rm -f /tmp/kova-verify-example.py /tmp/other.py",
+            "rm -f /tmp/nested/../kova-verify-example.py",
+            "rm -f /tmp/a/../../tmp/kova-verify-example.py",
+            "rm -f /var/tmp/kova-verify-example.py",
+            "rm -f /tmp/kova-verify-*",
+            "rm -f /tmp/kova-verify-$(touch>/tmp/pwned).py",
+            "rm -f /tmp/kova-ad-hoc-`touch>/tmp/pwned`.py",
+            "rm -f /tmp/kova-verify-example.py; touch /tmp/pwned",
         )
         with mock_patch("tempfile.gettempdir", return_value="/tmp"):
             for command in commands:
@@ -193,12 +193,12 @@ class TestDynamicShellWordSpellings:
 class TestWindowsShellDestructiveCommands:
     def test_windows_destructive_requires_approval(self):
         cases = [
-            (r"cmd /c del /f /q C:\tmp\hermes-victim\file.txt", "Windows cmd destructive delete"),
-            (r"cmd.exe /k rmdir /s /q C:\tmp\hermes-victim", "Windows cmd destructive delete"),
+            (r"cmd /c del /f /q C:\tmp\kova-victim\file.txt", "Windows cmd destructive delete"),
+            (r"cmd.exe /k rmdir /s /q C:\tmp\kova-victim", "Windows cmd destructive delete"),
             # Regression: PowerShell runs the verb as the default positional arg,
             # so `powershell Remove-Item ...` with NO explicit -Command must still
             # be gated (the original pattern required -Command and missed this).
-            (r"powershell Remove-Item -Recurse -Force C:\tmp\hermes-victim",
+            (r"powershell Remove-Item -Recurse -Force C:\tmp\kova-victim",
              "Windows PowerShell destructive delete"),
             # `ri` is the canonical Remove-Item alias.
             (r"powershell ri -Recurse -Force C:\tmp\x", "Windows PowerShell destructive delete"),
@@ -1103,7 +1103,7 @@ class TestHeredocScriptExecution:
 
 
 class TestPgrepKillExpansion:
-    """kill -9 $(pgrep hermes) bypasses the pkill/killall name-matching
+    """kill -9 $(pgrep kova) bypasses the pkill/killall name-matching
     pattern because the command substitution is opaque to regex.
 
     See security audit Test 7.
@@ -1111,8 +1111,8 @@ class TestPgrepKillExpansion:
 
     def test_kill_pgrep_expansion_detected(self):
         for cmd in (
-            'kill -9 $(pgrep -f "hermes.*gateway")',
-            "kill -9 `pgrep hermes`",
+            'kill -9 $(pgrep -f "kova.*gateway")',
+            "kill -9 `pgrep kova`",
             "kill $(pgrep gateway)",
         ):
             dangerous, _, desc = detect_dangerous_command(cmd)
@@ -1120,13 +1120,13 @@ class TestPgrepKillExpansion:
             assert "pgrep" in desc.lower()
 
     def test_kill_pidof_expansion_detected(self):
-        """`kill $(pidof hermes)` is the BSD/Linux equivalent of the
+        """`kill $(pidof kova)` is the BSD/Linux equivalent of the
         pgrep expansion and bypasses the pkill/killall name pattern
         in the same way. See issue #33071."""
         dangerous, _, desc = detect_dangerous_command("kill -TERM $(pidof kova_cli.main)")
         assert dangerous is True
         assert "pidof" in desc.lower() or "pgrep" in desc.lower()
-        assert detect_dangerous_command("kill -9 `pidof hermes`")[0] is True
+        assert detect_dangerous_command("kill -9 `pidof kova`")[0] is True
 
     def test_safe_kill_pid_not_flagged(self):
         """A plain 'kill 12345' (literal PID, no expansion) must stay safe."""
@@ -1136,11 +1136,11 @@ class TestPgrepKillExpansion:
 
 class TestLaunchctlGatewayLifecycle:
     """launchctl stop/kickstart/bootout/unload against the Kova service
-    label achieves the same effect as `hermes gateway stop|restart` and
+    label achieves the same effect as `kova gateway stop|restart` and
     must require the same approval. See issue #33071.
     """
 
-    def test_launchctl_against_hermes_label_detected(self):
+    def test_launchctl_against_kova_label_detected(self):
         for cmd in (
             "launchctl stop ai.kova.gateway",
             "launchctl kickstart -k system/ai.kova.gateway",
@@ -1172,7 +1172,7 @@ class TestLaunchctlGatewayLifecycle:
             "launchctl kick'start' -k gui/501/ai.kova.gateway",
             'launchctl boot"out" gui/501/ai.kova.gateway',
             'launchctl bootout gui/501/ai.kova."gateway"',
-            'hermes gateway re"start"',
+            'kova gateway re"start"',
             'systemctl re"start" kova-gateway',
         ):
             dangerous, _, _ = detect_dangerous_command(cmd)
@@ -1180,7 +1180,7 @@ class TestLaunchctlGatewayLifecycle:
 
     def test_spliced_detection_does_not_flag_prose_or_other_services(self):
         """The splice pass must not widen the blast radius: it is anchored on
-        a kova-gateway identifier, so quoted prose and non-gateway hermes
+        a kova-gateway identifier, so quoted prose and non-gateway kova
         services stay auto-approved."""
         for cmd in (
             'launchctl kick"start" -k gui/501/ai.kova.update-checker',
@@ -1193,7 +1193,7 @@ class TestLaunchctlGatewayLifecycle:
         """2026-08-02 incident: the label was defined in a shell for-loop
         BEFORE the `launchctl bootout` call, referenced only via a `$label`
         variable at the point of the verb. The old sequential regex required
-        "hermes"/"ai.kova" to appear AFTER the verb and missed this
+        "kova"/"ai.kova" to appear AFTER the verb and missed this
         entirely, restarting 4 gateways with zero approval."""
         cmd = (
             "uid=$(id -u); for item in 'ai.kova.gateway-apollo:/a.plist' "

@@ -90,8 +90,8 @@ const gatewayAtom = gw.$gateway
 const git = await import('@/lib/desktop-git')
 const desktopGit = vi.mocked(git.desktopGit)
 
-const hermes = await import('@/kova')
-const getKovaConfig = vi.mocked(hermes.getKovaConfig)
+const kova = await import('@/kova')
+const getKovaConfig = vi.mocked(kova.getKovaConfig)
 const notifications = await import('@/store/notifications')
 const notify = vi.mocked(notifications.notify)
 
@@ -516,22 +516,22 @@ describe('createProject', () => {
   })
 
   it.each(['default', 'coder'])('creates in the active %s profile without leaving All profiles', async profile => {
-    const created = { folders: [], id: 'p_new', name: 'Kova Agent', primary_path: '/srv/hermes' }
+    const created = { folders: [], id: 'p_new', name: 'Kova Agent', primary_path: '/srv/kova' }
     const tree = { id: created.id, label: created.name, path: created.primary_path, repos: [], sessionCount: 0 }
     const request = vi.fn().mockResolvedValue({ project: created })
     activeGateway.mockReturnValue({ connectionState: 'open', request } as never)
-    vi.mocked(hermes.kovaApi).mockResolvedValue({ projects: [tree], active_id: created.id })
+    vi.mocked(kova.kovaApi).mockResolvedValue({ projects: [tree], active_id: created.id })
     $activeGatewayProfile.set(profile)
     setShowAllProfiles(true)
 
-    await expect(createProject({ folders: ['/srv/hermes'], name: created.name, use: true })).resolves.toEqual(created)
+    await expect(createProject({ folders: ['/srv/kova'], name: created.name, use: true })).resolves.toEqual(created)
 
     expect(request).toHaveBeenCalledWith('projects.create', expect.objectContaining({ profile, name: created.name }))
     expect($profileScope.get()).toBe(ALL_PROFILES)
     expect($projects.get()).toContainEqual(created)
     expect($projectTree.get()).toEqual(expect.arrayContaining([expect.objectContaining({ id: created.id })]))
     expect($activeProjectId.get()).toBe(created.id)
-    expect(hermes.kovaApi).toHaveBeenCalledWith(
+    expect(kova.kovaApi).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/api/profiles/projects/tree?preview_limit=3' })
     )
   })
@@ -544,7 +544,7 @@ describe('createProject', () => {
     $activeGatewayProfile.set('coder')
     setShowAllProfiles(true)
 
-    const pending = createProject({ folders: ['/srv/hermes'], name: 'Kova Agent' })
+    const pending = createProject({ folders: ['/srv/kova'], name: 'Kova Agent' })
     const rejection = expect(pending).rejects.toThrow('Active Kova profile changed while connecting')
     const otherGateway = { connectionState: 'open', request }
     $activeGatewayProfile.set('other')

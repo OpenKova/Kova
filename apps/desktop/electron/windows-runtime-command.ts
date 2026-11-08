@@ -1,4 +1,4 @@
-// The published launcher owns PM activation. A Python guessed beside bin/hermes.exe does not.
+// The published launcher owns PM activation. A Python guessed beside bin/kova.exe does not.
 export interface WindowsRuntime {
   os?: string
   arch?: string

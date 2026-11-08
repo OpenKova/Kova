@@ -1,6 +1,6 @@
 """Tests for the shared tar.gz writer (``kova_cli.archive_safe.make_targz``).
 
-``make_targz`` backs both ``hermes profile export`` and ``hermes kanban
+``make_targz`` backs both ``kova profile export`` and ``kova kanban
 export``. The contract pinned down here: a failure partway through writing
 the archive (disk full, permission loss, interruption) must never destroy a
 pre-existing file at the destination path — the same failure-atomicity

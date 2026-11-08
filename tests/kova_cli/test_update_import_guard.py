@@ -1,4 +1,4 @@
-"""Tests for the post-update *import* guard in ``hermes update``.
+"""Tests for the post-update *import* guard in ``kova update``.
 
 ``tree_syntax_error`` only parses files, so it cannot detect a
 partially-updated tree: when one package is refreshed and a sibling is not,
@@ -297,35 +297,35 @@ def test_import_guard_rejects_module_satisfied_only_by_inherited_pythonpath(
     """
     stale = probe_root / "stale"
     stale.mkdir()
-    (stale / "hermes_stale_supply.py").write_text("VALUE = 'from the stale tree'\n")
+    (stale / "kova_stale_supply.py").write_text("VALUE = 'from the stale tree'\n")
 
     monkeypatch.setattr(
-        update_cmd, "_UPDATE_CRITICAL_MODULES", ("hermes_stale_supply",)
+        update_cmd, "_UPDATE_CRITICAL_MODULES", ("kova_stale_supply",)
     )
     monkeypatch.setattr(
-        update_cmd_validation, "_UPDATE_CRITICAL_MODULES", ("hermes_stale_supply",)
+        update_cmd_validation, "_UPDATE_CRITICAL_MODULES", ("kova_stale_supply",)
     )
     monkeypatch.setenv("PYTHONPATH", str(stale))
 
     ok, module, error = update_cmd._validate_critical_modules_import(probe_root)
 
     assert ok is False
-    assert module == "hermes_stale_supply"
-    assert error is not None and "hermes_stale_supply" in error
+    assert module == "kova_stale_supply"
+    assert error is not None and "kova_stale_supply" in error
 
 def test_import_guard_accepts_candidate_with_foreign_pythonpath(monkeypatch, probe_root):
     """The env scrub must not overreach: a candidate that carries the module
     still passes while a foreign PYTHONPATH is set (#115032)."""
     stale = probe_root / "stale"
     stale.mkdir()
-    (stale / "hermes_stale_supply.py").write_text("VALUE = 'stale'\n")
-    (probe_root / "hermes_stale_supply.py").write_text("VALUE = 'candidate'\n")
+    (stale / "kova_stale_supply.py").write_text("VALUE = 'stale'\n")
+    (probe_root / "kova_stale_supply.py").write_text("VALUE = 'candidate'\n")
 
     monkeypatch.setattr(
-        update_cmd, "_UPDATE_CRITICAL_MODULES", ("hermes_stale_supply",)
+        update_cmd, "_UPDATE_CRITICAL_MODULES", ("kova_stale_supply",)
     )
     monkeypatch.setattr(
-        update_cmd_validation, "_UPDATE_CRITICAL_MODULES", ("hermes_stale_supply",)
+        update_cmd_validation, "_UPDATE_CRITICAL_MODULES", ("kova_stale_supply",)
     )
     monkeypatch.setenv("PYTHONPATH", str(stale))
 
@@ -344,7 +344,7 @@ def test_import_guard_flags_missing_first_party_module(monkeypatch, probe_root):
     assert module == "consumer"
     assert error is not None and "tools.nonexistent_module" in error
 
-@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "hermesx"])
+@pytest.mark.parametrize("modname", ["agents", "agentops", "toolsets_x", "kovax"])
 def test_hint_does_not_claim_partial_update_for_lookalike_third_party(modname):
     """``startswith`` would match third-party ``agents``/``agentops`` and blame
     our updater for someone else's import error."""

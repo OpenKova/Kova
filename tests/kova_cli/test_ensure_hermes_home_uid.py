@@ -7,7 +7,7 @@ for profile namespaces under ``profiles/<name>/`` spawned by kanban
 workers — were landing as ``root:root`` and blocking subsequent
 uid-mapped worker invocations with ``PermissionError [Errno 13]``.
 
-The fix is a ``_chown_to_hermes_uid`` helper (``kova_constants``, the single home of the
+The fix is a ``_chown_to_kova_uid`` helper (``kova_constants``, the single home of the
 managed/container/KOVA_UID policy) that reads the env vars and applies chown after
 ``mkdir``, invoked from ``_secure_dir`` via ``apply_secure_dir_policy`` (which already
 runs after every directory creation in the home-init path).
@@ -21,7 +21,7 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# _resolve_hermes_uid_gid
+# _resolve_kova_uid_gid
 # ---------------------------------------------------------------------------
 
 
@@ -30,8 +30,8 @@ class TestResolveKovaUidGid:
     def test_returns_parsed_values_when_both_set(self, monkeypatch):
         monkeypatch.setenv("KOVA_UID", "1000")
         monkeypatch.setenv("KOVA_GID", "911")
-        from kova_constants import _resolve_hermes_uid_gid
-        uid, gid = _resolve_hermes_uid_gid()
+        from kova_constants import _resolve_kova_uid_gid
+        uid, gid = _resolve_kova_uid_gid()
         assert uid == 1000
         assert gid == 911
 
@@ -44,14 +44,14 @@ class TestResolveKovaUidGid:
     def test_windows_returns_none_none(self, monkeypatch):
         monkeypatch.setenv("KOVA_UID", "1000")
         monkeypatch.setenv("KOVA_GID", "911")
-        from kova_constants import _resolve_hermes_uid_gid
-        uid, gid = _resolve_hermes_uid_gid()
+        from kova_constants import _resolve_kova_uid_gid
+        uid, gid = _resolve_kova_uid_gid()
         assert uid is None
         assert gid is None
 
 
 # ---------------------------------------------------------------------------
-# _chown_to_hermes_uid
+# _chown_to_kova_uid
 # ---------------------------------------------------------------------------
 
 
@@ -76,7 +76,7 @@ class TestChownToKovaUid:
 
         with patch.object(cfg.os, "chown", side_effect=_raises_eperm):
             # Must not raise — the catch is non-fatal.
-            cfg._chown_to_hermes_uid(d)
+            cfg._chown_to_kova_uid(d)
 
 
 

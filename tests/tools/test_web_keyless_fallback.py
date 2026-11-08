@@ -456,7 +456,7 @@ class TestResolutionOrder:
 
 
 # ---------------------------------------------------------------------------
-# hermes tools picker: tier variant rows
+# kova tools picker: tier variant rows
 # ---------------------------------------------------------------------------
 
 

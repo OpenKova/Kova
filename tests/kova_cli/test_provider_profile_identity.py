@@ -34,7 +34,7 @@ def install_profile(monkeypatch):
     def _install(name: str, *, aliases=(), base_url: str, env_var: str, api_mode: str = "chat_completions"):
         monkeypatch.setenv(env_var, KEY)
         monkeypatch.setattr(profiles, "_discovered", False)
-        monkeypatch.delitem(sys.modules, f"_hermes_user_provider_{name}", raising=False)
+        monkeypatch.delitem(sys.modules, f"_kova_user_provider_{name}", raising=False)
         plugin_dir = get_kova_home() / "plugins" / "model-providers" / name
         plugin_dir.mkdir(parents=True, exist_ok=True)
         (plugin_dir / "plugin.yaml").write_text(

@@ -1,4 +1,4 @@
-"""`hermes debug` must report the EFFECTIVE terminal backend.
+"""`kova debug` must report the EFFECTIVE terminal backend.
 
 ``terminal.backend`` in config.yaml is bridged to the ``TERMINAL_ENV`` env var,
 but a ``TERMINAL_ENV`` set in .env / the shell overrides config and is what
@@ -57,7 +57,7 @@ def test_dump_surfaces_terminal_env_override(monkeypatch, capsys, tmp_path):
 
 def test_dump_reports_config_backend_winning_over_stale_env(monkeypatch, capsys, tmp_path):
     """Regression for #29186: a stale TERMINAL_ENV=docker in .env no longer
-    beats config.yaml terminal.backend=local — load_hermes_dotenv re-applies
+    beats config.yaml terminal.backend=local — load_kova_dotenv re-applies
     the explicit config keys, so the dump reports local with no override
     warning."""
     from kova_cli import dump

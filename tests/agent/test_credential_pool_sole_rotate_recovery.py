@@ -29,7 +29,7 @@ def _entry(idx: int, *, token: str, refresh: str) -> dict:
 
 
 def _load(tmp_path, monkeypatch, entries: list[dict]):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(
         json.dumps({"version": 1, "credential_pool": {"openai-codex": entries}})

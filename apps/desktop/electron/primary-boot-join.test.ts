@@ -16,7 +16,7 @@ const remote = {
   token: 'placeholder'
 }
 
-// main.ts's hermes:connection → ensureBackend path, minus the IPC: a renderer
+// main.ts's kova:connection → ensureBackend path, minus the IPC: a renderer
 // asking with no profile, against a global remote primary whose inherited
 // profile ('windows-only') that gateway does not serve.
 function rendererRequest(profile: string | undefined, pin: PrimaryProfilePin) {

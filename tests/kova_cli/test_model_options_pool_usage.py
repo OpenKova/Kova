@@ -65,7 +65,7 @@ def _join_refresh_workers() -> None:
     this test's in-memory entries into that store (cross-test auth.json contamination)."""
     import threading
 
-    for worker in [t for t in threading.enumerate() if "hermes-account-usage-refresh" in t.name]:
+    for worker in [t for t in threading.enumerate() if "kova-account-usage-refresh" in t.name]:
         worker.join(10)
 
 

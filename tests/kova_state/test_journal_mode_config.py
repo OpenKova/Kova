@@ -11,7 +11,7 @@ import kova_yaml as yaml
 
 
 def _write_config(monkeypatch: pytest.MonkeyPatch, tmp_path, config: object) -> None:
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir(exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "config.yaml").write_text(
@@ -94,7 +94,7 @@ def test_resolve_journal_mode_uses_real_database_config(monkeypatch, tmp_path):
     assert resolve_journal_mode() == "delete"
 
 
-def test_new_nonsecret_hermes_env_override_is_not_exposed(monkeypatch, tmp_path):
+def test_new_nonsecret_kova_env_override_is_not_exposed(monkeypatch, tmp_path):
     from kova_state_wal import resolve_journal_mode
 
     _configure_mode(monkeypatch, tmp_path, "wal")

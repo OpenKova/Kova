@@ -1,7 +1,7 @@
 """Point slack_sdk (and raw ``https://slack.com/api/`` aiohttp posts) at a local Slack stand-in.
 
 slack_sdk has no base-URL environment variable, so this module is put on ``PYTHONPATH`` of the child
-``hermes gateway run`` process by the contract harness. Python imports ``sitecustomize`` at startup;
+``kova gateway run`` process by the contract harness. Python imports ``sitecustomize`` at startup;
 when ``KOVA_STANDIN_SLACK_API`` is set (e.g. ``http://127.0.0.1:PORT/api/``) every Web API client
 the Slack adapter builds defaults its ``base_url`` to the stand-in, which also moves
 ``apps.connections.open`` and therefore the Socket Mode websocket. Nothing in Kova is touched: the

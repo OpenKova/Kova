@@ -167,7 +167,7 @@ def test_a_routed_profile_fire_runs_under_multiplex_semantics_for_exactly_its_sc
     from cron import scheduler
     from agent import secret_scope
     from cron.scheduler_provider import _profile_cron_scope, routed_profile_fire
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
 
     launch, routed = tmp_path / "launch", tmp_path / "launch" / "profiles" / "ops"
     for home in (launch, routed):
@@ -191,7 +191,7 @@ def test_a_routed_profile_fire_runs_under_multiplex_semantics_for_exactly_its_sc
         try:
             assert secret_scope.is_multiplex_active() is True
             # The job's per-run dotenv reload, exactly as cron/scheduler does it: hydrate-only.
-            assert load_hermes_dotenv(kova_home=routed, load_external_secrets=False) == []
+            assert load_kova_dotenv(kova_home=routed, load_external_secrets=False) == []
             assert secret_scope.get_secret("XAI_API_KEY") == "routed-key"
             assert secret_scope.get_secret("DISCORD_BOT_TOKEN") is None  # never the launch bot
         finally:

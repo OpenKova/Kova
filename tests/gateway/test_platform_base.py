@@ -548,9 +548,9 @@ class TestMediaDeliveryPathValidation:
     ):
         """Strict mode trusts durable attachments without trusting scratch."""
         self._patch_roots(monkeypatch)
-        monkeypatch.setenv("KOVA_KANBAN_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_KANBAN_HOME", str(tmp_path / "kova"))
         monkeypatch.setenv("KOVA_MEDIA_TRUST_RECENT_FILES", "0")
-        board_root = tmp_path / "hermes" / "kanban" / "boards" / "research"
+        board_root = tmp_path / "kova" / "kanban" / "boards" / "research"
         board_root.mkdir(parents=True)
         (board_root / "kanban.db").touch()
         attachment = board_root / "attachments" / "t_12345678" / "report.pdf"
@@ -646,18 +646,18 @@ class TestMediaDeliveryDefaultMode:
         self._patch_roots(monkeypatch)
 
         fake_home = tmp_path / "home"
-        hermes_dir = fake_home / ".kova"
-        (hermes_dir / "mcp-tokens").mkdir(parents=True)
-        secret = hermes_dir / rel
+        kova_dir = fake_home / ".kova"
+        (kova_dir / "mcp-tokens").mkdir(parents=True)
+        secret = kova_dir / rel
         secret.write_text('{"access_token": "live-bearer-abc123"}')
         monkeypatch.setenv("HOME", str(fake_home))
         monkeypatch.setattr(
             "gateway.platforms.base._KOVA_HOME",
-            hermes_dir,
+            kova_dir,
         )
         monkeypatch.setattr(
             "gateway.platforms.base._KOVA_ROOT",
-            hermes_dir,
+            kova_dir,
         )
 
         assert BasePlatformAdapter.validate_media_delivery_path(str(secret)) is None
@@ -669,13 +669,13 @@ class TestMediaDeliveryDefaultMode:
         self._patch_roots(monkeypatch)
 
         fake_home = tmp_path / "home"
-        hermes_dir = fake_home / ".kova"
-        (hermes_dir / "webapp").mkdir(parents=True)
-        secret = hermes_dir / rel
+        kova_dir = fake_home / ".kova"
+        (kova_dir / "webapp").mkdir(parents=True)
+        secret = kova_dir / rel
         secret.write_text("t" * 43 + "\n")
         monkeypatch.setenv("HOME", str(fake_home))
-        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", hermes_dir)
-        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", hermes_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", kova_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", kova_dir)
 
         assert BasePlatformAdapter.validate_media_delivery_path(str(secret)) is None
 
@@ -690,13 +690,13 @@ class TestMediaDeliveryDefaultMode:
         self._patch_roots(monkeypatch)
 
         fake_home = tmp_path / "home"
-        hermes_dir = fake_home / ".kova"
-        hermes_dir.mkdir(parents=True)
-        token = hermes_dir / "google_token.json"
+        kova_dir = fake_home / ".kova"
+        kova_dir.mkdir(parents=True)
+        token = kova_dir / "google_token.json"
         token.write_text('{"access_token": "***", "refresh_token": "***"}')
         monkeypatch.setenv("HOME", str(fake_home))
-        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", hermes_dir)
-        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", hermes_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", kova_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", kova_dir)
 
         assert BasePlatformAdapter.validate_media_delivery_path(str(token)) is None
 
@@ -712,13 +712,13 @@ class TestMediaDeliveryDefaultMode:
         monkeypatch.setenv("KOVA_MEDIA_TRUST_RECENT_SECONDS", "600")
 
         fake_home = tmp_path / "home"
-        hermes_dir = fake_home / ".kova"
-        hermes_dir.mkdir(parents=True)
-        artifact = hermes_dir / "adhoc_report.pdf"
+        kova_dir = fake_home / ".kova"
+        kova_dir.mkdir(parents=True)
+        artifact = kova_dir / "adhoc_report.pdf"
         artifact.write_bytes(b"%PDF-1.4")  # fresh mtime
         monkeypatch.setenv("HOME", str(fake_home))
-        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", hermes_dir)
-        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", hermes_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", kova_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", kova_dir)
 
         assert BasePlatformAdapter.validate_media_delivery_path(str(artifact)) == str(artifact.resolve())
 
@@ -731,12 +731,12 @@ class TestMediaDeliveryDefaultMode:
         self._patch_roots(monkeypatch)
 
         fake_home = tmp_path / "home"
-        hermes_dir = fake_home / ".kova"
-        hermes_dir.mkdir(parents=True)
+        kova_dir = fake_home / ".kova"
+        kova_dir.mkdir(parents=True)
         monkeypatch.setenv("HOME", str(fake_home))
-        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", hermes_dir)
-        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", hermes_dir)
-        board = hermes_dir / "kanban" / "boards" / "team-a"
+        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", kova_dir)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", kova_dir)
+        board = kova_dir / "kanban" / "boards" / "team-a"
         (board / "attachments").mkdir(parents=True)
 
         denied = ["state.db", "state.db-wal", "state.db-shm", "kanban.db", "kanban.db-wal",
@@ -744,11 +744,11 @@ class TestMediaDeliveryDefaultMode:
                   "kanban/boards/team-a/kanban.db", "kanban/boards/team-a/kanban.db-wal"]
         allowed = ["kanban/boards/team-a/attachments/report.pdf", "adhoc_report.pdf", "logs/agent.log"]
         for rel in denied + allowed:
-            path = hermes_dir / rel
+            path = kova_dir / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"SQLite format 3\x00")
-        assert [rel for rel in denied if BasePlatformAdapter.validate_media_delivery_path(str(hermes_dir / rel))] == []
-        assert [rel for rel in allowed if not BasePlatformAdapter.validate_media_delivery_path(str(hermes_dir / rel))] == []
+        assert [rel for rel in denied if BasePlatformAdapter.validate_media_delivery_path(str(kova_dir / rel))] == []
+        assert [rel for rel in allowed if not BasePlatformAdapter.validate_media_delivery_path(str(kova_dir / rel))] == []
 
     def test_denylist_covers_every_profile_home_not_just_the_launch_home(self, tmp_path, monkeypatch):
         """Multiplex: one process serves every ``<root>/profiles/*``. The credential denylist must
@@ -759,11 +759,11 @@ class TestMediaDeliveryDefaultMode:
 
         self._patch_roots(monkeypatch)
         fake_home = tmp_path / "home"
-        hermes_root = fake_home / ".kova"
-        profile_b = hermes_root / "profiles" / "beta"
+        kova_root = fake_home / ".kova"
+        profile_b = kova_root / "profiles" / "beta"
         monkeypatch.setenv("HOME", str(fake_home))
-        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", hermes_root)
-        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", hermes_root)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_HOME", kova_root)
+        monkeypatch.setattr("gateway.platforms.base._KOVA_ROOT", kova_root)
 
         denied = [".env", "auth.json", "state.db", "state.db-wal", "config.yaml",
                   "sessions/20260101_abc.json", "mcp-tokens/server.json"]
@@ -839,8 +839,8 @@ class TestMediaDeliveryDefaultMode:
 
         # Stand-in for the literal /root deny prefix in the deployment.
         denied_root = tmp_path / "root"
-        hermes_root = denied_root / ".kova"
-        prof_cache = hermes_root / "profiles" / "myprof" / "cache" / "images"
+        kova_root = denied_root / ".kova"
+        prof_cache = kova_root / "profiles" / "myprof" / "cache" / "images"
         prof_cache.mkdir(parents=True)
         image = prof_cache / "gen.png"
         image.write_bytes(b"\x89PNG\r\n\x1a\n")
@@ -854,7 +854,7 @@ class TestMediaDeliveryDefaultMode:
             (str(denied_root),),
         )
         monkeypatch.setattr(
-            "gateway.platforms.base._KOVA_ROOT", hermes_root
+            "gateway.platforms.base._KOVA_ROOT", kova_root
         )
 
         assert (
@@ -1438,7 +1438,7 @@ class TestMediaFallbackDoesNotLeakHostPath:
 
     Telegram, Discord, and Slack adapters all fall back to these base
     implementations on native-send failure. When they did, the user saw
-    a chat message like ``🎬 Video: /home/.../hermes/cache/video/abc.mp4``
+    a chat message like ``🎬 Video: /home/.../kova/cache/video/abc.mp4``
     — a host filesystem path with no actionable information.
     """
 

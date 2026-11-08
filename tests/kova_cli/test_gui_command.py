@@ -1,4 +1,4 @@
-"""Tests for ``hermes gui`` desktop launcher wiring."""
+"""Tests for ``kova gui`` desktop launcher wiring."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def _isolate_xdg_data_home(tmp_path, monkeypatch):
     resolves it under ``XDG_DATA_HOME`` (falling back to ``~/.local/share``).
     While these tests faked the host as darwin the Linux-only registration
     never ran, so nothing escaped. Running them on their real host makes that
-    call live, and on a Linux dev box it wrote a ``hermes.desktop`` pointing
+    call live, and on a Linux dev box it wrote a ``kova.desktop`` pointing
     ``Exec=`` at the test's throwaway npm stub into the user's actual
     applications menu.
 
@@ -68,7 +68,7 @@ def _ns(**kw):
         source=False,
         fake_boot=False,
         ignore_existing=False,
-        hermes_root=None,
+        kova_root=None,
         cwd=None,
         setup_tcc_identity=False,
         identity=None,
@@ -105,7 +105,7 @@ def _make_packaged_executable(root: Path, monkeypatch) -> Path:
     elif sys.platform == "win32":
         exe = desktop_dir / "release" / "win-unpacked" / "Kova.exe"
     else:
-        exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
+        exe = desktop_dir / "release" / "linux-unpacked" / "kova"
     exe.parent.mkdir(parents=True, exist_ok=True)
     exe.write_text("", encoding="utf-8")
     if sys.platform not in ("darwin", "win32"):
@@ -128,11 +128,11 @@ def _packaged_exe_rel() -> Path:
         return Path("mac-arm64") / "Kova.app" / "Contents" / "MacOS" / "Kova"
     if sys.platform == "win32":
         return Path("win-unpacked") / "Kova.exe"
-    return Path("linux-unpacked") / "hermes"
+    return Path("linux-unpacked") / "kova"
 
 
 def _pnpm_argv(cmd) -> list:
-    """The pnpm command line inside a build call. A direct ``hermes desktop`` build holds the
+    """The pnpm command line inside a build call. A direct ``kova desktop`` build holds the
     checkout lock (review C5), so on POSIX it runs under the custody launcher
     (``python -I -S -c <reaper> <fds> pnpm ...``)."""
     cmd = list(cmd)
@@ -197,7 +197,7 @@ def _stamped_macos_bundle(app: Path, asar: bytes) -> Path:
 
 @pytest.mark.platforms("macos")
 def test_packaged_launch_opens_the_refreshed_installed_app(tmp_path, monkeypatch):
-    """#52339: Finder and the Dock open the installed Kova.app, so ``hermes desktop`` must launch
+    """#52339: Finder and the Dock open the installed Kova.app, so ``kova desktop`` must launch
     that copy (brought up to the checkout build) instead of a second bundle under release/."""
     import shutil
 
@@ -258,7 +258,7 @@ def test_packaged_renderer_bom_does_not_bypass_entry_validation(tmp_path):
 
 
 # --- package-manager (Homebrew/pip) installs: no desktop source tree -------
-# (#61056: `hermes desktop` under Homebrew looked for apps/desktop inside the
+# (#61056: `kova desktop` under Homebrew looked for apps/desktop inside the
 # Cellar site-packages, which the formula does not ship.)
 
 
@@ -305,7 +305,7 @@ def test_gui_brew_install_launches_installed_app_when_present(tmp_path, monkeypa
 
 
 def test_gui_close_preview_flag_forwards_to_packaged_exe(tmp_path, monkeypatch):
-    """`hermes desktop --close-preview` must reach the Electron binary so the
+    """`kova desktop --close-preview` must reach the Electron binary so the
     running instance's single-instance handler can close a fullscreened
     preview pane the user cannot otherwise escape (#97213)."""
     root = _make_desktop_tree(tmp_path)
@@ -505,7 +505,7 @@ def test_setup_tcc_identity_creates_cert_imports_trusts_and_configures(tmp_path,
     trust_call = next(c for c in calls if c[1:2] == ["add-trusted-cert"])
     assert "codeSign" in trust_call and "trustRoot" in trust_call
     # Temp files cleaned up.
-    assert not list(tmp_path.glob("hermes-tcc-*"))
+    assert not list(tmp_path.glob("kova-tcc-*"))
 
 
 @pytest.mark.platforms("macos")
@@ -673,7 +673,7 @@ def test_setup_tcc_identity_untrusted_existing_cert_is_repaired(tmp_path, monkey
 
 
 def test_cmd_gui_setup_tcc_identity_exits_before_build(tmp_path, monkeypatch):
-    """`hermes desktop --setup-tcc-identity` calls the setup and exits 0/1
+    """`kova desktop --setup-tcc-identity` calls the setup and exits 0/1
     without building or launching the app."""
     root = _make_desktop_tree(tmp_path)
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
@@ -1050,7 +1050,7 @@ def test_gui_registers_linux_desktop_entry_before_launch(tmp_path, monkeypatch):
     monkeypatch.setattr("kova_cli.linux_desktop_entry.is_supported", lambda: True)
     monkeypatch.setattr(
         "kova_cli.linux_desktop_entry.install_desktop_entry",
-        lambda project_root: registered.append(project_root) or (tmp_path / "hermes.desktop"),
+        lambda project_root: registered.append(project_root) or (tmp_path / "kova.desktop"),
     )
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
@@ -1079,7 +1079,7 @@ def test_gui_shell_launch_defers_desktop_entry_until_window_reveal(tmp_path, mon
     monkeypatch.setattr("kova_cli.linux_desktop_entry.is_supported", lambda: True)
     monkeypatch.setattr(
         "kova_cli.linux_desktop_entry.install_desktop_entry",
-        lambda project_root: events.append(f"install:{project_root}") or (tmp_path / "hermes.desktop"),
+        lambda project_root: events.append(f"install:{project_root}") or (tmp_path / "kova.desktop"),
     )
 
     def fake_electron(cmd, **kwargs):
@@ -1677,7 +1677,7 @@ def test_stop_desktop_processes_locking_build_posix_swap_bypasses_early_return(t
 
 def _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, *, also_posix):
     """A Desktop's own process tree runs this update (a historical Desktop's piped
-    `hermes update` child, or the launch-time tail its backend runs). Stopping that
+    `kova update` child, or the launch-time tail its backend runs). Stopping that
     Desktop kills the update with it. Its renderer/GPU/zygote helpers run the same
     exe but are not our ancestors; stopping them leaves a main process that can
     neither draw nor quit. Only an unrelated Desktop from the same release tree is
@@ -1732,7 +1732,7 @@ def _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, *, also_
 
 @pytest.mark.platforms("posix")
 def test_posix_swap_spares_the_desktop_driving_this_update(tmp_path, monkeypatch):
-    """A historical Desktop runs `hermes update` as a piped child and relaunches
+    """A historical Desktop runs `kova update` as a piped child and relaunches
     itself afterwards; stopping it breaks the update's stdout (EPIPE)."""
     _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, also_posix=True)
 

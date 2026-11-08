@@ -35,7 +35,7 @@ DTYPE = "int16"
 SAMPLE_WIDTH = 2  # bytes per sample (int16)
 SILENCE_RMS_THRESHOLD = 200  # RMS below this = silence (int16 range 0-32767)
 SILENCE_DURATION_SECONDS = 3.0  # continuous silence before auto-stop
-_TEMP_DIR = os.path.join(tempfile.gettempdir(), "hermes_voice")
+_TEMP_DIR = os.path.join(tempfile.gettempdir(), "kova_voice")
 
 
 # ── Lazy audio imports ──
@@ -1067,7 +1067,7 @@ def _wsl_powershell_player_cmd(file_path: str) -> Optional[list[str]]:
         win_tmp_wsl = _out(["wslpath", "-u", _out(["cmd.exe", "/c", "echo %TEMP%"])])
         if not win_tmp_wsl:
             return None
-        wsl_wav = os.path.join(win_tmp_wsl, f"hermes-tts-{uuid.uuid4().hex[:8]}.wav")
+        wsl_wav = os.path.join(win_tmp_wsl, f"kova-tts-{uuid.uuid4().hex[:8]}.wav")
         win_wav = _out(["wslpath", "-w", wsl_wav])
         if not win_wav:
             return None
@@ -1101,9 +1101,9 @@ def _run_system_player(cmd: list[str]) -> bool:
     try:
         # Sibling of the TTS/STT credential scrub: players must not inherit tokens/keys.
         # See #56332, #70342.
-        from tools.environments.local import hermes_subprocess_env
+        from tools.environments.local import kova_subprocess_env
         proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
-                                env=hermes_subprocess_env(inherit_credentials=False))
+                                env=kova_subprocess_env(inherit_credentials=False))
         _set_active_playback(proc)
         proc.wait(timeout=300)
         rc = proc.returncode

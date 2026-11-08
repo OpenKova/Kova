@@ -156,7 +156,7 @@ class TestBuildJobPromptScansSkillContent:
             "name: cron-config\n"
             "description: Uses configured cron data\n"
             "metadata:\n"
-            "  hermes:\n"
+            "  kova:\n"
             "    config:\n"
             "      - key: cron_config.data_dir\n"
             "        description: Directory used by the cron skill\n"
@@ -320,7 +320,7 @@ class TestScriptOutputNotStrictScanned:
     code — same trust class as install-vetted skill markdown — and must be
     scanned with the looser assembled-content tier instead.
 
-    Live incident: the ``hermes-triage`` cron was blocked every 5 minutes
+    Live incident: the ``kova-triage`` cron was blocked every 5 minutes
     once an open security issue containing the root-delete pattern entered
     its ingest queue (112 such rows in the triage corpus — dangerous-command
     quotes are *normal* for triage data).

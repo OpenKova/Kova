@@ -42,7 +42,7 @@ class RecordingAdapter:
 @pytest.fixture
 def served(tmp_path, monkeypatch):
     """Default host + served profile ``alpha``; the runner is the default multiplexer."""
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     alpha = root / "profiles" / "alpha"
     alpha.mkdir(parents=True)
     (root / "config.yaml").write_text(

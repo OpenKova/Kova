@@ -126,8 +126,8 @@ class _Socket:
     def __init__(self, authority, frames, ticket_home=None):
         self.app = SimpleNamespace(state=SimpleNamespace(session_authority=authority))
         self.scope, self.client, self.closed, self.sent = {}, None, None, []
-        self._hermes_auth_identity = {"user_id": "owner", "provider": "session-token"}
-        self._hermes_ticket_profile_home = None if ticket_home is None else str(ticket_home)
+        self._kova_auth_identity = {"user_id": "owner", "provider": "session-token"}
+        self._kova_ticket_profile_home = None if ticket_home is None else str(ticket_home)
         self._frames = [json.dumps(frame) for frame in frames]
         self._answered = asyncio.Event()
 

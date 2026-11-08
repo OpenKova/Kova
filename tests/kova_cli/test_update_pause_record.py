@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals; 
 
 # Every child (and its children) locks a private file for THIS repo's checkout, like the
 # conftest fixture does in-process: the real one lives in the git common dir that parallel test
-# files and, from a linked worktree, the live install's `hermes update` share. A held one reads
+# files and, from a linked worktree, the live install's `kova update` share. A held one reads
 # as "another update is live" and recovery correctly defers to it.
 _PRIVATE_CHECKOUT_LOCK = """
 import os
@@ -56,7 +56,7 @@ def _child(code: str, *argv: str, env: dict) -> subprocess.Popen:
     shim.mkdir(exist_ok=True)
     (shim / "sitecustomize.py").write_text(_PRIVATE_CHECKOUT_LOCK, encoding="utf-8")
     env = {**os.environ, "PYTHONPATH": os.pathsep.join((str(shim), str(REPO))),
-           "KOVA_TEST_CHECKOUT_LOCK": str(shim / "hermes-update.lock"), **env}
+           "KOVA_TEST_CHECKOUT_LOCK": str(shim / "kova-update.lock"), **env}
     child = subprocess.Popen([sys.executable, "-c", textwrap.dedent(code), *argv], cwd=REPO,
                              stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True, env=env)
     _SPAWNED.append(child)
@@ -119,7 +119,7 @@ def test_resume_waits_for_a_whole_tree(tmp_path):
     assert not whole and "a.py" in why
 
     (root / "a.py").write_text("v1\n", encoding="utf-8")
-    marker = root / ".git" / "hermes-update-pull"
+    marker = root / ".git" / "kova-update-pull"
     marker.write_text("pid\n", encoding="utf-8")
     assert pause_record.tree_is_whole(token, root)[0] is False
     marker.unlink()
@@ -198,7 +198,7 @@ def test_an_adopted_baseline_never_replaces_this_runs_own(tmp_path, monkeypatch)
 
 
 def _orphan(tmp_path: Path, profiles: dict) -> None:
-    """A record whose owner — a real ``hermes update`` stand-in — was SIGKILLed after writing it."""
+    """A record whose owner — a real ``kova update`` stand-in — was SIGKILLed after writing it."""
     owner = _child(f"""
         import time
         from kova_cli import update_pause_record as r
@@ -287,7 +287,7 @@ def test_startup_recovery_follows_the_parsed_command_not_raw_argv(tmp_path, argv
     cli = _child("""
         import sys
         from kova_cli.main import main
-        sys.argv = ["hermes", *sys.argv[1:]]
+        sys.argv = ["kova", *sys.argv[1:]]
         try:
             main()
         except SystemExit:
@@ -307,7 +307,7 @@ _HOLDER = """
     host.wait()
 """
 # A stand-in for the host the update relaunched: its argv names the host command, and the
-# ``hermes update`` its agent starts is its child.
+# ``kova update`` its agent starts is its child.
 _HOST = """
 import subprocess, sys
 probe = "from kova_cli.update_lock import UpdateLock; l = UpdateLock(); print(l.acquire(), l.holder is not None)"
@@ -320,7 +320,7 @@ print(subprocess.run([sys.executable, "-c", probe], capture_output=True, text=Tr
 @pytest.mark.parametrize("host_argv, adopts", [
     (("kova_cli.main", "gateway", "run"), False),
     (("kova_cli.main", "--profile", "work", "gateway", "run"), False),
-    (("/opt/hermes/kova_cli/main.py", "-p", "work", "gateway", "run"), False),
+    (("/opt/kova/kova_cli/main.py", "-p", "work", "gateway", "run"), False),
     (("-m", "kova_cli.main", "--profile", "work", "dashboard"), False),
     (("kova_cli.main", "status"), True),
 ])

@@ -38,7 +38,7 @@ _PROSE_KEEPS_FULL_SEVERITY_IDS = {
     "context_exfil", "send_to_url", "md_image_exfil", "md_link_exfil", "ssh_backdoor",
     "curl_pipe_shell", "wget_pipe_shell", "curl_pipe_python",
     "agent_config_mod", "agent_config_mod_shell", "agent_config_contract", "agent_config_ref",
-    "hermes_config_mod", "hermes_config_mod_shell", "hermes_config_ref",
+    "kova_config_mod", "kova_config_mod_shell", "kova_config_ref",
     "other_agent_config_mod", "other_agent_config_mod_shell", "other_agent_config_ref",
 }
 # Agent instruction surfaces inside a plugin — a bundled skill tree and the post-install note
@@ -123,12 +123,12 @@ def is_trusted_installer_pipe(finding: Finding, line: str) -> bool:
 # ── (1b) language-pack catalogs ─────────────────────────────────────────────────────────────
 # ``locales/<lang>[.tui|.desktop].yaml`` in a ``provides_locales`` plugin is user-facing UI text
 # the loader reads as string leaves and shows to a human; nothing in it is executed or edits a
-# file, so the agent-config/hermes-config family steps down like any other prose (the bundled
+# file, so the agent-config/kova-config family steps down like any other prose (the bundled
 # ``en.yaml`` itself matches ``updating: "... AGENTS.md"``). Injection shapes and leaked keys
 # keep full severity: a pack can still carry model-directed text.
 _CATALOG_STEPS_DOWN_IDS = {
     "agent_config_mod", "agent_config_mod_shell", "agent_config_contract", "agent_config_ref",
-    "hermes_config_mod", "hermes_config_mod_shell", "hermes_config_ref",
+    "kova_config_mod", "kova_config_mod_shell", "kova_config_ref",
     "other_agent_config_mod", "other_agent_config_mod_shell", "other_agent_config_ref",
 }
 _LOCALE_CATALOG_SUFFIXES = {".yaml", ".yml"}
@@ -549,15 +549,15 @@ def is_benign_lazy_os_import(finding: Finding, line: str) -> bool:
 
 
 # ── (6c) a disclosed, scoped config-write NOTE in install docs ───────────────────────────────────
-# ``hermes_config_mod`` (the prose-intent tier, ``high``) fires on install docs that transparently state
+# ``kova_config_mod`` (the prose-intent tier, ``high``) fires on install docs that transparently state
 # the plugin writes its OWN scoped config section — ``after-install.md``: "Write ``memory.provider:
 # mindgraph`` to ``~/.kova/config.yaml``", a README "writes **only** the ``memlock:`` section". A
 # README already takes the generic prose cap; ``after-install.md`` is agent-facing and does not, yet a
 # disclosed scoped write is a reviewable behaviour, not an attack. The PROSE tier on a doc/after-install
 # file caps to a note (medium): the finding stays visible, the verdict is not blocked. The MECHANICAL
-# shell-write tier (``hermes_config_mod_shell``, ``>>``/``sed -i``/``tee`` into config.yaml) is never
+# shell-write tier (``kova_config_mod_shell``, ``>>``/``sed -i``/``tee`` into config.yaml) is never
 # demoted here and keeps full severity.
-_DISCLOSED_CONFIG_PROSE_IDS = {"hermes_config_mod"}
+_DISCLOSED_CONFIG_PROSE_IDS = {"kova_config_mod"}
 _AGENT_DOC_NAMES = {"after-install.md"}
 
 

@@ -122,7 +122,7 @@ def test_save_writes_the_gateway_owners_export_on_this_machine(tmp_path, monkeyp
     in-memory fallback (no title, no metadata, no archived rows) that ``import_sessions`` can't restore.
     The CLI writes the content itself, so a remote owner's disk is never taken for this one."""
     from kova_constants import get_kova_home
-    conn = _Conn({"session.export": {"format": "md", "filename": "hermes_session_s.md", "content": "# owner export"}})
+    conn = _Conn({"session.export": {"format": "md", "filename": "kova_session_s.md", "content": "# owner export"}})
     cli = _save_cli(conn, tmp_path, monkeypatch)
     work = tmp_path / "work"
     cli.save_conversation("/save markdown notes.md redact")
@@ -130,7 +130,7 @@ def test_save_writes_the_gateway_owners_export_on_this_machine(tmp_path, monkeyp
     assert (work / "notes.md").read_text(encoding="utf-8") == "# owner export"
     assert str(work / "notes.md") in capsys.readouterr().out
     cli.save_conversation("/save md")  # no name: main's local folder and name, under this CLI's home
-    [default] = (get_kova_home() / "sessions" / "saved").glob("hermes_conversation_*.md")
+    [default] = (get_kova_home() / "sessions" / "saved").glob("kova_conversation_*.md")
     assert default.read_text(encoding="utf-8") == "# owner export" and str(default) in capsys.readouterr().out
     conn.replies["session.export"] = {}  # an owner answer without content is reported, nothing written
     cli.save_conversation("/save json x.json")
@@ -147,7 +147,7 @@ def test_save_on_an_older_gateway_falls_back_only_for_a_plain_json_save(tmp_path
     format, name or ``redact`` is refused with a message, never silently dropped."""
     from kova_cli.gateway_client import GatewayRPCError
     conn = _Conn({"session.export": GatewayRPCError("unknown_method", code=-32601),
-                  "session.save": {"file": "/srv/gw/sessions/saved/hermes_conversation_x.json"}})
+                  "session.save": {"file": "/srv/gw/sessions/saved/kova_conversation_x.json"}})
     cli = _save_cli(conn, tmp_path, monkeypatch)
     for cmd in ("/save md", "/save json mine.json", "/save json redact"):
         cli.save_conversation(cmd)
@@ -155,5 +155,5 @@ def test_save_on_an_older_gateway_falls_back_only_for_a_plain_json_save(tmp_path
     assert [m for m, _ in conn.calls] == ["session.export"] * 3
     cli.save_conversation("/save json")
     assert conn.calls[-1] == ("session.save", {"session_id": "local-s"})
-    assert "saved on the gateway host: /srv/gw/sessions/saved/hermes_conversation_x.json" in capsys.readouterr().out
+    assert "saved on the gateway host: /srv/gw/sessions/saved/kova_conversation_x.json" in capsys.readouterr().out
     assert not any((tmp_path / "work").iterdir())

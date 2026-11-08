@@ -167,8 +167,8 @@ def run_command_provider(
     while propagating delegated-child lineage markers."""
     from agent.delegation_context import delegated_child_subprocess_env
     from tools.env_passthrough import resolve_passthrough_value
-    from tools.environments.local import hermes_subprocess_env
-    scrubbed = hermes_subprocess_env(inherit_credentials=False)
+    from tools.environments.local import kova_subprocess_env
+    scrubbed = kova_subprocess_env(inherit_credentials=False)
     for key in env_passthrough or []:
         # Under the multiplexer os.environ is the LAUNCH profile's .env: resolve through the served
         # profile's secret scope so its own key is forwarded and never another profile's.

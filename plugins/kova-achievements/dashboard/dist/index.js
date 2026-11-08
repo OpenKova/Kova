@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  // hermes-achievements dashboard plugin
+  // kova-achievements dashboard plugin
   // Originally authored by @PCinkusz — https://github.com/PCinkusz/hermes-achievements (MIT).
   // Bundled into kova-agent. Upstream repo remains the staging ground for new
   // badges and UI iteration; the in-progress scan banner below is a small addition
@@ -56,7 +56,7 @@
     // 401s in gated mode (the token isn't injected there). fetchJSON throws
     // Error("<status>: <body>") on non-2xx — the call sites' .catch() relies
     // on that to surface errors, so we let it propagate (don't swallow).
-    const url = "/api/plugins/hermes-achievements" + path;
+    const url = "/api/plugins/kova-achievements" + path;
     return SDK.fetchJSON(url, options);
   }
 
@@ -257,7 +257,7 @@
     ctx.fillStyle = "#8b95a8";
     ctx.font = "600 20px ui-monospace, 'SF Mono', Menlo, monospace";
     ctx.textBaseline = "bottom";
-    ctx.fillText("HERMES AGENT  ·  kova-agent.nousresearch.com", 70, H - 40);
+    ctx.fillText("KOVA AGENT", 70, H - 40);
 
     // "UNLOCKED" stamp upper-right
     ctx.textBaseline = "top";
@@ -306,7 +306,7 @@
       const url = URL.createObjectURL(blobRef.current);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "hermes-achievement-" + (achievement.id || "badge") + ".png";
+      a.download = "kova-achievement-" + (achievement.id || "badge") + ".png";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -722,5 +722,5 @@
     );
   }
 
-  window.__KOVA_PLUGINS__.register("hermes-achievements", AchievementsPage);
+  window.__KOVA_PLUGINS__.register("kova-achievements", AchievementsPage);
 })();

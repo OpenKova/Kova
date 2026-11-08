@@ -8,7 +8,7 @@
     "plugins": {
       "desktop:kanban": "official-art.jpg",
       "desktop:kova-bots": "official-art-card-two.jpg",
-      "desktop:hermes-radio": "official-art-card-one.jpg"
+      "desktop:kova-radio": "official-art-card-one.jpg"
     }
   },
   "featured": {
@@ -20,10 +20,10 @@
     ],
     "plugins": [
       "claude-subscription-directsdk",
-      "hermes-memory-wiki",
+      "kova-memory-wiki",
       "blender",
       "touchdesigner",
-      "hermes-telegram-business"
+      "kova-telegram-business"
     ]
   }
 }

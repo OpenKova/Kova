@@ -88,7 +88,7 @@ class _OpenWakeWordEngine(_Engine):
         from pyopen_wakeword import OpenWakeWord, OpenWakeWordFeatures
 
         model_ref = str(sub.get("model") or ww._BUNDLED_MODEL_NAME).strip()
-        # Default (or explicit "hey_hermes") → the bundled model; a custom path
+        # Default (or explicit "hey_kova") → the bundled model; a custom path
         # is used as-is. pyopen-wakeword bundles the shared feature models
         # (melspectrogram + embedding — byte-identical to the openWakeWord
         # v0.5.1 files) inside its wheel, so there is no download_models step.
@@ -192,7 +192,7 @@ class _SherpaKwsEngine(_Engine):
 
         # Phrase set: this profile's phrase plus — with profile routing on — every other
         # wake-enabled profile's phrase, so ONE listener can wake any profile.
-        phrase = str(ww._get(cfg, "phrase") or "hey hermes").strip()
+        phrase = str(ww._get(cfg, "phrase") or "hey kova").strip()
         phrase_map: dict[str, str] = {phrase: ww._active_profile_name()}
         if bool(cfg.get("profile_routing", True)):
             for prof, p in ww.enrolled_profile_phrases().items():
@@ -203,7 +203,7 @@ class _SherpaKwsEngine(_Engine):
         # sherpa keyword entries reject spaces in the @display-name; underscore them and
         # map display → profile for match routing.
         self._display_to_profile: dict[str, str] = {}
-        kw = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", prefix="hermes-kws-", delete=False,
+        kw = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", prefix="kova-kws-", delete=False,
                                          encoding="utf-8")
         for p, toks in zip(phrases, tokens):
             display = p.upper().replace(" ", "_")

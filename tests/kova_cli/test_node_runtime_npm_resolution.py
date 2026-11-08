@@ -14,7 +14,7 @@ def test_windows_npm_path_refuses_windows_shims_but_not_native_data_mounts():
     assert _is_windows_npm_path("/mnt/c/Program Files/nodejs/npm")
     assert _is_windows_npm_path("/mnt/d/nodejs/npm")
     assert _is_windows_npm_path("C:\\nodejs\\npm.cmd")
-    assert not _is_windows_npm_path("/mnt/data/hermes/home/.local/bin/npm")
+    assert not _is_windows_npm_path("/mnt/data/kova/home/.local/bin/npm")
     assert not _is_windows_npm_path("/usr/bin/npm")
 
 

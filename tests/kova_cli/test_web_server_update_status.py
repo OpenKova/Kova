@@ -26,21 +26,21 @@ class TestUpdateStatusRootLog:
             self.client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
     def test_update_status_recovers_completed_result_after_dashboard_restart(self, monkeypatch, tmp_path):
-        # The dashboard runs under a profile home; ``hermes update`` mirrors to the ROOT home's
+        # The dashboard runs under a profile home; ``kova update`` mirrors to the ROOT home's
         # update.log (main_dashboard), so the durable completion marker is read there.
         root = tmp_path / "root"
         (root / "logs").mkdir(parents=True)
         monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "coder"))
         action_id = "c" * 32
-        (tmp_path / "hermes-update.log").write_text(
-            f"=== hermes-update started 2026-08-17 11:19:34 {action_id} ===\n"
+        (tmp_path / "kova-update.log").write_text(
+            f"=== kova-update started 2026-08-17 11:19:34 {action_id} ===\n"
             "pulling updates...\n",
             encoding="utf-8",
         )
         (root / "logs" / "update.log").write_text(
-            "=== hermes update started 2026-08-17T11:19:35 ===\n"
+            "=== kova update started 2026-08-17T11:19:35 ===\n"
             "✓ Update complete!\n"
-            f"=== hermes-update completed {action_id} ===\n",
+            f"=== kova-update completed {action_id} ===\n",
             encoding="utf-8",
         )
         monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", tmp_path)
@@ -49,18 +49,18 @@ class TestUpdateStatusRootLog:
         monkeypatch.setattr(_web_server_gateway, "_ACTION_COMMANDS", {})
         monkeypatch.setattr(_web_server_gateway, "_ACTION_IDS", {})
 
-        status = self.client.get("/api/actions/hermes-update/status?lines=2000")
+        status = self.client.get("/api/actions/kova-update/status?lines=2000")
 
         assert status.status_code == 200
         data = status.json()
         assert data["running"] is False
         assert data["exit_code"] == 0
         assert data["action_id"] == action_id
-        assert f"=== hermes-update completed {action_id} ===" in data["lines"]
+        assert f"=== kova-update completed {action_id} ===" in data["lines"]
 
 
     def test_update_status_ignores_another_profiles_completion_in_the_shared_root_log(self, monkeypatch, tmp_path):
-        # Every profile's ``hermes update`` mirrors into the ROOT update.log; profile A's success
+        # Every profile's ``kova update`` mirrors into the ROOT update.log; profile A's success
         # there must not certify the action profile B's dashboard started (and lost on restart).
         root = tmp_path / "root"
         (root / "logs").mkdir(parents=True)
@@ -71,14 +71,14 @@ class TestUpdateStatusRootLog:
             monkeypatch.setattr(_web_server_gateway, registry, {})
         monkeypatch.setattr(_web_server_gateway.subprocess, "Popen", lambda *a, **kw: types.SimpleNamespace(pid=7))
         b_id = "b" * 32
-        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"KOVA_ACTION_ID": b_id})
+        _web_server_gateway._spawn_kova_action(["update"], "kova-update", env_overrides={"KOVA_ACTION_ID": b_id})
         _web_server_gateway._ACTION_PROCS.clear()  # B's dashboard restarted: in-memory result lost
 
         def status_after_root_completion(action_id):
             (root / "logs" / "update.log").write_text(
-                "=== hermes update started 2026-08-17T11:19:35 ===\n"
-                f"=== hermes-update completed {action_id} ===\n", encoding="utf-8")
-            return self.client.get("/api/actions/hermes-update/status?lines=2000").json()
+                "=== kova update started 2026-08-17T11:19:35 ===\n"
+                f"=== kova-update completed {action_id} ===\n", encoding="utf-8")
+            return self.client.get("/api/actions/kova-update/status?lines=2000").json()
 
         foreign = status_after_root_completion("a" * 32)
         assert foreign["exit_code"] is None
@@ -104,7 +104,7 @@ class TestUpdateStatusRootLog:
             monkeypatch.setattr(_web_server_gateway, registry, {})
         monkeypatch.setattr(_web_server_gateway.subprocess, "Popen", lambda *a, **kw: types.SimpleNamespace(pid=7))
         monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
-        _web_server_gateway._spawn_hermes_action(["update"], "hermes-update", env_overrides={"KOVA_ACTION_ID": b_id})
+        _web_server_gateway._spawn_kova_action(["update"], "kova-update", env_overrides={"KOVA_ACTION_ID": b_id})
         for profile, action_id, outcome in (("b", b_id, b_outcome), ("a", a_id, "success")):
             if outcome:
                 monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / profile))
@@ -113,18 +113,18 @@ class TestUpdateStatusRootLog:
                 update_receipt.finalize_update_receipt(outcome)
         monkeypatch.delenv("KOVA_ACTION_ID")
         monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
-        log = b_logs / "hermes-update.log"
+        log = b_logs / "kova-update.log"
         if log_shape == "long":
             with log.open("a", encoding="utf-8") as handle:
                 handle.write("build output\n" * 2001)
         elif log_shape == "rotated":
             log.unlink()
         if b_outcome == "success":
-            (root / "logs" / "update.log").write_text(f"=== hermes-update completed {b_id} ===\n", encoding="utf-8")
+            (root / "logs" / "update.log").write_text(f"=== kova-update completed {b_id} ===\n", encoding="utf-8")
         _web_server_gateway._ACTION_PROCS.clear()  # dashboard restarted: in-memory registries lost
         _web_server_gateway._ACTION_IDS.clear()
 
-        data = self.client.get("/api/actions/hermes-update/status?lines=2000").json()
+        data = self.client.get("/api/actions/kova-update/status?lines=2000").json()
 
         assert data["running"] is False
         assert data["exit_code"] == (0 if b_outcome == "success" else None)
@@ -149,14 +149,14 @@ class TestUpdateStatusRootLog:
         monkeypatch.delenv("KOVA_ACTION_ID")
         monkeypatch.setenv("KOVA_HOME", str(root / "profiles" / "b"))
         assert update_receipt.read_latest_receipt()["action_id"] == a_id
-        (tmp_path / "hermes-update.log").write_text(
-            f"=== hermes-update started 2026-08-17 11:19:34 {b_id} ===\n", encoding="utf-8")
-        (root / "logs" / "update.log").write_text(f"=== hermes-update completed {a_id} ===\n", encoding="utf-8")
+        (tmp_path / "kova-update.log").write_text(
+            f"=== kova-update started 2026-08-17 11:19:34 {b_id} ===\n", encoding="utf-8")
+        (root / "logs" / "update.log").write_text(f"=== kova-update completed {a_id} ===\n", encoding="utf-8")
         monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", tmp_path)
         for registry in ("_ACTION_PROCS", "_ACTION_RESULTS", "_ACTION_COMMANDS", "_ACTION_IDS"):
             monkeypatch.setattr(_web_server_gateway, registry, {})
 
-        data = self.client.get("/api/actions/hermes-update/status?lines=2000").json()
+        data = self.client.get("/api/actions/kova-update/status?lines=2000").json()
 
         assert data["exit_code"] == (0 if b_outcome == "success" else None)
         assert "action_id" not in data  # A's root completion marker is not B's
@@ -180,13 +180,13 @@ class TestUpdateStatusRootLog:
         elif debt == "user_action":
             update_receipt.record_user_action("autostash", "re-apply the parked stash")
         update_receipt.finalize_update_receipt("success")
-        (tmp_path / "hermes-update.log").write_text(
-            f"=== hermes-update started 2026-08-17 11:19:34 {action_id} ===\n", encoding="utf-8")
+        (tmp_path / "kova-update.log").write_text(
+            f"=== kova-update started 2026-08-17 11:19:34 {action_id} ===\n", encoding="utf-8")
         monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", tmp_path)
         for registry in ("_ACTION_PROCS", "_ACTION_RESULTS", "_ACTION_COMMANDS", "_ACTION_IDS"):
             monkeypatch.setattr(_web_server_gateway, registry, {})
 
-        data = self.client.get("/api/actions/hermes-update/status?lines=2000").json()
+        data = self.client.get("/api/actions/kova-update/status?lines=2000").json()
 
         receipt = data["receipt"]
         assert [f["step"] for f in receipt["followups"]] == (

@@ -45,7 +45,7 @@ describe('LanguageSwitcher', () => {
     const dispose = registerAppLocale(
       'pl',
       { endonym: 'Polski', translations: { language: { switchTo: 'Zmień język' } } },
-      'plugin:hermes-lang-pl'
+      'plugin:kova-lang-pl'
     )
 
     const saveConfig = vi.fn().mockResolvedValue({ ok: true })

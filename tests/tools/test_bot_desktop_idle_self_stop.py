@@ -95,21 +95,21 @@ def test_an_abandoned_screen_stops_itself_after_the_idle_window(abandoned_screen
 
 
 def test_a_screen_started_before_an_update_still_stops_itself(abandoned_screen, tmp_path):
-    """The screen outlives ``hermes update``, which can drop the starter's interpreter and collect the dependency
+    """The screen outlives ``kova update``, which can drop the starter's interpreter and collect the dependency
     generation its PYTHONPATH named: a check pinned to either failed with ModuleNotFoundError and was retried in
-    300 s, forever. The launcher runs the install's stable command (on a store install the ``hermes
+    300 s, forever. The launcher runs the install's stable command (on a store install the ``kova
     --run-module`` launcher, which loads the current generation at every run) with its own pid appended."""
     install = tmp_path / "an install's root"  # quoting: the command crosses the env as a shell-quoted string
     used = tmp_path / "launcher-used"
-    hermes = install / ".kova" / "bin" / "hermes"
-    hermes.parent.mkdir(parents=True)
-    hermes.write_text(
+    kova = install / ".kova" / "bin" / "kova"
+    kova.parent.mkdir(parents=True)
+    kova.write_text(
         "#!/bin/sh\n"
         '[ "$1" = --run-module ] && [ "$2" = tools.bot_desktop.idle_watch ] && [ $# -eq 3 ] || exit 64\n'
         f'echo "$3" > "{used}"\n'
         "shift 2\n"
         f'PYTHONPATH="{_REPO}" exec "{sys.executable}" -m tools.bot_desktop.idle_watch "$@"\n', encoding="utf-8")
-    hermes.chmod(0o755)
+    kova.chmod(0o755)
     prelude = (
         "from kova_cli import _launchers\n"
         f"_launchers.resolve_store_python = lambda root, **_: Path({str(tmp_path / 'store/bin/python3')!r})\n"

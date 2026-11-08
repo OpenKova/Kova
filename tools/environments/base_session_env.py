@@ -34,7 +34,7 @@ _SHELL_ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 # mktemp template suffix + the shell variable holding the allocated temp path.
 _SNAP_TMP_SUFFIX = ".tmp.XXXXXXXXXX"
-_SNAP_TMP = '"$__hermes_snap_tmp"'
+_SNAP_TMP = '"$__kova_snap_tmp"'
 
 
 def _cwd_marker(session_id: str) -> str:
@@ -52,7 +52,7 @@ def _pipe_marker_printf(marker: str) -> str:
     passed. The array holds each segment's own status and is captured before anything
     else runs.
     """
-    return f"printf '\\n{marker}%s{marker}\\n' \"${{__hermes_ps[*]-}}\""
+    return f"printf '\\n{marker}%s{marker}\\n' \"${{__kova_ps[*]-}}\""
 
 
 def _eval_capturing_pipestatus(escaped: str) -> str:
@@ -64,7 +64,7 @@ def _eval_capturing_pipestatus(escaped: str) -> str:
     continued by a trailing backslash. The restore sits on the left of ``&&`` so its
     non-zero status fires neither a user's ``ERR`` trap a second time nor ``set -e``.
     """
-    return f"eval '{escaped}\n\n__hermes_rc=$? __hermes_ps=(\"${{PIPESTATUS[@]}}\"); (exit $__hermes_rc) && :'"
+    return f"eval '{escaped}\n\n__kova_rc=$? __kova_ps=(\"${{PIPESTATUS[@]}}\"); (exit $__kova_rc) && :'"
 
 
 def _can_capture_pipestatus(command: str) -> bool:
@@ -130,10 +130,10 @@ def _snapshot_bootstrap_script(
     ``cd ~``) so ``pwd -P`` reports terminal.cwd, not the profile's directory."""
     return (
         "umask 077\n"
-        f"__hermes_snap_tmp=$(mktemp {snap_tmp_template}) || exit 1\n"
+        f"__kova_snap_tmp=$(mktemp {snap_tmp_template}) || exit 1\n"
         f"{_export_dump_excluding_session_vars(_SNAP_TMP, excluded_names)}\n"
-        "__hermes_fns=$(declare -F | awk '{print $3}' | grep -vE '^_[^_]') || true\n"
-        f"[ -n \"$__hermes_fns\" ] && declare -f $__hermes_fns >> {_SNAP_TMP} 2>/dev/null || true\n"
+        "__kova_fns=$(declare -F | awk '{print $3}' | grep -vE '^_[^_]') || true\n"
+        f"[ -n \"$__kova_fns\" ] && declare -f $__kova_fns >> {_SNAP_TMP} 2>/dev/null || true\n"
         f"alias -p >> {_SNAP_TMP}\n"
         f"echo 'shopt -s expand_aliases' >> {_SNAP_TMP}\n"
         f"echo 'set +e' >> {_SNAP_TMP}\n"
@@ -189,17 +189,17 @@ def _wrap_command_script(
         # ``--`` keeps hyphen-prefixed directory names from being parsed as options.
         f"builtin cd -- {quoted_cwd} || exit 126",
         _eval_capturing_pipestatus(escaped) if capture else f"eval '{escaped}'",
-        "__hermes_ec=$?",
+        "__kova_ec=$?",
         "umask 077"]
     if snapshot_ready and persist_env:
         parts.append(
-            f"__hermes_snap_tmp=$(mktemp {snap_tmp_template}) && "
+            f"__kova_snap_tmp=$(mktemp {snap_tmp_template}) && "
             f"{{ {_export_dump_excluding_session_vars(_SNAP_TMP, passthrough_names)} "
             f"&& mv -f {_SNAP_TMP} {quoted_snap}; }} "
             f"2>/dev/null || rm -f {_SNAP_TMP} 2>/dev/null || true")
     if capture:
         parts.append(_pipe_marker_printf(pipe_marker))
-    parts += [_cwd_marker_printf(cwd_marker), "exit $__hermes_ec"]
+    parts += [_cwd_marker_printf(cwd_marker), "exit $__kova_ec"]
     return "\n".join(parts)
 
 

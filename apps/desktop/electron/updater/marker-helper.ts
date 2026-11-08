@@ -32,7 +32,7 @@ export type MarkerHelperVerdict =
 export const MARKER_HELPER_TIMEOUT_MS = 20_000
 
 /** The protocol line a hand-off script advertises (SPEC 4). */
-const PROTOCOL_RE = /^# hermes-handoff-protocol: (\d+)\s*$/m
+const PROTOCOL_RE = /^# kova-handoff-protocol: (\d+)\s*$/m
 
 export interface HelperSpawnResult {
   /** Exit code; null when killed (timeout) or the spawn failed. */
@@ -236,7 +236,7 @@ function scriptLine(text: string, isWindows: boolean): string {
 /**
  * The checkout lock exactly as marker.sh `checkout_lock_path` / marker.ps1
  * `Get-CheckoutLockPath` resolve it (kova_cli/update_lock.py::checkout_lock_path):
- * `<git common dir>/hermes-update.lock`, else `<root>/.kova-update.lock`.
+ * `<git common dir>/kova-update.lock`, else `<root>/.kova-update.lock`.
  * Throws when `.git` or `commondir` exists but cannot be read.
  */
 export function checkoutLockPath(updateRoot: string, isWindows: boolean): string {
@@ -272,7 +272,7 @@ export function checkoutLockPath(updateRoot: string, isWindows: boolean): string
     gitdir = common ? path.resolve(gitdir, common) : gitdir
   }
 
-  return path.join(gitdir, 'hermes-update.lock')
+  return path.join(gitdir, 'kova-update.lock')
 }
 
 /**

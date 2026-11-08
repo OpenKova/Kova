@@ -18,7 +18,7 @@
  *              `kova uninstall --full --yes`
  *
  * Why a detached cleanup script: 'lite'/'full' delete the very venv the
- * `hermes` command runs from, and every mode may need to delete the running
+ * `kova` command runs from, and every mode may need to delete the running
  * app bundle (locked on macOS/Windows while the process is alive). So we hand
  * the work to a detached child that waits for this app's PID to exit, runs the
  * Python uninstall, then removes the app bundle — then the app quits. Same
@@ -298,7 +298,7 @@ function resolveRemovableAppPath(execPath, platform, env: any = {}) {
     // NSIS per-user installs Kova.exe directly in the install dir.
     const dir = p.dirname(exe)
 
-    if (/[\\/]Kova$/i.test(dir) || /[\\/]hermes-desktop$/i.test(dir)) {
+    if (/[\\/]Kova$/i.test(dir)) {
       return dir
     }
 
@@ -313,7 +313,7 @@ function resolveRemovableAppPath(execPath, platform, env: any = {}) {
     return appImage
   }
 
-  // Unpacked electron-builder tree: …/linux-unpacked/hermes
+  // Unpacked electron-builder tree: …/linux-unpacked/kova
   const dir = p.dirname(exe)
 
   if (/-unpacked$/.test(dir)) {

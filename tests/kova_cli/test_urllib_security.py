@@ -84,7 +84,7 @@ def _credential_headers() -> dict[str, str]:
         "CF-Access-Client-Secret": "cloudflare-secret",
         "X-Custom-Auth": "tenant-secret",
         "Accept": "application/json",
-        "User-Agent": "hermes-test",
+        "User-Agent": "kova-test",
     }
 
 
@@ -108,7 +108,7 @@ def test_cross_host_redirect_drops_arbitrary_credentials_on_wire():
     method, headers = _RecordingHandler.requests[-1]
     assert method == "GET"
     assert headers["accept"] == "application/json"
-    assert headers["user-agent"] == "hermes-test"
+    assert headers["user-agent"] == "kova-test"
     for name in (
         "authorization",
         "cookie",
@@ -391,7 +391,7 @@ def _clear_ca_bundle_env(monkeypatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def test_hermes_owned_opener_uses_resolved_https_context(monkeypatch):
+def test_kova_owned_opener_uses_resolved_https_context(monkeypatch):
     from kova_cli import urllib_security
 
     context = ssl.create_default_context()

@@ -60,7 +60,7 @@ def test_commit_swaps_every_entry(tmp_path):
     assert (live / "agent" / "version.txt").read_text() == "new"
     assert (live / "tools" / "version.txt").read_text() == "new"
     # No staging/backup litter left behind.
-    assert not [p for p in os.listdir(live) if "hermes-update" in p]
+    assert not [p for p in os.listdir(live) if "kova-update" in p]
 
 def test_failed_swap_rolls_back_every_earlier_swap(tmp_path, monkeypatch):
     """The regression: a mid-loop failure must not leave a mixed-version tree.
@@ -157,7 +157,7 @@ def test_top_level_files_are_swapped_atomically(tmp_path):
     update_cmd._commit_staged_replacements(staged)
 
     assert (live / "run_agent.py").read_text() == "new"
-    assert not [p for p in os.listdir(live) if "hermes-update" in p]
+    assert not [p for p in os.listdir(live) if "kova-update" in p]
 
 def test_file_swap_failure_restores_the_original_file(tmp_path, monkeypatch):
     """A mid-swap failure must not leave a stale-or-corrupt root module."""
@@ -227,7 +227,7 @@ def test_failed_staging_leaves_no_orphaned_copies(tmp_path, monkeypatch):
             raise
     monkeypatch.undo()
 
-    leftovers = [p for p in os.listdir(live) if "hermes-update" in p]
+    leftovers = [p for p in os.listdir(live) if "kova-update" in p]
     assert leftovers == [], f"orphaned staging copies: {leftovers}"
     # And nothing live was touched.
     for n in ("agent", "tools", "gateway"):
@@ -237,7 +237,7 @@ def test_venv_helpers_honour_an_explicit_platform_verdict():
     """Callers must be able to override the platform check (#76107 CI).
 
     The suite exercises Windows paths on Linux CI by patching predicates like
-    `hermes_main._is_windows`. A helper that reads `sys.platform`
+    `kova_main._is_windows`. A helper that reads `sys.platform`
     unconditionally silently drops those paths out of coverage -- and broke
     `test_verify_core_dependencies.py::test_uses_virtual_env_from_environment`,
     which patches `_is_windows` and then asserts on a `Scripts/python.exe`
@@ -289,7 +289,7 @@ def test_staging_restores_backup_when_dst_is_missing(tmp_path, monkeypatch):
     staged = _stage_all(live, new, ["agent"])
     update_cmd._commit_staged_replacements(staged)
     assert (live / "agent" / "version.txt").read_text() == "new"
-    assert not [p for p in os.listdir(live) if "hermes-update" in p]
+    assert not [p for p in os.listdir(live) if "kova-update" in p]
 
 def test_staging_restores_a_dangling_symlink_backup_instead_of_deleting_it(tmp_path):
     """The leftover-backup restore tested ``exists()``: a dangling symlink backup (the only copy of a
@@ -388,7 +388,7 @@ def test_commit_failure_plus_discard_leaves_no_staging_litter(tmp_path, monkeypa
     for n in ("agent", "tools", "gateway"):
         assert (live / n / "version.txt").read_text() == "old"
     # ...and zero litter of any kind (staging OR backup).
-    litter = [p for p in os.listdir(live) if "hermes-update" in p]
+    litter = [p for p in os.listdir(live) if "kova-update" in p]
     assert litter == [], f"orphaned update litter: {litter}"
 
 
@@ -425,7 +425,7 @@ def test_root_files_never_go_missing_mid_swap(tmp_path, monkeypatch, hardlinks):
     assert not missing, f"root modules absent mid-swap: {missing}"
     assert {n: (live / n).read_text(encoding="utf-8-sig") for n in ("kova_constants.py", "kova_bootstrap.py")} == {
         "kova_constants.py": "new", "kova_bootstrap.py": "new"}
-    assert not [p for p in os.listdir(live) if "hermes-update" in p]
+    assert not [p for p in os.listdir(live) if "kova-update" in p]
 
 
 # ---------------------------------------------------------------------------
@@ -635,7 +635,7 @@ def test_a_failed_swap_keeps_a_file_the_user_made_at_a_never_installed_entry(tmp
     monkeypatch.undo()
     assert user_file.is_file() and user_file.read_text(encoding="utf-8-sig") == "USER NOTE"
     assert (live / "a" / "v.txt").read_text(encoding="utf-8-sig") == "old"
-    assert not [p.name for p in live.iterdir() if "hermes-update-staging" in p.name or p.name.endswith("-old")]
+    assert not [p.name for p in live.iterdir() if "kova-update-staging" in p.name or p.name.endswith("-old")]
 
 def test_a_journal_that_cannot_be_dropped_after_the_commit_never_fails_the_update(tmp_path, monkeypatch):
     """The swap committed: an AV scan holding the journal must not turn it into a reported failure

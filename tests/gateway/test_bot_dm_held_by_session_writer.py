@@ -101,7 +101,7 @@ async def held(tmp_path, monkeypatch):
 async def _send(held, text):
     """``message_agent``'s local send: pin the intent, then call the owner's door."""
     from tools import bot_mode_dm
-    raw = await asyncio.to_thread(bot_mode_dm._start_delivery, ['hermes', '-p', 'default'], text, '@default',
+    raw = await asyncio.to_thread(bot_mode_dm._start_delivery, ['kova', '-p', 'default'], text, '@default',
                                   stdin_file=False, task_id=None, agent=None, profile_home=held.home)
     return json.loads(raw)
 
@@ -160,7 +160,7 @@ def _resubmit(held, delivery_id, text):
 
 def _runner(held, dm_file):
     from tools import bot_mode_dm
-    return bot_mode_dm._run_delivery(['hermes', '-p', 'default'], dm_file, stdin_file=False, profile_home=held.home)
+    return bot_mode_dm._run_delivery(['kova', '-p', 'default'], dm_file, stdin_file=False, profile_home=held.home)
 
 
 @pytest.mark.asyncio

@@ -29,7 +29,7 @@ function taggedApp(tag) {
   fs.mkdirSync(path.join(app, 'assets'), { recursive: true })
   fs.copyFileSync(path.join(desktop, 'assets/msix-manifest.xml'), path.join(app, 'assets/msix-manifest.xml'))
   fs.writeFileSync(path.join(app, 'product-identity.cjs'), "module.exports={store:true,artifactNamePascal:'KovaBundled'}\n")
-  fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'hermes', version: '0.27.1' }))
+  fs.writeFileSync(path.join(app, 'package.json'), JSON.stringify({ name: 'kova', version: '0.27.1' }))
   const env = { ...process.env, GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid',
     GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.invalid',
     GIT_AUTHOR_DATE: '2026-09-07T00:18:00Z', GIT_COMMITTER_DATE: '2026-09-07T00:18:00Z' }
@@ -47,7 +47,7 @@ function channelApp() {
   fs.mkdirSync(path.join(app, 'assets'))
   fs.mkdirSync(path.join(app, 'build/agent-payload'), { recursive: true })
   fs.copyFileSync(path.join(desktop, 'assets/msix-manifest.xml'), path.join(app, 'assets/msix-manifest.xml'))
-  fs.writeFileSync(path.join(app, 'build/agent-payload/manifest.json'), JSON.stringify({ launchers: ['hermes'] }))
+  fs.writeFileSync(path.join(app, 'build/agent-payload/manifest.json'), JSON.stringify({ launchers: ['kova'] }))
   fs.writeFileSync(path.join(app, 'build/msix-extensions.xml'), '<Extensions />')
   fs.symlinkSync(path.join(desktop, 'scripts'), path.join(app, 'scripts'), 'junction')
   return app

@@ -825,8 +825,8 @@ def _cache_file(subdir: str, legacy: str, name: str, pattern: str = "", cap: int
     """Path for a new file under ``$KOVA_HOME/<subdir>`` (dir created owner-only, per #77579).
     With ``pattern``/``cap``, first unlinks the oldest matching files so at most ``cap - 1`` remain
     (best-effort)."""
-    from kova_constants import get_hermes_dir  # lazy so tests can patch get_hermes_dir
-    cache_dir = get_hermes_dir(subdir, legacy)
+    from kova_constants import get_kova_dir  # lazy so tests can patch get_kova_dir
+    cache_dir = get_kova_dir(subdir, legacy)
     _secure_dir_policy(cache_dir)
     with contextlib.suppress(Exception):
         files = sorted(cache_dir.glob(pattern), key=lambda p: p.stat().st_mtime) if pattern else []

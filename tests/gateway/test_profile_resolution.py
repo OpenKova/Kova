@@ -69,10 +69,10 @@ class TestResolutionOrder:
         with patch("kova_cli.profiles.get_active_profile_name", return_value="active"):
             with patch("kova_cli.profiles.get_profile_dir") as mock_get_dir:
                 with patch("kova_cli.profiles.profile_exists", return_value=True):
-                    mock_get_dir.return_value = Path("/hermes/profiles/from-source")
+                    mock_get_dir.return_value = Path("/kova/profiles/from-source")
                     result = mock_runner._resolve_profile_home_for_source(discord_source)
                     
-                    assert result == Path("/hermes/profiles/from-source")
+                    assert result == Path("/kova/profiles/from-source")
                     mock_get_dir.assert_called_once_with("from-source")
     
     
@@ -88,14 +88,14 @@ class TestMissingProfileWarning:
         
         with patch("kova_cli.profiles.get_active_profile_name", return_value="active"):
             with patch("kova_cli.profiles.get_profile_dir") as mock_get_dir:
-                mock_get_dir.return_value = Path("/hermes/profiles/nonexistent")
+                mock_get_dir.return_value = Path("/kova/profiles/nonexistent")
                 with patch("kova_cli.profiles.profile_exists", return_value=False):
-                    with patch("kova_constants.get_kova_home", return_value=Path("/hermes")):
+                    with patch("kova_constants.get_kova_home", return_value=Path("/kova")):
                         with caplog.at_level(logging.WARNING):
                             result = mock_runner._resolve_profile_home_for_source(discord_source)
 
                             # Should fall back to global KOVA_HOME
-                            assert result == Path("/hermes")
+                            assert result == Path("/kova")
 
                             # Should have logged a warning
                             assert len(caplog.records) == 1
@@ -117,12 +117,12 @@ class TestExceptionHandling:
         
         with patch("kova_cli.profiles.get_active_profile_name", return_value="active"):
             with patch("kova_cli.profiles.get_profile_dir", side_effect=ValueError("Invalid profile name")):
-                with patch("kova_constants.get_kova_home", return_value=Path("/hermes")):
+                with patch("kova_constants.get_kova_home", return_value=Path("/kova")):
                     with caplog.at_level(logging.WARNING):
                         result = mock_runner._resolve_profile_home_for_source(discord_source)
                         
                         # Should fall back to global KOVA_HOME
-                        assert result == Path("/hermes")
+                        assert result == Path("/kova")
                         
                         # Should have logged a warning with exception info
                         assert len(caplog.records) == 1

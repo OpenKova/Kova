@@ -452,26 +452,26 @@ def test_a_launcher_killed_during_the_readiness_wait_leaves_its_chromium_to_the_
     slow = tmp_path / "never-ready-chromium"
     slow.write_text(_NEVER_READY_CHROMIUM.format(python=sys.executable))
     slow.chmod(0o755)
-    hermes = subprocess.Popen([sys.executable, "-c", _WAITING_LAUNCHER, str(slow)], text=True,
+    kova = subprocess.Popen([sys.executable, "-c", _WAITING_LAUNCHER, str(slow)], text=True,
                               cwd=Path(__file__).resolve().parents[2], env=dict(os.environ),
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pid = None
     try:
-        udd = Path(hermes.stdout.readline().strip())
+        udd = Path(kova.stdout.readline().strip())
         pid = int(wait_until(lambda: (udd / "pid").exists() and (udd / "pid").read_text(), timeout=30,
                              what="the launched Chromium to start"))
         # The record is written right after the spawn returns, which can be after the browser's first output:
         # the kill lands in the readiness wait, the window this test is about.
         wait_until(lambda: any((launcher._load_record(p) or {}).get("pid") == pid for p in _records().glob("*.json")),
                    timeout=30, what="the starting Chromium's launch record")
-        hermes.kill()
-        hermes.wait(timeout=10)
+        kova.kill()
+        kova.wait(timeout=10)
         assert launcher._pid_alive(pid)
 
         assert launcher.reap_orphaned_browsers() == 1, "a Chromium whose launcher died mid-launch has no record"
         assert _gone(pid)
     finally:
-        hermes.kill()
+        kova.kill()
         if pid is not None:
             _kill_fake(pid, slow)
 

@@ -29,7 +29,7 @@ describe('readPreUpdateBackupEnabled', () => {
     const runtime = {
       command: '/runtime/python',
       args: ['-m', 'kova_cli.main', 'config', 'get', 'updates.pre_update_backup', '--json'],
-      env: { PYTHONPATH: '/runtime/hermes' }
+      env: { PYTHONPATH: '/runtime/kova' }
     }
 
     await expect(readPreUpdateBackupEnabled(runtime, '/profiles/active', run)).resolves.toBe(expected)
@@ -39,7 +39,7 @@ describe('readPreUpdateBackupEnabled', () => {
       expect.objectContaining({
         env: expect.objectContaining({
           KOVA_HOME: '/profiles/active',
-          PYTHONPATH: '/runtime/hermes'
+          PYTHONPATH: '/runtime/kova'
         })
       })
     )
@@ -56,7 +56,7 @@ describe('readPreUpdateBackupEnabled', () => {
     ['malformed output', vi.fn().mockResolvedValue({ stdout: 'not-json' })]
   ])('fails safe for %s', async (_name, run) => {
     await expect(
-      readPreUpdateBackupEnabled({ command: '/runtime/hermes', args: ['config', 'get'] }, '/profiles/active', run)
+      readPreUpdateBackupEnabled({ command: '/runtime/kova', args: ['config', 'get'] }, '/profiles/active', run)
     ).resolves.toBe(true)
   })
 })

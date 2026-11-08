@@ -23,7 +23,7 @@ def _repo(tmp_path: Path) -> Path:
 
     git("init", "-q")
     git("config", "user.name", "Kova Test")
-    git("config", "user.email", "hermes@example.invalid")
+    git("config", "user.email", "kova@example.invalid")
     (root / "tracked").write_text("release\n", encoding="utf-8")
     git("add", "tracked")
     git("commit", "-qm", "release")

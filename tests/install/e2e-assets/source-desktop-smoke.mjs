@@ -28,7 +28,7 @@ if (values.desktop === 'absent') {
   fs.rmSync(path.join(values.out, `desktop-chat-${values.phase}.json`), { force: true });
   const release = path.join(values.root, 'apps', 'desktop', 'release');
   const candidates = {
-    linux: ['linux-unpacked/Kova', 'linux-unpacked/hermes'],
+    linux: ['linux-unpacked/Kova', 'linux-unpacked/kova'],
     darwin: [process.arch === 'arm64' ? 'mac-arm64/Kova.app/Contents/MacOS/Kova' : 'mac/Kova.app/Contents/MacOS/Kova'],
     win32: [process.arch === 'arm64' ? 'win-arm64-unpacked/Kova.exe' : 'win-unpacked/Kova.exe'],
   }[process.platform];

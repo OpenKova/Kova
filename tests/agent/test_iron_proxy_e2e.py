@@ -34,7 +34,7 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture
 def kova_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     return home

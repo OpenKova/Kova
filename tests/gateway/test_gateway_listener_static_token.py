@@ -45,7 +45,7 @@ def gated_gateway(tmp_path_factory):
         'gateway': {'multiplex_profiles': True},
         'model': {'provider': 'custom', 'default': 'launch-model', 'base_url': 'http://127.0.0.1:1/v1'},
         'auxiliary': {'title_generation': {'enabled': False}},
-        'dashboard': {'public_url': 'https://hermes.example.test'},
+        'dashboard': {'public_url': 'https://kova.example.test'},
         'model_catalog': {'enabled': False},
     }))
     root = Path(__file__).resolve().parents[2]

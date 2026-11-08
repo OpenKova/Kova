@@ -15,7 +15,7 @@
  * The renderer owns the value and mirrors the resolved state to the main
  * process over IPC. Glass additionally needs page-level work, which lives
  * here: the field surfaces have to get out of the way for the platform
- * material underneath the web contents to read (see the `[data-hermes-glass]`
+ * material underneath the web contents to read (see the `[data-kova-glass]`
  * block in styles.css).
  */
 
@@ -280,10 +280,10 @@ const stopRailTracking = (): void => {
    overlay they stand in covers the very effect they're tuning — the scrim
    plus a deliberately near-opaque card ([data-glass-raised]). A peek ghosts
    the whole overlay layer so the live window IS the preview (see the
-   [data-hermes-translucency-peek] rules in styles.css). A counter rather
+   [data-kova-translucency-peek] rules in styles.css). A counter rather
    than a boolean: a held slider drag and a timed pulse from a picker click
    can overlap. */
-const PEEK_ATTR = 'data-hermes-translucency-peek'
+const PEEK_ATTR = 'data-kova-translucency-peek'
 
 export const $translucencyPeek = atom<number>(0)
 
@@ -347,9 +347,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   // no chat-window gate.
   const clearOn = mode === 'clear' && intensity > 0
 
-  root.toggleAttribute('data-hermes-glass-on', glassLive)
-  root.toggleAttribute('data-hermes-glass', glassOn)
-  root.toggleAttribute('data-hermes-clear', clearOn)
+  root.toggleAttribute('data-kova-glass-on', glassLive)
+  root.toggleAttribute('data-kova-glass', glassOn)
+  root.toggleAttribute('data-kova-clear', clearOn)
 
   if (glassLive) {
     root.style.setProperty('--translucency-glass-keep', `${glassSurfaceKeep(intensity)}%`)
@@ -358,9 +358,9 @@ const applyGlassSurfaces = ({ intensity, mode, scope }: TranslucencyState): void
   }
 
   if (glassOn) {
-    root.setAttribute('data-hermes-glass-scope', scope)
+    root.setAttribute('data-kova-glass-scope', scope)
   } else {
-    root.removeAttribute('data-hermes-glass-scope')
+    root.removeAttribute('data-kova-glass-scope')
   }
 
   if (glassOn && scope === 'sidebar') {

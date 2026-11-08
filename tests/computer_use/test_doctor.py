@@ -3,7 +3,7 @@
 The doctor module drives cua-driver's stable ``health_report`` MCP tool over
 stdio JSON-RPC and renders the structured response. Most of the surface is
 about parsing what cua-driver hands back, plus the exit-code contract
-downstream consumers (CI / `hermes update`) rely on:
+downstream consumers (CI / `kova update`) rely on:
 
 * Exit 0 when overall == "ok"
 * Exit 1 when overall in ("degraded", "failed") — at least one check
@@ -243,13 +243,13 @@ class TestJsonOutput:
              patch("sys.stdout", new_callable=StringIO) as out:
             doctor.run_doctor(json_output=True)
         # Verify the captured text round-trips through json.loads. Upstream
-        # health_report keys are preserved; Kova adds hermes_identity.
+        # health_report keys are preserved; Kova adds kova_identity.
         parsed = json.loads(out.getvalue())
         report = _ok_report()
         for key, value in report.items():
             assert parsed[key] == value
-        assert "hermes_identity" in parsed
-        assert parsed["hermes_identity"]["resolved_binary"]
+        assert "kova_identity" in parsed
+        assert parsed["kova_identity"]["resolved_binary"]
 
 
 # ── KOVA_CUA_DRIVER_CMD resolution ───────────────────────────────────────
@@ -391,7 +391,7 @@ class TestDoctorVersionIdentity:
             code = doctor.run_doctor(json_output=True)
         assert code == 0
         payload = json.loads(out.getvalue())
-        assert payload["hermes_identity"]["version_mismatch"] is False
+        assert payload["kova_identity"]["version_mismatch"] is False
 
 
 def test_failed_tcc_row_from_health_report_names_the_stale_row_reset_for_that_service():

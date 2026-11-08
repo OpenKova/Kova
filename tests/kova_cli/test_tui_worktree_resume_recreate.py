@@ -1,4 +1,4 @@
-"""N8 review 2.2: quitting a clean ``hermes --tui -w`` session that had a conversation removes its
+"""N8 review 2.2: quitting a clean ``kova --tui -w`` session that had a conversation removes its
 tree and branch, but the session's policy froze that cwd, so a later resume had every turn refused
 ``workspace_unavailable``. A resume (``--tui --resume``, ``-c``, classic CLI; all go through
 ``_resolve_chat_session_args``) now recreates a missing tree the ``--tui -w`` launcher created, at
@@ -29,7 +29,7 @@ def _branches(repo):
 
 
 def _quit_clean_session_with_history(tmp_path, monkeypatch):
-    """``hermes --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
+    """``kova --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
     from kova_cli import main_tui_launch
     from kova_cli.worktree_ops import _setup_worktree
     from kova_constants import get_kova_home
@@ -135,7 +135,7 @@ def test_resume_never_creates_a_missing_dir_the_launcher_did_not_make(tmp_path, 
     from kova_state import SessionDB
 
     repo = _repo(tmp_path)
-    foreign = repo / '.worktrees' / 'hermes-deadbeef'  # looks like ours; no launcher record
+    foreign = repo / '.worktrees' / 'kova-deadbeef'  # looks like ours; no launcher record
     db = SessionDB(db_path=get_kova_home() / 'state.db')
     db.create_session('other', 'tui', cwd=str(foreign))
     db.append_message('other', 'user', 'hello')
@@ -180,7 +180,7 @@ def test_a_store_error_reading_the_policy_falls_back_to_the_row_cwd(tmp_path, mo
 
 @pytest.mark.asyncio
 async def test_resume_recreates_the_removed_classic_worktree(tmp_path, monkeypatch):
-    """Classic ``hermes -w`` runs its session's tools in the tree (frozen policy cwd) while the row
+    """Classic ``kova -w`` runs its session's tools in the tree (frozen policy cwd) while the row
     keeps main's stamp, the repo root. Quit removes the clean tree; ``-c`` now gets it back."""
     import cli
     from gateway.config import GatewayConfig

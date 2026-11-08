@@ -148,7 +148,7 @@ const $keptConnectionRequests = atom<Record<string, ConnectionRequest[]>>({})
 
 /** The key a tool row's args carry its operation id under, written when `connection.request` arrives.
  *  Models reuse call ids (`call_0` on every turn), so the op id, not the call id, names a row's card. */
-export const CONNECTION_OP_ARG = 'hermes_connection_op'
+export const CONNECTION_OP_ARG = 'kova_connection_op'
 
 export const connectionOpOf = (args: ToolCallMessagePart['args']): null | string =>
   connectorText(args[CONNECTION_OP_ARG]) || null
@@ -232,7 +232,7 @@ function catalogEntry(entry: ConnectionOperationTarget, name: string): CatalogEn
     phase: entry.phase ?? null,
     platforms: entry.platforms ?? [],
     repo: entry.repo ?? null,
-    requiresKova: entry.requires_hermes ?? null,
+    requiresKova: entry.requires_kova ?? null,
     resolved: entry.resolved ?? false,
     scan: entry.scan ?? null,
     sha: entry.sha ?? null,

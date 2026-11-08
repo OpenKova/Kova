@@ -125,7 +125,7 @@ def agent_init_failed_message(exc: Any) -> str:
     if any(prefix in detail for prefix in _AUTH_LOCK_TIMEOUT_PREFIXES):
         return (f"Kova could not start the assistant for this session. Details: {detail}. "
                 "Wait for the other process to release the lock (or exit it — check for a running "
-                "dashboard or background hermes process), then retry.")
+                "dashboard or background kova process), then retry.")
     return (f"Kova could not start the assistant for this session. Details: {detail}. "
             "Check the model and provider with /model, or run `kova setup` in a terminal to reconfigure.")
 

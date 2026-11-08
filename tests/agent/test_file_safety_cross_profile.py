@@ -13,7 +13,7 @@ import pytest
 
 
 @pytest.fixture
-def fake_hermes(tmp_path, monkeypatch):
+def fake_kova(tmp_path, monkeypatch):
     """Build a fake Kova layout:
 
         <tmp>/
@@ -22,20 +22,20 @@ def fake_hermes(tmp_path, monkeypatch):
           cron/<state>
           memories/MEMORY.md
           profiles/
-            hermes-security/
+            kova-security/
               skills/foo/SKILL.md       # named profile
               plugins/...
             coder/
               skills/foo/SKILL.md       # another named profile
     """
-    root = tmp_path / "fake-hermes"
+    root = tmp_path / "fake-kova"
     (root / "skills" / "foo").mkdir(parents=True)
     (root / "skills" / "foo" / "SKILL.md").write_text("# default skill\n")
     (root / "plugins" / "foo").mkdir(parents=True)
     (root / "memories").mkdir(parents=True)
     (root / "cron").mkdir(parents=True)
 
-    sec_home = root / "profiles" / "hermes-security"
+    sec_home = root / "profiles" / "kova-security"
     (sec_home / "skills" / "foo").mkdir(parents=True)
     (sec_home / "skills" / "foo" / "SKILL.md").write_text("# sec skill\n")
     (sec_home / "plugins").mkdir(parents=True)
@@ -50,7 +50,7 @@ def fake_hermes(tmp_path, monkeypatch):
     monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: root)
 
     import agent.file_safety as fs
-    monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
+    monkeypatch.setattr(fs, "_kova_root_path", lambda: root)
 
     return {
         "root": root,
@@ -72,13 +72,13 @@ def _set_active_home(monkeypatch, kova_home: Path):
 
 
 class TestResolveActiveProfileName:
-    def test_default_when_home_is_root(self, fake_hermes, monkeypatch):
-        _set_active_home(monkeypatch, fake_hermes["default_home"])
+    def test_default_when_home_is_root(self, fake_kova, monkeypatch):
+        _set_active_home(monkeypatch, fake_kova["default_home"])
         from agent.file_safety import _resolve_active_profile_name
         assert _resolve_active_profile_name() == "default"
 
 
-    def test_falls_back_to_default_on_resolution_failure(self, fake_hermes, monkeypatch):
+    def test_falls_back_to_default_on_resolution_failure(self, fake_kova, monkeypatch):
         """If KOVA_HOME resolution raises, return 'default' rather than crashing the tool."""
         import agent.file_safety as fs
 

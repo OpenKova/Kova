@@ -226,17 +226,17 @@ class TestSlackNativeSlashes:
         slack_norm = {_norm(n) for n in slack_names}
         tg_norm = {_norm(n) for n in tg_names}
         reserved_norm = {_norm(n) for n in _SLACK_RESERVED_COMMANDS}
-        # Commands deliberately routed through /hermes <command> on Slack only
+        # Commands deliberately routed through /kova <command> on Slack only
         # (Slack's 50-slash cap) are expected to be absent from native slashes.
-        via_hermes_norm = {_norm(n) for n in _SLACK_VIA_KOVA_ONLY}
-        missing = (tg_norm - slack_norm) - reserved_norm - via_hermes_norm
+        via_kova_norm = {_norm(n) for n in _SLACK_VIA_KOVA_ONLY}
+        missing = (tg_norm - slack_norm) - reserved_norm - via_kova_norm
         assert not missing, (
             f"commands on Telegram but missing from Slack native slashes: {sorted(missing)}"
         )
 
 
 class TestSlackAppManifest:
-    """Generated Slack app manifest (used by `hermes slack manifest`)."""
+    """Generated Slack app manifest (used by `kova slack manifest`)."""
 
 
     def test_each_slash_has_required_fields(self):

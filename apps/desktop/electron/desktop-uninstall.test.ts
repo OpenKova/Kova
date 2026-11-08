@@ -71,7 +71,7 @@ test('nativeRemovalInstructions names the steward per kind and OS', () => {
   assert.match(nativeRemovalInstructions('nix', 'darwin'), /flake or profile/)
 
   for (const platform of ['linux', 'darwin', 'win32']) {
-    const steps = nativeRemovalInstructions('external', platform, '/usr/lib/hermes/hermes')
+    const steps = nativeRemovalInstructions('external', platform, '/usr/lib/kova/kova')
     assert.match(steps, /with that package manager/)
     assert.doesNotMatch(steps, /Delete|Trash/)
   }
@@ -87,8 +87,8 @@ test('nativeRemovalInstructions names the steward per kind and OS', () => {
     /\/home\/x\/Apps\/Kova\.AppImage/
   )
   assert.match(
-    nativeRemovalInstructions('bundled', 'linux', '/opt/hermes/linux-unpacked'),
-    /app directory at \/opt\/hermes\/linux-unpacked/
+    nativeRemovalInstructions('bundled', 'linux', '/opt/kova/linux-unpacked'),
+    /app directory at \/opt\/kova\/linux-unpacked/
   )
   assert.match(nativeRemovalInstructions('bundled', 'linux'), /wherever you saved it/)
 })
@@ -139,8 +139,8 @@ test('resolveRemovableAppPath finds the install dir on Windows', () => {
     'C:\\Users\\x\\AppData\\Local\\Programs\\Kova'
   )
   assert.equal(
-    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\hermes-desktop\\Kova.exe', 'win32'),
-    'C:\\Users\\x\\AppData\\Local\\hermes-desktop'
+    resolveRemovableAppPath('C:\\Users\\x\\AppData\\Local\\kova-desktop\\Kova.exe', 'win32'),
+    'C:\\Users\\x\\AppData\\Local\\kova-desktop'
   )
 })
 
@@ -150,7 +150,7 @@ test('resolveRemovableAppPath returns null for an unrecognized Windows dir', () 
 
 test('resolveRemovableAppPath uses APPIMAGE on Linux when set', () => {
   assert.equal(
-    resolveRemovableAppPath('/tmp/.mount_KovaXXXX/hermes', 'linux', { APPIMAGE: '/home/x/Apps/Kova.AppImage' }),
+    resolveRemovableAppPath('/tmp/.mount_KovaXXXX/kova', 'linux', { APPIMAGE: '/home/x/Apps/Kova.AppImage' }),
     '/home/x/Apps/Kova.AppImage'
   )
 })
@@ -159,15 +159,15 @@ test('resolveRemovableAppPath uses APPIMAGE on Linux when set', () => {
 // uninstalling an unpacked Kova launched from one must never rm -rf that app.
 test('resolveRemovableAppPath ignores an APPIMAGE inherited from another AppImage', () => {
   assert.equal(
-    resolveRemovableAppPath('/opt/hermes/linux-unpacked/hermes', 'linux', { APPIMAGE: '/home/x/Apps/Other.AppImage' }),
-    '/opt/hermes/linux-unpacked'
+    resolveRemovableAppPath('/opt/kova/linux-unpacked/kova', 'linux', { APPIMAGE: '/home/x/Apps/Other.AppImage' }),
+    '/opt/kova/linux-unpacked'
   )
 })
 
 test('resolveRemovableAppPath finds the unpacked dir on Linux', () => {
-  assert.equal(resolveRemovableAppPath('/opt/hermes/linux-unpacked/hermes', 'linux', {}), '/opt/hermes/linux-unpacked')
+  assert.equal(resolveRemovableAppPath('/opt/kova/linux-unpacked/kova', 'linux', {}), '/opt/kova/linux-unpacked')
   // A system-package install (/usr/bin) → null, left to apt/dnf.
-  assert.equal(resolveRemovableAppPath('/usr/bin/hermes', 'linux', {}), null)
+  assert.equal(resolveRemovableAppPath('/usr/bin/kova', 'linux', {}), null)
 })
 
 test('resolveRemovableAppPath returns null for an empty exe path', () => {
@@ -247,7 +247,7 @@ test('buildPosixCleanupScript waits for the PID, runs the uninstall module, remo
     pythonPath: null,
     agentRoot: '/home/x/.kova/kova-agent',
     uninstallArgs: ['-m', 'kova_cli.uninstall', '--mode', 'gui'],
-    appPath: '/opt/hermes/linux-unpacked',
+    appPath: '/opt/kova/linux-unpacked',
     kovaHome: '/home/x/.kova'
   })
 
@@ -255,7 +255,7 @@ test('buildPosixCleanupScript waits for the PID, runs the uninstall module, remo
   assert.match(script, /pid=4321/)
   assert.match(script, /kill -0 "\$pid"/)
   assert.match(script, /'-m' 'kova_cli\.uninstall' '--mode' 'gui'/)
-  assert.match(script, /rm -rf '\/opt\/hermes\/linux-unpacked'/)
+  assert.match(script, /rm -rf '\/opt\/kova\/linux-unpacked'/)
   assert.match(script, /export KOVA_HOME='\/home\/x\/\.kova'/)
 })
 
@@ -265,17 +265,17 @@ test('buildWindowsCleanupScript waits (bounded) for PID, runs uninstall, rmdir b
   const script = buildWindowsCleanupScript({
     desktopPid: 9988,
     pythonExe: 'C:\\Python313\\python.exe',
-    pythonPath: 'C:\\hermes',
-    agentRoot: 'C:\\hermes',
+    pythonPath: 'C:\\kova',
+    agentRoot: 'C:\\kova',
     uninstallArgs: ['-m', 'kova_cli.uninstall', '--mode', 'full'],
     appPath: 'C:\\Users\\x\\AppData\\Local\\Programs\\Kova',
-    kovaHome: 'C:\\Users\\x\\AppData\\Local\\hermes'
+    kovaHome: 'C:\\Users\\x\\AppData\\Local\\kova'
   })
 
   assert.match(script, /@echo off/)
   assert.match(script, /set "PID=9988"/)
   // PYTHONPATH set so a system python can import kova_cli from source.
-  assert.match(script, /set "PYTHONPATH=C:\\hermes;%PYTHONPATH%"/)
+  assert.match(script, /set "PYTHONPATH=C:\\kova;%PYTHONPATH%"/)
   assert.match(script, /"C:\\Python313\\python.exe" "-m" "kova_cli\.uninstall" "--mode" "full"/)
   // Bounded wait-loop (no infinite loop), whole-token PID match (no substring).
   assert.match(script, /if %waited% geq 60 goto waited_done/)

@@ -15,7 +15,7 @@ import json, os
 from pathlib import Path
 
 def resolve_active_host():
-    return "hermes"
+    return "kova"
 
 def resolve_config_path():
     return Path(os.environ["KOVA_HOME"]) / "honcho.json"
@@ -59,7 +59,7 @@ def user_dir_honcho(monkeypatch, tmp_path, _isolate_kova_home):
     for stem, source in (("client", _CLIENT), ("oauth_flow", _OAUTH_FLOW), ("config_schema", _CONFIG_SCHEMA)):
         (plugin_dir / f"{stem}.py").write_text(textwrap.dedent(source), encoding="utf-8")
     (get_kova_home() / "honcho.json").write_text(
-        json.dumps({"hosts": {"hermes": {"workspace": "from-user-dir"}}}), encoding="utf-8"
+        json.dumps({"hosts": {"kova": {"workspace": "from-user-dir"}}}), encoding="utf-8"
     )
 
     monkeypatch.setattr(memory_pkg, "_MEMORY_PLUGINS_DIR", tmp_path / "no-bundled")

@@ -4,7 +4,7 @@ Anthropic OAuth refresh tokens are single-use: the POST that returns a new
 pair also invalidates the one that was sent.  The replacement therefore exists
 only in memory until it reaches its authoritative on-disk store —
 ``~/.claude/.credentials.json`` for ``claude_code`` entries,
-``~/.kova/.anthropic_oauth.json`` for ``hermes_pkce`` ones.  Those singletons
+``~/.kova/.anthropic_oauth.json`` for ``kova_pkce`` ones.  Those singletons
 are authoritative in the strict sense: ``_seed_from_singletons()`` re-reads
 them on every ``load_pool()`` and writes what it finds over the pool row.
 
@@ -70,7 +70,7 @@ def _clean_spent_registry():
 @pytest.fixture
 def kova_home(tmp_path, monkeypatch):
     """Real on-disk KOVA_HOME so ``load_pool()`` re-reads what we persisted."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
@@ -177,7 +177,7 @@ def test_claude_code_writer_raises_instead_of_swallowing(
     )
 
 
-def test_hermes_oauth_writer_raises_instead_of_swallowing(kova_home, monkeypatch):
+def test_kova_oauth_writer_raises_instead_of_swallowing(kova_home, monkeypatch):
     oauth_file = kova_home / ".anthropic_oauth.json"
     oauth_file.write_text(
         json.dumps(
@@ -192,7 +192,7 @@ def test_hermes_oauth_writer_raises_instead_of_swallowing(kova_home, monkeypatch
     _break_durable_write(monkeypatch)
 
     with pytest.raises(CredentialPersistError):
-        AA._write_hermes_oauth_credentials(
+        AA._write_kova_oauth_credentials(
             _ROTATED_ACCESS, _ROTATED_REFRESH, _EXPIRED_MS + 3_600_000
         )
 
@@ -332,11 +332,11 @@ def test_reauthentication_clears_the_persist_failure_quarantine(
 
 
 # ---------------------------------------------------------------------------
-# Pool path: hermes_pkce
+# Pool path: kova_pkce
 # ---------------------------------------------------------------------------
 
 
-def test_pool_hermes_pkce_fails_closed_and_reload_cannot_resurrect(
+def test_pool_kova_pkce_fails_closed_and_reload_cannot_resurrect(
     kova_home, monkeypatch
 ):
     oauth_file = kova_home / ".anthropic_oauth.json"
@@ -354,7 +354,7 @@ def test_pool_hermes_pkce_fails_closed_and_reload_cannot_resurrect(
     monkeypatch.setattr(AA, "read_claude_code_credentials", lambda: None)
     _break_durable_write(monkeypatch)
 
-    entry = _entry("hermes_pkce")
+    entry = _entry("kova_pkce")
     pool = CredentialPool("anthropic", [entry])
 
     assert pool._refresh_entry(entry, force=True) is None
@@ -368,7 +368,7 @@ def test_pool_hermes_pkce_fails_closed_and_reload_cannot_resurrect(
     assert on_disk["refreshToken"] == _STALE_REFRESH
 
     reloaded = [
-        e for e in load_pool("anthropic").entries() if e.source == "hermes_pkce"
+        e for e in load_pool("anthropic").entries() if e.source == "kova_pkce"
     ]
     assert reloaded
     assert reloaded[0].refresh_token == _STALE_REFRESH

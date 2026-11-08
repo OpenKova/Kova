@@ -54,14 +54,14 @@ runtime:
 # Where the TUI/Desktop gateway stages session file attachments (file uploads and
 # pasted text). Read per profile: a session bound to profile X follows X's own
 # config.yaml, so each agent's attachments stay with its workspace.
-#   hermes-home  (default) <profile home>/attachments — the directory container
+#   kova-home  (default) <profile home>/attachments — the directory container
 #                 backends bind-mount, so @file: refs resolve inside the sandbox.
-#   workspace    <session workspace>/.hermes/attachments — staging lands inside
+#   workspace    <session workspace>/.kova/attachments — staging lands inside
 #                 the allowed reference root, so the profile's agent can always
 #                 read its own attachments back. A remote (ssh) workspace keeps
 #                 the profile home directory either way.
 attachments:
-  storage: "hermes-home"
+  storage: "kova-home"
 
 # =============================================================================
 # Plugin Installation
@@ -286,11 +286,11 @@ model:
 # client rebuilds during credential rotation.  For OpenAI-wire chat
 # completions (streaming and non-streaming) the configured value is also
 # used as the per-request ``timeout=`` kwarg so it wins over the legacy
-# HERMES_API_TIMEOUT env var (which still applies when no config is set).
+# KOVA_API_TIMEOUT env var (which still applies when no config is set).
 # ``stale_timeout_seconds`` controls the non-streaming stale-call detector and
-# wins over the legacy HERMES_API_CALL_STALE_TIMEOUT env var. Leaving these
-# unset keeps the legacy defaults (HERMES_API_TIMEOUT=1800s,
-# HERMES_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
+# wins over the legacy KOVA_API_CALL_STALE_TIMEOUT env var. Leaving these
+# unset keeps the legacy defaults (KOVA_API_TIMEOUT=1800s,
+# KOVA_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
 # implicit non-stream stale detector is auto-disabled for local endpoints
 # and can scale upward for very large contexts.
 #
@@ -318,7 +318,7 @@ model:
 # =============================================================================
 # One place to override Hermes's internal operation deadlines (seconds).
 # Keys are dotted paths resolved by agent/deadline.py:resolve_timeout().
-# Precedence: this section > legacy HERMES_* env var (back-compat) > built-in
+# Precedence: this section > legacy KOVA_* env var (back-compat) > built-in
 # default. 0 or a negative value disables the bound (unbounded); very large
 # values are clamped to a platform-safe maximum automatically.
 #
@@ -327,7 +327,7 @@ model:
 # timeouts:
 #   tools:
 #     concurrent_batch: 420   # Deadline for a parallel tool-call batch
-#                             # (legacy env: HERMES_CONCURRENT_TOOL_TIMEOUT_S)
+#                             # (legacy env: KOVA_CONCURRENT_TOOL_TIMEOUT_S)
 #     sequential_call: 420    # Deadline for one sequentially-executed tool call.
 #                             # Defaults to concurrent_batch's value so the two
 #                             # executor paths stay in sync; human waits
@@ -441,9 +441,9 @@ terminal:
   # font_family: "MesloLGS NF"  # Also accepts a CSS stack; blank uses bundled JetBrains Mono.
   timeout: 180
   # HOME policy for tool subprocesses:
-  #   auto    - default: host uses your real HOME; containers use HERMES_HOME/home
+  #   auto    - default: host uses your real HOME; containers use KOVA_HOME/home
   #   real    - force your real OS-user HOME
-  #   profile - force HERMES_HOME/home for strict per-profile CLI config isolation
+  #   profile - force KOVA_HOME/home for strict per-profile CLI config isolation
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
   lifetime_seconds: 300
@@ -458,7 +458,7 @@ terminal:
   # CONDA_PREFIX themselves are unset there; execute_code sees them.
   # A toolchain name the client did not export is unset for its session's tools (PATH excepted).
   # List more non-secret names here (default: none); names execute_code treats as credentials (…TOKEN,
-  # …KEY, …SECRET, …PASSWORD, …AUTH, …DSN, …WEBHOOK, …CREDS, …BEARER, …COOKIE) and HERMES_* names
+  # …KEY, …SECRET, …PASSWORD, …AUTH, …DSN, …WEBHOOK, …CREDS, …BEARER, …COOKIE) and KOVA_* names
   # are never sent: pass secrets with `env_passthrough` instead.
   client_env_passthrough: []  # e.g. ["GEM_HOME", "POETRY_HOME"]
   # sudo_password: "hunter2"  # Optional: pipe a sudo password via sudo -S. SECURITY WARNING: plaintext.
@@ -863,7 +863,7 @@ compression:
 # Tool-result budget (optional)
 # =============================================================================
 # Controls when a large tool result is spilled to disk (full output saved to
-# $HERMES_HOME/cache/spillover, preview + path kept in context). MCP tool
+# $KOVA_HOME/cache/spillover, preview + path kept in context). MCP tool
 # results (tools named mcp_*) spill at a tighter 50,000-char threshold than
 # the generic 100K default: MCP servers routinely return un-paginated 20-50K
 # payloads that bloat context and slow every subsequent turn. Nothing is
@@ -1137,7 +1137,7 @@ hosted_rooms:
 # gateway:
 #   room_link_url: "https://hermes.example.net"
 #
-# The equivalent environment override is HERMES_ROOM_LINK_URL. After changing
+# The equivalent environment override is KOVA_ROOM_LINK_URL. After changing
 # it, restart the gateway and reopen New Group Chat > Advanced; Hermes will
 # re-check the selected gateways automatically.
 
@@ -1146,7 +1146,7 @@ hosted_rooms:
 # gateway restart (update, crash, systemd) leaves those rows permanently
 # "active". On every gateway boot — stdio TUI *and* the desktop/dashboard
 # WS sidecar — tui/desktop/subagent rows whose start time AND newest
-# message are both older than the session TTL (HERMES_TUI_SESSION_TTL_S,
+# message are both older than the session TTL (KOVA_TUI_SESSION_TTL_S,
 # default 6h) are closed with end_reason "startup_orphan_reap".
 # Messaging-platform sessions (Telegram, Discord, ...) are never touched;
 # live in-memory sessions are excluded; swept sessions stay resumable.
@@ -1302,7 +1302,7 @@ agent:
   # Excluded from the wait: wedged runs, and cron runs already handed to a
   # worker in its own restart-safe systemd scope (they outlive the restart).
   # The default (30 min) is a safety valve for wedged agents, not a target
-  # latency; raise it for long unattended turns. Env: HERMES_RESTART_AFTER_TURN_TIMEOUT.
+  # latency; raise it for long unattended turns. Env: KOVA_RESTART_AFTER_TURN_TIMEOUT.
   # restart_after_turn_timeout: 1800
 
   # Upper bound (seconds) a submitted prompt waits for the deferred agent
@@ -1335,7 +1335,7 @@ agent:
   # coding surfaces (CLI, TUI, desktop) and programmatic callers, off on
   # conversational messaging surfaces (Telegram, Discord, etc.) where the
   # verification summary would reach a human as chat noise. The
-  # HERMES_VERIFY_ON_STOP env var (1/0) takes precedence.
+  # KOVA_VERIFY_ON_STOP env var (1/0) takes precedence.
   # verify_on_stop: false
 
   # Standing operator instructions for the coding posture (when Hermes is in a
@@ -1773,10 +1773,10 @@ stt:
     # no_speech_prob_threshold: 0.6  # drop a segment only if no_speech_prob > this...
     # logprob_threshold: -1.0       # ...AND avg_logprob < this (both must hit — quiet real speech survives)
     # unload_after_idle_seconds: 0  # 0=never unload (default); e.g. 300 releases the model after 5min idle (frees VRAM on GPU; next voice message reloads it)
-  language: "en"               # Global hint; a nonempty provider language wins. Blank falls back to HERMES_LOCAL_STT_LANGUAGE, then auto-detect.
+  language: "en"               # Global hint; a nonempty provider language wins. Blank falls back to KOVA_LOCAL_STT_LANGUAGE, then auto-detect.
   # groq:
   #   model: "whisper-large-v3-turbo"
-  #   language: ""             # blank inherits stt.language, then HERMES_LOCAL_STT_LANGUAGE
+  #   language: ""             # blank inherits stt.language, then KOVA_LOCAL_STT_LANGUAGE
   openai:
     model: "whisper-1"         # whisper-1 | gpt-4o-mini-transcribe | gpt-4o-transcribe | gpt-transcribe
     language: ""               # blank = inherit stt.language; set "en", "es", "fr", etc. to force
@@ -1788,7 +1788,7 @@ stt:
   #   # Sent as the multipart ``model`` field. Hermes uses 2.0 by default;
   #   # pin 1.0 only if a rollback is needed.
   #   model: "grok-voice-transcribe-2.0"  # or grok-voice-transcribe-1.0
-  #   # language: ""             # blank = stt.language > HERMES_LOCAL_STT_LANGUAGE > auto-detect
+  #   # language: ""             # blank = stt.language > KOVA_LOCAL_STT_LANGUAGE > auto-detect
   # deepinfra:
   #   # Model id is discovered live from the DeepInfra catalog filtered
   #   # by the `stt` surface tag — leave `model` blank to take the first
@@ -2197,7 +2197,7 @@ display:
 #
 # First-use consent: each (event, command) pair prompts once on a TTY, then
 # is persisted to ~/.hermes/shell-hooks-allowlist.json.  Non-interactive
-# runs (gateway, cron) need --accept-hooks, HERMES_ACCEPT_HOOKS=1, or the
+# runs (gateway, cron) need --accept-hooks, KOVA_ACCEPT_HOOKS=1, or the
 # hooks_auto_accept key below.
 #
 # See website/docs/user-guide/features/hooks.md for the full JSON wire
@@ -2224,7 +2224,7 @@ display:
 # =============================================================================
 # Shared metrics are disabled by default. When enabled, Hermes writes only
 # allowlisted aggregate counters and immutable JSON
-# packages under $HERMES_HOME/telemetry/shared_metrics.
+# packages under $KOVA_HOME/telemetry/shared_metrics.
 # Packages include a random profile-scoped ID that stays stable until this
 # directory is deleted. It is not derived from hardware, account, or host data.
 # Successfully exported local history is retained for 30 days; pending deltas
@@ -2278,7 +2278,7 @@ updates:
   # Backup taken before every `hermes update`:
   #   quick - snapshot of small critical state (pairing, cron jobs, config.yaml,
   #           .env, auth.json, profile databases) in state-snapshots/ (default)
-  #   full  - quick plus a zip of HERMES_HOME in backups/; slow on large homes
+  #   full  - quick plus a zip of KOVA_HOME in backups/; slow on large homes
   #   off   - no backup
   # pre_update_backup: quick
 
@@ -2301,9 +2301,9 @@ updates:
 # The bundled Nous Portal plugin reads these on startup; settings here are
 # the canonical surface. Each can be overridden by an environment variable:
 #
-#   dashboard.oauth.client_id   <-  HERMES_DASHBOARD_OAUTH_CLIENT_ID
-#   dashboard.oauth.portal_url  <-  HERMES_DASHBOARD_PORTAL_URL
-#   dashboard.public_url        <-  HERMES_DASHBOARD_PUBLIC_URL
+#   dashboard.oauth.client_id   <-  KOVA_DASHBOARD_OAUTH_CLIENT_ID
+#   dashboard.oauth.portal_url  <-  KOVA_DASHBOARD_PORTAL_URL
+#   dashboard.public_url        <-  KOVA_DASHBOARD_PUBLIC_URL
 #
 # Env wins when set to a non-empty value. This is what Fly.io's platform-
 # secret injection uses to push per-deploy client_ids without needing to
@@ -2352,10 +2352,10 @@ updates:
 # nous block above when gating the dashboard with your own identity provider.
 # Each setting can be overridden by an environment variable:
 #
-#   dashboard.oauth.self_hosted.issuer         <-  HERMES_DASHBOARD_OIDC_ISSUER
-#   dashboard.oauth.self_hosted.client_id      <-  HERMES_DASHBOARD_OIDC_CLIENT_ID
-#   dashboard.oauth.self_hosted.scopes         <-  HERMES_DASHBOARD_OIDC_SCOPES
-#   dashboard.oauth.self_hosted.client_secret  <-  HERMES_DASHBOARD_OIDC_CLIENT_SECRET
+#   dashboard.oauth.self_hosted.issuer         <-  KOVA_DASHBOARD_OIDC_ISSUER
+#   dashboard.oauth.self_hosted.client_id      <-  KOVA_DASHBOARD_OIDC_CLIENT_ID
+#   dashboard.oauth.self_hosted.scopes         <-  KOVA_DASHBOARD_OIDC_SCOPES
+#   dashboard.oauth.self_hosted.client_secret  <-  KOVA_DASHBOARD_OIDC_CLIENT_SECRET
 #
 # dashboard:
 #   oauth:
@@ -2372,7 +2372,7 @@ updates:
 #       # IDP's discovery doc) IN ADDITION to PKCE. Leave unset for a public
 #       # (PKCE-only) client — the common case.
 #       #
-#       # This is a CREDENTIAL: prefer setting HERMES_DASHBOARD_OIDC_CLIENT_SECRET
+#       # This is a CREDENTIAL: prefer setting KOVA_DASHBOARD_OIDC_CLIENT_SECRET
 #       # in ~/.hermes/.env over putting it here in config.yaml.
 #       #   client_secret: ""
 

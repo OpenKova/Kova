@@ -1,7 +1,7 @@
 """The classic CLI's real startup and command dispatch, in a fresh process, recording every plugin
 discovery / execution entry point it reaches (#134889 PLG-7).
 
-``argv[1]`` is the launch: ``oneshot`` (``_prepare_agent_startup``, as ``hermes chat -q`` runs it) or
+``argv[1]`` is the launch: ``oneshot`` (``_prepare_agent_startup``, as ``kova chat -q`` runs it) or
 ``interactive`` (main's fast path: discovery deferred to the first turn). The rest of argv are the
 chat flags (``-t terminal``, ``-s <skill>``). The gateway for ``KOVA_HOME`` must already run, with the probe plugin
 (a ``pre_command`` hook, a command, a skill and a toolset) loaded. Prints one JSON line.
@@ -65,12 +65,12 @@ COMPLETE = ('/probe', '/tools enable ', '/tools disable ')
 
 def main():
     mode, flags = sys.argv[1], sys.argv[2:]
-    from kova_cli import main as hermes_main
-    args = hermes_main._light_chat_parser().parse_args(['chat', *flags])
+    from kova_cli import main as kova_main
+    args = kova_main._light_chat_parser().parse_args(['chat', *flags])
     if mode == 'interactive':
         os.environ['KOVA_DEFER_AGENT_STARTUP'] = '1'
     else:
-        hermes_main._prepare_agent_startup(args)
+        kova_main._prepare_agent_startup(args)
     import cli
     from prompt_toolkit.document import Document
     outputs, errors, completions = {}, [], {}
@@ -103,7 +103,7 @@ def main():
     print(json.dumps({'calls': calls, 'agent': agent, 'session_id': c.session_id, 'output': out.getvalue(),
                       'outputs': outputs, 'errors': errors, 'completions': completions, 'queued': queued,
                       'model_tools': 'model_tools' in sys.modules,
-                      'plugin_modules': sorted(m for m in sys.modules if m.startswith('hermes_plugins'))}),
+                      'plugin_modules': sorted(m for m in sys.modules if m.startswith('kova_plugins'))}),
           file=sys.__stdout__, flush=True)
     os._exit(0)
 

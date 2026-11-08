@@ -1,6 +1,6 @@
 """Shared harness for the security-boundary E2E suite.
 
-Every scenario runs real Kova processes (``hermes`` CLI, ``hermes serve``, the gateway,
+Every scenario runs real Kova processes (``kova`` CLI, ``kova serve``, the gateway,
 ``tui_gateway``) with HOME=<tmp>/home and KOVA_HOME=<tmp>/home/.kova, every credential env var
 stripped, and the model served by ``tests/fakes/fake_llm_provider.FakeLLMServer``. Assertions read
 the boundary's observable outcome: files on disk, state.db rows, logs, and the next wire request.
@@ -128,7 +128,7 @@ def kill_group(proc: subprocess.Popen, sig: int = signal.SIGKILL) -> None:
         pass
 
 
-def run_hermes(argv: list[str], home: Path, *, timeout: float = 120.0, cwd: Path | None = None,
+def run_kova(argv: list[str], home: Path, *, timeout: float = 120.0, cwd: Path | None = None,
                extra_env: dict[str, str] | None = None, stdin: str | None = None) -> subprocess.CompletedProcess:
     """``python -m kova_cli.main <argv>`` in its own process group; the group is always reaped."""
     proc = subprocess.Popen(

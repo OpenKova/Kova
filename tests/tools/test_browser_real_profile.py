@@ -89,7 +89,7 @@ class TestSnapshotRealProfile:
     def test_fresh_snapshot_copies_auth_and_skips_caches(self, tmp_path, monkeypatch):
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
 
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
@@ -109,7 +109,7 @@ class TestSnapshotRealProfile:
     def test_existing_snapshot_refreshes_auth_files_only(self, tmp_path, monkeypatch):
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
 
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
@@ -143,7 +143,7 @@ class TestSnapshotRealProfile:
 
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         old_umask = os.umask(0o022)  # the common default that produced 0644
         try:
@@ -169,7 +169,7 @@ class TestSnapshotRealProfile:
 
         import kova_cli.browser_connect as bc
         src = self._make_profile(tmp_path / "real")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         dst, err = bc.snapshot_real_profile("chrome", src=str(src))
         assert err is None and dst

@@ -911,7 +911,7 @@ export function pathWithRemoteOwnerScope(path: string, scope: string): string {
     return path
   }
 
-  const url = new URL(path, 'http://hermes.local')
+  const url = new URL(path, 'http://kova.local')
   url.searchParams.set('profile', scoped)
 
   return `${url.pathname}${url.search}${url.hash}`

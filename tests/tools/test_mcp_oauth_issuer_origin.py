@@ -45,7 +45,7 @@ async def test_origin_issued_metadata_shim_does_not_read_non_discovery_response(
     provider = KovaProviderMixin.__new__(KovaProviderMixin)
     response = ResourceResponse()
 
-    assert await provider._hermes_accept_origin_issued_metadata(response) is response
+    assert await provider._kova_accept_origin_issued_metadata(response) is response
 
 
 def _asm(issuer):
@@ -176,5 +176,5 @@ async def test_issuer_equal_to_the_advertised_identifier_is_left_to_the_sdk():
     request = httpx.Request("GET", f"{AS_ORIGIN}/.well-known/oauth-authorization-server")
     response = httpx.Response(200, json=_asm(f"{AS_ORIGIN}/"), request=request)
 
-    assert await provider._hermes_accept_origin_issued_metadata(response) is response
+    assert await provider._kova_accept_origin_issued_metadata(response) is response
     assert provider.context.oauth_metadata is None

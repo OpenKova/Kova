@@ -14,8 +14,8 @@ Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``KOVA_
   and starts listening while the gateway mounts the dashboard (Linux only);
 - ``connect_during_mount``: a client connects to the Webapp's port while the dashboard mounts;
 - ``built``: whether the Webapp bundle has its ``index.html``;
-- ``update_fails``: before the gateway starts, ``hermes update``'s Webapp step runs for this home and its
-  build fails; once the gateway serves, ``hermes webapp``'s build succeeds;
+- ``update_fails``: before the gateway starts, ``kova update``'s Webapp step runs for this home and its
+  build fails; once the gateway serves, ``kova webapp``'s build succeeds;
 - ``probe_host``: a Host header to send (a public hostname), or null;
 - ``credential``: the stored browser credential this gateway finds: ``"folder-is-a-file"`` (a plain
   file where the ``webapp/`` folder goes), ``"token-is-a-folder"`` (a folder where
@@ -122,7 +122,7 @@ def _fail_startup_once():
 
 
 def _fail_webapp_update(home, checkout):
-    """``hermes update``'s Webapp step for an install whose only home is *home*, with a build that
+    """``kova update``'s Webapp step for an install whose only home is *home*, with a build that
     fails as a broken npm install would."""
     import kova_cli.webapp
     from kova_cli import source_build
@@ -144,7 +144,7 @@ def _fail_webapp_update(home, checkout):
 
 
 def _rebuild_webapp(checkout, dist):
-    """``hermes webapp``'s build, with the compiler stood in by one that writes a new bundle."""
+    """``kova webapp``'s build, with the compiler stood in by one that writes a new bundle."""
     import kova_cli.webapp
     from kova_cli import source_build
 

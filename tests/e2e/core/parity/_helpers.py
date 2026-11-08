@@ -50,7 +50,7 @@ _PASSTHROUGH_ENV = frozenset({
 
 
 TURN_TIMEOUT = 240.0
-# `hermes gateway stop` waits for the daemon's planned exit (MCP teardown included).
+# `kova gateway stop` waits for the daemon's planned exit (MCP teardown included).
 STOP_TIMEOUT = 120.0
 
 
@@ -344,7 +344,7 @@ def required_tool_names(toolset: str) -> set[str]:
     return {t for t in _FEATURE_TOOLS if t in promised} | {MCP_TOOL_NAME}
 
 
-def check_invariants(obs: Observation, ph: ParityHome, *, toolset: str = "hermes-cli",
+def check_invariants(obs: Observation, ph: ParityHome, *, toolset: str = "kova-cli",
                      context_file: bool = True) -> dict[str, bool]:
     """Evaluate every parity invariant; returns {cell: ok} (all must be True)."""
     c = ph.canaries
@@ -443,7 +443,7 @@ def kill_tagged(ph: ParityHome) -> None:
             pass
 
 
-def hermes_argv(*args: str) -> list[str]:
+def kova_argv(*args: str) -> list[str]:
     return [sys.executable, "-m", "kova_cli.main", *args]
 
 
@@ -460,9 +460,9 @@ def terminate(proc: subprocess.Popen, timeout: float = 30.0) -> int | None:
 
 
 def stop_profile_gateway(ph: ParityHome, timeout: float = STOP_TIMEOUT) -> bool:
-    """The normal stop for the profile's ``gateway run`` daemon: ``hermes gateway stop``.
+    """The normal stop for the profile's ``gateway run`` daemon: ``kova gateway stop``.
 
-    ``hermes -z``, ``hermes chat -q``, ``hermes acp`` and ``hermes cron run`` are clients of the
+    ``kova -z``, ``kova chat -q``, ``kova acp`` and ``kova cron run`` are clients of the
     unified gateway runtime: their first connect spawns the profile's daemon (``ensure_gateway_runtime``
     → ``spawn_unmanaged_gateway``), the daemon owns the agent — and with it the MCP server tree — and it
     keeps serving after the client exits (cron, messaging, the next client). So the surface's
@@ -471,10 +471,10 @@ def stop_profile_gateway(ph: ParityHome, timeout: float = STOP_TIMEOUT) -> bool:
     none was running, e.g. a client that never reached the daemon).
     """
     proc = subprocess.run(
-        hermes_argv("gateway", "stop"), cwd=ph.project, env=ph.env(), capture_output=True, text=True,
+        kova_argv("gateway", "stop"), cwd=ph.project, env=ph.env(), capture_output=True, text=True,
         timeout=timeout, stdin=subprocess.DEVNULL, check=False
     )
-    assert proc.returncode == 0, f"hermes gateway stop exited {proc.returncode}: {proc.stderr[-2000:]}"
+    assert proc.returncode == 0, f"kova gateway stop exited {proc.returncode}: {proc.stderr[-2000:]}"
     return "Stopped gateway" in proc.stdout
 
 

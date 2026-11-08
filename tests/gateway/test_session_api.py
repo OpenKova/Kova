@@ -746,7 +746,7 @@ async def test_create_session_respects_browser_source_and_model_lock(adapter, se
             "/api/sessions",
             json={
                 "id": "browser-lock-session",
-                "source": "hermes_browser",
+                "source": "kova_browser",
                 "provider": "nous",
                 "model": "x-ai/grok-4.5",
                 "require_model_lock": True,
@@ -757,10 +757,10 @@ async def test_create_session_respects_browser_source_and_model_lock(adapter, se
         assert resp.status == 201, await resp.text()
         payload = await resp.json()
 
-    assert payload["session"]["source"] == "hermes_browser"
+    assert payload["session"]["source"] == "kova_browser"
     assert payload["session"]["model"] == "x-ai/grok-4.5"
     row = session_db.get_session("browser-lock-session")
-    assert row["source"] == "hermes_browser"
+    assert row["source"] == "kova_browser"
     assert row["model"] == "x-ai/grok-4.5"
     import json as _json
     model_config = row.get("model_config")
@@ -925,7 +925,7 @@ async def test_run_agent_reports_actual_agent_runtime_not_requested_metadata(ada
             self.session_id = "runtime-session"
             self.provider = "actual-provider"
             self.model = "actual-model"
-            self._hermes_api_runtime = {
+            self._kova_api_runtime = {
                 "provider": "requested-provider",
                 "model": "requested-model",
                 "route_source": "raw_request",
@@ -989,7 +989,7 @@ def test_confirmed_runtime_lock_rejects_provider_only_mismatch(adapter):
     class FakeAgent:
         provider = "fallback-provider"
         model = "some-model"
-        _hermes_api_runtime = {
+        _kova_api_runtime = {
             "provider": "nous",
             "model": "some-model",
             "route_source": "session_model_lock",
@@ -1016,7 +1016,7 @@ def test_confirmed_runtime_lock_accepts_resolved_provider_identity(
     class FakeAgent:
         provider = actual_provider
         model = "some-model"
-        _hermes_api_runtime = {
+        _kova_api_runtime = {
             "provider": resolved_provider,
             "model": "some-model",
             "route_source": "session_model_lock",

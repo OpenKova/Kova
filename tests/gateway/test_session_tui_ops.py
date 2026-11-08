@@ -22,7 +22,7 @@ def test_session_save_exports_the_stored_transcript_under_the_profile_home(tmp_p
                 saved = await rpc(ws, 'session.save', session_id=sid)
                 assert 'result' in saved, saved
                 path = saved['result']['file']
-                assert path.startswith(str(home / 'sessions' / 'saved' / 'hermes_conversation_')), path
+                assert path.startswith(str(home / 'sessions' / 'saved' / 'kova_conversation_')), path
                 data = json.loads(await asyncio.to_thread(Path(path).read_text, encoding='utf-8'))
                 contents = [m.get('content') for m in data['messages']]
                 assert 'SAVE_ME' in contents and 'CONTROL_ACK' in contents, data
@@ -355,10 +355,10 @@ def test_cli_only_commands_refuse_with_what_to_use_instead(tmp_path):
         async def probe():
             async with websocket(home, desc) as ws:
                 sid = (await rpc(ws, 'session.create', request_id='refuse', source='tui', toolsets=[]))['result']['session_id']
-                for command, hint in [('export', 'hermes profile export'), ('import x.tar.gz', 'hermes profile import'),
-                                      ('snapshot', 'hermes backup'), ('snap list', 'hermes backup'),
-                                      ('handoff telegram', 'hermes --cli'), ('hatch a cat', 'hermes --cli'),
-                                      ('worktree new', 'hermes -w'), ('palette', 'Type /')]:
+                for command, hint in [('export', 'kova profile export'), ('import x.tar.gz', 'kova profile import'),
+                                      ('snapshot', 'kova backup'), ('snap list', 'kova backup'),
+                                      ('handoff telegram', 'kova --cli'), ('hatch a cat', 'kova --cli'),
+                                      ('worktree new', 'kova -w'), ('palette', 'Type /')]:
                     refused = (await rpc(ws, 'slash.exec', command=command, session_id=sid))['error']
                     assert refused['message'] == 'unsupported_command', (command, refused)
                     assert hint in refused['data'].get('detail', ''), (command, refused)

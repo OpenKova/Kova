@@ -23,12 +23,12 @@ def test_default_home_aliases_are_reported_as_default(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(launch_home))
     monkeypatch.setattr(server, "_kova_home", launch_home)
 
-    for alias in (default_home.name, "hermes"):
+    for alias in (default_home.name, "kova"):
         assert server._response_profile_name(alias) == "default"
     assert server._session_info(None, {"profile_home": str(default_home)})["profile_name"] == "default"
-    # "hermes" is a legal profile id: a REAL named profile of that name is never swallowed by the alias.
-    (default_home / "profiles" / "hermes").mkdir(parents=True)
-    assert server._response_profile_name("hermes") == "hermes"
+    # "kova" is a legal profile id: a REAL named profile of that name is never swallowed by the alias.
+    (default_home / "profiles" / "kova").mkdir(parents=True)
+    assert server._response_profile_name("kova") == "kova"
 
 
 def test_profile_home_resolution_stamps_default_rows(tmp_path, monkeypatch):

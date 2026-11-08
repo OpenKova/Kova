@@ -33,7 +33,7 @@ class TestRealProfilePin:
         import kova_cli.browser_connect as bc
 
         src = self._make_profile(tmp_path / "real", last_used="Profile 4")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_real_profile_pin", lambda: "Profile 2")
 
@@ -59,7 +59,7 @@ class TestRealProfilePin:
         import kova_cli.browser_connect as bc
 
         src = self._make_profile(tmp_path / "real", last_used="Profile 4")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_real_profile_pin", lambda: None)
 
@@ -74,7 +74,7 @@ class TestRealProfilePin:
         import kova_cli.browser_connect as bc
 
         src = self._make_profile(tmp_path / "real", last_used="Profile 2")
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         monkeypatch.setattr(bc, "get_kova_home", lambda: home)
         monkeypatch.setattr(bc, "_real_profile_pin", lambda: "Profile 2")
 

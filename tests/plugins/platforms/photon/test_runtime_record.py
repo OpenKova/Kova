@@ -1,9 +1,9 @@
 """Sidecar runtime-record persistence tests (issue #69960).
 
 The sidecar token is generated at spawn and used to exist only in the
-gateway process memory + sidecar child env — so cron/`hermes send`
+gateway process memory + sidecar child env — so cron/`kova send`
 standalone sends structurally could not authenticate. The adapter now
-persists ``<hermes-home>/photon-sidecar.json`` after the sidecar
+persists ``<kova-home>/photon-sidecar.json`` after the sidecar
 passes its /healthz readiness check, deletes it on stop/failed-start, and
 ``_standalone_send`` falls back to it when PHOTON_SIDECAR_TOKEN is unset.
 No Node, no ports, no network.
@@ -34,7 +34,7 @@ def record_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 def _previous_record(record_path: Path, data: dict) -> Path:
-    """A record where earlier releases kept it: ``<hermes-home>/runtime/``."""
+    """A record where earlier releases kept it: ``<kova-home>/runtime/``."""
     previous = record_path.parent / "runtime" / record_path.name
     previous.parent.mkdir(parents=True, exist_ok=True)
     previous.write_text(json.dumps(data), encoding="utf-8")

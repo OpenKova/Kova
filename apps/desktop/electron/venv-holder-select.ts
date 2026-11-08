@@ -5,7 +5,7 @@
  *
  * The pre-update handoff kills Kova-OWNED venv daemons (the memory plugin's
  * hindsight daemon) so the updater never races a mapped shim. External
- * holders (a user terminal running `hermes`, unrelated scripts) must NOT be
+ * holders (a user terminal running `kova`, unrelated scripts) must NOT be
  * killed — current design reports them via scanVenvBlockers and ABORTS the
  * handoff instead (main.ts releaseBackendLock / applyUpdates).
  */
@@ -38,8 +38,8 @@ export function isKovaOwnedVenvDaemon(
 /**
  * True when a process is an external Kova process holding this install's venv
  * (#62311): its exe lives under `<venv>\Scripts\` AND it is unambiguously a
- * Kova program — the `hermes.exe` shim, `python -m kova_cli...`, or
- * `python -m hermes ...`. These are the autostart holders (the gateway Startup
+ * Kova program — the `kova.exe` shim, `python -m kova_cli...`, or
+ * `python -m kova ...`. These are the autostart holders (the gateway Startup
  * item, the dashboard Scheduled Task) that neither the desktop's backend
  * teardown nor the hindsight-daemon sweep reach, and that keep the venv shim
  * locked so the update hand-off aborts every time.
@@ -65,9 +65,9 @@ export function isExternalVenvHolder(
 
   const exeName = exePath.slice(exePath.lastIndexOf('\\') + 1).toLowerCase()
 
-  if (exeName === 'hermes.exe') {
+  if (exeName === 'kova.exe') {
     return true
   }
 
-  return /kova_cli/i.test(cmdline) || /(^|\s|")-m\s+hermes([.\s"']|$)/i.test(cmdline)
+  return /kova_cli/i.test(cmdline) || /(^|\s|")-m\s+kova([.\s"']|$)/i.test(cmdline)
 }

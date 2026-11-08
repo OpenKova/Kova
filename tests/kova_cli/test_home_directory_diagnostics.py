@@ -10,7 +10,7 @@ from kova_cli import config
 @pytest.mark.platforms("linux")
 @pytest.mark.parametrize("subdir", (".", *config._KOVA_HOME_SUBDIRS))
 def test_unavailable_directory_links_are_diagnosed_without_creating_targets(tmp_path, monkeypatch, subdir):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     link = home / subdir
     link.parent.mkdir(parents=True, exist_ok=True)
     target = tmp_path / "unmounted" / "external"
@@ -38,7 +38,7 @@ def test_unavailable_directory_links_are_diagnosed_without_creating_targets(tmp_
 @pytest.mark.platforms("linux")
 @pytest.mark.parametrize("linked", ("plain", "logs", "home"))
 def test_initialization_preserves_external_directory_modes(tmp_path, monkeypatch, linked):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     target = tmp_path / "shared"
     target.mkdir(mode=0o750)
     if linked == "home":
@@ -84,7 +84,7 @@ def test_symlinked_parent_above_home_is_not_an_operator_home_link(
     real_root.mkdir()
     alias = tmp_path / "alias"
     alias.symlink_to(real_root, target_is_directory=True)
-    home = alias / "hermes"
+    home = alias / "kova"
     if existing:
         home.mkdir(parents=True, mode=0o755)
         for name in config._KOVA_HOME_SUBDIRS:
@@ -114,7 +114,7 @@ def test_aliased_parent_still_leaves_an_operator_home_link_alone(tmp_path, monke
     shared = real_root / "shared"
     shared.mkdir(mode=0o750)
     (shared / "curator").mkdir(mode=0o750)
-    home = alias / "hermes"
+    home = alias / "kova"
     home.symlink_to(shared, target_is_directory=True)
 
     monkeypatch.setattr(config, "get_kova_home", lambda: home)

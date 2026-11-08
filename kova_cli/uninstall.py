@@ -164,13 +164,13 @@ def remove_path_from_shell_configs():
 
 
 def remove_wrapper_script():
-    """Remove the hermes wrapper script if it exists."""
+    """Remove the kova wrapper script if it exists."""
     wrapper_paths = [
-        Path.home() / ".local" / "bin" / "hermes",
-        Path.home() / ".local" / "bin" / "hermes-acp",
+        Path.home() / ".local" / "bin" / "kova",
+        Path.home() / ".local" / "bin" / "kova-acp",
         Path.home() / ".local" / "bin" / "kova-agent",
-        Path("/usr/local/bin/hermes"),
-        Path("/usr/local/bin/hermes-acp"),
+        Path("/usr/local/bin/kova"),
+        Path("/usr/local/bin/kova-acp"),
         Path("/usr/local/bin/kova-agent"),
     ]
     
@@ -367,7 +367,7 @@ _GATEWAY_SERVICE_REMOVERS = {
 # they work under Constrained Language Mode; new shells see them without WM_SETTINGCHANGE.
 
 
-def _hermes_path_markers(kova_home: Path, *, include_managed_bin: bool = False) -> list[str]:
+def _kova_path_markers(kova_home: Path, *, include_managed_bin: bool = False) -> list[str]:
     r"""Prefixes identifying Kova-owned User-PATH entries (prefix match sweeps git\cmd, git\bin,
     node...). ``include_managed_bin`` adds ``<root>\bin`` (launchers + managed uv) — only when that
     dir is about to be deleted, so a keep-data uninstall keeps the working uv resolvable."""
@@ -377,8 +377,8 @@ def _hermes_path_markers(kova_home: Path, *, include_managed_bin: bool = False) 
 
 
 def remove_path_from_windows_registry(kova_home: Path, *, include_managed_bin: bool = False) -> list[str]:
-    """Strip Kova-owned entries from User-scope PATH in the registry (see ``_hermes_path_markers``)."""
-    markers = tuple(m.lower() for m in _hermes_path_markers(kova_home, include_managed_bin=include_managed_bin))
+    """Strip Kova-owned entries from User-scope PATH in the registry (see ``_kova_path_markers``)."""
+    markers = tuple(m.lower() for m in _kova_path_markers(kova_home, include_managed_bin=include_managed_bin))
 
     def edit(winreg, key, removed):
         try:
@@ -396,7 +396,7 @@ def remove_path_from_windows_registry(kova_home: Path, *, include_managed_bin: b
     return _edit_user_environment(edit, warn_label="Could not edit User PATH in registry")
 
 
-def remove_hermes_env_vars_windows() -> list[str]:
+def remove_kova_env_vars_windows() -> list[str]:
     """Delete KOVA_HOME and KOVA_GIT_BASH_PATH from User-scope env vars."""
     def edit(winreg, key, removed):
         for name in ("KOVA_HOME", "KOVA_GIT_BASH_PATH"):
@@ -446,8 +446,8 @@ def _xdg_leftover_paths(full_uninstall: bool) -> tuple[list[Path], list[Path]]:
     and otherwise reported as intentionally preserved.
     """
     home = Path.home()
-    cache = home / ".cache" / "hermes"
-    data = home / ".local" / "share" / "hermes"
+    cache = home / ".cache" / "kova"
+    data = home / ".local" / "share" / "kova"
     removable = [cache] if cache.exists() else []
     if data.exists() and full_uninstall:
         removable.append(data)
@@ -460,7 +460,7 @@ def remove_desktop_app_leftovers(*, full_uninstall: bool) -> list[Path]:
     checkout, which earlier uninstallers left behind (#62209): the macOS
     Library caches/logs/browser-store/state entries the packaged app and
     Electron scatter, and the XDG cache dir on every platform. On a full
-    uninstall the XDG data dir (``~/.local/share/hermes``) goes too.
+    uninstall the XDG data dir (``~/.local/share/kova``) goes too.
 
     Only well-known Kova-named entries are touched — never a glob of the
     whole Library.
@@ -539,7 +539,7 @@ def remove_windows_bin_launchers(*, windows: bool | None = None) -> list[Path]:
     console scripts, staged onto PATH by first-run repair) — pm keeps uv in
     its own store entry, so nothing shared lives here and the whole dir goes.
     Every uninstall mode deletes the code checkout, so a surviving launcher
-    would dangle: ``hermes`` in a new terminal resolves and then errors on
+    would dangle: ``kova`` in a new terminal resolves and then errors on
     its missing venv target, which reads worse than command-not-found.
 
     A launcher that IS this process's own trampoline is mandatory-locked
@@ -616,12 +616,12 @@ def _uninstall_profile(profile) -> None:
     name = profile.name
     log_info(f"Uninstalling profile '{name}'...")
 
-    # 1. Gateway service, via `python -m kova_cli.main` (the `hermes` wrapper may be half-gone).
-    hermes_invocation = [sys.executable, "-P", "-m", "kova_cli.main", "--profile", name]
+    # 1. Gateway service, via `python -m kova_cli.main` (the `kova` wrapper may be half-gone).
+    kova_invocation = [sys.executable, "-P", "-m", "kova_cli.main", "--profile", name]
     for subcmd in ("stop", "uninstall"):
         try:
             subprocess.run(
-                hermes_invocation + ["gateway", subcmd], capture_output=True, text=True,
+                kova_invocation + ["gateway", subcmd], capture_output=True, text=True,
                 encoding='utf-8', errors='replace', timeout=60, check=False)
         except subprocess.TimeoutExpired:
             log_warn(f"  Gateway {subcmd} timed out for '{name}'")
@@ -749,7 +749,7 @@ def run_gui_uninstall(args):
     print()
     _print_box("│            ✓ Chat GUI Uninstalled!                      │", Colors.GREEN)
     print()
-    print("The Kova agent is still installed. Run 'hermes' to use the CLI,")
+    print("The Kova agent is still installed. Run 'kova' to use the CLI,")
     print("or 'kova uninstall' to remove the agent too.")
     print()
 
@@ -926,7 +926,7 @@ def _macos_cache_leftover_dirs() -> list[Path]:
     return [
         caches / "Kova",
         caches / "com.nousresearch.kova",
-        caches / "hermes-setup",
+        caches / "kova-setup",
         caches / "com.nousresearch.kova.setup",
     ]
 
@@ -1033,9 +1033,9 @@ def _perform_uninstall(
              Path(os.path.expandvars(str(kova_home))), include_managed_bin=sweep_managed_bin),
          "Removed from User PATH: {}", "No Kova-owned PATH entries in User environment"),
         (windows, "Removing KOVA_HOME / KOVA_GIT_BASH_PATH User env vars...",
-         remove_hermes_env_vars_windows, "Removed User env var: {}", "No Kova-set User env vars to remove"),
-        (True, "Removing hermes command...", remove_wrapper_script, "Removed {}", "No wrapper script found"),
-        (windows, "Removing Windows hermes launchers...",
+         remove_kova_env_vars_windows, "Removed User env var: {}", "No Kova-set User env vars to remove"),
+        (True, "Removing kova command...", remove_wrapper_script, "Removed {}", "No wrapper script found"),
+        (windows, "Removing Windows kova launchers...",
          remove_windows_bin_launchers, "Removed {}", "No Windows hermes launchers found"),
         (True, "Removing Kova-managed node/npm/npx symlinks...",
          lambda: remove_node_symlinks(kova_home), "Removed {}", "No Kova-managed node/npm/npx symlinks found"),

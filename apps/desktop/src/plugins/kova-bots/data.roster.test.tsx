@@ -720,7 +720,7 @@ describe('a profile this gateway does not serve', () => {
       { profiles: [{ name: 'default' }, { name: 'research' }, { name: 'solo' }] },
       {
         agents: [
-          { connectionId: 'local', connectionKind: 'local', handle: 'hermes', profile: 'default' },
+          { connectionId: 'local', connectionKind: 'local', handle: 'kova', profile: 'default' },
           { connectionId: 'local', connectionKind: 'local', handle: 'research', profile: 'research' },
           {
             connectionId: 'local',

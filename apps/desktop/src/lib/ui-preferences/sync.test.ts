@@ -55,7 +55,7 @@ function memoryStore(initial: null | Record<string, string>) {
 }
 
 const DENSITY = 'kova.desktop.sessionListDensity'
-const MODE = 'hermes-desktop-mode-v1'
+const MODE = 'kova-desktop-mode-v1'
 const DRAFT = 'kova.desktop.composerQueue.v1'
 
 describe('machine UI preferences sync', () => {

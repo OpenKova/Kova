@@ -21,7 +21,7 @@ from kova_cli.observability import shared_metrics_gateway as smg
 from kova_cli.observability.shared_metrics import SharedMetricsStore
 
 KEY = "agent:main:telegram:dm:42"
-RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
+RESOURCE = {"architecture": "x86_64", "kova_version": "0.0.0", "install_method": "git", "os_family": "linux"}
 DAY1 = datetime(2026, 9, 27, 9, 0, tzinfo=UTC).timestamp()
 
 
@@ -129,7 +129,7 @@ def test_busy_dispositions_follow_the_busy_resolution_and_collection_off_records
     assert sorted((d["disposition"], d["wait_bucket"]) for _m, d in got) == [
         ("dropped", "never"), ("interrupted", "30s_to_2m"), ("steered", "lt_5s")]
     for metric, data in got:
-        assert metric == "hermes.gateway.busy_arrival.count"
+        assert metric == "kova.gateway.busy_arrival.count"
         assert data["platform"] == "telegram"
         assert contract.counter_dimensions_are_valid(metric, data)
 

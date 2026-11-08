@@ -183,8 +183,8 @@ export async function startIsolatedInstance({
     return dir
   }
 
-  const home = kovaHome ?? mkTemp('hermes-perf-home-')
-  const userData = userDataDir ?? mkTemp('hermes-perf-ud-')
+  const home = kovaHome ?? mkTemp('kova-perf-home-')
+  const userData = userDataDir ?? mkTemp('kova-perf-ud-')
   const devUrl = prod ? null : `http://127.0.0.1:${devPort}`
 
   if (seedConfig && !kovaHome) {
@@ -344,8 +344,8 @@ export async function coldStartSamples({ runs = 3, port = 9222, devPort = 5174, 
   if (warm) {
     // Shared profile across runs: run 0 warms the V8 code cache (discarded),
     // runs 1..N are the representative warm samples.
-    const home = mkdtempSync(join(tmpdir(), 'hermes-perf-cold-home-'))
-    const userDataDir = mkdtempSync(join(tmpdir(), 'hermes-perf-cold-ud-'))
+    const home = mkdtempSync(join(tmpdir(), 'kova-perf-cold-home-'))
+    const userDataDir = mkdtempSync(join(tmpdir(), 'kova-perf-cold-ud-'))
     seedConfigFrom(join(homedir(), '.kova'), home)
 
     try {

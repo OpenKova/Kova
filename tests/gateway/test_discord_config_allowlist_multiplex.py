@@ -199,7 +199,7 @@ def test_secondary_profiles_own_bot_honors_its_config_allow_from_in_guild_channe
         runner.adapters = {}
         adapter = DiscordAdapter(PlatformConfig(
             enabled=True, token="kody-token", extra={"allow_from": USER, "require_mention": True}))
-        adapter._hermes_profile_name = "kody"
+        adapter._kova_profile_name = "kody"
         runner._profile_adapters = {"kody": {Platform.DISCORD: adapter}}
         adapter.set_authorization_check(runner._make_adapter_auth_check(Platform.DISCORD, profile_name="kody"))
 

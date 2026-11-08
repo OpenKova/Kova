@@ -1,6 +1,6 @@
 """pytest's basetemp must never sit inside the operator's platform-native Kova home.
 
-Every per-test sandbox is ``<basetemp>/.../hermes_test`` and ``get_default_kova_root()``
+Every per-test sandbox is ``<basetemp>/.../kova_test`` and ``get_default_kova_root()``
 prefers the platform-native home whenever ``KOVA_HOME`` sits *under* it — so a basetemp
 inside the home silently turns the sandbox back into the live install (#111101).
 """
@@ -45,12 +45,12 @@ def test_basetemp_inside_the_native_home_is_relocated_outside_it(tmp_path, monke
     assert config.option.basetemp == str(relocated)
     # One shared, prunable root (never a loose dir in the operator's $HOME) and gone when
     # this pytest exits; a run killed before that is swept as soon as the root is idle.
-    assert relocated.parent.name == "hermes-pytest" and relocated.parent != Path.home()
+    assert relocated.parent.name == "kova-pytest" and relocated.parent != Path.home()
     suite_conftest.pytest_unconfigure(config)
     assert not relocated.exists()
     # The sandbox derived from it no longer resolves to the native root.
-    monkeypatch.setenv("KOVA_HOME", str(relocated / "t0" / "hermes_test"))
-    assert kova_constants.get_default_kova_root() == relocated / "t0" / "hermes_test"
+    monkeypatch.setenv("KOVA_HOME", str(relocated / "t0" / "kova_test"))
+    assert kova_constants.get_default_kova_root() == relocated / "t0" / "kova_test"
 
 
 def test_basetemp_outside_the_native_home_is_left_alone(tmp_path, monkeypatch):
@@ -88,7 +88,7 @@ def test_relocation_root_sweeps_basetemps_of_killed_runs_and_keeps_live_ones(tmp
 
     native = tmp_path / "native-home"
     native.mkdir()
-    root = native.parent / "hermes-pytest"
+    root = native.parent / "kova-pytest"
     dead, live = root / "b-dead", root / "b-live"
     dead.mkdir(parents=True)
     live.mkdir()

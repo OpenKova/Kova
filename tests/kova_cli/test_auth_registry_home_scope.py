@@ -51,7 +51,7 @@ def homes(tmp_path, monkeypatch):
     yield a, b, c
     PROVIDER_REGISTRY.clear()
     PROVIDER_REGISTRY.update(rows)
-    for mod in [m for m in sys.modules if m.startswith("_hermes_user_provider")]:
+    for mod in [m for m in sys.modules if m.startswith("_kova_user_provider")]:
         del sys.modules[mod]
 
 

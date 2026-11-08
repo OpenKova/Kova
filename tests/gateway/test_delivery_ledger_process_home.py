@@ -51,11 +51,11 @@ class _ServedAdapter(BasePlatformAdapter):
         return SendResult(success=True, message_id="m-2")
 
 
-@pytest.fixture(params=["hermes-home-env", "platform-default"])
+@pytest.fixture(params=["kova-home-env", "platform-default"])
 def launch_home(request, tmp_path, monkeypatch):
     root = tmp_path / "root"
     (root / "profiles" / "research").mkdir(parents=True)
-    if request.param == "hermes-home-env":
+    if request.param == "kova-home-env":
         monkeypatch.setenv("KOVA_HOME", str(root))
     else:
         # A default gateway run in the foreground has no KOVA_HOME at all.

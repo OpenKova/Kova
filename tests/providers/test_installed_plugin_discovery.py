@@ -1,4 +1,4 @@
-"""A provider installed by ``hermes plugins install`` must actually be found.
+"""A provider installed by ``kova plugins install`` must actually be found.
 
 The installer clones into ``$KOVA_HOME/plugins/<name>/`` (flat), provider
 discovery only scanned ``plugins/model-providers/<name>/``, and PluginManager
@@ -34,7 +34,7 @@ def _clear_provider_caches():
     _pkg._PROVIDER_LIST_CACHE = None
     _pkg._discovered = False
     for mod in list(sys.modules):
-        if mod.startswith(("plugins.model_providers", "_hermes_user_provider")):
+        if mod.startswith(("plugins.model_providers", "_kova_user_provider")):
             del sys.modules[mod]
 
 

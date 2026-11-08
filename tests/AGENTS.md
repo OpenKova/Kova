@@ -35,8 +35,8 @@ scripts/run_tests.sh -v --tb=long                       # pytest flags pass thro
   wall-clock bounds ≥ 2s, event-based sync, no `assert not _wait_until(...)` races. A new
   non-zero `time.sleep`/`asyncio.sleep` in a test fails the ratchet (HX013): wait on an Event or
   poll with `tests.waiting.wait_until` / `async_wait_until`.
-- **Placement mirrors the source tree.** A test lives in `tests/<top-level source dir>/` (`tests/hermes_cli/`,
-  `tests/agent/`, `tests/hermes_state/`, `tests/gateway/relay/`, ...); installer/updater script tests
+- **Placement mirrors the source tree.** A test lives in `tests/<top-level source dir>/` (`tests/kova_cli/`,
+  `tests/agent/`, `tests/kova_state/`, `tests/gateway/relay/`, ...); installer/updater script tests
   under `tests/scripts/{install,desktop_update}/`. Only tests of root-level modules (`batch_runner`,
   `utils`, `hermes_constants`, packaging) sit directly in `tests/`. No issue numbers in filenames —
   cite the issue in the module docstring (`test_89315_x.py` → `test_x.py`, "Regression for #89315").
@@ -44,10 +44,10 @@ scripts/run_tests.sh -v --tb=long                       # pytest flags pass thro
   asserting about `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, or `.ts/.tsx/.js/
   .mjs/.cjs` sources will not run on a JS-only PR (green on PR, red on `main` where the
   classifier fails open). Such tests belong in the vitest suite, not `tests/*.py`.
-- **Tests must not write to `~/.kova/`.** The autouse `_isolate_hermes_home` fixture in
+- **Tests must not write to `~/.kova/`.** The autouse `_isolate_kova_home` fixture in
   `tests/conftest.py` redirects `KOVA_HOME`; never hardcode `~/.kova/` in tests. Profile
-  tests also mock `Path.home()` so `_get_profiles_root()` / `_get_default_hermes_home()` stay
-  in the temp dir (pattern: `tests/hermes_cli/test_profiles.py`):
+  tests also mock `Path.home()` so `_get_profiles_root()` / `_get_default_kova_home()` stay
+  in the temp dir (pattern: `tests/kova_cli/test_profiles.py`):
   ```python
   @pytest.fixture
   def profile_env(tmp_path, monkeypatch):
@@ -99,7 +99,7 @@ fully replaced — `platforms` is the only host-gating marker in the tree.
 real Windows process behavior that mocks cannot reproduce (venv-holder
 scans, process-tree parentage, launcher/worker chains, detach semantics),
 there is an on-demand workflow `windows-venv-e2e.yml` that runs
-`tests/hermes_cli/test_venv_holder_windows_live.py` on a real
+`tests/kova_cli/test_venv_holder_windows_live.py` on a real
 `windows-latest` runner — spawning actual processes and driving the real
 detection code, no mocked psutil. It fires ONLY on pushes to `wine2e/**`
 branches (inert on PRs and main; costs nothing on normal work). The proven

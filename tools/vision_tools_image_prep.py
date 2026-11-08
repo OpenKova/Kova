@@ -13,7 +13,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Optional
 
-from kova_constants import get_hermes_dir
+from kova_constants import get_kova_dir
 
 logger = logging.getLogger("tools.vision_tools")
 

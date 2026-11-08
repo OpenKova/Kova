@@ -63,7 +63,7 @@ import {
   stageDroppedFilePath
 } from '@/app/chat/hooks/use-composer-actions'
 import { uploadComposerAttachment } from '@/app/session/hooks/use-prompt-actions'
-import { hermesDirectiveFormatter } from '@/components/assistant-ui/directive-text'
+import { kovaDirectiveFormatter } from '@/components/assistant-ui/directive-text'
 import {
   StickyHumanMessageContainer,
   StopGlyph,
@@ -385,7 +385,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
 
       rememberInitialDraft()
       recordUndoPoint()
-      const serialized = hermesDirectiveFormatter.serialize(item)
+      const serialized = kovaDirectiveFormatter.serialize(item)
       const starter = serialized.endsWith(':')
       const text = starter || serialized.endsWith(' ') ? serialized : `${serialized} `
       const directive = !starter && serialized.match(/^@([^:]+):(.+)$/)

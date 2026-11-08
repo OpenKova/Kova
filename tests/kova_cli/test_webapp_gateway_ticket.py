@@ -55,9 +55,9 @@ def test_loopback_ticket_names_the_session_token_owner_and_is_spent_once(webapp)
     first = _socket(body["ticket"])
     assert chat._ws_auth_ok(first, socket=GATEWAY_SOCKET) is True
     # The same identity ``chat_ws.gateway_ws`` gives a ``?token=`` socket, and only the public protocol.
-    assert first._hermes_auth_identity == {"user_id": "legacy-token-owner", "provider": "session-token"}
-    assert first._hermes_ws_subprotocol == chat._GATEWAY_WS_PROTOCOL
-    assert not hasattr(first, "_hermes_gateway_home")
+    assert first._kova_auth_identity == {"user_id": "legacy-token-owner", "provider": "session-token"}
+    assert first._kova_ws_subprotocol == chat._GATEWAY_WS_PROTOCOL
+    assert not hasattr(first, "_kova_gateway_home")
     assert chat._ws_auth_ok(_socket(body["ticket"]), socket=GATEWAY_SOCKET) is False
 
 

@@ -34,13 +34,13 @@ class OwnProv(MemoryProvider):
 
     def read_config_fields(self, kova_home):
         _path, cfg = _read(kova_home)
-        block = (cfg.get("hosts") or {}).get("hermes") or {}
+        block = (cfg.get("hosts") or {}).get("kova") or {}
         values = {**{k: v for k, v in cfg.items() if k in _ROOT_KEYS}, **block}
-        return {"values": values, "placeholders": {"workspace": "hermes", "aiPeer": "hermes"}}
+        return {"values": values, "placeholders": {"workspace": "kova", "aiPeer": "kova"}}
 
     def write_config_fields(self, values, kova_home):
         path, cfg = _read(kova_home)  # a file that does not parse raises JSONDecodeError: no write
-        block = cfg.setdefault("hosts", {}).setdefault("hermes", {})
+        block = cfg.setdefault("hosts", {}).setdefault("kova", {})
         for key, value in values.items():
             target = cfg if key in _ROOT_KEYS else block
             if value is None:
@@ -112,7 +112,7 @@ def test_put_writes_through_the_provider_with_natives_and_saves_the_secret(clien
     assert load_env()["OWNPROV_API_KEY"] == "own-test-key"
     cfg = json.loads(_config_path().read_text(encoding="utf-8"))
     assert cfg["baseUrl"] == "https://own.example.dev"
-    assert cfg["hosts"]["hermes"] == {"apiKey": "own-test-key", "workspace": "myws", "saveMessages": False}
+    assert cfg["hosts"]["kova"] == {"apiKey": "own-test-key", "workspace": "myws", "saveMessages": False}
 
 
 def test_get_keeps_secrets_write_only_and_shows_placeholders_and_presence(client):
@@ -124,7 +124,7 @@ def test_get_keeps_secrets_write_only_and_shows_placeholders_and_presence(client
     assert "secret-value" not in json.dumps(resp.json())
     fields = {field["key"]: field for field in resp.json()["fields"]}
     assert fields["apiKey"]["is_set"] is True and fields["apiKey"]["value"] == ""
-    assert fields["workspace"]["placeholder"] == "hermes" and fields["workspace"]["is_set"] is False
+    assert fields["workspace"]["placeholder"] == "kova" and fields["workspace"]["is_set"] is False
     assert fields["saveMessages"]["is_set"] is True  # a stored False is still set
     assert fields["saveMessages"]["value"] == "false"
 
@@ -132,7 +132,7 @@ def test_get_keeps_secrets_write_only_and_shows_placeholders_and_presence(client
 def test_a_blank_field_clears_the_key(client):
     client.put(_URL, json={"values": {"workspace": "myws"}})
     client.put(_URL, json={"values": {"workspace": ""}})
-    assert "workspace" not in json.loads(_config_path().read_text(encoding="utf-8"))["hosts"]["hermes"]
+    assert "workspace" not in json.loads(_config_path().read_text(encoding="utf-8"))["hosts"]["kova"]
 
 
 def test_a_config_the_provider_cannot_read_is_a_400(client):

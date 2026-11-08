@@ -39,7 +39,7 @@ pytest.importorskip("mcp.client.auth.oauth2", reason="MCP SDK 1.26.0+ required")
 
 
 @pytest.mark.asyncio
-async def test_hermes_provider_forwards_401_triggers_refresh(tmp_path, monkeypatch):
+async def test_kova_provider_forwards_401_triggers_refresh(tmp_path, monkeypatch):
     """A 401 response MUST flow into the inner generator and trigger the
     SDK's 401 recovery branch.
 
@@ -345,7 +345,7 @@ async def test_fabricated_dcr_registration_rejected_before_network(tmp_path, mon
     assert "does not support automatic client registration" in text
     assert "https://example.com/register" in text
     assert "config.yaml" in text
-    assert "hermes mcp login srv" in text
+    assert "kova mcp login srv" in text
     await flow.aclose()
 
 

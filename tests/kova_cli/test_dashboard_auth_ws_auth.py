@@ -247,17 +247,17 @@ class TestWsAuthOkLoopback:
         )
         ws_one = _fake_ws(query={}, path="/api/ws", protocols=protocols)
         assert _web_server_chat._ws_auth_ok(ws_one) is True
-        assert ws_one._hermes_auth_identity == {"user_id": "legacy-token-owner", "provider": "session-token"}
-        assert ws_one._hermes_ws_subprotocol == _web_server_chat._GATEWAY_WS_PROTOCOL
+        assert ws_one._kova_auth_identity == {"user_id": "legacy-token-owner", "provider": "session-token"}
+        assert ws_one._kova_ws_subprotocol == _web_server_chat._GATEWAY_WS_PROTOCOL
         assert _web_server_chat._ws_auth_ok(_fake_ws(query={}, path="/api/ws", protocols=protocols)) is False
-        screen = mint_ticket(user_id="display:v", provider="bot-desktop", extra={"kova_home": "/srv/hermes"})
+        screen = mint_ticket(user_id="display:v", provider="bot-desktop", extra={"kova_home": "/srv/kova"})
         assert _web_server_chat._ws_auth_ok(_fake_ws(query={"ticket": screen}, path="/api/ws")) is False
 
 
     @pytest.mark.parametrize("surface", ["dashboard", "serve"])
     def test_off_the_webapp_the_loopback_gate_takes_only_the_token_as_on_main(
             self, loopback_app, monkeypatch, surface):
-        """The standalone dashboard and ``hermes serve`` mint no socket tickets, so their loopback
+        """The standalone dashboard and ``kova serve`` mint no socket tickets, so their loopback
         gate judges ``?token=`` alone, as on main: a ticket opens nothing there and is not spent, and
         one riding beside the session token does not refuse it."""
         from kova_cli.dashboard_auth.ws_tickets import consume_ticket
@@ -298,12 +298,12 @@ class TestWsAuthOkGated:
         ws_two = _fake_ws(query={}, path="/api/ws", protocols=protocols)
 
         assert _web_server_chat._ws_auth_ok(ws_one) is True
-        assert ws_one._hermes_auth_identity == {
+        assert ws_one._kova_auth_identity == {
             "user_id": "subprotocol-user",
             "provider": "stub",
         }
-        assert ws_one._hermes_ws_subprotocol == _web_server_chat._GATEWAY_WS_PROTOCOL
-        assert ticket not in ws_one._hermes_ws_subprotocol
+        assert ws_one._kova_ws_subprotocol == _web_server_chat._GATEWAY_WS_PROTOCOL
+        assert ticket not in ws_one._kova_ws_subprotocol
         assert _web_server_chat._ws_auth_ok(ws_two) is False
 
     def test_ticket_subprotocol_rejects_missing_public_protocol_or_ambiguous_tickets(self, gated_app):
@@ -361,7 +361,7 @@ class TestWsAuthOkGated:
     @pytest.mark.parametrize("surface", ["dashboard", "serve"])
     def test_off_the_webapp_internal_credential_opens_every_socket_as_on_main(
             self, gated_app, monkeypatch, surface):
-        """The standalone dashboard and ``hermes serve`` accept the server's own credential on every
+        """The standalone dashboard and ``kova serve`` accept the server's own credential on every
         socket their gate judges, plugin sockets included, as on main."""
         monkeypatch.setattr(web_server.app.state, "ui_surface", surface, raising=False)
         credential = internal_ws_credential()
@@ -384,7 +384,7 @@ class TestWsAuthOkGated:
         })
         ws = _fake_ws(query={"token": access_token}, path="/api/ws")
         assert _web_server_chat._ws_auth_ok(ws) is True
-        assert ws._hermes_auth_identity == {
+        assert ws._kova_auth_identity == {
             "user_id": "remote-desktop-user",
             "provider": "stub",
         }

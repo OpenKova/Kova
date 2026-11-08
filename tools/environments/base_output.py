@@ -213,11 +213,11 @@ def _pipe_stdin(proc: subprocess.Popen, data: str) -> None:
     text-mode stdin would translate ``\\n`` -> ``\\r\\n`` and corrupt every write_file/patch
     payload. Encoding uses ``surrogateescape`` (exact inverse of the read-side decode);
     surrogates outside U+DC80-U+DCFF raise, the error is recorded on
-    ``proc._hermes_stdin_errors`` (surfaced by ``_wait_for_process`` as ``stdin_error``) and
+    ``proc._kova_stdin_errors`` (surfaced by ``_wait_for_process`` as ``stdin_error``) and
     stdin is still closed in ``finally`` so the child sees EOF instead of hanging.
     """
     errors: list[BaseException] = []
-    proc._hermes_stdin_errors = errors
+    proc._kova_stdin_errors = errors
 
     def _write():
         if proc.stdin is None:
@@ -244,7 +244,7 @@ def _pipe_stdin(proc: subprocess.Popen, data: str) -> None:
                 pass
 
     thread = threading.Thread(target=_write, daemon=True)
-    proc._hermes_stdin_thread = thread
+    proc._kova_stdin_thread = thread
     thread.start()
 
 

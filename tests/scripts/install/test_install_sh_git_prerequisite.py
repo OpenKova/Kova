@@ -96,7 +96,7 @@ def _run_prerequisites(tmp_path: Path, *, git: str = "stub", interactive: bool =
 @pytest.mark.parametrize("opts", [
     pytest.param({"interactive": True}, id="terminal"),
     # Kova-Setup runs stages with --non-interactive --json and no terminal.
-    pytest.param({"json": True}, id="hermes-setup-json"),
+    pytest.param({"json": True}, id="kova-setup-json"),
     # After a macOS upgrade `-p` names a folder that exists but holds no git.
     pytest.param({"dev": "damaged", "interactive": True}, id="upgrade-leftover-folder"),
 ])

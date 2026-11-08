@@ -18,7 +18,7 @@ OID, ME, NEW = "f" * 32, "a" * 16, "b" * 16
 def _lock(nonce: str) -> dict:
     return {"schemaVersion": 2, "protocolVersion": 1, "ownershipId": OID, "spawnNonce": nonce,
             "tokenFingerprint": "c" * 32, "pid": 4242, "port": 0, "profile": "default",
-            "kovaPath": "/opt/hermes/bin/hermes", "kovaHome": "~/.kova",
+            "kovaPath": "/opt/kova/bin/kova", "kovaHome": "~/.kova",
             "logPath": f"~/.kova/desktop-ssh/{OID}/{nonce}.log", "startedAt": "2026-10-03T00:00:00Z"}
 
 
@@ -93,12 +93,12 @@ def test_lock_written_by_the_windows_ssh_runtime_lets_the_superseded_backend_ret
     monkeypatch.setattr(windows_ssh_runtime, "_root",
                         lambda: PureWindowsPath(r"C:\Users\u\.kova\desktop-ssh"))
     desktop_record = {k: v for k, v in _lock(NEW).items() if k != "logPath"}
-    desktop_record.update(creationTimeNs="133700000000000000", kovaPath=r"C:\Kova\hermes.exe")
+    desktop_record.update(creationTimeNs="133700000000000000", kovaPath=r"C:\Kova\kova.exe")
     lock_path = tmp_path / "desktop-ssh" / OID / "backend.lock.json"
     lock_path.parent.mkdir(parents=True)
     lock_path.write_bytes(windows_ssh_runtime._lock_record(OID, desktop_record))
 
     assert should_retire_superseded(lock=read_valid_backend_lock(lock_path), my_nonce=ME, age_s=600.0)
-    # The same valid lock makes the backend lock-owned, so `hermes update`'s restart_managed sweep
+    # The same valid lock makes the backend lock-owned, so `kova update`'s restart_managed sweep
     # leaves it to the code-skew watchdog instead of terminating it, as on POSIX.
     assert desktop_record["pid"] in _lock_owned_serve_pids(lock_path.parent.parent)

@@ -1,4 +1,4 @@
-"""``hermes update`` rewrites the launch files it owns before it starts or restarts any gateway.
+"""``kova update`` rewrites the launch files it owns before it starts or restarts any gateway.
 
 A service manager starts a gateway from the definition it holds, so the rewrite has to land
 after the update steps that change what the generators write (the Node dependency preparation
@@ -22,7 +22,7 @@ def _generator_reads_node_bin(root: Path):
 
     The emitted path is fixed: refresh refuses to persist a unit naming a pytest directory."""
     def generate(system=False, run_as_user=None):
-        node_bin = "/opt/hermes/node_modules/.bin:" if (root / "node_modules" / ".bin").is_dir() else ""
+        node_bin = "/opt/kova/node_modules/.bin:" if (root / "node_modules" / ".bin").is_dir() else ""
         return f"[Service]\nEnvironment=\"PATH={node_bin}/usr/bin:/bin\"\nRestartSec=5\n"
     return generate
 
@@ -91,7 +91,7 @@ def test_the_paused_gateway_starts_under_the_unit_generated_after_the_node_depen
     update_completion._complete_selected(request)
 
     final = gateway_cli.generate_systemd_unit()
-    assert "/opt/hermes/node_modules/.bin" in final
+    assert "/opt/kova/node_modules/.bin" in final
     started_under = next(event[1] for event in events if event[0] == "start gateway")
     assert started_under == final == unit.read_text(encoding="utf-8"), events
     names = [event[0] for event in events]
@@ -136,9 +136,9 @@ def test_windows_launcher_scripts_are_rewritten_when_their_contents_drift(tmp_pa
     monkeypatch.setattr(gateway_windows, "get_task_script_path", lambda: script)
     monkeypatch.setattr(gateway_windows, "is_installed", lambda: True)
     monkeypatch.setattr(gateway_windows, "_launcher_settings",
-                        lambda: ("C:\\hermes\\venv\\Scripts\\python.exe", "C:\\hermes", "C:\\hermes", ""))
+                        lambda: ("C:\\kova\\venv\\Scripts\\python.exe", "C:\\kova", "C:\\kova", ""))
     monkeypatch.setattr(gateway_windows, "_resolve_detached_python",
-                        lambda python: (python, Path("C:\\hermes\\venv"), []))
+                        lambda python: (python, Path("C:\\kova\\venv"), []))
 
     gateway_windows._write_task_script()
     generated = {path.name: path.read_bytes() for path in script.parent.iterdir()}

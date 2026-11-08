@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from agent.skill_utils import is_excluded_skill_path
 from tools.skills_hub_github import GitHubAuth, GitHubSource, _skip_bundle_file, _tree_members
 from tools.skills_hub_models import (
-    SkillBundle, SkillMeta, SkillSource, _hermes_tags, _matches_query, _memo_json, _parse_frontmatter, hub,
+    SkillBundle, SkillMeta, SkillSource, _kova_tags, _matches_query, _memo_json, _parse_frontmatter, hub,
 )
 
 logger = logging.getLogger("tools.skills_hub")
@@ -225,8 +225,8 @@ class OptionalSkillSource(SkillSource):
             except UnicodeDecodeError:
                 return None
         meta_block = _parse_frontmatter(content).get("metadata")
-        hermes_meta = meta_block.get("hermes") if isinstance(meta_block, dict) else None
-        upstream = hermes_meta.get("upstream") if isinstance(hermes_meta, dict) else None
+        kova_meta = meta_block.get("kova") if isinstance(meta_block, dict) else None
+        upstream = kova_meta.get("upstream") if isinstance(kova_meta, dict) else None
         if not isinstance(upstream, dict):
             return None
         repo = str(upstream.get("repo", "")).strip().strip("/")
@@ -273,7 +273,7 @@ class OptionalSkillSource(SkillSource):
             except (OSError, UnicodeDecodeError):
                 continue
             fm = _parse_frontmatter(content)
-            tags = _hermes_tags(fm)
+            tags = _kova_tags(fm)
             results.append(self._meta(parent.relative_to(self._optional_dir).as_posix(), fm.get("name", parent.name),
                                       fm.get("description", "")[:200], tags if isinstance(tags, list) else []))
         return results
@@ -285,7 +285,7 @@ class KovaIndexSource(SkillSource):
     discovery cost zero GitHub API calls. When unavailable every method returns empty/None so
     downstream sources take over transparently."""
 
-    SOURCE_ID = "hermes-index"
+    SOURCE_ID = "kova-index"
 
     def __init__(self, auth: GitHubAuth):
         self._index: Optional[dict] = None
@@ -295,8 +295,8 @@ class KovaIndexSource(SkillSource):
 
     def _ensure_loaded(self) -> dict:
         if not self._loaded:
-            from tools.skills_hub_search import _load_hermes_index
-            self._index, self._loaded = _load_hermes_index(), True
+            from tools.skills_hub_search import _load_kova_index
+            self._index, self._loaded = _load_kova_index(), True
         return self._index or {}
 
     def _skills(self) -> list:
@@ -373,7 +373,7 @@ class KovaIndexSource(SkillSource):
                 return None
         if skills_sh and bundle.name == "skills":  # same name resolved or not, never a shared "skills/"
             bundle.name = slug
-        bundle.source = entry.get("source", "hermes-index")
+        bundle.source = entry.get("source", "kova-index")
         bundle.identifier = identifier
         return bundle
 
@@ -394,7 +394,7 @@ class KovaIndexSource(SkillSource):
     def _to_meta(entry: dict) -> SkillMeta:
         return SkillMeta(
             name=entry.get("name", ""), description=entry.get("description", ""),
-            source=entry.get("source", "hermes-index"), identifier=entry.get("identifier", ""),
+            source=entry.get("source", "kova-index"), identifier=entry.get("identifier", ""),
             trust_level=entry.get("trust_level", "community"), repo=entry.get("repo"), path=entry.get("path"),
             tags=entry.get("tags", []), extra=entry.get("extra", {}),
         )

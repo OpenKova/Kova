@@ -14,7 +14,7 @@ home's ``.env`` exactly as a user configures them.
   ``api_server`` platform enabled (loopback, free port, strong key); one
   non-streaming ``POST /v1/chat/completions``.
 
-Both stop through the normal operator path of ``hermes gateway stop``: write the
+Both stop through the normal operator path of ``kova gateway stop``: write the
 planned-stop marker for the gateway PID, then SIGTERM (a bare SIGTERM is treated
 as an unexpected kill and exits non-zero on purpose so supervisors revive it).
 """
@@ -89,7 +89,7 @@ def _log_tail(proc: subprocess.Popen, n: int = 4000) -> str:
 
 
 def _stop(ph: ParityHome, proc: subprocess.Popen) -> bool:
-    """``hermes gateway stop`` semantics (planned-stop marker for the PID, then SIGTERM),
+    """``kova gateway stop`` semantics (planned-stop marker for the PID, then SIGTERM),
     in its worst-case interleaving: the SIGTERM lands only AFTER the gateway's
     planned-stop watcher has already consumed the marker. Any interleaving of the
     CLI's two steps must still be a clean planned exit (exit 0; a non-zero exit
@@ -174,7 +174,7 @@ def drive_gateway(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveResul
     finally:
         graceful = _stop(ph, proc)
     return DriveResult(
-        final_text=_collect_delivered(events), toolset="hermes-telegram", cwd_channel="terminal.cwd",
+        final_text=_collect_delivered(events), toolset="kova-telegram", cwd_channel="terminal.cwd",
         graceful_exit=graceful,
         extra={"outcome": outcome, "exit_code": proc.returncode, "events": events,
                "stderr_log": str(proc._parity_log_path)},  # type: ignore[attr-defined]
@@ -265,7 +265,7 @@ def drive_api_server(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveRe
     choices = payload.get("choices") or [{}]
     text = (choices[0].get("message") or {}).get("content")
     return DriveResult(
-        final_text=text, toolset="hermes-api-server", cwd_channel="terminal.cwd", graceful_exit=graceful,
+        final_text=text, toolset="kova-api-server", cwd_channel="terminal.cwd", graceful_exit=graceful,
         extra={"http_status": status, "exit_code": proc.returncode,
                "stderr_log": str(proc._parity_log_path)},  # type: ignore[attr-defined]
     )

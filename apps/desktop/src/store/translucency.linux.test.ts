@@ -39,6 +39,6 @@ describe('translucency where Settings hides the row', () => {
     }
 
     expect(sent.length).toBeGreaterThan(0)
-    expect(document.documentElement.hasAttribute('data-hermes-clear')).toBe(false)
+    expect(document.documentElement.hasAttribute('data-kova-clear')).toBe(false)
   })
 })

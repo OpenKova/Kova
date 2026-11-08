@@ -26,7 +26,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     """A launch home plus a named ``work`` profile, as in test_multiplex_session_db_profile_scope."""
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker

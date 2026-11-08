@@ -83,7 +83,7 @@ def test_doctor_restores_global_tool_policy_and_module_state(tmp_path: Path) -> 
     before_modules = {
         name
         for name in sys.modules
-        if name == "hermes_plugins" or name.startswith("hermes_plugins.")
+        if name == "kova_plugins" or name.startswith("kova_plugins.")
     }
 
     report = doctor_plugin(target)
@@ -95,7 +95,7 @@ def test_doctor_restores_global_tool_policy_and_module_state(tmp_path: Path) -> 
     after_modules = {
         name
         for name in sys.modules
-        if name == "hermes_plugins" or name.startswith("hermes_plugins.")
+        if name == "kova_plugins" or name.startswith("kova_plugins.")
     }
     assert after_modules == before_modules
 
@@ -121,7 +121,7 @@ def test_doctor_blocks_live_network(tmp_path: Path) -> None:
 def test_doctor_default_target_does_not_copy_cwd(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """``hermes plugins doctor`` with no argument defaults to ``.``.
+    """``kova plugins doctor`` with no argument defaults to ``.``.
 
     Before the manifest guard, that copied the whole working directory into
     a temporary KOVA_HOME — running it from ``$HOME`` copied the home
@@ -158,7 +158,7 @@ def test_doctor_does_not_copy_home_with_a_plugin_checkout(
     """A home with one plugin checkout next to other directories is not a category.
 
     ``_holds_plugin`` used to accept any immediate child manifest, so
-    ``hermes plugins doctor`` from ``$HOME`` resolved to the home and
+    ``kova plugins doctor`` from ``$HOME`` resolved to the home and
     ``copytree`` copied it. A category directory's children are plugins.
     """
     import os
@@ -279,7 +279,7 @@ def test_resolve_prefers_installed_id_over_unrelated_local_dir(
     """A same-named local directory must not shadow the installed plugin."""
     from kova_cli import plugin_dev
 
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     installed = kova_home / "plugins" / "sample"
     installed.mkdir(parents=True)
     (installed / "plugin.yaml").write_text("name: sample\n", encoding="utf-8")
@@ -295,7 +295,7 @@ def test_resolve_prefers_installed_id_over_unrelated_local_dir(
 def test_doctor_removes_temp_home_when_staging_copy_fails(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """A copy failure (e.g. ENOSPC) must not strand a hermes-plugin-doctor-* dir."""
+    """A copy failure (e.g. ENOSPC) must not strand a kova-plugin-doctor-* dir."""
     import errno
     import shutil
     import tempfile
@@ -330,8 +330,8 @@ def test_doctor_removes_temp_home_when_staging_copy_fails(
     # Check for leftovers WHILE the exception (and its traceback frames) is
     # still referenced: the old code relied on TemporaryDirectory's GC
     # finalizer, which cannot run while the traceback pins the frame — the
-    # exact window where a stranded hermes-plugin-doctor-* dir was observed.
-    leftovers = list(scratch.glob("hermes-plugin-doctor-*"))
+    # exact window where a stranded kova-plugin-doctor-* dir was observed.
+    leftovers = list(scratch.glob("kova-plugin-doctor-*"))
     assert leftovers == [], f"stranded doctor temp dirs: {leftovers}"
 
 

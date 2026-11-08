@@ -60,7 +60,7 @@ def test_activation_real_setup_pm_lifecycle(tmp_path, served):
         "LANG": "C.UTF-8", "PYTHONNOUSERSITE": "1", "UV_OFFLINE": "1",
         "UV_CACHE_DIR": str(home / ".cache" / "uv"), "UV_PYTHON_DOWNLOADS": "never",
     }
-    for name in ("activate", "setup-hermes.sh", "kova_constants.py", "kova_yaml.py", "utils.py",
+    for name in ("activate", "setup-kova.sh", "kova_constants.py", "kova_yaml.py", "utils.py",
                  "scripts/_activation.sh"):
         (core / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO / name, core / name)
@@ -74,7 +74,7 @@ def test_activation_real_setup_pm_lifecycle(tmp_path, served):
     # Never copy real user files: these are deliberately public fixture sentinels.
     protected = [core / ".env", home / ".local" / "bin", kova_home / "skills",
                  home / ".bashrc", home / ".bash_profile", home / ".zshrc"]
-    for path in (home / ".local" / "bin" / "hermes", kova_home / "skills" / "keep.md",
+    for path in (home / ".local" / "bin" / "kova", kova_home / "skills" / "keep.md",
                  home / ".bashrc", home / ".bash_profile", home / ".zshrc"):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("user-owned fixture\n", encoding="utf-8")

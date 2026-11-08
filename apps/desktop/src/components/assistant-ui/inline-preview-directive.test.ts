@@ -96,8 +96,8 @@ describe('collectThemeBridge', () => {
   // #123048: the frame's color-scheme must come from the same resolved
   // appearance as the injected tokens, not from the separate `.dark` class
   // React's useIsDark() reads — that class can still hold last render's
-  // value for a paint after applyTheme() has already updated data-hermes-mode.
-  it('reads color-scheme from data-hermes-mode, not the .dark class', () => {
+  // value for a paint after applyTheme() has already updated data-kova-mode.
+  it('reads color-scheme from data-kova-mode, not the .dark class', () => {
     document.documentElement.dataset.kovaMode = 'dark'
     document.documentElement.classList.remove('dark')
 
@@ -114,7 +114,7 @@ describe('collectThemeBridge', () => {
 
 describe('frameSizeFromMessage', () => {
   const msg = (over: Record<string, unknown> = {}) => ({
-    type: 'hermes-inline-preview-size',
+    type: 'kova-inline-preview-size',
     token: 'tok',
     height: 500,
     width: 300,
@@ -148,7 +148,7 @@ describe('frameSizeFromMessage', () => {
 
 describe('evaluateIntent', () => {
   const msg = (over: Record<string, unknown> = {}) => ({
-    type: 'hermes-inline-preview-intent',
+    type: 'kova-inline-preview-intent',
     token: 'tok',
     id: 7,
     prompt: 'get-price eth',
@@ -202,7 +202,7 @@ describe('evaluateIntent', () => {
 
   it('ignores wrong token, wrong type, and hostile shapes without a reply', () => {
     expect(evaluateIntent(msg({ token: 'stolen' }), 'tok', NOW, 0)).toBeNull()
-    expect(evaluateIntent(msg({ type: 'hermes-inline-preview-size' }), 'tok', NOW, 0)).toBeNull()
+    expect(evaluateIntent(msg({ type: 'kova-inline-preview-size' }), 'tok', NOW, 0)).toBeNull()
     expect(evaluateIntent(null, 'tok', NOW, 0)).toBeNull()
     expect(evaluateIntent('str', 'tok', NOW, 0)).toBeNull()
   })
@@ -215,7 +215,7 @@ describe('intentScript', () => {
     const posted: Array<Record<string, unknown>> = []
     const listeners: Record<string, Array<(e: unknown) => void>> = {}
     const parent = { postMessage: (data: Record<string, unknown>) => posted.push(data) }
-    const win: { hermes?: { maxLength: number; send: (p: unknown) => Promise<unknown> } } = {}
+    const win: { kova?: { maxLength: number; send: (p: unknown) => Promise<unknown> } } = {}
 
     const addEventListener = (type: string, fn: (e: unknown) => void) => {
       ;(listeners[type] ??= []).push(fn)
@@ -239,7 +239,7 @@ describe('intentScript', () => {
     void send(long)
 
     expect(posted).toHaveLength(1)
-    expect(posted[0]).toMatchObject({ prompt: long, token: 'tok', type: 'hermes-inline-preview-intent' })
+    expect(posted[0]).toMatchObject({ prompt: long, token: 'tok', type: 'kova-inline-preview-intent' })
   })
 
   it('resolves send() with the parent ack for that call', async () => {

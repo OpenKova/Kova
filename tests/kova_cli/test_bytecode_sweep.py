@@ -1,6 +1,6 @@
 """Tests for the launch-time stale-bytecode sweep (checkout fingerprint guard).
 
-Bug class: the checkout's ``.py`` files change (``hermes update``, manual
+Bug class: the checkout's ``.py`` files change (``kova update``, manual
 ``git pull``, ZIP update) while ``__pycache__`` retains bytecode compiled
 from the previous revision; the next process to import trusts the stale
 ``.pyc`` and dies with ``cannot import name ...`` (#6207, #60242).
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from kova_cli import main as hermes_main
+from kova_cli import main as kova_main
 from kova_cli import main_web_build
 
 
@@ -39,13 +39,13 @@ def _make_pycache(repo: Path, subdir: str = "kova_cli") -> Path:
 def test_sweep_clears_pycache_when_checkout_changed(monkeypatch, tmp_path):
     repo = _make_repo(tmp_path, sha="b" * 40)
     cache = _make_pycache(repo)
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", repo)
     # Stamp records a different (older) fingerprint.
     (repo / main_web_build._BYTECODE_FINGERPRINT_FILE).write_text(
         "git:refs/heads/main:" + "a" * 40, encoding="utf-8"
     )
 
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
 
     assert not cache.exists()
     # Stamp updated to the current fingerprint.
@@ -108,8 +108,8 @@ def test_a_package_the_checkout_moved_leaves_no_directory_behind(monkeypatch, tm
     git("rm", "-q", "notes/__init__.py")
     git("commit", "-qm", "move pkg under src")
     git("checkout", "-q", "--detach", flat)
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", repo)
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
     for cache in ("pkg/__pycache__", "pkg/sub/__pycache__", "notes/__pycache__"):
         (repo / cache).mkdir()
         (repo / cache / "m.cpython-311.pyc").write_bytes(b"stale")
@@ -117,7 +117,7 @@ def test_a_package_the_checkout_moved_leaves_no_directory_behind(monkeypatch, tm
     git("checkout", "-q", "main")
     assert (repo / "pkg" / "sub").is_dir(), "sanity: git leaves the directory while __pycache__ is in it"
 
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
 
     assert not (repo / "pkg").exists()
     assert (repo / "notes" / "mine.txt").is_file()
@@ -141,9 +141,9 @@ def test_a_sweep_that_cannot_list_dropped_files_keeps_the_old_fingerprint(monkey
     recorded = f"git:refs/heads/main:{head}"
     (repo / build._BYTECODE_FINGERPRINT_FILE).write_text(recorded, encoding="utf-8")
     (repo / ".git" / "refs" / "heads" / "main").write_text("b" * 40 + "\n", encoding="utf-8")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", repo)
 
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
 
     assert (repo / build._BYTECODE_FINGERPRINT_FILE).read_text(encoding="utf-8") == recorded
 
@@ -166,15 +166,15 @@ def test_dropped_directory_keeps_exact_filename_bytes(monkeypatch, tmp_path):
     git("config", "user.name", "Test")
     git("add", ".")
     git("commit", "-qm", "before")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", repo)
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
     _make_pycache(repo, dropped.name)
     git("rm", "--", f"{dropped.name}/__init__.py")
     git("commit", "-qm", "drop package")
     unrelated = repo / "old-\ufffd"
     unrelated.mkdir()
 
-    hermes_main._sweep_stale_bytecode_if_checkout_changed()
+    kova_main._sweep_stale_bytecode_if_checkout_changed()
 
     assert unrelated.is_dir(), "lossy decoding must not target a different directory"
     assert not dropped.exists()

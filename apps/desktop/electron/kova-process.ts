@@ -5,12 +5,12 @@ import fs from 'node:fs'
  * The Kova runtime executable, matched as a whole argv TOKEN's basename — never an
  * argv substring (root AGENTS.md HX003 forbids argv-substring process identity). A
  * substring check over the full command line matched any process whose path merely
- * contained "hermes" (`vim ~/hermes-notes.txt`, a `/opt/hermesbrew/...` tool), so a
+ * contained "kova" (`vim ~/kova-notes.txt`, a `/opt/kovabrew/...` tool), so a
  * recycled PID could be mistaken for a live gateway. Mirrors the whole-token basename
  * policy in `isSharedRuntime` (package-process-reap.ts) and the Python canonical
  * matchers named in AGENTS.md HX003.
  */
-const KOVA_RUNTIME_BASENAME = /^hermes(?:-agent|-acp)?(?:\.exe|\.cmd)?$/i
+const KOVA_RUNTIME_BASENAME = /^kova(?:-agent|-acp)?(?:\.exe|\.cmd)?$/i
 
 /** Tokenize a raw command line: `/proc/<pid>/cmdline` is NUL-separated, `ps -o args=`
  *  is whitespace-separated. Either way, split on both so one matcher serves both. */
@@ -50,7 +50,7 @@ function tokensNameGatewaySubcommand(tokens: string[]): boolean {
 /** True when `raw` is a Kova runtime command line, identified by a whole argv TOKEN
  *  (never an argv substring — root AGENTS.md HX003). Two shapes, mirroring the canonical
  *  Python matcher `gateway.status.looks_like_gateway_command_line`:
- *    1. a token whose basename is the Kova executable (`hermes`, launched directly or by
+ *    1. a token whose basename is the Kova executable (`kova`, launched directly or by
  *       an interpreter such as `python …/kova gateway run`); or
  *    2. a `kova_cli.main` / `kova_cli/main.py` module entry (`python -m kova_cli.main
  *       … gateway run`, the real unmanaged-gateway launch) carrying the `gateway` subcommand.

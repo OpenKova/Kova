@@ -52,7 +52,7 @@ def _ink_child(script: str, *args: str, scripts: Path = _SCRIPTS, **env: str) ->
 def test_gateway_bootstrap_reaches_a_verdict_on_the_store_python():
     """With no owner running, discovery's fallback imports a dependency (gateway.status -> utils ->
     kova_yaml -> ruamel). The bootstrap must answer with its bounded gateway verdict, not die on
-    the import -- which left a fresh `hermes --tui` unable to start or recover a gateway at all."""
+    the import -- which left a fresh `kova --tui` unable to start or recover a gateway at all."""
     _commit_generation()
 
     child = _ink_child("gateway_bootstrap.py")
@@ -67,7 +67,7 @@ def test_packaged_gateway_bootstrap_boots_the_root_it_is_given_or_names_why_it_c
     where parents[2] is not the Python root: the helper must boot the generation of the root Ink
     passes, and an interpreter that still cannot load Kova is a named, terminal verdict the client
     stops retrying on, never a bare ImportError retried every 30 s (#138878)."""
-    packaged = tmp_path / "hermes-tui" / "dist" / "scripts"
+    packaged = tmp_path / "kova-tui" / "dist" / "scripts"
     packaged.mkdir(parents=True)
     shutil.copy2(_SCRIPTS / "gateway_bootstrap.py", packaged / "gateway_bootstrap.py")
 

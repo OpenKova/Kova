@@ -16,9 +16,9 @@ import path from 'node:path';
 export function sourceRuntimeSettleCommand(root, env, platform = process.platform) {
   const local = path.join(root, '.kova', 'bin');
   const candidates = platform === 'win32'
-    ? [path.join(local, 'hermes.cmd'), path.join(local, 'hermes.exe'),
-      path.join(root, 'venv', 'Scripts', 'hermes.exe')]
-    : [path.join(local, 'hermes'), path.join(root, 'venv', 'bin', 'hermes')];
+    ? [path.join(local, 'kova.cmd'), path.join(local, 'kova.exe'),
+      path.join(root, 'venv', 'Scripts', 'kova.exe')]
+    : [path.join(local, 'kova'), path.join(root, 'venv', 'bin', 'kova')];
   const launcher = candidates.find(candidate => fs.existsSync(candidate));
   if (!launcher) throw new Error(`No source launcher available to settle ${root}`);
 

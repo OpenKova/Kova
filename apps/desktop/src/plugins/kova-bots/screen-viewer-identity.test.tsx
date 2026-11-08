@@ -75,7 +75,7 @@ const MINTED = 'srv-viewer-0001'
 
 const status: DisplayStatus = {
   profile: 'default',
-  profile_key: '/home/hermes/.kova',
+  profile_key: '/home/kova/.kova',
   supported: true,
   installed: true,
   missing: [],

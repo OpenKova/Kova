@@ -30,7 +30,7 @@ const SERVER: Record<string, unknown> = {
 afterEach(() => {
   clearWebappSession()
   Reflect.deleteProperty(window, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   delete (globalThis as { __notesRegister?: unknown }).__notesRegister
   vi.unstubAllGlobals()
   vi.restoreAllMocks()

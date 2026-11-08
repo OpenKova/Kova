@@ -341,7 +341,7 @@ class DuplicateNativeToolsAgent:
 
 class LongPreviewAgent:
     """Agent that emits a tool call with a very long preview string."""
-    LONG_CMD = "cd /home/teknium/.kova/kova-agent/.worktrees/hermes-d8860339 && source .venv/bin/activate && python -m pytest tests/gateway/test_run_progress_topics.py -n0 -q"
+    LONG_CMD = "cd /home/teknium/.kova/kova-agent/.worktrees/kova-d8860339 && source .venv/bin/activate && python -m pytest tests/gateway/test_run_progress_topics.py -n0 -q"
 
     def __init__(self, **kwargs):
         self.tool_progress_callback = kwargs.get("tool_progress_callback")
@@ -505,7 +505,7 @@ def test_tool_progress_mode_follows_profile_through_the_real_scoping_seam(monkey
     (#116898)."""
     from agent import secret_scope
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     beta = root / "profiles" / "beta"
     beta.mkdir(parents=True)
     # Leaked value from whichever profile's process env loaded last under multiplexing.

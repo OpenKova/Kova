@@ -37,7 +37,7 @@ def managed_node(tmp_path, monkeypatch):
     return node, npm
 
 
-def test_stdio_server_dying_on_a_node_abi_mismatch_names_the_rebuild_under_hermes_node(tmp_path, monkeypatch,
+def test_stdio_server_dying_on_a_node_abi_mismatch_names_the_rebuild_under_kova_node(tmp_path, monkeypatch,
                                                                                          managed_node):
     from kova_cli.mcp_config import _probe_failure_reason, _probe_single_server
 

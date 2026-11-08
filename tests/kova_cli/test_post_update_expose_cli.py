@@ -1,6 +1,6 @@
 """expose_cli — the launcher owner repairs PATH conveniences.
 
-The installers write ~/.local/bin/hermes* once, at install time. This
+The installers write ~/.local/bin/kova* once, at install time. This
 step rewrites them when they drift (moved checkout, recreated venv,
 deleted by hand) and — just as load-bearing — REFUSES to touch a
 launcher that belongs to a different install sharing the link dir.
@@ -49,7 +49,7 @@ def fake_install(tmp_path, monkeypatch):
     root = tmp_path / "checkout"
     (root / "venv" / "bin").mkdir(parents=True)
     (root / "venv" / "bin" / "python").write_text("#!fake\n", encoding="utf-8")
-    (root / "hermes").write_text("# entrypoint\n", encoding="utf-8")
+    (root / "kova").write_text("# entrypoint\n", encoding="utf-8")
     (root / "run_agent.py").write_text("# agent\n", encoding="utf-8")
     monkeypatch.setenv("KOVA_INSTALL_ROOT", str(root))
     store = tmp_path / "tools"
@@ -96,7 +96,7 @@ def test_sandbox_home_keeps_its_launchers_off_the_user_path(user_path_writes, tm
     The console environment is not stubbed: Windows builds it from the user's
     stored variables, so these overrides are exactly what a sandbox sets."""
     box = tmp_path / "box"
-    monkeypatch.setenv("KOVA_HOME", str(box / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(box / "kova"))
     monkeypatch.setenv("LOCALAPPDATA", str(box / "local"))
     monkeypatch.setenv("USERPROFILE", str(box / "user"))
 
@@ -108,7 +108,7 @@ def test_sandbox_home_keeps_its_launchers_off_the_user_path(user_path_writes, tm
 
 
 @pytest.mark.platforms("windows")
-@pytest.mark.parametrize("kova_home", [None, ("hermes",), ("hermes", "profiles", "work")])
+@pytest.mark.parametrize("kova_home", [None, ("kova",), ("kova", "profiles", "work")])
 def test_the_home_new_consoles_use_registers_its_bin(user_path_writes, kova_home, tmp_path, monkeypatch):
     local = tmp_path / "local"
     monkeypatch.setenv("LOCALAPPDATA", str(local))
@@ -121,13 +121,13 @@ def test_the_home_new_consoles_use_registers_its_bin(user_path_writes, kova_home
     result = _launchers._expose_windows_user_bin(tmp_path / "checkout", create=True)
 
     assert result["path"] == "added"
-    assert user_path_writes == [local / "hermes" / "bin"]
+    assert user_path_writes == [local / "kova" / "bin"]
 
 
 @pytest.mark.platforms("windows")
 @pytest.mark.parametrize("stored_home, override", [
-    ("%LOCALAPPDATA%\\hermes-data", "LOCALAPPDATA"),
-    ("~\\hermes-data", "USERPROFILE"),
+    ("%LOCALAPPDATA%\\kova-data", "LOCALAPPDATA"),
+    ("~\\kova-data", "USERPROFILE"),
 ])
 def test_inherited_home_reference_expands_from_the_console_environment(
         user_path_writes, stored_home, override, tmp_path, monkeypatch):
@@ -161,7 +161,7 @@ def test_unknown_console_environment_leaves_the_user_path(user_path_writes, tmp_
 def test_new_console_environment_ignores_this_process(tmp_path, monkeypatch):
     """The real Win32 read: variables set only in this process are absent from a new console's environment."""
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
     monkeypatch.setenv("KOVA_TEST_ONLY_IN_THIS_PROCESS", "1")
 
     environ = _launchers._new_console_environment()
@@ -170,7 +170,7 @@ def test_new_console_environment_ignores_this_process(tmp_path, monkeypatch):
     assert "KOVA_TEST_ONLY_IN_THIS_PROCESS" not in environ
     assert environ.get("LOCALAPPDATA")
     assert Path(environ["LOCALAPPDATA"]) != tmp_path / "local"
-    assert environ.get("KOVA_HOME") != str(tmp_path / "hermes")
+    assert environ.get("KOVA_HOME") != str(tmp_path / "kova")
 
 
 @pytest.mark.platforms("windows")
@@ -195,7 +195,7 @@ def _windows_home(tmp_path, monkeypatch) -> Path:
     monkeypatch.setattr(_launchers, "_new_console_environment", lambda: {"LOCALAPPDATA": str(local)})
     monkeypatch.setattr(_launchers, "_load_script_maker", lambda: None)
     monkeypatch.setattr(_launchers, "_store_script_maker", lambda python_exe: None)
-    home = local / "hermes"
+    home = local / "kova"
     _store_python(home).parent.mkdir(parents=True)
     _store_python(home).touch()
     (home / "tools" / "facts.json").write_text(
@@ -223,9 +223,9 @@ def _write_exe_launcher(target: Path, python: Path, root: Path) -> None:
 
 
 def _command(home: Path) -> Path:
-    """The ``hermes`` a console runs: PATHEXT resolves .exe before .cmd."""
-    exe = home / "bin" / "hermes.exe"
-    return exe if exe.exists() else home / "bin" / "hermes.cmd"
+    """The ``kova`` a console runs: PATHEXT resolves .exe before .cmd."""
+    exe = home / "bin" / "kova.exe"
+    return exe if exe.exists() else home / "bin" / "kova.cmd"
 
 
 @pytest.fixture
@@ -242,7 +242,7 @@ def test_review_tree_leaves_the_installed_commands_alone(form, path_registration
     """A review tree started against the real home keeps the installed checkout's commands in its bin.
 
     Its boot bootstrap runs expose_cli too; republishing there would point every
-    console's ``hermes`` at the review tree."""
+    console's ``kova`` at the review tree."""
     home = _windows_home(tmp_path, monkeypatch)
     installed = _checkout(home / "kova-agent")
     review = _checkout(home / "reviews" / "pr-1" / "rebuild-wt")
@@ -257,7 +257,7 @@ def test_review_tree_leaves_the_installed_commands_alone(form, path_registration
     result = _launchers._expose_windows_user_bin(review, create=True)
 
     assert {path.name: path.read_bytes() for path in (home / "bin").iterdir()} == before
-    assert result == {"ok": True, "skipped": f"{home / 'bin' / f'hermes.{form}'} starts another checkout"}
+    assert result == {"ok": True, "skipped": f"{home / 'bin' / f'kova.{form}'} starts another checkout"}
     assert _launchers._launcher_checkout(_command(home)) == installed
     assert path_registrations == ([] if form == "exe" else [home / "bin"])
 
@@ -295,8 +295,8 @@ def test_registered_as_a_home_step():
 
 class TestExposeCli:
     @posix_only
-    @pytest.mark.parametrize("hermes", ["missing", "foreign"])
-    def test_repair_only_preserves_missing_and_foreign_commands(self, fake_install, monkeypatch, hermes):
+    @pytest.mark.parametrize("kova", ["missing", "foreign"])
+    def test_repair_only_preserves_missing_and_foreign_commands(self, fake_install, monkeypatch, kova):
         home, root = fake_install
         monkeypatch.setattr("kova_cli.config.load_config", lambda: pytest.fail("repair read config"))
         wrapper_dir = home / ".local" / "bin"
@@ -306,33 +306,33 @@ class TestExposeCli:
         assert not extra.exists()
         assert {p.name for p in (root / ".kova/bin").iterdir()} == set(_launchers.ENTRY_POINTS)
 
-        # An owned ACP entry must be repaired even without an owned hermes
+        # An owned ACP entry must be repaired even without an owned kova
         # sibling admitting this directory. Its old target is already gone.
         extra.mkdir()
-        dangling = root / "venv/bin/hermes-acp"
-        acp = extra / "hermes-acp"
+        dangling = root / "venv/bin/kova-acp"
+        acp = extra / "kova-acp"
         acp.symlink_to(dangling)
         assert not acp.exists() and acp.is_symlink()
         foreign = b"#!/bin/sh\n# user-owned caf\xc3\xa9 command\nexit 19\n"
-        if hermes == "foreign":
-            (extra / "hermes").write_bytes(foreign)
+        if kova == "foreign":
+            (extra / "kova").write_bytes(foreign)
         wrapper_dir.mkdir(parents=True)
-        (wrapper_dir / "hermes").write_bytes(foreign)
-        foreign_link = wrapper_dir / "hermes-acp"
-        foreign_target = home / "other-install/hermes-acp"
+        (wrapper_dir / "kova").write_bytes(foreign)
+        foreign_link = wrapper_dir / "kova-acp"
+        foreign_target = home / "other-install/kova-acp"
         foreign_link.symlink_to(foreign_target)
-        before = {path: path.lstat().st_mtime_ns for path in (wrapper_dir, wrapper_dir / "hermes", foreign_link)}
+        before = {path: path.lstat().st_mtime_ns for path in (wrapper_dir, wrapper_dir / "kova", foreign_link)}
 
-        assert _launchers.expose_cli(create=False) == {"ok": True, "written": ["hermes-acp"]}
+        assert _launchers.expose_cli(create=False) == {"ok": True, "written": ["kova-acp"]}
         assert acp.is_file() and not acp.is_symlink() and os.access(acp, os.X_OK)
         assert not dangling.exists()
         assert not (extra / "kova-agent").exists()
         assert not (wrapper_dir / "kova-agent").exists()
-        if hermes == "foreign":
-            assert (extra / "hermes").read_bytes() == foreign
+        if kova == "foreign":
+            assert (extra / "kova").read_bytes() == foreign
         else:
-            assert not (extra / "hermes").exists()
-        assert (wrapper_dir / "hermes").read_bytes() == foreign
+            assert not (extra / "kova").exists()
+        assert (wrapper_dir / "kova").read_bytes() == foreign
         assert foreign_link.is_symlink() and foreign_link.readlink() == foreign_target
         assert before == {path: path.lstat().st_mtime_ns for path in before}
         assert _launchers.expose_cli(create=False) == {"ok": True, "written": []}
@@ -342,8 +342,8 @@ class TestExposeCli:
         home, root = fake_install
         result = _launchers.expose_cli()
         assert result["ok"] is True
-        assert sorted(result["written"]) == ["hermes", "hermes-acp", "kova-agent"]
-        for name in ("hermes", "kova-agent", "hermes-acp"):
+        assert sorted(result["written"]) == ["kova", "kova-acp", "kova-agent"]
+        for name in ("kova", "kova-agent", "kova-acp"):
             wrapper = home / ".local" / "bin" / name
             body = wrapper.read_text(encoding="utf-8-sig")
             assert str(root) in body
@@ -358,13 +358,13 @@ class TestExposeCli:
         other = "/somewhere/else/checkout"
         wrapper_dir = home / ".local" / "bin"
         wrapper_dir.mkdir(parents=True)
-        foreign = f'#!/bin/sh\nexec "{other}/venv/bin/python" "{other}/hermes" "$@"\n'
-        (wrapper_dir / "hermes").write_text(foreign, encoding="utf-8")
+        foreign = f'#!/bin/sh\nexec "{other}/venv/bin/python" "{other}/kova" "$@"\n'
+        (wrapper_dir / "kova").write_text(foreign, encoding="utf-8")
         result = _launchers.expose_cli()
-        assert (wrapper_dir / "hermes").read_text(encoding="utf-8-sig") == foreign
-        assert "hermes" not in result["written"]
+        assert (wrapper_dir / "kova").read_text(encoding="utf-8-sig") == foreign
+        assert "kova" not in result["written"]
         # The other two had no file at all — those ARE written.
-        assert sorted(result["written"]) == ["hermes-acp", "kova-agent"]
+        assert sorted(result["written"]) == ["kova-acp", "kova-agent"]
 
     @posix_only
     def test_config_gate_disables(self, fake_install, monkeypatch):
@@ -397,7 +397,7 @@ class TestExposeCli:
         (payload / "bin").mkdir(parents=True)
         (payload / "repo").mkdir()
         _write_bundled_stamp(payload / "repo")
-        for name in ("hermes", "kova-agent", "hermes-acp"):
+        for name in ("kova", "kova-agent", "kova-acp"):
             (payload / "bin" / name).write_text("\x7fELF fake shim\n", encoding="utf-8")
         monkeypatch.setenv("KOVA_INSTALL_ROOT", str(payload / "repo"))
         if not create:
@@ -411,13 +411,13 @@ class TestExposeCli:
         self, fake_install, monkeypatch, tmp_path
     ):
         """The stamp is the shape authority. A venv-less checkout whose
-        PARENT happens to carry a bin/hermes (the installers' launcher
+        PARENT happens to carry a bin/kova (the installers' launcher
         dir shares ~/.kova with the checkout) must skip, not enter the
         sealed branch — on every platform."""
         (tmp_path / "tools" / "facts.json").unlink()
-        parent = tmp_path / "hermes-home"
+        parent = tmp_path / "kova-home"
         (parent / "bin").mkdir(parents=True)
-        (parent / "bin" / "hermes").write_text("#!/bin/sh\n# installer launcher\n", encoding="utf-8")
+        (parent / "bin" / "kova").write_text("#!/bin/sh\n# installer launcher\n", encoding="utf-8")
         checkout = parent / "kova-agent"
         checkout.mkdir()
         monkeypatch.setenv("KOVA_INSTALL_ROOT", str(checkout))
@@ -432,15 +432,15 @@ class TestExposeCli:
         home, root = fake_install
         wrapper_dir = home / ".local" / "bin"
         wrapper_dir.mkdir(parents=True)
-        console_script = root / "venv" / "bin" / "hermes"
+        console_script = root / "venv" / "bin" / "kova"
         console_script.write_text("# real console script\n", encoding="utf-8")
-        (wrapper_dir / "hermes").symlink_to(console_script)
+        (wrapper_dir / "kova").symlink_to(console_script)
         result = _launchers.expose_cli()
-        assert "hermes" in result["written"]
+        assert "kova" in result["written"]
         # The venv console script survives untouched…
         assert console_script.read_text(encoding="utf-8-sig") == "# real console script\n"
         # …and the link-dir entry is now a real file, not a symlink.
-        assert not (wrapper_dir / "hermes").is_symlink()
+        assert not (wrapper_dir / "kova").is_symlink()
 
 
 @pytest.mark.platforms("macos")
@@ -459,7 +459,7 @@ def test_direct_packaged_cli_exposes_shims_before_electron(tmp_path):
     bin_dir = payload / "bin"
     bin_dir.mkdir()
     code = f"import sys; sys.path.insert(0, {str(Path(__file__).resolve().parents[2])!r}); from kova_cli.main import main; main()"
-    for name in ("hermes", "kova-agent", "hermes-acp"):
+    for name in ("kova", "kova-agent", "kova-acp"):
         shim = bin_dir / name
         shim.write_text(f'#!/bin/sh\nexec {shlex.join([sys.executable, "-I", "-c", code])} "$@"\n', encoding="utf-8")
         shim.chmod(0o755)
@@ -468,10 +468,10 @@ def test_direct_packaged_cli_exposes_shims_before_electron(tmp_path):
     # Execute the package CLI directly. No Electron process or linking helper runs.
     # `--help` reaches main()'s boot bootstrap (which owns expose_cli) before argparse
     # exits; `--version` is answered on the pre-import fast path and never gets there.
-    result = subprocess.run([str(bin_dir / "hermes"), "--help"], env=env,
+    result = subprocess.run([str(bin_dir / "kova"), "--help"], env=env,
                             capture_output=True, text=True, timeout=30, encoding="utf-8", check=False)
     assert result.returncode == 0, result.stderr
-    for name in ("hermes", "kova-agent", "hermes-acp"):
+    for name in ("kova", "kova-agent", "kova-acp"):
         assert (home / ".local/bin" / name).is_symlink()
         assert (home / ".local/bin" / name).resolve() == bin_dir / name
 
@@ -489,7 +489,7 @@ class TestSymlinkSealedLaunchers:
         monkeypatch.setattr(Path, "home", staticmethod(lambda: home))
         payload_bin = tmp_path / "Kova.app" / "Contents" / "Resources" / "agent-payload" / "bin"
         payload_bin.mkdir(parents=True)
-        for name in ("hermes", "kova-agent", "hermes-acp"):
+        for name in ("kova", "kova-agent", "kova-acp"):
             (payload_bin / name).write_text("fake mach-o shim\n", encoding="utf-8")
         return home, payload_bin
 
@@ -497,8 +497,8 @@ class TestSymlinkSealedLaunchers:
         home, payload_bin = payload
         result = _launchers._symlink_sealed_launchers(payload_bin)
         assert result["ok"] is True
-        assert sorted(result["written"]) == ["hermes", "hermes-acp", "kova-agent"]
-        for name in ("hermes", "kova-agent", "hermes-acp"):
+        assert sorted(result["written"]) == ["kova", "kova-acp", "kova-agent"]
+        for name in ("kova", "kova-agent", "kova-acp"):
             link = home / ".local" / "bin" / name
             assert link.is_symlink()
             assert os.readlink(link) == str(payload_bin / name)
@@ -516,22 +516,22 @@ class TestSymlinkSealedLaunchers:
         old = payload_bin.parent / "bin-old"
         link_dir = home / ".local" / "bin"
         link_dir.mkdir(parents=True)
-        (link_dir / "hermes").symlink_to(old / "hermes")  # dangling, old payload path
+        (link_dir / "kova").symlink_to(old / "kova")  # dangling, old payload path
         result = _launchers._symlink_sealed_launchers(payload_bin)
-        assert "hermes" in result["written"]
-        assert os.readlink(link_dir / "hermes") == str(payload_bin / "hermes")
+        assert "kova" in result["written"]
+        assert os.readlink(link_dir / "kova") == str(payload_bin / "kova")
 
     def test_never_touches_a_live_foreign_entry(self, payload, tmp_path):
         home, payload_bin = payload
         link_dir = home / ".local" / "bin"
         link_dir.mkdir(parents=True)
         # A real file (pipx-style launcher)…
-        (link_dir / "hermes").write_text("#!/bin/sh\n# pipx launcher\n", encoding="utf-8")
+        (link_dir / "kova").write_text("#!/bin/sh\n# pipx launcher\n", encoding="utf-8")
         # …and a live symlink to a different tool.
         other = tmp_path / "other-tool"
         other.write_text("other\n", encoding="utf-8")
         (link_dir / "kova-agent").symlink_to(other)
         result = _launchers._symlink_sealed_launchers(payload_bin)
-        assert (link_dir / "hermes").read_text(encoding="utf-8-sig") == "#!/bin/sh\n# pipx launcher\n"
+        assert (link_dir / "kova").read_text(encoding="utf-8-sig") == "#!/bin/sh\n# pipx launcher\n"
         assert os.readlink(link_dir / "kova-agent") == str(other)
-        assert sorted(result["written"]) == ["hermes-acp"]
+        assert sorted(result["written"]) == ["kova-acp"]

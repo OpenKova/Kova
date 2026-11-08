@@ -71,7 +71,7 @@ def _git_stdout(git_cmd, args, cwd, **kw) -> Optional[str]:
 def _prune_orphan_rescue_refs(
     git_cmd, cwd, branch, keep=_ORPHAN_RESCUE_REFS_TO_KEEP, max_age_days=_ORPHAN_RESCUE_REF_MAX_AGE_DAYS
 ) -> None:
-    """Expire old rescue refs (``refs/hermes-update-backups/<kind>-<branch>-<ts>-<sha>``).
+    """Expire old rescue refs (``refs/kova-update-backups/<kind>-<branch>-<ts>-<sha>``).
 
     ``<kind>`` is ``orphan`` (no common ancestor), ``diverged`` (local commits on the target
     branch) or ``detached`` (commits made on a detached HEAD the update moved off). All are written
@@ -91,7 +91,7 @@ def _prune_orphan_rescue_refs(
     with suppress(OSError):
         stale: set[str] = set()
         for kind in ("orphan", "diverged", "detached"):
-            prefix = f"refs/hermes-update-backups/{kind}-{branch}-"
+            prefix = f"refs/kova-update-backups/{kind}-{branch}-"
             list_result = _git_run(
                 git_cmd, ["for-each-ref", "--format=%(refname)", "--sort=refname", f"{prefix}*"], cwd)
             if list_result.returncode != 0:
@@ -115,7 +115,7 @@ def _park_detached_head(git_cmd, cwd, branch) -> None:
     Such commits belong to no branch: once HEAD moves, only the expiring reflog still reaches them,
     and nothing in the output would name them. When HEAD is detached at a commit no ref contains
     (the autostash's ``refs/stash`` does not count: it is dropped after the update), write
-    ``refs/hermes-update-backups/detached-<branch>-<ts>-<sha12>`` (the divergence rescue refs'
+    ``refs/kova-update-backups/detached-<branch>-<ts>-<sha12>`` (the divergence rescue refs'
     scheme and expiry) and name it. When that write fails, refuse (``sys.exit(1)``) rather than
     orphan the work. Attached HEADs and already-reachable commits are left alone.
     """
@@ -131,7 +131,7 @@ def _park_detached_head(git_cmd, cwd, branch) -> None:
     if contains.returncode == 0 and holders:
         return  # already reachable from a branch, tag, remote or backup ref
     stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
-    rescue_ref = f"refs/hermes-update-backups/detached-{branch}-{stamp}-{sha[:12]}"
+    rescue_ref = f"refs/kova-update-backups/detached-{branch}-{stamp}-{sha[:12]}"
     if _git_run(git_cmd, ["update-ref", rescue_ref, sha], cwd).returncode != 0:
         print(f"✗ HEAD is detached at {sha[:12]}, which no branch or tag contains, and backing it up "
               f"to {rescue_ref} failed.")

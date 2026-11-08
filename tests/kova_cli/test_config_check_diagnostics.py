@@ -28,8 +28,8 @@ def test_config_check_and_migrate_agree_on_stale_platform_toolsets(tmp_path, mon
     stale = _write_home(
         tmp_path / "stale",
         "platform_toolsets:\n"
-        "  cli: [hermes-cli, messaging, linear, mcp-linear, mcp-portable, mcp-ghost, ghost]\n"
-        "  teams: [hermes-teams]\n"
+        "  cli: [kova-cli, messaging, linear, mcp-linear, mcp-portable, mcp-ghost, ghost]\n"
+        "  teams: [kova-teams]\n"
         "mcp_servers:\n"
         "  linear:\n"
         "    command: linear-mcp\n"
@@ -39,11 +39,11 @@ def test_config_check_and_migrate_agree_on_stale_platform_toolsets(tmp_path, mon
         "  cli: [ghost]\n",
     )
     # A malformed mcp_servers section must not crash the check.
-    clean = _write_home(tmp_path / "clean", "platform_toolsets:\n  cli: [hermes-cli]\nmcp_servers: [a]\n")
+    clean = _write_home(tmp_path / "clean", "platform_toolsets:\n  cli: [kova-cli]\nmcp_servers: [a]\n")
 
     for home, expected in ((stale, {"messaging", "ghost", "mcp-ghost"}), (clean, set()), (stale, {"messaging", "ghost", "mcp-ghost"})):
         output = _check(home, monkeypatch, capsys)
-        for name in ("messaging", "ghost", "mcp-ghost", "linear", "mcp-linear", "mcp-portable", "hermes-teams"):
+        for name in ("messaging", "ghost", "mcp-ghost", "linear", "mcp-linear", "mcp-portable", "kova-teams"):
             assert (f"unknown toolset '{name}'" in output) is (name in expected), (home.name, name)
 
         results = {"warnings": []}
@@ -74,5 +74,5 @@ def test_config_check_reports_disabled_platform_only_when_runtime_disables_it(tm
         output = _check(home, monkeypatch, capsys)
         assert ("platform plugin 'platforms/fakechat' is disabled" in output) is reported, home.name
         if reported:
-            assert "hermes plugins enable platforms/fakechat" in output
+            assert "kova plugins enable platforms/fakechat" in output
         assert "synthetic-test-token" not in output

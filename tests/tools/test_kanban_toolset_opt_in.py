@@ -111,7 +111,7 @@ def test_selection_is_scoped_and_preserves_worker_and_deny_boundaries(legacy, tm
     # The same profile concurrently builds an explicitly opted-in schema and
     # an all/default schema. A platform grant must not become a cached global grant.
     with ThreadPoolExecutor(max_workers=2) as pool:
-        named, broad = list(pool.map(_names, [["kanban"], ["hermes-cli"]]))
+        named, broad = list(pool.map(_names, [["kanban"], ["kova-cli"]]))
     assert "kanban_create" in named
     assert bool(broad) is legacy
     assert bool(_names(None)) is legacy

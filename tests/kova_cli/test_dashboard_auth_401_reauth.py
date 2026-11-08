@@ -12,7 +12,7 @@ Verifies the contract documented in Phase 6 v2 of the plan:
   - Invalid/expired cookies are cleared on 401 so the browser doesn't
     keep replaying them.
   - ``set_session_cookies(refresh_token="")`` does NOT emit the
-    ``hermes_session_rt`` cookie (contract V1: no RT to persist).
+    ``kova_session_rt`` cookie (contract V1: no RT to persist).
   - ``/auth/callback?next=…`` honours the same-origin landing path.
 """
 
@@ -157,7 +157,7 @@ class TestApi401Envelope:
         /api/analytics/models?days=30`` from ModelsPage round-tripped
         through the OAuth dance and landed the user on the raw JSON
         endpoint instead of the dashboard. The gate now drops API paths
-        from ``next=`` entirely; the SPA's own ``hermes.lastLocation``
+        from ``next=`` entirely; the SPA's own ``kova.lastLocation``
         fallback in ``web/src/lib/api.ts`` covers the deep-link case.
         """
         r = gated_app.get("/api/sessions?page=2")
@@ -176,8 +176,8 @@ class TestTransparentRefreshOnAccessTokenEviction:
 
     This is the common-path expiry bug, not an edge case. The access-token
     cookie is set with ``Max-Age = access_token_expires_in`` (~15 min), so
-    the browser deletes ``hermes_session_at`` the instant the token lapses,
-    while ``hermes_session_rt`` lives for 30 days. From that moment the
+    the browser deletes ``kova_session_at`` the instant the token lapses,
+    while ``kova_session_rt`` lives for 30 days. From that moment the
     browser sends ONLY the refresh-token cookie. The original gate bailed at
     ``if not at: return _unauth_response(...)`` — bouncing the user to
     /login on every single expiry despite holding a perfectly good refresh
@@ -361,12 +361,12 @@ class TestAutoSsoRedirect:
         reverse proxy that mounts the dashboard at a sub-path."""
         r = gated_app.get(
             "/login",
-            headers={"X-Forwarded-Prefix": "/hermes"},
+            headers={"X-Forwarded-Prefix": "/kova"},
         )
         assert r.status_code == 200
         html = r.text
-        assert 'href="/hermes/auth/login?provider=' in html
-        assert 'data-prefix="/hermes"' in html
+        assert 'href="/kova/auth/login?provider=' in html
+        assert 'data-prefix="/kova"' in html
 
     def test_login_page_bare_urls_without_proxy_header(self, gated_app):
         """Without X-Forwarded-Prefix the login page must use
@@ -499,12 +499,12 @@ class TestNextSameOriginValidation:
 
         # With prefix: path is prefixed
         assert (
-            _safe_next_target(FakeRequest("/sessions", prefix="/hermes"))
-            == "%2Fhermes%2Fsessions"
+            _safe_next_target(FakeRequest("/sessions", prefix="/kova"))
+            == "%2Fkova%2Fsessions"
         )
         assert (
-            _safe_next_target(FakeRequest("/sessions", "page=2", prefix="/hermes"))
-            == "%2Fhermes%2Fsessions%3Fpage%3D2"
+            _safe_next_target(FakeRequest("/sessions", "page=2", prefix="/kova"))
+            == "%2Fkova%2Fsessions%3Fpage%3D2"
         )
 
         # With multi-level prefix like /profile/nati
@@ -515,21 +515,21 @@ class TestNextSameOriginValidation:
 
         # Auth rejection paths still work with prefix
         assert (
-            _safe_next_target(FakeRequest("/login", prefix="/hermes"))
+            _safe_next_target(FakeRequest("/login", prefix="/kova"))
             == ""
         )
         assert (
-            _safe_next_target(FakeRequest("/auth/login", prefix="/hermes"))
+            _safe_next_target(FakeRequest("/auth/login", prefix="/kova"))
             == ""
         )
         assert (
-            _safe_next_target(FakeRequest("/api/auth/me", prefix="/hermes"))
+            _safe_next_target(FakeRequest("/api/auth/me", prefix="/kova"))
             == ""
         )
 
         # API paths rejected even with prefix
         assert (
-            _safe_next_target(FakeRequest("/api/analytics/models", prefix="/hermes"))
+            _safe_next_target(FakeRequest("/api/analytics/models", prefix="/kova"))
             == ""
         )
 
@@ -752,13 +752,13 @@ class TestRenderLoginHtmlNext:
 
     def test_prefix_prepended_to_provider_button_href(self):
         from kova_cli.dashboard_auth.login_page import render_login_html
-        html_out = render_login_html(prefix="/hermes")
-        assert 'href="/hermes/auth/login?provider=stub"' in html_out
+        html_out = render_login_html(prefix="/kova")
+        assert 'href="/kova/auth/login?provider=stub"' in html_out
 
     def test_prefix_with_next_threaded(self):
         from kova_cli.dashboard_auth.login_page import render_login_html
-        html_out = render_login_html(next_path="/sessions", prefix="/hermes")
-        assert 'href="/hermes/auth/login?provider=stub' in html_out
+        html_out = render_login_html(next_path="/sessions", prefix="/kova")
+        assert 'href="/kova/auth/login?provider=stub' in html_out
         assert "next=" in html_out
 
     def test_empty_prefix_produces_bare_root_urls(self):
@@ -773,8 +773,8 @@ class TestRenderLoginHtmlNext:
         """The <main> element must carry data-prefix so the password-login
         JS can read it."""
         from kova_cli.dashboard_auth.login_page import render_login_html
-        html_out = render_login_html(prefix="/hermes")
-        assert 'data-prefix="/hermes"' in html_out
+        html_out = render_login_html(prefix="/kova")
+        assert 'data-prefix="/kova"' in html_out
 
     def test_prefix_does_not_appear_without_explicit_prefix(self):
         from kova_cli.dashboard_auth.login_page import render_login_html
@@ -802,7 +802,7 @@ class TestAuthLoginPkceCookieNext:
         )
         assert r.status_code == 302
         cookies = r.headers.get_list("set-cookie")
-        pkce = next(c for c in cookies if "hermes_session_pkce" in c)
+        pkce = next(c for c in cookies if "kova_session_pkce" in c)
         assert "next=" not in pkce
 
 
@@ -816,5 +816,5 @@ class TestAuthLoginPkceCookieNext:
             follow_redirects=False,
         )
         cookies = r.headers.get_list("set-cookie")
-        pkce = next(c for c in cookies if "hermes_session_pkce" in c)
+        pkce = next(c for c in cookies if "kova_session_pkce" in c)
         assert "next=" not in pkce

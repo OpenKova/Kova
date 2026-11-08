@@ -51,14 +51,14 @@ DEFAULT_CONFIG = {
         "terminal_continue": True,
     },
     # Where the TUI/desktop gateway stages session file attachments (uploads, pasted
-    # text). "hermes-home" (default) keeps <profile home>/attachments — the dir
+    # text). "kova-home" (default) keeps <profile home>/attachments — the dir
     # container backends bind-mount, so @file: refs resolve in the sandbox (#76577).
     # "workspace" opts into <session workspace>/.kova/attachments: staging lands
     # inside the allowed ref root, so the same profile's agent can always read its
     # own attachments back (#110662). Read per profile from that profile's config;
     # a remote (ssh) workspace keeps the profile home dir either way.
     "attachments": {
-        "storage": "hermes-home",
+        "storage": "kova-home",
     },
     "agent": {
         # Turn cap. null = unlimited (default; caps caused silent mid-task truncation). Positive int
@@ -1254,7 +1254,7 @@ DEFAULT_CONFIG = {
         "provider": "auto",
         # sherpa: this IS the detected phrase; other engines: cosmetic label (detection is keyed by
         # the model/keyword below)
-        "phrase": "hey hermes",
+        "phrase": "hey kova",
         "sensitivity": 0.6,  # 0.0-1.0 threshold, consistent across engines (higher = stricter)
         # openWakeWord/pyopen-wakeword only: consecutive over-threshold frames to fire (higher = fewer
         # false triggers, more latency; 1 = single-frame)
@@ -1263,9 +1263,9 @@ DEFAULT_CONFIG = {
         # sherpa only: listen for every wake-enabled profile's phrase and route to it
         "profile_routing": True,
         "openwakeword": {
-            # "hey_hermes" | built-in openWakeWord name ("hey_jarvis", "alexa", ...) | path to a
+            # "hey_kova" | built-in openWakeWord name ("hey_jarvis", "alexa", ...) | path to a
             # custom .tflite model
-            "model": "hey_hermes",
+            "model": "hey_kova",
         },
         "sherpa": {
             # sherpa-onnx KWS model dir; empty = auto-download the small English zipformer

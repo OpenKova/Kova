@@ -25,7 +25,7 @@ def kova_home(tmp_path, monkeypatch):
     operator's real config.  Also blanks any provider env vars so we
     don't accidentally read a real key."""
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     for key in list(os.environ):
@@ -225,7 +225,7 @@ def test_cmd_setup_audit_log_failure_is_warning_not_abort(kova_home, monkeypatch
     monkeypatch.setattr(ip, "find_iron_proxy", lambda **kw: kova_home / "iron-proxy")
     monkeypatch.setattr(ip, "discover_provider_mappings", lambda **kw: [
         ip.TokenMapping(
-            proxy_token="hermes-proxy-deadbeef",
+            proxy_token="kova-proxy-deadbeef",
             real_env_name="OPENROUTER_API_KEY",
             upstream_hosts=("openrouter.ai",),
         ),

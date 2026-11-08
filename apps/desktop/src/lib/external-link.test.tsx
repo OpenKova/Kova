@@ -42,7 +42,7 @@ function installTitleBridge(title: string) {
 afterEach(() => {
   __resetLinkTitleCache()
   closeRightRail()
-  globalThis.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  globalThis.document.documentElement.removeAttribute('data-kova-desktop-host')
   setAlwaysExternalLinks(false)
   vi.restoreAllMocks()
   cleanup()

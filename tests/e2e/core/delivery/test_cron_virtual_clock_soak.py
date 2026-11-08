@@ -11,7 +11,7 @@ queue is performed by the driver after every tick settles (``H.drain_deliveries`
 Time: one file-backed virtual clock (see ``_cron_clock``).
 
 Oracle (independent of cron/jobs.py): per job, the expected fire set is computed from croniter
-over the job's configured zone (hermes ``timezone`` if set, else the process zone — "server
+over the job's configured zone (kova ``timezone`` if set, else the process zone — "server
 local"), stepping only through the tick instants the harness actually drove, with the documented
 policies:
 * a wall time that does not exist (spring-forward gap) fires once, shifted by the gap; a repeated
@@ -61,7 +61,7 @@ HOLD_STEPS = 30  # long run: 30 x 30 s = 15 virtual minutes (> 5 min fire-claim 
 @dataclasses.dataclass(frozen=True)
 class Scenario:
     id: str
-    hermes_tz: Optional[str]
+    kova_tz: Optional[str]
     process_tz: str
     start: date  # DST day is always start + 9
     child: bool = False  # a second ticker process + SIGKILL/restart mid-run

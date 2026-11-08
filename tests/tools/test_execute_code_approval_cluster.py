@@ -107,7 +107,7 @@ def test_rpc_carries_authority_to_real_dispatch(child_env, monkeypatch, transpor
         return original(name, args, *pos, **kwargs)
 
     monkeypatch.setattr(model_tools, "handle_function_call", dispatch)
-    code = f"from hermes_tools import read_file\nimport json\nprint(json.dumps(read_file({str(witness)!r})))"
+    code = f"from kova_tools import read_file\nimport json\nprint(json.dumps(read_file({str(witness)!r})))"
     try:
         for turn in ("first", "second"):
             witness.write_text(f"real RPC payload {turn}\n", encoding="utf-8")
@@ -464,7 +464,7 @@ def test_guard_session_yolo_bypasses(gw_session):
 # 4. Env scrubbing (#27303)
 # ---------------------------------------------------------------------------
 
-def test_env_scrub_hermes_allowlist_and_secret_blocks():
+def test_env_scrub_kova_allowlist_and_secret_blocks():
     from tools.code_execution_env import _scrub_child_env
 
     env = {

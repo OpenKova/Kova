@@ -32,22 +32,22 @@ _approval_session_id: contextvars.ContextVar[str] = _ctx("approval_session_id")
 # os.environ["KOVA_INTERACTIVE"] races: one session's `finally` restore can clobber another's set mid-run, dropping
 # it onto the non-interactive auto-approve path so a dangerous command runs without the approval callback firing
 # (GHSA-96vc-wcxf-jjff). None = unset → env fallback.
-_hermes_interactive_ctx: contextvars.ContextVar[str | None] = _ctx("hermes_interactive", None)
+_kova_interactive_ctx: contextvars.ContextVar[str | None] = _ctx("kova_interactive", None)
 
 
-def set_hermes_interactive_context(interactive: bool) -> contextvars.Token:
+def set_kova_interactive_context(interactive: bool) -> contextvars.Token:
     """Bind interactive mode for the current context instead of mutating os.environ."""
-    return _hermes_interactive_ctx.set("1" if interactive else "")
+    return _kova_interactive_ctx.set("1" if interactive else "")
 
 
-def reset_hermes_interactive_context(token: contextvars.Token) -> None:
-    """Restore the prior value from :func:`set_hermes_interactive_context`."""
-    _hermes_interactive_ctx.reset(token)
+def reset_kova_interactive_context(token: contextvars.Token) -> None:
+    """Restore the prior value from :func:`set_kova_interactive_context`."""
+    _kova_interactive_ctx.reset(token)
 
 
 def _is_interactive_cli() -> bool:
     """True for an interactive CLI/ACP session (contextvar first, env fallback)."""
-    ctx_val = _hermes_interactive_ctx.get()
+    ctx_val = _kova_interactive_ctx.get()
     return is_truthy_value(ctx_val) if ctx_val is not None else env_var_enabled("KOVA_INTERACTIVE")
 
 

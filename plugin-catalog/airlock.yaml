@@ -25,7 +25,7 @@ description: >-
   commands, on Linux, macOS and Windows, and end to end in the official image.
   Disclosure — hooks only (pre_tool_call, post_tool_call, pre_llm_call, subagent_start, on_session_reset,
   post_approval_response), no tools. No network, no LLM call, runs no command. Reads the profile's config.yaml
-  (home channels, approvals mode) and its own policy file (<HERMES_HOME>/airlock.yaml); lists directories to
+  (home channels, approvals mode) and its own policy file (<KOVA_HOME>/airlock.yaml); lists directories to
   expand wildcards in commands it checks; reads the first 200 KB of each file a send_message attaches, locally, to
   look for secrets. On Windows, reads the machine's own name (no lookup), tests which drive letters exist, and
   imports tools.environments.local._find_bash to know Git Bash's root. On a session's first turn, imports

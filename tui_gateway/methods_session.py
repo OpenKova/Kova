@@ -2157,7 +2157,7 @@ def _(rid, params: dict, session: dict) -> dict:
     except Exception:
         logger.warning("session.save: stored-session read failed; saving the in-memory history", exc_info=True)
         data = None
-    path = Path(session.get("profile_home") or get_kova_home()) / "sessions/saved" / f"hermes_conversation_{datetime.now():%Y%m%d_%H%M%S}.json"
+    path = Path(session.get("profile_home") or get_kova_home()) / "sessions/saved" / f"kova_conversation_{datetime.now():%Y%m%d_%H%M%S}.json"
     if not data:  # No stored row: the in-memory history as an importable snapshot (CLI fallback shape).
         started = getattr(agent := session["agent"], "session_start", None)
         started = started.timestamp() if isinstance(started, datetime) else session.get("created_at")

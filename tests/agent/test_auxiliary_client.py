@@ -493,7 +493,7 @@ class TestResolveCodexCredentialToken:
     """Token half of ``_resolve_codex_credential_and_base`` with no pool (auth.json only)."""
 
     def test_valid_auth_store(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -519,7 +519,7 @@ class TestResolveCodexCredentialToken:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         expired_jwt = f"{header}.{payload}.fakesig"
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -544,7 +544,7 @@ class TestResolveCodexCredentialToken:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         valid_jwt = f"{header}.{payload}.fakesig"
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -564,14 +564,14 @@ class TestResolveXaiOAuthForAux:
     def test_uses_pool_backed_credentials_without_singleton(self, tmp_path, monkeypatch):
         """Auxiliary xAI OAuth must see pool-only credentials.
 
-        ``hermes auth status`` already reports these as logged in; compression
+        ``kova auth status`` already reports these as logged in; compression
         should not fall through to "no auxiliary provider configured" just
         because the singleton auth-store entry is absent.
         """
         from agent.credential_pool import AUTH_TYPE_OAUTH, PooledCredential, load_pool
         from kova_cli.auth import DEFAULT_XAI_OAUTH_BASE_URL
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -603,7 +603,7 @@ class TestResolveXaiOAuthForAux:
         from agent.credential_pool import AUTH_TYPE_OAUTH, PooledCredential, load_pool
         from kova_cli.auth import DEFAULT_XAI_OAUTH_BASE_URL
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -801,7 +801,7 @@ class TestResolveProviderClientUniversalModelFallback:
 
     Aux tasks (title generation, vision, session search, etc.) routinely
     reach this function without an explicit model — the user's main
-    provider was picked via ``hermes model``, no per-task override is
+    provider was picked via ``kova model``, no per-task override is
     set, and the expectation is "just use my main model for side tasks
     too."  The resolver fills in ``model`` from a 3-step universal
     fallback before any provider branch runs:
@@ -903,7 +903,7 @@ class TestExpiredCodexFallback:
         payload = base64.urlsafe_b64encode(payload_data).rstrip(b"=").decode()
         expired_jwt = f"{header}.{payload}.fakesig"
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(json.dumps({
             "version": 1,
@@ -4077,7 +4077,7 @@ class TestCodexAuxiliaryAdapterReservedToolAliases:
         from agent.codex_responses_adapter import classify_responses_route
         from agent.transports.codex import ResponsesApiTransport
 
-        # Deterministic xAI branch: a non-xAI web backend keeps client dispatch under ``hermes_web_search``.
+        # Deterministic xAI branch: a non-xAI web backend keeps client dispatch under ``kova_web_search``.
         monkeypatch.setattr("agent.transports.codex._xai_prefers_native_web_search", lambda: False)
         adapter = _CodexCompletionsAdapter(SimpleNamespace(base_url=base_url), "m")
         resp_kwargs, _, _ = adapter._build_responses_kwargs(
@@ -4091,13 +4091,13 @@ class TestCodexAuxiliaryAdapterReservedToolAliases:
         assert resp_kwargs["tools"] == main_kwargs["tools"]
         assert all(t["strict"] is False for t in resp_kwargs["tools"])
         assert {t["name"] for t in resp_kwargs["tools"]} == {
-            f"hermes_{n}" if n in aliased else n
+            f"kova_{n}" if n in aliased else n
             for n in ("web_search", "search_files", "people_search", "read_file", "tool_search")
         }
         # Replayed history names the tool the way this request declares it; the alias map rides on the payload.
         history_names = [i["name"] for i in resp_kwargs["input"] if i.get("type") == "function_call"]
-        assert history_names == ["hermes_search_files" if "search_files" in aliased else "search_files"]
-        assert resp_kwargs.get("_wire_aliases", {}) == {f"hermes_{n}": n for n in aliased}
+        assert history_names == ["kova_search_files" if "search_files" in aliased else "search_files"]
+        assert resp_kwargs.get("_wire_aliases", {}) == {f"kova_{n}": n for n in aliased}
 
     def test_create_maps_aliases_back_and_never_sends_alias_map(self):
         sent = {}
@@ -4108,7 +4108,7 @@ class TestCodexAuxiliaryAdapterReservedToolAliases:
                 return SimpleNamespace(
                     status="completed", id="resp_1", usage=None,
                     output=[SimpleNamespace(type="function_call", call_id="c9", id="fc_9",
-                                            name="hermes_search_files", arguments='{"pattern": "x"}')],
+                                            name="kova_search_files", arguments='{"pattern": "x"}')],
                 )
 
         adapter = _CodexCompletionsAdapter(
@@ -4118,7 +4118,7 @@ class TestCodexAuxiliaryAdapterReservedToolAliases:
 
         wire_tools = sent.get("tools") or sent.get("extra_body", {}).get("tools")  # SDK transform bypass moves bulk fields
         assert "_wire_aliases" not in sent and "_wire_aliases" not in sent.get("extra_body", {})
-        assert "hermes_search_files" in {t["name"] for t in wire_tools}
+        assert "kova_search_files" in {t["name"] for t in wire_tools}
         assert [tc.function.name for tc in response.choices[0].message.tool_calls] == ["search_files"]
 
 

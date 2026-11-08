@@ -1,4 +1,4 @@
-"""`hermes config get/set` must recognize keys the runtime reads but DEFAULT_CONFIG leaves unseeded:
+"""`kova config get/set` must recognize keys the runtime reads but DEFAULT_CONFIG leaves unseeded:
 core provider selections (``browser.cloud_provider``, ``<category>.use_gateway``), MoA preset fields
 (``moa.presets.<name>.fanout``), core-owned keys with a known reader (``computer_use.backend``), and keys
 an ACTIVE plugin declares through ``config_keys``.
@@ -18,7 +18,7 @@ NOTICE = "not a recognized config key"
 
 @pytest.fixture(autouse=True)
 def kova_home(tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     (home / ".env").touch()
     with patch.dict(os.environ, {"KOVA_HOME": str(home)}):
@@ -126,7 +126,7 @@ def test_every_selection_category_key_set_is_what_read_selection_returns(kova_ho
     for dotted in selection_config_keys():
         section, key = dotted.split(".")
         name_keys.setdefault(section, set()).add(key)
-    # Every `hermes tools` / Tool Gateway category read_selection serves.
+    # Every `kova tools` / Tool Gateway category read_selection serves.
     assert {"web", "image_gen", "video_gen", "tts", "stt", "browser"} <= set(name_keys)
     for section, keys in name_keys.items():
         key = next(k for k in ("cloud_provider", "backend", "provider") if k in keys)
@@ -155,7 +155,7 @@ def test_plugin_config_keys_count_only_while_the_plugin_is_enabled(kova_home, ca
     assert _set_notice("display.widget.size", "5", capsys)  # disabled wins
 
 
-def test_portable_plugin_declares_config_keys_in_its_hermes_extension(kova_home, capsys):
+def test_portable_plugin_declares_config_keys_in_its_kova_extension(kova_home, capsys):
     plugin = kova_home / "plugins" / "portwidget"
     plugin.mkdir(parents=True)
     (plugin / "plugin.json").write_text(json.dumps({

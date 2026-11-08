@@ -88,7 +88,7 @@ def test_manifest_version_above_shared_support_is_refused_cleanly(
 
 
 def test_a_linked_plugin_slot_is_already_installed_not_a_bad_manifest(monkeypatch, tmp_path):
-    """A provider's own installer can leave ``plugins/<name>`` as a link into a venv (mnemosyne-hermes
+    """A provider's own installer can leave ``plugins/<name>`` as a link into a venv (mnemosyne-kova
     did). The catalog install must say the slot is taken, not record ``manifest_invalid``."""
     from kova_cli import plugins_cmd
 

@@ -406,7 +406,7 @@ function WhereRow({ lanUrl, locked, mode, onMode, onPublicUrl, port, publicUrl, 
             className={`${CONTROL_TEXT} mt-3 max-w-sm`}
             disabled={locked}
             onChange={event => onPublicUrl(event.target.value)}
-            placeholder="https://hermes.example.com"
+            placeholder="https://kova.example.com"
             value={publicUrl}
           />
         )

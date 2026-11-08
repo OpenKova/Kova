@@ -19,7 +19,7 @@ def _context(name: str = "notify-plugin") -> tuple[PluginContext, PluginManager]
 
 
 def _write_plugin_config(tmp_path, monkeypatch, entry: dict) -> None:
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir()
     (kova_home / "config.yaml").write_text(
         yaml.safe_dump({"plugins": {"entries": {"notify-plugin": entry}}})

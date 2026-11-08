@@ -8,4 +8,4 @@ def test_one_shot_cli_preserves_refusal_reason(monkeypatch, capsys):
     monkeypatch.setattr(active_sessions, "try_acquire_active_session", lambda **kwargs: (None, refusal))
     cli = SimpleNamespace(_active_session_lease=None, session_id="isolated", config={})
     assert not KovaCLI._claim_active_session(cli, stderr=True)
-    assert "hermes-refusal-reason: SESSION_NOT_OWNED\n" in capsys.readouterr().err
+    assert "kova-refusal-reason: SESSION_NOT_OWNED\n" in capsys.readouterr().err

@@ -97,7 +97,7 @@ def _entry(proc: subprocess.Popen, purpose: str = "serve") -> dict:
 
 
 def test_live_supervised_serve_suppresses_cold_start(sleeper, monkeypatch, tmp_path):
-    from kova_cli import gateway as hermes_gateway
+    from kova_cli import gateway as kova_gateway
     from kova_cli import gateway_windows
     from kova_cli import update_cmd
 
@@ -111,7 +111,7 @@ def test_live_supervised_serve_suppresses_cold_start(sleeper, monkeypatch, tmp_p
 
     # Autostart artifact present + no gateway running: WITHOUT ownership the
     # pause phase would plan a cold start; WITH it, no plan.
-    monkeypatch.setattr(hermes_gateway, "find_gateway_pids", lambda **_k: [])
+    monkeypatch.setattr(kova_gateway, "find_gateway_pids", lambda **_k: [])
     monkeypatch.setattr(gateway_windows, "is_installed", lambda: True)
     assert update_cmd._pause_windows_gateways_for_update() is None
 

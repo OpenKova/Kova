@@ -76,7 +76,7 @@ def test_pm_node_wins_over_legacy_tree_and_composes_child_environment(node_store
     resolved = kova_constants.find_node_executable("node")
     assert resolved is not None and resolved == str(binary)
     base = {"PATH": str(Path(external).parent), "CALLER_VALUE": "preserved"}
-    environment = kova_constants.with_hermes_node_path(base)
+    environment = kova_constants.with_kova_node_path(base)
     assert environment == pm.env_for("npm", base_env=base)
     assert shutil.which("node", path=environment["PATH"]) == str(binary)
     child = subprocess.run(
@@ -110,7 +110,7 @@ def test_passive_discovery_never_installs_or_repairs_a_legacy_tree(tmp_path, mon
     monkeypatch.setattr(pm, "ensure", forbidden_install)
     assert kova_constants.find_node_executable("node") is None
     assert kova_constants.find_node_executable("npm") is None
-    assert kova_constants.with_hermes_node_path({"PATH": ""}) == {"PATH": ""}
+    assert kova_constants.with_kova_node_path({"PATH": ""}) == {"PATH": ""}
     assert attempts == []
     assert {p.relative_to(home): p.read_bytes() for p in home.rglob("*") if p.is_file()} == before
     assert not (home / "tools").exists()
@@ -152,7 +152,7 @@ def test_npm_and_npx_use_the_paired_pm_entry(node_store, monkeypatch):
 
     assert kova_constants.find_node_executable("npm") == str(binary)
     assert kova_constants.find_node_executable("npx") == str(companion)
-    environment = kova_constants.with_hermes_node_path({"PATH": ""})
+    environment = kova_constants.with_kova_node_path({"PATH": ""})
     assert shutil.which("npm", path=environment["PATH"]) == str(binary)
     assert shutil.which("node", path=environment["PATH"]) == str(node)
     for command in ("npm", "npx"):

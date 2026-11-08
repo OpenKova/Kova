@@ -17,7 +17,7 @@ from kova_cli import gateway_setup_service as setup_service
 def supervisor(tmp_path, monkeypatch):
     # The installer intentionally rejects /tmp profiles. A disposable RAM-backed
     # home exercises that real guard without disabling it or touching user state.
-    with tempfile.TemporaryDirectory(prefix="hermes-choice-", dir="/dev/shm") as directory:
+    with tempfile.TemporaryDirectory(prefix="kova-choice-", dir="/dev/shm") as directory:
         home = Path(directory)
         profile = home / "profile"
         profile.mkdir()

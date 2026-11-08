@@ -66,7 +66,7 @@ def _install_example_plugin(_isolate_kova_home):
     The user-plugin source is preferred over a transient
     ``KOVA_BUNDLED_PLUGINS`` override because the bundled dir is
     resolved per-call (other tests in the suite implicitly rely on the
-    real bundled plugins — kanban, hermes-achievements, model providers
+    real bundled plugins — kanban, kova-achievements, model providers
     — being available, and globally swapping that root would yank them
     all). User plugins are first in the discovery search order, so
     laying down the fixture here is enough.
@@ -86,7 +86,7 @@ def _install_example_plugin(_isolate_kova_home):
     # An installed-but-not-enabled user plugin has its API mount skipped
     # and its assets 404'd — which is the whole point of the gate. These
     # fixtures exist to exercise the *serving* paths, so opt the example
-    # plugin in exactly as a real operator would with `hermes plugins
+    # plugin in exactly as a real operator would with `kova plugins
     # enable example`.
     from kova_cli.config import load_config, save_config
     _cfg = load_config()
@@ -612,7 +612,7 @@ class FlatProvMemoryProvider(MemoryProvider):
             {"key": "mode", "label": "Mode", "choices": ["cloud", "local_external"], "default": "cloud"},
             {"key": "api_url", "label": "API URL", "default": ""},
             {"key": "api_key", "label": "API key", "secret": True, "env_var": "FLATPROV_API_KEY"},
-            {"key": "bank_id", "label": "Bank", "default": "hermes"},
+            {"key": "bank_id", "label": "Bank", "default": "kova"},
             {"key": "recall_budget", "label": "Budget", "choices": ["low", "mid", "high"], "default": "mid"},
         ]
 
@@ -709,7 +709,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         data = resp.json()
         pip_rows = [row for row in data["results"] if row["kind"] == "pip"]
         assert pip_rows and pip_rows[0]["status"] == "installed"
-        assert pip_rows[0]["command"] == "hermes pm install"
+        assert pip_rows[0]["command"] == "kova pm install"
         assert prepared == ["flatprov"]
 
 
@@ -754,7 +754,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
                     "mode": "cloud",
                     "api_url": "https://api.example.invalid",
                     "api_key": "secret-value",
-                    "bank_id": "hermes",
+                    "bank_id": "kova",
                     "recall_budget": "mid",
                 }
             },
@@ -799,7 +799,7 @@ from kova_constants import get_kova_home
 
 
 def resolve_active_host():
-    return "hermes"
+    return "kova"
 
 
 def resolve_config_path():
@@ -874,7 +874,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
                     "environment": "local",
                     "workspace": "myws",
                     "peerName": "eri",
-                    "aiPeer": "hermes",
+                    "aiPeer": "kova",
                     "sessionStrategy": "per-repo",
                 }
             },
@@ -888,12 +888,12 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         cfg = json.loads(config_path.read_text(encoding="utf-8"))
         # baseUrl is root-scoped; the rest live in the active host block.
         assert cfg["baseUrl"] == "https://honcho.example.dev"
-        assert cfg["hosts"]["hermes"]["workspace"] == "myws"
-        assert cfg["hosts"]["hermes"]["peerName"] == "eri"
-        assert cfg["hosts"]["hermes"]["environment"] == "local"
-        assert cfg["hosts"]["hermes"]["sessionStrategy"] == "per-repo"
+        assert cfg["hosts"]["kova"]["workspace"] == "myws"
+        assert cfg["hosts"]["kova"]["peerName"] == "eri"
+        assert cfg["hosts"]["kova"]["environment"] == "local"
+        assert cfg["hosts"]["kova"]["sessionStrategy"] == "per-repo"
         # The key lands where the client reads first; GET keeps it write-only.
-        assert cfg["hosts"]["hermes"]["apiKey"] == "hch-test-key"
+        assert cfg["hosts"]["kova"]["apiKey"] == "hch-test-key"
 
 
     def test_get_host_block_config_does_not_return_secret(self):
@@ -934,7 +934,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert resp.status_code == 200
         cfg = json.loads(config_path.read_text(encoding="utf-8"))
         assert cfg["hosts"]["other"]["apiKey"] == "keep-me"
-        assert cfg["hosts"]["hermes"]["workspace"] == "myws"
+        assert cfg["hosts"]["kova"]["workspace"] == "myws"
 
 
     # ── GET /api/media (remote image display) ───────────────────────────
@@ -1148,14 +1148,14 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert resp.json()["session_id"] == "primary-cont"
 
 
-    def test_update_hermes_returns_docker_guidance_without_spawning(self, monkeypatch):
+    def test_update_kova_returns_docker_guidance_without_spawning(self, monkeypatch):
 
         spawned = False
 
         def fail_spawn(*_args, **_kwargs):
             nonlocal spawned
             spawned = True
-            raise AssertionError("docker update guard should not spawn hermes update")
+            raise AssertionError("docker update guard should not spawn kova update")
 
         # Bypass the managed-externally gate so we reach the docker install check.
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
@@ -1165,35 +1165,35 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             "kova_cli.config.detect_install_method", lambda *_a, **_k: "docker"
         )
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "docker")
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn)
-        _web_server_gateway._ACTION_PROCS.pop("hermes-update", None)
-        _web_server_gateway._ACTION_RESULTS.pop("hermes-update", None)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fail_spawn)
+        _web_server_gateway._ACTION_PROCS.pop("kova-update", None)
+        _web_server_gateway._ACTION_RESULTS.pop("kova-update", None)
 
-        resp = self.client.post("/api/hermes/update")
+        resp = self.client.post("/api/kova/update")
 
         assert resp.status_code == 200
         data = resp.json()
         assert data["ok"] is False
-        assert data["name"] == "hermes-update"
+        assert data["name"] == "kova-update"
         assert data["pid"] is None
         assert data["error"] == "docker_update_unsupported"
         assert spawned is False
 
-        status = self.client.get("/api/actions/hermes-update/status")
+        status = self.client.get("/api/actions/kova-update/status")
         assert status.status_code == 200
         status_data = status.json()
         assert status_data["running"] is False
         assert status_data["exit_code"] == 1
         assert status_data["pid"] is None
 
-    def test_update_hermes_returns_apt_guidance_without_spawning(self, monkeypatch):
+    def test_update_kova_returns_apt_guidance_without_spawning(self, monkeypatch):
 
         spawned = False
 
         def fail_spawn(*_args, **_kwargs):
             nonlocal spawned
             spawned = True
-            raise AssertionError("APT-managed update guard should not spawn hermes update")
+            raise AssertionError("APT-managed update guard should not spawn kova update")
 
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
         # The shared admission gate (#91277 Phase 3) resolves the install
@@ -1203,11 +1203,11 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             "kova_cli.config.detect_install_method", lambda *_a, **_k: "apt"
         )
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "apt")
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn)
-        _web_server_gateway._ACTION_PROCS.pop("hermes-update", None)
-        _web_server_gateway._ACTION_RESULTS.pop("hermes-update", None)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fail_spawn)
+        _web_server_gateway._ACTION_PROCS.pop("kova-update", None)
+        _web_server_gateway._ACTION_RESULTS.pop("kova-update", None)
 
-        resp = self.client.post("/api/hermes/update")
+        resp = self.client.post("/api/kova/update")
 
         assert resp.status_code == 200
         data = resp.json()
@@ -1217,14 +1217,14 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         assert data["update_command"]
         assert spawned is False
 
-        check = self.client.get("/api/hermes/update/check")
+        check = self.client.get("/api/kova/update/check")
         assert check.status_code == 200
         check_data = check.json()
         assert check_data["install_method"] == "apt"
         assert check_data["can_apply"] is False
         assert check_data["update_command"] == data["update_command"]
 
-    def test_update_hermes_spawns_with_action_id(self, monkeypatch):
+    def test_update_kova_spawns_with_action_id(self, monkeypatch):
         from kova_cli import web_server
 
         class Proc:
@@ -1239,24 +1239,24 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(web_server.secrets, "token_hex", lambda _size: "a" * 32)
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fake_spawn)
-        _web_server_gateway._ACTION_PROCS.pop("hermes-update", None)
-        _web_server_gateway._ACTION_RESULTS.pop("hermes-update", None)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fake_spawn)
+        _web_server_gateway._ACTION_PROCS.pop("kova-update", None)
+        _web_server_gateway._ACTION_RESULTS.pop("kova-update", None)
 
-        resp = self.client.post("/api/hermes/update")
+        resp = self.client.post("/api/kova/update")
 
         assert resp.status_code == 200
         assert resp.json() == {
             "ok": True,
             "pid": 12345,
-            "name": "hermes-update",
+            "name": "kova-update",
             "action_id": "a" * 32,
         }
         assert calls == [
-            (["update"], "hermes-update", {"KOVA_ACTION_ID": "a" * 32})
+            (["update"], "kova-update", {"KOVA_ACTION_ID": "a" * 32})
         ]
 
-    def test_update_hermes_reuses_running_action(self, monkeypatch):
+    def test_update_kova_reuses_running_action(self, monkeypatch):
 
         class Proc:
             pid = 24680
@@ -1268,23 +1268,23 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         monkeypatch.setattr(_cfg_mod, "detect_install_method", lambda _root: "git")
         monkeypatch.setattr(
             _web_server_gateway,
-            "_spawn_hermes_action",
+            "_spawn_kova_action",
             lambda *_args, **_kwargs: pytest.fail("must not spawn a duplicate update"),
         )
-        _web_server_gateway._ACTION_PROCS["hermes-update"] = Proc()
-        _web_server_gateway._ACTION_IDS["hermes-update"] = "b" * 32
+        _web_server_gateway._ACTION_PROCS["kova-update"] = Proc()
+        _web_server_gateway._ACTION_IDS["kova-update"] = "b" * 32
 
         try:
-            resp = self.client.post("/api/hermes/update")
+            resp = self.client.post("/api/kova/update")
         finally:
-            _web_server_gateway._ACTION_PROCS.pop("hermes-update", None)
-            _web_server_gateway._ACTION_IDS.pop("hermes-update", None)
+            _web_server_gateway._ACTION_PROCS.pop("kova-update", None)
+            _web_server_gateway._ACTION_IDS.pop("kova-update", None)
 
         assert resp.status_code == 200
         assert resp.json() == {
             "ok": True,
             "pid": 24680,
-            "name": "hermes-update",
+            "name": "kova-update",
             "already_running": True,
             "action_id": "b" * 32,
         }
@@ -1449,9 +1449,9 @@ CONFIG_SCHEMA = ProviderConfigSchema(
                 return {
                     "pairing_id": "pair-restart-fails",
                     "poll_token": "poll-secret",
-                    "suggested_username": "hermes_pair_restart_fails_bot",
-                    "deep_link": "https://t.me/newbot/KovaSetupBot/hermes_pair_restart_fails_bot",
-                    "qr_payload": "https://t.me/newbot/KovaSetupBot/hermes_pair_restart_fails_bot",
+                    "suggested_username": "kova_pair_restart_fails_bot",
+                    "deep_link": "https://t.me/newbot/KovaSetupBot/kova_pair_restart_fails_bot",
+                    "qr_payload": "https://t.me/newbot/KovaSetupBot/kova_pair_restart_fails_bot",
                     "expires_at": "2027-05-18T00:00:00.000Z",
                 }
             assert method == "GET"
@@ -1459,7 +1459,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             assert bearer_token == "poll-secret"
             return {
                 "status": "ready",
-                "bot_username": "hermes_pair_restart_fails_bot",
+                "bot_username": "kova_pair_restart_fails_bot",
                 "owner_user_id": 123456789,
                 "token": "123456:SECRET",
             }
@@ -1473,7 +1473,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             assert name == "gateway-restart"
             raise RuntimeError("supervisor unavailable")
 
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn_action)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fail_spawn_action)
 
         start = self.client.post("/api/messaging/telegram/onboarding/start", json={})
         assert start.status_code == 200
@@ -1553,7 +1553,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """A custom endpoint that requires auth must persist model.api_key (where
         the runtime reads it) AND register a named custom_providers entry so the
         endpoint reappears as a ready row in the picker — matching the
-        ``hermes model`` custom flow. Regression for the desktop loop where a
+        ``kova model`` custom flow. Regression for the desktop loop where a
         keyed custom endpoint could never be configured from the GUI."""
         from kova_cli.config import load_config
 
@@ -3139,13 +3139,13 @@ class TestNewEndpoints:
         config = load_config()
         config.setdefault("terminal", {})
         config["terminal"]["ssh_host"] = "devbox.example.com"
-        config["terminal"]["ssh_user"] = "hermes"
+        config["terminal"]["ssh_user"] = "kova"
         save_config(config)
 
         body = self.client.get("/api/tools/terminal/backends").json()
         ssh = next(r for r in body["backends"] if r["name"] == "ssh")
         assert ssh["status"] == "ready"
-        assert "hermes@devbox.example.com" in ssh["detail"]
+        assert "kova@devbox.example.com" in ssh["detail"]
 
 
     def test_analytics_usage_includes_skill_breakdown(self):
@@ -3323,7 +3323,7 @@ class TestDesktopHostRendezvousIsolation:
 
     def test_desktop_backend_does_not_claim_the_host_serve_record(self, monkeypatch, tmp_path):
         """A Desktop child must not block a separately supervised public dashboard, yet a
-        terminal `hermes plugins install` on a Desktop-only box must still find it (#119644):
+        terminal `kova plugins install` on a Desktop-only box must still find it (#119644):
         it publishes under its OWN role, which the attach ladder never reads."""
         import io
         import urllib.request
@@ -3347,7 +3347,7 @@ class TestDesktopHostRendezvousIsolation:
                 return False
 
         def _fake_urlopen(request, timeout=None):
-            dialed.append((request.full_url, request.get_header("X-hermes-session-token")))
+            dialed.append((request.full_url, request.get_header("X-kova-session-token")))
             return _Reply(b'{"ok": true}')
 
         monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
@@ -3357,7 +3357,7 @@ class TestDesktopHostRendezvousIsolation:
             # Not a host owner: the supervised public dashboard's attach ladder sees nobody.
             assert hr.read_record(hr.ROLE_SERVE) is None
             assert _host_backend_attachment() is None
-            # ...but a terminal `hermes plugins install` still lights up its open chats.
+            # ...but a terminal `kova plugins install` still lights up its open chats.
             assert notify_serve_backend("demo", tmp_path) == {"ok": True}
             assert dialed == [("http://127.0.0.1:9231/api/dashboard/agent-plugins/activate",
                                "desktop-spawn-token")]
@@ -3839,7 +3839,7 @@ class TestStatusInstallId:
         the same id file — profiles share one physical install identity."""
         import kova_cli.web_server as ws
 
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         profile_home = root / "profiles" / "research"
         profile_home.mkdir(parents=True)
 
@@ -3858,7 +3858,7 @@ class TestStatusInstallId:
     def test_corrupt_id_file_is_replaced_not_propagated(self, monkeypatch, tmp_path):
         import kova_cli.web_server as ws
 
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         root.mkdir()
         (root / "install_id").write_text("not-a-valid-id\n", encoding="utf-8")
         monkeypatch.setenv("KOVA_HOME", str(root))
@@ -4179,11 +4179,11 @@ class TestThemeBootstrapCSS:
         client = self._mount_spa_client(tmp_path, monkeypatch)
         resp = client.get("/chat")
         assert resp.status_code == 200
-        assert '<style id="hermes-theme-bootstrap">' in resp.text
+        assert '<style id="kova-theme-bootstrap">' in resp.text
         assert "--background-base:#0a1628;" in resp.text
         # Injected inside <head>, before the closing tag.
         head = resp.text.split("</head>")[0]
-        assert "hermes-theme-bootstrap" in head
+        assert "kova-theme-bootstrap" in head
 
 
 class TestNormaliseThemeExtensions:
@@ -4635,12 +4635,12 @@ class TestPluginAPIAuth:
         """Auth must be plugin-agnostic, not kanban-specific.
 
         The middleware fix is at the gate level (no per-plugin allowlist),
-        so any plugin's API surface — kanban, hermes-achievements, future
+        so any plugin's API surface — kanban, kova-achievements, future
         plugins — must require the session token. Hit a non-kanban plugin
         path to lock that in.
         """
-        # Real plugin path (hermes-achievements is loaded by default).
-        resp = self.client.get("/api/plugins/hermes-achievements/overview")
+        # Real plugin path (kova-achievements is loaded by default).
+        resp = self.client.get("/api/plugins/kova-achievements/overview")
         assert resp.status_code == 401
         # Same for an arbitrary plugin namespace that doesn't even exist —
         # the middleware should 401 before routing decides 404, so an
@@ -4708,8 +4708,8 @@ class TestDashboardPluginManifestExtensions:
     def test_user_plugins_found_under_profile_scoped_process(self, tmp_path, monkeypatch):
         """Regression #87197: a profile-scoped process (``--profile <name>``
         sets KOVA_HOME=<root>/profiles/<name>) must still discover user
-        plugins installed in the hermes root's plugins/ directory."""
-        root = tmp_path / "hermes-root"
+        plugins installed in the kova root's plugins/ directory."""
+        root = tmp_path / "kova-root"
         profile_home = root / "profiles" / "presale"
         profile_home.mkdir(parents=True)
         self._write_plugin(root, "meeting-intelligence", {
@@ -4726,7 +4726,7 @@ class TestDashboardPluginManifestExtensions:
     def test_profile_local_plugin_wins_over_root_plugin(self, tmp_path, monkeypatch):
         """A same-named plugin in the profile home takes precedence over the
         root copy (seen_names dedupe, profile scanned first)."""
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         profile_home = root / "profiles" / "presale"
         profile_home.mkdir(parents=True)
         self._write_plugin(profile_home, "dupe", {
@@ -4796,7 +4796,7 @@ class TestDashboardPluginManifestExtensions:
 # /api/pty WebSocket — terminal bridge for the dashboard "Chat" tab.
 #
 # These tests drive the endpoint with a tiny fake command (typically ``cat``
-# or ``sh -c 'printf …'``) instead of the real ``hermes --tui`` binary.  The
+# or ``sh -c 'printf …'``) instead of the real ``kova --tui`` binary.  The
 # endpoint resolves its argv through ``_resolve_chat_argv``, so tests
 # monkeypatch that hook.
 # ---------------------------------------------------------------------------
@@ -4838,7 +4838,7 @@ class TestPtyWebSocket:
     def test_tui_python_command_uses_child_path(self, tmp_path):
         """Bare Python commands are resolved from the TUI child's PATH."""
 
-        command = f"hermes-review-python{Path(sys.executable).suffix}"
+        command = f"kova-review-python{Path(sys.executable).suffix}"
         bin_dir = tmp_path / "bin"
         bin_dir.mkdir()
         executable = bin_dir / command
@@ -5317,7 +5317,7 @@ class TestServeIndexMissingIndex:
 
 
 class TestHeadlessServeTokenPage:
-    """Headless `hermes serve` must serve the Desktop token handshake page
+    """Headless `kova serve` must serve the Desktop token handshake page
     at `/` when the dashboard auth gate is off (#94227).
 
     The Electron renderer boots by fetching `/` and extracting
@@ -5443,12 +5443,12 @@ class TestHashedAssetCacheHeaders:
         # handling) must survive the header change.
         prefixed = client.get(
             "/assets/index-abc123.css",
-            headers={"X-Forwarded-Prefix": "/hermes"},
+            headers={"X-Forwarded-Prefix": "/kova"},
         )
         assert prefixed.status_code == 200
         assert prefixed.headers["cache-control"] == self._IMMUTABLE
-        assert "url(/hermes/ds-assets/bg.png)" in prefixed.text
-        assert "url(/hermes/fonts-terminal/x.woff2)" in prefixed.text
+        assert "url(/kova/ds-assets/bg.png)" in prefixed.text
+        assert "url(/kova/fonts-terminal/x.woff2)" in prefixed.text
 
     def test_index_html_stays_no_store(self, tmp_path, monkeypatch):
         client = self._client(tmp_path, monkeypatch)

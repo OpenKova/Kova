@@ -1,6 +1,6 @@
 """C6: every shipped module and every entrypoint works in a FRESH process after an update.
 
-The ``hermes update`` failure class this guards (issue_classes.md C6): after the pull every
+The ``kova update`` failure class this guards (issue_classes.md C6): after the pull every
 command dies with ``ImportError: cannot import name 'file_signature'`` (#111942, #111943,
 #112522, #114616), a module-level ``NameError``/circular import only shows up in a clean
 interpreter, or the restart phase of a pre-hand-off updater imports new code into a stale
@@ -116,7 +116,7 @@ _POST_PURGE_IMPORTS = (
     "kova_cli.gateway_migrate", "kova_cli.profiles", "kova_cli.backup", "kova_cli.model_catalog",
     "kova_cli.plugin_compat", "agent.curator", "tools.skills_sync", "tools.browser_tool",
 )
-# What the pre-hand-off ``hermes update`` process had imported before the pull.
+# What the pre-hand-off ``kova update`` process had imported before the pull.
 _OLD_UPDATER_GRAPH = ("kova_cli.main", "kova_cli.update_cmd", "kova_cli.config", "kova_cli.gateway")
 
 _READY_RE = re.compile(r"^KOVA_(?:BACKEND|DASHBOARD)_READY port=(\d+)", re.MULTILINE)  # electron/backend-ready.ts
@@ -160,7 +160,7 @@ def _tracked(prefix: str = "") -> set[str] | None:
 
 def _root_py_modules() -> list[str]:
     """``setup.py::_root_py_modules()`` — the list the wheel build ships."""
-    spec = importlib.util.spec_from_file_location("_hermes_setup_py_c6", WORKTREE / "setup.py")
+    spec = importlib.util.spec_from_file_location("_kova_setup_py_c6", WORKTREE / "setup.py")
     mod = importlib.util.module_from_spec(spec)
     saved = sys.argv
     sys.argv = ["setup.py", "--name"]  # setup() must not build anything on import
@@ -222,7 +222,7 @@ def _shipped_modules() -> tuple[list[dict], set[str]]:
                 entries.append({"id": rel, "kind": "plugin", "root": str(plugin_root), "slug": slug, "sub": sub})
             else:
                 entries.append({"id": rel, "kind": "file", "file": str(f), "slug": re.sub(r"\W", "_", rel[:-3])})
-    first_party = set(roots) | {p.split(".")[0] for p in pkgs} | {"hermes_plugins"}
+    first_party = set(roots) | {p.split(".")[0] for p in pkgs} | {"kova_plugins"}
     return entries, first_party
 
 
@@ -268,11 +268,11 @@ def _import(entry):
     if entry["kind"] == "name":
         importlib.import_module(entry["name"])
         return
-    ns = types.ModuleType("hermes_plugins")  # plugins_loader's synthetic namespace parent
+    ns = types.ModuleType("kova_plugins")  # plugins_loader's synthetic namespace parent
     ns.__path__ = []
-    ns.__package__ = "hermes_plugins"
-    sys.modules.setdefault("hermes_plugins", ns)
-    name = "hermes_plugins." + entry["slug"]
+    ns.__package__ = "kova_plugins"
+    sys.modules.setdefault("kova_plugins", ns)
+    name = "kova_plugins." + entry["slug"]
     if entry["kind"] == "plugin":
         _load_file_module(name, os.path.join(entry["root"], "__init__.py"), [entry["root"]])
         if entry["sub"]:
@@ -356,7 +356,7 @@ os.rename(checkout, checkout + ".pre-pull")
 os.rename(spec["new_tree"], checkout)
 
 # The OLD updater's own post-pull steps, called the way it calls them (``_m()._...``).
-for step in ("_reload_updated_runtime_modules", "_purge_stale_hermes_modules"):
+for step in ("_reload_updated_runtime_modules", "_purge_stale_kova_modules"):
     fn = getattr(main, step, None)
     if fn is not None:
         fn()
@@ -541,7 +541,7 @@ def _pre_handoff_tag() -> tuple[str, str] | None:
     tag = next((t for t in I.release_tags() if I.updater_generation(t) == "pre-handoff"), None)
     if tag is None:
         return None
-    grep = _git("grep", "-l", "def _purge_stale_hermes_modules", tag, "--", "kova_cli")
+    grep = _git("grep", "-l", "def _purge_stale_kova_modules", tag, "--", "kova_cli")
     return (tag, grep.stdout.strip()) if grep.returncode == 0 and grep.stdout.strip() else None
 
 
@@ -653,10 +653,10 @@ _ENTRIES = {
     "module-oneshot": Entry("module", ("-z",), frozenset({0}), turn=True),
     # The #111942 symptom: the interactive CLI died at startup whenever config.yaml existed.
     "module-interactive-cli": Entry("module", (), frozenset({0}), tty=True),
-    "hermes-version": Entry("hermes", ("--version",), frozenset({0}), prints_version=True),
-    "hermes-help": Entry("hermes", ("--help",), frozenset({0})),
-    "hermes-acp-version": Entry("hermes-acp", ("--version",), frozenset({0}), prints_version=True),
-    "hermes-acp-help": Entry("hermes-acp", ("--help",), frozenset({0})),
+    "kova-version": Entry("kova", ("--version",), frozenset({0}), prints_version=True),
+    "kova-help": Entry("kova", ("--help",), frozenset({0})),
+    "kova-acp-version": Entry("kova-acp", ("--version",), frozenset({0}), prints_version=True),
+    "kova-acp-help": Entry("kova-acp", ("--help",), frozenset({0})),
     "kova-agent-help": Entry("kova-agent", ("--help",), frozenset({0})),
 }
 def _run_on_tty(argv: list[str], *, env: dict[str, str], cwd: Path, writable: list[Path],

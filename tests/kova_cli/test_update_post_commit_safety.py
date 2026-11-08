@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def _child_env(**values: str) -> dict[str, str]:
-    """A fresh env for a child of THIS interpreter: same dependency path, no hermes state."""
+    """A fresh env for a child of THIS interpreter: same dependency path, no kova state."""
     env = {key: value for key, value in os.environ.items() if not key.startswith(("KOVA_", "PYTEST_"))}
     # The test runner may provide dependencies through sys.path rather than site-packages.
     env["PYTHONPATH"] = os.pathsep.join(path for path in sys.path if path)
@@ -97,11 +97,11 @@ _CHILD = textwrap.dedent('''
             update_cmd._recover_gateway_restart_after_abort = lambda plan, **kwargs: {}
     if mode == "ipc-windows":
         # The Windows service manager refuses the paused gateway's restart.
-        from kova_cli import main as hermes_main
+        from kova_cli import main as kova_main
         def scm(token):
             if token and token.get("resume_needed"):
                 raise RuntimeError("Could not restart Windows gateway service(s): KovaGatewayProbe")
-        hermes_main._resume_windows_gateways_after_update = scm
+        kova_main._resume_windows_gateways_after_update = scm
         update_cmd._resume_windows_gateways_after_update = scm
         windows_resume = {"resume_needed": True, "services": ["KovaGatewayProbe"],
                           "service_profiles": {"KovaGatewayProbe": "probe"}}
@@ -163,7 +163,7 @@ def _run_completion(tmp_path: Path, mode: str, *, sqlite: str | None = None) -> 
                      KOVA_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
                      XDG_CONFIG_HOME=str(cell / "home/.config"), XDG_CACHE_HOME=str(cell / "home/.cache"),
                      XDG_STATE_HOME=str(cell / "home/.local/state"),
-                     KOVA_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/hermes/gateway-locks"))
+                     KOVA_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/kova/gateway-locks"))
     if sqlite is not None:
         payload = json.dumps({"base_prefix": sys.base_prefix, "executable": sys.executable,
                               "python_version": list(sys.version_info[:3]),
@@ -289,8 +289,8 @@ _ZIP_PARENT = textwrap.dedent('''
     sys.path.insert(0, root_checkout)
     cell = Path(cell)
     calls = cell / "parent-resume-calls.jsonl"
-    from kova_cli import main as hermes_main, update_cmd, update_inventory, update_receipt
-    hermes_main.PROJECT_ROOT = cell / "source"
+    from kova_cli import main as kova_main, update_cmd, update_inventory, update_receipt
+    kova_main.PROJECT_ROOT = cell / "source"
     receipts = update_receipt._receipt_dir()
     receipts.mkdir(parents=True, exist_ok=True)
     os.environ["PROBE_RECEIPTS"] = str(receipts)
@@ -299,19 +299,19 @@ _ZIP_PARENT = textwrap.dedent('''
     def no_inventory():
         raise RuntimeError("the host's runtime inventory is not part of this probe")
     update_inventory.collect_runtime_inventory = no_inventory
-    hermes_main._update_preflight_handled = lambda args: False
-    hermes_main._install_hangup_protection = lambda **kwargs: None
-    hermes_main._finalize_update_output = lambda state: None
-    hermes_main._run_pre_update_backup = lambda args: None
+    kova_main._update_preflight_handled = lambda args: False
+    kova_main._install_hangup_protection = lambda **kwargs: None
+    kova_main._finalize_update_output = lambda state: None
+    kova_main._run_pre_update_backup = lambda args: None
     token = {"resume_needed": True, "profiles": {}, "unmapped": [], "services": ["KovaGatewayProbe"],
              "service_profiles": {"KovaGatewayProbe": "probe"}}
-    hermes_main._pause_windows_gateways_for_update = lambda: token
+    kova_main._pause_windows_gateways_for_update = lambda: token
     def scm(resume_token):
         with calls.open("a") as handle:
             handle.write(json.dumps(bool(resume_token and resume_token.get("resume_needed"))) + "\\n")
         if resume_token and resume_token.get("resume_needed"):
             raise RuntimeError("Could not restart Windows gateway service(s): KovaGatewayProbe")
-    hermes_main._resume_windows_gateways_after_update = scm
+    kova_main._resume_windows_gateways_after_update = scm
     update_cmd._prepare_git_command = lambda **_: (True, None, False)
     def via_zip(args, *, had_desktop_app_before_update, target_sha=None, completion_request=None, **kwargs):
         completion_request["expected_sha"] = target_sha
@@ -321,7 +321,7 @@ _ZIP_PARENT = textwrap.dedent('''
     class Args(SimpleNamespace):
         def __getattr__(self, name):
             return None
-    hermes_main.cmd_update(Args(gateway=True, branch="main", yes=True))
+    kova_main.cmd_update(Args(gateway=True, branch="main", yes=True))
 ''')
 
 

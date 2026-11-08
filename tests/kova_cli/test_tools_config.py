@@ -28,9 +28,9 @@ from kova_cli.tools_config import (
 
 def test_all_invalid_platform_toolsets_logs_runtime_warning(caplog):
     """#38798: an explicit platform config whose toolset names are all invalid
-    (e.g. 'not-a-real-toolset' instead of 'hermes-cli') must warn at resolve
+    (e.g. 'not-a-real-toolset' instead of 'kova-cli') must warn at resolve
     time so an already-corrupted config is caught at runtime, not just during
-    migration. (The legacy 'hermes' alias resolves via _LEGACY_TOOLSET_ALIASES
+    migration. (The legacy 'kova' alias resolves via _LEGACY_TOOLSET_ALIASES
     since #41579, so it is no longer an invalid name.)"""
     import kova_cli.tools_config as _tc
     # The runtime warning fires once per platform per process; clear the guard
@@ -47,7 +47,7 @@ def test_all_invalid_platform_toolsets_logs_runtime_warning(caplog):
 
 def test_valid_platform_toolsets_no_runtime_warning(caplog):
     """A correctly-configured platform must not emit the #38798 warning."""
-    config = {"platform_toolsets": {"cli": ["hermes-cli"]}}
+    config = {"platform_toolsets": {"cli": ["kova-cli"]}}
 
     with caplog.at_level(logging.WARNING, logger="kova_cli.tools_config"):
         _get_platform_tools(config, "cli")
@@ -61,7 +61,7 @@ def test_unloaded_plugin_platform_toolset_no_runtime_warning(caplog, platform):
     import kova_cli.tools_config as _tc
 
     _tc._warned_invalid_platform_toolsets.discard(platform)
-    config = {"platform_toolsets": {platform: [f"hermes-{platform}"]}}
+    config = {"platform_toolsets": {platform: [f"kova-{platform}"]}}
 
     with caplog.at_level(logging.WARNING, logger="kova_cli.tools_config"):
         _get_platform_tools(config, platform)
@@ -73,7 +73,7 @@ def test_partially_valid_platform_toolsets_no_runtime_warning(caplog):
     """When at least one configured toolset is valid, tools still resolve, so
     the runtime zero-tools warning must not fire (the migration-time check still
     flags the individual bad name)."""
-    config = {"platform_toolsets": {"cli": ["hermes-cli", "bogus"]}}
+    config = {"platform_toolsets": {"cli": ["kova-cli", "bogus"]}}
 
     with caplog.at_level(logging.WARNING, logger="kova_cli.tools_config"):
         _get_platform_tools(config, "cli")
@@ -106,7 +106,7 @@ def test_scalar_platform_toolsets_fall_back_to_platform_default():
 
 
 def test_enable_on_string_platform_toolsets_keeps_listed_entries():
-    """#115866: `hermes tools enable` must operate on the selection a list-literal
+    """#115866: `kova tools enable` must operate on the selection a list-literal
     string encodes — not re-baseline it on the platform default, which silently
     dropped the user's default-off entries (video, video_gen) on write."""
     config = {"platform_toolsets": {"telegram": '["browser", "terminal", "video", "video_gen"]'}}
@@ -144,7 +144,7 @@ def test_malformed_list_string_platform_toolsets_warns_then_falls_back(caplog):
 
 # ─── #35527: platform-restricted default-off toolsets (discord/discord_admin)
 # are stripped by _DEFAULT_OFF_TOOLSETS even when the user explicitly opts in
-# via the platform's native composite. The composite ``hermes-discord``
+# via the platform's native composite. The composite ``kova-discord``
 # contains both ``discord`` and ``discord_admin`` tools, so configuring it is
 # an explicit opt-in that should survive the default-off strip. ───────────────
 
@@ -153,7 +153,7 @@ def test_discord_toolsets_do_not_leak_to_other_platforms():
     """Layer 4 (guard): discord/discord_admin are platform-restricted — they
     must never appear on a non-discord platform even when that platform is
     explicitly configured."""
-    config = {"platform_toolsets": {"telegram": ["hermes-telegram", "discord"]}}
+    config = {"platform_toolsets": {"telegram": ["kova-telegram", "discord"]}}
     enabled = _get_platform_tools(config, "telegram")
     assert "discord" not in enabled
     assert "discord_admin" not in enabled
@@ -163,19 +163,19 @@ def test_discord_toolsets_do_not_leak_to_other_platforms():
 
 
 
-def test_get_platform_tools_legacy_hermes_alias_expands():
-    """Legacy ``"hermes"`` toolset name must expand to ``"hermes-cli"`` and
-    ``"hermes-api-server"`` so that tools are not silently dropped.
+def test_get_platform_tools_legacy_kova_alias_expands():
+    """Legacy ``"kova"`` toolset name must expand to ``"kova-cli"`` and
+    ``"kova-api-server"`` so that tools are not silently dropped.
 
     Regression test for issue #41579.
     """
-    config = {"platform_toolsets": {"cli": ["hermes", "kanban"]}}
+    config = {"platform_toolsets": {"cli": ["kova", "kanban"]}}
 
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
 
-    # Must resolve to the same toolset as a plain "hermes-cli" config.
+    # Must resolve to the same toolset as a plain "kova-cli" config.
     reference = _get_platform_tools(
-        {"platform_toolsets": {"cli": ["hermes-cli", "kanban"]}},
+        {"platform_toolsets": {"cli": ["kova-cli", "kanban"]}},
         "cli",
         include_default_mcp_servers=False,
     )
@@ -186,13 +186,13 @@ def test_get_platform_tools_legacy_hermes_alias_expands():
     assert enabled
 
 
-def test_get_platform_tools_legacy_hermes_alias_alone():
-    """``"hermes"`` alone (no other toolsets) must still produce tools."""
-    config = {"platform_toolsets": {"cli": ["hermes"]}}
+def test_get_platform_tools_legacy_kova_alias_alone():
+    """``"kova"`` alone (no other toolsets) must still produce tools."""
+    config = {"platform_toolsets": {"cli": ["kova"]}}
 
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
     reference = _get_platform_tools(
-        {"platform_toolsets": {"cli": ["hermes-cli", "hermes-api-server"]}},
+        {"platform_toolsets": {"cli": ["kova-cli", "kova-api-server"]}},
         "cli",
         include_default_mcp_servers=False,
     )
@@ -450,7 +450,7 @@ class TestChromiumPostSetup:
             _run_post_setup("chromium")
 
         assert any(str(error) in c.args[0] for c in warn.call_args_list)
-        assert any("hermes tools post-setup chromium" in c.args[0] for c in info.call_args_list)
+        assert any("kova tools post-setup chromium" in c.args[0] for c in info.call_args_list)
 
 
 class TestBrowserExecEngineCheckedForEveryBrowserRow:
@@ -467,7 +467,7 @@ class TestBrowserExecEngineCheckedForEveryBrowserRow:
         ensure.assert_called_once()
 
     def test_ensure_helper_missing_harness_is_non_fatal(self):
-        """A missing harness must warn and point at `hermes update`, never raise."""
+        """A missing harness must warn and point at `kova update`, never raise."""
         from kova_cli.tools_config import _ensure_browser_use_cli
 
         with patch("tools.browser_use_cli._find_cli", return_value=None), patch(
@@ -476,7 +476,7 @@ class TestBrowserExecEngineCheckedForEveryBrowserRow:
             _ensure_browser_use_cli()  # must not raise
 
         assert any("browser-harness" in c.args[0] for c in warn.call_args_list)
-        assert any("hermes update" in c.args[0] for c in info.call_args_list)
+        assert any("kova update" in c.args[0] for c in info.call_args_list)
 
 
 class TestImagegenBackendRegistry:
@@ -577,7 +577,7 @@ class TestImagegenModelPicker:
 
 def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
     """A plugin toolset whose key is also a CONFIGURABLE_TOOLSETS entry must not
-    be listed twice — otherwise `hermes tools` → "reconfigure existing" shows
+    be listed twice — otherwise `kova tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
     """
     from kova_cli.tools_config import _get_effective_configurable_toolsets
@@ -762,10 +762,10 @@ def test_pool_only_account_is_offered_fal_models_only(monkeypatch):
     assert catalog and {meta["backend"] for meta in catalog.values()} == {"fal"}
 
 
-# ── Toolsets that shipped after a platform's last `hermes tools` save ────────
+# ── Toolsets that shipped after a platform's last `kova tools` save ────────
 #
 # Saving the picker (or one toggle in the desktop Toolsets UI) replaces a
-# platform's composite (``[hermes-cli]``) with a frozen explicit list, and
+# platform's composite (``[kova-cli]``) with a frozen explicit list, and
 # nothing ever adds to that list — so a toolset shipped later stays off
 # forever, while everyone still on the composite inherits it on upgrade.
 # ``_RECENTLY_SHIPPED_TOOLSETS`` closes that gap for toolsets new enough that
@@ -806,7 +806,7 @@ def test_saved_list_gains_toolsets_that_shipped_after_it_was_written():
     """The bug: a frozen list never gained a newly shipped toolset, so
     composite users got it on upgrade and picker users silently did not."""
     on_composite = _get_platform_tools(
-        {"platform_toolsets": {"cli": ["hermes-cli"]}},
+        {"platform_toolsets": {"cli": ["kova-cli"]}},
         "cli",
         include_default_mcp_servers=False,
     )
@@ -821,7 +821,7 @@ def test_saved_list_gains_toolsets_that_shipped_after_it_was_written():
 def test_unchecking_the_new_toolset_sticks():
     """Saving records it as offered, so the next read reads absence as a
     decline instead of turning it back on."""
-    config = {"platform_toolsets": {"cli": ["hermes-cli"]}}
+    config = {"platform_toolsets": {"cli": ["kova-cli"]}}
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
     with patch("kova_cli.tools_config.save_config"):
         _save_platform_tools(config, "cli", enabled - _RECENTLY_SHIPPED_TOOLSETS)
@@ -845,7 +845,7 @@ def test_agent_disabled_toolsets_still_wins():
 @_requires_recently_shipped
 def test_agent_disabled_toolsets_json_array_string_form_still_wins():
     """#86661: the suppression list may arrive as a JSON-array string (e.g.
-    `hermes config set agent.disabled_toolsets '["memory"]'`). It must be
+    `kova config set agent.disabled_toolsets '["memory"]'`). It must be
     parsed, not treated as one dead toolset name that filters nothing."""
     config = _saved_list_from_before()
     import json as _json
@@ -874,9 +874,9 @@ def test_agent_disabled_toolsets_python_literal_string_form_still_wins():
 
 def test_disabled_composite_debugging_prunes_constituent_platform_toolsets():
     """#97015: ``agent.disabled_toolsets: [debugging]`` must hide member
-    toolsets on ``hermes tools --summary``, not only strip them at runtime."""
+    toolsets on ``kova tools --summary``, not only strip them at runtime."""
     config = {
-        "platform_toolsets": {"cli": ["hermes-cli"]},
+        "platform_toolsets": {"cli": ["kova-cli"]},
         "agent": {"disabled_toolsets": ["debugging"]},
     }
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
@@ -893,7 +893,7 @@ def test_disabled_composite_display_matches_runtime_tool_selection():
     from toolsets import resolve_toolset
 
     config = {
-        "platform_toolsets": {"cli": ["hermes-cli"]},
+        "platform_toolsets": {"cli": ["kova-cli"]},
         "agent": {"disabled_toolsets": ["debugging"]},
     }
     enabled = _get_platform_tools(config, "cli", include_default_mcp_servers=False)
@@ -906,16 +906,16 @@ def test_disabled_composite_display_matches_runtime_tool_selection():
 @_requires_recently_shipped
 def test_platforms_whose_composite_excludes_it_are_left_narrow():
     """Parity is the justification, so don't widen a deliberately small
-    composite (hermes-acp, hermes-webhook) that never carried the toolset."""
+    composite (kova-acp, kova-webhook) that never carried the toolset."""
     from toolsets import TOOLSETS, resolve_toolset
 
     narrow = [
         platform
         for platform in ("acp", "webhook")
-        if f"hermes-{platform}" in TOOLSETS
+        if f"kova-{platform}" in TOOLSETS
         and not any(
             set(resolve_toolset(ts, include_registry=False))
-            <= set(resolve_toolset(f"hermes-{platform}"))
+            <= set(resolve_toolset(f"kova-{platform}"))
             for ts in _RECENTLY_SHIPPED_TOOLSETS
         )
     ]
@@ -938,7 +938,7 @@ def test_platforms_whose_composite_excludes_it_are_left_narrow():
 def test_explicit_plugin_toolset_admitted_in_platform_toolsets(monkeypatch):
     """When a plugin toolset key is explicitly listed under
     ``platform_toolsets.<platform>`` (alongside a composite like
-    ``hermes-cli``), it MUST be admitted as a configurable key instead of
+    ``kova-cli``), it MUST be admitted as a configurable key instead of
     being silently dropped by the has_explicit_config filter.
 
     Reproduces the second half of #81163: even after the eager register_tools
@@ -986,9 +986,9 @@ def test_explicit_plugin_toolset_admitted_in_platform_toolsets(monkeypatch):
     )
 
     # An explicit platform_toolsets list with a plugin key alongside the
-    # standard composite — exactly the "I want hermes-cli AND a2a in my CLI
+    # standard composite — exactly the "I want kova-cli AND a2a in my CLI
     # session" config the issue's user was trying to write.
-    config = {"platform_toolsets": {"cli": ["hermes-cli", "dplat_client"]}}
+    config = {"platform_toolsets": {"cli": ["kova-cli", "dplat_client"]}}
 
     enabled = _get_platform_tools(config, "cli")
 
@@ -1000,7 +1000,7 @@ def test_explicit_plugin_toolset_admitted_in_platform_toolsets(monkeypatch):
 
 def test_explicit_plugin_toolset_admitted_against_real_a2a_plugin(monkeypatch):
     """End-to-end Layer 2 regression: with the bundled a2a plugin enabled and
-    a real config like ``platform_toolsets.cli: [hermes-cli, a2a]``, ``a2a``
+    a real config like ``platform_toolsets.cli: [kova-cli, a2a]``, ``a2a``
     must appear in the resolved enabled toolset set. Before the fix, the
     filter dropped all non-CONFIGURABLE keys (a2a included)."""
     # Discover real plugins so _get_plugin_toolset_keys() sees the a2a key.
@@ -1012,7 +1012,7 @@ def test_explicit_plugin_toolset_admitted_against_real_a2a_plugin(monkeypatch):
     if "a2a" not in plugin_ts_keys:
         pytest.skip("bundled a2a plugin not discoverable in this worktree")
 
-    config = {"platform_toolsets": {"cli": ["hermes-cli", "a2a"]}}
+    config = {"platform_toolsets": {"cli": ["kova-cli", "a2a"]}}
     enabled = _get_platform_tools(config, "cli")
     assert "a2a" in enabled, (
         f"plugin-provided 'a2a' toolset dropped by _get_platform_tools "

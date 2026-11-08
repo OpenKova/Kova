@@ -85,7 +85,7 @@ percent-escapes (`electron/oauth-partition.ts`).
 Artifact iframes and the preview `<webview>` never drive the OS browser on their own
 (GHSA-9f4c-93c8-jc8g): `setWindowOpenHandler` denies everything, the webview has no `allowpopups`,
 and a guest `target="_blank"` link reaches `kova:openExternal` only through the
-`persist:hermes-preview` guest preload's trusted-click bridge, `http:`/`https:` only. Widening the
+`persist:kova-preview` guest preload's trusted-click bridge, `http:`/`https:` only. Widening the
 partition key, the trusted-click gate or the scheme set reopens the advisory.
 
 ## Compatibility without carrying the past forever

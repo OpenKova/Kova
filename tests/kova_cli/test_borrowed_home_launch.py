@@ -45,7 +45,7 @@ def _checkout(tmp_path, monkeypatch, *, parent: Path | None = None) -> Path:
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # The layout's default root is ``<tmp>/.kova`` on every OS. On Windows the platform default is
-    # ``%LOCALAPPDATA%\hermes`` (``Path.home`` only backs an unset ``LOCALAPPDATA``), and no
+    # ``%LOCALAPPDATA%\kova`` (``Path.home`` only backs an unset ``LOCALAPPDATA``), and no
     # ``LOCALAPPDATA`` value spells ``<tmp>/.kova``, so pin the default itself.
     monkeypatch.setattr(kova_constants, "_get_platform_default_kova_home", lambda: tmp_path / ".kova")
     monkeypatch.delenv("KOVA_DISABLE_LAZY_INSTALLS", raising=False)
@@ -78,7 +78,7 @@ def test_a_fresh_install_and_a_custom_root_keep_their_own_store(tmp_path, monkey
     assert owning_home_root(root) is None
     assert store_root(root) == tmp_path / "data" / "h" / "tools"
 
-    # `install.sh --hermes-home /data/h` owns its tree even if the default root once
+    # `install.sh --kova-home /data/h` owns its tree even if the default root once
     # borrowed it and kept state of its own.
     _state(tmp_path / "data" / "h", root)
     _state(tmp_path / ".kova", root)
@@ -87,7 +87,7 @@ def test_a_fresh_install_and_a_custom_root_keep_their_own_store(tmp_path, monkey
 
 
 def test_a_borrowers_own_dependency_state_never_makes_it_the_owner(tmp_path, monkeypatch):
-    """`install.sh --hermes-home <custom>` owns the checkout. The default root launching it borrows,
+    """`install.sh --kova-home <custom>` owns the checkout. The default root launching it borrows,
     and still borrows after its own dependency sync leaves state for the checkout."""
     custom = tmp_path / "data" / "h"
     root = _checkout(tmp_path, monkeypatch, parent=custom)
@@ -156,7 +156,7 @@ def test_a_borrowing_launch_syncs_its_own_dependencies_and_nothing_of_the_checko
 
     root = _checkout(tmp_path, monkeypatch)
     _state(tmp_path / ".kova", root)
-    _home(monkeypatch, tmp_path / "tmp" / "hermes-flash-compat-x" / "a")
+    _home(monkeypatch, tmp_path / "tmp" / "kova-flash-compat-x" / "a")
     # The owner's store, so no tool store is downloaded into the temporary home.
     assert owning_home_root(root) == tmp_path / ".kova"
     assert store_root(root) == tmp_path / ".kova" / "tools"

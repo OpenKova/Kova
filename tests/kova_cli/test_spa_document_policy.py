@@ -27,7 +27,7 @@ def _spa(monkeypatch, tmp_path, *, surface, gated) -> TestClient:
 
 
 @pytest.mark.parametrize("surface", ["webapp", None], ids=["webapp", "dashboard"])
-@pytest.mark.parametrize("prefix", ["", "/hermes"])
+@pytest.mark.parametrize("prefix", ["", "/kova"])
 @pytest.mark.parametrize("path", ["/", "/chat/session", "/index.html", "/help.html"])
 def test_spa_documents_share_the_bootstrap_policy(monkeypatch, tmp_path, surface, prefix, path):
     from kova_cli import web_server as server

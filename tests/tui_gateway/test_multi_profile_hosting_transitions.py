@@ -45,9 +45,9 @@ def two_homes(tmp_path, monkeypatch):
 
 def test_send_keeps_external_source_value_over_raw_dotenv(two_homes, monkeypatch):
     """B's ``.env`` and B's secret manager both define SHARED_TOKEN; the installed scope (manager
-    wins) survives ``_load_hermes_env`` for the routed ``send``."""
+    wins) survives ``_load_kova_env`` for the routed ``send``."""
     from kova_cli import env_loader
-    from kova_cli.send_cmd import _load_hermes_env
+    from kova_cli.send_cmd import _load_kova_env
 
     _root, b = two_homes
     # B's secret manager already hydrated for this process (a hydrated home is not re-pulled).
@@ -57,7 +57,7 @@ def test_send_keeps_external_source_value_over_raw_dotenv(two_homes, monkeypatch
     with server._session_profile_runtime_scope({"profile_home": str(b)}):
         from agent.secret_scope import current_secret_scope, get_secret
         assert get_secret("SHARED_TOKEN") == "b-manager-fresh"
-        _load_hermes_env()
+        _load_kova_env()
         assert get_secret("SHARED_TOKEN") == "b-manager-fresh"
         assert current_secret_scope()["B_ONLY_TOKEN"] == B_VAL
 

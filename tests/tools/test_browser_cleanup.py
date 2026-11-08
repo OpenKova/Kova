@@ -178,7 +178,7 @@ class TestAtexitStopSwallowsInterrupt:
 
 class TestAtexitLifecycleUnimportable:
     def test_hook_stays_silent_when_lifecycle_import_fails(self, monkeypatch):
-        """Mid-`hermes update` the on-disk tree can be half-new, so the atexit hook's import of
+        """Mid-`kova update` the on-disk tree can be half-new, so the atexit hook's import of
         the lifecycle module raises; the hook must stay silent (#112437)."""
         monkeypatch.setitem(sys.modules, "tools.browser_session_lifecycle", None)  # import -> ImportError
         bs._atexit_cleanup()  # must not raise
@@ -296,8 +296,8 @@ def fake_sandbox(monkeypatch, isolated_sessions):
     monkeypatch.setattr(streams, "sandbox_temp_dir", lambda env: "/tmp")  # no-tmp: ok — sandbox-side path
     monkeypatch.setattr(runtime, "_sandbox_env", lambda create=False: env)
     monkeypatch.setattr(runtime, "published_env", lambda: {"DISPLAY": ":5"})
-    monkeypatch.setattr(sandbox_host, "_user_for", lambda env: "hermes")
-    monkeypatch.setattr(sandbox_host, "browser_profile_dir", lambda env: "/home/hermes/.bot-browser")
+    monkeypatch.setattr(sandbox_host, "_user_for", lambda env: "kova")
+    monkeypatch.setattr(sandbox_host, "browser_profile_dir", lambda env: "/home/kova/.bot-browser")
     monkeypatch.setattr(sandbox_host, "chromium_executable", lambda env: "/usr/bin/chromium")
     return sandbox
 
@@ -466,8 +466,8 @@ def fake_containers(monkeypatch, isolated_sessions):
     monkeypatch.setattr(streams, "sandbox_temp_dir", lambda env: "/tmp")  # no-tmp: ok — sandbox-side path
     monkeypatch.setattr(runtime, "_sandbox_env", lambda create=False: containers.current)
     monkeypatch.setattr(runtime, "published_env", lambda: {"DISPLAY": ":5"})
-    monkeypatch.setattr(sandbox_host, "_user_for", lambda env: "hermes")
-    monkeypatch.setattr(sandbox_host, "browser_profile_dir", lambda env: "/home/hermes/.bot-browser")
+    monkeypatch.setattr(sandbox_host, "_user_for", lambda env: "kova")
+    monkeypatch.setattr(sandbox_host, "browser_profile_dir", lambda env: "/home/kova/.bot-browser")
     monkeypatch.setattr(sandbox_host, "chromium_executable", lambda env: "/usr/bin/chromium")
     return containers
 

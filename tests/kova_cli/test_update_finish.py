@@ -211,7 +211,7 @@ def completion(tmp_path, monkeypatch):
                         assert isinstance(plan, UpdatePlan)
                         assert isinstance(plan.runtimes[0], RuntimeRecord)
                         assert plan.to_dict() == request['plan'] | {
-                            'updatable_in_place': True, 'update_mechanism': 'hermes update'}
+                            'updatable_in_place': True, 'update_mechanism': 'kova update'}
                         (root / 'restarted-plan.json').write_text(json.dumps(plan.to_dict()))
                         return fleet._GatewayRestartOutcome(
                             incomplete=False, phase_errors=[], pre_restart_gateway_pids=[],
@@ -363,7 +363,7 @@ def test_missing_desktop_observation_uses_installed_products(completion, capture
         _put(source, "apps/desktop/dist/index.html", "old renderer")
     elif installed == "packaged":
         executable = ("mac-arm64/Kova.app/Contents/MacOS/Kova" if sys.platform == "darwin"
-                      else "linux-unpacked/hermes")
+                      else "linux-unpacked/kova")
         _put(source, f"apps/desktop/release/{executable}", "old packaged app")
     before = context.read_bytes()
     child = run()
@@ -460,7 +460,7 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     assert lifecycle_python["python"] == lifecycle_python["configured"] == environment["python"]
     assert environment["parent"] == os.getpid()
     assert environment["old_module"] is False
-    assert environment["argv"] == [str(source / "hermes"), "update"]
+    assert environment["argv"] == [str(source / "kova"), "update"]
     assert context.read_bytes() == before
     assert json.loads((source / "restarted-plan.json").read_text())["expected_sha"] == "old-sha"
     assert json.loads((source / "resumed-token.json").read_text()) == request["windows_resume"]
@@ -524,7 +524,7 @@ def test_pre_pull_restart_enters_current_cli_with_original_arguments(completion,
     source, _home, request, context, result, run = completion
     # Exercise the REAL parser without contacting a repository or supervisor.
     # The full update command's apply path is covered by its own tests.
-    request.update(restart_update=True, argv=[str(source / "hermes"), "update", argument])
+    request.update(restart_update=True, argv=[str(source / "kova"), "update", argument])
     context.write_text(json.dumps(request), encoding="utf-8")
     child = run()
     assert child.returncode == code, child.stdout + child.stderr

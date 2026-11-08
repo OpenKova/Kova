@@ -40,7 +40,7 @@ def fake_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 class TestHappyPath:
-    def test_hermes_path_block_is_removed(self, fake_home: Path):
+    def test_kova_path_block_is_removed(self, fake_home: Path):
         rc = fake_home / ".zshrc"
         rc.write_text(ZSHRC, encoding="utf-8")
 

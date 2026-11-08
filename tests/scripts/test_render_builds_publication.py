@@ -37,7 +37,7 @@ def release_body(monkeypatch):
 
 @pytest.mark.parametrize('tag', ['v1.2.3', 'v1.2.3+canary.20260818T101010Z'])
 def test_tag_publication_pending_rerun_stale_and_dry_run(monkeypatch, r2_server, release_body, tag):
-    base = f'http://127.0.0.1:{r2_server.server_port}/hermes-releases'
+    base = f'http://127.0.0.1:{r2_server.server_port}/kova-releases'
     version = tag[1:]
     prefix = f'releases/tag/{tag}/'
     visible = [f'KovaBundled-{version}-mac-arm64.dmg', f'KovaBundled-{version}-win-x64.msix',
@@ -110,7 +110,7 @@ def test_tag_publication_pending_rerun_stale_and_dry_run(monkeypatch, r2_server,
 @pytest.mark.parametrize('result', ['failure', 'cancelled', 'skipped'])
 def test_incomplete_tag_keeps_channel_and_links_diagnostics(monkeypatch, r2_server, release_body, asset_present, result):
     tag = 'v1.2.3+canary.20260818T101010Z'
-    base = f'http://127.0.0.1:{r2_server.server_port}/hermes-releases'
+    base = f'http://127.0.0.1:{r2_server.server_port}/kova-releases'
     key = f'releases/tag/{tag}/KovaBundled-{tag[1:]}-win-x64.msix'
     r2_server.store['releases/canary/index.html'] = (b'previous good page', '"e"')
     if asset_present:

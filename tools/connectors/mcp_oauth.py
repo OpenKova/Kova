@@ -91,7 +91,7 @@ class AttemptCanceled(RuntimeError):
 # committed with everything kept. A worker parked inside the token request cannot be interrupted;
 # it is stopped here, at the one point where its result would be adopted.
 _COMMIT_GUARD = threading.Lock()
-# (hermes home, server) -> the newest card attempt. A retry or a new operation replaces an attempt
+# (kova home, server) -> the newest card attempt. A retry or a new operation replaces an attempt
 # whose worker is still waiting on the browser; the older one is canceled so it cannot commit later.
 _ACTIVE: dict[tuple, Any] = {}
 

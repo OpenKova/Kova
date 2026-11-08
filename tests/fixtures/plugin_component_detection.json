@@ -53,8 +53,8 @@
     {
       "name": "a manifest-only language pack is an agent half",
       "root": "lang-pack",
-      "files": { "plugin.yaml": "name: hermes-lang-xx\nprovides_locales:\n  - id: xx\n    endonym: Xx\n", "locales/xx.yaml": "common.save: Xx\n" },
-      "expect": { "agent": true, "desktop": false, "agent_name": "hermes-lang-xx" }
+      "files": { "plugin.yaml": "name: kova-lang-xx\nprovides_locales:\n  - id: xx\n    endonym: Xx\n", "locales/xx.yaml": "common.save: Xx\n" },
+      "expect": { "agent": true, "desktop": false, "agent_name": "kova-lang-xx" }
     },
     {
       "name": "declared locales without a locales folder are not an agent half",

@@ -9,7 +9,7 @@ from agent.skill_utils import extract_skill_conditions
 
 def _conds(platforms):
     return extract_skill_conditions(
-        {"metadata": {"hermes": {"session_platforms": platforms}}}
+        {"metadata": {"kova": {"session_platforms": platforms}}}
     )
 
 class TestSessionPlatformGate:

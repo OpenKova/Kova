@@ -69,7 +69,7 @@ def test_rename_profile_releases_cached_log_handle(tmp_path, monkeypatch):
         handle.close()
 
 
-def test_every_mcp_log_line_carries_a_stamp_hermes_logs_since_reads(tmp_path):
+def test_every_mcp_log_line_carries_a_stamp_kova_logs_since_reads(tmp_path):
     token = set_kova_home_override(tmp_path)
     try:
         _write_stderr_log_header("probe")

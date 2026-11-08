@@ -47,7 +47,7 @@ ensure_sandbox_install() {
   # The literal user path: install.sh against a clone of THIS checkout, so
   # the repro reproduces what you're about to ship, not origin/main.
   git clone --quiet "$REPO_ROOT" "$SANDBOX_ROOT"
-  KOVA_HOME="$SANDBOX" bash "$SANDBOX_ROOT/scripts/install.sh" --non-interactive --skip-setup --hermes-home "$SANDBOX"
+  KOVA_HOME="$SANDBOX" bash "$SANDBOX_ROOT/scripts/install.sh" --non-interactive --skip-setup --kova-home "$SANDBOX"
 }
 
 case "$MODE" in

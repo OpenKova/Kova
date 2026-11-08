@@ -96,7 +96,7 @@ it('a self-upgradable backend keeps the update instruction', async () => {
 
 const packagesMissing: DisplayStatus = {
   profile: 'default',
-  profile_key: '/home/hermes/.kova',
+  profile_key: '/home/kova/.kova',
   supported: true,
   installed: false,
   missing: ['tigervnc-standalone-server'],

@@ -127,7 +127,7 @@ def isolated_env(
         XDG_CONFIG_HOME=str(home / ".config"),
         XDG_DATA_HOME=str(home / ".local" / "share"),
         XDG_CACHE_HOME=str(home / ".cache"),
-        DBUS_SESSION_BUS_ADDRESS="unix:path=/nonexistent/hermes-test-bus",
+        DBUS_SESSION_BUS_ADDRESS="unix:path=/nonexistent/kova-test-bus",
         NO_COLOR="1",
         TERM="dumb",
         PYTHONUNBUFFERED="1",
@@ -175,9 +175,9 @@ def sandbox_argv(argv: Sequence[str], *, writable: Iterable[Path], unshare_net: 
     # The child's allowlisted PATH may omit the Nix-provided bwrap (notably a login shell
     # with a clean distro PATH); resolve it in the parent before wrapping the command.
     cmd = [shutil.which("bwrap") or "bwrap", "--dev-bind", "/", "/"]
-    real_hermes = REAL_HOME / ".kova"
-    if real_hermes.is_dir():
-        cmd += ["--ro-bind", str(real_hermes), str(real_hermes)]
+    real_kova = REAL_HOME / ".kova"
+    if real_kova.is_dir():
+        cmd += ["--ro-bind", str(real_kova), str(real_kova)]
     for w in writable:
         w = Path(w)
         w.mkdir(parents=True, exist_ok=True)

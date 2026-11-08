@@ -305,10 +305,10 @@ def _host_cwd_is_terminal_cwd(profile_home) -> bool:
                 or provider_flag(backend, "is_container", True, scope=scope))
 
 
-def _is_hermes_owned_cwd(cwd: str, profile_home) -> bool:
+def _is_kova_owned_cwd(cwd: str, profile_home) -> bool:
     """Whether ``cwd`` is inside Kova's own host tree: the Kova root (``/opt/data`` and its ``/opt/data/home``
     subprocess home in the Docker image, which also holds every named profile) or the install tree
-    (``/opt/hermes``). A ``~`` path is the remote's home, never this host's."""
+    (``/opt/kova``). A ``~`` path is the remote's home, never this host's."""
     from agent.runtime_cwd import _is_install_tree
     from kova_constants import get_default_kova_root
 
@@ -372,7 +372,7 @@ def _resumable_stored_cwd(cwd, profile_home) -> str:
     re-persists it). Hydration and ``session.resume`` both adopt through here, then treat the result as the
     session's workspace. A folder a sandbox user picked (even under the Kova root or ``$HOME``) stays."""
     cwd = str(cwd or "")
-    if cwd and _cwd_is_remote(profile_home) and _is_hermes_owned_cwd(cwd, profile_home):
+    if cwd and _cwd_is_remote(profile_home) and _is_kova_owned_cwd(cwd, profile_home):
         return ""
     if cwd and not _cwd_is_remote(profile_home) and not _host_cwd_is_terminal_cwd(profile_home) \
             and _is_launch_dir(cwd, profile_home):

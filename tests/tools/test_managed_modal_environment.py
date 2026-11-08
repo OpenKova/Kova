@@ -51,7 +51,7 @@ def _install_fake_tools_package(*, credential_mounts=None):
     kova_cli.__path__ = []  # type: ignore[attr-defined]
     sys.modules["kova_cli"] = kova_cli
     sys.modules["kova_cli.config"] = types.SimpleNamespace(
-        get_kova_home=lambda: Path(tempfile.gettempdir()) / "hermes-home",
+        get_kova_home=lambda: Path(tempfile.gettempdir()) / "kova-home",
     )
 
     tools_package = types.ModuleType("tools")

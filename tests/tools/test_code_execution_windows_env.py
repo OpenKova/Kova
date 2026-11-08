@@ -91,7 +91,7 @@ def _configured_timezone_child_env():
     return code_execution_env._build_child_env(
         rpc_endpoint="socket",
         rpc_token="token",
-        tmpdir="/tmp/hermes-code-execution-test",
+        tmpdir="/tmp/kova-code-execution-test",
         child_python=sys.executable,
     )
 

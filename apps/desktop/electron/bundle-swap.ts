@@ -76,7 +76,7 @@ export function detectBundleSwap(running: BundleSwapStamp | null, onDisk: Bundle
 // One-shot guard for the automatic bundle-swap relaunch below: the relaunched
 // instance carries this flag so a stamp that still mismatches (unreadable
 // resources, exotic packaging) can never produce a relaunch loop.
-export const BUNDLE_SWAP_RELAUNCH_FLAG = '--hermes-bundle-swap-relaunched'
+export const BUNDLE_SWAP_RELAUNCH_FLAG = '--kova-bundle-swap-relaunched'
 
 // How long the parked instance waits for its own scheduled exit to land before
 // giving up and booting the stale build anyway. Better a torn renderer with a

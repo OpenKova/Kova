@@ -1,4 +1,4 @@
-"""``hermes update`` reuses the packaged desktop app across commits that changed no desktop input.
+"""``kova update`` reuses the packaged desktop app across commits that changed no desktop input.
 
 A real git checkout carries the real receipt reader (``scripts/build/freshness.mjs``), the real
 stamp resolver (``apps/desktop/scripts/write-build-stamp.mjs``) and the real reuse probe; only the
@@ -61,7 +61,7 @@ def packaged_checkout(tmp_path, monkeypatch):
     stamp = desktop / "build/install-stamp.json"
     dist = desktop / "release/linux-unpacked/resources/app.asar.unpacked/dist"
     dist.mkdir(parents=True)
-    (desktop / "release/linux-unpacked/hermes").write_text("", encoding="utf-8")
+    (desktop / "release/linux-unpacked/kova").write_text("", encoding="utf-8")
     (dist / "electron-main.mjs").write_text("// baked\n", encoding="utf-8")
     _node("import {resolveStamp, buildStampPayload, writeDesktopStamp} from './apps/desktop/scripts/write-build-stamp.mjs';"
           "writeDesktopStamp('apps/desktop/build', buildStampPayload(resolveStamp({repoRoot: process.cwd()}), process.env, process.platform, null))",

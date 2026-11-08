@@ -16,15 +16,15 @@ import { captureOwnPreferences, hydrateFromSnapshot, startUiPreferencesSync, typ
 
 // The renderer sync against the real native writer on a real file (#145536 review).
 const DENSITY = 'kova.desktop.sessionListDensity'
-const MODE = 'hermes-desktop-mode-v1'
-const THEME = 'hermes-desktop-theme-v2'
-const USER_THEMES = 'hermes-desktop-user-themes-v1'
+const MODE = 'kova-desktop-mode-v1'
+const THEME = 'kova-desktop-theme-v2'
+const USER_THEMES = 'kova-desktop-user-themes-v1'
 const KEYBINDS = 'kova.desktop.keybinds'
 const dirs: string[] = []
 const tick = (ms = 400) => new Promise(resolve => setTimeout(resolve, ms))
 
 function storeFile(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ui-sync-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ui-sync-'))
   dirs.push(dir)
 
   return path.join(dir, 'ui-preferences.json')

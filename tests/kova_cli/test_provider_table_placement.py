@@ -84,7 +84,7 @@ def test_provider_overlay_defines_the_models_dev_keyed_provider(monkeypatch):
     assert prov.normalize_provider("zz-acp-cli") == "zz-acp-cli"  # only overlay_aliases name the overlay
     pdef = prov.get_provider("zz-acp-agent")
     assert (pdef.id, pdef.name, pdef.transport, pdef.base_url, pdef.base_url_env_var, pdef.source) == (
-        "zz-acp", "ZZ ACP", "codex_responses", "acp://zz", "ZZ_ACP_BASE_URL", "hermes")
+        "zz-acp", "ZZ ACP", "codex_responses", "acp://zz", "ZZ_ACP_BASE_URL", "kova")
     assert prov.determine_api_mode("zz-acp") == "codex_responses"
     assert "zz-acp" in prov.kova_overlays() and "zz-plain" not in prov.kova_overlays()
 
@@ -108,7 +108,7 @@ def test_mirrored_alias_keys_keep_the_overlay_route(monkeypatch):
 
     pdef = prov.resolve_provider_full("zz-acp-agent")
 
-    assert (pdef.id, pdef.transport, pdef.source) == ("zz-acp", "codex_responses", "hermes")
+    assert (pdef.id, pdef.transport, pdef.source) == ("zz-acp", "codex_responses", "kova")
 
 
 def test_profile_models_dev_id_resolves_at_lookup_time(monkeypatch):
@@ -120,7 +120,7 @@ def test_profile_models_dev_id_resolves_at_lookup_time(monkeypatch):
 
     assert md.models_dev_id_for("zz-hosted") == "zz-catalog"
     assert md.models_dev_id_for("zzh") is None  # exact Kova ids only, like the static map
-    assert md._models_dev_to_hermes_ids("zz-catalog") == ["zz-hosted"]
+    assert md._models_dev_to_kova_ids("zz-catalog") == ["zz-hosted"]
     assert md.models_dev_provider_map() == {"zz-hosted": "zz-catalog"}
     assert md.PROVIDER_TO_MODELS_DEV == {}  # never merged into the static dict
 

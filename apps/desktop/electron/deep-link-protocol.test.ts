@@ -11,7 +11,7 @@ function run(env: NodeJS.ProcessEnv, defaultApp = true) {
     app: { setAsDefaultProtocolClient: (...args: unknown[]) => { calls.push(args);
 
  return true } },
-    protocol: 'hermes',
+    protocol: 'kova',
     env,
     defaultApp,
     argv: ['/electron', '.'],
@@ -28,6 +28,6 @@ test('the E2E/dev guard leaves the OS kova:// handler untouched; normal launches
   assert.deepEqual(skipped.calls, [])
   assert.match(skipped.log.join('\n'), /registration skipped/)
 
-  assert.deepEqual(run({}).calls, [['hermes', '/electron', ['/checkout/.']]])
-  assert.deepEqual(run({}, false).calls, [['hermes']])
+  assert.deepEqual(run({}).calls, [['kova', '/electron', ['/checkout/.']]])
+  assert.deepEqual(run({}, false).calls, [['kova']])
 })

@@ -116,7 +116,7 @@ class _StubDB:
 def seams(monkeypatch):
     """Record the three off-process effects these routes have, and neutralise them.
 
-    ``spawn`` = the argv of every backgrounded ``hermes`` action, ``db`` = the profile every
+    ``spawn`` = the argv of every backgrounded ``kova`` action, ``db`` = the profile every
     session-store open names, ``pool_home`` = the home the credential-pool body resolves.
     A route that reaches any of them after a 400 shows up as a non-empty list.
     """
@@ -146,7 +146,7 @@ def seams(monkeypatch):
         def entries(self):
             return []
 
-    monkeypatch.setattr(web_server_gateway, "_spawn_hermes_action", _spawn)
+    monkeypatch.setattr(web_server_gateway, "_spawn_kova_action", _spawn)
     monkeypatch.setattr(web_server_sessions, "_open_session_db_for_profile", _open_db)
     monkeypatch.setattr(credential_pool, "load_pool", lambda _provider: _Pool())
     monkeypatch.setattr(credential_sources, "find_removal_step", lambda *_a: None)
@@ -254,7 +254,7 @@ def test_named_profile_is_the_only_one_touched(client, homes, seams, tmp_path, r
     assert not happened(homes["launch"]), f"{route} also hit the launch profile"
 
 
-# Routes whose effect is a backgrounded ``hermes`` subprocess: the profile must reach its argv,
+# Routes whose effect is a backgrounded ``kova`` subprocess: the profile must reach its argv,
 # because nothing else in that process knows which home the request meant.
 SPAWNING = {
     "checkpoints-prune": DESTRUCTIVE["checkpoints-prune"],
@@ -313,7 +313,7 @@ def test_a_request_for_another_profile_arms_the_guard(client, homes):
 def test_unnamed_profile_still_means_the_launch_profile_on_a_single_profile_host(
     client, homes, monkeypatch, tmp_path
 ):
-    """A plain ``hermes serve`` has nothing to confuse: `curl` with no profile is unchanged."""
+    """A plain ``kova serve`` has nothing to confuse: `curl` with no profile is unchanged."""
     from agent.secret_scope import is_multiplex_active
     from kova_cli import profiles
     from tui_gateway.launch_profile_policy import activate_multi_profile_hosting_eagerly
@@ -432,7 +432,7 @@ def test_forced_update_check_runs_in_the_named_profiles_scope(client, homes, mon
     monkeypatch.setattr(actions, "_dashboard_local_update_managed_externally", lambda: False)
     monkeypatch.setattr(actions, "detect_install_method", lambda _root: "git")
 
-    resp = client.get("/api/hermes/update/check?force=true&profile=worker_beta")
+    resp = client.get("/api/kova/update/check?force=true&profile=worker_beta")
 
     assert resp.status_code == 200, resp.text
     assert resp.json()["behind"] == 0

@@ -15,7 +15,7 @@ import pytest
 def default_home_process(tmp_path, monkeypatch):
     """Process whose own home is the DEFAULT one, with a sticky active_profile naming a
     named profile (the state that made the selector-less child resolve the wrong home)."""
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     (root / "profiles" / "coder").mkdir(parents=True)
     (root / "profiles" / "coder" / "config.yaml").write_text("{}\n")  # identity marker
     (root / "config.yaml").write_text("model: {default: x}\n")

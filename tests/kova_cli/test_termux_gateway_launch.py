@@ -9,7 +9,7 @@ def test_termux_fast_launch_defers_agent_startup_like_main(monkeypatch):
     monkeypatch.delenv("KOVA_TERMUX_DISABLE_FAST_CLI", raising=False)
     monkeypatch.delenv("KOVA_DEFER_AGENT_STARTUP", raising=False)
     monkeypatch.delenv("KOVA_FAST_STARTUP_BANNER", raising=False)
-    monkeypatch.setattr(sys, "argv", ["hermes", "--cli"])
+    monkeypatch.setattr(sys, "argv", ["kova", "--cli"])
     launches = []
     monkeypatch.setattr(main, "cmd_chat", launches.append)
     assert main._try_termux_fast_cli_launch()

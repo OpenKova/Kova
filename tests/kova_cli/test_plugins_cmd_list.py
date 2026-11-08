@@ -140,7 +140,7 @@ def test_entrypoint_spec_does_not_abort_plugin_status(monkeypatch):
     real_stat = Path.stat
 
     def stat(self, *args, **kwargs):
-        if str(self).startswith("mnemosyne_hermes:register"):
+        if str(self).startswith("mnemosyne_kova:register"):
             err = OSError(22, "The filename, directory name, or volume label syntax is incorrect")
             err.winerror = 123
             raise err
@@ -149,8 +149,8 @@ def test_entrypoint_spec_does_not_abort_plugin_status(monkeypatch):
     monkeypatch.setattr(Path, "stat", stat)
 
     assert plugins_cmd._plugin_status(
-        "mnemosyne_hermes", set(), set(), key="mnemosyne_hermes",
-        source="entrypoint", dir_path="mnemosyne_hermes:register",
+        "mnemosyne_kova", set(), set(), key="mnemosyne_kova",
+        source="entrypoint", dir_path="mnemosyne_kova:register",
     ) == "not enabled"
 
 

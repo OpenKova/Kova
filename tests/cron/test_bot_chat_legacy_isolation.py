@@ -35,7 +35,7 @@ def test_corrupt_legacy_record_is_isolated_and_due_job_still_fires(tmp_path, mon
     job = J.create_job(prompt=None, schedule="every 1h", name="script", script="fire.sh",
                        no_agent=True, deliver="local")
     stored = J.load_jobs()
-    stored[0]["next_run_at"] = (J._hermes_now() - timedelta(minutes=1)).replace(microsecond=0).isoformat()
+    stored[0]["next_run_at"] = (J._kova_now() - timedelta(minutes=1)).replace(microsecond=0).isoformat()
     J.save_jobs(stored)
 
     assert S.tick(verbose=False) == 1

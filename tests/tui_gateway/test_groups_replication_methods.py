@@ -125,7 +125,7 @@ def test_demote_fences_local_room_against_newer_epoch(home):
                     {
                         "member_id": "default",
                         "profile": "default",
-                        "handle": "hermes",
+                        "handle": "kova",
                     },
                     {"member_id": "ops", "profile": "ops", "handle": "ops"},
                 ],

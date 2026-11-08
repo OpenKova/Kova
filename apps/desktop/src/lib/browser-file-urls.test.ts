@@ -47,7 +47,7 @@ beforeEach(() => {
 afterEach(() => {
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   $connection.set(null)

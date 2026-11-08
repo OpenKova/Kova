@@ -354,7 +354,7 @@ def test_inheriting_child_gets_provider_keys_but_never_adapter_secrets(child_env
 def test_runtime_adapter_secret_follows_the_bound_profiles_registry(child_env, monkeypatch):
     from gateway.platform_registry import PlatformEntry, platform_registry
     from tools.env_passthrough import is_env_passthrough, register_env_passthrough
-    home_a, home_b = child_env / "hermes", child_env / "profile-b"
+    home_a, home_b = child_env / "kova", child_env / "profile-b"
     home_a.mkdir(exist_ok=True)
     home_b.mkdir()
     name = "ACME_CHAT_SIGNING_SECRET"  # declared by a user adapter; no OPTIONAL_ENV_VARS entry
@@ -394,7 +394,7 @@ def test_passthrough_accepted_before_an_adapter_owns_the_name_stops_forwarding_i
     if declared_by == "skill":
         register_env_passthrough(names)
     else:
-        home = child_env / "hermes"
+        home = child_env / "kova"
         home.mkdir(exist_ok=True)
         (home / "config.yaml").write_text("terminal:\n  env_passthrough: [{}]\n".format(", ".join(names)), encoding="utf-8")
     builders = [lambda: local._make_run_env({}), lambda: local._sanitize_subprocess_env(dict(os.environ)),
@@ -571,7 +571,7 @@ def test_profile_passthrough_in_terminal_child(child_env, monkeypatch, scoped, e
 def test_pythonpath_literal_policy(entries, expected):
     locations = {"REPO": str(Path(__file__).resolve().parents[2]), "SITE": str(_running_site())}
     env = {} if entries is None else {"PYTHONPATH": os.pathsep.join(locations.get(p, p) for p in entries)}
-    pp._strip_hermes_owned_pythonpath(env)
+    pp._strip_kova_owned_pythonpath(env)
     assert env.get("PYTHONPATH") == (os.pathsep.join(expected) if expected is not None else None)
 
 
@@ -580,7 +580,7 @@ def test_pythonpath_descendants_are_not_owned():
     entries = [str(site / "user-path"), str(repo / "tools"), str(repo / "tools/environments"),
                "/opt/other-venv/lib/python3.99/site-packages"]
     env = {"PYTHONPATH": os.pathsep.join(entries)}
-    pp._strip_hermes_owned_pythonpath(env)
+    pp._strip_kova_owned_pythonpath(env)
     assert env["PYTHONPATH"].split(os.pathsep) == entries
 
 
@@ -613,12 +613,12 @@ def test_launcher_alias_provenance(child_env, monkeypatch, link_at, profile):
     if link_at == "home":
         assert Path(_preserve_kova_home_path(physical_root)) == lexical_root
     active_home = configured / "profiles/coder" if profile else configured
-    aliases = pp._build_hermes_repo_root_aliases(physical_root.resolve(), physical_root, active_home)
-    monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+    aliases = pp._build_kova_repo_root_aliases(physical_root.resolve(), physical_root, active_home)
+    monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
     nested = lexical_root / "user-data"
     entries = [str(lexical_root), str(nested), str(unrelated), str(active_home / "not-the-repo")]
     env = {"PYTHONPATH": os.pathsep.join(entries)}
-    pp._strip_hermes_owned_pythonpath(env)
+    pp._strip_kova_owned_pythonpath(env)
     assert env["PYTHONPATH"].split(os.pathsep) == (entries if link_at == "unrelated" else entries[1:])
     if profile:
         assert active_home / "kova-agent" not in aliases
@@ -641,9 +641,9 @@ def test_runtime_provenance_is_independent_of_aliases_and_virtual_env(child_env,
         facts.parent.mkdir(parents=True, exist_ok=True)
         facts.write_text(json.dumps({"packages": {"venv": {"environment": str(runtime)}}}), encoding="utf-8")
     monkeypatch.setattr(local, "_in_venv", False)
-    monkeypatch.setattr(local, "_hermes_site_packages", None)
+    monkeypatch.setattr(local, "_kova_site_packages", None)
     alias = child_env / "unrelated-repo-alias"
-    monkeypatch.setattr(local, "_hermes_repo_root_aliases", (alias,))
+    monkeypatch.setattr(local, "_kova_repo_root_aliases", (alias,))
     user_venv = child_env / "user-venv"
     user_site = user_venv / "Lib/site-packages"
     user_site.mkdir(parents=True)
@@ -667,7 +667,7 @@ def test_sealed_payload_venv_is_runtime_provenance_without_facts(tmp_path, monke
     monkeypatch.setattr("pm.environments.install_state_dir", lambda repo: tmp_path / "payload/state")
     monkeypatch.setattr("pm.environments.payload_venv", lambda repo: shipped)
     monkeypatch.setattr(local, "_in_venv", False)
-    monkeypatch.setattr(local, "_hermes_site_packages", None)
+    monkeypatch.setattr(local, "_kova_site_packages", None)
     user_site = tmp_path / "user-site"
     result = local._sanitize_subprocess_env(
         {"PYTHONPATH": os.pathsep.join([str(site_packages(shipped)), str(user_site)])})
@@ -686,39 +686,39 @@ def test_payload_venv_that_is_not_real_is_not_provenance(tmp_path, monkeypatch, 
 
     monkeypatch.setattr("pm.environments.install_state_dir", lambda repo: tmp_path / "payload/state")
     monkeypatch.setattr("pm.environments.payload_venv", payload_venv)
-    monkeypatch.setattr(local, "_hermes_repo_root_aliases", ())
+    monkeypatch.setattr(local, "_kova_repo_root_aliases", ())
     from tools.environments.local_pythonpath import _validated_runtime_venv
 
     assert _validated_runtime_venv({}) is None
 
 
 @pytest.mark.parametrize("existing,expected", [
-    (["/usr/bin", "/bin"], ["/opt/hermes/bin", "/usr/bin", "/bin"]),
-    (["/usr/bin", "/opt/hermes/bin"], ["/usr/bin", "/opt/hermes/bin"]),
+    (["/usr/bin", "/bin"], ["/opt/kova/bin", "/usr/bin", "/bin"]),
+    (["/usr/bin", "/opt/kova/bin"], ["/usr/bin", "/opt/kova/bin"]),
 ])
-def test_background_hermes_path_repair_is_idempotent(child_env, monkeypatch, existing, expected):
-    monkeypatch.setattr(local, "_KOVA_BIN_DIR", "/opt/hermes/bin")
+def test_background_kova_path_repair_is_idempotent(child_env, monkeypatch, existing, expected):  # health: allow F811 -- pytest injects the imported child_env fixture as a parameter; intentional shadowing
+    monkeypatch.setattr(local, "_KOVA_BIN_DIR", "/opt/kova/bin")
     result = local._sanitize_subprocess_env({"PATH": os.pathsep.join(existing)})
     assert result["PATH"].split(os.pathsep) == expected
     assert local._sanitize_subprocess_env(result)["PATH"] == result["PATH"]
 
 
-def test_hermes_bin_resolution_and_unresolved_noop(child_env, monkeypatch):
+def test_kova_bin_resolution_and_unresolved_noop(child_env, monkeypatch):  # health: allow F811 -- pytest injects the imported child_env fixture as a parameter; intentional shadowing
     bin_dir = child_env / "bin"
     bin_dir.mkdir()
     monkeypatch.setattr(local, "_KOVA_BIN_DIR", local._SENTINEL)
-    monkeypatch.setattr(local.shutil, "which", lambda name: str(bin_dir / "hermes") if name == "hermes" else None)
-    assert local._resolve_hermes_bin_dir() == str(bin_dir)
+    monkeypatch.setattr(local.shutil, "which", lambda name: str(bin_dir / "kova") if name == "kova" else None)
+    assert local._resolve_kova_bin_dir() == str(bin_dir)
     monkeypatch.setattr(local, "_KOVA_BIN_DIR", None)
-    assert local._prepend_hermes_bin_dir("/usr/bin") == "/usr/bin"
+    assert local._prepend_kova_bin_dir("/usr/bin") == "/usr/bin"
 
 
 @pytest.mark.platforms("posix")
 def test_foreground_minimal_path_preserves_operator_precedence(child_env, monkeypatch):
-    monkeypatch.setattr(local, "_KOVA_BIN_DIR", "/opt/hermes/bin")
+    monkeypatch.setattr(local, "_KOVA_BIN_DIR", "/opt/kova/bin")
     monkeypatch.setenv("PATH", "/custom/bin:/custom/bin::/usr/bin")
     result = local._make_run_env({})["PATH"].split(":")
-    assert result[:3] == ["/opt/hermes/bin", "/custom/bin", "/usr/bin"]
+    assert result[:3] == ["/opt/kova/bin", "/custom/bin", "/usr/bin"]
     assert "/opt/homebrew/bin" in result and "/opt/homebrew/sbin" in result
     assert "" not in result
     assert result.count("/custom/bin") == 1
@@ -758,49 +758,49 @@ class TestNativeEnvironmentContracts:
         monkeypatch.setattr(local, "_KOVA_BIN_DIR", None)
 
     @pytest.mark.platforms("windows")
-    def test_windows_hermes_owned_paths_stripped(self):
+    def test_windows_kova_owned_paths_stripped(self):
         """On Windows, a Kova venv site-packages entry written with
         backslashes is stripped by the same Kova-owned check, while a
         user Windows path is preserved.  Windows-only: POSIX ``Path`` does
         not split on backslashes, so this cannot be meaningfully simulated
         on a POSIX host."""
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
 
         venv_sp = str(_running_site())
         # Windows form: C:\...\venv\Lib\site-packages (backslashes)
-        hermes_win = venv_sp
+        kova_win = venv_sp
         user_win = "D:\\\\user\\\\lib"
         env = {
-            "PYTHONPATH": ";".join([hermes_win, user_win]),
+            "PYTHONPATH": ";".join([kova_win, user_win]),
         }
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
         entries = env["PYTHONPATH"].split(";")
-        assert hermes_win not in entries
+        assert kova_win not in entries
         assert user_win in entries
 
     def test_empty_pythonpath_unchanged(self):
         """An empty PYTHONPATH is a no-op (falsy -> early return)."""
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
         env = {"PYTHONPATH": ""}
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
         # Empty string is falsy, so the function returns early without
         # modifying the dict.  The key stays as-is (empty string).
         assert env.get("PYTHONPATH") == ""
 
     def test_empty_component_preserved(self):
         """An empty component means cwd and must survive unchanged."""
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
 
         user_pp = os.pathsep.join(["/foo", "", "/bar"])
         env = {"PYTHONPATH": user_pp}
 
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
 
         assert env["PYTHONPATH"] == user_pp
 
     def test_raw_user_spelling_preserved(self):
         """The sanitizer does not trim, normalize, or deduplicate user entries."""
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
 
         user_pp = os.pathsep.join([
             " /opt/user-lib ",
@@ -811,7 +811,7 @@ class TestNativeEnvironmentContracts:
         ])
         env = {"PYTHONPATH": user_pp}
 
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
 
         assert env["PYTHONPATH"] == user_pp
 
@@ -835,9 +835,9 @@ class TestNativeEnvironmentContracts:
         base_prefix = tmp_path / "base-python"
         unrelated = "/custom/lib/python3.13/site-packages"
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", (repo_root,))
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", (repo_root,))
         monkeypatch.setattr(local, "_in_venv", False)
-        monkeypatch.setattr(local, "_hermes_site_packages", None)
+        monkeypatch.setattr(local, "_kova_site_packages", None)
         monkeypatch.setattr(local.sys, "prefix", str(base_prefix))
         monkeypatch.setattr(local.sys, "base_prefix", str(base_prefix))
 
@@ -864,33 +864,33 @@ class TestNativeEnvironmentContracts:
         unrelated_sp.mkdir(parents=True)
         (unrelated_venv / "pyvenv.cfg").write_text("version = 3.13\n", encoding="utf-8")
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", (repo_root,))
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", (repo_root,))
         monkeypatch.setattr(local, "_in_venv", False)
-        monkeypatch.setattr(local, "_hermes_site_packages", None)
+        monkeypatch.setattr(local, "_kova_site_packages", None)
 
         env = {
             "VIRTUAL_ENV": str(unrelated_venv),
             "PYTHONPATH": str(unrelated_sp),
         }
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
 
         assert env["PYTHONPATH"] == str(unrelated_sp)
 
 
     def test_no_pythonpath_key(self):
         """Missing PYTHONPATH key is a no-op."""
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
         env = {"PATH": "/usr/bin"}
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
         assert "PYTHONPATH" not in env
 
 
     @pytest.mark.parametrize("builder", [
         "_make_run_env",
         "_sanitize_subprocess_env",
-        "hermes_subprocess_env",
+        "kova_subprocess_env",
     ])
-    def test_builders_strip_hermes_venv_pythonpath(self, builder):
+    def test_builders_strip_kova_venv_pythonpath(self, builder):
         """Every subprocess env builder applies the same sanitation contract:
         Kova venv site-packages is stripped, user entries survive.
         """
@@ -914,14 +914,14 @@ class TestNativeEnvironmentContracts:
         assert venv_sp not in entries
         assert "/home/user/my-lib" in entries
 
-    def test_scrub_child_env_strips_hermes_venv_pythonpath(self):
+    def test_scrub_child_env_strips_kova_venv_pythonpath(self):
         """execute_code's _scrub_child_env path: after scrubbing, Kova venv
         site-packages entries should be stripped when
-        _strip_hermes_owned_pythonpath is applied (as the spawn path does),
+        _strip_kova_owned_pythonpath is applied (as the spawn path does),
         while user entries (even for another Python version) are preserved.
         """
         from tools.code_execution_env import _scrub_child_env
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
 
         venv_sp = str(_running_venv_site_packages())
         other_sp = "/opt/other-venv/lib/python3.99/site-packages"
@@ -934,7 +934,7 @@ class TestNativeEnvironmentContracts:
         # The scrubber passes PYTHONPATH through (it's in _SAFE_ENV_PREFIXES).
         assert "PYTHONPATH" in scrubbed
         # Now apply the selective strip (as the spawn path does).
-        _strip_hermes_owned_pythonpath(scrubbed)
+        _strip_kova_owned_pythonpath(scrubbed)
         pp = scrubbed.get("PYTHONPATH", "")
         entries = pp.split(os.pathsep) if pp else []
         assert venv_sp not in entries
@@ -942,7 +942,7 @@ class TestNativeEnvironmentContracts:
         assert "/home/user/my-lib" in entries
 
     @pytest.mark.parametrize("same_env", [True, False])
-    def test_execute_code_composition_strips_inherited_hermes_entries(self, same_env):
+    def test_execute_code_composition_strips_inherited_kova_entries(self, same_env):
         """Integration: execute_code's real spawn path composes a clean PYTHONPATH.
 
         Seeds a contaminated inherited PYTHONPATH (Kova repo root + Kova
@@ -963,7 +963,7 @@ class TestNativeEnvironmentContracts:
         def _mock_handle_function_call(function_name, function_args, task_id=None, user_task=None):
             return '{"output": "mock", "exit_code": 0}'
 
-        hermes_root = str(Path(cet.__file__).resolve().parents[1])
+        kova_root = str(Path(cet.__file__).resolve().parents[1])
         venv_sp = str(_running_venv_site_packages())
         user_a = "/home/user/my-lib"
         user_b = "/opt/project/lib"
@@ -989,12 +989,12 @@ class TestNativeEnvironmentContracts:
                    return_value={"mode": "strict"}), \
              patch("model_tools.handle_function_call",
                    side_effect=_mock_handle_function_call), \
-             patch("tools.code_execution_env._uses_hermes_python_environment",
+             patch("tools.code_execution_env._uses_kova_python_environment",
                    return_value=same_env), \
              patch("subprocess.Popen", side_effect=_fake_popen), \
              patch.dict(os.environ, {
                  "PYTHONPATH": os.pathsep.join(
-                     [hermes_root, venv_sp, user_a, user_b]),
+                     [kova_root, venv_sp, user_a, user_b]),
              }):
             execute_code(code="pass", task_id="test-int", enabled_tools=[])
 
@@ -1009,7 +1009,7 @@ class TestNativeEnvironmentContracts:
         # composition contract (identity on POSIX).
         norm_parts = [os.path.normcase(p) for p in parts]
         norm_staging = os.path.normcase(captured["staging"])
-        norm_root = os.path.normcase(hermes_root)
+        norm_root = os.path.normcase(kova_root)
         norm_venv = os.path.normcase(venv_sp)
         norm_user_a = os.path.normcase(user_a)
         norm_user_b = os.path.normcase(user_b)
@@ -1053,7 +1053,7 @@ class TestNativeEnvironmentContracts:
         PYTHONPATH entry.  A user path that merely happens to live under
         the repo directory must therefore be preserved.
         """
-        from tools.environments.local_pythonpath import _strip_hermes_owned_pythonpath
+        from tools.environments.local_pythonpath import _strip_kova_owned_pythonpath
 
         local_file = Path(__import__("tools.environments.local", fromlist=["__file__"]).__file__).resolve()
         real_repo_root = local_file.parents[2]
@@ -1062,7 +1062,7 @@ class TestNativeEnvironmentContracts:
         env = {
             "PYTHONPATH": os.pathsep.join([direct_child, "/home/user/my-lib"]),
         }
-        _strip_hermes_owned_pythonpath(env)
+        _strip_kova_owned_pythonpath(env)
         pp = env.get("PYTHONPATH", "")
         entries = pp.split(os.pathsep) if pp else []
         assert direct_child in entries
@@ -1084,7 +1084,7 @@ class TestNativeEnvironmentContracts:
         monkeypatch.setenv("KOVA_HOME", str(configured_home))
 
         launcher_entry = Path(_preserve_kova_home_path(physical_root))
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home,
@@ -1093,7 +1093,7 @@ class TestNativeEnvironmentContracts:
         assert launcher_entry == configured_home / "kova-agent"
         assert launcher_entry in aliases
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
         nested_user_path = launcher_entry / "user-data"
         env = {
             "PYTHONPATH": os.pathsep.join([
@@ -1102,7 +1102,7 @@ class TestNativeEnvironmentContracts:
                 "/home/user/my-lib",
             ])
         }
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
 
         assert env["PYTHONPATH"].split(os.pathsep) == [
             str(nested_user_path),
@@ -1144,22 +1144,22 @@ class TestNativeEnvironmentContracts:
         assert Path(resolve_profile_env("coder")) == configured_home / "profiles" / "coder"
 
         # The sanitizer now runs under the re-homed (profile) KOVA_HOME.
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home / "profiles" / "coder",
         )
         assert any(local_pythonpath._same_path(a, lexical_root) for a in aliases)
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
         env = {"PYTHONPATH": os.pathsep.join([str(lexical_root), "/home/user/my-lib"])}
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
         assert env["PYTHONPATH"].split(os.pathsep) == ["/home/user/my-lib"]
 
 
     def test_repo_level_junction_recovers_lexical_alias(self, tmp_path, monkeypatch):
         """The repo itself may be a junction under the configured root
-        (e.g. D:\\hermes\\kova-agent -> C:\\...\\kova-agent) while the
+        (e.g. D:\\kova\\kova-agent -> C:\\...\\kova-agent) while the
         editable import spelling resolves to the physical location.  The
         alias builder must recover the lexical spelling via exact-identity
         proof (strict resolve), not a name-based guess.
@@ -1177,16 +1177,16 @@ class TestNativeEnvironmentContracts:
             pytest.skip(f"directory link unavailable on this host: {exc}")
 
         lexical_root = configured_home / "kova-agent"
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home,
         )
         assert any(local_pythonpath._same_path(a, lexical_root) for a in aliases)
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
         env = {"PYTHONPATH": os.pathsep.join([str(lexical_root), "/home/user/my-lib"])}
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
         assert env["PYTHONPATH"].split(os.pathsep) == ["/home/user/my-lib"]
 
     def test_same_named_non_owned_directories_preserved(self, tmp_path, monkeypatch):
@@ -1204,7 +1204,7 @@ class TestNativeEnvironmentContracts:
         unrelated = tmp_path / "user-tools" / "kova-agent"
         unrelated.mkdir(parents=True)
 
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home,
@@ -1212,10 +1212,10 @@ class TestNativeEnvironmentContracts:
         for lookalike in (configured_home / "kova-agent", unrelated):
             assert not any(local_pythonpath._same_path(a, lookalike) for a in aliases)
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
         for lookalike in (configured_home / "kova-agent", unrelated):
             env = {"PYTHONPATH": os.pathsep.join([str(lookalike), "/home/user/my-lib"])}
-            local_pythonpath._strip_hermes_owned_pythonpath(env)
+            local_pythonpath._strip_kova_owned_pythonpath(env)
             assert env["PYTHONPATH"].split(os.pathsep) == [str(lookalike), "/home/user/my-lib"]
 
     def test_profile_home_with_repo_level_junction(self, tmp_path, monkeypatch):
@@ -1237,7 +1237,7 @@ class TestNativeEnvironmentContracts:
 
         configured_home = configured_root / "profiles" / "coder"
         lexical_root = configured_root / "kova-agent"
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home,
@@ -1245,9 +1245,9 @@ class TestNativeEnvironmentContracts:
         assert any(local_pythonpath._same_path(a, lexical_root) for a in aliases)
         assert not any(local_pythonpath._same_path(a, configured_home / "kova-agent") for a in aliases)
 
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
         env = {"PYTHONPATH": os.pathsep.join([str(lexical_root), "/home/user/my-lib"])}
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
         assert env["PYTHONPATH"].split(os.pathsep) == ["/home/user/my-lib"]
 
     @pytest.mark.platforms("windows")
@@ -1271,26 +1271,26 @@ class TestNativeEnvironmentContracts:
             pytest.skip(f"directory link unavailable on this host: {exc}")
 
         lexical_root = configured_home / "kova-agent"
-        aliases = local_pythonpath._build_hermes_repo_root_aliases(
+        aliases = local_pythonpath._build_kova_repo_root_aliases(
             physical_root.resolve(),
             physical_root,
             configured_home,
         )
         assert any(local_pythonpath._same_path(a, lexical_root) for a in aliases)
-        monkeypatch.setattr(local, "_hermes_repo_root_aliases", aliases)
+        monkeypatch.setattr(local, "_kova_repo_root_aliases", aliases)
 
         lexical_venv = lexical_root / "venv"
         validated = local_pythonpath._validated_runtime_venv({"VIRTUAL_ENV": str(lexical_venv)})
         assert validated is not None
         assert local_pythonpath._same_path(validated, lexical_venv)
 
-        local._hermes_site_packages = None
+        local._kova_site_packages = None
         env = {"PYTHONPATH": os.pathsep.join([
             str(lexical_root),
             str(lexical_venv / "Lib" / "site-packages"),
             "/home/user/my-lib",
         ]), "VIRTUAL_ENV": str(lexical_venv)}
-        local_pythonpath._strip_hermes_owned_pythonpath(env)
+        local_pythonpath._strip_kova_owned_pythonpath(env)
         assert env["PYTHONPATH"].split(os.pathsep) == ["/home/user/my-lib"]
 
 
@@ -1309,7 +1309,7 @@ class TestPythonhomeSanitized:
     @pytest.mark.parametrize("builder", [
         "_make_run_env",
         "_sanitize_subprocess_env",
-        "hermes_subprocess_env",
+        "kova_subprocess_env",
         "build_subprocess_env",
     ])
     def test_builders_strip_pythonhome(self, builder):
@@ -1322,14 +1322,14 @@ class TestPythonhomeSanitized:
         seed = {
             "PATH": "/usr/bin:/bin",
             "HOME": "/home/user",
-            "PYTHONHOME": "/opt/hermes-venv",
+            "PYTHONHOME": "/opt/kova-venv",
         }
         with patch.dict(os.environ, seed, clear=True):
             if builder == "_make_run_env":
                 result = local_mod._make_run_env({})
             elif builder == "_sanitize_subprocess_env":
                 result = local_mod._sanitize_subprocess_env(dict(os.environ))
-            elif builder == "hermes_subprocess_env":
+            elif builder == "kova_subprocess_env":
                 result = local_mod.kova_subprocess_env()
             else:
                 result = local_mod.build_subprocess_env()
@@ -1349,13 +1349,13 @@ class TestPythonhomeSanitized:
         base = {
             "PATH": "/usr/bin:/bin",
             "HOME": "/home/user",
-            "PYTHONHOME": "/opt/hermes-venv",
-            "VIRTUAL_ENV": "/opt/hermes-venv",
+            "PYTHONHOME": "/opt/kova-venv",
+            "VIRTUAL_ENV": "/opt/kova-venv",
             "SERVICE_TOKEN": "s3cr3t",
         }
         result = build_subprocess_env(base, scrub_secrets=False)
-        assert result.get("PYTHONHOME") == "/opt/hermes-venv"
-        assert result.get("VIRTUAL_ENV") == "/opt/hermes-venv"
+        assert result.get("PYTHONHOME") == "/opt/kova-venv"
+        assert result.get("VIRTUAL_ENV") == "/opt/kova-venv"
         assert result.get("SERVICE_TOKEN") == "s3cr3t"
 
 
@@ -1543,10 +1543,10 @@ class TestSanePathIncludesHomebrew:
     """Verify _SANE_PATH includes macOS Homebrew directories."""
 
     @pytest.fixture(autouse=True)
-    def _disable_hermes_bin_injection(self):
+    def _disable_kova_bin_injection(self):
         """These tests assert the sane-path merge in isolation. Disable the
-        hermes-install-dir prepend (a separate concern, covered by
-        TestKovaBinDirOnPath) so a real ``hermes`` on the test runner's PATH
+        kova-install-dir prepend (a separate concern, covered by
+        TestKovaBinDirOnPath) so a real ``kova`` on the test runner's PATH
         doesn't shift the asserted PATH layout."""
         from tools.environments import local as local_mod
         saved = local_mod._KOVA_BIN_DIR

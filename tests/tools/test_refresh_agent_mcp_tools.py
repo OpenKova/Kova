@@ -408,7 +408,7 @@ def test_resume_on_another_surface_restores_the_pinned_tool_bytes(monkeypatch, t
     bytes for the SAME tools (tool_search's per-surface deferred catalog, per-surface dynamic
     PARAMETERS like delegate_task's, the one-shot footprint pruning skill_manage). tools[] heads
     every request, so a pin written by the same code hands back exactly what the session sent;
-    one written by other code (``hermes update``) takes the current definitions instead."""
+    one written by other code (``kova update``) takes the current definitions instead."""
     from kova_state import SessionDB
     from tools import registry as registry_mod
 
@@ -445,7 +445,7 @@ def test_resume_on_another_surface_restores_the_pinned_tool_bytes(monkeypatch, t
         repinned = db.get_session("s1")["tool_names"]
 
         # The pin came from other code: every tool built here takes this build's definition.
-        monkeypatch.setattr(_mcp_agent, "tool_pin_version", lambda: "sha-after-hermes-update")
+        monkeypatch.setattr(_mcp_agent, "tool_pin_version", lambda: "sha-after-kova-update")
         updated = _agent([])
         updated.tools, updated._session_db, updated.session_id = list(this_surface), db, "s2"
         _mcp_agent.restore_agent_tool_prefix(updated, json.loads(db.get_session("s2")["tool_names"]))
@@ -457,7 +457,7 @@ def test_resume_on_another_surface_restores_the_pinned_tool_bytes(monkeypatch, t
     assert json.loads(repinned)["tools"] == sent.tools  # unchanged pin, no rewrite per hop
     assert updated.tools == [*this_surface[:2], {"type": "function", "function": {**static["skill_manage"]}},
                              this_surface[2]]
-    assert upgraded_pin == {"version": "sha-after-hermes-update", "tools": updated.tools}
+    assert upgraded_pin == {"version": "sha-after-kova-update", "tools": updated.tools}
 
 
 def test_a_pin_never_re_adds_a_tool_this_sessions_config_excludes(monkeypatch):
@@ -469,7 +469,7 @@ def test_a_pin_never_re_adds_a_tool_this_sessions_config_excludes(monkeypatch):
     monkeypatch.setattr(_mcp_agent, "persist_agent_tool_names", lambda agent: None)
     pin = {"version": _mcp_agent.tool_pin_version(),
            "tools": [_tool(n) for n in ("read_file", "terminal", "browser_exec", "focus_pane")]}
-    agent = _agent(["read_file"], enabled=["hermes-cli"], disabled=["terminal"])
+    agent = _agent(["read_file"], enabled=["kova-cli"], disabled=["terminal"])
 
     _mcp_agent.restore_agent_tool_prefix(agent, pin)
 

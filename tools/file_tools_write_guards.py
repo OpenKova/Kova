@@ -45,8 +45,8 @@ _SENSITIVE_EXACT_PATHS = {"/var/run/docker.sock", "/run/docker.sock"}
 # order-dependent, up to letting a later profile rewrite its own ``config.yaml``
 # the block exists to protect (#107327). A test can still pin a value by setting
 # the slot and its ``_loaded`` flag.
-_hermes_config_resolved: str | None = None
-_hermes_config_resolved_loaded = False
+_kova_config_resolved: str | None = None
+_kova_config_resolved_loaded = False
 _real_kova_home_cached: str | None = None
 _real_kova_home_loaded = False
 
@@ -61,16 +61,16 @@ def _kova_home_real() -> str:
     return os.path.realpath(str(get_kova_home()))
 
 
-def _get_hermes_config_resolved() -> str | None:
+def _get_kova_config_resolved() -> str | None:
     """Resolved absolute path of the Kova config file for the ACTIVE profile.
 
     Resolved per call so it tracks the per-turn ``KOVA_HOME`` scope (#107327);
-    a test may pin it via ``_hermes_config_resolved`` + ``_hermes_config_resolved_loaded``."""
-    if _hermes_config_resolved_loaded:
-        return _hermes_config_resolved
+    a test may pin it via ``_kova_config_resolved`` + ``_kova_config_resolved_loaded``."""
+    if _kova_config_resolved_loaded:
+        return _kova_config_resolved
     try:
         return _config_path_resolved()
-    except Exception:
+    except Exception:  # health: allow BLE001 -- resolver failure re-derives from the active profile home; never a traceback
         # Resolver failure must stay bound to the ACTIVE profile's home, not the
         # subprocess HOME. ``_expand_tilde("~/...")`` follows the subprocess-HOME
         # contract, which under host ``auto`` mode can be the real/default user
@@ -82,7 +82,7 @@ def _get_hermes_config_resolved() -> str | None:
         try:
             from kova_constants import get_kova_home
             return str((Path(str(get_kova_home())) / "config.yaml").resolve())
-        except Exception:
+        except Exception:  # health: allow BLE001 -- no config to resolve to; caller treats as absent
             return None
 
 
@@ -91,7 +91,7 @@ def _get_real_kova_home() -> str | None:
 
     Resolved per call so it tracks the per-turn ``KOVA_HOME`` scope (#107327);
     a test may pin it via ``_real_kova_home_cached`` + ``_real_kova_home_loaded``.
-    Consumers exempting a whole TREE want ``_hermes_exempt_homes()``: under a named
+    Consumers exempting a whole TREE want ``_kova_exempt_homes()``: under a named
     profile this home is ``<root>/profiles/<name>`` and the root is exempt too."""
     if _real_kova_home_loaded:
         return _real_kova_home_cached
@@ -99,7 +99,7 @@ def _get_real_kova_home() -> str | None:
         return _kova_home_real()
     except Exception:
         # Same active-profile binding on the exception path (see
-        # ``_get_hermes_config_resolved``): re-derive from ``get_kova_home()``
+        # ``_get_kova_config_resolved``): re-derive from ``get_kova_home()``
         # rather than ``_expand_tilde("~/.kova")`` so the protected-instruction
         # exemption resolves against the active profile — not the subprocess /
         # default home — and substitute no unrelated home if the active security
@@ -108,11 +108,11 @@ def _get_real_kova_home() -> str | None:
         try:
             from kova_constants import get_kova_home
             return os.path.realpath(str(get_kova_home()))
-        except Exception:
+        except Exception:  # health: allow BLE001 -- no config to resolve to; caller treats as absent
             return None
 
 
-def _hermes_exempt_homes() -> tuple[str, ...]:
+def _kova_exempt_homes() -> tuple[str, ...]:
     """Realpaths of the Kova home tree(s) the protected-instruction gate must stay out of:
     the ACTIVE profile's home, plus the Kova ROOT when that home is a named profile
     (``<root>/profiles/<name>``). Exempting only the profile dir left the root's DIRECT files
@@ -165,8 +165,8 @@ def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None
             "Use the terminal tool with sudo if you need to modify system files.")
     # approvals.mode and other security settings live in config.yaml; a
     # prompt-injected agent could silently disable exec approval by editing it.
-    hermes_config = _get_hermes_config_resolved()
-    if hermes_config and hermes_config in candidates:
+    kova_config = _get_kova_config_resolved()
+    if kova_config and kova_config in candidates:
         return (
             f"Refusing to write to Kova config file: {filepath}\n"
             "Agent cannot modify security-sensitive configuration. "
@@ -235,9 +235,9 @@ def _protected_instruction_reason(filepath: str, task_id: str = "default",
     # ~/.kova itself is governed by its own guards (config.yaml hard-block,
     # mirror guard, write_approval); this gate targets PROJECT-LOCAL files only.
     # Must run before the ``.kova`` component rule, which would match the home.
-    # ``_hermes_exempt_homes`` also covers the ROOT when the active home is a named
+    # ``_kova_exempt_homes`` also covers the ROOT when the active home is a named
     # profile, so ~/.kova/<file> cannot read as project-local ``.kova`` config.
-    for real_home in _hermes_exempt_homes():
+    for real_home in _kova_exempt_homes():
         if resolved == real_home or resolved.startswith(real_home + os.sep):
             return None
 

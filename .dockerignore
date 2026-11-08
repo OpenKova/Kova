@@ -45,7 +45,7 @@ ui-tui/packages/kova-ink/dist/
 .env
 .env.*
 # ...but keep the template: docker/stage2-hook.sh seeds $KOVA_HOME/.env from
-# /opt/hermes/.env.example on first boot (OOF-285 — excluding it silently broke
+# /opt/kova/.env.example on first boot (OOF-285 — excluding it silently broke
 # first-boot .env seeding and the API_SERVER_KEY generation that depends on it).
 !.env.example
 
@@ -71,7 +71,7 @@ data/
 .notebooklm-home/
 
 # Compose/profile runtime state (bind-mounted; avoid ownership/secret issues)
-hermes-config/
+kova-config/
 runtime/
 
 # ---------- Not needed inside the Docker image ----------
@@ -121,8 +121,8 @@ assets/*
 !assets/backgrounds/**
 infographic/
 
-# Plugin-level docs (hermes-achievements ships docs/ but the runtime doesn't read them)
-plugins/hermes-achievements/docs/
+# Plugin-level docs (kova-achievements ships docs/ but the runtime doesn't read them)
+plugins/kova-achievements/docs/
 
 # Nix / Homebrew / AUR packaging metadata — irrelevant to Docker
 nix/

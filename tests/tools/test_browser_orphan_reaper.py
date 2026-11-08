@@ -64,7 +64,7 @@ class TestReapOrphanedBrowserSessions:
         copy_dir = tmp_path / "browser-profile" / "chrome"
         copy_dir.mkdir(parents=True)
         rec = _record(records, pid=4242, udd=str(copy_dir), ephemeral=False)
-        monkeypatch.setattr(launcher, "_pid_alive", _alive(4242))  # browser alive, owning hermes gone
+        monkeypatch.setattr(launcher, "_pid_alive", _alive(4242))  # browser alive, owning kova gone
         monkeypatch.setattr(launcher, "_start_time", lambda pid: 777)
         monkeypatch.setattr(launcher, "_cmdline_names_dir", lambda pid, udd: True)
         monkeypatch.setattr("tools.browser_lightpanda.reap_orphaned_lightpanda", lambda: 0)
@@ -331,7 +331,7 @@ class TestPeriodicOrphanReap:
     """The reaper must run repeatedly, not only at cleanup-thread startup.
 
     A startup-only reap can never recover from a leak that appears *after*
-    boot — which is exactly what happens in a hermes process that stays up
+    boot — which is exactly what happens in a kova process that stays up
     for days.
     """
 

@@ -646,7 +646,7 @@ def delegate_task(
     #
     # The transcripts' profile home is resolved from stable parent-owned
     # state (the parent's per-profile SessionDB path), NOT ambient
-    # get_hermes_dir(): this thread may have crossed a raw threading.Thread
+    # get_kova_dir(): this thread may have crossed a raw threading.Thread
     # boundary that dropped the session's _KOVA_HOME_OVERRIDE ContextVar,
     # and process-wide KOVA_HOME is unstable under concurrent
     # multi-profile workers — either way transcripts could land in the

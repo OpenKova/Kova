@@ -33,7 +33,7 @@ afterEach(() => {
   delete win.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   $connection.set(null)
   vi.unstubAllGlobals()
   vi.restoreAllMocks()

@@ -74,7 +74,7 @@ class TestIsSummaryItemNegativeWitnesses:
         item = {"role": "assistant", "content": "hi", "_my_custom_summary_flag": True}
         assert _is_summary_item(item) is False
 
-    def test_non_hermes_assistant_content_is_not_a_summary(self):
+    def test_non_kova_assistant_content_is_not_a_summary(self):
         item = {"role": "assistant", "content": "Conversation Summary: I finished the task."}
         assert _is_summary_item(item) is False
 

@@ -1,4 +1,4 @@
-"""`hermes pm update --pnpm` drops the release-age excludes a refreshed lock no longer holds."""
+"""`kova pm update --pnpm` drops the release-age excludes a refreshed lock no longer holds."""
 import pytest
 
 import kova_yaml

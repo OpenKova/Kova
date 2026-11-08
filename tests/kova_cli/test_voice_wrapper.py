@@ -167,7 +167,7 @@ class TestSpeakTextGuards:
         from tools import tts_tool
 
         played = []
-        returned_path = "/tmp/hermes_voice/actual.flac"
+        returned_path = "/tmp/kova_voice/actual.flac"
 
         monkeypatch.setattr(
             tts_tool,

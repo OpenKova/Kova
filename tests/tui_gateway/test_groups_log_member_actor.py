@@ -24,7 +24,7 @@ def home(tmp_path, monkeypatch):
 def test_log_with_a_stamped_member_actor_satisfies_its_contract(home):
     room = srv.handle_request({"id": 1, "method": "groups.create", "params": {
         "room_id": "room-1", "name": "Room",
-        "members": [{"member_id": "default", "profile": "default", "handle": "hermes"},
+        "members": [{"member_id": "default", "profile": "default", "handle": "kova"},
                     {"member_id": "ops", "profile": "ops", "handle": "ops", "display_name": "Ops"}]}})
     actor = {"kind": "member", "id": "ops", "profile": "ops", "display_name": "Ops",
              "connection_id": "peer-1"}

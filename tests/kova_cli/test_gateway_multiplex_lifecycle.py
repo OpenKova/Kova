@@ -206,7 +206,7 @@ def test_parked_status_and_topology_keep_roster(homes, monkeypatch, capsys):
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'worker')
     monkeypatch.setattr(profiles, '_check_gateway_running', lambda home: False)
     gw._cmd_status(SimpleNamespace())
-    assert 'parked (hermes -p worker gateway start)' in capsys.readouterr().out
+    assert 'parked (kova -p worker gateway start)' in capsys.readouterr().out
     topology = _collect_profile_gateway_topology()
     assert topology['profiles'] == ['default', 'worker']
     assert topology['parked_profiles'] == ['worker']
@@ -303,7 +303,7 @@ def test_parked_status_still_reports_a_forced_gateway(homes, monkeypatch, capsys
     monkeypatch.setattr(gw, '_installed_service_kind_for', lambda _check: None)
     gw._cmd_status(SimpleNamespace())
     output = capsys.readouterr().out
-    assert 'parked (hermes -p worker gateway start)' in output
+    assert 'parked (kova -p worker gateway start)' in output
     assert 'Gateway is running (PID: 4242)' in output
 
 
@@ -311,7 +311,7 @@ def test_parked_status_still_reports_a_forced_gateway(homes, monkeypatch, capsys
     (('incompatible', 'runtime_protocol'), False),  # an older Kova's daemon left running
     (('ready', None), True),
 ])
-def test_status_flags_a_gateway_this_hermes_cannot_attach(homes, monkeypatch, capsys, verdict, healthy):
+def test_status_flags_a_gateway_this_kova_cannot_attach(homes, monkeypatch, capsys, verdict, healthy):
     """Upgrade with the old daemon up: every client refuses it, so status must not say ✓."""
     from kova_cli import gateway as gw, gateway_runtime, profiles
     root, _secondary = homes
@@ -328,7 +328,7 @@ def test_status_flags_a_gateway_this_hermes_cannot_attach(homes, monkeypatch, ca
     output = capsys.readouterr().out
     assert ('✓ Gateway is running (PID: 4242)' in output) is healthy
     assert ('incompatible: runtime_protocol' in output) is not healthy
-    assert ('hermes gateway restart' in output) is not healthy
+    assert ('kova gateway restart' in output) is not healthy
 
 
 @pytest.mark.parametrize('served', [True, False])
@@ -420,7 +420,7 @@ def test_sticky_profile_cannot_reassign_running_host(homes, monkeypatch, rendezv
     monkeypatch.setenv('KOVA_HOME', str(secondary))
     # The process started at the root, before the user's later sticky switch.
     monkeypatch.setattr(dashboard_procs, '_pid_environ', lambda pid: {'KOVA_HOME': str(root)})
-    monkeypatch.setattr(main_dashboard, '_dashboard_cmdline_for_pid', lambda pid: ['hermes', 'gateway', 'run'])
+    monkeypatch.setattr(main_dashboard, '_dashboard_cmdline_for_pid', lambda pid: ['kova', 'gateway', 'run'])
     (root / 'active_profile').write_text('worker\n')
     assert dashboard_procs._kova_home_for_pid(4242) == str(secondary)
 
@@ -443,7 +443,7 @@ def test_launch_identity_does_not_follow_sticky_selection(homes, monkeypatch, id
     root, secondary = homes
     (root / 'active_profile').write_text('other\n')
     env = {'KOVA_HOME': str(root)}
-    argv = ['hermes', 'gateway', 'run']
+    argv = ['kova', 'gateway', 'run']
     target = secondary
     if identity == 'explicit':
         argv[1:1] = ['-p', 'worker']

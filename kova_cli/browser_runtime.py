@@ -14,7 +14,7 @@ import pm
 # Written by the Docker image build with the pm Chromium binary it staged. The binary's path differs
 # per architecture (chrome-linux64/chrome vs chromium-linux-arm64/chromium), so the build resolves it
 # once; it also survives a volume over the runtime dir that hides pm's facts.
-BAKED_EXECUTABLE_FILE = Path("/etc/hermes/chromium-executable-path")
+BAKED_EXECUTABLE_FILE = Path("/etc/kova/chromium-executable-path")
 
 # Distribution command names for a system Chromium, used only where pm builds none for this target
 # (Termux: `pkg install chromium` from x11-repo).

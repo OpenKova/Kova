@@ -103,15 +103,15 @@ def test_diagnostic_entrypoint_preserves_cli_arguments_and_failure(tmp_path):
         'def hdiutil(command, *args, **kwargs):\n'
         '    print("fixture native", command, *args, flush=True)\n'
         '    if command == "attach":\n'
-        '        return 0, {"system-entities": [{"dev-entry": "/dev/hermes-dmg-fixture-not-a-device"}]}\n'
+        '        return 0, {"system-entities": [{"dev-entry": "/dev/kova-dmg-fixture-not-a-device"}]}\n'
         '    return (0, "cleanup") if "-force" in args else (16, "Resource busy")\n', encoding="utf-8")
     (package / "__main__.py").write_text(
         'import json, sys\nfrom . import core\n'
         'def main():\n'
         '    print(json.dumps(sys.argv[1:]), flush=True)\n'
-        '    core.hdiutil("attach", "-nobrowse", "/hermes-dmg-fixture-no-image.dmg")\n'
-        '    result = core.hdiutil("detach", "/dev/hermes-dmg-fixture-not-a-device", plist=False)\n'
-        '    core.hdiutil("detach", "-force", "/dev/hermes-dmg-fixture-not-a-device", plist=False)\n'
+        '    core.hdiutil("attach", "-nobrowse", "/kova-dmg-fixture-no-image.dmg")\n'
+        '    result = core.hdiutil("detach", "/dev/kova-dmg-fixture-not-a-device", plist=False)\n'
+        '    core.hdiutil("detach", "-force", "/dev/kova-dmg-fixture-not-a-device", plist=False)\n'
         '    raise SystemExit(result[0])\n', encoding="utf-8")
     args = ["-s", "settings with spaces.json", "Install Kova Agent", "output.dmg"]
     result = subprocess.run([sys.executable, str(Path(diagnostics.__file__)), *args],

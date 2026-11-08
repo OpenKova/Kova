@@ -136,7 +136,7 @@ def _setup_nous_auth(
             "nous": {
                 "portal_base_url": "https://portal.example.com",
                 "inference_base_url": "https://inference.example.com/v1",
-                "client_id": "hermes-cli",
+                "client_id": "kova-cli",
                 "token_type": "Bearer",
                 "scope": scope,
                 "access_token": access_token,
@@ -178,7 +178,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
 ):
     import kova_cli.auth as auth_mod
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     token = _invoke_jwt(seconds=3600)
     _setup_nous_auth(
         kova_home,
@@ -212,7 +212,7 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     exp = int(time.time() + 3600)
     expires_at = datetime.fromtimestamp(exp, tz=UTC).isoformat()
@@ -229,7 +229,7 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
             "nous": {
                 "portal_base_url": "https://portal.nousresearch.com",
                 "inference_base_url": "https://inference-api.nousresearch.com/v1",
-                "client_id": "hermes-cli",
+                "client_id": "kova-cli",
                 "token_type": "Bearer",
                 "scope": auth_mod.DEFAULT_NOUS_SCOPE,
                 "access_token": token,
@@ -290,7 +290,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
 ):
     import kova_cli.auth as auth_mod
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     token = _jwt_with_claims({
         "sub": "test-user",
         "scope": "inference:mint_agent_key",
@@ -325,7 +325,7 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     token = _invoke_jwt(seconds=3600)
     refreshed_token = _invoke_jwt(seconds=7200)
     refresh_token = "refresh-secret-token"
@@ -376,7 +376,7 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     """
     from kova_cli.auth import get_nous_auth_status
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     # Empty auth store — no Nous provider entry
     (kova_home / "auth.json").write_text(json.dumps({
@@ -414,7 +414,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     """
     from kova_cli.auth import get_nous_auth_status
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
@@ -431,7 +431,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
 
 
 class TestLoginNousSkipKeepsCurrent:
-    """When a user runs `hermes model` → Neural Studio Portal → Skip (keep current) after
+    """When a user runs `kova model` → Neural Studio Portal → Skip (keep current) after
     a successful OAuth login, the prior provider and model MUST be preserved.
 
     Regression: previously, _update_config_for_provider was called
@@ -442,7 +442,7 @@ class TestLoginNousSkipKeepsCurrent:
 
     def _setup_home_with_openrouter(self, tmp_path, monkeypatch):
         import kova_yaml as yaml
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
@@ -571,7 +571,7 @@ class TestLoginNousSkipKeepsCurrent:
         import kova_yaml as yaml
         from kova_cli.auth import PROVIDER_REGISTRY, _login_nous
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
@@ -608,7 +608,7 @@ def _full_state_fixture() -> dict:
     return {
         "portal_base_url": "https://portal.example.com",
         "inference_base_url": "https://inference.example.com/v1",
-        "client_id": "hermes-cli",
+        "client_id": "kova-cli",
         "scope": "inference:invoke",
         "token_type": "Bearer",
         "access_token": token,
@@ -637,7 +637,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     """
     from kova_cli.auth import persist_nous_credentials, NOUS_DEVICE_CODE_SOURCE
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
@@ -700,7 +700,7 @@ def test_refresh_token_reuse_detection_surfaces_actionable_message():
         _refresh_access_token(
             client=_FakeClient(),
             portal_base_url="https://portal.nousresearch.com",
-            client_id="hermes-cli",
+            client_id="kova-cli",
             refresh_token="rt_consumed_elsewhere",
         )
 
@@ -760,7 +760,7 @@ def test_refresh_token_exchange_error_classification(
         _refresh_access_token(
             client=_FakeClient(),
             portal_base_url="https://portal.nousresearch.com",
-            client_id="hermes-cli",
+            client_id="kova-cli",
             refresh_token="refresh-still-valid",
         )
 
@@ -791,7 +791,7 @@ def test_runtime_refresh_503_preserves_nous_oauth_credentials(
     import kova_cli.auth as auth_mod
     from kova_cli import auth_nous
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     access_token = _invoke_jwt(seconds=3600)
     refresh_token = "refresh-still-valid"
     _setup_nous_auth(
@@ -863,7 +863,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
     payload = _refresh_access_token(
         client=client,
         portal_base_url="https://portal.nousresearch.com",
-        client_id="hermes-cli",
+        client_id="kova-cli",
         refresh_token="refresh-1",
     )
 
@@ -873,7 +873,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
     assert client.kwargs["headers"]["x-nous-refresh-token"] == "refresh-1"
     assert client.kwargs["data"] == {
         "grant_type": "refresh_token",
-        "client_id": "hermes-cli",
+        "client_id": "kova-cli",
     }
 
 
@@ -943,7 +943,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
     tmp_path, monkeypatch, shared_store_env,
 ):
     """persist_nous_credentials must populate BOTH per-profile auth.json
-    AND the shared store, so a future profile's `hermes auth add nous
+    AND the shared store, so a future profile's `kova auth add nous
     --type oauth` can one-tap import instead of redoing device-code.
     """
     from kova_cli.auth import (
@@ -952,7 +952,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
         persist_nous_credentials,
     )
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(
         json.dumps({"version": 1, "providers": {}})
@@ -1006,7 +1006,7 @@ def test_try_import_shared_rehydrates_on_success(shared_store_env, monkeypatch):
     assert result["agent_key"] == fresh_jwt
     # Preserved from shared state
     assert result["portal_base_url"] == "https://portal.example.com"
-    assert result["client_id"] == "hermes-cli"
+    assert result["client_id"] == "kova-cli"
 
 class TestStalePortalBaseUrlMigration:
     """_migrate_stale_nous_portal_url auto-corrects stale portal_base_url on load."""
@@ -1039,7 +1039,7 @@ class TestStalePortalBaseUrlMigration:
         from kova_cli import auth as auth_mod
         from kova_cli import auth_nous
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         _setup_nous_auth(
             kova_home,
@@ -1108,7 +1108,7 @@ def test_poll_for_token_timeout_raises_actionable_message():
         auth_mod._poll_for_token(
             client=cast(httpx.Client, _PendingClient()),
             portal_base_url="https://portal.nousresearch.com",
-            client_id="hermes-cli",
+            client_id="kova-cli",
             device_code="device",
             expires_in=1,
             poll_interval=1,

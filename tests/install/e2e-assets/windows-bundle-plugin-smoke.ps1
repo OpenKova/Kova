@@ -110,8 +110,8 @@ function Test-BundlePluginInstall([string]$Root, [string]$Out) {
     if (-not (Test-Path -LiteralPath $alias)) { throw "Package CLI execution alias missing: $alias" }
     $python = Join-Path $Root $manifest.runtime.storePython
     # Under the profile, which the basic-user token can write; the runner's temp may be admin-only.
-    # The CLI uses its default home (%LOCALAPPDATA%\hermes), as an installed user's does.
-    $scratch = Join-Path $env:LOCALAPPDATA ('hermes-plugin-smoke-' + [Guid]::NewGuid().ToString('N'))
+    # The CLI uses its default home (%LOCALAPPDATA%\kova), as an installed user's does.
+    $scratch = Join-Path $env:LOCALAPPDATA ('kova-plugin-smoke-' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $scratch | Out-Null
     try {
         # The token must reproduce a user's package ACL, or a green below proves nothing.

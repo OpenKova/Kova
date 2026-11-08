@@ -19,7 +19,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 export const UI_PREFERENCES_FILE = 'ui-preferences.json'
-const KEY_PREFIXES = ['kova.desktop.', 'hermes-desktop-', 'hermes-onboarding-']
+const KEY_PREFIXES = ['kova.desktop.', 'kova-desktop-', 'kova-onboarding-']
 const MAX_KEY_CHARS = 256
 const MAX_VALUE_CHARS = 256 * 1024
 const MAX_KEYS = 512

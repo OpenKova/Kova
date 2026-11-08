@@ -51,7 +51,7 @@ class _Scoped:
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    a = tmp_path / "hermes"
+    a = tmp_path / "kova"
     b = a / "profiles" / "B"
     for home in (a, b):
         (home / "cache").mkdir(parents=True)

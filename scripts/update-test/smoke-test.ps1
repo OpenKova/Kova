@@ -237,7 +237,7 @@ try {
   $r = Invoke-Rehearsal -Arguments @('pre', '-Source', $Install, '-BackupRoot', $Backups)
   Check 'pre exits 0' ($r.Code -eq 0)
   $Snap = (Get-ChildItem -LiteralPath $Backups -Directory | Sort-Object Name)[-1].FullName
-  foreach ($f in @('hermes-backup.zip', 'shadows.txt', 'manifest.json', 'hermes-home.txt', 'target-sha')) {
+  foreach ($f in @('hermes-backup.zip', 'shadows.txt', 'manifest.json', 'kova-home.txt', 'target-sha')) {
     Check "backup artifact $f" (Test-Path -LiteralPath (Join-Path $Snap $f))
   }
   $ShadowIds = @(Get-Content -LiteralPath (Join-Path $Snap 'shadows.txt') | Where-Object { $_.Trim() } | ForEach-Object { ($_ -split "`t")[1] })

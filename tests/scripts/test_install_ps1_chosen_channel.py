@@ -15,7 +15,7 @@ pytestmark = pytest.mark.platforms("windows")
 
 
 @pytest.mark.parametrize("channel", ["stable", "main"])
-def test_installer_reads_the_channel_hermes_recorded(tmp_path, monkeypatch, channel):
+def test_installer_reads_the_channel_kova_recorded(tmp_path, monkeypatch, channel):
     from kova_cli.update_channel import set_install_channel
 
     powershell = shutil.which("powershell")

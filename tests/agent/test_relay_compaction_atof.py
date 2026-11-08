@@ -118,7 +118,7 @@ def _run_turn_with_compaction(tmp_path, monkeypatch, summary):
     from agent.context_compressor import ContextCompressor
     from agent.conversation_compression import compress_context
 
-    kova_home, atof_dir = tmp_path / "hermes-home", tmp_path / "atof"
+    kova_home, atof_dir = tmp_path / "kova-home", tmp_path / "atof"
     kova_home.mkdir()
     atof_dir.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -181,9 +181,9 @@ def test_committed_compaction_mark_resets_freshness_for_the_next_llm_start(tmp_p
 
     [mark] = _compaction_marks(events)
     assert mark["name"] == "compaction"
-    assert mark["data_schema"] == {"name": "hermes.compaction", "version": "1"}
+    assert mark["data_schema"] == {"name": "kova.compaction", "version": "1"}
     assert (mark["data"]["kind"], mark["data"]["outcome"], mark["data"]["method"]) == ("summarize", "committed", method)
-    [turn_start] = [e for e in events if e.get("name") == "hermes.turn" and e.get("scope_category") == "start"]
+    [turn_start] = [e for e in events if e.get("name") == "kova.turn" and e.get("scope_category") == "start"]
     assert mark["parent_uuid"] == turn_start["uuid"]
     raw = json.dumps(mark)
     assert SECRET not in raw and "SANITIZED SUMMARY" not in raw

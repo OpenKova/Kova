@@ -86,7 +86,7 @@ def test_resolve_runtime_provider_uses_credential_pool(monkeypatch):
     assert resolved["source"] == "manual"
 
 
-def test_codex_pool_honors_hermes_codex_base_url(monkeypatch):
+def test_codex_pool_honors_kova_codex_base_url(monkeypatch):
     """The profile-wide Codex endpoint override must apply to pool credentials too."""
     class _Entry:
         access_token = "pool-token"
@@ -705,7 +705,7 @@ def test_openrouter_env_file_key_survives_exhausted_pool(monkeypatch):
 
     Regression test for #117667: with the pool's OPENROUTER_API_KEY entry benched
     (select() -> None), the terminal resolver read os.environ only, so the documented
-    .env location was skipped and `hermes chat --provider openrouter` failed with
+    .env location was skipped and `kova chat --provider openrouter` failed with
     "No API key found" until the key was exported in the shell.
     """
     monkeypatch.setattr(rp, "resolve_provider", lambda *a, **k: "openrouter")
@@ -1297,7 +1297,7 @@ def test_explicit_openrouter_config_mirror_bypasses_pool(monkeypatch):
     assert resolved["api_key"] == "router-key"
     assert resolved.get("credential_pool") is None
 
-    # The canonical URL that `hermes setup` persists is NOT a mirror: the pool must still serve it.
+    # The canonical URL that `kova setup` persists is NOT a mirror: the pool must still serve it.
     monkeypatch.setattr(rp, "_get_model_config", lambda: {"provider": "openrouter", "base_url": "https://openrouter.ai/api/v1"})
     canonical = rp.resolve_runtime_provider(requested="openrouter")
     assert canonical["api_key"] == "pool-key" and canonical.get("credential_pool") is not None
@@ -2231,7 +2231,7 @@ def test_bare_custom_resolves_model_key_env_for_configured_base_url(monkeypatch)
     monkeypatch.setenv("CUSTOM_BASE_URL", "https://other.example.test/v1")
     assert rp.resolve_runtime_provider(requested="custom")["api_key"] == "no-key-required"
 
-    # Direct-alias rung (`hermes --resume` provider change, `/model` direct aliases pass explicit_base_url):
+    # Direct-alias rung (`kova --resume` provider change, `/model` direct aliases pass explicit_base_url):
     # the declared key follows the configured endpoint and stays home for any other endpoint.
     monkeypatch.delenv("CUSTOM_BASE_URL", raising=False)
     direct = rp.resolve_runtime_provider(requested="custom", explicit_base_url="https://api.example.test/v1")

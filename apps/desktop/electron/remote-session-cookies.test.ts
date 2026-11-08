@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import { cookiePathMatches, originKeyFor, parseSetCookie, RemoteSessionCookieStore } from './remote-session-cookies'
 
-const LEGACY = 'persist:hermes-remote-oauth'
-const CONN_A = 'persist:hermes-remote-oauth-conn-a'
-const CONN_B = 'persist:hermes-remote-oauth-conn-b'
+const LEGACY = 'persist:kova-remote-oauth'
+const CONN_A = 'persist:kova-remote-oauth-conn-a'
+const CONN_B = 'persist:kova-remote-oauth-conn-b'
 
 describe('parseSetCookie', () => {
   it('takes the first Name=Value pair and keeps the effective path', () => {

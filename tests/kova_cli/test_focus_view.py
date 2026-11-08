@@ -275,7 +275,7 @@ def _run_fake_turn(tool_progress_mode: str, dispatch_mode: str = "sequential"):
         ],
     )
     messages: list = [
-        {"role": "system", "content": "you are hermes"},
+        {"role": "system", "content": "you are kova"},
         {"role": "user", "content": "find three things"},
     ]
 

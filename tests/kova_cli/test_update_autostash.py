@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from kova_cli import main as hermes_main, update_cmd
+from kova_cli import main as kova_main, update_cmd
 from tests.kova_cli.test_update_target_identity import git, update_tree
 from datetime import UTC
 
@@ -32,7 +32,7 @@ def test_update_preserves_local_work_and_rescues_orphan_before_reset(
     before = git(t.clone, 'rev-parse', 'HEAD')
     (t.clone / 'untracked.txt').write_text('local edit\n', encoding='utf-8')
     t.args.channel, t.args.keep_stash = 'main', keep
-    monkeypatch.setattr(hermes_main, '_sync_with_upstream_if_needed', update_cmd._sync_with_upstream_if_needed)
+    monkeypatch.setattr(kova_main, '_sync_with_upstream_if_needed', update_cmd._sync_with_upstream_if_needed)
     monkeypatch.setattr(update_cmd, '_UPDATE_CRITICAL_MODULES', ())
     original = subprocess.run
     resets = []
@@ -40,7 +40,7 @@ def test_update_preserves_local_work_and_rescues_orphan_before_reset(
     def fault(command, *args, **kwargs):
         if 'reset' in command and '--hard' in command:
             refs = original(['git', 'for-each-ref', '--format=%(objectname)',
-                             'refs/hermes-update-backups/'], cwd=t.clone,
+                             'refs/kova-update-backups/'], cwd=t.clone,
                             check=True, capture_output=True, text=True).stdout.split()
             assert refs == ([before] if failure not in {'ref', 'head'} else [])
             resets.append(command)
@@ -54,13 +54,13 @@ def test_update_preserves_local_work_and_rescues_orphan_before_reset(
         monkeypatch.setattr(update_cmd, '_capture_head_sha', lambda *_: None)
     if failure == 'reset':
         with pytest.raises(SystemExit) as error:
-            hermes_main.cmd_update(t.args)
+            kova_main.cmd_update(t.args)
         assert error.value.code == 1
         assert not t.requests
         assert git(t.clone, 'rev-parse', 'HEAD') == before
         assert not (t.clone / 'untracked.txt').exists()
     else:
-        hermes_main.cmd_update(t.args)
+        kova_main.cmd_update(t.args)
         assert len(t.requests) == 1
         assert git(t.clone, 'rev-parse', 'HEAD') == t.newer
         assert (t.clone / 'untracked.txt').exists() is (not keep)
@@ -77,7 +77,7 @@ def test_update_preserves_local_work_and_rescues_orphan_before_reset(
     if failure not in {'ref', 'head'}:
         assert f'expires after {update_cmd._ORPHAN_RESCUE_REF_MAX_AGE_DAYS} days' in output
         kind = 'orphan' if history == 'orphan' else 'diverged'
-        assert f'refs/hermes-update-backups/{kind}-main-' in output
+        assert f'refs/kova-update-backups/{kind}-main-' in output
         if kind == 'diverged':
             assert 'commit(s) not on origin/main leave the branch' in output
 
@@ -90,7 +90,7 @@ def test_rescue_retention_uses_real_refs(tmp_path, monkeypatch, mode):
     git(tmp_path, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'base')
     now = datetime.now(UTC)
-    prefix = 'refs/hermes-update-backups/orphan-main-'
+    prefix = 'refs/kova-update-backups/orphan-main-'
     if mode == 'count':
         refs = [prefix + (now - timedelta(hours=20-i)).strftime('%Y%m%d-%H%M%S') + '-abc'
                 for i in range(update_cmd._ORPHAN_RESCUE_REFS_TO_KEEP + 2)]
@@ -103,7 +103,7 @@ def test_rescue_retention_uses_real_refs(tmp_path, monkeypatch, mode):
     for ref in refs:
         git(tmp_path, 'update-ref', ref, 'HEAD')
     update_cmd._prune_orphan_rescue_refs(['git'], tmp_path, 'main')
-    assert set(git(tmp_path, 'for-each-ref', '--format=%(refname)', 'refs/hermes-update-backups/').splitlines()) == set(refs) - removed
+    assert set(git(tmp_path, 'for-each-ref', '--format=%(refname)', 'refs/kova-update-backups/').splitlines()) == set(refs) - removed
 
 
 @pytest.mark.parametrize('fault,body,modules,message', [
@@ -128,19 +128,19 @@ def test_restore_validates_real_stash_and_each_import(probe_root, monkeypatch, c
     git(tmp_path, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'commit.gpgsign=false', 'commit', '-qm', 'base')
     source.write_text(body, encoding='utf-8')
-    ref = hermes_main._stash_local_changes_if_needed(['git'], tmp_path)
+    ref = kova_main._stash_local_changes_if_needed(['git'], tmp_path)
     assert ref
     monkeypatch.setattr(update_cmd, '_UPDATE_CRITICAL_MODULES', modules)
     if fault == 'paths':
         monkeypatch.setattr(stash, '_restored_python_paths', lambda *_: None)
         monkeypatch.setattr(update_cmd, '_restored_python_paths', lambda *_: None)
     if message is None:
-        assert hermes_main._restore_stashed_changes(['git'], tmp_path, ref, prompt_user=False)
+        assert kova_main._restore_stashed_changes(['git'], tmp_path, ref, prompt_user=False)
         assert source.read_text(encoding='utf-8') == body
         assert not git(tmp_path, 'stash', 'list')
     else:
         with pytest.raises(SystemExit) as error:
-            hermes_main._restore_stashed_changes(['git'], tmp_path, ref, prompt_user=False)
+            kova_main._restore_stashed_changes(['git'], tmp_path, ref, prompt_user=False)
         assert error.value.code == 1
         assert source.read_text(encoding='utf-8') == 'VALUE = 1\n'
         assert not git(tmp_path, 'status', '--porcelain')
@@ -165,10 +165,10 @@ def test_restore_without_python_is_not_judged_by_install_state_imports(probe_roo
     git(probe_root, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
         '-c', 'commit.gpgsign=false', 'commit', '-qm', 'base')
     notes.write_text('my local docs edit\n', encoding='utf-8')
-    ref = hermes_main._stash_local_changes_if_needed(['git'], probe_root)
+    ref = kova_main._stash_local_changes_if_needed(['git'], probe_root)
     monkeypatch.setattr(update_cmd, '_UPDATE_CRITICAL_MODULES', ('consumer',))
 
-    assert hermes_main._restore_stashed_changes(['git'], probe_root, ref, prompt_user=False)
+    assert kova_main._restore_stashed_changes(['git'], probe_root, ref, prompt_user=False)
     assert notes.read_text(encoding='utf-8') == 'my local docs edit\n'
     assert not git(probe_root, 'stash', 'list')
 
@@ -194,11 +194,11 @@ def test_restore_without_python_that_breaks_an_import_is_rejected(probe_root, mo
     else:
         local = probe_root / 'consumer.json'
         local.write_text('{not json\n', encoding='utf-8')
-    ref = hermes_main._stash_local_changes_if_needed(['git'], probe_root)
+    ref = kova_main._stash_local_changes_if_needed(['git'], probe_root)
     monkeypatch.setattr(update_cmd, '_UPDATE_CRITICAL_MODULES', ('consumer',))
 
     with pytest.raises(SystemExit) as error:
-        hermes_main._restore_stashed_changes(['git'], probe_root, ref, prompt_user=False)
+        kova_main._restore_stashed_changes(['git'], probe_root, ref, prompt_user=False)
     assert error.value.code == 1
     assert 'agent import consumer' in capsys.readouterr().out
     assert not git(probe_root, 'status', '--porcelain')
@@ -210,7 +210,7 @@ def test_unreadable_stash_prompt_keeps_work(tmp_path, monkeypatch, capsys, error
     def unreadable(*_):
         raise error
     monkeypatch.setattr('builtins.input', unreadable)
-    assert hermes_main._restore_stashed_changes(['git'], tmp_path, 'stash@{0}', prompt_user=True) is False
+    assert kova_main._restore_stashed_changes(['git'], tmp_path, 'stash@{0}', prompt_user=True) is False
     assert 'git stash apply stash@{0}' in capsys.readouterr().out
 
 
@@ -243,7 +243,7 @@ def test_update_parser_accepts_keep_stash():
 
 def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     """#38529: the Desktop bootstrap marker must be git-ignored so that
-    ``hermes update``'s ``git stash push --include-untracked`` does not sweep it
+    ``kova update``'s ``git stash push --include-untracked`` does not sweep it
     into an autostash on every run.
 
     Behavioral + hermetic: build a throwaway repo that adopts the project's real
@@ -256,7 +256,7 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     if shutil.which("git") is None:
         pytest.skip("git not available")
 
-    repo_gitignore = Path(hermes_main.__file__).resolve().parents[1] / ".gitignore"
+    repo_gitignore = Path(kova_main.__file__).resolve().parents[1] / ".gitignore"
 
     def git(*args):
         return subprocess.run(
@@ -274,8 +274,8 @@ def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
     marker = tmp_path / ".kova-bootstrap-complete"
     marker.write_text("")
 
-    # Exact flags used by hermes update (kova_cli/main.py).
-    git("stash", "push", "--include-untracked", "-m", "hermes-update-autostash")
+    # Exact flags used by kova update (kova_cli/main.py).
+    git("stash", "push", "--include-untracked", "-m", "kova-update-autostash")
 
     assert marker.exists(), (
         ".kova-bootstrap-complete was swept into the update autostash — it must "
@@ -324,13 +324,13 @@ def test_update_autostash_survives_undeletable_untracked_dir(tmp_path):
     (pkg / "kova-agent.rb").write_text("formula\n")
     os.chmod(pkg, 0o555)  # undeletable contents, like a root-owned dir
     try:
-        stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+        stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
         assert stash_ref
 
         # The tracked change is stashed; simulate the updater's checkout window.
         assert (tmp_path / "tracked.txt").read_text() == "v1\n"
 
-        restored = hermes_main._restore_stashed_changes(
+        restored = kova_main._restore_stashed_changes(
             ["git"], tmp_path, stash_ref, prompt_user=False
         )
         assert restored is True
@@ -380,7 +380,7 @@ def test_restore_stays_parked_when_untracked_baseline_is_unknown(
     monkeypatch.setattr(update_cmd, "_git_untracked_paths", lambda *_args: None)
     monkeypatch.setattr(update_cmd_stash, "_git_untracked_paths", lambda *_args: None)
 
-    restored = hermes_main._restore_stashed_changes(
+    restored = kova_main._restore_stashed_changes(
         ["git"], tmp_path, "stash@{0}", prompt_user=False
     )
 
@@ -415,7 +415,7 @@ def test_reject_does_not_claim_cleanup_when_git_state_is_unknown(
 def test_gateway_restore_prompt_defaults_to_keep_stash(tmp_path, capsys):
     prompts = []
 
-    restored = hermes_main._restore_stashed_changes(
+    restored = kova_main._restore_stashed_changes(
         ["git"],
         tmp_path,
         "stash@{0}",
@@ -462,7 +462,7 @@ def test_prune_orphan_rescue_refs_with_real_git_unpins_objects(tmp_path):
 
     # Rewind, park the snapshot behind an AGE-EXPIRED rescue ref.
     git("reset", "-q", "--hard", "HEAD~1")
-    old_ref = "refs/hermes-update-backups/orphan-main-20200101-000000-" + snap_sha[:12]
+    old_ref = "refs/kova-update-backups/orphan-main-20200101-000000-" + snap_sha[:12]
     git("update-ref", old_ref, snap_sha)
 
     # With the ref present, gc cannot drop the snapshot objects.
@@ -472,7 +472,7 @@ def test_prune_orphan_rescue_refs_with_real_git_unpins_objects(tmp_path):
 
     # Prune (the ref's 2020 timestamp is way past the age window) → ref gone.
     update_cmd._prune_orphan_rescue_refs(["git"], tmp_path, "main")
-    remaining = git("for-each-ref", "refs/hermes-update-backups/").stdout
+    remaining = git("for-each-ref", "refs/kova-update-backups/").stdout
     assert old_ref not in remaining
 
     # And gc can now reclaim the snapshot's objects.
@@ -483,7 +483,7 @@ def test_prune_orphan_rescue_refs_with_real_git_unpins_objects(tmp_path):
 def test_autostash_survives_intent_to_add_entries(tmp_path):
     """An index entry from `git add -N` must not block the update autostash.
 
-    Reported: `hermes update` aborted with "Entry 'tests/...' not uptodate. Cannot merge." because
+    Reported: `kova update` aborted with "Entry 'tests/...' not uptodate. Cannot merge." because
     `git add -N` records a path with the empty blob and zeroed stat data, which `git stash push`
     refuses outright. Editors that show new files in diffs leave exactly that state behind, and the
     update must not require the user to repair their index by hand.
@@ -513,12 +513,12 @@ def test_autostash_survives_intent_to_add_entries(tmp_path):
     # intent-to-add shape that `git stash push` refuses.
     assert " A tests/test_live_custom_provider_poll.py" in git("status", "--porcelain").stdout.splitlines()
 
-    stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+    stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
 
     assert stash_ref, "the update must be able to stash an intent-to-add entry"
     # The stash must have taken everything, so the pull cannot be blocked by a dirty tree.
     assert git("status", "--porcelain").stdout == ""
-    assert hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
+    assert kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
     assert local_test.read_text(encoding="utf-8") == body
     assert (tmp_path / "tracked.txt").read_text(encoding="utf-8") == "v2 local\n"
 
@@ -567,7 +567,7 @@ def test_conflicted_restore_records_parked_step_in_receipt(monkeypatch, tmp_path
 
     # Local edit whose restore will conflict with the pulled change.
     source.write_text("VALUE = 2\n", encoding="utf-8")
-    stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+    stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
     assert stash_ref
     # Simulate the pull moving the same lines: the stash apply now conflicts.
     git("checkout", "HEAD")
@@ -577,7 +577,7 @@ def test_conflicted_restore_records_parked_step_in_receipt(monkeypatch, tmp_path
 
     probe = _ReceiptProbe()
     with _active_receipt(probe):
-        restored = hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
+        restored = kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
 
     assert restored is False
     disposition = [s for s in probe.steps if s["name"] == "local_changes_stash"]
@@ -605,12 +605,12 @@ def test_clean_restore_records_restored_step_in_receipt(monkeypatch, tmp_path):
     git("commit", "-qm", "init")
 
     source.write_text("VALUE = 2\n", encoding="utf-8")
-    stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+    stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
     assert stash_ref
 
     probe = _ReceiptProbe()
     with _active_receipt(probe):
-        restored = hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
+        restored = kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
 
     assert restored is True
     disposition = [s for s in probe.steps if s["name"] == "local_changes_stash"]
@@ -651,12 +651,12 @@ def _repo_with_stash(tmp_path, local_source):
     git("commit", "-qm", "init")
     (tmp_path / "mod.py").write_text(local_source, encoding="utf-8")
     (tmp_path / "notes.md").write_text("my private notes\n", encoding="utf-8")
-    stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+    stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
     assert stash_ref
     return git, stash_ref
 
 
-@pytest.mark.parametrize("local_source", ["X = 2\n", "X = (\n"], ids=["healthy", "breaks-hermes"])
+@pytest.mark.parametrize("local_source", ["X = 2\n", "X = (\n"], ids=["healthy", "breaks-kova"])
 def test_untracked_file_replaced_by_the_update_keeps_the_stash(tmp_path, local_source):
     """#124641: the update adds a file where the user had an untracked file of the same name.
     ``stash apply`` refuses it ("already exists, no checkout"); the stash is the only copy of the
@@ -671,11 +671,11 @@ def test_untracked_file_replaced_by_the_update_keeps_the_stash(tmp_path, local_s
     probe = _ReceiptProbe()
     with _active_receipt(probe):
         if local_source == "X = 2\n":
-            restored = hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
+            restored = kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
             assert restored is False
         else:
             with pytest.raises(SystemExit) as exc:
-                hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
+                kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False)
             assert exc.value.code == 1
 
     healthy = local_source == "X = 2\n"
@@ -696,7 +696,7 @@ def test_untracked_file_the_update_does_not_track_is_never_reported_replaced(tmp
     # The occupant survived the stash and was edited during the update window.
     (tmp_path / "notes.md").write_text("edited while locked\n", encoding="utf-8")
 
-    assert hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False) is True
+    assert kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False) is True
 
     assert (tmp_path / "mod.py").read_text(encoding="utf-8") == "X = 2\n"
     assert "The update added" not in capsys.readouterr().out
@@ -720,11 +720,11 @@ def test_unrequested_park_is_never_reported_as_update_complete(monkeypatch, tmp_
     git("add", "-A")
     git("commit", "-qm", "init")
     source.write_text("VALUE = 2\n", encoding="utf-8")
-    stash_ref = hermes_main._stash_local_changes_if_needed(["git"], tmp_path)
+    stash_ref = kova_main._stash_local_changes_if_needed(["git"], tmp_path)
     source.write_text("VALUE = 3\n", encoding="utf-8")
     git("commit", "-qam", "pulled change")
 
-    assert hermes_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False) is False
+    assert kova_main._restore_stashed_changes(["git"], tmp_path, stash_ref, prompt_user=False) is False
     notice = stash_mod._unrestored_autostash_notice()
     assert notice and not notice.startswith("\u2713") and stash_ref in notice
 

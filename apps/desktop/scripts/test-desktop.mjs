@@ -54,7 +54,7 @@ const APP = (() => {
   }
 })()
 
-const FRESH_SANDBOX_ROOT = path.join(os.tmpdir(), 'hermes-desktop-fresh-install')
+const FRESH_SANDBOX_ROOT = path.join(os.tmpdir(), 'kova-desktop-fresh-install')
 
 function die(message) {
   console.error(`\n${message}`)
@@ -235,7 +235,7 @@ function launchFresh() {
 
   const sandbox = fs.mkdtempSync(`${FRESH_SANDBOX_ROOT}-`)
   const userDataDir = path.join(sandbox, 'electron-user-data')
-  const kovaHome = path.join(sandbox, 'hermes-home')
+  const kovaHome = path.join(sandbox, 'kova-home')
   const cwd = path.join(sandbox, 'workspace')
 
   fs.mkdirSync(userDataDir, { recursive: true })
@@ -254,7 +254,7 @@ function launchFresh() {
   env.KOVA_DESKTOP_TEST_MODE = 'fresh-install'
   env.KOVA_DESKTOP_USER_DATA_DIR = userDataDir
   env.KOVA_HOME = kovaHome
-  delete env.KOVA_DESKTOP_HERMES
+  delete env.KOVA_DESKTOP_KOVA_CLI
   delete env.KOVA_DESKTOP_KOVA_ROOT
 
   const child = spawn(APP.binary, [], {
@@ -288,7 +288,7 @@ const LIFECYCLE_KEEP = process.env.KOVA_DESKTOP_LIFECYCLE_KEEP === '1'
 
 function lifecycleEnv(sandbox) {
   const userDataDir = path.join(sandbox, 'electron-user-data')
-  const kovaHome = path.join(sandbox, 'hermes-home')
+  const kovaHome = path.join(sandbox, 'kova-home')
   const cwd = path.join(sandbox, 'workspace')
   for (const dir of [userDataDir, kovaHome, cwd]) fs.mkdirSync(dir, { recursive: true })
 
@@ -312,7 +312,7 @@ function lifecycleEnv(sandbox) {
   if (LIFECYCLE_BACKEND_ROOT) {
     env.KOVA_DESKTOP_KOVA_ROOT = path.resolve(LIFECYCLE_BACKEND_ROOT)
   }
-  delete env.KOVA_DESKTOP_HERMES
+  delete env.KOVA_DESKTOP_KOVA_CLI
   delete env.KOVA_DESKTOP_TEST_MODE
   return { env, userDataDir, kovaHome, cwd }
 }
@@ -470,7 +470,7 @@ function validateBundle() {
       die(`Missing bundled payload Python: ${payloadPython}`)
     }
     if (PLATFORM === 'win32') {
-      const payloadShim = path.join(payloadRoot, payloadManifest.venv, 'Scripts', 'hermes.exe')
+      const payloadShim = path.join(payloadRoot, payloadManifest.venv, 'Scripts', 'kova.exe')
       if (!exists(payloadShim)) {
         die(`Missing bundled payload shim: ${payloadShim}`)
       }
@@ -565,7 +565,7 @@ Automated packaged lifecycle (no host side effects; isolated userData + KOVA_HOM
   # start packaged app → real serve backend ready (/api/health 200) → graceful
   # quit → relaunch → preserved-home check → full teardown of our own processes.
   # Requires a backend root the packaged app may use (backend-resolution rung 1):
-  #   KOVA_DESKTOP_LIFECYCLE_BACKEND_ROOT=<hermes checkout with .venv|venv>
+  #   KOVA_DESKTOP_LIFECYCLE_BACKEND_ROOT=<kova checkout with .venv|venv>
   # Knobs: KOVA_DESKTOP_LIFECYCLE_TIMEOUT_MS and
   # KOVA_DESKTOP_LIFECYCLE_KEEP=1 to keep the sandbox for inspection.
 `)

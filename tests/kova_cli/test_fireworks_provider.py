@@ -140,7 +140,7 @@ class TestFireworksAuxiliary:
         assert headers["X-Title"] == "Kova Agent"
         assert kwargs["base_url"] == "https://api.fireworks.ai/inference/v1"
 
-    def test_client_sends_hermes_user_agent(self, monkeypatch):
+    def test_client_sends_kova_user_agent(self, monkeypatch):
         """The profile's User-Agent survives the generic default_headers
         fallback and reaches OpenAI client construction."""
         monkeypatch.setenv("FIREWORKS_API_KEY", "fw_test_key")

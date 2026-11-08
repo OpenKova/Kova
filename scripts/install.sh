@@ -20,7 +20,7 @@ set -u
 # hygiene can't break the locked sync the way it used to before pm owned it.
 export UV_NO_CONFIG=1
 
-REPO_URL="${KOVA_REPO_URL:-https://github.com/NousResearch/kova-agent.git}"
+REPO_URL="${KOVA_REPO_URL:-https://github.com/OpenKova/Kova.git}"
 BRANCH="main"
 INSTALL_COMMIT=""
 # The update channel to install: stable (the latest published release, the default for the
@@ -45,7 +45,7 @@ INSTALL_IN_STAGE=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --branch|-Branch|--commit|-Commit|--channel|-Channel|--dir|--hermes-home|-KovaHome|--stage|-Stage)
+        --branch|-Branch|--commit|-Commit|--channel|-Channel|--dir|--kova-home|-KovaHome|--stage|-Stage)
             option="$1"
             if [ $# -lt 2 ] || [ -z "$2" ] || [[ "$2" == -* ]]; then
                 printf '%s needs a value\n' "$option" >&2
@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
                 --commit|-Commit) INSTALL_COMMIT="$2" ;;
                 --channel|-Channel) CHANNEL="$2" ;;
                 --dir) INSTALL_DIR="$2" ;;
-                --hermes-home|-KovaHome) KOVA_HOME="$2" ;;
+                --kova-home|-KovaHome) KOVA_HOME="$2" ;;
                 --stage|-Stage) STAGE="$2" ;;
             esac
             shift 2 ;;
@@ -70,7 +70,7 @@ while [ $# -gt 0 ]; do
         --verbose|-Verbose) VERBOSE=true; shift ;;
         -h|--help)
             echo "Usage: install.sh [--channel stable|main] [--branch NAME] [--commit SHA]"
-            echo "                  [--dir PATH] [--hermes-home PATH]"
+            echo "                  [--dir PATH] [--kova-home PATH]"
             echo "                  [--manifest] [--stage NAME] [--json]"
             echo "                  [--non-interactive] [--include-desktop] [--verbose]"
             echo "                  [--skip-browser] [--skip-computer-use]"
@@ -135,7 +135,7 @@ error_line() {
 
 # One local receipt per full-ladder run, under the profile's shared-metrics dir.
 # Only closed tokens and two timestamps (never STAGE_REASON, paths or URLs); the
-# installer never sends anything. Kova reports it as hermes.install.run on a
+# installer never sends anything. Kova reports it as kova.install.run on a
 # later start only while shared metrics collection is on, and deletes it
 # unreported when collection is off. Best effort: never fails the install.
 write_install_receipt() {
@@ -378,7 +378,7 @@ ensure_uv() {
         log "Downloading uv $UV_PIN_VERSION ($_target)"
         local _tmp
         # no-tmp: ok — last-resort fallback when mktemp itself is missing
-        _tmp="$(mktemp -d 2>/dev/null || echo "/tmp/hermes-uv-bootstrap.$$")"
+        _tmp="$(mktemp -d 2>/dev/null || echo "/tmp/kova-uv-bootstrap.$$")"
         mkdir -p "$_tmp"
         local _fetched_from="$UV_PIN_URL"
         # Only network availability failures permit trying identical mirrored bytes.
@@ -436,7 +436,7 @@ check_platform() {
     # install the phone cannot run (no Android wheels in the lock). The
     # signed APT package is the only supported shape there.
     if [ -n "${TERMUX_VERSION:-}" ] || case "${PREFIX:-}" in *com.termux/files/usr*) true ;; *) false ;; esac; then
-        fail "Termux is installed from its APT repository, not install.sh: pkg install kova-agent (setup: https://kova-agent.nousresearch.com/docs/getting-started/termux)" unsupported_platform
+        fail "Termux is installed from its APT repository, not install.sh: pkg install kova-agent (setup: https://github.com/OpenKova/Kova)" unsupported_platform
     fi
     case "$(uname -s 2>/dev/null)" in
         Linux*) : ;;
@@ -648,7 +648,7 @@ chosen_channel() {
 # kova_cli.update_channel.default_channel decides.
 is_official_repo() {
     printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
-        | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/kova-agent(\.git)?/?$'
+        | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)openkova/kova(\.git)?/?$'
 }
 
 # The latest published stable release (vX.Y.Z), the release `kova update` resolves for the
@@ -658,11 +658,11 @@ is_official_repo() {
 latest_stable_release() {
     local tag
     tag="$(curl -fsSL --connect-timeout 5 --max-time 20 -H 'Accept: application/vnd.github+json' \
-        https://api.github.com/repos/NousResearch/kova-agent/releases/latest 2>/dev/null \
+        https://api.github.com/repos/OpenKova/Kova/releases/latest 2>/dev/null \
         | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
     if ! valid_stable_tag "$tag"; then
         tag="$(curl -fsSI --connect-timeout 5 --max-time 20 \
-            https://github.com/NousResearch/kova-agent/releases/latest 2>/dev/null \
+            https://github.com/OpenKova/Kova/releases/latest 2>/dev/null \
             | tr -d '\r' | sed -n 's#^[Ll]ocation:.*/releases/tag/\([^/]*\)$#\1#p' | tail -n 1)"
     fi
     if ! valid_stable_tag "$tag"; then
@@ -825,9 +825,9 @@ stage_repository() {
                 git -C "$INSTALL_DIR" reset -q || fail "cannot clear the unmerged index in $INSTALL_DIR" local_changes_blocked
             fi
             run_logged "Stashing local changes" \
-                git -C "$INSTALL_DIR" stash push --include-untracked -m "hermes-install-autostash-$stamp" \
+                git -C "$INSTALL_DIR" stash push --include-untracked -m "kova-install-autostash-$stamp" \
                 || fail "could not stash local changes in $INSTALL_DIR; commit or move them aside, then rerun" local_changes_blocked
-            log_warn "local changes stashed as hermes-install-autostash-$stamp"
+            log_warn "local changes stashed as kova-install-autostash-$stamp"
         fi
         if [ -n "$release" ]; then
             # Detached at the release commit, the way `kova update` places a stable checkout;
@@ -863,7 +863,7 @@ stage_repository() {
                     || rescue_kind="orphan"
                 prior="$(git -C "$INSTALL_DIR" rev-parse --short=12 HEAD)" \
                     || fail "cannot identify commits before reset" git_reset_failed
-                rescue_ref="refs/hermes-update-backups/$rescue_kind-$BRANCH-$stamp-$prior"
+                rescue_ref="refs/kova-update-backups/$rescue_kind-$BRANCH-$stamp-$prior"
                 git -C "$INSTALL_DIR" update-ref "$rescue_ref" HEAD \
                     || fail "cannot back up $dropped local commit(s); refusing to reset" git_reset_failed
                 log_warn "$dropped commit(s) not on origin/$BRANCH backed up to $rescue_ref"
@@ -996,7 +996,7 @@ bootstrap_python() {
     ensure_uv
     local _py
     # Read packages.python.version by following object names and braces, not
-    # indentation — same pre-Python reader contract as setup-hermes.sh's pin().
+    # indentation — same pre-Python reader contract as setup-kova.sh's pin().
     _py="$(awk -F '"' '
         /^[[:space:]]*("[^"]+"[[:space:]]*:[[:space:]]*)?\{/ { path[++depth] = $2; next }
         /^[[:space:]]*\}[[:space:]]*,?[[:space:]]*$/ { delete path[depth--]; next }
@@ -1116,11 +1116,11 @@ stage_products() {
     if [ "$INCLUDE_DESKTOP" = true ] || desktop_product_present; then
         args+=(--desktop)
     fi
-    (cd "$INSTALL_DIR" && run_logged "Building the hermes command and apps" \
+    (cd "$INSTALL_DIR" && run_logged "Building the kova command and apps" \
         "$boot_py" -I -B -X utf8 kova_cli/source_completion.py "${args[@]}") \
         || fail "app products or command publication failed" products_build_failed
     wire_shell_path
-    log_success "app products and hermes command ready"
+    log_success "app products and kova command ready"
 }
 
 stage_desktop() {
@@ -1156,7 +1156,7 @@ stage_setup() {
         log "setup skipped (no terminal); run 'kova setup' after install"
         return 0
     fi
-    "$INSTALL_DIR/.kova/bin/hermes" setup </dev/tty || fail "setup failed" setup_failed
+    "$INSTALL_DIR/.kova/bin/kova" setup </dev/tty || fail "setup failed" setup_failed
 }
 
 stage_gateway() {
@@ -1166,7 +1166,7 @@ stage_gateway() {
         return 0
     fi
     # Setup installs the service when it handles the gateway; ask only if it did not.
-    "$INSTALL_DIR/.kova/bin/hermes" gateway install --if-missing </dev/tty || fail "gateway installation failed" gateway_failed
+    "$INSTALL_DIR/.kova/bin/kova" gateway install --if-missing </dev/tty || fail "gateway installation failed" gateway_failed
 }
 
 stage_complete() {
@@ -1179,17 +1179,17 @@ stage_complete() {
         mv -f "$INSTALL_DIR/.kova-bootstrap-complete.tmp" "$INSTALL_DIR/.kova-bootstrap-complete"
     fi
     if [ -n "$CHANNEL" ]; then
-        "$INSTALL_DIR/.kova/bin/hermes" update --set-channel "$CHANNEL" \
+        "$INSTALL_DIR/.kova/bin/kova" update --set-channel "$CHANNEL" \
             || fail "could not save the $CHANNEL update channel" other
     fi
-    log_success "Kova Agent install complete. Run: hermes"
+    log_success "Kova Agent install complete. Run: kova"
 }
 
 print_path_reload_hint() {
     # The rc files only reach shells started later, and this installer is
     # always a child (`curl | bash`, `bash install.sh`) that cannot change its
     # parent's PATH. The inherited PATH is the parent's, so it says whether
-    # the user can run `hermes` right away.
+    # the user can run `kova` right away.
     case ":$PATH:" in *":$HOME/.local/bin:"*|*":$HOME/.local/bin/:"*) return 0 ;; esac
     local rc
     local login_shell="${SHELL:-}"
@@ -1199,7 +1199,7 @@ print_path_reload_hint() {
         bash|"") rc="source ~/.bashrc" ;;
         *) rc=". ~/.profile" ;;
     esac
-    log "Reload your shell to use hermes: open a new terminal, or run: $rc"
+    log "Reload your shell to use kova: open a new terminal, or run: $rc"
 }
 
 run_stage() (

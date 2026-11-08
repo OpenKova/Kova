@@ -6,7 +6,7 @@ import { LEGACY_OAUTH_PARTITION, resolveOauthPartition } from './oauth-partition
 // connections registry must not share one cookie jar. Chromium cookie jars
 // ignore the port, so two gateways on the same VPN host (different ports)
 // evict each other's `hermes_session*` cookies when they ride the single
-// shared `persist:hermes-remote-oauth` partition — and, worse, gateway A's
+// shared `persist:kova-remote-oauth` partition — and, worse, gateway A's
 // cookie is silently PRESENTED to gateway B on every request. The resolver
 // under test keys the jar on the registry connection's identity instead.
 
@@ -262,8 +262,8 @@ describe('resolveOauthPartition with connectionId (pre-save sign-in identity)', 
   // The unknown-id shortcut must grant a private jar ONLY to the draft
   // shapes that earn one after the save. Before this gate, ANY unsaved id got
   // its own jar — so a pre-save CLOUD sign-in wrote its portal session into
-  // `persist:hermes-remote-oauth-conn-<id>` while the saved cloud entry kept
-  // reading the shared `persist:hermes-remote-oauth` (the silent per-agent
+  // `persist:kova-remote-oauth-conn-<id>` while the saved cloud entry kept
+  // reading the shared `persist:kova-remote-oauth` (the silent per-agent
   // cascade jar): a successful-looking sign-in that bounces straight back to
   // signed-out, plus an orphan jar. The invariant below is the contract: for
   // every draft shape, the jar the login writes equals the jar the saved

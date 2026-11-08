@@ -75,7 +75,7 @@ NODE_BIN="${KOVA_E2E_NODE:-$(command -v node)}"
 export KOVA_E2E_NODE="$NODE_BIN"
 
 # OS activation does not inherit the ordinary journey's sandbox overrides.
-WORK_ROOT="${KOVA_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/hermes-bundled-e2e}"
+WORK_ROOT="${KOVA_E2E_WORKROOT:-${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kova-bundled-e2e}"
 LOG_DIR="${KOVA_E2E_LOG_DIR:-$WORK_ROOT/logs}"
 HOME_SANDBOX="$WORK_ROOT/home"
 export HOME_SANDBOX
@@ -363,7 +363,7 @@ phase_update() {
 
   step "probing the relaunched app's backend health"
   local backend_pid backend_port health
-  backend_pid="$(ps -axo pid=,ppid=,command= | awk -v p="$new_pid" '$2==p && /serve/ && /hermes/ {print $1; exit}')"
+  backend_pid="$(ps -axo pid=,ppid=,command= | awk -v p="$new_pid" '$2==p && /serve/ && /kova/ {print $1; exit}')"
   if [ -n "$backend_pid" ]; then
     backend_port="$(lsof -nP -a -p "$backend_pid" -iTCP -sTCP:LISTEN | awk 'NR>1{sub(".*:","",$9); print $9; exit}')"
   fi

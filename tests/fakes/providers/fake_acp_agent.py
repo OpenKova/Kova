@@ -124,7 +124,7 @@ def crash(exit_code: int = 1, stderr: str = "fatal: agent crashed") -> dict[str,
     return {"type": "crash", "code": exit_code, "stderr": stderr}
 
 
-def hermes_tool_call(call_id: str, name: str, args: dict[str, Any]) -> str:
+def kova_tool_call(call_id: str, name: str, args: dict[str, Any]) -> str:
     """Text a model behind ACP emits to call a Kova tool (ACP has no OpenAI tools channel)."""
     body = {"id": call_id, "type": "function", "function": {"name": name, "arguments": json.dumps(args)}}
     return f"<tool_call>{json.dumps(body)}</tool_call>"

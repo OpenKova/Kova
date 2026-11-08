@@ -99,7 +99,7 @@ def _flush_sessions_before_exit(budget_s: float | None = None) -> int:
                 break
             result["flushed"] += _flush_session_messages(session)
 
-    worker = threading.Thread(target=_run, daemon=True, name="hermes-exit-flush")
+    worker = threading.Thread(target=_run, daemon=True, name="kova-exit-flush")
     worker.start()
     worker.join(budget)
     # Silent loss is the failure mode this guard exists to prevent: both callers discard the return

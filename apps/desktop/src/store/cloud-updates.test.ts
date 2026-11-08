@@ -12,7 +12,7 @@ const remote = (baseUrl: string, remoteKind?: KovaConnection['remoteKind']): Kov
 afterEach(() => {
   $connection.set(null)
   vi.unstubAllGlobals()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
 })
 
 describe('Kova Cloud owns updates', () => {

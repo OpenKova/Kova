@@ -25,11 +25,11 @@ def cli_mod(monkeypatch):
 
 
 class TestLightModeDetection:
-    def test_hermes_light_env_true_forces_light(self, cli_mod, monkeypatch):
+    def test_kova_light_env_true_forces_light(self, cli_mod, monkeypatch):
         monkeypatch.setenv("KOVA_LIGHT", "1")
         assert cli_mod._detect_light_mode() is True
 
-    def test_hermes_light_env_false_forces_dark(self, cli_mod, monkeypatch):
+    def test_kova_light_env_false_forces_dark(self, cli_mod, monkeypatch):
         monkeypatch.setenv("KOVA_LIGHT", "0")
         # Also blank out other signals so nothing else flips it light.
         monkeypatch.delenv("KOVA_TUI_LIGHT", raising=False)

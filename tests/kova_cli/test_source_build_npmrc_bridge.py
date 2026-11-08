@@ -38,7 +38,7 @@ def bridge(tmp_path, monkeypatch):
 def test_an_explicit_userconfig_is_the_file_bridged(bridge, tmp_path, monkeypatch):
     from kova_cli.source_build import source_build_env
 
-    (bridge / "npmrc").write_text("registry=https://hermes-file.invalid/\nhermes-only=1\n", encoding="utf-8")
+    (bridge / "npmrc").write_text("registry=https://kova-file.invalid/\nkova-only=1\n", encoding="utf-8")
     selected = tmp_path / "selected-npmrc"
     selected.write_text("electron-mirror=https://selected.invalid/electron/\n", encoding="utf-8")
     monkeypatch.setenv("NPM_CONFIG_USERCONFIG", str(selected))
@@ -47,7 +47,7 @@ def test_an_explicit_userconfig_is_the_file_bridged(bridge, tmp_path, monkeypatc
 
     assert env["NPM_CONFIG_USERCONFIG"] == str(selected)
     assert env["npm_config_electron_mirror"] == "https://selected.invalid/electron/"
-    assert "npm_config_registry" not in env and "npm_config_hermes_only" not in env
+    assert "npm_config_registry" not in env and "npm_config_kova_only" not in env
 
 
 def test_quoted_values_are_exported_without_their_quotes(bridge):
@@ -172,12 +172,12 @@ def test_kova_home_npmrc_steers_pm_downloads_as_it_steers_builds(bridge, monkeyp
     from pm.artifact_mirror import pinned_source
     from pm.index_config import npm_registry
 
-    (bridge / "npmrc").write_text("registry=https://hermes-home.invalid/npm/\n", encoding="utf-8")
+    (bridge / "npmrc").write_text("registry=https://kova-home.invalid/npm/\n", encoding="utf-8")
     (bridge.parent / "user" / ".npmrc").write_text("registry=https://home-dir.invalid/\n", encoding="utf-8")
 
-    assert npm_registry({}) == "https://hermes-home.invalid/npm/"
+    assert npm_registry({}) == "https://kova-home.invalid/npm/"
     source = pinned_source("https://registry.npmjs.org/pnpm/-/pnpm-12.15.0.tgz", bridge / "pnpm.tgz", "0" * 64)
-    assert source.url == "https://hermes-home.invalid/npm/pnpm/-/pnpm-12.15.0.tgz"
+    assert source.url == "https://kova-home.invalid/npm/pnpm/-/pnpm-12.15.0.tgz"
 
     explicit = bridge.parent / "explicit-npmrc"
     explicit.write_text("registry=https://explicit.invalid/\n", encoding="utf-8")

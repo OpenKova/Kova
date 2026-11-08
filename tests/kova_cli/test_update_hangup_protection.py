@@ -1,8 +1,8 @@
-"""Tests for SIGHUP protection and stdout mirroring in ``hermes update``.
+"""Tests for SIGHUP protection and stdout mirroring in ``kova update``.
 
 Covers ``_UpdateOutputStream``, ``_install_hangup_protection``, and
 ``_finalize_update_output`` in ``kova_cli/main.py``.  These exist so
-that ``hermes update`` survives a terminal disconnect mid-install
+that ``kova update`` survives a terminal disconnect mid-install
 (SSH drop, shell close) without leaving the venv half-installed.
 """
 
@@ -28,7 +28,7 @@ def test_update_completion_includes_bounded_action_identity(monkeypatch, capsys)
 
     assert capsys.readouterr().out.splitlines() == [
         "✓ Update complete!",
-        f"=== hermes-update completed {'a' * 32} ===",
+        f"=== kova-update completed {'a' * 32} ===",
     ]
 
 

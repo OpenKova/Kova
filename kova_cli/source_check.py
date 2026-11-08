@@ -138,7 +138,7 @@ def _request(url: str, accept: str = "application/vnd.github+json") -> str:
 
 
 def _request_with(url: str, accept: str, token: str | None) -> str:
-    headers = {"Accept": accept, "User-Agent": "hermes-update-check"}
+    headers = {"Accept": accept, "User-Agent": "kova-update-check"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, headers=headers)

@@ -91,7 +91,7 @@ def test_an_unreadable_root_counts_as_existing_but_never_marks(machine):
 def test_a_root_in_a_protected_folder_is_existing_without_being_opened(machine, tmp_path, monkeypatch):
     _other, places = machine
     protected = tmp_path / "Documents"
-    places = Places(markers=places.markers, sources=(lambda: (protected / "hermes-home",),),
+    places = Places(markers=places.markers, sources=(lambda: (protected / "kova-home",),),
                     protected=(protected,))
     monkeypatch.setattr(install_state, "machine_places", lambda: places)
 
@@ -104,7 +104,7 @@ def test_a_file_linked_into_a_protected_folder_is_existing_without_being_opened(
     the macOS permission prompt, so the target counts as unreadable."""
     other, places = machine
     protected = tmp_path / "Documents"
-    target = protected / "hermes" / name
+    target = protected / "kova" / name
     target.parent.mkdir(parents=True)
     if name == "profiles":
         target.mkdir()
@@ -127,7 +127,7 @@ def test_a_launcher_in_a_protected_folder_names_its_folder_without_being_opened(
     from kova_platform.resolver import known_dirs
 
     protected = tmp_path / "Documents"
-    launcher = protected / "hermes-src" / "hermes"
+    launcher = protected / "kova-src" / "kova"
     monkeypatch.setattr(known_dirs, "mac_privacy_protected_dirs", lambda: (str(protected),))
     monkeypatch.setattr(kova_platform.resolver, "locate_command",
                         lambda _name: SimpleNamespace(command=(str(launcher),)))

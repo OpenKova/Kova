@@ -21,7 +21,7 @@ from kova_constants import reset_kova_home_override, set_kova_home_override
 @pytest.fixture
 def hosted(tmp_path, monkeypatch):
     """Launch home with no xAI key + named profile ``bot`` whose own ``.env`` carries one; multi-profile
-    hosting active the way ``hermes serve`` activates it at boot."""
+    hosting active the way ``kova serve`` activates it at boot."""
     import tui_gateway.launch_profile_policy as policy
     from agent.secret_scope import set_multiplex_active
 
@@ -42,7 +42,7 @@ def hosted(tmp_path, monkeypatch):
 
 
 def _enabled_under_own_scope(home: Path) -> set:
-    """What `hermes -p <profile> tools list` resolves: that profile's config under its own secrets."""
+    """What `kova -p <profile> tools list` resolves: that profile's config under its own secrets."""
     from kova_cli.config import load_config
     from kova_cli.tools_config import _get_platform_tools
 

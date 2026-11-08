@@ -16,15 +16,15 @@ FIXTURE_ANTHROPIC_401 = (
     "'message': 'Your API key is invalid, blocked or out of funds...'}}"
 )
 FIXTURE_NO_PROVIDER = (
-    "agent init failed: No LLM provider configured. Run `hermes model` to select "
-    "a provider, or run `hermes setup` for first-time configuration."
+    "agent init failed: No LLM provider configured. Run `kova model` to select "
+    "a provider, or run `kova setup` for first-time configuration."
 )
 FIXTURE_NO_TOKEN = "agent init failed: No access token found for Neural Studio Portal login."
 # Target-scope spawn refusals, verbatim from a relay ledger (the named-secret spelling is built live).
 FIXTURE_TARGET_SCOPE = (
     "Kova could not read this profile's API key (an internal profile-scoping bug on the "
-    "multiplexed gateway, not your configuration). Run `hermes gateway restart`; if it keeps "
-    "happening, report it with `hermes debug share`."
+    "multiplexed gateway, not your configuration). Run `kova gateway restart`; if it keeps "
+    "happening, report it with `kova debug share`."
 )
 FIXTURE_TARGET_SCOPE_DETAILED = (
     "served_profile_child_env(inherit_credentials=True) called with no target home and no profile "

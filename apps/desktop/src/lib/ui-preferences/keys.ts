@@ -19,11 +19,11 @@
 
 const SHARED_KEYS: ReadonlySet<string> = new Set([
   // Appearance.
-  'hermes-desktop-theme-v2',
-  'hermes-desktop-mode-v1',
-  'hermes-desktop-profile-themes-v1',
-  'hermes-desktop-profile-modes-v1',
-  'hermes-desktop-user-themes-v1',
+  'kova-desktop-theme-v2',
+  'kova-desktop-mode-v1',
+  'kova-desktop-profile-themes-v1',
+  'kova-desktop-profile-modes-v1',
+  'kova-desktop-user-themes-v1',
   'kova.desktop.backdrop.v1',
   'kova.desktop.chat-text-scale.v1',
   'kova.desktop.interfaceMode.v1',
@@ -68,7 +68,7 @@ const SHARED_KEYS: ReadonlySet<string> = new Set([
   'kova.desktop.titlebarAppActions',
   // Guidance: what the user already skipped, saw or dismissed does not come
   // back in every new browser or origin (#145600).
-  'hermes-onboarding-skipped-v1',
+  'kova-onboarding-skipped-v1',
   'kova.desktop.tips.last.v1',
   'kova.desktop.tips.next.v1',
   'kova.desktop.tips.retired.v1',

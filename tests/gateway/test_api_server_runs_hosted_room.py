@@ -123,7 +123,7 @@ class TestHostedRoomRuns:
     ):
         monkeypatch.setenv("KOVA_DESKTOP", "1")
         monkeypatch.setenv(
-            "KOVA_ROOM_LINK_URL", "https://peer.example.test/hermes"
+            "KOVA_ROOM_LINK_URL", "https://peer.example.test/kova"
         )
         app = _create_runs_app(auth_adapter)
         async with TestClient(TestServer(app)) as cli:
@@ -144,7 +144,7 @@ class TestHostedRoomRuns:
         assert body["catalog"]["link_modes"] == ["direct"]
         assert body["catalog"]["endpoint"] == {
             "available": True,
-            "url": "https://peer.example.test/hermes",
+            "url": "https://peer.example.test/kova",
             "transport_security": "tls",
         }
         assert body["expires_at"] == body["status_expires_at"]

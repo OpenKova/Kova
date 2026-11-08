@@ -28,7 +28,7 @@ export function scratchRoot(tag: string): string {
  * (default 0), and — like the real helper — removes the marker when it
  * answers `reclaimed`/`withdrawn`.
  */
-export function fakeHelperScript(protocolLine = '# hermes-handoff-protocol: 2'): string {
+export function fakeHelperScript(protocolLine = '# kova-handoff-protocol: 2'): string {
   return [
     '#!/usr/bin/env bash',
     protocolLine,
@@ -44,7 +44,7 @@ export function fakeHelperScript(protocolLine = '# hermes-handoff-protocol: 2'):
 }
 
 /** A checkout whose posix.sh is `fakeHelperScript`. */
-export function fakeHelperCheckout(protocolLine = '# hermes-handoff-protocol: 2'): { root: string; home: string } {
+export function fakeHelperCheckout(protocolLine = '# kova-handoff-protocol: 2'): { root: string; home: string } {
   const root = scratchRoot('marker-helper')
   const home = path.join(root, 'home')
   fs.mkdirSync(home)

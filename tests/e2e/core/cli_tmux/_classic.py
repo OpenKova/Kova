@@ -142,7 +142,7 @@ auxiliary:
 class ClassicHome:
     root: Path
     extra_env: dict[str, str] = field(default_factory=dict)
-    # (pid, argv) of every hermes process the harness started: tmux pane CLIs and piped runs.
+    # (pid, argv) of every kova process the harness started: tmux pane CLIs and piped runs.
     spawned: list[tuple[int, str]] = field(default_factory=list)
 
     @property
@@ -226,7 +226,7 @@ class Pane:
 
     def __init__(self, ch: ClassicHome) -> None:
         self.ch = ch
-        self.sock = f"hermes-e2e-classic-{uuid.uuid4().hex[:8]}"
+        self.sock = f"kova-e2e-classic-{uuid.uuid4().hex[:8]}"
         # Scrollback snapshot taken just before the latest input: what `wait` must see grow.
         self.baseline = ""
 

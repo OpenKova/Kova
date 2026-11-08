@@ -118,9 +118,9 @@ test('nonstable runtime pins userData before the app name can change', async ():
 })
 
 test.each([
-  [undefined, 'Kova', 'hermes', 'latest', 'canary'],
-  ['bundled', 'Kova Agent', 'hermes', 'latest', 'canary'],
-  ['light', 'Kova Light', 'hermes-light', 'light', 'light-canary']
+  [undefined, 'Kova', 'kova', 'latest', 'canary'],
+  ['bundled', 'Kova Agent', 'kova', 'latest', 'canary'],
+  ['light', 'Kova Light', 'kova-light', 'light', 'light-canary']
 ] as const)(
   '%s separates stable, canary and independent commits',
   async (
@@ -254,7 +254,7 @@ test('packaging isolates boot metadata and executable names without renaming rel
     const artifact: ReturnType<typeof appIdentity> = appIdentity(fileURLToPath(new URL('../', import.meta.url)))
     assert.equal(artifact.name, identity.artifactNamePascal)
     assert.equal(artifact.identity.msixAppIdWithOrg, config.msix.identityName)
-    assert.deepEqual(config.protocols[0].schemes, ['hermes'])
+    assert.deepEqual(config.protocols[0].schemes, ['kova'])
 
     if (build !== 'canary') {
       assert.equal(config.publish, null)
@@ -290,9 +290,9 @@ test('nonstable builds cannot claim the official Store package', async (): Promi
 test('store carries the Partner Center MSIX identity and no other variant does', async (): Promise<void> => {
   const store: ProductIdentity = await identityForVariant('store')
   assert.deepEqual(store.storeMsix, {
-    identityName: 'NeuralStudioInc.KovaAgent',
+    identityName: 'OpenKova.KovaAgent',
     publisher: 'CN=EE6D86E4-606F-4E38-B940-AD7248C9D519',
-    publisherDisplayName: 'Neural Studio'
+    publisherDisplayName: 'OpenKova'
   })
 
   for (const v of [undefined, 'bundled', 'light'] as const) {

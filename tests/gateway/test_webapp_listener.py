@@ -44,7 +44,7 @@ def test_an_enabled_webapp_binds_its_configured_address(tmp_path):
     "webapp:\n  enabled: true\n  host: ''\n",
     "webapp:\n  enabled: 'true'\n",
     "webapp:\n  enabled: true\n  host: 192.168.1.20\n",
-    "webapp:\n  enabled: true\n  host: hermes.example.net\n",
+    "webapp:\n  enabled: true\n  host: kova.example.net\n",
 ])
 def test_a_malformed_webapp_block_keeps_the_listener_private(tmp_path, block):
     settings = webapp.webapp_settings(_home(tmp_path, block))
@@ -232,7 +232,7 @@ def test_where_one_use_links_cannot_be_checked_the_launcher_gets_one_to_open_by_
     page, fragment = result["url"].split("#", 1)
     assert page == "http://127.0.0.1:9555/webapp/launch"
     assert (result["private"], result["expires_in_seconds"]) == (True, 60)
-    assert "s" * 43 not in result["url"] and "hermes-session" not in result["url"]
+    assert "s" * 43 not in result["url"] and "kova-session" not in result["url"]
     [ticket] = parse_qs(fragment)["ticket"]
     _expires, _token, peer_checked = web.app.state.webapp_window_tickets[ticket]
     assert peer_checked is False
@@ -304,7 +304,7 @@ def test_the_webapps_own_public_url_wins_over_a_lan_registration(monkeypatch, tm
 
 @pytest.mark.parametrize(("public_url", "params", "opened"), [
     ("https://webapp.example.net", {}, "https://webapp.example.net/"),
-    ("https://example.net:8443/hermes", {"profile": "work"}, "https://example.net:8443/hermes/?profile=work"),
+    ("https://example.net:8443/kova", {"profile": "work"}, "https://example.net:8443/kova/?profile=work"),
 ])
 def test_behind_its_own_public_url_the_launcher_opens_that_url_to_sign_in(monkeypatch, tmp_path, public_url,
                                                                           params, opened):

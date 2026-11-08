@@ -443,7 +443,7 @@ function resolveRequestedPathForIpc(filePath, options: { purpose?: string; baseD
  * Candidate absolute paths to retry when a preview/download target could not
  * be resolved against the agent's working directory. Attachment references
  * stored in chat history are frequently HOME-relative (e.g.
- * "AppData/Local/hermes/attachments/foo.xlsx" on Windows, or
+ * "AppData/Local/kova/attachments/foo.xlsx" on Windows, or
  * ".kova/attachments/foo.xlsx" elsewhere) rather than relative to cwd
  * (#115609). Pure and DI-testable: takes `home`/`kovaHome` as arguments
  * instead of reaching for `app.getPath('home')` / a module-level constant.

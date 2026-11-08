@@ -22,7 +22,7 @@ def _pool_entry(provider: str, cooldown: str, model: str = "some-model") -> dict
     entry = {
         "id": "e1", "label": "subscription", "priority": 0, "last_status": "ok",
         "auth_type": "oauth" if oauth else "api_key",
-        "source": "manual:hermes_pkce" if oauth else "manual",
+        "source": "manual:kova_pkce" if oauth else "manual",
         "access_token": "sk-ant-oat01-test" if oauth else "test-key-123",
         "refresh_token": "refresh" if oauth else None,
         "expires_at_ms": int((now + 6 * 3600) * 1000),
@@ -37,7 +37,7 @@ def _pool_entry(provider: str, cooldown: str, model: str = "some-model") -> dict
 
 @pytest.fixture
 def pooled_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     # Only the pooled credential under test may authenticate anything.

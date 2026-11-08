@@ -84,7 +84,7 @@ def _approval_click(open_id, *, user_id=None, union_id=None, chat_id="oc_group")
     return SimpleNamespace(event=SimpleNamespace(
         token="tok", context=SimpleNamespace(open_chat_id=chat_id),
         operator=SimpleNamespace(open_id=open_id, user_id=user_id, union_id=union_id),
-        action=SimpleNamespace(tag="button", value={"hermes_action": "approve_once", "approval_id": 1}),
+        action=SimpleNamespace(tag="button", value={"kova_action": "approve_once", "approval_id": 1}),
     ))
 
 
@@ -92,7 +92,7 @@ def _update_prompt_click(open_id):
     return SimpleNamespace(event=SimpleNamespace(
         token="tok", context=SimpleNamespace(open_chat_id="oc_group"),
         operator=SimpleNamespace(open_id=open_id),
-        action=SimpleNamespace(tag="button", value={"hermes_update_prompt_action": "y", "update_prompt_id": 2}),
+        action=SimpleNamespace(tag="button", value={"kova_update_prompt_action": "y", "update_prompt_id": 2}),
     ))
 
 

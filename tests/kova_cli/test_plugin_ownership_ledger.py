@@ -122,7 +122,7 @@ def test_load_force_reload_and_unload_remove_every_manager_registration(
     from kova_cli.plugins import PluginManager
     from tools.registry import registry
 
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     _write_plugin(kova_home)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setattr(
@@ -435,7 +435,7 @@ def test_scoped_plugin_cannot_deregister_a_process_global_tool():
         schema={"name": name, "parameters": {"type": "object", "properties": {}}},
         handler=lambda args, **kwargs: "base",
     )
-    module_name = "hermes_plugins.scoped_cleanup"
+    module_name = "kova_plugins.scoped_cleanup"
     registry.register_plugin_override_policy(
         module_name, True, scope="/profiles/isolated"
     )
@@ -455,7 +455,7 @@ def test_shared_entrypoint_module_uses_the_active_profile_scope(tmp_path):
     from tools.registry import ToolRegistry
 
     registry = ToolRegistry()
-    module_name = "third_party.shared_hermes_plugin"
+    module_name = "third_party.shared_kova_plugin"
     home_a = str((tmp_path / "entrypoint-a").resolve())
     home_b = str((tmp_path / "entrypoint-b").resolve())
     home_c = str((tmp_path / "entrypoint-c").resolve())

@@ -435,7 +435,7 @@ def run_doctor(driver_cmd: Optional[str] = None, *, include: Sequence[str] = (),
     from tools.computer_use.cua_backend_driver import resolve_cua_driver_cmd
     binary = resolve_cua_driver_cmd(driver_cmd)
     if not binary:
-        print(f"cua-driver: not installed (looked for {driver_cmd or 'cua-driver (PATH and canonical install paths)'!r}).\n  Run: hermes computer-use install")
+        print(f"cua-driver: not installed (looked for {driver_cmd or 'cua-driver (PATH and canonical install paths)'!r}).\n  Run: kova computer-use install")
         return 2
     try:  # prefer real health_report; on denial/non-schema, synthesize via probes
         try:
@@ -461,11 +461,11 @@ def run_doctor(driver_cmd: Optional[str] = None, *, include: Sequence[str] = (),
     identity = _build_identity(binary, report)
     environment = _wayland_environment_context(report)
     if json_output:
-        # Additive envelope: upstream keys preserved, identity under hermes_identity (and environment under
-        # hermes_environment when present) so overall/checks parsers keep working.
-        payload = {**report, "hermes_identity": identity}
+        # Additive envelope: upstream keys preserved, identity under kova_identity (and environment under
+        # kova_environment when present) so overall/checks parsers keep working.
+        payload = {**report, "kova_identity": identity}
         if environment:
-            payload["hermes_environment"] = environment
+            payload["kova_environment"] = environment
         json.dump(payload, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
     else:

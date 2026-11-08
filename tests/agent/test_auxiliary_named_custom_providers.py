@@ -478,16 +478,16 @@ class TestBareNamedAuxCredentialSurvivesAsyncRebuild:
     def _cfg(self):
         import sys
         return {
-            "model": {"provider": "hermes-gw", "default": "main-model"},
+            "model": {"provider": "kova-gw", "default": "main-model"},
             "providers": {
-                "hermes-gw": {
+                "kova-gw": {
                     "base_url": "http://127.0.0.1:1/openai/v1",
                     "api_mode": "chat_completions",
                     "key_cmd": f'"{sys.executable}" -c "print(\'vk-test-1234\')"',
                     "extra_headers": {"x-gw-session": "aux-session-tag"},
                 },
             },
-            "auxiliary": {"compression": {"provider": "hermes-gw", "model": "aux-model"}},
+            "auxiliary": {"compression": {"provider": "kova-gw", "model": "aux-model"}},
         }
 
     @staticmethod
@@ -500,7 +500,7 @@ class TestBareNamedAuxCredentialSurvivesAsyncRebuild:
         import asyncio
         _write_config(tmp_path, self._cfg())
         from agent.auxiliary_client import resolve_provider_client
-        client, _model = resolve_provider_client("hermes-gw", "aux-model", async_mode=True, task="compression")
+        client, _model = resolve_provider_client("kova-gw", "aux-model", async_mode=True, task="compression")
         assert client is not None
         asyncio.run(client._refresh_api_key())
         headers = self._wire_headers(client)
@@ -512,7 +512,7 @@ class TestBareNamedAuxCredentialSurvivesAsyncRebuild:
         import asyncio
         _write_config(tmp_path, self._cfg())
         from agent.auxiliary_client import _to_async_client, resolve_provider_client
-        sync_client, model = resolve_provider_client("hermes-gw", "aux-model", task="compression")
+        sync_client, model = resolve_provider_client("kova-gw", "aux-model", task="compression")
         sync_client._refresh_api_key()  # what the SDK does in _prepare_options before each request
         assert self._wire_headers(sync_client)["authorization"] == "Bearer vk-test-1234"
         async_client, _ = _to_async_client(sync_client, model)

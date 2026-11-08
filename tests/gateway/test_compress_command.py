@@ -535,7 +535,7 @@ def test_rotated_compress_keeps_atomically_published_foreign_tail(tmp_path, monk
     from gateway.slash_commands_session import GatewaySessionCommandsMixin
     from gateway.session import AsyncSessionStore, SessionStore
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     (root / "profiles" / "fitness").mkdir(parents=True)
     (root / "profiles" / "fitness" / "config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setenv("KOVA_HOME", str(root))

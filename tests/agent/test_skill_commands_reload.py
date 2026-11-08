@@ -43,7 +43,7 @@ def kova_home(monkeypatch):
     we monkeypatch the module-level ``KOVA_HOME`` / ``SKILLS_DIR``
     constants in place so the isolation is local to this fixture's scope.
     """
-    td = tempfile.mkdtemp(prefix="hermes-reload-skills-")
+    td = tempfile.mkdtemp(prefix="kova-reload-skills-")
     monkeypatch.setenv("KOVA_HOME", td)
     home = Path(td)
     (home / "skills").mkdir(parents=True, exist_ok=True)

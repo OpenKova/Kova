@@ -37,7 +37,7 @@ def test_relaunched_desktop_gets_the_users_proxy_env_back(tmp_path, monkeypatch)
     home, install = _install(tmp_path)
     unpacked = install / "apps/desktop/release/linux-unpacked"
     unpacked.mkdir(parents=True)
-    app = unpacked / "hermes"
+    app = unpacked / "kova"
     dump = tmp_path / "relaunched-env.txt"
     app.write_text(f"#!/bin/sh\necho $$ > {dump}.pid\n"
                    f"env | grep -i -E '_proxy=|^KOVA_UPDATE_(SYSTEM_PROXY|USER_)' > {dump}.part; mv {dump}.part {dump}\n"

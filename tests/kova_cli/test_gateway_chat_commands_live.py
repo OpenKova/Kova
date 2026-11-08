@@ -1,4 +1,4 @@
-"""Classic `hermes --cli chat` session commands on the shared gateway, driven in a real PTY.
+"""Classic `kova --cli chat` session commands on the shared gateway, driven in a real PTY.
 
 The classic CLI is main's KovaCLI again (gateway-backed agent and session store), so each
 expectation is main's own output for the same keystrokes (lanes/pushready/probe_cmds.py, main =
@@ -48,7 +48,7 @@ def classic_session(tmp_path):
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
     env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
-    tmux_name = "hermes-cli-cmds-" + uuid.uuid4().hex
+    tmux_name = "kova-cli-cmds-" + uuid.uuid4().hex
 
     def tmux(*args):
         return subprocess.run(["tmux", "-L", tmux_name, *args], env=env, stdin=subprocess.DEVNULL,

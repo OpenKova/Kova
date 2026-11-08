@@ -75,7 +75,7 @@ def test_pinned_profile_honours_tilde_and_resolves_relative_paths_against_kova_h
     was honoured — `~/pin` and `pin` silently fell back to the default and the human's dock browser and the
     agent's browser could end up on different jars. A relative path is anchored where the rest of this
     profile's screen state lives (its KOVA_HOME), so two profiles never share one 'pin'."""
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     monkeypatch.setattr(runtime, "get_kova_home", lambda: home)
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "user")
     monkeypatch.setenv("HOME", str(tmp_path / "user"))

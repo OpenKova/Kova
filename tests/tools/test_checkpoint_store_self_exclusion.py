@@ -37,7 +37,7 @@ def _snapshot_paths(store: Path, workdir: Path) -> list[str]:
 @pytest.fixture()
 def home_as_workdir(tmp_path, monkeypatch):
     """A KOVA_HOME that is also the checkpointed working directory, with the store inside it."""
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     (home / "config.yaml").write_text("checkpoints:\n  enabled: true\n")
     (home / "notes.md").write_text("one\n")

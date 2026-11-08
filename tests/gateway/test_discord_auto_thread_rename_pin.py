@@ -70,7 +70,7 @@ async def _raw_rename(adapter: DiscordAdapter, name: str) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("moderator_name", ["Renamed by a moderator", OPENING])
-async def test_hermes_title_keeps_the_pin_and_a_moderator_rename_does_not(
+async def test_kova_title_keeps_the_pin_and_a_moderator_rename_does_not(
     conversation: Conversation, moderator_name: str,
 ) -> None:
     adapter, parent, thread, turn = conversation

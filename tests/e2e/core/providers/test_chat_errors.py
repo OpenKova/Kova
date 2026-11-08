@@ -1,4 +1,4 @@
-"""Chat-completions provider faults through REAL ``hermes -z`` processes.
+"""Chat-completions provider faults through REAL ``kova -z`` processes.
 
 The vendor boundary is ``FakeChatVariantServer`` (a plain ``provider: custom``
 chat-completions endpoint); everything between the CLI and that socket is real Kova.

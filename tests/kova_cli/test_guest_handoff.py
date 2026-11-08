@@ -22,9 +22,9 @@ DESTINATION = "user_acct_1"
 def _account(sub: str = DESTINATION, refresh: str = "rt_1") -> dict:
     expires = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     return {
-        "auth_method": "oauth_device_code", "portal_base_url": PORTAL, "client_id": "hermes-cli",
+        "auth_method": "oauth_device_code", "portal_base_url": PORTAL, "client_id": "kova-cli",
         "inference_base_url": "https://inference-api.nousresearch.com/v1", "scope": "inference:invoke",
-        "token_type": "Bearer", "access_token": make_jwt(sub=sub, client_id="hermes-cli", account_tier="standard"),
+        "token_type": "Bearer", "access_token": make_jwt(sub=sub, client_id="kova-cli", account_tier="standard"),
         "refresh_token": refresh, "obtained_at": datetime.now(UTC).isoformat(), "expires_at": expires,
         "expires_in": 3600}
 
@@ -59,7 +59,7 @@ class ClaimPortal(FakePortal):
         if request.url.path == "/api/oauth/token":
             self.refreshes += 1
             return httpx.Response(200, json={
-                "access_token": make_jwt(sub=DESTINATION, client_id="hermes-cli", account_tier="standard",
+                "access_token": make_jwt(sub=DESTINATION, client_id="kova-cli", account_tier="standard",
                                          rotation=self.refreshes),
                 "refresh_token": f"rt_{self.refreshes + 1}", "expires_in": 3600, "token_type": "Bearer"})
         return super().handler(request)

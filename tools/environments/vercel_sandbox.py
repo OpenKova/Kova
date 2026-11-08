@@ -217,7 +217,7 @@ class VercelSandboxEnvironment(BaseEnvironment):
             raise RuntimeError("Vercel sandbox is not attached")
         return self._sandbox
 
-    def _remote_hermes_dir(self) -> str:
+    def _remote_kova_dir(self) -> str:
         return f"{self._remote_home.rstrip('/')}/.kova"
 
     def _create_sandbox(self) -> Sandbox:
@@ -247,7 +247,7 @@ class VercelSandboxEnvironment(BaseEnvironment):
         cwd = self._require_sandbox().sandbox.cwd
         self._workspace_root = cwd if cwd.startswith("/") else DEFAULT_VERCEL_CWD
         self._remote_home = self._detect_remote_home()
-        container_base = self._remote_hermes_dir()
+        container_base = self._remote_kova_dir()
         self._sync_manager = FileSyncManager(
             get_files_fn=lambda: iter_sync_files(container_base),
             upload_fn=lambda host_path, remote_path: self._vercel_bulk_upload([(host_path, remote_path)]),
@@ -346,7 +346,7 @@ class VercelSandboxEnvironment(BaseEnvironment):
             self._run_checked(quoted_rm_command(remote_paths), "delete")
 
     def _vercel_bulk_download(self, dest_tar_path: Path) -> None:
-        archive_member = self._remote_hermes_dir().lstrip("/")
+        archive_member = self._remote_kova_dir().lstrip("/")
         remote_tar = f"/tmp/.kova_sync.{os.getpid()}.tar"  # no-tmp: ok — remote sandbox path
         sandbox = self._require_sandbox()
         try:

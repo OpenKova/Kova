@@ -17,7 +17,7 @@ from datetime import timedelta
 import pytest
 
 import cron.executions as executions_mod
-from cron.executions import _hermes_now, _transaction, recover_interrupted_executions
+from cron.executions import _kova_now, _transaction, recover_interrupted_executions
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +28,7 @@ def _ledger(monkeypatch, tmp_path):
 
 
 def _seed_running(job_id: str, *, age_seconds: float, pid: int = 99999) -> str:
-    claimed_at = (_hermes_now() - timedelta(seconds=age_seconds)).isoformat()
+    claimed_at = (_kova_now() - timedelta(seconds=age_seconds)).isoformat()
     with _transaction() as conn:
         eid = uuid.uuid4().hex
         conn.execute(
@@ -63,7 +63,7 @@ def test_live_owner_stale_claim_gets_recovered(monkeypatch):
     with _transaction() as conn:
         conn.execute(
             "UPDATE executions SET progress_at=? WHERE id=?",
-            ((_hermes_now() - timedelta(seconds=120)).isoformat(), busy),
+            ((_kova_now() - timedelta(seconds=120)).isoformat(), busy),
         )
     assert recover_interrupted_executions() == 0
     assert _status(busy) == "running"
@@ -71,7 +71,7 @@ def test_live_owner_stale_claim_gets_recovered(monkeypatch):
     with _transaction() as conn:
         conn.execute(
             "UPDATE executions SET progress_at=? WHERE id=?",
-            ((_hermes_now() - timedelta(seconds=bound + 1)).isoformat(), busy),
+            ((_kova_now() - timedelta(seconds=bound + 1)).isoformat(), busy),
         )
     assert recover_interrupted_executions() == 1
     assert _status(busy) == "unknown"
@@ -116,7 +116,7 @@ def test_progress_stamped_during_the_sweep_keeps_the_run(monkeypatch):
         # while this sweep is probing its liveness.
         worker = sqlite3.connect(executions_mod.EXECUTIONS_FILE)
         with worker:
-            worker.execute("UPDATE executions SET progress_at=? WHERE id=?", (_hermes_now().isoformat(), eid))
+            worker.execute("UPDATE executions SET progress_at=? WHERE id=?", (_kova_now().isoformat(), eid))
         worker.close()
         return True
 

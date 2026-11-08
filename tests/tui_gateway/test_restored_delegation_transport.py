@@ -20,7 +20,7 @@ from tui_gateway.ws import WSTransport
 
 @pytest.fixture
 def notification_env(monkeypatch, tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     ad._reset_for_tests()

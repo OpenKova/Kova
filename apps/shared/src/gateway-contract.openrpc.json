@@ -296,7 +296,7 @@
     },
     {
       "name": "cli.exec",
-      "summary": "Run ``hermes <argv>`` non-interactively and capture its output; ``blocked`` explains a refusal.",
+      "summary": "Run ``kova <argv>`` non-interactively and capture its output; ``blocked`` explains a refusal.",
       "params": [
         {
           "name": "params",
@@ -14066,7 +14066,7 @@
             ],
             "default": null
           },
-          "requires_hermes": {
+          "requires_kova": {
             "anyOf": [
               {
                 "type": "string"
@@ -28547,7 +28547,7 @@
         "enum": [
           "connected",
           "app_not_running",
-          "hermes_not_connected",
+          "kova_not_connected",
           "endpoint_unavailable",
           "no_interactive_session",
           "version_too_old",
@@ -39433,7 +39433,7 @@
       },
       "SessionPruneParams": {
         "additionalProperties": false,
-        "description": "Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as\n``hermes sessions prune`` builds them) or ``never_active_days`` (``--never-active``).",
+        "description": "Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as\n``kova sessions prune`` builds them) or ``never_active_days`` (``--never-active``).",
         "properties": {
           "filters": {
             "anyOf": [
@@ -42244,7 +42244,7 @@
       },
       "SharedMetricsUpdateRunParams": {
         "additionalProperties": false,
-        "description": "One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout\nhand-offs run ``hermes update`` and are counted from its receipt, never here. Raw words; the\nbackend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage``\ndownload|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall\ntime, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known.",
+        "description": "One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout\nhand-offs run ``kova update`` and are counted from its receipt, never here. Raw words; the\nbackend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage``\ndownload|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall\ntime, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known.",
         "properties": {
           "profile": {
             "anyOf": [
@@ -50406,7 +50406,7 @@
     },
     {
       "name": "session.prune",
-      "summary": "Local operator only: the owner deletes the ended sessions `hermes sessions prune` selected, skipping busy sessions and retained reset owners.",
+      "summary": "Local operator only: the owner deletes the ended sessions `kova sessions prune` selected, skipping busy sessions and retained reset owners.",
       "params": [
         {
           "name": "params",
@@ -51066,7 +51066,7 @@
     },
     {
       "name": "display.status",
-      "summary": "This profile's screen started or stopped (also for transitions made outside hermes serve).",
+      "summary": "This profile's screen started or stopped (also for transitions made outside kova serve).",
       "params": [
         {
           "name": "payload",

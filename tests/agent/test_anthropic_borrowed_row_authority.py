@@ -54,7 +54,7 @@ _ROTATED_REFRESH = "sk-ant-ort01-borrowed-rotated"
 @pytest.fixture
 def kova_home(tmp_path, monkeypatch):
     """Real on-disk KOVA_HOME so ``load_pool()`` re-reads what it persisted."""
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"):
@@ -242,10 +242,10 @@ def test_selection_after_refresh_leases_only_hydrated_entries(
     assert any(e.access_token == _ROTATED_ACCESS for e in available)
 
 
-def test_hermes_pkce_row_still_syncs_from_the_pool_store(monkeypatch):
+def test_kova_pkce_row_still_syncs_from_the_pool_store(monkeypatch):
     """The borrowed-source refusal must not disable pool-owned adoption.
 
-    ``hermes_pkce`` *is* pool-owned, so its persisted row keeps its tokens and
+    ``kova_pkce`` *is* pool-owned, so its persisted row keeps its tokens and
     stays a legitimate rotation witness for another pool instance.
     """
     rotated = {
@@ -253,7 +253,7 @@ def test_hermes_pkce_row_still_syncs_from_the_pool_store(monkeypatch):
         "label": "anthropic oauth",
         "auth_type": AUTH_TYPE_OAUTH,
         "priority": 0,
-        "source": "hermes_pkce",
+        "source": "kova_pkce",
         "access_token": _ROTATED_ACCESS,
         "refresh_token": _ROTATED_REFRESH,
         "expires_at_ms": int(time.time() * 1000) + 3_600_000,
@@ -268,7 +268,7 @@ def test_hermes_pkce_row_still_syncs_from_the_pool_store(monkeypatch):
         label="anthropic oauth",
         auth_type=AUTH_TYPE_OAUTH,
         priority=0,
-        source="hermes_pkce",
+        source="kova_pkce",
         access_token=_STALE_ACCESS,
         refresh_token=_STALE_REFRESH,
         expires_at_ms=_EXPIRED_MS,

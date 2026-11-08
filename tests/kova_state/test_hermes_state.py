@@ -585,7 +585,7 @@ class TestSessionLifecycle:
         """A later /model switch must replace, not compete with, a Browser lock."""
         db.create_session(
             session_id="s1",
-            source="hermes_browser",
+            source="kova_browser",
             model="x-ai/grok-4.5",
             model_config={
                 "_branched_from": "parent-session",
@@ -1860,7 +1860,7 @@ class TestSessionTitleLineage:
     def test_projected_tip_inherits_root_title_when_untitled(self, db):
         """A rotation that ended the root before the title carry ran leaves the name on the
         root only; the projected lineage row must still surface it (exact-title lookups such as
-        `hermes peer dm` -> canonical "Bot Chat", #106165). A titled tip keeps its own title."""
+        `kova peer dm` -> canonical "Bot Chat", #106165). A titled tip keeps its own title."""
         import time as _time
         self._make_compression_chain(db, _time.time() - 3600)
         db.set_session_title("root", "Bot Chat")
@@ -2273,7 +2273,7 @@ class TestFtsRebuildLoopWithoutTrigram:
     single ``SessionDB`` open, holding the write lock, and never converged.
 
     The v23 repair also clears the deferred-rebuild resume markers, so an
-    interrupted ``hermes sessions optimize-storage`` silently lost its place
+    interrupted ``kova sessions optimize-storage`` silently lost its place
     every time the store was reopened.
     """
 
@@ -4115,7 +4115,7 @@ class TestFTS5ToolCallMigration:
         try:
             assert session_db.fts_optimize_available() is True
 
-            # `hermes db optimize` performs the v23 transition; afterwards the
+            # `kova db optimize` performs the v23 transition; afterwards the
             # tool fields are searchable.
             result = session_db.optimize_fts_storage(vacuum=False)
             assert result["ok"] is True
@@ -5214,7 +5214,7 @@ def test_peer_fallback_never_adopts_a_sibling_profiles_row(tmp_path, monkeypatch
     """
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)
@@ -5251,7 +5251,7 @@ def test_peer_fallback_reset_boundary_is_profile_fenced(tmp_path, monkeypatch):
     """
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(root))
     monkeypatch.setattr(kova_state, "DEFAULT_DB_PATH", kova_state._IMPORT_DEFAULT_DB_PATH)

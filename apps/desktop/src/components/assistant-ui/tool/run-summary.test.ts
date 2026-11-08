@@ -74,7 +74,7 @@ describe('summarizeToolRun', () => {
   })
 
   it('names a lone web search the way its row does', () => {
-    expect(settled([webSearched('kova agent')])).toBe('Searched “hermes agent”')
+    expect(settled([webSearched('kova agent')])).toBe('Searched “kova agent”')
   })
 
   it('names a lone web extract by hostname the way its row does', () => {

@@ -123,7 +123,7 @@ def _child(code: str, *args: str, prelude: str = _FILTERED_TOKEN) -> dict:
 def reporters_parent(tmp_path):
     if not _elevated():
         pytest.skip("needs an elevated token to stand in for the elevated install")
-    parent = tmp_path / "hermes"
+    parent = tmp_path / "kova"
     parent.mkdir()
     subprocess.run(["icacls", str(parent), *_REPORTERS_DACL], check=True, capture_output=True)
     yield parent
@@ -213,7 +213,7 @@ def test_elevated_update_step_makes_a_stranded_home_usable(reporters_parent, mon
     """alt-glitch on #140490: the owed ``windows_home_acl`` step had unit tests only. Here the real
     step runs from this elevated runner over a home whose nested dirs and files carry the reporters'
     Administrators-only DACL, with real grants; the filtered token must use every one afterwards.
-    (The full elevated ``hermes update`` run stays a workflow_dispatch / live retest.)"""
+    (The full elevated ``kova update`` run stays a workflow_dispatch / live retest.)"""
     from kova_cli import update_windows_acl
 
     nested = reporters_parent / "sessions" / "2026"
@@ -296,7 +296,7 @@ def home_with_junction_out(tmp_path, monkeypatch):
         pytest.skip("needs an elevated token: only an elevated run grants")
     import _winapi
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     (home / "cache").mkdir(parents=True)
     outside = tmp_path / "Program Files" / "App"
     (outside / "bin").mkdir(parents=True)

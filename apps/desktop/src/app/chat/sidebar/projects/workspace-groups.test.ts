@@ -204,7 +204,7 @@ describe('mergeRepoWorktreeGroups (visual enhancer)', () => {
   it('surfaces a user-named "New worktree" under .worktrees/ as its own lane', () => {
     const discovered: KovaGitWorktree[] = [
       {
-        branch: 'hermes/test-gui-stuff',
+        branch: 'kova/test-gui-stuff',
         detached: false,
         isMain: false,
         locked: false,
@@ -214,7 +214,7 @@ describe('mergeRepoWorktreeGroups (visual enhancer)', () => {
 
     const merged = mergeRepoWorktreeGroups({ id: '/repo', path: '/repo', groups: [] }, discovered)
 
-    expect(merged.map(g => g.label)).toContain('hermes/test-gui-stuff')
+    expect(merged.map(g => g.label)).toContain('kova/test-gui-stuff')
   })
 
   it('relabels a dir-named linked worktree lane to its live checked-out branch', () => {
@@ -889,7 +889,7 @@ describe('overlayLiveLanes', () => {
     // place under `::branch::main` / label "main", miss that lane by id+label,
     // and CREATE a second main lane with the same sessions — dual lanes in the
     // project drill-in (e.g. main + codex-research-guardian).
-    const root = '/home/hermes/hermes-workspace/codex-research-guardian'
+    const root = '/home/kova/kova-workspace/codex-research-guardian'
     const a = makeCwdSession(root, { id: 's1' }) // empty git_branch / git_repo_root
     const b = makeCwdSession(root, { id: 's2' })
 

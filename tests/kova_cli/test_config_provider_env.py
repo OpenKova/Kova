@@ -189,7 +189,7 @@ _SAFE_CATALOG = """
     import kova_cli.config as cfg
     present = "MARKPLUG_API_KEY" in cfg.OPTIONAL_ENV_VARS
     print(json.dumps({"present": present,
-                      "catalog_modules": [k for k in sys.modules if k.startswith("_hermes_provider_catalog_")]}))
+                      "catalog_modules": [k for k in sys.modules if k.startswith("_kova_provider_catalog_")]}))
 """
 
 

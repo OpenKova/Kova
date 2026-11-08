@@ -61,7 +61,7 @@ class TestGenerateTitle:
         ``@file:``) sends NO Desktop paste preview, so the build_title_input
         ref-only shortcut cannot rescue it. The titler must still refuse to
         name the session after the truncated file path."""
-        msg = "@file:AppData/Local/hermes/profiles/local/attachments/report.pdf"
+        msg = "@file:AppData/Local/kova/profiles/local/attachments/report.pdf"
 
         assert is_titleable_user_message(msg) is False
         assert derive_title(msg) is None
@@ -576,7 +576,7 @@ class TestMaybeAutoTitle:
         thread.assert_not_called()
         call_llm.assert_not_called()
         # The toggle only silences the automatic upgrade: an explicit ``generate_title`` call
-        # (``hermes sessions retitle-skills``) still asks the model.
+        # (``kova sessions retitle-skills``) still asks the model.
         resp = MagicMock()
         resp.choices = [MagicMock()]
         resp.choices[0].message.content = '{"title": "Repair startup memory routing"}'

@@ -41,7 +41,7 @@ def verify_products(root: Path, desktop: str, node: Path | None = None) -> None:
         if not outputs or not any((out / "index.html").is_file() for out in outputs):
             raise RuntimeError("desktop packaged renderer is missing or incomplete")
         executables = [path for path in _live_app_dirs(app, (
-            "release/*/Kova.exe", "release/*/Kova", "release/*/hermes",
+            "release/*/Kova.exe", "release/*/Kova", "release/*/kova",
             "release/mac*/Kova.app/Contents/MacOS/Kova",
         )) if path.is_file() and path.stat().st_size]
         if not executables:

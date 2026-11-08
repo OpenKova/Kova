@@ -16,7 +16,7 @@ from kova_cli.observability.shared_metrics_connectors import tool_batch_fields
 from tests.kova_cli.test_relay_shared_metrics import _schema_validator
 from tests.kova_cli import test_relay_shared_metrics_runtime as runtime_tests
 
-_RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
+_RESOURCE = {"architecture": "x86_64", "kova_version": "0.0.0", "install_method": "git", "os_family": "linux"}
 _ROUTE = {"model": "m", "provider": "openrouter"}
 @pytest.fixture
 def fake_relay(tmp_path, monkeypatch):
@@ -122,7 +122,7 @@ def test_a_connector_batch_counts_each_entry_once_and_not_the_wrapper(fake_relay
         ("connector", "connector", "failed", "connection_required"),
     ]
     [task_end] = [event[2]["output"] for event in fake_relay.events
-                  if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"]
+                  if event[0] == "scope.pop" and event[1][1] == "kova.task_run"]
     assert task_end["tool_call_count_bucket"] == "2"
 
 
@@ -151,7 +151,7 @@ def test_a_batch_the_executor_abandons_mid_entry_counts_that_entry_once(fake_rel
     [end] = [event[2] for event in fake_relay.events if event[0] == "tool.call_end"]
     assert (end["tool_name"], end["tool_category"], end["outcome"]) == ("connector", "connector", "timed_out")
     [task_end] = [event[2]["output"] for event in fake_relay.events
-                  if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"]
+                  if event[0] == "scope.pop" and event[1][1] == "kova.task_run"]
     assert task_end["tool_call_count_bucket"] == "1"
 
 

@@ -29,7 +29,7 @@ import pytest
 
 import gateway.session_context as sc
 from gateway.session_context import _VAR_MAP, clear_session_vars, set_session_vars
-from tools.environments.local import _make_run_env, _sanitize_subprocess_env, hermes_subprocess_env
+from tools.environments.local import _make_run_env, _sanitize_subprocess_env, kova_subprocess_env
 
 # The full set of session vars the bridge owns.
 SESSION_VARS = list(_VAR_MAP.keys())
@@ -202,11 +202,11 @@ def test_sanitize_subprocess_env_set_contextvar_wins_when_engaged():
 
 
 # --------------------------------------------------------------------------- #
-# Non-terminal spawn surface (hermes_subprocess_env) — sibling path
+# Non-terminal spawn surface (kova_subprocess_env) — sibling path
 # --------------------------------------------------------------------------- #
 
-def test_hermes_subprocess_env_strips_foreign_session_key_when_engaged(monkeypatch):
-    """hermes_subprocess_env (browser/ACP/CLI/TUI-host spawns) must not leak a
+def test_kova_subprocess_env_strips_foreign_session_key_when_engaged(monkeypatch):
+    """kova_subprocess_env (browser/ACP/CLI/TUI-host spawns) must not leak a
     foreign session key either. cli.exec spawns via this helper WITHOUT re-binding
     the session identity, so an UNSET ContextVar under an engaged host must strip
     the inherited global rather than hand the child another session's identity.
@@ -217,7 +217,7 @@ def test_hermes_subprocess_env_strips_foreign_session_key_when_engaged(monkeypat
         "agent:main:discord:thread:FOREIGN_CONCURRENT:FOREIGN_CONCURRENT",
     )
 
-    env = hermes_subprocess_env()
+    env = kova_subprocess_env()
 
     assert "KOVA_SESSION_KEY" not in env, (
         "Foreign concurrent session key leaked into non-terminal spawn env: "
@@ -225,9 +225,9 @@ def test_hermes_subprocess_env_strips_foreign_session_key_when_engaged(monkeypat
     )
 
 
-def test_hermes_subprocess_env_unengaged_preserves_fallback(monkeypatch):
+def test_kova_subprocess_env_unengaged_preserves_fallback(monkeypatch):
     """A pure single-process CLI (never engaged) keeps the inherited fallback."""
     monkeypatch.setenv("KOVA_SESSION_KEY", "cli-fallback-key")
     # not engaged (autouse fixture leaves _session_context_engaged False)
-    env = hermes_subprocess_env()
+    env = kova_subprocess_env()
     assert env.get("KOVA_SESSION_KEY") == "cli-fallback-key"

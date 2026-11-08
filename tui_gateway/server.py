@@ -30,13 +30,13 @@ from kova_constants import (
     reset_kova_home_override, set_kova_home_override)
 from kova_cli import config_backend as _config_backend
 from kova_cli.config_backend import Changes, ConfigBackendUnavailable, config_exists, supports_file_tooling
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 # The slash-worker client (slash_worker_client.py) runs on these globals; tests patch them here.
 from kova_cli.process_identity import release_process_group_once_empty, spawn_owned
 from tui_gateway.pet_sheet import _clone_pet_payload, _pet_row_frame_counts, _pet_sheet_revision, _pet_state_rows
 from utils import is_truthy_value
 from kova_state_ids import new_session_id
-from tools.environments.local import hermes_subprocess_env
+from tools.environments.local import kova_subprocess_env
 from agent.fast_mode import STATIC_TIERS
 from agent.replay_cleanup import canonicalize_replay_history
 from agent.reasoning_effort import clamp_effort, route_supported_efforts
@@ -60,7 +60,7 @@ from tui_gateway.transport import (FanoutTransport, StdioTransport, Transport, b
 logger = logging.getLogger(__name__)
 
 _kova_home = _KOVA_HOME_AT_IMPORT = get_kova_home()
-load_hermes_dotenv(kova_home=_kova_home, project_env=Path(__file__).parent.parent / ".env")
+load_kova_dotenv(kova_home=_kova_home, project_env=Path(__file__).parent.parent / ".env")
 
 
 # ── Panic logger: crashes otherwise leave no forensics (stdout is the JSON-RPC pipe, stderr doesn't
@@ -210,10 +210,10 @@ atexit.register(lambda: _pool.shutdown(wait=False, cancel_futures=True))
 # Exact in-memory session record executing on the current turn thread — unlike a public session id,
 # this object identity cannot be supplied by RPC.
 _current_runtime_session_record: contextvars.ContextVar[dict | None] = contextvars.ContextVar(
-    "hermes_gateway_runtime_session_record", default=None)
+    "kova_gateway_runtime_session_record", default=None)
 # JSON-RPC method being dispatched on this thread/task. Diagnostic only (names WHICH client
 # poll is looping in the 4001 warning); never authorization — the method string is client-supplied.
-_current_rpc_method: contextvars.ContextVar[str] = contextvars.ContextVar("hermes_gateway_rpc_method", default="")
+_current_rpc_method: contextvars.ContextVar[str] = contextvars.ContextVar("kova_gateway_rpc_method", default="")
 
 # Reserve real stdout for JSON-RPC only; redirect Python's stdout to stderr so stray print() from
 # libraries/tools becomes harmless gateway.stderr instead of corrupting the JSON protocol.
@@ -412,12 +412,12 @@ def _canonical_profile_request(name: str) -> str:
     """Canonicalize profile basenames emitted by older session-info payloads.
 
     ``Path(default_home).name`` was historically sent as a profile id. Those basenames are
-    installation details — unless a real named profile of that name exists (``hermes`` is a legal
+    installation details — unless a real named profile of that name exists (``kova`` is a legal
     id), in which case it wins; other unknown names keep failing closed in ``_profile_home``.
     """
-    if name.casefold() in {".kova", "hermes"}:
+    if name.casefold() in {".kova", "kova"}:
         from kova_cli import profiles as profiles_mod
-        # Check the profiles root directly: get_profile_dir rejects "hermes" as a
+        # Check the profiles root directly: get_profile_dir rejects "kova" as a
         # reserved name, but a pre-reserved-list install may still carry that dir.
         if not (profiles_mod._get_profiles_root() / profiles_mod.normalize_profile_name(name)).is_dir():
             return "default"
@@ -1976,7 +1976,7 @@ _CLI_EXEC_BLOCKED = {
 def _cli_exec_blocked(argv: list[str]) -> str | None:
     """Return user hint if this argv must not run headless in the gateway process."""
     if not argv:
-        return "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+        return "bare `kova` is interactive — use `/kova chat -q …` or run `kova` in another terminal"
     head = tuple(a.lower() for a in argv[:2])
     return _CLI_EXEC_BLOCKED.get(head[:1]) or _CLI_EXEC_BLOCKED.get(head)
 

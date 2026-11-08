@@ -60,7 +60,7 @@ def _docker_profile(home: Path, mount: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_secondary_docker_media_resolves_via_its_own_mounts(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     default_out, public_out = root / "cache" / "output", root / "profiles" / "public" / "cache" / "output"
     _docker_profile(root, default_out)
     _docker_profile(root / "profiles" / "public", public_out)

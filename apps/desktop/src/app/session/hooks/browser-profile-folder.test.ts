@@ -97,10 +97,10 @@ beforeEach(async () => {
   // A gateway launched as `alpha`, opened at its plain address: the tab boots
   // on the gateway's own profile with no `?profile=`, as adoptPrimaryProfile
   // leaves it, and the boot sync fills the window's folder cache.
-  host.__KOVA_BASE_PATH__ = '/hermes'
+  host.__KOVA_BASE_PATH__ = '/kova'
   host.__KOVA_DASHBOARD_PROFILE__ = 'alpha'
   seedWebappSession('served-token')
-  window.history.replaceState(null, '', '/hermes#/')
+  window.history.replaceState(null, '', '/kova#/')
   expect(installBrowserDesktopBridge()).toBe(true)
   setConnection(await window.kovaDesktop.getConnection())
   $activeGatewayProfile.set('alpha')
@@ -114,7 +114,7 @@ afterEach(() => {
   delete host.__KOVA_BASE_PATH__
   delete host.__KOVA_DASHBOARD_PROFILE__
   clearWebappSession()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   window.localStorage.clear()
   window.history.replaceState(null, '', '/')
   applyConfiguredDefaultProjectDir(null)

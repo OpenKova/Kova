@@ -346,7 +346,7 @@ async def test_a_reattach_that_replays_part_of_the_history_says_output_was_trimm
             super().__init__(capacity)
             self.app = app
             self.query_params = {"attach": token}
-            self._hermes_auth_identity = {"user_id": "owner", "provider": "local"}
+            self._kova_auth_identity = {"user_id": "owner", "provider": "local"}
 
         async def receive(self):
             return {"type": "websocket.disconnect"}
@@ -883,7 +883,7 @@ async def test_close_orphaned_sessions_finds_the_lease_holder_without_a_resume_k
 
 @pytest.mark.asyncio
 async def test_close_orphaned_sessions_leaves_a_holder_outside_every_pty(process_tree):
-    """A lease held by a plain terminal (`hermes` in a shell, pid 9000, no PTY ancestor) is a
+    """A lease held by a plain terminal (`kova` in a shell, pid 9000, no PTY ancestor) is a
     real other window: nothing is closed and the single-writer refusal stands."""
     from kova_cli.pty_session import PtySession
 

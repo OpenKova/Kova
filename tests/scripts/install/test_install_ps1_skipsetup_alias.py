@@ -2,7 +2,7 @@
 
 The staged-installer rework (92686159d1) dropped the ``-SkipSetup`` switch from
 install.ps1's ``param()`` block, so wrappers written against the old spelling
-(hermes-desktop passes ``-SkipSetup -NonInteractive -KovaHome ...``) die at
+(kova-desktop passes ``-SkipSetup -NonInteractive -KovaHome ...``) die at
 parameter binding with ``NamedParameterNotFound`` before any stage runs. The
 switch is back as a deprecated alias that folds into ``-NonInteractive``.
 

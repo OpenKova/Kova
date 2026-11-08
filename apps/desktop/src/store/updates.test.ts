@@ -158,7 +158,7 @@ describe('gateway version refresh', () => {
       electronVersion: '40',
       nodeVersion: '26',
       platform: 'win32',
-      hermesRoot: ''
+      kovaRoot: ''
     }
 
     const getVersion = vi.fn().mockResolvedValue(version)
@@ -583,7 +583,7 @@ describe('requestActiveUpdate', () => {
     setRemote(true)
     updateKovaSpy.mockResolvedValue({
       ok: false,
-      name: 'hermes-update',
+      name: 'kova-update',
       error: 'dashboard_update_managed_externally',
       message: 'Kova updates are managed outside this dashboard in containerized environments.',
       update_command: ''
@@ -600,7 +600,7 @@ describe('requestActiveUpdate', () => {
 
   it('falls back to `kova update` only when an older backend omits update_command', async () => {
     setRemote(true)
-    updateKovaSpy.mockResolvedValue({ ok: false, name: 'hermes-update', message: 'Run it yourself.' })
+    updateKovaSpy.mockResolvedValue({ ok: false, name: 'kova-update', message: 'Run it yourself.' })
 
     await applyBackendUpdate()
 
@@ -1133,7 +1133,7 @@ describe('applyBackendUpdate recovery', () => {
     updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       exit_code: null,
-      lines: [`=== hermes-update completed ${actionId} ===`],
+      lines: [`=== kova-update completed ${actionId} ===`],
       name: 'update',
       pid: null,
       running: false
@@ -1162,7 +1162,7 @@ describe('applyBackendUpdate recovery', () => {
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
       .mockResolvedValueOnce({
         exit_code: null,
-        lines: [`=== hermes-update completed ${actionId} ===`],
+        lines: [`=== kova-update completed ${actionId} ===`],
         name: 'update',
         pid: null,
         running: false
@@ -1183,13 +1183,13 @@ describe('applyBackendUpdate recovery', () => {
 
   it('keeps waiting past the old 45-second cutoff while the update action is running', async () => {
     const actionId = 'f'.repeat(32)
-    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'kova-update', pid: 1 })
 
     for (let attempt = 0; attempt < 31; attempt += 1) {
       getActionStatusSpy.mockResolvedValueOnce({
         exit_code: null,
-        lines: ['=== hermes-update started now ===', `step ${attempt}`],
-        name: 'hermes-update',
+        lines: ['=== kova-update started now ===', `step ${attempt}`],
+        name: 'kova-update',
         pid: 1,
         running: true
       })
@@ -1197,8 +1197,8 @@ describe('applyBackendUpdate recovery', () => {
 
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       exit_code: null,
-      lines: [`=== hermes-update completed ${actionId} ===`],
-      name: 'hermes-update',
+      lines: [`=== kova-update completed ${actionId} ===`],
+      name: 'kova-update',
       pid: null,
       running: false
     })
@@ -1214,11 +1214,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('treats a successful no-op as complete without waiting for a restart', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
-      lines: ['stale output from another run', '=== hermes-update started now ===', '✓ Already up to date!'],
-      name: 'hermes-update',
+      lines: ['stale output from another run', '=== kova-update started now ===', '✓ Already up to date!'],
+      name: 'kova-update',
       pid: 1,
       running: false
     })
@@ -1232,11 +1232,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('treats a successful dependency repair as complete without waiting for a restart', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
-      lines: ['=== hermes-update started now ===', '✓ Dependencies repaired!', '✓ Update complete!'],
-      name: 'hermes-update',
+      lines: ['=== kova-update started now ===', '✓ Dependencies repaired!', '✓ Update complete!'],
+      name: 'kova-update',
       pid: 1,
       running: false
     })
@@ -1248,11 +1248,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('trusts the current action exit code without parsing its output', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['✓ Already up to date!'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: 1,
       running: false
     })
@@ -1264,20 +1264,20 @@ describe('applyBackendUpdate recovery', () => {
 
   it('waits for current-action completion proof after the backend restarts', async () => {
     const actionId = 'a'.repeat(32)
-    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy
       .mockRejectedValueOnce(new Error('ECONNREFUSED'))
       .mockResolvedValueOnce({
         exit_code: null,
-        lines: ['Update complete!', `=== hermes-update completed ${'c'.repeat(32)} ===`],
-        name: 'hermes-update',
+        lines: ['Update complete!', `=== kova-update completed ${'c'.repeat(32)} ===`],
+        name: 'kova-update',
         pid: null,
         running: false
       })
       .mockResolvedValueOnce({
         exit_code: null,
-        lines: ['Update complete!', `=== hermes-update completed ${actionId} ===`],
-        name: 'hermes-update',
+        lines: ['Update complete!', `=== kova-update completed ${actionId} ===`],
+        name: 'kova-update',
         pid: null,
         running: false
       })
@@ -1290,11 +1290,11 @@ describe('applyBackendUpdate recovery', () => {
 
   it('accepts its terminal receipt when a verbose update pushes the start marker out of the log tail', async () => {
     const actionId = 'b'.repeat(32)
-    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: actionId, ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValueOnce({
       exit_code: null,
-      lines: ['final build output', 'Update complete!', `=== hermes-update completed ${actionId} ===`],
-      name: 'hermes-update',
+      lines: ['final build output', 'Update complete!', `=== kova-update completed ${actionId} ===`],
+      name: 'kova-update',
       pid: null,
       running: false
     })
@@ -1303,7 +1303,7 @@ describe('applyBackendUpdate recovery', () => {
     await vi.advanceTimersByTimeAsync(5000)
 
     await expect(promise).resolves.toMatchObject({ ok: true })
-    expect(getActionStatusSpy).toHaveBeenCalledWith('hermes-update', 2000)
+    expect(getActionStatusSpy).toHaveBeenCalledWith('kova-update', 2000)
   })
 
   it('proves a pre-action-ID backend reached its requested commit after restart', async () => {
@@ -1315,11 +1315,11 @@ describe('applyBackendUpdate recovery', () => {
       targetSha: 'backend:0.18.2',
       updateAvailable: true
     })
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValue({
       exit_code: null,
       lines: ['verbose output', 'Update complete!'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: null,
       running: false
     })
@@ -1361,11 +1361,11 @@ describe('applyBackendUpdate recovery', () => {
       targetSha: 'backend:0.18.2',
       updateAvailable: true
     })
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: null,
       lines: ['verbose output without a retained start marker'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: null,
       running: false
     })
@@ -1388,20 +1388,20 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('resumes action polling after a transient status failure', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy
       .mockRejectedValueOnce(new Error('ECONNRESET'))
       .mockResolvedValueOnce({
         exit_code: null,
-        lines: ['=== hermes-update started now ===', 'still running'],
-        name: 'hermes-update',
+        lines: ['=== kova-update started now ===', 'still running'],
+        name: 'kova-update',
         pid: 1,
         running: true
       })
       .mockResolvedValueOnce({
         exit_code: 0,
-        lines: ['=== hermes-update started now ===', 'Update complete!'],
-        name: 'hermes-update',
+        lines: ['=== kova-update started now ===', 'Update complete!'],
+        name: 'kova-update',
         pid: 1,
         running: false
       })
@@ -1413,12 +1413,12 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('restores the fixed action deadline after reconnecting', async () => {
-    updateKovaSpy.mockResolvedValue({ action_id: 'a'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'a'.repeat(32), ok: true, name: 'kova-update', pid: 1 })
 
     const running = {
       exit_code: null,
       lines: ['still running'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: 1,
       running: true
     }
@@ -1437,11 +1437,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('shares one in-flight update between concurrent apply requests', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
-      lines: ['=== hermes-update started now ===', '✓ Already up to date!'],
-      name: 'hermes-update',
+      lines: ['=== kova-update started now ===', '✓ Already up to date!'],
+      name: 'kova-update',
       pid: 1,
       running: false
     })
@@ -1456,11 +1456,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('fails closed when the update action never reaches a terminal state', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: null,
-      lines: ['=== hermes-update started now ===', 'still running'],
-      name: 'hermes-update',
+      lines: ['=== kova-update started now ===', 'still running'],
+      name: 'kova-update',
       pid: 1,
       running: true
     })
@@ -1472,11 +1472,11 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it('fails immediately when the update action exits nonzero', async () => {
-    updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 1,
-      lines: ['=== hermes-update started now ===', 'update failed'],
-      name: 'hermes-update',
+      lines: ['=== kova-update started now ===', 'update failed'],
+      name: 'kova-update',
       pid: 1,
       running: false
     })
@@ -1502,11 +1502,11 @@ describe('applyBackendUpdate recovery', () => {
   }, 10000)
 
   it('reports a committed update with owed follow-ups as success plus an owed-step warning', async () => {
-    updateKovaSpy.mockResolvedValue({ action_id: 'e'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'e'.repeat(32), ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue({
       exit_code: 0,
       lines: ['Update complete!'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: null,
       running: false,
       receipt: {
@@ -1535,7 +1535,7 @@ describe('applyBackendUpdate recovery', () => {
     const status = (actionId: string) => ({
       exit_code: 1,
       lines: ['update parked local changes'],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: null,
       running: false,
       receipt: {
@@ -1546,7 +1546,7 @@ describe('applyBackendUpdate recovery', () => {
       }
     })
 
-    updateKovaSpy.mockResolvedValue({ action_id: 'c'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'c'.repeat(32), ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue(status('c'.repeat(32)))
     const own = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(1500)
@@ -1570,7 +1570,7 @@ describe('applyBackendUpdate recovery', () => {
     const receipt = (actionId: string) => ({
       exit_code: null,
       lines: [],
-      name: 'hermes-update',
+      name: 'kova-update',
       pid: null,
       running: false,
       receipt: {
@@ -1583,7 +1583,7 @@ describe('applyBackendUpdate recovery', () => {
       }
     })
 
-    updateKovaSpy.mockResolvedValue({ action_id: 'b'.repeat(32), ok: true, name: 'hermes-update', pid: 1 })
+    updateKovaSpy.mockResolvedValue({ action_id: 'b'.repeat(32), ok: true, name: 'kova-update', pid: 1 })
     getActionStatusSpy.mockResolvedValue(receipt('a'.repeat(32)))
     const foreign = applyBackendUpdate()
     await vi.advanceTimersByTimeAsync(6 * 60 * 1000 + 1500)

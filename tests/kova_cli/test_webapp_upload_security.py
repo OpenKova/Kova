@@ -23,7 +23,7 @@ from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
 @pytest.fixture
 def upload_app(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -197,9 +197,9 @@ def test_cookie_upload_accepts_trusted_proxy_origin_only(upload_app, monkeypatch
             await _login(client)
             if public_url:
                 monkeypatch.setattr(web_server.app.state, "listener_public_url",
-                                    "https://dashboard.example.com:8443/hermes")
+                                    "https://dashboard.example.com:8443/kova")
             host = "127.0.0.1:9119" if public_url else "dashboard.example.com:8443"
-            headers = {"X-Forwarded-Prefix": "/hermes", "Host": host, "X-Forwarded-Proto": "https"}
+            headers = {"X-Forwarded-Prefix": "/kova", "Host": host, "X-Forwarded-Proto": "https"}
             for origin, expected in (
                 ("https://dashboard.example.com:8443", 200),
                 ("https://dashboard.example.com", 403),

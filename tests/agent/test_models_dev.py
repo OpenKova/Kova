@@ -1265,7 +1265,7 @@ class TestModelOverrides:
 
         import kova_cli.config as hc
 
-        home = tmp_path / "hermes"
+        home = tmp_path / "kova"
         home.mkdir()
         (home / "config.yaml").write_text(
             "model_overrides:\n"

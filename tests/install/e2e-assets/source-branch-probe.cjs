@@ -48,14 +48,14 @@ function prepareSourceBranchEnvironment(root, expectedSha, realGit, capturedEnv,
     // Packaged Electron ignores NODE_OPTIONS=--require. Select the branch at
     // the isolated installation's launcher instead, leaving product code and
     // every non-checker invocation untouched.
-    const launcher = path.join(install, '.kova', 'bin', 'hermes')
+    const launcher = path.join(install, '.kova', 'bin', 'kova')
     const original = `${launcher}.e2e-original`
     // Historical venv installs have no PM launcher. Their Electron-side probe
     // handles the branch selection; only PM source checks need this wrapper.
     const launcherStat = fs.lstatSync(launcher, { throwIfNoEntry: false })
     if (!launcherStat) {
       if (!fs.existsSync(path.join(install, 'pm', 'lock.json'))
-          && fs.existsSync(path.join(install, 'venv', 'bin', 'hermes'))
+          && fs.existsSync(path.join(install, 'venv', 'bin', 'kova'))
           && !fs.existsSync(original)) return
       throw new Error('source app-update requires an unmodified installation launcher')
     }

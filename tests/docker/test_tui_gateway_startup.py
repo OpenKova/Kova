@@ -49,7 +49,7 @@ def test_tui_bootstrap_starts_the_correct_supervised_owner(
         "-c",
         (
             "import json, subprocess; "
-            "r = subprocess.run(['python', '/opt/hermes/ui-tui/scripts/gateway_bootstrap.py', '--start'], "
+            "r = subprocess.run(['python', '/opt/kova/ui-tui/scripts/gateway_bootstrap.py', '--start'], "
             "capture_output=True, text=True, timeout=45); "
             "assert r.returncode == 0, r.stderr; "
             "grant = json.loads(r.stdout); "

@@ -120,7 +120,7 @@ def test_ad_hoc_pass_satisfies_no_suite_stop_loop(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     (tmp_path / "package.json").write_text("{}", encoding="utf-8")
     changed = str(tmp_path / "src" / "app.ts")
-    script = Path(tempfile.gettempdir()) / f"hermes-ad-hoc-stop-{tmp_path.name}.py"
+    script = Path(tempfile.gettempdir()) / f"kova-ad-hoc-stop-{tmp_path.name}.py"
     script.write_text("print('ok')\n", encoding="utf-8")
     try:
         record_terminal_result(
@@ -190,8 +190,8 @@ def test_nudge_explains_only_a_check_run_the_shell_could_not_attribute(tmp_path,
     assert "Your last check run (`pnpm test || true`) did not count" in hidden
     assert "did not count" not in scored
 
-def test_nudge_drops_the_unscored_run_warning_once_hermes_verify_records(tmp_path, monkeypatch):
-    """``hermes verify`` records from its own process: its newer failure is the latest check."""
+def test_nudge_drops_the_unscored_run_warning_once_kova_verify_records(tmp_path, monkeypatch):
+    """``kova verify`` records from its own process: its newer failure is the latest check."""
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / ".kova"))
     _node_project(tmp_path)
     changed = str(tmp_path / "src" / "app.ts")
@@ -206,7 +206,7 @@ def test_nudge_drops_the_unscored_run_warning_once_hermes_verify_records(tmp_pat
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
 
     assert nudge is not None
-    assert "hermes verify" in nudge and "did not count" not in nudge
+    assert "kova verify" in nudge and "did not count" not in nudge
 
 # ---------------------------------------------------------------------------
 # Fix C: documentation/prose edits carry no verifiable behavior and must never

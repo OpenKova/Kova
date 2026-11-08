@@ -307,7 +307,7 @@ test('shouldSurfaceErrorForRendererStackCookieCrashLoop when GPU fallback cannot
 })
 
 test('GPU stack-cookie marker lives in its own file and round-trips', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-stack-cookie-marker-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-stack-cookie-marker-'))
 
   try {
     assert.equal(gpuStackCookieMarkerPath(dir), path.join(dir, WINDOWS_GPU_STACK_COOKIE_MARKER_FILENAME))

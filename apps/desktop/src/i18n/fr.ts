@@ -1759,7 +1759,7 @@ export const frOverrides = {
       cloudStatusLabel: status => `État : ${status}`,
       remoteUrlTitle: 'URL distante',
       remoteUrlDesc:
-        'URL de base du backend de tableau de bord distant. Les préfixes de chemin sont pris en charge, par exemple /hermes.',
+        'URL de base du backend de tableau de bord distant. Les préfixes de chemin sont pris en charge, par exemple /kova.',
       probing: "Vérification de la méthode d'authentification de ce gateway…",
       probeError:
         "Impossible d'atteindre ce gateway pour le moment. Vérifiez l'URL — la méthode d'authentification apparaîtra une fois qu'il répondra.",
@@ -1838,7 +1838,7 @@ export const frOverrides = {
       sshKeyTitle: "Fichier d'identité",
       sshKeyDesc: 'Chemin de la clé privée. Vide = ssh-agent ou ~/.ssh/config.',
       sshKovaPathTitle: 'Chemin Kova (facultatif)',
-      sshKovaPathDesc: 'Chemin complet vers le binaire hermes distant. Vide = détection automatique.',
+      sshKovaPathDesc: 'Chemin complet vers le binaire kova distant. Vide = détection automatique.',
       sshKovaPathPlaceholder: 'détection automatique',
       sshTestConnection: 'Tester SSH',
       sshConnect: 'Se connecter',
@@ -2477,7 +2477,7 @@ export const frOverrides = {
       'Verrouillez-le pour que l’agent ne puisse pas modifier ce skill. Vous pouvez toujours le modifier vous-même.',
     archive: 'Archiver',
     skillArchivedTitle: 'Skill archivé',
-    skillArchivedMessage: 'Restaurable via hermes curator restore.',
+    skillArchivedMessage: 'Restaurable via kova curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: "Plugins de l'agent",
@@ -2518,7 +2518,7 @@ export const frOverrides = {
       serverStates: {
         connected: 'connecté',
         app_not_running: 'application non lancée',
-        hermes_not_connected: 'connexion MCP manquante',
+        kova_not_connected: 'connexion MCP manquante',
         endpoint_unavailable: 'point de terminaison indisponible',
         no_interactive_session: 'aucune session interactive',
         version_too_old: 'version trop ancienne',
@@ -2828,7 +2828,7 @@ export const frOverrides = {
     noSessions: 'Aucune session pour le moment.',
     gatewayRunning: 'Gateway de messagerie en cours',
     gatewayStopped: 'Gateway de messagerie arrêté',
-    hermesActiveSessions: (version, count) => `Kova ${version} · Sessions actives ${count}`,
+    kovaActiveSessions: (version, count) => `Kova ${version} · Sessions actives ${count}`,
     restartGateway: 'Redémarrer le gateway',
     openBrowser: 'Basculer le navigateur',
     toggleBrowser: 'Basculer le navigateur',
@@ -3148,7 +3148,7 @@ export const frOverrides = {
       },
       MATRIX_USER_ID: {
         label: "ID d'utilisateur du bot",
-        placeholder: '@hermes:example.org'
+        placeholder: '@kova:example.org'
       },
       MATRIX_ALLOWED_USERS: {
         label: "IDs d'utilisateurs Matrix autorisés",
@@ -3262,7 +3262,7 @@ export const frOverrides = {
     failedImport: "Échec de l'importation du profil",
     failedExport: "Échec de l'exportation du profil",
     exportNeedsHost: name =>
-      `Le navigateur ne peut pas enregistrer une archive de profil. Sur l'hôte Kova, exécutez : hermes profile export ${name}`,
+      `Le navigateur ne peut pas enregistrer une archive de profil. Sur l'hôte Kova, exécutez : kova profile export ${name}`,
     allProfiles: 'Tous les profils',
     showAllProfiles: 'Afficher tous les profils',
     notServedHere: 'Non proposé ici',
@@ -3298,7 +3298,7 @@ export const frOverrides = {
       description:
         "Les sessions de ce profil s'exécuteront sur le système Kova distant indiqué, plutôt que sur cet ordinateur.",
       urlLabel: 'Adresse distante',
-      urlPlaceholder: 'https://hermes.exemple.fr',
+      urlPlaceholder: 'https://kova.exemple.fr',
       urlInvalid: 'Saisissez une adresse complète commençant par http:// ou https://',
       tokenLabel: "Jeton d'accès",
       tokenPlaceholder: 'Collez le jeton de session distant',
@@ -4181,9 +4181,9 @@ export const frOverrides = {
     versionDetailsDistributionDesktopMsix: 'Application Desktop (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Application Desktop (installateur)',
     versionDetailsDistributionSourceInstaller: "Code source (script d'installation)",
-    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + hermes desktop",
+    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + kova desktop",
     versionDetailsDistributionSource: 'Code source',
-    versionDetailsDistributionSourceDesktop: 'Code source + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Code source + kova desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: "Environnement d'exécution",
     versionDetailsRuntimeEmbedded: "Environnement d'exécution intégré",
@@ -4345,7 +4345,7 @@ export const frOverrides = {
       "Entrez l'URL du gateway. Kova Desktop détectera s'il a besoin d'un jeton ou d'une connexion par navigateur.",
     remoteUrlTitle: 'URL du gateway',
     remoteUrlDesc: "Utilisez l'URL de base du gateway Kova, y compris https:// pour les connexions distantes.",
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
+    remoteUrlPlaceholder: 'https://gateway.example.com/kova',
     probing: "Détection de l'authentification du gateway...",
     probeError: "Impossible d'atteindre ce gateway Kova.",
     probeErrorDetails: 'Détails',

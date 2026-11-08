@@ -351,7 +351,7 @@ def test_unmanaged_root_home_child_ignores_sticky_active_profile(tmp_path, monke
     def boundary(argv, **kwargs):
         assert argv[:3] == [sys.executable, "-m", "kova_cli.main"]
         # Same argv and env as the real child; the module-import bootstrap is what resolves the profile.
-        code = ("import json, os, sys\nsys.argv = ['hermes', *sys.argv[1:]]\nimport kova_cli.main\n"
+        code = ("import json, os, sys\nsys.argv = ['kova', *sys.argv[1:]]\nimport kova_cli.main\n"
                 f"open({str(witness)!r}, 'w').write(json.dumps({{'home': os.environ['KOVA_HOME'], 'argv': sys.argv}}))")
         return real([sys.executable, "-c", code, *argv[3:]], **kwargs)
 
@@ -367,7 +367,7 @@ def test_unmanaged_root_home_child_ignores_sticky_active_profile(tmp_path, monke
             child.wait(timeout=5)
     resolved = json.loads(witness.read_text())
     assert resolved["home"] == str(root), resolved
-    assert resolved["argv"] == ["hermes", "gateway", "run", "--quiet"], resolved
+    assert resolved["argv"] == ["kova", "gateway", "run", "--quiet"], resolved
 
 
 @pytest.mark.parametrize("standalone", [False, True])
@@ -457,7 +457,7 @@ def _standalone_host(tmp_path, monkeypatch, record):
     return home, spawned
 
 
-_REASON = "duplicate Telegram token; run hermes gateway migrate --multiplex"
+_REASON = "duplicate Telegram token; run kova gateway migrate --multiplex"
 
 
 def test_ensure_reports_a_standalone_host_reason_for_an_unserved_named_profile(tmp_path, monkeypatch):

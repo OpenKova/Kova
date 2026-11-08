@@ -241,9 +241,9 @@ class TestCreateProfile:
         default_home = tmp_path / ".kova"
         (default_home / "config.yaml").write_text("memory:\n  provider: hindsight\n")
         (default_home / "hindsight").mkdir()
-        payload = '{"mode": "local_embedded", "bank_id": "hermes", "apiKey": "hs-secret"}'
+        payload = '{"mode": "local_embedded", "bank_id": "kova", "apiKey": "hs-secret"}'
         (default_home / "hindsight" / "config.json").write_text(payload)
-        (default_home / "mem0.json").write_text('{"agent_id": "hermes"}')
+        (default_home / "mem0.json").write_text('{"agent_id": "kova"}')
 
         profile_dir = create_profile("coder", clone_config=True, no_alias=True)
 
@@ -487,7 +487,7 @@ class TestCreateProfile:
 # ===================================================================
 
 class TestNoSkillsOptOut:
-    """Tests for `hermes profile create --no-skills` and the opt-out marker."""
+    """Tests for `kova profile create --no-skills` and the opt-out marker."""
 
     def test_no_skills_writes_marker_and_skips_seeding(self, profile_env):
         profile_dir = create_profile("orchestrator", no_alias=True, no_skills=True)
@@ -512,7 +512,7 @@ class TestNoSkillsOptOut:
 # ===================================================================
 
 class TestBackfillProfileEnvs:
-    """Tests for backfill_profile_envs() — the `hermes update` pass that
+    """Tests for backfill_profile_envs() — the `kova update` pass that
     gives pre-#44792 profiles (created before .env seeding) their own
     .env: the placeholder header, never a copy of the default's secrets."""
 
@@ -653,11 +653,11 @@ class TestDeleteProfile:
         # Typed partial success: the filesystem delete completed, the identity did not, and the
         # payload carries what a surfacing caller needs to report it and retry.
         assert ei.value.profile == "gone"
-        assert ei.value.retry_command == "hermes profile purge-identity gone"
+        assert ei.value.retry_command == "kova profile purge-identity gone"
         assert not ei.value.path.exists()
         assert isinstance(ei.value, RuntimeError)  # the CLI handler catches RuntimeError
 
-        assert "hermes profile purge-identity gone" in capsys.readouterr().err
+        assert "kova profile purge-identity gone" in capsys.readouterr().err
         check = SessionDB(tmp_path / ".kova" / "state.db")
         try:
             # The CLI left the identity alone rather than racing the live owner.
@@ -709,10 +709,10 @@ class TestDeleteProfile:
         pids = profiles._profile_bound_backend_pids("coder", profile_dir)
         assert pids == [101]
 
-    def test_backend_scan_matches_shebang_exec_of_hermes_shim(self, profile_env, monkeypatch):
-        """A `hermes` console-script shim spawned directly (e.g. Electron's
-        findOnPath('hermes') resolution) reports argv[0] as the interpreter
-        (python3) and argv[1] as the shim's path -- not "hermes" -- because
+    def test_backend_scan_matches_shebang_exec_of_kova_shim(self, profile_env, monkeypatch):
+        """A `kova` console-script shim spawned directly (e.g. Electron's
+        findOnPath('kova') resolution) reports argv[0] as the interpreter
+        (python3) and argv[1] as the shim's path -- not "kova" -- because
         the OS execs the shebang. The scanner must still recognize it so
         profile delete doesn't leave a zombie Desktop-spawned backend behind
         (issue: deleting a Desktop profile kept reappearing after relaunch).
@@ -737,12 +737,12 @@ class TestDeleteProfile:
         self_pid = os.getpid()
         procs = [
             # Shebang-exec'd shim bound to coder → matched despite argv[0]
-            # being the python interpreter, not "hermes".
-            FakeProc(201, ["/usr/bin/python3", "/Users/x/.local/bin/hermes", "--profile", "coder", "serve",
+            # being the python interpreter, not "kova".
+            FakeProc(201, ["/usr/bin/python3", "/Users/x/.local/bin/kova", "--profile", "coder", "serve",
                             "--host", "127.0.0.1", "--port", "0"]),
             # Same shape but a different profile → skipped.
-            FakeProc(202, ["/usr/bin/python3", "/Users/x/.local/bin/hermes", "--profile", "other", "serve"]),
-            # Non-hermes script run by python3 → skipped.
+            FakeProc(202, ["/usr/bin/python3", "/Users/x/.local/bin/kova", "--profile", "other", "serve"]),
+            # Non-kova script run by python3 → skipped.
             FakeProc(203, ["/usr/bin/python3", "/Users/x/some_script.py", "--profile", "coder", "serve"]),
         ]
 
@@ -758,12 +758,12 @@ class TestDeleteProfile:
         pids = profiles._profile_bound_backend_pids("coder", profile_dir)
         assert pids == [201]
 
-    def test_backend_scan_rejects_unrelated_hermes_prefixed_script(self, profile_env, monkeypatch):
-        """A user's own script that happens to start with "hermes" (e.g.
-        hermes-notes.py, hermes-unrelated-tool) must NOT be misidentified as
+    def test_backend_scan_rejects_unrelated_kova_prefixed_script(self, profile_env, monkeypatch):
+        """A user's own script that happens to start with "kova" (e.g.
+        kova-notes.py, kova-unrelated-tool) must NOT be misidentified as
         the console-script shim just because argv[0] is a python interpreter
-        and argv[1]'s basename starts with "hermes" -- only the actual known
-        console-script entry points (hermes, kova-agent, hermes-acp) count.
+        and argv[1]'s basename starts with "kova" -- only the actual known
+        console-script entry points (kova, kova-agent, kova-acp) count.
         """
         create_profile("coder", no_alias=True)
         profile_dir = get_profile_dir("coder")
@@ -786,9 +786,9 @@ class TestDeleteProfile:
         procs = [
             # Looks like the shim by prefix alone, but is the user's own
             # unrelated tool -- must be rejected, not killed by profile delete.
-            FakeProc(301, ["/usr/bin/python3", "/Users/x/scripts/hermes-notes.py",
+            FakeProc(301, ["/usr/bin/python3", "/Users/x/scripts/kova-notes.py",
                             "--profile", "coder", "serve"]),
-            FakeProc(302, ["/usr/bin/python3", "/Users/x/scripts/hermes-unrelated-tool",
+            FakeProc(302, ["/usr/bin/python3", "/Users/x/scripts/kova-unrelated-tool",
                             "--profile", "coder", "serve"]),
         ]
 
@@ -806,8 +806,8 @@ class TestDeleteProfile:
 
     def test_backend_scan_matches_all_known_console_script_shims(self, profile_env, monkeypatch):
         """The other two real console-script entry points (kova-agent,
-        hermes-acp -- see pyproject.toml [project.scripts]) must also be
-        recognized via the shebang-exec path, not just the primary "hermes"
+        kova-acp -- see pyproject.toml [project.scripts]) must also be
+        recognized via the shebang-exec path, not just the primary "kova"
         shim.
         """
         create_profile("coder", no_alias=True)
@@ -831,7 +831,7 @@ class TestDeleteProfile:
         procs = [
             FakeProc(401, ["/usr/bin/python3", "/Users/x/.local/bin/kova-agent",
                             "--profile", "coder", "serve"]),
-            FakeProc(402, ["/usr/bin/python3", "/Users/x/.local/bin/hermes-acp",
+            FakeProc(402, ["/usr/bin/python3", "/Users/x/.local/bin/kova-acp",
                             "--profile", "coder", "serve"]),
         ]
 
@@ -896,15 +896,15 @@ class TestListProfiles:
             return srv._methods["profiles.list"](1, {"include_sessions": False})["result"]["profiles"]
 
         first = _rpc()
-        assert walks == [] or set(walks) == {"hermes-skill-count"}
+        assert walks == [] or set(walks) == {"kova-skill-count"}
         assert first[0]["skill_count"] in (0, 3)  # 0 until the refresh lands, never a stall
         for t in threading.enumerate():
-            if t.name == "hermes-skill-count":
+            if t.name == "kova-skill-count":
                 t.join(timeout=10)
-        assert walks == ["hermes-skill-count"]
+        assert walks == ["kova-skill-count"]
         assert _rpc()[0]["skill_count"] == 3
         assert list_profiles(lazy_skill_count=True)[0].skill_count == 3
-        assert walks == ["hermes-skill-count"]  # a second poll inside the window schedules nothing
+        assert walks == ["kova-skill-count"]  # a second poll inside the window schedules nothing
 
         # GET /api/profiles (the router's own ``lazy_skill_count=True`` call) and the per-keystroke
         # ``@<profile>`` completion must be just as walk-free: same spy, still one background walk.
@@ -919,9 +919,9 @@ class TestListProfiles:
         resp = TestClient(app).get("/api/profiles")
         assert resp.status_code == 200
         assert resp.json()["profiles"][0]["name"] == "default"
-        assert walks == ["hermes-skill-count"]
+        assert walks == ["kova-skill-count"]
         assert any(i["text"] == "@default" for i in methods_complete._profile_mention_items("def"))
-        assert walks == ["hermes-skill-count"]
+        assert walks == ["kova-skill-count"]
 
         # Control: the detail/CLI path counts synchronously on the caller's thread.
         profiles._SKILL_COUNT_CACHE.clear()
@@ -1039,7 +1039,7 @@ class TestAliasCollision:
         wrapper_dir = profile_env / ".local" / "bin"
         wrapper_dir.mkdir(parents=True, exist_ok=True)
         bat_path = wrapper_dir / "mybot.bat"
-        bat_path.write_text("@echo off\r\nhermes -p mybot %*\r\n", encoding="utf-8")
+        bat_path.write_text("@echo off\r\nkova -p mybot %*\r\n", encoding="utf-8")
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0, stdout=str(bat_path),
@@ -1064,14 +1064,14 @@ class TestWrapperScript:
     """Tests for create_wrapper_script() and remove_wrapper_script()."""
 
     def test_creates_sh_on_posix(self, profile_env, monkeypatch):
-        monkeypatch.setattr("kova_cli.profiles.shutil.which", lambda name: "/opt/hermes/bin/hermes")
+        monkeypatch.setattr("kova_cli.profiles.shutil.which", lambda name: "/opt/kova/bin/kova")
         from kova_cli.profiles import create_wrapper_script
         wrapper = create_wrapper_script("mybot")
         assert wrapper is not None
         assert wrapper.name == "mybot"
         content = wrapper.read_text(encoding="utf-8-sig")
         assert content.startswith("#!/bin/sh")
-        assert "exec /opt/hermes/bin/hermes -p mybot" in content
+        assert "exec /opt/kova/bin/kova -p mybot" in content
 
 
     @pytest.mark.platforms("windows")
@@ -1178,14 +1178,14 @@ class TestRenameProfile:
         honcho_path = tmp_path / ".kova" / "honcho.json"
         honcho_path.write_text(json.dumps({
             "hosts": {
-                "hermes.ssi_health": {
+                "kova.ssi_health": {
                     "recallMode": "hybrid",
                     "writeFrequency": "async",
                     "sessionStrategy": "per-session",
                     "saveMessages": True,
                     "peerName": "user-peer",
                     "aiPeer": "ssi_health",
-                    "workspace": "hermes",
+                    "workspace": "kova",
                     "enabled": True,
                 }
             }
@@ -1195,9 +1195,9 @@ class TestRenameProfile:
             rename_profile("ssi_health", "heimdall")
 
         cfg = json.loads(honcho_path.read_text(encoding="utf-8-sig"))
-        assert "hermes.ssi_health" not in cfg["hosts"]
-        assert cfg["hosts"]["hermes_heimdall"]["aiPeer"] == "ssi_health"
-        assert cfg["hosts"]["hermes_heimdall"]["peerName"] == "user-peer"
+        assert "kova.ssi_health" not in cfg["hosts"]
+        assert cfg["hosts"]["kova_heimdall"]["aiPeer"] == "ssi_health"
+        assert cfg["hosts"]["kova_heimdall"]["peerName"] == "user-peer"
 
     def test_multiplexed_rename_unroutes_old_then_hot_serves_new(self, profile_env):
         """Under a live multiplexer the old name is tombstoned + unrouted BEFORE the directory
@@ -1306,7 +1306,7 @@ class TestRenameProfile:
 
 
     def test_migrate_identity_command_repairs_a_failed_live_migration(self, profile_env, capsys):
-        """The failed-live-migration end state must be recoverable: `hermes profile
+        """The failed-live-migration end state must be recoverable: `kova profile
         migrate-identity <old> <new>` rekeys the durable rows once no gateway holds the store, and
         is idempotent (a second run has nothing left to rekey but still succeeds)."""
         from kova_cli.profile_cmd import cmd_profile
@@ -1335,7 +1335,7 @@ class TestRenameProfile:
              patch("kova_cli.profiles._notify_multiplexer"), \
              patch("gateway.control_socket.migrate_gateway_profile_identity", return_value=None):
             rename_profile("oldname", "newname")
-        assert "hermes profile migrate-identity oldname newname" in capsys.readouterr().err
+        assert "kova profile migrate-identity oldname newname" in capsys.readouterr().err
 
         # Gateway restarted/stopped → the retry command repairs both stores.
         with patch("kova_cli.profiles._live_default_multiplexer", return_value=False):
@@ -1641,7 +1641,7 @@ class TestEdgeCases:
                 {
                     "pid": live_pid,
                     "kind": "kova-gateway",
-                    "argv": ["hermes", "gateway", "run"],
+                    "argv": ["kova", "gateway", "run"],
                     "start_time": gw_status._get_process_start_time(live_pid),
                     "gateway_state": "running",
                     "active_agents": 0,
@@ -1659,7 +1659,7 @@ class TestEdgeCases:
         # runs the gateway with no profile flag).
         with patch("gateway.status.get_running_pid", return_value=None), patch(
             "gateway.status._read_process_cmdline",
-            return_value="hermes gateway run --replace",
+            return_value="kova gateway run --replace",
         ):
             assert _check_gateway_running(default_home) is True
 
@@ -1817,7 +1817,7 @@ class TestResolveProfileEnvSpelling:
         never fall back to the platform default.
         """
         root = tmp_path / "configured-root"
-        custom = tmp_path / "custom-hermes"
+        custom = tmp_path / "custom-kova"
         for profile_dir in (root / "profiles" / "beta", root / "profiles" / "coder", custom / "profiles" / "beta"):
             profile_dir.mkdir(parents=True)
             (profile_dir / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker: a bare dir does not resolve

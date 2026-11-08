@@ -19,7 +19,7 @@ vi.mock('@/components/chat/shiki-highlighter', () => ({
 it.each(['connection', 'profile', 'local', 'api-route'] as const)(
   'never retargets a pending preview save after a %s switch and permits retry on its owner',
   async destination => {
-    const directory = await mkdtemp(path.join(tmpdir(), 'hermes-save-scope-'))
+    const directory = await mkdtemp(path.join(tmpdir(), 'kova-save-scope-'))
     const originFile = path.join(directory, 'origin.txt')
     const otherFile = path.join(directory, 'other.txt')
     const logicalPath = '/workspace/note.txt'

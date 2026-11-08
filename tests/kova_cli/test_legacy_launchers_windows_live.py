@@ -16,8 +16,8 @@ from kova_cli import gateway_windows
 
 @pytest.mark.platforms("windows")
 def test_status_warns_and_uninstall_removes_pre_suffix_launchers(tmp_path, monkeypatch, capsys):
-    # The shared isolation fixture uses tmp_path / "hermes" as the Windows native default.
-    home = tmp_path / "custom-hermes"
+    # The shared isolation fixture uses tmp_path / "kova" as the Windows native default.
+    home = tmp_path / "custom-kova"
     (home / "gateway-service").mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     appdata = tmp_path / "AppData" / "Roaming"
@@ -49,7 +49,7 @@ def test_status_warns_and_uninstall_removes_pre_suffix_launchers(tmp_path, monke
         assert "legacy pre-suffix Scheduled Task still installed: Kova_Gateway" in out
         assert f"legacy pre-suffix Windows login item still installed: {legacy_vbs}" in out
         assert f"legacy pre-suffix task launcher still installed: {legacy_pair}" in out
-        assert "hermes gateway uninstall" in out
+        assert "kova gateway uninstall" in out
 
         gateway_windows.uninstall()
         out = capsys.readouterr().out

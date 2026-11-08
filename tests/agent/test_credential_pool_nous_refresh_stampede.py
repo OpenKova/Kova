@@ -27,7 +27,7 @@ from tests.kova_cli.test_auth_nous_provider import _invoke_jwt, _setup_nous_auth
 
 
 def test_forced_refresh_adopts_peer_rotation_instead_of_reposting(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     peer_token = _invoke_jwt(seconds=3600)
     failed_token = _invoke_jwt(seconds=3000)  # what THIS process still holds
     _setup_nous_auth(

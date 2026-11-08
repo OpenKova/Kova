@@ -18,7 +18,7 @@ afterEach((): void => {
 const baseVersion: DesktopVersionInfo = {
   appVersion: '0.19.0',
   electronVersion: '37.0.0',
-  hermesRoot: '/tmp/hermes',
+  kovaRoot: '/tmp/kova',
   nodeVersion: '22.0.0',
   platform: 'linux'
 }
@@ -36,15 +36,15 @@ describe('VersionDetails', () => {
     { version: { source: 'nix', distribution: 'nix' }, visible: ['Build Origin', 'Nix', 'Distribution'] },
     { version: { source: 'ci', distribution: 'docker' }, visible: ['CI', 'Distribution', 'Docker'] },
     {
-      version: { distribution: 'desktop-app', hermesRuntime: { type: 'embedded' } },
+      version: { distribution: 'desktop-app', kovaRuntime: { type: 'embedded' } },
       visible: ['Runtime', 'Embedded runtime']
     },
     {
-      version: { hermesRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.kova/kova-agent' } } },
+      version: { kovaRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.kova/kova-agent' } } },
       visible: ['Runtime', 'git (/home/u/.kova/kova-agent)'],
       absent: ['External (uses the machine runtime)']
     },
-    { version: { hermesRuntime: { type: 'external' } }, visible: ['Runtime', 'External (uses the machine runtime)'] },
+    { version: { kovaRuntime: { type: 'external' } }, visible: ['Runtime', 'External (uses the machine runtime)'] },
     {
       version: { distribution: 'desktop-app', updateMechanism: 'microsoft-store' },
       visible: ['Distribution', 'Microsoft Store'],
@@ -77,12 +77,12 @@ describe('VersionDetails', () => {
         source: 'local',
         installedByScript: true
       },
-      visible: ['Source (install script) + hermes desktop'],
+      visible: ['Source (install script) + kova desktop'],
       absent: ['Desktop app (installer)']
     },
     {
       version: { distribution: 'desktop-app', updateMechanism: 'self', payload: 'bootstrap', source: 'local' },
-      visible: ['Source + hermes desktop'],
+      visible: ['Source + kova desktop'],
       absent: ['Desktop app (installer)']
     },
     // install.sh / install.ps1 checkout (receipt present) vs a manual git

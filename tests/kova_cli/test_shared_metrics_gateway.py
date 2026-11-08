@@ -84,9 +84,9 @@ def test_every_gateway_row_is_contract_valid_and_disabled_config_records_nothing
     smg.record_cron_missed({"deliver": "telegram:-100123"})
     rows = marks()
     assert rows == [
-        ("hermes.platform.health", {"error_class": "network", "event": "connect_failed", "platform": "telegram"}),
-        ("hermes.platform.health", {"error_class": "auth", "event": "disconnect", "platform": "telegram"}),
-        ("hermes.cron.run", {"delivery_kind": "platform", "duration_bucket": "lt_1s", "outcome": "missed"}),
+        ("kova.platform.health", {"error_class": "network", "event": "connect_failed", "platform": "telegram"}),
+        ("kova.platform.health", {"error_class": "auth", "event": "disconnect", "platform": "telegram"}),
+        ("kova.cron.run", {"delivery_kind": "platform", "duration_bucket": "lt_1s", "outcome": "missed"}),
     ]
     assert all(contract.counter_dimensions_are_valid(name, dims) for name, dims in rows)
 
@@ -101,11 +101,11 @@ def test_every_gateway_adapter_platform_is_named_and_accepted_by_contract_and_sc
 
     from gateway.config import Platform
 
-    schema = json.loads((Path(contract.__file__).parent / "schemas/hermes.shared_metrics.v4.schema.json").read_text())
+    schema = json.loads((Path(contract.__file__).parent / "schemas/kova.shared_metrics.v4.schema.json").read_text())
     rows = {
-        "platform_health_counter": ("hermes.platform.health", {"error_class": "network", "event": "disconnect"}),
-        "platform_delivery_counter": ("hermes.platform.delivery", {"failure_class": "none", "outcome": "sent"}),
-        "reply_latency_counter": ("hermes.gateway.reply_latency", {"first_response_bucket": "lt_2s"}),
+        "platform_health_counter": ("kova.platform.health", {"error_class": "network", "event": "disconnect"}),
+        "platform_delivery_counter": ("kova.platform.delivery", {"failure_class": "none", "outcome": "sent"}),
+        "reply_latency_counter": ("kova.gateway.reply_latency", {"first_response_bucket": "lt_2s"}),
     }
     for member in Platform:  # relay and msgraph_webhook are gateway adapters with no setup-wizard entry
         name = contract.adapter_platform(member)

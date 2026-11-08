@@ -18,7 +18,7 @@ const CURRENT_SOURCE = 'const re = /KOVA_(?:BACKEND|DASHBOARD)_READY[^\\n]*port=
 const STALE_SOURCE = 'const re = /KOVA_DASHBOARD_READY port=(\\d+)/m\n'
 
 async function packedAppRoot() {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-ready-artifact-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'kova-ready-artifact-'))
   const resources = path.join(root, 'resources')
   await mkdir(resources, { recursive: true })
   return { root, resources }

@@ -188,7 +188,7 @@ test('shouldAttemptAclRepair only fires on evidence of trouble', () => {
 })
 
 test('sandbox marker round-trips through the userData file', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-sandbox-marker-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-sandbox-marker-'))
 
   try {
     assert.equal(sandboxMarkerPath(dir), path.join(dir, WINDOWS_SANDBOX_MARKER_FILENAME))

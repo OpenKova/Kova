@@ -28,7 +28,7 @@ def _write(path, text: str = ""):
     return path
 
 
-def _hermes_side_tree(tmp_path, monkeypatch) -> str:
+def _kova_side_tree(tmp_path, monkeypatch) -> str:
     """``<KOVA_HOME>/lsp/node_modules`` with a JS TypeScript SDK and Vue 2.x; returns a launcher inside it."""
     monkeypatch.setenv("KOVA_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
@@ -96,8 +96,8 @@ def _record_spawns(tmp_path, monkeypatch, launcher, roots, *, trusted_workspaces
     return handed, status
 
 
-def test_untrusted_checkout_starts_only_allowlisted_servers_pinned_to_hermes_code(tmp_path, monkeypatch):
-    launcher = _hermes_side_tree(tmp_path, monkeypatch)
+def test_untrusted_checkout_starts_only_allowlisted_servers_pinned_to_kova_code(tmp_path, monkeypatch):
+    launcher = _kova_side_tree(tmp_path, monkeypatch)
     launch, clone = tmp_path / "launch", tmp_path / "elsewhere" / "clone"
     for root in (launch, clone):
         _checkout_shipping_its_own_toolchain(root)
@@ -124,7 +124,7 @@ def test_untrusted_checkout_starts_only_allowlisted_servers_pinned_to_hermes_cod
 
 def test_only_operator_workspaces_and_listed_directories_are_trusted(tmp_path, monkeypatch):
     """The same trust decision gates the servers and the post-write shell linters that use the repo's toolchain."""
-    launcher = _hermes_side_tree(tmp_path, monkeypatch)
+    launcher = _kova_side_tree(tmp_path, monkeypatch)
     launch, listed = tmp_path / "launch", tmp_path / "listed" / "proj"
     nested, sibling = launch / "vendor" / "clone", tmp_path / "elsewhere" / "clone"
     roots = (launch, nested, sibling, listed)
@@ -158,7 +158,7 @@ def test_only_operator_workspaces_and_listed_directories_are_trusted(tmp_path, m
         assert ("rust-analyzer", str(root)) not in handed
         assert shell_linted(root) == 0, root
 
-    # The workspace a surface points the session at is the operator's too (hermes -w, a Desktop project)...
+    # The workspace a surface points the session at is the operator's too (kova -w, a Desktop project)...
     monkeypatch.setenv("TERMINAL_CWD", str(sibling))
     assert shell_linted(sibling) == 2
     # ...but not one the model scheduled: a cron job's workdir or a kanban task's workspace...

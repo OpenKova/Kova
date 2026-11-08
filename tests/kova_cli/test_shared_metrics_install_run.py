@@ -1,4 +1,4 @@
-"""hermes.install.run: the installers' local receipt, counted by a later start only while collection is on."""
+"""kova.install.run: the installers' local receipt, counted by a later start only while collection is on."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ from kova_cli.observability import shared_metrics_process as process_metrics
 ROOT = Path(__file__).resolve().parents[2]
 INSTALL_SH = ROOT / "scripts" / "install.sh"
 INSTALL_PS1 = ROOT / "scripts" / "install.ps1"
-SCHEMA = ROOT / "kova_cli" / "observability" / "schemas" / "hermes.shared_metrics.v4.schema.json"
+SCHEMA = ROOT / "kova_cli" / "observability" / "schemas" / "kova.shared_metrics.v4.schema.json"
 
 
 @pytest.fixture
@@ -145,9 +145,9 @@ def test_real_install_sh_ladder_leaves_only_closed_tokens(tmp_path):
         found = shutil.which(name)
         if found:
             (tools / name).symlink_to(found)
-    home = tmp_path / "hermes home"
+    home = tmp_path / "kova home"
     result = subprocess.run(
-        [str(tools / "bash"), str(INSTALL_SH), "--non-interactive", "--hermes-home", str(home),
+        [str(tools / "bash"), str(INSTALL_SH), "--non-interactive", "--kova-home", str(home),
          "--dir", str(tmp_path / "checkout")],
         env={"HOME": str(tmp_path), "PATH": str(tools), "KOVA_REPO_URL": "https://example.invalid/x.git"},
         capture_output=True, text=True, encoding="utf-8", timeout=60,
@@ -167,7 +167,7 @@ def test_real_install_sh_ladder_leaves_only_closed_tokens(tmp_path):
 
 
 _REAL_RECORD_SAVED = relay_shared_metrics.record_process_marks_saved
-_RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
+_RESOURCE = {"architecture": "x86_64", "kova_version": "0.0.0", "install_method": "git", "os_family": "linux"}
 
 
 def test_receipt_is_recorded_only_on_a_day_the_sender_can_ever_send(marks, monkeypatch):
@@ -253,7 +253,7 @@ def test_relay_instrumentation_off_keeps_the_receipt_instead_of_latching_it_unre
 
 
 def test_every_opt_out_answer_purges_pending_receipts(marks, monkeypatch):
-    """A "No" from setup, the pre-chat offer, the dashboard banner or `hermes config` goes through
+    """A "No" from setup, the pre-chat offer, the dashboard banner or `kova config` goes through
     save_consent; none of them starts a process that purges, so the answer itself must."""
     from kova_cli.observability import shared_metrics_consent as consent
     from kova_cli.observability import shared_metrics_update as update_metrics
@@ -285,7 +285,7 @@ except KeyboardInterrupt:
 
 def _ctrl_c_ladder(tmp_path: Path, child_exit: int) -> tuple[int, str, list[dict]]:
     """The real install.sh main block and traps, with every stage body a no-op except python-deps,
-    whose child catches Ctrl-C like pm.cli / `hermes setup` do. Ctrl-C reaches the whole process
+    whose child catches Ctrl-C like pm.cli / `kova setup` do. Ctrl-C reaches the whole process
     group, as from a terminal."""
     script = INSTALL_SH.read_text(encoding="utf-8-sig")
     assert script.count(_MAIN_GUARD) == 1
@@ -297,7 +297,7 @@ def _ctrl_c_ladder(tmp_path: Path, child_exit: int) -> tuple[int, str, list[dict
     harness.write_text(script.replace(_MAIN_GUARD, stubs + _MAIN_GUARD), encoding="utf-8")
     home, ready = tmp_path / "home", tmp_path / "ready"
     proc = subprocess.Popen(
-        ["bash", str(harness), "--non-interactive", "--hermes-home", str(home), "--dir", str(tmp_path / "checkout")],
+        ["bash", str(harness), "--non-interactive", "--kova-home", str(home), "--dir", str(tmp_path / "checkout")],
         env={"HOME": str(tmp_path), "PATH": os.environ.get("PATH", ""), "STUB_PY": sys.executable,
              "STUB_CHILD": _CHILD, "STUB_READY": str(ready), "STUB_EXIT": str(child_exit)},
         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True,
@@ -330,7 +330,7 @@ def test_a_ctrl_c_the_stage_handles_lets_the_install_finish(tmp_path):
 
 @pytest.mark.skipif(sys.platform == "win32", reason="runs the real install.sh")
 def test_a_user_abort_the_child_turns_into_exit_1_is_recorded_as_interrupted(tmp_path):
-    """pm.cli / source_completion / `hermes setup` catch KeyboardInterrupt and exit 1, which reaches the
+    """pm.cli / source_completion / `kova setup` catch KeyboardInterrupt and exit 1, which reaches the
     stage's `|| fail ... deps_install_failed`; the receipt must still say the user stopped it."""
     rc, out, receipts = _ctrl_c_ladder(tmp_path, child_exit=1)
     assert rc != 0 and "stage complete ok" not in out

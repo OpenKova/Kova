@@ -44,7 +44,7 @@ def linked_home(tmp_path_factory, provider):
     root = tmp_path_factory.mktemp("paths-linked")
     origin = X.make_origin(root)
     sb = X.new_sandbox(root / "sb", origin)
-    real = root / "sb" / VOLUME_DIR / "hermes-data"
+    real = root / "sb" / VOLUME_DIR / "kova-data"
     real.mkdir(parents=True)
     os.symlink(real, sb.kova_home)
     first = I.run_installer(sb)

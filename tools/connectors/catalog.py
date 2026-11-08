@@ -319,7 +319,7 @@ def _plugin_row(entry: Any, label: Optional[str]) -> dict[str, Any]:
         "tier": entry.tier if entry.tier in _TIERS else "community",
         "repo": entry.repo,
         "sha": entry.sha,
-        "requires_hermes": entry.requires_hermes or None,
+        "requires_kova": entry.requires_kova or None,
         "has_desktop_half": False,
         "target_profile": label,
         "app_state": presence(entry).state,

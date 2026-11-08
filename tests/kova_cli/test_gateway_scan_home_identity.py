@@ -20,7 +20,7 @@ import pytest
 from kova_cli import gateway
 from kova_cli import dashboard_procs
 
-# Named ``hermes`` so ``python <dir>/hermes gateway run`` satisfies the canonical gateway matcher.
+# Named ``kova`` so ``python <dir>/kova gateway run`` satisfies the canonical gateway matcher.
 _GATEWAY_STUB = """
 import os, time
 open(os.environ["STUB_READY"], "w").close()
@@ -32,7 +32,7 @@ while os.getppid() == parent and time.monotonic() < deadline:
 def _gateway_argv(tmp_path: Path) -> list[str]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
-    script = bin_dir / "hermes"
+    script = bin_dir / "kova"
     script.write_text(_GATEWAY_STUB, encoding="utf-8")
     return [sys.executable, str(script), "gateway", "run"]
 

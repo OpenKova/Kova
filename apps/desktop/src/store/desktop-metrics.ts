@@ -21,7 +21,7 @@
  * stranger to `other`). Never a session id, path, message, bot name or setting
  * value.
  *
- * Local state (localStorage `hermes.desktop.metrics.v1:<hash of connection|profile>`,
+ * Local state (localStorage `kova.desktop.metrics.v1:<hash of connection|profile>`,
  * written only while on): the UTC day, areas already reported today, per-day
  * caps, today's aggregated action counts and per-mode activity, finished days
  * awaiting the backend's ack, and the onboarding latch (steps sent / still open).

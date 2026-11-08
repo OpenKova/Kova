@@ -3,7 +3,7 @@
 // Adds a fixed Vite port and CDP (9344) so the run can be driven and read
 // from outside. When you only want to click through it yourself:
 //   D=$(mktemp -d) && env -u KOVA_SHARED_AUTH_DIR \
-//     KOVA_HOME="$D/home" KOVA_DESKTOP_USER_DATA_DIR="$D/userdata" hermes desktop
+//     KOVA_HOME="$D/home" KOVA_DESKTOP_USER_DATA_DIR="$D/userdata" kova desktop
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
@@ -16,7 +16,7 @@ const desktop = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const root = path.resolve(desktop, '../..')
 const desktopRequire = createRequire(path.join(desktop, 'package.json'))
 const packageDir = name => path.dirname(desktopRequire.resolve(`${name}/package.json`))
-const sandbox = process.argv[2] ? path.resolve(process.argv[2]) : fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-connectors-'))
+const sandbox = process.argv[2] ? path.resolve(process.argv[2]) : fs.mkdtempSync(path.join(os.tmpdir(), 'kova-connectors-'))
 const port = 5194
 const url = `http://127.0.0.1:${port}`
 const python = process.env.KOVA_DESKTOP_PYTHON

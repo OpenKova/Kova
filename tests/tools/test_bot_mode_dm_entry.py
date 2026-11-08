@@ -38,7 +38,7 @@ def committed_home(tmp_path, monkeypatch):
     The generation's site-packages carries a ``.pth`` naming this interpreter's own package
     directories, so activating it (and only activating it) makes the real dependencies importable.
     """
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     venv = install_state_dir(REPO) / "environments" / "gen" / "venv"
@@ -48,14 +48,14 @@ def committed_home(tmp_path, monkeypatch):
     packages = site_packages(venv)
     packages.mkdir(parents=True)
     dirs = [p for p in sys.path if p and Path(p).is_dir() and Path(p).resolve() != REPO]
-    (packages / "hermes-test-deps.pth").write_text("\n".join(dirs) + "\n", encoding="utf-8")
+    (packages / "kova-test-deps.pth").write_text("\n".join(dirs) + "\n", encoding="utf-8")
     return home, _commit(home, venv)
 
 
 @pytest.fixture
 def uncommittable_home(tmp_path, monkeypatch):
     """A temp ``KOVA_HOME`` whose committed generation is gone, so activation cannot succeed."""
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     install_state_dir(REPO).mkdir(parents=True)

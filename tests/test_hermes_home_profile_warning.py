@@ -45,9 +45,9 @@ class TestGetKovaHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile=coder + KOVA_HOME unset → warn loudly, still return fallback."""
-        hermes_dir = tmp_path / ".kova"
-        hermes_dir.mkdir()
-        (hermes_dir / "active_profile").write_text("coder\n")
+        kova_dir = tmp_path / ".kova"
+        kova_dir.mkdir()
+        (kova_dir / "active_profile").write_text("coder\n")
 
         result = fresh_constants.get_kova_home()
 
@@ -83,10 +83,10 @@ class TestGetKovaHomeProfileWarning:
         self, fresh_constants, tmp_path, capsys
     ):
         """active_profile that can't be decoded → fall through silently."""
-        hermes_dir = tmp_path / ".kova"
-        hermes_dir.mkdir()
+        kova_dir = tmp_path / ".kova"
+        kova_dir.mkdir()
         # Write bytes that aren't valid utf-8
-        (hermes_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
+        (kova_dir / "active_profile").write_bytes(b"\xff\xfe\x00\x00")
 
         result = fresh_constants.get_kova_home()
 
@@ -102,7 +102,7 @@ class TestBootReadersBeforeProfileOverride:
     import, and ``main._apply_profile_override`` re-homes the process a few lines later. A
     caller that already resolved its home must not send the policy back through
     ``get_kova_home()``: for a sticky-profile user with ``KOVA_HOME`` unset in a plain
-    shell that lookup falls back to the default profile and warns, on every ``hermes``
+    shell that lookup falls back to the default profile and warns, on every ``kova``
     command, while nothing lands in the wrong place. Same fix the parser's ``_cfg_path()``
     carries for the ``--no-config`` help string.
     """
@@ -111,25 +111,25 @@ class TestBootReadersBeforeProfileOverride:
         self, fresh_constants, tmp_path, capsys
     ):
         """Boot scratch setup: silent, and pointed at the home the bootstrap resolved."""
-        hermes_dir = tmp_path / ".kova"
-        (hermes_dir / "profiles" / "coder").mkdir(parents=True)
-        (hermes_dir / "active_profile").write_text("coder\n")
+        kova_dir = tmp_path / ".kova"
+        (kova_dir / "profiles" / "coder").mkdir(parents=True)
+        (kova_dir / "active_profile").write_text("coder\n")
         capsys.readouterr()  # drop anything the setup above printed
 
         env = {"PATH": "/usr/bin:/bin"}
         assert fresh_constants.apply_scratch_tmp_env(env) is True
 
-        assert env["TMPDIR"] == str(hermes_dir / "cache" / "scratch")
+        assert env["TMPDIR"] == str(kova_dir / "cache" / "scratch")
         assert "KOVA_HOME fallback" not in capsys.readouterr().err
 
     def test_explicit_home_scratch_dir_never_reads_the_effective_home(
         self, fresh_constants, tmp_path, capsys
     ):
-        """A caller that passes a home (`hermes doctor` for another profile) stays silent."""
-        hermes_dir = tmp_path / ".kova"
-        profile_dir = hermes_dir / "profiles" / "coder"
+        """A caller that passes a home (`kova doctor` for another profile) stays silent."""
+        kova_dir = tmp_path / ".kova"
+        profile_dir = kova_dir / "profiles" / "coder"
         profile_dir.mkdir(parents=True)
-        (hermes_dir / "active_profile").write_text("coder\n")
+        (kova_dir / "active_profile").write_text("coder\n")
         capsys.readouterr()  # drop anything the setup above printed
 
         scratch = fresh_constants.get_scratch_dir(profile_dir)

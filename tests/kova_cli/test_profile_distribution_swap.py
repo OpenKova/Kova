@@ -41,7 +41,7 @@ def test_force_install_preserves_existing_dir_when_new_copy_fails(
         install_distribution(str(staged), name="target", force=True)
 
     assert skill.read_text() == "old skill\n"
-    assert not list((plan.target_dir / "skills").glob(".*hermes-dist*"))
+    assert not list((plan.target_dir / "skills").glob(".*kova-dist*"))
 
 
 def test_force_install_restores_existing_dir_when_staged_swap_fails(
@@ -65,7 +65,7 @@ def test_force_install_restores_existing_dir_when_staged_swap_fails(
         install_distribution(str(staged), name="target", force=True)
 
     assert skill.read_text() == "old skill\n"
-    assert not list((plan.target_dir / "skills").glob(".*hermes-dist*"))
+    assert not list((plan.target_dir / "skills").glob(".*kova-dist*"))
 
 
 def test_force_install_locked_old_tree_is_not_discovered(profile_env, monkeypatch):

@@ -1,6 +1,6 @@
 """Native PTY clients against an ordinary daemon and loopback model only.
 
-`hermes --cli chat` (interactive and -q/-Q) is main's KovaCLI again, its agent and session store the
+`kova --cli chat` (interactive and -q/-Q) is main's KovaCLI again, its agent and session store the
 gateway's; `-z` stays on the gateway transport client. The CLI process may read state.db (maintainer
 ruling) but builds no AIAgent, no GatewayRunner and no SessionDB writer. The thin client's
 `/approve <id>` detach/reconnect leg is retired: main's classic approval is the modal the A/B harness
@@ -72,7 +72,7 @@ finally:
 ''')
     # argv[0] is replaced by runpy, so the witness path is explicitly bound.
     wrapper.write_text(wrapper.read_text().replace("Path(sys.argv[0]).with_name('client-owner.json')", repr(str(witness)) + " and Path(" + repr(str(witness)) + ")"))
-    tmux_name = "hermes-cli-test-" + uuid.uuid4().hex
+    tmux_name = "kova-cli-test-" + uuid.uuid4().hex
 
     def tmux(*args):
         return subprocess.run(["tmux", "-L", tmux_name, *args], env=env,

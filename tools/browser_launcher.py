@@ -57,7 +57,7 @@ _PACKAGED_ONLY_FLAGS: tuple[str, ...] = ("--password-store=basic",)
 _MACOS_PACKAGED_ONLY_FLAGS: tuple[str, ...] = ("--use-mock-keychain",)
 
 _DEVTOOLS_FILE = "DevToolsActivePort"
-_LAUNCH_LOG = "hermes-chromium.log"
+_LAUNCH_LOG = "kova-chromium.log"
 _MIN_FIRST_LAUNCH_TIMEOUT_S = 120
 _UNRESPONSIVE_WAIT_S = 10  # how long a live browser whose endpoint went silent (paused, swapped out) is waited for
 _POLL_INTERVAL_S = 0.1

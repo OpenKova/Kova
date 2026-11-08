@@ -59,10 +59,10 @@ export { smokeEnvironment }
 
 /** The bundled app resolves its Kova home the same way electron/data-paths.ts does:
  * an explicit KOVA_HOME wins, but a bundle-env clear (KOVA_HOME=null) empties it before
- * this runs, and the KOVA_DESKTOP_USER_DATA_DIR branch then resolves <userData>/hermes-home.
+ * this runs, and the KOVA_DESKTOP_USER_DATA_DIR branch then resolves <userData>/kova-home.
  * Seed both so the driver works against baked-clear bundles and plain source launches. */
 export function candidateSmokeKovaHomes(home: string, userData: string): string[] {
-  const fallback = path.join(userData, 'hermes-home')
+  const fallback = path.join(userData, 'kova-home')
   return home === fallback ? [home] : [home, fallback]
 }
 
@@ -127,7 +127,7 @@ export function resolveSmokeLaunch(options: SmokeOptions): Launch {
       env.KOVA_PYTHON_SRC_ROOT = editableRoot
     }
     // Retain the product-selected source interpreter, not the driver's activated Python.
-    for (const key of ['KOVA_DESKTOP_PYTHON', 'KOVA_DESKTOP_HERMES', 'KOVA_DESKTOP_KOVA_ROOT']) {
+    for (const key of ['KOVA_DESKTOP_PYTHON', 'KOVA_DESKTOP_KOVA_CLI', 'KOVA_DESKTOP_KOVA_ROOT']) {
       const value = spec.env[key]
       if (value) {
         if (!path.isAbsolute(value) || (key !== 'KOVA_DESKTOP_PYTHON' && !within(options.root, value))) {
@@ -155,7 +155,7 @@ function selectLocal(userData: string): void {
 }
 
 interface BackendWindow extends Window {
-  hermesDesktop?: {
+  kovaDesktop?: {
     getConnection: () => Promise<{ baseUrl: string; mode?: string; logs: string[] }>
   }
 }
@@ -335,7 +335,7 @@ export async function runInstalledDesktopSmoke(options: SmokeOptions, launchApp:
     const identity = await readChatIdentity(page)
     assertResolvedIdentity(identity, options, predictedHome)
     // The ordinary host-attach path may reuse the updater's relaunched app's
-    // backend, and `hermes gateway ensure` attaches to (or starts, detached) the
+    // backend, and `kova gateway ensure` attaches to (or starts, detached) the
     // canonical gateway. Observe the ledger and gateway_state.json the app's home
     // resolves to (its machine root), not an arbitrary listener, and retain the
     // OS listener + installed-tree proof below.

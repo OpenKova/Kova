@@ -43,7 +43,7 @@ def layer_env(tmp_path, monkeypatch):
     real = providers._plugin_dir_stamps
     monkeypatch.setattr(providers, "_plugin_dir_stamps", lambda h: stats.append(1) or real(h))
     yield home, clock, stats
-    for mod in [m for m in sys.modules if m.startswith("_hermes_user_provider")]:
+    for mod in [m for m in sys.modules if m.startswith("_kova_user_provider")]:
         del sys.modules[mod]
 
 

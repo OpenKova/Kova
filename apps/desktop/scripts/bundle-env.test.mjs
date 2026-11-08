@@ -9,7 +9,7 @@ import { expect, test } from 'vitest'
 import { applyBundleEnvironment, environmentDefaultsBanner } from './bundle-env.mjs'
 
 test('explicit clears beat inherited homes and prevent Windows registry fallback before spawning', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'hermes-bundle-clear-'))
+  const root = mkdtempSync(join(tmpdir(), 'kova-bundle-clear-'))
   const paths = fileURLToPath(new URL('../electron/data-paths.ts', import.meta.url))
   const defaults = { KOVA_HOME: null, KOVA_DATA_DIR_SUFFIX: 'magic-test' }
   try {
@@ -20,7 +20,7 @@ test('explicit clears beat inherited homes and prevent Windows registry fallback
       let registryReads = 0;
       const home = resolveDesktopKovaHome({
         home: 'C:/Users/test', platform: 'win32', env: process.env,
-        readWindowsHome: () => { registryReads++; return 'C:/old-hermes'; }
+        readWindowsHome: () => { registryReads++; return 'C:/old-kova'; }
       });
       console.log(JSON.stringify({cleared: process.env.KOVA_HOME, home, registryReads,
         child: execFileSync(process.execPath, ['-p', 'process.env.KOVA_HOME'], {
@@ -30,19 +30,19 @@ test('explicit clears beat inherited homes and prevent Windows registry fallback
     const outfile = join(root, 'bundle.mjs')
     await build({ entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', outfile,
       banner: { js: environmentDefaultsBanner(JSON.stringify(defaults)) } })
-    const env = { ...process.env, KOVA_HOME: 'C:/old-hermes', LOCALAPPDATA: 'C:/Users/test/AppData/Local' }
+    const env = { ...process.env, KOVA_HOME: 'C:/old-kova', LOCALAPPDATA: 'C:/Users/test/AppData/Local' }
     delete env.KOVA_DATA_DIR_SUFFIX
     delete env.KOVA_DESKTOP_USER_DATA_DIR
     const actual = JSON.parse(execFileSync(process.execPath, [outfile], { env, encoding: 'utf8' }))
-    expect(actual).toEqual({ cleared: '', home: 'C:\\Users\\test\\AppData\\Local\\hermesmagic-test',
-      child: 'C:\\Users\\test\\AppData\\Local\\hermesmagic-test', registryReads: 0 })
+    expect(actual).toEqual({ cleared: '', home: 'C:\\Users\\test\\AppData\\Local\\kovamagic-test',
+      child: 'C:\\Users\\test\\AppData\\Local\\kovamagic-test', registryReads: 0 })
   } finally {
     rmSync(root, { recursive: true, force: true })
   }
 })
 
 test('applyBundleEnvironment replays the banner semantics for defaults, runtime overrides and clears', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'hermes-bundle-pure-'))
+  const root = mkdtempSync(join(tmpdir(), 'kova-bundle-pure-'))
   const defaults = { KOVA_HOME: null, KOVA_DATA_DIR_SUFFIX: 'baked', KOVA_PREVIEW_FULL_CONNECTORS: '1' }
   const keys = Object.keys(defaults)
   const base = { KOVA_HOME: 'runtime', KOVA_DATA_DIR_SUFFIX: 'explicit' }
@@ -69,7 +69,7 @@ test('applyBundleEnvironment replays the banner semantics for defaults, runtime 
 })
 
 test('baked defaults precede imported module initialization and reach children without overriding explicit env', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'hermes-bundle-env-'))
+  const root = mkdtempSync(join(tmpdir(), 'kova-bundle-env-'))
   const defaults = { KOVA_PREVIEW_FULL_CONNECTORS: '1', KOVA_DATA_DIR_SUFFIX: 'magic-test', KOVA_SHARED_AUTH_DIR: 'a=b "q"\n$(no)', KOVA_DESKTOP_USER_DATA_DIR: '' }
   const env = { ...process.env }
   for (const key of Object.keys(defaults)) {

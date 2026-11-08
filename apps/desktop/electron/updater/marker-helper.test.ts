@@ -28,14 +28,14 @@ afterEach(cleanupFakeCheckouts)
 
 describe('protocol negotiation', () => {
   test.each([
-    ['exact protocol 2 line', '#!/bin/sh\n# hermes-handoff-protocol: 2\n', 2],
-    ['trailing whitespace', '# hermes-handoff-protocol: 2  \r\n', 2],
-    ['a later protocol', 'x\n# hermes-handoff-protocol: 3\n', 3],
-    ['protocol 1 is legacy', '# hermes-handoff-protocol: 1\n', 1],
+    ['exact protocol 2 line', '#!/bin/sh\n# kova-handoff-protocol: 2\n', 2],
+    ['trailing whitespace', '# kova-handoff-protocol: 2  \r\n', 2],
+    ['a later protocol', 'x\n# kova-handoff-protocol: 3\n', 3],
+    ['protocol 1 is legacy', '# kova-handoff-protocol: 1\n', 1],
     ['no line (origin/main scripts)', '#!/usr/bin/env bash\necho hi\n', 1],
-    ['indented line does not count', '  # hermes-handoff-protocol: 2\n', 1],
-    ['mid-line mention does not count', 'echo "# hermes-handoff-protocol: 2"\n', 1],
-    ['two spaces after the colon', '# hermes-handoff-protocol:  2\n', 1]
+    ['indented line does not count', '  # kova-handoff-protocol: 2\n', 1],
+    ['mid-line mention does not count', 'echo "# kova-handoff-protocol: 2"\n', 1],
+    ['two spaces after the colon', '# kova-handoff-protocol:  2\n', 1]
   ])('%s', (_label, text, expected) => {
     const file = path.join(fakeHelperCheckout().root, 'script.sh')
     fs.writeFileSync(file, text)
@@ -182,7 +182,7 @@ test('the Windows command line: powershell -File windows.ps1 -MarkerOp ... (hidd
   const root = scratchRoot('marker-helper-win')
   const script = path.join(root, 'scripts', 'desktop-update', 'windows.ps1')
   fs.mkdirSync(path.dirname(script), { recursive: true })
-  fs.writeFileSync(script, '# hermes-handoff-protocol: 2\n')
+  fs.writeFileSync(script, '# kova-handoff-protocol: 2\n')
   const calls: Parameters<HelperSpawn>[] = []
 
   const spawn: HelperSpawn = async (...args) => {

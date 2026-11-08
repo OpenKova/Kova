@@ -21,7 +21,7 @@ from tui_gateway import server
 
 
 @pytest.fixture
-def hermes_root(tmp_path, monkeypatch):
+def kova_root(tmp_path, monkeypatch):
     """A temp KOVA_HOME root with two named profiles: 'work' and 'other'.
 
     Pointing KOVA_HOME at a dir outside ~/.kova makes it the profile ROOT
@@ -59,8 +59,8 @@ def _read_yaml(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def test_add_lands_in_named_profile_only(hermes_root):
-    root = hermes_root
+def test_add_lands_in_named_profile_only(kova_root):
+    root = kova_root
     resp = _call(
         "mcp.servers.add",
         {
@@ -85,7 +85,7 @@ def test_add_lands_in_named_profile_only(hermes_root):
     assert "weather" not in other_cfg.get("mcp_servers", {})
 
 
-def test_list_reflects_the_scoped_profile(hermes_root):
+def test_list_reflects_the_scoped_profile(kova_root):
     _result(
         _call(
             "mcp.servers.add",
@@ -111,7 +111,7 @@ def test_list_reflects_the_scoped_profile(hermes_root):
     assert work_server["command"] == "svc-a-bin"
 
 
-def test_status_is_profile_scoped_and_credential_safe(hermes_root):
+def test_status_is_profile_scoped_and_credential_safe(kova_root):
     _result(
         _call(
             "mcp.servers.add",
@@ -144,7 +144,7 @@ def test_status_is_profile_scoped_and_credential_safe(hermes_root):
     assert "error" not in str(payload)
 
 
-def test_status_reports_parked_servers_and_flags_rejected_oauth(hermes_root):
+def test_status_reports_parked_servers_and_flags_rejected_oauth(kova_root):
     """Desktop's background health toast reads this flag instead of probing (#89576, #142406)."""
     from tools import mcp_tool
 
@@ -175,7 +175,7 @@ def test_status_reports_parked_servers_and_flags_rejected_oauth(hermes_root):
     assert "Unauthorized" not in str(payload) and "attempts" not in str(payload)
 
 
-def test_status_does_not_mix_launch_runtime_into_another_profile(hermes_root):
+def test_status_does_not_mix_launch_runtime_into_another_profile(kova_root):
     from tools import mcp_tool
 
     _result(
@@ -209,7 +209,7 @@ def test_status_does_not_mix_launch_runtime_into_another_profile(hermes_root):
     assert payload["servers"][0]["tools"] == 0
 
 
-def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
+def test_status_includes_named_profile_runtime_in_multiplex(kova_root):
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
     from kova_constants import (
         kova_home_key,
@@ -224,7 +224,7 @@ def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
             {"profile": "work", "name": "shared", "config": {"command": "work-bin"}},
         )
     )
-    work_token = set_kova_home_override(hermes_root / "profiles" / "work")
+    work_token = set_kova_home_override(kova_root / "profiles" / "work")
     try:
         work_scope = kova_home_key()
     finally:
@@ -258,8 +258,8 @@ def test_status_includes_named_profile_runtime_in_multiplex(hermes_root):
     assert payload["servers"][0]["tools"] == 1
 
 
-def test_set_api_key_writes_env_and_header_to_right_profile(hermes_root):
-    root = hermes_root
+def test_set_api_key_writes_env_and_header_to_right_profile(kova_root):
+    root = kova_root
     _result(
         _call(
             "mcp.servers.add",
@@ -295,8 +295,8 @@ def test_set_api_key_writes_env_and_header_to_right_profile(hermes_root):
     assert "sk-secret-123" not in str(work_cfg)
 
 
-def test_set_api_key_stdio_references_env_block(hermes_root):
-    root = hermes_root
+def test_set_api_key_stdio_references_env_block(kova_root):
+    root = kova_root
     _result(
         _call(
             "mcp.servers.add",
@@ -323,8 +323,8 @@ def test_set_api_key_stdio_references_env_block(hermes_root):
     assert "LOCALTOOL_TOKEN=tok-xyz" in work_env
 
 
-def test_remove_scoped_to_profile(hermes_root):
-    root = hermes_root
+def test_remove_scoped_to_profile(kova_root):
+    root = kova_root
     _result(
         _call(
             "mcp.servers.add",
@@ -347,7 +347,7 @@ def test_remove_scoped_to_profile(hermes_root):
     assert "temp" in _read_yaml(root / "profiles" / "other" / "config.yaml").get("mcp_servers", {})
 
 
-def test_add_duplicate_and_missing_errors(hermes_root):
+def test_add_duplicate_and_missing_errors(kova_root):
     _result(
         _call(
             "mcp.servers.add",
@@ -373,7 +373,7 @@ def test_add_duplicate_and_missing_errors(hermes_root):
     assert bad_profile["error"]["code"] == 4064
 
 
-def test_add_requires_transport(hermes_root):
+def test_add_requires_transport(kova_root):
     resp = _call("mcp.servers.add", {"profile": "work", "name": "empty", "config": {}})
     assert "error" in resp
     assert resp["error"]["code"] == 4063
@@ -397,7 +397,7 @@ def _saved_server(root: Path, profile: str, name: str) -> dict:
     return (_read_yaml(path).get("mcp_servers") or {}).get(name) or {}
 
 
-def test_add_catalog_id_in_profile_param_saves_manifest_in_that_profile(hermes_root):
+def test_add_catalog_id_in_profile_param_saves_manifest_in_that_profile(kova_root):
     """Desktop add-from-catalog sends {profile, name, preset} with a catalog id."""
     entry = _catalog_http_entry()
     result = _result(
@@ -409,21 +409,21 @@ def test_add_catalog_id_in_profile_param_saves_manifest_in_that_profile(hermes_r
 
     assert result["ok"] is True
     assert result["server"]["transport"] == "http"
-    saved = _saved_server(hermes_root, "work", entry.name)
+    saved = _saved_server(kova_root, "work", entry.name)
     assert saved["url"] == entry.transport.url
-    assert entry.name not in (_read_yaml(hermes_root / "config.yaml").get("mcp_servers") or {})
-    other = _read_yaml(hermes_root / "profiles" / "other" / "config.yaml").get("mcp_servers") or {}
+    assert entry.name not in (_read_yaml(kova_root / "config.yaml").get("mcp_servers") or {})
+    other = _read_yaml(kova_root / "profiles" / "other" / "config.yaml").get("mcp_servers") or {}
     assert entry.name not in other
 
 
-def test_oauth_catalog_add_follows_routed_profile_not_payload(hermes_root):
+def test_oauth_catalog_add_follows_routed_profile_not_payload(kova_root):
     """OAuth add sends {name, preset} only. requestGatewayForAgent carries the
     profile as routing metadata, so the write follows the bound scope."""
     from agent.secret_scope import is_multiplex_active, set_multiplex_active
     from kova_constants import reset_kova_home_override, set_kova_home_override
 
     entry = _catalog_http_entry(auth="oauth")
-    routed = hermes_root / "profiles" / "work"
+    routed = kova_root / "profiles" / "work"
     previous = is_multiplex_active()
     set_multiplex_active(False)
     token = set_kova_home_override(routed)
@@ -437,15 +437,15 @@ def test_oauth_catalog_add_follows_routed_profile_not_payload(hermes_root):
 
     assert result["server"]["transport"] == "http"
     assert result["server"]["auth"] == "oauth"
-    saved = _saved_server(hermes_root, "work", entry.name)
+    saved = _saved_server(kova_root, "work", entry.name)
     assert saved["url"] == entry.transport.url
     assert saved["auth"] == "oauth"
     assert entry.auth.type == "oauth"
-    assert entry.name not in (_read_yaml(hermes_root / "config.yaml").get("mcp_servers") or {})
-    assert not _saved_server(hermes_root, "other", entry.name)
+    assert entry.name not in (_read_yaml(kova_root / "config.yaml").get("mcp_servers") or {})
+    assert not _saved_server(kova_root, "other", entry.name)
 
 
-def test_explicit_transport_wins_over_catalog_or_unknown_preset(hermes_root):
+def test_explicit_transport_wins_over_catalog_or_unknown_preset(kova_root):
     entry = _catalog_http_entry()
     catalog = _result(
         _call(
@@ -472,25 +472,25 @@ def test_explicit_transport_wins_over_catalog_or_unknown_preset(hermes_root):
 
     assert catalog["server"]["command"] == "explicit-bin"
     assert catalog["server"]["url"] != entry.transport.url
-    saved_catalog = _saved_server(hermes_root, "work", "kept-catalog")
+    saved_catalog = _saved_server(kova_root, "work", "kept-catalog")
     assert saved_catalog["command"] == "explicit-bin"
     assert saved_catalog.get("url") != entry.transport.url
     assert unknown["server"]["url"] == "https://override.example/mcp"
-    assert _saved_server(hermes_root, "work", "kept-unknown")["url"] == "https://override.example/mcp"
+    assert _saved_server(kova_root, "work", "kept-unknown")["url"] == "https://override.example/mcp"
 
 
-def test_unknown_preset_returns_4063_and_writes_nothing(hermes_root):
+def test_unknown_preset_returns_4063_and_writes_nothing(kova_root):
     resp = _call(
         "mcp.servers.add",
         {"profile": "work", "name": "unknown", "preset": "not-a-catalog-entry"},
     )
 
     assert resp["error"]["code"] == 4063
-    assert not _saved_server(hermes_root, "work", "unknown")
-    assert "unknown" not in (_read_yaml(hermes_root / "config.yaml").get("mcp_servers") or {})
+    assert not _saved_server(kova_root, "work", "unknown")
+    assert "unknown" not in (_read_yaml(kova_root / "config.yaml").get("mcp_servers") or {})
 
 
-def test_cli_preset_still_fills_transport_when_not_in_catalog(hermes_root):
+def test_cli_preset_still_fills_transport_when_not_in_catalog(kova_root):
     from kova_cli import mcp_config
     from kova_cli.mcp_catalog import get_entry
 
@@ -505,14 +505,14 @@ def test_cli_preset_still_fills_transport_when_not_in_catalog(hermes_root):
         )
     )
 
-    saved = _saved_server(hermes_root, "work", "cli-preset")
+    saved = _saved_server(kova_root, "work", "cli-preset")
     assert result["server"]["command"] == expected["command"]
     assert saved["command"] == expected["command"]
     assert saved.get("args") == list(expected.get("args") or [])
 
 
-def test_default_profile_add_when_profile_omitted(hermes_root):
-    root = hermes_root
+def test_default_profile_add_when_profile_omitted(kova_root):
+    root = kova_root
     _result(
         _call(
             "mcp.servers.add",
@@ -528,14 +528,14 @@ def test_default_profile_add_when_profile_omitted(hermes_root):
     )
 
 
-def test_test_resolves_env_refs_from_requested_profile_secret_scope(hermes_root, monkeypatch):
+def test_test_resolves_env_refs_from_requested_profile_secret_scope(kova_root, monkeypatch):
     """``mcp.servers.test`` for a secondary must expand its ``${VAR}`` header from THAT profile's
     secret scope, not the launch process's ``os.environ`` (the default profile's value) — the
     Desktop MCP setup "Test connection" otherwise reports green against the wrong credential.
     ``os.environ`` is never mutated by the scope."""
     from kova_cli import mcp_config
 
-    work = hermes_root / "profiles" / "work"
+    work = kova_root / "profiles" / "work"
     (work / ".env").write_text("ALPHA_ONLY_TOKEN=work-token\n", encoding="utf-8")
     (work / "config.yaml").write_text(
         "mcp_servers:\n  srv:\n    url: http://x/mcp\n"

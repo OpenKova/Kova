@@ -1,6 +1,6 @@
-"""Tests for the stale-dashboard handling run at the end of ``hermes update``.
+"""Tests for the stale-dashboard handling run at the end of ``kova update``.
 
-``hermes update`` detects ``hermes dashboard`` processes left over from the
+``kova update`` detects ``kova dashboard`` processes left over from the
 previous version and kills them (SIGTERM + SIGKILL grace, or ``taskkill /F``
 on Windows).  Without this, the running backend silently serves stale Python
 against a freshly-updated JS bundle, producing 401s / empty data.
@@ -92,7 +92,7 @@ def _write_valid_ssh_backend_lock(tmp_path, monkeypatch) -> int:
         "pid": pid,
         "port": 46369,
         "profile": "default",
-        "kovaPath": "/opt/hermes/bin/hermes",
+        "kovaPath": "/opt/kova/bin/kova",
         "kovaHome": str(tmp_path),
         "logPath": f"{tmp_path}/desktop-ssh/{ownership_id}/{spawn_nonce}.log",
         "startedAt": "2026-08-21T15:27:39Z",
@@ -110,7 +110,7 @@ def test_update_cleanup_spares_backend_owned_by_valid_ssh_lock(tmp_path, monkeyp
         assert pid in exclude_pids
         return []
 
-    # ``restart_managed`` first probes for a managed hermes-dashboard unit; unstubbed, that
+    # ``restart_managed`` first probes for a managed kova-dashboard unit; unstubbed, that
     # probe found the developer's real unit and restarted it.
     calls: list[list[str]] = []
 
@@ -161,7 +161,7 @@ class TestFindStaleDashboardPids:
                 returncode=0,
                 stdout="\n".join([
                     _ps_line(os.getpid(), "python3 -m kova_cli.main dashboard"),
-                    _ps_line(12345, "hermes dashboard --port 9119"),
+                    _ps_line(12345, "kova dashboard --port 9119"),
                 ]) + "\n",
                 stderr="",
             )
@@ -238,13 +238,13 @@ class TestKillStaleDashboardPosix:
 
         def fake_run(args, *a, **kw):
             calls.append(list(args))
-            if args == ["systemctl", "--user", "list-unit-files", "hermes-dashboard.service", "--no-legend", "--no-pager"]:
-                return MagicMock(returncode=0, stdout="hermes-dashboard.service enabled enabled\n", stderr="")
-            if args == ["systemctl", "--user", "is-active", "hermes-dashboard.service"]:
+            if args == ["systemctl", "--user", "list-unit-files", "kova-dashboard.service", "--no-legend", "--no-pager"]:
+                return MagicMock(returncode=0, stdout="kova-dashboard.service enabled enabled\n", stderr="")
+            if args == ["systemctl", "--user", "is-active", "kova-dashboard.service"]:
                 return MagicMock(returncode=0, stdout="active\n", stderr="")
-            if args == ["systemctl", "--user", "is-enabled", "hermes-dashboard.service"]:
+            if args == ["systemctl", "--user", "is-enabled", "kova-dashboard.service"]:
                 return MagicMock(returncode=0, stdout="enabled\n", stderr="")
-            if args == ["systemctl", "--user", "restart", "hermes-dashboard.service"]:
+            if args == ["systemctl", "--user", "restart", "kova-dashboard.service"]:
                 return MagicMock(returncode=0, stdout="", stderr="")
             raise AssertionError(f"unexpected subprocess.run call: {args}")
 
@@ -253,7 +253,7 @@ class TestKillStaleDashboardPosix:
              patch("os.kill") as kill:
             _kill_stale_dashboard_processes(restart_managed=True)
 
-        assert ["systemctl", "--user", "restart", "hermes-dashboard.service"] in calls
+        assert ["systemctl", "--user", "restart", "kova-dashboard.service"] in calls
         assert all(call[:1] != ["sudo"] and call[:2] == ["systemctl", "--user"] for call in calls)
         kill.assert_not_called()
 
@@ -277,7 +277,7 @@ class TestKillStaleDashboardWindows:
         with patch("kova_cli.main_dashboard._find_stale_dashboard_pids",
                    return_value=[12345, 12346]), \
              patch("gateway.status.get_process_start_time", return_value=123), \
-             patch("kova_cli._subprocess_compat.pid_is_hermes", return_value=True), \
+             patch("kova_cli._subprocess_compat.pid_is_kova", return_value=True), \
              patch("subprocess.run", side_effect=fake_run) as mock_run:
             _kill_stale_dashboard_processes()
 
@@ -333,22 +333,22 @@ class TestSupervisedBackendRestart:
         with patch.object(main_dashboard, "_restart_managed_dashboard_service", return_value=False), \
              patch.object(live, "_find_stale_dashboard_pids", return_value=[4321]), \
              patch.object(main_dashboard, "_get_pid_cgroup_path",
-                          return_value="/system.slice/hermes-serve.service"), \
+                          return_value="/system.slice/kova-serve.service"), \
              patch.object(main_dashboard, "_get_systemd_service_for_pid",
-                          return_value="hermes-serve.service"), \
+                          return_value="kova-serve.service"), \
              patch.object(main_dashboard, "_try_restart_systemd_service", return_value=True) as restart, \
              patch("os.kill", side_effect=fake_kill), \
              patch("time.sleep"):
             _kill_stale_dashboard_processes(restart_managed=True)
 
         restart.assert_called_once_with(
-            "hermes-serve.service", "/system.slice/hermes-serve.service"
+            "kova-serve.service", "/system.slice/kova-serve.service"
         )
         # Supervised restart succeeded — no manual hint.
         assert "when you're ready" not in capsys.readouterr().out
 
     def test_already_restarted_unit_is_left_untouched(self):
-        """Review on #83595: hermes update's systemd fleet-restart loop may
+        """Review on #83595: kova update's systemd fleet-restart loop may
         already have restarted this PID's owning unit directly (e.g. a
         Serve-only install). Passing it via already_restarted_units must
         skip killing/restarting it again here."""
@@ -357,14 +357,14 @@ class TestSupervisedBackendRestart:
         with patch.object(main_dashboard, "_restart_managed_dashboard_service", return_value=False), \
              patch.object(live, "_find_stale_dashboard_pids", return_value=[4321]), \
              patch.object(main_dashboard, "_get_pid_cgroup_path",
-                          return_value="/system.slice/hermes-serve.service"), \
+                          return_value="/system.slice/kova-serve.service"), \
              patch.object(main_dashboard, "_get_systemd_service_for_pid",
-                          return_value="hermes-serve.service"), \
+                          return_value="kova-serve.service"), \
              patch.object(main_dashboard, "_try_restart_systemd_service") as restart, \
              patch("os.kill") as kill, \
              patch("time.sleep"):
             result = _kill_stale_dashboard_processes(
-                restart_managed=True, already_restarted_units={"hermes-serve"}
+                restart_managed=True, already_restarted_units={"kova-serve"}
             )
 
         kill.assert_not_called()
@@ -379,7 +379,7 @@ class TestSupervisedBackendRestart:
         backend supervises it; any other unit is not restarted and the backend is respawned from
         its argv instead."""
         live = self._live()
-        argv = ["hermes", "dashboard", "--port", "8300"]
+        argv = ["kova", "dashboard", "--port", "8300"]
         unit_cgroup = "/system.slice/hosted-compute-agent.service"
         probes: list[list[str]] = []
 
@@ -446,7 +446,7 @@ class TestManualBackendRespawn:
     def test_non_orphan_fixed_port_still_respawns(self, capsys):
         """A supervised-by-shell dashboard with a fixed port is still restarted."""
         live = self._live()
-        argv = ["hermes", "dashboard", "--port", "8300"]
+        argv = ["kova", "dashboard", "--port", "8300"]
 
         def fake_kill(pid, sig):
             if sig == 0:
@@ -514,13 +514,13 @@ class TestManualBackendRespawn:
         with patch.object(live.subprocess, "Popen", _FakePopen), \
              patch.object(live.time, "sleep"):
             failed = live._respawn_dashboard_processes([
-                ["hermes", "dashboard", "--port", "8300"],
-                ["hermes", "serve", "--host", "0.0.0.0"],
+                ["kova", "dashboard", "--port", "8300"],
+                ["kova", "serve", "--host", "0.0.0.0"],
             ])
 
         assert failed == []
-        assert spawned[0] == ["hermes", "dashboard", "--port", "8300", "--no-open"]
-        assert spawned[1] == ["hermes", "serve", "--host", "0.0.0.0"]
+        assert spawned[0] == ["kova", "dashboard", "--port", "8300", "--no-open"]
+        assert spawned[1] == ["kova", "serve", "--host", "0.0.0.0"]
 
     def test_respawn_failure_returned(self, tmp_path, monkeypatch, capsys):
         live = self._live()
@@ -528,9 +528,9 @@ class TestManualBackendRespawn:
 
         with patch.object(live.subprocess, "Popen", side_effect=OSError("no such file")), \
              patch.object(live.time, "sleep"):
-            failed = live._respawn_dashboard_processes([["hermes", "serve"]])
+            failed = live._respawn_dashboard_processes([["kova", "serve"]])
 
-        assert failed == [["hermes", "serve"]]
+        assert failed == [["kova", "serve"]]
 
     def test_pre_takeover_interpreter_launcher_argv_is_rebuilt(self, tmp_path, monkeypatch):
         """A kernel-captured ``[old venv python, launcher, ...]`` argv is respawned through
@@ -548,7 +548,7 @@ class TestManualBackendRespawn:
                 return None
 
         captured = [
-            "/old/venv/bin/python", "/home/u/.local/bin/hermes",
+            "/old/venv/bin/python", "/home/u/.local/bin/kova",
             "dashboard", "--no-open", "--host", "127.0.0.1", "--port", "34553",
         ]
         from kova_cli import _launchers
@@ -582,10 +582,10 @@ class TestManualBackendRespawn:
 
         with patch.object(live.subprocess, "Popen", _DyingPopen), \
              patch.object(live.time, "sleep"):
-            failed = live._respawn_dashboard_processes([["hermes", "dashboard", "--port", "8300"]])
+            failed = live._respawn_dashboard_processes([["kova", "dashboard", "--port", "8300"]])
 
         out = capsys.readouterr().out
-        assert failed == [["hermes", "dashboard", "--port", "8300"]]
+        assert failed == [["kova", "dashboard", "--port", "8300"]]
         assert "✓ restarted" not in out
         assert "✗ failed to restart" in out
 
@@ -609,7 +609,7 @@ class TestFilterDashboardRespawnCandidates:
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
         argv = [
-            "hermes", "--profile", "coder",
+            "kova", "--profile", "coder",
             "dashboard", "--no-open", "--host", "127.0.0.1", "--port", "0",
         ]
         assert _filter_dashboard_respawn_candidates([(7, argv, None)]) == []
@@ -617,7 +617,7 @@ class TestFilterDashboardRespawnCandidates:
     def test_skips_serve_port_equals_zero(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        argv = ["hermes", "serve", "--port=0"]
+        argv = ["kova", "serve", "--port=0"]
         assert _filter_dashboard_respawn_candidates([(1, argv, None)]) == []
 
 
@@ -635,9 +635,9 @@ class TestFilterDashboardRespawnCandidates:
     def test_caps_one_per_profile(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        a = ["hermes", "--profile", "coder", "dashboard", "--port", "8300"]
-        b = ["hermes", "--profile", "coder", "dashboard", "--port", "8301"]
-        c = ["hermes", "--profile", "writer", "dashboard", "--port", "8302"]
+        a = ["kova", "--profile", "coder", "dashboard", "--port", "8300"]
+        b = ["kova", "--profile", "coder", "dashboard", "--port", "8301"]
+        c = ["kova", "--profile", "writer", "dashboard", "--port", "8302"]
         out = _filter_dashboard_respawn_candidates([
             (1, a, None),
             (2, b, None),
@@ -648,9 +648,9 @@ class TestFilterDashboardRespawnCandidates:
     def test_caps_one_per_kova_home(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        home = "/tmp/hermes-home-a"
-        a = ["hermes", "dashboard", "--port", "8300"]
-        b = ["hermes", "dashboard", "--port", "8301"]
+        home = "/tmp/kova-home-a"
+        a = ["kova", "dashboard", "--port", "8300"]
+        b = ["kova", "dashboard", "--port", "8301"]
         out = _filter_dashboard_respawn_candidates(
             [
                 (1, a, home),
@@ -663,8 +663,8 @@ class TestFilterDashboardRespawnCandidates:
     def test_profile_flag_and_profiles_home_share_cap(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        a = ["hermes", "--profile", "coder", "dashboard", "--port", "8300"]
-        b = ["hermes", "dashboard", "--port", "8301"]
+        a = ["kova", "--profile", "coder", "dashboard", "--port", "8300"]
+        b = ["kova", "dashboard", "--port", "8301"]
         out = _filter_dashboard_respawn_candidates([
             (1, a, None),
             (2, b, "/home/u/.kova/profiles/coder"),
@@ -674,8 +674,8 @@ class TestFilterDashboardRespawnCandidates:
     def test_default_profile_same_root_home_caps(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        a = ["hermes", "--profile", "default", "dashboard", "--port", "8300"]
-        b = ["hermes", "dashboard", "--port", "8301"]
+        a = ["kova", "--profile", "default", "dashboard", "--port", "8300"]
+        b = ["kova", "dashboard", "--port", "8301"]
         home = "/home/u/.kova"
         out = _filter_dashboard_respawn_candidates(
             [
@@ -696,8 +696,8 @@ class TestFilterDashboardRespawnCandidates:
         """
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        a = ["hermes", "dashboard", "--port", "8300"]
-        b = ["hermes", "dashboard", "--port", "8301"]
+        a = ["kova", "dashboard", "--port", "8300"]
+        b = ["kova", "dashboard", "--port", "8301"]
         out = _filter_dashboard_respawn_candidates(
             [
                 (1, a, "/home/u/.kova"),
@@ -725,7 +725,7 @@ class TestFilterDashboardRespawnCandidates:
     def test_matching_kova_home_is_kept(self):
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        argv = ["hermes", "serve", "--host", "127.0.0.1", "--port", "9118"]
+        argv = ["kova", "serve", "--host", "127.0.0.1", "--port", "9118"]
         out = _filter_dashboard_respawn_candidates(
             [(15364, argv, "/Users/u/.kova")],
             own_home="/Users/u/.kova",
@@ -743,7 +743,7 @@ class TestFilterDashboardRespawnCandidates:
         except (OSError, NotImplementedError):
             pytest.skip("symlinks unavailable on this platform")
 
-        argv = ["hermes", "serve", "--port", "9118"]
+        argv = ["kova", "serve", "--port", "9118"]
         out = _filter_dashboard_respawn_candidates(
             [(15364, argv, str(real))],
             own_home=str(link),
@@ -754,7 +754,7 @@ class TestFilterDashboardRespawnCandidates:
         """Unreadable KOVA_HOME (env probe failed) keeps pre-#94030 behaviour."""
         from kova_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
-        argv = ["hermes", "dashboard", "--port", "8300"]
+        argv = ["kova", "dashboard", "--port", "8300"]
         out = _filter_dashboard_respawn_candidates(
             [(1, argv, None)],
             own_home="/home/u/.kova",
@@ -770,7 +770,7 @@ class TestFilterDashboardRespawnCandidates:
         monkeypatch.setattr(
             kova_constants, "get_kova_home", lambda: Path("/home/u/.kova")
         )
-        argv = ["hermes", "serve", "--port", "9118"]
+        argv = ["kova", "serve", "--port", "9118"]
         foreign = _filter_dashboard_respawn_candidates([
             (1, argv, "/Users/u/.kova-lifeos"),
         ])
@@ -821,13 +821,13 @@ class TestCmdlineCapture:
 
         def fake_run(args, *a, **kw):
             assert args == ["ps", "-p", "888", "-o", "command="]
-            return MagicMock(returncode=0, stdout="hermes serve --port 8300\n", stderr="")
+            return MagicMock(returncode=0, stdout="kova serve --port 8300\n", stderr="")
 
         with patch.object(live.os.path, "exists", return_value=False), \
              patch("subprocess.run", side_effect=fake_run):
             argv = main_dashboard._dashboard_cmdline_for_pid(888)
 
-        assert argv == ["hermes", "serve", "--port", "8300"]
+        assert argv == ["kova", "serve", "--port", "8300"]
 
     @pytest.mark.platforms("windows")
     def test_returns_none_on_windows(self):
@@ -873,7 +873,7 @@ class TestLaunchdSupervisedBackends:
     fails with "port already in use" and the backend that IS running is no longer supervised."""
 
     ARGV = [
-        "/opt/hermes/venv/bin/python", "-m", "kova_cli.main",
+        "/opt/kova/venv/bin/python", "-m", "kova_cli.main",
         "dashboard", "--host", "0.0.0.0", "--port", "9119", "--no-open", "--skip-build",
     ]
 
@@ -924,7 +924,7 @@ class TestLaunchdSupervisedBackends:
             self._run(9105, [("system", "ai.kova.serve", list(self.ARGV), None)], restart_ok=False)
         assert "run: sudo launchctl kickstart -k system/ai.kova.serve" in capsys.readouterr().out
 
-        other = ("gui/501", "ai.kova.other", ["hermes", "dashboard", "--port", "8300"], 777)
+        other = ("gui/501", "ai.kova.other", ["kova", "dashboard", "--port", "8300"], 777)
         result, restart, respawn = self._run(9104, [other])
         restart.assert_not_called()
         respawn.assert_called_once_with([list(self.ARGV)])
@@ -935,8 +935,8 @@ class TestLaunchdSupervisedBackends:
         ancestor (exec-less ``/bin/sh -c`` wrapper plist) or by exact argv (the detached copy),
         never otherwise."""
         uid = 501
-        backend_argv = ["/opt/hermes/venv/bin/python", "-m", "kova_cli.main", "dashboard", "--port", "9119"]
-        serve_argv = ["/opt/hermes/venv/bin/python", "-m", "kova_cli.main", "serve", "--port", "8642"]
+        backend_argv = ["/opt/kova/venv/bin/python", "-m", "kova_cli.main", "dashboard", "--port", "9119"]
+        serve_argv = ["/opt/kova/venv/bin/python", "-m", "kova_cli.main", "serve", "--port", "8642"]
         jobs = [
             (f"user/{uid}", "ai.kova.dashboard", backend_argv, 4242),
             ("system", "ai.kova.serve", serve_argv, None),

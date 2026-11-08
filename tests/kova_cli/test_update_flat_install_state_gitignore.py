@@ -1,4 +1,4 @@
-"""Flat-install runtime state must be gitignored so ``hermes update``'s untracked
+"""Flat-install runtime state must be gitignored so ``kova update``'s untracked
 autostash cannot sweep the live state.db (#110648).
 
 On a flat install (checkout root == $KOVA_HOME) the profile's runtime files
@@ -20,7 +20,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Runtime state that lives at $KOVA_HOME's root on a flat install, exactly as
-# ``hermes update`` would sweep it: one representative per ignored class. The
+# ``kova update`` would sweep it: one representative per ignored class. The
 # sidecar names mirror ``_sqlite_files`` in gateway/platforms/base.py; the
 # credential entries mirror ``_ROOT_CREDENTIAL_PATHS`` there.
 FLAT_INSTALL_RUNTIME_STATE = (
@@ -114,14 +114,14 @@ def flat_install_repo(tmp_path: Path) -> Path:
     """A real git repo standing in for a flat install, with the tracked .gitignore.
 
     Built in a subdirectory of tmp_path: the suite-wide KOVA_HOME isolation
-    fixture (tests/conftest.py) materialises its own ``hermes_test/`` tree in
+    fixture (tests/conftest.py) materialises its own ``kova_test/`` tree in
     tmp_path itself, which is not part of this repo's story.
     """
     repo = tmp_path / "flat-install-checkout"
     repo.mkdir()
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
     shutil.copyfile(REPO_ROOT / ".gitignore", repo / ".gitignore")
-    (repo / "app.py").write_text("print('hermes')\n")
+    (repo / "app.py").write_text("print('kova')\n")
     _run_git(repo, "add", ".gitignore", "app.py")
     _run_git(
         repo,
@@ -137,7 +137,7 @@ def flat_install_repo(tmp_path: Path) -> Path:
 
 def test_flat_install_runtime_state_is_ignored(flat_install_repo):
     """`git status --porcelain` must stay empty with the full runtime state present,
-    so `hermes update` never enters its stash step for runtime state alone."""
+    so `kova update` never enters its stash step for runtime state alone."""
     status = _run_git(
         flat_install_repo, "status", "--porcelain", "--untracked-files=all"
     )
@@ -152,9 +152,9 @@ def test_untracked_autostash_cannot_sweep_runtime_state(flat_install_repo):
     (flat_install_repo / "app.py").write_text("print('changed')\n")
     _run_git(
         flat_install_repo,
-        "stash", "push", "--include-untracked", "-m", "hermes-update-autostash",
+        "stash", "push", "--include-untracked", "-m", "kova-update-autostash",
     )
-    assert (flat_install_repo / "app.py").read_text() == "print('hermes')\n"
+    assert (flat_install_repo / "app.py").read_text() == "print('kova')\n"
     missing = [
         rel
         for rel in FLAT_INSTALL_RUNTIME_STATE

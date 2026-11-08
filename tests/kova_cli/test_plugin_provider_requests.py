@@ -91,7 +91,7 @@ def _plugin(declares: bool):
         "from kova_cli.plugin_provider_requests import credentialed_provider_request\n"
         "def mint(url):\n"
         "    return credentialed_provider_request('openai-codex', 'POST', url, json={'session': {}})\n")
-    spec = importlib.util.spec_from_file_location(f"hermes_dashboard_plugin_{root.name}", root / "dashboard" / "plugin_api.py")
+    spec = importlib.util.spec_from_file_location(f"kova_dashboard_plugin_{root.name}", root / "dashboard" / "plugin_api.py")
     assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -140,6 +140,6 @@ def test_undeclared_plugin_and_non_plugin_callers_are_refused(stubs):
 
 def test_not_signed_in_names_the_sign_in_command(stubs):
     allowed, _ = stubs
-    with pytest.raises(ppr.ProviderNotSignedIn, match="hermes auth add openai-codex"):
+    with pytest.raises(ppr.ProviderNotSignedIn, match="kova auth add openai-codex"):
         _plugin(declares=True).mint(allowed.url)
     assert allowed.seen == []

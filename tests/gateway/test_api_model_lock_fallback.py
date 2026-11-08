@@ -73,7 +73,7 @@ def test_locked_turn_served_by_another_runtime_settles_failed(api):
     from gateway.run_turn_runner import _settle_api_runtime_lock
     from gateway.session_api_turn import api_execution
 
-    agent = SimpleNamespace(provider='custom', model='backup-model', _hermes_api_runtime={'provider': 'custom'})
+    agent = SimpleNamespace(provider='custom', model='backup-model', _kova_api_runtime={'provider': 'custom'})
     result, captured = {'final_response': 'BACKUP_OK', 'completed': True}, {'usage': {}}
     token = api_execution.set({'adapter': api, 'settings': {
         'confirmed_runtime_lock': True, 'route': {'provider': 'custom', 'model': 'primary-model'},

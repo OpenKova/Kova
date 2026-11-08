@@ -45,7 +45,7 @@ function context(appOutDir, productFilename = 'Kova Preview') {
 }
 
 it('restores app localizations from the filtered framework without copying locale data', async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-locale-pack-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'kova-locale-pack-'))
   try {
     const ctx = context(root)
     await seedPackagedMain(ctx)
@@ -73,7 +73,7 @@ it('restores app localizations from the filtered framework without copying local
 it('puts the full-resolution .icns back after electron-builder packaged the layered icon', async () => {
   // With `mac.icon` pointing at the Icon Composer package, electron-builder
   // bundles actool's 256px fallback as icon.icns; macOS <= 15 shows that file.
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-mac-icon-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'kova-mac-icon-'))
   try {
     const ctx = context(root)
     await seedPackagedMain(ctx)
@@ -91,7 +91,7 @@ it('puts the full-resolution .icns back after electron-builder packaged the laye
 })
 
 it('leaves Linux alone and reports a missing framework without failing packaging', async () => {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-locale-pack-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'kova-locale-pack-'))
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
   try {
     // win32 is not a no-op here: the same hook sanitizes and batch-signs the PE tree.

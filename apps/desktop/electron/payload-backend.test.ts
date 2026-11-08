@@ -34,7 +34,7 @@ test('bundled launch paths come from build metadata without filesystem access', 
     toolsDir: 'binary-store',
     storePython: 'binary-store/custom-python/python',
     sitePackages: 'dependencies/lib/python3.14/site-packages',
-    commands: { hermes: 'commands/run-hermes', custom: 'commands/custom' }
+    commands: { kova: 'commands/run-kova', custom: 'commands/custom' }
   }
 
   const probe = vi.spyOn(fs, 'existsSync').mockImplementation(() => {
@@ -71,7 +71,7 @@ test('ticket minting runs the payload python, never the CLI shim', () => {
     storePython: '/p/tools/python',
     repoDir: '/p/repo',
     sitePackages: '/p/venv/site-packages',
-    shim: '/p/bin/hermes'
+    shim: '/p/bin/kova'
   }
 
   const runtime = payloadTicketRuntime(payload)

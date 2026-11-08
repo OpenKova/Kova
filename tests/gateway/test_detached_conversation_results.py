@@ -128,7 +128,7 @@ async def test_a_secondary_profiles_old_conversation_gets_its_result_after_the_s
     from gateway.session_detached import detach
     from kova_constants import get_kova_home
     from kova_state import SessionDB
-    root = tmp_path / 'hermes'
+    root = tmp_path / 'kova'
     profile = root / 'profiles' / 'fitness'
     profile.mkdir(parents=True)
     (profile / 'config.yaml').write_text('{}\n', encoding='utf-8')

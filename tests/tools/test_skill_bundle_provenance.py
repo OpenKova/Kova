@@ -371,7 +371,7 @@ def test_install_with_junctioned_skills_dir(served_repo, monkeypatch, tmp_path):
     install_dir is resolved by _resolve_lock_install_path (following the
     redirect), so relative_to() must receive the resolved skills root or it
     raises ValueError after the files have already been moved, leaving a lock
-    entry without a content_hash (which then poisons 'hermes skills check').
+    entry without a content_hash (which then poisons 'kova skills check').
     """
     from kova_cli.skills_hub import do_install
 
@@ -499,7 +499,7 @@ UPSTREAM_STUB_MD = """---
 name: upstream-demo
 description: Upstream-maintained catalog entry.
 metadata:
-  hermes:
+  kova:
     upstream:
       repo: acme/design-skill
       path: .kova/skills/design
@@ -554,10 +554,10 @@ def test_optional_source_upstream_pointer_rejects_malformed(tmp_path):
 
     source = OptionalSkillSource()
     bad = [
-        "---\nname: x\nmetadata:\n  hermes:\n    upstream:\n      repo: acme\n      path: skills/x\n---\n",          # repo not owner/name
-        "---\nname: x\nmetadata:\n  hermes:\n    upstream:\n      repo: a/b/c\n      path: skills/x\n---\n",        # repo too deep
-        "---\nname: x\nmetadata:\n  hermes:\n    upstream:\n      repo: acme/skill\n      path: ../../etc\n---\n",  # traversal
-        "---\nname: x\nmetadata:\n  hermes:\n    upstream:\n      repo: acme/skill\n---\n",                          # missing path
+        "---\nname: x\nmetadata:\n  kova:\n    upstream:\n      repo: acme\n      path: skills/x\n---\n",          # repo not owner/name
+        "---\nname: x\nmetadata:\n  kova:\n    upstream:\n      repo: a/b/c\n      path: skills/x\n---\n",        # repo too deep
+        "---\nname: x\nmetadata:\n  kova:\n    upstream:\n      repo: acme/skill\n      path: ../../etc\n---\n",  # traversal
+        "---\nname: x\nmetadata:\n  kova:\n    upstream:\n      repo: acme/skill\n---\n",                          # missing path
         "---\nname: x\n---\n",                                                                                       # no pointer
     ]
     for content in bad:

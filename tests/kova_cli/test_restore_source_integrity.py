@@ -24,7 +24,7 @@ def _database(path, count):
 
 
 def _assert_no_decoy(tmp_path, home_name):
-    assert {p.name for p in tmp_path.iterdir()} <= {home_name, "native", "backup.zip", "hermes_test"}
+    assert {p.name for p in tmp_path.iterdir()} <= {home_name, "native", "backup.zip", "kova_test"}
 
 
 @pytest.fixture(params=HOME_NAMES)

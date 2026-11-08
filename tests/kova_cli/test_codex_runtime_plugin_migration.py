@@ -205,7 +205,7 @@ class TestMigrate:
 
 
     def test_full_migration_round_trip(self, tmp_path):
-        hermes_cfg = {
+        kova_cfg = {
             "mcp_servers": {
                 "filesystem": {
                     "command": "npx",
@@ -217,7 +217,7 @@ class TestMigrate:
                 },
             }
         }
-        report = migrate(hermes_cfg, codex_home=tmp_path, expose_hermes_tools=False)
+        report = migrate(kova_cfg, codex_home=tmp_path, expose_hermes_tools=False)
         assert report.written
         text = (tmp_path / "config.toml").read_text()
         assert "[mcp_servers.filesystem]" in text
@@ -240,7 +240,7 @@ class TestMigrate:
             'args = ["--above"]\n'
         )
         # First migrate — adds managed block below user content
-        migrate({"mcp_servers": {"hermes-mcp": {"command": "npx"}}},
+        migrate({"mcp_servers": {"kova-mcp": {"command": "npx"}}},
                 codex_home=tmp_path, discover_plugins=False,
                 expose_hermes_tools=False)
         text = target.read_text()
@@ -252,7 +252,7 @@ class TestMigrate:
             text + "\n[mcp_servers.user-below]\ncommand = \"below-server\"\n"
         )
         # Re-migrate — both should survive
-        migrate({"mcp_servers": {"hermes-mcp": {"command": "npx"}}},
+        migrate({"mcp_servers": {"kova-mcp": {"command": "npx"}}},
                 codex_home=tmp_path, discover_plugins=False,
                 expose_hermes_tools=False)
         final = target.read_text()
@@ -273,7 +273,7 @@ class TestStripUnmanagedPluginTables:
 
     When codex itself writes ``[plugins."<name>@<marketplace>"]`` tables
     (via the user running ``codex plugins enable`` directly), re-running
-    ``hermes codex-runtime migrate`` would re-emit them inside the managed
+    ``kova codex-runtime migrate`` would re-emit them inside the managed
     block and the resulting duplicate-table-header would crash codex.
     """
 
@@ -376,7 +376,7 @@ class TestKovaHomeLeakGuard:
     Previously ``_build_hermes_tools_mcp_entry()`` read ``KOVA_HOME``
     directly from ``os.environ``, so a pytest ``monkeypatch.setenv`` would
     leak a transient tempdir path into the user's real ``~/.codex/config.toml``
-    once codex spawned the hermes-tools MCP subprocess.
+    once codex spawned the kova-tools MCP subprocess.
     """
 
 
@@ -454,8 +454,8 @@ class TestSameNameUserMcpTable:
 
 
     def test_cli_migrate_dry_run_json_reports_without_writing(self, tmp_path, monkeypatch, capsys):
-        """`hermes codex-runtime migrate --dry-run --json` is the supported automation seam:
-        drive it through the real ``hermes`` argparse tree so the subcommand registration in
+        """`kova codex-runtime migrate --dry-run --json` is the supported automation seam:
+        drive it through the real ``kova`` argparse tree so the subcommand registration in
         kova_cli/main.py stays pinned, and honour ``CODEX_HOME`` like every codex sibling."""
         import json
 

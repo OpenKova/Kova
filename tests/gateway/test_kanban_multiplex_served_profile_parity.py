@@ -1,6 +1,6 @@
 """Standalone-vs-served parity for the kanban dispatcher and notifier under
 ``gateway.multiplex_profiles``: a worker spawned for served profile X gets the env a standalone
-``hermes -p X`` dispatcher would build, and X's notifications are rendered/filtered under X's
+``kova -p X`` dispatcher would build, and X's notifications are rendered/filtered under X's
 config.
 """
 
@@ -62,7 +62,7 @@ def test_worker_for_served_profile_gets_its_own_env_and_toolset_pin(served, monk
 
     monkeypatch.setattr(subprocess, "Popen", fake_popen)
     monkeypatch.setattr(kbd, "_open_worker_log", lambda task, board: open("/dev/null", "w"))
-    monkeypatch.setattr(kbd, "_hermes_argv", lambda: ["hermes"], raising=False)
+    monkeypatch.setattr(kbd, "_kova_argv", lambda: ["kova"], raising=False)
     kbd._default_spawn(task, str(served.alpha), board=None)
 
     env = spawned["env"]

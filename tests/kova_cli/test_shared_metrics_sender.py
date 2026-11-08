@@ -102,12 +102,12 @@ def _clear_consent(store):
 
 def _add_package(store, package_id, period_day, *, exported=True, install_id=INSTALL_ID):
     payload = {
-        "schema_version": "hermes.shared_metrics.v2",
+        "schema_version": "kova.shared_metrics.v2",
         "package_id": package_id,
         "install_id": install_id,
         "period_start": f"{period_day}T00:00:00Z",
         "period_end": f"{period_day}T23:59:59Z",
-        "metrics": [{"name": "hermes.client.active", "type": "counter", "value": 1}],
+        "metrics": [{"name": "kova.client.active", "type": "counter", "value": 1}],
     }
     with store._connection() as connection:
         connection.execute(

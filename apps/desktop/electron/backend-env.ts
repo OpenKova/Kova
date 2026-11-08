@@ -185,7 +185,7 @@ function profileBackendParentEnv({
 
 /**
  * PATH with the entries under the PM store (KOVA_RUNTIME_DIR, else
- * <hermes home>/tools, as pm.environments.store_root resolves it) moved to the
+ * <kova home>/tools, as pm.environments.store_root resolves it) moved to the
  * front, every other entry kept in order. Kova's own children must run the
  * store's uv/node/npm, but shell-path.ts puts the user's login-shell entries
  * (nvm, Homebrew, ~/.local/bin) ahead of the inherited PATH, which is where

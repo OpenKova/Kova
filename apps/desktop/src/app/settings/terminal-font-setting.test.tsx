@@ -64,7 +64,7 @@ describe('TerminalFontSetting', () => {
     vi.useFakeTimers()
     mocks.configUpdatedAt = 1
     mocks.loadedConfig = {
-      display: { skin: 'hermes' },
+      display: { skin: 'kova' },
       terminal: { backend: 'local', cwd: '/workspace', font_family: '' }
     }
     mocks.save.mockResolvedValue({ ok: true })
@@ -93,7 +93,7 @@ describe('TerminalFontSetting', () => {
     // gets the merged record so sibling terminal keys survive.
     expect(mocks.save).toHaveBeenCalledWith({ terminal: { font_family: 'MesloLGS NF' } })
     expect(mocks.cache).toHaveBeenCalledWith({
-      display: { skin: 'hermes' },
+      display: { skin: 'kova' },
       terminal: { backend: 'local', cwd: '/workspace', font_family: 'MesloLGS NF' }
     })
   })

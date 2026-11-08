@@ -59,7 +59,7 @@ def _make_tool_defs(*names: str) -> list:
 
 
 def _make_agent():
-    kova_home = Path(tempfile.mkdtemp(prefix="hermes-test-home-"))
+    kova_home = Path(tempfile.mkdtemp(prefix="kova-test-home-"))
     (kova_home / "logs").mkdir(parents=True, exist_ok=True)
     with (
         patch(

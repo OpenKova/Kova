@@ -44,7 +44,7 @@ def test_minted_launcher_reads_current_selection_and_editable_members(tmp_path, 
     state = install_state_dir(root)
     out = tmp_path / "bin"
     out.mkdir()
-    launcher = _launchers.mint_launcher("hermes", root, out, Path(sys.executable), base)
+    launcher = _launchers.mint_launcher("kova", root, out, Path(sys.executable), base)
     assert launcher is not None
 
     selected = state / "environments" / "selected" / "venv"

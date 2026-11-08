@@ -38,7 +38,7 @@ def test_dashboard_service_resets_home(
     # /proc/<pid>/environ (the real runtime environment, not the script text).
     ok, out = poll_container(
         container_name,
-        'pid=$(pgrep -f "hermes dashboard" | head -1); '
+        'pid=$(pgrep -f "kova dashboard" | head -1); '
         '[ -n "$pid" ] && tr "\\0" "\\n" < /proc/$pid/environ | grep "^HOME="',
         deadline_s=60.0,
     )
@@ -55,7 +55,7 @@ def test_stage2_repairs_profiles_and_cron_ownership(
 ) -> None:
     """profiles/ and cron/ must both be reclaimed after root-context writes.
 
-    The stage2 hook chowns these dirs to hermes:hermes on every boot.
+    The stage2 hook chowns these dirs to kova:kova on every boot.
     We simulate a root-owned file in each, then restart the container
     and verify ownership is repaired.
     """
@@ -90,14 +90,14 @@ def test_stage2_repairs_profiles_and_cron_ownership(
     # Restart — stage2 hook runs again and repairs ownership.
     restart_container(container_name)
 
-    # Verify files are now owned by hermes.
+    # Verify files are now owned by kova.
     r = docker_exec_sh(
         container_name,
         'stat -c "%U" /opt/data/profiles/testprof/marker '
         '/opt/data/cron/root_owned.json',
         timeout=5,
     )
-    assert "hermes" in r.stdout, (
-        f"expected hermes-owned files after restart, got: {r.stdout!r} — "
+    assert "kova" in r.stdout, (
+        f"expected kova-owned files after restart, got: {r.stdout!r} — "
         f"stage2 hook did not repair profiles/ and cron/ ownership"
     )

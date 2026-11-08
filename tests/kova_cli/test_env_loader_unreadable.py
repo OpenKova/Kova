@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 from kova_cli import managed_scope
-from kova_cli.env_loader import load_hermes_dotenv
+from kova_cli.env_loader import load_kova_dotenv
 
 
 def _deny_reads(monkeypatch, path: Path) -> None:
@@ -54,7 +54,7 @@ def pinned(managed_dir):
 
 
 def _profile(tmp_path: Path) -> tuple[Path, Path]:
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     env_file = home / ".env"
     env_file.write_text("OPENAI_API_KEY=from-file\n", encoding="utf-8")
@@ -69,7 +69,7 @@ def test_unreadable_user_env_loads_as_absent_under_a_pinned_backend(tmp_path, mo
 
     with caplog.at_level(logging.WARNING, logger="kova_cli.env_loader"):
         for _ in range(3):  # gateways reload the .env every turn
-            assert load_hermes_dotenv(kova_home=home) == []
+            assert load_kova_dotenv(kova_home=home) == []
 
     assert os.environ["OPENAI_API_KEY"] == "from-launcher"
     assert os.environ["KOVA_ACP_AUTH_METHOD"] == "from-launcher"
@@ -92,7 +92,7 @@ def test_unreadable_user_env_raises_without_a_pinned_backend(tmp_path, monkeypat
     _deny_reads(monkeypatch, env_file)
 
     with pytest.raises(PermissionError):
-        load_hermes_dotenv(kova_home=home)
+        load_kova_dotenv(kova_home=home)
 
 
 def test_project_env_does_not_replace_launcher_keys(tmp_path, monkeypatch, pinned):
@@ -104,7 +104,7 @@ def test_project_env_does_not_replace_launcher_keys(tmp_path, monkeypatch, pinne
     monkeypatch.delenv("LAB_PROJECT_ONLY")
     _deny_reads(monkeypatch, env_file)
 
-    assert load_hermes_dotenv(kova_home=home, project_env=project_env) == [project_env]
+    assert load_kova_dotenv(kova_home=home, project_env=project_env) == [project_env]
 
     assert os.environ["OPENAI_API_KEY"] == "from-launcher"
     assert os.environ["LAB_PROJECT_ONLY"] == "from-project"

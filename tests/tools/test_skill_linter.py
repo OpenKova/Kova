@@ -16,7 +16,7 @@ version: 1.0.0
 author: Kova Agent
 license: MIT
 metadata:
-  hermes:
+  kova:
     tags: [arxiv, research]
     related_skills: []
 ---
@@ -173,7 +173,7 @@ def test_lint_skill_reads_from_disk(tmp_path):
 
 
 def test_author_caps_warned():
-    content = CLEAN.replace("author: Kova Agent", "author: hermes agent")
+    content = CLEAN.replace("author: Kova Agent", "author: kova agent")
     findings = lint_content(content)
     assert "author-caps" in _rules(findings)
 

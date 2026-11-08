@@ -48,7 +48,7 @@ class DaytonaEnvironment(BaseEnvironment):
                            "Capping to 10GB.", disk_gib)
             disk_gib = 10
         resources = Resources(cpu=cpu, memory=memory_gib, disk=disk_gib)
-        labels, sandbox_name = {"hermes_task_id": task_id}, f"hermes-{task_id}"
+        labels, sandbox_name = {"kova_task_id": task_id}, f"kova-{task_id}"
 
         if self._persistent:
             try:

@@ -69,7 +69,7 @@ def real_profile_key() -> str:
     """Launcher key of the CURRENT profile's real-profile browser. Per home: one process serves many profiles,
     so a consent-off profile must never stop another's browser, nor a consenting one reuse its cookie jar."""
     from kova_constants import kova_home_key
-    return f"hermes-real-profile@{kova_home_key()}"
+    return f"kova-real-profile@{kova_home_key()}"
 
 
 def terminate_real_profile_browser() -> None:

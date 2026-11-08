@@ -10,8 +10,8 @@ description: >-
   distro's own paths) and the mount root is asked once with wslpath, so a distro that moved
   its automount point still gets correct paths. cwd persists across commands, stdin and exit
   codes ride through wsl.exe, and hermes doctor / setup and the dashboard picker get real rows
-  (wsl.exe path, WSL version, distros present, selected distro). HERMES_WSL_DISTRO and
-  HERMES_WSL_USER select the distro and the user. Disclosure — this is a full-access backend,
+  (wsl.exe path, WSL version, distros present, selected distro). KOVA_WSL_DISTRO and
+  KOVA_WSL_USER select the distro and the user. Disclosure — this is a full-access backend,
   not a sandbox: when it is the selected backend, everything the terminal tool runs executes
   as your user inside your distro, with that distro's files, permissions and network access,
   so dangerous-command approval stays on and Hermes never stops the distro. The plugin itself

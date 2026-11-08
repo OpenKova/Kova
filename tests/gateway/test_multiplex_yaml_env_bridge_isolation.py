@@ -64,7 +64,7 @@ _EXPECTED_EXTRA = (
 
 @pytest.fixture
 def secondary_scope(tmp_path, monkeypatch):
-    default_home = tmp_path / "hermes"
+    default_home = tmp_path / "kova"
     secondary = default_home / "profiles" / "bot2"
     secondary.mkdir(parents=True)
     (default_home / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\n")

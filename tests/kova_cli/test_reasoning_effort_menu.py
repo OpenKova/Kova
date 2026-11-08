@@ -34,7 +34,7 @@ def test_current_reasoning_effort_reads_dict_form():
     assert _current_reasoning_effort({"agent": {"reasoning_effort": "high"}}) == "high"
 
 
-def test_hermes_model_offers_reasoning_whenever_a_pick_is_saved(tmp_path, monkeypatch):
+def test_kova_model_offers_reasoning_whenever_a_pick_is_saved(tmp_path, monkeypatch):
     """Same model ID on a new provider, or a re-pick of the current model, still gets the effort
     step (like chat /model); a flow that saves nothing does not."""
     from kova_cli import main

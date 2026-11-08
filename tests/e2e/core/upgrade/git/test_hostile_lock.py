@@ -1,4 +1,4 @@
-"""Hostile-concurrency cells for the update lock, with real ``hermes update`` processes.
+"""Hostile-concurrency cells for the update lock, with real ``kova update`` processes.
 
 A real git checkout (a clone of the commit under test, served by a local bare origin) is updated
 by real ``python -m kova_cli.main update`` processes inside the bwrap sandbox. A ``git`` shim
@@ -210,7 +210,7 @@ def test_two_homes_cannot_update_one_checkout_at_once(rig):
         H.wait_for(lambda: rig.fetchers(), timeout=180, what="the first update to reach its fetch")
         # --ignored: a lock file in the worktree shows whatever the tree's .gitignore says.
         status = I.git("status", "--porcelain", "--ignored", "--untracked-files=all", cwd=rig.checkout)
-        held = [line for line in status.splitlines() if "hermes-update" in line]
+        held = [line for line in status.splitlines() if "kova-update" in line]
         assert not held, f"the live update's lock is a worktree file (autostash takes it): {held}"
         code, out = _finish(rig.update("home-b"), timeout=60)
         assert code == 2 and REFUSAL in out, f"second home's update was not refused (rc={code}):\n{out[-4000:]}"
@@ -237,7 +237,7 @@ def test_reused_pid_marker_is_reclaimed(rig):
 
 
 def test_killed_owner_keeps_the_checkout_locked_while_its_tree_runs(rig):
-    """(d) SIGKILL `hermes update` while its completion child runs: the child inherited the locked
+    """(d) SIGKILL `kova update` while its completion child runs: the child inherited the locked
     fd, so a new update (any home) is refused until the child exits; never starts mid-mutation."""
     r = rig.driver("kill-mid-completion", timeout=600)
     assert r["child_seen"] and r["child_alive_before"], f"no completion child outlived the owner: {r}"
@@ -247,7 +247,7 @@ def test_killed_owner_keeps_the_checkout_locked_while_its_tree_runs(rig):
 
 
 def test_orphaned_update_tree_reads_as_in_progress(rig):
-    """(e) SIGKILL `hermes update` mid-completion and lose its marker: the completion child still
+    """(e) SIGKILL `kova update` mid-completion and lose its marker: the completion child still
     holds the checkout lock, so every "is an update running" reader must still say yes."""
     r = rig.driver("orphan-reader", timeout=600)
     assert r["child_seen"] and r["child_alive_after"], f"premise: no completion child outlived the owner: {r}"

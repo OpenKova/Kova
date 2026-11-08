@@ -6,7 +6,7 @@
  * (connect a remote, or install) instead of starting a local serve.
  *
  * The bundled payload, KOVA_DESKTOP_KOVA_ROOT, an unpackaged checkout and
- * KOVA_DESKTOP_HERMES resolve before this rung and are not affected.
+ * KOVA_DESKTOP_KOVA_CLI resolve before this rung and are not affected.
  *
  * A runtime this launch installed is always used. Skipping it would send the
  * post-install re-resolve (and every later resolve) back to the installer.

@@ -61,7 +61,7 @@ def _run(home: Path, backend_env: str | None) -> str:
 
 def _runtime_selects(home: Path, backend_env: str | None) -> str:
     """The backend a real Kova start selects: the first config read (``kova_cli.config`` reads
-    at import time) or ``load_hermes_dotenv``'s boot, whichever selects first, reports the backend
+    at import time) or ``load_kova_dotenv``'s boot, whichever selects first, reports the backend
     and ends the process right there (there is no plane in this test)."""
     code = ("import os, sys\n"
             "from kova_cli.config_backend import FileBackend\n"
@@ -74,7 +74,7 @@ def _runtime_selects(home: Path, backend_env: str | None) -> str:
             "RemoteBackend._state = report('remote')\n"
             "FileBackend.boot = report('file')\n"
             "from kova_cli import env_loader\n"
-            "env_loader.load_hermes_dotenv(kova_home=sys.argv[1], load_external_secrets=False)\n"
+            "env_loader.load_kova_dotenv(kova_home=sys.argv[1], load_external_secrets=False)\n"
             "sys.exit('no backend was selected')\n")
     env = _env(home.parent, backend_env)
     env["KOVA_HOME"] = str(home)

@@ -2,7 +2,7 @@
 
 The checkout's ``.kova/bin`` launchers are shared by every data root and by
 the ``~/.local/bin`` shims. Rewriting them to the launching root's store
-Python bricks ``hermes`` once that root is deleted. The launching process must
+Python bricks ``kova`` once that root is deleted. The launching process must
 still relaunch into its own root's Python.
 """
 import json
@@ -136,14 +136,14 @@ def test_dead_exe_never_shadows_kept_cmd(tmp_path, monkeypatch):
     repo = _make_repo(tmp_path)
     local = repo / ".kova" / "bin"
     local.mkdir(parents=True)
-    _write_dead_exe(local / "hermes.exe", tmp_path / "gone" / "python.exe")
-    (local / "hermes.cmd").write_text(
+    _write_dead_exe(local / "kova.exe", tmp_path / "gone" / "python.exe")
+    (local / "kova.cmd").write_text(
         f'@echo off\r\n"{default_python}" -I -c "eA==" %*\r\n', encoding="utf-8")
-    assert _launchers._launcher_python(local / "hermes.exe") == tmp_path / "gone" / "python.exe"
+    assert _launchers._launcher_python(local / "kova.exe") == tmp_path / "gone" / "python.exe"
 
     _isolate(tmp_path, monkeypatch, temp_home)
     written = [Path(path) for path in _launchers.ensure_install_launchers(repo, local)]
     # The shared .cmd is live and foreign, so it is kept — and the dead .exe
     # that would have run instead of it is gone.
-    assert local / "hermes.cmd" in written
-    assert not (local / "hermes.exe").exists()
+    assert local / "kova.cmd" in written
+    assert not (local / "kova.exe").exists()

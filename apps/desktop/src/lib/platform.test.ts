@@ -11,7 +11,7 @@ type HostWindow = Window & {
 
 describe('isBrowserHostedDesktop', () => {
   beforeEach(() => {
-    document.documentElement.removeAttribute('data-hermes-desktop-host')
+    document.documentElement.removeAttribute('data-kova-desktop-host')
     const win = window as HostWindow
     delete win.__KOVA_SESSION_TOKEN__
     delete win.__KOVA_AUTH_REQUIRED__

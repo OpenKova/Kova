@@ -58,12 +58,12 @@ from tests.compat.old_updater_support import (
         *(("kova_cli.main", name, args, kwargs, None) for name, args, kwargs in [
         ("_desktop_stamp_path", (), {}),
         ("_expected_windows_pe_machines", (), {}),
-        ("_hermes_exe_shims", (Path("venv"),), {}),
+        ("_kova_exe_shims", (Path("venv"),), {}),
         ("_insert_python_pin", (["uv", "pip", "install", "-e", "."],), {}),
         ("_interpreter_scripts_dir", (), {}),
         ("_load_installable_optional_extras", (), {"group": "termux-all"}),
         ("_parse_pe_machine", (Path("Kova.exe"),), {}),
-        ("_quarantine_running_hermes_exe", (Path("venv"),), {"max_attempts": 1, "failed_out": []}),
+        ("_quarantine_running_kova_exe", (Path("venv"),), {"max_attempts": 1, "failed_out": []}),
         ("_repair_broken_lazy_refresh_imports", (["uv", "pip"], ["certifi"]), {"env": {"VIRTUAL_ENV": "venv"}}),
         ("_run_install_with_heartbeat", (["uv", "pip", "install", "-e", "."],),
          {"env": {"VIRTUAL_ENV": "venv"}, "heartbeat_interval_seconds": 1}),
@@ -151,17 +151,17 @@ def test_current_updater_entrypoints_declare_the_handoff_sentinel():
     import sys
 
     # The sentinel local looks unused; deleting it would make a current
-    # `hermes update` frame hand off to the takeover child mid-run. Assert
+    # `kova update` frame hand off to the takeover child mid-run. Assert
     # against the shipped entrypoints in a fresh interpreter: importing
     # kova_cli.main probes the checkout's payload manifest, which the
     # in-process home-I/O guard refuses for worktrees under ~/.kova.
     code = (
-        "from kova_cli import main as hermes_main\n"
+        "from kova_cli import main as kova_main\n"
         "from kova_cli import update_cmd\n"
-        "print('_hermes_current_updater_frame' in "
+        "print('_kova_current_updater_frame' in "
         "update_cmd._cmd_update_impl.__code__.co_varnames)\n"
-        "print('_hermes_current_updater_frame' in "
-        "hermes_main.cmd_update.__wrapped__.__code__.co_varnames)\n"
+        "print('_kova_current_updater_frame' in "
+        "kova_main.cmd_update.__wrapped__.__code__.co_varnames)\n"
     )
     out = subprocess.run(
         [sys.executable, "-c", code], capture_output=True, text=True, check=True,

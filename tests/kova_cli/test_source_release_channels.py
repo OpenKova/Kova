@@ -57,7 +57,7 @@ def releases(tmp_path, monkeypatch, request):
     requests = []
     for channel, tag in tags.items():
         responses[f"/releases/{channel}/index.html"] = (
-            f'<meta name="hermes-build" content="{tag}">'
+            f'<meta name="kova-build" content="{tag}">'
         )
         responses[f"/repos/NeuralStudio/kova-agent/releases/tags/{tag}"] = {
             "tag_name": tag, "draft": False, "prerelease": channel == "canary",

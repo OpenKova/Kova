@@ -31,7 +31,7 @@ def fresh_home(tmp_path, monkeypatch):
         monkeypatch.delenv(var, raising=False)
     try:
         import kova_constants
-        kova_constants._cached_default_hermes_root = None  # type: ignore[attr-defined]
+        kova_constants._cached_default_kova_root = None  # type: ignore[attr-defined]
     except Exception:
         pass
     kb._INITIALIZED_PATHS.clear()

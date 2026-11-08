@@ -1,4 +1,4 @@
-"""`hermes profile delete` removes the profile's wrapper (#131753).
+"""`kova profile delete` removes the profile's wrapper (#131753).
 
 Windows wrappers are ``<alias>.bat``; delete used to look only for the bare name, so the
 ``.bat`` survived as an orphan alias. A Windows wrapper written before ``.bat`` (#34796) is
@@ -42,5 +42,5 @@ def test_delete_removes_a_pre_bat_windows_wrapper(home):
     profile_dir = create_profile("imported", no_alias=True)
     wrapper = home / ".local" / "bin" / "imported"
     wrapper.parent.mkdir(parents=True, exist_ok=True)
-    wrapper.write_text("@echo off\r\nhermes -p imported %*\r\n", encoding="utf-8")
+    wrapper.write_text("@echo off\r\nkova -p imported %*\r\n", encoding="utf-8")
     _delete_and_check(profile_dir, wrapper)

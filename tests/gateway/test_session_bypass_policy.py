@@ -52,7 +52,7 @@ def test_bypass_session_freezes_code_defaults_without_reading_profile(tmp_path, 
     active = [True]
 
     def witness(event, args):
-        if event == 'hermes.test.done':
+        if event == 'kova.test.done':
             active[0] = False
         elif active[0] and event == 'open' and str(home) in str(args[0]):
             import traceback
@@ -65,7 +65,7 @@ def test_bypass_session_freezes_code_defaults_without_reading_profile(tmp_path, 
               'base_url': 'http://127.0.0.1:9/v1', 'safe_mode': True, 'toolsets': ['terminal']}
     private = {}
     policy = _bypass_policy(params, private_secrets=private)
-    sys.audit('hermes.test.done')  # audit hooks cannot be removed; close the witness window
+    sys.audit('kova.test.done')  # audit hooks cannot be removed; close the witness window
     assert not opened, '\n'.join(p + '\n' + s for p, s in opened)
     config = policy.config()
     assert config['model']['provider'] == 'custom' and config['model']['base_url'] == params['base_url']

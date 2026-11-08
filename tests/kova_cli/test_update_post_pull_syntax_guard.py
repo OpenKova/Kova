@@ -1,14 +1,14 @@
-"""Tests for the post-pull syntax guard in ``hermes update``.
+"""Tests for the post-pull syntax guard in ``kova update``.
 
 When a bad commit lands on ``main`` with a syntax error in a critical file
 (e.g. orphan merge-conflict markers in ``kova_cli/config.py``), the CLI
-becomes unbootable — every ``hermes`` invocation imports those files at
+becomes unbootable — every ``kova`` invocation imports those files at
 startup. The guard validates them after ``git pull`` and rolls back to the
 pre-pull SHA on failure so the user's install stays runnable.
 
 Reference incident: PR #28452 (May 18, 2026) shipped unresolved conflict
-markers in ``kova_cli/config.py``; users who ran ``hermes update`` in
-the 7-minute window before #28458 landed could not run any ``hermes``
+markers in ``kova_cli/config.py``; users who ran ``kova update`` in
+the 7-minute window before #28458 landed could not run any ``kova``
 command afterward.
 """
 
@@ -220,7 +220,7 @@ def test_the_critical_inventory_covers_every_module_the_entry_paths_import_first
                 found |= {rel for rel in (f"{stem}.py", f"{stem}/__init__.py") if (root / rel).is_file()}
         return found
 
-    launcher = _launchers._launcher_script("hermes", root, None)
+    launcher = _launchers._launcher_script("kova", root, None)
     entry = files(launcher) | files((root / "kova_bootstrap.py").read_text(encoding="utf-8"))
     entry |= {"kova_bootstrap.py", *RECOVERY_CLOSURE}
     assert "kova_bootstrap.py" in entry and "kova_cli/main.py" in entry

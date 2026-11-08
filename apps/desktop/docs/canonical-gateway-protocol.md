@@ -22,7 +22,7 @@ follow redirects or repeat the save dialog/body write after a stream failure.
 The native grant remains primary-profile-only; rejected profile selectors do
 not fall back to a remote credential.
 
-Local previews and seekable `hermes-media://stream` playback read the native
+Local previews and seekable `kova-media://stream` playback read the native
 filesystem, not gateway HTTP. Remote media remains on its existing token/OAuth
 transport (`/api/files/stream`); remote data-URL previews use the JSON IPC API.
 Native HTTP grants are never attached to arbitrary image URLs, web previews,

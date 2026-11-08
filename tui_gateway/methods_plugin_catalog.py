@@ -1,6 +1,6 @@
 """``plugins.catalog.lookup``: one curated-catalog entry, resolved by the backend.
 
-The Desktop's ``hermes://plugin/install?catalog=<name>`` deep link used to fetch the docs-site JSON
+The Desktop's ``kova://plugin/install?catalog=<name>`` deep link used to fetch the docs-site JSON
 from the renderer. That URL answers with a cross-origin 301, so the browser's CORS check fails on the
 redirect and every link reported the catalog as unreachable (kova-agent 136483). The backend already
 reads the live catalog (cache, failure window, in-tree fallback and kill list), and ``plugins.manage

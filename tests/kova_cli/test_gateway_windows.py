@@ -25,7 +25,7 @@ def test_exec_schtasks_decodes_ansi_output_under_utf8_mode(monkeypatch):
     monkeypatch.setattr(gateway_windows.shutil, "which", lambda name: "schtasks.exe")
     monkeypatch.setattr(gateway_windows.locale, "getpreferredencoding", lambda *a, **k: "utf-8")
     monkeypatch.setattr(gateway_windows, "_windows_console_encodings", lambda: ["cp936"], raising=False)
-    xml = r'<Arguments>//B //Nologo "C:\Users\方舟\AppData\Local\hermes\gateway-service\Kova_Gateway.vbs"</Arguments>'
+    xml = r'<Arguments>//B //Nologo "C:\Users\方舟\AppData\Local\kova\gateway-service\Kova_Gateway.vbs"</Arguments>'
 
     def fake_run(argv, **kwargs):
         # schtasks writes cp936 bytes; honour text/encoding like the real subprocess would.
@@ -44,10 +44,10 @@ def test_exec_schtasks_decodes_ansi_output_under_utf8_mode(monkeypatch):
 
 
 @pytest.mark.platforms("windows")
-def test_registered_task_launchers_reads_each_hermes_task_action(monkeypatch):
+def test_registered_task_launchers_reads_each_kova_task_action(monkeypatch):
     """The install probe's view of the Scheduled Tasks: the launcher each ``Kova_Gateway*`` task
     starts, as the task XML this module writes names it, and a pre-``wscript`` task's ``.cmd``."""
-    launcher = r"C:\Users\Ann Lee\custom hermes\gateway-service\Kova_Gateway_work.vbs"
+    launcher = r"C:\Users\Ann Lee\custom kova\gateway-service\Kova_Gateway_work.vbs"
     legacy = r"C:\Users\ann\h2\gateway-service\Kova_Gateway.cmd"
     current = gateway_windows._build_scheduled_task_xml("Kova_Gateway_work", Path(launcher), "PC\\ann")
     older = current.replace("<Command>wscript.exe</Command>", f"<Command>{legacy}</Command>").replace(
@@ -136,7 +136,7 @@ def test_build_gateway_argv_keeps_venv_console_python_for_uv_venv(monkeypatch, t
     project = tmp_path / "project"
     scripts = project / "venv" / "Scripts"
     site_packages = project / "venv" / "Lib" / "site-packages"
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     base = tmp_path / "uv" / "python" / "cpython-3.11-windows-x86_64-none"
     scripts.mkdir(parents=True)
     site_packages.mkdir(parents=True)
@@ -470,7 +470,7 @@ def test_scheduled_task_install_removes_startup_entries_that_would_double_launch
 
 
 def test_reconcile_leaves_one_autostart_mechanism(monkeypatch, tmp_path):
-    """#80569: what `hermes update` and `hermes doctor --fix` run. Beside a registered task every
+    """#80569: what `kova update` and `kova doctor --fix` run. Beside a registered task every
     Startup entry is redundant; with no task a legacy .cmd next to the .vbs is. After reconcile
     nothing is redundant and exactly one mechanism remains."""
     startup, _script = _startup_with_fallback_and_legacy_entries(monkeypatch, tmp_path)
@@ -651,7 +651,7 @@ _PRE_HARDENING_TASK_XML = """<?xml version="1.0" encoding="UTF-16"?>
 
 def test_scheduled_task_drift_names_missing_hardening_leaves(monkeypatch):
     """A pre-hardening registration is reported leaf by leaf, and the report is what
-    ``hermes gateway status`` prints together with the ``hermes gateway install`` repair hint."""
+    ``kova gateway status`` prints together with the ``kova gateway install`` repair hint."""
     launcher = Path(r"C:\Users\me\.kova\gateway-service\Kova_Gateway.vbs")
     template = gateway_windows._build_scheduled_task_xml("Kova_Gateway", launcher, r"PC\me")
     drift = gateway_windows.compare_scheduled_task_drift(_PRE_HARDENING_TASK_XML, template)
@@ -668,7 +668,7 @@ def test_scheduled_task_drift_names_missing_hardening_leaves(monkeypatch):
     monkeypatch.setattr("builtins.print", lambda *a, **k: printed.append(" ".join(map(str, a))))
     gateway_windows._print_scheduled_task_drift("Kova_Gateway")
     assert printed[0].startswith("⚠ Scheduled Task registration predates the current template (missing: RestartOnFailure")
-    assert "hermes gateway install" in printed[1]
+    assert "kova gateway install" in printed[1]
 
 
 def test_scheduled_task_drift_is_silent_when_aligned_or_unqueryable(monkeypatch):
@@ -741,7 +741,7 @@ def _arrange_uninstalled_start(monkeypatch):
 
 
 def test_stdin_interactive_only_when_isatty_and_a_console_answers_get_console_mode():
-    """Windows CRT isatty() is True for the NUL device (`hermes gateway start < NUL`, stdin=DEVNULL), so
+    """Windows CRT isatty() is True for the NUL device (`kova gateway start < NUL`, stdin=DEVNULL), so
     isatty alone must not open the prompt; off Windows (no console-mode fact) isatty decides (#113977)."""
     assert gateway_windows._stdin_is_interactive(isatty=True, console_mode_ok=False) is False   # NUL
     assert gateway_windows._stdin_is_interactive(isatty=True, console_mode_ok=True) is True     # console
@@ -759,7 +759,7 @@ def test_start_with_nul_stdin_starts_the_gateway_but_never_installs_login_persis
     gateway_windows.start()
 
     assert installs == [] and spawns == [1]
-    assert "hermes gateway install" in capsys.readouterr().out
+    assert "kova gateway install" in capsys.readouterr().out
 
 
 def test_start_with_captured_stdout_never_asks_even_on_a_console_stdin(monkeypatch, capsys):
@@ -773,11 +773,11 @@ def test_start_with_captured_stdout_never_asks_even_on_a_console_stdin(monkeypat
     gateway_windows.start()
 
     assert installs == [] and spawns == [1]
-    assert "hermes gateway install" in capsys.readouterr().out
+    assert "kova gateway install" in capsys.readouterr().out
 
 
 def test_start_without_tty_starts_the_gateway_but_never_installs_login_persistence(monkeypatch, capsys):
-    """`hermes gateway start < /dev/null` must not answer the persistence question with a default Yes
+    """`kova gateway start < /dev/null` must not answer the persistence question with a default Yes
     (#113977); it starts the gateway once and points at the explicit install command."""
     installs, spawns = _arrange_uninstalled_start(monkeypatch)
     monkeypatch.setattr(setup, "is_interactive_stdin", lambda: False)
@@ -787,7 +787,7 @@ def test_start_without_tty_starts_the_gateway_but_never_installs_login_persisten
 
     assert installs == [] and spawns == [1]
     out = capsys.readouterr().out
-    assert "hermes gateway install" in out and "did not complete" not in out
+    assert "kova gateway install" in out and "did not complete" not in out
 
 
 def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(monkeypatch):
@@ -824,7 +824,7 @@ def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(
 #
 # Background: on Windows, asyncio.add_signal_handler raises NotImplementedError,
 # so the gateway's SIGTERM handler (which drains in-flight agents and writes
-# resume_pending=True) never fires when `hermes gateway stop` kills the
+# resume_pending=True) never fires when `kova gateway stop` kills the
 # process. The fix: stop() writes the planned_stop_marker first, waits for
 # the gateway's marker-watcher thread to drain + exit cleanly, then escalates
 # to taskkill if drain times out.
@@ -839,24 +839,24 @@ def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(
 
 
 
-def test_kova_owns_windows_service_requires_name_or_binary_under_a_hermes_root():
+def test_kova_owns_windows_service_requires_name_or_binary_under_a_kova_root():
     """Task Scheduler (``Schedule`` in svchost) above a task-launched gateway is never its supervisor;
-    a service is Kova-owned only by a ``hermes*`` name or a binary under the install (#97208)."""
+    a service is Kova-owned only by a ``kova*`` name or a binary under the install (#97208)."""
     roots = (
-        r"C:\Users\kaize\AppData\Local\hermes\kova-agent",
-        r"C:\Users\kaize\AppData\Local\hermes\kova-agent\venv\Scripts",
-        r"C:\Users\kaize\AppData\Local\hermes\gateway-service",
+        r"C:\Users\kaize\AppData\Local\kova\kova-agent",
+        r"C:\Users\kaize\AppData\Local\kova\kova-agent\venv\Scripts",
+        r"C:\Users\kaize\AppData\Local\kova\gateway-service",
     )
     owns = gateway_windows.kova_owns_windows_service
 
     assert not owns("Schedule", r"C:\Windows\system32\svchost.exe -k netsvcs -p -s Schedule", roots)
     assert not owns("BITS", r"C:\Windows\System32\svchost.exe -k netsvcs -p -s BITS", roots)
-    assert not owns("Other", r"C:\Users\kaize\AppData\Local\hermes\kova-agent-fork\run.exe", roots)
+    assert not owns("Other", r"C:\Users\kaize\AppData\Local\kova\kova-agent-fork\run.exe", roots)
 
     assert owns("KovaGateway", r"C:\nssm\nssm.exe", roots)
     assert owns("Kova_Gateway_derek", "", roots)
-    assert owns("gw", r'"C:\Users\KAIZE\AppData\Local\hermes\kova-agent\venv\Scripts\hermes.exe" gateway run', roots)
-    assert owns("gw", r"C:\Users\kaize\AppData\Local\hermes\gateway-service\Kova_Gateway.cmd", roots)
+    assert owns("gw", r'"C:\Users\KAIZE\AppData\Local\kova\kova-agent\venv\Scripts\kova.exe" gateway run', roots)
+    assert owns("gw", r"C:\Users\kaize\AppData\Local\kova\gateway-service\Kova_Gateway.cmd", roots)
 
 
 def test_wizard_install_service_asks_once_and_never_starts_after_windows_install(monkeypatch):

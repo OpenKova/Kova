@@ -16,7 +16,7 @@ def _ok(payload):
     return resp
 
 
-def _assert_hermes_identity_headers(headers):
+def _assert_kova_identity_headers(headers):
     """Both Perplexity endpoints carry the Kova identity headers (same set as Kimi/OpenCode)
     plus Perplexity's integration header."""
     from kova_cli.version_info import get_version_info
@@ -46,7 +46,7 @@ def test_search_dispatch_maps_search_api_shape():
 
     assert post.call_args.args[0] == "https://api.perplexity.ai/search"
     assert post.call_args.kwargs["headers"]["Authorization"] == "Bearer pplx-test"
-    _assert_hermes_identity_headers(post.call_args.kwargs["headers"])
+    _assert_kova_identity_headers(post.call_args.kwargs["headers"])
     body = post.call_args.kwargs["json"]
     assert body["query"] == "bloom filter"
     assert 1 <= body["max_results"] <= 20  # dispatcher bucket-rounds the fetch limit
@@ -78,7 +78,7 @@ def test_extract_dispatch_snippets_per_url_and_missing_key(public_dns):
         out = json.loads(asyncio.run(wt.web_extract_tool(urls)))
 
     assert post.call_args.args[0] == "https://api.perplexity.ai/sdk/content/snippets"
-    _assert_hermes_identity_headers(post.call_args.kwargs["headers"])
+    _assert_kova_identity_headers(post.call_args.kwargs["headers"])
     body = post.call_args.kwargs["json"]
     assert body["urls"] == urls
     assert body["query"] == "tokio tutorial smol"

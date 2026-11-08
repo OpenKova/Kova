@@ -92,10 +92,10 @@ test('profile SSH identity includes port, key, paths, and remote profile', () =>
   const ssh = {
     mode: 'ssh',
     host: 'box.test',
-    user: 'hermes',
+    user: 'kova',
     port: 2222,
     keyPath: '/keys/a',
-    remoteKovaPath: '/srv/hermes',
+    remoteKovaPath: '/srv/kova',
     remoteProfile: 'worker'
   }
 
@@ -116,17 +116,17 @@ test('profile SSH route fails closed when any dial field differs', () => {
   const ssh = {
     mode: 'ssh',
     host: 'box.test',
-    user: 'hermes',
+    user: 'kova',
     port: 2222,
     keyPath: '/keys/a',
-    remoteKovaPath: '/srv/hermes',
+    remoteKovaPath: '/srv/kova',
     remoteProfile: 'worker'
   }
 
   const variants = [
     { ...ssh, port: 2200 },
     { ...ssh, keyPath: '/keys/b' },
-    { ...ssh, remoteKovaPath: '/opt/hermes' },
+    { ...ssh, remoteKovaPath: '/opt/kova' },
     { ...ssh, remoteProfile: 'default' },
     { ...ssh, user: 'other' }
   ]
@@ -144,9 +144,9 @@ test('profile SSH route fails closed when any dial field differs', () => {
 
 test('global SSH treats an omitted port as 22 and checks the primary route', () => {
   const route = resolveDesktopRemoteRoute({
-    config: { mode: 'ssh', remote: { mode: 'ssh', host: 'box.test', user: 'hermes' } },
+    config: { mode: 'ssh', remote: { mode: 'ssh', host: 'box.test', user: 'kova' } },
     registry: registry('ssh-primary', [
-      { id: 'ssh-primary', kind: 'ssh', label: 'SSH primary', host: 'box.test', user: 'hermes', port: 22 }
+      { id: 'ssh-primary', kind: 'ssh', label: 'SSH primary', host: 'box.test', user: 'kova', port: 22 }
     ])
   })
 
@@ -156,10 +156,10 @@ test('global SSH treats an omitted port as 22 and checks the primary route', () 
 
 test('v1 settings SSH pool key ignores registry identity tags', () => {
   const route = resolveDesktopRemoteRoute({
-    config: { mode: 'ssh', remote: { mode: 'ssh', host: 'box.test', user: 'hermes' } },
+    config: { mode: 'ssh', remote: { mode: 'ssh', host: 'box.test', user: 'kova' } },
     profile: 'worker',
     registry: registry('ssh-primary', [
-      { id: 'ssh-primary', kind: 'ssh', label: 'SSH primary', host: 'box.test', user: 'hermes', port: 22 }
+      { id: 'ssh-primary', kind: 'ssh', label: 'SSH primary', host: 'box.test', user: 'kova', port: 22 }
     ])
   })
 
@@ -174,10 +174,10 @@ test('v1 profile SSH pool key is the profile, not conn:id::profile', () => {
   const ssh = {
     mode: 'ssh',
     host: 'box.test',
-    user: 'hermes',
+    user: 'kova',
     port: 2222,
     keyPath: '/keys/a',
-    remoteKovaPath: '/srv/hermes',
+    remoteKovaPath: '/srv/kova',
     remoteProfile: 'worker'
   }
 
@@ -277,14 +277,14 @@ test('profile remote wins over a registry-backed global SSH route', () => {
   const route = resolveDesktopRemoteRoute({
     config: {
       mode: 'ssh',
-      remote: { mode: 'ssh', host: 'global-box.test', user: 'hermes' },
+      remote: { mode: 'ssh', host: 'global-box.test', user: 'kova' },
       profiles: {
         worker: { mode: 'remote', url: 'https://worker.test', authMode: 'token', token: tokenA }
       }
     },
     profile: 'worker',
     registry: registry('global-ssh', [
-      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'hermes' },
+      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'kova' },
       { id: 'worker-remote', kind: 'remote', label: 'Worker', url: 'https://worker.test', token: tokenA }
     ])
   })
@@ -298,15 +298,15 @@ test('profile SSH wins over a different registry primary SSH route', () => {
   const route = resolveDesktopRemoteRoute({
     config: {
       mode: 'ssh',
-      remote: { mode: 'ssh', host: 'global-box.test', user: 'hermes' },
+      remote: { mode: 'ssh', host: 'global-box.test', user: 'kova' },
       profiles: {
-        worker: { mode: 'ssh', host: 'worker-box.test', user: 'hermes' }
+        worker: { mode: 'ssh', host: 'worker-box.test', user: 'kova' }
       }
     },
     profile: 'worker',
     registry: registry('global-ssh', [
-      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'hermes' },
-      { id: 'worker-ssh', kind: 'ssh', label: 'Worker SSH', host: 'worker-box.test', user: 'hermes' }
+      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'kova' },
+      { id: 'worker-ssh', kind: 'ssh', label: 'Worker SSH', host: 'worker-box.test', user: 'kova' }
     ])
   })
 
@@ -319,11 +319,11 @@ test('environment remote wins over a registry-backed global SSH route', () => {
   const route = resolveDesktopRemoteRoute({
     config: {
       mode: 'ssh',
-      remote: { mode: 'ssh', host: 'global-box.test', user: 'hermes' }
+      remote: { mode: 'ssh', host: 'global-box.test', user: 'kova' }
     },
     env: { url: 'https://env.test', token: 'env-token' },
     registry: registry('global-ssh', [
-      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'hermes' }
+      { id: 'global-ssh', kind: 'ssh', label: 'Global SSH', host: 'global-box.test', user: 'kova' }
     ])
   })
 
@@ -336,7 +336,7 @@ test('local route does not inherit an unrelated registry SSH connection', () => 
   const route = resolveDesktopRemoteRoute({
     config: { mode: 'local' },
     registry: registry('local', [
-      { id: 'unused-ssh', kind: 'ssh', label: 'Unused SSH', host: 'box.test', user: 'hermes' }
+      { id: 'unused-ssh', kind: 'ssh', label: 'Unused SSH', host: 'box.test', user: 'kova' }
     ])
   })
 

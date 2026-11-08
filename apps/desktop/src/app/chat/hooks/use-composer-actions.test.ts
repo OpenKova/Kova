@@ -58,7 +58,7 @@ describe('partitionDroppedFiles', () => {
     // extractDroppedFiles emits a dropped directory as a path-only entry so it
     // stays a @folder: ref instead of hitting file.attach, which can't stage a
     // directory ("file not found on gateway and no data_url provided").
-    const folder = inAppRef('/Users/jeff/projects/hermes', { isDirectory: true })
+    const folder = inAppRef('/Users/jeff/projects/kova', { isDirectory: true })
 
     const { inAppRefs, osDrops } = partitionDroppedFiles([folder])
 
@@ -185,7 +185,7 @@ describe('extractDroppedFiles', () => {
   }
 
   it('emits a dropped directory as a path-only entry with isDirectory (no File to upload)', () => {
-    const transfer = stubTransfer([{ path: '/Users/jeff/projects/hermes', isDirectory: true }]) as DataTransfer & {
+    const transfer = stubTransfer([{ path: '/Users/jeff/projects/kova', isDirectory: true }]) as DataTransfer & {
       _pathByFile: Map<File, string>
     }
 
@@ -195,7 +195,7 @@ describe('extractDroppedFiles', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]?.isDirectory).toBe(true)
-    expect(result[0]?.path).toBe('/Users/jeff/projects/hermes')
+    expect(result[0]?.path).toBe('/Users/jeff/projects/kova')
     // A directory carries no bytes — it must NOT ride the File/upload pipeline.
     expect(result[0]?.file).toBeUndefined()
     // And it partitions as an in-app ref (→ @folder:), never an OS upload drop.
@@ -868,7 +868,7 @@ describe('resolveImageAttachmentPreview', () => {
 
   it('uses an object URL for an in-hand File/Blob (OS Explorer drop) and skips IPC base64', async () => {
     const readFileDataUrl = vi.fn(async () => LOCAL_PREVIEW)
-    const createObjectURL = vi.fn(() => 'blob:hermes-preview-1')
+    const createObjectURL = vi.fn(() => 'blob:kova-preview-1')
 
     vi.stubGlobal('window', { kovaDesktop: { readFileDataUrl } })
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() })
@@ -876,7 +876,7 @@ describe('resolveImageAttachmentPreview', () => {
     const file = new File([new Uint8Array([1, 2, 3, 4])], 'Lattice.png', { type: 'image/png' })
     const preview = await resolveImageAttachmentPreview('C:\\Users\\Administrator\\Desktop\\Lattice.png', file)
 
-    expect(preview).toBe('blob:hermes-preview-1')
+    expect(preview).toBe('blob:kova-preview-1')
     expect(createObjectURL).toHaveBeenCalledWith(file)
     // The freeze path: never base64-load the dropped image over IPC.
     expect(readFileDataUrl).not.toHaveBeenCalled()

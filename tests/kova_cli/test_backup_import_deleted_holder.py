@@ -30,7 +30,7 @@ _HOLDER = (
     "time.sleep(300)\n"
 )
 
-_MEMBER = "hermes/state.db"
+_MEMBER = "kova/state.db"
 
 
 def _make_db(path, marker):

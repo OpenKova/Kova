@@ -32,7 +32,7 @@ function handoffFixture(remote: boolean, scriptText: string = ''): { root: strin
   fs.writeFileSync(path.join(scriptDirectory, IS_WINDOWS ? 'windows.ps1' : 'posix.sh'), scriptText)
   fs.writeFileSync(path.join(scriptDirectory, 'runtime.ps1'), '')
   fs.mkdirSync(path.join(root, '.kova', 'bin'), { recursive: true })
-  fs.writeFileSync(path.join(root, '.kova', 'bin', 'hermes.exe'), '')
+  fs.writeFileSync(path.join(root, '.kova', 'bin', 'kova.exe'), '')
 
   const status: SourceUpdate = { supported: true, branch: 'main', targetSha: 'a'.repeat(40), updateAvailable: true }
 
@@ -512,7 +512,7 @@ it.skipIf(IS_WINDOWS)('a legacy script gets no bridge and no --handoff-run', asy
 // Windows protocol 2: the run id rides the wrapped PowerShell argv.
 it('the Windows protocol-2 hand-off passes -HandoffRun with the bridged run id', async (): Promise<void> => {
   const { root, deps } = handoffFixture(false)
-  fs.writeFileSync(path.join(root, 'scripts', 'desktop-update', 'windows.ps1'), '# hermes-handoff-protocol: 2\r\n')
+  fs.writeFileSync(path.join(root, 'scripts', 'desktop-update', 'windows.ps1'), '# kova-handoff-protocol: 2\r\n')
   const resolveHandoff: typeof updaterProcess.resolveUpdateScriptHandoff = updaterProcess.resolveUpdateScriptHandoff
   vi.spyOn(updaterProcess, 'resolveUpdateScriptHandoff').mockImplementation(
     (updateRoot: string): updaterProcess.UpdateScriptHandoff | null => resolveHandoff(updateRoot, { isWindows: true })

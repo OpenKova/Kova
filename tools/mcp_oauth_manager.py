@@ -52,7 +52,7 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
     GH#24317).
     """
 
-    _hermes_logger = logger
+    _kova_logger = logger
 
     def __init__(self, *args: Any, server_name: str = "", preregistered: bool = False, **kwargs: Any):
         super().__init__(*args, **kwargs)
@@ -60,18 +60,18 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
         # every POST; HTTPX may close the generator from another task). A binary semaphore drops task ownership.
         import anyio
         self.context.lock = anyio.Semaphore(1, max_value=1)
-        self._hermes_server_name = server_name
+        self._kova_server_name = server_name
         self._kova_home = ""
         # A config-supplied client_id rejected as invalid_client means the *config* is wrong — only DCR clients auto-heal.
-        self._hermes_preregistered = preregistered
+        self._kova_preregistered = preregistered
 
-    def _hermes_storage(self):
+    def _kova_storage(self):
         """The context storage when it is a ``KovaTokenStorage``, else None."""
         from tools.mcp_oauth import KovaTokenStorage
         return self.context.storage if isinstance(self.context.storage, KovaTokenStorage) else None
 
     def _log_nonfatal(self, what: str, exc: BaseException) -> None:
-        logger.debug("MCP OAuth '%s': %s failed (non-fatal): %s", self._hermes_server_name, what, exc)
+        logger.debug("MCP OAuth '%s': %s failed (non-fatal): %s", self._kova_server_name, what, exc)
 
     async def _initialize(self) -> None:
         """Load stored state, seed ``token_expiry_time``, restore/prefetch metadata. The SDK's
@@ -118,7 +118,7 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
             try:
                 return await client.send(stamp_default_user_agent(create_oauth_metadata_request(url)))
             except httpx.HTTPError as exc:
-                logger.debug("MCP OAuth '%s': %s discovery to %s failed: %s", self._hermes_server_name, label, url, exc)
+                logger.debug("MCP OAuth '%s': %s discovery to %s failed: %s", self._kova_server_name, label, url, exc)
                 return None
         async with httpx.AsyncClient(timeout=10.0) as client:
             # PRM discovery to learn the authorization_server URL.
@@ -140,17 +140,17 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
                     break
                 if asm:
                     self.context.oauth_metadata = asm
-                    storage = self._hermes_storage()  # persist now so a later cold-load skips discovery
+                    storage = self._kova_storage()  # persist now so a later cold-load skips discovery
                     if storage is not None:
                         storage.save_oauth_metadata(asm)
                     logger.debug("MCP OAuth '%s': pre-flight ASM discovered token_endpoint=%s",
-                                 self._hermes_server_name, asm.token_endpoint)
+                                 self._kova_server_name, asm.token_endpoint)
                     break
 
     def _persist_oauth_metadata_if_changed(self) -> None:
         """Save metadata the SDK discovered lazily (401 branch); no-op when absent/unchanged."""
         meta = self.context.oauth_metadata
-        storage = self._hermes_storage()
+        storage = self._kova_storage()
         if meta is None or storage is None:
             return
         existing = storage.load_oauth_metadata()
@@ -184,10 +184,10 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
         See #36767.
         """
         try:
-            if (self._hermes_preregistered or getattr(response, "status_code", None) not in (400, 401)
+            if (self._kova_preregistered or getattr(response, "status_code", None) not in (400, 401)
                     or not await self._is_invalid_client_at_token_endpoint(response)):
                 return
-            storage = self._hermes_storage()
+            storage = self._kova_storage()
             # A rejected CIMD URL would loop if re-presented (the server already fetched and refused
             # it): drop it so the retry takes DCR, and mark it on disk so the next process doesn't walk
             # back into the same refusal (`kova mcp login` clears the marker).
@@ -195,7 +195,7 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
             if cimd_url and getattr(self.context.client_info, "client_id", None) == cimd_url:
                 logger.warning("MCP OAuth '%s': authorization server rejected our Client ID Metadata Document (%s) "
                                "with invalid_client — falling back to dynamic client registration.",
-                               self._hermes_server_name, cimd_url)
+                               self._kova_server_name, cimd_url)
                 self.context.client_metadata_url = None
                 if storage is not None:
                     storage.mark_cimd_rejected()
@@ -231,7 +231,7 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
         if (url.scheme, url.host, url.port, url.path) != (expected.scheme, expected.host, expected.port, expected.path):
             return
         from mcp.client.auth.oauth2 import OAuthRegistrationError
-        name = self._hermes_server_name
+        name = self._kova_server_name
         raise OAuthRegistrationError(
             f"MCP OAuth '{name}': this provider does not support automatic client registration (its authorization "
             f"server advertises no registration_endpoint), so the SDK's fallback would POST {expected} and fail "
@@ -241,7 +241,7 @@ class KovaMCPOAuthProvider(KovaProviderMixin, *_SDK_BASES):
 
     async def async_auth_flow(self, request):  # type: ignore[override]
         try:  # pre-flow hook: reload from disk if it changed (non-fatal on error)
-            await get_manager().invalidate_if_disk_changed(self._hermes_server_name, kova_home=self._kova_home)
+            await get_manager().invalidate_if_disk_changed(self._kova_server_name, kova_home=self._kova_home)
         except Exception as exc:  # pragma: no cover — defensive
             self._log_nonfatal("pre-flow disk-watch", exc)
         # Bridge the bidirectional generator by hand: a naive ``async for item in inner: yield

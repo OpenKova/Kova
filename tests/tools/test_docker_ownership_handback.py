@@ -143,7 +143,7 @@ def test_root_container_teardown_hands_every_sandbox_mount_back_before_removal(
     shared.mkdir()
     decoy.mkdir(parents=True)
     if scenario == "persist-label":  # extra args (or an image LABEL) claim a host dir as a sandbox root
-        user_args = ["--label", f"hermes-sandbox={tmp_path / 'outside'}", "-v", f"{decoy}:/workspace"]
+        user_args = ["--label", f"kova-sandbox={tmp_path / 'outside'}", "-v", f"{decoy}:/workspace"]
     record = tmp_path / "sandboxes" / "docker" / "chown-back" / ".kova-owner-handback"
     if scenario.startswith("reclaim"):  # an earlier root teardown handed these back; "link" is now a symlink
         record.parent.mkdir(parents=True)
@@ -210,7 +210,7 @@ def test_root_container_teardown_hands_every_sandbox_mount_back_before_removal(
     _assert_strip(strip, sandbox, caps)
     if scenario == "chown-timeout":  # the CLI is killed; the named throwaway must not run on
         name = chowns[0][0][chowns[0][0].index("--name") + 1]
-        assert name.startswith("hermes-handback-fake-cid-") and [docker_env.find_docker(), "rm", "-f", name] in [
+        assert name.startswith("kova-handback-fake-cid-") and [docker_env.find_docker(), "rm", "-f", name] in [
             argv for argv, _ in calls], calls
         assert calls.index((chowns[0][0], chowns[0][1])) < calls.index((strip, b""))  # a timeout never skips it
         return

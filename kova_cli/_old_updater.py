@@ -129,7 +129,7 @@ def _run_child(request: dict) -> tuple[int, dict]:
     # process's stdout in the ANSI code page, and a non-cp1252 character raised here, before the
     # takeover ever ran (review S1).
     print("-> Handing off to the new updater (package manager) for the rest of this update...", flush=True)
-    with tempfile.TemporaryDirectory(prefix="hermes-update-takeover-") as directory:
+    with tempfile.TemporaryDirectory(prefix="kova-update-takeover-") as directory:
         context = Path(directory) / "request.json"
         result = Path(directory) / "result.json"
         context.write_text(json.dumps(request), encoding="utf-8")

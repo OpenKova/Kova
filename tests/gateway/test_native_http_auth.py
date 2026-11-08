@@ -186,7 +186,7 @@ async def test_native_http_preserves_gated_auth_and_actual_socket_boundary(tmp_p
     register_provider(provider)
     login = provider.start_login(redirect_uri='http://127.0.0.1/callback')
     from urllib.parse import parse_qs
-    pkce = parse_qs(login.cookie_payload['hermes_session_pkce'].replace(';', '&'))
+    pkce = parse_qs(login.cookie_payload['kova_session_pkce'].replace(';', '&'))
     session = provider.complete_login(code='stub_code', state=pkce['state'][0],
                                       code_verifier=pkce['verifier'][0],
                                       redirect_uri='http://127.0.0.1/callback')

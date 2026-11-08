@@ -53,7 +53,7 @@ def test_dock_lists_only_programs_present_on_path(tmp_path):
     execs = sorted(
         line.split("=", 1)[1]
         for pid in launcher_ids
-        for line in (cfg / "xfce4/panel" / pid.replace("plugin-", "launcher-") / "hermes.desktop").read_text(encoding="utf-8-sig").splitlines()
+        for line in (cfg / "xfce4/panel" / pid.replace("plugin-", "launcher-") / "kova.desktop").read_text(encoding="utf-8-sig").splitlines()
         if line.startswith("Exec=")
     )
     assert execs == [f"{chrome} --user-data-dir={tmp_path}/bp", "xfce4-terminal"]
@@ -61,7 +61,7 @@ def test_dock_lists_only_programs_present_on_path(tmp_path):
 
 def test_browser_launcher_follows_the_profile_without_reseeding_the_panel(tmp_path):
     """The panel layout is seeded once (the human may have rearranged it), but the Browser entry's Exec=
-    binds the bot's user-data-dir by absolute path: after `hermes profile rename` the dock must open the
+    binds the bot's user-data-dir by absolute path: after `kova profile rename` the dock must open the
     renamed profile's cookie jar, the same one agent-browser now drives, while the layout stays untouched."""
     chrome = tmp_path / "bin" / "chrome"
     cfg = _seed(tmp_path, ["xfce4-terminal", "chrome"], browser_exec=str(chrome), profile_dir="/old name/bp")
@@ -70,7 +70,7 @@ def test_browser_launcher_follows_the_profile_without_reseeding_the_panel(tmp_pa
     shutil.rmtree(tmp_path / "bin")
     _seed(tmp_path, ["xfce4-terminal", "chrome"], browser_exec=str(chrome), profile_dir="/new name/bp")
     execs = [
-        line for d in (cfg / "xfce4/panel").glob("launcher-*/hermes.desktop")
+        line for d in (cfg / "xfce4/panel").glob("launcher-*/kova.desktop")
         for line in d.read_text(encoding="utf-8-sig").splitlines() if line.startswith("Exec=") and "user-data-dir" in line
     ]
     assert execs == [f"Exec={chrome} --user-data-dir=/new name/bp"]
@@ -87,7 +87,7 @@ def test_browser_launcher_seeded_before_the_marker_still_follows_a_rename(tmp_pa
     shutil.rmtree(tmp_path / "bin")
     _seed(tmp_path, ["xfce4-terminal", "chrome"], browser_exec=str(chrome), profile_dir="/new name/bp")
     execs = [
-        line for d in (cfg / "xfce4/panel").glob("launcher-*/hermes.desktop")
+        line for d in (cfg / "xfce4/panel").glob("launcher-*/kova.desktop")
         for line in d.read_text(encoding="utf-8-sig").splitlines() if line.startswith("Exec=") and "user-data-dir" in line
     ]
     assert execs == [f"Exec={chrome} --user-data-dir=/new name/bp"]

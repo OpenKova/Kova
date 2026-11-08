@@ -142,12 +142,12 @@ IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico'}
 
 # Echoed by the size probe when the path exists but is not a regular file.
 # `wc -c` prints only digits, so this can never collide with a real size.
-NOT_REGULAR_SENTINEL = "__hermes_not_regular__"
+NOT_REGULAR_SENTINEL = "__kova_not_regular__"
 
 # Echoed by the compound read/write probes when the path does not exist. A
 # compound command only reports its *last* exit status, so the missing-file
 # signal that ``_probe_regular_file`` carries in ``exit 1`` travels in-band.
-MISSING_SENTINEL = "__hermes_missing__"
+MISSING_SENTINEL = "__kova_missing__"
 
 _READ_SENTINEL_PREFIX = "__KOVA_RF_"
 _WRITE_SENTINEL_PREFIX = "__KOVA_WF_"

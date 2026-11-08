@@ -11,7 +11,7 @@ history and each turn submits only the new user message), so:
 * the fix routes hygiene and manual /compress to the LIVE cached agent's
   ``thread/compact/start`` (asserted here at the compact_thread RPC-stub
   boundary) and keeps that agent cached;
-* ``compression.codex_app_server_auto`` semantics hold: only ``hermes``
+* ``compression.codex_app_server_auto`` semantics hold: only ``kova``
   lets Kova' threshold start a compaction; ``native``/``off`` skip
   cleanly, and no mode ever runs the local transcript compressor.
 """
@@ -53,7 +53,7 @@ class LiveCodexAgent:
     of the code under test.
     """
 
-    def __init__(self, mode="hermes", session=None):
+    def __init__(self, mode="kova", session=None):
         self.api_mode = "codex_app_server"
         self.codex_app_server_auto_compaction = mode
         self.session_id = "sess-1"
@@ -107,11 +107,11 @@ def _gateway(tmp_path, session_key="tg:123", agent=None):
 
 
 # ---------------------------------------------------------------------------
-# Core no-op regression: hermes mode + live thread => thread/compact runs
+# Core no-op regression: kova mode + live thread => thread/compact runs
 # ---------------------------------------------------------------------------
 
-def test_hermes_mode_compacts_live_thread_at_rpc_boundary(tmp_path):
-    agent = LiveCodexAgent(mode="hermes")
+def test_kova_mode_compacts_live_thread_at_rpc_boundary(tmp_path):
+    agent = LiveCodexAgent(mode="kova")
     key = "tg:123"
     gw, db = _gateway(tmp_path, key, agent)
     # Pre-arm a persisted failure streak so success provably resets it
@@ -123,7 +123,7 @@ def test_hermes_mode_compacts_live_thread_at_rpc_boundary(tmp_path):
             gw,
             key,
             agent.session_id,
-            auto_mode="hermes",
+            auto_mode="kova",
             history=_history(),
             approx_tokens=345_000,
             timeout_seconds=30.0,
@@ -142,7 +142,7 @@ def test_hermes_mode_compacts_live_thread_at_rpc_boundary(tmp_path):
     assert db.increment_hygiene_failure_streak(key) == 1  # was cleared to 0
 
 
-def test_hermes_mode_without_cached_agent_skips_without_local_compression(tmp_path):
+def test_kova_mode_without_cached_agent_skips_without_local_compression(tmp_path):
     # Detached case: no live agent → no thread → nothing real to compact.
     # The old behavior "compressed" the mirror (a no-op) and then evicted;
     # the new behavior is an honest skip with the transcript untouched.
@@ -155,7 +155,7 @@ def test_hermes_mode_without_cached_agent_skips_without_local_compression(tmp_pa
             gw,
             "tg:123",
             "sess-1",
-            auto_mode="hermes",
+            auto_mode="kova",
             history=history,
             approx_tokens=345_000,
             timeout_seconds=5.0,
@@ -220,7 +220,7 @@ def test_unknown_mode_falls_back_to_native_semantics(tmp_path):
 # transcript mirror.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("mode", ["native", "hermes", "off"])
+@pytest.mark.parametrize("mode", ["native", "kova", "off"])
 def test_force_compacts_thread_never_local_fallback(mode):
     agent = LiveCodexAgent(mode=mode)
     messages = _history()
@@ -270,7 +270,7 @@ def test_timeout_records_persistent_cooldown(tmp_path):
             time.sleep(1.5)
             return self.result
 
-    agent = LiveCodexAgent(mode="hermes", session=HangingSession())
+    agent = LiveCodexAgent(mode="kova", session=HangingSession())
     key = "tg:123"
     gw, db = _gateway(tmp_path, key, agent)
     db.create_session(agent.session_id, "gateway")
@@ -280,7 +280,7 @@ def test_timeout_records_persistent_cooldown(tmp_path):
             gw,
             key,
             agent.session_id,
-            auto_mode="hermes",
+            auto_mode="kova",
             history=_history(),
             approx_tokens=345_000,
             timeout_seconds=1.0,
@@ -343,12 +343,12 @@ def test_codex_compaction_releases_the_live_sessions_read_dedup(tmp_path, entry,
         "default": {"dedup_generation_reads": {"/other/file.py"}},
     }
     monkeypatch.setattr(tracking, "_read_tracker", tracker)
-    agent = LiveCodexAgent(mode="hermes")
+    agent = LiveCodexAgent(mode="kova")
 
     if entry == "hygiene":
         gw, _db = _gateway(tmp_path, "tg:123", agent)
         outcome = asyncio.run(run_codex_hygiene_compaction(
-            gw, "tg:123", agent.session_id, auto_mode="hermes", history=_history(),
+            gw, "tg:123", agent.session_id, auto_mode="kova", history=_history(),
             approx_tokens=345_000, timeout_seconds=30.0))
         assert outcome == "compacted"
     else:
@@ -382,7 +382,7 @@ def test_hygiene_worker_inherits_caller_contextvars(tmp_path):
             seen["thread"] = threading.current_thread().name
             return super()._compress_context(messages, system_message, **kwargs)
 
-    agent = ScopeProbeAgent(mode="hermes")
+    agent = ScopeProbeAgent(mode="kova")
     key = "tg:ctx"
     gw, _db = _gateway(tmp_path, key, agent)
 
@@ -390,7 +390,7 @@ def test_hygiene_worker_inherits_caller_contextvars(tmp_path):
         token = marker.set("profile-scope")
         try:
             return await run_codex_hygiene_compaction(
-                gw, key, agent.session_id, auto_mode="hermes",
+                gw, key, agent.session_id, auto_mode="kova",
                 history=_history(), approx_tokens=345_000, timeout_seconds=30.0,
             )
         finally:

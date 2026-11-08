@@ -112,8 +112,8 @@ def _make_execute_only_env(forward_env=None):
     env._docker_exe = "/usr/bin/docker"
     # Base class attributes needed by unified execute()
     env._session_id = "test123"
-    env._snapshot_path = "/tmp/hermes-snap-test123.sh"
-    env._cwd_file = "/tmp/hermes-cwd-test123.txt"
+    env._snapshot_path = "/tmp/kova-snap-test123.sh"
+    env._cwd_file = "/tmp/kova-cwd-test123.txt"
     env._cwd_marker = "__KOVA_CWD_test123__"
     env._snapshot_ready = True
     env._last_sync_time = None
@@ -121,14 +121,14 @@ def _make_execute_only_env(forward_env=None):
     return env
 
 
-def test_init_env_args_uses_hermes_dotenv_for_allowlisted_env(monkeypatch):
+def test_init_env_args_uses_kova_dotenv_for_allowlisted_env(monkeypatch):
     """_build_init_env_args picks up forwarded env vars from .env file at init time."""
     # Use a var that is NOT in _KOVA_PROVIDER_ENV_BLOCKLIST (GITHUB_TOKEN
     # is in the copilot provider's api_key_env_vars and gets stripped).
     env = _make_execute_only_env(["DATABASE_URL"])
 
     monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", lambda: {"DATABASE_URL": "value_from_dotenv"})
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", lambda: {"DATABASE_URL": "value_from_dotenv"})
 
     args = env._build_init_env_args()
 
@@ -139,12 +139,12 @@ def test_init_env_args_uses_hermes_dotenv_for_allowlisted_env(monkeypatch):
     assert env._init_env_values["DATABASE_URL"] == "value_from_dotenv"
 
 
-def test_init_env_args_prefers_shell_env_over_hermes_dotenv(monkeypatch):
+def test_init_env_args_prefers_shell_env_over_kova_dotenv(monkeypatch):
     """Shell env vars take priority over .env file values in init env args."""
     env = _make_execute_only_env(["DATABASE_URL"])
 
     monkeypatch.setenv("DATABASE_URL", "value_from_shell")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", lambda: {"DATABASE_URL": "value_from_dotenv"})
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", lambda: {"DATABASE_URL": "value_from_dotenv"})
 
     args = env._build_init_env_args()
 
@@ -153,7 +153,7 @@ def test_init_env_args_prefers_shell_env_over_hermes_dotenv(monkeypatch):
     assert not any("value_from_dotenv" in a for a in args)
 
 
-def test_init_env_args_uses_hermes_dotenv_for_empty_shell_env(monkeypatch):
+def test_init_env_args_uses_kova_dotenv_for_empty_shell_env(monkeypatch):
     """A transient empty-string in the live env must fall back to .env, not win.
 
     Regression: the disk fallback used to fire only on `value is None`, so a
@@ -163,7 +163,7 @@ def test_init_env_args_uses_hermes_dotenv_for_empty_shell_env(monkeypatch):
     env = _make_execute_only_env(["MY_SECRET"])
 
     monkeypatch.setenv("MY_SECRET", "")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", lambda: {"MY_SECRET": "value_from_dotenv"})
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", lambda: {"MY_SECRET": "value_from_dotenv"})
 
     args = env._build_init_env_args()
 
@@ -179,7 +179,7 @@ def test_init_env_args_uses_active_profile_for_forwarded_env(monkeypatch):
 
     env = _make_execute_only_env(forward_env=["SERVICE_TOKEN"])
     monkeypatch.setenv("SERVICE_TOKEN", "token-for-default")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
     ss.set_multiplex_active(True)
     token = ss.set_secret_scope({"SERVICE_TOKEN": "token-for-routed-profile"})
     try:
@@ -199,7 +199,7 @@ def test_init_env_args_omits_missing_scoped_forwarded_env(monkeypatch):
 
     env = _make_execute_only_env(forward_env=["SERVICE_TOKEN"])
     monkeypatch.setenv("SERVICE_TOKEN", "token-for-default")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
     ss.set_multiplex_active(True)
     token = ss.set_secret_scope({})
     try:
@@ -219,7 +219,7 @@ def test_runtime_exec_tracks_scope_and_clears_missing_value(monkeypatch):
 
     env = _make_execute_only_env(forward_env=["SERVICE_TOKEN"])
     monkeypatch.setenv("SERVICE_TOKEN", "token-for-default")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
     calls = []
     monkeypatch.setattr(
         docker_env,
@@ -268,7 +268,7 @@ def test_wrapped_exec_scopes_explicit_forward_env_across_profiles(monkeypatch, t
         encoding="utf-8",
     )
     monkeypatch.setenv("EXPLICIT_TOKEN", "token-for-default")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
 
     def _run_fake_docker_exec(cmd, stdin_data=None, **kwargs):
         """Execute the generated docker exec command in a real local bash."""
@@ -378,7 +378,7 @@ def test_forward_env_overrides_docker_env_in_init_args(monkeypatch):
     env._env = {"MY_KEY": "static_value"}
 
     monkeypatch.setenv("MY_KEY", "dynamic_value")
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
 
     args = env._build_init_env_args()
 
@@ -447,7 +447,7 @@ def test_snap_compat_drops_only_init_and_no_new_privileges(monkeypatch):
     assert "--init" not in compat and "no-new-privileges" not in compat
 
     def strip(argv):  # everything except the two flags and the random container name
-        return [a for a in argv if a not in ("--init", "--security-opt", "no-new-privileges") and not a.startswith("hermes-")]
+        return [a for a in argv if a not in ("--init", "--security-opt", "no-new-privileges") and not a.startswith("kova-")]
 
     assert strip(default) == strip(compat)
 
@@ -603,13 +603,13 @@ def test_reuse_environment_fingerprint_ignores_volatile_temp_mounts(tmp_path, mo
     stable_source = str(tmp_path / "data")
     process_a = docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.kova/skills:ro",
+        mount_args=["-v", f"{temp_root}/kova-skills-safe-a1b2c3:/root/.kova/skills:ro",
                     "-v", f"{stable_source}:/data:ro"],
         kova_home="/profiles/alpha",
     )
     process_b = docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-d4e5f6:/root/.kova/skills:ro",
+        mount_args=["-v", f"{temp_root}/kova-skills-safe-d4e5f6:/root/.kova/skills:ro",
                     "-v", f"{stable_source}:/data:ro"],
         kova_home="/profiles/alpha",
     )
@@ -617,7 +617,7 @@ def test_reuse_environment_fingerprint_ignores_volatile_temp_mounts(tmp_path, mo
     # A real mount change still forces a fresh container.
     assert process_a != docker_env._reuse_environment_fingerprint(
         image="python:3.11",
-        mount_args=["-v", f"{temp_root}/hermes-skills-safe-a1b2c3:/root/.kova/skills:ro",
+        mount_args=["-v", f"{temp_root}/kova-skills-safe-a1b2c3:/root/.kova/skills:ro",
                     "-v", f"{tmp_path}/other-data:/data:ro"],
         kova_home="/profiles/alpha",
     )
@@ -635,7 +635,7 @@ def test_run_command_sanitizes_unsafe_task_id(monkeypatch):
 
     labels = _labels_in_run_args(_run_args_from_calls(calls))
     # Each non-OK character becomes an underscore; the safe chars survive.
-    assert "hermes-task-id=task_with_weird_chars" in labels, (
+    assert "kova-task-id=task_with_weird_chars" in labels, (
         f"sanitized task-id label missing; got: {sorted(labels)}"
     )
 
@@ -763,7 +763,7 @@ def test_symlinked_skills_tree_reuses_container_across_processes(monkeypatch, tm
     config = {"image": "python:3.11", "volumes": ["volume-a:/workspace"]}
     first = _make_dummy_env(**config)
     second = _make_dummy_env(**config)
-    assert first._labels["hermes-environment"] == second._labels["hermes-environment"]
+    assert first._labels["kova-environment"] == second._labels["kova-environment"]
     # The safe copy really is per-construction volatile: proof the stability above
     # comes from canonicalization, not from the mount happening to be stable.
     mounts = []
@@ -775,7 +775,7 @@ def test_symlinked_skills_tree_reuses_container_across_processes(monkeypatch, tm
     # A real (non-tempdir) mount change must still start a fresh container.
     changed = dict(config, volumes=["volume-b:/workspace"])
     third = _make_dummy_env(**changed)
-    assert third._labels["hermes-environment"] != first._labels["hermes-environment"]
+    assert third._labels["kova-environment"] != first._labels["kova-environment"]
 
 
 def test_labels_attribute_populated_after_init(monkeypatch):
@@ -789,12 +789,12 @@ def test_labels_attribute_populated_after_init(monkeypatch):
     env = _make_dummy_env(task_id="abc")
 
     labels = dict(env._labels)
-    environment_label = labels.pop("hermes-environment")
+    environment_label = labels.pop("kova-environment")
     assert labels == {
         "kova-agent": "1",
-        "hermes-task-id": "abc",
-        "hermes-profile": "default",
-        "hermes-egress": "off",
+        "kova-task-id": "abc",
+        "kova-profile": "default",
+        "kova-egress": "off",
     }
     assert re.fullmatch(r"[0-9a-f]{24}", environment_label)
 
@@ -832,7 +832,7 @@ def test_reuse_probe_filters_on_environment_fingerprint(monkeypatch, tmp_path, c
     env = _make_dummy_env(**config)
     changed_filters = reuse_filters()
     assert changed_filters != original_filters
-    assert f"label=hermes-environment={env._labels['hermes-environment']}" in changed_filters
+    assert f"label=kova-environment={env._labels['kova-environment']}" in changed_filters
     assert set(f.removeprefix("label=") for f in changed_filters) <= _labels_in_run_args(_run_args_from_calls(calls))
 
     calls.clear()
@@ -857,9 +857,9 @@ def test_shared_container_key_replaces_profile_identity(monkeypatch, tmp_path):
 
     # Deterministic across processes/profiles, not the profile label, and
     # digest-suffixed (label sanitization alone is lossy).
-    assert a._labels["hermes-profile"] == b._labels["hermes-profile"]
-    assert a._labels["hermes-profile"] != "research"
-    assert a._labels["hermes-profile"].startswith("team_workspace-")
+    assert a._labels["kova-profile"] == b._labels["kova-profile"]
+    assert a._labels["kova-profile"] != "research"
+    assert a._labels["kova-profile"].startswith("team_workspace-")
     # Explicit sharing retains the first creator's immutable settings.
     assert a._labels == b._labels
 
@@ -875,17 +875,17 @@ def test_distinct_shared_keys_never_collide(monkeypatch):
     # Sanitize-collision pair: both stems clean to "team_workspace".
     a = _make_dummy_env(task_id="abc", shared_container_key="team/workspace")
     b = _make_dummy_env(task_id="abc", shared_container_key="team_workspace")
-    assert a._labels["hermes-profile"] != b._labels["hermes-profile"]
+    assert a._labels["kova-profile"] != b._labels["kova-profile"]
 
     # Truncation pair: identical first 63 chars, differ after.
     long_a = "x" * 70 + "A"
     long_b = "x" * 70 + "B"
     c = _make_dummy_env(task_id="abc", shared_container_key=long_a)
     d = _make_dummy_env(task_id="abc", shared_container_key=long_b)
-    assert c._labels["hermes-profile"] != d._labels["hermes-profile"]
+    assert c._labels["kova-profile"] != d._labels["kova-profile"]
     # Both stay within Docker's 63-char label-value bound.
-    assert len(c._labels["hermes-profile"]) <= 63
-    assert len(d._labels["hermes-profile"]) <= 63
+    assert len(c._labels["kova-profile"]) <= 63
+    assert len(d._labels["kova-profile"]) <= 63
 
 
 def test_empty_shared_container_key_preserves_profile_isolation(monkeypatch):
@@ -895,7 +895,7 @@ def test_empty_shared_container_key_preserves_profile_isolation(monkeypatch):
 
     env = _make_dummy_env(task_id="abc", shared_container_key="")
 
-    assert env._labels["hermes-profile"] == "research"
+    assert env._labels["kova-profile"] == "research"
 
 
 # ── Cross-process container reuse (issue #20561) ──────────────────
@@ -984,7 +984,7 @@ def test_egress_enabled_does_not_reuse_pre_egress_container(monkeypatch):
         docker_env,
         "_egress_proxy_args_for_docker",
         lambda: (
-            ["-v", "/tmp/ca:/etc/ssl/certs/hermes-egress-ca.crt:ro"],
+            ["-v", "/tmp/ca:/etc/ssl/certs/kova-egress-ca.crt:ro"],
             {"HTTPS_PROXY": "http://host.docker.internal:9090"},
             ["--add-host", "host.docker.internal:host-gateway"],
         ),
@@ -1000,7 +1000,7 @@ def test_egress_enabled_does_not_reuse_pre_egress_container(monkeypatch):
             if sub == "ps":
                 # Simulate an old pre-egress container: without the egress label
                 # filter it would match; with the filter Docker returns no match.
-                assert any(str(part).startswith("label=hermes-egress=") for part in cmd)
+                assert any(str(part).startswith("label=kova-egress=") for part in cmd)
                 return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
             if sub == "run":
                 return subprocess.CompletedProcess(cmd, 0, stdout="fresh-cid\n", stderr="")
@@ -1046,7 +1046,7 @@ def test_reuse_probe_format_is_podman_compatible(monkeypatch):
                             stderr="Error: can't evaluate field Label in type struct",
                         )
                     assert any(
-                        str(part) == "label=hermes-egress=off" for part in cmd
+                        str(part) == "label=kova-egress=off" for part in cmd
                     ), "egress=off posture must be expressed as a label filter"
                     return subprocess.CompletedProcess(
                         cmd, 0, stdout="podman-cid\trunning\n", stderr="",
@@ -1221,7 +1221,7 @@ def test_failed_docker_run_cleans_up_orphaned_container(monkeypatch):
     assert len(cleanup_calls) == 1, "docker rm should be called once for the orphaned container"
     rm_cmd = cleanup_calls[0]
     assert rm_cmd[1] == "rm" and rm_cmd[2] == "-f"
-    assert rm_cmd[3].startswith("hermes-"), "should remove the container by its generated name"
+    assert rm_cmd[3].startswith("kova-"), "should remove the container by its generated name"
 
 
 def test_docker_run_timeout_cleans_up_orphaned_container(monkeypatch):
@@ -1256,7 +1256,7 @@ def test_docker_run_timeout_cleans_up_orphaned_container(monkeypatch):
     assert len(cleanup_calls) == 1, "docker rm should be called once for the orphaned container"
     rm_cmd = cleanup_calls[0]
     assert rm_cmd[1] == "rm" and rm_cmd[2] == "-f"
-    assert rm_cmd[3].startswith("hermes-"), "should remove the container by its generated name"
+    assert rm_cmd[3].startswith("kova-"), "should remove the container by its generated name"
 
 
 
@@ -1845,7 +1845,7 @@ def test_forwarded_secret_values_never_in_argv(monkeypatch):
     secret = "s3cr3t-gitlab-token-value"
     env = _make_execute_only_env(["GITLAB_TOKEN"])
     monkeypatch.setenv("GITLAB_TOKEN", secret)
-    monkeypatch.setattr(docker_env, "_load_hermes_env_vars", dict)
+    monkeypatch.setattr(docker_env, "_load_kova_env_vars", dict)
 
     # init path
     init_args = env._build_init_env_args()
@@ -1902,7 +1902,7 @@ def test_docker_env_warnings_never_echo_values(caplog):
 @pytest.mark.parametrize("base", ["default", "profile:research-assistant-for-the-quarterly-ops"])
 def test_workspace_container_labels_identify_it_to_the_orphan_reaper(monkeypatch, base):
     """The orphan reaper must recognise an idle-STOPPED workspace container from the labels the
-    create path actually stamps. ``hermes-task-id`` is truncated to 63 chars, so a profile name of
+    create path actually stamps. ``kova-task-id`` is truncated to 63 chars, so a profile name of
     36+ chars cut the ``_ws_<digest>`` suffix and the next sweep ``docker rm``-ed the container,
     losing everything installed outside the mounts."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")

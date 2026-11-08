@@ -453,7 +453,7 @@ describe('useSessionStateCache — journal migration on stored-id rotation', () 
     })
 
     const journalKey = (storedSessionId: string) =>
-      `hermes.desktop.inflightTurnJournal.v2:${encodeURIComponent(storedSessionId)}`
+      `kova.desktop.inflightTurnJournal.v2:${encodeURIComponent(storedSessionId)}`
 
     expect(window.localStorage.getItem(journalKey('stored-A'))).not.toBeNull()
 

@@ -147,7 +147,7 @@ class TestMakeRunEnvHomeInjection:
     """Verify _make_run_env() applies the subprocess HOME policy."""
 
     def test_host_auto_preserves_real_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "home").mkdir()
         real_home = tmp_path / "real-home"
@@ -164,7 +164,7 @@ class TestMakeRunEnvHomeInjection:
         assert result["KOVA_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "home").mkdir()
         real_home = tmp_path / "real-home"
@@ -182,7 +182,7 @@ class TestMakeRunEnvHomeInjection:
         assert result["KOVA_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         # No home/ subdirectory
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -214,7 +214,7 @@ class TestSanitizeSubprocessEnvHomeInjection:
     """Verify _sanitize_subprocess_env() applies the subprocess HOME policy."""
 
     def test_host_auto_preserves_real_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "home").mkdir()
         real_home = tmp_path / "real-home"
@@ -230,7 +230,7 @@ class TestSanitizeSubprocessEnvHomeInjection:
         assert result["KOVA_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         (kova_home / "home").mkdir()
         real_home = tmp_path / "real-home"
@@ -247,7 +247,7 @@ class TestSanitizeSubprocessEnvHomeInjection:
         assert result["KOVA_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir()
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
 

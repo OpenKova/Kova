@@ -273,7 +273,7 @@ def detect_install_method(project_root: Optional[Path] = None) -> str:
     Source installers clone a git checkout and publish ``install-stamp.json``;
     the ``.git`` fallback identifies it as a source install. Older installations
     may carry ``.install_method``, which remains authoritative for compatibility.
-    The published image bakes a ``docker`` marker into ``/opt/hermes``. A manual
+    The published image bakes a ``docker`` marker into ``/opt/kova``. A manual
     clone in a container still resolves via ``.git``, not container presence alone.
     See issue #34397.
     """
@@ -425,7 +425,7 @@ def get_container_exec_info() -> Optional[dict]:
         "backend": info.get("backend", "docker"),
         "container_name": info.get("container_name", "kova-agent"),
         "exec_user": info.get("exec_user", "hermes"),
-        "hermes_bin": info.get("hermes_bin", "/data/current-package/bin/hermes")}
+        "kova_bin": info.get("kova_bin", "/data/current-package/bin/hermes")}
 
 
 # ---- Config paths / KOVA_HOME skeleton ----

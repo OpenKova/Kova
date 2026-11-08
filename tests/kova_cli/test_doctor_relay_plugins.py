@@ -1,4 +1,4 @@
-"""``hermes doctor`` names the Relay plugin files the runtime actually loads.
+"""``kova doctor`` names the Relay plugin files the runtime actually loads.
 
 Relay discovers user and system ``plugins.toml`` files outside the Kova home, so doctor is the one
 Kova surface that shows a user which files apply. It must agree with what initialization loads.

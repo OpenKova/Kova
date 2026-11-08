@@ -25,7 +25,7 @@ from pm.environments import owning_home_root, store_root
 
 # ``sys`` attribute a launcher sets before ``import kova_bootstrap``: pin KOVA_HOME to the
 # install's default root once the launch-time repair ran (``kova_bootstrap._pin_launcher_home``).
-PIN_DEFAULT_HOME_FLAG = "_hermes_pin_default_home"
+PIN_DEFAULT_HOME_FLAG = "_kova_pin_default_home"
 
 
 def _inline_string_literal(value: str) -> str:
@@ -96,17 +96,17 @@ def installation_command(repo_root: Path, args=(), *, module: str = "kova_cli.ma
     if resolve_store_python(root) is None:
         return runtime_command(root, args, module=module, python=python, home=home)
     prefix = [] if module == "kova_cli.main" else ["--run-module", module]
-    return [str(root / ".kova" / "bin" / "hermes"), *prefix, *args]
+    return [str(root / ".kova" / "bin" / "kova"), *prefix, *args]
 
 #: Launcher command names — keep in lockstep with scripts/install.ps1
 #: Publish-UserCommand and kova_cli/_install_repair.py.
-WINDOWS_BIN_LAUNCHERS = ("hermes", "hermes-acp")
+WINDOWS_BIN_LAUNCHERS = ("kova", "kova-acp")
 
 #: command name -> (entry module, callable) — mirrors pyproject.toml
 #: [project.scripts].
 ENTRY_POINTS = {
-    "hermes": ("kova_cli.main", "main"),
-    "hermes-acp": ("acp_adapter.entry", "main"),
+    "kova": ("kova_cli.main", "main"),
+    "kova-acp": ("acp_adapter.entry", "main"),
 }
 
 
@@ -172,9 +172,9 @@ def _store_script_maker(python_exe: Path):
 
     A launch activates only the dependency environment, which carries no
     distlib and drops the store's site-packages, so the update that repins
-    Python could only publish a .cmd and retire hermes.exe -- which Desktop's
+    Python could only publish a .cmd and retire kova.exe -- which Desktop's
     backend sweep, shortcuts and terminal profiles name. python-build-standalone
-    ships pip (the installer mints the first hermes.exe through it), and its
+    ships pip (the installer mints the first kova.exe through it), and its
     vendored distlib is self-contained. It loads under a private name so the
     store's pip never answers an ``import pip`` in this process."""
     package = Path(python_exe).parent / "Lib" / "site-packages" / "pip" / "_vendor" / "distlib"
@@ -185,7 +185,7 @@ def _store_script_maker(python_exe: Path):
     import importlib.util
 
     # One private package per store copy: a later repin's pip never reuses the first one's.
-    name = f"_hermes_store_distlib_{hashlib.sha256(str(package).encode()).hexdigest()[:12]}"
+    name = f"_kova_store_distlib_{hashlib.sha256(str(package).encode()).hexdigest()[:12]}"
     try:
         if name not in sys.modules:
             spec = importlib.util.spec_from_file_location(
@@ -210,12 +210,12 @@ def exe_is_venv_bound(exe: Path, venv_dir: Path | None) -> bool:
         return False
     needles = set()
     for interpreter in (
-        venv_dir / "Scripts" / "hermes.exe",
-        venv_dir / "Scripts" / "hermes-acp.exe",
+        venv_dir / "Scripts" / "kova.exe",
+        venv_dir / "Scripts" / "kova-acp.exe",
         venv_dir / "Scripts" / "python.exe",
         venv_dir / "bin" / "python3",
-        venv_dir / "bin" / "hermes",
-        venv_dir / "bin" / "hermes-acp",
+        venv_dir / "bin" / "kova",
+        venv_dir / "bin" / "kova-acp",
     ):
         for enc in ("utf-8", "utf-16-le"):
             try:
@@ -348,7 +348,7 @@ def mint_launcher(
 # Stdlib plus that copy only, under the same claim and checkout lock (a live writer still refuses,
 # which exits 1 with the repair's own reason), then a relaunch from the restored tree.
 _CLOSURE_REPAIR = """\
-def _hermes_closure_repair():
+def _kova_closure_repair():
     import contextlib, hashlib, io, shutil, subprocess
     from pathlib import Path
     root = Path(__ROOT__)
@@ -430,13 +430,13 @@ def _hermes_closure_repair():
             from kova_cli import _early_recovery
             restored = _early_recovery.restore_interrupted_pull(root)
     except Exception as exc:
-        said.write('hermes: the checkout cannot start after an interrupted `kova update`, and it was not '
+        said.write('kova: the checkout cannot start after an interrupted `kova update`, and it was not '
                    'repaired: %s\\n' % (exc,))
     if restored:
-        sys.stderr.write('hermes: the checkout could not start after an interrupted `kova update`; '
+        sys.stderr.write('kova: the checkout could not start after an interrupted `kova update`; '
                          'repaired it with the recovery code saved before the update.\\n' + said.getvalue())
         _early_recovery.relaunch_after_restore()
-    sys.stderr.write(said.getvalue() or 'hermes: the checkout cannot start after an interrupted `kova update`; '
+    sys.stderr.write(said.getvalue() or 'kova: the checkout cannot start after an interrupted `kova update`; '
                      'launch again once the update that owns it finishes.\\n')
     raise SystemExit(1)
 """
@@ -484,7 +484,7 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         "    try:\n"
         "        from kova_cli import _early_recovery\n"
         "    except Exception as exc:\n"
-        "        if _hermes_closure_repair() or not isinstance(exc, ImportError):\n"
+        "        if _kova_closure_repair() or not isinstance(exc, ImportError):\n"
         "            raise\n"
         "        _early_recovery = None  # a tree without the repair: the imports below report real damage\n"
         f"    if _early_recovery is not None and _early_recovery.restore_interrupted_pull(Path({root!r})):\n"
@@ -498,14 +498,14 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         "try:\n"
         "    import kova_bootstrap\n"
         "except Exception:\n"
-        "    _hermes_closure_repair()\n"
+        "    _kova_closure_repair()\n"
         "    raise\n"
         "if not os.environ.get('KOVA_HOME'):\n"
         "    from kova_constants import get_default_kova_root\n"
         "    os.environ['KOVA_HOME'] = str(get_default_kova_root())\n"
         "if sys.argv[1:2] == ['--run-module']:\n"
         "    import runpy\n"
-        "    if len(sys.argv) < 3: sys.exit('hermes: --run-module needs a module')\n"
+        "    if len(sys.argv) < 3: sys.exit('kova: --run-module needs a module')\n"
         "    module = sys.argv.pop(2)\n"
         "    del sys.argv[1]\n"
         "    runpy.run_module(module, run_name='__main__', alter_sys=True)\n"
@@ -545,18 +545,18 @@ def _owns_launcher(target: Path, root: Path) -> bool:
     except (OSError, UnicodeError, ValueError):
         return False
     paths = {str(root / p) for p in (
-        "hermes", "run_agent.py", "venv/bin/python", "venv/bin/python3",
-        "venv/bin/hermes",
-        ".kova/bin/hermes", ".kova/bin/hermes-acp",
+        "kova", "run_agent.py", "venv/bin/python", "venv/bin/python3",
+        "venv/bin/kova",
+        ".kova/bin/kova", ".kova/bin/kova-acp",
     )}
     # Current store launchers pass this Python bootstrap as one shell argument.
     bootstrap = f"sys.path.insert(0, {str(root)!r})"
     if paths.intersection(tokens) or any(bootstrap in token for token in tokens):
         return True
-    # The historical updater wrote ACP as a sibling-hermes forwarder. Adopt
+    # The historical updater wrote ACP as a sibling-kova forwarder. Adopt
     # it only when that sibling demonstrably belongs to this installation.
-    if target.name == "hermes-acp":
-        sibling = target.with_name("hermes")
+    if target.name == "kova-acp":
+        sibling = target.with_name("kova")
         return (tokens == ["exec", str(sibling), "acp", "$@"]
                 and _owns_launcher(sibling, root))
     return False
@@ -574,7 +574,7 @@ def _publish_conveniences(root: Path, out_dir: Path, names, *, create: bool = Tr
         if (not create or target.exists() or target.is_symlink()) and not _owns_launcher(target, root):
             continue
         before = target.lstat().st_mtime_ns if target.exists() or target.is_symlink() else None
-        command = ([str(root / ".kova/bin/hermes"), "--run-module", "run_agent"]
+        command = ([str(root / ".kova/bin/kova"), "--run-module", "run_agent"]
                    if name == "kova-agent" else [str(root / ".kova/bin" / name)])
         if _write_shell(target, command) is None:
             raise OSError(f"could not publish launcher {target}")
@@ -786,7 +786,7 @@ def _kept_shared_launcher(name: str, local: Path, store: Path, own: Path | None)
 
     Checkout launchers are shared by every KOVA_HOME; a launch under one
     data root must never repoint them at another root's interpreter (#123238):
-    once that root is deleted, every hermes breaks. Keep the file when it
+    once that root is deleted, every kova command breaks. Keep the file when it
     execs a live interpreter outside *store*. Missing launchers, dead
     interpreters and same-store repins still publish. A launcher whose
     interpreter is gone is never left in front of a kept one: PATHEXT resolves
@@ -913,7 +913,7 @@ def expose_cli(project_root: Path | None = None, *, create: bool = True) -> dict
         # entries or reclaim a convenience that was repointed to another root.
         from kova_constants import get_default_kova_root
         for directory in (get_default_kova_root() / "bin", Path("/usr/local/bin")):
-            if directory not in dirs and (not create or _owns_launcher(directory / "hermes", root)):
+            if directory not in dirs and (not create or _owns_launcher(directory / "kova", root)):
                 dirs.append(directory)
         written = []
         for directory in dirs:
@@ -983,7 +983,7 @@ def _read_environment_block(address: int) -> dict[str, str]:
     return environ
 
 
-def new_console_hermes_root() -> Path | None:
+def new_console_kova_root() -> Path | None:
     """The Kova root that a newly opened console resolves, or None when Windows cannot say."""
     from kova_constants import kova_root_for_environment
 
@@ -1001,7 +1001,7 @@ def owns_user_path(root: Path) -> bool:
     sandbox, a test home, a suffixed data directory) gets False. So does any
     root when Windows cannot report the console environment.
     """
-    console_root = new_console_hermes_root()
+    console_root = new_console_kova_root()
     if console_root is not None and (
         os.path.normcase(os.path.realpath(root)) == os.path.normcase(os.path.realpath(console_root))
     ):
@@ -1073,7 +1073,7 @@ def _expose_windows_user_bin(root: Path, *, create: bool) -> dict:
 
     Commands there that start another checkout which still exists stay in
     place unless *root* is the home's own checkout: a review tree or worktree
-    started against the home leaves the installed ``hermes`` alone.
+    started against the home leaves the installed ``kova`` alone.
     """
     from kova_constants import get_default_kova_root
 
@@ -1114,7 +1114,7 @@ def _is_bundled_payload(root: Path) -> bool:
 
 
 def _symlink_sealed_launchers(payload_bin) -> dict:
-    """Link ~/.local/bin/{hermes,kova-agent,hermes-acp} at a sealed
+    """Link ~/.local/bin/{kova,kova-agent,kova-acp} at a sealed
     bundle's own prebuilt shims (macOS only).
 
     Symlinks, not copies: the shims are signed as part of the app bundle,
@@ -1124,7 +1124,7 @@ def _symlink_sealed_launchers(payload_bin) -> dict:
 
     Ownership guard mirrors expose_cli's wrapper logic: an existing
     entry is replaced only when it is ours — a symlink into THIS app
-    bundle's payload — or missing/broken. A user's own `hermes` (pipx,
+    bundle's payload — or missing/broken. A user's own `kova` (pipx,
     another checkout's wrapper) is never touched.
     """
     link_dir = Path.home() / ".local" / "bin"
@@ -1132,7 +1132,7 @@ def _symlink_sealed_launchers(payload_bin) -> dict:
     written: list[str] = []
     try:
         link_dir.mkdir(parents=True, exist_ok=True)
-        for name in ("hermes", "kova-agent", "hermes-acp"):
+        for name in ("kova", "kova-agent", "kova-acp"):
             source = payload_bin / name
             if not source.is_file():
                 continue
@@ -1169,9 +1169,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parents[1]
     if resolve_store_python(repo_root, publication=True) is None:
-        parser.exit(1, "hermes: store interpreter is missing; finish pm install before publishing launchers\n")
+        parser.exit(1, "kova: store interpreter is missing; finish pm install before publishing launchers\n")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     written = ensure_install_launchers(repo_root, args.out_dir)
     if len(written) != len(ENTRY_POINTS):
-        parser.exit(1, "hermes: launcher publication failed\n")
+        parser.exit(1, "kova: launcher publication failed\n")
     print("\n".join(written))

@@ -33,7 +33,7 @@ def denied(*args, **kwargs):
 venv_sync.prepare_launch = denied if phase == "preparation" else lambda *_: None
 _early_recovery.recover_if_needed = lambda *_: False
 environments.activate_dependencies = denied if phase == "activation" else lambda *_: None
-sys.argv = ["hermes", "-z", "hi"]
+sys.argv = ["kova", "-z", "hi"]
 import kova_bootstrap
 """
     result = subprocess.run(
@@ -43,11 +43,11 @@ import kova_bootstrap
         check=False,
     )
     assert result.returncode == 1, result.stderr
-    assert result.stderr.count("hermes: ") == 1
+    assert result.stderr.count("kova: ") == 1
     assert "install state is not writable by this user" in result.stderr
     assert str(target) in result.stderr
     assert "source-update completion failed" not in result.stderr
-    assert "run `hermes update`" not in result.stderr
+    assert "run `kova update`" not in result.stderr
     assert "kova pm repair" not in result.stderr
     assert "Traceback" not in result.stderr
 

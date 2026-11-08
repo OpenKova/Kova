@@ -10,7 +10,7 @@ import pytest
 
 @pytest.fixture()
 def _zen_free_default_home(monkeypatch, tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     (home / "config.yaml").write_text(
         "model:\n  default: mimo-v2.5-free\n  provider: opencode\n  base_url: https://opencode.ai/zen/v1\n")

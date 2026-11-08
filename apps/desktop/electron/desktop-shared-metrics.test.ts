@@ -5,7 +5,7 @@ import path from 'node:path'
 import { afterAll, expect, test, vi } from 'vitest'
 
 const handlers = new Map<string, (...args: unknown[]) => unknown>()
-const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-desktop-metrics-'))
+const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-desktop-metrics-'))
 const sent: string[] = []
 
 vi.mock('electron', () => ({

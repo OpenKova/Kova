@@ -93,12 +93,12 @@ test('canImportKovaCli returns false when interpreter cannot run -c', async () =
 })
 
 test('canImportKovaCli returns false when binary does not exist', async () => {
-  const ghost = path.join(os.tmpdir(), 'hermes-probes-ghost-' + Date.now() + '.exe')
+  const ghost = path.join(os.tmpdir(), 'kova-probes-ghost-' + Date.now() + '.exe')
   assert.equal(await canImportKovaCli(ghost), false)
 })
 
 test('explicit Kova override is authoritative', () => {
-  assert.equal(shouldTrustKovaOverride('/nix/store/abc/bin/hermes'), true)
+  assert.equal(shouldTrustKovaOverride('/nix/store/abc/bin/kova'), true)
 })
 
 test('empty Kova override is not authoritative', () => {
@@ -113,7 +113,7 @@ test('verifyKovaCli returns false when command is falsy', async () => {
 })
 
 test('verifyKovaCli returns false when binary does not exist', async () => {
-  const ghost = path.join(os.tmpdir(), 'hermes-probes-ghost-' + Date.now() + '.exe')
+  const ghost = path.join(os.tmpdir(), 'kova-probes-ghost-' + Date.now() + '.exe')
   assert.equal(await verifyKovaCli(ghost), false)
 })
 
@@ -123,7 +123,7 @@ test('verifyKovaCli accepts an actual zero-exit executable', async (): Promise<v
 
 // #74064: with shell:true the command line goes through a shell (cmd.exe on
 // Windows, /bin/sh here), which truncates an unquoted executable at the first
-// space — `C:\Users\John Doe\...\hermes.cmd --version` runs `C:\Users\John`.
+// space — `C:\Users\John Doe\...\kova.cmd --version` runs `C:\Users\John`.
 // The same truncation reproduces on POSIX sh, so this is a real behavioral
 // test of the quoting, not a platform-conditional one. Windows gets its own
 // lane: there the quoted form goes through cmd.exe /s semantics instead.
@@ -131,7 +131,7 @@ test.skipIf(process.platform === 'win32')(
   'verifyKovaCli quotes a spaced executable path when probing through a shell',
   async (): Promise<void> => {
     const spacedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova probe-'))
-    const spacedCmd = path.join(spacedDir, 'hermes.cmd')
+    const spacedCmd = path.join(spacedDir, 'kova.cmd')
     fs.writeFileSync(spacedCmd, '#!/bin/sh\nexit 0\n', { mode: 0o755 })
     fs.chmodSync(spacedCmd, 0o755)
 

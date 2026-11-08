@@ -12,7 +12,7 @@ from tools import terminal_tool
 from tools.file_operations import ShellFileOperations
 
 
-HOST_HOME = "/srv/hermes-host/home"
+HOST_HOME = "/srv/kova-host/home"
 
 
 class RecordingEnvironment:

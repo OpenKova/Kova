@@ -5,7 +5,7 @@ Tests for the code execution sandbox (programmatic tool calling).
 
 These tests monkeypatch handle_function_call so they don't require API keys
 or a running terminal backend. They verify the core sandbox mechanics:
-UDS socket lifecycle, hermes_tools generation, timeout enforcement,
+UDS socket lifecycle, kova_tools generation, timeout enforcement,
 output capping, tool call counting, and error propagation.
 
 Run with:  python -m pytest tests/test_code_execution.py -v
@@ -52,7 +52,7 @@ from unittest.mock import patch, MagicMock
 from tools.code_execution_tool import (
     SANDBOX_ALLOWED_TOOLS,
     execute_code,
-    generate_hermes_tools_module,
+    generate_kova_tools_module,
     check_sandbox_requirements,
     build_execute_code_schema,
     _TOOL_DOC_LINES,
@@ -109,7 +109,7 @@ class TestInterruptedOutput(unittest.TestCase):
 
 class TestKovaToolsGeneration(unittest.TestCase):
     def test_generates_all_allowed_tools(self):
-        src = generate_hermes_tools_module(list(SANDBOX_ALLOWED_TOOLS))
+        src = generate_kova_tools_module(list(SANDBOX_ALLOWED_TOOLS))
         for tool in SANDBOX_ALLOWED_TOOLS:
             self.assertIn(f"def {tool}(", src)
 
@@ -154,19 +154,19 @@ class TestExecuteCodeRemoteTempDir(unittest.TestCase):
         # (no PID from nohup), so search for the per-call sandbox commands
         # rather than pinning positions.
         mkdir_cmd = next(cmd for cmd, _, _ in env.commands
-                         if "mkdir -p" in cmd and "hermes_exec_" in cmd)
+                         if "mkdir -p" in cmd and "kova_exec_" in cmd)
         run_cmd = next(cmd for cmd, _, _ in env.commands if "python3 script.py" in cmd)
         cleanup_cmd = next(cmd for cmd, _, _ in env.commands
-                           if "rm -rf" in cmd and "hermes_exec_" in cmd)
-        self.assertIn("mkdir -p /data/data/com.termux/files/usr/tmp/hermes_exec_", mkdir_cmd)
-        self.assertIn("rm -rf /data/data/com.termux/files/usr/tmp/hermes_exec_", cleanup_cmd)
-        self.assertNotIn("mkdir -p /tmp/hermes_exec_", mkdir_cmd)
+                           if "rm -rf" in cmd and "kova_exec_" in cmd)
+        self.assertIn("mkdir -p /data/data/com.termux/files/usr/tmp/kova_exec_", mkdir_cmd)
+        self.assertIn("rm -rf /data/data/com.termux/files/usr/tmp/kova_exec_", cleanup_cmd)
+        self.assertNotIn("mkdir -p /tmp/kova_exec_", mkdir_cmd)
         # Env vars travel in the shipped sandbox.env (sourced by the remote
         # shell), not on the command line.
         self.assertIn(". ./sandbox.env", run_cmd)
         env_ship = next(c for c in ship_mock.call_args_list
                         if c.args[1].endswith("sandbox.env"))
-        self.assertIn("KOVA_RPC_DIR=/data/data/com.termux/files/usr/tmp/hermes_exec_",
+        self.assertIn("KOVA_RPC_DIR=/data/data/com.termux/files/usr/tmp/kova_exec_",
                       env_ship.args[2])
 
     def test_timezone_shell_quoted_in_remote_execution(self):
@@ -276,7 +276,7 @@ class TestRemoteSharedHostLockdown(unittest.TestCase):
         import subprocess
         import tempfile
         mkdir_cmd = next(c for c in commands
-                         if "mkdir -p" in c and "hermes_exec_" in c)
+                         if "mkdir -p" in c and "kova_exec_" in c)
         env_ship, token = ships["sandbox.env"], tokens["sandbox.env"]
         sandbox = env_ship.args[1].rsplit("/", 1)[0]
         root = tempfile.mkdtemp()
@@ -339,7 +339,7 @@ class TestExecuteCode(unittest.TestCase):
     def test_single_tool_call(self):
         """Script calls terminal and prints the result."""
         code = """
-from hermes_tools import terminal
+from kova_tools import terminal
 result = terminal("echo hello")
 print(result.get("output", ""))
 """
@@ -366,7 +366,7 @@ print(result.get("output", ""))
         code = '''
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from hermes_tools import terminal
+from kova_tools import terminal
 
 N = 10
 
@@ -424,7 +424,7 @@ raise RuntimeError("deliberate crash")
     def test_shell_quote_helper(self):
         """shell_quote properly escapes dangerous characters."""
         code = """
-from hermes_tools import shell_quote
+from kova_tools import shell_quote
 # String with backticks, quotes, and special chars
 dangerous = '`rm -rf /` && $(whoami) "hello"'
 escaped = shell_quote(dangerous)
@@ -440,7 +440,7 @@ assert escaped.startswith("'")
     def test_json_parse_helper_bom(self):
         """json_parse strips a leading UTF-8 BOM and tolerates control chars (#57870)."""
         code = """
-from hermes_tools import json_parse
+from kova_tools import json_parse
 # A leading UTF-8 BOM (e.g. from Windows CLI output) must also parse (#57870)
 bom_text = "\\ufeff" + '{"body": "bom-ok"}'
 bom_result = json_parse(bom_text)
@@ -455,7 +455,7 @@ print("bom:" + bom_result["body"])
     def test_retry_helper_all_fail(self):
         """retry raises the last error when all attempts fail."""
         code = """
-from hermes_tools import retry
+from kova_tools import retry
 def always_fail():
     raise ValueError("nope")
 try:
@@ -520,16 +520,16 @@ class TestStubSchemaDrift(unittest.TestCase):
 
 
     def test_generated_module_accepts_all_params(self):
-        """Executing the generated hermes_tools module: every stub accepts all of
+        """Executing the generated kova_tools module: every stub accepts all of
         its parameters as keyword arguments and forwards each one, by name and
         value, to the RPC call (a dropped or renamed kwarg is a TypeError or a
         silently ignored argument in the sandbox)."""
         import inspect
 
         for transport in ("uds", "file"):
-            src = generate_hermes_tools_module(list(SANDBOX_ALLOWED_TOOLS), transport=transport)
-            namespace = {"__name__": "hermes_tools"}
-            exec(compile(src, "hermes_tools.py", "exec"), namespace)
+            src = generate_kova_tools_module(list(SANDBOX_ALLOWED_TOOLS), transport=transport)
+            namespace = {"__name__": "kova_tools"}
+            exec(compile(src, "kova_tools.py", "exec"), namespace)
             calls = []
             namespace["_call"] = lambda name, args: calls.append((name, args)) or "ok"
 
@@ -737,7 +737,7 @@ class TestExecuteCodeEdgeCases(unittest.TestCase):
         """When enabled_tools has no overlap with SANDBOX_ALLOWED_TOOLS,
         should fall back to all allowed tools."""
         code = (
-            "from hermes_tools import terminal\n"
+            "from kova_tools import terminal\n"
             "print('fallback ok')\n"
         )
         with patch("model_tools.handle_function_call",

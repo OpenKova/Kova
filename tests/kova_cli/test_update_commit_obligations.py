@@ -123,7 +123,7 @@ def test_a_refused_pull_after_the_branch_switch_owes_the_head_the_switch_landed_
     obligation used to stay on B, which the checkout at A never contains, while disarm refused
     (HEAD != X): an undischargeable debt (review C1). It must name A, and the refusal must not
     claim the checkout was untouched."""
-    import kova_cli.main as hermes_main
+    import kova_cli.main as kova_main
     from kova_cli import update_cmd
     from kova_cli._early_recovery import interrupted_pull_marker
     from kova_cli.update_host_obligation import read_host_obligation
@@ -145,7 +145,7 @@ def test_a_refused_pull_after_the_branch_switch_owes_the_head_the_switch_landed_
     _git(up, "commit", "-qam", "B")
     b = _git(up, "rev-parse", "HEAD")
     _git(clone, "fetch", "-q", "origin")
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", clone)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", clone)
     monkeypatch.setattr(commit, "_owns_live_checkout", lambda _root: False)
     monkeypatch.chdir(clone)
 
@@ -198,7 +198,7 @@ def test_one_installs_disarm_never_deletes_another_installs_debt_for_the_same_sh
 
 def _abc_clone(tmp_path, monkeypatch):
     """Upstream commits A, B, C; a clone of it with PROJECT_ROOT pointed at it. Returns (clone, a, b, c)."""
-    import kova_cli.main as hermes_main
+    import kova_cli.main as kova_main
 
     up, clone = tmp_path / "up", tmp_path / "clone"
     up.mkdir()
@@ -210,7 +210,7 @@ def _abc_clone(tmp_path, monkeypatch):
         _git(up, "commit", "-qm", name)
         shas.append(_git(up, "rev-parse", "HEAD"))
     _git(tmp_path, "clone", "-q", str(up), str(clone))
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", clone)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", clone)
     monkeypatch.setattr(commit, "_owns_live_checkout", lambda _root: False)
     monkeypatch.chdir(clone)
     return (clone, *shas)

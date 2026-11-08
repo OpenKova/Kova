@@ -1,6 +1,6 @@
 """A peer DM into a Bot Chat is answered by that chat, never by a second writer.
 
-``hermes peer dm`` posts to ``/api/sessions/{id}/chat`` on the peer. Under session authority the
+``kova peer dm`` posts to ``/api/sessions/{id}/chat`` on the peer. Under session authority the
 Bot Chat's single writer is the authority FIFO and the turn enters through the ``bot_relay.deliver``
 door (``tests/gateway/test_peer_dm_bot_chat_authority.py``). This file keeps the no-authority lane:
 a Desktop lease is a viewer, not an executor (the lease-advertised mailbox consumer was retired), so
@@ -149,7 +149,7 @@ def test_peer_dm_reports_a_turn_queued_in_the_open_bot_chat_as_delivered(monkeyp
     the sender not to resend, instead of printing ``(no reply)`` as if the turn were empty."""
     monkeypatch.setattr(peer_mod, "_ensure_bot_chat", lambda base, key: "bot-chat")
     monkeypatch.setattr(peer_mod, "_request", lambda url, key, **kw: {
-        "object": "hermes.session.chat.queued", "session_id": "bot-chat", "status": "claimed", "delivery_id": "d" * 32})
+        "object": "kova.session.chat.queued", "session_id": "bot-chat", "status": "claimed", "delivery_id": "d" * 32})
 
     code = peer_mod._peer_dm(SimpleNamespace(json=as_json), "hello", "mini", None, "http://peer:8642", "key")
     out = capsys.readouterr().out

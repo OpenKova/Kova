@@ -44,7 +44,7 @@ def home(tmp_path, monkeypatch, clean_layers):
     return home
 
 
-def _write_pack_plugin(home, name="hermes-lang-pl", *, lang="pl", core=None, tui=None, desktop=None,
+def _write_pack_plugin(home, name="kova-lang-pl", *, lang="pl", core=None, tui=None, desktop=None,
                        manifest_extra=None, with_init=False):
     plugin = home / "plugins" / name
     (plugin / "locales").mkdir(parents=True)
@@ -123,7 +123,7 @@ def test_manifest_only_pack_registers_language_and_display_language_resolves(hom
     assert "pl" not in i18n.supported_languages()
 
     manager = _load(home)
-    loaded = manager._plugins["hermes-lang-pl"]
+    loaded = manager._plugins["kova-lang-pl"]
     assert loaded.enabled, loaded.error
 
     assert "pl" in i18n.supported_languages()
@@ -138,12 +138,12 @@ def test_manifest_only_pack_registers_language_and_display_language_resolves(hom
     # Registration never touches display.language; setting it makes the pack the active language.
     assert i18n.get_language() == "en"
     (home / "config.yaml").write_text(
-        yaml.safe_dump({"plugins": {"enabled": ["hermes-lang-pl"]}, "display": {"language": "pl"}}), encoding="utf-8")
+        yaml.safe_dump({"plugins": {"enabled": ["kova-lang-pl"]}, "display": {"language": "pl"}}), encoding="utf-8")
     i18n.reset_language_cache()
     assert i18n.get_language() == "pl"
     assert i18n.t(_KEY) == "Zatwierdzenie"
     option = next(o for o in i18n.language_options() if o["id"] == "pl")
-    assert option == {"id": "pl", "endonym": "pl", "rtl": False, "source": "plugin:hermes-lang-pl",
+    assert option == {"id": "pl", "endonym": "pl", "rtl": False, "source": "plugin:kova-lang-pl",
                       "surfaces": ["core", "tui", "desktop"]}
 
 
@@ -151,19 +151,19 @@ def test_pack_with_register_function_and_metadata(home):
     _write_pack_plugin(home, core={"approval": {"denied": "Zatwierdzenie"}}, with_init=True,
                        manifest_extra={"provides_locales": [{"id": "pl", "endonym": "Polski", "rtl": False}]})
     manager = _load(home)
-    assert manager._plugins["hermes-lang-pl"].enabled
+    assert manager._plugins["kova-lang-pl"].enabled
     option = next(o for o in i18n.language_options() if o["id"] == "pl")
-    assert option["endonym"] == "Polski" and option["source"] == "plugin:hermes-lang-pl"
+    assert option["endonym"] == "Polski" and option["source"] == "plugin:kova-lang-pl"
 
 
 def test_pack_overrides_overlay_and_unload_drops_it(home):
     (home / "locales" / "de.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Overlay"}}), encoding="utf-8")
-    _write_pack_plugin(home, "hermes-lang-de", lang="de", core={"approval": {"denied": "Pack"}})
+    _write_pack_plugin(home, "kova-lang-de", lang="de", core={"approval": {"denied": "Pack"}})
     i18n.reset_language_cache()
     assert i18n.t(_KEY, lang="de") == "Overlay"
 
     manager = _load(home)
-    assert manager._plugins["hermes-lang-de"].enabled
+    assert manager._plugins["kova-lang-de"].enabled
     assert i18n.t(_KEY, lang="de") == "Pack"
 
     manager.unload()

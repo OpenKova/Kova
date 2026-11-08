@@ -1,4 +1,4 @@
-"""#93349 — ``hermes update`` restarts only the gateways of the home it is updating.
+"""#93349 — ``kova update`` restarts only the gateways of the home it is updating.
 
 ``kova-gateway*`` units and ``gateway run`` processes are host-wide namespaces shared by every
 Kova install under the account. A scratch home's update used to drain and restart the account's

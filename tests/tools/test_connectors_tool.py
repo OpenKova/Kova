@@ -146,7 +146,7 @@ def _session_tool_names(enabled_toolsets, *, connectors, disabled_toolsets=None)
 
 
 def test_cli_session_gets_the_tool_outside_a_code_workspace(tmp_path, monkeypatch):
-    """The path a plain `hermes` run takes: _get_platform_tools, no git cwd."""
+    """The path a plain `kova` run takes: _get_platform_tools, no git cwd."""
     from kova_cli.tools_config import _get_platform_tools
 
     monkeypatch.chdir(tmp_path)
@@ -225,7 +225,7 @@ def test_operator_can_still_turn_it_off(tmp_path, monkeypatch):
         enabled, connectors=True, disabled_toolsets=["connections"]
     )
     assert "manage_connections" in _session_tool_names(
-        enabled, connectors=True, disabled_toolsets=["hermes-cli"]
+        enabled, connectors=True, disabled_toolsets=["kova-cli"]
     )
 
 

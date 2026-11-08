@@ -41,7 +41,7 @@ NEW_URL = "https://new-endpoint.invalid/v1"
 @pytest.fixture()
 def live_home(monkeypatch):
     """A REAL isolated KOVA_HOME with a config.yaml + state.db on disk."""
-    tmp = Path(tempfile.mkdtemp(prefix="hermes-live-staleprov-"))
+    tmp = Path(tempfile.mkdtemp(prefix="kova-live-staleprov-"))
     home = tmp / ".kova"
     home.mkdir(parents=True)
     config = {

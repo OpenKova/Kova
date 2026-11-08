@@ -59,7 +59,7 @@ def _clean_spent_registry():
 
 @pytest.fixture
 def kova_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"):

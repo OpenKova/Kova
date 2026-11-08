@@ -25,7 +25,7 @@ def _profile(home: Path, portal: str) -> Path:
     home.mkdir(parents=True, exist_ok=True)
     (home / ".env").write_text(f"KOVA_PORTAL_BASE_URL={portal}\n", encoding="utf-8")
     nous = {"access_token": "expired-access", "refresh_token": f"refresh-for-{portal}",
-            "client_id": "hermes-cli-vps", "portal_base_url": portal,
+            "client_id": "kova-cli-vps", "portal_base_url": portal,
             "expires_at": "2000-01-01T00:00:00+00:00"}
     (home / "auth.json").write_text(json.dumps(
         {"version": 1, "active_provider": "nous", "providers": {"nous": nous}}), encoding="utf-8")
@@ -34,7 +34,7 @@ def _profile(home: Path, portal: str) -> Path:
 
 @pytest.fixture
 def launch_home(tmp_path, monkeypatch):
-    home = _profile(tmp_path / "hermes", STAGING)
+    home = _profile(tmp_path / "kova", STAGING)
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     monkeypatch.delenv("KOVA_PORTAL_BASE_URL", raising=False)
@@ -174,7 +174,7 @@ def test_home_and_scope_are_restored_when_the_scope_build_fails(launch_home, mon
 def test_launch_profile_keeps_its_env_only_override_frozen_at_activation(tmp_path, monkeypatch, refreshes):
     """A launch Portal override with no .env line (systemd / ``op run``) is the launch profile's
     own: it survives later live-env mutation because the launch scope reads the frozen env."""
-    home = _profile(tmp_path / "hermes", STAGING)
+    home = _profile(tmp_path / "kova", STAGING)
     (home / ".env").write_text("", encoding="utf-8")
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setenv("KOVA_SHARED_AUTH_DIR", str(tmp_path / "shared"))

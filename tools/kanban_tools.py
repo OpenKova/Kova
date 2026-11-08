@@ -961,11 +961,11 @@ def _handle_comment(args: dict, **kw) -> str:
     body = _redact(_require_text(args, "body"))
     # Author comes from the worker's runtime identity (``_persisted_identity``), never
     # caller args: comments are injected into future workers' system prompts, so an
-    # args["author"] override could forge a directive from ``hermes-system``.
+    # args["author"] override could forge a directive from ``kova-system``.
     # Cross-task commenting stays unrestricted — it is the handoff channel between tasks.
     # Comments are injected into the next worker's system prompt by ``build_worker_context`` as
     # ``**{author}** (timestamp): {body}`` — accepting an ``args["author"]`` override let a worker forge a
-    # comment from an authoritative-looking name like ``hermes-system`` and poison the future-worker context
+    # comment from an authoritative-looking name like ``kova-system`` and poison the future-worker context
     # with what reads as a system directive. See #19713.
     author = _persisted_identity()
     with _board(args.get("board")) as (kb, conn):
@@ -1020,7 +1020,7 @@ def _download_url_with_cap(url: str, max_bytes: int) -> tuple[bytes, Optional[st
                 f"URL blocked by SSRF protection (private/internal address): {current_url}")
         chunks: list[bytes] = []
         total = 0
-        with httpx.stream("GET", current_url, headers={"User-Agent": "hermes-kanban/attach"},
+        with httpx.stream("GET", current_url, headers={"User-Agent": "kova-kanban/attach"},
                           timeout=30, follow_redirects=False) as resp:
             if resp.is_redirect:
                 location = resp.headers.get("location")

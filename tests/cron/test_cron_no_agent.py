@@ -16,7 +16,7 @@ import pytest
 
 
 @pytest.fixture
-def hermes_env(tmp_path, monkeypatch):
+def kova_env(tmp_path, monkeypatch):
     """Isolate KOVA_HOME for each test so jobs/scripts don't leak."""
     home = tmp_path / ".kova"
     home.mkdir()
@@ -42,14 +42,14 @@ def hermes_env(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def test_create_job_no_agent_requires_script(hermes_env):
+def test_create_job_no_agent_requires_script(kova_env):
     from cron.jobs import create_job
 
     with pytest.raises(ValueError, match="no_agent=True requires a script"):
         create_job(prompt=None, schedule="every 5m", no_agent=True)
 
 
-def test_script_must_be_a_file_under_scripts_dir_not_a_shell_command(hermes_env):
+def test_script_must_be_a_file_under_scripts_dir_not_a_shell_command(kova_env):
     """``script`` names a file under KOVA_HOME/scripts/. A command line (``echo hi``) is
     refused at creation instead of firing every tick as "Script not found" delivered as the
     payload; a real file whose name contains a space is still a path."""
@@ -58,16 +58,16 @@ def test_script_must_be_a_file_under_scripts_dir_not_a_shell_command(hermes_env)
     with pytest.raises(ValueError, match="scripts"):
         create_job(prompt=None, schedule="every 5m", script="echo CRON_PAYLOAD", no_agent=True, deliver="local")
 
-    (hermes_env / "scripts" / "my watchdog.sh").write_text("echo hi\n", encoding="utf-8")
+    (kova_env / "scripts" / "my watchdog.sh").write_text("echo hi\n", encoding="utf-8")
     job = create_job(prompt=None, schedule="every 5m", script="my watchdog.sh", no_agent=True, deliver="local")
     with pytest.raises(ValueError, match="scripts"):
         update_job(job["id"], {"script": "echo CRON_PAYLOAD"})
 
 
-def test_update_job_roundtrips_no_agent_flag(hermes_env):
+def test_update_job_roundtrips_no_agent_flag(kova_env):
     from cron.jobs import create_job, update_job, get_job
 
-    script_path = hermes_env / "scripts" / "w.sh"
+    script_path = kova_env / "scripts" / "w.sh"
     script_path.write_text("echo hi\n")
     job = create_job(prompt=None, schedule="every 5m", script="w.sh", no_agent=True, deliver="local")
 
@@ -92,12 +92,12 @@ def test_update_job_roundtrips_no_agent_flag(hermes_env):
 # ---------------------------------------------------------------------------
 
 
-def test_run_job_no_agent_success_returns_script_stdout(hermes_env):
+def test_run_job_no_agent_success_returns_script_stdout(kova_env):
     """Happy path: script exits 0 with output, delivered verbatim."""
     from cron.jobs import create_job
     from cron.scheduler import run_job
 
-    script_path = hermes_env / "scripts" / "alert.sh"
+    script_path = kova_env / "scripts" / "alert.sh"
     script_path.write_text("#!/usr/bin/env bash\necho 'RAM 92% on host'\n")
 
     job = create_job(
@@ -110,7 +110,7 @@ def test_run_job_no_agent_success_returns_script_stdout(hermes_env):
     assert "RAM 92% on host" in doc
 
 
-def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
+def test_run_job_no_agent_reloads_dotenv_before_script(kova_env, monkeypatch):
     """Regression: a standalone cron tick process starts without home-channel
     vars in its environment, and the agent path's per-run dotenv reload never
     executes for no_agent jobs — delivery home channels stayed unresolved.
@@ -125,9 +125,9 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
         loaded_homes.append(kova_home)
         return []
 
-    monkeypatch.setattr(env_loader, "load_hermes_dotenv", fake_load)
+    monkeypatch.setattr(env_loader, "load_kova_dotenv", fake_load)
 
-    script_path = hermes_env / "scripts" / "probe.sh"
+    script_path = kova_env / "scripts" / "probe.sh"
     script_path.write_text('#!/usr/bin/env bash\necho "ok"\n')
 
     job = create_job(
@@ -136,8 +136,8 @@ def test_run_job_no_agent_reloads_dotenv_before_script(hermes_env, monkeypatch):
     success, _doc, _final_response, error = run_job(job)
     assert success is True
     assert error is None
-    assert loaded_homes, "load_hermes_dotenv was not called on the no_agent path"
-    assert str(loaded_homes[0]) == str(hermes_env)
+    assert loaded_homes, "load_kova_dotenv was not called on the no_agent path"
+    assert str(loaded_homes[0]) == str(kova_env)
 
 
 _PRESENCE_PROBE = (
@@ -147,7 +147,7 @@ _PRESENCE_PROBE = (
 
 
 def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_residue(
-    hermes_env, monkeypatch, tmp_path,
+    kova_env, monkeypatch, tmp_path,
 ):
     """Routed profile B declares JOB_SVC_TOKEN in terminal.env_passthrough and defines it only in
     its own .env (never in the process env); the launch profile A's .env credential is in the
@@ -157,8 +157,8 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     from cron.scheduler_script import _run_job_script
     from kova_constants import reset_kova_home_override, set_kova_home_override
 
-    (hermes_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
-    monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")  # what load_hermes_dotenv() did at startup
+    (kova_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
+    monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")  # what load_kova_dotenv() did at startup
     monkeypatch.delenv("JOB_SVC_TOKEN", raising=False)
     routed = tmp_path / "routed"
     (routed / "scripts").mkdir(parents=True)
@@ -180,15 +180,15 @@ def test_no_agent_script_gets_owning_profiles_declared_secret_never_launch_resid
     assert output.splitlines() == ["JOB_SVC_TOKEN=set", "LAUNCH_ONLY_TOKEN=MISSING"]
 
 
-def test_no_agent_script_of_launch_profile_keeps_its_own_env_credential(hermes_env, monkeypatch):
+def test_no_agent_script_of_launch_profile_keeps_its_own_env_credential(kova_env, monkeypatch):
     """Single-profile documented flow: the launch profile's own script still inherits the
     credential its .env put in the process env — nothing is stripped for a non-routed job."""
     from cron.scheduler_script import _run_job_script
 
-    (hermes_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
+    (kova_env / ".env").write_text("LAUNCH_ONLY_TOKEN=launch-secret\n", encoding="utf-8")
     monkeypatch.setenv("LAUNCH_ONLY_TOKEN", "launch-secret")
     monkeypatch.delenv("JOB_SVC_TOKEN", raising=False)
-    (hermes_env / "scripts" / "probe.sh").write_text(_PRESENCE_PROBE, encoding="utf-8")
+    (kova_env / "scripts" / "probe.sh").write_text(_PRESENCE_PROBE, encoding="utf-8")
 
     ok, output = _run_job_script("probe.sh")
 
@@ -207,7 +207,7 @@ def test_no_agent_script_of_launch_profile_keeps_its_own_env_credential(hermes_e
 
 
 
-def test_run_job_script_nul_path_fails_cleanly(hermes_env):
+def test_run_job_script_nul_path_fails_cleanly(kova_env):
     """Sibling of the lifecycle-guard ingestion fix: a NUL-bearing script
     value can survive to fire time (the creation-time guard treats it as
     "nothing to scan"), and ``Path.expanduser()`` raises ValueError — not
@@ -292,7 +292,7 @@ def test_agent_job_provider_classification_unchanged(error, expected):
 # ---------------------------------------------------------------------------
 
 
-def test_run_job_no_agent_uses_configured_interpreter(hermes_env):
+def test_run_job_no_agent_uses_configured_interpreter(kova_env):
     """A no-agent job's script must run through the configured interpreter.
 
     Proves the override survives the no_agent branch of ``run_job`` →
@@ -305,7 +305,7 @@ def test_run_job_no_agent_uses_configured_interpreter(hermes_env):
     from cron.scheduler import run_job
 
     # A wrapper that re-execs the real interpreter with an env marker.
-    wrapper = hermes_env / "venv" / "bin" / "python3"
+    wrapper = kova_env / "venv" / "bin" / "python3"
     wrapper.parent.mkdir(parents=True)
     wrapper.write_text(
         f"#!{sys.executable}\n"
@@ -316,7 +316,7 @@ def test_run_job_no_agent_uses_configured_interpreter(hermes_env):
     )
     wrapper.chmod(wrapper.stat().st_mode | _stat.S_IXUSR)
 
-    script_path = hermes_env / "scripts" / "marker.py"
+    script_path = kova_env / "scripts" / "marker.py"
     script_path.write_text(
         'import os\nprint(os.environ.get("CRON_WRAPPER_USED", "0"))\n'
     )
@@ -337,7 +337,7 @@ def test_run_job_no_agent_uses_configured_interpreter(hermes_env):
     assert "1" in doc
 
 
-def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, monkeypatch):
+def test_a_routed_profile_script_never_receives_a_launch_only_name(kova_env, monkeypatch):
     """A no_agent script fired for a SIBLING profile runs with that profile's scope overlaid and
     NONE of the launch profile's residue (#107695 review): a name the launch ``.env`` defines, and a
     name a launch external source SUPPLIED — applied, or skipped because a process value already won
@@ -395,7 +395,7 @@ def test_a_routed_profile_script_never_receives_a_launch_only_name(hermes_env, m
     assert dict(os.environ) == environ_before
 
 
-def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own(hermes_env, monkeypatch):
+def test_a_routed_profile_script_keeps_administrator_managed_values_over_its_own(kova_env, monkeypatch):
     """Managed-scope precedence (#107695 review on f5f88d5058): the administrator's managed ``.env`` is
     applied LAST with override in the launch process, so it beats the user's own ``.env``. Managed keys
     are not launch residue, and they are re-applied over the routed scope so the child sees the same

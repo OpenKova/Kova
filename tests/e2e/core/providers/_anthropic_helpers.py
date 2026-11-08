@@ -81,7 +81,7 @@ class Rig:
 
     def run(self, *args: str, timeout: float = TURN_TIMEOUT, extra_env: dict[str, str] | None = None,
             ) -> subprocess.CompletedProcess:
-        return subprocess.run(hermes_argv(*args), cwd=self.project, env=self.env(extra_env), capture_output=True,
+        return subprocess.run(kova_argv(*args), cwd=self.project, env=self.env(extra_env), capture_output=True,
                               text=True, timeout=timeout, stdin=subprocess.DEVNULL, check=False)
 
     def stop(self) -> None:
@@ -112,7 +112,7 @@ class Rig:
                 "select * from messages where session_id = ? order by id", (session_id,))]
 
 
-def hermes_argv(*args: str) -> list[str]:
+def kova_argv(*args: str) -> list[str]:
     return [sys.executable, "-m", "kova_cli.main", *args]
 
 

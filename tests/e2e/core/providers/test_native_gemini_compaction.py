@@ -27,7 +27,7 @@ from tests.fakes.providers.gemini_native import (
     GeminiFake,
     Recorded,
     Text,
-    hermes_model,
+    kova_model,
 )
 
 SUMMARY_MARK = "GEMINI-SUMMARY-CHECKPOINT"
@@ -68,7 +68,7 @@ class Run:
 @pytest.fixture(scope="module")
 def run(tmp_path_factory: pytest.TempPathFactory) -> Run:
     root = tmp_path_factory.mktemp("gemini_compaction")
-    home = nh.make_home(root, hermes_model(context_length=64_000), env_file=KOVA_ENV,
+    home = nh.make_home(root, kova_model(context_length=64_000), env_file=KOVA_ENV,
                         extra_config={"compression": {"threshold_tokens": 12_000, "protect_last_n": 4}})
     rng = random.Random(7)
     words = "alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike oscar".split()

@@ -51,7 +51,7 @@ class FakePortal:
         self.challenge_status_errors: list[int] = []
         self.challenge_url = f"{PORTAL}/challenge?code=ticket"
         self.optional_challenge = False
-        # NAS since hermes-portal#1516: ``purpose: "connectors"`` mints a ``connectors:invoke``-only
+        # NAS since kova-portal#1516: ``purpose: "connectors"`` mints a ``connectors:invoke``-only
         # JWT with any CHALLENGE rule waived. False = an older NAS that drops the unknown key.
         self.honours_purpose = True
         self.token_requests: list[dict] = []

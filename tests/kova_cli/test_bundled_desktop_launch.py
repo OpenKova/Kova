@@ -1,4 +1,4 @@
-"""``hermes desktop`` from inside a BUNDLED desktop payload.
+"""``kova desktop`` from inside a BUNDLED desktop payload.
 
 A bundled artifact ships the CLI inside ``<app>/resources/agent-payload``
 and the desktop app is the artifact itself — there is no source tree to
@@ -140,7 +140,7 @@ class TestResolveBundleLayout:
 
     def test_a_sealed_tree_with_no_app_is_not_a_bundle(self, tmp_path):
         # docker/nix shape: sealed repo, no agent-payload parent.
-        repo = tmp_path / "opt" / "hermes" / "repo"
+        repo = tmp_path / "opt" / "kova" / "repo"
         repo.mkdir(parents=True)
         with pytest.raises(NotBundledApp):
             resolve_bundle_layout(repo)
@@ -220,7 +220,7 @@ class TestCmdGuiOnABundle:
     def _args(**overrides):
         base = dict(
             source=False, build_only=False, fake_boot=False, ignore_existing=False,
-            hermes_root=None, cwd=None, skip_build=False, force_build=False,
+            kova_root=None, cwd=None, skip_build=False, force_build=False,
         )
         base.update(overrides)
         return SimpleNamespace(**base)
@@ -279,15 +279,15 @@ class TestCmdGuiOnABundle:
         assert launches == [[str(launcher), "--disable-setuid-sandbox"]]
 
     def test_explicit_profile_reaches_the_bundled_launcher(self, tmp_path, monkeypatch):
-        """`hermes -p work desktop` on a bundle hands Electron --profile work."""
+        """`kova -p work desktop` on a bundle hands Electron --profile work."""
         repo, launcher = _host_bundle(tmp_path / "app")
         # KOVA_HOME outside the platform home is the root itself on every OS.
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         profile = root / "profiles" / "work"
         profile.mkdir(parents=True)
         (profile / "config.yaml").write_text("{}\n", encoding="utf-8")
         monkeypatch.setenv("KOVA_HOME", str(root))
-        monkeypatch.setattr(sys, "argv", ["hermes", "-p", "work", "desktop"])
+        monkeypatch.setattr(sys, "argv", ["kova", "-p", "work", "desktop"])
         monkeypatch.setattr(cli_main, "_explicit_cli_profile", None)
         cli_main._apply_profile_override()
 

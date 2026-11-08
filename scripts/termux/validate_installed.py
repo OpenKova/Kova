@@ -93,7 +93,7 @@ def validate_update_refusal(project_root: Path, result: subprocess.CompletedProc
 def main() -> None:
     prefix = Path(os.environ["PREFIX"])
     root = prefix / "lib/kova-agent"
-    with tempfile.TemporaryDirectory(prefix="hermes-install-proof-", dir=prefix / "tmp") as tmp:
+    with tempfile.TemporaryDirectory(prefix="kova-install-proof-", dir=prefix / "tmp") as tmp:
         home = Path(tmp)
         env = {
             "PREFIX": str(prefix), "HOME": str(home), "KOVA_HOME": str(home / "state"),
@@ -108,10 +108,10 @@ def main() -> None:
             "PYTHONPATH": str(root / "app"),
             "PYTHONPYCACHEPREFIX": str(home / "pycache"),
         }
-        launcher = prefix / "bin/hermes"
+        launcher = prefix / "bin/kova"
         run([str(launcher), "--version"], env, home)
         run([str(launcher), "chat", "--help"], env, home)
-        run([str(prefix / "bin/hermes-acp"), "--check"], env, home)
+        run([str(prefix / "bin/kova-acp"), "--check"], env, home)
         python = root / "venv/bin/python"
         run([
             str(python), "-c",

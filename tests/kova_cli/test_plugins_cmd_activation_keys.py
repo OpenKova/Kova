@@ -35,7 +35,7 @@ def _write_tool_plugin(root, name):
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     (kova_home / "plugins").mkdir(parents=True)
     (kova_home / "config.yaml").write_text("plugins:\n  enabled: []\n  disabled: []\n", encoding="utf-8")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -59,7 +59,7 @@ def _lists():
 
 
 def test_disable_bundled_platform_by_manifest_name_gates_the_loader(home):
-    """`hermes plugins disable photon-platform` must produce a key the loader's gate matches; the
+    """`kova plugins disable photon-platform` must produce a key the loader's gate matches; the
     CLI wrote ``platforms/photon`` while discovery keyed the adapter ``photon-platform``."""
     plugins_cmd.cmd_disable("photon-platform")
 
@@ -98,7 +98,7 @@ def test_dashboard_toggle_writes_canonical_key_and_clears_stale_aliases(home):
 
 def test_dashboard_enable_on_a_fresh_config_keeps_the_core_tools(home):
     """Desktop/TUI/dashboard enable with no saved ``platform_toolsets`` must not write one: the old
-    seed ``platform_toolsets.cli: [<plugin_ts>]`` replaced the ``hermes-cli`` composite, so the model
+    seed ``platform_toolsets.cli: [<plugin_ts>]`` replaced the ``kova-cli`` composite, so the model
     lost every built-in tool (27 -> 2, no ``terminal``). The plugin toolset is on by default anyway."""
     from kova_cli.tools_config import _get_platform_tools
     from tools.registry import registry
@@ -132,7 +132,7 @@ def saved_list_plugin(home):
     _write_tool_plugin(home / "plugins", "zzre")
     cfg = load_config()
     cfg["plugins"]["enabled"] = ["zzre"]
-    cfg["platform_toolsets"] = {"cli": ["hermes-cli", "zzre_ts"]}
+    cfg["platform_toolsets"] = {"cli": ["kova-cli", "zzre_ts"]}
     save_config(cfg)
     yield
     _restart_backend()
@@ -146,23 +146,23 @@ def test_dashboard_reenable_restores_the_toolset_in_a_saved_list(saved_list_plug
 
     discover_plugins()  # long-lived backend: scanned while the plugin was on
     assert plugins_cmd.dashboard_set_agent_plugin_enabled("zzre", enabled=False)["ok"] is True
-    assert _saved_cli_list() == ["hermes-cli"]
+    assert _saved_cli_list() == ["kova-cli"]
 
     _restart_backend()
     discover_plugins()  # the backend now holds only a placeholder for the disabled plugin
     assert plugins_cmd.dashboard_set_agent_plugin_enabled("zzre", enabled=True)["ok"] is True
-    assert _saved_cli_list() == ["hermes-cli", "zzre_ts"]
+    assert _saved_cli_list() == ["kova-cli", "zzre_ts"]
 
 
 def test_cli_disable_and_enable_round_trip_the_toolset_in_a_saved_list(saved_list_plugin):
-    """``hermes plugins disable`` / ``enable`` edit a saved list the same way the dashboard does, each
+    """``kova plugins disable`` / ``enable`` edit a saved list the same way the dashboard does, each
     in its own process; they never touched it, so a toolset the dashboard dropped stayed off."""
     plugins_cmd.cmd_disable("zzre")
-    assert _saved_cli_list() == ["hermes-cli"]
+    assert _saved_cli_list() == ["kova-cli"]
 
     _restart_backend()
     plugins_cmd.cmd_enable("zzre")
-    assert _saved_cli_list() == ["hermes-cli", "zzre_ts"]
+    assert _saved_cli_list() == ["kova-cli", "zzre_ts"]
 
 
 def test_cli_enable_on_a_fresh_config_writes_no_toolset_list(home):

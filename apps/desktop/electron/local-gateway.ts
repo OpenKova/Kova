@@ -40,7 +40,7 @@ export function runGatewayEnsure(
     child.stdout.on('data', data => { stdout += data.toString();
 
  if (stdout.length > 65536) { stdout = stdout.slice(0, 65536); expire(`${label} output exceeded limit`) } })
-    // Diagnostics only (never protocol): an older `hermes` without the subcommand, a missing
+    // Diagnostics only (never protocol): an older `kova` without the subcommand, a missing
     // profile or an import crash explain themselves here while stdout stays empty.
     child.stderr.on('data', data => { stderr = (stderr + data.toString()).slice(-4096) })
     child.on('error', () => { clearTimeout(timer); clearTimeout(forceTimer); reject(new Error(`Could not run ${label}`)) })
@@ -140,7 +140,7 @@ export function createStaleGatewayRestarter(
 /** The single-line JSON `kova gateway ensure --json` prints, or a diagnosis of why there is none.
  *
  * Every protocol outcome (ready/starting/incompatible/...) is JSON on stdout. Empty or
- * non-JSON stdout means the command never reached the protocol boundary: an older `hermes`
+ * non-JSON stdout means the command never reached the protocol boundary: an older `kova`
  * on PATH that has no `ensure` subcommand, a profile that does not exist, an interpreter
  * crash. A bare JSON.parse there surfaced as "Unexpected end of JSON input" with the real
  * reason discarded on stderr. */
@@ -605,7 +605,7 @@ async function resolveControlSocket(home: string): Promise<string> {
     const target = (await fs.readFile(pointer, 'utf8')).trim()
     const hash = crypto.createHash('sha256').update(home).digest('hex').slice(0, 16)
 
-    if (!path.isAbsolute(target) || path.basename(path.dirname(target)) !== `hermes-gw-${hash}` || path.basename(target) !== 'control.sock') {throw new Error('Invalid gateway control pointer')}
+    if (!path.isAbsolute(target) || path.basename(path.dirname(target)) !== `kova-gw-${hash}` || path.basename(target) !== 'control.sock') {throw new Error('Invalid gateway control pointer')}
     await privateNode(path.dirname(target), 'directory')
     await privateNode(target, 'socket')
 

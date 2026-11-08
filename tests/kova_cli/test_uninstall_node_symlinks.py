@@ -25,7 +25,7 @@ def fake_home(tmp_path, monkeypatch):
     return home
 
 
-def _make_hermes_node(kova_home: Path) -> Path:
+def _make_kova_node(kova_home: Path) -> Path:
     """Create a fake $KOVA_HOME/node/bin/{node,npm,npx} tree."""
     node_bin = kova_home / "node" / "bin"
     node_bin.mkdir(parents=True)
@@ -59,7 +59,7 @@ def test_node_link_cleanup_respects_resolved_owner(fake_home, monkeypatch, owned
 def test_leaves_unrelated_symlinks_untouched(fake_home):
     """A node symlink the user repointed at nvm must survive uninstall."""
     kova_home = fake_home / ".kova"
-    _make_hermes_node(kova_home)
+    _make_kova_node(kova_home)
     local_bin = fake_home / ".local" / "bin"
 
     # Simulate nvm's node living elsewhere; user's ~/.local/bin/node -> nvm.
@@ -91,7 +91,7 @@ def test_removes_fhs_symlinks_in_usr_local_bin(fake_home, tmp_path, monkeypatch)
     in for /usr/local/bin so the test doesn't need real root privileges.
     """
     kova_home = fake_home / ".kova"
-    node_bin = _make_hermes_node(kova_home)
+    node_bin = _make_kova_node(kova_home)
 
     # Fake /usr/local/bin as a temp dir with our symlinks.
     fhs_bin = tmp_path / "usr_local_bin"

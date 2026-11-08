@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 _connection_profile_home: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "hermes_ws_connection_profile_home", default=None)
+    "kova_ws_connection_profile_home", default=None)
 
 
 # The authority owns every session, its transcript and its admissions: a legacy handler in these

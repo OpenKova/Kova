@@ -339,7 +339,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
       updateAvailable: true,
       behind: null,
       branch: deps.defaultUpdateBranch,
-      hermesRoot: root
+      kovaRoot: root
     }
 
     status.mechanism = mechanism
@@ -468,7 +468,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
 
       const command: string = `${deps.isWindows ? '& ' : ''}${quote(launcher)} update ${targetArgs.map(quote).join(' ')}`
 
-      return { ok: true, manual: true, command, hermesRoot: root }
+      return { ok: true, manual: true, command, kovaRoot: root }
     }
 
     if (!deps.isWindows && (!updater || status.channel)) {
@@ -487,7 +487,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
     if (!updater || status.channel) {
       // No staged updater binary — this is a CLI-installed user (they ran
       // `kova desktop`, never the Tauri installer that self-copies
-      // hermes-setup.exe into KOVA_HOME). On Windows the repo hand-off
+      // kova-setup.exe into KOVA_HOME). On Windows the repo hand-off
       // script serves them just as well as installer users — it only needs
       // PowerShell and the checkout — so fall through to the normal hand-off
       // when the script exists. Only when the checkout predates the script do
@@ -502,7 +502,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
         )
         deps.emitUpdateProgress({ stage: 'manual', message: command, percent: null })
 
-        return { ok: true, manual: true, command, hermesRoot: updateRoot }
+        return { ok: true, manual: true, command, kovaRoot: updateRoot }
       }
 
       deps.rememberLog('[updates] no staged updater; using repo hand-off script for CLI install')
@@ -676,7 +676,7 @@ export function createCheckoutStrategy(deps: CheckoutStrategyDeps): CheckoutStra
     if (!handoff) {
       deps.emitUpdateProgress({ stage: 'manual', message: manualCommand, percent: null })
 
-      return { ok: true, manual: true, command: manualCommand, hermesRoot: updateRoot }
+      return { ok: true, manual: true, command: manualCommand, kovaRoot: updateRoot }
     }
 
     const handoffConflict = await updateHandoffConflict(deps.kovaHome)

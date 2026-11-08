@@ -52,14 +52,14 @@ describe('deleteSession profile scoping', () => {
     // never deleted and came back on refresh. The URL must carry ?profile=.
     kovaApi.mockResolvedValue({ ok: true, exists: true, runtime_revision: 5, runtime_generation: 2 } as never)
     // Mirrors the real capabilityScoped for an object owner (remote-stamped row).
-    vi.mocked(client.capabilityScoped).mockReturnValue({ profile: 'tommy', connectionId: 'hermes-pi' })
+    vi.mocked(client.capabilityScoped).mockReturnValue({ profile: 'tommy', connectionId: 'kova-pi' })
 
-    await deleteSession('sess-1', { connectionId: 'hermes-pi', profile: 'tommy' })
+    await deleteSession('sess-1', { connectionId: 'kova-pi', profile: 'tommy' })
 
     expect(kovaApi.mock.calls.filter(([request]) => request.method)[0][0]).toMatchObject({
       method: 'DELETE',
       path: expect.stringContaining('/api/sessions/sess-1?profile=tommy'),
-      connectionId: 'hermes-pi',
+      connectionId: 'kova-pi',
       profile: 'tommy'
     })
   })

@@ -18,12 +18,12 @@ test('isWslEnvironment detects WSL2 env vars on linux', () => {
 })
 
 test('isWindowsBinaryPathInWsl blocks Windows binary types on WSL', () => {
-  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/hermes.exe', { isWsl: true }), true)
-  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/hermes.cmd', { isWsl: true }), true)
-  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/hermes.bat', { isWsl: true }), true)
+  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/kova.exe', { isWsl: true }), true)
+  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/kova.cmd', { isWsl: true }), true)
+  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/kova.bat', { isWsl: true }), true)
   assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/install.ps1', { isWsl: true }), true)
-  assert.equal(isWindowsBinaryPathInWsl('/usr/local/bin/hermes', { isWsl: true }), false)
-  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/hermes.exe', { isWsl: false }), false)
+  assert.equal(isWindowsBinaryPathInWsl('/usr/local/bin/kova', { isWsl: true }), false)
+  assert.equal(isWindowsBinaryPathInWsl('/mnt/c/Tools/kova.exe', { isWsl: false }), false)
 })
 
 test('detectRemoteDisplay keeps GPU on for local sessions', () => {

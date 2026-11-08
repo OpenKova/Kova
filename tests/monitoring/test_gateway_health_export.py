@@ -35,7 +35,7 @@ def test_otlp_attrs_redact_strings_and_never_export_profile():
         "exit_reason": "Bearer top-secret-token-0123456789 for user@example.com",
     })
 
-    assert "hermes.profile" not in attrs
+    assert "kova.profile" not in attrs
     assert "top-secret-token-0123456789" not in str(attrs)
     assert "user@example.com" not in str(attrs)
 
@@ -77,8 +77,8 @@ def test_diagnostic_log_attributes_are_allowlisted_redacted_and_profile_free():
         "custom": "must-not-egress",
     })
 
-    assert "hermes.profile" not in attrs
-    assert "hermes.custom" not in attrs
+    assert "kova.profile" not in attrs
+    assert "kova.custom" not in attrs
     assert "top-secret-token-0123456789" not in str(attrs)
 
 
@@ -145,7 +145,7 @@ def test_gateway_health_metrics_reach_loopback_collector():
         names = {metric.name for _, request in received
                  for resource in request.resource_metrics
                  for scope in resource.scope_metrics for metric in scope.metrics}
-        assert "hermes.gateway.up" in names
+        assert "kova.gateway.up" in names
     finally:
         if runtime is not None:
             runtime.shutdown()

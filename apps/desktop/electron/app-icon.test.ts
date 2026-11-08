@@ -38,12 +38,12 @@ test('resolveAppIcon returns the first candidate that passes the probe', () => {
 })
 
 test('decodingFileProbe rejects a missing file', () => {
-  const missing = path.join(os.tmpdir(), `hermes-icon-missing-${process.pid}.png`)
+  const missing = path.join(os.tmpdir(), `kova-icon-missing-${process.pid}.png`)
   assert.equal(decodingFileProbe(missing), false)
 })
 
 test('decodingFileProbe rejects a directory', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-icon-dir-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-icon-dir-'))
 
   try {
     assert.equal(decodingFileProbe(dir), false)

@@ -37,7 +37,7 @@ async def _dial(peer, *, protocols=_TICKET_PROTOCOLS, origin=None):
     async def send(message):
         sent.append(message)
 
-    headers = [(b"host", b"hermes.example.lan"), (b"sec-websocket-protocol", protocols.encode())]
+    headers = [(b"host", b"kova.example.lan"), (b"sec-websocket-protocol", protocols.encode())]
     if origin:
         headers.append((b"origin", origin.encode()))
     scope = {"type": "websocket", "path": "/api/ws", "scheme": "ws", "query_string": b"",
@@ -57,7 +57,7 @@ async def test_remote_originless_ticket_reaches_the_webapp_gate():
 
 @pytest.mark.asyncio
 async def test_remote_originless_dial_matches_the_same_dial_with_an_origin():
-    with_origin = await _dial("192.168.178.206", origin="https://hermes.example.lan")
+    with_origin = await _dial("192.168.178.206", origin="https://kova.example.lan")
     assert await _dial("192.168.178.206") == with_origin
 
 

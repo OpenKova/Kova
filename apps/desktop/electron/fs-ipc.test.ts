@@ -38,7 +38,7 @@ vi.mock('./desktop-plugins-root', () => ({
 
 import { registerFsIpc } from './fs-ipc'
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-fs-ipc-'))
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-fs-ipc-'))
 
 registerFsIpc({
   kovaHome: scratch,

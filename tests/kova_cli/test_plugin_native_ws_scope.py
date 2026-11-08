@@ -185,7 +185,7 @@ def test_concurrent_sockets_keep_their_own_profiles(daemon):
                 await receive()
                 await send({"type": done})
             return
-        scope["hermes.gateway_socket_peer"] = ("127.0.0.1", 50000)
+        scope["kova.gateway_socket_peer"] = ("127.0.0.1", 50000)
         await web_server.app(scope, receive, send)
 
     beta = {"home": str(daemon.beta), "secret": "beta-sentinel"}
@@ -232,7 +232,7 @@ def test_grant_scope_is_restored_when_the_connection_ends_abnormally(daemon, end
     scope = {"type": "websocket", "path": EVENTS, "raw_path": EVENTS.encode(), "root_path": "",
              "query_string": b"", "app": web_server.app,
              "headers": [(b"x-kova-gateway-ticket", _grant(daemon.beta).encode())],
-             "client": ("127.0.0.1", 50000), "hermes.gateway_socket_peer": ("127.0.0.1", 50000)}
+             "client": ("127.0.0.1", 50000), "kova.gateway_socket_peer": ("127.0.0.1", 50000)}
 
     async def connection():
         with _config_profile_scope(None):  # the launch profile's ambient scope

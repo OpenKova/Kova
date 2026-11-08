@@ -23,7 +23,7 @@ def channel_request(commit: str, sequence: int = 65536) -> dict:
             "token": token, "displayName": "Kova unregistered-preview",
             "appId": f"com.nousresearch.kova-channel-{token}",
             "appNamePascal": f"KovaChannel{token}", "artifactNamePascal": "KovaBundled",
-            "cliName": "hermes-unregistered-preview", "windowsExecutableName": "hermes-unregistered-preview",
+            "cliName": "kova-unregistered-preview", "windowsExecutableName": "kova-unregistered-preview",
             "msixAppIdWithOrg": f"NeuralStudio.KovaChannel{token}",
         },
         "bundleEnv": {"KOVA_PREVIEW_FULL_CONNECTORS": "1", "KOVA_HOME": None},

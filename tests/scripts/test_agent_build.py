@@ -154,7 +154,7 @@ def test_referenced_installed_code_uses_derived_command_map_without_copying(tmp_
 @pytest.mark.platforms("posix")
 def test_fixed_root_keeps_privilege_shim_and_resolves_venv_command_symlink(tmp_path):
     out, data = inputs_fixture(tmp_path)
-    # Docker source already occupies /opt/hermes; its bin/hermes belongs to s6.
+    # Docker source already occupies /opt/kova; its bin/kova belongs to s6.
     shutil.copytree(data["code"], out, dirs_exist_ok=True)
     data.update(placement="fixed", repo=".", code=str(out), project=str(out / "pyproject.toml"), bin_dir="libexec", python=sys.executable)
     bindir = out / "bin"
@@ -181,7 +181,7 @@ def test_fixed_root_keeps_privilege_shim_and_resolves_venv_command_symlink(tmp_p
 def test_fixed_layout_manifest_makes_the_tree_a_resolvable_payload(tmp_path):
     """Regression for #138990: the image's ``repo: "."`` assembly must resolve like a payload.
 
-    The Dockerfile assembles /opt/hermes in place, so the manifest lands on the tree
+    The Dockerfile assembles /opt/kova in place, so the manifest lands on the tree
     itself. A store-Python child boots through committed_venv(), which resolves the
     sealed venv from that manifest; without it every runtime_command child died with
     "no dependency environment is committed for this install".
@@ -194,7 +194,7 @@ def test_fixed_layout_manifest_makes_the_tree_a_resolvable_payload(tmp_path):
     out, data = inputs_fixture(tmp_path)
     shutil.copytree(data["code"], out, dirs_exist_ok=True)
     project = out / "pyproject.toml"
-    project.write_text(project.read_text(encoding="utf-8") + 'hermes="entry:main"\n', encoding="utf-8")
+    project.write_text(project.read_text(encoding="utf-8") + 'kova="entry:main"\n', encoding="utf-8")
     outside = tmp_path / "usr-local-bin-python3"
     outside.symlink_to(data["python"])
     venv_python = out / "venv/bin/python"
@@ -297,7 +297,7 @@ def test_payload_smoke_uses_relocated_manifest_commands(tmp_path):
     source = Path(data["code"])
     (source / "pyproject.toml").write_text(
         '[project]\nname="smoke-fixture"\nversion="1"\n'
-        '[project.scripts]\nhermes="entry:main"\n', encoding="utf-8")
+        '[project.scripts]\nkova="entry:main"\n', encoding="utf-8")
     (source / "entry.py").write_text(
         "import json, os, sys\nfrom pathlib import Path\n"
         "def main():\n"
@@ -332,7 +332,7 @@ def test_payload_smoke_uses_relocated_manifest_commands(tmp_path):
     assert missing_dep.returncode != 0
     assert 'SMOKE OK' not in missing_dep.stdout
     # A broken published command cannot be rescued by importing raw Python.
-    (out / "libexec/hermes").unlink()
+    (out / "libexec/kova").unlink()
     failed = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30, check=False)
     assert failed.returncode != 0
     assert "SMOKE OK" not in failed.stdout
@@ -341,9 +341,9 @@ def test_payload_smoke_uses_relocated_manifest_commands(tmp_path):
     manifest = json.loads((out / 'manifest.json').read_text())
     external = shutil.which('true')
     assert external
-    (out / 'libexec/hermes').symlink_to(external)
-    for path in (external, 'libexec/hermes'):
-        manifest['runtime']['commands']['hermes'] = path
+    (out / 'libexec/kova').symlink_to(external)
+    for path in (external, 'libexec/kova'):
+        manifest['runtime']['commands']['kova'] = path
         (out / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
         escaped = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30, check=False)
         assert escaped.returncode != 0, escaped.stdout

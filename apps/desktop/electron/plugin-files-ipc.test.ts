@@ -10,7 +10,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { registerPluginFilesIpc } from './plugin-files-ipc'
 
-const scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-ipc-')))
+const scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kova-plugin-files-ipc-')))
 const kovaHome = path.join(scratch, '.kova')
 const vault = path.join(scratch, 'Vault')
 fs.mkdirSync(kovaHome)

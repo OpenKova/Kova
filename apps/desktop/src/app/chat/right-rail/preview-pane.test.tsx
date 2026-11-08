@@ -50,7 +50,7 @@ describe('PreviewPane console state', () => {
 
   afterEach(() => {
     cleanup()
-    globalThis.document.documentElement.removeAttribute('data-hermes-desktop-host')
+    globalThis.document.documentElement.removeAttribute('data-kova-desktop-host')
     $previewTabs.set([])
     $rightRailActiveTabId.set(null)
     $connection.set(null)

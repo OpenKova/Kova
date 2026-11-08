@@ -363,8 +363,8 @@ class TestCompactionRotation:
         _run_turn(coordinator, lease, "t1")
 
         new_seg = _session_pushes(fake)[-1]["metadata"]
-        assert new_seg.get("hermes.session.segment") == 1
-        assert new_seg.get("hermes.session.segment_reason") == "compaction"
+        assert new_seg.get("kova.session.segment") == 1
+        assert new_seg.get("kova.session.segment_reason") == "compaction"
 
     def test_unknown_session_compaction_is_noop(self, coordinator, monkeypatch):
         _set_segments(monkeypatch, on_compaction=True)
@@ -460,7 +460,7 @@ class TestMaxTurnsRotation:
         # segment 1; rotation before turn 4.
         sessions = _session_pushes(fake)
         assert len(sessions) == 3, "cap of 2 over 5 turns => 2 rotations"
-        assert sessions[-1]["metadata"].get("hermes.session.segment_reason") == "max_turns"
+        assert sessions[-1]["metadata"].get("kova.session.segment_reason") == "max_turns"
 
     def test_zero_cap_means_unlimited(self, coordinator, monkeypatch):
         _set_segments(monkeypatch, max_turns=0)
@@ -555,7 +555,7 @@ class TestGatewayRunStaysUnimported:
 
     relay_runtime._segments_config() must NEVER trigger ``gateway.run`` — its
     import-time env setup (_KOVA_GATEWAY, KOVA_QUIET, TERMINAL_CWD := home)
-    hangs CLI approvals (#87183) and runs ``hermes -z`` in $HOME (#95577). A
+    hangs CLI approvals (#87183) and runs ``kova -z`` in $HOME (#95577). A
     monkeypatch can't catch a refactor re-adding the import, so this runs the
     real path in a fresh process with those vars unset.
     """

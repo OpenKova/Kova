@@ -53,7 +53,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     """
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     profile = root / "profiles" / "fitness"
     root.mkdir(parents=True)
     profile.mkdir(parents=True)

@@ -1,10 +1,10 @@
 """Tests for _refresh_bootstrap_cache_scripts (the stale-installer-cache fix).
 
-Pre-#67193 hermes-setup binaries reuse ``bootstrap-cache/install-<branch>.ps1``
+Pre-#67193 kova-setup binaries reuse ``bootstrap-cache/install-<branch>.ps1``
 forever without re-downloading, so a script cached at install time executes
 months-stale code on every GUI update/repair (the 2026-08-09 incident: a
 June 4 cached venv stage without the #81327 tree-kill sweep died on
-``Access denied``). Those binaries have no self-update path, so ``hermes
+``Access denied``). Those binaries have no self-update path, so ``kova
 update`` now rewrites the mutable-ref cache entries from the fresh checkout —
 the stale binary's unconditional reuse then always executes current code.
 

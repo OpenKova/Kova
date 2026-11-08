@@ -1,6 +1,6 @@
 """Keep-data uninstall must not delete the desktop app's Electron userData dir.
 
-Regression for #122548: ``hermes uninstall`` option 1 (Keep data) wiped
+Regression for #122548: ``kova uninstall`` option 1 (Keep data) wiped
 ``desktop_userdata_dir()`` (connections.json, OAuth partitions, renderer state)
 because ``_perform_uninstall`` never forwarded ``remove_userdata``.
 """
@@ -26,7 +26,7 @@ def homes(tmp_path, monkeypatch):
     are recorded in ``violations`` because the uninstall steps catch and log
     exceptions, so a raised AssertionError alone would leave the test green.
     """
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     project_root = tmp_path / "checkout"
     project_root.mkdir()

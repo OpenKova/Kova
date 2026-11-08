@@ -6,7 +6,7 @@ A seeded property / matrix layer over every surface that writes ``config.yaml`` 
       one key changes that key's line(s) only (comments, quoting, unicode, ``${VAR}`` templates,
       explicit-default values, dotted provider names and nulls all survive);
 * P2  "set one key" changes exactly one key, on every writer: in-process ``set_config_value`` over
-      EVERY documented scalar leaf of ``DEFAULT_CONFIG``, the real ``hermes config set`` CLI
+      EVERY documented scalar leaf of ``DEFAULT_CONFIG``, the real ``kova config set`` CLI
       subprocess, a real ``python -m tui_gateway.entry`` stdio JSON-RPC process (``config.set``),
       and the dashboard/Desktop ``PUT /api/config`` (partial bodies, like Desktop sends);
 * P3  a failed read never results in a clobbering write: for every single config read an
@@ -1028,15 +1028,15 @@ def env_restore(monkeypatch):
 
 
 @pytest.mark.parametrize("seed", P4_SEEDS)
-def test_p4_load_hermes_dotenv_is_idempotent(seed, home, env_restore, monkeypatch):
-    from kova_cli.env_loader import load_hermes_dotenv
+def test_p4_load_kova_dotenv_is_idempotent(seed, home, env_restore, monkeypatch):
+    from kova_cli.env_loader import load_kova_dotenv
     text, keys, shell = gen_dotenv(seed)
     for k, v in shell.items():
         monkeypatch.setenv(k, v)
     (home / ".env").write_text(text, encoding="utf-8")
     snaps = []
     for _ in range(4):
-        load_hermes_dotenv(kova_home=home, load_external_secrets=False)
+        load_kova_dotenv(kova_home=home, load_external_secrets=False)
         snaps.append({k: os.environ.get(k) for k in keys})
     assert all(s == snaps[0] for s in snaps), f"[seed={seed}] env drifted across reloads:\n" + "\n".join(
         f"{k}: {[s[k] for s in snaps]}" for k in keys if len({s[k] for s in snaps}) > 1)

@@ -14,10 +14,10 @@ def test_run_xai_oauth_login_from_setup_does_not_hijack_active_provider(
 
     Regression: `_run_xai_oauth_login_from_setup` used to call
     `_update_config_for_provider("xai-oauth")` (and token save flipped
-    `active_provider`), so `hermes setup tts` OAuth login hijacked the main
+    `active_provider`), so `kova setup tts` OAuth login hijacked the main
     chat provider.
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 

@@ -99,7 +99,7 @@ cp -a "$KOVA_DESKTOP_USER_DATA_DIR/." "$ROOT/pristine/userdata/"
 "${RUN[@]}" pre --source "$INSTALL" --backup-root "$BACKUPS" > "$ROOT/pre.log" 2>&1
 check $? "pre exits 0"
 SNAP="$(ls -1d "$BACKUPS"/*/ | head -1)"; SNAP="${SNAP%/}"
-for f in hermes-backup.zip home manifest.json hermes-home.txt target-sha; do
+for f in hermes-backup.zip home manifest.json kova-home.txt target-sha; do
   [ -e "$SNAP/$f" ]; check $? "backup artifact $f"
 done
 [ -f "$SNAP/home/kova-agent/.git/config" ]; check $? "whole home: checkout .git in the clone"

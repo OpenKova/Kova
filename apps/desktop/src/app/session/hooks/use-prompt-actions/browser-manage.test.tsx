@@ -59,7 +59,7 @@ describe('usePromptActions /browser connect|disconnect|status', () => {
   // `status` only reads the gateway's CDP state, so unlike connect/disconnect it runs on
   // remote backends too.
   it('/browser status on a remote connection is sent as browser.manage', async () => {
-    $connection.set({ connectionId: 'hermes01', mode: 'remote' } as never)
+    $connection.set({ connectionId: 'kova01', mode: 'remote' } as never)
     const requestGateway = vi.fn(async () => ({ connected: false }) as never)
 
     let handle: HarnessHandle | null = null

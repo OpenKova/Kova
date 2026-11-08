@@ -14,7 +14,7 @@ from kova_cli import main_platform_setup
 
 
 def _parse_slack_args(argv):
-    """Build the real `hermes slack` parser and parse argv against it."""
+    """Build the real `kova slack` parser and parse argv against it."""
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
     build_slack_parser(subparsers, cmd_slack=lambda _args: 0)
@@ -96,7 +96,7 @@ class TestSlackManifestArgparse:
     def test_long_description_file_reports_tilde_expansion_errors(
         self, monkeypatch, capsys
     ):
-        source = "~hermes-user-that-does-not-exist-20260716/AGENTS.md"
+        source = "~kova-user-that-does-not-exist-20260716/AGENTS.md"
 
         def fail_expanduser(_path):
             raise RuntimeError("home directory unavailable")
@@ -115,7 +115,7 @@ class TestSlackManifestArgparse:
 
 
 class TestSlackFullManifest:
-    """Generated full Slack app manifest used by `hermes slack manifest`."""
+    """Generated full Slack app manifest used by `kova slack manifest`."""
 
 
 

@@ -108,10 +108,10 @@ def test_empty_response_exhaustion_has_one_text_everywhere():
 
 
 def test_persistence_failure_default_copy_is_actionable_and_profile_aware(monkeypatch):
-    monkeypatch.setenv("KOVA_HOME", "/srv/hermes-profile")
+    monkeypatch.setenv("KOVA_HOME", "/srv/kova-profile")
     text = TurnExplainersMixin._format_turn_completion_explanation("session_persistence_failed", "replaced")
-    assert "hermes gateway stop" in text and "hermes doctor" in text
-    assert "~/.kova" not in text and "/srv/hermes-profile" in text
+    assert "kova gateway stop" in text and "kova doctor" in text
+    assert "~/.kova" not in text and "/srv/kova-profile" in text
     assert "manifest" not in text  # the runbook stays in logger.error at kova_state
 
 

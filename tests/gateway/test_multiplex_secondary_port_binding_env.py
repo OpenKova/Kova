@@ -11,7 +11,7 @@ import pytest
 
 @pytest.fixture
 def multiplex_root(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     (root / "profiles" / "coder").mkdir(parents=True)
     (root / "config.yaml").write_text("model: {default: x}\n")
     (root / "profiles" / "coder" / "config.yaml").write_text("model: {default: x}\n")
@@ -82,9 +82,9 @@ def test_named_gateway_is_never_the_default_profile_process(tmp_path, cmdline, m
 @pytest.mark.parametrize(
     ("cmdline", "expected"),
     [
-        ("KOVA_HOME={home}2 hermes gateway run", []),        # longer sibling home
-        ("KOVA_HOME={home}/ hermes gateway run", [424242]),  # trailing-separator spelling
-        ("KOVA_HOME={home} hermes gateway run", [424242]),   # exact home
+        ("KOVA_HOME={home}2 kova gateway run", []),        # longer sibling home
+        ("KOVA_HOME={home}/ kova gateway run", [424242]),  # trailing-separator spelling
+        ("KOVA_HOME={home} kova gateway run", [424242]),   # exact home
     ],
 )
 def test_scan_gateway_pids_claims_own_home_spellings_not_the_sibling(

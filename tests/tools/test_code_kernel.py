@@ -418,7 +418,7 @@ class TestKernelOwnershipAndLifecycle(unittest.TestCase):
         self.assertEqual([r["status"] for r in results], ["success"] * 6)
         self.assertEqual(len(_KERNELS), 1)
         runners = [proc for proc, args in spawned
-                   if len(args) == 2 and Path(args[1]).name == "hermes_kernel_runner.py"]
+                   if len(args) == 2 and Path(args[1]).name == "kova_kernel_runner.py"]
         self.assertEqual(len(runners), 1, "parallel cells spawned an unowned kernel")
         kernel = next(iter(_KERNELS.values()))
         self.assertIs(kernel.proc, runners[0])
@@ -438,8 +438,8 @@ class TestInScriptToolErrors(unittest.TestCase):
             return json.dumps({"ok": True})
 
         with _kernel_config(), patch("model_tools.handle_function_call", new=_handle):
-            failed = _run("import hermes_tools\nhermes_tools.write_file('a.py', 'x')\nprint('done')\n")
-            clean = _run("import hermes_tools\nhermes_tools.web_search(query='q')\n")
+            failed = _run("import kova_tools\nkova_tools.write_file('a.py', 'x')\nprint('done')\n")
+            clean = _run("import kova_tools\nkova_tools.web_search(query='q')\n")
         self.assertEqual(failed["status"], "success", failed)
         self.assertEqual(failed["tool_errors"], [{"tool": "write_file", "error": "Refusing to overwrite a.py: never read"}])
         self.assertNotIn("tool_errors", clean)
@@ -468,7 +468,7 @@ class TestPerCellRpcAuthority(unittest.TestCase):
         from tools.terminal_tool import set_approval_callback
 
         seen = []
-        cell = "import hermes_tools\nhermes_tools.web_search(query='q')\n"
+        cell = "import kova_tools\nkova_tools.web_search(query='q')\n"
         with _kernel_config(), patch(
             "model_tools.handle_function_call", new=self._recorder(seen)
         ):
@@ -512,7 +512,7 @@ class TestPerCellRpcAuthority(unittest.TestCase):
 
             set_approval_callback(cb_one)
             try:
-                first = _run("import hermes_tools\nalias = hermes_tools.web_search\n")
+                first = _run("import kova_tools\nalias = kova_tools.web_search\n")
                 set_approval_callback(cb_two)
                 second = _run("alias(query='q')\n")
             finally:
@@ -594,8 +594,8 @@ class TestStaleStagingDirSweep(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             with patch("tools.code_kernel.tempfile.gettempdir", return_value=tmp):
-                old = Path(tmp, "hermes_kernel_old")
-                young = Path(tmp, "hermes_kernel_young")
+                old = Path(tmp, "kova_kernel_old")
+                young = Path(tmp, "kova_kernel_young")
                 bystander = Path(tmp, "unrelated_dir")
                 for path in (old, young, bystander):
                     path.mkdir()

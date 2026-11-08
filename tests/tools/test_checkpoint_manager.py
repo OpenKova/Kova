@@ -252,7 +252,7 @@ class TestRealPruning:
         store = _store_path(checkpoint_base)
         assert _init_store(store, str(wd)) is None
         assert _run_git(
-            ["config", "filter.must-not-run.clean", "hermes-filter-must-not-run"],
+            ["config", "filter.must-not-run.clean", "kova-filter-must-not-run"],
             store, str(wd),
         )[0]
         assert _run_git(
@@ -289,7 +289,7 @@ class TestRealPruning:
         (wd / ".gitattributes").write_text("weights.bin filter=must-not-run\n")
         store = _store_path(checkpoint_base)
         assert _run_git(
-            ["config", "filter.must-not-run.clean", "hermes-filter-must-not-run"],
+            ["config", "filter.must-not-run.clean", "kova-filter-must-not-run"],
             store, str(wd),
         )[0]
         assert _run_git(
@@ -1178,7 +1178,7 @@ class TestPruneCheckpointsOrphanAllowlist:
 
     def test_end_to_end_timing_change_during_confirmation_prompt(self, tmp_path, monkeypatch):
         """Reproduces the exact PR #69141 review scenario end-to-end through
-        `hermes checkpoints prune`: the preview shows one pre-v2 orphan; a
+        `kova checkpoints prune`: the preview shows one pre-v2 orphan; a
         second project's workdir is removed by the input() callback while
         the human is "answering" the prompt. Only the previewed orphan may
         be deleted.

@@ -73,7 +73,7 @@ def test_unknown_profile_is_refused_with_an_instruction(two_profiles):
     from agent.delegation_provider import DelegationRouteError
     from tools.delegate_tool_routes import _route_to_task_route
 
-    with pytest.raises(DelegationRouteError, match="hermes profile list"):
+    with pytest.raises(DelegationRouteError, match="kova profile list"):
         _route_to_task_route({"profile": "nobody"}, _parent(), {})
 
 
@@ -314,12 +314,12 @@ def test_profile_pinned_to_a_missing_acp_command_is_refused_at_routing(two_profi
     _set_config(coder, model={"provider": "acme-acp", "default": "coder-model"})
     # An acp+tcp endpoint keeps the configured command unresolved (the runtime resolver only refuses a missing
     # binary when it would spawn one); the delegation pin rule still refuses it.
-    monkeypatch.setenv("KOVA_ACME_ACP_COMMAND", "hermes-test-missing-acp-binary")
+    monkeypatch.setenv("KOVA_ACME_ACP_COMMAND", "kova-test-missing-acp-binary")
     monkeypatch.setenv("ACME_ACP_BASE_URL", "acp+tcp://127.0.0.1:9")
 
     (route,), error = _resolve_coder_task()
     assert error is None and route.creds == {}
-    assert "hermes-test-missing-acp-binary" in (route.error or "") and "coder" in route.error
+    assert "kova-test-missing-acp-binary" in (route.error or "") and "coder" in route.error
 
 
 def test_one_profile_under_two_labels_resolves_once_and_keeps_each_label(two_profiles):

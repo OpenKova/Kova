@@ -1,4 +1,4 @@
-"""Nous free tier: the connectors-only guest token (NAS hermes-portal#1516).
+"""Nous free tier: the connectors-only guest token (NAS kova-portal#1516).
 
 A guest who only uses connectors or managed tools never meets the free-inference browser challenge:
 those callers (``resolve_nous_access_token``) hold or mint a ``purpose: "connectors"`` token, and an

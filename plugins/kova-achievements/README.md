@@ -1,8 +1,8 @@
 # Kova Achievements
 
-> **Bundled with Kova Agent.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/hermes-achievements — vendored into `plugins/hermes-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Kova feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
+> **Bundled with Kova Agent.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/hermes-achievements — vendored into `plugins/kova-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Kova feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
 >
-> When Kova is installed via the install script or cloned from source, this plugin auto-registers as a dashboard tab on first `kova dashboard` launch. No separate install step. See [Built-in Plugins → hermes-achievements](../../website/docs/user-guide/features/built-in-plugins.md) in the main docs.
+> When Kova is installed via the install script or cloned from source, this plugin auto-registers as a dashboard tab on first `kova dashboard` launch. No separate install step. See [Built-in Plugins → kova-achievements](../../website/docs/user-guide/features/built-in-plugins.md) in the main docs.
 
 Achievement system for the Kova Dashboard: collectible, tiered badges generated from real local Kova session history.
 
@@ -61,14 +61,14 @@ Version `0.2.x` expands the catalog to 60+ achievements, including model/provide
 Clone into your Kova plugins directory:
 
 ```bash
-git clone https://github.com/PCinkusz/hermes-achievements ~/.kova/plugins/hermes-achievements
+git clone https://github.com/PCinkusz/hermes-achievements ~/.kova/plugins/kova-achievements
 ```
 
 For local development, keep the repo elsewhere and symlink it:
 
 ```bash
-git clone https://github.com/PCinkusz/hermes-achievements ~/hermes-achievements
-ln -s ~/hermes-achievements ~/.kova/plugins/hermes-achievements
+git clone https://github.com/PCinkusz/hermes-achievements ~/kova-achievements
+ln -s ~/kova-achievements ~/.kova/plugins/kova-achievements
 ```
 
 Then rescan dashboard plugins:
@@ -84,7 +84,7 @@ If backend API routes 404, restart `kova dashboard`; plugin APIs are mounted at 
 If you installed with git:
 
 ```bash
-cd ~/.kova/plugins/hermes-achievements
+cd ~/.kova/plugins/kova-achievements
 git pull --ff-only
 curl http://127.0.0.1:9119/api/dashboard/plugins/rescan
 ```
@@ -121,7 +121,7 @@ dashboard/
 Routes are mounted under:
 
 ```text
-/api/plugins/hermes-achievements/
+/api/plugins/kova-achievements/
 ```
 
 Endpoints:

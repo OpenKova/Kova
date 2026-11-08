@@ -459,7 +459,7 @@ def _(rid, params: dict) -> dict:
         on_result=lambda r: _ok(rid, {
             "blocked": False, "code": r.returncode, "output": (_joined_output(r) or "(no output)")[:48_000]}),
         timeout_err=(5016, "cli.exec: timeout"), fail_code=5017,
-        env=_compat.restore_ambient_pythonpath(hermes_subprocess_env(inherit_credentials=True)))
+        env=_compat.restore_ambient_pythonpath(kova_subprocess_env(inherit_credentials=True)))
 
 
 @_rpc("command.resolve", 5012)

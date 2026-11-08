@@ -82,7 +82,7 @@ def test_anonymous_refusals_all_offer_sign_in(case_id, status, body, headers, ki
 
 @pytest.mark.parametrize("case_id,status,body,headers,kind,breaker", CASES, ids=[c[0] for c in CASES])
 def test_named_account_same_response_is_not_a_free_tier_refusal(case_id, status, body, headers, kind, breaker):
-    agent = _agent(make_jwt(account_tier="free", client_id="hermes-cli"))
+    agent = _agent(make_jwt(account_tier="free", client_id="kova-cli"))
     error = _error(status, body, headers)
     classified = classify_api_error(error, provider="nous", model=MODEL, base_url=WELCOME, api_key=agent.api_key)
     assert "welcome_refusal" not in classified.error_context

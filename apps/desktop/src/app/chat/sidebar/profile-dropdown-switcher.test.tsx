@@ -86,7 +86,7 @@ async function openDropdown() {
   await screen.findByRole('menuitemradio', { name: /clippy/ })
 }
 
-const launchMenuTriggers = () => window.document.querySelectorAll('[data-hermes-context-menu-trigger]')
+const launchMenuTriggers = () => window.document.querySelectorAll('[data-kova-context-menu-trigger]')
 
 // Native Desktop's statusbar picker is main's: its rows carry no right-click
 // launch menu, and it leaves refreshing the profile list to the rail and

@@ -45,7 +45,7 @@ def test_signed_in_account_is_never_told_about_the_free_tier(portal):
     with _auth_store_lock():
         store = _load_auth_store()
         store.setdefault("providers", {})["nous"] = {
-            "auth_method": "oauth", "access_token": _jwt(client_id="hermes-cli", account_tier="pro"),
+            "auth_method": "oauth", "access_token": _jwt(client_id="kova-cli", account_tier="pro"),
             "refresh_token": "rt", "expires_at": "2999-01-01T00:00:00+00:00"}
         _save_auth_store(store)
 

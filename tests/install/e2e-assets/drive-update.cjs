@@ -154,7 +154,7 @@ async function main() {
   // and then the desktop quits. We do NOT rely on Playwright's app 'close'
   // event: when the app self-quits for the hand-off that event is
   // unreliable (attempt 8 timed out on it even though the hand-off log
-  // proved the desktop had exited and `hermes update` was already running).
+  // proved the desktop had exited and `kova update` was already running).
   //
   // The authoritative "hand-off started" signal is the marker file (or the
   // result JSON, if the whole update finished fast). Poll for either, and

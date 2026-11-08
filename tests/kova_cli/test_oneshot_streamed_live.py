@@ -1,4 +1,4 @@
-"""`hermes -z` against a real gateway with streaming on: the one-shot prints the reply (#139666).
+"""`kova -z` against a real gateway with streaming on: the one-shot prints the reply (#139666).
 
 With ``streaming.enabled`` the local route's stream consumer "delivers" the reply through
 ``LocalSessionAdapter`` (every send acknowledges), the turn is marked ``already_sent`` and the
@@ -41,7 +41,7 @@ def test_streamed_oneshot_prints_the_reply(tmp_path):
     env.update(HOME=str(user), USERPROFILE=str(user), KOVA_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
-    def hermes(*args):
+    def kova(*args):
         return subprocess.run([sys.executable, "-m", "kova_cli.main", *args], cwd=work, env=env,
                               stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120, check=False)
 
@@ -57,10 +57,10 @@ def test_streamed_oneshot_prints_the_reply(tmp_path):
                     time.sleep(.1)
             assert desc.get("state") == "ready", (home / "gw.log").read_text()
 
-            oneshot = hermes("-z", "streamed one shot")
+            oneshot = kova("-z", "streamed one shot")
             assert peer.requests and peer.requests[-1].get("stream"), "the turn must stream"
             assert (oneshot.returncode, oneshot.stdout) == (0, "RECOVERY_ACK_streamed one shot\n"), oneshot
-            quiet = hermes("chat", "-q", "streamed quiet query", "-Q")
+            quiet = kova("chat", "-q", "streamed quiet query", "-Q")
             assert quiet.returncode == 0 and quiet.stdout.strip() == "RECOVERY_ACK_streamed quiet query", quiet
         finally:
             if daemon.poll() is None:

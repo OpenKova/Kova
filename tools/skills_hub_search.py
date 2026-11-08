@@ -28,12 +28,12 @@ KOVA_INDEX_URL = "https://kova-agent.nousresearch.com/docs/api/skills-index.json
 KOVA_INDEX_TTL = 6 * 3600  # 6 hours
 
 
-def _hermes_index_cache_file() -> Path:
+def _kova_index_cache_file() -> Path:
     from tools.skills_hub import _index_cache_dir
-    return _index_cache_dir() / "hermes-index.json"
+    return _index_cache_dir() / "kova-index.json"
 
 
-def _load_hermes_index() -> Optional[dict]:
+def _load_kova_index() -> Optional[dict]:
     """Fetch the centralized skills index (docs site, rebuilt daily), cached
     locally for KOVA_INDEX_TTL; on any failure serve the stale cache.
 
@@ -44,7 +44,7 @@ def _load_hermes_index() -> Optional[dict]:
     ignore the header and return Brotli anyway.
     """
     from tools.skills_hub import _read_json_if_fresh
-    cache_file = _hermes_index_cache_file()
+    cache_file = _kova_index_cache_file()
     cached = _read_json_if_fresh(cache_file, KOVA_INDEX_TTL)
     if cached is not None:
         return cached
@@ -78,7 +78,7 @@ def _load_hermes_index() -> Optional[dict]:
 def _load_stale_index_cache() -> Optional[dict]:
     """Fall back to the cache regardless of age when the network fetch fails."""
     from tools.skills_hub import _read_json_if_fresh
-    return _read_json_if_fresh(_hermes_index_cache_file(), float("inf"))
+    return _read_json_if_fresh(_kova_index_cache_file(), float("inf"))
 
 
 # External API sources the centralized index already covers; skipped when the
@@ -140,7 +140,7 @@ def _select_active_sources(sources: list[SkillSource], source_filter: str) -> li
     """
     effective = "all" if _provider_filter_of(source_filter) else source_filter
     index_available = effective == "all" and any(
-        src.source_id() == "hermes-index" and getattr(src, "is_available", False) for src in sources
+        src.source_id() == "kova-index" and getattr(src, "is_available", False) for src in sources
     )
     active: list[SkillSource] = []
     for src in sources:
@@ -166,9 +166,9 @@ def _index_miss_fallback_sources(
     (``--source nvidia``): the fallback registries carry no ``extra.provider``,
     so their results would all be cut and the calls would only burn budget.
     """
-    if not query.strip() or provider_filter or not any(src.source_id() == "hermes-index" for src in active):
+    if not query.strip() or provider_filter or not any(src.source_id() == "kova-index" for src in active):
         return []
-    if source_counts.get("hermes-index") != 0:
+    if source_counts.get("kova-index") != 0:
         return []
     return [src for src in sources if src.source_id() in _INDEX_MISS_FALLBACK_IDS and src not in active]
 

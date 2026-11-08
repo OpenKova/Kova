@@ -1,7 +1,7 @@
 """#95375 on a reflowing terminal: resizing the classic CLI leaves every transcript line in
 tmux's scrollback + screen exactly once, with no stray blank or prompt rows.
 
-A real ``hermes chat --cli`` runs in a private tmux server against the scripted fake provider.
+A real ``kova chat --cli`` runs in a private tmux server against the scripted fake provider.
 One session goes through a resize storm while a reply streams, a shrink while idle, and a
 two-step shrink while the next reply streams; ``capture-pane -J`` then joins tmux's re-wrapped
 rows back into lines. Reply lines are 146 columns, so each one wraps at every width here, and
@@ -39,7 +39,7 @@ def _reply(turn: int) -> str:
 
 def test_resizes_keep_each_transcript_line_once_in_tmux_scrollback(tmp_path: Path) -> None:
     require_tmux()
-    sock = f"hermes-e2e-{uuid.uuid4().hex[:8]}"
+    sock = f"kova-e2e-{uuid.uuid4().hex[:8]}"
     home = tmp_path / "home"
     (tmp_path / "work").mkdir()
 

@@ -1,4 +1,4 @@
-"""`hermes sessions archive --include-open`: archive (reversible) may reach never-ended sessions (#139597)."""
+"""`kova sessions archive --include-open`: archive (reversible) may reach never-ended sessions (#139597)."""
 import pytest
 
 from kova_state import SessionDB

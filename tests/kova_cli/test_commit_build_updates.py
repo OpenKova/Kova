@@ -77,19 +77,19 @@ def test_commit_backend_update_routes_refuse_before_checks_or_spawns(commit_buil
     monkeypatch.setattr(gateway, "_ACTION_LOG_DIR", tmp_path / "logs")
     monkeypatch.setattr("kova_cli.web_server_files._dashboard_local_update_managed_externally", lambda: managed)
     spawn = Mock(side_effect=AssertionError("no updater process"))
-    monkeypatch.setattr(gateway, "_spawn_hermes_action", spawn)
+    monkeypatch.setattr(gateway, "_spawn_kova_action", spawn)
     check = Mock(side_effect=AssertionError("no update check"))
     monkeypatch.setattr(source_check, "check_for_updates", check)
     cache = get_kova_home() / ".update_check"
     cache.write_text("source checkout cache")
     client = TestClient(server.app)
     client.headers[server._SESSION_HEADER_NAME] = server._SESSION_TOKEN
-    result = client.get("/api/hermes/update/check?force=true")
+    result = client.get("/api/kova/update/check?force=true")
     assert result.status_code == 200
     assert result.json()["message"] == MESSAGE
     assert result.json()["can_apply"] is False
     assert result.json()["current_version"] == "1.2.3+gabcdef12"
-    assert client.post("/api/hermes/update").json()["message"] == MESSAGE
+    assert client.post("/api/kova/update").json()["message"] == MESSAGE
     assert cache.read_text() == "source checkout cache"
     check.assert_not_called()
     spawn.assert_not_called()

@@ -8,7 +8,7 @@ import pytest
 
 
 _RELEASE_PATH = Path(__file__).resolve().parents[2] / "scripts" / "release.py"
-_SPEC = importlib.util.spec_from_file_location("hermes_release", _RELEASE_PATH)
+_SPEC = importlib.util.spec_from_file_location("kova_release", _RELEASE_PATH)
 assert _SPEC and _SPEC.loader
 release = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(release)

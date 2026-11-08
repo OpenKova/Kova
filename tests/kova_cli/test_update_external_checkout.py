@@ -88,13 +88,13 @@ def test_external_gateway_does_not_fail_matrix(capsys):
     failed = update_receipt.print_fleet_version_matrix([
         {
             "profile": "pinned", "pid": 42, "code_sha": "foreign",
-            "state": "external", "code_root": "/srv/hermes-pinned",
+            "state": "external", "code_root": "/srv/kova-pinned",
         }
     ])
     output = capsys.readouterr().out
     assert failed is False
     assert "separate checkout" in output
-    assert "/srv/hermes-pinned" in output
+    assert "/srv/kova-pinned" in output
 
 
 def test_collect_fleet_versions_classifies_separate_checkout_gateway(tmp_path, monkeypatch):

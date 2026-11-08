@@ -1,4 +1,4 @@
-"""Catalog-aware ``hermes plugins`` surface (kova_cli/plugins_cmd_catalog.py): a bare catalog name installs
+"""Catalog-aware ``kova plugins`` surface (kova_cli/plugins_cmd_catalog.py): a bare catalog name installs
 the PINNED sha and records provenance; the kill list blocks every install path (CLI needs an explicit
 bypass, dashboard/TUI have none); ``update`` re-pins instead of pulling. Real git, file:// repos."""
 
@@ -135,7 +135,7 @@ def test_kill_list_blocks_cli_dashboard_and_tui_paths(world, monkeypatch):
 
 
 def test_the_catalog_name_you_installed_with_works_for_every_later_verb(world, tmp_path):
-    """17 catalog entries install under a different manifest name (`hermes-memory-wiki` lands as
+    """17 catalog entries install under a different manifest name (`kova-memory-wiki` lands as
     `plugins/memory-wiki`). Every later verb must accept the name the user typed at install, resolved
     through the installer's own record; a URL install shipping a forged sidecar must not claim it."""
     repo = world["repo"]
@@ -175,8 +175,8 @@ def test_custom_install_records_an_anonymous_extension_install_and_reinstall_non
 
 def test_owner_repo_hash_subdir_shorthand_resolves_like_the_catalog_spelling():
     from kova_cli.plugins_cmd import _resolve_git_url
-    assert _resolve_git_url("plastic-labs/honcho#hermes-plugin-honcho") == (
-        "https://github.com/plastic-labs/honcho.git", "hermes-plugin-honcho")
+    assert _resolve_git_url("plastic-labs/honcho#kova-plugin-honcho") == (
+        "https://github.com/plastic-labs/honcho.git", "kova-plugin-honcho")
     assert _resolve_git_url("owner/repo") == ("https://github.com/owner/repo.git", None)
 
 
@@ -435,7 +435,7 @@ def test_enable_of_a_recalled_plugin_installed_with_allow_removed_still_works(wo
 
 @pytest.mark.parametrize("exempt", [False, True])
 def test_plugins_picker_refuses_to_turn_on_a_recalled_plugin(world, tmp_path, monkeypatch, capsys, exempt):
-    """The bare `hermes plugins` picker saves ticked rows through admission, not `_set_plugin_enabled`, so it
+    """The bare `kova plugins` picker saves ticked rows through admission, not `_set_plugin_enabled`, so it
     checks the kill list itself before admission (real cmd_toggle, text fallback); --allow-removed still exempts."""
     _recall_after_install(world, tmp_path, monkeypatch)
     if exempt:
@@ -533,7 +533,7 @@ def test_memory_category_install_activates_via_memory_provider_not_plugins_enabl
                                                                                   init, enable):
     """A memory provider activates through memory.provider alone — the loader never consults
     plugins.enabled — so "Enable now?" must select the provider, and a decline must point at
-    `hermes memory setup`, never at the dead-end `plugins enable` hint. Catalog category "memory" also
+    `kova memory setup`, never at the dead-end `plugins enable` hint. Catalog category "memory" also
     holds hook plugins: those enable normally and leave the user's memory.provider alone, even when their
     docstring names MemoryProvider (the loader would return None for them)."""
     repo = world["repo"]
@@ -562,7 +562,7 @@ def test_memory_category_install_activates_via_memory_provider_not_plugins_enabl
     pc.cmd_install("cat-plugin", enable=enable)
     assert pc._get_current_memory_provider() == ("cat-plugin" if enable else "")
     assert pc._get_enabled_set() == set()
-    assert any("hermes memory setup" in line for line in printed)
+    assert any("kova memory setup" in line for line in printed)
     assert not any("plugins enable cat-plugin" in line for line in printed)
 
 

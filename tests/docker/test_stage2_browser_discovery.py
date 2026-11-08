@@ -21,17 +21,17 @@ def test_stage2_discovers_chromium_binary(
 
     r = docker_exec_sh(
         container_name,
-        "cat /etc/hermes/chromium-executable-path",
+        "cat /etc/kova/chromium-executable-path",
         timeout=10,
     )
     assert r.returncode == 0, f"no baked Chromium path: {r.stderr}"
     browser_path = r.stdout.strip()
-    assert browser_path, "/etc/hermes/chromium-executable-path is empty"
+    assert browser_path, "/etc/kova/chromium-executable-path is empty"
 
     # Kova's own resolver (the launcher's binary) lands on the same build.
     r = docker_exec(
         container_name,
-        "/opt/hermes/.venv/bin/python", "-c",
+        "/opt/kova/.venv/bin/python", "-c",
         "from kova_cli.browser_runtime import chromium_executable; "
         "print(chromium_executable(allow_override=False))",
         timeout=30,
@@ -67,7 +67,7 @@ def test_stage2_discovers_chromium_binary(
         container_name,
         "python3", "-c",
         "import json; from pathlib import Path; "
-        "root = Path('/opt/hermes/tools'); "
+        "root = Path('/opt/kova/tools'); "
         "packages = json.loads((root / 'facts.json').read_text())['packages']; "
         "print(json.dumps({'packages': list(packages), 'shell_entries': "
         "[p.name for p in root.glob('*headless*shell*')]}))",

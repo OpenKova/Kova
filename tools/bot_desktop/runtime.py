@@ -100,7 +100,7 @@ def install_command() -> Optional[str]:
     :mod:`tools.bot_desktop.install` runs. ``None`` when no package manager is present.
 
     Not a promise that it can run here: see :func:`installable`. The published Docker image supervises
-    every service under ``s6-setuidgid hermes`` (UID 10000 by default) and ships no ``sudo`` binary, so an
+    every service under ``s6-setuidgid kova`` (UID 10000 by default) and ships no ``sudo`` binary, so an
     install on a hosted instance is impossible no matter what this returns."""
     pm = package_manager()
     if pm is None:
@@ -122,7 +122,7 @@ def installable() -> bool:
     """Whether :func:`install_command` could actually succeed on this host.
 
     False on an unprivileged process with no ``sudo`` to reach for, which is exactly the published Docker
-    image: services drop to the ``hermes`` user and no ``sudo`` binary is installed. The packages can only
+    image: services drop to the ``kova`` user and no ``sudo`` binary is installed. The packages can only
     arrive in the image there, so :func:`start` says that instead of printing a sudo line the user has no
     way to run. ``status()`` still reports ``install_command`` for the pane; surfacing this there needs a
     wire-contract change and is deliberately out of scope.
@@ -318,7 +318,7 @@ def _kill_group_then_wait(pgid: Optional[int], pid: int, grace: float = 2.0) -> 
 # Host-wide (every profile allocates from one band), so it lives outside any profile home. A predictable
 # name must not be squattable: XDG_RUNTIME_DIR is the boundary — 0700 from logind, or from
 # docker/stage2-hook.sh in containers, which have none.
-_ALLOC_LOCK = Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "hermes-bot-desktop-alloc.lock"
+_ALLOC_LOCK = Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "kova-bot-desktop-alloc.lock"  # health: allow HX005 -- host-wide lock, outside any profile home by design
 
 
 @contextlib.contextmanager

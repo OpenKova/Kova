@@ -82,7 +82,7 @@ def install(root: Path) -> None:
         "home": str(sb.home),
         "kovaHome": str(sb.kova_home),
         "checkout": str(sb.checkout),
-        "hermes": sb.kova,
+        "kova": sb.kova,
         "origin": str(origin),
         "env": sb.env,
         "headSha": head,

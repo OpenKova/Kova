@@ -70,12 +70,12 @@ class TestSendMessageBlocks:
         adapter, client = _make_adapter(
             {"unfurl_links": False, "unfurl_media": False}
         )
-        content = "[Kova](https://example.com/hermes)"
+        content = "[Kova](https://example.com/kova)"
 
         await adapter.send("C1", content)
 
         kwargs = client.chat_postMessage.await_args.kwargs
-        assert kwargs["text"] == "<https://example.com/hermes|Kova>"
+        assert kwargs["text"] == "<https://example.com/kova|Kova>"
         assert kwargs["unfurl_links"] is False
         assert kwargs["unfurl_media"] is False
 
@@ -100,7 +100,7 @@ class TestSendMessageBlocks:
         feedback = blocks[-1]
         assert feedback["type"] == "context_actions"
         assert feedback["elements"][0]["type"] == "feedback_buttons"
-        assert feedback["elements"][0]["action_id"] == "hermes_feedback"
+        assert feedback["elements"][0]["action_id"] == "kova_feedback"
 
 
 class TestEditMessageBlocks:

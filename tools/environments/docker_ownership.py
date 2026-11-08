@@ -53,7 +53,7 @@ HANDBACK_RECORD = ".kova-owner-handback"
 _SAFE_ENV = ["-e", "PATH=/usr/sbin:/usr/bin:/sbin:/bin", "-e", "LD_PRELOAD=", "-e", "LD_LIBRARY_PATH=", "-w", "/"]
 # The throwaway gets only what find and chown need, so even a planted binary gains no host power.
 _THROWAWAY_CONFINEMENT = ["--cap-drop", "ALL", "--cap-add", "CHOWN", "--cap-add", "DAC_OVERRIDE", "--cap-add", "FOWNER",
-                          "--security-opt", "no-new-privileges", "--pids-limit", "64", "--label", "hermes-handback=1"]
+                          "--security-opt", "no-new-privileges", "--pids-limit", "64", "--label", "kova-handback=1"]
 
 _remapping_cache: dict[str, bool] = {}
 
@@ -118,8 +118,8 @@ def _sandbox_binds(info: dict) -> list[tuple[str, str]]:
     ``/workspace``) as ``(realpath, destination)``. *root* is derived on this host only, never from
     container metadata (labels and binds are settable via extra args or the image): this process's
     ``<sandbox>/docker`` or the default one of any profile of this Kova root (shared containers)."""
-    hermes_root = get_default_kova_root()
-    roots = {os.path.realpath(d / "sandboxes" / "docker") for d in [hermes_root, *hermes_root.glob("profiles/*")]}
+    kova_root = get_default_kova_root()
+    roots = {os.path.realpath(d / "sandboxes" / "docker") for d in [kova_root, *kova_root.glob("profiles/*")]}
     roots.add(os.path.realpath(get_sandbox_dir() / "docker"))
     binds = [(os.path.realpath(m.get("Source") or "/nonexistent"), m.get("Destination")) for m in info.get("Mounts") or []
              if m.get("Type") == "bind" and m.get("Destination") in ("/root", "/workspace")]
@@ -177,7 +177,7 @@ def _chown(docker_exe: str, target: list[str], paths: list[bytes], owner: str, d
 
 def _throwaway(container_id: str, info: dict, volumes: list[str]) -> list[str]:
     return ["run", "--rm", "-i", "--pull", "never", "--network", "none", "--user", "0:0", *_THROWAWAY_CONFINEMENT,
-            *_SAFE_ENV, "--name", f"hermes-handback-{container_id[:12]}-{secrets.token_hex(4)}",
+            *_SAFE_ENV, "--name", f"kova-handback-{container_id[:12]}-{secrets.token_hex(4)}",
             *volumes, "--entrypoint", "", info["Image"]]
 
 

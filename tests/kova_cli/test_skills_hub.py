@@ -107,7 +107,7 @@ def _capture_update(monkeypatch, results) -> tuple[str, list[tuple[str, str, boo
 
 
 def test_do_list_platform_env_is_ignored(three_source_env, monkeypatch):
-    """`hermes skills list` reads the active profile's config via
+    """`kova skills list` reads the active profile's config via
     KOVA_HOME (swapped by -p), so it must NOT pass a platform arg to
     ``get_disabled_skill_names`` — otherwise per-platform overrides
     would silently leak in from KOVA_PLATFORM env."""
@@ -322,7 +322,7 @@ def test_inspect_reuses_one_ssrf_safe_client_for_metadata_and_bundle(monkeypatch
         def inspect(self, _identifier):
             hub._guarded_http_get("https://example.com/metadata")
             # The Kova-index fetch must ride the same pool (no cache → real GET).
-            assert search._load_hermes_index() == {"skills": []}
+            assert search._load_kova_index() == {"skills": []}
             return SkillMeta("example", "metadata", "test", "example/id", "community")
 
         def fetch(self, _identifier):
@@ -339,7 +339,7 @@ def test_inspect_reuses_one_ssrf_safe_client_for_metadata_and_bundle(monkeypatch
     monkeypatch.setattr(hub, "create_ssrf_safe_client", create_client, raising=False)
     monkeypatch.setattr(hub, "is_safe_url", lambda _url: True)
     monkeypatch.setattr(hub, "check_website_access", lambda _url: None)
-    monkeypatch.setattr(search, "_hermes_index_cache_file", lambda: tmp_path / "hermes-index.json")
+    monkeypatch.setattr(search, "_kova_index_cache_file", lambda: tmp_path / "kova-index.json")
     monkeypatch.setattr(search.httpx, "get", lambda *_a, **_k: pytest.fail("index fetch bypassed the pool"))
 
     result = cli_hub.inspect_skill("example/id")
@@ -447,7 +447,7 @@ def _install_mocks(monkeypatch, tmp_path, source_factory, category_hint=""):
 
 
 # ---------------------------------------------------------------------------
-# Regression: full identifier must be recoverable from `hermes skills search`
+# Regression: full identifier must be recoverable from `kova skills search`
 # even when the slug is too long to fit the terminal width (issue #33674).
 # ---------------------------------------------------------------------------
 
@@ -614,7 +614,7 @@ def test_fetch_failure_names_rejected_github_credential():
     from kova_cli.skills_hub import _print_fetch_failure
 
     src = SimpleNamespace(is_rate_limited=False, auth=SimpleNamespace(rejected=["GITHUB_TOKEN/GH_TOKEN"]),
-                          source_id=lambda: "hermes-index")
+                          source_id=lambda: "kova-index")
     sink = StringIO()
     console = Console(file=sink, force_terminal=False, color_system=None, width=200)
     _print_fetch_failure(console, [src], "o/r/s", meta=object(), source=src)
@@ -683,7 +683,7 @@ def _stub_search(monkeypatch, results):
     "computer-use", "NeuralStudio/kova-agent/skills/productivity/pdf",
     "skills-sh/nousresearch/kova-agent/google-workspace", "blender-bpy-enhanced"])
 def test_install_by_name_resolves_to_the_skill_it_names(monkeypatch, tmp_path, identifier):
-    """`hermes skills install <bundled skill>` failed every time: the name resolved to a stranger's
+    """`kova skills install <bundled skill>` failed every time: the name resolved to a stranger's
     same-named hub skill or an ambiguity table, and this repo's own copy was rescanned as community
     content and refused. It now makes the shipped skill active and fetches nothing. A hub slug behind
     a prettified catalog title ("Blender Bpy Enhanced") resolves too, where it answered "No exact match"
@@ -741,7 +741,7 @@ def test_install_by_name_resolves_to_the_skill_it_names(monkeypatch, tmp_path, i
     assert cli_hub.do_install(identifier, console=console, skip_confirm=True) is False
     # One line, subject and remedy together: the Desktop toast shows only a failed action's last 3 lines.
     error = next(line for line in sink.getvalue().splitlines() if line.startswith("Error:"))
-    assert f"'{name}' is a built-in skill" in error and f"`hermes skills uninstall {name}`" in error
+    assert f"'{name}' is a built-in skill" in error and f"`kova skills uninstall {name}`" in error
     assert "already available" not in sink.getvalue()
     assert (stranger / "SKILL.md").read_text().endswith("stranger\n")
 

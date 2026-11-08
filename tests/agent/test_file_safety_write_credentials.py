@@ -23,13 +23,13 @@ WRITABLE_CONTROL_FILES = ("auth.json", "config.yaml", "webhook_subscriptions.jso
 
 
 @pytest.fixture()
-def hermes_layout(tmp_path, monkeypatch):
+def kova_layout(tmp_path, monkeypatch):
     """Profile KOVA_HOME plus a distinct global root, both patched."""
-    root = tmp_path / "hermes_root"
+    root = tmp_path / "kova_root"
     profile = root / "profiles" / "coder"
     profile.mkdir(parents=True)
     monkeypatch.setattr(fs, "_kova_home_path", lambda: profile)
-    monkeypatch.setattr(fs, "_hermes_root_path", lambda: root)
+    monkeypatch.setattr(fs, "_kova_root_path", lambda: root)
     return root, profile
 
 
@@ -40,8 +40,8 @@ def _touch(base: Path, rel: str) -> Path:
     return p
 
 
-def test_read_denied_secret_stores_are_write_denied_on_profile_and_root(hermes_layout):
-    root, profile = hermes_layout
+def test_read_denied_secret_stores_are_write_denied_on_profile_and_root(kova_layout):
+    root, profile = kova_layout
     for base in (profile, root):
         for rel in SECRET_STORES:
             path = _touch(base, rel)
@@ -49,8 +49,8 @@ def test_read_denied_secret_stores_are_write_denied_on_profile_and_root(hermes_l
             assert fs.is_write_denied(str(path)), f"write allowed: {path}"
 
 
-def test_control_files_and_lookalikes_outside_home_stay_writable(hermes_layout, tmp_path):
-    root, profile = hermes_layout
+def test_control_files_and_lookalikes_outside_home_stay_writable(kova_layout, tmp_path):
+    root, profile = kova_layout
     for base in (profile, root):
         for rel in WRITABLE_CONTROL_FILES:
             assert fs.is_write_denied(str(_touch(base, rel))) is False, f"#45947 regression: {rel}"
@@ -70,7 +70,7 @@ class TestProfileHomeProcessHome:
         monkeypatch.setenv("KOVA_HOME", str(profile))
         monkeypatch.setenv("HOME", str(profile / "home"))
         monkeypatch.setattr(fs, "_kova_home_path", lambda: profile)
-        monkeypatch.setattr(fs, "_hermes_root_path", lambda: profile.parent)
+        monkeypatch.setattr(fs, "_kova_root_path", lambda: profile.parent)
         return profile
 
     def test_every_home_is_guarded(self, profile_home_env):

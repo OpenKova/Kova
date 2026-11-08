@@ -359,7 +359,7 @@ class TestProfileScopedPostSetup:
 
         monkeypatch.setattr(
             _web_server_gateway,
-            "_spawn_hermes_action",
+            "_spawn_kova_action",
             lambda subcommand, name: calls.append(list(subcommand)) or _FakeProc(),
         )
         monkeypatch.setattr(
@@ -591,7 +591,7 @@ class TestProfileScopedTelegramOnboarding:
 
         monkeypatch.setattr(
             _web_server_gateway,
-            "_spawn_hermes_action",
+            "_spawn_kova_action",
             lambda subcommand, name: calls.append((list(subcommand), name)) or _FakeProc(),
         )
         _web_server_gateway._ACTION_PROCS.pop("gateway-restart", None)

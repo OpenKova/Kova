@@ -35,7 +35,7 @@ requires_posix_handoff = pytest.mark.skipif(
 @pytest.fixture
 def progress(tmp_path):
     """The real loopback server, over a status file the test drives."""
-    status = tmp_path / "hermes-update-status"
+    status = tmp_path / "kova-update-status"
     proc = subprocess.Popen(
         [
             sys.executable,
@@ -112,17 +112,17 @@ def test_unreadable_status_still_serves_a_running_state(progress):
 
 # ── posix.sh: the stages it publishes at its own gates ─────────────────────
 
-# Stands in for `hermes update`, and reports the stage that was on screen
+# Stands in for `kova update`, and reports the stage that was on screen
 # while it ran -- the update child is the only thing that can observe the
 # window's state at the exact moment of the longest wait in the hand-off.
-FAKE_HERMES = """#!/usr/bin/env bash
+FAKE_KOVA = """#!/usr/bin/env bash
 # The hand-off probes `update --help` for --keep-stash support before the
 # real update call; answer it without consuming a counted call so the
 # exits.N mapping below still refers to actual update attempts.
 case "$*" in *--help*) echo "--keep-stash"; exit 0 ;; esac
 n="$(cat "$KOVA_TEST_CALLS" 2>/dev/null || echo 0)"; n=$((n + 1))
 printf '%s' "$n" > "$KOVA_TEST_CALLS"
-for f in "$TMPDIR"/hermes-update-status.[0-9]*; do
+for f in "$TMPDIR"/kova-update-status.[0-9]*; do
   case "$f" in *.tmp) continue ;; esac
   cp "$f" "$KOVA_TEST_CAPTURE.$n" 2>/dev/null
 done
@@ -134,9 +134,9 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
     """Run the real hand-off end to end; return the stage seen at each call."""
     install_root = tmp_path / "kova-agent"
     (install_root / "venv" / "bin").mkdir(parents=True)
-    hermes = install_root / "venv" / "bin" / "hermes"
-    hermes.write_text(FAKE_HERMES)
-    hermes.chmod(0o755)
+    kova = install_root / "venv" / "bin" / "kova"
+    kova.write_text(FAKE_KOVA)
+    kova.chmod(0o755)
 
     capture = tmp_path / "seen"
     calls = tmp_path / "calls"
@@ -179,7 +179,7 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
 
 @requires_posix_handoff
 def test_update_gate_publishes_its_stage_before_running(tmp_path):
-    """`hermes update` is the longest wait in the hand-off and the one the
+    """`kova update` is the longest wait in the hand-off and the one the
     Discord report sat through; the window must name it while it happens."""
     stages = _run_handoff(tmp_path, {1: 0})
 

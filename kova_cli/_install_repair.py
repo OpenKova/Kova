@@ -21,7 +21,7 @@ def _is_windows() -> bool:
 #: managed binary dir (the default Kova root's ``bin``, next to uv.exe)
 #: on the user PATH. Keep in lockstep with WINDOWS_BIN_LAUNCHERS in
 #: kova_cli/_launchers.py and scripts/install.ps1.
-_WINDOWS_BIN_LAUNCHERS = ("hermes", "hermes-acp")
+_WINDOWS_BIN_LAUNCHERS = ("kova", "kova-acp")
 
 
 def _normalize_windows_path(value) -> str:
@@ -59,17 +59,17 @@ def ensure_windows_bin_launchers(
     windows: bool | None = None,
     user_path_entries: list[str] | None = None,
 ) -> list[str]:
-    """Re-stage the Windows ``hermes`` launchers when they vanish or when
+    """Re-stage the Windows ``kova`` launchers when they vanish or when
     they still boot through the venv.
 
-    On Windows, ``hermes`` resolves through staged launchers — never
+    On Windows, ``kova`` resolves through staged launchers — never
     ``venv\\Scripts`` itself on PATH, which would shadow the user's
     ``python`` (#83797) — and under pm the launchers boot the pm STORE
     python with ``PYTHONPATH=<repo>;<venv>/site-packages``, never the venv
     interpreter (no-boot-through-venv; ``pyvenv.cfg`` is inert dead
     config). The canonical launcher home is
     the managed binary dir — the default Kova root's ``bin``
-    (``%LOCALAPPDATA%\\hermes\\bin``, next to the managed uv) — which lives
+    (``%LOCALAPPDATA%\\kova\\bin``, next to the managed uv) — which lives
     OUTSIDE the git checkout so no git operation can ever touch it. It is
     a per-machine dir shared by every profile: ``get_kova_home()`` would
     point inside ``profiles\\<name>`` under ``kova -p``, so the anchor
@@ -79,7 +79,7 @@ def ensure_windows_bin_launchers(
     inside the git working tree — where ``kova update``'s pre-update
     autostash (``git stash push --include-untracked``) swept them off disk;
     once the desktop updater stopped re-applying stashes (``--keep-stash``)
-    nothing restored them and ``hermes`` stopped resolving in every new
+    nothing restored them and ``kova`` stopped resolving in every new
     terminal. That legacy location is re-staged too, during the transition,
     for installs whose user PATH still resolves through it.
 
@@ -207,7 +207,7 @@ def ensure_windows_bin_launchers(
         # closed/broken stderr must not turn a successful heal into a crash.
         with contextlib.suppress(OSError, ValueError):
             print(
-                "  ✓ Restored hermes launcher(s): " + ", ".join(restored),
+                "  ✓ Restored kova launcher(s): " + ", ".join(restored),
                 file=sys.stderr,
             )
     return restored
@@ -344,7 +344,7 @@ def migrate_windows_bin_path(
             return False
         with contextlib.suppress(OSError, ValueError):
             print(
-                f"  ✓ hermes launchers now resolve from {home_bin} "
+                f"  ✓ kova launchers now resolve from {home_bin} "
                 "(legacy PATH entries removed)",
                 file=sys.stderr,
             )

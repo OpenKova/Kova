@@ -674,7 +674,7 @@ export default { id: 'quoted-spec', register: () => { globalThis.__captured = do
   })
 
   it('rewrites imports after the entities htmlReplacer regex (#120208)', async () => {
-    // entities 6.0.1 encode.js (via the hermes-toolsmith bundle): the
+    // entities 6.0.1 encode.js (via the kova-toolsmith bundle): the
     // character class contains a backtick, then SDK/react imports follow.
     const restore = withBlobReroute()
 
@@ -1034,7 +1034,7 @@ describe('loader hardening: hangs, leaks, duplicate ids, stale incarnations', ()
           id: 'scoped-lifetime',
           register(ctx) {
             ctx.setInterval(() => { globalThis.__scopedTicks++ }, 1000)
-            ctx.addEventListener(window, 'hermes-probe', () => { globalThis.__scopedEvents++ })
+            ctx.addEventListener(window, 'kova-probe', () => { globalThis.__scopedEvents++ })
           }
         }`,
         'scoped-lifetime'
@@ -1042,13 +1042,13 @@ describe('loader hardening: hangs, leaks, duplicate ids, stale incarnations', ()
 
       expect($pluginRecords.get()['scoped-lifetime']).toMatchObject({ status: 'loaded' })
       await vi.advanceTimersByTimeAsync(3_000)
-      window.dispatchEvent(new Event('hermes-probe'))
+      window.dispatchEvent(new Event('kova-probe'))
       expect(counters.__scopedTicks).toBe(3)
       expect(counters.__scopedEvents).toBe(1)
 
       unloadRuntimePlugin('scoped-lifetime')
       await vi.advanceTimersByTimeAsync(3_000)
-      window.dispatchEvent(new Event('hermes-probe'))
+      window.dispatchEvent(new Event('kova-probe'))
       expect(counters.__scopedTicks).toBe(3)
       expect(counters.__scopedEvents).toBe(1)
     } finally {

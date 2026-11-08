@@ -96,7 +96,7 @@ def test_clear_removes_all_stale_lock_kinds(repo: Path, no_git_running: None) ->
 def test_graph_refresh_clears_object_store_debris_and_leaves_the_index_lock(
         repo: Path, no_git_running: None, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """A killed graph/midx writer's lock fails every later write of that file (git: "File exists"). The
-    refresh also runs in whatever repo ``hermes -w`` started in, where index.lock is the user's git's.
+    refresh also runs in whatever repo ``kova -w`` started in, where index.lock is the user's git's.
 
     An old lock is no proof its writer is dead (a stopped writer's lock ages too): while a git of any
     form runs (git-core's dashed executables included), or when no process list can be read, every
@@ -334,7 +334,7 @@ def test_maintenance_keys_leave_gits_own_fold_running(tmp_path: Path) -> None:
     """Between updates, git's post-lazy-fetch auto maintenance is what folds packs (git <= 2.53).
 
     The keys stop the commit-graph write without switching that fold off: ``maintenance.auto=false``
-    let the packs pile up until the next ``hermes update``. Compared against a stock-config clone
+    let the packs pile up until the next ``kova update``. Compared against a stock-config clone
     because newer git (2.55) does not fold lazy-fetch packs on its own at all.
     """
     def lazy_packs(name: str, keys: bool) -> int:
@@ -538,7 +538,7 @@ def test_a_git_elsewhere_exiting_mid_scan_is_gone_not_a_hidden_holder(repo: Path
     """A git in ANOTHER repository that exits between the scan reading its argv and its cwd/environ
     (unreadable once it has released its memory) is gone: it holds nothing and takes no lock. Read
     as a hidden git that may work here, any busy machine's git churn postponed the launch repair
-    ("a running git holds the index after an interrupted `hermes update`")."""
+    ("a running git holds the index after an interrupted `kova update`")."""
     from kova_cli import _early_recovery as er
     from tests.waiting import wait_until
 
@@ -548,7 +548,7 @@ def test_a_git_elsewhere_exiting_mid_scan_is_gone_not_a_hidden_holder(repo: Path
     shutil.copytree(repo, other, ignore=shutil.ignore_patterns("*.lock"))
     lock = repo / ".git" / "index.lock"
     lock.write_bytes(b"")  # a killed git's: nothing holds it
-    marker = "hermes.test=exits-mid-scan"
+    marker = "kova.test=exits-mid-scan"
     proc = _git_in_the_editor(other, tmp_path, ["git", "-c", marker, "commit", "-a"])
     real = er._counts_as_holder
 
@@ -570,7 +570,7 @@ def test_a_git_elsewhere_exiting_mid_scan_is_gone_not_a_hidden_holder(repo: Path
 def test_lock_keeping_git_is_recognised_in_every_form_and_by_path_components(tmp_path: Path, monkeypatch) -> None:
     """Review P1/secondary, the hosts with no /proc: the macOS branch had only an (empty) ``lsof``,
     and the Windows scan matched ``git.exe`` alone and compared paths with ``startswith``
-    (``hermes-backup`` read as inside ``hermes``). Injected process metadata, not a native run."""
+    (``kova-backup`` read as inside ``kova``). Injected process metadata, not a native run."""
     import types
 
     from kova_cli import _early_recovery as er
@@ -580,9 +580,9 @@ def test_lock_keeping_git_is_recognised_in_every_form_and_by_path_components(tmp
     assert er._git_subcommand_of(["C:\\Git\\mingw64\\libexec\\git-core\\GIT-COMMIT.EXE"]) == "commit"
     assert er._git_subcommand_of(["git", "-C", "x", "-c", "k=v", "--no-pager", "save", "-a"]) == "save"
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     (root / ".git").mkdir(parents=True)
-    (tmp_path / "hermes-backup").mkdir()
+    (tmp_path / "kova-backup").mkdir()
     lock = root / ".git" / "index.lock"
     lock.write_bytes(b"")
 
@@ -598,7 +598,7 @@ def test_lock_keeping_git_is_recognised_in_every_form_and_by_path_components(tmp
     monkeypatch.setattr("shutil.which", lambda name: name)
     monkeypatch.setattr(er.subprocess, "run", ps_lists("/Library/Developer/CommandLineTools/usr/libexec/git-core/git-commit -a"))
     assert er._held_open_lsof(lock, root, False), "macOS: a dashed git-commit with its fd closed keeps the lock"
-    monkeypatch.setattr(er.subprocess, "run", ps_lists("git commit -a", tmp_path / "hermes-backup"))
+    monkeypatch.setattr(er.subprocess, "run", ps_lists("git commit -a", tmp_path / "kova-backup"))
     assert er._held_open_lsof(lock, root, False) is False, "a commit in another repository is not this checkout's"
     monkeypatch.setattr(er.subprocess, "run", ps_lists("git log --oneline"))
     assert er._held_open_lsof(lock, root, False) is False and er._held_open_lsof(lock, root, True)
@@ -611,7 +611,7 @@ def test_lock_keeping_git_is_recognised_in_every_form_and_by_path_components(tmp
         monkeypatch.setitem(__import__("sys").modules, "psutil", psutil)
         return gitlock._windows_git_in_checkout(root)
 
-    assert scan(tmp_path / "hermes-backup") is False, "a sibling directory is not this checkout"
+    assert scan(tmp_path / "kova-backup") is False, "a sibling directory is not this checkout"
     assert scan(root / "sub") is True and scan(root, "git-commit.exe") is True
 
 
@@ -767,7 +767,7 @@ def test_a_killed_shallow_fetchs_shallow_lock_goes_and_the_next_fetch_lands(repo
 
 
 @pytest.mark.platforms("linux")
-def test_a_live_hermes_shallow_lock_holder_keeps_its_lock(repo: Path) -> None:
+def test_a_live_kova_shallow_lock_holder_keeps_its_lock(repo: Path) -> None:
     """Kova's own ``_ShallowLock`` holder runs no git between its git calls: the reclaim must
     still see it (it keeps the lock open), even after a killed update."""
     from kova_cli.gitlock import _ShallowLock, release_dead_fetch_locks

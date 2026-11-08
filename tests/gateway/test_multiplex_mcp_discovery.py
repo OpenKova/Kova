@@ -359,7 +359,7 @@ def test_deregister_scope_kwarg_targets_overlay_and_keeps_plugin_confinement() -
 
     # A plugin module may not name another profile's overlay.
     from kova_constants import kova_home_key
-    reg._plugin_module_scopes["hermes_plugins.p"] = {kova_home_key("/home/p1")}
-    reg._caller_module = staticmethod(lambda: "hermes_plugins.p")
+    reg._plugin_module_scopes["kova_plugins.p"] = {kova_home_key("/home/p1")}
+    reg._caller_module = staticmethod(lambda: "kova_plugins.p")
     with pytest.raises(PermissionError):
         reg.deregister("anything", scope="/home/p2")

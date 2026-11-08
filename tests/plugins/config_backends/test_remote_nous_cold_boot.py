@@ -46,7 +46,7 @@ def _iso(offset_s: float) -> str:
 
 def _auth_json(plane: StubPlane, *, expired: bool) -> dict:
     nous = {"access_token": "expired-token" if expired else NOUS_TOKEN, "refresh_token": "nous-refresh-1",
-            "client_id": "hermes-cli-vps", "portal_base_url": plane.url,
+            "client_id": "kova-cli-vps", "portal_base_url": plane.url,
             "expires_at": _iso(-3600 if expired else 3600)}
     return {"version": 1, "active_provider": "nous", "providers": {"nous": nous}}
 

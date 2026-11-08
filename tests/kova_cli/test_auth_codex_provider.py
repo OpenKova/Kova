@@ -16,7 +16,7 @@ from kova_cli.auth import (
 )
 
 
-def _setup_hermes_auth(kova_home: Path, *, access_token: str = "access", refresh_token: str = "refresh"):
+def _setup_kova_auth(kova_home: Path, *, access_token: str = "access", refresh_token: str = "refresh"):
     """Write Codex tokens into the Kova auth store."""
     kova_home.mkdir(parents=True, exist_ok=True)
     auth_store = {
@@ -39,8 +39,8 @@ def _setup_hermes_auth(kova_home: Path, *, access_token: str = "access", refresh
 
 
 def test_resolve_codex_runtime_credentials_missing_access_token(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
-    _setup_hermes_auth(kova_home, access_token="")
+    kova_home = tmp_path / "kova"
+    _setup_kova_auth(kova_home, access_token="")
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "missing-codex"))
 
@@ -60,7 +60,7 @@ def test_resolve_codex_runtime_credentials_falls_back_to_pool_when_singleton_emp
     re-auth, restore from backup) hit a bare HTTP 401 on chat but worked fine on
     auxiliary calls.  The fallback closes that divergence.
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     # Singleton: empty tokens (would normally raise AuthError).
     # Pool: valid access_token.
@@ -96,7 +96,7 @@ def test_save_codex_tokens_syncs_credential_pool(tmp_path, monkeypatch):
     holding a consumed refresh token and stale error markers, causing an
     immediate 401 token_invalidated on the next request.
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1,
@@ -160,7 +160,7 @@ def test_save_codex_tokens_syncs_manual_device_code_entries(tmp_path, monkeypatc
     aliases of the singleton, while leaving INDEPENDENT entries alone.
 
     Original regression for #33538: a user who hit #33000 before the #33164
-    fix landed would have run ``hermes auth add openai-codex`` as a
+    fix landed would have run ``kova auth add openai-codex`` as a
     workaround, leaving a pool entry with ``source="manual:device_code"``.
     On every subsequent re-auth via setup/model picker, the singleton-seeded
     ``device_code`` entry got refreshed but the ``manual:device_code`` entry
@@ -169,12 +169,12 @@ def test_save_codex_tokens_syncs_manual_device_code_entries(tmp_path, monkeypatc
 
     Narrowed for #39236: the original fix treated every ``manual:device_code``
     entry as a singleton-alias and refreshed them all, which silently
-    clobbered independent accounts added via ``hermes auth add openai-codex``.
+    clobbered independent accounts added via ``kova auth add openai-codex``.
     The current behavior refreshes only entries whose access_token matches
     the *previous* singleton access_token (true legacy aliases), and leaves
     distinct-token entries alone (independent accounts).
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1,
@@ -207,7 +207,7 @@ def test_save_codex_tokens_syncs_manual_device_code_entries(tmp_path, monkeypatc
                     "last_error_code": 401,
                     "last_error_reason": "token_invalidated",
                 },
-                # Independent account from `hermes auth add openai-codex` —
+                # Independent account from `kova auth add openai-codex` —
                 # its tokens are distinct from the singleton.  Must NOT be
                 # overwritten by a re-auth that targeted a different account
                 # (#39236).
@@ -266,7 +266,7 @@ def test_save_codex_tokens_clears_error_markers_only_on_refreshed_entries(tmp_pa
     with their own stale-error markers must be left alone (their stale state
     is not the current re-auth's business).
     """
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1,
@@ -327,7 +327,7 @@ def test_save_codex_tokens_clears_error_markers_only_on_refreshed_entries(tmp_pa
 
 def test_codex_tokens_not_written_to_shared_file(tmp_path, monkeypatch):
     """Verify _save_codex_tokens writes only to Kova auth store, not ~/.codex/."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     codex_home = tmp_path / "codex-cli"
     kova_home.mkdir(parents=True, exist_ok=True)
     codex_home.mkdir(parents=True, exist_ok=True)
@@ -336,23 +336,23 @@ def test_codex_tokens_not_written_to_shared_file(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
-    _save_codex_tokens({"access_token": "hermes-at", "refresh_token": "hermes-rt"})
+    _save_codex_tokens({"access_token": "kova-at", "refresh_token": "kova-rt"})
 
     # ~/.codex/auth.json should NOT exist — _save_codex_tokens only touches Kova store
     assert not (codex_home / "auth.json").exists()
 
     # Kova auth store should have the tokens
     data = _read_codex_tokens()
-    assert data["tokens"]["access_token"] == "hermes-at"
+    assert data["tokens"]["access_token"] == "kova-at"
 
 
-def test_resolve_returns_hermes_auth_store_source(tmp_path, monkeypatch):
-    kova_home = tmp_path / "hermes"
-    _setup_hermes_auth(kova_home)
+def test_resolve_returns_kova_auth_store_source(tmp_path, monkeypatch):
+    kova_home = tmp_path / "kova"
+    _setup_kova_auth(kova_home)
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
 
     creds = resolve_codex_runtime_credentials()
-    assert creds["source"] == "hermes-auth-store"
+    assert creds["source"] == "kova-auth-store"
     assert creds["provider"] == "openai-codex"
     assert creds["base_url"] == DEFAULT_CODEX_BASE_URL
 
@@ -396,7 +396,7 @@ def test_refresh_429_classified_as_quota_not_auth_failure(monkeypatch):
 
     Regression test for #32790: must NOT force relogin and must carry the
     dedicated rate-limit code so callers surface a "retry later" notice rather
-    than a misleading "run hermes auth".
+    than a misleading "run kova auth".
     """
     from kova_cli.auth import (
         CODEX_RATE_LIMITED_CODE,
@@ -421,7 +421,7 @@ def test_refresh_429_classified_as_quota_not_auth_failure(monkeypatch):
     # User-facing copy must not tell the operator to re-authenticate.
     rendered = format_auth_error(err)
     assert "re-authenticate" not in rendered
-    assert "hermes auth" not in rendered
+    assert "kova auth" not in rendered
 
 
 def test_refresh_429_without_retry_after_header(monkeypatch):
@@ -442,7 +442,7 @@ def test_refresh_429_without_retry_after_header(monkeypatch):
 def test_pool_only_force_refresh_rotates_the_pool_entry(tmp_path, monkeypatch):
     """Pool-only setup (empty singleton): ``force_refresh`` must refresh the pool credential
     instead of handing back the same token the caller just got a 401 for."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     kova_home.mkdir(parents=True, exist_ok=True)
     (kova_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},

@@ -49,7 +49,7 @@ from run_agent import AIAgent
 # not match.  Keeping them different here is deliberate — the scope has to
 # resolve under the source the row actually landed on.
 BRIDGE_ROW_SOURCE = "api_server"
-BRIDGE_PLATFORM = "hermes_bridge"
+BRIDGE_PLATFORM = "kova_bridge"
 
 ROOM = "room-7c1f"
 PROFILE = "default"

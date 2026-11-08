@@ -12,7 +12,7 @@ import pytest
 @pytest.mark.spawns_gateway_lookalike  # stub interpreter records env then exits; reaped below
 def test_host_daemon_does_not_inherit_named_profile_dotenv(tmp_path, monkeypatch):
     from kova_cli import gateway_runtime_start as start
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     root = tmp_path / 'root'
     work = root / 'profiles' / 'work'
     work.mkdir(parents=True, mode=0o700)
@@ -21,9 +21,9 @@ def test_host_daemon_does_not_inherit_named_profile_dotenv(tmp_path, monkeypatch
                                'KOVA_LANGUAGE=fr\n', encoding='utf-8')
     for key in ('TELEGRAM_BOT_TOKEN', 'OPENROUTER_API_KEY', 'KOVA_LANGUAGE'):
         monkeypatch.delenv(key, raising=False)
-    # The `hermes -p work` client: its process home is the profile and its .env is in os.environ.
+    # The `kova -p work` client: its process home is the profile and its .env is in os.environ.
     monkeypatch.setenv('KOVA_HOME', str(work))
-    load_hermes_dotenv(kova_home=work)
+    load_kova_dotenv(kova_home=work)
     assert os.environ['TELEGRAM_BOT_TOKEN'] == 'work-bot-token'
     monkeypatch.setenv('SHELL_INJECTED_SETTING', 'kept')
     witness = tmp_path / 'env.json'

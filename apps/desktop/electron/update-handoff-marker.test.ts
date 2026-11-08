@@ -10,7 +10,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..')
 const POSIX_SCRIPT = path.join(REPO_ROOT, 'scripts', 'desktop-update', 'posix.sh')
 
 function sandbox(tag: string) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), `hermes-handoff-marker-${tag}-`))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), `kova-handoff-marker-${tag}-`))
   const installRoot = path.join(home, 'kova-agent')
   fs.mkdirSync(installRoot)
 

@@ -4209,7 +4209,7 @@ describe('resumeSession warm-cache mapping integrity', () => {
   )
 
   it('pins an untagged row to the active registry connection instead of the same-named local profile', async () => {
-    setConnection({ connectionId: 'hermes01', mode: 'remote' } as never)
+    setConnection({ connectionId: 'kova01', mode: 'remote' } as never)
     setSessions([storedSession({ id: 'remote-stored', profile: 'default' })])
     vi.mocked(getLatestSessionMessages).mockResolvedValue({ messages: [], session_id: 'remote-stored' } as never)
     vi.mocked(requestGatewayForAgent).mockResolvedValue({
@@ -4233,7 +4233,7 @@ describe('resumeSession warm-cache mapping integrity', () => {
     await resume!('remote-stored', true)
 
     expect(requestGatewayForAgent).toHaveBeenCalledWith(
-      'hermes01',
+      'kova01',
       'default',
       'session.resume',
       expect.objectContaining({ session_id: 'remote-stored' })
@@ -7152,7 +7152,7 @@ describe('branchStoredSession failure retry', () => {
     await waitFor(() => expect(createCallCount).toBe(2))
   })
 
-  // Regression for hermes-sweeper review on PR #65411: a retry after a lost
+  // Regression for kova-sweeper review on PR #65411: a retry after a lost
   // response must reuse the SAME idempotency key, otherwise the backend
   // spawns a duplicate child session.
   it('passes the same idempotency_key on retry as on the first attempt', async () => {
@@ -7204,7 +7204,7 @@ describe('branchStoredSession failure retry', () => {
     expect(seenKeys[1]).toBe(seenKeys[0])
   })
 
-  // Regression for hermes-sweeper review on PR #65411: the notification must
+  // Regression for kova-sweeper review on PR #65411: the notification must
   // go through notifyError's readableError normalization (wrapper stripping,
   // detail extraction, long-message fallback), not raw err.message.
   it('uses readableError normalization for the failure notification', async () => {

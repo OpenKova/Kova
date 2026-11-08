@@ -23,7 +23,7 @@ def _write_pool(home, provider: str, row: dict) -> None:
 
 
 def test_solstice_is_off_every_discovery_surface_until_signed_in_but_always_resolves(monkeypatch, tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     from kova_cli.models import list_available_providers
@@ -54,7 +54,7 @@ def test_brokered_opaque_bearer_rotates_on_stored_expiry_and_keeps_the_refresh_t
     plugin's broker instead of a token URL, and keep the refresh token when the response omits it."""
     from agent.credential_pool import load_pool
 
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     grants: list[dict] = []

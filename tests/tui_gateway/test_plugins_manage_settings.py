@@ -23,7 +23,7 @@ config_schema:
 
 @pytest.fixture
 def plugins_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     (home / "plugins" / "demo-plugin").mkdir(parents=True)
     (home / "plugins" / "demo-plugin" / "plugin.yaml").write_text(MANIFEST, encoding="utf-8")
     (home / "config.yaml").write_text(

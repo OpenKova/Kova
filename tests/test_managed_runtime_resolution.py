@@ -12,7 +12,7 @@ code has two failure modes:
   keep resolving it across reboots.
 
 The fix per call site is one of ``find_node_executable()``,
-``iter_hermes_node_dirs()``, ``resolve_uv()``, or ``ensure_uv()``. This test is
+``iter_kova_node_dirs()``, ``resolve_uv()``, or ``ensure_uv()``. This test is
 the ratchet that stops a new bare lookup from being added back.
 
 Reading source is normally banned (see AGENTS.md). It is the right tool here and
@@ -331,7 +331,7 @@ def test_no_unreviewed_bare_managed_runtime_lookups():
         "Use instead:\n"
         "  uv       -> managed_uv.resolve_uv() (lookup) or ensure_uv() (may install)\n"
         "  node/npm -> kova_constants.find_node_executable()\n"
-        "  PATH env -> kova_constants.iter_hermes_node_dirs()\n"
+        "  PATH env -> kova_constants.iter_kova_node_dirs()\n"
         "If PATH really is the right question, add the site to _ALLOWED with a "
         "reason."
     )
@@ -353,8 +353,8 @@ def test_allowlist_has_no_stale_entries():
     "helper",
     [
         "find_node_executable",
-        "iter_hermes_node_dirs",
-        "with_hermes_node_path",
+        "iter_kova_node_dirs",
+        "with_kova_node_path",
     ],
 )
 def test_managed_node_helpers_exist(helper):

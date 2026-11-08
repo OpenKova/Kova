@@ -18,12 +18,12 @@
 #                            under Playwright's Electron driver and CLICK
 #                            Settings -> About -> "Update now". The
 #                            production hand-off chain runs untouched:
-#                            marker, app quit, detached updater, `hermes
+#                            marker, app quit, detached updater, `kova
 #                            update`, desktop rebuild, RELAUNCH. Asserts
 #                            target sha, marker cleanup, result JSON (when
-#                            the script path wrote one), working hermes,
+#                            the script path wrote one), working kova,
 #                            and the relaunched app window.
-#                 update     run `hermes update` from the installed command
+#                 update     run `kova update` from the installed command
 #                            (the CLI route a GUI user might take).
 #                 installer  re-run the bootstrap installer over the
 #                            existing install (download Kova-Setup.exe
@@ -35,7 +35,7 @@
 #   canonical repo URLs, via a driver-owned gitconfig selected with
 #   GIT_CONFIG_GLOBAL. (NOT GIT_CONFIG_COUNT/KEY_n/VALUE_n env config --
 #   install.ps1 sets those itself and silently clobbers them.) The
-#   installer's `git clone` and `hermes update`'s `git fetch origin`
+#   installer's `git clone` and `kova update`'s `git fetch origin`
 #   transparently hit OUR bare repo. Its `main` serves OLD for the install
 #   phase; the update phase advances it to HEAD -- an update becomes
 #   available exactly the way it does for a real user. Installer and
@@ -81,11 +81,11 @@ param(
     [string]$InstallMethod = "desktop-installer@latest",
 
     # Update method to exercise in the update phase, same id namespace.
-    # open-app-update (from a desktop-installer install) and hermes-update /
+    # open-app-update (from a desktop-installer install) and kova-update /
     # installer-script / installer-script+desktop (from script installs) are
     # implemented; the rest are declared arms so the surface is stable when
     # they land.
-    [ValidateSet("open-app-update", "hermes-desktop-app-update", "hermes-update", "desktop-installer@latest", "installer-script", "installer-script+desktop")]
+    [ValidateSet("open-app-update", "kova-desktop-app-update", "kova-update", "desktop-installer@latest", "installer-script", "installer-script+desktop")]
     [string]$Route = "open-app-update",
 
     # The OLD version: the ref served as `main` while the installer runs,
@@ -107,7 +107,7 @@ param(
     # Repo checkout whose HEAD is the update target.
     [string]$RepoRoot = "",
 
-    [string]$WorkRoot = $(if ($env:KOVA_E2E_WORKROOT) { $env:KOVA_E2E_WORKROOT } else { Join-Path $env:TEMP "hermes-desktop-gui-e2e" }),
+    [string]$WorkRoot = $(if ($env:KOVA_E2E_WORKROOT) { $env:KOVA_E2E_WORKROOT } else { Join-Path $env:TEMP "kova-desktop-gui-e2e" }),
 
     [string]$SetupExeUrl = "https://hermes-assets.nousresearch.com/Kova-Setup.exe",
 
@@ -127,7 +127,7 @@ $OutputEncoding = [Console]::OutputEncoding
 # store) and KOVA_PYTHON for this job's tooling. A user's machine has one
 # store, <KOVA_HOME>\tools, and the desktop smoke already launches the app
 # that way (smoke-env.mjs drops every KOVA_* override). When install.ps1
-# and `hermes update` saw the job's store while the smoke did not, a leg
+# and `kova update` saw the job's store while the smoke did not, a leg
 # settled onto two stores and the update rewrote its own running launcher
 # ("source launcher publication failed"). No product step (installer, app,
 # update, chat) sees the job's variables; the driver keeps setup-pm only
@@ -141,7 +141,7 @@ foreach ($jobOnly in @('KOVA_RUNTIME_DIR', 'KOVA_PYTHON', 'VIRTUAL_ENV')) {
 if (-not $RepoRoot) {
     $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 }
-# The workflow's KOVA_E2E_WORKROOT is "<workspace>\..\hermes-desktop-gui-e2e".
+# The workflow's KOVA_E2E_WORKROOT is "<workspace>\..\kova-desktop-gui-e2e".
 # Everything below derives KOVA_HOME (and so the PM store) from it, and a
 # user's KOVA_HOME has no ".." segment. With one, Windows reports the store
 # Python's sys.executable normalized while PM names it with the "..", and
@@ -149,7 +149,7 @@ if (-not $RepoRoot) {
 $WorkRoot = [System.IO.Path]::GetFullPath($WorkRoot)
 
 $ServeRepo   = Join-Path $WorkRoot "serve.git"
-$KovaHome  = Join-Path $WorkRoot "hermes-home"
+$KovaHome  = Join-Path $WorkRoot "kova-home"
 $InstallDir  = Join-Path $KovaHome "kova-agent"
 $StatePath   = Join-Path $WorkRoot "shas.json"
 $ProofRoot   = Join-Path $WorkRoot "proof"
@@ -217,7 +217,7 @@ function Invoke-Git([string[]]$GitArgs) {
     #
     # ALWAYS the real git.exe, never the shim we ship.
     # annoying bug where .bat files eat ^ args.
-    # if hermes ever adds a git command that calls something with ^ this will break, lol.
+    # if kova ever adds a git command that calls something with ^ this will break, lol.
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
@@ -232,7 +232,7 @@ function Invoke-Git([string[]]$GitArgs) {
 }
 
 function Set-GitRedirect {
-    # we redirect to our own repo so we can play around with what commit hermes thinks we're on.
+    # we redirect to our own repo so we can play around with what commit kova thinks we're on.
     # MECHANISM: a driver-owned global gitconfig selected via
     # GIT_CONFIG_GLOBAL. Do NOT use GIT_CONFIG_COUNT/KEY_n/VALUE_n env
     # config here -- install.ps1 SETS those itself (GIT_CONFIG_COUNT=1,
@@ -379,7 +379,7 @@ function Save-InstallSideState([string]$Label) {
     New-Item -ItemType Directory -Path $dest -Force | Out-Null
     $logsDir = Join-Path $KovaHome "logs"
     if (Test-Path -LiteralPath $logsDir) {
-        Copy-Item $logsDir (Join-Path $dest "hermes-logs") -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item $logsDir (Join-Path $dest "kova-logs") -Recurse -Force -ErrorAction SilentlyContinue
     }
     $resultFile = Join-Path $KovaHome ".kova-update-result.json"
     if (Test-Path -LiteralPath $resultFile) {
@@ -395,16 +395,16 @@ function Save-InstallSideState([string]$Label) {
     Get-ChildItem -LiteralPath $KovaHome -ErrorAction SilentlyContinue |
         Select-Object Name, Length, LastWriteTime |
         Format-Table -AutoSize | Out-String |
-        Set-Content (Join-Path $dest "hermes-home-ls.txt")
+        Set-Content (Join-Path $dest "kova-home-ls.txt")
 }
 
 function Test-KovaRuns([string]$Label) {
     Save-InstallSideState $Label
-    $hermesExe = $null
+    $kovaExe = $null
     try {
-        $hermesExe = Get-SourceKova $InstallDir
+        $kovaExe = Get-SourceKova $InstallDir
     } catch {
-        # A pre-handoff release cannot complete inside `hermes update`: its
+        # A pre-handoff release cannot complete inside `kova update`: its
         # update path reaches no retired-hook seam, so the update ends with the
         # tree at HEAD and no published launcher. The NEXT ordinary startup
         # completes it (kova_bootstrap -> prepare_launch -> sync PM, publish
@@ -429,9 +429,9 @@ function Test-KovaRuns([string]$Label) {
             $ErrorActionPreference = $prevStartupEap
         }
         Write-Host "  first startup after the update ran (exit $startupExit); the checks below assert the launcher it must have published"
-        $hermesExe = Get-SourceKova $InstallDir
+        $kovaExe = Get-SourceKova $InstallDir
     }
-    & $DriverPython -B (Join-Path $AssetsDir 'source_driver.py') --root $InstallDir --launcher $hermesExe --desktop $script:ExpectedDesktop
+    & $DriverPython -B (Join-Path $AssetsDir 'source_driver.py') --root $InstallDir --launcher $kovaExe --desktop $script:ExpectedDesktop
     Assert-True ($LASTEXITCODE -eq 0) "$Label -- read-only install verification (no repair)"
     $prevLazy = $env:KOVA_DISABLE_LAZY_INSTALLS
     $prevBytecode = $env:PYTHONDONTWRITEBYTECODE
@@ -440,14 +440,14 @@ function Test-KovaRuns([string]$Label) {
         $env:KOVA_DISABLE_LAZY_INSTALLS = '1'
         $env:PYTHONDONTWRITEBYTECODE = '1'
         $ErrorActionPreference = 'Continue'
-        & $hermesExe --version 2>&1 | ForEach-Object { Write-Host "    hermes --version| $_" }
+        & $kovaExe --version 2>&1 | ForEach-Object { Write-Host "    kova --version| $_" }
         $versionExit = $LASTEXITCODE
     } finally {
         $env:KOVA_DISABLE_LAZY_INSTALLS = $prevLazy
         $env:PYTHONDONTWRITEBYTECODE = $prevBytecode
         $ErrorActionPreference = $prevEap
     }
-    Assert-True ($versionExit -eq 0) "$Label -- hermes --version exits 0"
+    Assert-True ($versionExit -eq 0) "$Label -- kova --version exits 0"
 }
 
 # ----------------------------------------------------------------------------
@@ -519,10 +519,10 @@ function Assert-DesktopArtifact([string]$Label) {
 function Invoke-KovaUpdate {
     # --yes reaches the update subcommand only in later
     # releases; ask the installed binary, never parse its source.
-    $hermesExe = Get-SourceKova $InstallDir
+    $kovaExe = Get-SourceKova $InstallDir
     $updateArgs = @("update")
     $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-    $helpText = & $hermesExe update --help 2>&1 | Out-String
+    $helpText = & $kovaExe update --help 2>&1 | Out-String
     $helpExit = $LASTEXITCODE
     if ($helpExit -ne 0) {
         $ErrorActionPreference = $prevEap
@@ -535,22 +535,22 @@ function Invoke-KovaUpdate {
     $watchdog = Start-HangWatchdog -Minutes $UpdateDeadlineMinutes -EvidencePath $hangLog
     Push-Location $InstallDir
     try {
-        & $hermesExe @updateArgs 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
+        & $kovaExe @updateArgs 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
         $updateExit = $LASTEXITCODE
     } finally {
         Pop-Location
         $ErrorActionPreference = $prevEap
         Stop-HangWatchdog $watchdog
     }
-    Write-LogGroup "hermes update transcript" $log
+    Write-LogGroup "kova update transcript" $log
     if (Test-Path -LiteralPath $hangLog) {
-        Write-LogGroup "hermes update hang evidence (process table, Python stacks)" $hangLog
-        throw "E2E ASSERTION FAILED: hermes update was still running after $UpdateDeadlineMinutes minutes (its output pipe never closed); the process table above shows which process held it"
+        Write-LogGroup "kova update hang evidence (process table, Python stacks)" $hangLog
+        throw "E2E ASSERTION FAILED: kova update was still running after $UpdateDeadlineMinutes minutes (its output pipe never closed); the process table above shows which process held it"
     }
-    Assert-True ($updateExit -eq 0) "hermes update exited $updateExit (expected 0)"
+    Assert-True ($updateExit -eq 0) "kova update exited $updateExit (expected 0)"
 }
 
-# install.ps1 (with -IncludeDesktop) and `hermes update` normally finish in
+# install.ps1 (with -IncludeDesktop) and `kova update` normally finish in
 # under 25 minutes. Past these deadlines the watchdog records every process
 # (pid, parent, start time, command line) plus a py-spy stack of each Python
 # process, then stops this leg's processes, so a hang fails with evidence --
@@ -589,7 +589,7 @@ function Start-HangWatchdog([int]$Minutes, [string]$EvidencePath) {
         $lines += @('', '== every process, oldest first ==')
         $lines += @($all | Sort-Object CreationDate | ForEach-Object { & $row $_ })
         if (Test-Path -LiteralPath $pyspy) {
-            foreach ($p in (@($tree) + @($leg) | Where-Object { $_.Name -match '^(python|pythonw|hermes)' } | Sort-Object ProcessId -Unique)) {
+            foreach ($p in (@($tree) + @($leg) | Where-Object { $_.Name -match '^(python|pythonw|kova)' } | Sort-Object ProcessId -Unique)) {
                 $lines += @('', "== py-spy dump --pid $($p.ProcessId) ($($p.Name)) ==")
                 $lines += @(& $pyspy dump --pid $p.ProcessId --nonblocking 2>&1 | ForEach-Object { "$_" })
             }
@@ -613,7 +613,7 @@ function Stop-HangWatchdog($Job) {
 function Invoke-ManualCardUpdate([string]$ReceiptPath, [string]$TargetSha) {
     Assert-True (Test-Path -LiteralPath $ReceiptPath) "manual update card produced a receipt"
     $manual = Get-Content -LiteralPath $ReceiptPath -Raw | ConvertFrom-Json
-    Assert-True ($manual.command -match '^hermes update(?:\s|$)') "manual update card instructed hermes update"
+    Assert-True ($manual.command -match '^kova update(?:\s|$)') "manual update card instructed kova update"
     Invoke-KovaUpdate
     Assert-True ((Get-InstalledHead) -eq $TargetSha) "manual update landed on target commit"
     Test-KovaRuns "post-manual-update"
@@ -672,11 +672,11 @@ function Clear-HistoricalInstallerChurn {
 }
 
 function Invoke-KovaDesktopAppUpdate([string]$TargetSha) {
-    # The hermes-desktop launch surface: `hermes desktop` runs its whole
+    # The kova-desktop launch surface: `kova desktop` runs its whole
     # real pipeline; the driver intercepts the product's final spawn
     # (argv/cwd/env captured by e2e-assets/launch-capture/sitecustomize.py)
     # and re-executes it under Playwright, which clicks Update now.
-    $hermesExe = Get-SourceKova $InstallDir
+    $kovaExe = Get-SourceKova $InstallDir
     $spec = Join-Path $WorkRoot "launch-spec.json"
     New-Item -ItemType Directory -Path (Join-Path $WorkRoot "logs") -Force | Out-Null
     $log = Join-Path $WorkRoot "logs\desktop-launch-capture.log"
@@ -689,14 +689,14 @@ function Invoke-KovaDesktopAppUpdate([string]$TargetSha) {
     $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     Push-Location $InstallDir
     try {
-        if ($hermesExe.StartsWith((Join-Path $InstallDir '.kova'), [StringComparison]::OrdinalIgnoreCase)) {
+        if ($kovaExe.StartsWith((Join-Path $InstallDir '.kova'), [StringComparison]::OrdinalIgnoreCase)) {
             # The PM launcher runs its interpreter with -I, so PYTHONPATH never
             # imports sitecustomize. Same as installer-script-e2e.sh: ask the
             # launcher for its own isolated command and inject the hook into it.
-            & $DriverPython -I (Join-Path $capDir 'pm-launch.py') $hermesExe $spec 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
+            & $DriverPython -I (Join-Path $capDir 'pm-launch.py') $kovaExe $spec 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
         } else {
             # Pre-PM venv console scripts load sitecustomize from PYTHONPATH.
-            & $hermesExe desktop 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
+            & $kovaExe desktop 2>&1 | Add-TsPrefix | Out-File -Encoding UTF8 $log
         }
         $capExit = $LASTEXITCODE
     } finally {
@@ -705,8 +705,8 @@ function Invoke-KovaDesktopAppUpdate([string]$TargetSha) {
         $env:PYTHONPATH = $prevPy
         $env:KOVA_E2E_CAPTURE_LAUNCH = $prevCap
     }
-    Write-LogGroup "hermes desktop (launch capture) transcript" $log
-    Assert-True ($capExit -eq 0) "hermes desktop exited 0 during launch capture"
+    Write-LogGroup "kova desktop (launch capture) transcript" $log
+    Assert-True ($capExit -eq 0) "kova desktop exited 0 during launch capture"
     Assert-True (Test-Path -LiteralPath "$spec.captured") "a launch was actually captured (exit 0 without a launch must not pass)"
     Clear-HistoricalInstallerChurn
 
@@ -736,7 +736,7 @@ function Invoke-KovaDesktopAppUpdate([string]$TargetSha) {
         Invoke-ManualCardUpdate $manualReceipt $TargetSha
         return
     }
-    Assert-True ($driveExit -eq 0) "app driven via captured hermes desktop spec; update completed"
+    Assert-True ($driveExit -eq 0) "app driven via captured kova desktop spec; update completed"
 
     # The production updater relaunches Kova. Close that verified window
     # normally so the test-owned checkpoint starts and owns its own backend.
@@ -761,7 +761,7 @@ function Invoke-KovaDesktopAppUpdate([string]$TargetSha) {
 function Save-GuiDriverFailureEvidence([System.Diagnostics.Process]$Installer, [string]$OutDir) {
     New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
     Get-CimInstance Win32_Process |
-        Where-Object { $_.Name -match '^(hermes|msedgewebview2|python|uv|git|node)' -or $_.ParentProcessId -eq $Installer.Id } |
+        Where-Object { $_.Name -match '^(kova|msedgewebview2|python|uv|git|node)' -or $_.ParentProcessId -eq $Installer.Id } |
         Sort-Object CreationDate |
         Select-Object ProcessId, ParentProcessId, CreationDate, Name, CommandLine |
         Format-Table -AutoSize -Wrap | Out-String -Width 400 |
@@ -849,7 +849,7 @@ function Stop-DesktopRecorder($proc, [string]$OutDir) {
 
 function Stop-KovaAppProcesses([string]$Label) {
     # Close the desktop app the blunt way between phases (a user quitting).
-    # Only Kova.exe (Electron) -- never hermes.exe (the venv CLI shim).
+    # Only Kova.exe (Electron) -- never kova.exe (the venv CLI shim).
     $procs = @(Get-Process -Name "Kova" -ErrorAction SilentlyContinue)
     foreach ($p in $procs) {
         try { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } catch {}
@@ -876,8 +876,8 @@ function New-NextCommit([string]$Repo, [string]$Parent) {
     $saved = @{}
     $vars = @{
         GIT_INDEX_FILE = (Join-Path $WorkRoot "next.index")
-        GIT_AUTHOR_NAME = "Kova E2E"; GIT_AUTHOR_EMAIL = "e2e@hermes.invalid"
-        GIT_COMMITTER_NAME = "Kova E2E"; GIT_COMMITTER_EMAIL = "e2e@hermes.invalid"
+        GIT_AUTHOR_NAME = "Kova E2E"; GIT_AUTHOR_EMAIL = "e2e@kova.invalid"
+        GIT_COMMITTER_NAME = "Kova E2E"; GIT_COMMITTER_EMAIL = "e2e@kova.invalid"
     }
     foreach ($k in $vars.Keys) { $saved[$k] = [Environment]::GetEnvironmentVariable($k); [Environment]::SetEnvironmentVariable($k, $vars[$k]) }
     try {
@@ -1167,14 +1167,14 @@ function Invoke-GuiUpdateDesktopRoute([string]$TargetSha) {
         Assert-True ($driveExit -eq 0) "GUI driver clicked Update now and the app quit for hand-off"
 
         # The detached updater (spawned by the app, NOT by us) now runs
-        # `hermes update` + desktop rebuild + relaunch. Which updater depends
+        # `kova update` + desktop rebuild + relaunch. Which updater depends
         # on the installed checkout, and BOTH are production paths:
         #   * checkouts shipping scripts/desktop-update.ps1 -> that script,
         #     which writes .kova-update-result.json on every exit;
-        #   * older checkouts -> the staged hermes-setup.exe --update flow,
+        #   * older checkouts -> the staged kova-setup.exe --update flow,
         #     which does NOT write the result JSON.
         # So: poll for COMPLETION = (result JSON) OR (checkout reached the
-        # target sha AND the marker is gone). The sha/marker/hermes/relaunch
+        # target sha AND the marker is gone). The sha/marker/kova/relaunch
         # asserts below are the hard gate either way; the JSON is asserted
         # only when the script path produced it.
         #
@@ -1340,7 +1340,7 @@ except Exception:
 function Invoke-UserStateActions {
     # Everything here is a command a user would run against the real installed
     # CLI with a real (mocked-inference) provider configured.
-    $hermes = Get-SourceKova $InstallDir
+    $kova = Get-SourceKova $InstallDir
     if (-not $script:ChatMock) {
         # Same mock + config writer the desktop chat checkpoints use, so the
         # leg has a genuinely configured provider rather than a dummy key.
@@ -1353,7 +1353,7 @@ function Invoke-UserStateActions {
         $ErrorActionPreference = 'Continue'
 
         # Probe, do not assume (the harness rule for old refs).
-        $chatHelp = (& $hermes chat --help 2>&1 | Out-String)
+        $chatHelp = (& $kova chat --help 2>&1 | Out-String)
         if (-not ($chatHelp -match '(^|\s)-q(\s|,|$)' -or $chatHelp -match '--quiet')) {
             throw 'the installed CLI has no one-shot chat flag; this leg cannot produce a session through the user path'
         }
@@ -1369,7 +1369,7 @@ function Invoke-UserStateActions {
         # a console screen buffer: piping the CLI's stdout into the log takes that away
         # and the turn dies with NoConsoleScreenBufferError. Run it under a real
         # pseudoconsole (pty-run.py) and keep the capture.
-        & $DriverPython -B (Join-Path $AssetsDir 'pty-run.py') --out $log --timeout 300 -- $hermes chat -q "Reply with the single word: ok" @oneshot
+        & $DriverPython -B (Join-Path $AssetsDir 'pty-run.py') --out $log --timeout 300 -- $kova chat -q "Reply with the single word: ok" @oneshot
         $chatExit = $LASTEXITCODE
         Write-LogGroup 'first real chat turn' $log
         if ($chatExit -eq 124) {
@@ -1389,9 +1389,9 @@ function Invoke-UserStateActions {
         if (-not (Test-Path -LiteralPath (Join-Path $KovaHome 'auth.json'))) {
             # A starting tag may not have this subcommand yet: a harness
             # limitation, not a preservation failure.
-            & $hermes auth add --help *> $null
+            & $kova auth add --help *> $null
             if ($LASTEXITCODE -ne 0) {
-                Write-Host '  SKIP hermes auth add does not exist on this ref; auth.json is not covered by this leg'
+                Write-Host '  SKIP kova auth add does not exist on this ref; auth.json is not covered by this leg'
             }
             else {
             # The provider id and the flags are vintage surfaces, so probe them
@@ -1402,13 +1402,13 @@ function Invoke-UserStateActions {
             # first provider the installed CLI accepts.
             $authLog = Join-Path $WorkRoot 'logs\user-state-auth.log'
             $labelFlags = @()
-            if ((& $hermes auth add --help 2>&1 | Out-String) -match '--label') {
+            if ((& $kova auth add --help 2>&1 | Out-String) -match '--label') {
                 $labelFlags = @('--label', 'e2e-preservation')
             }
             $added = $false
             foreach ($provider in @('openrouter', 'anthropic')) {
-                Add-Content -LiteralPath $authLog -Value "=== hermes auth add $provider ==="
-                & $hermes auth add $provider --type api-key `
+                Add-Content -LiteralPath $authLog -Value "=== kova auth add $provider ==="
+                & $kova auth add $provider --type api-key `
                     --api-key 'e2e-preservation-not-a-real-key' @labelFlags 2>&1 |
                     Out-File -Encoding UTF8 -Append $authLog
                 if (Test-Path -LiteralPath (Join-Path $KovaHome 'auth.json')) {
@@ -1417,7 +1417,7 @@ function Invoke-UserStateActions {
                 }
             }
             if (-not $added) {
-                throw "hermes auth add failed for openrouter and anthropic; see $authLog"
+                throw "kova auth add failed for openrouter and anthropic; see $authLog"
             }
             Write-Host '  a pooled credential exists (auth.json)'
             }
@@ -1427,16 +1427,16 @@ function Invoke-UserStateActions {
             # Same vintage surface as auth add above: a starting tag may predate
             # the profile command entirely, and that is a harness limitation,
             # not a preservation failure.
-            & $hermes profile create --help *> $null
+            & $kova profile create --help *> $null
             if ($LASTEXITCODE -ne 0) {
-                Write-Host '  SKIP hermes profile create does not exist on this ref; profiles/e2e-second is not covered by this leg'
+                Write-Host '  SKIP kova profile create does not exist on this ref; profiles/e2e-second is not covered by this leg'
             }
             else {
-            & $hermes profile create e2e-second 2>&1 |
+            & $kova profile create e2e-second 2>&1 |
                 Out-File -Encoding UTF8 (Join-Path $WorkRoot 'logs\user-state-profile.log')
-            if ($LASTEXITCODE -ne 0) { throw 'hermes profile create failed' }
+            if ($LASTEXITCODE -ne 0) { throw 'kova profile create failed' }
             if (-not (Test-Path -LiteralPath (Join-Path $KovaHome 'profiles\e2e-second'))) {
-                throw 'hermes profile create produced no profile dir'
+                throw 'kova profile create produced no profile dir'
             }
             # Factory templates migrate intentionally; preserve an authored profile instead.
             Add-Content -LiteralPath (Join-Path $KovaHome 'profiles\e2e-second\SOUL.md') `
@@ -1479,7 +1479,7 @@ function Invoke-UserStateVerify {
 }
 
 function Assert-RedirectIsTransportOnly {
-    # The redirect must stay at TRANSPORT level: `hermes update` resolves its
+    # The redirect must stay at TRANSPORT level: `kova update` resolves its
     # channel from the release archive and validates the record against
     # `git config --get remote.origin.url`. If the configured URL ever looked
     # like the rehearsal source, channel resolution would fail and this leg
@@ -1496,10 +1496,10 @@ function Assert-RedirectIsTransportOnly {
 function Assert-UserShims {
     # A launcher left pointing at a vanished tree is the "update lost
     # something" shape a checkout-hash assertion cannot see.
-    $hermes = Get-SourceKova $InstallDir
-    Assert-True (Test-Path -LiteralPath $hermes) "a usable launcher still exists after the upgrade ($hermes)"
-    $userShim = Join-Path $KovaHome 'bin\hermes.exe'
-    if (-not (Test-Path -LiteralPath $userShim)) { $userShim = Join-Path $KovaHome 'bin\hermes.cmd' }
+    $kova = Get-SourceKova $InstallDir
+    Assert-True (Test-Path -LiteralPath $kova) "a usable launcher still exists after the upgrade ($kova)"
+    $userShim = Join-Path $KovaHome 'bin\kova.exe'
+    if (-not (Test-Path -LiteralPath $userShim)) { $userShim = Join-Path $KovaHome 'bin\kova.cmd' }
     if (Test-Path -LiteralPath $userShim) {
         $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
         try {
@@ -1529,7 +1529,7 @@ function Assert-UserShims {
 
 function Invoke-PhaseInstall {
     # Dispatch on the install axis. Each arm ends with the same contract:
-    # checkout at OLD, hermes runs, and state carries how OLD landed so any
+    # checkout at OLD, kova runs, and state carries how OLD landed so any
     # update arm can follow any install arm.
     $state = Read-State
     $script:ExpectedDesktop = if ($InstallMethod -eq 'installer-script') { 'absent' } else { 'present' }
@@ -1567,7 +1567,7 @@ function Invoke-PhaseInstall {
 function Invoke-PhaseUpdate {
     $state = Read-State
     $script:ExpectedDesktop = if ($InstallMethod -ne 'installer-script' -or $Route -in @(
-        'installer-script+desktop', 'desktop-installer@latest', 'open-app-update', 'hermes-desktop-app-update'
+        'installer-script+desktop', 'desktop-installer@latest', 'open-app-update', 'kova-desktop-app-update'
     )) { 'present' } else { 'absent' }
     $env:KOVA_HOME = $KovaHome
     # Match the POSIX driver's explicit opt-out when a detached updater bypasses
@@ -1580,7 +1580,7 @@ function Invoke-PhaseUpdate {
     # helper used to own this step.
     # The mock provider is journey setup, not an upgrade mutation. Configure it
     # before preservation snapshots so its stable endpoint is part of baseline state.
-    if ($Route -in @('open-app-update', 'hermes-desktop-app-update', 'desktop-installer@latest')) {
+    if ($Route -in @('open-app-update', 'kova-desktop-app-update', 'desktop-installer@latest')) {
         Start-JourneyChat
     }
     Set-SourceMainChannel $InstallDir
@@ -1600,10 +1600,10 @@ function Invoke-PhaseUpdate {
             # pairs are dispatched.
             Invoke-GuiUpdateDesktopRoute $state.current
         }
-        "hermes-desktop-app-update" {
+        "kova-desktop-app-update" {
             Invoke-KovaDesktopAppUpdate $state.current
         }
-        "hermes-update" {
+        "kova-update" {
             Invoke-KovaUpdate
         }
         "installer-script" {
@@ -1695,7 +1695,7 @@ function Invoke-PhaseVerifyStamp {
     # (epoch seconds) instead of "completedAt", and a null pinnedCommit when git
     # is not on PATH. #125053 fixed the writer, but the installer .exe is not
     # rebuilt, so every Desktop-installer machine carries this receipt until the
-    # next `hermes update` rewrites it (kova_cli/source_stamp.py). No reader
+    # next `kova update` rewrites it (kova_cli/source_stamp.py). No reader
     # depends on those two fields: Desktop's launch gate is runtime usability,
     # and the receipt's other readers check only that it exists. So the contract
     # for that shape is: exactly those two FAIL lines, an integer

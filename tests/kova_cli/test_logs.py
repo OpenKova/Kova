@@ -190,7 +190,7 @@ def _update_log_line() -> str:
     """The update.log run banner kova_cli.main_dashboard writes on every update."""
     import datetime as dt
 
-    return f"\n=== hermes update started {dt.datetime.now().isoformat(timespec='seconds')} ===\n".lstrip()
+    return f"\n=== kova update started {dt.datetime.now().isoformat(timespec='seconds')} ===\n".lstrip()
 
 
 def _handoff_log_line() -> str:
@@ -212,7 +212,7 @@ def _log_file_samples() -> dict:
         "gateway": _python_log_line("gateway.run"),
         "gui": _python_log_line("kova_cli.web_server"),
         # Written by TypeScript; apps/desktop/electron/desktop-log-line.test.ts pins the same shape.
-        "desktop": "2026-09-28 13:18:46,062 [hermes] [boot] ready",
+        "desktop": "2026-09-28 13:18:46,062 [kova] [boot] ready",
         "mcp": _mcp_output_line(),
         # update.log mirrors raw update output; handoff lines carry the shim's ISO-8601 stamp.
         "update": _update_log_line(),
@@ -220,7 +220,7 @@ def _log_file_samples() -> dict:
     }
 
 
-def test_every_log_file_writes_a_stamp_hermes_logs_since_can_read():
+def test_every_log_file_writes_a_stamp_kova_logs_since_can_read():
     samples = _log_file_samples()
     assert set(samples) == set(LOG_FILES), "add a real sample line for each new LOG_FILES entry"
     for name, line in samples.items():
@@ -231,15 +231,15 @@ def test_every_log_file_writes_a_stamp_hermes_logs_since_can_read():
 
 
 def test_update_logs_are_read_from_the_root_home_under_a_profile(tmp_path, monkeypatch, capsys):
-    # ``hermes update`` mirrors to <root>/logs/update.log and the hand-off scripts write the root
-    # too; `hermes logs update` under a sticky profile read the profile's (absent) copy.
+    # ``kova update`` mirrors to <root>/logs/update.log and the hand-off scripts write the root
+    # too; `kova logs update` under a sticky profile read the profile's (absent) copy.
     from kova_cli.logs import list_logs, log_file_path, tail_log
 
     root = tmp_path / "root"
     profile = root / "profiles" / "coder"
     (root / "logs").mkdir(parents=True)
     (profile / "logs").mkdir(parents=True)
-    (root / "logs" / "update.log").write_text("=== hermes update started 2026-10-03T10:00:00 ===\n✓ Update complete!\n")
+    (root / "logs" / "update.log").write_text("=== kova update started 2026-10-03T10:00:00 ===\n✓ Update complete!\n")
     (profile / "logs" / "agent.log").write_text("2026-10-03 10:00:00,000 INFO run_agent: hi\n")
     monkeypatch.setenv("KOVA_HOME", str(profile))
 

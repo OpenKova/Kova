@@ -53,7 +53,7 @@ capabilities:
   provides_hooks: []
   provides_middleware: []
   requires_env:
-    - LORECONVO_HERMES_PROJECT
+    - LORECONVO_KOVA_PROJECT
     - LORECONVO_PRO
 requires_hermes: ">=0.21.0"
 version: "0.10.20"

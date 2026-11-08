@@ -82,7 +82,7 @@ interface SpawnFixture {
 }
 
 async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promise<SpawnFixture> {
-  const root: string = await mkdtemp(path.join(os.tmpdir(), 'hermes-spawn-'))
+  const root: string = await mkdtemp(path.join(os.tmpdir(), 'kova-spawn-'))
   const bin: string = path.join(root, 'bin')
   const shell: string = (await exec('command -v sh', { shell: 'sh' })).stdout.trim()
   const localPath = (remotePath: string): string => remotePath.replace(/^~/, root)
@@ -92,7 +92,7 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
 
   const ssh: Pick<SshConnection, 'exec'> = shellSshDouble({ shell, env })
 
-  const kovaPath: string = path.join(root, 'fake hermes')
+  const kovaPath: string = path.join(root, 'fake kova')
   const kovaHome: string = path.join(root, '.kova')
   const marker: string = path.join(kovaHome, '.kova-update-in-progress')
 

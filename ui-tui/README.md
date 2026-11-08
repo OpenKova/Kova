@@ -495,7 +495,7 @@ ui-tui/
       paste.ts                   bracketed paste snippet token regex
 
     types/
-      kova-ink.d.ts            type declarations for @hermes/ink
+      kova-ink.d.ts            type declarations for @kova/ink
 
     __tests__/                   vitest suite
 ```

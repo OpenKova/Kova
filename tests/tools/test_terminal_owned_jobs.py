@@ -214,11 +214,11 @@ def test_a_failed_handoff_leaves_the_foreground_owner_its_group(monkeypatch, tmp
         raise RuntimeError("can't start new thread")
 
     monkeypatch.setattr(registry, "_track_started", no_reader)
-    proc = types.SimpleNamespace(pid=4242, _hermes_owned_pgid=4242, poll=lambda: None)
+    proc = types.SimpleNamespace(pid=4242, _kova_owned_pgid=4242, poll=lambda: None)
     with pytest.raises(RuntimeError):
         registry.adopt_local(proc, command="sleep 60", cwd=str(tmp_path))
 
-    assert proc._hermes_owned_pgid == 4242, "the foreground wait lost its group"
+    assert proc._kova_owned_pgid == 4242, "the foreground wait lost its group"
     covered = not calls or calls[-1] == ("own", [4242])
     assert covered, f"the group is left uncovered: {calls}"
     assert not registry._running, "a session with no reader stayed registered"

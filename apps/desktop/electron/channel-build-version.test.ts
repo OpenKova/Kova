@@ -46,7 +46,7 @@ interface PackagingFacts {
   config: Configuration
 }
 interface StampPayload {
-  runtime: { repoDir: string; commands: { hermes: string } }
+  runtime: { repoDir: string; commands: { kova: string } }
 }
 
 function load(build: ChannelBuildRequest): PackagingFacts {
@@ -251,7 +251,7 @@ test('channel stamps verify the real checkout and retain source version and nati
     }
 
     const provenance: InstallStamp = resolveStamp({ env, repoRoot: dir })
-    const payload: StampPayload = { runtime: { repoDir: 'repo', commands: { hermes: 'bin/hermes' } } }
+    const payload: StampPayload = { runtime: { repoDir: 'repo', commands: { kova: 'bin/kova' } } }
     const built: InstallStamp = buildStampPayload(provenance, env, 'darwin', payload)
     assert.equal(built.source, 'channel-build')
     assert.equal(built.updateMechanism, 'electron-updater')
@@ -421,7 +421,7 @@ test('actual MSIX manifest writer consumes the channel quad across rollover inst
     fs.mkdirSync(path.join(app, 'build/agent-payload'), { recursive: true })
     fs.writeFileSync(
       path.join(app, 'build/agent-payload/manifest.json'),
-      JSON.stringify({ launchers: ['hermes-no-registry-needed', 'hermes-no-registry-needed-acp'] })
+      JSON.stringify({ launchers: ['kova-no-registry-needed', 'kova-no-registry-needed-acp'] })
     )
     const facts: ManifestFacts[] = []
 

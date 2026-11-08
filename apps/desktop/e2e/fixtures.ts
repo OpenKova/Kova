@@ -114,8 +114,8 @@ export interface Sandbox {
 export function createSandbox(prefix: string): Sandbox {
   // Canonical path: the backend resolves KOVA_HOME, so a symlinked tmpdir (macOS /var, a
   // symlinked scratch dir) would otherwise make every KOVA_HOME match against the sandbox miss.
-  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `hermes-e2e-${prefix}-${Math.random()}`)))
-  const kovaHome = path.join(root, 'hermes-home')
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `kova-e2e-${prefix}-${Math.random()}`)))
+  const kovaHome = path.join(root, 'kova-home')
   const userDataDir = path.join(root, 'electron-user-data')
 
   fs.mkdirSync(kovaHome, { recursive: true })
@@ -182,7 +182,7 @@ function writeEmptyConfig(kovaHome: string): void {
  * Build the environment for the Electron app process.
  *
  * Key env vars:
- *  - KOVA_HOME → sandbox hermes-home (isolated config/sessions)
+ *  - KOVA_HOME → sandbox kova-home (isolated config/sessions)
  *  - KOVA_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
  *  - KOVA_DESKTOP_IGNORE_EXISTING=1 → skip the installed runtime
  *    (we want the dev checkout at REPO_ROOT)
@@ -223,7 +223,7 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
     // mid-flight — otherwise the quit confirmation waits on a click that no
     // one is there to make, and the worker dies on a teardown timeout.
     KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1',
-    // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
+    // Never repoint the user's OS kova:// handler (HKCU on Windows) at a test checkout.
     KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
     // Clear dev-server override — we want the built dist/, not a vite server.
     // The dev-server check in main.ts looks for this env var; if it's set,
@@ -471,7 +471,7 @@ function resolvePackagedBinaryPath(): string {
     return path.join(RELEASE_ROOT, `mac-${arch}`, 'Kova.app', 'Contents', 'MacOS', 'Kova')
   }
 
-  return path.join(RELEASE_ROOT, 'linux-unpacked', 'hermes')
+  return path.join(RELEASE_ROOT, 'linux-unpacked', 'kova')
 }
 
 export const PACKAGED_BINARY_PATH = resolvePackagedBinaryPath()
@@ -514,10 +514,10 @@ export async function setupPackagedApp(): Promise<PackagedAppFixture> {
     KOVA_DESKTOP_BOOT_FAKE_STEP_MS: '120',
   })
 
-  // Clear dev-server + hermes-root overrides — the packaged binary
+  // Clear dev-server + kova-root overrides — the packaged binary
   // should use its own bundled renderer, not the dev checkout.
   delete (env as Record<string, string | undefined>).KOVA_DESKTOP_DEV_SERVER
-  delete (env as Record<string, string | undefined>).KOVA_DESKTOP_HERMES
+  delete (env as Record<string, string | undefined>).KOVA_DESKTOP_KOVA_CLI
   delete (env as Record<string, string | undefined>).KOVA_DESKTOP_KOVA_ROOT
 
   const app = await _electron.launch({

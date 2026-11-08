@@ -71,7 +71,7 @@ const bot: RosterRow = { name: 'ops', sourceScoped: true, connectionId: 'host-a'
 
 const status: DisplayStatus = {
   profile: 'ops',
-  profile_key: '/home/hermes/.kova',
+  profile_key: '/home/kova/.kova',
   supported: true,
   installed: false,
   missing: ['tigervnc'],

@@ -60,7 +60,7 @@ test.skipIf(!powershell)(
   'the Windows remote marker judge agrees with every corpus judge case',
   async () => {
     const corpus = JSON.parse(readFileSync(corpusPath, 'utf8'))
-    const dir = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-ps-judge-'))
+    const dir = mkdtempSync(path.join(os.tmpdir(), 'kova-remote-ps-judge-'))
     const script = path.join(dir, 'replay.ps1')
 
     try {
@@ -146,14 +146,14 @@ async function gate(args: string[]) {
 test.skipIf(process.platform === 'win32')(
   'the remote gate keeps a dead marker while the default checkout lock is held',
   async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-gate-'))
+    const root = mkdtempSync(path.join(os.tmpdir(), 'kova-remote-gate-'))
     const marker = path.join(root, '.kova-update-in-progress')
 
     try {
       mkdirSync(path.join(root, 'kova-agent', '.git'), { recursive: true })
       deadMarker(marker)
 
-      await withCheckoutLockHeld(path.join(root, 'kova-agent', '.git', 'hermes-update.lock'), async () => {
+      await withCheckoutLockHeld(path.join(root, 'kova-agent', '.git', 'kova-update.lock'), async () => {
         assert.deepEqual(await gate([marker]), { code: 0, stdout: 'HELD', stderr: '' })
         assert.ok(existsSync(marker), 'a dead marker beside a held checkout lock must be kept')
         const refused = await gate([marker, 'echo PAYLOAD-RAN'])
@@ -169,9 +169,9 @@ test.skipIf(process.platform === 'win32')(
 )
 
 test.skipIf(process.platform === 'win32')(
-  'the remote gate probes the checkout of the hermes executable it is given (linked worktree)',
+  'the remote gate probes the checkout of the kova executable it is given (linked worktree)',
   async () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-gate-'))
+    const root = mkdtempSync(path.join(os.tmpdir(), 'kova-remote-gate-'))
     const home = path.join(root, 'home')
     const marker = path.join(home, '.kova-update-in-progress')
     const checkout = path.join(root, 'src', 'kova-agent')
@@ -183,15 +183,15 @@ test.skipIf(process.platform === 'win32')(
       mkdirSync(path.join(common, 'worktrees', 'co'), { recursive: true })
       writeFileSync(path.join(checkout, '.git'), `gitdir: ${path.join(common, 'worktrees', 'co')}\n`)
       writeFileSync(path.join(common, 'worktrees', 'co', 'commondir'), '../..\n')
-      writeFileSync(path.join(checkout, 'venv', 'bin', 'hermes'), '')
+      writeFileSync(path.join(checkout, 'venv', 'bin', 'kova'), '')
       mkdirSync(path.join(root, 'bin'))
-      symlinkSync(path.join(checkout, 'venv', 'bin', 'hermes'), path.join(root, 'bin', 'hermes'))
+      symlinkSync(path.join(checkout, 'venv', 'bin', 'kova'), path.join(root, 'bin', 'kova'))
       deadMarker(marker)
 
-      await withCheckoutLockHeld(path.join(common, 'hermes-update.lock'), async () => {
-        const hermes = path.join(root, 'bin', 'hermes')
-        assert.deepEqual(await gate([marker, '', hermes]), { code: 0, stdout: 'HELD', stderr: '' })
-        assert.deepEqual((await gate([marker, 'echo PAYLOAD-RAN', hermes])).code, 75)
+      await withCheckoutLockHeld(path.join(common, 'kova-update.lock'), async () => {
+        const kova = path.join(root, 'bin', 'kova')
+        assert.deepEqual(await gate([marker, '', kova]), { code: 0, stdout: 'HELD', stderr: '' })
+        assert.deepEqual((await gate([marker, 'echo PAYLOAD-RAN', kova])).code, 75)
         assert.ok(existsSync(marker))
       })
     } finally {
@@ -204,7 +204,7 @@ test.skipIf(process.platform === 'win32')(
 // for it in UTC (TZ=UTC0 + calendar.timegm); a local-time parse of the repeated
 // DST hour lands an hour off and judges a live owner dead (review G2).
 test.skipIf(process.platform === 'win32')('the remote judge reads ps lstart in UTC, not local time', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'hermes-remote-lstart-'))
+  const root = mkdtempSync(path.join(os.tmpdir(), 'kova-remote-lstart-'))
 
   try {
     // Started 01:30 EST on 2026-11-01 (06:30 UTC): New York local time repeats 01:30.

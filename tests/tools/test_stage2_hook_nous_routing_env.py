@@ -40,7 +40,7 @@ def _sync_block(text: str) -> str:
 
 def _path_guard_functions(text: str) -> str:
     start = text.index("path_has_symlink_component() {")
-    end = text.index("\n\nchown_hermes_tree() {", start)
+    end = text.index("\n\nchown_kova_tree() {", start)
     return text[start:end]
 
 
@@ -53,7 +53,7 @@ def _run_sync(stage2_text: str, home: Path, env: dict[str, str | None]) -> subpr
         "set -eu\n"  # production runs the hook under set -eu
         f"{env_setup}"
         f'KOVA_HOME="{home}"\n'
-        'as_hermes() { "$@"; }\n'
+        'as_kova() { "$@"; }\n'
         f"{_path_guard_functions(stage2_text)}\n"
         f"{_sync_block(stage2_text)}\n"
     )

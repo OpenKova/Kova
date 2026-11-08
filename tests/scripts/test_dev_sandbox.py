@@ -51,7 +51,7 @@ def test_persistent_identities_seed_once_and_honor_overrides(tmp_path):
     for entry, directory in [("dev-sandbox.sh", ".kova-sandbox"), ("dev-minimal-sandbox.sh", ".kova-minimal-sandbox")]:
         command = ["bash", str(root / "scripts" / entry), "--persistent", "--from", str(seed), "--", "true"]
         subprocess.run(command, cwd=checkout, env=env, check=True, stdin=subprocess.DEVNULL, capture_output=True, timeout=20)
-        marker = checkout / directory / "hermes-home" / "marker"
+        marker = checkout / directory / "kova-home" / "marker"
         assert marker.read_text(encoding="utf-8-sig") == "first"
         marker.write_text("retained", encoding="utf-8")
         subprocess.run(command, cwd=checkout, env=env, check=True, stdin=subprocess.DEVNULL, capture_output=True, timeout=20)
@@ -59,6 +59,6 @@ def test_persistent_identities_seed_once_and_honor_overrides(tmp_path):
     env.update(KOVA_DEV_SANDBOX_DIR=".custom", KOVA_DEV_SANDBOX_NAME="CustomSandbox")
     result = subprocess.run(["bash", str(root / "scripts/dev-minimal-sandbox.sh"), "--persistent", "--", "env"],
                             cwd=checkout, env=env, check=True, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=20)
-    assert f"KOVA_HOME={checkout / '.custom/hermes-home'}" in result.stdout
+    assert f"KOVA_HOME={checkout / '.custom/kova-home'}" in result.stdout
     assert "KOVA_DESKTOP_APP_NAME=CustomSandbox" in result.stdout
     assert (checkout / ".custom/user-data").is_dir()

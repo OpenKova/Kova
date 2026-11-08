@@ -22,7 +22,7 @@ import json
 
 import pytest
 
-from kova_cli import gateway as hermes_gateway
+from kova_cli import gateway as kova_gateway
 from kova_cli import gateway_windows
 from kova_cli import main as cli_main
 from kova_cli import process_identity
@@ -113,7 +113,7 @@ def _running_beta_pause_fixture(monkeypatch, tmp_path):
     # Resume side.
     monkeypatch.setattr(cli_main, "_refresh_windows_gateway_launchers", lambda: None)
     relaunched: set = set()
-    monkeypatch.setattr(hermes_gateway, "launch_detached_profile_gateway_restart",
+    monkeypatch.setattr(kova_gateway, "launch_detached_profile_gateway_restart",
                         lambda p, o: relaunched.add(p) or True)
     ready_probes: list = []
     monkeypatch.setattr(gateway_windows, "_wait_for_gateway_ready", lambda *a, **k: ready_probes.append(k) or [4242])

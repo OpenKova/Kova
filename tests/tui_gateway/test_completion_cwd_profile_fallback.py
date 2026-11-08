@@ -1,7 +1,7 @@
 """A pooled profile's sessions land in THAT profile's workspace (#87584).
 
 The Desktop spawns every pooled backend with the app-global
-``TERMINAL_CWD: hermesCwd`` (the launch profile's workspace). When a named
+``TERMINAL_CWD: kovaCwd`` (the launch profile's workspace). When a named
 profile's own ``terminal.cwd`` is a placeholder (``"."``) or unset,
 ``_completion_cwd`` fell through the profile-aware branch to
 ``_launch_configured_cwd()``/``TERMINAL_CWD`` — the launch (or another)

@@ -494,11 +494,11 @@ describe('createGatewayEventHandler', () => {
     const onEvent = createGatewayEventHandler(ctx)
 
     onEvent({
-      payload: { text: "💾 Self-improvement review: Skill 'hermes-release' patched" },
+      payload: { text: "💾 Self-improvement review: Skill 'kova-release' patched" },
       type: 'review.summary'
     } as any)
 
-    expect(ctx.system.sys).toHaveBeenCalledWith("💾 Self-improvement review: Skill 'hermes-release' patched")
+    expect(ctx.system.sys).toHaveBeenCalledWith("💾 Self-improvement review: Skill 'kova-release' patched")
   })
 
   it('ignores review.summary events with empty or missing text', () => {
@@ -1201,7 +1201,7 @@ describe('createGatewayEventHandler', () => {
     patchUiState({ sid: 'old-session' })
 
     createGatewayEventHandler(ctx)({
-      payload: { phrase: 'hey hermes', start_new_session: true },
+      payload: { phrase: 'hey kova', start_new_session: true },
       type: 'wake.detected'
     } as any)
 
@@ -1220,7 +1220,7 @@ describe('createGatewayEventHandler', () => {
     patchUiState({ sid: 'current-session' })
 
     createGatewayEventHandler(ctx)({
-      payload: { phrase: 'hey hermes', start_new_session: false },
+      payload: { phrase: 'hey kova', start_new_session: false },
       type: 'wake.detected'
     } as any)
 
@@ -1433,7 +1433,7 @@ describe('createGatewayEventHandler', () => {
 
     const onEvent = createGatewayEventHandler(ctx)
 
-    onEvent({ payload: { line: 'INFO hermes.mcp: 3 servers discovered' }, type: 'gateway.stderr' } as any)
+    onEvent({ payload: { line: 'INFO kova.mcp: 3 servers discovered' }, type: 'gateway.stderr' } as any)
     onEvent({ payload: { preview: 'bad framing' }, type: 'gateway.protocol_error' } as any)
     serverRequest('approval', { command: 'rm -rf /tmp/nope', description: 'dangerous command' })
     onEvent({ payload: {}, type: 'gateway.ready' } as any)

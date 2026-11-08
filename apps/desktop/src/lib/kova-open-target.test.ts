@@ -25,7 +25,7 @@ describe('normalizeKovaOpenString', () => {
     expect(normalizeKovaOpenString('kova://open/settings/plugins')).toBe('/settings/plugins')
   })
 
-  it('rejects reserved hermes kinds and unsafe paths', () => {
+  it('rejects reserved kova kinds and unsafe paths', () => {
     expect(normalizeKovaOpenString('kova://blueprint/morning-brief')).toBeNull()
     expect(normalizeKovaOpenString('kova://plugin/install')).toBeNull()
     expect(normalizeKovaOpenString('https://example.com/x')).toBeNull()

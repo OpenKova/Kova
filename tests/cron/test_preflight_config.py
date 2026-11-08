@@ -73,7 +73,7 @@ def _run_job_patched(job, tmp_path, *, resolve=None, skill_view=None):
     patches = [
         patch("cron.scheduler._kova_home", tmp_path),
         patch("cron.scheduler_delivery._resolve_origin", return_value=None),
-        patch("kova_cli.env_loader.load_hermes_dotenv"),
+        patch("kova_cli.env_loader.load_kova_dotenv"),
         patch("kova_cli.env_loader.reset_secret_source_cache"),
         patch("tools.mcp_tool_discovery.discover_mcp_tools", return_value=[]),
     ]
@@ -140,7 +140,7 @@ class TestMissingProviderKeyBlocks:
                 fresh = next(j for j in cron_jobs.load_jobs() if j["id"] == job["id"])
                 with patch("cron.scheduler._kova_home", tmp_path), \
                      patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-                     patch("kova_cli.env_loader.load_hermes_dotenv"), \
+                     patch("kova_cli.env_loader.load_kova_dotenv"), \
                      patch("kova_cli.env_loader.reset_secret_source_cache"), \
                      patch("tools.mcp_tool_discovery.discover_mcp_tools", return_value=[]), \
                      patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -272,7 +272,7 @@ class TestOptOut:
                 fresh = next(j for j in cron_jobs.load_jobs() if j["id"] == job["id"])
                 with patch("cron.scheduler._kova_home", tmp_path), \
                      patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-                     patch("kova_cli.env_loader.load_hermes_dotenv"), \
+                     patch("kova_cli.env_loader.load_kova_dotenv"), \
                      patch("kova_cli.env_loader.reset_secret_source_cache"), \
                      patch("tools.mcp_tool_discovery.discover_mcp_tools", return_value=[]), \
                      patch("kova_cli.runtime_provider.resolve_runtime_provider",

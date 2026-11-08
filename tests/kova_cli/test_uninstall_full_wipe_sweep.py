@@ -29,9 +29,9 @@ def test_remove_dashboard_launchd_jobs_boots_out_and_deletes_matching_plists(
         return path
 
     dashboard = job("com.user.kova-dashboard",
-                    ["/Users/u/.kova/kova-agent/venv/bin/hermes", "dashboard", "--port", "9200"],
+                    ["/Users/u/.kova/kova-agent/venv/bin/kova", "dashboard", "--port", "9200"],
                     agents_dir)
-    serve = job("com.user.kova-serve", ["hermes", "serve"], agents_dir)
+    serve = job("com.user.kova-serve", ["kova", "serve"], agents_dir)
     unrelated = job("com.user.keep", ["/usr/bin/say", "hello"], agents_dir)
     daemon = job("io.nousresearch.kova-agent.dashboard", ["kova_cli.main", "dashboard"],
                  daemons_dir)
@@ -79,8 +79,8 @@ def test_full_uninstall_sweeps_macos_caches_and_dashboard_launchd(monkeypatch, t
 
     removed_caches, removed_jobs = [], []
     cache_dirs = [tmp_path / "caches" / name for name in
-                  ("Kova", "com.nousresearch.kova", "hermes-setup",
-                   "com.nousresearch.kova.setup")]
+                  ("Kova", "com.openkova.kova", "kova-setup",
+                   "com.openkova.kova.setup")]
     for d in cache_dirs:
         d.mkdir(parents=True)
         (d / "Cache").write_text("x", encoding="utf-8")

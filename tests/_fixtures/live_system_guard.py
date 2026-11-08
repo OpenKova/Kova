@@ -31,8 +31,8 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 #  • ``subprocess.run`` / ``subprocess.Popen`` / ``call`` / ``check_call`` /
 #    ``check_output`` reject any ``systemctl ... <verb> <unit>`` invocation
 #    that would mutate ANY live Kova unit — ``kova-gateway[-<profile>]``,
-#    ``hermes-dashboard[-<profile>]``, ``hermes-serve[-<profile>]`` and every
-#    other ``hermes``/``hermes-*`` unit. Read-only systemctl calls
+#    ``kova-dashboard[-<profile>]``, ``kova-serve[-<profile>]`` and every
+#    other ``kova``/``kova-*`` unit. Read-only systemctl calls
 #    (``status``, ``show``, ``list-units``, ``is-active``) still pass through.
 #
 # We intentionally do NOT stub ``find_gateway_pids`` / ``_scan_gateway_pids``
@@ -66,12 +66,12 @@ def _live_system_guard(request, monkeypatch):
       • pty.spawn
       • asyncio.create_subprocess_exec / create_subprocess_shell
     A mutating systemctl verb is refused against every Kova unit
-    (``hermes``/``hermes-*``: gateway, dashboard, serve, any profile).
+    (``kova``/``kova-*``: gateway, dashboard, serve, any profile).
     Subprocess inspection looks at the WHOLE command string (not just
-    tokens[0]), so ``bash -c "systemctl restart hermes-dashboard"``,
+    tokens[0]), so ``bash -c "systemctl restart kova-dashboard"``,
     ``sudo systemctl ...``, ``env systemctl ...``, ``setsid systemctl ...``
     are all caught. ``pkill``/``killall``/``taskkill`` invocations
-    targeting hermes/python patterns are also blocked. Bare ``git``
+    targeting kova/python patterns are also blocked. Bare ``git``
     commands may not mutate a protected checkout. Git writes against
     temporary repositories and read-only Git commands remain allowed.
     """
@@ -186,11 +186,11 @@ def _live_system_guard(request, monkeypatch):
     # ── Subprocess command-string inspection (whole-line) ──────────
     _KOVA_TOKENS = (
         "kova-gateway",
-        "hermes.service",
+        "kova.service",
         "kova_cli.main gateway",
         "kova_cli/main.py gateway",
         "gateway/run.py",
-        "hermes gateway",
+        "kova gateway",
     )
     _MUTATING_VERBS = (
         "restart", "start", "stop", "kill", "reload",
@@ -230,13 +230,13 @@ def _live_system_guard(request, monkeypatch):
                 return ""
         return str(cmd)
 
-    def _matches_hermes_gateway(cmd_str: str) -> bool:
+    def _matches_kova_gateway(cmd_str: str) -> bool:
         low = cmd_str.lower()
         return any(tok in low for tok in _KOVA_TOKENS)
 
     def _shell_words(cmd_str: str, depth: int = 0) -> set[str]:
         # Split on whitespace AND quoting/shell punctuation so a unit or verb
-        # inside ``bash -c "systemctl restart hermes-dashboard"`` is still a word,
+        # inside ``bash -c "systemctl restart kova-dashboard"`` is still a word,
         # and keep the shell's own reading too: ``rest\\art`` runs ``restart``.
         words: set[str] = set()
         for w in _re.split(r"[\s'\"`;&|()<>]+", cmd_str):
@@ -252,14 +252,14 @@ def _live_system_guard(request, monkeypatch):
                 words |= _shell_words(token, depth + 1)  # a ``bash -c`` payload
         return words
 
-    def _is_hermes_unit(word: str) -> bool:
-        # ``hermes`` / ``hermes-<anything>`` once any path and unit suffix are
-        # stripped: kova-gateway[-<profile>], hermes-dashboard[-<profile>],
-        # hermes-serve[-<profile>], ... — never ``myhermes-dashboard`` or ``nginx``.
+    def _is_kova_unit(word: str) -> bool:
+        # ``kova`` / ``kova-<anything>`` once any path and unit suffix are
+        # stripped: kova-gateway[-<profile>], kova-dashboard[-<profile>],
+        # kova-serve[-<profile>], ... — never ``mykova-dashboard`` or ``nginx``.
         name = word.rsplit("/", 1)[-1].lower()
         for suffix in (".service", ".timer", ".socket"):
             name = name.removesuffix(suffix)
-        return name == "hermes" or name.startswith("hermes-")
+        return name == "kova" or name.startswith("kova-")
 
     def _is_blocked_systemctl(cmd) -> bool:
         cmd_str = _cmd_to_string(cmd)
@@ -269,8 +269,8 @@ def _live_system_guard(request, monkeypatch):
         # A unit the test itself created under a unique name (``request.node.
         # live_system_guard_owned_units``) may be cleaned up; nothing else is exempt.
         owned = getattr(request.node, "live_system_guard_owned_units", ())
-        if not (_matches_hermes_gateway(cmd_str)
-                or any(_is_hermes_unit(w) and w not in owned for w in words)):
+        if not (_matches_kova_gateway(cmd_str)
+                or any(_is_kova_unit(w) and w not in owned for w in words)):
             return False
         return any(verb in words for verb in _MUTATING_VERBS)
 
@@ -296,11 +296,11 @@ def _live_system_guard(request, monkeypatch):
             head = tok.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
             if head in _PROCESS_KILLERS:
                 low = cmd_str.lower()
-                # pkill -f pattern: catch hermes-themed patterns + a
+                # pkill -f pattern: catch kova-themed patterns + a
                 # plain "python" -f which would catch the live gateway
                 # whose cmdline contains "python -m kova_cli.main".
                 if (
-                    "hermes" in low
+                    "kova" in low
                     or "gateway" in low
                     or ("python" in low and "-f" in tokens)
                 ):
@@ -314,7 +314,7 @@ def _live_system_guard(request, monkeypatch):
         probes) launch the bare ``python -m gateway.run`` module entry with an explicit ``env``
         that re-homes BOTH ``KOVA_HOME`` and ``HOME`` away from the developer's account. Such a
         child resolves no developer unit or config, holds no live port, and is reaped by its
-        test: the orphan class the guard exists for is the ``hermes gateway run|start|restart``
+        test: the orphan class the guard exists for is the ``kova gateway run|start|restart``
         CLI spawn against the real home, which the fixtures never use."""
         if not isinstance(env, dict):
             return False
@@ -357,8 +357,8 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — would mutate a live "
-                "Kova systemd unit (kova-gateway*, hermes-dashboard*, "
-                "hermes-serve*, ...). Mock "
+                "Kova systemd unit (kova-gateway*, kova-dashboard*, "
+                "kova-serve*, ...). Mock "
                 "subprocess.run / _run_systemctl in the test, or "
                 "mark with @pytest.mark.live_system_guard_bypass."
             )
@@ -366,11 +366,11 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — process-killer command "
-                "targeting hermes/python could hit the live gateway. "
+                "targeting kova/python could hit the live gateway. "
                 "Mark with @pytest.mark.live_system_guard_bypass if "
                 "intentional."
             )
-        # Block any subprocess that would run `hermes update` (or the
+        # Block any subprocess that would run `kova update` (or the
         # equivalent `python -m kova_cli.main update`).  These commands
         # run `git fetch origin + git pull` against the REAL checkout,
         # overwriting files like pyproject.toml mid-test-run and corrupting
@@ -383,19 +383,19 @@ def _live_system_guard(request, monkeypatch):
         cmd_str = _cmd_to_string(cmd)
         low = cmd_str.lower()
         if "update" in low and (
-            # hermes update / hermes update --gateway / setsid bash -c ... hermes update
-            ("hermes" in low and "update" in low.split())
+            # kova update / kova update --gateway / setsid bash -c ... kova update
+            ("kova" in low and "update" in low.split())
             or
             # python -m kova_cli.main update --gateway
             ("kova_cli" in low and "update" in low.split())
             or
-            # venv/bin/hermes update  (absolute path variant used in tests)
-            (".venv/bin/hermes" in low and "update" in low)
+            # venv/bin/kova update  (absolute path variant used in tests)
+            (".venv/bin/kova" in low and "update" in low)
         ):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — this command would run "
-                "`hermes update` against the real checkout, fetching "
+                "`kova update` against the real checkout, fetching "
                 "from origin and overwriting repo files (e.g. "
                 "pyproject.toml) mid-test-run. This corrupts every "
                 "subsequent subprocess in the same runner. "
@@ -406,7 +406,7 @@ def _live_system_guard(request, monkeypatch):
                 "flow against a dedicated throwaway repo)."
             )
         # Block spawning a REAL gateway runtime (``python -m kova_cli.main
-        # gateway run|start|restart``). ``_spawn_hermes_action`` launches it
+        # gateway run|start|restart``). ``_spawn_kova_action`` launches it
         # with start_new_session=True, so it outlives the pytest worker; the
         # child inherits the pytest-tmp KOVA_HOME, resolves the DEVELOPER's
         # ``kova-gateway`` systemd unit (a tmp home hashes to no profile
@@ -415,7 +415,7 @@ def _live_system_guard(request, monkeypatch):
         # sibling refactor moved the spawn seam and left tests patching the
         # facade. The canonical matcher, never an argv substring.
         from gateway.status import gateway_spawn_intent_subcommand
-        # A gateway launched INSIDE a container (`docker exec … hermes gateway start`) cannot
+        # A gateway launched INSIDE a container (`docker exec … kova gateway start`) cannot
         # reach the host's systemd unit or webhook port; tests/docker/ exists to exercise it.
         in_container = _first_token_basename(cmd_str) in _CONTAINER_RUNTIMES
         if (
@@ -427,11 +427,11 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — this would spawn a REAL "
-                "hermes gateway runtime that outlives the test (it is "
+                "kova gateway runtime that outlives the test (it is "
                 "detached), restarts the developer's live gateway, and "
                 "holds the webhook port. Patch the spawn seam where "
                 "production reads it (kova_cli.web_server_gateway."
-                "_spawn_hermes_action), or mark with "
+                "_spawn_kova_action), or mark with "
                 "@pytest.mark.spawns_gateway_lookalike a test that spawns "
                 "and reaps its own stub child."
             )

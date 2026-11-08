@@ -319,8 +319,8 @@ class BaseEnvironment(ABC):
 
         self._session_id = uuid.uuid4().hex[:12]
         temp_dir = self.get_temp_dir().rstrip("/") or "/"
-        self._snapshot_path = f"{temp_dir}/hermes-snap-{self._session_id}.sh"
-        self._cwd_file = f"{temp_dir}/hermes-cwd-{self._session_id}.txt"
+        self._snapshot_path = f"{temp_dir}/kova-snap-{self._session_id}.sh"
+        self._cwd_file = f"{temp_dir}/kova-cwd-{self._session_id}.txt"
         self._cwd_marker = _cwd_marker(self._session_id)
         self._pipe_marker = _pipe_marker(self._session_id)
         self._snapshot_ready = False
@@ -552,7 +552,7 @@ class BaseEnvironment(ABC):
                     trace.interrupted()
                     _kill_and_join()
                     return {**self._finalize_wait_result(output, output.render(suffix="\n[Command interrupted]"), 130),
-                            "hermes_interrupted": True}
+                            "kova_interrupted": True}
                 if yield_handler is not None and consume_yield(watch_interrupt_tid):
                     drain_stop.set()
                     drain_thread.join(timeout=1)
@@ -599,12 +599,12 @@ class BaseEnvironment(ABC):
         # Join the stdin writer before reading its error list: a child that exits without
         # reading stdin can otherwise race ahead of a recorded encode failure. The timeout
         # is a pure safety net (write raises BrokenPipeError once the pipe closes).
-        stdin_thread = getattr(proc, "_hermes_stdin_thread", None)
+        stdin_thread = getattr(proc, "_kova_stdin_thread", None)
         if stdin_thread is not None:
             stdin_thread.join(timeout=5)
         rendered = output.render()
         result = self._finalize_wait_result(output, rendered, proc.returncode)
-        if stdin_errors := getattr(proc, "_hermes_stdin_errors", None):
+        if stdin_errors := getattr(proc, "_kova_stdin_errors", None):
             result["stdin_error"] = err = str(stdin_errors[0])
             result["output"] = rendered + f"\n[stdin write failed: {err}]"
         return result

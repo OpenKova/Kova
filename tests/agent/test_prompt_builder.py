@@ -14,7 +14,7 @@ from agent.prompt_builder import (
     _truncate_content,
     _parse_skill_file,
     _skill_should_show,
-    _find_hermes_md,
+    _find_kova_md,
     _find_git_root,
     _cursorrules_candidates,
     _strip_yaml_frontmatter,
@@ -78,7 +78,7 @@ class TestScanContextContent:
         assert "[BLOCKED: AGENTS.md" in _scan_context_content(guidance, "AGENTS.md")
 
     def test_distribution_owned_soul_md_still_blocks_on_a_hit(self, tmp_path):
-        """`hermes profile install <git-url>` copies a third-party SOUL.md into the profile home unscanned
+        """`kova profile install <git-url>` copies a third-party SOUL.md into the profile home unscanned
         (profile_distribution.DEFAULT_DIST_OWNED), so a SOUL.md owned by distribution.yaml is not the
         user's own file and an injection phrase in it must stay BLOCKED; the same text with no manifest
         loads (#112570 review)."""
@@ -440,7 +440,7 @@ class TestBuildContextFilesPrompt:
         assert "Override-only context" in result
         assert "Project Context" in result
 
-    def test_hermes_md_still_wins_over_agents_override(self, tmp_path):
+    def test_kova_md_still_wins_over_agents_override(self, tmp_path):
         (tmp_path / ".kova.md").write_text("Kova-first context.")
         (tmp_path / "AGENTS.override.md").write_text("Override context.")
         result = build_context_files_prompt(cwd=str(tmp_path))
@@ -477,7 +477,7 @@ class TestBuildContextFilesPrompt:
 
 
 
-    # --- .kova.md / HERMES.md discovery ---
+    # --- .kova.md / KOVA.md discovery ---
 
 
 
@@ -521,7 +521,7 @@ class TestBuildContextFilesPrompt:
 class TestFindKovaMd:
     def test_finds_in_cwd(self, tmp_path):
         (tmp_path / ".kova.md").write_text("rules")
-        assert _find_hermes_md(tmp_path) == tmp_path / ".kova.md"
+        assert _find_kova_md(tmp_path) == tmp_path / ".kova.md"
 
 
 
@@ -544,7 +544,7 @@ class TestFindKovaMd:
         (tmp_path / ".kova.md").write_text("root rules")
         sub = tmp_path / "a" / "b"
         sub.mkdir(parents=True)
-        assert _find_hermes_md(sub) == tmp_path / ".kova.md"
+        assert _find_kova_md(sub) == tmp_path / ".kova.md"
 
 
 
@@ -564,7 +564,7 @@ class TestFindKovaMd:
         cwd.mkdir()
         # No git root anywhere up the tree.
         with patch("agent.prompt_builder._find_git_root", return_value=None):
-            assert _find_hermes_md(cwd) is None
+            assert _find_kova_md(cwd) is None
 
     @pytest.mark.platforms("posix")
     @pytest.mark.skipif(
@@ -579,7 +579,7 @@ class TestFindKovaMd:
         locked.mkdir()
         locked.chmod(0)
         try:
-            assert _find_hermes_md(locked) is None
+            assert _find_kova_md(locked) is None
             assert isinstance(build_context_files_prompt(cwd=str(locked)), str)
         finally:
             locked.chmod(0o700)
@@ -605,7 +605,7 @@ class TestCursorrulesCandidates:
         reason="root bypasses directory permissions",
     )
     def test_unreadable_cwd_is_treated_as_absent(self, tmp_path):
-        """Same crash shape as ``_find_hermes_md``: ``.is_dir()`` on ``<cwd>/.cursor/rules`` inside an
+        """Same crash shape as ``_find_kova_md``: ``.is_dir()`` on ``<cwd>/.cursor/rules`` inside an
         unreadable cwd must not raise; a readable sibling project still yields its rules."""
         locked = tmp_path / "root"
         locked.mkdir()
@@ -959,7 +959,7 @@ class TestBuildSkillsSystemPromptConditional:
         skill_dir = tmp_path / "skills" / "iot" / "openhue"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
-            "---\nname: openhue\ndescription: Hue lights\nmetadata:\n  hermes:\n    requires_toolsets: [terminal]\n---\n"
+            "---\nname: openhue\ndescription: Hue lights\nmetadata:\n  kova:\n    requires_toolsets: [terminal]\n---\n"
         )
         result = build_skills_system_prompt(
             available_tools=set(),
@@ -975,7 +975,7 @@ class TestBuildSkillsSystemPromptConditional:
         skill_dir = tmp_path / "skills" / "search" / "duckduckgo"
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
-            "---\nname: duckduckgo\ndescription: Free web search\nmetadata:\n  hermes:\n    fallback_for_toolsets: [web]\n---\n"
+            "---\nname: duckduckgo\ndescription: Free web search\nmetadata:\n  kova:\n    fallback_for_toolsets: [web]\n---\n"
         )
         result = build_skills_system_prompt()
         assert "duckduckgo" in result
@@ -1011,7 +1011,7 @@ class TestBuildSkillsSystemPromptConditional:
 
 
 class TestContextFileReadTimeout:
-    def test_slow_hermes_md_is_skipped_and_agents_md_still_loads(self, tmp_path, monkeypatch, caplog):
+    def test_slow_kova_md_is_skipped_and_agents_md_still_loads(self, tmp_path, monkeypatch, caplog):
         (tmp_path / ".git").mkdir()
         (tmp_path / ".kova.md").write_text("Kova project rules.")
         (tmp_path / "AGENTS.md").write_text("Agent fallback rules.")

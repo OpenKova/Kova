@@ -16,7 +16,7 @@ describe('local client version source', (): void => {
   it('probes the installation launcher with a bounded command and ignores remote values', async (): Promise<void> => {
     const run: VersionProbeRunner = vi.fn(async (_command, args, options) => {
       expect(args).toEqual(['--version'])
-      expect(options.cwd).toBe('/isolated/hermes')
+      expect(options.cwd).toBe('/isolated/kova')
       expect(options.timeout).toBe(PROBE_TIMEOUT_MS)
       expect(options.maxBuffer).toBe(64 * 1024)
       expect(options.env.KOVA_HOME).toBe('/isolated/home')
@@ -24,8 +24,8 @@ describe('local client version source', (): void => {
       return 'Kova Agent v0.21.5+6644.gb412ee9 (local)\n'
     })
 
-    await expect(resolveLocalRuntimeVersion('/isolated/hermes', '/isolated/home', {
-      launcher: '/isolated/hermes/.kova/bin/hermes',
+    await expect(resolveLocalRuntimeVersion('/isolated/kova', '/isolated/home', {
+      launcher: '/isolated/kova/.kova/bin/kova',
       run
     })).resolves.toBe('0.21.5+6644.gb412ee9')
     expect(run).toHaveBeenCalledTimes(1)
@@ -36,8 +36,8 @@ describe('local client version source', (): void => {
       throw new Error('timeout')
     })
 
-    await expect(resolveLocalRuntimeVersion('/isolated/hermes', '/isolated/home', {
-      launcher: '/isolated/hermes/.kova/bin/hermes',
+    await expect(resolveLocalRuntimeVersion('/isolated/kova', '/isolated/home', {
+      launcher: '/isolated/kova/.kova/bin/kova',
       run
     })).resolves.toBe('')
   })
@@ -45,7 +45,7 @@ describe('local client version source', (): void => {
   it('does not invoke a missing installation launcher', async (): Promise<void> => {
     const run: VersionProbeRunner = vi.fn()
 
-    await expect(resolveLocalRuntimeVersion('/isolated/hermes', '/isolated/home', { launcher: null, run })).resolves.toBe('')
+    await expect(resolveLocalRuntimeVersion('/isolated/kova', '/isolated/home', { launcher: null, run })).resolves.toBe('')
     expect(run).not.toHaveBeenCalled()
   })
 
@@ -65,7 +65,7 @@ describe('local client version source', (): void => {
         fs.writeFileSync(path.join(root, 'kova_cli', '_launchers.py'), '')
         fs.mkdirSync(path.join(home, 'bin'), { recursive: true })
         fs.writeFileSync(
-          path.join(home, 'bin', 'hermes'),
+          path.join(home, 'bin', 'kova'),
           `#!/bin/sh\nsleep 1\nprintf '%s\\n' 'Kova Agent v1.2.3 (2026.10.1)' 'Install directory: ${root}'\n`,
           { mode: 0o755 }
         )

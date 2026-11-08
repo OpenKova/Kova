@@ -20,7 +20,7 @@ interface RuntimeFixture {
 }
 
 test('the real bootstrap supplies ruamel-only dependencies and rejects foreign-path rescue', async (): Promise<void> => {
-  const temp: string = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-probe-runtime-'))
+  const temp: string = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-probe-runtime-'))
   const home: string = path.join(temp, 'home')
 
   const env: NodeJS.ProcessEnv = {

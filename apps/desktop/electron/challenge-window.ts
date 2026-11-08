@@ -58,7 +58,7 @@ export interface ChallengeWindowDependencies {
   now?: () => number
 }
 
-export const CHALLENGE_PARTITION = 'persist:hermes-challenge'
+export const CHALLENGE_PARTITION = 'persist:kova-challenge'
 export const CHALLENGE_PATH = '/challenge'
 
 // While hidden nobody can see it hang: BotID plus a CPU-fallback proof of work

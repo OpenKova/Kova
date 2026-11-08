@@ -213,7 +213,7 @@ def test_subdir_install_downloads_only_that_subdirectory(monkeypatch, tmp_path, 
     from kova_cli.plugins_cmd import _install_plugin_core
 
     repo = tmp_path / "monorepo"
-    plugin = repo / "integrations" / "hermes"
+    plugin = repo / "integrations" / "kova"
     plugin.mkdir(parents=True)
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "fixture@example.com")
@@ -234,7 +234,7 @@ def test_subdir_install_downloads_only_that_subdirectory(monkeypatch, tmp_path, 
         seen["missing"] = _git(clone, "rev-list", "--objects", "--missing=print", "HEAD")
 
     target, _manifest, _name = _install_plugin_core(
-        f"{repo.as_uri()}#integrations/hermes", force=False,
+        f"{repo.as_uri()}#integrations/kova", force=False,
         ref=sha if pinned else None, before_swap=inspect_clone)
 
     assert (target / "plugin.yaml").is_file()

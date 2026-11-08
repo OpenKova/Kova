@@ -23,7 +23,7 @@ vi.mock('node:child_process', async importOriginal => {
   return { ...actual, spawn: vi.fn(actual.spawn) }
 })
 
-const argv = ['/opt/Kova/hermes', '--ozone-platform=x11', 'kova://session/abc']
+const argv = ['/opt/Kova/kova', '--ozone-platform=x11', 'kova://session/abc']
 
 function restoreEnv(saved: NodeJS.ProcessEnv) {
   for (const key of Object.keys(process.env)) {
@@ -55,7 +55,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
       linuxNoSandboxRelaunch({
         platform: 'linux',
         runtimeNoSandbox: true,
-        argv: ['/opt/Kova/hermes', ...relaunch!.args],
+        argv: ['/opt/Kova/kova', ...relaunch!.args],
         env: {},
         launchedWithoutSandbox: true
       })
@@ -92,7 +92,7 @@ describe('Linux runtime --no-sandbox relaunch', () => {
   // must not read that deliberate exit as a GPU abort mid-boot.
   it.skipIf(process.platform !== 'linux')('restarts without leaving the next launch a GPU-abort witness', async () => {
     const saved = { ...process.env }
-    const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-sandbox-relaunch-gpu-'))
+    const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-sandbox-relaunch-gpu-'))
 
     const launch = () =>
       createNvidiaEglRecovery({
@@ -140,11 +140,11 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     'restarts without leaving the generic GPU ladder a boot-abort witness',
     async () => {
       const saved = { ...process.env }
-      const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-sandbox-relaunch-linux-gpu-'))
+      const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-sandbox-relaunch-linux-gpu-'))
 
       const launch = () => {
         const decision = decideLinuxGpuLaunch({
-          argv: ['/opt/Kova/hermes'],
+          argv: ['/opt/Kova/kova'],
           env: {},
           marker: readLinuxGpuMarker(userData),
           appVersion: '2.0.0',
@@ -197,10 +197,10 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     'starts a mounted AppImage again as a detached child once this process is gone',
     async () => {
       const saved = { ...process.env }
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-appimage-relaunch-'))
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-appimage-relaunch-'))
       const report = path.join(dir, 'report')
       const image = path.join(dir, 'Kova.AppImage')
-      const shortDir = '/run/user/1000/hermes-desktop'
+      const shortDir = '/run/user/1000/kova-desktop'
       const events: string[] = []
 
       fs.writeFileSync(
@@ -269,20 +269,20 @@ describe('Linux runtime --no-sandbox relaunch', () => {
       linuxNoSandboxRelaunch({
         platform: 'linux',
         runtimeNoSandbox: true,
-        argv: [`${appDir}/hermes`],
-        execPath: `${appDir}/hermes`,
+        argv: [`${appDir}/kova`],
+        execPath: `${appDir}/kova`,
         env: { APPIMAGE: '/home/u/Apps/Kova.AppImage', APPDIR: appDir },
         launchedWithoutSandbox: false
       })
-    ).toEqual({ args: ['--no-sandbox'], target: `${appDir}/hermes` })
+    ).toEqual({ args: ['--no-sandbox'], target: `${appDir}/kova` })
   })
 
   it('relaunches the AppImage itself rather than its vanishing mount', () => {
     const relaunch = linuxNoSandboxRelaunch({
       platform: 'linux',
       runtimeNoSandbox: true,
-      argv: ['/tmp/.mount_KovaX/hermes'],
-      execPath: '/tmp/.mount_KovaX/hermes',
+      argv: ['/tmp/.mount_KovaX/kova'],
+      execPath: '/tmp/.mount_KovaX/kova',
       env: { APPIMAGE: '/home/u/Apps/Kova.AppImage', APPDIR: '/tmp/.mount_KovaX' },
       launchedWithoutSandbox: false
     })
@@ -299,8 +299,8 @@ describe('Linux runtime --no-sandbox relaunch', () => {
     const relaunch = linuxNoSandboxRelaunch({
       platform: 'linux',
       runtimeNoSandbox: true,
-      argv: ['/run/user/1000/.mount_KovaQ7x2Lp/hermes'],
-      execPath: '/run/user/1000/.mount_KovaQ7x2Lp/hermes',
+      argv: ['/run/user/1000/.mount_KovaQ7x2Lp/kova'],
+      execPath: '/run/user/1000/.mount_KovaQ7x2Lp/kova',
       env: { APPIMAGE: '/home/u/Apps/Kova.AppImage' },
       launchedWithoutSandbox: false
     })
@@ -324,13 +324,13 @@ describe('Linux runtime --no-sandbox relaunch', () => {
           platform: 'linux',
           runtimeNoSandbox: true,
           argv,
-          execPath: '/opt/Kova/hermes',
+          execPath: '/opt/Kova/kova',
           env,
           launchedWithoutSandbox: false
         })
       ).toEqual({
         args: ['--ozone-platform=x11', 'kova://session/abc', '--no-sandbox'],
-        target: '/opt/Kova/hermes'
+        target: '/opt/Kova/kova'
       })
     }
   })

@@ -22,7 +22,7 @@ from typing import Any, Callable
 PNG_DEADLINE_S = 10.0
 JPEG_DEADLINE_S = 60.0
 _HARNESS_MODULE = "browser_harness.helpers"
-_log = logging.getLogger("hermes_browser_use_shot")
+_log = logging.getLogger("kova_browser_use_shot")
 
 
 def _default_shot_path() -> str:
@@ -150,7 +150,7 @@ def install(helpers: Any, activate: str = ACTIVATE_NEVER) -> None:
 _HARNESS_MODULE_ARGS = ["-m", "browser_harness.run"]
 _LAUNCHER = """\
 import importlib.util, runpy
-spec = importlib.util.spec_from_file_location('hermes_browser_use_shot', {path!r})
+spec = importlib.util.spec_from_file_location('kova_browser_use_shot', {path!r})
 shot = importlib.util.module_from_spec(spec); spec.loader.exec_module(shot)
 import browser_harness.helpers
 shot.install(browser_harness.helpers, activate={activate!r})

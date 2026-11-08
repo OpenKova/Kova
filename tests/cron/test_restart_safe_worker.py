@@ -686,8 +686,8 @@ def test_launch_external_worker_pin_extends_the_sanitized_env_not_os_environ(
     # Wheel / pipx layout: repo_root == purelib -> untouched.
     monkeypatch.setattr(worker_env_mod, "_installed_purelib", lambda: repo_root)
     untouched = {"PYTHONPATH": str(tmp_path / "kept-by-sanitizer")}
-    assert worker_env_mod.pin_hermes_tree_on_pythonpath(dict(untouched), repo_root) == untouched
-    assert "PYTHONPATH" not in worker_env_mod.pin_hermes_tree_on_pythonpath({}, repo_root)
+    assert worker_env_mod.pin_kova_tree_on_pythonpath(dict(untouched), repo_root) == untouched
+    assert "PYTHONPATH" not in worker_env_mod.pin_kova_tree_on_pythonpath({}, repo_root)
 
 
 def _commit_generation(repo_root: Path, name: str, *, with_site_packages: bool) -> Path:
@@ -729,7 +729,7 @@ def test_pin_restores_the_committed_generation_site_packages(tmp_path):
     venv = _commit_generation(repo_root, "gen1", with_site_packages=True)
     selected = pm.environments.site_packages(venv)
 
-    env = worker_env_mod.pin_hermes_tree_on_pythonpath(
+    env = worker_env_mod.pin_kova_tree_on_pythonpath(
         {"PYTHONPATH": str(tmp_path / "kept")}, repo_root
     )
     assert env["PYTHONPATH"].split(os.pathsep) == [
@@ -738,7 +738,7 @@ def test_pin_restores_the_committed_generation_site_packages(tmp_path):
 
     # A runner that owns its dependencies has no committed generation: tree only.
     pm.environments.runtime_facts_path(repo_root).unlink()
-    assert worker_env_mod.pin_hermes_tree_on_pythonpath({}, repo_root) == {
+    assert worker_env_mod.pin_kova_tree_on_pythonpath({}, repo_root) == {
         "PYTHONPATH": str(repo_root)
     }
 
@@ -814,7 +814,7 @@ runpy.run_module("cron.scheduler", run_name="__main__", alter_sys=True)
 def test_relaunch_replays_the_worker_before_its_ack(tmp_path, cause):
     """Importing ``kova_bootstrap`` may relaunch the process: finishing a source
     update (into an ``-I`` interpreter that ignores the pinned PYTHONPATH), or the restore of a
-    tree a killed ``hermes update`` half-wrote. Reached inside ``run_one_job``, either came after
+    tree a killed ``kova update`` half-wrote. Reached inside ``run_one_job``, either came after
     the ack: the payload was deleted, the marker consumed, and the new process died on ``ruamel``
     or found no payload, leaving the adopted run ``unknown``. The relaunch must instead replay
     the whole worker: payload unread, no ack, marker set, the same worker re-run."""
@@ -1061,7 +1061,7 @@ def test_worker_delivery_queue_is_keyed_by_the_delivering_jobs_own_execution(
     monkeypatch, tmp_path
 ):
     """A nested in-process dispatch inside a worker (e.g. a script running
-    ``hermes cron run <other>``) must not queue under the OUTER execution id."""
+    ``kova cron run <other>``) must not queue under the OUTER execution id."""
     from cron import scheduler
     from cron import scheduler_delivery
 

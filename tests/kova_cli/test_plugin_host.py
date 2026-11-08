@@ -115,9 +115,9 @@ def test_isolation_host_keeps_every_user_import_path_out_of_process(tmp_path, mo
     # behind the memory / context-engine / cron host routes).
     import logging
     assert plugin_loader.load_plugin_module(
-        "_hermes_user_x.fine", home / "plugins" / "fine", parents=("_hermes_user_x",),
-        logger=logging.getLogger("t"), synthetic_namespace="_hermes_user_x") is None
-    assert "_hermes_user_x.fine" not in sys.modules
+        "_kova_user_x.fine", home / "plugins" / "fine", parents=("_kova_user_x",),
+        logger=logging.getLogger("t"), synthetic_namespace="_kova_user_x") is None
+    assert "_kova_user_x.fine" not in sys.modules
     # The static audit reads the same boundary table the host enforces.
     assert audit_plugin_dir(home / "plugins" / "fine").verdict == "host"
     blocked = audit_plugin_dir(home / "plugins" / "platformprobe")
@@ -127,7 +127,7 @@ def test_isolation_host_keeps_every_user_import_path_out_of_process(tmp_path, mo
 
 def test_managed_scope_pins_host_isolation_over_the_profiles_own_config(tmp_path, monkeypatch):
     """The isolated party must not be able to opt out: an operator pin in the managed scope
-    (/etc/hermes/config.yaml) wins over a profile config that says in_process."""
+    (/etc/kova/config.yaml) wins over a profile config that says in_process."""
     from kova_cli import managed_scope
     from tools.registry import registry
 

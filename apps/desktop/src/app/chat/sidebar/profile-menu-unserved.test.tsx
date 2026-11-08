@@ -105,7 +105,7 @@ function standaloneRoster(): DesktopAgentRoster {
     connectionId: 'local',
     connectionKind: 'local' as const,
     connectionLabel: 'localhost:9119',
-    handle: profile === 'default' ? 'hermes' : profile,
+    handle: profile === 'default' ? 'kova' : profile,
     profile,
     targetProfile: profile,
     ...(served ? {} : { reachable: false })

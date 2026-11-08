@@ -27,7 +27,7 @@ export function platformDefaultKovaHome(home, env = process.env, platform = proc
   const suffix = env.KOVA_DATA_DIR_SUFFIX || ''
   if (platform === 'win32') {
     const base = (env.LOCALAPPDATA || '').trim() || path.win32.join(home, 'AppData', 'Local')
-    return path.win32.join(base, 'hermes') + suffix
+    return path.win32.join(base, 'kova') + suffix
   }
   return path.posix.join(home, '.kova') + suffix
 }
@@ -45,7 +45,7 @@ export function resolveDesktopKovaHome({ home, env = process.env, platform = pro
   }
   // Fresh-install rehearsals must not touch the real Kova home.
   if (env.KOVA_DESKTOP_USER_DATA_DIR) {
-    return paths.join(paths.resolve(env.KOVA_DESKTOP_USER_DATA_DIR), 'hermes-home')
+    return paths.join(paths.resolve(env.KOVA_DESKTOP_USER_DATA_DIR), 'kova-home')
   }
   if (platform === 'win32' && env.KOVA_HOME === undefined) {
     // Explorer can miss setx changes. An explicit empty value opts out of that fallback.

@@ -152,7 +152,7 @@ const terminalExpression = `(async () => {
       'ModuleNotFoundError:',
       'Traceback (most recent call last)'
     ].find(marker => output.includes(marker))
-    const hostShellStarted = session.shell !== 'hermes-tui' && Boolean(output)
+    const hostShellStarted = session.shell !== 'kova-tui' && Boolean(output)
     return {
       cwd,
       error: fatalOutput
@@ -174,7 +174,7 @@ const terminalExpression = `(async () => {
 const htmlSandboxExpression = `(async () => {
   const bridge = window.kovaDesktop
   if (!bridge?.saveImageBuffer) return { error: 'buffer bridge missing', ok: false }
-  const marker = 'hermesSandboxEscape'
+  const marker = 'kovaSandboxEscape'
   delete document.documentElement.dataset[marker]
   const attack = '<script>try{top.document.documentElement.dataset.' + marker + '="escaped"}catch(_error){}</script>'
   const url = await bridge.saveImageBuffer(new TextEncoder().encode(attack), '.html')
@@ -259,7 +259,7 @@ const mobileViewportExpression = `(() => {
 
 const executable = findExecutable()
 const debugPort = await freePort()
-const profile = mkdtempSync(join(tmpdir(), 'hermes-browser-smoke-'))
+const profile = mkdtempSync(join(tmpdir(), 'kova-browser-smoke-'))
 const stderrChunks = []
 const browser = spawn(
   executable,

@@ -141,7 +141,7 @@ if [[ ! -e "$X/xfce4-panel.xml" ]]; then
     command -v "$3" >/dev/null 2>&1 || return 0
     n=$((n+1)); mkdir -p "$L/launcher-$n"
     printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=%s\nIcon=%s\n%s\nTerminal=false\nStartupNotify=false\n' \
-      "$1" "$2" "${4:-Exec=$3}" > "$L/launcher-$n/hermes.desktop"
+      "$1" "$2" "${4:-Exec=$3}" > "$L/launcher-$n/kova.desktop"
     dock_ids+=("$n")
   }
   add_launcher "Terminal" utilities-terminal "xfce4-terminal"
@@ -155,7 +155,7 @@ if [[ ! -e "$X/xfce4-panel.xml" ]]; then
   dock_plugins=""; dock_items=""
   for id in "${dock_ids[@]}"; do
     dock_plugins+="<value type=\"int\" value=\"$id\"/>"
-    dock_items+="<property name=\"plugin-$id\" type=\"string\" value=\"launcher\"><property name=\"items\" type=\"array\"><value type=\"string\" value=\"hermes.desktop\"/></property></property>"
+    dock_items+="<property name=\"plugin-$id\" type=\"string\" value=\"launcher\"><property name=\"items\" type=\"array\"><value type=\"string\" value=\"kova.desktop\"/></property></property>"
   done
   cat > "$X/xfce4-panel.xml" <<PANEL
 <?xml version="1.0" encoding="UTF-8"?>
@@ -229,13 +229,13 @@ done
 # after `kova profile rename` the old path would open a browser with an empty, unshared cookie jar.
 L="$XDG_CONFIG_HOME/xfce4/panel"
 # Profiles seeded before the marker existed have the launcher but no `.kova-browser-launcher`; recover
-# it from our own Browser entry (hermes.desktop is ours by name) so their Exec= follows a rename too.
+# it from our own Browser entry (kova.desktop is ours by name) so their Exec= follows a rename too.
 if [[ -n "${KOVA_BD_BROWSER_EXEC:-}" && -n "${KOVA_BD_BROWSER_EXEC_LINE:-}" && ! -r "$L/.kova-browser-launcher" ]]; then
-  for d in "$L"/launcher-*/hermes.desktop; do
+  for d in "$L"/launcher-*/kova.desktop; do
     [[ -f "$d" ]] || continue
     while IFS= read -r line; do
       if [[ "$line" == "Name=Browser" ]]; then
-        bn="${d%/hermes.desktop}"; bn="${bn##*/launcher-}"
+        bn="${d%/kova.desktop}"; bn="${bn##*/launcher-}"
         printf '%s\n' "$bn" > "$L/.kova-browser-launcher"; break 2
       fi
     done < "$d"
@@ -243,7 +243,7 @@ if [[ -n "${KOVA_BD_BROWSER_EXEC:-}" && -n "${KOVA_BD_BROWSER_EXEC_LINE:-}" && !
 fi
 if [[ -n "${KOVA_BD_BROWSER_EXEC:-}" && -n "${KOVA_BD_BROWSER_EXEC_LINE:-}" && -r "$L/.kova-browser-launcher" ]]; then
   bn="$(cat "$L/.kova-browser-launcher")"
-  d="$L/launcher-$bn/hermes.desktop"
+  d="$L/launcher-$bn/kova.desktop"
   [[ -f "$d" ]] && sed -i "s|^Exec=.*|$(printf '%s' "$KOVA_BD_BROWSER_EXEC_LINE" | sed 's/[&|\\]/\\&/g')|" "$d"
 fi
 
@@ -260,7 +260,7 @@ fi
 Xvnc "$DISPLAY" -geometry "$GEOM" -depth "$DEPTH" -dpi 96 \
   -rfbport -1 -rfbunixpath "$KOVA_BD_SOCKET" -rfbunixmode 0600 \
   -SecurityTypes None -AlwaysShared -AcceptSetDesktopSize -FrameRate 30 -SendCutText=0 -MaxCutText 262144 \
-  -desktop "hermes:$KOVA_BD_PROFILE" -auth "$XAUTHORITY" -nolisten tcp \
+  -desktop "kova:$KOVA_BD_PROFILE" -auth "$XAUTHORITY" -nolisten tcp \
   -Log '*:stderr:30' 2> >(grep -v --line-buffered 'Could not resolve keysym' >&2) &
 XVNC_PID=$!
 trap 'kill "$XVNC_PID" 2>/dev/null || true' EXIT

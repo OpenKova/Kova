@@ -31,7 +31,7 @@ class GetSpillConfigTests(unittest.TestCase):
 
 class SpillIfOversizedTests(unittest.TestCase):
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="hermes-spill-test-")
+        self.tmpdir = tempfile.mkdtemp(prefix="kova-spill-test-")
 
     def tearDown(self):
         import shutil
@@ -59,7 +59,7 @@ class SpillIfOversizedTests(unittest.TestCase):
 
     def test_default_directory_uses_kova_home(self):
         """When no directory override, spill under KOVA_HOME/hook_outputs."""
-        test_home = tempfile.mkdtemp(prefix="hermes-home-")
+        test_home = tempfile.mkdtemp(prefix="kova-home-")
         try:
             with patch.dict(os.environ, {"KOVA_HOME": test_home}):
                 # Also patch get_kova_home to the env var to mirror production.

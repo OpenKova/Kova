@@ -18,7 +18,7 @@ from kova_cli._scan_venv_blockers import _is_pausable_gateway
     "cmdline",
     [
         # venv-side launcher, exactly as the scheduled task spawns it
-        r"C:\Users\u\AppData\Local\hermes\kova-agent\venv\Scripts\python.exe"
+        r"C:\Users\u\AppData\Local\kova\kova-agent\venv\Scripts\python.exe"
         " -m kova_cli.main gateway run --replace",
         # uv-side worker re-running the same argv (quoted exe, double space)
         r'"C:\Users\u\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\python.exe"'

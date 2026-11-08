@@ -2,7 +2,7 @@
 
 * Adoption: the daily snapshot says whether the profile turned the feature on, read as the agent reads it,
   and snapshots counted before the field existed still package against the v4 schema.
-* ``hermes.prepared_compaction.count``: every pass and splice outcome lands as one closed-enum row in the
+* ``kova.prepared_compaction.count``: every pass and splice outcome lands as one closed-enum row in the
   profile that owns the compressor, including the rows the background pass thread records, and every
   waste mode (a summary nothing uses, a wait that timed out, a failed pass, a spliced compaction that did
   not commit) says why.
@@ -24,9 +24,9 @@ from tests.agent.test_prepared_compaction import _agent, _compressor, _grow, _me
 
 SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "kova_cli" / "observability" / "schemas"
-    / "hermes.shared_metrics.v4.schema.json"
+    / "kova.shared_metrics.v4.schema.json"
 )
-RESOURCE = {"architecture": "x86_64", "hermes_version": "test", "install_method": "git", "os_family": "linux"}
+RESOURCE = {"architecture": "x86_64", "kova_version": "test", "install_method": "git", "os_family": "linux"}
 
 
 def test_snapshot_reports_prepare_ahead_and_older_snapshots_still_package(tmp_path, monkeypatch):

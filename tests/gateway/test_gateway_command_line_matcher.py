@@ -1,6 +1,6 @@
 """Tests for the strict gateway command-line matcher.
 
-Regression guard for the Windows ``hermes gateway restart`` silent-outage bug:
+Regression guard for the Windows ``kova gateway restart`` silent-outage bug:
 the previous loose substring match (``"... gateway" in cmdline``) false-matched
 ``gateway status``/``dashboard`` siblings and unrelated processes such as
 ``python -m tui_gateway``, which let ``restart()`` race a still-draining old
@@ -20,22 +20,22 @@ from gateway.status import (
 
 ACCEPT = [
     "pythonw.exe -m kova_cli.main gateway run",
-    r"C:\Users\me\hermes\venv\Scripts\pythonw.exe -m kova_cli.main gateway run",
+    r"C:\Users\me\kova\venv\Scripts\pythonw.exe -m kova_cli.main gateway run",
     "python -m kova_cli.main --profile work gateway run",
     "python -m kova_cli.main gateway run --replace",
     "python -m kova_cli/main.py gateway run",
     "python gateway/run.py",
     "python -m gateway.run",   # module spelling of the dedicated entrypoint
     "kova-gateway.exe",
-    "hermes gateway",          # bare `hermes gateway` defaults to run
-    "hermes gateway run",
+    "kova gateway",          # bare `kova gateway` defaults to run
+    "kova gateway run",
     # profile selector AFTER the `gateway` token (argv is profile-position
     # agnostic — _apply_profile_override strips --profile/-p anywhere)
-    "hermes gateway --profile work run",
+    "kova gateway --profile work run",
     "python -m kova_cli.main gateway -p work run",
-    "hermes gateway --profile=work run",
+    "kova gateway --profile=work run",
     # a profile literally NAMED "gateway"
-    "hermes -p gateway gateway run",
+    "kova -p gateway gateway run",
     "python -m kova_cli.main --profile gateway gateway run",
     # quoted Windows paths with spaces (shlex-aware tokenization)
     r'"C:\Program Files\Kova\kova-gateway.exe"',
@@ -71,16 +71,16 @@ def test_rejects_non_gateway_run(cmd):
 # the watcher instead of a gateway (#107002).
 INLINE_SOURCE_REJECT = [
     'python -c "import time; time.sleep(1)" 14980 python -m kova_cli.main gateway run',
-    r'"C:\Users\me\hermes\venv\Scripts\python.exe" -c "import os" 14980 '
-    r'"C:\Users\me\hermes\venv\Scripts\python.exe" -m kova_cli.main gateway run',
+    r'"C:\Users\me\kova\venv\Scripts\python.exe" -c "import os" 14980 '
+    r'"C:\Users\me\kova\venv\Scripts\python.exe" -m kova_cli.main gateway run',
     'python -u -c "import os" 14980 python -m kova_cli.main --profile work gateway run',
-    'python -uc "import os" 14980 hermes gateway run',
+    'python -uc "import os" 14980 kova gateway run',
     # Options that take a SEPARATE operand must not end the option walk before ``-c`` (the operand
     # is not the start of the program's own argv). The repo itself spawns ``-I -S -B -X utf8 …``
     # (kova_cli/_old_updater.py, _update_takeover.py), so this shape is not hypothetical.
     'python -X utf8 -c "import os" 14980 python -m kova_cli.main gateway run',
     'python -W ignore -c "import os" 14980 python -m kova_cli.main gateway run',
-    'python --check-hash-based-pycs always -c "import os" 14980 hermes gateway run',
+    'python --check-hash-based-pycs always -c "import os" 14980 kova gateway run',
     'python -I -S -B -X utf8 -c "import os" 14980 python -m kova_cli.main gateway run',
     # ``-q`` (quiet) takes NO operand, unlike ``-Q``; a case-folded walk would skip past the ``-c``.
     'python -q -c "import os" 14980 python -m kova_cli.main gateway run',

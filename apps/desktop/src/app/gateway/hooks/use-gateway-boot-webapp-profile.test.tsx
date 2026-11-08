@@ -148,7 +148,7 @@ afterEach(() => {
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
   Reflect.deleteProperty(window, 'kovaDesktop')
   delete (window as WebappWindow).__KOVA_DASHBOARD_PROFILE__
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   clearWebappSession()
   window.localStorage.clear()
   window.history.replaceState(null, '', '/#/')

@@ -84,7 +84,7 @@ def test_tui_route_uploads_sends_and_downloads_a_group_file(home):
     assert {"groups.attachment.upload", "groups.attachment.download"} <= set(capabilities["methods"])
     _result(srv._methods["groups.create"](2, {
         "room_id": "room-1", "name": "Release room",
-        "members": [{"member_id": "default", "profile": "default", "handle": "hermes"},
+        "members": [{"member_id": "default", "profile": "default", "handle": "kova"},
                     {"member_id": "ops", "profile": "ops", "handle": "ops"}]}))
 
     data = b"exact composer bytes"

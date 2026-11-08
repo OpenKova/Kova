@@ -1,4 +1,4 @@
-"""Tests for kova_cli/bundles.py — the `hermes bundles` CLI subcommand."""
+"""Tests for kova_cli/bundles.py — the `kova bundles` CLI subcommand."""
 
 import argparse
 

@@ -403,8 +403,8 @@ class TestRequiresKova:
             "kova_cli.version_info.get_version_info",
             lambda: SimpleNamespace(base_version="0.21.4"),
         )
-        assert plugins_manifest.running_hermes_version() == "0.21.4"
-        assert plugins_manifest.version_satisfies(">=0.21.4", plugins_manifest.running_hermes_version())
+        assert plugins_manifest.running_kova_version() == "0.21.4"
+        assert plugins_manifest.version_satisfies(">=0.21.4", plugins_manifest.running_kova_version())
 
     @pytest.mark.parametrize("spec, current, expected", [
         (">=99.0.0rc1", "0.21.4", False),   # rc target used to parse as None -> clause silently dropped
@@ -417,21 +417,21 @@ class TestRequiresKova:
         from kova_cli.plugins_manifest import version_satisfies
         assert version_satisfies(spec, current) is expected
 
-    def test_unsatisfied_requires_hermes_skips_without_importing(self, kova_home, monkeypatch):
-        """A too-new ``requires_hermes`` records an error and never runs register(); a satisfied one loads."""
+    def test_unsatisfied_requires_kova_skips_without_importing(self, kova_home, monkeypatch):
+        """A too-new ``requires_kova`` records an error and never runs register(); a satisfied one loads."""
         import sys
         from kova_cli import plugins_manifest
-        monkeypatch.setattr(plugins_manifest, "running_hermes_version", lambda: "1.2.3")
-        _write_plugin(kova_home / "plugins", "future", manifest_extra={"requires_hermes": ">=99.0"},
+        monkeypatch.setattr(plugins_manifest, "running_kova_version", lambda: "1.2.3")
+        _write_plugin(kova_home / "plugins", "future", manifest_extra={"requires_kova": ">=99.0"},
                       register_body="import sys; sys._rh_future = True")
-        _write_plugin(kova_home / "plugins", "current", manifest_extra={"requires_hermes": ">=1.2,<2"},
+        _write_plugin(kova_home / "plugins", "current", manifest_extra={"requires_kova": ">=1.2,<2"},
                       register_body="import sys; sys._rh_current = True")
         _enable(kova_home, ["future", "current"])
         try:
             mgr = PluginManager()
             mgr.discover_and_load()
             assert not hasattr(sys, "_rh_future")
-            assert "requires hermes >=99.0" in (mgr._plugins["future"].error or "")
+            assert "requires kova >=99.0" in (mgr._plugins["future"].error or "")
             assert getattr(sys, "_rh_current", False) is True
         finally:
             for attr in ("_rh_future", "_rh_current"):
@@ -442,7 +442,7 @@ class TestRequiresKova:
 class TestLoadIsolation:
     def test_sys_exit_in_plugin_is_isolated_and_named(self, kova_home, caplog):
         """A plugin calling ``sys.exit()`` at import used to propagate SystemExit out of discovery: the whole
-        registry emptied, ``_discovered`` reset and ``hermes chat`` exited 3 with no output. It must be
+        registry emptied, ``_discovered`` reset and ``kova chat`` exited 3 with no output. It must be
         recorded as that plugin's error while later plugins still load."""
         _write_plugin(kova_home / "plugins", "b_exit")
         (kova_home / "plugins" / "b_exit" / "__init__.py").write_text("import sys\nsys.exit(0)\n")
@@ -513,7 +513,7 @@ class TestLoadIsolation:
 class TestBundledKeyShadowing:
     def test_impostor_dir_cannot_claim_a_bundled_key(self, tmp_path, monkeypatch, caplog):
         """``~/.kova/plugins/impostor_dir/plugin.yaml`` with ``name: <bundled key>`` used to displace the
-        bundled plugin silently, so ``hermes plugins enable <key>`` enabled unrelated code. The bundled
+        bundled plugin silently, so ``kova plugins enable <key>`` enabled unrelated code. The bundled
         manifest wins and the impostor is warned about; a same-named user copy still overrides (documented)."""
         home = tmp_path / "home"
         (home / "plugins").mkdir(parents=True)

@@ -83,11 +83,11 @@ def private_ports(monkeypatch):
 # The published document and the code must agree
 # ---------------------------------------------------------------------------
 
-def test_document_client_id_is_the_url_hermes_sends():
+def test_document_client_id_is_the_url_kova_sends():
     """A CIMD document is only valid when its client_id is its own URL."""
     assert _document()["client_id"] == _CIMD_CLIENT_METADATA_URL
 
-def test_document_declares_every_callback_hermes_can_build(tmp_path, monkeypatch):
+def test_document_declares_every_callback_kova_can_build(tmp_path, monkeypatch):
     """Every loopback URI a CIMD flow could produce must be registered.
 
     Exact string matching means one missing entry is a hard auth failure on
@@ -576,7 +576,7 @@ def test_rejected_document_stays_rejected_after_a_restart(
     assert _maybe_use_cimd({}, storage) is None
 
 def test_reauthorizing_clears_the_rejection(tmp_path, monkeypatch, private_ports):
-    """`hermes mcp login` wipes stored state, so a fixed document is retried."""
+    """`kova mcp login` wipes stored state, so a fixed document is retried."""
     monkeypatch.setenv("KOVA_HOME", str(tmp_path))
     storage = KovaTokenStorage("srv")
     storage.mark_cimd_rejected()

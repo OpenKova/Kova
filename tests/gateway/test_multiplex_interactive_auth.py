@@ -126,7 +126,7 @@ def test_secondary_owned_callback_reads_own_profile_allowlist(mux_home, monkeypa
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "999")  # the default profile's live os.environ
     (mux_home / "profiles" / "secondary" / ".env").write_text("TELEGRAM_ALLOWED_USERS=555\n", encoding="utf-8")
     tg = _telegram(runner)
-    tg._hermes_profile_name = "secondary"
+    tg._kova_profile_name = "secondary"
     runner._profile_adapters = {"secondary": {Platform.TELEGRAM: tg}}
     tg.set_authorization_check(
         runner._make_adapter_auth_check(Platform.TELEGRAM, profile_name="secondary")
@@ -148,7 +148,7 @@ def test_secondary_callback_allowlist_follows_env_edits(mux_home):
     env_path = mux_home / "profiles" / "secondary" / ".env"
     env_path.write_text("TELEGRAM_ALLOWED_USERS=555\n", encoding="utf-8")
     tg = _telegram(runner)
-    tg._hermes_profile_name = "secondary"
+    tg._kova_profile_name = "secondary"
     runner._profile_adapters = {"secondary": {Platform.TELEGRAM: tg}}
     tg.set_authorization_check(
         runner._make_adapter_auth_check(Platform.TELEGRAM, profile_name="secondary")

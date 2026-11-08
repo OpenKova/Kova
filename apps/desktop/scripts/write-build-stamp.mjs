@@ -117,7 +117,7 @@ export function isFallbackCommit(commit) {
  * Canonical command keys remain stable for backend consumers; public aliases
  * come from the declared filenames, never those internal keys. The canonical
  * files stay beside them: the agent's own terminal puts <payload>/bin first on
- * PATH (pm.environments.activate_dependencies) and runs bare `hermes`, while
+ * PATH (pm.environments.activate_dependencies) and runs bare `kova`, while
  * only the qualified names are published (MSIX aliases, ~/.local/bin links).
  */
 export function stageDesktopLaunchers(root, identity = productIdentity) {
@@ -127,7 +127,7 @@ export function stageDesktopLaunchers(root, identity = productIdentity) {
   const commands = {}
   const launchers = []
   for (const [name, source] of Object.entries(manifest.runtime.commands)) {
-    const alias = name.replace(/^hermes(?=-|$)/, identity.cliName)
+    const alias = name.replace(/^kova(?=-|$)/, identity.cliName)
     const destination = posix.join(posix.dirname(source), `${alias}${windows ? '.exe' : ''}`)
     if (source !== destination && existsSync(join(root, source))) {
       copyFileSync(join(root, source), join(root, destination))

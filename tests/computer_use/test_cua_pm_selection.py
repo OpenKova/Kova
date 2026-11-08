@@ -15,7 +15,7 @@ def cua_home(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
     monkeypatch.setenv("KOVA_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.delenv("KOVA_CUA_DRIVER_CMD", raising=False)
     monkeypatch.setenv("KOVA_DISABLE_LAZY_INSTALLS", "1")

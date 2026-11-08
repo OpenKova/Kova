@@ -213,11 +213,11 @@ function isModuleMimeError(message: string): boolean {
  * segfaults inside PrintCore — the whole app dies before any dialog
  * appears. Stub `print` in the guest so the native panel is never built;
  * the warn surfaces in the preview console via the existing pipe. The
- * `__hermesPrintGuard` flag keeps re-arms idempotent. Full print-to-PDF
+ * `__kovaPrintGuard` flag keeps re-arms idempotent. Full print-to-PDF
  * routing is the follow-up; this stops the crash.
  */
 const PREVIEW_PRINT_GUARD_SCRIPT =
-  '(function(){if(window.__hermesPrintGuard)return;window.__hermesPrintGuard=true;' +
+  '(function(){if(window.__kovaPrintGuard)return;window.__kovaPrintGuard=true;' +
   'window.print=function(){console.warn("[Kova] Printing is disabled in the in-app preview. ' +
   'Open the page in your browser to print.");};})()'
 

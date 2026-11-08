@@ -9,7 +9,7 @@ description: >-
   spending limits), and every decision lands in a local audit log. Give cron
   jobs, delegate_task subagents and gateway users their own policy.
 
-  Disclosure — hermes-tenuo is a no-op until a warrant is configured and blocks every tool call in a kanban worker that has no per-task warrant; it appends every tool call's name and full arguments to $HERMES_HOME/tenuo/audit.jsonl (disable with audit_log: false); when TENUO_CONNECT_TOKEN or TENUO_CONTROL_PLANE_URL are set, the bundled tenuo SDK (compiled Rust core) streams those decisions, including arguments, to that control plane.
+  Disclosure — hermes-tenuo is a no-op until a warrant is configured and blocks every tool call in a kanban worker that has no per-task warrant; it appends every tool call's name and full arguments to $KOVA_HOME/tenuo/audit.jsonl (disable with audit_log: false); when TENUO_CONNECT_TOKEN or TENUO_CONTROL_PLANE_URL are set, the bundled tenuo SDK (compiled Rust core) streams those decisions, including arguments, to that control plane.
 title: Tenuo
 maintainer: tenuo-ai
 tier: community

@@ -145,25 +145,25 @@ class TestRuntimeFtsRebuild:
                 "ssh",
                 "--cmd=python -m kova_cli.main gateway",
             ),
-            ("tmux", "new-session", "/opt/kova-agent/.venv/bin/hermes gateway"),
+            ("tmux", "new-session", "/opt/kova-agent/.venv/bin/kova gateway"),
             ("python3", "/opt/kova-agent/tools/check_state.py"),
-            ("hermes-monitor", "gateway"),
-            ("hermesctl", "serve"),
+            ("kova-monitor", "gateway"),
+            ("kovactl", "serve"),
             ("python3", "worker.py", "kova_cli.main"),
             ("python3", "-m", "other.module", "kova_cli.main"),
             ("python3", "-c", "kova_cli.main"),
             ("python3", "-Icprint('kova_cli.main')", "kova_cli/main.py"),
         ),
     )
-    def test_uninspectable_non_hermes_process_is_not_a_holder(self, argv):
-        assert not kova_state_holders._looks_like_hermes(argv)
+    def test_uninspectable_non_kova_process_is_not_a_holder(self, argv):
+        assert not kova_state_holders._looks_like_kova(argv)
 
     @pytest.mark.parametrize(
         "argv",
         (
-            ("/usr/local/bin/hermes", "gateway"),
+            ("/usr/local/bin/kova", "gateway"),
             ("/usr/local/bin/kova-agent", "serve"),
-            ("/usr/local/bin/hermes-acp", "--stdio"),
+            ("/usr/local/bin/kova-acp", "--stdio"),
             ("/usr/bin/python3", "-m", "kova_cli.main", "gateway"),
             ("/usr/bin/python3", "-m", "acp_adapter"),
             ("/usr/bin/python3", "-Im", "kova_cli.main", "gateway"),
@@ -179,8 +179,8 @@ class TestRuntimeFtsRebuild:
             ("python3", "/opt/kova-agent/run_agent.py", "--query", "hello"),
         ),
     )
-    def test_uninspectable_hermes_process_remains_a_holder(self, argv):
-        assert kova_state_holders._looks_like_hermes(argv)
+    def test_uninspectable_kova_process_remains_a_holder(self, argv):
+        assert kova_state_holders._looks_like_kova(argv)
 
     @pytest.mark.platforms("linux")
     def test_foreign_holder_detection_proc_readlink_deleted_wal(

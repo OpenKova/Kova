@@ -2,10 +2,10 @@
 
 A Desktop-driven update that fails at the Electron rebuild (updater exit 6)
 stores its root cause in exactly two files: ``logs/update.log`` (full
-stdout/stderr mirror of ``hermes update``) and
+stdout/stderr mirror of ``kova update``) and
 ``logs/desktop-update-handoff.log`` (hand-off stages incl. the rebuild
 retry). The updater's failure message and the Desktop error box both point
-users at ``hermes debug share``, yet the share captured neither file, so
+users at ``kova debug share``, yet the share captured neither file, so
 update-failure reports arrived with zero root-cause signal (#100874).
 
 These tests fail against the pre-fix capture set (five logs only).
@@ -16,7 +16,7 @@ import pytest
 # Lines the writers really produce (main.py _UpdateOutputStream mirror and
 # scripts/desktop-update/windows.ps1 Write-HandoffLog / posix.sh log()).
 UPDATE_LOG_BODY = (
-    "=== hermes update started 2026-09-02T03:21:09 ===\n"
+    "=== kova update started 2026-09-02T03:21:09 ===\n"
     "→ Fetching updates...\n"
     "→ Building desktop packaged app...\n"
     "✗ Desktop GUI build failed\n"
@@ -30,7 +30,7 @@ HANDOFF_LOG_BODY = (
 @pytest.fixture
 def home_with_update_logs(tmp_path, monkeypatch):
     """Isolated KOVA_HOME whose logs directory holds the update pair."""
-    home = tmp_path / "hermes_test_home"
+    home = tmp_path / "kova_test_home"
     logs = home / "logs"
     logs.mkdir(parents=True)
     (logs / "agent.log").write_text(
@@ -45,7 +45,7 @@ def home_with_update_logs(tmp_path, monkeypatch):
 @pytest.fixture
 def home_without_update_logs(tmp_path, monkeypatch):
     """Isolated KOVA_HOME with only the classic five logs present."""
-    home = tmp_path / "hermes_test_home"
+    home = tmp_path / "kova_test_home"
     logs = home / "logs"
     logs.mkdir(parents=True)
     for name in ("agent.log", "errors.log", "gateway.log", "gui.log", "desktop.log"):
@@ -68,7 +68,7 @@ class TestCaptureDefaultLogSnapshots:
         assert "ELIFECYCLE" in snaps["handoff"].tail_text
 
     def test_snapshots_read_the_root_home_update_logs_under_a_profile(self, tmp_path, monkeypatch):
-        """``hermes update`` and the hand-off scripts write the ROOT home's logs, whatever profile."""
+        """``kova update`` and the hand-off scripts write the ROOT home's logs, whatever profile."""
         from kova_cli.debug import _capture_default_log_snapshots
 
         root = tmp_path / "root"
@@ -200,7 +200,7 @@ class TestFullLogUploadLabels:
 
 
 class TestLogsRegistry:
-    """LOG_FILES gains readable keys for files `hermes logs list` already shows."""
+    """LOG_FILES gains readable keys for files `kova logs list` already shows."""
 
     def test_update_and_handoff_keys_resolve_real_filenames(self):
         from kova_cli.logs import LOG_FILES
@@ -209,7 +209,7 @@ class TestLogsRegistry:
         assert LOG_FILES.get("handoff") == "desktop-update-handoff.log"
 
     def test_tail_log_reads_update_log_from_kova_home(self, home_with_update_logs):
-        """End-to-end: `hermes logs update` resolves and prints the file."""
+        """End-to-end: `kova logs update` resolves and prints the file."""
         from kova_cli import logs as logs_mod
 
         logs_mod.tail_log("update", num_lines=10)

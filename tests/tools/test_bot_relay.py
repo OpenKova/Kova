@@ -35,7 +35,7 @@ def _rows():
     return [
         {
             "profile": "default",
-            "handle": "hermes",
+            "handle": "kova",
             "connection_id": "cloud-1",
             "connection_label": "Kova Cloud",
             "title": "Moxie",
@@ -58,7 +58,7 @@ def test_roster_roundtrip_and_validation(root):
         {"profile": "", "handle": "x", "connection_id": "c"},  # no profile
         {"profile": "bad name!", "connection_id": "c"},  # bad charset
         "not-a-dict",
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1"},  # dupe
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1"},  # dupe
     ]
     count = bot_relay.write_remote_roster(root, rows)
     assert count == 2
@@ -79,15 +79,15 @@ def test_resolve_remote_target_forms(root):
     bot_relay.write_remote_roster(root, _rows())
     roster = bot_relay.read_remote_roster(root)
     assert bot_relay.resolve_remote_target("researcher", roster)["connection_id"] == "ssh-vps"
-    assert bot_relay.resolve_remote_target("@hermes", roster)["profile"] == "default"
+    assert bot_relay.resolve_remote_target("@kova", roster)["profile"] == "default"
     # profile name resolves too
     assert bot_relay.resolve_remote_target("default", roster)["connection_id"] == "cloud-1"
     # exact connection-qualified form
-    assert bot_relay.resolve_remote_target("hermes@cloud-1", roster)["profile"] == "default"
+    assert bot_relay.resolve_remote_target("kova@cloud-1", roster)["profile"] == "default"
     # profile@connection — the form Desktop's mention middleware annotates
     # for remote bots (#97678); the UI alias form must not be required
     assert bot_relay.resolve_remote_target("default@cloud-1", roster)["profile"] == "default"
-    assert bot_relay.resolve_remote_target("hermes@nope", roster) is None
+    assert bot_relay.resolve_remote_target("kova@nope", roster) is None
     assert bot_relay.resolve_remote_target("ghost", roster) is None
 
 
@@ -102,7 +102,7 @@ def test_resolve_ambiguous_handle_across_connections(root):
     assert match["connection_id"] == "ssh-vps"
     forms = bot_relay.remote_target_forms(roster)
     assert "researcher@ssh-vps" in forms and "researcher@cloud-1" in forms
-    assert "hermes" in forms  # unique handle stays bare
+    assert "kova" in forms  # unique handle stays bare
 
 
 # ── outbox / replies ─────────────────────────────────────────────────────────
@@ -354,7 +354,7 @@ def test_tool_injects_despite_legacy_soul_protocol(tmp_path):
 def test_relay_route_queues_envelope_and_spawns_waiter(tmp_path, monkeypatch):
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1",
          "connection_label": "Kova Cloud", "title": "Moxie"},
     ])
 
@@ -367,7 +367,7 @@ def test_relay_route_queues_envelope_and_spawns_waiter(tmp_path, monkeypatch):
 
     monkeypatch.setattr("tools.bot_mode_dm._spawn_delivery", _fake_spawn)
     agent = _FakeAgent(home)
-    out = json.loads(message_agent_tool(target="hermes", message="ping", agent=agent))
+    out = json.loads(message_agent_tool(target="kova", message="ping", agent=agent))
     assert out.get("status") == "queued"
     assert "Kova Cloud" in spawned["label"]
     # envelope landed in the outbox with attribution prefixed
@@ -375,7 +375,7 @@ def test_relay_route_queues_envelope_and_spawns_waiter(tmp_path, monkeypatch):
     assert len(pending) == 1
     assert pending[0]["target_connection"] == "cloud-1"
     assert pending[0]["target_profile"] == "default"
-    assert pending[0]["message"].startswith("Message from 🤖 hermes (@hermes): ping")
+    assert pending[0]["message"].startswith("Message from 🤖 kova (@kova): ping")
     # waiter watches this envelope's reply file
     assert pending[0]["id"] in spawned["command"]
 
@@ -399,15 +399,15 @@ def test_relay_route_ambiguous_target_errors_with_forms(tmp_path, monkeypatch):
 
 
 def test_remote_default_is_addressable_by_its_title_slug(tmp_path, monkeypatch):
-    """A remote ``default`` is ``@hermes`` like every gateway's own, so its Bot Mode title is the only
+    """A remote ``default`` is ``@kova`` like every gateway's own, so its Bot Mode title is the only
     bare form that singles it out: ``message_agent`` accepts the slug, the prompt roster offers it
-    (never bare ``@hermes``, which is the LOCAL default), and the form does not depend on roster order."""
+    (never bare ``@kova``, which is the LOCAL default), and the form does not depend on roster order."""
     from tools import bot_mode_probe
 
     home = _managed_home(tmp_path)
     rows = [
-        {"profile": "default", "handle": "hermes", "connection_id": "vps-1", "title": "CoS Bot"},
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1", "title": "Ops Bot"},
+        {"profile": "default", "handle": "kova", "connection_id": "vps-1", "title": "CoS Bot"},
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1", "title": "Ops Bot"},
         {"profile": "cos-bot", "handle": "cos-bot", "connection_id": "cloud-1", "title": "Other"},
     ]
     monkeypatch.setattr("tools.bot_mode_dm._spawn_delivery", lambda *a, **k: json.dumps({"status": "queued"}))
@@ -418,17 +418,17 @@ def test_remote_default_is_addressable_by_its_title_slug(tmp_path, monkeypatch):
         forms = dict(zip((r["connection_id"] + "/" + r["profile"] for r in roster),
                          bot_relay.remote_target_forms(roster, bot_mode_probe.local_taken_forms(home))))
         # an exact handle beats a colliding title slug; the collided title falls back to the qualified form
-        assert forms == {"cloud-1/cos-bot": "cos-bot", "vps-1/default": "hermes@vps-1", "cloud-1/default": "ops-bot"}
+        assert forms == {"cloud-1/cos-bot": "cos-bot", "vps-1/default": "kova@vps-1", "cloud-1/default": "ops-bot"}
         assert bot_relay.resolve_remote_target("cos-bot", roster)["profile"] == "cos-bot"
     out = json.loads(message_agent_tool(target="@ops-bot", message="ping", agent=agent))
     assert out.get("status") == "queued"
     [env] = bot_relay.claim_pending_envelopes(home)
     assert (env["target_connection"], env["target_profile"]) == ("cloud-1", "default")
-    # a bare @hermes from the local default is the two remote defaults — offered under their reply-safe forms
-    err = json.loads(message_agent_tool(target="hermes", message="ping", agent=agent))["error"]
-    assert "hermes@vps-1" in err and "ops-bot" in err
+    # a bare @kova from the local default is the two remote defaults — offered under their reply-safe forms
+    err = json.loads(message_agent_tool(target="kova", message="ping", agent=agent))["error"]
+    assert "kova@vps-1" in err and "ops-bot" in err
     section = bot_mode_probe.get_bot_mode_protocol_section(home)
-    assert "`@ops-bot`" in section and "`@hermes@vps-1`" in section and "- `@hermes` —" not in section
+    assert "`@ops-bot`" in section and "`@kova@vps-1`" in section and "- `@kova` —" not in section
 
 
 
@@ -438,11 +438,11 @@ def test_protocol_section_lists_remote_teammates(tmp_path):
 
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1",
          "connection_label": "Kova Cloud", "title": "Moxie"},
     ])
     section = bot_mode_probe.get_bot_mode_protocol_section(home, force_refresh=True)
-    # Offered under its title slug: bare `@hermes` is THIS gateway's own default (#103731).
+    # Offered under its title slug: bare `@kova` is THIS gateway's own default (#103731).
     assert "`@moxie`" in section and "Kova Cloud" in section
 
 
@@ -452,7 +452,7 @@ def test_capability_fingerprint_changes_with_relay_roster(tmp_path):
     home = _managed_home(tmp_path)
     before = bot_mode_probe.capability_fingerprint(home)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1"},
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1"},
     ])
     after = bot_mode_probe.capability_fingerprint(home)
     assert before != after  # eternal Bot Chats refresh once on roster change
@@ -470,11 +470,11 @@ def test_cleanup_bot_relay_artifacts_sweeps_stale_plaintext(tmp_path, monkeypatc
               "connection_label": "", "title": "", "description": ""}
     stale_env = bot_relay.enqueue_envelope(
         tmp_path, target=target, message="old secret",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     fresh_env = bot_relay.enqueue_envelope(
         tmp_path, target=target, message="new secret",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     base = bot_relay.relay_root(tmp_path)
     stale_reply = bot_relay.write_reply(tmp_path, stale_env["id"], reply="done")
@@ -516,7 +516,7 @@ def test_enqueue_fails_fast_when_row_explicitly_offline(root):
     with pytest.raises(bot_relay.EnvelopeRefusedError) as ei:
         bot_relay.enqueue_envelope(
             root, target=roster[0], message="hi",
-            sender_profile="default", sender_handle="hermes",
+            sender_profile="default", sender_handle="kova",
         )
     assert ei.value.reason == "runtime_offline"
     assert "offline" in str(ei.value)
@@ -530,7 +530,7 @@ def test_enqueue_fails_fast_when_target_absent_from_fresh_roster(root):
     with pytest.raises(bot_relay.EnvelopeRefusedError) as ei:
         bot_relay.enqueue_envelope(
             root, target=_target(), message="hi",
-            sender_profile="default", sender_handle="hermes",
+            sender_profile="default", sender_handle="kova",
         )
     assert ei.value.reason == "runtime_offline"
 
@@ -539,7 +539,7 @@ def test_enqueue_fails_open_when_liveness_unknown(root):
     # 1. no roster ever synced → unknown → enqueue
     env = bot_relay.enqueue_envelope(
         root, target=_target(), message="hi",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     assert (bot_relay.relay_root(root) / bot_relay.OUTBOX_DIR / f"{env['id']}.json").exists()
     # 2. stale roster missing the target → unknown → enqueue
@@ -549,7 +549,7 @@ def test_enqueue_fails_open_when_liveness_unknown(root):
     _os2.utime(roster_path, (old, old))
     env2 = bot_relay.enqueue_envelope(
         root, target=_target(), message="hi again",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     assert (bot_relay.relay_root(root) / bot_relay.OUTBOX_DIR / f"{env2['id']}.json").exists()
     # 3. fresh roster listing the target without an online flag → enqueue
@@ -557,7 +557,7 @@ def test_enqueue_fails_open_when_liveness_unknown(root):
     target = bot_relay.read_remote_roster(root)[1]  # researcher@ssh-vps
     env3 = bot_relay.enqueue_envelope(
         root, target=target, message="hello",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     assert (bot_relay.relay_root(root) / bot_relay.OUTBOX_DIR / f"{env3['id']}.json").exists()
 
@@ -565,7 +565,7 @@ def test_enqueue_fails_open_when_liveness_unknown(root):
 def test_drain_expires_old_envelope_with_queued_expired_reply(root):
     env = bot_relay.enqueue_envelope(
         root, target=_target(), message="too late",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     base = bot_relay.relay_root(root)
     out_path = base / bot_relay.OUTBOX_DIR / f"{env['id']}.json"
@@ -593,11 +593,11 @@ def test_the_outbox_is_claimed_oldest_first(root):
     deterministically, which random ids reproduce half the time."""
     first = bot_relay.enqueue_envelope(
         root, target=_target(), message="do this first",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     second = bot_relay.enqueue_envelope(
         root, target=_target(), message="then this",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     outbox = bot_relay.relay_root(root) / bot_relay.OUTBOX_DIR
     now = _time2.time()
@@ -618,7 +618,7 @@ def test_replayed_unanswered_dm_precedes_mail_queued_after_it(root):
     claimed-but-unanswered one (sent first) must come first — not after the fresh outbox row."""
     first = bot_relay.enqueue_envelope(
         root, target=_target(), message="do this first",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     base = bot_relay.relay_root(root)
     now = _time2.time()
@@ -626,7 +626,7 @@ def test_replayed_unanswered_dm_precedes_mail_queued_after_it(root):
     assert [e["id"] for e in bot_relay.claim_pending_envelopes(root)] == [first["id"]]
     second = bot_relay.enqueue_envelope(
         root, target=_target(), message="then this",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     _os2.utime(base / bot_relay.OUTBOX_DIR / f"{second['id']}.json", (now - 1, now - 1))
 
@@ -644,8 +644,8 @@ def test_pre_upgrade_claim_settles_unknown_instead_of_stranding_its_waiter(root)
 
     base = bot_relay._ensure_dirs(root)
     legacy = {"id": "a" * 32, "created_at": int(_time2.time()) - 60, "from_profile": "default",
-              "from_handle": "hermes", "target_connection": "cloud-1", "target_profile": "default",
-              "target_handle": "hermes", "message": "legacy"}
+              "from_handle": "kova", "target_connection": "cloud-1", "target_profile": "default",
+              "target_handle": "kova", "message": "legacy"}
     path = base / bot_relay.CLAIMED_DIR / f"{legacy['id']}.json"
     path.write_text(json.dumps(legacy), encoding="utf-8")
     reply_path = base / bot_relay.REPLIES_DIR / f"{legacy['id']}.json"
@@ -665,7 +665,7 @@ def test_pre_upgrade_claim_settles_unknown_instead_of_stranding_its_waiter(root)
 def test_drain_delivers_fresh_envelope_under_ttl(root):
     env = bot_relay.enqueue_envelope(
         root, target=_target(), message="on time",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     claimed = bot_relay.claim_pending_envelopes(root)
     assert [e["id"] for e in claimed] == [env["id"]]
@@ -678,7 +678,7 @@ def test_drain_ttl_zero_disables_expiry(root, monkeypatch):
     monkeypatch.setattr(bot_relay, "_envelope_ttl_seconds", lambda: 0)
     env = bot_relay.enqueue_envelope(
         root, target=_target(), message="never expires",
-        sender_profile="default", sender_handle="hermes",
+        sender_profile="default", sender_handle="kova",
     )
     base = bot_relay.relay_root(root)
     out_path = base / bot_relay.OUTBOX_DIR / f"{env['id']}.json"
@@ -699,7 +699,7 @@ def test_invalid_ttl_config_falls_back_instead_of_breaking_drain(monkeypatch):
 def test_message_agent_surfaces_runtime_offline_refusal(tmp_path, monkeypatch):
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1",
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1",
          "connection_label": "Kova Cloud", "online": False},
     ])
     monkeypatch.setattr(
@@ -707,7 +707,7 @@ def test_message_agent_surfaces_runtime_offline_refusal(tmp_path, monkeypatch):
         lambda *a, **k: json.dumps({"status": "queued"}),
     )
     agent = _FakeAgent(home)
-    out = json.loads(message_agent_tool(target="hermes", message="ping", agent=agent))
+    out = json.loads(message_agent_tool(target="kova", message="ping", agent=agent))
     assert out.get("reason") == "runtime_offline"
     assert "offline" in out.get("error", "")
     # fail-fast means no envelope was queued

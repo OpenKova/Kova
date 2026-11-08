@@ -1,7 +1,7 @@
 """A viewer of a session reads its delegated children's transcripts over the shared gateway:
 ``session.transcript`` with ``subagent_id`` (adapted from #140477's ``subagent.transcript`` tests).
 
-Before it, ``session.resume`` on a child id answered ``not_found``, so a viewer (the hermes-tern plugin's
+Before it, ``session.resume`` on a child id answered ``not_found``, so a viewer (the kova-tern plugin's
 sidebar) opened ``state.db`` itself and guessed the child by ``parent_session_id`` + first user message.
 """
 import json

@@ -21,7 +21,7 @@ from typing import Any
 
 from kova_constants import get_kova_home
 from kova_cli._startup_fast import project_root_str
-from tools.environments.local import hermes_subprocess_env
+from tools.environments.local import kova_subprocess_env
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +342,7 @@ class HostSupervisor:
             raise RuntimeError("compute host respawn disabled after crash loop")
         self._hello_event.clear()
         self._hello = {}
-        env = {**hermes_subprocess_env(inherit_credentials=True), **os.environ, **(self.env or {})}
+        env = {**kova_subprocess_env(inherit_credentials=True), **os.environ, **(self.env or {})}
         env["KOVA_COMPUTE_HOST_HEARTBEAT_SECS"] = str(self.heartbeat_secs)
         root = str(_repo_root())
         env.setdefault("PYTHONPATH", root)

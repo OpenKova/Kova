@@ -8,12 +8,12 @@ import { runPreviewGuestScript, withPreviewDeadline } from './preview-drive-chan
 const rect = { height: 20, width: 40, x: 10, y: 10 }
 const originalDesktop = window.kovaDesktop
 const guestWindow = window as Window & {
-  __hermesAnnotate?: { beginCapture: () => Promise<void>; endCapture: () => void }
+  __kovaAnnotate?: { beginCapture: () => Promise<void>; endCapture: () => void }
 }
 
 afterEach(() => {
   window.kovaDesktop = originalDesktop
-  delete guestWindow.__hermesAnnotate
+  delete guestWindow.__kovaAnnotate
   vi.useRealTimers()
 })
 
@@ -23,7 +23,7 @@ function setup(stalled: 'begin' | 'capture' | 'cleanup' | 'read' | 'viewport') {
   let nextToken = 0
   let pinsVisible = true
   const capture = vi.fn(async () => (stalled === 'capture' ? pending.promise : 'image'))
-  guestWindow.__hermesAnnotate = {
+  guestWindow.__kovaAnnotate = {
     beginCapture: async () => {
       pinsVisible = false
 
@@ -97,7 +97,7 @@ describe('bounded first-party preview work', () => {
     const rejected = expect(result).rejects.toThrow()
     await vi.advanceTimersByTimeAsync(0)
     const replacementCleanup = vi.fn()
-    guestWindow.__hermesAnnotate = { beginCapture: async () => undefined, endCapture: replacementCleanup }
+    guestWindow.__kovaAnnotate = { beginCapture: async () => undefined, endCapture: replacementCleanup }
     lifetime.abort()
     await rejected
     expect(fixture.leases.size).toBe(0)

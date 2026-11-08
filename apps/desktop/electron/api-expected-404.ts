@@ -14,7 +14,7 @@
 // only Electron's logging is bypassed. Any other failure rejects as usual and
 // still logs in full.
 
-const KOVA_API_EXPECTED_404 = '__hermesExpected404__'
+const KOVA_API_EXPECTED_404 = '__kovaExpected404__'
 
 // True when `value` is a handler-resolved expected-404 sentinel, not real
 // response data. Kept narrow: a plain object whose ONLY key is the sentinel and

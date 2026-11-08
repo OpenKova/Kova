@@ -1,6 +1,6 @@
 """Shared harness for the MCP + plugin conformance suite.
 
-Every test drives a REAL Kova process (``hermes chat -q`` or the ``tui_gateway``
+Every test drives a REAL Kova process (``kova chat -q`` or the ``tui_gateway``
 stdio host) against the recording fake LLM provider and one or more REAL MCP
 servers built with the installed ``mcp`` SDK (``mcp_fixture_server.py``), over
 stdio or streamable HTTP. Fakes sit only at boundaries we do not own (the LLM
@@ -26,7 +26,7 @@ from typing import Any, Callable, Iterator
 import pytest
 import kova_yaml as yaml
 
-from tests.e2e.core.parity._helpers import hermes_argv, kill_tagged, tagged_pids, wait_until
+from tests.e2e.core.parity._helpers import kova_argv, kill_tagged, tagged_pids, wait_until
 from tests.fakes.fake_llm_provider import FakeLLMServer, Text, ToolCall, write_kova_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -257,7 +257,7 @@ def call_tool(body: dict[str, Any], name: str, args: dict[str, Any] | str) -> To
 
 def run_chat_q(eh: E2EHome, prompt: str, *, timeout: float = TURN_TIMEOUT,
                env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(hermes_argv("chat", "-q", prompt, "-Q"), cwd=eh.project, env=eh.env(env),
+    return subprocess.run(kova_argv("chat", "-q", prompt, "-Q"), cwd=eh.project, env=eh.env(env),
                           capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL, check=False)
 
 

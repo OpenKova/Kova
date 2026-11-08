@@ -1,4 +1,4 @@
-"""``hermes auth upgrade``: the plain device-code sign-in, then the free tier's apps move over.
+"""``kova auth upgrade``: the plain device-code sign-in, then the free tier's apps move over.
 
 Driven through a fake portal covering the device-code endpoints plus the free tier's claim
 endpoint, so the wire contract (device code, token grant persisted over the guest singleton, one
@@ -89,7 +89,7 @@ class FakePortal:
             if self.on_token is not None:
                 self.on_token()
             return httpx.Response(200, json={
-                "access_token": _jwt(sub="nas_user:9", client_id="hermes-cli", account_tier="free", email=EMAIL),
+                "access_token": _jwt(sub="nas_user:9", client_id="kova-cli", account_tier="free", email=EMAIL),
                 "refresh_token": REFRESH_TOKEN, "token_type": "Bearer", "expires_in": 900,
                 "scope": "inference:invoke", "inference_base_url": INFERENCE})
         return httpx.Response(500, json={"error": f"unexpected {path}"})
@@ -169,7 +169,7 @@ class TestUpgrade:
         assert shared.get("refresh_token") == REFRESH_TOKEN
         assert "anon_token" not in shared
 
-    def test_hermes_model_signs_a_connector_free_tier_in_instead_of_refusing(self, portal, monkeypatch, capsys):
+    def test_kova_model_signs_a_connector_free_tier_in_instead_of_refusing(self, portal, monkeypatch, capsys):
         from kova_cli import model_setup_flows
         from tests.kova_cli.anon_portal import as_local_desktop_backend
         as_local_desktop_backend(monkeypatch)
@@ -187,9 +187,9 @@ class TestUpgrade:
         from kova_cli import auth_nous
         from kova_cli.auth import PROVIDER_REGISTRY
         anon_auth.ensure_portal_identity(explicit=True)
-        account = {"access_token": _jwt(sub="nas_user:9", client_id="hermes-cli", account_tier="free", email=EMAIL),
+        account = {"access_token": _jwt(sub="nas_user:9", client_id="kova-cli", account_tier="free", email=EMAIL),
                    "refresh_token": REFRESH_TOKEN, "portal_base_url": PORTAL, "inference_base_url": INFERENCE,
-                   "client_id": "hermes-cli", "expires_in": 900}
+                   "client_id": "kova-cli", "expires_in": 900}
         monkeypatch.setattr(auth_nous, "_offer_shared_nous_import", lambda timeout: None)
         monkeypatch.setattr(auth_nous, "_nous_device_code_login", lambda **kw: dict(account))
         monkeypatch.setattr(auth_nous, "_pick_nous_model_after_login", lambda *a: None)
@@ -263,4 +263,4 @@ class TestSignInCompletionSettlesTheModel:
         assert model_cfg["base_url"] == INFERENCE.rstrip("/")
         out = capsys.readouterr().out
         assert "Default model is now" not in out
-        assert "run `hermes model` to pick one" in out
+        assert "run `kova model` to pick one" in out

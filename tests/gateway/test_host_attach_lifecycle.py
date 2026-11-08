@@ -304,7 +304,7 @@ def test_another_tenants_host_gateway_never_yields_attach_or_the_lock_refusal(tm
     Tenant A's live multiplexer serves A's ``default`` + ``coder``; tenant B's ``default`` must START,
     not ATTACH (exit 0 with nothing running), and losing the per-OS-user host lock to A must not
     refuse 75 (a race B can never win, so its gateway would never start)."""
-    root_a, root_b = tmp_path / "hermes-a", tmp_path / "hermes-b"
+    root_a, root_b = tmp_path / "kova-a", tmp_path / "kova-b"
     _publish(owner_pid, root_a, ("default", "coder"))
     _answer_identify(monkeypatch, owner_pid, root_a, ["default", "coder"])
     monkeypatch.setattr(gateway_run, "get_kova_home", lambda: root_b)

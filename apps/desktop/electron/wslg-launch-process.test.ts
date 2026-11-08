@@ -14,7 +14,7 @@ import { afterAll, beforeAll, test } from 'vitest'
 let fixtureDir: string
 
 beforeAll(async () => {
-  fixtureDir = await mkdtemp(path.join(tmpdir(), 'hermes-wslg-process-'))
+  fixtureDir = await mkdtemp(path.join(tmpdir(), 'kova-wslg-process-'))
   await build({
     entryPoints: [
       fileURLToPath(new URL('./wslg-launch-process.ts', import.meta.url)),

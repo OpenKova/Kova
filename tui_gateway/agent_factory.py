@@ -448,7 +448,7 @@ def _load_disabled_toolsets() -> list[str] | None:
 
     The classic CLI (``cli_init_mixin``) and the messaging gateway both forward this list to
     AIAgent, where ``get_tool_definitions`` strips the named toolsets even out of composite
-    defaults like ``hermes-cli`` (#17309). The desktop/TUI gateway historically dropped it, so
+    defaults like ``kova-cli`` (#17309). The desktop/TUI gateway historically dropped it, so
     e.g. ``disabled_toolsets: [browser]`` silently had no effect on Desktop — the only consumer
     was ``_get_platform_tools``'s name-level subtraction, which can't reach inside a composite
     default toolset (#44499).

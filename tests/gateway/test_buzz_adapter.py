@@ -2441,7 +2441,7 @@ class TestInboundMediaLocalisation:
     async def test_markdown_relay_image_preserves_alt_text_before_dispatch(
         self, monkeypatch, tmp_path
     ):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         captured, cli_calls = self._capture_dispatch(adapter)
         media_url = f"https://test.relay/media/{'a' * 64}.png"
@@ -2462,13 +2462,13 @@ class TestInboundMediaLocalisation:
         assert event.message_type == MessageType.PHOTO
         assert event.media_types == ["image/png"]
         assert len(event.media_urls) == 1
-        assert event.media_urls[0].startswith(str(tmp_path / "hermes" / "cache"))
+        assert event.media_urls[0].startswith(str(tmp_path / "kova" / "cache"))
         assert media_url not in event.text
         assert cli_calls[0][-1] == media_url
 
     @pytest.mark.asyncio
     async def test_multiple_images_are_localised_in_content_order(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         captured, calls = self._capture_dispatch(adapter)
         first = f"https://test.relay/media/{'c' * 64}.png"
@@ -2493,7 +2493,7 @@ class TestInboundMediaLocalisation:
 
     @pytest.mark.asyncio
     async def test_non_image_attachment_is_cached_as_document(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         captured, _calls = self._capture_dispatch(adapter)
         media_url = f"https://test.relay/media/{'e' * 64}.pdf"
@@ -2519,7 +2519,7 @@ class TestInboundMediaLocalisation:
     async def test_download_failure_preserves_caption_and_alt_text(
         self, monkeypatch, tmp_path
     ):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         media_url = f"https://test.relay/media/{'f' * 64}.png"
         captured, _calls = self._capture_dispatch(adapter, failed_urls=[media_url])
@@ -2542,7 +2542,7 @@ class TestInboundMediaLocalisation:
 
     @pytest.mark.asyncio
     async def test_one_failed_download_does_not_drop_other_media(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         failed = f"https://test.relay/media/{'2' * 64}.png"
         succeeded = f"https://test.relay/media/{'3' * 64}.jpg"
@@ -2569,7 +2569,7 @@ class TestInboundMediaLocalisation:
     async def test_real_event_handler_localises_media_before_gateway_dispatch(
         self, monkeypatch, tmp_path
     ):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         adapter._channel_state[DM_CHANNEL] = {
             "chat_type": "dm",
@@ -2621,7 +2621,7 @@ class TestInboundMediaLocalisation:
 
     @pytest.mark.asyncio
     async def test_external_media_url_is_left_untouched(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         adapter = _make_adapter()
         captured, calls = self._capture_dispatch(adapter)
         media_url = f"https://cdn.example/media/{'1' * 64}.png"
@@ -2658,7 +2658,7 @@ class TestInboundMediaAuthorizationGate:
         return f"look at this ![shot](https://test.relay/media/{'a' * 64}.png)"
 
     async def _dispatch_with_check(self, adapter, monkeypatch, tmp_path, check):
-        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova"))
         captured, cli_calls = TestInboundMediaLocalisation._capture_dispatch(adapter)
         adapter.set_authorization_check(check)
         text = self._media_text()

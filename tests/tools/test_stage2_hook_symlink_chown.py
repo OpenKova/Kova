@@ -16,7 +16,7 @@ def stage2_text() -> str:
         pytest.skip("docker/stage2-hook.sh not present in this checkout")
     return STAGE2_HOOK.read_text()
 
-def _chown_hermes_tree_function(text: str) -> str:
+def _chown_kova_tree_function(text: str) -> str:
     start = text.index("path_has_symlink_component() {")
     end = text.index("\n\nneeds_chown=false", start)
     return text[start:end]
@@ -35,9 +35,9 @@ def _run_helper(
     script = (
         "set -eu\n"
         f'KOVA_HOME="{kova_home}"\n'
-        f"{_chown_hermes_tree_function(text)}\n"
+        f"{_chown_kova_tree_function(text)}\n"
         f'chown() {{ printf "%s\\n" "$*" >> "{log_path}"; }}\n'
-        f'chown_hermes_tree "{target}"\n'
+        f'chown_kova_tree "{target}"\n'
     )
     return subprocess.run([shell, "-c", script], capture_output=True, text=True, check=False)
 
@@ -50,13 +50,13 @@ def test_chown_helper_repairs_real_directories(stage2_text: str, tmp_path: Path)
 
     assert proc.returncode == 0, proc.stderr
     assert log_path.read_text().splitlines() == [
-        f"-R hermes:hermes {target}",
+        f"-R kova:kova {target}",
     ]
 
 def test_chown_helper_refuses_symlinked_directories(stage2_text: str, tmp_path: Path) -> None:
     real_home = tmp_path / "real-home"
     real_home.mkdir()
-    symlinked_home = tmp_path / "hermes-home"
+    symlinked_home = tmp_path / "kova-home"
     try:
         symlinked_home.symlink_to(real_home, target_is_directory=True)
     except (NotImplementedError, OSError):

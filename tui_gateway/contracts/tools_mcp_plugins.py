@@ -688,7 +688,7 @@ class PluginSettingField(Result):
 class PluginServerState(WireEnum):
     connected = "connected"
     app_not_running = "app_not_running"
-    hermes_not_connected = "hermes_not_connected"
+    kova_not_connected = "kova_not_connected"
     endpoint_unavailable = "endpoint_unavailable"
     no_interactive_session = "no_interactive_session"
     version_too_old = "version_too_old"
@@ -946,4 +946,4 @@ class PluginCatalogLookupResult(Result):
 
 method("plugins.catalog.lookup", params=PluginCatalogLookupParams, result=PluginCatalogLookupResult,
        doc="One curated plugin-catalog entry by name, from the backend's live catalog (cached, with the "
-           "in-tree fallback and kill list); backs hermes://plugin/install?catalog= deep links.")
+           "in-tree fallback and kill list); backs kova://plugin/install?catalog= deep links.")

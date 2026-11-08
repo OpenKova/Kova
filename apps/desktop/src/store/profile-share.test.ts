@@ -130,15 +130,15 @@ describe('runExportProfileFlow', () => {
     } finally {
       clearWebappSession()
       Reflect.deleteProperty(window, 'kovaDesktop')
-      document.documentElement.removeAttribute('data-hermes-desktop-host')
+      document.documentElement.removeAttribute('data-kova-desktop-host')
       vi.unstubAllGlobals()
     }
   })
 })
 
 describe('importProfileBundle', () => {
-  const folderKey = (profile: string) => `kova:browser:default-project-dir:${JSON.stringify(['/hermes', profile])}`
-  const startupKey = 'kova:webapp:default-profile:/hermes'
+  const folderKey = (profile: string) => `kova:browser:default-project-dir:${JSON.stringify(['/kova', profile])}`
+  const startupKey = 'kova:webapp:default-profile:/kova'
 
   function seedLeftovers() {
     window.localStorage.setItem(folderKey('imported'), '/srv/deleted-imported')
@@ -147,7 +147,7 @@ describe('importProfileBundle', () => {
   }
 
   afterEach(() => {
-    document.documentElement.removeAttribute('data-hermes-desktop-host')
+    document.documentElement.removeAttribute('data-kova-desktop-host')
     Reflect.deleteProperty(window, '__KOVA_BASE_PATH__')
   })
 
@@ -156,7 +156,7 @@ describe('importProfileBundle', () => {
     const { importProfileBundle } = await import('./profile-share')
     const { importProfileArchive } = await import('@/kova')
     document.documentElement.dataset.kovaDesktopHost = 'browser'
-    Object.assign(window, { __KOVA_BASE_PATH__: '/hermes' })
+    Object.assign(window, { __KOVA_BASE_PATH__: '/kova' })
     seedLeftovers()
     vi.mocked(importProfileArchive).mockRejectedValueOnce(new Error('bad archive'))
 
@@ -172,7 +172,7 @@ describe('importProfileBundle', () => {
 
   it('keeps browser prefs in native Desktop', async () => {
     const { importProfileBundle } = await import('./profile-share')
-    Object.assign(window, { __KOVA_BASE_PATH__: '/hermes' })
+    Object.assign(window, { __KOVA_BASE_PATH__: '/kova' })
     seedLeftovers()
 
     await expect(importProfileBundle('/tmp/in.tar.gz')).resolves.toBe('imported')

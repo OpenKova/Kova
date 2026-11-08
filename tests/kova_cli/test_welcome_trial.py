@@ -262,7 +262,7 @@ def test_two_installs_claiming_at_once_mint_one_trial(portal, monkeypatch, tmp_p
     as_local_desktop_backend(monkeypatch)
     _relaunch()                                          # the trial is reserved for this OS user
     monkeypatch.setattr(auth_nous, "_nous_shared_auth_dir", lambda: get_kova_home() / "shared-nous")
-    canary_root = tmp_path / "hermes-canary"
+    canary_root = tmp_path / "kova-canary"
     canary_root.mkdir()
     canary: dict = {}
     canary_done = threading.Event()

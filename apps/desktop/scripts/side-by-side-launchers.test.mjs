@@ -19,7 +19,7 @@ test('the Store bundler rejects nonstable selectors before platform tools or sta
 })
 
 test('nonstable MSIX CLI aliases each activate their own entrypoint, never the GUI', () => {
-  const launchers = ['hermes-canary', 'hermes-canary-acp']
+  const launchers = ['kova-canary', 'kova-canary-acp']
   const applications = msix.appExecutionAliasApplications(launchers, {
     appNamePascal: 'KovaBundledCanary', displayName: 'Kova Agent Canary'
   })
@@ -36,10 +36,10 @@ test('nonstable MSIX CLI aliases each activate their own entrypoint, never the G
 test('desktop payload exposes only identity-qualified launchers while preserving canonical command keys', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'desktop-launchers-'))
   try {
-    for (const cliName of ['hermes-canary', 'hermes-abcdef1', 'hermes-1234567']) {
+    for (const cliName of ['kova-canary', 'kova-abcdef1', 'kova-1234567']) {
       const payload = path.join(root, cliName)
       fs.mkdirSync(path.join(payload, 'bin'), { recursive: true })
-      const commands = { hermes: 'bin/hermes.exe', 'hermes-acp': 'bin/hermes-acp.exe' }
+      const commands = { kova: 'bin/kova.exe', 'kova-acp': 'bin/kova-acp.exe' }
       for (const [name, file] of Object.entries(commands)) fs.writeFileSync(path.join(payload, file), `PE bytes for ${name}`)
       fs.writeFileSync(path.join(payload, 'manifest.json'), JSON.stringify({
         target: 'win32-x64', launchers: Object.keys(commands), runtime: { commands }
@@ -58,7 +58,7 @@ test('desktop payload exposes only identity-qualified launchers while preserving
       assert.deepEqual(stamps.stageDesktopLaunchers(payload, { cliName }), manifest)
       const xml = appExecutionAliasExtensions(manifest.launchers)
       assert.ok(xml.includes(`Alias="${cliName}.exe"`))
-      assert.ok(!xml.includes('Alias="hermes.exe"'))
+      assert.ok(!xml.includes('Alias="kova.exe"'))
     }
   } finally {
     fs.rmSync(root, { recursive: true, force: true })

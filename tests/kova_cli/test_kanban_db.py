@@ -568,7 +568,7 @@ def test_infrastructure_spawn_refusal_never_charges_the_card(
     monkeypatch.setenv("KOVA_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
 
     def spawn_via_real_boundary(task, workspace, board=None):
-        kbd._restart_safe_worker_argv(task, ["hermes", "chat"])  # raises: real probe verdict, real _degrade()
+        kbd._restart_safe_worker_argv(task, ["kova", "chat"])  # raises: real probe verdict, real _degrade()
         raise AssertionError("unreachable")
 
     with kbc.connect() as conn:
@@ -1034,7 +1034,7 @@ def test_symlinked_workspaces_root_does_not_widen_scratch_cleanup(kanban_home, t
 # Shared-board path resolution (issue #19348)
 #
 # The kanban board is a cross-profile coordination primitive: a worker
-# spawned with `hermes -p <profile>` must read/write the same kanban.db
+# spawned with `kova -p <profile>` must read/write the same kanban.db
 # as the dispatcher that claimed the task. These tests exercise the
 # path-resolution layer directly and would have caught the regression
 # where `kanban_db_path()` resolved to the active profile's KOVA_HOME.
@@ -1449,7 +1449,7 @@ def test_unlink_tasks_triggers_recompute_ready(kanban_home):
     complete_task and unblock_task.
 
     Before the fix, child stayed 'todo' indefinitely after unlink; only the
-    next dispatcher tick or a manual 'hermes kanban recompute' would promote it.
+    next dispatcher tick or a manual 'kova kanban recompute' would promote it.
     """
     with kbc.connect() as conn:
         # A is done.
@@ -1562,12 +1562,12 @@ def test_connect_heals_reduced_tasks_schema_seeded_by_external_harness(kanban_ho
 
 
 # ---------------------------------------------------------------------------
-# Dispatcher spawn invocation — _resolve_hermes_argv()
+# Dispatcher spawn invocation — _resolve_kova_argv()
 #
-# Workers spawned by the dispatcher must use a `hermes` invocation that does
+# Workers spawned by the dispatcher must use a `kova` invocation that does
 # not depend on PATH being set up correctly. cron jobs, systemd User= services,
 # launchd jobs, and other detached processes routinely run with a stripped
-# $PATH that doesn't include the venv's bin/, so a bare `["hermes", ...]`
+# $PATH that doesn't include the venv's bin/, so a bare `["kova", ...]`
 # spawn fails with FileNotFoundError and the task gets stuck. The resolver
 # prefers the interpreter-bound module form (exactly this install; a PATH
 # shim could be attacker-planted or belong to another install, #111569) and
@@ -1575,8 +1575,8 @@ def test_connect_heals_reduced_tasks_schema_seeded_by_external_harness(kanban_ho
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch):
-    """A `hermes` on PATH must not shadow the running install (#111569):
+def test_resolve_kova_argv_prefers_module_form_over_path_shim(monkeypatch):
+    """A `kova` on PATH must not shadow the running install (#111569):
     the module argv wins whenever ``kova_cli`` is importable; only an
     explicit ``$KOVA_BIN`` overrides it."""
     import shutil
@@ -1584,16 +1584,16 @@ def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch):
     from kova_cli import kanban_db_dispatch as kbd
 
     monkeypatch.delenv("KOVA_BIN", raising=False)
-    monkeypatch.setattr(shutil, "which", lambda name: "/tmp/planted/hermes")
-    monkeypatch.setattr(kbd, "_safe_which_no_cwd", lambda name: "/tmp/planted/hermes")
-    assert kbd._resolve_hermes_argv() == [sys.executable, "-m", "kova_cli.main"]
+    monkeypatch.setattr(shutil, "which", lambda name: "/tmp/planted/kova")
+    monkeypatch.setattr(kbd, "_safe_which_no_cwd", lambda name: "/tmp/planted/kova")
+    assert kbd._resolve_kova_argv() == [sys.executable, "-m", "kova_cli.main"]
 
-    monkeypatch.setenv("KOVA_BIN", "/opt/hermes/bin/hermes")
-    assert kbd._resolve_hermes_argv() == ["/opt/hermes/bin/hermes"]
+    monkeypatch.setenv("KOVA_BIN", "/opt/kova/bin/kova")
+    assert kbd._resolve_kova_argv() == ["/opt/kova/bin/kova"]
 
 
 
-def test_resolve_hermes_argv_module_actually_runs():
+def test_resolve_kova_argv_module_actually_runs():
     """The fallback module name must be importable + runnable.
 
     A unit test that pins the literal string is necessary but not
@@ -1610,7 +1610,7 @@ def test_resolve_hermes_argv_module_actually_runs():
     with mock.patch.dict(os.environ, {}, clear=False):
         os.environ.pop("KOVA_BIN", None)
         with mock.patch.object(shutil, "which", return_value=None):
-            argv = kbd._resolve_hermes_argv()
+            argv = kbd._resolve_kova_argv()
     offline = {**os.environ, "HTTPS_PROXY": "http://127.0.0.1:9", "https_proxy": "http://127.0.0.1:9", "NO_PROXY": "", "no_proxy": ""}
     r = subprocess.run(argv + ["--version"], capture_output=True, text=True, timeout=30, check=False, env=offline)
     assert r.returncode == 0, (
@@ -1626,7 +1626,7 @@ def test_default_spawn_pins_repo_root_on_module_worker_pythonpath(tmp_path, monk
     the claim to the profile owner), and the worker env scrub strips Kova-owned PYTHONPATH
     entries, so a bare module child died on import and the board auto-blocked (#122299,
     #122487, #122500). The spawned env must put the running install's root first on
-    PYTHONPATH. Main's carve-out for a resolved ``hermes`` shim path does not apply here: the
+    PYTHONPATH. Main's carve-out for a resolved ``kova`` shim path does not apply here: the
     worker never runs the resolved CLI argv, so a ``$KOVA_BIN``/PATH shim can neither replace
     the module child nor drop the pin.
     """
@@ -1662,8 +1662,8 @@ def test_default_spawn_pins_repo_root_on_module_worker_pythonpath(tmp_path, monk
         claim_expires=None, tenant=None, branch_name=None,
     )
 
-    for resolved in ([sys.executable, "-m", "kova_cli.main"], ["/opt/hermes/bin/hermes"]):
-        monkeypatch.setattr(kbd, "_resolve_hermes_argv", lambda resolved=resolved: resolved)
+    for resolved in ([sys.executable, "-m", "kova_cli.main"], ["/opt/kova/bin/kova"]):
+        monkeypatch.setattr(kbd, "_resolve_kova_argv", lambda resolved=resolved: resolved)
         kbd._default_spawn(task, str(tmp_path / "ws"))
         assert captured["cmd"][-3:] == [sys.executable, "-m", "kova_cli.kanban_worker_client"]
         assert captured["env"]["PYTHONPATH"].split(os.pathsep)[0] == root

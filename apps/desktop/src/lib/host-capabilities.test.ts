@@ -13,7 +13,7 @@ interface HostGlobals {
 const win = window as unknown as HostGlobals
 
 function reset() {
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   delete win.__KOVA_AUTH_REQUIRED__
   delete win.__KOVA_UI_SURFACE__
   delete win.kovaDesktop

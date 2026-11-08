@@ -192,7 +192,7 @@ def test_cannot_message_self(tmp_path):
     home = _managed_home(tmp_path)
     agent = _FakeAgent(home, title="Bot Chat")  # default profile
     result = json.loads(
-        bot_mode_dm.message_agent_tool(target="hermes", message="hi", agent=agent)
+        bot_mode_dm.message_agent_tool(target="kova", message="hi", agent=agent)
     )
     assert "error" in result
     assert "yourself" in result["error"]
@@ -316,7 +316,7 @@ def test_local_delivery_admits_canonically_and_acks(tmp_path, monkeypatch):
     calls = _capture_spawn(monkeypatch)
     # These assertions target the -p/turn-args shape; pin the entrypoint resolution
     # so the test stays hermetic across venvs that do/don't expose a sibling script.
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     home = _managed_home(tmp_path, teammates=("researcher",))
     target = home / "profiles" / "researcher"
     authority = _canonical_target(monkeypatch, target)
@@ -355,16 +355,16 @@ def test_local_delivery_admits_canonically_and_acks(tmp_path, monkeypatch):
     mode, dm_file, transport_argv, profile_home = _runner_parts(command)
     assert mode == "query-file"
     assert Path(profile_home) == target.resolve()
-    assert transport_argv[:3] == ["hermes", "-p", "researcher"]
+    assert transport_argv[:3] == ["kova", "-p", "researcher"]
     # message body rides the temp file, never the command line
     assert "PAYLOAD_SENTINEL_7A91" not in command
     assert "$(" not in command
     # the sender rides the runner argv as a stable id plus display handle
-    assert _runner_author(command) == {"id": "bot:default", "name": "hermes", "is_bot": True}
+    assert _runner_author(command) == {"id": "bot:default", "name": "kova", "is_bot": True}
 
     # attribution prefix applied server-side; body verbatim in the admitted message
     content = Path(dm_file).read_text(encoding="utf-8")
-    assert content.startswith("Message from 🤖 hermes (@hermes): ")
+    assert content.startswith("Message from 🤖 kova (@kova): ")
     assert '$(and this is not shell)' in content
     assert params["message"] == content
 
@@ -394,9 +394,9 @@ def test_relay_ack_is_queued_with_the_envelope_id(tmp_path, monkeypatch):
     _capture_spawn(monkeypatch)
     home = _managed_home(tmp_path)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "cloud-1", "connection_label": "Kova Cloud"},
+        {"profile": "default", "handle": "kova", "connection_id": "cloud-1", "connection_label": "Kova Cloud"},
     ])
-    result = json.loads(bot_mode_dm.message_agent_tool(target="hermes", message="ping", agent=_FakeAgent(home)))
+    result = json.loads(bot_mode_dm.message_agent_tool(target="kova", message="ping", agent=_FakeAgent(home)))
 
     assert result["status"] == "queued"
     (envelope,) = bot_relay.claim_pending_envelopes(home)
@@ -435,7 +435,7 @@ def test_friendly_names_and_desktop_slugs_resolve_to_folder_ids(tmp_path, monkey
     """A display name, Bot Mode title or the Desktop's @-slug of either lands on the
     folder id message_agent keys on — the same aliases the composer autocompletes (#100671)."""
     calls = _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     home = _managed_home(tmp_path, teammates=("writer", "foo", "builder"))
     _rename(home, "writer", display_name="Scribe")
     _rename(home, "foo", title="Dr. Foo")
@@ -455,22 +455,22 @@ def test_friendly_names_and_desktop_slugs_resolve_to_folder_ids(tmp_path, monkey
 
 
 @pytest.mark.parametrize(("target", "local_name", "relayed"), [
-    ("hermes@mini", "Kova Mini", True),
-    ("@hermes@mini", "KovaMini", True),
+    ("kova@mini", "Kova Mini", True),
+    ("@kova@mini", "KovaMini", True),
     ("Ops@Home", "Ops@Home", False),  # an '@' friendly name no connection answers to stays local (#100671)
 ])
 def test_connection_qualified_target_reaches_the_relay_not_a_look_alike_local_bot(
         tmp_path, monkeypatch, target, local_name, relayed):
-    """'hermes@mini' is the form the relay hands out, and stamps on replies, for a remote row whose bare forms
-    collide. Resolved locally first, a local bot whose friendly name slugs to 'hermes-mini' captured it: the DM
+    """'kova@mini' is the form the relay hands out, and stamps on replies, for a remote row whose bare forms
+    collide. Resolved locally first, a local bot whose friendly name slugs to 'kova-mini' captured it: the DM
     and its reply thread landed in the wrong bot's transcript and memory."""
     calls = _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     home = _managed_home(tmp_path, teammates=("ops",))
     _canonical_target(monkeypatch, home / "profiles" / "ops")  # the local bot's authority is up
     _rename(home, "ops", display_name=local_name)
     bot_relay.write_remote_roster(home, [
-        {"profile": "default", "handle": "hermes", "connection_id": "mini", "connection_label": "Mini"},
+        {"profile": "default", "handle": "kova", "connection_id": "mini", "connection_label": "Mini"},
     ])
 
     result = json.loads(bot_mode_dm.message_agent_tool(target=target, message="status?", agent=_FakeAgent(home)))
@@ -487,7 +487,7 @@ def test_connection_qualified_target_reaches_the_relay_not_a_look_alike_local_bo
 
 def test_ambiguous_friendly_name_fails_closed(tmp_path, monkeypatch):
     """Two bots titled the same must not let a DM land on whichever sorts first; the
-    reserved @hermes alias can never be hijacked by a rename."""
+    reserved @kova alias can never be hijacked by a rename."""
     calls = _capture_spawn(monkeypatch)
     home = _managed_home(tmp_path, teammates=("aaa", "bbb", "ops"))
     _canonical_target(monkeypatch, home, *(home / "profiles" / name for name in ("aaa", "bbb", "ops")))
@@ -496,11 +496,11 @@ def test_ambiguous_friendly_name_fails_closed(tmp_path, monkeypatch):
     _rename(home, "ops", display_name="Kova")
 
     ambiguous = json.loads(bot_mode_dm.message_agent_tool(target="Scribe", message="ping", agent=_FakeAgent(home)))
-    hijack = json.loads(bot_mode_dm.message_agent_tool(target="hermes", message="ping",
+    hijack = json.loads(bot_mode_dm.message_agent_tool(target="kova", message="ping",
                                                        agent=_FakeAgent(home / "profiles" / "aaa")))
 
     assert "error" in ambiguous
-    assert hijack.get("to") == "@hermes"
+    assert hijack.get("to") == "@kova"
     assert [_runner_parts(c["command"])[2][1:3] for c in calls] == [["-p", "default"]]
 
 
@@ -508,13 +508,13 @@ def test_peer_delivery_command_pins_registry_profile_for_secondary_bots(
     tmp_path, monkeypatch
 ):
     """A secondary-profile bot's peer DM must run in the registry-owning
-    profile (#93935). `hermes peer` resolves bot_peers through
+    profile (#93935). `kova peer` resolves bot_peers through
     profile-scoped load_config(); unpinned, the subprocess inherits the
     calling bot's profile and dies with "No peer named" even though the
     tool-side roster (read from the machine-root config) validated the
     target."""
     calls = _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     home = _managed_home(tmp_path, peers=("spark",))
     # A reviewer-profile gateway context: the agent's session db lives under
     # that profile's home, so _agent_home() resolves there while the
@@ -531,12 +531,12 @@ def test_peer_delivery_command_pins_registry_profile_for_secondary_bots(
     assert mode == "stdin"
     # The registry the tool validated against is the machine root's — the
     # default profile's home — so the CLI runs there, not in reviewer.
-    assert transport_argv == ["hermes", "-p", "default", "peer", "dm", "spark"]
+    assert transport_argv == ["kova", "-p", "default", "peer", "dm", "spark"]
 
 
 def test_peer_delivery_command(tmp_path, monkeypatch):
     calls = _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     monkeypatch.setattr("socket.gethostname", lambda: "eri-mac.local")
     home = _managed_home(tmp_path, peers=("spark",))
     agent = _FakeAgent(home, title="Bot Chat")
@@ -548,9 +548,9 @@ def test_peer_delivery_command(tmp_path, monkeypatch):
     assert "spark" in result["to"]
     mode, _dm_file, transport_argv, _home = _runner_parts(calls[0]["command"])
     assert mode == "stdin"
-    assert transport_argv == ["hermes", "-p", "default", "peer", "dm", "spark/researcher"]
+    assert transport_argv == ["kova", "-p", "default", "peer", "dm", "spark/researcher"]
     # the peer child reads the author from its env and forwards it in the request body
-    assert _runner_author(calls[0]["command"]) == {"id": "bot:eri-mac.local/default", "name": "hermes", "is_bot": True}
+    assert _runner_author(calls[0]["command"]) == {"id": "bot:eri-mac.local/default", "name": "kova", "is_bot": True}
 
     # bare peer name targets the peer's main agent
     result2 = json.loads(
@@ -559,19 +559,19 @@ def test_peer_delivery_command(tmp_path, monkeypatch):
     assert result2["status"] == "queued"
     mode, _dm_file, transport_argv, _home = _runner_parts(calls[1]["command"])
     assert mode == "stdin"
-    assert transport_argv == ["hermes", "-p", "default", "peer", "dm", "spark"]
+    assert transport_argv == ["kova", "-p", "default", "peer", "dm", "spark"]
 
 
-def test_delivery_pins_the_hermes_entrypoint_beside_this_interpreter(tmp_path, monkeypatch):
+def test_delivery_pins_the_kova_entrypoint_beside_this_interpreter(tmp_path, monkeypatch):
     """A background delivery must not rely on PATH: the runner's service context
-    lacks the gateway's venv bin dir, so a bare ``hermes`` resolves to a system
+    lacks the gateway's venv bin dir, so a bare ``kova`` resolves to a system
     install whose shebang picks the wrong interpreter and dies on import (#108628).
     With no published install launcher, both transports invoke the entrypoint beside
     this interpreter instead; a published launcher outranks that sibling (#124868)."""
     venv_bin = tmp_path / "venv" / ("Scripts" if sys.platform == "win32" else "bin")
     venv_bin.mkdir(parents=True)
-    hermes_entry = venv_bin / ("hermes.exe" if sys.platform == "win32" else "hermes")
-    hermes_entry.write_text("#!/bin/sh\n", encoding="utf-8")
+    kova_entry = venv_bin / ("kova.exe" if sys.platform == "win32" else "kova")
+    kova_entry.write_text("#!/bin/sh\n", encoding="utf-8")
     monkeypatch.setattr(sys, "executable", str(venv_bin / "python3"))
     # An install without a published launcher keeps the sibling fallback; keep this
     # checkout's own published launcher out of the resolution (#124868).
@@ -590,7 +590,7 @@ def test_delivery_pins_the_hermes_entrypoint_beside_this_interpreter(tmp_path, m
     assert result["status"] == "queued"
     mode, _dm_file, transport_argv, _profile_home = _runner_parts(calls[0]["command"])
     assert mode == "query-file"
-    assert Path(transport_argv[0]) == hermes_entry
+    assert Path(transport_argv[0]) == kova_entry
     # Local delivery is admitted through the authority; the argv only names the profile.
     assert transport_argv[1:] == ["-p", "researcher"]
 
@@ -600,7 +600,7 @@ def test_delivery_pins_the_hermes_entrypoint_beside_this_interpreter(tmp_path, m
     assert result2["status"] == "queued"
     mode, _dm_file, transport_argv, _profile_home = _runner_parts(calls[1]["command"])
     assert mode == "stdin"
-    assert Path(transport_argv[0]) == hermes_entry
+    assert Path(transport_argv[0]) == kova_entry
     assert transport_argv[1:] == ["-p", "default", "peer", "dm", "spark"]
 
 
@@ -621,12 +621,12 @@ def test_peer_delivery_author_carries_the_sender_hostname_and_local_stays_bare(t
 
 
 def test_renamed_primary_signs_with_its_friendly_name_and_is_reachable_by_it(tmp_path, monkeypatch):
-    """#89720: `hermes profile rename default Maia` writes profile.yaml ``display_name`` (no Bot Mode
-    title). The primary must then sign `Maia (@hermes)`, not `hermes (@hermes)`, and a teammate must
-    reach it as `maia` / `@maia` — the tag the Desktop roster inserts — while `@hermes` keeps resolving.
+    """#89720: `kova profile rename default Maia` writes profile.yaml ``display_name`` (no Bot Mode
+    title). The primary must then sign `Maia (@kova)`, not `kova (@kova)`, and a teammate must
+    reach it as `maia` / `@maia` — the tag the Desktop roster inserts — while `@kova` keeps resolving.
     A Bot Mode title outranks the display_name in the signature, as in the Desktop's botFriendlyNames."""
     calls = _capture_spawn(monkeypatch)
-    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "hermes")
+    monkeypatch.setattr(bot_relay, "_kova_cli", lambda: "kova")
     home = _managed_home(tmp_path, teammates=("coder",))
     _canonical_target(monkeypatch, home, home / "profiles" / "coder")
     (home / "profile.yaml").write_text("display_name: Maia\n", encoding="utf-8")
@@ -634,10 +634,10 @@ def test_renamed_primary_signs_with_its_friendly_name_and_is_reachable_by_it(tmp
     result = json.loads(bot_mode_dm.message_agent_tool(target="coder", message="hi", agent=_FakeAgent(home)))
     assert result["status"] == "queued"
     _mode, dm_file, _argv, _home = _runner_parts(calls[0]["command"])
-    assert Path(dm_file).read_text(encoding="utf-8").startswith("Message from 🤖 Maia (@hermes): ")
+    assert Path(dm_file).read_text(encoding="utf-8").startswith("Message from 🤖 Maia (@kova): ")
 
     coder = _FakeAgent(home / "profiles" / "coder")
-    for target in ("maia", "@maia", "@hermes"):
+    for target in ("maia", "@maia", "@kova"):
         result = json.loads(bot_mode_dm.message_agent_tool(target=target, message="pong", agent=coder))
         assert result["status"] == "queued", (target, result)
         _mode, _dm_file, argv, _home = _runner_parts(calls[-1]["command"])
@@ -648,11 +648,11 @@ def test_renamed_primary_signs_with_its_friendly_name_and_is_reachable_by_it(tmp
     )
     json.loads(bot_mode_dm.message_agent_tool(target="coder", message="hi", agent=_FakeAgent(home)))
     _mode, dm_file, _argv, _home = _runner_parts(calls[-1]["command"])
-    assert Path(dm_file).read_text(encoding="utf-8").startswith("Message from 🤖 Maia Prime (@hermes): ")
+    assert Path(dm_file).read_text(encoding="utf-8").startswith("Message from 🤖 Maia Prime (@kova): ")
 
 
 def test_named_profile_sender_prefix(tmp_path, monkeypatch):
-    """A named-profile bot signs with its own handle, not @hermes."""
+    """A named-profile bot signs with its own handle, not @kova."""
     calls = _capture_spawn(monkeypatch)
     home = _managed_home(tmp_path, teammates=("researcher", "coder"))
     authority = _canonical_target(monkeypatch, home / "profiles" / "researcher")
@@ -733,8 +733,8 @@ def test_live_dm_admitted_before_waiter_failure(tmp_path, monkeypatch):
     assert record is not None
     assert record["delivery_id"] == result["delivery_id"]
     assert record["profile_home"] == str(target.resolve())
-    assert authority.records[result["delivery_id"]]["message"] == "Message from 🤖 hermes (@hermes): hello"
-    assert authority.calls[0][1]["author"] == {"id": "bot:default", "name": "hermes", "is_bot": True}
+    assert authority.records[result["delivery_id"]]["message"] == "Message from 🤖 kova (@kova): hello"
+    assert authority.calls[0][1]["author"] == {"id": "bot:default", "name": "kova", "is_bot": True}
     assert "notification_error" in result
 
 
@@ -749,7 +749,7 @@ def test_live_dm_runner_retry_never_reexecutes_failed_admission(tmp_path, monkey
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: pytest.fail("must not launch a model turn"))
     dm_file = tmp_path / "message.txt"
     dm_file.write_text("hello", encoding="utf-8")
-    argv = ["hermes", "-p", "researcher"]
+    argv = ["kova", "-p", "researcher"]
     assert bot_mode_dm._run_delivery(argv, str(dm_file), stdin_file=False) == 0
     queued = json.loads(capsys.readouterr().out)
     assert queued["status"] == "queued"
@@ -876,7 +876,7 @@ def test_local_delivery_runner_surfaces_refusal_and_retains_payload(tmp_path, mo
     dm_file.write_text("hi", encoding="utf-8")
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: pytest.fail("no local inference fallback"))
 
-    returncode = bot_mode_dm._run_delivery(["hermes", "-p", "ops"], str(dm_file), stdin_file=False)
+    returncode = bot_mode_dm._run_delivery(["kova", "-p", "ops"], str(dm_file), stdin_file=False)
 
     assert returncode == 1
     payload = json.loads(capsys.readouterr().out)
@@ -908,11 +908,11 @@ def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypa
     author_args = ["--author", json.dumps(author)] if author else []
 
     returncode = bot_mode_dm._delivery_main(
-        ["--run-delivery", *author_args, mode, str(dm_file), "hermes", "-p", "researcher"])
+        ["--run-delivery", *author_args, mode, str(dm_file), "kova", "-p", "researcher"])
 
     assert returncode == 0
     [(argv, kwargs)] = calls
-    assert argv[:3] == ["hermes", "-p", "researcher"]
+    assert argv[:3] == ["kova", "-p", "researcher"]
     assert kwargs["env"]["KOVA_DM_TEST_MARKER"] == "kept"
     assert (json.loads(kwargs["env"][TURN_AUTHOR_ENV]) if TURN_AUTHOR_ENV in kwargs["env"] else None) == author
     assert not dm_file.exists()
@@ -932,7 +932,7 @@ def test_local_runner_sends_only_argv_author_to_authority(tmp_path, monkeypatch,
     waited = []
     monkeypatch.setattr(bot_mode_dm, "_wait_live_dm", lambda home, key, **_kw: waited.append((home, key)) or 0)
     command = bot_mode_dm._delivery_command(
-        ["hermes", "-p", "researcher"], str(dm_file), stdin_file=False,
+        ["kova", "-p", "researcher"], str(dm_file), stdin_file=False,
         profile_home=target, author=author,
     )
     assert bot_mode_dm._delivery_main(shlex.split(command)[2:]) == 0
@@ -955,7 +955,7 @@ def test_real_delivery_command_round_trip_carries_author(tmp_path):
         "pathlib.Path(sys.argv[1]).write_text(os.environ.get('KOVA_TURN_AUTHOR', 'unset'), encoding='utf-8')\n",
         encoding="utf-8",
     )
-    author = {"id": "bot:default", "name": "hermes", "is_bot": True}
+    author = {"id": "bot:default", "name": "kova", "is_bot": True}
     command = bot_mode_dm._delivery_command(
         [sys.executable, str(child), str(observed)], str(dm_file), stdin_file=True, author=author
     )
@@ -990,7 +990,7 @@ def test_delivery_main_local_refusal_retains_payload(tmp_path, monkeypatch, caps
     dm_file = tmp_path / "message.txt"
     dm_file.write_text("secret", encoding="utf-8")
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: pytest.fail("no local inference fallback"))
-    assert bot_mode_dm._delivery_main(["--run-delivery", "query-file", str(dm_file), "hermes", "-p", "ghost"]) == 1
+    assert bot_mode_dm._delivery_main(["--run-delivery", "query-file", str(dm_file), "kova", "-p", "ghost"]) == 1
     assert json.loads(capsys.readouterr().out)["reason"] == "runtime_unavailable"
     assert dm_file.read_text(encoding="utf-8") == "secret"
 

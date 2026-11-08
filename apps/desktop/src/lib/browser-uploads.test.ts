@@ -14,7 +14,7 @@ afterEach(() => {
   clearNotifications()
   clearWebappSession()
   Reflect.deleteProperty(window, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   $connection.set(null)
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -47,14 +47,14 @@ describe('browser image paste size', () => {
     seedWebappSession('served-token')
 
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ path: '/srv/hermes/cache/images/upload.png' }), { status: 200 })
+      new Response(JSON.stringify({ path: '/srv/kova/cache/images/upload.png' }), { status: 200 })
     )
 
     vi.stubGlobal('fetch', fetchMock)
     expect(installBrowserDesktopBridge()).toBe(true)
 
     await expect(window.kovaDesktop!.saveImageBuffer(png(BROWSER_UPLOAD_MAX_BYTES), '.png')).resolves.toBe(
-      '/srv/hermes/cache/images/upload.png'
+      '/srv/kova/cache/images/upload.png'
     )
     expect((fetchMock.mock.calls[0] as [URL])[0].pathname).toBe('/api/chat/image-upload')
   })

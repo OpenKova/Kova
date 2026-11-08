@@ -59,7 +59,7 @@ def home(tmp_path):
     profile tree. No pyproject anywhere in the scanned root — the fixture is
     directory-only, so the scanner cannot recurse into a dependency graph and
     the test needs no network/Torch."""
-    h = tmp_path / "hermes-home"
+    h = tmp_path / "kova-home"
     if os.name != "nt":
         vpp.seed_fixtures(h, tmp_path / "external-mnemosyne-runtime")
         (h / "profiles/e2e-preserve").rename(h / "profiles/work")

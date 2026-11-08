@@ -18,7 +18,7 @@ restoreUserProxyEnv(process.env)
 // `kova desktop` asks this binary whether Chromium's namespace sandbox starts under the host's
 // AppArmor policy (#130177). Chromium creates its sandboxed zygote before any JS runs, so reaching
 // this line answers yes; exit before any window, single-instance lock, backend or relaunch.
-if (process.argv.includes('--hermes-sandbox-probe')) {
+if (process.argv.includes('--kova-sandbox-probe')) {
   process.exit(0)
 }
 
@@ -82,7 +82,7 @@ if (args) {
   const child = spawnWslgLaunch(args)
 
   child.once('error', error => {
-    console.error('[hermes] Wayland ozone launch failed:', error)
+    console.error('[kova] Wayland ozone launch failed:', error)
     app.exit(1)
   })
   child.once('exit', code => app.exit(code ?? 1))

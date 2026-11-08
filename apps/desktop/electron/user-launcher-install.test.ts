@@ -21,7 +21,7 @@ function sourceTree(root: string): void {
 
 function publishLauncher(dir: string, reported: string): string {
   fs.mkdirSync(dir, { recursive: true })
-  const launcher: string = path.join(dir, process.platform === 'win32' ? 'hermes.cmd' : 'hermes')
+  const launcher: string = path.join(dir, process.platform === 'win32' ? 'kova.cmd' : 'kova')
 
   const body: string =
     process.platform === 'win32'
@@ -33,7 +33,7 @@ function publishLauncher(dir: string, reported: string): string {
   return launcher
 }
 
-// The reported machine: setup-hermes.sh published ~/.local/bin/hermes for a
+// The reported machine: setup-kova.sh published ~/.local/bin/kova for a
 // clone outside ~/.kova/kova-agent, and a Finder/Dock launch inherited
 // launchd's PATH, which has no ~/.local/bin. Desktop must still find it.
 test.skipIf(process.platform === 'win32')(

@@ -30,8 +30,8 @@ test.skipIf(process.platform === 'win32')(
     // The backend trusts a dev renderer's http origin only when it inherits KOVA_DESKTOP_DEV_SERVER,
     // as a locally spawned backend does. A packaged build (no dev server) must not set it at all.
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
-    const directory: string = await mkdtemp(path.join(os.tmpdir(), 'hermes-dev-server-env-'))
-    const kovaPath: string = path.join(directory, 'hermes')
+    const directory: string = await mkdtemp(path.join(os.tmpdir(), 'kova-dev-server-env-'))
+    const kovaPath: string = path.join(directory, 'kova')
     const reportPath: string = path.join(directory, 'dev-server-report')
 
     try {
@@ -85,7 +85,7 @@ function ownedLock(devServer?: string): Record<string, unknown> {
     pid: 333,
     port: 40000,
     profile: '',
-    kovaPath: '~/.local/bin/hermes',
+    kovaPath: '~/.local/bin/kova',
     kovaHome: '~/.kova',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     tokenFingerprint: fingerprintToken(REUSE_TOKEN),

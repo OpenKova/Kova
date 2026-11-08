@@ -5,7 +5,7 @@ import type { KovaConnection } from '@/global'
 // pluginSocket must dial the ACTIVE gateway's backend — resolved through the
 // same (connectionId, profile) source of truth ensureGatewayProfile /
 // ensureGatewayAgent maintain for $connection — not the unscoped primary
-// (#73044). Exercises the REAL hermes + store/gateway + store/profile chain:
+// (#73044). Exercises the REAL kova + store/gateway + store/profile chain:
 //  1. A profile switch routes the plugin socket to the pooled profile backend
 //     (getConnection(profile), like pluginRest's profileScoped()).
 //  2. A registry-agent activation routes it to the agent's SOURCE connection

@@ -21,7 +21,7 @@ def _seed(tmp_path, monkeypatch):
         "accessToken": "borrowed-token", "refreshToken": "borrowed-refresh", "expiresAt": 1,
     }}))
     (tmp_path / "auth.json").write_text(json.dumps({"credential_pool": {"anthropic": [{
-        "id": "owned", "source": "manual:hermes_pkce", "auth_type": "oauth",
+        "id": "owned", "source": "manual:kova_pkce", "auth_type": "oauth",
         "access_token": "owned-token", "refresh_token": "owned-refresh",
         "expires_at": int(time.time()*1000)+3600000, "priority": 0,
     }]}}))

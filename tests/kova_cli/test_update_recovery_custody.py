@@ -39,7 +39,7 @@ def test_torn_custody_modules_cannot_authorize_uncontained_repair(tmp_path, live
     after = git("rev-parse", "HEAD")
     git("reset", "-q", "--hard", before)
     payload.write_bytes(b"after\n")
-    marker = root / ".git/hermes-update-pull"
+    marker = root / ".git/kova-update-pull"
     marker.write_text(f"pid=0\npre={before}\ntarget={after}\ngit={shutil.which('git')}\n", encoding="utf-8")
     holder_script = tmp_path / "holder.py"
     holder_script.write_text(

@@ -152,7 +152,7 @@ class RemoteKernel:
 
 
 def _kernel_key(owner: str, env_type: str, task_env_id: str, sandbox_tools: frozenset) -> tuple:
-    """The hermes_tools stub module is generated from ``sandbox_tools`` once, at spawn, so a kernel
+    """The kova_tools stub module is generated from ``sandbox_tools`` once, at spawn, so a kernel
     is only reusable by calls with the SAME tool set; a different set gets its own kernel."""
     return (owner, "remote", env_type, task_env_id, tuple(sorted(sandbox_tools)))
 
@@ -210,9 +210,9 @@ def _spawn_remote_kernel(env, env_type: str, owner: str, task_env_id: str,
     from tools.code_execution_rpc import _execute_checked, _private_dirs_cmd
     from tools.code_execution_tool import (
         MAX_STDOUT_BYTES, _ship_file_to_remote, _env_temp_dir,
-        _ship_env_file_and_launch, generate_hermes_tools_module,
+        _ship_env_file_and_launch, generate_kova_tools_module,
     )
-    kernel_dir = f"{_env_temp_dir(env)}/hermes_rkernel_{uuid.uuid4().hex[:12]}"
+    kernel_dir = f"{_env_temp_dir(env)}/kova_rkernel_{uuid.uuid4().hex[:12]}"
     q_dir = shlex.quote(kernel_dir)
     kernel = None
     try:
@@ -226,8 +226,8 @@ def _spawn_remote_kernel(env, env_type: str, owner: str, task_env_id: str,
         rpc_token = secrets.token_urlsafe(32)
         _ship_file_to_remote(env, f"{kernel_dir}/kernel_runner.py", REMOTE_KERNEL_RUNNER_SOURCE.format(
             cell_source=RUNNER_CELL_SOURCE, capture_limit=MAX_STDOUT_BYTES, idle_exit=idle_exit))
-        _ship_file_to_remote(env, f"{kernel_dir}/hermes_tools.py",
-                             generate_hermes_tools_module(list(sandbox_tools), transport="file"))
+        _ship_file_to_remote(env, f"{kernel_dir}/kova_tools.py",
+                             generate_kova_tools_module(list(sandbox_tools), transport="file"))
         # kernel.env is removed after sourcing: the runner's env keeps the
         # values, so the token file need not sit at rest for the kernel's
         # lifetime. runner.log is pre-created 600 so the launch redirect never

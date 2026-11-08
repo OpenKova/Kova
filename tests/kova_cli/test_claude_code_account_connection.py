@@ -55,7 +55,7 @@ def test_disconnect_is_not_success_when_nothing_was_cleared(monkeypatch):
 def test_disconnect_failure_does_not_echo_the_store_error(monkeypatch):
     from kova_cli import auth as auth_mod
 
-    secret = "auth store is read-only: /secret/hermes-home"
+    secret = "auth store is read-only: /secret/kova-home"
 
     def fail_clear(_provider):
         raise OSError(secret)

@@ -30,7 +30,7 @@ Packaged-update legs instead use verified signed downloads and a temporary feed.
 The driver parks the `main` branch of `serve.git` at the old release. The installer runs and lands on the old release. Then the driver moves `main` to HEAD. An update becomes available in the same way that it does for a real user.
 
 For script-install legs, the installer comes from the old Git ref. A
-script-reinstall update uses the target revision's script. A `hermes-update`
+script-reinstall update uses the target revision's script. A `kova-update`
 leg starts the old release's updater, and app-update legs start its app flow.
 These paths are intentionally different.
 
@@ -147,7 +147,7 @@ A leg can install a release from months back. The driver must not assume that th
 The desktop app has two launch paths, so the matrix has two app-update methods. Both click "Update now" in the running app. They differ in how the app starts:
 
 - `open-app-update`: the app starts from the installed app entry point. On Windows, both the desktop installer and `installer-script+desktop` create shortcuts, so both support this route. On Linux and macOS, the script's opt-in desktop stage builds inside the checkout without registering an OS entry point. The macOS route therefore requires a desktop-installer install; Linux has no open-app-update leg.
-- `hermes-desktop-app-update`: the app starts with the `kova desktop` command. Every install method provides this command, on each OS that ships the desktop app. On linux this is the only app surface: no desktop installer and no packaged desktop artifact exist for linux. The driver captures the product's own launch call (argv, cwd, environment) with `e2e-assets/launch-capture/sitecustomize.py` and re-executes it under Playwright, which owns the app and clicks the update flow. Pre-PM console scripts load the capture hook via `PYTHONPATH`; PM launchers use `-I`, so `launch-capture/pm-launch.py` obtains the installed launcher's own isolated runtime command and loads the driver hook before its bootstrap.
+- `kova-desktop-app-update`: the app starts with the `kova desktop` command. Every install method provides this command, on each OS that ships the desktop app. On linux this is the only app surface: no desktop installer and no packaged desktop artifact exist for linux. The driver captures the product's own launch call (argv, cwd, environment) with `e2e-assets/launch-capture/sitecustomize.py` and re-executes it under Playwright, which owns the app and clicks the update flow. Pre-PM console scripts load the capture hook via `PYTHONPATH`; PM launchers use `-I`, so `launch-capture/pm-launch.py` obtains the installed launcher's own isolated runtime command and loads the driver hook before its bootstrap.
 
 ## Skips
 

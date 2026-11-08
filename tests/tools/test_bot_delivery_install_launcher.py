@@ -22,7 +22,7 @@ def launchers(tmp_path, monkeypatch):
     monkeypatch.setattr(bot_relay, "__file__", str(module))
     old_bin = tmp_path / "old generation" / "bin"
     old_bin.mkdir(parents=True)
-    name = "hermes.exe" if sys.platform == "win32" else "hermes"
+    name = "kova.exe" if sys.platform == "win32" else "kova"
     sibling = old_bin / name
     sibling.touch()
     monkeypatch.setattr(sys, "executable", str(old_bin / "python"))
@@ -54,10 +54,10 @@ def test_windows_delivery_does_not_select_batch_shims(launchers):
 def test_path_then_bare_fallback_remain_available(launchers, monkeypatch):
     _, sibling = launchers
     sibling.unlink()
-    monkeypatch.setattr(bot_relay.shutil, "which", lambda name: "external-hermes")
-    assert bot_relay._kova_cli() == "external-hermes"
+    monkeypatch.setattr(bot_relay.shutil, "which", lambda name: "external-kova")
+    assert bot_relay._kova_cli() == "external-kova"
     monkeypatch.setattr(bot_relay.shutil, "which", lambda name: None)
-    assert bot_relay._kova_cli() == "hermes"
+    assert bot_relay._kova_cli() == "kova"
 
 
 @pytest.mark.platforms("windows")
@@ -94,7 +94,7 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
     monkeypatch.setenv("KOVA_RUNTIME_DIR", str(runtime))
     out = root / ".kova" / "bin"
     out.mkdir(parents=True)
-    published = _launchers.mint_launcher("hermes", root, out, real_python, None)
+    published = _launchers.mint_launcher("kova", root, out, real_python, None)
     assert published is not None
     record = runtime_facts_path(root)
     record.parent.mkdir(parents=True, exist_ok=True)
@@ -107,7 +107,7 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
     (old_package / "main.py").write_text(
         "def main():\n    print('old-generation')\n    return 0\n", encoding="utf-8")
     (old_package.parent / "kova_bootstrap.py").write_text("", encoding="utf-8")
-    assert _launchers.mint_launcher("hermes", old_package.parent, old_bin, real_python, None)
+    assert _launchers.mint_launcher("kova", old_package.parent, old_bin, real_python, None)
     monkeypatch.setattr(bot_relay, "__file__", str(root / "tools" / "bot_relay.py"))
     monkeypatch.setattr(sys, "executable", str(old_bin / "python.exe"))
     argv = _delivery_argv("researcher", str(tmp_path / "message&extra.txt"))
@@ -132,14 +132,14 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
     assert "old-generation" not in result.stdout
 
 
-@pytest.mark.parametrize("name", ["hermes", "hermes.exe"])
+@pytest.mark.parametrize("name", ["kova", "kova.exe"])
 def test_launcher_shape_preserves_profile(tmp_path, monkeypatch, name):
     from tools import bot_mode_dm, bot_mode_probe
 
     home = tmp_path / "home"
     target = home / "profiles" / "researcher"
     monkeypatch.setattr(bot_mode_dm, "_default_home", lambda: str(home))
-    monkeypatch.setattr(bot_mode_probe, "_hermes_root", lambda path: home)
+    monkeypatch.setattr(bot_mode_probe, "_kova_root", lambda path: home)
     monkeypatch.setattr(bot_mode_probe, "_roster", lambda root: [("researcher", target)])
     argv = [str(tmp_path / name), "-p", "researcher", "chat"]
     assert bot_mode_dm._local_delivery_home(argv) == target

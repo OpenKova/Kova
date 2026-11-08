@@ -33,8 +33,8 @@ def kanban_home(tmp_path, monkeypatch):
 
 
 def _create(argv, monkeypatch=None, stdin=None):
-    """Drive the real ``hermes kanban create`` parser into ``_cmd_create``."""
-    root = argparse.ArgumentParser(prog="hermes")
+    """Drive the real ``kova kanban create`` parser into ``_cmd_create``."""
+    root = argparse.ArgumentParser(prog="kova")
     kc.build_parser(root.add_subparsers())
     args = root.parse_args(["kanban", "create", *argv])
     if stdin is not None:

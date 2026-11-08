@@ -69,7 +69,7 @@ def test_parked_provider_is_reported_and_never_reinstalled(monkeypatch):
     assert agent_init.resolve_memory_provider("parkedmem", say=said.append) is None
     assert agent_init.resolve_memory_provider("parkedmem", say=said.append) is None
     assert len(said) == 1
-    assert "hermes plugins enable parkedmem" in said[0] and "requires Python <3.14" in said[0]
+    assert "kova plugins enable parkedmem" in said[0] and "requires Python <3.14" in said[0]
 
 
 def test_provider_that_still_fails_after_recovery_is_reported(monkeypatch):
@@ -83,7 +83,7 @@ def test_provider_that_still_fails_after_recovery_is_reported(monkeypatch):
     def recover(name, say=None):
         plugin.mkdir(parents=True)
         (plugin / "__init__.py").write_text(
-            "from agent.memory_provider import MemoryProvider\nimport hermes_missing_package_for_test\n", encoding="utf-8")
+            "from agent.memory_provider import MemoryProvider\nimport kova_missing_package_for_test\n", encoding="utf-8")
         say(f"Installed memory provider '{name}'.")
         return True
 

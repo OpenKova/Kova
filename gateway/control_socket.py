@@ -74,7 +74,7 @@ def _fallback_socket_path(home: Path) -> Path:
     ``$XDG_RUNTIME_DIR`` first, then ``tempfile.gettempdir()`` and ``/tmp`` (POSIX); if nothing fits
     the first candidate is returned anyway. A squatted shared-temp name is handled at bind time
     (``_squat_proof_fallback``)."""
-    name = f"hermes-gw-{_home_hash(home)}/control.sock"
+    name = f"kova-gw-{_home_hash(home)}/control.sock"
     runtime = _private_runtime_dir()
     candidates = ([runtime / name] if runtime else []) + [Path(tempfile.gettempdir()) / name] + (
         [] if _IS_WINDOWS else [Path("/tmp") / name])  # no-tmp: ok — AF_UNIX 104-byte path limit needs the short /tmp candidate
@@ -87,7 +87,7 @@ def _private_directory(path: Path) -> bool:
 
 
 def _squat_proof_fallback(bind_path: Path) -> Path:
-    """Same ``hermes-gw-<hash>/control.sock`` leaf (what clients authenticate through the private
+    """Same ``kova-gw-<hash>/control.sock`` leaf (what clients authenticate through the private
     pointer), under a fresh ``mkdtemp`` root no other user can predict or pre-create."""
     root = Path(tempfile.mkdtemp(prefix="hgw-", dir=bind_path.parent.parent))
     path = root / bind_path.parent.name / bind_path.name
@@ -326,7 +326,7 @@ class GatewayControlServer:
         self._file_identities.clear()
         if self._fallback_root is not None:
             with contextlib.suppress(OSError):
-                (self._fallback_root / f"hermes-gw-{_home_hash(self._home)}").rmdir()
+                (self._fallback_root / f"kova-gw-{_home_hash(self._home)}").rmdir()
                 self._fallback_root.rmdir()
             self._fallback_root = None
 

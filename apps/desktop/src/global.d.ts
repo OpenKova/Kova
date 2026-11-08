@@ -124,7 +124,7 @@ declare global {
       // peers — so N open windows don't all fire the same cue.
       claimAmbientCue: (key: string) => Promise<boolean>
       // Renderer-drawn min/max/close for WSLg (`custom` true there only), sent
-      // over hermes:window-control; Electron/OS chrome owns them elsewhere.
+      // over kova:window-control; Electron/OS chrome owns them elsewhere.
       windowControls: {
         custom: boolean
         minimize: () => void
@@ -893,7 +893,7 @@ export interface DesktopVersionInfo {
   electronVersion: string
   nodeVersion: string
   platform: string
-  hermesRoot: string
+  kovaRoot: string
   /** True when the running renderer bundle predates desktop changes in the
    *  installed source tree (runtime updated, app binary not rebuilt/swapped). */
   bundleOutOfSync?: boolean
@@ -926,7 +926,7 @@ export interface DesktopVersionInfo {
   /** What this build carries (embedded / light / external) and where an
    *  external backend resolved from. Bundled artifacts run their payload; light
    *  artifacts have no runtime and only reach remote backends. */
-  hermesRuntime?: { type: 'embedded' } | { type: 'light' } | { type: 'external'; source?: RuntimeSource }
+  kovaRuntime?: { type: 'embedded' } | { type: 'light' } | { type: 'external'; source?: RuntimeSource }
   /** True when the bundle on disk is newer than the running process — a plain
    *  app restart (no rebuild, no installer) is enough to load it. */
   bundleSwapPending?: boolean
@@ -935,11 +935,11 @@ export interface DesktopVersionInfo {
 /** Where an external build's backend came from. Mirrors the resolution ladder
  *  in `resolveKovaBackend()`: `git` / `source` / sealed stewards are the
  *  Python install methods from `installation.tree.install_method()`; the
- *  Electron-only rungs (`hermes-root`, `path`, `system-python`, `bootstrap`)
+ *  Electron-only rungs (`kova-root`, `path`, `system-python`, `bootstrap`)
  *  are resolution facts the backend cannot see. Each variant carries the
  *  location it resolved from, when there is one. */
 export type RuntimeSource =
-  | { type: 'hermes-root'; root: string } // KOVA_DESKTOP_KOVA_ROOT — explicit developer override
+  | { type: 'kova-root'; root: string } // KOVA_DESKTOP_KOVA_ROOT — explicit developer override
   | { type: 'git'; root: string } // checkout at a managed install root, $KOVA_HOME/kova-agent
   | { type: 'source'; root: string } // a git checkout anywhere else
   | { type: 'docker'; root: string | null } // sealed tree stewarded by Docker
@@ -947,7 +947,7 @@ export type RuntimeSource =
   | { type: 'desktop-app'; root: string | null } // sealed tree stewarded by the desktop bundle
   | { type: 'desktop-bootstrap'; root: string } // canonical install created by the desktop first-launch bootstrap
   | { type: 'unknown' } // no stamp, no .git — provenance cannot be told
-  | { type: 'path'; command: string } // an existing `hermes` CLI found on PATH
+  | { type: 'path'; command: string } // an existing `kova` CLI found on PATH
   | { type: 'system-python'; command: string } // pip-installed kova_cli on system Python
   | { type: 'bootstrap' } // nothing usable yet; the first-launch installer runs
 
@@ -1051,7 +1051,7 @@ export interface DesktopUpdateApplyResult {
    *  `kova update` themselves. `command` is the exact line to run. */
   manual?: boolean
   command?: string
-  hermesRoot?: string
+  kovaRoot?: string
   /** True when the backend was updated but the GUI couldn't be relaunched in
    *  place (AppImage / dev run): the new version loads on next launch. */
   backendUpdated?: boolean
@@ -1268,7 +1268,7 @@ export interface DesktopConnectionTestResult {
   reachable?: boolean
   sshError?:
     | 'auth-failed'
-    | 'hermes-not-found'
+    | 'kova-not-found'
     | 'host-key-changed'
     | 'interactive-auth'
     | 'timeout'

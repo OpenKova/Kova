@@ -674,8 +674,8 @@ test('predictSmokeKovaHome replays the bundle banner through the shared resolver
   const launchEnv = { KOVA_HOME: '/pinned/home', KOVA_DESKTOP_USER_DATA_DIR: '/pinned/userdata', LOCALAPPDATA: 'C:/Users/runner/AppData/Local' }
   // No baked env: the driver's own KOVA_HOME pin wins.
   expect(predictSmokeKovaHome(launchEnv, {}, 'linux', '/real/home')).toBe('/pinned/home')
-  // KOVA_HOME cleared -> the <userData>/hermes-home fallback.
-  expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null }, 'linux', '/real/home')).toBe('/pinned/userdata/hermes-home')
+  // KOVA_HOME cleared -> the <userData>/kova-home fallback.
+  expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null }, 'linux', '/real/home')).toBe('/pinned/userdata/kova-home')
   // Both cleared + baked suffix -> the platform default with that suffix.
   expect(predictSmokeKovaHome(launchEnv, { KOVA_HOME: null, KOVA_DESKTOP_USER_DATA_DIR: null, KOVA_DATA_DIR_SUFFIX: '-magic' }, 'linux', '/real/home')).toBe('/real/home/.kova-magic')
   // On Windows the default derives from the sandboxed LOCALAPPDATA, not the OS home.
@@ -718,7 +718,7 @@ test.each<[Record<string, string | null> | undefined]>([
 
     try {
       // The bundled app's banner turns KOVA_HOME=null into KOVA_HOME='', so
-      // resolveDesktopKovaHome falls to <userData>/hermes-home. The driver must
+      // resolveDesktopKovaHome falls to <userData>/kova-home. The driver must
       // have seeded THAT home, not only the --home the caller named.
       await expect(runInstalledDesktopSmoke({ exe, root: path.join(root, 'root'), origin: 'bundled', home,
         'user-data': userData, out: root, phase: 'installed', 'expect-commit': 'a'.repeat(40) }, refuseLaunch)).rejects.toThrow('launch refused by test')

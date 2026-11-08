@@ -31,7 +31,7 @@ from kova_cli import web_server
     ("localhost", False, False),
     ("::1",       False, False),
     # --insecure (allow_public=True) NO LONGER bypasses the gate on a public
-    # bind (June 2026 hermes-0day hardening). Non-loopback always requires auth.
+    # bind (June 2026 kova-0day hardening). Non-loopback always requires auth.
     ("0.0.0.0",   True,  True),
     ("0.0.0.0",   False, True),
     ("192.168.1.5", False, True),
@@ -277,7 +277,7 @@ def test_trusted_container_proxy_controls_https_detection():
             "root_path": "",
             "headers": [(b"x-forwarded-proto", b"https")],
             "client": (peer, 43120),
-            "server": ("hermes", 9119),
+            "server": ("kova", 9119),
         }
 
         async def receive():

@@ -14,7 +14,7 @@ OPENROUTER_BASE_URL/OPENROUTER_API_KEY and ``vendor`` = ANTHROPIC_API_KEY). Each
 own random key. A loopback CONNECT trap (HTTPS_PROXY) records any egress to a real inference API. EVERY scenario
 configures ALL identities (the full config a real user accumulates) and differs only in the
 selection, so a misroute always has somewhere to land and be caught. Kova runs for real in a
-child process (``hermes chat -q``, ``hermes -z``, the stdio ``tui_gateway`` the TUI/Desktop
+child process (``kova chat -q``, ``kova -z``, the stdio ``tui_gateway`` the TUI/Desktop
 drive) with a tmp HOME/KOVA_HOME and every credential env var stripped.
 
 One invariant (``check_routing``) after every leg: requests exist only on the selected hosts,
@@ -48,7 +48,7 @@ from ._routing_helpers import (
     inference_hosts,
     pool_auth,
     reject_key,
-    run_hermes,
+    run_kova,
     write_home,
 )
 
@@ -283,7 +283,7 @@ def _run_case(case: Case, root: Path) -> tuple[Fleet, list[LegOutcome]]:
         for leg in case.legs:
             marks, egress_mark = fleet.marks(), len(trap.attempts)
             kova_home = home / ".kova" / "profiles" / leg.profile if leg.profile else None
-            run = run_hermes(leg.argv, home, kova_home=kova_home, proxy=trap.url, timeout=leg.timeout)
+            run = run_kova(leg.argv, home, kova_home=kova_home, proxy=trap.url, timeout=leg.timeout)
             outcomes.append(LegOutcome(leg, run, fleet.since(marks), trap.attempts[egress_mark:]))
         return fleet, outcomes
     finally:
@@ -305,7 +305,7 @@ def test_cli_routing_truth_table(case: Case, cli_outcomes: dict[str, Any]) -> No
     fleet, outcomes = cli_outcomes[case.id].result(timeout=900)
     for i, out in enumerate(outcomes):
         leg, run = out.leg, out.run
-        ctx = (f"[{case.id} leg {i}: hermes {' '.join(leg.argv)}] rc={run.rc} ({run.seconds:.1f}s)\n"
+        ctx = (f"[{case.id} leg {i}: kova {' '.join(leg.argv)}] rc={run.rc} ({run.seconds:.1f}s)\n"
                f"requests:\n{describe(out.log)}\nstdout tail:\n{run.stdout[-1500:]}\nstderr tail:\n{run.stderr[-1500:]}")
         assert_routing(check_routing(fleet, out.log, {h: fleet.keys[h] for h in leg.hosts}, leg.must_hit), ctx)
         leaked = [t for _m, t in out.egress if urlparse(t).hostname in inference_hosts()]

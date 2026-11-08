@@ -1242,7 +1242,7 @@ export interface ProfileDesktopOverlay {
   themes?: Record<string, unknown>
   /** Rail color override for this profile. */
   profileColor?: null | string
-  /** Layout tree (hermes.desktop.layoutTree.v2 shape). */
+  /** Layout tree (kova.desktop.layoutTree.v2 shape). */
   layoutTree?: unknown
   /** Active layout preset id. */
   layoutPreset?: string
@@ -1669,9 +1669,9 @@ export interface ActionStatusResponse {
   name: string
   pid: number | null
   running: boolean
-  /** hermes-update only: durable completion identity recovered from update.log. */
+  /** kova-update only: durable completion identity recovered from update.log. */
   action_id?: string
-  /** hermes-update only: summary of the durable update receipt (#91277 bullet 3) —
+  /** kova-update only: summary of the durable update receipt (#91277 bullet 3) —
    *  the authoritative outcome record, present even when the dashboard
    *  restarted itself mid-action and lost its in-memory registries. */
   receipt?: UpdateReceiptSummary

@@ -2,7 +2,7 @@
 #
 # WHY THIS EXISTS (the frozen-binary problem): the Desktop's Update button
 # used to hand off exclusively to the staged Tauri binary
-# (%KOVA_HOME%\hermes-setup.exe). That binary has no self-update path --
+# (%KOVA_HOME%\kova-setup.exe). That binary has no self-update path --
 # copy_self_to_kova_home deliberately no-ops during --update -- so every
 # updater-side fix (cache refresh #67369, marker self-adopt #74782, straggler
 # handling) only reaches users when a new installer is built, signed, and
@@ -28,7 +28,7 @@
 #     [-ProbeTimeoutSeconds <n>] launcher probe bound, default 60 (tests)
 #     [-HandoffRun <id>]    protocol 2: the run id of the Desktop's bridge claim
 #
-# hermes-handoff-protocol: 2
+# kova-handoff-protocol: 2
 # (exact line above: the Desktop reads it to learn this script speaks hand-off
 # protocol 2 -- it accepts -HandoffRun and the -MarkerOp helper below.)
 #

@@ -121,7 +121,7 @@ class TestOneShotRecoveries:
     def test_a_named_account_on_the_welcome_host_re_reads_the_route_once(self):
         from agent.turn_recovery import _recover_welcome_tier
         calls = []
-        agent = _agent(api_key=make_jwt(account_tier="free", client_id="hermes-cli"),
+        agent = _agent(api_key=make_jwt(account_tier="free", client_id="kova-cli"),
                        _try_refresh_nous_client_credentials=lambda **kw: calls.append(kw) or True)
         body = {"status": 400, "message": "This endpoint serves anonymous Kova Agent accounts only. Use https://inference-api.nousresearch.com with your API key or signed-in account."}
         classified = classify_api_error(_gateway_error(400, body), provider="nous", base_url=WELCOME, api_key=agent.api_key)
@@ -306,7 +306,7 @@ class TestFreeTierCooldownCutoff:
             clear_session_vars(tokens)
 
     def test_a_gateway_admitted_finite_cli_turn_keeps_waiting(self):
-        """``hermes chat -q`` over the daemon carries its one-shot fact on the admission, not in env."""
+        """``kova chat -q`` over the daemon carries its one-shot fact on the admission, not in env."""
         from agent.turn_recovery import free_tier_cooldown_ends_turn
         from gateway.session_finite import finite_turn_scope
         with finite_turn_scope(True):

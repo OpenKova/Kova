@@ -41,7 +41,7 @@ def test_sealed_cli_never_checks_or_spawns_updater(payload, tmp_path, args):
     script = f"""
 import json, sys
 sys.path[:0] = [{str(root)!r}, {str(source)!r}]
-sys.argv = ['hermes', *{args!r}]
+sys.argv = ['kova', *{args!r}]
 attempts = []
 def audit(event, args):
     if event in ('socket.connect', 'subprocess.Popen', 'os.system'):

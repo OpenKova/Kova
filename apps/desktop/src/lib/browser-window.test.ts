@@ -14,7 +14,7 @@ afterEach(() => {
   vi.useRealTimers()
   Reflect.deleteProperty(window, 'kovaDesktop')
   delete bootstrap.__KOVA_AUTH_REQUIRED__
-  window.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  window.document.documentElement.removeAttribute('data-kova-desktop-host')
   window.history.replaceState(null, '', '/')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -40,7 +40,7 @@ function outcome(pending: Promise<unknown>): () => string | undefined {
 /** `/webapp/window` as the gateway serves it: says ready on the channel its fragment names, done once it has a ticket. */
 function handoffPage(href: string): unknown[] {
   const id = new URLSearchParams(new URL(href).hash.slice(1)).get('channel')
-  const channel = new BroadcastChannel(`hermes.webapp.window:${id}`)
+  const channel = new BroadcastChannel(`kova.webapp.window:${id}`)
   const received: unknown[] = []
 
   channel.onmessage = event => {

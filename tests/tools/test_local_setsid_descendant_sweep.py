@@ -122,7 +122,7 @@ def test_kill_process_survives_psutil_snapshot_failure(monkeypatch):
     env = object.__new__(LocalEnvironment)
     proc = SimpleNamespace(
         pid=12345,
-        _hermes_pgid=67890,
+        _kova_pgid=67890,
         poll=lambda: 0,
         wait=lambda timeout=None: 0,
         kill=lambda: None,

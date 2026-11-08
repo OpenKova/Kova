@@ -66,7 +66,7 @@ async def _publish_line(adapter, runner) -> list[tuple[str, Path]]:
 
 @pytest.fixture
 def mux_home(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     for name in ("coder", "ops"):
         (root / "profiles" / name).mkdir(parents=True)
         (root / "profiles" / name / ".env").write_text(f"LINE_CHANNEL_SECRET=secret-{name}\n")

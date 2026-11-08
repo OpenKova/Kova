@@ -2,7 +2,7 @@
 
 Kova-Setup reruns install.sh with its baked ``--branch main``. A checkout whose
 config.yaml record (written by Kova itself) names ``stable`` must stay where
-``hermes update`` put it; a ``main`` record still follows the branch.
+``kova update`` put it; a ``main`` record still follows the branch.
 """
 from pathlib import Path
 import os
@@ -42,7 +42,7 @@ def test_rerun_keeps_a_chosen_channel_checkout(tmp_path, monkeypatch, channel, m
 
     result = subprocess.run(
         ["bash", str(ROOT / "scripts" / "install.sh"), "--stage", "repository",
-         "--branch", "main", "--dir", str(install), "--hermes-home", str(home), "--non-interactive"],
+         "--branch", "main", "--dir", str(install), "--kova-home", str(home), "--non-interactive"],
         check=False, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120,
         env={"PATH": os.environ["PATH"], "HOME": str(tmp_path), "NO_COLOR": "1"},
     )

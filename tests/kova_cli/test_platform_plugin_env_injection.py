@@ -1,6 +1,6 @@
 """User-installed platform plugins feed OPTIONAL_ENV_VARS like bundled ones (#46600, redo of #46964).
 
-The Desktop Gateway form and ``hermes config`` render env fields from ``OPTIONAL_ENV_VARS``; before
+The Desktop Gateway form and ``kova config`` render env fields from ``OPTIONAL_ENV_VARS``; before
 this, only ``plugins/platforms/*`` in the repo was scanned, so a third-party platform's
 ``requires_env`` prompts/descriptions/password flags never reached the UI.
 """
@@ -14,7 +14,7 @@ def _manifest(path, text):
 
 
 def test_user_platform_plugins_inject_env_metadata_but_non_platforms_do_not(monkeypatch, tmp_path):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     _manifest(home / "plugins" / "demo-platform", (
         "name: demo-platform\nkind: platform\nlabel: Demo Platform\n"
         "requires_env:\n  - name: DEMO_PLATFORM_TOKEN\n    description: Token for the demo platform\n"

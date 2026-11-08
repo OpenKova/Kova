@@ -1,4 +1,4 @@
-"""Tests for hermes_subprocess_env() — the centralized credential-safe env
+"""Tests for kova_subprocess_env() — the centralized credential-safe env
 builder for the non-terminal subprocess spawn surface.
 
 Covers GHSA-m4m8-xjp4-5rmm / issue #29157: subprocesses spawned by the
@@ -14,7 +14,7 @@ full credential environment. Two tiers:
 import os
 from unittest.mock import patch
 
-from tools.environments.local import hermes_subprocess_env
+from tools.environments.local import kova_subprocess_env
 from tools.environments.local_env_policy import _ALWAYS_STRIP_KEYS, _KOVA_PROVIDER_ENV_FORCE_PREFIX
 
 
@@ -45,7 +45,7 @@ def _build(extra=None, *, inherit_credentials=False):
     if extra:
         env.update(extra)
     with patch.dict(os.environ, env, clear=True):
-        return hermes_subprocess_env(inherit_credentials=inherit_credentials)
+        return kova_subprocess_env(inherit_credentials=inherit_credentials)
 
 
 class TestStripByDefault:
@@ -70,7 +70,7 @@ class TestStripByDefault:
         }
         result = _build(buzz_sample)
         for var in buzz_sample:
-            assert var not in result, f"{var} leaked via hermes_subprocess_env"
+            assert var not in result, f"{var} leaked via kova_subprocess_env"
 
 
     def test_pythonutf8_set(self):
@@ -150,7 +150,7 @@ class TestBrowserPassthroughPattern:
             "TELEGRAM_BOT_TOKEN": "bot-should-go",
         }
         with patch.dict(os.environ, {**_SAFE_SAMPLE, **leaked}, clear=True):
-            env = hermes_subprocess_env(inherit_credentials=False)
+            env = kova_subprocess_env(inherit_credentials=False)
             for key in _HARNESS_PASSTHROUGH_KEYS:
                 if key in os.environ:
                     env[key] = os.environ[key]
@@ -179,7 +179,7 @@ class TestDelegatedChildMarker:
             clear=True,
         ):
             with delegated_child_context():
-                env = hermes_subprocess_env(inherit_credentials=True)
+                env = kova_subprocess_env(inherit_credentials=True)
 
         assert env["KOVA_DELEGATED_CHILD_CONTEXT"]  # fenced board root (path), not a bare flag
         # Worker identity is scrubbed; board location and workspace routing survive so the

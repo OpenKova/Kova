@@ -500,12 +500,12 @@ def test_coding_prompt_orders_shared_context_before_workspace(monkeypatch):
     monkeypatch.setattr(system_prompt, "KOVA_AGENT_HELP_GUIDANCE", "HELP")
     monkeypatch.setattr(system_prompt, "KOVA_AGENT_HELP_GUIDANCE_NO_SKILLS", "HELP")
     monkeypatch.setattr(system_prompt, "STEER_CHANNEL_NOTE", "STEER")
-    monkeypatch.setattr(system_prompt, "get_kova_home", lambda: Path("/hermes"))
+    monkeypatch.setattr(system_prompt, "get_kova_home", lambda: Path("/kova"))
 
     # Production renders this as str(get_kova_home()) + "/profiles/<name>/",
-    # and str(Path("/hermes")) is platform-dependent (backslash on Windows) —
-    # build the expectation the same way instead of hardcoding "/hermes".
-    _home_str = str(Path("/hermes"))
+    # and str(Path("/kova")) is platform-dependent (backslash on Windows) —
+    # build the expectation the same way instead of hardcoding "/kova".
+    _home_str = str(Path("/kova"))
     expected_profile = (
         "Active Kova profile: default. Other profiles (if any) live "
         f"under {_home_str}/profiles/<name>/. Each profile has its own skills/, "
@@ -891,7 +891,7 @@ def test_conversation_start_uses_session_start_not_build_time(monkeypatch):
     monkeypatch.setattr(system_prompt, "KOVA_AGENT_HELP_GUIDANCE", "HELP")
     monkeypatch.setattr(system_prompt, "KOVA_AGENT_HELP_GUIDANCE_NO_SKILLS", "HELP")
     monkeypatch.setattr(system_prompt, "STEER_CHANNEL_NOTE", "STEER")
-    monkeypatch.setattr(system_prompt, "get_kova_home", lambda: Path("/hermes"))
+    monkeypatch.setattr(system_prompt, "get_kova_home", lambda: Path("/kova"))
 
     with (
         patch("agent.prompt_builder.load_soul_md", return_value=""),
@@ -933,8 +933,8 @@ class TestConversationStartedTwoLine:
         assert "as of the last context rebuild" in vol
 
     def test_same_day_session_keeps_single_line(self):
-        from kova_time import now as hermes_now
-        sid = hermes_now().strftime("%Y%m%d_%H%M%S_fresh")
+        from kova_time import now as kova_now
+        sid = kova_now().strftime("%Y%m%d_%H%M%S_fresh")
         vol = self._volatile(self._agent(sid))
         assert "Conversation started:" in vol
         assert "as of the last context rebuild" not in vol

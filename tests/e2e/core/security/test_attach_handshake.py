@@ -1,4 +1,4 @@
-"""Session-attach handshake: ``hermes --tui --resume SID`` must hand the TUI only the REAL owner's socket.
+"""Session-attach handshake: ``kova --tui --resume SID`` must hand the TUI only the REAL owner's socket.
 
 When a resumed session is already open elsewhere, the launcher reads the owner's lease from the
 active-session registry, calls ``GET <metadata.shared_runtime_url>/api/session-attach`` and exports the
@@ -9,7 +9,7 @@ Real processes throughout:
 
 * the lease holder is a separate Python process that creates the session through ``SessionDB`` and
   acquires its lease through ``try_acquire_active_session`` (the registry path production uses);
-* the client is the real ``hermes --tui --resume SID`` CLI (argparse, profile-home resolution, the
+* the client is the real ``kova --tui --resume SID`` CLI (argparse, profile-home resolution, the
   launcher's discovery, its error exit);
 * the TUI child is a recording stand-in bundle selected through the supported prebuilt-bundle override
   (``KOVA_TUI_DIR/dist/entry.js``). It writes the environment the launcher handed it and exits, so the
@@ -26,7 +26,7 @@ Scenarios (the listener answering the advertised port):
   its own identity; the TUI must receive that owner's socket and the lease must stay with the owner.
 
 Why the owner side is a test process: no shipped Kova runtime advertises ``shared_runtime_url`` or
-serves ``/api/session-attach`` yet (``hermes serve`` and the dashboard do not register one), so the
+serves ``/api/session-attach`` yet (``kova serve`` and the dashboard do not register one), so the
 closest real owner is a process holding the real lease that answers from its own lease knowledge. It
 speaks both the current dialect (``lease_id`` in the reply) and the proof dialect of the candidate fix
 (``attach_proof`` = HMAC-SHA256 keyed by the lease over the client's nonce), so the control holds on main
@@ -53,7 +53,7 @@ from tests.e2e.core.security._helpers import (
     canary,
     hermetic_env,
     kill_group,
-    run_hermes,
+    run_kova,
     run_python,
     write_home,
 )
@@ -104,7 +104,7 @@ class Owner(BaseHTTPRequestHandler):
                  "websocket_url": f"ws://127.0.0.1:{port}/api/ws?token={token}"}
         if "nonce" in q:
             reply["nonce"] = q["nonce"]
-            msg = f"hermes-session-attach:{sid}:{q['nonce']}".encode()
+            msg = f"kova-session-attach:{sid}:{q['nonce']}".encode()
             reply["attach_proof"] = hmac.new(lease_id.encode(), msg, hashlib.sha256).hexdigest()
         body = json.dumps(reply).encode()
         self.send_response(200)
@@ -245,9 +245,9 @@ def home(tmp_path: Path) -> Path:
 
 
 def _resume(home: Path, sid: str) -> tuple[subprocess.CompletedProcess, dict | None]:
-    """Run ``hermes --tui --resume SID``; return the process result and what the TUI child received."""
+    """Run ``kova --tui --resume SID``; return the process result and what the TUI child received."""
     out = home.parent / f"handoff-{uuid.uuid4().hex}.json"
-    result = run_hermes(
+    result = run_kova(
         ["--tui", "--resume", sid], home, timeout=90,
         extra_env={"KOVA_TUI_DIR": str(home.parent / "tui-probe"), "KOVA_SKIP_NODE_BOOTSTRAP": "1",
                    "ATTACH_PROBE_OUT": str(out)})

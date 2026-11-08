@@ -300,7 +300,7 @@ _ACTION_LOG_FILES: dict[str, str] = {
     "gateway-start": "gateway-start.log",
     "gateway-stop": "gateway-stop.log",
     "gateway-migrate": "gateway-migrate.log",
-    "hermes-update": "hermes-update.log",
+    "kova-update": "kova-update.log",
     **{name: f"action-{name}.log" for name in (
         "doctor", "security-audit", "backup", "import", "checkpoints-prune", "skills-install",
         "skills-uninstall", "skills-update", "curator-run", "prompt-size", "dump", "config-migrate",
@@ -511,7 +511,7 @@ def _spawn_hermes_action(
             message = (
                 f"{name} targets the system-scope gateway service, which requires root, and "
                 "passwordless sudo is unavailable for the dashboard user. Run "
-                f"'sudo hermes {' '.join(subcommand)}' on the host, or grant that user NOPASSWD sudo."
+                f"'sudo kova {' '.join(subcommand)}' on the host, or grant that user NOPASSWD sudo."
             )
             log_file.write(f"{message}\n".encode())
             log_file.close()

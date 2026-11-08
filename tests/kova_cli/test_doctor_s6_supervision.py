@@ -1,4 +1,4 @@
-"""``hermes doctor``'s s6 section probes the image's static s6-rc services in the root scandir and
+"""``kova doctor``'s s6 section probes the image's static s6-rc services in the root scandir and
 lists profile gateway slots from the separate, unprivileged gateway scandir."""
 from __future__ import annotations
 
@@ -37,6 +37,6 @@ def test_static_services_and_gateway_slots_use_distinct_scandirs(
     assert ROOT_SCANDIR / "main-kova" in svstat_targets
     assert ROOT_SCANDIR / "dashboard" in svstat_targets
     assert "main-kova: up" in capsys.readouterr().out
-    # Gateway slots are hermes-registered, so they must not live in the root-supervised scandir.
+    # Gateway slots are kova-registered, so they must not live in the root-supervised scandir.
     assert len(listed) == 1 and listed[0] != ROOT_SCANDIR
     assert ROOT_SCANDIR not in listed[0].parents

@@ -38,7 +38,7 @@ def test_startup_prune_reclaims_only_provably_deleted_checkouts(tmp_path, monkey
     # A data root shared across a mount boundary records checkouts this process cannot see:
     # a host install from inside a container, a container install from the host.
     host_install = _state(installs, "eeee", tmp_path / "other-host-home" / ".kova" / "kova-agent")
-    container_install = _state(installs, "ffff", tmp_path / "opt-hermes")
+    container_install = _state(installs, "ffff", tmp_path / "opt-kova")
 
     assert orphan_install_states(installs) == [gone_scratch, gone_worktree]
     monkeypatch.setattr(pm.environments, "installs_root", lambda: installs)

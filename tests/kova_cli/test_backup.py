@@ -1,4 +1,4 @@
-"""Tests for hermes backup and import commands."""
+"""Tests for kova backup and import commands."""
 
 import json
 import os
@@ -41,10 +41,10 @@ def _advance_backup_clock(seconds: float = 1.1) -> None:
 
     import kova_cli.backup as _backup
 
-    shim = getattr(_backup.datetime, "_hermes_test_shim", None)
+    shim = getattr(_backup.datetime, "_kova_test_shim", None)
     if shim is None:
         class _ShimDatetime(_dt.datetime):
-            _hermes_test_shim = True
+            _kova_test_shim = True
             _offset = _dt.timedelta(0)
 
             @classmethod
@@ -58,7 +58,7 @@ def _advance_backup_clock(seconds: float = 1.1) -> None:
     shim._offset += _dt.timedelta(seconds=seconds)
 
 
-def _make_hermes_tree(root: Path) -> None:
+def _make_kova_tree(root: Path) -> None:
     """Create a realistic ~/.kova directory structure for testing."""
     (root / "config.yaml").write_text("model:\n  provider: openrouter\n")
     (root / ".env").write_text("OPENROUTER_API_KEY=sk-test-123\n")
@@ -225,7 +225,7 @@ class TestIterBackupFiles:
 
         root = tmp_path / ".kova"
         root.mkdir()
-        _make_hermes_tree(root)
+        _make_kova_tree(root)
 
         # The case the old automatic walk got wrong: a nested dir named
         # kova-agent holding real skill content.
@@ -299,7 +299,7 @@ class TestIterBackupFiles:
 
         root = tmp_path / ".kova"
         root.mkdir()
-        _make_hermes_tree(root)
+        _make_kova_tree(root)
         (root / "models").mkdir()
         (root / "models" / "big.gguf").write_bytes(b"\x00")
 
@@ -338,7 +338,7 @@ class TestBackup:
         small tmpfs there silently drops large DBs from the backup (#35376)."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        _make_hermes_tree(kova_home)
+        _make_kova_tree(kova_home)
 
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -369,7 +369,7 @@ class TestBackup:
         also stage SQLite snapshots beside its output zip, not in /tmp."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        _make_hermes_tree(kova_home)
+        _make_kova_tree(kova_home)
 
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -401,7 +401,7 @@ class TestBackup:
         """Backup must not dereference symlinks and leak files outside KOVA_HOME."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        _make_hermes_tree(kova_home)
+        _make_kova_tree(kova_home)
         outside = tmp_path / "outside-secret.txt"
         outside.write_text("outside secret\n")
         _symlink_file_or_skip(kova_home / "skills" / "outside-link.txt", outside)
@@ -426,7 +426,7 @@ class TestBackup:
         nesting them multiplies the archive by (1 + retained snapshots)."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        _make_hermes_tree(kova_home)
+        _make_kova_tree(kova_home)
         with sqlite3.connect(kova_home / "state.db") as conn:
             conn.execute("CREATE TABLE sessions (id TEXT PRIMARY KEY)")
             conn.execute("INSERT INTO sessions VALUES ('s1')")
@@ -843,7 +843,7 @@ class TestRoundTrip:
         # Source
         src_home = tmp_path / "source" / ".kova"
         src_home.mkdir(parents=True)
-        _make_hermes_tree(src_home)
+        _make_kova_tree(src_home)
 
         monkeypatch.setenv("KOVA_HOME", str(src_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "source")
@@ -948,7 +948,7 @@ class TestBackupEdgeCases:
         cron/systemd timer must never see a partial archive as success (#101096)."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        _make_hermes_tree(kova_home)
+        _make_kova_tree(kova_home)
         unreadable = kova_home / "skills" / "locked.md"
         unreadable.write_text("secret\n")
         unreadable.chmod(0)
@@ -975,7 +975,7 @@ class TestBackupEdgeCases:
         assert run_backup(Namespace(output=str(tmp_path / "out4.zip"))) is True
 
     def test_empty_kova_home(self, tmp_path, monkeypatch):
-        """Backup handles empty hermes home (no files to back up)."""
+        """Backup handles empty kova home (no files to back up)."""
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
         # Only excluded dirs, no actual files
@@ -1095,7 +1095,7 @@ def _break_member(monkeypatch, failing_member: str) -> None:
 
 
 class TestImportAtomicWrites:
-    """`hermes import` must never leave a user's file truncated.
+    """`kova import` must never leave a user's file truncated.
 
     The pre-fix code did ``open(target, "wb")`` then ``dst.write(src.read())``,
     which zeroes the existing file *before* any replacement bytes exist. These
@@ -1247,7 +1247,7 @@ class TestImportAtomicWrites:
         """A root-run import must not re-own the user's files to root.
 
         ``os.replace`` swaps in a temp file owned by the *writing* user, so a
-        ``sudo hermes import`` onto a user-owned (or Docker/NAS volume-owned)
+        ``sudo kova import`` onto a user-owned (or Docker/NAS volume-owned)
         KOVA_HOME would hand every restored file to root. The uid/gid is
         forced so the assertion does not require running as root.
         """
@@ -1322,7 +1322,7 @@ class TestImportAtomicWrites:
         file whose contents now come from the zip.  Whoever produced the
         archive would then get whatever that file executes as.  The other
         ``utils`` writers can preserve the full mode safely because they
-        re-serialize content this process produced; ``hermes import`` is the
+        re-serialize content this process produced; ``kova import`` is the
         one write path where the bytes are untrusted, and it is also the path
         that documents ``sudo`` use for owner preservation.
 
@@ -1650,7 +1650,7 @@ class TestQuickSnapshot:
 
 
 # ---------------------------------------------------------------------------
-# Pre-update backup (hermes update safety net)
+# Pre-update backup (kova update safety net)
 # ---------------------------------------------------------------------------
 
     # -- security: path traversal regression coverage -----------------------
@@ -1877,7 +1877,7 @@ class TestFailedZipMemberRecovery:
 
 
 class TestPreUpdateBackup:
-    """Tests for create_pre_update_backup — the auto-backup ``hermes update``
+    """Tests for create_pre_update_backup — the auto-backup ``kova update``
     runs before touching anything."""
 
 
@@ -1885,13 +1885,13 @@ class TestPreUpdateBackup:
     def kova_home(self, tmp_path):
         root = tmp_path / ".kova"
         root.mkdir()
-        _make_hermes_tree(root)
+        _make_kova_tree(root)
         return root
 
 
     def test_backup_contents_match_full_backup(self, kova_home):
         """Pre-update backup should include the same user data that
-        ``hermes backup`` would, and should exclude the same directories."""
+        ``kova backup`` would, and should exclude the same directories."""
         from kova_cli.backup import create_pre_update_backup
         out = create_pre_update_backup(kova_home=kova_home)
         assert out is not None
@@ -1911,7 +1911,7 @@ class TestPreUpdateBackup:
         assert "gateway.pid" not in names
 
     def test_pre_update_zip_does_not_nest_the_pre_update_snapshot(self, kova_home):
-        """``hermes update`` in ``full`` mode takes the quick snapshot *before*
+        """``kova update`` in ``full`` mode takes the quick snapshot *before*
         the full zip, so the zip walk sees the snapshot it just made. It must
         skip it — otherwise every pre-update zip ships state.db twice."""
         from kova_cli.backup import (
@@ -1985,7 +1985,7 @@ class TestRunPreUpdateBackup:
     def kova_home(self, tmp_path, monkeypatch):
         root = tmp_path / ".kova"
         root.mkdir()
-        _make_hermes_tree(root)
+        _make_kova_tree(root)
         # Point KOVA_HOME at the temp dir so config + backup paths resolve here
         monkeypatch.setenv("KOVA_HOME", str(root))
         # Make Path.home() point at tmp_path for anything that uses it
@@ -2041,24 +2041,24 @@ class TestRunPreUpdateBackup:
 
 
 # ---------------------------------------------------------------------------
-# Pre-migration backup (safety net for agent imports, e.g. hermes import-agent openclaw)
+# Pre-migration backup (safety net for agent imports, e.g. kova import-agent openclaw)
 # ---------------------------------------------------------------------------
 
 class TestPreMigrationBackup:
     """Tests for create_pre_migration_backup — the auto-backup
-    ``hermes import-agent openclaw`` runs before mutating ~/.kova/."""
+    ``kova import-agent openclaw`` runs before mutating ~/.kova/."""
 
     @pytest.fixture
     def kova_home(self, tmp_path):
         root = tmp_path / ".kova"
         root.mkdir()
-        _make_hermes_tree(root)
+        _make_kova_tree(root)
         return root
 
 
-    def test_restorable_with_hermes_import(self, kova_home, tmp_path):
+    def test_restorable_with_kova_import(self, kova_home, tmp_path):
         """The zip produced by pre-migration backup must be a valid Kova
-        backup — `hermes import` should accept it."""
+        backup — `kova import` should accept it."""
         from kova_cli.backup import create_pre_migration_backup, _validate_backup_zip
         out = create_pre_migration_backup(kova_home=kova_home)
         assert out is not None
@@ -2089,7 +2089,7 @@ class TestPreMigrationBackup:
 # ---------------------------------------------------------------------------
 
 class TestRestoreCronJobsIfEmptied:
-    """`hermes update` config migration can leave cron/jobs.json valid-but-empty,
+    """`kova update` config migration can leave cron/jobs.json valid-but-empty,
     silently dropping every scheduled job. `restore_cron_jobs_if_emptied` is the
     post-migration safety net that restores from the pre-update snapshot."""
 
@@ -2544,7 +2544,7 @@ class TestMemoryProviderExternalPaths:
 
 
 class TestImportHonorsKovaHomeOverride:
-    """`hermes import` must restore into the home the command runs under.
+    """`kova import` must restore into the home the command runs under.
 
     Resolving the target through get_default_kova_root() maps a profile
     home (<root>/profiles/<name>) back to <root>: the import then overwrites
@@ -2568,7 +2568,7 @@ class TestImportHonorsKovaHomeOverride:
     def test_import_targets_named_profile_home(self, tmp_path, monkeypatch):
         """KOVA_HOME=<root>/profiles/<name> must restore INTO the profile,
         not into <root> (which would clobber the live root config)."""
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         profile = root / "profiles" / "coder"
         profile.mkdir(parents=True)
         # Live root config that must survive untouched.
@@ -2701,7 +2701,7 @@ def _write_session_db(path: Path, sessions: int, messages_per_session: int) -> N
 
 
 class TestImportLiveSessionDatabase:
-    """`hermes import` must not swap the inode of a database Kova holds open.
+    """`kova import` must not swap the inode of a database Kova holds open.
 
     Publishing state.db with a rename leaves any live gateway/dashboard/WebUI
     connection reading and writing the unlinked inode, so its sessions vanish

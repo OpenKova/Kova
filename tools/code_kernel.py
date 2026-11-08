@@ -137,7 +137,7 @@ def _start_parent_process_watchdog():
         if result == 0x00000000:  # WAIT_OBJECT_0: the parent exited
             os._exit(0)
 
-    threading.Thread(target=_wait, name="hermes-parent-watchdog", daemon=True).start()
+    threading.Thread(target=_wait, name="kova-parent-watchdog", daemon=True).start()
 
 
 _start_parent_process_watchdog()
@@ -532,7 +532,7 @@ def _bind_rpc_socket(kernel: SessionKernel) -> str:
     else:
         from kova_constants import socket_safe_tmpdir
         sock_tmpdir = socket_safe_tmpdir()
-        rpc_endpoint = kernel.sock_path = os.path.join(sock_tmpdir, f"hermes_rpc_{uuid.uuid4().hex}.sock")
+        rpc_endpoint = kernel.sock_path = os.path.join(sock_tmpdir, f"kova_rpc_{uuid.uuid4().hex}.sock")
         server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server_sock.bind(kernel.sock_path)
         os.chmod(kernel.sock_path, 0o600)
@@ -573,13 +573,13 @@ def _parent_process_handle(child_env: dict[str, str]):
 def _spawn(kernel: SessionKernel, *, child_python: str, child_cwd: str,
            sandbox_tools: frozenset, max_tool_calls: int, task_id: str = "") -> None:
     from tools.code_execution_env import _build_child_env
-    from tools.code_execution_tool import generate_hermes_tools_module
-    kernel.tmpdir = tempfile.mkdtemp(prefix="hermes_kernel_")
+    from tools.code_execution_tool import generate_kova_tools_module
+    kernel.tmpdir = tempfile.mkdtemp(prefix="kova_kernel_")
     kernel.rpc_token = secrets.token_urlsafe(32)
-    kernel.sentinel = "@@HERMES-KERNEL-" + secrets.token_urlsafe(16) + "@@"
+    kernel.sentinel = "@@KOVA-KERNEL-" + secrets.token_urlsafe(16) + "@@"
     rpc_endpoint = _bind_rpc_socket(kernel)
-    for name, src in (("hermes_tools.py", generate_hermes_tools_module(list(sandbox_tools))),
-                      ("hermes_kernel_runner.py", KERNEL_RUNNER_SOURCE)):
+    for name, src in (("kova_tools.py", generate_kova_tools_module(list(sandbox_tools))),
+                      ("kova_kernel_runner.py", KERNEL_RUNNER_SOURCE)):
         Path(kernel.tmpdir, name).write_text(src, encoding="utf-8")
     child_env = _build_child_env(rpc_endpoint=rpc_endpoint, rpc_token=kernel.rpc_token,
                                  tmpdir=kernel.tmpdir, child_python=child_python)
@@ -596,7 +596,7 @@ def _spawn(kernel: SessionKernel, *, child_python: str, child_cwd: str,
     from kova_cli.process_identity import spawn_owned
     try:
         kernel.proc = spawn_owned(
-            [child_python, os.path.join(kernel.tmpdir, "hermes_kernel_runner.py")], purpose="code-kernel",
+            [child_python, os.path.join(kernel.tmpdir, "kova_kernel_runner.py")], purpose="code-kernel",
             # Strict mode passes an empty cwd: the kernel's staging dir plays the per-call tmpdir's role.
             cwd=child_cwd or kernel.tmpdir, env=child_env,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -663,14 +663,14 @@ _REAPER_STARTED = False
 
 
 def _sweep_stale_staging_dirs(now: Optional[float] = None) -> int:
-    """Remove ``hermes_kernel_*`` staging dirs untouched for over a week. A live host
+    """Remove ``kova_kernel_*`` staging dirs untouched for over a week. A live host
     rmtrees each dir within one idle timeout of the kernel's last use, so a week-old
     dir belongs to a host that died before its cleanup could run; younger dirs are left
     alone because a concurrently running host's live kernel may own one. rmtree never
     follows symlinks, so a planted link is rejected rather than chased."""
     now = time.time() if now is None else now
     removed = 0
-    for path in glob.glob(os.path.join(tempfile.gettempdir(), "hermes_kernel_*")):
+    for path in glob.glob(os.path.join(tempfile.gettempdir(), "kova_kernel_*")):
         try:
             if now - os.path.getmtime(path) > _STALE_STAGING_DIR_AGE:
                 # No ignore_errors: a rejected symlink (or a half-removed dir) must not
@@ -700,7 +700,7 @@ def _ensure_background_reaper() -> None:
             return
         _REAPER_STARTED = True
     threading.Thread(target=_background_reaper, daemon=True,
-                     name="hermes-kernel-idle-reaper").start()
+                     name="kova-kernel-idle-reaper").start()
 
 
 def _background_reaper() -> None:

@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 
 from tools.registry import registry, tool_error
-from tools.xai_http import DEFAULT_XAI_BASE_URL, hermes_xai_user_agent, resolve_xai_http_credentials
+from tools.xai_http import DEFAULT_XAI_BASE_URL, kova_xai_user_agent, resolve_xai_http_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -246,7 +246,7 @@ def x_search_tool(
             payload["reasoning"] = {"effort": reasoning_effort}
         headers = {
             "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
-            "User-Agent": hermes_xai_user_agent(),
+            "User-Agent": kova_xai_user_agent(),
         }
         data = _post_with_retries(f"{base_url}/responses", headers, payload).json()
         citations = list(data.get("citations") or [])

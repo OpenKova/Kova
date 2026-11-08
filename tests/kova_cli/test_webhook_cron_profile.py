@@ -96,13 +96,13 @@ def test_bare_route_preserves_custom_caller_home(homes, monkeypatch):
     assert not (root / "webhook_subscriptions.json").exists()
 
 
-def _hermes(monkeypatch, *argv):
-    """Run the real ``hermes`` entry point; return the process exit code."""
+def _kova(monkeypatch, *argv):
+    """Run the real ``kova`` entry point; return the process exit code."""
     import sys
-    from kova_cli import main as hermes_main
-    monkeypatch.setattr(sys, "argv", ["hermes", *argv])
+    from kova_cli import main as kova_main
+    monkeypatch.setattr(sys, "argv", ["kova", *argv])
     try:
-        hermes_main.main()
+        kova_main.main()
     except SystemExit as exc:
         return exc.code or 0
     return 0
@@ -111,12 +111,12 @@ def _hermes(monkeypatch, *argv):
 def test_cli_refusal_exits_nonzero_and_writes_nothing(homes, monkeypatch):
     """#139332: a refused subscribe exited 0, so a script could not tell no route was created."""
     root, _ = homes
-    assert _hermes(monkeypatch, "webhook", "subscribe", "route", "--route-profile", "coder",
+    assert _kova(monkeypatch, "webhook", "subscribe", "route", "--route-profile", "coder",
                    "--cron-job", "no-such-job") == 1
     assert not (root / "webhook_subscriptions.json").exists()
 
 
 def test_cli_routed_cron_subscribe_exits_zero(homes, monkeypatch):
-    assert _hermes(monkeypatch, "webhook", "subscribe", "route", "--route-profile", "coder",
+    assert _kova(monkeypatch, "webhook", "subscribe", "route", "--route-profile", "coder",
                    "--cron-job", "coder-job") == 0
     assert webhook._load_subscriptions()["route"]["cron_job"] == "coder-job"

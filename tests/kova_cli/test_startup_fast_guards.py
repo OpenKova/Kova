@@ -4,7 +4,7 @@ Two invariants, each of which has been broken before:
 
 1. IMPORT WEIGHT: _startup_fast must stay stdlib-only. The whole point of
    the module is to run before main.py's heavy import wall; one careless
-   ``from kova_cli.config import ...`` silently makes `hermes --version`
+   ``from kova_cli.config import ...`` silently makes `kova --version`
    slow again for everyone (the regression would be invisible — everything
    still works, just 40x slower).
 
@@ -236,5 +236,5 @@ def test_termux_chat_shortcut_leaves_subcommands_to_dispatch(monkeypatch, argv):
 
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
     monkeypatch.delenv("KOVA_TERMUX_DISABLE_FAST_CLI", raising=False)
-    monkeypatch.setattr(sys, "argv", ["hermes", *argv])
+    monkeypatch.setattr(sys, "argv", ["kova", *argv])
     assert main._try_termux_fast_cli_launch() is False

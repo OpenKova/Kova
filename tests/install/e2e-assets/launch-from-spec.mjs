@@ -3,7 +3,7 @@
  * Launch the Kova desktop app from a captured launch spec and click the
  * real update flow: Settings -> About -> "Update now".
  *
- * The spec is written by launch-capture/sitecustomize.py at `hermes
+ * The spec is written by launch-capture/sitecustomize.py at `kova
  * desktop`'s own spawn site, so argv, cwd, and the fully-constructed env
  * are the product's own -- this launcher only translates the npm-exec
  * source shape into a direct electron binary path (Playwright needs a

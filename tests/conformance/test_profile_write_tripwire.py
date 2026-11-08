@@ -56,7 +56,7 @@ class ProfileTripwire:
     any created / modified / deleted entry.
 
     Attributes:
-        root:     the default profile's home (``<tmp>/hermes``).
+        root:     the default profile's home (``<tmp>/kova``).
         profile:  the active profile home (``<root>/profiles/testprof``).
     """
 
@@ -115,7 +115,7 @@ def profile_tripwire(tmp_path, monkeypatch):
 
     Sets up:
 
-    1. A temp hermes root acting as the *default* profile, seeded with the
+    1. A temp kova root acting as the *default* profile, seeded with the
        files a real install has (config.yaml, memories/, cron/jobs.json) so
        both "new file created" and "existing file modified" leaks are
        detectable.
@@ -131,7 +131,7 @@ def profile_tripwire(tmp_path, monkeypatch):
     Yields a :class:`ProfileTripwire`; teardown re-asserts the invariant so
     a surface test that forgets the explicit check still trips the wire.
     """
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     profile = root / "profiles" / "testprof"
     profile.mkdir(parents=True)
 

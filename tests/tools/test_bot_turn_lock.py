@@ -170,7 +170,7 @@ def test_peer_stdin_delivery_skips_local_lock(root, tmp_path, monkeypatch):
 
         monkeypatch.setattr(bot_mode_dm.subprocess, "run", _fake_run)
         rc = bot_mode_dm._run_delivery(
-            ["hermes", "peer", "dm", "spark/ops"], str(dm), stdin_file=True
+            ["kova", "peer", "dm", "spark/ops"], str(dm), stdin_file=True
         )
         assert rc == 0  # did not contend with the held 'ops' lock
     finally:

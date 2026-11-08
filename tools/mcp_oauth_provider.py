@@ -74,7 +74,7 @@ class _RefreshCompletedByPeer(Exception):
 
 class KovaProviderMixin:
     """Token-endpoint fixes layered over the SDK's ``OAuthClientProvider`` (must precede it in
-    the MRO; subclasses set ``_hermes_logger`` to keep their own logger name).
+    the MRO; subclasses set ``_kova_logger`` to keep their own logger name).
 
     - Supabase-style dynamic registration returns a ``client_secret`` but omits
       ``token_endpoint_auth_method``; the SDK then treats the client as public and the token
@@ -85,19 +85,19 @@ class KovaProviderMixin:
       authorization servers (#115329).
     - Any 2xx token/refresh response is accepted; token bodies never leak into errors/logs."""
 
-    _hermes_logger: logging.Logger = logger
+    _kova_logger: logging.Logger = logger
 
     def __init__(self, *args: Any, token_user_agent: str | None = None, oauth_flow: str = "browser", **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self._hermes_oauth_flow = oauth_flow
+        self._kova_oauth_flow = oauth_flow
         # oauth.user_agent — stamped onto token-endpoint requests only; some authorization servers/WAFs
         # reject httpx's default (#75576).
-        self._hermes_token_user_agent = token_user_agent
+        self._kova_token_user_agent = token_user_agent
 
     async def _perform_authorization(self):
         info = self.context.client_info
         grants = getattr(info, "grant_types", None) or []
-        if (getattr(self, "_hermes_oauth_flow", "browser") == "device"
+        if (getattr(self, "_kova_oauth_flow", "browser") == "device"
                 or ("urn:ietf:params:oauth:grant-type:device_code" in grants and "authorization_code" not in grants)):
             from tools.mcp_oauth import OAuthNonInteractiveError
             raise OAuthNonInteractiveError(
@@ -120,7 +120,7 @@ class KovaProviderMixin:
         async def _fill_iss():
             result = await inner()
             if getattr(result, "iss", None) is None and getattr(result, "code", None):
-                self._hermes_logger.warning(
+                self._kova_logger.warning(
                     "MCP OAuth: %s omitted the iss parameter it advertises; accepting the redirect for that issuer only", issuer)
                 result = result.model_copy(update={"iss": str(self.context.oauth_metadata.issuer)})
             return result
@@ -136,7 +136,7 @@ class KovaProviderMixin:
         appended here — never overwriting values already present in the query. Wraps once: every
         authorization runs through here, and the wrapper reads the issuer at call time."""
         inner = self.context.redirect_handler
-        if inner is None or getattr(inner, "_hermes_offline_access", False):
+        if inner is None or getattr(inner, "_kova_offline_access", False):
             return
         from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -151,10 +151,10 @@ class KovaProviderMixin:
             query.setdefault("prompt", "consent")
             await inner(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)))
 
-        _with_offline_access._hermes_offline_access = True  # type: ignore[attr-defined]
+        _with_offline_access._kova_offline_access = True  # type: ignore[attr-defined]
         self.context.redirect_handler = _with_offline_access
 
-    async def _hermes_accept_origin_issued_metadata(self, response):
+    async def _kova_accept_origin_issued_metadata(self, response):
         """Accept an authorization server's metadata document whose ``issuer`` differs from the advertised
         identifier only in a shape the SDK's exact-string check (RFC 8414 §3.3) refuses: a path-scoped
         server naming its origin (see ``metadata_issued_by_origin``, Strava #116233), or a root issuer
@@ -193,7 +193,7 @@ class KovaProviderMixin:
             relation = "differs only by the root trailing slash from"
         else:
             return response
-        self._hermes_logger.info("MCP OAuth: accepting authorization-server metadata from %s whose issuer %s %s "
+        self._kova_logger.info("MCP OAuth: accepting authorization-server metadata from %s whose issuer %s %s "
                                  "the advertised server %s", response.url, issuer, relation, advertised)
         self.context.oauth_metadata = metadata
         return type(response)(204, request=response.request)
@@ -205,7 +205,7 @@ class KovaProviderMixin:
         — and travel through ``client.send()``, which never merges the client's default headers, so
         without a stamp the POST leaves with NO ``User-Agent`` at all and a WAF-fronted authorization
         server answers 403 (#115329)."""
-        ua = getattr(self, "_hermes_token_user_agent", None)  # tests build via __new__
+        ua = getattr(self, "_kova_token_user_agent", None)  # tests build via __new__
         if ua:
             request.headers["User-Agent"] = ua
         return stamp_default_user_agent(request)
@@ -227,8 +227,8 @@ class KovaProviderMixin:
         return self._prepare_token_request(await super()._exchange_token_authorization_code(*args, **kwargs))
 
     # Locked descriptor while this provider owns the refresh fence; cleared by
-    # _hermes_release_refresh_fence. Never shared across instances.
-    _hermes_fence: int | None = None
+    # _kova_release_refresh_fence. Never shared across instances.
+    _kova_fence: int | None = None
 
     async def async_auth_flow(self, request):
         """Guarantee fence release even if the auth generator is abandoned.
@@ -287,9 +287,9 @@ class KovaProviderMixin:
                         if failure:
                             discovery_failures.append(failure)
                         elif getattr(sent, "status_code", None) == 200:
-                            sent = await self._hermes_accept_origin_issued_metadata(sent)
+                            sent = await self._kova_accept_origin_issued_metadata(sent)
             finally:
-                await self._hermes_release_refresh_fence()
+                await self._kova_release_refresh_fence()
 
     async def _refresh_token(self):
         """Take the refresh fence, then build the request from the token we own.
@@ -307,7 +307,7 @@ class KovaProviderMixin:
         refreshes inside one process.
         """
         self._coerce_client_secret_post()
-        await self._hermes_acquire_refresh_fence()
+        await self._kova_acquire_refresh_fence()
         try:
             # Re-read under the fence: a peer may have rotated while we waited
             # for it, in which case the token we were about to POST is dead.
@@ -315,14 +315,14 @@ class KovaProviderMixin:
             # the fence before us won this generation; its value is the only one
             # the provider will still accept, so install it even when its access
             # token has already expired (the POST we build needs the new grant).
-            candidate = await self._hermes_rotated_candidate()
+            candidate = await self._kova_rotated_candidate()
             if candidate is not None:
-                if not self._hermes_install_disk_pair(candidate):
+                if not self._kova_install_disk_pair(candidate):
                     # Issuer binding stripped the peer's refresh token: nothing
                     # left to POST. Restart the flow so the SDK lands in 401 ->
                     # full authorization instead of raising over a dead grant.
                     raise _RefreshCompletedByPeer
-                if self._hermes_live_ttl() and self.context.is_token_valid():
+                if self._kova_live_ttl() and self.context.is_token_valid():
                     # The peer's access token is live: presenting our copy of the
                     # refresh token would only burn a generation on a single-use
                     # provider. Skip the POST and let the flow restart.
@@ -330,10 +330,10 @@ class KovaProviderMixin:
             return self._prepare_token_request(await super()._refresh_token())
         except BaseException:
             # Never hold the fence when no POST will follow.
-            await self._hermes_release_refresh_fence()
+            await self._kova_release_refresh_fence()
             raise
 
-    def _hermes_live_ttl(self) -> bool:
+    def _kova_live_ttl(self) -> bool:
         """True when the installed token is not known to be past due.
 
         Storage clamps a past-due token to ``expires_in == 0`` on read (see
@@ -348,7 +348,7 @@ class KovaProviderMixin:
         exp = getattr(self.context.current_tokens, "expires_in", None)
         return exp is None or int(exp) > 0
 
-    async def _hermes_acquire_refresh_fence(self) -> None:
+    async def _kova_acquire_refresh_fence(self) -> None:
         """Enter the fence, or let RefreshFenceTimeout abort this attempt.
 
         Fails closed on purpose: a refresh we are not certain we own must not
@@ -357,22 +357,22 @@ class KovaProviderMixin:
         """
         from tools.mcp_oauth import acquire_refresh_fence
 
-        await self._hermes_release_refresh_fence()
+        await self._kova_release_refresh_fence()
         storage = self.context.storage
         tokens_path = getattr(storage, "_tokens_path", None)
         if tokens_path is None:  # pragma: no cover - non-Kova storage
             return
-        self._hermes_fence = await acquire_refresh_fence(tokens_path())
+        self._kova_fence = await acquire_refresh_fence(tokens_path())
 
-    async def _hermes_release_refresh_fence(self) -> None:
+    async def _kova_release_refresh_fence(self) -> None:
         """Release the fence if held. Idempotent and never raises."""
         from tools.mcp_oauth import release_refresh_fence
 
-        fd, self._hermes_fence = self._hermes_fence, None
+        fd, self._kova_fence = self._kova_fence, None
         if fd is not None:
             release_refresh_fence(fd)
 
-    async def _hermes_rotated_candidate(self):
+    async def _kova_rotated_candidate(self):
         """The on-disk pair, if a peer rotated it past the one we hold.
 
         A candidate must carry a refresh token different from ours (same
@@ -393,7 +393,7 @@ class KovaProviderMixin:
             return None
         return stored
 
-    def _hermes_install_disk_pair(self, tokens) -> bool:
+    def _kova_install_disk_pair(self, tokens) -> bool:
         """Publish a disk pair to the context and re-run issuer binding on it.
 
         Returns False when the enforcer strips the refresh token (the pair was
@@ -450,20 +450,20 @@ class KovaProviderMixin:
         fenced section, whatever the outcome.
         """
         try:
-            return await self._hermes_handle_refresh_response(response)
+            return await self._kova_handle_refresh_response(response)
         finally:
-            await self._hermes_release_refresh_fence()
+            await self._kova_release_refresh_fence()
 
-    async def _hermes_handle_refresh_response(self, response) -> bool:
+    async def _kova_handle_refresh_response(self, response) -> bool:
         if not (200 <= response.status_code < 300):
-            self._hermes_logger.warning("Token refresh failed: %s", response.status_code)
+            self._kova_logger.warning("Token refresh failed: %s", response.status_code)
             # A writer outside the fence (interactive `kova mcp login`, or a
             # pre-fence Kova sharing this KOVA_HOME) may have rotated the
             # grant and persisted the replacement. Providers issuing single-use
             # refresh tokens reject our stale copy with a 400. Re-read disk
             # before destroying the session.
-            if await self._hermes_reload_tokens_after_refresh_failure():
-                self._hermes_logger.info(
+            if await self._kova_reload_tokens_after_refresh_failure():
+                self._kova_logger.info(
                     "Recovered a peer-rotated refresh token instead of clearing the session"
                 )
                 return True
@@ -475,7 +475,7 @@ class KovaProviderMixin:
         try:
             token_response = OAuthToken.model_validate_json(await response.aread())
         except (HTTPError, ValidationError):
-            self._hermes_logger.warning("Invalid refresh response: %s", response.status_code)
+            self._kova_logger.warning("Invalid refresh response: %s", response.status_code)
             self.context.clear_tokens()
             return False
         # RFC 6749 §6: a refresh response may omit refresh_token (AS does not rotate) and scope
@@ -491,7 +491,7 @@ class KovaProviderMixin:
         await self._store_tokens(token_response)
         return True
 
-    async def _hermes_reload_tokens_after_refresh_failure(self) -> bool:
+    async def _kova_reload_tokens_after_refresh_failure(self) -> bool:
         """Re-read tokens from disk after a rejected refresh.
 
         Returns True only when disk holds a pair that is BOTH different from
@@ -504,7 +504,7 @@ class KovaProviderMixin:
         pair), so the caller still clears state and surfaces the reauth
         prompt.
         """
-        candidate = await self._hermes_rotated_candidate()
+        candidate = await self._kova_rotated_candidate()
         if candidate is None:
             return False
         # Publish, then restore on rejection. is_token_valid() reads the
@@ -513,8 +513,8 @@ class KovaProviderMixin:
         # exactly as it found it.
         previous_tokens = self.context.current_tokens
         if (
-            self._hermes_install_disk_pair(candidate)
-            and self._hermes_live_ttl()
+            self._kova_install_disk_pair(candidate)
+            and self._kova_live_ttl()
             and self.context.is_token_valid()
         ):
             return True

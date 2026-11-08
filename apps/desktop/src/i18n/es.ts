@@ -1751,7 +1751,7 @@ export const esOverrides = {
       cloudAgentProvisioning: 'Preparando…',
       cloudStatusLabel: status => `Estado: ${status}`,
       remoteUrlTitle: 'URL remota',
-      remoteUrlDesc: 'URL base del backend del dashboard remoto. Se admiten prefijos de ruta, por ejemplo /hermes.',
+      remoteUrlDesc: 'URL base del backend del dashboard remoto. Se admiten prefijos de ruta, por ejemplo /kova.',
       probing: 'Comprobando cómo se autentica este gateway…',
       probeError:
         'Kova no puede llegar a esa dirección. Comprueba la URL y que el otro equipo esté ejecutando Kova; las opciones de inicio de sesión aparecen cuando responde.',
@@ -2459,7 +2459,7 @@ export const esOverrides = {
     unlockedHint: 'Bloquéalo para que el agente no pueda cambiar este skill. Tú puedes seguir editándolo.',
     archive: 'Archivar',
     skillArchivedTitle: 'Skill archivado',
-    skillArchivedMessage: 'Puedes restaurarlo con hermes curator restore.',
+    skillArchivedMessage: 'Puedes restaurarlo con kova curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Plugins del agente',
@@ -2500,7 +2500,7 @@ export const esOverrides = {
       serverStates: {
         connected: 'conectado',
         app_not_running: 'la app no se está ejecutando',
-        hermes_not_connected: 'falta la conexión MCP',
+        kova_not_connected: 'falta la conexión MCP',
         endpoint_unavailable: 'endpoint no disponible',
         no_interactive_session: 'sin sesión interactiva',
         version_too_old: 'versión demasiado antigua',
@@ -2809,7 +2809,7 @@ export const esOverrides = {
     noSessions: 'Aún no hay sesiones.',
     gatewayRunning: 'Gateway de mensajería en ejecución',
     gatewayStopped: 'Gateway de mensajería detenido',
-    hermesActiveSessions: (version, count) => `Kova ${version} · Sesiones activas ${count}`,
+    kovaActiveSessions: (version, count) => `Kova ${version} · Sesiones activas ${count}`,
     restartGateway: 'Reiniciar gateway',
     openBrowser: 'Alternar navegador',
     toggleBrowser: 'Alternar navegador',
@@ -3130,7 +3130,7 @@ export const esOverrides = {
       },
       MATRIX_USER_ID: {
         label: 'ID de usuario del bot',
-        placeholder: '@hermes:example.org'
+        placeholder: '@kova:example.org'
       },
       MATRIX_ALLOWED_USERS: {
         label: 'IDs de usuarios de Matrix permitidos',
@@ -3244,7 +3244,7 @@ export const esOverrides = {
     failedImport: 'No se pudo importar el perfil',
     failedExport: 'No se pudo exportar el perfil',
     exportNeedsHost: name =>
-      `El navegador no puede guardar un archivo de perfil. En el host de Kova, ejecuta: hermes profile export ${name}`,
+      `El navegador no puede guardar un archivo de perfil. En el host de Kova, ejecuta: kova profile export ${name}`,
     allProfiles: 'Todos los perfiles',
     showAllProfiles: 'Mostrar todos los perfiles',
     notServedHere: 'No se ofrece aquí',
@@ -3280,7 +3280,7 @@ export const esOverrides = {
       description:
         'Las sesiones de este perfil se ejecutarán en el Kova remoto que indiques, en lugar de en este equipo.',
       urlLabel: 'Dirección remota',
-      urlPlaceholder: 'https://hermes.example.com',
+      urlPlaceholder: 'https://kova.example.com',
       urlInvalid: 'Introduce una dirección completa que empiece por http:// o https://',
       tokenLabel: 'Token de acceso',
       tokenPlaceholder: 'Pega el token de sesión remota',
@@ -3812,7 +3812,7 @@ export const esOverrides = {
       '/resume': 'Reanudar una sesión guardada',
       '/details': 'controlar el nivel de detalle de la transcripción',
       '/copy': 'copiar selección o último mensaje del asistente',
-      '/quit': 'salir de hermes',
+      '/quit': 'salir de kova',
       '/start': 'Confirmar los pings de inicio de la plataforma sin responder',
       '/new': 'Iniciar un chat nuevo de escritorio',
       '/topic': 'Activar o inspeccionar las sesiones por tema de los MD de Telegram',
@@ -4159,9 +4159,9 @@ export const esOverrides = {
     versionDetailsDistributionDesktopMsix: 'Aplicación de escritorio (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Aplicación de escritorio (instalador)',
     versionDetailsDistributionSourceInstaller: 'Código fuente (script de instalación)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Código fuente (script de instalación) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Código fuente (script de instalación) + kova desktop',
     versionDetailsDistributionSource: 'Código fuente',
-    versionDetailsDistributionSourceDesktop: 'Código fuente + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Código fuente + kova desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Entorno de ejecución',
     versionDetailsRuntimeEmbedded: 'Entorno de ejecución integrado',
@@ -4324,7 +4324,7 @@ export const esOverrides = {
       'Introduce la URL de tu gateway. Kova Desktop detectará si necesita un token o iniciar sesión en el navegador.',
     remoteUrlTitle: 'URL del gateway',
     remoteUrlDesc: 'Usa la URL base del gateway de Kova e incluye https:// si es remoto.',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
+    remoteUrlPlaceholder: 'https://gateway.example.com/kova',
     probing: 'Detectando la autenticación del gateway…',
     probeError:
       'Kova no puede llegar a esa dirección. Comprueba la URL y que el otro equipo esté ejecutando Kova; las opciones de inicio de sesión aparecen cuando responde.',

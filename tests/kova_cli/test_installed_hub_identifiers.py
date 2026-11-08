@@ -3,7 +3,7 @@
 they install; the dashboard looks a hub hit up by its id and, for ClawHub, its card id.
 
 ClawHub records ``@owner/slug`` in the lock, a catalog card installs ``clawhub/<slug>``,
-and the hermes-index / hub search list the bare slug."""
+and the kova-index / hub search list the bare slug."""
 
 import asyncio
 

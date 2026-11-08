@@ -109,7 +109,7 @@ def _runtime_record_path() -> Path:
 
 
 def _legacy_runtime_record_path() -> Path:
-    """Where earlier releases kept the record: ``<hermes-home>/runtime/``."""
+    """Where earlier releases kept the record: ``<kova-home>/runtime/``."""
     path = _runtime_record_path()
     return path.parent / "runtime" / path.name
 
@@ -1643,7 +1643,7 @@ def _standalone_token_from_record(port: int) -> tuple[Optional[str], int, str]:
                       " — the gateway appears to be down.")
     return None, port, (
         "Photon standalone send requires a running sidecar. Start the Kova gateway (which spawns "
-        f"the sidecar and records its address in <hermes-home>/{_RUNTIME_RECORD_NAME}), "
+        f"the sidecar and records its address in <kova-home>/{_RUNTIME_RECORD_NAME}), "
         "or set PHOTON_SIDECAR_TOKEN in this process's environment." + stale_hint)
 
 

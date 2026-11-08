@@ -1,4 +1,4 @@
-# Kova Agent bootstrap: git checkout + venv + hermes command on PATH.
+# Kova Agent bootstrap: git checkout + venv + kova command on PATH.
 # Heavy dependencies (tool binaries, browsers, node) are pm's job after
 # this: `kova pm install`. Stage protocol kept for Kova-Setup:
 #   -Manifest             print the stage list as JSON
@@ -25,8 +25,8 @@ param(
     [string]$Branch = "main",
     [string]$Commit = "",
     [string]$Channel = $(if ($env:KOVA_INSTALL_CHANNEL) { $env:KOVA_INSTALL_CHANNEL } else { "" }),
-    [string]$KovaHome = $(if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\hermes" }),
-    [string]$InstallDir = $(if ($env:KOVA_HOME) { "$env:KOVA_HOME\kova-agent" } else { "$env:LOCALAPPDATA\hermes\kova-agent" }),
+    [string]$KovaHome = $(if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\kova" }),
+    [string]$InstallDir = $(if ($env:KOVA_HOME) { "$env:KOVA_HOME\kova-agent" } else { "$env:LOCALAPPDATA\kova\kova-agent" }),
     [switch]$Manifest,
     [string]$Stage,
     [switch]$ProtocolVersion,
@@ -76,7 +76,7 @@ $script:BoundParams = $PSBoundParameters
 # Under iex, script scope is the caller's session and outlives a run; start
 # each run without the previous run's answer (see Set-LauncherUserPath).
 $script:BinDirOnCallerPath = $null
-$RepoUrl = if ($env:KOVA_REPO_URL) { $env:KOVA_REPO_URL } else { "https://github.com/NousResearch/kova-agent.git" }
+$RepoUrl = if ($env:KOVA_REPO_URL) { $env:KOVA_REPO_URL } else { "https://github.com/OpenKova/Kova.git" }
 
 # --- BEGIN GENERATED: bootstrap pins (scripts/gen-bootstrap-pins.py) ---
 # Derived from pm/lock.json. DO NOT EDIT BY HAND:
@@ -151,7 +151,7 @@ function Write-PathDiag {
     # carries everything these lines say.
     param([string]$Message)
     if ($ShowResolvedPaths) { return }
-    [Console]::Error.WriteLine("[hermes] $Message")
+    [Console]::Error.WriteLine("[kova] $Message")
 }
 
 function Get-LongProfileRoot {
@@ -327,7 +327,7 @@ function Initialize-ResolvedPaths {
         ConvertTo-LongPath $KovaHome
     } else {
         ConvertTo-LongPath $(
-            if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\hermes" }
+            if ($env:KOVA_HOME) { $env:KOVA_HOME } else { "$env:LOCALAPPDATA\kova" }
         )
     }
     $resolvedDir = if ($script:BoundParams.ContainsKey('InstallDir')) {
@@ -532,7 +532,7 @@ function Get-Uv {
         Remove-Item -Path $uvExe -Force
     }
     Log "downloading uv $($script:UvPinVersion) ($target)"
-    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-uv-bootstrap-$PID"
+    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "kova-uv-bootstrap-$PID"
     try {
         New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
         $zipPath = Join-Path $tmpDir "uv.zip"
@@ -619,7 +619,7 @@ function Get-PinnedGit {
         }
     }
     Log "installing git $($script:GitPinVersion) ($target)"
-    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-git-bootstrap-$PID"
+    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "kova-git-bootstrap-$PID"
     # Extract beside the entry, not in %TEMP%: the final step must be a
     # rename on one volume. Created only after the download verifies, so
     # rejected bytes never touch the store.
@@ -837,7 +837,7 @@ function Fail([string]$msg, [string]$Class = "other") {
 
 # One local receipt per full-ladder run, under the profile's shared-metrics dir.
 # Only closed tokens and two timestamps (never the error text, paths or URLs);
-# the installer never sends anything. Kova reports it as hermes.install.run on
+# the installer never sends anything. Kova reports it as kova.install.run on
 # a later start only while shared metrics collection is on, and deletes it
 # unreported when collection is off. Best effort: never fails the install.
 function Write-InstallReceipt([string]$Outcome, [string]$FailedStage, [string]$Class) {
@@ -962,17 +962,17 @@ function Get-LatestStableRelease([string]$Origin) {
     $pattern = '^v(0|[1-9]\d{0,2})\.(0|[1-9]\d*)\.(0|[1-9]\d*)$'  # update_channel.STABLE_TAG_RE
     $tag = ''
     try {
-        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/NousResearch/kova-agent/releases/latest' `
-            -Headers @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'hermes-installer' } -TimeoutSec 20
+        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/OpenKova/Kova/releases/latest' `
+            -Headers @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'kova-installer' } -TimeoutSec 20
         $tag = "$($release.tag_name)"
     } catch { }
     if ($tag -cnotmatch $pattern) {
         try {
-            $request = [Net.HttpWebRequest]::Create('https://github.com/NousResearch/kova-agent/releases/latest')
+            $request = [Net.HttpWebRequest]::Create('https://github.com/OpenKova/Kova/releases/latest')
             $request.Method = 'HEAD'
             $request.AllowAutoRedirect = $false
             $request.Timeout = 20000
-            $request.UserAgent = 'hermes-installer'
+            $request.UserAgent = 'kova-installer'
             $response = $request.GetResponse()
             try { if ("$($response.Headers['Location'])" -match '/releases/tag/([^/]+)$') { $tag = $Matches[1] } }
             finally { $response.Close() }
@@ -994,7 +994,7 @@ function Get-StableTarget([string]$Origin) {
     if ($Commit -or $Channel -ceq 'main') { return '' }
     if ($Channel -cne 'stable') {
         if ($Branch -cne 'main') { return '' }
-        if ($Origin -notmatch '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)NousResearch/kova-agent(\.git)?/?$') { return '' }
+        if ($Origin -notmatch '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)OpenKova/Kova(\.git)?/?$') { return '' }
     }
     $release = Get-LatestStableRelease $Origin
     if ($release) { return $release }
@@ -1150,9 +1150,9 @@ function Stage-Repository {
                 Invoke-Native { git -C $InstallDir reset -q }
                 if ($LASTEXITCODE) { Fail "cannot clear the unmerged index in $InstallDir" local_changes_blocked }
             }
-            Invoke-Logged "Stashing local changes" { git -C $InstallDir stash push --include-untracked -m "hermes-install-autostash-$stamp" }
+            Invoke-Logged "Stashing local changes" { git -C $InstallDir stash push --include-untracked -m "kova-install-autostash-$stamp" }
             if ($LASTEXITCODE) { Fail "could not stash local changes in $InstallDir; commit or move them aside, then rerun" local_changes_blocked }
-            Write-Warn "local changes stashed as hermes-install-autostash-$stamp"
+            Write-Warn "local changes stashed as kova-install-autostash-$stamp"
         }
         if ($release) {
             # Detached at the release commit, the way `kova update` places a stable checkout;
@@ -1192,7 +1192,7 @@ function Stage-Repository {
                 $rescueKind = if ($LASTEXITCODE -eq 0) { 'diverged' } else { 'orphan' }
                 $prior = (Invoke-Native { git -C $InstallDir rev-parse --short=12 HEAD 2>$null })
                 if ($LASTEXITCODE -or -not $prior) { Fail "cannot identify commits before reset" git_reset_failed }
-                $rescue = "refs/hermes-update-backups/$rescueKind-$Branch-$stamp-$prior"
+                $rescue = "refs/kova-update-backups/$rescueKind-$Branch-$stamp-$prior"
                 Invoke-Native { git -C $InstallDir update-ref $rescue HEAD 2>$null }
                 if ($LASTEXITCODE) { Fail "cannot back up $dropped local commit(s); refusing to reset" git_reset_failed }
                 Write-Warn "$dropped commit(s) not on origin/$Branch backed up to $rescue"
@@ -1373,13 +1373,13 @@ function Invoke-SourceCompletion([bool]$Desktop) {
     if ($Desktop) { $completionArgs += '--desktop' }
     Push-Location $InstallDir
     try {
-        Invoke-Logged "Building the hermes command and apps" { & $bootPy @completionArgs }
+        Invoke-Logged "Building the kova command and apps" { & $bootPy @completionArgs }
         $code = $LASTEXITCODE
     } finally {
         Pop-Location
     }
     if ($code) { Fail "app products or command publication failed (exit $code)" products_build_failed }
-    Write-Ok "app products and hermes command ready"
+    Write-Ok "app products and kova command ready"
 }
 
 function Publish-UserCommand {
@@ -1390,7 +1390,7 @@ function Publish-UserCommand {
     $bootPy = Get-BootstrapPython
     Push-Location $InstallDir
     try {
-        Invoke-Logged "Publishing the hermes command" { & $bootPy -I -X utf8 kova_cli/_launchers.py $binDir }
+        Invoke-Logged "Publishing the kova command" { & $bootPy -I -X utf8 kova_cli/_launchers.py $binDir }
         $code = $LASTEXITCODE
     } finally {
         Pop-Location
@@ -1430,7 +1430,7 @@ function Set-LauncherUserPath([string]$binDir) {
         Write-Ok "added $binDir to your user PATH (new shells pick it up)"
     }
     # The registry write only reaches shells started later. $env:Path is
-    # process-wide, so prepending it here makes `hermes` resolve in the
+    # process-wide, so prepending it here makes `kova` resolve in the
     # caller's own window whenever this code runs in the caller's process
     # (`irm | iex`, `& .\install.ps1`); a -File child just discards it.
     # Recorded before the first prepend only (the -IncludeDesktop ladder
@@ -1445,9 +1445,9 @@ function Write-PathReloadHint {
     # A script file may be a separate powershell.exe (-File), whose $env:Path
     # dies with it; the parent keeps the PATH it started with until reloaded.
     # iex'd text always runs in the caller's process, where the prepend in
-    # Set-LauncherUserPath already made `hermes` resolvable.
+    # Set-LauncherUserPath already made `kova` resolvable.
     if (-not $script:RunAsFile -or $script:BinDirOnCallerPath -ne $false) { return }
-    Log 'Restart your terminal to use hermes, or run: $env:Path = [Environment]::GetEnvironmentVariable(''Path'',''User'') + '';'' + [Environment]::GetEnvironmentVariable(''Path'',''Machine'')'
+    Log 'Restart your terminal to use kova, or run: $env:Path = [Environment]::GetEnvironmentVariable(''Path'',''User'') + '';'' + [Environment]::GetEnvironmentVariable(''Path'',''Machine'')'
 }
 
 function Stage-Config {
@@ -1562,7 +1562,7 @@ function Stage-Complete {
         $marker | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $InstallDir ".kova-bootstrap-complete") -Encoding UTF8
     }
     if ($Channel) { Invoke-InstalledKova @('update', '--set-channel', $Channel) }
-    if ($commit) { Write-Ok "Kova Agent install complete (pinned $commit). Run: hermes" }
+    if ($commit) { Write-Ok "Kova Agent install complete (pinned $commit). Run: kova" }
 }
 
 function New-DesktopShortcuts {
@@ -1647,7 +1647,7 @@ function Invoke-StageByName([string]$name) {
 # --- Dot-source guard (part 2: stop before entry) ----------------------------
 # Every function definition above has loaded; now stop before any real work.
 if ($script:IsDotSourced) {
-    Write-Verbose "[hermes] install.ps1 was dot-sourced; definitions only, no execution"
+    Write-Verbose "[kova] install.ps1 was dot-sourced; definitions only, no execution"
     return
 }
 

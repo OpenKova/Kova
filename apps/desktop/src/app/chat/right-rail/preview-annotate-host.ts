@@ -96,10 +96,10 @@ let nextOverlaySession = 0
 export function overlayInstallScript(source: string, session = ++nextOverlaySession): string {
   return (
     '(function(){' +
-    `if ((window.__hermesAnnotateSession || 0) >= ${session}) return;` +
-    `window.__hermesAnnotateSession = ${session};` +
-    'if (window.__hermesAnnotate) window.__hermesAnnotate.teardown();' +
-    'var api=' + source + ';window.__hermesAnnotate=api;api.install();})()'
+    `if ((window.__kovaAnnotateSession || 0) >= ${session}) return;` +
+    `window.__kovaAnnotateSession = ${session};` +
+    'if (window.__kovaAnnotate) window.__kovaAnnotate.teardown();' +
+    'var api=' + source + ';window.__kovaAnnotate=api;api.install();})()'
   )
 }
 
@@ -127,21 +127,21 @@ export async function installAnnotateOverlay(guest: PreviewAnnotateGuest, signal
 async function teardownAnnotateOverlay(guest: PreviewAnnotateGuest, session: number): Promise<void> {
   await guest.executeJavaScript(`
     (function () {
-      if ((window.__hermesAnnotateSession || 0) > ${session}) return;
+      if ((window.__kovaAnnotateSession || 0) > ${session}) return;
       // Retain ownership even before installation, so a cancelled queued
       // script cannot resurrect its overlay or replace a newer session.
-      window.__hermesAnnotateSession = ${session};
-      if (window.__hermesAnnotate && window.__hermesAnnotate.teardown) {
-        window.__hermesAnnotate.teardown();
+      window.__kovaAnnotateSession = ${session};
+      if (window.__kovaAnnotate && window.__kovaAnnotate.teardown) {
+        window.__kovaAnnotate.teardown();
       }
-      window.__hermesAnnotate = null;
+      window.__kovaAnnotate = null;
     })()
   `)
 }
 
 export async function waitAnnotateEvent(guest: PreviewAnnotateGuest): Promise<AnnotatePageEvent> {
   const event = await guest.executeJavaScript(`
-    window.__hermesAnnotate ? window.__hermesAnnotate.wait() : Promise.resolve({ type: 'end' })
+    window.__kovaAnnotate ? window.__kovaAnnotate.wait() : Promise.resolve({ type: 'end' })
   `)
 
   return event as AnnotatePageEvent
@@ -149,7 +149,7 @@ export async function waitAnnotateEvent(guest: PreviewAnnotateGuest): Promise<An
 
 export async function syncAnnotatePins(guest: PreviewAnnotateGuest, pins: AnnotatePinChrome[]): Promise<void> {
   await guest.executeJavaScript(`
-    window.__hermesAnnotate && window.__hermesAnnotate.showPins(${JSON.stringify(pins)})
+    window.__kovaAnnotate && window.__kovaAnnotate.showPins(${JSON.stringify(pins)})
   `)
 }
 
@@ -159,13 +159,13 @@ export async function showAnnotateDraft(
   number: number
 ): Promise<void> {
   await guest.executeJavaScript(`
-    window.__hermesAnnotate && window.__hermesAnnotate.showDraft(${JSON.stringify(rect)}, ${number})
+    window.__kovaAnnotate && window.__kovaAnnotate.showDraft(${JSON.stringify(rect)}, ${number})
   `)
 }
 
 export async function hideAnnotateDraft(guest: PreviewAnnotateGuest): Promise<void> {
   await guest.executeJavaScript(`
-    window.__hermesAnnotate && window.__hermesAnnotate.hideDraft()
+    window.__kovaAnnotate && window.__kovaAnnotate.hideDraft()
   `)
 }
 
@@ -190,12 +190,12 @@ export async function captureAnnotateCrop(
   // Keep both paint frames, capturePage and cleanup inside one bounded lease.
   // Waiting for the next user pick must not hold this lease.
   return withPreviewDeadline(async signal => {
-    const cleanup = '(function () { if (window.__hermesAnnotate) window.__hermesAnnotate.endCapture(); })()'
+    const cleanup = '(function () { if (window.__kovaAnnotate) window.__kovaAnnotate.endCapture(); })()'
 
     try {
       return await guest.withActivity(async execute => {
         try {
-          await tryGuest(execute, 'window.__hermesAnnotate ? window.__hermesAnnotate.beginCapture() : null')
+          await tryGuest(execute, 'window.__kovaAnnotate ? window.__kovaAnnotate.beginCapture() : null')
           signal.throwIfAborted()
 
           return await guest.capture!(padRect(rect), signal)

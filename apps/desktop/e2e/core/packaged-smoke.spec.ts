@@ -95,7 +95,7 @@ function unpackedDir(): string {
 
 /** electron-builder's Linux executable name: linux.executableName > executableName > lowercased package name. */
 function executableName(): string {
-  return BUILD.linux?.executableName ?? BUILD.executableName ?? 'hermes'
+  return BUILD.linux?.executableName ?? BUILD.executableName ?? 'kova'
 }
 
 function asArray(value: string | string[] | undefined): string[] {

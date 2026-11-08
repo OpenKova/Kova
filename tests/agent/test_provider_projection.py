@@ -68,7 +68,7 @@ def test_projected_rows_are_appended_and_the_nudge_ticks():
     messages = [{"role": "user", "content": "edit main.py"}]
     spliced = splice_provider_projection(
         agent,
-        _response(hermes_projected_messages=_projected_rows(), hermes_provider_tool_iterations=1),
+        _response(kova_projected_messages=_projected_rows(), kova_provider_tool_iterations=1),
         messages,
     )
     assert spliced == 2
@@ -82,14 +82,14 @@ def test_rows_are_stamped_like_every_other_live_transcript_append():
     from the ones the loop appends itself."""
     messages: list = []
     splice_provider_projection(
-        _agent(), _response(hermes_projected_messages=_projected_rows()), messages
+        _agent(), _response(kova_projected_messages=_projected_rows()), messages
     )
     assert all(isinstance(m.get("timestamp"), float) for m in messages)
 
 
 def test_iterations_accumulate_across_calls():
     agent = _agent(iters=2)
-    splice_provider_projection(agent, _response(hermes_provider_tool_iterations=3), [])
+    splice_provider_projection(agent, _response(kova_provider_tool_iterations=3), [])
     assert agent._iters_since_skill == 5
 
 
@@ -108,8 +108,8 @@ def test_garbage_attributes_cannot_break_the_turn():
     assert splice_provider_projection(
         agent,
         _response(
-            hermes_projected_messages="not-a-list",
-            hermes_provider_tool_iterations="lots",
+            kova_projected_messages="not-a-list",
+            kova_provider_tool_iterations="lots",
         ),
         messages,
     ) == 0
@@ -119,7 +119,7 @@ def test_garbage_attributes_cannot_break_the_turn():
     # A list with non-dict entries keeps only the usable rows.
     assert splice_provider_projection(
         agent,
-        _response(hermes_projected_messages=[{"role": "tool", "content": "ok"}, "junk", None]),
+        _response(kova_projected_messages=[{"role": "tool", "content": "ok"}, "junk", None]),
         messages,
     ) == 1
     assert [m["role"] for m in messages] == ["tool"]
@@ -140,8 +140,8 @@ class _FakeAgentProviderCompletions:
         return SimpleNamespace(
             choices=[SimpleNamespace(message=message, finish_reason="stop")],
             usage=None,
-            hermes_projected_messages=self._projected,
-            hermes_provider_tool_iterations=self._iterations,
+            kova_projected_messages=self._projected,
+            kova_provider_tool_iterations=self._iterations,
         )
 
 

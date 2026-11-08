@@ -228,7 +228,7 @@ class TestApiKeyHintRealPool:
     def _seed_pool(self, tmp_path, monkeypatch):
         import json
 
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         (kova_home / "auth.json").write_text(
             json.dumps(
@@ -309,7 +309,7 @@ class TestFailureAttribution:
     """
 
     def _make_pool(self, tmp_path, monkeypatch, entries):
-        kova_home = tmp_path / "hermes"
+        kova_home = tmp_path / "kova"
         kova_home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         # Keep host Anthropic/Claude credentials out of this fixture. load_pool()

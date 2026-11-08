@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional, Tuple
 
 from kova_cli.config import cfg_get
-from kova_constants import get_hermes_dir, get_kova_home
+from kova_constants import get_kova_dir, get_kova_home
 
 from agent.provider_media import GENERATED_SUBDIR, MEDIA_CACHE_MAX_AGE_HOURS
 from agent.skill_utils import EXCLUDED_SKILL_DIRS
@@ -222,7 +222,7 @@ def _safe_skills_path(skills_dir: Path) -> str:
 
     if _safe_skills_tempdir and _safe_skills_tempdir.is_dir():
         shutil.rmtree(_safe_skills_tempdir, ignore_errors=True)
-    safe_dir = _safe_skills_tempdir = Path(tempfile.mkdtemp(prefix="hermes-skills-safe-"))
+    safe_dir = _safe_skills_tempdir = Path(tempfile.mkdtemp(prefix="kova-skills-safe-"))
 
     for base, files in _walk_skill_tree(skills_dir):
         (safe_dir / base.relative_to(skills_dir)).mkdir(parents=True, exist_ok=True)
@@ -243,7 +243,7 @@ def iter_skills_files(container_base: str = "/root/.kova") -> list[dict[str, str
 
 # --- Cache directory mounts (documents, images, audio, videos, screenshots) ---
 
-# (new_subpath, old_name) pairs matching kova_constants.get_hermes_dir().
+# (new_subpath, old_name) pairs matching kova_constants.get_kova_dir().
 _GENERATED_CACHE = f"cache/{GENERATED_SUBDIR}"
 _CACHE_DIRS: list[tuple[str, str]] = [
     ("cache/documents", "document_cache"),
@@ -279,18 +279,18 @@ def _cache_dir_roots(container_base: str, *, create_missing: bool) -> Iterator[t
     """Yield ``(host_dir, container_root)`` per cache dir; always maps to the *new* container layout."""
     base = container_base.rstrip("/")
     for new_subpath, old_name in _CACHE_DIRS:
-        host_dir = get_hermes_dir(new_subpath, old_name)
+        host_dir = get_kova_dir(new_subpath, old_name)
         if not host_dir.is_dir():
             if not create_missing:
                 continue
             # Docker snapshots this list at container CREATION, so a dir appearing later
             # would dangle for the container's life: create it now (empty bind mount is free).
-            # get_hermes_dir already picked new-vs-legacy, so this can't shadow a legacy dir.
+            # get_kova_dir already picked new-vs-legacy, so this can't shadow a legacy dir.
             try:
                 # Create missing staging dirs instead of skipping them: Docker snapshots this mount list at
                 # container CREATION, so a dir that appears later (first desktop attachment, first clipboard
                 # image) would dangle for the whole life of a persistent container (#76577). An empty
-                # bind-mounted dir costs nothing; a missing mount costs the feature. get_hermes_dir()
+                # bind-mounted dir costs nothing; a missing mount costs the feature. get_kova_dir()
                 # already resolved new-vs-legacy layout, so creating its answer cannot shadow a populated
                 # legacy dir.
                 host_dir.mkdir(parents=True, exist_ok=True)
@@ -300,7 +300,7 @@ def _cache_dir_roots(container_base: str, *, create_missing: bool) -> Iterator[t
 
 
 def get_cache_directory_mounts(container_base: str = "/root/.kova") -> list[dict[str, str]]:
-    """Bind-mount entries for each cache directory (host layout via ``get_hermes_dir``)."""
+    """Bind-mount entries for each cache directory (host layout via ``get_kova_dir``)."""
     return [_mount(h, c) for h, c in _cache_dir_roots(container_base, create_missing=True)]
 
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from kova_cli import gateway as hermes_gateway
+from kova_cli import gateway as kova_gateway
 from kova_cli import gateway_windows
 from kova_cli import main as cli_main
 from kova_cli import main_install_repair
@@ -26,7 +26,7 @@ def _run_cold_start(monkeypatch, capsys, *, surviving_pids):
     # The pre-spawn re-check (``all_profiles=True``) must find nothing
     # running so the cold-start path proceeds and actually spawns.
     monkeypatch.setattr(
-        hermes_gateway,
+        kova_gateway,
         "find_gateway_pids",
         lambda all_profiles=False: [] if all_profiles else surviving_pids,
     )

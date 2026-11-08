@@ -7,7 +7,7 @@ import pytest
 
 from tests.kova_cli.test_plugin_host import _home_with_plugins
 
-TERN = {'name': 'hermes-tern', 'version': '0.4.1'}
+TERN = {'name': 'kova-tern', 'version': '0.4.1'}
 
 SECTION_PLUGIN = '''
 def register(ctx):
@@ -60,9 +60,9 @@ def test_prompt_section_info_carries_the_client_as_strings(tmp_path, monkeypatch
     agent = SimpleNamespace(session_id='s', model='m', provider='p', platform='tui')
     info = _plugin_session_info(agent)
     assert (info['client'], info['client_version']) == ('', '')
-    with _turn_of(tmp_path, monkeypatch, client={'name': 'hermes-tern'}):
+    with _turn_of(tmp_path, monkeypatch, client={'name': 'kova-tern'}):
         info = _plugin_session_info(agent)
-    assert (info['client'], info['client_version']) == ('hermes-tern', '')
+    assert (info['client'], info['client_version']) == ('kova-tern', '')
     assert all(isinstance(value, str) for value in info.values())
 
 
@@ -82,7 +82,7 @@ def test_a_plugins_prompt_section_sees_the_client_in_either_isolation_mode(tmp_p
         with _turn_of(home, monkeypatch, client=dict(TERN)):
             named = manager.render_system_prompt_sections(_plugin_session_info(agent))
         plain = manager.render_system_prompt_sections(_plugin_session_info(agent))
-        assert [s.content for s in named] == ['platform=tui client=hermes-tern version=0.4.1']
+        assert [s.content for s in named] == ['platform=tui client=kova-tern version=0.4.1']
         assert [s.content for s in plain] == ['platform=tui client= version=']
     finally:
         manager.unload()

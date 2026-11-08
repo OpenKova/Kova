@@ -5042,7 +5042,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.install.run"
+          "const": "kova.install.run"
         },
         "type": {
           "const": "counter"

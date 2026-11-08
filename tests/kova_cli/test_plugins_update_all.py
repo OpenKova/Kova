@@ -1,4 +1,4 @@
-"""`hermes plugins update` with no name: offer every plugin that has an update, never move one silently."""
+"""`kova plugins update` with no name: offer every plugin that has an update, never move one silently."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ def _parse(argv):
     from kova_cli.plugins_cmd import plugins_command
     from kova_cli.subcommands.plugins import build_plugins_parser
 
-    parser = argparse.ArgumentParser(prog="hermes")
+    parser = argparse.ArgumentParser(prog="kova")
     build_plugins_parser(parser.add_subparsers(dest="command"), cmd_plugins=plugins_command)
     return parser.parse_args(["plugins", *argv])
 

@@ -65,7 +65,7 @@ def test_self_heals_on_stale_refresh_token(monkeypatch):
 
 def test_self_heals_missing_singleton_access_token_from_codex_cli(tmp_path, monkeypatch):
     """Exact cron failure path: Kova auth has refresh_token but missing access_token."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     codex_home = tmp_path / "codex"
     kova_home.mkdir()
     codex_home.mkdir()
@@ -91,7 +91,7 @@ def test_self_heals_missing_singleton_access_token_from_codex_cli(tmp_path, monk
     resolved = resolve_codex_runtime_credentials()
 
     assert resolved["api_key"] == "fresh-access"
-    assert resolved["source"] == "hermes-auth-store"
+    assert resolved["source"] == "kova-auth-store"
     stored = json.loads((kova_home / "auth.json").read_text())
     tokens = stored["providers"]["openai-codex"]["tokens"]
     assert tokens["access_token"] == "fresh-access"
@@ -104,14 +104,14 @@ def test_opt_out_never_adopts_codex_cli_login(tmp_path, monkeypatch):
     """``auth.adopt_external_logins: false`` (#113023): the Codex CLI pair is a single-use refresh-token
     family the user did not hand to Kova. Both automatic recovery paths must leave it (and Kova' own
     auth.json) untouched and surface the real error instead."""
-    kova_home = tmp_path / "hermes"
+    kova_home = tmp_path / "kova"
     codex_home = tmp_path / "codex"
     kova_home.mkdir()
     codex_home.mkdir()
     (kova_home / "config.yaml").write_text("auth:\n  adopt_external_logins: false\n")
-    hermes_auth = {"version": 1, "providers": {"openai-codex": {
+    kova_auth = {"version": 1, "providers": {"openai-codex": {
         "tokens": {"refresh_token": "stale-refresh"}, "auth_mode": "chatgpt"}}}
-    (kova_home / "auth.json").write_text(json.dumps(hermes_auth))
+    (kova_home / "auth.json").write_text(json.dumps(kova_auth))
     (codex_home / "auth.json").write_text(json.dumps({
         "tokens": {"access_token": "fresh-access", "refresh_token": "fresh-refresh"}}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
@@ -131,7 +131,7 @@ def test_opt_out_never_adopts_codex_cli_login(tmp_path, monkeypatch):
     with pytest.raises(AuthError) as info:
         _refresh_codex_auth_tokens(dict(STALE), 5.0)
     assert info.value.relogin_required  # surfaced, not papered over with the CLI pair
-    assert json.loads((kova_home / "auth.json").read_text()) == hermes_auth
+    assert json.loads((kova_home / "auth.json").read_text()) == kova_auth
 
 
 def _codex_jwt(account_id: str, sub: str = "user-1") -> str:
@@ -142,12 +142,12 @@ def _codex_jwt(account_id: str, sub: str = "user-1") -> str:
     return f"{_b64({'alg': 'none'})}.{_b64(claims)}.sig"
 
 
-def _seed_homes(tmp_path, monkeypatch, hermes_tokens, cli_tokens):
-    kova_home, codex_home = tmp_path / "hermes", tmp_path / "codex"
+def _seed_homes(tmp_path, monkeypatch, kova_tokens, cli_tokens):
+    kova_home, codex_home = tmp_path / "kova", tmp_path / "codex"
     kova_home.mkdir()
     codex_home.mkdir()
     (kova_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {"openai-codex": {
-        "tokens": hermes_tokens, "auth_mode": "chatgpt"}}}))
+        "tokens": kova_tokens, "auth_mode": "chatgpt"}}}))
     (codex_home / "auth.json").write_text(json.dumps({"tokens": cli_tokens}))
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))

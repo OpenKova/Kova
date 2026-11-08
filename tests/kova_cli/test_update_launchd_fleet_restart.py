@@ -1,4 +1,4 @@
-"""Regression for #41403 — ``hermes update`` must restart ALL macOS launchd gateways.
+"""Regression for #41403 — ``kova update`` must restart ALL macOS launchd gateways.
 
 The macOS branch of the update's fleet-restart step only restarted the
 invoking profile's LaunchAgent (``get_launchd_label()`` is profile-scoped).
@@ -630,7 +630,7 @@ class TestLegacyLaunchdLabelsForInstall:
 
     def test_only_units_pinned_to_this_installs_homes_are_credited(self, monkeypatch, tmp_path):
         agents = _fake_launchd_account(monkeypatch, tmp_path)
-        root = tmp_path / "hermes-root"
+        root = tmp_path / "kova-root"
         import kova_constants
         monkeypatch.setattr(kova_constants, "get_default_kova_root", lambda: root)
         venv_python = str(root.parent / "install" / ".venv" / "bin" / "python")

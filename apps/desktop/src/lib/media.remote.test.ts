@@ -92,7 +92,7 @@ describe('mediaExternalUrl', () => {
         expect(mediaExternalUrl(path)).not.toContain('SECRET')
       }
     } finally {
-      document.documentElement.removeAttribute('data-hermes-desktop-host')
+      document.documentElement.removeAttribute('data-kova-desktop-host')
     }
   })
 
@@ -139,7 +139,7 @@ describe('mediaGatewayStreamUrl', () => {
       'file://nas/share/video%20clip.mp4'
     ]) {
       const url = new URL(mediaGatewayStreamUrl(path))
-      expect(url.protocol).toBe('hermes-media:')
+      expect(url.protocol).toBe('kova-media:')
       expect(url.hostname).toBe('remote')
       expect.soft(decodeURIComponent(url.pathname.slice(1)), path).toBe(path)
     }
@@ -147,7 +147,7 @@ describe('mediaGatewayStreamUrl', () => {
 
   it('supports OAuth remotes with no renderer-visible token and scopes pool profiles', () => {
     $connection.set({ authMode: 'oauth', mode: 'remote', profile: 'voice reviewer', token: null } as never)
-    expect(mediaGatewayStreamUrl('/tmp/a.mp4')).toBe('hermes-media://remote/%2Ftmp%2Fa.mp4?profile=voice%20reviewer')
+    expect(mediaGatewayStreamUrl('/tmp/a.mp4')).toBe('kova-media://remote/%2Ftmp%2Fa.mp4?profile=voice%20reviewer')
   })
 
   it('pins remote streams to their registered connection and profile', () => {
@@ -159,7 +159,7 @@ describe('mediaGatewayStreamUrl', () => {
     } as never)
 
     expect(mediaGatewayStreamUrl('/tmp/a.mp4')).toBe(
-      'hermes-media://remote/%2Ftmp%2Fa.mp4?connectionId=studio-ssh&profile=voice%20reviewer'
+      'kova-media://remote/%2Ftmp%2Fa.mp4?connectionId=studio-ssh&profile=voice%20reviewer'
     )
   })
 })
@@ -269,7 +269,7 @@ describe('resolveMediaPlaybackSrc', () => {
     $connection.set({ authMode: 'oauth', mode: 'remote', profile: 'default', token: null } as never)
 
     await expect(resolveMediaPlaybackSrc('/root/outputs/render.mp4')).resolves.toBe(
-      'hermes-media://remote/%2Froot%2Foutputs%2Frender.mp4?profile=default'
+      'kova-media://remote/%2Froot%2Foutputs%2Frender.mp4?profile=default'
     )
   })
 
@@ -278,10 +278,10 @@ describe('resolveMediaPlaybackSrc', () => {
     $connection.set({ mode: 'local' } as never)
 
     await expect(resolveMediaPlaybackSrc('C:\\renders\\demo.mp4')).resolves.toBe(
-      'hermes-media://stream/C%3A%5Crenders%5Cdemo.mp4'
+      'kova-media://stream/C%3A%5Crenders%5Cdemo.mp4'
     )
     await expect(resolveMediaPlaybackSrc('file:///C:/renders/demo.mp4')).resolves.toBe(
-      'hermes-media://stream/C%3A%5Crenders%5Cdemo.mp4'
+      'kova-media://stream/C%3A%5Crenders%5Cdemo.mp4'
     )
   })
 })

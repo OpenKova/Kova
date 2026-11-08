@@ -70,20 +70,20 @@ def _load_plugin_init():
     plugin_dir = repo_root / "plugins" / "disk-cleanup"
     # Use the PluginManager's module naming convention so relative imports work.
     spec = importlib.util.spec_from_file_location(
-        "hermes_plugins.disk_cleanup",
+        "kova_plugins.disk_cleanup",
         plugin_dir / "__init__.py",
         submodule_search_locations=[str(plugin_dir)],
     )
     # Ensure parent namespace package exists for the relative `. import disk_cleanup`
     import types
-    if "hermes_plugins" not in sys.modules:
-        ns = types.ModuleType("hermes_plugins")
+    if "kova_plugins" not in sys.modules:
+        ns = types.ModuleType("kova_plugins")
         ns.__path__ = []
-        sys.modules["hermes_plugins"] = ns
+        sys.modules["kova_plugins"] = ns
     mod = importlib.util.module_from_spec(spec)
-    mod.__package__ = "hermes_plugins.disk_cleanup"
+    mod.__package__ = "kova_plugins.disk_cleanup"
     mod.__path__ = [str(plugin_dir)]
-    sys.modules["hermes_plugins.disk_cleanup"] = mod
+    sys.modules["kova_plugins.disk_cleanup"] = mod
     spec.loader.exec_module(mod)
     return mod
 
@@ -101,9 +101,9 @@ class TestIsSafePath:
         assert dg.is_safe_path(p) is True
 
     @pytest.mark.platforms("macos")
-    def test_track_accepts_tmp_hermes_path_after_platform_resolution(self, _isolate_env):
+    def test_track_accepts_tmp_kova_path_after_platform_resolution(self, _isolate_env):
         dg = _load_lib()
-        temporary = Path(tempfile.mkdtemp(prefix="hermes-disk-cleanup-", dir="/tmp"))
+        temporary = Path(tempfile.mkdtemp(prefix="kova-disk-cleanup-", dir="/tmp"))
         try:
             assert dg.track(str(temporary), "temp", silent=True) is True
         finally:
@@ -116,13 +116,13 @@ class TestIsSafePath:
     @pytest.mark.skipif(sys.platform == "win32", reason="POSIX /tmp path contract")
     def test_rejects_tmp_traversal_and_near_prefixes(self, _isolate_env):
         dg = _load_lib()
-        assert dg.is_safe_path(Path("/tmp/hermes-safe/../not-hermes/file")) is False
-        assert dg.is_safe_path(Path("/tmp-near/hermes-safe/file")) is False
+        assert dg.is_safe_path(Path("/tmp/kova-safe/../not-kova/file")) is False
+        assert dg.is_safe_path(Path("/tmp-near/kova-safe/file")) is False
 
     @pytest.mark.skipif(sys.platform == "win32", reason="POSIX symlink contract")
     def test_rejects_final_and_nested_symlink_escapes(self, _isolate_env):
         dg = _load_lib()
-        temporary = Path(tempfile.mkdtemp(prefix="hermes-disk-cleanup-", dir="/tmp"))
+        temporary = Path(tempfile.mkdtemp(prefix="kova-disk-cleanup-", dir="/tmp"))
         outside_dir = Path(tempfile.mkdtemp(prefix="disk-cleanup-outside-", dir="/tmp"))
         outside_file = outside_dir / "file.txt"
         outside_file.write_text("outside", encoding="utf-8")

@@ -524,7 +524,7 @@ class GatewayProcess:
             "KOVA_GATEWAY_LOCK_DIR": str(self.root / "gateway-locks"),
             "TZ": "UTC", "PYTHONHASHSEED": "0", "PYTHONUNBUFFERED": "1", "C12_PARENT_PID": str(os.getpid()),
             "KOVA_DISABLE_LAZY_INSTALLS": "1",
-            "AWS_EC2_METADATA_DISABLED": "true", "KOVA_HONCHO_HOST": "hermes",
+            "AWS_EC2_METADATA_DISABLED": "true", "KOVA_HONCHO_HOST": "kova",
             "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
         })
         return env

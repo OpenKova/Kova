@@ -42,7 +42,7 @@ export function useSettingsSearchCatalog(enabled: boolean) {
   const configQuery = useKovaConfigRecord()
 
   const schemaQuery = useQuery({
-    queryKey: ['hermes-config-schema'],
+    queryKey: ['kova-config-schema'],
     queryFn: () => getKovaConfigSchema(),
     enabled,
     staleTime: 5 * 60 * 1000

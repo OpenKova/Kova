@@ -68,7 +68,7 @@ test('buildTerminalScript execs the resolved runtime with its env', () => {
 test('buildTerminalScript emits a cmd script on Windows', () => {
   const script = buildTerminalScript({
     args: ['--tui', '--resume', 'sess'],
-    command: 'C:\\hermes\\venv\\Scripts\\hermes.exe',
+    command: 'C:\\kova\\venv\\Scripts\\kova.exe',
     cwd: 'C:\\Users\\b',
     env: { PYTHONUTF8: '1' },
     platform: 'win32'
@@ -78,7 +78,7 @@ test('buildTerminalScript emits a cmd script on Windows', () => {
     '@echo off',
     'cd /d "C:\\Users\\b"',
     'set "PYTHONUTF8=1"',
-    '"C:\\hermes\\venv\\Scripts\\hermes.exe" "--tui" "--resume" "sess"',
+    '"C:\\kova\\venv\\Scripts\\kova.exe" "--tui" "--resume" "sess"',
     ''
   ])
 })

@@ -35,8 +35,8 @@ def _home(tmp_path: Path, *, env: str = "", config: str = "") -> Path:
 # The platform_toolsets block cli-config.yaml.example shipped while Yuanbao was in core; the installers
 # seed config.yaml from it, so its yuanbao row alone says nothing about use.
 _SHIPPED_PLATFORM_TOOLSETS = (
-    "platform_toolsets:\n  cli: [hermes-cli]\n  telegram: [hermes-telegram]\n  qqbot: [hermes-qqbot]\n"
-    "  yuanbao: [hermes-yuanbao]\n  teams: [hermes-teams]\n"
+    "platform_toolsets:\n  cli: [kova-cli]\n  telegram: [kova-telegram]\n  qqbot: [kova-qqbot]\n"
+    "  yuanbao: [kova-yuanbao]\n  teams: [kova-teams]\n"
 )
 
 
@@ -44,8 +44,8 @@ _SHIPPED_PLATFORM_TOOLSETS = (
     ("YUANBAO_APP_ID=a\nYUANBAO_APP_SECRET=s\n", "", True),
     ("YUANBAO_APP_KEY=a\nYUANBAO_APP_SECRET=s\n", "", True),  # legacy App ID name
     ("", "platforms:\n  yuanbao:\n    enabled: true\n", True),
-    ("", "platform_toolsets:\n  telegram: [hermes-telegram, yuanbao]\n", True),
-    ("", "toolsets: [hermes-yuanbao]\n", True),
+    ("", "platform_toolsets:\n  telegram: [kova-telegram, yuanbao]\n", True),
+    ("", "toolsets: [kova-yuanbao]\n", True),
     ("", "", False),
     ("YUANBAO_APP_ID=a\n", "", False),  # half a credential set never enabled the adapter
     ("", _SHIPPED_PLATFORM_TOOLSETS, False),
@@ -97,7 +97,7 @@ def test_a_yuanbao_home_gets_the_plugin_once_with_the_labs_notice(tmp_path):
     assert lcm.migrate_home(home, install=install, say=said.append) == []
     assert calls == ["yuanbao"]
     assert "Yuanbao is now a Kova Labs plugin: built by Neural Studio, not supported" in said[0]
-    # The yb_* tools lived only in hermes-yuanbao: every other platform keeps them off.
+    # The yb_* tools lived only in kova-yuanbao: every other platform keeps them off.
     from kova_cli.config import read_user_config_raw
     known = read_user_config_raw(home / "config.yaml")["known_plugin_toolsets"]
     assert known["telegram"] == ["yuanbao"] and known["cli"] == ["yuanbao"] and "yuanbao" not in known
@@ -153,7 +153,7 @@ def test_plugins_disabled_naming_the_bundled_adapter_is_not_use_and_still_disabl
     assert lcm.yuanbao_in_use(home) is False
     manifest = PluginManifest(name="yuanbao", source="user", path=str(home / "plugins" / "yuanbao"), key="yuanbao")
     assert gate_manifest(manifest, {name}, None).error == "disabled via config"
-    assert lcm.legacy_plugin_alias(name) == "yuanbao"  # `hermes plugins <verb> <name>` names the catalog plugin
+    assert lcm.legacy_plugin_alias(name) == "yuanbao"  # `kova plugins <verb> <name>` names the catalog plugin
     # Installed and enabled (before the update, or by hand): core's old disable still wins.
     assert gate_manifest(manifest, {name}, {"yuanbao"}).error == \
         "listed in both plugins.enabled and plugins.disabled — disabled wins"
@@ -204,11 +204,11 @@ def test_every_platform_core_knows_but_yuanbao_keeps_the_yb_tools_off():
     assert {p.value for p in Platform} - {"local", "yuanbao"} <= set(feature.off_platforms)
 
 
-def test_a_legacy_hermes_list_kept_the_yb_tools_off_and_keeps_them_off(tmp_path):
-    """tools_config reads a saved ``[hermes]`` as hermes-cli + hermes-api-server, neither of which carried yb_*;
-    ``kova-gateway`` included ``hermes-yuanbao``, so that row keeps them."""
+def test_a_legacy_kova_list_kept_the_yb_tools_off_and_keeps_them_off(tmp_path):
+    """tools_config reads a saved ``[kova]`` as kova-cli + kova-api-server, neither of which carried yb_*;
+    ``kova-gateway`` included ``kova-yuanbao``, so that row keeps them."""
     home = _home(tmp_path, env="YUANBAO_APP_ID=a\nYUANBAO_APP_SECRET=s\n",
-                 config="platform_toolsets:\n  telegram: [hermes]\n  slack: [kova-gateway]\n")
+                 config="platform_toolsets:\n  telegram: [kova]\n  slack: [kova-gateway]\n")
     lcm.migrate_home(home, install=lambda name: (home / "plugins" / name).mkdir(parents=True) or {"ok": True},
                      say=lambda message: None)
     from kova_cli.config import read_user_config_raw
@@ -216,9 +216,9 @@ def test_a_legacy_hermes_list_kept_the_yb_tools_off_and_keeps_them_off(tmp_path)
     assert known["telegram"] == ["yuanbao"] and "slack" not in known
 
 
-@pytest.mark.parametrize("bundle", ["hermes-yuanbao", "kova-gateway"])
-def test_a_disabled_hermes_yuanbao_bundle_keeps_the_yb_tools_disabled(tmp_path, bundle):
-    """Core's ``hermes-yuanbao`` bundle was the core tools plus yb_*, and ``kova-gateway`` included it;
+@pytest.mark.parametrize("bundle", ["kova-yuanbao", "kova-gateway"])
+def test_a_disabled_kova_yuanbao_bundle_keeps_the_yb_tools_disabled(tmp_path, bundle):
+    """Core's ``kova-yuanbao`` bundle was the core tools plus yb_*, and ``kova-gateway`` included it;
     ``agent.disabled_toolsets`` naming either removed the yb_* tools. Neither does once the bundle is gone,
     so the conversion disables the plugin's ``yuanbao`` toolset there, once, and turns nothing else off."""
     home = _home(tmp_path, env="YUANBAO_APP_ID=a\nYUANBAO_APP_SECRET=s\n",

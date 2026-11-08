@@ -1,6 +1,6 @@
 """A module's log records keep their component when the module runs inside the ``kova_agent`` package.
 
-``gateway.log``, ``hermes logs --component`` and the gateway diagnostics export decide by logger
+``gateway.log``, ``kova logs --component`` and the gateway diagnostics export decide by logger
 name. ``getLogger(__name__)`` in ``gateway/run.py`` names ``gateway.run`` today and
 ``kova_agent.gateway.run`` once the module lives in the package; both must route the same way.
 """

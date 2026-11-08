@@ -57,13 +57,13 @@ def test_profile_functions_survive_only_with_persistence_off(monkeypatch, tmp_pa
     home = tmp_path / "home"
     home.mkdir()
     for rc in (".bashrc", ".bash_profile"):
-        (home / rc).write_text("hermes_lp_fn(){ echo FN; }\n", encoding="utf-8")
+        (home / rc).write_text("kova_lp_fn(){ echo FN; }\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("TERMINAL_ENV", "local")
     monkeypatch.setenv("TERMINAL_CWD", str(tmp_path))
     monkeypatch.setenv("TERMINAL_LOCAL_PERSISTENT", setting)
     task_id = f"local-persist-fn-{setting}"
-    probe = "type hermes_lp_fn >/dev/null 2>&1 && echo fn:yes || echo fn:no"
+    probe = "type kova_lp_fn >/dev/null 2>&1 && echo fn:yes || echo fn:no"
 
     def run(cmd):
         return json.loads(terminal_tool(cmd, task_id=task_id))["output"].strip()

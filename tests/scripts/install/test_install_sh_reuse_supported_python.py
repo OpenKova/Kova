@@ -21,7 +21,7 @@ INSTALL_SH = ROOT / "scripts/install.sh"
 pytestmark = pytest.mark.platforms("posix")
 
 
-@pytest.mark.parametrize("option", ["--branch", "--commit", "--dir", "--hermes-home", "--stage"])
+@pytest.mark.parametrize("option", ["--branch", "--commit", "--dir", "--kova-home", "--stage"])
 @pytest.mark.parametrize("suffix", [[], ["--manifest"], [""]])
 def test_missing_value_fails_before_any_install_work(option: str, suffix: list[str]) -> None:
     result = subprocess.run(["bash", str(INSTALL_SH), option, *suffix],

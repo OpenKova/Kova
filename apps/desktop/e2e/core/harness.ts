@@ -154,7 +154,7 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
     ...(process.env.KOVA_E2E_PYTHON ? { KOVA_DESKTOP_PYTHON: process.env.KOVA_E2E_PYTHON } : {}),
     KOVA_DESKTOP_APP_NAME: `KovaCoreE2E-${path.basename(sandbox.root)}`,
     KOVA_DESKTOP_SKIP_QUIT_CONFIRM: '1',
-    // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
+    // Never repoint the user's OS kova:// handler (HKCU on Windows) at a test checkout.
     KOVA_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
     KOVA_DESKTOP_CDP_PORT: 'off',
     // A partial-clone (blob:none) dev checkout turns some backend git read into
@@ -179,7 +179,7 @@ export function freePort(): Promise<number> {
 }
 
 /** `kova <args>` in the sandbox, as an operator runs it. */
-export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
+export function kovaCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
   const result = spawnSync(process.env.KOVA_E2E_PYTHON || 'python3', ['-m', 'kova_cli.main', ...args], {
     cwd: REPO_ROOT,
     env: coreAppEnv(sandbox),
@@ -194,7 +194,7 @@ export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number 
  * when a profile is named). */
 export function webappLaunchLink(sandbox: CoreSandbox, profile?: string): string {
   const profileArgs = profile ? ['-p', profile] : []
-  const { code, output } = hermesCli(sandbox, [...profileArgs, 'webapp', '--no-open', '--skip-build'])
+  const { code, output } = kovaCli(sandbox, [...profileArgs, 'webapp', '--no-open', '--skip-build'])
   const link = /^\s+(http:\/\/127\.0\.0\.1:\d+\/webapp\/launch#\S+)$/m.exec(output)?.[1]
   expect(code, `kova webapp --no-open\n${output.replace(/ticket=\S+/g, 'ticket=<redacted>')}`).toBe(0)
   expect(link, 'kova webapp printed a one-use launch link').toBeTruthy()
@@ -511,7 +511,7 @@ export async function splitProfileRoute(app: ElectronApplication, profile: strin
     const original = handlers.get('kova:connection:for')
 
     if (!original) {
-      throw new Error('no ipc handler hermes:connection:for')
+      throw new Error('no ipc handler kova:connection:for')
     }
 
     ipcMain.removeHandler('kova:connection:for')

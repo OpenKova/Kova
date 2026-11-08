@@ -553,7 +553,7 @@ class TestRunJobSessionPersistence:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch(
@@ -617,7 +617,7 @@ class TestRunJobSessionPersistence:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch(
@@ -665,7 +665,7 @@ class TestRunJobSessionPersistence:
         base = [
             patch("cron.scheduler._kova_home", tmp_path),
             patch("cron.scheduler_delivery._resolve_origin", return_value=None),
-            patch("kova_cli.env_loader.load_hermes_dotenv"),
+            patch("kova_cli.env_loader.load_kova_dotenv"),
             patch("kova_cli.env_loader.reset_secret_source_cache"),
             patch("kova_state_registry.acquire", return_value=fake_db),
             patch(
@@ -916,7 +916,7 @@ class TestRunJobSessionPersistence:
         this KOVA_HOME in ``_APPLIED_HOMES``, so the external-secret pull
         no-ops and only the placeholder is re-applied. The scheduler must call
         ``reset_secret_source_cache()`` (forcing the re-pull) and route through
-        ``load_hermes_dotenv`` (which then re-applies external secret sources).
+        ``load_kova_dotenv`` (which then re-applies external secret sources).
         """
         job = {"id": "bsm-job", "name": "bsm", "prompt": "hello"}
         fake_db = MagicMock()
@@ -932,7 +932,7 @@ class TestRunJobSessionPersistence:
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
              patch("kova_cli.env_loader.reset_secret_source_cache", _record_reset), \
-             patch("kova_cli.env_loader.load_hermes_dotenv", _record_load), \
+             patch("kova_cli.env_loader.load_kova_dotenv", _record_load), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch(
                  "kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1052,7 +1052,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1115,7 +1115,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1167,7 +1167,7 @@ class TestRunJobConfigEnvVarExpansion:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1214,7 +1214,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1239,7 +1239,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1268,7 +1268,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1293,7 +1293,7 @@ class TestRunJobModelResolution:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch("kova_cli.runtime_provider.resolve_runtime_provider",
@@ -1336,7 +1336,7 @@ class TestRunJobSkillBacked:
 
         with patch("cron.scheduler._kova_home", tmp_path), \
              patch("cron.scheduler_delivery._resolve_origin", return_value=None), \
-             patch("kova_cli.env_loader.load_hermes_dotenv"), \
+             patch("kova_cli.env_loader.load_kova_dotenv"), \
              patch("kova_cli.env_loader.reset_secret_source_cache"), \
              patch("kova_state_registry.acquire", return_value=fake_db), \
              patch(

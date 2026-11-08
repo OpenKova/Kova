@@ -468,7 +468,7 @@ def wire_env():
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
 
-    test_home = tempfile.mkdtemp(prefix="hermes_api_content_")
+    test_home = tempfile.mkdtemp(prefix="kova_api_content_")
     os.makedirs(os.path.join(test_home, ".kova"))
     prev_home = os.environ.get("KOVA_HOME")
     os.environ["KOVA_HOME"] = os.path.join(test_home, ".kova")

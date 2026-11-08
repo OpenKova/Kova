@@ -18,7 +18,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
-    """Normal `hermes chat` sessions (no KOVA_KANBAN_TASK) must have
+    """Normal `kova chat` sessions (no KOVA_KANBAN_TASK) must have
     zero kanban_* tools in their schema."""
     monkeypatch.delenv("KOVA_KANBAN_TASK", raising=False)
     home = tmp_path / ".kova"
@@ -29,7 +29,7 @@ def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
     from toolsets import resolve_toolset
 
     invalidate_check_fn_cache()
-    schema = registry.get_definitions(set(resolve_toolset("hermes-cli")), quiet=True)
+    schema = registry.get_definitions(set(resolve_toolset("kova-cli")), quiet=True)
     names = {s["function"].get("name") for s in schema if "function" in s}
     kanban = {n for n in names if n and n.startswith("kanban_")}
     assert kanban == set(), (
@@ -704,7 +704,7 @@ def test_comment_rejects_caller_supplied_author(worker_env):
     """Reject an undeclared author override before a worker can forge a comment."""
     from tools import kanban_tools as kt
     out = kt._handle_comment({
-        "task_id": worker_env, "body": "hi", "author": "hermes-system",
+        "task_id": worker_env, "body": "hi", "author": "kova-system",
     })
     assert "author" in json.loads(out)["error"]
     from kova_cli import kanban_db as kb

@@ -422,7 +422,7 @@ test('Windows managed launcher starts a hidden child and leaves exit 75 to the e
     {
       ssh: { exec: async () => '' },
       platform: 'Windows',
-      kovaPath: 'C:\\Kova\\hermes.exe',
+      kovaPath: 'C:\\Kova\\kova.exe',
       kovaHome: 'C:\\Users\\alice\\.kova',
       pythonPath: 'C:\\Kova\\python.exe'
     },
@@ -466,7 +466,7 @@ test('remote observation rejects a receipt for another correlation', () => {
 test.runIf(process.platform !== 'win32')(
   'POSIX observer reads the exact correlation receipt and terminal marker from disk',
   async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), 'hermes-managed-update-'))
+    const home = await mkdtemp(path.join(os.tmpdir(), 'kova-managed-update-'))
 
     try {
       const receipts = path.join(home, 'logs', 'update_receipts')
@@ -488,7 +488,7 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          kovaPath: '/opt/hermes/hermes',
+          kovaPath: '/opt/kova/kova',
           kovaHome: home
         },
         CORRELATION
@@ -511,7 +511,7 @@ test.runIf(process.platform !== 'win32')(
 test.runIf(process.platform !== 'win32')(
   'a committed update that still owes a step stays a success but names the owed step',
   async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), 'hermes-managed-owed-'))
+    const home = await mkdtemp(path.join(os.tmpdir(), 'kova-managed-owed-'))
 
     const run = async (
       followups: unknown[],
@@ -533,7 +533,7 @@ test.runIf(process.platform !== 'win32')(
       )
 
       const command = buildRemoteUpdateObservationCommand(
-        { ssh: { exec: async () => '' }, platform: 'Linux', kovaPath: '/opt/hermes/hermes', kovaHome: home },
+        { ssh: { exec: async () => '' }, platform: 'Linux', kovaPath: '/opt/kova/kova', kovaHome: home },
         CORRELATION
       )
 
@@ -587,7 +587,7 @@ test.runIf(process.platform !== 'win32')(
 
       // record_user_action turns a success into partial/exit 1: its exact manual instruction is shown,
       // and the rerun advice is never offered for a parked stash.
-      const instruction = 'Run `git stash apply stash@{0}` in /opt/hermes to restore your local changes.'
+      const instruction = 'Run `git stash apply stash@{0}` in /opt/kova to restore your local changes.'
 
       const partial = await run([], {
         exitCode: 1,
@@ -611,7 +611,7 @@ test.runIf(process.platform !== 'win32')(
 test.runIf(process.platform !== 'win32')(
   'managed observer unwraps a named profile home for the install-wide marker',
   async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-managed-profile-marker-'))
+    const root = await mkdtemp(path.join(os.tmpdir(), 'kova-managed-profile-marker-'))
     const profileHome = path.join(root, 'profiles', 'research')
 
     // A v2 claim whose owner is gone and whose delegate is alive at its creation time.
@@ -635,7 +635,7 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          kovaPath: '/opt/hermes/hermes',
+          kovaPath: '/opt/kova/kova',
           kovaHome: profileHome
         },
         CORRELATION
@@ -656,7 +656,7 @@ test.runIf(process.platform !== 'win32')(
 test.runIf(process.platform !== 'win32')(
   'managed observer reads a named profile update receipt from the root home the CLI writes',
   async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-managed-profile-receipt-'))
+    const root = await mkdtemp(path.join(os.tmpdir(), 'kova-managed-profile-receipt-'))
     const profileHome = path.join(root, 'profiles', 'research')
 
     const receipt = (outcome: string) =>
@@ -682,7 +682,7 @@ test.runIf(process.platform !== 'win32')(
         {
           ssh: { exec: async () => '' },
           platform: 'Linux',
-          kovaPath: '/opt/hermes/hermes',
+          kovaPath: '/opt/kova/kova',
           kovaHome: profileHome
         },
         CORRELATION
@@ -724,7 +724,7 @@ test('Windows coordinator handoff is pending until its marker clears and correla
 
   const target = {
     platform: 'Windows' as const,
-    kovaPath: 'C:\\Kova\\hermes.exe',
+    kovaPath: 'C:\\Kova\\kova.exe',
     kovaHome: 'C:\\Users\\alice\\.kova',
     pythonPath: 'C:\\Kova\\python.exe',
     ssh: {
@@ -752,7 +752,7 @@ test('terminal status without its durable receipt fails instead of claiming succ
 
   const target = {
     platform: 'Linux' as const,
-    kovaPath: '~/.local/bin/hermes',
+    kovaPath: '~/.local/bin/kova',
     kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent', exitCode: 0 }) }
   }
@@ -775,7 +775,7 @@ test('live or malformed remote markers fail actionably at bounded update and rec
 
     const target = {
       platform: 'Linux' as const,
-      kovaPath: '~/.local/bin/hermes',
+      kovaPath: '~/.local/bin/kova',
       kovaHome: '~/.kova',
       ssh: { exec: async () => observation({ marker, ...(marker === 'live' ? { markerPid: 44 } : {}) }) }
     }
@@ -800,7 +800,7 @@ test('a journaled launch requires correlated terminal proof or an observed live-
 
   const target = {
     platform: 'Linux' as const,
-    kovaPath: '~/.local/bin/hermes',
+    kovaPath: '~/.local/bin/kova',
     kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent' }) }
   }
@@ -834,7 +834,7 @@ test('remote launch intent fences crash recovery even before the local journal r
 
   const target = {
     platform: 'Linux' as const,
-    kovaPath: '~/.local/bin/hermes',
+    kovaPath: '~/.local/bin/kova',
     kovaHome: '~/.kova',
     ssh: { exec: async () => observation({ marker: 'absent', launchIntent: 'present' }) }
   }

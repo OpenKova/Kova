@@ -28,7 +28,7 @@ def cli_obj(_isolate):
         from cli import KovaCLI
         obj = KovaCLI.__new__(KovaCLI)
         obj.model = "test-model"
-        obj.enabled_toolsets = ["hermes-core"]
+        obj.enabled_toolsets = ["kova-core"]
         obj.compact = False
         obj.console = MagicMock()
         obj.session_id = None

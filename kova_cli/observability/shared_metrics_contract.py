@@ -551,7 +551,7 @@ UPDATE_FAILURE_CLASSES |= UPDATE_STOP_CLASSES
 # ---- iuf c2 ----
 # One fresh-install run of scripts/install.sh / install.ps1, from the local receipt the installer
 # leaves (the installer itself never sends); counted by a later Kova start while collection is on.
-INSTALL_RUN_MARK = INSTALL_RUN_METRIC = "hermes.install.run"
+INSTALL_RUN_MARK = INSTALL_RUN_METRIC = "kova.install.run"
 INSTALL_RUN_INSTALLERS = frozenset({"install_ps1", "install_sh", "other"})
 INSTALL_RUN_OUTCOMES = frozenset({"failed", "success"})
 # The installers' stage_names / $Stages ladder (hyphens as underscores).

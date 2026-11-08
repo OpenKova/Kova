@@ -33,7 +33,7 @@ def _state(tag: str, refresh_token: str, *, issued: int, ttl: int = 3000, sub: s
            token: str | None = None) -> dict:
     token = token or _jwt(tag, issued + ttl, issued=issued, sub=sub)
     return {
-        "portal_base_url": auth_mod.DEFAULT_NOUS_PORTAL_URL, "client_id": "hermes-cli",
+        "portal_base_url": auth_mod.DEFAULT_NOUS_PORTAL_URL, "client_id": "kova-cli",
         "token_type": "Bearer", "scope": auth_mod.DEFAULT_NOUS_SCOPE,
         "access_token": token, "refresh_token": refresh_token, "obtained_at": _iso(issued),
         "expires_in": ttl, "expires_at": _iso(issued + ttl),
@@ -42,7 +42,7 @@ def _state(tag: str, refresh_token: str, *, issued: int, ttl: int = 3000, sub: s
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    kova_home, shared = tmp_path / "hermes", tmp_path / "shared"
+    kova_home, shared = tmp_path / "kova", tmp_path / "shared"
     kova_home.mkdir()
     shared.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(kova_home))

@@ -108,8 +108,8 @@ it('fails closed with actionable launch instructions in a fresh tab and ignores 
   const fetchMock = vi.fn()
   vi.stubGlobal('fetch', fetchMock)
   expect(installBrowserDesktopBridge()).toBe(true)
-  await expect(window.kovaDesktop!.getConnection()).rejects.toThrow('Run hermes webapp')
-  await expect(window.kovaDesktop!.api({ path: '/api/fs/read-text' })).rejects.toThrow('Run hermes webapp')
+  await expect(window.kovaDesktop!.getConnection()).rejects.toThrow('Run kova webapp')
+  await expect(window.kovaDesktop!.api({ path: '/api/fs/read-text' })).rejects.toThrow('Run kova webapp')
   expect(fetchMock).not.toHaveBeenCalled()
   window.dispatchEvent(new Event('beforeunload'))
   Reflect.deleteProperty(window, 'kovaDesktop')
@@ -126,7 +126,7 @@ it('fails closed with actionable launch instructions in a fresh tab and ignores 
 it('takes the credential only from the tab storage the launch page fills, never from the address', () => {
   // The browser records every address in its history, where a credential would outlive the tab.
   win.__KOVA_UI_SURFACE__ = 'webapp'
-  window.history.replaceState(null, '', `/?profile=coder#hermes-session=${'c'.repeat(43)}`)
+  window.history.replaceState(null, '', `/?profile=coder#kova-session=${'c'.repeat(43)}`)
   expect(readWebappSession('')).toBe('')
   expect(installBrowserDesktopBridge()).toBe(true)
   expect(sessionStorage.length).toBe(0)
@@ -177,7 +177,7 @@ it.each(['window', 'session'] as const)('hands off a private %s through a one-us
   expect(child.pathname).toBe('/one/webapp/window')
   expect(child.search).toBe('')
   const handoff = new URLSearchParams(child.hash.slice(1))
-  expect(Channel.current.name).toBe(`hermes.webapp.window:${handoff.get('channel')}`)
+  expect(Channel.current.name).toBe(`kova.webapp.window:${handoff.get('channel')}`)
   expect(Channel.current.postMessage).toHaveBeenCalledWith({ ticket })
   expect(Channel.current.close).toHaveBeenCalledOnce()
   expect(handoff.get('query')).toContain('profile=research')
@@ -214,7 +214,7 @@ it('asks a tab without a working credential to sign in, so reconnecting stops', 
     expect((error as Error).message).toBe(WEBAPP_LAUNCH_REQUIRED)
   }
 
-  // hermes webapp --sign-out replaced the credential this tab holds.
+  // kova webapp --sign-out replaced the credential this tab holds.
   window.dispatchEvent(new Event('beforeunload'))
   Reflect.deleteProperty(window, 'kovaDesktop')
   sessionStorage.setItem(webappSessionKey(''), 'd'.repeat(43))

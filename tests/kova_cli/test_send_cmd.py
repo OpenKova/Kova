@@ -1,4 +1,4 @@
-"""Tests for the ``hermes send`` CLI subcommand.
+"""Tests for the ``kova send`` CLI subcommand.
 
 Covers the argument parsing / stdin / file / list behavior of
 ``kova_cli.send_cmd``. The underlying ``send_message_tool`` is stubbed so
@@ -21,7 +21,7 @@ def _parse(argv):
     """Build the top-level parser and return the parsed args for ``argv``."""
     import argparse
 
-    parser = argparse.ArgumentParser(prog="hermes")
+    parser = argparse.ArgumentParser(prog="kova")
     subparsers = parser.add_subparsers(dest="command")
     send_cmd.register_send_subparser(subparsers)
     return parser.parse_args(["send", *argv])
@@ -59,7 +59,7 @@ def fake_tool(monkeypatch):
 
 @pytest.fixture
 def whatsapp_bridge(monkeypatch):
-    """Route ``hermes send --to whatsapp:...`` through the real plugin standalone sender into a fake
+    """Route ``kova send --to whatsapp:...`` through the real plugin standalone sender into a fake
     bridge; returns the recorded ``(path, payload)`` posts and a mutable ``supports_mentions`` flag."""
     import asyncio
     from types import SimpleNamespace
@@ -111,7 +111,7 @@ def whatsapp_bridge(monkeypatch):
         platforms={Platform.WHATSAPP: SimpleNamespace(enabled=True, token=None, extra={"bridge_port": 3000})},
         get_home_channel=lambda _platform: None,
     )
-    monkeypatch.setattr(send_cmd, "_load_hermes_env", lambda: None)
+    monkeypatch.setattr(send_cmd, "_load_kova_env", lambda: None)
     monkeypatch.setattr("gateway.config.load_gateway_config", lambda: config)
     monkeypatch.setattr("tools.interrupt.is_interrupted", lambda: False)
     monkeypatch.setattr("model_tools._run_async", lambda coro: asyncio.run(coro))
@@ -254,12 +254,12 @@ def test_list_json_includes_configured_platform(monkeypatch, capsys):
 # Env loader
 # ---------------------------------------------------------------------------
 
-def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
+def test_load_kova_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     """Top-level config.yaml scalars should be bridged into os.environ.
 
     This mirrors the gateway/run.py bootstrap behavior: without this, running
-    ``hermes send`` from a fresh shell cannot resolve the home channel
-    because ``TELEGRAM_HOME_CHANNEL`` (saved by ``hermes config set``) lives
+    ``kova send`` from a fresh shell cannot resolve the home channel
+    because ``TELEGRAM_HOME_CHANNEL`` (saved by ``kova config set``) lives
     in config.yaml, not in .env — and the gateway's config loader reads via
     ``os.getenv(...)``.
     """
@@ -282,18 +282,18 @@ def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     import kova_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     assert os.environ.get("SOME_TOKEN") == "abc123"
     assert os.environ.get("TELEGRAM_HOME_CHANNEL") == "5550001111"
 
-def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
+def test_load_kova_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     """A leading UTF-8 BOM must not mangle the first .env key name.
 
     PowerShell 5.1 `Set-Content -Encoding UTF8` and Notepad prepend a BOM
     (EF BB BF). With encoding=utf-8, python-dotenv kept U+FEFF on the first
     key, so the credential never appeared under its canonical name and
-    `hermes send` failed to authenticate.
+    `kova send` failed to authenticate.
     """
     import os
 
@@ -311,13 +311,13 @@ def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     import kova_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     assert os.environ.get("SEND_BOM_BOT_TOKEN") == "tok-first"
     assert os.environ.get("SEND_BOM_SECOND") == "two"
     assert "\ufeff" + "SEND_BOM_BOT_TOKEN" not in os.environ
 
-def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
+def test_load_kova_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     """BOM-less UTF-8 .env files must keep loading after the utf-8-sig switch."""
     import os
 
@@ -332,11 +332,11 @@ def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     import kova_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     assert os.environ.get("SEND_PLAIN_TOKEN") == "plain-val"
 
-def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
+def test_load_kova_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     """Invalid UTF-8 bytes must still load via the latin-1 fallback path,
     and a leading BOM must be stripped before the latin-1 decode so the
     first key keeps its canonical name."""
@@ -358,13 +358,13 @@ def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
     import kova_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     assert os.environ.get("SEND_L1_TOKEN") == "tok-l1"
     assert os.environ.get("SEND_L1_NOTE") == "caf\xe9"
     assert "\ufeff" + "SEND_L1_TOKEN" not in os.environ
 
-def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
+def test_load_kova_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     """The stream-based latin-1 fallback must keep override=True semantics:
     the .env value wins over a stale shell export, same as the primary path. (A non-credential
     key name: ``*_TOKEN`` values are ASCII-sanitized by the shared loader, by design.)"""
@@ -382,11 +382,11 @@ def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     import kova_cli.config as _hc_config
     reload(_hc_config)
 
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     assert os.environ.get("SEND_OVR_LABEL") == "caf\xe9-file"
 
-def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch):
+def test_load_kova_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch):
     """An I/O error inside the latin-1 fallback must not escape \u2014 the send
     path is best-effort by design and must never crash on a broken .env."""
     from pathlib import Path
@@ -408,9 +408,9 @@ def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch)
     reload(_hc_config)
 
     # Should not raise.
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
-def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
+def test_load_kova_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     """A .env containing only a BOM must load zero vars without error."""
     import os
 
@@ -425,7 +425,7 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     reload(_hc_config)
 
     before = dict(os.environ)
-    send_cmd._load_hermes_env()
+    send_cmd._load_kova_env()
 
     added = {k: v for k, v in os.environ.items() if k not in before}
     assert "\ufeff" not in "".join(added)
@@ -437,11 +437,11 @@ def test_help_and_empty_list_hint_name_the_resolved_home(tmp_path, monkeypatch, 
     import sys
     import types
 
-    home = tmp_path / "AppData" / "Local" / "hermes"
+    home = tmp_path / "AppData" / "Local" / "kova"
     home.mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
 
-    parser = argparse.ArgumentParser(prog="hermes")
+    parser = argparse.ArgumentParser(prog="kova")
     send_parser = send_cmd.register_send_subparser(parser.add_subparsers(dest="command"))
     help_text = send_parser.format_help()
     assert str(home / ".env") in help_text and str(home / "config.yaml") in help_text

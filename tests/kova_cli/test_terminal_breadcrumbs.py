@@ -1,4 +1,4 @@
-"""Tests for kova_cli/terminal_breadcrumbs.py — per-terminal ``hermes -c``.
+"""Tests for kova_cli/terminal_breadcrumbs.py — per-terminal ``kova -c``.
 
 Covers terminal id derivation (tty vs env vars vs none), breadcrumb
 write/read roundtrip under a temp KOVA_HOME, stale-session fallback

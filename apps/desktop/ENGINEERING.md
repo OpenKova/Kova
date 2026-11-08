@@ -167,7 +167,7 @@ Two auth-flavored corollaries worth naming because they are easy to get wrong:
 ## Guest content never opens anything by itself
 
 Untrusted HTML runs in two places: sandboxed `allow-scripts` iframes (artifact
-previews) and the preview pane's `<webview>` (`persist:hermes-preview`). Neither
+previews) and the preview pane's `<webview>` (`persist:kova-preview`). Neither
 may drive the OS browser without the user's hand on it (GHSA-9f4c-93c8-jc8g):
 `setWindowOpenHandler` denies everything and never opens a URL as a side
 effect (`electron/window-open-policy.ts`), and the webview has no
@@ -177,7 +177,7 @@ A guest page's `target="_blank"` links (Streamlit's "Ask Google" traceback
 button) reach the OS browser through one explicit bridge instead:
 
 - `main.ts` installs `electron/preview-guest-preload-entry.ts` via
-  `will-attach-webview`, keyed on the `persist:hermes-preview` partition only.
+  `will-attach-webview`, keyed on the `persist:kova-preview` partition only.
   It is the app's only guest preload; a new webview does not inherit it unless
   it opts into that partition.
 - The preload runs in the isolated world, exposes nothing to the page, and
@@ -280,7 +280,7 @@ window manager to exercise actual iconification rather than hiding the window.
 
 ## Nous free tier: state is pulled, never latched in the renderer
 
-The free tier (a Nous identity with no account, `hermes_cli/anon_auth.py`) reaches the renderer
+The free tier (a Nous identity with no account, `kova_cli/anon_auth.py`) reaches the renderer
 through one JSON-RPC pair: `free_tier.status` (has_guest, enabled, available,
 notice_pending, model, label) read from local auth state with zero network, and
 `free_tier.ack_notice`, which persists the one-time notice flag on the identity itself. The

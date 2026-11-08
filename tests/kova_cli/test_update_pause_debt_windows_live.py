@@ -175,7 +175,7 @@ def test_a_running_service_owes_its_gateway_until_that_gateway_is_ready(tmp_path
              else [sys.executable, "-m kova_cli.main gateway run"])
     (bin_dir / "child.txt").write_text("\n".join([*child, str(REPO), f"KOVA_HOME={home}", f"PYTHONPATH={REPO}",
                                                   "PYTHONIOENCODING=utf-8"]) + "\n", encoding="utf-8")
-    name = f"hermes-r8-debt-{gateway}-{os.getpid()}"
+    name = f"kova-r8-debt-{gateway}-{os.getpid()}"
     created = _sc("create", name, "binPath=", f'"{exe}"', "start=", "demand")
     assert created.returncode == 0, created.stdout + created.stderr
     if gateway == "absent":  # the budget only bounds how long the miss takes to report
@@ -223,7 +223,7 @@ def test_a_launch_recovering_an_unready_service_keeps_the_debt_without_stalling(
     exe.write_bytes(service_wrapper.read_bytes())
     (bin_dir / "child.txt").write_text("\n".join([sys.executable, "-c \"import time; time.sleep(900)\"", str(REPO)]) + "\n",
                                        encoding="utf-8")
-    name = f"hermes-r9-recover-{os.getpid()}"
+    name = f"kova-r9-recover-{os.getpid()}"
     created = _sc("create", name, "binPath=", f'"{exe}"', "start=", "demand")
     assert created.returncode == 0, created.stdout + created.stderr
     # The record a killed update left; the tree gate passes (HEAD and tracked changes as stamped).

@@ -248,7 +248,7 @@ def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tm
         thread.join(timeout=5)
 
     assert proc.pid != os.getpid()
-    assert not [m for m in sys.modules if m.startswith('hermes_plugins.')]
+    assert not [m for m in sys.modules if m.startswith('kova_plugins.')]
     assert 'plugins.list' in wire.calls
     detail = (f"(1 {t('cli.plugins.count_noun_tools')}, 1 {t('cli.plugins.count_noun_hooks')}, "
               f"1 {t('cli.plugins.count_noun_commands')})")

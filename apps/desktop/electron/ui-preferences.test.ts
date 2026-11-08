@@ -23,7 +23,7 @@ afterEach(() => {
 })
 
 function scratchHome(): string {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ui-prefs-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ui-prefs-'))
   homes.push(home)
 
   return home
@@ -111,7 +111,7 @@ for n in range(25):
   const pythonRun = promisify(execFile)(python, ['-c', pyWrites], { cwd: repo, env: pythonEnv(home, root) })
 
   for (let n = 0; n < 25; n += 1) {
-    await writeUiPreferences(file, { values: { [`hermes.desktop.native${n}`]: 'native' } })
+    await writeUiPreferences(file, { values: { [`kova.desktop.native${n}`]: 'native' } })
   }
 
   await pythonRun
@@ -122,8 +122,8 @@ for n in range(25):
   assert.equal(revision, 50)
 
   for (let n = 0; n < 25; n += 1) {
-    assert.equal(values[`hermes.desktop.native${n}`], 'native')
-    assert.equal(values[`hermes.desktop.py${n}`], 'web')
+    assert.equal(values[`kova.desktop.native${n}`], 'native')
+    assert.equal(values[`kova.desktop.py${n}`], 'web')
   }
 
   assert.equal(fs.existsSync(`${file}.lock`), false)
@@ -133,14 +133,14 @@ test('a client’s localStorage import only adds the keys a store lacks', async 
   const root = scratchHome()
   const file = uiPreferencesPath(root)
 
-  await writeUiPreferences(file, { values: { 'hermes-desktop-mode-v1': 'dark' } })
+  await writeUiPreferences(file, { values: { 'kova-desktop-mode-v1': 'dark' } })
 
   const seeded = await writeUiPreferences(file, {
     seed: true,
-    values: { 'hermes-desktop-mode-v1': 'light', 'hermes-desktop-theme-v2': 'nous' }
+    values: { 'kova-desktop-mode-v1': 'light', 'kova-desktop-theme-v2': 'nous' }
   })
 
-  assert.deepEqual(seeded.values, { 'hermes-desktop-mode-v1': 'dark', 'hermes-desktop-theme-v2': 'nous' })
+  assert.deepEqual(seeded.values, { 'kova-desktop-mode-v1': 'dark', 'kova-desktop-theme-v2': 'nous' })
   assert.deepEqual(readUiPreferences(file).values, seeded.values)
 })
 
@@ -151,16 +151,16 @@ test.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
   async () => {
     const home = scratchHome()
     const file = uiPreferencesPath(home)
-    await writeUiPreferences(file, { values: { 'hermes-desktop-theme-v2': 'nous', 'kova.desktop.keybinds': '{}' } })
+    await writeUiPreferences(file, { values: { 'kova-desktop-theme-v2': 'nous', 'kova.desktop.keybinds': '{}' } })
     const before = fs.readFileSync(file, 'utf8')
     fs.chmodSync(file, 0)
 
     try {
-      await assert.rejects(writeUiPreferences(file, { values: { 'hermes-desktop-mode-v1': 'dark' } }), /unreadable/)
+      await assert.rejects(writeUiPreferences(file, { values: { 'kova-desktop-mode-v1': 'dark' } }), /unreadable/)
 
       const pythonWrite = promisify(execFile)(
         python,
-        ['-c', 'from kova_cli.ui_preferences import write_preferences as w; w({"hermes-desktop-mode-v1": "dark"})'],
+        ['-c', 'from kova_cli.ui_preferences import write_preferences as w; w({"kova-desktop-mode-v1": "dark"})'],
         { cwd: repo, env: pythonEnv(home, home) }
       )
 

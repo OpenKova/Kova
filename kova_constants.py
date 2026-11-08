@@ -64,20 +64,6 @@ def _platform_default_kova_home(environ: Mapping[str, str], user_home: Callable[
     return user_home() / (".kova" + suffix)
 
 
-def _legacy_hermes_home() -> Path | None:
-    """Pre-rebrand home (~/.hermes or %LOCALAPPDATA%\\hermes) if it still exists."""
-    try:
-        if sys.platform == "win32":
-            local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
-            base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
-            legacy = base / "hermes"
-        else:
-            legacy = Path.home() / ".hermes"
-        return legacy if legacy.exists() else None
-    except Exception:
-        return None
-
-
 def _get_platform_default_kova_home() -> Path:
     """Return the platform default with the literal data-directory suffix."""
     return _platform_default_kova_home(os.environ, Path.home)
@@ -266,10 +252,6 @@ def get_process_kova_home() -> Path:
     if val:
         return _expand_kova_home(val)
     default = _get_platform_default_kova_home()
-    if not default.exists():
-        legacy = _legacy_hermes_home()
-        if legacy is not None:
-            return legacy
     return default
 
 
@@ -342,7 +324,7 @@ _KOVA_HOME_MARKERS = ("config.yaml", ".env", "state.db")
 
 
 def _is_hermes_profiles_root(profiles_dir: Path) -> bool:
-    """True when *profiles_dir* is provably ``<hermes-home>/profiles``.
+    """True when *profiles_dir* is provably ``<kova-home>/profiles``.
 
     Accepts the classic ``~/.kova`` layout, a root carrying Kova-home marker files, a
     ``profiles/.deleted`` tombstone dir (only ``profile delete`` creates it), or the default root.

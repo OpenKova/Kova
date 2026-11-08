@@ -9,7 +9,7 @@ import pytest
     ("kova_cli.main", "serve", ""),
     # current updater entrypoints carry the sentinel local
     ("kova_cli.update_cmd", "_cmd_update_impl",
-     "    _hermes_current_updater_frame = True\n"),
+     "    _kova_current_updater_frame = True\n"),
 ])
 def test_runtime_lookalikes_do_not_start_updates(module, name, locals_, monkeypatch):
     from kova_cli import _old_updater

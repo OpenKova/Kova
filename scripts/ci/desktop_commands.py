@@ -27,7 +27,7 @@ def export_commands(path: Path) -> None:
     file_commands("GITHUB_ENV", {
         "KOVA_PYTHON": prepared.python,
         "KOVA_NODE": prepared.node,
-        "KOVA_HOME": prepared.request.work / "hermes-home",
+        "KOVA_HOME": prepared.request.work / "kova-home",
         "KOVA_RUNTIME_DIR": prepared.request.cache / "tools",
         "PYTHONUTF8": "1",
         "PYTHONDONTWRITEBYTECODE": "1",

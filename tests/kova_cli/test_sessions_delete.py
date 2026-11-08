@@ -27,7 +27,7 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
     monkeypatch.setattr(
         sys,
         "argv",
-        ["hermes", "sessions", "delete", "20260315_092437_c9a6", "--yes"],
+        ["kova", "sessions", "delete", "20260315_092437_c9a6", "--yes"],
     )
 
     main_mod.main()
@@ -57,12 +57,12 @@ def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkey
         rt.claim_session_input(db, epoch=epoch, session_id='s1')
         rt.recover_session_inputs(db, epoch=rt.begin_runtime_epoch(db, instance_id='b'))
     monkeypatch.setattr(kova_state, 'SessionDB', lambda *args, **kwargs: db)
-    monkeypatch.setattr(sys, 'argv', ['hermes', 'sessions', 'delete', 's1', '--yes'])
+    monkeypatch.setattr(sys, 'argv', ['kova', 'sessions', 'delete', 's1', '--yes'])
     with pytest.raises(SystemExit) as exited:
         main_mod.main()
     output = capsys.readouterr().out
     assert exited.value.code == 1
-    assert ('hermes sessions discard s1' in output) == (status == 'unknown'), output
+    assert ('kova sessions discard s1' in output) == (status == 'unknown'), output
     assert 'queued or running turn' in output or status == 'unknown', output
     reopened = SessionDB(tmp_path / 'state.db')
     assert reopened.get_session('s1') is not None
@@ -70,7 +70,7 @@ def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkey
 
 
 def _run_prune(monkeypatch, capsys, argv_tail, candidates=None, skipped_open=0, sub="prune"):
-    """Run `hermes sessions <sub> <argv_tail>` (prune/archive) against a FakeDB, capturing
+    """Run `kova sessions <sub> <argv_tail>` (prune/archive) against a FakeDB, capturing
     the filter kwargs passed to list_prune_candidates. Auto-confirms."""
     import kova_cli.main as main_mod
     import kova_state
@@ -124,14 +124,14 @@ def _run_prune(monkeypatch, capsys, argv_tail, candidates=None, skipped_open=0, 
 
     monkeypatch.setattr(kova_state, "SessionDB", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
-        sys, "argv", ["hermes", "sessions", sub, *argv_tail]
+        sys, "argv", ["kova", "sessions", sub, *argv_tail]
     )
     monkeypatch.setattr("builtins.input", lambda _prompt="": "y")
     main_mod.main()
     return seen, capsys.readouterr().out
 
 def test_sessions_prune_bare_keeps_90_day_default(monkeypatch, capsys):
-    """A truly bare `hermes sessions prune` keeps the implicit 90-day cutoff."""
+    """A truly bare `kova sessions prune` keeps the implicit 90-day cutoff."""
     import time as _time
 
     filters, _out = _run_prune(monkeypatch, capsys, [])

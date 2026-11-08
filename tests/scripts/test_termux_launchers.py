@@ -27,7 +27,7 @@ def test_launchers_forward_arguments_and_export_payload_environment(tmp_path):
         encoding="utf-8",
     )
     (tmp_path / "json.py").write_text("raise RuntimeError('cwd shadowed stdlib')\n", encoding="utf-8")
-    entries = {name: "capture_entry:main" for name in ("hermes", "kova-agent", "hermes-acp")}
+    entries = {name: "capture_entry:main" for name in ("kova", "kova-agent", "kova-acp")}
     write_launchers(payload, entries, python="venv/bin/python", repo="app",
                     site="venv/lib/python3.14/site-packages", target="linux-arm64-bionic")
     bin_dir = tmp_path / "prefix/bin"
@@ -57,15 +57,15 @@ def test_postinst_refuses_foreign_path_and_prerm_preserves_it(tmp_path):
 
     control = tmp_path / "DEBIAN"
     control.mkdir()
-    write_maintainer_scripts(control, ["hermes"])
+    write_maintainer_scripts(control, ["kova"])
     prefix = tmp_path / "prefix"
     bin_dir = prefix / "bin"
     bin_dir.mkdir(parents=True)
-    link = bin_dir / "hermes"
+    link = bin_dir / "kova"
     env = {**os.environ, "PREFIX": str(prefix)}
     command = [shutil.which("sh"), str(control / "postinst"), "configure"]
     subprocess.run(command, check=True, env=env)
-    assert os.readlink(link) == "../lib/kova-agent/bin/hermes"
+    assert os.readlink(link) == "../lib/kova-agent/bin/kova"
     subprocess.run(command, check=True, env=env)
     link.unlink()
     link.write_text("foreign launcher", encoding="utf-8")

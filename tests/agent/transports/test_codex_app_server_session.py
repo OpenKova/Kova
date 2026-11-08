@@ -179,7 +179,7 @@ class TestLifecycle:
         method_calls = [m for (m, _) in client.requests if m == "thread/start"]
         assert len(method_calls) == 1
 
-    def test_thread_start_carries_hermes_prompt_and_disables_codex_personality(self):
+    def test_thread_start_carries_kova_prompt_and_disables_codex_personality(self):
         """thread/start carries cwd, Kova' composed prompt as developerInstructions and
         personality "none" (#74712, #72104, #26035). We intentionally do NOT pass `permissions`
         (experimentalApi-gated + requires a matching config.toml [permissions] table)."""
@@ -431,7 +431,7 @@ class TestRunTurn:
         assert ["serviceTier" in p for p in sent] == [False, True, False, True]
         assert [p.get("serviceTier") for p in sent if "serviceTier" in p] == ["fast", None]
 
-    def test_resumed_thread_receives_the_hermes_tier_even_when_it_is_null(self):
+    def test_resumed_thread_receives_the_kova_tier_even_when_it_is_null(self):
         """CLI ``/fast`` rebuilds the agent, so ``/fast off`` reaches a resumed thread that may still carry the
         earlier tier: its first turn sends Kova' tier, a clearing null included."""
         client = FakeClient()
@@ -1207,7 +1207,7 @@ class TestTransportLoss:
         steer_session._issue_interrupt("turn-fake-001")  # must not raise
 
 
-def test_only_current_turn_progress_reaches_hermes_activity_clock():
+def test_only_current_turn_progress_reaches_kova_activity_clock():
     from agent.activity_tracking import ActivityTrackingMixin
     from agent.codex_runtime import make_codex_app_server_event_bridge
 

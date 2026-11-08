@@ -1,5 +1,5 @@
 // The desktop REST/WS client, split by domain under src/api/. This module is
-// the compatibility barrel: every helper keeps its historical `@/hermes`
+// the compatibility barrel: every helper keeps its historical `@/kova`
 // import path while the implementations live in focused files.
 // client is the one module with internals: profileScoped / connectionScoped /
 // capabilityScoped are shared across api/ but must not reach call sites, or

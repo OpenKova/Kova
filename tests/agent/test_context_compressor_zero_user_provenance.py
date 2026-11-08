@@ -381,7 +381,7 @@ def test_real_task_wins_over_trailing_dropped_tools_continuation_nudge(compresso
 def test_compress_context_todo_snapshot_stays_synthetic_across_two_boundaries(
     tmp_path, monkeypatch
 ):
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     db = SessionDB(db_path=tmp_path / "state.db")
     session_id = "zero-user-todo-lifecycle"

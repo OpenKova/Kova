@@ -39,7 +39,7 @@ def test_profile_local_mcp_tool_is_visible_in_slash_worker(tmp_path):
             mcp = MCPServer("profileprobe")
 
             @mcp.tool()
-            def hermes_61922_profile_probe() -> str:
+            def kova_61922_profile_probe() -> str:
                 return {marker!r}
 
             if __name__ == "__main__":
@@ -116,7 +116,7 @@ def test_profile_local_mcp_tool_is_visible_in_slash_worker(tmp_path):
         # command must still answer promptly, with the tool already present.
         request(1, "/version", 60)
         response = request(2, "/tools", 10)
-        assert "mcp__profileprobe__hermes_61922_profile_probe" in response["output"]
+        assert "mcp__profileprobe__kova_61922_profile_probe" in response["output"]
     finally:
         proc.terminate()
         try:

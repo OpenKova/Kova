@@ -168,7 +168,7 @@ print(json.dumps({
 
 
 def test_deprecated_alias_keeps_a_frozen_out_of_tree_subclass_working(tmp_path):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     plugin = home / "plugins" / "model-providers" / "frozen-acp"
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text(textwrap.dedent(_FROZEN_SUBCLASS_PLUGIN), encoding="utf-8")

@@ -96,7 +96,7 @@ class TestUvStoreDetection:
         )
         assert tcc._is_uv_macos_store(path)
 
-    def test_matches_hermes_runtime_repair_generation(self):
+    def test_matches_kova_runtime_repair_generation(self):
         path = (
             "/Users/u/kova-agent/.kova-runtime/python/"
             "generation-a1b2c3/cpython-3.11.15-macos-aarch64-none/bin/python3.11"

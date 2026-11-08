@@ -196,7 +196,7 @@ def test_high_concurrency_anthropic_refresh_no_lost_updates_no_deadlock(
     )
 
     shared_stale_entry = _entry(
-        id="pool-entry", refresh_token="stale-rt", source="manual:hermes_pkce"
+        id="pool-entry", refresh_token="stale-rt", source="manual:kova_pkce"
     )
     pools = [
         CredentialPool("anthropic", [dc_replace(shared_stale_entry)])

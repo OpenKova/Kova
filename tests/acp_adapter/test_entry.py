@@ -108,8 +108,8 @@ def test_setup_browser_is_one_explicit_package_request(monkeypatch):
 @pytest.mark.parametrize("flags, profile", [([], "work"), (["-p", "other"], "other"), (["-p", "default"], None)],
                          ids=["sticky", "flag", "flag-default"])
 def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
-    """`hermes-acp` starts in entry.main() without kova_cli.main, and must still serve the profile
-    `hermes acp` would pick: the sticky `hermes profile use` choice, or `-p`."""
+    """`kova-acp` starts in entry.main() without kova_cli.main, and must still serve the profile
+    `kova acp` would pick: the sticky `kova profile use` choice, or `-p`."""
     import os
     import subprocess
 
@@ -125,7 +125,7 @@ def test_console_script_runs_in_the_selected_profile(tmp_path, flags, profile):
         "    from kova_constants import get_kova_home\n"
         "    print('SERVED', get_kova_home())\n"
         "acp.run_agent = fake_run_agent\n"
-        f"sys.argv = ['hermes-acp', *{flags!r}]\n"
+        f"sys.argv = ['kova-acp', *{flags!r}]\n"
         "from acp_adapter.entry import main\n"
         "main()\n"
     )

@@ -19,5 +19,5 @@ capabilities:
   provides_hooks: []
   provides_middleware: []
   requires_env:
-    - MQTT_HERMES_URL
-    - MQTT_HERMES_PASSWORD
+    - MQTT_KOVA_URL
+    - MQTT_KOVA_PASSWORD

@@ -15,12 +15,12 @@ import { installBrowserDesktopBridge } from './browser-desktop-bridge'
 
 const source: KovaStagedUpload = {
   install_id: '11111111111111111111111111111111',
-  path: '/srv/hermes/profiles/owner/uploads/web-123-notes.txt',
-  profile_home: '/srv/hermes/profiles/owner'
+  path: '/srv/kova/profiles/owner/uploads/web-123-notes.txt',
+  profile_home: '/srv/kova/profiles/owner'
 }
 
 const sourceName = source.path.split('/').pop()!
-const refText = '@file:/srv/hermes/profiles/owner/attachments/web-123-notes.txt'
+const refText = '@file:/srv/kova/profiles/owner/attachments/web-123-notes.txt'
 const file = () => new File(['payload'], 'notes.txt', { type: 'text/plain' })
 const pastedText = 'Pasted notes\nこんにちは 🌍'
 
@@ -67,7 +67,7 @@ afterEach(() => {
   $connection.set(null)
   Reflect.deleteProperty(window, 'kovaDesktop')
   clearWebappSession()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })

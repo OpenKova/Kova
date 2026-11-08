@@ -171,7 +171,7 @@ def _ensure_lease_watcher() -> None:
             except Exception:
                 logger.debug("lease watcher poll failed", exc_info=True)
             time.sleep(_LEASE_POLL_S)
-    threading.Thread(target=_loop, name="hermes-lease-watcher", daemon=True).start()
+    threading.Thread(target=_loop, name="kova-lease-watcher", daemon=True).start()
 
 
 def register(server) -> None:

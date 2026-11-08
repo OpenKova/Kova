@@ -588,7 +588,7 @@ class TestContentHash:
 # ---------------------------------------------------------------------------
 
 
-# Real lines that blocked third-party hub skills in a random sample of the hermes-index (each a
+# Real lines that blocked third-party hub skills in a random sample of the kova-index (each a
 # community install refused), next to the attack each relaxed rule must keep refusing. Run through
 # the real community install gate, not a single pattern, so a sibling rule still counts.
 _AKIA = "AKIA"  # concatenated so no contiguous key-shaped literal exists in this file
@@ -754,7 +754,7 @@ class TestFalsePositiveReductions:
 
     def test_python_credential_file_read_is_critical_and_plugin_admission_is_dangerous(self, tmp_path):
         # #116950: `open()`/`Path(...).read_*()` on a known credential file was only caught by the
-        # mention-pattern `hermes_env_access` (demoted to medium by SEVERITY_REMAP), so a Python
+        # mention-pattern `kova_env_access` (demoted to medium by SEVERITY_REMAP), so a Python
         # plugin reading `~/.kova/.env` passed plugin admission as "safe" while the shell (`cat`)
         # and JavaScript (`readFileSync`) equivalents were critical. Both call shapes, with and
         # without the `os.path.expanduser(...)` wrapper, land critical.

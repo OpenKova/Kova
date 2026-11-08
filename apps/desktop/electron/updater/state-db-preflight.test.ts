@@ -96,7 +96,7 @@ test('a managed installation runs the snapshot through the installation launcher
   // Stand-in for the installation launcher under `.kova/bin`: it must accept
   // exactly what the runtime passes it — `--run-module kova_cli.backup_sqlite
   // <home>` — and publish the snapshot like the real launcher does.
-  const shim: string = path.join(shims, process.platform === 'win32' ? 'hermes.cmd' : 'hermes')
+  const shim: string = path.join(shims, process.platform === 'win32' ? 'kova.cmd' : 'kova')
   fs.writeFileSync(
     shim,
     process.platform === 'win32'

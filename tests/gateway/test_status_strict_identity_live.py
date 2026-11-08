@@ -1,6 +1,6 @@
 """Strict gateway identity against a REAL process holding ``gateway.lock``.
 
-``hermes update`` on Windows maps live gateways to profiles through
+``kova update`` on Windows maps live gateways to profiles through
 ``get_running_pid_identity_strict``. A live gateway whose ``gateway.pid`` was
 unlinked still holds its runtime lock, and the lock carries the same identity
 record, so the updater must identify it from the lock instead of aborting the
@@ -78,7 +78,7 @@ def _spawn_lock_holder(
     bin_dir: Path, home: Path, *, as_gateway: bool,
 ) -> tuple[subprocess.Popen[str], psutil.Process]:
     bin_dir.mkdir(parents=True, exist_ok=True)
-    script = bin_dir / ("hermes" if as_gateway else "holder.py")
+    script = bin_dir / ("kova" if as_gateway else "holder.py")
     script.write_text(_HOLDER.format(root=str(PROJECT_ROOT)), encoding="utf-8")
     argv = [sys.executable, str(script), *(["gateway", "run"] if as_gateway else [])]
     proc = subprocess.Popen(
@@ -143,7 +143,7 @@ def home(gateway_holder, monkeypatch):
 
 
 # The class-scoped holder spawns before the per-test live-system guard is armed; the mark
-# documents the `hermes gateway run` lookalike and covers it if the fixture is ever narrowed.
+# documents the `kova gateway run` lookalike and covers it if the fixture is ever narrowed.
 @pytest.mark.spawns_gateway_lookalike
 class TestStrictIdentityWithLiveLock:
     def test_missing_pid_file_resolves_from_the_lock_record(self, home, gateway_holder):

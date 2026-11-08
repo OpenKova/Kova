@@ -27,7 +27,7 @@ def _spawn_gateway_lookalike(bin_dir: Path, lock_path: Path) -> subprocess.Popen
     """Real child process whose argv matches the gateway runtime matcher."""
     bin_dir.mkdir(parents=True, exist_ok=True)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    script = bin_dir / "hermes"
+    script = bin_dir / "kova"
     if sys.platform == "win32":
         body = "import time\ntime.sleep(120)\n"
     else:
@@ -121,7 +121,7 @@ class TestCrossProfileStopRefusal:
             tmp_path / "bin", tim_home / "gateway.lock"
         )
         try:
-            record = _pid_record(proc, tmp_path / "bin" / "hermes", root_home)
+            record = _pid_record(proc, tmp_path / "bin" / "kova", root_home)
             (tim_home / "gateway.pid").write_text(json.dumps(record))
 
             from kova_cli import gateway as gateway_cli
@@ -150,7 +150,7 @@ class TestCrossProfileStopRefusal:
             tmp_path / "bin", tim_home / "gateway.lock"
         )
         try:
-            record = _pid_record(proc, tmp_path / "bin" / "hermes", tim_home)
+            record = _pid_record(proc, tmp_path / "bin" / "kova", tim_home)
             (tim_home / "gateway.pid").write_text(json.dumps(record))
 
             from kova_cli import gateway as gateway_cli
@@ -181,7 +181,7 @@ class TestProfileDeleteStopRefusal:
             tmp_path / "bin", tim_home / "gateway.lock"
         )
         try:
-            record = _pid_record(proc, tmp_path / "bin" / "hermes", root_home)
+            record = _pid_record(proc, tmp_path / "bin" / "kova", root_home)
             (tim_home / "gateway.pid").write_text(json.dumps(record))
 
             from kova_cli.profiles import _stop_gateway_process
@@ -205,7 +205,7 @@ class TestProfileDeleteStopRefusal:
             tmp_path / "bin", tim_home / "gateway.lock"
         )
         try:
-            record = _pid_record(proc, tmp_path / "bin" / "hermes", tim_home)
+            record = _pid_record(proc, tmp_path / "bin" / "kova", tim_home)
             (tim_home / "gateway.pid").write_text(json.dumps(record))
 
             from kova_cli.profiles import _stop_gateway_process

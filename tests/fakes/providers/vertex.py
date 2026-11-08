@@ -132,7 +132,7 @@ def make_tls_material(root: Path, hosts: list[str]) -> tuple[Path, Path, Path]:
     ca_key = ec.generate_private_key(ec.SECP256R1())
     ca_ski = x509.SubjectKeyIdentifier.from_public_key(ca_key.public_key())
     ca_cert = (
-        x509.CertificateBuilder().subject_name(_name("hermes-e2e fake Google CA")).issuer_name(_name("hermes-e2e fake Google CA"))
+        x509.CertificateBuilder().subject_name(_name("kova-e2e fake Google CA")).issuer_name(_name("kova-e2e fake Google CA"))
         .public_key(ca_key.public_key()).serial_number(x509.random_serial_number())
         .not_valid_before(now - _dt.timedelta(minutes=5)).not_valid_after(now + _dt.timedelta(days=1))
         .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
@@ -170,7 +170,7 @@ class ServiceAccount:
 def make_service_account(path: Path, token_uri: str, project_id: str) -> ServiceAccount:
     """A service-account key file shaped like the one the Cloud console downloads."""
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    email = f"hermes-e2e@{project_id}.iam.gserviceaccount.com"
+    email = f"kova-e2e@{project_id}.iam.gserviceaccount.com"
     kid = secrets.token_hex(20)
     info = {
         "type": "service_account", "project_id": project_id, "private_key_id": kid,
@@ -678,12 +678,12 @@ def _handler_for(fake: FakeVertex) -> type[BaseHTTPRequestHandler]:
 
 
 MODEL = "google/gemini-3-flash-preview"
-PROJECT = "hermes-e2e-proj"
-SA_EMBEDDED_PROJECT = "hermes-sa-embedded-proj"  # differs from PROJECT: proves the config override wins
+PROJECT = "kova-e2e-proj"
+SA_EMBEDDED_PROJECT = "kova-sa-embedded-proj"  # differs from PROJECT: proves the config override wins
 REGION = "us-central1"
 
 
-def hermes_setup(fake: FakeVertex, *, model: str = MODEL, extra_config: dict[str, Any] | None = None,
+def kova_setup(fake: FakeVertex, *, model: str = MODEL, extra_config: dict[str, Any] | None = None,
                  context_length: int | None = None) -> dict[str, Any]:
     """``make_home`` kwargs for a Kova home that selects ``provider: vertex`` against ``fake``: the SA
     key path in ``.env`` (VERTEX_CREDENTIALS_PATH) and project/region under ``vertex:`` in config.yaml."""
@@ -715,7 +715,7 @@ __all__ = [
     "Say",
     "ServiceAccount",
     "TokenPolicy",
-    "hermes_setup",
+    "kova_setup",
     "make_service_account",
     "make_tls_material",
     "signatures_on_wire",

@@ -85,7 +85,7 @@ afterEach(() => {
   cleanup()
   Reflect.deleteProperty(window, '__KOVA_AUTH_REQUIRED__')
   Reflect.deleteProperty(window, 'kovaDesktop')
-  window.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  window.document.documentElement.removeAttribute('data-kova-desktop-host')
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
   vi.clearAllMocks()

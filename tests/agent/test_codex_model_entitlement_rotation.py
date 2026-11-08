@@ -34,7 +34,7 @@ def _entitlement_400():
 
 @pytest.fixture
 def pool(tmp_path, monkeypatch):
-    root = tmp_path / "hermes-root"
+    root = tmp_path / "kova-root"
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))

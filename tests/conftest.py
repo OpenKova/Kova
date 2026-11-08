@@ -100,7 +100,7 @@ def _kova_home_points_at_production(value: str) -> bool:
         return True
     try:
         # The platform-default root, not a hardcoded ``~/.kova``: Windows installs live under
-        # ``%LOCALAPPDATA%\hermes``, and a dev shell exporting that path used to be honored as
+        # ``%LOCALAPPDATA%\kova``, and a dev shell exporting that path used to be honored as
         # "custom", pinning import-time paths (``tui_gateway.server._kova_home``) to the live
         # install so the state.db guard tripped on every store-touching test (#112692).
         from kova_state_guard import _real_platform_state_root
@@ -118,7 +118,7 @@ def _kova_home_points_at_production(value: str) -> bool:
 # ``import kova_bootstrap`` (transitively: any entry-point module) runs
 # ``export_scratch_tmp_env()``, which points TMPDIR/TMP/TEMP at
 # ``<KOVA_HOME>/cache/scratch`` unless a temp var is already set — and a
-# Kova-launched shell (agent terminal, ``hermes`` child) arrives with that
+# Kova-launched shell (agent terminal, ``kova`` child) arrives with that
 # redirect already applied, tagged by KOVA_SCRATCH_DIR. Either way the tmp
 # root ends up INSIDE a guarded real home (the operator's, or a custom one
 # honored below), so the session sandbox, pytest's basetemp and every
@@ -159,7 +159,7 @@ tempfile.tempdir = None  # re-resolve after stripping guarded temp directories
 os.environ.setdefault("TMPDIR", tempfile.gettempdir())
 
 if _kova_home_points_at_production(os.environ.get("KOVA_HOME", "")):
-    _SESSION_KOVA_HOME = tempfile.mkdtemp(prefix="hermes-test-home-")
+    _SESSION_KOVA_HOME = tempfile.mkdtemp(prefix="kova-test-home-")
     os.environ["KOVA_HOME"] = _SESSION_KOVA_HOME
     # Marker for re-imported conftest module bodies (xdist workers exec this
     # file more than once): the second import sees the already-redirected
@@ -168,10 +168,10 @@ if _kova_home_points_at_production(os.environ.get("KOVA_HOME", "")):
     atexit.register(shutil.rmtree, _SESSION_KOVA_HOME, True)
 
 # PYTHONPYCACHEPREFIX is a bytecode-mirror escape hatch: when set (the
-# bundled desktop app exports it as %LOCALAPPDATA%\hermes\pycache),
+# bundled desktop app exports it as %LOCALAPPDATA%\kova\pycache),
 # importlib/pytest write .pyc files to <prefix>/<absolute source path>
 # instead of next to the sources. Un-scrubbed, that mirror lands under
-# the REAL hermes home and trips the real-home tripwire on any module
+# the REAL kova home and trips the real-home tripwire on any module
 # imported after sandboxing (test_find_shell was the first to bite).
 # Clear it so bytecode goes back beside the (already sandboxed) sources.
 os.environ.pop("PYTHONPYCACHEPREFIX", None)
@@ -211,7 +211,7 @@ KOVA_HOME_AT_CONFTEST_IMPORT = os.environ.get("KOVA_HOME", "")
 
 # ── Host-rendezvous isolation ───────────────────────────────────────────────
 # ``gateway/host_rendezvous.py`` publishes ONE record per role per OS USER, in
-# ``$KOVA_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks`` —
+# ``$KOVA_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/kova/gateway-locks`` —
 # deliberately outside KOVA_HOME, because the host singleton spans profiles.
 # Under the per-file parallel runner that directory is shared by ~40 pytest
 # subprocesses: one test that boots a real gateway publishes a record, and every
@@ -225,7 +225,7 @@ if not HOST_LOCK_DIR_AT_CONFTEST_IMPORT:
     # Deterministic per-PID name, not mkdtemp: the parallel runner SIGKILLs a worker on timeout,
     # which never runs atexit, so a random dir per run leaked one directory per killed worker.
     # A fixed name is reused by the next process with that PID, and dead siblings are swept here.
-    _LOCK_DIR_PREFIX = "hermes-test-gateway-locks-"
+    _LOCK_DIR_PREFIX = "kova-test-gateway-locks-"
     _LOCK_DIR_ROOT = Path(tempfile.gettempdir())
     for _stale in _LOCK_DIR_ROOT.glob(f"{_LOCK_DIR_PREFIX}*"):
         try:
@@ -291,7 +291,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     # on it), but pin the host so ordinary tests cannot inherit a developer's
     # defaultHost and silently select the wrong nested config block. Tests of
     # custom host resolution override/delete this explicitly.
-    monkeypatch.setenv("KOVA_HONCHO_HOST", "hermes")
+    monkeypatch.setenv("KOVA_HONCHO_HOST", "kova")
 
     # 3. Isolate both inputs to profile/root resolution. KOVA_HOME alone
     #    is insufficient: get_default_kova_root() resolves the native root
@@ -311,7 +311,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     monkeypatch.setattr(
         kova_constants, "_get_platform_default_kova_home", isolated_platform_default
     )
-    fake_kova_home = tmp_path / "hermes_test"
+    fake_kova_home = tmp_path / "kova_test"
     fake_kova_home.mkdir()
     (fake_kova_home / "sessions").mkdir()
     (fake_kova_home / "cron").mkdir()
@@ -340,7 +340,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     # host gateway/serve record is shared per OS user by design, so without this
     # one test's published owner makes the next test's lifecycle code attach to it.
     # HOME is deliberately NOT redirected above, so an unpinned run would read and
-    # write the developer's live ~/.local/state/hermes/gateway-locks.
+    # write the developer's live ~/.local/state/kova/gateway-locks.
     # Skipped when the caller supplied the variable, so an explicit override still
     # works (tests of the resolution rule itself rely on that).
     if not HOST_LOCK_DIR_AT_CONFTEST_IMPORT:
@@ -897,7 +897,7 @@ def tmp_dir(tmp_path):
 
 @pytest.fixture()
 def mock_config():
-    """Return a minimal hermes config dict suitable for unit tests."""
+    """Return a minimal kova config dict suitable for unit tests."""
     return {
         "model": "test/mock-model",
         "toolsets": ["terminal", "file"],
@@ -1054,9 +1054,9 @@ _ALLOW_MACOS_KEYCHAIN_MARK = "allow_macos_keychain"
 def _relocate_basetemp_outside_operator_home(config) -> None:
     """Move pytest's basetemp out of the operator's platform-native Kova home.
 
-    Every per-test sandbox is ``<basetemp>/.../hermes_test``. ``get_default_kova_root()``
+    Every per-test sandbox is ``<basetemp>/.../kova_test``. ``get_default_kova_root()``
     prefers the platform-native home whenever ``KOVA_HOME`` sits *under* it, so a basetemp
-    inside ``~/.kova`` (or ``%LOCALAPPDATA%\\hermes``, where ``TEMP`` commonly lives on
+    inside ``~/.kova`` (or ``%LOCALAPPDATA%\\kova``, where ``TEMP`` commonly lives on
     Windows) turns the sandbox back into the live install and ``get_profile_dir("default")``
     writes fixtures over the operator's config.yaml / .env / MEMORY.md (#111101).
     """
@@ -1074,7 +1074,7 @@ def _relocate_basetemp_outside_operator_home(config) -> None:
     # Kova home). The repo is no escape either: the default install checks it
     # out *inside* the home (~/.kova/kova-agent). The relocated basetemp goes
     # into ONE prunable root outside the home, never loose into the operator's
-    # $HOME (123 ``hermes-pytest-basetemp-*`` dirs piled up there in a day, one per
+    # $HOME (123 ``kova-pytest-basetemp-*`` dirs piled up there in a day, one per
     # test file the per-file runner spawned). It is removed when this pytest exits
     # and, for runs that were killed before that, swept once it is 24h idle.
     safe = Path(tempfile.mkdtemp(prefix="b-", dir=_pytest_disk_temp_root(native)))
@@ -1084,7 +1084,7 @@ def _relocate_basetemp_outside_operator_home(config) -> None:
     )
     factory._given_basetemp = safe
     config.option.basetemp = str(safe)
-    config._hermes_relocated_basetemp = safe
+    config._kova_relocated_basetemp = safe
 
 
 def _pytest_disk_temp_root(native: Path) -> Path:
@@ -1095,16 +1095,16 @@ def _pytest_disk_temp_root(native: Path) -> Path:
     from kova_constants_scratch import prune_idle_entries
 
     if os.name != "nt" and os.path.isdir("/var/tmp"):  # no-tmp: ok — disk-backed FHS root
-        root = Path("/var/tmp/hermes-pytest")  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs
+        root = Path("/var/tmp/kova-pytest")  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs
     else:
-        root = native.parent / "hermes-pytest"
+        root = native.parent / "kova-pytest"
     root.mkdir(parents=True, exist_ok=True)
     prune_idle_entries(root, 24, frozenset())
     return root
 
 
 def _remove_relocated_basetemp(config) -> None:
-    safe = getattr(config, "_hermes_relocated_basetemp", None)
+    safe = getattr(config, "_kova_relocated_basetemp", None)
     if safe is not None:
         shutil.rmtree(safe, ignore_errors=True)
 
@@ -1140,10 +1140,10 @@ def _processes_with_kova_home_under(roots) -> list[int]:
     return found
 
 
-def _reap_session_hermes_processes(config) -> list[int]:
+def _reap_session_kova_processes(config) -> list[int]:
     """SIGTERM every process still running against a Kova home this session created.
 
-    Tests that run a real ``hermes chat -q`` child get a grandchild ``gateway run`` (detached, own
+    Tests that run a real ``kova chat -q`` child get a grandchild ``gateway run`` (detached, own
     session) that no per-test subprocess patch can see, and pytest's tmp cleanup removes only
     directories: each one used to outlive the run at ~250 MB. The session basetemp and the session
     sandbox home bound exactly what this run created, so nothing else is ever signalled.
@@ -1152,7 +1152,7 @@ def _reap_session_hermes_processes(config) -> list[int]:
 
     factory = getattr(config, "_tmp_path_factory", None)
     # The basetemp pytest already created (never create one at teardown just to scan it).
-    roots = [getattr(config, "_hermes_relocated_basetemp", None), os.environ.get("KOVA_TEST_SANDBOX_HOME"),
+    roots = [getattr(config, "_kova_relocated_basetemp", None), os.environ.get("KOVA_TEST_SANDBOX_HOME"),
              getattr(factory, "_basetemp", None)]
     pids = _processes_with_kova_home_under(roots)
     for pid in pids:
@@ -1198,7 +1198,7 @@ def require_mcp_2_sdk():
 
 
 def pytest_unconfigure(config):
-    _reap_session_hermes_processes(config)
+    _reap_session_kova_processes(config)
     _remove_relocated_basetemp(config)
 
 
@@ -1575,7 +1575,7 @@ def _moa_caches_isolated():
 # deployment review caught in pm/plugins_state.py), and (b) imports freezing
 # real-home paths before fixtures run. The kanban guard (#69283) covers one
 # subsystem; this covers EVERY file operation: any open()/mkdir/stat-family
-# call resolving under the REAL hermes root fails the test immediately
+# call resolving under the REAL kova root fails the test immediately
 # with a message naming the path — reads AND writes (a read of production
 # state is as much a leak as a write: it drags fixture rows and real config
 # into test assertions).
@@ -1586,7 +1586,7 @@ def _moa_caches_isolated():
 _REAL_KOVA_ROOT_CANDIDATES: list[Path] = []
 
 
-def _capture_real_hermes_root() -> list[Path]:
+def _capture_real_kova_root() -> list[Path]:
     """The real root(s) to refuse: the default ~/.kova plus a pre-sandbox
     custom KOVA_HOME when one was set. Both are guarded — the default
     because hardcoded restatements hit it; the custom one because
@@ -1600,12 +1600,12 @@ def _capture_real_hermes_root() -> list[Path]:
         roots.append(default_root)
     except Exception:
         pass
-    # native-Windows default: %LOCALAPPDATA%\hermes (get_kova_home's
+    # native-Windows default: %LOCALAPPDATA%\kova (get_kova_home's
     # platform-native path) — guard it too
     localappdata = os.environ.get("LOCALAPPDATA", "")
     if localappdata:
         try:
-            win_root = (Path(localappdata) / "hermes").resolve()
+            win_root = (Path(localappdata) / "kova").resolve()
             if win_root not in roots:
                 roots.append(win_root)
         except Exception:
@@ -1627,7 +1627,7 @@ def _capture_real_hermes_root() -> list[Path]:
     return roots
 
 
-_REAL_KOVA_ROOT_CANDIDATES = _capture_real_hermes_root()
+_REAL_KOVA_ROOT_CANDIDATES = _capture_real_kova_root()
 # Captured before any test can patch sys.platform, HOME or XDG_*: a test that runs the real
 # GUI uninstall or update swap would otherwise delete the developer's own Kova app. Only the
 # ones present (none on CI runners, so the guard costs nothing there), each literal and resolved.

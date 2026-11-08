@@ -284,7 +284,7 @@ def test_each_profile_resolves_its_own_mode_under_the_multiplexer(monkeypatch, t
     from agent import secret_scope
     from tools.delegate_tool_config import gateway_delegation_inline
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     beta = root / "profiles" / "beta"
     beta.mkdir(parents=True)
     (root / "config.yaml").write_text(yaml.safe_dump(_interim(False)))

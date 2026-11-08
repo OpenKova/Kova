@@ -135,7 +135,7 @@ async function listDirs(dir: string, followLinks = false): Promise<string[]> {
   }
 }
 
-/** Every hermes home the app knows about locally: the default plus each profile. */
+/** Every kova home the app knows about locally: the default plus each profile. */
 export async function localHomes(kovaHome: string): Promise<string[]> {
   const profiles = await listDirs(path.join(kovaHome, 'profiles'))
 

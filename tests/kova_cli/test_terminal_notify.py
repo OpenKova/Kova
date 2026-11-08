@@ -39,7 +39,7 @@ def test_warp_osc777_only_under_supported_warp_build(monkeypatch):
     prefix = "\x1b]777;notify;warp://cli-agent;"
     assert out.count(prefix) == 1
     payload = json.loads(out.split(prefix, 1)[1].rstrip("\x07"))
-    assert payload["agent"] == "hermes"
+    assert payload["agent"] == "kova"
     assert payload["event"] == "permission_request"
     assert payload["summary"] == "rm -rf build"
     assert payload["session_id"] == "sess-1"

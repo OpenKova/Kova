@@ -402,12 +402,12 @@ class TestCacheDirectoryMounts:
         """Old-style dir names (e.g. document_cache) are resolved correctly.
 
         Populates the legacy dirs with a sentinel file so they count as
-        ``has content`` for ``get_hermes_dir``'s populated-legacy check
+        ``has content`` for ``get_kova_dir``'s populated-legacy check
         (see #27602 — empty legacy stubs are no longer honoured).
         """
         kova_home = tmp_path / ".kova"
         kova_home.mkdir()
-        # Use legacy dir name with content — get_hermes_dir prefers
+        # Use legacy dir name with content — get_kova_dir prefers
         # populated old over new.
         legacy_doc = kova_home / "document_cache"
         legacy_img = kova_home / "image_cache"
@@ -528,13 +528,13 @@ class TestToAgentVisiblePathPerBackend:
         monkeypatch.setenv("KOVA_HOME", str(kova_home))
         return str(kova_home / "attachments" / "drop.zip")
 
-    def test_docker_maps_to_root_hermes(self, tmp_path, monkeypatch):
+    def test_docker_maps_to_root_kova(self, tmp_path, monkeypatch):
         staged = self._staged(tmp_path, monkeypatch)
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         from tools.credential_files import to_agent_visible_cache_path
         assert to_agent_visible_cache_path(staged) == "/root/.kova/attachments/drop.zip"
 
-    def test_ssh_maps_to_tilde_hermes(self, tmp_path, monkeypatch):
+    def test_ssh_maps_to_tilde_kova(self, tmp_path, monkeypatch):
         staged = self._staged(tmp_path, monkeypatch)
         monkeypatch.setenv("TERMINAL_ENV", "ssh")
         from tools.credential_files import to_agent_visible_cache_path
@@ -556,7 +556,7 @@ class TestToAgentVisiblePathPerBackend:
     def test_symlinked_home_maps_resolved_path(self, tmp_path, monkeypatch):
         """#103147: ``@file:`` expansion resolves the staged path, but the mount roots
         keep KOVA_HOME's symlinked spelling; the resolved path must still map."""
-        real_home = tmp_path / "real-hermes"
+        real_home = tmp_path / "real-kova"
         (real_home / "attachments").mkdir(parents=True)
         link_home = tmp_path / ".kova"
         link_home.symlink_to(real_home, target_is_directory=True)

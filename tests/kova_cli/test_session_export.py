@@ -110,7 +110,7 @@ def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys, tmp_path):
     monkeypatch.setattr(
         sys,
         "argv",
-        ["hermes", "sessions", "export", "-", "--session-id", "sess", "--only", "user-prompts"],
+        ["kova", "sessions", "export", "-", "--session-id", "sess", "--only", "user-prompts"],
     )
 
     main_mod.main()

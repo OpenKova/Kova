@@ -2,7 +2,7 @@
 
 `state.db` has two cross-process admission authorities that gate destructive
 work on a file several Kova processes share (gateway service, the Desktop
-app's `hermes serve` backend, CLI sessions, the TUI slash worker):
+app's `kova serve` backend, CLI sessions, the TUI slash worker):
 
 * `kova_state_common.fts_rebuild_admission` — full structural FTS rebuilds
 * `kova_state_repair._cross_process_repair_lock`   — writable_schema surgery / VACUUM

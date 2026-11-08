@@ -3,7 +3,7 @@
 Build the real image and verify the actual runtime behavior:
 
   1. docker run --user <arbitrary-uid> is rejected with actionable guidance
-  2. --user <hermes-uid> (10000) is allowed (supported non-root start)
+  2. --user <kova-uid> (10000) is allowed (supported non-root start)
 
 Root start (the default) is covered by test_main_invocation.py.
 """
@@ -37,10 +37,10 @@ def test_arbitrary_user_uid_rejected(
 
 
 
-def test_user_pinned_to_hermes_uid_works(
+def test_user_pinned_to_kova_uid_works(
     built_image: str,
 ) -> None:
-    """docker run --user 10000:10000 (the hermes UID) must be allowed.
+    """docker run --user 10000:10000 (the kova UID) must be allowed.
 
     This is the supported non-root start from #34648 / #34837.
     """
@@ -51,6 +51,6 @@ def test_user_pinned_to_hermes_uid_works(
         check=False,
     )
     assert r.returncode == 0, (
-        f"--user 10000:10000 (hermes UID) was rejected: {r.stderr[-500:]}"
+        f"--user 10000:10000 (kova UID) was rejected: {r.stderr[-500:]}"
     )
     assert "OK" in r.stdout

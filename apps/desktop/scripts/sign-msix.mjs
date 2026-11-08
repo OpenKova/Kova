@@ -89,7 +89,7 @@ async function loadAzureManagerClass() {
 }
 
 // The packager owns both admission and the manager, including concurrent hooks.
-const signingOperation = Symbol('hermes.azureSigningOperation')
+const signingOperation = Symbol('kova.azureSigningOperation')
 /** @typedef {{ ensureTools?: typeof ensureWindowsBundleTools, loadManager?: typeof loadAzureManagerClass }} SigningDependencies */
 
 /**

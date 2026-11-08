@@ -23,7 +23,7 @@ function makeFakeDesktop(version) {
     path.join(dir, 'product-identity.cjs'),
     "module.exports = { store: false, light: false, displayName: 'Kova', appId: 'com.nousresearch.kova-bundled', channel: 'latest', artifactNamePascal: 'KovaBundled', msixAppIdWithOrg: 'NeuralStudio.KovaBundled' }\n"
   )
-  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'hermes-desktop', version }))
+  fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'kova-desktop', version }))
   return dir
 }
 

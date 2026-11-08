@@ -37,7 +37,7 @@
 set -e
 
 INIT_TARGET="${KOVA_TINI_SHIM_TARGET:-/init}"
-WRAPPER="${KOVA_TINI_SHIM_WRAPPER:-/opt/hermes/docker/main-wrapper.sh}"
+WRAPPER="${KOVA_TINI_SHIM_WRAPPER:-/opt/kova/docker/main-wrapper.sh}"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in

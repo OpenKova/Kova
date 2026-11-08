@@ -38,7 +38,7 @@ class TestAuxiliaryOpenrouterDefaultIsFree:
 
 class TestEnvIngestionWarning:
     def _fresh_home(self, tmp_path, monkeypatch, token="sk-or-FAKEINGEST123"):
-        home = tmp_path / "hermes"
+        home = tmp_path / "kova"
         home.mkdir(parents=True, exist_ok=True)
         monkeypatch.setenv("KOVA_HOME", str(home))
         monkeypatch.setenv("OPENROUTER_API_KEY", token)

@@ -117,7 +117,7 @@ def test_sticky_profile_force_gateway_stays_stoppable(homes, monkeypatch):
         pid = child.pid
         (root / 'active_profile').write_text('default\n')  # the sticky choice moved on after launch
         (secondary / 'gateway.pid').write_text(json.dumps({
-            'pid': pid, 'kind': status._GATEWAY_KIND, 'argv': ['hermes', 'gateway', 'run', '--force'],
+            'pid': pid, 'kind': status._GATEWAY_KIND, 'argv': ['kova', 'gateway', 'run', '--force'],
             'start_time': status._get_process_start_time(pid), 'kova_home': str(secondary)}))
         monkeypatch.setenv('KOVA_HOME', str(secondary))
         monkeypatch.setattr(hr, 'read_record', lambda role, **kw: None)

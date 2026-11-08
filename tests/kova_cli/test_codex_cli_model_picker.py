@@ -7,7 +7,7 @@ Covers:
 
 Note: auto-import from ~/.codex/auth.json was removed in #12360 — Kova
 now owns its own openai-codex auth state, and users explicitly adopt
-existing Codex CLI tokens via `hermes auth openai-codex`. The old
+existing Codex CLI tokens via `kova auth openai-codex`. The old
 "Codex CLI shared file" discovery tests were removed with that change.
 """
 
@@ -29,7 +29,7 @@ def _make_fake_jwt(expiry_offset: int = 3600) -> str:
 
 
 @pytest.fixture()
-def hermes_auth_only_env(tmp_path, monkeypatch):
+def kova_auth_only_env(tmp_path, monkeypatch):
     """Tokens already in Kova auth store (no Codex CLI needed)."""
     kova_home = tmp_path / ".kova"
     kova_home.mkdir()
@@ -60,7 +60,7 @@ def hermes_auth_only_env(tmp_path, monkeypatch):
     return kova_home
 
 
-def test_normal_path_still_works(hermes_auth_only_env):
+def test_normal_path_still_works(kova_auth_only_env):
     """openai-codex appears when tokens are already in Kova auth store."""
     from kova_cli.model_switch import list_authenticated_providers
 

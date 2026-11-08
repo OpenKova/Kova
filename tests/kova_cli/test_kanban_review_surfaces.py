@@ -99,7 +99,7 @@ def test_review_tools_are_gated_and_visible_to_kanban_workers(
 
     invalidate_check_fn_cache()
     definitions = registry.get_definitions(
-        set(resolve_toolset("hermes-cli")), quiet=True
+        set(resolve_toolset("kova-cli")), quiet=True
     )
     names = {
         definition["function"]["name"]

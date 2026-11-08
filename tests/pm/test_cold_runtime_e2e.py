@@ -182,7 +182,7 @@ assert importlib.util.find_spec('yaml') is None
 assert importlib.util.find_spec('packaging') is None
 assert importlib.util.find_spec('idna') is None
 """
-    cli = "\nsys.argv = ['hermes', 'pm', {action!r}]; import kova_cli.main\n"
+    cli = "\nsys.argv = ['kova', 'pm', {action!r}]; import kova_cli.main\n"
     try:
         assert not store.exists()
         assert not (kova_home / "installs").exists()

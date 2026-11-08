@@ -76,7 +76,7 @@ def test_remove_launchd_gateway_returns_false_when_no_plists(launch_agents, monk
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="macOS Library layout")
-def test_remove_desktop_app_leftovers_removes_hermes_library_entries(fake_home):
+def test_remove_desktop_app_leftovers_removes_kova_library_entries(fake_home):
     library = fake_home / "Library"
     ours = []
     for parent, name in (
@@ -99,8 +99,8 @@ def test_remove_desktop_app_leftovers_removes_hermes_library_entries(fake_home):
 
 
 def test_xdg_cache_removed_and_data_mode_semantics(fake_home):
-    cache = fake_home / ".cache" / "hermes"
-    data = fake_home / ".local" / "share" / "hermes"
+    cache = fake_home / ".cache" / "kova"
+    data = fake_home / ".local" / "share" / "kova"
     cache.mkdir(parents=True)
     data.mkdir(parents=True)
 
@@ -113,8 +113,8 @@ def test_xdg_cache_removed_and_data_mode_semantics(fake_home):
 
 
 def test_xdg_data_removed_on_full_uninstall(fake_home):
-    cache = fake_home / ".cache" / "hermes"
-    data = fake_home / ".local" / "share" / "hermes"
+    cache = fake_home / ".cache" / "kova"
+    data = fake_home / ".local" / "share" / "kova"
     cache.mkdir(parents=True)
     data.mkdir(parents=True)
 

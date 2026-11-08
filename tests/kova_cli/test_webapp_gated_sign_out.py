@@ -2,7 +2,7 @@
 
 On a LAN or own-URL Webapp a browser signs in with the dashboard's sign-in (a password, or an OAuth
 provider) and keeps that login in cookies. Each login on the Webapp is bound to the gateway's browser
-credential, so ``hermes webapp --sign-out``, which replaces that credential, ends every one of them:
+credential, so ``kova webapp --sign-out``, which replaces that credential, ends every one of them:
 the login's requests get 401 and the sign-in view, the sockets and host terminals it opened close with
 4401, tickets it minted open nothing, and its cookies replayed from anywhere get nothing. The provider
 tokens those cookies hold work only as those cookies: the Webapp's listener refuses them as a bearer
@@ -22,7 +22,7 @@ from tests.kova_cli.test_web_host_terminal_persistence import metadata
 from tests.kova_cli.test_webapp_sign_out_sockets import _close_code
 from tests.kova_cli.test_webapp_socket_tickets import _TOKEN, serve_webapp
 
-WEBAPP = "http://hermes.lan:9120"
+WEBAPP = "http://kova.lan:9120"
 USER, PASSWORD = "owner", "throwaway-test-password"
 
 
@@ -38,7 +38,7 @@ def gated(tmp_path, monkeypatch):
 
     webapp = serve_webapp(tmp_path, monkeypatch)
     state = webapp.server.app.state
-    monkeypatch.setattr(state, "bound_host", "hermes.lan")
+    monkeypatch.setattr(state, "bound_host", "kova.lan")
     monkeypatch.setattr(state, "bound_port", 9120, raising=False)
     monkeypatch.setattr(state, "auth_required", True)
     monkeypatch.setattr(state, "webapp_home", tmp_path / ".kova", raising=False)
@@ -151,9 +151,9 @@ def test_signing_out_closes_the_sockets_and_host_terminal_a_login_opened(gated, 
     events = browser.post("/api/auth/ws-ticket").json()["ticket"]
     other = mint_ticket(user_id="someone-else", provider="stub")
     with TestClient(gated.host, base_url=WEBAPP) as shells, \
-            shells.websocket_connect(f"ws://hermes.lan:9120/api/host-terminal?ticket={terminal}") as shell, \
-            browser.websocket_connect(f"ws://hermes.lan:9120/api/events?channel=tab-1&ticket={events}") as stream, \
-            browser.websocket_connect(f"ws://hermes.lan:9120/api/events?channel=kept&ticket={other}") as kept:
+            shells.websocket_connect(f"ws://kova.lan:9120/api/host-terminal?ticket={terminal}") as shell, \
+            browser.websocket_connect(f"ws://kova.lan:9120/api/events?channel=tab-1&ticket={events}") as stream, \
+            browser.websocket_connect(f"ws://kova.lan:9120/api/events?channel=kept&ticket={other}") as kept:
         metadata(shell)
         assert _close_code(shell, 0.2) is None and _close_code(stream, 0.2) is None
         result = sign_out()
@@ -171,8 +171,8 @@ def test_tickets_a_login_minted_before_sign_out_open_nothing_after(gated, sign_o
     events = browser.post("/api/auth/ws-ticket").json()["ticket"]
     sign_out()
     with TestClient(gated.host, base_url=WEBAPP) as shells:
-        for client, url in ((shells, f"ws://hermes.lan:9120/api/host-terminal?ticket={terminal}"),
-                            (browser, f"ws://hermes.lan:9120/api/events?channel=tab-1&ticket={events}")):
+        for client, url in ((shells, f"ws://kova.lan:9120/api/host-terminal?ticket={terminal}"),
+                            (browser, f"ws://kova.lan:9120/api/events?channel=tab-1&ticket={events}")):
             with pytest.raises(WebSocketDisconnect) as closed:
                 with client.websocket_connect(url) as ws:
                     ws.receive_text()
@@ -184,7 +184,7 @@ def test_the_standalone_dashboard_keeps_its_logins_as_on_main(gated, monkeypatch
     monkeypatch.setattr(gated.server.app.state, "ui_surface", "dashboard")
     browser = gated.browser()
     _sign_in_with_password(browser)
-    assert not any("hermes_webapp_signin" in name for name in browser.cookies.keys())
+    assert not any("kova_webapp_signin" in name for name in browser.cookies.keys())
     monkeypatch.setattr(gated.server, "_SESSION_TOKEN", "n" * 43)
     assert browser.get("/api/auth/me").status_code == 200
 
@@ -202,7 +202,7 @@ def test_two_gateways_on_one_hostname_keep_their_own_sign_ins(gated, monkeypatch
         monkeypatch.setattr(state, "webapp_home", home)
         monkeypatch.setattr(state, "bound_port", port)
         monkeypatch.setattr(gated.server, "_SESSION_TOKEN", token)
-        return f"http://hermes.lan:{port}{path}"
+        return f"http://kova.lan:{port}{path}"
 
     for port in (9120, 9121):
         signed_in = browser.post(at(port, "/auth/password-login"),
@@ -237,7 +237,7 @@ def test_two_gateways_with_their_own_sign_in_on_one_hostname_keep_their_logins_a
         monkeypatch.setattr(gated.server, "_SESSION_TOKEN", token)
         clear_providers()
         register_provider(providers[port])
-        return f"http://hermes.lan:{port}{path}"
+        return f"http://kova.lan:{port}{path}"
 
     for port in (9120, 9121):
         signed_in = browser.post(at(port, "/auth/password-login"),
@@ -246,7 +246,7 @@ def test_two_gateways_with_their_own_sign_in_on_one_hostname_keep_their_logins_a
     assert browser.get(at(9121, "/api/auth/me")).status_code == 200
     first = browser.get(at(9120, "/api/auth/me"))
     assert first.status_code == 200, f"signing in to the second gateway signed the first out: {first.text}"
-    assert browser.post(at(9121, "/auth/logout"), headers={"Origin": "http://hermes.lan:9121"},
+    assert browser.post(at(9121, "/auth/logout"), headers={"Origin": "http://kova.lan:9121"},
                         follow_redirects=False).status_code == 302
     _signed_out(browser.get(at(9121, "/api/auth/me")))
     assert browser.get(at(9120, "/api/auth/me")).status_code == 200
@@ -260,14 +260,14 @@ def test_the_webapp_leaves_cookies_named_for_no_gateway_to_the_dashboard(gated, 
     browser = gated.browser()
     _sign_in_with_password(browser)
     names = set(browser.cookies.keys())
-    assert {"hermes_session_at", "hermes_session_rt", "hermes_session_provider"} <= names
+    assert {"kova_session_at", "kova_session_rt", "kova_session_provider"} <= names
     monkeypatch.setattr(gated.server.app.state, "ui_surface", "webapp")
     on_webapp = browser.get("/api/auth/me")
     _signed_out(on_webapp)
-    assert "hermes_session_at=" not in on_webapp.headers.get("set-cookie", "")
+    assert "kova_session_at=" not in on_webapp.headers.get("set-cookie", "")
     signed_out = browser.post("/auth/logout", headers={"Origin": WEBAPP}, follow_redirects=False)
     assert signed_out.status_code == 302
-    assert "hermes_session_at=" not in signed_out.headers.get("set-cookie", "")
+    assert "kova_session_at=" not in signed_out.headers.get("set-cookie", "")
     monkeypatch.setattr(gated.server.app.state, "ui_surface", "dashboard")
     assert browser.get("/api/auth/me").status_code == 200
 
@@ -302,7 +302,7 @@ def _tokens(client):
     """The access and refresh token the cookie login on *client* holds, as a copy taken out of the
     browser would present them (the cookie keeps them in quotes)."""
     return tuple(client.cookies.get(_cookie(client, name)).strip('"')
-                 for name in ("hermes_session_at", "hermes_session_rt"))
+                 for name in ("kova_session_at", "kova_session_rt"))
 
 
 def _bearer(token):
@@ -356,8 +356,8 @@ def test_a_logins_tokens_work_only_as_its_cookies(gated, sign_in):
     assert browser.get("/api/auth/me").status_code == 200
     access, refresh = _tokens(browser)
     _refused_alone(gated, access, refresh)
-    stored = (browser.cookies.get(_cookie(browser, "hermes_session_at")),
-              browser.cookies.get(_cookie(browser, "hermes_session_rt")))
+    stored = (browser.cookies.get(_cookie(browser, "kova_session_at")),
+              browser.cookies.get(_cookie(browser, "kova_session_rt")))
     _refused_alone(gated, *stored)
 
 
@@ -367,7 +367,7 @@ def test_a_pair_renewed_before_sign_out_is_refused_after_it(gated, sign_out, clo
     first = _tokens(browser)
     # The gate renews the browser's pair once its access token lapses.
     clock()
-    browser.cookies.delete(_cookie(browser, "hermes_session_at"))
+    browser.cookies.delete(_cookie(browser, "kova_session_at"))
     assert browser.get("/api/auth/me").status_code == 200
     renewed = _tokens(browser)
     assert renewed[0] != first[0]
@@ -392,7 +392,7 @@ def test_a_credential_replaced_while_the_gateway_was_down_ends_its_logins_tokens
     browser = gated.browser()
     _sign_in_with_password(browser)
     access, refresh = _tokens(browser)
-    # The gateway stops, hermes webapp --sign-out replaces the stored credential, a gateway starts.
+    # The gateway stops, kova webapp --sign-out replaces the stored credential, a gateway starts.
     _restart(gated, monkeypatch, token=browser_session_token(tmp_path / ".kova", rotate=True))
     _signed_out(browser.get("/api/auth/me"))
     _refused_alone(gated, access, refresh)
@@ -512,7 +512,7 @@ def _gateway_socket_with(gated, access):
     from urllib.parse import quote
 
     try:
-        with gated.browser().websocket_connect(f"ws://hermes.lan:9120/api/ws?token={quote(access)}") as ws:
+        with gated.browser().websocket_connect(f"ws://kova.lan:9120/api/ws?token={quote(access)}") as ws:
             return _close_code(ws, 0.5)
     except WebSocketDisconnect as closed:
         return closed.code
@@ -529,7 +529,7 @@ def _socket_close_code(client, path, token):
     stays open."""
     joiner = "&" if "?" in path else "?"
     try:
-        with client.websocket_connect(f"ws://hermes.lan:9120{path}{joiner}token={token}") as ws:
+        with client.websocket_connect(f"ws://kova.lan:9120{path}{joiner}token={token}") as ws:
             return _close_code(ws, 0.5)
     except WebSocketDisconnect as closed:
         return closed.code
@@ -564,7 +564,7 @@ def test_a_native_apps_token_opens_a_socket_that_stays_open_across_sign_out(gate
     """A token the listener gave a native app's sign-in opens a socket as ``?token=``; signing the
     browsers out leaves that socket open and the token working."""
     access, _refresh = _native_app_sign_in(gated)
-    with gated.browser().websocket_connect(f"ws://hermes.lan:9120/api/events?channel=desk&token={access}") as events:
+    with gated.browser().websocket_connect(f"ws://kova.lan:9120/api/events?channel=desk&token={access}") as events:
         assert _close_code(events, 0.2) is None
         assert sign_out()["connections_closed"] == 0
         assert _close_code(events, 0.5) is None

@@ -5,7 +5,7 @@ identity, each accepting only its own randomly minted key. ``check_routing`` is 
 invariant every scenario shares: a request on a host the scenario did not select, or a
 selected host receiving any bearer other than its own, is a credential leak.
 
-Kova itself runs for real in child processes (``hermes chat -q`` / ``hermes -z`` /
+Kova itself runs for real in child processes (``kova chat -q`` / ``kova -z`` /
 ``python -m tui_gateway.entry``) with HOME and KOVA_HOME inside the test's tmp dir,
 every credential/endpoint env var stripped, and only these fake hosts configured.
 """
@@ -286,9 +286,9 @@ class RunResult:
     seconds: float
 
 
-def run_hermes(argv: list[str], home: Path, *, kova_home: Path | None = None, proxy: str | None = None,
+def run_kova(argv: list[str], home: Path, *, kova_home: Path | None = None, proxy: str | None = None,
                timeout: float = 240.0) -> RunResult:
-    """Run the real ``hermes`` entry point in its own process group; kill only that group."""
+    """Run the real ``kova`` entry point in its own process group; kill only that group."""
     start = time.monotonic()
     proc = subprocess.Popen(
         [sys.executable, "-m", "kova_cli.main", *argv],

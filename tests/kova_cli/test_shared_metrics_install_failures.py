@@ -1,5 +1,5 @@
-"""Why installs and updates fail: failure_class on hermes.extension.install.count and
-hermes.update.run, registry on hub skill installs (closed sets, never error text)."""
+"""Why installs and updates fail: failure_class on kova.extension.install.count and
+kova.update.run, registry on hub skill installs (closed sets, never error text)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from kova_cli.observability import shared_metrics_contract as contract
 from kova_cli.observability import shared_metrics_fields as fields
 from kova_cli.observability import shared_metrics_update as update_metrics
 
-_SCHEMA = Path(observability.__file__).parent / "schemas/hermes.shared_metrics.v4.schema.json"
+_SCHEMA = Path(observability.__file__).parent / "schemas/kova.shared_metrics.v4.schema.json"
 
 
 def _schema_dimensions(metric: str) -> list[dict]:

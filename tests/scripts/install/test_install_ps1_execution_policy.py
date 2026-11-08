@@ -22,7 +22,7 @@ pytestmark = pytest.mark.platforms("windows")
 INSTALLER = Path(__file__).resolve().parents[3] / "scripts" / "install.ps1"
 
 
-def test_installed_hermes_runs_under_restricted_policy(tmp_path):
+def test_installed_kova_runs_under_restricted_policy(tmp_path):
     powershell = shutil.which("powershell")
     assert powershell
     helper = tmp_path / "install" / "scripts" / "desktop-update" / "runtime.ps1"

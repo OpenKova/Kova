@@ -67,7 +67,7 @@ def test_disposable_scope_streams_lists_and_never_touches_production(r2_server, 
     monkeypatch.setenv("R2_DISPOSABLE_RUN", "98765")
     monkeypatch.setenv("GITHUB_REPOSITORY_ID", "12345")
     scope = R2Scope.configured()
-    root = f"http://127.0.0.1:{r2_server.server_port}/hermes-releases"
+    root = f"http://127.0.0.1:{r2_server.server_port}/kova-releases"
     monkeypatch.setenv("CLOUDFLARE_R2_PUBLIC_URL", root)
     key = "releases/channel-builds/" + "a" * 32 + "/payload.bin"
     r2_server.store[key] = (b"production sentinel", '"production"')
@@ -92,10 +92,10 @@ def test_disposable_scope_streams_lists_and_never_touches_production(r2_server, 
     for method, url, headers in r2_server.requests:
         parsed = urlsplit(url)
         if parsed.query and "list-type" in parsed.query:
-            assert parsed.path == "/hermes-releases"
+            assert parsed.path == "/kova-releases"
             assert parse_qs(parsed.query)["prefix"] == [scope.prefix + "releases/"]
         else:
-            assert parsed.path.startswith("/hermes-releases/" + scope.prefix)
+            assert parsed.path.startswith("/kova-releases/" + scope.prefix)
         if method != "GET" or headers.get("authorization"):
             assert headers["authorization"].startswith("AWS4-HMAC-SHA256 ")
     before = list(r2_server.requests)
@@ -130,12 +130,12 @@ def test_disposable_scope_streams_lists_and_never_touches_production(r2_server, 
 @pytest.mark.parametrize('method,path,query,payload,scope,signature', [
     ('GET', '/', {}, EMPTY_SHA, 'us-east-1/service',
      '33399fd3d4a9d6104710c7c04005f7c959f8b1f8bf41b823587ed36b079e453f'),
-    ('PUT', '/hermes-releases/KovaBundled-0.28.0-win-x64.msix', {},
+    ('PUT', '/kova-releases/KovaBundled-0.28.0-win-x64.msix', {},
      '44ce7dd67c959e0d3524ffac1771dfbba87d2b6b4b4e99e42034a8b803f8b072', 'auto/s3',
      '05ba50acfb54042fac330848af50877e5fb477c4f2063c2f77f9cc80855eb1e9'),
-    ('GET', '/hermes-releases', {'list-type': '2', 'prefix': 'KovaBundled-0.28.0-', 'max-keys': '1000'},
+    ('GET', '/kova-releases', {'list-type': '2', 'prefix': 'KovaBundled-0.28.0-', 'max-keys': '1000'},
      EMPTY_SHA, 'auto/s3', '3ec423c452a318664c85fbcc25667ad07201aedce688e3bb6b345b4baaa39d90'),
-    ('DELETE', '/hermes-releases/KovaBundled-0.28.0+canary.20260818T000000Z-win-arm64.msix', {},
+    ('DELETE', '/kova-releases/KovaBundled-0.28.0+canary.20260818T000000Z-win-arm64.msix', {},
      EMPTY_SHA, 'auto/s3', '40dba7bf7356837cf496d950605dfc2c62d82ca2b30aa45c8c0dc8dab7bc1bd1'),
 ])
 def test_independent_sigv4_vectors(method, path, query, payload, scope, signature):
@@ -191,7 +191,7 @@ def test_relative_artifact_path_rejects_windows_reserved_names_without_ntpath(mo
     for bad in ("foo.", "foo ", "dir/foo.", "dir/foo..", "dir/foo .tar.gz."):
         check(bad)
     # Real artifact names, including the nested Termux receipt shape, pass.
-    for good in ("app.msix", "deb/pool/hermes_0.28.0_aarch64.deb",
+    for good in ("app.msix", "deb/pool/kova_0.28.0_aarch64.deb",
                  "KovaBundled-0.28.0-win-x64.msix", "key.asc", "com10.txt",
                  "xcom1.tar.gz", "kova-agent-setup.exe"):
         assert r2.relative_artifact_path(good) == good
@@ -246,10 +246,10 @@ def test_channel_public_base_defaults_to_production(monkeypatch):
     ('releases/tag/v1.2.3/app.dmg', None, None),
     ('releases/tag/v1.2.3/latest-mac.yml', None, None),
     ('releases/termux/canary/key.asc', 'text/plain', False),
-    ('releases/termux/canary/dists/hermes-canary/InRelease', 'text/plain', False),
-    ('releases/termux/canary/dists/hermes-canary/Release', 'text/plain', False),
-    ('releases/termux/canary/dists/hermes-canary/main/binary-aarch64/Packages.gz', 'application/gzip', False),
-    ('releases/termux/canary/dists/hermes-canary/main/binary-aarch64/by-hash/SHA256/abcd', None, True),
+    ('releases/termux/canary/dists/kova-canary/InRelease', 'text/plain', False),
+    ('releases/termux/canary/dists/kova-canary/Release', 'text/plain', False),
+    ('releases/termux/canary/dists/kova-canary/main/binary-aarch64/Packages.gz', 'application/gzip', False),
+    ('releases/termux/canary/dists/kova-canary/main/binary-aarch64/by-hash/SHA256/abcd', None, True),
     ('releases/termux/canary/pool/h/package.deb', 'application/vnd.debian.binary-package', True),
 ])
 def test_object_headers_on_real_upload(tmp_path, r2_server, key, content_type, immutable):
@@ -274,7 +274,7 @@ def test_canonical_request_reads_mixed_case_header_values():
         "Content-Type": "application/msix",
     }
     canon = canonical_request(
-        "PUT", "/hermes-releases/KovaBundled-0.28.0-win-x64.msix", "", headers, body_hash
+        "PUT", "/kova-releases/KovaBundled-0.28.0-win-x64.msix", "", headers, body_hash
     )
     assert "content-type:application/msix" in canon
     assert "undefined" not in canon
@@ -513,7 +513,7 @@ def r2_server(monkeypatch):
     monkeypatch.setattr(r2, "s3_endpoint", lambda _account: f"http://127.0.0.1:{server.server_port}")
     monkeypatch.setenv("CLOUDFLARE_R2_ACCESS_KEY_ID", AKID)
     monkeypatch.setenv("CLOUDFLARE_R2_SECRET_ACCESS_KEY", SECRET)
-    monkeypatch.setenv("CLOUDFLARE_R2_BUCKET", "hermes-releases")
+    monkeypatch.setenv("CLOUDFLARE_R2_BUCKET", "kova-releases")
     yield server
     server.shutdown()
     server.server_close()
@@ -737,7 +737,7 @@ def test_verify_remote_artifact_streams_without_buffering(r2_server, bounded_rea
     payload = os.urandom(3 * 1024 * 1024 + 7)
     key = "releases/tag/v0.28.0/stream-check.zip"
     r2_server.store[key] = (payload, '"e"')
-    url = f"http://127.0.0.1:{r2_server.server_port}/hermes-releases/{key}"
+    url = f"http://127.0.0.1:{r2_server.server_port}/kova-releases/{key}"
     r2.verify_remote_artifact(
         url,
         {"access_key_id": AKID, "secret_key": SECRET},
@@ -769,7 +769,7 @@ def test_download_streams_verified_bytes_and_preserves_destination_on_failure(r2
     target.write_bytes(b"previous complete file")
 
     args = dict(creds={"access_key_id": AKID, "secret_key": SECRET},
-                base=f"http://127.0.0.1:{r2_server.server_port}", bucket="hermes-releases",
+                base=f"http://127.0.0.1:{r2_server.server_port}", bucket="kova-releases",
                 key=key, file=target, now=NOW, expected_size=len(payload),
                 expected_sha256=hashlib.sha256(payload).hexdigest())
     r2.download_object(**args)

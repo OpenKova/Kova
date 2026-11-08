@@ -26,7 +26,7 @@ def _tree(tmp_path, monkeypatch):
     monkeypatch.setattr(doctor, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor, "KOVA_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, doctor_platform._check_command_installation),))
-    command = tmp_path / ".local" / "bin" / "hermes"
+    command = tmp_path / ".local" / "bin" / "kova"
     command.parent.mkdir(parents=True)
     monkeypatch.setenv("PATH", str(command.parent))
     return project, home, command
@@ -45,7 +45,7 @@ def _generation(project):
 def _pm_source(project, home):
     root = Path(__file__).resolve().parents[2]
     for relative in (
-        "hermes", "kova_bootstrap.py", "kova_constants.py", "kova_cli/__init__.py",
+        "kova", "kova_bootstrap.py", "kova_constants.py", "kova_cli/__init__.py",
         "pm/environments.py", "pm/filesystem.py", "kova_cli/runtime_state.py",
         "kova_cli/_early_recovery.py", "kova_cli/_parser.py",
         "kova_cli/venv_sync.py", "kova_cli/steward.py", "kova_cli/stderr_timestamp.py",
@@ -71,14 +71,14 @@ def test_pm_generation_does_not_require_a_legacy_console_script(tmp_path, monkey
     project, home, command = _tree(tmp_path, monkeypatch)
     selected = _generation(project)
     _pm_source(project, home)
-    assert _launchers.stage_launcher("hermes", project, command.parent) == command
+    assert _launchers.stage_launcher("kova", project, command.parent) == command
 
     doctor.run_doctor(Namespace(fix=True))
 
     out = capsys.readouterr().out
     assert "All checks passed" in out
     assert not (project / "venv").exists()
-    assert not (selected / "bin" / "hermes").exists()
+    assert not (selected / "bin" / "kova").exists()
     assert command.is_file() and not command.is_symlink()
 
 
@@ -89,7 +89,7 @@ def test_pm_fix_publishes_a_generation_aware_launcher(tmp_path, monkeypatch, cap
     _pm_source(project, home)
     selected = _generation(project)
     (site_packages(selected) / "selected_probe.py").write_text("VALUE = 'selected'\n", encoding="utf-8")
-    stale = project / "venv" / "bin" / "hermes"
+    stale = project / "venv" / "bin" / "kova"
     stale.parent.mkdir(parents=True)
     stale.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
     stale.chmod(0o755)
@@ -173,7 +173,7 @@ def test_doctor_reports_selected_import_tree_not_interpreter_prefix(tmp_path, mo
 def test_remedies_and_launcher_repairs_respect_install_owner(tmp_path, monkeypatch, capsys, method, remedy):
     project, _home, command = _tree(tmp_path, monkeypatch)
     (project / ".install_method").write_text(method, encoding="utf-8")
-    entry = project / "venv" / "bin" / "hermes"
+    entry = project / "venv" / "bin" / "kova"
     entry.parent.mkdir(parents=True)
     entry.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     entry.chmod(0o755)

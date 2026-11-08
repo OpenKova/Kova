@@ -329,7 +329,7 @@ def test_preexisting_acp_launch_controls_remain_usable(
     monkeypatch: pytest.MonkeyPatch,
 ):
     _resolve_command, _resolve_args = _acp_launch_resolvers(monkeypatch)
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
 
     monkeypatch.setenv("KOVA_ACME_ACP_COMMAND", "parent-placeholder")
     monkeypatch.setenv("KOVA_ACME_ACP_ARGS", "--parent-placeholder")
@@ -339,7 +339,7 @@ def test_preexisting_acp_launch_controls_remain_usable(
         encoding="utf-8",
     )
 
-    load_hermes_dotenv(
+    load_kova_dotenv(
         kova_home=catalog_env,
         load_external_secrets=False,
     )

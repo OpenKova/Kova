@@ -12,4 +12,4 @@ capabilities:
   provides_tools: []
   provides_hooks: []
   provides_middleware: [llm_request]
-  requires_env: [SABI_HERMES_BASE_URL]
+  requires_env: [SABI_KOVA_BASE_URL]

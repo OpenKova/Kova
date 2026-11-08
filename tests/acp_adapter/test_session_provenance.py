@@ -43,7 +43,7 @@ def test_compression_split_continuation(db):
     _mk(db, "new", parent="old")
 
     prov = build_session_provenance(
-        db, "acp-1", "new", previous_hermes_session_id="old"
+        db, "acp-1", "new", previous_kova_session_id="old"
     )
     assert prov["sessionKind"] == "continuation"
     assert prov["parentKovaSessionId"] == "old"
@@ -75,6 +75,6 @@ def test_non_compression_parent_is_root_not_continuation(db):
 def test_meta_wrapper_shape(db):
     _mk(db, "root1")
     meta = session_provenance_meta(db, "acp-1", "root1")
-    assert set(meta.keys()) == {"hermes"}
-    assert "sessionProvenance" in meta["hermes"]
-    assert meta["hermes"]["sessionProvenance"]["currentKovaSessionId"] == "root1"
+    assert set(meta.keys()) == {"kova"}
+    assert "sessionProvenance" in meta["kova"]
+    assert meta["kova"]["sessionProvenance"]["currentKovaSessionId"] == "root1"

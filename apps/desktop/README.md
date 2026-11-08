@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/OpenKova/Kova/releases"><img src="https://img.shields.io/badge/Download-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-FFD700?style=for-the-badge" alt="Download"></a>
-  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://github.com/OpenKova/Kova/docs/"><img src="https://img.shields.io/badge/Docs-OpenKova%2FKova-FFD700?style=for-the-badge" alt="Documentation"></a>
   <a href="https://discord.gg/OpenKova"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://github.com/OpenKova/Kova/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
 </p>
@@ -138,7 +138,7 @@ reports damage rather than installing a second checkout. It does not adopt
 an arbitrary `kova` command on PATH or a system Python installation.
 
 Non-bundled builds can use the explicit source-root override, development
-checkout, completed managed install, or `KOVA_DESKTOP_HERMES` deployment
+checkout, completed managed install, or `KOVA_DESKTOP_KOVA_CLI` deployment
 override before offering bootstrap. Candidates are probed before use.
 A runtime that predates `serve` falls back to headless
 `dashboard --no-open`. This is compatibility for the backend command only and
@@ -184,7 +184,7 @@ Electron `userData/connection.json` remote block:
 {
   "mode": "remote",
   "remote": {
-    "url": "https://hermes.example.com",
+    "url": "https://kova.example.com",
     "authMode": "token",
     "token": { "encoding": "safeStorage", "value": "..." },
     "headers": {
@@ -248,12 +248,12 @@ tccutil reset Microphone com.nousresearch.kova
 
 ```powershell
 # Force a clean first-launch setup
-Remove-Item "$env:LOCALAPPDATA\hermes\kova-agent\.kova-bootstrap-complete"
+Remove-Item "$env:LOCALAPPDATA\Kova\kova-agent\.kova-bootstrap-complete"
 # Rebuild a broken Python venv
-Remove-Item -Recurse -Force "$env:LOCALAPPDATA\hermes\kova-agent\venv"
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Kova\kova-agent\venv"
 ```
 
-> The default Kova home on Windows is `%LOCALAPPDATA%\hermes`. Set the `KOVA_HOME` env var if you've relocated it.
+> The default Kova home on Windows is `%LOCALAPPDATA%\Kova`. Set the `KOVA_HOME` env var if you've relocated it.
 
 ---
 

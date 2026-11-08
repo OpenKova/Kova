@@ -165,7 +165,7 @@ def _transcribe_openai(
                 create_kwargs["prompt"] = prompt
             with open(path, "rb") as audio_file:
                 return client.audio.transcriptions.create(file=audio_file, **create_kwargs)
-        with tempfile.TemporaryDirectory(prefix="hermes-stt-") as work_dir:
+        with tempfile.TemporaryDirectory(prefix="kova-stt-") as work_dir:
             try:
                 transcription = _create_transcription(file_path)
             except APIStatusError as exc:
@@ -281,7 +281,7 @@ def _transcribe_xai(
     language = language or _resolve_stt_language("xai", stt_config) or ""
 
     def _post() -> Any:
-        from tools.xai_http import hermes_xai_user_agent
+        from tools.xai_http import kova_xai_user_agent
         # Always name the model: xAI moved the server default from 1.0 to 2.0 mid-September and
         # will retire 1.0, so an omitted field silently changes what Kova runs.
         resolved_model = normalize_xai_stt_model(model_name)
@@ -295,7 +295,7 @@ def _transcribe_xai(
         data.update({flag: "true" for flag, default in flags if is_truthy_value(xai_config.get(flag, default))})
 
         def _post_transcription(bearer: str, endpoint_base_url: str):
-            headers = {"Authorization": f"Bearer {bearer}", "User-Agent": hermes_xai_user_agent()}
+            headers = {"Authorization": f"Bearer {bearer}", "User-Agent": kova_xai_user_agent()}
             return _post_audio_multipart(f"{endpoint_base_url}/stt", headers, file_path, data)
 
         response = _post_transcription(api_key, _resolve_base_url(creds))

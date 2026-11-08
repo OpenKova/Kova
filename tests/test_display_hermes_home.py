@@ -1,11 +1,11 @@
 """display_kova_home() renders POSIX separators on every platform.
 
 Maintainer catch (#95681 arc): on Windows with a custom KOVA_HOME under
-the user profile (e.g. AppData/Local/hermes), ``"~/" +
+the user profile (e.g. AppData/Local/kova), ``"~/" +
 str(home.relative_to(Path.home()))`` produced the mixed-separator chimera
-``~/AppData\\Local\\hermes`` — which then leaked into every consumer that
+``~/AppData\\Local\\kova`` — which then leaked into every consumer that
 appends sub-paths (the skill_manage schema showed the agent
-``~/AppData\\Local\\hermes/skills/``). The ``~/`` shorthand implies POSIX
+``~/AppData\\Local\\kova/skills/``). The ``~/`` shorthand implies POSIX
 rendering; the whole string must be consistent.
 """
 import os
@@ -24,10 +24,10 @@ class TestDisplayKovaHomePosix(unittest.TestCase):
         import kova_constants as hc
 
         fake_userhome = Path.home()
-        nested = fake_userhome / "AppData" / "Local" / "hermes"
+        nested = fake_userhome / "AppData" / "Local" / "kova"
         with patch.object(hc, "get_kova_home", return_value=nested):
             out = hc.display_kova_home()
-        self.assertEqual(out, "~/AppData/Local/hermes")
+        self.assertEqual(out, "~/AppData/Local/kova")
         self.assertNotIn("\\", out)
 
     def test_default_home_unchanged(self):
@@ -41,7 +41,7 @@ class TestDisplayKovaHomePosix(unittest.TestCase):
     def test_outside_home_falls_back_to_absolute(self):
         import kova_constants as hc
 
-        outside = Path("/opt/hermes-custom") if os.name != "nt" else Path("C:/opt/hermes-custom")
+        outside = Path("/opt/kova-custom") if os.name != "nt" else Path("C:/opt/kova-custom")
         with patch.object(hc, "get_kova_home", return_value=outside):
             out = hc.display_kova_home()
         self.assertEqual(out, str(outside))

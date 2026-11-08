@@ -35,7 +35,7 @@ def server():
     with patch.dict(
         "sys.modules",
         {
-            "kova_constants": MagicMock(get_kova_home=MagicMock(return_value="/tmp/hermes_test")),
+            "kova_constants": MagicMock(get_kova_home=MagicMock(return_value="/tmp/kova_test")),
             "kova_cli.env_loader": MagicMock(),
             "kova_cli.banner": MagicMock(),
             "kova_state": MagicMock(),

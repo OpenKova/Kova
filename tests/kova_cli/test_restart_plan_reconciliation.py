@@ -118,7 +118,7 @@ def test_restarted_service_unit_matches_profile():
     assert outcomes[0]["outcome"] == "restarted"
 
 
-def test_launchd_default_gateway_restarted_via_ai_hermes_label():
+def test_launchd_default_gateway_restarted_via_ai_kova_label():
     """macOS restart bookkeeping records ``ai.kova.gateway``, which does not
     contain the substring ``kova-gateway``. The default-profile gateway must
     still count as restarted — otherwise every Desktop update on launchd
@@ -162,7 +162,7 @@ def test_untouched_runtime_is_unaccounted_and_escalates(capsys):
     out = capsys.readouterr().out
     assert "never touched" in out
     assert "coder" in out and "500" in out
-    assert "hermes -p <profile> gateway restart" in out
+    assert "kova -p <profile> gateway restart" in out
 
 
 def test_external_supervisor_counts_as_restarted():
@@ -208,12 +208,12 @@ def _serve(profile: str, pid: int, kind: str = "serve") -> RuntimeRecord:
 
 
 def test_systemd_dashboard_runtime_reconciles_restarted_via_its_unit():
-    """#125297: the fleet unit pass restarts ``hermes-dashboard{,-<profile>}``, so the
+    """#125297: the fleet unit pass restarts ``kova-dashboard{,-<profile>}``, so the
     receipt's runtime_outcomes row must credit it as ``restarted`` — not leave the
     dashboard ``deferred`` while the update still reports success."""
     outcomes = match_runtime_outcomes(
         _plan(_dash_unit_runtime("default", 700), _dash_unit_runtime("work", 701)),
-        restarted_services=["hermes-dashboard", "user/hermes-dashboard-work"],
+        restarted_services=["kova-dashboard", "user/kova-dashboard-work"],
         relaunched_profiles=[], externally_supervised_profiles=[],
         killed_pids=set(), failed_units=[],
     )
@@ -223,7 +223,7 @@ def test_systemd_dashboard_runtime_reconciles_restarted_via_its_unit():
 
 
 def test_systemd_dashboard_runtime_without_unit_restart_stays_unaccounted():
-    """The tripwire side: no ``hermes-dashboard*`` restart in the bookkeeping means
+    """The tripwire side: no ``kova-dashboard*`` restart in the bookkeeping means
     the row escalates (exit 1), never a silent ``deferred`` on a success receipt."""
     outcomes = match_runtime_outcomes(
         _plan(_dash_unit_runtime("default", 700), _rt("default", 100, supervisor="systemd")),
@@ -275,22 +275,22 @@ def test_named_profile_serve_does_not_match_gateway_profile_unit():
 
 
 def test_serve_reconciles_against_its_own_unit_vocabulary():
-    """A serve IS covered when a ``hermes-serve*`` unit for its profile was
+    """A serve IS covered when a ``kova-serve*`` unit for its profile was
     restarted (or failed) — scope-qualified identities included."""
     outcomes = match_runtime_outcomes(
         _plan(_serve("default", 900), _serve("work", 901),
               _serve("ops", 902, kind="dashboard"), _serve("qa", 903)),
-        restarted_services=["kova-gateway", "user/hermes-serve",
-                            "hermes-serve-work.service", "hermes-dashboard-ops"],
+        restarted_services=["kova-gateway", "user/kova-serve",
+                            "kova-serve-work.service", "kova-dashboard-ops"],
         relaunched_profiles=[], externally_supervised_profiles=[],
-        killed_pids=set(), failed_units=["hermes-serve-qa.service"],
+        killed_pids=set(), failed_units=["kova-serve-qa.service"],
     )
     by_pid = {o["pid"]: o["outcome"] for o in outcomes}
     assert by_pid == {900: "restarted", 901: "restarted", 902: "restarted", 903: "failed"}
-    # exact names: ``work`` must not claim ``hermes-serve-workbench``
+    # exact names: ``work`` must not claim ``kova-serve-workbench``
     outcomes = match_runtime_outcomes(
         _plan(_serve("work", 901)),
-        restarted_services=["hermes-serve-workbench.service"], relaunched_profiles=[],
+        restarted_services=["kova-serve-workbench.service"], relaunched_profiles=[],
         externally_supervised_profiles=[], killed_pids=set(), failed_units=[],
     )
     assert outcomes[0]["outcome"] == "unaccounted"
@@ -312,10 +312,10 @@ def test_failed_respawn_outranks_incarnation_probe():
 def test_serve_outcome_follows_incarnation_probe_when_provided():
     """With the (pid, create_time) survivor probe result, liveness decides:
     a pre-update serve that is gone was replaced (restarted); one still
-    alive is unaccounted — even when a hermes-serve unit was restarted."""
+    alive is unaccounted — even when a kova-serve unit was restarted."""
     plan = _plan(_serve("default", 900), _serve("default", 901, kind="dashboard"))
     outcomes = match_runtime_outcomes(
-        plan, restarted_services=["hermes-serve.service"], relaunched_profiles=[],
+        plan, restarted_services=["kova-serve.service"], relaunched_profiles=[],
         externally_supervised_profiles=[], killed_pids=set(), failed_units=[],
         stale_serve_pids={900},
     )
@@ -338,7 +338,7 @@ def test_desktop_serve_deferral_requires_a_verified_alive_incarnation():
     desktop_serve.restart_via = _restart_mechanism("desktop", "default")
 
     unknown = match_runtime_outcomes(
-        _plan(desktop_serve), restarted_services=["hermes-serve.service"],
+        _plan(desktop_serve), restarted_services=["kova-serve.service"],
         relaunched_profiles=[], externally_supervised_profiles=[], killed_pids=set(),
         failed_units=[], stale_serve_pids=None,
     )
@@ -368,8 +368,8 @@ def test_unaccounted_serve_report_names_serve_remedy_not_gateway_restart(capsys)
     assert report_unaccounted_runtimes(outcomes) is True
     out = capsys.readouterr().out
     assert "serve [default] pid 900" in out
-    assert "relaunch `hermes serve`" in out
-    assert "hermes gateway restart" not in out
+    assert "relaunch `kova serve`" in out
+    assert "kova gateway restart" not in out
 
 
 def test_mixed_fleet_only_the_missed_one_escalates(capsys):

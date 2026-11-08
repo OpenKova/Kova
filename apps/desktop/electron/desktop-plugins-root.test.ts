@@ -15,7 +15,7 @@ import {
 const homes: string[] = []
 
 function makeHome(): string {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-dp-root-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-dp-root-'))
   homes.push(home)
 
   return home
@@ -28,7 +28,7 @@ function write(file: string, text: string) {
 
 /** Whether this host's temporary folder ignores case: create `X`, look for `x`. */
 function caseInsensitiveTmp(): boolean {
-  const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-dp-case-'))
+  const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-dp-case-'))
 
   try {
     fs.mkdirSync(path.join(probe, 'Desktop'))

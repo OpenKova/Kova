@@ -23,7 +23,7 @@ SHADOW_CHILD = 'import json\nprint(json.dumps({"profiles": []}))\n'
 
 @pytest.mark.platforms("any")  # a real child interpreter: sys.path rules are per-OS
 def test_profile_extraction_ignores_a_kova_cli_package_in_the_launch_directory(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     plugin_dir = home / "plugins" / "model-providers" / "cwdprobe"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "__init__.py").write_text(PROVIDER_PLUGIN, encoding="utf-8")
@@ -35,7 +35,7 @@ def test_profile_extraction_ignores_a_kova_cli_package_in_the_launch_directory(t
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.chdir(launch_dir)
 
-    profiles, _in_process = load_hosted_profiles(plugin_dir, "_hermes_test_cwdprobe")
+    profiles, _in_process = load_hosted_profiles(plugin_dir, "_kova_test_cwdprobe")
 
     assert not (launch_dir / "shadow-imported.txt").exists()
     assert [p.name for p in profiles] == ["cwdprobe"]

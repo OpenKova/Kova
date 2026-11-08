@@ -9,7 +9,7 @@ pytestmark = pytest.mark.platforms("linux")
 
 
 def test_user_unit_dir_follows_the_account_home_not_a_profile_pinned_process_home(tmp_path, monkeypatch):
-    # ``hermes -p x gateway install`` launched from a process whose HOME profile isolation already
+    # ``kova -p x gateway install`` launched from a process whose HOME profile isolation already
     # pointed at the ACTIVE profile's ``{KOVA_HOME}/home``; the unit must land where
     # ``systemctl --user`` looks — under the account home — not under that profile dir.
     account_home = tmp_path / "account"
@@ -30,7 +30,7 @@ def test_user_unit_dir_follows_the_account_home_not_a_profile_pinned_process_hom
 def test_bare_user_unit_pinning_this_custom_home_is_adopted_by_lifecycle_commands(tmp_path, monkeypatch):
     # A pre-#106611 install of a custom root left ``kova-gateway.service`` (bare) pinning that root;
     # the recomputed ``kova-gateway-<hash>`` name made it invisible and ``restart`` ran foreground.
-    custom_root = tmp_path / "hermes"
+    custom_root = tmp_path / "kova"
     custom_root.mkdir()
     unit_dir = tmp_path / "xdg" / "systemd" / "user"
     unit_dir.mkdir(parents=True)
@@ -43,14 +43,14 @@ def test_bare_user_unit_pinning_this_custom_home_is_adopted_by_lifecycle_command
 
     # A bare unit that pins ANOTHER home is someone else's service: this home keeps its own name.
     legacy_unit.write_text(
-        f'[Service]\nEnvironment="KOVA_HOME={tmp_path / "other"}"\nExecStart=/usr/bin/hermes gateway run\n',
+        f'[Service]\nEnvironment="KOVA_HOME={tmp_path / "other"}"\nExecStart=/usr/bin/kova gateway run\n',
         encoding="utf-8",
     )
     assert gateway.get_service_name() != "kova-gateway"
     assert not gateway._systemd_unit_installed()
 
     legacy_unit.write_text(
-        f'[Service]\nEnvironment="KOVA_HOME={custom_root}"\nRestart=always\nExecStart=/usr/bin/hermes gateway run\n',
+        f'[Service]\nEnvironment="KOVA_HOME={custom_root}"\nRestart=always\nExecStart=/usr/bin/kova gateway run\n',
         encoding="utf-8",
     )
     assert gateway.get_service_name() == "kova-gateway"

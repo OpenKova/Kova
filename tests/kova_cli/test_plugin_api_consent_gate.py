@@ -112,7 +112,7 @@ def daemon(_isolate_kova_home, monkeypatch):
 
     async def loopback_peer(scope, receive, send):
         # GatewayRuntimeAPI records the socket peer before any proxy middleware; native tickets need loopback.
-        scope["hermes.gateway_socket_peer"] = ("127.0.0.1", 50000)
+        scope["kova.gateway_socket_peer"] = ("127.0.0.1", 50000)
         await web_server.app(scope, receive, send)
 
     client = TestClient(loopback_peer)
@@ -126,7 +126,7 @@ def daemon(_isolate_kova_home, monkeypatch):
         web_server.app.router.routes[:] = routes
         web_server._dashboard_plugins_cache = None
         for name in set(sys.modules) - modules:
-            if name.startswith("hermes_dashboard_plugin_"):
+            if name.startswith("kova_dashboard_plugin_"):
                 del sys.modules[name]
         set_multiplex_active(multiplexed)
 

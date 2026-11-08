@@ -216,7 +216,7 @@ def _pm_ships(monkeypatch, *, node_dirs=(), uv=None):
     import pm
 
     monkeypatch.setattr(pm, "ensure", lambda name, **kw: None)
-    monkeypatch.setattr(kova_constants, "with_hermes_node_path",
+    monkeypatch.setattr(kova_constants, "with_kova_node_path",
                         lambda env: {**env, "PATH": os.pathsep.join(map(str, node_dirs))})
     monkeypatch.setattr(pm, "uv_launcher", lambda name: uv.with_name(name) if uv else None)
 
@@ -374,7 +374,7 @@ def test_bare_python3_steps_past_the_managed_runtime_to_the_user_hit(tmp_path, m
     """Two PATH hits for a bare non-launcher command: the managed runtime's and the
     user's. The user's wins; the resolved env prepends the user's dir (helpers the
     server spawns resolve against the same interpreter). The user dir must sit OUTSIDE
-    the hermes home — everything under it counts as managed."""
+    the kova home — everything under it counts as managed."""
     from kova_constants import reset_kova_home_override, set_kova_home_override
     home = tmp_path / "home"
     managed_bin = home / "bin"  # <KOVA_HOME>/bin — a managed dir by definition

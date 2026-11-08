@@ -1,6 +1,6 @@
 """Vertex AI through the classic CLI's gateway path: ``/config`` and ``/bg`` (#134889 T6).
 
-A real ``hermes chat --cli`` runs in a private tmux server with ``provider: vertex`` and a synthetic
+A real ``kova chat --cli`` runs in a private tmux server with ``provider: vertex`` and a synthetic
 service-account JSON. The fake (``tests/fakes/providers/vertex.py``) stands in for both Google
 boundaries on loopback: the OAuth token endpoint (the real ``google-auth`` signs and exchanges a
 JWT) and the Vertex OpenAI-compatible endpoint (reached through ``HTTPS_PROXY`` with a test CA).
@@ -30,7 +30,7 @@ pytest.importorskip("google.auth", reason="Vertex minting needs google-auth (CI 
 
 from tests.e2e.core.cli_tmux._classic import kill_home_processes, require_tmux
 from tests.e2e.core.providers._native_helpers import make_home, messages
-from tests.fakes.providers.vertex import PROJECT, REGION, SA_EMBEDDED_PROJECT, FakeVertex, Say, hermes_setup
+from tests.fakes.providers.vertex import PROJECT, REGION, SA_EMBEDDED_PROJECT, FakeVertex, Say, kova_setup
 
 pytestmark = [
     pytest.mark.platforms("linux"),  # cleanup finds this home's processes through /proc
@@ -53,8 +53,8 @@ def _respond(record: dict[str, Any]) -> Say:
 
 
 def _drive(fake: FakeVertex, tmp_path: Path):
-    nh = make_home(tmp_path / "h", **hermes_setup(fake, extra_config={"display": {"interface": "cli"}}))
-    sock = f"hermes-e2e-vertex-{uuid.uuid4().hex[:8]}"
+    nh = make_home(tmp_path / "h", **kova_setup(fake, extra_config={"display": {"interface": "cli"}}))
+    sock = f"kova-e2e-vertex-{uuid.uuid4().hex[:8]}"
     env = nh.env({**fake.child_env(), "TERM": "xterm-256color"})
 
     def tmux(*args: str) -> str:

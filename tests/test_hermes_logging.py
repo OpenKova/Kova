@@ -298,7 +298,7 @@ class TestSetupLogging:
     ):
         """A profile deleted underneath a long-lived dashboard must not loop.
 
-        ``_profile_homes`` is a startup snapshot, so a ``hermes profile delete``
+        ``_profile_homes`` is a startup snapshot, so a ``kova profile delete``
         leaves the routing set naming a home whose directory no longer exists.
         Records for that home must fall back to the default home instead of
         retrying (and stderr-spamming) the vanished logs/ path on every record
@@ -331,7 +331,7 @@ class TestSetupLogging:
             profile_home / "logs" / "agent.log"
         ).read_text()
 
-        # `hermes profile delete` removes the home while the dashboard process
+        # `kova profile delete` removes the home while the dashboard process
         # (and its static routing snapshot) keeps running.
         import shutil
 
@@ -485,7 +485,7 @@ class TestSetupVerboseLogging:
             h for h in root.handlers
             if isinstance(h, logging.StreamHandler)
             and not isinstance(h, RotatingFileHandler)
-            and getattr(h, "_hermes_verbose", False)
+            and getattr(h, "_kova_verbose", False)
         ]
         assert len(verbose_handlers) == 1
         assert verbose_handlers[0].level == logging.DEBUG

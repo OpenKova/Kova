@@ -16,7 +16,7 @@ kova --tui
 
 Ink attaches to the profile's shared gateway owner (`kova gateway run`, started on demand with
 its idle exit), never to a private child. `ui-tui/scripts/gateway_bootstrap.py` is a thin wrapper
-over `hermes_cli/gateway_runtime_attach.py::attach_gateway`, the attach `kova gateway attach
+over `kova_cli/gateway_runtime_attach.py::attach_gateway`, the attach `kova gateway attach
 --json` gives any other local client. Only `KOVA_TUI_GATEWAY_URL` (the dashboard's `/chat`)
 dials another URL, and then negotiates the wire from that listener's ready frame.
 
@@ -80,7 +80,7 @@ silently off. Every method that reads or writes home-, config- or `.env`-derived
 `profile` argument for sessionless calls) and, for tool/agent construction,
 `methods_tools.py::_profile_scoped_rpc`; the tokens come from `model_switch.py::
 _profile_runtime_scope_tokens(profile_home)` — home + secret scope + terminal scope together.
-**A method that sets only `get_hermes_home_override()` is half-bound**: config paths resolve to the
+**A method that sets only `get_kova_home_override()` is half-bound**: config paths resolve to the
 right profile while credentials and `TERMINAL_*` policy still come from the launch profile.
 Off-turn paths bind the same way: `session_lifecycle.py::_finalize_session` / `_teardown_session`
 enter `_session_profile_runtime_scope(session)` around `on_session_end`, the memory commit and
@@ -151,7 +151,7 @@ retains its legacy unscoped contract.
 and skill-derived commands. `complete.slash` uses the existing CLI completer (registry, plugins,
 skills/bundles, argument completions); quick commands remain catalog-only. Shared data builders
 live in `tui_gateway/command_discovery.py`, without importing the legacy server. Definitions
-come from `hermes_cli/commands.py` (`hermes_cli/AGENTS.md`).
+come from `kova_cli/commands.py` (`kova_cli/AGENTS.md`).
 
 The canonical gateway exposes the same two discovery RPCs through `gateway/session_discovery.py`.
 It requires authenticated `session:read` capability and the authority's exact profile before any

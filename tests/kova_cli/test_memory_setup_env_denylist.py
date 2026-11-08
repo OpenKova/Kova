@@ -102,7 +102,7 @@ def test_denylisted_key_does_not_block_other_writes(capsys):
     assert env["OPENROUTER_API_KEY"] == "sk-or-test-456"
 
 
-def test_legitimate_hermes_integration_key_still_writable():
+def test_legitimate_kova_integration_key_still_writable():
     """``KOVA_*`` overall is NOT blocked — only the four runtime
     location names (HOME/PROFILE/CONFIG/ENV). Integration credentials
     following the ``KOVA_*`` convention (KOVA_LANGFUSE_*,

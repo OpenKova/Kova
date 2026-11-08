@@ -97,7 +97,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent',
           local: 'none',
           bundled: false
         }
@@ -119,7 +119,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent',
           local: 'none',
           bundled: false
         }
@@ -146,7 +146,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent',
           local: 'none',
           bundled: false
         }
@@ -170,7 +170,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent',
           local: 'none',
           bundled: false
         }
@@ -198,7 +198,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent',
           local: 'none',
           bundled: false
         }
@@ -218,7 +218,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
         type: 'setup-choice',
         active: false,
         platform: 'win32',
-        activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\kova-agent-repaired'
+        activeRoot: 'C:\\Users\\me\\AppData\\Local\\kova\\kova-agent-repaired'
       })
     })
 
@@ -268,14 +268,14 @@ describe('DesktopInstallOverlay first-run setup', () => {
 
     desktop.probeConnectionConfig.mockResolvedValue({
       authMode: 'token',
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       error: null,
       providers: [],
       reachable: true,
       version: '0.17.0'
     })
     desktop.testConnectionConfig.mockResolvedValue({
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       ok: true,
       version: '0.17.0'
     })
@@ -288,8 +288,8 @@ describe('DesktopInstallOverlay first-run setup', () => {
     render(<DesktopInstallOverlay />)
 
     fireEvent.click(await screen.findByText('Connect to existing Kova'))
-    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/hermes'), {
-      target: { value: 'https://gateway.example.com/hermes' }
+    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/kova'), {
+      target: { value: 'https://gateway.example.com/kova' }
     })
 
     const apply = screen.getByText('Apply and reconnect').closest('button') as HTMLButtonElement
@@ -309,11 +309,11 @@ describe('DesktopInstallOverlay first-run setup', () => {
         mode: 'remote',
         remoteAuthMode: 'token',
         remoteToken: 'session-secret',
-        remoteUrl: 'https://gateway.example.com/hermes'
+        remoteUrl: 'https://gateway.example.com/kova'
       })
     })
 
-    await screen.findByText('Connected to https://gateway.example.com/hermes (0.17.0).')
+    await screen.findByText('Connected to https://gateway.example.com/kova (0.17.0).')
     expect(apply.disabled).toBe(false)
 
     fireEvent.click(screen.getByText('Apply and reconnect'))
@@ -323,7 +323,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
         mode: 'remote',
         remoteAuthMode: 'token',
         remoteToken: 'session-secret',
-        remoteUrl: 'https://gateway.example.com/hermes'
+        remoteUrl: 'https://gateway.example.com/kova'
       })
     })
     await waitFor(() => expect(screen.queryByText('Gateway URL')).toBeNull())
@@ -338,14 +338,14 @@ describe('DesktopInstallOverlay first-run setup', () => {
 
     desktop.probeConnectionConfig.mockResolvedValue({
       authMode: 'token',
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       error: null,
       providers: [],
       reachable: true,
       version: '0.17.0'
     })
     desktop.testConnectionConfig.mockResolvedValue({
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       ok: true,
       version: '0.17.0'
     })
@@ -354,8 +354,8 @@ describe('DesktopInstallOverlay first-run setup', () => {
     render(<DesktopInstallOverlay />)
 
     fireEvent.click(await screen.findByText('Connect to existing Kova'))
-    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/hermes'), {
-      target: { value: 'https://gateway.example.com/hermes' }
+    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/kova'), {
+      target: { value: 'https://gateway.example.com/kova' }
     })
 
     await act(async () => {
@@ -366,7 +366,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       target: { value: 'session-secret' }
     })
     fireEvent.click(screen.getByText('Test connection'))
-    await screen.findByText('Connected to https://gateway.example.com/hermes (0.17.0).')
+    await screen.findByText('Connected to https://gateway.example.com/kova (0.17.0).')
 
     const apply = screen.getByText('Apply and reconnect').closest('button') as HTMLButtonElement
     fireEvent.click(apply)
@@ -385,19 +385,19 @@ describe('DesktopInstallOverlay first-run setup', () => {
 
     desktop.probeConnectionConfig.mockResolvedValue({
       authMode: 'oauth',
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       error: null,
       providers: [{ displayName: 'Username & Password', name: 'password', supportsPassword: true }],
       reachable: true,
       version: '0.17.0'
     })
     desktop.oauthLoginConnectionConfig.mockResolvedValue({
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       connected: true,
       ok: true
     })
     desktop.testConnectionConfig.mockResolvedValue({
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       ok: true,
       version: null
     })
@@ -406,8 +406,8 @@ describe('DesktopInstallOverlay first-run setup', () => {
     render(<DesktopInstallOverlay />)
 
     fireEvent.click(await screen.findByText('Connect to existing Kova'))
-    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/hermes'), {
-      target: { value: 'https://gateway.example.com/hermes' }
+    fireEvent.change(await screen.findByPlaceholderText('https://gateway.example.com/kova'), {
+      target: { value: 'https://gateway.example.com/kova' }
     })
 
     await act(async () => {
@@ -418,7 +418,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
     fireEvent.click(await screen.findByText('Sign in'))
 
     await waitFor(() => {
-      expect(desktop.oauthLoginConnectionConfig).toHaveBeenCalledWith('https://gateway.example.com/hermes')
+      expect(desktop.oauthLoginConnectionConfig).toHaveBeenCalledWith('https://gateway.example.com/kova')
     })
 
     fireEvent.click(screen.getByText('Test connection'))
@@ -428,11 +428,11 @@ describe('DesktopInstallOverlay first-run setup', () => {
         mode: 'remote',
         remoteAuthMode: 'oauth',
         remoteToken: undefined,
-        remoteUrl: 'https://gateway.example.com/hermes'
+        remoteUrl: 'https://gateway.example.com/kova'
       })
     })
 
-    await screen.findByText('Connected to https://gateway.example.com/hermes.')
+    await screen.findByText('Connected to https://gateway.example.com/kova.')
     const apply = screen.getByText('Apply and reconnect').closest('button') as HTMLButtonElement
     expect(apply.disabled).toBe(false)
     fireEvent.click(apply)
@@ -442,7 +442,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
         mode: 'remote',
         remoteAuthMode: 'oauth',
         remoteToken: undefined,
-        remoteUrl: 'https://gateway.example.com/hermes'
+        remoteUrl: 'https://gateway.example.com/kova'
       })
     })
   })
@@ -450,7 +450,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('does not authorize a new URL with an old login result or save before Apply', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/tmp/hermes', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/tmp/kova', local: 'none', bundled: false }
       })
     )
 
@@ -472,7 +472,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
     )
     render(<DesktopInstallOverlay />)
     fireEvent.click(await screen.findByText('Connect to existing Kova'))
-    const url = screen.getByPlaceholderText('https://gateway.example.com/hermes')
+    const url = screen.getByPlaceholderText('https://gateway.example.com/kova')
     fireEvent.change(url, { target: { value: 'https://a.example' } })
     fireEvent.click(await screen.findByRole('button', { name: /Sign in with/ }))
     await waitFor(() => expect(desktop.oauthLoginConnectionConfig).toHaveBeenCalledWith('https://a.example'))
@@ -511,14 +511,14 @@ describe('DesktopInstallOverlay first-run setup', () => {
 
     desktop.probeConnectionConfig.mockResolvedValue({
       authMode: 'token',
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       error: null,
       providers: [],
       reachable: true,
       version: '0.17.0'
     })
     desktop.testConnectionConfig.mockResolvedValue({
-      baseUrl: 'https://gateway.example.com/hermes',
+      baseUrl: 'https://gateway.example.com/kova',
       ok: true,
       version: '0.17.0'
     })
@@ -528,8 +528,8 @@ describe('DesktopInstallOverlay first-run setup', () => {
       return { mode: 'remote' }
     })
 
-    fireEvent.change(screen.getByPlaceholderText('https://gateway.example.com/hermes'), {
-      target: { value: 'https://gateway.example.com/hermes' }
+    fireEvent.change(screen.getByPlaceholderText('https://gateway.example.com/kova'), {
+      target: { value: 'https://gateway.example.com/kova' }
     })
 
     await act(async () => {
@@ -540,7 +540,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       target: { value: 'session-secret' }
     })
     fireEvent.click(screen.getByText('Test connection'))
-    await screen.findByText('Connected to https://gateway.example.com/hermes (0.17.0).')
+    await screen.findByText('Connected to https://gateway.example.com/kova (0.17.0).')
     fireEvent.click(screen.getByText('Apply and reconnect'))
 
     await waitFor(() => expect(screen.queryByText('Gateway URL')).toBeNull())

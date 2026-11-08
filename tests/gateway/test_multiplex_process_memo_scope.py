@@ -100,8 +100,8 @@ async def test_gateway_hooks_fire_per_routed_profile(two_homes):
         assert [h["name"] for h in hooks.loaded_hooks] == ["hook-b"]
     finally:
         reset_kova_home_override(token)
-    assert ctx_a.get("seen") == ["hermes_hook_hook-a"]
-    assert ctx_b.get("seen") == ["hermes_hook_hook-b"]
+    assert ctx_a.get("seen") == ["kova_hook_hook-a"]
+    assert ctx_b.get("seen") == ["kova_hook_hook-b"]
 
 
 def test_media_policy_reads_routed_profile_config_not_env(two_homes, monkeypatch):

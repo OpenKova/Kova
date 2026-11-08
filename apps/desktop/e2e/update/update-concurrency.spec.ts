@@ -111,7 +111,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
           .toMatch(/refusing (posix )?hand-off: An update is already running/)
         expect(
           installProcesses(facts)
-            .filter(proc => /desktop-update\/posix\.sh|hermes-desktop-update/.test(proc.cmdline))
+            .filter(proc => /desktop-update\/posix\.sh|kova-desktop-update/.test(proc.cmdline))
             .map(p => p.cmdline),
           'no second updater was started'
         ).toEqual([])

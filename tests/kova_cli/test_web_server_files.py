@@ -165,7 +165,7 @@ def test_download_resolves_paths_in_the_originating_profile_session(
 
     client, home = local_files_client
     monkeypatch.setattr(Path, "home", lambda: home)
-    kova_home = home / "isolated-hermes"
+    kova_home = home / "isolated-kova"
     monkeypatch.setenv("KOVA_HOME", str(kova_home))
     session_cwd = home / "project"
     session_cwd.mkdir()
@@ -350,7 +350,7 @@ def test_stream_file_uri_uses_host_resolution_without_bypassing_policy(
 @pytest.mark.platforms("windows")
 @pytest.mark.parametrize("uri,expected", [
     ("file:///C:/Users/Alice/video%20clip.mp4", "C:/Users/Alice/video clip.mp4"),
-    ("file://127.0.0.1/hermes-media-test/video%20clip.mp4", "//127.0.0.1/hermes-media-test/video clip.mp4"),
+    ("file://127.0.0.1/kova-media-test/video%20clip.mp4", "//127.0.0.1/kova-media-test/video clip.mp4"),
 ])
 def test_stream_windows_file_uri_reaches_policy_with_absolute_host_path(
     local_files_client, monkeypatch, uri, expected,
@@ -444,7 +444,7 @@ def test_a_locked_root_still_reads_back_the_images_the_browser_just_uploaded(
     client, _root = forced_files_client
     # A picked file arrives through the Webapp's upload route, which exists only on the Webapp.
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     (home / "uploads").mkdir()

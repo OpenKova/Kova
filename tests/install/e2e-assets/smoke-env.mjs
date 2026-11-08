@@ -125,7 +125,7 @@ export function updateWindowEnvironment(inherited, root, origin) {
       }
       env.KOVA_PYTHON_SRC_ROOT = editableRoot;
     }
-    for (const key of ['KOVA_DESKTOP_PYTHON', 'KOVA_DESKTOP_HERMES', 'KOVA_DESKTOP_KOVA_ROOT']) {
+    for (const key of ['KOVA_DESKTOP_PYTHON', 'KOVA_DESKTOP_KOVA_CLI', 'KOVA_DESKTOP_KOVA_ROOT']) {
       if (inherited[key]) {
         if (!path.isAbsolute(inherited[key]) || (key !== 'KOVA_DESKTOP_PYTHON' && !within(root, inherited[key]))) throw new Error(`Captured ${key} escapes the installed source`);
         fs.accessSync(inherited[key]);

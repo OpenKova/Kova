@@ -1,6 +1,6 @@
 """Vertex AI wire conformance: OAuth minting, multi-turn tools, thought-signature replay after resume.
 
-The real ``hermes chat -q`` CLI talks to Vertex through the standard ``HTTPS_PROXY`` +
+The real ``kova chat -q`` CLI talks to Vertex through the standard ``HTTPS_PROXY`` +
 ``SSL_CERT_FILE`` channel; the fake (``tests/fakes/providers/vertex.py``) terminates TLS for
 ``us-central1-aiplatform.googleapis.com``, validates every request against the Vertex
 OpenAI-compatibility contract, and mints tokens for the REAL ``google-auth`` JWT exchange.
@@ -43,7 +43,7 @@ from tests.fakes.providers.vertex import (
     Call,
     FakeVertex,
     Say,
-    hermes_setup,
+    kova_setup,
     signatures_on_wire,
 )
 
@@ -72,7 +72,7 @@ def require(ok: Any, what: str) -> None:
 
 
 def _home(tmp: Path, name: str, fake: FakeVertex) -> NativeHome:
-    nh = make_home(tmp / name / "h", **hermes_setup(fake))
+    nh = make_home(tmp / name / "h", **kova_setup(fake))
     (nh.project / "note1.txt").write_text(f"note: {SECRET_1}\n", encoding="utf-8")
     (nh.project / "note2.txt").write_text(f"note: {SECRET_2}\n", encoding="utf-8")
     return nh

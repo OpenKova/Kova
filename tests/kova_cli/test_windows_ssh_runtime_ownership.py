@@ -26,7 +26,7 @@ def test_isolated_bootstrap_is_owned_without_accepting_foreign_source(tmp_path):
     child = subprocess.Popen([sys.executable, "-I", "-c", source, "serve", "--isolated", "--ssh-owner-nonce", nonce], env=env)
     try:
         created = int(psutil.Process(child.pid).create_time() * 1_000_000_000)
-        launcher = str(tmp_path / "hermes.exe")
+        launcher = str(tmp_path / "kova.exe")
         state = process_state(child.pid, created, launcher, nonce)
         assert state["alive"] and state["owned"], state
         assert not process_state(child.pid, created, launcher, "b" * 16)["owned"]
@@ -48,6 +48,6 @@ def test_foreign_inline_source_carrying_a_module_name_is_not_ownership(monkeypat
             return True
 
     monkeypatch.setattr(psutil, "Process", lambda _pid: Process())
-    state = process_state(123, 1_700_000_000_000_000_000, str(tmp_path / "hermes.exe"), "a" * 16)
+    state = process_state(123, 1_700_000_000_000_000_000, str(tmp_path / "kova.exe"), "a" * 16)
     assert state["alive"]
     assert not state["owned"], state

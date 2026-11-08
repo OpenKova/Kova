@@ -15,7 +15,7 @@ async function loadTranslucency(host: 'browser' | 'electron') {
 describe('browser translucency capability', () => {
   beforeEach(() => {
     localStorage.clear()
-    document.documentElement.removeAttribute('data-hermes-desktop-host')
+    document.documentElement.removeAttribute('data-kova-desktop-host')
   })
 
   afterEach(() => {

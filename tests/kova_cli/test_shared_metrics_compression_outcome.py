@@ -1,4 +1,4 @@
-"""``hermes.compression.count`` keeps a committed fallback's class instead of reading as a clean success.
+"""``kova.compression.count`` keeps a committed fallback's class instead of reading as a clean success.
 
 A committed fallback is either a deterministic summary (the summary model failed, was skipped or benched,
 or the attempt stalled) or a main-model summary written after a separate summary model failed. Both commit
@@ -16,9 +16,9 @@ from kova_cli.observability.shared_metrics_fields import compression_fields
 
 SCHEMA_PATH = (
     Path(__file__).resolve().parents[2] / "kova_cli" / "observability" / "schemas"
-    / "hermes.shared_metrics.v4.schema.json"
+    / "kova.shared_metrics.v4.schema.json"
 )
-RESOURCE = {"architecture": "x86_64", "hermes_version": "test", "install_method": "git", "os_family": "linux"}
+RESOURCE = {"architecture": "x86_64", "kova_version": "test", "install_method": "git", "os_family": "linux"}
 
 
 def _finish(monkeypatch, commit_status, failure_class):
@@ -64,10 +64,10 @@ def test_committed_fallback_row_validates_against_the_package_schema(tmp_path):
         trigger="auto", outcome="success", tokens_before=80_000, context_length=100_000,
         failure_class="summary_generation_failed",
     )
-    store.record_counter("hermes.compression.count", fields, RESOURCE)
+    store.record_counter("kova.compression.count", fields, RESOURCE)
 
     [package_path] = store.create_and_export_package()
     package = json.loads(package_path.read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator(json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))).validate(package)
-    [row] = [m for m in package["metrics"] if m["name"] == "hermes.compression.count"]
+    [row] = [m for m in package["metrics"] if m["name"] == "kova.compression.count"]
     assert row["dimensions"]["failure_class"] == "summary_generation_failed"

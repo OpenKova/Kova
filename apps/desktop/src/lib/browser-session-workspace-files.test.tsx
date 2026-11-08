@@ -85,7 +85,7 @@ afterEach(() => {
   $previewTabs.set([])
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  globalThis.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  globalThis.document.documentElement.removeAttribute('data-kova-desktop-host')
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   $connection.set(null)
@@ -269,7 +269,7 @@ describe('a session owned by another profile than the window', () => {
 
 describe('native Desktop reads', () => {
   it('keeps a local save to its path', async () => {
-    globalThis.document.documentElement.removeAttribute('data-hermes-desktop-host')
+    globalThis.document.documentElement.removeAttribute('data-kova-desktop-host')
     const writeTextFile = vi.fn(async () => ({ path: NOTE }))
     Object.defineProperty(win, 'kovaDesktop', { configurable: true, value: { writeTextFile } })
     $connection.set({ mode: 'local' } as never)
@@ -281,7 +281,7 @@ describe('native Desktop reads', () => {
   })
 
   it('keeps a local read to its path', async () => {
-    globalThis.document.documentElement.removeAttribute('data-hermes-desktop-host')
+    globalThis.document.documentElement.removeAttribute('data-kova-desktop-host')
     const readFileText = vi.fn(async () => ({ path: NOTE, text: 'local' }))
     Object.defineProperty(win, 'kovaDesktop', { configurable: true, value: { readFileText } })
     $connection.set({ mode: 'local' } as never)

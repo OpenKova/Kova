@@ -2,7 +2,7 @@
 
 Field report (enterprise, v0.20.0/2026.8.3): cron jobs whose output carries
 PDF/image MEDIA attachments deliver text+attachment on scheduled ticks but
-text-only on manual ``hermes cron run <job-id>``. Same box, same token, same
+text-only on manual ``kova cron run <job-id>``. Same box, same token, same
 scopes — the divergence is process context and error visibility, not
 credentials.
 
@@ -86,7 +86,7 @@ def _install_fake_slack_sender(monkeypatch, result_factory):
 
 @pytest.fixture()
 def slack_platform_config(monkeypatch, tmp_path):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     (home / "config.yaml").write_text(
         "platforms:\n  slack:\n    enabled: true\n    token: xoxb-test\n"
@@ -216,7 +216,7 @@ class TestMediaPolicyEnvBridge:
     def test_standalone_filter_honors_bridged_allowlist(self, monkeypatch, tmp_path):
         """End-to-end: strict-mode file inside allow_dirs passes validation
         in a process that never ran gateway startup."""
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         home.mkdir()
         allow_dir = tmp_path / "reports"
         allow_dir.mkdir()
@@ -256,7 +256,7 @@ class TestMediaPolicyEnvBridge:
         the bridge, a CLI manual run is strict WITHOUT the allowlist and
         silently drops the attachment the scheduled (gateway) run delivers.
         """
-        home = tmp_path / "hermes-home"
+        home = tmp_path / "kova-home"
         home.mkdir()
         media_dir = str(Path(media_file).parent)
         (home / "config.yaml").write_text(

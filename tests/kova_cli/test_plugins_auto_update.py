@@ -1,5 +1,5 @@
 """Unattended plugin updates: catalog installs ride ``plugins.auto_apply``, one updater per plugin, the
-Desktop/TUI RPC switch + update-all, and the catalog notice after ``hermes update``."""
+Desktop/TUI RPC switch + update-all, and the catalog notice after ``kova update``."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import pytest
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     (home / "plugins").mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     return home
@@ -20,7 +20,7 @@ def home(tmp_path, monkeypatch):
 class _Row:
     def __init__(self, name, klass, update_available=True):
         self.name, self.klass, self.update_available = name, klass, update_available
-        self.needs_fixing = self.reason = self.min_hermes = None
+        self.needs_fixing = self.reason = self.min_kova = None
         self.current, self.latest = "a" * 40, "b" * 40
 
     def to_json(self):
@@ -93,9 +93,9 @@ def test_rpc_switch_and_update_all_round_trip(home, monkeypatch):
     assert calls == [("fresh", {"unattended": True}), ("widened", {"unattended": True})]  # no accept_capabilities / force
 
 
-def test_hermes_update_names_catalog_pins_it_moved_and_rearms_the_check(home, monkeypatch, capsys):
+def test_kova_update_names_catalog_pins_it_moved_and_rearms_the_check(home, monkeypatch, capsys):
     from kova_cli import plugin_catalog
-    from kova_cli.plugins_auto_update import report_catalog_updates_after_hermes_update
+    from kova_cli.plugins_auto_update import report_catalog_updates_after_kova_update
 
     new_pin = "c" * 40
     entry = plugin_catalog.PluginCatalogEntry(name="cat-plug", repo="https://example.invalid/r", sha=new_pin,
@@ -108,13 +108,13 @@ def test_hermes_update_names_catalog_pins_it_moved_and_rearms_the_check(home, mo
     marker.parent.mkdir()
     marker.write_text("1", encoding="utf-8")
 
-    report_catalog_updates_after_hermes_update(home, [])
+    report_catalog_updates_after_kova_update(home, [])
     assert "1 plugin update(s) from the new catalog in this profile: cat-plug" in capsys.readouterr().out
     assert not marker.exists()
 
 
 def _held_install_metadata(home):
-    """`hermes plugins install cat-plug --ref <older sha>`: pinned, off the catalog pin (empty `pin`), next
+    """`kova plugins install cat-plug --ref <older sha>`: pinned, off the catalog pin (empty `pin`), next
     to a catalog install that is simply behind its pin."""
     (home / "plugins" / ".install-metadata.json").write_text(json.dumps({
         "held": {"pinned": True, "revision": "a" * 40,
@@ -139,7 +139,7 @@ def test_auto_apply_leaves_a_catalog_install_held_with_ref_alone(home, caplog):
     assert "held with --ref" in caplog.text
 
 
-def test_update_all_and_hermes_update_notice_skip_a_held_catalog_install(home, monkeypatch, capsys):
+def test_update_all_and_kova_update_notice_skip_a_held_catalog_install(home, monkeypatch, capsys):
     from kova_cli import plugin_catalog, plugins_cmd_update, plugins_updates
     from kova_cli.plugins_auto_update import catalog_pins_behind, update_all_unattended
 
@@ -172,7 +172,7 @@ def test_widened_pin_is_one_review_line_not_a_traceback(home, caplog):
                                 config_get=lambda _s, key: True if key == "auto_apply" else 24)
     lines = [r for r in caplog.records if "wide" in r.getMessage()]
     assert [r.getMessage() for r in lines if "review" in r.getMessage()] == [
-        "plugin wide has an update that needs your review: run `hermes plugins update wide`"]
+        "plugin wide has an update that needs your review: run `kova plugins update wide`"]
     assert not any(r.exc_info for r in lines)
 
 

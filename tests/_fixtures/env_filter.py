@@ -168,7 +168,7 @@ _KOVA_BEHAVIORAL_VARS = frozenset({
     "KOVA_TUI_PROVIDER",
     "KOVA_MANAGED",
     "KOVA_MANAGED_DIR",
-    # A Nix-wrapped `hermes` on the developer's host exports the store's read-only plugins
+    # A Nix-wrapped `kova` on the developer's host exports the store's read-only plugins
     # tree; tests must discover the checkout's plugins/ (get_bundled_plugins_dir), not a
     # different release's.
     "KOVA_BUNDLED_PLUGINS",
@@ -202,7 +202,7 @@ _KOVA_BEHAVIORAL_VARS = frozenset({
     "KOVA_TENANT",
     # Honcho host selection changes which nested config block wins. A local
     # shell override leaked "myhost" into the full suite and flipped 20
-    # otherwise-unrelated config tests away from the default "hermes" host.
+    # otherwise-unrelated config tests away from the default "kova" host.
     "KOVA_HONCHO_HOST",
     # Dashboard OAuth auth gate (PR #30156). When set, the bundled
     # dashboard-auth `nous` plugin auto-registers itself on plugin discovery,

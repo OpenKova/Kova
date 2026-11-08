@@ -53,7 +53,7 @@ class TestWrapCommandAdvertisesHarness:
         env._snapshot_ready = False
         env._session_id = "testsession0"
         env._cwd_marker = "__KOVA_CWD_testsession0__"
-        env._snapshot_path = "/tmp/hermes-snap-testsession0.sh"
+        env._snapshot_path = "/tmp/kova-snap-testsession0.sh"
         env._snapshot_passthrough_names = set()
         return env._wrap_command(command, "/tmp")
 
@@ -61,7 +61,7 @@ class TestWrapCommandAdvertisesHarness:
 
     def test_shell_sets_default_and_preserves_outer(self):
         """Run the wrapped script through real bash both ways."""
-        wrapped = self._wrap('echo "AI=$AI_AGENT HERMES=$KOVA_AGENT"')
+        wrapped = self._wrap('echo "AI=$AI_AGENT KOVA=$KOVA_AGENT"')
 
         clean_env = {k: v for k, v in os.environ.items()
                      if k not in ("AI_AGENT", "KOVA_AGENT")}
@@ -70,7 +70,7 @@ class TestWrapCommandAdvertisesHarness:
             env=clean_env, timeout=30,
             check=False,
         )
-        assert f"AI={HARNESS_ID} HERMES=true" in out.stdout
+        assert f"AI={HARNESS_ID} KOVA=true" in out.stdout
 
         outer_env = dict(clean_env, AI_AGENT="pi", KOVA_AGENT="false")
         out = subprocess.run(
@@ -78,4 +78,4 @@ class TestWrapCommandAdvertisesHarness:
             env=outer_env, timeout=30,
             check=False,
         )
-        assert "AI=pi HERMES=false" in out.stdout
+        assert "AI=pi KOVA=false" in out.stdout

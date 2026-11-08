@@ -23,7 +23,7 @@ def _stored_prompt(model: str, provider: str) -> str:
 @pytest.fixture()
 def db(tmp_path, monkeypatch):
     """Real SessionDB on a temp state.db, isolated from the live KOVA_HOME."""
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     session_db = SessionDB(db_path=tmp_path / "state.db")
     yield session_db
     session_db.close()

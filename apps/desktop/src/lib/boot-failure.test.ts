@@ -103,7 +103,7 @@ const palette = {
 }
 
 it('paints its own background and ink from the theme snapshot, whatever the page behind it shows', () => {
-  localStorage.setItem('hermes-boot-palette', JSON.stringify(palette))
+  localStorage.setItem('kova-boot-palette', JSON.stringify(palette))
   // The app's stylesheet loaded without the theme (its JS failed) and painted a light page.
   document.body.style.background = 'rgb(248, 249, 254)'
   showBootFailure(new Error('JS chunk failed'), vi.fn())
@@ -134,7 +134,7 @@ it.each([
       }
     })
   } else if (stored !== null) {
-    localStorage.setItem('hermes-boot-palette', stored)
+    localStorage.setItem('kova-boot-palette', stored)
   }
 
   expect(() => showBootFailure(new Error('CSS failed'), vi.fn())).not.toThrow()

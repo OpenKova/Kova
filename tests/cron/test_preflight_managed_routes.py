@@ -1,7 +1,7 @@
 """Managed-scope ``gateway.profile_routes`` must reach the satellite cron path (#121212).
 
 The primary gateway reads routes through the layered loader (user file + managed overlay), so
-on a centrally-managed install the routes live only in ``/etc/hermes/config.yaml``. The
+on a centrally-managed install the routes live only in ``/etc/kova/config.yaml``. The
 satellite-side helper shared by preflight rescue and delivery-time ``SharedRouteAdapters`` read
 the raw user file alone, false-blocking every routed job and failing delivery closed.
 """

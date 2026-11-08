@@ -1,4 +1,4 @@
-"""Slot ``down`` markers and waits in the hermes-owned scandir never follow planted symlinks."""
+"""Slot ``down`` markers and waits in the kova-owned scandir never follow planted symlinks."""
 from __future__ import annotations
 
 import os
@@ -57,7 +57,7 @@ def test_down_marker_refuses_a_symlinked_slot(tmp_path):
     assert list(victim_dir.iterdir()) == []
 
 
-def test_root_down_marker_belongs_to_hermes(tmp_path, monkeypatch):
+def test_root_down_marker_belongs_to_kova(tmp_path, monkeypatch):
     import pwd
 
     monkeypatch.setattr(sm.os, "geteuid", lambda: 0)
@@ -71,7 +71,7 @@ def test_root_down_marker_belongs_to_hermes(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("root", [True, False])
-def test_wait_down_drops_to_hermes_when_root(tmp_path, monkeypatch, root):
+def test_wait_down_drops_to_kova_when_root(tmp_path, monkeypatch, root):
     import pwd
 
     monkeypatch.setattr(sm.os, "geteuid", lambda: 0 if root else 1000)
@@ -79,5 +79,5 @@ def test_wait_down_drops_to_hermes_when_root(tmp_path, monkeypatch, root):
     calls = []
     monkeypatch.setattr(sm, "_s6_run", lambda *a, **kw: calls.append(a))
     s6._wait_down(tmp_path / "gateway-a", timeout_ms=10)
-    expected = ("s6-setuidgid", "hermes", f"{sm._S6_BIN_DIR}/s6-svwait") if root else ("s6-svwait",)
+    expected = ("s6-setuidgid", "kova", f"{sm._S6_BIN_DIR}/s6-svwait") if root else ("s6-svwait",)
     assert calls and calls[0][:len(expected)] == expected

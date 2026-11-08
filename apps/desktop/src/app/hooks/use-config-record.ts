@@ -19,7 +19,7 @@ import type { KovaConfigRecord } from '@/types/kova'
 //
 // Distinct from session/hooks/use-kova-config.ts, which is side-effecting —
 // it pushes personality/cwd/voice/… into the session stores for live chat.
-export const KOVA_CONFIG_KEY = ['hermes-config-record'] as const
+export const KOVA_CONFIG_KEY = ['kova-config-record'] as const
 
 // Slot for one gateway inside the existing config-record cache. The id is
 // `$activeConnectionId` — the resolved descriptor identity the rest of the app
@@ -50,7 +50,7 @@ function configRecordSlot(profile: ProfileScope | undefined, connectionId: null 
   return active ? `${active}::${scope}` : scope
 }
 
-export const hermesConfigKey = (
+export const kovaConfigKey = (
   profile?: ProfileScope,
   connectionId: null | string | undefined = $activeConnectionId.get()
 ) => {
@@ -71,7 +71,7 @@ export const useKovaConfigRecord = (profile?: ProfileScope) => {
   const connectionId = useStore($activeConnectionId)
 
   const query = useQuery({
-    queryKey: hermesConfigKey(profile, connectionId),
+    queryKey: kovaConfigKey(profile, connectionId),
     // null/undefined both mean "no override" → fetch with undefined so
     // capabilityScoped falls back to the app-wide active profile (passing null
     // would wrongly target the primary backend).
@@ -81,7 +81,7 @@ export const useKovaConfigRecord = (profile?: ProfileScope) => {
       // key. A refetch of the slot we are leaving must not store the new
       // gateway's record there — that is the other machine's config.yaml.
       if (connectionId && $activeConnectionId.get() !== connectionId) {
-        const cached = queryClient.getQueryData<KovaConfigRecord>(hermesConfigKey(profile, connectionId))
+        const cached = queryClient.getQueryData<KovaConfigRecord>(kovaConfigKey(profile, connectionId))
 
         if (cached !== undefined) {
           return cached
@@ -130,7 +130,7 @@ export const useKovaConfigRecord = (profile?: ProfileScope) => {
 // long-lived settings panel (keyed only on the profile name) lands on whichever
 // gateway is active when the save happens — the same row its query reads.
 const writeKovaConfigCache =
-  (keyFor: () => ReturnType<typeof hermesConfigKey>) =>
+  (keyFor: () => ReturnType<typeof kovaConfigKey>) =>
   (
     next:
       KovaConfigRecord | undefined | ((previous: KovaConfigRecord | undefined) => KovaConfigRecord | undefined)
@@ -146,9 +146,9 @@ const writeKovaConfigCache =
       return record ? retainConfigReadOrigin(record, previous) : record
     })
 
-export const setKovaConfigCache = writeKovaConfigCache(() => hermesConfigKey())
+export const setKovaConfigCache = writeKovaConfigCache(() => kovaConfigKey())
 export const kovaConfigCacheWriter = (profile?: ProfileScope) =>
-  writeKovaConfigCache(() => hermesConfigKey(profile))
+  writeKovaConfigCache(() => kovaConfigKey(profile))
 
 export const invalidateKovaConfig = (profile?: ProfileScope) =>
-  queryClient.invalidateQueries({ queryKey: hermesConfigKey(profile) })
+  queryClient.invalidateQueries({ queryKey: kovaConfigKey(profile) })

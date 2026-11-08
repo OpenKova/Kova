@@ -19,7 +19,7 @@ logger = logging.getLogger("kova_cli.update_cmd")
 
 #: Autostash subject contract: this prefix + UTC YYYYMMDD-HHMMSS stamp
 #: (producer _stash_local_changes_if_needed, consumer _warn_orphaned_update_autostashes).
-_AUTOSTASH_NAME_PREFIX = "hermes-update-autostash-"
+_AUTOSTASH_NAME_PREFIX = "kova-update-autostash-"
 
 #: Age past which a leftover autostash is called out. Younger entries are normal
 #: (recent --keep-stash park); older ones are almost always forgotten.

@@ -484,7 +484,7 @@ def dispatch_tool_search(args: dict[str, Any], *, current_tool_defs: list[dict[s
 
 def _record_search_metric(current_tool_defs: list[dict[str, Any]], *, hits: int, outcome: str,
                           catalog: Optional[list[CatalogEntry]] = None) -> None:
-    """One ``hermes.tool_search.count`` row: which corpora the search read, never the query."""
+    """One ``kova.tool_search.count`` row: which corpora the search read, never the query."""
     from kova_cli.observability.shared_metrics_events import record_tool_search
 
     local = bool(catalog if catalog is not None else _deferrable_in(current_tool_defs))

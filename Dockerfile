@@ -47,27 +47,27 @@ RUN apt-get -o Acquire::Retries=3 update && \
 FROM debian:trixie-20261020@sha256:4c25275446ca371766b8b093c696782eabce06263fccacb8d5d813b3dc44b308 AS runtime_base
 
 # Disable Python stdout buffering to ensure logs are printed immediately.
-# Do not write .pyc files at runtime: /opt/hermes is immutable in the
+# Do not write .pyc files at runtime: /opt/kova is immutable in the
 # published container and writable state belongs under /opt/data.
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # The pm-pinned full Chromium lives in the managed tool store at
-# /opt/hermes/tools — outside the /opt/data volume mount, so the
+# /opt/kova/tools — outside the /opt/data volume mount, so the
 # build-time install survives the volume overlay at runtime. pm's
 # chromium package fact exports the same value (PLAYWRIGHT_BROWSERS_PATH
 # at the store root); the image ENV names the same directory so
 # Playwright and the browser tool resolve the pinned build even before pm
 # composes tool env.
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/hermes/tools
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/kova/tools
 
 # Install system dependencies in one layer, clear APT cache.
 # tini was previously PID 1 to reap orphaned zombie processes (MCP stdio
-# subprocesses, git, bun, etc.) that would otherwise accumulate when hermes
+# subprocesses, git, bun, etc.) that would otherwise accumulate when kova
 # ran as PID 1. See #15012. Phase 2 of the s6-overlay supervision plan
 # replaces tini with s6-overlay's /init (PID 1 = s6-svscan), which reaps
 # zombies non-blockingly on SIGCHLD and additionally supervises the main
-# hermes process, the dashboard, and per-profile gateways.
+# kova process, the dashboard, and per-profile gateways.
 # The second package list is the shared libraries the pinned Chromium links
 # against. `npx playwright install --with-deps` used to apt-install them as
 # a side effect; pm stages the pinned browser instead (below), so the libs
@@ -114,12 +114,12 @@ v = sqlite3.sqlite_version_info; \
 sys.exit(f'linked SQLite {sqlite3.sqlite_version} still has the WAL-reset bug') if v < (3, 51, 3) else None; \
 db = sqlite3.connect(':memory:'); \
 db.execute(\"CREATE VIRTUAL TABLE docs USING fts5(content, tokenize='trigram')\"); \
-db.execute(\"INSERT INTO docs VALUES ('hermes')\"); \
+db.execute(\"INSERT INTO docs VALUES ('kova')\"); \
 sys.exit('SQLite FTS5 trigram self-test failed') if db.execute(\"SELECT count(*) FROM docs WHERE docs MATCH 'erm'\").fetchone()[0] != 1 else None; \
 db.close()"
 
 # ---------- s6-overlay install ----------
-# s6-overlay provides supervision for the main hermes process, the dashboard,
+# s6-overlay provides supervision for the main kova process, the dashboard,
 # and per-profile gateways. /init becomes PID 1 below — see ENTRYPOINT.
 #
 # Multi-arch: BuildKit auto-populates TARGETARCH (amd64 / arm64). s6-overlay
@@ -175,10 +175,10 @@ RUN set -eu; \
 COPY --chmod=0755 docker/tini-shim.sh /usr/bin/tini
 
 # Non-root user for runtime; UID can be overridden via KOVA_UID at runtime
-RUN useradd -u 10000 -m -d /opt/data hermes
+RUN useradd -u 10000 -m -d /opt/data kova
 
 
-WORKDIR /opt/hermes
+WORKDIR /opt/kova
 
 # ---------- Pinned toolchain from pm/lock.json (single authority) ----------
 # The image used to assemble uv from a second authority — an astral image
@@ -189,7 +189,7 @@ WORKDIR /opt/hermes
 # stages the pinned uv + full Chromium (sha256-verified at
 # download — the same code path pm.sh/pm.ps1 and the desktop payload use)
 # into the image's own runtime dir, a self-contained store baked under
-# /opt/hermes, outside the /opt/data volume so it survives the overlay.
+# /opt/kova, outside the /opt/data volume so it survives the overlay.
 # PM alone resolves the pinned uv for dependency preparation; build consumers
 # receive Python environments, never an installer executable.
 #
@@ -197,12 +197,12 @@ WORKDIR /opt/hermes
 # here rather than by `npx playwright install`,
 # which fetched whatever revision the npm-resolved playwright wanted,
 # unverified, and recorded no fact. The resolved browser binary path is
-# baked to /etc/hermes/chromium-executable-path: the layout differs per
+# baked to /etc/kova/chromium-executable-path: the layout differs per
 # arch (chrome-linux64/chrome on amd64, chromium-linux-arm64/chromium on
 # arm64), so it is resolved at build time and never hunted at boot.
 # kova_cli/browser_runtime.py reads it when a volume over the runtime dir
 # hides pm's facts; stage2-hook.sh checks it still names a binary.
-ENV KOVA_RUNTIME_DIR=/opt/hermes/tools
+ENV KOVA_RUNTIME_DIR=/opt/kova/tools
 COPY pm/ pm/
 # pm's lazy imports resolve get_default_kova_root()/project_venv_dir()
 # from kova_constants (stdlib-only) at install time — a sealed-stage
@@ -221,12 +221,12 @@ RUN set -eu; \
     browser_bin="$(python3 -c 'from pm import installed_package; print(installed_package("chromium").binary)')"; \
     test -n "$browser_bin"; \
     "$browser_bin" --version; \
-    mkdir -p /etc/hermes; \
-    printf '%s' "$browser_bin" > /etc/hermes/chromium-executable-path
+    mkdir -p /etc/kova; \
+    printf '%s' "$browser_bin" > /etc/kova/chromium-executable-path
 
 # PM is resident too: never borrow application libraries or create its worker
 # environment under /root (unreachable to the runtime UID).
-RUN python3 -c 'from pathlib import Path; from pm import stage_manager_runtime; from scripts.bundles.payload import seal_pm_runtime; root = Path("/opt/hermes"); python = Path("/usr/local/bin/python3").resolve(); stage_manager_runtime(python=python, destination=root / "pm-runtime", project=root / "pm"); seal_pm_runtime(root, python)'
+RUN python3 -c 'from pathlib import Path; from pm import stage_manager_runtime; from scripts.bundles.payload import seal_pm_runtime; root = Path("/opt/kova"); python = Path("/usr/local/bin/python3").resolve(); stage_manager_runtime(python=python, destination=root / "pm-runtime", project=root / "pm"); seal_pm_runtime(root, python)'
 
 # JS build helpers use the prepared interpreter without an installer parent.
 ENV KOVA_PYTHON=/usr/local/bin/python3
@@ -294,14 +294,14 @@ FROM runtime_base AS python_deps
 # recorded selection's stamp hashes the packaging files, and must match the full tree copied below.
 COPY pyproject.toml setup.py uv.lock ./
 RUN touch ./README.md
-# --cache puts uv's cache at /opt/hermes/uv-cache, the seed path that
+# --cache puts uv's cache at /opt/kova/uv-cache, the seed path that
 # pm.packages.uv_cache_dir() merges into $KOVA_HOME/cache/uv on first use.
 # Do not leave the cache at its default: KOVA_HOME is not set yet in this
 # stage, so the default is /root/.kova/cache/uv, which nothing reads. A plugin
 # install then runs with an empty cache and builds python-olm from source.
-RUN python3 -m pm.build_env --source /opt/hermes --python /usr/local/bin/python3 \
-    --cache /opt/hermes/uv-cache \
-    --out /opt/hermes/.venv --no-install-project --sealed --record-selection \
+RUN python3 -m pm.build_env --source /opt/kova --python /usr/local/bin/python3 \
+    --cache /opt/kova/uv-cache \
+    --out /opt/kova/.venv --no-install-project --sealed --record-selection \
     --extra all --extra messaging --extra otlp --extra anthropic --extra bedrock \
     --extra azure-identity --extra matrix --extra google-chat --extra fal --extra documents
 
@@ -311,7 +311,7 @@ RUN python3 -m pm.build_env --source /opt/hermes --python /usr/local/bin/python3
 FROM python_deps AS icons
 COPY scripts/generate_icons.py scripts/
 COPY assets/ assets/
-RUN /opt/hermes/.venv/bin/python -I scripts/generate_icons.py --source /opt/hermes --out /tmp/hermes-icons
+RUN /opt/kova/.venv/bin/python -I scripts/generate_icons.py --source /opt/kova --out /tmp/kova-icons
 
 # Frontend dependencies never enter the runtime layers.
 FROM runtime_base AS frontend_build
@@ -327,7 +327,7 @@ COPY apps/shared/ apps/shared/
 COPY scripts/build/node-deps.mjs scripts/build/electron-runtime.mjs scripts/build/pnpm-lock.mjs scripts/build/
 # Root node_modules/typescript is a link into pnpm's virtual store, which never
 # reaches the runtime image: stage a dereferenced copy for it.
-RUN node scripts/build/node-deps.mjs --source /opt/hermes --workspace ui-tui --workspace web && \
+RUN node scripts/build/node-deps.mjs --source /opt/kova --workspace ui-tui --workspace web && \
     mkdir -p /opt/products && \
     cp -RL node_modules/typescript /opt/products/typescript
 
@@ -337,9 +337,9 @@ COPY ui-tui/ ui-tui/
 COPY scripts/build/*.mjs scripts/build/
 COPY scripts/generate-icons.mjs scripts/generate_icons.py scripts/
 COPY assets/ assets/
-COPY --from=icons /tmp/hermes-icons /tmp/hermes-icons
-RUN node scripts/build/tui.mjs --source /opt/hermes --out /opt/products/tui && \
-    node scripts/build/web.mjs --source /opt/hermes --icons /tmp/hermes-icons --out /opt/products/web
+COPY --from=icons /tmp/kova-icons /tmp/kova-icons
+RUN node scripts/build/tui.mjs --source /opt/kova --out /opt/products/tui && \
+    node scripts/build/web.mjs --source /opt/kova --icons /tmp/kova-icons --out /opt/products/web
 
 # The Webapp (the browser-hosted Desktop) builds through its source recipe,
 # which installs Desktop's dependencies in a private workspace. A stage of its
@@ -360,9 +360,9 @@ RUN node apps/desktop/scripts/build-webapp.mjs
 
 FROM python_deps AS runtime
 # Standalone TypeScript linting is a runtime feature; Vite/esbuild are not.
-COPY --from=frontend_build /opt/products/typescript /opt/hermes/node_modules/typescript
-RUN mkdir -p /opt/hermes/node_modules/.bin && \
-    ln -s ../typescript/bin/tsc /opt/hermes/node_modules/.bin/tsc
+COPY --from=frontend_build /opt/products/typescript /opt/kova/node_modules/typescript
+RUN mkdir -p /opt/kova/node_modules/.bin && \
+    ln -s ../typescript/bin/tsc /opt/kova/node_modules/.bin/tsc
 
 # ---------- Photon iMessage sidecar deps (baked, NS-606) ----------
 # The photon plugin's Node sidecar needs its own node_modules
@@ -381,9 +381,9 @@ RUN cd plugins/platforms/photon/sidecar && \
     npm cache clean --force
 
 # Shared product outputs are independent of application dependency assembly.
-COPY --from=frontend_build /opt/products/tui /opt/hermes/ui-tui
-COPY --from=frontend_build /opt/products/web /opt/hermes/kova_cli/web_dist
-COPY --from=webapp_build /opt/hermes/apps/desktop/dist-webapp /opt/hermes/apps/desktop/dist-webapp
+COPY --from=frontend_build /opt/products/tui /opt/kova/ui-tui
+COPY --from=frontend_build /opt/products/web /opt/kova/kova_cli/web_dist
+COPY --from=webapp_build /opt/kova/apps/desktop/dist-webapp /opt/kova/apps/desktop/dist-webapp
 # ---------- Bot Screen X socket directory ----------
 # Xvnc would create this itself (/tmp is 1777); pre-creating it keeps ownership
 # deterministic when KOVA_UID is remapped between boots.
@@ -391,7 +391,7 @@ RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
 # XDG_RUNTIME_DIR (set below) sits under a predictable name in world-writable /tmp.
 # Shipping it root-owned means stage2 finds a directory it trusts and chowns it.
-RUN mkdir -p /tmp/hermes-runtime && chmod 0700 /tmp/hermes-runtime
+RUN mkdir -p /tmp/kova-runtime && chmod 0700 /tmp/kova-runtime
 
 # ---------- Source code ----------
 # .dockerignore excludes node_modules, so the installs above survive.
@@ -399,40 +399,40 @@ RUN mkdir -p /tmp/hermes-runtime && chmod 0700 /tmp/hermes-runtime
 # the final read-only permissions at copy time so we skip the separate
 # `chmod -R` pass that previously walked ~30k files across the venv +
 # node_modules + source (21s amd64 / 222s arm64 — #49113).  `a+rX,go-w`
-# gives the non-root hermes user read + traverse but no write; root retains
+# gives the non-root kova user read + traverse but no write; root retains
 # write so the build steps below don't need chmod u+w dances.
 COPY --link --chmod=a+rX,go-w . .
 
 # The shared assembler binds the prepared environment and frontend products.
-RUN /opt/hermes/.venv/bin/python -m docker.build_agent
+RUN /opt/kova/.venv/bin/python -m docker.build_agent
 
-# Wire the exec shim and install-method stamp.  Files under /opt/hermes are
+# Wire the exec shim and install-method stamp.  Files under /opt/kova are
 # already root-owned (COPY, dep assembly, npm install all run as root) and
-# read-only for the hermes user (go-w from the --chmod above).
+# read-only for the kova user (go-w from the --chmod above).
 
 USER root
-RUN mkdir -p /opt/hermes/bin && \
-    cp /opt/hermes/docker/kova-exec-shim.sh /opt/hermes/bin/hermes && \
-    chmod 0755 /opt/hermes /opt/hermes/bin/hermes && \
-    printf 'docker\n' > /opt/hermes/.install_method
+RUN mkdir -p /opt/kova/bin && \
+    cp /opt/kova/docker/kova-exec-shim.sh /opt/kova/bin/kova && \
+    chmod 0755 /opt/kova /opt/kova/bin/kova && \
+    printf 'docker\n' > /opt/kova/.install_method
 # The ``.install_method`` stamp is baked next to the running code (the install
 # tree), NOT into $KOVA_HOME. $KOVA_HOME (/opt/data) is a shared data
 # volume that is commonly bind-mounted from the host and even shared with a
 # host-side Desktop/CLI install; stamping it at boot used to clobber that
-# host install's marker and wrongly block its ``hermes update``. A code-scoped
+# host install's marker and wrongly block its ``kova update``. A code-scoped
 # stamp is read first by detect_install_method() and is immune to the share.
 # Start as root so the s6-overlay stage2 hook can usermod/groupmod and chown
-# the data volume. Each supervised service then drops to the hermes user via
-# `s6-setuidgid hermes` in its run script. If KOVA_UID is unset, services
-# run as the default hermes user (UID 10000).
+# the data volume. Each supervised service then drops to the kova user via
+# `s6-setuidgid kova` in its run script. If KOVA_UID is unset, services
+# run as the default kova user (UID 10000).
 
 # ---------- Image provenance + install stamp ----------
 # CI (.github/workflows/docker.yml) runs scripts/write_install_stamp.py
 # before `docker build`, so the bulk `COPY . .` above already placed a
-# full-provenance /opt/hermes/install-stamp.json next to the code.
+# full-provenance /opt/kova/install-stamp.json next to the code.
 # .dockerignore excludes .git, so the stamp is the only commit channel the
 # image carries: kova_cli/version_info.py reads it at runtime (stamp
-# first, live git second, unknown third), and both `hermes dump` and
+# first, live git second, unknown third), and both `kova dump` and
 # banner.get_git_banner_state() consume it through version_info.
 #
 # A local `docker build` without CI gets the minimal all-zero fallback
@@ -442,50 +442,50 @@ RUN mkdir -p /opt/hermes/bin && \
 #
 # The versioned, non-secret provenance marker is the authoritative runtime
 # signal that this filesystem came from an immutable image.  It deliberately
-# lives outside both /opt/hermes (which operators sometimes bind-mount as a
+# lives outside both /opt/kova (which operators sometimes bind-mount as a
 # checkout) and /opt/data (the mutable KOVA_HOME volume).  Its `revision`
 # is read from the install stamp; the fallback stamp's all-zero commit maps
 # to null.
 RUN set -eu; \
-    if [ ! -f /opt/hermes/install-stamp.json ]; then \
+    if [ ! -f /opt/kova/install-stamp.json ]; then \
         printf '{"schemaVersion":2,"commit":"0000000000000000000000000000000000000000","distribution":"docker","source":"fallback","updateMechanism":"external"}\n' \
-            > /opt/hermes/install-stamp.json; \
+            > /opt/kova/install-stamp.json; \
     fi; \
-    python3 -c 'import json; from pathlib import Path; path = Path("/opt/hermes/install-stamp.json"); stamp = json.loads(path.read_text()); stamp["pmRuntime"] = "/opt/hermes/pm-runtime"; path.write_text(json.dumps(stamp) + "\n")'; \
-    mkdir -p /etc/hermes; \
-    python3 -c 'import json, pathlib, tomllib; project = tomllib.loads(pathlib.Path("/opt/hermes/pyproject.toml").read_text(encoding="utf-8"))["project"]; stamp = json.loads(pathlib.Path("/opt/hermes/install-stamp.json").read_text(encoding="utf-8")); commit = stamp.get("commit"); revision = commit if commit and set(commit) != {"0"} else None; marker = pathlib.Path("/etc/hermes/image-provenance.json"); marker.write_text(json.dumps({"schema": 1, "deployment_kind": "image", "manager": "docker", "image": "nousresearch/kova-agent", "version": project["version"], "revision": revision}, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8"); marker.chmod(0o444)'
+    python3 -c 'import json; from pathlib import Path; path = Path("/opt/kova/install-stamp.json"); stamp = json.loads(path.read_text()); stamp["pmRuntime"] = "/opt/kova/pm-runtime"; path.write_text(json.dumps(stamp) + "\n")'; \
+    mkdir -p /etc/kova; \
+    python3 -c 'import json, pathlib, tomllib; project = tomllib.loads(pathlib.Path("/opt/kova/pyproject.toml").read_text(encoding="utf-8"))["project"]; stamp = json.loads(pathlib.Path("/opt/kova/install-stamp.json").read_text(encoding="utf-8")); commit = stamp.get("commit"); revision = commit if commit and set(commit) != {"0"} else None; marker = pathlib.Path("/etc/kova/image-provenance.json"); marker.write_text(json.dumps({"schema": 1, "deployment_kind": "image", "manager": "docker", "image": "openkova/kova", "version": project["version"], "revision": revision}, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8"); marker.chmod(0o444)'
 
 # ---------- s6-overlay service wiring ----------
 # Static services declared at build time: main-kova, dashboard and
 # profile-gateways. Per-profile gateway services are registered
 # dynamically at runtime by the profile create/delete hooks (Phase 4);
-# they live under /run/hermes-service/ (tmpfs), supervised by the
-# hermes-owned s6-svscan of the profile-gateways service, never in the
+# they live under /run/kova-service/ (tmpfs), supervised by the
+# kova-owned s6-svscan of the profile-gateways service, never in the
 # root /run/service scandir, and are reconciled on container restart by
 # /etc/cont-init.d/02-reconcile-profiles (Phase 4 Task 4.0).
 COPY docker/s6-rc.d/ /etc/s6-overlay/s6-rc.d/
 
 # stage2-hook handles UID/GID remap, volume chown, config seeding,
 # skills sync — all the work the old entrypoint.sh did before
-# `exec hermes`. Wired in as cont-init.d/01- so it
+# `exec kova`. Wired in as cont-init.d/01- so it
 # runs before user services start.
 #
 # 02-reconcile-profiles re-creates per-profile gateway s6 service
 # slots from $KOVA_HOME/profiles/<name>/ after a container restart
-# (the /run/hermes-service/ scandir is tmpfs and wiped on restart). Phase 4.
+# (the /run/kova-service/ scandir is tmpfs and wiped on restart). Phase 4.
 RUN mkdir -p /etc/cont-init.d && \
-    printf '#!/command/with-contenv sh\nexec /opt/hermes/docker/stage2-hook.sh\n' \
-        > /etc/cont-init.d/01-hermes-setup && \
-    chmod +x /etc/cont-init.d/01-hermes-setup
+    printf '#!/command/with-contenv sh\nexec /opt/kova/docker/stage2-hook.sh\n' \
+        > /etc/cont-init.d/01-kova-setup && \
+    chmod +x /etc/cont-init.d/01-kova-setup
 COPY --chmod=0755 docker/cont-init.d/015-supervise-perms /etc/cont-init.d/015-supervise-perms
 COPY --chmod=0755 docker/cont-init.d/02-reconcile-profiles /etc/cont-init.d/02-reconcile-profiles
 
 # ---------- Runtime ----------
-ENV KOVA_WEB_DIST=/opt/hermes/kova_cli/web_dist
+ENV KOVA_WEB_DIST=/opt/kova/kova_cli/web_dist
 # Point the TUI launcher at the prebuilt bundle baked at build time (the
 # frontend_build stage's scripts/build/tui.mjs product). This makes
 # _make_tui_argv take the prebuilt-bundle fast path
-# (`node --expose-gc /opt/hermes/ui-tui/dist/entry.js`) and skip source
+# (`node --expose-gc /opt/kova/ui-tui/dist/entry.js`) and skip source
 # dependency preparation (scripts/build/node-deps.mjs, a pnpm install)
 # entirely — exactly the nix/packaged-release path the launcher was designed for.
 #
@@ -497,11 +497,11 @@ ENV KOVA_WEB_DIST=/opt/hermes/kova_cli/web_dist
 # ENOTEMPTY → the chat tab dies with a 502 / "[session ended]". Pointing at the
 # prebuilt bundle sidesteps the whole check. (A separate launcher hardening is
 # tracked independently.)
-ENV KOVA_TUI_DIR=/opt/hermes/ui-tui
+ENV KOVA_TUI_DIR=/opt/kova/ui-tui
 ENV KOVA_HOME=/opt/data
 ENV KOVA_WRITE_SAFE_ROOT=/opt/data
 # Opt-in backend SDKs install on first use into PM dependency generations under
-# /opt/data/installs (the sealed /opt/hermes/.venv is never written); stage2
+# /opt/data/installs (the sealed /opt/kova/.venv is never written); stage2
 # re-resolves them against each new image. security.allow_lazy_installs: false
 # turns this off.
 
@@ -509,44 +509,44 @@ ENV KOVA_WRITE_SAFE_ROOT=/opt/data
 # to create /run/user/<uid>. The default fallback ($HOME/.cache) is the /opt/data
 # volume, which a host-side install may share — two instances would then contend
 # for one lock. Container-scoped instead; seeded 0700 by docker/stage2-hook.sh.
-ENV XDG_RUNTIME_DIR=/tmp/hermes-runtime
+ENV XDG_RUNTIME_DIR=/tmp/kova-runtime
 
 # `docker exec` privilege-drop shim. When operators run
-# `docker exec <c> hermes ...` they default to root, and any file the
+# `docker exec <c> kova ...` they default to root, and any file the
 # command writes under $KOVA_HOME (auth.json, .env, config.yaml) ends
 # up root-owned and unreadable to the supervised gateway (UID 10000).
-# The shim lives at /opt/hermes/bin/hermes, sits earliest on PATH, and
-# transparently re-exec's the real venv binary via `s6-setuidgid hermes`
+# The shim lives at /opt/kova/bin/kova, sits earliest on PATH, and
+# transparently re-exec's the real venv binary via `s6-setuidgid kova`
 # when invoked as root. Non-root callers (supervised processes,
-# `--user hermes`, etc.) hit the short-circuit path with no overhead.
+# `--user kova`, etc.) hit the short-circuit path with no overhead.
 # Recursion is impossible because the shim exec's the venv binary by
-# absolute path (/opt/hermes/.venv/bin/hermes). See the shim source for
+# absolute path (/opt/kova/.venv/bin/kova). See the shim source for
 # the opt-out env var (KOVA_DOCKER_EXEC_AS_ROOT=1).
-COPY --chmod=0755 docker/kova-exec-shim.sh /opt/hermes/bin/hermes
-COPY --chmod=0755 docker/entrypoint-dispatch.sh /opt/hermes/docker/entrypoint-dispatch.sh
+COPY --chmod=0755 docker/kova-exec-shim.sh /opt/kova/bin/kova
+COPY --chmod=0755 docker/entrypoint-dispatch.sh /opt/kova/docker/entrypoint-dispatch.sh
 
 # Pre-s6 entrypoint.sh did `source .venv/bin/activate` which exported
 # the venv bin onto PATH; Architecture B's main-wrapper.sh does the
 # same for the container's main process, but `docker exec` and our
 # cont-init.d scripts don't pass through the wrapper. Expose the venv
-# bin globally so `docker exec <container> hermes ...` and any
-# subprocess that doesn't activate the venv first still find hermes.
+# bin globally so `docker exec <container> kova ...` and any
+# subprocess that doesn't activate the venv first still find kova.
 #
-# /opt/hermes/bin is prepended ahead of the venv so the privilege-drop
+# /opt/kova/bin is prepended ahead of the venv so the privilege-drop
 # shim wins PATH resolution. The shim's last act is to exec the venv
 # binary by absolute path, so this PATH ordering is transparent to
 # every other consumer.
-ENV PATH="/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:${PATH}"
+ENV PATH="/opt/kova/bin:/opt/kova/.venv/bin:/opt/data/.local/bin:${PATH}"
 # Login shells re-read /etc/profile, which resets PATH; this re-adds the dirs above.
-COPY --chmod=0644 docker/profile-kova-path.sh /etc/profile.d/hermes.sh
+COPY --chmod=0644 docker/profile-kova-path.sh /etc/profile.d/kova.sh
 # PM's atomic writer creates private facts for source installs. In the
 # image these are shared, non-secret package metadata, read by UID 10000.
 # uv's environment locks are build-only and may be world-writable. Remove
 # them after all builds; never relax permissions on mutable PM/home state.
-RUN mkdir -p /opt/data && chmod 0644 /opt/hermes/tools/facts.json && \
-    rm -f /opt/hermes/.venv/.lock /opt/hermes/pm-runtime/.lock
+RUN mkdir -p /opt/data && chmod 0644 /opt/kova/tools/facts.json && \
+    rm -f /opt/kova/.venv/.lock /opt/kova/pm-runtime/.lock
 # Build helpers use system Python above; TUI gateway children need the sealed runtime.
-ENV KOVA_PYTHON=/opt/hermes/.venv/bin/python
+ENV KOVA_PYTHON=/opt/kova/.venv/bin/python
 VOLUME [ "/opt/data" ]
 
 # The image ENTRYPOINT is a tiny dispatcher rather than `/init` directly.
@@ -574,12 +574,12 @@ VOLUME [ "/opt/data" ]
 #   docker run <image> sleep infinity   → entrypoint-dispatch.sh sleep infinity
 #   docker run <image> --tui            → entrypoint-dispatch.sh --tui
 #
-# main-wrapper.sh handles arg routing (bare-exec vs. hermes
-# subcommand vs. no-args), drops to the hermes user via s6-setuidgid,
+# main-wrapper.sh handles arg routing (bare-exec vs. kova
+# subcommand vs. no-args), drops to the kova user via s6-setuidgid,
 # and exec's the final program so its exit code becomes the container
 # exit code. The dispatcher preserves that contract across both the
 # supervised PID-1 path and the non-PID-1 fallback path. Without the
 # wrapper-as-ENTRYPOINT, leading-dash args like `--version` would be
 # intercepted by /init's POSIX shell.
-ENTRYPOINT [ "/opt/hermes/docker/entrypoint-dispatch.sh" ]
+ENTRYPOINT [ "/opt/kova/docker/entrypoint-dispatch.sh" ]
 CMD [ ]

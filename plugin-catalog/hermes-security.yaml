@@ -13,7 +13,7 @@ description: 'Security review for a local repository. The agent builds a threat 
   cannot issue. Apache-2.0 (parts adapted from Apache-2.0 source, see NOTICE). Disclosure — the first
   scan downloads a pinned osv-scanner release from GitHub (about 55 MB, refused unless its SHA-256
   matches) into the plugin data folder; package names and versions go to api.osv.dev and api.deps.dev,
-  declared runtime versions to endoflife.date (`HERMES_SECURITY_DEPENDENCY_CHECK=off` disables this).
+  declared runtime versions to endoflife.date (`KOVA_SECURITY_DEPENDENCY_CHECK=off` disables this).
   Test confirmation runs repository code as your user in a temporary copy with credential-looking
   environment variables removed; that is not a sandbox. The configured model provider receives the code
   under review; scan data stays in the profile''s plugin data folder. With

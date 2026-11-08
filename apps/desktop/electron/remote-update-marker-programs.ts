@@ -108,7 +108,7 @@ def marker_verdict(raw):
 `
 
 /**
- * POSIX gate: `python3 -c GATE <marker> [payload] [hermes...]`, or the same
+ * POSIX gate: `python3 -c GATE <marker> [payload] [kova...]`, or the same
  * arguments after `python3 -` with the program on stdin (an empty payload is the
  * probe, which the relaunch gate ships on stdin to keep its ssh argv small).
  * Holds the updaters' kernel lock `<marker>.lock` (A7 rule 1:
@@ -117,9 +117,9 @@ def marker_verdict(raw):
  * CHECKOUT lock is free (update_lock._reclaim_dead): a killed updater's
  * completion/build child still holding it answers HELD and keeps the marker.
  * The checkouts probed are `<marker dir>/kova-agent` plus the checkout of
- * each `hermes` executable argument (`<root>/venv/bin/hermes`, symlinks
+ * each `kova` executable argument (`<root>/venv/bin/kova`, symlinks
  * resolved). Then it either prints the verdict (no payload: the relaunch probe)
- * or runs the payload as `sh -c payload hermes-update-mutex <fd>` still holding
+ * or runs the payload as `sh -c payload kova-update-mutex <fd>` still holding
  * the lock. A refused payload exits 75 with the verdict on stderr. The probe
  * skips the lock when there is no marker, so it never creates files on a clean host.
  */
@@ -145,7 +145,7 @@ def read_marker():
     except FileNotFoundError:return None
 
 def checkout_lock(root):
-    # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/hermes-update.lock, else <root>/.kova-update.lock.
+    # kova_cli/update_lock.py::checkout_lock_path: <git common dir>/kova-update.lock, else <root>/.kova-update.lock.
     plain=os.path.join(root,'.kova-update.lock');dot=os.path.join(root,'.git')
     try:
         if os.path.isdir(dot):gitdir=dot
@@ -158,7 +158,7 @@ def checkout_lock(root):
         if os.path.isfile(common):
             with open(common,encoding='utf-8-sig') as stream:gitdir=os.path.join(gitdir,stream.read().strip())
     except (OSError,ValueError):return plain
-    return os.path.join(os.path.normpath(gitdir),'hermes-update.lock')
+    return os.path.join(os.path.normpath(gitdir),'kova-update.lock')
 
 def checkout_held():
     # update_lock.checkout_lock_held: take the flock for one try and drop it. A lock file that
@@ -187,7 +187,7 @@ if hold(fd):
             except FileNotFoundError:pass
 if payload is None or verdict!='CLEAR':
     print(verdict,file=sys.stderr if payload else sys.stdout);sys.exit(75 if payload else 0)
-sys.exit(subprocess.run(['sh','-c',payload,'hermes-update-mutex',str(fd)],pass_fds=(fd,)).returncode)
+sys.exit(subprocess.run(['sh','-c',payload,'kova-update-mutex',str(fd)],pass_fds=(fd,)).returncode)
 `
 
 /**
@@ -243,7 +243,7 @@ export const WINDOWS_CHECKOUT_LOCK_PS = [
   'if($gitdir){$common=[IO.Path]::Combine($gitdir,"commondir");if([IO.File]::Exists($common)){$gitdir=[IO.Path]::Combine($gitdir,[IO.File]::ReadAllText($common).Trim())}}',
   '}catch{return $plain}',
   'if(-not $gitdir){return $plain}',
-  'return [IO.Path]::GetFullPath([IO.Path]::Combine($gitdir,"hermes-update.lock"))',
+  'return [IO.Path]::GetFullPath([IO.Path]::Combine($gitdir,"kova-update.lock"))',
   '}',
   'function Test-CheckoutLockHeld([object[]]$roots){',
   'foreach($root in $roots){',

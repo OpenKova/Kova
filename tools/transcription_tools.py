@@ -325,7 +325,7 @@ def _start_idle_unload_watcher(timeout_seconds: int) -> None:
                     _unload_local_model()
                     break
         _idle_unload_stop.clear()
-        _idle_unload_thread = threading.Thread(target=_watch, name="hermes-stt-idle-unload", daemon=True)
+        _idle_unload_thread = threading.Thread(target=_watch, name="kova-stt-idle-unload", daemon=True)
         _idle_unload_thread.start()
 
 
@@ -448,7 +448,7 @@ def _transcribe_prepared_audio(
     with ExitStack() as cleanup:
         # Never overwrite a neighboring WAV or leave converted voice notes behind.
         if remote and Path(file_path).suffix.lower() == ".caf":
-            work_dir = cleanup.enter_context(TemporaryDirectory(prefix="hermes-caf-", ignore_cleanup_errors=True))
+            work_dir = cleanup.enter_context(TemporaryDirectory(prefix="kova-caf-", ignore_cleanup_errors=True))
             file_path = _convert_caf_to_wav(file_path, work_dir)
             if not file_path:
                 return _error_result("CAF audio could not be converted to WAV.")

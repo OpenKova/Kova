@@ -151,7 +151,7 @@ class TestOpenLockPatience:
 
 
 def _use_delete_journal_mode(monkeypatch, tmp_path):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     (home / "config.yaml").write_text("database:\n  journal_mode: delete\n", encoding="utf-8")
     monkeypatch.setenv("KOVA_HOME", str(home))

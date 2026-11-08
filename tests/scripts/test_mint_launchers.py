@@ -77,7 +77,7 @@ def payload_tree(tmp_path: Path):
         "import os, sys\n"
         "def main():\n"
         "    import kova_cli, stubdep\n"
-        "    assert sys.argv[0].lower().endswith('hermes.exe'), sys.argv[0]\n"
+        "    assert sys.argv[0].lower().endswith('kova.exe'), sys.argv[0]\n"
         "    assert sys.argv[1:] == ['--version'], sys.argv\n"
         "    print('OK', os.environ.get('PYTHONHOME'))\n"
         "    return 7\n",
@@ -114,15 +114,15 @@ def _render_wrapper(tmp_path: Path) -> Path:
 
 def test_mint_writes_exactly_one_named_exe_per_spec(payload_tree, tmp_path):
     wrapper = _render_wrapper(tmp_path)
-    out = _mint(payload_tree["bin"], wrapper, [{"name": "hermes", "module": "kova_cli.main", "func": "main"}])
-    assert out == ["hermes.exe"] or out == [str(payload_tree["bin"] / "hermes.exe")]
-    assert sorted(p.name for p in payload_tree["bin"].iterdir()) == ["hermes.exe"], "no versioned twin may remain"
+    out = _mint(payload_tree["bin"], wrapper, [{"name": "kova", "module": "kova_cli.main", "func": "main"}])
+    assert out == ["kova.exe"] or out == [str(payload_tree["bin"] / "kova.exe")]
+    assert sorted(p.name for p in payload_tree["bin"].iterdir()) == ["kova.exe"], "no versioned twin may remain"
 
 
 def test_minted_launcher_shebang_carries_the_launcher_dir_placeholder(payload_tree, tmp_path):
     wrapper = _render_wrapper(tmp_path)
-    _mint(payload_tree["bin"], wrapper, [{"name": "hermes", "module": "kova_cli.main", "func": "main"}])
-    exe = payload_tree["bin"] / "hermes.exe"
+    _mint(payload_tree["bin"], wrapper, [{"name": "kova", "module": "kova_cli.main", "func": "main"}])
+    exe = payload_tree["bin"] / "kova.exe"
     blob = exe.read_bytes()
     shebang = blob[blob.rfind(b"#!"):]
     assert shebang.startswith(b"#!<launcher_dir>\\..\\tools\\py-1\\python.exe\n"), shebang[:60]
@@ -130,14 +130,14 @@ def test_minted_launcher_shebang_carries_the_launcher_dir_placeholder(payload_tr
 
 def test_minted_launcher_runs_relocated_and_forwards_exit_code(payload_tree, tmp_path):
     wrapper = _render_wrapper(tmp_path)
-    _mint(payload_tree["bin"], wrapper, [{"name": "hermes", "module": "kova_cli.main", "func": "main"}])
+    _mint(payload_tree["bin"], wrapper, [{"name": "kova", "module": "kova_cli.main", "func": "main"}])
 
     # RELOCATE the whole tree before running: the launcher must resolve the
     # interpreter and the payload paths relative to its own dir, wherever
     # the install lands.
     moved = payload_tree["tmp"] / "moved-install"
     shutil.move(str(payload_tree["root"]), str(moved))
-    exe = moved / "bin" / "hermes.exe"
+    exe = moved / "bin" / "kova.exe"
 
     env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME", "PYTHONPYCACHEPREFIX")}
     env["LOCALAPPDATA"] = str(payload_tree["tmp"] / "lad")
@@ -146,7 +146,7 @@ def test_minted_launcher_runs_relocated_and_forwards_exit_code(payload_tree, tmp
     assert proc.stdout.strip() == "OK None"  # PYTHONHOME was dropped
 
     # The default pycache prefix kept bytecode out of the (sealed) repo.
-    assert (payload_tree["tmp"] / "lad" / "hermes" / "pycache").exists()
+    assert (payload_tree["tmp"] / "lad" / "kova" / "pycache").exists()
     assert not (moved / "repo" / "kova_cli" / "__pycache__").exists()
 
 
@@ -154,7 +154,7 @@ def test_mint_rejects_a_non_launcher_dir_shebang(tmp_path):
     env = dict(
         os.environ,
         KOVA_MINT_BIN_DIR=str(tmp_path),
-        KOVA_MINT_SPECS=json.dumps([{"name": "hermes", "module": "m", "func": "main"}]),
+        KOVA_MINT_SPECS=json.dumps([{"name": "kova", "module": "m", "func": "main"}]),
         KOVA_MINT_PYTHON=r"C:\abs\python.exe",
     )
     wrapper = tmp_path / "w.py"

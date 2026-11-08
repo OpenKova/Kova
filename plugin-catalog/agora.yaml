@@ -27,8 +27,8 @@ description: >-
   task_links) restricted to its own project boards, including a persistent team-channel task
   pinned in `scheduled` status, and deletes a project's own tasks when it stops or completes;
   registers one recurring cron job and writes its runner script to
-  HERMES_HOME/scripts/leader_heartbeat.sh; writes AGENTS.md into the configured project
-  workdir; deploys three bundled skills into HERMES_HOME/skills/collaboration/; and serves a
+  KOVA_HOME/scripts/leader_heartbeat.sh; writes AGENTS.md into the configured project
+  workdir; deploys three bundled skills into KOVA_HOME/skills/collaboration/; and serves a
   dashboard tab plus REST routes through the Hermes dashboard. No network egress of its own —
   model calls happen inside the spawned Hermes subprocesses under the operator's own provider
   credentials.

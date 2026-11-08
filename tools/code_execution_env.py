@@ -77,7 +77,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     scrubbed = {}
     # Non-secret KOVA_* vars no allowlist admits are dropped on purpose; a script importing a
     # repo module that reads one would see it silently unset — log the drop, point at the opt-in.
-    _dropped_hermes = []
+    _dropped_kova = []
     for k, v in source_env.items():
         if is_passthrough(k):
             resolved = resolve_passthrough_value(k, v)
@@ -91,17 +91,17 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
                 or (is_windows and k.upper() in _WINDOWS_ESSENTIAL_ENV_VARS)):
             scrubbed[k] = v
         elif k.startswith("KOVA_"):
-            _dropped_hermes.append(k)
+            _dropped_kova.append(k)
     # Declared names only the bound profile scope holds (a routed profile's own .env / sources
     # never enter the process env) — the loop above sees only names ``source_env`` carries.
     scrubbed.update((k, v) for k, v in scoped_passthrough_additions(scrubbed).items() if is_passthrough(k))
-    if _dropped_hermes:
+    if _dropped_kova:
         logger.debug(
             "execute_code: dropped %d non-allowlisted KOVA_* var(s) from the "
             "sandbox child env (%s). This is intentional hardening (#27303); if "
             "a sandbox script legitimately needs one, declare it via "
             "env_passthrough in the skill/config so it passes by explicit opt-in.",
-            len(_dropped_hermes), ", ".join(sorted(_dropped_hermes)),
+            len(_dropped_kova), ", ".join(sorted(_dropped_kova)),
         )
     # delegate_task children are marked by a ContextVar, not os.environ, and the sandbox crosses
     # a process boundary: strip dispatcher-owned Kanban vars AFTER the scrub so an explicit
@@ -154,7 +154,7 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     if _home_override:
         child_env["KOVA_HOME"] = _home_override
         apply_scratch_tmp_env(child_env)  # TMPDIR follows the routed home, like HOME does
-    # PYTHONPATH: the staging dir (hermes_tools.py) must always be importable even when project
+    # PYTHONPATH: the staging dir (kova_tools.py) must always be importable even when project
     # mode changes CWD. Kova's root is added ONLY when the child runs in Kova's Python env —
     # exposing Kova's site-packages to an external interpreter can mix incompatible compiled
     # extensions (3.12 NumPy under a 3.9 venv). Inherited Kova-owned entries are stripped first.
@@ -163,7 +163,7 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     # must not inherit Kova dependencies (#74817). PM's own interpreter, however, can be a
     # bare bundled Python whose dependencies live in the selected generation, not sys.prefix.
     from tools.environments.local_pythonpath import (
-        _strip_hermes_owned_pythonpath, _validated_runtime_venv, _same_path,
+        _strip_kova_owned_pythonpath, _validated_runtime_venv, _same_path,
     )
     _runtime_path = None
     if child_python == sys.executable:
@@ -177,18 +177,18 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
             if any(_same_path(Path(entry), candidate)
                    for entry in child_env.get("PYTHONPATH", "").split(os.pathsep) if entry):
                 _runtime_path = str(candidate)
-    _strip_hermes_owned_pythonpath(child_env)
+    _strip_kova_owned_pythonpath(child_env)
     _existing_pp = child_env.get("PYTHONPATH", "")
     _pp_parts = [tmpdir]
     if _runtime_path is not None:
         _pp_parts.append(_runtime_path)
-    if _uses_hermes_python_environment(child_python):
+    if _uses_kova_python_environment(child_python):
         _pp_parts.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     elif child_python not in _external_env_logged:
         # Surface once per interpreter so "import kova_constants fails" is diagnosable.
         _external_env_logged.add(child_python)
         logger.info("execute_code: child interpreter %s is outside the Kova "
-                    "environment; hermes root omitted from PYTHONPATH", child_python)
+                    "environment; kova root omitted from PYTHONPATH", child_python)
     if _existing_pp:
         _pp_parts.append(_existing_pp)
     child_env["PYTHONPATH"] = os.pathsep.join(_pp_parts)
@@ -252,10 +252,10 @@ def _python_environment_prefix(python_path: str) -> str:
     return ""
 
 
-def _uses_hermes_python_environment(python_path: str) -> bool:
+def _uses_kova_python_environment(python_path: str) -> bool:
     """Whether *python_path* belongs to Kova's active Python environment. Short-circuits when
     it IS the running interpreter (by path or realpath — covers ``uv run`` venvs) so no probe
-    runs on the default strict path and a flaky probe can never drop the hermes root."""
+    runs on the default strict path and a flaky probe can never drop the kova root."""
     if python_path == sys.executable or os.path.realpath(python_path) == os.path.realpath(sys.executable):
         return True
     return _python_environment_prefix(python_path) == os.path.realpath(sys.prefix)

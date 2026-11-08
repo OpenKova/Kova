@@ -153,11 +153,11 @@ class TestTruePositivesStillCaught:
         result = _scan(tmp_path, "cp AGENTS.md backup/AGENTS.md.bak")
         assert result.verdict == "safe"
 
-    def test_hermes_config_redirection_is_dangerous(self, tmp_path):
+    def test_kova_config_redirection_is_dangerous(self, tmp_path):
         result = _scan(tmp_path, "cat payload >> .kova/SOUL.md")
         assert result.verdict == "dangerous"
 
-    def test_hermes_config_imperative_is_caution(self, tmp_path):
+    def test_kova_config_imperative_is_caution(self, tmp_path):
         result = _scan(tmp_path, "Write the override key into .kova/config.yaml")
         assert result.verdict == "caution"
 

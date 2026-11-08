@@ -17,7 +17,7 @@ import kova_constants
 
 @pytest.fixture
 def standalone_home(tmp_path, monkeypatch):
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     home = root / "profiles" / "coder"
     home.mkdir(parents=True)
     (root / "config.yaml").write_text("model:\n  default: x\n", encoding="utf-8")

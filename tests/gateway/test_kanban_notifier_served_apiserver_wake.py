@@ -216,7 +216,7 @@ def test_served_profile_wake_runs_in_process_only_for_the_session_it_owns(served
     _own_session(served.root, "default-origin", "default")
     default_adapter = RecordingApiServerAdapter()
     default_adapter._api_key, default_adapter._host = "k" * 20, "127.0.0.1"
-    default_adapter._port, default_adapter._model_name = 8642, "hermes"
+    default_adapter._port, default_adapter._model_name = 8642, "kova"
     runner = _make_runner(adapter=default_adapter)
     task = _subscription(chat_id="default-origin", profile="default")
     asyncio.run(_run_one_notifier_tick(monkeypatch, runner))

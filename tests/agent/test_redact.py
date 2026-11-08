@@ -1249,7 +1249,7 @@ class TestTerminalOutputRedaction:
     @pytest.mark.parametrize(
         ("command", "output", "secret"),
         [
-            ("cat ~/.kova/config.yaml", "api_key: hermesConfigSecret123", "hermesConfigSecret123"),
+            ("cat ~/.kova/config.yaml", "api_key: kovaConfigSecret123", "kovaConfigSecret123"),
             (
                 "head ~/.kova/profiles/work/config.yaml",
                 "provider.token=profileConfigSecret456",
@@ -1469,16 +1469,16 @@ class TestSecretFileAssignmentRedaction:
 
 class TestKovaHomePathClassification:
     """``_is_secret_file_arg`` must see the RESOLVED Kova home: a managed Windows home
-    (``%LOCALAPPDATA%\\hermes``) has no ``.kova`` segment and a resolved path never spells
+    (``%LOCALAPPDATA%\\kova``) has no ``.kova`` segment and a resolved path never spells
     ``$KOVA_HOME``, so the literal test alone classified its ``config.yaml`` as ordinary YAML."""
 
     def test_resolved_home_config_is_secret_bearing_but_project_config_is_not(self, tmp_path, monkeypatch):
         from agent import file_safety
         from agent.redact import _is_secret_file_arg
 
-        home = tmp_path / "hermes"  # no ".kova" segment
+        home = tmp_path / "kova"  # no ".kova" segment
         monkeypatch.setattr(file_safety, "_kova_home_path", lambda: home)
-        monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: home)
+        monkeypatch.setattr(file_safety, "_kova_root_path", lambda: home)
         assert _is_secret_file_arg(str(home / "config.yaml"))
         assert _is_secret_file_arg(str(home / "profiles" / "coder" / "config.yaml"))
         assert _is_secret_file_arg(str(home / "backups" / "config" / "config.yaml.good.20260914-184559"))
@@ -1685,8 +1685,8 @@ class TestRedactForEgress:
 
 
 class TestWebappLaunchLinks:
-    """``hermes webapp`` prints a link that signs a browser in as the user: one with the gateway's
-    browser credential after ``#hermes-session=`` (what older gateways printed on macOS), or a one-use
+    """``kova webapp`` prints a link that signs a browser in as the user: one with the gateway's
+    browser credential after ``#kova-session=`` (what older gateways printed on macOS), or a one-use
     launch ticket after ``/webapp/launch#ticket=``. Either opens the user's Kova until it is spent or
     replaced, so when Kova runs the command through its terminal tool neither reaches the transcript.
     The rest of the link stays readable."""
@@ -1696,22 +1696,22 @@ class TestWebappLaunchLinks:
     def test_the_browser_credential_in_a_link_is_masked(self):
         from agent.redact import redact_terminal_output
 
-        link = "http://127.0.0.1:9120/?profile=work#hermes-session=" + self.CREDENTIAL
-        out = redact_terminal_output(f"Open this link in your browser:\n  {link}\n", "hermes webapp")
+        link = "http://127.0.0.1:9120/?profile=work#kova-session=" + self.CREDENTIAL
+        out = redact_terminal_output(f"Open this link in your browser:\n  {link}\n", "kova webapp")
         assert self.CREDENTIAL not in out
-        assert "http://127.0.0.1:9120/?profile=work#hermes-session=" in out
+        assert "http://127.0.0.1:9120/?profile=work#kova-session=" in out
 
     def test_a_launch_ticket_is_masked(self):
         from agent.redact import redact_terminal_output
 
         link = "http://127.0.0.1:9120/webapp/launch#ticket=" + self.CREDENTIAL + "&query=%3Fprofile%3Dwork"
-        out = redact_terminal_output(f"Open this one-use link:\n  {link}\n", "hermes webapp --no-open")
+        out = redact_terminal_output(f"Open this one-use link:\n  {link}\n", "kova webapp --no-open")
         assert self.CREDENTIAL not in out
         assert "http://127.0.0.1:9120/webapp/launch#ticket=" in out and "&query=%3Fprofile%3Dwork" in out
         assert self.CREDENTIAL not in redact_sensitive_text(link)
 
     def test_code_that_builds_such_a_link_is_left_alone(self):
-        source = "target.hash = `hermes-session=${token}`\nconst FRAGMENT_KEY = 'hermes-session'\n"
+        source = "target.hash = `kova-session=${token}`\nconst FRAGMENT_KEY = 'kova-session'\n"
         assert redact_sensitive_text(source, code_file=True) == source
 
 
@@ -1792,7 +1792,7 @@ class TestFlagAndKeyShapedCredentials:
         "      --secret stringArray      Secret file to expose to the build",
         "mysql [options] --password db_name",
         "--password[=password], -p[password]: use --password= or -p",
-        "hermes auth add openrouter --api-key sk-or-v1-xxx   # Add API key",
+        "kova auth add openrouter --api-key sk-or-v1-xxx   # Add API key",
         "For auth use `redis://:<password>@host:6379` or `redis://:${REDIS_PASSWORD}@host`.",
         "this.primaryKey = model.idField;\ndt.PrimaryKey = new DataColumn[] { dt.Columns[0] };",
         "var creds = new Creds { AccountKey = settings.StorageAccountKey };",

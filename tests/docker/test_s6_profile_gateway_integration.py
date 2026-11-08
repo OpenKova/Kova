@@ -11,11 +11,11 @@ valid profile config). The full register → start → supervised-restart
 → unregister cycle is covered by Phase 4 once profile create/delete
 hooks land.
 
-Every ``docker exec`` here runs as the unprivileged ``hermes`` user
+Every ``docker exec`` here runs as the unprivileged ``kova`` user
 (via :func:`docker_exec` in conftest); see the conftest module
-docstring. The gateway scandir ``/run/hermes-service`` is created
-hermes-owned by the ``02-reconcile-profiles`` cont-init.d script and
-watched by a hermes s6-svscan, so register/unregister operations work
+docstring. The gateway scandir ``/run/kova-service`` is created
+kova-owned by the ``02-reconcile-profiles`` cont-init.d script and
+watched by a kova s6-svscan, so register/unregister operations work
 under UID 10000 while the root ``/run/service`` stays root-owned.
 """
 from __future__ import annotations
@@ -25,7 +25,7 @@ from tests.docker.conftest import docker_exec, start_container
 
 _REGISTER_SCRIPT = """
 import sys
-sys.path.insert(0, "/opt/hermes")
+sys.path.insert(0, "/opt/kova")
 from kova_cli.service_manager import S6ServiceManager
 S6ServiceManager().register_profile_gateway("phase3test")
 # Don't worry about whether the gateway actually starts — we only care
@@ -40,7 +40,7 @@ def test_s6_register_creates_service_dir_in_live_container(
     built_image: str, container_name: str,
 ) -> None:
     """S6ServiceManager.register_profile_gateway must create
-    ``/run/hermes-service/gateway-<profile>/`` and trigger s6-svscan rescan
+    ``/run/kova-service/gateway-<profile>/`` and trigger s6-svscan rescan
     against the real s6 supervision tree."""
     start_container(built_image, container_name, cmd="sleep 120")
 
@@ -50,21 +50,21 @@ def test_s6_register_creates_service_dir_in_live_container(
     )
 
     # Service directory exists with the expected structure.
-    r = docker_exec(container_name, "test", "-d", "/run/hermes-service/gateway-phase3test")
+    r = docker_exec(container_name, "test", "-d", "/run/kova-service/gateway-phase3test")
     assert r.returncode == 0, "service directory not created"
 
-    r = docker_exec(container_name, "test", "-f", "/run/hermes-service/gateway-phase3test/run")
+    r = docker_exec(container_name, "test", "-f", "/run/kova-service/gateway-phase3test/run")
     assert r.returncode == 0, "run script not created"
 
     r = docker_exec(container_name, "test", "-f",
-              "/run/hermes-service/gateway-phase3test/log/run")
+              "/run/kova-service/gateway-phase3test/log/run")
     assert r.returncode == 0, "log/run script not created"
 
     # s6-svscan picked it up — s6-svstat works against the dir.
     # `docker exec` doesn't put /command/ on PATH (only the supervision
     # tree does), so call s6-svstat by absolute path.
     r = docker_exec(container_name, "/command/s6-svstat",
-              "/run/hermes-service/gateway-phase3test")
+              "/run/kova-service/gateway-phase3test")
     assert r.returncode == 0, f"s6-svstat failed: {r.stderr or r.stdout}"
 
     # list_profile_gateways picks it up.

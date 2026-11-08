@@ -2,7 +2,7 @@
 
 Before git (or the ZIP swap) writes the first file of the new code, three things are durable:
 
-* the interrupted-pull marker (``.git/hermes-update-pull``) naming the commit git moves to, for EVERY
+* the interrupted-pull marker (``.git/kova-update-pull``) naming the commit git moves to, for EVERY
   tree move (branch switch, upstream fork pull, the pull itself) so a launch after any exit that left
   a torn tree puts the old one back (``_early_recovery.restore_interrupted_pull``);
 * the source-completion tail (``venv_sync.arm_completion``) and the host fleet-restart obligation,

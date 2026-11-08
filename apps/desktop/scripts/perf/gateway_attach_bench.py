@@ -28,7 +28,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(REPO))
 
-os.environ.setdefault("KOVA_HOME", tempfile.mkdtemp(prefix="hermes-bench-home-"))
+os.environ.setdefault("KOVA_HOME", tempfile.mkdtemp(prefix="kova-bench-home-"))
 
 
 class CollectTransport:

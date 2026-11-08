@@ -11,7 +11,7 @@ import pytest
 
 from tests.gateway.test_session_client_env import _home, _owner
 
-TERN = {'name': 'hermes-tern', 'version': '0.4.1+g1a2b'}
+TERN = {'name': 'kova-tern', 'version': '0.4.1+g1a2b'}
 
 
 def _create(owner, actor, home, request_id, source='tui', **extra):
@@ -69,7 +69,7 @@ async def test_a_create_without_client_keeps_its_request_and_info_shape(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('bad', [
-    'hermes-tern', None, [], {}, {'version': '1'}, {'name': 'x', 'extra': 1}, {'name': ''},
+    'kova-tern', None, [], {}, {'version': '1'}, {'name': 'x', 'extra': 1}, {'name': ''},
     {'name': 'Kova'}, {'name': '-x'}, {'name': 'a b'}, {'name': 'x' * 65}, {'name': 7},
     {'name': 'x', 'version': ''}, {'name': 'x', 'version': 'v 1'}, {'name': 'x', 'version': 'v' * 65},
     {'name': 'x', 'version': None}, {'name': 'x', 'version': 1}, {'name': 'x', 'version': 'caf\u00e9'},
@@ -239,7 +239,7 @@ async def test_each_profile_home_sees_only_its_own_sessions_client(tmp_path, mon
             thread.start()
         for thread in threads:
             thread.join()
-        assert seen == {'a': (TERN, 'hermes-tern', '0.4.1+g1a2b'), 'b': (None, '', '')}
+        assert seen == {'a': (TERN, 'kova-tern', '0.4.1+g1a2b'), 'b': (None, '', '')}
         assert session_client() is None  # outside any turn
     finally:
         for conn, owner in ((conn_a, owner_a), (conn_b, owner_b)):

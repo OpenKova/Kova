@@ -1,6 +1,6 @@
 """Atomic writers must not resurrect a deleted named profile home.
 
-``hermes profile delete`` removes the tree and writes a tombstone under
+``kova profile delete`` removes the tree and writes a tombstone under
 ``profiles/.deleted/<name>``. Background writers that still carry the dead
 profile as their Kova home (reasoning-caps warm thread, models.dev refresh,
 gateway lifecycle ledger, MCP OAuth token writes, memory store mutations) used

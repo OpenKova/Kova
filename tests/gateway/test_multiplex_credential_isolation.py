@@ -90,7 +90,7 @@ class TestProfilePathResolutionUnderMultiplexScope:
 def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkeypatch):
     """A routed profile reload must stay inside its context-local scope.
 
-    ``load_hermes_dotenv`` has several lazy-import and cron call sites beyond
+    ``load_kova_dotenv`` has several lazy-import and cron call sites beyond
     the gateway's guarded reload helper.  Any one of them can run during a
     multiplexed turn, so the loader itself must not copy the active profile's
     ``.env`` into the shared process environment.
@@ -99,7 +99,7 @@ def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkey
 
     from agent.secret_scope import get_secret
     from gateway.run import _profile_runtime_scope
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     from kova_constants import get_kova_home
 
     profile_a = tmp_path / "profiles" / "a"
@@ -123,14 +123,14 @@ def test_turn_scoped_dotenv_reload_does_not_pollute_process_env(tmp_path, monkey
     with _profile_runtime_scope(profile_a):
         assert get_secret("PROFILE_SCOPED_API_KEY") == "secret-a"
         assert get_secret("DISCORD_ALLOWED_CHANNELS") == "profile-a-only"
-        assert load_hermes_dotenv(kova_home=get_kova_home()) == []
+        assert load_kova_dotenv(kova_home=get_kova_home()) == []
         assert "PROFILE_SCOPED_API_KEY" not in os.environ
         assert os.environ["DISCORD_ALLOWED_CHANNELS"] == "all-channels"
 
     with _profile_runtime_scope(profile_b):
         assert get_secret("PROFILE_SCOPED_API_KEY") == "secret-b"
         assert get_secret("DISCORD_ALLOWED_CHANNELS") == "profile-b-only"
-        assert load_hermes_dotenv(kova_home=get_kova_home()) == []
+        assert load_kova_dotenv(kova_home=get_kova_home()) == []
         assert "PROFILE_SCOPED_API_KEY" not in os.environ
         assert os.environ["DISCORD_ALLOWED_CHANNELS"] == "all-channels"
 
@@ -145,7 +145,7 @@ def test_launch_home_dotenv_still_loads_under_multiplex(tmp_path, monkeypatch):
     """
     import os
 
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch = tmp_path / "launch"
@@ -161,7 +161,7 @@ def test_launch_home_dotenv_still_loads_under_multiplex(tmp_path, monkeypatch):
     def _load(home):
         token = set_kova_home_override(str(home))
         try:
-            return load_hermes_dotenv(kova_home=home)
+            return load_kova_dotenv(kova_home=home)
         finally:
             reset_kova_home_override(token)
 
@@ -179,7 +179,7 @@ def test_launch_home_load_inside_foreign_turn_keeps_routed_cwd_out_of_process_en
     into the shared ``TERMINAL_CWD`` that the launch profile's own turns and cron jobs read."""
     import os
 
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     from kova_constants import reset_kova_home_override, set_kova_home_override
 
     launch = tmp_path / "launch"
@@ -197,7 +197,7 @@ def test_launch_home_load_inside_foreign_turn_keeps_routed_cwd_out_of_process_en
 
     token = set_kova_home_override(str(routed))
     try:
-        assert load_hermes_dotenv(kova_home=launch) == []
+        assert load_kova_dotenv(kova_home=launch) == []
     finally:
         reset_kova_home_override(token)
     assert os.environ["TERMINAL_CWD"] == str(launch_work)

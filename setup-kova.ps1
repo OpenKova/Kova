@@ -48,7 +48,7 @@ if (Test-Path $uv) {
     Write-Host ("pinned uv found: " + (& $uv --version)) -ForegroundColor Green
 } else {
     Write-Host "Staging pinned uv $($uvPin.version) ($target) into the pm store..." -ForegroundColor Cyan
-    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("hermes-setup-" + [guid]::NewGuid().ToString('n'))
+    $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("kova-setup-" + [guid]::NewGuid().ToString('n'))
     New-Item -ItemType Directory -Path $tmp | Out-Null
     try {
         $archive = Join-Path $tmp ([uri]$artifact.url).Segments[-1]

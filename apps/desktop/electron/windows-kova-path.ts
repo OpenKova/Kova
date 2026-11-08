@@ -1,14 +1,14 @@
 /**
  * windows-kova-path.ts
  *
- * Pure, dependency-injected pieces of Windows `hermes` resolution pulled out
+ * Pure, dependency-injected pieces of Windows `kova` resolution pulled out
  * of main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
  * unwrapWindowsVenvKovaCommand(). Each of the three functions here pins one
  * of the Windows resolution bugs that caused desktop reinstall loops:
  *
  *   1. buildPathExtCandidates() — findOnPath() tried the empty extension
- *      FIRST, so an extensionless Git-Bash `hermes` shim shadowed the real
- *      hermes.cmd/hermes.exe; the shim then failed the --version probe and
+ *      FIRST, so an extensionless Git-Bash `kova` shim shadowed the real
+ *      kova.cmd/kova.exe; the shim then failed the --version probe and
  *      the desktop fell through to a spurious bootstrap/repair. The fix:
  *      PATHEXT extensions first, empty extension LAST.
  *   2. chooseUpdaterArgs() — handOffWindowsBootstrapRecovery() must separate
@@ -35,8 +35,8 @@
  * On Windows this MUST try PATHEXT extensions (.COM;.EXE;.BAT;.CMD by
  * default) BEFORE the bare/empty-extension name: a real command resolves via
  * its .exe/.cmd per Windows command-resolution semantics, and an
- * extensionless file (e.g. a Git-Bash shell-script shim named `hermes`) must
- * not shadow `hermes.cmd`/`hermes.exe`. The empty entry is kept LAST so
+ * extensionless file (e.g. a Git-Bash shell-script shim named `kova`) must
+ * not shadow `kova.cmd`/`kova.exe`. The empty entry is kept LAST so
  * callers that already include the extension (py.exe, pwsh.exe,
  * powershell.exe) still resolve.
  *
@@ -89,11 +89,11 @@ export interface ResolveVenvKovaCommandDeps {
 }
 
 /**
- * If `command` is a Windows venv `hermes`/`hermes.exe` console-script shim
- * (i.e. `<venvRoot>/Scripts/hermes(.exe)`), resolve it to the underlying
+ * If `command` is a Windows venv `kova`/`kova.exe` console-script shim
+ * (i.e. `<venvRoot>/Scripts/kova(.exe)`), resolve it to the underlying
  * venv python invoked as `python -m kova_cli.main <backendArgs>` — but
  * ONLY after smoke-testing that interpreter with canImportKovaCli(). A
- * venv whose update died mid-`pip install` still has python.exe + hermes.exe
+ * venv whose update died mid-`pip install` still has python.exe + kova.exe
  * on disk, but the backend dies on its first import (e.g.
  * ModuleNotFoundError: dotenv) before the gateway ever binds. Returning it
  * unprobed also bypasses the caller's `--version` probe, so Retry/"Repair
@@ -103,7 +103,7 @@ export interface ResolveVenvKovaCommandDeps {
  * Mirrors isSourceRuntimeUsable() in main.ts: probes with the checkout on PYTHONPATH so
  * a healthy source-tree venv passes.
  *
- * Returns null when `command` is not a venv hermes shim, the underlying
+ * Returns null when `command` is not a venv kova shim, the underlying
  * python doesn't exist, or the import probe fails. Otherwise returns the
  * resolved backend descriptor.
  */
@@ -141,7 +141,7 @@ export async function resolveVenvKovaCommand(
 
   const resolved = resolvePath(String(command))
 
-  if (!/^hermes(?:\.exe)?$/i.test(basename(resolved))) {
+  if (!/^kova(?:\.exe)?$/i.test(basename(resolved))) {
     return null
   }
 

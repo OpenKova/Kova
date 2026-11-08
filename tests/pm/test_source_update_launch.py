@@ -193,7 +193,7 @@ def test_launcher_publication_failure_retries_without_rebuilding_dependencies(so
     committed = runtime_facts_path(root).read_bytes()
     assert venv_sync.prepare_launch(root, []) == store_python
     assert runtime_facts_path(root).read_bytes() == committed
-    assert (root / ".kova" / "bin" / "hermes").is_file()
+    assert (root / ".kova" / "bin" / "kova").is_file()
 
 
 @pytest.mark.platforms("posix")
@@ -205,7 +205,7 @@ def test_source_publication_leaves_external_install_launchers_alone(source_launc
     )
     if not checkout:
         (root / ".git").rmdir()
-    launcher = root / ".kova" / "bin" / "hermes"
+    launcher = root / ".kova" / "bin" / "kova"
     launcher.parent.mkdir(parents=True)
     launcher.write_text("externally owned launcher\n", encoding="utf-8")
     assert venv_sync.sync(root)["ok"]
@@ -500,7 +500,7 @@ def test_failed_launch_completion_degrades_to_a_warning(source_launch, tmp_path,
         assert _receipts(tmp_path) == before_receipts, "a metadata query attempted a dependency sync"
     else:
         assert "source-update completion failed" in result.stderr
-        assert "hermes update" in result.stderr
+        assert "kova update" in result.stderr
 
 
 @pytest.mark.platforms("posix")
@@ -545,7 +545,7 @@ def test_completion_retry_backoff_and_cap(tmp_path, monkeypatch):
 @pytest.mark.platforms("posix")
 def test_capped_completion_attempts_leave_marker_for_explicit_update(source_launch, tmp_path, capsys):
     """Past the retry cap a launch must NOT re-run the tail; it keeps the pending marker
-    and points the operator at `hermes update` instead of burning another doomed attempt."""
+    and points the operator at `kova update` instead of burning another doomed attempt."""
     root, store_python, _ = source_launch
     from kova_cli.venv_sync import (
         _completion_attempts_path,
@@ -565,7 +565,7 @@ def test_capped_completion_attempts_leave_marker_for_explicit_update(source_laun
     assert venv_sync.prepare_launch(root, []) == store_python
     out = capsys.readouterr().err
     assert "could not be finished automatically" in out
-    assert "hermes update" in out
+    assert "kova update" in out
     assert completion_pending_path(root).is_file(), "the owed completion is still recorded"
     assert not (tmp_path / "completion-calls").exists(), "a capped launch re-ran the tail"
 

@@ -142,7 +142,7 @@ def test_token_requests_carry_the_configured_user_agent(
     pytest.param(build_oauth_auth, id="build_oauth_auth"),
     pytest.param(_manager_builder, id="oauth_manager"),
 ])
-def test_unconfigured_user_agent_falls_back_to_the_hermes_default(
+def test_unconfigured_user_agent_falls_back_to_the_kova_default(
     builder, tmp_path, monkeypatch
 ):
     """No config → the shared ``Kova-Agent/<version>`` default, never a header-less request.

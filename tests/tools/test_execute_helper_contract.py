@@ -36,7 +36,7 @@ def run(code, reset=False):
 
 def test_schema_helper_instructions_work_across_kernel_lifetimes():
     description = registry.get_schema("execute_code")["description"]
-    imports = "\n".join(re.findall(r"`(from hermes_tools import [\w, ]+)`", description))
+    imports = "\n".join(re.findall(r"`(from kova_tools import [\w, ]+)`", description))
     for reset, reused in ((False, False), (False, True), (True, False)):
         result = run(PROBE.format(imports=imports), reset=reset)
         assert result["status"] == "success", result
@@ -48,11 +48,11 @@ def test_missing_helper_recovery_instructions_execute():
     for helper in ("json_parse", "shell_quote", "retry"):
         failed = run(f"print({helper})", reset=True)
         assert failed["status"] == "error", failed
-        instruction = re.search(r"from hermes_tools import \w+", failed["hint"])
+        instruction = re.search(r"from kova_tools import \w+", failed["hint"])
         assert instruction, failed
         recovered = run(instruction.group() + f"\nprint(callable({helper}))")
         assert recovered["status"] == "success", recovered
         assert recovered["output"].strip() == "True"
         skew = code_execution_tool._sandbox_failure_hint(
-            f"ImportError: cannot import name '{helper}' from 'hermes_tools'")
+            f"ImportError: cannot import name '{helper}' from 'kova_tools'")
         assert instruction.group() in skew

@@ -44,7 +44,7 @@ def native_desktop_client(monkeypatch, profiles: dict[str, Path] | None = None) 
             named = parse_qs(scope.get("query_string", b"").decode()).get("profile", [""])[0]
             ticket = store.mint(profile_id=str(homes.get(named, home)), subject="desktop", purpose="native-http")
             scope = {**scope, "headers": [*scope["headers"], (b"x-kova-gateway-ticket", ticket.encode())],
-                     "hermes.gateway_socket_peer": ("127.0.0.1", 50000)}
+                     "kova.gateway_socket_peer": ("127.0.0.1", 50000)}
         await web_server.app(scope, receive, send)
 
     return TestClient(native_desktop, raise_server_exceptions=False)

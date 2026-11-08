@@ -107,7 +107,7 @@ class TestCronRunJobGuard:
 
 class TestServeGuard:
     def test_serve_headless_refuses_corrupt_config(self, tmp_path, capsys):
-        """The `hermes serve` headless path fails closed before startup."""
+        """The `kova serve` headless path fails closed before startup."""
         from argparse import Namespace
 
         from kova_cli import main as main_mod

@@ -1,7 +1,7 @@
 """Tests for kova_bootstrap — Windows UTF-8 stdio shim.
 
 The bootstrap module is imported at the top of every Kova entry point
-(hermes, kova-agent, hermes-acp, gateway, batch_runner, cli.py).  It
+(kova, kova-agent, kova-acp, gateway, batch_runner, cli.py).  It
 fixes Python's Windows UTF-8 defaults so print("café") doesn't crash and
 subprocess children inherit UTF-8 mode.
 
@@ -234,7 +234,7 @@ else:
 # stdio repair fires on a cp1252 pipe.
 @pytest.mark.platforms("any")
 def test_library_imports_of_dual_use_entry_modules_stay_side_effect_free(tmp_path):
-    # The codex hermes-tools MCP server and the compute host are ``python -m`` entry points
+    # The codex kova-tools MCP server and the compute host are ``python -m`` entry points
     # that agent/gateway code and tests also import; there the bootstrap exported TMPDIR and
     # KOVA_SCRATCH_DIR into every importer (gateway.relay's read-only routing included).
     code = textwrap.dedent("""
@@ -277,7 +277,7 @@ class PrePMEditableFinder(MetaPathFinder):
             return importlib.util.spec_from_file_location(name, os.path.join(root, 'kova_bootstrap.py'))
         return None
 sys.meta_path.append(PrePMEditableFinder())
-sys.argv = ['hermes', 'pm', 'repair']
+sys.argv = ['kova', 'pm', 'repair']
 import kova_cli
 import kova_bootstrap
 assert kova_bootstrap._pm_repair is True
@@ -297,7 +297,7 @@ print('reached-pm')
 ])
 @pytest.mark.parametrize("bootstrap,expected", [
     (None, "proceeded"),
-    ("import hermes_missing_dependency_probe\n", "raised hermes_missing_dependency_probe"),
+    ("import kova_missing_dependency_probe\n", "raised kova_missing_dependency_probe"),
 ])
 def test_entrypoint_tolerates_only_an_absent_bootstrap(tmp_path, path, bootstrap, expected):
     """The entry-point guard covers a bootstrap a partial update left unregistered.
@@ -351,7 +351,7 @@ class TestHardenImportPath:
                 os.environ["KOVA_PYTHON_SRC_ROOT"] = env
             elif "KOVA_PYTHON_SRC_ROOT" in os.environ:
                 del os.environ["KOVA_PYTHON_SRC_ROOT"]
-            hb.harden_import_path(src_root="/opt/hermes")
+            hb.harden_import_path(src_root="/opt/kova")
             return sys.path[:]
         finally:
             sys.path[:] = original
@@ -362,25 +362,25 @@ class TestHardenImportPath:
 
     def test_relative_cwd_forms_removed(self):
         hb = _fresh_import()
-        result = self._run(hb, ["", ".", "/opt/hermes", "/usr/lib/python"])
+        result = self._run(hb, ["", ".", "/opt/kova", "/usr/lib/python"])
         assert "" not in result
         assert "." not in result
 
     def test_src_root_forced_to_front(self):
         hb = _fresh_import()
-        result = self._run(hb, ["", "/opt/hermes", "/usr/lib/python"])
-        assert result[0] == "/opt/hermes"
+        result = self._run(hb, ["", "/opt/kova", "/usr/lib/python"])
+        assert result[0] == "/opt/kova"
 
     def test_absolute_cwd_path_loses_to_src_root(self):
         # The real #51286 bug: the launch dir is present as its own absolute
         # path (venv activation / a project on PYTHONPATH), ahead of the
         # Kova root.  The guard must relocate Kova to the front.
         hb = _fresh_import()
-        result = self._run(hb, ["/home/user/tg-ws-proxy", "/opt/hermes"])
-        assert result[0] == "/opt/hermes"
+        result = self._run(hb, ["/home/user/tg-ws-proxy", "/opt/kova"])
+        assert result[0] == "/opt/kova"
         # The cwd absolute path may still appear (it can hold legit deps),
         # but only AFTER the Kova root.
-        assert result.index("/opt/hermes") < result.index("/home/user/tg-ws-proxy")
+        assert result.index("/opt/kova") < result.index("/home/user/tg-ws-proxy")
 
 
     def test_env_var_used_when_no_arg(self):
@@ -389,9 +389,9 @@ class TestHardenImportPath:
         original_env = os.environ.get("KOVA_PYTHON_SRC_ROOT")
         try:
             sys.path[:] = ["", "/cwd/proj", "/usr/lib"]
-            os.environ["KOVA_PYTHON_SRC_ROOT"] = "/env/hermes"
+            os.environ["KOVA_PYTHON_SRC_ROOT"] = "/env/kova"
             hb.harden_import_path()
-            assert sys.path[0] == "/env/hermes"
+            assert sys.path[0] == "/env/kova"
         finally:
             sys.path[:] = original
             if original_env is None:
@@ -484,7 +484,7 @@ class TestHappyEyeballsSocketConnect:
         hb = _fresh_import()
         assert socket.create_connection.__module__ == hb.__name__
         # urllib3 keeps its own serial connect walker; it is patched once imported (lazily).
-        assert getattr(urllib3_connection.create_connection, "_hermes_happy_eyeballs", False)
+        assert getattr(urllib3_connection.create_connection, "_kova_happy_eyeballs", False)
         # Re-importing the bootstrap (or importing it after urllib3) never wraps the racer twice.
         racer = socket.create_connection
         _fresh_import()
@@ -495,7 +495,7 @@ class TestHappyEyeballsSocketConnect:
             import sys, kova_bootstrap
             assert "urllib3" not in sys.modules, "bootstrap imported urllib3 eagerly"
             import urllib3.util.connection as c
-            assert c.create_connection._hermes_happy_eyeballs
+            assert c.create_connection._kova_happy_eyeballs
         """)], check=True, cwd=str(Path(hb.__file__).parent), timeout=60)
 
         listener = socket.socket()
@@ -584,7 +584,7 @@ class TestHappyEyeballsSocketConnect:
             raise RuntimeError("racer bug")
 
         for racer in (socket.create_connection, urllib3_connection.create_connection):
-            assert getattr(racer, "_hermes_happy_eyeballs", False)
+            assert getattr(racer, "_kova_happy_eyeballs", False)
             monkeypatch.setitem(racer.__globals__, "_happy_eyeballs_create_connection", boom)
             with pytest.raises(RuntimeError, match="racer bug"):
                 racer(("127.0.0.1", 1), 1.0)

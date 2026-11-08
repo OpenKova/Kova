@@ -65,8 +65,8 @@ resolve_update_ref() {
     | git -C "$repo" hash-object -w --stdin)" || return
   tree="$( { git -C "$repo" ls-tree -z "$parent"; printf '100644 blob %s\t.kova-e2e-next\0' "$blob"; } \
     | git -C "$repo" mktree -z)" || return
-  GIT_AUTHOR_NAME='Kova E2E' GIT_AUTHOR_EMAIL='e2e@hermes.invalid' \
-    GIT_COMMITTER_NAME='Kova E2E' GIT_COMMITTER_EMAIL='e2e@hermes.invalid' \
+  GIT_AUTHOR_NAME='Kova E2E' GIT_AUTHOR_EMAIL='e2e@kova.invalid' \
+    GIT_COMMITTER_NAME='Kova E2E' GIT_COMMITTER_EMAIL='e2e@kova.invalid' \
     git -C "$repo" commit-tree "$tree" -p "$parent" -m 'e2e: synthetic next commit'
 }
 

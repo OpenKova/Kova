@@ -99,7 +99,7 @@ def test_vision_media_cache_dirs_created_owner_only(tmp_path, monkeypatch):
     healed (PR #77579's media-cache half)."""
     home = tmp_path / "hh"
     _no_managed(monkeypatch, home)
-    monkeypatch.setattr(vt, "get_hermes_dir", lambda new, old: home / new)
+    monkeypatch.setattr(vt, "get_kova_dir", lambda new, old: home / new)
     for sub in ("cache/vision", "cache/video"):
         assert _mode(vt._secure_cache_dir(sub, "legacy")) == 0o700
     legacy = home / "cache" / "vision"
@@ -111,7 +111,7 @@ def test_vision_media_cache_files_owner_only(tmp_path, monkeypatch):
     """Media bytes written into the hardened cache land 0600, not the umask default."""
     home = tmp_path / "hh"
     _no_managed(monkeypatch, home)
-    monkeypatch.setattr(vt, "get_hermes_dir", lambda new, old: home / new)
+    monkeypatch.setattr(vt, "get_kova_dir", lambda new, old: home / new)
     path = vt._secure_cache_dir("cache/vision", "legacy") / "capture.png"
     vt._write_private_bytes(path, b"screen contents")
     assert path.read_bytes() == b"screen contents"
@@ -127,9 +127,9 @@ def test_computer_use_cache_files_owner_only(tmp_path, monkeypatch):
     home = tmp_path / "hh"
     _no_managed(monkeypatch, home)
     # computer_use resolves the cache dir through the lazily-imported
-    # kova_constants.get_hermes_dir (see _cache_file), so patch it there —
+    # kova_constants.get_kova_dir (see _cache_file), so patch it there —
     # the module attribute the import binds to, not the consumer module.
-    monkeypatch.setattr(kova_constants, "get_hermes_dir", lambda new, old: home / new)
+    monkeypatch.setattr(kova_constants, "get_kova_dir", lambda new, old: home / new)
     path = cu._cache_file("cache/vision", "temp_vision_images", "capture.png")
     cu._write_private_bytes(path, b"frame")
     assert path.read_bytes() == b"frame"
@@ -146,7 +146,7 @@ def test_gateway_media_cache_dirs_created_owner_only(tmp_path, monkeypatch, gett
     import gateway.platforms.base as gw
     home = tmp_path / "hh"
     _no_managed(monkeypatch, home)
-    monkeypatch.setattr(gw, "get_hermes_dir", lambda new, old: home / new)
+    monkeypatch.setattr(gw, "get_kova_dir", lambda new, old: home / new)
     for name in gw._CACHE_DIR_IMPORT_DEFAULTS:
         monkeypatch.setattr(gw, name, None, raising=False)
     cache_dir = getattr(gw, getter_name)()
@@ -160,7 +160,7 @@ def test_gateway_media_cache_files_owner_only(tmp_path, monkeypatch):
     import gateway.platforms.base as gw
     home = tmp_path / "hh"
     _no_managed(monkeypatch, home)
-    monkeypatch.setattr(gw, "get_hermes_dir", lambda new, old: home / new)
+    monkeypatch.setattr(gw, "get_kova_dir", lambda new, old: home / new)
     for name in gw._CACHE_DIR_IMPORT_DEFAULTS:
         monkeypatch.setattr(gw, name, None, raising=False)
     path_str = gw.cache_image_from_bytes(b"\x89PNG\r\n\x1a\n" + b"photo bytes" * 8)

@@ -11,7 +11,7 @@ Two artifacts, one authority each:
 
   An owner is live while its pid is alive and its creation time still matches: never by age
   (the 20-minute ceiling only ages out v1 markers, which carry no creation time).
-* The checkout lock ``<git common dir>/hermes-update.lock`` (``<install root>/.kova-update.lock``
+* The checkout lock ``<git common dir>/kova-update.lock`` (``<install root>/.kova-update.lock``
   for a ZIP install with no ``.git``) — a kernel lock (flock / msvcrt) that ``kova update``
   holds for its whole process tree, so two updates of one checkout started from different
   homes exclude each other and a killed updater whose completion child still runs keeps the
@@ -58,9 +58,9 @@ EMPTY_MARKER_GRACE_SECONDS = 5.0
 
 MARKER_NAME = ".kova-update-in-progress"
 CHECKOUT_LOCK_NAME = ".kova-update.lock"
-GIT_CHECKOUT_LOCK_NAME = "hermes-update.lock"
+GIT_CHECKOUT_LOCK_NAME = "kova-update.lock"
 
-# Set by an orchestrating updater (Tauri `hermes-setup --update`) to its own pid before
+# Set by an orchestrating updater (Tauri `kova-setup --update`) to its own pid before
 # spawning `kova update` as a child stage; the parent holds the marker for its whole run,
 # so without this the child would refuse its own parent's lock. Keep in sync with
 # update_child_env in apps/bootstrap-installer/src-tauri/src/update.rs.
@@ -472,7 +472,7 @@ def _is_ancestor_pid(pid: int) -> bool:
     The orchestrating updater spawns ``kova update`` as a (grand)child, so a live marker
     owned by one of our ancestors can only be the claim we are already running under — an
     unrelated concurrent updater is never in our parent chain. This heals the fleet of staged
-    ``hermes-setup`` binaries that predate the HANDOFF_PID_ENV export and can never send it.
+    ``kova-setup`` binaries that predate the HANDOFF_PID_ENV export and can never send it.
 
     The chain is walked one link at a time and each ancestor is tested as it is
     discovered. ``psutil.Process.parents()`` cannot be used here: it builds the

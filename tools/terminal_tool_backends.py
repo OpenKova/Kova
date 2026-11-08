@@ -228,7 +228,7 @@ def _stamp_sandbox_home(env_obj, provider, cwd) -> None:
         home = declared
     if isinstance(home, str) and home.startswith("/") and home != "/":
         try:
-            env_obj._hermes_sandbox_home = home
+            env_obj._kova_sandbox_home = home
         except AttributeError:
             pass
 
@@ -250,7 +250,7 @@ def _build_plugin_env(*, env_type, image, cwd, timeout, cc, task_id, **_):
         # Stamp the backend name so path-resolution and progress surfaces can identify plugin
         # backends without class-name sniffing. Test doubles may reject attributes.
         try:
-            env_obj._hermes_backend_name = provider.name.strip().lower()
+            env_obj._kova_backend_name = provider.name.strip().lower()
         except AttributeError:
             pass
         _stamp_sandbox_home(env_obj, provider, cwd)
@@ -311,7 +311,7 @@ def _check_vercel(config: dict[str, Any]) -> bool:
                        "Use the default shared setting (51200 MB).")
     if importlib.util.find_spec("vercel") is None:
 
-        return _reject("vercel is required for the Vercel Sandbox terminal backend. Run hermes setup terminal and select Vercel Sandbox.")
+        return _reject("vercel is required for the Vercel Sandbox terminal backend. Run kova setup terminal and select Vercel Sandbox.")
     from agent.secret_scope import get_secret
     if get_secret("VERCEL_OIDC_TOKEN"):
         return True
@@ -353,7 +353,7 @@ _BACKEND_SPECS: dict[str, dict[str, Any]] = {
                           "Docker is not installed — no docker executable in PATH or the usual install locations")},
     "ssh": {"pre": _ssh_pre},
     "modal": {"pre": _modal_pre,
-              "module": ("modal", "modal is required for direct modal terminal backend. Run hermes setup terminal and select Modal.")},
+              "module": ("modal", "modal is required for direct modal terminal backend. Run kova setup terminal and select Modal.")},
     "vercel_sandbox": {"pre": _check_vercel},
     "daytona": {"post": _daytona_post},
 }

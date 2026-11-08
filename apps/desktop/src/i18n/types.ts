@@ -1941,7 +1941,7 @@ export interface Translations extends NoticeTranslations {
         serverStates: {
           connected: string
           app_not_running: string
-          hermes_not_connected: string
+          kova_not_connected: string
           endpoint_unavailable: string
           no_interactive_session: string
           version_too_old: string
@@ -2196,7 +2196,7 @@ export interface Translations extends NoticeTranslations {
     noSessions: string
     gatewayRunning: string
     gatewayStopped: string
-    hermesActiveSessions: (version: string, count: number) => string
+    kovaActiveSessions: (version: string, count: number) => string
     restartGateway: string
     openBrowser: string
     toggleBrowser: string

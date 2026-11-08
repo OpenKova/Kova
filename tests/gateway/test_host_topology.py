@@ -13,7 +13,7 @@ import pytest
 def host_gateway(tmp_path, monkeypatch):
     from gateway import host_rendezvous as hr
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     (root / "profiles" / "coder").mkdir(parents=True)
     locks = tmp_path / "locks"
     locks.mkdir()
@@ -87,7 +87,7 @@ def test_topology_ignores_another_tenants_record_and_reads_the_launch_homes_stat
     from gateway import host_rendezvous as hr
     from gateway import host_topology, status
 
-    root_a, root_b = tmp_path / "hermes-a", tmp_path / "hermes-b"
+    root_a, root_b = tmp_path / "kova-a", tmp_path / "kova-b"
     argus = root_b / "profiles" / "argus"
     argus.mkdir(parents=True)
     monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
@@ -126,7 +126,7 @@ def test_a_live_looking_pid_with_a_free_host_lock_is_not_the_host_gateway(tmp_pa
     from gateway import host_topology
     from gateway.status import get_process_start_time
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir()
     monkeypatch.setenv("KOVA_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.setenv("KOVA_HOME", str(root))

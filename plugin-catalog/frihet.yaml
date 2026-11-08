@@ -64,12 +64,12 @@ repo: https://github.com/Frihet-io/hermes-frihet
 #       CI on every push/PR = Python 3.14 tests + manifest lint, 3.11-3.13
 #       compat smoke, and manifest-validate (schema + capability
 #       cross-check). The full `hermes plugins validate --install-deps`
-#       is run locally in a clean HERMES_HOME before each tag.
+#       is run locally in a clean KOVA_HOME before each tag.
 #     - Hard-coded "158 operations" dropped from docs: the canonical
 #       count moves with every frihet-mcp release.
 #
 # Tests: 88 pass + 3 skips. hermes plugins validate --install-deps
-# (clean HERMES_HOME): 14/14 checks, security scan "safe".
+# (clean KOVA_HOME): 14/14 checks, security scan "safe".
 sha: 72493236b16c5e1e2b6a5ada3674781a6da180a1
 description: "Official Hermes Agent integration for Frihet — discoverability, setup, diagnostics, and operating guidance for the Frihet MCP. Zero duplicated tools; the canonical Frihet MCP surface stays in @frihet/mcp-server and the remote endpoint https://mcp.frihet.io/mcp. Disclosure — /frihet setup and /frihet doctor send an unauthenticated MCP initialize to mcp.frihet.io (or FRIHET_MCP_URL); /frihet doctor also makes one read-only list_invoices call through Hermes's MCP client once you grant plugins.entries.frihet.mcp_allowlist; reads ~/.hermes/config.yaml only to check that an mcp_servers.frihet block exists; the pre_tool_call hook prompts before Frihet MCP calls it classifies as irreversible or unknown, but reads and draft-first creates pass without a prompt unless the server sets trust: untrusted."
 maintainer: Frihet-io

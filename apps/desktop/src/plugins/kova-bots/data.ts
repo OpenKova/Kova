@@ -1161,7 +1161,7 @@ export function mergeMultiSourceRoster(
     profiles.push({
       name: profile,
       // A remote row's title/display_name ride the union enumeration; without
-      // them a remote default titled "CoS Bot" only ever tags as @hermes(-device)
+      // them a remote default titled "CoS Bot" only ever tags as @kova(-device)
       // and its title slug is unknown to the composer (#103731).
       ...(agent.profileMetadata || {}),
       handle: agent.handle,
@@ -1235,36 +1235,36 @@ export function mergeMultiSourceRoster(
 /** The @handle users tag a bot with. Multi-source rosters precompute the
  *  handle (bare name, or name-device when the profile exists on several
  *  registered sources) — prefer it when present. The primary profile's
- *  callable alias is 'hermes' — the mention middleware resolves it back to
+ *  callable alias is 'kova' — the mention middleware resolves it back to
  *  'default' — so the word 'default' never surfaces in the UI, unless a real
- *  `hermes` profile on the same source holds that handle (`claimDefaultHandles`). */
+ *  `kova` profile on the same source holds that handle (`claimDefaultHandles`). */
 export function botHandle(name: string, bot?: Partial<RosterRow> | null): string {
-  if (bot?.handle && bot.handle !== name && !(bot.kovaHandleTaken && bot.handle === 'hermes')) {
+  if (bot?.handle && bot.handle !== name && !(bot.kovaHandleTaken && bot.handle === 'kova')) {
     return bot.handle
   }
 
-  return (name || '').trim().toLowerCase() === 'default' && !bot?.kovaHandleTaken ? 'hermes' : name
+  return (name || '').trim().toLowerCase() === 'default' && !bot?.kovaHandleTaken ? 'kova' : name
 }
 
-/** The row's own `handle` as a mention form, lowercased. A stale 'hermes'
- *  handle on a default row whose source has a real 'hermes' profile is that
+/** The row's own `handle` as a mention form, lowercased. A stale 'kova'
+ *  handle on a default row whose source has a real 'kova' profile is that
  *  profile's tag, not this row's (same rule as `botHandle`). */
 function claimableRowHandle(bot: Partial<RosterRow>): string {
-  return bot.handle && !(bot.kovaHandleTaken && bot.handle === 'hermes') ? String(bot.handle).toLowerCase() : ''
+  return bot.handle && !(bot.kovaHandleTaken && bot.handle === 'kova') ? String(bot.handle).toLowerCase() : ''
 }
 
-/** Mark each default row whose source also lists a real `hermes` profile, so
- *  that profile keeps @hermes and the roster never shows two (the backend's
+/** Mark each default row whose source also lists a real `kova` profile, so
+ *  that profile keeps @kova and the roster never shows two (the backend's
  *  `tools/bot_mode_probe._handle` applies the same rule). Rows group by
  *  connection; rows without one are the active source. */
 export function claimDefaultHandles<T extends Partial<RosterRow>>(rows: T[]): T[] {
   const taken = new Set(
-    rows.filter(row => String(row?.name || '').trim() === 'hermes').map(row => String(row?.connectionId || ''))
+    rows.filter(row => String(row?.name || '').trim() === 'kova').map(row => String(row?.connectionId || ''))
   )
 
   return rows.map(row =>
     String(row?.name || '').trim() === 'default' && taken.has(String(row?.connectionId || ''))
-      ? { ...row, hermesHandleTaken: true }
+      ? { ...row, kovaHandleTaken: true }
       : row
   )
 }
@@ -1274,7 +1274,7 @@ export function claimDefaultHandles<T extends Partial<RosterRow>>(rows: T[]): T[
  *  reduces to the mention charset two ways: slugified ("Research Buddy" →
  *  research-buddy, the form autocomplete inserts) and collapsed
  *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Kova"
- *  can never hijack the primary profile's @hermes alias. */
+ *  can never hijack the primary profile's @kova alias. */
 export function mentionNameForms(value: null | string | undefined): string[] {
   const name = String(value || '')
     .trim()
@@ -1288,7 +1288,7 @@ export function mentionNameForms(value: null | string | undefined): string[] {
   const collapsed = name.replace(/[^a-z0-9_-]+/g, '')
 
   return [...new Set([slug, collapsed])].filter(
-    form => /^[a-z0-9][a-z0-9_-]*$/.test(form) && !['all', 'everyone', 'user', 'default', 'hermes'].includes(form)
+    form => /^[a-z0-9][a-z0-9_-]*$/.test(form) && !['all', 'everyone', 'user', 'default', 'kova'].includes(form)
   )
 }
 
@@ -1510,8 +1510,8 @@ export function resolveRosterMentions(
     let token = match[2].toLowerCase()
     const connection = (match[3] || '').toLowerCase()
 
-    if (token === 'hermes') {
-      token = byForm.has('hermes') ? 'hermes' : token
+    if (token === 'kova') {
+      token = byForm.has('kova') ? 'kova' : token
     }
 
     const bot = connection

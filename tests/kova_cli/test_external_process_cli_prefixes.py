@@ -5,7 +5,7 @@ carries none of Claude Code's install prefixes (``~/.local/bin``, ``~/.claude/lo
 ``agent.anthropic_adapter`` probes those prefixes after PATH; ``_external_process_spec`` and
 ``run_oauth_setup_token`` asked PATH only, so a provider whose ``process_command`` is ``claude``
 was reported missing ("Could not find the ... CLI command 'claude'") on a machine where the
-adapter could run it. Reported against hermes-plugin-claude-subscription-directsdk#32.
+adapter could run it. Reported against kova-plugin-claude-subscription-directsdk#32.
 """
 
 from __future__ import annotations

@@ -29,7 +29,7 @@ const make = (platform?: NodeJS.Platform): PluginFiles =>
   })
 
 beforeEach(() => {
-  scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-spell-')))
+  scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kova-plugin-files-spell-')))
   userData = path.join(scratch, 'userData')
   kovaHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
@@ -82,7 +82,7 @@ describe('case on a case-sensitive macOS volume', () => {
   })
 
   it.runIf(posix)('a differently-cased spelling of the Kova home still cannot be granted', async () => {
-    const lookalike = path.join(scratch, 'home', '.HERMES')
+    const lookalike = path.join(scratch, 'home', '.KOVA')
     fs.mkdirSync(lookalike)
 
     expect(await make('darwin').addGrant('plexus', lookalike)).toMatchObject({ ok: false, error: 'protected' })

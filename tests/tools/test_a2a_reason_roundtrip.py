@@ -76,7 +76,7 @@ def _envelope(home):
         target=target,
         message="ping",
         sender_profile="default",
-        sender_handle="hermes",
+        sender_handle="kova",
     )
 
 

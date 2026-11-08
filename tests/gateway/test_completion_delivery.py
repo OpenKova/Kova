@@ -75,7 +75,7 @@ def _async_event(delegation_id="deleg_duplicate"):
         # PR #62479 stamps these on gateway-owned events. They must not
         # change the producer identity used for queue replay.
         "origin_profile": "default",
-        "origin_kova_home": "/tmp/hermes-default",
+        "origin_kova_home": "/tmp/kova-default",
     }
 
 

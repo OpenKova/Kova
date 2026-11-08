@@ -13,7 +13,7 @@ Invariants pinned, and WHERE each is enforced:
    post-begin run leave a record). A begun-but-never-finalized run
    (simulated crash) writes NOTHING to disk, so the reader the Desktop
    uses (``read_latest_receipt``, surfaced via
-   ``/api/hermes/update/receipt`` — #92780) can never interpret a crash
+   ``/api/kova/update/receipt`` — #92780) can never interpret a crash
    as success. The HTTP-layer gating of an ``outcome == "running"``
    receipt is already pinned in test_update_receipt_endpoint.py and is
    deliberately not duplicated here.
@@ -200,7 +200,7 @@ class TestSuccessImpliesAccounting:
             plan,
             # Serve/dashboard runtimes are reconciled in their own unit
             # vocabulary and never borrow a gateway relaunch (#100479).
-            restarted_services=["hermes-serve-ops.service"],
+            restarted_services=["kova-serve-ops.service"],
             relaunched_profiles=["work"],
             externally_supervised_profiles=[],
             killed_pids={101},
@@ -249,7 +249,7 @@ class TestRefusalIsNotFailure:
 
         # Run 2: a preflight refusal (venv-holder / concurrent instance).
         ur.begin_update_receipt()
-        ur.record_step("venv_preflight", False, "another hermes holds venv")
+        ur.record_step("venv_preflight", False, "another kova holds venv")
         refused_path = ur.finalize_pending_update_receipt(2, "sys.exit(2)")
         refused = json.loads(refused_path.read_text(encoding="utf-8"))
 
@@ -267,7 +267,7 @@ class TestRefusalIsNotFailure:
         """#91439: the refused run's receipt keeps the evidence of WHY —
         the failing preflight step is preserved, not lost."""
         ur.begin_update_receipt()
-        ur.record_step("windows_preflight", False, "hermes.exe running")
+        ur.record_step("windows_preflight", False, "kova.exe running")
         path = ur.finalize_pending_update_receipt(2, "concurrent instance")
         payload = json.loads(path.read_text(encoding="utf-8"))
         assert payload["steps"][0]["name"] == "windows_preflight"

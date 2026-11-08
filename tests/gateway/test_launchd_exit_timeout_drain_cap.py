@@ -70,7 +70,7 @@ def _grandchild(label):
     ids=["darwin-direct", "darwin-grandchild", "darwin-direct-app", "darwin-grandchild-app",
          "darwin-unlabelled", "linux-direct", "linux-grandchild"],
 )
-def test_launchd_reader_yields_a_budget_only_for_hermes_jobs(platform, environ, expected):
+def test_launchd_reader_yields_a_budget_only_for_kova_jobs(platform, environ, expected):
     """End to end from the process environment to the stop drain: the reader sizes the drain to the
     live ExitTimeOut only for an ``ai.kova`` job on darwin, seen directly or through the wrapper's
     re-export. Platform is data, not the host (the launchctl call is faked)."""

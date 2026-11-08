@@ -1,7 +1,7 @@
 """Child-process roles for the SQLite torture chamber.
 
 Run as ``python _roles.py <role> <json-args>``. Every role is a real OS process that opens the shared
-``state.db`` through the production ``SessionDB`` (or, for the non-hermes opener, a bare ``sqlite3``
+``state.db`` through the production ``SessionDB`` (or, for the non-kova opener, a bare ``sqlite3``
 connection) and reports through append-only files, so a ``kill -9`` loses nothing it already reported:
 
 * ``<name>.journal`` — writers: ``I <tok> <sid> <nrows>`` before an append, ``A <tok>`` once it returned.
@@ -195,7 +195,7 @@ def role_reader(a: dict, out: Out) -> int:
 
 
 def role_churn(a: dict, out: Out) -> int:
-    """`hermes sessions list` / doctor / cron-guard shape: open, read, close — ``iterations`` times in one
+    """`kova sessions list` / doctor / cron-guard shape: open, read, close — ``iterations`` times in one
     process, alternating the production SessionDB with a bare sqlite3 opener (sqlite3 shell, backup tool).
     The fd count must not grow with the number of cycles."""
     from kova_state import SessionDB
@@ -204,7 +204,7 @@ def role_churn(a: dict, out: Out) -> int:
     start_fds = _fd_count()
     fds_after_warmup = None
 
-    def _hermes_cycle() -> None:
+    def _kova_cycle() -> None:
         db = SessionDB(db_path=db_path)
         try:
             db.message_count()
@@ -220,7 +220,7 @@ def role_churn(a: dict, out: Out) -> int:
 
     try:
         for i in range(int(a["iterations"])):
-            _patient(a, out, "churn", _raw_cycle if i % 2 else _hermes_cycle)
+            _patient(a, out, "churn", _raw_cycle if i % 2 else _kova_cycle)
             if i == 3:
                 fds_after_warmup = _fd_count()
     except BaseException as exc:
@@ -355,10 +355,10 @@ def role_agent(a: dict, out: Out) -> int:
 
 
 def role_cli(a: dict, out: Out) -> int:
-    """``hermes <argv>``: ``kova_cli.main`` run as ``__main__``, i.e. ``python -m kova_cli.main <argv>``."""
+    """``kova <argv>``: ``kova_cli.main`` run as ``__main__``, i.e. ``python -m kova_cli.main <argv>``."""
     import runpy
 
-    sys.argv = ["hermes", *a["argv"]]
+    sys.argv = ["kova", *a["argv"]]
     try:
         runpy.run_module("kova_cli.main", run_name="__main__", alter_sys=True)
     except SystemExit as exc:

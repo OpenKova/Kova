@@ -136,7 +136,7 @@ test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', ()
     'Could not load models'
   )
 
-  expect(lastMessage()).not.toMatch(/hermes:api|systemctl|backend/i)
+  expect(lastMessage()).not.toMatch(/kova:api|systemctl|backend/i)
   const before = $backendRestartRequest.get()
   expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartKova)
   $notifications.get()[0]?.action?.onClick()

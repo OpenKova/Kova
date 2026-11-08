@@ -94,9 +94,9 @@ def test_sandbox_status_offers_the_image_switch_instead_of_a_config_hint(monkeyp
     monkeypatch.setattr(sandbox_host, "missing_binaries", lambda env: ["Xvnc"])
     monkeypatch.setattr(sandbox_host, "published_env", lambda env, profile: {})
 
-    monkeypatch.setattr(sw, "pending", lambda: sw.PendingSwitch("old/base:1", "nousresearch/hermes-sandbox:desktop", ["hermes-a"]))
+    monkeypatch.setattr(sw, "pending", lambda: sw.PendingSwitch("old/base:1", "nousresearch/kova-sandbox:desktop", ["kova-a"]))
     st = runtime.status()
-    assert st.image_switch == {"current_image": "old/base:1", "target_image": "nousresearch/hermes-sandbox:desktop", "containers": 1}
+    assert st.image_switch == {"current_image": "old/base:1", "target_image": "nousresearch/kova-sandbox:desktop", "containers": 1}
     assert "old/base:1" in st.blocker and "/root and /workspace" in st.blocker
     assert st.installed and not st.running
 
@@ -241,7 +241,7 @@ def test_start_adopting_a_screen_the_sandbox_kept_records_the_marker(monkeypatch
     from tools.bot_desktop import sandbox_host
 
     monkeypatch.setattr(sandbox_host, "_published", lambda env, rdir: {"DISPLAY": ":20", "XAUTHORITY": f"{rdir}/Xauthority"})
-    monkeypatch.setattr(sandbox_host, "_remote_dir", lambda env, profile: f"/scratch/hermes-bot-desktop/{profile}")
+    monkeypatch.setattr(sandbox_host, "_remote_dir", lambda env, profile: f"/scratch/kova-bot-desktop/{profile}")
     env = _FakeDocker()
     assert sandbox_host.start(env, "default", geometry="1280x800")["DISPLAY"] == ":20"
     marker = json.loads(sandbox_host._marker().read_text())
@@ -256,7 +256,7 @@ def test_marker_survives_a_gateway_restart_while_the_container_lives(monkeypatch
 
     _placed(monkeypatch, "terminal", "docker")
     sandbox_host._marker().parent.mkdir(parents=True)
-    sandbox_host._marker().write_text('{"display": ":20", "dir": "/tmp/hermes-bot-desktop/default", "profile": "default", '
+    sandbox_host._marker().write_text('{"display": ":20", "dir": "/tmp/kova-bot-desktop/default", "profile": "default", '
                                       '"backend": "DockerEnvironment", "container": "c0ffee", "docker": "docker"}')
     inspected: list[list[str]] = []
     alive = {"running": True}

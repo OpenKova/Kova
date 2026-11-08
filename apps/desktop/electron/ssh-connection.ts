@@ -199,12 +199,12 @@ function controlSocketPath(user, host, port, baseDir?, identity: any = {}) {
 
 function shortControlDir(): string {
   // no-tmp: ok — AF_UNIX's short path budget rules out a deep HOME/TMPDIR; the parent and child are checked before use.
-  return `/tmp/hermes-ssh-${process.getuid!()}`
+  return `/tmp/kova-ssh-${process.getuid!()}`
 }
 
 function defaultControlDir(): string {
   if (process.platform === 'win32') {
-    return path.join(os.tmpdir(), 'hermes-desktop-ssh')
+    return path.join(os.tmpdir(), 'kova-desktop-ssh')
   }
 
   const homeDir = path.join(platformDefaultKovaHome(os.homedir()), 'desktop-ssh')

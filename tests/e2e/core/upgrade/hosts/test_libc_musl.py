@@ -2,7 +2,7 @@
 
 Failure class: libc. Kova's PM store pins glibc (``-linux-gnu``) builds of uv, CPython and
 Node. On a musl host those binaries either fail to exec or, with the ``gcompat`` shim, load and
-segfault, so an install or update that publishes them leaves every later ``hermes`` command dead
+segfault, so an install or update that publishes them leaves every later ``kova`` command dead
 (#123682). The acceptable outcomes are: musl-compatible tools that run, or a refusal that tells
 the user why (names musl) and publishes nothing unrunnable.
 
@@ -61,7 +61,7 @@ bash /work/install.sh --non-interactive </dev/null
 echo "=== install rc=$?"
 echo "=== probes"
 for exe in "$HOME"/.kova/tools/*/uv "$HOME"/.kova/tools/*/bin/python3 "$HOME"/.kova/tools/*/bin/node \
-           "$HOME"/.local/bin/hermes; do
+           "$HOME"/.local/bin/kova; do
     [ -e "$exe" ] || continue
     timeout 60 "$exe" --version >/dev/null 2>&1
     echo "probe rc=$? $exe"
@@ -119,6 +119,6 @@ def test_musl_host_gets_runnable_tools_or_a_refusal_naming_musl(alpine_install):
     assert not dead, ("musl host: published tool binaries that cannot execute: " + ", ".join(dead)
                       + "\n" + I.describe(cp))
     if rc == 0:
-        hermes = [p for code, p in probes if p.endswith("/.local/bin/hermes")]
-        assert hermes, "musl host: install exited 0 but published no hermes command:\n" + I.describe(cp)
+        kova = [p for code, p in probes if p.endswith("/.local/bin/kova")]
+        assert kova, "musl host: install exited 0 but published no kova command:\n" + I.describe(cp)
 

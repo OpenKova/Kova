@@ -659,7 +659,7 @@ function buildPinArgs(installStamp, { pinCommit = true } = {}) {
 }
 
 function buildPosixPinArgs({ installStamp, activeRoot, kovaHome, pinCommit = true }) {
-  const args = ['--dir', activeRoot, '--hermes-home', kovaHome]
+  const args = ['--dir', activeRoot, '--kova-home', kovaHome]
 
   if (installStamp && installStamp.branch) {
     args.push('--branch', installStamp.branch)

@@ -20,7 +20,7 @@ const UGIT_APP_PREFIX = 'app-'
 /** Where the UGit-bundled Git-for-Windows puts git.exe inside an app dir. */
 const UGIT_GIT_REL = path.join('resources', 'app', 'git', 'cmd', 'git.exe')
 /** PM-managed Git tool directories under the Kova local application root. */
-const KOVA_TOOLS_DIR = path.join('hermes', 'tools')
+const KOVA_TOOLS_DIR = path.join('kova', 'tools')
 const MANAGED_GIT_PREFIX = 'git-'
 
 /**
@@ -57,7 +57,7 @@ export function ugitGitBinaries(localAppData: string, fs: GitCandidateFs): strin
 
 
 /**
- * Find Git installed by Kova PM under `%LOCALAPPDATA%\hermes\tools`.
+ * Find Git installed by Kova PM under `%LOCALAPPDATA%\kova\tools`.
  * PM versions the tool directory, so resolve the newest available executable
  * rather than assuming a particular Git release.
  */
@@ -89,8 +89,8 @@ export function windowsGitCandidates(env: WindowsGitEnv, fs: GitCandidateFs): st
 
   if (env.localAppData) {
     candidates.push(...managedGitBinaries(env.localAppData, fs))
-    candidates.push(path.join(env.localAppData, 'hermes', 'git', 'cmd', 'git.exe'))
-    candidates.push(path.join(env.localAppData, 'hermes', 'git', 'bin', 'git.exe'))
+    candidates.push(path.join(env.localAppData, 'kova', 'git', 'cmd', 'git.exe'))
+    candidates.push(path.join(env.localAppData, 'kova', 'git', 'bin', 'git.exe'))
     candidates.push(...ugitGitBinaries(env.localAppData, fs))
   }
 

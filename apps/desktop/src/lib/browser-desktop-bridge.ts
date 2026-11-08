@@ -111,7 +111,7 @@ export function installBrowserDesktopBridge(): boolean {
     getVersion: async () => ({
       appVersion: await resolveGatewayVersion(path => api({ path, timeoutMs: 5000 })),
       electronVersion: '',
-      hermesRoot: '',
+      kovaRoot: '',
       nodeVersion: '',
       platform: 'browser'
     }),

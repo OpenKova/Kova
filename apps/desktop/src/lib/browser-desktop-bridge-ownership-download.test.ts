@@ -233,7 +233,7 @@ const win = window
 afterEach(() => {
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   window.history.replaceState(null, '', '/#/')
   setApiRequestConnection(null)
   setApiRequestProfile(null)

@@ -34,14 +34,14 @@ def test_output_path_rejects_bare_dotdot():
     assert "traversal" in result["error"].lower()
 
 
-def test_output_path_rejects_hermes_oauth_store(tmp_path, monkeypatch):
+def test_output_path_rejects_kova_oauth_store(tmp_path, monkeypatch):
     """TTS output_path must not bypass the shared protected-file write guard."""
     from agent import file_safety
 
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     kova_home.mkdir()
     monkeypatch.setattr(file_safety, "_kova_home_path", lambda: kova_home)
-    monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: kova_home)
+    monkeypatch.setattr(file_safety, "_kova_root_path", lambda: kova_home)
 
     target = kova_home / ".anthropic_oauth.json"
     result = json.loads(text_to_speech_tool(
@@ -105,11 +105,11 @@ def test_output_path_rejects_mcp_token_directory(tmp_path, monkeypatch):
     """TTS output_path must not write synthesized audio over MCP token files."""
     from agent import file_safety
 
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     token_dir = kova_home / "mcp-tokens"
     token_dir.mkdir(parents=True)
     monkeypatch.setattr(file_safety, "_kova_home_path", lambda: kova_home)
-    monkeypatch.setattr(file_safety, "_hermes_root_path", lambda: kova_home)
+    monkeypatch.setattr(file_safety, "_kova_root_path", lambda: kova_home)
 
     target = token_dir / "server.mp3"
     result = json.loads(text_to_speech_tool(

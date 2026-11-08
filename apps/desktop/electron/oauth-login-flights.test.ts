@@ -51,7 +51,7 @@ function fakeWindows<T>(outcome: () => Promise<T>) {
   return { stats, start }
 }
 
-const JAR = 'persist:hermes-remote-oauth'
+const JAR = 'persist:kova-remote-oauth'
 const GATEWAY = 'https://gateway.example.test'
 const KEY = loginFlightKey(JAR, GATEWAY)
 

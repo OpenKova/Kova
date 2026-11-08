@@ -159,7 +159,7 @@ describe('annotation document lifetime', () => {
       })
       await finishInstall()
 
-      expect(fixture.guestDocument.querySelector('hermes-annotate')).toBeNull()
+      expect(fixture.guestDocument.querySelector('kova-annotate')).toBeNull()
       const escape = new KeyboardEvent('keydown', { cancelable: true, key: 'Escape' })
       fixture.guestWindow.dispatchEvent(escape)
       expect(escape.defaultPrevented).toBe(false)
@@ -176,11 +176,11 @@ describe('annotation document lifetime', () => {
     await finishInstall?.()
     await finishCleanup?.()
 
-    expect(fixture.guestDocument.querySelectorAll('hermes-annotate')).toHaveLength(1)
+    expect(fixture.guestDocument.querySelectorAll('kova-annotate')).toHaveLength(1)
     await act(async () => {
       fixture.guestWindow.dispatchEvent(new KeyboardEvent('keydown', { cancelable: true, key: 'Escape' }))
     })
     await waitFor(() => expect(fixture.rendered.getByRole('button', { name: 'Annotate' })).toBeTruthy())
-    expect(fixture.guestDocument.querySelector('hermes-annotate')).toBeNull()
+    expect(fixture.guestDocument.querySelector('kova-annotate')).toBeNull()
   })
 })

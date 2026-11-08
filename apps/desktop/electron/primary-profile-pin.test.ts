@@ -15,7 +15,7 @@ test('a live primary keeps answering for its booted profile after the preference
     'default'
   )
 
-  // hermes:profile:remember rewrites active-profile.json without re-homing.
+  // kova:profile:remember rewrites active-profile.json without re-homing.
   preference = 'claude'
 
   // Routing must still see the running primary as "default": otherwise a
@@ -42,7 +42,7 @@ test('teardown releases the pin so the next start follows the preference', () =>
 // #108417: one authoritative launch-profile decision per startup attempt.
 // startKova used to pin primaryProfileKey() at the top and separately
 // re-read the preference deep inside the connection IIFE for --profile and
-// the child env — two reads that a mid-startup hermes:profile:remember could
+// the child env — two reads that a mid-startup kova:profile:remember could
 // split into "routing says alpha, argv says beta". resolveLaunchProfile makes
 // them ONE read with two encodings of the unset case.
 test('one launch decision feeds routing, argv, and env from the same read', () => {

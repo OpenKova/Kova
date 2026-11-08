@@ -741,7 +741,7 @@ describe('usePromptActions /wake', () => {
       if (method === 'wake.start') {
         return {
           owner_surface: 'gui',
-          phrase: 'hey hermes',
+          phrase: 'hey kova',
           provider: 'openwakeword',
           started: true
         } as never
@@ -759,7 +759,7 @@ describe('usePromptActions /wake', () => {
           },
           listening: true,
           owner_surface: 'gui',
-          phrase: 'hey hermes',
+          phrase: 'hey kova',
           provider: 'openwakeword'
         } as never
       }
@@ -803,7 +803,7 @@ describe('usePromptActions /wake', () => {
           enabled: statusCalls === 1,
           listening: statusCalls === 1,
           owner_surface: statusCalls === 1 ? 'gui' : null,
-          phrase: 'hey hermes',
+          phrase: 'hey kova',
           provider: 'openwakeword'
         } as never
       }
@@ -2284,7 +2284,7 @@ describe('usePromptActions submit / queue drain semantics', () => {
   })
 
   it('pins prompt.submit to the active registry connection when the remote session row is untagged', async () => {
-    $connection.set({ connectionId: 'hermes01', mode: 'remote' } as never)
+    $connection.set({ connectionId: 'kova01', mode: 'remote' } as never)
     setSessions([sessionInfo({ id: 'stored-remote', profile: 'default' })])
 
     const ambientRequest = vi.fn(async () => ({}) as never)

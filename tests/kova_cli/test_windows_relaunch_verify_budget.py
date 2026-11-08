@@ -5,7 +5,7 @@ Two invariants, both host-independent (the platform enters as DATA, never by fak
 1. The detached restart watcher ``kova_cli.gateway._spawn_gateway_restart_watcher`` actually
    spawns must not be classified as a running gateway. Its argv carries the gateway command it
    will spawn LATER, so an argv-substring identity read vouches for the watcher itself.
-2. ``hermes update``'s post-relaunch liveness poll must not expire before the watchers it is
+2. ``kova update``'s post-relaunch liveness poll must not expire before the watchers it is
    verifying are even scheduled to respawn.
 """
 
@@ -19,7 +19,7 @@ from gateway.status import (
 from kova_cli import gateway as gateway_mod
 from kova_cli.gateway import GATEWAY_RESTART_WATCHER_TIMEOUT_S
 from kova_cli.update_cmd_windows import (
-    _hermes_holder_subcommand, _pending_relaunch_pids, _relaunch_verify_timeout_s,
+    _kova_holder_subcommand, _pending_relaunch_pids, _relaunch_verify_timeout_s,
 )
 
 
@@ -47,7 +47,7 @@ def test_spawned_restart_watcher_is_not_identified_as_a_gateway(monkeypatch):
     assert _gateway_command_subcommand(cmdline) is None
     assert looks_like_gateway_command_line(cmdline) is False
     assert looks_like_gateway_runtime_command_line(cmdline) is False
-    assert _hermes_holder_subcommand(cmdline) is None
+    assert _kova_holder_subcommand(cmdline) is None
 
 
 @pytest.mark.parametrize(

@@ -1977,13 +1977,13 @@ def test_wake_owner_is_sticky_and_routes_detection_to_first_transport(monkeypatc
 
     monkeypatch.setattr(wake_word, "load_wake_word_config", lambda: {
         "enabled": True,
-        "phrase": "hey hermes",
+        "phrase": "hey kova",
         "surface": "auto",
         "start_new_session": True,
     })
     monkeypatch.setattr(wake_word, "check_wake_word_requirements", lambda _cfg: {
         "available": True,
-        "phrase": "hey hermes",
+        "phrase": "hey kova",
         "provider": "test",
         "hint": "",
     })
@@ -2065,7 +2065,7 @@ def test_wake_owner_is_sticky_and_routes_detection_to_first_transport(monkeypatc
         assert emitted == [(
             "wake.detected",
             "first-session",
-            {"phrase": "hey hermes", "profile": None, "start_new_session": True},
+            {"phrase": "hey kova", "profile": None, "start_new_session": True},
             first,
         )]
         assert state["paused"] is True
@@ -2102,7 +2102,7 @@ def test_wake_owner_is_sticky_and_routes_detection_to_first_transport(monkeypatc
         assert emitted[-1] == (
             "wake.detected",
             "second-session",
-            {"phrase": "hey hermes", "profile": None, "start_new_session": True},
+            {"phrase": "hey kova", "profile": None, "start_new_session": True},
             second,
         )
 
@@ -2125,7 +2125,7 @@ def test_wake_toggle_persists_enabled_flag_only_on_explicit_gesture(monkeypatch)
     """The ear toggle / /wake on|off write wake_word.enabled; auto-arm never does."""
     from tools import wake_word
 
-    config = {"enabled": False, "phrase": "hey hermes", "surface": "auto",
+    config = {"enabled": False, "phrase": "hey kova", "surface": "auto",
               "start_new_session": True}
     persisted = []
 
@@ -2138,7 +2138,7 @@ def test_wake_toggle_persists_enabled_flag_only_on_explicit_gesture(monkeypatch)
     monkeypatch.setattr(wake_word, "load_wake_word_config", lambda: dict(config))
     monkeypatch.setattr(wake_word, "check_wake_word_requirements", lambda _cfg: {
         "available": True,
-        "phrase": "hey hermes",
+        "phrase": "hey kova",
         "provider": "test",
         "hint": "",
     })
@@ -3085,7 +3085,7 @@ def _two_repo_project_skill_sessions(tmp_path, monkeypatch) -> tuple[Path, Path]
         return r
 
     repo_a, repo_b = repo("proj-a", "alpha-skill"), repo("proj-b", "beta-skill")
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     (home / "skills").mkdir(parents=True)
     (home / "config.yaml").write_text(
         f"skills:\n  external_dirs: []\n  trusted_project_dirs: ['{repo_a}', '{repo_b}']\n")
@@ -4312,10 +4312,10 @@ def test_resolve_model_strips_config_model(monkeypatch):
     monkeypatch.delenv("KOVA_MODEL", raising=False)
     monkeypatch.delenv("KOVA_INFERENCE_MODEL", raising=False)
     monkeypatch.setattr(
-        server, "_load_cfg", lambda: {"model": {"default": " nous/hermes-test "}}
+        server, "_load_cfg", lambda: {"model": {"default": " nous/kova-test "}}
     )
 
-    assert server._resolve_model() == "nous/hermes-test"
+    assert server._resolve_model() == "nous/kova-test"
 
 
 def _sync_test_session(**extra):
@@ -4478,7 +4478,7 @@ def test_config_sync_config_wins_over_env_seed(monkeypatch):
 
 
 def test_config_sync_ignores_env_seed_without_config_model(monkeypatch):
-    # `hermes --tui -m <model>` sets KOVA_MODEL/KOVA_INFERENCE_MODEL as a
+    # `kova --tui -m <model>` sets KOVA_MODEL/KOVA_INFERENCE_MODEL as a
     # launch-scoped seed. When config.yaml has NO model.default (typical
     # custom-provider-only setup), the sync must NOT adopt the env seed as a
     # config target — doing so replayed the -m flag as a /model switch and
@@ -4542,15 +4542,15 @@ def test_apply_model_switch_persist_override_false_never_persists(monkeypatch):
 
 
 def test_startup_runtime_uses_tui_provider_env(monkeypatch):
-    monkeypatch.setenv("KOVA_MODEL", "nous/hermes-test")
+    monkeypatch.setenv("KOVA_MODEL", "nous/kova-test")
     monkeypatch.setenv("KOVA_TUI_PROVIDER", "nous")
     monkeypatch.delenv("KOVA_INFERENCE_PROVIDER", raising=False)
 
-    assert server._resolve_startup_runtime() == ("nous/hermes-test", "nous")
+    assert server._resolve_startup_runtime() == ("nous/kova-test", "nous")
 
 
 def test_startup_runtime_does_not_treat_inference_provider_as_explicit(monkeypatch):
-    monkeypatch.setenv("KOVA_MODEL", "nous/hermes-test")
+    monkeypatch.setenv("KOVA_MODEL", "nous/kova-test")
     monkeypatch.delenv("KOVA_TUI_PROVIDER", raising=False)
     monkeypatch.setenv("KOVA_INFERENCE_PROVIDER", "nous")
     monkeypatch.setattr(
@@ -4558,7 +4558,7 @@ def test_startup_runtime_does_not_treat_inference_provider_as_explicit(monkeypat
         lambda model, provider: None,
     )
 
-    assert server._resolve_startup_runtime() == ("nous/hermes-test", None)
+    assert server._resolve_startup_runtime() == ("nous/kova-test", None)
 
 
 def test_load_fallback_model_merges_chain_providers_first(monkeypatch):
@@ -4631,7 +4631,7 @@ def test_make_agent_passes_configured_fallback_chain(monkeypatch):
 
 def test_make_agent_forwards_agent_disabled_toolsets(monkeypatch):
     """``agent.disabled_toolsets`` must reach AIAgent in gateway sessions too: only the AIAgent
-    filter strips a toolset out of composite defaults (``hermes-cli``), which the gateway's
+    filter strips a toolset out of composite defaults (``kova-cli``), which the gateway's
     enabled-list resolver can't reach into (#44499)."""
     captured = _capture_make_agent_kwargs(monkeypatch)
     monkeypatch.setattr(server, "_load_enabled_toolsets", lambda *_a, **_kw: ["file"])
@@ -8280,7 +8280,7 @@ def test_ensure_session_db_row_persists_session_source(monkeypatch):
 def test_ensure_session_db_row_records_a_terminal_workspace(monkeypatch, tmp_path):
     """A terminal session's directory IS its workspace, so the row records it.
 
-    The user cd'd there before running hermes. Leaving it null stranded the row
+    The user cd'd there before running kova. Leaving it null stranded the row
     with no cwd and no git_repo_root, so the sidebar could never place the
     session under its project.
     """
@@ -9417,7 +9417,7 @@ def test_enable_gateway_prompts_sets_gateway_env(monkeypatch):
 
 
 def test_setup_status_answers_from_the_bootstrap_record_once_it_exists(monkeypatch):
-    """Under ``hermes serve`` the boot bootstrap records who carries inference; ``setup.status``
+    """Under ``kova serve`` the boot bootstrap records who carries inference; ``setup.status``
     reports its record (blocking for it while it is in flight) instead of re-probing, so a client's
     first poll sees the boot's answer rather than racing it."""
     import threading
@@ -11938,7 +11938,7 @@ def test_file_attach_workspace_storage_follows_the_owning_profiles_config(monkey
         assert not (home_a / "attachments").exists()
 
         # Same serve process, second profile WITHOUT the opt-in: staging stays
-        # on that profile's hermes-home attachments dir.
+        # on that profile's kova-home attachments dir.
         workspace_b = tmp_path / "work-b"
         workspace_b.mkdir()
         home_b = tmp_path / "home-b"
@@ -16991,13 +16991,13 @@ def test_session_branch_uses_persisted_display_history_after_compaction(monkeypa
 
 
 # --------------------------------------------------------------------------
-# model.options — curated-list parity with `hermes model` and classic /model
+# model.options — curated-list parity with `kova model` and classic /model
 # --------------------------------------------------------------------------
 
 
 def test_model_options_does_not_overwrite_curated_models(monkeypatch):
     """The TUI model.options handler must surface the same curated model
-    list as `hermes model` and the classic CLI /model picker.
+    list as `kova model` and the classic CLI /model picker.
 
     Regression: earlier versions of this handler unconditionally replaced
     each provider's curated ``models`` field with ``provider_model_ids()``
@@ -17507,7 +17507,7 @@ def test_session_active_list_excludes_finalized_sessions(monkeypatch):
     that window ``session.active_list`` would otherwise still report the dead
     session, which is exactly the footer "N sessions" count that only ever grew
     until a gateway restart. A live session on the real stdio transport (the
-    standalone ``hermes --tui`` case) must still be reported.
+    standalone ``kova --tui`` case) must still be reported.
     """
     class _DB:
         def get_session_title(self, key):
@@ -18355,7 +18355,7 @@ def test_session_save_writes_under_kova_home_with_system_prompt(monkeypatch, tmp
     home — not the project/workspace CWD — and include the system prompt,
     mirroring the classic CLI /save and the dashboard save export.
 
-    Regression: the gateway handler wrote ``hermes_conversation_*.json`` to
+    Regression: the gateway handler wrote ``kova_conversation_*.json`` to
     ``os.path.abspath(...)`` (the workspace CWD) and only exported ``model``
     and ``messages``, so ``system_prompt`` was missing.
     """
@@ -18370,7 +18370,7 @@ def test_session_save_writes_under_kova_home_with_system_prompt(monkeypatch, tmp
 
     sid = "save-sid"
     agent = types.SimpleNamespace(
-        model="hermes-test",
+        model="kova-test",
         session_id="20260101_120000_abc123",
         session_start=datetime(2026, 1, 1, 12, 0, 0),
         _cached_system_prompt="You are Kova.",
@@ -18395,14 +18395,14 @@ def test_session_save_writes_under_kova_home_with_system_prompt(monkeypatch, tmp
     saved_file = Path(resp["result"]["file"])
 
     # Must NOT leak into the workspace/project CWD.
-    assert not list(work.glob("hermes_conversation_*.json"))
+    assert not list(work.glob("kova_conversation_*.json"))
 
     saved_dir = home / "sessions" / "saved"
     assert saved_file.parent == saved_dir
     assert saved_file.exists()
 
     payload = json.loads(saved_file.read_text(encoding="utf-8-sig"))
-    assert payload["model"] == "hermes-test"
+    assert payload["model"] == "kova-test"
     assert payload["id"] == "20260101_120000_abc123"  # importable: import_sessions keys on raw["id"]
     assert payload["started_at"] == datetime(2026, 1, 1, 12, 0, 0).timestamp()
     assert payload["system_prompt"] == "You are Kova."
@@ -18423,7 +18423,7 @@ def test_session_save_lands_in_the_sessions_own_profile_a_b_a(monkeypatch, tmp_p
         for i, home in enumerate((None, work_home, None)):
             sid = f"save-profile-sid-{i}"
             server._sessions[sid] = {
-                "agent": types.SimpleNamespace(model="hermes-test", session_id="s1", session_start=None,
+                "agent": types.SimpleNamespace(model="kova-test", session_id="s1", session_start=None,
                                                _cached_system_prompt=""),
                 "session_key": sid, "profile_home": str(home) if home else None,
                 "history": [{"role": "user", "content": "hi"}], "history_lock": threading.Lock(),
@@ -18439,7 +18439,7 @@ def test_session_save_lands_in_the_sessions_own_profile_a_b_a(monkeypatch, tmp_p
 
     saved = launch_home / "sessions" / "saved"
     assert parents == [saved, work_home / "sessions" / "saved", saved]
-    assert len(list((work_home / "sessions" / "saved").glob("hermes_conversation_*.json"))) == 1
+    assert len(list((work_home / "sessions" / "saved").glob("kova_conversation_*.json"))) == 1
 
 
 def test_session_save_proxies_to_compute_host_history(monkeypatch):
@@ -20927,7 +20927,7 @@ def test_save_cfg_preserves_top_level_key_order(tmp_path, monkeypatch):
         "model:\n"
         "  default: claude-opus-4-7\n"
         "toolsets:\n"
-        "  - hermes-cli\n"
+        "  - kova-cli\n"
         "agent:\n"
         "  max_turns: 90\n"
         "display:\n"
@@ -20943,7 +20943,7 @@ def test_save_cfg_preserves_top_level_key_order(tmp_path, monkeypatch):
             "agent": {"max_turns": 90},
             "display": {"skin": "mono"},
             "model": {"default": "claude-opus-4-7"},
-            "toolsets": ["hermes-cli"],
+            "toolsets": ["kova-cli"],
         }
     )
 
@@ -22309,7 +22309,7 @@ def test_ssh_named_profile_cwd_beats_launch_terminal_cwd(monkeypatch, tmp_path, 
     it even when that path does not exist on this host and the process
     TERMINAL_CWD still names the launch profile."""
     remote = "/home/kali"
-    launch = "/home/ubuntu/hermes_sync"
+    launch = "/home/ubuntu/kova_sync"
     assert not os.path.isdir(remote)
     home = tmp_path / "hunter"
     home.mkdir()

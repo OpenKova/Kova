@@ -1,4 +1,4 @@
-"""hermes.install.run: fresh installs through scripts/install.sh and scripts/install.ps1.
+"""kova.install.run: fresh installs through scripts/install.sh and scripts/install.ps1.
 
 The installer runs before the user is asked about shared metrics and must never send anything, so a
 full-ladder run only leaves ONE small local receipt (closed tokens plus two epoch timestamps) under
@@ -53,7 +53,7 @@ def _epoch(value: Any) -> int | None:
 
 
 def install_run_fields(receipt: Any) -> dict[str, str] | None:
-    """hermes.install.run dims for one receipt, or None when anything is outside the contract."""
+    """kova.install.run dims for one receipt, or None when anything is outside the contract."""
     from . import shared_metrics_contract as contract
 
     if not isinstance(receipt, dict) or set(receipt) != _RECEIPT_KEYS:

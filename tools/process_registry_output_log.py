@@ -67,7 +67,7 @@ def record_exit_command(log: Path, command: str) -> str:
     that adopts the process after the spawner exited has no Popen to wait on."""
     import shlex
     target = shlex.quote(_exit_path(log).as_posix())
-    return f"__hermes_exit_file={target}; trap 'printf \"%s\\n\" \"$?\" > \"$__hermes_exit_file\"' EXIT\n{command}"
+    return f"__kova_exit_file={target}; trap 'printf \"%s\\n\" \"$?\" > \"$__kova_exit_file\"' EXIT\n{command}"
 
 
 def recorded_exit_code(log) -> Optional[int]:

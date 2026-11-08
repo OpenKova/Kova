@@ -18,16 +18,16 @@ describe('ownAppImage', () => {
   // The runtime builds APPDIR from the raw $TMPDIR; process.execPath has its
   // symlinks resolved (TMPDIR=~/tmp on Fedora Atomic, /home -> /var/home).
   it.skipIf(process.platform === 'win32')('follows a symlinked TMPDIR to the mount it names', () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-appdir-link-'))
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-appdir-link-'))
 
     try {
       const mount = path.join(root, 'var-home', '.mount_KovaQ7x2Lp')
       fs.mkdirSync(mount, { recursive: true })
-      fs.writeFileSync(path.join(mount, 'hermes'), '')
+      fs.writeFileSync(path.join(mount, 'kova'), '')
       fs.mkdirSync(path.join(root, 'other', '.mount_KovaQ7x2Lp'), { recursive: true })
       fs.symlinkSync(path.join(root, 'var-home'), path.join(root, 'home'))
       fs.symlinkSync(path.join(root, 'other'), path.join(root, 'elsewhere'))
-      const exe = fs.realpathSync(path.join(mount, 'hermes'))
+      const exe = fs.realpathSync(path.join(mount, 'kova'))
       const appImage = '/home/u/Apps/Kova.AppImage'
 
       expect(ownAppImage(exe, { APPIMAGE: appImage, APPDIR: path.join(root, 'home', '.mount_KovaQ7x2Lp') })).toBe(
@@ -57,7 +57,7 @@ describe('spawnRelaunch', () => {
     'starts the image free of this mount, and stays put when it cannot',
     async () => {
       const saved = { ...process.env }
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-relaunch-fds-'))
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-relaunch-fds-'))
       const image = path.join(dir, 'Kova.AppImage')
       const report = path.join(dir, 'fds')
       const held = path.join(dir, 'held')
@@ -146,7 +146,7 @@ describe('spawnRelaunch', () => {
         LD_LIBRARY_PATH: `${mount}/usr/lib`,
         PATH: `${mount}:${mount}/usr/bin:/tmp/.mount_IdeAbC123/usr/bin:/usr/bin`
       },
-      `${mount}/hermes`
+      `${mount}/kova`
     )
 
     expect(childEnv).toEqual({ APPIMAGE: image, PATH: '/tmp/.mount_IdeAbC123/usr/bin:/usr/bin' })
@@ -166,7 +166,7 @@ describe('spawnRelaunch', () => {
       return realSpawn('true', [], { stdio: 'pipe' })
     })
 
-    spawnRelaunch(path.join(appDir, 'hermes'), [], env).stdin!.end()
+    spawnRelaunch(path.join(appDir, 'kova'), [], env).stdin!.end()
 
     expect(childEnv).toMatchObject(env)
   })
@@ -176,15 +176,15 @@ describe('spawnRelaunch', () => {
   it.skipIf(process.platform !== 'linux')(
     'keeps APPDIR when the extracted dir is reached through a symlink',
     async () => {
-      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-extracted-link-'))
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-extracted-link-'))
 
       try {
         const realDir = path.join(root, 'var-home', 'appimage_extracted_0123abcd')
         fs.mkdirSync(realDir, { recursive: true })
-        fs.writeFileSync(path.join(realDir, 'hermes'), '')
+        fs.writeFileSync(path.join(realDir, 'kova'), '')
         fs.symlinkSync(path.join(root, 'var-home'), path.join(root, 'home'))
         const appDir = path.join(root, 'home', 'appimage_extracted_0123abcd')
-        const exe = fs.realpathSync(path.join(realDir, 'hermes'))
+        const exe = fs.realpathSync(path.join(realDir, 'kova'))
 
         const env: NodeJS.ProcessEnv = {
           APPDIR: appDir,
@@ -232,7 +232,7 @@ describe('spawnRelaunch', () => {
       return realSpawn('true', [], { stdio: 'pipe' })
     })
 
-    spawnRelaunch('/opt/Kova/hermes', [], env).stdin!.end()
+    spawnRelaunch('/opt/Kova/kova', [], env).stdin!.end()
 
     expect(childEnv).toEqual(env)
   })
@@ -241,8 +241,8 @@ describe('spawnRelaunch', () => {
   // (crashpad client socket, DevTools listener, caches); dash, Debian's
   // /bin/sh, cannot close them, and each relaunch carried the last one's.
   it.skipIf(process.platform !== 'linux')('starts the target without an fd above 9 this process holds', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-relaunch-high-fd-'))
-    const exe = path.join(dir, 'hermes')
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-relaunch-high-fd-'))
+    const exe = path.join(dir, 'kova')
     const report = path.join(dir, 'fds')
     const held = path.join(dir, 'held')
     const fd = fs.openSync(held, 'w')

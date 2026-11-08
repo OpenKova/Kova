@@ -27,7 +27,7 @@ MAX_BLOCKED_READ_SECS = 2.0
 
 @pytest.fixture()
 def config_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     lines = ["plugins:", "  hook_callback_timeout: 30", "agent:", "  max_turns: 500"]
     for i in range(100):

@@ -272,7 +272,7 @@ _DEFAULT_EXPORT_INCLUDE_ROOT = frozenset({
 })
 
 # Names that cannot be used as profile aliases
-_RESERVED_NAMES = frozenset({"hermes", "default", "test", "tmp", "root", "sudo"})
+_RESERVED_NAMES = frozenset({"kova", "default", "test", "tmp", "root", "sudo"})
 
 # Kova subcommands that cannot be used as profile names/aliases
 _KOVA_SUBCOMMANDS = frozenset({
@@ -285,7 +285,7 @@ _KOVA_SUBCOMMANDS = frozenset({
 # Path helpers
 
 def _get_profiles_root() -> Path:
-    """Named-profiles root, anchored to the hermes root (NOT the current KOVA_HOME, which
+    """Named-profiles root, anchored to the Kova root (NOT the current KOVA_HOME, which
     may itself be a profile) so ``coder profile list`` sees all profiles."""
     return _get_default_kova_home() / "profiles"
 
@@ -442,8 +442,8 @@ def get_profile_dir(name: str) -> Path:
     # The name becomes a path component under profiles/; refuse anything that
     # is not a valid profile id so every caller (WS params, /p/<profile>/
     # prefixes, tool args) fails closed instead of escaping the root. The
-    # regex only, not _RESERVED_NAMES: a pre-reserved-list dir like
-    # profiles/hermes may still exist and must keep resolving.
+    # regex only, not _RESERVED_NAMES: a pre-reserved-list dir may still
+    # exist and must keep resolving.
     if not _PROFILE_ID_RE.match(canon):
         raise _invalid_profile_name_error(canon)
     return _get_profiles_root() / canon
@@ -520,7 +520,7 @@ def check_alias_collision(name: str) -> Optional[str]:
     if canon in _RESERVED_NAMES:
         return f"'{canon}' is a reserved name"
     if canon in _KOVA_SUBCOMMANDS:
-        return f"'{canon}' conflicts with a hermes subcommand"
+        return f"'{canon}' conflicts with a Kova subcommand"
     try:
         result = subprocess.run(
             ["where" if sys.platform == "win32" else "which", canon],
@@ -557,10 +557,10 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     wrapper_path = _wrapper_path(canon)
     try:
         if sys.platform == "win32":
-            wrapper_path.write_text(f"@echo off\r\nhermes -p {profile} %*\r\n", encoding="utf-8")
+            wrapper_path.write_text(f"@echo off\r\nkova -p {profile} %*\r\n", encoding="utf-8")
         else:
-            hermes_exe = shutil.which("hermes") or "hermes"
-            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(hermes_exe)} -p {profile} "$@"\n', encoding="utf-8")
+            kova_exe = shutil.which("kova") or "kova"
+            wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(kova_exe)} -p {profile} "$@"\n', encoding="utf-8")
             wrapper_path.chmod(wrapper_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
         return wrapper_path
     except OSError as e:
@@ -852,7 +852,7 @@ def _cached_skill_count(profile_dir: Path) -> int:
             _SKILL_COUNT_NEXT_CHECK[key] = now + _SKILL_COUNT_RECHECK_SECONDS
     if due:
         threading.Thread(target=_count_skills, args=(profile_dir,),
-                         name="hermes-skill-count", daemon=True).start()
+                         name="kova-skill-count", daemon=True).start()
     cached = _SKILL_COUNT_CACHE.get(key)
     return cached[2] if cached is not None else 0
 
@@ -872,9 +872,9 @@ def read_profile_meta(profile_dir: Path) -> dict:
         ui_meta = data.get("ui_meta")
         bot_title = ""
         if isinstance(ui_meta, dict):
-            hermes_bots = ui_meta.get("kova-bots")
-            if isinstance(hermes_bots, dict):
-                bot_title = str(hermes_bots.get("title") or "").strip()
+            kova_bots = ui_meta.get("kova-bots")
+            if isinstance(kova_bots, dict):
+                bot_title = str(kova_bots.get("title") or "").strip()
         return {
             "description": str(data.get("description") or "").strip(),
             "description_auto": bool(data.get("description_auto", False)),
@@ -1504,21 +1504,21 @@ _BACKEND_TOKENS = frozenset({"serve", "dashboard", "gateway"})
 _KOVA_ARGV_MARKERS = ("kova_cli.main", "kova-gateway", "tui_gateway")
 # python / python3 / python3.12 / pythonw(.exe): the interpreter basenames a
 # `#!/…/python3` console-script shim is exec'd through when something (e.g. Electron's
-# `findOnPath('hermes')`) spawns the shim by handing the interpreter its path — then the
-# OS-reported argv[0] is the interpreter, not "hermes".
+# `findOnPath('kova')`) spawns the shim by handing the interpreter its path — then the
+# OS-reported argv[0] is the interpreter, not "kova".
 _PYTHON_INTERPRETER_RE = re.compile(r"^python[\d.]*w?(\.exe)?$")
 # Console-script entry points this project ships (pyproject.toml [project.scripts]).
-# argv[1] is matched against exact names, not ``startswith("hermes")``: with a bare
-# interpreter argv[0], argv[1] can be ANY user script ("hermes-notes.py").
-_KOVA_CONSOLE_SCRIPT_NAMES = frozenset({"hermes", "kova-agent", "hermes-acp"})
+# argv[1] is matched against exact names, not ``startswith("kova")``: with a bare
+# interpreter argv[0], argv[1] can be ANY user script ("kova-notes.py").
+_KOVA_CONSOLE_SCRIPT_NAMES = frozenset({"kova", "kova-agent", "kova-acp"})
 
 
 def _is_hermes_argv(argv: list) -> bool:
-    """True for a Kova process: entrypoint marker in argv, executable named ``hermes*``,
-    or a python interpreter directly exec'ing a known ``hermes`` console-script shim."""
+    """True for a Kova process: entrypoint marker in argv, executable named ``kova*``,
+    or a python interpreter directly exec'ing a known ``kova`` console-script shim."""
     joined = " ".join(argv)
     exe_name = os.path.basename(argv[0]).lower()
-    if any(marker in joined for marker in _KOVA_ARGV_MARKERS) or exe_name.startswith("hermes"):
+    if any(marker in joined for marker in _KOVA_ARGV_MARKERS) or exe_name.startswith("kova"):
         return True
     if len(argv) >= 2 and _PYTHON_INTERPRETER_RE.match(exe_name):
         script_name = os.path.basename(str(argv[1])).lower()
@@ -1627,7 +1627,7 @@ def _stop_profile_backends(canon: str, profile_dir: Path) -> None:
 
 def _stop_bot_desktop(profile_dir: Path) -> None:
     """Stop the profile's Bot Desktop (Xvnc + Xfce launcher) before its directory is removed or renamed;
-    gateway shutdown does not reach it (its own session, its own pid file). Scoped through the hermes-home
+    gateway shutdown does not reach it (its own session, its own pid file). Scoped through the kova-home
     override so the runtime reads THIS profile's bot-desktop/ state, whichever profile invoked the op.
     A failure here is logged, never fatal: the profile op is what the user asked for."""
     from kova_constants import reset_kova_home_override, set_kova_home_override
@@ -1696,7 +1696,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
     to prevent auto-restart, gateway stopped if running)."""
     canon = normalize_profile_name(name)
     if canon == "default":
-        raise ValueError("Cannot delete the default profile (~/.kova).\nTo remove everything, use: hermes uninstall")
+        raise ValueError("Cannot delete the default profile (~/.kova).\nTo remove everything, use: kova uninstall")
     canon, profile_dir = _existing_profile_dir(canon)
     gw_running = _check_gateway_running(profile_dir)
     wrapper_path = _find_our_wrapper(canon)
@@ -2028,11 +2028,11 @@ def _profile_export_directory() -> Path:
 
     # A custom deployment may point KOVA_HOME at its source checkout: use a sibling store,
     # falling back to the OS temp dir only when the user's home itself is a checkout (dotfiles
-    # repo). Per-uid temp name: a fixed /tmp/hermes-profile-exports is a predictable shared
+    # repo). Per-uid temp name: a fixed /tmp/kova-profile-exports is a predictable shared
     # path another local user could pre-create (or symlink) first.
     uid_suffix = f"-{os.getuid()}" if hasattr(os, "getuid") else ""
     candidates = (
-        Path.home() / ".kova-profile-exports", Path(tempfile.gettempdir()) / f"hermes-profile-exports{uid_suffix}"
+        Path.home() / ".kova-profile-exports", Path(tempfile.gettempdir()) / f"kova-profile-exports{uid_suffix}"
     )
     for candidate in candidates:
         if not _inside_git_checkout(candidate):
@@ -2130,7 +2130,7 @@ def _should_redact_export_file(path: Path) -> bool:
 
 
 def _scrub_export_secrets(staged: Path) -> None:
-    """Force-redact secret-shaped strings in a staged export tree (same pass as ``hermes
+    """Force-redact secret-shaped strings in a staged export tree (same pass as ``kova
     sessions export --redact``). Runs on the staged copy only; symlinks to text files are
     materialized when content changes so redaction never follows a link back into the source."""
     from agent.redact import redact_sensitive_text
@@ -2199,7 +2199,7 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     if not inferred_name:
         raise ValueError(
             "Cannot determine profile name from archive. "
-            "Specify it explicitly: hermes profile import <archive> --name <name>"
+            "Specify it explicitly: kova profile import <archive> --name <name>"
         )
     if archive_root is None:
         raise ValueError("Profile archive must contain exactly one top-level directory.")
@@ -2209,13 +2209,13 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     if canon == "default":
         raise ValueError(
             "Cannot import as 'default' — that is the built-in root profile (~/.kova). "
-            "Specify a different name: hermes profile import <archive> --name <name>"
+            "Specify a different name: kova profile import <archive> --name <name>"
         )
     profile_dir = get_profile_dir(canon)
     if profile_dir.exists():
         raise _profile_exists_error(canon)
     _get_profiles_root().mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="hermes_profile_import_") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="kova_profile_import_") as tmpdir:
         staging_root = Path(tmpdir)
         safe_extract_targz(archive, staging_root)
         extracted = staging_root / archive_root
@@ -2314,7 +2314,7 @@ def rename_profile(old_name: str, new_name: str) -> Path:
             _notify_multiplexer(old_canon)
         _maybe_register_gateway_service(old_canon)
         if service_removed:
-            print(f"⚠ The gateway service was removed. Reinstall it with: hermes -p {old_canon} gateway install")
+            print(f"⚠ The gateway service was removed. Reinstall it with: kova -p {old_canon} gateway install")
         raise
     print(f"✓ Renamed {old_dir.name} → {new_dir.name}")
     clear_named_profile_deleted(old_dir)
@@ -2356,7 +2356,7 @@ def rename_profile(old_name: str, new_name: str) -> Path:
         _notify_multiplexer(new_canon)
     _maybe_register_gateway_service(new_canon)
     if service_removed:
-        print(f"⚠ The gateway service was removed. Reinstall it with: hermes -p {new_canon} gateway install")
+        print(f"⚠ The gateway service was removed. Reinstall it with: kova -p {new_canon} gateway install")
     return new_dir
 
 
@@ -2375,7 +2375,7 @@ def profile_root_for_env_home(env_home: str, default_root: Path) -> Path:
 
 def resolve_profile_env(profile_name: str) -> str:
     """Resolve a profile name to a KOVA_HOME path string. Called early in the CLI entry
-    point, before hermes modules are imported, to set KOVA_HOME.
+    point, before Kova modules are imported, to set KOVA_HOME.
 
     When KOVA_HOME is already set, the configured spelling IS the launch root (it may be a
     junction/symlink alias of the platform default). Keep that spelling so profile re-home does not destroy

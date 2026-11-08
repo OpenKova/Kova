@@ -59,7 +59,7 @@ def page(monkeypatch, tmp_path):
 @pytest.mark.parametrize("path", ["/", "/index.html", "/chat/session"])
 def test_page_allows_its_scripts_and_chunks_but_locks_privileged_execution(page, origin, path):
     client = TestClient(page, base_url=origin)
-    response = client.get(path, headers={"X-Forwarded-Prefix": "/hermes"})
+    response = client.get(path, headers={"X-Forwarded-Prefix": "/kova"})
     assert response.status_code == 200
     policy = dict(part.strip().split(" ", 1) for part in response.headers["content-security-policy"].split(";"))
     assert policy["object-src"] == policy["base-uri"] == policy["frame-ancestors"] == "'none'"
@@ -69,7 +69,7 @@ def test_page_allows_its_scripts_and_chunks_but_locks_privileged_execution(page,
     assert "blob:" in scripts  # runtime-loader's local plugin modules (#145072)
     assert not {"'unsafe-inline'", "'unsafe-eval'", "https:", "http:", "*"}.intersection(scripts)
     parsed = Scripts(response.text)
-    assert parsed.external == ["/hermes/assets/app.js"]
+    assert parsed.external == ["/kova/assets/app.js"]
     assert any("__KOVA_BASE_PATH__" in script for script in parsed.inline)
     for script in parsed.inline:
         digest = base64.b64encode(hashlib.sha256(script.encode()).digest()).decode()

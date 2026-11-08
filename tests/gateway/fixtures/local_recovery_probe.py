@@ -79,7 +79,7 @@ def seed_offline_models_dev(home):
     home = Path(home)
     for cache in [home / 'models_dev_cache.json', *(p / 'models_dev_cache.json' for p in home.glob('profiles/*') if p.is_dir())]:
         if not cache.exists():
-            cache.write_text(json.dumps({'hermes-test-offline': {'id': 'hermes-test-offline', 'env': [], 'models': {}}}))
+            cache.write_text(json.dumps({'kova-test-offline': {'id': 'kova-test-offline', 'env': [], 'models': {}}}))
 
 
 @contextmanager

@@ -63,7 +63,7 @@ print(json.dumps(result))
 def test_startup_readers_use_the_suffixed_home(tmp_path, monkeypatch):
     from kova_constants import get_process_kova_home
     from kova_cli.dashboard_procs import _kova_home_dir
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     from kova_startup_watchdog import get_startup_watchdog_dump_path
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -75,7 +75,7 @@ def test_startup_readers_use_the_suffixed_home(tmp_path, monkeypatch):
     home.mkdir(parents=True)
     (home / ".env").write_text("SUFFIX_TEST_CREDENTIAL=suffixed\n", encoding="utf-8")
 
-    load_hermes_dotenv(project_env=tmp_path / "absent.env", load_external_secrets=False)
+    load_kova_dotenv(project_env=tmp_path / "absent.env", load_external_secrets=False)
     assert os.environ.get("SUFFIX_TEST_CREDENTIAL") == "suffixed"
     assert _kova_home_dir() == home
     assert get_startup_watchdog_dump_path() == home / "logs" / "gateway-startup-watchdog.log"

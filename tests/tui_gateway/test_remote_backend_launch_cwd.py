@@ -20,7 +20,7 @@ from tui_gateway import server
 @pytest.fixture
 def launch_dir(tmp_path, monkeypatch):
     """The gateway's launch directory: an existing host dir nobody picked, with no configured terminal.cwd."""
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(server, "_kova_home", home)
@@ -45,7 +45,7 @@ def _fresh_session(key: str) -> dict:
 
 
 class _Sprites(TerminalEnvironmentProvider):
-    """A plugin sandbox backend (remote, container), like hermes-plugin-sprites."""
+    """A plugin sandbox backend (remote, container), like kova-plugin-sprites."""
 
     name = "sprites"
     is_remote = True
@@ -214,7 +214,7 @@ def test_sandbox_resume_drops_a_stored_desktop_launch_dir(launch_dir, monkeypatc
     assert server._resumable_stored_cwd(stored, None) == stored
 
 
-def test_sandbox_resume_keeps_a_workspace_picked_under_the_hermes_root(launch_dir, monkeypatch):
+def test_sandbox_resume_keeps_a_workspace_picked_under_the_kova_root(launch_dir, monkeypatch):
     """A folder the user picked under the Kova root is a workspace, not a launch dir: it persists and resumes."""
     picked = server.get_kova_home() / "projects" / "chosen"
     picked.mkdir(parents=True)

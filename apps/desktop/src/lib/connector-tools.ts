@@ -113,7 +113,7 @@ const TOOL_LABEL_KINDS: readonly ToolLabel['kind'][] = ['connector', 'mcp', 'too
 
 /** Where the labels ride on a tool row's args. A real tool takes a `labels` argument
  *  (GitHub, Linear and Jira issue tools all do), so the key is one that cannot be one. */
-export const TOOL_LABELS_ARG = 'hermes_tool_labels'
+export const TOOL_LABELS_ARG = 'kova_tool_labels'
 
 /** The gateway's own words for each inner call of a bridged `tool_call`, in call order.
  *  Rides beside `context` and `preview` on the tool row's args; empty for an ordinary tool. */

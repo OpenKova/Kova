@@ -38,7 +38,7 @@ def home(tmp_path, monkeypatch):
     """A gateway home under tmp_path, with path resolution going through it."""
     import kova_state
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     root.mkdir(parents=True)
     monkeypatch.setenv("KOVA_HOME", str(root))
     # The suite-wide fixture re-points DEFAULT_DB_PATH, which trips the

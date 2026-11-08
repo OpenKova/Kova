@@ -529,7 +529,7 @@ class TestProbeApiModelsUserAgent:
         mock_resp.read = MagicMock(return_value=body)
         return mock_resp
 
-    def test_probe_sends_hermes_user_agent(self):
+    def test_probe_sends_kova_user_agent(self):
         from unittest.mock import patch
 
         body = b'{"data":[{"id":"claude-opus-4.7"}]}'
@@ -544,8 +544,8 @@ class TestProbeApiModelsUserAgent:
         req = mock_urlopen.call_args[0][0]
         ua = req.get_header("User-agent")  # urllib title-cases header names
         assert ua, "probe_api_models must send a User-Agent header"
-        assert ua.startswith("hermes-cli/"), (
-            f"User-Agent must advertise hermes-cli, got {ua!r}"
+        assert ua.startswith("kova-cli/"), (
+            f"User-Agent must advertise kova-cli, got {ua!r}"
         )
         # Must not fall back to urllib's default — that's what Cloudflare 1010 blocks.
         assert not ua.startswith("Python-urllib")
@@ -563,7 +563,7 @@ class TestProbeApiModelsUserAgent:
 
         req = mock_urlopen.call_args[0][0]
         ua = req.get_header("User-agent")
-        assert ua and ua.startswith("hermes-cli/")
+        assert ua and ua.startswith("kova-cli/")
         # No Authorization was set, but UA must still be present.
         assert req.get_header("Authorization") is None
 
@@ -639,7 +639,7 @@ class TestValidateRequestedModelNousPortalRecommendations:
     other messaging-platform /model validation, since they all share
     validate_requested_model()) rejected models that are live Neural Studio Portal
     recommendations (/api/nous/recommended-models) but not yet in the
-    hardcoded curated catalog -- even though `hermes chat` already accepts
+    hardcoded curated catalog -- even though `kova chat` already accepts
     these via union_with_portal_free/paid_recommendations() at model-list
     build time. The per-message validation path now checks the same Portal
     feed as a fallback tier before rejecting, so Telegram/CLI agree.

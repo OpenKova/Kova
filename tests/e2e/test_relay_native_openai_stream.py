@@ -31,7 +31,7 @@ def _running_on(loop) -> bool:
 def _stream_through_relay(tmp_path, monkeypatch, response_body: bytes, *, finalize_before):
     """Stream ``response_body`` through Relay; Relay's finalizer is forced to complete before
     the consumer thread processes the first chunk matching ``finalize_before(chunk)``.
-    Returns ``(hermes_result, relay_llm_end_event)``."""
+    Returns ``(kova_result, relay_llm_end_event)``."""
     httpx = pytest.importorskip("httpx")
     nemo_relay = pytest.importorskip("nemo_relay")
     openai = pytest.importorskip("openai")
@@ -39,7 +39,7 @@ def _stream_through_relay(tmp_path, monkeypatch, response_body: bytes, *, finali
     from agent import chat_completion_helpers, relay_llm, relay_runtime
     from run_agent import AIAgent
 
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     monkeypatch.setenv("KOVA_STREAM_RETRIES", "0")
 
     def respond(request):
@@ -164,8 +164,8 @@ def test_openai_stream_final_tool_call_delta_reaches_relay_parent_event(tmp_path
     result, llm_end = _stream_through_relay(
         tmp_path, monkeypatch, body,
         finalize_before=lambda chunk: bool(chunk.choices) and chunk.choices[0].finish_reason == "tool_calls")
-    hermes_call = result.choices[0].message.tool_calls[0]
-    assert (hermes_call.function.name, hermes_call.function.arguments) == ("read_file", '{"path": "/tmp/x"}')
+    kova_call = result.choices[0].message.tool_calls[0]
+    assert (kova_call.function.name, kova_call.function.arguments) == ("read_file", '{"path": "/tmp/x"}')
     assert result.choices[0].finish_reason == "tool_calls"
     assert llm_end.annotated_response.message is None
     (relay_call,) = llm_end.annotated_response.tool_calls

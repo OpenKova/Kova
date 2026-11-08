@@ -329,7 +329,7 @@ def test_a_failed_repair_counts_its_attempt_even_on_an_undecodable_marker(tmp_pa
 def test_the_foreign_lock_record_is_fsynced_under_a_per_writer_temp(tmp_path, monkeypatch):
     """_remember_foreign_lock rewrote the restore's only record through a fixed-name ``.tmp`` with no
     fsync (review C12, invariant 5): a crash could leave an empty marker, and two writers shared one temp."""
-    marker, lock = tmp_path / "hermes-update-pull", tmp_path / "update.lock"
+    marker, lock = tmp_path / "kova-update-pull", tmp_path / "update.lock"
     marker.write_text("pid=1\npre=abc\n", encoding="utf-8")
     lock.write_text("x", encoding="utf-8")
     synced, replaced = [], []

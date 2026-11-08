@@ -44,7 +44,7 @@ afterEach(() => {
   dispose?.()
   dispose = undefined
   root.remove()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   document.documentElement.style.removeProperty('zoom')
   vi.unstubAllGlobals()
 })
@@ -114,7 +114,7 @@ describe('browser visible viewport', () => {
   })
 
   it('leaves native/missing-API hosts alone and releases coalesced listeners and layout on teardown', () => {
-    document.documentElement.removeAttribute('data-hermes-desktop-host')
+    document.documentElement.removeAttribute('data-kova-desktop-host')
     installBrowserViewport()()
     resize(400)
     expect(root.hasAttribute('data-browser-viewport')).toBe(false)

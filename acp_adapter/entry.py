@@ -5,7 +5,7 @@ JSON-RPC), and starts the ACP agent server.
 
 Usage::
 
-    python -m acp_adapter.entry   # or: kova acp / hermes-acp
+    python -m acp_adapter.entry   # or: kova acp / kova-acp
 """
 
 # IMPORTANT: kova_bootstrap must be the very first import — UTF-8 stdio
@@ -20,7 +20,7 @@ else:
     # Stop a ``utils/``/``proxy/``/``ui/`` package in the launch cwd from shadowing Kova modules.
     kova_bootstrap.harden_import_path()
 
-# `hermes-acp` runs without kova_cli.main: repair a `kova update` killed mid-pull here, before
+# `kova-acp` runs without kova_cli.main: repair a `kova update` killed mid-pull here, before
 # importing anything else from the checkout (a no-op under `kova acp`, which already did).
 from kova_cli import _early_recovery
 
@@ -92,7 +92,7 @@ def _load_env() -> None:
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="hermes-acp", description="Run Kova Agent as an ACP stdio server.")
+    parser = argparse.ArgumentParser(prog="kova-acp", description="Run Kova Agent as an ACP stdio server.")
     parser.add_argument("--version", action="store_true", help="Print Kova version and exit")
     parser.add_argument("--check", action="store_true", help="Verify ACP dependencies and adapter imports, then exit")
     parser.add_argument("--setup", action="store_true",
@@ -122,7 +122,7 @@ def _run_setup() -> None:
 
     old_argv = sys.argv[:]
     try:
-        sys.argv = [old_argv[0] if old_argv else "hermes", "model"]
+        sys.argv = [old_argv[0] if old_argv else "kova", "model"]
         hermes_main()
     finally:
         sys.argv = old_argv
@@ -163,7 +163,7 @@ def _warm_memory_provider_import(logger: logging.Logger) -> None:
 def main(argv: list[str] | None = None) -> None:
     """Entry point: load env, configure logging, run the ACP agent."""
     if argv is None and "kova_cli.main" not in sys.modules:
-        sys.argv = [sys.argv[0] if sys.argv else "hermes-acp", "acp", *sys.argv[1:]]
+        sys.argv = [sys.argv[0] if sys.argv else "kova-acp", "acp", *sys.argv[1:]]
         from kova_cli.main import main as hermes_main
 
         return hermes_main()

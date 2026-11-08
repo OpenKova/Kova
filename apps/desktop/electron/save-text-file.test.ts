@@ -30,7 +30,7 @@ describe('saveTextFileAs (Electron-side /save write)', () => {
     const result = await saveTextFileAs(
       {
         content: '# hello',
-        defaultPath: '../../etc/hermes_session_x.md',
+        defaultPath: '../../etc/kova_session_x.md',
         filters: [{ name: 'Markdown', extensions: ['md'] }]
       },
       {

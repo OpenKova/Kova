@@ -92,7 +92,7 @@ def main() -> None:
         "import desktop_backend_proof, json, sys\n"
         "print(json.dumps({'python': sys.executable, 'module': desktop_backend_proof.__file__, "
         "'value': desktop_backend_proof.VALUE}))\n", encoding="utf-8")
-    print(json.dumps({"root": str(root), "launcher": str(root / ".kova/bin/hermes"),
+    print(json.dumps({"root": str(root), "launcher": str(root / ".kova/bin/kova"),
                       "python": str(python), "selected": str(selected)}))
 
 

@@ -14,7 +14,7 @@ description: >-
   Disclosure — reads only the configured vault folder (file symlinks skipped, excluded
   directories ignored), writes only inside that folder (new notes with O_CREAT|O_EXCL,
   plus the ownership-marked mirror note), no telemetry, no self-updater, no background
-  process, no subprocesses. The vault itself lives outside $HERMES_HOME, so `hermes
+  process, no subprocesses. The vault itself lives outside $KOVA_HOME, so `hermes
   backup` does not copy it.
 maintainer: kailashrajh
 tier: community

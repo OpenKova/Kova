@@ -39,14 +39,14 @@ const remote = (baseUrl: string): KovaConnection => ({
 beforeEach(() => {
   vi.clearAllMocks()
   checkKovaUpdateSpy.mockResolvedValue({ behind: 1, can_apply: true, current_version: '1', update_available: true })
-  updateKovaSpy.mockResolvedValue({ ok: true, name: 'hermes-update' })
+  updateKovaSpy.mockResolvedValue({ ok: true, name: 'kova-update' })
   window.kovaDesktop = { updates: { apply: clientApply, check: clientCheck, onProgress: () => () => {} } } as never
   updates.$updateOverlayOpen.set(false)
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
 })
 
 describe('update entry points under Kova Cloud', () => {

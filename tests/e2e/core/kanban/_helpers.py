@@ -1,5 +1,5 @@
 """Real-process Kanban board harness: a scratch HOME/KOVA_HOME, the recording fake provider, and
-the real ``hermes kanban`` CLI (dispatcher ticks spawn real ``hermes chat -q`` workers).
+the real ``kova kanban`` CLI (dispatcher ticks spawn real ``kova chat -q`` workers).
 
 Nothing below imports the dispatcher: every board mutation goes through a child process and every
 verdict is read back from ``kanban.db`` (tasks / task_runs / task_events rows) or the files on disk.
@@ -85,7 +85,7 @@ class Board:
         )
         (self.kova_home / ".env").write_text("OPENAI_API_KEY=sk-fake-e2e\n", encoding="utf-8")
         # Workers run with cwd=<task workspace>; the wrapper pins THIS checkout on the path.
-        self.kova_bin = self.root / "hermes-bin"
+        self.kova_bin = self.root / "kova-bin"
         self.kova_bin.write_text(
             "#!/bin/sh\n"
             f"PYTHONPATH={REPO} exec {PY} -m kova_cli.main \"$@\"\n", encoding="utf-8")

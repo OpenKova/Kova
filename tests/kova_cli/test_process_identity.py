@@ -5,7 +5,7 @@ Layer context (Aug 2026, after the 12-minute Windows update hang): reapers
 previously inferred process lineage from PPIDs and cmdline shape. These
 primitives make identity positive instead: spawners stamp children
 (KOVA_SPAWN), long-lived processes self-register (pid, create_time,
-purpose, spawner) in spawn-ledger.json, and `hermes update` reaps holders the
+purpose, spawner) in spawn-ledger.json, and `kova update` reaps holders the
 ledger PROVES are orphaned backends — in any update context, no hand-off
 contract needed.
 
@@ -95,8 +95,8 @@ def test_desktop_style_tag_parses():
 
 
 def test_install_id_stable_and_path_scoped():
-    a = pi.install_id(Path("/opt/hermes"))
-    assert a == pi.install_id(Path("/opt/hermes"))
+    a = pi.install_id(Path("/opt/kova"))
+    assert a == pi.install_id(Path("/opt/kova"))
     assert a != pi.install_id(Path("/opt/other"))
     assert len(a) == 12
 
@@ -106,8 +106,8 @@ def test_install_id_hashes_the_install_root_the_cli_resolves(monkeypatch):
 
     repo = Path(__file__).resolve().parents[2]
     assert pi.install_id() == pi.install_id(repo)  # an existing install keeps its id
-    monkeypatch.setattr(_startup_fast, "project_root_str", lambda: "/opt/relocated-hermes")
-    assert pi.install_id() == pi.install_id(Path("/opt/relocated-hermes"))
+    monkeypatch.setattr(_startup_fast, "project_root_str", lambda: "/opt/relocated-kova")
+    assert pi.install_id() == pi.install_id(Path("/opt/relocated-kova"))
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +147,7 @@ def test_register_self_writes_and_prunes_dead(tmp_path):
 def test_register_self_survives_non_utf8_argv(tmp_path):
     ledger = tmp_path / "spawn-ledger.json"
     fake = _fake_psutil({999: 50.0})
-    bad_argv = ["hermes", "serve", os.fsdecode(b"/tmp/project-\xff")]  # surrogate-escaped path
+    bad_argv = ["kova", "serve", os.fsdecode(b"/tmp/project-\xff")]  # surrogate-escaped path
     with patch.dict(sys.modules, {"psutil": fake}), \
          patch.object(pi, "_ledger_path", return_value=ledger), \
          patch.object(pi.os, "getpid", return_value=999), \
@@ -241,7 +241,7 @@ def test_ledger_entries_filters_dead_reused_and_foreign(tmp_path):
 
 @pytest.mark.platforms("posix")
 def test_ledger_entries_excludes_a_killed_but_unreaped_process(tmp_path):
-    """A zombie is dead even though it keeps its create_time until reaped: ``hermes update``
+    """A zombie is dead even though it keeps its create_time until reaped: ``kova update``
     books the stopped dashboard gone, then must not find it again as a pre-update survivor."""
     import psutil
 
@@ -348,7 +348,7 @@ def test_updater_ledger_rung_never_raises():
 
 
 def test_desktop_ssh_backend_spawn_shape_is_desktop_owned(monkeypatch):
-    """Desktop's SSH spawn is ``env KOVA_DESKTOP=1 hermes serve --isolated ... --ssh-session-token-file F``
+    """Desktop's SSH spawn is ``env KOVA_DESKTOP=1 kova serve --isolated ... --ssh-session-token-file F``
     with NO token env var (its tests assert the var name never appears on the wire). Missing that
     shape made the SSH child claim ROLE_SERVE on the remote host (the #119824 shape there)."""
     monkeypatch.setenv("KOVA_DESKTOP", "1")
@@ -357,9 +357,9 @@ def test_desktop_ssh_backend_spawn_shape_is_desktop_owned(monkeypatch):
                 "--ssh-session-token-file", "/home/u/.kova/desktop-ssh/abc.token"]
 
     assert pi.is_desktop_owned_backend(ssh_argv) is True
-    monkeypatch.setattr(sys, "argv", ["hermes", *ssh_argv])
+    monkeypatch.setattr(sys, "argv", ["kova", *ssh_argv])
     assert pi.is_desktop_owned_backend() is True
-    # The bare inherited flag (a Desktop terminal pane running `hermes serve`) is still not ownership.
+    # The bare inherited flag (a Desktop terminal pane running `kova serve`) is still not ownership.
     assert pi.is_desktop_owned_backend(["serve", "--host", "127.0.0.1", "--port", "0"]) is False
 
 

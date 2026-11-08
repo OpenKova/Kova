@@ -24,7 +24,7 @@ def _under_secondary(home, fn):
 def test_env_passthrough_allowlist_follows_the_active_profile(tmp_path, monkeypatch):
     import tools.env_passthrough as ep
 
-    default_home = tmp_path / "hermes"
+    default_home = tmp_path / "kova"
     secondary = default_home / "profiles" / "b2"
     secondary.mkdir(parents=True)
     (default_home / "config.yaml").write_text("terminal:\n  env_passthrough: [FOO_DEFAULT]\n")

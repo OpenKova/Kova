@@ -58,7 +58,7 @@ def _idle_entry(scratch: Path, name: str) -> Path:
 
 
 def test_a_short_lived_process_still_completes_its_due_prune(tmp_path):
-    """A `hermes` command that exits right after boot still gets its pass: the detached child
+    """A `kova` command that exits right after boot still gets its pass: the detached child
     removes the idle entry of the (routed) home the command resolved, after the command is gone,
     and leaves the launch home alone. Red on a daemon-thread prune, which dies with the command.
     The user's shell stays the pass's own even when everything between it and the pass exited
@@ -274,7 +274,7 @@ class TestScratchDirPermissionPolicy:
 
     def test_effective_home_marker_does_not_govern_another_homes_scratch(self, tmp_path, monkeypatch):
         # The caller's home decides the policy. A boot caller (``export_scratch_tmp_env``) and
-        # ``hermes doctor`` have already resolved theirs, so the marker lookup must not fall back
+        # ``kova doctor`` have already resolved theirs, so the marker lookup must not fall back
         # to ``get_kova_home()``: for a sticky profile with KOVA_HOME unset that lookup warns
         # about the default profile on every command, and it is the wrong home to judge by anyway.
         selected = tmp_path / "home"
@@ -322,7 +322,7 @@ class TestScratchDirPermissionPolicy:
         monkeypatch.setenv("KOVA_HOME_MODE", "2770")
         assert stat.S_IMODE(os.stat(get_scratch_dir(tmp_path, prune=False)).st_mode) == expected
 
-    def test_hermes_uid_gid_applied_to_scratch(self, tmp_path, monkeypatch):
+    def test_kova_uid_gid_applied_to_scratch(self, tmp_path, monkeypatch):
         self._isolate_env(monkeypatch, tmp_path)
         monkeypatch.setenv("KOVA_UID", "1000")
         monkeypatch.setenv("KOVA_GID", "911")
@@ -681,7 +681,7 @@ def test_postremoval_unreadable_entry_is_not_counted_as_removed(tmp_path: Path) 
 
 @pytest.mark.platforms("posix")
 @pytest.mark.live_system_guard_bypass  # a red run must kill the orphan this test made (reparented to init)
-def test_prune_keeps_entry_a_registered_hermes_process_works_in_but_reaps_orphans(tmp_path, monkeypatch):
+def test_prune_keeps_entry_a_registered_kova_process_works_in_but_reaps_orphans(tmp_path, monkeypatch):
     """#132401 live-worker guard: a background process Kova itself started (tracked in the
     process registry's ``processes.json``) is never reaped, and the idle entry it works in is
     kept with an audit line. The orphaned grandchild of a registered shell that already exited

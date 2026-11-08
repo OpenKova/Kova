@@ -52,8 +52,8 @@ def test_singularity_in_use_is_the_configured_backend(tmp_path, env, config, in_
     ("TERMINAL_ENV=singularity\n", "TERMINAL_ENV=local\n", False),
     ("", "TERMINAL_ENV=singularity\n", True),
 ])
-def test_the_managed_env_beats_the_homes_env_as_in_load_hermes_dotenv(tmp_path, home_env, managed_env, in_use):
-    # load_hermes_dotenv applies the administrator-managed .env last, with override.
+def test_the_managed_env_beats_the_homes_env_as_in_load_kova_dotenv(tmp_path, home_env, managed_env, in_use):
+    # load_kova_dotenv applies the administrator-managed .env last, with override.
     (tmp_path / "managed" / ".env").write_text(managed_env, encoding="utf-8")
     assert lcm.singularity_in_use(_home(tmp_path, env=home_env)) is in_use
 
@@ -63,8 +63,8 @@ def test_the_managed_env_beats_the_homes_env_as_in_load_hermes_dotenv(tmp_path, 
     "TERMINAL_ENV=${SITE_BACKEND}\n",                    # the process environment supplies the value
     "TERMINAL_ENV=${UNSET_BACKEND:-singularity}\n",
 ])
-def test_dotenv_references_resolve_as_in_load_hermes_dotenv(tmp_path, monkeypatch, env):
-    # load_hermes_dotenv expands ${VAR} / ${VAR:-default} against the file's earlier lines and the
+def test_dotenv_references_resolve_as_in_load_kova_dotenv(tmp_path, monkeypatch, env):
+    # load_kova_dotenv expands ${VAR} / ${VAR:-default} against the file's earlier lines and the
     # process environment before TERMINAL_ENV picks the backend.
     monkeypatch.setenv("SITE_BACKEND", "singularity")
     monkeypatch.delenv("UNSET_BACKEND", raising=False)
@@ -130,14 +130,14 @@ def test_without_the_plugin_the_backend_error_names_the_install_command(tmp_path
     assert backends._check_plugin_requirements({"env_type": "singularity"}) is False
     reason = backends.terminal_backend_unavailable_reason()
     assert "moved out of core into the 'singularity' plugin" in reason
-    assert "hermes plugins install singularity" in reason
-    with pytest.raises(ValueError, match="hermes plugins install singularity"):
+    assert "kova plugins install singularity" in reason
+    with pytest.raises(ValueError, match="kova plugins install singularity"):
         backends._create_environment("singularity", image="", cwd="/root", timeout=10)
     assert lcm.terminal_backend_install_hint("acmebox") == ""
 
 
 def test_config_unset_removes_the_env_copy_core_used_to_write(tmp_path, monkeypatch):
-    # While core shipped the backend, `hermes config set terminal.singularity_image` also wrote
+    # While core shipped the backend, `kova config set terminal.singularity_image` also wrote
     # TERMINAL_SINGULARITY_IMAGE to .env, and the plugin still falls back to it: unset must remove both,
     # or the old image comes back instead of the default.
     home = _home(tmp_path, env="TERMINAL_SINGULARITY_IMAGE=docker://old:1\n",
@@ -150,7 +150,7 @@ def test_config_unset_removes_the_env_copy_core_used_to_write(tmp_path, monkeypa
 
 
 def test_config_set_and_get_still_recognize_the_image_key(tmp_path, monkeypatch, capsys):
-    # The plugin reads terminal.singularity_image and its setup text says `hermes config set
+    # The plugin reads terminal.singularity_image and its setup text says `kova config set
     # terminal.singularity_image <image>`; leaving DEFAULT_CONFIG must not make it an unknown key.
     home = _home(tmp_path, config="terminal:\n  backend: singularity\n")
     monkeypatch.setenv("KOVA_HOME", str(home))

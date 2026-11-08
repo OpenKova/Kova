@@ -1,12 +1,12 @@
 """Cross-process update mutual exclusion (``kova_cli.update_lock``).
 
-Three surfaces can start an update of one install tree: a terminal ``hermes
+Three surfaces can start an update of one install tree: a terminal ``kova
 update``, the dashboard's Update button (which spawns that same command
 detached), and the desktop's Update button (Tauri updater → install-mode
 bootstrap on its failure screen). Before the shared lock, two of them could run
 concurrently and rewrite source under a live interpreter — observed in the wild
 as an installer ``git checkout`` rewinding the checkout ~9k commits while a
-dashboard-spawned ``hermes update`` was mid-``npm install``, which then failed
+dashboard-spawned ``kova update`` was mid-``npm install``, which then failed
 against the rewound tree's manifests.
 
 These exercise the real marker file against a temp home — no mocks — because
@@ -68,7 +68,7 @@ def _no_runtime_host_above_the_runner(monkeypatch):
     """Judge hand-offs as if no Kova gateway/serve/dashboard ran this test process.
 
     A hand-off is refused when such a host sits above us (cli §7 V9), and that walk reads the real
-    process ancestry: run from a terminal that a ``hermes gateway run`` agent opened, every hand-off
+    process ancestry: run from a terminal that a ``kova gateway run`` agent opened, every hand-off
     test was refused. A test that wants a host above it patches ``_is_runtime_host`` to answer True."""
     monkeypatch.setattr(update_lock, "_is_runtime_host", lambda cmdline: False)
 
@@ -272,7 +272,7 @@ def test_v2_marker_whose_pid_was_reused_is_reclaimed(marker, other_pid):
 
 
 def test_delegate_keeps_the_claim_live_after_the_partner_dies(marker, monkeypatch, other_pid):
-    """Rule 6: `hermes update` adopting a hand-off claim names itself on line 4, restores
+    """Rule 6: `kova update` adopting a hand-off claim names itself on line 4, restores
     lines 1-3 byte-identical on exit, and is what keeps the claim visible if the partner dies."""
     _claim_v2(marker, other_pid)
     base = marker.read_bytes()
@@ -521,7 +521,7 @@ time.sleep(120)
 
 @pytest.mark.platforms("posix")
 def test_checkout_lock_excludes_an_update_from_another_home(tmp_path):
-    """Two `hermes update` runs on one checkout from different homes exclude each other (V3)."""
+    """Two `kova update` runs on one checkout from different homes exclude each other (V3)."""
     install = tmp_path / "checkout"
     install.mkdir()
     holder = subprocess.Popen(
@@ -610,8 +610,8 @@ def test_git_checkout_lock_lives_in_the_common_git_dir_and_never_dirties_the_tre
     linked = tmp_path / "linked"
     git("worktree", "add", "-q", "--detach", str(linked))
     common = Path(os.path.normpath(install / ".git"))
-    assert checkout_lock_path(install) == common / "hermes-update.lock"
-    assert checkout_lock_path(linked) == common / "hermes-update.lock"
+    assert checkout_lock_path(install) == common / "kova-update.lock"
+    assert checkout_lock_path(linked) == common / "kova-update.lock"
 
     lock = UpdateLock(path=tmp_path / "marker", install_root=install)
     assert lock.acquire() is True
@@ -633,7 +633,7 @@ def test_unwritable_install_root_refuses(tmp_path):
 
 
 class TestHandoffFromOrchestratingUpdater:
-    """The Tauri updater holds the marker, then spawns ``hermes update``.
+    """The Tauri updater holds the marker, then spawns ``kova update``.
 
     The regression: the child saw its own parent's live marker and exited 2,
     so every GUI update failed with "Kova is still running" and retrying
@@ -702,7 +702,7 @@ class TestHandoffFromOrchestratingUpdater:
 class TestAncestryHandoff:
     """Staged updaters older than the HANDOFF_PID_ENV export never send it.
 
-    ``hermes-setup`` under ``~/.kova`` is only refreshed by a full installer
+    ``kova-setup`` under ``~/.kova`` is only refreshed by a full installer
     run, so an updated checkout (new lock) driven by a pre-handoff staged
     updater (old parent) deadlocks on exit 2 forever unless the child also
     recognizes a live holder that is its own process ancestor.
@@ -730,7 +730,7 @@ class TestAncestryHandoff:
     def test_grandchild_adopts_orchestrator_marker_without_psutil(self, marker, tmp_path):
         """Regression: the desktop hand-off's grandchild refused its own orchestrator.
 
-        The posix shim (grandparent) holds the marker and spawns ``hermes update``
+        The posix shim (grandparent) holds the marker and spawns ``kova update``
         (direct child — adopts via getppid). An old-updater update into a PM tree
         then hands off again: ``_old_updater._run_child`` spawns
         ``_update_takeover.py`` as ``python -I -S -B``, where psutil cannot import
@@ -948,7 +948,7 @@ class TestAncestryUnderUnreadableProcesses:
 @pytest.mark.platforms("posix")
 @pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root writes any file")
 def test_unwritable_lock_file_still_locks_the_checkout(tmp_path):
-    """Contract A5: a `sudo hermes update` leaves the lock file root-owned; later updates take the
+    """Contract A5: a `sudo kova update` leaves the lock file root-owned; later updates take the
     kernel lock on a read-only fd instead of refusing forever, and still exclude each other."""
     root = tmp_path / "install"
     root.mkdir()

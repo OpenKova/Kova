@@ -1,4 +1,4 @@
-"""Kova Achievements dashboard plugin backend, mounted at /api/plugins/hermes-achievements/.
+"""Kova Achievements dashboard plugin backend, mounted at /api/plugins/kova-achievements/.
 
 Scans the session history into per-session stats (checkpointed by fingerprint so warm
 scans are cheap), aggregates them, and evaluates the tiered / multi-condition catalog.
@@ -145,15 +145,15 @@ _CHECKPOINT_SCHEMA_VERSION = 2
 
 
 def _data_dir() -> Path:
-    """Durable data root (``<hermes home>/plugin-data/hermes-achievements/``). State used to
+    """Durable data root (``<kova home>/plugin-data/kova-achievements/``). State used to
     live in the install tree and died on ``kova plugins remove``/``update``; legacy files
     migrate on first read (see ``_data_file``)."""
     try:
         from plugins.plugin_storage import plugin_data_dir
-        return plugin_data_dir("hermes-achievements")
+        return plugin_data_dir("kova-achievements")
     except Exception:
         # Standalone dashboard import (no plugins package on sys.path): same layout, computed locally.
-        root = get_kova_home() / "plugin-data" / "hermes-achievements"
+        root = get_kova_home() / "plugin-data" / "kova-achievements"
         root.mkdir(parents=True, exist_ok=True)
         return root
 
@@ -161,7 +161,7 @@ def _data_dir() -> Path:
 def _data_file(name: str) -> Path:
     path = _data_dir() / name
     if not path.exists():
-        legacy = get_kova_home() / "plugins" / "hermes-achievements" / name
+        legacy = get_kova_home() / "plugins" / "kova-achievements" / name
         if legacy.exists():
             try:
                 # Two statements so the read (utf-8-sig, tolerates a BOM)
@@ -810,7 +810,7 @@ def _start_background_scan() -> None:
         existing = _BACKGROUND_SCAN_THREAD
         if existing is not None and existing.is_alive():
             return
-        thread = threading.Thread(target=_run_scan_and_update_cache, kwargs={"publish_partial_snapshots": True}, name="hermes-achievements-scan", daemon=True)
+        thread = threading.Thread(target=_run_scan_and_update_cache, kwargs={"publish_partial_snapshots": True}, name="kova-achievements-scan", daemon=True)
         _BACKGROUND_SCAN_THREAD = thread
         thread.start()
 

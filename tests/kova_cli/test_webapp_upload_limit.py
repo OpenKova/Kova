@@ -24,7 +24,7 @@ from tests.kova_cli.conftest_dashboard_auth import StubAuthProvider
 
 @pytest.fixture
 def upload_app(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -65,7 +65,7 @@ async def _login(client):
 
 
 @pytest.mark.parametrize(
-    "declared_length,root_path", [(None, ""), ("1", ""), ("oversize", ""), (None, "/hermes")]
+    "declared_length,root_path", [(None, ""), ("1", ""), ("oversize", ""), (None, "/kova")]
 )
 def test_upload_bound_stops_parser_and_closes_spools(upload_app, monkeypatch, declared_length, root_path):
     home, spools = upload_app

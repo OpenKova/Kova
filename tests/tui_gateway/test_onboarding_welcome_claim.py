@@ -19,7 +19,7 @@ from tui_gateway import server
 
 @pytest.fixture
 def root(tmp_path, monkeypatch) -> Path:
-    home = tmp_path / "hermes-root"
+    home = tmp_path / "kova-root"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(server, "_kova_home", str(home))

@@ -16,7 +16,7 @@ rotates the pair and invalidates the old refresh token." Before the PR, ``"anthr
 and the *only* on-failure recovery path
 (``CredentialPool._sync_anthropic_entry_from_credentials_file``) was
 hard-scoped to ``entry.source == "claude_code"``. Entries sourced from
-Kova's own PKCE login (``manual:hermes_pkce`` / ``hermes_pkce``) got no
+Kova's own PKCE login (``manual:kova_pkce`` / ``kova_pkce``) got no
 recovery at all and were marked exhausted on a lost race, even though a
 fresh, valid token pair existed on disk (written by the winner). The old
 dashboard source ``manual:dashboard_pkce`` is now retired with the removed
@@ -119,8 +119,8 @@ class _SingleUseTokenServer:
 
 
 
-def test_concurrent_hermes_pkce_refresh_loses_credential_despite_valid_token_on_disk(monkeypatch):
-    """Two 'Kova processes' race to refresh the same stale hermes_pkce
+def test_concurrent_kova_pkce_refresh_loses_credential_despite_valid_token_on_disk(monkeypatch):
+    """Two 'Kova processes' race to refresh the same stale kova_pkce
     refresh token. The winner gets a valid new pair. The loser -- despite a
     fresh, valid credential now existing -- has no recovery path and is
     marked exhausted, because ``_sync_anthropic_entry_from_credentials_file``
@@ -140,7 +140,7 @@ def test_concurrent_hermes_pkce_refresh_loses_credential_despite_valid_token_on_
         id="pool-entry",
         access_token="stale-at",
         refresh_token="stale-rt",
-        source="manual:hermes_pkce",
+        source="manual:kova_pkce",
     )
 
     # Simulate two independent OS processes, each with its own in-memory
@@ -186,12 +186,12 @@ def test_concurrent_hermes_pkce_refresh_loses_credential_despite_valid_token_on_
         "regression: the losing process's CredentialPool._refresh_entry() "
         "returned None (unrecoverable) after losing the single-use-token "
         "race, even though a fresh valid Anthropic credential exists on "
-        "disk. hermes_pkce-sourced entries must adopt the winner's token "
+        "disk. kova_pkce-sourced entries must adopt the winner's token "
         "via _sync_anthropic_entry_from_pool_store(), same as claude_code."
     )
     loser_entry_after = loser_pool.entries()[0]
     assert loser_entry_after.last_status != STATUS_EXHAUSTED, (
-        "regression: the losing process marked its Anthropic hermes_pkce "
+        "regression: the losing process marked its Anthropic kova_pkce "
         "credential STATUS_EXHAUSTED after a lost refresh race, even "
         "though the account is not actually exhausted -- a sibling Kova "
         "process holds a perfectly valid rotated token. This causes "
@@ -205,7 +205,7 @@ def test_concurrent_claude_code_refresh_recovers_via_credentials_file(monkeypatc
     """Contrast case: entry.source == 'claude_code' DOES recover from a lost
     race, because ``_sync_anthropic_entry_from_credentials_file`` re-reads
     ``~/.claude/.credentials.json`` on failure. This asymmetry is itself
-    evidence that hermes_pkce/dashboard-sourced credentials were simply
+    evidence that kova_pkce/dashboard-sourced credentials were simply
     never given the same treatment, not that recovery is impossible.
     """
     server = _SingleUseTokenServer()

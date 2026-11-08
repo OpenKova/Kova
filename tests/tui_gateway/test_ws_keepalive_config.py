@@ -7,7 +7,7 @@ import pytest
 
 @pytest.fixture()
 def _temp_home(tmp_path, monkeypatch):
-    home = tmp_path / "hermes-home"
+    home = tmp_path / "kova-home"
     home.mkdir()
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.delenv("KOVA_TUI_WS_ORPHAN_REAP_GRACE_S", raising=False)

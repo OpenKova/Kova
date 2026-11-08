@@ -215,7 +215,7 @@ class _Relay:
         self.events.append(("subscribers.flush",))
 
 
-_EXPORT_WORKER = "hermes-shared-metrics-flush"
+_EXPORT_WORKER = "kova-shared-metrics-flush"
 
 
 def _join_export_workers() -> None:
@@ -229,7 +229,7 @@ def _join_export_workers() -> None:
 @pytest.fixture
 def direct_runtime(tmp_path, monkeypatch):
     fake = _Relay()
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
@@ -252,7 +252,7 @@ def real_binding_runtime(tmp_path, monkeypatch):
     relay = pytest.importorskip("nemo_relay")
     if getattr(relay, "_native", None) is None:
         pytest.skip("NeMo Relay native binding is unavailable on this platform")
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     monkeypatch.setattr(
         "kova_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
@@ -366,7 +366,7 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
     ]
     assert len(scope_starts) == 2
     assert scope_starts[0][2] == direct_runtime.ScopeType.Agent
-    assert scope_starts[1][1] == "hermes.task_run"
+    assert scope_starts[1][1] == "kova.task_run"
     assert scope_starts[1][2] == direct_runtime.ScopeType.Function
     assert scope_starts[1][3]["handle"][1] == relay_runtime.SESSION_SCOPE
     assert scope_starts[1][3]["input"] == {
@@ -378,7 +378,7 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
     assert len(ends) == 1
     assert len(tool_starts) == 1
     assert len(tool_ends) == 1
-    assert tool_starts[0][1] == "hermes.tool_call"
+    assert tool_starts[0][1] == "kova.tool_call"
     assert tool_starts[0][2] == {}
     assert tool_ends[0][2] == {
         "approval_outcome": "approved",
@@ -394,7 +394,7 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
     active_marks = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.client.active"
+        if event[0] == "scope.event" and event[1] == "kova.client.active"
     ]
     assert len(active_marks) == 2
     assert all(mark[2]["data"] == {} for mark in active_marks)
@@ -418,36 +418,36 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
     assert "gpt-sensitive-model-id" not in serialized_events
     assert plugins.get_plugin_manager().list_plugins() == []
 
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     packages = list((root / "outbox").glob("*.json"))
     assert len(packages) == 1
     package = json.loads(packages[0].read_text(encoding="utf-8"))
     metrics = {metric["name"]: metric for metric in package["metrics"]}
     assert set(metrics) == {
-        "hermes.client.active",
-        "hermes.install.milestone",
-        "hermes.install.snapshot",
-        "hermes.model_route.count",
-        "hermes.task_cost.count",
-        "hermes.task_run.duration",
-        "hermes.task_run.finished",
-        "hermes.task_run.started",
-        "hermes.tool.usage.count",
-        "hermes.tool_approval.count",
-        "hermes.tool_call.count",
-        "hermes.tool_call.latency",
+        "kova.client.active",
+        "kova.install.milestone",
+        "kova.install.snapshot",
+        "kova.model_route.count",
+        "kova.task_cost.count",
+        "kova.task_run.duration",
+        "kova.task_run.finished",
+        "kova.task_run.started",
+        "kova.tool.usage.count",
+        "kova.tool_approval.count",
+        "kova.tool_call.count",
+        "kova.tool_call.latency",
     }
-    assert metrics["hermes.tool.usage.count"]["dimensions"] == {
+    assert metrics["kova.tool.usage.count"]["dimensions"] == {
         "error_class": "none", "outcome": "success", "tool_name": "terminal",
     }
-    assert metrics["hermes.install.snapshot"]["value"] == 1
-    assert metrics["hermes.client.active"] == {
-        "name": "hermes.client.active",
+    assert metrics["kova.install.snapshot"]["value"] == 1
+    assert metrics["kova.client.active"] == {
+        "name": "kova.client.active",
         "type": "counter",
         "dimensions": {},
         "value": 1,
     }
-    assert metrics["hermes.model_route.count"]["dimensions"] == {
+    assert metrics["kova.model_route.count"]["dimensions"] == {
         "call_role": "primary",
         # The call recovered from an unclassified provider error before succeeding.
         "error_class": "unknown",
@@ -456,9 +456,9 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         "provider": "anthropic",
         "ttft_bucket": "unknown",
     }
-    assert metrics["hermes.model_route.count"]["value"] == 1
-    assert metrics["hermes.tool_call.count"] == {
-        "name": "hermes.tool_call.count",
+    assert metrics["kova.model_route.count"]["value"] == 1
+    assert metrics["kova.tool_call.count"] == {
+        "name": "kova.tool_call.count",
         "type": "counter",
         "dimensions": {
             "approval_outcome": "approved",
@@ -467,11 +467,11 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         },
         "value": 1,
     }
-    assert metrics["hermes.tool_call.latency"]["dimensions"] == {
+    assert metrics["kova.tool_call.latency"]["dimensions"] == {
         "latency_bucket": "250ms_to_500ms", "retry_count_bucket": "0", "tool_category": "terminal",
     }
-    assert metrics["hermes.tool_approval.count"] == {
-        "name": "hermes.tool_approval.count",
+    assert metrics["kova.tool_approval.count"] == {
+        "name": "kova.tool_approval.count",
         "type": "counter",
         "dimensions": {
             "attribution": "tool_call",
@@ -479,8 +479,8 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         },
         "value": 1,
     }
-    assert metrics["hermes.task_run.started"] == {
-        "name": "hermes.task_run.started",
+    assert metrics["kova.task_run.started"] == {
+        "name": "kova.task_run.started",
         "type": "counter",
         "dimensions": {
             "entrypoint": "interactive",
@@ -489,7 +489,7 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         },
         "value": 1,
     }
-    assert metrics["hermes.task_run.finished"]["dimensions"] == {
+    assert metrics["kova.task_run.finished"]["dimensions"] == {
         "end_reason": "completed",
         "entrypoint": "interactive",
         "execution_surface": "cli",
@@ -498,7 +498,7 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         "platform": "none",
         "termination": "none",
     }
-    duration = metrics["hermes.task_run.duration"]["dimensions"]
+    duration = metrics["kova.task_run.duration"]["dimensions"]
     assert duration["duration_bucket"] in {
         "lt_1s",
         "1s_to_5s",
@@ -511,8 +511,8 @@ def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_pa
         "execution_surface": "cli", "outcome": "success", "retry_count_bucket": "1",
     }
     # Per-task call counts ride on the task cost row now.
-    assert metrics["hermes.task_cost.count"]["dimensions"]["api_calls_bucket"] == "1"
-    assert metrics["hermes.task_cost.count"]["dimensions"]["tool_calls_bucket"] == "1"
+    assert metrics["kova.task_cost.count"]["dimensions"]["api_calls_bucket"] == "1"
+    assert metrics["kova.task_cost.count"]["dimensions"]["tool_calls_bucket"] == "1"
 
 
 def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
@@ -666,7 +666,7 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     from kova_cli.observability.shared_metrics import SharedMetricsStore
 
     _join_export_workers()
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     store = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
     tomorrow = datetime.now(UTC) + timedelta(days=1)
     monkeypatch.setattr(
@@ -679,14 +679,14 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     for counter in snapshot:
         by_metric.setdefault(counter["metric_name"], []).append(counter)
 
-    assert by_metric["hermes.client.active"][0]["dimensions"] == {}
-    assert by_metric["hermes.client.active"][0]["value"] == 1
-    assert len(by_metric["hermes.task_run.started"]) == 1
-    assert by_metric["hermes.task_run.started"][0]["value"] == 3
+    assert by_metric["kova.client.active"][0]["dimensions"] == {}
+    assert by_metric["kova.client.active"][0]["value"] == 1
+    assert len(by_metric["kova.task_run.started"]) == 1
+    assert by_metric["kova.task_run.started"][0]["value"] == 3
     # v3: one route row per terminal outcome; an unclassified failed call reports `unknown`.
     route_by_outcome = {
         counter["dimensions"]["outcome"]: counter
-        for counter in by_metric["hermes.model_route.count"]
+        for counter in by_metric["kova.model_route.count"]
     }
     assert set(route_by_outcome) == {"success", "failed", "cancelled"}
     for outcome, error_class in (
@@ -705,7 +705,7 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
         assert route_by_outcome[outcome]["value"] == 1
     assert {
         (c["dimensions"]["tool_name"], c["dimensions"]["outcome"], c["dimensions"]["error_class"])
-        for c in by_metric["hermes.tool.usage.count"]
+        for c in by_metric["kova.tool.usage.count"]
     } == {
         ("terminal", "success", "none"),
         ("read_file", "failed", "unknown"),
@@ -713,11 +713,11 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     }
     assert {
         counter["dimensions"]["outcome"]
-        for counter in by_metric["hermes.tool_call.count"]
+        for counter in by_metric["kova.tool_call.count"]
     } == {"success", "failed", "cancelled"}
     tool_by_outcome = {
         counter["dimensions"]["outcome"]: counter["dimensions"]
-        for counter in by_metric["hermes.tool_call.count"]
+        for counter in by_metric["kova.tool_call.count"]
     }
     assert tool_by_outcome["success"] == {
         "approval_outcome": "approved",
@@ -736,14 +736,14 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     }
     assert {
         tuple(counter["dimensions"][f] for f in ("tool_category", "latency_bucket", "retry_count_bucket"))
-        for counter in by_metric["hermes.tool_call.latency"]
+        for counter in by_metric["kova.tool_call.latency"]
     } == {
         ("terminal", "100ms_to_250ms", "0"),
         ("file", "500ms_to_1s", "unknown"),
         ("browser", "gte_30s", "unknown"),
     }
-    assert len(by_metric["hermes.tool_approval.count"]) == 1
-    approval_counter = by_metric["hermes.tool_approval.count"][0]
+    assert len(by_metric["kova.tool_approval.count"]) == 1
+    approval_counter = by_metric["kova.tool_approval.count"][0]
     assert approval_counter["dimensions"] == {
         "attribution": "tool_call",
         "outcome": "approved",
@@ -752,12 +752,12 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
     assert approval_counter["packaged_value"] == 1
     terminal_by_outcome = {
         counter["dimensions"]["outcome"]: counter
-        for counter in by_metric["hermes.task_run.finished"]
+        for counter in by_metric["kova.task_run.finished"]
     }
     assert set(terminal_by_outcome) == {"success", "failed", "cancelled"}
     duration_by_outcome = {
         counter["dimensions"]["outcome"]: counter["dimensions"]
-        for counter in by_metric["hermes.task_run.duration"]
+        for counter in by_metric["kova.task_run.duration"]
     }
     assert set(duration_by_outcome) == {"success", "failed", "cancelled"}
     assert duration_by_outcome["success"]["retry_count_bucket"] == "1"
@@ -785,7 +785,7 @@ def test_real_binding_drives_lifecycle_aggregation_export_and_snapshot(
         json.loads(package.read_text(encoding="utf-8")) for package in packages
     ]
     for package in package_payloads:
-        assert package["schema_version"] == "hermes.shared_metrics.v4"
+        assert package["schema_version"] == "kova.shared_metrics.v4"
         for metric in package["metrics"]:
             key = (metric["name"], tuple(sorted(metric["dimensions"].items())))
             package_values[key] = package_values.get(key, 0) + metric["value"]
@@ -882,13 +882,13 @@ def test_real_binding_correlates_plugin_approval_denial_to_tool_metric(
     lifecycle.finalize_session(session_id=base["session_id"])
 
     _join_export_workers()
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     store = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
     snapshot = store.counter_snapshot()
     tool_metrics = [
         counter
         for counter in snapshot
-        if counter["metric_name"] == "hermes.tool_call.count"
+        if counter["metric_name"] == "kova.tool_call.count"
     ]
     assert len(tool_metrics) == 1
     assert tool_metrics[0]["dimensions"] == {
@@ -897,12 +897,12 @@ def test_real_binding_correlates_plugin_approval_denial_to_tool_metric(
         "tool_category": "file",
     }
     assert [
-        counter["dimensions"] for counter in snapshot if counter["metric_name"] == "hermes.tool_call.latency"
+        counter["dimensions"] for counter in snapshot if counter["metric_name"] == "kova.tool_call.latency"
     ] == [{"latency_bucket": "lt_100ms", "retry_count_bucket": "unknown", "tool_category": "file"}]
     approval_metrics = [
         counter
         for counter in snapshot
-        if counter["metric_name"] == "hermes.tool_approval.count"
+        if counter["metric_name"] == "kova.tool_approval.count"
     ]
     assert len(approval_metrics) == 1
     assert approval_metrics[0]["dimensions"] == {
@@ -962,7 +962,7 @@ def test_real_binding_aggregates_tool_and_approval_timeouts(
     lifecycle.finalize_session(session_id=base["session_id"])
 
     _join_export_workers()
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     snapshot = SharedMetricsStore(
         root / "metrics.sqlite3",
         root / "outbox",
@@ -970,7 +970,7 @@ def test_real_binding_aggregates_tool_and_approval_timeouts(
     [tool_metric] = [
         counter
         for counter in snapshot
-        if counter["metric_name"] == "hermes.tool_call.count"
+        if counter["metric_name"] == "kova.tool_call.count"
     ]
     assert tool_metric["dimensions"] == {
         "approval_outcome": "timed_out",
@@ -978,12 +978,12 @@ def test_real_binding_aggregates_tool_and_approval_timeouts(
         "tool_category": "terminal",
     }
     assert [
-        counter["dimensions"] for counter in snapshot if counter["metric_name"] == "hermes.tool_call.latency"
+        counter["dimensions"] for counter in snapshot if counter["metric_name"] == "kova.tool_call.latency"
     ] == [{"latency_bucket": "gte_30s", "retry_count_bucket": "unknown", "tool_category": "terminal"}]
     [approval_metric] = [
         counter
         for counter in snapshot
-        if counter["metric_name"] == "hermes.tool_approval.count"
+        if counter["metric_name"] == "kova.tool_approval.count"
     ]
     assert approval_metric["dimensions"] == {
         "attribution": "tool_call",
@@ -1298,10 +1298,10 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
             kind="scope",
             category="function",
             category_profile=None,
-            name="hermes.task_run",
+            name="kova.task_run",
             scope_category="start",
             metadata={
-                "hermes.metrics.schema_version": "hermes.metrics.event.v1",
+                "kova.metrics.schema_version": "kova.metrics.event.v1",
                 relay_runtime.RUNTIME_INSTANCE_KEY: runtime.host.runtime_id,
             },
             data={"entrypoint": "interactive", "execution_surface": "cli"},
@@ -1327,10 +1327,10 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     root = profile / "telemetry" / "shared_metrics"
     store = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
     assert [row["metric_name"] for row in store.counter_snapshot()] == [
-        "hermes.client.active",
-        "hermes.install.milestone",
-        "hermes.install.snapshot",
-        "hermes.task_run.started"
+        "kova.client.active",
+        "kova.install.milestone",
+        "kova.install.snapshot",
+        "kova.task_run.started"
     ]
     assert list((root / "outbox").glob("*.json")) == []
     relay_runtime._reset_for_tests()
@@ -1834,7 +1834,7 @@ def test_same_request_id_is_isolated_between_tasks(direct_runtime):
     task_ends = [
         event[2]["output"]
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert len(task_ends) == 2
     assert all(fields["model_call_count_bucket"] == "1" for fields in task_ends)
@@ -1882,7 +1882,7 @@ def test_reused_tool_call_id_is_counted_for_each_provider_request(direct_runtime
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["tool_call_count_bucket"] == "2"
 
@@ -1922,7 +1922,7 @@ def test_partial_terminal_context_reuses_the_pending_tool_span(direct_runtime):
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["tool_call_count_bucket"] == "1"
 
@@ -1965,7 +1965,7 @@ def test_partial_terminal_variants_do_not_double_count_a_completed_call(
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["tool_call_count_bucket"] == "1"
 
@@ -2013,7 +2013,7 @@ def test_ambiguous_partial_terminal_does_not_create_a_phantom_tool_span(
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["tool_call_count_bucket"] == "2"
 
@@ -2050,12 +2050,12 @@ def test_reused_task_id_starts_a_new_run_for_each_turn(direct_runtime):
     task_starts = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.push" and event[1] == "hermes.task_run"
+        if event[0] == "scope.push" and event[1] == "kova.task_run"
     ]
     task_ends = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     tool_ends = [
         event for event in direct_runtime.events if event[0] == "tool.call_end"
@@ -2144,7 +2144,7 @@ def test_late_tool_result_does_not_attach_to_reused_task_id(direct_runtime):
     task_ends = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert [
         event[2]["output"]["tool_call_count_bucket"] for event in task_ends
@@ -2200,13 +2200,13 @@ def test_pending_tool_is_closed_and_counted_when_task_is_interrupted(direct_runt
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["tool_call_count_bucket"] == "1"
     task_starts = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.push" and event[1] == "hermes.task_run"
+        if event[0] == "scope.push" and event[1] == "kova.task_run"
     ]
     assert len(task_starts) == 1
 
@@ -2241,7 +2241,7 @@ def test_pending_tool_uses_the_outer_task_timeout_outcome(direct_runtime):
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["outcome"] == "timed_out"
     assert task_end[2]["output"]["tool_call_count_bucket"] == "1"
@@ -2311,7 +2311,7 @@ def test_approval_without_tool_context_is_counted_as_unattributed(direct_runtime
     [approval] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.tool_approval"
+        if event[0] == "scope.event" and event[1] == "kova.tool_approval"
     ]
     assert approval[2]["data"] == {
         "attribution": "unattributed",
@@ -2348,7 +2348,7 @@ def test_approval_with_unmatched_tool_id_is_counted_as_unattributed(direct_runti
     [approval] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.tool_approval"
+        if event[0] == "scope.event" and event[1] == "kova.tool_approval"
     ]
     assert approval[2]["data"] == {
         "attribution": "unattributed",
@@ -2452,7 +2452,7 @@ def test_task_retry_count_survives_provider_fallback_ordinal_reset(direct_runtim
     [task_end] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.pop" and event[1][1] == "hermes.task_run"
+        if event[0] == "scope.pop" and event[1][1] == "kova.task_run"
     ]
     assert task_end[2]["output"]["retry_count_bucket"] == "2"
 
@@ -2498,7 +2498,7 @@ def test_failed_flush_keeps_daily_export_open_for_later_task(
 
     finish_desktop_task("t1")
 
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     assert list((root / "outbox").glob("*.json")) == []
     with sqlite3.connect(root / "metrics.sqlite3") as connection:
         [package_count] = connection.execute(
@@ -2511,8 +2511,8 @@ def test_failed_flush_keeps_daily_export_open_for_later_task(
     [package_path] = list((root / "outbox").glob("*.json"))
     package = json.loads(package_path.read_text(encoding="utf-8"))
     metrics = {metric["name"]: metric for metric in package["metrics"]}
-    assert metrics["hermes.task_run.started"]["value"] == 2
-    assert metrics["hermes.task_run.finished"]["value"] == 2
+    assert metrics["kova.task_run.started"]["value"] == 2
+    assert metrics["kova.task_run.finished"]["value"] == 2
     assert flush_attempts == 2
     assert "Kova shared-metrics task flush failed" in caplog.text
 
@@ -2552,7 +2552,7 @@ def test_task_ends_do_not_wait_on_the_process_wide_flush_barrier(parked_flush, t
 
     # The turn thread is back while the barrier is still parked, so nothing is exported yet.
     assert parked_flush.entered.wait(3)
-    outbox = tmp_path / "hermes-home" / "telemetry" / "shared_metrics" / "outbox"
+    outbox = tmp_path / "kova-home" / "telemetry" / "shared_metrics" / "outbox"
     assert list(outbox.glob("*.json")) == []
 
     # Task ends behind the parked barrier coalesce into one more pass, not one each.
@@ -2619,24 +2619,24 @@ def test_skill_lifecycle_flows_through_relay_to_a_privacy_safe_package(
 
     marks = [event for event in direct_runtime.events if event[0] == "scope.event"]
     assert [event[1] for event in marks] == [
-        "hermes.skill.lifecycle",
-        "hermes.skill.load",
-        "hermes.skill.lifecycle",
-        "hermes.skill.load",
+        "kova.skill.lifecycle",
+        "kova.skill.load",
+        "kova.skill.lifecycle",
+        "kova.skill.load",
     ]
     assert "private-skill-name" not in json.dumps(marks)
 
-    outbox = tmp_path / "hermes-home" / "telemetry" / "shared_metrics" / "outbox"
+    outbox = tmp_path / "kova-home" / "telemetry" / "shared_metrics" / "outbox"
     [package_path] = list(outbox.glob("*.json"))
     package = json.loads(package_path.read_text(encoding="utf-8"))
     skill_metrics = [
         metric
         for metric in package["metrics"]
-        if metric["name"].startswith("hermes.skill.")
+        if metric["name"].startswith("kova.skill.")
     ]
     assert {metric["name"] for metric in skill_metrics} == {
-        "hermes.skill.lifecycle.count",
-        "hermes.skill.load.count",
+        "kova.skill.lifecycle.count",
+        "kova.skill.load.count",
     }
     assert "private-skill-name" not in json.dumps(package)
 
@@ -2662,7 +2662,7 @@ def test_skill_lifecycle_with_only_task_id_uses_unique_task_scope(direct_runtime
     [mark] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.skill.lifecycle"
+        if event[0] == "scope.event" and event[1] == "kova.skill.lifecycle"
     ]
     assert mark[2]["handle"] == task.handle
 
@@ -2688,7 +2688,7 @@ def test_skill_task_only_correlation_does_not_guess_across_sessions(direct_runti
     [mark] = [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.skill.lifecycle"
+        if event[0] == "scope.event" and event[1] == "kova.skill.lifecycle"
     ]
     assert "handle" not in mark[2]
 
@@ -2724,7 +2724,7 @@ def test_late_skill_lifecycle_is_not_reemitted_at_the_root(direct_runtime):
     assert [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.skill.load"
+        if event[0] == "scope.event" and event[1] == "kova.skill.load"
     ] == []
 
 
@@ -2751,7 +2751,7 @@ def test_skill_lifecycle_does_not_fallback_across_an_explicit_session(
     assert [
         event
         for event in direct_runtime.events
-        if event[0] == "scope.event" and event[1] == "hermes.skill.lifecycle"
+        if event[0] == "scope.event" and event[1] == "kova.skill.lifecycle"
     ] == []
 
 
@@ -2791,7 +2791,7 @@ def test_real_binding_concurrent_task_close_skips_pop_under_sibling_scope(
 def _stored_counters(tmp_path) -> dict[str, list[dict[str, Any]]]:
     from kova_cli.observability.shared_metrics import SharedMetricsStore
 
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     by_metric: dict[str, list[dict[str, Any]]] = {}
     for counter in SharedMetricsStore(root / "metrics.sqlite3", root / "outbox").counter_snapshot():
         by_metric.setdefault(counter["metric_name"], []).append(counter["dimensions"])
@@ -2825,12 +2825,12 @@ def test_v3_failure_dimensions_never_export_third_party_identifiers(direct_runti
 
     counters = _stored_counters(tmp_path)
     assert "acme" not in json.dumps(counters).lower()
-    assert {(d["tool_name"], d["error_class"]) for d in counters["hermes.tool.usage.count"]} == {
+    assert {(d["tool_name"], d["error_class"]) for d in counters["kova.tool.usage.count"]} == {
         ("plugin", "exception"), ("terminal", "timeout"),
     }
-    [route] = counters["hermes.model_route.count"]
+    [route] = counters["kova.model_route.count"]
     assert (route["outcome"], route["error_class"]) == ("failed", "rate_limit")
-    [finished] = counters["hermes.task_run.finished"]
+    [finished] = counters["kova.task_run.finished"]
     assert (finished["platform"], finished["failure_class"]) == ("telegram", "rate_limit")
 
 
@@ -2857,7 +2857,7 @@ def test_install_snapshot_is_daily_and_carries_only_bucketed_counts(
     lifecycle.invoke_hook("pre_llm_call", **event)
     lifecycle.finalize_session(session_id="t3")
 
-    [snapshot] = _stored_counters(tmp_path)["hermes.install.snapshot"]
+    [snapshot] = _stored_counters(tmp_path)["kova.install.snapshot"]
     assert snapshot == {
         "cron_job_count_bucket": "0", "display_language": "en", "install_age_bucket": snapshot["install_age_bucket"],
         "main_provider": "none", "mcp_server_count_bucket": "1", "memory_provider": "plugin",
@@ -2871,7 +2871,7 @@ def test_install_snapshot_is_daily_and_carries_only_bucketed_counts(
 def _stored_values(tmp_path, metric: str) -> list[tuple[dict[str, Any], int]]:
     from kova_cli.observability.shared_metrics import SharedMetricsStore
 
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     return [
         (counter["dimensions"], counter["value"])
         for counter in SharedMetricsStore(root / "metrics.sqlite3", root / "outbox").counter_snapshot()
@@ -2891,11 +2891,11 @@ def test_sessions_summarize_on_close_and_milestones_latch_once_per_install(direc
             )
         lifecycle.finalize_session(session_id=session_id)
 
-    sessions = _stored_values(tmp_path, "hermes.session.count")
+    sessions = _stored_values(tmp_path, "kova.session.count")
     assert sorted((d["turn_count_bucket"], d["last_outcome"], v) for d, v in sessions) == [
         ("1", "success", 1), ("3_to_5", "success", 1),
     ]
-    milestones = {d["milestone"]: v for d, v in _stored_values(tmp_path, "hermes.install.milestone")}
+    milestones = {d["milestone"]: v for d, v in _stored_values(tmp_path, "kova.install.milestone")}
     assert milestones["first_task_started"] == 1
     assert milestones["first_task_success"] == 1
 
@@ -2917,10 +2917,10 @@ def test_user_named_providers_and_models_never_reach_counters(direct_runtime, tm
         })
     runtime.relay.subscribers.flush()
 
-    root = tmp_path / "hermes-home" / "telemetry" / "shared_metrics"
+    root = tmp_path / "kova-home" / "telemetry" / "shared_metrics"
     stored = json.dumps(SharedMetricsStore(root / "metrics.sqlite3", root / "outbox").counter_snapshot())
     assert not any(leak in stored for leak in ("acme", "bob", "users"))
-    tokens = {(d["provider"], d["model"]) for d, _ in _stored_values(tmp_path, "hermes.model_tokens.sum")}
+    tokens = {(d["provider"], d["model"]) for d, _ in _stored_values(tmp_path, "kova.model_tokens.sum")}
     assert tokens == {("custom", "custom"), ("lmstudio", "custom"), ("openrouter", "custom"),
                       ("openrouter", "anthropic/claude-sonnet")}
 
@@ -2947,9 +2947,9 @@ def test_milestone_install_age_is_the_subscriber_profile_not_the_relay_thread(tm
         subscriber = SharedMetricsSubscriber(SharedMetricsStore(), "1.0")
     finally:
         reset_kova_home_override(token)
-    subscriber._record_milestones("hermes.setup.completed", {"provider": "nous", "surface": "cli"})
+    subscriber._record_milestones("kova.setup.completed", {"provider": "nous", "surface": "cli"})
     ages = [c["dimensions"]["install_age_bucket"] for c in subscriber.store.counter_snapshot()
-            if c["metric_name"] == "hermes.install.milestone"]
+            if c["metric_name"] == "kova.install.milestone"]
     assert ages == ["gte_90d"]
 
 
@@ -2973,7 +2973,7 @@ def test_token_usage_is_summed_per_model_and_auxiliary_task(direct_runtime, tmp_
 
     sums = {
         (d["call_role"], d["aux_task"], d["token_type"]): v
-        for d, v in _stored_values(tmp_path, "hermes.model_tokens.sum")
+        for d, v in _stored_values(tmp_path, "kova.model_tokens.sum")
     }
     assert sums == {
         ("primary", "none", "input"): 200, ("primary", "none", "output"): 20,
@@ -2986,7 +2986,7 @@ def test_token_usage_is_summed_per_model_and_auxiliary_task(direct_runtime, tmp_
 def test_recovered_rows_report_saved_only_once_the_store_holds_them(real_binding_runtime, monkeypatch):
     from kova_cli.observability.shared_metrics import SharedMetricsStore
 
-    row = ("hermes.process.exit", {"crash_class": "none", "exit_kind": "killed", "process_kind": "gateway"})
+    row = ("kova.process.exit", {"crash_class": "none", "exit_kind": "killed", "process_kind": "gateway"})
     real_store_write = SharedMetricsStore.record_counter
 
     def locked(*args, **kwargs):
@@ -2997,7 +2997,7 @@ def test_recovered_rows_report_saved_only_once_the_store_holds_them(real_binding
     monkeypatch.setattr(SharedMetricsStore, "record_counter", real_store_write)
     assert relay_shared_metrics.record_process_marks_saved([row]) == 1
     saved = [(r["metric_name"], r["dimensions"], r["value"]) for r in SharedMetricsStore().counter_snapshot()]
-    assert saved == [("hermes.process.exit", row[1], 1)]
+    assert saved == [("kova.process.exit", row[1], 1)]
 
 
 def _cli_turn(session_id: str, parent_session_id: str = "") -> None:
@@ -3007,7 +3007,7 @@ def _cli_turn(session_id: str, parent_session_id: str = "") -> None:
 
 
 def test_finite_cli_runs_report_their_own_entrypoint(direct_runtime, tmp_path, monkeypatch):
-    """`hermes -z` / `chat -q` / `-Q` runs (KOVA_SINGLE_QUERY_SESSION) report `one_shot`, a
+    """`kova -z` / `chat -q` / `-Q` runs (KOVA_SINGLE_QUERY_SESSION) report `one_shot`, a
     dispatcher-spawned one (kanban worker, A2A forward) `background`; the REPL stays `interactive`,
     and a delegated child or a non-CLI surface keeps its own entrypoint inside a finite run."""
     monkeypatch.delenv("KOVA_SINGLE_QUERY_SESSION", raising=False)
@@ -3024,16 +3024,16 @@ def test_finite_cli_runs_report_their_own_entrypoint(direct_runtime, tmp_path, m
     _join_export_workers()
 
     started = sorted((d["entrypoint"], d["execution_surface"], v)
-                     for d, v in _stored_values(tmp_path, "hermes.task_run.started"))
+                     for d, v in _stored_values(tmp_path, "kova.task_run.started"))
     assert started == [
         ("background", "cli", 1), ("delegated", "cli", 1), ("interactive", "cli", 1),
         ("interactive", "desktop", 1), ("one_shot", "cli", 1),
     ]
-    finished = {d["entrypoint"] for d, _ in _stored_values(tmp_path, "hermes.task_run.finished")}
+    finished = {d["entrypoint"] for d, _ in _stored_values(tmp_path, "kova.task_run.finished")}
     assert finished == {"background", "delegated", "interactive", "one_shot"}
     # Delegated children are not sessions of their own.
     sessions = sorted((d["entrypoint"], d["execution_surface"], d["turn_count_bucket"])
-                      for d, _ in _stored_values(tmp_path, "hermes.session.count"))
+                      for d, _ in _stored_values(tmp_path, "kova.session.count"))
     assert sessions == [
         ("background", "cli", "1"), ("interactive", "cli", "1"), ("interactive", "desktop", "1"),
         ("one_shot", "cli", "1"),

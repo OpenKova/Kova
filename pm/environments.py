@@ -51,7 +51,7 @@ def owning_home_root(project_root: Path) -> Path | None:
     tree -- so those keep today's behaviour (#123238).
 
     A borrowing launch's own sync leaves ``facts.json`` under the borrower too, so state alone
-    cannot name the owner. The checkout's ``hermes`` launcher can: only the owner publishes it,
+    cannot name the owner. The checkout's ``kova`` launcher can: only the owner publishes it,
     and it execs the owner's store Python. With no live launcher to ask, the root the checkout
     sits in outranks the platform default.
     """
@@ -77,7 +77,7 @@ def _launcher_bound_root(project_root: Path, candidates: list[Path]) -> Path | N
     from kova_cli._launchers import _launcher_python
 
     local = project_root / ".kova" / "bin"
-    for name in (("hermes.exe", "hermes.cmd") if os.name == "nt" else ("hermes",)):
+    for name in (("kova.exe", "kova.cmd") if os.name == "nt" else ("kova",)):
         python = _launcher_python(local / name)
         if python is None or not python.is_file():
             continue
@@ -106,7 +106,7 @@ def runtime_facts_path(project_root: Path) -> Path:
     return install_state_dir(project_root) / "facts.json"
 
 
-# The files that decide the dependency set. `scripts/run-in-hermes-env` re-syncs
+# The files that decide the dependency set. `scripts/run-in-kova-env` re-syncs
 # when any of them differs in mtime from its stamp under activation_inputs_dir.
 ACTIVATION_INPUTS = ("uv.lock", "pyproject.toml", "setup.py", "pm/lock.json")
 
@@ -167,7 +167,7 @@ def _payload_manifest(root: Path) -> tuple[dict, Path] | None:
         runtime = manifest.get("runtime", {})
         commands = runtime.get("commands", {}) if isinstance(runtime, dict) else None
         well_formed = (isinstance(commands, dict)
-                       and isinstance(commands.get("hermes", ""), str)
+                       and isinstance(commands.get("kova", ""), str)
                        and all(isinstance(manifest.get(key, ""), str) for key in ("venv", "store")))
         if well_formed and (path.parent / manifest["repo"]).resolve() == root:
             return manifest, path.parent
@@ -191,15 +191,15 @@ def payload_venv(project_root: Path) -> Path | None:
     return _payload_path(payload[1], venv, "environment") if venv else None
 
 
-def _payload_hermes_command(root: Path) -> Path | None:
+def _payload_kova_command(root: Path) -> Path | None:
     payload = _payload_manifest(root)
-    command = payload[0].get("runtime", {}).get("commands", {}).get("hermes") if payload else None
+    command = payload[0].get("runtime", {}).get("commands", {}).get("kova") if payload else None
     return _payload_path(payload[1], command, "launcher") if command else None
 
 
 def payload_command_dir(project_root: Path) -> Path | None:
     """The directory holding a sealed payload's own launchers (``<payload>/bin``), or ``None``."""
-    command = _payload_hermes_command(Path(project_root).resolve())
+    command = _payload_kova_command(Path(project_root).resolve())
     return command.parent if command else None
 
 
@@ -207,10 +207,10 @@ def cli_command_name(project_root: Path) -> str:
     """The name a person types to run this install's CLI.
 
     A desktop channel build publishes its launcher under a qualified name
-    (``hermes-canary``) so it never shadows another install's ``hermes``.
+    (``kova-canary``) so it never shadows another install's ``kova``.
     """
-    command = _payload_hermes_command(Path(project_root).resolve())
-    return command.name.removesuffix(".exe") if command else "hermes"
+    command = _payload_kova_command(Path(project_root).resolve())
+    return command.name.removesuffix(".exe") if command else "kova"
 
 
 def base_venv(project_root: Path) -> Path:
@@ -512,9 +512,9 @@ def activate_dependencies(project_root: Path) -> None:
                    *[entry for entry in sys.path if Path(entry).resolve() != selected.resolve()]]
     os.environ["PYTHONPATH"] = os.pathsep.join([str(project_root.resolve()), str(selected)])
     os.environ.pop("VIRTUAL_ENV", None)
-    # The venv's own `hermes`/`hermes-acp` console scripts are editable installs bound to
+    # The venv's own `kova`/`kova-acp` console scripts are editable installs bound to
     # the build-time source snapshot, not this checkout (#124627): a child that resolves
-    # `hermes` off PATH must hit the checkout's own launcher first, never the venv's copy.
+    # `kova` off PATH must hit the checkout's own launcher first, never the venv's copy.
     # A sealed payload's launchers live in <payload>/bin instead.
     directories = [payload_command_dir(project_root) or project_root.resolve() / ".kova" / "bin"]
     # A sealed payload's Windows venv redirectors never go on PATH: a shipped venv's still

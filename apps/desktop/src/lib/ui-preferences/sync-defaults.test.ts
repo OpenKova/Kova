@@ -19,7 +19,7 @@ import type { UiPreferencesBridge } from './sync'
 // real native writer on a real file.
 const TRANSLUCENCY = 'kova.desktop.translucency.v2'
 const AUTO_SPEAK = 'kova.desktop.autoSpeakReplies'
-const THEME = 'hermes-desktop-theme-v2'
+const THEME = 'kova-desktop-theme-v2'
 const KEYBINDS = 'kova.desktop.keybinds'
 const HAPTICS_MUTED = 'kova.desktop.hapticsMuted'
 
@@ -40,7 +40,7 @@ const dirs: string[] = []
 const tick = (ms = 400) => new Promise(resolve => setTimeout(resolve, ms))
 
 function storeFile(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ui-defaults-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ui-defaults-'))
   dirs.push(dir)
 
   return path.join(dir, 'ui-preferences.json')

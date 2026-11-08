@@ -1,4 +1,4 @@
-"""Root registration follows the runtime hermes account, including UID remaps."""
+"""Root registration follows the runtime kova account, including UID remaps."""
 import stat
 from pathlib import Path
 from types import SimpleNamespace
@@ -21,7 +21,7 @@ def _as_root(monkeypatch, *, uid=1000, gid=1000):
 
 
 @pytest.mark.parametrize("root", [True, False])
-def test_registration_uses_current_hermes_owner(tmp_path, monkeypatch, root):
+def test_registration_uses_current_kova_owner(tmp_path, monkeypatch, root):
     import pwd
 
     scandir, staging = tmp_path / "scan", tmp_path / "staging"
@@ -51,7 +51,7 @@ def test_registration_uses_current_hermes_owner(tmp_path, monkeypatch, root):
         assert {call.args[1:] for call in chown.call_args_list} == {(1000, 1000)}
         assert {call.kwargs.get("follow_symlinks") for call in chown.call_args_list} == {False}
         assert list(staging.iterdir()) == []
-        lookup.assert_called_with("hermes")
+        lookup.assert_called_with("kova")
     else:
         staging_for.assert_not_called()
         chown.assert_not_called()
@@ -64,7 +64,7 @@ def test_registration_uses_current_hermes_owner(tmp_path, monkeypatch, root):
 
 
 def test_root_registration_ignores_staging_swap_in_scandir(tmp_path, monkeypatch):
-    """hermes owns the scandir, so it can swap any dot dir root builds there for a symlink."""
+    """kova owns the scandir, so it can swap any dot dir root builds there for a symlink."""
     scandir, staging, victim = tmp_path / "scan", tmp_path / "staging", tmp_path / "victim"
     for path in (scandir, staging, victim):
         path.mkdir()
@@ -78,7 +78,7 @@ def test_root_registration_ignores_staging_swap_in_scandir(tmp_path, monkeypatch
 
     def seed_then_swap(svc_dir):
         seed(svc_dir)
-        # The concurrent hermes process: rename the half-built slot, plant a symlink.
+        # The concurrent kova process: rename the half-built slot, plant a symlink.
         for entry in list(scandir.iterdir()):
             if entry.name.startswith("."):
                 entry.rename(scandir / f"moved{entry.name}")
@@ -103,7 +103,7 @@ def test_root_registration_ignores_staging_swap_in_scandir(tmp_path, monkeypatch
     (stat.S_IFDIR | 0o755, 0, True, False),        # staging must be private
     (stat.S_IFDIR | 0o775, 0, False, False),       # group-writable parent
     (stat.S_IFDIR | 0o757, 0, False, False),       # world-writable parent
-    (stat.S_IFDIR | 0o755, 10000, False, False),   # hermes-owned
+    (stat.S_IFDIR | 0o755, 10000, False, False),   # kova-owned
     (stat.S_IFLNK | 0o777, 0, False, False),       # symlink
 ])
 def test_require_root_controlled(monkeypatch, st_mode, st_uid, private, ok):
@@ -136,8 +136,8 @@ def test_root_staging_refuses_unprivileged_ancestor(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("root", [True, False])
-def test_s6_tools_drop_to_hermes_when_root(tmp_path, monkeypatch, root):
-    """As root, s6 tools would follow hermes-planted symlinks for control FIFOs/fifodirs."""
+def test_s6_tools_drop_to_kova_when_root(tmp_path, monkeypatch, root):
+    """As root, s6 tools would follow kova-planted symlinks for control FIFOs/fifodirs."""
     if root:
         _as_root(monkeypatch)
     else:
@@ -154,7 +154,7 @@ def test_s6_tools_drop_to_hermes_when_root(tmp_path, monkeypatch, root):
     assert calls
     for call in calls:
         if root:
-            assert call[:2] == ("s6-setuidgid", "hermes")
+            assert call[:2] == ("s6-setuidgid", "kova")
             assert call[2].startswith(f"{sm._S6_BIN_DIR}/s6-")
         else:
             assert call[0].startswith("s6-") and call[0] != "s6-setuidgid"
@@ -180,7 +180,7 @@ def test_root_seed_without_container_account_retains_owner(tmp_path, monkeypatch
     import pwd
 
     monkeypatch.setattr(sm.os, "geteuid", lambda: 0)
-    monkeypatch.setattr(pwd, "getpwnam", Mock(side_effect=KeyError("hermes")))
+    monkeypatch.setattr(pwd, "getpwnam", Mock(side_effect=KeyError("kova")))
     chown = Mock()
     monkeypatch.setattr(sm.os, "chown", chown)
     sm._seed_supervise_skeleton(tmp_path)

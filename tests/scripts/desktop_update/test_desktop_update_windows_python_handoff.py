@@ -134,7 +134,7 @@ def test_command_file_launcher_probe_runs_through_cmd_exe_explicitly(tmp_path: P
     """A .cmd launcher probe goes through `cmd.exe /d /s /c` exactly like the update step,
     never through CreateProcess's implicit batch handling; unquotable arguments are refused."""
     bin_dir = tmp_path / 'launcher dir'; bin_dir.mkdir()
-    launcher = bin_dir / 'hermes.cmd'
+    launcher = bin_dir / 'kova.cmd'
     launcher.write_text('@echo off\r\necho CMDLINE=%CMDCMDLINE%\r\necho ARGS=%*\r\n', encoding='ascii')
     helper = str(ROOT / 'scripts/desktop-update/runtime.ps1').replace("'", "''")
     target = str(launcher).replace("'", "''")

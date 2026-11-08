@@ -228,7 +228,7 @@ class TestDenyOrdering:
         deny_config(["*chmod*"], mode="off")
         monkeypatch.setattr(mod, "_YOLO_MODE_FROZEN", True)
 
-        result = guard("chmod 600 /tmp/hermes-approval-deny-test", env_type)
+        result = guard("chmod 600 /tmp/kova-approval-deny-test", env_type)
 
         assert result["approved"] is False
         assert result.get("user_deny") is True

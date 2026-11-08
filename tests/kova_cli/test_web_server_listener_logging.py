@@ -79,7 +79,7 @@ def test_listener_config_keeps_every_profile_log_file_writing(tmp_path, monkeypa
             assert "after-listener" in text, f"building the listener silenced {home / 'logs' / name}"
 
 
-def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs(tmp_path, monkeypatch, capsys):
+def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_kova_logs(tmp_path, monkeypatch, capsys):
     """Without uvicorn's ``dictConfig`` its loggers still print where they did: ``uvicorn.error``
     to stderr, access lines nowhere at ``log_level="warning"``, neither into agent.log."""
     root = tmp_path / "root"
@@ -90,7 +90,7 @@ def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs
     logging.getLogger("uvicorn.error").warning("uvicorn-console-warning")
     logging.getLogger("uvicorn.access").info(
         '%s - "%s %s HTTP/%s" %d', "127.0.0.1:50000", "GET", "/access-line", "1.1", 200)
-    logging.getLogger("gateway.listener_logging").warning("hermes-file-warning")
+    logging.getLogger("gateway.listener_logging").warning("kova-file-warning")
     kova_logging.flush_log_queue()
 
     out, err = capsys.readouterr()
@@ -98,5 +98,5 @@ def test_listener_config_keeps_uvicorn_on_the_console_and_out_of_the_hermes_logs
     assert err.count("uvicorn-console-warning") == 1
     assert "/access-line" not in out + err
     agent_log = (root / "logs" / "agent.log").read_text(encoding="utf-8-sig")
-    assert "hermes-file-warning" in agent_log
+    assert "kova-file-warning" in agent_log
     assert "uvicorn-console-warning" not in agent_log and "/access-line" not in agent_log

@@ -188,7 +188,7 @@ def _get_plugin_env_provider(env_type: str):
 def plugin_sandbox_home(env: Any) -> str | None:
     """The home a plugin environment started in (``_build_plugin_env`` stamps it per environment, so two
     sandboxes of one backend never share it), or None."""
-    home = getattr(env, "_hermes_sandbox_home", None)
+    home = getattr(env, "_kova_sandbox_home", None)
     return home if isinstance(home, str) and posixpath.isabs(home) and home != "/" else None
 
 

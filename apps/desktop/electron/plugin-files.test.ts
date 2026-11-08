@@ -29,7 +29,7 @@ const make = () =>
   })
 
 beforeEach(() => {
-  scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-plugin-files-')))
+  scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kova-plugin-files-')))
   userData = path.join(scratch, 'userData')
   kovaHome = path.join(scratch, 'home', '.kova')
   vault = path.join(scratch, 'home', 'Vault')
@@ -403,14 +403,14 @@ describe('protected roots', () => {
   it('an op inside a granted folder never reaches a protected root nested under it', async () => {
     // A grant made before KOVA_HOME moved inside it must not become a door into the new home.
     const id = await grantVault()
-    const nestedHome = path.join(vault, 'hermes')
+    const nestedHome = path.join(vault, 'kova')
     fs.mkdirSync(nestedHome)
     fs.writeFileSync(path.join(nestedHome, 'config.yaml'), 'model: y\n')
     const roots = vi.fn(() => [kovaHome, nestedHome])
 
     files = createPluginFiles({ userDataDir: () => userData, protectedRoots: roots, trashItem: async () => undefined })
 
-    expect(await files.run('plexus', { op: 'readText', folder: id, path: 'hermes/config.yaml' })).toMatchObject({
+    expect(await files.run('plexus', { op: 'readText', folder: id, path: 'kova/config.yaml' })).toMatchObject({
       ok: false,
       error: 'protected'
     })

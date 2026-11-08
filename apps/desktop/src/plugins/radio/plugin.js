@@ -424,12 +424,12 @@ function Waveform({ player, compact = false }) {
     motion.addEventListener('change', updateMotion)
     return () => { loop.dispose(); motion.removeEventListener('change', updateMotion) }
   }, [active, mode, player, rows, width, station.url])
-  return jsx('div', { ref, className: 'hermes-radio-waveform', style: { '--radio-columns': width }, 'data-radio-meter': width, 'data-compact': compact, 'data-meter-mode': mode, 'data-active': active, 'aria-hidden': true,
-    children: [0, 1, 2].map(layer => jsx('span', { className: 'hermes-radio-waveform-layer', children: baseline.map((cell, i) => jsx('span', { children: layer === 2 ? cell : '⠀' }, i)) }, layer)) })
+  return jsx('div', { ref, className: 'kova-radio-waveform', style: { '--radio-columns': width }, 'data-radio-meter': width, 'data-compact': compact, 'data-meter-mode': mode, 'data-active': active, 'aria-hidden': true,
+    children: [0, 1, 2].map(layer => jsx('span', { className: 'kova-radio-waveform-layer', children: baseline.map((cell, i) => jsx('span', { children: layer === 2 ? cell : '⠀' }, i)) }, layer)) })
 }
 
 function NextArrow() {
-  return jsxs('span', { className: 'hermes-radio-next', 'aria-hidden': true, children: [
+  return jsxs('span', { className: 'kova-radio-next', 'aria-hidden': true, children: [
     jsx(icons.Play, { style: { width: 7, height: 12, flexShrink: 0 }, fill: 'currentColor' }),
     jsx(icons.Play, { style: { width: 7, height: 12, flexShrink: 0, marginLeft: -2 }, fill: 'currentColor' })
   ] })
@@ -437,8 +437,8 @@ function NextArrow() {
 
 function SmallAction({ label, icon, onClick, size = 'micro', pressed, className, busy = false }) {
   return jsx(Tip, { label, children: jsx(Button, {
-    variant: 'ghost', size, className: `hermes-radio-action ${className ?? ''}`, 'aria-label': label, 'aria-pressed': pressed, onClick,
-    children: jsx('span', { className: 'hermes-radio-action-icon', children: busy ? jsx(GlyphSpinner, { ariaLabel: label }) : jsx(icon, {}) })
+    variant: 'ghost', size, className: `kova-radio-action ${className ?? ''}`, 'aria-label': label, 'aria-pressed': pressed, onClick,
+    children: jsx('span', { className: 'kova-radio-action-icon', children: busy ? jsx(GlyphSpinner, { ariaLabel: label }) : jsx(icon, {}) })
   }) })
 }
 
@@ -551,20 +551,20 @@ function Signal({ player, ctx }) {
   })
   const artistUrl = credit.artist ? artist.data : null
   const text = status === 'live' ? track || (mode === 'activity' ? t('audioOnly') : '') : t(status)
-  return jsxs('div', { className: 'hermes-radio-signal', children: [
+  return jsxs('div', { className: 'kova-radio-signal', children: [
     jsx(Waveform, { player }),
-    jsxs('div', { className: 'hermes-radio-track', 'data-track': Boolean(track), role: 'status', children: [
+    jsxs('div', { className: 'kova-radio-track', 'data-track': Boolean(track), role: 'status', children: [
       status === 'connecting' && jsx(GlyphSpinner, { ariaLabel: t('connecting') }),
       credit.artist && (artistUrl ? jsx(Tip, { label: `${t('artistProfile')}: ${credit.artist}`, children: jsx(Button, {
-        variant: 'text', size: 'inline', asChild: true, className: 'hermes-radio-artist',
+        variant: 'text', size: 'inline', asChild: true, className: 'kova-radio-artist',
         children: jsxs('a', { href: artistUrl, target: '_blank', rel: 'noopener noreferrer',
           'aria-label': `${t('artistProfile')}: ${credit.artist}`,
           onClick: event => { event.preventDefault(); void ctx.os.openExternal(artistUrl) },
           children: [jsx('span', { children: credit.artist }), jsx(icons.ExternalLink, { style: { width: 10, height: 10 }, 'aria-hidden': true })]
         })
-      }) }) : jsx('span', { className: 'hermes-radio-track-text', children: credit.artist })),
-      credit.artist && jsx('span', { className: 'hermes-radio-track-separator', 'aria-hidden': true, children: '—' }),
-      jsx(Tip, { label: text || undefined, children: jsx('span', { className: 'hermes-radio-track-text', children: credit.artist ? credit.title : text }) })
+      }) }) : jsx('span', { className: 'kova-radio-track-text', children: credit.artist })),
+      credit.artist && jsx('span', { className: 'kova-radio-track-separator', 'aria-hidden': true, children: '—' }),
+      jsx(Tip, { label: text || undefined, children: jsx('span', { className: 'kova-radio-track-text', children: credit.artist ? credit.title : text }) })
     ] })
   ] })
 }
@@ -576,13 +576,13 @@ function StationRow({ station, player }) {
   const active = status === 'live' || status === 'connecting'
   const failed = current && status === 'error'
   const saved = useValue(player.favorites).some(item => sameStation(item, station))
-  return jsxs('div', { className: 'hermes-radio-row', 'data-current': current, 'data-pinned': saved, children: [
-    jsxs(RowButton, { className: 'hermes-radio-row-main', 'aria-label': `${t(failed ? 'retry' : current && active ? 'pause' : 'play')}: ${station.name}`, title: failed ? t('streamError') : undefined, 'aria-current': current ? 'true' : undefined,
+  return jsxs('div', { className: 'kova-radio-row', 'data-current': current, 'data-pinned': saved, children: [
+    jsxs(RowButton, { className: 'kova-radio-row-main', 'aria-label': `${t(failed ? 'retry' : current && active ? 'pause' : 'play')}: ${station.name}`, title: failed ? t('streamError') : undefined, 'aria-current': current ? 'true' : undefined,
       onClick: () => current ? player.toggle() : void player.play(station), children: [
-        jsx('span', { className: 'hermes-radio-row-icon', role: failed ? 'status' : undefined, 'aria-label': failed ? t('error') : undefined, children: jsx(failed ? icons.AlertCircle : current && active ? icons.Pause : icons.Play, { size: 12 }) }),
-        jsx('span', { className: 'hermes-radio-row-copy', children: jsx('span', { className: 'hermes-radio-row-name', children: station.name }) })
+        jsx('span', { className: 'kova-radio-row-icon', role: failed ? 'status' : undefined, 'aria-label': failed ? t('error') : undefined, children: jsx(failed ? icons.AlertCircle : current && active ? icons.Pause : icons.Play, { size: 12 }) }),
+        jsx('span', { className: 'kova-radio-row-copy', children: jsx('span', { className: 'kova-radio-row-name', children: station.name }) })
       ] }),
-    jsx(SmallAction, { label: `${t(saved ? 'unsave' : 'save')}: ${station.name}`, icon: icons.Pin, onClick: () => player.favorite(station), size: 'icon-xs', pressed: saved, className: 'hermes-radio-pin' })
+    jsx(SmallAction, { label: `${t(saved ? 'unsave' : 'save')}: ${station.name}`, icon: icons.Pin, onClick: () => player.favorite(station), size: 'icon-xs', pressed: saved, className: 'kova-radio-pin' })
   ] })
 }
 
@@ -617,15 +617,15 @@ function Stations({ player }) {
   const pending = text.length >= 2 && (text !== query || result.isFetching)
   const searchFailed = text.length >= 2 && query === text && result.isError
   return jsxs('div', { children: [
-    jsx('div', { className: 'hermes-radio-search', 'data-filled': Boolean(search), children: jsx(SearchField, {
+    jsx('div', { className: 'kova-radio-search', 'data-filled': Boolean(search), children: jsx(SearchField, {
       value: search, onChange: value => { setBrowseStation(player.station.get()); setSearch(value) }, placeholder: t('search'),
-      containerClassName: 'hermes-radio-search-field',
-      trailingAction: pending ? jsx('span', { className: 'hermes-radio-search-loader', children: jsx(GlyphSpinner, { ariaLabel: t('searching') }) }) : null
+      containerClassName: 'kova-radio-search-field',
+      trailingAction: pending ? jsx('span', { className: 'kova-radio-search-loader', children: jsx(GlyphSpinner, { ariaLabel: t('searching') }) }) : null
     }) }),
-    jsxs('div', { ref: listRef, className: 'hermes-radio-list', 'data-radio-pending': pending, children: [
+    jsxs('div', { ref: listRef, className: 'kova-radio-list', 'data-radio-pending': pending, children: [
       ...items.map(station => jsx(StationRow, { station, player }, station.id)),
-      searchFailed && jsx('div', { className: 'hermes-radio-error', role: 'status', children: t('searchError') }),
-      !pending && !searchFailed && text && results.length === 0 && jsx('div', { className: 'hermes-radio-error', role: 'status', children: t('noResults') })
+      searchFailed && jsx('div', { className: 'kova-radio-error', role: 'status', children: t('searchError') }),
+      !pending && !searchFailed && text && results.length === 0 && jsx('div', { className: 'kova-radio-error', role: 'status', children: t('noResults') })
     ] })
   ] })
 }
@@ -636,13 +636,13 @@ function Transport({ player, ctx }) {
   const station = useValue(player.station)
   const status = useValue(player.status)
   const active = status === 'live' || status === 'connecting'
-  return jsxs('div', { className: 'hermes-radio-volume', children: [
+  return jsxs('div', { className: 'kova-radio-volume', children: [
     jsx(SmallAction, { label: t(active ? 'pause' : 'play'), icon: active ? icons.Pause : icons.Play, busy: status === 'connecting', size: 'icon-xs', onClick: player.toggle }),
     jsx(SmallAction, { label: t('next'), icon: NextArrow, size: 'icon-xs', onClick: player.next }),
-    jsx('span', { className: 'hermes-radio-volume-space' }),
+    jsx('span', { className: 'kova-radio-volume-space' }),
     jsx(SmallAction, { label: t(volume ? 'mute' : 'unmute'), icon: volume ? icons.Volume2 : icons.VolumeX, onClick: player.mute, size: 'icon-xs' }),
     jsx('input', { type: 'range', min: 0, max: 100, step: 1, value: volume, 'aria-label': t('volume'), onChange: event => player.setVolume(Number(event.target.value)) }),
-    jsx('span', { className: 'hermes-radio-website', children: httpsUrl(station.homepage) && jsx(SmallAction, { label: t('visit'), icon: icons.ExternalLink, size: 'icon-xs', onClick: () => void ctx.os.openExternal(station.homepage) }) })
+    jsx('span', { className: 'kova-radio-website', children: httpsUrl(station.homepage) && jsx(SmallAction, { label: t('visit'), icon: icons.ExternalLink, size: 'icon-xs', onClick: () => void ctx.os.openExternal(station.homepage) }) })
   ] })
 }
 
@@ -660,7 +660,7 @@ function RadioBar({ player, ctx }) {
     if (value) setBrowseWidth(triggerRef.current.getBoundingClientRect().width)
     player.open.set(value)
   }
-  return jsxs('div', { className: 'hermes-radio-bar', 'data-tour': 'radio-player', 'data-radio-status': status, children: [
+  return jsxs('div', { className: 'kova-radio-bar', 'data-tour': 'radio-player', 'data-radio-status': status, children: [
     jsx(Waveform, { player, compact: true }),
     jsxs(Popover, { open, onOpenChange, children: [
       jsx(PopoverTrigger, { asChild: true, children: jsx(Button, {
@@ -668,7 +668,7 @@ function RadioBar({ player, ctx }) {
         'aria-label': `${t('browse')}: ${station.name}`,
         children: jsx('span', { className: 'radio-name', children: station.name })
       }) }),
-      jsx(PopoverContent, { side: 'top', align: 'end', className: 'hermes-radio-panel', 'aria-label': t('radio'), 'data-tour': 'radio-panel', children:
+      jsx(PopoverContent, { side: 'top', align: 'end', className: 'kova-radio-panel', 'aria-label': t('radio'), 'data-tour': 'radio-panel', children:
         jsxs('div', { children: [
           jsx(Stations, { player }), jsx(Signal, { player, ctx }), jsx(Transport, { player, ctx })
         ] })

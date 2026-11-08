@@ -40,7 +40,7 @@ function marker(app: Pick<App, 'getPath'>): string {
 
 beforeEach((): void => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'relaunch-isolation-'))
-  kovaHome = path.join(root, 'hermes-home')
+  kovaHome = path.join(root, 'kova-home')
   fs.mkdirSync(kovaHome)
   vi.stubEnv('KOVA_HOME', kovaHome)
   stable = installation('stable')

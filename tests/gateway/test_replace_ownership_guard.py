@@ -254,7 +254,7 @@ class TestArgvConsistencyCheck:
         )
         assert (
             conflict(
-                "python -m kova_cli.main --hermes-home /home/x/.kova/profiles/tim/ gateway run",
+                "python -m kova_cli.main --kova-home /home/x/.kova/profiles/tim/ gateway run",
                 tim_home,
             )
             is False  # trailing slash normalizes away

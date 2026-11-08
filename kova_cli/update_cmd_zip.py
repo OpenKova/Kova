@@ -574,7 +574,7 @@ def _download_and_swap_zip(branch: str, zip_url: str, target_sha: str | None = N
     import tempfile
     from urllib.request import urlretrieve
     print("→ Downloading latest version...")
-    tmp_dir = tempfile.mkdtemp(prefix="hermes-update-")
+    tmp_dir = tempfile.mkdtemp(prefix="kova-update-")
     downloaded = False
     try:
         zip_path = os.path.join(tmp_dir, f"kova-agent-{branch}.zip")

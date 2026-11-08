@@ -215,7 +215,7 @@ def source_products(source_checkout):
         "import { build } from '../../product.mjs';\n"
         "const flag = '-c.directories.output=';\n"
         "const staging = process.argv.find(arg => arg.startsWith(flag)).slice(flag.length);\n"
-        "build('desktop', relative('../..', staging) + '/linux-unpacked/hermes');\n",
+        "build('desktop', relative('../..', staging) + '/linux-unpacked/kova');\n",
         encoding="utf-8",
     )
     (root / "scripts/build/build-desktop.mjs").write_text(
@@ -292,7 +292,7 @@ def test_update_builds_selected_products_after_one_union_preparation(source_prod
     from kova_cli.main_web_build import _web_ui_build_needed
 
     root, acquired = source_products
-    app = root / "apps/desktop/release/linux-unpacked/hermes"
+    app = root / "apps/desktop/release/linux-unpacked/kova"
     app.parent.mkdir(parents=True)
     app.write_text("previous app")
     build_update_products(root, desktop=desktop)
@@ -335,7 +335,7 @@ def test_update_failure_raises_without_retries_or_replacing_live_app(source_prod
     from kova_cli.source_build import ProductBuildError, build_update_products
 
     root, acquired = source_products
-    app = root / "apps/desktop/release/linux-unpacked/hermes"
+    app = root / "apps/desktop/release/linux-unpacked/kova"
     app.parent.mkdir(parents=True)
     app.write_text("previous app")
     (root / f"fail-{step}").touch()
@@ -400,7 +400,7 @@ def test_desktop_dependency_failure_still_builds_the_tui_and_web_ui(source_produ
     assert not (root / "apps/desktop/node_modules").exists()
     out = capsys.readouterr().out
     assert "Desktop app build owed: desktop dependencies failed" in out
-    assert "hermes uninstall --gui" in out
+    assert "kova uninstall --gui" in out
 
 
 @pytest.mark.platforms("linux")
@@ -415,7 +415,7 @@ def test_module_cli_builds_the_requested_products(source_products, desktop, monk
     runpy.run_module("kova_cli.source_build", run_name="__main__")
     assert acquired == ["pnpm"]
     assert (root / "kova_cli/web_dist/index.html").is_file()
-    assert (root / "apps/desktop/release/linux-unpacked/hermes").exists() == desktop
+    assert (root / "apps/desktop/release/linux-unpacked/kova").exists() == desktop
 
 
 @pytest.mark.platforms("posix")
@@ -456,7 +456,7 @@ def test_packaged_desktop_is_reused_only_while_it_names_head(tmp_path, monkeypat
 
 @pytest.mark.parametrize("enabled", [False, True])
 def test_update_rebuilds_the_webapp_bundle_a_home_serves(tmp_path, monkeypatch, enabled):
-    """``hermes update`` rebuilds ``apps/desktop/dist-webapp``, with the function ``hermes webapp``
+    """``kova update`` rebuilds ``apps/desktop/dist-webapp``, with the function ``kova webapp``
     uses, when any home sharing this install has ``webapp.enabled``: that home's gateway serves the
     bundle as built, so an old one would talk to the updated backend. Otherwise it is left alone."""
     import kova_cli.left_core_migration as left_core
@@ -489,9 +489,9 @@ def test_update_rebuilds_the_webapp_bundle_a_home_serves(tmp_path, monkeypatch, 
 
 @pytest.mark.parametrize("built", [True, False])
 def test_a_failed_webapp_rebuild_in_update_marks_the_served_bundle_out_of_date(tmp_path, monkeypatch, capsys, built):
-    """When ``hermes update`` cannot rebuild the Webapp bundle a home serves, the previous bundle
+    """When ``kova update`` cannot rebuild the Webapp bundle a home serves, the previous bundle
     stays on disk but is marked out of date: its gateway reports the Webapp unavailable and says to
-    run ``hermes webapp`` (which rebuilds it) instead of serving it against the updated backend. The
+    run ``kova webapp`` (which rebuilds it) instead of serving it against the updated backend. The
     update still reports the failure. With no bundle built there is nothing to mark."""
     import kova_cli.left_core_migration as left_core
     import kova_cli.main_install_repair as install_repair
@@ -527,9 +527,9 @@ def test_a_failed_webapp_rebuild_in_update_marks_the_served_bundle_out_of_date(t
         build_update_products(root, desktop=False)
 
     reason = bundle_missing_reason(dist)
-    assert reason is not None and reason.startswith(NOT_BUILT) and "hermes webapp" in reason
+    assert reason is not None and reason.startswith(NOT_BUILT) and "kova webapp" in reason
     if built:
         assert (dist / "index.html").read_text(encoding="utf-8") == "<!doctype html>"
-        assert "hermes webapp" in capsys.readouterr().out
+        assert "kova webapp" in capsys.readouterr().out
     else:
         assert sorted(root.rglob("*")) == before

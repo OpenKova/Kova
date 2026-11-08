@@ -81,7 +81,7 @@ function honchoSchema(): MemoryProviderConfig {
         kind: 'text',
         value: 'myws',
         description: 'Honcho workspace ID.',
-        placeholder: 'hermes',
+        placeholder: 'kova',
         is_set: true,
         inline: true,
         group: 'Connection',

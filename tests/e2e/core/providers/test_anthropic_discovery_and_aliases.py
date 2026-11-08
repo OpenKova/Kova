@@ -1,12 +1,12 @@
 """Anthropic route plumbing: model discovery endpoint and OAuth wire tool-name aliases.
 
 * Discovery: with a custom Anthropic-protocol endpoint configured (``ANTHROPIC_BASE_URL``
-  or ``model.base_url``), the picker catalog (``provider_model_ids``, behind ``hermes model``,
+  or ``model.base_url``), the picker catalog (``provider_model_ids``, behind ``kova model``,
   ``/model``, the dashboard and Desktop pickers) must come from THAT endpoint's
   ``/v1/models`` — asserted by the fake seeing the GET and its relay-only id in the result.
 * OAuth wire aliases: on the Claude subscription route Kova renames tools on the wire
   (``mcp__`` prefix, ``memory`` -> ``context_notes``, ``session_search`` ->
-  ``chat_history_lookup``). A real ``hermes -z`` turn must map every wire name the model
+  ``chat_history_lookup``). A real ``kova -z`` turn must map every wire name the model
   may use back to the real tool, including names passed as tool-search arguments.
 """
 
@@ -64,7 +64,7 @@ def rig(tmp_path: Path):
 
 # The CLI's own startup sequence (load ~/.kova/.env), then the picker entry point.
 _DISCOVERY_PROBE = (
-    "import json; from kova_cli.env_loader import load_hermes_dotenv; load_hermes_dotenv(); "
+    "import json; from kova_cli.env_loader import load_kova_dotenv; load_kova_dotenv(); "
     "from kova_cli.models import provider_model_ids; "
     "print('IDS=' + json.dumps(list(provider_model_ids('anthropic', force_refresh=True))))"
 )

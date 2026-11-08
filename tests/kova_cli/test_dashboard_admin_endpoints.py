@@ -153,7 +153,7 @@ class TestCredentialPoolEndpoints:
 
         load_pool() re-seeds from ~/.kova/.env on every call, so removing
         just the pool row silently reverts on the next dashboard refresh.
-        The endpoint must mirror `hermes auth remove`: clean up the backing
+        The endpoint must mirror `kova auth remove`: clean up the backing
         source and suppress (provider, source).
         """
         from agent.credential_pool import load_pool
@@ -181,7 +181,7 @@ class TestCredentialPoolEndpoints:
     def test_post_readd_lifts_suppression(self):
         """Re-adding via POST is an explicit re-engagement — suppressions lift.
 
-        Mirrors `hermes auth add`, which clears every suppression for the
+        Mirrors `kova auth add`, which clears every suppression for the
         provider so a user who deleted a credential and re-adds one isn't
         silently blocked from env re-seeding.
         """
@@ -409,7 +409,7 @@ class TestWebhookEndpoints:
             restart_calls.append((subcommand, name))
             return FakeRestartProc()
 
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fake_spawn_action)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fake_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -445,7 +445,7 @@ class TestWebhookEndpoints:
         def fail_spawn_action(subcommand, name):
             raise AssertionError("must not spawn a second concurrent restart")
 
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", fail_spawn_action)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", fail_spawn_action)
 
         r = self.client.post("/api/webhooks/enable")
 
@@ -623,12 +623,12 @@ class TestSkillsHubSourcesEndpoint:
                 return self._sid
 
             def search(self, q, limit=10):
-                return [_FakeMeta("hermes-index/featured-skill", "trusted")]
+                return [_FakeMeta("kova-index/featured-skill", "trusted")]
 
         def _fake_router():
             srcs = [_Src("official"), _Src("github")]
-            # hermes-index source advertises availability + featured search.
-            idx = _Src("hermes-index")
+            # kova-index source advertises availability + featured search.
+            idx = _Src("kova-index")
             idx.is_available = True
             srcs.insert(1, idx)
             return srcs
@@ -640,7 +640,7 @@ class TestSkillsHubSourcesEndpoint:
         assert r.status_code == 200
         body = r.json()
         ids = {s["id"] for s in body["sources"]}
-        assert {"official", "github", "hermes-index"} <= ids
+        assert {"official", "github", "kova-index"} <= ids
         # Every source carries a human label.
         assert all(s.get("label") for s in body["sources"])
         assert body["index_available"] is True
@@ -789,11 +789,11 @@ class TestSkillsHubScanEndpoint:
 
 
 class TestUpdateCheckEndpoint:
-    """``GET /api/hermes/update/check`` reports availability without applying.
+    """``GET /api/kova/update/check`` reports availability without applying.
 
     Powers the dashboard's check-before-you-update flow: the System page
     shows the commit-behind count and asks the user to confirm before
-    ``POST /api/hermes/update`` runs ``hermes update``.
+    ``POST /api/kova/update`` runs ``kova update``.
     """
 
     @pytest.fixture(autouse=True)
@@ -808,7 +808,7 @@ class TestUpdateCheckEndpoint:
 
         monkeypatch.setattr("kova_cli.source_check.check_for_updates", lambda **kw: {"behind": 5, "commits": []})
 
-        r = self.client.get("/api/hermes/update/check")
+        r = self.client.get("/api/kova/update/check")
         assert r.status_code == 200
         body = r.json()
         assert {
@@ -836,7 +836,7 @@ class TestUpdateCheckEndpoint:
             "rollback": not held, "sourceVersion": version, "channel": "preview", "commits": [],
         })
 
-        response = self.client.get("/api/hermes/update/check")
+        response = self.client.get("/api/kova/update/check")
         assert response.status_code == 200
         body = response.json()
         release = "preview release" + (f" v{version}" if version else "")
@@ -860,7 +860,7 @@ class TestUpdateCheckEndpoint:
             ),
         )
 
-        body = self.client.get("/api/hermes/update/check").json()
+        body = self.client.get("/api/kova/update/check").json()
         assert body["install_method"] == "managed-runtime"
         assert body["can_apply"] is False
         assert body["update_available"] is False
@@ -870,7 +870,7 @@ class TestUpdateCheckEndpoint:
         # as a copyable shell line, so prose here is a fake command.
         assert body["update_command"] == ""
 
-        refused = self.client.post("/api/hermes/update").json()
+        refused = self.client.post("/api/kova/update").json()
         assert refused["ok"] is False
         assert refused["error"] == "dashboard_update_managed_externally"
         assert refused["update_command"] == ""
@@ -939,7 +939,7 @@ class TestDebugShareEndpoint:
 
 class TestToolsConfigEndpoints:
     """Provider selection, API-key save, and post-setup spawn for toolsets —
-    the dashboard surface that replicates the `hermes tools` configurator."""
+    the dashboard surface that replicates the `kova tools` configurator."""
 
     @pytest.fixture(autouse=True)
     def _setup(self, _isolate_kova_home):
@@ -981,10 +981,10 @@ class TestToolsConfigEndpoints:
 
 
 # ---------------------------------------------------------------------------
-# _spawn_hermes_action env scrubbing (#52470)
+# _spawn_kova_action env scrubbing (#52470)
 # ---------------------------------------------------------------------------
 
-def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
+def test_spawn_kova_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path):
     """The dashboard runs inside the gateway, so os.environ has
     _KOVA_GATEWAY=1. Spawned actions (e.g. `gateway restart`) must NOT inherit
     it, or the in-process restart-loop guard rejects the restart and it silently
@@ -995,7 +995,7 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
     monkeypatch.setenv("_KOVA_GATEWAY", "1")
     monkeypatch.setenv("OPENAI_API_KEY", "default-action-provider-key")
     monkeypatch.setattr(_web_server_gateway, "_ACTION_LOG_DIR", tmp_path)
-    # Isolate the module-global proc registry: _spawn_hermes_action stores
+    # Isolate the module-global proc registry: _spawn_kova_action stores
     # _FakeProc (no poll()) in _ACTION_PROCS, and later tests' lifespan
     # shutdown (_terminate_desktop_managed_gateway) would trip over it.
     monkeypatch.setattr(_web_server_gateway, "_ACTION_PROCS", {})
@@ -1011,7 +1011,7 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
 
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
 
-    _web_server_gateway._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
+    _web_server_gateway._spawn_kova_action(["gateway", "restart"], "gateway-restart")
 
     assert "_KOVA_GATEWAY" not in captured["env"]
     assert captured["env"]["KOVA_NONINTERACTIVE"] == "1"
@@ -1020,11 +1020,11 @@ def test_spawn_hermes_action_scrubs_gateway_loop_guard_env(monkeypatch, tmp_path
 
 
 # ---------------------------------------------------------------------------
-# _spawn_hermes_action breakaway fallback (#139592)
+# _spawn_kova_action breakaway fallback (#139592)
 # ---------------------------------------------------------------------------
 
 @pytest.mark.platforms("windows")
-def test_spawn_hermes_action_retries_without_breakaway_when_job_denies(monkeypatch, tmp_path):
+def test_spawn_kova_action_retries_without_breakaway_when_job_denies(monkeypatch, tmp_path):
     """A parent job object that forbids breakaway (an Electron/Tauri-launched dashboard, some
     Windows Terminal configs) refuses CREATE_BREAKAWAY_FROM_JOB with access-denied. The action
     must still spawn — retried without the flag — and the refusal must land in the action log,
@@ -1051,7 +1051,7 @@ def test_spawn_hermes_action_retries_without_breakaway_when_job_denies(monkeypat
 
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
 
-    proc = _web_server_gateway._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
+    proc = _web_server_gateway._spawn_kova_action(["gateway", "restart"], "gateway-restart")
 
     assert proc.pid == 4321
     assert flags_seen == [
@@ -1062,7 +1062,7 @@ def test_spawn_hermes_action_retries_without_breakaway_when_job_denies(monkeypat
     assert "retrying without CREATE_BREAKAWAY_FROM_JOB" in log
 
 
-def test_spawn_hermes_action_records_a_failed_spawn_and_reraises(monkeypatch, tmp_path):
+def test_spawn_kova_action_records_a_failed_spawn_and_reraises(monkeypatch, tmp_path):
     """A spawn that never happened leaves the reason in the action log (previously a bare
     started-header) and still raises to the endpoint (#139592)."""
     import kova_cli.web_server as ws
@@ -1076,7 +1076,7 @@ def test_spawn_hermes_action_records_a_failed_spawn_and_reraises(monkeypatch, tm
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
 
     with pytest.raises(FileNotFoundError):
-        _web_server_gateway._spawn_hermes_action(["gateway", "restart"], "gateway-restart")
+        _web_server_gateway._spawn_kova_action(["gateway", "restart"], "gateway-restart")
 
     log = (tmp_path / _web_server_gateway._ACTION_LOG_FILES["gateway-restart"]).read_text()
     assert "spawn failed" in log
@@ -1160,7 +1160,7 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
         return _FakeProc()
 
     monkeypatch.setattr(ws.subprocess, "Popen", _fake_popen)
-    _web_server_gateway._spawn_hermes_action(["-p", "verifier", "gateway", "restart"], "gateway-restart")
+    _web_server_gateway._spawn_kova_action(["-p", "verifier", "gateway", "restart"], "gateway-restart")
 
     child_env = captured["env"]
     assert captured["cmd"][-4:] == ["-p", "verifier", "gateway", "restart"]
@@ -1182,8 +1182,8 @@ def test_named_profile_action_isolates_parent_env_and_loads_target_env(monkeypat
         [
             sys.executable, "-c",
             "import json, os; "
-            "from kova_cli.env_loader import load_hermes_dotenv; "
-            "load_hermes_dotenv(kova_home=os.environ['KOVA_HOME']); "
+            "from kova_cli.env_loader import load_kova_dotenv; "
+            "load_kova_dotenv(kova_home=os.environ['KOVA_HOME']); "
             "keys=['A2A_PORT','OPENAI_API_KEY','TARGET_ONLY_TOKEN','DISCORD_BOT_TOKEN',"
             "'API_SERVER_ENABLED','API_SERVER_KEY','BLUEBUBBLES_SERVER_URL','BLUEBUBBLES_PASSWORD',"
             "'NTFY_TOPIC','NTFY_TOKEN','ZAI_API_KEY','A2A_AUTH_MINI','EXTERNAL_PROFILE_AUTH']; "

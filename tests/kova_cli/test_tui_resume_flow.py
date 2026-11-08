@@ -83,27 +83,27 @@ def test_launch_tui_exports_model_provider_and_toolsets(monkeypatch, main_mod):
 
     with pytest.raises(SystemExit):
         main_mod._launch_tui(
-            model="nous/hermes-test", provider="nous", toolsets="web, terminal"
+            model="nous/kova-test", provider="nous", toolsets="web, terminal"
         )
 
     env = captured["env"]
-    assert env["KOVA_MODEL"] == "nous/hermes-test"
-    assert env["KOVA_INFERENCE_MODEL"] == "nous/hermes-test"
+    assert env["KOVA_MODEL"] == "nous/kova-test"
+    assert env["KOVA_INFERENCE_MODEL"] == "nous/kova-test"
     assert env["KOVA_TUI_PROVIDER"] == "nous"
     assert env["KOVA_INFERENCE_PROVIDER"] == "nous"
     assert env["KOVA_TUI_TOOLSETS"] == "web,terminal"
     active_path = Path(env["KOVA_TUI_ACTIVE_SESSION_FILE"])
-    assert active_path.name.startswith("hermes-tui-active-session-")
+    assert active_path.name.startswith("kova-tui-active-session-")
     assert active_path.suffix == ".json"
     assert active_path_during_call == active_path
     assert not active_path.exists()
     assert env["NODE_ENV"] == "production"
 
 
-def test_launch_tui_prefers_launch_cwd_over_inherited_hermes_cwd(monkeypatch, main_mod, tmp_path):
-    """The directory `hermes --tui` was run from outranks an inherited KOVA_CWD.
+def test_launch_tui_prefers_launch_cwd_over_inherited_kova_cwd(monkeypatch, main_mod, tmp_path):
+    """The directory `kova --tui` was run from outranks an inherited KOVA_CWD.
 
-    A shell export - or an outer `hermes --tui` - leaves KOVA_CWD naming a real but stale
+    A shell export - or an outer `kova --tui` - leaves KOVA_CWD naming a real but stale
     directory, and the gateway Ink's client starts runs the session in whatever it names,
     so the session reads files and completions from the wrong project (#49637).
     """
@@ -198,7 +198,7 @@ def test_launch_tui_local_session_starts_in_launch_dir_not_terminal_cwd(monkeypa
 
 @pytest.mark.parametrize("flag", ["KOVA_SAFE_MODE", "KOVA_IGNORE_USER_CONFIG"])
 def test_launch_tui_bypass_without_model_refuses_before_the_tui_starts(monkeypatch, main_mod, capsys, flag):
-    """`hermes --tui --safe-mode` (or an exported KOVA_IGNORE_USER_CONFIG=1) reads no profile
+    """`kova --tui --safe-mode` (or an exported KOVA_IGNORE_USER_CONFIG=1) reads no profile
     default model: the owner refuses session.create with bare invalid_params, so the launcher must
     say "pass --model" before spawning the TUI, as classic chat does."""
     monkeypatch.setenv(flag, "1")

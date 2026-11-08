@@ -1,6 +1,6 @@
 """Secret-scrub policy for Kova child processes: pure data + predicates for which env
 names are Kova-managed credentials. The env *builders* applying it (``_make_run_env``,
-``_sanitize_subprocess_env``, ``hermes_subprocess_env``) live in ``tools.environments.local``."""
+``_sanitize_subprocess_env``, ``kova_subprocess_env``) live in ``tools.environments.local``."""
 
 import functools
 import os
@@ -178,7 +178,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
     """``name`` is a blocklisted provider/tool credential or adapter secret, matched the way the
     platform's environment resolves names: exact plus case-folded. On Windows the environment
     block is case-insensitive, so ``openai_api_key`` IS ``OPENAI_API_KEY``; consistent with
-    ``_is_hermes_internal_secret``, which already folds (``key.upper()``). Loops pass
+    ``_is_kova_internal_secret``, which already folds (``key.upper()``). Loops pass
     ``_registered`` so the registry is read once per env, not once per key."""
     upper = name.upper()
     if name in _KOVA_PROVIDER_ENV_BLOCKLIST or upper in _KOVA_PROVIDER_ENV_BLOCKLIST:
@@ -188,7 +188,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
 
 # First-party platform credentials (``BUZZ_*``, driving the platform-mandated ``buzz``
 # CLI) carved out of the TERMINAL scrub only (``_make_run_env``,
-# ``_sanitize_subprocess_env``); execute_code, hermes_subprocess_env, docker and
+# ``_sanitize_subprocess_env``); execute_code, kova_subprocess_env, docker and
 # env_passthrough registration stay sealed (GHSA-rhgp-j443-p4rf). CONTEXT-GATED via
 # ``_buzz_terminal_context_active``: a Telegram/CLI/cron session on a host that also
 # runs a Buzz gateway must not get the signing key. Values are used directly, never
@@ -208,7 +208,7 @@ def _is_provider_env_blocklisted(name: str, _registered: frozenset | None = None
 # ``_sanitize_subprocess_env`` is also consumed by search workers (e.g. the ddgs web-search subprocess), the
 # computer-use driver binary, and user-script runners (bang ``!`` commands, quick commands, cron scripts,
 # webhook-filter scripts), so those children receive the vars too — matching the approved background/PTY
-# scope. Every other surface stays sealed — execute_code scrubbing, :func:`hermes_subprocess_env` (browser /
+# scope. Every other surface stays sealed — execute_code scrubbing, :func:`kova_subprocess_env` (browser /
 # TUI host / ACP agent spawns), docker children, and ``env_passthrough`` registration (skills/config
 # still cannot register these names). The GHSA-rhgp-j443-p4rf seal is preserved because no registration path
 # is opened; this is a scrub-path exemption, not an allowlist addition. First-party matches use the merged
@@ -273,7 +273,7 @@ def _is_terminal_first_party_env(name: str) -> bool:
 # treats PYTHONHOME as contamination in its own child processes (managed_uv.py, sqlite_runtime.py), so
 # stripping it from subprocess envs is consistent. Users who need PYTHONHOME for a specific child can set it
 # explicitly in the command. PYTHONPATH is NOT included here — it's handled by
-# _strip_hermes_owned_pythonpath() which removes only Kova-owned entries, preserving user-set paths.
+# _strip_kova_owned_pythonpath() which removes only Kova-owned entries, preserving user-set paths.
 _ACTIVE_VENV_MARKER_VARS = ("VIRTUAL_ENV", "CONDA_PREFIX", "PYTHONHOME")
 
 # Identity a supervisor hands to the ONE process it started, which no child of that process owns.
@@ -314,7 +314,7 @@ def strip_supervised_process_identity(env: dict) -> dict:
     return env
 
 
-def _is_hermes_internal_secret(key: str) -> bool:
+def _is_kova_internal_secret(key: str) -> bool:
     """True for Kova-internal secrets injected under *dynamic* names the static
     blocklist cannot enumerate: ``AUXILIARY_<TASK>_API_KEY``/``_BASE_URL`` (per-task
     side-LLM credentials) and ``GATEWAY_RELAY_*_SECRET``/``_KEY``/``_TOKEN`` (relay
@@ -420,7 +420,7 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "SLACK_BOT_TOKEN", "SLACK_APP_TOKEN",
     "SLACK_SIGNING_SECRET", "GATEWAY_ALLOWED_USERS", "GATEWAY_ALLOW_ALL_USERS",
     # Gateway relay auth triplet. _SECRET/_DELIVERY_KEY are also matched by
-    # _is_hermes_internal_secret, but _ID has no secret suffix, so it must be
+    # _is_kova_internal_secret, but _ID has no secret suffix, so it must be
     # enumerated here to stay stripped on the inherit_credentials=True path.
     "GATEWAY_RELAY_ID", "GATEWAY_RELAY_SECRET", "GATEWAY_RELAY_DELIVERY_KEY",
     "EMAIL_PASSWORD", "KOVA_DASHBOARD_SESSION_TOKEN",

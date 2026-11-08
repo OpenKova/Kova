@@ -69,7 +69,7 @@ MAX_USD_PER_TEST = 0.12
 @dataclass(frozen=True)
 class LiveCase:
     id: str
-    provider: str  # hermes provider id passed to resolve_runtime_provider
+    provider: str  # kova provider id passed to resolve_runtime_provider
     key_env: str
     model_prefs: tuple[str, ...]
     hosts: tuple[str, ...]  # the only hosts allowed to see the credential
@@ -365,8 +365,8 @@ def usage_line(case: LiveCase, model: str, agent: Any, wire: WireLog) -> dict:
         "http_errors": sorted({f"{r.status} {r.error[:160]}" for r in wire.inference() if r.status >= 400})[:5],
         "input": inp, "output": out, "cache_read": cr, "cache_write": cw,
         "reasoning": int(getattr(agent, "session_reasoning_tokens", 0) or 0),
-        "hermes_est_usd": round(float(agent.session_estimated_cost_usd or 0.0), 6),
-        "hermes_cost_status": str(getattr(agent, "session_cost_status", "")),
+        "kova_est_usd": round(float(agent.session_estimated_cost_usd or 0.0), 6),
+        "kova_cost_status": str(getattr(agent, "session_cost_status", "")),
         "list_price_ceiling_usd": round(ceiling, 6),
     }
 

@@ -91,7 +91,7 @@ async def test_every_bundled_sign_in_acts_as_the_owner_and_keeps_durable_receipt
                       'query_string': ('ticket=' + ticket).encode(), 'client': ('127.0.0.1', 1)},
                      None, None)
         assert auth(ws)[0] is None
-        result = factory(authority, object(), ws._hermes_auth_identity).actor
+        result = factory(authority, object(), ws._kova_auth_identity).actor
         # HTTP mutation must use precisely the WS ownership/retry key.
         monkeypatch.setattr('kova_state._default_db_path', lambda: authority.db.db_path)
         assert _session_mutation_context(request, None)[1].subject == result.subject

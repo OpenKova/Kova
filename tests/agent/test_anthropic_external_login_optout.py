@@ -3,7 +3,7 @@
 Claude Code's OAuth refresh token is single-use: once Kova borrows and refreshes it, Kova and
 Claude Code hold one token family and whichever refreshes first logs the other out. With the opt-out
 set, Kova must neither read nor refresh ``~/.claude/.credentials.json``, must drop the pool row an
-earlier adopting process persisted, and must say so in ``hermes auth list``.
+earlier adopting process persisted, and must say so in ``kova auth list``.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def _write_config(kova_home, adopt):
 
 
 def test_opt_out_never_reads_or_refreshes_claude_code_login(tmp_path, monkeypatch):
-    kova_home, claude_dir = tmp_path / "hermes", tmp_path / "claude"
+    kova_home, claude_dir = tmp_path / "kova", tmp_path / "claude"
     kova_home.mkdir()
     claude_dir.mkdir()
     (kova_home / ".env").write_text("")

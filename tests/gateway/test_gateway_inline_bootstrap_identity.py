@@ -2,7 +2,7 @@
 
 The store launcher (``_launchers.runtime_command``, also the Windows updater's relaunch), the
 published launcher script (POSIX shell launcher and the Windows ``.cmd`` base64 wrapper) and the
-``venv_sync`` re-entry and the bundled/Docker payload's ``bin/hermes`` (``scripts/build/launchers``,
+``venv_sync`` re-entry and the bundled/Docker payload's ``bin/kova`` (``scripts/build/launchers``,
 #127865) all run ``python -c <source> …`` with the entry point IN that process.
 The #107002 guard that keeps an inline program's trailing argv as data made all of them invisible.
 The readers hand the matchers different strings: ``/proc``, psutil and ``ps`` space-join argv (the
@@ -23,19 +23,19 @@ from gateway import status
 from gateway.status import looks_like_gateway_command_line, looks_like_gateway_runtime_command_line
 from gateway.status_inline_source import inline_bootstrap_argv
 from kova_cli import _launchers, venv_sync
-from kova_cli.update_cmd_windows import _hermes_holder_subcommand
+from kova_cli.update_cmd_windows import _kova_holder_subcommand
 
 ROOT = Path("/opt/Kova Agent/kova-agent")
 PY = "/opt/venv/bin/python3"
-_SCRIPT = _launchers._launcher_script("hermes", ROOT, None)
+_SCRIPT = _launchers._launcher_script("kova", ROOT, None)
 _JOINS = {"space-joined": " ".join, "windows": subprocess.list2cmdline}
 
 
 def _payload_launcher(argv: list[str]) -> list[str]:
-    """The payload ``bin/hermes`` exec line, rendered by the real payload builder."""
+    """The payload ``bin/kova`` exec line, rendered by the real payload builder."""
     from scripts.build.launchers import posix_launcher
 
-    script = posix_launcher("hermes", "kova_cli.main:main", python="tools/python/bin/python3",
+    script = posix_launcher("kova", "kova_cli.main:main", python="tools/python/bin/python3",
                             repo="kova-agent", site="venv/lib/python3.14/site-packages", target="linux-x64")
     exec_line = next(line for line in script.splitlines() if line.startswith("exec "))
     _, _python, *launch, _args = shlex.split(exec_line)
@@ -64,7 +64,7 @@ def _forms(argv: list[str]) -> dict[str, list[str]]:
 def test_bootstrap_launched_gateway_is_a_gateway(form: str, join: str) -> None:
     command_line = _JOINS[join]([str(t) for t in _forms(["gateway", "run", "--replace"])[form]])
     assert looks_like_gateway_command_line(command_line)
-    assert _hermes_holder_subcommand(command_line) == "gateway"
+    assert _kova_holder_subcommand(command_line) == "gateway"
 
 
 @pytest.mark.parametrize("join", _JOINS)
@@ -73,13 +73,13 @@ def test_bootstrap_argv_is_identity_only_for_the_process_running_it(join: str) -
     chat = _JOINS[join]([str(t) for t in _launchers.runtime_command(ROOT, ["chat"], python=Path(PY))])
     # The restart watcher CARRIES a store-launcher gateway command it spawns later (#107002).
     watcher = _JOINS[join]([PY, "-c", "import os, sys, time\npid = int(sys.argv[1]); cmd = sys.argv[2:]\n", "1234", *store])
-    assert not looks_like_gateway_command_line(chat) and _hermes_holder_subcommand(chat) == "chat"
-    assert not looks_like_gateway_command_line(watcher) and _hermes_holder_subcommand(watcher) is None
+    assert not looks_like_gateway_command_line(chat) and _kova_holder_subcommand(chat) == "chat"
+    assert not looks_like_gateway_command_line(watcher) and _kova_holder_subcommand(watcher) is None
 
 
 def test_bundled_posix_launcher_bootstrap_is_a_gateway() -> None:
     source = (
-        "import os, site, sys; sys.argv[0]='hermes'; "
+        "import os, site, sys; sys.argv[0]='kova'; "
         "site.addsitedir(os.environ['KOVA_SITE']); "
         "from kova_cli.main import main; sys.exit(main())"
     )
@@ -95,7 +95,7 @@ _NOT_GATEWAY = (["gateway", "status"], ["gateway", "stop"], ["status"], ["chat"]
 
 @pytest.mark.parametrize("join", _JOINS)
 @pytest.mark.parametrize("argv", [*_GATEWAY, ["gateway", "restart"], *_NOT_GATEWAY], ids=" ".join)
-def test_payload_launcher_reads_as_the_hermes_command_it_runs(argv: list[str], join: str) -> None:
+def test_payload_launcher_reads_as_the_kova_command_it_runs(argv: list[str], join: str) -> None:
     command_line = _JOINS[join](_payload_launcher(argv))
     # ``gateway restart`` hosts the runtime in-process without a service manager, but is no ``run``.
     assert looks_like_gateway_command_line(command_line) is (argv in _GATEWAY)
@@ -110,14 +110,14 @@ def test_payload_launcher_maps_to_the_module_spelling(split) -> None:
 
 @pytest.mark.parametrize("join", _JOINS)
 @pytest.mark.parametrize("module", ["not_kova_cli.main", "foreign.kova_cli.main", "kova_cli.main_x"])
-def test_payload_launcher_shape_with_another_entry_module_is_not_hermes(module: str, join: str) -> None:
+def test_payload_launcher_shape_with_another_entry_module_is_not_kova(module: str, join: str) -> None:
     launch = _payload_launcher(["gateway", "run"])
     launch[launch.index("-c") + 1] = launch[launch.index("-c") + 1].replace(
         "from kova_cli.main import", f"from {module} import")
     command_line = _JOINS[join](launch)
     assert inline_bootstrap_argv(launch) is None
     assert not looks_like_gateway_command_line(command_line)
-    assert _hermes_holder_subcommand(command_line) is None
+    assert _kova_holder_subcommand(command_line) is None
 
 
 @pytest.mark.parametrize("join", _JOINS)
@@ -130,14 +130,14 @@ def test_a_program_carrying_the_payload_launcher_is_not_a_gateway(carrier: str, 
     command_line = _JOINS[join](carried)
     assert inline_bootstrap_argv(carried) is None
     assert not looks_like_gateway_command_line(command_line)
-    assert _hermes_holder_subcommand(command_line) is None
+    assert _kova_holder_subcommand(command_line) is None
 
 
 @pytest.mark.parametrize("argv,expected", [
     ([], None), (["gateway", "run"], None), (["-p", "work", "gateway", "run"], "work"),
     (["gateway", "run", "--profile=Work"], "work"),
 ])
-def test_payload_launcher_profile_is_read_from_the_hermes_argv(argv: list[str], expected: str | None) -> None:
+def test_payload_launcher_profile_is_read_from_the_kova_argv(argv: list[str], expected: str | None) -> None:
     # ``/proc`` space-joins argv; the interpreter's ``-P`` before ``-c`` is no ``-p`` (#127865).
     assert status.profile_flag_value(" ".join(_payload_launcher(argv))) == expected
 
@@ -150,7 +150,7 @@ def test_payload_launcher_profile_is_read_from_the_hermes_argv(argv: list[str], 
 ], ids=["default", "named", "other-profile", "chat"])
 def test_live_payload_launched_gateway_is_found_for_its_home(argv, profile, found, tmp_path, monkeypatch) -> None:
     """The dashboard / ``gateway stop`` / ``restart`` lookup: the live ``/proc`` cmdline of a gateway
-    started through the payload ``bin/hermes`` proves its home's runtime record (#127865)."""
+    started through the payload ``bin/kova`` proves its home's runtime record (#127865)."""
     import kova_constants
 
     root = tmp_path / ".kova"
@@ -161,7 +161,7 @@ def test_live_payload_launched_gateway_is_found_for_its_home(argv, profile, foun
     monkeypatch.setattr(kova_constants, "_default_kova_root_memo", None, raising=False)
     record = {
         "pid": 4242, "kind": "kova-gateway", "gateway_state": "running", "start_time": 1000,
-        "argv": ["/opt/hermes/kova-agent/kova_cli/main.py", *argv], "kova_home": str(home),
+        "argv": ["/opt/kova/kova-agent/kova_cli/main.py", *argv], "kova_home": str(home),
     }
     (home / "gateway_state.json").write_text(json.dumps(record), encoding="utf-8")
     monkeypatch.setattr(status, "_pid_exists", lambda pid: pid == 4242)

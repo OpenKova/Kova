@@ -58,7 +58,7 @@ const botB: RosterRow = { ...botA, connectionId: 'host-b' }
 
 const status: DisplayStatus = {
   profile: 'default',
-  profile_key: '/home/hermes/.kova',
+  profile_key: '/home/kova/.kova',
   supported: true,
   installed: true,
   missing: [],

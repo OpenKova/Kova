@@ -86,12 +86,12 @@ def _spill_full_stdout(stdout_text: str) -> Optional[str]:
     reruns coalesce; the dir rides the cache/web remote bind-mount list (credential_files)."""
     try:
         import hashlib
-        from kova_constants import get_hermes_dir
+        from kova_constants import get_kova_dir
         from tools.spill_safety import write_text_exclusive
         if len(stdout_text) > MAX_SPILLED_STDOUT_BYTES:
             stdout_text = (stdout_text[:MAX_SPILLED_STDOUT_BYTES]
                            + f"\n\n[... spill capped at {MAX_SPILLED_STDOUT_BYTES:,} bytes ...]")
-        cache_dir = get_hermes_dir("cache/exec", "exec_spill")
+        cache_dir = get_kova_dir("cache/exec", "exec_spill")
         cache_dir.mkdir(parents=True, exist_ok=True)
         digest = hashlib.sha256(stdout_text.encode("utf-8", errors="replace")).hexdigest()[:12]
         path = cache_dir / f"stdout-{digest}.txt"
@@ -116,7 +116,7 @@ def check_sandbox_requirements() -> bool:
     return config.get("env_type") != "vercel_sandbox" or _check_vercel_sandbox_requirements(config)
 
 
-# ---- hermes_tools.py code generator ----
+# ---- kova_tools.py code generator ----
 
 # Per-tool stub templates: (signature, docstring, args_dict_expr — the JSON payload sent over RPC).
 _TOOL_STUBS = {
@@ -144,12 +144,12 @@ _TOOL_STUBS = {
 }
 
 
-def _missing_hermes_tools_import_hint(m, enabled_tools) -> str:
+def _missing_kova_tools_import_hint(m, enabled_tools) -> str:
     missing = m.group(1)
     if missing in {"json_parse", "shell_quote", "retry"}:
-        return (f"Import helpers with `from hermes_tools import {missing}`. "
+        return (f"Import helpers with `from kova_tools import {missing}`. "
                 "If that import failed, the generated module may be stale or another "
-                "hermes_tools may be first on sys.path. Check hermes_tools.__file__ "
+                "kova_tools may be first on sys.path. Check kova_tools.__file__ "
                 "and retry with reset=true.")
     available = sorted(SANDBOX_ALLOWED_TOOLS & set(enabled_tools or SANDBOX_ALLOWED_TOOLS))
     return (f"'{missing}' is not available inside the execute_code sandbox. "
@@ -158,13 +158,13 @@ def _missing_hermes_tools_import_hint(m, enabled_tools) -> str:
 
 
 # (regex, formatter(match, enabled_tools)) — first match wins. Production mining (state.db) ranked
-# these as the top execute_code failure classes: hermes_tools import misuse, missing helper
+# these as the top execute_code failure classes: kova_tools import misuse, missing helper
 # imports, treating tool results as strings, importing third-party packages absent from the sandbox.
 _FAILURE_HINT_RULES = (
-    (r"cannot import name '(\w+)' from 'hermes_tools'", _missing_hermes_tools_import_hint),
+    (r"cannot import name '(\w+)' from 'kova_tools'", _missing_kova_tools_import_hint),
     (r"NameError: name '(json_parse|shell_quote|retry)' is not defined",
      lambda m, _: f"Import {m.group(1)} before calling it: "
-                  f"from hermes_tools import {m.group(1)}"),
+                  f"from kova_tools import {m.group(1)}"),
     (r"ModuleNotFoundError: No module named '([\w.]+)'",
      lambda m, _: f"'{m.group(1)}' is not installed in the sandbox interpreter. "
                   "Use Python stdlib inside execute_code, or run the code via "
@@ -191,9 +191,9 @@ def _sandbox_failure_hint(stderr_text: str, enabled_tools=None) -> Optional[str]
     return None
 
 
-def generate_hermes_tools_module(enabled_tools: list[str],
+def generate_kova_tools_module(enabled_tools: list[str],
                                  transport: str = "uds") -> str:
-    """Source of the hermes_tools.py stub module for SANDBOX_ALLOWED_TOOLS ∩ *enabled_tools*.
+    """Source of the kova_tools.py stub module for SANDBOX_ALLOWED_TOOLS ∩ *enabled_tools*.
     ``transport``: ``"uds"`` (local socket client) or ``"file"`` (file RPC, remote backends)."""
     header = _FILE_TRANSPORT_HEADER if transport == "file" else _UDS_TRANSPORT_HEADER
     return header + "\n".join(
@@ -336,7 +336,7 @@ _FILE_TRANSPORT_HEADER = '''\
 """Auto-generated Kova tools RPC stubs (file-based transport)."""
 import json, os, shlex, tempfile, threading, time
 
-_RPC_DIR = os.environ.get("KOVA_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
+_RPC_DIR = os.environ.get("KOVA_RPC_DIR") or os.path.join(tempfile.gettempdir(), "kova_rpc")
 _seq = 0
 # `_seq += 1` is not atomic (read-modify-write), so concurrent _call()
 # invocations from multiple threads could allocate the same sequence number
@@ -595,9 +595,9 @@ def _sandbox_tools_for(enabled_tools: Optional[list[str]]) -> frozenset:
 def _run_remote_per_call(env, env_type: str, code: str, effective_task_id: str,
                          sandbox_tools: frozenset, *, timeout: int, max_tool_calls: int,
                          exec_start: float) -> str:
-    """Per-call script ship: stage hermes_tools.py + script.py in a fresh remote sandbox dir,
+    """Per-call script ship: stage kova_tools.py + script.py in a fresh remote sandbox dir,
     serve file-RPC from a polling thread, run, clean up."""
-    sandbox_dir = f"{_env_temp_dir(env)}/hermes_exec_{uuid.uuid4().hex[:12]}"
+    sandbox_dir = f"{_env_temp_dir(env)}/kova_exec_{uuid.uuid4().hex[:12]}"
     quoted_sandbox_dir = shlex.quote(sandbox_dir)
     tool_call_counter, tool_call_log, stop_event, rpc_thread = [0], [], threading.Event(), None
     try:
@@ -607,8 +607,8 @@ def _run_remote_per_call(env, env_type: str, code: str, effective_task_id: str,
         _execute_checked(env, _private_dirs_cmd(sandbox_dir, f"{sandbox_dir}/rpc"),
                          "remote sandbox setup", timeout=10)
         rpc_token = secrets.token_urlsafe(32)
-        _ship_file_to_remote(env, f"{sandbox_dir}/hermes_tools.py",
-                             generate_hermes_tools_module(list(sandbox_tools), transport="file"))
+        _ship_file_to_remote(env, f"{sandbox_dir}/kova_tools.py",
+                             generate_kova_tools_module(list(sandbox_tools), transport="file"))
         _ship_file_to_remote(env, f"{sandbox_dir}/script.py", code)
         # Wrapped so the thread inherits the turn's approval context + callbacks
         # (tools.thread_context) — else sandbox RPC tool calls lose approval routing.
@@ -917,12 +917,12 @@ def build_execute_code_schema(enabled_sandbox_tools: set | None = None,
         "Calls run in a persistent session kernel: variables, imports, and "
         "loaded data survive across execute_code calls, so build on earlier "
         "work instead of re-loading it. A timed-out or interrupted call loses that state.\n\n"
-        f"Available via `from hermes_tools import ...`:\n\n"
+        f"Available via `from kova_tools import ...`:\n\n"
         f"{tool_lines}\n\n"
         "Limits: 5-minute timeout, max 50 tool calls per call. Stdout over "
         "50KB shows head/tail inline; the FULL text is auto-saved to a file whose path rides in the result.\n\n"
         f"{cwd_note}\n\n"
-        "Helpers require imports: `from hermes_tools import json_parse, shell_quote, retry`. "
+        "Helpers require imports: `from kova_tools import json_parse, shell_quote, retry`. "
         "json_parse(text) — tolerant "
         "json.loads for terminal() output; shell_quote(s) — shlex.quote for "
         "dynamic shell args; retry(fn, max_attempts=3, delay=2) — exponential backoff."
@@ -935,7 +935,7 @@ def build_execute_code_schema(enabled_sandbox_tools: set | None = None,
             "properties": {
                 "code": {"type": "string", "description": (
                     "Python code to execute. Import tools with "
-                    f"`from hermes_tools import {import_str}` "
+                    f"`from kova_tools import {import_str}` "
                     "and print your final result to stdout.")},
                 "reset": {"type": "boolean", "description": (
                     "Discard the kernel's persistent state and start fresh before running this code.")},

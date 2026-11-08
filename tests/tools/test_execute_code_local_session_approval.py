@@ -103,7 +103,7 @@ def turn(monkeypatch, tmp_path):
 def _rm_script(victim) -> tuple[str, str]:
     command = f"rm -rf {victim}"
     assert detect_dangerous_command(command)[0], "probe command must trip a per-command guard"
-    return command, ("import json\nfrom hermes_tools import terminal\n"
+    return command, ("import json\nfrom kova_tools import terminal\n"
                      f"print(json.dumps(terminal({command!r})))")
 
 

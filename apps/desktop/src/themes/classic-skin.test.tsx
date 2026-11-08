@@ -13,7 +13,7 @@ const stockDefaultSkin = {
   colors: { banner_text: '#FFF8DC', status_bar_bg: '#1a1a2e', ui_accent: '#FFBF00', banner_border: '#CD7F32' }
 }
 
-const BACKEND_THEMES_KEY = 'hermes-desktop-backend-themes-v1'
+const BACKEND_THEMES_KEY = 'kova-desktop-backend-themes-v1'
 
 const cssVar = (name: string) => window.document.documentElement.style.getPropertyValue(name)
 const paintedSkin = () => window.document.documentElement.dataset.kovaTheme
@@ -112,14 +112,14 @@ describe('Classic Kova is an explicit Desktop pick, never inferred from stock co
     expect(paintedSkin()).toBe('nous')
   })
 
-  it('/skin gold and /skin hermes select Classic; /skin default stays the Desktop default (Nous)', async () => {
+  it('/skin gold and /skin kova select Classic; /skin default stays the Desktop default (Nous)', async () => {
     const run = await launch(stockDefaultSkin)
 
     act(() => void run.api.skin?.('gold'))
     expect(run.api.theme?.themeName).toBe('classic')
 
     act(() => void run.api.skin?.('nous'))
-    act(() => void run.api.skin?.('hermes'))
+    act(() => void run.api.skin?.('kova'))
     expect(run.api.theme?.themeName).toBe('classic')
 
     act(() => void run.api.skin?.('default'))

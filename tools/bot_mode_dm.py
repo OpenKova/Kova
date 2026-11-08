@@ -47,7 +47,7 @@ MESSAGE_MAX_CHARS = 16000
 REPLY_COMPLETION_CHARS = MESSAGE_MAX_CHARS + 2000
 # A runner owns and removes each DM file; this bounds residual plaintext lifetime if
 # the machine dies between spawn ack and the runner's finally.
-_DM_DIR_NAME = "hermes-dm"
+_DM_DIR_NAME = "kova-dm"
 _DM_STALE_SECONDS = 24 * 60 * 60
 _LIVE_WAIT_SECONDS = 300
 # A live owner may run a turn past one wait window, but each waiting runner holds ~46 MB and the
@@ -90,7 +90,7 @@ def message_agent_tool_schema() -> dict:
                 "properties": {
                     "target": {
                         "type": "string",
-                        "description": (f"Who to message ('hermes' is the default agent). Up to {FAN_OUT_MAX} "
+                        "description": (f"Who to message ('kova' is the default agent). Up to {FAN_OUT_MAX} "
                                         "comma-separated names fan out: one combined reply."),
                     },
                     "message": {
@@ -172,7 +172,7 @@ def ensure_message_agent_tool(agent: Any) -> bool:
 
 
 def _resolve_local_name(target: str, roster: list[str], root: Path | None = None) -> Optional[str]:
-    """Map a target to a local profile FOLDER id: 'hermes' → 'default' unless a real 'hermes'
+    """Map a target to a local profile FOLDER id: 'kova' → 'default' unless a real 'kova'
     profile holds that handle (``_profile_for_handle``); an exact folder id
     (case-insensitive); else — when ``root`` is given — a friendly name or its Desktop @-slug
     (profile.yaml ``display_name`` / Bot Mode title: 'Scribe', '@scribe', 'Dr. Foo' → 'foo').
@@ -244,7 +244,7 @@ def message_agent_tool(target: str = "", message: str = "", task_id: Optional[st
     home = _agent_home(agent)
     try:
         from tools.bot_mode_probe import (
-            BOT_CHAT_TITLE, NO_REPLY_MARKER, _display_name, _handle, _hermes_root, _peers,
+            BOT_CHAT_TITLE, NO_REPLY_MARKER, _display_name, _handle, _kova_root, _peers,
             _profile_name as _self_profile_name, _roster, is_bot_mode_managed,
         )
 
@@ -259,7 +259,7 @@ def message_agent_tool(target: str = "", message: str = "", task_id: Optional[st
     from kova_cli.observability.shared_metrics_signals import record_feature_used
     record_feature_used("bot_mode", kova_home=home)
 
-    root, me = _hermes_root(Path(home)), _self_profile_name(Path(home))
+    root, me = _kova_root(Path(home)), _self_profile_name(Path(home))
     roster_homes = dict(_roster(root))
     peers = _peers(root)
     sender = Sender(home=home, root=root, me=me, roster_homes=roster_homes, peers=peers,
@@ -320,7 +320,7 @@ def _dispatch(raw_target: str, content: str, sender: Sender, *, wake: Any) -> st
         # load_config(), while the roster above reads the machine-root config — the CLI must run
         # in that same profile or a secondary-profile bot sees an empty registry.
         # The delivery runs in a background service context whose PATH lacks the gateway's
-        # venv bin dir, so a bare "hermes" resolves to a system install and dies on import
+        # venv bin dir, so a bare "kova" resolves to a system install and dies on import
         # under the wrong interpreter (#108628). _kova_cli pins the entrypoint beside
         # this interpreter; _local_delivery_home matches argv[0] by basename,
         # so the absolute path stays compatible.
@@ -328,9 +328,9 @@ def _dispatch(raw_target: str, content: str, sender: Sender, *, wake: Any) -> st
                                f"@{peer_profile or peer_name} on peer '{peer_name}'", stdin_file=True,
                                author=peer_author, **delivery)
 
-    # A connection-qualified target ('hermes@mini') names a relay row outright; it is the form the relay itself
+    # A connection-qualified target ('kova@mini') names a relay row outright; it is the form the relay itself
     # hands out for a colliding row, and stamps on replies. Resolved locally first, a local bot whose friendly
-    # name slugs to 'hermes-mini' captured it. An '@' name no connection answers to still resolves locally.
+    # name slugs to 'kova-mini' captured it. An '@' name no connection answers to still resolves locally.
     if "@" in raw_target.strip().lstrip("@"):
         # The sender's own relay folder, as below: the default's would relay a named bot's DM as the default.
         relayed = _try_relay_delivery(Path(sender.home), raw_target, content, me, **delivery)
@@ -371,7 +371,7 @@ def _try_relay_delivery(root: Path, raw_target: str, content: str, me: str, *,
     to drain; a background waiter is spawned immediately so the relayed reply wakes
     the sender through the standard completion-notification path."""
     try:
-        from tools.bot_mode_probe import _handle, _hermes_root, _roster, local_taken_forms
+        from tools.bot_mode_probe import _handle, _kova_root, _roster, local_taken_forms
         from tools.bot_relay import (
             EnvelopeRefusedError, _target_aliases, enqueue_envelope, read_remote_roster, remote_target_forms,
             resolve_remote_target, waiter_command,
@@ -388,7 +388,7 @@ def _try_relay_delivery(root: Path, raw_target: str, content: str, me: str, *,
             return _err(f"'{raw_target}' exists on several connected machines — disambiguate with one of: {forms}.")
         try:
             envelope = enqueue_envelope(root, target=match, message=content, sender_profile=me,
-                                       sender_handle=_handle(me, [n for n, _d in _roster(_hermes_root(root))]))
+                                       sender_handle=_handle(me, [n for n, _d in _roster(_kova_root(root))]))
         except EnvelopeRefusedError as exc:
             # Fail fast: target definitively offline — nothing was queued.
             # Structured refusal so the agent can distinguish it from a resolution error ('runtime_offline'
@@ -440,7 +440,7 @@ def cleanup_bot_dm_cache(max_age_hours: float = _DM_STALE_SECONDS / 3600, *, now
     Same contract as the other ``cleanup_*_cache`` helpers (hourly gateway housekeeping);
     legacy temp-root locations from versions predating the dedicated directory are swept too."""
     temp_root = Path(tempfile.gettempdir())
-    locations = [(temp_root, "hermes-dm-*.txt"), (temp_root, "hermes-relay-dm-*.txt")]
+    locations = [(temp_root, "kova-dm-*.txt"), (temp_root, "kova-relay-dm-*.txt")]
     with contextlib.suppress(OSError):
         dm_dir = _dm_dir()
         locations.append((dm_dir, "*.txt"))
@@ -670,11 +670,11 @@ def _live_target_state(dm_file: str | os.PathLike | None) -> Optional[str]:
 
 def _local_delivery_home(argv: list[str]) -> Path | None:
     cli = (argv[0] if argv else "").rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
-    if len(argv) < 3 or cli not in ("hermes", "hermes.exe") or argv[1] != "-p":
+    if len(argv) < 3 or cli not in ("kova", "kova.exe") or argv[1] != "-p":
         return None
-    from tools.bot_mode_probe import _hermes_root, _roster
+    from tools.bot_mode_probe import _kova_root, _roster
 
-    return dict(_roster(_hermes_root(Path(_default_home())))).get(argv[2])
+    return dict(_roster(_kova_root(Path(_default_home())))).get(argv[2])
 
 
 def _live_outcome_unknown(dm_file: str, cause: object) -> str:

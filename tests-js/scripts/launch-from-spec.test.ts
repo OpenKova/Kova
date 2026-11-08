@@ -18,7 +18,7 @@ test.runIf(process.platform !== 'win32')('the launch environment keeps Chromium 
 
   const env = smokeEnvironment(
     { TEMP: inheritedTemp, TMP: inheritedTemp, TMPDIR: inheritedTemp },
-    '/isolated/hermes-home',
+    '/isolated/kova-home',
     '/isolated/user-data',
   )
 
@@ -39,7 +39,7 @@ test('the update window carries Kova connection state without cloning Chromium s
   }
 
   const captured = {
-    KOVA_HOME: path.join(root, 'hermes-home'),
+    KOVA_HOME: path.join(root, 'kova-home'),
     KOVA_DESKTOP_USER_DATA_DIR: userData,
     PATH: process.env.PATH || '',
   }

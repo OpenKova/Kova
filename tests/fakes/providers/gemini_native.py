@@ -50,7 +50,7 @@ SKIP_SIGNATURES = frozenset({"skip_thought_signature_validator", "context_engine
 KOVA_ENV = {"GEMINI_API_KEY": API_KEY}
 
 
-def hermes_model(base_url: str | None = None, **extra: Any) -> dict[str, Any]:
+def kova_model(base_url: str | None = None, **extra: Any) -> dict[str, Any]:
     model: dict[str, Any] = {"provider": "gemini", "default": MODEL_ID, **extra}
     if base_url:
         model["base_url"] = base_url
@@ -399,7 +399,7 @@ def _write_tls_material(directory: Path) -> tuple[Path, Path, Path]:
 
     now = datetime.datetime.now(datetime.UTC)
     ca_key = ec.generate_private_key(ec.SECP256R1())
-    ca_name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "hermes-e2e gemini fake CA")])
+    ca_name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "kova-e2e gemini fake CA")])
     ca = (x509.CertificateBuilder().subject_name(ca_name).issuer_name(ca_name)
           .public_key(ca_key.public_key()).serial_number(x509.random_serial_number())
           .not_valid_before(now - datetime.timedelta(minutes=5)).not_valid_after(now + datetime.timedelta(days=1))
@@ -473,7 +473,7 @@ class GeminiFake:
         return f"http://127.0.0.1:{self._server.server_address[1]}"
 
     def child_env(self) -> dict[str, str]:
-        """Env for the ``hermes`` child: route HTTPS through the proxy and trust the fake CA."""
+        """Env for the ``kova`` child: route HTTPS through the proxy and trust the fake CA."""
         ca = str(self.ca_pem)
         return {"HTTPS_PROXY": self.proxy_url, "https_proxy": self.proxy_url,
                 "HTTP_PROXY": self.proxy_url, "http_proxy": self.proxy_url,
@@ -596,7 +596,7 @@ class GeminiFake:
                 if self.tunneled or host != GEMINI_HOST:
                     with fake._lock:
                         fake.refused_hosts.append(host)
-                    self.send_response(403, "Forbidden by hermes e2e fake proxy")
+                    self.send_response(403, "Forbidden by kova e2e fake proxy")
                     self.send_header("Content-Length", "0")
                     self.end_headers()
                     self.close_connection = True

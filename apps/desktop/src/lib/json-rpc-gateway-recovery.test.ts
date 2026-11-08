@@ -126,7 +126,7 @@ class RecoveryBackend {
   }
 }
 
-describe('hermes-ws-recovery-v1 silent blackhole', () => {
+describe('kova-ws-recovery-v1 silent blackhole', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.useRealTimers()

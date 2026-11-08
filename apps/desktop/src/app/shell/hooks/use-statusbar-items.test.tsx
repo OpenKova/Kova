@@ -139,7 +139,7 @@ describe('statusbar update channel vocabulary', () => {
       $desktopVersion.set({
         appVersion: '0.21.6',
         electronVersion: '37',
-        hermesRoot: '/h',
+        kovaRoot: '/h',
         nodeVersion: '22',
         platform: 'linux'
       })
@@ -163,7 +163,7 @@ describe('statusbar update channel vocabulary', () => {
       $desktopVersion.set({
         appVersion: '0.21.7',
         electronVersion: '37',
-        hermesRoot: '/h',
+        kovaRoot: '/h',
         nodeVersion: '22',
         platform: 'linux'
       })

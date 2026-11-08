@@ -62,7 +62,7 @@ def _install_modal_test_modules(
     kova_cli = types.ModuleType("kova_cli")
     kova_cli.__path__ = [str(REPO_ROOT / "kova_cli")]  # type: ignore[attr-defined]
     sys.modules["kova_cli"] = kova_cli
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     os.environ["KOVA_HOME"] = str(kova_home)
 
     tools_package = types.ModuleType("tools")
@@ -255,7 +255,7 @@ def test_concurrent_snapshot_stores_keep_both_tasks(tmp_path, monkeypatch):
     second store must not be overwritten by the first one's stale read of the file."""
     import threading
 
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     import tools.environments.base as base_module
     import tools.environments.modal as modal_module
     from tests.lock_contention import watch_file_lock_contention
@@ -304,7 +304,7 @@ def test_snapshot_store_update_proceeds_when_the_lock_is_unavailable(tmp_path, m
     import kova_cli.auth as auth_module
     import tools.environments.modal as modal_module
 
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
 
     @contextlib.contextmanager
     def wedged_lock(*_args, **_kwargs):

@@ -403,7 +403,7 @@ describe('/save writes on the Electron side', () => {
 
     const requestGateway = gateway(method =>
       method === 'session.export'
-        ? { format: 'md', filename: 'hermes_session_s1.md', content: '# transcript' }
+        ? { format: 'md', filename: 'kova_session_s1.md', content: '# transcript' }
         : undefined
     )
 
@@ -427,7 +427,7 @@ describe('/save writes on the Electron side', () => {
     ;(window as unknown as { kovaDesktop: unknown }).kovaDesktop = { saveTextFileAs }
 
     const requestGateway = gateway(method =>
-      method === 'session.export' ? { format: 'json', filename: 'hermes_session_s1.json', content: '{}' } : undefined
+      method === 'session.export' ? { format: 'json', filename: 'kova_session_s1.json', content: '{}' } : undefined
     )
 
     const handle = await mount(requestGateway)
@@ -435,7 +435,7 @@ describe('/save writes on the Electron side', () => {
     await handle.submitText('/save')
 
     expect(callsOf(requestGateway, 'session.export')).toEqual([{ session_id: RUNTIME_SESSION_ID, format: 'json' }])
-    expect(saveTextFileAs).toHaveBeenCalledWith(expect.objectContaining({ defaultPath: 'hermes_session_s1.json' }))
+    expect(saveTextFileAs).toHaveBeenCalledWith(expect.objectContaining({ defaultPath: 'kova_session_s1.json' }))
     expect(renderedText(handle)).toContain(copy.saveCancelled)
   })
 

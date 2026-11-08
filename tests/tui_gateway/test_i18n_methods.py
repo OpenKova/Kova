@@ -34,7 +34,7 @@ def test_languages_and_catalog_serve_pack_layers_per_surface(tmp_path, monkeypat
     monkeypatch.setattr(server, "_kova_home", home)
     i18n.reset_language_cache()
 
-    ctx = PluginContext(PluginManifest(name="hermes-lang-pl", source="user", path=str(home)), PluginManager())
+    ctx = PluginContext(PluginManifest(name="kova-lang-pl", source="user", path=str(home)), PluginManager())
     ctx.register_locale("pl", {"approval": {"denied": "Odrzucono"}}, endonym="Polski")
     ctx.register_locale("pl", {"status": {"ready": "Gotowy"}}, surface="tui")
     ctx.register_locale("pl", {"settings": {"title": "Ustawienia"}}, surface="desktop", rtl=False)
@@ -42,7 +42,7 @@ def test_languages_and_catalog_serve_pack_layers_per_surface(tmp_path, monkeypat
     languages = _call(server, "i18n.languages", {})["result"]["languages"]
     ids = [row["id"] for row in languages]
     assert ids == ["en", *sorted(ids[1:])]
-    assert {"id": "pl", "endonym": "Polski", "rtl": False, "source": "plugin:hermes-lang-pl",
+    assert {"id": "pl", "endonym": "Polski", "rtl": False, "source": "plugin:kova-lang-pl",
             "surfaces": ["core", "tui", "desktop"]} in languages
     assert {"id": "ar", "endonym": "العربية", "rtl": True, "source": "bundled", "surfaces": ["core", "tui"]} in languages
 
@@ -85,18 +85,18 @@ def test_cold_gateway_serves_an_installed_pack_before_any_agent_exists(tmp_path,
     from kova_cli import plugins as plugins_mod
 
     home = tmp_path / "home"
-    plugin = home / "plugins" / "hermes-lang-ko"
+    plugin = home / "plugins" / "kova-lang-ko"
     (plugin / "locales").mkdir(parents=True)
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     (plugin / "plugin.yaml").write_text(yaml.safe_dump({
-        "name": "hermes-lang-ko", "version": "1.0.0", "description": "Korean pack",
+        "name": "kova-lang-ko", "version": "1.0.0", "description": "Korean pack",
         "provides_locales": [{"id": "ko", "endonym": "한국어"}]}, allow_unicode=True), encoding="utf-8")
     (plugin / "locales" / "ko.yaml").write_text("{}\n", encoding="utf-8")
     (plugin / "locales" / "ko.desktop.yaml").write_text(
         yaml.safe_dump({"settings": {"appearance": {"modelPricingTitle": "모델 가격"}}}, allow_unicode=True),
         encoding="utf-8")
-    (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"enabled": ["hermes-lang-ko"]}}), encoding="utf-8")
+    (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"enabled": ["kova-lang-ko"]}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
     monkeypatch.setenv("KOVA_HOME", str(home))
     monkeypatch.setattr(server, "_kova_home", home)
@@ -106,7 +106,7 @@ def test_cold_gateway_serves_an_installed_pack_before_any_agent_exists(tmp_path,
     assert "ko" not in i18n_layers.pack_languages()  # nothing has loaded plugins in this home yet
     try:
         ko = next(row for row in _call(server, "i18n.languages", {})["result"]["languages"] if row["id"] == "ko")
-        assert ko["source"] == "plugin:hermes-lang-ko" and "desktop" in ko["surfaces"]
+        assert ko["source"] == "plugin:kova-lang-ko" and "desktop" in ko["surfaces"]
         desktop = _call(server, "i18n.catalog", {"lang": "ko", "surface": "desktop"})["result"]
         assert desktop["messages"] == {"settings.appearance.modelPricingTitle": "모델 가격"}
     finally:

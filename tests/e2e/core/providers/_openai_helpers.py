@@ -1,6 +1,6 @@
 """Shared harness for the OpenAI-dialect provider wire-conformance suite.
 
-Every test drives REAL Kova processes (``hermes -z`` oneshot, ``--resume``, the
+Every test drives REAL Kova processes (``kova -z`` oneshot, ``--resume``, the
 ``tui_gateway`` stdio server) against a loopback fake of the vendor HTTP API
 (``tests/fakes/providers``) and asserts on the next wire request Kova sends, the
 user-visible answer, and persisted ``state.db`` rows. Homes are hermetic: a fake HOME
@@ -203,18 +203,18 @@ class Run:
                 f"stdout={self.proc.stdout[-1500:]!r}\nstderr={self.proc.stderr[-4000:]}")
 
 
-def hermes_argv(*args: str) -> list[str]:
+def kova_argv(*args: str) -> list[str]:
     return [sys.executable, "-m", "kova_cli.main", *args]
 
 
 def oneshot(h: Home, prompt: str, *args: str, resume: str | None = None, timeout: float = TURN_TIMEOUT,
             env: dict[str, str] | None = None) -> Run:
-    """One real ``hermes -z`` turn; the usage file names the session for ``--resume``."""
+    """One real ``kova -z`` turn; the usage file names the session for ``--resume``."""
     usage_file = h.root / f"usage-{time.monotonic_ns()}.json"
     argv = ["-z", prompt, "--usage-file", str(usage_file), *args]
     if resume:
         argv += ["--resume", resume]
-    proc = subprocess.run(hermes_argv(*argv), cwd=h.project, env=h.env(env), capture_output=True,
+    proc = subprocess.run(kova_argv(*argv), cwd=h.project, env=h.env(env), capture_output=True,
                           text=True, encoding="utf-8", errors="replace", timeout=timeout, stdin=subprocess.DEVNULL, check=False)
     usage = json.loads(usage_file.read_text(encoding="utf-8")) if usage_file.exists() else {}
     return Run(proc, usage)

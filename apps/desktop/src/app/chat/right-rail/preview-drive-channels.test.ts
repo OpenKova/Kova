@@ -199,7 +199,7 @@ describe('preview script wake scope', () => {
 
     view.executeJavaScript.mockImplementation(async code =>
       JSON.stringify(
-        code.includes('hermes-focus-probe')
+        code.includes('kova-focus-probe')
           ? { success: true, focused: true, tag: 'INPUT' }
           : code.includes('document.activeElement') && !code.includes('"kind":"locate"')
             ? { success: true, field: true, len: 0 }

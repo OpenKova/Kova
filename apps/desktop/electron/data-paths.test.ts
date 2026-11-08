@@ -24,7 +24,7 @@ test('default data roots append the suffix literally on each platform', (): void
     const home: string = platform === 'win32' ? 'C:\\Users\\test' : '/home/test'
     const local: string = paths.join(home, 'AppData', 'Local')
     const userData: string = paths.join(home, 'app-data', 'Kova')
-    const base: string = platform === 'win32' ? paths.join(local, 'hermes') : paths.join(home, '.kova')
+    const base: string = platform === 'win32' ? paths.join(local, 'kova') : paths.join(home, '.kova')
 
     for (const suffix of ['', '-asdfasdf', 'magic-test', ' spaced ']) {
       const env: NodeJS.ProcessEnv = { LOCALAPPDATA: local, KOVA_DATA_DIR_SUFFIX: suffix }
@@ -51,11 +51,11 @@ test('explicit homes and userData retain precedence, and suffixed Windows homes 
   assert.equal(resolveDesktopUserData('/default/electron', env), path.resolve(env.KOVA_DESKTOP_USER_DATA_DIR!))
   assert.equal(resolveDesktopKovaHome({ home, env, platform: 'linux' }), env.KOVA_HOME)
   delete env.KOVA_HOME
-  assert.equal(resolveDesktopKovaHome({ home, env, platform: 'linux' }), '/explicit/electron/hermes-home')
+  assert.equal(resolveDesktopKovaHome({ home, env, platform: 'linux' }), '/explicit/electron/kova-home')
 
   const windowsHome: string = 'C:\\Users\\test'
   const windowsEnv: NodeJS.ProcessEnv = { KOVA_DATA_DIR_SUFFIX: 'magic-test' }
-  const expected: string = path.win32.join(windowsHome, 'AppData', 'Local', 'hermesmagic-test')
+  const expected: string = path.win32.join(windowsHome, 'AppData', 'Local', 'kovamagic-test')
 
   assert.equal(
     resolveDesktopKovaHome({

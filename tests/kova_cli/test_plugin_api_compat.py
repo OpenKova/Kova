@@ -15,7 +15,7 @@ def test_legacy_plugin_loads_and_ignores_additive_hook_and_manifest_fields(
     tmp_path, monkeypatch
 ):
     """A frozen plugin keeps working as manifests and hook payloads grow."""
-    kova_home = tmp_path / "hermes-home"
+    kova_home = tmp_path / "kova-home"
     plugins_dir = kova_home / "plugins"
     plugins_dir.mkdir(parents=True)
     shutil.copytree(LEGACY_PLUGIN, plugins_dir / "legacy-contract-fixture")

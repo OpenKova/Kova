@@ -43,7 +43,7 @@ def _get_allowed() -> set[str]:
 _config_passthrough: dict[str, frozenset[str]] = {}
 
 
-def _is_hermes_provider_credential(name: str) -> bool:
+def _is_kova_provider_credential(name: str) -> bool:
     """True if ``name`` is a Kova-managed provider credential per
     ``_KOVA_PROVIDER_ENV_BLOCKLIST`` or a dynamic Kova-internal secret
     (AUXILIARY_*_API_KEY / _BASE_URL, GATEWAY_RELAY_*). Skill-declared
@@ -53,8 +53,8 @@ def _is_hermes_provider_credential(name: str) -> bool:
     registerable. Fails closed when the blocklist cannot be imported."""
     try:
         from tools.environments.local_env_policy import (
-            _is_hermes_internal_secret, _is_provider_env_blocklisted)
-    except Exception as e:
+            _is_kova_internal_secret, _is_provider_env_blocklisted)
+    except Exception as e:  # health: allow BLE001 -- import failure fails closed (returns True) and is logged
         logger.warning(
             "env passthrough: provider credential blocklist import failed; "
             "failing closed and refusing passthrough registration for %r: %s", name, e)
@@ -62,7 +62,7 @@ def _is_hermes_provider_credential(name: str) -> bool:
     # Case-folded membership too: the remote-exec env builder resolves each
     # registered name via os.getenv(), which is case-insensitive on Windows, so
     # ``openai_api_key`` would tunnel the real OPENAI_API_KEY into children.
-    return _is_hermes_internal_secret(name) or _is_provider_env_blocklisted(name)
+    return _is_kova_internal_secret(name) or _is_provider_env_blocklisted(name)
 
 
 def register_env_passthrough(var_names: Iterable[str]) -> None:
@@ -86,7 +86,7 @@ def _accepted(names, refusal_msg: str):
     for name in names:
         if not name:
             continue
-        if _is_hermes_provider_credential(name):
+        if _is_kova_provider_credential(name):
             logger.warning(refusal_msg, name)
             continue
         yield name
@@ -130,14 +130,14 @@ def is_env_passthrough(var_name: str) -> bool:
     registered later declares the name in its ``required_env`` or manifest), so the refusal applied at registration
     is re-applied here, where every child builder consumes the allowlist."""
     return ((var_name in _get_allowed() or var_name in _load_config_passthrough())
-            and not _is_hermes_provider_credential(var_name))
+            and not _is_kova_provider_credential(var_name))
 
 
 def get_all_passthrough() -> frozenset[str]:
     """Return the union of skill-registered and config-based passthrough vars, minus names
     that have become Kova-managed credentials since they were accepted."""
     return frozenset(name for name in frozenset(_get_allowed()) | _load_config_passthrough()
-                     if not _is_hermes_provider_credential(name))
+                     if not _is_kova_provider_credential(name))
 
 
 def resolve_passthrough_value(name: str, fallback: str | None = None) -> str | None:
@@ -162,7 +162,7 @@ def resolve_passthrough_value(name: str, fallback: str | None = None) -> str | N
 def scoped_passthrough_additions(present: Iterable[str]) -> dict[str, str]:
     """Declared passthrough names the bound profile secret scope supplies but the env being
     filtered (*present*) lacks. A routed profile's ``.env`` and hydrated sources never enter
-    ``os.environ`` (``load_hermes_dotenv`` skips the process-global load for a routed home), so a
+    ``os.environ`` (``load_kova_dotenv`` skips the process-global load for a routed home), so a
     name-by-name filter over the process env can only forward a declared name the LAUNCH profile
     also happens to define — the served profile's own value has no way in (#114209). Reads the
     bound scope alone: never ``os.environ``, never another profile. Empty without a scope, so

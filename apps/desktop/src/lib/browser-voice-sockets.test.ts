@@ -46,7 +46,7 @@ afterEach(() => {
   delete win.__KOVA_BASE_PATH__
   clearWebappSession()
   Reflect.deleteProperty(win, 'kovaDesktop')
-  document.documentElement.removeAttribute('data-hermes-desktop-host')
+  document.documentElement.removeAttribute('data-kova-desktop-host')
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   vi.unstubAllGlobals()
@@ -57,21 +57,21 @@ describe('browser-hosted Desktop voice streams', () => {
   it('speaks on a ticket minted for the speech stream, never the gateway ticket', async () => {
     const win = mutableWindow()
     win.__KOVA_AUTH_REQUIRED__ = true
-    win.__KOVA_BASE_PATH__ = '/hermes'
+    win.__KOVA_BASE_PATH__ = '/kova'
     const fetchMock = serveTickets()
     expect(installBrowserDesktopBridge()).toBe(true)
     setApiRequestProfile('worker-a')
 
     const url = new URL((await resolveSpeakStreamUrl())!)
 
-    expect(url.pathname).toBe('/hermes/api/audio/speak-stream')
+    expect(url.pathname).toBe('/kova/api/audio/speak-stream')
     expect(url.searchParams.get('ticket')).toBe('speak-stream-ticket')
     expect(url.searchParams.get('profile')).toBe('worker-a')
     expect(url.searchParams.has('token')).toBe(false)
 
     const [mint, ...others] = minted(fetchMock)
     expect(others).toEqual([])
-    expect(mint.url.pathname).toBe('/hermes/api/webapp/socket-ticket')
+    expect(mint.url.pathname).toBe('/kova/api/webapp/socket-ticket')
     expect(mint.url.searchParams.get('socket')).toBe('speak-stream')
     expect(mint.init?.method).toBe('POST')
     expect(mint.init?.credentials).toBe('same-origin')

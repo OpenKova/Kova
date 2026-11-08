@@ -283,7 +283,7 @@ class TestSendMessageTool:
 
     def test_ntfy_topic_target_bypasses_channel_directory(self):
         ntfy_platform = Platform("ntfy")
-        ntfy_cfg = SimpleNamespace(enabled=True, token=None, extra={"topic": "hermes-in"})
+        ntfy_cfg = SimpleNamespace(enabled=True, token=None, extra={"topic": "kova-in"})
         config = SimpleNamespace(
             platforms={ntfy_platform: ntfy_cfg},
             get_home_channel=lambda _platform: None,
@@ -358,9 +358,9 @@ class TestSendMessageTool:
             force_document=False,
         )
 
-    def test_missing_media_is_reported_to_the_caller_and_hermes_send_exits_nonzero(self, tmp_path, monkeypatch):
+    def test_missing_media_is_reported_to_the_caller_and_kova_send_exits_nonzero(self, tmp_path, monkeypatch):
         """#115908: a MEDIA path that does not exist on the host was dropped with only a host-side
-        warning while ``hermes send`` printed success:true and exited 0. The surviving attachment is
+        warning while ``kova send`` printed success:true and exited 0. The surviving attachment is
         still sent; the payload names the drop and the CLI exit code follows it."""
         from kova_cli.send_cmd import _emit_result
 
@@ -528,7 +528,7 @@ class TestSendToPlatformChunking:
     def test_signal_long_message_is_chunked(self, monkeypatch):
         """Standalone Signal sends split at the adapter's 8000-char limit.
 
-        The standalone path (hermes send / cron / MCP) speaks raw JSON-RPC via
+        The standalone path (kova send / cron / MCP) speaks raw JSON-RPC via
         _send_signal and bypasses SignalAdapter.send(), so the shared
         truncate_message() pass in _send_to_platform must know Signal's limit
         (regression for #67279 / #57929 — long sends were rejected whole).
@@ -895,7 +895,7 @@ class TestParseTargetRef:
              "!HLOQwxYGgFPMPJUSNR:matrix.org", "$thread123:matrix.org"),
             ("matrix", "!HLOQwxYGgFPMPJUSNR:matrix.org",
              "!HLOQwxYGgFPMPJUSNR:matrix.org", None),
-            ("matrix", "@hermes:matrix.org", "@hermes:matrix.org", None),
+            ("matrix", "@kova:matrix.org", "@kova:matrix.org", None),
             # Phone platforms: E.164 keeps its '+' for signal-cli; groups and
             # bare digits also resolve.
             ("signal", "+41791234567", "+41791234567", None),
@@ -1496,8 +1496,8 @@ class _FakePlatform:
 class TestSendViaAdapterStandaloneFallback:
     """Coverage for the out-of-process plugin-platform send path.
 
-    When the gateway runner is not in this process (e.g. ``hermes cron``
-    runs separately from ``hermes gateway``), ``_send_via_adapter`` should
+    When the gateway runner is not in this process (e.g. ``kova cron``
+    runs separately from ``kova gateway``), ``_send_via_adapter`` should
     fall through to the plugin's ``standalone_sender_fn`` registered on
     its ``PlatformEntry``.  Without the hook, the existing error string
     is returned (with a more helpful tail).
@@ -1650,7 +1650,7 @@ def test_not_configured_error_names_resolved_home_and_consulted_sources(tmp_path
     from gateway.config import GatewayConfig
     from tools.send_message_tool import _resolve_platform_config
 
-    home = tmp_path / "AppData" / "Local" / "hermes"
+    home = tmp_path / "AppData" / "Local" / "kova"
     home.mkdir(parents=True)
     (home / ".env").write_text("FIRECRAWL_API_KEY=x\n", encoding="utf-8")
     (home / "config.yaml").write_text("platforms:\n  discord:\n    enabled: false\n", encoding="utf-8")
@@ -1674,7 +1674,7 @@ def test_not_configured_error_names_default_root_gateway_and_secret_sources(tmp_
     from gateway.config import GatewayConfig
     from tools.send_message_tool import _resolve_platform_config
 
-    root = tmp_path / "hermes"
+    root = tmp_path / "kova"
     profile = root / "profiles" / "coder"
     profile.mkdir(parents=True)
     (root / "gateway_state.json").write_text(

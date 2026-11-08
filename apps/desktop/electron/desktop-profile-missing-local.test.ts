@@ -18,7 +18,7 @@ let logs: string[] = []
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'desktop-profile-missing-'))
   target = path.join(root, 'user-data', 'active-profile.json')
-  profilesRoot = path.join(root, 'hermes-home', 'profiles')
+  profilesRoot = path.join(root, 'kova-home', 'profiles')
   fs.mkdirSync(profilesRoot, { recursive: true })
   logs = []
 })
@@ -39,15 +39,15 @@ function check(overrides: Partial<MissingLocalProfileCheck> = {}): MissingLocalP
 }
 
 test('a remembered local profile missing from the Kova home falls back to default on disk', () => {
-  createDesktopProfilePreferences(target).remember('hermes-contributor')
+  createDesktopProfilePreferences(target).remember('kova-contributor')
 
   const preferences = createDesktopProfilePreferences(target)
 
-  assert.deepEqual(preferences.forgetMissingLocalProfiles(check()), ['hermes-contributor'])
+  assert.deepEqual(preferences.forgetMissingLocalProfiles(check()), ['kova-contributor'])
   assert.equal(preferences.readActive(), 'default')
   // The next launch reads the repaired file, not a cached value.
   assert.equal(createDesktopProfilePreferences(target).readActive(), 'default')
-  assert.match(logs.join('\n'), /last-used profile "hermes-contributor" no longer exists/)
+  assert.match(logs.join('\n'), /last-used profile "kova-contributor" no longer exists/)
   assert.deepEqual(preferences.forgetMissingLocalProfiles(check()), [])
 })
 

@@ -12,7 +12,7 @@ import kova_cli.plugins_cadence as cad
 
 @pytest.fixture
 def homed(tmp_path, monkeypatch):
-    """Cadence state (markers) inside a temp hermes home."""
+    """Cadence state (markers) inside a temp kova home."""
     import kova_constants
 
     monkeypatch.setattr(kova_constants, "get_kova_home", lambda: tmp_path)

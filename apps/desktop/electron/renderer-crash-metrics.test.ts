@@ -16,7 +16,7 @@ let dir: string
 let file: string
 
 beforeEach(() => {
-  dir = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'hermes-renderer-crash-'))
+  dir = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'kova-renderer-crash-'))
   file = path.join(dir, PENDING_RENDERER_CRASH_FILE)
 })
 

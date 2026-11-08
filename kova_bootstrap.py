@@ -4,7 +4,7 @@ hardening, durable lazy-install target, and dual-stack (Happy Eyeballs) connects
 Windows binds stdio to the console code page (cp1252), so ``print("café")`` raises
 ``UnicodeEncodeError``, and Python children inherit the same default unless
 ``PYTHONUTF8``/``PYTHONIOENCODING`` are set. Import this module first in every entry
-point (``hermes``, ``kova-agent``, ``hermes-acp``, ``gateway.run``, ``batch_runner``,
+point (``kova``, ``kova-agent``, ``kova-acp``, ``gateway.run``, ``batch_runner``,
 ``cron/scheduler``). It does NOT re-exec with ``-X utf8``: ``open()`` in the current
 process still needs an explicit ``encoding="utf-8"`` (ruff ``PLW1514``). POSIX is left
 alone deliberately — users' ``LANG``/``LC_*`` choices are respected.
@@ -148,7 +148,7 @@ def _happy_eyeballs_create_connection(address: tuple[str, int], timeout: float |
 
 def _patch_urllib3_create_connection(module) -> None:
     """Point ``urllib3.util.connection.create_connection`` (its own serial walker) at the racer."""
-    if getattr(module.create_connection, "_hermes_happy_eyeballs", False):
+    if getattr(module.create_connection, "_kova_happy_eyeballs", False):
         return
     urllib3_sentinel = module._DEFAULT_TIMEOUT
 
@@ -159,14 +159,14 @@ def _patch_urllib3_create_connection(module) -> None:
         return _happy_eyeballs_create_connection(
             address, effective, source_address=source_address, socket_options=tuple(socket_options or ()))
 
-    _urllib3_racer._hermes_happy_eyeballs = True  # type: ignore[attr-defined]
+    _urllib3_racer._kova_happy_eyeballs = True  # type: ignore[attr-defined]
     module.create_connection = _urllib3_racer
 
 
 class _Urllib3ConnectionPatcher(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     """One-shot import hook: patch urllib3's connect walker the moment the module loads.
 
-    Importing urllib3 eagerly costs ~50 ms on every CLI start, and ``hermes`` / the TUI
+    Importing urllib3 eagerly costs ~50 ms on every CLI start, and ``kova`` / the TUI
     gateway never load it unless something actually calls ``requests``.
     """
 
@@ -202,7 +202,7 @@ def install_happy_eyeballs_socket_connect() -> None:
     results serially — on a network whose advertised IPv6 route is blackholed, each AAAA
     record burns the full connect timeout before IPv4 answers. Idempotent, best-effort.
     """
-    if getattr(socket.create_connection, "_hermes_happy_eyeballs", False):
+    if getattr(socket.create_connection, "_kova_happy_eyeballs", False):
         return
 
     def _socket_racer(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None, *, all_errors=False):
@@ -214,7 +214,7 @@ def install_happy_eyeballs_socket_connect() -> None:
         # racer bug and must surface rather than silently fall back to the serial stall.
         return _happy_eyeballs_create_connection(address, effective, source_address=source_address)
 
-    _socket_racer._hermes_happy_eyeballs = True  # type: ignore[attr-defined]
+    _socket_racer._kova_happy_eyeballs = True  # type: ignore[attr-defined]
     socket.create_connection = _socket_racer
 
     urllib3_connection = sys.modules.get(_URLLIB3_CONNECTION_MODULE)
@@ -352,7 +352,7 @@ def install_never_free_environ() -> None:
     ``getenv`` that started walking that array before our swap can still fault. None of
     the gateway's crash paths do this.
     """
-    if getattr(os.putenv, "_hermes_never_free_environ", False) or not _glibc_frees_environ():
+    if getattr(os.putenv, "_kova_never_free_environ", False) or not _glibc_frees_environ():
         return
     import _thread
     import ctypes
@@ -426,8 +426,8 @@ def install_never_free_environ() -> None:
             real_unsetenv(key)
             gen[0] += 1
 
-    _putenv._hermes_never_free_environ = True  # type: ignore[attr-defined]
-    _unsetenv._hermes_never_free_environ = True  # type: ignore[attr-defined]
+    _putenv._kova_never_free_environ = True  # type: ignore[attr-defined]
+    _unsetenv._kova_never_free_environ = True  # type: ignore[attr-defined]
     os.putenv, os.unsetenv = _putenv, _unsetenv
 
 
@@ -549,7 +549,7 @@ def _pin_launcher_home() -> None:
     root. That needs ``kova_constants`` from the checkout, so the launcher asks for it here, after
     the repair above: a merge killed while writing ``kova_constants.py`` must not keep the repair
     from ever running. The flag name is ``_launchers.PIN_DEFAULT_HOME_FLAG``."""
-    if getattr(sys, "_hermes_pin_default_home", False) and not os.environ.get("KOVA_HOME"):
+    if getattr(sys, "_kova_pin_default_home", False) and not os.environ.get("KOVA_HOME"):
         from kova_constants import get_default_kova_root
 
         os.environ["KOVA_HOME"] = str(get_default_kova_root())

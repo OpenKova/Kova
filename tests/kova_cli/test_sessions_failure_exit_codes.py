@@ -1,5 +1,5 @@
-"""`hermes sessions` exit status tracks the outcome: a subcommand that fails, refuses, or could not ask for
-its confirmation exits non-zero, so cron/CI wrappers and `hermes sessions repair && ...` chains can tell."""
+"""`kova sessions` exit status tracks the outcome: a subcommand that fails, refuses, or could not ask for
+its confirmation exits non-zero, so cron/CI wrappers and `kova sessions repair && ...` chains can tell."""
 
 import sqlite3
 import sys
@@ -11,7 +11,7 @@ import pytest
 def _run_cli(monkeypatch, argv_tail):
     import kova_cli.main as main_mod
 
-    monkeypatch.setattr(sys, "argv", ["hermes", "sessions", *argv_tail])
+    monkeypatch.setattr(sys, "argv", ["kova", "sessions", *argv_tail])
     try:
         main_mod.main()
     except SystemExit as exc:

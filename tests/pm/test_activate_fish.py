@@ -57,8 +57,8 @@ def test_activate_applies_the_environment_and_deactivate_restores_the_shell(tmp_
         set -q __KOVA_ACTIVATED; and exit 23
         set -q KOVA_PM_ACTIVATE_CANARY; and exit 24
         functions -q deactivate; and exit 25
-        functions -q hermes; and exit 26
-        functions -q __hermes_saved_fish_prompt; and exit 27
+        functions -q kova; and exit 26
+        functions -q __kova_saved_fish_prompt; and exit 27
         exit 0
     """, tmp_path)
     assert run.returncode == 0, run.stdout + run.stderr

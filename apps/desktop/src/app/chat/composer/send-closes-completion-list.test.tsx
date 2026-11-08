@@ -146,7 +146,7 @@ afterEach(() => {
   cleanup()
   mainComposerScope.clear()
   setReactionsEnabled(false)
-  window.document.documentElement.removeAttribute('data-hermes-desktop-host')
+  window.document.documentElement.removeAttribute('data-kova-desktop-host')
   vi.unstubAllGlobals()
 })
 

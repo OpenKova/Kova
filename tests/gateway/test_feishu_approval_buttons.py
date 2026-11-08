@@ -124,7 +124,7 @@ class TestFeishuExecApproval:
         # Check buttons
         actions = card["elements"][1]["actions"]
         assert len(actions) == 4
-        action_names = [a["value"]["hermes_action"] for a in actions]
+        action_names = [a["value"]["kova_action"] for a in actions]
         assert action_names == [
             "approve_once", "approve_session", "approve_always", "deny"
         ]
@@ -193,7 +193,7 @@ class TestFeishuUpdatePrompt:
         card = json.loads(kwargs["payload"])
         assert "Restore stashed changes after update?" in card["elements"][0]["content"]
         actions = card["elements"][1]["actions"]
-        assert [a["value"]["hermes_update_prompt_action"] for a in actions] == ["y", "n"]
+        assert [a["value"]["kova_update_prompt_action"] for a in actions] == ["y", "n"]
 
 
 # ===========================================================================
@@ -297,7 +297,7 @@ class TestCardActionCallbackResponse:
     def test_drops_action_when_loop_not_ready(self, _patch_callback_card_types):
         adapter = _make_adapter()
         adapter._loop = None
-        data = _make_card_action_data({"hermes_action": "approve_once", "approval_id": 1})
+        data = _make_card_action_data({"kova_action": "approve_once", "approval_id": 1})
 
         with patch("asyncio.run_coroutine_threadsafe") as mock_submit:
             response = adapter._on_card_action_trigger(data)
@@ -317,7 +317,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_12345",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 1},
+            {"kova_action": "approve_once", "approval_id": 1},
             open_id="ou_bob",
         )
         adapter._sender_name_cache["ou_bob"] = ("Bob", 9999999999)
@@ -344,7 +344,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_12345",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 4},
+            {"kova_action": "approve_once", "approval_id": 4},
             open_id="ou_expired",
         )
         adapter._sender_name_cache["ou_expired"] = ("Old Name", 1)
@@ -367,7 +367,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_12345",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 5},
+            {"kova_action": "approve_once", "approval_id": 5},
             open_id="ou_attacker",
         )
 
@@ -391,7 +391,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_12345",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 6},
+            {"kova_action": "approve_once", "approval_id": 6},
             open_id="ou_attacker",
         )
 
@@ -414,7 +414,7 @@ class TestCardActionCallbackResponse:
         }
         adapter._allowed_group_users = {"ou_allowed"}
         data = _make_card_action_data(
-            {"hermes_update_prompt_action": "y", "update_prompt_id": 1},
+            {"kova_update_prompt_action": "y", "update_prompt_id": 1},
             open_id="ou_intruder",
         )
 
@@ -438,7 +438,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_12345",
         }
         data = _make_card_action_data(
-            {"hermes_update_prompt_action": "y", "update_prompt_id": 7},
+            {"kova_update_prompt_action": "y", "update_prompt_id": 7},
             open_id="ou_intruder",
         )
 
@@ -461,7 +461,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_expected",
         }
         data = _make_card_action_data(
-            {"hermes_update_prompt_action": "y", "update_prompt_id": 8},
+            {"kova_update_prompt_action": "y", "update_prompt_id": 8},
             chat_id="oc_mismatch",
             open_id="ou_bob",
         )
@@ -493,7 +493,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_dm_chat",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 15},
+            {"kova_action": "approve_once", "approval_id": 15},
             chat_id="oc_dm_chat",
             open_id="ou_dm_user",
         )
@@ -521,7 +521,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_dm_chat",
         }
         data = _make_card_action_data(
-            {"hermes_update_prompt_action": "y", "update_prompt_id": 23},
+            {"kova_update_prompt_action": "y", "update_prompt_id": 23},
             chat_id="oc_dm_chat",
             open_id="ou_dm_user",
         )
@@ -546,7 +546,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_dm_chat",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 24},
+            {"kova_action": "approve_once", "approval_id": 24},
             chat_id="oc_dm_chat",
             open_id="",
         )
@@ -572,7 +572,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_dm_chat",
         }
         data = _make_card_action_data(
-            {"hermes_update_prompt_action": "y", "update_prompt_id": 25},
+            {"kova_update_prompt_action": "y", "update_prompt_id": 25},
             chat_id="oc_dm_chat",
             open_id="",
         )
@@ -598,7 +598,7 @@ class TestCardActionCallbackResponse:
             "chat_id": "oc_dm_chat",
         }
         data = _make_card_action_data(
-            {"hermes_action": "approve_once", "approval_id": 26},
+            {"kova_action": "approve_once", "approval_id": 26},
             chat_id="oc_forwarded_group",
             open_id="ou_dm_user",
         )
@@ -684,7 +684,7 @@ def test_resolved_card_keeps_the_request(_patch_callback_card_types):
     adapter._loop.is_closed = MagicMock(return_value=False)
     adapter._allowed_group_users = {"ou_bob"}
     adapter._sender_name_cache["ou_bob"] = ("Bob", 9999999999)
-    data = _make_card_action_data({"hermes_action": "approve_once", "approval_id": approval_id}, open_id="ou_bob")
+    data = _make_card_action_data({"kova_action": "approve_once", "approval_id": approval_id}, open_id="ou_bob")
     with patch("asyncio.run_coroutine_threadsafe", side_effect=_close_submitted_coro):
         card = adapter._on_card_action_trigger(data).card.data
     content = card["elements"][0]["content"]

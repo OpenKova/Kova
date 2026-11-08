@@ -10,9 +10,9 @@ export interface SessionExportPayload {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-/** `hermes_conversation_YYYYMMDD_HHMMSS.<fmt>`: the classic CLI's /save default name. */
+/** `kova_conversation_YYYYMMDD_HHMMSS.<fmt>`: the classic CLI's /save default name. */
 export const defaultSaveName = (format: string, now = new Date()) =>
-  `hermes_conversation_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
+  `kova_conversation_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
   `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.${format}`
 
 /** Write a `session.export` payload on THIS machine (the client), never the gateway host: a named

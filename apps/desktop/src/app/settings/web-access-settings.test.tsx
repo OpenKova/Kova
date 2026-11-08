@@ -27,14 +27,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { WebAccessStatus } from '@/api/webapp-access'
-import * as hermes from '@/kova'
+import * as kova from '@/kova'
 import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { $notifications, clearNotifications } from '@/store/notifications'
 
 import { WebAccessSettings } from './web-access-settings'
 
-const mocked = vi.mocked(hermes)
+const mocked = vi.mocked(kova)
 
 const OFF: WebAccessStatus = {
   enabled: false,
@@ -165,7 +165,7 @@ describe('WebAccessSettings', () => {
   })
 
   // `kova config set webapp.*` (or another window) changes the status while the pane is open.
-  const EDITED_ELSEWHERE: WebAccessStatus = { ...OFF, enabled: true, mode: 'public', public_url: 'https://hermes.example.org' }
+  const EDITED_ELSEWHERE: WebAccessStatus = { ...OFF, enabled: true, mode: 'public', public_url: 'https://kova.example.org' }
 
   it('picks up a web access change saved elsewhere when the window regains focus', async () => {
     renderPane(OFF)
@@ -176,13 +176,13 @@ describe('WebAccessSettings', () => {
 
     expect(await screen.findByText('Restart needed')).toBeTruthy()
     // The address choice follows the saved config, not the one the pane opened with.
-    expect(screen.getByDisplayValue('https://hermes.example.org')).toBeTruthy()
+    expect(screen.getByDisplayValue('https://kova.example.org')).toBeTruthy()
   })
 
   it('keeps an unsaved address choice through a refetch that changes nothing', async () => {
     renderPane(OFF)
     fireEvent.click(await screen.findByRole('button', { name: 'My own URL' }))
-    fireEvent.change(screen.getByPlaceholderText('https://hermes.example.com'), {
+    fireEvent.change(screen.getByPlaceholderText('https://kova.example.com'), {
       target: { value: 'https://typed.example.net' }
     })
     mocked.getWebAccessStatus.mockClear()
@@ -361,11 +361,11 @@ describe('WebAccessSettings', () => {
 
     expect(screen.queryByText(/192\.168\.1\.50/)).toBeNull()
 
-    fireEvent.change(screen.getByPlaceholderText('https://hermes.example.com'), {
-      target: { value: 'https://hermes.tail.ts.net' }
+    fireEvent.change(screen.getByPlaceholderText('https://kova.example.com'), {
+      target: { value: 'https://kova.tail.ts.net' }
     })
 
-    expect(screen.getByText('https://hermes.tail.ts.net')).toBeTruthy()
+    expect(screen.getByText('https://kova.tail.ts.net')).toBeTruthy()
   })
 
   it('says that network access is not encrypted', async () => {

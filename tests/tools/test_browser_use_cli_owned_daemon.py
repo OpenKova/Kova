@@ -181,7 +181,7 @@ def test_a_sigkilled_owner_takes_its_harness_daemon_with_it(tmp_path):
         process_identity._supervised_pgids.clear()
 
 
-def test_a_daemon_another_live_hermes_started_on_the_same_name_is_never_registered(tmp_path, registered):
+def test_a_daemon_another_live_kova_started_on_the_same_name_is_never_registered(tmp_path, registered):
     """Two Kova processes on the default BU_NAME read the same bu-default.pid. The daemon belongs
     to the one whose CLI started it: the other must not hand it to its supervisor, or that Kova
     dying would kill a browser session the first still uses."""
@@ -191,10 +191,10 @@ def test_a_daemon_another_live_hermes_started_on_the_same_name_is_never_register
     (pkg / "daemon.py").write_text("import time\ntime.sleep(300)\n", encoding="utf-8")
     runtime = tmp_path / "runtime"
     runtime.mkdir()
-    other_hermes = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()"], stdin=subprocess.PIPE)
+    other_kova = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()"], stdin=subprocess.PIPE)
     tag = process_identity.spawn_env("browser-harness-daemon")
     tag[process_identity.SPAWN_ENV_VAR] = tag[process_identity.SPAWN_ENV_VAR].replace(
-        f":{os.getpid()}:", f":{other_hermes.pid}:")
+        f":{os.getpid()}:", f":{other_kova.pid}:")
     daemon = subprocess.Popen([sys.executable, "-m", "browser_harness.daemon"], cwd=str(tmp_path / "pkgroot"),
                               stdin=subprocess.DEVNULL, start_new_session=True, env={**os.environ, **tag})
     try:
@@ -205,8 +205,8 @@ def test_a_daemon_another_live_hermes_started_on_the_same_name_is_never_register
     finally:
         daemon.kill()
         daemon.wait(timeout=10)
-        other_hermes.stdin.close()
-        other_hermes.wait(timeout=10)
+        other_kova.stdin.close()
+        other_kova.wait(timeout=10)
 
 
 def test_a_long_first_browser_exec_owns_its_daemon_before_the_call_returns(monkeypatch):

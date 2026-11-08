@@ -49,7 +49,7 @@ def has_xai_credentials() -> bool:
         return False
 
 
-def hermes_xai_user_agent() -> str:
+def kova_xai_user_agent() -> str:
     """Return a stable Kova-specific User-Agent for xAI HTTP calls."""
     try:
         from kova_cli.version_info import get_version_info
@@ -58,9 +58,9 @@ def hermes_xai_user_agent() -> str:
         return "Kova-Agent/unknown"
 
 
-def hermes_xai_default_headers() -> dict[str, str]:
+def kova_xai_default_headers() -> dict[str, str]:
     """Default headers for OpenAI-SDK and raw HTTP clients talking to xAI (replaces the SDK User-Agent)."""
-    return {"User-Agent": hermes_xai_user_agent()}
+    return {"User-Agent": kova_xai_user_agent()}
 
 
 _TRUE_WORDS = {"1", "true", "yes", "on", "enabled"}

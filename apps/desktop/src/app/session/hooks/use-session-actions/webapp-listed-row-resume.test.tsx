@@ -127,7 +127,7 @@ describe('a Webapp tab resuming a row its sidebar listed', () => {
     delete win.__KOVA_DASHBOARD_PROFILE__
     clearWebappSession()
     Reflect.deleteProperty(win, 'kovaDesktop')
-    document.documentElement.removeAttribute('data-hermes-desktop-host')
+    document.documentElement.removeAttribute('data-kova-desktop-host')
     sockets.length = 0
     vi.unstubAllGlobals()
     vi.restoreAllMocks()

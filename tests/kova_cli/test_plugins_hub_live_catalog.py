@@ -1,7 +1,7 @@
 """Live plugin-catalog lookups must not multiply per installed plugin.
 
 A slow or unreachable catalog host used to cost one request timeout per plugin row, on the
-dashboard plugins-hub rebuild (inline on the event loop) and on ``hermes plugins list``.
+dashboard plugins-hub rebuild (inline on the event loop) and on ``kova plugins list``.
 """
 
 from __future__ import annotations
@@ -84,7 +84,7 @@ def test_hub_rebuild_and_plugins_list_resolve_the_kill_list_once(monkeypatch, tm
 
     monkeypatch.setattr(web_server, "_get_dashboard_plugins", lambda force_rescan=False: [])
     monkeypatch.setattr(_web_server_memory, "_discover_memory_provider_statuses", list)
-    monkeypatch.setattr(_cfg_mod, "get_kova_home", lambda: Path("/tmp/hermes-home"))
+    monkeypatch.setattr(_cfg_mod, "get_kova_home", lambda: Path("/tmp/kova-home"))
     monkeypatch.setattr(_cfg_mod, "load_config", lambda: {"dashboard": {"hidden_plugins": []}})
     monkeypatch.setattr(plugins_cmd, "_discover_all_plugins", lambda: list(_PLUGIN_ROWS))
     monkeypatch.setattr(plugins_cmd, "_get_current_context_engine", lambda: "compressor")

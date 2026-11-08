@@ -377,7 +377,7 @@ def _disable_nagle(ws: Any) -> None:
 def _authority_connection(ws: Any, transport: WSTransport, auth_identity: dict | None, operator: bool):
     """The session-authority connection for this socket (route scope, else app state), or None
     when this backend has no authority and requests go to the legacy ``server.dispatch``."""
-    authority = (getattr(ws, 'scope', None) or {}).get('hermes.session_authority') or getattr(
+    authority = (getattr(ws, 'scope', None) or {}).get('kova.session_authority') or getattr(
         getattr(getattr(ws, 'app', None), 'state', None), 'session_authority', None)
     if authority is None:
         return None

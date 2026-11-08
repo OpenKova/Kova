@@ -50,7 +50,7 @@ export const enBoot = {
       remoteDescription:
         'Your remote gateway session has expired. Sign in again to reconnect. Nothing here deletes your chats or settings.',
       webappTitle: 'Sign in to Kova',
-      webappDescription: 'Run hermes webapp on this computer to sign this browser in.',
+      webappDescription: 'Run kova webapp on this computer to sign this browser in.',
       retry: 'Retry',
       repairInstall: 'Repair install',
       useLocalGateway: 'Use local gateway',
@@ -95,7 +95,7 @@ export const enBoot = {
       since: time => `Waiting since ${time}`,
       lastChecked: time => `Last checked ${time}`,
       recoveryHint:
-        'This usually clears in a few minutes. If it does not: quit Kova, end leftover git or hermes processes (or restart the computer), then open Kova again.',
+        'This usually clears in a few minutes. If it does not: quit Kova, end leftover git or kova processes (or restart the computer), then open Kova again.',
       checkAgain: 'Check again',
       quit: 'Quit Kova',
       openLogs: 'Open logs',

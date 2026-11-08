@@ -259,7 +259,7 @@ describe('installFindShortcut', () => {
     return { webContents: asWC(wc) } as unknown as BrowserWindow
   }
 
-  test('sends hermes:open-find-bar on Ctrl+F (Linux/Windows) and prevents default', () => {
+  test('sends kova:open-find-bar on Ctrl+F (Linux/Windows) and prevents default', () => {
     const wc = makeFakeWebContents()
     const win = makeFakeWindow(wc)
     const uninstall = installFindShortcut(win)
@@ -289,7 +289,7 @@ describe('installFindShortcut', () => {
   // macOS branch: inject `isMac: () => true` so we exercise the REAL
   // `meta` (Cmd) path — previously untested, because `process.platform` is
   // baked at import time and the old "Cmd+F" case actually sent Ctrl.
-  test('sends hermes:open-find-bar on Cmd+F (meta) on macOS and prevents default', () => {
+  test('sends kova:open-find-bar on Cmd+F (meta) on macOS and prevents default', () => {
     const wc = makeFakeWebContents()
     const win = makeFakeWindow(wc)
     const uninstall = installFindShortcut(win, () => true)

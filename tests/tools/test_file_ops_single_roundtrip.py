@@ -328,7 +328,7 @@ class TestNativeRead:
 
     def test_tilde_still_expands_through_the_shell(self, native):
         ops, calls = native
-        r = ops.read_file("~/hermes-no-such-file-7f3a.txt")
+        r = ops.read_file("~/kova-no-such-file-7f3a.txt")
         assert calls[0] == "echo $HOME"
         assert r.error and "File not found" in r.error
 

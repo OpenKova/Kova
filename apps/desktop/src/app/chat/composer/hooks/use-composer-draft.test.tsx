@@ -177,11 +177,11 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
       id: 'file:new',
       kind: 'file',
       label: 'new.txt',
-      path: '/srv/hermes/profiles/owner/uploads/new.txt',
+      path: '/srv/kova/profiles/owner/uploads/new.txt',
       stagedUpload: {
         install_id: '11111111111111111111111111111111',
-        path: '/srv/hermes/profiles/owner/uploads/new.txt',
-        profile_home: '/srv/hermes/profiles/owner'
+        path: '/srv/kova/profiles/owner/uploads/new.txt',
+        profile_home: '/srv/kova/profiles/owner'
       },
       titlePreview: 'Pasted text used to title the new session'
     }

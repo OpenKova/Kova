@@ -20,15 +20,15 @@ def all_assignees_spawnable(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _suppress_concurrent_hermes_gate(request, monkeypatch):
-    """Default ``_detect_concurrent_hermes_instances`` to ``[]`` for every test.
+def _suppress_concurrent_kova_gate(request, monkeypatch):
+    """Default ``_detect_concurrent_kova_instances`` to ``[]`` for every test.
 
     The Windows update path now refuses to proceed when another
-    ``hermes.exe`` is detected (issue #26670). On a developer's Windows
-    machine running the test suite via ``hermes`` itself, this would
+    ``kova.exe`` is detected (issue #26670). On a developer's Windows
+    machine running the test suite via ``kova`` itself, this would
     flag the running agent as a concurrent instance and abort every
     ``cmd_update`` test. Tests that want to exercise the gate explicitly
-    re-patch ``_detect_concurrent_hermes_instances`` with their own
+    re-patch ``_detect_concurrent_kova_instances`` with their own
     return value — autouse here gives a clean default without touching
     the rest of the suite.
 
@@ -44,13 +44,13 @@ def _suppress_concurrent_hermes_gate(request, monkeypatch):
     # raising=False: under pytest's per-test spawn isolation, a concurrent
     # xdist worker importing a module that transitively touches kova_cli.main
     # can briefly expose a partially-initialized module object here — one where
-    # _detect_concurrent_hermes_instances isn't defined yet. A bare setattr
+    # _detect_concurrent_kova_instances isn't defined yet. A bare setattr
     # would raise AttributeError and error the (unrelated) test. The attribute
     # always exists once main.py finishes importing, so a no-op when it's
     # transiently absent is the correct, race-free default.
     monkeypatch.setattr(
         _cli_main,
-        "_detect_concurrent_hermes_instances",
+        "_detect_concurrent_kova_instances",
         lambda *_a, **_k: [],
         raising=False,
     )
@@ -60,7 +60,7 @@ def _suppress_concurrent_hermes_gate(request, monkeypatch):
 def _private_repo_checkout_lock(monkeypatch, tmp_path_factory):
     """``cmd_update`` locks the checkout it runs from: in tests, this repository, whose git
     common dir every parallel test process (and, from a linked worktree, the live install's
-    ``hermes update``) shares. Give each test its own lock file for THIS repo; lock tests on
+    ``kova update``) shares. Give each test its own lock file for THIS repo; lock tests on
     fixture checkouts are unaffected."""
     from pathlib import Path
 
@@ -68,7 +68,7 @@ def _private_repo_checkout_lock(monkeypatch, tmp_path_factory):
 
     repo = Path(update_lock.__file__).resolve().parents[1]
     real = update_lock.checkout_lock_path
-    private = tmp_path_factory.mktemp("checkout-lock") / "hermes-update.lock"
+    private = tmp_path_factory.mktemp("checkout-lock") / "kova-update.lock"
 
     def checkout_lock_path(install_root=None):
         root = Path(install_root) if install_root else repo
@@ -79,7 +79,7 @@ def _private_repo_checkout_lock(monkeypatch, tmp_path_factory):
 
 @pytest.fixture(autouse=True)
 def _source_channels_resolve_locally(request, monkeypatch):
-    """Every unflagged ``hermes update`` resolves its channel through R2; tests must
+    """Every unflagged ``kova update`` resolves its channel through R2; tests must
     not reach the network for that. Default every channel to a ``source-branch``
     record delivering ``origin/<name>`` through the documented seam. Channel tests
     that model records themselves re-patch ``_resolve_channel`` after this runs;

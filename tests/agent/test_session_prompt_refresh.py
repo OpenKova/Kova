@@ -1,4 +1,4 @@
-"""``hermes sessions refresh-prompts``: a continuing session adopts updated prompt sources once.
+"""``kova sessions refresh-prompts``: a continuing session adopts updated prompt sources once.
 
 Operators push SOUL.md / skill / AGENTS.md changes into a profile while users keep one long
 gateway conversation. The stored system prompt is reused verbatim every turn (prefix cache), so
@@ -106,7 +106,7 @@ def _refresh_prompts(monkeypatch, home: Path, *extra: str) -> None:
     import kova_cli.main as main_mod
 
     monkeypatch.setenv("KOVA_HOME", str(home))
-    monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", *extra])
+    monkeypatch.setattr(sys, "argv", ["kova", "sessions", "refresh-prompts", *extra])
     try:
         main_mod.main()
     except SystemExit as exc:
@@ -308,7 +308,7 @@ def test_refresh_keeps_the_sessions_tools_pin(profile, monkeypatch):
 def test_refresh_prompts_unknown_session_fails(profile, monkeypatch, capsys):
     import kova_cli.main as main_mod
 
-    monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", "--session", "nope"])
+    monkeypatch.setattr(sys, "argv", ["kova", "sessions", "refresh-prompts", "--session", "nope"])
     with pytest.raises(SystemExit) as exc:
         main_mod.main()
     assert exc.value.code == 1

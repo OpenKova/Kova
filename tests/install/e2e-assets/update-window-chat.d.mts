@@ -2,7 +2,7 @@ import type { BackendProcess } from '../../../tests-js/scripts/desktop-smoke-pro
 import type { ElectronApplication, Page } from '../../../tests-js/scripts/e2e-driver-deps.ts'
 
 export interface UpdateWindowIdentity {
-  hermesRoot: string
+  kovaRoot: string
   kovaHome?: string
 }
 

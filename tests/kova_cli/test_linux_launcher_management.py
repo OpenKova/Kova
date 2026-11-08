@@ -21,7 +21,7 @@ def test_launcher_optout_preserves_custom_entry_but_creates_missing(tmp_path, mo
     root.mkdir()
     entry = tmp_path / "xdg" / "applications" / DESKTOP_ENTRY_NAME
     entry.parent.mkdir(parents=True)
-    custom = b"[Desktop Entry]\nType=Application\nName=Custom Kova\nExec=/opt/custom-hermes desktop\n"
+    custom = b"[Desktop Entry]\nType=Application\nName=Custom Kova\nExec=/opt/custom-kova desktop\n"
     for setting in ("false", '"false"'):
         config.write_text(f"desktop:\n  manage_launcher_entry: {setting}\n", encoding="utf-8")
         entry.write_bytes(custom)

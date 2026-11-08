@@ -693,7 +693,7 @@ class ToolRegistry:
                 return max(matches, key=len)
         # Also gate plugin modules currently loading but not yet policy-recorded
         # (defensive: a handler defined in the plugin namespace is plugin code).
-        if module_namespace.startswith("hermes_plugins."):
+        if module_namespace.startswith("kova_plugins."):
             return ".".join(module_namespace.split(".")[:2])
         return None
 
@@ -841,10 +841,10 @@ class ToolRegistry:
                 return
             if not entry.toolset.startswith("mcp-"):
                 owner = self._plugin_owner_of(entry.handler)
-                # Ownership binds to the plugin package root (``hermes_plugins.{name}``), not
+                # Ownership binds to the plugin package root (``kova_plugins.{name}``), not
                 # the exact module: a submodule's handler is still the package's to remove.
-                # A handler defined in ``hermes_plugins.pkg.handlers`` is still owned by the
-                # ``hermes_plugins.pkg`` package — exact string equality would wrongly block root-module
+                # A handler defined in ``kova_plugins.pkg.handlers`` is still owned by the
+                # ``kova_plugins.pkg`` package — exact string equality would wrongly block root-module
                 # cleanup code from removing tools registered by a submodule of the same plugin (egilewski
                 # review on #55840).
                 same_plugin = bool(owner and caller_owner == owner)

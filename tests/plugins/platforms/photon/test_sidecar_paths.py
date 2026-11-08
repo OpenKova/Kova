@@ -1,7 +1,7 @@
 """Tests for the Photon sidecar directory resolver (NS-606).
 
 Hosted/managed images keep the plugin tree under an immutable
-``/opt/hermes``; ``resolve_sidecar_dir`` must run in place when the deps are
+``/opt/kova``; ``resolve_sidecar_dir`` must run in place when the deps are
 baked and current, and mirror the sidecar to the writable ``KOVA_HOME``
 volume when a runtime install is unavoidable.
 """
@@ -107,7 +107,7 @@ def test_adapter_import_does_not_resolve_sidecar_dir(monkeypatch) -> None:
 
     resolve_sidecar_dir() touch/unlink-probes the source tree and may copy
     files to KOVA_HOME; the adapter and CLI resolve lazily on first use so
-    a bare import (plugin discovery, `hermes --help`, test collection) has
+    a bare import (plugin discovery, `kova --help`, test collection) has
     no filesystem side effects.
     """
     import importlib

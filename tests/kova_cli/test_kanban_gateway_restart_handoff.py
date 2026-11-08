@@ -80,7 +80,7 @@ def test_managed_gateway_worker_is_spawned_in_restart_safe_scope(
     assert kbd._default_spawn(task, str(workspace)) == 4242
     assert captured_cmd[:4] == ["/usr/bin/systemd-run", "--user", "--scope", "--quiet"]
     unit_index = captured_cmd.index("--unit")
-    assert captured_cmd[unit_index + 1] == "hermes-worker-kanban-t_candidate_restart-run-23"
+    assert captured_cmd[unit_index + 1] == "kova-worker-kanban-t_candidate_restart-run-23"
     assert "MemoryMax=536870912" in captured_cmd
     separator = captured_cmd.index("--")
     assert captured_cmd[separator + 1 :] == [sys.executable, "-m", "kova_cli.kanban_worker_client"]
@@ -152,7 +152,7 @@ def test_oneshot_unit_dispatcher_scope_wraps_or_warns_never_dooms_silently(
 ) -> None:
     """A dispatcher under any systemd unit that is NOT the supervised gateway (a
     ``Type=oneshot`` dispatch timer, #113612) loses its cgroup at unit exit. With a
-    user bus the worker gets its own ``hermes-worker-*`` scope; without one the
+    user bus the worker gets its own ``kova-worker-*`` scope; without one the
     spawn still happens (the unit's ``KillMode``/lifetime is unknowable, a
     long-lived sequencer keeps working) but the operator is told exactly why the
     workers may die. A cron caller under the same unit is unchanged."""
@@ -170,12 +170,12 @@ def test_oneshot_unit_dispatcher_scope_wraps_or_warns_never_dooms_silently(
     monkeypatch.setattr(process_registry, "_systemd_run_user_scope_available", lambda: True)
     monkeypatch.setattr(
         process_registry, "_build_systemd_scope_argv",
-        lambda cmd, unit_suffix: ["systemd-run", "--user", "--scope", "--unit", f"hermes-worker-{unit_suffix}", *cmd],
+        lambda cmd, unit_suffix: ["systemd-run", "--user", "--scope", "--unit", f"kova-worker-{unit_suffix}", *cmd],
     )
 
     kbd._default_spawn(task, str(workspace))
     assert spawned[-1][:3] == ["systemd-run", "--user", "--scope"]
-    assert f"hermes-worker-kanban-{task.id}-run-{task.current_run_id}" in spawned[-1]
+    assert f"kova-worker-kanban-{task.id}-run-{task.current_run_id}" in spawned[-1]
 
     monkeypatch.setattr(process_registry, "_systemd_run_user_scope_available", lambda: False)
     monkeypatch.setattr(process_registry, "_scope_degraded_warned", False)
@@ -187,7 +187,7 @@ def test_oneshot_unit_dispatcher_scope_wraps_or_warns_never_dooms_silently(
     assert len(warned) == 1 and "KillMode=process" in warned[0]
 
     cron = process_registry.restart_safe_gateway_child_argv(
-        ["hermes", "cron"], unit_suffix="cron-job-1", require_restart_safe_scope=True,
+        ["kova", "cron"], unit_suffix="cron-job-1", require_restart_safe_scope=True,
     )
     assert cron.mode == "in_process"
 
@@ -207,7 +207,7 @@ def test_real_user_systemd_scope_preserves_worker_context(
     from uuid import uuid4
     # User-manager transient units outlive pytest's temporary directories.
     task = replace(task, id=f"t_candidate_{uuid4().hex}")
-    unit = f"hermes-worker-kanban-{task.id}-run-{task.current_run_id}.scope"
+    unit = f"kova-worker-kanban-{task.id}-run-{task.current_run_id}.scope"
     # Only this freshly named scope is test-owned; the live-system guard still refuses every other unit.
     request.node.live_system_guard_owned_units = {unit}
     receipt = workspace / "worker-receipt.json"

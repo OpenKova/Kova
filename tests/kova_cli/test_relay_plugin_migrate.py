@@ -1,4 +1,4 @@
-"""``hermes update`` / ``hermes migrate relay``: legacy ``KOVA_NEMO_RELAY_ATIF_*``/``ATOF_*`` vars
+"""``kova update`` / ``kova migrate relay``: legacy ``KOVA_NEMO_RELAY_ATIF_*``/``ATOF_*`` vars
 become a validated ``relay-plugins.toml`` per profile home, selected from ``.env``."""
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ nemo_relay = pytest.importorskip("nemo_relay")
 LEGACY_ENV = """OPENAI_API_KEY=sk-test
 KOVA_NEMO_RELAY_ATOF_ENABLED=1
 KOVA_NEMO_RELAY_ATOF_OUTPUT_DIRECTORY={home}/telemetry/atof
-KOVA_NEMO_RELAY_ATOF_FILENAME=hermes-atof.jsonl
+KOVA_NEMO_RELAY_ATOF_FILENAME=kova-atof.jsonl
 KOVA_NEMO_RELAY_ATOF_MODE=append
 KOVA_NEMO_RELAY_ATIF_ENABLED=1
 KOVA_NEMO_RELAY_ATIF_OUTPUT_DIRECTORY={home}/telemetry/atif
@@ -55,7 +55,7 @@ def test_legacy_env_becomes_validated_toml_selected_from_env(profile_env):
     toml_path = profile_env / RELAY_PLUGINS_TOML_NAME
     document = tomllib.loads(toml_path.read_text(encoding="utf-8"))
     sink = document["components"][0]["config"]["atof"]["sinks"][0]
-    assert sink["type"] == "file" and sink["filename"] == "hermes-atof.jsonl"
+    assert sink["type"] == "file" and sink["filename"] == "kova-atof.jsonl"
     assert document["components"][0]["config"]["atif"]["filename_template"] == "trajectory-{session_id}.json"
     # Migrated exporters never sent OTLP; Relay 0.10's env-driven auto-export must stay off.
     assert document["components"][0]["config"]["opentelemetry"]["enabled"] is False

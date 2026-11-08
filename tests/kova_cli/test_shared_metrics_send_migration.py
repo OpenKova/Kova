@@ -112,7 +112,7 @@ class TestUpgradeFromPreSendDatabase:
                 CREATE TABLE counter_aggregates (
                     period_start TEXT NOT NULL,
                     metric_name TEXT NOT NULL,
-                    hermes_version TEXT NOT NULL,
+                    kova_version TEXT NOT NULL,
                     os_family TEXT NOT NULL,
                     architecture TEXT NOT NULL,
                     install_method TEXT NOT NULL,
@@ -120,7 +120,7 @@ class TestUpgradeFromPreSendDatabase:
                     value INTEGER NOT NULL,
                     packaged_value INTEGER NOT NULL,
                     PRIMARY KEY (
-                        period_start, metric_name, hermes_version, os_family,
+                        period_start, metric_name, kova_version, os_family,
                         architecture, install_method, dimensions_json
                     )
                 )

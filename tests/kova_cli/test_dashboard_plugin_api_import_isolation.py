@@ -16,7 +16,7 @@ from kova_cli import web_server_dashboard as dashboard
 from kova_constants import get_kova_home
 
 NAME = "isoprobe"
-MODULE = f"hermes_dashboard_plugin_{NAME}"
+MODULE = f"kova_dashboard_plugin_{NAME}"
 # The body records whether it ran registered in sys.modules; a 'raise' file next to it makes it fail.
 API = (
     "import sys\n"

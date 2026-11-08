@@ -1,4 +1,4 @@
-"""Tests for the legacy-desktop-checkout report in hermes doctor."""
+"""Tests for the legacy-desktop-checkout report in kova doctor."""
 
 import json
 import subprocess
@@ -28,9 +28,9 @@ def embedded_context(tmp_path, monkeypatch):
     (bundle / "install-stamp.json").write_text(
         json.dumps({"commit": "a" * 40, "distribution": "desktop-app", "updateMechanism": "electron-updater"})
     )
-    import kova_cli.main as hermes_main
+    import kova_cli.main as kova_main
 
-    monkeypatch.setattr(hermes_main, "PROJECT_ROOT", bundle)
+    monkeypatch.setattr(kova_main, "PROJECT_ROOT", bundle)
 
     home = tmp_path / ".kova"
     checkout = home / "kova-agent"
@@ -97,8 +97,8 @@ class TestLegacyDesktopCheckout:
     def test_silent_when_running_from_a_git_checkout(self, embedded_context, monkeypatch, capsys):
         # A git-managed install (dev tree or ejected) is not embedded; the
         # checkout at the managed root might BE the running tree.
-        import kova_cli.main as hermes_main
+        import kova_cli.main as kova_main
 
-        monkeypatch.setattr(hermes_main, "PROJECT_ROOT", embedded_context)
+        monkeypatch.setattr(kova_main, "PROJECT_ROOT", embedded_context)
         check_legacy_desktop_checkout()
         assert capsys.readouterr().out == ""

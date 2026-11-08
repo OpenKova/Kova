@@ -8,7 +8,7 @@ import pm.user_facing
 from pm.user_facing import user_facing_path
 
 
-def test_user_tools_come_before_hermes_and_python_stops_at_the_store_stub(tmp_path, monkeypatch):
+def test_user_tools_come_before_kova_and_python_stops_at_the_store_stub(tmp_path, monkeypatch):
     npm, node, python, rg = (str(tmp_path / "store" / name) for name in ("npm", "node", "python", "rg"))
     stub = tmp_path / "AppData" / "Local" / "Microsoft" / "WindowsApps"
     stub.mkdir(parents=True)

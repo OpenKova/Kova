@@ -166,7 +166,7 @@ class TestProfileScopedHubActions:
     def test_hub_install_spawns_with_profile_flag(
         self, client, isolated_profiles, monkeypatch
     ):
-        """Hub installs must go through a fresh ``hermes -p <profile>``
+        """Hub installs must go through a fresh ``kova -p <profile>``
         subprocess — the in-process scope can't reach skills_hub's
         import-time SKILLS_DIR binding."""
         from kova_cli import web_server
@@ -180,7 +180,7 @@ class TestProfileScopedHubActions:
             calls.append((list(subcommand), name))
             return _FakeProc()
 
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", _fake_spawn)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", _fake_spawn)
         resp = client.post(
             "/api/skills/hub/install",
             json={"identifier": "official/demo", "profile": "worker_alpha"},
@@ -205,7 +205,7 @@ class TestProfileScopedHubActions:
         self, client, isolated_profiles, monkeypatch
     ):
         """``default`` is a real named profile, not an alias for "the dashboard's own".
-        A pooled ``hermes -p worker_alpha serve`` dashboard answering a hub action with
+        A pooled ``kova -p worker_alpha serve`` dashboard answering a hub action with
         ``profile=default`` must still emit ``-p default``: without it the child's env
         carries this process's home verbatim and the install lands on worker_alpha."""
         calls = []
@@ -219,7 +219,7 @@ class TestProfileScopedHubActions:
 
         # Ambient home of a dashboard serving under the named profile.
         monkeypatch.setenv("KOVA_HOME", str(isolated_profiles["worker_alpha"]))
-        monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", _fake_spawn)
+        monkeypatch.setattr(_web_server_gateway, "_spawn_kova_action", _fake_spawn)
         resp = client.post(
             "/api/skills/hub/install",
             json={"identifier": "official/demo", "profile": "default"},

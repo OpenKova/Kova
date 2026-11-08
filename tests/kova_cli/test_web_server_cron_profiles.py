@@ -1523,14 +1523,14 @@ class TestCronRunHistoryFallback:
             return datetime.strptime(name, "%Y-%m-%d_%H-%M-%S").replace(tzinfo=ZoneInfo("UTC"))
 
         # Attempt 1 (10:00): succeeded; its doc survives.
-        monkeypatch.setattr(cron_executions, "_hermes_now", lambda: _at("2026-09-25_10-00-00"))
+        monkeypatch.setattr(cron_executions, "_kova_now", lambda: _at("2026-09-25_10-00-00"))
         first = cron_executions.create_execution(job_id, source="direct")
-        monkeypatch.setattr(cron_executions, "_hermes_now", lambda: _at("2026-09-25_10-00-30"))
+        monkeypatch.setattr(cron_executions, "_kova_now", lambda: _at("2026-09-25_10-00-30"))
         cron_executions.finish_execution(first["id"], success=True)
         # Attempt 2 (10:01): failed; its doc is gone.
-        monkeypatch.setattr(cron_executions, "_hermes_now", lambda: _at("2026-09-25_10-01-00"))
+        monkeypatch.setattr(cron_executions, "_kova_now", lambda: _at("2026-09-25_10-01-00"))
         second = cron_executions.create_execution(job_id, source="direct")
-        monkeypatch.setattr(cron_executions, "_hermes_now", lambda: _at("2026-09-25_10-01-20"))
+        monkeypatch.setattr(cron_executions, "_kova_now", lambda: _at("2026-09-25_10-01-20"))
         cron_executions.finish_execution(second["id"], success=False, error="new run failed")
         self._write_output_doc(monkeypatch, home, job_id, "2026-09-25_10-00-00.md", "successful older run\n")
 

@@ -13,7 +13,7 @@ import type { UiPreferencesBridge } from './sync'
 // tab's unsent edit, a first snapshot that lands after the app read its cache.
 const KEYBINDS = 'kova.desktop.keybinds'
 const HAPTICS = 'kova.desktop.hapticsMuted'
-const MODE = 'hermes-desktop-mode-v1'
+const MODE = 'kova-desktop-mode-v1'
 const FAVORITES = 'kova.desktop.favorite-models'
 const OUTBOX_PREFIX = 'kova:ui-preferences:outbox:'
 const CUSTOM_KEYBINDS = '{"composer.dictate":["mod+shift+d"]}'
@@ -37,7 +37,7 @@ const stops: (() => void)[] = []
 const tick = (ms = 400) => new Promise(resolve => setTimeout(resolve, ms))
 
 function storeFile(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ui-handoff-'))
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kova-ui-handoff-'))
   dirs.push(dir)
 
   return path.join(dir, 'ui-preferences.json')
@@ -111,7 +111,7 @@ it('a browser upgraded from a build that stored every default at load never seed
 
   const oldDefaults = Object.fromEntries(
     Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index) ?? '')
-      .filter(key => key.startsWith('kova.desktop.') || key.startsWith('hermes-desktop-'))
+      .filter(key => key.startsWith('kova.desktop.') || key.startsWith('kova-desktop-'))
       .map(key => [key, window.localStorage.getItem(key) ?? ''])
   )
 

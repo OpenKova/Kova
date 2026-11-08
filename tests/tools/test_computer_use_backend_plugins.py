@@ -68,7 +68,7 @@ def _clean():
     reset_backend_for_tests()
     yield
     reset_backend_for_tests()
-    for name in [m for m in sys.modules if m.startswith("_hermes_user_computer_use.")]:
+    for name in [m for m in sys.modules if m.startswith("_kova_user_computer_use.")]:
         del sys.modules[name]
 
 
@@ -80,12 +80,12 @@ def test_selected_plugin_receives_tool_calls_and_unselected_stays_dormant(tmp_pa
         assert check_computer_use_requirements() is True
         assert _list_apps()[0]["backend"] == "cu-beta"
         assert json.loads(handle_computer_use({"action": "click", "element": 3}, session_id="s1"))["ok"] is True
-        calls = sys.modules["_hermes_user_computer_use.cu-beta"].CALLS
+        calls = sys.modules["_kova_user_computer_use.cu-beta"].CALLS
         assert ("start", "standard") in calls and ("click", 3) in calls
-        assert "_hermes_user_computer_use.cu-alpha" not in sys.modules  # installed, not selected: never imported
-        from kova_cli.tools_config_providers import _computer_use_provider_rows  # `hermes tools` / Desktop rows
+        assert "_kova_user_computer_use.cu-alpha" not in sys.modules  # installed, not selected: never imported
+        from kova_cli.tools_config_providers import _computer_use_provider_rows  # `kova tools` / Desktop rows
         assert [r["computer_use_backend"] for r in _computer_use_provider_rows()] == ["cu-alpha", "cu-beta"]
-        assert "_hermes_user_computer_use.cu-alpha" not in sys.modules  # listing does not import either
+        assert "_kova_user_computer_use.cu-alpha" not in sys.modules  # listing does not import either
     finally:
         reset_kova_home_override(tok)
 
@@ -113,7 +113,7 @@ def test_builtin_cua_is_default_and_plugin_never_self_activates(tmp_path, backen
         from tools.computer_use.tool import _new_backend
         assert get_active_provider().name == "cua"
         assert isinstance(_new_backend("standard"), CuaDriverBackend)
-        assert "_hermes_user_computer_use.cu-alpha" not in sys.modules
+        assert "_kova_user_computer_use.cu-alpha" not in sys.modules
     finally:
         reset_kova_home_override(tok)
 

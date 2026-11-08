@@ -106,7 +106,7 @@ def test_launch_profiles_own_worker_keeps_its_credentials(tmp_path, monkeypatch)
     assert captured and captured[0].get("OPENAI_API_KEY") == "dispatcher-launch-key"
 
 
-def test_worker_for_another_profile_can_still_import_hermes(profile_b, tmp_path, monkeypatch):
+def test_worker_for_another_profile_can_still_import_kova(profile_b, tmp_path, monkeypatch):
     """The routed-profile scrub strips Kova-owned PYTHONPATH entries, but the worker IS Kova
     (`-m kova_cli.kanban_worker_client`): a PYTHONPATH-launched dispatcher must hand it a tree
     it can import, or it dies on `No module named 'kova_cli'` before reaching the owner."""

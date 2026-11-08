@@ -72,7 +72,7 @@ def _kill(*procs: subprocess.Popen) -> None:
 
 
 class TestDetection:
-    def test_detects_hermes_argv_process(self):
+    def test_detects_kova_argv_process(self):
         """Baseline: a live process running `-m kova_cli.main serve` with
         cwd under the install root is detected as a venv holder."""
         proc = _spawn(["-m", "kova_cli.main", "serve"])

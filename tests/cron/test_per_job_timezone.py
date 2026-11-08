@@ -53,11 +53,11 @@ def cron_store(tmp_path, monkeypatch):
             self.instant = value
 
         def now(self):
-            # Production shape: _hermes_now() is aware in the PROFILE zone.
+            # Production shape: _kova_now() is aware in the PROFILE zone.
             return self.instant.astimezone(kova_time.get_timezone() or LA)
 
     clock = Clock()
-    monkeypatch.setattr(jobs, "_hermes_now", clock.now)
+    monkeypatch.setattr(jobs, "_kova_now", clock.now)
     with jobs.use_cron_store(tmp_path / "cron"):
         yield clock
 

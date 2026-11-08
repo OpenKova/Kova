@@ -112,7 +112,7 @@ async def test_http_diagnostic_projection_keeps_source_and_terminal_flags(tmp_pa
             response = await client.post("/v1/chat/completions", headers={
                 "Authorization": "Bearer test-local-key", "X-Kova-Session-Id": "session"}, json={
                 "messages": [{"role": "user", "content": "background diagnostic"}],
-                "stream": stream, "hermes_notification_category": "diagnostic"})
+                "stream": stream, "kova_notification_category": "diagnostic"})
             wire = await response.text()
     assert response.status == 200, wire
     assert source["final_response"] == "private diagnostic evidence"
@@ -126,12 +126,12 @@ async def test_http_diagnostic_projection_keeps_source_and_terminal_flags(tmp_pa
                   if line.startswith("data: ") and line != "data: [DONE]"]
         terminal = frames[-1]
         assert terminal["choices"][0]["finish_reason"] == "error"
-        assert terminal["hermes"]["partial"] is True
+        assert terminal["kova"]["partial"] is True
         assert terminal["usage"]["total_tokens"] == 7
     else:
         body = json.loads(wire)
         assert body["choices"][0]["finish_reason"] == "error"
-        assert body["hermes"]["partial"] is True
+        assert body["kova"]["partial"] is True
         assert body["usage"]["total_tokens"] == 7
 
 
@@ -154,7 +154,7 @@ async def test_http_unhandled_diagnostic_error_is_quiet_but_failed(tmp_path, mon
             response = await client.post("/v1/chat/completions", headers={
                 "Authorization": "Bearer test-local-key", "X-Kova-Session-Id": "session"}, json={
                 "messages": [{"role": "user", "content": "background diagnostic"}],
-                "stream": stream, "hermes_notification_category": "diagnostic"})
+                "stream": stream, "kova_notification_category": "diagnostic"})
             wire = await response.text()
     assert response.status == (200 if stream else 500), wire
     assert "private constructor failure" in caplog.text
@@ -163,7 +163,7 @@ async def test_http_unhandled_diagnostic_error_is_quiet_but_failed(tmp_path, mon
         frames = [json.loads(line[6:]) for line in wire.splitlines()
                   if line.startswith("data: ") and line != "data: [DONE]"]
         assert frames[-1]["choices"][0]["finish_reason"] == "error"
-        assert frames[-1]["hermes"]["failed"] is True
+        assert frames[-1]["kova"]["failed"] is True
     assert adapter._inflight_agent_runs == 0
 
 
@@ -189,7 +189,7 @@ async def test_http_idempotency_does_not_replay_opposite_presentation(tmp_path, 
         async with TestClient(TestServer(app)) as client:
             for category in categories:
                 body = {"messages": [{"role": "user", "content": "event"}],
-                        "hermes_notification_category": category}
+                        "kova_notification_category": category}
                 for repeat in range(2):
                     response = await client.post("/v1/chat/completions", headers={
                         "Authorization": "Bearer test-local-key", "X-Kova-Session-Id": "session",

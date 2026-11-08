@@ -33,7 +33,7 @@ def _stub_linger_file(monkeypatch, tmp_path, *, exists: bool) -> None:
 def _root_with_system_unit_pinned_home(monkeypatch, tmp_path) -> None:
     """Take the root/system-unit branch of service-name resolution (``_bare_unit_pinned_home``), the
     path that calls ``Path(...).expanduser()`` while rendering the restart hint."""
-    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("KOVA_HOME", str(tmp_path / "kova-home"))
     monkeypatch.setattr(gateway.os, "geteuid", lambda: 0)
     monkeypatch.setattr(gateway, "_kova_home_pinned_by_unit", lambda _unit_path: str(tmp_path / "system-home"))
 
@@ -201,7 +201,7 @@ def test_systemd_install_targets_linger_at_system_service_user(monkeypatch, tmp_
     helper_calls = []
 
     monkeypatch.setattr(gateway, "_require_root_for_system_service", lambda action: None)
-    monkeypatch.setattr(gateway, "has_legacy_hermes_units", lambda: False)
+    monkeypatch.setattr(gateway, "has_legacy_kova_units", lambda: False)
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     monkeypatch.setattr(gateway, "_prepare_service_launcher", lambda **kwargs: None)
     monkeypatch.setattr(
@@ -228,7 +228,7 @@ def test_existing_system_install_repairs_linger_for_configured_user(monkeypatch,
     helper_calls = []
 
     monkeypatch.setattr(gateway, "_require_root_for_system_service", lambda action: None)
-    monkeypatch.setattr(gateway, "has_legacy_hermes_units", lambda: False)
+    monkeypatch.setattr(gateway, "has_legacy_kova_units", lambda: False)
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     monkeypatch.setattr(gateway, "_sync_kova_home_from_systemd_unit", lambda system=False: None)
     monkeypatch.setattr(gateway, "systemd_unit_is_current", lambda system=False: unit_is_current)
@@ -249,7 +249,7 @@ def test_systemd_install_repair_path_keeps_linger_guarantee(monkeypatch, tmp_pat
     unit_path.write_text("old unit\n", encoding="utf-8")
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     monkeypatch.setattr(gateway, "systemd_unit_is_current", lambda system=False: False)
-    monkeypatch.setattr(gateway, "has_legacy_hermes_units", lambda: False)
+    monkeypatch.setattr(gateway, "has_legacy_kova_units", lambda: False)
     monkeypatch.setattr(gateway, "_require_root_for_system_service", lambda _action: None)
     monkeypatch.setattr(gateway, "_sync_kova_home_from_systemd_unit", lambda system=False: None)
     monkeypatch.setattr(gateway, "_read_systemd_user_from_unit", lambda path: None)

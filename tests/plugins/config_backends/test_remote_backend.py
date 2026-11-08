@@ -81,31 +81,31 @@ def test_reads_come_from_plane_not_local_file(plane):
     assert gets[0]["profile"] == "default"
 
 
-def test_boot_fetch_runs_inside_load_hermes_dotenv(plane):
-    from kova_cli.env_loader import load_hermes_dotenv
-    load_hermes_dotenv(kova_home=plane.home)
+def test_boot_fetch_runs_inside_load_kova_dotenv(plane):
+    from kova_cli.env_loader import load_kova_dotenv
+    load_kova_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 1
-    load_hermes_dotenv(kova_home=plane.home)  # idempotent: one fetch per process per profile
+    load_kova_dotenv(kova_home=plane.home)  # idempotent: one fetch per process per profile
     assert len(_gets(plane)) == 1
 
 
 # --- fail-closed boot ---------------------------------------------------------------------
 
 def test_boot_retries_then_exits_on_outage(plane):
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     plane.fail_status = 503
     with pytest.raises(ConfigBackendUnavailable) as exc:
-        load_hermes_dotenv(kova_home=plane.home)
+        load_kova_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 3  # attempts at t=0, ~10 s, ~30 s (delays patched to 0)
     assert "does not start" in str(exc.value.code)
     assert isinstance(exc.value, SystemExit)
 
 
 def test_boot_does_not_retry_a_refusal(plane, monkeypatch):
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     monkeypatch.setenv("KOVA_CONFIG_INSTANCE_ID", "someone-else")
     with pytest.raises(ConfigBackendUnavailable) as exc:
-        load_hermes_dotenv(kova_home=plane.home)
+        load_kova_dotenv(kova_home=plane.home)
     assert len(_gets(plane)) == 1
     assert "config_agent_unknown" in str(exc.value.code)
 
@@ -149,7 +149,7 @@ def test_secret_source_supplying_plane_credential_refuses_start(plane):
 
 
 def test_boot_refuses_remote_secrets_source_that_maps_plane_credential(plane, monkeypatch):
-    """End to end through load_hermes_dotenv: the REMOTE secrets: section drives the sources (D32)."""
+    """End to end through load_kova_dotenv: the REMOTE secrets: section drives the sources (D32)."""
     from types import SimpleNamespace
 
     from agent.secret_sources import registry
@@ -165,7 +165,7 @@ def test_boot_refuses_remote_secrets_source_that_maps_plane_credential(plane, mo
     monkeypatch.setattr(registry, "apply_all", fake_apply_all)
     monkeypatch.setattr(env_loader, "_APPLIED_HOMES", set())
     with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_REMOTE_URL"):
-        env_loader.load_hermes_dotenv(kova_home=plane.home)
+        env_loader.load_kova_dotenv(kova_home=plane.home)
     assert seen["cfg"] == {"command": {"enabled": True}}
 
 
@@ -448,15 +448,15 @@ def test_unknown_top_level_key_warns_once(plane, caplog):
 def test_managed_config_yaml_is_ignored_and_flagged(plane, tmp_path, monkeypatch, capsys):
     from kova_cli import managed_scope
     from kova_cli.config import load_config
-    from kova_cli.env_loader import load_hermes_dotenv
-    managed = tmp_path / "etc-hermes"
+    from kova_cli.env_loader import load_kova_dotenv
+    managed = tmp_path / "etc-kova"
     managed.mkdir()
     (managed / "config.yaml").write_text(json.dumps({"display": {"personality": "managed"}}))
     monkeypatch.setenv("KOVA_MANAGED_DIR", str(managed))
     managed_scope._CONFIG_CACHE.clear()
     plane.upper = {"display": {"personality": "remote"}}
 
-    load_hermes_dotenv(kova_home=plane.home)
+    load_kova_dotenv(kova_home=plane.home)
 
     assert "IGNORED" in capsys.readouterr().err
     assert managed_scope.load_managed_config() == {}
@@ -508,7 +508,7 @@ def test_secret_source_cannot_switch_remote_mode_off_at_boot(plane, monkeypatch)
     plane.upper = {"display": {"personality": "remote"}, "secrets": _BACKEND_FLIP_SOURCE}
 
     with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_BACKEND"):
-        env_loader.load_hermes_dotenv(kova_home=plane.home)
+        env_loader.load_kova_dotenv(kova_home=plane.home)
 
     import os
     assert os.environ["KOVA_CONFIG_BACKEND"] == "remote"  # the source's write was reverted
@@ -774,7 +774,7 @@ def test_refused_source_plane_url_is_never_visible_to_a_concurrent_request(plane
         monkeypatch.setattr(registry, "apply_all", apply_then_poll)
         gets_before = len(_gets(plane))
         with pytest.raises(ConfigBackendUnavailable, match="KOVA_CONFIG_REMOTE_URL"):
-            env_loader.load_hermes_dotenv(kova_home=plane.home)
+            env_loader.load_kova_dotenv(kova_home=plane.home)
 
         assert "url_after_sources" in seen, "precondition: the source ran"
         assert other.requests == []  # nothing — least of all the bearer — reached the other plane
@@ -924,7 +924,7 @@ def test_plane_group_lock_refusal_maps_to_locked_error_and_403():
 
 
 def test_etag_is_opaque_and_echoed_verbatim(plane, monkeypatch):
-    """The plane's ETag (hermes-config-etag/2 since portal-groups §6.8) is never parsed: whatever
+    """The plane's ETag (kova-config-etag/2 since portal-groups §6.8) is never parsed: whatever
     bytes it sends come back unchanged in If-None-Match."""
     from kova_cli.config import read_raw_config
     _multi_group_plane(plane)
@@ -1105,14 +1105,14 @@ def test_instance_id_from_the_managed_dotenv_boots(plane, monkeypatch, tmp_path)
     """F4: the deployment in the home's .env, the instance id only in the managed .env."""
     import os
 
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     managed = _drop_process_deployment(plane, monkeypatch, tmp_path)
     env = remote_env(plane)
     (managed / ".env").write_text(f"KOVA_CONFIG_INSTANCE_ID={env.pop('KOVA_CONFIG_INSTANCE_ID')}\n")
     (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items()))
     plane.upper = {"display": {"personality": "managed"}}
 
-    load_hermes_dotenv(kova_home=plane.home)
+    load_kova_dotenv(kova_home=plane.home)
 
     gets = _gets(plane)
     assert gets and gets[0]["instance"] == INSTANCE
@@ -1126,12 +1126,12 @@ def test_child_for_another_profile_keeps_the_remote_deployment(plane, monkeypatc
     import subprocess
     import sys
 
-    from kova_cli.env_loader import load_hermes_dotenv
+    from kova_cli.env_loader import load_kova_dotenv
     from tools.environments.local import served_profile_child_env
     _drop_process_deployment(plane, monkeypatch, tmp_path)
     env = remote_env(plane)
     (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items()))
-    load_hermes_dotenv(kova_home=plane.home)
+    load_kova_dotenv(kova_home=plane.home)
     beta = plane.home / "profiles" / "beta"
     beta.mkdir(parents=True)
     (beta / "config.yaml").write_text("display:\n  personality: local-child\n")
@@ -1142,8 +1142,8 @@ def test_child_for_another_profile_keeps_the_remote_deployment(plane, monkeypatc
     child_env = served_profile_child_env(target_home=beta, inherit_credentials=True)
     child_env["PYTHONPATH"] = str(Path(__file__).resolve().parents[3])
     code = ("import json\n"
-            "from kova_cli.env_loader import load_hermes_dotenv\n"
-            "load_hermes_dotenv()\n"
+            "from kova_cli.env_loader import load_kova_dotenv\n"
+            "load_kova_dotenv()\n"
             "from kova_cli.config_backend import get_config_backend\n"
             "from kova_cli.config import load_config\n"
             "print('RESULT=' + json.dumps([get_config_backend().name, load_config()['display']['personality']]))\n")
@@ -1572,8 +1572,8 @@ def _fresh_interpreter_boot(tmp_path, env, project_env):
     import subprocess
     import sys
     code = ("import json\n"
-            "from kova_cli.env_loader import load_hermes_dotenv\n"
-            f"load_hermes_dotenv(project_env={str(project_env)!r}, load_external_secrets=False)\n"
+            "from kova_cli.env_loader import load_kova_dotenv\n"
+            f"load_kova_dotenv(project_env={str(project_env)!r}, load_external_secrets=False)\n"
             "from kova_cli.config_backend import get_config_backend\n"
             "from kova_cli.config import load_config\n"
             "print('RESULT=' + json.dumps([get_config_backend().name, load_config()['display']['personality']]))\n")
@@ -1585,7 +1585,7 @@ def _fresh_interpreter_boot(tmp_path, env, project_env):
 
 def test_plane_credential_from_the_project_dotenv_boots(plane, tmp_path):
     """Round 4 #5: user .env selects remote and names the plane and instance; the project .env (a
-    supported load_hermes_dotenv layer) holds the IdP credential. A fresh process boots and fetches:
+    supported load_kova_dotenv layer) holds the IdP credential. A fresh process boots and fetches:
     the early bootstrap sees the project layer before the sanitizer's config import reads config."""
     env = remote_env(plane)
     (plane.home / ".env").write_text("".join(f"{k}={v}\n" for k, v in env.items() if k.startswith("KOVA_CONFIG_")))
@@ -1603,7 +1603,7 @@ def test_plane_credential_from_the_project_dotenv_boots(plane, tmp_path):
 
 
 def test_bootstrap_keeps_the_dotenv_precedence(tmp_path, monkeypatch):
-    """The bootstrap composes the layers as load_hermes_dotenv does: user .env overrides the
+    """The bootstrap composes the layers as load_kova_dotenv does: user .env overrides the
     process, the project .env only fills gaps when a user .env exists, managed .env wins last."""
     from kova_cli.env_loader import _bootstrap_env
     home = tmp_path / "home"

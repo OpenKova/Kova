@@ -38,7 +38,7 @@
 # never opens one (see find_browser).
 #
 # The Desktop reads the next line to pick the hand-off protocol it speaks.
-# hermes-handoff-protocol: 2
+# kova-handoff-protocol: 2
 #
 # ORDERING (the durable-truth rule): swap and relaunch are DECIDED AND
 # EXECUTED before the result file is written, the marker is removed, or a

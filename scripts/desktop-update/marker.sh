@@ -536,7 +536,7 @@ checkout_lock_path() {
     common="${common#$'\357\273\277'}"; marker_line "$common"; common="$LINE"
     case "$common" in /*) gitdir="$common" ;; '') ;; *) gitdir="$gitdir/$common" ;; esac
   fi
-  printf '%s\n' "$gitdir/hermes-update.lock"
+  printf '%s\n' "$gitdir/kova-update.lock"
 }
 
 checkout_lock_held() { # 0 iff some process holds the checkout kernel lock right now

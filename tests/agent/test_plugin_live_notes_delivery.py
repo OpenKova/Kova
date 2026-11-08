@@ -33,7 +33,7 @@ def _no_background_titles(monkeypatch):
 
 
 def _agent():
-    home = Path(tempfile.mkdtemp(prefix="hermes-test-home-"))
+    home = Path(tempfile.mkdtemp(prefix="kova-test-home-"))
     (home / "logs").mkdir(parents=True, exist_ok=True)
     tool = {"type": "function", "function": {"name": "web_search", "description": "search",
                                              "parameters": {"type": "object", "properties": {}}}}

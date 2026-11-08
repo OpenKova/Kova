@@ -39,7 +39,7 @@ VALID_YAML = "gateway:\n  enabled: false\n"
 
 
 def _setup_home(tmp_path, monkeypatch, config_text):
-    home = tmp_path / "hermes"
+    home = tmp_path / "kova"
     home.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("KOVA_HOME", str(home))
     cfg = home / "config.yaml"
