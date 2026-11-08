@@ -21,7 +21,7 @@ import {
 } from '@/store/preview'
 import { normalizeProfileKey } from '@/store/profile'
 
-const TABS_KEY = 'hermes.desktop.previewTabs.v2'
+const TABS_KEY = 'kova.desktop.previewTabs.v2'
 
 function fileTarget(path: string): PreviewTarget {
   return {

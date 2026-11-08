@@ -271,7 +271,7 @@ afterEach(() => {
   vi.useRealTimers()
   ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
   delete (window as { kovaDesktop?: unknown }).kovaDesktop
-  window.localStorage.removeItem('hermes.desktop.workspace-cwd')
+  window.localStorage.removeItem('kova.desktop.workspace-cwd')
   $currentCwd.set('')
   $busy.set(false)
   $awaitingResponse.set(false)

@@ -1,4 +1,4 @@
-import { hermesApi, sessionFileOwnerScope } from '@/api/client'
+import { kovaApi, sessionFileOwnerScope } from '@/api/client'
 import type {
   KovaConnection,
   KovaReadDirResult,
@@ -92,7 +92,7 @@ function bridge() {
 }
 
 function remoteFsApi<T>(path: string, body?: Record<string, unknown>, owner = fsRoute().owner): Promise<T> {
-  return hermesApi<T>(body ? { ...owner, body, method: 'POST', path } : { ...owner, path })
+  return kovaApi<T>(body ? { ...owner, body, method: 'POST', path } : { ...owner, path })
 }
 
 /** True when a bridge read returned the main process's structured "file is not

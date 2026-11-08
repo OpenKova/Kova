@@ -1,4 +1,4 @@
-import { hermesApi, profileScoped } from './client'
+import { kovaApi, profileScoped } from './client'
 
 // Web access: turn on the Webapp the gateway on THIS machine serves, for other devices, behind Nous
 // sign-in. The backend owns every fact here; the pane renders /status and asks for changes.
@@ -46,11 +46,11 @@ export interface WebAccessChange extends WebAccessStatus {
 const START_REQUEST_TIMEOUT_MS = 35 * 60_000
 
 export function getWebAccessStatus(): Promise<WebAccessStatus> {
-  return hermesApi<WebAccessStatus>({ ...profileScoped(), path: '/api/webapp-access/status' })
+  return kovaApi<WebAccessStatus>({ ...profileScoped(), path: '/api/webapp-access/status' })
 }
 
 export function startWebAccess(mode: WebAccessMode, publicUrl?: string): Promise<WebAccessChange> {
-  return hermesApi<WebAccessChange>({
+  return kovaApi<WebAccessChange>({
     ...profileScoped(),
     body: { mode, public_url: publicUrl },
     method: 'POST',
@@ -60,10 +60,10 @@ export function startWebAccess(mode: WebAccessMode, publicUrl?: string): Promise
 }
 
 export function stopWebAccess(): Promise<WebAccessChange> {
-  return hermesApi<WebAccessChange>({ ...profileScoped(), method: 'POST', path: '/api/webapp-access/stop' })
+  return kovaApi<WebAccessChange>({ ...profileScoped(), method: 'POST', path: '/api/webapp-access/stop' })
 }
 
 /** Restart the gateway onto the saved config, and nothing else. */
 export function restartWebAccess(): Promise<WebAccessChange> {
-  return hermesApi<WebAccessChange>({ ...profileScoped(), method: 'POST', path: '/api/webapp-access/restart' })
+  return kovaApi<WebAccessChange>({ ...profileScoped(), method: 'POST', path: '/api/webapp-access/restart' })
 }

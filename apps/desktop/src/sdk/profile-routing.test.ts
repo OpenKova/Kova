@@ -22,7 +22,7 @@ vi.mock('@/components/pane-shell/tree/store', async () => {
   }
 })
 vi.mock('@/contrib/events', () => ({ onGatewayEvent: vi.fn() }))
-vi.mock('@/kova', () => ({ deleteProfile: vi.fn(), getLogs: vi.fn(), getStatus: vi.fn(), hermesApi: vi.fn() }))
+vi.mock('@/kova', () => ({ deleteProfile: vi.fn(), getLogs: vi.fn(), getStatus: vi.fn(), kovaApi: vi.fn() }))
 vi.mock('@/store/notifications', () => ({ notify: vi.fn(), notifyError: vi.fn() }))
 vi.mock('@/store/system-actions', () => ({ runGatewayRestart: vi.fn() }))
 vi.mock('@/store/session', async () => {
@@ -140,7 +140,7 @@ vi.mock('@/store/gateway', async () => {
 const { HYDRATION_SYNC_BADGE_TIMEOUT_MS, host } = await import('./index')
 
 const { openSession: openSessionCore } = await import('@/app/open-session')
-const { deleteProfile, hermesApi } = await import('@/kova')
+const { deleteProfile, kovaApi } = await import('@/kova')
 
 const {
   activeGatewayConnectionId,
@@ -325,7 +325,7 @@ describe('connection-aware plugin host APIs', () => {
       targetProfile: 'backend-worker'
     }
 
-    vi.mocked(hermesApi)
+    vi.mocked(kovaApi)
       .mockResolvedValueOnce({ sessions: [{ id: 'bot-chat', profile: 'backend-worker', title: 'Bot Chat' }] })
       .mockResolvedValueOnce({ exists: true, runtime_revision: 31, runtime_generation: 5 })
       .mockResolvedValueOnce({ ok: true, hidden: true })
@@ -337,18 +337,18 @@ describe('connection-aware plugin host APIs', () => {
       host.setPersistedSessionHidden(route, { sessionId: 'bot-chat', profile: 'backend-worker', hidden: true })
     ).resolves.toMatchObject({ ok: true, hidden: true })
 
-    expect(hermesApi).toHaveBeenNthCalledWith(
+    expect(kovaApi).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         connectionId: 'source-a',
         path: expect.stringContaining('/api/profiles/sessions?')
       })
     )
-    expect(hermesApi).toHaveBeenNthCalledWith(2, {
+    expect(kovaApi).toHaveBeenNthCalledWith(2, {
       connectionId: 'source-a',
       path: '/api/sessions/bot-chat/mutation-snapshot?profile=backend-worker'
     })
-    expect(hermesApi).toHaveBeenNthCalledWith(3, {
+    expect(kovaApi).toHaveBeenNthCalledWith(3, {
       connectionId: 'source-a',
       path: '/api/sessions/bot-chat',
       method: 'PATCH',
@@ -360,19 +360,19 @@ describe('connection-aware plugin host APIs', () => {
         request_id: expect.any(String)
       }
     })
-    expect(vi.mocked(hermesApi).mock.calls.every(([request]) => !('profile' in request))).toBe(true)
+    expect(vi.mocked(kovaApi).mock.calls.every(([request]) => !('profile' in request))).toBe(true)
     expect(requestGatewayForAgent).not.toHaveBeenCalled()
     expect(requestGatewayForProfile).not.toHaveBeenCalled()
   })
 
   it('keeps an unrouted persisted-session edit on the window primary instead of pinning it to this device', async () => {
-    vi.mocked(hermesApi)
+    vi.mocked(kovaApi)
       .mockResolvedValueOnce({ exists: true, runtime_revision: 2, runtime_generation: 1 })
       .mockResolvedValueOnce({ ok: true, hidden: true })
 
     await host.setPersistedSessionHidden(null, { sessionId: 'remote-chat', profile: 'default', hidden: true })
 
-    expect(vi.mocked(hermesApi).mock.calls.map(([request]) => request.connectionId)).toEqual([null, null])
+    expect(vi.mocked(kovaApi).mock.calls.map(([request]) => request.connectionId)).toEqual([null, null])
   })
 
   it('forwards an explicit timeout so long-running methods outlive the generic deadline', async () => {

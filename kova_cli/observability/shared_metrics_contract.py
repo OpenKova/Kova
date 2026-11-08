@@ -665,9 +665,9 @@ CACHE_BREAK_CAUSES = frozenset({
 # Desktop love/hate: which areas get used, what gets in the way, where first run stops. Every value
 # is a code-defined Desktop surface id (apps/desktop/src/store/desktop-metrics.ts mirrors these
 # sets); anything the client names outside them collapses to `other` before it is recorded.
-DESKTOP_FEATURE_USE_MARK = DESKTOP_FEATURE_USE_METRIC = "hermes.desktop.feature_use"
-DESKTOP_FRICTION_MARK = DESKTOP_FRICTION_METRIC = "hermes.desktop.friction"
-DESKTOP_ONBOARDING_MARK = DESKTOP_ONBOARDING_METRIC = "hermes.desktop.onboarding"
+DESKTOP_FEATURE_USE_MARK = DESKTOP_FEATURE_USE_METRIC = "kova.desktop.feature_use"
+DESKTOP_FRICTION_MARK = DESKTOP_FRICTION_METRIC = "kova.desktop.friction"
+DESKTOP_ONBOARDING_MARK = DESKTOP_ONBOARDING_METRIC = "kova.desktop.onboarding"
 # Settings views are `SETTINGS_VIEWS` in apps/desktop/src/app/settings/index.tsx (the legacy
 # `connections` tab redirects to `gateway`).
 DESKTOP_SETTINGS_AREAS = frozenset({
@@ -722,7 +722,7 @@ DESKTOP_ONBOARDING_STEPS = frozenset({
 })
 DESKTOP_ONBOARDING_EVENTS = frozenset({"abandoned", "completed", "reached"})
 # Bot Mode (a bot's canonical chat or a bot side-chat in front) vs regular Sessions mode, per day.
-DESKTOP_MODE_USE_MARK = DESKTOP_MODE_USE_METRIC = "hermes.desktop.mode_use"
+DESKTOP_MODE_USE_MARK = DESKTOP_MODE_USE_METRIC = "kova.desktop.mode_use"
 DESKTOP_MODES = frozenset({"bots", "sessions"})
 DESKTOP_ACTIVE_MINUTES_BUCKETS = frozenset({"0", "lt_5m", "5m_to_30m", "30m_to_2h", "2h_to_6h", "gte_6h"})
 _DESKTOP_ACTIVE_THRESHOLDS = ((300_000, "lt_5m"), (1_800_000, "5m_to_30m"), (7_200_000, "30m_to_2h"),
@@ -739,7 +739,7 @@ def desktop_active_minutes_bucket(active_ms: Any) -> str:
 # Button presses per day. Action ids are the Desktop keybinding registry (KEYBIND_ACTIONS in
 # apps/desktop/src/lib/keybinds/actions.ts) plus the typed button table DESKTOP_BUTTON_ACTIONS in
 # apps/desktop/src/store/desktop-metrics.ts; contributed/plugin actions collapse to `other`.
-DESKTOP_ACTION_USE_MARK = DESKTOP_ACTION_USE_METRIC = "hermes.desktop.action_use"
+DESKTOP_ACTION_USE_MARK = DESKTOP_ACTION_USE_METRIC = "kova.desktop.action_use"
 DESKTOP_KEYBIND_ACTION_IDS = frozenset({
     "appearance.toggleMode", "composer.cancel", "composer.dictate", "composer.focus", "composer.help",
     "composer.history", "composer.mention", "composer.modelPicker", "composer.newline", "composer.queue",
@@ -762,7 +762,7 @@ DESKTOP_ACTION_IDS = DESKTOP_KEYBIND_ACTION_IDS | DESKTOP_BUTTON_ACTION_IDS | {"
 DESKTOP_ACTION_VIAS = frozenset({"click", "menu", "palette", "shortcut"})
 # Dislike signals, each naming its target from a closed set (setting keys are DEFAULT_CONFIG leaf
 # paths, checked against the live schema by shared_metrics_desktop and shape-checked here).
-DESKTOP_DISLIKE_MARK = DESKTOP_DISLIKE_METRIC = "hermes.desktop.dislike"
+DESKTOP_DISLIKE_MARK = DESKTOP_DISLIKE_METRIC = "kova.desktop.dislike"
 DESKTOP_FLOW_IDS = frozenset({
     "command_palette", "free_tier_sign_in", "keybind_capture", "model_picker", "project_create", "provider_oauth",
     "session_picker", "session_switcher", "other",

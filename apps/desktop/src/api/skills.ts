@@ -9,7 +9,7 @@ import type {
 } from '@/types/kova'
 import type { ActionResponse } from '@/types/kova'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
+import { capabilityScoped, kovaApi, type ProfileScope, profileScoped } from './client'
 
 export function getSkills(profile?: ProfileScope): Promise<SkillInfo[]> {
   return window.kovaDesktop.api<SkillInfo[]>({
@@ -58,7 +58,7 @@ export function setSkillLocked(
 }
 
 export function getStarmapGraph(): Promise<StarmapGraph> {
-  return hermesApi<StarmapGraph>({
+  return kovaApi<StarmapGraph>({
     ...profileScoped(),
     // Backend REST contract — stays /api/learning even though the UI feature is
     // now "star map". Renaming this would break against an un-upgraded backend.
@@ -121,7 +121,7 @@ export function getOfficialSkills(profile?: ProfileScope): Promise<{ skills: Off
 }
 
 export function getSkillHubSources(profile?: null | string): Promise<SkillHubSourcesResponse> {
-  return hermesApi<SkillHubSourcesResponse>({
+  return kovaApi<SkillHubSourcesResponse>({
     ...profileScoped(profile),
     path: '/api/skills/hub/sources',
     timeoutMs: HUB_REQUEST_TIMEOUT_MS
@@ -136,7 +136,7 @@ export function searchSkillsHub(
 ): Promise<SkillHubSearchResponse> {
   const params = new URLSearchParams({ q: query, source, limit: String(limit) })
 
-  return hermesApi<SkillHubSearchResponse>({
+  return kovaApi<SkillHubSearchResponse>({
     ...profileScoped(profile),
     path: `/api/skills/hub/search?${params.toString()}`,
     timeoutMs: HUB_REQUEST_TIMEOUT_MS
@@ -152,7 +152,7 @@ export function previewSkillHub(identifier: string, profile?: ProfileScope): Pro
 }
 
 export function scanSkillHub(identifier: string, profile?: null | string): Promise<SkillHubScanResult> {
-  return hermesApi<SkillHubScanResult>({
+  return kovaApi<SkillHubScanResult>({
     ...profileScoped(profile),
     path: `/api/skills/hub/scan?identifier=${encodeURIComponent(identifier)}`,
     timeoutMs: HUB_REQUEST_TIMEOUT_MS

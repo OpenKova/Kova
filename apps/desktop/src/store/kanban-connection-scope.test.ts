@@ -108,7 +108,7 @@ describe('connection-switch query invalidation', () => {
 
   it('refetches connection-scoped queries against the NEW gateway after a switch', async () => {
     // One active profile-scoped query whose connection tag is read at queryFn
-    // time, which is what pluginRest → hermesApi does.
+    // time, which is what pluginRest → kovaApi does.
     observer = new QueryObserver(queryClient, {
       queryKey: ['kanban', 'boards'],
       queryFn: async () => {

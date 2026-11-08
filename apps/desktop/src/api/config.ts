@@ -15,7 +15,7 @@ import type {
   StatusResponse
 } from '@/types/kova'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
+import { capabilityScoped, kovaApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
 
 type ConfigReadOrigin = { connectionId?: string; priority?: 'foreground'; profile?: string }
 
@@ -86,7 +86,7 @@ export function resolveConfigWriteScope(
 }
 
 export function getStatus(): Promise<StatusResponse> {
-  return hermesApi<StatusResponse>({
+  return kovaApi<StatusResponse>({
     ...profileScoped(),
     path: '/api/status'
   })
@@ -123,14 +123,14 @@ export function getLogs(params: {
 
   const suffix = query.toString()
 
-  return hermesApi<LogsResponse>({
+  return kovaApi<LogsResponse>({
     ...profileScoped(),
     path: suffix ? `/api/logs?${suffix}` : '/api/logs'
   })
 }
 
 export function getKovaConfig(profile?: string): Promise<KovaConfig> {
-  return hermesApi<KovaConfig>({
+  return kovaApi<KovaConfig>({
     ...profileScoped(profile),
     path: '/api/config',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
@@ -171,7 +171,7 @@ export function getKovaConfigDefaults(): Promise<KovaConfigRecord> {
 }
 
 export function getKovaConfigSchema(profile?: null | string): Promise<ConfigSchemaResponse> {
-  return hermesApi<ConfigSchemaResponse>({
+  return kovaApi<ConfigSchemaResponse>({
     ...profileScoped(profile),
     path: '/api/config/schema'
   })
@@ -203,7 +203,7 @@ export function saveKovaConfigRecord(config: KovaConfigRecord, profile?: Profile
 }
 
 export function getEnvVars(profile?: null | string): Promise<Record<string, EnvVarInfo>> {
-  return hermesApi<Record<string, EnvVarInfo>>({
+  return kovaApi<Record<string, EnvVarInfo>>({
     ...profileScoped(profile),
     path: '/api/env'
   })
@@ -264,7 +264,7 @@ export function validateProviderCredential(
 }
 
 export function getCustomEndpoints(profile?: null | string): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return kovaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints'
   })
@@ -274,7 +274,7 @@ export function saveCustomEndpoint(
   endpoint: CustomEndpointUpdate,
   profile?: null | string
 ): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return kovaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints',
     method: 'POST',
@@ -286,7 +286,7 @@ export function validateCustomEndpoint(
   endpoint: CustomEndpointUpdate,
   profile?: null | string
 ): Promise<CustomEndpointValidationResponse> {
-  return hermesApi<CustomEndpointValidationResponse>({
+  return kovaApi<CustomEndpointValidationResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints/validate',
     method: 'POST',
@@ -298,7 +298,7 @@ export function activateCustomEndpoint(
   id: string,
   profile?: null | string
 ): Promise<{ ok: boolean; provider: string; model: string }> {
-  return hermesApi<{ ok: boolean; provider: string; model: string }>({
+  return kovaApi<{ ok: boolean; provider: string; model: string }>({
     ...profileScoped(profile),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}/activate`,
     method: 'POST'
@@ -306,7 +306,7 @@ export function activateCustomEndpoint(
 }
 
 export function deleteCustomEndpoint(id: string, profile?: null | string): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return kovaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}`,
     method: 'DELETE'
@@ -324,7 +324,7 @@ export function disconnectOAuthProvider(
   providerId: string,
   profile?: null | string
 ): Promise<{ ok: boolean; provider: string }> {
-  return hermesApi<{ ok: boolean; provider: string }>({
+  return kovaApi<{ ok: boolean; provider: string }>({
     ...profileScoped(profile),
     path: `/api/providers/oauth/${encodeURIComponent(providerId)}`,
     method: 'DELETE'

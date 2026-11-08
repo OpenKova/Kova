@@ -73,7 +73,7 @@ vi.mock('@/lib/desktop-git', async importOriginal => ({
 vi.mock('@/kova', () => ({
   getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
-  hermesApi: vi.fn(),
+  kovaApi: vi.fn(),
   setApiRequestProfile: vi.fn(),
   STARTUP_REQUEST_TIMEOUT_MS: 1000
 }))
@@ -121,7 +121,7 @@ describe('project scope', () => {
 
   it('persists the scope to localStorage', () => {
     enterProject('p_abc')
-    expect(window.localStorage.getItem('hermes.desktop.projectScope')).toBe('p_abc')
+    expect(window.localStorage.getItem('kova.desktop.projectScope')).toBe('p_abc')
   })
 })
 

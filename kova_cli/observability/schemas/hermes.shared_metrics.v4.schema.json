@@ -3956,7 +3956,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.feature_use"
+          "const": "kova.desktop.feature_use"
         },
         "type": {
           "const": "counter"
@@ -4038,7 +4038,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.friction"
+          "const": "kova.desktop.friction"
         },
         "type": {
           "const": "counter"
@@ -4129,7 +4129,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.onboarding"
+          "const": "kova.desktop.onboarding"
         },
         "type": {
           "const": "counter"
@@ -4184,7 +4184,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.mode_use"
+          "const": "kova.desktop.mode_use"
         },
         "type": {
           "const": "counter"
@@ -4260,7 +4260,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.action_use"
+          "const": "kova.desktop.action_use"
         },
         "type": {
           "const": "counter"
@@ -4392,7 +4392,7 @@
       ],
       "properties": {
         "name": {
-          "const": "hermes.desktop.dislike"
+          "const": "kova.desktop.dislike"
         },
         "type": {
           "const": "counter"

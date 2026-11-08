@@ -1,4 +1,4 @@
-import { hermesApiAs } from '@/api/client'
+import { kovaApiAs } from '@/api/client'
 import type {
   KovaGitBaseBranch,
   KovaGitBranch,
@@ -8,7 +8,7 @@ import type {
   KovaReviewList,
   KovaReviewShipInfo
 } from '@/global'
-import { hermesApi } from '@/kova'
+import { kovaApi } from '@/kova'
 
 import { desktopFsProfile, isDesktopFsRemoteMode } from './desktop-fs'
 
@@ -33,7 +33,7 @@ const windowApi: GitApi = <T>(path: string, body?: Record<string, unknown>) => {
     throw new Error('Kova Desktop bridge is unavailable')
   }
 
-  return hermesApi<T>(
+  return kovaApi<T>(
     body ? { body, method: 'POST', path, profile: desktopFsProfile() } : { path, profile: desktopFsProfile() }
   )
 }
@@ -41,7 +41,7 @@ const windowApi: GitApi = <T>(path: string, body?: Record<string, unknown>) => {
 const ownerApi =
   (owner: GitOwnerRoute): GitApi =>
   <T>(path: string, body?: Record<string, unknown>) =>
-    hermesApiAs<T>(owner, body ? { body, method: 'POST', path } : { path })
+    kovaApiAs<T>(owner, body ? { body, method: 'POST', path } : { path })
 
 function remoteGitVia(api: GitApi): GitBridge {
   const gitGet = <T>(route: string, params: Record<string, boolean | null | string | undefined>): Promise<T> => {

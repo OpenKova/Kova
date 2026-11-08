@@ -7,7 +7,7 @@ import type {
   ToolsetModelsResponse
 } from '@/types/kova'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
+import { capabilityScoped, kovaApi, type ProfileScope, profileScoped } from './client'
 
 // The optional trailing `profile` on every capability fetcher below is the
 // Capabilities view's profile-scope override: it lets the Skills/Tools/MCP
@@ -129,14 +129,14 @@ export function selectTerminalBackend(
 }
 
 export function getComputerUseStatus(): Promise<ComputerUseStatus> {
-  return hermesApi<ComputerUseStatus>({
+  return kovaApi<ComputerUseStatus>({
     ...profileScoped(),
     path: '/api/tools/computer-use/status'
   })
 }
 
 export function grantComputerUsePermissions(): Promise<ActionResponse> {
-  return hermesApi<ActionResponse>({
+  return kovaApi<ActionResponse>({
     ...profileScoped(),
     path: '/api/tools/computer-use/permissions/grant',
     method: 'POST'

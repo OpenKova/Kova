@@ -37,8 +37,8 @@ const JOURNAL_SEED_TIMEOUT_MS = 30_000
 const STREAM_RESPONSE_TIMEOUT_MS = 30_000
 const STREAM_RESPONSE_EVALUATION_TIMEOUT_MS = 30_000
 const STREAM_PAYLOAD_BYTES = 512 * 1024
-const LEGACY_STORAGE_KEY = 'hermes.desktop.inflightTurnJournal.v1'
-const LEGACY_MIGRATION_KEY = 'hermes.desktop.inflightTurnJournal.v2.migrated'
+const LEGACY_STORAGE_KEY = 'kova.desktop.inflightTurnJournal.v1'
+const LEGACY_MIGRATION_KEY = 'kova.desktop.inflightTurnJournal.v2.migrated'
 const LEGACY_SEED_ENTRY_COUNT = 15
 const MAX_LEGACY_SEED_BYTES = 1.9 * 1024 * 1024
 // Reserve space for the JSON envelope and per-entry metadata so the generated

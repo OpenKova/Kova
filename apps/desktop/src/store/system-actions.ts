@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { getActionStatus, getStatus, hermesApi, restartGateway } from '@/kova'
+import { getActionStatus, getStatus, kovaApi, restartGateway } from '@/kova'
 import { translateNow } from '@/i18n'
 import { sharedGatewayProfiles } from '@/lib/shared-gateway-restart'
 import { isSignedOutStatus } from '@/lib/signed-out-status'
@@ -91,7 +91,7 @@ export async function confirmSharedGatewayRestart(): Promise<false | null | stri
     // body, which omits the served set. A gated read rotates the cookies; then ask again, so a
     // restart of the shared multiplexer still asks first.
     if (isSignedOutStatus(status)) {
-      await hermesApi({ path: '/api/auth/me' })
+      await kovaApi({ path: '/api/auth/me' })
       status = await getStatus()
     }
 

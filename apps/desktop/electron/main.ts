@@ -15087,7 +15087,7 @@ ipcMain.handle('kova:connections:update-all', async (_event, payload) => {
           ensureRegistryBackend(connection.id, null)
         )
 
-        const body: any = await postJsonForBackend(descriptor, '/api/hermes/update', {}, { timeoutMs: 15_000 })
+        const body: any = await postJsonForBackend(descriptor, '/api/kova/update', {}, { timeoutMs: 15_000 })
 
         if (body?.ok === false) {
           // The backend refused (docker/nix/externally-managed installs) —

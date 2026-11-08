@@ -15,11 +15,11 @@ import { writeKey } from '../storage'
 import { captureOwnPreferences, hydrateFromSnapshot, startUiPreferencesSync, type UiPreferencesBridge } from './sync'
 
 // The renderer sync against the real native writer on a real file (#145536 review).
-const DENSITY = 'hermes.desktop.sessionListDensity'
+const DENSITY = 'kova.desktop.sessionListDensity'
 const MODE = 'hermes-desktop-mode-v1'
 const THEME = 'hermes-desktop-theme-v2'
 const USER_THEMES = 'hermes-desktop-user-themes-v1'
-const KEYBINDS = 'hermes.desktop.keybinds'
+const KEYBINDS = 'kova.desktop.keybinds'
 const dirs: string[] = []
 const tick = (ms = 400) => new Promise(resolve => setTimeout(resolve, ms))
 

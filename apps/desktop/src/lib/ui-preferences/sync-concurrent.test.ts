@@ -18,7 +18,7 @@ import type { UiPreferencesBridge } from './sync'
 // a removal elsewhere, an edit carried over a reload or a takeover, a tab
 // whose unsent edit another tab already took over.
 const MODE = 'hermes-desktop-mode-v1'
-const FAVORITES = 'hermes.desktop.favorite-models'
+const FAVORITES = 'kova.desktop.favorite-models'
 
 const dirs: string[] = []
 const stops: (() => void)[] = []

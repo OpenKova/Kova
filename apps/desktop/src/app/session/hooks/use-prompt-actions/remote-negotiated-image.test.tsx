@@ -1,7 +1,7 @@
 import { cleanup } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 
-import { hermesApi, KovaGateway } from '@/api/client'
+import { kovaApi, KovaGateway } from '@/api/client'
 import { $composerAttachments } from '@/store/composer'
 import { $connectionWires, recordConnectionWire } from '@/store/connection-wire'
 import { requestGatewayForAgent } from '@/store/gateway'
@@ -15,7 +15,7 @@ interface FixtureSocket {
 }
 
 vi.mock('@/api/client', async importOriginal => ({
-  ...(await importOriginal<Record<string, unknown>>()), hermesApi: vi.fn()
+  ...(await importOriginal<Record<string, unknown>>()), kovaApi: vi.fn()
 }))
 vi.mock('@/kova', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: RUNTIME_SESSION_ID })),
@@ -96,7 +96,7 @@ test.each(['public-canonical', 'public-legacy', 'native-canonical'] as const)('%
     setSessionOwnerHint(RUNTIME_SESSION_ID, { connectionId: 'remote', profile: 'work', mode: native ? 'local' : 'remote' })
     vi.mocked(requestGatewayForAgent).mockImplementation((_connectionId, profile, method, params, timeout, signal) =>
       client.request(method, { ...params, profile }, timeout, signal))
-    vi.mocked(hermesApi).mockResolvedValue({ path: '/gateway/cache/images/fixture.png', mime_type: 'image/png' })
+    vi.mocked(kovaApi).mockResolvedValue({ path: '/gateway/cache/images/fixture.png', mime_type: 'image/png' })
 
     // Positive control: the real client negotiated and adapts an ordinary send.
     const receipt = await client.request('prompt.submit', {
@@ -116,14 +116,14 @@ test.each(['public-canonical', 'public-legacy', 'native-canonical'] as const)('%
 
     if (canonical) {
       expect(imageSubmit.params.attachments).toEqual([{ path: '/gateway/cache/images/fixture.png', mime: 'image/png' }])
-      expect(hermesApi).toHaveBeenCalledWith(expect.objectContaining({
+      expect(kovaApi).toHaveBeenCalledWith(expect.objectContaining({
         path: '/api/chat/image-upload', connectionId: 'remote', profile: 'work'
       }))
       expect(frames.some(frame => frame.method === 'image.attach_bytes')).toBe(false)
     } else {
       expect(frames.some(frame => frame.method === 'image.attach_bytes')).toBe(true)
       expect(imageSubmit.params).not.toHaveProperty('attachments')
-      expect(hermesApi).not.toHaveBeenCalled()
+      expect(kovaApi).not.toHaveBeenCalled()
     }
 
   } finally {

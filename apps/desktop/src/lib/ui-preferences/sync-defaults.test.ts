@@ -17,11 +17,11 @@ import type { UiPreferencesBridge } from './sync'
 // config) is not the user's choice and must never reach the machine's store
 // ahead of the client that holds the real one (#145536 review), against the
 // real native writer on a real file.
-const TRANSLUCENCY = 'hermes.desktop.translucency.v2'
-const AUTO_SPEAK = 'hermes.desktop.autoSpeakReplies'
+const TRANSLUCENCY = 'kova.desktop.translucency.v2'
+const AUTO_SPEAK = 'kova.desktop.autoSpeakReplies'
 const THEME = 'hermes-desktop-theme-v2'
-const KEYBINDS = 'hermes.desktop.keybinds'
-const HAPTICS_MUTED = 'hermes.desktop.hapticsMuted'
+const KEYBINDS = 'kova.desktop.keybinds'
+const HAPTICS_MUTED = 'kova.desktop.hapticsMuted'
 
 // Every store that writes its value the moment its module evaluates.
 const LOAD_WRITERS = [

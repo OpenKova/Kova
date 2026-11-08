@@ -32,11 +32,11 @@ import { $workspaceChangeTick } from './workspace-events'
 // event is addressed by pane id).
 export const REVIEW_PANE_ID = 'review'
 
-const OPEN_KEY = 'hermes.desktop.reviewOpen'
-const COMMIT_DEFAULT_KEY = 'hermes.desktop.reviewCommitDefault'
-const TREE_MODE_KEY = 'hermes.desktop.reviewTreeMode'
-const SCOPE_KEY = 'hermes.desktop.reviewScope'
-const SELECTED_KEY = 'hermes.desktop.reviewSelectedPath'
+const OPEN_KEY = 'kova.desktop.reviewOpen'
+const COMMIT_DEFAULT_KEY = 'kova.desktop.reviewCommitDefault'
+const TREE_MODE_KEY = 'kova.desktop.reviewTreeMode'
+const SCOPE_KEY = 'kova.desktop.reviewScope'
+const SELECTED_KEY = 'kova.desktop.reviewSelectedPath'
 const REVIEW_REFRESH_DEBOUNCE_MS = 100
 const SHIP_INFO_STALE_MS = 30_000
 

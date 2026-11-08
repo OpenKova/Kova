@@ -22,7 +22,7 @@ vi.mock('@/store/gateway', () => ({
 vi.mock('@/kova', () => ({
   getKovaConfig: vi.fn(),
   getProfiles: vi.fn(),
-  hermesApi: vi.fn(),
+  kovaApi: vi.fn(),
   setApiRequestProfile: vi.fn(),
   STARTUP_REQUEST_TIMEOUT_MS: 1000
 }))

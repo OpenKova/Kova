@@ -707,7 +707,7 @@ const LOCAL_PRIMARY_SCOPED_ROUTES = new Set([
   'POST /api/curator/run',
   'GET /api/logs',
   'GET /api/portal',
-  'GET /api/hermes/update/check',
+  'GET /api/kova/update/check',
   'POST /api/local-models/activate',
   'GET /api/dashboard/themes',
   'PUT /api/dashboard/theme',

@@ -4,7 +4,7 @@ import type { KovaConnection } from '@/global'
 import { hostHas } from '@/lib/host-capabilities'
 import { RECONNECT_ATTEMPT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
 
-import { $apiRequestScope, getApiRequestConnection, getApiRequestProfile, hermesApi, profileScoped } from './client'
+import { $apiRequestScope, getApiRequestConnection, getApiRequestProfile, kovaApi, profileScoped } from './client'
 
 /** Resolve the ACTIVE backend's connection descriptor, (connectionId,
  *  profile)-scoped — mirroring how store/profile resolves $connection: a
@@ -77,7 +77,7 @@ export async function pluginRest<T>(pluginId: string, path: string, opts: Plugin
 
   const suffix = pluginPathSuffix('pluginRest', path)
 
-  return hermesApi<T>({
+  return kovaApi<T>({
     path: `/api/plugins/${pluginId}${suffix}`,
     method: opts.method,
     body: opts.body,

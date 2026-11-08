@@ -1,6 +1,6 @@
 import { fileUrlToNativePath, LOCAL_CONNECTION_ID } from '@kova/shared'
 
-import { capabilityScoped, hermesApi, type OwnerScope, sessionFileOwnerScope } from '@/api/client'
+import { capabilityScoped, kovaApi, type OwnerScope, sessionFileOwnerScope } from '@/api/client'
 import type { KovaConnection } from '@/global'
 import { translateNow } from '@/i18n'
 import { desktopFsCacheKey, isReadFileErrorResult, readDesktopFileDataUrl } from '@/lib/desktop-fs'
@@ -137,7 +137,7 @@ export async function resolveMediaDisplaySrc(path: string, owner?: OwnerScope): 
   // A tile can belong to a different gateway than the foreground. Pin both
   // halves at read admission rather than resolving them when the read settles.
   if (window.kovaDesktop && (owner?.connectionId || owner?.profile)) {
-    const result = await hermesApi<string | { dataUrl?: string }>({
+    const result = await kovaApi<string | { dataUrl?: string }>({
       path: `/api/fs/read-data-url?path=${encodeURIComponent(filePathFromMediaPath(path))}`,
       ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
       ...(owner.profile ? { profile: owner.profile } : {})
@@ -373,7 +373,7 @@ export async function gatewayImageProxyDataUrl(url: string, owner?: OwnerScope):
   }
 
   try {
-    const result = await hermesApi<string | { dataUrl?: string }>({
+    const result = await kovaApi<string | { dataUrl?: string }>({
       path: `/api/media/proxy?url=${encodeURIComponent(url)}`,
       ...(owner?.connectionId ? { connectionId: owner.connectionId } : {}),
       ...(owner?.profile ? { profile: owner.profile } : {})

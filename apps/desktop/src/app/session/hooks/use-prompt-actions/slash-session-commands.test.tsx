@@ -100,7 +100,7 @@ const COMPRESSING = new JsonRpcGatewayError('session_busy', {
 
 beforeEach(() => {
   clearSingleFlightSessionResumeState()
-  window.localStorage.removeItem('hermes.desktop.composerQueue.v1')
+  window.localStorage.removeItem('kova.desktop.composerQueue.v1')
   $queuedPromptsBySession.set({})
   setComposerDraft('')
 })

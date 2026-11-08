@@ -646,7 +646,7 @@ export function profileScoped(profile?: null | string): { priority?: 'foreground
  *  a Bot on another connection is (its connection, its profile) — never the
  *  active connection with the Bot's profile name. Missing halves fall back to
  *  the ambient scope; an explicit connection — `'local'` included — overrides
- *  the ambient tag `hermesApi` spreads underneath (as capabilityScoped does). */
+ *  the ambient tag `kovaApi` spreads underneath (as capabilityScoped does). */
 export interface OwnerScope {
   connectionId?: null | string
   profile?: null | string
@@ -679,11 +679,11 @@ export function resolveOwnerNow(owner?: OwnerScope): ResolvedOwner {
   }
 }
 
-/** `hermesApi` for a resolved owner: its tags are sent verbatim, with no
+/** `kovaApi` for a resolved owner: its tags are sent verbatim, with no
  *  ambient connection spread underneath. An untagged half stays untagged. A
  *  named profile is always explicit here, so it carries the foreground
  *  priority `profileScoped` gives explicit profiles (voice is user-driven). */
-export function hermesApiAs<T>(owner: ResolvedOwner, request: KovaApiRequest): Promise<T> {
+export function kovaApiAs<T>(owner: ResolvedOwner, request: KovaApiRequest): Promise<T> {
   return window.kovaDesktop.api<T>({
     ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
     ...(owner.profile ? { priority: 'foreground' as const, profile: owner.profile } : {}),
@@ -750,7 +750,7 @@ export function ambientOwnerConnectionId(): string | undefined {
  *  pin — `'local'` included — so a pin always overrides the ambient tag spread
  *  underneath it. (It used to omit the key for 'local', which made the pin
  *  unable to beat the ambient tag; helpers then had to bypass this wrapper.) */
-export function hermesApi<T>(request: KovaApiRequest): Promise<T> {
+export function kovaApi<T>(request: KovaApiRequest): Promise<T> {
   return window.kovaDesktop.api<T>({ ...connectionScoped(), ...request })
 }
 

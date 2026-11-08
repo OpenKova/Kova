@@ -147,7 +147,7 @@ const writeKovaConfigCache =
     })
 
 export const setKovaConfigCache = writeKovaConfigCache(() => hermesConfigKey())
-export const hermesConfigCacheWriter = (profile?: ProfileScope) =>
+export const kovaConfigCacheWriter = (profile?: ProfileScope) =>
   writeKovaConfigCache(() => hermesConfigKey(profile))
 
 export const invalidateKovaConfig = (profile?: ProfileScope) =>

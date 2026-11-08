@@ -1123,7 +1123,7 @@ it('does not resend words handed back for editing once another window finished w
 it('offers a read-only retry when the Send journal cannot be read, then restores its pending intent', async () => {
   const binding = { connectionId: 'local', profile: 'team', roomId: 'unreadable' }
   const entry = await prepareCanonicalGroupSend(binding, { text: 'Saved before the failure', attachments: [] })
-  const saved = localStorage.getItem('hermes.desktop.canonicalGroupSends.v1')!
+  const saved = localStorage.getItem('kova.desktop.canonicalGroupSends.v1')!
   const compareAndSet = vi.fn()
   const read = vi.fn().mockRejectedValueOnce(new Error('EACCES: journal unreadable')).mockResolvedValue(saved)
   window.kovaDesktop = { preparedSubmissions: { read, compareAndSet } } as unknown as typeof window.kovaDesktop

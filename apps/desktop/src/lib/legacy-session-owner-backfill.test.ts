@@ -6,7 +6,7 @@ const api = vi.fn<(request: unknown) => Promise<unknown>>()
 
 vi.mock('@/api/client', () => ({
   getApiRequestConnection: () => 'gw-b',
-  hermesApi: (request: unknown) => api(request)
+  kovaApi: (request: unknown) => api(request)
 }))
 vi.mock('@/store/connection-registry-state', () => ({
   $connectionsRegistry: { get: () => ({ connections: [{ id: 'local' }, { id: 'gw-b' }] }) },

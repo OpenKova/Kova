@@ -10,7 +10,7 @@ import {
   type SidebarProjectTree
 } from '@/app/chat/sidebar/projects/workspace-groups'
 import type { KovaGitBaseBranch, KovaGitBranch } from '@/global'
-import { getKovaConfig, hermesApi, type KovaGateway, type SessionInfo } from '@/kova'
+import { getKovaConfig, kovaApi, type KovaGateway, type SessionInfo } from '@/kova'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd, isDesktopFsRemoteMode, selectDesktopPaths, writeDesktopFileText } from '@/lib/desktop-fs'
 import { desktopGit, desktopGitFor, type GitOwnerRoute } from '@/lib/desktop-git'
@@ -599,7 +599,7 @@ async function refreshProjectTreeAcrossProfiles(): Promise<void> {
   $projectTreeLoading.set(true)
 
   try {
-    const res = await hermesApi<ProjectTreePayload>({
+    const res = await kovaApi<ProjectTreePayload>({
       path: `/api/profiles/projects/tree?preview_limit=${projectTreePreviewLimit()}`,
       timeoutMs: PROJECT_TREE_REQUEST_TIMEOUT_MS
     })

@@ -93,7 +93,7 @@ describe('hide-only strip tabs', () => {
     sessionsBotsTree()
     setStripTabHidden('kova-bots:pane', true)
 
-    const persisted = JSON.parse(window.localStorage.getItem('hermes.desktop.hiddenStripTabs.v1') ?? '[]')
+    const persisted = JSON.parse(window.localStorage.getItem('kova.desktop.hiddenStripTabs.v1') ?? '[]')
 
     expect(persisted).toContain('kova-bots:pane')
 
@@ -102,7 +102,7 @@ describe('hide-only strip tabs', () => {
     // next launch while visibly on screen now.
     revealTreePane('kova-bots:pane')
     expect($hiddenTreePanes.get()).not.toContain('kova-bots:pane')
-    expect(window.localStorage.getItem('hermes.desktop.hiddenStripTabs.v1')).toBeNull()
+    expect(window.localStorage.getItem('kova.desktop.hiddenStripTabs.v1')).toBeNull()
   })
 
   it('lists the zone hide-only tabs with live hidden state for the menu', () => {

@@ -161,7 +161,7 @@ test('lineage: a real compression rotation is one sidebar row per conversation (
   try {
     await waitForInteractive(app, page)
     // Project grouping, as the sidebar's grouping menu persists it.
-    await page.evaluate(() => localStorage.setItem('hermes.desktop.agentsGroupedByWorkspace', 'true'))
+    await page.evaluate(() => localStorage.setItem('kova.desktop.agentsGroupedByWorkspace', 'true'))
     await page.reload()
     await waitForInteractive(app, page)
 

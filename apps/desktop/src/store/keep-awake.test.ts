@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { storedString, writeKey } from '@/lib/storage'
 
-const KEY = 'hermes.desktop.keepAwakeMode.v1'
-const LEGACY_KEY = 'hermes.desktop.keepAwake.v1'
+const KEY = 'kova.desktop.keepAwakeMode.v1'
+const LEGACY_KEY = 'kova.desktop.keepAwake.v1'
 const desktopWindow = window as unknown as { kovaDesktop?: Window['kovaDesktop'] }
 const initialKovaDesktop = desktopWindow.kovaDesktop
 const setKeepAwakeBridge = vi.fn()

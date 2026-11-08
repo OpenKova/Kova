@@ -11,7 +11,7 @@ vi.mock('@/kova', async importOriginal => {
     ...actual,
     getProfiles: vi.fn(async () => ({ profiles: [{ name: 'default' }] })),
     getStarmapGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
-    hermesApi: vi.fn(async () => ({ current: 'default', profiles: [{ name: 'default' }] })),
+    kovaApi: vi.fn(async () => ({ current: 'default', profiles: [{ name: 'default' }] })),
     KovaGateway: class {
       connectionState = 'closed'
       wsUrl = ''

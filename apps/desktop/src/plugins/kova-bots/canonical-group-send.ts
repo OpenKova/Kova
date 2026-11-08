@@ -2,7 +2,7 @@ import { randomUuid } from '@kova/plugin-sdk'
 
 import type { CanonicalGroupBinding } from './canonical-groups'
 
-const STORAGE_KEY = 'hermes.desktop.canonicalGroupSends.v1'
+const STORAGE_KEY = 'kova.desktop.canonicalGroupSends.v1'
 
 export interface PreparedCanonicalGroupSend {
   binding: CanonicalGroupBinding

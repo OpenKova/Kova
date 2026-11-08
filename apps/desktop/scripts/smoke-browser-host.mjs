@@ -233,7 +233,7 @@ const layoutExpression = `(async () => {
     await new Promise(resolve => setTimeout(resolve, 50))
     state = read()
   }
-  const activePreset = localStorage.getItem('hermes.desktop.layoutPreset.active')
+  const activePreset = localStorage.getItem('kova.desktop.layoutPreset.active')
   return {
     activePreset,
     ...state,

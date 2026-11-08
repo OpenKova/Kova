@@ -26,7 +26,7 @@ import {
 } from '@/store/real-profile-consent'
 import { $connection } from '@/store/session'
 
-import { hermesConfigCacheWriter, useKovaConfigRecord } from '../../hooks/use-config-record'
+import { kovaConfigCacheWriter, useKovaConfigRecord } from '../../hooks/use-config-record'
 
 interface RealProfileConsentDialogProps {
   /** The Browser tab this pane renders — used only to claim the prompt so
@@ -89,7 +89,7 @@ export function RealProfileConsentDialog({ tabId }: RealProfileConsentDialogProp
   const claim = useStore($realProfilePromptClaim)
   const connection = useStore($connection)
   const { data: config, writeScope } = useKovaConfigRecord()
-  const setConfig = hermesConfigCacheWriter()
+  const setConfig = kovaConfigCacheWriter()
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {

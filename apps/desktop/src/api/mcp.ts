@@ -1,6 +1,6 @@
 import type { McpCatalogResponse, McpServerSummary } from '@/types/kova'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
+import { capabilityScoped, kovaApi, type ProfileScope, profileScoped } from './client'
 
 export interface McpTestResult {
   ok: boolean
@@ -68,14 +68,14 @@ export function mcpOAuthRpc(scope?: ProfileScope) {
 // ---------------------------------------------------------------------------
 
 export function listMcpServers(): Promise<{ servers: McpServerSummary[] }> {
-  return hermesApi<{ servers: McpServerSummary[] }>({
+  return kovaApi<{ servers: McpServerSummary[] }>({
     ...profileScoped(),
     path: '/api/mcp/servers'
   })
 }
 
 export function setMcpServerEnabled(name: string, enabled: boolean): Promise<{ ok: boolean }> {
-  return hermesApi<{ ok: boolean }>({
+  return kovaApi<{ ok: boolean }>({
     ...profileScoped(),
     path: `/api/mcp/servers/${encodeURIComponent(name)}/enabled`,
     method: 'PUT',

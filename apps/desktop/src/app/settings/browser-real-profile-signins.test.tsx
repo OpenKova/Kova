@@ -51,7 +51,7 @@ vi.mock('@/store/notifications', () => ({
 }))
 
 vi.mock('../hooks/use-config-record', () => ({
-  hermesConfigCacheWriter: () => () => undefined,
+  kovaConfigCacheWriter: () => () => undefined,
   useKovaConfigRecord: () => ({ data: mocks.loadedConfig, writeScope: { profile: 'work' } })
 }))
 

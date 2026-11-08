@@ -24,9 +24,9 @@ import { DEFAULT_KEEP_AWAKE_MODE, type KeepAwakeMode, parseKeepAwakeMode } from 
 
 export type { KeepAwakeMode }
 
-const KEY = 'hermes.desktop.keepAwakeMode.v1'
+const KEY = 'kova.desktop.keepAwakeMode.v1'
 /** The boolean the toggle persisted before modes existed; read once to migrate. */
-const LEGACY_KEY = 'hermes.desktop.keepAwake.v1'
+const LEGACY_KEY = 'kova.desktop.keepAwake.v1'
 
 function initialKeepAwakeMode(): KeepAwakeMode {
   const stored = parseKeepAwakeMode(storedString(KEY))

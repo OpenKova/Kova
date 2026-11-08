@@ -9,7 +9,7 @@ import type {
   ModelInfoResponse
 } from '@/types/kova'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
+import { capabilityScoped, kovaApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
 
 // /api/model/info resolves the live context window, which probes the configured
 // provider's /models endpoint. An unreachable provider must not hold the Model
@@ -18,7 +18,7 @@ import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, STARTUP_
 const MODEL_INFO_REQUEST_TIMEOUT_MS = 5_000
 
 export function getGlobalModelInfo(profile?: null | string): Promise<ModelInfoResponse> {
-  return hermesApi<ModelInfoResponse>({
+  return kovaApi<ModelInfoResponse>({
     ...profileScoped(profile),
     path: '/api/model/info',
     timeoutMs: MODEL_INFO_REQUEST_TIMEOUT_MS
@@ -82,7 +82,7 @@ export function setGlobalModel(
   provider: string,
   model: string
 ): Promise<{ ok: boolean; provider: string; model: string }> {
-  return hermesApi<{ ok: boolean; provider: string; model: string }>({
+  return kovaApi<{ ok: boolean; provider: string; model: string }>({
     ...profileScoped(),
     path: '/api/model/set',
     method: 'POST',
@@ -95,14 +95,14 @@ export function setGlobalModel(
 }
 
 export function getAuxiliaryModels(profile?: null | string): Promise<AuxiliaryModelsResponse> {
-  return hermesApi<AuxiliaryModelsResponse>({
+  return kovaApi<AuxiliaryModelsResponse>({
     ...profileScoped(profile),
     path: '/api/model/auxiliary'
   })
 }
 
 export function getMoaModels(profile?: null | string): Promise<MoaConfigResponse> {
-  return hermesApi<MoaConfigResponse>({
+  return kovaApi<MoaConfigResponse>({
     ...profileScoped(profile),
     path: '/api/model/moa'
   })
@@ -112,7 +112,7 @@ export function saveMoaModels(
   body: MoaConfigResponse,
   profile?: null | string
 ): Promise<MoaConfigResponse & { ok: boolean }> {
-  return hermesApi<MoaConfigResponse & { ok: boolean }>({
+  return kovaApi<MoaConfigResponse & { ok: boolean }>({
     ...profileScoped(profile),
     path: '/api/model/moa',
     method: 'PUT',

@@ -46,7 +46,7 @@ import {
 import { onGatewayEvent } from '@/contrib/events'
 import { registry } from '@/contrib/registry'
 import type { WorkspaceMode } from '@/contrib/types'
-import { deleteProfile, getLogs, getStatus, hermesApi, type KovaGateway } from '@/kova'
+import { deleteProfile, getLogs, getStatus, kovaApi, type KovaGateway } from '@/kova'
 import { traceIdentityChange } from '@/lib/identity-trace'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
 import {
@@ -1454,7 +1454,7 @@ export const host = {
       profile
     })
 
-    return hermesApi<PaginatedSessions>({
+    return kovaApi<PaginatedSessions>({
       ...(route ? { connectionId: route.connectionId } : {}),
       path: `/api/profiles/sessions?${query.toString()}`,
       timeoutMs: 60_000
@@ -1486,12 +1486,12 @@ export const host = {
     return mutateSessionFenced(
       JSON.stringify([scope, options.sessionId, payload]),
       () =>
-        hermesApi<SessionMutationSnapshot>({
+        kovaApi<SessionMutationSnapshot>({
           ...scope,
           path: `${path}/mutation-snapshot?profile=${encodeURIComponent(profile)}`
         }),
       identity =>
-        hermesApi<{ ok: boolean; hidden: boolean }>({
+        kovaApi<{ ok: boolean; hidden: boolean }>({
           ...scope,
           path,
           method: 'PATCH',

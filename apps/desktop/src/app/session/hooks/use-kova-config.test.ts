@@ -31,7 +31,7 @@ vi.mock('@/kova', () => ({
   getKovaConfigDefaults: vi.fn().mockResolvedValue({})
 }))
 
-const WORKSPACE_CWD_KEY = 'hermes.desktop.workspace-cwd'
+const WORKSPACE_CWD_KEY = 'kova.desktop.workspace-cwd'
 
 const mockConfig = (config: Record<string, unknown>) =>
   vi.mocked(getKovaConfig).mockResolvedValue(config as Awaited<ReturnType<typeof getKovaConfig>>)

@@ -18,10 +18,10 @@ import type { AnnotatePin } from './stack'
  * active later.
  */
 
-export const PREVIEW_ANNOTATE_HANDOFF_CHANNEL = 'hermes.desktop.preview-annotate-handoff.v1'
-export const PREVIEW_ANNOTATE_WINDOW_ID_KEY = 'hermes.desktop.previewAnnotate.windowId'
+export const PREVIEW_ANNOTATE_HANDOFF_CHANNEL = 'kova.desktop.preview-annotate-handoff.v1'
+export const PREVIEW_ANNOTATE_WINDOW_ID_KEY = 'kova.desktop.previewAnnotate.windowId'
 
-const DESTINATION_PREFIX = 'hermes.desktop.previewAnnotate.destination.v1:'
+const DESTINATION_PREFIX = 'kova.desktop.previewAnnotate.destination.v1:'
 const DESTINATION_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
 export interface PreviewAnnotateComposerDestination {

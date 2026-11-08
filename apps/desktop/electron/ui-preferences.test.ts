@@ -105,7 +105,7 @@ test('concurrent native and Webapp writers keep every key the other wrote', asyn
   const pyWrites = `
 from kova_cli.ui_preferences import write_preferences
 for n in range(25):
-    write_preferences({f"hermes.desktop.py{n}": "web"})
+    write_preferences({f"kova.desktop.py{n}": "web"})
 `
 
   const pythonRun = promisify(execFile)(python, ['-c', pyWrites], { cwd: repo, env: pythonEnv(home, root) })
@@ -151,7 +151,7 @@ test.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
   async () => {
     const home = scratchHome()
     const file = uiPreferencesPath(home)
-    await writeUiPreferences(file, { values: { 'hermes-desktop-theme-v2': 'nous', 'hermes.desktop.keybinds': '{}' } })
+    await writeUiPreferences(file, { values: { 'hermes-desktop-theme-v2': 'nous', 'kova.desktop.keybinds': '{}' } })
     const before = fs.readFileSync(file, 'utf8')
     fs.chmodSync(file, 0)
 

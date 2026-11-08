@@ -238,7 +238,7 @@ def _update_refused(error: str, message: str, update_command: str) -> dict[str, 
     }
 
 
-@router.post("/api/hermes/update")
+@router.post("/api/kova/update")
 async def update_hermes():
     """Kick off ``kova update`` in the background."""
     if is_commit_build(_server_path("PROJECT_ROOT")):
@@ -286,7 +286,7 @@ def _source_release_label(status: dict[str, Any]) -> str:
     return f"{status.get('channel') or 'stable'} release" + (f" v{version}" if version else "")
 
 
-@router.get("/api/hermes/update/check")
+@router.get("/api/kova/update/check")
 async def check_hermes_update(force: bool = False, profile: Optional[str] = None):
     """Report whether a Kova update is available, without applying it.
 
@@ -488,7 +488,7 @@ def _latest_update_receipt_summary(action_id: Optional[str] = None) -> Optional[
         return None
 
 
-@status_router.get("/api/hermes/update/receipt")
+@status_router.get("/api/kova/update/receipt")
 async def get_update_receipt():
     """The FULL latest update receipt (steps, skips, gateway restart outcome, fleet
     matrix) plus a compact ``summary``; 404 when no update has run since receipts landed.

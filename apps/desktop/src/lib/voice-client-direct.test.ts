@@ -61,7 +61,7 @@ describe('fetchVoiceClientConfig', () => {
     const request = api.mock.calls[0][0] as { connectionId?: string; path: string; profile?: string }
     expect(request.path).toBe('/api/audio/voice-config')
     expect(request.profile).toBe('research')
-    // hermesApi carries the ambient registry connection tag — the config
+    // kovaApi carries the ambient registry connection tag — the config
     // must come from the backend the user is talking to.
     expect(request.connectionId).toBe('gw-remote')
   })
